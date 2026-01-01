@@ -490,41 +490,41 @@ export default function RuntimeFleetPage() {
         <div className="bg-beige-primary">
           <div className="grid grid-cols-5 divide-x divide-border-light">
             <div className="p-4">
-              <div className="text-xs font-medium text-gray-600 mb-1">Total Devices</div>
-              <div className="text-lg font-bold text-gray-900">{fleetMetrics.totalDevices}</div>
+              <div className="text-[9px] font-medium text-gray-600 mb-1">Total Devices</div>
+              <div className="text-sm font-bold text-gray-900">{fleetMetrics.totalDevices}</div>
               <div className="flex gap-2 mt-1">
-                <span className="text-[0.65rem] text-gray-600">{fleetMetrics.onlineDevices} online</span>
-                <span className="text-[0.65rem] text-gray-400">•</span>
-                <span className="text-[0.65rem] text-gray-600">{fleetMetrics.offlineDevices} offline</span>
+                <span className="text-[7px] text-gray-600">{fleetMetrics.onlineDevices} online</span>
+                <span className="text-[7px] text-gray-400">•</span>
+                <span className="text-[7px] text-gray-600">{fleetMetrics.offlineDevices} offline</span>
               </div>
             </div>
             <div className="p-4">
-              <div className="text-xs font-medium text-gray-600 mb-1">Overall Health</div>
-              <div className="text-lg font-bold text-gray-900 capitalize">{fleetMetrics.overallHealth}</div>
+              <div className="text-[9px] font-medium text-gray-600 mb-1">Overall Health</div>
+              <div className="text-sm font-bold text-gray-900 capitalize">{fleetMetrics.overallHealth}</div>
               <div className="flex gap-2 mt-1">
-                <span className="text-[0.65rem] text-gray-600">{fleetMetrics.healthyDevices} healthy</span>
+                <span className="text-[7px] text-gray-600">{fleetMetrics.healthyDevices} healthy</span>
                 {fleetMetrics.degradedDevices > 0 && (
                   <>
-                    <span className="text-[0.65rem] text-gray-400">•</span>
-                    <span className="text-[0.65rem] text-yellow-600">{fleetMetrics.degradedDevices} degraded</span>
+                    <span className="text-[7px] text-gray-400">•</span>
+                    <span className="text-[7px] text-yellow-600">{fleetMetrics.degradedDevices} degraded</span>
                   </>
                 )}
               </div>
             </div>
             <div className="p-4">
-              <div className="text-xs font-medium text-gray-600 mb-1">Avg Latency</div>
-              <div className="text-lg font-bold text-gray-900">{fleetMetrics.avgLatency}ms</div>
-              <p className="text-[0.65rem] text-gray-600 mt-1">Fleet-wide average</p>
+              <div className="text-[9px] font-medium text-gray-600 mb-1">Avg Latency</div>
+              <div className="text-sm font-bold text-gray-900">{fleetMetrics.avgLatency}ms</div>
+              <p className="text-[7px] text-gray-600 mt-1">Fleet-wide average</p>
             </div>
             <div className="p-4">
-              <div className="text-xs font-medium text-gray-600 mb-1">Tokens (24h)</div>
-              <div className="text-lg font-bold text-gray-900">{fleetMetrics.totalTokens.toLocaleString()}</div>
-              <p className="text-[0.65rem] text-gray-600 mt-1">Total processed</p>
+              <div className="text-[9px] font-medium text-gray-600 mb-1">Tokens (24h)</div>
+              <div className="text-sm font-bold text-gray-900">{fleetMetrics.totalTokens.toLocaleString()}</div>
+              <p className="text-[7px] text-gray-600 mt-1">Total processed</p>
             </div>
             <div className="p-4">
-              <div className="text-xs font-medium text-gray-600 mb-1">Fallback Events</div>
-              <div className="text-lg font-bold text-gray-900">{fleetMetrics.fallbackEvents}</div>
-              <p className="text-[0.65rem] text-gray-600 mt-1">Last 24 hours</p>
+              <div className="text-[9px] font-medium text-gray-600 mb-1">Fallback Events</div>
+              <div className="text-sm font-bold text-gray-900">{fleetMetrics.fallbackEvents}</div>
+              <p className="text-[7px] text-gray-600 mt-1">Last 24 hours</p>
             </div>
           </div>
         </div>
@@ -540,37 +540,37 @@ export default function RuntimeFleetPage() {
               <div className="p-3 bg-beige-primary rounded-lg border border-border-light">
                 <div className="flex items-center gap-2 mb-1">
                   <CheckCircle className="h-3.5 w-3.5 text-green-600" />
-                  <div className="text-[9px] text-gray-600">Online Devices</div>
+                  <div className="text-[8px] text-gray-600">Online Devices</div>
                 </div>
-                <div className="text-sm font-semibold text-gray-900">{fleetMetrics.onlineDevices}</div>
-                <div className="text-[9px] text-gray-600 mt-0.5">Active and responding</div>
+                <div className="text-xs font-semibold text-gray-900">{fleetMetrics.onlineDevices}</div>
+                <div className="text-[7px] text-gray-600 mt-0.5">Active and responding</div>
               </div>
 
               <div className="p-3 bg-beige-primary rounded-lg border border-border-light">
                 <div className="flex items-center gap-2 mb-1">
                   <XCircle className="h-3.5 w-3.5 text-gray-600" />
-                  <div className="text-[9px] text-gray-600">Offline Devices</div>
+                  <div className="text-[8px] text-gray-600">Offline Devices</div>
                 </div>
-                <div className="text-sm font-semibold text-gray-900">{fleetMetrics.offlineDevices}</div>
-                <div className="text-[9px] text-gray-600 mt-0.5">No recent heartbeat</div>
+                <div className="text-xs font-semibold text-gray-900">{fleetMetrics.offlineDevices}</div>
+                <div className="text-[7px] text-gray-600 mt-0.5">No recent heartbeat</div>
               </div>
 
               <div className="p-3 bg-beige-primary rounded-lg border border-border-light">
                 <div className="flex items-center gap-2 mb-1">
                   <AlertTriangle className="h-3.5 w-3.5 text-yellow-600" />
-                  <div className="text-[9px] text-gray-600">Degraded Devices</div>
+                  <div className="text-[8px] text-gray-600">Degraded Devices</div>
                 </div>
-                <div className="text-sm font-semibold text-gray-900">{fleetMetrics.degradedDevices}</div>
-                <div className="text-[9px] text-gray-600 mt-0.5">Performance issues</div>
+                <div className="text-xs font-semibold text-gray-900">{fleetMetrics.degradedDevices}</div>
+                <div className="text-[7px] text-gray-600 mt-0.5">Performance issues</div>
               </div>
 
               <div className="p-3 bg-beige-primary rounded-lg border border-border-light">
                 <div className="flex items-center gap-2 mb-1">
                   <Signal className="h-3.5 w-3.5 text-gray-900" />
-                  <div className="text-[9px] text-gray-600">Swarm Status</div>
+                  <div className="text-[8px] text-gray-600">Swarm Status</div>
                 </div>
-                <div className="text-sm font-semibold text-gray-900">N/A</div>
-                <div className="text-[9px] text-gray-600 mt-0.5">No active swarms</div>
+                <div className="text-xs font-semibold text-gray-900">N/A</div>
+                <div className="text-[7px] text-gray-600 mt-0.5">No active swarms</div>
               </div>
             </div>
           </CardContent>
@@ -586,19 +586,19 @@ export default function RuntimeFleetPage() {
             <div className="flex flex-wrap gap-2">
               <Button
                 variant="outline"
-                className="flex items-center gap-1.5 text-[9px] h-auto py-0.5 px-2"
+                className="flex items-center gap-1.5 text-[9px] h-auto py-0.5 px-2 rounded-none"
                 onClick={() => setShowAddInstanceModal(true)}
               >
                 <Plus className="h-2.5 w-2.5" />
                 Add New Runtime Instance
               </Button>
-              <Button variant="outline" className="flex items-center gap-1.5 text-[9px] h-auto py-0.5 px-2">
+              <Button variant="outline" className="flex items-center gap-1.5 text-[9px] h-auto py-0.5 px-2 rounded-none">
                 <Send className="h-2.5 w-2.5" />
                 Push Global Config
               </Button>
               <Button
                 variant="outline"
-                className="flex items-center gap-1.5 text-[9px] h-auto py-0.5 px-2"
+                className="flex items-center gap-1.5 text-[9px] h-auto py-0.5 px-2 rounded-none"
                 onClick={() => setShowFleetSettings(true)}
               >
                 <Settings className="h-2.5 w-2.5" />
@@ -873,24 +873,24 @@ export default function RuntimeFleetPage() {
           <CardContent>
             <div className="grid grid-cols-2 md:grid-cols-4 gap-4">
               <div className="p-3 bg-beige-primary rounded-lg border border-border-light">
-                <div className="text-[9px] text-gray-600 mb-1">Last Sync</div>
-                <div className="text-xs font-medium text-gray-900">2 mins ago</div>
-                <div className="text-[9px] text-gray-600 mt-0.5">All instances synced</div>
+                <div className="text-[8px] text-gray-600 mb-1">Last Sync</div>
+                <div className="text-[10px] font-medium text-gray-900">2 mins ago</div>
+                <div className="text-[7px] text-gray-600 mt-0.5">All instances synced</div>
               </div>
               <div className="p-3 bg-beige-primary rounded-lg border border-border-light">
-                <div className="text-[9px] text-gray-600 mb-1">TTL Remaining</div>
-                <div className="text-xs font-medium text-gray-900">4h 23m</div>
-                <div className="text-[9px] text-gray-600 mt-0.5">Next refresh: 6h</div>
+                <div className="text-[8px] text-gray-600 mb-1">TTL Remaining</div>
+                <div className="text-[10px] font-medium text-gray-900">4h 23m</div>
+                <div className="text-[7px] text-gray-600 mt-0.5">Next refresh: 6h</div>
               </div>
               <div className="p-3 bg-beige-primary rounded-lg border border-border-light">
-                <div className="text-[9px] text-gray-600 mb-1">Avg Hit Rate</div>
-                <div className="text-xs font-medium text-gray-900">87.3%</div>
-                <div className="text-[9px] text-gray-600 mt-0.5">Across all instances</div>
+                <div className="text-[8px] text-gray-600 mb-1">Avg Hit Rate</div>
+                <div className="text-[10px] font-medium text-gray-900">87.3%</div>
+                <div className="text-[7px] text-gray-600 mt-0.5">Across all instances</div>
               </div>
               <div className="p-3 bg-beige-primary rounded-lg border border-border-light">
-                <div className="text-[9px] text-gray-600 mb-1">Fallback Events</div>
-                <div className="text-xs font-medium text-gray-900">{fleetMetrics.fallbackEvents}</div>
-                <div className="text-[9px] text-gray-600 mt-0.5">Using cache (24h)</div>
+                <div className="text-[8px] text-gray-600 mb-1">Fallback Events</div>
+                <div className="text-[10px] font-medium text-gray-900">{fleetMetrics.fallbackEvents}</div>
+                <div className="text-[7px] text-gray-600 mt-0.5">Using cache (24h)</div>
               </div>
             </div>
             <div className="mt-3 p-3 border border-border-light rounded-lg">

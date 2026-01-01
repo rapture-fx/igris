@@ -3,6 +3,7 @@
 export const dynamic = 'force-dynamic';
 
 import { useState } from 'react';
+import { useRouter } from 'next/navigation';
 import { DashboardLayout } from '@/components/layout/DashboardLayout';
 import { Card, CardContent, CardDescription, CardHeader, CardTitle } from '@/components/ui/card';
 import { Button } from '@/components/ui/button';
@@ -26,6 +27,7 @@ interface DeviceDetail {
 }
 
 export default function RuntimeDevicesPage() {
+  const router = useRouter();
   const [devices] = useState<DeviceDetail[]>([
     {
       id: 'dev-us-east-001',
@@ -210,13 +212,18 @@ export default function RuntimeDevicesPage() {
                   </div>
 
                   <div className="flex gap-2">
-                    <Button variant="outline" size="sm" className="text-xs px-2 py-1" onClick={() => setSelectedDevice(device)}>
+                    <Button
+                      variant="outline"
+                      size="sm"
+                      className="text-xs px-2 py-1"
+                      onClick={() => router.push(`/dashboard/runtime/devices/${device.id}`)}
+                    >
                       <Eye className="h-3 w-3 mr-1" />
-                      View Logs
+                      View Details
                     </Button>
-                    <Button variant="outline" size="sm" className="text-xs px-2 py-1">
+                    <Button variant="outline" size="sm" className="text-xs px-2 py-1" onClick={() => setSelectedDevice(device)}>
                       <Terminal className="h-3 w-3 mr-1" />
-                      Shell
+                      Logs
                     </Button>
                     <Button variant="outline" size="sm" className="text-xs px-2 py-1">
                       <Settings className="h-3 w-3" />

@@ -9,7 +9,7 @@ import { Card, CardContent, CardDescription, CardHeader, CardTitle } from '@/com
 import { Button } from '@/components/ui/button';
 import { Badge } from '@/components/ui/badge';
 import { Input } from '@/components/ui/input';
-import { Select } from '@/components/ui/select';
+import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from '@/components/ui/select';
 import { Tabs, TabsContent, TabsList, TabsTrigger } from '@/components/ui/tabs';
 import { Sheet, SheetContent, SheetHeader, SheetTitle, SheetClose, SheetBody } from '@/components/ui/sheet';
 import { useTenant } from '@/hooks/useTenant';
@@ -887,34 +887,41 @@ export default function ObservabilityPage() {
               {/* Time Range Selector */}
               <Select
                 value={filters.timeRange}
-                onChange={(e) => setFilters({ ...filters, timeRange: e.target.value })}
-                className="w-32"
+                onValueChange={(value) => setFilters({ ...filters, timeRange: value })}
               >
-                <option value="1h">1 hour</option>
-                <option value="24h">24 hours</option>
-                <option value="7d">7 days</option>
-                <option value="30d">30 days</option>
-                <option value="90d">90 days</option>
+                <SelectTrigger className="w-32 text-xs">
+                  <SelectValue />
+                </SelectTrigger>
+                <SelectContent>
+                  <SelectItem value="1h">1 hour</SelectItem>
+                  <SelectItem value="24h">24 hours</SelectItem>
+                  <SelectItem value="7d">7 days</SelectItem>
+                  <SelectItem value="30d">30 days</SelectItem>
+                  <SelectItem value="90d">90 days</SelectItem>
+                </SelectContent>
               </Select>
 
               {/* Multi-Tenant Dropdown (Scale Only) */}
               {tier === 'scale' ? (
                 <Select
                   value={selectedTenant}
-                  onChange={(e) => setSelectedTenant(e.target.value)}
-                  className="w-48"
+                  onValueChange={(value) => setSelectedTenant(value)}
                 >
-                  {mockTenants.map((t) => (
-                    <option key={t.id} value={t.id}>{t.name}</option>
-                  ))}
+                  <SelectTrigger className="w-48 text-xs">
+                    <SelectValue />
+                  </SelectTrigger>
+                  <SelectContent>
+                    {mockTenants.map((t) => (
+                      <SelectItem key={t.id} value={t.id}>{t.name}</SelectItem>
+                    ))}
+                  </SelectContent>
                 </Select>
               ) : (
                 <div className="relative group">
-                  <Select
-                    disabled
-                    className="w-48 cursor-not-allowed opacity-60"
-                  >
-                    <option>All tenants</option>
+                  <Select disabled>
+                    <SelectTrigger className="w-48 cursor-not-allowed opacity-60 text-xs">
+                      <SelectValue placeholder="All tenants" />
+                    </SelectTrigger>
                   </Select>
                   <div className="absolute bottom-full left-0 mb-2 hidden group-hover:block w-64 bg-beige-primary border border-gray-200/20 rounded-lg p-3 z-50">
                     <p className="text-xs text-gray-600">
@@ -1155,53 +1162,69 @@ export default function ObservabilityPage() {
 
               {/* Provider */}
               <Select
-                value={filters.provider}
-                onChange={(e) => setFilters(prev => ({ ...prev, provider: e.target.value }))}
-                className="text-xs focus-visible:ring-0 focus-visible:ring-offset-0 focus:outline-none focus:border-border-light"
+                value={filters.provider || 'all'}
+                onValueChange={(value) => setFilters(prev => ({ ...prev, provider: value === 'all' ? '' : value }))}
               >
-                <option value="">All Providers</option>
-                <option value="OpenAI">OpenAI</option>
-                <option value="Anthropic">Anthropic</option>
-                <option value="Google">Google</option>
-                <option value="xAI">xAI</option>
+                <SelectTrigger className="text-xs focus-visible:ring-0 focus-visible:ring-offset-0 focus:outline-none focus:border-border-light">
+                  <SelectValue placeholder="All Providers" />
+                </SelectTrigger>
+                <SelectContent>
+                  <SelectItem value="all">All Providers</SelectItem>
+                  <SelectItem value="OpenAI">OpenAI</SelectItem>
+                  <SelectItem value="Anthropic">Anthropic</SelectItem>
+                  <SelectItem value="Google">Google</SelectItem>
+                  <SelectItem value="xAI">xAI</SelectItem>
+                </SelectContent>
               </Select>
 
               {/* Status */}
               <Select
-                value={filters.status}
-                onChange={(e) => setFilters(prev => ({ ...prev, status: e.target.value }))}
-                className="text-xs focus-visible:ring-0 focus-visible:ring-offset-0 focus:outline-none focus:border-border-light"
+                value={filters.status || 'all'}
+                onValueChange={(value) => setFilters(prev => ({ ...prev, status: value === 'all' ? '' : value }))}
               >
-                <option value="">All Status</option>
-                <option value="200">200 OK</option>
-                <option value="429">429 Rate Limit</option>
-                <option value="500">500 Error</option>
+                <SelectTrigger className="text-xs focus-visible:ring-0 focus-visible:ring-offset-0 focus:outline-none focus:border-border-light">
+                  <SelectValue placeholder="All Status" />
+                </SelectTrigger>
+                <SelectContent>
+                  <SelectItem value="all">All Status</SelectItem>
+                  <SelectItem value="200">200 OK</SelectItem>
+                  <SelectItem value="429">429 Rate Limit</SelectItem>
+                  <SelectItem value="500">500 Error</SelectItem>
+                </SelectContent>
               </Select>
 
               {/* Tag */}
               <Select
-                value={filters.tag || ''}
-                onChange={(e) => setFilters(prev => ({ ...prev, tag: e.target.value as RequestTag | '' }))}
-                className="text-xs focus-visible:ring-0 focus-visible:ring-offset-0 focus:outline-none focus:border-border-light"
+                value={filters.tag || 'all'}
+                onValueChange={(value) => setFilters(prev => ({ ...prev, tag: value === 'all' ? '' : value as RequestTag | '' }))}
               >
-                <option value="">All Tags</option>
-                <option value="expected">Expected</option>
-                <option value="bug">Bug</option>
-                <option value="reviewed">Reviewed</option>
-                <option value="golden">Golden</option>
-                <option value="spam">Spam</option>
+                <SelectTrigger className="text-xs focus-visible:ring-0 focus-visible:ring-offset-0 focus:outline-none focus:border-border-light">
+                  <SelectValue placeholder="All Tags" />
+                </SelectTrigger>
+                <SelectContent>
+                  <SelectItem value="all">All Tags</SelectItem>
+                  <SelectItem value="expected">Expected</SelectItem>
+                  <SelectItem value="bug">Bug</SelectItem>
+                  <SelectItem value="reviewed">Reviewed</SelectItem>
+                  <SelectItem value="golden">Golden</SelectItem>
+                  <SelectItem value="spam">Spam</SelectItem>
+                </SelectContent>
               </Select>
 
               {/* Time Range */}
               <Select
                 value={filters.timeRange}
-                onChange={(e) => setFilters(prev => ({ ...prev, timeRange: e.target.value }))}
-                className="text-xs focus-visible:ring-0 focus-visible:ring-offset-0 focus:outline-none focus:border-border-light"
+                onValueChange={(value) => setFilters(prev => ({ ...prev, timeRange: value }))}
               >
-                <option value="1h">Last Hour</option>
-                <option value="24h">Last 24h</option>
-                <option value="7d">Last 7 Days</option>
-                <option value="30d">Last 30 Days</option>
+                <SelectTrigger className="text-xs focus-visible:ring-0 focus-visible:ring-offset-0 focus:outline-none focus:border-border-light">
+                  <SelectValue placeholder="Time Range" />
+                </SelectTrigger>
+                <SelectContent>
+                  <SelectItem value="1h">Last Hour</SelectItem>
+                  <SelectItem value="24h">Last 24h</SelectItem>
+                  <SelectItem value="7d">Last 7 Days</SelectItem>
+                  <SelectItem value="30d">Last 30 Days</SelectItem>
+                </SelectContent>
               </Select>
             </div>
 
@@ -3008,16 +3031,20 @@ export default function ObservabilityPage() {
                 <div className="space-y-3 pt-4 border-t border-border-light">
                   <div className="flex gap-2">
                     <Select
-                      value={selectedTrace.tag || ''}
-                      onChange={(e) => handleTagTrace(selectedTrace, e.target.value as RequestTag)}
-                      className="flex-1"
+                      value={selectedTrace.tag || 'none'}
+                      onValueChange={(value) => handleTagTrace(selectedTrace, value === 'none' ? null : value as RequestTag)}
                     >
-                      <option value="">Tag as...</option>
-                      <option value="expected">Expected</option>
-                      <option value="bug">Bug</option>
-                      <option value="reviewed">Reviewed</option>
-                      <option value="golden">Golden</option>
-                      <option value="spam">Spam</option>
+                      <SelectTrigger className="flex-1 text-xs">
+                        <SelectValue placeholder="Tag as..." />
+                      </SelectTrigger>
+                      <SelectContent>
+                        <SelectItem value="none">No tag</SelectItem>
+                        <SelectItem value="expected">Expected</SelectItem>
+                        <SelectItem value="bug">Bug</SelectItem>
+                        <SelectItem value="reviewed">Reviewed</SelectItem>
+                        <SelectItem value="golden">Golden</SelectItem>
+                        <SelectItem value="spam">Spam</SelectItem>
+                      </SelectContent>
                     </Select>
                   </div>
 
