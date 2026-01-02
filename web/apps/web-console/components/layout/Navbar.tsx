@@ -71,7 +71,7 @@ export function Navbar({ onMenuClick }: NavbarProps) {
 
   return (
     <>
-    <nav className="fixed top-0 left-0 md:left-64 right-0 z-40 h-12 bg-beige-primary border-b border-border-light md:pl-12 md:pr-2">
+    <nav className="fixed top-0 left-0 md:left-64 right-0 z-40 h-12 bg-beige-primary md:pl-12 md:pr-2">
         <div className="h-full px-4 sm:px-6 lg:px-8 md:px-0">
           <div className="flex h-full items-center justify-between">
             {/* Left side - Menu button (mobile only) */}

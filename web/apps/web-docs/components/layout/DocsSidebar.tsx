@@ -400,7 +400,7 @@ export function DocsSidebar({ open = true, onClose }: DocsSidebarProps) {
       >
         <div className="flex h-full flex-col bg-beige-primary border-r border-border-light">
           {/* Logo Section */}
-          <div className="h-12 flex items-center px-7 border-b border-border-light">
+          <div className="h-12 flex items-center px-7">
             <a href={hubUrl} className="flex items-center">
               <img
                 src="/img/igris-logo-34.png"
