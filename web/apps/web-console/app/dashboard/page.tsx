@@ -426,7 +426,7 @@ export default function DashboardPage() {
   return (
     <DashboardLayout>
       <style>{hideScrollbarStyles}</style>
-      <div className="max-w-5xl mx-auto space-y-6">
+      <div className="max-w-7xl mx-auto space-y-6">
         {/* Header */}
         <div className="pb-4 border-b border-border-light">
           <h1 className="text-base font-medium text-gray-900 font-inter">
@@ -557,8 +557,8 @@ export default function DashboardPage() {
               <ResponsiveContainer width="100%" height={160}>
                 <LineChart data={requestsData}>
                   <CartesianGrid strokeDasharray="3 3" stroke="#e5e7eb" strokeWidth={0.5} />
-                  <XAxis dataKey="time" stroke="#6b7280" style={{ fontSize: '10px' }} />
-                  <YAxis stroke="#6b7280" style={{ fontSize: '10px' }} />
+                  <XAxis dataKey="time" stroke="#6b7280" style={{ fontSize: '8px' }} />
+                  <YAxis stroke="#6b7280" style={{ fontSize: '8px' }} />
                   <Tooltip
                     contentStyle={{
                       backgroundColor: '#f8f6f3',
@@ -571,7 +571,7 @@ export default function DashboardPage() {
                     type="monotone"
                     dataKey="requests"
                     stroke="#000000"
-                    strokeWidth={0.5}
+                    strokeWidth={0.3}
                     dot={false}
                     activeDot={{ r: 2.5, fill: "#000000" }}
                   />
@@ -592,8 +592,8 @@ export default function DashboardPage() {
               <ResponsiveContainer width="100%" height={160}>
                 <AreaChart data={latencyData}>
                   <CartesianGrid strokeDasharray="3 3" stroke="#e5e7eb" strokeWidth={0.5} />
-                  <XAxis dataKey="time" stroke="#6b7280" style={{ fontSize: '10px' }} />
-                  <YAxis stroke="#6b7280" style={{ fontSize: '10px' }} />
+                  <XAxis dataKey="time" stroke="#6b7280" style={{ fontSize: '8px' }} />
+                  <YAxis stroke="#6b7280" style={{ fontSize: '8px' }} />
                   <Tooltip
                     contentStyle={{
                       backgroundColor: '#f8f6f3',
@@ -606,7 +606,7 @@ export default function DashboardPage() {
                     type="monotone"
                     dataKey="latency"
                     stroke="#000000"
-                    strokeWidth={0.5}
+                    strokeWidth={0.3}
                     fill="#000000"
                     fillOpacity={0.1}
                   />
@@ -649,7 +649,7 @@ export default function DashboardPage() {
             <CardContent>
               <div className="space-y-3">
                 {providerUptime.map((item, i) => (
-                  <div key={i} className="flex items-center justify-between p-2 rounded-lg border border-border-light">
+                  <div key={i} className="flex items-center justify-between p-2 rounded-lg bg-beige-primary">
                     <span className="text-xs font-medium text-gray-900">{item.provider}</span>
                     <div className="flex items-center gap-2">
                       <span className="text-xs text-gray-600">{item.uptime}</span>
@@ -664,8 +664,78 @@ export default function DashboardPage() {
           </Card>
         </div>
 
+        {/* Recent Activity */}
+        <Card className="bg-transparent shadow-none border-0">
+          <CardHeader>
+            <div className="flex items-center justify-between">
+              <div>
+                <CardTitle className="text-sm">Recent Activity</CardTitle>
+                <CardDescription className="text-xs">Events from Overture, Runtime, and Agents</CardDescription>
+              </div>
+              <Button variant="ghost" size="sm" onClick={() => router.push('/dashboard/observability')}>
+                View All
+                <ArrowRight className="h-4 w-4 ml-2" />
+              </Button>
+            </div>
+          </CardHeader>
+          <CardContent className="p-4">
+            <div className="overflow-auto max-h-96 hide-scrollbar">
+              <div className="space-y-3">
+                {recentActivity.slice(0, 5).map((activity) => {
+                const typeConfig = {
+                  alert: { bg: 'bg-red-50', text: 'text-red-700', border: 'border-red-200', icon: XCircle },
+                  warning: { bg: 'bg-yellow-50', text: 'text-yellow-700', border: 'border-yellow-200', icon: AlertCircleIcon },
+                  success: { bg: 'bg-green-50', text: 'text-green-700', border: 'border-green-200', icon: CheckCircle },
+                  info: { bg: 'bg-blue-50', text: 'text-blue-700', border: 'border-blue-200', icon: AlertCircleIcon },
+                };
+                const config = typeConfig[activity.type];
+                const Icon = config.icon;
+
+                const categoryConfig = {
+                  overture: { label: 'Overture', color: 'bg-purple-100 text-purple-700' },
+                  runtime: { label: 'Runtime', color: 'bg-blue-100 text-blue-700' },
+                  agents: { label: 'Agents', color: 'bg-green-100 text-green-700' },
+                  system: { label: 'System', color: 'bg-gray-100 text-gray-700' },
+                };
+                const categoryStyle = categoryConfig[activity.category];
+
+                return (
+                  <div
+                    key={activity.id}
+                    className="p-3 rounded-lg bg-beige-primary"
+                  >
+                    <div className="flex items-start gap-2">
+                      <Icon className="h-4 w-4 text-gray-900 flex-shrink-0 mt-0.5" />
+                      <div className="flex-1 min-w-0">
+                        <div className="flex items-center gap-2 mb-1">
+                          <h4 className="text-xs font-medium text-gray-900 font-inter">
+                            {activity.title}
+                          </h4>
+                          <Badge className={`${categoryStyle.color} border text-[0.65rem]`}>
+                            {categoryStyle.label}
+                          </Badge>
+                        </div>
+                        <p className="text-[0.65rem] text-gray-900 opacity-90">
+                          {activity.description}
+                        </p>
+                        <div className="flex items-center gap-1.5 mt-1.5">
+                          <Clock className="h-3 w-3 text-gray-600" />
+                          <span className="text-[0.65rem] text-gray-600">
+                            {formatDateTime(activity.timestamp)}
+                          </span>
+                        </div>
+                      </div>
+                    </div>
+                  </div>
+                );
+              })}
+              </div>
+            </div>
+          </CardContent>
+        </Card>
+
         {/* System Health Panel */}
-        <Card className="border-border-light shadow-sm">
+        <Card className="bg-transparent shadow-none border-0">
           <CardHeader>
             <div className="flex items-center justify-between">
               <div className="flex items-center gap-2">
@@ -691,10 +761,10 @@ export default function DashboardPage() {
                 <div className="flex items-start gap-3">
                   <AlertTriangle className="h-5 w-5 text-gray-900 flex-shrink-0 mt-0.5" />
                   <div className="flex-1">
-                    <h3 className="text-sm font-medium text-gray-900 font-inter">
+                    <h3 className="text-xs font-medium text-gray-900 font-inter">
                       System Operating in Degraded Mode
                     </h3>
-                    <p className="text-sm text-gray-900 mt-1">
+                    <p className="text-xs text-gray-900 mt-1">
                       {systemHealth.degraded_reason || 'One or more providers experiencing issues. Requests are being routed to healthy alternatives.'}
                     </p>
                   </div>
@@ -818,76 +888,6 @@ export default function DashboardPage() {
                   ))}
                 </div>
               )}
-            </div>
-          </CardContent>
-        </Card>
-
-        {/* Recent Activity */}
-        <Card className="border-border-light shadow-sm">
-          <CardHeader>
-            <div className="flex items-center justify-between">
-              <div>
-                <CardTitle className="text-sm">Recent Activity</CardTitle>
-                <CardDescription className="text-xs">Events from Overture, Runtime, and Agents</CardDescription>
-              </div>
-              <Button variant="ghost" size="sm" onClick={() => router.push('/dashboard/observability')}>
-                View All
-                <ArrowRight className="h-4 w-4 ml-2" />
-              </Button>
-            </div>
-          </CardHeader>
-          <CardContent className="p-4">
-            <div className="overflow-auto max-h-96 hide-scrollbar">
-              <div className="space-y-3">
-                {recentActivity.slice(0, 5).map((activity) => {
-                const typeConfig = {
-                  alert: { bg: 'bg-red-50', text: 'text-red-700', border: 'border-red-200', icon: XCircle },
-                  warning: { bg: 'bg-yellow-50', text: 'text-yellow-700', border: 'border-yellow-200', icon: AlertCircleIcon },
-                  success: { bg: 'bg-green-50', text: 'text-green-700', border: 'border-green-200', icon: CheckCircle },
-                  info: { bg: 'bg-blue-50', text: 'text-blue-700', border: 'border-blue-200', icon: AlertCircleIcon },
-                };
-                const config = typeConfig[activity.type];
-                const Icon = config.icon;
-
-                const categoryConfig = {
-                  overture: { label: 'Overture', color: 'bg-purple-100 text-purple-700' },
-                  runtime: { label: 'Runtime', color: 'bg-blue-100 text-blue-700' },
-                  agents: { label: 'Agents', color: 'bg-green-100 text-green-700' },
-                  system: { label: 'System', color: 'bg-gray-100 text-gray-700' },
-                };
-                const categoryStyle = categoryConfig[activity.category];
-
-                return (
-                  <div
-                    key={activity.id}
-                    className="p-3 rounded-lg border border-border-light bg-beige-primary"
-                  >
-                    <div className="flex items-start gap-2">
-                      <Icon className="h-4 w-4 text-gray-900 flex-shrink-0 mt-0.5" />
-                      <div className="flex-1 min-w-0">
-                        <div className="flex items-center gap-2 mb-1">
-                          <h4 className="text-xs font-medium text-gray-900 font-inter">
-                            {activity.title}
-                          </h4>
-                          <Badge className={`${categoryStyle.color} border text-[0.65rem]`}>
-                            {categoryStyle.label}
-                          </Badge>
-                        </div>
-                        <p className="text-[0.65rem] text-gray-900 opacity-90">
-                          {activity.description}
-                        </p>
-                        <div className="flex items-center gap-1.5 mt-1.5">
-                          <Clock className="h-3 w-3 text-gray-600" />
-                          <span className="text-[0.65rem] text-gray-600">
-                            {formatDateTime(activity.timestamp)}
-                          </span>
-                        </div>
-                      </div>
-                    </div>
-                  </div>
-                );
-              })}
-              </div>
             </div>
           </CardContent>
         </Card>
