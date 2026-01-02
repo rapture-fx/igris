@@ -98,7 +98,7 @@ export default function UsagePage() {
 
   return (
     <DashboardLayout>
-      <div className="max-w-5xl mx-auto space-y-6">
+      <div className="max-w-7xl mx-auto space-y-6">
         {/* Header */}
         <div className="flex items-center justify-between">
           <div className="pb-4 border-b border-border-light">
@@ -110,12 +110,12 @@ export default function UsagePage() {
             </p>
           </div>
           <div className="flex gap-2">
-            <Button variant="outline" className="shadow-sm" onClick={handleExportCSV}>
-              <Download className="mr-2 h-4 w-4" />
+            <Button variant="outline" className="shadow-sm h-7 px-2.5 text-xs rounded-md" onClick={handleExportCSV}>
+              <Download className="mr-2 h-3 w-3" />
               Export CSV
             </Button>
-            <Button variant="outline" className="shadow-sm" onClick={handleExportJSON}>
-              <Download className="mr-2 h-4 w-4" />
+            <Button variant="outline" className="shadow-sm h-7 px-2.5 text-xs rounded-md" onClick={handleExportJSON}>
+              <Download className="mr-2 h-3 w-3" />
               Export JSON
             </Button>
           </div>
@@ -159,10 +159,10 @@ export default function UsagePage() {
 
         {/* Time Range Tabs */}
         <Tabs defaultValue="week" onValueChange={(v) => setTimeRange(v as any)}>
-          <TabsList>
-            <TabsTrigger value="day">Last 24 Hours</TabsTrigger>
-            <TabsTrigger value="week">Last 7 Days</TabsTrigger>
-            <TabsTrigger value="month">Last 30 Days</TabsTrigger>
+          <TabsList className="text-xs">
+            <TabsTrigger value="day" className="text-xs">Last 24 Hours</TabsTrigger>
+            <TabsTrigger value="week" className="text-xs">Last 7 Days</TabsTrigger>
+            <TabsTrigger value="month" className="text-xs">Last 30 Days</TabsTrigger>
           </TabsList>
 
           <TabsContent value={timeRange} className="space-y-6">
@@ -277,7 +277,7 @@ export default function UsagePage() {
                       <XAxis dataKey="provider" stroke="#6b7280" style={{ fontSize: '10px' }} />
                       <YAxis stroke="#6b7280" style={{ fontSize: '10px' }} />
                       <Tooltip contentStyle={{ fontSize: '11px' }} />
-                      <Bar dataKey="avg_latency" fill="url(#usage-bar-stripe)" stroke="#000" strokeWidth={1} radius={[8, 8, 0, 0]} />
+                      <Bar dataKey="avg_latency" fill="url(#usage-bar-stripe)" radius={[8, 8, 0, 0]} />
                     </BarChart>
                   </ResponsiveContainer>
                 </CardContent>
