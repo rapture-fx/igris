@@ -229,7 +229,7 @@ export function Sidebar({ open = true, onClose }: SidebarProps) {
       >
         <div className="flex h-full flex-col bg-beige-primary border-r border-border-light">
           {/* Logo Section */}
-          <div className="h-12 flex items-center px-7 border-b border-border-light">
+          <div className="h-12 flex items-center px-7">
             <Link href="/dashboard" className="flex items-center">
               <img
                 src="/schlep-logo-34.png"
