@@ -44,11 +44,8 @@ export default function Hero() {
             <div className="pt-8 mb-6">
               <div className="flex flex-col md:flex-row md:justify-between md:items-start gap-6">
                 <div className="text-left">
-                  <h1 className="text-3xl md:text-4xl lg:text-5xl font-medium text-[#111111] leading-[1.2]">
-                    Control and execution platform
-                  </h1>
-                  <h1 className="text-3xl md:text-4xl lg:text-5xl font-medium text-[#111111] leading-[1.2] mt-2">
-                    for production LLM systems.
+                  <h1 className="text-xl md:text-2xl lg:text-3xl font-medium text-[#111111] leading-[1.2]">
+                    Igris Inertial makes AI inference reliable — anywhere.
                   </h1>
                 </div>
                 <p className="text-sm md:text-sm text-gray-700 max-w-md leading-relaxed text-left">
@@ -60,8 +57,8 @@ export default function Hero() {
             <div className="flex justify-start gap-4 mb-6">
               <button
                 onClick={openEarlyAccessModal}
-                className="inline-flex items-center justify-center bg-black text-white px-3 py-1.5 md:px-6 md:py-3 rounded-md md:rounded-xl hover:opacity-90 transition-all duration-200 text-xs md:text-base shadow-sm md:shadow-md hover:shadow-lg font-inter"
-                style={{ minHeight: '36px' }}
+                className="inline-flex items-center justify-center bg-black text-white px-4 py-2 rounded-md hover:opacity-90 transition-all duration-200 text-sm shadow-sm hover:shadow-lg font-inter"
+                style={{ minHeight: '40px' }}
               >
                 Get Started
               </button>

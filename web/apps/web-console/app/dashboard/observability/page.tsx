@@ -963,7 +963,8 @@ export default function ObservabilityPage() {
                     </div>
                     <Button
                       variant="outline"
-                      className="shadow-sm text-gray-900 border-red-300 hover:bg-red-50"
+                      size="sm"
+                      className="shadow-sm text-xs text-gray-900 border-red-300 hover:bg-red-50"
                       onClick={handleDeleteAllTraces}
                     >
                       Delete All Traces
@@ -971,7 +972,8 @@ export default function ObservabilityPage() {
                   </div>
                   <Button
                     variant="outline"
-                    className="shadow-sm"
+                    size="sm"
+                    className="shadow-sm text-xs"
                     onClick={() => setEnableFullTracing(false)}
                   >
                     Disable Full Tracing

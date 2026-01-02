@@ -3,6 +3,7 @@
 export const dynamic = 'force-dynamic';
 
 import { useState, useEffect } from 'react';
+import { useUser } from '@clerk/nextjs';
 import { DashboardLayout } from '@/components/layout/DashboardLayout';
 import { Card, CardContent, CardDescription, CardHeader, CardTitle } from '@/components/ui/card';
 import { Button } from '@/components/ui/button';
@@ -10,7 +11,7 @@ import { Badge } from '@/components/ui/badge';
 import { useUsageSummary } from '@/hooks/useUsage';
 import { useTenant } from '@/hooks/useTenant';
 import { formatCurrency, formatNumber, formatLatency, formatDateTime } from '@/utils/helpers';
-import { DollarSign, Activity, Zap, TrendingUp, BarChart3, Clock, AlertTriangle, CheckCircle, XCircle, AlertCircle as AlertCircleIcon, Play, Server, Brain, Plus, Cpu, ArrowRight } from 'lucide-react';
+import { DollarSign, Activity, Zap, TrendingUp, BarChart3, Clock, AlertTriangle, CheckCircle, XCircle, AlertCircle as AlertCircleIcon, Play, Server, Brain, Plus, Cpu, ArrowRight, Sparkles } from 'lucide-react';
 import { LineChart, Line, AreaChart, Area, BarChart, Bar, XAxis, YAxis, CartesianGrid, Tooltip, ResponsiveContainer } from 'recharts';
 import { CHART_COLORS } from '@/utils/constants';
 import { useRouter } from 'next/navigation';
@@ -61,9 +62,14 @@ interface SystemHealth {
 }
 
 export default function DashboardPage() {
+  const { user } = useUser();
   const { data: summary, isLoading } = useUsageSummary();
   const { data: tenant } = useTenant();
   const router = useRouter();
+
+  // Get user intent from Clerk metadata
+  const userMetadata = user?.unsafeMetadata as { intent?: 'cloud' | 'edge' | 'hybrid'; onboardingCompleted?: boolean } | undefined;
+  const userIntent = userMetadata?.intent || 'hybrid';
 
   // Real data from APIs
   const [providerUptime, setProviderUptime] = useState<Array<{provider: string, uptime: string, status: string}>>([]);
@@ -427,13 +433,24 @@ export default function DashboardPage() {
     <DashboardLayout>
       <style>{hideScrollbarStyles}</style>
       <div className="max-w-7xl mx-auto space-y-6">
-        {/* Header */}
+        {/* Header with Personalized Welcome */}
         <div className="pb-4 border-b border-border-light">
-          <h1 className="text-base font-medium text-gray-900 font-inter">
-            Welcome back
-          </h1>
+          <div className="flex items-center justify-between mb-1">
+            <h1 className="text-base font-medium text-gray-900 font-inter">
+              Welcome back{user?.firstName ? `, ${user.firstName}` : ''}
+            </h1>
+            {userMetadata?.onboardingCompleted && (
+              <Badge className="bg-green-100 text-green-700 border-green-200 text-[0.65rem]">
+                {userIntent === 'cloud' && 'Cloud Mode'}
+                {userIntent === 'edge' && 'Edge Mode'}
+                {userIntent === 'hybrid' && 'Hybrid Mode'}
+              </Badge>
+            )}
+          </div>
           <p className="text-gray-600 mt-1 font-inter text-xs">
-            Overview of your AI infrastructure
+            {userIntent === 'cloud' && 'Your Overture cloud gateway overview'}
+            {userIntent === 'edge' && 'Your Runtime edge fleet overview'}
+            {userIntent === 'hybrid' && 'Your unified cloud + edge infrastructure'}
           </p>
         </div>
 
@@ -754,17 +771,17 @@ export default function DashboardPage() {
               Provider availability, latency metrics, and error rates
             </CardDescription>
           </CardHeader>
-          <CardContent className="p-4">
+          <CardContent className="p-2">
             {/* Degraded Mode Banner */}
             {systemHealth.degraded_mode && (
-              <div className="border border-border-light rounded-lg p-4 mb-4 bg-beige-primary">
-                <div className="flex items-start gap-3">
-                  <AlertTriangle className="h-5 w-5 text-gray-900 flex-shrink-0 mt-0.5" />
+              <div className="rounded-lg p-2.5 mb-2 bg-beige-primary">
+                <div className="flex items-start gap-2">
+                  <AlertTriangle className="h-4 w-4 text-gray-900 flex-shrink-0 mt-0.5" />
                   <div className="flex-1">
                     <h3 className="text-xs font-medium text-gray-900 font-inter">
                       System Operating in Degraded Mode
                     </h3>
-                    <p className="text-xs text-gray-900 mt-1">
+                    <p className="text-xs text-gray-900 mt-0.5">
                       {systemHealth.degraded_reason || 'One or more providers experiencing issues. Requests are being routed to healthy alternatives.'}
                     </p>
                   </div>
@@ -778,10 +795,10 @@ export default function DashboardPage() {
                   No provider health data available
                 </div>
               ) : (
-                <div className="space-y-4">
-                  {systemHealth.providers.map((provider) => (
-                  <div key={provider.provider} className="border border-border-light rounded-lg p-3 bg-beige-primary">
-                    <div className="flex items-center justify-between mb-2">
+                <div className="space-y-2">
+                  {systemHealth.providers.map((provider, index) => (
+                  <div key={provider.provider} className={`rounded-lg p-2 bg-beige-primary ${index > 0 ? 'border-t border-border-light pt-3' : ''}`}>
+                    <div className="flex items-center justify-between mb-1.5">
                       <div className="flex items-center gap-2">
                         <div className={`w-2 h-2 rounded-full ${
                           provider.status === 'operational' ? 'bg-green-500' :
@@ -805,7 +822,7 @@ export default function DashboardPage() {
                     </div>
 
                     {/* Simulation Button */}
-                    <div className="flex items-center justify-end mb-3">
+                    <div className="flex items-center justify-end mb-1.5">
                       <Button
                         variant="outline"
                         size="sm"
@@ -817,8 +834,8 @@ export default function DashboardPage() {
                       </Button>
                     </div>
 
-                    <div className="grid grid-cols-3 gap-3 mb-2">
-                      <div className="bg-beige-primary rounded-md p-2 border border-border-light">
+                    <div className="grid grid-cols-3 gap-2 mb-1.5">
+                      <div className="bg-beige-primary rounded-md p-1.5">
                         <div className="text-[0.65rem] text-gray-600 mb-0.5">Latency P99</div>
                         <div className={`text-xs font-medium ${
                           provider.latency_p99 > systemHealth.thresholds.latency_p99_critical ? 'text-red-600' :
@@ -828,7 +845,7 @@ export default function DashboardPage() {
                           {formatLatency(provider.latency_p99)}
                         </div>
                       </div>
-                      <div className="bg-beige-primary rounded-md p-2 border border-border-light">
+                      <div className="bg-beige-primary rounded-md p-1.5">
                         <div className="text-[0.65rem] text-gray-600 mb-0.5">Error Rate</div>
                         <div className={`text-xs font-medium ${
                           provider.error_rate > systemHealth.thresholds.error_rate_critical ? 'text-red-600' :
@@ -838,7 +855,7 @@ export default function DashboardPage() {
                           {provider.error_rate.toFixed(2)}%
                         </div>
                       </div>
-                      <div className="bg-beige-primary rounded-md p-2 border border-border-light">
+                      <div className="bg-beige-primary rounded-md p-1.5">
                         <div className="text-[0.65rem] text-gray-600 mb-0.5">Fallback Freq</div>
                         <div className="text-xs font-medium text-gray-900">
                           {provider.fallback_frequency.toFixed(1)}%
@@ -848,17 +865,17 @@ export default function DashboardPage() {
 
                     {provider.models && provider.models.length > 0 && (
                       <details className="group">
-                        <summary className="cursor-pointer text-xs text-gray-600 hover:text-gray-900 font-medium mb-2 list-none flex items-center gap-2">
+                        <summary className="cursor-pointer text-xs text-gray-600 hover:text-gray-900 font-medium mb-1 list-none flex items-center gap-2">
                           <span className="transition-transform group-open:rotate-90">▸</span>
                           Model & Region Health ({provider.models.length} models)
                         </summary>
-                        <div className="mt-2 space-y-2 pl-4">
+                        <div className="mt-1.5 space-y-1.5 pl-3">
                           {provider.models.map((model) => (
                             <div key={model.model} className="text-xs">
-                              <div className="font-medium text-gray-900 mb-1">{model.model}</div>
-                              <div className="grid grid-cols-2 gap-2">
+                              <div className="font-medium text-gray-900 mb-0.5">{model.model}</div>
+                              <div className="grid grid-cols-2 gap-1.5">
                                 {model.regions.map((region) => (
-                                  <div key={region.region} className="flex items-center justify-between bg-beige-primary rounded p-2 border border-border-light">
+                                  <div key={region.region} className="flex items-center justify-between bg-beige-primary rounded p-1.5">
                                     <div className="flex items-center gap-2">
                                       <div className={`w-1.5 h-1.5 rounded-full ${
                                         region.status === 'operational' ? 'bg-green-500' :
@@ -880,7 +897,7 @@ export default function DashboardPage() {
                     )}
 
                     {provider.last_incident && (
-                      <div className="mt-3 text-xs text-gray-600">
+                      <div className="mt-2 text-xs text-gray-600">
                         Last incident: {provider.last_incident}
                       </div>
                     )}
