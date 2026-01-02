@@ -2,10 +2,10 @@
 
 import { useState } from 'react';
 import { useRouter } from 'next/navigation';
+import { useClerk } from '@clerk/nextjs';
 import { Menu, Bell, LogOut, CreditCard, ChevronDown } from 'lucide-react';
 import { Button } from '@/components/ui/button';
 import { useTenant } from '@/hooks/useTenant';
-import { logout } from '@/lib/auth';
 import { getInitials } from '@/utils/helpers';
 import {
   Dialog,
@@ -31,6 +31,7 @@ interface Notification {
 
 export function Navbar({ onMenuClick }: NavbarProps) {
   const router = useRouter();
+  const { signOut } = useClerk();
   const { data: tenant } = useTenant();
   const [showNotifications, setShowNotifications] = useState(false);
   const [showProfileMenu, setShowProfileMenu] = useState(false);
@@ -65,8 +66,7 @@ export function Navbar({ onMenuClick }: NavbarProps) {
   const unreadCount = notifications.filter(n => !n.read).length;
 
   const handleLogout = async () => {
-    await logout();
-    router.push('/auth/login');
+    await signOut({ redirectUrl: '/auth' });
   };
 
   return (
@@ -228,10 +228,16 @@ export function Navbar({ onMenuClick }: NavbarProps) {
             <Button
               variant="outline"
               onClick={() => setShowLogoutDialog(false)}
+              className="w-20 h-8 text-xs rounded-md pl-6"
             >
               Cancel
             </Button>
-            <Button variant="destructive" onClick={handleLogout}>
+            <Button 
+              variant="destructive" 
+              onClick={handleLogout}
+              className="w-20 h-8 text-xs rounded-md"
+              style={{ backgroundColor: '#000000' }}
+            >
               Logout
             </Button>
           </DialogFooter>
