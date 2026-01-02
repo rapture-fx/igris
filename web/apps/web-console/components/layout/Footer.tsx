@@ -4,7 +4,7 @@ export function Footer() {
   const landingUrl = process.env.NEXT_PUBLIC_LANDING_URL || 'http://localhost:3000';
 
   return (
-    <footer className="fixed bottom-0 left-0 md:left-64 right-0 z-40 h-12 bg-beige-primary md:pl-2 md:pr-2 border-t border-border-light">
+    <footer className="fixed bottom-0 left-0 md:left-64 right-0 z-40 h-8 bg-beige-primary md:pl-2 md:pr-2 border-t border-border-light">
       <div className="h-full px-4 sm:px-6 lg:px-8">
         <div className="flex h-full items-center justify-end">
           <div className="flex items-center gap-6 text-xs text-gray-600">

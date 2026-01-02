@@ -1,8 +1,8 @@
 'use client';
 
-import { useState } from 'react';
+import { useState, useEffect, useRef } from 'react';
 import Link from 'next/link';
-import { usePathname } from 'next/navigation';
+import { usePathname, useRouter } from 'next/navigation';
 import { Home, KeyRound, Network, Settings, X, Activity, Eye, Wrench, FileText, Server, ChevronDown, DollarSign, Shield, Lightbulb, CloudCog, Cpu, Sliders, Radio, Zap, Brain, GraduationCap, Lock, Search, HelpCircle, ExternalLink, Mail, FileText as ChangeLogIcon, Activity as StatusIcon, BookOpen } from 'lucide-react';
 import { cn } from '@/utils/helpers';
 
@@ -175,9 +175,15 @@ const viewModes = [
 
 export function Sidebar({ open = true, onClose }: SidebarProps) {
   const pathname = usePathname();
+  const router = useRouter();
   const tier = 'scale'; // Temporarily default to 'scale' for development
   const [searchQuery, setSearchQuery] = useState('');
   const [showHelpMenu, setShowHelpMenu] = useState(false);
+  const [isSearchModalOpen, setIsSearchModalOpen] = useState(false);
+  const [showSearchResults, setShowSearchResults] = useState(false);
+  const [filteredResults, setFilteredResults] = useState<any[]>([]);
+  const [selectedIndex, setSelectedIndex] = useState(0);
+  const modalInputRef = useRef<HTMLInputElement>(null);
   const [expandedSections, setExpandedSections] = useState<Record<string, boolean>>({
     Overture: true,
     Runtime: true,
@@ -189,6 +195,93 @@ export function Sidebar({ open = true, onClose }: SidebarProps) {
       ...prev,
       [sectionName]: !prev[sectionName],
     }));
+  };
+
+  // Build search index from navigation
+  const searchIndex = navigation.flatMap(item => {
+    const items = [];
+    if (item.href) {
+      items.push({ title: item.name, path: item.href, keywords: item.name.toLowerCase() });
+    }
+    if (item.children) {
+      item.children.forEach(child => {
+        items.push({ title: `${item.name} > ${child.name}`, path: child.href!, keywords: `${item.name} ${child.name}`.toLowerCase() });
+      });
+    }
+    return items;
+  });
+
+  // Handle search
+  useEffect(() => {
+    if (searchQuery.trim().length > 0) {
+      const query = searchQuery.toLowerCase();
+      const results = searchIndex.filter(item =>
+        item.title.toLowerCase().includes(query) ||
+        item.keywords.includes(query)
+      );
+      setFilteredResults(results);
+      setShowSearchResults(true);
+      setSelectedIndex(0);
+    } else {
+      setFilteredResults([]);
+      setShowSearchResults(false);
+    }
+  }, [searchQuery]);
+
+  // Handle Ctrl+F / Cmd+F keyboard shortcut
+  useEffect(() => {
+    const handleKeyDown = (event: KeyboardEvent) => {
+      if ((event.ctrlKey || event.metaKey) && event.key === 'f') {
+        event.preventDefault();
+        setIsSearchModalOpen(true);
+      }
+      if (event.key === 'Escape' && isSearchModalOpen) {
+        setIsSearchModalOpen(false);
+        setSearchQuery('');
+        setShowSearchResults(false);
+      }
+    };
+
+    document.addEventListener('keydown', handleKeyDown);
+    return () => document.removeEventListener('keydown', handleKeyDown);
+  }, [isSearchModalOpen]);
+
+  // Focus modal input when modal opens
+  useEffect(() => {
+    if (isSearchModalOpen && modalInputRef.current) {
+      modalInputRef.current.focus();
+    }
+  }, [isSearchModalOpen]);
+
+  const handleResultClick = (path: string) => {
+    router.push(path);
+    setSearchQuery('');
+    setShowSearchResults(false);
+    setIsSearchModalOpen(false);
+    onClose?.();
+  };
+
+  const handleKeyDown = (e: React.KeyboardEvent) => {
+    if (!showSearchResults || filteredResults.length === 0) return;
+
+    switch (e.key) {
+      case 'ArrowDown':
+        e.preventDefault();
+        setSelectedIndex((prev) =>
+          prev < filteredResults.length - 1 ? prev + 1 : prev
+        );
+        break;
+      case 'ArrowUp':
+        e.preventDefault();
+        setSelectedIndex((prev) => (prev > 0 ? prev - 1 : prev));
+        break;
+      case 'Enter':
+        e.preventDefault();
+        if (filteredResults[selectedIndex]) {
+          handleResultClick(filteredResults[selectedIndex].path);
+        }
+        break;
+    }
   };
 
   // Filter navigation based on tier only (removed view mode filtering)
@@ -240,16 +333,19 @@ export function Sidebar({ open = true, onClose }: SidebarProps) {
           </div>
 
           {/* Search Bar */}
-          <div className="px-3 py-5">
+          <div className="px-4 py-5">
             <div className="relative">
               <Search className="absolute left-3 top-1/2 transform -translate-y-1/2 h-4 w-4 text-gray-400 pointer-events-none" />
               <input
                 type="text"
-                placeholder="Search..."
-                value={searchQuery}
-                onChange={(e) => setSearchQuery(e.target.value)}
-                className="w-full pl-9 pr-3 py-2 text-[0.75rem] border border-border-light rounded-lg outline-none bg-beige-primary focus:border-gray-300 transition-colors"
+                placeholder=""
+                readOnly
+                onClick={() => setIsSearchModalOpen(true)}
+                className="w-full pl-9 pr-16 py-2 text-[0.75rem] border border-border-light rounded-lg outline-none bg-beige-primary focus:border-gray-300 transition-colors cursor-pointer"
               />
+              <div className="absolute right-3 top-1/2 transform -translate-y-1/2 flex items-center gap-1 pointer-events-none">
+                <span className="text-xs font-medium text-gray-400">⌘ F</span>
+              </div>
             </div>
           </div>
 
@@ -351,10 +447,10 @@ export function Sidebar({ open = true, onClose }: SidebarProps) {
                     className="fixed inset-0 z-30"
                     onClick={() => setShowHelpMenu(false)}
                   />
-                  <div className="absolute bottom-full left-0 right-0 mb-2 z-40 bg-beige-primary border border-border-light rounded-lg shadow-lg p-2">
+                  <div className="absolute bottom-full left-0 right-0 mb-2 z-40 bg-beige-primary border border-border-light rounded-lg shadow-sm p-2">
                     {/* Docs Section */}
-                    <div className="px-2 py-1.5">
-                      <p className="text-[0.65rem] font-medium text-gray-600 mb-1.5">Documentation</p>
+                    <div className="py-1.5">
+                      <p className="text-[0.6rem] font-medium text-gray-600 mb-1.5 px-2">Documentation</p>
                       <a
                         href="https://docs.igrisinertial.com/overture"
                         target="_blank"
@@ -363,10 +459,10 @@ export function Sidebar({ open = true, onClose }: SidebarProps) {
                         onClick={() => setShowHelpMenu(false)}
                       >
                         <div className="flex items-center gap-2">
-                          <BookOpen className="h-3.5 w-3.5 text-gray-700" />
-                          <span className="text-xs font-inter text-gray-900">Overture Docs</span>
+                          <BookOpen className="h-3 w-3 text-gray-700" />
+                          <span className="text-[0.7rem] font-inter text-gray-900">Overture Docs</span>
                         </div>
-                        <ExternalLink className="h-2.5 w-2.5 text-gray-600" />
+                        <ExternalLink className="h-2 w-2 text-gray-600" />
                       </a>
                       <a
                         href="https://docs.igrisinertial.com/runtime"
@@ -376,10 +472,10 @@ export function Sidebar({ open = true, onClose }: SidebarProps) {
                         onClick={() => setShowHelpMenu(false)}
                       >
                         <div className="flex items-center gap-2">
-                          <BookOpen className="h-3.5 w-3.5 text-gray-700" />
-                          <span className="text-xs font-inter text-gray-900">Runtime Docs</span>
+                          <BookOpen className="h-3 w-3 text-gray-700" />
+                          <span className="text-[0.7rem] font-inter text-gray-900">Runtime Docs</span>
                         </div>
-                        <ExternalLink className="h-2.5 w-2.5 text-gray-600" />
+                        <ExternalLink className="h-2 w-2 text-gray-600" />
                       </a>
                     </div>
 
@@ -391,8 +487,8 @@ export function Sidebar({ open = true, onClose }: SidebarProps) {
                       className="flex items-center gap-2 w-full px-2 py-1.5 rounded-lg hover:bg-beige-secondary transition-colors text-left"
                       onClick={() => setShowHelpMenu(false)}
                     >
-                      <Mail className="h-3.5 w-3.5 text-gray-700" />
-                      <span className="text-xs font-inter text-gray-900">Contact Support</span>
+                      <Mail className="h-3 w-3 text-gray-700" />
+                      <span className="text-[0.7rem] font-inter text-gray-900">Contact Support</span>
                     </a>
 
                     {/* Change Log */}
@@ -404,10 +500,10 @@ export function Sidebar({ open = true, onClose }: SidebarProps) {
                       onClick={() => setShowHelpMenu(false)}
                     >
                       <div className="flex items-center gap-2">
-                        <ChangeLogIcon className="h-3.5 w-3.5 text-gray-700" />
-                        <span className="text-xs font-inter text-gray-900">Change Log</span>
+                        <ChangeLogIcon className="h-3 w-3 text-gray-700" />
+                        <span className="text-[0.7rem] font-inter text-gray-900">Change Log</span>
                       </div>
-                      <ExternalLink className="h-2.5 w-2.5 text-gray-600" />
+                      <ExternalLink className="h-2 w-2 text-gray-600" />
                     </a>
 
                     {/* System Status */}
@@ -419,10 +515,10 @@ export function Sidebar({ open = true, onClose }: SidebarProps) {
                       onClick={() => setShowHelpMenu(false)}
                     >
                       <div className="flex items-center gap-2">
-                        <StatusIcon className="h-3.5 w-3.5 text-gray-700" />
-                        <span className="text-xs font-inter text-gray-900">System Status</span>
+                        <StatusIcon className="h-3 w-3 text-gray-700" />
+                        <span className="text-[0.7rem] font-inter text-gray-900">System Status</span>
                       </div>
-                      <ExternalLink className="h-2.5 w-2.5 text-gray-600" />
+                      <ExternalLink className="h-2 w-2 text-gray-600" />
                     </a>
                   </div>
                 </>
@@ -431,14 +527,81 @@ export function Sidebar({ open = true, onClose }: SidebarProps) {
               {/* Help Button */}
               <button
                 onClick={() => setShowHelpMenu(!showHelpMenu)}
-                className="flex items-center justify-center w-10 h-10 rounded-full border border-border-light hover:bg-beige-secondary transition-colors"
+                className="flex items-center justify-center w-7 h-7 rounded-full border border-border-light hover:bg-beige-secondary transition-colors"
               >
-                <span className="text-gray-500 text-lg font-semibold">?</span>
+                <span className="text-gray-500 text-sm font-semibold">?</span>
               </button>
             </div>
           </div>
         </div>
       </aside>
+
+      {/* Search Modal */}
+      {isSearchModalOpen && (
+        <div className="fixed inset-0 z-50 flex items-start justify-center pt-20">
+          {/* Backdrop with blur */}
+          <div
+            className="absolute inset-0 bg-black/20 backdrop-blur-sm"
+            onClick={() => {
+              setIsSearchModalOpen(false);
+              setSearchQuery('');
+              setShowSearchResults(false);
+            }}
+          />
+
+          {/* Modal Content */}
+          <div className="relative w-full max-w-2xl mx-4">
+            <div className="bg-white rounded-xl shadow-2xl border border-gray-200 overflow-hidden p-1">
+              {/* Search Input */}
+              <div className="relative">
+                <Search className="absolute left-3 top-1/2 transform -translate-y-1/2 h-4 w-4 text-gray-400" />
+                <input
+                  ref={modalInputRef}
+                  type="text"
+                  placeholder="Search..."
+                  value={searchQuery}
+                  onChange={(e) => setSearchQuery(e.target.value)}
+                  onKeyDown={handleKeyDown}
+                  className="w-full pl-10 pr-4 py-2 text-sm outline-none rounded-lg border border-gray-200 focus:border-gray-300"
+                />
+              </div>
+
+              {/* Search Results */}
+              {showSearchResults && filteredResults.length > 0 && (
+                <div className="max-h-64 overflow-y-auto bg-gray-50 p-2 mt-2 rounded-lg">
+                  {filteredResults.map((result, index) => (
+                    <button
+                      key={result.path}
+                      onClick={() => handleResultClick(result.path)}
+                      className={`w-full px-3 py-2 transition-colors text-left flex items-start gap-2.5 border-b border-gray-100 last:border-b-0 ${index === selectedIndex ? 'bg-gray-100' : 'hover:bg-gray-50'
+                        }`}
+                    >
+                      <FileText className="h-4 w-4 text-gray-400 mt-0.5 flex-shrink-0" />
+                      <div className="flex-1 min-w-0">
+                        <div className="text-sm font-medium text-gray-900 mb-0.5">
+                          {result.title}
+                        </div>
+                        <div className="text-xs text-gray-500 truncate">
+                          {result.path}
+                        </div>
+                      </div>
+                    </button>
+                  ))}
+                </div>
+              )}
+
+              {/* No Results */}
+              {showSearchResults && searchQuery.length > 0 && filteredResults.length === 0 && (
+                <div className="p-4 text-center mt-2">
+                  <p className="text-sm text-gray-500">
+                    No results found for "{searchQuery}"
+                  </p>
+                </div>
+              )}
+            </div>
+          </div>
+        </div>
+      )}
     </>
   );
 }
