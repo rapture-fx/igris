@@ -2111,7 +2111,6 @@ export default function ObservabilityPage() {
                             <rect width="1" height="2" fill="#000000" />
                           </pattern>
                         </defs>
-                        <CartesianGrid strokeDasharray="3 3" stroke="#e5e7eb" />
                         <XAxis type="number" stroke="#6b7280" style={{ fontSize: '10px' }} />
                         <YAxis
                           type="category"
@@ -2129,7 +2128,7 @@ export default function ObservabilityPage() {
                             fontSize: '10px'
                           }}
                         />
-                        <Bar dataKey="spend" fill="url(#bar-stripe)" stroke="#000" strokeWidth={1} radius={[0, 4, 4, 0]} />
+                        <Bar dataKey="spend" fill="url(#bar-stripe)" radius={[0, 4, 4, 0]} />
                       </BarChart>
                     </ResponsiveContainer>
                     <div className="mt-4 space-y-2">
@@ -2296,7 +2295,7 @@ export default function ObservabilityPage() {
                 <h3 className="text-sm font-medium text-gray-900 mb-4">GPU Utilization & Top Cost Drivers</h3>
                 <div className="grid grid-cols-1 lg:grid-cols-2 gap-6">
                   {/* GPU/CPU Utilization Chart */}
-                  <div>
+                  <div className="p-4 bg-beige-primary rounded-lg border border-border-light">
                     <h4 className="text-xs font-medium text-gray-700 mb-3">Fleet Resource Utilization</h4>
                     <ResponsiveContainer width="100%" height={200}>
                       <BarChart data={runtimeFleetInstances.slice(0, 5)} layout="horizontal">
@@ -2309,7 +2308,6 @@ export default function ObservabilityPage() {
                             <rect width="1" height="2" fill="#666666" />
                           </pattern>
                         </defs>
-                        <CartesianGrid strokeDasharray="3 3" stroke="#e5e7eb" />
                         <XAxis dataKey="name" stroke="#6b7280" style={{ fontSize: '10px' }} />
                         <YAxis stroke="#6b7280" style={{ fontSize: '10px' }} />
                         <Tooltip
@@ -2320,14 +2318,14 @@ export default function ObservabilityPage() {
                             fontSize: '10px'
                           }}
                         />
-                        <Bar dataKey="cpu_usage" name="CPU %" fill="url(#cpu-stripe)" stroke="#000" strokeWidth={1} />
-                        <Bar dataKey="memory_usage" name="Memory %" fill="url(#memory-stripe)" stroke="#666" strokeWidth={1} />
+                        <Bar dataKey="cpu_usage" name="CPU %" fill="url(#cpu-stripe)" />
+                        <Bar dataKey="memory_usage" name="Memory %" fill="url(#memory-stripe)" />
                       </BarChart>
                     </ResponsiveContainer>
                   </div>
 
                   {/* Top Cost Drivers Table */}
-                  <div>
+                  <div className="p-4 bg-beige-primary rounded-lg border border-border-light">
                     <h4 className="text-xs font-medium text-gray-700 mb-3">Top Cost Drivers (by Requests)</h4>
                     <div className="space-y-2">
                       {runtimeFleetInstances
