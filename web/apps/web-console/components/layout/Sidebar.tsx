@@ -30,6 +30,13 @@ const navigation: NavigationItem[] = [
     modes: ['operator', 'architect', 'audit'] as ViewMode[],
   },
   {
+    name: 'Observability',
+    href: '/dashboard/observability',
+    icon: Activity,
+    minTier: 'growth',
+    modes: ['operator', 'audit'] as ViewMode[],
+  },
+  {
     name: 'Overture',
     icon: CloudCog,
     modes: ['operator', 'architect'] as ViewMode[],
@@ -139,13 +146,6 @@ const navigation: NavigationItem[] = [
         modes: ['architect'] as ViewMode[],
       },
     ],
-  },
-  {
-    name: 'Observability',
-    href: '/dashboard/observability',
-    icon: Activity,
-    minTier: 'growth',
-    modes: ['operator', 'audit'] as ViewMode[],
   },
   {
     name: 'Settings',
