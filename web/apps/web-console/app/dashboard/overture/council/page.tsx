@@ -166,66 +166,44 @@ export default function CouncilModePage() {
           </p>
         </div>
 
-        {/* Overview Cards */}
-        <div className="grid gap-4 md:grid-cols-5">
-          <Card className="border-border-light shadow-sm">
-            <CardHeader className="flex flex-row items-center justify-between pb-2">
-              <CardTitle className="text-xs font-medium text-gray-600">Status</CardTitle>
-              <Settings className="h-4 w-4 text-gray-900" />
-            </CardHeader>
-            <CardContent>
-              <Badge className={status?.enabled ? 'bg-green-50 text-green-700 border border-green-200' : 'bg-gray-50 text-gray-700 border'}>
-                {status?.enabled ? <CheckCircle className="h-3 w-3 mr-1" /> : <XCircle className="h-3 w-3 mr-1" />}
-                {status?.enabled ? 'Enabled' : 'Disabled'}
-              </Badge>
-            </CardContent>
-          </Card>
-
-          <Card className="border-border-light shadow-sm">
-            <CardHeader className="flex flex-row items-center justify-between pb-2">
-              <CardTitle className="text-xs font-medium text-gray-600">Council Size</CardTitle>
-              <Users className="h-4 w-4 text-gray-900" />
-            </CardHeader>
-            <CardContent>
+        {/* Overview Metrics */}
+        <div className="bg-beige-primary">
+          <div className="grid grid-cols-3 divide-x divide-border-light">
+            <div className="p-4">
+              <div className="text-xs font-medium text-gray-600 mb-1">Status</div>
+              <div className="pb-2">
+                <Badge className={status?.enabled ? 'bg-green-50 text-green-700 border border-green-200' : 'bg-gray-50 text-gray-700 border'}>
+                  {status?.enabled ? <CheckCircle className="h-3 w-3 mr-1" /> : <XCircle className="h-3 w-3 mr-1" />}
+                  {status?.enabled ? 'Enabled' : 'Disabled'}
+                </Badge>
+              </div>
+            </div>
+            <div className="p-4">
+              <div className="text-xs font-medium text-gray-600 mb-1">Council Size</div>
               <div className="text-lg font-bold text-gray-900">{status?.current_council_size}</div>
-              <p className="text-xs text-gray-600 mt-1">models</p>
-            </CardContent>
-          </Card>
-
-          <Card className="border-border-light shadow-sm">
-            <CardHeader className="flex flex-row items-center justify-between pb-2">
-              <CardTitle className="text-xs font-medium text-gray-600">Quality Improvement</CardTitle>
-              <TrendingUp className="h-4 w-4 text-gray-900" />
-            </CardHeader>
-            <CardContent>
+              <p className="text-[0.65rem] text-gray-600 mt-1">models</p>
+            </div>
+            <div className="p-4">
+              <div className="text-xs font-medium text-gray-600 mb-1">Quality Improvement</div>
               <div className="text-lg font-bold text-gray-900">+{status?.avg_quality_improvement.toFixed(1)}%</div>
-              <p className="text-xs text-gray-600 mt-1">vs single model</p>
-            </CardContent>
-          </Card>
-
-          <Card className="border-border-light shadow-sm">
-            <CardHeader className="flex flex-row items-center justify-between pb-2">
-              <CardTitle className="text-xs font-medium text-gray-600">Cost Overhead</CardTitle>
-              <DollarSign className="h-4 w-4 text-gray-900" />
-            </CardHeader>
-            <CardContent>
+              <p className="text-[0.65rem] text-gray-600 mt-1">vs single model</p>
+            </div>
+          </div>
+          <div className="grid grid-cols-3 divide-x divide-border-light border-t border-border-light">
+            <div className="p-4">
+              <div className="text-xs font-medium text-gray-600 mb-1">Cost Overhead</div>
               <div className="text-lg font-bold text-gray-900">{status?.cost_overhead_24h.toFixed(1)}x</div>
-              <p className="text-xs text-gray-600 mt-1">24h average</p>
-            </CardContent>
-          </Card>
-
-          <Card className="border-border-light shadow-sm">
-            <CardHeader className="flex flex-row items-center justify-between pb-2">
-              <CardTitle className="text-xs font-medium text-gray-600">Last Run</CardTitle>
-              <Clock className="h-4 w-4 text-gray-900" />
-            </CardHeader>
-            <CardContent>
+              <p className="text-[0.65rem] text-gray-600 mt-1">24h average</p>
+            </div>
+            <div className="p-4">
+              <div className="text-xs font-medium text-gray-600 mb-1">Last Run</div>
               <div className="text-xs font-bold text-gray-900">
                 {status?.last_run ? new Date(status.last_run.timestamp).toLocaleTimeString() : 'Never'}
               </div>
-              <p className="text-xs text-gray-600 mt-1 truncate">{status?.last_run?.summary || 'No runs yet'}</p>
-            </CardContent>
-          </Card>
+              <p className="text-[0.65rem] text-gray-600 mt-1 truncate">{status?.last_run?.summary || 'No runs yet'}</p>
+            </div>
+            <div className="p-4"></div>
+          </div>
         </div>
 
         {/* Configuration Form */}
@@ -261,7 +239,7 @@ export default function CouncilModePage() {
                     max="5"
                     value={editableConfig.num_models}
                     onChange={(e) => handleConfigChange('num_models', parseInt(e.target.value))}
-                    className="scale-[0.6] origin-left dark-blue-slider h-1"
+                    className="scale-[0.6] origin-left dark-blue-slider h-px"
                   />
                   <p className="text-[0.6rem] text-gray-600">Models to participate in voting</p>
                 </div>
@@ -312,7 +290,7 @@ export default function CouncilModePage() {
                     max="99"
                     value={editableConfig.quality_threshold}
                     onChange={(e) => handleConfigChange('quality_threshold', parseInt(e.target.value))}
-                    className="scale-[0.6] origin-left dark-blue-slider h-1"
+                    className="scale-[0.6] origin-left dark-blue-slider h-px"
                   />
                   <p className="text-[0.6rem] text-gray-600">Minimum quality score to accept</p>
                 </div>
