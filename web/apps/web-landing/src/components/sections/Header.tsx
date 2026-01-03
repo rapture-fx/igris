@@ -158,19 +158,19 @@ export default function Header() {
             </div>
 
             <a
-              href={consoleUrl ? `${consoleUrl}/auth/login` : '#'}
+              href={consoleUrl ? `${consoleUrl}/auth?mode=signin` : '#'}
               className="text-gray-700 hover:text-gray-900 transition-colors duration-200 font-medium text-sm font-inter"
             >
               Sign In
             </a>
 
-            <button
-              onClick={openEarlyAccessModal}
+            <a
+              href={consoleUrl ? `${consoleUrl}/auth?mode=signup` : '#'}
               className="text-white px-3 py-1 md:px-4 md:py-1 rounded-lg hover:opacity-90 transition-all duration-200 text-sm shadow-md hover:shadow-lg font-inter"
               style={{ backgroundColor: '#000000' }}
             >
-              Sign Up
-            </button>
+              Get Started
+            </a>
           </div>
 
           <div className="md:hidden flex items-center">
@@ -283,22 +283,20 @@ export default function Header() {
               </div>
 
               <a
-                href={consoleUrl ? `${consoleUrl}/auth/login` : '#'}
+                href={consoleUrl ? `${consoleUrl}/auth?mode=signin` : '#'}
                 className="text-gray-700 hover:text-gray-900 transition-colors duration-200 font-medium text-sm font-inter"
                 onClick={() => setMobileMenuOpen(false)}
               >
-                Login
+                Sign In
               </a>
-              <button
-                onClick={() => {
-                  setMobileMenuOpen(false);
-                  openEarlyAccessModal();
-                }}
-                className="text-white px-3 py-1 rounded-lg hover:opacity-90 transition-all duration-200 text-sm shadow-md font-inter w-full"
+              <a
+                href={consoleUrl ? `${consoleUrl}/auth?mode=signup` : '#'}
+                onClick={() => setMobileMenuOpen(false)}
+                className="text-white px-3 py-1 rounded-lg hover:opacity-90 transition-all duration-200 text-sm shadow-md font-inter w-full text-center block"
                 style={{ backgroundColor: '#000000' }}
               >
-                Sign Up
-              </button>
+                Get Started
+              </a>
             </nav>
           </div>
         )}
