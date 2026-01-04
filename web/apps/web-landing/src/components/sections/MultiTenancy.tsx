@@ -35,15 +35,6 @@ export default function MultiTenancy() {
           borderRight: '0.5px solid rgba(156, 163, 175, 0.3)',
           backgroundColor: '#f6f6f4'
         }}>
-          <div className="absolute -top-4 -left-4 w-8 h-8">
-            <div className="absolute top-3.5 left-0 w-8" style={{ borderTop: '0.3px solid #1a1e21' }}></div>
-            <div className="absolute top-0 left-3.5 h-8" style={{ borderLeft: '0.3px solid #1a1e21' }}></div>
-          </div>
-          <div className="absolute -bottom-4 -right-4 w-8 h-8">
-            <div className="absolute bottom-3.5 right-0 w-8" style={{ borderBottom: '0.3px solid #1a1e21' }}></div>
-            <div className="absolute bottom-0 right-3.5 h-8" style={{ borderRight: '0.3px solid #1a1e21' }}></div>
-          </div>
-
           {/* Content Container */}
           <div className="w-full px-0">
             {/* Vertical Divider positioned at center - full height from top to bottom of frame */}

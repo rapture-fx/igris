@@ -68,10 +68,9 @@ export default function OverturePage() {
         <Header />
         <main className="pt-[70px] space-y-1">
           {/* Hero Section */}
-          <section className="py-0 bg-[#f6f6f4] text-gray-900 relative overflow-visible">
+          <section className="pt-0 pb-0 bg-[#f6f6f4] text-gray-900 relative overflow-visible -mt-[72px]">
             <div className="mx-auto max-w-[1200px] px-4 sm:px-6 lg:px-8">
-              <div className="relative pt-16 px-8 md:px-12 lg:px-16 pb-64 md:pb-80 lg:pb-[36rem] bg-transparent z-10" style={{
-                borderTop: '0.5px solid rgba(156, 163, 175, 0.3)',
+              <div className="relative px-4 md:px-8 lg:px-12 pb-64 md:pb-80 lg:pb-[36rem] bg-transparent z-10" style={{
                 borderBottom: '0.5px solid rgba(156, 163, 175, 0.3)',
                 borderLeft: '0.5px solid rgba(156, 163, 175, 0.3)',
                 borderRight: '0.5px solid rgba(156, 163, 175, 0.3)'
@@ -85,31 +84,8 @@ export default function OverturePage() {
                   <div className="absolute bottom-0 right-3.5 h-8 border-r-[0.5px] border-[#1a1e21]"></div>
                 </div>
 
-                {/* Background image layer */}
-                <div
-                  className="absolute inset-0"
-                  style={{
-                    backgroundImage: 'url("/above%20theclouds.png")',
-                    backgroundSize: 'cover',
-                    backgroundPosition: 'center',
-                    backgroundRepeat: 'no-repeat',
-                    opacity: 1,
-                    zIndex: 1
-                  }}
-                />
-
-                {/* White fade overlay covering top portion */}
-                <div
-                  className="absolute top-0 left-0 right-0"
-                  style={{
-                    height: '350px',
-                    background: 'linear-gradient(to bottom, rgba(246, 246, 244, 0.9) 0%, rgba(246, 246, 244, 0.5) 40%, rgba(246, 246, 244, 0) 100%)',
-                    zIndex: 2
-                  }}
-                />
-
-                <div className="max-w-[1100px] mx-auto pt-8 px-0 md:px-8 lg:px-16 relative z-10">
-                  <div className="pt-8 mb-6">
+                <div className="max-w-[1100px] mx-auto pt-24 px-0 md:px-8 lg:px-16 relative z-10">
+                  <div className="pt-24 mb-6">
                     <button
                       onClick={() => router.push('/')}
                       className="text-sm text-gray-600 hover:text-gray-900 hover:underline mb-4 inline-flex items-center transition-colors cursor-pointer bg-transparent border-none p-0"

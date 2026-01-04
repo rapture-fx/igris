@@ -40,16 +40,6 @@ export default function CoreCapabilities() {
             borderRight: '0.5px solid rgba(156, 163, 175, 0.3)',
             backgroundColor: '#f6f6f4'
           }}>
-            {/* Top left bleeding cross */}
-            <div className="absolute -top-4 -left-4 w-8 h-8">
-              <div className="absolute top-3.5 left-0 w-8" style={{ borderTop: '0.3px solid #1a1e21' }}></div>
-              <div className="absolute top-0 left-3.5 h-8" style={{ borderLeft: '0.3px solid #1a1e21' }}></div>
-            </div>
-            {/* Bottom right bleeding cross */}
-            <div className="absolute -bottom-4 -right-4 w-8 h-8">
-              <div className="absolute bottom-3.5 right-0 w-8" style={{ borderBottom: '0.3px solid #1a1e21' }}></div>
-              <div className="absolute bottom-0 right-3.5 h-8" style={{ borderRight: '0.3px solid #1a1e21' }}></div>
-            </div>
 
             {/* Content Container */}
             <div className="w-full px-0">
@@ -62,10 +52,10 @@ export default function CoreCapabilities() {
               {/* Title Section - Shows first on mobile, last on desktop */}
               <div className="text-left mb-6 lg:mb-0 lg:hidden">
                 <h3 className="text-2xl md:text-2xl lg:text-3xl font-inter mb-4" style={{ color: '#000000' }}>
-                  Smarter routing. Predictable performance.
+                  Production-Grade Capabilities
                 </h3>
                 <p className="text-sm md:text-base text-gray-700 dark:text-gray-300 font-inter">
-                  Igris Inertial delivers adaptive, quality-aware routing across cloud and edge with real-time cost, quota, and performance governance, ensuring efficient, resilient, and consistent AI operations at any scale.
+                  Built for teams deploying AI systems that cannot afford downtime, drift, or unpredictable costs.
                 </p>
               </div>
 
@@ -128,10 +118,10 @@ export default function CoreCapabilities() {
                 {/* Right Column - Section Title (Desktop only) */}
                 <div className="hidden lg:flex text-left lg:col-span-1 pl-0 md:pl-4 lg:pl-8 flex-col justify-center" style={{ minHeight: '750px' }}>
                   <h3 className="text-2xl md:text-2xl lg:text-3xl font-inter mb-4" style={{ color: '#000000' }}>
-                    Smarter routing. Predictable performance.
+                    Production-Grade Capabilities
                   </h3>
                   <p className="text-sm md:text-base text-gray-700 dark:text-gray-300 font-inter">
-                    Igris Inertial optimizes every request across cloud and edge with adaptive quality scoring, real-time cost governance, and intelligent failover. Your workloads stay fast, consistent, and fully operational from connected data centers to offline edge devices.
+                    Built for teams deploying AI systems that cannot afford downtime, drift, or unpredictable costs.
                   </p>
                 </div>
               </div>
@@ -150,16 +140,6 @@ export default function CoreCapabilities() {
             borderRight: '0.5px solid rgba(156, 163, 175, 0.3)',
             backgroundColor: '#f6f6f4'
           }}>
-            {/* Top left bleeding cross */}
-            <div className="absolute -top-4 -left-4 w-8 h-8">
-              <div className="absolute top-3.5 left-0 w-8" style={{ borderTop: '0.3px solid #1a1e21' }}></div>
-              <div className="absolute top-0 left-3.5 h-8" style={{ borderLeft: '0.3px solid #1a1e21' }}></div>
-            </div>
-            {/* Bottom right bleeding cross */}
-            <div className="absolute -bottom-4 -right-4 w-8 h-8">
-              <div className="absolute bottom-3.5 right-0 w-8" style={{ borderBottom: '0.3px solid #1a1e21' }}></div>
-              <div className="absolute bottom-0 right-3.5 h-8" style={{ borderRight: '0.3px solid #1a1e21' }}></div>
-            </div>
 
             <div className="w-full px-0">
               <h4 className="text-lg md:text-lg lg:text-2xl tracking-tight font-inter mb-6 md:mb-8 text-center" style={{ color: '#000000' }}>Fail-safe by design.</h4>

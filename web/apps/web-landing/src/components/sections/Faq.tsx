@@ -104,16 +104,6 @@ export default function Faq() {
           borderRight: '0.5px solid rgba(156, 163, 175, 0.3)',
           backgroundColor: '#f6f6f4'
         }}>
-          {/* Top left bleeding cross */}
-          <div className="absolute -top-4 -left-4 w-8 h-8">
-            <div className="absolute top-3.5 left-0 w-8" style={{ borderTop: '0.3px solid #1a1e21' }}></div>
-            <div className="absolute top-0 left-3.5 h-8" style={{ borderLeft: '0.3px solid #1a1e21' }}></div>
-          </div>
-          {/* Bottom right bleeding cross */}
-          <div className="absolute -bottom-4 -right-4 w-8 h-8">
-            <div className="absolute bottom-3.5 right-0 w-8" style={{ borderBottom: '0.3px solid #1a1e21' }}></div>
-            <div className="absolute bottom-0 right-3.5 h-8" style={{ borderRight: '0.3px solid #1a1e21' }}></div>
-          </div>
 
           <div className="text-center mb-8 md:mb-12 lg:mb-16">
             <h2 className="text-2xl md:text-2xl lg:text-3xl font-inter mb-4" style={{ color: '#000000' }}>

@@ -7,7 +7,6 @@ import { useModal } from '../../contexts/ModalContext';
 
 export default function Header() {
   const [mobileMenuOpen, setMobileMenuOpen] = useState(false);
-  const [scrolled, setScrolled] = useState(false);
   const [productDropdownOpen, setProductDropdownOpen] = useState(false);
   const [resourcesDropdownOpen, setResourcesDropdownOpen] = useState(false);
   const [mobileProductOpen, setMobileProductOpen] = useState(false);
@@ -29,22 +28,6 @@ export default function Header() {
     }
   }, []);
 
-  // Scroll effect
-  useEffect(() => {
-    const handleScroll = () => {
-      if (window.scrollY > 0) {
-        setScrolled(true);
-      } else {
-        setScrolled(false);
-      }
-    };
-
-    window.addEventListener('scroll', handleScroll);
-    return () => {
-      window.removeEventListener('scroll', handleScroll);
-    };
-  }, []);
-
   // Close dropdowns when clicking outside
   useEffect(() => {
     const handleClickOutside = (event: MouseEvent) => {
@@ -63,17 +46,22 @@ export default function Header() {
   }, []);
 
   return (
-    <header className={`fixed top-0 left-0 w-full z-50 py-4 dark:bg-gray-900 font-inter ${scrolled ? 'scrolled' : ''}`} style={{ backgroundColor: '#f6f6f4' }}>
+    <header className="fixed top-0 left-0 w-full z-50 dark:bg-gray-900 font-inter" style={{ backgroundColor: '#f6f6f4' }}>
       <div className="mx-auto max-w-[1200px] px-4 sm:px-6 lg:px-8">
-        <div className="flex items-center justify-between w-full">
+        <div className="px-4 md:px-8 lg:px-12 py-4"
+             style={{
+               borderLeft: '0.5px solid rgba(156, 163, 175, 0.3)',
+               borderRight: '0.5px solid rgba(156, 163, 175, 0.3)'
+             }}>
+          <div className="flex items-center justify-between w-full">
           <div className="flex items-center">
             <Link href="/" className="flex items-center">
               <img
                 src="/schlep-logo-34.png"
                 alt="Igris Inertial"
-                width={30}
-                height={30}
-                style={{ width: '30px', height: '30px' }}
+                width={26}
+                height={26}
+                style={{ width: '26px', height: '26px' }}
               />
             </Link>
           </div>
@@ -166,7 +154,7 @@ export default function Header() {
 
             <a
               href={consoleUrl ? `${consoleUrl}/auth?mode=signup` : '#'}
-              className="text-white px-3 py-1 md:px-4 md:py-1 rounded-lg hover:opacity-90 transition-all duration-200 text-sm shadow-md hover:shadow-lg font-inter"
+              className="text-white px-4 py-2 rounded-lg hover:opacity-90 transition-all duration-200 text-xs shadow-md hover:shadow-lg font-inter"
               style={{ backgroundColor: '#000000' }}
             >
               Get Started
@@ -185,6 +173,7 @@ export default function Header() {
                 <Menu className="h-5 w-5" />
               )}
             </button>
+          </div>
           </div>
         </div>
 
@@ -292,7 +281,7 @@ export default function Header() {
               <a
                 href={consoleUrl ? `${consoleUrl}/auth?mode=signup` : '#'}
                 onClick={() => setMobileMenuOpen(false)}
-                className="text-white px-3 py-1 rounded-lg hover:opacity-90 transition-all duration-200 text-sm shadow-md font-inter w-full text-center block"
+                className="text-white px-4 py-2 rounded-lg hover:opacity-90 transition-all duration-200 text-xs shadow-md font-inter w-full text-center block"
                 style={{ backgroundColor: '#000000' }}
               >
                 Get Started
