@@ -40,15 +40,6 @@ export default function ForDevelopers() {
           backgroundColor: '#f6f6f4',
           minHeight: '600px'
         }}>
-          <div className="absolute -top-4 -left-4 w-8 h-8">
-            <div className="absolute top-3.5 left-0 w-8" style={{ borderTop: '0.3px solid #1a1e21' }}></div>
-            <div className="absolute top-0 left-3.5 h-8" style={{ borderLeft: '0.3px solid #1a1e21' }}></div>
-          </div>
-          <div className="absolute -bottom-4 -right-4 w-8 h-8">
-            <div className="absolute bottom-3.5 right-0 w-8" style={{ borderBottom: '0.3px solid #1a1e21' }}></div>
-            <div className="absolute bottom-0 right-3.5 h-8" style={{ borderRight: '0.3px solid #1a1e21' }}></div>
-          </div>
-
           <div className="w-full px-0">
             <div className="absolute top-0 bottom-0 left-1/3 hidden lg:block" style={{
               borderLeft: '0.5px solid rgba(156, 163, 175, 0.3)',

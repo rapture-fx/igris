@@ -1,0 +1,40 @@
+import React from 'react'
+import Link from 'next/link'
+
+export default function ClosingPosition() {
+  return (
+    <section className="py-2 dark:bg-gray-900 text-gray-900 dark:text-white" style={{ backgroundColor: '#f6f6f4' }}>
+      <div className="mx-auto max-w-[1200px] px-4 sm:px-6 lg:px-8">
+        <div className="relative py-16 md:py-20 lg:py-24 px-4 md:px-8 lg:px-12" style={{
+          borderTop: '0.5px solid rgba(156, 163, 175, 0.3)',
+          borderBottom: '0.5px solid rgba(156, 163, 175, 0.3)',
+          borderLeft: '0.5px solid rgba(156, 163, 175, 0.3)',
+          borderRight: '0.5px solid rgba(156, 163, 175, 0.3)',
+          backgroundColor: '#f6f6f4',
+          minHeight: '400px'
+        }}>
+          {/* Content Container */}
+          <div className="w-full px-0 flex items-center justify-center">
+            <div className="max-w-3xl mx-auto text-center flex flex-col items-center pt-8">
+              <h3 className="text-2xl md:text-3xl lg:text-4xl font-inter mb-6" style={{ color: '#000000' }}>
+                Start with Overture
+              </h3>
+
+              
+
+              <div className="flex flex-col sm:flex-row gap-4 justify-center">
+                <Link href="https://docs.igrisinertial.com/">
+                  <button
+                    className="inline-flex items-center justify-center bg-transparent text-gray-900 px-5 py-2.5 rounded-lg border border-gray-300 hover:border-gray-400 transition-all duration-200 text-sm font-medium font-inter"
+                  >
+                    See Documentation
+                  </button>
+                </Link>
+              </div>
+            </div>
+          </div>
+        </div>
+      </div>
+    </section>
+  )
+}
