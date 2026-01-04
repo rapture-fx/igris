@@ -10,7 +10,7 @@ const isPublicRoute = createRouteMatcher([
   '/',
 ]);
 
-// Routes that should redirect to onboarding if user hasn't completed it
+// Routes that require authentication and onboarding completion
 const requiresOnboarding = createRouteMatcher([
   '/dashboard(.*)',
   '/settings(.*)',
@@ -25,8 +25,20 @@ export default clerkMiddleware(async (auth, req) => {
     return NextResponse.redirect(authUrl);
   }
 
-  // Don't enforce onboarding checks - let the app handle it client-side
-  // This avoids issues with session claim sync delays
+  // If accessing dashboard or settings routes, check onboarding status
+  if (requiresOnboarding(req) && userId) {
+    // Get user metadata to check onboarding status
+    const { user } = await auth();
+    const userMetadata = user?.unsafeMetadata as { onboardingCompleted?: boolean } | undefined;
+    const onboardingCompleted = userMetadata?.onboardingCompleted || false;
+
+    // If onboarding not completed, redirect to onboarding page
+    // Skip this check if there's a query parameter to bypass (e.g., after completing onboarding)
+    if (!onboardingCompleted && !req.nextUrl.searchParams.has('onboarding')) {
+      const onboardingUrl = new URL('/onboarding', req.url);
+      return NextResponse.redirect(onboardingUrl);
+    }
+  }
 
   return NextResponse.next();
 });

@@ -1,11 +1,12 @@
 'use client';
 
 import { useEffect } from 'react';
-import { useClerk } from '@clerk/nextjs';
+import { useClerk, useUser } from '@clerk/nextjs';
 import { Loader2 } from 'lucide-react';
 
 export default function SSOCallback() {
   const { handleRedirectCallback } = useClerk();
+  const { user, isLoaded } = useUser();
 
   useEffect(() => {
     console.log('=== SSO CALLBACK PAGE LOADED ===');
@@ -19,10 +20,27 @@ export default function SSOCallback() {
         console.log('OAuth callback processed successfully');
 
         // Wait a moment for session to be set
-        await new Promise(resolve => setTimeout(resolve, 100));
+        await new Promise(resolve => setTimeout(resolve, 200));
 
-        console.log('Redirecting to /onboarding');
-        window.location.href = '/onboarding';
+        if (!isLoaded || !user) {
+          console.error('User not loaded after callback');
+          window.location.href = '/auth?error=user_not_loaded';
+          return;
+        }
+
+        // Check if user has completed onboarding
+        const userMetadata = user.unsafeMetadata as { onboardingCompleted?: boolean } | undefined;
+        const onboardingCompleted = userMetadata?.onboardingCompleted || false;
+
+        console.log('Onboarding completed:', onboardingCompleted);
+
+        if (onboardingCompleted) {
+          console.log('Redirecting to /dashboard');
+          window.location.href = '/dashboard';
+        } else {
+          console.log('Redirecting to /onboarding');
+          window.location.href = '/onboarding';
+        }
       } catch (error) {
         console.error('OAuth callback error:', error);
         // If there's an error, redirect to auth page
@@ -31,7 +49,7 @@ export default function SSOCallback() {
     };
 
     handleOAuthCallback();
-  }, [handleRedirectCallback]);
+  }, [handleRedirectCallback, isLoaded, user]);
 
   return (
     <div className="min-h-screen flex items-center justify-center bg-beige-primary">

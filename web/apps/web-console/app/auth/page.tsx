@@ -67,59 +67,53 @@ export default function AuthPage() {
     }
 
     try {
-      await signUp.create({
+      console.log('=== SIGN UP START ===');
+      console.log('Email:', email);
+      console.log('Mode:', mode);
+
+      const result = await signUp.create({
         emailAddress: email,
         password,
         firstName,
         lastName,
       });
 
+      console.log('Sign up result status:', result.status);
+      console.log('Sign up created session ID:', result.createdSessionId);
+
       // Send email verification code
       await signUp.prepareEmailAddressVerification({ strategy: 'email_code' });
+
+      console.log('✓ Email verification prepared');
+      console.log('✓ Verification code sent to:', email);
+
       setPendingVerification(true);
     } catch (err: any) {
-      setError(err.errors?.[0]?.message || 'An error occurred during sign up');
-    } finally {
-      setLoading(false);
-    }
-  };
+      console.error('=== SIGN UP ERROR ===');
+      console.error('Error:', err);
 
-  const handleVerification = async (e: React.FormEvent) => {
-    e.preventDefault();
-    if (!signUpLoaded || !signUp) {
-      console.error('Sign up not loaded');
-      return;
-    }
+      const clerkErrors = err.errors || [];
+      if (clerkErrors.length > 0) {
+        const firstError = clerkErrors[0];
+        console.error('Clerk error:', {
+          code: firstError.code,
+          message: firstError.message,
+          longMessage: firstError.longMessage
+        });
 
-    setLoading(true);
-    setError('');
-
-    try {
-      console.log('Attempting email verification with code:', code);
-      const completeSignUp = await signUp.attemptEmailAddressVerification({
-        code,
-      });
-
-      console.log('Verification response:', completeSignUp);
-
-      if (completeSignUp.status === 'complete') {
-        console.log('Verification complete, setting active session');
-
-        // Set the active session
-        await setActiveSignUp({ session: completeSignUp.createdSessionId });
-
-        console.log('Session set successfully');
-
-        // Use window.location for a full page redirect to ensure session is picked up
-        window.location.href = '/onboarding';
+        if (firstError.code === 'form_password_pwned') {
+          setError('This password has been exposed in data breaches. Please choose a different password.');
+        } else if (firstError.code === 'form_identifier_exists') {
+          setError('An account with this email already exists. Please sign in instead.');
+        } else if (firstError.code === 'form_password_length_too_short') {
+          setError('Password is too short. It must be at least 8 characters.');
+        } else {
+          setError(firstError.longMessage || firstError.message || 'An error occurred during sign up');
+        }
       } else {
-        console.log('Verification incomplete, status:', completeSignUp.status);
-        setError('Email verification incomplete. Please try again.');
-        setLoading(false);
+        setError(err.message || 'An error occurred during sign up');
       }
-    } catch (err: any) {
-      console.error('Verification error:', err);
-      setError(err.errors?.[0]?.message || err.message || 'Verification failed');
+    } finally {
       setLoading(false);
     }
   };
@@ -166,13 +160,16 @@ export default function AuthPage() {
 
     console.log('✓ Starting OAuth redirect...');
 
+    // Set up the redirect URL based on mode
+    const redirectUrlComplete = mode === 'signup' ? '/onboarding' : '/dashboard';
+
     // Note: authenticateWithRedirect() will redirect the page
     // It won't return normally, so we don't need try/catch
     // If it throws, it's a real error (like provider not enabled)
     signIn.authenticateWithRedirect({
       strategy: provider,
       redirectUrl: '/sso-callback',
-      redirectUrlComplete: '/onboarding',
+      redirectUrlComplete,
     }).catch((err: any) => {
       console.error('=== OAUTH ERROR ===');
       console.error('Error:', err);
@@ -408,13 +405,19 @@ export default function AuthPage() {
                 <input
                   id="code"
                   type="text"
+                  inputMode="numeric"
+                  pattern="[0-9]*"
                   value={code}
-                  onChange={(e) => setCode(e.target.value)}
+                  onChange={(e) => {
+                    // Only allow numbers, max 6 digits
+                    const value = e.target.value.replace(/[^0-9]/g, '').slice(0, 6);
+                    setCode(value);
+                  }}
                   required
                   maxLength={6}
                   className="w-full px-3 py-2 border border-border-light rounded-lg text-sm font-inter focus:outline-none focus:ring-0 shadow-sm"
                   style={{ backgroundColor: '#f6f6f4' }}
-                  placeholder="000000"
+                  placeholder="123456"
                 />
               </div>
 
@@ -426,7 +429,7 @@ export default function AuthPage() {
 
               <button
                 type="submit"
-                disabled={loading}
+                disabled={loading || code.length !== 6}
                 className="w-full bg-gray-900 text-white py-3 rounded-lg text-sm font-medium font-inter hover:bg-gray-800 transition-colors disabled:opacity-50 disabled:cursor-not-allowed flex items-center justify-center gap-2 shadow-md hover:shadow-lg"
               >
                 {loading && <Loader2 className="h-4 w-4 animate-spin flex-shrink-0" />}
