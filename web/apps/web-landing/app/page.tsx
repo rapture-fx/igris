@@ -24,12 +24,12 @@ export default function HomePage() {
     <>
       <div className="min-h-screen bg-[#f6f6f4]">
         <Header />
-        <main className="pt-[70px] space-y-1">
+        <main className="pt-[70px]">
           <Hero />
-          <Problem />
-          <WhatIgrisDoes />
           <Products />
           <HowItWorks />
+          <Problem />
+          <WhatIgrisDoes />
           <CoreCapabilities />
           <AudienceFilter />
           <UseCasesTeaser />

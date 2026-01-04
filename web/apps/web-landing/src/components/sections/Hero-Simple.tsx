@@ -9,7 +9,7 @@ export default function Hero() {
   return (
     <section className="pt-0 pb-0 bg-[#f6f6f4] text-gray-900 relative overflow-visible -mt-[72px]">
       <div className="mx-auto max-w-[1200px] px-4 sm:px-6 lg:px-8">
-        <div className="relative px-4 md:px-8 lg:px-12 pb-64 md:pb-80 lg:pb-[36rem] bg-transparent z-10" style={{
+        <div className="relative px-4 md:px-8 lg:px-12 pb-80 md:pb-96 lg:pb-[44rem] bg-transparent z-10" style={{
           borderBottom: '0.5px solid rgba(156, 163, 175, 0.3)',
           borderLeft: '0.5px solid rgba(156, 163, 175, 0.3)',
           borderRight: '0.5px solid rgba(156, 163, 175, 0.3)'

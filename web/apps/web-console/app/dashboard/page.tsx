@@ -62,7 +62,7 @@ interface SystemHealth {
 }
 
 export default function DashboardPage() {
-  const { user } = useUser();
+  const { user, isLoaded } = useUser();
   const { data: summary, isLoading } = useUsageSummary();
   const { data: tenant } = useTenant();
   const router = useRouter();
@@ -70,6 +70,15 @@ export default function DashboardPage() {
   // Get user intent from Clerk metadata
   const userMetadata = user?.unsafeMetadata as { intent?: 'cloud' | 'edge' | 'hybrid'; onboardingCompleted?: boolean } | undefined;
   const userIntent = userMetadata?.intent || 'hybrid';
+  const onboardingCompleted = userMetadata?.onboardingCompleted || false;
+
+  // Redirect to onboarding if not completed
+  useEffect(() => {
+    if (isLoaded && user && !onboardingCompleted) {
+      console.log('Onboarding not completed, redirecting to /onboarding');
+      router.replace('/onboarding');
+    }
+  }, [isLoaded, user, onboardingCompleted, router]);
 
   // Real data from APIs
   const [providerUptime, setProviderUptime] = useState<Array<{provider: string, uptime: string, status: string}>>([]);

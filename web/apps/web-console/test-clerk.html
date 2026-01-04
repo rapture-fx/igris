@@ -1,0 +1,425 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>Clerk Email Verification Test</title>
+  <style>
+    body {
+      font-family: -apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, Oxygen, Ubuntu, Cantarell, sans-serif;
+      max-width: 800px;
+      margin: 50px auto;
+      padding: 20px;
+      background: #f6f6f4;
+    }
+    h1 {
+      color: #111;
+      margin-bottom: 20px;
+    }
+    .test-section {
+      background: white;
+      padding: 20px;
+      margin-bottom: 20px;
+      border-radius: 8px;
+      border: 1px solid #e5e5e5;
+    }
+    .form-group {
+      margin-bottom: 15px;
+    }
+    label {
+      display: block;
+      margin-bottom: 5px;
+      font-weight: 500;
+      color: #374151;
+    }
+    input {
+      width: 100%;
+      padding: 8px 12px;
+      border: 1px solid #d1d5db;
+      border-radius: 6px;
+      font-size: 14px;
+      box-sizing: border-box;
+    }
+    button {
+      background: #000;
+      color: white;
+      padding: 10px 20px;
+      border: none;
+      border-radius: 6px;
+      cursor: pointer;
+      font-size: 14px;
+      font-weight: 500;
+      margin-right: 10px;
+    }
+    button:disabled {
+      opacity: 0.5;
+      cursor: not-allowed;
+    }
+    button.secondary {
+      background: white;
+      color: #111;
+      border: 1px solid #d1d5db;
+    }
+    .logs {
+      background: #1a1a1a;
+      color: #22c55e;
+      padding: 15px;
+      border-radius: 6px;
+      font-family: 'Courier New', monospace;
+      font-size: 12px;
+      max-height: 400px;
+      overflow-y: auto;
+      white-space: pre-wrap;
+      word-wrap: break-word;
+    }
+    .logs .error {
+      color: #ef4444;
+    }
+    .logs .warning {
+      color: #f59e0b;
+    }
+    .status {
+      display: inline-block;
+      padding: 4px 8px;
+      border-radius: 4px;
+      font-size: 12px;
+      font-weight: 500;
+      margin-right: 10px;
+    }
+    .status.success {
+      background: #dcfce7;
+      color: #166534;
+    }
+    .status.error {
+      background: #fee2e2;
+      color: #991b1b;
+    }
+    .status.pending {
+      background: #fef3c7;
+      color: #92400e;
+    }
+    .code-input {
+      letter-spacing: 4px;
+      text-align: center;
+      font-size: 24px;
+      font-weight: bold;
+    }
+  </style>
+</head>
+<body>
+  <h1>🧪 Clerk Email Verification Test</h1>
+
+  <div class="test-section">
+    <h2>Environment Check</h2>
+    <div>
+      <span id="clerkStatus" class="status pending">Loading...</span>
+      <span id="publishableKeyStatus" class="status pending">Checking...</span>
+    </div>
+    <div id="envLogs" class="logs"></div>
+  </div>
+
+  <div class="test-section">
+    <h2>Test Sign Up</h2>
+    <form id="signUpForm">
+      <div class="form-group">
+        <label for="email">Email Address</label>
+        <input
+          type="email"
+          id="email"
+          placeholder="you@example.com"
+          required
+        />
+      </div>
+      <div class="form-group">
+        <label for="password">Password</label>
+        <input
+          type="password"
+          id="password"
+          placeholder="Min 8 characters"
+          required
+          minlength="8"
+        />
+      </div>
+      <div class="form-group">
+        <label for="firstName">First Name</label>
+        <input
+          type="text"
+          id="firstName"
+          placeholder="John"
+          required
+        />
+      </div>
+      <div class="form-group">
+        <label for="lastName">Last Name</label>
+        <input
+          type="text"
+          id="lastName"
+          placeholder="Doe"
+          required
+        />
+      </div>
+      <button type="submit" id="signUpBtn">Create Account</button>
+      <button type="button" id="clearLogs" class="secondary">Clear Logs</button>
+    </form>
+  </div>
+
+  <div class="test-section" id="verificationSection" style="display: none;">
+    <h2>Test Email Verification</h2>
+    <p>Enter the 6-digit code from your email:</p>
+    <form id="verificationForm">
+      <div class="form-group">
+        <label for="code">Verification Code</label>
+        <input
+          type="text"
+          id="code"
+          class="code-input"
+          placeholder="000000"
+          maxlength="6"
+          pattern="[0-9]{6}"
+          required
+          autocomplete="one-time-code"
+        />
+      </div>
+      <button type="submit" id="verifyBtn" disabled>Verify Email</button>
+      <button type="button" id="resetBtn" class="secondary">Start Over</button>
+    </form>
+  </div>
+
+  <div class="test-section">
+    <h2>📋 Console Logs</h2>
+    <div id="logs" class="logs">Waiting for test...</div>
+  </div>
+
+  <script
+    async
+    src="https://cdn.jsdelivr.net/npm/@clerk/clerk-js@latest/dist/clerk.browser.js"
+    onload="initClerk()"
+  ></script>
+
+  <script>
+    let clerk;
+    let signUp = null;
+
+    function log(message, type = 'info') {
+      const logsDiv = document.getElementById('logs');
+      const timestamp = new Date().toLocaleTimeString();
+      const logEntry = document.createElement('div');
+      logEntry.textContent = `[${timestamp}] ${message}`;
+      logEntry.className = type;
+      logsDiv.appendChild(logEntry);
+      logsDiv.scrollTop = logsDiv.scrollHeight;
+
+      // Also log to browser console
+      console.log(`[Clerk Test] ${message}`);
+    }
+
+    function updateStatus(elementId, status, text) {
+      const element = document.getElementById(elementId);
+      element.textContent = text;
+      element.className = `status ${status}`;
+    }
+
+    async function initClerk() {
+      try {
+        log('🔄 Initializing Clerk...');
+        clerk = window.Clerk;
+
+        await clerk.load();
+        log('✓ Clerk loaded successfully');
+        updateStatus('clerkStatus', 'success', '✓ Loaded');
+
+        // Check publishable key
+        const keyLength = clerk.publishableKey?.length || 0;
+        if (keyLength > 0) {
+          log(`✓ Publishable key loaded (${keyLength} characters)`);
+          updateStatus('publishableKeyStatus', 'success', '✓ Valid');
+        } else {
+          log('✗ No publishable key found', 'error');
+          updateStatus('publishableKeyStatus', 'error', '✗ Missing');
+        }
+
+      } catch (error) {
+        log(`✗ Clerk initialization failed: ${error.message}`, 'error');
+        updateStatus('clerkStatus', 'error', '✗ Failed');
+        log(`Error details: ${JSON.stringify(error)}`, 'error');
+      }
+    }
+
+    document.getElementById('signUpForm').addEventListener('submit', async (e) => {
+      e.preventDefault();
+
+      const email = document.getElementById('email').value.trim();
+      const password = document.getElementById('password').value;
+      const firstName = document.getElementById('firstName').value.trim();
+      const lastName = document.getElementById('lastName').value.trim();
+
+      if (!email || !password || !firstName || !lastName) {
+        log('✗ All fields are required', 'error');
+        return;
+      }
+
+      try {
+        log('=== SIGN UP START ===');
+        log(`Email: ${email}`);
+        log(`First Name: ${firstName}`);
+        log(`Last Name: ${lastName}`);
+
+        document.getElementById('signUpBtn').disabled = true;
+
+        signUp = await clerk.client.signUp.create({
+          emailAddress: email,
+          password,
+          firstName,
+          lastName,
+        });
+
+        log(`✓ Sign up created`);
+        log(`Status: ${signUp.status}`);
+        log(`ID: ${signUp.id}`);
+
+        // Prepare email verification
+        await signUp.prepareEmailAddressVerification({
+          strategy: 'email_code'
+        });
+
+        log('✓ Email verification code sent');
+        log('✓ Check your email inbox (and spam folder)');
+
+        // Show verification form
+        document.getElementById('verificationSection').style.display = 'block';
+        document.getElementById('verificationSection').scrollIntoView({ behavior: 'smooth' });
+
+        document.getElementById('signUpBtn').disabled = false;
+
+      } catch (error) {
+        log(`✗ Sign up failed: ${error.message}`, 'error');
+
+        if (error.errors) {
+          error.errors.forEach((err, index) => {
+            log(`  Error ${index + 1}:`, 'error');
+            log(`    Code: ${err.code}`);
+            log(`    Message: ${err.message}`);
+            log(`    Long message: ${err.longMessage}`);
+          });
+        }
+
+        document.getElementById('signUpBtn').disabled = false;
+      }
+    });
+
+    document.getElementById('verificationForm').addEventListener('submit', async (e) => {
+      e.preventDefault();
+
+      if (!signUp) {
+        log('✗ No sign-up in progress. Please sign up first.', 'error');
+        return;
+      }
+
+      const code = document.getElementById('code').value.trim();
+
+      if (code.length !== 6) {
+        log('✗ Code must be 6 digits', 'error');
+        return;
+      }
+
+      if (!/^\d+$/.test(code)) {
+        log('✗ Code must contain only numbers', 'error');
+        return;
+      }
+
+      try {
+        log('=== VERIFICATION START ===');
+        log(`Code: ${code}`);
+
+        document.getElementById('verifyBtn').disabled = true;
+
+        const result = await signUp.attemptEmailAddressVerification({
+          code: code
+        });
+
+        log(`✓ Verification attempt complete`);
+        log(`Status: ${result.status}`);
+        log(`Created Session ID: ${result.createdSessionId}`);
+
+        if (result.status === 'complete') {
+          log('🎉 SUCCESS! Email verified successfully!', 'success');
+
+          // Set active session
+          await clerk.setActive({
+            session: result.createdSessionId
+          });
+
+          log('✓ Active session set');
+          log('✓ You can now navigate to onboarding');
+
+          alert('✅ Verification successful! You can now proceed with onboarding.');
+        } else if (result.status === 'abandoned') {
+          log('✗ Sign up abandoned. Please start over.', 'error');
+          alert('⏰ Sign up expired. Please start over.');
+          resetForm();
+        } else if (result.status === 'missing_requirements') {
+          log(`✗ Missing requirements: ${JSON.stringify(result.missingFields)}`, 'error');
+          alert('⚠️ Please complete all required fields.');
+        } else {
+          log(`⚠️ Unexpected status: ${result.status}`, 'warning');
+          alert(`Unexpected status: ${result.status}`);
+        }
+
+      } catch (error) {
+        log(`✗ Verification failed: ${error.message}`, 'error');
+
+        if (error.errors) {
+          error.errors.forEach((err, index) => {
+            log(`  Error ${index + 1}:`, 'error');
+            log(`    Code: ${err.code}`);
+            log(`    Message: ${err.message}`);
+            log(`    Long message: ${err.longMessage}`);
+          });
+
+          // Handle specific error codes
+          const firstError = error.errors[0];
+          if (firstError.code === 'form_code_incorrect') {
+            alert('❌ Incorrect code. Please check your email and try again.');
+          } else if (firstError.code === 'form_code_expired') {
+            alert('⏰ Code expired. Please request a new code.');
+            resetForm();
+          } else {
+            alert(`❌ ${firstError.longMessage || firstError.message}`);
+          }
+        }
+
+        document.getElementById('verifyBtn').disabled = false;
+      }
+    });
+
+    document.getElementById('resetBtn').addEventListener('click', resetForm);
+    document.getElementById('clearLogs').addEventListener('click', () => {
+      document.getElementById('logs').innerHTML = '';
+    });
+
+    function resetForm() {
+      signUp = null;
+      document.getElementById('verificationSection').style.display = 'none';
+      document.getElementById('signUpForm').reset();
+      document.getElementById('code').value = '';
+      document.getElementById('verifyBtn').disabled = true;
+      log('🔄 Form reset. Ready for new sign-up.');
+    }
+
+    // Enable verify button when code is 6 digits
+    document.getElementById('code').addEventListener('input', (e) => {
+      const code = e.target.value.replace(/[^0-9]/g, '').slice(0, 6);
+      e.target.value = code;
+      document.getElementById('verifyBtn').disabled = code.length !== 6;
+    });
+
+    // Environment info
+    log('=== ENVIRONMENT INFO ===');
+    log(`User Agent: ${navigator.userAgent}`);
+    log(`Language: ${navigator.language}`);
+    log(`Cookies Enabled: ${navigator.cookieEnabled}`);
+    log(`Local Storage: ${typeof(Storage) !== 'undefined' ? 'Available' : 'Not Available'}`);
+    log('================================');
+  </script>
+</body>
+</html>
