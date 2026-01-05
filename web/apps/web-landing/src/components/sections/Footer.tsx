@@ -32,11 +32,11 @@ export default function Footer() {
             <div className="flex items-center space-x-2">
               <div className="flex items-center">
                 <img
-                  src="/schlep-logo-34.png"
+                  src="/footers.png"
                   alt="Igris Inertial"
-                  width={20}
-                  height={20}
-                  style={{ width: '20px', height: '20px' }}
+                  width={28}
+                  height={28}
+                  style={{ width: '28px', height: '28px' }}
                 />
               </div>
             </div>

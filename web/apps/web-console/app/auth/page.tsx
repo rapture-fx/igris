@@ -4,6 +4,7 @@ import { useState, useEffect } from 'react';
 import { useSignUp, useSignIn } from '@clerk/nextjs';
 import { useRouter, useSearchParams } from 'next/navigation';
 import { Loader2, Mail } from 'lucide-react';
+import HeroInertial from '@/components/ui/HeroInertial';
 
 export default function AuthPage() {
   const router = useRouter();
@@ -191,18 +192,29 @@ export default function AuthPage() {
   };
 
   return (
-    <div className="min-h-screen flex bg-beige-primary relative">
+    <div className="min-h-screen flex relative" style={{
+      backgroundImage: 'linear-gradient(rgba(246, 246, 244, 0.3), rgba(246, 246, 244, 0.3)), url(/cloudbg.png)',
+      backgroundSize: 'cover',
+      backgroundPosition: 'center top -100px',
+      backgroundRepeat: 'no-repeat',
+      backgroundColor: '#f6f6f4'
+    }}>
       {/* Logo */}
       <div className="absolute top-6 left-8 z-10">
         <img
-          src="/schlep-logo-34.png"
+          src="/inertials.png"
           alt="Igris Logo"
-          className="h-6 w-auto"
+          style={{ width: '110px', height: 'auto' }}
         />
       </div>
 
+      {/* Three.js Animation Background */}
+      <div className="absolute inset-0 pointer-events-none" style={{ height: '100vh', width: '100%', opacity: 0.3 }}>
+        <HeroInertial />
+      </div>
+
       {/* Center the Auth Options */}
-      <div className="w-full flex items-center justify-center px-8 py-6">
+      <div className="w-full flex items-center justify-center px-8 py-6 relative z-10">
         <div className="w-full max-w-sm px-8">
           
 

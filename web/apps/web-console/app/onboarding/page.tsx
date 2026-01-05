@@ -7,6 +7,7 @@ import { Button } from '@/components/ui/button';
 import { Card, CardContent, CardDescription, CardHeader, CardTitle } from '@/components/ui/card';
 import { toast } from '@/components/ui/use-toast';
 import { Loader2, Cloud, Cpu, Globe, CheckCircle, ArrowRight, Sparkles } from 'lucide-react';
+import HeroInertial from '@/components/ui/HeroInertial';
 
 type Intent = 'cloud' | 'edge' | 'hybrid';
 
@@ -156,18 +157,29 @@ export default function OnboardingPage() {
   };
 
   return (
-    <div className="min-h-screen flex bg-beige-primary relative">
+    <div className="min-h-screen flex relative" style={{
+      backgroundImage: 'linear-gradient(rgba(246, 246, 244, 0.3), rgba(246, 246, 244, 0.3)), url(/cloudbg.png)',
+      backgroundSize: 'cover',
+      backgroundPosition: 'center top -100px',
+      backgroundRepeat: 'no-repeat',
+      backgroundColor: '#f6f6f4'
+    }}>
       {/* Logo */}
       <div className="absolute top-6 left-8 z-10">
         <img
-          src="/schlep-logo-34.png"
+          src="/inertials.png"
           alt="Igris Logo"
-          className="h-6 w-auto"
+          style={{ width: '110px', height: 'auto' }}
         />
       </div>
 
+      {/* Three.js Animation Background */}
+      <div className="absolute inset-0 pointer-events-none" style={{ height: '100vh', width: '100%', opacity: 0.3 }}>
+        <HeroInertial />
+      </div>
+
       {/* Main Content */}
-      <div className="w-full flex items-center justify-center px-8 py-12">
+      <div className="w-full flex items-center justify-center px-8 py-12 relative z-10">
         <div className="w-full max-w-4xl">
           {/* Step 1: Intent Selection */}
           {step === 1 && (
