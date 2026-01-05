@@ -13,7 +13,6 @@ import HowItWorks from '../src/components/sections/HowItWorks'
 import AudienceFilter from '../src/components/sections/AudienceFilter'
 import ClosingPosition from '../src/components/sections/ClosingPosition'
 import UseCasesTeaser from '../src/components/sections/UseCasesTeaser'
-import ForDevelopers from '../src/components/sections/ForDevelopers'
 import EarlyAccessModal from '../src/components/modals/EarlyAccessModal'
 import { useModal } from '../src/contexts/ModalContext'
 
@@ -33,7 +32,6 @@ export default function HomePage() {
           <CoreCapabilities />
           <AudienceFilter />
           <UseCasesTeaser />
-          <ForDevelopers />
           <MultiTenancy />
           <ClosingPosition />
         </main>
