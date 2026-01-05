@@ -22,9 +22,12 @@ export default function HowItWorks() {
 
             {/* Title Section - Shows first on mobile, last on desktop */}
             <div className="text-left mb-6 lg:mb-0 lg:hidden">
-              <h3 className="text-2xl md:text-2xl lg:text-3xl font-inter mb-4" style={{ color: '#000000' }}>
+              <h3 className="text-2xl md:text-2xl lg:text-3xl font-inter mb-2" style={{ color: '#000000' }}>
                 How It Works
               </h3>
+              <p className="text-sm text-gray-600 dark:text-gray-400 leading-relaxed font-inter mb-4">
+                Igris sits between applications and AI providers, handling routing decisions and model execution across cloud and edge environments.
+              </p>
               <div className="space-y-4 text-sm md:text-base text-gray-600 dark:text-gray-400">
                 <div>
                   <h4 className="font-normal text-gray-900 dark:text-white mb-2">Your application sends a request</h4>
@@ -53,9 +56,12 @@ export default function HowItWorks() {
             <div className="grid grid-cols-1 lg:grid-cols-3 gap-6" style={{ minHeight: '750px' }}>
               {/* Left Column - Section Title (Desktop only) */}
               <div className="hidden lg:flex text-left lg:col-span-1 pr-0 md:pr-4 lg:pr-8 flex-col justify-center" style={{ minHeight: '750px' }}>
-                <h3 className="text-2xl md:text-2xl lg:text-3xl font-inter mb-6" style={{ color: '#000000' }}>
+                <h3 className="text-2xl md:text-2xl lg:text-3xl font-inter mb-4" style={{ color: '#000000' }}>
                   How It Works
                 </h3>
+                <p className="text-sm text-gray-600 dark:text-gray-400 leading-relaxed font-inter mb-6">
+                  Igris sits between applications and AI providers, handling routing decisions and model execution across cloud and edge environments.
+                </p>
                 <div className="space-y-6 text-sm md:text-base text-gray-600 dark:text-gray-400">
                   <div>
                     <h4 className="font-normal text-gray-900 dark:text-white mb-2">Your application sends a request</h4>

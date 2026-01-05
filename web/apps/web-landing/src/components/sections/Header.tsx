@@ -13,6 +13,7 @@ export default function Header() {
   const [mobileResourcesOpen, setMobileResourcesOpen] = useState(false);
   const [docsHubUrl, setDocsHubUrl] = useState('https://docs.igrisinertial.com/');
   const [consoleUrl, setConsoleUrl] = useState('https://admin.igris-inertial.com');
+  const [isScrolled, setIsScrolled] = useState(false);
   const { openEarlyAccessModal } = useModal();
   const productDropdownRef = useRef<HTMLDivElement>(null);
   const resourcesDropdownRef = useRef<HTMLDivElement>(null);
@@ -26,6 +27,22 @@ export default function Header() {
       setDocsHubUrl('https://docs.igrisinertial.com/');
       setConsoleUrl('https://admin.igris-inertial.com');
     }
+  }, []);
+
+  // Detect scroll for blur effect
+  useEffect(() => {
+    const handleScroll = () => {
+      if (window.scrollY > 10) {
+        setIsScrolled(true);
+      } else {
+        setIsScrolled(false);
+      }
+    };
+
+    window.addEventListener('scroll', handleScroll);
+    return () => {
+      window.removeEventListener('scroll', handleScroll);
+    };
   }, []);
 
   // Close dropdowns when clicking outside
@@ -46,7 +63,14 @@ export default function Header() {
   }, []);
 
   return (
-    <header className="fixed top-0 left-0 w-full z-50 dark:bg-gray-900 font-inter" style={{ backgroundColor: 'transparent' }}>
+    <header
+      className={`fixed top-0 left-0 w-full z-50 dark:bg-gray-900 font-inter transition-all duration-300 ${
+        isScrolled ? 'backdrop-blur-md' : ''
+      }`}
+      style={{
+        backgroundColor: isScrolled ? 'rgba(246, 246, 244, 0.8)' : 'transparent'
+      }}
+    >
       <div className="mx-auto max-w-[1200px] px-4 sm:px-6 lg:px-8">
         <div className="px-4 md:px-8 lg:px-12 py-4"
              style={{
