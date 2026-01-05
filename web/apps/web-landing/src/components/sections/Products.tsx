@@ -6,7 +6,7 @@ export default function Products() {
   return (
     <section className="dark:bg-gray-900 text-gray-900 dark:text-white" style={{ backgroundColor: '#f6f6f4' }}>
       <div className="mx-auto max-w-[1200px] px-4 sm:px-6 lg:px-8">
-        <div className="relative px-4 md:px-8 lg:px-12" style={{
+        <div className="relative px-4 md:px-4 lg:px-6" style={{
           borderTop: '0.5px solid rgba(156, 163, 175, 0.3)',
           borderLeft: '0.5px solid rgba(156, 163, 175, 0.3)',
           borderRight: '0.5px solid rgba(156, 163, 175, 0.3)',
@@ -17,10 +17,10 @@ export default function Products() {
           <div className="grid grid-cols-1 md:grid-cols-3 gap-0" style={{ minHeight: '750px' }}>
 
             {/* Left Column: Overture and Runtime - 2 columns wide */}
-            <div className="md:col-span-2 py-12 md:py-16 lg:py-20 md:pr-4 space-y-8">
+            <div className="md:col-span-2 space-y-4" style={{ paddingTop: '1rem', paddingBottom: '1rem', paddingRight: '1rem', paddingLeft: '0' }}>
 
               {/* Overture */}
-              <div style={{ backgroundColor: '#f6f6f4', border: '0.5px solid rgba(156, 163, 175, 0.3)', minHeight: '380px', display: 'flex', flexDirection: 'column', justifyContent: 'space-between', padding: '12px' }}>
+              <div style={{ backgroundColor: '#f6f6f4', border: '0.5px solid rgba(156, 163, 175, 0.3)', minHeight: '380px', display: 'flex', flexDirection: 'column', justifyContent: 'space-between', padding: '1.5rem', position: 'relative' }}>
                 <div>
                   <h3 className="text-xl md:text-2xl font-inter mb-2" style={{ color: '#000000' }}>
                     Overture
@@ -29,9 +29,10 @@ export default function Products() {
                     Decision Layer
                   </p>
                 </div>
+                <div style={{ marginTop: '1rem', marginBottom: '1rem', border: '0.5px solid rgba(156, 163, 175, 0.3)', borderRadius: '0', flex: '1' }}></div>
                 <div>
-                  <p className="text-sm text-gray-600 dark:text-gray-400 leading-relaxed font-inter mb-4 break-words">
-                    Routes requests across AI providers using Thompson Sampling. Tracks costs and enforces budget limits. Provides request-level observability and multi-tenant support. Runs in cloud environments.
+                  <p className="text-sm text-gray-600 dark:text-gray-400 leading-relaxed font-inter mb-4 break-words max-w-lg">
+                    Intelligently routes your AI requests to the best providers. Automatically optimizes for cost, latency, and performance while keeping you under budget with real-time spend tracking.
                   </p>
                   <Link href="/overture" className="group">
                     <div className="flex items-center text-gray-900 dark:text-white font-inter text-xs group-hover:translate-x-1 transition-transform">
@@ -40,10 +41,11 @@ export default function Products() {
                     </div>
                   </Link>
                 </div>
+                <img src="/ovta.png" alt="Overture" style={{ position: 'absolute', top: '50%', left: '50%', transform: 'translate(-50%, -50%)', width: '200%', height: 'auto', objectFit: 'contain', opacity: '1' }} />
               </div>
 
               {/* Runtime */}
-              <div style={{ backgroundColor: '#f6f6f4', border: '0.5px solid rgba(156, 163, 175, 0.3)', minHeight: '380px', display: 'flex', flexDirection: 'column', justifyContent: 'space-between', padding: '12px' }}>
+              <div style={{ backgroundColor: '#f6f6f4', border: '0.5px solid rgba(156, 163, 175, 0.3)', minHeight: '380px', display: 'flex', flexDirection: 'column', justifyContent: 'space-between', padding: '1.5rem' }}>
                 <div>
                   <h3 className="text-xl md:text-2xl font-inter mb-2" style={{ color: '#000000' }}>
                     Runtime
@@ -52,9 +54,10 @@ export default function Products() {
                     Execution Layer
                   </p>
                 </div>
+                <div style={{ marginTop: '1rem', marginBottom: '1rem', border: '0.5px solid rgba(156, 163, 175, 0.3)', borderRadius: '0', flex: '1' }}></div>
                 <div>
-                  <p className="text-sm text-gray-600 dark:text-gray-400 leading-relaxed font-inter mb-4 break-words">
-                    Executes models on local hardware or edge devices. Supports ROS2 integration for robotics applications. Includes GPU, Metal, and CUDA acceleration. Functions without network connectivity.
+                  <p className="text-sm text-gray-600 dark:text-gray-400 leading-relaxed font-inter mb-4 break-words max-w-lg">
+                    Run AI models directly on your hardware with full offline capability. Includes GPU acceleration for fast inference and integrates seamlessly with robotics systems.
                   </p>
                   <Link href="/runtime" className="group">
                     <div className="flex items-center text-gray-900 dark:text-white font-inter text-xs group-hover:translate-x-1 transition-transform">
@@ -68,11 +71,11 @@ export default function Products() {
             </div>
 
             {/* Right Column: Title and Description - 1 column wide with full-height border */}
-            <div className="md:col-span-1 py-12 md:py-16 lg:py-20 md:pl-12 md:border-l flex flex-col justify-center items-center" style={{ borderLeft: '0.5px solid rgba(156, 163, 175, 0.3)' }}>
-              <h2 className="text-2xl md:text-3xl font-inter mb-4 text-center" style={{ color: '#000000' }}>
+            <div className="md:col-span-1 md:border-l flex flex-col justify-start" style={{ borderLeft: '0.5px solid rgba(156, 163, 175, 0.3)', paddingTop: '1rem', paddingBottom: '1rem', paddingLeft: '1rem' }}>
+              <h2 className="text-2xl md:text-3xl font-inter mb-4" style={{ color: '#000000' }}>
                 Two components of a system
               </h2>
-              <p className="text-sm text-gray-600 dark:text-gray-400 font-inter leading-relaxed text-center">
+              <p className="text-sm text-gray-600 dark:text-gray-400 font-inter leading-relaxed">
                 Overture handles routing and provider selection in cloud environments. Runtime executes models on local or edge devices. They can be deployed independently or together.
               </p>
             </div>

@@ -33,7 +33,7 @@ export default function CoreCapabilities() {
     <>
       <section className="dark:bg-gray-900 text-gray-900 dark:text-white" style={{ backgroundColor: '#f6f6f4' }}>
         <div className="mx-auto max-w-[1200px] px-4 sm:px-6 lg:px-8">
-          <div className="relative py-8 px-4 md:px-8 lg:px-12" style={{
+          <div className="relative py-8 px-4 md:px-4 lg:px-6" style={{
             borderTop: '0.5px solid rgba(156, 163, 175, 0.3)',
             borderLeft: '0.5px solid rgba(156, 163, 175, 0.3)',
             borderRight: '0.5px solid rgba(156, 163, 175, 0.3)',
@@ -42,14 +42,10 @@ export default function CoreCapabilities() {
 
             {/* Content Container */}
             <div className="w-full px-0">
-              {/* Vertical Divider positioned at center - full height from top to bottom of frame */}
-              <div className="absolute top-0 bottom-0 left-2/3 hidden lg:block" style={{
-                borderLeft: '0.5px solid rgba(156, 163, 175, 0.3)',
-                transform: 'translateX(-66.67%)'
-              }}></div>
+              {/* No absolute divider - use border on right column instead */}
 
               {/* Title Section - Shows first on mobile, last on desktop */}
-              <div className="text-left mb-6 lg:mb-0 lg:hidden">
+              <div className="text-left mb-6 md:mb-0 md:hidden">
                 <h3 className="text-2xl md:text-2xl lg:text-3xl font-inter mb-4" style={{ color: '#000000' }}>
                   Production-Grade Capabilities
                 </h3>
@@ -58,12 +54,21 @@ export default function CoreCapabilities() {
                 </p>
               </div>
 
-              {/* Two-column layout */}
-              <div className="grid grid-cols-1 lg:grid-cols-3 gap-6" style={{ minHeight: '750px' }}>
+               {/* Two-column layout */}
+              <div className="grid grid-cols-1 md:grid-cols-3 gap-0 relative" style={{ minHeight: '750px' }}>
+                {/* Vertical divider - spans full height from top to bottom */}
+                <div className="absolute top-0 bottom-0 left-2/3 hidden md:block" style={{
+                  borderLeft: '0.5px solid rgba(156, 163, 175, 0.3)',
+                  transform: 'translateX(-50%)'
+                }}></div>
 
                 {/* Left Column - 4x2 Grid (4 rows, 2 columns) */}
-                <div className="lg:col-span-2 relative flex items-center justify-center overflow-hidden" style={{
-                  borderRadius: '16px'
+                <div className="md:col-span-2 relative flex items-center justify-center overflow-hidden" style={{
+                  borderRadius: '16px',
+                  paddingTop: '1rem',
+                  paddingBottom: '1rem',
+                  paddingRight: '1rem',
+                  paddingLeft: '0'
                 }}>
                   <div className="grid grid-cols-1 md:grid-cols-2 gap-0 w-full relative z-10">
                     {capabilities.map((capability, index) => {
@@ -115,7 +120,7 @@ export default function CoreCapabilities() {
                 </div>
 
                 {/* Right Column - Section Title (Desktop only) */}
-                <div className="hidden lg:flex text-left lg:col-span-1 pl-0 md:pl-4 lg:pl-8 flex-col justify-center" style={{ minHeight: '750px' }}>
+                <div className="hidden md:flex text-left md:col-span-1 flex flex-col justify-start" style={{ minHeight: '750px', paddingTop: '1rem', paddingBottom: '1rem', paddingLeft: '1rem' }}>
                   <h3 className="text-2xl md:text-2xl lg:text-3xl font-inter mb-4" style={{ color: '#000000' }}>
                     Production-Grade Capabilities
                   </h3>
@@ -132,7 +137,7 @@ export default function CoreCapabilities() {
       {/* New Section - Full Width Placeholder */}
       <section className="dark:bg-gray-900 text-gray-900 dark:text-white" style={{ backgroundColor: '#f6f6f4' }}>
         <div className="mx-auto max-w-[1200px] px-4 sm:px-6 lg:px-8">
-          <div className="relative py-8 px-4 md:px-8 lg:px-12" style={{
+          <div className="relative py-8 px-4 md:px-4 lg:px-6" style={{
             borderTop: '0.5px solid rgba(156, 163, 175, 0.3)',
             borderLeft: '0.5px solid rgba(156, 163, 175, 0.3)',
             borderRight: '0.5px solid rgba(156, 163, 175, 0.3)',
