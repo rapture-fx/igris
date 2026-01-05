@@ -26,10 +26,10 @@ export default function HomePage() {
         <main className="pt-[70px]">
           <Hero />
           <Products />
+          <CoreCapabilities />
           <HowItWorks />
           <Problem />
           <WhatIgrisDoes />
-          <CoreCapabilities />
           <AudienceFilter />
           <UseCasesTeaser />
           <MultiTenancy />
