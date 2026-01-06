@@ -1,0 +1,43 @@
+flowchart TB
+    A1[Your Application]
+
+    subgraph Overture[" "]
+        direction TB
+        O1[Authentication & Security]
+        O2[Budget & Policy Check]
+        O3[Intelligent Routing<br/>Thompson Sampling]
+        O4[Provider Execution]
+    end
+
+    subgraph Providers[" "]
+        direction LR
+        P1[OpenAI]
+        P2[Anthropic]
+        P3[Google]
+        P4[Others]
+    end
+
+    R1[Circuit Breaker & Retry]
+    R2[EscapeVector Cache]
+
+    L1[Cost Tracking & Learning]
+
+    A1 -->|Send Request| O1
+    O1 --> O2
+    O2 --> O3
+    O3 --> O4
+    O4 --> Providers
+
+    Providers -->|Success| L1
+    Providers -.->|Failed| R1
+    R1 -.->|Retry| O4
+    R1 -.->|All Failed| R2
+    R2 -.-> L1
+
+    L1 -->|Return Response| A1
+
+    classDef transparentNode fill:transparent,stroke:#666,stroke-width:1px
+    class A1,O1,O2,O3,O4,P1,P2,P3,P4,R1,R2,L1 transparentNode
+
+    style Overture fill:#e8f4f8,stroke:#2d5f7a,stroke-width:2px
+    style Providers fill:#fff4e6,stroke:#b8860b,stroke-width:2px

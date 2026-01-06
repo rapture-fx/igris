@@ -33,7 +33,7 @@ export default function CoreCapabilities() {
     <>
       <section className="dark:bg-gray-900 text-gray-900 dark:text-white" style={{ backgroundColor: '#f6f6f4' }}>
         <div className="mx-auto max-w-[1200px] px-4 sm:px-6 lg:px-8">
-          <div className="relative py-8 px-4 md:px-4 lg:px-6" style={{
+          <div className="relative px-4 md:px-4 lg:px-6" style={{
             borderTop: '0.5px solid rgba(156, 163, 175, 0.3)',
             borderLeft: '0.5px solid rgba(156, 163, 175, 0.3)',
             borderRight: '0.5px solid rgba(156, 163, 175, 0.3)',
@@ -47,7 +47,7 @@ export default function CoreCapabilities() {
               {/* Title Section - Shows first on mobile, last on desktop */}
               <div className="text-left mb-6 md:mb-0 md:hidden">
                 <h3 className="text-2xl md:text-2xl lg:text-3xl font-inter mb-4" style={{ color: '#000000' }}>
-                  Production-Grade Capabilities
+                  System Capabilities
                 </h3>
                 <p className="text-sm md:text-base text-gray-700 dark:text-gray-300 font-inter">
                   Built for teams deploying AI systems that cannot afford downtime, drift, or unpredictable costs.
@@ -55,15 +55,9 @@ export default function CoreCapabilities() {
               </div>
 
                {/* Two-column layout */}
-              <div className="grid grid-cols-1 md:grid-cols-3 gap-0 relative" style={{ minHeight: '750px' }}>
-                {/* Vertical divider - spans full height from top to bottom */}
-                <div className="absolute top-0 bottom-0 left-2/3 hidden md:block" style={{
-                  borderLeft: '0.5px solid rgba(156, 163, 175, 0.3)',
-                  transform: 'translateX(-50%)'
-                }}></div>
-
+              <div className="grid grid-cols-1 md:grid-cols-3 gap-0 relative" style={{ minHeight: '600px' }}>
                 {/* Left Column - 4x2 Grid (4 rows, 2 columns) */}
-                <div className="md:col-span-2 relative flex items-center justify-center overflow-hidden" style={{
+                <div className="md:col-span-2 relative flex items-start justify-center overflow-hidden" style={{
                   borderRadius: '16px',
                   paddingTop: '1rem',
                   paddingBottom: '1rem',
@@ -84,28 +78,18 @@ export default function CoreCapabilities() {
                             minHeight: '145px'
                           }}
                         >
-                          {/* Double dashed right border */}
+                          {/* Single dashed right border */}
                           {hasRightBorder && (
-                            <>
-                              <div className="absolute top-0 bottom-0 right-[2px]" style={{
-                                borderRight: '1px dashed rgba(156, 163, 175, 0.4)'
-                              }}></div>
-                              <div className="absolute top-0 bottom-0 right-[-2px]" style={{
-                                borderRight: '1px dashed rgba(156, 163, 175, 0.4)'
-                              }}></div>
-                            </>
+                            <div className="absolute top-0 bottom-0 right-0" style={{
+                              borderRight: '1px dashed rgba(156, 163, 175, 0.6)'
+                            }}></div>
                           )}
 
-                          {/* Double dashed bottom border */}
+                          {/* Single dashed bottom border */}
                           {hasBottomBorder && (
-                            <>
-                              <div className="absolute left-0 right-0 bottom-[2px]" style={{
-                                borderBottom: '1px dashed rgba(156, 163, 175, 0.4)'
-                              }}></div>
-                              <div className="absolute left-0 right-0 bottom-[-2px]" style={{
-                                borderBottom: '1px dashed rgba(156, 163, 175, 0.4)'
-                              }}></div>
-                            </>
+                            <div className="absolute left-0 right-0 bottom-0" style={{
+                              borderBottom: '1px dashed rgba(156, 163, 175, 0.6)'
+                            }}></div>
                           )}
                           <h3 className="text-base font-semibold text-gray-900 dark:text-white mb-3 font-inter">
                             {capability.name}
@@ -120,9 +104,9 @@ export default function CoreCapabilities() {
                 </div>
 
                 {/* Right Column - Section Title (Desktop only) */}
-                <div className="hidden md:flex text-left md:col-span-1 flex flex-col justify-start" style={{ minHeight: '750px', paddingTop: '1rem', paddingBottom: '1rem', paddingLeft: '1rem' }}>
+                <div className="hidden md:flex text-left md:col-span-1 flex flex-col justify-start" style={{ borderLeft: '0.5px solid rgba(156, 163, 175, 0.3)', minHeight: '600px', paddingTop: '1rem', paddingBottom: '1rem', paddingLeft: '1rem' }}>
                   <h3 className="text-2xl md:text-2xl lg:text-3xl font-inter mb-4" style={{ color: '#000000' }}>
-                    Production-Grade Capabilities
+                    System Capabilities
                   </h3>
                   <p className="text-sm md:text-base text-gray-700 dark:text-gray-300 font-inter">
                     Built for teams deploying AI systems that cannot afford downtime, drift, or unpredictable costs.
@@ -154,7 +138,7 @@ export default function CoreCapabilities() {
               {/* Horizontal Stack Layout */}
               <div className="flex flex-col md:flex-row gap-4">
                 {/* Card 1: EscapeVector Mode */}
-                <div className="p-6 md:p-8 lg:p-10 border border-gray-300/60 dark:border-gray-600/60 shadow-sm hover:shadow-md transition-all duration-300 min-h-[480px] flex-1 flex flex-col relative" style={{ backgroundColor: '#f6f6f4', borderRadius: '0' }}>
+                <div className="p-6 md:p-8 lg:p-10 border border-gray-300/60 dark:border-gray-600/60 transition-all duration-300 min-h-[320px] flex-1 flex flex-col relative" style={{ backgroundColor: '#f6f6f4', borderRadius: '0' }}>
                   <div className="absolute bottom-0 left-0 right-0 p-6 md:p-8 lg:p-10" style={{ height: '40%' }}>
                     {/* Title positioned at fixed distance from bottom - same for all cards */}
                     <div className="absolute left-6 md:left-8 lg:left-10" style={{ bottom: '110px', right: '24px' }}>
@@ -170,7 +154,7 @@ export default function CoreCapabilities() {
                 </div>
 
                 {/* Card 2: Local LLM Fallback */}
-                <div className="p-6 md:p-8 lg:p-10 border border-gray-300/60 dark:border-gray-600/60 shadow-sm hover:shadow-md transition-all duration-300 min-h-[480px] flex-1 flex flex-col relative" style={{ backgroundColor: '#f6f6f4', borderRadius: '0' }}>
+                <div className="p-6 md:p-8 lg:p-10 border border-gray-300/60 dark:border-gray-600/60 transition-all duration-300 min-h-[320px] flex-1 flex flex-col relative" style={{ backgroundColor: '#f6f6f4', borderRadius: '0' }}>
                   <div className="absolute bottom-0 left-0 right-0 p-6 md:p-8 lg:p-10" style={{ height: '40%' }}>
                     {/* Title positioned at fixed distance from bottom - same for all cards */}
                     <div className="absolute left-6 md:left-8 lg:left-10" style={{ bottom: '110px', right: '24px' }}>
@@ -186,7 +170,7 @@ export default function CoreCapabilities() {
                 </div>
 
                 {/* Card 3: SLO Enforcer */}
-                <div className="p-6 md:p-8 lg:p-10 border border-gray-300/60 dark:border-gray-600/60 shadow-sm hover:shadow-md transition-all duration-300 min-h-[480px] flex-1 flex flex-col relative" style={{ backgroundColor: '#f6f6f4', borderRadius: '0' }}>
+                <div className="p-6 md:p-8 lg:p-10 border border-gray-300/60 dark:border-gray-600/60 transition-all duration-300 min-h-[320px] flex-1 flex flex-col relative" style={{ backgroundColor: '#f6f6f4', borderRadius: '0' }}>
                   <div className="absolute bottom-0 left-0 right-0 p-6 md:p-8 lg:p-10" style={{ height: '40%' }}>
                     {/* Title positioned at fixed distance from bottom - same for all cards */}
                     <div className="absolute left-6 md:left-8 lg:left-10" style={{ bottom: '110px', right: '24px' }}>
@@ -202,7 +186,7 @@ export default function CoreCapabilities() {
                 </div>
 
                 {/* Card 4: Gold Code Override */}
-                <div className="p-6 md:p-8 lg:p-10 border border-gray-300/60 dark:border-gray-600/60 shadow-sm hover:shadow-md transition-all duration-300 min-h-[480px] flex-1 flex flex-col relative" style={{ backgroundColor: '#f6f6f4', borderRadius: '0' }}>
+                <div className="p-6 md:p-8 lg:p-10 border border-gray-300/60 dark:border-gray-600/60 transition-all duration-300 min-h-[320px] flex-1 flex flex-col relative" style={{ backgroundColor: '#f6f6f4', borderRadius: '0' }}>
                   <div className="absolute bottom-0 left-0 right-0 p-6 md:p-8 lg:p-10" style={{ height: '40%' }}>
                     {/* Title positioned at fixed distance from bottom - same for all cards */}
                     <div className="absolute left-6 md:left-8 lg:left-10" style={{ bottom: '110px', right: '24px' }}>

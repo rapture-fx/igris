@@ -89,14 +89,6 @@ export default function HowItWorks() {
               {/* Right Column - Diagram and Explanation */}
               <div className="lg:col-span-2 relative flex items-center justify-center">
                 <div className="w-full relative z-10">
-                  <img
-                    src="/flow.png"
-                    alt="Igris Inertial Flow Diagram"
-                    width={700}
-                    height={500}
-                    className="w-full h-auto rounded-lg"
-                    style={{ maxHeight: '500px', objectFit: 'contain' }}
-                  />
                 </div>
               </div>
             </div>
