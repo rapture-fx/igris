@@ -81,7 +81,7 @@ export default function Header() {
           <div className="flex items-center">
             <Link href="/" className="flex items-center">
               <img
-                src="/inertials.png"
+                src="/inertialss.png"
                 alt="Igris Inertial"
                 style={{ width: '110px', height: 'auto' }}
               />
