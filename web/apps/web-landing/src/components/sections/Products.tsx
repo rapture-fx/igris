@@ -29,7 +29,9 @@ export default function Products() {
                     Decision Layer
                   </p>
                 </div>
-                <div style={{ marginTop: '1rem', marginBottom: '1rem', border: '0.5px solid rgba(156, 163, 175, 0.3)', borderRadius: '0', flex: '1' }}></div>
+                <div style={{ marginTop: '1rem', marginBottom: '1rem', border: '0.5px solid rgba(156, 163, 175, 0.3)', borderRadius: '0', flex: '1', position: 'relative', overflow: 'hidden' }}>
+                  <img src="/ovta.png" alt="Overture" style={{ position: 'absolute', top: '0', left: '0', width: '100%', height: '100%', objectFit: 'cover', opacity: '1' }} />
+                </div>
                 <div>
                   <p className="text-sm text-gray-600 dark:text-gray-400 leading-relaxed font-inter mb-4 break-words max-w-lg">
                     Intelligently routes your AI requests to the best providers. Automatically optimizes for cost, latency, and performance while keeping you under budget with real-time spend tracking.
@@ -41,7 +43,6 @@ export default function Products() {
                     </div>
                   </Link>
                 </div>
-                <img src="/ovta.png" alt="Overture" style={{ position: 'absolute', top: '50%', left: '50%', transform: 'translate(-50%, -50%)', width: '200%', height: 'auto', objectFit: 'contain', opacity: '1' }} />
               </div>
 
               {/* Runtime */}

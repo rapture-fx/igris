@@ -24,14 +24,14 @@ export default function Hero() {
               <div className="flex flex-col md:flex-row md:justify-between md:items-start gap-6">
                 <div className="text-left">
                   <h1 className="text-xl md:text-2xl lg:text-3xl font-medium text-[#111111] leading-[1.2]">
-                    Handle AI Failures Automatically
+                    Reliable AI Inference — Cloud or Edge
                   </h1>
                   <h2 className="text-lg md:text-xl lg:text-2xl font-medium text-[#666666] leading-[1.2] mt-2">
                     Designed to keep working when parts fail
                   </h2>
                 </div>
                 <p className="text-sm md:text-sm text-gray-700 max-w-md leading-relaxed text-left">
-                  Designed to support production AI workloads that run across cloud, edge, and autonomous environments over time.
+                  Built for AI systems that operate across cloud, edge, and autonomous environments, with control over execution, routing, and failure states.
                 </p>
               </div>
             </div>
