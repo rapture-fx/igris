@@ -55,12 +55,12 @@ export default function CoreCapabilities() {
               </div>
 
                {/* Two-column layout */}
-              <div className="grid grid-cols-1 md:grid-cols-3 gap-0 relative" style={{ minHeight: '600px' }}>
+              <div className="grid grid-cols-1 md:grid-cols-3 gap-0 relative">
                 {/* Left Column - 4x2 Grid (4 rows, 2 columns) */}
                 <div className="md:col-span-2 relative flex items-start justify-center overflow-hidden" style={{
                   borderRadius: '16px',
-                  paddingTop: '1rem',
-                  paddingBottom: '1rem',
+                  paddingTop: '3rem',
+                  paddingBottom: '3rem',
                   paddingRight: '1rem',
                   paddingLeft: '0'
                 }}>
@@ -104,7 +104,7 @@ export default function CoreCapabilities() {
                 </div>
 
                 {/* Right Column - Section Title (Desktop only) */}
-                <div className="hidden md:flex text-left md:col-span-1 flex flex-col justify-start" style={{ borderLeft: '0.5px solid rgba(156, 163, 175, 0.3)', minHeight: '600px', paddingTop: '1rem', paddingBottom: '1rem', paddingLeft: '1rem' }}>
+                <div className="hidden md:flex text-left md:col-span-1 flex flex-col justify-start" style={{ borderLeft: '0.5px solid rgba(156, 163, 175, 0.3)', paddingTop: '3rem', paddingBottom: '3rem', paddingLeft: '1rem' }}>
                   <h3 className="text-2xl md:text-2xl lg:text-3xl font-inter mb-4" style={{ color: '#000000' }}>
                     System Capabilities
                   </h3>
@@ -138,7 +138,7 @@ export default function CoreCapabilities() {
               {/* Horizontal Stack Layout */}
               <div className="flex flex-col md:flex-row gap-4">
                 {/* Card 1: EscapeVector Mode */}
-                <div className="p-6 md:p-8 lg:p-10 border border-gray-300/60 dark:border-gray-600/60 transition-all duration-300 min-h-[320px] flex-1 flex flex-col relative" style={{ backgroundColor: '#f6f6f4', borderRadius: '0' }}>
+                <div className="p-6 md:p-8 lg:p-10 border border-gray-300/60 dark:border-gray-600/60 transition-all duration-300 min-h-[400px] flex-1 flex flex-col relative" style={{ backgroundColor: '#f6f6f4', borderRadius: '0' }}>
                   <div className="absolute bottom-0 left-0 right-0 p-6 md:p-8 lg:p-10" style={{ height: '40%' }}>
                     {/* Title positioned at fixed distance from bottom - same for all cards */}
                     <div className="absolute left-6 md:left-8 lg:left-10" style={{ bottom: '110px', right: '24px' }}>
@@ -154,7 +154,7 @@ export default function CoreCapabilities() {
                 </div>
 
                 {/* Card 2: Local LLM Fallback */}
-                <div className="p-6 md:p-8 lg:p-10 border border-gray-300/60 dark:border-gray-600/60 transition-all duration-300 min-h-[320px] flex-1 flex flex-col relative" style={{ backgroundColor: '#f6f6f4', borderRadius: '0' }}>
+                <div className="p-6 md:p-8 lg:p-10 border border-gray-300/60 dark:border-gray-600/60 transition-all duration-300 min-h-[400px] flex-1 flex flex-col relative" style={{ backgroundColor: '#f6f6f4', borderRadius: '0' }}>
                   <div className="absolute bottom-0 left-0 right-0 p-6 md:p-8 lg:p-10" style={{ height: '40%' }}>
                     {/* Title positioned at fixed distance from bottom - same for all cards */}
                     <div className="absolute left-6 md:left-8 lg:left-10" style={{ bottom: '110px', right: '24px' }}>
@@ -170,7 +170,7 @@ export default function CoreCapabilities() {
                 </div>
 
                 {/* Card 3: SLO Enforcer */}
-                <div className="p-6 md:p-8 lg:p-10 border border-gray-300/60 dark:border-gray-600/60 transition-all duration-300 min-h-[320px] flex-1 flex flex-col relative" style={{ backgroundColor: '#f6f6f4', borderRadius: '0' }}>
+                <div className="p-6 md:p-8 lg:p-10 border border-gray-300/60 dark:border-gray-600/60 transition-all duration-300 min-h-[400px] flex-1 flex flex-col relative" style={{ backgroundColor: '#f6f6f4', borderRadius: '0' }}>
                   <div className="absolute bottom-0 left-0 right-0 p-6 md:p-8 lg:p-10" style={{ height: '40%' }}>
                     {/* Title positioned at fixed distance from bottom - same for all cards */}
                     <div className="absolute left-6 md:left-8 lg:left-10" style={{ bottom: '110px', right: '24px' }}>
@@ -186,7 +186,7 @@ export default function CoreCapabilities() {
                 </div>
 
                 {/* Card 4: Gold Code Override */}
-                <div className="p-6 md:p-8 lg:p-10 border border-gray-300/60 dark:border-gray-600/60 transition-all duration-300 min-h-[320px] flex-1 flex flex-col relative" style={{ backgroundColor: '#f6f6f4', borderRadius: '0' }}>
+                <div className="p-6 md:p-8 lg:p-10 border border-gray-300/60 dark:border-gray-600/60 transition-all duration-300 min-h-[400px] flex-1 flex flex-col relative" style={{ backgroundColor: '#f6f6f4', borderRadius: '0' }}>
                   <div className="absolute bottom-0 left-0 right-0 p-6 md:p-8 lg:p-10" style={{ height: '40%' }}>
                     {/* Title positioned at fixed distance from bottom - same for all cards */}
                     <div className="absolute left-6 md:left-8 lg:left-10" style={{ bottom: '110px', right: '24px' }}>

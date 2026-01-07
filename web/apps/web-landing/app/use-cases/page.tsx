@@ -3,6 +3,9 @@
 import Header from '../../src/components/sections/Header'
 import Footer from '../../src/components/sections/Footer'
 import CallToAction from '../../src/components/sections/CallToAction'
+import Problem from '../../src/components/sections/Problem'
+import AudienceFilter from '../../src/components/sections/AudienceFilter'
+import UseCasesTeaser from '../../src/components/sections/UseCasesTeaser'
 import EarlyAccessModal from '../../src/components/modals/EarlyAccessModal'
 import { useModal } from '../../src/contexts/ModalContext'
 import Link from 'next/link'
@@ -55,7 +58,12 @@ export default function UseCasesPage() {
         <Header />
         <main className="pt-[70px] space-y-1">
           {/* Hero Section */}
-          <section className="py-0 bg-[#f6f6f4] text-gray-900 relative overflow-visible">
+          <section className="py-0 bg-[#f6f6f4] text-gray-900 relative overflow-visible" style={{
+        backgroundImage: 'linear-gradient(rgba(246, 246, 244, 0.3), rgba(246, 246, 244, 0.3)), url(/cloudbg.png)',
+        backgroundSize: 'cover',
+        backgroundPosition: 'center top -100px',
+        backgroundRepeat: 'no-repeat'
+      }}>
             <div className="mx-auto max-w-[1200px] px-4 sm:px-6 lg:px-8">
               <div className="relative pt-8 px-4 md:px-8 lg:px-12 pb-8 md:pb-20 bg-transparent z-10" style={{
                 borderTop: '0.5px solid rgba(156, 163, 175, 0.3)',
@@ -92,6 +100,15 @@ export default function UseCasesPage() {
               </div>
             </div>
           </section>
+
+          {/* Common Challenges Section */}
+          <Problem />
+
+          {/* Intended Use Cases Section */}
+          <AudienceFilter />
+
+          {/* Use Cases Teaser Section */}
+          <UseCasesTeaser />
 
           {/* Use Cases Sections */}
           {useCases.map((useCase, index) => (

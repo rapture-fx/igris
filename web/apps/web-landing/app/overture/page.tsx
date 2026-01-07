@@ -68,7 +68,12 @@ export default function OverturePage() {
         <Header />
         <main className="pt-[70px] space-y-1">
           {/* Hero Section */}
-          <section className="pt-0 pb-0 bg-[#f6f6f4] text-gray-900 relative overflow-visible -mt-[72px]">
+          <section className="pt-0 pb-0 bg-[#f6f6f4] text-gray-900 relative overflow-visible -mt-[72px]" style={{
+        backgroundImage: 'linear-gradient(rgba(246, 246, 244, 0.3), rgba(246, 246, 244, 0.3)), url(/cloudbg.png)',
+        backgroundSize: 'cover',
+        backgroundPosition: 'center top -100px',
+        backgroundRepeat: 'no-repeat'
+      }}>
             <div className="mx-auto max-w-[1200px] px-4 sm:px-6 lg:px-8">
               <div className="relative px-4 md:px-8 lg:px-12 pb-64 md:pb-80 lg:pb-[36rem] bg-transparent z-10" style={{
                 borderBottom: '0.5px solid rgba(156, 163, 175, 0.3)',

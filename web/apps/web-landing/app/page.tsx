@@ -7,12 +7,9 @@ import CallToAction from '../src/components/sections/CallToAction'
 import CoreCapabilities from '../src/components/sections/CoreCapabilities'
 import MultiTenancy from '../src/components/sections/MultiTenancy'
 import Products from '../src/components/sections/Products'
-import Problem from '../src/components/sections/Problem'
 import WhatIgrisDoes from '../src/components/sections/WhatIgrisDoes'
 import HowItWorks from '../src/components/sections/HowItWorks'
-import AudienceFilter from '../src/components/sections/AudienceFilter'
 import ClosingPosition from '../src/components/sections/ClosingPosition'
-import UseCasesTeaser from '../src/components/sections/UseCasesTeaser'
 import EarlyAccessModal from '../src/components/modals/EarlyAccessModal'
 import { useModal } from '../src/contexts/ModalContext'
 
@@ -28,10 +25,7 @@ export default function HomePage() {
           <Products />
           <CoreCapabilities />
           <HowItWorks />
-          <Problem />
           <WhatIgrisDoes />
-          <AudienceFilter />
-          <UseCasesTeaser />
           <MultiTenancy />
           <ClosingPosition />
         </main>
