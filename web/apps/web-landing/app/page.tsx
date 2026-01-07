@@ -7,7 +7,6 @@ import CallToAction from '../src/components/sections/CallToAction'
 import CoreCapabilities from '../src/components/sections/CoreCapabilities'
 import MultiTenancy from '../src/components/sections/MultiTenancy'
 import Products from '../src/components/sections/Products'
-import WhatIgrisDoes from '../src/components/sections/WhatIgrisDoes'
 import HowItWorks from '../src/components/sections/HowItWorks'
 import ClosingPosition from '../src/components/sections/ClosingPosition'
 import EarlyAccessModal from '../src/components/modals/EarlyAccessModal'
@@ -25,7 +24,6 @@ export default function HomePage() {
           <Products />
           <CoreCapabilities />
           <HowItWorks />
-          <WhatIgrisDoes />
           <MultiTenancy />
           <ClosingPosition />
         </main>
