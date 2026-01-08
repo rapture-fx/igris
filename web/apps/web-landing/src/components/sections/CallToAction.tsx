@@ -25,7 +25,7 @@ export default function CallToAction() {
           {/* Content Container with Original Width */}
           <div className="max-w-[1100px] mx-auto w-full">
             <div className="text-center">
-              <h2 className="text-2xl md:text-2xl lg:text-3xl tracking-tight mb-6 md:mb-8 font-inter" style={{ color: '#000000' }}>Choose your deployment</h2>
+              <h2 className="text-2xl md:text-2xl lg:text-3xl tracking-tight mb-6 md:mb-8 font-inter" style={{ color: '#000000' }}>Get Started With Overture</h2>
 
               <div className="inline-block">
                 <Link
@@ -33,7 +33,7 @@ export default function CallToAction() {
                   className="inline-flex items-center justify-center text-white px-3 py-1.5 md:px-6 md:py-3 rounded-md md:rounded-xl hover:opacity-90 transition-all duration-200 text-xs md:text-base shadow-sm md:shadow-md hover:shadow-lg font-inter"
                   style={{ backgroundColor: '#000000', minHeight: '36px' }}
                 >
-                  Get Started
+                  Explore Documentation
                 </Link>
               </div>
             </div>
