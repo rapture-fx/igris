@@ -13,9 +13,9 @@ export default function Footer() {
           borderBottom: '0.5px solid rgba(156, 163, 175, 0.3)',
           backgroundColor: '#f6f6f4'
         }}>
-          <div className="flex flex-col md:flex-row md:justify-between md:items-center gap-6">
-            {/* Left side - Legal links and contact */}
-            <div className="flex flex-col md:flex-row md:items-center gap-4 md:gap-6">
+          <div className="flex flex-col items-center gap-6">
+            {/* Legal links and contact - centered */}
+            <div className="flex flex-col md:flex-row md:items-center gap-4 md:gap-6 text-center">
               <Link href="/terms" className="text-sm text-gray-600 dark:text-gray-400 hover:text-gray-900 dark:hover:text-white transition-colors">
                 Terms of Service
               </Link>
@@ -28,22 +28,20 @@ export default function Footer() {
               <p className="text-sm text-gray-500 dark:text-gray-400 font-inter">
                 support@igrisinertial.com
               </p>
+            </div>
+
+            {/* Logo and copyright - centered together */}
+            <div className="flex items-center gap-2">
+              <img
+                src="/footers.png"
+                alt="Igris Inertial"
+                width={28}
+                height={28}
+                style={{ width: '28px', height: '28px' }}
+              />
               <span className="text-sm text-gray-500 dark:text-gray-400 font-inter">
                 © 2025 Igris Inertial.
               </span>
-            </div>
-
-            {/* Right side - Logo */}
-            <div className="flex items-center space-x-2">
-              <div className="flex items-center">
-                <img
-                  src="/footers.png"
-                  alt="Igris Inertial"
-                  width={28}
-                  height={28}
-                  style={{ width: '28px', height: '28px' }}
-                />
-              </div>
             </div>
           </div>
         </div>
