@@ -6,13 +6,14 @@ import { ChevronRight } from 'lucide-react'
 
 export default function HowItWorks() {
   return (
-    <section id="how-it-works" className="dark:bg-gray-900 text-gray-900 dark:text-white" style={{ backgroundColor: '#f6f6f4' }}>
-      <div className="mx-auto max-w-[1200px] px-4 sm:px-6 lg:px-8">
-        <div className="relative px-4 md:px-4 lg:px-6" style={{
+    <section id="how-it-works" className="dark:bg-gray-900 text-gray-900 dark:text-white" style={{ backgroundColor: '#f6f6f4', height: '800px' }}>
+      <div className="mx-auto max-w-[1200px] px-4 sm:px-6 lg:px-8" style={{ height: '100%' }}>
+        <div className="relative px-4 md:px-4 lg:px-6 flex flex-col" style={{
           borderTop: '0.5px solid rgba(156, 163, 175, 0.3)',
           borderLeft: '0.5px solid rgba(156, 163, 175, 0.3)',
           borderRight: '0.5px solid rgba(156, 163, 175, 0.3)',
-          backgroundColor: '#f6f6f4'
+          backgroundColor: '#f6f6f4',
+          height: '100%'
         }}>
 
           {/* Title Section - Shows first on mobile, last on desktop */}
@@ -76,7 +77,7 @@ export default function HowItWorks() {
           </div>
 
           {/* Two-column layout - Matching Products section */}
-          <div className="grid grid-cols-1 md:grid-cols-3 gap-0">
+          <div className="grid grid-cols-1 md:grid-cols-3 gap-0 md:flex-1" style={{ height: '100%' }}>
             {/* Left Column - Content (2 columns wide) */}
             <div className="md:col-span-2 flex flex-col items-center justify-start" style={{ paddingTop: '3rem', paddingBottom: '3rem', paddingRight: '1rem', paddingLeft: '0' }}>
               <div className="w-full max-w-[320px]">
@@ -133,7 +134,7 @@ export default function HowItWorks() {
             </div>
 
             {/* Right Column - Title (1 column wide with left border) */}
-            <div className="md:col-span-1 md:border-l flex flex-col justify-start" style={{ borderLeft: '0.5px solid rgba(156, 163, 175, 0.3)', paddingTop: '3rem', paddingBottom: '3rem', paddingLeft: '1rem' }}>
+            <div className="md:col-span-1 md:border-l flex flex-col justify-start" style={{ borderLeft: '0.5px solid rgba(156, 163, 175, 0.3)', paddingTop: '3rem', paddingBottom: '3rem', paddingLeft: '1rem', height: '100%' }}>
               <h2 className="text-2xl md:text-3xl font-inter mb-4" style={{ color: '#000000' }}>
                 How It Works
               </h2>
