@@ -95,10 +95,9 @@ export default function Faq() {
   };
 
   return (
-    <section id="faq" className="py-2 sm:py-3 lg:py-4 dark:bg-gray-900" style={{ backgroundColor: '#f6f6f4' }}>
+    <section id="faq" className="dark:bg-gray-900 text-gray-900 dark:text-white" style={{ backgroundColor: '#f6f6f4', borderBottom: '0.5px solid rgba(156, 163, 175, 0.3)' }}>
       <div className="max-w-[1200px] mx-auto px-4 sm:px-6 lg:px-8">
         <div className="relative py-8 md:py-12 lg:py-16 px-4 md:px-8 lg:px-12" style={{
-          borderTop: '0.5px solid rgba(156, 163, 175, 0.3)',
           borderLeft: '0.5px solid rgba(156, 163, 175, 0.3)',
           borderRight: '0.5px solid rgba(156, 163, 175, 0.3)',
           backgroundColor: '#f6f6f4'
@@ -114,7 +113,7 @@ export default function Faq() {
           {faqEntries.map((faq, index) => (
             <div
               key={index}
-              className="rounded-lg transition-all duration-200"
+              className="transition-all duration-200"
               style={{
                 backgroundColor: '#f6f6f4',
                 border: '1px solid rgba(156, 163, 175, 0.3)'
