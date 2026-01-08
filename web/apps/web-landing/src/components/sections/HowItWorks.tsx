@@ -41,7 +41,7 @@ export default function HowItWorks() {
                       borderColor: 'rgba(156, 163, 175, 0.6)'
                     }}></div>
                     <h4 className="font-normal text-gray-900 dark:text-white mb-3">Your application sends a request</h4>
-                    <p className="text-sm leading-relaxed line-clamp-2">
+                    <p className="text-sm leading-relaxed">
                       Use OpenAI-compatible API calls. Igris intercepts them before they reach any provider.
                     </p>
                   </div>
@@ -53,7 +53,7 @@ export default function HowItWorks() {
                       borderColor: 'rgba(156, 163, 175, 0.6)'
                     }}></div>
                     <h4 className="font-normal text-gray-900 dark:text-white mb-3">Igris makes the decision</h4>
-                    <p className="text-sm leading-relaxed line-clamp-2">
+                    <p className="text-sm leading-relaxed">
                       Thompson Sampling evaluates providers based on cost, quality, latency, and availability. The best option is selected automatically.
                     </p>
                   </div>
@@ -65,7 +65,7 @@ export default function HowItWorks() {
                       borderColor: 'rgba(156, 163, 175, 0.6)'
                     }}></div>
                     <h4 className="font-normal text-gray-900 dark:text-white mb-3">Traffic reroutes on failure</h4>
-                    <p className="text-sm leading-relaxed line-clamp-2">
+                    <p className="text-sm leading-relaxed">
                       If a provider fails, Igris instantly switches to the next best option or falls back to on-device models. No manual intervention required.
                     </p>
                   </div>
@@ -97,7 +97,7 @@ export default function HowItWorks() {
                       borderColor: 'rgba(156, 163, 175, 0.6)'
                     }}></div>
                     <h4 className="font-normal text-gray-900 dark:text-white mb-3">Your application sends a request</h4>
-                    <p className="text-sm leading-relaxed line-clamp-2">
+                    <p className="text-sm leading-relaxed">
                       Use OpenAI-compatible API calls. Igris intercepts them before they reach any provider.
                     </p>
                   </div>
@@ -109,7 +109,7 @@ export default function HowItWorks() {
                       borderColor: 'rgba(156, 163, 175, 0.6)'
                     }}></div>
                     <h4 className="font-normal text-gray-900 dark:text-white mb-3">Igris makes the decision</h4>
-                    <p className="text-sm leading-relaxed line-clamp-2">
+                    <p className="text-sm leading-relaxed">
                       Thompson Sampling evaluates providers based on cost, quality, latency, and availability. The best option is selected automatically.
                     </p>
                   </div>
@@ -121,7 +121,7 @@ export default function HowItWorks() {
                       borderColor: 'rgba(156, 163, 175, 0.6)'
                     }}></div>
                     <h4 className="font-normal text-gray-900 dark:text-white mb-3">Traffic reroutes on failure</h4>
-                    <p className="text-sm leading-relaxed line-clamp-2">
+                    <p className="text-sm leading-relaxed">
                       If a provider fails, Igris instantly switches to the next best option or falls back to on-device models. No manual intervention required.
                     </p>
                   </div>
