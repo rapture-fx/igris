@@ -143,7 +143,7 @@ export default function Products() {
               <h2 className="text-2xl md:text-3xl font-inter mb-4" style={{ color: '#000000' }}>
                 Two components of a system
               </h2>
-              <p className="text-sm text-gray-600 dark:text-gray-400 font-inter leading-relaxed">
+              <p className="text-sm md:text-base text-gray-600 dark:text-gray-400 font-inter leading-relaxed">
                 Overture handles routing and provider selection in cloud environments. Runtime executes models on local or edge devices. They can be deployed independently or together.
               </p>
             </div>

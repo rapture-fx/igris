@@ -138,7 +138,7 @@ export default function HowItWorks() {
               <h2 className="text-2xl md:text-3xl font-inter mb-4" style={{ color: '#000000' }}>
                 How It Works
               </h2>
-              <p className="text-sm text-gray-600 dark:text-gray-400 font-inter leading-relaxed">
+              <p className="text-sm md:text-base text-gray-600 dark:text-gray-400 font-inter leading-relaxed">
                 Igris operates between applications and AI providers, managing how AI requests are routed and executed across cloud and edge environments.
               </p>
             </div>
