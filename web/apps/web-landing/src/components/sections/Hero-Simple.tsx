@@ -12,7 +12,8 @@ export default function Hero() {
         backgroundImage: 'linear-gradient(rgba(246, 246, 244, 0.3), rgba(246, 246, 244, 0.3)), url(/cloudbg.png)',
         backgroundSize: 'cover',
         backgroundPosition: 'center top -100px',
-        backgroundRepeat: 'no-repeat'
+        backgroundRepeat: 'no-repeat',
+        borderBottom: '0.5px solid rgba(156, 163, 175, 0.3)'
       }}>
       <div className="mx-auto max-w-[1200px] px-4 sm:px-6 lg:px-8">
         <div className="relative px-4 md:px-8 lg:px-12 pb-0 bg-transparent z-10 overflow-visible" style={{

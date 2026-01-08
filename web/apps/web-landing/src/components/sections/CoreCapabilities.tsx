@@ -19,10 +19,9 @@ const capabilities = [
 export default function CoreCapabilities() {
   return (
     <>
-      <section className="dark:bg-gray-900 text-gray-900 dark:text-white" style={{ backgroundColor: '#f6f6f4', height: '800px' }}>
+      <section className="dark:bg-gray-900 text-gray-900 dark:text-white" style={{ backgroundColor: '#f6f6f4', height: '800px', borderBottom: '0.5px solid rgba(156, 163, 175, 0.3)' }}>
         <div className="mx-auto max-w-[1200px] px-4 sm:px-6 lg:px-8" style={{ height: '100%' }}>
           <div className="relative px-4 md:px-4 lg:px-6 flex flex-col" style={{
-            borderTop: '0.5px solid rgba(156, 163, 175, 0.3)',
             borderLeft: '0.5px solid rgba(156, 163, 175, 0.3)',
             borderRight: '0.5px solid rgba(156, 163, 175, 0.3)',
             backgroundColor: '#f6f6f4',
@@ -83,7 +82,7 @@ export default function CoreCapabilities() {
                 </div>
 
                 {/* Right Column - Title and Intro (Desktop only) */}
-                <div className="hidden md:flex text-left md:col-span-1 flex-col justify-start" style={{ borderLeft: '0.5px solid rgba(156, 163, 175, 0.3)', paddingTop: '3rem', paddingBottom: '3rem', paddingLeft: '1rem', height: '100%' }}>
+                <div className="hidden md:flex text-left md:col-span-1 flex-col justify-start" style={{ borderLeft: '0.5px solid rgba(156, 163, 175, 0.3)', paddingTop: '23rem', paddingBottom: '3rem', paddingLeft: '1rem', height: '100%' }}>
                   <h3 className="text-2xl md:text-3xl font-inter mb-4" style={{ color: '#000000' }}>
                     System Overview
                   </h3>
