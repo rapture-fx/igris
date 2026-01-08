@@ -6,10 +6,9 @@ import { ChevronRight } from 'lucide-react'
 
 export default function HowItWorks() {
   return (
-    <section id="how-it-works" className="dark:bg-gray-900 text-gray-900 dark:text-white" style={{ backgroundColor: '#f6f6f4', height: '800px' }}>
+    <section id="how-it-works" className="dark:bg-gray-900 text-gray-900 dark:text-white" style={{ backgroundColor: '#f6f6f4', height: '800px', borderBottom: '0.5px solid rgba(156, 163, 175, 0.3)' }}>
       <div className="mx-auto max-w-[1200px] px-4 sm:px-6 lg:px-8" style={{ height: '100%' }}>
         <div className="relative px-4 md:px-4 lg:px-6 flex flex-col" style={{
-          borderTop: '0.5px solid rgba(156, 163, 175, 0.3)',
           borderLeft: '0.5px solid rgba(156, 163, 175, 0.3)',
           borderRight: '0.5px solid rgba(156, 163, 175, 0.3)',
           backgroundColor: '#f6f6f4',
@@ -40,7 +39,7 @@ export default function HowItWorks() {
                       backgroundColor: '#f6f6f4',
                       borderColor: 'rgba(156, 163, 175, 0.6)'
                     }}></div>
-                    <h4 className="font-normal text-gray-900 dark:text-white mb-3">Your application sends a request</h4>
+                    <h4 className="font-semibold text-gray-900 dark:text-white mb-3">Your application sends a request</h4>
                     <p className="text-sm leading-relaxed">
                       Use OpenAI-compatible API calls. Igris intercepts them before they reach any provider.
                     </p>
@@ -52,7 +51,7 @@ export default function HowItWorks() {
                       backgroundColor: '#f6f6f4',
                       borderColor: 'rgba(156, 163, 175, 0.6)'
                     }}></div>
-                    <h4 className="font-normal text-gray-900 dark:text-white mb-3">Igris makes the decision</h4>
+                    <h4 className="font-semibold text-gray-900 dark:text-white mb-3">Igris makes the decision</h4>
                     <p className="text-sm leading-relaxed">
                       Thompson Sampling evaluates providers based on cost, quality, latency, and availability. The best option is selected automatically.
                     </p>
@@ -64,7 +63,7 @@ export default function HowItWorks() {
                       backgroundColor: '#f6f6f4',
                       borderColor: 'rgba(156, 163, 175, 0.6)'
                     }}></div>
-                    <h4 className="font-normal text-gray-900 dark:text-white mb-3">Traffic reroutes on failure</h4>
+                    <h4 className="font-semibold text-gray-900 dark:text-white mb-3">Traffic reroutes on failure</h4>
                     <p className="text-sm leading-relaxed">
                       If a provider fails, Igris instantly switches to the next best option or falls back to on-device models. No manual intervention required.
                     </p>
@@ -96,7 +95,7 @@ export default function HowItWorks() {
                       backgroundColor: '#f6f6f4',
                       borderColor: 'rgba(156, 163, 175, 0.6)'
                     }}></div>
-                    <h4 className="font-normal text-gray-900 dark:text-white mb-3">Your application sends a request</h4>
+                    <h4 className="font-semibold text-gray-900 dark:text-white mb-3">Your application sends a request</h4>
                     <p className="text-sm leading-relaxed">
                       Use OpenAI-compatible API calls. Igris intercepts them before they reach any provider.
                     </p>
@@ -108,7 +107,7 @@ export default function HowItWorks() {
                       backgroundColor: '#f6f6f4',
                       borderColor: 'rgba(156, 163, 175, 0.6)'
                     }}></div>
-                    <h4 className="font-normal text-gray-900 dark:text-white mb-3">Igris makes the decision</h4>
+                    <h4 className="font-semibold text-gray-900 dark:text-white mb-3">Igris makes the decision</h4>
                     <p className="text-sm leading-relaxed">
                       Thompson Sampling evaluates providers based on cost, quality, latency, and availability. The best option is selected automatically.
                     </p>
@@ -120,7 +119,7 @@ export default function HowItWorks() {
                       backgroundColor: '#f6f6f4',
                       borderColor: 'rgba(156, 163, 175, 0.6)'
                     }}></div>
-                    <h4 className="font-normal text-gray-900 dark:text-white mb-3">Traffic reroutes on failure</h4>
+                    <h4 className="font-semibold text-gray-900 dark:text-white mb-3">Traffic reroutes on failure</h4>
                     <p className="text-sm leading-relaxed">
                       If a provider fails, Igris instantly switches to the next best option or falls back to on-device models. No manual intervention required.
                     </p>
@@ -134,7 +133,7 @@ export default function HowItWorks() {
             </div>
 
             {/* Right Column - Title (1 column wide with left border) */}
-            <div className="md:col-span-1 md:border-l flex flex-col justify-start" style={{ borderLeft: '0.5px solid rgba(156, 163, 175, 0.3)', paddingTop: '3rem', paddingBottom: '3rem', paddingLeft: '1rem', height: '100%' }}>
+            <div className="md:col-span-1 md:border-l flex flex-col justify-start" style={{ borderLeft: '0.5px solid rgba(156, 163, 175, 0.3)', paddingTop: '18rem', paddingBottom: '3rem', paddingLeft: '1rem', height: '100%' }}>
               <h2 className="text-2xl md:text-3xl font-inter mb-4" style={{ color: '#000000' }}>
                 How It Works
               </h2>

@@ -26,10 +26,9 @@ const features = [
 
 export default function MultiTenancy() {
   return (
-    <section className="dark:bg-gray-900 text-gray-900 dark:text-white" style={{ backgroundColor: '#f6f6f4', height: '800px' }}>
+    <section className="dark:bg-gray-900 text-gray-900 dark:text-white" style={{ backgroundColor: '#f6f6f4', height: '800px', borderBottom: '0.5px solid rgba(156, 163, 175, 0.3)' }}>
       <div className="mx-auto max-w-[1200px] px-4 sm:px-6 lg:px-8" style={{ height: '100%' }}>
         <div className="relative px-4 md:px-4 lg:px-6 flex flex-col" style={{
-          borderTop: '0.5px solid rgba(156, 163, 175, 0.3)',
           borderLeft: '0.5px solid rgba(156, 163, 175, 0.3)',
           borderRight: '0.5px solid rgba(156, 163, 175, 0.3)',
           backgroundColor: '#f6f6f4',
@@ -49,7 +48,7 @@ export default function MultiTenancy() {
               <div className="flex flex-col gap-8">
                 {features.map((feature, index) => (
                   <div key={feature.name} className="text-left">
-                    <h3 className="text-base font-normal text-gray-900 dark:text-white mb-3 font-inter">
+                    <h3 className="text-base font-semibold text-gray-900 dark:text-white mb-3 font-inter">
                       {feature.name}
                     </h3>
                     <p className="text-sm text-gray-600 dark:text-gray-400 leading-relaxed font-inter">
@@ -68,7 +67,7 @@ export default function MultiTenancy() {
                   <div className="flex flex-col gap-8">
                     {features.map((feature, index) => (
                       <div key={feature.name} className="text-left">
-                        <h3 className="text-base font-normal text-gray-900 dark:text-white mb-3 font-inter">
+                        <h3 className="text-base font-semibold text-gray-900 dark:text-white mb-3 font-inter">
                           {feature.name}
                         </h3>
                         <p className="text-sm text-gray-600 dark:text-gray-400 leading-relaxed font-inter">
@@ -81,7 +80,7 @@ export default function MultiTenancy() {
               </div>
 
               {/* Right Column - Title and Intro (Desktop only) */}
-              <div className="hidden md:flex md:col-span-1 md:border-l flex-col justify-start" style={{ borderLeft: '0.5px solid rgba(156, 163, 175, 0.3)', paddingTop: '3rem', paddingBottom: '3rem', paddingLeft: '1rem', height: '100%' }}>
+              <div className="hidden md:flex md:col-span-1 md:border-l flex-col justify-start" style={{ borderLeft: '0.5px solid rgba(156, 163, 175, 0.3)', paddingTop: '16rem', paddingBottom: '3rem', paddingLeft: '1rem', height: '100%' }}>
                 <h3 className="text-2xl md:text-3xl font-inter mb-4" style={{ color: '#000000' }}>
                   Secure by default. Built to scale.
                 </h3>
