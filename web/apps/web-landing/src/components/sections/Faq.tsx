@@ -21,7 +21,7 @@ interface FaqEntry {
 
 const faqEntries: FaqEntry[] = [
   {
-    question: "How does Schelp-engine choose the best model for every request?",
+    question: "How does Overture choose the best model for every request?",
     answer: "We use Bayesian Thompson Sampling with real-time quality scoring. Latency, accuracy, cost, and recent performance shifts all influence routing. The engine learns continuously and self-tunes without requiring manual adjustments.",
     type: "text"
   },
@@ -31,18 +31,18 @@ const faqEntries: FaqEntry[] = [
     type: "text"
   },
   {
-    question: "How does Schelp-engine behave during an outage?",
+    question: "How does Overture behave during an outage?",
     answer: "EscapeVector Mode keeps full routing intelligence alive for 72 hours using cached Bayesian parameters. Even if our control plane is offline, your traffic continues normally with no fallback to round-robin or naive heuristics.",
     type: "text"
   },
   {
-    question: "Can I bypass Schelp-engine instantly?",
+    question: "Can I bypass Overture instantly?",
     answer: "Yes. Gold Code Override gives you a one-variable, instant full bypass. Enterprises use this as part of their break-glass protocols for compliance and incident response.",
     type: "text"
   },
   {
     question: "Do you store or manage my provider API keys?",
-    answer: "No. With BYOK, keys never leave your environment. You own authentication, data access, and rotation windows. Schelp-engine handles orchestration without ever touching your credentials.",
+    answer: "No. With BYOK, keys never leave your environment. You own authentication, data access, and rotation windows. Overture handles orchestration without ever touching your credentials.",
     type: "text"
   },
   {
@@ -61,17 +61,17 @@ const faqEntries: FaqEntry[] = [
     type: "text"
   },
   {
-    question: "Is it easy to switch from OpenAI, Azure, Anthropic, or others?",
+    question: "Is it easy to switch from AI Providers?",
     type: "code",
     answerText: "Yes. Replace your base URL and you're done.",
     codeExample: {
       old: "https://api.openai.com/v1",
-      new: "https://api.schelp-engine.com/v1"
+      new: "https://api.overture.com/v1"
     },
     answerFooter: "No SDK rewrites, no migration scripts, no vendor lock-in. You can integrate in under five minutes."
   },
   {
-    question: "Will Schelp-engine increase my latency?",
+    question: "Will Overture increase my latency?",
     answer: "No. In most cases, routing reduces mean latency by selecting the fastest healthy provider at the moment of execution. Parallel execution and partial streaming keep responses responsive under load.",
     type: "text"
   },
@@ -104,12 +104,12 @@ export default function Faq() {
         }}>
 
           <div className="text-center mb-8 md:mb-12 lg:mb-16">
-            <h2 className="text-2xl md:text-2xl lg:text-3xl font-inter mb-4" style={{ color: '#000000' }}>
+            <h2 className="text-xl md:text-xl lg:text-2xl font-inter mb-4" style={{ color: '#000000' }}>
               Questions and answers
             </h2>
           </div>
 
-          <div className="max-w-4xl mx-auto space-y-4">
+          <div className="max-w-3xl mx-auto space-y-2">
           {faqEntries.map((faq, index) => (
             <div
               key={index}
@@ -121,9 +121,9 @@ export default function Faq() {
             >
               <button
                 onClick={() => toggleFaq(index)}
-                className="w-full text-left px-4 md:px-6 py-4 md:py-5 flex items-center justify-between gap-4 hover:opacity-80 transition-opacity"
+                className="w-full text-left px-4 md:px-4 py-3 md:py-4 flex items-center justify-between gap-4 hover:opacity-80 transition-opacity"
               >
-                <span className="text-base md:text-base font-normal font-inter flex-1" style={{ color: '#000000' }}>
+                <span className="text-sm md:text-sm font-normal font-inter flex-1" style={{ color: '#000000' }}>
                   {faq.question}
                 </span>
                 <ChevronDown
@@ -140,17 +140,17 @@ export default function Faq() {
                   openIndex === index ? 'max-h-[500px]' : 'max-h-0'
                 }`}
               >
-                <div className="px-4 md:px-6 pb-4 md:pb-5 pt-0">
+                <div className="px-4 md:px-4 pb-3 md:pb-4 pt-0">
                   {faq.type === 'text' ? (
-                    <p className="text-sm md:text-base text-gray-700 dark:text-gray-300 font-inter leading-relaxed">
+                    <p className="text-xs md:text-sm text-gray-700 dark:text-gray-300 font-inter leading-relaxed">
                       {faq.answer}
                     </p>
                   ) : faq.type === 'code' ? (
                     <div className="space-y-3">
-                      <p className="text-sm md:text-base text-gray-700 dark:text-gray-300 font-inter leading-relaxed">
+                      <p className="text-xs md:text-sm text-gray-700 dark:text-gray-300 font-inter leading-relaxed">
                         {faq.answerText}
                       </p>
-                      <div className="rounded-lg p-3 md:p-4 font-mono text-xs md:text-sm overflow-x-auto" style={{ backgroundColor: 'rgba(0, 0, 0, 0.03)' }}>
+                      <div className="rounded-lg p-3 md:p-4 font-mono text-xs overflow-x-auto" style={{ backgroundColor: 'rgba(0, 0, 0, 0.03)' }}>
                         <div className="mb-2">
                           <span className="text-gray-500"># Old</span>
                           <div className="text-gray-900 mt-1 break-all">{faq.codeExample.old}</div>
@@ -160,7 +160,7 @@ export default function Faq() {
                           <div className="text-gray-900 mt-1 break-all">{faq.codeExample.new}</div>
                         </div>
                       </div>
-                      <p className="text-sm md:text-base text-gray-700 dark:text-gray-300 font-inter leading-relaxed">
+                      <p className="text-xs md:text-sm text-gray-700 dark:text-gray-300 font-inter leading-relaxed">
                         {faq.answerFooter}
                       </p>
                     </div>
