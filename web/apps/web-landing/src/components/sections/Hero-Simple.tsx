@@ -30,7 +30,7 @@ export default function Hero() {
                     Designed to keep working when parts fail
                   </h2>
                 </div>
-                <p className="text-sm md:text-sm text-gray-700 max-w-md leading-relaxed text-left">
+                <p className="text-sm md:text-base text-gray-700 max-w-md leading-relaxed text-left">
                   Built for AI systems that operate across cloud, edge, and autonomous environments, with control over execution, routing, and failure states.
                 </p>
               </div>
