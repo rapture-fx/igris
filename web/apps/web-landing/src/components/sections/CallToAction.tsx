@@ -4,7 +4,7 @@ import Link from 'next/link';
 
 export default function CallToAction() {
   return (
-    <section className="dark:bg-gray-900 text-gray-900 dark:text-white" style={{ backgroundColor: '#f6f6f4' }}>
+    <section className="dark:bg-gray-900 text-gray-900 dark:text-white" style={{ backgroundColor: '#f6f6f4', borderBottom: '0.5px solid rgba(156, 163, 175, 0.3)' }}>
       <div className="max-w-[1200px] mx-auto px-4 sm:px-6 lg:px-8">
         <div className="text-left py-12 pt-12 md:py-16 md:pt-16 lg:py-24 lg:pt-24 px-4 md:px-8 lg:px-12 relative min-h-[500px] flex flex-col justify-center" style={{
           borderLeft: '0.5px solid rgba(156, 163, 175, 0.3)',
