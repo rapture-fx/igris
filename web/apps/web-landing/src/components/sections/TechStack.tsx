@@ -29,11 +29,9 @@ const steps = [
 export default function TechStack() {
   return (
     <>
-      <section className="py-2 dark:bg-gray-900 text-gray-900 dark:text-white" style={{ backgroundColor: '#f6f6f4' }}>
+      <section className="dark:bg-gray-900 text-gray-900 dark:text-white" style={{ backgroundColor: '#f6f6f4', borderBottom: '0.5px solid rgba(156, 163, 175, 0.3)' }}>
         <div className="mx-auto max-w-[1200px] px-4 sm:px-6 lg:px-8">
           <div className="relative px-4 md:px-8 lg:px-12 py-8 lg:py-0 flex items-center lg:min-h-[750px]" style={{
-            borderTop: '0.5px solid rgba(156, 163, 175, 0.3)',
-            borderBottom: '0.5px solid rgba(156, 163, 175, 0.3)',
             borderLeft: '0.5px solid rgba(156, 163, 175, 0.3)',
             borderRight: '0.5px solid rgba(156, 163, 175, 0.3)',
             backgroundColor: '#f6f6f4'
