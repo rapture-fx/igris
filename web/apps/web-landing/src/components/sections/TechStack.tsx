@@ -43,11 +43,11 @@ export default function TechStack() {
                 {/* Right Column - Title and Description (shows first on mobile) */}
                 <div className="lg:col-span-5 text-left order-1 lg:order-2">
                   <h3 className="text-2xl md:text-2xl lg:text-3xl font-inter mb-4" style={{ color: '#000000' }}>
-                    How It Works
+                    Decision Flow
                   </h3>
 
                   <p className="text-sm md:text-base text-gray-700 dark:text-gray-300 font-inter mb-8 max-w-lg">
-                    A single API endpoint powers adaptive routing across providers. The Igris Inertial control plane monitors latency, cost, and quality metrics in real time, ensuring every inference is sent to the optimal model without manual tuning.
+                    Policies and live metrics drive model selection decisions. Thompson Sampling evaluates performance over time. Quality scoring assesses response output. Returns routing decision with reasoning and performance estimates.
                   </p>
                 </div>
 
