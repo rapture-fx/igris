@@ -107,13 +107,13 @@ export default function Pricing() {
             {pricingTiers.map((tier, index) => (
               <div
                 key={index}
-                className="relative transition-all duration-300 w-full min-h-[500px]"
+                className="relative transition-all duration-300 w-full min-h-[450px]"
                 style={{
                   backgroundColor: '#f6f6f4',
                   border: '1px solid rgba(156, 163, 175, 0.3)'
                 }}
               >
-                <div className="p-8 flex flex-col h-full">
+                <div className="p-6 flex flex-col h-full">
                   <div className="flex-grow">
                     <h3 className="text-lg mb-2 font-inter" style={{ color: '#000000' }}>
                       {tier.name}

@@ -134,8 +134,8 @@ export default function Header() {
                 <ChevronDown className={`h-4 w-4 transition-transform duration-200 ${resourcesDropdownOpen ? 'rotate-180' : ''}`} />
               </button>
               {resourcesDropdownOpen && (
-                <div className="absolute top-full left-0 mt-2 w-48 rounded-lg shadow-lg border border-gray-200 dark:border-gray-700 overflow-hidden" style={{ backgroundColor: '#f6f6f4' }}>
-            <Link
+                 <div className="absolute top-full left-0 mt-2 w-48 rounded-lg shadow-lg border border-gray-200 dark:border-gray-700 overflow-hidden" style={{ backgroundColor: '#f6f6f4' }}>
+             <Link
                     href="/use-cases"
                     className="block px-4 py-2 text-xs text-gray-700 hover:text-gray-900 hover:bg-gray-100 dark:hover:bg-gray-800 transition-colors duration-200 font-inter"
                     onClick={() => setResourcesDropdownOpen(false)}
@@ -149,23 +149,23 @@ export default function Header() {
             >
               Docs
                   </a>
-            <Link
-              href="/blog"
+             <Link
+               href="/blog"
                     className="block px-4 py-2 text-xs text-gray-700 hover:text-gray-900 hover:bg-gray-100 dark:hover:bg-gray-800 transition-colors duration-200 font-inter"
                     onClick={() => setResourcesDropdownOpen(false)}
-            >
-              Blog
-            </Link>
-            <Link
-              href="/pricing"
-                    className="block px-4 py-2 text-xs text-gray-700 hover:text-gray-900 hover:bg-gray-100 dark:hover:bg-gray-800 transition-colors duration-200 font-inter"
-                    onClick={() => setResourcesDropdownOpen(false)}
-                  >
-                    Pricing
-                  </Link>
+             >
+               Blog
+             </Link>
                 </div>
               )}
             </div>
+
+            <Link
+              href="/pricing"
+              className="text-gray-700 hover:text-gray-900 transition-colors duration-200 font-medium text-xs font-inter"
+            >
+              Pricing
+            </Link>
 
             <a
               href={consoleUrl ? `${consoleUrl}/auth?mode=signin` : '#'}
@@ -247,7 +247,7 @@ export default function Header() {
                   Resources
                   <ChevronDown className={`h-4 w-4 transition-transform duration-200 ${mobileResourcesOpen ? 'rotate-180' : ''}`} />
                 </button>
-                {mobileResourcesOpen && (
+                 {mobileResourcesOpen && (
                   <div className="ml-4 mt-2 space-y-2">
               <Link
                       href="/use-cases"
@@ -279,19 +279,17 @@ export default function Header() {
               >
                 Blog
               </Link>
-              <Link
-                href="/pricing"
-                      className="block text-gray-700 hover:text-gray-900 transition-colors duration-200 font-medium text-xs font-inter"
-                      onClick={() => {
-                        setMobileMenuOpen(false);
-                        setMobileResourcesOpen(false);
-                      }}
-                    >
-                      Pricing
-                    </Link>
                   </div>
                 )}
               </div>
+
+              <Link
+                href="/pricing"
+                className="text-gray-700 hover:text-gray-900 transition-colors duration-200 font-medium text-xs font-inter"
+                onClick={() => setMobileMenuOpen(false)}
+              >
+                Pricing
+              </Link>
 
               <a
                 href={consoleUrl ? `${consoleUrl}/auth?mode=signin` : '#'}
