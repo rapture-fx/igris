@@ -3,6 +3,7 @@
 import Header from '../../src/components/sections/Header'
 import Footer from '../../src/components/sections/Footer'
 import CallToAction from '../../src/components/sections/CallToAction'
+import ClosingPosition from '../../src/components/sections/ClosingPosition'
 import EarlyAccessModal from '../../src/components/modals/EarlyAccessModal'
 import { useModal } from '../../src/contexts/ModalContext'
 import Link from 'next/link'
@@ -94,19 +95,25 @@ export default function RuntimePage() {
                   {/* Two-column layout */}
                   <div className="grid grid-cols-1 md:grid-cols-3 gap-0 relative md:flex-1" style={{ height: '100%' }}>
 
-                    {/* Left Column - Empty (2 columns wide) */}
+                    {/* Left Column - Image (2 columns wide) */}
                     <div className="hidden md:flex md:col-span-2 flex-col items-center justify-center" style={{
                       paddingTop: '3rem',
                       paddingBottom: '3rem',
                       paddingRight: '1rem',
                       paddingLeft: '0'
                     }}>
+                      <img
+                        src="/runtimepage.png"
+                        alt="Runtime Page"
+                        className="max-w-full h-auto"
+                        style={{ maxHeight: '500px', objectFit: 'contain' }}
+                      />
                     </div>
 
                     {/* Right Column - Title and Description (Desktop only) */}
                     <div className="hidden md:flex text-left md:col-span-1 flex-col justify-start" style={{
                       borderLeft: '0.5px solid rgba(156, 163, 175, 0.3)',
-                      paddingTop: '23rem',
+                      paddingTop: '13rem',
                       paddingBottom: '3rem',
                       paddingLeft: '1rem',
                       height: '100%'
@@ -248,7 +255,7 @@ export default function RuntimePage() {
             </div>
           </section>
 
-          <CallToAction />
+          <ClosingPosition />
         </main>
         <Footer />
       </div>

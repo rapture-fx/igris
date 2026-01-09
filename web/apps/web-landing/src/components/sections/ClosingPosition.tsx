@@ -15,13 +15,11 @@ export default function ClosingPosition() {
             alignItems: 'center',
             justifyContent: 'center'
           }}>
-            {/* Content Container */}
             <div className="w-full px-0">
               <div className="max-w-3xl mx-auto text-center flex flex-col items-center justify-center">
                 <h3 className="text-xl md:text-2xl lg:text-3xl font-inter mb-6" style={{ color: '#000000' }}>
-                  Get Started With Overture
+                  Start with decisions. Scale to execution.
                 </h3>
-
 
                 <div className="flex flex-col sm:flex-row gap-4 justify-center">
                   <Link href="https://docs.igrisinertial.com/">
@@ -37,7 +35,6 @@ export default function ClosingPosition() {
           </div>
         </div>
       </section>
-
     </>
   )
 }
