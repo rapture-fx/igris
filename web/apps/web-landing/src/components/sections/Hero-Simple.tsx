@@ -24,15 +24,15 @@ export default function Hero() {
             <div className="pt-12 mb-6">
               <div className="flex flex-col md:flex-row md:justify-between md:items-start gap-6">
                 <div className="text-left">
-                  <h1 className="text-xl md:text-2xl lg:text-3xl font-medium text-[#111111] leading-[1.2]">
-                    Reliable AI Inference — Cloud or Edge
+                  <h1 className="text-xl md:text-2xl lg:text-2xl font-medium text-[#111111] leading-[1.2]">
+                    AI Inference That Adapts When Reality Breaks.
                   </h1>
-                  <h2 className="text-lg md:text-xl lg:text-2xl font-medium text-[#666666] leading-[1.2] mt-2">
-                    Designed to keep working when parts fail
+                  <h2 className="text-lg md:text-xl lg:text-1xl font-medium text-[#666666] leading-[1.2] mt-2">
+                    Built to make execution decisions when systems degrade.
                   </h2>
                 </div>
                 <p className="text-sm md:text-base text-gray-700 max-w-md leading-relaxed text-left">
-                  Built for AI systems that operate across cloud, edge, and autonomous environments, with control over execution, routing, and failure states.
+                  A control and execution system that decides where and how AI runs across providers, devices, and failure conditions without manual intervention.
                 </p>
               </div>
             </div>

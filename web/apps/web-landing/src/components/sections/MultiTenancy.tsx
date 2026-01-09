@@ -37,7 +37,7 @@ export default function MultiTenancy() {
 
             {/* Title Section - Shows first on mobile, last on desktop */}
             <div className="text-left mb-6 md:mb-0 md:hidden" style={{ paddingTop: '3rem', paddingBottom: '3rem' }}>
-              <h3 className="text-2xl md:text-2xl lg:text-3xl font-inter mb-4" style={{ color: '#000000' }}>
+              <h3 className="text-xl md:text-2xl lg:text-3xl font-inter mb-4" style={{ color: '#000000' }}>
                 Secure by default. Built to scale.
               </h3>
               <p className="text-sm md:text-base text-gray-600 dark:text-gray-400 font-inter mb-8">
@@ -81,7 +81,7 @@ export default function MultiTenancy() {
 
               {/* Right Column - Title and Intro (Desktop only) */}
               <div className="hidden md:flex md:col-span-1 md:border-l flex-col justify-start" style={{ borderLeft: '0.5px solid rgba(156, 163, 175, 0.3)', paddingTop: '16rem', paddingBottom: '3rem', paddingLeft: '1rem', height: '100%' }}>
-                <h3 className="text-2xl md:text-3xl font-inter mb-4" style={{ color: '#000000' }}>
+                <h3 className="text-xl md:text-2xl lg:text-3xl font-inter mb-4" style={{ color: '#000000' }}>
                   Secure by default. Built to scale.
                 </h3>
                 <p className="text-sm md:text-base text-gray-600 dark:text-gray-400 font-inter leading-relaxed">
