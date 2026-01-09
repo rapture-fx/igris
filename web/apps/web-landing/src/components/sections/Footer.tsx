@@ -43,18 +43,16 @@ export default function Footer() {
                     className="hover:opacity-70 transition-opacity"
                   />
                 </Link>
-                <div className="w-4 h-4 flex items-center justify-center">
-                  <Link href="https://www.linkedin.com/igris-inertial/" target="_blank" rel="noopener noreferrer">
-                    <img
-                      src="/linkedin.png"
-                      alt="LinkedIn"
-                      width={14}
-                      height={12}
-                      style={{ width: '14px', height: '12px' }}
-                      className="hover:opacity-70 transition-opacity"
-                    />
-                  </Link>
-                </div>
+                <Link href="https://www.linkedin.com/igris-inertial/" target="_blank" rel="noopener noreferrer">
+                  <img
+                    src="/linkedin.png"
+                    alt="LinkedIn"
+                    width={15}
+                    height={12}
+                    style={{ width: '15px', height: '12px' }}
+                    className="hover:opacity-70 transition-opacity"
+                  />
+                </Link>
               </div>
             </div>
 
