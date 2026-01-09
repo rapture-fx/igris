@@ -15,28 +15,20 @@ export default function RuntimePage() {
 
   const coreCapabilities = [
     {
-      name: 'Real-Time Performance',
-      description: 'Critical operations complete in under 50ms. Priority-based task scheduling ensures your most important requests never wait.',
+      name: 'Automatic Continuity',
+      description: 'If a cloud provider becomes unavailable, Runtime falls back to local execution or cached responses without manual intervention.',
     },
     {
-      name: 'Hardware Acceleration',
-      description: 'Automatically detects and optimizes for your GPU. Works with NVIDIA, AMD, and Apple Silicon out of the box.',
+      name: 'Local & Edge Execution',
+      description: 'Runs models directly on-device to reduce latency and maintain operation in disconnected environments.',
     },
     {
-      name: 'Continuous Learning',
-      description: 'Train models on-device from your own data. LoRA adapters improve performance without sending data to the cloud.',
+      name: 'Adaptive Execution Modes',
+      description: 'Supports advanced behaviors such as tool use, planning, self-reflection, and multi-agent coordination when enabled.',
     },
     {
-      name: 'Smart Tool Use',
-      description: 'AI can make HTTP requests, execute commands, and manipulate files when needed. Sandboxed execution keeps your systems secure.',
-    },
-    {
-      name: 'Robot Integration',
-      description: 'Native ROS2 support for autonomous navigation and coordination. Deploy in safety-critical environments with deterministic latency guarantees.',
-    },
-    {
-      name: 'Fleet Coordination',
-      description: 'Manage thousands of edge devices as one intelligent swarm. Automatic leader election and conflict resolution.',
+      name: 'Graceful Degradation',
+      description: 'When resources are constrained, Runtime prioritizes keeping the system responsive rather than failing outright.',
     },
   ]
 
@@ -111,12 +103,12 @@ export default function RuntimePage() {
                           Runtime
                         </h1>
                         <h2 className="text-lg md:text-lg lg:text-2xl font-medium text-[#111111] leading-[1.2] mt-2 text-gray-600">
-                          Execution Layer
+                          Execute AI Reliably — Anywhere
                         </h2>
                       </div>
                       <div className="text-left md:w-1/3">
                         <p className="text-sm md:text-base text-gray-700 max-w-3xl leading-relaxed text-left">
-                          Edge runtime that routes to cloud providers or falls back to local models. Runs completely offline with llama.cpp. Has its own Thompson Sampling and speculative routing. Can operate independently or alongside Overture.
+                          Runtime runs AI workloads across cloud and edge environments, continuing to operate even when providers, networks, or infrastructure fail.
                         </p>
                       </div>
                     </div>
@@ -391,7 +383,7 @@ export default function RuntimePage() {
                       Standalone Runtime
                     </h3>
                     <p className="text-sm md:text-base text-gray-600 dark:text-gray-400 font-inter leading-relaxed mb-8">
-                      Runtime operates independently with its own routing logic. It can route to cloud providers or fall back to local models. Doesn't require Overture to function.
+                      Runtime can operate independently or as part of a managed fleet coordinated by Overture.
                     </p>
 
                     {/* Link - Mobile */}
@@ -433,7 +425,7 @@ export default function RuntimePage() {
                         Standalone Runtime
                       </h3>
                       <p className="text-sm md:text-base text-gray-600 dark:text-gray-400 font-inter leading-relaxed">
-                        Runtime operates independently with its own routing logic. It can route to cloud providers or fall back to local models. Doesn't require Overture to function.
+                        Runtime can operate independently or as part of a managed fleet coordinated by Overture.
                       </p>
                     </div>
                   </div>

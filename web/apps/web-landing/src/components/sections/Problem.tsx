@@ -9,18 +9,17 @@ export default function Problem() {
   ]
 
   return (
-    <section className="dark:bg-gray-900 text-gray-900 dark:text-white" style={{ backgroundColor: '#f6f6f4' }}>
-      <div className="mx-auto max-w-[1200px] px-4 sm:px-6 lg:px-8">
-        <div className="relative py-12 md:py-16 lg:py-20 px-4 md:px-8 lg:px-12" style={{
-          borderTop: '0.5px solid rgba(156, 163, 175, 0.3)',
+    <section className="dark:bg-gray-900 text-gray-900 dark:text-white" style={{ backgroundColor: '#f6f6f4', height: '800px', borderBottom: '0.5px solid rgba(156, 163, 175, 0.3)' }}>
+      <div className="mx-auto max-w-[1200px] px-4 sm:px-6 lg:px-8" style={{ height: '100%' }}>
+        <div className="relative px-4 md:px-4 lg:px-6 flex flex-col" style={{
           borderLeft: '0.5px solid rgba(156, 163, 175, 0.3)',
           borderRight: '0.5px solid rgba(156, 163, 175, 0.3)',
           backgroundColor: '#f6f6f4',
-          minHeight: '400px'
+          height: '100%'
         }}>
 
           {/* Content Container */}
-          <div className="w-full px-0">
+          <div className="w-full px-0 md:px-8 lg:px-8" style={{ paddingTop: '3rem', paddingBottom: '3rem' }}>
             <div className="max-w-3xl mx-auto text-center">
               <h3 className="text-2xl md:text-2xl lg:text-3xl font-inter mb-6" style={{ color: '#000000' }}>
                 Common challenges when running AI in production
