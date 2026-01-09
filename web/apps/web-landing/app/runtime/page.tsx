@@ -15,10 +15,10 @@ export default function RuntimePage() {
   const router = useRouter();
 
   const coreCapabilities = [
-    'Executes AI workloads when and where they are needed',
-    'Maintains operation when cloud providers, networks, or infrastructure become unavailable',
-    'Adapts to changing conditions without manual reconfiguration',
-    'Continues serving requests using local models or cached responses when external resources fail'
+    { title: 'Execute workloads', description: 'Executes AI workloads when and where they are needed' },
+    { title: 'Maintain operation', description: 'Maintains operation when cloud providers, networks, or infrastructure become unavailable' },
+    { title: 'Adapt automatically', description: 'Adapts to changing conditions without manual reconfiguration' },
+    { title: 'Serve locally', description: 'Continues serving requests using local models or cached responses when external resources fail' }
   ]
 
   return (
@@ -151,11 +151,27 @@ export default function RuntimePage() {
                     </h3>
 
                     {/* Capabilities - Mobile */}
-                    <div className="space-y-4">
+                    <div className="space-y-20 text-sm md:text-base text-gray-600 dark:text-gray-400 relative pl-8">
+                      {/* Vertical dashed line */}
+                      <div className="absolute left-1.5 top-0 bottom-0" style={{
+                        width: '2px',
+                        backgroundImage: 'linear-gradient(to bottom, rgba(156, 163, 175, 0.3) 50%, transparent 50%)',
+                        backgroundSize: '2px 8px',
+                        backgroundRepeat: 'repeat-y'
+                      }}></div>
+
                       {coreCapabilities.map((capability, index) => (
-                        <p key={index} className="text-sm text-gray-600 dark:text-gray-400 leading-relaxed font-inter">
-                          • {capability}
-                        </p>
+                        <div key={index} className="relative">
+                          {/* Dot */}
+                          <div className="absolute -left-8 top-1.5 w-3 h-3 rounded-full border-2" style={{
+                            backgroundColor: '#f6f6f4',
+                            borderColor: 'rgba(156, 163, 175, 0.6)'
+                          }}></div>
+                          <h4 className="font-semibold text-gray-900 dark:text-white mb-3">{capability.title}</h4>
+                          <p className="text-sm leading-relaxed">
+                            {capability.description}
+                          </p>
+                        </div>
                       ))}
                     </div>
                   </div>
@@ -171,11 +187,27 @@ export default function RuntimePage() {
                       paddingLeft: '0'
                     }}>
                       <div className="w-full max-w-[320px] mx-auto">
-                        <div className="space-y-4">
+                        <div className="space-y-20 text-sm md:text-base text-gray-600 dark:text-gray-400 relative pl-8">
+                          {/* Vertical dashed line */}
+                          <div className="absolute left-1.5 top-0 bottom-0" style={{
+                            width: '2px',
+                            backgroundImage: 'linear-gradient(to bottom, rgba(156, 163, 175, 0.3) 50%, transparent 50%)',
+                            backgroundSize: '2px 8px',
+                            backgroundRepeat: 'repeat-y'
+                          }}></div>
+
                           {coreCapabilities.map((capability, index) => (
-                            <p key={index} className="text-sm text-gray-600 dark:text-gray-400 leading-relaxed font-inter">
-                              • {capability}
-                            </p>
+                            <div key={index} className="relative">
+                              {/* Dot */}
+                              <div className="absolute -left-8 top-1.5 w-3 h-3 rounded-full border-2" style={{
+                                backgroundColor: '#f6f6f4',
+                                borderColor: 'rgba(156, 163, 175, 0.6)'
+                              }}></div>
+                              <h4 className="font-semibold text-gray-900 dark:text-white mb-3">{capability.title}</h4>
+                              <p className="text-sm leading-relaxed">
+                                {capability.description}
+                              </p>
+                            </div>
                           ))}
                         </div>
                       </div>
