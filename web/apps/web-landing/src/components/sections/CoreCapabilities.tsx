@@ -34,7 +34,7 @@ export default function CoreCapabilities() {
 
               {/* Title Section - Shows first on mobile, last on desktop */}
               <div className="text-left mb-6 md:mb-0 md:hidden" style={{ paddingTop: '3rem', paddingBottom: '3rem' }}>
-                <h3 className="text-2xl md:text-2xl lg:text-3xl font-inter mb-4" style={{ color: '#000000' }}>
+                <h3 className="text-xl md:text-2xl lg:text-3xl font-inter mb-4" style={{ color: '#000000' }}>
                   System Overview
                 </h3>
                 <p className="text-sm md:text-base text-gray-700 dark:text-gray-300 font-inter leading-relaxed mb-8">
@@ -83,7 +83,7 @@ export default function CoreCapabilities() {
 
                 {/* Right Column - Title and Intro (Desktop only) */}
                 <div className="hidden md:flex text-left md:col-span-1 flex-col justify-start" style={{ borderLeft: '0.5px solid rgba(156, 163, 175, 0.3)', paddingTop: '23rem', paddingBottom: '3rem', paddingLeft: '1rem', height: '100%' }}>
-                  <h3 className="text-2xl md:text-3xl font-inter mb-4" style={{ color: '#000000' }}>
+                  <h3 className="text-xl md:text-2xl lg:text-3xl font-inter mb-4" style={{ color: '#000000' }}>
                     System Overview
                   </h3>
                   <p className="text-sm md:text-base text-gray-700 dark:text-gray-300 font-inter leading-relaxed">
