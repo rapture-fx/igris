@@ -70,8 +70,8 @@ export default function UseCasesPage() {
                 borderLeft: '0.5px solid rgba(156, 163, 175, 0.3)',
                 borderRight: '0.5px solid rgba(156, 163, 175, 0.3)'
               }}>
-                <div className="max-w-[1100px] mx-auto pt-20 px-0 md:px-8 lg:px-16 pb-8">
-                  <div className="pt-8 mb-6">
+                <div className="max-w-[1100px] mx-auto pt-20 px-0 md:px-8 lg:px-16 pb-12">
+                  <div className="text-left mb-6">
                     <Link href="/" className="text-sm text-gray-600 hover:text-gray-900 mb-4 inline-flex items-center">
                       ← Back to home
                     </Link>
@@ -111,7 +111,7 @@ export default function UseCasesPage() {
                   height: '100%'
                 }}>
                   <div className="w-full px-0 md:px-8 lg:px-8" style={{ paddingTop: '3rem', paddingBottom: '3rem' }}>
-                    <div className="grid grid-cols-1 lg:grid-cols-3 gap-6" style={{ minHeight: '750px' }}>
+                    <div className="grid grid-cols-1 lg:grid-cols-3 gap-6">
                       <div className="lg:col-span-2 relative flex items-center justify-center">
                         <div className="space-y-6 w-full">
                           <div>
@@ -148,7 +148,7 @@ export default function UseCasesPage() {
                         </div>
                       </div>
 
-                      <div className="hidden lg:flex text-left lg:col-span-1 pl-0 md:pl-4 lg:pl-8 flex-col justify-center" style={{ minHeight: '750px' }}>
+                      <div className="hidden lg:flex text-left lg:col-span-1 pl-0 md:pl-4 lg:pl-8 flex-col justify-center">
                         <h3 className="text-lg md:text-lg lg:text-2xl font-inter mb-4" style={{ color: '#000000' }}>
                           {useCase.title}
                         </h3>
