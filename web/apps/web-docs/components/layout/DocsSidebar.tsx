@@ -403,9 +403,9 @@ export function DocsSidebar({ open = true, onClose }: DocsSidebarProps) {
           <div className="h-12 flex items-center px-7">
             <a href={hubUrl} className="flex items-center">
               <img
-                src="/img/igris-logo-34.png"
-                alt="Igris Logo"
-                className="h-6 w-auto"
+                src="/footers.png"
+                alt="Igris Inertial"
+                style={{ width: '25px', height: 'auto' }}
               />
             </a>
           </div>

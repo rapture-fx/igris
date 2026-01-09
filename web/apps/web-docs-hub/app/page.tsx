@@ -28,10 +28,11 @@ export default function HomePage() {
                 <div className="flex items-center justify-start w-full">
                   <Link href="https://igrisinertial.com" className="flex items-center">
                     <img
-                      src="/img/igris-logo-34.png"
+                      src="/footers.png"
                       alt="Igris Inertial"
-                      width={20}
-                      height={20}
+                      width={25}
+                      height={25}
+                      className="h-auto"
                     />
                   </Link>
                 </div>
