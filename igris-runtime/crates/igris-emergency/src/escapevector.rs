@@ -1,5 +1,6 @@
 use aes_gcm::{Aes256Gcm, KeyInit, Nonce};
 use aes_gcm::aead::Aead;
+use rand::Rng;
 use serde::{Deserialize, Serialize};
 use std::collections::HashMap;
 use std::fs;
@@ -71,17 +72,23 @@ impl EscapeVectorCache {
     pub fn save_bayesian(&self, state: &BayesianState) -> anyhow::Result<()> {
         let serialized = serde_json::to_vec(state)?;
 
-        // Encrypt with AES-256-GCM
+        // Encrypt with AES-256-GCM using random nonce
         let cipher = Aes256Gcm::new(&self.encryption_key.into());
-        let nonce = Nonce::from_slice(&[0u8; 12]); // In production, use random nonce
+        let nonce_bytes: [u8; 12] = rand::thread_rng().gen();
+        let nonce = Nonce::from_slice(&nonce_bytes);
 
         let encrypted = cipher
             .encrypt(nonce, serialized.as_ref())
             .map_err(|e| anyhow::anyhow!("Encryption failed: {}", e))?;
 
+        // Prepend nonce to ciphertext: [nonce(12)][ciphertext]
+        let mut output = Vec::with_capacity(12 + encrypted.len());
+        output.extend_from_slice(&nonce_bytes);
+        output.extend_from_slice(&encrypted);
+
         // Atomic write
         let temp_path = format!("{}.tmp", self.bayesian_cache_path);
-        fs::write(&temp_path, &encrypted)?;
+        fs::write(&temp_path, &output)?;
         fs::rename(&temp_path, &self.bayesian_cache_path)?;
 
         Ok(())
@@ -97,14 +104,19 @@ impl EscapeVectorCache {
             return Ok(None);
         }
 
-        let encrypted = fs::read(&self.bayesian_cache_path)?;
+        let data = fs::read(&self.bayesian_cache_path)?;
+
+        // Extract nonce from first 12 bytes
+        if data.len() < 12 {
+            return Err(anyhow::anyhow!("Corrupted cache file: too short"));
+        }
+        let (nonce_bytes, ciphertext) = data.split_at(12);
+        let nonce = Nonce::from_slice(nonce_bytes);
 
         // Decrypt
         let cipher = Aes256Gcm::new(&self.encryption_key.into());
-        let nonce = Nonce::from_slice(&[0u8; 12]);
-
         let decrypted = cipher
-            .decrypt(nonce, encrypted.as_ref())
+            .decrypt(nonce, ciphertext)
             .map_err(|e| anyhow::anyhow!("Decryption failed: {}", e))?;
 
         let state: BayesianState = serde_json::from_slice(&decrypted)?;
@@ -168,17 +180,23 @@ impl EscapeVectorCache {
             cache.last_cleanup = now;
         }
 
-        // Save encrypted cache
+        // Save encrypted cache with random nonce
         let serialized = serde_json::to_vec(&cache)?;
         let cipher = Aes256Gcm::new(&self.encryption_key.into());
-        let nonce = Nonce::from_slice(&[0u8; 12]);
+        let nonce_bytes: [u8; 12] = rand::thread_rng().gen();
+        let nonce = Nonce::from_slice(&nonce_bytes);
 
         let encrypted = cipher
             .encrypt(nonce, serialized.as_ref())
             .map_err(|e| anyhow::anyhow!("Encryption failed: {}", e))?;
 
+        // Prepend nonce to ciphertext: [nonce(12)][ciphertext]
+        let mut output = Vec::with_capacity(12 + encrypted.len());
+        output.extend_from_slice(&nonce_bytes);
+        output.extend_from_slice(&encrypted);
+
         let temp_path = format!("{}.tmp", self.response_cache_path);
-        fs::write(&temp_path, &encrypted)?;
+        fs::write(&temp_path, &output)?;
         fs::rename(&temp_path, &self.response_cache_path)?;
 
         Ok(())
@@ -214,12 +232,18 @@ impl EscapeVectorCache {
             });
         }
 
-        let encrypted = fs::read(&self.response_cache_path)?;
-        let cipher = Aes256Gcm::new(&self.encryption_key.into());
-        let nonce = Nonce::from_slice(&[0u8; 12]);
+        let data = fs::read(&self.response_cache_path)?;
 
+        // Extract nonce from first 12 bytes
+        if data.len() < 12 {
+            return Err(anyhow::anyhow!("Corrupted cache file: too short"));
+        }
+        let (nonce_bytes, ciphertext) = data.split_at(12);
+        let nonce = Nonce::from_slice(nonce_bytes);
+
+        let cipher = Aes256Gcm::new(&self.encryption_key.into());
         let decrypted = cipher
-            .decrypt(nonce, encrypted.as_ref())
+            .decrypt(nonce, ciphertext)
             .map_err(|e| anyhow::anyhow!("Decryption failed: {}", e))?;
 
         let cache: ResponseCache = serde_json::from_slice(&decrypted)?;
