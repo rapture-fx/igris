@@ -19,7 +19,7 @@ impl HttpTool {
     /// Check if domain is allowed
     fn is_domain_allowed(&self, url: &str) -> bool {
         if self.allowed_domains.is_empty() {
-            return true; // No restrictions if whitelist is empty
+            return false; // SECURITY: Deny by default if no whitelist configured
         }
 
         let host = match extract_url_host(url) {
@@ -194,9 +194,12 @@ mod tests {
     }
 
     #[test]
-    fn test_empty_whitelist() {
+    fn test_empty_whitelist_denies_all() {
         let tool = HttpTool::new(vec![]);
-        assert!(tool.is_domain_allowed("https://any-domain.com"));
+        assert!(!tool.is_domain_allowed("https://any-domain.com"));
+        assert!(!tool.is_domain_allowed("https://example.com"));
+        assert!(!tool.is_domain_allowed("http://169.254.169.254")); // Cloud metadata
+        assert!(!tool.is_domain_allowed("http://localhost:8080")); // Local services
     }
 
     #[tokio::test]
