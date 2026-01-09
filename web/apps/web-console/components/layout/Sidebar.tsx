@@ -325,9 +325,9 @@ export function Sidebar({ open = true, onClose }: SidebarProps) {
           <div className="h-12 flex items-center px-7">
             <Link href="/dashboard" className="flex items-center">
               <img
-                src="/schlep-logo-34.png"
-                alt="Schlep Logo"
-                className="h-6 w-auto"
+                src="/footers.png"
+                alt="Igris Inertial"
+                style={{ width: '25px', height: 'auto' }}
               />
             </Link>
           </div>

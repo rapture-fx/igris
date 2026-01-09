@@ -167,9 +167,9 @@ export default function OnboardingPage() {
       {/* Logo */}
       <div className="absolute top-6 left-8 z-10">
         <img
-          src="/inertials.png"
+          src="/footers.png"
           alt="Igris Logo"
-          style={{ width: '110px', height: 'auto' }}
+          style={{ width: '25px', height: 'auto' }}
         />
       </div>
 
