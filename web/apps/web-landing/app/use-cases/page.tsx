@@ -3,6 +3,7 @@
 import Header from '../../src/components/sections/Header'
 import Footer from '../../src/components/sections/Footer'
 import CallToAction from '../../src/components/sections/CallToAction'
+import ClosingPosition from '../../src/components/sections/ClosingPosition'
 import Problem from '../../src/components/sections/Problem'
 import AudienceFilter from '../../src/components/sections/AudienceFilter'
 import UseCasesTeaser from '../../src/components/sections/UseCasesTeaser'
@@ -160,7 +161,7 @@ export default function UseCasesPage() {
             </section>
           ))}
 
-          <CallToAction />
+          <ClosingPosition />
         </main>
         <Footer />
       </div>

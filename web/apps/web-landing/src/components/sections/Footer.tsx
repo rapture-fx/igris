@@ -31,6 +31,31 @@ export default function Footer() {
               <span className="text-sm text-gray-500 dark:text-gray-400 font-inter">
                 © 2025 Igris Inertial.
               </span>
+              {/* Social Media Icons */}
+              <div className="flex gap-3 mt-2">
+                <Link href="https://x.com/igrisinertial" target="_blank" rel="noopener noreferrer">
+                  <img
+                    src="/x.png"
+                    alt="X (Twitter)"
+                    width={12}
+                    height={12}
+                    style={{ width: '12px', height: '12px' }}
+                    className="hover:opacity-70 transition-opacity"
+                  />
+                </Link>
+                <div className="w-4 h-4 flex items-center justify-center">
+                  <Link href="https://www.linkedin.com/igris-inertial/" target="_blank" rel="noopener noreferrer">
+                    <img
+                      src="/linkedin.png"
+                      alt="LinkedIn"
+                      width={14}
+                      height={12}
+                      style={{ width: '14px', height: '12px' }}
+                      className="hover:opacity-70 transition-opacity"
+                    />
+                  </Link>
+                </div>
+              </div>
             </div>
 
             {/* Logo - on right top */}
