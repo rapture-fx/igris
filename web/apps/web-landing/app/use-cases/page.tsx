@@ -58,20 +58,19 @@ export default function UseCasesPage() {
         <Header />
         <main className="pt-[70px] space-y-1">
           {/* Hero Section */}
-          <section className="py-0 bg-[#f6f6f4] text-gray-900 relative overflow-visible" style={{
+          <section className="pt-0 pb-0 bg-[#f6f6f4] text-gray-900 relative overflow-visible -mt-[72px]" style={{
         backgroundImage: 'linear-gradient(rgba(246, 246, 244, 0.3), rgba(246, 246, 244, 0.3)), url(/cloudbg.png)',
         backgroundSize: 'cover',
         backgroundPosition: 'center top -100px',
-        backgroundRepeat: 'no-repeat'
+        backgroundRepeat: 'no-repeat',
+        borderBottom: '0.5px solid rgba(156, 163, 175, 0.3)'
       }}>
             <div className="mx-auto max-w-[1200px] px-4 sm:px-6 lg:px-8">
-              <div className="relative pt-8 px-4 md:px-8 lg:px-12 pb-8 md:pb-20 bg-transparent z-10" style={{
-                borderTop: '0.5px solid rgba(156, 163, 175, 0.3)',
-                borderBottom: '0.5px solid rgba(156, 163, 175, 0.3)',
+              <div className="relative px-4 md:px-8 lg:px-12 pb-0 bg-transparent z-10 overflow-visible" style={{
                 borderLeft: '0.5px solid rgba(156, 163, 175, 0.3)',
                 borderRight: '0.5px solid rgba(156, 163, 175, 0.3)'
               }}>
-                <div className="max-w-[1100px] mx-auto pt-8 px-0 md:px-8 lg:px-16">
+                <div className="max-w-[1100px] mx-auto pt-20 px-0 md:px-8 lg:px-16 pb-8">
                   <div className="pt-8 mb-6">
                     <Link href="/" className="text-sm text-gray-600 hover:text-gray-900 mb-4 inline-flex items-center">
                       ← Back to home
@@ -103,28 +102,15 @@ export default function UseCasesPage() {
 
           {/* Use Cases Sections */}
           {useCases.map((useCase, index) => (
-            <section key={useCase.title} className="py-2 dark:bg-gray-900 text-gray-900 dark:text-white" style={{ backgroundColor: '#f6f6f4' }}>
-              <div className="mx-auto max-w-[1200px] px-4 sm:px-6 lg:px-8">
-                <div className="relative py-12 md:py-16 lg:py-20 px-4 md:px-8 lg:px-12" style={{
-                  borderTop: '0.5px solid rgba(156, 163, 175, 0.3)',
-                  ...(index !== useCases.length - 1 && { borderBottom: '0.5px solid rgba(156, 163, 175, 0.3)' }),
+            <section key={useCase.title} className="dark:bg-gray-900 text-gray-900 dark:text-white" style={{ backgroundColor: '#f6f6f4', height: '800px', borderBottom: '0.5px solid rgba(156, 163, 175, 0.3)' }}>
+              <div className="mx-auto max-w-[1200px] px-4 sm:px-6 lg:px-8" style={{ height: '100%' }}>
+                <div className="relative px-4 md:px-4 lg:px-6 flex flex-col" style={{
                   borderLeft: '0.5px solid rgba(156, 163, 175, 0.3)',
                   borderRight: '0.5px solid rgba(156, 163, 175, 0.3)',
                   backgroundColor: '#f6f6f4',
-                  minHeight: '600px'
+                  height: '100%'
                 }}>
-                  <div className="w-full px-0">
-                    <div className="absolute top-0 bottom-0 left-2/3 hidden lg:block" style={{
-                      borderLeft: '0.5px solid rgba(156, 163, 175, 0.3)',
-                      transform: 'translateX(-66.67%)'
-                    }}></div>
-
-                    <div className="text-left mb-6 lg:mb-0 lg:hidden">
-                      <h3 className="text-lg md:text-lg lg:text-2xl font-inter mb-4" style={{ color: '#000000' }}>
-                        {useCase.title}
-                      </h3>
-                    </div>
-
+                  <div className="w-full px-0 md:px-8 lg:px-8" style={{ paddingTop: '3rem', paddingBottom: '3rem' }}>
                     <div className="grid grid-cols-1 lg:grid-cols-3 gap-6" style={{ minHeight: '750px' }}>
                       <div className="lg:col-span-2 relative flex items-center justify-center">
                         <div className="space-y-6 w-full">
