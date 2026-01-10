@@ -45,6 +45,8 @@ use swarm_agent::{run_swarm, SwarmConfig};
 // RUNTIME-04: Execution graph observability
 mod execution_graph;
 use execution_graph::ExecutionGraphRegistry;
+// RUNTIME-05: Resource safety limits
+mod resource_limits;
 use igris_tools::{ToolRegistry};
 use igris_tools::http::HttpTool;
 use igris_tools::shell::ShellTool;
