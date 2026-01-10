@@ -8,6 +8,9 @@ use std::sync::Arc;
 use tokio::sync::Semaphore;
 use tracing::{debug, info, warn};
 
+// RUNTIME-04: Execution graph observability
+use crate::execution_graph::{ExecutionGraph, ExecutionNode, ToolExecutionResult};
+
 #[derive(Debug, Clone, Serialize, Deserialize)]
 pub struct ToolCall {
     pub name: String,
@@ -27,6 +30,7 @@ pub struct ToolAgentResponse {
 /// - Ask model for either tool calls or a final answer (JSON).
 /// - Execute requested tools.
 /// - Feed results back to model.
+/// RUNTIME-04: Enhanced with execution graph tracking
 pub struct ToolAgent {
     provider: Arc<dyn LLMProvider>,
     registry: Arc<ToolRegistry>,
@@ -34,6 +38,8 @@ pub struct ToolAgent {
     max_steps: u32,
     max_concurrent: usize,
     tool_timeout_ms: u64,
+    // RUNTIME-04: Optional execution graph for observability
+    enable_graph_tracking: bool,
 }
 
 impl ToolAgent {
@@ -52,10 +58,73 @@ impl ToolAgent {
             max_steps,
             max_concurrent: max_concurrent.max(1),
             tool_timeout_ms,
+            enable_graph_tracking: false, // Disabled by default
         }
     }
 
+    // RUNTIME-04: Enable execution graph tracking
+    pub fn with_graph_tracking(mut self, enable: bool) -> Self {
+        self.enable_graph_tracking = enable;
+        self
+    }
+
     pub async fn run(&self, user_prompt: &str) -> Result<String> {
+        if self.enable_graph_tracking {
+            let (result, _graph) = self.run_with_graph(user_prompt).await?;
+            Ok(result)
+        } else {
+            self.run_without_graph(user_prompt).await
+        }
+    }
+
+    // RUNTIME-04: Run with execution graph tracking
+    pub async fn run_with_graph(&self, user_prompt: &str) -> Result<(String, ExecutionGraph)> {
+        let mut graph = ExecutionGraph::new(user_prompt.to_string(), self.max_steps);
+        let mut scratch = String::new();
+        let mut current_prompt = self.initial_prompt(user_prompt);
+
+        for step in 1..=self.max_steps {
+            info!("ToolAgent step {}/{}", step, self.max_steps);
+            let raw = self.provider.generate(&current_prompt).await?;
+            let truncated: String = raw.chars().take(200).collect();
+            debug!("ToolAgent model output (truncated): {}", truncated);
+
+            if let Some(parsed) = parse_tool_agent_response(&raw) {
+                if let Some(final_answer) = parsed.final_answer {
+                    graph.complete(Some(final_answer.clone()), None);
+                    return Ok((final_answer, graph));
+                }
+
+                if let Some(tool_calls) = parsed.tool_calls {
+                    if tool_calls.is_empty() {
+                        graph.complete(Some(raw.clone()), None);
+                        return Ok((raw, graph));
+                    }
+
+                    // Execute tools and record in graph
+                    let (tool_results, nodes) = self.execute_tool_calls_with_graph(tool_calls, step).await;
+                    for node in nodes {
+                        graph.add_node(node);
+                    }
+
+                    scratch.push_str("\n\n");
+                    scratch.push_str(&format_tool_results(&tool_results));
+                    current_prompt = self.followup_prompt(user_prompt, &scratch);
+                    continue;
+                }
+            }
+
+            warn!("ToolAgent: model did not return a valid tool JSON; returning raw output");
+            graph.complete(Some(raw.clone()), None);
+            return Ok((raw, graph));
+        }
+
+        let error_msg = format!("ToolAgent exceeded max_steps={}", self.max_steps);
+        graph.complete(None, Some(error_msg.clone()));
+        Err(anyhow::anyhow!(error_msg))
+    }
+
+    async fn run_without_graph(&self, user_prompt: &str) -> Result<String> {
         let mut scratch = String::new();
         let mut current_prompt = self.initial_prompt(user_prompt);
 
@@ -72,7 +141,6 @@ impl ToolAgent {
 
                 if let Some(tool_calls) = parsed.tool_calls {
                     if tool_calls.is_empty() {
-                        // Empty tool_calls means the model decided it can't proceed; fall back.
                         return Ok(raw);
                     }
 
@@ -84,7 +152,6 @@ impl ToolAgent {
                 }
             }
 
-            // If response isn't in the expected JSON shape, treat as final answer.
             warn!("ToolAgent: model did not return a valid tool JSON; returning raw output");
             return Ok(raw);
         }
@@ -159,6 +226,45 @@ TOOL RESULTS SO FAR:
         }
 
         join_all(futures).await
+    }
+
+    // RUNTIME-04: Execute tool calls and create ExecutionNodes
+    async fn execute_tool_calls_with_graph(&self, tool_calls: Vec<ToolCall>, step: u32) -> (Vec<ToolResult>, Vec<ExecutionNode>) {
+        let sem = Arc::new(Semaphore::new(self.max_concurrent));
+        let mut futures = Vec::with_capacity(tool_calls.len());
+
+        for call in tool_calls {
+            let registry = self.registry.clone();
+            let sem = sem.clone();
+            let timeout_ms = self.tool_timeout_ms;
+
+            // Create execution node
+            let mut node = ExecutionNode::new(step, call.name.clone(), call.arguments.clone());
+
+            futures.push(async move {
+                let _permit = sem.acquire().await.expect("semaphore closed");
+                let exec = registry.execute(&call.name, call.arguments);
+                let result = match tokio::time::timeout(std::time::Duration::from_millis(timeout_ms), exec).await
+                {
+                    Ok(Ok(result)) => result,
+                    Ok(Err(e)) => ToolResult::failure(call.name.clone(), e.to_string(), timeout_ms),
+                    Err(_) => ToolResult::failure(
+                        call.name.clone(),
+                        format!("Tool timed out after {}ms", timeout_ms),
+                        timeout_ms,
+                    ),
+                };
+
+                // Complete the node with the result
+                node.complete(ToolExecutionResult::from(result.clone()));
+
+                (result, node)
+            });
+        }
+
+        let results_and_nodes = join_all(futures).await;
+        let (results, nodes): (Vec<_>, Vec<_>) = results_and_nodes.into_iter().unzip();
+        (results, nodes)
     }
 }
 

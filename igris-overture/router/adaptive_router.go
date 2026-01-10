@@ -20,6 +20,12 @@ type AdaptiveRouter struct {
 	learningRate   float64
 	explorationRate float64
 
+	// OVERTURE-02: Provider trust verification
+	trustTracker   *ProviderTrustTracker
+
+	// OVERTURE-03: Thompson Sampling with cold-start protection
+	thompsonEngine *ThompsonSamplingEngine
+
 	// Metrics
 	routingDecisions prometheus.Counter
 	backendLatency   *prometheus.HistogramVec
@@ -82,6 +88,9 @@ type RoutingDecision struct {
 	Reason         string
 	Confidence     float64
 	AlternativeIDs []string
+
+	// OVERTURE-04: Explainable routing traces
+	Metadata       *RoutingMetadata
 }
 
 // NewAdaptiveRouter creates a new adaptive routing instance
@@ -91,7 +100,13 @@ func NewAdaptiveRouter(policy RoutingPolicy, metricsWindow time.Duration) *Adapt
 		metricsWindow:   metricsWindow,
 		routingPolicy:   policy,
 		learningRate:    0.1,
-		explorationRate: 0.15, // 15% exploration for Thompson Sampling
+		explorationRate: 0.15, // 15% exploration for Thompson Sampling (legacy)
+
+		// OVERTURE-02: Initialize trust tracker with default config
+		trustTracker:    NewProviderTrustTracker(DefaultTrustConfig()),
+
+		// OVERTURE-03: Initialize Thompson Sampling engine with cold-start protection
+		thompsonEngine:  NewThompsonSamplingEngine(DefaultThompsonSamplingConfig()),
 
 		routingDecisions: promauto.NewCounter(prometheus.CounterOpts{
 			Name: "adaptive_routing_decisions_total",
@@ -126,21 +141,60 @@ func (ar *AdaptiveRouter) RegisterBackend(backend *Backend) error {
 }
 
 // Route selects the optimal backend for a given request
+// OVERTURE-04: Enhanced with comprehensive routing metadata generation
 func (ar *AdaptiveRouter) Route(ctx context.Context, req *RoutingRequest) (*RoutingDecision, error) {
+	routingStart := time.Now()
+
 	ar.mu.RLock()
 	defer ar.mu.RUnlock()
 
+	// OVERTURE-04: Initialize metadata builder
+	requestID := fmt.Sprintf("req_%d", time.Now().UnixNano())
+	metadata := NewMetadataBuilder(requestID, req.ModelName).
+		WithUserTier(req.UserTier)
+
 	// Filter backends by capability
-	candidates := ar.filterByCapability(req.Capabilities)
-	if len(candidates) == 0 {
+	allBackends := ar.filterByCapability(req.Capabilities)
+	if len(allBackends) == 0 {
 		return nil, fmt.Errorf("no backends available with required capabilities: %v", req.Capabilities)
 	}
 
 	// Filter by health status
-	candidates = ar.filterHealthy(candidates)
-	if len(candidates) == 0 {
+	candidates := ar.filterHealthy(allBackends)
+	healthyCount := len(candidates)
+	if healthyCount == 0 {
 		return nil, fmt.Errorf("no healthy backends available")
 	}
+
+	// OVERTURE-02: Filter by trust verification (FAIL-CLOSED)
+	candidateIDs := make([]string, len(candidates))
+	for i, backend := range candidates {
+		candidateIDs[i] = backend.ID
+	}
+	trustedIDs, blockedIDs := ar.trustTracker.FilterTrustedProviders(candidateIDs)
+
+	// Filter candidates to only trusted backends
+	trustedCandidates := make([]*Backend, 0, len(trustedIDs))
+	trustedSet := make(map[string]bool)
+	for _, id := range trustedIDs {
+		trustedSet[id] = true
+	}
+	for _, backend := range candidates {
+		if trustedSet[backend.ID] {
+			trustedCandidates = append(trustedCandidates, backend)
+		}
+	}
+
+	// OVERTURE-04: Record trust filtering metadata
+	metadata.WithTrustFiltering(len(candidateIDs), len(trustedIDs), len(blockedIDs), nil, blockedIDs)
+
+	// FAIL-CLOSED: If all providers blocked by trust verification, reject request
+	if len(trustedCandidates) == 0 {
+		return nil, fmt.Errorf("no trusted backends available (trust verification blocked %d providers: %v)", len(blockedIDs), blockedIDs)
+	}
+
+	candidates = trustedCandidates
+	metadata.WithCandidateCounts(len(allBackends), healthyCount, len(trustedCandidates))
 
 	// Apply routing policy
 	var decision *RoutingDecision
@@ -164,6 +218,95 @@ func (ar *AdaptiveRouter) Route(ctx context.Context, req *RoutingRequest) (*Rout
 	if err != nil {
 		return nil, err
 	}
+
+	// OVERTURE-04: Build candidate scores for all backends
+	for _, backend := range allBackends {
+		backend.mu.RLock()
+		score := CandidateScore{
+			BackendID:   backend.ID,
+			BackendType: string(backend.Type),
+			Healthy:     backend.Healthy,
+			Trusted:     trustedSet[backend.ID],
+			AvgLatencyMs: backend.AvgLatency,
+			ErrorRate:   backend.ErrorRate,
+			CurrentLoad: backend.CurrentLoad,
+			Selected:    (decision.Backend != nil && decision.Backend.ID == backend.ID),
+		}
+		backend.mu.RUnlock()
+
+		// Add trust score if available
+		if trustScore, trustConf, exists := ar.trustTracker.GetTrustScore(backend.ID); exists {
+			score.TrustScore = trustScore
+			score.TrustConfidence = trustConf
+		}
+
+		// Add rejection reason if not selected
+		if !score.Selected {
+			if !score.Healthy {
+				score.RejectionReason = "unhealthy"
+			} else if !score.Trusted {
+				score.RejectionReason = "trust verification failed"
+			} else {
+				score.RejectionReason = "not selected by routing policy"
+			}
+		}
+
+		metadata.AddCandidateScore(score)
+	}
+
+	// OVERTURE-04: Add selection metadata
+	metadata.WithSelection(
+		decision.Backend.ID,
+		decision.Reason,
+		string(ar.routingPolicy),
+		decision.Confidence,
+	)
+
+	// OVERTURE-04: Add Thompson Sampling metadata if applicable
+	if ar.routingPolicy == PolicyThompsonSampling {
+		stats := ar.thompsonEngine.GetGlobalStats()
+		state, stateExists := ar.thompsonEngine.GetState(decision.Backend.ID)
+
+		decisionType := "unknown"
+		if len(decision.Reason) > 20 {
+			if decision.Reason[20:30] == "bootstrap " {
+				decisionType = "bootstrap"
+			} else if decision.Reason[20:27] == "explore" {
+				decisionType = "explore"
+			} else if decision.Reason[20:27] == "exploit" {
+				decisionType = "exploit"
+			}
+		}
+
+		alpha, beta := 0.0, 0.0
+		backendPhase := ""
+		backendSamples := 0
+
+		if stateExists {
+			alpha = state.Alpha
+			beta = state.Beta
+			backendPhase = string(state.Phase)
+			backendSamples = state.SamplesCollected
+		}
+
+		metadata.WithThompsonSampling(
+			stats.GlobalExplorationCount,
+			stats.CurrentExplorationRate,
+			stats.ExplorationBudgetRemaining,
+			decisionType,
+			backendPhase,
+			backendSamples,
+			alpha,
+			beta,
+		)
+	}
+
+	// OVERTURE-04: Add routing latency
+	routingLatency := time.Since(routingStart)
+	metadata.WithRoutingLatency(float64(routingLatency.Microseconds()) / 1000.0)
+
+	// Attach metadata to decision
+	decision.Metadata = metadata.Build()
 
 	ar.routingDecisions.Inc()
 	return decision, nil
@@ -265,47 +408,24 @@ func (ar *AdaptiveRouter) routeWeightedRandom(candidates []*Backend, req *Routin
 }
 
 // routeThompsonSampling implements Thompson Sampling for multi-armed bandit
-// This enables reinforcement learning for optimal backend selection
+// OVERTURE-03: Enhanced with cold-start protection, explicit priors, and phase management
 func (ar *AdaptiveRouter) routeThompsonSampling(candidates []*Backend, req *RoutingRequest) *RoutingDecision {
-	// Exploration: randomly select with probability epsilon
-	if float64(time.Now().UnixNano()%100)/100.0 < ar.explorationRate {
-		idx := time.Now().UnixNano() % int64(len(candidates))
+	// Use enhanced Thompson Sampling engine with cold-start protection
+	backend, reason, confidence := ar.thompsonEngine.SelectBackend(candidates)
+
+	if backend == nil {
+		// Fallback to first candidate if selection fails
 		return &RoutingDecision{
-			Backend:    candidates[idx],
-			Reason:     "Thompson Sampling: exploration",
-			Confidence: ar.explorationRate,
-		}
-	}
-
-	// Exploitation: select based on Beta distribution sampling
-	var best *Backend
-	maxSample := 0.0
-
-	for _, backend := range candidates {
-		backend.mu.RLock()
-		successes := float64(backend.SuccessCount)
-		failures := float64(backend.ErrorCount)
-		backend.mu.RUnlock()
-
-		// Beta distribution parameters (α, β)
-		alpha := successes + 1.0
-		beta := failures + 1.0
-
-		// Simple approximation: sample ~ Beta(α, β) ≈ α / (α + β) with noise
-		mean := alpha / (alpha + beta)
-		noise := (float64(time.Now().UnixNano()%100) / 100.0) * 0.1 // 10% noise
-		sample := mean + noise
-
-		if sample > maxSample {
-			maxSample = sample
-			best = backend
+			Backend:    candidates[0],
+			Reason:     "Thompson Sampling: fallback (no valid selection)",
+			Confidence: 0.0,
 		}
 	}
 
 	return &RoutingDecision{
-		Backend:    best,
-		Reason:     fmt.Sprintf("Thompson Sampling: exploitation (score: %.3f)", maxSample),
-		Confidence: maxSample,
+		Backend:    backend,
+		Reason:     reason,
+		Confidence: confidence,
 	}
 }
 
@@ -323,6 +443,7 @@ func (ar *AdaptiveRouter) routeRoundRobin(candidates []*Backend, req *RoutingReq
 func (ar *AdaptiveRouter) RecordResult(backendID string, latency time.Duration, err error) {
 	ar.mu.RLock()
 	backend, exists := ar.backends[backendID]
+	routingPolicy := ar.routingPolicy
 	ar.mu.RUnlock()
 
 	if !exists {
@@ -330,9 +451,11 @@ func (ar *AdaptiveRouter) RecordResult(backendID string, latency time.Duration, 
 	}
 
 	backend.mu.Lock()
-	defer backend.mu.Unlock()
-
 	backend.TotalRequests++
+
+	latencyMs := float64(latency.Milliseconds())
+	failed := (err != nil)
+	success := !failed
 
 	if err != nil {
 		backend.ErrorCount++
@@ -342,7 +465,6 @@ func (ar *AdaptiveRouter) RecordResult(backendID string, latency time.Duration, 
 		backend.SuccessCount++
 
 		// Update average latency (exponential moving average)
-		latencyMs := float64(latency.Milliseconds())
 		if backend.AvgLatency == 0 {
 			backend.AvgLatency = latencyMs
 		} else {
@@ -350,6 +472,39 @@ func (ar *AdaptiveRouter) RecordResult(backendID string, latency time.Duration, 
 		}
 
 		ar.backendLatency.WithLabelValues(backendID, string(backend.Type)).Observe(latency.Seconds())
+	}
+	backend.mu.Unlock()
+
+	// OVERTURE-02: Record observation in trust tracker
+	// Note: costUSD is not tracked in this basic implementation, defaulting to 0.0
+	// In production, cost should be calculated based on token usage and pricing
+	ar.trustTracker.RecordObservation(backendID, latencyMs, failed, 0.0)
+
+	// OVERTURE-03: Record outcome in Thompson Sampling engine (only for Thompson Sampling policy)
+	if routingPolicy == PolicyThompsonSampling {
+		// Determine if this was exploration or exploitation
+		// This is a simplification - in production, the routing decision should include this metadata
+		state, exists := ar.thompsonEngine.GetState(backendID)
+		isExploration := exists && (state.Phase == PhaseBootstrap || state.Phase == PhaseExplore)
+
+		ar.thompsonEngine.RecordOutcome(backendID, success, isExploration)
+	}
+}
+
+// RecordResultWithMetadata updates backend metrics with routing metadata
+// This version allows explicit specification of exploration/exploitation
+func (ar *AdaptiveRouter) RecordResultWithMetadata(backendID string, latency time.Duration, err error, isExploration bool) {
+	// First record with standard method
+	ar.RecordResult(backendID, latency, err)
+
+	// Override Thompson Sampling outcome if using Thompson Sampling policy
+	ar.mu.RLock()
+	routingPolicy := ar.routingPolicy
+	ar.mu.RUnlock()
+
+	if routingPolicy == PolicyThompsonSampling {
+		success := (err == nil)
+		ar.thompsonEngine.RecordOutcome(backendID, success, isExploration)
 	}
 }
 
@@ -412,6 +567,51 @@ func (ar *AdaptiveRouter) GetBackendStats() map[string]BackendStats {
 	}
 
 	return stats
+}
+
+// OVERTURE-02: Trust Management Methods
+
+// SetReportedMetrics sets the advertised/claimed metrics for a backend
+// This allows trust verification by comparing observed vs reported performance
+func (ar *AdaptiveRouter) SetReportedMetrics(backendID string, latencyMs, errorRate, costUSD float64) {
+	ar.trustTracker.SetReportedMetrics(backendID, latencyMs, errorRate, costUSD)
+}
+
+// GetProviderTrustScore returns the trust score and confidence for a backend
+func (ar *AdaptiveRouter) GetProviderTrustScore(backendID string) (trustScore, confidence float64, exists bool) {
+	return ar.trustTracker.GetTrustScore(backendID)
+}
+
+// IsProviderTrusted checks if a backend passes trust verification
+func (ar *AdaptiveRouter) IsProviderTrusted(backendID string) (bool, string) {
+	return ar.trustTracker.IsProviderTrusted(backendID)
+}
+
+// GetProviderTrustDetails returns detailed trust information for a backend
+func (ar *AdaptiveRouter) GetProviderTrustDetails(backendID string) (*ProviderTrust, error) {
+	return ar.trustTracker.GetProviderTrustDetails(backendID)
+}
+
+// ResetProviderTrust manually resets trust for a backend (e.g., after verification)
+func (ar *AdaptiveRouter) ResetProviderTrust(backendID string) {
+	ar.trustTracker.ResetProviderTrust(backendID)
+}
+
+// OVERTURE-03: Thompson Sampling Management Methods
+
+// GetThompsonSamplingState returns the current Thompson Sampling state for a backend
+func (ar *AdaptiveRouter) GetThompsonSamplingState(backendID string) (*ThompsonSamplingState, bool) {
+	return ar.thompsonEngine.GetState(backendID)
+}
+
+// GetThompsonSamplingStats returns global Thompson Sampling statistics
+func (ar *AdaptiveRouter) GetThompsonSamplingStats() ThompsonSamplingStats {
+	return ar.thompsonEngine.GetGlobalStats()
+}
+
+// ResetThompsonSamplingState resets Thompson Sampling state for a backend
+func (ar *AdaptiveRouter) ResetThompsonSamplingState(backendID string) {
+	ar.thompsonEngine.ResetBackendState(backendID)
 }
 
 type BackendStats struct {

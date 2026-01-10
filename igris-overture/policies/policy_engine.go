@@ -87,20 +87,31 @@ func (pe *PolicyEngine) LoadPolicyFromString(tenantID, yamlContent string) (*Ten
 }
 
 // Evaluate evaluates routing policy for a tenant and request
+//
+// SECURITY: This function implements fail-closed behavior. If no policy exists
+// or policy evaluation fails, the decision defaults to DENY (empty AllowedProviders).
 func (pe *PolicyEngine) Evaluate(tenantID string, estimatedCost float64, availableProviders []string) *RoutingDecision {
 	pe.mu.RLock()
 	policy, exists := pe.policies[tenantID]
 	pe.mu.RUnlock()
 
+	// FAIL-CLOSED: Start with denial (no providers allowed)
 	decision := &RoutingDecision{
-		AllowedProviders: availableProviders,
-		MaxCostUSD:       -1, // No limit
+		AllowedProviders: []string{}, // SECURITY: Empty = deny all
+		MaxCostUSD:       -1,
 		Preference:       "cost",
 		PolicyMatched:    false,
 	}
 
-	if !exists || len(policy.Allow) == 0 {
-		decision.Reason = "No policy configured, using defaults"
+	// FAIL-CLOSED: No policy = deny all access
+	if !exists {
+		decision.Reason = "No policy configured for tenant - access denied (fail-closed)"
+		return decision
+	}
+
+	// FAIL-CLOSED: Empty policy = deny all access
+	if len(policy.Allow) == 0 {
+		decision.Reason = "Policy has no allow rules - access denied (fail-closed)"
 		return decision
 	}
 
@@ -114,6 +125,18 @@ func (pe *PolicyEngine) Evaluate(tenantID string, estimatedCost float64, availab
 			decision.Reason = fmt.Sprintf("Matched policy rule: max_cost=$%.4f, prefer=%s", rule.MaxCostUSD, rule.Prefer)
 			break
 		}
+	}
+
+	// FAIL-CLOSED: If no rule matched, decision already has empty AllowedProviders
+	if !decision.PolicyMatched {
+		decision.Reason = "No policy rule matched request constraints - access denied (fail-closed)"
+	}
+
+	// FAIL-CLOSED: Sanity check - matched policy must have providers
+	if decision.PolicyMatched && len(decision.AllowedProviders) == 0 {
+		decision.PolicyMatched = false
+		decision.AllowedProviders = []string{} // Explicit empty
+		decision.Reason = "Policy rule matched but has no providers - access denied (fail-closed)"
 	}
 
 	return decision

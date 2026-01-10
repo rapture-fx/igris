@@ -42,6 +42,9 @@ mod tool_agent;
 use tool_agent::ToolAgent;
 mod swarm_agent;
 use swarm_agent::{run_swarm, SwarmConfig};
+// RUNTIME-04: Execution graph observability
+mod execution_graph;
+use execution_graph::ExecutionGraphRegistry;
 use igris_tools::{ToolRegistry};
 use igris_tools::http::HttpTool;
 use igris_tools::shell::ShellTool;
@@ -1557,6 +1560,18 @@ async fn main() -> anyhow::Result<()> {
     };
 
     info!("Config loaded successfully");
+
+    // Validate tool configuration (RUNTIME-01: Secure Runtime Defaults)
+    if let Some(tools_cfg) = &config.tools {
+        if let Err(e) = tools_cfg.validate() {
+            error!("{}", e);
+            error!("Server startup BLOCKED due to insecure tool configuration.");
+            error!("Fix your config file or disable the tool to proceed.");
+            std::process::exit(1);
+        }
+        // Emit security warnings about tool configuration
+        tools_cfg.emit_security_warnings();
+    }
 
     // Initialize storage
     let storage_path = config.storage.as_ref()

@@ -119,6 +119,10 @@ pub struct RegisterRequest {
     pub capabilities: Vec<String>,
     pub location: Option<String>,
     pub metadata: HashMap<String, String>,
+    /// Base64-encoded Ed25519 public key for hybrid contract
+    pub public_key: String,
+    /// Base64-encoded Ed25519 signature of the request payload (excluding this field)
+    pub signature: String,
 }
 
 /// Agent registration response
@@ -146,6 +150,9 @@ pub struct TelemetryData {
     pub metrics: HashMap<String, f64>,
     pub logs: Vec<LogEntry>,
     pub status: AgentStatus,
+    /// Base64-encoded Ed25519 signature of the telemetry payload (excluding this field)
+    #[serde(skip_serializing_if = "Option::is_none")]
+    pub signature: Option<String>,
 }
 
 #[derive(Debug, Clone, Serialize, Deserialize)]
@@ -179,6 +186,9 @@ pub struct FleetAgent {
 
     // Start time for uptime calculation
     start_time: SystemTime,
+
+    // Ed25519 keypair for hybrid contract signing
+    keypair: Arc<crypto::FleetKeypair>,
 }
 
 impl FleetAgent {
@@ -205,6 +215,14 @@ impl FleetAgent {
                 .build()?
         };
 
+        // Load or generate Ed25519 keypair for hybrid contract
+        let key_path = format!(".igris/fleet_{}_key", config.agent_id);
+        let keypair = crypto::FleetKeypair::load_or_generate(&key_path)?;
+        info!(
+            "Fleet keypair loaded/generated. Public key: {}",
+            keypair.public_key_base64()
+        );
+
         let agent = Self {
             config,
             registered: Arc::new(RwLock::new(false)),
@@ -212,6 +230,7 @@ impl FleetAgent {
             config_version: Arc::new(RwLock::new(0)),
             client,
             start_time: SystemTime::now(),
+            keypair: Arc::new(keypair),
         };
 
         Ok(agent)
@@ -243,7 +262,19 @@ impl FleetAgent {
             return Ok(response);
         }
 
-        let request = RegisterRequest {
+        // Create unsigned request payload
+        #[derive(Serialize)]
+        struct UnsignedPayload {
+            agent_id: String,
+            hostname: String,
+            platform: String,
+            version: String,
+            capabilities: Vec<String>,
+            location: Option<String>,
+            metadata: HashMap<String, String>,
+        }
+
+        let unsigned_payload = UnsignedPayload {
             agent_id: self.config.agent_id.clone(),
             hostname: hostname::get()
                 .unwrap_or_default()
@@ -258,6 +289,25 @@ impl FleetAgent {
             ],
             location: None,
             metadata: HashMap::new(),
+        };
+
+        // Sign the payload
+        let signature = crypto::sign_payload(&self.keypair, &unsigned_payload)?;
+        let public_key = self.keypair.public_key_base64();
+
+        debug!("Signing registration request with public key: {}", public_key);
+
+        // Create signed request
+        let request = RegisterRequest {
+            agent_id: unsigned_payload.agent_id,
+            hostname: unsigned_payload.hostname,
+            platform: unsigned_payload.platform,
+            version: unsigned_payload.version,
+            capabilities: unsigned_payload.capabilities,
+            location: unsigned_payload.location,
+            metadata: unsigned_payload.metadata,
+            public_key,
+            signature,
         };
 
         // Send POST request to Overture
@@ -371,7 +421,7 @@ impl FleetAgent {
             return Err(anyhow::anyhow!("Agent is not registered with fleet"));
         }
 
-        let telemetry = self.collect_telemetry().await?;
+        let mut telemetry = self.collect_telemetry().await?;
 
         debug!("Uploading telemetry to fleet");
 
@@ -385,6 +435,12 @@ impl FleetAgent {
             );
             return Ok(());
         }
+
+        // Sign the telemetry payload (exclude signature field)
+        let signature = crypto::sign_payload(&self.keypair, &telemetry)?;
+        telemetry.signature = Some(signature);
+
+        debug!("Signed telemetry with fleet keypair");
 
         // Get fleet ID
         let fleet_id = self.fleet_id.read().await;
@@ -474,25 +530,38 @@ impl FleetAgent {
         Ok(())
     }
 
-    /// Collect current telemetry
+    /// Collect current telemetry with REAL metrics
     async fn collect_telemetry(&self) -> Result<TelemetryData> {
+        use crate::telemetry::*;
+
         let uptime = SystemTime::now()
             .duration_since(self.start_time)?
             .as_secs();
 
-        // In production, collect real metrics
-        let mut metrics = HashMap::new();
-        metrics.insert("requests_total".to_string(), 1234.0);
-        metrics.insert("latency_p99_ms".to_string(), 45.2);
-        metrics.insert("error_rate".to_string(), 0.01);
+        // Fetch REAL Prometheus metrics
+        let metrics = fetch_prometheus_metrics("http://localhost:8080")
+            .await
+            .unwrap_or_else(|e| {
+                tracing::warn!("Failed to fetch Prometheus metrics: {}. Using empty metrics.", e);
+                HashMap::new()
+            });
+
+        // Get REAL system stats
+        let (cpu_usage, memory_usage, active_tasks) = get_system_stats();
+
+        // Determine health based on REAL metrics
+        let health = determine_health(&metrics, cpu_usage, memory_usage);
 
         let status = AgentStatus {
-            health: "healthy".to_string(),
+            health,
             uptime_secs: uptime,
-            cpu_usage_percent: 35.5,
-            memory_usage_mb: 512,
-            active_tasks: 3,
+            cpu_usage_percent: cpu_usage,
+            memory_usage_mb: memory_usage,
+            active_tasks,
         };
+
+        // Collect recent logs
+        let logs = collect_recent_logs()?;
 
         Ok(TelemetryData {
             agent_id: self.config.agent_id.clone(),
@@ -500,8 +569,9 @@ impl FleetAgent {
                 .duration_since(SystemTime::UNIX_EPOCH)?
                 .as_secs(),
             metrics,
-            logs: vec![],
+            logs,
             status,
+            signature: None, // Signature added later when uploading
         })
     }
 
@@ -654,6 +724,7 @@ impl FleetAgent {
                     metrics,
                     logs: vec![],
                     status,
+                    signature: None, // Not signed in client simulation
                 };
 
                 // Send telemetry
@@ -709,6 +780,12 @@ impl FleetAgent {
         Ok(())
     }
 }
+
+/// Real telemetry collection using Prometheus metrics and system stats
+pub mod telemetry;
+
+/// Cryptographic operations for hybrid contract (Ed25519 signing)
+pub mod crypto;
 
 /// Fleet Management Dashboard (for Overture integration)
 pub mod dashboard {

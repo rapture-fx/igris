@@ -7,6 +7,7 @@ import (
 	"time"
 
 	"github.com/gofiber/fiber/v2"
+	"../security"
 )
 
 // FleetConfig holds fleet-related configuration
@@ -24,6 +25,8 @@ type RegisterRequest struct {
 	Capabilities []string          `json:"capabilities"`
 	Location     *string           `json:"location,omitempty"`
 	Metadata     map[string]string `json:"metadata,omitempty"`
+	PublicKey    string            `json:"public_key"`  // Base64-encoded Ed25519 public key
+	Signature    string            `json:"signature"`   // Base64-encoded Ed25519 signature
 }
 
 // RegisterResponse represents registration response
@@ -41,6 +44,7 @@ type TelemetryData struct {
 	Metrics    map[string]float64 `json:"metrics"`
 	Logs       []LogEntry         `json:"logs"`
 	Status     AgentStatus        `json:"status"`
+	Signature  *string            `json:"signature,omitempty"` // Base64-encoded Ed25519 signature
 }
 
 // LogEntry represents a log entry
@@ -108,6 +112,44 @@ func RegisterFleetRoutes(app *fiber.App, config FleetConfig) error {
 			})
 		}
 
+		// HYBRID CONTRACT: Validate cryptographic signature
+		if req.PublicKey == "" || req.Signature == "" {
+			return c.Status(400).JSON(fiber.Map{
+				"error": "Missing hybrid contract signature (public_key, signature required)",
+			})
+		}
+
+		// Create unsigned payload for verification (exclude public_key and signature)
+		type UnsignedPayload struct {
+			AgentID      string            `json:"agent_id"`
+			Hostname     string            `json:"hostname"`
+			Platform     string            `json:"platform"`
+			Version      string            `json:"version"`
+			Capabilities []string          `json:"capabilities"`
+			Location     *string           `json:"location,omitempty"`
+			Metadata     map[string]string `json:"metadata,omitempty"`
+		}
+
+		unsignedPayload := UnsignedPayload{
+			AgentID:      req.AgentID,
+			Hostname:     req.Hostname,
+			Platform:     req.Platform,
+			Version:      req.Version,
+			Capabilities: req.Capabilities,
+			Location:     req.Location,
+			Metadata:     req.Metadata,
+		}
+
+		// Verify Ed25519 signature
+		if err := security.VerifyJSONPayloadSignature(req.PublicKey, req.Signature, unsignedPayload); err != nil {
+			log.Printf("[Fleet] Registration signature verification failed for %s: %v", req.AgentID, err)
+			return c.Status(401).JSON(fiber.Map{
+				"error": "Invalid hybrid contract signature",
+			})
+		}
+
+		log.Printf("[Fleet] Signature verified for agent %s (public key: %s...)", req.AgentID, req.PublicKey[:16])
+
 		// Convert capabilities to JSONB
 		capabilitiesJSON, err := json.Marshal(req.Capabilities)
 		if err != nil {
@@ -127,13 +169,13 @@ func RegisterFleetRoutes(app *fiber.App, config FleetConfig) error {
 			}
 		}
 
-		// Call database function to register agent
+		// Call database function to register agent (with public key for hybrid contract)
 		var fleetID string
 		var configVersion int64
 
 		query := `
 			SELECT fleet_id, config_version
-			FROM register_fleet_agent($1, $2, $3, $4, $5::jsonb, $6, $7::jsonb)
+			FROM register_fleet_agent($1, $2, $3, $4, $5::jsonb, $6, $7::jsonb, $8)
 		`
 
 		err = config.DB.QueryRow(
@@ -145,6 +187,7 @@ func RegisterFleetRoutes(app *fiber.App, config FleetConfig) error {
 			capabilitiesJSON,
 			req.Location,
 			metadataJSON,
+			req.PublicKey, // Store public key for future signature verification
 		).Scan(&fleetID, &configVersion)
 
 		if err != nil {
@@ -181,6 +224,55 @@ func RegisterFleetRoutes(app *fiber.App, config FleetConfig) error {
 			return c.Status(400).JSON(fiber.Map{
 				"error": "Missing agent_id in telemetry data",
 			})
+		}
+
+		// HYBRID CONTRACT: Verify signature if provided
+		if telemetry.Signature != nil && *telemetry.Signature != "" {
+			// Fetch agent's public key from database
+			var publicKey string
+			err := config.DB.QueryRow(
+				"SELECT public_key FROM fleet_agents WHERE agent_id = $1",
+				telemetry.AgentID,
+			).Scan(&publicKey)
+
+			if err == sql.ErrNoRows {
+				return c.Status(404).JSON(fiber.Map{
+					"error": "Agent not found",
+				})
+			}
+			if err != nil {
+				log.Printf("[Fleet] Failed to fetch public key for %s: %v", telemetry.AgentID, err)
+				return c.Status(500).JSON(fiber.Map{
+					"error": "Failed to verify signature",
+				})
+			}
+
+			// Create unsigned payload for verification (exclude signature)
+			type UnsignedTelemetry struct {
+				AgentID   string             `json:"agent_id"`
+				Timestamp int64              `json:"timestamp"`
+				Metrics   map[string]float64 `json:"metrics"`
+				Logs      []LogEntry         `json:"logs"`
+				Status    AgentStatus        `json:"status"`
+			}
+
+			unsignedTelemetry := UnsignedTelemetry{
+				AgentID:   telemetry.AgentID,
+				Timestamp: telemetry.Timestamp,
+				Metrics:   telemetry.Metrics,
+				Logs:      telemetry.Logs,
+				Status:    telemetry.Status,
+			}
+
+			// Verify Ed25519 signature
+			if err := security.VerifyJSONPayloadSignature(publicKey, *telemetry.Signature, unsignedTelemetry); err != nil {
+				log.Printf("[Fleet] Telemetry signature verification failed for %s: %v", telemetry.AgentID, err)
+				return c.Status(401).JSON(fiber.Map{
+					"error": "Invalid telemetry signature",
+				})
+			}
+
+			log.Printf("[Fleet] Telemetry signature verified for agent %s", telemetry.AgentID)
 		}
 
 		// Convert metrics to JSONB
