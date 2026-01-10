@@ -1,6 +1,6 @@
 # Introduction
 
-**TL;DR:** Stop wrestling with multiple AI providers. Igris Overture routes your requests to the best provider automatically — optimizing for cost, speed, and reliability in real-time.
+**TL;DR:** Igris Overture is a decision intelligence and routing control plane for AI workloads. It decides what to route, where to send it, and why — with trust-aware provider selection, cost/quality/latency optimization, and explainable decisions.
 
 ---
 
@@ -16,7 +16,7 @@ You add Anthropic as a backup. Now you're managing two APIs, two auth flows, two
 
 ## What Igris Overture Does
 
-One API call. Multiple providers. Intelligent routing. Automatic failover.
+Overture is the decision intelligence layer that determines what to route, where to send it, and why. One API call becomes an explainable routing decision backed by trust verification and observability.
 
 ```python
 # Instead of this mess:
@@ -43,19 +43,21 @@ response = client.chat.completions.create(
 - Change one URL, done
 - Use any existing OpenAI SDK
 
-**Intelligent Routing:**
-- Thompson Sampling learns which provider is best for your workload
-- Semantic routing matches requests to optimal providers
-- Cost-aware selection saves 30-40% on AI spend
+**Decision Intelligence:**
+- Thompson Sampling with cold-start protection
+- Trust-aware provider selection (observed vs reported verification)
+- Cost, quality, and latency optimization
+- Explainable routing traces
 
-**Zero-Downtime Failover:**
-- Provider down? Igris Overture routes to the next best option
-- Circuit breakers detect failures automatically
+**Reliability:**
+- Circuit breaker and automatic failover
+- Provider health monitoring
 - Automatic retries with exponential backoff
 
-**Complete Observability:**
-- Comprehensive metrics and monitoring
+**Observability:**
+- 150+ metrics and comprehensive monitoring
 - Per-request cost tracking
+- Routing decision traces with rejection reasons
 - Distributed tracing with correlation IDs
 
 ---

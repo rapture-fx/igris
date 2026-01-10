@@ -98,6 +98,11 @@ const navigationSections: NavigationSection[] = [
         href: '/docs/observability',
         icon: BarChart3,
       },
+      {
+        name: 'Hybrid Execution',
+        href: '/docs/hybrid-execution',
+        icon: Layers,
+      },
     ],
   },
   {

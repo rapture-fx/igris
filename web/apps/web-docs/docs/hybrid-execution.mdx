@@ -1,0 +1,235 @@
+# Hybrid Execution
+
+**Hybrid Execution** is the cryptographically enforced contract between Overture's routing decisions and Runtime's execution guarantees. It ensures decision → execution integrity through observed vs reported verification and auditability.
+
+---
+
+## What is Hybrid Execution?
+
+Hybrid bridges Overture (decision plane) and Runtime (execution plane) with cryptographic enforcement:
+
+- **Overture decides** what to route, where to send it, and why
+- **Runtime executes** with governance and safety guarantees
+- **Hybrid enforces** integrity between decision and execution
+
+Without Hybrid, decisions and execution are separate — you route to a provider, but you can't verify what actually happened. With Hybrid, every routing decision is cryptographically linked to its execution outcome.
+
+---
+
+## Decision Guarantees
+
+### Routing Decision Integrity
+
+Every routing decision from Overture is signed:
+
+```json
+{
+  "decision_id": "dec_7x9k2m",
+  "timestamp": "2024-01-10T20:45:12Z",
+  "selected_provider": "anthropic",
+  "selection_reason": "Thompson Sampling: exploit",
+  "confidence": 0.92,
+  "signature": "ed25519:a8f3c2..."
+}
+```
+
+The signature ensures:
+- Decision came from Overture
+- Decision hasn't been tampered with
+- Decision trace is auditable
+
+### Trust-Aware Selection
+
+Overture's routing decisions factor in provider trustworthiness:
+
+- **Observed metrics:** Actual latency, error rate, and cost from Runtime execution
+- **Reported metrics:** Provider claims about performance
+- **Divergence tracking:** Difference between observed and reported
+- **Trust score:** Confidence in provider honesty (0.0 to 1.0)
+
+If a provider consistently reports lower costs than observed, trust score decreases and routing shifts away.
+
+---
+
+## Verification
+
+### Observed vs Reported
+
+Hybrid validates provider claims against actual execution:
+
+**Provider Claims:**
+```json
+{
+  "provider": "openai",
+  "model": "gpt-4",
+  "reported_latency_ms": 180,
+  "reported_cost_usd": 0.0012
+}
+```
+
+**Runtime Observes:**
+```json
+{
+  "actual_latency_ms": 245,
+  "actual_cost_usd": 0.0015,
+  "divergence_latency": 36%,
+  "divergence_cost": 25%
+}
+```
+
+**Hybrid Action:**
+- Trust score reduced by divergence penalty
+- Future routing decisions factor in reduced trust
+- Audit trail captures the discrepancy
+
+### Execution Envelope Verification
+
+Runtime returns signed execution envelopes:
+
+```json
+{
+  "execution_id": "exec_4m8p1k",
+  "decision_id": "dec_7x9k2m",
+  "provider": "anthropic",
+  "model": "claude-3-opus",
+  "latency_ms": 234,
+  "tokens_used": 1247,
+  "cost_usd": 0.0187,
+  "success": true,
+  "signature": "ed25519:b3e7f1..."
+}
+```
+
+Hybrid verifies:
+- Execution envelope matches routing decision
+- Provider executed what Overture decided
+- Metrics are within expected bounds
+- Signatures are valid
+
+---
+
+## Auditability
+
+### Decision → Execution Audit Trail
+
+Hybrid maintains a complete audit trail linking decisions to execution:
+
+**Audit Record:**
+```json
+{
+  "audit_id": "audit_9k3x7m",
+  "timestamp": "2024-01-10T20:45:15Z",
+
+  "decision": {
+    "decision_id": "dec_7x9k2m",
+    "selected_provider": "anthropic",
+    "selection_reason": "Thompson Sampling: exploit",
+    "trust_score": 0.95,
+    "signature": "ed25519:a8f3c2..."
+  },
+
+  "execution": {
+    "execution_id": "exec_4m8p1k",
+    "actual_provider": "anthropic",
+    "latency_ms": 234,
+    "cost_usd": 0.0187,
+    "success": true,
+    "signature": "ed25519:b3e7f1..."
+  },
+
+  "verification": {
+    "decision_execution_match": true,
+    "trust_verification_passed": true,
+    "divergence_detected": false
+  }
+}
+```
+
+### Compliance-Ready Execution
+
+Hybrid audit trails are designed for compliance requirements:
+
+- **Immutable logs:** Tamper-evident audit records
+- **Cryptographic proof:** Signatures on decisions and execution
+- **Complete lineage:** Every request traced from decision to outcome
+- **Divergence tracking:** Automatic detection of provider dishonesty
+- **Time-bound retention:** Configurable retention periods (30/90 days)
+
+---
+
+## When to Use Hybrid
+
+### Use Hybrid When You Need:
+
+**Trust Verification:**
+- Verify provider claims match reality
+- Detect cost inflation or performance misreporting
+- Maintain trust scores for routing decisions
+
+**Auditability:**
+- Compliance requirements (SOC 2, HIPAA, etc.)
+- Financial audits of AI spending
+- Security incident investigation
+
+**Closed-Loop Control:**
+- Routing decisions must be enforced
+- Execution must match what was decided
+- Feedback loop for improving routing
+
+### Don't Need Hybrid If:
+
+- You're only using Overture for routing (no Runtime)
+- You trust all providers implicitly
+- You don't need audit trails or compliance
+- Cost of cryptographic enforcement exceeds value
+
+---
+
+## Availability
+
+Hybrid is an add-on subscription available in:
+
+- **Growth Tier:** Decision → execution audit trail, observed vs reported verification, cryptographic trust enforcement, basic compliance support
+- **Scale Tier:** Full cryptographic enforcement, signed contracts, compliance-ready execution trails, advanced auditability, dedicated compliance support
+
+Hybrid requires active Overture and Runtime subscriptions. It's not available in the Developer tier.
+
+---
+
+## Technical Architecture
+
+### Decision Signing (Overture)
+
+```
+1. Overture makes routing decision
+2. Decision signed with Ed25519 private key
+3. Signature includes: decision_id, provider, timestamp, metadata
+4. Signed decision sent to Runtime
+```
+
+### Execution Envelope (Runtime)
+
+```
+1. Runtime executes request with governance
+2. Observed metrics captured: latency, cost, tokens
+3. Execution envelope created and signed
+4. Signed envelope returned to Overture
+```
+
+### Verification Loop (Hybrid)
+
+```
+1. Hybrid receives signed decision + execution envelope
+2. Verifies signatures (decision and execution)
+3. Compares observed vs reported metrics
+4. Updates trust scores based on divergence
+5. Stores audit record (immutable)
+```
+
+---
+
+## Next Steps
+
+- [Overture Introduction](/docs) - Learn about decision intelligence
+- [Runtime Documentation](/docs-runtime) - Learn about governed execution
+- [Pricing](/pricing) - Compare Hybrid tiers

@@ -1,6 +1,8 @@
 # Introduction
 
-**TL;DR:** Igris Runtime keeps your AI running even when the internet doesn't. Deploy AI anywhere—datacenter, edge device, or air-gapped environment—with automatic fallback to local models when cloud providers are unreachable.
+**TL;DR:** Igris Runtime is a licensed governed execution engine for AI workloads. It executes with secure defaults, enforced resource limits, deterministic execution envelopes, and telemetry-backed observability. Runtime ensures execution safety and auditability whether running in cloud, edge, or air-gapped environments.
+
+**Licensing Model:** Runtime is licensed software with recurring maintenance fees, not a usage-metered SaaS. Pricing reflects deployment scope, policy enforcement capabilities, telemetry infrastructure, and ongoing support—not request volume.
 
 ---
 
@@ -16,7 +18,7 @@ Traditional solutions force you to choose: cloud-only (unreliable in degraded ne
 
 ## What Igris Runtime Does
 
-One system. Cloud when available. Local models as fallback. Zero downtime.
+Runtime executes AI workloads with governance, safety, and observability. Every execution happens within a deterministic envelope with resource safety limits, telemetry capture, and signed execution contracts.
 
 ```bash
 # Make a request - works with or without internet
@@ -33,6 +35,30 @@ curl -X POST http://localhost:8080/v1/chat/completions \
 ```
 
 ### What You Get
+
+**Governed Execution:**
+- Secure-by-default execution environment
+- Resource safety limits (tool calls, execution time, output size)
+- Policy enforcement hooks
+- Signed execution envelopes with cryptographic verification
+
+**Telemetry & Observability:**
+- Real-time execution telemetry
+- Configurable retention periods (short/extended/90-day)
+- Execution graph capture (DAG per request)
+- Prometheus metrics and structured logging
+
+**Why Recurring Pricing:**
+
+Runtime is licensed software with recurring maintenance fees because deployment value scales with capabilities, not usage:
+
+- **Deployment Scope:** Single-node → Multi-runtime → Fleet-wide coordination and management
+- **Policy Enforcement Engine:** Continuous evolution of governance rules and safety limits
+- **Telemetry Infrastructure:** 7-day → 30-day → 90-day retention with storage, streaming, and export
+- **Security & Updates:** Priority patches, signed releases, and vulnerability remediation
+- **Compliance Support:** Audit-ready execution traces, tamper-evident logs, retention guarantees
+
+Runtime does not meter requests or rate-limit execution. Pricing reflects the ongoing infrastructure required to maintain governance, security, and auditability at your deployment scale.
 
 **Offline-First Architecture:**
 - Local LLM inference using on-device models (Phi-3, Mistral, Llama, etc.)

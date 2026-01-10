@@ -13,16 +13,14 @@ const pricingRows = [
         price: "$79",
         period: "month",
         features: [
-          "Fault-tolerant routing core",
-          "Up to 150K routed requests / month",
-          "Overage: $0.35 per 1,000 requests",
-          "Up to 3 AI providers (BYOK)",
-          "Thompson Sampling routing",
-          "Quality-aware routing modes (Cost / Balanced / Quality)",
-          "Circuit breaker & automatic failover",
+          "Up to 500K requests/month",
+          "Up to 5 AI providers (BYOK)",
+          "Thompson Sampling",
+          "Quality-aware modes (Cost / Balanced / Quality)",
+          "Circuit breaker",
+          "Automatic failover",
           "Real-time cost tracking",
-          "Low-latency request caching",
-          "Decision-level observability (routing, latency, cost)",
+          "150+ metrics",
           "Automatic request classification"
         ],
         cta: "Get Started"
@@ -32,17 +30,16 @@ const pricingRows = [
         price: "$249",
         period: "month",
         features: [
-          "Everything in Developer · Overture",
-          "Up to 2M routed requests / month",
-          "Overage: $0.20 per 1,000 requests",
-          "Up to 7 AI providers",
-          "Speculative execution (TTFT optimization)",
-          "Explainable routing traces",
-          "Cognitive advisor (auto-tuned routing)",
+          "Up to 2M requests/month",
+          "Up to 10 AI providers",
+          "Speculative execution",
+          "Council mode",
+          "Cognitive advisor (auto-tuning)",
           "Policy versioning with hot reload",
-          "Audit logs",
-          "Multi-tenant support (up to 5 tenants)",
-          "Decision observability with 30-day retention"
+          "Basic SLO enforcement",
+          "Routing traces",
+          "30-day retention",
+          "Audit logs"
         ],
         cta: "Get Started"
       },
@@ -51,16 +48,13 @@ const pricingRows = [
         price: "$799",
         period: "month",
         features: [
-          "Everything in Growth · Overture",
-          "Unlimited routed requests (1000 RPS sustained)",
+          "Unlimited requests (1000 RPS sustained)",
           "Up to 20 AI providers",
-          "Advanced observability (alerts, exports)",
-          "90-day decision trace retention",
-          "Advanced SLO enforcement & auto-remediation",
-          "Hard budget caps & enforcement",
-          "Self-hosted Kubernetes deployment",
-          "Custom provider adapter support",
-          "Unlimited multi-tenancy"
+          "Advanced observability",
+          "90-day trace retention",
+          "Exports and alerts",
+          "Hard budget caps",
+          "Advanced SLO auto-remediation"
         ],
         cta: "Get Started"
       }
@@ -73,13 +67,14 @@ const pricingRows = [
         name: "Developer · Runtime",
         price: "$99",
         period: "month",
+        descriptor: "Licensed execution engine · Single deployment",
         features: [
-          "Single-node governed execution runtime",
-          "Secure-by-default execution environment",
-          "Signed runtime releases",
-          "Compatible with Overture decision output",
-          "Local execution telemetry (node-level)",
-          "Community support"
+          "Single-node deployment",
+          "Secure execution defaults",
+          "Signed execution envelopes",
+          "Basic execution telemetry",
+          "7-day telemetry retention",
+          "Security updates & patches"
         ],
         cta: "Get Started"
       },
@@ -87,14 +82,14 @@ const pricingRows = [
         name: "Growth · Runtime",
         price: "$349",
         period: "month",
+        descriptor: "Licensed execution engine · Multi-runtime coordination",
         features: [
-          "Everything in Developer · Runtime",
-          "Multi-runtime coordination",
-          "Policy enforcement hooks",
-          "Real-time execution telemetry",
+          "Multi-runtime deployment",
+          "Policy enforcement engine",
           "Resource safety limits",
-          "Supported upgrade path",
-          "Incident-response SLA"
+          "Real-time telemetry streaming",
+          "30-day telemetry retention",
+          "Priority security updates"
         ],
         cta: "Get Started"
       },
@@ -102,13 +97,13 @@ const pricingRows = [
         name: "Scale · Runtime",
         price: "$999",
         period: "month",
+        descriptor: "Licensed execution engine · Fleet management",
         features: [
-          "Everything in Growth · Runtime",
-          "Fleet mode",
-          "Isolation controls",
-          "Extended execution telemetry retention",
-          "Compliance-ready execution patterns",
-          "Priority security updates"
+          "Fleet-wide deployment & coordination",
+          "Advanced isolation controls",
+          "90-day telemetry retention",
+          "Compliance-ready audit trails",
+          "Dedicated support & SLA"
         ],
         cta: "Get Started"
       }
@@ -119,13 +114,12 @@ const pricingRows = [
     cards: [
       {
         name: "Developer · Hybrid",
-        price: "$149",
-        period: "month",
+        price: "—",
+        period: null,
+        descriptor: "Add-on requiring Overture + Runtime",
         features: [
-          "Signed decision → execution verification",
-          "Cryptographic trust-chain validation",
-          "Limited hybrid execution volume",
-          "Trial-first onboarding"
+          "Not included",
+          "Hybrid requires Growth tier or higher"
         ],
         cta: "Get Started"
       },
@@ -133,12 +127,12 @@ const pricingRows = [
         name: "Growth · Hybrid",
         price: "$599",
         period: "month",
+        descriptor: "Add-on requiring Overture + Runtime",
         features: [
-          "Full closed-loop decision → execution",
+          "Decision → execution audit trail",
           "Observed vs reported provider verification",
-          "Decision + execution audit trail",
-          "Tamper-evident logs",
-          "Production eligibility"
+          "Cryptographic trust enforcement",
+          "Basic compliance support"
         ],
         cta: "Get Started"
       },
@@ -146,12 +140,13 @@ const pricingRows = [
         name: "Scale · Hybrid",
         price: "$1999",
         period: "month",
+        descriptor: "Add-on requiring Overture + Runtime",
         features: [
-          "Cryptographically enforced trust loop",
+          "Full cryptographic enforcement",
           "Signed Overture → Runtime contracts",
-          "Compliance-ready execution",
-          "Audit-grade guarantees",
-          "Priority support"
+          "Compliance-ready execution trails",
+          "Advanced auditability & export",
+          "Dedicated compliance support"
         ],
         cta: "Get Started"
       }
@@ -181,7 +176,7 @@ export default function Pricing() {
                 Pricing
               </h2>
               <p className="text-sm md:text-base text-gray-600 dark:text-gray-400 font-inter max-w-2xl mx-auto mb-4">
-                Control, reliability, and leverage for AI inference orchestration
+                Decision intelligence, governed execution, and cryptographic enforcement
               </p>
               <p className="text-xs md:text-sm text-gray-600 dark:text-gray-400 font-inter max-w-2xl mx-auto">
                 14-day free trial · Full feature access · Hard usage caps · No production guarantees
@@ -216,9 +211,9 @@ export default function Pricing() {
                             <h3 className="text-lg mb-2 font-inter" style={{ color: '#000000' }}>
                               {card.name}
                             </h3>
-                            {(isRuntime || isHybrid) && (
+                            {card.descriptor && (
                               <p className="text-xs text-gray-500 font-inter mb-4">
-                                {isRuntime ? "Self-hosted governed execution runtime" : "Cryptographic trust layer between decision and execution"}
+                                {card.descriptor}
                               </p>
                             )}
 

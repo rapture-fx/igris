@@ -17,7 +17,7 @@ export default function HowItWorks() {
 
           {/* Title Section - Shows first on mobile, last on desktop */}
           <div className="text-left md:hidden" style={{ paddingTop: '3rem', paddingBottom: '3rem' }}>
-                <h3 className="text-xl md:text-2xl lg:text-3xl font-inter mb-2" style={{ color: '#000000' }}>
+                <h3 className="text-lg md:text-xl lg:text-2xl font-inter mb-2" style={{ color: '#000000' }}>
                   How It Works
                 </h3>
                 <p className="text-sm text-gray-600 dark:text-gray-400 leading-relaxed font-inter mb-8">
@@ -134,7 +134,7 @@ export default function HowItWorks() {
 
             {/* Right Column - Title (1 column wide with left border) */}
             <div className="md:col-span-1 md:border-l flex flex-col justify-start" style={{ borderLeft: '0.5px solid rgba(156, 163, 175, 0.3)', paddingTop: '18rem', paddingBottom: '3rem', paddingLeft: '1rem', height: '100%' }}>
-              <h2 className="text-xl md:text-2xl lg:text-3xl font-inter mb-4" style={{ color: '#000000' }}>
+              <h2 className="text-lg md:text-xl lg:text-2xl font-inter mb-4" style={{ color: '#000000' }}>
                 How It Works
               </h2>
               <p className="text-sm md:text-base text-gray-600 dark:text-gray-400 font-inter leading-relaxed">
