@@ -11,6 +11,9 @@ use tracing::{debug, info, warn};
 // RUNTIME-04: Execution graph observability
 use crate::execution_graph::{ExecutionGraph, ExecutionNode, ToolExecutionResult};
 
+// RUNTIME-05: Resource safety limits
+use crate::resource_limits::{ResourceLimits, ResourceTracker, ResourceLimitError};
+
 #[derive(Debug, Clone, Serialize, Deserialize)]
 pub struct ToolCall {
     pub name: String,
@@ -31,6 +34,7 @@ pub struct ToolAgentResponse {
 /// - Execute requested tools.
 /// - Feed results back to model.
 /// RUNTIME-04: Enhanced with execution graph tracking
+/// RUNTIME-05: Enhanced with resource safety limits
 pub struct ToolAgent {
     provider: Arc<dyn LLMProvider>,
     registry: Arc<ToolRegistry>,
@@ -40,6 +44,8 @@ pub struct ToolAgent {
     tool_timeout_ms: u64,
     // RUNTIME-04: Optional execution graph for observability
     enable_graph_tracking: bool,
+    // RUNTIME-05: Resource safety limits
+    resource_limits: ResourceLimits,
 }
 
 impl ToolAgent {
@@ -59,12 +65,19 @@ impl ToolAgent {
             max_concurrent: max_concurrent.max(1),
             tool_timeout_ms,
             enable_graph_tracking: false, // Disabled by default
+            resource_limits: ResourceLimits::default(), // RUNTIME-05: Default limits
         }
     }
 
     // RUNTIME-04: Enable execution graph tracking
     pub fn with_graph_tracking(mut self, enable: bool) -> Self {
         self.enable_graph_tracking = enable;
+        self
+    }
+
+    // RUNTIME-05: Configure resource limits
+    pub fn with_resource_limits(mut self, limits: ResourceLimits) -> Self {
+        self.resource_limits = limits;
         self
     }
 
@@ -78,12 +91,30 @@ impl ToolAgent {
     }
 
     // RUNTIME-04: Run with execution graph tracking
+    // RUNTIME-05: Enhanced with resource limit enforcement
     pub async fn run_with_graph(&self, user_prompt: &str) -> Result<(String, ExecutionGraph)> {
+        // RUNTIME-05: Initialize resource tracker
+        let mut tracker = ResourceTracker::new(self.resource_limits.clone());
+
         let mut graph = ExecutionGraph::new(user_prompt.to_string(), self.max_steps);
         let mut scratch = String::new();
         let mut current_prompt = self.initial_prompt(user_prompt);
 
         for step in 1..=self.max_steps {
+            // RUNTIME-05: Check execution time limit
+            if let Err(e) = tracker.check_execution_time() {
+                let error_msg = e.to_string();
+                warn!("ToolAgent: {}", error_msg);
+                graph.complete(None, Some(error_msg.clone()));
+
+                // Add resource usage to graph metadata
+                let usage = tracker.get_usage();
+                graph.add_metadata("resource_limit_exceeded".to_string(), "execution_time".to_string());
+                graph.add_metadata("elapsed_time_ms".to_string(), usage.elapsed_time.as_millis().to_string());
+
+                return Err(anyhow::anyhow!(error_msg));
+            }
+
             info!("ToolAgent step {}/{}", step, self.max_steps);
             let raw = self.provider.generate(&current_prompt).await?;
             let truncated: String = raw.chars().take(200).collect();
@@ -91,18 +122,43 @@ impl ToolAgent {
 
             if let Some(parsed) = parse_tool_agent_response(&raw) {
                 if let Some(final_answer) = parsed.final_answer {
+                    // Add resource usage to graph metadata
+                    let usage = tracker.get_usage();
+                    graph.add_metadata("total_tool_calls".to_string(), usage.total_tool_calls.to_string());
+                    graph.add_metadata("execution_time_ms".to_string(), usage.elapsed_time.as_millis().to_string());
+
                     graph.complete(Some(final_answer.clone()), None);
                     return Ok((final_answer, graph));
                 }
 
                 if let Some(tool_calls) = parsed.tool_calls {
                     if tool_calls.is_empty() {
+                        let usage = tracker.get_usage();
+                        graph.add_metadata("total_tool_calls".to_string(), usage.total_tool_calls.to_string());
+                        graph.add_metadata("execution_time_ms".to_string(), usage.elapsed_time.as_millis().to_string());
+
                         graph.complete(Some(raw.clone()), None);
                         return Ok((raw, graph));
                     }
 
+                    // RUNTIME-05: Check tool call limits before execution
+                    if let Err(e) = tracker.check_tool_calls(tool_calls.len()) {
+                        let error_msg = e.to_string();
+                        warn!("ToolAgent: {}", error_msg);
+                        graph.complete(None, Some(error_msg.clone()));
+
+                        let usage = tracker.get_usage();
+                        graph.add_metadata("resource_limit_exceeded".to_string(), "tool_calls".to_string());
+                        graph.add_metadata("total_tool_calls".to_string(), usage.total_tool_calls.to_string());
+
+                        return Err(anyhow::anyhow!(error_msg));
+                    }
+
+                    // Record tool calls
+                    tracker.record_tool_calls(tool_calls.len());
+
                     // Execute tools and record in graph
-                    let (tool_results, nodes) = self.execute_tool_calls_with_graph(tool_calls, step).await;
+                    let (tool_results, nodes) = self.execute_tool_calls_with_graph(tool_calls, step, &tracker).await?;
                     for node in nodes {
                         graph.add_node(node);
                     }
@@ -115,20 +171,41 @@ impl ToolAgent {
             }
 
             warn!("ToolAgent: model did not return a valid tool JSON; returning raw output");
+
+            let usage = tracker.get_usage();
+            graph.add_metadata("total_tool_calls".to_string(), usage.total_tool_calls.to_string());
+            graph.add_metadata("execution_time_ms".to_string(), usage.elapsed_time.as_millis().to_string());
+
             graph.complete(Some(raw.clone()), None);
             return Ok((raw, graph));
         }
 
         let error_msg = format!("ToolAgent exceeded max_steps={}", self.max_steps);
+
+        let usage = tracker.get_usage();
+        graph.add_metadata("total_tool_calls".to_string(), usage.total_tool_calls.to_string());
+        graph.add_metadata("execution_time_ms".to_string(), usage.elapsed_time.as_millis().to_string());
+
         graph.complete(None, Some(error_msg.clone()));
         Err(anyhow::anyhow!(error_msg))
     }
 
+    // RUNTIME-05: Enhanced with resource limit enforcement
     async fn run_without_graph(&self, user_prompt: &str) -> Result<String> {
+        // RUNTIME-05: Initialize resource tracker
+        let mut tracker = ResourceTracker::new(self.resource_limits.clone());
+
         let mut scratch = String::new();
         let mut current_prompt = self.initial_prompt(user_prompt);
 
         for step in 1..=self.max_steps {
+            // RUNTIME-05: Check execution time limit
+            if let Err(e) = tracker.check_execution_time() {
+                let error_msg = e.to_string();
+                warn!("ToolAgent: {}", error_msg);
+                return Err(anyhow::anyhow!(error_msg));
+            }
+
             info!("ToolAgent step {}/{}", step, self.max_steps);
             let raw = self.provider.generate(&current_prompt).await?;
             let truncated: String = raw.chars().take(200).collect();
@@ -144,7 +221,17 @@ impl ToolAgent {
                         return Ok(raw);
                     }
 
-                    let tool_results = self.execute_tool_calls(tool_calls).await;
+                    // RUNTIME-05: Check tool call limits before execution
+                    if let Err(e) = tracker.check_tool_calls(tool_calls.len()) {
+                        let error_msg = e.to_string();
+                        warn!("ToolAgent: {}", error_msg);
+                        return Err(anyhow::anyhow!(error_msg));
+                    }
+
+                    // Record tool calls
+                    tracker.record_tool_calls(tool_calls.len());
+
+                    let tool_results = self.execute_tool_calls(tool_calls, &tracker).await?;
                     scratch.push_str("\n\n");
                     scratch.push_str(&format_tool_results(&tool_results));
                     current_prompt = self.followup_prompt(user_prompt, &scratch);
@@ -201,7 +288,8 @@ TOOL RESULTS SO FAR:
         )
     }
 
-    async fn execute_tool_calls(&self, tool_calls: Vec<ToolCall>) -> Vec<ToolResult> {
+    // RUNTIME-05: Enhanced with resource limit checks
+    async fn execute_tool_calls(&self, tool_calls: Vec<ToolCall>, tracker: &ResourceTracker) -> Result<Vec<ToolResult>> {
         let sem = Arc::new(Semaphore::new(self.max_concurrent));
         let mut futures = Vec::with_capacity(tool_calls.len());
 
@@ -225,11 +313,24 @@ TOOL RESULTS SO FAR:
             });
         }
 
-        join_all(futures).await
+        let results = join_all(futures).await;
+
+        // RUNTIME-05: Check tool output sizes
+        for result in &results {
+            let output_size = result.output.len();
+            if let Err(e) = tracker.check_tool_output_size(output_size) {
+                let error_msg = format!("Tool '{}': {}", result.tool_name, e);
+                warn!("ToolAgent: {}", error_msg);
+                return Err(anyhow::anyhow!(error_msg));
+            }
+        }
+
+        Ok(results)
     }
 
     // RUNTIME-04: Execute tool calls and create ExecutionNodes
-    async fn execute_tool_calls_with_graph(&self, tool_calls: Vec<ToolCall>, step: u32) -> (Vec<ToolResult>, Vec<ExecutionNode>) {
+    // RUNTIME-05: Enhanced with resource limit checks
+    async fn execute_tool_calls_with_graph(&self, tool_calls: Vec<ToolCall>, step: u32, tracker: &ResourceTracker) -> Result<(Vec<ToolResult>, Vec<ExecutionNode>)> {
         let sem = Arc::new(Semaphore::new(self.max_concurrent));
         let mut futures = Vec::with_capacity(tool_calls.len());
 
@@ -264,7 +365,18 @@ TOOL RESULTS SO FAR:
 
         let results_and_nodes = join_all(futures).await;
         let (results, nodes): (Vec<_>, Vec<_>) = results_and_nodes.into_iter().unzip();
-        (results, nodes)
+
+        // RUNTIME-05: Check tool output sizes
+        for result in &results {
+            let output_size = result.output.len();
+            if let Err(e) = tracker.check_tool_output_size(output_size) {
+                let error_msg = format!("Tool '{}': {}", result.tool_name, e);
+                warn!("ToolAgent: {}", error_msg);
+                return Err(anyhow::anyhow!(error_msg));
+            }
+        }
+
+        Ok((results, nodes))
     }
 }
 
@@ -442,5 +554,10 @@ mod tests {
         assert_eq!(out, "done");
     }
 }
+
+// RUNTIME-05: Resource limit enforcement tests
+#[cfg(test)]
+#[path = "tool_agent_limits_test.rs"]
+mod tool_agent_limits_test;
 
 
