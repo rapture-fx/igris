@@ -4,76 +4,158 @@ import React from 'react';
 import { Check } from 'lucide-react';
 import { useModal } from '../../contexts/ModalContext';
 
-const pricingTiers = [
+const pricingRows = [
   {
-    name: "Hacking",
-    price: "Free",
-    features: [
-      "Basic Routing",
-      "1 provider"
-    ],
-    cta: "Get Started",
-    highlighted: false
+    name: "Overture",
+    cards: [
+      {
+        name: "Developer · Overture",
+        price: "$79",
+        period: "month",
+        features: [
+          "Fault-tolerant routing core",
+          "Up to 150K routed requests / month",
+          "Overage: $0.35 per 1,000 requests",
+          "Up to 3 AI providers (BYOK)",
+          "Thompson Sampling routing",
+          "Quality-aware routing modes (Cost / Balanced / Quality)",
+          "Circuit breaker & automatic failover",
+          "Real-time cost tracking",
+          "Low-latency request caching",
+          "Decision-level observability (routing, latency, cost)",
+          "Automatic request classification"
+        ],
+        cta: "Get Started"
+      },
+      {
+        name: "Growth · Overture",
+        price: "$249",
+        period: "month",
+        features: [
+          "Everything in Developer · Overture",
+          "Up to 2M routed requests / month",
+          "Overage: $0.20 per 1,000 requests",
+          "Up to 7 AI providers",
+          "Speculative execution (TTFT optimization)",
+          "Explainable routing traces",
+          "Cognitive advisor (auto-tuned routing)",
+          "Policy versioning with hot reload",
+          "Audit logs",
+          "Multi-tenant support (up to 5 tenants)",
+          "Decision observability with 30-day retention"
+        ],
+        cta: "Get Started"
+      },
+      {
+        name: "Scale · Overture",
+        price: "$799",
+        period: "month",
+        features: [
+          "Everything in Growth · Overture",
+          "Unlimited routed requests (1000 RPS sustained)",
+          "Up to 20 AI providers",
+          "Advanced observability (alerts, exports)",
+          "90-day decision trace retention",
+          "Advanced SLO enforcement & auto-remediation",
+          "Hard budget caps & enforcement",
+          "Self-hosted Kubernetes deployment",
+          "Custom provider adapter support",
+          "Unlimited multi-tenancy"
+        ],
+        cta: "Get Started"
+      }
+    ]
   },
   {
-    name: "Develop",
-    price: "$149",
-    period: "month",
-    features: [
-      "Unkillable Core (EscapeVector, Gold Code, Hotfix, Rust WASM)",
-      "500K requests/month",
-      "Overage: $0.25 per 1,000 requests after 500k",
-      "Up to 5 AI providers (BYOK)",
-      "Thompson Sampling routing",
-      "Quality-aware routing (Cost/Balanced/Quality)",
-      "Circuit breaker & automatic failover",
-      "Real-time cost tracking & forecasting",
-      "Redis caching for low latency",
-      "150+ observability metrics",
-      "Automatic request classification"
-    ],
-    cta: "Get Started",
-    highlighted: false
+    name: "Runtime",
+    cards: [
+      {
+        name: "Developer · Runtime",
+        price: "$99",
+        period: "month",
+        features: [
+          "Single-node governed execution runtime",
+          "Secure-by-default execution environment",
+          "Signed runtime releases",
+          "Compatible with Overture decision output",
+          "Local execution telemetry (node-level)",
+          "Community support"
+        ],
+        cta: "Get Started"
+      },
+      {
+        name: "Growth · Runtime",
+        price: "$349",
+        period: "month",
+        features: [
+          "Everything in Developer · Runtime",
+          "Multi-runtime coordination",
+          "Policy enforcement hooks",
+          "Real-time execution telemetry",
+          "Resource safety limits",
+          "Supported upgrade path",
+          "Incident-response SLA"
+        ],
+        cta: "Get Started"
+      },
+      {
+        name: "Scale · Runtime",
+        price: "$999",
+        period: "month",
+        features: [
+          "Everything in Growth · Runtime",
+          "Fleet mode",
+          "Isolation controls",
+          "Extended execution telemetry retention",
+          "Compliance-ready execution patterns",
+          "Priority security updates"
+        ],
+        cta: "Get Started"
+      }
+    ]
   },
   {
-    name: "Growth",
-    price: "$899",
-    period: "month",
-    features: [
-      "Everything in Develop +",
-      "2M requests/month & 10 providers",
-      "Overage: $0.20 per 1,000 requests after 2M",
-      "Speculative execution (-60% TTFT)",
-      "Council mode (quality +15-20%)",
-      "Cognitive advisor (auto-tune routing)",
-      "Basic observability (1k requests, charts, 30-day retention)",
-      "Basic SLO enforcement & monitoring",
-      "Policy versioning with hot reload",
-      "Audit logs & compliance tracking",
-      "Multi-tenant support (up to 5 tenants)"
-    ],
-    cta: "Start Growth",
-    highlighted: false
-  },
-  {
-    name: "Scale",
-    price: "$2,999",
-    period: "month",
-    features: [
-      "Everything in Growth +",
-      "Unlimited requests (1000 RPS sustained)",
-      "Up to 20 providers",
-      "90-day trace retention + full multi-tenant observability",
-      "Advanced observability (100k traces, alerts, exports)",
-      "Advanced SLO enforcement & auto-remediation",
-      "Hard budget caps & enforcement",
-      "Self-hosted Kubernetes deployment",
-      "Custom provider adapter support",
-      "Advanced audit logging & security",
-      "Unlimited multi-tenancy"
-    ],
-    cta: "Scale Up",
-    highlighted: false
+    name: "Hybrid",
+    cards: [
+      {
+        name: "Developer · Hybrid",
+        price: "$149",
+        period: "month",
+        features: [
+          "Signed decision → execution verification",
+          "Cryptographic trust-chain validation",
+          "Limited hybrid execution volume",
+          "Trial-first onboarding"
+        ],
+        cta: "Get Started"
+      },
+      {
+        name: "Growth · Hybrid",
+        price: "$599",
+        period: "month",
+        features: [
+          "Full closed-loop decision → execution",
+          "Observed vs reported provider verification",
+          "Decision + execution audit trail",
+          "Tamper-evident logs",
+          "Production eligibility"
+        ],
+        cta: "Get Started"
+      },
+      {
+        name: "Scale · Hybrid",
+        price: "$1999",
+        period: "month",
+        features: [
+          "Cryptographically enforced trust loop",
+          "Signed Overture → Runtime contracts",
+          "Compliance-ready execution",
+          "Audit-grade guarantees",
+          "Priority support"
+        ],
+        cta: "Get Started"
+      }
+    ]
   }
 ];
 
@@ -98,60 +180,81 @@ export default function Pricing() {
               <h2 className="text-2xl md:text-2xl lg:text-3xl font-inter mb-4" style={{ color: '#000000' }}>
                 Pricing
               </h2>
-              <p className="text-sm md:text-base text-gray-600 dark:text-gray-400 font-inter max-w-2xl mx-auto">
-                14-day free trial · Full tier access · No card required
+              <p className="text-sm md:text-base text-gray-600 dark:text-gray-400 font-inter max-w-2xl mx-auto mb-4">
+                Control, reliability, and leverage for AI inference orchestration
+              </p>
+              <p className="text-xs md:text-sm text-gray-600 dark:text-gray-400 font-inter max-w-2xl mx-auto">
+                14-day free trial · Full feature access · Hard usage caps · No production guarantees
               </p>
             </div>
 
-            <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-4 gap-1 items-stretch max-w-[100rem] mx-auto">
-            {pricingTiers.map((tier, index) => (
-              <div
-                key={index}
-                className="relative transition-all duration-300 w-full min-h-[450px]"
-                style={{
-                  backgroundColor: '#f6f6f4',
-                  border: '1px solid rgba(156, 163, 175, 0.3)'
-                }}
-              >
-                <div className="p-6 flex flex-col h-full">
-                  <div className="flex-grow">
-                    <h3 className="text-lg mb-2 font-inter" style={{ color: '#000000' }}>
-                      {tier.name}
-                    </h3>
+            <div className="space-y-16 max-w-[100rem] mx-auto">
+            {pricingRows.map((row, rowIndex) => (
+              <div key={rowIndex} className="flex flex-col items-stretch gap-4">
+                <div className="text-left mb-2">
+                  <h3 className="text-xl font-inter font-medium" style={{ color: '#000000' }}>
+                    {row.name}
+                  </h3>
+                </div>
+                <div className="grid grid-cols-1 md:grid-cols-3 gap-1">
+                  {row.cards.map((card, cardIndex) => {
+                    const globalCardIndex = rowIndex * 3 + cardIndex;
+                    const isRuntime = row.name === "Runtime";
+                    const isHybrid = row.name === "Hybrid";
+                    
+                    return (
+                      <div
+                        key={cardIndex}
+                        className="relative transition-all duration-300 w-full min-h-[450px]"
+                        style={{
+                          backgroundColor: '#f6f6f4',
+                          border: '1px solid rgba(156, 163, 175, 0.3)'
+                        }}
+                      >
+                        <div className="p-6 flex flex-col h-full">
+                          <div className="flex-grow">
+                            <h3 className="text-lg mb-2 font-inter" style={{ color: '#000000' }}>
+                              {card.name}
+                            </h3>
+                            {(isRuntime || isHybrid) && (
+                              <p className="text-xs text-gray-500 font-inter mb-4">
+                                {isRuntime ? "Self-hosted governed execution runtime" : "Cryptographic trust layer between decision and execution"}
+                              </p>
+                            )}
 
-                    <div className="mb-6">
-                      <div className="flex items-baseline">
-                        <span className="text-base font-inter" style={{ color: '#000000' }}>
-                          {tier.price}
-                        </span>
-                        {tier.period && (
-                          <span className="ml-2 text-gray-600 font-inter text-sm">
-                            /{tier.period}
-                          </span>
-                        )}
+                            <div className="mb-6">
+                              <div className="flex items-baseline">
+                                <span className="text-base font-inter" style={{ color: '#000000' }}>
+                                  {card.price}
+                                </span>
+                                {card.period && (
+                                  <span className="ml-2 text-gray-600 font-inter text-sm">
+                                    /{card.period}
+                                  </span>
+                                )}
+                              </div>
+                            </div>
+
+                            <ul className="space-y-2">
+                              {card.features.map((feature, featureIndex) => (
+                                <li key={featureIndex} className="flex items-start">
+                                  <Check className="h-3 w-3 mr-3 flex-shrink-0 mt-0.5" style={{ color: '#000000' }} />
+                                  <span className="text-xs text-gray-700 font-inter">{feature}</span>
+                                </li>
+                              ))}
+                            </ul>
+                          </div>
+                                          <button
+                            onClick={openEarlyAccessModal}
+                            className="inline-flex items-center px-3 py-1 md:px-4 md:py-1.5 rounded-lg transition-all duration-200 text-xs font-inter self-start mt-8 text-white hover:bg-gray-800 border border-black"
+                            style={{ backgroundColor: '#000000', minWidth: 'auto' }}
+                          >
+                            Get Started
+                          </button>
+                        </div>
                       </div>
-                    </div>
-
-                    <ul className="space-y-2">
-                      {tier.features.map((feature, featureIndex) => (
-                        <li key={featureIndex} className="flex items-start">
-                          <Check className="h-3 w-3 mr-3 flex-shrink-0 mt-0.5" style={{ color: '#000000' }} />
-                          <span className="text-xs text-gray-700 font-inter">{feature}</span>
-                        </li>
-                      ))}
-                    </ul>
-                  </div>
-                  <button
-                    onClick={openEarlyAccessModal}
-                    className={`inline-flex items-center px-3 py-1 md:px-4 md:py-1.5 rounded-lg transition-all duration-200 text-xs font-inter self-start mt-8 ${
-                      index === 3
-                        ? 'text-black hover:opacity-70 border border-gray-300'
-                        : 'text-white hover:bg-gray-800 border border-black'
-                    }`}
-                    style={{ backgroundColor: index === 3 ? '#f6f6f4' : '#000000' }}
-                  >
-                    {tier.cta}
-                  </button>
+                    );
+                  })}
                 </div>
               </div>
              ))}

@@ -15,23 +15,23 @@ export default function ClosingPosition() {
             alignItems: 'center',
             justifyContent: 'center'
           }}>
-            <div className="w-full px-0">
-              <div className="max-w-3xl mx-auto text-center flex flex-col items-center justify-center">
-                <h3 className="text-xl md:text-2xl lg:text-3xl font-inter mb-6" style={{ color: '#000000' }}>
-                  Start with decisions. Scale to execution.
-                </h3>
+             <div className="w-full px-0">
+               <div className="max-w-3xl mx-auto text-center flex flex-col items-center justify-center">
+                 <h3 className="text-xl md:text-2xl lg:text-3xl font-inter mb-6" style={{ color: '#000000' }}>
+                   Start with decisions. Scale to execution.
+                 </h3>
 
-                <div className="flex flex-col sm:flex-row gap-4 justify-center">
-                  <Link href="https://docs.igrisinertial.com/">
-                    <button
-                      className="inline-flex items-center justify-center bg-black text-white px-5 py-2.5 rounded-lg hover:bg-gray-800 transition-all duration-200 text-sm font-medium font-inter"
-                    >
-                      Explore Documentation
-                    </button>
-                  </Link>
-                </div>
-              </div>
-            </div>
+                 <div className="flex flex-col sm:flex-row gap-4 justify-center">
+                   <Link href="https://docs.igrisinertial.com/">
+                     <button
+                       className="inline-flex items-center justify-center bg-black text-white px-5 py-2.5 rounded-lg hover:bg-gray-800 transition-all duration-200 text-sm font-medium font-inter"
+                     >
+                       Explore Documentation
+                     </button>
+                   </Link>
+                 </div>
+               </div>
+             </div>
           </div>
         </div>
       </section>
