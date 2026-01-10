@@ -414,6 +414,115 @@ impl Default for ToolRuntimeConfig {
     }
 }
 
+impl ToolRuntimeConfig {
+    /// Validate tool configuration according to fail-closed security requirements.
+    ///
+    /// SECURITY: This enforces that tools cannot be enabled without explicit whitelists.
+    /// An enabled tool with an empty whitelist is a configuration error that blocks startup.
+    pub fn validate(&self) -> Result<(), String> {
+        if !self.enabled {
+            // Tools subsystem disabled - nothing to validate
+            return Ok(());
+        }
+
+        // HTTP tool validation
+        if self.enable_http && self.allowed_http_domains.is_empty() {
+            return Err(
+                "SECURITY ERROR: enable_http=true but allowed_http_domains is empty. \
+                 You must explicitly whitelist allowed domains or disable the HTTP tool."
+                    .to_string(),
+            );
+        }
+
+        // Shell tool validation
+        if self.enable_shell {
+            if self.allowed_shell_commands.is_empty() {
+                return Err(
+                    "SECURITY ERROR: enable_shell=true but allowed_shell_commands is empty. \
+                     You must explicitly whitelist allowed commands or disable the shell tool."
+                        .to_string(),
+                );
+            }
+            if self.allowed_shell_working_dirs.is_empty() {
+                return Err(
+                    "SECURITY ERROR: enable_shell=true but allowed_shell_working_dirs is empty. \
+                     You must explicitly whitelist allowed working directories or disable the shell tool."
+                        .to_string(),
+                );
+            }
+        }
+
+        // Filesystem tool validation
+        if self.enable_filesystem && self.allowed_filesystem_paths.is_empty() {
+            return Err(
+                "SECURITY ERROR: enable_filesystem=true but allowed_filesystem_paths is empty. \
+                 You must explicitly whitelist allowed paths or disable the filesystem tool."
+                    .to_string(),
+            );
+        }
+
+        Ok(())
+    }
+
+    /// Emit security warnings about enabled tools and their configurations.
+    ///
+    /// This provides visibility into the tool security posture at startup.
+    pub fn emit_security_warnings(&self) {
+        use tracing::{info, warn};
+
+        if !self.enabled {
+            info!("Tools subsystem: DISABLED (all tool execution blocked)");
+            return;
+        }
+
+        info!("Tools subsystem: ENABLED");
+
+        if !self.enable_http && !self.enable_shell && !self.enable_filesystem {
+            warn!("All individual tools are disabled despite tools.enabled=true");
+        }
+
+        if self.enable_http {
+            info!(
+                "HTTP tool: ENABLED (whitelist: {} domains)",
+                self.allowed_http_domains.len()
+            );
+            for domain in &self.allowed_http_domains {
+                info!("  - Allowed HTTP domain: {}", domain);
+            }
+        } else {
+            info!("HTTP tool: DISABLED");
+        }
+
+        if self.enable_shell {
+            info!(
+                "Shell tool: ENABLED (whitelist: {} commands, {} working dirs)",
+                self.allowed_shell_commands.len(),
+                self.allowed_shell_working_dirs.len()
+            );
+            for cmd in &self.allowed_shell_commands {
+                info!("  - Allowed shell command: {}", cmd);
+            }
+            for dir in &self.allowed_shell_working_dirs {
+                info!("  - Allowed working directory: {}", dir);
+            }
+        } else {
+            info!("Shell tool: DISABLED");
+        }
+
+        if self.enable_filesystem {
+            info!(
+                "Filesystem tool: ENABLED (whitelist: {} paths)",
+                self.allowed_filesystem_paths.len()
+            );
+            for path in &self.allowed_filesystem_paths {
+                info!("  - Allowed filesystem path: {}", path);
+            }
+        } else {
+            info!("Filesystem tool: DISABLED");
+        }
+    }
+}
+
 /// Planning mode configuration (server-side) for the `igris-planning` crate.
 ///
 /// Backward compatible: if missing or `enabled=false`, runtime behavior is unchanged.
@@ -815,5 +924,117 @@ mod tests {
         std::env::set_var("TEST_VAR", "hello");
         let expanded = expand_env_vars("Value: ${TEST_VAR}");
         assert_eq!(expanded, "Value: hello");
+    }
+
+    #[test]
+    fn test_tool_config_validation_disabled_tools() {
+        // Disabled tools don't need validation
+        let config = ToolRuntimeConfig {
+            enabled: false,
+            enable_http: true,  // Even if individual tools enabled
+            allowed_http_domains: vec![],  // Empty whitelist should be fine when disabled
+            ..Default::default()
+        };
+        assert!(config.validate().is_ok());
+    }
+
+    #[test]
+    fn test_tool_config_validation_http_enabled_no_whitelist() {
+        let config = ToolRuntimeConfig {
+            enabled: true,
+            enable_http: true,
+            allowed_http_domains: vec![],  // SECURITY ERROR: Empty whitelist
+            ..Default::default()
+        };
+        assert!(config.validate().is_err());
+        assert!(config.validate().unwrap_err().contains("allowed_http_domains is empty"));
+    }
+
+    #[test]
+    fn test_tool_config_validation_http_enabled_with_whitelist() {
+        let config = ToolRuntimeConfig {
+            enabled: true,
+            enable_http: true,
+            allowed_http_domains: vec!["example.com".to_string()],
+            ..Default::default()
+        };
+        assert!(config.validate().is_ok());
+    }
+
+    #[test]
+    fn test_tool_config_validation_shell_enabled_no_commands() {
+        let config = ToolRuntimeConfig {
+            enabled: true,
+            enable_shell: true,
+            allowed_shell_commands: vec![],  // SECURITY ERROR: Empty whitelist
+            allowed_shell_working_dirs: vec!["/tmp".to_string()],
+            ..Default::default()
+        };
+        assert!(config.validate().is_err());
+        assert!(config.validate().unwrap_err().contains("allowed_shell_commands is empty"));
+    }
+
+    #[test]
+    fn test_tool_config_validation_shell_enabled_no_working_dirs() {
+        let config = ToolRuntimeConfig {
+            enabled: true,
+            enable_shell: true,
+            allowed_shell_commands: vec!["ls".to_string()],
+            allowed_shell_working_dirs: vec![],  // SECURITY ERROR: Empty whitelist
+            ..Default::default()
+        };
+        assert!(config.validate().is_err());
+        assert!(config.validate().unwrap_err().contains("allowed_shell_working_dirs is empty"));
+    }
+
+    #[test]
+    fn test_tool_config_validation_shell_enabled_with_whitelists() {
+        let config = ToolRuntimeConfig {
+            enabled: true,
+            enable_shell: true,
+            allowed_shell_commands: vec!["ls".to_string()],
+            allowed_shell_working_dirs: vec!["/tmp".to_string()],
+            ..Default::default()
+        };
+        assert!(config.validate().is_ok());
+    }
+
+    #[test]
+    fn test_tool_config_validation_filesystem_enabled_no_paths() {
+        let config = ToolRuntimeConfig {
+            enabled: true,
+            enable_filesystem: true,
+            allowed_filesystem_paths: vec![],  // SECURITY ERROR: Empty whitelist
+            ..Default::default()
+        };
+        assert!(config.validate().is_err());
+        assert!(config.validate().unwrap_err().contains("allowed_filesystem_paths is empty"));
+    }
+
+    #[test]
+    fn test_tool_config_validation_filesystem_enabled_with_paths() {
+        let config = ToolRuntimeConfig {
+            enabled: true,
+            enable_filesystem: true,
+            allowed_filesystem_paths: vec!["/tmp".to_string()],
+            ..Default::default()
+        };
+        assert!(config.validate().is_ok());
+    }
+
+    #[test]
+    fn test_tool_config_validation_all_tools_properly_configured() {
+        let config = ToolRuntimeConfig {
+            enabled: true,
+            enable_http: true,
+            enable_shell: true,
+            enable_filesystem: true,
+            allowed_http_domains: vec!["example.com".to_string()],
+            allowed_shell_commands: vec!["ls".to_string()],
+            allowed_shell_working_dirs: vec!["/tmp".to_string()],
+            allowed_filesystem_paths: vec!["/tmp".to_string()],
+            ..Default::default()
+        };
+        assert!(config.validate().is_ok());
     }
 }

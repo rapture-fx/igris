@@ -32,6 +32,13 @@ reqwest = { workspace = true }
 
 # System utilities
 hostname = "0.4"
+sysinfo = "0.30"
+
+# Cryptography for hybrid contract
+ed25519-dalek = { version = "2.1", features = ["rand_core"] }
+base64 = "0.22"
+rand = "0.8"
 
 [dev-dependencies]
 tokio = { workspace = true, features = ["test-util"] }
+tempfile = "3.8"
