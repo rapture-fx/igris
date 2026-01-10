@@ -50,10 +50,10 @@ export default function OverturePage() {
                     </button>
                     <div className="flex flex-col md:flex-row md:justify-between md:items-start gap-6 mt-4">
                       <div className="text-left md:w-2/3">
-                        <h1 className="text-2xl md:text-2xl lg:text-4xl font-medium text-[#111111] leading-[1.2]">
+                        <h1 className="text-lg md:text-xl lg:text-2xl font-medium text-[#111111] leading-[1.2]">
                           Overture
                         </h1>
-                        <h2 className="text-lg md:text-lg lg:text-2xl font-medium text-[#111111] leading-[1.2] mt-2 text-gray-600">
+                        <h2 className="text-base md:text-lg lg:text-xl font-medium text-[#111111] leading-[1.2] mt-2 text-gray-600">
                           Decision intelligence for AI requests — before execution.
                         </h2>
                       </div>
@@ -84,7 +84,7 @@ export default function OverturePage() {
 
                   {/* Title Section - Shows first on mobile, last on desktop */}
                   <div className="text-left mb-6 md:mb-0 md:hidden" style={{ paddingTop: '3rem', paddingBottom: '3rem' }}>
-                    <h3 className="text-2xl md:text-2xl lg:text-3xl font-inter mb-4" style={{ color: '#000000' }}>
+                    <h3 className="text-lg md:text-xl lg:text-2xl font-inter mb-4" style={{ color: '#000000' }}>
                       Make the right AI routing decision, every time.
                     </h3>
                     <p className="text-sm md:text-base text-gray-600 dark:text-gray-400 font-inter leading-relaxed">
@@ -118,7 +118,7 @@ export default function OverturePage() {
                       paddingLeft: '1rem',
                       height: '100%'
                     }}>
-                      <h3 className="text-2xl md:text-3xl font-inter mb-4" style={{ color: '#000000' }}>
+                      <h3 className="text-lg md:text-xl lg:text-2xl font-inter mb-4" style={{ color: '#000000' }}>
                         Make the right AI routing decision, every time.
                       </h3>
                       <p className="text-sm md:text-base text-gray-600 dark:text-gray-400 font-inter leading-relaxed">
@@ -146,7 +146,7 @@ export default function OverturePage() {
 
                   {/* Title Section - Shows first on mobile, last on desktop */}
                   <div className="text-left mb-6 md:mb-0 md:hidden" style={{ paddingTop: '3rem', paddingBottom: '3rem' }}>
-                    <h3 className="text-2xl md:text-2xl lg:text-3xl font-inter mb-4" style={{ color: '#000000' }}>
+                    <h3 className="text-lg md:text-xl lg:text-2xl font-inter mb-4" style={{ color: '#000000' }}>
                       What Overture does
                     </h3>
 
@@ -221,7 +221,7 @@ export default function OverturePage() {
                       paddingLeft: '1rem',
                       height: '100%'
                     }}>
-                      <h3 className="text-2xl md:text-3xl font-inter mb-4" style={{ color: '#000000' }}>
+                      <h3 className="text-lg md:text-xl lg:text-2xl font-inter mb-4" style={{ color: '#000000' }}>
                         What Overture does
                       </h3>
                     </div>
@@ -246,7 +246,7 @@ export default function OverturePage() {
 
                   {/* Title Section - Shows first on mobile, last on desktop */}
                   <div className="text-left mb-6 md:mb-0 md:hidden" style={{ paddingTop: '3rem', paddingBottom: '3rem' }}>
-                    <h3 className="text-2xl md:text-2xl lg:text-3xl font-inter mb-4" style={{ color: '#000000' }}>
+                    <h3 className="text-lg md:text-xl lg:text-2xl font-inter mb-4" style={{ color: '#000000' }}>
                       Use Overture your way
                     </h3>
                     <p className="text-sm md:text-base text-gray-600 dark:text-gray-400 font-inter leading-relaxed">
@@ -274,7 +274,7 @@ export default function OverturePage() {
                       paddingLeft: '1rem',
                       height: '100%'
                     }}>
-                      <h3 className="text-2xl md:text-3xl font-inter mb-4" style={{ color: '#000000' }}>
+                      <h3 className="text-lg md:text-xl lg:text-2xl font-inter mb-4" style={{ color: '#000000' }}>
                         Use Overture your way
                       </h3>
                       <p className="text-sm md:text-base text-gray-600 dark:text-gray-400 font-inter leading-relaxed">
