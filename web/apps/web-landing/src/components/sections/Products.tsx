@@ -16,11 +16,11 @@ export default function Products() {
 
           {/* Title Section - Shows first on mobile, last on desktop */}
           <div className="text-left mb-6 md:mb-0 md:hidden" style={{ paddingTop: '3rem', paddingBottom: '3rem' }}>
-              <h2 className="text-xl md:text-2xl lg:text-3xl font-inter mb-4" style={{ color: '#000000' }}>
-              Two components of a system
+              <h2 className="text-lg md:text-xl lg:text-2xl font-inter mb-4" style={{ color: '#000000' }}>
+              Decision and Execution
             </h2>
             <p className="text-sm text-gray-600 dark:text-gray-400 font-inter leading-relaxed mb-8">
-              Overture handles routing and provider selection in cloud environments. Runtime executes models on local or edge devices. They can be deployed independently or together.
+              Overture decides what to route and where. Runtime executes with governance and safety. Deploy independently or together with Hybrid enforcement.
             </p>
 
             {/* Products - Mobile */}
@@ -42,7 +42,7 @@ export default function Products() {
                   />
                 </div>
                 <p className="text-sm text-gray-600 dark:text-gray-400 leading-relaxed font-inter mb-4">
-                  Intelligently routes your AI requests to the best providers. Automatically optimizes for cost, latency, and performance while keeping you under budget with real-time spend tracking.
+                  Decision intelligence and routing control plane. Trust-aware provider selection with cost, quality, and latency optimization. Explainable decisions with full observability.
                 </p>
                 <Link href="/overture" className="group inline-flex items-center">
                   <span className="text-sm text-gray-900 dark:text-white font-inter">Explore Overture</span>
@@ -67,7 +67,7 @@ export default function Products() {
                   />
                 </div>
                 <p className="text-sm text-gray-600 dark:text-gray-400 leading-relaxed font-inter mb-4">
-                  Run AI models directly on your hardware with full offline capability. Includes GPU acceleration for fast inference and integrates seamlessly with robotics systems.
+                  Licensed governed execution engine. Secure defaults and enforced limits. Deterministic execution envelopes with telemetry-backed execution.
                 </p>
                 <Link href="/runtime" className="group inline-flex items-center">
                   <span className="text-sm text-gray-900 dark:text-white font-inter">Explore Runtime</span>
@@ -101,7 +101,7 @@ export default function Products() {
                     />
                   </div>
                   <p className="text-sm text-gray-600 dark:text-gray-400 leading-relaxed font-inter mb-4">
-                    Intelligently routes your AI requests to the best providers. Automatically optimizes for cost, latency, and performance while keeping you under budget with real-time spend tracking.
+                    Decision intelligence and routing control plane. Trust-aware provider selection with cost, quality, and latency optimization. Explainable decisions with full observability.
                   </p>
                   <Link href="/overture" className="group inline-flex items-center">
                     <span className="text-sm text-gray-900 dark:text-white font-inter">Explore Overture</span>
@@ -126,7 +126,7 @@ export default function Products() {
                     />
                   </div>
                   <p className="text-sm text-gray-600 dark:text-gray-400 leading-relaxed font-inter mb-4">
-                    Run AI models directly on your hardware with full offline capability. Includes GPU acceleration for fast inference and integrates seamlessly with robotics systems.
+                    Licensed governed execution engine. Secure defaults and enforced limits. Deterministic execution envelopes with telemetry-backed execution.
                   </p>
                   <Link href="/runtime" className="group inline-flex items-center">
                     <span className="text-sm text-gray-900 dark:text-white font-inter">Explore Runtime</span>
@@ -139,11 +139,11 @@ export default function Products() {
 
             {/* Right Column: Title and Description (Desktop only) */}
             <div className="hidden md:flex md:col-span-1 md:border-l flex-col justify-start" style={{ borderLeft: '0.5px solid rgba(156, 163, 175, 0.3)', paddingTop: '3rem', paddingBottom: '3rem', paddingLeft: '1rem', height: '100%' }}>
-            <h2 className="text-xl md:text-2xl lg:text-3xl font-inter mb-4" style={{ color: '#000000' }}>
-                Two components of a system
+            <h2 className="text-lg md:text-xl lg:text-2xl font-inter mb-4" style={{ color: '#000000' }}>
+                Decision and Execution
               </h2>
               <p className="text-sm md:text-base text-gray-600 dark:text-gray-400 font-inter leading-relaxed">
-                Overture handles routing and provider selection in cloud environments. Runtime executes models on local or edge devices. They can be deployed independently or together.
+                Overture decides what to route and where. Runtime executes with governance and safety. Deploy independently or together with Hybrid enforcement.
               </p>
             </div>
 

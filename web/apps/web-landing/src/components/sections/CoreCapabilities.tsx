@@ -3,16 +3,16 @@ import { Shield, Box } from 'lucide-react'
 
 const capabilities = [
   {
-    name: 'Adaptive Execution',
-    description: 'Routes AI requests to available compute based on the current environment.',
+    name: 'Decision Intelligence',
+    description: 'Thompson Sampling and trust-aware routing with explainable decision traces.',
   },
   {
-    name: 'Automatic Continuity',
-    description: 'Continues operating when providers, connectivity, or resources change.',
+    name: 'Governed Execution',
+    description: 'Resource safety limits and deterministic execution envelopes with telemetry.',
   },
   {
-    name: 'Unified Control',
-    description: 'Provides a single control layer across cloud, edge, and autonomous systems.',
+    name: 'Cryptographic Enforcement',
+    description: 'Observed vs reported verification with signed execution contracts.',
   },
 ]
 
@@ -34,11 +34,11 @@ export default function CoreCapabilities() {
 
               {/* Title Section - Shows first on mobile, last on desktop */}
               <div className="text-left mb-6 md:mb-0 md:hidden" style={{ paddingTop: '3rem', paddingBottom: '3rem' }}>
-                <h3 className="text-xl md:text-2xl lg:text-3xl font-inter mb-4" style={{ color: '#000000' }}>
+                  <h3 className="text-lg md:text-xl lg:text-2xl font-inter mb-4" style={{ color: '#000000' }}>
                   System Overview
                 </h3>
                 <p className="text-sm md:text-base text-gray-700 dark:text-gray-300 font-inter leading-relaxed mb-8">
-                  Igris is a control and execution system for AI workloads that operate across cloud and edge environments. It manages how AI requests are routed and executed as conditions, providers, and environments change.
+                  Overture provides decision intelligence and routing control. Runtime provides governed execution with safety guarantees. Hybrid enforces cryptographic integrity between decision and execution.
                 </p>
 
                 {/* Capabilities - Mobile */}
@@ -83,11 +83,11 @@ export default function CoreCapabilities() {
 
                 {/* Right Column - Title and Intro (Desktop only) */}
                 <div className="hidden md:flex text-left md:col-span-1 flex-col justify-start" style={{ borderLeft: '0.5px solid rgba(156, 163, 175, 0.3)', paddingTop: '23rem', paddingBottom: '3rem', paddingLeft: '1rem', height: '100%' }}>
-                  <h3 className="text-xl md:text-2xl lg:text-3xl font-inter mb-4" style={{ color: '#000000' }}>
+                <h3 className="text-lg md:text-xl lg:text-2xl font-inter mb-4" style={{ color: '#000000' }}>
                     System Overview
                   </h3>
                   <p className="text-sm md:text-base text-gray-700 dark:text-gray-300 font-inter leading-relaxed">
-                    Igris is a control and execution system for AI workloads that operate across cloud and edge environments. It manages how AI requests are routed and executed as conditions, providers, and environments change.
+                    Overture provides decision intelligence and routing control. Runtime provides governed execution with safety guarantees. Hybrid enforces cryptographic integrity between decision and execution.
                   </p>
                 </div>
               </div>

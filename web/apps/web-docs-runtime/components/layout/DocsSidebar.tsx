@@ -132,6 +132,11 @@ const navigationSections: NavigationSection[] = [
         icon: BarChart3,
       },
       {
+        name: 'Hybrid Execution',
+        href: '/docs/hybrid-execution',
+        icon: Layers,
+      },
+      {
         name: 'FAQ',
         href: '/docs/faq',
         icon: HelpCircle,

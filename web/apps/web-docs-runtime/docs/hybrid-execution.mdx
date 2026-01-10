@@ -1,0 +1,326 @@
+# Hybrid Execution
+
+**Hybrid Execution** enforces execution integrity between Overture's routing decisions and Runtime's governed execution. From the Runtime perspective, Hybrid ensures that execution matches what was decided and that execution telemetry is cryptographically verifiable.
+
+---
+
+## What is Hybrid Execution?
+
+Hybrid connects Runtime's execution guarantees to Overture's routing decisions with cryptographic enforcement:
+
+- **Overture decides** which provider to use and why
+- **Runtime executes** with governance, resource limits, and telemetry
+- **Hybrid verifies** that execution matches the decision
+
+Without Hybrid, Runtime executes requests but has no way to prove execution integrity to the control plane. With Hybrid, every execution is signed, verified, and traceable back to the routing decision.
+
+---
+
+## Execution Integrity
+
+### Signed Execution Envelopes
+
+Every execution by Runtime produces a signed envelope:
+
+```json
+{
+  "execution_id": "exec_4m8p1k",
+  "decision_id": "dec_7x9k2m",
+  "timestamp": "2024-01-10T20:45:15Z",
+
+  "execution_details": {
+    "provider": "anthropic",
+    "model": "claude-3-opus",
+    "latency_ms": 234,
+    "tokens_used": 1247,
+    "cost_usd": 0.0187,
+    "success": true
+  },
+
+  "resource_usage": {
+    "tool_calls": 3,
+    "execution_time_ms": 234,
+    "max_output_size": 2048
+  },
+
+  "signature": "ed25519:b3e7f1..."
+}
+```
+
+The signature guarantees:
+- Execution envelope came from Runtime
+- Execution data hasn't been tampered with
+- Metrics are authentic and verifiable
+
+### Deterministic Execution
+
+Runtime ensures deterministic execution with:
+
+- **Resource Safety Limits:** Hard limits on tool calls, execution time, output size
+- **Policy Enforcement:** Configurable policies applied at execution time
+- **Telemetry Capture:** Real-time metrics with configurable retention
+- **Secure Defaults:** Sandboxed execution environment with minimal privileges
+
+---
+
+## Telemetry-Backed Execution
+
+### Real-Time Telemetry
+
+Runtime captures comprehensive telemetry for every execution:
+
+**Execution Metrics:**
+- Latency (request start to completion)
+- Token usage (prompt + completion)
+- Cost (calculated from provider rates)
+- Resource consumption (tool calls, time, memory)
+
+**Safety Metrics:**
+- Resource limit violations
+- Policy enforcement outcomes
+- Error rates and failure modes
+- Retry attempts and fallback triggers
+
+**Observability:**
+- Execution graph (DAG per request)
+- Tool call traces
+- Context size tracking
+- Model performance metrics
+
+### Retention Tiers
+
+Telemetry retention is tier-based to support different use cases:
+
+**Developer Tier:**
+- **Short retention:** 7 days
+- Basic execution telemetry
+- Node-level metrics only
+
+**Growth Tier:**
+- **Extended retention:** 30 days
+- Real-time telemetry streaming
+- Multi-runtime coordination
+- Resource usage analytics
+
+**Scale Tier:**
+- **90-day retention:** Compliance-ready
+- Extended telemetry retention
+- Fleet-wide analytics
+- Export to external systems (Prometheus, Datadog, etc.)
+
+---
+
+## Observed vs Reported Verification
+
+### Provider Verification
+
+Runtime observes actual execution metrics and compares them to provider claims:
+
+**Example: Cost Verification**
+
+**Provider Reported:**
+```json
+{
+  "model": "gpt-4",
+  "prompt_tokens": 100,
+  "completion_tokens": 50,
+  "reported_cost_usd": 0.0012
+}
+```
+
+**Runtime Observed:**
+```json
+{
+  "actual_latency_ms": 245,
+  "actual_tokens": 152,
+  "calculated_cost_usd": 0.0015,
+  "cost_divergence": 25%
+}
+```
+
+**Hybrid Action:**
+- Divergence recorded in audit trail
+- Trust score updated in Overture
+- Future routing decisions adjusted
+
+### Execution Validation
+
+Runtime validates that execution matches the routing decision:
+
+**Decision from Overture:**
+```json
+{
+  "decision_id": "dec_7x9k2m",
+  "selected_provider": "anthropic",
+  "model": "claude-3-opus",
+  "expected_cost_range": [0.01, 0.03]
+}
+```
+
+**Runtime Execution:**
+```json
+{
+  "execution_id": "exec_4m8p1k",
+  "decision_id": "dec_7x9k2m",
+  "actual_provider": "anthropic",
+  "actual_model": "claude-3-opus",
+  "actual_cost": 0.0187,
+  "cost_within_range": true
+}
+```
+
+**Verification:**
+- Decision ID matches execution
+- Provider and model match
+- Cost within expected range
+- No tampering detected
+
+---
+
+## Governance & Safety
+
+### Resource Safety Limits
+
+Runtime enforces hard limits to prevent runaway execution:
+
+**Limit Types:**
+- **Max tool calls:** Total tool invocations per execution (default: 100)
+- **Max execution time:** Wall-clock time limit (default: 5 minutes)
+- **Max output size:** Per-tool output size (default: 10MB)
+- **Max recursion depth:** Nested tool call depth (default: 10)
+
+**Enforcement:**
+```rust
+// Before execution
+tracker.check_tool_calls(count)?;
+tracker.check_execution_time()?;
+
+// During execution
+tracker.record_tool_calls(count);
+
+// After execution
+tracker.check_tool_output_size(size)?;
+```
+
+**When Limits Exceeded:**
+- Execution stops immediately (fail-fast)
+- Error message indicates which limit was hit
+- Telemetry records limit violation
+- Execution envelope signed with failure status
+
+### Policy Enforcement
+
+Runtime applies configurable policies at execution time:
+
+**Policy Types:**
+- Tool whitelisting (which tools can be called)
+- Provider restrictions (which providers are allowed)
+- Cost caps (maximum spend per execution)
+- Time-of-day restrictions (when execution is allowed)
+
+**Enforcement Example:**
+```json
+{
+  "policy_id": "prod_policy_v2",
+  "enforcement": {
+    "allowed_tools": ["http_get", "filesystem_read"],
+    "blocked_tools": ["shell_exec"],
+    "max_cost_per_execution": 0.05,
+    "require_approval": false
+  }
+}
+```
+
+---
+
+## Auditability
+
+### Compliance-Ready Execution
+
+Hybrid execution trails are designed for compliance:
+
+**Audit Trail Contents:**
+- Decision ID from Overture
+- Execution ID from Runtime
+- Complete execution telemetry
+- Resource usage metrics
+- Policy enforcement outcomes
+- Cryptographic signatures on both ends
+
+**Compliance Features:**
+- **Immutable logs:** Tamper-evident execution records
+- **Cryptographic proof:** Ed25519 signatures on decisions and execution
+- **Complete lineage:** Every request traced from decision to outcome
+- **Retention guarantees:** Tier-based retention (7/30/90 days)
+- **Export capabilities:** Prometheus, Datadog, CloudWatch, custom webhooks
+
+### Execution Traceability
+
+Every execution is fully traceable:
+
+```
+Request → Routing Decision (Overture)
+           ↓ (signed decision)
+       Execution (Runtime)
+           ↓ (signed envelope)
+      Verification (Hybrid)
+           ↓ (audit record)
+       Immutable Log
+```
+
+**Audit Query:**
+"Show me all executions for decision dec_7x9k2m"
+
+**Result:**
+- Execution ID: exec_4m8p1k
+- Provider: anthropic
+- Cost: $0.0187
+- Success: true
+- Signature valid: ✓
+- Decision match: ✓
+- Divergence: None
+
+---
+
+## Why Recurring Pricing?
+
+Hybrid is an add-on subscription requiring active Overture + Runtime subscriptions. Pricing reflects ongoing cryptographic enforcement infrastructure:
+
+**Enforcement Services:**
+- Continuous cryptographic verification between decision and execution
+- Real-time observed vs reported divergence detection
+- Signing infrastructure for decision and execution contracts
+- Verification loops and trust score updates
+
+**Telemetry Infrastructure:**
+- Time-series audit trail storage (7/30/90 days based on tier)
+- Real-time streaming for compliance monitoring
+- Export integrations (Prometheus, Datadog, custom webhooks)
+- Analytics and alerting for trust violations
+
+**Compliance Support:**
+- Immutable audit-ready execution traces
+- Tamper-evident logging with cryptographic proof
+- Retention guarantees for regulatory requirements
+- Priority security updates for enforcement layer
+
+Hybrid does not meter execution volume. Pricing reflects the cryptographic trust infrastructure required to enforce integrity between routing decisions and execution outcomes.
+
+---
+
+## Availability
+
+Hybrid is available in:
+
+- **Growth Tier:** Decision → execution audit trail, observed vs reported verification, limited hybrid execution volume
+- **Scale Tier:** Cryptographically enforced trust, signed contracts, compliance-ready execution, priority support
+
+Hybrid requires both Overture (decision plane) and Runtime (execution plane).
+
+---
+
+## Next Steps
+
+- [Runtime Introduction](/docs) - Learn about governed execution
+- [Overture Hybrid Docs](/docs-overture/hybrid-execution) - Decision perspective
+- [Pricing](/pricing) - Compare Hybrid tiers
