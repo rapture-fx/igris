@@ -21,6 +21,46 @@ interface FaqEntry {
 
 const faqEntries: FaqEntry[] = [
   {
+    question: "What happens after my 14-day trial ends?",
+    answer: "Your trial access expires automatically. To continue using Igris, you must upgrade to a paid plan. All configuration and data are preserved for 30 days after trial expiration.",
+    type: "text"
+  },
+  {
+    question: "Why is there no free tier?",
+    answer: "Overture and Runtime require infrastructure with hard guarantees. A free tier cannot support the reliability and security standards we maintain. The trial provides full feature access so you can validate value before committing.",
+    type: "text"
+  },
+  {
+    question: "What are the trial usage limits?",
+    answer: "Trials enforce hard usage caps on decision volume and execution resources. These caps prevent runaway costs while allowing comprehensive testing of all features.",
+    type: "text"
+  },
+  {
+    question: "Can I upgrade or downgrade between tiers?",
+    answer: "Yes. Upgrades take effect immediately with prorated billing. Downgrades apply at the start of your next billing cycle. No data loss occurs during tier changes.",
+    type: "text"
+  },
+  {
+    question: "What's the difference between Overture, Runtime, and Hybrid?",
+    answer: "Overture makes routing decisions. Runtime executes those decisions securely. Hybrid combines both into a closed-loop system where execution feeds learning. Hybrid is the complete Igris value proposition.",
+    type: "text"
+  },
+  {
+    question: "Can I buy Overture or Runtime separately?",
+    answer: "Yes. Both are available as standalone products. However, the closed-loop intelligence available only in Hybrid compounds value over time and provides verifiable trust.",
+    type: "text"
+  },
+  {
+    question: "How does Hybrid improve over time?",
+    answer: "Every execution outcome is linked to its originating decision through cryptographic signatures. This data continuously improves routing models without manual intervention.",
+    type: "text"
+  },
+  {
+    question: "What production guarantees do you provide?",
+    answer: "Paid tiers include SLA guarantees ranging from 99.0% to 99.9% uptime. Trials provide full feature access with no production guarantees. Compliance-ready execution is available in the Scale Hybrid tier.",
+    type: "text"
+  },
+  {
     question: "How does Overture choose the best model for every request?",
     answer: "We use Bayesian Thompson Sampling with real-time quality scoring. Latency, accuracy, cost, and recent performance shifts all influence routing. The engine learns continuously and self-tunes without requiring manual adjustments.",
     type: "text"
@@ -31,58 +71,8 @@ const faqEntries: FaqEntry[] = [
     type: "text"
   },
   {
-    question: "How does Overture behave during an outage?",
-    answer: "EscapeVector Mode keeps full routing intelligence alive for 72 hours using cached Bayesian parameters. Even if our control plane is offline, your traffic continues normally with no fallback to round-robin or naive heuristics.",
-    type: "text"
-  },
-  {
-    question: "Can I bypass Overture instantly?",
-    answer: "Yes. Gold Code Override gives you a one-variable, instant full bypass. Enterprises use this as part of their break-glass protocols for compliance and incident response.",
-    type: "text"
-  },
-  {
-    question: "Do you store or manage my provider API keys?",
-    answer: "No. With BYOK, keys never leave your environment. You own authentication, data access, and rotation windows. Overture handles orchestration without ever touching your credentials.",
-    type: "text"
-  },
-  {
     question: "How do you keep traffic isolated across providers?",
     answer: "Requests undergo provider-specific validation before routing. Each provider is sandboxed with strict quotas, error fencing, and health checks. Failures remain isolated and never cascade across models.",
-    type: "text"
-  },
-  {
-    question: "Can I test routing changes safely before deploying them?",
-    answer: "Shadow Mode allows new routing strategies to run in parallel with production. All decisions are validated against real traffic with zero risk of user impact. Automatic rollback is triggered on any SLO violation.",
-    type: "text"
-  },
-  {
-    question: "What is Council Mode and why does it matter?",
-    answer: "Council Mode runs multiple models in parallel and synthesizes a consensus answer. It is ideal for high-stakes workflows where accuracy matters more than speed or cost.",
-    type: "text"
-  },
-  {
-    question: "Is it easy to switch from AI Providers?",
-    type: "code",
-    answerText: "Yes. Replace your base URL and you're done.",
-    codeExample: {
-      old: "https://api.openai.com/v1",
-      new: "https://api.overture.com/v1"
-    },
-    answerFooter: "No SDK rewrites, no migration scripts, no vendor lock-in. You can integrate in under five minutes."
-  },
-  {
-    question: "Will Overture increase my latency?",
-    answer: "No. In most cases, routing reduces mean latency by selecting the fastest healthy provider at the moment of execution. Parallel execution and partial streaming keep responses responsive under load.",
-    type: "text"
-  },
-  {
-    question: "How does Rust WASM improve frontend performance?",
-    answer: "EscapeVector runs as a compact Rust-compiled WASM module under 150 KB. It performs optimization 3–5x faster than TypeScript equivalents and brings full resilience to browser frameworks like Next.js or Remix.",
-    type: "text"
-  },
-  {
-    question: "How do you bill for usage beyond plan limits?",
-    answer: "Overages are billed in simple, transparent units per 1,000 requests. No token markup, no hidden multipliers.",
     type: "text"
   }
 ];
