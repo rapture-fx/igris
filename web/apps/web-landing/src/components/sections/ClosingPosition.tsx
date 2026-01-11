@@ -13,7 +13,7 @@ export default function ClosingPosition() {
                 minHeight: '400px'
               }}>
                 <div className="w-full">
-                   <div className="max-w-3xl text-left flex flex-col pl-4 md:pl-8 lg:pl-12">
+                   <div className="max-w-3xl text-left flex flex-col">
                         <h3 className="text-lg md:text-xl lg:text-2xl font-inter mb-6" style={{ color: '#000000', fontFamily: 'Roboto Mono, monospace' }}>
                            Start with decisions. Scale to execution.
                         </h3>
