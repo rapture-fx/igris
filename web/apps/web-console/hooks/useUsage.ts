@@ -1,6 +1,7 @@
 import { useQuery } from '@tanstack/react-query';
 import { api } from '@/lib/apiClient';
 import { API_ENDPOINTS, QUERY_KEYS } from '@/utils/constants';
+import { handleApiError } from '@/lib/mockDataGuard';
 
 export interface UsageMetrics {
   total_requests: number;
@@ -64,34 +65,38 @@ export function useUsage(params?: UseUsageParams) {
       try {
         return await api.get<UsageMetrics>(endpoint);
       } catch (error) {
-        // Return comprehensive mock data when API unavailable
-        return {
-          total_requests: 2847,
-          total_cost: 523.47,
-          avg_latency: 156,
-          total_tokens: 142350,
-          by_provider: [
-            { provider: 'openai', requests: 1234, cost: 342.78, avg_latency: 145, tokens: 87456 },
-            { provider: 'anthropic', requests: 876, cost: 156.34, avg_latency: 178, tokens: 34876 },
-            { provider: 'google', requests: 523, cost: 89.23, avg_latency: 234, tokens: 15678 },
-            { provider: 'xai', requests: 214, cost: 45.12, avg_latency: 198, tokens: 4340 },
-          ],
-          by_model: [
-            { model: 'gpt-4-turbo', requests: 1456, cost: 289.67, tokens: 65432 },
-            { model: 'gpt-4', requests: 678, cost: 178.34, tokens: 22024 },
-            { model: 'claude-3-opus', requests: 423, cost: 123.45, tokens: 18876 },
-            { model: 'gemini-pro', requests: 290, cost: 67.89, tokens: 15678 },
-          ],
-          timeline: [
-            { timestamp: '00:00', requests: 89, cost: 12.34, latency: 142 },
-            { timestamp: '04:00', requests: 45, cost: 6.78, latency: 98 },
-            { timestamp: '08:00', requests: 234, cost: 45.67, latency: 178 },
-            { timestamp: '12:00', requests: 445, cost: 89.23, latency: 234 },
-            { timestamp: '16:00', requests: 367, cost: 72.89, latency: 189 },
-            { timestamp: '20:00', requests: 298, cost: 58.91, latency: 156 },
-            { timestamp: '23:59', requests: 78, cost: 15.23, latency: 134 },
-          ],
-        } as UsageMetrics;
+        // Production-safe fallback: throws in production, returns mock in development
+        return handleApiError<UsageMetrics>(
+          error,
+          {
+            total_requests: 2847,
+            total_cost: 523.47,
+            avg_latency: 156,
+            total_tokens: 142350,
+            by_provider: [
+              { provider: 'openai', requests: 1234, cost: 342.78, avg_latency: 145, tokens: 87456 },
+              { provider: 'anthropic', requests: 876, cost: 156.34, avg_latency: 178, tokens: 34876 },
+              { provider: 'google', requests: 523, cost: 89.23, avg_latency: 234, tokens: 15678 },
+              { provider: 'xai', requests: 214, cost: 45.12, avg_latency: 198, tokens: 4340 },
+            ],
+            by_model: [
+              { model: 'gpt-4-turbo', requests: 1456, cost: 289.67, tokens: 65432 },
+              { model: 'gpt-4', requests: 678, cost: 178.34, tokens: 22024 },
+              { model: 'claude-3-opus', requests: 423, cost: 123.45, tokens: 18876 },
+              { model: 'gemini-pro', requests: 290, cost: 67.89, tokens: 15678 },
+            ],
+            timeline: [
+              { timestamp: '00:00', requests: 89, cost: 12.34, latency: 142 },
+              { timestamp: '04:00', requests: 45, cost: 6.78, latency: 98 },
+              { timestamp: '08:00', requests: 234, cost: 45.67, latency: 178 },
+              { timestamp: '12:00', requests: 445, cost: 89.23, latency: 234 },
+              { timestamp: '16:00', requests: 367, cost: 72.89, latency: 189 },
+              { timestamp: '20:00', requests: 298, cost: 58.91, latency: 156 },
+              { timestamp: '23:59', requests: 78, cost: 15.23, latency: 134 },
+            ],
+          },
+          'useUsage'
+        );
       }
     },
     staleTime: 60 * 1000, // 1 minute
@@ -105,23 +110,26 @@ export function useUsageSummary() {
       try {
         return await api.get<UsageSummary>(API_ENDPOINTS.USAGE_SUMMARY);
       } catch (error) {
-        // Return mock data when API is unavailable
-        return {
-          monthly_spend: 1987.43,
-          total_requests: 15432,
-          avg_latency: 178,
-          budget_utilization: 39.7,
-          period: {
-            start: new Date(Date.now() - 30 * 24 * 60 * 60 * 1000).toISOString(),
-            end: new Date().toISOString(),
+        // Production-safe fallback: throws in production, returns mock in development
+        return handleApiError<UsageSummary>(
+          error,
+          {
+            monthly_spend: 1987.43,
+            total_requests: 15432,
+            avg_latency: 178,
+            budget_utilization: 39.7,
+            period: {
+              start: new Date(Date.now() - 30 * 24 * 60 * 60 * 1000).toISOString(),
+              end: new Date().toISOString(),
+            },
           },
-        };
+          'useUsageSummary'
+        );
       }
     },
     staleTime: 60 * 1000, // 1 minute
     retry: false,
     refetchOnWindowFocus: false,
     refetchInterval: 5 * 60 * 1000, // Refetch every 5 minutes
-    throwOnError: false, // Prevent uncaught errors in console
   });
 }
