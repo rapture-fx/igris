@@ -30,7 +30,7 @@ export default function Products() {
                   <h3 className="text-xl md:text-2xl font-inter mb-2" style={{ color: '#000000', fontFamily: 'Roboto Mono, monospace' }}>
                     Overture
                   </h3>
-                  <p className="text-xs text-gray-600 dark:text-gray-400 font-inter mb-4" style={{ fontFamily: 'Roboto Mono, monospace' }}>
+                  <p className="text-xs text-gray-600 dark:text-gray-400 mb-4" style={{ fontFamily: 'Roboto Mono, monospace' }}>
                     Decision Layer
                   </p>
                   <div style={{ border: '0.5px solid rgba(156, 163, 175, 0.3)', marginTop: '1rem', marginBottom: '1rem', height: '200px', position: 'relative', overflow: 'hidden' }}>
@@ -50,7 +50,7 @@ export default function Products() {
                     </span>
                     <ChevronRight className="ml-1 h-3 w-3" />
                   </Link>
-                <p className="text-xs text-gray-600 dark:text-gray-400 font-inter mb-4" style={{ fontFamily: 'Roboto Mono, monospace' }}>
+                <p className="text-xs text-gray-600 dark:text-gray-400 mb-4" style={{ fontFamily: 'Roboto Mono, monospace' }}>
                   Decision Layer
                 </p>
                 <div style={{ border: '0.5px solid rgba(156, 163, 175, 0.3)', marginTop: '1rem', marginBottom: '1rem', height: '200px', position: 'relative', overflow: 'hidden' }}>
@@ -77,7 +77,7 @@ export default function Products() {
                 <h3 className="text-xl md:text-2xl font-inter mb-2" style={{ color: '#000000', fontFamily: 'Roboto Mono, monospace' }}>
                   Runtime
                 </h3>
-                <p className="text-xs text-gray-600 dark:text-gray-400 font-inter mb-4" style={{ fontFamily: 'Roboto Mono, monospace' }}>
+                <p className="text-xs text-gray-600 dark:text-gray-400 mb-4" style={{ fontFamily: 'Roboto Mono, monospace' }}>
                   Execution Layer
                 </p>
                 <div style={{ border: '0.5px solid rgba(156, 163, 175, 0.3)', marginTop: '1rem', marginBottom: '1rem', height: '200px', position: 'relative', overflow: 'hidden' }}>
@@ -113,7 +113,7 @@ export default function Products() {
                   <h3 className="text-xl md:text-2xl font-inter mb-2" style={{ color: '#000000', fontFamily: 'Roboto Mono, monospace' }}>
                     Overture
                   </h3>
-                  <p className="text-xs text-gray-600 dark:text-gray-400 font-inter mb-4">
+                  <p className="text-xs text-gray-600 dark:text-gray-400 mb-4" style={{ fontFamily: 'Roboto Mono, monospace' }}>
                     Decision Layer
                   </p>
                   <div style={{ border: '0.5px solid rgba(156, 163, 175, 0.3)', marginTop: '1rem', marginBottom: '1rem', height: '200px', position: 'relative', overflow: 'hidden' }}>
@@ -140,7 +140,7 @@ export default function Products() {
                   <h3 className="text-xl md:text-2xl font-inter mb-2" style={{ color: '#000000', fontFamily: 'Roboto Mono, monospace' }}>
                     Runtime
                   </h3>
-                  <p className="text-xs text-gray-600 dark:text-gray-400 font-inter mb-4">
+                  <p className="text-xs text-gray-600 dark:text-gray-400 mb-4" style={{ fontFamily: 'Roboto Mono, monospace' }}>
                     Execution Layer
                   </p>
                   <div style={{ border: '0.5px solid rgba(156, 163, 175, 0.3)', marginTop: '1rem', marginBottom: '1rem', height: '200px', position: 'relative', overflow: 'hidden' }}>

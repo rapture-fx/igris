@@ -14,9 +14,9 @@ export default function ClosingPosition() {
               }}>
                 <div className="w-full">
                    <div className="max-w-3xl text-left flex flex-col">
-                        <h3 className="text-lg md:text-xl lg:text-2xl font-inter mb-6" style={{ color: '#000000', fontFamily: 'Roboto Mono, monospace' }}>
-                           Start with decisions. Scale to execution.
-                        </h3>
+                         <h3 className="text-lg md:text-xl lg:text-2xl font-inter mb-6" style={{ color: '#000000', fontFamily: 'Roboto Mono, monospace' }}>
+                            Start with decisions.<br />Scale to execution.
+                         </h3>
 
                         <div className="flex flex-col sm:flex-row gap-4 pl-0 md:pl-0 lg:pl-0">
                           <Link href="https://docs.igrisinertial.com/">

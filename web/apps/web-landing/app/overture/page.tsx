@@ -35,7 +35,7 @@ export default function OverturePage() {
             backgroundRepeat: 'no-repeat',
             borderBottom: '0.5px solid rgba(156, 163, 175, 0.3)'
           }}>
-            <div className="mx-auto max-w-[1200px] px-4 sm:px-6 lg:px-8">
+            <div className="mx-auto max-w-[1100px] px-4 sm:px-6 lg:px-8">
               <div className="relative px-4 md:px-8 lg:px-12 pb-64 md:pb-80 lg:pb-[36rem] bg-transparent z-10" style={{
                 borderLeft: '0.5px solid rgba(156, 163, 175, 0.3)',
                 borderRight: '0.5px solid rgba(156, 163, 175, 0.3)'
@@ -71,8 +71,8 @@ export default function OverturePage() {
 
           {/* Purpose & Value Section */}
           <section className="dark:bg-gray-900 text-gray-900 dark:text-white" style={{ backgroundColor: '#f6f6f4', height: '800px', borderBottom: '0.5px solid rgba(156, 163, 175, 0.3)' }}>
-            <div className="mx-auto max-w-[1200px] px-4 sm:px-6 lg:px-8" style={{ height: '100%' }}>
-              <div className="relative px-4 md:px-4 lg:px-6 flex flex-col" style={{
+            <div className="mx-auto max-w-[1100px] px-4 sm:px-6 lg:px-8" style={{ height: '100%' }}>
+              <div className="relative px-4 md:px-8 lg:px-12 flex flex-col" style={{
                 borderLeft: '0.5px solid rgba(156, 163, 175, 0.3)',
                 borderRight: '0.5px solid rgba(156, 163, 175, 0.3)',
                 backgroundColor: '#f6f6f4',
@@ -95,8 +95,8 @@ export default function OverturePage() {
                    {/* Two-column layout */}
                   <div className="grid grid-cols-1 md:grid-cols-3 gap-0 relative md:flex-1" style={{ height: '100%' }}>
 
-                    {/* Left Column - Image (2 columns wide) */}
-                    <div className="hidden md:flex md:col-span-2 flex-col items-start justify-start pl-4 md:pl-8 lg:pl-12" style={{
+                     {/* Left Column - Image (2 columns wide) */}
+                    <div className="hidden md:flex md:col-span-2 flex-col items-start justify-start" style={{
                       paddingTop: '3rem',
                       paddingBottom: '3rem',
                       paddingRight: '1rem'
@@ -132,8 +132,8 @@ export default function OverturePage() {
 
           {/* Core Capabilities Section */}
           <section className="dark:bg-gray-900 text-gray-900 dark:text-white" style={{ backgroundColor: '#f6f6f4', height: '800px', borderBottom: '0.5px solid rgba(156, 163, 175, 0.3)' }}>
-            <div className="mx-auto max-w-[1200px] px-4 sm:px-6 lg:px-8" style={{ height: '100%' }}>
-              <div className="relative px-4 md:px-4 lg:px-6 flex flex-col" style={{
+            <div className="mx-auto max-w-[1100px] px-4 sm:px-6 lg:px-8" style={{ height: '100%' }}>
+              <div className="relative px-4 md:px-8 lg:px-12 flex flex-col" style={{
                 borderLeft: '0.5px solid rgba(156, 163, 175, 0.3)',
                 borderRight: '0.5px solid rgba(156, 163, 175, 0.3)',
                 backgroundColor: '#f6f6f4',
@@ -178,13 +178,13 @@ export default function OverturePage() {
                    {/* Two-column layout */}
                   <div className="grid grid-cols-1 md:grid-cols-3 gap-0 relative" style={{ height: '100%' }}>
 
-                    {/* Left Column - Capabilities (2 columns wide) */}
-                    <div className="hidden md:flex md:col-span-2 flex-col items-start justify-start pl-4 md:pl-8 lg:pl-12" style={{
+                     {/* Left Column - Capabilities (2 columns wide) */}
+                    <div className="hidden md:flex md:col-span-2 flex-col items-start justify-start" style={{
                       paddingTop: '3rem',
                       paddingBottom: '3rem',
                       paddingRight: '1rem'
                     }}>
-                      <div className="w-full max-w-[320px] mr-auto">
+                       <div className="w-full max-w-[320px]">
                         <div className="space-y-20 text-sm md:text-base text-gray-600 dark:text-gray-400 relative pl-8">
                           {/* Vertical dashed line */}
                           <div className="absolute left-1.5 top-0 bottom-0" style={{
@@ -231,8 +231,8 @@ export default function OverturePage() {
 
           {/* How It Fits Section */}
           <section className="dark:bg-gray-900 text-gray-900 dark:text-white" style={{ backgroundColor: '#f6f6f4', height: '800px', borderBottom: '0.5px solid rgba(156, 163, 175, 0.3)' }}>
-            <div className="mx-auto max-w-[1200px] px-4 sm:px-6 lg:px-8" style={{ height: '100%' }}>
-              <div className="relative px-4 md:px-4 lg:px-6 flex flex-col" style={{
+            <div className="mx-auto max-w-[1100px] px-4 sm:px-6 lg:px-8" style={{ height: '100%' }}>
+              <div className="relative px-4 md:px-8 lg:px-12 flex flex-col" style={{
                 borderLeft: '0.5px solid rgba(156, 163, 175, 0.3)',
                 borderRight: '0.5px solid rgba(156, 163, 175, 0.3)',
                 backgroundColor: '#f6f6f4',
