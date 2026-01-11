@@ -31,7 +31,7 @@ export default function Hero() {
               </div>
             </div>
 
-            <div className="flex flex-col sm:flex-row gap-3 mb-6">
+             <div className="flex flex-col sm:flex-row gap-3 pl-4 md:pl-8 lg:pl-12 mb-6">
               <Link href="/overture">
                 <button
                   className="inline-flex items-center justify-center bg-black text-white px-4 py-2 rounded-lg hover:bg-gray-800 transition-all duration-200 text-xs font-medium shadow-md hover:shadow-lg"

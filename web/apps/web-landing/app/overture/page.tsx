@@ -184,7 +184,7 @@ export default function OverturePage() {
                       paddingBottom: '3rem',
                       paddingRight: '1rem'
                     }}>
-                      <div className="w-full max-w-[320px] mx-auto">
+                      <div className="w-full max-w-[320px] mr-auto">
                         <div className="space-y-20 text-sm md:text-base text-gray-600 dark:text-gray-400 relative pl-8">
                           {/* Vertical dashed line */}
                           <div className="absolute left-1.5 top-0 bottom-0" style={{
