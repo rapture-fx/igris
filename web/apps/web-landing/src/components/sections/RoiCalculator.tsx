@@ -74,7 +74,7 @@ export default function RoiCalculator() {
             </h2>
           </div>
 
-          <div className="max-w-[1200px] mx-auto">
+          <div className="max-w-[1100px] mx-auto">
             {/* Input Section */}
             <div className="mb-12 rounded-lg p-8" style={{
               backgroundColor: '#f6f6f4',

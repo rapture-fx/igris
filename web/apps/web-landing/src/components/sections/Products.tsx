@@ -6,7 +6,7 @@ import { ChevronRight } from 'lucide-react'
 export default function Products() {
   return (
     <section className="dark:bg-gray-900 text-gray-900 dark:text-white" style={{ backgroundColor: '#f6f6f4', height: '800px', borderBottom: '0.5px solid rgba(156, 163, 175, 0.3)' }}>
-      <div className="mx-auto max-w-[1200px] px-4 sm:px-6 lg:px-8" style={{ height: '100%' }}>
+      <div className="mx-auto max-w-[1100px] px-4 sm:px-6 lg:px-8" style={{ height: '100%' }}>
         <div className="relative px-4 md:px-4 lg:px-6 flex flex-col" style={{
           borderLeft: '0.5px solid rgba(156, 163, 175, 0.3)',
           borderRight: '0.5px solid rgba(156, 163, 175, 0.3)',
@@ -23,13 +23,33 @@ export default function Products() {
               Overture decides what to route and where. Runtime executes with governance and safety. Deploy independently or together with Hybrid enforcement.
             </p>
 
-            {/* Products - Mobile */}
-            <div className="space-y-12 text-left">
-              {/* Overture */}
-              <div>
-                <h3 className="text-xl md:text-2xl font-inter mb-2" style={{ color: '#000000', fontFamily: 'Roboto Mono, monospace' }}>
-                  Overture
-                </h3>
+               {/* Products - Mobile */}
+              <div className="space-y-12 text-left">
+                {/* Overture */}
+                <div className="text-left">
+                  <h3 className="text-xl md:text-2xl font-inter mb-2" style={{ color: '#000000', fontFamily: 'Roboto Mono, monospace' }}>
+                    Overture
+                  </h3>
+                  <p className="text-xs text-gray-600 dark:text-gray-400 font-inter mb-4" style={{ fontFamily: 'Roboto Mono, monospace' }}>
+                    Decision Layer
+                  </p>
+                  <div style={{ border: '0.5px solid rgba(156, 163, 175, 0.3)', marginTop: '1rem', marginBottom: '1rem', height: '200px', position: 'relative', overflow: 'hidden' }}>
+                    <Image
+                      src="/overtureframe.png"
+                      alt="Overture Decision Layer"
+                      fill
+                      style={{ objectFit: 'cover' }}
+                    />
+                  </div>
+                  <p className="text-xs text-gray-600 dark:text-gray-400 leading-relaxed font-inter mb-4" style={{ fontFamily: 'Roboto Mono, monospace' }}>
+                    Decision intelligence and routing control plane. Trust-aware provider selection with cost, quality, and latency optimization. Explainable decisions with full observability.
+                  </p>
+                  <Link href="/overture" className="group inline-flex items-center">
+                    <span className="text-sm text-gray-900 dark:text-white font-inter" style={{ fontFamily: 'Roboto Mono, monospace' }}>
+                      Explore Overture
+                    </span>
+                    <ChevronRight className="ml-1 h-3 w-3" />
+                  </Link>
                 <p className="text-xs text-gray-600 dark:text-gray-400 font-inter mb-4" style={{ fontFamily: 'Roboto Mono, monospace' }}>
                   Decision Layer
                 </p>

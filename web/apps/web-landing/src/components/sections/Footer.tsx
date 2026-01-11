@@ -6,7 +6,7 @@ export default function Footer() {
 
   return (
     <footer className="dark:bg-gray-900 text-gray-900 dark:text-white transition-all duration-200" style={{ backgroundColor: '#f6f6f4', fontFamily: 'Roboto Mono, monospace' }}>
-      <div className="mx-auto max-w-[1200px] px-4 sm:px-6 lg:px-8">
+      <div className="mx-auto max-w-[1100px] px-4 sm:px-6 lg:px-8">
         <div className="py-8 md:py-16 px-4 md:px-8 lg:px-12" style={{
           borderLeft: '0.5px solid rgba(156, 163, 175, 0.3)',
           borderRight: '0.5px solid rgba(156, 163, 175, 0.3)',

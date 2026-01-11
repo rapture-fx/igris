@@ -27,7 +27,7 @@ const features = [
 export default function MultiTenancy() {
   return (
     <section className="dark:bg-gray-900 text-gray-900 dark:text-white" style={{ backgroundColor: '#f6f6f4', height: '800px', borderBottom: '0.5px solid rgba(156, 163, 175, 0.3)' }}>
-      <div className="mx-auto max-w-[1200px] px-4 sm:px-6 lg:px-8" style={{ height: '100%' }}>
+      <div className="mx-auto max-w-[1100px] px-4 sm:px-6 lg:px-8" style={{ height: '100%' }}>
         <div className="relative px-4 md:px-4 lg:px-6 flex flex-col" style={{
           borderLeft: '0.5px solid rgba(156, 163, 175, 0.3)',
           borderRight: '0.5px solid rgba(156, 163, 175, 0.3)',
@@ -62,7 +62,7 @@ export default function MultiTenancy() {
             {/* Two-column layout */}
             <div className="grid grid-cols-1 md:grid-cols-3 gap-0 md:flex-1" style={{ height: '100%' }}>
               {/* Left Column - Features (2 columns wide) */}
-              <div className="hidden md:flex md:col-span-2 flex-col items-start justify-start pl-4 md:pl-8 lg:pl-12" style={{ paddingTop: '3rem', paddingBottom: '3rem', paddingRight: '1rem' }}>
+              <div className="hidden md:flex md:col-span-2 flex-col justify-center pl-4 md:pl-8 lg:pl-12" style={{ paddingTop: '3rem', paddingBottom: '3rem', paddingRight: '1rem' }}>
                   <div className="w-full max-w-[320px] mr-auto">
                   <div className="flex flex-col gap-8">
                     {features.map((feature, index) => (

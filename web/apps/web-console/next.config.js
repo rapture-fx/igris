@@ -2,6 +2,7 @@ const path = require('path');
 
 /** @type {import('next').NextConfig} */
 const nextConfig = {
+  output: 'export', // Static export for Cloudflare Pages
   reactStrictMode: true,
 
   transpilePackages: [
@@ -18,7 +19,7 @@ const nextConfig = {
     unoptimized: true, // Required for Cloudflare Pages
   },
 
-  // Monorepo support - prevent symlink issues
+  // Monorepo support
   outputFileTracingRoot: path.join(__dirname, '../../'),
 }
 

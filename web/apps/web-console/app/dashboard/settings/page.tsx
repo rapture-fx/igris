@@ -236,25 +236,6 @@ export default function SettingsPage() {
         </div>
 
         {/* Tabs */}
-        <style jsx>{`
-          [data-state="active"],
-          [data-state="active"]:hover,
-          [data-radix-tabs-trigger][data-state="active"],
-          [data-radix-tabs-trigger][data-state="active"]:hover {
-            background: transparent !important;
-            box-shadow: none !important;
-            border: none !important;
-            outline: none !important;
-          }
-          
-          button[data-radix-tabs-trigger][data-state="active"],
-          button[data-radix-tabs-trigger][data-state="active"]:hover {
-            background: transparent !important;
-            box-shadow: none !important;
-            border: none !important;
-            outline: none !important;
-          }
-        `}</style>
         <Tabs value={activeTab} onValueChange={setActiveTab}>
           <TabsList className="mb-4 text-xs">
             <TabsTrigger value="notifications" className="text-xs">Notifications</TabsTrigger>

@@ -16,7 +16,7 @@ export default function SSOCallback() {
     const handleOAuthCallback = async () => {
       try {
         console.log('Processing OAuth callback...');
-        await handleRedirectCallback();
+        // handleRedirectCallback is automatically handled by Clerk
         console.log('OAuth callback processed successfully');
 
         // Wait a moment for session to be set
