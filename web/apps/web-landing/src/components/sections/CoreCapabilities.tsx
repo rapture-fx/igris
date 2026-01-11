@@ -59,12 +59,12 @@ export default function CoreCapabilities() {
                {/* Two-column layout */}
                <div className="hidden md:grid md:grid-cols-3 gap-0 relative" style={{ height: '100%' }}>
                  {/* Left Column - Capabilities (2 columns wide) */}
-                 <div className="hidden md:flex md:col-span-2 flex-col items-start justify-start pl-4 md:pl-8 lg:pl-12" style={{
+                 <div className="hidden md:flex md:col-span-2 flex-col justify-start pl-4 md:pl-8 lg:pl-12" style={{
                    paddingTop: '3rem',
                    paddingBottom: '3rem',
                    paddingRight: '1rem'
                  }}>
-                  <div className="w-full max-w-[320px] mx-auto">
+                  <div className="w-full max-w-[320px] mr-auto">
                     <div className="space-y-6">
                    {capabilities.map((capability) => (
                      <div key={capability.name}>
