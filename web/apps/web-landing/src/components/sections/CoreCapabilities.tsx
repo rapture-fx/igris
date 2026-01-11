@@ -19,7 +19,7 @@ const capabilities = [
 export default function CoreCapabilities() {
   return (
     <>
-      <section className="dark:bg-gray-900 text-gray-900 dark:text-white" style={{ backgroundColor: '#f6f6f4', height: '800px', borderBottom: '0.5px solid rgba(156, 163, 175, 0.3)' }}>
+      <section className="dark:bg-gray-900 text-gray-900 dark:text-white" style={{ backgroundColor: '#f6f6f4', height: '700px', borderBottom: '0.5px solid rgba(156, 163, 175, 0.3)' }}>
         <div className="mx-auto max-w-[1100px] px-4 sm:px-6 lg:px-8" style={{ height: '100%' }}>
           <div className="relative px-4 md:px-8 lg:px-12 flex flex-col" style={{
             borderLeft: '0.5px solid rgba(156, 163, 175, 0.3)',
@@ -81,7 +81,7 @@ export default function CoreCapabilities() {
                 </div>
 
                 {/* Right Column - Title and Intro (Desktop only) */}
-                <div className="hidden md:flex text-left md:col-span-1 flex-col justify-start" style={{ borderLeft: '0.5px solid rgba(156, 163, 175, 0.3)', paddingTop: '23rem', paddingBottom: '3rem', paddingLeft: '1rem', height: '100%' }}>
+                <div className="hidden md:flex text-left md:col-span-1 flex-col justify-start" style={{ borderLeft: '0.5px solid rgba(156, 163, 175, 0.3)', paddingTop: '20rem', paddingBottom: '3rem', paddingLeft: '1rem', height: '100%' }}>
                   <h3 className="text-lg md:text-xl lg:text-2xl font-inter mb-4" style={{ color: '#000000', fontFamily: 'Roboto Mono, monospace' }}>
                     System Overview
                   </h3>
