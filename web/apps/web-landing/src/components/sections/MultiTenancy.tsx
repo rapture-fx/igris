@@ -63,8 +63,8 @@ export default function MultiTenancy() {
             <div className="grid grid-cols-1 md:grid-cols-3 gap-0 md:flex-1" style={{ height: '100%' }}>
               {/* Left Column - Features (2 columns wide) */}
               <div className="hidden md:flex md:col-span-2 flex-col justify-center" style={{ paddingTop: '3rem', paddingBottom: '3rem', paddingRight: '1rem' }}>
-                  <div className="w-full max-w-[320px] mr-auto">
-                  <div className="flex flex-col gap-8">
+                    <div className="w-full max-w-[320px]">
+                   <div className="flex flex-col gap-8">
                     {features.map((feature, index) => (
                       <div key={feature.name} className="text-left">
                         <h3 className="text-base font-semibold text-gray-900 dark:text-white mb-3 font-inter" style={{ fontFamily: 'Roboto Mono, monospace' }}>

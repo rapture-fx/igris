@@ -64,7 +64,7 @@ export default function CoreCapabilities() {
                     paddingBottom: '3rem',
                     paddingRight: '1rem'
                   }}>
-                  <div className="w-full max-w-[320px] mr-auto">
+                   <div className="w-full max-w-[320px]">
                     <div className="space-y-6">
                    {capabilities.map((capability) => (
                      <div key={capability.name}>
