@@ -35,39 +35,43 @@ export default function OverturePage() {
             backgroundRepeat: 'no-repeat',
             borderBottom: '0.5px solid rgba(156, 163, 175, 0.3)'
           }}>
-            <div className="mx-auto max-w-[1100px] px-4 sm:px-6 lg:px-8">
-              <div className="relative px-4 md:px-8 lg:px-12 pb-64 md:pb-80 lg:pb-[36rem] bg-transparent z-10" style={{
-                borderLeft: '0.5px solid rgba(156, 163, 175, 0.3)',
-                borderRight: '0.5px solid rgba(156, 163, 175, 0.3)'
-              }}>
-                <div className="max-w-[1100px] mx-auto pt-24 px-0 md:px-8 lg:px-16 relative z-10">
-                  <div className="pt-24 mb-6">
-                    <button
-                      onClick={() => router.push('/')}
-                      className="text-sm text-gray-600 hover:text-gray-900 hover:underline mb-4 inline-flex items-center transition-colors cursor-pointer bg-transparent border-none p-0"
-                    >
-                      ← Back to platform
-                    </button>
-                    <div className="flex flex-col md:flex-row md:justify-between md:items-start gap-6 mt-4">
-                      <div className="text-left md:w-2/3">
-                        <h1 className="text-lg md:text-xl lg:text-2xl font-medium text-[#111111] leading-[1.2]">
-                          Overture
-                        </h1>
-                        <h2 className="text-base md:text-lg lg:text-xl font-medium text-[#111111] leading-[1.2] mt-2 text-gray-600">
-                          Decision intelligence for AI requests — before execution.
-                        </h2>
-                      </div>
-                      <div className="text-left md:w-1/3">
-                        <p className="text-sm md:text-base text-gray-700 max-w-3xl leading-relaxed text-left">
-                          Overture evaluates policies, cost, performance, and availability to decide where AI requests should run — producing execution-ready decisions for any environment.
-                        </p>
-                      </div>
+             <div className="mx-auto max-w-[1100px] px-4 sm:px-6 lg:px-8">
+               <div className="relative px-4 md:px-8 lg:px-12 pb-0 bg-transparent z-10 overflow-visible" style={{
+                 borderLeft: '0.5px solid rgba(156, 163, 175, 0.3)',
+                 borderRight: '0.5px solid rgba(156, 163, 175, 0.3)'
+               }}>
+                <div className="max-w-[1100px] mx-auto" style={{ paddingTop: '300px' }}>
+                  <div className="mb-6 text-left">
+                    <div>
+                      <h1 className="text-lg md:text-xl lg:text-2xl font-medium text-[#111111] leading-[1.2]" style={{ fontFamily: 'Roboto Mono, monospace' }}>
+                        Overture
+                      </h1>
+                      <h2 className="text-base md:text-lg lg:text-xl font-medium text-[#111111] leading-[1.2] mt-2 text-gray-600" style={{ fontFamily: 'Roboto Mono, monospace' }}>
+                        Decision intelligence for AI requests — before execution.
+                      </h2>
+                      <p className="text-sm md:text-base text-gray-700 max-w-md leading-relaxed text-left mt-4" style={{ fontFamily: 'Roboto Mono, monospace' }}>
+                        Overture evaluates policies, cost, performance, and availability to decide where AI requests should run — producing execution-ready decisions for any environment.
+                      </p>
                     </div>
+                  </div>
+
+                  <div className="flex flex-col sm:flex-row gap-3 mb-6">
+                    <Link href="/overture">
+                      <button
+                        className="inline-flex items-center justify-center bg-black text-white px-4 py-2 rounded-lg hover:bg-gray-800 transition-all duration-200 text-xs font-medium shadow-md hover:shadow-lg"
+                        style={{ fontFamily: 'Roboto Mono, monospace' }}
+                      >
+                        Get Started
+                      </button>
+                    </Link>
+                  </div>
+
+                  <div className="w-full relative mt-8 -mx-4 md:-mx-8 lg:-mx-12" style={{ height: '200px' }}>
                   </div>
                 </div>
               </div>
-            </div>
-          </section>
+              </div>
+            </section>
 
           {/* Purpose & Value Section */}
           <section className="dark:bg-gray-900 text-gray-900 dark:text-white" style={{ backgroundColor: '#f6f6f4', height: '800px', borderBottom: '0.5px solid rgba(156, 163, 175, 0.3)' }}>
@@ -93,9 +97,9 @@ export default function OverturePage() {
                   </div>
 
                    {/* Two-column layout */}
-                  <div className="grid grid-cols-1 md:grid-cols-3 gap-0 relative md:flex-1" style={{ height: '100%' }}>
+                   <div className="grid grid-cols-1 md:grid-cols-3 gap-0 relative md:flex-1" style={{ height: '100%' }}>
 
-                     {/* Left Column - Image (2 columns wide) */}
+                    {/* Left Column - Image (2 columns wide) */}
                     <div className="hidden md:flex md:col-span-2 flex-col items-start justify-start" style={{
                       paddingTop: '3rem',
                       paddingBottom: '3rem',
@@ -176,15 +180,15 @@ export default function OverturePage() {
                   </div>
 
                    {/* Two-column layout */}
-                  <div className="grid grid-cols-1 md:grid-cols-3 gap-0 relative" style={{ height: '100%' }}>
+                   <div className="grid grid-cols-1 md:grid-cols-3 gap-0 relative md:flex-1" style={{ height: '100%' }}>
 
-                     {/* Left Column - Capabilities (2 columns wide) */}
+                    {/* Left Column - Capabilities (2 columns wide) */}
                     <div className="hidden md:flex md:col-span-2 flex-col items-start justify-start" style={{
                       paddingTop: '3rem',
                       paddingBottom: '3rem',
                       paddingRight: '1rem'
                     }}>
-                       <div className="w-full max-w-[320px]">
+                      <div className="w-full max-w-[320px]">
                         <div className="space-y-20 text-sm md:text-base text-gray-600 dark:text-gray-400 relative pl-8">
                           {/* Vertical dashed line */}
                           <div className="absolute left-1.5 top-0 bottom-0" style={{
@@ -248,12 +252,12 @@ export default function OverturePage() {
                       Use Overture your way
                     </h3>
                     <p className="text-sm md:text-base text-gray-600 dark:text-gray-400 font-inter leading-relaxed">
-                      Overture can run as a standalone decision engine or as part of the full Igris Inertial system. Use it alone to generate routing decisions, or pair it with Runtime for end-to-end adaptive execution under real-world uncertainty.
+                      Overture can run as a standalone decision engine or as part of full Igris Inertial system. Use it alone to generate routing decisions, or pair it with Runtime for end-to-end adaptive execution under real-world uncertainty.
                     </p>
                   </div>
 
                   {/* Two-column layout */}
-                  <div className="grid grid-cols-1 md:grid-cols-3 gap-0 relative md:flex-1" style={{ height: '100%' }}>
+                   <div className="grid grid-cols-1 md:grid-cols-3 gap-0 relative md:flex-1" style={{ height: '100%' }}>
 
                     {/* Left Column - Empty (2 columns wide) */}
                     <div className="hidden md:flex md:col-span-2 flex-col items-center justify-center" style={{
@@ -276,7 +280,7 @@ export default function OverturePage() {
                         Use Overture your way
                       </h3>
                       <p className="text-sm md:text-base text-gray-600 dark:text-gray-400 font-inter leading-relaxed">
-                        Overture can run as a standalone decision engine or as part of the full Igris Inertial system. Use it alone to generate routing decisions, or pair it with Runtime for end-to-end adaptive execution under real-world uncertainty.
+                        Overture can run as a standalone decision engine or as part of full Igris Inertial system. Use it alone to generate routing decisions, or pair it with Runtime for end-to-end adaptive execution under real-world uncertainty.
                       </p>
                     </div>
                   </div>
