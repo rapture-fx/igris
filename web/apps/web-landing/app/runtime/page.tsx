@@ -96,11 +96,10 @@ export default function RuntimePage() {
                   <div className="grid grid-cols-1 md:grid-cols-3 gap-0 relative md:flex-1" style={{ height: '100%' }}>
 
                     {/* Left Column - Image (2 columns wide) */}
-                    <div className="hidden md:flex md:col-span-2 flex-col items-center justify-center" style={{
+                    <div className="hidden md:flex md:col-span-2 flex-col items-center justify-center pl-4 md:pl-8 lg:pl-12" style={{
                       paddingTop: '3rem',
                       paddingBottom: '3rem',
-                      paddingRight: '1rem',
-                      paddingLeft: '0'
+                      paddingRight: '1rem'
                     }}>
                       <img
                         src="/runtimepage.png"
@@ -176,15 +175,14 @@ export default function RuntimePage() {
                     </div>
                   </div>
 
-                  {/* Two-column layout */}
+                   {/* Two-column layout */}
                   <div className="grid grid-cols-1 md:grid-cols-3 gap-0 relative md:flex-1" style={{ height: '100%' }}>
 
-                    {/* Left Column - Capabilities (2 columns wide) */}
-                    <div className="hidden md:flex md:col-span-2 flex-col items-center justify-center" style={{
+                    {/* Left Column - Image (2 columns wide) */}
+                    <div className="hidden md:flex md:col-span-2 flex-col items-start justify-start pl-4 md:pl-8 lg:pl-12" style={{
                       paddingTop: '3rem',
                       paddingBottom: '3rem',
-                      paddingRight: '1rem',
-                      paddingLeft: '0'
+                      paddingRight: '1rem'
                     }}>
                       <div className="w-full max-w-[320px] mx-auto">
                         <div className="space-y-20 text-sm md:text-base text-gray-600 dark:text-gray-400 relative pl-8">
@@ -257,12 +255,11 @@ export default function RuntimePage() {
                   {/* Two-column layout */}
                   <div className="grid grid-cols-1 md:grid-cols-3 gap-0 relative md:flex-1" style={{ height: '100%' }}>
 
-                    {/* Left Column - Empty (2 columns wide) */}
-                    <div className="hidden md:flex md:col-span-2 flex-col items-center justify-center" style={{
+                    {/* Left Column - Image (2 columns wide) */}
+                    <div className="hidden md:flex md:col-span-2 flex-col items-center justify-center pl-4 md:pl-8 lg:pl-12" style={{
                       paddingTop: '3rem',
                       paddingBottom: '3rem',
-                      paddingRight: '1rem',
-                      paddingLeft: '0'
+                      paddingRight: '1rem'
                     }}>
                     </div>
 

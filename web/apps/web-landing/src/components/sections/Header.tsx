@@ -63,14 +63,15 @@ export default function Header() {
   }, []);
 
   return (
-    <header
-      className={`fixed top-0 left-0 w-full z-50 dark:bg-gray-900 font-inter transition-all duration-300 ${
+     <header
+       className={`fixed top-0 left-0 w-full z-50 dark:bg-gray-900 transition-all duration-300 ${
         isScrolled ? 'backdrop-blur-md' : ''
       }`}
-      style={{
-        backgroundColor: isScrolled ? 'rgba(246, 246, 244, 0.8)' : 'transparent'
-      }}
-    >
+       style={{
+         backgroundColor: isScrolled ? 'rgba(246, 246, 244, 0.8)' : 'transparent',
+         fontFamily: 'Roboto Mono, monospace'
+       }}
+     >
       <div className="mx-auto max-w-[1200px] px-4 sm:px-6 lg:px-8">
         <div className="px-4 md:px-8 lg:px-12 py-4"
              style={{
@@ -103,20 +104,22 @@ export default function Header() {
               </button>
               {productDropdownOpen && (
                 <div className="absolute top-full left-0 mt-2 w-48 rounded-lg shadow-lg border border-gray-200 dark:border-gray-700 overflow-hidden" style={{ backgroundColor: '#f6f6f4' }}>
-                  <Link
-                    href="/overture"
-                    className="block px-4 py-2 text-xs text-gray-700 hover:text-gray-900 hover:bg-gray-100 dark:hover:bg-gray-800 transition-colors duration-200 font-inter"
-                    onClick={() => setProductDropdownOpen(false)}
-                  >
-                    Overture
-                  </Link>
-                  <Link
-                    href="/runtime"
-                    className="block px-4 py-2 text-xs text-gray-700 hover:text-gray-900 hover:bg-gray-100 dark:hover:bg-gray-800 transition-colors duration-200 font-inter"
-                    onClick={() => setProductDropdownOpen(false)}
-                  >
-                    Runtime
-                  </Link>
+                   <Link
+                     href="/overture"
+                     className="block px-4 py-2 text-xs text-gray-700 hover:text-gray-900 hover:bg-gray-100 dark:hover:bg-gray-800 transition-colors duration-200"
+                     onClick={() => setProductDropdownOpen(false)}
+                     style={{ fontFamily: 'Roboto Mono, monospace' }}
+                   >
+                     Overture
+                   </Link>
+                   <Link
+                     href="/runtime"
+                     className="block px-4 py-2 text-xs text-gray-700 hover:text-gray-900 hover:bg-gray-100 dark:hover:bg-gray-800 transition-colors duration-200"
+                     onClick={() => setProductDropdownOpen(false)}
+                     style={{ fontFamily: 'Roboto Mono, monospace' }}
+                   >
+                     Runtime
+                   </Link>
                 </div>
               )}
             </div>
@@ -128,57 +131,63 @@ export default function Header() {
                   setResourcesDropdownOpen(!resourcesDropdownOpen);
                   setProductDropdownOpen(false);
                 }}
-                className="text-gray-700 hover:text-gray-900 transition-colors duration-200 font-medium text-xs font-inter flex items-center gap-1"
-              >
-                Resources
-                <ChevronDown className={`h-4 w-4 transition-transform duration-200 ${resourcesDropdownOpen ? 'rotate-180' : ''}`} />
-              </button>
+                 className="text-gray-700 hover:text-gray-900 transition-colors duration-200 font-medium text-xs flex items-center gap-1"
+                 style={{ fontFamily: 'Roboto Mono, monospace' }}
+               >
+                 Resources
+                 <ChevronDown className={`h-4 w-4 transition-transform duration-200 ${resourcesDropdownOpen ? 'rotate-180' : ''}`} />
+               </button>
               {resourcesDropdownOpen && (
                  <div className="absolute top-full left-0 mt-2 w-48 rounded-lg shadow-lg border border-gray-200 dark:border-gray-700 overflow-hidden" style={{ backgroundColor: '#f6f6f4' }}>
              <Link
-                    href="/use-cases"
-                    className="block px-4 py-2 text-xs text-gray-700 hover:text-gray-900 hover:bg-gray-100 dark:hover:bg-gray-800 transition-colors duration-200 font-inter"
-                    onClick={() => setResourcesDropdownOpen(false)}
-                  >
-                    Use Cases
-                  </Link>
-                  <a
-                    href={docsHubUrl}
-                    className="block px-4 py-2 text-xs text-gray-700 hover:text-gray-900 hover:bg-gray-100 dark:hover:bg-gray-800 transition-colors duration-200 font-inter"
-                    onClick={() => setResourcesDropdownOpen(false)}
-            >
-              Docs
-                  </a>
-             <Link
-               href="/blog"
-                    className="block px-4 py-2 text-xs text-gray-700 hover:text-gray-900 hover:bg-gray-100 dark:hover:bg-gray-800 transition-colors duration-200 font-inter"
-                    onClick={() => setResourcesDropdownOpen(false)}
+                     href="/use-cases"
+                     className="block px-4 py-2 text-xs text-gray-700 hover:text-gray-900 hover:bg-gray-100 dark:hover:bg-gray-800 transition-colors duration-200"
+                     onClick={() => setResourcesDropdownOpen(false)}
+                     style={{ fontFamily: 'Roboto Mono, monospace' }}
+                   >
+                     Use Cases
+                   </Link>
+                   <a
+                     href={docsHubUrl}
+                     className="block px-4 py-2 text-xs text-gray-700 hover:text-gray-900 hover:bg-gray-100 dark:hover:bg-gray-800 transition-colors duration-200"
+                     onClick={() => setResourcesDropdownOpen(false)}
+                     style={{ fontFamily: 'Roboto Mono, monospace' }}
              >
-               Blog
-             </Link>
+               Docs
+                   </a>
+              <Link
+                href="/blog"
+                     className="block px-4 py-2 text-xs text-gray-700 hover:text-gray-900 hover:bg-gray-100 dark:hover:bg-gray-800 transition-colors duration-200"
+                     onClick={() => setResourcesDropdownOpen(false)}
+                     style={{ fontFamily: 'Roboto Mono, monospace' }}
+              >
+                Blog
+              </Link>
                 </div>
               )}
             </div>
 
-            <Link
-              href="/pricing"
-              className="text-gray-700 hover:text-gray-900 transition-colors duration-200 font-medium text-xs font-inter"
-            >
-              Pricing
-            </Link>
+             <Link
+               href="/pricing"
+               className="text-gray-700 hover:text-gray-900 transition-colors duration-200 font-medium text-xs"
+               style={{ fontFamily: 'Roboto Mono, monospace' }}
+             >
+               Pricing
+             </Link>
 
-            <a
-              href={consoleUrl ? `${consoleUrl}/auth?mode=signin` : '#'}
-              className="text-gray-700 hover:text-gray-900 transition-colors duration-200 font-medium text-xs font-inter"
-            >
-              Sign In
-            </a>
+             <a
+               href={consoleUrl ? `${consoleUrl}/auth?mode=signin` : '#'}
+               className="text-gray-700 hover:text-gray-900 transition-colors duration-200 font-medium text-xs"
+               style={{ fontFamily: 'Roboto Mono, monospace' }}
+             >
+               Sign In
+             </a>
 
-            <a
-              href={consoleUrl ? `${consoleUrl}/auth?mode=signup` : '#'}
-              className="text-white px-3 py-1.5 rounded-lg hover:opacity-90 transition-all duration-200 text-xs shadow-md hover:shadow-lg font-inter"
-              style={{ backgroundColor: '#000000' }}
-            >
+             <a
+               href={consoleUrl ? `${consoleUrl}/auth?mode=signup` : '#'}
+               className="text-white px-3 py-1.5 rounded-lg hover:opacity-90 transition-all duration-200 text-xs shadow-md hover:shadow-lg"
+               style={{ backgroundColor: '#000000', fontFamily: 'Roboto Mono, monospace' }}
+             >
               Get Started
             </a>
           </div>
@@ -205,77 +214,84 @@ export default function Header() {
             <nav className="flex flex-col space-y-4 mt-4">
               {/* Product Dropdown Mobile */}
               <div>
-                <button
-                  onClick={() => setMobileProductOpen(!mobileProductOpen)}
-                  className="w-full flex items-center justify-between text-gray-700 hover:text-gray-900 transition-colors duration-200 font-medium text-xs font-inter"
-                >
+                 <button
+                   onClick={() => setMobileProductOpen(!mobileProductOpen)}
+                   className="w-full flex items-center justify-between text-gray-700 hover:text-gray-900 transition-colors duration-200 font-medium text-xs"
+                   style={{ fontFamily: 'Roboto Mono, monospace' }}
+                 >
                   Product
                   <ChevronDown className={`h-4 w-4 transition-transform duration-200 ${mobileProductOpen ? 'rotate-180' : ''}`} />
                 </button>
                 {mobileProductOpen && (
                   <div className="ml-4 mt-2 space-y-2">
-                    <Link
-                      href="/overture"
-                      className="block text-gray-700 hover:text-gray-900 transition-colors duration-200 font-medium text-xs font-inter"
-                      onClick={() => {
-                        setMobileMenuOpen(false);
-                        setMobileProductOpen(false);
-                      }}
-                    >
-                      Overture
-                    </Link>
-                    <Link
-                      href="/runtime"
-                      className="block text-gray-700 hover:text-gray-900 transition-colors duration-200 font-medium text-xs font-inter"
-                      onClick={() => {
-                        setMobileMenuOpen(false);
-                        setMobileProductOpen(false);
-                      }}
-                    >
-                      Runtime
-                    </Link>
+                     <Link
+                       href="/overture"
+                       className="block text-gray-700 hover:text-gray-900 transition-colors duration-200 font-medium text-xs"
+                       onClick={() => {
+                         setMobileMenuOpen(false);
+                         setMobileProductOpen(false);
+                       }}
+                       style={{ fontFamily: 'Roboto Mono, monospace' }}
+                     >
+                       Overture
+                     </Link>
+                     <Link
+                       href="/runtime"
+                       className="block text-gray-700 hover:text-gray-900 transition-colors duration-200 font-medium text-xs"
+                       onClick={() => {
+                         setMobileMenuOpen(false);
+                         setMobileProductOpen(false);
+                       }}
+                       style={{ fontFamily: 'Roboto Mono, monospace' }}
+                     >
+                       Runtime
+                     </Link>
                   </div>
                 )}
               </div>
 
               {/* Resources Dropdown Mobile */}
               <div>
-                <button
-                  onClick={() => setMobileResourcesOpen(!mobileResourcesOpen)}
-                  className="w-full flex items-center justify-between text-gray-700 hover:text-gray-900 transition-colors duration-200 font-medium text-xs font-inter"
-                >
+                 <button
+                   onClick={() => setMobileResourcesOpen(!mobileResourcesOpen)}
+                   className="w-full flex items-center justify-between text-gray-700 hover:text-gray-900 transition-colors duration-200 font-medium text-xs"
+                   style={{ fontFamily: 'Roboto Mono, monospace' }}
+                 >
                   Resources
                   <ChevronDown className={`h-4 w-4 transition-transform duration-200 ${mobileResourcesOpen ? 'rotate-180' : ''}`} />
                 </button>
                  {mobileResourcesOpen && (
                   <div className="ml-4 mt-2 space-y-2">
-              <Link
-                      href="/use-cases"
-                      className="block text-gray-700 hover:text-gray-900 transition-colors duration-200 font-medium text-xs font-inter"
-                      onClick={() => {
-                        setMobileMenuOpen(false);
-                        setMobileResourcesOpen(false);
-                      }}
-                    >
-                      Use Cases
-                    </Link>
-                    <a
-                      href={docsHubUrl}
-                      className="block text-gray-700 hover:text-gray-900 transition-colors duration-200 font-medium text-xs font-inter"
-                      onClick={() => {
-                        setMobileMenuOpen(false);
-                        setMobileResourcesOpen(false);
-                      }}
-              >
-                Docs
-                    </a>
+               <Link
+                       href="/use-cases"
+                       className="block text-gray-700 hover:text-gray-900 transition-colors duration-200 font-medium text-xs"
+                       onClick={() => {
+                         setMobileMenuOpen(false);
+                         setMobileResourcesOpen(false);
+                       }}
+                       style={{ fontFamily: 'Roboto Mono, monospace' }}
+                     >
+                       Use Cases
+                     </Link>
+                     <a
+                       href={docsHubUrl}
+                       className="block text-gray-700 hover:text-gray-900 transition-colors duration-200 font-medium text-xs"
+                       onClick={() => {
+                         setMobileMenuOpen(false);
+                         setMobileResourcesOpen(false);
+                       }}
+                       style={{ fontFamily: 'Roboto Mono, monospace' }}
+               >
+                 Docs
+                   </a>
               <Link
                 href="/blog"
-                      className="block text-gray-700 hover:text-gray-900 transition-colors duration-200 font-medium text-xs font-inter"
-                      onClick={() => {
-                        setMobileMenuOpen(false);
-                        setMobileResourcesOpen(false);
-                      }}
+                       className="block text-gray-700 hover:text-gray-900 transition-colors duration-200 font-medium text-xs"
+                       onClick={() => {
+                         setMobileMenuOpen(false);
+                         setMobileResourcesOpen(false);
+                       }}
+                       style={{ fontFamily: 'Roboto Mono, monospace' }}
               >
                 Blog
               </Link>
@@ -283,27 +299,29 @@ export default function Header() {
                 )}
               </div>
 
-              <Link
-                href="/pricing"
-                className="text-gray-700 hover:text-gray-900 transition-colors duration-200 font-medium text-xs font-inter"
-                onClick={() => setMobileMenuOpen(false)}
-              >
-                Pricing
-              </Link>
+             <Link
+                 href="/pricing"
+                 className="text-gray-700 hover:text-gray-900 transition-colors duration-200 font-medium text-xs"
+                 onClick={() => setMobileMenuOpen(false)}
+                 style={{ fontFamily: 'Roboto Mono, monospace' }}
+               >
+                 Pricing
+               </Link>
 
-              <a
-                href={consoleUrl ? `${consoleUrl}/auth?mode=signin` : '#'}
-                className="text-gray-700 hover:text-gray-900 transition-colors duration-200 font-medium text-xs font-inter"
-                onClick={() => setMobileMenuOpen(false)}
-              >
-                Sign In
-              </a>
-              <a
-                href={consoleUrl ? `${consoleUrl}/auth?mode=signup` : '#'}
-                onClick={() => setMobileMenuOpen(false)}
-                className="text-white px-3 py-1.5 rounded-lg hover:opacity-90 transition-all duration-200 text-xs shadow-md font-inter w-full text-center block"
-                style={{ backgroundColor: '#000000' }}
-              >
+             <a
+               href={consoleUrl ? `${consoleUrl}/auth?mode=signin` : '#'}
+               className="text-gray-700 hover:text-gray-900 transition-colors duration-200 font-medium text-xs"
+               onClick={() => setMobileMenuOpen(false)}
+               style={{ fontFamily: 'Roboto Mono, monospace' }}
+               >
+                 Sign In
+               </a>
+             <a
+               href={consoleUrl ? `${consoleUrl}/auth?mode=signup` : '#'}
+               onClick={() => setMobileMenuOpen(false)}
+               className="text-white px-3 py-1.5 rounded-lg hover:opacity-90 transition-all duration-200 text-xs shadow-md w-full text-center block"
+               style={{ backgroundColor: '#000000', fontFamily: 'Roboto Mono, monospace' }}
+             >
                 Get Started
               </a>
             </nav>
