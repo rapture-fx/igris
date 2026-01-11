@@ -81,7 +81,7 @@ export default function HowItWorks() {
           <div className="grid grid-cols-1 md:grid-cols-3 gap-0 md:flex-1" style={{ height: '100%' }}>
             {/* Left Column - Content (2 columns wide) */}
             <div className="md:col-span-2 flex flex-col justify-center" style={{ paddingTop: '3rem', paddingBottom: '3rem', paddingRight: '1rem' }}>
-                    <div className="w-full max-w-[320px] mr-auto">
+                    <div className="w-full max-w-[320px]">
                  <div className="space-y-20 text-sm md:text-base text-gray-600 dark:text-gray-400 relative pl-8">
                   {/* Vertical dashed line */}
                   <div className="absolute left-1.5 top-0 bottom-0" style={{

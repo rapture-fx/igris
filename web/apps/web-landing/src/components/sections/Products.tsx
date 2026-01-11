@@ -106,7 +106,7 @@ export default function Products() {
 
             {/* Left Column: Overture and Runtime - 2 columns wide (Desktop only) */}
             <div className="hidden md:flex md:col-span-2 flex-col items-start justify-start" style={{ paddingTop: '3rem', paddingBottom: '3rem', paddingRight: '1rem' }}>
-              <div className="w-full max-w-[500px] space-y-12">
+               <div className="w-full max-w-[500px] space-y-12">
 
                 {/* Overture */}
                 <div>
