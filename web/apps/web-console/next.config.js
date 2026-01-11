@@ -2,7 +2,8 @@ const path = require('path');
 
 /** @type {import('next').NextConfig} */
 const nextConfig = {
-  output: 'export', // Static export for Cloudflare Pages
+  // SSR mode for Cloudflare Pages (required for Clerk middleware)
+  // DO NOT use output: 'export' - it breaks authentication middleware
   reactStrictMode: true,
 
   typescript: {
@@ -20,7 +21,7 @@ const nextConfig = {
   ],
 
   env: {
-    NEXT_PUBLIC_API_URL: process.env.NEXT_PUBLIC_API_URL || 'http://localhost:8081',
+    NEXT_PUBLIC_API_URL: process.env.NEXT_PUBLIC_API_URL || 'http://localhost:8080',
   },
 
   images: {
