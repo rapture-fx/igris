@@ -20,7 +20,7 @@ export default function CoreCapabilities() {
   return (
     <>
       <section className="dark:bg-gray-900 text-gray-900 dark:text-white" style={{ backgroundColor: '#f6f6f4', height: '800px', borderBottom: '0.5px solid rgba(156, 163, 175, 0.3)' }}>
-        <div className="mx-auto max-w-[1200px] px-4 sm:px-6 lg:px-8" style={{ height: '100%' }}>
+        <div className="mx-auto max-w-[1100px] px-4 sm:px-6 lg:px-8" style={{ height: '100%' }}>
           <div className="relative px-4 md:px-4 lg:px-6 flex flex-col" style={{
             borderLeft: '0.5px solid rgba(156, 163, 175, 0.3)',
             borderRight: '0.5px solid rgba(156, 163, 175, 0.3)',
@@ -58,12 +58,12 @@ export default function CoreCapabilities() {
 
                {/* Two-column layout */}
                <div className="hidden md:grid md:grid-cols-3 gap-0 relative" style={{ height: '100%' }}>
-                 {/* Left Column - Capabilities (2 columns wide) */}
-                 <div className="hidden md:flex md:col-span-2 flex-col justify-start pl-4 md:pl-8 lg:pl-12" style={{
-                   paddingTop: '3rem',
-                   paddingBottom: '3rem',
-                   paddingRight: '1rem'
-                 }}>
+                  {/* Left Column - Capabilities (2 columns wide) */}
+                  <div className="hidden md:flex md:col-span-2 flex-col justify-center pl-4 md:pl-8 lg:pl-12" style={{
+                    paddingTop: '3rem',
+                    paddingBottom: '3rem',
+                    paddingRight: '1rem'
+                  }}>
                   <div className="w-full max-w-[320px] mr-auto">
                     <div className="space-y-6">
                    {capabilities.map((capability) => (

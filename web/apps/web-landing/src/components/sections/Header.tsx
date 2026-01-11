@@ -72,7 +72,7 @@ export default function Header() {
          fontFamily: 'Roboto Mono, monospace'
        }}
      >
-      <div className="mx-auto max-w-[1200px] px-4 sm:px-6 lg:px-8">
+       <div className="mx-auto max-w-[1100px] px-4 sm:px-6 lg:px-8">
         <div className="px-4 md:px-8 lg:px-12 py-4"
              style={{
                borderLeft: '0.5px solid rgba(156, 163, 175, 0.3)',

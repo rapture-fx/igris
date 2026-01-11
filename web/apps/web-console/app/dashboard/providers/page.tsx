@@ -215,15 +215,15 @@ export default function ProvidersPage() {
           </div>
           <div className="flex items-center gap-3">
             {tier === 'scale' && (
-              <Select
+              <select
                 value={selectedTenant}
                 onChange={(e) => setSelectedTenant(e.target.value)}
-                className="w-48"
+                className="w-48 h-7 text-xs border border-border-light rounded-md px-2 bg-white"
               >
                 {mockTenants.map((t) => (
                   <option key={t.id} value={t.id}>{t.name}</option>
                 ))}
-              </Select>
+              </select>
             )}
             <Button variant="outline" size="sm" className="shadow-sm h-7 text-xs" onClick={() => setShowAddDialog(true)}>
               <Plus className="mr-1.5 h-3.5 w-3.5" />
@@ -322,7 +322,7 @@ export default function ProvidersPage() {
                           </td>
                           {tier === 'scale' && (
                             <td className="py-2 px-3">
-                              <Select
+                              <select
                                 value={providerTenants[provider.id] || 'all'}
                                 onChange={(e) => handleTenantChange(provider.id, e.target.value)}
                                 className="w-40 h-7 text-xs"
@@ -331,7 +331,7 @@ export default function ProvidersPage() {
                                 {mockTenants.slice(1).map((t) => (
                                   <option key={t.id} value={t.id}>{t.name}</option>
                                 ))}
-                              </Select>
+                              </select>
                             </td>
                           )}
                           <td className="py-2 px-3 text-xs text-gray-900">
