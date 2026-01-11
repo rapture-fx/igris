@@ -26,7 +26,7 @@ const features = [
 
 export default function MultiTenancy() {
   return (
-    <section className="dark:bg-gray-900 text-gray-900 dark:text-white" style={{ backgroundColor: '#f6f6f4', height: '800px', borderBottom: '0.5px solid rgba(156, 163, 175, 0.3)' }}>
+    <section className="dark:bg-gray-900 text-gray-900 dark:text-white" style={{ backgroundColor: '#f6f6f4', height: '700px', borderBottom: '0.5px solid rgba(156, 163, 175, 0.3)' }}>
       <div className="mx-auto max-w-[1100px] px-4 sm:px-6 lg:px-8" style={{ height: '100%' }}>
         <div className="relative px-4 md:px-8 lg:px-12 flex flex-col" style={{
           borderLeft: '0.5px solid rgba(156, 163, 175, 0.3)',
@@ -70,7 +70,7 @@ export default function MultiTenancy() {
                         <h3 className="text-base font-semibold text-gray-900 dark:text-white mb-3 font-inter" style={{ fontFamily: 'Roboto Mono, monospace' }}>
                           {feature.name}
                         </h3>
-                        <p className="text-xs md:text-sm text-gray-600 dark:text-gray-400 leading-relaxed font-inter" style={{ fontFamily: 'Roboto Mono, monospace' }}>
+                        <p className="text-xs text-gray-600 dark:text-gray-400 leading-relaxed font-inter mb-4" style={{ fontFamily: 'Roboto Mono, monospace' }}>
                           {feature.description}
                         </p>
                       </div>
@@ -80,7 +80,7 @@ export default function MultiTenancy() {
               </div>
 
               {/* Right Column - Title and Intro (Desktop only) */}
-              <div className="hidden md:flex md:col-span-1 md:border-l flex-col justify-start" style={{ borderLeft: '0.5px solid rgba(156, 163, 175, 0.3)', paddingTop: '16rem', paddingBottom: '3rem', paddingLeft: '1rem', height: '100%' }}>
+              <div className="hidden md:flex md:col-span-1 md:border-l flex-col justify-start" style={{ borderLeft: '0.5px solid rgba(156, 163, 175, 0.3)', paddingTop: '12rem', paddingBottom: '3rem', paddingLeft: '1rem', height: '100%' }}>
                 <h3 className="text-lg md:text-xl lg:text-2xl font-inter mb-4" style={{ color: '#000000', fontFamily: 'Roboto Mono, monospace' }}>
                   Secure by default. Built to scale.
                 </h3>
