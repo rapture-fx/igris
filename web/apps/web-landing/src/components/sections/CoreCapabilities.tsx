@@ -21,7 +21,7 @@ export default function CoreCapabilities() {
     <>
       <section className="dark:bg-gray-900 text-gray-900 dark:text-white" style={{ backgroundColor: '#f6f6f4', height: '800px', borderBottom: '0.5px solid rgba(156, 163, 175, 0.3)' }}>
         <div className="mx-auto max-w-[1100px] px-4 sm:px-6 lg:px-8" style={{ height: '100%' }}>
-          <div className="relative px-4 md:px-4 lg:px-6 flex flex-col" style={{
+          <div className="relative px-4 md:px-8 lg:px-12 flex flex-col" style={{
             borderLeft: '0.5px solid rgba(156, 163, 175, 0.3)',
             borderRight: '0.5px solid rgba(156, 163, 175, 0.3)',
             backgroundColor: '#f6f6f4',
@@ -33,7 +33,7 @@ export default function CoreCapabilities() {
                {/* No absolute divider - use border on right column instead */}
 
               {/* Title Section - Shows first on mobile, last on desktop */}
-              <div className="mb-6 md:mb-0 md:hidden pl-4 md:pl-8 lg:pl-12 text-left" style={{ paddingTop: '3rem', paddingBottom: '3rem' }}>
+              <div className="mb-6 md:mb-0 md:hidden text-left" style={{ paddingTop: '3rem', paddingBottom: '3rem' }}>
                    <h3 className="text-lg md:text-xl lg:text-2xl font-inter mb-4" style={{ color: '#000000', fontFamily: 'Roboto Mono, monospace' }}>
                    System Overview
                  </h3>
@@ -59,7 +59,7 @@ export default function CoreCapabilities() {
                {/* Two-column layout */}
                <div className="hidden md:grid md:grid-cols-3 gap-0 relative" style={{ height: '100%' }}>
                   {/* Left Column - Capabilities (2 columns wide) */}
-                  <div className="hidden md:flex md:col-span-2 flex-col justify-center pl-4 md:pl-8 lg:pl-12" style={{
+                  <div className="hidden md:flex md:col-span-2 flex-col justify-center" style={{
                     paddingTop: '3rem',
                     paddingBottom: '3rem',
                     paddingRight: '1rem'
