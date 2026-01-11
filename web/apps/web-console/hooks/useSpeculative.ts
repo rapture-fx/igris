@@ -1,6 +1,7 @@
 import { useQuery, useMutation, useQueryClient } from '@tanstack/react-query';
 import { api } from '@/lib/apiClient';
 import { API_ENDPOINTS, QUERY_KEYS } from '@/utils/constants';
+import { handleApiError } from '@/lib/mockDataGuard';
 
 // Speculative Router Status
 export interface SpeculativeStatus {
@@ -65,7 +66,9 @@ export function useSpeculativeStatus() {
         return await api.get<SpeculativeStatus>(API_ENDPOINTS.SPECULATIVE_STATUS);
       } catch (error) {
         // Mock data
-        return {
+        return handleApiError<SpeculativeStatus>(
+          error,
+          {
           enabled: true,
           success_rate: 94.5,
           latency_improvement_ms: 127,
@@ -77,7 +80,9 @@ export function useSpeculativeStatus() {
             'Google': 789,
             'xAI': 300,
           },
-        };
+        },
+          'useSpeculativeStatus'
+        );
       }
     },
     staleTime: 30 * 1000,
@@ -94,13 +99,17 @@ export function useSpeculativeConfig() {
         return await api.get<SpeculativeConfig>(API_ENDPOINTS.SPECULATIVE_CONFIG);
       } catch (error) {
         // Mock data
-        return {
+        return handleApiError<SpeculativeConfig>(
+          error,
+          {
           enabled: true,
           max_parallel_providers: 3,
           timeout_ms: 2000,
           first_token_threshold_ms: 500,
           enabled_providers: ['OpenAI', 'Anthropic', 'Google', 'xAI'],
-        };
+        },
+          'useSpeculativeConfig'
+        );
       }
     },
     staleTime: 60 * 1000,
@@ -117,7 +126,9 @@ export function useSpeculativeAnalytics() {
       } catch (error) {
         // Mock data
         const now = Date.now();
-        return {
+        return handleApiError<SpeculativeAnalytics>(
+          error,
+          {
           race_win_rate: [
             { provider: 'OpenAI', wins: 1234, total_races: 3421, win_rate: 36.1 },
             { provider: 'Anthropic', wins: 1098, total_races: 3421, win_rate: 32.1 },
@@ -141,7 +152,9 @@ export function useSpeculativeAnalytics() {
             { model: 'claude-3-opus', avg_latency: 156, win_rate: 34.5 },
             { model: 'gemini-pro', avg_latency: 178, win_rate: 27.3 },
           ],
-        };
+        },
+          'useSpeculativeAnalytics'
+        );
       }
     },
     staleTime: 60 * 1000,

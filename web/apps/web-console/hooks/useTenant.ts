@@ -1,6 +1,7 @@
 import { useQuery } from '@tanstack/react-query';
 import { api } from '@/lib/apiClient';
 import { API_ENDPOINTS, QUERY_KEYS } from '@/utils/constants';
+import { handleApiError } from '@/lib/mockDataGuard';
 
 export interface Tenant {
   id: string;
@@ -20,25 +21,28 @@ export function useTenant() {
       try {
         return await api.get<Tenant>(API_ENDPOINTS.TENANT_CURRENT);
       } catch (error) {
-        // Return mock tenant data when API is unavailable
-        return {
-          id: 'demo-tenant-001',
-          name: 'Demo Organization',
-          email: 'demo@igrisinertial.com',
-          plan: 'Growth',
-          created_at: new Date(Date.now() - 90 * 24 * 60 * 60 * 1000).toISOString(),
-          updated_at: new Date().toISOString(),
-          status: 'active' as 'active' | 'disabled' | 'suspended',
-          metadata: {
-            trial_active: false,
-            trial_days_left: 0,
+        // Production-safe fallback: throws in production, returns mock in development
+        return handleApiError<Tenant>(
+          error,
+          {
+            id: 'demo-tenant-001',
+            name: 'Demo Organization',
+            email: 'demo@igrisinertial.com',
+            plan: 'Growth',
+            created_at: new Date(Date.now() - 90 * 24 * 60 * 60 * 1000).toISOString(),
+            updated_at: new Date().toISOString(),
+            status: 'active' as 'active' | 'disabled' | 'suspended',
+            metadata: {
+              trial_active: false,
+              trial_days_left: 0,
+            },
           },
-        };
+          'useTenant'
+        );
       }
     },
     staleTime: 5 * 60 * 1000, // 5 minutes
     retry: false,
     refetchOnWindowFocus: false,
-    throwOnError: false, // Prevent uncaught errors in console
   });
 }

@@ -1,6 +1,7 @@
 import { useQuery, useMutation, useQueryClient } from '@tanstack/react-query';
 import { api } from '@/lib/apiClient';
 import { API_ENDPOINTS, QUERY_KEYS } from '@/utils/constants';
+import { handleApiError } from '@/lib/mockDataGuard';
 
 // EscapeVector Status
 export interface EscapeVectorStatus {
@@ -64,7 +65,9 @@ export function useEscapeVectorStatus() {
         return await api.get<EscapeVectorStatus>(API_ENDPOINTS.ESCAPEVECTOR_STATUS);
       } catch (error) {
         // Return mock data when API unavailable
-        return {
+        return handleApiError<EscapeVectorStatus>(
+          error,
+          {
           cache_status: 'active',
           time_remaining_hours: 58.3,
           last_refresh: new Date(Date.now() - 14 * 60 * 60 * 1000).toISOString(),
@@ -72,7 +75,9 @@ export function useEscapeVectorStatus() {
           estimated_savings: 342.67,
           total_entries: 12847,
           cache_size_mb: 234.5,
-        };
+        },
+          'useEscapeVectorStatus'
+        );
       }
     },
     staleTime: 30 * 1000, // 30 seconds
@@ -89,12 +94,16 @@ export function useEscapeVectorConfig() {
         return await api.get<EscapeVectorConfig>(API_ENDPOINTS.ESCAPEVECTOR_CONFIG);
       } catch (error) {
         // Return mock data when API unavailable
-        return {
+        return handleApiError<EscapeVectorConfig>(
+          error,
+          {
           enabled: true,
           cache_ttl_hours: 72,
           min_quality_threshold: 85,
           refresh_interval_hours: 24,
-        };
+        },
+          'useEscapeVectorConfig'
+        );
       }
     },
     staleTime: 60 * 1000, // 1 minute
@@ -164,7 +173,9 @@ export function useEscapeVectorAnalytics() {
       } catch (error) {
         // Return mock data when API unavailable
         const now = Date.now();
-        return {
+        return handleApiError<EscapeVectorAnalytics>(
+          error,
+          {
           cache_usage_timeline: Array.from({ length: 24 }, (_, i) => {
             const cache_hits = Math.floor(Math.random() * 400) + 300;
             const direct = Math.floor(Math.random() * 150) + 50;
@@ -194,7 +205,9 @@ export function useEscapeVectorAnalytics() {
           total_savings_24h: 342.67,
           avg_response_time_cache: 12,
           avg_response_time_direct: 156,
-        };
+        },
+          'useEscapeVectorAnalytics'
+        );
       }
     },
     staleTime: 60 * 1000, // 1 minute

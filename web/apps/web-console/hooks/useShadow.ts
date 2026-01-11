@@ -1,6 +1,7 @@
 import { useQuery, useMutation, useQueryClient } from '@tanstack/react-query';
 import { api } from '@/lib/apiClient';
 import { API_ENDPOINTS, QUERY_KEYS } from '@/utils/constants';
+import { handleApiError } from '@/lib/mockDataGuard';
 
 // Shadow Mode Status
 export interface ShadowStatus {
@@ -68,15 +69,18 @@ export function useShadowStatus() {
       try {
         return await api.get<ShadowStatus>(API_ENDPOINTS.SHADOW_STATUS);
       } catch (error) {
-        // Mock data
-        return {
-          enabled: true,
-          shadow_traffic_percent: 10,
-          requests_24h: 2847,
-          quality_delta: -2.3,
-          discrepancies_found: 12,
-          last_updated: new Date().toISOString(),
-        };
+        return handleApiError<ShadowStatus>(
+          error,
+          {
+            enabled: true,
+            shadow_traffic_percent: 10,
+            requests_24h: 2847,
+            quality_delta: -2.3,
+            discrepancies_found: 12,
+            last_updated: new Date().toISOString(),
+          },
+          'useShadowStatus'
+        );
       }
     },
     staleTime: 30 * 1000,
@@ -92,16 +96,19 @@ export function useShadowConfig() {
       try {
         return await api.get<ShadowConfig>(API_ENDPOINTS.SHADOW_CONFIG);
       } catch (error) {
-        // Mock data
-        return {
-          enabled: true,
-          shadow_percent: 10,
-          primary_provider: 'OpenAI',
-          shadow_provider: 'Anthropic',
-          quality_threshold: 85,
-          auto_promote: false,
-          auto_promote_threshold: 95,
-        };
+        return handleApiError<ShadowConfig>(
+          error,
+          {
+            enabled: true,
+            shadow_percent: 10,
+            primary_provider: 'OpenAI',
+            shadow_provider: 'Anthropic',
+            quality_threshold: 85,
+            auto_promote: false,
+            auto_promote_threshold: 95,
+          },
+          'useShadowConfig'
+        );
       }
     },
     staleTime: 60 * 1000,
@@ -116,29 +123,32 @@ export function useShadowAnalytics() {
       try {
         return await api.get<ShadowAnalytics>(API_ENDPOINTS.SHADOW_ANALYTICS);
       } catch (error) {
-        // Mock data
         const now = Date.now();
-        return {
-          latency_comparison: Array.from({ length: 24 }, (_, i) => ({
-            timestamp: new Date(now - (23 - i) * 60 * 60 * 1000).toISOString(),
-            primary_latency: Math.floor(Math.random() * 100) + 150,
-            shadow_latency: Math.floor(Math.random() * 100) + 140,
-          })),
-          cost_comparison: Array.from({ length: 24 }, (_, i) => ({
-            timestamp: new Date(now - (23 - i) * 60 * 60 * 1000).toISOString(),
-            primary_cost: Math.random() * 0.05 + 0.03,
-            shadow_cost: Math.random() * 0.04 + 0.025,
-          })),
-          quality_comparison: Array.from({ length: 24 }, (_, i) => ({
-            timestamp: new Date(now - (23 - i) * 60 * 60 * 1000).toISOString(),
-            primary_quality: Math.random() * 10 + 85,
-            shadow_quality: Math.random() * 10 + 87,
-          })),
-          discrepancy_rate: Array.from({ length: 24 }, (_, i) => ({
-            timestamp: new Date(now - (23 - i) * 60 * 60 * 1000).toISOString(),
-            rate: Math.random() * 5,
-          })),
-        };
+        return handleApiError<ShadowAnalytics>(
+          error,
+          {
+            latency_comparison: Array.from({ length: 24 }, (_, i) => ({
+              timestamp: new Date(now - (23 - i) * 60 * 60 * 1000).toISOString(),
+              primary_latency: Math.floor(Math.random() * 100) + 150,
+              shadow_latency: Math.floor(Math.random() * 100) + 140,
+            })),
+            cost_comparison: Array.from({ length: 24 }, (_, i) => ({
+              timestamp: new Date(now - (23 - i) * 60 * 60 * 1000).toISOString(),
+              primary_cost: Math.random() * 0.05 + 0.03,
+              shadow_cost: Math.random() * 0.04 + 0.025,
+            })),
+            quality_comparison: Array.from({ length: 24 }, (_, i) => ({
+              timestamp: new Date(now - (23 - i) * 60 * 60 * 1000).toISOString(),
+              primary_quality: Math.random() * 10 + 85,
+              shadow_quality: Math.random() * 10 + 87,
+            })),
+            discrepancy_rate: Array.from({ length: 24 }, (_, i) => ({
+              timestamp: new Date(now - (23 - i) * 60 * 60 * 1000).toISOString(),
+              rate: Math.random() * 5,
+            })),
+          },
+          'useShadowAnalytics'
+        );
       }
     },
     staleTime: 60 * 1000,
@@ -153,19 +163,22 @@ export function useShadowLogs(limit: number = 50) {
       try {
         return await api.get<ShadowLogEntry[]>(`${API_ENDPOINTS.SHADOW_LOGS}?limit=${limit}`);
       } catch (error) {
-        // Mock data
-        return Array.from({ length: 10 }, (_, i) => ({
-          request_id: `req_${Math.random().toString(36).substr(2, 9)}`,
-          timestamp: new Date(Date.now() - i * 5 * 60 * 1000).toISOString(),
-          primary_provider: 'OpenAI',
-          shadow_provider: 'Anthropic',
-          primary_latency: Math.floor(Math.random() * 100) + 150,
-          shadow_latency: Math.floor(Math.random() * 100) + 140,
-          primary_cost: Math.random() * 0.05 + 0.03,
-          shadow_cost: Math.random() * 0.04 + 0.025,
-          quality_match: Math.random() > 0.1,
-          discrepancy: Math.random() > 0.9 ? 'Quality score mismatch' : null,
-        }));
+        return handleApiError<ShadowLogEntry[]>(
+          error,
+          Array.from({ length: 10 }, (_, i) => ({
+            request_id: `req_${Math.random().toString(36).substr(2, 9)}`,
+            timestamp: new Date(Date.now() - i * 5 * 60 * 1000).toISOString(),
+            primary_provider: 'OpenAI',
+            shadow_provider: 'Anthropic',
+            primary_latency: Math.floor(Math.random() * 100) + 150,
+            shadow_latency: Math.floor(Math.random() * 100) + 140,
+            primary_cost: Math.random() * 0.05 + 0.03,
+            shadow_cost: Math.random() * 0.04 + 0.025,
+            quality_match: Math.random() > 0.1,
+            discrepancy: Math.random() > 0.9 ? 'Quality score mismatch' : null,
+          })),
+          'useShadowLogs'
+        );
       }
     },
     staleTime: 30 * 1000,
