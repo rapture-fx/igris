@@ -15,6 +15,7 @@ import { DollarSign, Activity, Zap, TrendingUp, BarChart3, Clock, AlertTriangle,
 import { LineChart, Line, AreaChart, Area, BarChart, Bar, XAxis, YAxis, CartesianGrid, Tooltip, ResponsiveContainer } from 'recharts';
 import { CHART_COLORS } from '@/utils/constants';
 import { useRouter } from 'next/navigation';
+import { FEATURE_FLAGS } from '@/lib/config';
 
 const hideScrollbarStyles = `
   .hide-scrollbar {
@@ -72,13 +73,8 @@ export default function DashboardPage() {
   const userIntent = userMetadata?.intent || 'hybrid';
   const onboardingCompleted = userMetadata?.onboardingCompleted || false;
 
-  // Redirect to onboarding if not completed
-  useEffect(() => {
-    if (isLoaded && user && !onboardingCompleted) {
-      console.log('Onboarding not completed, redirecting to /onboarding');
-      router.replace('/onboarding');
-    }
-  }, [isLoaded, user, onboardingCompleted, router]);
+  // Note: Onboarding redirect is handled by middleware.ts to avoid double-checking
+  // and potential race conditions with metadata updates
 
   // Real data from APIs
   const [providerUptime, setProviderUptime] = useState<Array<{provider: string, uptime: string, status: string}>>([]);
@@ -335,15 +331,17 @@ export default function DashboardPage() {
         }
       };
 
-      // Set initial mock data immediately
-      setProviderUptime(mockInitialData.providerUptime);
-      setRequestsData(mockInitialData.requestsData);
-      setLatencyData(mockInitialData.latencyData);
-      setProviderCostData(mockInitialData.providerCostData);
-      setSystemHealth(mockInitialData.systemHealth);
-      setRecentActivity(mockInitialData.recentActivity);
-      setRuntimeFleetMetrics(mockInitialData.runtimeFleetMetrics);
-      // Update summary if needed (the summary object is read-only, so we don't set it)
+      // Only set mock data in development when enabled
+      // In production, this prevents mock data from showing
+      if (FEATURE_FLAGS.enableMockData) {
+        setProviderUptime(mockInitialData.providerUptime);
+        setRequestsData(mockInitialData.requestsData);
+        setLatencyData(mockInitialData.latencyData);
+        setProviderCostData(mockInitialData.providerCostData);
+        setSystemHealth(mockInitialData.systemHealth);
+        setRecentActivity(mockInitialData.recentActivity);
+        setRuntimeFleetMetrics(mockInitialData.runtimeFleetMetrics);
+      }
 
       const apiUrl = process.env.NEXT_PUBLIC_API_URL || 'http://localhost:8081';
       const authHeaders = {
