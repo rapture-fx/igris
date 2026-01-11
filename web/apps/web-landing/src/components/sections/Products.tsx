@@ -15,22 +15,22 @@ export default function Products() {
         }}>
 
           {/* Title Section - Shows first on mobile, last on desktop */}
-          <div className="text-left mb-6 md:mb-0 md:hidden" style={{ paddingTop: '3rem', paddingBottom: '3rem' }}>
-              <h2 className="text-lg md:text-xl lg:text-2xl font-inter mb-4" style={{ color: '#000000' }}>
-              Decision and Execution
-            </h2>
-            <p className="text-sm text-gray-600 dark:text-gray-400 font-inter leading-relaxed mb-8">
+          <div className="mb-6 md:mb-0 md:hidden pl-4 md:pl-8 lg:pl-12 text-left" style={{ paddingTop: '3rem', paddingBottom: '3rem' }}>
+              <h2 className="text-lg md:text-xl lg:text-2xl font-inter mb-4" style={{ color: '#000000', fontFamily: 'Roboto Mono, monospace' }}>
+                Decision and Execution
+              </h2>
+            <p className="text-sm text-gray-600 dark:text-gray-400 font-inter leading-relaxed mb-8" style={{ fontFamily: 'Roboto Mono, monospace' }}>
               Overture decides what to route and where. Runtime executes with governance and safety. Deploy independently or together with Hybrid enforcement.
             </p>
 
             {/* Products - Mobile */}
-            <div className="space-y-12">
+            <div className="space-y-12 text-left">
               {/* Overture */}
               <div>
-                <h3 className="text-xl md:text-2xl font-inter mb-2" style={{ color: '#000000' }}>
+                <h3 className="text-xl md:text-2xl font-inter mb-2" style={{ color: '#000000', fontFamily: 'Roboto Mono, monospace' }}>
                   Overture
                 </h3>
-                <p className="text-xs text-gray-600 dark:text-gray-400 font-inter mb-4">
+                <p className="text-xs text-gray-600 dark:text-gray-400 font-inter mb-4" style={{ fontFamily: 'Roboto Mono, monospace' }}>
                   Decision Layer
                 </p>
                 <div style={{ border: '0.5px solid rgba(156, 163, 175, 0.3)', marginTop: '1rem', marginBottom: '1rem', height: '200px', position: 'relative', overflow: 'hidden' }}>
@@ -41,21 +41,23 @@ export default function Products() {
                     style={{ objectFit: 'cover' }}
                   />
                 </div>
-                <p className="text-sm text-gray-600 dark:text-gray-400 leading-relaxed font-inter mb-4">
+                <p className="text-xs text-gray-600 dark:text-gray-400 leading-relaxed font-inter mb-4" style={{ fontFamily: 'Roboto Mono, monospace' }}>
                   Decision intelligence and routing control plane. Trust-aware provider selection with cost, quality, and latency optimization. Explainable decisions with full observability.
                 </p>
                 <Link href="/overture" className="group inline-flex items-center">
-                  <span className="text-sm text-gray-900 dark:text-white font-inter">Explore Overture</span>
+                  <span className="text-sm text-gray-900 dark:text-white font-inter" style={{ fontFamily: 'Roboto Mono, monospace' }}>
+                    Explore Overture
+                  </span>
                   <ChevronRight className="ml-1 h-3 w-3" />
                 </Link>
               </div>
 
               {/* Runtime */}
               <div>
-                <h3 className="text-xl md:text-2xl font-inter mb-2" style={{ color: '#000000' }}>
+                <h3 className="text-xl md:text-2xl font-inter mb-2" style={{ color: '#000000', fontFamily: 'Roboto Mono, monospace' }}>
                   Runtime
                 </h3>
-                <p className="text-xs text-gray-600 dark:text-gray-400 font-inter mb-4">
+                <p className="text-xs text-gray-600 dark:text-gray-400 font-inter mb-4" style={{ fontFamily: 'Roboto Mono, monospace' }}>
                   Execution Layer
                 </p>
                 <div style={{ border: '0.5px solid rgba(156, 163, 175, 0.3)', marginTop: '1rem', marginBottom: '1rem', height: '200px', position: 'relative', overflow: 'hidden' }}>
@@ -66,11 +68,13 @@ export default function Products() {
                     style={{ objectFit: 'cover' }}
                   />
                 </div>
-                <p className="text-sm text-gray-600 dark:text-gray-400 leading-relaxed font-inter mb-4">
+                <p className="text-xs text-gray-600 dark:text-gray-400 leading-relaxed font-inter mb-4" style={{ fontFamily: 'Roboto Mono, monospace' }}>
                   Licensed governed execution engine. Secure defaults and enforced limits. Deterministic execution envelopes with telemetry-backed execution.
                 </p>
                 <Link href="/runtime" className="group inline-flex items-center">
-                  <span className="text-sm text-gray-900 dark:text-white font-inter">Explore Runtime</span>
+                  <span className="text-sm text-gray-900 dark:text-white font-inter" style={{ fontFamily: 'Roboto Mono, monospace' }}>
+                    Explore Runtime
+                  </span>
                   <ChevronRight className="ml-1 h-3 w-3" />
                 </Link>
               </div>
@@ -81,12 +85,12 @@ export default function Products() {
           <div className="grid grid-cols-1 md:grid-cols-3 gap-0 md:flex-1" style={{ height: '100%' }}>
 
             {/* Left Column: Overture and Runtime - 2 columns wide (Desktop only) */}
-            <div className="hidden md:flex md:col-span-2 flex-col items-center justify-start" style={{ paddingTop: '3rem', paddingBottom: '3rem', paddingRight: '1rem', paddingLeft: '0' }}>
+            <div className="hidden md:flex md:col-span-2 flex-col items-start justify-start pl-4 md:pl-8 lg:pl-12" style={{ paddingTop: '3rem', paddingBottom: '3rem', paddingRight: '1rem' }}>
               <div className="w-full max-w-[500px] space-y-12">
 
                 {/* Overture */}
                 <div>
-                  <h3 className="text-xl md:text-2xl font-inter mb-2" style={{ color: '#000000' }}>
+                  <h3 className="text-xl md:text-2xl font-inter mb-2" style={{ color: '#000000', fontFamily: 'Roboto Mono, monospace' }}>
                     Overture
                   </h3>
                   <p className="text-xs text-gray-600 dark:text-gray-400 font-inter mb-4">
@@ -100,18 +104,20 @@ export default function Products() {
                       style={{ objectFit: 'cover' }}
                     />
                   </div>
-                  <p className="text-sm text-gray-600 dark:text-gray-400 leading-relaxed font-inter mb-4">
+                  <p className="text-sm text-gray-600 dark:text-gray-400 leading-relaxed font-inter mb-4" style={{ fontFamily: 'Roboto Mono, monospace' }}>
                     Decision intelligence and routing control plane. Trust-aware provider selection with cost, quality, and latency optimization. Explainable decisions with full observability.
                   </p>
                   <Link href="/overture" className="group inline-flex items-center">
-                    <span className="text-sm text-gray-900 dark:text-white font-inter">Explore Overture</span>
+                    <span className="text-sm text-gray-900 dark:text-white font-inter" style={{ fontFamily: 'Roboto Mono, monospace' }}>
+                      Explore Overture
+                    </span>
                     <ChevronRight className="ml-1 h-3 w-3" />
                   </Link>
                 </div>
 
                 {/* Runtime */}
                 <div>
-                  <h3 className="text-xl md:text-2xl font-inter mb-2" style={{ color: '#000000' }}>
+                  <h3 className="text-xl md:text-2xl font-inter mb-2" style={{ color: '#000000', fontFamily: 'Roboto Mono, monospace' }}>
                     Runtime
                   </h3>
                   <p className="text-xs text-gray-600 dark:text-gray-400 font-inter mb-4">
@@ -125,11 +131,13 @@ export default function Products() {
                       style={{ objectFit: 'cover' }}
                     />
                   </div>
-                  <p className="text-sm text-gray-600 dark:text-gray-400 leading-relaxed font-inter mb-4">
+                  <p className="text-sm text-gray-600 dark:text-gray-400 leading-relaxed font-inter mb-4" style={{ fontFamily: 'Roboto Mono, monospace' }}>
                     Licensed governed execution engine. Secure defaults and enforced limits. Deterministic execution envelopes with telemetry-backed execution.
                   </p>
                   <Link href="/runtime" className="group inline-flex items-center">
-                    <span className="text-sm text-gray-900 dark:text-white font-inter">Explore Runtime</span>
+                    <span className="text-sm text-gray-900 dark:text-white font-inter" style={{ fontFamily: 'Roboto Mono, monospace' }}>
+                      Explore Runtime
+                    </span>
                     <ChevronRight className="ml-1 h-3 w-3" />
                   </Link>
                 </div>
@@ -139,10 +147,10 @@ export default function Products() {
 
             {/* Right Column: Title and Description (Desktop only) */}
             <div className="hidden md:flex md:col-span-1 md:border-l flex-col justify-start" style={{ borderLeft: '0.5px solid rgba(156, 163, 175, 0.3)', paddingTop: '3rem', paddingBottom: '3rem', paddingLeft: '1rem', height: '100%' }}>
-            <h2 className="text-lg md:text-xl lg:text-2xl font-inter mb-4" style={{ color: '#000000' }}>
+            <h2 className="text-lg md:text-xl lg:text-2xl font-inter mb-4" style={{ color: '#000000', fontFamily: 'Roboto Mono, monospace' }}>
                 Decision and Execution
               </h2>
-              <p className="text-sm md:text-base text-gray-600 dark:text-gray-400 font-inter leading-relaxed">
+              <p className="text-xs md:text-sm text-gray-600 dark:text-gray-400 font-inter leading-relaxed" style={{ fontFamily: 'Roboto Mono, monospace' }}>
                 Overture decides what to route and where. Runtime executes with governance and safety. Deploy independently or together with Hybrid enforcement.
               </p>
             </div>

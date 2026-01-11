@@ -28,65 +28,64 @@ export default function CoreCapabilities() {
             height: '100%'
           }}>
 
-            {/* Content Container */}
-            <div className="w-full px-0 flex flex-col md:flex-1">
-              {/* No absolute divider - use border on right column instead */}
+             {/* Content Container */}
+             <div className="w-full px-0 flex flex-col md:flex-1">
+               {/* No absolute divider - use border on right column instead */}
 
               {/* Title Section - Shows first on mobile, last on desktop */}
-              <div className="text-left mb-6 md:mb-0 md:hidden" style={{ paddingTop: '3rem', paddingBottom: '3rem' }}>
-                  <h3 className="text-lg md:text-xl lg:text-2xl font-inter mb-4" style={{ color: '#000000' }}>
-                  System Overview
-                </h3>
-                <p className="text-sm md:text-base text-gray-700 dark:text-gray-300 font-inter leading-relaxed mb-8">
-                  Overture provides decision intelligence and routing control. Runtime provides governed execution with safety guarantees. Hybrid enforces cryptographic integrity between decision and execution.
-                </p>
+              <div className="mb-6 md:mb-0 md:hidden pl-4 md:pl-8 lg:pl-12 text-left" style={{ paddingTop: '3rem', paddingBottom: '3rem' }}>
+                   <h3 className="text-lg md:text-xl lg:text-2xl font-inter mb-4" style={{ color: '#000000', fontFamily: 'Roboto Mono, monospace' }}>
+                   System Overview
+                 </h3>
+                   <p className="text-xs md:text-sm text-gray-700 dark:text-gray-300 font-inter leading-relaxed mb-8" style={{ fontFamily: 'Roboto Mono, monospace' }}>
+                   Overture provides decision intelligence and routing control. Runtime provides governed execution with safety guarantees. Hybrid enforces cryptographic integrity between decision and execution.
+                 </p>
 
-                {/* Capabilities - Mobile */}
-                <div className="space-y-6">
-                  {capabilities.map((capability) => (
-                    <div key={capability.name}>
-                      <h4 className="text-base font-semibold text-gray-900 dark:text-white mb-2 font-inter">
-                        {capability.name}
-                      </h4>
-                      <p className="text-sm text-gray-600 dark:text-gray-400 leading-relaxed font-inter">
-                        {capability.description}
-                      </p>
-                    </div>
-                  ))}
-                </div>
-              </div>
+                 {/* Capabilities - Mobile */}
+                 <div className="space-y-6">
+                   {capabilities.map((capability) => (
+                     <div key={capability.name}>
+                       <h4 className="text-base font-semibold text-gray-900 dark:text-white mb-2 font-inter" style={{ fontFamily: 'Roboto Mono, monospace' }}>
+                         {capability.name}
+                       </h4>
+                       <p className="text-xs text-gray-600 dark:text-gray-400 leading-relaxed font-inter" style={{ fontFamily: 'Roboto Mono, monospace' }}>
+                         {capability.description}
+                       </p>
+                     </div>
+                   ))}
+                 </div>
+               </div>
 
                {/* Two-column layout */}
-              <div className="grid grid-cols-1 md:grid-cols-3 gap-0 relative md:flex-1" style={{ height: '100%' }}>
-                {/* Left Column - Capabilities (2 columns wide) */}
-                <div className="hidden md:flex md:col-span-2 flex-col items-center justify-center" style={{
-                  paddingTop: '3rem',
-                  paddingBottom: '3rem',
-                  paddingRight: '1rem',
-                  paddingLeft: '0'
-                }}>
+               <div className="hidden md:grid md:grid-cols-3 gap-0 relative" style={{ height: '100%' }}>
+                 {/* Left Column - Capabilities (2 columns wide) */}
+                 <div className="hidden md:flex md:col-span-2 flex-col items-start justify-start pl-4 md:pl-8 lg:pl-12" style={{
+                   paddingTop: '3rem',
+                   paddingBottom: '3rem',
+                   paddingRight: '1rem'
+                 }}>
                   <div className="w-full max-w-[320px] mx-auto">
                     <div className="space-y-6">
-                      {capabilities.map((capability) => (
-                        <div key={capability.name}>
-                          <h4 className="text-base font-semibold text-gray-900 dark:text-white mb-2 font-inter">
-                            {capability.name}
-                          </h4>
-                          <p className="text-sm text-gray-600 dark:text-gray-400 leading-relaxed font-inter">
-                            {capability.description}
-                          </p>
-                        </div>
-                      ))}
-                    </div>
+                   {capabilities.map((capability) => (
+                     <div key={capability.name}>
+                       <h4 className="text-base font-semibold text-gray-900 dark:text-white mb-2 font-inter" style={{ fontFamily: 'Roboto Mono, monospace' }}>
+                         {capability.name}
+                       </h4>
+                       <p className="text-xs text-gray-600 dark:text-gray-400 leading-relaxed font-inter" style={{ fontFamily: 'Roboto Mono, monospace' }}>
+                         {capability.description}
+                       </p>
+                     </div>
+                   ))}
+                 </div>
                   </div>
                 </div>
 
                 {/* Right Column - Title and Intro (Desktop only) */}
                 <div className="hidden md:flex text-left md:col-span-1 flex-col justify-start" style={{ borderLeft: '0.5px solid rgba(156, 163, 175, 0.3)', paddingTop: '23rem', paddingBottom: '3rem', paddingLeft: '1rem', height: '100%' }}>
-                <h3 className="text-lg md:text-xl lg:text-2xl font-inter mb-4" style={{ color: '#000000' }}>
+                  <h3 className="text-lg md:text-xl lg:text-2xl font-inter mb-4" style={{ color: '#000000', fontFamily: 'Roboto Mono, monospace' }}>
                     System Overview
                   </h3>
-                  <p className="text-sm md:text-base text-gray-700 dark:text-gray-300 font-inter leading-relaxed">
+                  <p className="text-xs md:text-sm text-gray-700 dark:text-gray-300 font-inter leading-relaxed" style={{ fontFamily: 'Roboto Mono, monospace' }}>
                     Overture provides decision intelligence and routing control. Runtime provides governed execution with safety guarantees. Hybrid enforces cryptographic integrity between decision and execution.
                   </p>
                 </div>

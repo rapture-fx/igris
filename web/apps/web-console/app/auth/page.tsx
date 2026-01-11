@@ -191,6 +191,66 @@ export default function AuthPage() {
     });
   };
 
+  const handleVerification = async (e: React.FormEvent) => {
+    e.preventDefault();
+    if (!signUpLoaded || !signUp) return;
+
+    setLoading(true);
+    setError('');
+
+    try {
+      console.log('=== EMAIL VERIFICATION START ===');
+      console.log('Code length:', code.length);
+      console.log('Code:', code);
+
+      // Verify the email code
+      const result = await signUp.attemptEmailAddressVerification({
+        code,
+      });
+
+      console.log('Verification result status:', result.status);
+
+      if (result.status === 'complete') {
+        // Set the session as active
+        await setActiveSignUp({ session: result.createdSessionId });
+
+        console.log('✓ Email verified successfully');
+        console.log('✓ Session activated, redirecting to onboarding');
+
+        router.push('/onboarding');
+      } else {
+        console.error('Verification incomplete:', result.status);
+        setError('Verification incomplete. Please try again.');
+      }
+    } catch (err: any) {
+      console.error('=== EMAIL VERIFICATION ERROR ===');
+      console.error('Error:', err);
+
+      const clerkErrors = err.errors || [];
+      if (clerkErrors.length > 0) {
+        const firstError = clerkErrors[0];
+        console.error('Clerk error:', {
+          code: firstError.code,
+          message: firstError.message,
+        });
+
+        if (firstError.code === 'form_code_incorrect') {
+          setError('Incorrect verification code. Please check and try again.');
+        } else if (firstError.code === 'verification_expired') {
+          setError('Verification code has expired. Please request a new one.');
+        } else if (firstError.code === 'form_param_format_invalid') {
+          setError('Invalid code format. Please enter the 6-digit code.');
+        } else {
+          setError(firstError.message || 'Verification failed');
+        }
+      } else {
+        setError(err.message || 'Verification failed');
+      }
+    } finally {
+      setLoading(false);
+    }
+  };
+
   return (
     <div className="min-h-screen flex relative" style={{
       backgroundImage: 'linear-gradient(rgba(246, 246, 244, 0.3), rgba(246, 246, 244, 0.3)), url(/cloudbg.png)',
