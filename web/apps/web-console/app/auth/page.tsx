@@ -4,7 +4,7 @@ import { useState, useEffect } from 'react';
 import { useSignUp, useSignIn } from '@clerk/nextjs';
 import { useRouter, useSearchParams } from 'next/navigation';
 import { Loader2, Mail } from 'lucide-react';
-import HeroInertial from '@/components/ui/HeroInertial';
+
 
 export default function AuthPage() {
   const router = useRouter();
@@ -208,10 +208,7 @@ export default function AuthPage() {
         />
       </div>
 
-      {/* Three.js Animation Background */}
-      <div className="absolute inset-0 pointer-events-none" style={{ height: '100vh', width: '100%', opacity: 0.3 }}>
-        <HeroInertial />
-      </div>
+
 
       {/* Center the Auth Options */}
       <div className="w-full flex items-center justify-center px-8 py-6 relative z-10">
@@ -230,7 +227,7 @@ export default function AuthPage() {
               <button
                 onClick={() => handleOAuthSignIn('oauth_google')}
                 disabled={loadingProvider !== null}
-                className="w-full flex items-center justify-center gap-3 px-4 py-3.5 border border-border-light rounded-lg text-sm font-medium text-gray-900 font-inter outline-none focus:outline-none focus:ring-0 shadow-sm hover:shadow-md transition-all disabled:opacity-50 disabled:cursor-not-allowed"
+                className="w-80 flex items-center justify-center gap-3 px-4 py-3.5 border border-border-light rounded-lg text-sm font-medium text-gray-900 font-inter outline-none focus:outline-none focus:ring-0 shadow-sm hover:shadow-md transition-all disabled:opacity-50 disabled:cursor-not-allowed"
                 style={{ backgroundColor: '#f6f6f4' }}
               >
                 {loadingProvider === 'oauth_google' ? (
@@ -249,7 +246,7 @@ export default function AuthPage() {
               <button
                 onClick={() => setShowEmailForm(true)}
                 disabled={loading}
-                className="w-full flex items-center justify-center gap-3 px-4 py-3.5 border border-border-light rounded-lg text-sm font-medium text-gray-900 font-inter outline-none focus:outline-none focus:ring-0 shadow-sm hover:shadow-md transition-all disabled:opacity-50 disabled:cursor-not-allowed"
+                className="w-80 flex items-center justify-center gap-3 px-4 py-3.5 border border-border-light rounded-lg text-sm font-medium text-gray-900 font-inter outline-none focus:outline-none focus:ring-0 shadow-sm hover:shadow-md transition-all disabled:opacity-50 disabled:cursor-not-allowed"
                 style={{ backgroundColor: '#f6f6f4' }}
               >
                 <Mail className="w-5 h-5 flex-shrink-0" />
@@ -393,7 +390,7 @@ export default function AuthPage() {
               <button
                 type="submit"
                 disabled={loading}
-                className="w-full bg-gray-900 text-white py-3 rounded-lg text-sm font-medium font-inter hover:bg-gray-800 transition-colors disabled:opacity-50 disabled:cursor-not-allowed flex items-center justify-center gap-2 shadow-md hover:shadow-lg"
+                className="w-80 bg-gray-900 text-white py-3 rounded-lg text-sm font-medium font-inter hover:bg-gray-800 transition-colors disabled:opacity-50 disabled:cursor-not-allowed flex items-center justify-center gap-2 shadow-md hover:shadow-lg"
               >
                 {loading && <Loader2 className="h-4 w-4 animate-spin flex-shrink-0" />}
                 Continue
@@ -442,7 +439,7 @@ export default function AuthPage() {
               <button
                 type="submit"
                 disabled={loading || code.length !== 6}
-                className="w-full bg-gray-900 text-white py-3 rounded-lg text-sm font-medium font-inter hover:bg-gray-800 transition-colors disabled:opacity-50 disabled:cursor-not-allowed flex items-center justify-center gap-2 shadow-md hover:shadow-lg"
+                className="w-80 bg-gray-900 text-white py-3 rounded-lg text-sm font-medium font-inter hover:bg-gray-800 transition-colors disabled:opacity-50 disabled:cursor-not-allowed flex items-center justify-center gap-2 shadow-md hover:shadow-lg"
               >
                 {loading && <Loader2 className="h-4 w-4 animate-spin flex-shrink-0" />}
                 Verify email

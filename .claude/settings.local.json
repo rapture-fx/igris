@@ -43,7 +43,8 @@
       "Bash(pnpm add:*)",
       "Bash(pnpm build:*)",
       "Bash(git config:*)",
-      "Bash(awk:*)"
+      "Bash(awk:*)",
+      "Bash(xargs ls:*)"
     ],
     "deny": [],
     "ask": []
