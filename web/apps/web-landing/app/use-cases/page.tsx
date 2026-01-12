@@ -68,8 +68,6 @@ export default function UseCasesPage() {
       }}>
             <div className="mx-auto max-w-[1200px] px-4 sm:px-6 lg:px-8">
               <div className="relative px-4 md:px-8 lg:px-12 pb-0 bg-transparent z-10 overflow-visible" style={{
-                borderLeft: '0.5px solid rgba(156, 163, 175, 0.3)',
-                borderRight: '0.5px solid rgba(156, 163, 175, 0.3)'
               }}>
                 <div className="max-w-[1100px] mx-auto pt-20 px-0 md:px-8 lg:px-16 pb-12">
                   <div className="text-left mb-6">
@@ -106,8 +104,6 @@ export default function UseCasesPage() {
             <section key={useCase.title} className="dark:bg-gray-900 text-gray-900 dark:text-white" style={{ backgroundColor: '#f6f6f4', height: '800px', borderBottom: '0.5px solid rgba(156, 163, 175, 0.3)' }}>
               <div className="mx-auto max-w-[1200px] px-4 sm:px-6 lg:px-8" style={{ height: '100%' }}>
                 <div className="relative px-4 md:px-4 lg:px-6 flex flex-col" style={{
-                  borderLeft: '0.5px solid rgba(156, 163, 175, 0.3)',
-                  borderRight: '0.5px solid rgba(156, 163, 175, 0.3)',
                   backgroundColor: '#f6f6f4',
                   height: '100%'
                 }}>
