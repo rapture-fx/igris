@@ -37,33 +37,30 @@ export default function OverturePage() {
           }}>
              <div className="mx-auto max-w-[1100px] px-4 sm:px-6 lg:px-8">
                <div className="relative px-4 md:px-8 lg:px-12 pb-0 bg-transparent z-10 overflow-visible" style={{
-                 borderLeft: '0.5px solid rgba(156, 163, 175, 0.3)',
-                 borderRight: '0.5px solid rgba(156, 163, 175, 0.3)'
                }}>
                 <div className="max-w-[1100px] mx-auto" style={{ paddingTop: '300px' }}>
                   <div className="mb-6 text-left">
                     <div>
-                      <h1 className="text-lg md:text-xl lg:text-2xl font-medium text-[#111111] leading-[1.2]" style={{ fontFamily: 'Roboto Mono, monospace' }}>
+                      <h1 className="text-lg md:text-xl lg:text-2xl font-inter font-medium text-[#111111] leading-[1.2]" style={{ color: '#000000' }}>
                         Overture
                       </h1>
-                      <h2 className="text-base md:text-lg lg:text-xl font-medium text-[#111111] leading-[1.2] mt-2 text-gray-600" style={{ fontFamily: 'Roboto Mono, monospace' }}>
+                      <h2 className="text-base md:text-lg lg:text-xl font-inter font-medium text-[#111111] leading-[1.2] mt-2 text-gray-600" style={{ color: '#000000' }}>
                         Decision intelligence for AI requests — before execution.
                       </h2>
-                      <p className="text-sm md:text-base text-gray-700 max-w-md leading-relaxed text-left mt-4" style={{ fontFamily: 'Roboto Mono, monospace' }}>
+                      <p className="text-sm md:text-base text-gray-700 max-w-md leading-relaxed text-left mt-4 font-inter">
                         Overture evaluates policies, cost, performance, and availability to decide where AI requests should run — producing execution-ready decisions for any environment.
                       </p>
                     </div>
                   </div>
 
                   <div className="flex flex-col sm:flex-row gap-3 mb-6">
-                    <Link href="/overture">
-                      <button
-                        className="inline-flex items-center justify-center bg-black text-white px-4 py-2 rounded-lg hover:bg-gray-800 transition-all duration-200 text-xs font-medium shadow-md hover:shadow-lg"
-                        style={{ fontFamily: 'Roboto Mono, monospace' }}
-                      >
-                        Get Started
-                      </button>
-                    </Link>
+                      <Link href="/overture">
+                        <button
+                          className="inline-flex items-center justify-center bg-black text-white px-4 py-2 rounded-lg hover:bg-gray-800 transition-all duration-200 text-xs font-inter font-medium shadow-md hover:shadow-lg"
+                        >
+                          Get Started
+                        </button>
+                      </Link>
                   </div>
 
                   <div className="w-full relative mt-8 -mx-4 md:-mx-8 lg:-mx-12" style={{ height: '200px' }}>
@@ -77,8 +74,6 @@ export default function OverturePage() {
           <section className="dark:bg-gray-900 text-gray-900 dark:text-white" style={{ backgroundColor: '#f6f6f4', height: '800px', borderBottom: '0.5px solid rgba(156, 163, 175, 0.3)' }}>
             <div className="mx-auto max-w-[1100px] px-4 sm:px-6 lg:px-8" style={{ height: '100%' }}>
               <div className="relative px-4 md:px-8 lg:px-12 flex flex-col" style={{
-                borderLeft: '0.5px solid rgba(156, 163, 175, 0.3)',
-                borderRight: '0.5px solid rgba(156, 163, 175, 0.3)',
                 backgroundColor: '#f6f6f4',
                 height: '100%'
               }}>
@@ -115,7 +110,6 @@ export default function OverturePage() {
 
                     {/* Right Column - Title and Description (Desktop only) */}
                     <div className="hidden md:flex text-left md:col-span-1 flex-col justify-start" style={{
-                      borderLeft: '0.5px solid rgba(156, 163, 175, 0.3)',
                       paddingTop: '13rem',
                       paddingBottom: '3rem',
                       paddingLeft: '1rem',
@@ -138,8 +132,6 @@ export default function OverturePage() {
           <section className="dark:bg-gray-900 text-gray-900 dark:text-white" style={{ backgroundColor: '#f6f6f4', height: '800px', borderBottom: '0.5px solid rgba(156, 163, 175, 0.3)' }}>
             <div className="mx-auto max-w-[1100px] px-4 sm:px-6 lg:px-8" style={{ height: '100%' }}>
               <div className="relative px-4 md:px-8 lg:px-12 flex flex-col" style={{
-                borderLeft: '0.5px solid rgba(156, 163, 175, 0.3)',
-                borderRight: '0.5px solid rgba(156, 163, 175, 0.3)',
                 backgroundColor: '#f6f6f4',
                 height: '100%'
               }}>
@@ -217,7 +209,6 @@ export default function OverturePage() {
 
                     {/* Right Column - Title (Desktop only) */}
                     <div className="hidden md:flex text-left md:col-span-1 flex-col justify-start" style={{
-                      borderLeft: '0.5px solid rgba(156, 163, 175, 0.3)',
                       paddingTop: '23rem',
                       paddingBottom: '3rem',
                       paddingLeft: '1rem',
@@ -237,8 +228,6 @@ export default function OverturePage() {
           <section className="dark:bg-gray-900 text-gray-900 dark:text-white" style={{ backgroundColor: '#f6f6f4', height: '800px', borderBottom: '0.5px solid rgba(156, 163, 175, 0.3)' }}>
             <div className="mx-auto max-w-[1100px] px-4 sm:px-6 lg:px-8" style={{ height: '100%' }}>
               <div className="relative px-4 md:px-8 lg:px-12 flex flex-col" style={{
-                borderLeft: '0.5px solid rgba(156, 163, 175, 0.3)',
-                borderRight: '0.5px solid rgba(156, 163, 175, 0.3)',
                 backgroundColor: '#f6f6f4',
                 height: '100%'
               }}>
@@ -270,7 +259,6 @@ export default function OverturePage() {
 
                     {/* Right Column - Title and Description (Desktop only) */}
                     <div className="hidden md:flex text-left md:col-span-1 flex-col justify-start" style={{
-                      borderLeft: '0.5px solid rgba(156, 163, 175, 0.3)',
                       paddingTop: '23rem',
                       paddingBottom: '3rem',
                       paddingLeft: '1rem',

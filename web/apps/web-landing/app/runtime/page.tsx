@@ -37,8 +37,6 @@ export default function RuntimePage() {
           }}>
             <div className="mx-auto max-w-[1100px] px-4 sm:px-6 lg:px-8">
               <div className="relative px-4 md:px-8 lg:px-12 pb-64 md:pb-80 lg:pb-[36rem] bg-transparent z-10" style={{
-                borderLeft: '0.5px solid rgba(156, 163, 175, 0.3)',
-                borderRight: '0.5px solid rgba(156, 163, 175, 0.3)'
               }}>
                 <div className="max-w-[1100px] mx-auto pt-24 px-0 md:px-8 lg:px-16 relative z-10">
                   <div className="pt-24 mb-6">
@@ -50,15 +48,15 @@ export default function RuntimePage() {
                     </button>
                     <div className="flex flex-col md:flex-row md:justify-between md:items-start gap-6 mt-4">
                       <div className="text-left md:w-2/3">
-                        <h1 className="text-lg md:text-xl lg:text-2xl font-medium text-[#111111] leading-[1.2]">
+                        <h1 className="text-lg md:text-xl lg:text-2xl font-inter font-medium text-[#111111] leading-[1.2]" style={{ color: '#000000' }}>
                           Runtime
                         </h1>
-                        <h2 className="text-base md:text-lg lg:text-xl font-medium text-[#111111] leading-[1.2] mt-2 text-gray-600">
+                        <h2 className="text-base md:text-lg lg:text-xl font-inter font-medium text-[#111111] leading-[1.2] mt-2 text-gray-600" style={{ color: '#000000' }}>
                           Execution that continues when infrastructure doesn't.
                         </h2>
                       </div>
                       <div className="text-left md:w-1/3">
-                        <p className="text-sm md:text-base text-gray-700 max-w-3xl leading-relaxed text-left">
+                        <p className="text-sm md:text-base text-gray-700 max-w-3xl leading-relaxed text-left font-inter">
                           Runtime executes AI workloads across cloud and edge environments — maintaining operation when providers fail, networks disconnect, or resources become constrained.
                         </p>
                       </div>
@@ -73,8 +71,6 @@ export default function RuntimePage() {
           <section className="dark:bg-gray-900 text-gray-900 dark:text-white" style={{ backgroundColor: '#f6f6f4', height: '800px', borderBottom: '0.5px solid rgba(156, 163, 175, 0.3)' }}>
             <div className="mx-auto max-w-[1100px] px-4 sm:px-6 lg:px-8" style={{ height: '100%' }}>
               <div className="relative px-4 md:px-8 lg:px-12 flex flex-col" style={{
-                borderLeft: '0.5px solid rgba(156, 163, 175, 0.3)',
-                borderRight: '0.5px solid rgba(156, 163, 175, 0.3)',
                 backgroundColor: '#f6f6f4',
                 height: '100%'
               }}>
@@ -111,7 +107,6 @@ export default function RuntimePage() {
 
                     {/* Right Column - Title and Description (Desktop only) */}
                     <div className="hidden md:flex text-left md:col-span-1 flex-col justify-start" style={{
-                      borderLeft: '0.5px solid rgba(156, 163, 175, 0.3)',
                       paddingTop: '13rem',
                       paddingBottom: '3rem',
                       paddingLeft: '1rem',
@@ -134,8 +129,6 @@ export default function RuntimePage() {
           <section className="dark:bg-gray-900 text-gray-900 dark:text-white" style={{ backgroundColor: '#f6f6f4', height: '800px', borderBottom: '0.5px solid rgba(156, 163, 175, 0.3)' }}>
             <div className="mx-auto max-w-[1100px] px-4 sm:px-6 lg:px-8" style={{ height: '100%' }}>
               <div className="relative px-4 md:px-8 lg:px-12 flex flex-col" style={{
-                borderLeft: '0.5px solid rgba(156, 163, 175, 0.3)',
-                borderRight: '0.5px solid rgba(156, 163, 175, 0.3)',
                 backgroundColor: '#f6f6f4',
                 height: '100%'
               }}>
@@ -213,7 +206,6 @@ export default function RuntimePage() {
 
                     {/* Right Column - Title (Desktop only) */}
                     <div className="hidden md:flex text-left md:col-span-1 flex-col justify-start" style={{
-                      borderLeft: '0.5px solid rgba(156, 163, 175, 0.3)',
                       paddingTop: '23rem',
                       paddingBottom: '3rem',
                       paddingLeft: '1rem',
@@ -233,8 +225,6 @@ export default function RuntimePage() {
           <section className="dark:bg-gray-900 text-gray-900 dark:text-white" style={{ backgroundColor: '#f6f6f4', height: '800px', borderBottom: '0.5px solid rgba(156, 163, 175, 0.3)' }}>
             <div className="mx-auto max-w-[1100px] px-4 sm:px-6 lg:px-8" style={{ height: '100%' }}>
               <div className="relative px-4 md:px-8 lg:px-12 flex flex-col" style={{
-                borderLeft: '0.5px solid rgba(156, 163, 175, 0.3)',
-                borderRight: '0.5px solid rgba(156, 163, 175, 0.3)',
                 backgroundColor: '#f6f6f4',
                 height: '100%'
               }}>
@@ -265,7 +255,6 @@ export default function RuntimePage() {
 
                     {/* Right Column - Title and Description (Desktop only) */}
                     <div className="hidden md:flex text-left md:col-span-1 flex-col justify-start" style={{
-                      borderLeft: '0.5px solid rgba(156, 163, 175, 0.3)',
                       paddingTop: '23rem',
                       paddingBottom: '3rem',
                       paddingLeft: '1rem',
