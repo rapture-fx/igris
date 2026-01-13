@@ -25,10 +25,10 @@ export default function Footer() {
               <Link href="/cookies" className="text-xs text-gray-600 dark:text-gray-400 hover:text-gray-900 dark:hover:text-white transition-colors">
                 Cookie Policy
               </Link>
-              <p className="text-xs text-gray-500 dark:text-gray-400">
+              <p className="text-xs text-gray-600 dark:text-gray-400">
                 support@igrisinertial.com
               </p>
-              <span className="text-xs text-gray-500 dark:text-gray-400">
+              <span className="text-xs text-gray-600 dark:text-gray-400">
                 © 2025 Igris Inertial.
               </span>
               {/* Social Media Icons */}
@@ -58,11 +58,9 @@ export default function Footer() {
 
             {/* Logo - on right top */}
             <img
-              src="/footers.png"
+              src="/newfoot.png"
               alt="Igris Inertial"
-              width={28}
-              height={28}
-              style={{ width: '28px', height: '28px' }}
+              style={{ height: '20px', width: 'auto' }}
             />
           </div>
         </div>
