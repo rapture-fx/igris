@@ -109,13 +109,13 @@ export default function Faq() {
                 border: '1px solid rgba(156, 163, 175, 0.3)'
               }}
             >
-              <button
-                onClick={() => toggleFaq(index)}
-                className="w-full text-left px-4 md:px-4 py-3 md:py-4 flex items-center justify-between gap-4 hover:opacity-80 transition-opacity"
-              >
-                <span className="text-sm md:text-sm font-normal font-inter flex-1" style={{ color: '#000000' }}>
-                  {faq.question}
-                </span>
+               <button
+                 onClick={() => toggleFaq(index)}
+                 className="w-full text-left px-4 md:px-4 py-3 md:py-4 flex items-center justify-between gap-4 hover:opacity-80 transition-opacity"
+               >
+                 <span className="text-sm md:text-sm font-normal font-inter flex-1" style={{ color: '#000000' }}>
+                   {faq.question}
+                 </span>
                 <ChevronDown
                   className={`flex-shrink-0 transition-transform duration-200 ${
                     openIndex === index ? 'rotate-180' : ''
@@ -130,16 +130,16 @@ export default function Faq() {
                   openIndex === index ? 'max-h-[500px]' : 'max-h-0'
                 }`}
               >
-                <div className="px-4 md:px-4 pb-3 md:pb-4 pt-0">
-                  {faq.type === 'text' ? (
-                    <p className="text-xs md:text-sm text-gray-700 dark:text-gray-300 font-inter leading-relaxed">
-                      {faq.answer}
-                    </p>
-                  ) : faq.type === 'code' ? (
-                    <div className="space-y-3">
-                      <p className="text-xs md:text-sm text-gray-700 dark:text-gray-300 font-inter leading-relaxed">
-                        {faq.answerText}
-                      </p>
+                 <div className="px-4 md:px-4 pb-3 md:pb-4 pt-0">
+                   {faq.type === 'text' ? (
+                     <p className="text-xs md:text-sm text-gray-700 dark:text-gray-300 font-inter leading-relaxed">
+                       {faq.answer}
+                     </p>
+                   ) : faq.type === 'code' ? (
+                     <div className="space-y-3">
+                       <p className="text-xs md:text-sm text-gray-700 dark:text-gray-300 font-inter leading-relaxed">
+                         {faq.answerText}
+                       </p>
                       <div className="rounded-lg p-3 md:p-4 font-mono text-xs overflow-x-auto" style={{ backgroundColor: 'rgba(0, 0, 0, 0.03)' }}>
                         <div className="mb-2">
                           <span className="text-gray-500"># Old</span>
@@ -150,9 +150,9 @@ export default function Faq() {
                           <div className="text-gray-900 mt-1 break-all">{faq.codeExample.new}</div>
                         </div>
                       </div>
-                      <p className="text-xs md:text-sm text-gray-700 dark:text-gray-300 font-inter leading-relaxed">
-                        {faq.answerFooter}
-                      </p>
+                       <p className="text-xs md:text-sm text-gray-700 dark:text-gray-300 font-inter leading-relaxed">
+                         {faq.answerFooter}
+                       </p>
                     </div>
                   ) : null}
                 </div>

@@ -5,7 +5,7 @@ import Link from 'next/link'
 export default function Footer() {
 
   return (
-    <footer className="dark:bg-gray-900 text-gray-900 dark:text-white transition-all duration-200" style={{ backgroundColor: '#f6f6f4', fontFamily: 'Roboto Mono, monospace' }}>
+     <footer className="dark:bg-gray-900 text-gray-900 dark:text-white transition-all duration-200" style={{ backgroundColor: '#f6f6f4' }}>
       <div className="mx-auto max-w-[1100px] px-4 sm:px-6 lg:px-8">
         <div className="py-8 md:py-16 px-4 md:px-8 lg:px-12" style={{
           borderLeft: '0.5px solid rgba(156, 163, 175, 0.3)',
@@ -16,19 +16,19 @@ export default function Footer() {
           <div className="flex flex-col md:flex-row md:items-start md:justify-between gap-6">
             {/* Legal links and contact - stacked vertically on left */}
             <div className="flex flex-col gap-2 text-left">
-              <Link href="/terms" className="text-xs text-gray-600 dark:text-gray-400 hover:text-gray-900 dark:hover:text-white transition-colors" style={{ fontFamily: 'Roboto Mono, monospace' }}>
+              <Link href="/terms" className="text-xs text-gray-600 dark:text-gray-400 hover:text-gray-900 dark:hover:text-white transition-colors">
                 Terms of Service
               </Link>
-              <Link href="/privacy" className="text-xs text-gray-600 dark:text-gray-400 hover:text-gray-900 dark:hover:text-white transition-colors" style={{ fontFamily: 'Roboto Mono, monospace' }}>
+              <Link href="/privacy" className="text-xs text-gray-600 dark:text-gray-400 hover:text-gray-900 dark:hover:text-white transition-colors">
                 Privacy Policy
               </Link>
-              <Link href="/cookies" className="text-xs text-gray-600 dark:text-gray-400 hover:text-gray-900 dark:hover:text-white transition-colors" style={{ fontFamily: 'Roboto Mono, monospace' }}>
+              <Link href="/cookies" className="text-xs text-gray-600 dark:text-gray-400 hover:text-gray-900 dark:hover:text-white transition-colors">
                 Cookie Policy
               </Link>
-              <p className="text-xs text-gray-500 dark:text-gray-400" style={{ fontFamily: 'Roboto Mono, monospace' }}>
+              <p className="text-xs text-gray-500 dark:text-gray-400">
                 support@igrisinertial.com
               </p>
-              <span className="text-xs text-gray-500 dark:text-gray-400" style={{ fontFamily: 'Roboto Mono, monospace' }}>
+              <span className="text-xs text-gray-500 dark:text-gray-400">
                 © 2025 Igris Inertial.
               </span>
               {/* Social Media Icons */}
