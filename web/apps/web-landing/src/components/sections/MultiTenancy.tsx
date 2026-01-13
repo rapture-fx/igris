@@ -40,9 +40,9 @@ export default function MultiTenancy() {
                 <h3 className="text-lg md:text-xl lg:text-2xl font-inter mb-4" style={{ color: '#000000', fontFamily: 'Roboto Mono, monospace' }}>
                 Secure by default. Built to scale.
               </h3>
-              <p className="text-xs md:text-sm text-gray-600 dark:text-gray-400 font-inter mb-8" style={{ fontFamily: 'Roboto Mono, monospace' }}>
-                Multi-tenant isolation, encrypted key storage, and zero-trust architecture are built in from day one. From cloud control planes to edge devices, your workloads stay protected as you scale.
-              </p>
+                  <p className="text-sm text-gray-600 dark:text-gray-400 font-inter mb-8" style={{ fontFamily: 'Roboto Mono, monospace' }}>
+                 Multi-tenant isolation, encrypted key storage, and zero-trust architecture are built in from day one. From cloud control planes to edge devices, your workloads stay protected as you scale.
+               </p>
 
               {/* Features - Mobile */}
               <div className="flex flex-col gap-8 text-left">
@@ -70,9 +70,9 @@ export default function MultiTenancy() {
                         <h3 className="text-base font-semibold text-gray-900 dark:text-white mb-3 font-inter" style={{ fontFamily: 'Roboto Mono, monospace' }}>
                           {feature.name}
                         </h3>
-                        <p className="text-xs text-gray-600 dark:text-gray-400 leading-relaxed font-inter mb-4" style={{ fontFamily: 'Roboto Mono, monospace' }}>
-                          {feature.description}
-                        </p>
+                     <p className="text-sm text-gray-600 dark:text-gray-400 leading-relaxed font-inter mb-4" style={{ fontFamily: 'Roboto Mono, monospace' }}>
+                       {feature.description}
+                     </p>
                       </div>
                     ))}
                   </div>
@@ -84,7 +84,7 @@ export default function MultiTenancy() {
                 <h3 className="text-lg md:text-xl lg:text-2xl font-inter mb-4" style={{ color: '#000000', fontFamily: 'Roboto Mono, monospace' }}>
                   Secure by default. Built to scale.
                 </h3>
-                  <p className="text-[10px] md:text-xs text-gray-600 dark:text-gray-400 font-inter leading-relaxed" style={{ fontFamily: 'Roboto Mono, monospace' }}>
+                  <p className="text-sm text-gray-600 dark:text-gray-400 font-inter leading-relaxed" style={{ fontFamily: 'Roboto Mono, monospace' }}>
                   Multi-tenant isolation, encrypted key storage, and zero-trust architecture are built in from day one. From cloud control planes to edge devices, your workloads stay protected as you scale.
                 </p>
               </div>
