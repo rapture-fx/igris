@@ -6,11 +6,12 @@ import { ChevronRight } from 'lucide-react'
 
 export default function HowItWorks() {
   return (
-    <section id="how-it-works" className="dark:bg-gray-900 text-gray-900 dark:text-white" style={{ backgroundColor: '#f6f6f4', height: '700px', borderBottom: '0.5px solid rgba(156, 163, 175, 0.3)' }}>
+    <section id="how-it-works" className="dark:bg-gray-900 text-gray-900 dark:text-white" style={{ backgroundColor: '#f6f6f4', height: '700px' }}>
       <div className="mx-auto max-w-[1100px] px-4 sm:px-6 lg:px-8" style={{ height: '100%' }}>
         <div className="relative px-4 md:px-8 lg:px-12 flex flex-col" style={{
           borderLeft: '0.5px solid rgba(156, 163, 175, 0.3)',
           borderRight: '0.5px solid rgba(156, 163, 175, 0.3)',
+          borderBottom: '0.5px solid rgba(156, 163, 175, 0.3)',
           backgroundColor: '#f6f6f4',
           height: '100%'
         }}>
