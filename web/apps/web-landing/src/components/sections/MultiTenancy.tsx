@@ -49,7 +49,7 @@ export default function MultiTenancy() {
               <div className="flex flex-col gap-8 text-left">
                 {features.map((feature, index) => (
                   <div key={feature.name}>
-                    <h3 className="text-base font-semibold text-gray-900 dark:text-white mb-3 font-inter" style={{ fontFamily: 'Roboto Mono, monospace' }}>
+                    <h3 className="text-sm font-normal text-gray-900 dark:text-white mb-3 font-inter" style={{ fontFamily: 'Roboto Mono, monospace' }}>
                       {feature.name}
                     </h3>
                     <p className="text-xs text-gray-600 dark:text-gray-400 leading-relaxed font-inter" style={{ fontFamily: 'Roboto Mono, monospace' }}>
@@ -68,7 +68,7 @@ export default function MultiTenancy() {
                    <div className="flex flex-col gap-8">
                     {features.map((feature, index) => (
                       <div key={feature.name} className="text-left">
-                    <h3 className="text-base font-semibold text-gray-900 dark:text-white mb-3 font-inter" style={{ color: '#000000' }}>
+                    <h3 className="text-sm font-normal text-gray-900 dark:text-white mb-3 font-inter" style={{ color: '#000000' }}>
                       {feature.name}
                     </h3>
                    <p className="text-sm text-gray-600 dark:text-gray-400 leading-relaxed font-inter mb-4">

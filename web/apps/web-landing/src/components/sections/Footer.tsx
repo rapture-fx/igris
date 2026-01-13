@@ -58,10 +58,10 @@ export default function Footer() {
 
             {/* Logo - on right top */}
             <img
-              src="/newfoot.png"
-              alt="Igris Inertial"
-              style={{ height: '20px', width: 'auto' }}
-            />
+               src="/foot.png"
+               alt="Igris Inertial"
+               style={{ height: '20px', width: 'auto' }}
+             />
           </div>
         </div>
       </div>
