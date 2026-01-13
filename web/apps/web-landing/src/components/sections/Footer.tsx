@@ -15,7 +15,7 @@ export default function Footer() {
         }}>
           <div className="flex flex-col md:flex-row md:items-start md:justify-between gap-6">
             {/* Legal links and contact - stacked vertically on left */}
-            <div className="flex flex-col gap-4 text-left">
+            <div className="flex flex-col gap-2 text-left">
               <Link href="/terms" className="text-xs text-gray-600 dark:text-gray-400 hover:text-gray-900 dark:hover:text-white transition-colors" style={{ fontFamily: 'Roboto Mono, monospace' }}>
                 Terms of Service
               </Link>
