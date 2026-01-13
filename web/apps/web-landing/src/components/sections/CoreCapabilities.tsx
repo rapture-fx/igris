@@ -72,8 +72,8 @@ export default function CoreCapabilities() {
                     {capabilities.map((capability) => (
                       <div key={capability.name} className="flex gap-4 items-start">
                         <div style={{
-                          width: '60px',
-                          height: '60px',
+                          width: '180px',
+                          height: '180px',
                           border: '0.5px solid rgba(156, 163, 175, 0.3)',
                           flexShrink: 0
                         }}></div>
