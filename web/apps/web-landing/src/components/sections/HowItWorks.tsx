@@ -73,7 +73,7 @@ export default function HowItWorks() {
                        borderColor: 'rgba(156, 163, 175, 0.6)'
                      }}></div>
                      <div className="flex-1 pl-6">
-                       <h4 className="font-semibold text-gray-900 dark:text-white mb-3" style={{ color: '#000000' }}>Your application sends a request</h4>
+                       <h4 className="text-sm font-normal text-gray-900 dark:text-white mb-3" style={{ color: '#000000' }}>Your application sends a request</h4>
                        <p className="text-sm leading-relaxed mb-4">
                          Use OpenAI-compatible API calls. Igris intercepts them before they reach any provider.
                        </p>
@@ -93,7 +93,7 @@ export default function HowItWorks() {
                        borderColor: 'rgba(156, 163, 175, 0.6)'
                      }}></div>
                      <div className="flex-1 pl-6">
-                       <h4 className="font-semibold text-gray-900 dark:text-white mb-3" style={{ color: '#000000' }}>Igris makes the decision</h4>
+                       <h4 className="text-sm font-normal text-gray-900 dark:text-white mb-3" style={{ color: '#000000' }}>Igris makes the decision</h4>
                        <p className="text-sm leading-relaxed mb-4">
                          Thompson Sampling evaluates providers based on cost, quality, latency, and availability. The best option is selected automatically.
                        </p>
@@ -113,7 +113,7 @@ export default function HowItWorks() {
                        borderColor: 'rgba(156, 163, 175, 0.6)'
                      }}></div>
                      <div className="flex-1 pl-6">
-                       <h4 className="font-semibold text-gray-900 dark:text-white mb-3" style={{ color: '#000000' }}>Traffic reroutes on failure</h4>
+                       <h4 className="text-sm font-normal text-gray-900 dark:text-white mb-3" style={{ color: '#000000' }}>Traffic reroutes on failure</h4>
                        <p className="text-sm leading-relaxed mb-4">
                          If a provider fails, Igris instantly switches to the next best option or falls back to on-device models. No manual intervention required.
                        </p>

@@ -38,7 +38,7 @@ export default function CoreCapabilities() {
                  <div className="space-y-6">
                    {capabilities.map((capability) => (
                      <div key={capability.name}>
-                        <h4 className="text-base font-semibold text-gray-900 dark:text-white mb-2 font-inter" style={{ color: '#000000' }}>
+                        <h4 className="text-sm font-normal text-gray-900 dark:text-white mb-2 font-inter" style={{ color: '#000000' }}>
                           {capability.name}
                         </h4>
                         <p className="text-xs text-gray-600 dark:text-gray-400 leading-relaxed font-inter">
@@ -78,7 +78,7 @@ export default function CoreCapabilities() {
                           flexShrink: 0
                         }}></div>
                         <div className="flex-1">
-                          <h4 className="text-base font-semibold text-gray-900 dark:text-white mb-2 font-inter" style={{ color: '#000000' }}>
+                          <h4 className="text-sm font-normal text-gray-900 dark:text-white mb-2 font-inter" style={{ color: '#000000' }}>
                             {capability.name}
                           </h4>
                           <p className="text-sm text-gray-600 dark:text-gray-400 leading-relaxed font-inter">
