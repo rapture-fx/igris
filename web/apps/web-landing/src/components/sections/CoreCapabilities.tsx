@@ -37,9 +37,9 @@ export default function CoreCapabilities() {
                    <h3 className="text-lg md:text-xl lg:text-2xl font-inter mb-4" style={{ color: '#000000', fontFamily: 'Roboto Mono, monospace' }}>
                    System Overview
                  </h3>
-                   <p className="text-xs md:text-sm text-gray-700 dark:text-gray-300 font-inter leading-relaxed mb-8" style={{ fontFamily: 'Roboto Mono, monospace' }}>
-                   Overture provides decision intelligence and routing control. Runtime provides governed execution with safety guarantees. Hybrid enforces cryptographic integrity between decision and execution.
-                 </p>
+                  <p className="text-sm text-gray-700 dark:text-gray-300 font-inter leading-relaxed mb-8" style={{ fontFamily: 'Roboto Mono, monospace' }}>
+                    Overture provides decision intelligence and routing control. Runtime provides governed execution with safety guarantees. Hybrid enforces cryptographic integrity between decision and execution.
+                  </p>
 
                  {/* Capabilities - Mobile */}
                  <div className="space-y-6">
@@ -65,17 +65,17 @@ export default function CoreCapabilities() {
                     paddingRight: '1rem'
                   }}>
                    <div className="w-full max-w-[320px]">
-                    <div className="space-y-6">
-                   {capabilities.map((capability) => (
-                     <div key={capability.name}>
-                       <h4 className="text-base font-semibold text-gray-900 dark:text-white mb-2 font-inter" style={{ fontFamily: 'Roboto Mono, monospace' }}>
-                         {capability.name}
-                       </h4>
-                       <p className="text-xs text-gray-600 dark:text-gray-400 leading-relaxed font-inter" style={{ fontFamily: 'Roboto Mono, monospace' }}>
-                         {capability.description}
-                       </p>
-                     </div>
-                   ))}
+                     <div className="space-y-6">
+                    {capabilities.map((capability) => (
+                      <div key={capability.name}>
+                        <h4 className="text-base font-semibold text-gray-900 dark:text-white mb-2 font-inter" style={{ fontFamily: 'Roboto Mono, monospace' }}>
+                          {capability.name}
+                        </h4>
+                        <p className="text-sm text-gray-600 dark:text-gray-400 leading-relaxed font-inter" style={{ fontFamily: 'Roboto Mono, monospace' }}>
+                          {capability.description}
+                        </p>
+                      </div>
+                    ))}
                  </div>
                   </div>
                 </div>
@@ -85,9 +85,9 @@ export default function CoreCapabilities() {
                   <h3 className="text-lg md:text-xl lg:text-2xl font-inter mb-4" style={{ color: '#000000', fontFamily: 'Roboto Mono, monospace' }}>
                     System Overview
                   </h3>
-                  <p className="text-xs md:text-sm text-gray-700 dark:text-gray-300 font-inter leading-relaxed" style={{ fontFamily: 'Roboto Mono, monospace' }}>
-                    Overture provides decision intelligence and routing control. Runtime provides governed execution with safety guarantees. Hybrid enforces cryptographic integrity between decision and execution.
-                  </p>
+                   <p className="text-sm text-gray-700 dark:text-gray-300 font-inter leading-relaxed" style={{ fontFamily: 'Roboto Mono, monospace' }}>
+                     Overture provides decision intelligence and routing control. Runtime provides governed execution with safety guarantees. Hybrid enforces cryptographic integrity between decision and execution.
+                   </p>
                 </div>
               </div>
             </div>
