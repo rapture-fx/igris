@@ -14,15 +14,14 @@ export default function ClosingPosition() {
               }}>
                 <div className="w-full">
                    <div className="max-w-3xl text-left flex flex-col">
-                         <h3 className="text-lg md:text-xl lg:text-2xl font-inter mb-6" style={{ color: '#000000', fontFamily: 'Roboto Mono, monospace' }}>
-                            Start with decisions.<br />Scale to execution.
-                         </h3>
+                         <h3 className="text-lg md:text-xl lg:text-2xl font-inter mb-6" style={{ color: '#000000' }}>
+                             Start with decisions.<br />Scale to execution.
+                          </h3>
 
                         <div className="flex flex-col sm:flex-row gap-4 pl-0 md:pl-0 lg:pl-0">
                           <Link href="https://docs.igrisinertial.com/">
                              <button
                                     className="inline-flex items-center justify-center bg-black text-white px-5 py-2.5 rounded-lg hover:bg-gray-800 transition-all duration-200 text-sm font-medium font-inter"
-                                    style={{ fontFamily: 'Roboto Mono, monospace' }}
                                 >
                                    Explore Documentation
                                 </button>

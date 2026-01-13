@@ -37,12 +37,12 @@ export default function MultiTenancy() {
 
           {/* Title Section - Shows first on mobile, last on desktop */}
           <div className="mb-6 md:mb-0 md:hidden text-left" style={{ paddingTop: '3rem', paddingBottom: '3rem' }}>
-                <h3 className="text-lg md:text-xl lg:text-2xl font-inter mb-4" style={{ color: '#000000', fontFamily: 'Roboto Mono, monospace' }}>
+                <h3 className="text-lg md:text-xl lg:text-2xl font-inter mb-4" style={{ color: '#000000' }}>
                 Secure by default. Built to scale.
               </h3>
-                  <p className="text-sm text-gray-600 dark:text-gray-400 font-inter mb-8" style={{ fontFamily: 'Roboto Mono, monospace' }}>
-                 Multi-tenant isolation, encrypted key storage, and zero-trust architecture are built in from day one. From cloud control planes to edge devices, your workloads stay protected as you scale.
-               </p>
+              <p className="text-sm text-gray-600 dark:text-gray-400 font-inter mb-8">
+                Multi-tenant isolation, encrypted key storage, and zero-trust architecture are built in from day one. From cloud control planes to edge devices, your workloads stay protected as you scale.
+              </p>
 
               {/* Features - Mobile */}
               <div className="flex flex-col gap-8 text-left">
@@ -61,18 +61,18 @@ export default function MultiTenancy() {
 
             {/* Two-column layout */}
             <div className="grid grid-cols-1 md:grid-cols-3 gap-0 md:flex-1" style={{ height: '100%' }}>
-              {/* Left Column - Features (2 columns wide) */}
-              <div className="hidden md:flex md:col-span-2 flex-col justify-center" style={{ paddingTop: '3rem', paddingBottom: '3rem', paddingRight: '1rem' }}>
+               {/* Left Column - Features (2 columns wide) */}
+               <div className="hidden md:flex md:col-span-2 flex-col justify-start" style={{ paddingTop: '3rem', paddingBottom: '3rem', paddingRight: '1rem' }}>
                     <div className="w-full max-w-[320px]">
                    <div className="flex flex-col gap-8">
                     {features.map((feature, index) => (
                       <div key={feature.name} className="text-left">
-                        <h3 className="text-base font-semibold text-gray-900 dark:text-white mb-3 font-inter" style={{ fontFamily: 'Roboto Mono, monospace' }}>
-                          {feature.name}
-                        </h3>
-                     <p className="text-sm text-gray-600 dark:text-gray-400 leading-relaxed font-inter mb-4" style={{ fontFamily: 'Roboto Mono, monospace' }}>
-                       {feature.description}
-                     </p>
+                    <h3 className="text-base font-semibold text-gray-900 dark:text-white mb-3 font-inter" style={{ color: '#000000' }}>
+                      {feature.name}
+                    </h3>
+                   <p className="text-sm text-gray-600 dark:text-gray-400 leading-relaxed font-inter mb-4">
+                      {feature.description}
+                    </p>
                       </div>
                     ))}
                   </div>
@@ -80,11 +80,11 @@ export default function MultiTenancy() {
               </div>
 
               {/* Right Column - Title and Intro (Desktop only) */}
-               <div className="hidden md:flex md:col-span-1 md:border-l flex-col justify-start" style={{ borderLeft: '0.5px solid rgba(156, 163, 175, 0.3)', paddingTop: '9.5rem', paddingBottom: '3rem', paddingLeft: '1rem', height: '100%' }}>
-                <h3 className="text-lg md:text-xl lg:text-2xl font-inter mb-4" style={{ color: '#000000', fontFamily: 'Roboto Mono, monospace' }}>
+                <div className="hidden md:flex md:col-span-1 md:border-l flex-col justify-start" style={{ borderLeft: '0.5px solid rgba(156, 163, 175, 0.3)', paddingTop: '3rem', paddingBottom: '3rem', paddingLeft: '1rem', height: '100%' }}>
+                <h3 className="text-lg md:text-xl lg:text-2xl font-inter mb-4" style={{ color: '#000000' }}>
                   Secure by default. Built to scale.
                 </h3>
-                  <p className="text-sm text-gray-600 dark:text-gray-400 font-inter leading-relaxed" style={{ fontFamily: 'Roboto Mono, monospace' }}>
+                  <p className="text-sm text-gray-600 dark:text-gray-400 font-inter leading-relaxed">
                   Multi-tenant isolation, encrypted key storage, and zero-trust architecture are built in from day one. From cloud control planes to edge devices, your workloads stay protected as you scale.
                 </p>
               </div>

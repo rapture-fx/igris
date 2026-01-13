@@ -15,24 +15,24 @@ export default function Products() {
         }}>
 
           {/* Title Section - Shows first on mobile, last on desktop */}
-          <div className="mb-6 md:mb-0 md:hidden text-left" style={{ paddingTop: '3rem', paddingBottom: '3rem' }}>
-              <h2 className="text-lg md:text-xl lg:text-2xl font-inter mb-4" style={{ color: '#000000', fontFamily: 'Roboto Mono, monospace' }}>
-                Decision and Execution
-              </h2>
-            <p className="text-sm text-gray-600 dark:text-gray-400 font-inter leading-relaxed mb-8" style={{ fontFamily: 'Roboto Mono, monospace' }}>
+           <div className="mb-6 md:mb-0 md:hidden text-left" style={{ paddingTop: '3rem', paddingBottom: '3rem' }}>
+               <h2 className="text-lg md:text-xl lg:text-2xl font-inter mb-4" style={{ color: '#000000' }}>
+                 Decision and Execution
+               </h2>
+            <p className="text-sm text-gray-600 dark:text-gray-400 font-inter leading-relaxed mb-8">
               Overture decides what to route and where. Runtime executes with governance and safety. Deploy independently or together with Hybrid enforcement.
             </p>
 
                {/* Products - Mobile */}
               <div className="space-y-12 text-left">
-                {/* Overture */}
-                <div className="text-left">
-                  <h3 className="text-xl md:text-2xl font-inter mb-2" style={{ color: '#000000', fontFamily: 'Roboto Mono, monospace' }}>
-                    Overture
-                  </h3>
-                  <p className="text-xs text-gray-600 dark:text-gray-400 mb-4" style={{ fontFamily: 'Roboto Mono, monospace' }}>
-                    Decision Layer
-                  </p>
+                 {/* Overture */}
+                 <div className="text-left">
+                   <h3 className="text-xl md:text-2xl font-inter mb-2" style={{ color: '#000000' }}>
+                     Overture
+                   </h3>
+                   <p className="text-xs text-gray-600 dark:text-gray-400 mb-4">
+                     Decision Layer
+                   </p>
                   <div style={{ border: '0.5px solid rgba(156, 163, 175, 0.3)', marginTop: '1rem', marginBottom: '1rem', height: '200px', position: 'relative', overflow: 'hidden' }}>
                     <Image
                       src="/overtureframe.png"
@@ -40,61 +40,61 @@ export default function Products() {
                       fill
                       style={{ objectFit: 'cover' }}
                     />
-                  </div>
-                  <p className="text-xs text-gray-600 dark:text-gray-400 leading-relaxed font-inter mb-4" style={{ fontFamily: 'Roboto Mono, monospace' }}>
-                    Decision intelligence and routing control plane. Trust-aware provider selection with cost, quality, and latency optimization. Explainable decisions with full observability.
-                  </p>
-                  <Link href="/overture" className="group inline-flex items-center">
-                    <span className="text-sm text-gray-900 dark:text-white font-inter" style={{ fontFamily: 'Roboto Mono, monospace' }}>
-                      Explore Overture
-                    </span>
-                    <ChevronRight className="ml-1 h-3 w-3" />
-                  </Link>
-                <p className="text-xs text-gray-600 dark:text-gray-400 mb-4" style={{ fontFamily: 'Roboto Mono, monospace' }}>
-                  Decision Layer
-                </p>
-                <div style={{ border: '0.5px solid rgba(156, 163, 175, 0.3)', marginTop: '1rem', marginBottom: '1rem', height: '200px', position: 'relative', overflow: 'hidden' }}>
-                  <Image
-                    src="/overtureframe.png"
-                    alt="Overture Decision Layer"
-                    fill
-                    style={{ objectFit: 'cover' }}
-                  />
-                </div>
-                <p className="text-xs text-gray-600 dark:text-gray-400 leading-relaxed font-inter mb-4" style={{ fontFamily: 'Roboto Mono, monospace' }}>
-                  Decision intelligence and routing control plane. Trust-aware provider selection with cost, quality, and latency optimization. Explainable decisions with full observability.
-                </p>
-                <Link href="/overture" className="group inline-flex items-center">
-                  <span className="text-sm text-gray-900 dark:text-white font-inter" style={{ fontFamily: 'Roboto Mono, monospace' }}>
-                    Explore Overture
-                  </span>
+                   </div>
+                   <p className="text-xs text-gray-600 dark:text-gray-400 leading-relaxed font-inter mb-4">
+                     Decision intelligence and routing control plane. Trust-aware provider selection with cost, quality, and latency optimization. Explainable decisions with full observability.
+                   </p>
+                   <Link href="/overture" className="group inline-flex items-center">
+                     <span className="text-sm text-gray-900 dark:text-white font-inter">
+                       Explore Overture
+                     </span>
+                     <ChevronRight className="ml-1 h-3 w-3" />
+                   </Link>
+                 <p className="text-xs text-gray-600 dark:text-gray-400 mb-4">
+                   Decision Layer
+                 </p>
+                 <div style={{ border: '0.5px solid rgba(156, 163, 175, 0.3)', marginTop: '1rem', marginBottom: '1rem', height: '200px', position: 'relative', overflow: 'hidden' }}>
+                   <Image
+                     src="/overtureframe.png"
+                     alt="Overture Decision Layer"
+                     fill
+                     style={{ objectFit: 'cover' }}
+                   />
+                 </div>
+                 <p className="text-xs text-gray-600 dark:text-gray-400 leading-relaxed font-inter mb-4">
+                   Decision intelligence and routing control plane. Trust-aware provider selection with cost, quality, and latency optimization. Explainable decisions with full observability.
+                 </p>
+                 <Link href="/overture" className="group inline-flex items-center">
+                   <span className="text-sm text-gray-900 dark:text-white font-inter">
+                     Explore Overture
+                   </span>
                   <ChevronRight className="ml-1 h-3 w-3" />
                 </Link>
               </div>
 
-              {/* Runtime */}
-              <div>
-                <h3 className="text-xl md:text-2xl font-inter mb-2" style={{ color: '#000000', fontFamily: 'Roboto Mono, monospace' }}>
-                  Runtime
-                </h3>
-                <p className="text-xs text-gray-600 dark:text-gray-400 mb-4" style={{ fontFamily: 'Roboto Mono, monospace' }}>
-                  Execution Layer
-                </p>
-                <div style={{ border: '0.5px solid rgba(156, 163, 175, 0.3)', marginTop: '1rem', marginBottom: '1rem', height: '200px', position: 'relative', overflow: 'hidden' }}>
-                  <Image
-                    src="/runtimeframe.png"
-                    alt="Runtime Execution Layer"
-                    fill
-                    style={{ objectFit: 'cover' }}
-                  />
-                </div>
-                <p className="text-xs text-gray-600 dark:text-gray-400 leading-relaxed font-inter mb-4" style={{ fontFamily: 'Roboto Mono, monospace' }}>
-                  Licensed governed execution engine. Secure defaults and enforced limits. Deterministic execution envelopes with telemetry-backed execution.
-                </p>
-                <Link href="/runtime" className="group inline-flex items-center">
-                  <span className="text-sm text-gray-900 dark:text-white font-inter" style={{ fontFamily: 'Roboto Mono, monospace' }}>
-                    Explore Runtime
-                  </span>
+               {/* Runtime */}
+               <div>
+                 <h3 className="text-xl md:text-2xl font-inter mb-2" style={{ color: '#000000' }}>
+                   Runtime
+                 </h3>
+                 <p className="text-xs text-gray-600 dark:text-gray-400 mb-4">
+                   Execution Layer
+                 </p>
+                 <div style={{ border: '0.5px solid rgba(156, 163, 175, 0.3)', marginTop: '1rem', marginBottom: '1rem', height: '200px', position: 'relative', overflow: 'hidden' }}>
+                   <Image
+                     src="/runtimeframe.png"
+                     alt="Runtime Execution Layer"
+                     fill
+                     style={{ objectFit: 'cover' }}
+                   />
+                 </div>
+                 <p className="text-xs text-gray-600 dark:text-gray-400 leading-relaxed font-inter mb-4">
+                   Licensed governed execution engine. Secure defaults and enforced limits. Deterministic execution envelopes with telemetry-backed execution.
+                 </p>
+                 <Link href="/runtime" className="group inline-flex items-center">
+                   <span className="text-sm text-gray-900 dark:text-white font-inter">
+                     Explore Runtime
+                   </span>
                   <ChevronRight className="ml-1 h-3 w-3" />
                 </Link>
               </div>
@@ -108,14 +108,14 @@ export default function Products() {
             <div className="hidden md:flex md:col-span-2 flex-col items-start justify-start" style={{ paddingTop: '3rem', paddingBottom: '3rem', paddingRight: '1rem' }}>
                <div className="w-full max-w-[500px] space-y-12">
 
-                {/* Overture */}
-                <div>
-                  <h3 className="text-xl md:text-2xl font-inter mb-2" style={{ color: '#000000', fontFamily: 'Roboto Mono, monospace' }}>
-                    Overture
-                  </h3>
-                  <p className="text-xs text-gray-600 dark:text-gray-400 mb-4" style={{ fontFamily: 'Roboto Mono, monospace' }}>
-                    Decision Layer
-                  </p>
+                 {/* Overture */}
+                 <div>
+                   <h3 className="text-xl md:text-2xl font-inter mb-2" style={{ color: '#000000' }}>
+                     Overture
+                   </h3>
+                   <p className="text-xs text-gray-600 dark:text-gray-400 mb-4">
+                     Decision Layer
+                   </p>
                   <div style={{ border: '0.5px solid rgba(156, 163, 175, 0.3)', marginTop: '1rem', marginBottom: '1rem', height: '200px', position: 'relative', overflow: 'hidden' }}>
                     <Image
                       src="/overtureframe.png"
@@ -123,26 +123,26 @@ export default function Products() {
                       fill
                       style={{ objectFit: 'cover' }}
                     />
-                  </div>
-                  <p className="text-sm text-gray-600 dark:text-gray-400 leading-relaxed font-inter mb-4" style={{ fontFamily: 'Roboto Mono, monospace' }}>
-                    Decision intelligence and routing control plane. Trust-aware provider selection with cost, quality, and latency optimization. Explainable decisions with full observability.
-                  </p>
-                  <Link href="/overture" className="group inline-flex items-center">
-                    <span className="text-sm text-gray-900 dark:text-white font-inter" style={{ fontFamily: 'Roboto Mono, monospace' }}>
-                      Explore Overture
-                    </span>
+                   </div>
+                   <p className="text-sm text-gray-600 dark:text-gray-400 leading-relaxed font-inter mb-4">
+                     Decision intelligence and routing control plane. Trust-aware provider selection with cost, quality, and latency optimization. Explainable decisions with full observability.
+                   </p>
+                   <Link href="/overture" className="group inline-flex items-center">
+                     <span className="text-sm text-gray-900 dark:text-white font-inter">
+                       Explore Overture
+                     </span>
                     <ChevronRight className="ml-1 h-3 w-3" />
                   </Link>
                 </div>
 
-                {/* Runtime */}
-                <div>
-                  <h3 className="text-xl md:text-2xl font-inter mb-2" style={{ color: '#000000', fontFamily: 'Roboto Mono, monospace' }}>
-                    Runtime
-                  </h3>
-                  <p className="text-xs text-gray-600 dark:text-gray-400 mb-4" style={{ fontFamily: 'Roboto Mono, monospace' }}>
-                    Execution Layer
-                  </p>
+                 {/* Runtime */}
+                 <div>
+                   <h3 className="text-xl md:text-2xl font-inter mb-2" style={{ color: '#000000' }}>
+                     Runtime
+                   </h3>
+                   <p className="text-xs text-gray-600 dark:text-gray-400 mb-4">
+                     Execution Layer
+                   </p>
                   <div style={{ border: '0.5px solid rgba(156, 163, 175, 0.3)', marginTop: '1rem', marginBottom: '1rem', height: '200px', position: 'relative', overflow: 'hidden' }}>
                     <Image
                       src="/runtimeframe.png"
@@ -150,14 +150,14 @@ export default function Products() {
                       fill
                       style={{ objectFit: 'cover' }}
                     />
-                  </div>
-                  <p className="text-sm text-gray-600 dark:text-gray-400 leading-relaxed font-inter mb-4" style={{ fontFamily: 'Roboto Mono, monospace' }}>
-                    Licensed governed execution engine. Secure defaults and enforced limits. Deterministic execution envelopes with telemetry-backed execution.
-                  </p>
-                  <Link href="/runtime" className="group inline-flex items-center">
-                    <span className="text-sm text-gray-900 dark:text-white font-inter" style={{ fontFamily: 'Roboto Mono, monospace' }}>
-                      Explore Runtime
-                    </span>
+                   </div>
+                   <p className="text-sm text-gray-600 dark:text-gray-400 leading-relaxed font-inter mb-4">
+                     Licensed governed execution engine. Secure defaults and enforced limits. Deterministic execution envelopes with telemetry-backed execution.
+                   </p>
+                   <Link href="/runtime" className="group inline-flex items-center">
+                     <span className="text-sm text-gray-900 dark:text-white font-inter">
+                       Explore Runtime
+                     </span>
                     <ChevronRight className="ml-1 h-3 w-3" />
                   </Link>
                 </div>
@@ -165,12 +165,12 @@ export default function Products() {
               </div>
             </div>
 
-            {/* Right Column: Title and Description (Desktop only) */}
-            <div className="hidden md:flex md:col-span-1 md:border-l flex-col justify-start" style={{ borderLeft: '0.5px solid rgba(156, 163, 175, 0.3)', paddingTop: '3rem', paddingBottom: '3rem', paddingLeft: '1rem', height: '100%' }}>
-            <h2 className="text-lg md:text-xl lg:text-2xl font-inter mb-4" style={{ color: '#000000', fontFamily: 'Roboto Mono, monospace' }}>
+             {/* Right Column: Title and Description (Desktop only) */}
+             <div className="hidden md:flex md:col-span-1 md:border-l flex-col justify-start" style={{ borderLeft: '0.5px solid rgba(156, 163, 175, 0.3)', paddingTop: '3rem', paddingBottom: '3rem', paddingLeft: '1rem', height: '100%' }}>
+            <h2 className="text-lg md:text-xl lg:text-2xl font-inter mb-4" style={{ color: '#000000' }}>
                 Decision and Execution
               </h2>
-              <p className="text-xs md:text-sm text-gray-600 dark:text-gray-400 font-inter leading-relaxed" style={{ fontFamily: 'Roboto Mono, monospace' }}>
+              <p className="text-xs md:text-sm text-gray-600 dark:text-gray-400 font-inter leading-relaxed">
                 Overture decides what to route and where. Runtime executes with governance and safety. Deploy independently or together with Hybrid enforcement.
               </p>
             </div>
