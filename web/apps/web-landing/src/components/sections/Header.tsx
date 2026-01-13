@@ -81,10 +81,10 @@ export default function Header() {
           <div className="flex items-center">
             <Link href="/" className="flex items-center">
               <img
-                src="/newnav.png"
-                 alt="Igris Inertial"
-                 style={{ width: '80px', height: 'auto' }}
-               />
+                 src="/fixnav.png"
+                  alt="Igris Inertial"
+                  style={{ width: '80px', height: 'auto' }}
+                />
             </Link>
           </div>
 

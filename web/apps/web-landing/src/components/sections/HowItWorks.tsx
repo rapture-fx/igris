@@ -53,10 +53,11 @@ export default function HowItWorks() {
              <div className="md:col-span-2 flex flex-col justify-start" style={{ paddingTop: '3rem', paddingBottom: '3rem', paddingRight: '1rem' }}>
                   <div className="space-y-20 text-sm text-gray-600 dark:text-gray-400 relative w-full max-w-[600px]">
                   {/* Vertical dashed line */}
-                  <div className="absolute left-[196px] top-0 bottom-0" style={{
-                    width: '2px',
+                  <div className="absolute top-0 bottom-0" style={{
+                    left: '197.5px',
+                    width: '1px',
                     backgroundImage: 'linear-gradient(to bottom, rgba(156, 163, 175, 0.3) 50%, transparent 50%)',
-                    backgroundSize: '2px 8px',
+                    backgroundSize: '1px 8px',
                     backgroundRepeat: 'repeat-y'
                   }}></div>
 
@@ -68,13 +69,16 @@ export default function HowItWorks() {
                        flexShrink: 0
                      }}></div>
                      {/* Dot */}
-                     <div className="absolute left-[190px] top-1.5 w-3 h-3 rounded-full border-2" style={{
+                     <div className="absolute w-3 h-3 rounded-full border" style={{
+                       left: '192px',
+                       top: '6px',
                        backgroundColor: '#f6f6f4',
-                       borderColor: 'rgba(156, 163, 175, 0.6)'
+                       borderColor: 'rgba(156, 163, 175, 0.6)',
+                       borderWidth: '1px'
                      }}></div>
                      <div className="flex-1 pl-6">
                        <h4 className="text-sm font-normal text-gray-900 dark:text-white mb-3" style={{ color: '#000000' }}>Your application sends a request</h4>
-                       <p className="text-sm leading-relaxed mb-4">
+                       <p className="text-sm leading-relaxed mb-4 max-w-[280px]">
                          Use OpenAI-compatible API calls. Igris intercepts them before they reach any provider.
                        </p>
                      </div>
@@ -88,13 +92,16 @@ export default function HowItWorks() {
                        flexShrink: 0
                      }}></div>
                      {/* Dot */}
-                     <div className="absolute left-[190px] top-1.5 w-3 h-3 rounded-full border-2" style={{
+                     <div className="absolute w-3 h-3 rounded-full border" style={{
+                       left: '192px',
+                       top: '6px',
                        backgroundColor: '#f6f6f4',
-                       borderColor: 'rgba(156, 163, 175, 0.6)'
+                       borderColor: 'rgba(156, 163, 175, 0.6)',
+                       borderWidth: '1px'
                      }}></div>
                      <div className="flex-1 pl-6">
                        <h4 className="text-sm font-normal text-gray-900 dark:text-white mb-3" style={{ color: '#000000' }}>Igris makes the decision</h4>
-                       <p className="text-sm leading-relaxed mb-4">
+                       <p className="text-sm leading-relaxed mb-4 max-w-[280px]">
                          Thompson Sampling evaluates providers based on cost, quality, latency, and availability. The best option is selected automatically.
                        </p>
                      </div>
@@ -108,13 +115,16 @@ export default function HowItWorks() {
                        flexShrink: 0
                      }}></div>
                      {/* Dot */}
-                     <div className="absolute left-[190px] top-1.5 w-3 h-3 rounded-full border-2" style={{
+                     <div className="absolute w-3 h-3 rounded-full border" style={{
+                       left: '192px',
+                       top: '6px',
                        backgroundColor: '#f6f6f4',
-                       borderColor: 'rgba(156, 163, 175, 0.6)'
+                       borderColor: 'rgba(156, 163, 175, 0.6)',
+                       borderWidth: '1px'
                      }}></div>
                      <div className="flex-1 pl-6">
                        <h4 className="text-sm font-normal text-gray-900 dark:text-white mb-3" style={{ color: '#000000' }}>Traffic reroutes on failure</h4>
-                       <p className="text-sm leading-relaxed mb-4">
+                       <p className="text-sm leading-relaxed mb-4 max-w-[280px]">
                          If a provider fails, Igris instantly switches to the next best option or falls back to on-device models. No manual intervention required.
                        </p>
                      </div>
