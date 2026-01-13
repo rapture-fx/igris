@@ -80,7 +80,7 @@ export default function MultiTenancy() {
               </div>
 
               {/* Right Column - Title and Intro (Desktop only) */}
-              <div className="hidden md:flex md:col-span-1 md:border-l flex-col justify-start" style={{ borderLeft: '0.5px solid rgba(156, 163, 175, 0.3)', paddingTop: '12rem', paddingBottom: '3rem', paddingLeft: '1rem', height: '100%' }}>
+               <div className="hidden md:flex md:col-span-1 md:border-l flex-col justify-start" style={{ borderLeft: '0.5px solid rgba(156, 163, 175, 0.3)', paddingTop: '9.5rem', paddingBottom: '3rem', paddingLeft: '1rem', height: '100%' }}>
                 <h3 className="text-lg md:text-xl lg:text-2xl font-inter mb-4" style={{ color: '#000000', fontFamily: 'Roboto Mono, monospace' }}>
                   Secure by default. Built to scale.
                 </h3>
