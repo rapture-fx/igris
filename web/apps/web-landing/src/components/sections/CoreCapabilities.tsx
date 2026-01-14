@@ -70,15 +70,70 @@ export default function CoreCapabilities() {
                    <div className="w-full max-w-[480px]">
                      <div className="space-y-6">
                      {capabilities.map((capability) => (
-                       <div key={capability.name} className="flex gap-4 items-start">
-                         <div style={{
-                           width: '180px',
-                           height: '180px',
-                           border: '0.5px solid rgba(156, 163, 175, 0.3)',
-                           flexShrink: 0,
-                           backgroundColor: '#f5f4f2'
-                         }}></div>
-                        <div className="flex-1">
+                        <div key={capability.name} className="flex gap-4 items-start">
+                          <div style={{
+                            width: '180px',
+                            height: '180px',
+                            border: '0.5px solid rgba(156, 163, 175, 0.3)',
+                            flexShrink: 0,
+                            backgroundColor: '#f6f6f4',
+                            display: 'flex',
+                            alignItems: 'center',
+                            justifyContent: 'center',
+                            position: 'relative'
+                          }}>
+                            <img
+                              src="/fr.png"
+                              alt={capability.name}
+                              style={{
+                                position: 'absolute',
+                                width: '100%',
+                                height: '100%',
+                                objectFit: 'cover',
+                                opacity: '0.7'
+                              }}
+                            />
+                            {capabilities.indexOf(capability) === 0 && (
+                              <img
+                                src="/tre.png"
+                                alt={capability.name}
+                                style={{
+                                  position: 'absolute',
+                                  width: '60%',
+                                  height: '60%',
+                                  objectFit: 'contain',
+                                  opacity: '0.65'
+                                }}
+                              />
+                            )}
+                            {capabilities.indexOf(capability) === 1 && (
+                              <img
+                                src="/two.png"
+                                alt={capability.name}
+                                style={{
+                                  position: 'absolute',
+                                  width: '60%',
+                                  height: '60%',
+                                  objectFit: 'contain',
+                                  opacity: '0.5'
+                                }}
+                              />
+                            )}
+                            {capabilities.indexOf(capability) === 2 && (
+                              <img
+                                src="/one.png"
+                                alt={capability.name}
+                                style={{
+                                  position: 'absolute',
+                                  width: '60%',
+                                  height: '60%',
+                                  objectFit: 'contain',
+                                  opacity: '0.5'
+                                }}
+                              />
+                            )}
+                          </div>
+                         <div className="flex-1">
                           <h4 className="text-sm font-normal text-gray-900 dark:text-white mb-2 font-inter" style={{ color: '#000000' }}>
                             {capability.name}
                           </h4>
