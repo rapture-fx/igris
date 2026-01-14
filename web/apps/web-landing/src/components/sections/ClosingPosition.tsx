@@ -24,7 +24,7 @@ export default function ClosingPosition() {
                              <button
                                     className="inline-flex items-center justify-center bg-black text-white px-5 py-2.5 rounded-lg hover:bg-gray-800 transition-all duration-200 text-sm font-medium font-inter"
                                 >
-                                   Explore Documentation
+                                   Get Started
                                 </button>
                           </Link>
                        </div>
