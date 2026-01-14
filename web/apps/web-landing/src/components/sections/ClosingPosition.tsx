@@ -21,12 +21,12 @@ export default function ClosingPosition() {
 
                         <div className="flex flex-col sm:flex-row gap-4 pl-0 md:pl-0 lg:pl-0">
                           <Link href="https://docs.igrisinertial.com/">
-                             <button
-                                    className="inline-flex items-center justify-center bg-black text-white px-5 py-2.5 rounded-lg hover:bg-gray-800 transition-all duration-200 text-sm font-medium font-inter"
-                                >
-                                   Get Started
-                                </button>
-                          </Link>
+                              <button
+                                     className="inline-flex items-center justify-center bg-black text-white px-4 py-2 hover:bg-gray-800 transition-all duration-200 text-xs font-medium font-inter"
+                                 >
+                                    Get Started
+                                 </button>
+                           </Link>
                        </div>
                   </div>
                </div>

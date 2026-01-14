@@ -8,7 +8,7 @@ export default function Hero() {
   const { openEarlyAccessModal } = useModal();
   return (
     <section className="pt-0 pb-0 bg-[#f6f6f4] text-gray-900 relative overflow-visible -mt-[72px]" style={{
-        backgroundImage: 'linear-gradient(rgba(246, 246, 244, 0.3), rgba(246, 246, 244, 0.3)), url(/cloudbg.png)',
+        backgroundImage: 'linear-gradient(to bottom, transparent 40%, #f6f6f4 100%), url(/cloudbg.png)',
         backgroundSize: 'cover',
         backgroundPosition: 'center top -100px',
         backgroundRepeat: 'no-repeat'
@@ -35,14 +35,14 @@ export default function Hero() {
             </div>
 
               <div className="flex flex-col sm:flex-row gap-3">
-               <Link href="/overture">
-                 <button
-                   className="inline-flex items-center justify-center bg-black text-white px-4 py-2 rounded-lg hover:bg-gray-800 transition-all duration-200 text-xs font-medium shadow-md hover:shadow-lg"
-                   style={{ marginBottom: '5rem' }}
-                 >
-                   Get Started
-                 </button>
-               </Link>
+                <Link href="/overture">
+                  <button
+                    className="inline-flex items-center justify-center bg-black text-white px-4 py-2 hover:bg-gray-800 transition-all duration-200 text-xs font-medium shadow-md hover:shadow-lg"
+                    style={{ marginBottom: '5rem' }}
+                  >
+                    Get Started
+                  </button>
+                </Link>
              </div>
              <div className="-mx-4 md:-mx-8 lg:-mx-12" style={{ borderBottom: '0.5px solid rgba(156, 163, 175, 0.3)', paddingBottom: '6rem', marginBottom: '1.5rem' }}></div>
           </div>
