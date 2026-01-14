@@ -81,10 +81,10 @@ export default function Header() {
           <div className="flex items-center">
             <Link href="/" className="flex items-center">
               <img
-                 src="/nav.png"
-                  alt="Igris Inertial"
-                  style={{ width: '80px', height: 'auto' }}
-                />
+                  src="/oklog.png"
+                   alt="Igris Inertial"
+                   style={{ width: '80px', height: 'auto' }}
+                 />
             </Link>
           </div>
 
@@ -175,12 +175,12 @@ export default function Header() {
               </a>
 
               <a
-                href={consoleUrl ? `${consoleUrl}/auth?mode=signup` : '#'}
-                className="text-white px-3 py-1.5 rounded-lg hover:opacity-90 transition-all duration-200 text-xs shadow-md hover:shadow-lg"
-                style={{ backgroundColor: '#000000' }}
-              >
-               Get Started
-             </a>
+                 href={consoleUrl ? `${consoleUrl}/auth?mode=signup` : '#'}
+                 className="text-white font-medium px-2.5 py-1 hover:opacity-90 transition-all duration-200 text-xs shadow-md hover:shadow-lg"
+                 style={{ backgroundColor: '#000000' }}
+               >
+                Get Started
+              </a>
           </div>
 
           <div className="md:hidden flex items-center">
@@ -299,13 +299,13 @@ export default function Header() {
                   Sign In
                 </a>
               <a
-                href={consoleUrl ? `${consoleUrl}/auth?mode=signup` : '#'}
-                onClick={() => setMobileMenuOpen(false)}
-                className="text-white px-3 py-1.5 rounded-lg hover:opacity-90 transition-all duration-200 text-xs shadow-md w-full text-center block"
-                style={{ backgroundColor: '#000000' }}
-              >
-                 Get Started
-               </a>
+                 href={consoleUrl ? `${consoleUrl}/auth?mode=signup` : '#'}
+                 onClick={() => setMobileMenuOpen(false)}
+                 className="text-white font-medium px-2.5 py-1 hover:opacity-90 transition-all duration-200 text-xs shadow-md w-full text-center block"
+                 style={{ backgroundColor: '#000000' }}
+               >
+                  Get Started
+                </a>
             </nav>
           </div>
         )}
