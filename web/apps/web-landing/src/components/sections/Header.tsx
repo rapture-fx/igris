@@ -176,7 +176,7 @@ export default function Header() {
 
               <a
                  href={consoleUrl ? `${consoleUrl}/auth?mode=signup` : '#'}
-                 className="text-white font-medium px-2.5 py-1 hover:opacity-90 transition-all duration-200 text-xs shadow-md hover:shadow-lg"
+                 className="text-white px-2.5 py-1 hover:opacity-90 transition-all duration-200 text-xs shadow-md hover:shadow-lg"
                  style={{ backgroundColor: '#000000' }}
                >
                 Get Started
@@ -301,7 +301,7 @@ export default function Header() {
               <a
                  href={consoleUrl ? `${consoleUrl}/auth?mode=signup` : '#'}
                  onClick={() => setMobileMenuOpen(false)}
-                 className="text-white font-medium px-2.5 py-1 hover:opacity-90 transition-all duration-200 text-xs shadow-md w-full text-center block"
+                 className="text-white px-2.5 py-1 hover:opacity-90 transition-all duration-200 text-xs shadow-md w-full text-center block"
                  style={{ backgroundColor: '#000000' }}
                >
                   Get Started

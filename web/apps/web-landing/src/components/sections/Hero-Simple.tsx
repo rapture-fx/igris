@@ -8,11 +8,14 @@ export default function Hero() {
   const { openEarlyAccessModal } = useModal();
   return (
     <section className="pt-0 pb-0 bg-[#f6f6f4] text-gray-900 relative overflow-visible -mt-[72px]" style={{
-        backgroundImage: 'linear-gradient(to bottom, transparent 40%, #f6f6f4 100%), url(/cloudbg.png)',
+        backgroundImage: 'url(/cloudbg.png)',
         backgroundSize: 'cover',
         backgroundPosition: 'center top -100px',
         backgroundRepeat: 'no-repeat'
       }}>
+      <div className="absolute inset-0 pointer-events-none" style={{
+        background: 'linear-gradient(to bottom, rgba(246, 246, 244, 0) 50%, rgba(246, 246, 244, 0.5) 75%, #f6f6f4 100%)'
+      }}></div>
       <div className="mx-auto max-w-[1100px] px-4 sm:px-6 lg:px-8">
         <div className="relative px-4 md:px-8 lg:px-12 pb-0 bg-transparent z-10 overflow-visible flex flex-col" style={{
           borderLeft: '0.5px solid rgba(156, 163, 175, 0.3)',
