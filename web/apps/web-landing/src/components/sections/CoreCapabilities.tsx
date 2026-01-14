@@ -69,14 +69,15 @@ export default function CoreCapabilities() {
                    }}>
                    <div className="w-full max-w-[480px]">
                      <div className="space-y-6">
-                    {capabilities.map((capability) => (
-                      <div key={capability.name} className="flex gap-4 items-start">
-                        <div style={{
-                          width: '180px',
-                          height: '180px',
-                          border: '0.5px solid rgba(156, 163, 175, 0.3)',
-                          flexShrink: 0
-                        }}></div>
+                     {capabilities.map((capability) => (
+                       <div key={capability.name} className="flex gap-4 items-start">
+                         <div style={{
+                           width: '180px',
+                           height: '180px',
+                           border: '0.5px solid rgba(156, 163, 175, 0.3)',
+                           flexShrink: 0,
+                           backgroundColor: '#f5f4f2'
+                         }}></div>
                         <div className="flex-1">
                           <h4 className="text-sm font-normal text-gray-900 dark:text-white mb-2 font-inter" style={{ color: '#000000' }}>
                             {capability.name}
