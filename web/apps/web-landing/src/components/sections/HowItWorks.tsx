@@ -38,7 +38,7 @@ export default function HowItWorks() {
 
           {/* Title Section - Shows last on mobile */}
                 <div className="mt-12 text-left">
-                <p className="text-sm text-gray-500 mb-2" style={{ fontFamily: 'Roboto Mono, monospace', letterSpacing: '0.05em' }}>
+                <p className="text-base text-gray-500 mb-2" style={{ fontFamily: 'Roboto Mono, monospace', letterSpacing: '0.05em' }}>
                   03. FLOW
                 </p>
                 <h3 className="text-lg md:text-xl lg:text-2xl font-inter mb-2" style={{ color: '#000000' }}>
@@ -53,80 +53,12 @@ export default function HowItWorks() {
            {/* Two-column layout - Matching Products section */}
           <div className="hidden md:grid md:grid-cols-3 gap-0 md:flex-1">
             {/* Left Column - Content (2 columns wide) */}
-             <div className="md:col-span-2 flex flex-col justify-start" style={{ paddingTop: '3rem', paddingBottom: '3rem', paddingRight: '1rem' }}>
-                   <div className="space-y-12 text-sm text-gray-600 dark:text-gray-400 relative w-full max-w-[600px] pl-12">
-
-                    <div className="flex items-start relative">
-                      {/* Small frame */}
-                      <div className="absolute -left-12 top-0" style={{
-                        width: '24px',
-                        height: '24px',
-                        border: '1px solid rgba(156, 163, 175, 0.5)',
-                        backgroundColor: '#f6f6f4'
-                      }}></div>
-                      {/* Vertical line segment below first frame */}
-                      <div className="absolute -left-[37px] top-[32px]" style={{
-                        width: '1px',
-                        height: 'calc(100% + 40px)',
-                        backgroundColor: 'rgba(156, 163, 175, 0.4)'
-                      }}></div>
-                      <div className="flex-1">
-                        <h4 className="text-sm font-normal text-gray-900 dark:text-white mb-3" style={{ color: '#000000' }}>Your application sends a request</h4>
-                        <p className="text-sm leading-relaxed mb-4 max-w-[280px]">
-                          Use OpenAI-compatible API calls. Igris intercepts them before they reach any provider.
-                        </p>
-                      </div>
-                    </div>
-
-                    <div className="flex items-start relative">
-                      {/* Small frame */}
-                      <div className="absolute -left-12 top-0" style={{
-                        width: '24px',
-                        height: '24px',
-                        border: '1px solid rgba(156, 163, 175, 0.5)',
-                        backgroundColor: '#f6f6f4'
-                      }}></div>
-                      {/* Vertical line segment below second frame */}
-                      <div className="absolute -left-[37px] top-[32px]" style={{
-                        width: '1px',
-                        height: 'calc(100% + 40px)',
-                        backgroundColor: 'rgba(156, 163, 175, 0.4)'
-                      }}></div>
-                      <div className="flex-1">
-                        <h4 className="text-sm font-normal text-gray-900 dark:text-white mb-3" style={{ color: '#000000' }}>Igris makes the decision</h4>
-                        <p className="text-sm leading-relaxed mb-4 max-w-[280px]">
-                          Thompson Sampling evaluates providers based on cost, quality, latency, and availability. The best option is selected automatically.
-                        </p>
-                      </div>
-                    </div>
-
-                    <div className="flex items-start relative">
-                      {/* Small frame */}
-                      <div className="absolute -left-12 top-0" style={{
-                        width: '24px',
-                        height: '24px',
-                        border: '1px solid rgba(156, 163, 175, 0.5)',
-                        backgroundColor: '#f6f6f4'
-                      }}></div>
-                      <div className="flex-1">
-                        <h4 className="text-sm font-normal text-gray-900 dark:text-white mb-3" style={{ color: '#000000' }}>Traffic reroutes on failure</h4>
-                        <p className="text-sm leading-relaxed mb-4 max-w-[280px]">
-                          If a provider fails, Igris instantly switches to the next best option or falls back to on-device models. No manual intervention required.
-                        </p>
-                      </div>
-                    </div>
-                  </div>
-                 <Link href="/use-cases" className="group inline-flex items-center mt-16 pl-8 md:pl-8 lg:pl-8">
-                   <span className="text-sm text-gray-900 dark:text-white font-inter">
-                     Explore Use Cases
-                   </span>
-                   <ChevronRight className="ml-1 h-3 w-3" />
-                 </Link>
-              </div>
+              <div className="md:col-span-2 flex flex-col justify-start relative" style={{ padding: '3rem 1rem 3rem 1rem', backgroundImage: 'radial-gradient(circle, rgba(0, 0, 0, 0.1) 1px, transparent 1px)', backgroundSize: '20px 20px', backgroundPosition: '1rem 3rem' }}>
+               </div>
 
               {/* Right Column - Title (1 column wide with left border) */}
              <div className="md:col-span-1 md:border-l flex flex-col justify-start" style={{ borderLeft: '0.5px solid rgba(156, 163, 175, 0.3)', paddingTop: '3rem', paddingBottom: '3rem', paddingLeft: '1rem' }}>
-               <p className="text-sm text-gray-500 mb-2" style={{ fontFamily: 'Roboto Mono, monospace', letterSpacing: '0.05em' }}>
+               <p className="text-base text-gray-500 mb-2" style={{ fontFamily: 'Roboto Mono, monospace', letterSpacing: '0.05em' }}>
                  03. FLOW
                </p>
                <h2 className="text-lg md:text-xl lg:text-2xl font-inter mb-4" style={{ color: '#000000' }}>

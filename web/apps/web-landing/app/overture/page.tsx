@@ -114,18 +114,12 @@ export default function OverturePage() {
                    {/* Two-column layout */}
                    <div className="grid grid-cols-1 md:grid-cols-3 gap-0 relative md:flex-1" style={{ height: '100%' }}>
 
-                    {/* Left Column - Image (2 columns wide) */}
+                    {/* Left Column (2 columns wide) */}
                     <div className="hidden md:flex md:col-span-2 flex-col items-start justify-start" style={{
                       paddingTop: '3rem',
                       paddingBottom: '3rem',
                       paddingRight: '1rem'
                     }}>
-                      <img
-                        src="/overturepage.png"
-                        alt="Overture Page"
-                        className="max-w-full h-auto"
-                        style={{ maxHeight: '500px', objectFit: 'contain' }}
-                      />
                     </div>
 
                     {/* Right Column - Title and Description (Desktop only) */}
