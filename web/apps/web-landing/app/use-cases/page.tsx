@@ -2,10 +2,7 @@
 
 import Header from '../../src/components/sections/Header'
 import Footer from '../../src/components/sections/Footer'
-import CallToAction from '../../src/components/sections/CallToAction'
 import ClosingPosition from '../../src/components/sections/ClosingPosition'
-import Problem from '../../src/components/sections/Problem'
-import AudienceFilter from '../../src/components/sections/AudienceFilter'
 import UseCasesTeaser from '../../src/components/sections/UseCasesTeaser'
 import EarlyAccessModal from '../../src/components/modals/EarlyAccessModal'
 import { useModal } from '../../src/contexts/ModalContext'
@@ -89,12 +86,6 @@ export default function UseCasesPage() {
               </div>
             </div>
           </section>
-
-          {/* Common Challenges Section */}
-          <Problem />
-
-          {/* Intended Use Cases Section */}
-          <AudienceFilter />
 
           {/* Use Cases Teaser Section */}
           <UseCasesTeaser />
