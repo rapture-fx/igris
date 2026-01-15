@@ -55,11 +55,6 @@ export default function HowItWorks() {
             {/* Left Column - Content (2 columns wide) */}
              <div className="md:col-span-2 flex flex-col justify-start" style={{ paddingTop: '3rem', paddingBottom: '3rem', paddingRight: '1rem' }}>
                    <div className="space-y-12 text-sm text-gray-600 dark:text-gray-400 relative w-full max-w-[600px] pl-12">
-                    {/* Vertical connecting line */}
-                    <div className="absolute left-[11px] top-[12px] bottom-[80px]" style={{
-                      width: '1px',
-                      backgroundColor: 'rgba(156, 163, 175, 0.4)'
-                    }}></div>
 
                     <div className="flex items-start relative">
                       {/* Small frame */}
@@ -68,6 +63,12 @@ export default function HowItWorks() {
                         height: '24px',
                         border: '1px solid rgba(156, 163, 175, 0.5)',
                         backgroundColor: '#f6f6f4'
+                      }}></div>
+                      {/* Vertical line segment below first frame */}
+                      <div className="absolute -left-[37px] top-[32px]" style={{
+                        width: '1px',
+                        height: 'calc(100% + 40px)',
+                        backgroundColor: 'rgba(156, 163, 175, 0.4)'
                       }}></div>
                       <div className="flex-1">
                         <h4 className="text-sm font-normal text-gray-900 dark:text-white mb-3" style={{ color: '#000000' }}>Your application sends a request</h4>
@@ -84,6 +85,12 @@ export default function HowItWorks() {
                         height: '24px',
                         border: '1px solid rgba(156, 163, 175, 0.5)',
                         backgroundColor: '#f6f6f4'
+                      }}></div>
+                      {/* Vertical line segment below second frame */}
+                      <div className="absolute -left-[37px] top-[32px]" style={{
+                        width: '1px',
+                        height: 'calc(100% + 40px)',
+                        backgroundColor: 'rgba(156, 163, 175, 0.4)'
                       }}></div>
                       <div className="flex-1">
                         <h4 className="text-sm font-normal text-gray-900 dark:text-white mb-3" style={{ color: '#000000' }}>Igris makes the decision</h4>
