@@ -51,12 +51,24 @@ export default function HowItWorks() {
             </div>
 
            {/* Two-column layout - Matching Products section */}
-          <div className="grid grid-cols-1 md:grid-cols-3 gap-0 md:flex-1">
+          <div className="hidden md:grid md:grid-cols-3 gap-0 md:flex-1">
             {/* Left Column - Content (2 columns wide) */}
              <div className="md:col-span-2 flex flex-col justify-start" style={{ paddingTop: '3rem', paddingBottom: '3rem', paddingRight: '1rem' }}>
-                   <div className="space-y-20 text-sm text-gray-600 dark:text-gray-400 relative w-full max-w-[600px]">
+                   <div className="space-y-12 text-sm text-gray-600 dark:text-gray-400 relative w-full max-w-[600px] pl-12">
+                    {/* Vertical connecting line */}
+                    <div className="absolute left-[11px] top-[12px] bottom-[80px]" style={{
+                      width: '1px',
+                      backgroundColor: 'rgba(156, 163, 175, 0.4)'
+                    }}></div>
 
                     <div className="flex items-start relative">
+                      {/* Small frame */}
+                      <div className="absolute -left-12 top-0" style={{
+                        width: '24px',
+                        height: '24px',
+                        border: '1px solid rgba(156, 163, 175, 0.5)',
+                        backgroundColor: '#f6f6f4'
+                      }}></div>
                       <div className="flex-1">
                         <h4 className="text-sm font-normal text-gray-900 dark:text-white mb-3" style={{ color: '#000000' }}>Your application sends a request</h4>
                         <p className="text-sm leading-relaxed mb-4 max-w-[280px]">
@@ -66,6 +78,13 @@ export default function HowItWorks() {
                     </div>
 
                     <div className="flex items-start relative">
+                      {/* Small frame */}
+                      <div className="absolute -left-12 top-0" style={{
+                        width: '24px',
+                        height: '24px',
+                        border: '1px solid rgba(156, 163, 175, 0.5)',
+                        backgroundColor: '#f6f6f4'
+                      }}></div>
                       <div className="flex-1">
                         <h4 className="text-sm font-normal text-gray-900 dark:text-white mb-3" style={{ color: '#000000' }}>Igris makes the decision</h4>
                         <p className="text-sm leading-relaxed mb-4 max-w-[280px]">
@@ -75,6 +94,13 @@ export default function HowItWorks() {
                     </div>
 
                     <div className="flex items-start relative">
+                      {/* Small frame */}
+                      <div className="absolute -left-12 top-0" style={{
+                        width: '24px',
+                        height: '24px',
+                        border: '1px solid rgba(156, 163, 175, 0.5)',
+                        backgroundColor: '#f6f6f4'
+                      }}></div>
                       <div className="flex-1">
                         <h4 className="text-sm font-normal text-gray-900 dark:text-white mb-3" style={{ color: '#000000' }}>Traffic reroutes on failure</h4>
                         <p className="text-sm leading-relaxed mb-4 max-w-[280px]">
