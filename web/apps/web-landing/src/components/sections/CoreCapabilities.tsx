@@ -72,23 +72,24 @@ export default function CoreCapabilities() {
                      {capabilities.map((capability) => (
                         <div key={capability.name} className="flex gap-4 items-start">
                           <div style={{
-                            width: '180px',
-                            height: '180px',
+                            width: '140px',
+                            height: '140px',
                             border: '0.5px solid rgba(156, 163, 175, 0.3)',
                             flexShrink: 0,
                             backgroundColor: '#f6f6f4',
                             display: 'flex',
                             alignItems: 'center',
                             justifyContent: 'center',
-                            position: 'relative'
+                            position: 'relative',
+                            overflow: 'hidden'
                           }}>
                             <img
                               src="/fr.png"
                               alt={capability.name}
                               style={{
                                 position: 'absolute',
-                                width: '100%',
-                                height: '100%',
+                                width: '140%',
+                                height: '140%',
                                 objectFit: 'cover',
                                 opacity: '0.7'
                               }}
