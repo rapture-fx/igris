@@ -47,11 +47,13 @@ export default function OverturePage() {
             backgroundImage: 'linear-gradient(rgba(246, 246, 244, 0.3), rgba(246, 246, 244, 0.3)), url(/cloudbg.png)',
             backgroundSize: 'cover',
             backgroundPosition: 'center top -100px',
-            backgroundRepeat: 'no-repeat',
-            borderBottom: '0.5px solid rgba(156, 163, 175, 0.3)'
+            backgroundRepeat: 'no-repeat'
           }}>
              <div className="mx-auto max-w-[1100px] px-4 sm:px-6 lg:px-8">
                <div className="relative px-4 md:px-8 lg:px-12 pb-0 bg-transparent z-10 overflow-visible" style={{
+                borderLeft: '0.5px solid rgba(156, 163, 175, 0.3)',
+                borderRight: '0.5px solid rgba(156, 163, 175, 0.3)',
+                borderBottom: '0.5px solid rgba(156, 163, 175, 0.3)'
                }}>
                 <div className="max-w-[1100px] mx-auto" style={{ paddingTop: '300px' }}>
                   <div className="mb-6 text-left">
@@ -86,9 +88,12 @@ export default function OverturePage() {
             </section>
 
           {/* Purpose & Value Section */}
-          <section className="dark:bg-gray-900 text-gray-900 dark:text-white" style={{ backgroundColor: '#f6f6f4', height: '800px', borderBottom: '0.5px solid rgba(156, 163, 175, 0.3)' }}>
+          <section className="dark:bg-gray-900 text-gray-900 dark:text-white" style={{ backgroundColor: '#f6f6f4', height: '800px' }}>
             <div className="mx-auto max-w-[1100px] px-4 sm:px-6 lg:px-8" style={{ height: '100%' }}>
               <div className="relative px-4 md:px-8 lg:px-12 flex flex-col" style={{
+                borderLeft: '0.5px solid rgba(156, 163, 175, 0.3)',
+                borderRight: '0.5px solid rgba(156, 163, 175, 0.3)',
+                borderBottom: '0.5px solid rgba(156, 163, 175, 0.3)',
                 backgroundColor: '#f6f6f4',
                 height: '100%'
               }}>
@@ -144,9 +149,12 @@ export default function OverturePage() {
           </section>
 
           {/* Core Capabilities Section */}
-          <section className="dark:bg-gray-900 text-gray-900 dark:text-white" style={{ backgroundColor: '#f6f6f4', height: '800px', borderBottom: '0.5px solid rgba(156, 163, 175, 0.3)' }}>
+          <section className="dark:bg-gray-900 text-gray-900 dark:text-white" style={{ backgroundColor: '#f6f6f4', height: '800px' }}>
             <div className="mx-auto max-w-[1100px] px-4 sm:px-6 lg:px-8" style={{ height: '100%' }}>
               <div className="relative px-4 md:px-8 lg:px-12 flex flex-col" style={{
+                borderLeft: '0.5px solid rgba(156, 163, 175, 0.3)',
+                borderRight: '0.5px solid rgba(156, 163, 175, 0.3)',
+                borderBottom: '0.5px solid rgba(156, 163, 175, 0.3)',
                 backgroundColor: '#f6f6f4',
                 height: '100%'
               }}>
@@ -240,9 +248,12 @@ export default function OverturePage() {
           </section>
 
           {/* How It Fits Section */}
-          <section className="dark:bg-gray-900 text-gray-900 dark:text-white" style={{ backgroundColor: '#f6f6f4', height: '800px', borderBottom: '0.5px solid rgba(156, 163, 175, 0.3)' }}>
+          <section className="dark:bg-gray-900 text-gray-900 dark:text-white" style={{ backgroundColor: '#f6f6f4', height: '800px' }}>
             <div className="mx-auto max-w-[1100px] px-4 sm:px-6 lg:px-8" style={{ height: '100%' }}>
               <div className="relative px-4 md:px-8 lg:px-12 flex flex-col" style={{
+                borderLeft: '0.5px solid rgba(156, 163, 175, 0.3)',
+                borderRight: '0.5px solid rgba(156, 163, 175, 0.3)',
+                borderBottom: '0.5px solid rgba(156, 163, 175, 0.3)',
                 backgroundColor: '#f6f6f4',
                 height: '100%'
               }}>
@@ -293,11 +304,12 @@ export default function OverturePage() {
           </section>
 
           {/* Features Section */}
-          <section className="dark:bg-gray-900 text-gray-900 dark:text-white" style={{ backgroundColor: '#f6f6f4', minHeight: '800px', borderBottom: '0.5px solid rgba(156, 163, 175, 0.3)' }}>
+          <section className="dark:bg-gray-900 text-gray-900 dark:text-white" style={{ backgroundColor: '#f6f6f4', minHeight: '800px' }}>
             <div className="mx-auto max-w-[1100px] px-4 sm:px-6 lg:px-8" style={{ minHeight: '800px' }}>
               <div className="relative px-4 md:px-8 lg:px-12 flex flex-col" style={{
                 borderLeft: '0.5px solid rgba(156, 163, 175, 0.3)',
                 borderRight: '0.5px solid rgba(156, 163, 175, 0.3)',
+                borderBottom: '0.5px solid rgba(156, 163, 175, 0.3)',
                 backgroundColor: '#f6f6f4',
                 minHeight: '800px'
               }}>
