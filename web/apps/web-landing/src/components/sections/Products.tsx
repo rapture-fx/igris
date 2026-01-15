@@ -17,7 +17,7 @@ export default function Products() {
 
           {/* Title Section - Shows first on mobile, last on desktop */}
            <div className="mb-6 md:mb-0 md:hidden text-left" style={{ paddingTop: '3rem', paddingBottom: '3rem' }}>
-               <p className="text-xs text-gray-500 mb-2" style={{ fontFamily: 'Roboto Mono, monospace', letterSpacing: '0.05em' }}>
+               <p className="text-sm text-gray-500 mb-2" style={{ fontFamily: 'Roboto Mono, monospace', letterSpacing: '0.05em' }}>
                  01. PRODUCT
                </p>
                <h2 className="text-lg md:text-xl lg:text-2xl font-inter mb-4" style={{ color: '#000000' }}>
@@ -171,7 +171,7 @@ export default function Products() {
 
              {/* Right Column: Title and Description (Desktop only) */}
              <div className="hidden md:flex md:col-span-1 md:border-l flex-col justify-start" style={{ borderLeft: '0.5px solid rgba(156, 163, 175, 0.3)', paddingTop: '3rem', paddingBottom: '3rem', paddingLeft: '1rem', height: '100%' }}>
-              <p className="text-xs text-gray-500 mb-2" style={{ fontFamily: 'Roboto Mono, monospace', letterSpacing: '0.05em' }}>
+              <p className="text-sm text-gray-500 mb-2" style={{ fontFamily: 'Roboto Mono, monospace', letterSpacing: '0.05em' }}>
                 01. PRODUCT
               </p>
               <h2 className="text-lg md:text-xl lg:text-2xl font-inter mb-4" style={{ color: '#000000' }}>

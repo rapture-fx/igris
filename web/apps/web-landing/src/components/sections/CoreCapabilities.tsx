@@ -50,7 +50,7 @@ export default function CoreCapabilities() {
 
                {/* Title Section - Shows last on mobile */}
                 <div className="mt-12 text-left">
-                     <p className="text-xs text-gray-500 mb-2" style={{ fontFamily: 'Roboto Mono, monospace', letterSpacing: '0.05em' }}>
+                     <p className="text-sm text-gray-500 mb-2" style={{ fontFamily: 'Roboto Mono, monospace', letterSpacing: '0.05em' }}>
                        02. CORE
                      </p>
                      <h3 className="text-lg md:text-xl lg:text-2xl font-inter mb-4" style={{ color: '#000000' }}>
@@ -153,7 +153,7 @@ export default function CoreCapabilities() {
 
                  {/* Right Column - Title and Intro (Desktop only) */}
                  <div className="hidden md:flex text-left md:col-span-1 flex-col justify-start" style={{ borderLeft: '0.5px solid rgba(156, 163, 175, 0.3)', paddingTop: '3rem', paddingBottom: '3rem', paddingLeft: '1rem', height: '100%' }}>
-                   <p className="text-xs text-gray-500 mb-2" style={{ fontFamily: 'Roboto Mono, monospace', letterSpacing: '0.05em' }}>
+                   <p className="text-sm text-gray-500 mb-2" style={{ fontFamily: 'Roboto Mono, monospace', letterSpacing: '0.05em' }}>
                      02. CORE
                    </p>
                    <h3 className="text-lg md:text-xl lg:text-2xl font-inter mb-4" style={{ color: '#000000' }}>
