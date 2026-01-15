@@ -21,6 +21,21 @@ export default function OverturePage() {
     { title: 'Deploy flexibly', description: 'Operates independently or feeds decisions into Runtime' }
   ]
 
+  const features = [
+    { title: 'Thompson Sampling', description: 'Bayesian multi-armed bandit intelligently selects optimal AI providers based on historical performance, balancing exploration and exploitation' },
+    { title: 'Speculative Execution', description: 'Launches 2-4 providers in parallel, fastest response wins. Reduces P99 latency by 40-60% automatically' },
+    { title: 'Council Mode', description: 'Runs full inference on multiple providers with peer ranking and consensus selection to reduce hallucinations' },
+    { title: 'Cognitive Advisor', description: 'Automatically detects provider degradation and tunes routing parameters in real-time without manual intervention' },
+    { title: 'Trust-Aware Selection', description: 'Tracks provider honesty by comparing observed vs reported metrics. Automatically blocks providers with trust scores below 30%' },
+    { title: 'Adaptive Circuit Breaker', description: 'Fail-closed protection with OPEN/CLOSED/HALF_OPEN states. Prevents cascading failures across providers' },
+    { title: 'Policy Engine', description: 'Enforces routing rules for cost limits, performance requirements, compliance constraints, and geo-fencing' },
+    { title: 'Explainable Decisions', description: 'Every routing decision includes full reasoning with Thompson scores, trust scores, and policy constraints applied' },
+    { title: 'Multi-Tenancy & BYOK', description: 'Complete tenant isolation with encrypted API key storage. Users own their provider relationships with zero vendor lock-in' },
+    { title: 'Real-Time Cost Tracking', description: 'Tracks every request cost in USD with per-provider breakdowns and automatic budget enforcement' },
+    { title: 'High-Performance Cache', description: 'Dragonfly cache delivers 200K RPS (25x faster than Redis) with 4GB capacity for routing state and metadata' },
+    { title: 'Comprehensive Observability', description: '180+ Prometheus metrics, OpenTelemetry tracing, and full decision metadata for debugging and compliance' }
+  ]
+
   return (
     <>
       <div className="min-h-screen bg-[#f6f6f4]">
@@ -269,6 +284,88 @@ export default function OverturePage() {
                       </h3>
                       <p className="text-sm md:text-base text-gray-600 dark:text-gray-400 font-inter leading-relaxed">
                         Overture can run as a standalone decision engine or as part of full Igris Inertial system. Use it alone to generate routing decisions, or pair it with Runtime for end-to-end adaptive execution under real-world uncertainty.
+                      </p>
+                    </div>
+                  </div>
+                </div>
+              </div>
+            </div>
+          </section>
+
+          {/* Features Section */}
+          <section className="dark:bg-gray-900 text-gray-900 dark:text-white" style={{ backgroundColor: '#f6f6f4', minHeight: '800px', borderBottom: '0.5px solid rgba(156, 163, 175, 0.3)' }}>
+            <div className="mx-auto max-w-[1100px] px-4 sm:px-6 lg:px-8" style={{ minHeight: '800px' }}>
+              <div className="relative px-4 md:px-8 lg:px-12 flex flex-col" style={{
+                borderLeft: '0.5px solid rgba(156, 163, 175, 0.3)',
+                borderRight: '0.5px solid rgba(156, 163, 175, 0.3)',
+                backgroundColor: '#f6f6f4',
+                minHeight: '800px'
+              }}>
+
+                {/* Content Container */}
+                <div className="w-full px-0 flex flex-col md:flex-1">
+
+                  {/* Mobile - Title First */}
+                  <div className="text-left mb-6 md:mb-0 md:hidden" style={{ paddingTop: '3rem', paddingBottom: '3rem' }}>
+                    <h3 className="text-lg md:text-xl lg:text-2xl font-inter mb-4" style={{ color: '#000000' }}>
+                      Features
+                    </h3>
+                    <p className="text-sm text-gray-600 dark:text-gray-400 leading-relaxed font-inter mb-8">
+                      Complete feature set verified from production codebase
+                    </p>
+
+                    {/* Features List - Mobile */}
+                    <div className="space-y-6">
+                      {features.map((feature, index) => (
+                        <div key={index}>
+                          <h4 className="text-sm font-normal text-gray-900 dark:text-white mb-2 font-inter" style={{ color: '#000000' }}>
+                            {feature.title}
+                          </h4>
+                          <p className="text-xs text-gray-600 dark:text-gray-400 leading-relaxed font-inter">
+                            {feature.description}
+                          </p>
+                        </div>
+                      ))}
+                    </div>
+                  </div>
+
+                  {/* Two-column layout - Desktop */}
+                  <div className="hidden md:grid md:grid-cols-3 gap-0 relative md:flex-1">
+
+                    {/* Left Column - Features List (2 columns wide) */}
+                    <div className="md:col-span-2 flex flex-col justify-start" style={{
+                      paddingTop: '3rem',
+                      paddingBottom: '3rem',
+                      paddingRight: '1rem'
+                    }}>
+                      <div className="w-full max-w-[600px]">
+                        <div className="space-y-6">
+                          {features.map((feature, index) => (
+                            <div key={index}>
+                              <h4 className="text-sm font-normal text-gray-900 dark:text-white mb-2 font-inter" style={{ color: '#000000' }}>
+                                {feature.title}
+                              </h4>
+                              <p className="text-sm text-gray-600 dark:text-gray-400 leading-relaxed font-inter">
+                                {feature.description}
+                              </p>
+                            </div>
+                          ))}
+                        </div>
+                      </div>
+                    </div>
+
+                    {/* Right Column - Title (Desktop only) */}
+                    <div className="md:col-span-1 flex flex-col justify-start" style={{
+                      borderLeft: '0.5px solid rgba(156, 163, 175, 0.3)',
+                      paddingTop: '3rem',
+                      paddingBottom: '3rem',
+                      paddingLeft: '1rem'
+                    }}>
+                      <h3 className="text-lg md:text-xl lg:text-2xl font-inter mb-4" style={{ color: '#000000' }}>
+                        Features
+                      </h3>
+                      <p className="text-sm text-gray-600 dark:text-gray-400 font-inter leading-relaxed">
+                        Complete feature set verified from production codebase
                       </p>
                     </div>
                   </div>
