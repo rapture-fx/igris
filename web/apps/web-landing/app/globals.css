@@ -11,17 +11,26 @@
 @layer base {
   html,
   body {
+    margin: 0;
+    padding: 0;
     background-color: #f6f6f4;
     overscroll-behavior: none;
+    box-sizing: border-box;
   }
 
   /* Ensure consistent background on mobile overscroll */
   html {
     background: #f6f6f4;
+    overflow-x: hidden;
   }
 
   body {
     background: #f6f6f4;
     min-height: 100vh;
+    overflow-x: hidden;
+  }
+
+  *, *::before, *::after {
+    box-sizing: border-box;
   }
 }
