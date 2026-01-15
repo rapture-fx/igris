@@ -21,6 +21,19 @@ export default function RuntimePage() {
     { title: 'Serve locally', description: 'Continues serving requests using local models or cached responses when external resources fail' }
   ]
 
+  const features = [
+    { title: 'Resource Safety Limits', description: 'Enforces strict limits: max 100 tool calls, 10 recursion depth, 5 minute execution timeout, and 10MB output size to prevent runaway AI agents' },
+    { title: 'Deterministic Execution Envelopes', description: 'Wraps every execution in HMAC-signed, tamper-proof envelopes with cryptographic proof of constraints and audit trail' },
+    { title: 'LoRA Fine-Tuning', description: 'On-device fine-tuning with Metal GPU acceleration for M-series Macs. Trained adapters are AES-256-GCM encrypted and device-locked' },
+    { title: 'Local Model Inference', description: 'Runs Phi-3 and custom GGUF models locally for offline operation, privacy-sensitive workloads, and budget fallback scenarios' },
+    { title: 'EscapeVector Semantic Cache', description: 'Embedding-based semantic caching reduces API calls by 30-50% with similarity search and configurable TTL' },
+    { title: 'Sandboxed Tool Execution', description: 'Executes function calls in isolated environments with tool output size limits, timeouts, and safety constraints' },
+    { title: 'Offline Operation', description: 'Continues serving requests using local models and cached responses when network is unavailable or cloud providers fail' },
+    { title: 'Telemetry Streaming', description: 'Streams real-time execution telemetry to Overture via gRPC, feeding Cognitive Advisor and Thompson Sampling updates' },
+    { title: 'Device-Locked Models', description: 'LoRA adapters encrypted with device-specific keys cannot run on other devices, enforcing data locality and preventing theft' },
+    { title: 'Benchmark Fallback', description: 'Automatically routes to simulated providers when budget exhausted, enabling zero-cost testing and development' }
+  ]
+
   return (
     <>
       <div className="min-h-screen bg-[#f6f6f4]">
@@ -265,6 +278,88 @@ export default function RuntimePage() {
                       </h3>
                       <p className="text-sm md:text-base text-gray-600 dark:text-gray-400 font-inter leading-relaxed">
                         Runtime can operate as a standalone execution engine or as part of a coordinated fleet managed by Overture. Deploy it independently for edge and offline workloads, or combine it with Overture for centralized decision-making with distributed execution.
+                      </p>
+                    </div>
+                  </div>
+                </div>
+              </div>
+            </div>
+          </section>
+
+          {/* Features Section */}
+          <section className="dark:bg-gray-900 text-gray-900 dark:text-white" style={{ backgroundColor: '#f6f6f4', minHeight: '800px', borderBottom: '0.5px solid rgba(156, 163, 175, 0.3)' }}>
+            <div className="mx-auto max-w-[1100px] px-4 sm:px-6 lg:px-8" style={{ minHeight: '800px' }}>
+              <div className="relative px-4 md:px-8 lg:px-12 flex flex-col" style={{
+                borderLeft: '0.5px solid rgba(156, 163, 175, 0.3)',
+                borderRight: '0.5px solid rgba(156, 163, 175, 0.3)',
+                backgroundColor: '#f6f6f4',
+                minHeight: '800px'
+              }}>
+
+                {/* Content Container */}
+                <div className="w-full px-0 flex flex-col md:flex-1">
+
+                  {/* Mobile - Title First */}
+                  <div className="text-left mb-6 md:mb-0 md:hidden" style={{ paddingTop: '3rem', paddingBottom: '3rem' }}>
+                    <h3 className="text-lg md:text-xl lg:text-2xl font-inter mb-4" style={{ color: '#000000' }}>
+                      Features
+                    </h3>
+                    <p className="text-sm text-gray-600 dark:text-gray-400 leading-relaxed font-inter mb-8">
+                      Complete feature set verified from production codebase
+                    </p>
+
+                    {/* Features List - Mobile */}
+                    <div className="space-y-6">
+                      {features.map((feature, index) => (
+                        <div key={index}>
+                          <h4 className="text-sm font-normal text-gray-900 dark:text-white mb-2 font-inter" style={{ color: '#000000' }}>
+                            {feature.title}
+                          </h4>
+                          <p className="text-xs text-gray-600 dark:text-gray-400 leading-relaxed font-inter">
+                            {feature.description}
+                          </p>
+                        </div>
+                      ))}
+                    </div>
+                  </div>
+
+                  {/* Two-column layout - Desktop */}
+                  <div className="hidden md:grid md:grid-cols-3 gap-0 relative md:flex-1">
+
+                    {/* Left Column - Features List (2 columns wide) */}
+                    <div className="md:col-span-2 flex flex-col justify-start" style={{
+                      paddingTop: '3rem',
+                      paddingBottom: '3rem',
+                      paddingRight: '1rem'
+                    }}>
+                      <div className="w-full max-w-[600px]">
+                        <div className="space-y-6">
+                          {features.map((feature, index) => (
+                            <div key={index}>
+                              <h4 className="text-sm font-normal text-gray-900 dark:text-white mb-2 font-inter" style={{ color: '#000000' }}>
+                                {feature.title}
+                              </h4>
+                              <p className="text-sm text-gray-600 dark:text-gray-400 leading-relaxed font-inter">
+                                {feature.description}
+                              </p>
+                            </div>
+                          ))}
+                        </div>
+                      </div>
+                    </div>
+
+                    {/* Right Column - Title (Desktop only) */}
+                    <div className="md:col-span-1 flex flex-col justify-start" style={{
+                      borderLeft: '0.5px solid rgba(156, 163, 175, 0.3)',
+                      paddingTop: '3rem',
+                      paddingBottom: '3rem',
+                      paddingLeft: '1rem'
+                    }}>
+                      <h3 className="text-lg md:text-xl lg:text-2xl font-inter mb-4" style={{ color: '#000000' }}>
+                        Features
+                      </h3>
+                      <p className="text-sm text-gray-600 dark:text-gray-400 font-inter leading-relaxed">
+                        Complete feature set verified from production codebase
                       </p>
                     </div>
                   </div>
