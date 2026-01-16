@@ -27,7 +27,7 @@ export default function ClosingPosition() {
                   <img
                     src="/spir.png"
                     alt="Spiral"
-                    style={{ height: '130%', width: 'auto' }}
+                    style={{ height: '130%', width: 'auto', opacity: 0.3 }}
                   />
                 </div>
 

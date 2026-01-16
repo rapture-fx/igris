@@ -5,11 +5,16 @@ import (
 	"database/sql"
 	"fmt"
 	"math"
+	"math/rand"
 	"sync"
 	"time"
 
 	"github.com/Schlep-engine/igris-inertial/igris-overture/observability"
+	"gonum.org/v1/gonum/stat/distuv"
 )
+
+// Thread-safe random source for Thompson Sampling
+var rng = rand.New(rand.NewSource(time.Now().UnixNano()))
 
 // RewardEngine implements composite reward calculation for Thompson Sampling
 type RewardEngine struct {
@@ -364,21 +369,34 @@ func (re *RewardEngine) SelectArmThompsonSampling(arms []*BanditArm, exploration
 	return bestArm
 }
 
-// sampleBeta samples from a Beta distribution using the mean approximation
-// For production, use a proper Beta distribution sampler (e.g., gonum/stat/distuv)
+// sampleBeta samples from a Beta distribution using gonum's proper implementation
+// This provides true Thompson Sampling with correct posterior uncertainty quantification
 func sampleBeta(alpha, beta float64) float64 {
+	// Handle edge cases with uniform prior
 	if alpha <= 0 || beta <= 0 {
 		return 0.5
 	}
 
-	// Mean approximation: E[Beta(α,β)] = α / (α + β)
-	mean := alpha / (alpha + beta)
+	// Use minimum values to prevent numerical instability
+	if alpha < 0.01 {
+		alpha = 0.01
+	}
+	if beta < 0.01 {
+		beta = 0.01
+	}
 
-	// Add small random noise for exploration
-	noise := (randomFloat() - 0.5) * 0.1
-	sample := mean + noise
+	// Create Beta distribution with gonum and sample from it
+	dist := distuv.Beta{
+		Alpha: alpha,
+		Beta:  beta,
+		Src:   rng,
+	}
 
-	// Clamp to [0, 1]
+	// Sample from the Beta distribution - this provides proper uncertainty quantification
+	// for Thompson Sampling, unlike the mean approximation
+	sample := dist.Rand()
+
+	// Clamp to [0, 1] to handle any numerical edge cases
 	if sample < 0 {
 		return 0.0
 	}
@@ -394,17 +412,17 @@ func shouldExplore(explorationRate float64) bool {
 	return randomFloat() < explorationRate
 }
 
-// randomFloat returns a random float between 0 and 1
+// randomFloat returns a random float between 0 and 1 using a proper RNG
 func randomFloat() float64 {
-	return float64(time.Now().UnixNano()%1000) / 1000.0
+	return rng.Float64()
 }
 
-// randomInt returns a random integer between 0 and max (exclusive)
+// randomInt returns a random integer between 0 and max (exclusive) using a proper RNG
 func randomInt(max int) int {
 	if max <= 0 {
 		return 0
 	}
-	return int(time.Now().UnixNano() % int64(max))
+	return rng.Intn(max)
 }
 
 // SetWeights sets the reward weights for a specific semantic class

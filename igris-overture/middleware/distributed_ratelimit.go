@@ -33,43 +33,67 @@ type RateLimitConfig struct {
 
 // RateLimitTier defines different rate limit tiers
 type RateLimitTier struct {
-	Name              string
-	RequestsPerMinute int
-	RequestsPerHour   int
-	RequestsPerDay    int
-	BurstSize         int
+	Name               string
+	RequestsPerSecond  int // P0-3: Per-second rate limiting
+	RequestsPerMinute  int
+	RequestsPerHour    int
+	RequestsPerDay     int
+	BurstSize          int
+	ConcurrentRequests int // P0-4: Concurrent request limit
 }
 
 var (
-	// Predefined rate limit tiers
+	// Predefined rate limit tiers - aligned with tier_config.yaml
+	// See roadmap: Trial/Developer (10 RPS / 300 RPM), Growth (50 RPS / 1500 RPM), Scale (1000 RPS / 60000 RPM)
 	RateLimitTiers = map[string]*RateLimitTier{
+		// Developer tier (also used for trial)
+		"developer": {
+			Name:               "developer",
+			RequestsPerSecond:  10,      // 10 RPS
+			RequestsPerMinute:  300,     // 300 RPM
+			RequestsPerHour:    10000,
+			RequestsPerDay:     50000,
+			BurstSize:          10,
+			ConcurrentRequests: 5,       // Max 5 concurrent requests
+		},
+		// Growth tier
+		"growth": {
+			Name:               "growth",
+			RequestsPerSecond:  50,      // 50 RPS
+			RequestsPerMinute:  1500,    // 1500 RPM
+			RequestsPerHour:    50000,
+			RequestsPerDay:     500000,
+			BurstSize:          50,
+			ConcurrentRequests: 50,      // Max 50 concurrent requests
+		},
+		// Scale tier
+		"scale": {
+			Name:               "scale",
+			RequestsPerSecond:  1000,    // 1000 RPS
+			RequestsPerMinute:  60000,   // 60000 RPM
+			RequestsPerHour:    0,       // Unlimited
+			RequestsPerDay:     0,       // Unlimited
+			BurstSize:          1000,
+			ConcurrentRequests: 1000,    // Max 1000 concurrent requests
+		},
+		// Legacy tiers (for backward compatibility)
 		"free": {
-			Name:              "free",
-			RequestsPerMinute: 60,
-			RequestsPerHour:   1000,
-			RequestsPerDay:    10000,
-			BurstSize:         10,
+			Name:               "free",
+			RequestsPerSecond:  5,
+			RequestsPerMinute:  60,
+			RequestsPerHour:    1000,
+			RequestsPerDay:     10000,
+			BurstSize:          5,
+			ConcurrentRequests: 2,
 		},
-		"starter": {
-			Name:              "starter",
-			RequestsPerMinute: 300,
-			RequestsPerHour:   10000,
-			RequestsPerDay:    100000,
-			BurstSize:         50,
-		},
-		"professional": {
-			Name:              "professional",
-			RequestsPerMinute: 1000,
-			RequestsPerHour:   50000,
-			RequestsPerDay:    500000,
-			BurstSize:         200,
-		},
-		"enterprise": {
-			Name:              "enterprise",
-			RequestsPerMinute: 10000,
-			RequestsPerHour:   500000,
-			RequestsPerDay:    5000000,
-			BurstSize:         1000,
+		"trial": {
+			Name:               "trial",
+			RequestsPerSecond:  10,      // Same as developer during trial
+			RequestsPerMinute:  300,
+			RequestsPerHour:    10000,
+			RequestsPerDay:     50000,
+			BurstSize:          10,
+			ConcurrentRequests: 5,
 		},
 	}
 )
@@ -138,16 +162,43 @@ func (rl *DistributedRateLimiter) RateLimitMiddleware(tierName string) fiber.Han
 		tier, exists := RateLimitTiers[tierName]
 		if !exists {
 			tier = &RateLimitTier{
-				Name:              "default",
-				RequestsPerMinute: rl.defaultRequestsPerMinute,
-				BurstSize:         rl.defaultBurstSize,
+				Name:               "default",
+				RequestsPerSecond:  10,
+				RequestsPerMinute:  rl.defaultRequestsPerMinute,
+				BurstSize:          rl.defaultBurstSize,
+				ConcurrentRequests: 5,
 			}
 		}
 
 		// Check rate limits (multiple windows)
 		ctx := c.Context()
 
-		// 1. Per-minute limit (most restrictive)
+		// 0. Per-second limit (most restrictive - P0-3 FIX)
+		if tier.RequestsPerSecond > 0 {
+			allowed, remaining, resetTime, err := rl.checkLimit(ctx, tenantID, "second", tier.RequestsPerSecond)
+			if err != nil {
+				rl.logger.Printf("[RateLimiter] Error checking per-second limit: %v", err)
+				// Fail open on error
+			} else if !allowed {
+				retryAfter := 1 // Wait 1 second for per-second limit
+				c.Set("Retry-After", strconv.Itoa(retryAfter))
+				c.Set("X-RateLimit-Limit-Second", strconv.Itoa(tier.RequestsPerSecond))
+				c.Set("X-RateLimit-Remaining-Second", strconv.Itoa(remaining))
+				c.Set("X-RateLimit-Reset-Second", strconv.FormatInt(resetTime.Unix(), 10))
+
+				return c.Status(fiber.StatusTooManyRequests).JSON(fiber.Map{
+					"error":       "Rate limit exceeded",
+					"code":        "RATE_LIMIT_EXCEEDED",
+					"limit":       tier.RequestsPerSecond,
+					"window":      "second",
+					"tier":        tier.Name,
+					"retry_after": retryAfter,
+					"reset_at":    resetTime,
+				})
+			}
+		}
+
+		// 1. Per-minute limit
 		allowed, remaining, resetTime, err := rl.checkLimit(ctx, tenantID, "minute", tier.RequestsPerMinute)
 		if err != nil {
 			rl.logger.Printf("[RateLimiter] Error checking limit: %v", err)
@@ -159,6 +210,7 @@ func (rl *DistributedRateLimiter) RateLimitMiddleware(tierName string) fiber.Han
 		c.Set("X-RateLimit-Limit", strconv.Itoa(tier.RequestsPerMinute))
 		c.Set("X-RateLimit-Remaining", strconv.Itoa(remaining))
 		c.Set("X-RateLimit-Reset", strconv.FormatInt(resetTime.Unix(), 10))
+		c.Set("X-RateLimit-Tier", tier.Name)
 
 		if !allowed {
 			retryAfter := int(time.Until(resetTime).Seconds())
@@ -169,6 +221,7 @@ func (rl *DistributedRateLimiter) RateLimitMiddleware(tierName string) fiber.Han
 				"code":        "RATE_LIMIT_EXCEEDED",
 				"limit":       tier.RequestsPerMinute,
 				"window":      "minute",
+				"tier":        tier.Name,
 				"retry_after": retryAfter,
 				"reset_at":    resetTime,
 			})
@@ -278,6 +331,9 @@ func (rl *DistributedRateLimiter) checkLimit(ctx context.Context, tenantID, wind
 // getWindowKey returns a window key based on current time
 func getWindowKey(t time.Time, window string) string {
 	switch window {
+	case "second":
+		return fmt.Sprintf("%d-%02d-%02d-%02d:%02d:%02d",
+			t.Year(), t.Month(), t.Day(), t.Hour(), t.Minute(), t.Second())
 	case "minute":
 		return fmt.Sprintf("%d-%02d-%02d-%02d:%02d",
 			t.Year(), t.Month(), t.Day(), t.Hour(), t.Minute())
@@ -295,6 +351,8 @@ func getWindowKey(t time.Time, window string) string {
 // getWindowTTL returns TTL for a window
 func getWindowTTL(window string) time.Duration {
 	switch window {
+	case "second":
+		return 2 * time.Second // Keep for 2 seconds
 	case "minute":
 		return 2 * time.Minute // Keep for 2 minutes
 	case "hour":
