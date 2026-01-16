@@ -124,7 +124,8 @@ export default function OverturePage() {
 
                     {/* Right Column - Title and Description (Desktop only) */}
                     <div className="hidden md:flex text-left md:col-span-1 flex-col justify-start" style={{
-                      paddingTop: '13rem',
+                      borderLeft: '0.5px solid rgba(156, 163, 175, 0.3)',
+                      paddingTop: '3rem',
                       paddingBottom: '3rem',
                       paddingLeft: '1rem',
                       height: '100%'
@@ -226,7 +227,8 @@ export default function OverturePage() {
 
                     {/* Right Column - Title (Desktop only) */}
                     <div className="hidden md:flex text-left md:col-span-1 flex-col justify-start" style={{
-                      paddingTop: '23rem',
+                      borderLeft: '0.5px solid rgba(156, 163, 175, 0.3)',
+                      paddingTop: '3rem',
                       paddingBottom: '3rem',
                       paddingLeft: '1rem',
                       height: '100%'
@@ -279,7 +281,8 @@ export default function OverturePage() {
 
                     {/* Right Column - Title and Description (Desktop only) */}
                     <div className="hidden md:flex text-left md:col-span-1 flex-col justify-start" style={{
-                      paddingTop: '23rem',
+                      borderLeft: '0.5px solid rgba(156, 163, 175, 0.3)',
+                      paddingTop: '3rem',
                       paddingBottom: '3rem',
                       paddingLeft: '1rem',
                       height: '100%'
