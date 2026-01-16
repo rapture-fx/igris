@@ -86,17 +86,17 @@ export default function CoreCapabilities() {
                             position: 'relative',
                             overflow: 'hidden'
                           }}>
-                            <img
-                              src="/fr.png"
-                              alt={capability.name}
-                              style={{
-                                position: 'absolute',
-                                width: '140%',
-                                height: '140%',
-                                objectFit: 'cover',
-                                opacity: '0.7'
-                              }}
-                            />
+                             <img
+                               src="/fr.png"
+                               alt={capability.name}
+                               style={{
+                                 position: 'absolute',
+                                 width: '140%',
+                                 height: '140%',
+                                 objectFit: 'cover',
+                                 opacity: '0.7'
+                               }}
+                             />
                             {capabilities.indexOf(capability) === 0 && (
                               <img
                                 src="/tre.png"
