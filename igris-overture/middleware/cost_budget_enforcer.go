@@ -27,10 +27,11 @@ type CostBudgetEnforcer struct {
 type CostBudgetConfig struct {
 	DB               *sql.DB
 	RedisClient      *redis.Client
-	SoftLimitPercent float64 // Warn at this percentage (default: 0.90 = 90%)
-	HardLimitPercent float64 // Block at this percentage (default: 1.00 = 100%)
-	CacheTTL         time.Duration
-	EnableBlocking   bool // If false, only warn, don't block
+	AlertLimitPercent float64 // Alert at this percentage (default: 0.75 = 75%)
+	SoftLimitPercent  float64 // Warn at this percentage (default: 0.90 = 90%)
+	HardLimitPercent  float64 // Block at this percentage (default: 1.00 = 100%)
+	CacheTTL          time.Duration
+	EnableBlocking    bool // If false, only warn, don't block
 }
 
 // TenantBudget represents a tenant's budget configuration and usage
@@ -51,6 +52,9 @@ func NewCostBudgetEnforcer(config *CostBudgetConfig) (*CostBudgetEnforcer, error
 		return nil, fmt.Errorf("database connection is required")
 	}
 
+	if config.AlertLimitPercent == 0 {
+		config.AlertLimitPercent = 0.75 // 75% - P0-5 FIX: Alert threshold
+	}
 	if config.SoftLimitPercent == 0 {
 		config.SoftLimitPercent = 0.90 // 90%
 	}
@@ -175,11 +179,25 @@ func (e *CostBudgetEnforcer) checkBudgetPreAuth(ctx context.Context, tenantID st
 		return false, warning, nil
 	}
 
-	// Check soft limit
+	// Check soft limit (90%)
 	if projectedSpend >= budget.MonthlyBudgetUSD*e.config.SoftLimitPercent {
 		warning = &BudgetWarning{
 			Level:          "warning",
 			Message:        fmt.Sprintf("Approaching budget limit (%.0f%% used)", usagePercent),
+			CurrentSpend:   budget.CurrentSpendUSD,
+			ProjectedSpend: projectedSpend,
+			MonthlyBudget:  budget.MonthlyBudgetUSD,
+			UsagePercent:   usagePercent,
+			ResetAt:        budget.BudgetResetAt,
+		}
+		return true, warning, nil
+	}
+
+	// Check alert threshold (75%) - P0-5 FIX: Added 75% alert
+	if projectedSpend >= budget.MonthlyBudgetUSD*e.config.AlertLimitPercent {
+		warning = &BudgetWarning{
+			Level:          "alert",
+			Message:        fmt.Sprintf("Budget usage at %.0f%% - consider reviewing usage", usagePercent),
 			CurrentSpend:   budget.CurrentSpendUSD,
 			ProjectedSpend: projectedSpend,
 			MonthlyBudget:  budget.MonthlyBudgetUSD,
