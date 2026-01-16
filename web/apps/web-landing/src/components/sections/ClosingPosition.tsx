@@ -23,13 +23,13 @@ export default function ClosingPosition() {
                 }}></div>
 
                 {/* Spir image - right aligned, full height */}
-                <div className="absolute right-0 top-0 bottom-0 hidden md:flex items-center overflow-hidden">
+                {/* <div className="absolute right-0 top-0 bottom-0 hidden md:flex items-center overflow-hidden">
                   <img
                     src="/spir.png"
                     alt="Spiral"
                     style={{ height: '130%', width: 'auto', opacity: 0.3 }}
                   />
-                </div>
+                </div> */}
 
                 <div className="w-full flex flex-row items-center justify-between relative z-10">
                    <div className="max-w-3xl text-left flex flex-col">
