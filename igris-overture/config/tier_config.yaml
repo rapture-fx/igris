@@ -1,0 +1,253 @@
+# Igris Overture Tier Configuration
+# Version: 1.0.0
+# Last Updated: 2025-01-16
+# Purpose: Define rate limits, feature flags, and cost controls per tier
+
+version: "1.0.0"
+last_updated: "2025-01-16"
+
+# Global tier management settings
+global:
+  default_tier: "developer"
+  allow_self_service_upgrade: true
+  allow_self_service_downgrade: true
+  downgrade_grace_period_days: 7
+  rate_limit_strategy: "sliding_window"
+  rate_limit_redis_key_prefix: "igris:ratelimit:"
+  cache_strategy: "write_through"
+  enforce_tenant_isolation: true
+
+# Tier definitions
+tiers:
+  # ============================================================================
+  # DEVELOPER TIER (Trial tier has same limits during trial period)
+  # ============================================================================
+  developer:
+    name: "developer"
+    display_name: "Developer"
+    description: "Perfect for individual developers and small projects"
+
+    price:
+      usd: 79.00
+      currency: "USD"
+      billing_period: "monthly"
+      overage_rate_per_1k: 0.25  # $0.25 per 1,000 requests over limit
+
+    limits:
+      max_requests_per_month: 50000
+      max_requests_per_second: 10      # 10 RPS
+      max_requests_per_minute: 300     # 300 RPM
+      max_concurrent_requests: 5       # P0-4: Concurrent request limit
+      max_providers: 3
+      max_models_per_provider: 5
+      max_custom_providers: 1
+      max_tenants: 1
+      max_api_keys: 3
+      cache_ttl_seconds: 300
+      max_cached_classifications: 1000
+
+    features:
+      # Core Features
+      multi_tenancy: false
+      byok: false
+
+      # Routing & Optimization
+      thompson_sampling: true
+      semantic_routing: true
+      cost_aware_routing: true
+      automatic_failover: true
+      circuit_breaker: true
+
+      # Analytics & Observability
+      observability_metrics: true
+      cost_forecasting: true
+      real_time_analytics: false
+
+      # Caching
+      redis_caching: true
+      l2_caching: false
+
+      # Authentication & Authorization
+      jwt_auth: true
+      api_key_auth: true
+      rbac: false
+      sso: false
+
+      # Governance & Compliance
+      sla_enforcement: false
+      policy_versioning: false
+      audit_logs: true
+      hot_reload_policies: false
+
+      # Advanced Features
+      custom_sla_targets: false
+      advanced_governance: false
+      on_premise_deployment: false
+      multi_region: false
+
+    cost_controls:
+      enforce_budget: true
+      monthly_budget_usd: 100.00  # Hard cap for developer tier
+      budget_alert_threshold: 0.80
+      cost_per_request_limit: 0.10
+
+  # ============================================================================
+  # GROWTH TIER
+  # ============================================================================
+  growth:
+    name: "growth"
+    display_name: "Growth"
+    description: "Ideal for growing teams and production workloads"
+
+    price:
+      usd: 249.00
+      currency: "USD"
+      billing_period: "monthly"
+      overage_rate_per_1k: 0.20  # $0.20 per 1,000 requests over limit
+
+    limits:
+      max_requests_per_month: 500000
+      max_requests_per_second: 50      # 50 RPS
+      max_requests_per_minute: 1500    # 1500 RPM
+      max_concurrent_requests: 50      # P0-4: Concurrent request limit
+      max_providers: 10
+      max_models_per_provider: 20
+      max_custom_providers: 5
+      max_tenants: 10
+      max_api_keys: 20
+      cache_ttl_seconds: 600
+      max_cached_classifications: 10000
+
+    features:
+      # Core Features
+      multi_tenancy: true
+      byok: true
+
+      # Routing & Optimization
+      thompson_sampling: true
+      semantic_routing: true
+      cost_aware_routing: true
+      automatic_failover: true
+      circuit_breaker: true
+
+      # Analytics & Observability
+      observability_metrics: true
+      cost_forecasting: true
+      real_time_analytics: true
+
+      # Caching
+      redis_caching: true
+      l2_caching: true
+
+      # Authentication & Authorization
+      jwt_auth: true
+      api_key_auth: true
+      rbac: true
+      sso: false
+
+      # Governance & Compliance
+      sla_enforcement: true
+      policy_versioning: true
+      audit_logs: true
+      hot_reload_policies: true
+
+      # Advanced Features
+      custom_sla_targets: true
+      advanced_governance: false
+      on_premise_deployment: false
+      multi_region: false
+
+    cost_controls:
+      enforce_budget: true
+      monthly_budget_usd: 500.00  # Soft cap - allows overage with notification
+      budget_alert_threshold: 0.75
+      cost_per_request_limit: 0.50
+
+  # ============================================================================
+  # SCALE TIER
+  # ============================================================================
+  scale:
+    name: "scale"
+    display_name: "Scale"
+    description: "Enterprise-grade for high-volume production systems"
+
+    price:
+      usd: 799.00
+      currency: "USD"
+      billing_period: "monthly"
+      overage_rate_per_1k: 0.15  # $0.15 per 1,000 requests over limit
+
+    limits:
+      max_requests_per_month: -1       # Unlimited
+      max_requests_per_second: 1000    # 1000 RPS
+      max_requests_per_minute: 60000   # 60000 RPM
+      max_concurrent_requests: 1000    # P0-4: Concurrent request limit
+      max_providers: -1                # Unlimited
+      max_models_per_provider: -1      # Unlimited
+      max_custom_providers: -1         # Unlimited
+      max_tenants: -1                  # Unlimited
+      max_api_keys: -1                 # Unlimited
+      cache_ttl_seconds: 1800
+      max_cached_classifications: -1   # Unlimited
+
+    features:
+      # Core Features
+      multi_tenancy: true
+      byok: true
+
+      # Routing & Optimization
+      thompson_sampling: true
+      semantic_routing: true
+      cost_aware_routing: true
+      automatic_failover: true
+      circuit_breaker: true
+
+      # Analytics & Observability
+      observability_metrics: true
+      cost_forecasting: true
+      real_time_analytics: true
+
+      # Caching
+      redis_caching: true
+      l2_caching: true
+
+      # Authentication & Authorization
+      jwt_auth: true
+      api_key_auth: true
+      rbac: true
+      sso: true
+
+      # Governance & Compliance
+      sla_enforcement: true
+      policy_versioning: true
+      audit_logs: true
+      hot_reload_policies: true
+
+      # Advanced Features
+      custom_sla_targets: true
+      advanced_governance: true
+      on_premise_deployment: true
+      multi_region: true
+
+    cost_controls:
+      enforce_budget: false  # No hard budget for Scale tier
+      monthly_budget_usd: 0  # No limit
+      budget_alert_threshold: 0
+      cost_per_request_limit: 0
+
+# ============================================================================
+# NOTES
+# ============================================================================
+#
+# Rate Limit Summary:
+# - Developer: 10 RPS / 300 RPM / 5 concurrent
+# - Growth:    50 RPS / 1500 RPM / 50 concurrent
+# - Scale:     1000 RPS / 60000 RPM / 1000 concurrent
+#
+# Unkillable Resilience Suite (FREE for ALL tiers):
+# - Gold Code Override (BYOK_BYPASS_CONTROL_PLANE)
+# - EscapeVector Mode (TypeScript + Rust WASM)
+# - Emergency Hotfix Blob fetching & application
+# - 72-hour encrypted Bayesian cache
+#
+# "Core survival is free forever. Superpowers cost money."
