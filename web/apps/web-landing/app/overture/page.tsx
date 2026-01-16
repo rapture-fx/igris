@@ -44,18 +44,24 @@ export default function OverturePage() {
 
           {/* Hero Section */}
           <section className="pt-0 pb-0 bg-[#f6f6f4] text-gray-900 relative overflow-visible -mt-[72px]" style={{
-            backgroundImage: 'linear-gradient(rgba(246, 246, 244, 0.3), rgba(246, 246, 244, 0.3)), url(/cloudbg.png)',
+            backgroundImage: 'url(/cloudbg.png)',
             backgroundSize: 'cover',
             backgroundPosition: 'center top -100px',
             backgroundRepeat: 'no-repeat'
           }}>
-             <div className="mx-auto max-w-[1100px] px-4 sm:px-6 lg:px-8">
-               <div className="relative px-4 md:px-8 lg:px-12 pb-0 bg-transparent z-10 overflow-visible" style={{
+            <div className="absolute inset-0 pointer-events-none" style={{
+              background: 'linear-gradient(to bottom, rgba(246, 246, 244, 0) 50%, rgba(246, 246, 244, 0.5) 75%, #f6f6f4 100%)'
+            }}></div>
+            <div className="mx-auto max-w-[1100px] px-4 sm:px-6 lg:px-8">
+              <div className="relative px-4 md:px-8 lg:px-12 pb-0 bg-transparent z-10 overflow-visible flex flex-col" style={{
                 borderLeft: '0.5px solid rgba(156, 163, 175, 0.3)',
                 borderRight: '0.5px solid rgba(156, 163, 175, 0.3)',
-                borderBottom: '0.5px solid rgba(156, 163, 175, 0.3)'
-               }}>
-                <div className="max-w-[1100px] mx-auto" style={{ paddingTop: '300px' }}>
+                borderBottom: '0.5px solid rgba(156, 163, 175, 0.3)',
+                minHeight: '600px'
+              }}>
+                <div className="flex-1" style={{ paddingTop: '100px' }}>
+                </div>
+                <div className="max-w-[1100px] mx-auto w-full" style={{ paddingBottom: '2rem' }}>
                   <div className="mb-6 text-left">
                     <div>
                       <h1 className="text-lg md:text-xl lg:text-2xl font-inter font-medium text-[#111111] leading-[1.2]" style={{ color: '#000000' }}>
@@ -70,22 +76,21 @@ export default function OverturePage() {
                     </div>
                   </div>
 
-                  <div className="flex flex-col sm:flex-row gap-3 mb-6">
-                      <Link href="/overture">
-                        <button
-                          className="inline-flex items-center justify-center bg-black text-white px-4 py-2 rounded-lg hover:bg-gray-800 transition-all duration-200 text-xs font-inter font-medium shadow-md hover:shadow-lg"
-                        >
-                          Get Started
-                        </button>
-                      </Link>
+                  <div className="flex flex-col sm:flex-row gap-3">
+                    <Link href="/overture">
+                      <button
+                        className="inline-flex items-center justify-center bg-black text-white px-4 py-2 hover:bg-gray-800 transition-all duration-200 text-xs font-inter font-medium shadow-md hover:shadow-lg"
+                        style={{ marginBottom: '5rem' }}
+                      >
+                        Get Started
+                      </button>
+                    </Link>
                   </div>
-
-                  <div className="w-full relative mt-8 -mx-4 md:-mx-8 lg:-mx-12" style={{ height: '200px' }}>
-                  </div>
+                  <div className="-mx-4 md:-mx-8 lg:-mx-12" style={{ borderBottom: '0.5px solid rgba(156, 163, 175, 0.3)', paddingBottom: '6rem', marginBottom: '1.5rem' }}></div>
                 </div>
               </div>
-              </div>
-            </section>
+            </div>
+          </section>
 
           {/* Purpose & Value Section */}
           <section className="dark:bg-gray-900 text-gray-900 dark:text-white" style={{ backgroundColor: '#f6f6f4', height: '800px' }}>

@@ -13,7 +13,25 @@ export default function ClosingPosition() {
                 backgroundColor: '#f6f6f4',
                 minHeight: '400px'
               }}>
-                <div className="w-full">
+                {/* Background grad image with reduced opacity */}
+                <div className="absolute inset-0" style={{
+                  backgroundImage: 'url(/grad.png)',
+                  backgroundSize: 'cover',
+                  backgroundPosition: 'center',
+                  backgroundRepeat: 'no-repeat',
+                  opacity: 0.3
+                }}></div>
+
+                {/* Spir image - right aligned, full height */}
+                <div className="absolute right-0 top-0 bottom-0 hidden md:flex items-center overflow-hidden">
+                  <img
+                    src="/spir.png"
+                    alt="Spiral"
+                    style={{ height: '130%', width: 'auto' }}
+                  />
+                </div>
+
+                <div className="w-full flex flex-row items-center justify-between relative z-10">
                    <div className="max-w-3xl text-left flex flex-col">
                          <h3 className="text-lg md:text-xl lg:text-2xl font-inter mb-6" style={{ color: '#000000' }}>
                              Start with decisions.<br />Scale to execution.
