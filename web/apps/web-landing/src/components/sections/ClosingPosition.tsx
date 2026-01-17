@@ -11,7 +11,7 @@ export default function ClosingPosition() {
                 borderRight: '0.5px solid rgba(156, 163, 175, 0.3)',
                 borderBottom: '0.5px solid rgba(156, 163, 175, 0.3)',
                 backgroundColor: '#f6f6f4',
-                minHeight: '400px'
+                minHeight: '300px'
               }}>
                 {/* Background grad image with reduced opacity */}
                 <div className="absolute inset-0" style={{
