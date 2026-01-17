@@ -1,33 +1,41 @@
 'use client'
 
 import Link from 'next/link'
+import { useTheme } from 'next-themes'
+import { useEffect, useState } from 'react'
+import { ThemeSwitcher } from '../ThemeSwitcher'
 
 export default function Footer() {
+  const { theme } = useTheme()
+  const [mounted, setMounted] = useState(false)
+
+  useEffect(() => {
+    setMounted(true)
+  }, [])
 
   return (
-     <footer className="dark:bg-gray-900 text-gray-900 dark:text-white transition-all duration-200" style={{ backgroundColor: '#f6f6f4' }}>
+     <footer className="bg-[#f6f6f4] dark:bg-dark-bg text-gray-900 dark:text-[#f6f6f4] transition-all duration-200">
       <div className="mx-auto max-w-[1100px] px-4 sm:px-6 lg:px-8">
-        <div className="px-4 md:px-8 lg:px-12" style={{
+        <div className="px-4 md:px-8 lg:px-12 bg-[#f6f6f4] dark:bg-[#1b1912]" style={{
           borderLeft: '0.5px solid rgba(156, 163, 175, 0.3)',
           borderRight: '0.5px solid rgba(156, 163, 175, 0.3)',
-          borderBottom: '0.5px solid rgba(156, 163, 175, 0.3)',
-          backgroundColor: '#f6f6f4'
+          borderBottom: '0.5px solid rgba(156, 163, 175, 0.3)'
         }}>
           {/* Main footer content */}
           <div className="py-8 md:py-16">
             <div className="flex flex-col md:flex-row md:items-start md:justify-between gap-6">
               {/* Legal links - stacked vertically on left */}
               <div className="flex flex-col gap-2 text-left">
-                <span className="text-xs text-gray-900 dark:text-white font-medium mb-1">
+                <span className="text-xs text-gray-900 dark:text-[#f6f6f4] font-medium mb-1">
                   Company
                 </span>
-                <Link href="/terms" className="text-xs text-gray-600 dark:text-gray-400 hover:text-gray-900 dark:hover:text-white transition-colors">
+                <Link href="/terms" className="text-xs text-gray-600 dark:text-[#a8a898] hover:text-gray-900 dark:hover:text-[#f6f6f4] transition-colors">
                   Terms of Service
                 </Link>
-                <Link href="/privacy" className="text-xs text-gray-600 dark:text-gray-400 hover:text-gray-900 dark:hover:text-white transition-colors">
+                <Link href="/privacy" className="text-xs text-gray-600 dark:text-[#a8a898] hover:text-gray-900 dark:hover:text-[#f6f6f4] transition-colors">
                   Privacy Policy
                 </Link>
-                <Link href="/cookies" className="text-xs text-gray-600 dark:text-gray-400 hover:text-gray-900 dark:hover:text-white transition-colors">
+                <Link href="/cookies" className="text-xs text-gray-600 dark:text-[#a8a898] hover:text-gray-900 dark:hover:text-[#f6f6f4] transition-colors">
                   Cookie Policy
                 </Link>
                 {/* Social Media Icons */}
@@ -57,7 +65,7 @@ export default function Footer() {
 
               {/* Logo - on right top */}
               <img
-                 src="/foot.png"
+                 src={mounted && theme === 'dark' ? '/dmfoot.png' : '/foot.png'}
                  alt="Igris Inertial"
                  style={{ height: '16px', width: 'auto' }}
                />
@@ -65,10 +73,11 @@ export default function Footer() {
           </div>
 
           {/* Copyright at very bottom */}
-          <div style={{ marginTop: '4rem' }} className="pb-6">
-            <span className="text-xs text-gray-500 dark:text-gray-400">
+          <div style={{ marginTop: '4rem' }} className="pb-6 flex items-center justify-between">
+            <span className="text-xs text-gray-500 dark:text-[#a8a898]">
               © 2026 Igris Inertial.
             </span>
+            <ThemeSwitcher />
           </div>
         </div>
       </div>

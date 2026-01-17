@@ -10,17 +10,17 @@ export const ThemeSwitcher = () => {
 
   useEffect(() => {
     setMounted(true)
-    console.log("ThemeSwitcher mounted and rendering!")
   }, [])
 
   if (!mounted) {
-    return null
+    return <div className="w-8 h-8" />
   }
 
   return (
     <button
-      className="p-2 rounded-md hover:bg-gray-100 dark:hover:bg-gray-800"
+      className="p-2 rounded-md hover:bg-gray-200 dark:hover:bg-gray-800 text-gray-600 dark:text-[#a8a898] transition-colors"
       onClick={() => setTheme(theme === "dark" ? "light" : "dark")}
+      aria-label={theme === "dark" ? "Switch to light mode" : "Switch to dark mode"}
     >
       {theme === "dark" ? <Sun size={16} /> : <Moon size={16} />}
     </button>
