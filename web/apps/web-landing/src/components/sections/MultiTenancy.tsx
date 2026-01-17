@@ -3,23 +3,23 @@ import { DollarSign, Shield, Database, KeyRound } from 'lucide-react';
 
 const features = [
   {
-    name: 'Bring Your Own Keys',
-    description: 'Full ownership of provider API keys and local models. AES-256 encrypted vaults for cloud credentials. Models stay on your devices. Zero vendor lock-in.',
+    name: 'Your Keys, Your Control',
+    description: 'Use your own provider API keys. They\'re stored encrypted and keep working even if our servers are down. No vendor lock-in.',
     icon: KeyRound,
   },
   {
-    name: 'Multi-Tenant Isolation',
-    description: 'Complete separation of tenant data, policies, and budgets at the database level. Each workspace operates independently with row-level security policies.',
+    name: 'Complete Isolation',
+    description: 'Your data never touches another customer\'s. Budget alerts at 75%, 90%, and 100% prevent surprises. Per-customer rate limits keep traffic separate.',
     icon: Database,
   },
   {
-    name: 'Encrypted Model Storage',
-    description: 'Runtime encrypts on-device LoRA adapters and training data with AES-256-GCM. Device-specific keys ensure models trained on one edge device stay locked to that device.',
+    name: 'Edge-First Security',
+    description: 'Models running on your devices stay encrypted with keys that never leave. Training data stays local — only model updates are synced.',
     icon: Shield,
   },
   {
-    name: 'Zero-Trust Architecture',
-    description: 'JWT-based authentication with per-request validation. Every API call verified within tenant context. Budget limits enforced automatically to prevent overspending.',
+    name: 'Every Request Verified',
+    description: 'Each API call is authenticated in context. If a provider goes down, traffic reroutes automatically. Hard limits prevent runaway costs.',
     icon: DollarSign,
   },
 ];
@@ -45,7 +45,7 @@ export default function MultiTenancy() {
                 Secure by default. Built to scale.
               </h3>
               <p className="text-sm text-gray-600 dark:text-gray-400 font-inter mb-8">
-                Multi-tenant isolation, encrypted key storage, and zero-trust architecture are built in from day one. From cloud control planes to edge devices, your workloads stay protected as you scale.
+                Security isn't optional — it's how the system is built. Your data, keys, and models stay yours, whether you're running in the cloud or on edge devices.
               </p>
 
               {/* Features - Mobile */}
@@ -71,7 +71,7 @@ export default function MultiTenancy() {
                    <div className="flex flex-col gap-8">
                     {features.map((feature, index) => (
                       <div key={feature.name} className="text-left">
-                    <h3 className="text-sm font-normal text-gray-900 dark:text-white mb-3 font-inter" style={{ color: '#000000' }}>
+                    <h3 className="text-sm font-semibold text-gray-900 dark:text-white mb-3 font-inter" style={{ color: '#000000' }}>
                       {feature.name}
                     </h3>
                    <p className="text-sm text-gray-600 dark:text-gray-400 leading-relaxed font-inter mb-4">
@@ -92,7 +92,7 @@ export default function MultiTenancy() {
                   Secure by default. Built to scale.
                 </h3>
                   <p className="text-sm text-gray-600 dark:text-gray-400 font-inter leading-relaxed">
-                  Multi-tenant isolation, encrypted key storage, and zero-trust architecture are built in from day one. From cloud control planes to edge devices, your workloads stay protected as you scale.
+                  Security isn't optional — it's how the system is built. Your data, keys, and models stay yours, whether you're running in the cloud or on edge devices.
                 </p>
               </div>
             </div>

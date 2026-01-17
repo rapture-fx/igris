@@ -31,7 +31,7 @@ export default function Products() {
               <div className="space-y-12 text-left">
                  {/* Overture */}
                  <div className="text-left">
-                   <h3 className="text-xl md:text-2xl font-inter mb-2" style={{ color: '#000000' }}>
+                   <h3 className="text-lg md:text-xl font-inter mb-2" style={{ color: '#000000' }}>
                      Overture
                    </h3>
                    <p className="text-xs text-gray-600 dark:text-gray-400 mb-4">
@@ -78,7 +78,7 @@ export default function Products() {
 
                {/* Runtime */}
                <div>
-                 <h3 className="text-xl md:text-2xl font-inter mb-2" style={{ color: '#000000' }}>
+                 <h3 className="text-lg md:text-xl font-inter mb-2" style={{ color: '#000000' }}>
                    Runtime
                  </h3>
                  <p className="text-xs text-gray-600 dark:text-gray-400 mb-4">
@@ -114,7 +114,7 @@ export default function Products() {
 
                  {/* Overture */}
                  <div>
-                   <h3 className="text-xl md:text-2xl font-inter mb-2" style={{ color: '#000000' }}>
+                   <h3 className="text-lg md:text-xl font-inter mb-2" style={{ color: '#000000' }}>
                      Overture
                    </h3>
                    <p className="text-xs text-gray-600 dark:text-gray-400 mb-4">
@@ -141,7 +141,7 @@ export default function Products() {
 
                  {/* Runtime */}
                  <div>
-                   <h3 className="text-xl md:text-2xl font-inter mb-2" style={{ color: '#000000' }}>
+                   <h3 className="text-lg md:text-xl font-inter mb-2" style={{ color: '#000000' }}>
                      Runtime
                    </h3>
                    <p className="text-xs text-gray-600 dark:text-gray-400 mb-4">

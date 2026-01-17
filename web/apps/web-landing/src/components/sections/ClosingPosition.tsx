@@ -33,9 +33,9 @@ export default function ClosingPosition() {
 
                 <div className="w-full flex flex-row items-center justify-between relative z-10">
                    <div className="max-w-3xl text-left flex flex-col">
-                         <h3 className="text-lg md:text-xl lg:text-2xl font-inter mb-6" style={{ color: '#000000' }}>
-                             Start with decisions.<br />Scale to execution.
-                          </h3>
+<h3 className="text-lg md:text-xl lg:text-2xl font-inter mb-6" style={{ color: '#000000' }}>
+                              Control the decision layer.<br />Scale the rest.
+                           </h3>
 
                         <div className="flex flex-col sm:flex-row gap-4 pl-0 md:pl-0 lg:pl-0">
                           <Link href="https://docs.igrisinertial.com/">

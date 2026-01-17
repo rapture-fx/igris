@@ -3,16 +3,16 @@ import { Shield, Box } from 'lucide-react'
 
 const capabilities = [
   {
-    name: 'Decision Intelligence',
-    description: 'Thompson Sampling and trust-aware routing with explainable decision traces.',
+    name: 'Smart Routing',
+    description: 'Routes requests to the best provider based on real performance data. Detects slow or failing providers and shifts traffic automatically. Can query multiple providers and pick the best response.',
   },
   {
-    name: 'Governed Execution',
-    description: 'Resource safety limits and deterministic execution envelopes with telemetry.',
+    name: 'Built for Scale',
+    description: 'Handles 50,000+ requests per second with sub-millisecond caching. Each customer gets their own rate limits — no noisy neighbor problems. Requests run in parallel to cut latency.',
   },
   {
-    name: 'Cryptographic Enforcement',
-    description: 'Observed vs reported verification with signed execution contracts.',
+    name: 'Isolated and Resilient',
+    description: 'Each customer\'s data is isolated at the database level. Your API keys work even if our servers are unreachable. Routing decisions are cached locally for 72 hours as a fallback.',
   },
 ]
 
@@ -38,7 +38,7 @@ export default function CoreCapabilities() {
                  <div className="space-y-6">
                    {capabilities.map((capability) => (
                      <div key={capability.name}>
-                        <h4 className="text-sm font-normal text-gray-900 dark:text-white mb-2 font-inter" style={{ color: '#000000' }}>
+                        <h4 className="text-sm font-semibold text-gray-900 dark:text-white mb-2 font-inter" style={{ color: '#000000' }}>
                           {capability.name}
                         </h4>
                         <p className="text-xs text-gray-600 dark:text-gray-400 leading-relaxed font-inter">
@@ -57,7 +57,7 @@ export default function CoreCapabilities() {
                      System Overview
                    </h3>
                      <p className="text-sm text-gray-700 dark:text-gray-300 font-inter leading-relaxed">
-                     Overture provides decision intelligence and routing control. Runtime provides governed execution with safety guarantees. Hybrid enforces cryptographic integrity between decision and execution.
+                     Overture decides which provider handles each request. Runtime executes agents safely on edge devices. Hybrid connects them with cryptographic verification.
                    </p>
                 </div>
                </div>
@@ -138,7 +138,7 @@ export default function CoreCapabilities() {
                             )}
                           </div>
                          <div className="flex-1">
-                          <h4 className="text-sm font-normal text-gray-900 dark:text-white mb-2 font-inter" style={{ color: '#000000' }}>
+                          <h4 className="text-sm font-semibold text-gray-900 dark:text-white mb-2 font-inter" style={{ color: '#000000' }}>
                             {capability.name}
                           </h4>
                           <p className="text-sm text-gray-600 dark:text-gray-400 leading-relaxed font-inter">
@@ -160,7 +160,7 @@ export default function CoreCapabilities() {
                      System Overview
                    </h3>
                    <p className="text-sm text-gray-700 dark:text-gray-300 font-inter leading-relaxed">
-                     Overture provides decision intelligence and routing control. Runtime provides governed execution with safety guarantees. Hybrid enforces cryptographic integrity between decision and execution.
+                     Overture decides which provider handles each request. Runtime executes agents safely on edge devices. Hybrid connects them with cryptographic verification.
                    </p>
                 </div>
               </div>
