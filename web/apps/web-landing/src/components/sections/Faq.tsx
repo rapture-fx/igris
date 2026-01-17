@@ -107,7 +107,7 @@ export default function Faq() {
               className="transition-all duration-200"
               style={{
                 backgroundColor: '#f6f6f4',
-                border: '1px solid rgba(156, 163, 175, 0.3)'
+                border: '0.5px solid rgba(156, 163, 175, 0.3)'
               }}
             >
                <button

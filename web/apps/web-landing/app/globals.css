@@ -41,3 +41,14 @@
     box-sizing: border-box;
   }
 }
+
+/* Section border styles */
+.section-border {
+  border-color: rgba(156, 163, 175, 0.3);
+  border-width: 0.5px;
+}
+
+.dark .section-border {
+  border-color: rgba(246, 246, 244, 0.2);
+  border-width: 0.5px;
+}

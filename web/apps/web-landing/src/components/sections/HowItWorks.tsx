@@ -8,26 +8,14 @@ export default function HowItWorks() {
   return (
     <section id="how-it-works" className="bg-[#f6f6f4] dark:bg-dark-bg text-gray-900 dark:text-[#f6f6f4] transition-colors duration-200">
       <div className="mx-auto max-w-[1100px] px-4 sm:px-6 lg:px-8">
-        <div className="relative px-4 md:px-8 lg:px-12 flex flex-col bg-[#f6f6f4] dark:bg-[#1b1912]" style={{
-          borderLeft: '0.5px solid rgba(156, 163, 175, 0.3)',
-          borderRight: '0.5px solid rgba(156, 163, 175, 0.3)',
-          borderBottom: '0.5px solid rgba(156, 163, 175, 0.3)',
+        <div className="relative px-4 md:px-8 lg:px-12 flex flex-col bg-[#f6f6f4] dark:bg-[#1b1912] border-l border-r border-b section-border" style={{
           height: '750px'
         }}>
 
           {/* Content Section - Shows first on mobile */}
           <div className="md:hidden text-left" style={{ paddingTop: '3rem', paddingBottom: '3rem' }}>
-                 <div className="space-y-20 text-xs text-gray-600 dark:text-[#a8a898] relative pl-8 md:pl-8 lg:pl-8">
-                  {/* Vertical dashed line */}
-                  <div className="absolute left-1.5 top-0 bottom-0" style={{
-                    width: '2px',
-                    backgroundImage: 'linear-gradient(to bottom, rgba(156, 163, 175, 0.3) 50%, transparent 50%)',
-                    backgroundSize: '2px 8px',
-                    backgroundRepeat: 'repeat-y'
-                  }}></div>
-
-
-                </div>
+                  <div className="space-y-20 text-xs text-gray-600 dark:text-[#a8a898] relative pl-8 md:pl-8 lg:pl-8">
+                  </div>
                 <Link href="/use-cases" className="group inline-flex items-center mt-16 pl-8 md:pl-8 lg:pl-8">
                    <span className="text-sm text-gray-900 dark:text-[#f6f6f4] font-inter">
                      Explore Use Cases
@@ -37,7 +25,7 @@ export default function HowItWorks() {
 
           {/* Title Section - Shows last on mobile */}
                 <div className="mt-12 text-left">
-                <p className="text-base text-[#700a0a] mb-2" style={{ fontFamily: 'Roboto Mono, monospace', letterSpacing: '0.05em' }}>
+                <p className="text-base text-[#a20b0b] mb-2" style={{ fontFamily: 'Roboto Mono, monospace', letterSpacing: '0.05em' }}>
                   03. FLOW
                 </p>
                 <h3 className="text-lg md:text-xl lg:text-2xl font-inter mb-2 text-[#000000] dark:text-[#f6f6f4]">
@@ -57,7 +45,7 @@ export default function HowItWorks() {
 
               {/* Right Column - Title (1 column wide with left border) */}
              <div className="md:col-span-1 md:border-l flex flex-col justify-start" style={{ borderLeft: '0.5px solid rgba(156, 163, 175, 0.3)', paddingTop: '3rem', paddingBottom: '3rem', paddingLeft: '1rem' }}>
-               <p className="text-base text-[#700a0a] mb-2" style={{ fontFamily: 'Roboto Mono, monospace', letterSpacing: '0.05em' }}>
+               <p className="text-base text-[#a20b0b] mb-2" style={{ fontFamily: 'Roboto Mono, monospace', letterSpacing: '0.05em' }}>
                  03. FLOW
                </p>
                <h2 className="text-lg md:text-xl lg:text-2xl font-inter mb-4 text-[#000000] dark:text-[#f6f6f4]">

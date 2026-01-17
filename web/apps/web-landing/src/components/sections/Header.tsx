@@ -77,11 +77,7 @@ export default function Header() {
        }`}
      >
        <div className="mx-auto max-w-[1100px] px-4 sm:px-6 lg:px-8">
-        <div className="px-4 md:px-8 lg:px-12 py-4"
-             style={{
-               borderLeft: '0.5px solid rgba(156, 163, 175, 0.3)',
-               borderRight: '0.5px solid rgba(156, 163, 175, 0.3)'
-             }}>
+        <div className="px-4 md:px-8 lg:px-12 py-4">
           <div className="flex items-center justify-between w-full">
           <div className="flex items-center">
             <Link href="/" className="flex items-center">
