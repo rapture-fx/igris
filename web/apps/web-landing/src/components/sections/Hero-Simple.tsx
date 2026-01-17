@@ -47,7 +47,7 @@ export default function Hero() {
                   </button>
                 </Link>
              </div>
-             <div className="-mx-4 md:-mx-8 lg:-mx-12" style={{ borderBottom: '0.5px solid rgba(156, 163, 175, 0.3)', paddingBottom: '6rem', marginBottom: '1.5rem' }}></div>
+             <div className="-mx-4 md:-mx-8 lg:-mx-12" style={{ paddingBottom: '6rem', marginBottom: '1.5rem' }}></div>
           </div>
         </div>
       </div>
