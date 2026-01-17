@@ -33,7 +33,7 @@ export default function MultiTenancy() {
             borderRight: '0.5px solid rgba(156, 163, 175, 0.3)',
             borderBottom: '0.5px solid rgba(156, 163, 175, 0.3)',
             backgroundColor: '#f6f6f4',
-            minHeight: '550px'
+            minHeight: '700px'
           }}>
 
           {/* Title Section - Shows first on mobile, last on desktop */}
