@@ -13,7 +13,7 @@ export default function Products() {
 
           {/* Title Section - Shows first on mobile, last on desktop */}
            <div className="mb-6 md:mb-0 md:hidden text-left" style={{ paddingTop: '3rem', paddingBottom: '3rem' }}>
-               <p className="text-base text-[#a20b0b] mb-2" style={{ fontFamily: 'Roboto Mono, monospace', letterSpacing: '0.05em' }}>
+               <p className="text-base text-[#084CCF] dark:text-[#a20b0b] mb-2" style={{ fontFamily: 'Roboto Mono, monospace', letterSpacing: '0.05em' }}>
                  01. PRODUCT
                </p>
                <h2 className="text-lg md:text-xl lg:text-2xl font-inter mb-4 text-[#000000] dark:text-[#f6f6f4]">
@@ -33,13 +33,13 @@ export default function Products() {
                    <p className="text-xs text-gray-600 dark:text-[#a8a898] mb-4">
                      Decision Layer
                    </p>
-                  <div style={{ border: '0.5px solid rgba(156, 163, 175, 0.3)', marginTop: '1rem', marginBottom: '1rem', height: '200px', position: 'relative', overflow: 'hidden' }}>
-                    <Image
-                      src="/overtureframe.png"
-                      alt="Overture Decision Layer"
-                      fill
-                      style={{ objectFit: 'cover' }}
-                    />
+                   <div className="border border-gray-300 dark:border-[#f6f6f4]/30" style={{ marginTop: '1rem', marginBottom: '1rem', height: '200px', position: 'relative', overflow: 'hidden' }}>
+                     <Image
+                       src="/overtureframe.png"
+                       alt="Overture Decision Layer"
+                       fill
+                       style={{ objectFit: 'cover' }}
+                     />
                    </div>
                    <p className="text-xs text-gray-600 dark:text-[#a8a898] leading-relaxed font-inter mb-4">
                      Decision intelligence and routing control plane. Trust-aware provider selection with cost, quality, and latency optimization. Explainable decisions with full observability.
@@ -60,7 +60,7 @@ export default function Products() {
                  <p className="text-xs text-gray-600 dark:text-[#a8a898] mb-4">
                    Execution Layer
                  </p>
-                 <div style={{ border: '0.5px solid rgba(156, 163, 175, 0.3)', marginTop: '1rem', marginBottom: '1rem', height: '200px', position: 'relative', overflow: 'hidden' }}>
+                 <div className="border border-gray-300 dark:border-[#f6f6f4]/30" style={{ marginTop: '1rem', marginBottom: '1rem', height: '200px', position: 'relative', overflow: 'hidden' }}>
                    <Image
                      src="/runtimeframe.png"
                      alt="Runtime Execution Layer"
@@ -96,13 +96,13 @@ export default function Products() {
                    <p className="text-xs text-gray-600 dark:text-[#a8a898] mb-4">
                      Decision Layer
                    </p>
-                  <div style={{ border: '0.5px solid rgba(156, 163, 175, 0.3)', marginTop: '1rem', marginBottom: '1rem', height: '200px', position: 'relative', overflow: 'hidden' }}>
-                    <Image
-                      src="/overtureframe.png"
-                      alt="Overture Decision Layer"
-                      fill
-                      style={{ objectFit: 'cover' }}
-                    />
+                   <div className="border border-gray-300 dark:border-[#f6f6f4]/30" style={{ marginTop: '1rem', marginBottom: '1rem', height: '200px', position: 'relative', overflow: 'hidden' }}>
+                     <Image
+                       src="/overtureframe.png"
+                       alt="Overture Decision Layer"
+                       fill
+                       style={{ objectFit: 'cover' }}
+                     />
                    </div>
                    <p className="text-sm text-gray-600 dark:text-[#a8a898] leading-relaxed font-inter mb-4">
                      Decision intelligence and routing control plane. Trust-aware provider selection with cost, quality, and latency optimization. Explainable decisions with full observability.
@@ -113,56 +113,56 @@ export default function Products() {
                      </span>
                     <ChevronRight className="ml-1 h-3 w-3" />
                   </Link>
-                </div>
+                 </div>
 
-                 {/* Runtime */}
-                 <div>
-                   <h3 className="text-lg md:text-xl font-inter mb-2 text-[#000000] dark:text-[#f6f6f4]">
-                     Runtime
-                   </h3>
-                   <p className="text-xs text-gray-600 dark:text-[#a8a898] mb-4">
-                     Execution Layer
-                   </p>
-                  <div style={{ border: '0.5px solid rgba(156, 163, 175, 0.3)', marginTop: '1rem', marginBottom: '1rem', height: '200px', position: 'relative', overflow: 'hidden' }}>
-                    <Image
-                      src="/runtimeframe.png"
-                      alt="Runtime Execution Layer"
-                      fill
-                      style={{ objectFit: 'cover' }}
-                    />
-                   </div>
-                   <p className="text-sm text-gray-600 dark:text-[#a8a898] leading-relaxed font-inter mb-4">
-                     Licensed governed execution engine. Secure defaults and enforced limits. Deterministic execution envelopes with telemetry-backed execution.
-                   </p>
-                   <Link href="/runtime" className="group inline-flex items-center">
-                     <span className="text-sm text-gray-900 dark:text-[#f6f6f4] font-inter">
-                       Explore Runtime
-                     </span>
-                    <ChevronRight className="ml-1 h-3 w-3" />
-                  </Link>
-                </div>
+                  {/* Runtime */}
+                  <div>
+                    <h3 className="text-lg md:text-xl font-inter mb-2 text-[#000000] dark:text-[#f6f6f4]">
+                      Runtime
+                    </h3>
+                    <p className="text-xs text-gray-600 dark:text-[#a8a898] mb-4">
+                      Execution Layer
+                    </p>
+                    <div className="border border-gray-300 dark:border-[#f6f6f4]/30" style={{ marginTop: '1rem', marginBottom: '1rem', height: '200px', position: 'relative', overflow: 'hidden' }}>
+                      <Image
+                        src="/runtimeframe.png"
+                        alt="Runtime Execution Layer"
+                        fill
+                        style={{ objectFit: 'cover' }}
+                      />
+                    </div>
+                    <p className="text-sm text-gray-600 dark:text-[#a8a898] leading-relaxed font-inter mb-4">
+                      Licensed governed execution engine. Secure defaults and enforced limits. Deterministic execution envelopes with telemetry-backed execution.
+                    </p>
+                    <Link href="/runtime" className="group inline-flex items-center">
+                      <span className="text-sm text-gray-900 dark:text-[#f6f6f4] font-inter">
+                        Explore Runtime
+                      </span>
+                     <ChevronRight className="ml-1 h-3 w-3" />
+                   </Link>
+                 </div>
 
-              </div>
-            </div>
+               </div>
+             </div>
 
-             {/* Right Column: Title and Description (Desktop only) */}
-             <div className="hidden md:flex md:col-span-1 md:border-l flex-col justify-start" style={{ borderLeft: '0.5px solid rgba(156, 163, 175, 0.3)', paddingTop: '3rem', paddingBottom: '3rem', paddingLeft: '1rem' }}>
-              <p className="text-base text-[#a20b0b] mb-2" style={{ fontFamily: 'Roboto Mono, monospace', letterSpacing: '0.05em' }}>
-                01. PRODUCT
-              </p>
-              <h2 className="text-lg md:text-xl lg:text-2xl font-inter mb-4 text-[#000000] dark:text-[#f6f6f4]">
-                Decision and Execution
-              </h2>
-              <p className="text-xs md:text-sm text-gray-600 dark:text-[#a8a898] font-inter leading-relaxed">
-                Overture decides what to route and where. Runtime executes with governance and safety. Deploy independently or together with Hybrid enforcement.
-              </p>
-            </div>
+              {/* Right Column: Title and Description (Desktop only) */}
+              <div className="hidden md:flex md:col-span-1 md:border-l flex-col justify-start dark:border-[#f6f6f4]/30" style={{ paddingTop: '3rem', paddingBottom: '3rem', paddingLeft: '1rem' }}>
+               <p className="text-base text-[#084CCF] dark:text-[#a20b0b] mb-2" style={{ fontFamily: 'Roboto Mono, monospace', letterSpacing: '0.05em' }}>
+                 01. PRODUCT
+               </p>
+               <h2 className="text-lg md:text-xl lg:text-2xl font-inter mb-4 text-[#000000] dark:text-[#f6f6f4]">
+                 Decision and Execution
+               </h2>
+               <p className="text-xs md:text-sm text-gray-600 dark:text-[#a8a898] font-inter leading-relaxed">
+                 Overture decides what to route and where. Runtime executes with governance and safety. Deploy independently or together with Hybrid enforcement.
+               </p>
+             </div>
 
-          </div>
+           </div>
 
-        </div>
-      </div>
-    </section>
-  )
-}
+         </div>
+       </div>
+     </section>
+   )
+ }
 

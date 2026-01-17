@@ -84,32 +84,28 @@ export default function Faq() {
     setOpenIndex(openIndex === index ? null : index);
   };
 
-   return (
-    <section id="faq" className="dark:bg-gray-900 text-gray-900 dark:text-white" style={{ backgroundColor: '#f6f6f4' }}>
-      <div className="max-w-[1100px] mx-auto px-4 sm:px-6 lg:px-8">
-        <div className="relative py-8 md:py-12 lg:py-16 px-4 md:px-8 lg:px-12" style={{
-          borderLeft: '0.5px solid rgba(156, 163, 175, 0.3)',
-          borderRight: '0.5px solid rgba(156, 163, 175, 0.3)',
-          borderBottom: '0.5px solid rgba(156, 163, 175, 0.3)',
-          backgroundColor: '#f6f6f4'
-        }}>
+    return (
+     <section id="faq" className="dark:bg-gray-900 text-gray-900 dark:text-white" style={{ backgroundColor: '#f6f6f4' }}>
+       <div className="max-w-[1100px] mx-auto px-4 sm:px-6 lg:px-8">
+         <div className="relative py-8 md:py-12 lg:py-16 px-4 md:px-8 lg:px-12 border border-gray-300 dark:border-[#f6f6f4]/30" style={{
+           backgroundColor: '#f6f6f4'
+         }}>
 
-          <div className="text-center mb-8 md:mb-12 lg:mb-16">
-            <h2 className="text-xl md:text-xl lg:text-2xl font-inter mb-4" style={{ color: '#000000' }}>
-              Questions and answers
-            </h2>
-          </div>
+           <div className="text-center mb-8 md:mb-12 lg:mb-16">
+             <h2 className="text-xl md:text-xl lg:text-2xl font-inter mb-4" style={{ color: '#000000' }}>
+               Questions and answers
+             </h2>
+           </div>
 
-          <div className="max-w-3xl mx-auto space-y-2">
-          {faqEntries.map((faq, index) => (
-            <div
-              key={index}
-              className="transition-all duration-200"
-              style={{
-                backgroundColor: '#f6f6f4',
-                border: '0.5px solid rgba(156, 163, 175, 0.3)'
-              }}
-            >
+           <div className="max-w-3xl mx-auto space-y-2">
+           {faqEntries.map((faq, index) => (
+             <div
+               key={index}
+               className="transition-all duration-200 border border-gray-300 dark:border-[#f6f6f4]/30"
+               style={{
+                 backgroundColor: '#f6f6f4'
+               }}
+             >
                <button
                  onClick={() => toggleFaq(index)}
                  className="w-full text-left px-4 md:px-4 py-3 md:py-4 flex items-center justify-between gap-4 hover:opacity-80 transition-opacity"

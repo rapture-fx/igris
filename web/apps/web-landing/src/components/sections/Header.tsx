@@ -103,7 +103,7 @@ export default function Header() {
                 <ChevronDown className={`h-4 w-4 transition-transform duration-200 ${productDropdownOpen ? 'rotate-180' : ''}`} />
               </button>
               {productDropdownOpen && (
-                <div className="absolute top-full left-0 mt-2 w-48 rounded-lg shadow-lg border border-gray-200 dark:border-gray-700 overflow-hidden bg-[#f6f6f4] dark:bg-dark-bg">
+                <div className="absolute top-full left-0 mt-2 w-48 rounded-lg shadow-lg border border-gray-200 dark:border-[#f6f6f4]/30 overflow-hidden bg-[#f6f6f4] dark:bg-dark-bg">
                    <Link
                       href="/overture"
                       className="block px-4 py-2 text-xs text-gray-700 dark:text-[#c8c8b8] hover:text-gray-900 dark:hover:text-[#f6f6f4] hover:bg-gray-100 dark:hover:bg-gray-800 transition-colors duration-200"
@@ -135,7 +135,7 @@ export default function Header() {
                   <ChevronDown className={`h-4 w-4 transition-transform duration-200 ${resourcesDropdownOpen ? 'rotate-180' : ''}`} />
                 </button>
               {resourcesDropdownOpen && (
-                 <div className="absolute top-full left-0 mt-2 w-48 rounded-lg shadow-lg border border-gray-200 dark:border-gray-700 overflow-hidden bg-[#f6f6f4] dark:bg-dark-bg">
+                 <div className="absolute top-full left-0 mt-2 w-48 rounded-lg shadow-lg border border-gray-200 dark:border-[#f6f6f4]/30 overflow-hidden bg-[#f6f6f4] dark:bg-dark-bg">
               <Link
                       href="/use-cases"
                       className="block px-4 py-2 text-xs text-gray-700 dark:text-[#c8c8b8] hover:text-gray-900 dark:hover:text-[#f6f6f4] hover:bg-gray-100 dark:hover:bg-gray-800 transition-colors duration-200"
@@ -201,7 +201,7 @@ export default function Header() {
 
         {/* Mobile Menu */}
         {mobileMenuOpen && (
-          <div className="md:hidden mt-4 pb-4 border-t border-gray-200">
+          <div className="md:hidden mt-4 pb-4 border-t border-gray-200 dark:border-[#f6f6f4]/30">
             <nav className="flex flex-col space-y-4 mt-4">
               {/* Product Dropdown Mobile */}
                <div>
