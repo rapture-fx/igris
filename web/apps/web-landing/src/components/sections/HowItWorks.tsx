@@ -25,7 +25,7 @@ export default function HowItWorks() {
 
           {/* Title Section - Shows last on mobile */}
                 <div className="mt-12 text-left">
-                <p className="text-base text-[#a20b0b] mb-2" style={{ fontFamily: 'Roboto Mono, monospace', letterSpacing: '0.05em' }}>
+                <p className="text-base text-[#084CCF] dark:text-[#a20b0b] mb-2" style={{ fontFamily: 'Roboto Mono, monospace', letterSpacing: '0.05em' }}>
                   03. FLOW
                 </p>
                 <h3 className="text-lg md:text-xl lg:text-2xl font-inter mb-2 text-[#000000] dark:text-[#f6f6f4]">
@@ -44,8 +44,8 @@ export default function HowItWorks() {
                </div>
 
               {/* Right Column - Title (1 column wide with left border) */}
-             <div className="md:col-span-1 md:border-l flex flex-col justify-start" style={{ borderLeft: '0.5px solid rgba(156, 163, 175, 0.3)', paddingTop: '3rem', paddingBottom: '3rem', paddingLeft: '1rem' }}>
-               <p className="text-base text-[#a20b0b] mb-2" style={{ fontFamily: 'Roboto Mono, monospace', letterSpacing: '0.05em' }}>
+              <div className="md:col-span-1 md:border-l flex flex-col justify-start dark:border-[#f6f6f4]/30" style={{ paddingTop: '3rem', paddingBottom: '3rem', paddingLeft: '1rem' }}>
+               <p className="text-base text-[#084CCF] dark:text-[#a20b0b] mb-2" style={{ fontFamily: 'Roboto Mono, monospace', letterSpacing: '0.05em' }}>
                  03. FLOW
                </p>
                <h2 className="text-lg md:text-xl lg:text-2xl font-inter mb-4 text-[#000000] dark:text-[#f6f6f4]">

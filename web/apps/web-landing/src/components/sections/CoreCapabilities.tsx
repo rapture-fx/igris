@@ -1,5 +1,6 @@
-import React from 'react'
+import React, { useEffect, useState } from 'react'
 import { Shield, Box } from 'lucide-react'
+import { useTheme } from 'next-themes'
 
 const capabilities = [
   {
@@ -17,6 +18,13 @@ const capabilities = [
 ]
 
 export default function CoreCapabilities() {
+  const { theme } = useTheme()
+  const [mounted, setMounted] = useState(false)
+
+  useEffect(() => {
+    setMounted(true)
+  }, [])
+
   return (
     <>
       <section className="bg-[#f6f6f4] dark:bg-dark-bg text-gray-900 dark:text-[#f6f6f4] transition-colors duration-200">
@@ -46,7 +54,7 @@ export default function CoreCapabilities() {
 
                {/* Title Section - Shows last on mobile */}
                 <div className="mt-12 text-left">
-                     <p className="text-base text-[#a20b0b] mb-2" style={{ fontFamily: 'Roboto Mono, monospace', letterSpacing: '0.05em' }}>
+                     <p className="text-base text-[#084CCF] dark:text-[#a20b0b] mb-2" style={{ fontFamily: 'Roboto Mono, monospace', letterSpacing: '0.05em' }}>
                        02. CORE
                      </p>
                      <h3 className="text-lg md:text-xl lg:text-2xl font-inter mb-4 text-[#000000] dark:text-[#f6f6f4]">
@@ -70,31 +78,30 @@ export default function CoreCapabilities() {
                      <div className="space-y-6">
                      {capabilities.map((capability) => (
                         <div key={capability.name} className="flex gap-4 items-start">
-                          <div className="bg-[#f6f6f4]" style={{
-                            width: '140px',
-                            height: '140px',
-                            border: '0.5px solid rgba(156, 163, 175, 0.3)',
-                            flexShrink: 0,
-                            display: 'flex',
-                            alignItems: 'center',
-                            justifyContent: 'center',
-                            position: 'relative',
-                            overflow: 'hidden'
-                          }}>
-                             <img
-                               src="/fr.png"
-                               alt={capability.name}
-                               style={{
-                                 position: 'absolute',
-                                 width: '140%',
-                                 height: '140%',
-                                 objectFit: 'cover',
-                                 opacity: '0.7'
-                               }}
-                             />
+                           <div className="bg-[#f6f6f4] dark:bg-[#1b1912] border border-gray-300 dark:border-[#f6f6f4]/30" style={{
+                             width: '140px',
+                             height: '140px',
+                             flexShrink: 0,
+                             display: 'flex',
+                             alignItems: 'center',
+                             justifyContent: 'center',
+                             position: 'relative',
+                             overflow: 'hidden'
+                           }}>
+                              <img
+                                src={mounted && theme === 'dark' ? '/dm.png' : '/fr.png'}
+                                alt={capability.name}
+                                style={{
+                                  position: 'absolute',
+                                  width: '140%',
+                                  height: '140%',
+                                  objectFit: 'cover',
+                                  opacity: '0.7'
+                                }}
+                              />
                             {capabilities.indexOf(capability) === 0 && (
                               <img
-                                src="/tre.png"
+                                src={mounted && theme === 'dark' ? '/dmone.png' : '/one.png'}
                                 alt={capability.name}
                                 style={{
                                   position: 'absolute',
@@ -107,7 +114,7 @@ export default function CoreCapabilities() {
                             )}
                             {capabilities.indexOf(capability) === 1 && (
                               <img
-                                src="/two.png"
+                                src={mounted && theme === 'dark' ? '/dmtwo.png' : '/two.png'}
                                 alt={capability.name}
                                 style={{
                                   position: 'absolute',
@@ -120,7 +127,7 @@ export default function CoreCapabilities() {
                             )}
                             {capabilities.indexOf(capability) === 2 && (
                               <img
-                                src="/one.png"
+                                src={mounted && theme === 'dark' ? '/dmtre.png' : '/tre.png'}
                                 alt={capability.name}
                                 style={{
                                   position: 'absolute',
@@ -146,9 +153,9 @@ export default function CoreCapabilities() {
                   </div>
                 </div>
 
-                 {/* Right Column - Title and Intro (Desktop only) */}
-                 <div className="hidden md:flex text-left md:col-span-1 flex-col justify-start" style={{ borderLeft: '0.5px solid rgba(156, 163, 175, 0.3)', paddingTop: '3rem', paddingBottom: '3rem', paddingLeft: '1rem' }}>
-                   <p className="text-base text-[#a20b0b] mb-2" style={{ fontFamily: 'Roboto Mono, monospace', letterSpacing: '0.05em' }}>
+                  {/* Right Column - Title and Intro (Desktop only) */}
+                  <div className="hidden md:flex text-left md:col-span-1 md:border-l flex-col justify-start dark:border-[#f6f6f4]/30" style={{ paddingTop: '3rem', paddingBottom: '3rem', paddingLeft: '1rem' }}>
+                   <p className="text-base text-[#084CCF] dark:text-[#a20b0b] mb-2" style={{ fontFamily: 'Roboto Mono, monospace', letterSpacing: '0.05em' }}>
                      02. CORE
                    </p>
                    <h3 className="text-lg md:text-xl lg:text-2xl font-inter mb-4 text-[#000000] dark:text-[#f6f6f4]">

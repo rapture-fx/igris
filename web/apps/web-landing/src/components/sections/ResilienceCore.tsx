@@ -4,11 +4,7 @@ export default function ResilienceCore() {
   return (
     <section className="py-2 dark:bg-gray-900 text-gray-900 dark:text-white" style={{ backgroundColor: '#f6f6f4' }}>
       <div className="mx-auto max-w-[1100px] px-4 sm:px-6 lg:px-8">
-        <div className="relative py-8 px-4 md:px-8 lg:px-12" style={{
-          borderTop: '0.5px solid rgba(156, 163, 175, 0.3)',
-          borderBottom: '0.5px solid rgba(156, 163, 175, 0.3)',
-          borderLeft: '0.5px solid rgba(156, 163, 175, 0.3)',
-          borderRight: '0.5px solid rgba(156, 163, 175, 0.3)',
+        <div className="relative py-8 px-4 md:px-8 lg:px-12 border border-gray-300 dark:border-[#f6f6f4]/30" style={{
           backgroundColor: '#f6f6f4'
         }}>
 
@@ -26,7 +22,7 @@ export default function ResilienceCore() {
             {/* 2x2 Grid Layout */}
             <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
               {/* Card 1: EscapeVector Mode */}
-              <div className="rounded-3xl p-4 md:p-6 lg:p-8 border border-gray-300/60 dark:border-gray-600/60 shadow-sm hover:shadow-md transition-all duration-300 min-h-[180px]" style={{ backgroundColor: '#f6f6f4' }}>
+              <div className="rounded-3xl p-4 md:p-6 lg:p-8 border border-gray-300 dark:border-[#f6f6f4]/30 shadow-sm hover:shadow-md transition-all duration-300 min-h-[180px]" style={{ backgroundColor: '#f6f6f4' }}>
                 <h5 className="text-sm md:text-base font-medium text-gray-900 dark:text-white mb-2 md:mb-3 font-inter">EscapeVector Mode</h5>
                 <p className="text-xs md:text-sm text-gray-800 dark:text-gray-200 mb-2 font-inter">
                   Stay online even if the control plane goes offline. Cached Bayesian routing keeps quality, performance, and resilience intact for 72 hours without interruption.
@@ -34,7 +30,7 @@ export default function ResilienceCore() {
               </div>
 
               {/* Card 2: Gold Code Override */}
-              <div className="rounded-3xl p-4 md:p-6 lg:p-8 border border-gray-300/60 dark:border-gray-600/60 shadow-sm hover:shadow-md transition-all duration-300 min-h-[180px]" style={{ backgroundColor: '#f6f6f4' }}>
+              <div className="rounded-3xl p-4 md:p-6 lg:p-8 border border-gray-300 dark:border-[#f6f6f4]/30 shadow-sm hover:shadow-md transition-all duration-300 min-h-[180px]" style={{ backgroundColor: '#f6f6f4' }}>
                 <h5 className="text-sm md:text-base font-medium text-gray-900 dark:text-white mb-2 md:mb-3 font-inter">Gold Code Override</h5>
                 <p className="text-xs md:text-sm text-gray-800 dark:text-gray-200 mb-2 font-inter">
                   One environment variable instantly bypasses the entire control plane. A required safety switch for enterprise security, audits, and regulated workloads.
@@ -42,7 +38,7 @@ export default function ResilienceCore() {
               </div>
 
               {/* Card 3: SLO Enforcer */}
-              <div className="rounded-3xl p-4 md:p-6 lg:p-8 border border-gray-300/60 dark:border-gray-600/60 shadow-sm hover:shadow-md transition-all duration-300 min-h-[180px]" style={{ backgroundColor: '#f6f6f4' }}>
+              <div className="rounded-3xl p-4 md:p-6 lg:p-8 border border-gray-300 dark:border-[#f6f6f4]/30 shadow-sm hover:shadow-md transition-all duration-300 min-h-[180px]" style={{ backgroundColor: '#f6f6f4' }}>
                 <h5 className="text-sm md:text-base font-medium text-gray-900 dark:text-white mb-2 md:mb-3 font-inter">SLO Enforcer</h5>
                 <p className="text-xs md:text-sm text-gray-800 dark:text-gray-200 mb-2 font-inter">
                   Automatic guardrails monitor latency, cost drift, and reliability. Traffic shifts to safer paths the moment thresholds are crossed.
@@ -50,7 +46,7 @@ export default function ResilienceCore() {
               </div>
 
               {/* Card 4: Resilient Provider Health Checks */}
-              <div className="rounded-3xl p-4 md:p-6 lg:p-8 border border-gray-300/60 dark:border-gray-600/60 shadow-sm hover:shadow-md transition-all duration-300 min-h-[180px]" style={{ backgroundColor: '#f6f6f4' }}>
+              <div className="rounded-3xl p-4 md:p-6 lg:p-8 border border-gray-300 dark:border-[#f6f6f4]/30 shadow-sm hover:shadow-md transition-all duration-300 min-h-[180px]" style={{ backgroundColor: '#f6f6f4' }}>
                 <h5 className="text-sm md:text-base font-medium text-gray-900 dark:text-white mb-2 md:mb-3 font-inter">Resilient Provider Health Checks</h5>
                 <p className="text-xs md:text-sm text-gray-800 dark:text-gray-200 mb-2 font-inter">
                   Continuous endpoint validation ensures only healthy providers receive traffic. Failed calls are detected and rerouted in real time.
