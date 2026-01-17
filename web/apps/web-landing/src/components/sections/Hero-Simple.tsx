@@ -15,10 +15,7 @@ export default function Hero() {
       }}>
       <div className="absolute inset-0 pointer-events-none bg-gradient-to-b from-transparent via-[rgba(246,246,244,0.5)] to-[#f6f6f4] dark:from-transparent dark:via-[rgba(27,25,18,0.5)] dark:to-[#1b1912]"></div>
       <div className="mx-auto max-w-[1100px] px-4 sm:px-6 lg:px-8">
-        <div className="relative px-4 md:px-8 lg:px-12 pb-0 bg-transparent dark:bg-[#1b1912] z-10 overflow-visible flex flex-col" style={{
-          borderLeft: '0.5px solid rgba(156, 163, 175, 0.3)',
-          borderRight: '0.5px solid rgba(156, 163, 175, 0.3)',
-          borderBottom: '0.5px solid rgba(156, 163, 175, 0.3)',
+        <div className="relative px-4 md:px-8 lg:px-12 pb-0 bg-transparent dark:bg-[#1b1912] z-10 overflow-visible flex flex-col border-l border-r border-b section-border" style={{
           minHeight: '600px'
         }}>
           <div className="flex-1" style={{ paddingTop: '100px' }}>
