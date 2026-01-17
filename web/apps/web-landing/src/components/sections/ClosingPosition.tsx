@@ -15,11 +15,11 @@ export default function ClosingPosition() {
               }}>
                 {/* Background grad image with reduced opacity */}
                 <div className="absolute inset-0" style={{
-                  backgroundImage: 'url(/grad.png)',
+                  backgroundImage: 'url(/grd.png)',
                   backgroundSize: 'cover',
                   backgroundPosition: 'center',
                   backgroundRepeat: 'no-repeat',
-                  opacity: 0.3
+opacity: 0.5
                 }}></div>
 
                 {/* Spir image - right aligned, full height */}
