@@ -19,14 +19,13 @@ const capabilities = [
 export default function CoreCapabilities() {
   return (
     <>
-      <section className="dark:bg-gray-900 text-gray-900 dark:text-white" style={{ backgroundColor: '#f6f6f4', height: '700px' }}>
-        <div className="mx-auto max-w-[1100px] px-4 sm:px-6 lg:px-8" style={{ height: '100%' }}>
+      <section className="dark:bg-gray-900 text-gray-900 dark:text-white" style={{ backgroundColor: '#f6f6f4' }}>
+        <div className="mx-auto max-w-[1100px] px-4 sm:px-6 lg:px-8">
           <div className="relative px-4 md:px-8 lg:px-12 flex flex-col" style={{
             borderLeft: '0.5px solid rgba(156, 163, 175, 0.3)',
             borderRight: '0.5px solid rgba(156, 163, 175, 0.3)',
             borderBottom: '0.5px solid rgba(156, 163, 175, 0.3)',
-            backgroundColor: '#f6f6f4',
-            height: '100%'
+            backgroundColor: '#f6f6f4'
           }}>
 
               {/* Content Container */}
@@ -63,7 +62,7 @@ export default function CoreCapabilities() {
                </div>
 
                {/* Two-column layout */}
-               <div className="hidden md:grid md:grid-cols-3 gap-0 relative" style={{ height: '100%' }}>
+               <div className="hidden md:grid md:grid-cols-3 gap-0 relative">
                    {/* Left Column - Capabilities (2 columns wide) */}
                    <div className="hidden md:flex md:col-span-2 flex-col justify-start" style={{
                      paddingTop: '3rem',
@@ -152,7 +151,7 @@ export default function CoreCapabilities() {
                 </div>
 
                  {/* Right Column - Title and Intro (Desktop only) */}
-                 <div className="hidden md:flex text-left md:col-span-1 flex-col justify-start" style={{ borderLeft: '0.5px solid rgba(156, 163, 175, 0.3)', paddingTop: '3rem', paddingBottom: '3rem', paddingLeft: '1rem', height: '100%' }}>
+                 <div className="hidden md:flex text-left md:col-span-1 flex-col justify-start" style={{ borderLeft: '0.5px solid rgba(156, 163, 175, 0.3)', paddingTop: '3rem', paddingBottom: '3rem', paddingLeft: '1rem' }}>
                    <p className="text-base text-gray-500 mb-2" style={{ fontFamily: 'Roboto Mono, monospace', letterSpacing: '0.05em' }}>
                      02. CORE
                    </p>

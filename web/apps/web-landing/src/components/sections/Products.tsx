@@ -5,14 +5,13 @@ import { ChevronRight } from 'lucide-react'
 
 export default function Products() {
   return (
-    <section className="dark:bg-gray-900 text-gray-900 dark:text-white" style={{ backgroundColor: '#f6f6f4', height: '800px' }}>
-      <div className="mx-auto max-w-[1100px] px-4 sm:px-6 lg:px-8" style={{ height: '100%' }}>
+    <section className="dark:bg-gray-900 text-gray-900 dark:text-white" style={{ backgroundColor: '#f6f6f4' }}>
+      <div className="mx-auto max-w-[1100px] px-4 sm:px-6 lg:px-8">
         <div className="relative px-4 md:px-8 lg:px-12 flex flex-col" style={{
           borderLeft: '0.5px solid rgba(156, 163, 175, 0.3)',
           borderRight: '0.5px solid rgba(156, 163, 175, 0.3)',
           borderBottom: '0.5px solid rgba(156, 163, 175, 0.3)',
-          backgroundColor: '#f6f6f4',
-          height: '100%'
+          backgroundColor: '#f6f6f4'
         }}>
 
           {/* Title Section - Shows first on mobile, last on desktop */}
@@ -54,27 +53,7 @@ export default function Products() {
                      </span>
                      <ChevronRight className="ml-1 h-3 w-3" />
                    </Link>
-                 <p className="text-xs text-gray-600 dark:text-gray-400 mb-4">
-                   Decision Layer
-                 </p>
-                 <div style={{ border: '0.5px solid rgba(156, 163, 175, 0.3)', marginTop: '1rem', marginBottom: '1rem', height: '200px', position: 'relative', overflow: 'hidden' }}>
-                   <Image
-                     src="/overtureframe.png"
-                     alt="Overture Decision Layer"
-                     fill
-                     style={{ objectFit: 'cover' }}
-                   />
                  </div>
-                 <p className="text-xs text-gray-600 dark:text-gray-400 leading-relaxed font-inter mb-4">
-                   Decision intelligence and routing control plane. Trust-aware provider selection with cost, quality, and latency optimization. Explainable decisions with full observability.
-                 </p>
-                 <Link href="/overture" className="group inline-flex items-center">
-                   <span className="text-sm text-gray-900 dark:text-white font-inter">
-                     Explore Overture
-                   </span>
-                  <ChevronRight className="ml-1 h-3 w-3" />
-                </Link>
-              </div>
 
                {/* Runtime */}
                <div>
@@ -106,7 +85,7 @@ export default function Products() {
           </div>
 
           {/* Split Layout: Left Products (wider), Right Title (narrower) */}
-          <div className="grid grid-cols-1 md:grid-cols-3 gap-0 md:flex-1" style={{ height: '100%' }}>
+          <div className="grid grid-cols-1 md:grid-cols-3 gap-0 md:flex-1">
 
             {/* Left Column: Overture and Runtime - 2 columns wide (Desktop only) */}
             <div className="hidden md:flex md:col-span-2 flex-col items-start justify-start" style={{ paddingTop: '3rem', paddingBottom: '3rem', paddingRight: '1rem' }}>
@@ -170,7 +149,7 @@ export default function Products() {
             </div>
 
              {/* Right Column: Title and Description (Desktop only) */}
-             <div className="hidden md:flex md:col-span-1 md:border-l flex-col justify-start" style={{ borderLeft: '0.5px solid rgba(156, 163, 175, 0.3)', paddingTop: '3rem', paddingBottom: '3rem', paddingLeft: '1rem', height: '100%' }}>
+             <div className="hidden md:flex md:col-span-1 md:border-l flex-col justify-start" style={{ borderLeft: '0.5px solid rgba(156, 163, 175, 0.3)', paddingTop: '3rem', paddingBottom: '3rem', paddingLeft: '1rem' }}>
               <p className="text-base text-gray-500 mb-2" style={{ fontFamily: 'Roboto Mono, monospace', letterSpacing: '0.05em' }}>
                 01. PRODUCT
               </p>
