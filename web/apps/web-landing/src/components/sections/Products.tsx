@@ -5,24 +5,24 @@ import { ChevronRight } from 'lucide-react'
 
 export default function Products() {
   return (
-    <section className="dark:bg-gray-900 text-gray-900 dark:text-white" style={{ backgroundColor: '#f6f6f4' }}>
+    <section className="bg-[#f6f6f4] dark:bg-dark-bg text-gray-900 dark:text-[#f6f6f4] transition-colors duration-200">
       <div className="mx-auto max-w-[1100px] px-4 sm:px-6 lg:px-8">
-        <div className="relative px-4 md:px-8 lg:px-12 flex flex-col" style={{
+        <div className="relative px-4 md:px-8 lg:px-12 flex flex-col bg-[#f6f6f4] dark:bg-[#1b1912]" style={{
           borderLeft: '0.5px solid rgba(156, 163, 175, 0.3)',
           borderRight: '0.5px solid rgba(156, 163, 175, 0.3)',
           borderBottom: '0.5px solid rgba(156, 163, 175, 0.3)',
-          backgroundColor: '#f6f6f4'
+          height: '750px'
         }}>
 
           {/* Title Section - Shows first on mobile, last on desktop */}
            <div className="mb-6 md:mb-0 md:hidden text-left" style={{ paddingTop: '3rem', paddingBottom: '3rem' }}>
-               <p className="text-base text-gray-500 mb-2" style={{ fontFamily: 'Roboto Mono, monospace', letterSpacing: '0.05em' }}>
+               <p className="text-base text-[#700a0a] mb-2" style={{ fontFamily: 'Roboto Mono, monospace', letterSpacing: '0.05em' }}>
                  01. PRODUCT
                </p>
-               <h2 className="text-lg md:text-xl lg:text-2xl font-inter mb-4" style={{ color: '#000000' }}>
+               <h2 className="text-lg md:text-xl lg:text-2xl font-inter mb-4 text-[#000000] dark:text-[#f6f6f4]">
                  Decision and Execution
                </h2>
-            <p className="text-sm text-gray-600 dark:text-gray-400 font-inter leading-relaxed mb-8">
+            <p className="text-sm text-gray-600 dark:text-[#a8a898] font-inter leading-relaxed mb-8">
               Overture decides what to route and where. Runtime executes with governance and safety. Deploy independently or together with Hybrid enforcement.
             </p>
 
@@ -30,10 +30,10 @@ export default function Products() {
               <div className="space-y-12 text-left">
                  {/* Overture */}
                  <div className="text-left">
-                   <h3 className="text-lg md:text-xl font-inter mb-2" style={{ color: '#000000' }}>
+                   <h3 className="text-lg md:text-xl font-inter mb-2 text-[#000000] dark:text-[#f6f6f4]">
                      Overture
                    </h3>
-                   <p className="text-xs text-gray-600 dark:text-gray-400 mb-4">
+                   <p className="text-xs text-gray-600 dark:text-[#a8a898] mb-4">
                      Decision Layer
                    </p>
                   <div style={{ border: '0.5px solid rgba(156, 163, 175, 0.3)', marginTop: '1rem', marginBottom: '1rem', height: '200px', position: 'relative', overflow: 'hidden' }}>
@@ -44,11 +44,11 @@ export default function Products() {
                       style={{ objectFit: 'cover' }}
                     />
                    </div>
-                   <p className="text-xs text-gray-600 dark:text-gray-400 leading-relaxed font-inter mb-4">
+                   <p className="text-xs text-gray-600 dark:text-[#a8a898] leading-relaxed font-inter mb-4">
                      Decision intelligence and routing control plane. Trust-aware provider selection with cost, quality, and latency optimization. Explainable decisions with full observability.
                    </p>
                    <Link href="/overture" className="group inline-flex items-center">
-                     <span className="text-sm text-gray-900 dark:text-white font-inter">
+                     <span className="text-sm text-gray-900 dark:text-[#f6f6f4] font-inter">
                        Explore Overture
                      </span>
                      <ChevronRight className="ml-1 h-3 w-3" />
@@ -57,10 +57,10 @@ export default function Products() {
 
                {/* Runtime */}
                <div>
-                 <h3 className="text-lg md:text-xl font-inter mb-2" style={{ color: '#000000' }}>
+                 <h3 className="text-lg md:text-xl font-inter mb-2 text-[#000000] dark:text-[#f6f6f4]">
                    Runtime
                  </h3>
-                 <p className="text-xs text-gray-600 dark:text-gray-400 mb-4">
+                 <p className="text-xs text-gray-600 dark:text-[#a8a898] mb-4">
                    Execution Layer
                  </p>
                  <div style={{ border: '0.5px solid rgba(156, 163, 175, 0.3)', marginTop: '1rem', marginBottom: '1rem', height: '200px', position: 'relative', overflow: 'hidden' }}>
@@ -71,11 +71,11 @@ export default function Products() {
                      style={{ objectFit: 'cover' }}
                    />
                  </div>
-                 <p className="text-xs text-gray-600 dark:text-gray-400 leading-relaxed font-inter mb-4">
+                 <p className="text-xs text-gray-600 dark:text-[#a8a898] leading-relaxed font-inter mb-4">
                    Licensed governed execution engine. Secure defaults and enforced limits. Deterministic execution envelopes with telemetry-backed execution.
                  </p>
                  <Link href="/runtime" className="group inline-flex items-center">
-                   <span className="text-sm text-gray-900 dark:text-white font-inter">
+                   <span className="text-sm text-gray-900 dark:text-[#f6f6f4] font-inter">
                      Explore Runtime
                    </span>
                   <ChevronRight className="ml-1 h-3 w-3" />
@@ -93,10 +93,10 @@ export default function Products() {
 
                  {/* Overture */}
                  <div>
-                   <h3 className="text-lg md:text-xl font-inter mb-2" style={{ color: '#000000' }}>
+                   <h3 className="text-lg md:text-xl font-inter mb-2 text-[#000000] dark:text-[#f6f6f4]">
                      Overture
                    </h3>
-                   <p className="text-xs text-gray-600 dark:text-gray-400 mb-4">
+                   <p className="text-xs text-gray-600 dark:text-[#a8a898] mb-4">
                      Decision Layer
                    </p>
                   <div style={{ border: '0.5px solid rgba(156, 163, 175, 0.3)', marginTop: '1rem', marginBottom: '1rem', height: '200px', position: 'relative', overflow: 'hidden' }}>
@@ -107,11 +107,11 @@ export default function Products() {
                       style={{ objectFit: 'cover' }}
                     />
                    </div>
-                   <p className="text-sm text-gray-600 dark:text-gray-400 leading-relaxed font-inter mb-4">
+                   <p className="text-sm text-gray-600 dark:text-[#a8a898] leading-relaxed font-inter mb-4">
                      Decision intelligence and routing control plane. Trust-aware provider selection with cost, quality, and latency optimization. Explainable decisions with full observability.
                    </p>
                    <Link href="/overture" className="group inline-flex items-center">
-                     <span className="text-sm text-gray-900 dark:text-white font-inter">
+                     <span className="text-sm text-gray-900 dark:text-[#f6f6f4] font-inter">
                        Explore Overture
                      </span>
                     <ChevronRight className="ml-1 h-3 w-3" />
@@ -120,10 +120,10 @@ export default function Products() {
 
                  {/* Runtime */}
                  <div>
-                   <h3 className="text-lg md:text-xl font-inter mb-2" style={{ color: '#000000' }}>
+                   <h3 className="text-lg md:text-xl font-inter mb-2 text-[#000000] dark:text-[#f6f6f4]">
                      Runtime
                    </h3>
-                   <p className="text-xs text-gray-600 dark:text-gray-400 mb-4">
+                   <p className="text-xs text-gray-600 dark:text-[#a8a898] mb-4">
                      Execution Layer
                    </p>
                   <div style={{ border: '0.5px solid rgba(156, 163, 175, 0.3)', marginTop: '1rem', marginBottom: '1rem', height: '200px', position: 'relative', overflow: 'hidden' }}>
@@ -134,11 +134,11 @@ export default function Products() {
                       style={{ objectFit: 'cover' }}
                     />
                    </div>
-                   <p className="text-sm text-gray-600 dark:text-gray-400 leading-relaxed font-inter mb-4">
+                   <p className="text-sm text-gray-600 dark:text-[#a8a898] leading-relaxed font-inter mb-4">
                      Licensed governed execution engine. Secure defaults and enforced limits. Deterministic execution envelopes with telemetry-backed execution.
                    </p>
                    <Link href="/runtime" className="group inline-flex items-center">
-                     <span className="text-sm text-gray-900 dark:text-white font-inter">
+                     <span className="text-sm text-gray-900 dark:text-[#f6f6f4] font-inter">
                        Explore Runtime
                      </span>
                     <ChevronRight className="ml-1 h-3 w-3" />
@@ -150,13 +150,13 @@ export default function Products() {
 
              {/* Right Column: Title and Description (Desktop only) */}
              <div className="hidden md:flex md:col-span-1 md:border-l flex-col justify-start" style={{ borderLeft: '0.5px solid rgba(156, 163, 175, 0.3)', paddingTop: '3rem', paddingBottom: '3rem', paddingLeft: '1rem' }}>
-              <p className="text-base text-gray-500 mb-2" style={{ fontFamily: 'Roboto Mono, monospace', letterSpacing: '0.05em' }}>
+              <p className="text-base text-[#700a0a] mb-2" style={{ fontFamily: 'Roboto Mono, monospace', letterSpacing: '0.05em' }}>
                 01. PRODUCT
               </p>
-              <h2 className="text-lg md:text-xl lg:text-2xl font-inter mb-4" style={{ color: '#000000' }}>
+              <h2 className="text-lg md:text-xl lg:text-2xl font-inter mb-4 text-[#000000] dark:text-[#f6f6f4]">
                 Decision and Execution
               </h2>
-              <p className="text-xs md:text-sm text-gray-600 dark:text-gray-400 font-inter leading-relaxed">
+              <p className="text-xs md:text-sm text-gray-600 dark:text-[#a8a898] font-inter leading-relaxed">
                 Overture decides what to route and where. Runtime executes with governance and safety. Deploy independently or together with Hybrid enforcement.
               </p>
             </div>

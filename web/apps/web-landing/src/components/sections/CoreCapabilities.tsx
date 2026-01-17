@@ -19,17 +19,17 @@ const capabilities = [
 export default function CoreCapabilities() {
   return (
     <>
-      <section className="dark:bg-gray-900 text-gray-900 dark:text-white" style={{ backgroundColor: '#f6f6f4' }}>
+      <section className="bg-[#f6f6f4] dark:bg-dark-bg text-gray-900 dark:text-[#f6f6f4] transition-colors duration-200">
         <div className="mx-auto max-w-[1100px] px-4 sm:px-6 lg:px-8">
-          <div className="relative px-4 md:px-8 lg:px-12 flex flex-col" style={{
+          <div className="relative px-4 md:px-8 lg:px-12 flex flex-col bg-[#f6f6f4] dark:bg-[#1b1912]" style={{
             borderLeft: '0.5px solid rgba(156, 163, 175, 0.3)',
             borderRight: '0.5px solid rgba(156, 163, 175, 0.3)',
             borderBottom: '0.5px solid rgba(156, 163, 175, 0.3)',
-            backgroundColor: '#f6f6f4'
+            height: '750px'
           }}>
 
               {/* Content Container */}
-              <div className="w-full px-0 flex flex-col md:flex-1">
+              <div className="w-full px-0 flex flex-col h-full">
                 {/* No absolute divider - use border on right column instead */}
 
                {/* Capabilities - Mobile - Shows first on mobile */}
@@ -37,10 +37,10 @@ export default function CoreCapabilities() {
                  <div className="space-y-6">
                    {capabilities.map((capability) => (
                      <div key={capability.name}>
-                        <h4 className="text-sm font-semibold text-gray-900 dark:text-white mb-2 font-inter" style={{ color: '#000000' }}>
+                        <h4 className="text-sm font-semibold mb-2 font-inter text-[#000000] dark:text-[#f6f6f4]">
                           {capability.name}
                         </h4>
-                        <p className="text-xs text-gray-600 dark:text-gray-400 leading-relaxed font-inter">
+                        <p className="text-xs text-gray-600 dark:text-[#a8a898] leading-relaxed font-inter">
                           {capability.description}
                         </p>
                      </div>
@@ -49,20 +49,20 @@ export default function CoreCapabilities() {
 
                {/* Title Section - Shows last on mobile */}
                 <div className="mt-12 text-left">
-                     <p className="text-base text-gray-500 mb-2" style={{ fontFamily: 'Roboto Mono, monospace', letterSpacing: '0.05em' }}>
+                     <p className="text-base text-[#700a0a] mb-2" style={{ fontFamily: 'Roboto Mono, monospace', letterSpacing: '0.05em' }}>
                        02. CORE
                      </p>
-                     <h3 className="text-lg md:text-xl lg:text-2xl font-inter mb-4" style={{ color: '#000000' }}>
+                     <h3 className="text-lg md:text-xl lg:text-2xl font-inter mb-4 text-[#000000] dark:text-[#f6f6f4]">
                      System Overview
                    </h3>
-                     <p className="text-sm text-gray-700 dark:text-gray-300 font-inter leading-relaxed">
+                     <p className="text-sm text-gray-700 dark:text-[#c8c8b8] font-inter leading-relaxed">
                      Overture decides which provider handles each request. Runtime executes agents safely on edge devices. Hybrid connects them with cryptographic verification.
                    </p>
                 </div>
                </div>
 
                {/* Two-column layout */}
-               <div className="hidden md:grid md:grid-cols-3 gap-0 relative">
+               <div className="hidden md:grid md:grid-cols-3 gap-0 relative h-full">
                    {/* Left Column - Capabilities (2 columns wide) */}
                    <div className="hidden md:flex md:col-span-2 flex-col justify-start" style={{
                      paddingTop: '3rem',
@@ -73,12 +73,11 @@ export default function CoreCapabilities() {
                      <div className="space-y-6">
                      {capabilities.map((capability) => (
                         <div key={capability.name} className="flex gap-4 items-start">
-                          <div style={{
+                          <div className="bg-[#f6f6f4]" style={{
                             width: '140px',
                             height: '140px',
                             border: '0.5px solid rgba(156, 163, 175, 0.3)',
                             flexShrink: 0,
-                            backgroundColor: '#f6f6f4',
                             display: 'flex',
                             alignItems: 'center',
                             justifyContent: 'center',
@@ -137,10 +136,10 @@ export default function CoreCapabilities() {
                             )}
                           </div>
                          <div className="flex-1">
-                          <h4 className="text-sm font-semibold text-gray-900 dark:text-white mb-2 font-inter" style={{ color: '#000000' }}>
+                          <h4 className="text-sm font-semibold mb-2 font-inter text-[#000000] dark:text-[#f6f6f4]">
                             {capability.name}
                           </h4>
-                          <p className="text-sm text-gray-600 dark:text-gray-400 leading-relaxed font-inter">
+                          <p className="text-sm text-gray-600 dark:text-[#a8a898] leading-relaxed font-inter">
                             {capability.description}
                           </p>
                         </div>
@@ -152,13 +151,13 @@ export default function CoreCapabilities() {
 
                  {/* Right Column - Title and Intro (Desktop only) */}
                  <div className="hidden md:flex text-left md:col-span-1 flex-col justify-start" style={{ borderLeft: '0.5px solid rgba(156, 163, 175, 0.3)', paddingTop: '3rem', paddingBottom: '3rem', paddingLeft: '1rem' }}>
-                   <p className="text-base text-gray-500 mb-2" style={{ fontFamily: 'Roboto Mono, monospace', letterSpacing: '0.05em' }}>
+                   <p className="text-base text-[#700a0a] mb-2" style={{ fontFamily: 'Roboto Mono, monospace', letterSpacing: '0.05em' }}>
                      02. CORE
                    </p>
-                   <h3 className="text-lg md:text-xl lg:text-2xl font-inter mb-4" style={{ color: '#000000' }}>
+                   <h3 className="text-lg md:text-xl lg:text-2xl font-inter mb-4 text-[#000000] dark:text-[#f6f6f4]">
                      System Overview
                    </h3>
-                   <p className="text-sm text-gray-700 dark:text-gray-300 font-inter leading-relaxed">
+                   <p className="text-sm text-gray-700 dark:text-[#c8c8b8] font-inter leading-relaxed">
                      Overture decides which provider handles each request. Runtime executes agents safely on edge devices. Hybrid connects them with cryptographic verification.
                    </p>
                 </div>

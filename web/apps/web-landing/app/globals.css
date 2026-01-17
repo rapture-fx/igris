@@ -30,6 +30,13 @@
     overflow-x: hidden;
   }
 
+  /* Dark mode styles */
+  html.dark,
+  html.dark body {
+    background-color: #1b1912;
+    background: #1b1912;
+  }
+
   *, *::before, *::after {
     box-sizing: border-box;
   }
