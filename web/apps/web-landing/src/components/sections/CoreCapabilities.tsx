@@ -101,7 +101,7 @@ export default function CoreCapabilities() {
                               />
                             {capabilities.indexOf(capability) === 0 && (
                               <img
-                                src={mounted && theme === 'dark' ? '/dmone.png' : '/one.png'}
+                                src={mounted && theme === 'dark' ? '/dmone.png' : '/tre.png'}
                                 alt={capability.name}
                                 style={{
                                   position: 'absolute',
@@ -127,7 +127,7 @@ export default function CoreCapabilities() {
                             )}
                             {capabilities.indexOf(capability) === 2 && (
                               <img
-                                src={mounted && theme === 'dark' ? '/dmtre.png' : '/tre.png'}
+                                src={mounted && theme === 'dark' ? '/dmtre.png' : '/one.png'}
                                 alt={capability.name}
                                 style={{
                                   position: 'absolute',
