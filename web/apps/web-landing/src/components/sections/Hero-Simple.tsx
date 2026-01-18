@@ -11,7 +11,7 @@ export default function Hero() {
     <section className="pt-0 pb-0 bg-[#f6f6f4] dark:bg-dark-bg text-gray-900 dark:text-[#f6f6f4] relative overflow-visible -mt-[72px]">
       <div className="mx-auto max-w-[1100px] px-4 sm:px-6 lg:px-8">
         <div className="relative px-4 md:px-8 lg:px-12 pb-0 bg-transparent dark:bg-[#1b1912] z-10 overflow-hidden flex flex-col border-l border-r border-b section-border" style={{
-          minHeight: '600px',
+          minHeight: '500px',
           backgroundImage: 'url(/cloudbg.png)',
           backgroundSize: 'cover',
           backgroundPosition: 'center top -100px',
