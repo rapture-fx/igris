@@ -176,7 +176,7 @@ export default function CoreCapabilities() {
                                     width: '140%',
                                     height: '140%',
                                     objectFit: 'cover',
-                                    opacity: '0.4'
+                                    opacity: '0.2'
                                   }}
                                 />
                                 {index === 0 && (
