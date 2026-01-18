@@ -8,17 +8,16 @@ import { useModal } from '../../contexts/ModalContext'
 export default function Hero() {
   const { openEarlyAccessModal } = useModal();
   return (
-    <section className="pt-0 pb-0 bg-[#f6f6f4] dark:bg-dark-bg text-gray-900 dark:text-[#f6f6f4] relative overflow-visible -mt-[72px]" style={{
-        backgroundImage: 'url(/cloudbg.png)',
-        backgroundSize: 'cover',
-        backgroundPosition: 'center top -100px',
-        backgroundRepeat: 'no-repeat'
-      }}>
-      <div className="absolute inset-0 pointer-events-none bg-gradient-to-b from-transparent via-[rgba(246,246,244,0.5)] to-[#f6f6f4] dark:from-transparent dark:via-[rgba(27,25,18,0.5)] dark:to-[#1b1912]"></div>
+    <section className="pt-0 pb-0 bg-[#f6f6f4] dark:bg-dark-bg text-gray-900 dark:text-[#f6f6f4] relative overflow-visible -mt-[72px]">
       <div className="mx-auto max-w-[1100px] px-4 sm:px-6 lg:px-8">
         <div className="relative px-4 md:px-8 lg:px-12 pb-0 bg-transparent dark:bg-[#1b1912] z-10 overflow-hidden flex flex-col border-l border-r border-b section-border" style={{
-          minHeight: '600px'
+          minHeight: '600px',
+          backgroundImage: 'url(/cloudbg.png)',
+          backgroundSize: 'cover',
+          backgroundPosition: 'center top -100px',
+          backgroundRepeat: 'no-repeat'
         }}>
+          <div className="absolute inset-0 pointer-events-none bg-gradient-to-b from-transparent via-[rgba(246,246,244,0.5)] to-[#f6f6f4] dark:from-transparent dark:via-[rgba(27,25,18,0.5)] dark:to-[#1b1912]"></div>
           <div className="absolute bottom-0 right-0" style={{ width: '800px', height: 'auto' }}>
             <Image
               src="/corner.png"
@@ -26,6 +25,7 @@ export default function Hero() {
               width={800}
               height={500}
               style={{ width: '100%', height: 'auto' }}
+              className="opacity-50 dark:opacity-100"
             />
           </div>
           <div className="flex-1" style={{ paddingTop: '100px' }}>

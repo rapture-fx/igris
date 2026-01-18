@@ -1,9 +1,16 @@
-import React from 'react'
+import React, { useEffect, useState } from 'react'
 import Link from 'next/link'
 import Image from 'next/image'
 import { ChevronRight } from 'lucide-react'
+import { useTheme } from 'next-themes'
 
 export default function Products() {
+  const { theme } = useTheme()
+  const [mounted, setMounted] = useState(false)
+
+  useEffect(() => {
+    setMounted(true)
+  }, [])
   return (
     <section className="bg-[#f6f6f4] dark:bg-dark-bg text-gray-900 dark:text-[#f6f6f4] transition-colors duration-200">
       <div className="mx-auto max-w-[1100px] px-4 sm:px-6 lg:px-8">
@@ -33,14 +40,14 @@ export default function Products() {
                    <p className="text-xs text-gray-600 dark:text-[#a8a898] mb-4">
                      Decision Layer
                    </p>
-                   <div className="border border-gray-300 dark:border-[#f6f6f4]/5" style={{ marginTop: '1rem', marginBottom: '1rem', height: '200px', position: 'relative', overflow: 'hidden' }}>
-                     <Image
-                       src="/overtureframe.png"
-                       alt="Overture Decision Layer"
-                       fill
-                       style={{ objectFit: 'cover' }}
-                     />
-                   </div>
+                    <div className="border border-gray-300 dark:border-[#f6f6f4]/5" style={{ marginTop: '1rem', marginBottom: '1rem', height: '200px', position: 'relative', overflow: 'hidden' }}>
+                      <Image
+                        src={mounted && theme === 'dark' ? '/ov.png' : '/overtureframe.png'}
+                        alt="Overture Decision Layer"
+                        fill
+                        style={{ objectFit: 'cover' }}
+                      />
+                    </div>
                    <p className="text-xs text-gray-600 dark:text-[#a8a898] leading-relaxed font-inter mb-4">
                      Decision intelligence and routing control plane. Trust-aware provider selection with cost, quality, and latency optimization. Explainable decisions with full observability.
                    </p>
@@ -96,14 +103,14 @@ export default function Products() {
                    <p className="text-xs text-gray-600 dark:text-[#a8a898] mb-4">
                      Decision Layer
                    </p>
-                   <div className="border border-gray-300 dark:border-[#f6f6f4]/5" style={{ marginTop: '1rem', marginBottom: '1rem', height: '200px', position: 'relative', overflow: 'hidden' }}>
-                     <Image
-                       src="/overtureframe.png"
-                       alt="Overture Decision Layer"
-                       fill
-                       style={{ objectFit: 'cover' }}
-                     />
-                   </div>
+                    <div className="border border-gray-300 dark:border-[#f6f6f4]/5" style={{ marginTop: '1rem', marginBottom: '1rem', height: '200px', position: 'relative', overflow: 'hidden' }}>
+                      <Image
+                        src={mounted && theme === 'dark' ? '/ov.png' : '/overtureframe.png'}
+                        alt="Overture Decision Layer"
+                        fill
+                        style={{ objectFit: 'cover' }}
+                      />
+                    </div>
                    <p className="text-sm text-gray-600 dark:text-[#a8a898] leading-relaxed font-inter mb-4">
                      Decision intelligence and routing control plane. Trust-aware provider selection with cost, quality, and latency optimization. Explainable decisions with full observability.
                    </p>
