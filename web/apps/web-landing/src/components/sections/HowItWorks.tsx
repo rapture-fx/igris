@@ -47,12 +47,23 @@ export default function HowItWorks() {
            {/* Two-column layout - Matching Products section */}
             <div className="hidden md:grid md:grid-cols-3 gap-0 md:flex-1">
              {/* Left Column - Content (2 columns wide) */}
-              <div className="md:col-span-2 flex flex-col justify-start relative" style={{ 
-                padding: '3rem 1rem 3rem 1rem', 
+              <div className="md:col-span-2 flex flex-col justify-start relative" style={{
+                padding: '3rem 2rem 3rem 0',
                 backgroundImage: mounted && theme === 'dark' ? 'none' : 'radial-gradient(circle, rgba(0, 0, 0, 0.1) 1px, transparent 1px)',
-                backgroundSize: '20px 20px', 
-                backgroundPosition: '1rem 3rem' 
+                backgroundSize: '20px 20px',
+                backgroundPosition: '1rem 3rem'
               }}>
+                {/* Dark mode frames */}
+                {mounted && theme === 'dark' && (
+                  <div className="flex flex-col gap-4 w-full">
+                    <div className="w-full border border-[#f6f6f4]/5 bg-[#1b1912]" style={{ height: '210px' }}>
+                    </div>
+                    <div className="w-full border border-[#f6f6f4]/5 bg-[#1b1912]" style={{ height: '210px' }}>
+                    </div>
+                    <div className="w-full border border-[#f6f6f4]/5 bg-[#1b1912]" style={{ height: '210px' }}>
+                    </div>
+                  </div>
+                )}
               </div>
 
               {/* Right Column - Title (1 column wide with left border) */}

@@ -33,7 +33,7 @@ export default function ClosingPosition() {
                 src="/cls.png"
                 alt="Closing background"
                 fill
-                style={{ objectFit: 'cover', opacity: 0.3 }}
+                style={{ objectFit: 'cover', opacity: 0.6 }}
               />
             )}
 
