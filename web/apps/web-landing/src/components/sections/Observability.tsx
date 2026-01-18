@@ -32,9 +32,9 @@ const features = [
 
 export default function Observability() {
   return (
-    <section className="dark:bg-gray-900 text-gray-900 dark:text-white border border-gray-300 dark:border-[#f6f6f4]/30" style={{ backgroundColor: '#f6f6f4' }}>
+    <section className="dark:bg-gray-900 text-gray-900 dark:text-white border border-gray-300 dark:border-[#f6f6f4]/5" style={{ backgroundColor: '#f6f6f4' }}>
       <div className="mx-auto max-w-[1100px] px-4 sm:px-6 lg:px-8">
-        <div className="relative px-4 md:px-8 lg:px-12 border-x border-gray-300 dark:border-[#f6f6f4]/30" style={{
+        <div className="relative px-4 md:px-8 lg:px-12 border-x border-gray-300 dark:border-[#f6f6f4]/5" style={{
           backgroundColor: '#f6f6f4',
           minHeight: '750px',
           display: 'flex',
@@ -67,7 +67,7 @@ export default function Observability() {
                 return (
                   <div
                     key={index}
-                    className={`rounded-3xl ${feature.isBlank ? 'p-0 overflow-hidden flex items-center justify-center' : 'p-8'} border border-gray-300/60 dark:border-[#f6f6f4]/30 shadow-sm hover:shadow-md transition-all duration-300 ${colSpan}`}
+                    className={`rounded-3xl ${feature.isBlank ? 'p-0 overflow-hidden flex items-center justify-center' : 'p-8'} border border-gray-300/60 dark:border-[#f6f6f4]/5 shadow-sm hover:shadow-md transition-all duration-300 ${colSpan}`}
                     style={{ backgroundColor: '#f5f4f2', height: '200px' }}
                   >
                     {feature.isBlank ? (

@@ -49,6 +49,6 @@
 }
 
 .dark .section-border {
-  border-color: rgba(246, 246, 244, 0.4);
+  border-color: rgba(246, 246, 244, 0.05);
   border-width: 0.5px;
 }

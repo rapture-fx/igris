@@ -33,7 +33,7 @@ export default function Products() {
                    <p className="text-xs text-gray-600 dark:text-[#a8a898] mb-4">
                      Decision Layer
                    </p>
-                   <div className="border border-gray-300 dark:border-[#f6f6f4]/30" style={{ marginTop: '1rem', marginBottom: '1rem', height: '200px', position: 'relative', overflow: 'hidden' }}>
+                   <div className="border border-gray-300 dark:border-[#f6f6f4]/5" style={{ marginTop: '1rem', marginBottom: '1rem', height: '200px', position: 'relative', overflow: 'hidden' }}>
                      <Image
                        src="/overtureframe.png"
                        alt="Overture Decision Layer"
@@ -60,7 +60,7 @@ export default function Products() {
                  <p className="text-xs text-gray-600 dark:text-[#a8a898] mb-4">
                    Execution Layer
                  </p>
-                 <div className="border border-gray-300 dark:border-[#f6f6f4]/30" style={{ marginTop: '1rem', marginBottom: '1rem', height: '200px', position: 'relative', overflow: 'hidden' }}>
+                 <div className="border border-gray-300 dark:border-[#f6f6f4]/5" style={{ marginTop: '1rem', marginBottom: '1rem', height: '200px', position: 'relative', overflow: 'hidden' }}>
                    <Image
                      src="/runtimeframe.png"
                      alt="Runtime Execution Layer"
@@ -96,7 +96,7 @@ export default function Products() {
                    <p className="text-xs text-gray-600 dark:text-[#a8a898] mb-4">
                      Decision Layer
                    </p>
-                   <div className="border border-gray-300 dark:border-[#f6f6f4]/30" style={{ marginTop: '1rem', marginBottom: '1rem', height: '200px', position: 'relative', overflow: 'hidden' }}>
+                   <div className="border border-gray-300 dark:border-[#f6f6f4]/5" style={{ marginTop: '1rem', marginBottom: '1rem', height: '200px', position: 'relative', overflow: 'hidden' }}>
                      <Image
                        src="/overtureframe.png"
                        alt="Overture Decision Layer"
@@ -123,7 +123,7 @@ export default function Products() {
                     <p className="text-xs text-gray-600 dark:text-[#a8a898] mb-4">
                       Execution Layer
                     </p>
-                    <div className="border border-gray-300 dark:border-[#f6f6f4]/30" style={{ marginTop: '1rem', marginBottom: '1rem', height: '200px', position: 'relative', overflow: 'hidden' }}>
+                    <div className="border border-gray-300 dark:border-[#f6f6f4]/5" style={{ marginTop: '1rem', marginBottom: '1rem', height: '200px', position: 'relative', overflow: 'hidden' }}>
                       <Image
                         src="/runtimeframe.png"
                         alt="Runtime Execution Layer"
@@ -146,7 +146,7 @@ export default function Products() {
              </div>
 
               {/* Right Column: Title and Description (Desktop only) */}
-              <div className="hidden md:flex md:col-span-1 md:border-l flex-col justify-start dark:border-[#f6f6f4]/30" style={{ paddingTop: '3rem', paddingBottom: '3rem', paddingLeft: '1rem' }}>
+              <div className="hidden md:flex md:col-span-1 md:border-l flex-col justify-start dark:border-[#f6f6f4]/5" style={{ paddingTop: '3rem', paddingBottom: '3rem', paddingLeft: '1rem' }}>
                <p className="text-base text-[#084CCF] dark:text-[#a20b0b] mb-2" style={{ fontFamily: 'Roboto Mono, monospace', letterSpacing: '0.05em' }}>
                  01. PRODUCT
                </p>

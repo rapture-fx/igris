@@ -38,7 +38,7 @@ export default function Footer() {
                 <div className="flex gap-3 mt-2">
                   <Link href="https://x.com/igrisinertial" target="_blank" rel="noopener noreferrer">
                     <img
-                      src="/x.png"
+                      src={mounted && theme === 'dark' ? '/dmx.png' : '/x.png'}
                       alt="X (Twitter)"
                       width={12}
                       height={12}
@@ -48,7 +48,7 @@ export default function Footer() {
                   </Link>
                   <Link href="https://www.linkedin.com/company/igrisinertial" target="_blank" rel="noopener noreferrer">
                     <img
-                      src="/linkedin.png"
+                      src={mounted && theme === 'dark' ? '/lkd.png' : '/linkedin.png'}
                       alt="LinkedIn"
                       width={12}
                       height={12}
