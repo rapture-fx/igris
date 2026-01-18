@@ -38,12 +38,12 @@ export default function OverturePage() {
 
   return (
     <>
-      <div className="min-h-screen bg-[#f6f6f4]">
+      <div className="min-h-screen bg-[#f6f6f4] dark:bg-dark-bg transition-colors duration-200">
         <Header />
         <main className="pt-[70px]">
 
           {/* Hero Section */}
-          <section className="pt-0 pb-0 bg-[#f6f6f4] text-gray-900 relative overflow-visible -mt-[72px]" style={{
+          <section className="pt-0 pb-0 bg-[#f6f6f4] dark:bg-dark-bg text-gray-900 dark:text-[#f6f6f4] relative overflow-visible -mt-[72px]" style={{
             backgroundImage: 'url(/cloudbg.png)',
             backgroundSize: 'cover',
             backgroundPosition: 'center top -100px',
