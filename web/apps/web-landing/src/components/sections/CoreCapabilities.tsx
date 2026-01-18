@@ -78,7 +78,7 @@ export default function CoreCapabilities() {
                      <div className="space-y-6">
                      {capabilities.map((capability) => (
                         <div key={capability.name} className="flex gap-4 items-start">
-                           <div className="bg-[#f6f6f4] dark:bg-[#1b1912] border border-gray-300 dark:border-[#f6f6f4]/30" style={{
+                           <div className="bg-[#f6f6f4] dark:bg-[#1b1912] border border-gray-300 dark:border-[#f6f6f4]/5" style={{
                              width: '140px',
                              height: '140px',
                              flexShrink: 0,
@@ -154,7 +154,7 @@ export default function CoreCapabilities() {
                 </div>
 
                   {/* Right Column - Title and Intro (Desktop only) */}
-                  <div className="hidden md:flex text-left md:col-span-1 md:border-l flex-col justify-start dark:border-[#f6f6f4]/30" style={{ paddingTop: '3rem', paddingBottom: '3rem', paddingLeft: '1rem' }}>
+                  <div className="hidden md:flex text-left md:col-span-1 md:border-l flex-col justify-start dark:border-[#f6f6f4]/5" style={{ paddingTop: '3rem', paddingBottom: '3rem', paddingLeft: '1rem' }}>
                    <p className="text-base text-[#084CCF] dark:text-[#a20b0b] mb-2" style={{ fontFamily: 'Roboto Mono, monospace', letterSpacing: '0.05em' }}>
                      02. CORE
                    </p>

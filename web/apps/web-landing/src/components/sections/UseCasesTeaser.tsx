@@ -29,12 +29,12 @@ export default function UseCasesTeaser() {
   return (
     <section className="dark:bg-gray-900 text-gray-900 dark:text-white" style={{ backgroundColor: '#f6f6f4' }}>
       <div className="mx-auto max-w-[1100px] px-4 sm:px-6 lg:px-8">
-        <div className="relative py-12 md:py-16 lg:py-20 px-4 md:px-8 lg:px-12 border border-gray-300 dark:border-[#f6f6f4]/30" style={{
+        <div className="relative py-12 md:py-16 lg:py-20 px-4 md:px-8 lg:px-12 border border-gray-300 dark:border-[#f6f6f4]/5" style={{
           backgroundColor: '#f6f6f4',
           minHeight: '600px'
         }}>
           <div className="w-full px-0">
-            <div className="absolute top-0 bottom-0 left-2/3 hidden lg:block border border-gray-300 dark:border-[#f6f6f4]/30" style={{
+            <div className="absolute top-0 bottom-0 left-2/3 hidden lg:block border border-gray-300 dark:border-[#f6f6f4]/5" style={{
               transform: 'translateX(-66.67%)'
             }}></div>
 

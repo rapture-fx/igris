@@ -165,7 +165,7 @@ export default function Pricing() {
       backgroundRepeat: 'no-repeat'
     }}>
       <div className="mx-auto max-w-[1100px] px-4 sm:px-6 lg:px-8">
-        <div className="relative px-4 md:px-8 lg:px-12 pb-0 bg-transparent z-10 overflow-visible border border-gray-300 dark:border-[#f6f6f4]/30">
+        <div className="relative px-4 md:px-8 lg:px-12 pb-0 bg-transparent z-10 overflow-visible border border-gray-300 dark:border-[#f6f6f4]/5">
            <div className="max-w-[1400px] mx-auto pt-48 px-0 md:px-8 lg:px-0 pb-12">
                <div className="text-center mb-16 pb-12">
                 <h2 className="text-2xl md:text-2xl lg:text-3xl font-inter mb-4" style={{ color: '#000000' }}>
@@ -196,7 +196,7 @@ export default function Pricing() {
                       return (
                         <div
                           key={cardIndex}
-                          className="relative transition-all duration-300 w-full min-h-[450px] border border-gray-300 dark:border-[#f6f6f4]/30"
+                          className="relative transition-all duration-300 w-full min-h-[450px] border border-gray-300 dark:border-[#f6f6f4]/5"
                           style={{
                             backgroundColor: '#f6f6f4'
                           }}
