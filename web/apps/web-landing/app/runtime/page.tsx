@@ -33,25 +33,20 @@ export default function RuntimePage() {
 
   return (
     <>
-      <div className="min-h-screen bg-[#f6f6f4]">
+      <div className="min-h-screen bg-[#f6f6f4] dark:bg-dark-bg transition-colors duration-200">
         <Header />
         <main className="pt-[70px]">
 
           {/* Hero Section */}
-          <section className="pt-0 pb-0 bg-[#f6f6f4] text-gray-900 relative overflow-visible -mt-[72px]" style={{
+          <section className="pt-0 pb-0 bg-[#f6f6f4] dark:bg-dark-bg text-gray-900 dark:text-[#f6f6f4] relative overflow-visible -mt-[72px]" style={{
             backgroundImage: 'url(/cloudbg.png)',
             backgroundSize: 'cover',
             backgroundPosition: 'center top -100px',
             backgroundRepeat: 'no-repeat'
           }}>
-            <div className="absolute inset-0 pointer-events-none" style={{
-              background: 'linear-gradient(to bottom, rgba(246, 246, 244, 0) 50%, rgba(246, 246, 244, 0.5) 75%, #f6f6f4 100%)'
-            }}></div>
+            <div className="absolute inset-0 pointer-events-none bg-gradient-to-b from-transparent via-[rgba(246,246,244,0.5)] to-[#f6f6f4] dark:from-transparent dark:via-[rgba(27,25,18,0.5)] dark:to-[#1b1912]"></div>
             <div className="mx-auto max-w-[1100px] px-4 sm:px-6 lg:px-8">
-              <div className="relative px-4 md:px-8 lg:px-12 pb-0 bg-transparent z-10 overflow-visible flex flex-col" style={{
-                borderLeft: '0.5px solid rgba(156, 163, 175, 0.3)',
-                borderRight: '0.5px solid rgba(156, 163, 175, 0.3)',
-                borderBottom: '0.5px solid rgba(156, 163, 175, 0.3)',
+              <div className="relative px-4 md:px-8 lg:px-12 pb-0 bg-transparent z-10 overflow-visible flex flex-col border-l border-r border-b section-border" style={{
                 minHeight: '600px'
               }}>
                 <div className="flex-1" style={{ paddingTop: '100px' }}>
@@ -59,13 +54,13 @@ export default function RuntimePage() {
                 <div className="max-w-[1100px] mx-auto w-full" style={{ paddingBottom: '2rem' }}>
                   <div className="mb-6 text-left">
                     <div>
-                      <h1 className="text-lg md:text-xl lg:text-2xl font-inter font-medium text-[#111111] leading-[1.2]" style={{ color: '#000000' }}>
+                      <h1 className="text-lg md:text-xl lg:text-2xl font-inter font-medium text-[#111111] dark:text-[#f6f6f4] leading-[1.2]">
                         Runtime
                       </h1>
-                      <h2 className="text-base md:text-lg lg:text-xl font-inter font-medium text-[#111111] leading-[1.2] mt-2 text-gray-600" style={{ color: '#000000' }}>
+                      <h2 className="text-base md:text-lg lg:text-xl font-inter font-medium text-[#111111] dark:text-[#f6f6f4] leading-[1.2] mt-2">
                         Execution that continues when infrastructure doesn't.
                       </h2>
-                      <p className="text-sm md:text-base text-gray-700 max-w-md leading-relaxed text-left mt-4 font-inter">
+                      <p className="text-sm md:text-base text-gray-700 dark:text-[#c8c8b8] max-w-md leading-relaxed text-left mt-4 font-inter">
                         Runtime executes AI workloads across cloud and edge environments — maintaining operation when providers fail, networks disconnect, or resources become constrained.
                       </p>
                     </div>
@@ -74,7 +69,7 @@ export default function RuntimePage() {
                   <div className="flex flex-col sm:flex-row gap-3">
                     <Link href="/runtime">
                       <button
-                        className="inline-flex items-center justify-center bg-black text-white px-4 py-2 hover:bg-gray-800 transition-all duration-200 text-xs font-inter font-medium shadow-md hover:shadow-lg"
+                        className="inline-flex items-center justify-center bg-black text-white dark:bg-[#f6f6f4] dark:text-black px-4 py-2 hover:bg-gray-800 dark:hover:bg-gray-200 transition-all duration-200 text-xs font-inter font-medium shadow-md hover:shadow-lg"
                         style={{ marginBottom: '5rem' }}
                       >
                         Get Started
@@ -87,13 +82,9 @@ export default function RuntimePage() {
           </section>
 
           {/* Purpose & Value Section */}
-          <section className="dark:bg-gray-900 text-gray-900 dark:text-white" style={{ backgroundColor: '#f6f6f4', height: '800px' }}>
+          <section className="bg-[#f6f6f4] dark:bg-dark-bg text-gray-900 dark:text-white" style={{ height: '800px' }}>
             <div className="mx-auto max-w-[1100px] px-4 sm:px-6 lg:px-8" style={{ height: '100%' }}>
-              <div className="relative px-4 md:px-8 lg:px-12 flex flex-col" style={{
-                borderLeft: '0.5px solid rgba(156, 163, 175, 0.3)',
-                borderRight: '0.5px solid rgba(156, 163, 175, 0.3)',
-                borderBottom: '0.5px solid rgba(156, 163, 175, 0.3)',
-                backgroundColor: '#f6f6f4',
+              <div className="relative px-4 md:px-8 lg:px-12 flex flex-col bg-[#f6f6f4] dark:bg-[#1b1912] border-l border-r border-b section-border" style={{
                 height: '100%'
               }}>
 
@@ -102,10 +93,10 @@ export default function RuntimePage() {
 
                   {/* Title Section - Shows first on mobile, last on desktop */}
                   <div className="text-left mb-6 md:mb-0 md:hidden" style={{ paddingTop: '3rem', paddingBottom: '3rem' }}>
-                    <h3 className="text-lg md:text-xl lg:text-2xl font-inter mb-4" style={{ color: '#000000' }}>
+                    <h3 className="text-lg md:text-xl lg:text-2xl font-inter mb-4 text-[#000000] dark:text-[#f6f6f4]">
                       Keep AI systems running under real-world conditions.
                     </h3>
-                    <p className="text-sm md:text-base text-gray-600 dark:text-gray-400 font-inter leading-relaxed">
+                    <p className="text-sm md:text-base text-gray-600 dark:text-[#c8c8b8] font-inter leading-relaxed">
                       Production AI systems encounter provider outages, network failures, and resource constraints. Runtime exists to maintain execution when infrastructure becomes unreliable — so your AI workloads remain operational even when underlying dependencies don't.
                     </p>
                   </div>
@@ -129,10 +120,10 @@ export default function RuntimePage() {
                       paddingLeft: '1rem',
                       height: '100%'
                     }}>
-                      <h3 className="text-lg md:text-xl lg:text-2xl font-inter mb-4" style={{ color: '#000000' }}>
+                      <h3 className="text-lg md:text-xl lg:text-2xl font-inter mb-4 text-[#000000] dark:text-[#f6f6f4]">
                         Keep AI systems running under real-world conditions.
                       </h3>
-                      <p className="text-sm md:text-base text-gray-600 dark:text-gray-400 font-inter leading-relaxed">
+                      <p className="text-sm md:text-base text-gray-600 dark:text-[#c8c8b8] font-inter leading-relaxed">
                         Production AI systems encounter provider outages, network failures, and resource constraints. Runtime exists to maintain execution when infrastructure becomes unreliable — so your AI workloads remain operational even when underlying dependencies don't.
                       </p>
                     </div>
@@ -143,13 +134,9 @@ export default function RuntimePage() {
           </section>
 
           {/* Core Capabilities Section */}
-          <section className="dark:bg-gray-900 text-gray-900 dark:text-white" style={{ backgroundColor: '#f6f6f4', height: '800px' }}>
+          <section className="bg-[#f6f6f4] dark:bg-dark-bg text-gray-900 dark:text-white" style={{ height: '800px' }}>
             <div className="mx-auto max-w-[1100px] px-4 sm:px-6 lg:px-8" style={{ height: '100%' }}>
-              <div className="relative px-4 md:px-8 lg:px-12 flex flex-col" style={{
-                borderLeft: '0.5px solid rgba(156, 163, 175, 0.3)',
-                borderRight: '0.5px solid rgba(156, 163, 175, 0.3)',
-                borderBottom: '0.5px solid rgba(156, 163, 175, 0.3)',
-                backgroundColor: '#f6f6f4',
+              <div className="relative px-4 md:px-8 lg:px-12 flex flex-col bg-[#f6f6f4] dark:bg-[#1b1912] border-l border-r border-b section-border" style={{
                 height: '100%'
               }}>
 
@@ -158,12 +145,12 @@ export default function RuntimePage() {
 
                   {/* Title Section - Shows first on mobile, last on desktop */}
                   <div className="text-left mb-6 md:mb-0 md:hidden" style={{ paddingTop: '3rem', paddingBottom: '3rem' }}>
-                    <h3 className="text-lg md:text-xl lg:text-2xl font-inter mb-4" style={{ color: '#000000' }}>
+                    <h3 className="text-lg md:text-xl lg:text-2xl font-inter mb-4 text-[#000000] dark:text-[#f6f6f4]">
                       What Runtime does
                     </h3>
 
                     {/* Capabilities - Mobile */}
-                    <div className="space-y-20 text-sm md:text-base text-gray-600 dark:text-gray-400 relative pl-8">
+                    <div className="space-y-20 text-sm md:text-base text-gray-600 dark:text-[#c8c8b8] relative pl-8">
                       {/* Vertical dashed line */}
                       <div className="absolute left-1.5 top-0 bottom-0" style={{
                         width: '2px',
@@ -175,10 +162,7 @@ export default function RuntimePage() {
                       {coreCapabilities.map((capability, index) => (
                         <div key={index} className="relative">
                           {/* Dot */}
-                          <div className="absolute -left-8 top-1.5 w-3 h-3 rounded-full border-2" style={{
-                            backgroundColor: '#f6f6f4',
-                            borderColor: 'rgba(156, 163, 175, 0.6)'
-                          }}></div>
+                          <div className="absolute -left-8 top-1.5 w-3 h-3 rounded-full border-2 bg-[#f6f6f4] dark:bg-[#1b1912] border-gray-400/60 dark:border-[#f6f6f4]/60"></div>
                           <h4 className="font-semibold text-gray-900 dark:text-white mb-3">{capability.title}</h4>
                           <p className="text-sm leading-relaxed">
                             {capability.description}
@@ -198,7 +182,7 @@ export default function RuntimePage() {
                       paddingRight: '1rem'
                     }}>
                       <div className="w-full max-w-[320px]">
-                        <div className="space-y-20 text-sm md:text-base text-gray-600 dark:text-gray-400 relative pl-8">
+                        <div className="space-y-20 text-sm md:text-base text-gray-600 dark:text-[#c8c8b8] relative pl-8">
                           {/* Vertical dashed line */}
                           <div className="absolute left-1.5 top-0 bottom-0" style={{
                             width: '2px',
@@ -210,10 +194,7 @@ export default function RuntimePage() {
                           {coreCapabilities.map((capability, index) => (
                             <div key={index} className="relative">
                               {/* Dot */}
-                              <div className="absolute -left-8 top-1.5 w-3 h-3 rounded-full border-2" style={{
-                                backgroundColor: '#f6f6f4',
-                                borderColor: 'rgba(156, 163, 175, 0.6)'
-                              }}></div>
+                              <div className="absolute -left-8 top-1.5 w-3 h-3 rounded-full border-2 bg-[#f6f6f4] dark:bg-[#1b1912] border-gray-400/60 dark:border-[#f6f6f4]/60"></div>
                               <h4 className="font-semibold text-gray-900 dark:text-white mb-3">{capability.title}</h4>
                               <p className="text-sm leading-relaxed">
                                 {capability.description}
@@ -232,7 +213,7 @@ export default function RuntimePage() {
                       paddingLeft: '1rem',
                       height: '100%'
                     }}>
-                      <h3 className="text-lg md:text-xl lg:text-2xl font-inter mb-4" style={{ color: '#000000' }}>
+                      <h3 className="text-lg md:text-xl lg:text-2xl font-inter mb-4 text-[#000000] dark:text-[#f6f6f4]">
                         What Runtime does
                       </h3>
                     </div>
@@ -243,13 +224,9 @@ export default function RuntimePage() {
           </section>
 
           {/* How It Fits Section */}
-          <section className="dark:bg-gray-900 text-gray-900 dark:text-white" style={{ backgroundColor: '#f6f6f4', height: '800px' }}>
+          <section className="bg-[#f6f6f4] dark:bg-dark-bg text-gray-900 dark:text-white" style={{ height: '800px' }}>
             <div className="mx-auto max-w-[1100px] px-4 sm:px-6 lg:px-8" style={{ height: '100%' }}>
-              <div className="relative px-4 md:px-8 lg:px-12 flex flex-col" style={{
-                borderLeft: '0.5px solid rgba(156, 163, 175, 0.3)',
-                borderRight: '0.5px solid rgba(156, 163, 175, 0.3)',
-                borderBottom: '0.5px solid rgba(156, 163, 175, 0.3)',
-                backgroundColor: '#f6f6f4',
+              <div className="relative px-4 md:px-8 lg:px-12 flex flex-col bg-[#f6f6f4] dark:bg-[#1b1912] border-l border-r border-b section-border" style={{
                 height: '100%'
               }}>
 
@@ -258,10 +235,10 @@ export default function RuntimePage() {
 
                   {/* Title Section - Shows first on mobile, last on desktop */}
                   <div className="text-left mb-6 md:mb-0 md:hidden" style={{ paddingTop: '3rem', paddingBottom: '3rem' }}>
-                    <h3 className="text-lg md:text-xl lg:text-2xl font-inter mb-4" style={{ color: '#000000' }}>
+                    <h3 className="text-lg md:text-xl lg:text-2xl font-inter mb-4 text-[#000000] dark:text-[#f6f6f4]">
                       Use Runtime your way
                     </h3>
-                    <p className="text-sm md:text-base text-gray-600 dark:text-gray-400 font-inter leading-relaxed">
+                    <p className="text-sm md:text-base text-gray-600 dark:text-[#c8c8b8] font-inter leading-relaxed">
                       Runtime can operate as a standalone execution engine or as part of a coordinated fleet managed by Overture. Deploy it independently for edge and offline workloads, or combine it with Overture for centralized decision-making with distributed execution.
                     </p>
                   </div>
@@ -285,10 +262,10 @@ export default function RuntimePage() {
                       paddingLeft: '1rem',
                       height: '100%'
                     }}>
-                      <h3 className="text-lg md:text-xl lg:text-2xl font-inter mb-4" style={{ color: '#000000' }}>
+                      <h3 className="text-lg md:text-xl lg:text-2xl font-inter mb-4 text-[#000000] dark:text-[#f6f6f4]">
                         Use Runtime your way
                       </h3>
-                      <p className="text-sm md:text-base text-gray-600 dark:text-gray-400 font-inter leading-relaxed">
+                      <p className="text-sm md:text-base text-gray-600 dark:text-[#c8c8b8] font-inter leading-relaxed">
                         Runtime can operate as a standalone execution engine or as part of a coordinated fleet managed by Overture. Deploy it independently for edge and offline workloads, or combine it with Overture for centralized decision-making with distributed execution.
                       </p>
                     </div>
@@ -299,13 +276,9 @@ export default function RuntimePage() {
           </section>
 
           {/* Features Section */}
-          <section className="dark:bg-gray-900 text-gray-900 dark:text-white" style={{ backgroundColor: '#f6f6f4', minHeight: '800px' }}>
+          <section className="bg-[#f6f6f4] dark:bg-dark-bg text-gray-900 dark:text-white" style={{ minHeight: '800px' }}>
             <div className="mx-auto max-w-[1100px] px-4 sm:px-6 lg:px-8" style={{ minHeight: '800px' }}>
-              <div className="relative px-4 md:px-8 lg:px-12 flex flex-col" style={{
-                borderLeft: '0.5px solid rgba(156, 163, 175, 0.3)',
-                borderRight: '0.5px solid rgba(156, 163, 175, 0.3)',
-                borderBottom: '0.5px solid rgba(156, 163, 175, 0.3)',
-                backgroundColor: '#f6f6f4',
+              <div className="relative px-4 md:px-8 lg:px-12 flex flex-col bg-[#f6f6f4] dark:bg-[#1b1912] border-l border-r border-b section-border" style={{
                 minHeight: '800px'
               }}>
 
@@ -314,10 +287,10 @@ export default function RuntimePage() {
 
                   {/* Mobile - Title First */}
                   <div className="text-left mb-6 md:mb-0 md:hidden" style={{ paddingTop: '3rem', paddingBottom: '3rem' }}>
-                    <h3 className="text-lg md:text-xl lg:text-2xl font-inter mb-4" style={{ color: '#000000' }}>
+                    <h3 className="text-lg md:text-xl lg:text-2xl font-inter mb-4 text-[#000000] dark:text-[#f6f6f4]">
                       Features
                     </h3>
-                    <p className="text-sm text-gray-600 dark:text-gray-400 leading-relaxed font-inter mb-8">
+                    <p className="text-sm text-gray-600 dark:text-[#c8c8b8] leading-relaxed font-inter mb-8">
                       Complete feature set verified from production codebase
                     </p>
 
@@ -325,10 +298,10 @@ export default function RuntimePage() {
                     <div className="space-y-6">
                       {features.map((feature, index) => (
                         <div key={index}>
-                          <h4 className="text-sm font-normal text-gray-900 dark:text-white mb-2 font-inter" style={{ color: '#000000' }}>
+                          <h4 className="text-sm font-normal text-gray-900 dark:text-white mb-2 font-inter">
                             {feature.title}
                           </h4>
-                          <p className="text-xs text-gray-600 dark:text-gray-400 leading-relaxed font-inter">
+                          <p className="text-xs text-gray-600 dark:text-[#c8c8b8] leading-relaxed font-inter">
                             {feature.description}
                           </p>
                         </div>
@@ -349,10 +322,10 @@ export default function RuntimePage() {
                         <div className="space-y-6">
                           {features.map((feature, index) => (
                             <div key={index}>
-                              <h4 className="text-sm font-normal text-gray-900 dark:text-white mb-2 font-inter" style={{ color: '#000000' }}>
+                              <h4 className="text-sm font-normal text-gray-900 dark:text-white mb-2 font-inter">
                                 {feature.title}
                               </h4>
-                              <p className="text-sm text-gray-600 dark:text-gray-400 leading-relaxed font-inter">
+                              <p className="text-sm text-gray-600 dark:text-[#c8c8b8] leading-relaxed font-inter">
                                 {feature.description}
                               </p>
                             </div>
@@ -368,10 +341,10 @@ export default function RuntimePage() {
                       paddingBottom: '3rem',
                       paddingLeft: '1rem'
                     }}>
-                      <h3 className="text-lg md:text-xl lg:text-2xl font-inter mb-4" style={{ color: '#000000' }}>
+                      <h3 className="text-lg md:text-xl lg:text-2xl font-inter mb-4 text-[#000000] dark:text-[#f6f6f4]">
                         Features
                       </h3>
-                      <p className="text-sm text-gray-600 dark:text-gray-400 font-inter leading-relaxed">
+                      <p className="text-sm text-gray-600 dark:text-[#c8c8b8] font-inter leading-relaxed">
                         Complete feature set verified from production codebase
                       </p>
                     </div>
