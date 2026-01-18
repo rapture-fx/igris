@@ -1,10 +1,17 @@
 'use client'
 
-import React from 'react'
+import React, { useEffect, useState } from 'react'
 import Link from 'next/link'
 import { ChevronRight } from 'lucide-react'
+import { useTheme } from 'next-themes'
 
 export default function HowItWorks() {
+  const { theme } = useTheme()
+  const [mounted, setMounted] = useState(false)
+
+  useEffect(() => {
+    setMounted(true)
+  }, [])
   return (
     <section id="how-it-works" className="bg-[#f6f6f4] dark:bg-dark-bg text-gray-900 dark:text-[#f6f6f4] transition-colors duration-200">
       <div className="mx-auto max-w-[1100px] px-4 sm:px-6 lg:px-8">
@@ -38,10 +45,15 @@ export default function HowItWorks() {
             </div>
 
            {/* Two-column layout - Matching Products section */}
-          <div className="hidden md:grid md:grid-cols-3 gap-0 md:flex-1">
-            {/* Left Column - Content (2 columns wide) */}
-              <div className="md:col-span-2 flex flex-col justify-start relative" style={{ padding: '3rem 1rem 3rem 1rem', backgroundImage: 'radial-gradient(circle, rgba(0, 0, 0, 0.1) 1px, transparent 1px)', backgroundSize: '20px 20px', backgroundPosition: '1rem 3rem' }}>
-               </div>
+            <div className="hidden md:grid md:grid-cols-3 gap-0 md:flex-1">
+             {/* Left Column - Content (2 columns wide) */}
+              <div className="md:col-span-2 flex flex-col justify-start relative" style={{ 
+                padding: '3rem 1rem 3rem 1rem', 
+                backgroundImage: mounted && theme === 'dark' ? 'none' : 'radial-gradient(circle, rgba(0, 0, 0, 0.1) 1px, transparent 1px)',
+                backgroundSize: '20px 20px', 
+                backgroundPosition: '1rem 3rem' 
+              }}>
+              </div>
 
               {/* Right Column - Title (1 column wide with left border) */}
               <div className="md:col-span-1 md:border-l flex flex-col justify-start dark:border-[#f6f6f4]/5" style={{ paddingTop: '3rem', paddingBottom: '3rem', paddingLeft: '1rem' }}>

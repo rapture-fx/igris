@@ -1,8 +1,9 @@
 'use client';
 
-import React from 'react';
+import React, { useEffect, useState } from 'react';
 import { Check } from 'lucide-react';
 import { useModal } from '../../contexts/ModalContext';
+import { useTheme } from 'next-themes';
 
 const pricingRows = [
   {
@@ -156,19 +157,29 @@ const pricingRows = [
 
 export default function Pricing() {
   const { openEarlyAccessModal } = useModal();
+  const { theme } = useTheme();
+  const [mounted, setMounted] = useState(false);
+
+  useEffect(() => {
+    setMounted(true);
+  }, []);
+
+  const isDark = mounted && theme === 'dark';
 
   return (
-    <section id="pricing" className="pt-0 pb-0 bg-[#f6f6f4] text-gray-900 relative overflow-visible -mt-[72px] dark:bg-gray-900 dark:text-white" style={{
-      backgroundImage: 'linear-gradient(rgba(246, 246, 244, 0.3), rgba(246, 246, 244, 0.3)), url(/cloudbg.png)',
+    <section id="pricing" className="pt-0 pb-0 bg-[#f6f6f4] dark:bg-dark-bg text-gray-900 dark:text-[#f6f6f4] relative overflow-visible -mt-[72px] transition-colors duration-200" style={{
+      backgroundImage: isDark
+        ? 'linear-gradient(rgba(27, 25, 18, 0.3), rgba(27, 25, 18, 0.3)), url(/cloudbg.png)'
+        : 'linear-gradient(rgba(246, 246, 244, 0.3), rgba(246, 246, 244, 0.3)), url(/cloudbg.png)',
       backgroundSize: 'cover',
       backgroundPosition: 'center top -100px',
       backgroundRepeat: 'no-repeat'
     }}>
       <div className="mx-auto max-w-[1100px] px-4 sm:px-6 lg:px-8">
-        <div className="relative px-4 md:px-8 lg:px-12 pb-0 bg-transparent z-10 overflow-visible border border-gray-300 dark:border-[#f6f6f4]/5">
+        <div className="relative px-4 md:px-8 lg:px-12 pb-0 bg-transparent z-10 overflow-visible border-l border-r border-b section-border">
            <div className="max-w-[1400px] mx-auto pt-48 px-0 md:px-8 lg:px-0 pb-12">
                <div className="text-center mb-16 pb-12">
-                <h2 className="text-2xl md:text-2xl lg:text-3xl font-inter mb-4" style={{ color: '#000000' }}>
+                <h2 className="text-2xl md:text-2xl lg:text-3xl font-inter mb-4 text-[#000000] dark:text-[#f6f6f4]">
                   Pricing
                 </h2>
                 <p className="text-sm md:text-base text-gray-600 dark:text-gray-400 font-inter max-w-2xl mx-auto mb-4">
@@ -183,7 +194,7 @@ export default function Pricing() {
             {pricingRows.map((row, rowIndex) => (
               <div key={rowIndex} className="flex flex-col items-stretch gap-4">
                  <div className="text-left mb-2">
-                    <h3 className="text-xl font-inter font-medium" style={{ color: '#000000' }}>
+                    <h3 className="text-xl font-inter font-medium text-[#000000] dark:text-[#f6f6f4]">
                       {row.name}
                     </h3>
                   </div>
@@ -196,29 +207,26 @@ export default function Pricing() {
                       return (
                         <div
                           key={cardIndex}
-                          className="relative transition-all duration-300 w-full min-h-[450px] border border-gray-300 dark:border-[#f6f6f4]/5"
-                          style={{
-                            backgroundColor: '#f6f6f4'
-                          }}
+                          className="relative transition-all duration-300 w-full min-h-[450px] border section-border bg-[#f6f6f4] dark:bg-[#1b1912]"
                         >
                           <div className="p-6 flex flex-col h-full">
                             <div className="flex-grow">
-                              <h3 className="text-lg mb-2 font-inter" style={{ color: '#000000' }}>
+                              <h3 className="text-lg mb-2 font-inter text-[#000000] dark:text-[#f6f6f4]">
                                 {card.name}
                               </h3>
                               {card.descriptor && (
-                                <p className="text-xs text-gray-500 font-inter mb-4">
+                                <p className="text-xs text-gray-500 dark:text-[#a8a898] font-inter mb-4">
                                   {card.descriptor}
                                 </p>
                               )}
 
                               <div className="mb-6">
                                <div className="flex items-baseline">
-                                 <span className="text-base font-inter" style={{ color: '#000000' }}>
+                                 <span className="text-base font-inter text-[#000000] dark:text-[#f6f6f4]">
                                    {card.price}
                                  </span>
                                  {card.period && (
-                                   <span className="ml-2 text-gray-600 font-inter text-sm">
+                                   <span className="ml-2 text-gray-600 dark:text-[#a8a898] font-inter text-sm">
                                      /{card.period}
                                    </span>
                                  )}
@@ -228,17 +236,16 @@ export default function Pricing() {
                              <ul className="space-y-2">
                                {card.features.map((feature, featureIndex) => (
                                  <li key={featureIndex} className="flex items-start">
-                                   <Check className="h-3 w-3 mr-3 flex-shrink-0 mt-0.5" style={{ color: '#000000' }} />
-                                   <span className="text-xs text-gray-700 font-inter">{feature}</span>
+                                   <Check className="h-3 w-3 mr-3 flex-shrink-0 mt-0.5 text-[#000000] dark:text-[#f6f6f4]" />
+                                   <span className="text-xs text-gray-700 dark:text-[#c8c8b8] font-inter">{feature}</span>
                                  </li>
                                ))}
                              </ul>
                           </div>
-                                           <button
-                             onClick={openEarlyAccessModal}
-                             className="inline-flex items-center px-3 py-1 md:px-4 md:py-1.5 rounded-lg transition-all duration-200 text-xs font-inter self-start mt-8 text-white hover:bg-gray-800 border border-black"
-                             style={{ backgroundColor: '#000000', minWidth: 'auto' }}
-                           >
+                             <button
+                              onClick={openEarlyAccessModal}
+                              className="inline-flex items-center px-3 py-1 md:px-4 md:py-1.5 transition-all duration-200 text-xs font-inter self-start mt-8 text-white dark:text-[#1b1912] bg-[#000000] dark:bg-[#f6f6f4] hover:bg-gray-800 dark:hover:bg-[#e6e6e4] border border-black dark:border-[#f6f6f4]"
+                            >
                              Get Started
                            </button>
                         </div>

@@ -85,14 +85,12 @@ export default function Faq() {
   };
 
     return (
-     <section id="faq" className="dark:bg-gray-900 text-gray-900 dark:text-white" style={{ backgroundColor: '#f6f6f4' }}>
+     <section id="faq" className="bg-[#f6f6f4] dark:bg-dark-bg text-gray-900 dark:text-[#f6f6f4] transition-colors duration-200">
        <div className="max-w-[1100px] mx-auto px-4 sm:px-6 lg:px-8">
-         <div className="relative py-8 md:py-12 lg:py-16 px-4 md:px-8 lg:px-12 border border-gray-300 dark:border-[#f6f6f4]/5" style={{
-           backgroundColor: '#f6f6f4'
-         }}>
+         <div className="relative py-8 md:py-12 lg:py-16 px-4 md:px-8 lg:px-12 border-l border-r section-border bg-[#f6f6f4] dark:bg-[#1b1912]">
 
            <div className="text-center mb-8 md:mb-12 lg:mb-16">
-             <h2 className="text-xl md:text-xl lg:text-2xl font-inter mb-4" style={{ color: '#000000' }}>
+             <h2 className="text-xl md:text-xl lg:text-2xl font-inter mb-4 text-[#000000] dark:text-[#f6f6f4]">
                Questions and answers
              </h2>
            </div>
@@ -101,16 +99,13 @@ export default function Faq() {
            {faqEntries.map((faq, index) => (
              <div
                key={index}
-               className="transition-all duration-200 border border-gray-300 dark:border-[#f6f6f4]/5"
-               style={{
-                 backgroundColor: '#f6f6f4'
-               }}
+               className="transition-all duration-200 border section-border bg-[#f6f6f4] dark:bg-[#1b1912]"
              >
                <button
                  onClick={() => toggleFaq(index)}
                  className="w-full text-left px-4 md:px-4 py-3 md:py-4 flex items-center justify-between gap-4 hover:opacity-80 transition-opacity"
                >
-                 <span className="text-sm md:text-sm font-normal font-inter flex-1" style={{ color: '#000000' }}>
+                 <span className="text-sm md:text-sm font-normal font-inter flex-1 text-[#000000] dark:text-[#f6f6f4]">
                    {faq.question}
                  </span>
                 <ChevronDown
@@ -137,14 +132,14 @@ export default function Faq() {
                        <p className="text-xs md:text-sm text-gray-700 dark:text-gray-300 font-inter leading-relaxed">
                          {faq.answerText}
                        </p>
-                      <div className="rounded-lg p-3 md:p-4 font-mono text-xs overflow-x-auto" style={{ backgroundColor: 'rgba(0, 0, 0, 0.03)' }}>
+                      <div className="rounded-lg p-3 md:p-4 font-mono text-xs overflow-x-auto bg-black/[0.03] dark:bg-white/[0.03]">
                         <div className="mb-2">
-                          <span className="text-gray-500"># Old</span>
-                          <div className="text-gray-900 mt-1 break-all">{faq.codeExample.old}</div>
+                          <span className="text-gray-500 dark:text-[#a8a898]"># Old</span>
+                          <div className="text-gray-900 dark:text-[#c8c8b8] mt-1 break-all">{faq.codeExample.old}</div>
                         </div>
                         <div>
-                          <span className="text-gray-500"># New</span>
-                          <div className="text-gray-900 mt-1 break-all">{faq.codeExample.new}</div>
+                          <span className="text-gray-500 dark:text-[#a8a898]"># New</span>
+                          <div className="text-gray-900 dark:text-[#c8c8b8] mt-1 break-all">{faq.codeExample.new}</div>
                         </div>
                       </div>
                        <p className="text-xs md:text-sm text-gray-700 dark:text-gray-300 font-inter leading-relaxed">
