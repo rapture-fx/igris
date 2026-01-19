@@ -19,7 +19,7 @@ export default function ClosingPosition() {
             minHeight: '300px'
           }}>
             {/* grd.png - background (light mode only) */}
-            <div className="absolute inset-0" style={{
+            <div className="absolute inset-0 pointer-events-none" style={{
               backgroundImage: mounted && theme === 'dark' ? 'none' : 'url(/grd.png)',
               backgroundSize: 'cover',
               backgroundPosition: 'center',

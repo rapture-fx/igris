@@ -35,7 +35,7 @@ export default function EarlyAccessModal({ isOpen, onClose }: EarlyAccessModalPr
     planInterest: false
   });
 
-  // Close modal on ESC key
+  // Close modal on ESC key and handle body scroll lock
   useEffect(() => {
     const handleEscape = (e: KeyboardEvent) => {
       if (e.key === 'Escape') {
@@ -44,15 +44,23 @@ export default function EarlyAccessModal({ isOpen, onClose }: EarlyAccessModalPr
     };
 
     if (isOpen) {
+      // Add class to prevent body scroll
+      document.body.classList.add('modal-open');
       document.addEventListener('keydown', handleEscape);
-      document.body.style.overflow = 'hidden';
+    } else {
+      // Remove class to allow body scroll
+      document.body.classList.remove('modal-open');
+      document.body.style.overflow = '';
     }
 
     return () => {
       document.removeEventListener('keydown', handleEscape);
-      document.body.style.overflow = 'unset';
+      document.body.classList.remove('modal-open');
+      document.body.style.overflow = '';
     };
-  }, [isOpen, onClose]);
+  // onClose is stable (memoized with useCallback), only depend on isOpen
+  // eslint-disable-next-line react-hooks/exhaustive-deps
+  }, [isOpen]);
 
   const handleChange = (e: React.ChangeEvent<HTMLInputElement | HTMLSelectElement | HTMLTextAreaElement>) => {
     const { name, value } = e.target;

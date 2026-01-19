@@ -14,7 +14,6 @@
     margin: 0;
     padding: 0;
     background-color: #f6f6f4;
-    overscroll-behavior: none;
     box-sizing: border-box;
   }
 
@@ -28,6 +27,7 @@
     background: #f6f6f4;
     min-height: 100vh;
     overflow-x: hidden;
+    overflow-y: auto;
   }
 
   /* Dark mode styles */
@@ -51,4 +51,9 @@
 .dark .section-border {
   border-color: rgba(246, 246, 244, 0.05);
   border-width: 0.5px;
+}
+
+/* Modal open - prevent body scroll */
+body.modal-open {
+  overflow: hidden !important;
 }
