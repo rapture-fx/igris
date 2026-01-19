@@ -54,7 +54,7 @@ export default function CoreCapabilities() {
 
                 {/* Title Section - Shows last on mobile */}
                 <div className="mt-12 text-left">
-                  <p className="text-base text-[#084CCF] dark:text-[#a20b0b] mb-2" style={{ fontFamily: 'Roboto Mono, monospace', letterSpacing: '0.05em' }}>
+                  <p className="text-base text-[#5fdfeb] mb-2" style={{ fontFamily: 'Roboto Mono, monospace', letterSpacing: '0.05em' }}>
                     02. CORE
                   </p>
                   <h3 className="text-lg md:text-xl lg:text-2xl font-inter mb-4 text-[#000000] dark:text-[#f6f6f4]">
@@ -234,12 +234,13 @@ export default function CoreCapabilities() {
                         {/* Horizontal frame below cards */}
                         <div className="mt-4 w-full border border-[#f6f6f4]/5 bg-[#1b1912] relative overflow-hidden" style={{ height: '250px' }}>
                           <img
-                            src="/pnk.png"
+                            src="/pnkk.png"
                             alt="Background"
                             style={{
                               width: '100%',
                               height: '100%',
-                              objectFit: 'cover'
+                              objectFit: 'cover',
+                              opacity: 0.7
                             }}
                           />
                         </div>
@@ -250,7 +251,7 @@ export default function CoreCapabilities() {
 
                 {/* Right Column - Title and Intro (Desktop only) */}
                 <div className="hidden md:flex text-left md:col-span-1 md:border-l flex-col justify-start dark:border-[#f6f6f4]/5" style={{ paddingTop: '3rem', paddingBottom: '3rem', paddingLeft: '1rem' }}>
-                  <p className="text-base text-[#084CCF] dark:text-[#a20b0b] mb-2" style={{ fontFamily: 'Roboto Mono, monospace', letterSpacing: '0.05em' }}>
+                  <p className="text-base text-[#5fdfeb] mb-2" style={{ fontFamily: 'Roboto Mono, monospace', letterSpacing: '0.05em' }}>
                     02. CORE
                   </p>
                   <h3 className="text-lg md:text-xl lg:text-2xl font-inter mb-4 text-[#000000] dark:text-[#f6f6f4]">
