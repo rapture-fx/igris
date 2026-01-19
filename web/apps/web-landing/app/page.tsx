@@ -2,6 +2,7 @@
 
 import Header from '../src/components/sections/Header'
 import Hero from '../src/components/sections/Hero-Simple'
+import Solve from '../src/components/sections/Solve'
 import Footer from '../src/components/sections/Footer'
 import CallToAction from '../src/components/sections/CallToAction'
 import CoreCapabilities from '../src/components/sections/CoreCapabilities'
@@ -21,6 +22,7 @@ export default function HomePage() {
         <Header />
         <main className="pt-[70px]">
           <Hero />
+          <Solve />
           <Products />
           <CoreCapabilities />
           <HowItWorks />
