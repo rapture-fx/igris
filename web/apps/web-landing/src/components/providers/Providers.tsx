@@ -4,7 +4,6 @@ import React from 'react';
 import { ThemeProvider } from 'next-themes';
 import { ModalProvider } from '../../contexts/ModalContext';
 import { ScrollFix } from './ScrollFix';
-import { ScrollDiagnostic } from './ScrollDiagnostic';
 
 export function Providers({ children }: { children: React.ReactNode }) {
   return (
@@ -17,7 +16,6 @@ export function Providers({ children }: { children: React.ReactNode }) {
     >
       <ModalProvider>
         <ScrollFix />
-        <ScrollDiagnostic />
         {children}
       </ModalProvider>
     </ThemeProvider>
