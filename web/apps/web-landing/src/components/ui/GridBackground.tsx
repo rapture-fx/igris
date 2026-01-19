@@ -4,8 +4,8 @@ export default function GridBackground() {
   return (
     <div className="relative w-full h-24 sm:h-32 md:h-40 lg:h-48 overflow-hidden bg-[#161616]">
       {/* Base grid pattern - very subtle */}
-      <div 
-        className="absolute inset-0 opacity-[0.06]"
+      <div
+        className="absolute inset-0 opacity-[0.06] pointer-events-none"
         style={{
           backgroundImage: `
             linear-gradient(rgba(10, 47, 79, 0.4) 1px, transparent 1px),
@@ -42,8 +42,8 @@ export default function GridBackground() {
       />
       
       {/* Medium screen grid pattern */}
-      <div 
-        className="absolute inset-0 opacity-[0.04] hidden sm:block"
+      <div
+        className="absolute inset-0 opacity-[0.04] hidden sm:block pointer-events-none"
         style={{
           backgroundImage: `
             linear-gradient(rgba(10, 47, 79, 0.5) 1px, transparent 1px),
@@ -80,8 +80,8 @@ export default function GridBackground() {
       />
       
       {/* Large screen grid pattern */}
-      <div 
-        className="absolute inset-0 opacity-[0.03] hidden lg:block"
+      <div
+        className="absolute inset-0 opacity-[0.03] hidden lg:block pointer-events-none"
         style={{
           backgroundImage: `
             linear-gradient(rgba(10, 47, 79, 0.6) 1px, transparent 1px),

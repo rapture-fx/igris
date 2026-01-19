@@ -2,10 +2,10 @@
 
 export default function HeroGridBackground() {
   return (
-    <div className="absolute inset-0 w-full h-full">
+    <div className="absolute inset-0 w-full h-full pointer-events-none">
       {/* Main grid pattern */}
-      <div 
-        className="absolute inset-0 w-full h-full opacity-20"
+      <div
+        className="absolute inset-0 w-full h-full opacity-20 pointer-events-none"
         style={{
           backgroundImage: `
             linear-gradient(#1A5799 1px, transparent 1px),
