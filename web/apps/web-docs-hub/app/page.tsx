@@ -9,7 +9,6 @@ export default function HomePage() {
   const [runtimeDocsUrl, setRuntimeDocsUrl] = useState('/runtime/docs');
 
   useEffect(() => {
-    // Use localhost URLs in development, relative paths in production
     if (typeof window !== 'undefined' && window.location.hostname === 'localhost') {
       setOvertureDocsUrl('http://localhost:3002/overture/docs');
       setRuntimeDocsUrl('http://localhost:3004/runtime/docs');
@@ -17,115 +16,88 @@ export default function HomePage() {
   }, []);
 
   return (
-    <div className="min-h-screen" style={{ backgroundColor: '#f6f6f4' }}>
-      <div className="w-full pl-6 sm:pl-8 lg:pl-12">
-        {/* Two Column Layout - Entire Page */}
-        <div className="grid min-h-screen gap-12" style={{ gridTemplateColumns: '1fr 1fr' }}>
-          {/* Left Column - Header, Content, Footer */}
-          <div className="flex flex-col justify-between min-h-screen py-2 pr-6">
-            {/* Header */}
-              <header className="font-inter pt-3 sm:pt-4 lg:pt-6">
-                <div className="flex items-center justify-start w-full">
-                  <Link href="https://igrisinertial.com" className="flex items-center">
-                    <img
-                      src="/footers.png"
-                      alt="Igris Inertial"
-                      width={25}
-                      height={25}
-                      className="h-auto"
-                    />
-                  </Link>
-                </div>
-              </header>
+    <div className="relative min-h-screen flex flex-col bg-dark-bg">
+      <div className="absolute inset-0 bg-cover bg-center bg-no-repeat z-0 opacity-50" style={{ backgroundImage: 'url(/hub.png)' }} />
+      
+      <div className="relative z-10 min-h-screen flex flex-col">
+        <header className="fixed top-0 left-0 p-6 z-10">
+          <Link href="https://igrisinertial.com" className="flex items-center">
+            <img
+              src="/dmfoot.png"
+              alt="Igris Inertial"
+              width={25}
+              height={25}
+              className="h-auto"
+            />
+          </Link>
+        </header>
 
-            {/* Centered Content Section */}
-            <div className="flex-1 flex items-center justify-center">
-              <div className="w-full max-w-sm space-y-12">
-                {/* Title and Description */}
-                <div>
-                  <h2 className="text-base md:text-lg font-normal mb-4 font-inter" style={{ color: '#000000' }}>
-                    Documentation
-                  </h2>
-                  <p className="text-sm text-gray-600 font-inter">
-                    Choose your product to get started with comprehensive guides.
-                  </p>
-                </div>
-
-                {/* Product Cards */}
-                <div className="space-y-4">
-                  {/* Overture Card */}
-                  <a
-                    href={overtureDocsUrl}
-                    className="group block w-full max-w-sm rounded-xl p-3 border border-gray-300/60 hover:shadow-sm transition-all duration-300"
-                    style={{ backgroundColor: '#f6f6f4', boxShadow: '0 2px 4px rgba(0, 0, 0, 0.05)' }}
-                  >
-                    <div className="flex items-center justify-between">
-                      <div>
-                        <h3 className="text-sm font-medium text-gray-900 mb-1 font-inter">
-                          Overture
-                        </h3>
-                        <p className="text-xs text-gray-600 font-inter">
-                          Control Plane
-                        </p>
-                      </div>
-                      <div className="flex items-center text-gray-900 font-inter text-xs group-hover:translate-x-1 transition-transform">
-                        Learn more
-                        <ChevronRight className="ml-1 h-3 w-3" />
-                      </div>
-                    </div>
-                  </a>
-
-                  {/* Runtime Card */}
-                  <a
-                    href={runtimeDocsUrl}
-                    className="group block w-full max-w-sm rounded-xl p-3 border border-gray-300/60 hover:shadow-sm transition-all duration-300"
-                    style={{ backgroundColor: '#f6f6f4', boxShadow: '0 2px 4px rgba(0, 0, 0, 0.05)' }}
-                  >
-                    <div className="flex items-center justify-between">
-                      <div>
-                        <h3 className="text-sm font-medium text-gray-900 mb-1 font-inter">
-                          Runtime
-                        </h3>
-                        <p className="text-xs text-gray-600 font-inter">
-                          Execution Plane
-                        </p>
-                      </div>
-                      <div className="flex items-center text-gray-900 font-inter text-xs group-hover:translate-x-1 transition-transform">
-                        Learn more
-                        <ChevronRight className="ml-1 h-3 w-3" />
-                      </div>
-                    </div>
-                  </a>
-                </div>
-              </div>
+        <main className="flex-1 flex items-center justify-center">
+          <div className="w-full max-w-sm space-y-12 px-6">
+            <div>
+              <h2 className="text-base md:text-lg font-normal mb-4 font-inter text-[#f6f6f4] transition-colors duration-200">
+                Documentation
+              </h2>
+              <p className="text-sm text-[#a8a898] font-inter transition-colors duration-200">
+                Choose your product to get started with comprehensive guides.
+              </p>
             </div>
 
-            {/* Footer */}
-            <footer className="text-gray-900 font-inter pb-3 sm:pb-4 lg:pb-6">
-              <div className="flex flex-col items-center gap-4 md:gap-6">
-                <div className="flex flex-col md:flex-row md:items-center gap-4 md:gap-6 text-center">
-                  <p className="text-xs text-gray-500 font-inter">
-                    support@igris-inertial.com
-                  </p>
-                  <span className="text-xs text-gray-500 font-inter">
-                    © 2025 Igris Inertial.
-                  </span>
+            <div className="space-y-4">
+              <a
+                href={overtureDocsUrl}
+                className="group block w-full max-w-sm rounded-xl p-3 border border-[#f6f6f4]/10 hover:shadow-sm transition-all duration-300 bg-dark-bg/80 backdrop-blur-sm"
+                style={{ boxShadow: '0 2px 4px rgba(0, 0, 0, 0.05)' }}
+              >
+                <div className="flex items-center justify-between">
+                  <div>
+                    <h3 className="text-sm font-medium text-[#f6f6f4] mb-1 font-inter transition-colors duration-200">
+                      Overture
+                    </h3>
+                    <p className="text-xs text-[#a8a898] font-inter transition-colors duration-200">
+                      Control Plane
+                    </p>
+                  </div>
+                  <div className="flex items-center text-[#f6f6f4] font-inter text-xs group-hover:translate-x-1 transition-transform">
+                    Learn more
+                    <ChevronRight className="ml-1 h-3 w-3" />
+                  </div>
                 </div>
-              </div>
-            </footer>
-          </div>
+              </a>
 
-          {/* Right Column - Placeholder Box */}
-          <div className="w-full h-full min-h-screen p-3 sm:p-4 lg:p-6">
-            <div className="w-full h-full rounded-xl border border-gray-300/60 overflow-hidden flex items-center justify-center" style={{ backgroundColor: '#f6f6f4', boxShadow: '0 0 8px rgba(0, 0, 0, 0.1)' }}>
-              <img 
-                src="/img/mnt.png" 
-                alt="Right column fill" 
-                className="w-3/4 h-3/4 object-contain"
-              />
+              <a
+                href={runtimeDocsUrl}
+                className="group block w-full max-w-sm rounded-xl p-3 border border-[#f6f6f4]/10 hover:shadow-sm transition-all duration-300 bg-dark-bg/80 backdrop-blur-sm"
+                style={{ boxShadow: '0 2px 4px rgba(0, 0, 0, 0.05)' }}
+              >
+                <div className="flex items-center justify-between">
+                  <div>
+                    <h3 className="text-sm font-medium text-[#f6f6f4] mb-1 font-inter transition-colors duration-200">
+                      Runtime
+                    </h3>
+                    <p className="text-xs text-[#a8a898] font-inter transition-colors duration-200">
+                      Execution Plane
+                    </p>
+                  </div>
+                  <div className="flex items-center text-[#f6f6f4] font-inter text-xs group-hover:translate-x-1 transition-transform">
+                    Learn more
+                    <ChevronRight className="ml-1 h-3 w-3" />
+                  </div>
+                </div>
+              </a>
             </div>
           </div>
-        </div>
+        </main>
+
+        <footer className="pb-6 transition-colors duration-200">
+          <div className="flex flex-col items-center gap-4">
+            <div className="flex flex-col md:flex-row md:items-center gap-4 text-center">
+              <span className="text-xs text-[#a8a898] font-inter transition-colors duration-200">
+                © 2026 Igris Inertial.
+              </span>
+            </div>
+          </div>
+        </footer>
       </div>
     </div>
   );
