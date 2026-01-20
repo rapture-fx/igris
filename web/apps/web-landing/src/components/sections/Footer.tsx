@@ -59,12 +59,14 @@ export default function Footer() {
                 </div>
               </div>
 
-              {/* Logo - on right top */}
-              <img
-                 src={mounted && theme === 'dark' ? '/dmfoot.png' : '/foot.png'}
-                 alt="Igris Inertial"
-                 style={{ height: '16px', width: 'auto' }}
-               />
+              {/* Logo - on right top for desktop, centered for mobile */}
+              <div className="flex justify-start md:justify-end">
+                <img
+                  src={mounted && theme === 'dark' ? '/dmfoot.png' : '/foot.png'}
+                  alt="Igris Inertial"
+                  className="h-4 w-auto"
+                />
+              </div>
             </div>
           </div>
 
