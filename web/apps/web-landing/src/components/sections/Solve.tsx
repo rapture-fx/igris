@@ -1,6 +1,7 @@
 'use client'
 
 import React from 'react'
+import Image from 'next/image'
 
 export default function Solve() {
   const items = [
@@ -15,19 +16,6 @@ export default function Solve() {
 
   return (
     <section className="bg-[#f6f6f4] dark:bg-dark-bg text-gray-900 dark:text-[#f6f6f4] transition-colors duration-200">
-      <style jsx>{`
-        @keyframes scroll {
-          0% {
-            transform: translateX(0);
-          }
-          100% {
-            transform: translateX(-50%);
-          }
-        }
-        .animate-scroll {
-          animation: scroll 20s linear infinite;
-        }
-      `}</style>
       <div className="mx-auto max-w-[1100px] px-4 sm:px-6 lg:px-8">
         <div className="relative px-4 md:px-8 lg:px-12 bg-[#f6f6f4] dark:bg-[#1b1912] border-l border-r section-border flex items-center gap-4" style={{
           minHeight: '50px',
@@ -40,28 +28,30 @@ export default function Solve() {
           </span>
 
           {/* Scrolling container */}
-          <div className="flex-1 overflow-hidden relative">
-            <div className="flex animate-scroll">
+          <div className="flex-1 overflow-hidden relative scroll-container">
+            <div className="flex animate-scroll-seamless" style={{ width: 'fit-content' }}>
               {/* First set of items */}
-              {items.map((item, index) => (
-                <span
-                  key={`first-${index}`}
-                  className="inline-block mx-2 px-3 py-1 border border-gray-300 dark:border-[#f6f6f4]/5 w-[100px] text-right font-normal flex-shrink-0"
-                  style={{ fontWeight: 300 }}
-                >
-                  {item}
-                </span>
-              ))}
+                {items.map((item, index) => (
+                  <span
+                    key={`first-${index}`}
+                    className="inline-block mx-2 px-3 py-1 border border-gray-300 dark:border-[#f6f6f4]/5 w-[100px] text-center font-normal flex-shrink-0 cursor-pointer hover:bg-gray-50 dark:hover:bg-[#2a2520] transition-colors"
+                    style={{ fontWeight: 300 }}
+                    title=""
+                  >
+                    {item}
+                  </span>
+                ))}
               {/* Duplicate set for seamless loop */}
-              {items.map((item, index) => (
-                <span
-                  key={`second-${index}`}
-                  className="inline-block mx-2 px-3 py-1 border border-gray-300 dark:border-[#f6f6f4]/5 w-[100px] text-right font-normal flex-shrink-0"
-                  style={{ fontWeight: 300 }}
-                >
-                  {item}
-                </span>
-              ))}
+                {items.map((item, index) => (
+                  <span
+                    key={`second-${index}`}
+                    className="inline-block mx-2 px-3 py-1 border border-gray-300 dark:border-[#f6f6f4]/5 w-[100px] text-center font-normal flex-shrink-0 cursor-pointer hover:bg-gray-50 dark:hover:bg-[#2a2520] transition-colors"
+                    style={{ fontWeight: 300 }}
+                    title=""
+                  >
+                    {item}
+                  </span>
+                ))}
             </div>
           </div>
         </div>

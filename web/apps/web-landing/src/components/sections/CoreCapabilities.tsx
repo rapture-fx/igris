@@ -90,7 +90,7 @@ export default function CoreCapabilities() {
                              overflow: 'hidden'
                            }}>
                             <img
-                              src={mounted && theme === 'dark' ? '/dm.png' : '/fr.png'}
+                              src={mounted && theme === 'dark' ? '/fr.png' : '/fr.png'}
                               alt={capability.name}
                               style={{
                                 position: 'absolute',
@@ -168,17 +168,6 @@ export default function CoreCapabilities() {
                                 position: 'relative',
                                 overflow: 'hidden'
                               }}>
-                                <img
-                                  src="/dm.png"
-                                  alt={capability.name}
-                                  style={{
-                                    position: 'absolute',
-                                    width: '140%',
-                                    height: '140%',
-                                    objectFit: 'cover',
-                                    opacity: '0.2'
-                                  }}
-                                />
                                 {index === 0 && (
                                   <img
                                     src="/dmone.png"
