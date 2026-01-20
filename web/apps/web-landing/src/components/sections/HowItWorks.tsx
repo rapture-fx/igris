@@ -22,16 +22,8 @@ export default function HowItWorks() {
 
           {/* Content Section - Shows first on mobile */}
           <div className="md:hidden text-left" style={{ paddingTop: '3rem', paddingBottom: '3rem' }}>
-                  <div className="space-y-20 text-xs text-gray-600 dark:text-[#a8a898] relative pl-8 md:pl-8 lg:pl-8">
-                  </div>
-                <Link href="/use-cases" className="group inline-flex items-center mt-16 pl-8 md:pl-8 lg:pl-8">
-                   <span className="text-sm text-gray-900 dark:text-[#f6f6f4] font-inter">
-                     Explore Use Cases
-                   </span>
-                   <ChevronRight className="ml-1 h-3 w-3" />
-                 </Link>
 
-          {/* Title Section - Shows last on mobile */}
+          {/* Title Section - Shows first on mobile */}
                 <div className="mt-12 text-left">
                <p className="text-base text-[#5fdfeb] mb-2" style={{ fontFamily: 'Roboto Mono, monospace', letterSpacing: '0.05em' }}>
                   03. FLOW
