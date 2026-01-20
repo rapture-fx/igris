@@ -1,12 +1,13 @@
 import React, { useEffect, useState } from 'react'
-import Link from 'next/link'
 import Image from 'next/image'
 import { ChevronRight } from 'lucide-react'
 import { useTheme } from 'next-themes'
+import { useProductPopup } from '../../contexts/ProductPopupContext'
 
 export default function Products() {
   const { theme } = useTheme()
   const [mounted, setMounted] = useState(false)
+  const { openOverture, openRuntime } = useProductPopup()
 
   useEffect(() => {
     setMounted(true)
@@ -49,12 +50,15 @@ export default function Products() {
                    <p className="text-xs text-gray-600 dark:text-[#a8a898] leading-relaxed font-inter mb-4">
                      Decision intelligence and routing control plane. Trust-aware provider selection with cost, quality, and latency optimization. Explainable decisions with full observability.
                    </p>
-                    <Link href="/overture" className="group inline-flex items-center justify-center bg-gray-200 dark:bg-[#f6f6f4] text-gray-900 dark:text-black px-4 py-2 hover:bg-gray-300 dark:hover:bg-gray-200 transition-all duration-200 text-xs font-medium shadow-md hover:shadow-lg">
+                    <button
+                      onClick={openOverture}
+                      className="group inline-flex items-center justify-center bg-gray-200 dark:bg-[#f6f6f4] text-gray-900 dark:text-black px-4 py-2 hover:bg-gray-300 dark:hover:bg-gray-200 transition-all duration-200 text-xs font-medium shadow-md hover:shadow-lg"
+                    >
                       <span className="font-inter">
                         Explore Overture
                       </span>
                       <ChevronRight className="ml-1 h-3 w-3" />
-                    </Link>
+                    </button>
                  </div>
 
                {/* Runtime */}
@@ -76,12 +80,15 @@ export default function Products() {
                  <p className="text-xs text-gray-600 dark:text-[#a8a898] leading-relaxed font-inter mb-4">
                    Licensed governed execution engine. Secure defaults and enforced limits. Deterministic execution envelopes with telemetry-backed execution.
                  </p>
-                    <Link href="/runtime" className="group inline-flex items-center justify-center bg-gray-200 dark:bg-[#f6f6f4] text-gray-900 dark:text-black px-4 py-2 hover:bg-gray-300 dark:hover:bg-gray-200 transition-all duration-200 text-xs font-medium shadow-md hover:shadow-lg">
+                    <button
+                      onClick={openRuntime}
+                      className="group inline-flex items-center justify-center bg-gray-200 dark:bg-[#f6f6f4] text-gray-900 dark:text-black px-4 py-2 hover:bg-gray-300 dark:hover:bg-gray-200 transition-all duration-200 text-xs font-medium shadow-md hover:shadow-lg"
+                    >
                        <span className="font-inter">
                          Explore Runtime
                        </span>
                       <ChevronRight className="ml-1 h-3 w-3" />
-                    </Link>
+                    </button>
               </div>
             </div>
           </div>
@@ -112,12 +119,15 @@ export default function Products() {
                    <p className="text-sm text-gray-600 dark:text-[#a8a898] leading-relaxed font-inter mb-4">
                      Decision intelligence and routing control plane. Trust-aware provider selection with cost, quality, and latency optimization. Explainable decisions with full observability.
                    </p>
-                    <Link href="/overture" className="group inline-flex items-center justify-center bg-gray-200 dark:bg-[#f6f6f4] text-gray-900 dark:text-black px-4 py-2 hover:bg-gray-300 dark:hover:bg-gray-200 transition-all duration-200 text-xs font-medium shadow-md hover:shadow-lg">
+                    <button
+                      onClick={openOverture}
+                      className="group inline-flex items-center justify-center bg-gray-200 dark:bg-[#f6f6f4] text-gray-900 dark:text-black px-4 py-2 hover:bg-gray-300 dark:hover:bg-gray-200 transition-all duration-200 text-xs font-medium shadow-md hover:shadow-lg"
+                    >
                        <span className="font-inter">
                          Explore Overture
                        </span>
                        <ChevronRight className="ml-1 h-3 w-3" />
-                     </Link>
+                     </button>
                  </div>
 
                   {/* Runtime */}
@@ -139,12 +149,15 @@ export default function Products() {
                     <p className="text-sm text-gray-600 dark:text-[#a8a898] leading-relaxed font-inter mb-4">
                       Licensed governed execution engine. Secure defaults and enforced limits. Deterministic execution envelopes with telemetry-backed execution.
                     </p>
-                    <Link href="/runtime" className="group inline-flex items-center justify-center bg-gray-200 dark:bg-[#f6f6f4] text-gray-900 dark:text-black px-4 py-2 hover:bg-gray-300 dark:hover:bg-gray-200 transition-all duration-200 text-xs font-medium shadow-md hover:shadow-lg">
+                    <button
+                      onClick={openRuntime}
+                      className="group inline-flex items-center justify-center bg-gray-200 dark:bg-[#f6f6f4] text-gray-900 dark:text-black px-4 py-2 hover:bg-gray-300 dark:hover:bg-gray-200 transition-all duration-200 text-xs font-medium shadow-md hover:shadow-lg"
+                    >
                        <span className="font-inter">
                          Explore Runtime
                        </span>
                       <ChevronRight className="ml-1 h-3 w-3" />
-                    </Link>
+                    </button>
                  </div>
 
                </div>
