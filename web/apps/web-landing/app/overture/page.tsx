@@ -60,7 +60,7 @@ export default function OverturePage() {
                     src="/lo.png"
                     alt="Overture Decision Intelligence"
                     fill
-                    className="object-cover opacity-30"
+                    className="object-cover opacity-60"
                   />
                 </div>
                 <div className="flex-1 relative z-10" style={{ paddingTop: '100px' }}>
