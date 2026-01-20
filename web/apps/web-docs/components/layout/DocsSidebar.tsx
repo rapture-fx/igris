@@ -396,19 +396,19 @@ export function DocsSidebar({ open = true, onClose }: DocsSidebarProps) {
         />
       )}
 
-      {/* Sidebar */}
+          {/* Sidebar */}
       <aside
         className={cn(
           'fixed top-0 left-0 z-50 h-screen w-64 transform transition-transform duration-200 ease-in-out md:translate-x-0',
           open ? 'translate-x-0' : '-translate-x-full'
         )}
       >
-        <div className="flex h-full flex-col bg-beige-primary border-r border-border-light">
+        <div className="flex h-full flex-col bg-[#f6f6f4] dark:bg-[#1b1912] border-r border-gray-200 dark:border-[#f6f6f4]/10">
           {/* Logo Section */}
           <div className="h-12 flex items-center px-7">
             <a href={hubUrl} className="flex items-center">
               <img
-                src="/footers.png"
+                src="/dmfoot.png"
                 alt="Igris Inertial"
                 style={{ width: '25px', height: 'auto' }}
               />
@@ -424,7 +424,7 @@ export function DocsSidebar({ open = true, onClose }: DocsSidebarProps) {
                 placeholder=""
                 readOnly
                 onClick={() => setIsSearchModalOpen(true)}
-                className="w-full pl-9 pr-16 py-2 text-[0.75rem] border border-border-light rounded-lg outline-none bg-beige-primary focus:border-gray-300 transition-colors cursor-pointer"
+                className="w-full pl-9 pr-16 py-2 text-[0.75rem] border border-gray-200 dark:border-[#f6f6f4]/10 rounded-lg outline-none bg-[#f6f6f4] dark:bg-[#25231e] focus:border-gray-300 dark:focus:border-[#f6f6f4]/20 transition-colors cursor-pointer text-gray-900 dark:text-[#f6f6f4]"
               />
               <div className="absolute right-3 top-1/2 transform -translate-y-1/2 flex items-center gap-1 pointer-events-none">
                 <span className="text-xs font-medium text-gray-400">⌘ F</span>
@@ -437,20 +437,20 @@ export function DocsSidebar({ open = true, onClose }: DocsSidebarProps) {
             <div className="relative">
               <button
                 onClick={() => setDropdownOpen(!dropdownOpen)}
-                className="w-full flex items-center justify-between px-3 py-2.5 text-[0.75rem] font-medium text-gray-900 bg-beige-primary rounded-lg transition-colors border border-border-light"
+                className="w-full flex items-center justify-between px-3 py-2.5 text-[0.75rem] font-medium text-gray-900 dark:text-[#f6f6f4] bg-[#f6f6f4] dark:bg-[#25231e] rounded-lg transition-colors border border-gray-200 dark:border-[#f6f6f4]/10"
               >
                 <div className="flex items-center gap-2.5">
-                  <selectedItem.icon className="h-4 w-4" />
+                  <selectedItem.icon className="h-4 w-4 text-gray-900 dark:text-[#f6f6f4]" />
                   <span>{selectedItem.label}</span>
                 </div>
                 <ChevronDown className={cn(
-                  "h-4 w-4 transition-transform",
+                  "h-4 w-4 transition-transform text-gray-900 dark:text-[#f6f6f4]",
                   dropdownOpen && "rotate-180"
                 )} />
               </button>
 
               {dropdownOpen && (
-                <div className="absolute top-full left-0 right-0 mt-1 bg-beige-primary border border-gray-200 rounded-lg shadow-lg overflow-hidden z-50">
+                <div className="absolute top-full left-0 right-0 mt-1 bg-[#f6f6f4] dark:bg-[#1b1912] border border-gray-200 dark:border-[#f6f6f4]/10 rounded-lg shadow-lg overflow-hidden z-50">
                   {dropdownItems.map((item) => (
                     <Link
                       key={item.href}
@@ -460,7 +460,7 @@ export function DocsSidebar({ open = true, onClose }: DocsSidebarProps) {
                         setDropdownOpen(false);
                         onClose?.();
                       }}
-                      className="flex items-center gap-2.5 px-3 py-2.5 text-[0.75rem] font-medium text-gray-700 hover:text-gray-900 hover:bg-beige-secondary transition-colors"
+                      className="flex items-center gap-2.5 px-3 py-2.5 text-[0.75rem] font-medium text-gray-700 dark:text-[#c8c8b8] hover:text-gray-900 dark:hover:text-[#f6f6f4] hover:bg-[#f2f1ed] dark:hover:bg-[#25231e] transition-colors"
                     >
                       <item.icon className="h-4 w-4" />
                       <span>{item.label}</span>
@@ -478,7 +478,7 @@ export function DocsSidebar({ open = true, onClose }: DocsSidebarProps) {
               <div className="space-y-6">
                 {(selectedItem.label === 'Documentation' ? navigationSections : apiReferenceSections).map((section) => (
                   <div key={section.section}>
-                    <h3 className="px-3 mb-2 text-xs font-semibold text-gray-500 tracking-wider">
+                    <h3 className="px-3 mb-2 text-xs font-semibold text-gray-500 dark:text-gray-400 tracking-wider">
                       {section.section}
                     </h3>
                     <ul className="space-y-1">
@@ -506,15 +506,15 @@ export function DocsSidebar({ open = true, onClose }: DocsSidebarProps) {
                                 className={cn(
                                   'w-full flex items-center gap-2.5 px-3 py-2 text-[0.75rem] font-medium font-inter transition-colors rounded-lg',
                                   isParentActive
-                                    ? 'text-primary font-semibold'
-                                    : 'text-gray-700 hover:text-gray-900'
+                                    ? 'text-primary dark:text-[#3b82f6] font-semibold'
+                                    : 'text-gray-700 dark:text-[#c8c8b8] hover:text-gray-900 dark:hover:text-[#f6f6f4]'
                                 )}
                               >
-                                {item.icon && <item.icon className="h-4 w-4" />}
+                                {item.icon && <item.icon className="h-4 w-4 text-gray-700 dark:text-[#c8c8b8]" />}
                                 <span className="flex-1 text-left">{item.name}</span>
                                 <ChevronRight
                                   className={cn(
-                                    'h-3.5 w-3.5 transition-transform',
+                                    'h-3.5 w-3.5 transition-transform text-gray-700 dark:text-[#c8c8b8]',
                                     isExpanded && 'rotate-90'
                                   )}
                                 />
@@ -526,12 +526,12 @@ export function DocsSidebar({ open = true, onClose }: DocsSidebarProps) {
                                 className={cn(
                                   'flex items-center gap-2.5 rounded-lg px-3 py-2 text-[0.75rem] font-medium font-inter transition-colors',
                                   isActive
-                                    ? 'text-primary font-semibold'
-                                    : 'text-gray-700 hover:text-gray-900'
+                                    ? 'text-primary dark:text-[#3b82f6] font-semibold'
+                                    : 'text-gray-700 dark:text-[#c8c8b8] hover:text-gray-900 dark:hover:text-[#f6f6f4]'
                                 )}
                                 onClick={onClose}
                               >
-                                {item.icon && <item.icon className="h-4 w-4" />}
+                                {item.icon && <item.icon className="h-4 w-4 text-gray-700 dark:text-[#c8c8b8]" />}
                                 {item.name}
                               </Link>
                             )}
@@ -548,8 +548,8 @@ export function DocsSidebar({ open = true, onClose }: DocsSidebarProps) {
                                         className={cn(
                                           'flex items-start gap-2.5 rounded-lg px-3 py-2 text-[0.7rem] font-medium font-inter transition-colors',
                                           isChildActive
-                                            ? 'text-primary font-semibold'
-                                            : 'text-gray-700 hover:text-gray-900'
+                                            ? 'text-primary dark:text-[#3b82f6] font-semibold'
+                                            : 'text-gray-700 dark:text-[#c8c8b8] hover:text-gray-900 dark:hover:text-[#f6f6f4]'
                                         )}
                                         onClick={onClose}
                                       >
@@ -558,14 +558,14 @@ export function DocsSidebar({ open = true, onClose }: DocsSidebarProps) {
                                             className={cn(
                                               'px-1.5 py-0.5 text-[0.6rem] font-bold rounded min-w-[2.25rem] text-center flex-shrink-0 mt-0.5',
                                               child.badge === 'GET'
-                                                ? 'bg-blue-100 text-blue-700'
+                                                ? 'bg-blue-100 dark:bg-blue-900/30 text-blue-700 dark:text-blue-300'
                                                 : child.badge === 'POST'
-                                                  ? 'bg-green-100 text-green-700'
+                                                  ? 'bg-green-100 dark:bg-green-900/30 text-green-700 dark:text-green-300'
                                                   : child.badge === 'PUT'
-                                                    ? 'bg-yellow-100 text-yellow-700'
+                                                    ? 'bg-yellow-100 dark:bg-yellow-900/30 text-yellow-700 dark:text-yellow-300'
                                                     : child.badge === 'DELETE'
-                                                      ? 'bg-red-100 text-red-700'
-                                                      : 'bg-gray-100 text-gray-700'
+                                                      ? 'bg-red-100 dark:bg-red-900/30 text-red-700 dark:text-red-300'
+                                                      : 'bg-gray-100 dark:bg-gray-800 text-gray-700 dark:text-gray-300'
                                             )}
                                           >
                                             {child.badge}
@@ -611,15 +611,15 @@ export function DocsSidebar({ open = true, onClose }: DocsSidebarProps) {
                           className={cn(
                             'w-full flex items-center gap-2.5 px-3 py-2 text-[0.75rem] font-medium font-inter transition-colors rounded-lg',
                             isParentActive
-                              ? 'text-primary font-semibold'
-                              : 'text-gray-700 hover:text-gray-900'
+                              ? 'text-primary dark:text-[#3b82f6] font-semibold'
+                              : 'text-gray-700 dark:text-[#c8c8b8] hover:text-gray-900 dark:hover:text-[#f6f6f4]'
                           )}
                         >
-                          {item.icon && <item.icon className="h-4 w-4" />}
+                          {item.icon && <item.icon className="h-4 w-4 text-gray-700 dark:text-[#c8c8b8]" />}
                           <span className="flex-1 text-left">{item.name}</span>
                           <ChevronRight
                             className={cn(
-                              'h-3.5 w-3.5 transition-transform',
+                              'h-3.5 w-3.5 transition-transform text-gray-700 dark:text-[#c8c8b8]',
                               isExpanded && 'rotate-90'
                             )}
                           />
@@ -630,12 +630,12 @@ export function DocsSidebar({ open = true, onClose }: DocsSidebarProps) {
                           className={cn(
                             'flex items-center gap-2.5 rounded-lg px-3 py-2 text-[0.75rem] font-medium font-inter transition-colors',
                             isActive
-                              ? 'text-primary font-semibold'
-                              : 'text-gray-700 hover:text-gray-900'
+                              ? 'text-primary dark:text-[#3b82f6] font-semibold'
+                              : 'text-gray-700 dark:text-[#c8c8b8] hover:text-gray-900 dark:hover:text-[#f6f6f4]'
                           )}
                           onClick={onClose}
                         >
-                          {item.icon && <item.icon className="h-4 w-4" />}
+                          {item.icon && <item.icon className="h-4 w-4 text-gray-700 dark:text-[#c8c8b8]" />}
                           {item.name}
                         </Link>
                       )}
@@ -651,8 +651,8 @@ export function DocsSidebar({ open = true, onClose }: DocsSidebarProps) {
                                   className={cn(
                                     'flex items-start gap-2.5 rounded-lg px-3 py-2 text-[0.7rem] font-medium font-inter transition-colors',
                                     isChildActive
-                                      ? 'text-primary font-semibold'
-                                      : 'text-gray-700 hover:text-gray-900'
+                                      ? 'text-primary dark:text-[#3b82f6] font-semibold'
+                                      : 'text-gray-700 dark:text-[#c8c8b8] hover:text-gray-900 dark:hover:text-[#f6f6f4]'
                                   )}
                                   onClick={onClose}
                                 >
@@ -661,14 +661,14 @@ export function DocsSidebar({ open = true, onClose }: DocsSidebarProps) {
                                       className={cn(
                                         'px-1.5 py-0.5 text-[0.6rem] font-bold rounded min-w-[2.25rem] text-center flex-shrink-0 mt-0.5',
                                         child.badge === 'GET'
-                                          ? 'bg-blue-100 text-blue-700'
+                                          ? 'bg-blue-100 dark:bg-blue-900/30 text-blue-700 dark:text-blue-300'
                                           : child.badge === 'POST'
-                                            ? 'bg-green-100 text-green-700'
+                                            ? 'bg-green-100 dark:bg-green-900/30 text-green-700 dark:text-green-300'
                                             : child.badge === 'PUT'
-                                              ? 'bg-yellow-100 text-yellow-700'
+                                              ? 'bg-yellow-100 dark:bg-yellow-900/30 text-yellow-700 dark:text-yellow-300'
                                               : child.badge === 'DELETE'
-                                                ? 'bg-red-100 text-red-700'
-                                                : 'bg-gray-100 text-gray-700'
+                                                ? 'bg-red-100 dark:bg-red-900/30 text-red-700 dark:text-red-300'
+                                                : 'bg-gray-100 dark:bg-gray-800 text-gray-700 dark:text-gray-300'
                                       )}
                                     >
                                       {child.badge}
@@ -695,7 +695,7 @@ export function DocsSidebar({ open = true, onClose }: DocsSidebarProps) {
         <div className="fixed inset-0 z-50 flex items-start justify-center pt-20">
           {/* Backdrop with blur */}
           <div
-            className="absolute inset-0 bg-black/20 backdrop-blur-sm"
+            className="absolute inset-0 bg-black/20 dark:bg-black/60 backdrop-blur-sm"
             onClick={() => {
               setIsSearchModalOpen(false);
               setSearchQuery('');
@@ -705,7 +705,7 @@ export function DocsSidebar({ open = true, onClose }: DocsSidebarProps) {
 
           {/* Modal Content */}
           <div className="relative w-full max-w-2xl mx-4">
-            <div className="bg-white rounded-xl shadow-2xl border border-gray-200 overflow-hidden p-2">
+            <div className="bg-white dark:bg-[#1b1912] rounded-xl shadow-2xl border border-gray-200 dark:border-[#f6f6f4]/10 overflow-hidden p-2">
               {/* Search Input */}
               <div className="relative">
                 <Search className="absolute left-3 top-1/2 transform -translate-y-1/2 h-4 w-4 text-gray-400" />
@@ -716,26 +716,26 @@ export function DocsSidebar({ open = true, onClose }: DocsSidebarProps) {
                   value={searchQuery}
                   onChange={(e) => setSearchQuery(e.target.value)}
                   onKeyDown={handleKeyDown}
-                  className="w-full pl-10 pr-4 py-2 text-sm outline-none rounded-lg border border-gray-200 focus:border-gray-300"
+                  className="w-full pl-10 pr-4 py-2 text-sm outline-none rounded-lg border border-gray-200 dark:border-[#f6f6f4]/10 focus:border-gray-300 dark:focus:border-[#f6f6f4]/20 bg-white dark:bg-[#25231e] text-gray-900 dark:text-[#f6f6f4]"
                 />
               </div>
 
               {/* Search Results */}
               {showSearchResults && filteredResults.length > 0 && (
-                <div className="max-h-64 overflow-y-auto bg-gray-50 p-2 mt-2 rounded-lg">
+                <div className="max-h-64 overflow-y-auto bg-gray-50 dark:bg-[#25231e] p-2 mt-2 rounded-lg">
                   {filteredResults.map((result, index) => (
                     <button
                       key={result.path}
                       onClick={() => handleResultClick(result.path)}
-                      className={`w-full px-3 py-2 transition-colors text-left flex items-start gap-2.5 border-b border-gray-100 last:border-b-0 ${index === selectedIndex ? 'bg-gray-100' : 'hover:bg-gray-50'
+                      className={`w-full px-3 py-2 transition-colors text-left flex items-start gap-2.5 border-b border-gray-100 dark:border-[#f6f6f4]/10 last:border-b-0 ${index === selectedIndex ? 'bg-gray-100 dark:bg-[#1b1912]' : 'hover:bg-gray-50 dark:hover:bg-[#1b1912]'
                         }`}
                     >
                       <FileText className="h-4 w-4 text-gray-400 mt-0.5 flex-shrink-0" />
                       <div className="flex-1 min-w-0">
-                        <div className="text-sm font-medium text-gray-900 mb-0.5">
+                        <div className="text-sm font-medium text-gray-900 dark:text-[#f6f6f4] mb-0.5">
                           {result.title}
                         </div>
-                        <div className="text-xs text-gray-500 truncate">
+                        <div className="text-xs text-gray-500 dark:text-gray-400 truncate">
                           {result.path}
                         </div>
                       </div>
@@ -747,7 +747,7 @@ export function DocsSidebar({ open = true, onClose }: DocsSidebarProps) {
               {/* No Results */}
               {showSearchResults && searchQuery.length > 0 && filteredResults.length === 0 && (
                 <div className="p-4 text-center mt-2">
-                  <p className="text-sm text-gray-500">
+                  <p className="text-sm text-gray-500 dark:text-gray-400">
                     No results found for "{searchQuery}"
                   </p>
                 </div>

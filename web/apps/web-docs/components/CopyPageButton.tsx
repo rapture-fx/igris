@@ -87,11 +87,11 @@ export function CopyPageButton() {
 
   return (
     <div className="relative" ref={dropdownRef}>
-      <div className="inline-flex items-center rounded-lg border border-gray-200 overflow-hidden transition-colors shadow-sm bg-beige-primary">
+      <div className="inline-flex items-center rounded-lg border border-gray-200 dark:border-[#f6f6f4]/10 overflow-hidden transition-colors shadow-sm bg-[#f6f6f4] dark:bg-[#25231e]">
         {/* Copy button */}
         <button
           onClick={handleCopyPage}
-          className="inline-flex items-center gap-2 px-3 py-1.5 text-xs font-medium text-gray-900 hover:bg-beige-secondary transition-colors"
+          className="inline-flex items-center gap-2 px-3 py-1.5 text-xs font-medium text-gray-900 dark:text-[#f6f6f4] hover:bg-[#f2f1ed] dark:hover:bg-[#1b1912] transition-colors"
         >
           {copied ? (
             <>
@@ -109,22 +109,22 @@ export function CopyPageButton() {
         {/* Dropdown toggle */}
         <button
           onClick={() => setIsOpen(!isOpen)}
-          className="px-2 py-1.5 border-l border-gray-200 text-gray-900 hover:bg-beige-secondary transition-colors"
+          className="px-2 py-1.5 border-l border-gray-200 dark:border-[#f6f6f4]/10 text-gray-900 dark:text-[#f6f6f4] hover:bg-[#f2f1ed] dark:hover:bg-[#1b1912] transition-colors"
         >
           <ChevronDown className={`h-3.5 w-3.5 transition-transform ${isOpen ? 'rotate-180' : ''}`} />
         </button>
       </div>
 
       {isOpen && (
-        <div className="absolute right-0 mt-2 w-44 bg-beige-primary border border-gray-200 rounded-lg shadow-lg z-50 overflow-hidden">
+        <div className="absolute right-0 mt-2 w-44 bg-[#f6f6f4] dark:bg-[#1b1912] border border-gray-200 dark:border-[#f6f6f4]/10 rounded-lg shadow-lg z-50 overflow-hidden">
           {menuItems.map((item, index) => (
             <button
               key={index}
               onClick={item.action}
-              className="w-full px-3 py-1.5 text-left text-xs text-gray-700 hover:bg-beige-secondary transition-colors border-b border-gray-100 last:border-b-0 flex items-center justify-between gap-2"
+              className="w-full px-3 py-1.5 text-left text-xs text-gray-700 dark:text-[#c8c8b8] hover:bg-[#f2f1ed] dark:hover:bg-[#25231e] transition-colors border-b border-gray-100 dark:border-[#f6f6f4]/10 last:border-b-0 flex items-center justify-between gap-2"
             >
               <span>{item.label}</span>
-              <ArrowUpRight className="h-3 w-3 text-gray-400 flex-shrink-0" />
+              <ArrowUpRight className="h-3 w-3 text-gray-400 dark:text-gray-500 flex-shrink-0" />
             </button>
           ))}
         </div>
