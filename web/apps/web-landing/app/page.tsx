@@ -11,10 +11,14 @@ import Products from '../src/components/sections/Products'
 import HowItWorks from '../src/components/sections/HowItWorks'
 import ClosingPosition from '../src/components/sections/ClosingPosition'
 import EarlyAccessModal from '../src/components/modals/EarlyAccessModal'
+import OverturePopup from '../src/components/popups/OverturePopup'
+import RuntimePopup from '../src/components/popups/RuntimePopup'
 import { useModal } from '../src/contexts/ModalContext'
+import { useProductPopup } from '../src/contexts/ProductPopupContext'
 
 export default function HomePage() {
   const { isEarlyAccessModalOpen, closeEarlyAccessModal } = useModal();
+  const { isOvertureOpen, closeOverture, isRuntimeOpen, closeRuntime } = useProductPopup();
 
   return (
     <>
@@ -34,6 +38,14 @@ export default function HomePage() {
       <EarlyAccessModal
         isOpen={isEarlyAccessModalOpen}
         onClose={closeEarlyAccessModal}
+      />
+      <OverturePopup
+        isOpen={isOvertureOpen}
+        onClose={closeOverture}
+      />
+      <RuntimePopup
+        isOpen={isRuntimeOpen}
+        onClose={closeRuntime}
       />
     </>
   );

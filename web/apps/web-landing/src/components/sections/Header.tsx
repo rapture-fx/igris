@@ -5,6 +5,7 @@ import Link from 'next/link';
 import { Menu, X, ChevronDown } from 'lucide-react';
 import { useTheme } from 'next-themes';
 import { useModal } from '../../contexts/ModalContext';
+import { useProductPopup } from '../../contexts/ProductPopupContext';
 
 export default function Header() {
   const [mobileMenuOpen, setMobileMenuOpen] = useState(false);
@@ -18,6 +19,7 @@ export default function Header() {
   const [mounted, setMounted] = useState(false);
   const { openEarlyAccessModal } = useModal();
   const { theme } = useTheme();
+  const { openOverture, openRuntime } = useProductPopup();
   const productDropdownRef = useRef<HTMLDivElement>(null);
   const resourcesDropdownRef = useRef<HTMLDivElement>(null);
 
@@ -102,22 +104,26 @@ export default function Header() {
                 Product
                 <ChevronDown className={`h-4 w-4 transition-transform duration-200 ${productDropdownOpen ? 'rotate-180' : ''}`} />
               </button>
-              {productDropdownOpen && (
+               {productDropdownOpen && (
                 <div className="absolute top-full left-0 mt-2 w-48 rounded-lg shadow-lg border border-gray-200 dark:border-[#f6f6f4]/5 overflow-hidden bg-[#f6f6f4] dark:bg-dark-bg">
-                   <Link
-                      href="/overture"
-                      className="block px-4 py-2 text-xs text-gray-700 dark:text-[#c8c8b8] hover:text-gray-900 dark:hover:text-[#f6f6f4] hover:bg-gray-100 dark:hover:bg-gray-800 transition-colors duration-200"
-                      onClick={() => setProductDropdownOpen(false)}
-                    >
-                      Overture
-                    </Link>
-                    <Link
-                      href="/runtime"
-                      className="block px-4 py-2 text-xs text-gray-700 dark:text-[#c8c8b8] hover:text-gray-900 dark:hover:text-[#f6f6f4] hover:bg-gray-100 dark:hover:bg-gray-800 transition-colors duration-200"
-                      onClick={() => setProductDropdownOpen(false)}
-                    >
-                      Runtime
-                    </Link>
+                   <button
+                       onClick={() => {
+                         setProductDropdownOpen(false);
+                         openOverture();
+                       }}
+                       className="block w-full text-left px-4 py-2 text-xs text-gray-700 dark:text-[#c8c8b8] hover:text-gray-900 dark:hover:text-[#f6f6f4] hover:bg-gray-100 dark:hover:bg-gray-800 transition-colors duration-200"
+                     >
+                       Overture
+                     </button>
+                     <button
+                       onClick={() => {
+                         setProductDropdownOpen(false);
+                         openRuntime();
+                       }}
+                       className="block w-full text-left px-4 py-2 text-xs text-gray-700 dark:text-[#c8c8b8] hover:text-gray-900 dark:hover:text-[#f6f6f4] hover:bg-gray-100 dark:hover:bg-gray-800 transition-colors duration-200"
+                     >
+                       Runtime
+                     </button>
                 </div>
               )}
             </div>
@@ -212,30 +218,30 @@ export default function Header() {
                    Product
                    <ChevronDown className={`h-4 w-4 transition-transform duration-200 ${mobileProductOpen ? 'rotate-180' : ''}`} />
                  </button>
-                 {mobileProductOpen && (
-                   <div className="ml-4 mt-2 space-y-2">
-                      <Link
-                        href="/overture"
-                        className="block text-gray-700 dark:text-[#c8c8b8] hover:text-gray-900 dark:hover:text-[#f6f6f4] transition-colors duration-200 font-medium text-xs"
-                        onClick={() => {
-                          setMobileMenuOpen(false);
-                          setMobileProductOpen(false);
-                        }}
-                      >
-                        Overture
-                      </Link>
-                      <Link
-                        href="/runtime"
-                        className="block text-gray-700 dark:text-[#c8c8b8] hover:text-gray-900 dark:hover:text-[#f6f6f4] transition-colors duration-200 font-medium text-xs"
-                        onClick={() => {
-                          setMobileMenuOpen(false);
-                          setMobileProductOpen(false);
-                        }}
-                      >
-                        Runtime
-                      </Link>
-                   </div>
-                 )}
+                  {mobileProductOpen && (
+                    <div className="ml-4 mt-2 space-y-2">
+                       <button
+                         onClick={() => {
+                           setMobileMenuOpen(false);
+                           setMobileProductOpen(false);
+                           openOverture();
+                         }}
+                         className="block text-left text-gray-700 dark:text-[#c8c8b8] hover:text-gray-900 dark:hover:text-[#f6f6f4] transition-colors duration-200 font-medium text-xs"
+                       >
+                         Overture
+                       </button>
+                       <button
+                         onClick={() => {
+                           setMobileMenuOpen(false);
+                           setMobileProductOpen(false);
+                           openRuntime();
+                         }}
+                         className="block text-left text-gray-700 dark:text-[#c8c8b8] hover:text-gray-900 dark:hover:text-[#f6f6f4] transition-colors duration-200 font-medium text-xs"
+                       >
+                         Runtime
+                       </button>
+                    </div>
+                  )}
                </div>
 
               {/* Resources Dropdown Mobile */}
