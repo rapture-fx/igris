@@ -17,7 +17,7 @@ export default function Solve() {
   return (
     <section className="bg-[#f6f6f4] dark:bg-dark-bg text-gray-900 dark:text-[#f6f6f4] transition-colors duration-200">
       <div className="mx-auto max-w-[1100px] px-4 sm:px-6 lg:px-8">
-        <div className="relative px-4 md:px-8 lg:px-12 bg-[#f6f6f4] dark:bg-[#1b1912] border-l border-r section-border flex items-center gap-4" style={{
+        <div className="relative px-4 md:px-8 lg:px-12 bg-[#f6f6f4] dark:bg-[#1b1912] border-l border-r section-border flex flex-col md:flex-row md:items-center gap-3 md:gap-4 py-3 md:py-0" style={{
           minHeight: '50px',
           borderTopWidth: '0',
           borderBottomWidth: '0'
@@ -34,7 +34,7 @@ export default function Solve() {
                 {items.map((item, index) => (
                   <span
                     key={`first-${index}`}
-                    className="inline-block mx-2 px-3 py-1 border border-gray-300 dark:border-[#f6f6f4]/5 w-[100px] text-center font-normal flex-shrink-0 cursor-pointer hover:bg-gray-50 dark:hover:bg-[#2a2520] transition-colors"
+                    className="inline-block mx-1 md:mx-2 px-2 md:px-3 py-1 border border-gray-300 dark:border-[#f6f6f4]/5 w-[80px] md:w-[100px] text-center font-normal flex-shrink-0 cursor-pointer hover:bg-gray-50 dark:hover:bg-[#2a2520] transition-colors text-xs md:text-sm"
                     style={{ fontWeight: 300 }}
                     title=""
                   >
@@ -45,7 +45,7 @@ export default function Solve() {
                 {items.map((item, index) => (
                   <span
                     key={`second-${index}`}
-                    className="inline-block mx-2 px-3 py-1 border border-gray-300 dark:border-[#f6f6f4]/5 w-[100px] text-center font-normal flex-shrink-0 cursor-pointer hover:bg-gray-50 dark:hover:bg-[#2a2520] transition-colors"
+                    className="inline-block mx-1 md:mx-2 px-2 md:px-3 py-1 border border-gray-300 dark:border-[#f6f6f4]/5 w-[80px] md:w-[100px] text-center font-normal flex-shrink-0 cursor-pointer hover:bg-gray-50 dark:hover:bg-[#2a2520] transition-colors text-xs md:text-sm"
                     style={{ fontWeight: 300 }}
                     title=""
                   >

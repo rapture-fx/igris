@@ -63,20 +63,20 @@ export default function MultiTenancy() {
             <div className="grid grid-cols-1 md:grid-cols-3 gap-0 md:flex-1">
                {/* Left Column - Features (2 columns wide) */}
                <div className="hidden md:flex md:col-span-2 flex-col justify-start" style={{ paddingTop: '3rem', paddingBottom: '3rem', paddingRight: '1rem' }}>
-                    <div className="w-full max-w-[320px]">
-                   <div className="flex flex-col gap-8">
-                    {features.map((feature, index) => (
-                      <div key={feature.name} className="text-left">
-                    <h3 className="text-sm font-semibold mb-3 font-inter text-[#000000] dark:text-[#f6f6f4]">
-                      {feature.name}
-                    </h3>
-                   <p className="text-sm text-gray-600 dark:text-[#a8a898] leading-relaxed font-inter mb-4">
-                      {feature.description}
-                    </p>
-                      </div>
-                    ))}
-                  </div>
-                </div>
+                     <div className="w-full max-w-[320px]">
+                   <div className="flex flex-col gap-6">
+                     {features.map((feature, index) => (
+                       <div key={feature.name} className="text-left pb-6 border-b border-gray-300 dark:border-[#f6f6f4]/10 last:border-0">
+                     <h3 className="text-sm font-semibold mb-3 font-inter text-[#000000] dark:text-[#f6f6f4]">
+                       {feature.name}
+                     </h3>
+                   <p className="text-sm text-gray-600 dark:text-[#a8a898] leading-relaxed font-inter">
+                       {feature.description}
+                     </p>
+                       </div>
+                     ))}
+                   </div>
+                 </div>
               </div>
 
               {/* Right Column - Title and Intro (Desktop only) */}
