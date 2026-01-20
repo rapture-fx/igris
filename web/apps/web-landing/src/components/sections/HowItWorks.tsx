@@ -22,16 +22,52 @@ export default function HowItWorks() {
           <div className="md:hidden text-left" style={{ paddingTop: '3rem', paddingBottom: '3rem' }}>
 
           {/* Title Section - Shows first on mobile */}
-                <div className="mt-12 text-left">
+                <div className="mb-8 text-left">
                <p className="text-base text-[#5fdfeb] mb-2" style={{ fontFamily: 'Roboto Mono, monospace', letterSpacing: '0.05em' }}>
                   03. FLOW
                 </p>
                 <h3 className="text-lg md:text-xl lg:text-2xl font-inter mb-2 text-[#000000] dark:text-[#f6f6f4]">
                   How It Works
                 </h3>
-                 <p className="text-sm text-gray-600 dark:text-[#a8a898] leading-relaxed font-inter">
+                 <p className="text-sm text-gray-600 dark:text-[#a8a898] leading-relaxed font-inter mb-8">
                    Igris operates between applications and AI providers, managing how AI requests are routed and executed across cloud and edge environments.
                  </p>
+                </div>
+
+                {/* Mobile Content - Three Steps */}
+                <div className="space-y-8">
+                  {/* Step 1: Decide */}
+                  <div>
+                    <h4 className="text-sm font-semibold text-[#000000] dark:text-[#f6f6f4] mb-3 font-inter">Decide (Control Plane)</h4>
+                    <p className="text-xs text-gray-600 dark:text-[#a8a898] mb-4 leading-relaxed font-inter">
+                      The application sends an AI request. The cloud control plane evaluates policies, budgets, safety rules, and performance constraints, then decides how, where, and whether the request should run.
+                    </p>
+                    <p className="text-xs text-gray-600 dark:text-[#a8a898] leading-relaxed font-inter italic">
+                      This is where governance, routing, and risk control happen—before anything executes.
+                    </p>
+                  </div>
+
+                  {/* Step 2: Execute */}
+                  <div>
+                    <h4 className="text-sm font-semibold text-[#000000] dark:text-[#f6f6f4] mb-3 font-inter">Execute (Runtime Plane)</h4>
+                    <p className="text-xs text-gray-600 dark:text-[#a8a898] mb-4 leading-relaxed font-inter">
+                      The runtime executes the decision close to the application. It runs the task using cloud models or local models, coordinates tools and agents, and automatically falls back if connectivity or providers fail.
+                    </p>
+                    <p className="text-xs text-gray-600 dark:text-[#a8a898] leading-relaxed font-inter italic">
+                      This guarantees reliable execution—even offline or under failure conditions.
+                    </p>
+                  </div>
+
+                  {/* Step 3: Verify & Improve */}
+                  <div>
+                    <h4 className="text-sm font-semibold text-[#000000] dark:text-[#f6f6f4] mb-3 font-inter">Verify & Improve (Feedback Loop)</h4>
+                    <p className="text-xs text-gray-600 dark:text-[#a8a898] mb-4 leading-relaxed font-inter">
+                      Execution results, telemetry, and metrics flow back to the control plane. Policies, routing logic, and configurations are continuously refined and pushed back to the runtime.
+                    </p>
+                    <p className="text-xs text-gray-600 dark:text-[#a8a898] leading-relaxed font-inter italic">
+                      The system learns, adapts, and stays compliant in production.
+                    </p>
+                  </div>
                 </div>
             </div>
 
