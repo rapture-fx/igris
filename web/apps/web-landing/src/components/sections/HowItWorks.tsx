@@ -38,6 +38,16 @@ export default function HowItWorks() {
                 <div className="space-y-8">
                   {/* Step 1: Decide */}
                   <div>
+                    <div className="border border-gray-300 dark:border-[#f6f6f4]/5 mb-4 bg-[#f6f6f4] dark:bg-[#1b1912]" style={{ height: '150px', position: 'relative', overflow: 'hidden', display: 'flex', alignItems: 'center', justifyContent: 'center' }}>
+                      <Image
+                        src="/cp.png"
+                        alt="Control Plane"
+                        width={200}
+                        height={200}
+                        className="object-contain opacity-80"
+                        style={{ width: '60%', height: '60%' }}
+                      />
+                    </div>
                     <h4 className="text-sm font-semibold text-[#000000] dark:text-[#f6f6f4] mb-3 font-inter">Decide (Control Plane)</h4>
                     <p className="text-xs text-gray-600 dark:text-[#a8a898] mb-4 leading-relaxed font-inter">
                       The application sends an AI request. The cloud control plane evaluates policies, budgets, safety rules, and performance constraints, then decides how, where, and whether the request should run.
@@ -49,6 +59,16 @@ export default function HowItWorks() {
 
                   {/* Step 2: Execute */}
                   <div>
+                    <div className="border border-gray-300 dark:border-[#f6f6f4]/5 mb-4 bg-[#f6f6f4] dark:bg-[#1b1912]" style={{ height: '150px', position: 'relative', overflow: 'hidden', display: 'flex', alignItems: 'center', justifyContent: 'center' }}>
+                      <Image
+                        src="/ex.png"
+                        alt="Runtime Plane"
+                        width={200}
+                        height={200}
+                        className="object-contain opacity-80"
+                        style={{ width: '60%', height: '60%' }}
+                      />
+                    </div>
                     <h4 className="text-sm font-semibold text-[#000000] dark:text-[#f6f6f4] mb-3 font-inter">Execute (Runtime Plane)</h4>
                     <p className="text-xs text-gray-600 dark:text-[#a8a898] mb-4 leading-relaxed font-inter">
                       The runtime executes the decision close to the application. It runs the task using cloud models or local models, coordinates tools and agents, and automatically falls back if connectivity or providers fail.
@@ -60,6 +80,16 @@ export default function HowItWorks() {
 
                   {/* Step 3: Verify & Improve */}
                   <div>
+                    <div className="border border-gray-300 dark:border-[#f6f6f4]/5 mb-4 bg-[#f6f6f4] dark:bg-[#1b1912]" style={{ height: '150px', position: 'relative', overflow: 'hidden', display: 'flex', alignItems: 'center', justifyContent: 'center' }}>
+                      <Image
+                        src="/lo.png"
+                        alt="Feedback Loop"
+                        width={200}
+                        height={200}
+                        className="object-contain opacity-100"
+                        style={{ width: '60%', height: '60%' }}
+                      />
+                    </div>
                     <h4 className="text-sm font-semibold text-[#000000] dark:text-[#f6f6f4] mb-3 font-inter">Verify & Improve (Feedback Loop)</h4>
                     <p className="text-xs text-gray-600 dark:text-[#a8a898] mb-4 leading-relaxed font-inter">
                       Execution results, telemetry, and metrics flow back to the control plane. Policies, routing logic, and configurations are continuously refined and pushed back to the runtime.
