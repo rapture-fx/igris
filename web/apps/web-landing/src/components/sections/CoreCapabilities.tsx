@@ -37,8 +37,22 @@ export default function CoreCapabilities() {
             <div className="w-full px-0 flex flex-col h-full">
               {/* No absolute divider - use border on right column instead */}
 
-              {/* Capabilities - Mobile - Shows first on mobile */}
+              {/* Mobile Layout - Title first, then capabilities */}
               <div className="mb-6 md:mb-0 md:hidden text-left" style={{ paddingTop: '3rem', paddingBottom: '3rem' }}>
+                {/* Title Section - Shows first on mobile */}
+                <div className="mb-8 text-left">
+                  <p className="text-base text-[#5fdfeb] mb-2" style={{ fontFamily: 'Roboto Mono, monospace', letterSpacing: '0.05em' }}>
+                    02. CORE
+                  </p>
+                  <h3 className="text-lg md:text-xl lg:text-2xl font-inter mb-4 text-[#000000] dark:text-[#f6f6f4]">
+                    System Overview
+                  </h3>
+                  <p className="text-sm text-gray-700 dark:text-[#c8c8b8] font-inter leading-relaxed">
+                    Overture decides which provider handles each request. Runtime executes agents safely on edge devices. Hybrid connects them with cryptographic verification.
+                  </p>
+                </div>
+
+                {/* Capabilities - Shows after title on mobile */}
                 <div className="space-y-6">
                   {capabilities.map((capability) => (
                     <div key={capability.name}>
@@ -50,19 +64,6 @@ export default function CoreCapabilities() {
                       </p>
                     </div>
                   ))}
-                </div>
-
-                {/* Title Section - Shows last on mobile */}
-                <div className="mt-12 text-left">
-                  <p className="text-base text-[#5fdfeb] mb-2" style={{ fontFamily: 'Roboto Mono, monospace', letterSpacing: '0.05em' }}>
-                    02. CORE
-                  </p>
-                  <h3 className="text-lg md:text-xl lg:text-2xl font-inter mb-4 text-[#000000] dark:text-[#f6f6f4]">
-                    System Overview
-                  </h3>
-                  <p className="text-sm text-gray-700 dark:text-[#c8c8b8] font-inter leading-relaxed">
-                    Overture decides which provider handles each request. Runtime executes agents safely on edge devices. Hybrid connects them with cryptographic verification.
-                  </p>
                 </div>
               </div>
 

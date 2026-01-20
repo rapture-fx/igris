@@ -18,14 +18,14 @@ export default function Hero() {
           backgroundRepeat: 'no-repeat'
         }}>
           <div className="absolute inset-0 pointer-events-none bg-gradient-to-b from-transparent via-[rgba(246,246,244,0.5)] to-[#f6f6f4] dark:from-transparent dark:via-[rgba(27,25,18,0.5)] dark:to-[#1b1912]"></div>
-          <div className="absolute bottom-0 right-0" style={{ width: '600px', height: 'auto' }}>
+          <div className="absolute bottom-0 right-0" style={{ width: '300px', height: 'auto' }}>
             <Image
               src="/corner.png"
               alt="Corner illustration"
               width={600}
               height={350}
               style={{ width: '100%', height: 'auto' }}
-              className="opacity-30 dark:opacity-80"
+              className="opacity-30 dark:opacity-80 md:w-[600px]"
             />
           </div>
           <div className="flex-1" style={{ paddingTop: '100px' }}>
@@ -45,7 +45,7 @@ export default function Hero() {
               <div className="flex flex-col sm:flex-row gap-3">
                 <Link href="/overture">
                   <button
-                    className="inline-flex items-center justify-center bg-black text-white dark:bg-[#f6f6f4] dark:text-black px-4 py-2 hover:bg-gray-800 dark:hover:bg-gray-200 transition-all duration-200 text-xs font-medium shadow-md hover:shadow-lg"
+                    className="inline-flex items-center justify-center bg-black text-white dark:bg-[#f6f6f4] dark:text-black px-3 py-1.5 md:px-4 md:py-2 hover:bg-gray-800 dark:hover:bg-gray-200 transition-all duration-200 text-xs font-medium shadow-md hover:shadow-lg"
                     style={{ marginBottom: '5rem' }}
                   >
                     Get Started

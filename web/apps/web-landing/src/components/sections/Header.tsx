@@ -201,7 +201,7 @@ export default function Header() {
 
         {/* Mobile Menu */}
         {mobileMenuOpen && (
-          <div className="md:hidden mt-4 pb-4 border-t border-gray-200 dark:border-[#f6f6f4]/5">
+          <div className="md:hidden mt-4 pb-4 border-t border-gray-200 dark:border-[#f6f6f4]/5 bg-[#f6f6f4] dark:bg-[#1b1912]">
             <nav className="flex flex-col space-y-4 mt-4">
               {/* Product Dropdown Mobile */}
                <div>
@@ -301,7 +301,7 @@ export default function Header() {
               <a
                  href={consoleUrl ? `${consoleUrl}/auth?mode=signup` : '#'}
                  onClick={() => setMobileMenuOpen(false)}
-                 className="bg-black text-white dark:bg-[#f6f6f4] dark:text-black px-2.5 py-1 hover:bg-gray-800 dark:hover:bg-gray-200 transition-all duration-200 text-xs shadow-md w-full text-center block"
+                 className="bg-black text-white dark:bg-[#f6f6f4] dark:text-black px-3 py-1.5 hover:bg-gray-800 dark:hover:bg-gray-200 transition-all duration-200 text-xs shadow-md inline-block text-center"
                >
                   Get Started
                 </a>
