@@ -1,8 +1,6 @@
 'use client';
 
 import React, { useEffect } from 'react';
-import { X } from 'lucide-react';
-import Image from 'next/image';
 
 interface OverturePopupProps {
   isOpen: boolean;
@@ -10,27 +8,6 @@ interface OverturePopupProps {
 }
 
 export default function OverturePopup({ isOpen, onClose }: OverturePopupProps) {
-  const coreCapabilities = [
-    { title: 'Evaluate requests', description: 'Evaluates every AI request against policy, budget, and performance signals' },
-    { title: 'Score providers', description: 'Scores available providers in real time based on current conditions' },
-    { title: 'Produce decision', description: 'Produces a deterministic execution decision without running inference' },
-    { title: 'Deploy flexibly', description: 'Operates independently or feeds decisions into Runtime' }
-  ];
-
-  const features = [
-    { title: 'Thompson Sampling', description: 'Bayesian multi-armed bandit intelligently selects optimal AI providers based on historical performance, balancing exploration and exploitation' },
-    { title: 'Speculative Execution', description: 'Launches 2-4 providers in parallel, fastest response wins. Reduces P99 latency by 40-60% automatically' },
-    { title: 'Council Mode', description: 'Runs full inference on multiple providers with peer ranking and consensus selection to reduce hallucinations' },
-    { title: 'Cognitive Advisor', description: 'Automatically detects provider degradation and tunes routing parameters in real-time without manual intervention' },
-    { title: 'Trust-Aware Selection', description: 'Tracks provider honesty by comparing observed vs reported metrics. Automatically blocks providers with trust scores below 30%' },
-    { title: 'Adaptive Circuit Breaker', description: 'Fail-closed protection with OPEN/CLOSED/HALF_OPEN states. Prevents cascading failures across providers' },
-    { title: 'Policy Engine', description: 'Enforces routing rules for cost limits, performance requirements, compliance constraints, and geo-fencing' },
-    { title: 'Explainable Decisions', description: 'Every routing decision includes full reasoning with Thompson scores, trust scores, and policy constraints applied' },
-    { title: 'Multi-Tenancy & BYOK', description: 'Complete tenant isolation with encrypted API key storage. Users own their provider relationships with zero vendor lock-in' },
-    { title: 'Real-Time Cost Tracking', description: 'Tracks every request cost in USD with per-provider breakdowns and automatic budget enforcement' },
-    { title: 'High-Performance Cache', description: 'Dragonfly cache delivers 200K RPS (25x faster than Redis) with 4GB capacity for routing state and metadata' },
-    { title: 'Comprehensive Observability', description: '180+ Prometheus metrics, OpenTelemetry tracing, and full decision metadata for debugging and compliance' }
-  ];
 
   useEffect(() => {
     const handleEscape = (e: KeyboardEvent) => {
@@ -54,7 +31,7 @@ export default function OverturePopup({ isOpen, onClose }: OverturePopupProps) {
     <div className="fixed inset-0 z-[9999] flex items-center justify-center p-4 bg-[#f6f6f4] dark:bg-dark-bg bg-opacity-80 dark:bg-opacity-80" onClick={onClose}>
       {/* Modal Container with Shadow */}
       <div
-        className="relative w-full max-w-[700px] h-[90vh] bg-[#f6f6f4] dark:bg-dark-bg shadow-[0_0_15px_rgba(255,255,255,0.08)] flex flex-col"
+        className="relative w-full max-w-[700px] h-[90vh] bg-[#f6f6f4] dark:bg-dark-bg shadow-[0_0_10px_rgba(255,255,255,0.04)] flex flex-col"
         onClick={(e) => e.stopPropagation()}
       >
         {/* Fixed Hero Section */}
@@ -86,122 +63,179 @@ export default function OverturePopup({ isOpen, onClose }: OverturePopupProps) {
         </div>
 
         {/* Scrollable Content Area */}
-        <div className="flex-1 overflow-y-auto scrollbar-hide">
+        <div className="flex-1 overflow-y-auto scrollbar-hide relative">
+          <div className="relative z-10">
+            {/* Features Section */}
+            <section className="bg-transparent text-gray-900 dark:text-white">
+              <div className="relative px-4 md:px-8 lg:px-12 py-8 flex flex-col bg-transparent border-l border-r border-b section-border">
+              <h3 className="text-xs md:text-sm font-medium text-[#111111] dark:text-[#f6f6f4] mb-4 font-inter">
+                Platform Capabilities
+              </h3>
 
-          {/* Features Section */}
-          <section className="bg-[#f6f6f4] dark:bg-dark-bg text-gray-900 dark:text-white" style={{ minHeight: '600px' }}>
-            <div style={{ minHeight: '600px' }}>
-              <div className="relative px-4 md:px-8 lg:px-12 flex flex-col bg-[#f6f6f4] dark:bg-[#1b1912] border-l border-r border-b section-border" style={{
-                minHeight: '600px'
-              }}>
-                <div className="w-full px-0 flex flex-col md:flex-1">
-                  <div className="text-left mb-6 md:mb-0 md:hidden" style={{ paddingTop: '3rem', paddingBottom: '3rem' }}>
-                    <h3 className="text-lg md:text-xl lg:text-2xl font-inter mb-4 text-[#000000] dark:text-[#f6f6f4]">
-                      Features
-                    </h3>
-                    <p className="text-sm text-gray-600 dark:text-[#c8c8b8] leading-relaxed font-inter mb-8">
-                      Complete feature set verified from production codebase
-                    </p>
-
-                    <div className="space-y-6">
-                      {features.map((feature, index) => (
-                        <div key={index}>
-                          <h4 className="text-sm font-normal text-gray-900 dark:text-white mb-2 font-inter">
-                            {feature.title}
-                          </h4>
-                          <p className="text-xs text-gray-600 dark:text-[#c8c8b8] leading-relaxed font-inter">
-                            {feature.description}
-                          </p>
-                        </div>
-                      ))}
-                    </div>
+              {/* Row 1 */}
+              <div className="grid grid-cols-1 md:grid-cols-2 gap-0 relative mb-0 h-[280px]">
+                {/* Left Column - Features */}
+                <div className="flex flex-col justify-center py-5 pr-4 border-r border-gray-200 dark:border-[#f6f6f4]/5">
+                  <div className="mb-4">
+                    <h5 className="text-xs font-medium text-gray-900 dark:text-[#f6f6f4] mb-1 font-inter">Thompson Sampling</h5>
+                    <p className="text-xs text-gray-600 dark:text-[#c8c8b8] font-inter">Bayesian multi-armed bandit selects optimal providers based on historical performance, balancing exploration and exploitation.</p>
                   </div>
-
-                  <div className="hidden md:grid md:grid-cols-3 gap-0 relative md:flex-1">
-                    <div className="md:col-span-2 flex flex-col justify-start" style={{
-                      paddingTop: '3rem',
-                      paddingBottom: '3rem',
-                      paddingRight: '1rem'
-                    }}>
-                      <div className="w-full max-w-[600px]">
-                        <div className="space-y-6">
-                          {features.map((feature, index) => (
-                            <div key={index}>
-                              <h4 className="text-sm font-normal text-gray-900 dark:text-white mb-2 font-inter">
-                                {feature.title}
-                              </h4>
-                              <p className="text-sm text-gray-600 dark:text-[#c8c8b8] leading-relaxed font-inter">
-                                {feature.description}
-                              </p>
-                            </div>
-                          ))}
-                        </div>
-                      </div>
-                    </div>
-
-                    <div className="md:col-span-1 flex flex-col justify-start" style={{
-                      borderLeft: '0.5px solid rgba(156, 163, 175, 0.3)',
-                      paddingTop: '3rem',
-                      paddingBottom: '3rem',
-                      paddingLeft: '1rem'
-                    }}>
-                      <h3 className="text-lg md:text-xl lg:text-2xl font-inter mb-4 text-[#000000] dark:text-[#f6f6f4]">
-                        Features
-                      </h3>
-                      <p className="text-sm text-gray-600 dark:text-[#c8c8b8] font-inter leading-relaxed">
-                        Complete feature set verified from production codebase
-                      </p>
-                    </div>
+                  <div className="mb-4">
+                    <h5 className="text-xs font-medium text-gray-900 dark:text-[#f6f6f4] mb-1 font-inter">Cognitive Advisor</h5>
+                    <p className="text-xs text-gray-600 dark:text-[#c8c8b8] font-inter">Detects provider degradation and automatically tunes routing parameters in real time—no human in the loop.</p>
                   </div>
+                  <div className="mb-4">
+                    <h5 className="text-xs font-medium text-gray-900 dark:text-[#f6f6f4] mb-1 font-inter">Trust-Aware Selection</h5>
+                    <p className="text-xs text-gray-600 dark:text-[#c8c8b8] font-inter">Continuously scores provider honesty by comparing observed vs. reported metrics and blocks providers below trust thresholds.</p>
+                  </div>
+                  <div>
+                    <h5 className="text-xs font-medium text-gray-900 dark:text-[#f6f6f4] mb-1 font-inter">Council Mode</h5>
+                    <p className="text-xs text-gray-600 dark:text-[#c8c8b8] font-inter">Executes full inference across multiple providers and applies peer ranking and consensus to reduce hallucinations and decision risk.</p>
+                  </div>
+                </div>
+                {/* Right Column - Title and Description */}
+                <div className="flex flex-col justify-center py-5 pl-4">
+                  <h4 className="text-xs md:text-sm font-medium text-[#111111] dark:text-[#f6f6f4] mb-2 font-inter">
+                    Decision Intelligence & Routing Optimization
+                  </h4>
+                  <p className="text-xs text-gray-600 dark:text-[#c8c8b8] font-inter">
+                    How the system chooses the best provider, every time.
+                  </p>
+                </div>
+              </div>
+
+              {/* Row 2 */}
+              <div className="grid grid-cols-1 md:grid-cols-2 gap-0 relative border-t border-gray-200 dark:border-[#f6f6f4]/5 h-[280px]">
+                {/* Left Column - Features */}
+                <div className="flex flex-col justify-center py-5 pr-4 border-r border-gray-200 dark:border-[#f6f6f4]/5">
+                  <div className="mb-4">
+                    <h5 className="text-xs font-medium text-gray-900 dark:text-[#f6f6f4] mb-1 font-inter">Speculative Execution</h5>
+                    <p className="text-xs text-gray-600 dark:text-[#c8c8b8] font-inter">Executes 2–4 providers in parallel and returns the fastest response, cutting P99 latency by 40–60%.</p>
+                  </div>
+                  <div className="mb-4">
+                    <h5 className="text-xs font-medium text-gray-900 dark:text-[#f6f6f4] mb-1 font-inter">Adaptive Circuit Breaker</h5>
+                    <p className="text-xs text-gray-600 dark:text-[#c8c8b8] font-inter">Fail-closed protection with OPEN / CLOSED / HALF_OPEN states to prevent cascading failures.</p>
+                  </div>
+                  <div>
+                    <h5 className="text-xs font-medium text-gray-900 dark:text-[#f6f6f4] mb-1 font-inter">High-Performance Cache</h5>
+                    <p className="text-xs text-gray-600 dark:text-[#c8c8b8] font-inter">Dragonfly-powered cache delivering 200K RPS with 4GB capacity for routing state and metadata.</p>
+                  </div>
+                </div>
+                {/* Right Column - Title and Description */}
+                <div className="flex flex-col justify-center py-5 pl-4">
+                  <h4 className="text-xs md:text-sm font-medium text-[#111111] dark:text-[#f6f6f4] mb-2 font-inter">
+                    Performance & Resilience
+                  </h4>
+                  <p className="text-xs text-gray-600 dark:text-[#c8c8b8] font-inter">
+                    How the system stays fast, available, and failure-proof.
+                  </p>
+                </div>
+              </div>
+
+              {/* Row 3 */}
+              <div className="grid grid-cols-1 md:grid-cols-2 gap-0 relative border-t border-gray-200 dark:border-[#f6f6f4]/5 h-[280px]">
+                {/* Left Column - Features */}
+                <div className="flex flex-col justify-center py-5 pr-4 border-r border-gray-200 dark:border-[#f6f6f4]/5">
+                  <div className="mb-4">
+                    <h5 className="text-xs font-medium text-gray-900 dark:text-[#f6f6f4] mb-1 font-inter">Policy Engine</h5>
+                    <p className="text-xs text-gray-600 dark:text-[#c8c8b8] font-inter">Enforces cost ceilings, performance SLAs, compliance constraints, and geo-fencing rules at runtime.</p>
+                  </div>
+                  <div>
+                    <h5 className="text-xs font-medium text-gray-900 dark:text-[#f6f6f4] mb-1 font-inter">Real-Time Cost Tracking</h5>
+                    <p className="text-xs text-gray-600 dark:text-[#c8c8b8] font-inter">Tracks per-request costs in USD with per-provider breakdowns and automatic budget enforcement.</p>
+                  </div>
+                </div>
+                {/* Right Column - Title and Description */}
+                <div className="flex flex-col justify-center py-5 pl-4">
+                  <h4 className="text-xs md:text-sm font-medium text-[#111111] dark:text-[#f6f6f4] mb-2 font-inter">
+                    Governance, Policy & Cost Control
+                  </h4>
+                  <p className="text-xs text-gray-600 dark:text-[#c8c8b8] font-inter">
+                    How enterprises stay compliant, predictable, and in control.
+                  </p>
+                </div>
+              </div>
+
+              {/* Row 4 */}
+              <div className="grid grid-cols-1 md:grid-cols-2 gap-0 relative border-t border-gray-200 dark:border-[#f6f6f4]/5 h-[280px]">
+                {/* Left Column - Features */}
+                <div className="flex flex-col justify-center py-5 pr-4 border-r border-gray-200 dark:border-[#f6f6f4]/5">
+                  <div>
+                    <h5 className="text-xs font-medium text-gray-900 dark:text-[#f6f6f4] mb-1 font-inter">Explainable Decisions</h5>
+                    <p className="text-xs text-gray-600 dark:text-[#c8c8b8] font-inter">Every routing decision includes full reasoning: Thompson scores, trust scores, and applied policy constraints.</p>
+                  </div>
+                </div>
+                {/* Right Column - Title and Description */}
+                <div className="flex flex-col justify-center py-5 pl-4">
+                  <h4 className="text-xs md:text-sm font-medium text-[#111111] dark:text-[#f6f6f4] mb-2 font-inter">
+                    Transparency & Explainability
+                  </h4>
+                  <p className="text-xs text-gray-600 dark:text-[#c8c8b8] font-inter">
+                    How decisions are auditable, defensible, and regulator-ready.
+                  </p>
+                </div>
+              </div>
+
+              {/* Row 5 */}
+              <div className="grid grid-cols-1 md:grid-cols-2 gap-0 relative border-t border-gray-200 dark:border-[#f6f6f4]/5 h-[280px]">
+                {/* Left Column - Features */}
+                <div className="flex flex-col justify-center py-5 pr-4 border-r border-gray-200 dark:border-[#f6f6f4]/5">
+                  <div>
+                    <h5 className="text-xs font-medium text-gray-900 dark:text-[#f6f6f4] mb-1 font-inter">Comprehensive Observability</h5>
+                    <p className="text-xs text-gray-600 dark:text-[#c8c8b8] font-inter">180+ Prometheus metrics, OpenTelemetry traces, and full decision metadata for debugging, auditing, and compliance.</p>
+                  </div>
+                </div>
+                {/* Right Column - Title and Description */}
+                <div className="flex flex-col justify-center py-5 pl-4">
+                  <h4 className="text-xs md:text-sm font-medium text-[#111111] dark:text-[#f6f6f4] mb-2 font-inter">
+                    Observability & Diagnostics
+                  </h4>
+                  <p className="text-xs text-gray-600 dark:text-[#c8c8b8] font-inter">
+                    How operators see, debug, and trust the system in production.
+                  </p>
+                </div>
+              </div>
+
+              {/* Row 6 */}
+              <div className="grid grid-cols-1 md:grid-cols-2 gap-0 relative border-t border-gray-200 dark:border-[#f6f6f4]/5 h-[280px]">
+                {/* Left Column - Features */}
+                <div className="flex flex-col justify-center py-5 pr-4 border-r border-gray-200 dark:border-[#f6f6f4]/5">
+                  <div>
+                    <h5 className="text-xs font-medium text-gray-900 dark:text-[#f6f6f4] mb-1 font-inter">Multi-Tenancy & BYOK</h5>
+                    <p className="text-xs text-gray-600 dark:text-[#c8c8b8] font-inter">Full tenant isolation with encrypted API key storage. Customers retain ownership of provider relationships with zero lock-in.</p>
+                  </div>
+                </div>
+                {/* Right Column - Title and Description */}
+                <div className="flex flex-col justify-center py-5 pl-4">
+                  <h4 className="text-xs md:text-sm font-medium text-[#111111] dark:text-[#f6f6f4] mb-2 font-inter">
+                    Security, Isolation & Enterprise Readiness
+                  </h4>
+                  <p className="text-xs text-gray-600 dark:text-[#c8c8b8] font-inter">
+                    How the platform scales safely across customers and teams.
+                  </p>
                 </div>
               </div>
             </div>
           </section>
 
-          {/* How It Fits Section */}
-          <section className="bg-[#f6f6f4] dark:bg-dark-bg text-gray-900 dark:text-white" style={{ minHeight: '400px' }}>
-            <div style={{ height: '100%' }}>
-              <div className="relative px-4 md:px-8 lg:px-12 flex flex-col bg-[#f6f6f4] dark:bg-[#1b1912] border-l border-r border-b section-border" style={{
-                height: '100%'
-              }}>
-                <div className="w-full px-0 flex flex-col md:flex-1">
-                  <div className="text-left mb-6 md:mb-0 md:hidden" style={{ paddingTop: '3rem', paddingBottom: '3rem' }}>
-                    <h3 className="text-lg md:text-xl lg:text-2xl font-inter mb-4 text-[#000000] dark:text-[#f6f6f4]">
-                      Use Overture your way
-                    </h3>
-                    <p className="text-sm md:text-base text-gray-600 dark:text-[#c8c8b8] font-inter leading-relaxed">
-                      Overture can run as a standalone decision engine or as part of full Igris Inertial system. Use it alone to generate routing decisions, or pair it with Runtime for end-to-end adaptive execution under real-world uncertainty.
-                    </p>
-                  </div>
-
-                  <div className="grid grid-cols-1 md:grid-cols-3 gap-0 relative md:flex-1" style={{ height: '100%' }}>
-                    <div className="hidden md:flex md:col-span-2 flex-col items-center justify-center" style={{
-                      paddingTop: '3rem',
-                      paddingBottom: '3rem',
-                      paddingRight: '1rem',
-                      paddingLeft: '0'
-                    }}>
-                    </div>
-
-                    <div className="hidden md:flex text-left md:col-span-1 flex-col justify-start" style={{
-                      borderLeft: '0.5px solid rgba(156, 163, 175, 0.3)',
-                      paddingTop: '3rem',
-                      paddingBottom: '3rem',
-                      paddingLeft: '1rem',
-                      height: '100%'
-                    }}>
-                      <h3 className="text-lg md:text-xl lg:text-2xl font-inter mb-4 text-[#000000] dark:text-[#f6f6f4]">
-                        Use Overture your way
-                      </h3>
-                      <p className="text-sm md:text-base text-gray-600 dark:text-[#c8c8b8] font-inter leading-relaxed">
-                        Overture can run as a standalone decision engine or as part of full Igris Inertial system. Use it alone to generate routing decisions, or pair it with Runtime for end-to-end adaptive execution under real-world uncertainty.
-                      </p>
-                    </div>
-                  </div>
-                </div>
-              </div>
+           {/* How It Fits Section */}
+           <section className="bg-transparent text-gray-900 dark:text-white">
+             <div className="relative px-4 md:px-8 lg:px-12 py-8 flex flex-col bg-transparent border-l border-r border-b section-border">
+              <h4 className="text-xs md:text-sm font-medium text-[#111111] dark:text-[#f6f6f4] mb-3 font-inter">
+                Use Overture your way
+              </h4>
+              <p className="text-xs text-gray-600 dark:text-[#c8c8b8] font-inter leading-relaxed mb-4">
+                Overture can run as a standalone decision engine or as part of full Igris Inertial system. Use it alone to generate routing decisions, or pair it with Runtime for end-to-end adaptive execution under real-world uncertainty.
+              </p>
+              <a
+                href="https://docs.igrisinertial.com/overture"
+                className="inline-flex items-center justify-center bg-gray-200 dark:bg-[#f6f6f4] text-gray-900 dark:text-black px-4 py-2 hover:bg-gray-300 dark:hover:bg-gray-200 transition-all duration-200 text-xs font-medium shadow-md hover:shadow-lg w-fit"
+              >
+                Explore Documentation
+              </a>
             </div>
           </section>
+        </div>
         </div>
       </div>
     </div>
