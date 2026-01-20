@@ -52,16 +52,40 @@ export default function CoreCapabilities() {
 
                 {/* Capabilities - Shows after title on mobile */}
                 <div className="space-y-6">
-                  {capabilities.map((capability) => (
-                    <div key={capability.name}>
-                      <h4 className="text-sm font-semibold mb-2 font-inter text-[#000000] dark:text-[#f6f6f4]">
-                        {capability.name}
-                      </h4>
-                      <p className="text-xs text-gray-600 dark:text-[#a8a898] leading-relaxed font-inter">
-                        {capability.description}
-                      </p>
-                    </div>
-                  ))}
+                  {capabilities.map((capability, index) => {
+                    const getImage = () => {
+                      if (index === 0) return { light: '/tre.png', dark: '/dmone.png' };
+                      if (index === 1) return { light: '/two.png', dark: '/dmtwo.png' };
+                      if (index === 2) return { light: '/one.png', dark: '/dmtre.png' };
+                      return null;
+                    };
+                    const images = getImage();
+
+                    return (
+                      <div key={capability.name}>
+                        {images && (
+                          <div className="border border-gray-300 dark:border-[#f6f6f4]/5 mb-4" style={{ height: '150px', position: 'relative', overflow: 'hidden', display: 'flex', alignItems: 'center', justifyContent: 'center' }}>
+                            <img
+                              src={mounted && theme === 'dark' ? images.dark : images.light}
+                              alt={capability.name}
+                              style={{
+                                width: '60%',
+                                height: '60%',
+                                objectFit: 'contain',
+                                opacity: '0.6'
+                              }}
+                            />
+                          </div>
+                        )}
+                        <h4 className="text-sm font-semibold mb-2 font-inter text-[#000000] dark:text-[#f6f6f4]">
+                          {capability.name}
+                        </h4>
+                        <p className="text-xs text-gray-600 dark:text-[#a8a898] leading-relaxed font-inter">
+                          {capability.description}
+                        </p>
+                      </div>
+                    );
+                  })}
                 </div>
               </div>
 
