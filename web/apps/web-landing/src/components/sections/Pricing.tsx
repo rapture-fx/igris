@@ -182,10 +182,10 @@ export default function Pricing() {
                 <h2 className="text-2xl md:text-2xl lg:text-3xl font-inter mb-4 text-[#000000] dark:text-[#f6f6f4]">
                   Pricing
                 </h2>
-                <p className="text-sm md:text-base text-gray-600 dark:text-gray-400 font-inter max-w-2xl mx-auto mb-4">
+                <p className="text-sm md:text-base text-gray-600 dark:text-[#a8a898] font-inter max-w-2xl mx-auto mb-4">
                   Decision intelligence, governed execution, and cryptographic enforcement
                 </p>
-                <p className="text-xs md:text-sm text-gray-600 dark:text-gray-400 font-inter max-w-2xl mx-auto">
+                <p className="text-xs md:text-sm text-gray-600 dark:text-[#a8a898] font-inter max-w-2xl mx-auto">
                   14-day free trial · Full feature access · Hard usage caps · No production guarantees
                 </p>
               </div>
