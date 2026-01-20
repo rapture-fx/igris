@@ -31,7 +31,7 @@ export function DocsNavbar() {
 
   return (
     <>
-    <nav className="bg-[#f6f6f4] dark:bg-[#1b1912] h-12">
+    <nav className="bg-transparent h-12">
       <div className="h-full">
         <div className="h-full max-w-[90rem] mx-auto px-8 sm:px-12 lg:px-16">
           <div className="h-full flex gap-12">
