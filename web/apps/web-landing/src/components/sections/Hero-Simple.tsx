@@ -11,13 +11,8 @@ export default function Hero() {
     <section className="pt-0 pb-0 bg-[#f6f6f4] dark:bg-dark-bg text-gray-900 dark:text-[#f6f6f4] relative overflow-visible -mt-[72px]">
       <div className="mx-auto max-w-[1100px] px-4 sm:px-6 lg:px-8">
         <div className="relative px-4 md:px-8 lg:px-12 pb-0 bg-transparent dark:bg-[#1b1912] z-10 overflow-hidden flex flex-col border-l border-r section-border" style={{
-          minHeight: '500px',
-          backgroundImage: 'url(/cloudbg.png)',
-          backgroundSize: 'cover',
-          backgroundPosition: 'center top -100px',
-          backgroundRepeat: 'no-repeat'
+          minHeight: '500px'
         }}>
-          <div className="absolute inset-0 pointer-events-none bg-gradient-to-b from-transparent via-[rgba(246,246,244,0.5)] to-[#f6f6f4] dark:from-transparent dark:via-[rgba(27,25,18,0.5)] dark:to-[#1b1912]"></div>
           <div className="absolute bottom-0 right-0 w-[300px] md:w-[600px]" style={{ height: 'auto' }}>
             <Image
               src="/corner.png"

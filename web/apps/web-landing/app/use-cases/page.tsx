@@ -52,15 +52,11 @@ export default function UseCasesPage() {
 
   return (
     <>
-      <div className="min-h-screen bg-[#f6f6f4]">
+      <div className="min-h-screen bg-[#f6f6f4] dark:bg-dark-bg">
         <Header />
         <main className="pt-[70px] space-y-1">
           {/* Hero Section */}
-          <section className="pt-0 pb-0 bg-[#f6f6f4] text-gray-900 relative overflow-visible -mt-[72px]" style={{
-        backgroundImage: 'linear-gradient(rgba(246, 246, 244, 0.3), rgba(246, 246, 244, 0.3)), url(/cloudbg.png)',
-        backgroundSize: 'cover',
-        backgroundPosition: 'center top -100px',
-        backgroundRepeat: 'no-repeat',
+          <section className="pt-0 pb-0 bg-[#f6f6f4] dark:bg-dark-bg text-gray-900 dark:text-[#f6f6f4] relative overflow-visible -mt-[72px]" style={{
         borderBottom: '0.5px solid rgba(156, 163, 175, 0.3)'
       }}>
             <div className="mx-auto max-w-[1100px] px-4 sm:px-6 lg:px-8">
@@ -68,7 +64,7 @@ export default function UseCasesPage() {
               }}>
                 <div className="max-w-[1100px] mx-auto pt-20 px-0 md:px-8 lg:px-16 pb-12">
                   <div className="text-left mb-6">
-                    <Link href="/" className="text-sm text-gray-600 hover:text-gray-900 mb-4 inline-flex items-center">
+                    <Link href="/" className="text-sm text-gray-600 dark:text-[#a8a898] hover:text-gray-900 dark:hover:text-[#f6f6f4] mb-4 inline-flex items-center transition-colors">
                       ← Back to home
                     </Link>
                     <div className="flex flex-col md:flex-row md:justify-between md:items-start gap-6 mt-4">
