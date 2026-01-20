@@ -13,11 +13,11 @@ export function DocsLayout({ children }: DocsLayoutProps) {
   const [sidebarOpen, setSidebarOpen] = useState(false);
 
   return (
-    <div className="min-h-screen bg-beige-primary m-0 p-0 overflow-x-hidden">
-      <div className="flex m-0 p-0">
+    <div className="relative min-h-screen m-0 p-0 overflow-x-hidden bg-[#1b1912]">
+      <div className="relative z-10 flex h-screen">
         <DocsSidebar open={sidebarOpen} onClose={() => setSidebarOpen(false)} />
 
-        {/* Main content area with better centering */}
+        {/* Main content area */}
         <main className="flex-1 md:ml-64 overflow-x-hidden flex flex-col h-screen">
           {/* Fixed Navbar with breadcrumbs */}
           <div className="flex-shrink-0">

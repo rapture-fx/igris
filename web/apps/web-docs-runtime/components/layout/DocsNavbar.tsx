@@ -31,7 +31,7 @@ export function DocsNavbar() {
 
   return (
     <>
-    <nav className="bg-beige-primary h-12">
+    <nav className="bg-[#f6f6f4] dark:bg-[#1b1912] h-12">
       <div className="h-full">
         <div className="h-full max-w-[90rem] mx-auto px-8 sm:px-12 lg:px-16">
           <div className="h-full flex gap-12">
@@ -44,13 +44,13 @@ export function DocsNavbar() {
                       <ChevronRight className="h-4 w-4 text-gray-400 mx-2" />
                     )}
                     {index === breadcrumbs.length - 1 ? (
-                      <span className="text-gray-900 font-medium">
+                      <span className="text-gray-900 dark:text-[#f6f6f4] font-medium">
                         {breadcrumb.label}
                       </span>
                     ) : (
                       <Link
                         href={breadcrumb.href}
-                        className="text-gray-600 hover:text-gray-900 transition-colors"
+                        className="text-gray-600 dark:text-[#a8a898] hover:text-gray-900 dark:hover:text-[#f6f6f4] transition-colors"
                       >
                         {breadcrumb.label}
                       </Link>
@@ -65,7 +65,7 @@ export function DocsNavbar() {
               {/* Dashboard Button */}
               <Link
                 href="/dashboard"
-                className="px-3 py-1.5 text-xs font-medium text-gray-900 bg-beige-primary hover:bg-beige-secondary rounded-lg transition-colors whitespace-nowrap shadow-sm border border-gray-200"
+                className="px-3 py-1.5 text-xs font-medium text-gray-900 dark:text-[#f6f6f4] bg-[#f6f6f4] dark:bg-[#25231e] hover:bg-beige-secondary dark:hover:bg-[#2a2820] rounded-lg transition-colors whitespace-nowrap shadow-sm border border-gray-200 dark:border-[#f6f6f4]/10"
               >
                 Dashboard
               </Link>
@@ -73,7 +73,7 @@ export function DocsNavbar() {
               {/* Sign Up Button */}
               <Link
                 href="/signup"
-                className="px-3 py-1.5 text-xs font-medium text-gray-900 bg-beige-primary hover:bg-beige-secondary rounded-lg transition-colors whitespace-nowrap shadow-sm border border-gray-200"
+                className="px-3 py-1.5 text-xs font-medium text-gray-900 dark:text-[#f6f6f4] bg-[#f6f6f4] dark:bg-[#25231e] hover:bg-beige-secondary dark:hover:bg-[#2a2820] rounded-lg transition-colors whitespace-nowrap shadow-sm border border-gray-200 dark:border-[#f6f6f4]/10"
               >
                 Sign Up
               </Link>
