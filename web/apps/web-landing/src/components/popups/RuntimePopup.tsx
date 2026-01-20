@@ -1,7 +1,6 @@
 'use client';
 
 import React, { useEffect } from 'react';
-import { X } from 'lucide-react';
 
 interface RuntimePopupProps {
   isOpen: boolean;
@@ -9,18 +8,6 @@ interface RuntimePopupProps {
 }
 
 export default function RuntimePopup({ isOpen, onClose }: RuntimePopupProps) {
-  const features = [
-    { title: 'Resource Safety Limits', description: 'Enforces strict limits: max 100 tool calls, 10 recursion depth, 5 minute execution timeout, and 10MB output size to prevent runaway AI agents' },
-    { title: 'Deterministic Execution Envelopes', description: 'Wraps every execution in HMAC-signed, tamper-proof envelopes with cryptographic proof of constraints and audit trail' },
-    { title: 'LoRA Fine-Tuning', description: 'On-device fine-tuning with Metal GPU acceleration for M-series Macs. Trained adapters are AES-256-GCM encrypted and device-locked' },
-    { title: 'Local Model Inference', description: 'Runs Phi-3 and custom GGUF models locally for offline operation, privacy-sensitive workloads, and budget fallback scenarios' },
-    { title: 'EscapeVector Semantic Cache', description: 'Embedding-based semantic caching reduces API calls by 30-50% with similarity search and configurable TTL' },
-    { title: 'Sandboxed Tool Execution', description: 'Executes function calls in isolated environments with tool output size limits, timeouts, and safety constraints' },
-    { title: 'Offline Operation', description: 'Continues serving requests using local models and cached responses when network is unavailable or cloud providers fail' },
-    { title: 'Telemetry Streaming', description: 'Streams real-time execution telemetry to Overture via gRPC, feeding Cognitive Advisor and Thompson Sampling updates' },
-    { title: 'Device-Locked Models', description: 'LoRA adapters encrypted with device-specific keys cannot run on other devices, enforcing data locality and preventing theft' },
-    { title: 'Benchmark Fallback', description: 'Automatically routes to simulated providers when budget exhausted, enabling zero-cost testing and development' }
-  ];
 
   useEffect(() => {
     const handleEscape = (e: KeyboardEvent) => {
@@ -44,7 +31,7 @@ export default function RuntimePopup({ isOpen, onClose }: RuntimePopupProps) {
     <div className="fixed inset-0 z-[9999] flex items-center justify-center p-4 bg-[#f6f6f4] dark:bg-dark-bg bg-opacity-80 dark:bg-opacity-80" onClick={onClose}>
       {/* Modal Container with Shadow */}
       <div
-        className="relative w-full max-w-[700px] h-[90vh] bg-[#f6f6f4] dark:bg-dark-bg shadow-[0_0_15px_rgba(255,255,255,0.08)] flex flex-col"
+        className="relative w-full max-w-[700px] h-[90vh] bg-[#f6f6f4] dark:bg-dark-bg shadow-[0_0_10px_rgba(255,255,255,0.04)] flex flex-col"
         onClick={(e) => e.stopPropagation()}
       >
         {/* Fixed Hero Section */}
@@ -68,7 +55,7 @@ export default function RuntimePopup({ isOpen, onClose }: RuntimePopupProps) {
                   Keep AI systems running under real-world conditions.
                 </h2>
                 <p className="text-sm md:text-base text-gray-700 dark:text-[#c8c8b8] max-w-md leading-relaxed text-left mt-4 font-inter">
-                  Runtime executes AI workloads across cloud and edge environments. Maintain execution when infrastructure becomes unreliable so your AI workloads remain operational even when underlying dependencies don't.
+                  Runtime executes AI workloads across cloud and edge environments. Maintain execution when infrastructure becomes unreliable so your AI workloads remain operational even when underlying dependencies do not.
                 </p>
               </div>
             </div>
@@ -76,122 +63,155 @@ export default function RuntimePopup({ isOpen, onClose }: RuntimePopupProps) {
         </div>
 
         {/* Scrollable Content Area */}
-        <div className="flex-1 overflow-y-auto scrollbar-hide">
+        <div className="flex-1 overflow-y-auto scrollbar-hide relative">
+          <div className="relative z-10">
+            {/* Features Section */}
+            <section className="bg-transparent text-gray-900 dark:text-white">
+              <div className="relative px-4 md:px-8 lg:px-12 py-8 flex flex-col bg-transparent border-l border-r border-b section-border">
+              <h3 className="text-xs md:text-sm font-medium text-[#111111] dark:text-[#f6f6f4] mb-4 font-inter">
+                Platform Capabilities
+              </h3>
 
-          {/* Features Section */}
-          <section className="bg-[#f6f6f4] dark:bg-dark-bg text-gray-900 dark:text-white" style={{ minHeight: '600px' }}>
-            <div style={{ minHeight: '600px' }}>
-              <div className="relative px-4 md:px-8 lg:px-12 flex flex-col bg-[#f6f6f4] dark:bg-[#1b1912] border-l border-r border-b section-border" style={{
-                minHeight: '600px'
-              }}>
-                <div className="w-full px-0 flex flex-col md:flex-1">
-                  <div className="text-left mb-6 md:mb-0 md:hidden" style={{ paddingTop: '3rem', paddingBottom: '3rem' }}>
-                    <h3 className="text-lg md:text-xl lg:text-2xl font-inter mb-4 text-[#000000] dark:text-[#f6f6f4]">
-                      Features
-                    </h3>
-                    <p className="text-sm text-gray-600 dark:text-[#c8c8b8] leading-relaxed font-inter mb-8">
-                      Complete feature set verified from production codebase
-                    </p>
-
-                    <div className="space-y-6">
-                      {features.map((feature, index) => (
-                        <div key={index}>
-                          <h4 className="text-sm font-normal text-gray-900 dark:text-white mb-2 font-inter">
-                            {feature.title}
-                          </h4>
-                          <p className="text-xs text-gray-600 dark:text-[#c8c8b8] leading-relaxed font-inter">
-                            {feature.description}
-                          </p>
-                        </div>
-                      ))}
-                    </div>
+              {/* Row 1 */}
+              <div className="grid grid-cols-1 md:grid-cols-2 gap-0 relative mb-0 h-[280px]">
+                {/* Left Column - Features */}
+                <div className="flex flex-col justify-center py-5 pr-4 border-r border-gray-200 dark:border-[#f6f6f4]/5">
+                  <div className="mb-4">
+                    <h5 className="text-xs font-medium text-gray-900 dark:text-[#f6f6f4] mb-1 font-inter">Resource Safety Limits</h5>
+                    <p className="text-xs text-gray-600 dark:text-[#c8c8b8] font-inter">Enforces strict limits: max 100 tool calls, 10 recursion depth, 5 minute execution timeout, and 10MB output size.</p>
                   </div>
-
-                  <div className="hidden md:grid md:grid-cols-3 gap-0 relative md:flex-1">
-                    <div className="md:col-span-2 flex flex-col justify-start" style={{
-                      paddingTop: '3rem',
-                      paddingBottom: '3rem',
-                      paddingRight: '1rem'
-                    }}>
-                      <div className="w-full max-w-[600px]">
-                        <div className="space-y-6">
-                          {features.map((feature, index) => (
-                            <div key={index}>
-                              <h4 className="text-sm font-normal text-gray-900 dark:text-white mb-2 font-inter">
-                                {feature.title}
-                              </h4>
-                              <p className="text-sm text-gray-600 dark:text-[#c8c8b8] leading-relaxed font-inter">
-                                {feature.description}
-                              </p>
-                            </div>
-                          ))}
-                        </div>
-                      </div>
-                    </div>
-
-                    <div className="md:col-span-1 flex flex-col justify-start" style={{
-                      borderLeft: '0.5px solid rgba(156, 163, 175, 0.3)',
-                      paddingTop: '3rem',
-                      paddingBottom: '3rem',
-                      paddingLeft: '1rem'
-                    }}>
-                      <h3 className="text-lg md:text-xl lg:text-2xl font-inter mb-4 text-[#000000] dark:text-[#f6f6f4]">
-                        Features
-                      </h3>
-                      <p className="text-sm text-gray-600 dark:text-[#c8c8b8] font-inter leading-relaxed">
-                        Complete feature set verified from production codebase
-                      </p>
-                    </div>
+                  <div className="mb-4">
+                    <h5 className="text-xs font-medium text-gray-900 dark:text-[#f6f6f4] mb-1 font-inter">Sandboxed Tool Execution</h5>
+                    <p className="text-xs text-gray-600 dark:text-[#c8c8b8] font-inter">Executes function calls in isolated environments with tool output size limits, timeouts, and safety constraints.</p>
                   </div>
+                  <div>
+                    <h5 className="text-xs font-medium text-gray-900 dark:text-[#f6f6f4] mb-1 font-inter">Deterministic Execution Envelopes</h5>
+                    <p className="text-xs text-gray-600 dark:text-[#c8c8b8] font-inter">Wraps every execution in HMAC-signed, tamper-proof envelopes with cryptographic proof of constraints.</p>
+                  </div>
+                </div>
+                {/* Right Column - Title and Description */}
+                <div className="flex flex-col justify-center py-5 pl-4">
+                  <h4 className="text-xs md:text-sm font-medium text-[#111111] dark:text-[#f6f6f4] mb-2 font-inter">
+                    Safe, Sandboxed Execution
+                  </h4>
+                  <p className="text-xs text-gray-600 dark:text-[#c8c8b8] font-inter">
+                    How the system prevents runaway agents and protects infrastructure.
+                  </p>
+                </div>
+              </div>
+
+              {/* Row 2 */}
+              <div className="grid grid-cols-1 md:grid-cols-2 gap-0 relative border-t border-gray-200 dark:border-[#f6f6f4]/5 h-[280px]">
+                {/* Left Column - Features */}
+                <div className="flex flex-col justify-center py-5 pr-4 border-r border-gray-200 dark:border-[#f6f6f4]/5">
+                  <div className="mb-4">
+                    <h5 className="text-xs font-medium text-gray-900 dark:text-[#f6f6f4] mb-1 font-inter">Offline Operation</h5>
+                    <p className="text-xs text-gray-600 dark:text-[#c8c8b8] font-inter">Continues serving requests using local models and cached responses when network is unavailable.</p>
+                  </div>
+                  <div className="mb-4">
+                    <h5 className="text-xs font-medium text-gray-900 dark:text-[#f6f6f4] mb-1 font-inter">Local Model Inference</h5>
+                    <p className="text-xs text-gray-600 dark:text-[#c8c8b8] font-inter">Runs Phi-3 and custom GGUF models locally for offline operation, privacy-sensitive workloads, and budget fallback.</p>
+                  </div>
+                  <div>
+                    <h5 className="text-xs font-medium text-gray-900 dark:text-[#f6f6f4] mb-1 font-inter">EscapeVector Semantic Cache</h5>
+                    <p className="text-xs text-gray-600 dark:text-[#c8c8b8] font-inter">Embedding-based semantic caching reduces API calls by 30-50% with similarity search and configurable TTL.</p>
+                  </div>
+                </div>
+                {/* Right Column - Title and Description */}
+                <div className="flex flex-col justify-center py-5 pl-4">
+                  <h4 className="text-xs md:text-sm font-medium text-[#111111] dark:text-[#f6f6f4] mb-2 font-inter">
+                    Offline & Edge Operation
+                  </h4>
+                  <p className="text-xs text-gray-600 dark:text-[#c8c8b8] font-inter">
+                    How the system keeps working when infrastructure fails.
+                  </p>
+                </div>
+              </div>
+
+              {/* Row 3 */}
+              <div className="grid grid-cols-1 md:grid-cols-2 gap-0 relative border-t border-gray-200 dark:border-[#f6f6f4]/5 h-[280px]">
+                {/* Left Column - Features */}
+                <div className="flex flex-col justify-center py-5 pr-4 border-r border-gray-200 dark:border-[#f6f6f4]/5">
+                  <div className="mb-4">
+                    <h5 className="text-xs font-medium text-gray-900 dark:text-[#f6f6f4] mb-1 font-inter">LoRA Fine-Tuning</h5>
+                    <p className="text-xs text-gray-600 dark:text-[#c8c8b8] font-inter">On-device fine-tuning with Metal GPU acceleration for M-series Macs. Adapters are AES-256-GCM encrypted and device-locked.</p>
+                  </div>
+                  <div>
+                    <h5 className="text-xs font-medium text-gray-900 dark:text-[#f6f6f4] mb-1 font-inter">Device-Locked Models</h5>
+                    <p className="text-xs text-gray-600 dark:text-[#c8c8b8] font-inter">LoRA adapters encrypted with device-specific keys cannot run on other devices, enforcing data locality.</p>
+                  </div>
+                </div>
+                {/* Right Column - Title and Description */}
+                <div className="flex flex-col justify-center py-5 pl-4">
+                  <h4 className="text-xs md:text-sm font-medium text-[#111111] dark:text-[#f6f6f4] mb-2 font-inter">
+                    Adaptive Fine-Tuning
+                  </h4>
+                  <p className="text-xs text-gray-600 dark:text-[#c8c8b8] font-inter">
+                    How the system learns and improves from local data.
+                  </p>
+                </div>
+              </div>
+
+              {/* Row 4 */}
+              <div className="grid grid-cols-1 md:grid-cols-2 gap-0 relative border-t border-gray-200 dark:border-[#f6f6f4]/5 h-[280px]">
+                {/* Left Column - Features */}
+                <div className="flex flex-col justify-center py-5 pr-4 border-r border-gray-200 dark:border-[#f6f6f4]/5">
+                  <div>
+                    <h5 className="text-xs font-medium text-gray-900 dark:text-[#f6f6f4] mb-1 font-inter">Telemetry Streaming</h5>
+                    <p className="text-xs text-gray-600 dark:text-[#c8c8b8] font-inter">Streams real-time execution telemetry to Overture via gRPC, feeding Cognitive Advisor and Thompson Sampling updates.</p>
+                  </div>
+                </div>
+                {/* Right Column - Title and Description */}
+                <div className="flex flex-col justify-center py-5 pl-4">
+                  <h4 className="text-xs md:text-sm font-medium text-[#111111] dark:text-[#f6f6f4] mb-2 font-inter">
+                    Telemetry & Learning
+                  </h4>
+                  <p className="text-xs text-gray-600 dark:text-[#c8c8b8] font-inter">
+                    How the system feeds data back to Overture for continuous improvement.
+                  </p>
+                </div>
+              </div>
+
+              {/* Row 5 */}
+              <div className="grid grid-cols-1 md:grid-cols-2 gap-0 relative border-t border-gray-200 dark:border-[#f6f6f4]/5 h-[280px]">
+                {/* Left Column - Features */}
+                <div className="flex flex-col justify-center py-5 pr-4 border-r border-gray-200 dark:border-[#f6f6f4]/5">
+                  <div>
+                    <h5 className="text-xs font-medium text-gray-900 dark:text-[#f6f6f4] mb-1 font-inter">Benchmark Fallback</h5>
+                    <p className="text-xs text-gray-600 dark:text-[#c8c8b8] font-inter">Automatically routes to simulated providers when budget exhausted, enabling zero-cost testing and development.</p>
+                  </div>
+                </div>
+                {/* Right Column - Title and Description */}
+                <div className="flex flex-col justify-center py-5 pl-4">
+                  <h4 className="text-xs md:text-sm font-medium text-[#111111] dark:text-[#f6f6f4] mb-2 font-inter">
+                    Development & Testing
+                  </h4>
+                  <p className="text-xs text-gray-600 dark:text-[#c8c8b8] font-inter">
+                    How teams iterate without burning budget.
+                  </p>
                 </div>
               </div>
             </div>
           </section>
 
-          {/* How It Fits Section */}
-          <section className="bg-[#f6f6f4] dark:bg-dark-bg text-gray-900 dark:text-white" style={{ minHeight: '400px' }}>
-            <div style={{ height: '100%' }}>
-              <div className="relative px-4 md:px-8 lg:px-12 flex flex-col bg-[#f6f6f4] dark:bg-[#1b1912] border-l border-r border-b section-border" style={{
-                height: '100%'
-              }}>
-                <div className="w-full px-0 flex flex-col md:flex-1">
-                  <div className="text-left mb-6 md:mb-0 md:hidden" style={{ paddingTop: '3rem', paddingBottom: '3rem' }}>
-                    <h3 className="text-lg md:text-xl lg:text-2xl font-inter mb-4 text-[#000000] dark:text-[#f6f6f4]">
-                      Use Runtime your way
-                    </h3>
-                    <p className="text-sm md:text-base text-gray-600 dark:text-[#c8c8b8] font-inter leading-relaxed">
-                      Runtime can operate as a standalone execution engine or as part of a coordinated fleet managed by Overture. Deploy it independently for edge and offline workloads, or combine it with Overture for centralized decision-making with distributed execution.
-                    </p>
-                  </div>
-
-                  <div className="grid grid-cols-1 md:grid-cols-3 gap-0 relative md:flex-1" style={{ height: '100%' }}>
-                    <div className="hidden md:flex md:col-span-2 flex-col items-center justify-center" style={{
-                      paddingTop: '3rem',
-                      paddingBottom: '3rem',
-                      paddingRight: '1rem',
-                      paddingLeft: '0'
-                    }}>
-                    </div>
-
-                    <div className="hidden md:flex text-left md:col-span-1 flex-col justify-start" style={{
-                      borderLeft: '0.5px solid rgba(156, 163, 175, 0.3)',
-                      paddingTop: '3rem',
-                      paddingBottom: '3rem',
-                      paddingLeft: '1rem',
-                      height: '100%'
-                    }}>
-                      <h3 className="text-lg md:text-xl lg:text-2xl font-inter mb-4 text-[#000000] dark:text-[#f6f6f4]">
-                        Use Runtime your way
-                      </h3>
-                      <p className="text-sm md:text-base text-gray-600 dark:text-[#c8c8b8] font-inter leading-relaxed">
-                        Runtime can operate as a standalone execution engine or as part of a coordinated fleet managed by Overture. Deploy it independently for edge and offline workloads, or combine it with Overture for centralized decision-making with distributed execution.
-                      </p>
-                    </div>
-                  </div>
-                </div>
-              </div>
+           {/* How It Fits Section */}
+           <section className="bg-transparent text-gray-900 dark:text-white">
+             <div className="relative px-4 md:px-8 lg:px-12 py-8 flex flex-col bg-transparent border-l border-r border-b section-border">
+              <h4 className="text-xs md:text-sm font-medium text-[#111111] dark:text-[#f6f6f4] mb-3 font-inter">
+                Use Runtime your way
+              </h4>
+              <p className="text-xs text-gray-600 dark:text-[#c8c8b8] font-inter leading-relaxed mb-4">
+                Runtime can operate as a standalone execution engine or as part of a coordinated fleet managed by Overture. Deploy it independently for edge and offline workloads, or combine it with Overture for centralized decision-making with distributed execution.
+              </p>
+              <a
+                href="https://docs.igrisinertial.com/runtime"
+                className="inline-flex items-center justify-center bg-gray-200 dark:bg-[#f6f6f4] text-gray-900 dark:text-black px-4 py-2 hover:bg-gray-300 dark:hover:bg-gray-200 transition-all duration-200 text-xs font-medium shadow-md hover:shadow-lg w-fit"
+              >
+                Explore Documentation
+              </a>
             </div>
           </section>
+        </div>
         </div>
       </div>
     </div>
