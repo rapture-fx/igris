@@ -18,14 +18,14 @@ export default function Hero() {
           backgroundRepeat: 'no-repeat'
         }}>
           <div className="absolute inset-0 pointer-events-none bg-gradient-to-b from-transparent via-[rgba(246,246,244,0.5)] to-[#f6f6f4] dark:from-transparent dark:via-[rgba(27,25,18,0.5)] dark:to-[#1b1912]"></div>
-          <div className="absolute bottom-0 right-0" style={{ width: '300px', height: 'auto' }}>
+          <div className="absolute bottom-0 right-0 w-[300px] md:w-[600px]" style={{ height: 'auto' }}>
             <Image
               src="/corner.png"
               alt="Corner illustration"
               width={600}
               height={350}
               style={{ width: '100%', height: 'auto' }}
-              className="opacity-30 dark:opacity-80 md:w-[600px]"
+              className="opacity-30 dark:opacity-80"
             />
           </div>
           <div className="flex-1" style={{ paddingTop: '100px' }}>

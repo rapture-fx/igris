@@ -133,6 +133,85 @@ export default function RuntimePage() {
             </div>
           </section>
 
+          {/* Features Section */}
+          <section className="bg-[#f6f6f4] dark:bg-dark-bg text-gray-900 dark:text-white" style={{ minHeight: '800px' }}>
+            <div className="mx-auto max-w-[1100px] px-4 sm:px-6 lg:px-8" style={{ minHeight: '800px' }}>
+              <div className="relative px-4 md:px-8 lg:px-12 flex flex-col bg-[#f6f6f4] dark:bg-[#1b1912] border-l border-r border-b section-border" style={{
+                minHeight: '800px'
+              }}>
+
+                {/* Content Container */}
+                <div className="w-full px-0 flex flex-col md:flex-1">
+
+                  {/* Mobile - Title First */}
+                  <div className="text-left mb-6 md:mb-0 md:hidden" style={{ paddingTop: '3rem', paddingBottom: '3rem' }}>
+                    <h3 className="text-lg md:text-xl lg:text-2xl font-inter mb-4 text-[#000000] dark:text-[#f6f6f4]">
+                      Features
+                    </h3>
+                    <p className="text-sm text-gray-600 dark:text-[#c8c8b8] leading-relaxed font-inter mb-8">
+                      Complete feature set verified from production codebase
+                    </p>
+
+                    {/* Features List - Mobile */}
+                    <div className="space-y-6">
+                      {features.map((feature, index) => (
+                        <div key={index}>
+                          <h4 className="text-sm font-normal text-gray-900 dark:text-white mb-2 font-inter">
+                            {feature.title}
+                          </h4>
+                          <p className="text-xs text-gray-600 dark:text-[#c8c8b8] leading-relaxed font-inter">
+                            {feature.description}
+                          </p>
+                        </div>
+                      ))}
+                    </div>
+                  </div>
+
+                  {/* Two-column layout - Desktop */}
+                  <div className="hidden md:grid md:grid-cols-3 gap-0 relative md:flex-1">
+
+                    {/* Left Column - Features List (2 columns wide) */}
+                    <div className="md:col-span-2 flex flex-col justify-start" style={{
+                      paddingTop: '3rem',
+                      paddingBottom: '3rem',
+                      paddingRight: '1rem'
+                    }}>
+                      <div className="w-full max-w-[600px]">
+                        <div className="space-y-6">
+                          {features.map((feature, index) => (
+                            <div key={index}>
+                              <h4 className="text-sm font-normal text-gray-900 dark:text-white mb-2 font-inter">
+                                {feature.title}
+                              </h4>
+                              <p className="text-sm text-gray-600 dark:text-[#c8c8b8] leading-relaxed font-inter">
+                                {feature.description}
+                              </p>
+                            </div>
+                          ))}
+                        </div>
+                      </div>
+                    </div>
+
+                    {/* Right Column - Title (Desktop only) */}
+                    <div className="md:col-span-1 flex flex-col justify-start" style={{
+                      borderLeft: '0.5px solid rgba(156, 163, 175, 0.3)',
+                      paddingTop: '3rem',
+                      paddingBottom: '3rem',
+                      paddingLeft: '1rem'
+                    }}>
+                      <h3 className="text-lg md:text-xl lg:text-2xl font-inter mb-4 text-[#000000] dark:text-[#f6f6f4]">
+                        Features
+                      </h3>
+                      <p className="text-sm text-gray-600 dark:text-[#c8c8b8] font-inter leading-relaxed">
+                        Complete feature set verified from production codebase
+                      </p>
+                    </div>
+                  </div>
+                </div>
+              </div>
+            </div>
+          </section>
+
           {/* Core Capabilities Section */}
           <section className="bg-[#f6f6f4] dark:bg-dark-bg text-gray-900 dark:text-white" style={{ height: '800px' }}>
             <div className="mx-auto max-w-[1100px] px-4 sm:px-6 lg:px-8" style={{ height: '100%' }}>
@@ -267,85 +346,6 @@ export default function RuntimePage() {
                       </h3>
                       <p className="text-sm md:text-base text-gray-600 dark:text-[#c8c8b8] font-inter leading-relaxed">
                         Runtime can operate as a standalone execution engine or as part of a coordinated fleet managed by Overture. Deploy it independently for edge and offline workloads, or combine it with Overture for centralized decision-making with distributed execution.
-                      </p>
-                    </div>
-                  </div>
-                </div>
-              </div>
-            </div>
-          </section>
-
-          {/* Features Section */}
-          <section className="bg-[#f6f6f4] dark:bg-dark-bg text-gray-900 dark:text-white" style={{ minHeight: '800px' }}>
-            <div className="mx-auto max-w-[1100px] px-4 sm:px-6 lg:px-8" style={{ minHeight: '800px' }}>
-              <div className="relative px-4 md:px-8 lg:px-12 flex flex-col bg-[#f6f6f4] dark:bg-[#1b1912] border-l border-r border-b section-border" style={{
-                minHeight: '800px'
-              }}>
-
-                {/* Content Container */}
-                <div className="w-full px-0 flex flex-col md:flex-1">
-
-                  {/* Mobile - Title First */}
-                  <div className="text-left mb-6 md:mb-0 md:hidden" style={{ paddingTop: '3rem', paddingBottom: '3rem' }}>
-                    <h3 className="text-lg md:text-xl lg:text-2xl font-inter mb-4 text-[#000000] dark:text-[#f6f6f4]">
-                      Features
-                    </h3>
-                    <p className="text-sm text-gray-600 dark:text-[#c8c8b8] leading-relaxed font-inter mb-8">
-                      Complete feature set verified from production codebase
-                    </p>
-
-                    {/* Features List - Mobile */}
-                    <div className="space-y-6">
-                      {features.map((feature, index) => (
-                        <div key={index}>
-                          <h4 className="text-sm font-normal text-gray-900 dark:text-white mb-2 font-inter">
-                            {feature.title}
-                          </h4>
-                          <p className="text-xs text-gray-600 dark:text-[#c8c8b8] leading-relaxed font-inter">
-                            {feature.description}
-                          </p>
-                        </div>
-                      ))}
-                    </div>
-                  </div>
-
-                  {/* Two-column layout - Desktop */}
-                  <div className="hidden md:grid md:grid-cols-3 gap-0 relative md:flex-1">
-
-                    {/* Left Column - Features List (2 columns wide) */}
-                    <div className="md:col-span-2 flex flex-col justify-start" style={{
-                      paddingTop: '3rem',
-                      paddingBottom: '3rem',
-                      paddingRight: '1rem'
-                    }}>
-                      <div className="w-full max-w-[600px]">
-                        <div className="space-y-6">
-                          {features.map((feature, index) => (
-                            <div key={index}>
-                              <h4 className="text-sm font-normal text-gray-900 dark:text-white mb-2 font-inter">
-                                {feature.title}
-                              </h4>
-                              <p className="text-sm text-gray-600 dark:text-[#c8c8b8] leading-relaxed font-inter">
-                                {feature.description}
-                              </p>
-                            </div>
-                          ))}
-                        </div>
-                      </div>
-                    </div>
-
-                    {/* Right Column - Title (Desktop only) */}
-                    <div className="md:col-span-1 flex flex-col justify-start" style={{
-                      borderLeft: '0.5px solid rgba(156, 163, 175, 0.3)',
-                      paddingTop: '3rem',
-                      paddingBottom: '3rem',
-                      paddingLeft: '1rem'
-                    }}>
-                      <h3 className="text-lg md:text-xl lg:text-2xl font-inter mb-4 text-[#000000] dark:text-[#f6f6f4]">
-                        Features
-                      </h3>
-                      <p className="text-sm text-gray-600 dark:text-[#c8c8b8] font-inter leading-relaxed">
-                        Complete feature set verified from production codebase
                       </p>
                     </div>
                   </div>
