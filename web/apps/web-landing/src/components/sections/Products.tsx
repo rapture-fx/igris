@@ -14,9 +14,7 @@ export default function Products() {
   return (
     <section className="bg-[#f6f6f4] dark:bg-dark-bg text-gray-900 dark:text-[#f6f6f4] transition-colors duration-200">
       <div className="mx-auto max-w-[1100px] px-4 sm:px-6 lg:px-8">
-        <div className="relative px-4 md:px-8 lg:px-12 flex flex-col bg-[#f6f6f4] dark:bg-[#1b1912] border-l border-r border-b section-border" style={{
-          height: '800px'
-        }}>
+        <div className="relative px-4 md:px-8 lg:px-12 flex flex-col bg-[#f6f6f4] dark:bg-[#1b1912] border-l border-r border-b section-border min-h-[800px] md:h-[800px]">
 
           {/* Title Section - Shows first on mobile, last on desktop */}
            <div className="mb-6 md:mb-0 md:hidden text-left" style={{ paddingTop: '3rem', paddingBottom: '3rem' }}>
@@ -69,8 +67,8 @@ export default function Products() {
                  </p>
                      <div className="border border-gray-300 dark:border-[#f6f6f4]/5" style={{ marginTop: '1rem', marginBottom: '1rem', height: '200px', position: 'relative', overflow: 'hidden' }}>
                        <Image
-                         src={mounted && theme === 'dark' ? '/ov.png' : '/overtureframe.png'}
-                         alt="Overture Decision Layer"
+                         src={mounted && theme === 'dark' ? '/lig.png' : '/runtimeframe.png'}
+                         alt="Runtime Execution Layer"
                          fill
                          style={{ objectFit: 'cover' }}
                        />
