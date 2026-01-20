@@ -57,3 +57,22 @@
 body.modal-open {
   overflow: hidden !important;
 }
+
+/* Scroll animation for carousel */
+@keyframes scroll-seamless {
+  from {
+    transform: translateX(0);
+  }
+  to {
+    transform: translateX(-50%);
+  }
+}
+
+.animate-scroll-seamless {
+  animation: scroll-seamless 30s linear infinite;
+  will-change: transform;
+}
+
+.scroll-container:hover .animate-scroll-seamless {
+  animation-play-state: paused;
+}
