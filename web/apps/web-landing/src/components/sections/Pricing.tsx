@@ -167,14 +167,7 @@ export default function Pricing() {
   const isDark = mounted && theme === 'dark';
 
   return (
-    <section id="pricing" className="pt-0 pb-0 bg-[#f6f6f4] dark:bg-dark-bg text-gray-900 dark:text-[#f6f6f4] relative overflow-visible -mt-[72px] transition-colors duration-200" style={{
-      backgroundImage: isDark
-        ? 'linear-gradient(rgba(27, 25, 18, 0.3), rgba(27, 25, 18, 0.3)), url(/cloudbg.png)'
-        : 'linear-gradient(rgba(246, 246, 244, 0.3), rgba(246, 246, 244, 0.3)), url(/cloudbg.png)',
-      backgroundSize: 'cover',
-      backgroundPosition: 'center top -100px',
-      backgroundRepeat: 'no-repeat'
-    }}>
+    <section id="pricing" className="pt-0 pb-0 bg-[#f6f6f4] dark:bg-dark-bg text-gray-900 dark:text-[#f6f6f4] relative overflow-visible -mt-[72px] transition-colors duration-200">
       <div className="mx-auto max-w-[1100px] px-4 sm:px-6 lg:px-8">
         <div className="relative px-4 md:px-8 lg:px-12 pb-0 bg-transparent z-10 overflow-visible border-l border-r border-b section-border">
            <div className="max-w-[1400px] mx-auto pt-48 px-0 md:px-8 lg:px-0 pb-12">

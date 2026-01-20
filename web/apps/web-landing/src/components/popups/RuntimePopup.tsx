@@ -36,13 +36,10 @@ export default function RuntimePopup({ isOpen, onClose }: RuntimePopupProps) {
       >
         {/* Fixed Hero Section */}
         <div className="flex-shrink-0 relative" style={{
-          backgroundImage: 'url(/cloudbg.png)',
-          backgroundSize: 'cover',
-          backgroundPosition: 'center top -100px',
-          backgroundRepeat: 'no-repeat'
+          minHeight: '200px'
         }}>
-          <div className="absolute inset-0 pointer-events-none bg-gradient-to-b from-transparent via-[rgba(246,246,244,0.1)] to-[#f6f6f4] dark:from-transparent dark:via-[rgba(27,25,18,0.1)] dark:to-[#1b1912]"></div>
-          <div className="absolute inset-0 bg-[url('/lig.png')] bg-cover bg-center opacity-40"></div>
+          <div className="absolute inset-0 pointer-events-none"></div>
+          <div className="absolute inset-0 bg-[url('/lig.png')] bg-cover bg-center opacity-40 dark:opacity-60"></div>
           <div className="relative px-4 md:px-8 lg:px-12 pb-0 bg-transparent z-10 overflow-visible flex flex-col border-l border-r border-b section-border" style={{
             minHeight: '200px'
           }}>
