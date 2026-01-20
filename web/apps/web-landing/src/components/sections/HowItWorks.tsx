@@ -38,14 +38,13 @@ export default function HowItWorks() {
                 <div className="space-y-8">
                   {/* Step 1: Decide */}
                   <div>
-                    <div className="border border-gray-300 dark:border-[#f6f6f4]/5 mb-4 bg-[#f6f6f4] dark:bg-[#1b1912]" style={{ height: '150px', position: 'relative', overflow: 'hidden', display: 'flex', alignItems: 'center', justifyContent: 'center' }}>
+                    <div className="border border-gray-300 dark:border-[#f6f6f4]/5 mb-4 bg-[#f6f6f4] dark:bg-[#1b1912]" style={{ height: '150px', position: 'relative', overflow: 'hidden' }}>
                       <Image
                         src="/cp.png"
                         alt="Control Plane"
-                        width={200}
-                        height={200}
-                        className="object-contain opacity-80"
-                        style={{ width: '60%', height: '60%' }}
+                        fill
+                        className="opacity-80"
+                        style={{ objectFit: 'cover' }}
                       />
                     </div>
                     <h4 className="text-sm font-semibold text-[#000000] dark:text-[#f6f6f4] mb-3 font-inter">Decide (Control Plane)</h4>
@@ -59,14 +58,13 @@ export default function HowItWorks() {
 
                   {/* Step 2: Execute */}
                   <div>
-                    <div className="border border-gray-300 dark:border-[#f6f6f4]/5 mb-4 bg-[#f6f6f4] dark:bg-[#1b1912]" style={{ height: '150px', position: 'relative', overflow: 'hidden', display: 'flex', alignItems: 'center', justifyContent: 'center' }}>
+                    <div className="border border-gray-300 dark:border-[#f6f6f4]/5 mb-4 bg-[#f6f6f4] dark:bg-[#1b1912]" style={{ height: '150px', position: 'relative', overflow: 'hidden' }}>
                       <Image
                         src="/ex.png"
                         alt="Runtime Plane"
-                        width={200}
-                        height={200}
-                        className="object-contain opacity-80"
-                        style={{ width: '60%', height: '60%' }}
+                        fill
+                        className="opacity-80"
+                        style={{ objectFit: 'cover' }}
                       />
                     </div>
                     <h4 className="text-sm font-semibold text-[#000000] dark:text-[#f6f6f4] mb-3 font-inter">Execute (Runtime Plane)</h4>
@@ -80,14 +78,13 @@ export default function HowItWorks() {
 
                   {/* Step 3: Verify & Improve */}
                   <div>
-                    <div className="border border-gray-300 dark:border-[#f6f6f4]/5 mb-4 bg-[#f6f6f4] dark:bg-[#1b1912]" style={{ height: '150px', position: 'relative', overflow: 'hidden', display: 'flex', alignItems: 'center', justifyContent: 'center' }}>
+                    <div className="border border-gray-300 dark:border-[#f6f6f4]/5 mb-4 bg-[#f6f6f4] dark:bg-[#1b1912]" style={{ height: '150px', position: 'relative', overflow: 'hidden' }}>
                       <Image
                         src="/lo.png"
                         alt="Feedback Loop"
-                        width={200}
-                        height={200}
-                        className="object-contain opacity-100"
-                        style={{ width: '60%', height: '60%' }}
+                        fill
+                        className="opacity-100"
+                        style={{ objectFit: 'cover' }}
                       />
                     </div>
                     <h4 className="text-sm font-semibold text-[#000000] dark:text-[#f6f6f4] mb-3 font-inter">Verify & Improve (Feedback Loop)</h4>
