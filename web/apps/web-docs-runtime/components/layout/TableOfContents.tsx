@@ -56,7 +56,7 @@ export function TableOfContents() {
 
   return (
     <div className="sticky top-6">
-      <h4 className="text-xs font-semibold text-gray-900 tracking-wide mb-3">
+      <h4 className="text-xs font-semibold text-gray-900 dark:text-[#f6f6f4] tracking-wide mb-3">
         On This Page
       </h4>
       <nav className="max-h-[calc(100vh-12rem)] overflow-y-auto scrollbar-hide">
@@ -69,8 +69,8 @@ export function TableOfContents() {
                   'block text-[0.8125rem] transition-colors py-0.5',
                   heading.level === 3 && 'pl-3',
                   activeId === heading.id
-                    ? 'text-primary font-medium'
-                    : 'text-gray-600 hover:text-gray-900'
+                    ? 'text-primary dark:text-[#3b82f6] font-medium'
+                    : 'text-gray-600 dark:text-[#a8a898] hover:text-gray-900 dark:hover:text-[#f6f6f4]'
                 )}
                 onClick={(e) => {
                   e.preventDefault();
