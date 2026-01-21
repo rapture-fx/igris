@@ -60,22 +60,29 @@ export default function MultiTenancy() {
             {/* Two-column layout */}
             <div className="grid grid-cols-1 md:grid-cols-3 gap-0 md:flex-1">
                {/* Left Column - Features (2 columns wide) */}
-               <div className="hidden md:flex md:col-span-2 flex-col justify-start" style={{ paddingTop: '3rem', paddingBottom: '3rem', paddingRight: '1rem' }}>
-                     <div className="w-full max-w-[320px]">
-                   <div className="flex flex-col gap-6">
-                     {features.map((feature, index) => (
-                       <div key={feature.name} className="text-left pb-6 border-b border-gray-300 dark:border-[#f6f6f4]/10 last:border-0">
-                     <h3 className="text-sm font-semibold mb-3 font-inter text-[#000000] dark:text-[#f6f6f4]">
-                       {feature.name}
-                     </h3>
-                   <p className="text-sm text-gray-600 dark:text-[#a8a898] leading-relaxed font-inter">
-                       {feature.description}
-                     </p>
+                 <div className="hidden md:flex md:col-span-2 flex-col justify-start" style={{ paddingTop: '3rem', paddingBottom: '0', paddingRight: '1rem' }}>
+                   <div className="flex gap-6">
+                     {/* Text Content */}
+                     <div className="flex-1">
+                       <div className="flex flex-col gap-6">
+                         {features.map((feature, index) => (
+                           <div key={feature.name} className="text-left pb-6 border-b border-[rgba(156,163,175,0.3)] dark:border-[rgba(246,246,244,0.05)] last:border-0">
+                             <h3 className="text-sm font-semibold mb-3 font-inter text-[#000000] dark:text-[#f6f6f4]">
+                               {feature.name}
+                             </h3>
+                             <p className="text-sm text-gray-600 dark:text-[#a8a898] leading-relaxed font-inter">
+                               {feature.description}
+                             </p>
+                           </div>
+                         ))}
                        </div>
-                     ))}
+                     </div>
+                     {/* Square Frame */}
+                     <div className="w-[400px] h-full border border-[rgba(156,163,175,0.3)] dark:border-[rgba(246,246,244,0.05)] flex-shrink-0"></div>
                    </div>
-                 </div>
-              </div>
+                   {/* Bottom Horizontal Frame */}
+                   <div className="h-[1px] w-full border-t border-[rgba(156,163,175,0.3)] dark:border-[rgba(246,246,244,0.05)] mt-6"></div>
+                </div>
 
               {/* Right Column - Title and Intro (Desktop only) */}
                 <div className="hidden md:flex md:col-span-1 md:border-l flex-col justify-start dark:border-[#f6f6f4]/5" style={{ paddingTop: '3rem', paddingBottom: '3rem', paddingLeft: '1rem' }}>

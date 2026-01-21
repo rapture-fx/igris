@@ -38,9 +38,7 @@ export default function OverturePopup({ isOpen, onClose }: OverturePopupProps) {
         <div className="flex-shrink-0 relative" style={{
           minHeight: '200px'
         }}>
-          <div className="absolute inset-0 pointer-events-none"></div>
-          <div className="absolute inset-0 bg-[url('/ov.png')] bg-cover bg-center opacity-20 dark:opacity-40"></div>
-          <div className="relative px-4 md:px-8 lg:px-12 pb-0 bg-transparent z-10 overflow-visible flex flex-col border-l border-r border-b section-border" style={{
+          <div className="relative px-4 md:px-8 lg:px-12 pb-0 bg-transparent z-10 overflow-visible flex flex-col border-l border-r section-border" style={{
             minHeight: '200px'
           }}>
             <div className="mx-auto w-full relative z-10" style={{ paddingTop: '3rem', paddingBottom: '2rem' }}>
@@ -51,7 +49,7 @@ export default function OverturePopup({ isOpen, onClose }: OverturePopupProps) {
                 <h2 className="text-base md:text-lg lg:text-xl font-inter font-medium text-[#111111] dark:text-[#f6f6f4] leading-[1.2] mt-2">
                   Make the right AI routing decision, every time.
                 </h2>
-                <p className="text-sm md:text-base text-gray-700 dark:text-[#c8c8b8] max-w-md leading-relaxed text-left mt-4 font-inter">
+                <p className="text-xs md:text-sm text-gray-700 dark:text-[#c8c8b8] max-w-md leading-relaxed text-left mt-4 font-inter">
                   Overture evaluates policies, cost, performance, and availability to decide where AI requests should run in real time before execution, so your systems remain fast, cost-efficient, and resilient as conditions change.
                 </p>
               </div>
@@ -64,34 +62,29 @@ export default function OverturePopup({ isOpen, onClose }: OverturePopupProps) {
           <div className="relative z-10">
             {/* Features Section */}
             <section className="bg-transparent text-gray-900 dark:text-white">
-              <div className="relative px-4 md:px-8 lg:px-12 py-8 flex flex-col bg-transparent border-l border-r border-b section-border">
-              <h3 className="text-xs md:text-sm font-medium text-[#111111] dark:text-[#f6f6f4] mb-4 font-inter">
-                Platform Capabilities
-              </h3>
-
-              {/* Row 1 */}
-              <div className="grid grid-cols-1 md:grid-cols-2 gap-0 relative mb-0 h-[280px]">
+                <div className="relative px-4 md:px-8 lg:px-12 pt-0 pb-8 flex flex-col bg-transparent border-l border-r border-gray-200 dark:border-[#f6f6f4]/5">
+              <div className="grid grid-cols-1 md:grid-cols-3 gap-0 relative mb-0 h-[280px] border-t-0">
                 {/* Left Column - Features */}
-                <div className="flex flex-col justify-center py-5 pr-4 border-r border-gray-200 dark:border-[#f6f6f4]/5">
-                  <div className="mb-4">
+                <div className="md:col-span-2 flex flex-col pt-0 pb-5 pr-4 border-r border-gray-200 dark:border-[#f6f6f4]/5">
+                  <div className="mb-4 pt-5">
                     <h5 className="text-xs font-medium text-gray-900 dark:text-[#f6f6f4] mb-1 font-inter">Thompson Sampling</h5>
-                    <p className="text-xs text-gray-600 dark:text-[#c8c8b8] font-inter">Bayesian multi-armed bandit selects optimal providers based on historical performance, balancing exploration and exploitation.</p>
+                    <p className="text-xs text-gray-600 dark:text-[#c8c8b8] font-inter line-clamp-3">Bayesian multi-armed bandit selects optimal providers based on historical performance, balancing exploration and exploitation.</p>
                   </div>
                   <div className="mb-4">
                     <h5 className="text-xs font-medium text-gray-900 dark:text-[#f6f6f4] mb-1 font-inter">Cognitive Advisor</h5>
-                    <p className="text-xs text-gray-600 dark:text-[#c8c8b8] font-inter">Detects provider degradation and automatically tunes routing parameters in real time—no human in the loop.</p>
+                    <p className="text-xs text-gray-600 dark:text-[#c8c8b8] font-inter line-clamp-3">Detects provider degradation and automatically tunes routing parameters in real time—no human in the loop.</p>
                   </div>
                   <div className="mb-4">
                     <h5 className="text-xs font-medium text-gray-900 dark:text-[#f6f6f4] mb-1 font-inter">Trust-Aware Selection</h5>
-                    <p className="text-xs text-gray-600 dark:text-[#c8c8b8] font-inter">Continuously scores provider honesty by comparing observed vs. reported metrics and blocks providers below trust thresholds.</p>
+                    <p className="text-xs text-gray-600 dark:text-[#c8c8b8] font-inter line-clamp-3">Continuously scores provider honesty by comparing observed vs. reported metrics and blocks providers below trust thresholds.</p>
                   </div>
                   <div>
                     <h5 className="text-xs font-medium text-gray-900 dark:text-[#f6f6f4] mb-1 font-inter">Council Mode</h5>
-                    <p className="text-xs text-gray-600 dark:text-[#c8c8b8] font-inter">Executes full inference across multiple providers and applies peer ranking and consensus to reduce hallucinations and decision risk.</p>
+                    <p className="text-xs text-gray-600 dark:text-[#c8c8b8] font-inter line-clamp-3">Executes full inference across multiple providers and applies peer ranking and consensus to reduce hallucinations and decision risk.</p>
                   </div>
                 </div>
                 {/* Right Column - Title and Description */}
-                <div className="flex flex-col justify-center py-5 pl-4">
+                <div className="flex flex-col justify-start pt-5 pb-5 pl-4">
                   <h4 className="text-xs md:text-sm font-medium text-[#111111] dark:text-[#f6f6f4] mb-2 font-inter">
                     Decision Intelligence & Routing Optimization
                   </h4>
@@ -102,24 +95,24 @@ export default function OverturePopup({ isOpen, onClose }: OverturePopupProps) {
               </div>
 
               {/* Row 2 */}
-              <div className="grid grid-cols-1 md:grid-cols-2 gap-0 relative border-t border-gray-200 dark:border-[#f6f6f4]/5 h-[280px]">
+              <div className="grid grid-cols-1 md:grid-cols-3 gap-0 relative border-t border-gray-200 dark:border-[#f6f6f4]/5 h-[280px]">
                 {/* Left Column - Features */}
-                <div className="flex flex-col justify-center py-5 pr-4 border-r border-gray-200 dark:border-[#f6f6f4]/5">
+                <div className="md:col-span-2 flex flex-col py-5 pr-4 border-r border-gray-200 dark:border-[#f6f6f4]/5">
                   <div className="mb-4">
                     <h5 className="text-xs font-medium text-gray-900 dark:text-[#f6f6f4] mb-1 font-inter">Speculative Execution</h5>
-                    <p className="text-xs text-gray-600 dark:text-[#c8c8b8] font-inter">Executes 2–4 providers in parallel and returns the fastest response, cutting P99 latency by 40–60%.</p>
+                    <p className="text-xs text-gray-600 dark:text-[#c8c8b8] font-inter line-clamp-3">Executes 2–4 providers in parallel and returns the fastest response, cutting P99 latency by 40–60%.</p>
                   </div>
                   <div className="mb-4">
                     <h5 className="text-xs font-medium text-gray-900 dark:text-[#f6f6f4] mb-1 font-inter">Adaptive Circuit Breaker</h5>
-                    <p className="text-xs text-gray-600 dark:text-[#c8c8b8] font-inter">Fail-closed protection with OPEN / CLOSED / HALF_OPEN states to prevent cascading failures.</p>
+                    <p className="text-xs text-gray-600 dark:text-[#c8c8b8] font-inter line-clamp-3">Fail-closed protection with OPEN / CLOSED / HALF_OPEN states to prevent cascading failures.</p>
                   </div>
                   <div>
                     <h5 className="text-xs font-medium text-gray-900 dark:text-[#f6f6f4] mb-1 font-inter">High-Performance Cache</h5>
-                    <p className="text-xs text-gray-600 dark:text-[#c8c8b8] font-inter">Dragonfly-powered cache delivering 200K RPS with 4GB capacity for routing state and metadata.</p>
+                    <p className="text-xs text-gray-600 dark:text-[#c8c8b8] font-inter line-clamp-3">Dragonfly-powered cache delivering 200K RPS with 4GB capacity for routing state and metadata.</p>
                   </div>
                 </div>
                 {/* Right Column - Title and Description */}
-                <div className="flex flex-col justify-center py-5 pl-4">
+                <div className="flex flex-col justify-start py-5 pl-4">
                   <h4 className="text-xs md:text-sm font-medium text-[#111111] dark:text-[#f6f6f4] mb-2 font-inter">
                     Performance & Resilience
                   </h4>
@@ -130,20 +123,20 @@ export default function OverturePopup({ isOpen, onClose }: OverturePopupProps) {
               </div>
 
               {/* Row 3 */}
-              <div className="grid grid-cols-1 md:grid-cols-2 gap-0 relative border-t border-gray-200 dark:border-[#f6f6f4]/5 h-[280px]">
+              <div className="grid grid-cols-1 md:grid-cols-3 gap-0 relative border-t border-gray-200 dark:border-[#f6f6f4]/5 h-[280px]">
                 {/* Left Column - Features */}
-                <div className="flex flex-col justify-center py-5 pr-4 border-r border-gray-200 dark:border-[#f6f6f4]/5">
+                <div className="md:col-span-2 flex flex-col py-5 pr-4 border-r border-gray-200 dark:border-[#f6f6f4]/5">
                   <div className="mb-4">
                     <h5 className="text-xs font-medium text-gray-900 dark:text-[#f6f6f4] mb-1 font-inter">Policy Engine</h5>
-                    <p className="text-xs text-gray-600 dark:text-[#c8c8b8] font-inter">Enforces cost ceilings, performance SLAs, compliance constraints, and geo-fencing rules at runtime.</p>
+                    <p className="text-xs text-gray-600 dark:text-[#c8c8b8] font-inter line-clamp-3">Enforces cost ceilings, performance SLAs, compliance constraints, and geo-fencing rules at runtime.</p>
                   </div>
                   <div>
                     <h5 className="text-xs font-medium text-gray-900 dark:text-[#f6f6f4] mb-1 font-inter">Real-Time Cost Tracking</h5>
-                    <p className="text-xs text-gray-600 dark:text-[#c8c8b8] font-inter">Tracks per-request costs in USD with per-provider breakdowns and automatic budget enforcement.</p>
+                    <p className="text-xs text-gray-600 dark:text-[#c8c8b8] font-inter line-clamp-3">Tracks per-request costs in USD with per-provider breakdowns and automatic budget enforcement.</p>
                   </div>
                 </div>
                 {/* Right Column - Title and Description */}
-                <div className="flex flex-col justify-center py-5 pl-4">
+                <div className="flex flex-col justify-start py-5 pl-4">
                   <h4 className="text-xs md:text-sm font-medium text-[#111111] dark:text-[#f6f6f4] mb-2 font-inter">
                     Governance, Policy & Cost Control
                   </h4>
@@ -154,16 +147,16 @@ export default function OverturePopup({ isOpen, onClose }: OverturePopupProps) {
               </div>
 
               {/* Row 4 */}
-              <div className="grid grid-cols-1 md:grid-cols-2 gap-0 relative border-t border-gray-200 dark:border-[#f6f6f4]/5 h-[280px]">
+              <div className="grid grid-cols-1 md:grid-cols-3 gap-0 relative border-t border-gray-200 dark:border-[#f6f6f4]/5 h-[280px]">
                 {/* Left Column - Features */}
-                <div className="flex flex-col justify-center py-5 pr-4 border-r border-gray-200 dark:border-[#f6f6f4]/5">
+                <div className="md:col-span-2 flex flex-col py-5 pr-4 border-r border-gray-200 dark:border-[#f6f6f4]/5">
                   <div>
                     <h5 className="text-xs font-medium text-gray-900 dark:text-[#f6f6f4] mb-1 font-inter">Explainable Decisions</h5>
-                    <p className="text-xs text-gray-600 dark:text-[#c8c8b8] font-inter">Every routing decision includes full reasoning: Thompson scores, trust scores, and applied policy constraints.</p>
+                    <p className="text-xs text-gray-600 dark:text-[#c8c8b8] font-inter line-clamp-3">Every routing decision includes full reasoning: Thompson scores, trust scores, and applied policy constraints.</p>
                   </div>
                 </div>
                 {/* Right Column - Title and Description */}
-                <div className="flex flex-col justify-center py-5 pl-4">
+                <div className="flex flex-col justify-start py-5 pl-4">
                   <h4 className="text-xs md:text-sm font-medium text-[#111111] dark:text-[#f6f6f4] mb-2 font-inter">
                     Transparency & Explainability
                   </h4>
@@ -174,16 +167,16 @@ export default function OverturePopup({ isOpen, onClose }: OverturePopupProps) {
               </div>
 
               {/* Row 5 */}
-              <div className="grid grid-cols-1 md:grid-cols-2 gap-0 relative border-t border-gray-200 dark:border-[#f6f6f4]/5 h-[280px]">
+              <div className="grid grid-cols-1 md:grid-cols-3 gap-0 relative border-t border-gray-200 dark:border-[#f6f6f4]/5 h-[280px]">
                 {/* Left Column - Features */}
-                <div className="flex flex-col justify-center py-5 pr-4 border-r border-gray-200 dark:border-[#f6f6f4]/5">
+                <div className="md:col-span-2 flex flex-col py-5 pr-4 border-r border-gray-200 dark:border-[#f6f6f4]/5">
                   <div>
                     <h5 className="text-xs font-medium text-gray-900 dark:text-[#f6f6f4] mb-1 font-inter">Comprehensive Observability</h5>
-                    <p className="text-xs text-gray-600 dark:text-[#c8c8b8] font-inter">180+ Prometheus metrics, OpenTelemetry traces, and full decision metadata for debugging, auditing, and compliance.</p>
+                    <p className="text-xs text-gray-600 dark:text-[#c8c8b8] font-inter line-clamp-3">180+ Prometheus metrics, OpenTelemetry traces, and full decision metadata for debugging, auditing, and compliance.</p>
                   </div>
                 </div>
                 {/* Right Column - Title and Description */}
-                <div className="flex flex-col justify-center py-5 pl-4">
+                <div className="flex flex-col justify-start py-5 pl-4">
                   <h4 className="text-xs md:text-sm font-medium text-[#111111] dark:text-[#f6f6f4] mb-2 font-inter">
                     Observability & Diagnostics
                   </h4>
@@ -193,17 +186,17 @@ export default function OverturePopup({ isOpen, onClose }: OverturePopupProps) {
                 </div>
               </div>
 
-              {/* Row 6 */}
-              <div className="grid grid-cols-1 md:grid-cols-2 gap-0 relative border-t border-gray-200 dark:border-[#f6f6f4]/5 h-[280px]">
+               {/* Row 6 */}
+               <div className="grid grid-cols-1 md:grid-cols-3 gap-0 relative border-t border-gray-200 dark:border-[#f6f6f4]/5 h-[280px]">
                 {/* Left Column - Features */}
-                <div className="flex flex-col justify-center py-5 pr-4 border-r border-gray-200 dark:border-[#f6f6f4]/5">
-                  <div>
+                <div className="md:col-span-2 flex flex-col pt-0 pb-0 pr-4 border-r border-gray-200 dark:border-[#f6f6f4]/5">
+                  <div className="pt-5">
                     <h5 className="text-xs font-medium text-gray-900 dark:text-[#f6f6f4] mb-1 font-inter">Multi-Tenancy & BYOK</h5>
-                    <p className="text-xs text-gray-600 dark:text-[#c8c8b8] font-inter">Full tenant isolation with encrypted API key storage. Customers retain ownership of provider relationships with zero lock-in.</p>
+                    <p className="text-xs text-gray-600 dark:text-[#c8c8b8] font-inter line-clamp-3">Full tenant isolation with encrypted API key storage. Customers retain ownership of provider relationships with zero lock-in.</p>
                   </div>
                 </div>
                 {/* Right Column - Title and Description */}
-                <div className="flex flex-col justify-center py-5 pl-4">
+                <div className="flex flex-col justify-start pt-0 pb-0 pl-4">
                   <h4 className="text-xs md:text-sm font-medium text-[#111111] dark:text-[#f6f6f4] mb-2 font-inter">
                     Security, Isolation & Enterprise Readiness
                   </h4>
@@ -226,7 +219,7 @@ export default function OverturePopup({ isOpen, onClose }: OverturePopupProps) {
               </p>
               <a
                 href="https://docs.igrisinertial.com/overture"
-                className="inline-flex items-center justify-center bg-gray-200 dark:bg-[#f6f6f4] text-gray-900 dark:text-black px-4 py-2 hover:bg-gray-300 dark:hover:bg-gray-200 transition-all duration-200 text-xs font-medium shadow-md hover:shadow-lg w-fit"
+                className="inline-flex items-center justify-start bg-gray-200 dark:bg-[#f6f6f4] text-gray-900 dark:text-black px-4 py-2 hover:bg-gray-300 dark:hover:bg-gray-200 transition-all duration-200 text-xs font-medium shadow-md hover:shadow-lg w-fit"
               >
                 Explore Documentation
               </a>
