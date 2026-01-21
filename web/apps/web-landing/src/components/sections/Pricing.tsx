@@ -10,7 +10,7 @@ const pricingRows = [
     name: "Overture",
     cards: [
       {
-        name: "Developer · Overture",
+        name: "Startup · Overture",
         price: "$79",
         period: "month",
         features: [
@@ -31,6 +31,7 @@ const pricingRows = [
         price: "$249",
         period: "month",
         features: [
+          "Everything in Startup +",
           "Up to 2M requests/month",
           "Up to 10 AI providers",
           "Speculative execution",
@@ -49,6 +50,7 @@ const pricingRows = [
         price: "$799",
         period: "month",
         features: [
+          "Everything in Growth +",
           "Unlimited requests (1000 RPS sustained)",
           "Up to 20 AI providers",
           "Advanced observability",
@@ -65,7 +67,7 @@ const pricingRows = [
     name: "Runtime",
     cards: [
       {
-        name: "Developer · Runtime",
+        name: "Startup · Runtime",
         price: "$99",
         period: "month",
         descriptor: "Licensed execution engine · Single deployment",
@@ -85,6 +87,7 @@ const pricingRows = [
         period: "month",
         descriptor: "Licensed execution engine · Multi-runtime coordination",
         features: [
+          "Everything in Startup +",
           "Multi-runtime deployment",
           "Policy enforcement engine",
           "Resource safety limits",
@@ -100,6 +103,7 @@ const pricingRows = [
         period: "month",
         descriptor: "Licensed execution engine · Fleet management",
         features: [
+          "Everything (in previous tier) +",
           "Fleet-wide deployment & coordination",
           "Advanced isolation controls",
           "90-day telemetry retention",
@@ -114,7 +118,7 @@ const pricingRows = [
     name: "Hybrid",
     cards: [
       {
-        name: "Developer · Hybrid",
+        name: "Startup · Hybrid",
         price: "—",
         period: null,
         descriptor: "Add-on requiring Overture + Runtime",
@@ -143,6 +147,7 @@ const pricingRows = [
         period: "month",
         descriptor: "Add-on requiring Overture + Runtime",
         features: [
+          "Everything (in previous tier) +",
           "Full cryptographic enforcement",
           "Signed Overture → Runtime contracts",
           "Compliance-ready execution trails",
