@@ -46,7 +46,7 @@ export default function HomePage() {
             <div className="space-y-4">
               <a
                 href={overtureDocsUrl}
-                className="group block w-full max-w-sm rounded-xl p-3 border border-[#f6f6f4]/10 hover:shadow-sm transition-all duration-300 bg-dark-bg/80 backdrop-blur-sm"
+                className="group block w-full max-w-sm rounded-none p-3 border border-[#f6f6f4]/10 hover:shadow-sm transition-all duration-300 bg-dark-bg/80 backdrop-blur-sm"
                 style={{ boxShadow: '0 2px 4px rgba(0, 0, 0, 0.05)' }}
               >
                 <div className="flex items-center justify-between">
@@ -67,7 +67,7 @@ export default function HomePage() {
 
               <a
                 href={runtimeDocsUrl}
-                className="group block w-full max-w-sm rounded-xl p-3 border border-[#f6f6f4]/10 hover:shadow-sm transition-all duration-300 bg-dark-bg/80 backdrop-blur-sm"
+                className="group block w-full max-w-sm rounded-none p-3 border border-[#f6f6f4]/10 hover:shadow-sm transition-all duration-300 bg-dark-bg/80 backdrop-blur-sm"
                 style={{ boxShadow: '0 2px 4px rgba(0, 0, 0, 0.05)' }}
               >
                 <div className="flex items-center justify-between">
