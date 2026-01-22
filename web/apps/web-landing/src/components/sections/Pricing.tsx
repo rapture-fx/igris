@@ -7,29 +7,31 @@ import { useTheme } from 'next-themes';
 
 const pricingRows = [
   {
-    name: "Overture",
+    name: "",
     cards: [
       {
-        name: "Startup · Overture",
+        name: "Startup",
         price: "$79",
         period: "month",
+        descriptor: "Get control, safely.",
         features: [
           "Up to 500K requests/month",
-          "Up to 5 AI providers (BYOK)",
+          "Up to 3 AI providers (BYOK)",
           "Thompson Sampling",
-          "Quality-aware modes (Cost / Balanced / Quality)",
-          "Circuit breaker",
-          "Automatic failover",
+          "Quality-aware routing modes (Cost / Balanced / Quality)",
+          "Circuit breaker and automatic failover",
           "Real-time cost tracking",
-          "150+ metrics",
-          "Automatic request classification"
+          "Core observability metrics",
+          "Single-node execution support",
+          "Best-effort execution telemetry"
         ],
         cta: "Get Started"
       },
       {
-        name: "Growth · Overture",
+        name: "Growth",
         price: "$249",
         period: "month",
+        descriptor: "Run production with accountability.",
         features: [
           "Everything in Startup +",
           "Up to 2M requests/month",
@@ -39,122 +41,38 @@ const pricingRows = [
           "Cognitive advisor (auto-tuning)",
           "Policy versioning with hot reload",
           "Basic SLO enforcement",
-          "Routing traces",
-          "30-day retention",
-          "Audit logs"
+          "Multi-runtime support",
+          "Policy enforcement",
+          "Resource safety limits",
+          "Real-time execution telemetry",
+          "Decision to execution audit trail",
+          "Observed vs reported provider verification",
+          "Routing traces and audit logs",
+          "30-day retention"
         ],
         cta: "Get Started"
       },
-      {
-        name: "Scale · Overture",
-        price: "$799",
-        period: "month",
+       {
+        name: "Scale",
+        price: "Contact Us",
+        period: "",
+        descriptor: "Custom pricing based on scale, risk profile, and compliance requirements.",
         features: [
           "Everything in Growth +",
           "Unlimited requests (1000 RPS sustained)",
           "Up to 20 AI providers",
           "Advanced observability",
-          "90-day trace retention",
-          "Exports and alerts",
           "Hard budget caps",
-          "Advanced SLO auto-remediation"
+          "Advanced SLO auto-remediation",
+          "Fleet-wide isolation controls",
+          "Cryptographically enforced trust",
+          "Signed decision to execution contracts",
+          "Compliance-ready execution",
+          "Exports and alerts",
+          "90-day retention",
+          "Priority support"
         ],
-        cta: "Get Started"
-      }
-    ]
-  },
-  {
-    name: "Runtime",
-    cards: [
-      {
-        name: "Startup · Runtime",
-        price: "$99",
-        period: "month",
-        descriptor: "Licensed execution engine · Single deployment",
-        features: [
-          "Single-node deployment",
-          "Secure execution defaults",
-          "Signed execution envelopes",
-          "Basic execution telemetry",
-          "7-day telemetry retention",
-          "Security updates & patches"
-        ],
-        cta: "Get Started"
-      },
-      {
-        name: "Growth · Runtime",
-        price: "$349",
-        period: "month",
-        descriptor: "Licensed execution engine · Multi-runtime coordination",
-        features: [
-          "Everything in Startup +",
-          "Multi-runtime deployment",
-          "Policy enforcement engine",
-          "Resource safety limits",
-          "Real-time telemetry streaming",
-          "30-day telemetry retention",
-          "Priority security updates"
-        ],
-        cta: "Get Started"
-      },
-      {
-        name: "Scale · Runtime",
-        price: "$999",
-        period: "month",
-        descriptor: "Licensed execution engine · Fleet management",
-        features: [
-          "Everything (in previous tier) +",
-          "Fleet-wide deployment & coordination",
-          "Advanced isolation controls",
-          "90-day telemetry retention",
-          "Compliance-ready audit trails",
-          "Dedicated support & SLA"
-        ],
-        cta: "Get Started"
-      }
-    ]
-  },
-  {
-    name: "Hybrid",
-    cards: [
-      {
-        name: "Startup · Hybrid",
-        price: "—",
-        period: null,
-        descriptor: "Add-on requiring Overture + Runtime",
-        features: [
-          "Not included",
-          "Hybrid requires Growth tier or higher"
-        ],
-        cta: "Get Started"
-      },
-      {
-        name: "Growth · Hybrid",
-        price: "$599",
-        period: "month",
-        descriptor: "Add-on requiring Overture + Runtime",
-        features: [
-          "Decision → execution audit trail",
-          "Observed vs reported provider verification",
-          "Cryptographic trust enforcement",
-          "Basic compliance support"
-        ],
-        cta: "Get Started"
-      },
-      {
-        name: "Scale · Hybrid",
-        price: "$1999",
-        period: "month",
-        descriptor: "Add-on requiring Overture + Runtime",
-        features: [
-          "Everything (in previous tier) +",
-          "Full cryptographic enforcement",
-          "Signed Overture → Runtime contracts",
-          "Compliance-ready execution trails",
-          "Advanced auditability & export",
-          "Dedicated compliance support"
-        ],
-        cta: "Get Started"
+        cta: "Contact Us"
       }
     ]
   }
@@ -181,7 +99,7 @@ export default function Pricing() {
                   Pricing
                 </h2>
                 <p className="text-sm md:text-base text-gray-600 dark:text-[#a8a898] font-inter max-w-2xl mx-auto mb-4">
-                  Decision intelligence, governed execution, and cryptographic enforcement
+                  Progressive control tiers for production AI infrastructure
                 </p>
                 <p className="text-xs md:text-sm text-gray-600 dark:text-[#a8a898] font-inter max-w-2xl mx-auto">
                   14-day free trial · Full feature access · Hard usage caps · No production guarantees
@@ -196,17 +114,13 @@ export default function Pricing() {
                       {row.name}
                     </h3>
                   </div>
-                <div className="grid grid-cols-1 md:grid-cols-3 gap-1">
+                <div className="grid grid-cols-1 md:grid-cols-3 gap-8">
                   {row.cards.map((card, cardIndex) => {
-                    const globalCardIndex = rowIndex * 3 + cardIndex;
-                    const isRuntime = row.name === "Runtime";
-                    const isHybrid = row.name === "Hybrid";
-                    
                       return (
-                        <div
-                          key={cardIndex}
-                          className="relative transition-all duration-300 w-full min-h-[450px] border section-border bg-[#f6f6f4] dark:bg-[#1b1912]"
-                        >
+                         <div
+                           key={cardIndex}
+                           className={`relative transition-all duration-300 w-full min-h-[450px] border section-border bg-[#f6f6f4] dark:bg-[#1b1912] ${card.name === 'Growth' ? 'shadow-[0_0_15px_rgba(147,51,234,0.3)]' : ''}`}
+                         >
                           <div className="p-6 flex flex-col h-full">
                             <div className="flex-grow">
                               <h3 className="text-lg mb-2 font-inter text-[#000000] dark:text-[#f6f6f4]">
@@ -244,8 +158,8 @@ export default function Pricing() {
                               onClick={openEarlyAccessModal}
                               className="inline-flex items-center px-3 py-1 md:px-4 md:py-1.5 transition-all duration-200 text-xs font-inter self-start mt-8 text-white dark:text-[#1b1912] bg-[#000000] dark:bg-[#f6f6f4] hover:bg-gray-800 dark:hover:bg-[#e6e6e4] border border-black dark:border-[#f6f6f4]"
                             >
-                             Get Started
-                           </button>
+                             {card.cta}
+                            </button>
                         </div>
                       </div>
                     );

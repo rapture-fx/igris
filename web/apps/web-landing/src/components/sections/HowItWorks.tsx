@@ -40,7 +40,7 @@ export default function HowItWorks() {
                   <div>
                     <div className="border border-gray-300 dark:border-[#f6f6f4]/5 mb-4 bg-[#f6f6f4] dark:bg-[#1b1912]" style={{ height: '150px', position: 'relative', overflow: 'hidden' }}>
                       <Image
-                        src="/on.png"
+                        src="/ovr.png"
                         alt="Control Plane"
                         fill
                         className="opacity-80"
@@ -114,7 +114,7 @@ export default function HowItWorks() {
                        <div className="w-3/5 p-6 flex flex-col justify-between">
                          <div>
                            <Image
-                             src="/on.png"
+                             src="/ovr.png"
                             alt="Control Plane"
                             width={450}
                             height={450}
