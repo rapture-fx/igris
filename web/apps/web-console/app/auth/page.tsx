@@ -252,17 +252,16 @@ export default function AuthPage() {
   };
 
   return (
-    <div className="min-h-screen flex relative" style={{
-      backgroundImage: 'linear-gradient(rgba(246, 246, 244, 0.3), rgba(246, 246, 244, 0.3)), url(/cloudbg.png)',
+    <div className="min-h-screen flex relative bg-background" style={{
+      backgroundImage: 'linear-gradient(rgba(250 250 250 / 0.3), rgba(250 250 250 / 0.3)), url(/cloudbg.png)',
       backgroundSize: 'cover',
       backgroundPosition: 'center top -100px',
-      backgroundRepeat: 'no-repeat',
-      backgroundColor: '#f6f6f4'
+      backgroundRepeat: 'no-repeat'
     }}>
       {/* Logo */}
       <div className="absolute top-6 left-8 z-10">
         <img
-          src="/footers.png"
+          src="/dmfoot.png"
           alt="Igris Logo"
           style={{ width: '25px', height: 'auto' }}
         />
@@ -279,7 +278,7 @@ export default function AuthPage() {
           {!showEmailForm && !pendingVerification && (
             <div className="space-y-3">
               {error && (
-                <div className="text-xs text-red-600 font-inter bg-red-50 border border-red-200 rounded-lg p-3 mb-4">
+                <div className="text-xs text-red-600 dark:text-red-400 font-inter bg-red-50 dark:bg-red-950 border border-red-200 dark:border-red-900 rounded-lg p-3 mb-4">
                   {error}
                 </div>
               )}
@@ -287,8 +286,7 @@ export default function AuthPage() {
               <button
                 onClick={() => handleOAuthSignIn('oauth_google')}
                 disabled={loadingProvider !== null}
-                className="w-80 flex items-center justify-center gap-3 px-4 py-3.5 border border-border-light rounded-lg text-sm font-medium text-gray-900 font-inter outline-none focus:outline-none focus:ring-0 shadow-sm hover:shadow-md transition-all disabled:opacity-50 disabled:cursor-not-allowed"
-                style={{ backgroundColor: '#f6f6f4' }}
+                className="w-80 flex items-center justify-center gap-3 px-4 py-3.5 border border-border rounded-lg text-sm font-medium text-foreground font-inter outline-none focus:outline-none focus:ring-0 shadow-sm hover:shadow-md transition-all disabled:opacity-50 disabled:cursor-not-allowed bg-background"
               >
                 {loadingProvider === 'oauth_google' ? (
                   <Loader2 className="h-5 w-5 flex-shrink-0 animate-spin" />
@@ -306,8 +304,7 @@ export default function AuthPage() {
               <button
                 onClick={() => setShowEmailForm(true)}
                 disabled={loading}
-                className="w-80 flex items-center justify-center gap-3 px-4 py-3.5 border border-border-light rounded-lg text-sm font-medium text-gray-900 font-inter outline-none focus:outline-none focus:ring-0 shadow-sm hover:shadow-md transition-all disabled:opacity-50 disabled:cursor-not-allowed"
-                style={{ backgroundColor: '#f6f6f4' }}
+                className="w-80 flex items-center justify-center gap-3 px-4 py-3.5 border border-border rounded-lg text-sm font-medium text-foreground font-inter outline-none focus:outline-none focus:ring-0 shadow-sm hover:shadow-md transition-all disabled:opacity-50 disabled:cursor-not-allowed bg-background"
               >
                 <Mail className="w-5 h-5 flex-shrink-0" />
                 <span>Continue with Email</span>
@@ -317,12 +314,12 @@ export default function AuthPage() {
                 <button
                   type="button"
                   onClick={() => router.push(mode === 'signup' ? '/auth?mode=signin' : '/auth?mode=signup')}
-                  className="text-xs text-gray-600 font-inter"
+                  className="text-xs text-muted-foreground font-inter"
                 >
                   {mode === 'signup' ? (
-                    <>Already have an account? <span className="text-gray-900 hover:underline">Sign in</span></>
+                    <>Already have an account? <span className="text-foreground hover:underline">Sign in</span></>
                   ) : (
-                    <>Don't have an account? <span className="text-gray-900 hover:underline">Sign up</span></>
+                    <>Don't have an account? <span className="text-foreground hover:underline">Sign up</span></>
                   )}
                 </button>
               </div>
@@ -335,7 +332,7 @@ export default function AuthPage() {
               <button
                 type="button"
                 onClick={() => setShowEmailForm(false)}
-                className="text-xs text-gray-600 font-inter hover:text-gray-900 mb-4"
+                className="text-xs text-muted-foreground font-inter hover:text-foreground mb-4"
               >
                 ← Back to options
               </button>
@@ -343,7 +340,7 @@ export default function AuthPage() {
               {mode === 'signup' && (
                 <div className="space-y-4">
                   <div>
-                    <label htmlFor="firstName" className="block text-xs font-medium text-gray-900 font-inter mb-1.5">
+                    <label htmlFor="firstName" className="block text-xs font-medium text-foreground font-inter mb-1.5">
                       First name
                     </label>
                     <input
@@ -352,13 +349,12 @@ export default function AuthPage() {
                       value={firstName}
                       onChange={(e) => setFirstName(e.target.value)}
                       required={mode === 'signup'}
-                      className="w-full px-3 py-2 border border-border-light rounded-lg text-sm font-inter focus:outline-none focus:ring-0 shadow-sm"
-                      style={{ backgroundColor: '#f6f6f4' }}
+                      className="w-full px-3 py-2 border border-border rounded-lg text-sm font-inter focus:outline-none focus:ring-0 shadow-sm bg-background"
                       placeholder="John"
                     />
                   </div>
                   <div>
-                    <label htmlFor="lastName" className="block text-xs font-medium text-gray-900 font-inter mb-1.5">
+                    <label htmlFor="lastName" className="block text-xs font-medium text-foreground font-inter mb-1.5">
                       Last name
                     </label>
                     <input
@@ -367,15 +363,14 @@ export default function AuthPage() {
                       value={lastName}
                       onChange={(e) => setLastName(e.target.value)}
                       required={mode === 'signup'}
-                      className="w-full px-3 py-2 border border-border-light rounded-lg text-sm font-inter focus:outline-none focus:ring-0 shadow-sm"
-                      style={{ backgroundColor: '#f6f6f4' }}
+                      className="w-full px-3 py-2 border border-border rounded-lg text-sm font-inter focus:outline-none focus:ring-0 shadow-sm bg-background"
                       placeholder="Doe"
                     />
                   </div>
                 </div>
               )}
               <div>
-                <label htmlFor="email" className="block text-xs font-medium text-gray-900 font-inter mb-1.5">
+                <label htmlFor="email" className="block text-xs font-medium text-foreground font-inter mb-1.5">
                   Email address
                 </label>
                 <input
@@ -384,15 +379,14 @@ export default function AuthPage() {
                   value={email}
                   onChange={(e) => setEmail(e.target.value)}
                   required
-                  className="w-full px-3 py-2 border border-border-light rounded-lg text-sm font-inter focus:outline-none focus:ring-0 shadow-sm"
-                  style={{ backgroundColor: '#f6f6f4' }}
+                  className="w-full px-3 py-2 border border-border rounded-lg text-sm font-inter focus:outline-none focus:ring-0 shadow-sm bg-background"
                   placeholder="you@example.com"
                 />
               </div>
               {mode === 'signup' && (
                 <div className="space-y-4">
                   <div>
-                    <label htmlFor="password" className="block text-xs font-medium text-gray-900 font-inter mb-1.5">
+                    <label htmlFor="password" className="block text-xs font-medium text-foreground font-inter mb-1.5">
                       Password
                     </label>
                     <input
@@ -401,13 +395,12 @@ export default function AuthPage() {
                       value={password}
                       onChange={(e) => setPassword(e.target.value)}
                       required
-                      className="w-full px-3 py-2 border border-border-light rounded-lg text-sm font-inter focus:outline-none focus:ring-0 shadow-sm"
-                      style={{ backgroundColor: '#f6f6f4' }}
+                      className="w-full px-3 py-2 border border-border rounded-lg text-sm font-inter focus:outline-none focus:ring-0 shadow-sm bg-background"
                       placeholder="•••••••••"
                     />
                   </div>
                   <div>
-                    <label htmlFor="confirmPassword" className="block text-xs font-medium text-gray-900 font-inter mb-1.5">
+                    <label htmlFor="confirmPassword" className="block text-xs font-medium text-foreground font-inter mb-1.5">
                       Confirm password
                     </label>
                     <input
@@ -416,8 +409,7 @@ export default function AuthPage() {
                       value={confirmPassword}
                       onChange={(e) => setConfirmPassword(e.target.value)}
                       required={mode === 'signup'}
-                      className="w-full px-3 py-2 border border-border-light rounded-lg text-sm font-inter focus:outline-none focus:ring-0 shadow-sm"
-                      style={{ backgroundColor: '#f6f6f4' }}
+                      className="w-full px-3 py-2 border border-border rounded-lg text-sm font-inter focus:outline-none focus:ring-0 shadow-sm bg-background"
                       placeholder="•••••••••"
                     />
                   </div>
@@ -425,7 +417,7 @@ export default function AuthPage() {
               )}
               {mode === 'signin' && (
                 <div>
-                  <label htmlFor="password" className="block text-xs font-medium text-gray-900 font-inter mb-1.5">
+                  <label htmlFor="password" className="block text-xs font-medium text-foreground font-inter mb-1.5">
                     Password
                   </label>
                   <input
@@ -434,15 +426,14 @@ export default function AuthPage() {
                     value={password}
                     onChange={(e) => setPassword(e.target.value)}
                     required
-                    className="w-full px-3 py-2 border border-border-light rounded-lg text-sm font-inter focus:outline-none focus:ring-0 shadow-sm"
-                    style={{ backgroundColor: '#f6f6f4' }}
+                    className="w-full px-3 py-2 border border-border rounded-lg text-sm font-inter focus:outline-none focus:ring-0 shadow-sm bg-background"
                     placeholder="•••••••••"
                   />
                 </div>
               )}
 
               {error && (
-                <div className="text-xs text-red-600 font-inter bg-red-50 border border-red-200 rounded-lg p-3">
+                <div className="text-xs text-destructive font-inter bg-destructive/10 border border-destructive/20 rounded-lg p-3 mb-4">
                   {error}
                 </div>
               )}
@@ -450,7 +441,7 @@ export default function AuthPage() {
               <button
                 type="submit"
                 disabled={loading}
-                className="w-80 bg-gray-900 text-white py-3 rounded-lg text-sm font-medium font-inter hover:bg-gray-800 transition-colors disabled:opacity-50 disabled:cursor-not-allowed flex items-center justify-center gap-2 shadow-md hover:shadow-lg"
+                className="w-80 bg-primary text-primary-foreground py-3 rounded-lg text-sm font-medium font-inter hover:bg-primary/90 transition-colors disabled:opacity-50 disabled:cursor-not-allowed flex items-center justify-center gap-2 shadow-md hover:shadow-lg"
               >
                 {loading && <Loader2 className="h-4 w-4 animate-spin flex-shrink-0" />}
                 Continue
@@ -462,13 +453,13 @@ export default function AuthPage() {
           {pendingVerification && (
             <form onSubmit={handleVerification} className="space-y-4">
               <div>
-                <label htmlFor="code" className="block text-xs font-medium text-gray-900 font-inter mb-1.5">
+                <label htmlFor="code" className="block text-xs font-medium text-foreground font-inter mb-1.5">
                   Verification code
                 </label>
-                <p className="text-xs text-gray-600 font-inter mb-2">
-                  We sent a 6-digit code to <span className="font-medium text-gray-900">{email}</span>
+                <p className="text-xs text-muted-foreground font-inter mb-2">
+                  We sent a 6-digit code to <span className="font-medium text-foreground">{email}</span>
                 </p>
-                <p className="text-xs text-gray-500 font-inter mb-3">
+                <p className="text-xs text-muted-foreground font-inter mb-3">
                   Code expires in 10 minutes. Check your spam folder if you don't see it.
                 </p>
                 <input
@@ -484,14 +475,13 @@ export default function AuthPage() {
                   }}
                   required
                   maxLength={6}
-                  className="w-full px-3 py-2 border border-border-light rounded-lg text-sm font-inter focus:outline-none focus:ring-0 shadow-sm"
-                  style={{ backgroundColor: '#f6f6f4' }}
+                  className="w-full px-3 py-2 border border-border rounded-lg text-sm font-inter focus:outline-none focus:ring-0 shadow-sm bg-background"
                   placeholder="123456"
                 />
               </div>
 
               {error && (
-                <div className="text-xs text-red-600 font-inter bg-red-50 border border-red-200 rounded-lg p-3">
+                <div className="text-xs text-destructive font-inter bg-destructive/10 border border-destructive/20 rounded-lg p-3">
                   {error}
                 </div>
               )}
@@ -499,7 +489,7 @@ export default function AuthPage() {
               <button
                 type="submit"
                 disabled={loading || code.length !== 6}
-                className="w-80 bg-gray-900 text-white py-3 rounded-lg text-sm font-medium font-inter hover:bg-gray-800 transition-colors disabled:opacity-50 disabled:cursor-not-allowed flex items-center justify-center gap-2 shadow-md hover:shadow-lg"
+                className="w-80 bg-primary text-primary-foreground py-3 rounded-lg text-sm font-medium font-inter hover:bg-primary/90 transition-colors disabled:opacity-50 disabled:cursor-not-allowed flex items-center justify-center gap-2 shadow-md hover:shadow-lg"
               >
                 {loading && <Loader2 className="h-4 w-4 animate-spin flex-shrink-0" />}
                 Verify email
@@ -507,7 +497,7 @@ export default function AuthPage() {
             </form>
           )}
 
-          <p className="mt-6 text-center text-gray-600 font-inter" style={{ fontSize: '9px' }}>
+          <p className="mt-6 text-center text-muted-foreground font-inter" style={{ fontSize: '9px' }}>
             By signing in, you accept our Terms of Service
           </p>
         </div>

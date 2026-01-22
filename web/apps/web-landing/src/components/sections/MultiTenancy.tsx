@@ -28,7 +28,7 @@ export default function MultiTenancy() {
   return (
     <section className="bg-[#f6f6f4] dark:bg-dark-bg text-gray-900 dark:text-[#f6f6f4] transition-colors duration-200">
       <div className="mx-auto max-w-[1100px] px-4 sm:px-6 lg:px-8">
-        <div className="relative px-4 md:px-8 lg:px-12 flex flex-col bg-[#f6f6f4] dark:bg-[#1b1912] border-l border-r border-b section-border min-h-[750px] md:h-[750px]">
+        <div className="relative px-4 md:px-8 lg:px-12 flex flex-col bg-[#f6f6f4] dark:bg-[#1b1912] border-l border-r border-b section-border min-h-[800px] md:h-[800px]">
 
           {/* Title Section - Shows first on mobile, last on desktop */}
           <div className="mb-6 md:mb-0 md:hidden text-left" style={{ paddingTop: '3rem', paddingBottom: '3rem' }}>
@@ -60,7 +60,7 @@ export default function MultiTenancy() {
             {/* Two-column layout */}
             <div className="grid grid-cols-1 md:grid-cols-3 gap-0 md:flex-1">
                {/* Left Column - Features (2 columns wide) */}
-                 <div className="hidden md:flex md:col-span-2 flex-col justify-start" style={{ paddingTop: '3rem', paddingBottom: '0', paddingRight: '1rem' }}>
+                  <div className="hidden md:flex md:col-span-2 flex-col justify-start" style={{ paddingTop: '3rem', paddingBottom: '3rem', paddingRight: '2rem' }}>
                    <div className="flex gap-6">
                      {/* Text Content */}
                      <div className="flex-1">
@@ -77,11 +77,13 @@ export default function MultiTenancy() {
                          ))}
                        </div>
                      </div>
-                     {/* Square Frame */}
-                     <div className="w-[400px] h-full border border-[rgba(156,163,175,0.3)] dark:border-[rgba(246,246,244,0.05)] flex-shrink-0"></div>
+                      {/* Square Frame */}
+                      <div className="w-[400px] h-full border border-[rgba(156,163,175,0.3)] dark:border-[rgba(246,246,244,0.05)] flex-shrink-0 p-6"></div>
                    </div>
-                   {/* Bottom Horizontal Frame */}
-                   <div className="h-[1px] w-full border-t border-[rgba(156,163,175,0.3)] dark:border-[rgba(246,246,244,0.05)] mt-6"></div>
+                     {/* Bottom Frame */}
+                     <div className="w-full flex-shrink-0 border-l border-r border-b border-[rgba(156,163,175,0.3)] dark:border-[rgba(246,246,244,0.05)] mt-6">
+                       <div className="h-[210px] w-full border-t border-[rgba(156,163,175,0.3)] dark:border-[rgba(246,246,244,0.05)]"></div>
+                     </div>
                 </div>
 
               {/* Right Column - Title and Intro (Desktop only) */}

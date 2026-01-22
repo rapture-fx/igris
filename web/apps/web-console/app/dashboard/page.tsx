@@ -16,6 +16,7 @@ import { LineChart, Line, AreaChart, Area, BarChart, Bar, XAxis, YAxis, Cartesia
 import { CHART_COLORS } from '@/utils/constants';
 import { useRouter } from 'next/navigation';
 import { FEATURE_FLAGS } from '@/lib/config';
+import { useChartTheme } from '@/utils/chartTheme';
 
 const hideScrollbarStyles = `
   .hide-scrollbar {
@@ -67,6 +68,7 @@ export default function DashboardPage() {
   const { data: summary, isLoading } = useUsageSummary();
   const { data: tenant } = useTenant();
   const router = useRouter();
+  const chartTheme = useChartTheme();
 
   // Get user intent from Clerk metadata
   const userMetadata = user?.unsafeMetadata as { intent?: 'cloud' | 'edge' | 'hybrid'; onboardingCompleted?: boolean } | undefined;
@@ -441,20 +443,20 @@ export default function DashboardPage() {
       <style>{hideScrollbarStyles}</style>
       <div className="max-w-7xl mx-auto space-y-6">
         {/* Header with Personalized Welcome */}
-        <div className="pb-4 border-b border-border-light">
+        <div className="pb-4 border-b border-border">
           <div className="flex items-center justify-between mb-1">
-            <h1 className="text-base font-medium text-gray-900 font-inter">
+            <h1 className="text-base font-medium text-foreground font-inter">
               Welcome back{user?.firstName ? `, ${user.firstName}` : ''}
             </h1>
             {userMetadata?.onboardingCompleted && (
-              <Badge className="bg-green-100 text-green-700 border-green-200 text-[0.65rem]">
+              <Badge className="bg-green-100 dark:bg-green-950 text-green-700 dark:text-green-400 border-green-200 dark:border-green-900 text-[0.65rem]">
                 {userIntent === 'cloud' && 'Cloud Mode'}
                 {userIntent === 'edge' && 'Edge Mode'}
                 {userIntent === 'hybrid' && 'Hybrid Mode'}
               </Badge>
             )}
           </div>
-          <p className="text-gray-600 mt-1 font-inter text-xs">
+          <p className="text-muted-foreground mt-1 font-inter text-xs">
             {userIntent === 'cloud' && 'Your Overture cloud gateway overview'}
             {userIntent === 'edge' && 'Your Runtime edge fleet overview'}
             {userIntent === 'hybrid' && 'Your unified cloud + edge infrastructure'}
@@ -464,8 +466,8 @@ export default function DashboardPage() {
         {/* Quick Actions */}
         <div>
           <div className="pb-3">
-            <h2 className="text-sm font-medium text-gray-900">Quick Actions</h2>
-            <p className="text-xs text-gray-600 mt-1">Common operations across Overture, Runtime, and Agents</p>
+            <h2 className="text-sm font-medium text-foreground">Quick Actions</h2>
+            <p className="text-xs text-muted-foreground mt-1">Common operations across Overture, Runtime, and Agents</p>
           </div>
           <div className="flex flex-wrap gap-2">
             <Button
@@ -503,64 +505,64 @@ export default function DashboardPage() {
         </div>
 
         {/* Six Metrics: Overture + Runtime */}
-        <div className="bg-beige-primary">
-          <div className="grid grid-cols-3 divide-x divide-border-light">
+        <div className="bg-card">
+          <div className="grid grid-cols-3 divide-x divide-border">
             <div className="p-4">
-              <div className="text-xs font-medium text-gray-600 mb-1">Requests Today</div>
-              <div className="text-lg font-bold text-gray-900">{formatNumber(summary?.total_requests || 0)}</div>
-              <p className="text-[0.65rem] text-gray-600 mt-1">
+              <div className="text-xs font-medium text-muted-foreground mb-1">Requests Today</div>
+              <div className="text-lg font-bold text-foreground">{formatNumber(summary?.total_requests || 0)}</div>
+              <p className="text-[0.65rem] text-muted-foreground mt-1">
                 Last 24 hours (Overture)
                 {(summary as any)?.requests_trend && (
-                  <span className="ml-2 text-green-600 font-medium">
+                  <span className="ml-2 text-green-600 dark:text-green-400 font-medium">
                     {(summary as any)?.requests_trend}
                   </span>
                 )}
               </p>
             </div>
             <div className="p-4">
-              <div className="text-xs font-medium text-gray-600 mb-1">Spend This Month</div>
-              <div className="text-lg font-bold text-gray-900">{formatCurrency(summary?.monthly_spend || 0)}</div>
-              <p className="text-[0.65rem] text-gray-600 mt-1">
+              <div className="text-xs font-medium text-muted-foreground mb-1">Spend This Month</div>
+              <div className="text-lg font-bold text-foreground">{formatCurrency(summary?.monthly_spend || 0)}</div>
+              <p className="text-[0.65rem] text-muted-foreground mt-1">
                 Current billing period
                 {(summary as any)?.spend_trend && (
-                  <span className="ml-2 text-green-600 font-medium">
+                  <span className="ml-2 text-green-600 dark:text-green-400 font-medium">
                     {(summary as any)?.spend_trend}
                   </span>
                 )}
               </p>
             </div>
             <div className="p-4">
-              <div className="text-xs font-medium text-gray-600 mb-1">Avg Latency</div>
-              <div className="text-lg font-bold text-gray-900">{formatLatency(summary?.avg_latency || 0)}</div>
-              <p className="text-[0.65rem] text-gray-600 mt-1">
+              <div className="text-xs font-medium text-muted-foreground mb-1">Avg Latency</div>
+              <div className="text-lg font-bold text-foreground">{formatLatency(summary?.avg_latency || 0)}</div>
+              <p className="text-[0.65rem] text-muted-foreground mt-1">
                 P50 response time (Overture)
                 {(summary as any)?.latency_trend && (
-                  <span className="ml-2 text-green-600 font-medium">
+                  <span className="ml-2 text-green-600 dark:text-green-400 font-medium">
                     {(summary as any)?.latency_trend}
                   </span>
                 )}
               </p>
             </div>
           </div>
-          <div className="grid grid-cols-3 divide-x divide-border-light border-t border-border-light">
+          <div className="grid grid-cols-3 divide-x divide-border border-t border-border">
             <div className="p-4">
-              <div className="text-xs font-medium text-gray-600 mb-1">Runtime Instances</div>
-              <div className="text-lg font-bold text-gray-900">{`${runtimeFleetMetrics.online_instances}/${runtimeFleetMetrics.total_instances}`}</div>
-              <p className="text-[0.65rem] text-gray-600 mt-1">
+              <div className="text-xs font-medium text-muted-foreground mb-1">Runtime Instances</div>
+              <div className="text-lg font-bold text-foreground">{`${runtimeFleetMetrics.online_instances}/${runtimeFleetMetrics.total_instances}`}</div>
+              <p className="text-[0.65rem] text-muted-foreground mt-1">
                 Online edge nodes
               </p>
             </div>
             <div className="p-4">
-              <div className="text-xs font-medium text-gray-600 mb-1">Inference Requests</div>
-              <div className="text-lg font-bold text-gray-900">{formatNumber(runtimeFleetMetrics.total_inference_requests)}</div>
-              <p className="text-[0.65rem] text-gray-600 mt-1">
+              <div className="text-xs font-medium text-muted-foreground mb-1">Inference Requests</div>
+              <div className="text-lg font-bold text-foreground">{formatNumber(runtimeFleetMetrics.total_inference_requests)}</div>
+              <p className="text-[0.65rem] text-muted-foreground mt-1">
                 Runtime edge processing
               </p>
             </div>
             <div className="p-4">
-              <div className="text-xs font-medium text-gray-600 mb-1">Training Jobs</div>
-              <div className="text-lg font-bold text-gray-900">{String(runtimeFleetMetrics.active_training_jobs)}</div>
-              <p className="text-[0.65rem] text-gray-600 mt-1">
+              <div className="text-xs font-medium text-muted-foreground mb-1">Training Jobs</div>
+              <div className="text-lg font-bold text-foreground">{String(runtimeFleetMetrics.active_training_jobs)}</div>
+              <p className="text-[0.65rem] text-muted-foreground mt-1">
                 Active QLoRA fine-tuning
               </p>
             </div>
@@ -569,10 +571,10 @@ export default function DashboardPage() {
 
         {/* Two Mini Charts: Requests/Cost last 7 days + Latency P95 last 24h */}
         <div className="grid gap-6 md:grid-cols-2">
-          <Card className="border-border-light shadow-sm">
+          <Card className="border-border shadow-sm">
             <CardHeader>
               <CardTitle className="flex items-center gap-2 text-sm">
-                <BarChart3 className="h-4 w-4 text-gray-900" />
+                <BarChart3 className="h-4 w-4 text-foreground" />
                 Requests & Cost
               </CardTitle>
               <CardDescription className="text-xs">Last 7 days</CardDescription>
@@ -580,34 +582,35 @@ export default function DashboardPage() {
             <CardContent>
               <ResponsiveContainer width="100%" height={160}>
                 <LineChart data={requestsData}>
-                  <CartesianGrid strokeDasharray="3 3" stroke="#e5e7eb" strokeWidth={0.5} />
-                  <XAxis dataKey="time" stroke="#6b7280" style={{ fontSize: '8px' }} />
-                  <YAxis stroke="#6b7280" style={{ fontSize: '8px' }} />
+                  <CartesianGrid strokeDasharray="3 3" stroke={chartTheme.grid} strokeWidth={0.5} />
+                  <XAxis dataKey="time" stroke={chartTheme.axis} style={{ fontSize: '8px' }} />
+                  <YAxis stroke={chartTheme.axis} style={{ fontSize: '8px' }} />
                   <Tooltip
                     contentStyle={{
-                      backgroundColor: '#f8f6f3',
-                      border: '1px solid #e5e1d8',
+                      backgroundColor: chartTheme.tooltip.bg,
+                      border: `1px solid ${chartTheme.tooltip.border}`,
                       borderRadius: '6px',
-                      fontSize: '11px'
+                      fontSize: '11px',
+                      color: chartTheme.tooltip.text
                     }}
                   />
                   <Line
                     type="monotone"
                     dataKey="requests"
-                    stroke="#000000"
+                    stroke={chartTheme.line}
                     strokeWidth={0.3}
                     dot={false}
-                    activeDot={{ r: 2.5, fill: "#000000" }}
+                    activeDot={{ r: 2.5, fill: chartTheme.line }}
                   />
                 </LineChart>
               </ResponsiveContainer>
             </CardContent>
           </Card>
 
-          <Card className="border-border-light shadow-sm">
+          <Card className="border-border shadow-sm">
             <CardHeader>
               <CardTitle className="flex items-center gap-2 text-sm">
-                <Clock className="h-4 w-4 text-gray-900" />
+                <Clock className="h-4 w-4 text-foreground" />
                 Latency P95
               </CardTitle>
               <CardDescription className="text-xs">Last 24 hours</CardDescription>
@@ -615,23 +618,24 @@ export default function DashboardPage() {
             <CardContent>
               <ResponsiveContainer width="100%" height={160}>
                 <AreaChart data={latencyData}>
-                  <CartesianGrid strokeDasharray="3 3" stroke="#e5e7eb" strokeWidth={0.5} />
-                  <XAxis dataKey="time" stroke="#6b7280" style={{ fontSize: '8px' }} />
-                  <YAxis stroke="#6b7280" style={{ fontSize: '8px' }} />
+                  <CartesianGrid strokeDasharray="3 3" stroke={chartTheme.grid} strokeWidth={0.5} />
+                  <XAxis dataKey="time" stroke={chartTheme.axis} style={{ fontSize: '8px' }} />
+                  <YAxis stroke={chartTheme.axis} style={{ fontSize: '8px' }} />
                   <Tooltip
                     contentStyle={{
-                      backgroundColor: '#f8f6f3',
-                      border: '1px solid #e5e1d8',
+                      backgroundColor: chartTheme.tooltip.bg,
+                      border: `1px solid ${chartTheme.tooltip.border}`,
                       borderRadius: '6px',
-                      fontSize: '11px'
+                      fontSize: '11px',
+                      color: chartTheme.tooltip.text
                     }}
                   />
                   <Area
                     type="monotone"
                     dataKey="latency"
-                    stroke="#000000"
+                    stroke={chartTheme.line}
                     strokeWidth={0.3}
-                    fill="#000000"
+                    fill={chartTheme.line}
                     fillOpacity={0.1}
                   />
                 </AreaChart>
@@ -642,10 +646,10 @@ export default function DashboardPage() {
 
         {/* Top 5 Models by Spend and Provider Reliability */}
         <div className="grid gap-6 md:grid-cols-2">
-          <Card className="border-border-light shadow-sm">
+          <Card className="border-border shadow-sm">
             <CardHeader>
               <CardTitle className="flex items-center gap-2 text-sm">
-                <DollarSign className="h-4 w-4 text-gray-900" />
+                <DollarSign className="h-4 w-4 text-foreground" />
                 Top Models by Spend
               </CardTitle>
               <CardDescription className="text-xs">This month</CardDescription>
@@ -653,19 +657,19 @@ export default function DashboardPage() {
             <CardContent>
               <div className="space-y-3">
                 {providerCostData.slice(0, 5).map((item, i) => (
-                  <div key={i} className="flex items-center justify-between p-2 rounded-lg bg-beige-primary">
+                  <div key={i} className="flex items-center justify-between p-2 rounded-lg bg-card">
                     <div className="flex items-center gap-2">
-                      <span className="text-xs font-medium text-gray-900">{i + 1}.</span>
-                      <span className="text-xs text-gray-900">{item.provider}</span>
+                      <span className="text-xs font-medium text-foreground">{i + 1}.</span>
+                      <span className="text-xs text-foreground">{item.provider}</span>
                     </div>
-                    <span className="text-xs font-medium text-gray-900">{formatCurrency(item.cost)}</span>
+                    <span className="text-xs font-medium text-foreground">{formatCurrency(item.cost)}</span>
                   </div>
                 ))}
               </div>
             </CardContent>
           </Card>
 
-          <Card className="border-border-light shadow-sm">
+          <Card className="border-border shadow-sm">
             <CardHeader>
               <CardTitle className="text-sm">Provider Reliability</CardTitle>
               <CardDescription className="text-xs">Last 7 days uptime</CardDescription>
@@ -673,10 +677,10 @@ export default function DashboardPage() {
             <CardContent>
               <div className="space-y-3">
                 {providerUptime.map((item, i) => (
-                  <div key={i} className="flex items-center justify-between p-2 rounded-lg bg-beige-primary">
-                    <span className="text-xs font-medium text-gray-900">{item.provider}</span>
+                  <div key={i} className="flex items-center justify-between p-2 rounded-lg bg-card">
+                    <span className="text-xs font-medium text-foreground">{item.provider}</span>
                     <div className="flex items-center gap-2">
-                      <span className="text-xs text-gray-600">{item.uptime}</span>
+                      <span className="text-xs text-muted-foreground">{item.uptime}</span>
                       <div className={`w-2 h-2 rounded-full ${
                         item.status === 'success' ? 'bg-green-500' : 'bg-yellow-500'
                       }`} />
@@ -707,44 +711,44 @@ export default function DashboardPage() {
               <div className="space-y-3">
                 {recentActivity.slice(0, 5).map((activity) => {
                 const typeConfig = {
-                  alert: { bg: 'bg-red-50', text: 'text-red-700', border: 'border-red-200', icon: XCircle },
-                  warning: { bg: 'bg-yellow-50', text: 'text-yellow-700', border: 'border-yellow-200', icon: AlertCircleIcon },
-                  success: { bg: 'bg-green-50', text: 'text-green-700', border: 'border-green-200', icon: CheckCircle },
-                  info: { bg: 'bg-blue-50', text: 'text-blue-700', border: 'border-blue-200', icon: AlertCircleIcon },
+                  alert: { bg: 'bg-red-100 dark:bg-red-950', text: 'text-red-700 dark:text-red-400', border: 'border-red-200 dark:border-red-900', icon: XCircle },
+                  warning: { bg: 'bg-yellow-100 dark:bg-yellow-950', text: 'text-yellow-700 dark:text-yellow-400', border: 'border-yellow-200 dark:border-yellow-900', icon: AlertCircleIcon },
+                  success: { bg: 'bg-green-100 dark:bg-green-950', text: 'text-green-700 dark:text-green-400', border: 'border-green-200 dark:border-green-900', icon: CheckCircle },
+                  info: { bg: 'bg-blue-50 dark:bg-blue-950', text: 'text-blue-700 dark:text-blue-400', border: 'border-blue-200 dark:border-blue-900', icon: AlertCircleIcon },
                 };
                 const config = typeConfig[activity.type];
                 const Icon = config.icon;
 
                 const categoryConfig = {
-                  overture: { label: 'Overture', color: 'bg-purple-100 text-purple-700' },
-                  runtime: { label: 'Runtime', color: 'bg-blue-100 text-blue-700' },
-                  agents: { label: 'Agents', color: 'bg-green-100 text-green-700' },
-                  system: { label: 'System', color: 'bg-gray-100 text-gray-700' },
+                  overture: { label: 'Overture', color: 'bg-purple-100 dark:bg-purple-950 text-purple-700 dark:text-purple-400' },
+                  runtime: { label: 'Runtime', color: 'bg-blue-100 dark:bg-blue-950 text-blue-700 dark:text-blue-400' },
+                  agents: { label: 'Agents', color: 'bg-green-100 dark:bg-green-950 text-green-700 dark:text-green-400' },
+                  system: { label: 'System', color: 'bg-gray-100 dark:bg-gray-800 text-[#000000] dark:text-[#f6f6f4]' },
                 };
                 const categoryStyle = categoryConfig[activity.category];
 
                 return (
                   <div
                     key={activity.id}
-                    className="p-3 rounded-lg bg-beige-primary"
+                    className="p-3 rounded-lg bg-card"
                   >
                     <div className="flex items-start gap-2">
-                      <Icon className="h-4 w-4 text-gray-900 flex-shrink-0 mt-0.5" />
+                      <Icon className="h-4 w-4 text-foreground flex-shrink-0 mt-0.5" />
                       <div className="flex-1 min-w-0">
                         <div className="flex items-center gap-2 mb-1">
-                          <h4 className="text-xs font-medium text-gray-900 font-inter">
+                          <h4 className="text-xs font-medium text-foreground font-inter">
                             {activity.title}
                           </h4>
                           <Badge className={`${categoryStyle.color} border text-[0.65rem]`}>
                             {categoryStyle.label}
                           </Badge>
                         </div>
-                        <p className="text-[0.65rem] text-gray-900 opacity-90">
+                        <p className="text-[0.65rem] text-foreground opacity-90">
                           {activity.description}
                         </p>
                         <div className="flex items-center gap-1.5 mt-1.5">
-                          <Clock className="h-3 w-3 text-gray-600" />
-                          <span className="text-[0.65rem] text-gray-600">
+                          <Clock className="h-3 w-3 text-muted-foreground" />
+                          <span className="text-[0.65rem] text-muted-foreground">
                             {formatDateTime(activity.timestamp)}
                           </span>
                         </div>
@@ -770,7 +774,7 @@ export default function DashboardPage() {
                 }`} />
                 <CardTitle className="text-sm">System Health</CardTitle>
               </div>
-              <div className="text-xs text-gray-600">
+              <div className="text-xs text-muted-foreground">
                 Refreshes every 30s
               </div>
             </div>
@@ -781,14 +785,14 @@ export default function DashboardPage() {
           <CardContent className="p-2">
             {/* Degraded Mode Banner */}
             {systemHealth.degraded_mode && (
-              <div className="rounded-lg p-2.5 mb-2 bg-beige-primary">
+              <div className="rounded-lg p-2.5 mb-2 bg-card">
                 <div className="flex items-start gap-2">
-                  <AlertTriangle className="h-4 w-4 text-gray-900 flex-shrink-0 mt-0.5" />
+                  <AlertTriangle className="h-4 w-4 text-foreground flex-shrink-0 mt-0.5" />
                   <div className="flex-1">
-                    <h3 className="text-xs font-medium text-gray-900 font-inter">
+                    <h3 className="text-xs font-medium text-foreground font-inter">
                       System Operating in Degraded Mode
                     </h3>
-                    <p className="text-xs text-gray-900 mt-0.5">
+                    <p className="text-xs text-foreground mt-0.5">
                       {systemHealth.degraded_reason || 'One or more providers experiencing issues. Requests are being routed to healthy alternatives.'}
                     </p>
                   </div>
@@ -798,13 +802,13 @@ export default function DashboardPage() {
 
             <div className="max-h-[400px] overflow-y-auto scrollbar-hide">
               {systemHealth.providers.length === 0 ? (
-                <div className="text-center py-8 text-gray-600 text-sm">
+                <div className="text-center py-8 text-muted-foreground text-sm">
                   No provider health data available
                 </div>
               ) : (
                 <div className="space-y-2">
                   {systemHealth.providers.map((provider, index) => (
-                  <div key={provider.provider} className={`rounded-lg p-2 bg-beige-primary ${index > 0 ? 'border-t border-border-light pt-3' : ''}`}>
+                  <div key={provider.provider} className={`rounded-lg p-2 bg-card ${index > 0 ? 'border-t border-border pt-3' : ''}`}>
                     <div className="flex items-center justify-between mb-1.5">
                       <div className="flex items-center gap-2">
                         <div className={`w-2 h-2 rounded-full ${
@@ -812,18 +816,18 @@ export default function DashboardPage() {
                           provider.status === 'degraded' ? 'bg-yellow-500' :
                           'bg-red-500'
                         }`} />
-                        <h4 className="font-medium text-gray-900 font-inter text-xs">
+                        <h4 className="font-medium text-foreground font-inter text-xs">
                           {provider.provider}
                         </h4>
                         <span className={`px-1.5 py-0.5 rounded-full text-[0.65rem] font-medium ${
-                          provider.status === 'operational' ? 'bg-green-100 text-green-700' :
-                          provider.status === 'degraded' ? 'bg-yellow-100 text-yellow-700' :
-                          'bg-red-100 text-red-700'
+                          provider.status === 'operational' ? 'bg-green-100 dark:bg-green-950 text-green-700 dark:text-green-400' :
+                          provider.status === 'degraded' ? 'bg-yellow-100 dark:bg-yellow-950 text-yellow-700 dark:text-yellow-400' :
+                          'bg-red-100 dark:bg-red-950 text-red-700 dark:text-red-400'
                         }`}>
                           {provider.status}
                         </span>
                       </div>
-                      <div className="text-xs text-gray-900 font-medium">
+                      <div className="text-xs text-foreground font-medium">
                         {provider.availability.toFixed(2)}% available
                       </div>
                     </div>
@@ -842,29 +846,29 @@ export default function DashboardPage() {
                     </div>
 
                     <div className="grid grid-cols-3 gap-2 mb-1.5">
-                      <div className="bg-beige-primary rounded-md p-1.5">
-                        <div className="text-[0.65rem] text-gray-600 mb-0.5">Latency P99</div>
+                      <div className="bg-card rounded-md p-1.5">
+                        <div className="text-[0.65rem] text-muted-foreground mb-0.5">Latency P99</div>
                         <div className={`text-xs font-medium ${
                           provider.latency_p99 > systemHealth.thresholds.latency_p99_critical ? 'text-red-600' :
                           provider.latency_p99 > systemHealth.thresholds.latency_p99_warning ? 'text-yellow-600' :
-                          'text-gray-900'
+                          'text-foreground'
                         }`}>
                           {formatLatency(provider.latency_p99)}
                         </div>
                       </div>
-                      <div className="bg-beige-primary rounded-md p-1.5">
-                        <div className="text-[0.65rem] text-gray-600 mb-0.5">Error Rate</div>
+                      <div className="bg-card rounded-md p-1.5">
+                        <div className="text-[0.65rem] text-muted-foreground mb-0.5">Error Rate</div>
                         <div className={`text-xs font-medium ${
                           provider.error_rate > systemHealth.thresholds.error_rate_critical ? 'text-red-600' :
                           provider.error_rate > systemHealth.thresholds.error_rate_warning ? 'text-yellow-600' :
-                          'text-gray-900'
+                          'text-foreground'
                         }`}>
                           {provider.error_rate.toFixed(2)}%
                         </div>
                       </div>
-                      <div className="bg-beige-primary rounded-md p-1.5">
-                        <div className="text-[0.65rem] text-gray-600 mb-0.5">Fallback Freq</div>
-                        <div className="text-xs font-medium text-gray-900">
+                      <div className="bg-card rounded-md p-1.5">
+                        <div className="text-[0.65rem] text-muted-foreground mb-0.5">Fallback Freq</div>
+                        <div className="text-xs font-medium text-foreground">
                           {provider.fallback_frequency.toFixed(1)}%
                         </div>
                       </div>
@@ -872,26 +876,26 @@ export default function DashboardPage() {
 
                     {provider.models && provider.models.length > 0 && (
                       <details className="group">
-                        <summary className="cursor-pointer text-xs text-gray-600 hover:text-gray-900 font-medium mb-1 list-none flex items-center gap-2">
+                        <summary className="cursor-pointer text-xs text-muted-foreground hover:text-foreground font-medium mb-1 list-none flex items-center gap-2">
                           <span className="transition-transform group-open:rotate-90">▸</span>
                           Model & Region Health ({provider.models.length} models)
                         </summary>
                         <div className="mt-1.5 space-y-1.5 pl-3">
                           {provider.models.map((model) => (
                             <div key={model.model} className="text-xs">
-                              <div className="font-medium text-gray-900 mb-0.5">{model.model}</div>
+                              <div className="font-medium text-foreground mb-0.5">{model.model}</div>
                               <div className="grid grid-cols-2 gap-1.5">
                                 {model.regions.map((region) => (
-                                  <div key={region.region} className="flex items-center justify-between bg-beige-primary rounded p-1.5">
+                                    <div key={region.region} className="flex items-center justify-between bg-card rounded p-1.5">
                                     <div className="flex items-center gap-2">
                                       <div className={`w-1.5 h-1.5 rounded-full ${
                                         region.status === 'operational' ? 'bg-green-500' :
                                         region.status === 'degraded' ? 'bg-yellow-500' :
                                         'bg-red-500'
                                       }`} />
-                                      <span className="text-gray-700">{region.region}</span>
+                                      <span className="text-foreground">{region.region}</span>
                                     </div>
-                                    <div className="text-gray-600">
+                                    <div className="text-muted-foreground">
                                       {formatLatency(region.latency_p99)} • {region.error_rate.toFixed(1)}%
                                     </div>
                                   </div>
@@ -904,7 +908,7 @@ export default function DashboardPage() {
                     )}
 
                     {provider.last_incident && (
-                      <div className="mt-2 text-xs text-gray-600">
+                      <div className="mt-2 text-xs text-muted-foreground">
                         Last incident: {provider.last_incident}
                       </div>
                     )}
@@ -920,35 +924,35 @@ export default function DashboardPage() {
       {/* Simulation Results Dialog */}
       {showSimulationDialog && (
         <div className="fixed inset-0 bg-black/50 flex items-center justify-center z-50">
-          <div className="bg-white rounded-lg p-5 max-w-md w-full mx-4">
-            <h3 className="text-sm font-semibold text-gray-900 mb-3">
+          <div className="bg-background rounded-lg p-5 max-w-md w-full mx-4">
+            <h3 className="text-sm font-semibold text-foreground mb-3">
               Simulating {simulatedProvider} Outage
             </h3>
 
             {!simulationResults ? (
               <div className="flex items-center gap-2 py-6">
-                <div className="animate-spin rounded-full h-5 w-5 border-b-2 border-gray-900"></div>
-                <span className="text-xs text-gray-600">Analyzing impact...</span>
+                <div className="animate-spin rounded-full h-5 w-5 border-b-2 border-foreground"></div>
+                <span className="text-xs text-muted-foreground">Analyzing impact...</span>
               </div>
             ) : (
               <div className="space-y-3">
-                <div className="p-2.5 bg-yellow-50 border border-yellow-200 rounded-lg">
-                  <h4 className="text-xs font-medium text-yellow-900 mb-1.5">Estimated Impact</h4>
-                  <p className="text-[0.65rem] text-yellow-800">{simulationResults.estimated_impact}</p>
+                <div className="p-2.5 bg-yellow-50 dark:bg-yellow-950 border border-yellow-200 dark:border-yellow-900 rounded-lg">
+                  <h4 className="text-xs font-medium text-yellow-700 dark:text-yellow-400 mb-1.5">Estimated Impact</h4>
+                  <p className="text-[0.65rem] text-yellow-700 dark:text-yellow-400">{simulationResults.estimated_impact}</p>
                 </div>
 
-                <div className="p-2.5 bg-beige-primary border border-border-light rounded-lg">
-                  <h4 className="text-xs font-medium text-gray-900 mb-1.5">Routing Changes</h4>
+                <div className="p-2.5 bg-card border border-border rounded-lg">
+                  <h4 className="text-xs font-medium text-foreground mb-1.5">Routing Changes</h4>
                   {Object.entries(simulationResults.routing_changes).map(([key, value]) => (
-                    <div key={key} className="text-[0.65rem] text-gray-700 mb-1">
+                    <div key={key} className="text-[0.65rem] text-foreground mb-1">
                       <span className="font-medium">{key}:</span> {value}
                     </div>
                   ))}
                 </div>
 
-                <div className="p-2.5 bg-blue-50 border border-blue-200 rounded-lg">
-                  <h4 className="text-xs font-medium text-blue-900 mb-1.5">Duration</h4>
-                  <p className="text-[0.65rem] text-blue-800">{Math.round(simulationResults.duration / 60000)} minutes</p>
+                <div className="p-2.5 bg-muted border border-border rounded-lg">
+                  <h4 className="text-xs font-medium text-foreground mb-1.5">Duration</h4>
+                  <p className="text-[0.65rem] text-muted-foreground">{Math.round(simulationResults.duration / 60000)} minutes</p>
                 </div>
 
                 <div className="flex gap-2 pt-3">

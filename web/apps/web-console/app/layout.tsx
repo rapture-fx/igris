@@ -22,15 +22,19 @@ export default function RootLayout({
       afterSignUpUrl="/onboarding"
       afterSignOutUrl="/auth?mode=signup"
       appearance={{
+        baseTheme: undefined,
         variables: {
-          colorPrimary: '#000000',
-          colorBackground: '#f6f6f4',
-          colorText: '#000000',
+          colorPrimary: '#3b82f6',
+          colorBackground: '#1b1912',
+          colorInputBackground: '#25231e',
+          colorInputText: '#f6f6f4',
+          colorText: '#f6f6f4',
+          colorTextSecondary: '#9CA3AF',
           fontFamily: 'Inter, sans-serif',
         },
       }}
     >
-      <html lang="en" className="m-0 p-0" suppressHydrationWarning>
+      <html lang="en" suppressHydrationWarning>
         <body className="font-inter antialiased m-0 p-0" suppressHydrationWarning>
           <Providers>
             {children}

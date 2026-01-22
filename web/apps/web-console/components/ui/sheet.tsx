@@ -46,7 +46,7 @@ const SheetContent = React.forwardRef<
   <div
     ref={ref}
     className={cn(
-      "h-full w-full border border-border-light bg-beige-primary shadow-xl sm:max-w-5xl rounded-2xl",
+      "h-full w-full border border-gray-200 dark:border-[#f6f6f4]/5 bg-card shadow-xl sm:max-w-5xl rounded-2xl",
       "flex flex-col overflow-hidden",
       className
     )}
@@ -69,7 +69,7 @@ const SheetHeader = ({
     {...props}
   >
     {props.children}
-    <div className="absolute left-6 right-6 bottom-0 border-b border-border-light" />
+    <div className="absolute left-6 right-6 bottom-0 border-b border-gray-200 dark:border-[#f6f6f4]/5" />
   </div>
 )
 SheetHeader.displayName = "SheetHeader"

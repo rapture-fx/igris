@@ -21,6 +21,7 @@ import {
 } from 'lucide-react';
 import { LineChart, Line, BarChart, Bar, PieChart, Pie, Cell, AreaChart, Area, XAxis, YAxis, CartesianGrid, Tooltip, ResponsiveContainer, Legend } from 'recharts';
 import { CHART_COLORS } from '@/utils/constants';
+import { useChartTheme } from '@/utils/chartTheme';
 import { useTraces, useRealTimeMetrics, useInvalidateTraces } from './hooks';
 import {
   useOvertureUsage,
@@ -318,6 +319,7 @@ const generateMockTraces = (count: number): RequestTrace[] => {
 };
 
 export default function ObservabilityPage() {
+  const chartTheme = useChartTheme();
   const router = useRouter();
   const { data: tenant, isLoading: tenantLoading } = useTenant();
 
@@ -819,34 +821,34 @@ export default function ObservabilityPage() {
 
   const getStatusBadge = (status: number) => {
     if (status === 200) {
-      return <Badge className="bg-green-50 text-green-700 border-green-200 text-[8px] px-1 py-0">200 OK</Badge>;
+      return <Badge className="bg-green-50 dark:bg-green-950 text-green-700 dark:text-green-400 border-green-200 dark:border-green-900 text-[8px] px-1 py-0 rounded-none">200 OK</Badge>;
     } else if (status === 429) {
-      return <Badge className="bg-yellow-50 text-yellow-700 border-yellow-200 text-[8px] px-1 py-0">429 Rate Limit</Badge>;
+      return <Badge className="bg-yellow-50 dark:bg-yellow-950 text-yellow-700 dark:text-yellow-400 border-yellow-200 dark:border-yellow-900 text-[8px] px-1 py-0 rounded-none">429 Rate Limit</Badge>;
     } else if (status === 500) {
-      return <Badge className="bg-red-50 text-red-700 border-red-200 text-[8px] px-1 py-0">{status} Error</Badge>;
+      return <Badge className="bg-red-50 dark:bg-red-950 text-red-700 dark:text-red-400 border-red-200 dark:border-red-900 text-[8px] px-1 py-0 rounded-none">{status} Error</Badge>;
     } else {
-      return <Badge className="bg-red-50 text-red-700 border-red-200 text-[8px] px-1 py-0">{status} Error</Badge>;
+      return <Badge className="bg-red-50 dark:bg-red-950 text-red-700 dark:text-red-400 border-red-200 dark:border-red-900 text-[8px] px-1 py-0 rounded-none">{status} Error</Badge>;
     }
   };
 
   const getTagBadge = (tag: RequestTag | undefined) => {
     if (!tag) return null;
     const config = {
-      expected: { bg: 'bg-blue-50', text: 'text-blue-700', label: 'Expected' },
-      bug: { bg: 'bg-red-50', text: 'text-red-700', label: 'Bug' },
-      reviewed: { bg: 'bg-green-50', text: 'text-green-700', label: 'Reviewed' },
-      golden: { bg: 'bg-yellow-50', text: 'text-yellow-700', label: 'Golden' },
-      spam: { bg: 'bg-gray-50', text: 'text-gray-700', label: 'Spam' },
+      expected: { bg: 'bg-blue-50 dark:bg-blue-950', text: 'text-blue-700 dark:text-blue-400', border: 'border-blue-200 dark:border-blue-900', label: 'Expected' },
+      bug: { bg: 'bg-red-50 dark:bg-red-950', text: 'text-red-700 dark:text-red-400', border: 'border-red-200 dark:border-red-900', label: 'Bug' },
+      reviewed: { bg: 'bg-green-50 dark:bg-green-950', text: 'text-green-700 dark:text-green-400', border: 'border-green-200 dark:border-green-900', label: 'Reviewed' },
+      golden: { bg: 'bg-yellow-50 dark:bg-yellow-950', text: 'text-yellow-700 dark:text-yellow-400', border: 'border-yellow-200 dark:border-yellow-900', label: 'Golden' },
+      spam: { bg: 'bg-gray-50 dark:bg-gray-800', text: 'text-gray-700 dark:text-gray-400', border: 'border-gray-200 dark:border-gray-700', label: 'Spam' },
     };
-    const { bg, text, label } = config[tag];
-    return <Badge className={cn(bg, text, 'border text-[8px] px-1 py-0')}>{label}</Badge>;
+    const { bg, text, border, label } = config[tag];
+    return <Badge className={cn(bg, text, border, 'text-[8px] px-1 py-0 rounded-none')}>{label}</Badge>;
   };
 
   if (tenantLoading) {
     return (
       <DashboardLayout>
         <div className="flex items-center justify-center h-64">
-          <Loader2 className="h-12 w-12 animate-spin text-gray-900" />
+          <Loader2 className="h-12 w-12 animate-spin text-foreground" />
         </div>
       </DashboardLayout>
     );
@@ -861,21 +863,21 @@ export default function ObservabilityPage() {
           <div className="flex items-center justify-between">
             <div>
               <div className="flex items-center gap-3">
-                <h1 className="text-base font-medium text-gray-900 font-inter">
+                <h1 className="text-base font-medium text-foreground font-inter">
                   Observability
                 </h1>
                 {tier === 'growth' && (
-                  <Badge className="bg-gray-50 text-gray-700 border-gray-200 text-xs font-medium">
+                  <Badge className="bg-card text-foreground border-gray-200 dark:border-[#f6f6f4]/5 text-xs font-medium rounded-none">
                     30 days retention
                   </Badge>
                 )}
                 {tier === 'scale' && (
-                  <Badge className="bg-gray-50 text-gray-700 border-gray-200 text-xs font-medium">
+                  <Badge className="bg-card text-foreground border-gray-200 dark:border-[#f6f6f4]/5 text-xs font-medium rounded-none">
                     90 days retention
                   </Badge>
                 )}
               </div>
-              <p className="text-gray-600 mt-1 font-inter text-xs">
+              <p className="text-muted-foreground mt-1 font-inter text-xs">
                 Monitor and debug LLM requests in real-time
               </p>
             </div>
@@ -923,8 +925,8 @@ export default function ObservabilityPage() {
                       <SelectValue placeholder="All tenants" />
                     </SelectTrigger>
                   </Select>
-                  <div className="absolute bottom-full left-0 mb-2 hidden group-hover:block w-64 bg-beige-primary border border-gray-200/20 rounded-lg p-3 z-50">
-                    <p className="text-xs text-gray-600">
+                  <div className="absolute bottom-full left-0 mb-2 hidden group-hover:block w-64 bg-card border border-gray-200/20 rounded-lg p-3 z-50">
+                    <p className="text-xs text-muted-foreground">
                       Multi-tenant view available on Scale plan
                     </p>
                   </div>
@@ -938,22 +940,22 @@ export default function ObservabilityPage() {
                   <div className="flex items-center gap-2">
                     <div className="relative">
                       <button
-                        className="p-1 hover:bg-beige-primary rounded-md transition-colors"
+                        className="p-1 hover:bg-card rounded-md transition-colors"
                         onMouseEnter={() => setShowTracingInfo(true)}
                         onMouseLeave={() => setShowTracingInfo(false)}
                         onClick={() => setShowTracingInfo(!showTracingInfo)}
                       >
-                        <AlertCircle className="h-5 w-5 text-gray-600" />
+                        <AlertCircle className="h-5 w-5 text-muted-foreground" />
                       </button>
                       {showTracingInfo && (
-                        <div className="absolute top-full right-0 mt-2 w-80 bg-beige-primary border border-gray-200/20 rounded-lg p-4 z-50">
+                        <div className="absolute top-full right-0 mt-2 w-80 bg-card border border-gray-200/20 rounded-lg p-4 z-50">
                           <div className="flex items-start gap-3">
-                            <AlertCircle className="h-5 w-5 text-gray-900 flex-shrink-0 mt-0.5" />
+                            <AlertCircle className="h-5 w-5 text-foreground flex-shrink-0 mt-0.5" />
                             <div>
-                              <h4 className="text-sm font-semibold text-gray-900 mb-1">
+                              <h4 className="text-sm font-semibold text-foreground mb-1">
                                 Full Request Tracing Enabled
                               </h4>
-                              <p className="text-xs text-gray-600">
+                              <p className="text-xs text-muted-foreground">
                                 Prompts, completions, and token streams are now being stored. Recommended only for debugging. All traces automatically deleted after {tierConfig.retention} days.
                               </p>
                             </div>
@@ -964,7 +966,7 @@ export default function ObservabilityPage() {
                     <Button
                       variant="outline"
                       size="sm"
-                      className="shadow-sm text-xs text-gray-900 border-red-300 hover:bg-red-50"
+                      className="shadow-sm text-xs text-foreground border-red-300 hover:bg-red-50"
                       onClick={handleDeleteAllTraces}
                     >
                       Delete All Traces
@@ -1008,57 +1010,57 @@ export default function ObservabilityPage() {
         {/* Tabs: Traces, Audit Logs, and Cost Insights */}
         <Tabs defaultValue="traces" className="w-full">
           <TabsList className="mb-6">
-            <TabsTrigger value="traces" className="text-[10px]">Traces</TabsTrigger>
-            <TabsTrigger value="audit" className="text-[10px]">Audit Logs</TabsTrigger>
-            <TabsTrigger value="cost" className="text-[10px]">Cost Insights</TabsTrigger>
+            <TabsTrigger value="traces" className="text-[10px] text-gray-700 dark:text-[#c8c8b8]">Traces</TabsTrigger>
+            <TabsTrigger value="audit" className="text-[10px] text-gray-700 dark:text-[#c8c8b8]">Audit Logs</TabsTrigger>
+            <TabsTrigger value="cost" className="text-[10px] text-gray-700 dark:text-[#c8c8b8]">Cost Insights</TabsTrigger>
           </TabsList>
 
           {/* Traces Tab Content */}
           <TabsContent value="traces" className="space-y-6">
         {/* Metrics Grid Layout */}
-        <div className="bg-beige-primary">
+        <div className="bg-card">
           <div className="grid grid-cols-3 divide-x divide-border-light">
             <div className="p-4">
-              <div className="text-xs font-medium text-gray-600 mb-1">Total Traces</div>
-              <div className="text-lg font-bold text-gray-900">{formatNumber(metrics.total)}</div>
-              <p className="text-[0.65rem] text-gray-600 mt-1">
+              <div className="text-xs font-medium text-muted-foreground mb-1">Total Traces</div>
+              <div className="text-lg font-bold text-foreground">{formatNumber(metrics.total)}</div>
+              <p className="text-[0.65rem] text-muted-foreground mt-1">
                 Last {filters.timeRange === '1h' ? 'hour' : filters.timeRange === '24h' ? '24h' : filters.timeRange === '7d' ? '7 days' : '30 days'}
               </p>
             </div>
             <div className="p-4">
-              <div className="text-xs font-medium text-gray-600 mb-1">Avg Latency</div>
-              <div className="text-lg font-bold text-gray-900">{formatLatency(metrics.avgLatency)}</div>
-              <p className="text-[0.65rem] text-gray-600 mt-1">
+              <div className="text-xs font-medium text-muted-foreground mb-1">Avg Latency</div>
+              <div className="text-lg font-bold text-foreground">{formatLatency(metrics.avgLatency)}</div>
+              <p className="text-[0.65rem] text-muted-foreground mt-1">
                 Response time
               </p>
             </div>
             <div className="p-4">
-              <div className="text-xs font-medium text-gray-600 mb-1">Total Cost</div>
-              <div className="text-lg font-bold text-gray-900">{formatCurrency(metrics.totalCost)}</div>
-              <p className="text-[0.65rem] text-gray-600 mt-1">
+              <div className="text-xs font-medium text-muted-foreground mb-1">Total Cost</div>
+              <div className="text-lg font-bold text-foreground">{formatCurrency(metrics.totalCost)}</div>
+              <p className="text-[0.65rem] text-muted-foreground mt-1">
                 This period
               </p>
             </div>
           </div>
-          <div className="grid grid-cols-3 divide-x divide-border-light border-t border-border-light">
+          <div className="grid grid-cols-3 divide-x divide-border-light border-t border-border">
             <div className="p-4">
-              <div className="text-xs font-medium text-gray-600 mb-1">Error Rate</div>
-              <div className="text-lg font-bold text-gray-900">{metrics.errorRate.toFixed(1)}%</div>
-              <p className="text-[0.65rem] text-gray-600 mt-1">
+              <div className="text-xs font-medium text-muted-foreground mb-1">Error Rate</div>
+              <div className="text-lg font-bold text-foreground">{metrics.errorRate.toFixed(1)}%</div>
+              <p className="text-[0.65rem] text-muted-foreground mt-1">
                 {tier === 'scale' ? '90-day' : tier === 'growth' ? '7-day' : 'Limited'}
               </p>
             </div>
             <div className="p-4">
-              <div className="text-xs font-medium text-gray-600 mb-1">Speculative</div>
-              <div className="text-lg font-bold text-gray-900">{formatNumber(metrics.speculativeCount)}</div>
-              <p className="text-[0.65rem] text-gray-600 mt-1">
+              <div className="text-xs font-medium text-muted-foreground mb-1">Speculative</div>
+              <div className="text-lg font-bold text-foreground">{formatNumber(metrics.speculativeCount)}</div>
+              <p className="text-[0.65rem] text-muted-foreground mt-1">
                 Used parallel
               </p>
             </div>
             <div className="p-4">
-              <div className="text-xs font-medium text-gray-600 mb-1">Retried</div>
-              <div className="text-lg font-bold text-gray-900">{formatNumber(metrics.retriedCount)}</div>
-              <p className="text-[0.65rem] text-gray-600 mt-1">
+              <div className="text-xs font-medium text-muted-foreground mb-1">Retried</div>
+              <div className="text-lg font-bold text-foreground">{formatNumber(metrics.retriedCount)}</div>
+              <p className="text-[0.65rem] text-muted-foreground mt-1">
                 Had retries
               </p>
             </div>
@@ -1066,11 +1068,11 @@ export default function ObservabilityPage() {
         </div>
 
         {/* 1. REAL-TIME METRICS - Live updating every 5s */}
-        <div className="bg-gradient-to-br from-beige-primary to-beige-primary">
+        <div className="bg-card">
           <div className="px-6 py-4">
             <div className="flex items-center gap-2 mb-4">
-              <Activity className="h-3.5 w-3.5 text-gray-900" />
-              <h3 className="text-sm font-medium text-gray-900">
+              <Activity className="h-3.5 w-3.5 text-foreground" />
+              <h3 className="text-sm font-medium text-foreground">
                 Real-Time Metrics
               </h3>
               <span className="relative flex h-2 w-2 ml-1">
@@ -1078,72 +1080,72 @@ export default function ObservabilityPage() {
                 <span className="relative inline-flex rounded-full h-2 w-2 bg-green-500"></span>
               </span>
             </div>
-            <p className="text-[10px] text-gray-600 mb-4">Updates every 5 seconds</p>
+            <p className="text-[10px] text-muted-foreground mb-4">Updates every 5 seconds</p>
             <div className="grid gap-6 md:grid-cols-2 lg:grid-cols-4">
               {/* Requests/Second */}
               <div className="space-y-2">
-                <p className="text-xs font-medium text-gray-600">Requests / Second</p>
+                <p className="text-xs font-medium text-muted-foreground">Requests / Second</p>
                 <div className="flex items-end gap-3">
-                  <p className="text-base font-semibold text-gray-900">{realTimeMetrics.requestsPerSecond.toFixed(1)}</p>
+                  <p className="text-base font-semibold text-foreground">{realTimeMetrics.requestsPerSecond.toFixed(1)}</p>
                   <div className="flex-1 h-8">
                     <ResponsiveContainer width="100%" height="100%">
                       <LineChart data={realTimeMetrics.requestsSparkline}>
-                        <Line type="monotone" dataKey="value" stroke="#000000" strokeWidth={0.5} dot={false} />
+                        <Line type="monotone" dataKey="value" stroke={chartTheme.line} strokeWidth={0.5} dot={false} />
                       </LineChart>
                     </ResponsiveContainer>
                   </div>
                 </div>
-                <p className="text-[10px] text-gray-600">Last 60 seconds</p>
+                <p className="text-[10px] text-muted-foreground">Last 60 seconds</p>
               </div>
 
               {/* P50/P95 Latency */}
               <div className="space-y-2">
-                <p className="text-xs font-medium text-gray-600">P50 / P95 Latency</p>
+                <p className="text-xs font-medium text-muted-foreground">P50 / P95 Latency</p>
                 <div className="space-y-1">
                   <div className="flex items-baseline gap-2">
-                    <p className="text-base font-semibold text-gray-900">{realTimeMetrics.p50Latency.toFixed(0)}ms</p>
-                    <span className="text-[10px] text-gray-600">P50</span>
+                    <p className="text-base font-semibold text-foreground">{realTimeMetrics.p50Latency.toFixed(0)}ms</p>
+                    <span className="text-[10px] text-muted-foreground">P50</span>
                   </div>
                   <div className="flex items-baseline gap-2">
-                    <p className="text-sm font-medium text-gray-700">{realTimeMetrics.p95Latency.toFixed(0)}ms</p>
-                    <span className="text-[10px] text-gray-600">P95</span>
+                    <p className="text-sm font-medium text-foreground">{realTimeMetrics.p95Latency.toFixed(0)}ms</p>
+                    <span className="text-[10px] text-muted-foreground">P95</span>
                   </div>
                 </div>
-                <p className="text-[10px] text-gray-600">Last 5 minutes</p>
+                <p className="text-[10px] text-muted-foreground">Last 5 minutes</p>
               </div>
 
               {/* Cost/Hour */}
               <div className="space-y-2">
-                <p className="text-xs font-medium text-gray-600">Cost / Hour</p>
+                <p className="text-xs font-medium text-muted-foreground">Cost / Hour</p>
                 <div className="space-y-1">
-                  <p className="text-base font-semibold text-gray-900">${realTimeMetrics.costPerHour.toFixed(2)}</p>
-                  <div className="flex items-center gap-2 text-[10px] text-gray-600">
+                  <p className="text-base font-semibold text-foreground">${realTimeMetrics.costPerHour.toFixed(2)}</p>
+                  <div className="flex items-center gap-2 text-[10px] text-muted-foreground">
                     <span>Projected: ${(realTimeMetrics.costPerHour * 24).toFixed(2)}/day</span>
                   </div>
                 </div>
-                <p className="text-[10px] text-gray-600">Last hour</p>
+                <p className="text-[10px] text-muted-foreground">Last hour</p>
               </div>
 
               {/* Active Providers */}
               <div className="space-y-2">
-                <p className="text-xs font-medium text-gray-600">Active Providers</p>
-                <p className="text-base font-semibold text-gray-900">{realTimeMetrics.activeProviders}</p>
+                <p className="text-xs font-medium text-muted-foreground">Active Providers</p>
+                <p className="text-base font-semibold text-foreground">{realTimeMetrics.activeProviders}</p>
                 <div className="flex flex-wrap gap-1 mt-1">
                   {['OpenAI', 'Anthropic', 'Google', 'xAI', 'Cohere'].slice(0, realTimeMetrics.activeProviders).map((provider, i) => (
                     <Badge key={i} variant="outline" className="text-[9px] px-1.5 py-0">{provider}</Badge>
                   ))}
                 </div>
-                <p className="text-[10px] text-gray-600">Currently responding</p>
+                <p className="text-[10px] text-muted-foreground">Currently responding</p>
               </div>
             </div>
           </div>
         </div>
 
         {/* Filters */}
-        <Card className="border-border-light">
+        <Card className="border-border">
           <CardHeader>
             <CardTitle className="text-sm flex items-center gap-2">
-              <Filter className="h-4 w-4 text-gray-900" />
+              <Filter className="h-4 w-4 text-foreground" />
               Filters & Search
             </CardTitle>
           </CardHeader>
@@ -1152,12 +1154,12 @@ export default function ObservabilityPage() {
               {/* Search */}
               <div className="lg:col-span-2">
                 <div className="relative">
-                  <Search className="absolute left-3 top-1/2 h-4 w-4 -translate-y-1/2 text-gray-600" />
+                  <Search className="absolute left-3 top-1/2 h-4 w-4 -translate-y-1/2 text-muted-foreground" />
                   <Input
                     placeholder="Search requests..."
                     value={searchQuery}
                     onChange={(e) => setSearchQuery(e.target.value)}
-                    className="pl-10 text-xs focus-visible:ring-0 focus-visible:ring-offset-0 focus:outline-none focus:border-border-light"
+                    className="pl-10 text-xs focus-visible:ring-0 focus-visible:ring-offset-0 focus:outline-none focus:border-border"
                   />
                 </div>
               </div>
@@ -1167,7 +1169,7 @@ export default function ObservabilityPage() {
                 value={filters.provider || 'all'}
                 onValueChange={(value) => setFilters(prev => ({ ...prev, provider: value === 'all' ? '' : value }))}
               >
-                <SelectTrigger className="text-xs focus-visible:ring-0 focus-visible:ring-offset-0 focus:outline-none focus:border-border-light">
+                <SelectTrigger className="text-xs focus-visible:ring-0 focus-visible:ring-offset-0 focus:outline-none focus:border-border">
                   <SelectValue placeholder="All Providers" />
                 </SelectTrigger>
                 <SelectContent>
@@ -1184,7 +1186,7 @@ export default function ObservabilityPage() {
                 value={filters.status || 'all'}
                 onValueChange={(value) => setFilters(prev => ({ ...prev, status: value === 'all' ? '' : value }))}
               >
-                <SelectTrigger className="text-xs focus-visible:ring-0 focus-visible:ring-offset-0 focus:outline-none focus:border-border-light">
+                <SelectTrigger className="text-xs focus-visible:ring-0 focus-visible:ring-offset-0 focus:outline-none focus:border-border">
                   <SelectValue placeholder="All Status" />
                 </SelectTrigger>
                 <SelectContent>
@@ -1200,7 +1202,7 @@ export default function ObservabilityPage() {
                 value={filters.tag || 'all'}
                 onValueChange={(value) => setFilters(prev => ({ ...prev, tag: value === 'all' ? '' : value as RequestTag | '' }))}
               >
-                <SelectTrigger className="text-xs focus-visible:ring-0 focus-visible:ring-offset-0 focus:outline-none focus:border-border-light">
+                <SelectTrigger className="text-xs focus-visible:ring-0 focus-visible:ring-offset-0 focus:outline-none focus:border-border">
                   <SelectValue placeholder="All Tags" />
                 </SelectTrigger>
                 <SelectContent>
@@ -1218,7 +1220,7 @@ export default function ObservabilityPage() {
                 value={filters.timeRange}
                 onValueChange={(value) => setFilters(prev => ({ ...prev, timeRange: value }))}
               >
-                <SelectTrigger className="text-xs focus-visible:ring-0 focus-visible:ring-offset-0 focus:outline-none focus:border-border-light">
+                <SelectTrigger className="text-xs focus-visible:ring-0 focus-visible:ring-offset-0 focus:outline-none focus:border-border">
                   <SelectValue placeholder="Time Range" />
                 </SelectTrigger>
                 <SelectContent>
@@ -1235,7 +1237,7 @@ export default function ObservabilityPage() {
               <Button
                 variant="outline"
                 size="sm"
-                className={filters.hasError ? 'bg-beige-primary text-gray-900 border border-border-light text-xs' : 'text-xs'}
+                className={filters.hasError ? 'bg-card text-foreground border border-border text-xs' : 'text-xs'}
                 onClick={() => setFilters(prev => ({ ...prev, hasError: !prev.hasError }))}
               >
                 {filters.hasError && <CheckCircle className="h-3 w-3 mr-1" />}
@@ -1244,7 +1246,7 @@ export default function ObservabilityPage() {
               <Button
                 variant="outline"
                 size="sm"
-                className={filters.usedSpeculative ? 'bg-beige-primary text-gray-900 border border-border-light text-xs' : 'text-xs'}
+                className={filters.usedSpeculative ? 'bg-card text-foreground border border-border text-xs' : 'text-xs'}
                 onClick={() => setFilters(prev => ({ ...prev, usedSpeculative: !prev.usedSpeculative }))}
               >
                 {filters.usedSpeculative && <CheckCircle className="h-3 w-3 mr-1" />}
@@ -1253,7 +1255,7 @@ export default function ObservabilityPage() {
               <Button
                 variant="outline"
                 size="sm"
-                className={filters.wasRetried ? 'bg-beige-primary text-gray-900 border border-border-light text-xs' : 'text-xs'}
+                className={filters.wasRetried ? 'bg-card text-foreground border border-border text-xs' : 'text-xs'}
                 onClick={() => setFilters(prev => ({ ...prev, wasRetried: !prev.wasRetried }))}
               >
                 {filters.wasRetried && <CheckCircle className="h-3 w-3 mr-1" />}
@@ -1314,21 +1316,21 @@ export default function ObservabilityPage() {
 
             {/* Saved Filter Presets */}
             {tierConfig.fullFeatures && (
-              <div className="mt-4 pt-4 border-t border-border-light">
-                <h4 className="text-xs font-medium text-gray-600 mb-3">Saved Filter Presets</h4>
+              <div className="mt-4 pt-4 border-t border-border">
+                <h4 className="text-xs font-medium text-muted-foreground mb-3">Saved Filter Presets</h4>
                 <div className="flex gap-2 flex-wrap mb-3">
                   {savedPresets.map((preset, idx) => (
-                    <div key={idx} className="flex items-center gap-2 bg-beige-primary border border-border-light rounded px-3 py-1">
+                    <div key={idx} className="flex items-center gap-2 bg-card border border-border rounded px-3 py-1">
                       <Button
                         variant="ghost"
                         size="sm"
                         onClick={() => handleLoadPreset(preset)}
-                        className="h-auto p-0 text-xs font-medium text-gray-900 hover:text-gray-700"
+                        className="h-auto p-0 text-xs font-medium text-foreground hover:text-foreground"
                       >
                         {preset.name}
                       </Button>
                       <X
-                        className="h-3 w-3 text-gray-600 cursor-pointer hover:text-gray-900"
+                        className="h-3 w-3 text-muted-foreground cursor-pointer hover:text-foreground"
                         onClick={() => handleDeletePreset(preset.name)}
                       />
                     </div>
@@ -1339,7 +1341,7 @@ export default function ObservabilityPage() {
                     placeholder="Preset name..."
                     value={presetName}
                     onChange={(e) => setPresetName(e.target.value)}
-                    className="flex-1 text-xs focus-visible:ring-0 focus-visible:ring-offset-0 focus:outline-none focus:border-border-light"
+                    className="flex-1 text-xs focus-visible:ring-0 focus-visible:ring-offset-0 focus:outline-none focus:border-border"
                   />
                   <Button variant="outline" size="sm" className="text-xs" onClick={handleSavePreset}>
                     Save Current Filters
@@ -1351,15 +1353,15 @@ export default function ObservabilityPage() {
         </Card>
 
         {/* Request Traces Table */}
-        <div className="bg-beige-primary">
-          <div className="px-6 py-4 border-b border-border-light">
+        <div className="bg-card">
+          <div className="px-6 py-4 border-b border-border">
             <div className="flex items-center gap-2">
-              <Database className="h-4 w-4 text-gray-900" />
-              <h3 className="text-sm font-medium text-gray-900">
+              <Database className="h-4 w-4 text-foreground" />
+              <h3 className="text-sm font-medium text-foreground">
                 Request Traces
               </h3>
             </div>
-            <p className="text-xs text-gray-600 mt-1">
+            <p className="text-xs text-muted-foreground mt-1">
               {filteredTraces.length} of {traces.length} requests
               {tier === 'growth' && ' (Limited to 1,000 requests)'}
               {tier === 'scale' && ' (Up to 100,000 requests)'}
@@ -1381,7 +1383,7 @@ export default function ObservabilityPage() {
                 </div>
                 <div className="mt-8 max-w-2xl mx-auto">
                   <div className="relative group">
-                    <pre className="bg-beige-primary border border-gray-200/20 text-gray-700 p-4 rounded-lg text-left text-xs font-mono overflow-x-auto">
+                    <pre className="bg-card border border-gray-200/20 text-foreground p-4 rounded-lg text-left text-xs font-mono overflow-x-auto">
 {`curl -X POST https://api.overture.com/v1/chat/completions \\
   -H "Authorization: Bearer sk-..." \\
   -H "Content-Type: application/json" \\
@@ -1394,7 +1396,7 @@ export default function ObservabilityPage() {
   -H "Content-Type: application/json" \\
   -d '{"model": "gpt-4o", "messages": [{"role": "user", "content": "Hello"}]}'`);
                       }}
-                      className="absolute top-2 right-2 text-gray-600 hover:text-gray-900 p-2 rounded transition-colors"
+                      className="absolute top-2 right-2 text-muted-foreground hover:text-foreground p-2 rounded transition-colors"
                       title="Copy to clipboard"
                     >
                       <svg className="h-4 w-4" fill="none" stroke="currentColor" viewBox="0 0 24 24">
@@ -1408,39 +1410,39 @@ export default function ObservabilityPage() {
               <div className="overflow-x-auto">
                 <div className="max-h-[600px] overflow-y-auto scrollbar-hide">
                   <table className="w-full text-[9px]">
-                    <thead className="sticky top-0 z-10" style={{ backgroundColor: '#f2f1ed' }}>
-                      <tr className="border-b border-border-light">
-                        <th className="text-left py-1.5 px-2 font-medium text-[8px] text-gray-600" style={{ backgroundColor: '#f2f1ed' }}>Time</th>
-                        <th className="text-left py-1.5 px-2 font-medium text-[8px] text-gray-600" style={{ backgroundColor: '#f2f1ed' }}>Model</th>
-                        <th className="text-left py-1.5 px-2 font-medium text-[8px] text-gray-600" style={{ backgroundColor: '#f2f1ed' }}>Provider</th>
-                        <th className="text-left py-1.5 px-2 font-medium text-[8px] text-gray-600" style={{ backgroundColor: '#f2f1ed' }}>Status</th>
-                        <th className="text-right py-1.5 px-2 font-medium text-[8px] text-gray-600" style={{ backgroundColor: '#f2f1ed' }}>Latency</th>
-                        <th className="text-right py-1.5 px-2 font-medium text-[8px] text-gray-600" style={{ backgroundColor: '#f2f1ed' }}>Cost</th>
-                        <th className="text-right py-1.5 px-2 font-medium text-[8px] text-gray-600" style={{ backgroundColor: '#f2f1ed' }}>Tokens</th>
-                        <th className="text-left py-1.5 px-2 font-medium text-[8px] text-gray-600" style={{ backgroundColor: '#f2f1ed' }}>Cache</th>
-                        <th className="text-left py-1.5 px-2 font-medium text-[8px] text-gray-600" style={{ backgroundColor: '#f2f1ed' }}>User</th>
-                        <th className="text-left py-1.5 px-2 font-medium text-[8px] text-gray-600" style={{ backgroundColor: '#f2f1ed' }}>Chain</th>
-                        <th className="text-left py-1.5 px-2 font-medium text-[8px] text-gray-600" style={{ backgroundColor: '#f2f1ed' }}>Tags</th>
-                        <th className="text-right py-1.5 px-2 font-medium text-[8px] text-gray-600" style={{ backgroundColor: '#f2f1ed' }}>Actions</th>
+                    <thead className="sticky top-0 z-10 bg-[#f2f1ed] dark:bg-[#1b1912]">
+                      <tr className="border-b border-border">
+                        <th className="text-left py-1.5 px-2 font-medium text-[8px] text-muted-foreground bg-[#f2f1ed] dark:bg-[#1b1912]">Time</th>
+                        <th className="text-left py-1.5 px-2 font-medium text-[8px] text-muted-foreground bg-[#f2f1ed] dark:bg-[#1b1912]">Model</th>
+                        <th className="text-left py-1.5 px-2 font-medium text-[8px] text-muted-foreground bg-[#f2f1ed] dark:bg-[#1b1912]">Provider</th>
+                        <th className="text-left py-1.5 px-2 font-medium text-[8px] text-muted-foreground bg-[#f2f1ed] dark:bg-[#1b1912]">Status</th>
+                        <th className="text-right py-1.5 px-2 font-medium text-[8px] text-muted-foreground bg-[#f2f1ed] dark:bg-[#1b1912]">Latency</th>
+                        <th className="text-right py-1.5 px-2 font-medium text-[8px] text-muted-foreground bg-[#f2f1ed] dark:bg-[#1b1912]">Cost</th>
+                        <th className="text-right py-1.5 px-2 font-medium text-[8px] text-muted-foreground bg-[#f2f1ed] dark:bg-[#1b1912]">Tokens</th>
+                        <th className="text-left py-1.5 px-2 font-medium text-[8px] text-muted-foreground bg-[#f2f1ed] dark:bg-[#1b1912]">Cache</th>
+                        <th className="text-left py-1.5 px-2 font-medium text-[8px] text-muted-foreground bg-[#f2f1ed] dark:bg-[#1b1912]">User</th>
+                        <th className="text-left py-1.5 px-2 font-medium text-[8px] text-muted-foreground bg-[#f2f1ed] dark:bg-[#1b1912]">Chain</th>
+                        <th className="text-left py-1.5 px-2 font-medium text-[8px] text-muted-foreground bg-[#f2f1ed] dark:bg-[#1b1912]">Tags</th>
+                        <th className="text-right py-1.5 px-2 font-medium text-[8px] text-muted-foreground bg-[#f2f1ed] dark:bg-[#1b1912]">Actions</th>
                       </tr>
                     </thead>
                     <tbody>
                     {filteredTraces.map((trace) => (
                       <tr
                         key={trace.id}
-                        className="border-b border-border-light hover:bg-beige-primary cursor-pointer transition-colors"
+                        className="border-b border-border hover:bg-card cursor-pointer transition-colors"
                         onClick={() => setSelectedTrace(trace)}
                       >
-                        <td className="py-1.5 px-2 text-[9px] text-gray-900 font-inter">
+                        <td className="py-1.5 px-2 text-[9px] text-foreground font-inter">
                           {new Date(trace.timestamp).toLocaleTimeString()}
                         </td>
-                        <td className="py-1.5 px-2 text-[9px] font-medium text-gray-900">
+                        <td className="py-1.5 px-2 text-[9px] font-medium text-foreground">
                           <div className="flex flex-col">
                             <span>{trace.model}</span>
-                            {trace.model_version && <span className="text-[7px] text-gray-600">{trace.model_version}</span>}
+                            {trace.model_version && <span className="text-[7px] text-muted-foreground">{trace.model_version}</span>}
                           </div>
                         </td>
-                        <td className="py-1.5 px-2 text-[9px] text-gray-900">
+                        <td className="py-1.5 px-2 text-[9px] text-foreground">
                           {trace.provider}
                         </td>
                         <td className="py-1.5 px-2">
@@ -1450,32 +1452,32 @@ export default function ObservabilityPage() {
                             {trace.retry_count && trace.retry_count > 0 && <Badge variant="outline" className="text-[8px] px-1 py-0">{trace.retry_count}x</Badge>}
                           </div>
                         </td>
-                        <td className="text-right py-1.5 px-2 text-[9px] text-gray-900">
+                        <td className="text-right py-1.5 px-2 text-[9px] text-foreground">
                           {formatLatency(trace.latency)}
                         </td>
-                        <td className="text-right py-1.5 px-2 text-[9px] text-gray-900">
+                        <td className="text-right py-1.5 px-2 text-[9px] text-foreground">
                           {formatCurrency(trace.cost)}
                         </td>
-                        <td className="text-right py-1.5 px-2 text-[9px] text-gray-900">
+                        <td className="text-right py-1.5 px-2 text-[9px] text-foreground">
                           {formatNumber(trace.tokens.total)}
                         </td>
                         <td className="py-1.5 px-2">
                           {trace.cache_hit ? (
                             <div className="flex flex-col">
-                              <Badge className="bg-green-50 text-green-700 border-green-200 text-[8px] px-1 py-0">HIT</Badge>
+                              <Badge className="bg-green-50 dark:bg-green-950 text-green-700 dark:text-green-400 border-green-200 dark:border-green-900 text-[8px] px-1 py-0 rounded-none">HIT</Badge>
                               {trace.cache_savings && trace.cache_savings > 0 && (
-                                <span className="text-[7px] text-green-600 mt-0.5">-{formatCurrency(trace.cache_savings)}</span>
+                                <span className="text-[7px] text-green-600 dark:text-green-400 mt-0.5">-{formatCurrency(trace.cache_savings)}</span>
                               )}
                             </div>
                           ) : (
-                            <Badge variant="outline" className="text-[8px] px-1 py-0 text-gray-600">MISS</Badge>
+                            <Badge variant="outline" className="text-[8px] px-1 py-0 text-muted-foreground">MISS</Badge>
                           )}
                         </td>
-                        <td className="py-1.5 px-2 text-[9px] text-gray-900">
+                        <td className="py-1.5 px-2 text-[9px] text-foreground">
                           {trace.user_id && (
                             <div className="flex flex-col">
                               <span className="text-[9px]">{trace.user_id}</span>
-                              {trace.session_id && <span className="text-[7px] text-gray-600">{trace.session_id}</span>}
+                              {trace.session_id && <span className="text-[7px] text-muted-foreground">{trace.session_id}</span>}
                             </div>
                           )}
                         </td>
@@ -1523,10 +1525,10 @@ export default function ObservabilityPage() {
             )}
           </div>
           {/* 3. PERFORMANCE MONITORING - Dedicated Section */}
-        <Card className="border-border-light">
+        <Card className="border-border">
           <CardHeader>
             <CardTitle className="text-sm flex items-center gap-2">
-              <BarChart3 className="h-4 w-4 text-gray-900" />
+              <BarChart3 className="h-4 w-4 text-foreground" />
               Performance Monitoring
             </CardTitle>
             <CardDescription className="text-[10px]">Provider reliability and performance metrics</CardDescription>
@@ -1536,29 +1538,29 @@ export default function ObservabilityPage() {
             <div className="mb-6">
               <div className="flex items-center justify-between mb-4">
                 <div className="flex-1">
-                  <h3 className="text-xs font-medium text-gray-900 mb-2">Error Rate (7-day rolling)</h3>
+                  <h3 className="text-xs font-medium text-foreground mb-2">Error Rate (7-day rolling)</h3>
                   <div className="flex items-center gap-3">
-                    <span className="text-xs font-semibold text-gray-900">{errorRateMetrics.sevenDayErrorRate}%</span>
+                    <span className="text-xs font-semibold text-foreground">{errorRateMetrics.sevenDayErrorRate}%</span>
                     <div className="flex items-center gap-1">
                       {errorRateMetrics.trendDirection === 'up' && (
                         <>
-                          <ChevronUp className="h-3 w-3 text-gray-900" />
-                          <span className="text-[10px] font-medium text-gray-900">+{Math.abs(errorRateMetrics.errorRateDelta).toFixed(2)}%</span>
+                          <ChevronUp className="h-3 w-3 text-foreground" />
+                          <span className="text-[10px] font-medium text-foreground">+{Math.abs(errorRateMetrics.errorRateDelta).toFixed(2)}%</span>
                         </>
                       )}
                       {errorRateMetrics.trendDirection === 'down' && (
                         <>
-                          <ChevronDown className="h-3 w-3 text-gray-600" />
-                          <span className="text-[10px] font-medium text-gray-600">-{Math.abs(errorRateMetrics.errorRateDelta).toFixed(2)}%</span>
+                          <ChevronDown className="h-3 w-3 text-muted-foreground" />
+                          <span className="text-[10px] font-medium text-muted-foreground">-{Math.abs(errorRateMetrics.errorRateDelta).toFixed(2)}%</span>
                         </>
                       )}
                       {errorRateMetrics.trendDirection === 'flat' && (
-                        <span className="text-[10px] font-medium text-gray-600">~{errorRateMetrics.errorRateDelta.toFixed(2)}%</span>
+                        <span className="text-[10px] font-medium text-muted-foreground">~{errorRateMetrics.errorRateDelta.toFixed(2)}%</span>
                       )}
-                      <span className="text-[9px] text-gray-600 ml-1">vs prev 24h</span>
+                      <span className="text-[9px] text-muted-foreground ml-1">vs prev 24h</span>
                     </div>
                   </div>
-                  <p className="text-[9px] text-gray-600 mt-1">
+                  <p className="text-[9px] text-muted-foreground mt-1">
                     Failed requests: 4xx (except 429), 5xx, timeout &gt;30s
                   </p>
                 </div>
@@ -1578,9 +1580,9 @@ export default function ObservabilityPage() {
                       content={({ active, payload }) => {
                         if (active && payload && payload.length) {
                           return (
-                            <div className="bg-beige-primary border border-gray-200/20 rounded-md p-1.5">
-                              <p className="text-[9px] text-gray-600">{payload[0].payload.day}</p>
-                              <p className="text-[10px] font-medium text-gray-900">{payload[0].value}%</p>
+                            <div className="bg-card border border-gray-200/20 rounded-md p-1.5">
+                              <p className="text-[9px] text-muted-foreground">{payload[0].payload.day}</p>
+                              <p className="text-[10px] font-medium text-foreground">{payload[0].value}%</p>
                             </div>
                           );
                         }
@@ -1590,41 +1592,41 @@ export default function ObservabilityPage() {
                     <Area
                       type="monotone"
                       dataKey="rate"
-                      stroke="#000000"
+                      stroke={chartTheme.line}
                       strokeWidth={0.5}
                       fill="url(#errorRateGradient)"
                       dot={false}
                     />
                   </AreaChart>
                 </ResponsiveContainer>
-                <p className="text-[9px] text-gray-600 mt-1">30-day trend</p>
+                <p className="text-[9px] text-muted-foreground mt-1">30-day trend</p>
               </div>
             </div>
 
             {/* Provider Reliability Score */}
-            <div className="mt-6 pt-6 border-t border-border-light">
-              <h3 className="text-xs font-medium text-gray-900 mb-3">Provider Reliability Score (7-day)</h3>
+            <div className="mt-6 pt-6 border-t border-border">
+              <h3 className="text-xs font-medium text-foreground mb-3">Provider Reliability Score (7-day)</h3>
               {providerReliabilityMetrics.length > 0 ? (
                 <div className="overflow-x-auto">
                   <table className="w-full">
                     <thead>
-                      <tr className="border-b border-border-light bg-beige-primary">
-                        <th className="text-left py-1 px-2 text-[8px] font-medium text-gray-600">Provider</th>
-                        <th className="text-right py-1 px-2 text-[8px] font-medium text-gray-600">Reliability Score</th>
-                        <th className="text-right py-1 px-2 text-[8px] font-medium text-gray-600">Status</th>
+                      <tr className="border-b border-border bg-card">
+                        <th className="text-left py-1 px-2 text-[8px] font-medium text-muted-foreground">Provider</th>
+                        <th className="text-right py-1 px-2 text-[8px] font-medium text-muted-foreground">Reliability Score</th>
+                        <th className="text-right py-1 px-2 text-[8px] font-medium text-muted-foreground">Status</th>
                       </tr>
                     </thead>
                     <tbody>
                       {providerReliabilityMetrics.map((provider, index) => (
-                        <tr key={index} className="border-b border-border-light hover:bg-beige-primary">
-                          <td className="py-1 px-2 text-[9px] font-medium text-gray-900">{provider.provider}</td>
+                        <tr key={index} className="border-b border-border hover:bg-card">
+                          <td className="py-1 px-2 text-[9px] font-medium text-foreground">{provider.provider}</td>
                           <td className="text-right py-1 px-2">
-                            <span className="text-[9px] font-medium text-gray-900">{provider.reliabilityScore}%</span>
+                            <span className="text-[9px] font-medium text-foreground">{provider.reliabilityScore}%</span>
                           </td>
                           <td className="text-right py-1 px-2">
                             <Badge className={cn(
-                              "text-[8px] px-1 py-0",
-                              provider.badge === 'Excellent' ? "bg-gray-50 text-gray-700 border-gray-200" :
+                              "text-[8px] px-1 py-0 rounded-none",
+                              provider.badge === 'Excellent' ? "bg-card text-foreground border-gray-200 dark:border-[#f6f6f4]/5" :
                               provider.badge === 'Good' ? "bg-yellow-50 text-yellow-700 border-yellow-200" :
                               "bg-red-50 text-red-700 border-red-200"
                             )}>
@@ -1637,15 +1639,15 @@ export default function ObservabilityPage() {
                   </table>
                 </div>
               ) : (
-                <div className="text-center py-8 text-gray-600">
+                <div className="text-center py-8 text-muted-foreground">
                   <p className="text-[9px]">No provider data available for the last 7 days</p>
                 </div>
               )}
             </div>
 
             {/* Latency CDF - Percentiles Table + Interactive Chart */}
-            <div className="mt-6 pt-6 border-t border-border-light">
-              <h3 className="text-xs font-medium text-gray-900 mb-4">Latency Distribution (CDF) - 7-day</h3>
+            <div className="mt-6 pt-6 border-t border-border">
+              <h3 className="text-xs font-medium text-foreground mb-4">Latency Distribution (CDF) - 7-day</h3>
 
               {/* Percentiles Table */}
               {latencyCDFMetrics.percentileData.length > 0 ? (
@@ -1653,28 +1655,28 @@ export default function ObservabilityPage() {
                   <div className="overflow-x-auto mb-6">
                     <table className="w-full">
                       <thead>
-                        <tr className="border-b border-border-light bg-beige-primary">
-                          <th className="text-left py-1 px-2 text-[8px] font-medium text-gray-600">Provider</th>
-                          <th className="text-right py-1 px-2 text-[8px] font-medium text-gray-600">P50</th>
-                          <th className="text-right py-1 px-2 text-[8px] font-medium text-gray-600">P75</th>
-                          <th className="text-right py-1 px-2 text-[8px] font-medium text-gray-600">P90</th>
-                          <th className="text-right py-1 px-2 text-[8px] font-medium text-gray-600">P95</th>
-                          <th className="text-right py-1 px-2 text-[8px] font-medium text-gray-600">P99</th>
-                          <th className="text-right py-1 px-2 text-[8px] font-medium text-gray-600">Status</th>
+                        <tr className="border-b border-border bg-card">
+                          <th className="text-left py-1 px-2 text-[8px] font-medium text-muted-foreground">Provider</th>
+                          <th className="text-right py-1 px-2 text-[8px] font-medium text-muted-foreground">P50</th>
+                          <th className="text-right py-1 px-2 text-[8px] font-medium text-muted-foreground">P75</th>
+                          <th className="text-right py-1 px-2 text-[8px] font-medium text-muted-foreground">P90</th>
+                          <th className="text-right py-1 px-2 text-[8px] font-medium text-muted-foreground">P95</th>
+                          <th className="text-right py-1 px-2 text-[8px] font-medium text-muted-foreground">P99</th>
+                          <th className="text-right py-1 px-2 text-[8px] font-medium text-muted-foreground">Status</th>
                         </tr>
                       </thead>
                       <tbody>
                         {latencyCDFMetrics.percentileData.map((provider, index) => (
-                          <tr key={index} className="border-b border-border-light hover:bg-beige-primary">
-                            <td className="py-1 px-2 text-[9px] font-medium text-gray-900">{provider.provider}</td>
-                            <td className="text-right py-1 px-2 text-[9px] text-gray-700">{provider.p50}ms</td>
-                            <td className="text-right py-1 px-2 text-[9px] text-gray-700">{provider.p75}ms</td>
-                            <td className="text-right py-1 px-2 text-[9px] text-gray-700">{provider.p90}ms</td>
-                            <td className="text-right py-1 px-2 text-[9px] font-medium text-gray-900">{provider.p95}ms</td>
-                            <td className="text-right py-1 px-2 text-[9px] text-gray-700">{provider.p99}ms</td>
+                          <tr key={index} className="border-b border-border hover:bg-card">
+                            <td className="py-1 px-2 text-[9px] font-medium text-foreground">{provider.provider}</td>
+                            <td className="text-right py-1 px-2 text-[9px] text-foreground">{provider.p50}ms</td>
+                            <td className="text-right py-1 px-2 text-[9px] text-foreground">{provider.p75}ms</td>
+                            <td className="text-right py-1 px-2 text-[9px] text-foreground">{provider.p90}ms</td>
+                            <td className="text-right py-1 px-2 text-[9px] font-medium text-foreground">{provider.p95}ms</td>
+                            <td className="text-right py-1 px-2 text-[9px] text-foreground">{provider.p99}ms</td>
                             <td className="text-right py-1 px-2">
                               {index === 0 && (
-                                <Badge className="text-[8px] px-1 py-0" style={{ backgroundColor: '#e6f7f6', color: '#299a93', borderColor: '#299a93' }}>
+                                <Badge className="bg-[#e6f7f6] dark:bg-teal-950 text-[#299a93] dark:text-teal-400 border-[#299a93] dark:border-teal-900 text-[8px] px-1 py-0 rounded-none">
                                   Winner
                                 </Badge>
                               )}
@@ -1689,15 +1691,15 @@ export default function ObservabilityPage() {
                   <div className="mt-6">
                     <ResponsiveContainer width="100%" height={150}>
                       <LineChart data={latencyCDFMetrics.cdfChartData} margin={{ bottom: 20, left: 5, right: 5 }}>
-                        <CartesianGrid strokeDasharray="3 3" stroke="#e5e7eb" />
+                        <CartesianGrid strokeDasharray="3 3" stroke={chartTheme.grid} />
                         <XAxis
                           dataKey="latency"
-                          stroke="#6b7280"
+                          stroke={chartTheme.axis}
                           style={{ fontSize: '8px' }}
                           label={{ value: 'Latency (ms)', position: 'insideBottom', offset: -8, style: { fontSize: '8px' } }}
                         />
                         <YAxis
-                          stroke="#6b7280"
+                          stroke={chartTheme.axis}
                           style={{ fontSize: '8px' }}
                           domain={[0, 100]}
                           label={{ value: '% of Requests', angle: -90, position: 'insideLeft', style: { fontSize: '8px' } }}
@@ -1730,13 +1732,13 @@ export default function ObservabilityPage() {
                         })}
                       </LineChart>
                     </ResponsiveContainer>
-                    <div className="mt-2 text-[9px] text-gray-600">
+                    <div className="mt-2 text-[9px] text-muted-foreground">
                       <p>CDF shows the percentage of requests completing below each latency threshold. Steeper curves = faster, more consistent performance.</p>
                     </div>
                   </div>
                 </>
               ) : (
-                <div className="text-center py-8 text-gray-600">
+                <div className="text-center py-8 text-muted-foreground">
                   <p className="text-[9px]">No latency data available for the last 7 days</p>
                 </div>
               )}
@@ -1748,12 +1750,12 @@ export default function ObservabilityPage() {
           {/* Cost Insights Tab Content */}
           <TabsContent value="cost" className="space-y-6">
         {/* COST INSIGHTS - 3-Panel Layout */}
-        <Card className="border-border-light">
+        <Card className="border-border">
           <CardHeader>
             <div className="flex items-center justify-between">
               <div>
                 <CardTitle className="text-sm flex items-center gap-2">
-                  <Activity className="h-4 w-4 text-gray-900" />
+                  <Activity className="h-4 w-4 text-foreground" />
                   Cost Insights
                 </CardTitle>
                 <CardDescription className="text-xs">30-day spend analysis across providers and models</CardDescription>
@@ -1764,8 +1766,8 @@ export default function ObservabilityPage() {
             {/* Loading state */}
             {isLoadingOvertureUsage || isLoadingRuntimeFleet ? (
               <div className="flex items-center justify-center py-12">
-                <Loader2 className="h-8 w-8 animate-spin text-gray-400" />
-                <span className="ml-3 text-sm text-gray-600">Loading cost insights...</span>
+                <Loader2 className="h-8 w-8 animate-spin text-gray-400 dark:text-[#a8a898]" />
+                <span className="ml-3 text-sm text-muted-foreground">Loading cost insights...</span>
               </div>
             ) : (
               <>
@@ -1773,14 +1775,14 @@ export default function ObservabilityPage() {
             <div className="mb-6">
               <div className="grid grid-cols-1 lg:grid-cols-3 gap-4 mb-4">
                 {/* Overture (Cloud) Cost */}
-                <div className="p-4 bg-beige-primary rounded-lg border border-border-light">
-                  <p className="text-xs text-gray-600 mb-1">Overture (Cloud) Cost</p>
-                  <p className="text-lg font-bold text-gray-900">${costInsightsMetrics.totalSpend.toFixed(2)}</p>
+                <div className="p-4 bg-card rounded-lg border border-border">
+                  <p className="text-xs text-muted-foreground mb-1">Overture (Cloud) Cost</p>
+                  <p className="text-lg font-bold text-foreground">${costInsightsMetrics.totalSpend.toFixed(2)}</p>
                   <div className="flex items-center gap-1 mt-1">
                     {costInsightsMetrics.totalTrend > 0 ? (
                       <>
-                        <ChevronUp className="h-4 w-4 text-gray-900" />
-                        <span className="text-xs font-semibold text-gray-900">+{costInsightsMetrics.totalTrend}%</span>
+                        <ChevronUp className="h-4 w-4 text-foreground" />
+                        <span className="text-xs font-semibold text-foreground">+{costInsightsMetrics.totalTrend}%</span>
                       </>
                     ) : costInsightsMetrics.totalTrend < 0 ? (
                       <>
@@ -1790,38 +1792,38 @@ export default function ObservabilityPage() {
                         </span>
                       </>
                     ) : (
-                      <span className="text-xs font-semibold text-gray-600">0%</span>
+                      <span className="text-xs font-semibold text-muted-foreground">0%</span>
                     )}
-                    <span className="text-xs text-gray-600">vs prev month</span>
+                    <span className="text-xs text-muted-foreground">vs prev month</span>
                   </div>
                 </div>
 
                 {/* Runtime (Edge) Cost - Placeholder */}
-                <div className="p-4 bg-beige-primary rounded-lg border border-border-light">
-                  <p className="text-xs text-gray-600 mb-1">Runtime (Edge) Cost</p>
-                  <p className="text-lg font-bold text-gray-900">
+                <div className="p-4 bg-card rounded-lg border border-border">
+                  <p className="text-xs text-muted-foreground mb-1">Runtime (Edge) Cost</p>
+                  <p className="text-lg font-bold text-foreground">
                     {runtimeFleetMetrics ? `$${(runtimeFleetMetrics.total_requests_served * 0.0001).toFixed(2)}` : '$0.00'}
                   </p>
-                  <p className="text-xs text-gray-600 mt-1">
+                  <p className="text-xs text-muted-foreground mt-1">
                     {runtimeFleetMetrics ? `~${runtimeFleetMetrics.total_requests_served.toLocaleString()} edge requests` : 'No data'}
                   </p>
                 </div>
 
                 {/* Blended Total */}
-                <div className="p-4 bg-beige-primary rounded-lg border border-border-light">
-                  <p className="text-xs text-gray-600 mb-1">Blended Total Cost</p>
-                  <p className="text-lg font-bold text-gray-900">
+                <div className="p-4 bg-card rounded-lg border border-border">
+                  <p className="text-xs text-muted-foreground mb-1">Blended Total Cost</p>
+                  <p className="text-lg font-bold text-foreground">
                     ${(costInsightsMetrics.totalSpend + (runtimeFleetMetrics ? runtimeFleetMetrics.total_requests_served * 0.0001 : 0)).toFixed(2)}
                   </p>
-                  <p className="text-xs text-gray-600 mt-1">Cloud + Edge combined</p>
+                  <p className="text-xs text-muted-foreground mt-1">Cloud + Edge combined</p>
                 </div>
               </div>
 
               {/* Cost Comparison Bar */}
               {runtimeFleetMetrics && (
-                <div className="p-4 bg-beige-primary rounded-lg border border-border-light">
-                  <p className="text-xs text-gray-600 mb-2">Cost Distribution (Cloud vs Edge)</p>
-                  <div className="w-full bg-gray-200 rounded-full h-4 overflow-hidden flex">
+                <div className="p-4 bg-card rounded-lg border border-border">
+                  <p className="text-xs text-muted-foreground mb-2">Cost Distribution (Cloud vs Edge)</p>
+                  <div className="w-full bg-gray-200 dark:bg-gray-800 rounded-full h-4 overflow-hidden flex">
                     <div
                       style={{
                         width: `${(costInsightsMetrics.totalSpend / (costInsightsMetrics.totalSpend + runtimeFleetMetrics.total_requests_served * 0.0001)) * 100}%`,
@@ -1837,7 +1839,7 @@ export default function ObservabilityPage() {
                       }}
                     />
                   </div>
-                  <div className="flex items-center justify-between mt-2 text-xs text-gray-600">
+                  <div className="flex items-center justify-between mt-2 text-xs text-muted-foreground">
                     <span>{((costInsightsMetrics.totalSpend / (costInsightsMetrics.totalSpend + runtimeFleetMetrics.total_requests_served * 0.0001)) * 100).toFixed(0)}% Cloud</span>
                     <span>{(((runtimeFleetMetrics.total_requests_served * 0.0001) / (costInsightsMetrics.totalSpend + runtimeFleetMetrics.total_requests_served * 0.0001)) * 100).toFixed(0)}% Edge</span>
                   </div>
@@ -1849,40 +1851,40 @@ export default function ObservabilityPage() {
             {overtureUsage && overtureCostTrend && (
               <div className="mt-6 grid grid-cols-1 lg:grid-cols-2 gap-4">
                 {/* Real-time Cost Meter */}
-                <div className="p-4 bg-beige-primary rounded-lg border border-border-light">
+                <div className="p-4 bg-card rounded-lg border border-border">
                   <div className="flex items-center justify-between mb-3">
-                    <h3 className="text-sm font-medium text-gray-900 flex items-center gap-2">
+                    <h3 className="text-sm font-medium text-foreground flex items-center gap-2">
                       <Zap className="h-4 w-4" />
                       Real-Time Cost (This Month)
                     </h3>
                     <div className="flex items-center gap-1">
                       <div className="w-2 h-2 rounded-full bg-green-600 animate-pulse"></div>
-                      <span className="text-xs text-gray-600">Live</span>
+                      <span className="text-xs text-muted-foreground">Live</span>
                     </div>
                   </div>
                   <div className="flex items-baseline gap-2">
-                    <span className="text-lg font-bold text-gray-900">${overtureUsage.total_spend_usd.toFixed(2)}</span>
-                    <span className="text-sm text-gray-600">/ ${overtureUsage.budget_limit_usd.toFixed(2)}</span>
+                    <span className="text-lg font-bold text-foreground">${overtureUsage.total_spend_usd.toFixed(2)}</span>
+                    <span className="text-sm text-muted-foreground">/ ${overtureUsage.budget_limit_usd.toFixed(2)}</span>
                   </div>
                   <div className="mt-3 grid grid-cols-3 gap-2 text-xs">
                     <div>
-                      <p className="text-gray-600">Today (est.)</p>
-                      <p className="font-semibold text-gray-900">${(overtureUsage.total_spend_usd / new Date().getDate()).toFixed(2)}</p>
+                      <p className="text-muted-foreground">Today (est.)</p>
+                      <p className="font-semibold text-foreground">${(overtureUsage.total_spend_usd / new Date().getDate()).toFixed(2)}</p>
                     </div>
                     <div>
-                      <p className="text-gray-600">This Hour (est.)</p>
-                      <p className="font-semibold text-gray-900">${(overtureUsage.total_spend_usd / (new Date().getDate() * 24)).toFixed(4)}</p>
+                      <p className="text-muted-foreground">This Hour (est.)</p>
+                      <p className="font-semibold text-foreground">${(overtureUsage.total_spend_usd / (new Date().getDate() * 24)).toFixed(4)}</p>
                     </div>
                     <div>
-                      <p className="text-gray-600">Burn Rate</p>
-                      <p className="font-semibold text-gray-900">${(overtureUsage.total_spend_usd / new Date().getDate()).toFixed(2)}/day</p>
+                      <p className="text-muted-foreground">Burn Rate</p>
+                      <p className="font-semibold text-foreground">${(overtureUsage.total_spend_usd / new Date().getDate()).toFixed(2)}/day</p>
                     </div>
                   </div>
                 </div>
 
                 {/* Cost Forecasting */}
-                <div className="p-4 bg-beige-primary rounded-lg border border-border-light">
-                  <h3 className="text-sm font-medium text-gray-900 mb-3 flex items-center gap-2">
+                <div className="p-4 bg-card rounded-lg border border-border">
+                  <h3 className="text-sm font-medium text-foreground mb-3 flex items-center gap-2">
                     <BarChart3 className="h-4 w-4" />
                     Month-End Forecast
                   </h3>
@@ -1897,20 +1899,20 @@ export default function ObservabilityPage() {
                     return (
                       <>
                         <div className="flex items-baseline gap-2 mb-3">
-                          <span className="text-lg font-bold text-gray-900">${projectedMonthEnd.toFixed(2)}</span>
-                          <span className="text-sm text-gray-600">projected</span>
+                          <span className="text-lg font-bold text-foreground">${projectedMonthEnd.toFixed(2)}</span>
+                          <span className="text-sm text-muted-foreground">projected</span>
                         </div>
                         <div className="space-y-2">
                           <div className="flex items-center justify-between text-xs">
-                            <span className="text-gray-600">Projection Confidence</span>
-                            <span className="font-medium text-gray-900">{Math.min(95, 60 + (currentDay / daysInMonth) * 40).toFixed(0)}%</span>
+                            <span className="text-muted-foreground">Projection Confidence</span>
+                            <span className="font-medium text-foreground">{Math.min(95, 60 + (currentDay / daysInMonth) * 40).toFixed(0)}%</span>
                           </div>
                           <div className="flex items-center justify-between text-xs">
-                            <span className="text-gray-600">Days Remaining</span>
-                            <span className="font-medium text-gray-900">{daysInMonth - currentDay} days</span>
+                            <span className="text-muted-foreground">Days Remaining</span>
+                            <span className="font-medium text-foreground">{daysInMonth - currentDay} days</span>
                           </div>
                           <div className="flex items-center justify-between text-xs">
-                            <span className="text-gray-600">Budget Status</span>
+                            <span className="text-muted-foreground">Budget Status</span>
                             {willExceedBudget ? (
                               <span className="font-medium text-red-600 flex items-center gap-1">
                                 <AlertTriangle className="h-3 w-3" />
@@ -1933,8 +1935,8 @@ export default function ObservabilityPage() {
 
             {/* ENHANCEMENT 1: Historical Trend Line Chart (6-month view) */}
             {overtureHistory && overtureHistory.history.length > 0 && (
-              <div className="mt-6 p-4 bg-beige-primary rounded-lg border border-border-light">
-                <h3 className="text-sm font-medium text-gray-900 mb-4">Cost Trend (Last 6 Months)</h3>
+              <div className="mt-6 p-4 bg-card rounded-lg border border-border">
+                <h3 className="text-sm font-medium text-foreground mb-4">Cost Trend (Last 6 Months)</h3>
                 <ResponsiveContainer width="100%" height={200}>
                   <LineChart data={overtureHistory.history}>
                     <defs>
@@ -1942,10 +1944,10 @@ export default function ObservabilityPage() {
                         <rect width="1" height="2" fill="#000000" />
                       </pattern>
                     </defs>
-                    <CartesianGrid strokeDasharray="3 3" stroke="#e5e7eb" />
+                    <CartesianGrid strokeDasharray="3 3" stroke={chartTheme.grid} />
                     <XAxis
                       dataKey="year_month"
-                      stroke="#6b7280"
+                      stroke={chartTheme.axis}
                       style={{ fontSize: '10px' }}
                       tickFormatter={(value) => {
                         const [year, month] = value.split('-');
@@ -1953,7 +1955,7 @@ export default function ObservabilityPage() {
                       }}
                     />
                     <YAxis
-                      stroke="#6b7280"
+                      stroke={chartTheme.axis}
                       style={{ fontSize: '10px' }}
                       tickFormatter={(value) => `$${value}`}
                     />
@@ -1970,7 +1972,7 @@ export default function ObservabilityPage() {
                     <Line
                       type="monotone"
                       dataKey="total_spend_usd"
-                      stroke="#000000"
+                      stroke={chartTheme.line}
                       strokeWidth={0.5}
                       dot={{ fill: '#000000', strokeWidth: 0.5, r: 2 }}
                       activeDot={{ r: 4, fill: '#000000', stroke: '#f2f1ed', strokeWidth: 0.5 }}
@@ -1989,11 +1991,11 @@ export default function ObservabilityPage() {
                 <div className="mt-4 flex items-center gap-6 text-xs">
                   <div className="flex items-center gap-2">
                     <div className="w-4 h-0.5 bg-gray-900"></div>
-                    <span className="text-gray-600">Actual Spend</span>
+                    <span className="text-muted-foreground">Actual Spend</span>
                   </div>
                   <div className="flex items-center gap-2">
                     <div className="w-4 h-0.5 bg-red-600 border-dashed"></div>
-                    <span className="text-gray-600">Budget Limit</span>
+                    <span className="text-muted-foreground">Budget Limit</span>
                   </div>
                   {overtureHistory.history.some(h => h.breached) && (
                     <div className="flex items-center gap-2 ml-auto">
@@ -2007,8 +2009,8 @@ export default function ObservabilityPage() {
 
             <div className="mt-6 grid grid-cols-1 lg:grid-cols-2 gap-6">
               {/* Panel 1: Spend by Provider - Pie Chart */}
-              <div className="p-4 bg-beige-primary rounded-lg border border-border-light">
-                <h3 className="text-sm font-medium text-gray-900 mb-4">Spend by Provider</h3>
+              <div className="p-4 bg-card rounded-lg border border-border">
+                <h3 className="text-sm font-medium text-foreground mb-4">Spend by Provider</h3>
                 {costInsightsMetrics.spendByProvider.length > 0 ? (
                   <>
                     <ResponsiveContainer width="100%" height={180}>
@@ -2049,8 +2051,9 @@ export default function ObservabilityPage() {
                         <Tooltip
                           formatter={(value: any) => `$${value.toFixed(2)}`}
                           contentStyle={{
-                            backgroundColor: '#faf9f7',
-                            border: '1px solid #e5e7eb',
+                            backgroundColor: chartTheme.tooltip.bg,
+                            border: `1px solid ${chartTheme.tooltip.border}`,
+                            color: chartTheme.tooltip.text,
                             borderRadius: '6px',
                             fontSize: '9px'
                           }}
@@ -2067,15 +2070,15 @@ export default function ObservabilityPage() {
                                 className="w-1.5 h-1.5 rounded-full"
                                 style={{ backgroundColor: gradientColors[index % gradientColors.length] }}
                               />
-                              <span className="text-gray-900 font-medium">{provider.provider}</span>
+                              <span className="text-foreground font-medium">{provider.provider}</span>
                             </div>
                           <div className="flex items-center gap-2">
-                            <span className="text-gray-900 font-semibold">${provider.spend.toFixed(2)}</span>
-                            <span className="text-gray-600">{provider.percentage}%</span>
+                            <span className="text-foreground font-semibold">${provider.spend.toFixed(2)}</span>
+                            <span className="text-muted-foreground">{provider.percentage}%</span>
                             {provider.trend !== 0 && (
                               <div className="flex items-center gap-1">
                                 {provider.trend > 0 ? (
-                                  <ChevronUp className="h-4 w-4 text-gray-900" />
+                                  <ChevronUp className="h-4 w-4 text-foreground" />
                                 ) : (
                                   <ChevronDown className="h-4 w-4" style={{ color: '#299a93' }} />
                                 )}
@@ -2094,15 +2097,15 @@ export default function ObservabilityPage() {
                     </div>
                   </>
                 ) : (
-                  <div className="text-center py-8 text-gray-600">
+                  <div className="text-center py-8 text-muted-foreground">
                     <p className="text-sm">No spend data available</p>
                   </div>
                 )}
               </div>
 
               {/* Panel 2: Spend by Model - Horizontal Bar Chart */}
-              <div className="p-4 bg-beige-primary rounded-lg border border-border-light">
-                <h3 className="text-sm font-medium text-gray-900 mb-4">Top 10 Models by Spend</h3>
+              <div className="p-4 bg-card rounded-lg border border-border">
+                <h3 className="text-sm font-medium text-foreground mb-4">Top 10 Models by Spend</h3>
                 {costInsightsMetrics.spendByModel.length > 0 ? (
                   <>
                     <ResponsiveContainer width="100%" height={180}>
@@ -2113,11 +2116,11 @@ export default function ObservabilityPage() {
                             <rect width="1" height="2" fill="#000000" />
                           </pattern>
                         </defs>
-                        <XAxis type="number" stroke="#6b7280" style={{ fontSize: '10px' }} />
+                        <XAxis type="number" stroke={chartTheme.axis} style={{ fontSize: '10px' }} />
                         <YAxis
                           type="category"
                           dataKey="model"
-                          stroke="#6b7280"
+                          stroke={chartTheme.axis}
                           style={{ fontSize: '10px' }}
                           width={70}
                         />
@@ -2137,17 +2140,17 @@ export default function ObservabilityPage() {
                       {costInsightsMetrics.spendByModel.slice(0, 5).map((model, index) => (
                         <div key={index} className="flex items-center justify-between text-xs">
                           <div className="flex items-center gap-2">
-                            <span className="text-gray-600">{index + 1}.</span>
-                            <span className="text-gray-900 font-medium">{model.model}</span>
-                            <span className="text-gray-600">({model.provider})</span>
+                            <span className="text-muted-foreground">{index + 1}.</span>
+                            <span className="text-foreground font-medium">{model.model}</span>
+                            <span className="text-muted-foreground">({model.provider})</span>
                           </div>
                           <div className="flex items-center gap-3">
-                            <span className="text-gray-900 font-semibold">${model.spend.toFixed(2)}</span>
-                            <span className="text-gray-600">{model.percentage}%</span>
+                            <span className="text-foreground font-semibold">${model.spend.toFixed(2)}</span>
+                            <span className="text-muted-foreground">{model.percentage}%</span>
                             {model.trend !== 0 && (
                               <div className="flex items-center gap-1">
                                 {model.trend > 0 ? (
-                                  <ChevronUp className="h-3 w-3 text-gray-900" />
+                                  <ChevronUp className="h-3 w-3 text-foreground" />
                                 ) : (
                                   <ChevronDown className="h-3 w-3" style={{ color: '#299a93' }} />
                                 )}
@@ -2165,7 +2168,7 @@ export default function ObservabilityPage() {
                     </div>
                   </>
                 ) : (
-                  <div className="text-center py-8 text-gray-600">
+                  <div className="text-center py-8 text-muted-foreground">
                     <p className="text-sm">No model spend data available</p>
                   </div>
                 )}
@@ -2174,29 +2177,29 @@ export default function ObservabilityPage() {
 
             {/* NEW: Routing Success & Savings Rate */}
             {overtureRoutingStats && (
-              <div className="mt-6 pt-6 border-t border-border-light">
-                <h3 className="text-sm font-medium text-gray-900 mb-4">Routing Performance & Savings</h3>
+              <div className="mt-6 pt-6 border-t border-border">
+                <h3 className="text-sm font-medium text-foreground mb-4">Routing Performance & Savings</h3>
                 <div className="grid grid-cols-1 lg:grid-cols-3 gap-4">
-                  <div className="bg-beige-primary rounded-lg p-4 border border-border-light">
-                    <p className="text-xs text-gray-600 mb-1">Success Rate (24h)</p>
-                    <p className="text-lg font-bold text-gray-900">{overtureRoutingStats.usage.success_rate.toFixed(1)}%</p>
-                    <p className="text-xs text-gray-600 mt-1">
+                  <div className="bg-card rounded-lg p-4 border border-border">
+                    <p className="text-xs text-muted-foreground mb-1">Success Rate (24h)</p>
+                    <p className="text-lg font-bold text-foreground">{overtureRoutingStats.usage.success_rate.toFixed(1)}%</p>
+                    <p className="text-xs text-muted-foreground mt-1">
                       {overtureRoutingStats.usage.successful_requests.toLocaleString()} / {overtureRoutingStats.usage.total_requests.toLocaleString()} requests
                     </p>
                   </div>
-                  <div className="bg-beige-primary rounded-lg p-4 border border-border-light">
-                    <p className="text-xs text-gray-600 mb-1">Failed Requests</p>
-                    <p className="text-lg font-bold text-gray-900">{overtureRoutingStats.usage.failed_requests.toLocaleString()}</p>
-                    <p className="text-xs text-gray-600 mt-1">
+                  <div className="bg-card rounded-lg p-4 border border-border">
+                    <p className="text-xs text-muted-foreground mb-1">Failed Requests</p>
+                    <p className="text-lg font-bold text-foreground">{overtureRoutingStats.usage.failed_requests.toLocaleString()}</p>
+                    <p className="text-xs text-muted-foreground mt-1">
                       {((overtureRoutingStats.usage.failed_requests / overtureRoutingStats.usage.total_requests) * 100).toFixed(2)}% error rate
                     </p>
                   </div>
-                  <div className="bg-beige-primary rounded-lg p-4 border border-border-light">
-                    <p className="text-xs text-gray-600 mb-1">Circuit Breakers</p>
-                    <p className="text-lg font-bold text-gray-900">
+                  <div className="bg-card rounded-lg p-4 border border-border">
+                    <p className="text-xs text-muted-foreground mb-1">Circuit Breakers</p>
+                    <p className="text-lg font-bold text-foreground">
                       {Object.values(overtureRoutingStats.circuit_breakers).filter(cb => cb.status === 'closed').length}
                     </p>
-                    <p className="text-xs text-gray-600 mt-1">
+                    <p className="text-xs text-muted-foreground mt-1">
                       {Object.keys(overtureRoutingStats.circuit_breakers).length} total providers
                     </p>
                   </div>
@@ -2206,16 +2209,16 @@ export default function ObservabilityPage() {
 
             {/* NEW: Quota Burn Rate & Risk Indicators */}
             {overtureUsage && policy && (
-              <div className="mt-6 pt-6 border-t border-border-light">
-                <h3 className="text-sm font-medium text-gray-900 mb-4">Budget & Quota Management</h3>
+              <div className="mt-6 pt-6 border-t border-border">
+                <h3 className="text-sm font-medium text-foreground mb-4">Budget & Quota Management</h3>
                 <div className="grid grid-cols-1 lg:grid-cols-2 gap-6">
                   {/* Quota Burn Rate */}
-                  <div className="bg-beige-primary rounded-lg p-4 border border-border-light">
+                  <div className="bg-card rounded-lg p-4 border border-border">
                     <div className="flex items-center justify-between mb-3">
-                      <p className="text-xs text-gray-600">Monthly Budget Usage</p>
-                      <p className="text-sm font-bold text-gray-900">{overtureUsage.percentage_used.toFixed(1)}%</p>
+                      <p className="text-xs text-muted-foreground">Monthly Budget Usage</p>
+                      <p className="text-sm font-bold text-foreground">{overtureUsage.percentage_used.toFixed(1)}%</p>
                     </div>
-                    <div className="w-full bg-gray-200 rounded-full h-3 mb-2">
+                    <div className="w-full bg-gray-200 dark:bg-gray-800 rounded-full h-3 mb-2">
                       <div
                         className="h-3 rounded-full transition-all duration-300"
                         style={{
@@ -2225,17 +2228,17 @@ export default function ObservabilityPage() {
                       />
                     </div>
                     <div className="flex items-center justify-between text-xs">
-                      <span className="text-gray-600">${overtureUsage.total_spend_usd.toFixed(2)} spent</span>
-                      <span className="text-gray-600">${overtureUsage.budget_limit_usd.toFixed(2)} limit</span>
+                      <span className="text-muted-foreground">${overtureUsage.total_spend_usd.toFixed(2)} spent</span>
+                      <span className="text-muted-foreground">${overtureUsage.budget_limit_usd.toFixed(2)} limit</span>
                     </div>
-                    <p className="text-xs text-gray-600 mt-2">
+                    <p className="text-xs text-muted-foreground mt-2">
                       ${overtureUsage.remaining_usd.toFixed(2)} remaining
                     </p>
                   </div>
 
                   {/* Risk Indicators */}
-                  <div className="bg-beige-primary rounded-lg p-4 border border-border-light">
-                    <p className="text-xs text-gray-600 mb-3">Budget Status</p>
+                  <div className="bg-card rounded-lg p-4 border border-border">
+                    <p className="text-xs text-muted-foreground mb-3">Budget Status</p>
                     {overtureUsage.breached ? (
                       <div className="flex items-center gap-2 text-red-600">
                         <AlertTriangle className="h-5 w-5" />
@@ -2253,9 +2256,9 @@ export default function ObservabilityPage() {
                       </div>
                     )}
                     <div className="mt-3 space-y-1">
-                      <p className="text-xs text-gray-600">Request Count: {overtureUsage.request_count.toLocaleString()}</p>
-                      <p className="text-xs text-gray-600">Active Providers: {overtureUsage.provider_count}</p>
-                      <p className="text-xs text-gray-600">Models in Use: {overtureUsage.model_count}</p>
+                      <p className="text-xs text-muted-foreground">Request Count: {overtureUsage.request_count.toLocaleString()}</p>
+                      <p className="text-xs text-muted-foreground">Active Providers: {overtureUsage.provider_count}</p>
+                      <p className="text-xs text-muted-foreground">Models in Use: {overtureUsage.model_count}</p>
                     </div>
                   </div>
                 </div>
@@ -2264,28 +2267,28 @@ export default function ObservabilityPage() {
 
             {/* NEW: Runtime Fleet & Cost Insights */}
             {runtimeFleetMetrics && (
-              <div className="mt-6 pt-6 border-t border-border-light">
-                <h3 className="text-sm font-medium text-gray-900 mb-4">Runtime Fleet Performance (Edge Execution)</h3>
+              <div className="mt-6 pt-6 border-t border-border">
+                <h3 className="text-sm font-medium text-foreground mb-4">Runtime Fleet Performance (Edge Execution)</h3>
                 <div className="grid grid-cols-1 lg:grid-cols-4 gap-4">
-                  <div className="bg-beige-primary rounded-lg p-4 border border-border-light">
-                    <p className="text-xs text-gray-600 mb-1">Fleet Status</p>
-                    <p className="text-lg font-bold text-gray-900">{runtimeFleetMetrics.online_instances}/{runtimeFleetMetrics.total_instances}</p>
-                    <p className="text-xs text-gray-600 mt-1">instances online</p>
+                  <div className="bg-card rounded-lg p-4 border border-border">
+                    <p className="text-xs text-muted-foreground mb-1">Fleet Status</p>
+                    <p className="text-lg font-bold text-foreground">{runtimeFleetMetrics.online_instances}/{runtimeFleetMetrics.total_instances}</p>
+                    <p className="text-xs text-muted-foreground mt-1">instances online</p>
                   </div>
-                  <div className="bg-beige-primary rounded-lg p-4 border border-border-light">
-                    <p className="text-xs text-gray-600 mb-1">Total Requests</p>
-                    <p className="text-lg font-bold text-gray-900">{runtimeFleetMetrics.total_requests_served.toLocaleString()}</p>
-                    <p className="text-xs text-gray-600 mt-1">served</p>
+                  <div className="bg-card rounded-lg p-4 border border-border">
+                    <p className="text-xs text-muted-foreground mb-1">Total Requests</p>
+                    <p className="text-lg font-bold text-foreground">{runtimeFleetMetrics.total_requests_served.toLocaleString()}</p>
+                    <p className="text-xs text-muted-foreground mt-1">served</p>
                   </div>
-                  <div className="bg-beige-primary rounded-lg p-4 border border-border-light">
-                    <p className="text-xs text-gray-600 mb-1">Fleet Error Rate</p>
-                    <p className="text-lg font-bold text-gray-900">{runtimeFleetMetrics.fleet_error_rate.toFixed(2)}%</p>
-                    <p className="text-xs text-gray-600 mt-1">error rate</p>
+                  <div className="bg-card rounded-lg p-4 border border-border">
+                    <p className="text-xs text-muted-foreground mb-1">Fleet Error Rate</p>
+                    <p className="text-lg font-bold text-foreground">{runtimeFleetMetrics.fleet_error_rate.toFixed(2)}%</p>
+                    <p className="text-xs text-muted-foreground mt-1">error rate</p>
                   </div>
-                  <div className="bg-beige-primary rounded-lg p-4 border border-border-light">
-                    <p className="text-xs text-gray-600 mb-1">Capacity Usage</p>
-                    <p className="text-lg font-bold text-gray-900">{((runtimeFleetMetrics.used_capacity / runtimeFleetMetrics.total_capacity) * 100).toFixed(0)}%</p>
-                    <p className="text-xs text-gray-600 mt-1">{runtimeFleetMetrics.used_capacity}/{runtimeFleetMetrics.total_capacity} used</p>
+                  <div className="bg-card rounded-lg p-4 border border-border">
+                    <p className="text-xs text-muted-foreground mb-1">Capacity Usage</p>
+                    <p className="text-lg font-bold text-foreground">{((runtimeFleetMetrics.used_capacity / runtimeFleetMetrics.total_capacity) * 100).toFixed(0)}%</p>
+                    <p className="text-xs text-muted-foreground mt-1">{runtimeFleetMetrics.used_capacity}/{runtimeFleetMetrics.total_capacity} used</p>
                   </div>
                 </div>
               </div>
@@ -2293,12 +2296,12 @@ export default function ObservabilityPage() {
 
             {/* NEW: GPU Utilization & Top Cost Drivers (from Runtime Fleet Instances) */}
             {runtimeFleetInstances && runtimeFleetInstances.length > 0 && (
-              <div className="mt-6 pt-6 border-t border-border-light">
-                <h3 className="text-sm font-medium text-gray-900 mb-4">GPU Utilization & Top Cost Drivers</h3>
+              <div className="mt-6 pt-6 border-t border-border">
+                <h3 className="text-sm font-medium text-foreground mb-4">GPU Utilization & Top Cost Drivers</h3>
                 <div className="grid grid-cols-1 lg:grid-cols-2 gap-6">
                   {/* GPU/CPU Utilization Chart */}
-                  <div className="p-4 bg-beige-primary rounded-lg border border-border-light">
-                    <h4 className="text-xs font-medium text-gray-700 mb-3">Fleet Resource Utilization</h4>
+                  <div className="p-4 bg-card rounded-lg border border-border">
+                    <h4 className="text-xs font-medium text-foreground mb-3">Fleet Resource Utilization</h4>
                     <ResponsiveContainer width="100%" height={200}>
                       <BarChart data={runtimeFleetInstances.slice(0, 5)} layout="horizontal">
                         <defs>
@@ -2310,8 +2313,8 @@ export default function ObservabilityPage() {
                             <rect width="1" height="2" fill="#666666" />
                           </pattern>
                         </defs>
-                        <XAxis dataKey="name" stroke="#6b7280" style={{ fontSize: '10px' }} />
-                        <YAxis stroke="#6b7280" style={{ fontSize: '10px' }} />
+                        <XAxis dataKey="name" stroke={chartTheme.axis} style={{ fontSize: '10px' }} />
+                        <YAxis stroke={chartTheme.axis} style={{ fontSize: '10px' }} />
                         <Tooltip
                           contentStyle={{
                             backgroundColor: '#f2f1ed',
@@ -2327,21 +2330,21 @@ export default function ObservabilityPage() {
                   </div>
 
                   {/* Top Cost Drivers Table */}
-                  <div className="p-4 bg-beige-primary rounded-lg border border-border-light">
-                    <h4 className="text-xs font-medium text-gray-700 mb-3">Top Cost Drivers (by Requests)</h4>
+                  <div className="p-4 bg-card rounded-lg border border-border">
+                    <h4 className="text-xs font-medium text-foreground mb-3">Top Cost Drivers (by Requests)</h4>
                     <div className="space-y-2">
                       {runtimeFleetInstances
                         .sort((a, b) => b.requests_processed - a.requests_processed)
                         .slice(0, 5)
                         .map((instance, index) => (
-                          <div key={instance.id} className="flex items-center justify-between text-xs bg-beige-primary rounded-lg p-2 border border-border-light">
+                          <div key={instance.id} className="flex items-center justify-between text-xs bg-card rounded-lg p-2 border border-border">
                             <div className="flex items-center gap-2">
-                              <span className="text-gray-600 font-mono">{index + 1}.</span>
-                              <span className="text-gray-900 font-medium">{instance.name}</span>
+                              <span className="text-muted-foreground font-mono">{index + 1}.</span>
+                              <span className="text-foreground font-medium">{instance.name}</span>
                             </div>
                             <div className="flex items-center gap-3">
-                              <span className="text-gray-600">{instance.requests_processed.toLocaleString()} req</span>
-                              <span className="text-gray-600">{instance.avg_latency}ms avg</span>
+                              <span className="text-muted-foreground">{instance.requests_processed.toLocaleString()} req</span>
+                              <span className="text-muted-foreground">{instance.avg_latency}ms avg</span>
                               <Badge variant={instance.error_rate < 1 ? 'default' : 'destructive'} className="text-[0.65rem]">
                                 {instance.error_rate.toFixed(1)}% err
                               </Badge>
@@ -2356,24 +2359,24 @@ export default function ObservabilityPage() {
 
             {/* NEW: Cost per 1M Tokens (calculated from Runtime data) */}
             {runtimeFleetInstances && overtureUsage && (
-              <div className="mt-6 pt-6 border-t border-border-light">
-                <h3 className="text-sm font-medium text-gray-900 mb-4">Cost Efficiency Metrics</h3>
+              <div className="mt-6 pt-6 border-t border-border">
+                <h3 className="text-sm font-medium text-foreground mb-4">Cost Efficiency Metrics</h3>
                 <div className="grid grid-cols-1 lg:grid-cols-3 gap-4">
-                  <div className="bg-beige-primary rounded-lg p-4 border border-border-light">
-                    <p className="text-xs text-gray-600 mb-1">Avg Cost per Request (Cloud)</p>
-                    <p className="text-lg font-bold text-gray-900">
+                  <div className="bg-card rounded-lg p-4 border border-border">
+                    <p className="text-xs text-muted-foreground mb-1">Avg Cost per Request (Cloud)</p>
+                    <p className="text-lg font-bold text-foreground">
                       ${(overtureUsage.total_spend_usd / overtureUsage.request_count).toFixed(4)}
                     </p>
                   </div>
-                  <div className="bg-beige-primary rounded-lg p-4 border border-border-light">
-                    <p className="text-xs text-gray-600 mb-1">Total Input Tokens</p>
-                    <p className="text-lg font-bold text-gray-900">
+                  <div className="bg-card rounded-lg p-4 border border-border">
+                    <p className="text-xs text-muted-foreground mb-1">Total Input Tokens</p>
+                    <p className="text-lg font-bold text-foreground">
                       {(overtureUsage.by_provider.reduce((sum, p) => sum + p.input_tokens, 0) / 1000000).toFixed(2)}M
                     </p>
                   </div>
-                  <div className="bg-beige-primary rounded-lg p-4 border border-border-light">
-                    <p className="text-xs text-gray-600 mb-1">Total Output Tokens</p>
-                    <p className="text-lg font-bold text-gray-900">
+                  <div className="bg-card rounded-lg p-4 border border-border">
+                    <p className="text-xs text-muted-foreground mb-1">Total Output Tokens</p>
+                    <p className="text-lg font-bold text-foreground">
                       {(overtureUsage.by_provider.reduce((sum, p) => sum + p.output_tokens, 0) / 1000000).toFixed(2)}M
                     </p>
                   </div>
@@ -2383,13 +2386,13 @@ export default function ObservabilityPage() {
 
             {/* Panel 3: Tenant Breakdown (Scale tier only) */}
             {tier === 'scale' && (
-              <div className="mt-6 pt-6 border-t border-border-light">
+              <div className="mt-6 pt-6 border-t border-border">
                 <div className="flex items-center justify-between mb-4">
-                  <h3 className="text-sm font-medium text-gray-900">Spend by Tenant</h3>
+                  <h3 className="text-sm font-medium text-foreground">Spend by Tenant</h3>
                   <select
                     value={selectedTenant}
                     onChange={(e) => setSelectedTenant(e.target.value)}
-                    className="text-sm border border-border-light rounded-md px-3 py-1.5 bg-beige-primary focus:outline-none"
+                    className="text-sm border border-border rounded-md px-3 py-1.5 bg-card focus:outline-none"
                   >
                     <option value="all">All Tenants</option>
                     {mockTenants.map((tenant) => (
@@ -2399,29 +2402,29 @@ export default function ObservabilityPage() {
                     ))}
                   </select>
                 </div>
-                <div className="bg-beige-primary rounded-lg p-4 border border-border-light">
+                <div className="bg-card rounded-lg p-4 border border-border">
                   <div className="grid grid-cols-3 gap-4">
                     <div>
-                      <p className="text-xs text-gray-600 mb-1">Tenant Spend</p>
-                      <p className="text-base font-bold text-gray-900">
+                      <p className="text-xs text-muted-foreground mb-1">Tenant Spend</p>
+                      <p className="text-base font-bold text-foreground">
                         ${selectedTenant === 'all'
                           ? costInsightsMetrics.totalSpend.toFixed(2)
                           : (costInsightsMetrics.totalSpend * 0.35).toFixed(2)}
                       </p>
                     </div>
                     <div>
-                      <p className="text-xs text-gray-600 mb-1">% of Total</p>
-                      <p className="text-base font-bold text-gray-900">
+                      <p className="text-xs text-muted-foreground mb-1">% of Total</p>
+                      <p className="text-base font-bold text-foreground">
                         {selectedTenant === 'all' ? '100' : '35'}%
                       </p>
                     </div>
                     <div>
-                      <p className="text-xs text-gray-600 mb-1">Trend</p>
+                      <p className="text-xs text-muted-foreground mb-1">Trend</p>
                       <div className="flex items-center gap-1">
                         {costInsightsMetrics.totalTrend > 0 ? (
                           <>
-                            <ChevronUp className="h-5 w-5 text-gray-900" />
-                            <span className="text-base font-bold text-gray-900">+{costInsightsMetrics.totalTrend}%</span>
+                            <ChevronUp className="h-5 w-5 text-foreground" />
+                            <span className="text-base font-bold text-foreground">+{costInsightsMetrics.totalTrend}%</span>
                           </>
                         ) : costInsightsMetrics.totalTrend < 0 ? (
                           <>
@@ -2431,7 +2434,7 @@ export default function ObservabilityPage() {
                             </span>
                           </>
                         ) : (
-                          <span className="text-base font-bold text-gray-600">0%</span>
+                          <span className="text-base font-bold text-muted-foreground">0%</span>
                         )}
                       </div>
                     </div>
@@ -2450,7 +2453,7 @@ export default function ObservabilityPage() {
             <Card className="border-none shadow-none">
               <CardHeader className="px-0 pt-0">
                 <CardTitle className="text-xs flex items-center gap-2">
-                  <Database className="h-3 w-3 text-gray-900" />
+                  <Database className="h-3 w-3 text-foreground" />
                   Audit Logs
                 </CardTitle>
                 <CardDescription className="text-[9px]">
@@ -2530,33 +2533,33 @@ export default function ObservabilityPage() {
                       },
                     ].map((log) => {
                       const categoryColors = {
-                        configuration: 'bg-blue-50 text-blue-700 border-blue-200',
-                        infrastructure: 'bg-gray-50 text-gray-700 border-gray-200',
-                        security: 'bg-red-50 text-red-700 border-red-200',
-                        agents: 'bg-green-50 text-green-700 border-green-200',
+                        configuration: 'bg-blue-50 dark:bg-blue-950 text-blue-700 dark:text-blue-400 border-blue-200 dark:border-blue-900',
+                        infrastructure: 'bg-card text-foreground border-gray-200 dark:border-[#f6f6f4]/5',
+                        security: 'bg-red-50 dark:bg-red-950 text-red-700 dark:text-red-400 border-red-200 dark:border-red-900',
+                        agents: 'bg-green-50 dark:bg-green-950 text-green-700 dark:text-green-400 border-green-200 dark:border-green-900',
                       };
 
                       return (
                         <div
                           key={log.id}
-                          className="py-2 border-b border-border-light/50 hover:bg-gray-50/30 transition-colors"
+                          className="py-2 border-b border-border/50 hover:bg-card/30 transition-colors"
                         >
                           <div className="flex items-start justify-between gap-3">
                             <div className="flex-1 min-w-0">
                               <div className="flex items-center gap-1.5 mb-1">
-                                <h4 className="text-[9px] font-medium text-gray-900">
+                                <h4 className="text-[9px] font-medium text-foreground">
                                   {log.action}
                                 </h4>
-                                <Badge className={`${categoryColors[log.category as keyof typeof categoryColors]} border text-[8px] px-1 py-0`}>
+                                <Badge className={`${categoryColors[log.category as keyof typeof categoryColors]} border text-[8px] px-1 py-0 rounded-none`}>
                                   {log.category}
                                 </Badge>
                                 {log.status === 'success' ? (
-                                  <CheckCircle className="h-2.5 w-2.5 text-gray-600" />
+                                  <CheckCircle className="h-2.5 w-2.5 text-muted-foreground" />
                                 ) : (
-                                  <XCircle className="h-2.5 w-2.5 text-gray-900" />
+                                  <XCircle className="h-2.5 w-2.5 text-foreground" />
                                 )}
                               </div>
-                              <div className="grid grid-cols-2 gap-x-3 gap-y-0.5 text-[9px] text-gray-600">
+                              <div className="grid grid-cols-2 gap-x-3 gap-y-0.5 text-[9px] text-muted-foreground">
                                 <div>
                                   <span className="font-medium">User:</span> {log.user}
                                 </div>
@@ -2581,8 +2584,8 @@ export default function ObservabilityPage() {
                   </div>
 
                   {/* Pagination */}
-                  <div className="flex items-center justify-between pt-2 border-t border-border-light/50">
-                    <p className="text-[9px] text-gray-600">Showing 1-5 of 127 entries</p>
+                  <div className="flex items-center justify-between pt-2 border-t border-border/50">
+                    <p className="text-[9px] text-muted-foreground">Showing 1-5 of 127 entries</p>
                     <div className="flex items-center gap-1.5">
                       <Button variant="outline" size="sm" className="h-6 text-[9px] px-2" disabled>
                         Previous
@@ -2611,12 +2614,12 @@ export default function ObservabilityPage() {
               <div className="space-y-6">
                 {/* Privacy Banner in Detail View when Full Tracing is OFF - Show First */}
                 {!enableFullTracing && (
-                  <div className="bg-beige-primary border border-gray-200/20 rounded-md p-4">
+                  <div className="bg-card border border-gray-200/20 rounded-md p-4">
                     <div className="flex items-center gap-3">
-                      <CheckCircle className="h-4 w-4 text-gray-900 flex-shrink-0" />
+                      <CheckCircle className="h-4 w-4 text-foreground flex-shrink-0" />
                       <div>
-                        <p className="text-xs font-medium text-gray-900">Full tracing is disabled</p>
-                        <p className="text-xs text-gray-600 mt-1">
+                        <p className="text-xs font-medium text-foreground">Full tracing is disabled</p>
+                        <p className="text-xs text-muted-foreground mt-1">
                           Enable full tracing in the banner above to see prompts, completions, and detailed traces. Metadata-only mode protects your privacy.
                         </p>
                       </div>
@@ -2626,90 +2629,90 @@ export default function ObservabilityPage() {
 
                 {/* Overview */}
                 <div>
-                  <h3 className="text-sm font-medium text-gray-900 mb-3">Overview</h3>
+                  <h3 className="text-sm font-medium text-foreground mb-3">Overview</h3>
                   <div className="grid grid-cols-2 gap-4">
                     <div>
-                      <p className="text-xs text-gray-600">Model</p>
-                      <p className="text-sm font-medium text-gray-900">{selectedTrace.model}</p>
+                      <p className="text-xs text-muted-foreground">Model</p>
+                      <p className="text-sm font-medium text-foreground">{selectedTrace.model}</p>
                       {selectedTrace.model_version && (
-                        <p className="text-xs text-gray-600 mt-1">{selectedTrace.model_version}</p>
+                        <p className="text-xs text-muted-foreground mt-1">{selectedTrace.model_version}</p>
                       )}
                       {selectedTrace.model_fingerprint && (
                         <p className="text-xs font-mono text-gray-500">{selectedTrace.model_fingerprint}</p>
                       )}
                     </div>
                     <div>
-                      <p className="text-xs text-gray-600">Provider</p>
-                      <p className="text-sm font-medium text-gray-900">{selectedTrace.provider}</p>
+                      <p className="text-xs text-muted-foreground">Provider</p>
+                      <p className="text-sm font-medium text-foreground">{selectedTrace.provider}</p>
                     </div>
                     <div>
-                      <p className="text-xs text-gray-600">Latency</p>
-                      <p className="text-sm font-medium text-gray-900">{formatLatency(selectedTrace.latency)}</p>
+                      <p className="text-xs text-muted-foreground">Latency</p>
+                      <p className="text-sm font-medium text-foreground">{formatLatency(selectedTrace.latency)}</p>
                     </div>
                     <div>
-                      <p className="text-xs text-gray-600">Cost</p>
-                      <p className="text-sm font-medium text-gray-900">{formatCurrency(selectedTrace.cost)}</p>
+                      <p className="text-xs text-muted-foreground">Cost</p>
+                      <p className="text-sm font-medium text-foreground">{formatCurrency(selectedTrace.cost)}</p>
                       {selectedTrace.cache_hit && selectedTrace.cache_savings && selectedTrace.cache_savings > 0 && (
                         <p className="text-xs text-green-600 mt-1">Saved: {formatCurrency(selectedTrace.cache_savings)}</p>
                       )}
                     </div>
                     <div>
-                      <p className="text-xs text-gray-600">Tokens</p>
-                      <p className="text-sm font-medium text-gray-900">
+                      <p className="text-xs text-muted-foreground">Tokens</p>
+                      <p className="text-sm font-medium text-foreground">
                         {formatNumber(selectedTrace.tokens.total)} ({selectedTrace.tokens.input} in / {selectedTrace.tokens.output} out)
                       </p>
                     </div>
                     <div>
-                      <p className="text-xs text-gray-600">Status</p>
+                      <p className="text-xs text-muted-foreground">Status</p>
                       <div className="mt-1 flex items-center gap-2">
                         {getStatusBadge(selectedTrace.status)}
-                        {selectedTrace.cache_hit && <Badge className="bg-green-50 text-green-700 border-green-200 text-[9px] px-1.5 py-0">CACHE HIT</Badge>}
+                        {selectedTrace.cache_hit && <Badge className="bg-green-50 dark:bg-green-950 text-green-700 dark:text-green-400 border-green-200 dark:border-green-900 text-[9px] px-1.5 py-0 rounded-none">CACHE HIT</Badge>}
                       </div>
                     </div>
                     {selectedTrace.user_id && (
                       <div>
-                        <p className="text-xs text-gray-600">User ID</p>
-                        <p className="text-sm font-medium text-gray-900">{selectedTrace.user_id}</p>
+                        <p className="text-xs text-muted-foreground">User ID</p>
+                        <p className="text-sm font-medium text-foreground">{selectedTrace.user_id}</p>
                       </div>
                     )}
                     {selectedTrace.session_id && (
                       <div>
-                        <p className="text-xs text-gray-600">Session ID</p>
-                        <p className="text-sm font-medium text-gray-900">{selectedTrace.session_id}</p>
+                        <p className="text-xs text-muted-foreground">Session ID</p>
+                        <p className="text-sm font-medium text-foreground">{selectedTrace.session_id}</p>
                       </div>
                     )}
                     {selectedTrace.client_ip && (
                       <div>
-                        <p className="text-xs text-gray-600">Client IP</p>
-                        <p className="text-sm font-mono text-gray-900">{selectedTrace.client_ip}</p>
+                        <p className="text-xs text-muted-foreground">Client IP</p>
+                        <p className="text-sm font-mono text-foreground">{selectedTrace.client_ip}</p>
                       </div>
                     )}
                     {selectedTrace.user_agent && (
                       <div className="col-span-2">
-                        <p className="text-xs text-gray-600">User Agent</p>
-                        <p className="text-xs font-mono text-gray-900">{selectedTrace.user_agent}</p>
+                        <p className="text-xs text-muted-foreground">User Agent</p>
+                        <p className="text-xs font-mono text-foreground">{selectedTrace.user_agent}</p>
                       </div>
                     )}
                     <div className="col-span-2">
-                      <p className="text-xs text-gray-600">Request ID</p>
+                      <p className="text-xs text-muted-foreground">Request ID</p>
                       <div className="flex items-center gap-2 mt-1">
-                        <p className="text-sm font-mono text-gray-900 truncate">{selectedTrace.request_id}</p>
+                        <p className="text-sm font-mono text-foreground truncate">{selectedTrace.request_id}</p>
                         <Copy
-                          className="h-4 w-4 text-gray-600 cursor-pointer hover:text-gray-900 flex-shrink-0"
+                          className="h-4 w-4 text-muted-foreground cursor-pointer hover:text-foreground flex-shrink-0"
                           onClick={() => copyToClipboard(selectedTrace.request_id)}
                         />
                       </div>
                     </div>
                     {selectedTrace.evaluation_score !== undefined && (
                       <div>
-                        <p className="text-xs text-gray-600">Evaluation Score</p>
-                        <p className="text-sm font-medium text-gray-900">{selectedTrace.evaluation_score.toFixed(2)} / 5.0</p>
+                        <p className="text-xs text-muted-foreground">Evaluation Score</p>
+                        <p className="text-sm font-medium text-foreground">{selectedTrace.evaluation_score.toFixed(2)} / 5.0</p>
                       </div>
                     )}
                     {selectedTrace.human_feedback && (
                       <div>
-                        <p className="text-xs text-gray-600">Human Feedback</p>
-                        <Badge className={selectedTrace.human_feedback === 'positive' ? 'bg-green-50 text-green-700' : 'bg-red-50 text-red-700'}>
+                        <p className="text-xs text-muted-foreground">Human Feedback</p>
+                        <Badge className={selectedTrace.human_feedback === 'positive' ? 'bg-green-50 dark:bg-green-950 text-green-700 dark:text-green-400 border-green-200 dark:border-green-900 rounded-none' : 'bg-red-50 dark:bg-red-950 text-red-700 dark:text-red-400 border-red-200 dark:border-red-900 rounded-none'}>
                           {selectedTrace.human_feedback === 'positive' ? 'Positive' : 'Negative'}
                         </Badge>
                       </div>
@@ -2719,27 +2722,27 @@ export default function ObservabilityPage() {
 
                 {/* Cost Breakdown - Always visible (metadata, not sensitive) */}
                 <div>
-                  <h3 className="text-sm font-medium text-gray-900 mb-3">Cost Breakdown</h3>
+                  <h3 className="text-sm font-medium text-foreground mb-3">Cost Breakdown</h3>
                   <div className="space-y-2">
-                    <div className="flex items-center justify-between py-2 px-3 bg-beige-primary rounded border border-border-light">
-                      <span className="text-xs font-medium text-gray-900">Input</span>
+                    <div className="flex items-center justify-between py-2 px-3 bg-card rounded border border-border">
+                      <span className="text-xs font-medium text-foreground">Input</span>
                       <div className="flex items-center gap-3">
-                        <span className="text-xs text-gray-600">{((selectedTrace.cost_breakdown.input / selectedTrace.cost) * 100).toFixed(1)}%</span>
-                        <span className="text-xs font-medium text-gray-900">{formatCurrency(selectedTrace.cost_breakdown.input)}</span>
+                        <span className="text-xs text-muted-foreground">{((selectedTrace.cost_breakdown.input / selectedTrace.cost) * 100).toFixed(1)}%</span>
+                        <span className="text-xs font-medium text-foreground">{formatCurrency(selectedTrace.cost_breakdown.input)}</span>
                       </div>
                     </div>
-                    <div className="flex items-center justify-between py-2 px-3 bg-beige-primary rounded border border-border-light">
-                      <span className="text-xs font-medium text-gray-900">Output</span>
+                    <div className="flex items-center justify-between py-2 px-3 bg-card rounded border border-border">
+                      <span className="text-xs font-medium text-foreground">Output</span>
                       <div className="flex items-center gap-3">
-                        <span className="text-xs text-gray-600">{((selectedTrace.cost_breakdown.output / selectedTrace.cost) * 100).toFixed(1)}%</span>
-                        <span className="text-xs font-medium text-gray-900">{formatCurrency(selectedTrace.cost_breakdown.output)}</span>
+                        <span className="text-xs text-muted-foreground">{((selectedTrace.cost_breakdown.output / selectedTrace.cost) * 100).toFixed(1)}%</span>
+                        <span className="text-xs font-medium text-foreground">{formatCurrency(selectedTrace.cost_breakdown.output)}</span>
                       </div>
                     </div>
-                    <div className="flex items-center justify-between py-2 px-3 bg-beige-primary rounded border border-border-light">
-                      <span className="text-xs font-medium text-gray-900">Overhead</span>
+                    <div className="flex items-center justify-between py-2 px-3 bg-card rounded border border-border">
+                      <span className="text-xs font-medium text-foreground">Overhead</span>
                       <div className="flex items-center gap-3">
-                        <span className="text-xs text-gray-600">{((selectedTrace.cost_breakdown.overhead / selectedTrace.cost) * 100).toFixed(1)}%</span>
-                        <span className="text-xs font-medium text-gray-900">{formatCurrency(selectedTrace.cost_breakdown.overhead)}</span>
+                        <span className="text-xs text-muted-foreground">{((selectedTrace.cost_breakdown.overhead / selectedTrace.cost) * 100).toFixed(1)}%</span>
+                        <span className="text-xs font-medium text-foreground">{formatCurrency(selectedTrace.cost_breakdown.overhead)}</span>
                       </div>
                     </div>
                   </div>
@@ -2748,30 +2751,30 @@ export default function ObservabilityPage() {
                 {/* Prompt & Completion Split View - ONLY when full tracing enabled */}
                 {enableFullTracing && selectedTrace.prompt && selectedTrace.completion && tierConfig.fullFeatures && (
                   <div>
-                    <h3 className="text-sm font-medium text-gray-900 mb-3">Prompt & Completion</h3>
+                    <h3 className="text-sm font-medium text-foreground mb-3">Prompt & Completion</h3>
                     <div className="grid grid-cols-2 gap-4">
                       <div className="space-y-2">
                         <div className="flex items-center justify-between">
-                          <p className="text-xs font-medium text-gray-600">PROMPT</p>
+                          <p className="text-xs font-medium text-muted-foreground">PROMPT</p>
                           <Copy
-                            className="h-3 w-3 text-gray-600 cursor-pointer hover:text-gray-900"
+                            className="h-3 w-3 text-muted-foreground cursor-pointer hover:text-foreground"
                             onClick={() => copyToClipboard(selectedTrace.prompt || '')}
                           />
                         </div>
-                        <div className="bg-beige-primary border border-gray-200/20 rounded-md p-3 max-h-64 overflow-y-auto">
-                          <pre className="text-xs text-gray-900 whitespace-pre-wrap font-mono">{selectedTrace.prompt}</pre>
+                        <div className="bg-card border border-gray-200/20 rounded-md p-3 max-h-64 overflow-y-auto">
+                          <pre className="text-xs text-foreground whitespace-pre-wrap font-mono">{selectedTrace.prompt}</pre>
                         </div>
                       </div>
                       <div className="space-y-2">
                         <div className="flex items-center justify-between">
-                          <p className="text-xs font-medium text-gray-600">COMPLETION</p>
+                          <p className="text-xs font-medium text-muted-foreground">COMPLETION</p>
                           <Copy
-                            className="h-3 w-3 text-gray-600 cursor-pointer hover:text-gray-900"
+                            className="h-3 w-3 text-muted-foreground cursor-pointer hover:text-foreground"
                             onClick={() => copyToClipboard(selectedTrace.completion || '')}
                           />
                         </div>
-                        <div className="bg-beige-primary border border-gray-200/20 rounded-md p-3 max-h-64 overflow-y-auto">
-                          <pre className="text-xs text-gray-900 whitespace-pre-wrap font-mono">{selectedTrace.completion}</pre>
+                        <div className="bg-card border border-gray-200/20 rounded-md p-3 max-h-64 overflow-y-auto">
+                          <pre className="text-xs text-foreground whitespace-pre-wrap font-mono">{selectedTrace.completion}</pre>
                         </div>
                       </div>
                     </div>
@@ -2781,42 +2784,42 @@ export default function ObservabilityPage() {
                 {/* Generation Parameters - ONLY when full tracing enabled */}
                 {enableFullTracing && selectedTrace.generation_params && tierConfig.fullFeatures && (
                   <div>
-                    <h3 className="text-sm font-medium text-gray-900 mb-3">Generation Parameters</h3>
-                    <div className="grid grid-cols-3 gap-4 bg-beige-primary border border-gray-200/20 rounded-md p-4">
+                    <h3 className="text-sm font-medium text-foreground mb-3">Generation Parameters</h3>
+                    <div className="grid grid-cols-3 gap-4 bg-card border border-gray-200/20 rounded-md p-4">
                       {selectedTrace.generation_params.temperature !== undefined && (
                         <div>
-                          <p className="text-xs text-gray-600">Temperature</p>
-                          <p className="text-sm font-medium text-gray-900">{selectedTrace.generation_params.temperature}</p>
+                          <p className="text-xs text-muted-foreground">Temperature</p>
+                          <p className="text-sm font-medium text-foreground">{selectedTrace.generation_params.temperature}</p>
                         </div>
                       )}
                       {selectedTrace.generation_params.top_p !== undefined && (
                         <div>
-                          <p className="text-xs text-gray-600">Top P</p>
-                          <p className="text-sm font-medium text-gray-900">{selectedTrace.generation_params.top_p}</p>
+                          <p className="text-xs text-muted-foreground">Top P</p>
+                          <p className="text-sm font-medium text-foreground">{selectedTrace.generation_params.top_p}</p>
                         </div>
                       )}
                       {selectedTrace.generation_params.presence_penalty !== undefined && (
                         <div>
-                          <p className="text-xs text-gray-600">Presence Penalty</p>
-                          <p className="text-sm font-medium text-gray-900">{selectedTrace.generation_params.presence_penalty}</p>
+                          <p className="text-xs text-muted-foreground">Presence Penalty</p>
+                          <p className="text-sm font-medium text-foreground">{selectedTrace.generation_params.presence_penalty}</p>
                         </div>
                       )}
                       {selectedTrace.generation_params.frequency_penalty !== undefined && (
                         <div>
-                          <p className="text-xs text-gray-600">Frequency Penalty</p>
-                          <p className="text-sm font-medium text-gray-900">{selectedTrace.generation_params.frequency_penalty}</p>
+                          <p className="text-xs text-muted-foreground">Frequency Penalty</p>
+                          <p className="text-sm font-medium text-foreground">{selectedTrace.generation_params.frequency_penalty}</p>
                         </div>
                       )}
                       {selectedTrace.generation_params.max_tokens !== undefined && (
                         <div>
-                          <p className="text-xs text-gray-600">Max Tokens</p>
-                          <p className="text-sm font-medium text-gray-900">{selectedTrace.generation_params.max_tokens}</p>
+                          <p className="text-xs text-muted-foreground">Max Tokens</p>
+                          <p className="text-sm font-medium text-foreground">{selectedTrace.generation_params.max_tokens}</p>
                         </div>
                       )}
                       {selectedTrace.generation_params.logprobs && (
                         <div>
-                          <p className="text-xs text-gray-600">Logprobs</p>
-                          <p className="text-sm font-medium text-gray-900">Enabled</p>
+                          <p className="text-xs text-muted-foreground">Logprobs</p>
+                          <p className="text-sm font-medium text-foreground">Enabled</p>
                         </div>
                       )}
                     </div>
@@ -2826,30 +2829,30 @@ export default function ObservabilityPage() {
                 {/* Request Chain */}
                 {(selectedTrace.parent_request_id || selectedTrace.child_request_ids) && tierConfig.fullFeatures && (
                   <div>
-                    <h3 className="text-sm font-medium text-gray-900 mb-3">Request Chain</h3>
-                    <div className="bg-beige-primary border border-gray-200/20 rounded-md p-4">
+                    <h3 className="text-sm font-medium text-foreground mb-3">Request Chain</h3>
+                    <div className="bg-card border border-gray-200/20 rounded-md p-4">
                       <div className="flex items-center gap-3">
                         {selectedTrace.parent_request_id && (
                           <>
                             <div className="flex items-center gap-2">
                               <Badge variant="outline" className="text-[9px] px-1.5 py-0">Parent</Badge>
-                              <code className="text-xs font-mono text-gray-900">{selectedTrace.parent_request_id}</code>
+                              <code className="text-xs font-mono text-foreground">{selectedTrace.parent_request_id}</code>
                             </div>
-                            <span className="text-gray-600">→</span>
+                            <span className="text-muted-foreground">→</span>
                           </>
                         )}
                         <div className="flex items-center gap-2">
-                          <Badge className="bg-blue-50 text-blue-700 text-[9px] px-1.5 py-0">This</Badge>
-                          <code className="text-xs font-mono text-gray-900 font-bold">{selectedTrace.request_id}</code>
+                          <Badge className="bg-blue-50 dark:bg-blue-950 text-blue-700 dark:text-blue-400 border-blue-200 dark:border-blue-900 text-[9px] px-1.5 py-0 rounded-none">This</Badge>
+                          <code className="text-xs font-mono text-foreground font-bold">{selectedTrace.request_id}</code>
                         </div>
                         {selectedTrace.child_request_ids && selectedTrace.child_request_ids.length > 0 && (
                           <>
-                            <span className="text-gray-600">→</span>
+                            <span className="text-muted-foreground">→</span>
                             <div className="flex items-center gap-2">
                               <Badge variant="outline" className="text-[9px] px-1.5 py-0">Children ({selectedTrace.child_request_ids.length})</Badge>
                               <div className="flex flex-col gap-1">
                                 {selectedTrace.child_request_ids.map((childId, idx) => (
-                                  <code key={idx} className="text-xs font-mono text-gray-900">{childId}</code>
+                                  <code key={idx} className="text-xs font-mono text-foreground">{childId}</code>
                                 ))}
                               </div>
                             </div>
@@ -2863,15 +2866,15 @@ export default function ObservabilityPage() {
                 {/* Timeline Markers */}
                 {selectedTrace.timeline_markers && selectedTrace.timeline_markers.length > 0 && tierConfig.fullFeatures && (
                   <div>
-                    <h3 className="text-sm font-medium text-gray-900 mb-3">Timeline Markers</h3>
+                    <h3 className="text-sm font-medium text-foreground mb-3">Timeline Markers</h3>
                     <div className="space-y-2">
                       {selectedTrace.timeline_markers.map((marker, idx) => (
-                        <div key={idx} className="flex items-center justify-between py-2 px-3 bg-beige-primary rounded border border-border-light">
+                        <div key={idx} className="flex items-center justify-between py-2 px-3 bg-card rounded border border-border">
                           <div className="flex items-center gap-3">
-                            <span className="text-xs font-medium text-gray-900">{marker.name}</span>
+                            <span className="text-xs font-medium text-foreground">{marker.name}</span>
                             <Badge variant="outline" className="text-[9px] px-1.5 py-0">{marker.type.replace('_', ' ')}</Badge>
                           </div>
-                          <span className="text-xs text-gray-600">{new Date(marker.timestamp).toLocaleTimeString()}</span>
+                          <span className="text-xs text-muted-foreground">{new Date(marker.timestamp).toLocaleTimeString()}</span>
                         </div>
                       ))}
                     </div>
@@ -2881,19 +2884,19 @@ export default function ObservabilityPage() {
                 {/* Token Timeline - ONLY when full tracing enabled */}
                 {enableFullTracing && selectedTrace.was_streamed && selectedTrace.token_timeline && selectedTrace.token_timeline.length > 0 && (
                   <div>
-                    <h3 className="text-sm font-medium text-gray-900 mb-3">Token Streaming Timeline (ms)</h3>
+                    <h3 className="text-sm font-medium text-foreground mb-3">Token Streaming Timeline (ms)</h3>
                     <div className="w-full" style={{ height: '240px' }}>
                       <ResponsiveContainer width="100%" height="100%">
                         <LineChart data={selectedTrace.token_timeline} margin={{ top: 10, right: 20, left: 10, bottom: 25 }}>
-                          <CartesianGrid strokeDasharray="3 3" stroke="#e5e7eb" />
+                          <CartesianGrid strokeDasharray="3 3" stroke={chartTheme.grid} />
                           <XAxis
                             dataKey="token_index"
-                            stroke="#6b7280"
+                            stroke={chartTheme.axis}
                             label={{ value: 'Token #', position: 'insideBottom', offset: -10 }}
                             style={{ fontSize: '10px' }}
                           />
                           <YAxis
-                            stroke="#6b7280"
+                            stroke={chartTheme.axis}
                             width={50}
                             style={{ fontSize: '10px' }}
                           />
@@ -2901,7 +2904,7 @@ export default function ObservabilityPage() {
                           <Line
                             type="monotone"
                             dataKey="timestamp"
-                            stroke="#004aad"
+                            stroke={chartTheme.line}
                             strokeWidth={0.5}
                             dot={(props: any) => {
                               const point = selectedTrace.token_timeline?.[props.index];
@@ -2920,7 +2923,7 @@ export default function ObservabilityPage() {
                 {/* Speculative Execution Waterfall */}
                 {tierConfig.fullFeatures && selectedTrace.speculative_traces && selectedTrace.speculative_traces.length > 0 && (
                   <div>
-                    <h3 className="text-sm font-medium text-gray-900 mb-3">Speculative Execution Waterfall</h3>
+                    <h3 className="text-sm font-medium text-foreground mb-3">Speculative Execution Waterfall</h3>
                     <div className="space-y-3">
                       {selectedTrace.speculative_traces.map((trace, idx) => {
                         const getStripePattern = (status: string) => {
@@ -2953,10 +2956,10 @@ export default function ObservabilityPage() {
 
                         return (
                           <div key={idx} className="flex items-center gap-2 w-full group relative">
-                            <span className="text-xs text-gray-600 w-20 flex-shrink-0">{trace.provider}</span>
-                            <div className="flex-1 relative h-5 bg-beige-primary rounded min-w-0">
+                            <span className="text-xs text-muted-foreground w-20 flex-shrink-0">{trace.provider}</span>
+                            <div className="flex-1 relative h-5 bg-card rounded min-w-0">
                               <div
-                                className="absolute h-full rounded border border-border-light"
+                                className="absolute h-full rounded border border-border"
                                 style={{
                                   left: `${(trace.start / Math.max(...selectedTrace.speculative_traces!.map(t => t.latency))) * 100}%`,
                                   width: `${(trace.latency / Math.max(...selectedTrace.speculative_traces!.map(t => t.latency))) * 100}%`,
@@ -2964,28 +2967,28 @@ export default function ObservabilityPage() {
                                 }}
                               />
                               {/* Enhanced Tooltip */}
-                              <div className="absolute left-0 bottom-full mb-2 hidden group-hover:block w-56 p-3 bg-beige-primary border border-gray-200/20 rounded-lg z-50">
+                              <div className="absolute left-0 bottom-full mb-2 hidden group-hover:block w-56 p-3 bg-card border border-gray-200/20 rounded-lg z-50">
                                 <div className="space-y-1.5 text-xs">
                                   <div className="flex justify-between">
-                                    <span className="text-gray-600">Provider:</span>
-                                    <span className="font-medium text-gray-900">{trace.provider}</span>
+                                    <span className="text-muted-foreground">Provider:</span>
+                                    <span className="font-medium text-foreground">{trace.provider}</span>
                                   </div>
                                   <div className="flex justify-between">
-                                    <span className="text-gray-600">Model:</span>
-                                    <span className="font-medium text-gray-900">{trace.model}</span>
+                                    <span className="text-muted-foreground">Model:</span>
+                                    <span className="font-medium text-foreground">{trace.model}</span>
                                   </div>
                                   <div className="flex justify-between">
-                                    <span className="text-gray-600">Latency:</span>
-                                    <span className="font-medium text-gray-900">{trace.latency.toFixed(0)}ms</span>
+                                    <span className="text-muted-foreground">Latency:</span>
+                                    <span className="font-medium text-foreground">{trace.latency.toFixed(0)}ms</span>
                                   </div>
                                   <div className="flex justify-between">
-                                    <span className="text-gray-600">Status:</span>
-                                    <span className="font-medium text-gray-900">{trace.status}</span>
+                                    <span className="text-muted-foreground">Status:</span>
+                                    <span className="font-medium text-foreground">{trace.status}</span>
                                   </div>
                                 </div>
                               </div>
                             </div>
-                            <span className="text-xs text-gray-600 w-12 flex-shrink-0 text-right">{trace.latency.toFixed(0)}ms</span>
+                            <span className="text-xs text-muted-foreground w-12 flex-shrink-0 text-right">{trace.latency.toFixed(0)}ms</span>
                             <Badge
                               className="flex-shrink-0 text-xs px-2"
                               style={{
@@ -3012,15 +3015,15 @@ export default function ObservabilityPage() {
                 {/* Retry Timeline */}
                 {tierConfig.fullFeatures && selectedTrace.retry_attempts && selectedTrace.retry_attempts.length > 0 && (
                   <div>
-                    <h3 className="text-sm font-medium text-gray-900 mb-3">Retry Timeline</h3>
+                    <h3 className="text-sm font-medium text-foreground mb-3">Retry Timeline</h3>
                     <div className="space-y-2">
                       {selectedTrace.retry_attempts.map((attempt, idx) => (
-                        <div key={idx} className="flex items-center justify-between py-2 px-3 bg-beige-primary rounded">
+                        <div key={idx} className="flex items-center justify-between py-2 px-3 bg-card rounded">
                           <div className="flex items-center gap-3">
-                            <span className="text-xs font-medium text-gray-900">Try #{attempt.attempt_number}</span>
-                            <span className="text-xs text-gray-600">{attempt.duration.toFixed(0)}ms</span>
+                            <span className="text-xs font-medium text-foreground">Try #{attempt.attempt_number}</span>
+                            <span className="text-xs text-muted-foreground">{attempt.duration.toFixed(0)}ms</span>
                           </div>
-                          <span className="text-xs font-medium text-gray-900">{attempt.status}</span>
+                          <span className="text-xs font-medium text-foreground">{attempt.status}</span>
                         </div>
                       ))}
                     </div>
@@ -3028,7 +3031,7 @@ export default function ObservabilityPage() {
                 )}
 
                 {/* Tag & Share Actions */}
-                <div className="space-y-3 pt-4 border-t border-border-light">
+                <div className="space-y-3 pt-4 border-t border-border">
                   <div className="flex gap-2">
                     <Select
                       value={selectedTrace.tag || 'none'}
@@ -3051,12 +3054,12 @@ export default function ObservabilityPage() {
                   {/* Human Feedback Buttons */}
                   {selectedTrace.status === 200 && (
                     <div>
-                      <p className="text-xs text-gray-600 mb-2">Human Feedback</p>
+                      <p className="text-xs text-muted-foreground mb-2">Human Feedback</p>
                       <div className="flex gap-2">
                         <Button
                           variant="outline"
                           size="sm"
-                          className={cn(selectedTrace.human_feedback === 'positive' && 'bg-beige-primary text-gray-900 border border-border-light')}
+                          className={cn(selectedTrace.human_feedback === 'positive' && 'bg-card text-foreground border border-border')}
                           onClick={() => {
                             const updatedTrace = { ...selectedTrace, human_feedback: selectedTrace.human_feedback === 'positive' ? null : 'positive' as const };
                             // Optimistic update would go here
@@ -3068,7 +3071,7 @@ export default function ObservabilityPage() {
                         <Button
                           variant="outline"
                           size="sm"
-                          className={cn(selectedTrace.human_feedback === 'negative' && 'bg-beige-primary text-gray-900 border border-border-light')}
+                          className={cn(selectedTrace.human_feedback === 'negative' && 'bg-card text-foreground border border-border')}
                           onClick={() => {
                             const updatedTrace = { ...selectedTrace, human_feedback: selectedTrace.human_feedback === 'negative' ? null : 'negative' as const };
                             // Optimistic update would go here
@@ -3108,13 +3111,13 @@ export default function ObservabilityPage() {
                     <div>
                       <button
                         onClick={() => toggleSection('request')}
-                        className="flex items-center justify-between w-full text-sm font-medium text-gray-900 mb-2"
+                        className="flex items-center justify-between w-full text-sm font-medium text-foreground mb-2"
                       >
                         Request Body
                         {expandedSections.request ? <ChevronUp className="h-4 w-4" /> : <ChevronDown className="h-4 w-4" />}
                       </button>
                       {expandedSections.request && selectedTrace.request_body && (
-                        <pre className="bg-beige-primary text-gray-900 p-3 rounded-md text-xs overflow-x-auto border border-border-light">
+                        <pre className="bg-card text-foreground p-3 rounded-md text-xs overflow-x-auto border border-border">
                           {JSON.stringify(selectedTrace.request_body, null, 2)}
                         </pre>
                       )}
@@ -3124,13 +3127,13 @@ export default function ObservabilityPage() {
                       <div>
                         <button
                           onClick={() => toggleSection('response')}
-                          className="flex items-center justify-between w-full text-sm font-medium text-gray-900 mb-2"
+                          className="flex items-center justify-between w-full text-sm font-medium text-foreground mb-2"
                         >
                           Response Body
                           {expandedSections.response ? <ChevronUp className="h-4 w-4" /> : <ChevronDown className="h-4 w-4" />}
                         </button>
                         {expandedSections.response && (
-                          <pre className="bg-beige-primary text-gray-900 p-3 rounded-md text-xs overflow-x-auto border border-border-light">
+                          <pre className="bg-card text-foreground p-3 rounded-md text-xs overflow-x-auto border border-border">
                             {JSON.stringify(selectedTrace.response_body, null, 2)}
                           </pre>
                         )}
@@ -3140,34 +3143,34 @@ export default function ObservabilityPage() {
                 )}
 
                 {/* Policy Decision Tree */}
-                <div className="border-t border-border-light pt-4">
-                  <h3 className="text-sm font-medium text-gray-900 mb-3 flex items-center gap-2">
+                <div className="border-t border-border pt-4">
+                  <h3 className="text-sm font-medium text-foreground mb-3 flex items-center gap-2">
                     <Filter className="h-4 w-4" />
                     Policy Evaluation & Decision Tree
                   </h3>
-                  <div className="bg-beige-primary border border-gray-200/20 rounded-lg p-4 space-y-3">
+                  <div className="bg-card border border-gray-200/20 rounded-lg p-4 space-y-3">
                     {/* Decision Flow */}
                     <div className="space-y-2">
                       <div className="flex items-start gap-3">
                         <div className="w-6 h-6 rounded-full bg-blue-100 text-blue-700 flex items-center justify-center text-xs font-medium flex-shrink-0">1</div>
                         <div className="flex-1">
-                          <p className="text-xs font-medium text-gray-900">Request Received</p>
-                          <p className="text-xs text-gray-600 mt-0.5">Model: {selectedTrace.model} • User: {selectedTrace.user_id || 'anonymous'}</p>
+                          <p className="text-xs font-medium text-foreground">Request Received</p>
+                          <p className="text-xs text-muted-foreground mt-0.5">Model: {selectedTrace.model} • User: {selectedTrace.user_id || 'anonymous'}</p>
                         </div>
                       </div>
 
                       <div className="flex items-start gap-3">
                         <div className="w-6 h-6 rounded-full bg-blue-100 text-blue-700 flex items-center justify-center text-xs font-medium flex-shrink-0">2</div>
                         <div className="flex-1">
-                          <p className="text-xs font-medium text-gray-900">Policy Constraints Evaluated</p>
+                          <p className="text-xs font-medium text-foreground">Policy Constraints Evaluated</p>
                           <div className="mt-1 space-y-1">
-                            <div className="text-xs text-gray-600 bg-beige-primary rounded px-2 py-1 border border-border-light">
+                            <div className="text-xs text-muted-foreground bg-card rounded px-2 py-1 border border-border">
                               ✓ Cost budget: Available
                             </div>
-                            <div className="text-xs text-gray-600 bg-beige-primary rounded px-2 py-1 border border-border-light">
+                            <div className="text-xs text-muted-foreground bg-card rounded px-2 py-1 border border-border">
                               ✓ Model access: Allowed
                             </div>
-                            <div className="text-xs text-gray-600 bg-beige-primary rounded px-2 py-1 border border-border-light">
+                            <div className="text-xs text-muted-foreground bg-card rounded px-2 py-1 border border-border">
                               ✓ Rate limit: Within threshold
                             </div>
                           </div>
@@ -3177,8 +3180,8 @@ export default function ObservabilityPage() {
                       <div className="flex items-start gap-3">
                         <div className="w-6 h-6 rounded-full bg-blue-100 text-blue-700 flex items-center justify-center text-xs font-medium flex-shrink-0">3</div>
                         <div className="flex-1">
-                          <p className="text-xs font-medium text-gray-900">Provider Selection</p>
-                          <p className="text-xs text-gray-600 mt-0.5">Selected: {selectedTrace.provider} (Bayesian optimization)</p>
+                          <p className="text-xs font-medium text-foreground">Provider Selection</p>
+                          <p className="text-xs text-muted-foreground mt-0.5">Selected: {selectedTrace.provider} (Bayesian optimization)</p>
                         </div>
                       </div>
 
@@ -3186,8 +3189,8 @@ export default function ObservabilityPage() {
                         <div className="flex items-start gap-3">
                           <div className="w-6 h-6 rounded-full bg-purple-100 text-purple-700 flex items-center justify-center text-xs font-medium flex-shrink-0">4</div>
                           <div className="flex-1">
-                            <p className="text-xs font-medium text-gray-900">Speculative Execution</p>
-                            <p className="text-xs text-gray-600 mt-0.5">Parallel requests to {selectedTrace.speculative_traces?.length || 3} providers</p>
+                            <p className="text-xs font-medium text-foreground">Speculative Execution</p>
+                            <p className="text-xs text-muted-foreground mt-0.5">Parallel requests to {selectedTrace.speculative_traces?.length || 3} providers</p>
                           </div>
                         </div>
                       )}
@@ -3196,8 +3199,8 @@ export default function ObservabilityPage() {
                         <div className="flex items-start gap-3">
                           <div className="w-6 h-6 rounded-full bg-yellow-100 text-yellow-700 flex items-center justify-center text-xs font-medium flex-shrink-0">⚠</div>
                           <div className="flex-1">
-                            <p className="text-xs font-medium text-gray-900">Fallback Triggered</p>
-                            <p className="text-xs text-gray-600 mt-0.5">
+                            <p className="text-xs font-medium text-foreground">Fallback Triggered</p>
+                            <p className="text-xs text-muted-foreground mt-0.5">
                               Reason: {selectedTrace.status === 429 ? 'Rate limit exceeded' : selectedTrace.status >= 500 ? 'Provider error' : 'Request failed'} •
                               Retried {selectedTrace.retry_count} time(s) with exponential backoff
                             </p>
@@ -3210,8 +3213,8 @@ export default function ObservabilityPage() {
                           selectedTrace.status === 200 ? 'bg-green-100 text-green-700' : 'bg-red-100 text-red-700'
                         }`}>✓</div>
                         <div className="flex-1">
-                          <p className="text-xs font-medium text-gray-900">Final Result</p>
-                          <p className="text-xs text-gray-600 mt-0.5">
+                          <p className="text-xs font-medium text-foreground">Final Result</p>
+                          <p className="text-xs text-muted-foreground mt-0.5">
                             Status: {selectedTrace.status} •
                             Latency: {formatLatency(selectedTrace.latency)} •
                             Cost: {formatCurrency(selectedTrace.cost)}
@@ -3242,7 +3245,7 @@ export default function ObservabilityPage() {
 
                 {/* Error Details */}
                 {selectedTrace.error && (
-                  <div className="border-t border-border-light pt-4">
+                  <div className="border-t border-border pt-4">
                     <button
                       onClick={() => toggleSection('error')}
                       className="flex items-center justify-between w-full text-sm font-medium text-red-700 mb-2"
@@ -3270,10 +3273,10 @@ export default function ObservabilityPage() {
                 )}
 
                 {/* Trace Notes/Annotations */}
-                <div className="border-t border-border-light pt-4">
+                <div className="border-t border-border pt-4">
                   <div className="flex items-center justify-between mb-3">
-                    <h3 className="text-sm font-medium text-gray-900">Trace Notes</h3>
-                    <span className="text-xs text-gray-600">
+                    <h3 className="text-sm font-medium text-foreground">Trace Notes</h3>
+                    <span className="text-xs text-muted-foreground">
                       {traceNotes[selectedTrace.id]?.length || 0} notes
                     </span>
                   </div>
@@ -3330,22 +3333,22 @@ export default function ObservabilityPage() {
                   {traceNotes[selectedTrace.id] && traceNotes[selectedTrace.id].length > 0 && (
                     <div className="space-y-3">
                       {traceNotes[selectedTrace.id].slice(-5).reverse().map((note, idx) => (
-                        <div key={note.id} className="bg-beige-primary border border-gray-200/20 rounded-md p-3">
+                        <div key={note.id} className="bg-card border border-gray-200/20 dark:border-[#f6f6f4]/5 rounded-md p-3">
                           <div className="flex items-start justify-between gap-2 mb-2">
                             <div className="flex items-center gap-2">
-                              <div className="flex items-center justify-center w-6 h-6 rounded-full bg-gray-900 text-white font-semibold text-xs">
+                              <div className="flex items-center justify-center w-6 h-6 rounded-full bg-gray-900 dark:bg-[#f6f6f4] text-white dark:text-[#1b1912] font-semibold text-xs">
                                 {note.author.charAt(0).toUpperCase()}
                               </div>
                               <div>
-                                <p className="text-xs font-medium text-gray-900">{note.author}</p>
-                                <p className="text-xs text-gray-600">{formatDateTime(note.timestamp)}</p>
+                                <p className="text-xs font-medium text-foreground">{note.author}</p>
+                                <p className="text-xs text-muted-foreground">{formatDateTime(note.timestamp)}</p>
                               </div>
                             </div>
                             {tenant?.plan === 'Scale' && (
                               <Button
                                 variant="ghost"
                                 size="sm"
-                                className="h-6 px-2 text-xs text-gray-600"
+                                className="h-6 px-2 text-xs text-muted-foreground"
                                 onClick={() => {
                                   setTraceNotes(prev => ({
                                     ...prev,
@@ -3357,11 +3360,11 @@ export default function ObservabilityPage() {
                               </Button>
                             )}
                           </div>
-                          <p className="text-sm text-gray-900">{note.content}</p>
+                          <p className="text-sm text-foreground">{note.content}</p>
                         </div>
                       ))}
                       {traceNotes[selectedTrace.id].length > 5 && (
-                        <p className="text-xs text-gray-600 text-center">
+                        <p className="text-xs text-muted-foreground text-center">
                           Showing latest 5 of {traceNotes[selectedTrace.id].length} notes
                         </p>
                       )}
@@ -3370,7 +3373,7 @@ export default function ObservabilityPage() {
 
                   {(!traceNotes[selectedTrace.id] || traceNotes[selectedTrace.id].length === 0) && (
                     <div className="text-center py-4">
-                      <p className="text-xs text-gray-600">No notes yet. Add the first one above.</p>
+                      <p className="text-xs text-muted-foreground">No notes yet. Add the first one above.</p>
                     </div>
                   )}
 

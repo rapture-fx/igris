@@ -10,6 +10,7 @@ import { Badge } from '@/components/ui/badge';
 import { Input } from '@/components/ui/input';
 import { Label } from '@/components/ui/label';
 import { Switch } from '@/components/ui/switch';
+import { useChartTheme } from '@/utils/chartTheme';
 import {
   useCouncilStatus,
   useCouncilConfig,
@@ -85,6 +86,7 @@ const renderCustomPieLabel = ({ cx, cy, midAngle, outerRadius, model, win_rate }
 };
 
 export default function CouncilModePage() {
+  const chartTheme = useChartTheme();
   const { data: status } = useCouncilStatus();
   const { data: config } = useCouncilConfig();
   const [timeRange, setTimeRange] = useState<'24h' | '7d' | '30d'>('24h');
@@ -159,55 +161,55 @@ export default function CouncilModePage() {
       <style>{sliderStyles}</style>
       <div className="max-w-7xl mx-auto space-y-6">
         {/* Header */}
-        <div className="pb-4 border-b border-border-light">
-          <h1 className="text-base font-medium text-gray-900 font-inter">Council Mode</h1>
-          <p className="text-gray-600 mt-1 font-inter text-xs">
+        <div className="pb-4 border-b border-border">
+          <h1 className="text-base font-medium text-foreground font-inter">Council Mode</h1>
+          <p className="text-muted-foreground mt-1 font-inter text-xs">
             Multi-model consensus with voting for complex queries
           </p>
         </div>
 
         {/* Overview Metrics */}
-        <div className="bg-beige-primary">
+        <div className="bg-card">
           <div className="grid grid-cols-3 divide-x divide-border-light">
             <div className="p-4">
-              <div className="text-xs font-medium text-gray-600 mb-1">Status</div>
+              <div className="text-xs font-medium text-muted-foreground mb-1">Status</div>
               <div className="pb-2">
-                <Badge className={status?.enabled ? 'bg-green-50 text-green-700 border border-green-200' : 'bg-gray-50 text-gray-700 border'}>
+                <Badge className={status?.enabled ? 'bg-green-50 text-green-700 border border-green-200 dark:bg-green-950 dark:text-green-400 dark:border-green-900' : 'bg-gray-50 text-gray-700 border dark:bg-card dark:text-[#a8a898] dark:border-[#f6f6f4]/5'}>
                   {status?.enabled ? <CheckCircle className="h-3 w-3 mr-1" /> : <XCircle className="h-3 w-3 mr-1" />}
                   {status?.enabled ? 'Enabled' : 'Disabled'}
                 </Badge>
               </div>
             </div>
             <div className="p-4">
-              <div className="text-xs font-medium text-gray-600 mb-1">Council Size</div>
-              <div className="text-lg font-bold text-gray-900">{status?.current_council_size}</div>
-              <p className="text-[0.65rem] text-gray-600 mt-1">models</p>
+              <div className="text-xs font-medium text-muted-foreground mb-1">Council Size</div>
+              <div className="text-lg font-bold text-foreground">{status?.current_council_size}</div>
+              <p className="text-[0.65rem] text-muted-foreground mt-1">models</p>
             </div>
             <div className="p-4">
-              <div className="text-xs font-medium text-gray-600 mb-1">Quality Improvement</div>
-              <div className="text-lg font-bold text-gray-900">+{status?.avg_quality_improvement.toFixed(1)}%</div>
-              <p className="text-[0.65rem] text-gray-600 mt-1">vs single model</p>
+              <div className="text-xs font-medium text-muted-foreground mb-1">Quality Improvement</div>
+              <div className="text-lg font-bold text-foreground">+{status?.avg_quality_improvement.toFixed(1)}%</div>
+              <p className="text-[0.65rem] text-muted-foreground mt-1">vs single model</p>
             </div>
           </div>
-          <div className="grid grid-cols-3 divide-x divide-border-light border-t border-border-light">
+          <div className="grid grid-cols-3 divide-x divide-border-light border-t border-border">
             <div className="p-4">
-              <div className="text-xs font-medium text-gray-600 mb-1">Cost Overhead</div>
-              <div className="text-lg font-bold text-gray-900">{status?.cost_overhead_24h.toFixed(1)}x</div>
-              <p className="text-[0.65rem] text-gray-600 mt-1">24h average</p>
+              <div className="text-xs font-medium text-muted-foreground mb-1">Cost Overhead</div>
+              <div className="text-lg font-bold text-foreground">{status?.cost_overhead_24h.toFixed(1)}x</div>
+              <p className="text-[0.65rem] text-muted-foreground mt-1">24h average</p>
             </div>
             <div className="p-4">
-              <div className="text-xs font-medium text-gray-600 mb-1">Last Run</div>
-              <div className="text-xs font-bold text-gray-900">
+              <div className="text-xs font-medium text-muted-foreground mb-1">Last Run</div>
+              <div className="text-xs font-bold text-foreground">
                 {status?.last_run ? new Date(status.last_run.timestamp).toLocaleTimeString() : 'Never'}
               </div>
-              <p className="text-[0.65rem] text-gray-600 mt-1 truncate">{status?.last_run?.summary || 'No runs yet'}</p>
+              <p className="text-[0.65rem] text-muted-foreground mt-1 truncate">{status?.last_run?.summary || 'No runs yet'}</p>
             </div>
             <div className="p-4"></div>
           </div>
         </div>
 
         {/* Configuration Form */}
-        <Card className="border-border-light shadow-sm">
+        <Card className="border-border shadow-sm">
           <CardHeader className="pb-3">
             <CardTitle className="text-sm">Configuration</CardTitle>
             <CardDescription className="text-xs">Configure Council Mode settings and parameters</CardDescription>
@@ -217,7 +219,7 @@ export default function CouncilModePage() {
               <div className="grid grid-cols-2 gap-4">
                 <div className="space-y-1">
                   <div className="flex items-center justify-between">
-                    <Label htmlFor="enabled" className="text-xs font-medium text-gray-900">Enable Council Mode</Label>
+                    <Label htmlFor="enabled" className="text-xs font-medium text-foreground">Enable Council Mode</Label>
                     <Switch
                       id="enabled"
                       checked={editableConfig.enabled}
@@ -225,11 +227,11 @@ export default function CouncilModePage() {
                       className="scale-50"
                     />
                   </div>
-                  <p className="text-[0.6rem] text-gray-600">Activate multi-model consensus</p>
+                  <p className="text-[0.6rem] text-muted-foreground">Activate multi-model consensus</p>
                 </div>
 
                 <div className="space-y-1">
-                  <Label htmlFor="num_models" className="text-xs font-medium text-gray-900">
+                  <Label htmlFor="num_models" className="text-xs font-medium text-foreground">
                     Number of Models ({editableConfig.num_models})
                   </Label>
                   <Input
@@ -241,11 +243,11 @@ export default function CouncilModePage() {
                     onChange={(e) => handleConfigChange('num_models', parseInt(e.target.value))}
                     className="scale-[0.6] origin-left dark-blue-slider h-px"
                   />
-                  <p className="text-[0.6rem] text-gray-600">Models to participate in voting</p>
+                  <p className="text-[0.6rem] text-muted-foreground">Models to participate in voting</p>
                 </div>
 
                 <div className="space-y-1 col-span-2">
-                  <Label className="text-xs font-medium text-gray-900">Model Selection</Label>
+                  <Label className="text-xs font-medium text-foreground">Model Selection</Label>
                   <div className="flex flex-wrap gap-2">
                     {AVAILABLE_MODELS.map((model) => (
                       <button
@@ -253,34 +255,34 @@ export default function CouncilModePage() {
                         onClick={() => handleModelToggle(model)}
                         className={`px-3 py-1.5 text-xs rounded-lg border transition-colors ${
                           editableConfig.models.includes(model)
-                            ? 'bg-blue-50 text-blue-700 border-blue-200'
-                            : 'bg-beige-primary text-gray-700 border-border-light hover:bg-beige-secondary'
+                            ? 'bg-blue-50 text-blue-700 border-blue-200 dark:bg-blue-950 dark:text-blue-400 dark:border-blue-900'
+                            : 'bg-card text-foreground border-border hover:bg-muted'
                         }`}
                       >
                         {model}
                       </button>
                     ))}
                   </div>
-                  <p className="text-[0.6rem] text-gray-600">Select 2-5 models for council</p>
+                  <p className="text-[0.6rem] text-muted-foreground">Select 2-5 models for council</p>
                 </div>
 
                 <div className="space-y-1">
-                  <Label htmlFor="voting_strategy" className="text-xs font-medium text-gray-900">Voting Strategy</Label>
+                  <Label htmlFor="voting_strategy" className="text-xs font-medium text-foreground">Voting Strategy</Label>
                   <select
                     id="voting_strategy"
                     value={editableConfig.voting_strategy}
                     onChange={(e) => handleConfigChange('voting_strategy', e.target.value)}
-                    className="w-full text-xs h-7 border border-border-light rounded-lg px-2 bg-beige-primary"
+                    className="w-full text-xs h-7 border border-border rounded-lg px-2 bg-card"
                   >
                     <option value="majority">Majority</option>
                     <option value="weighted">Weighted</option>
                     <option value="chairman-led">Chairman-Led</option>
                   </select>
-                  <p className="text-[0.6rem] text-gray-600">How to determine final response</p>
+                  <p className="text-[0.6rem] text-muted-foreground">How to determine final response</p>
                 </div>
 
                 <div className="space-y-1">
-                  <Label htmlFor="quality_threshold" className="text-xs font-medium text-gray-900">
+                  <Label htmlFor="quality_threshold" className="text-xs font-medium text-foreground">
                     Quality Threshold ({editableConfig.quality_threshold}%)
                   </Label>
                   <Input
@@ -292,11 +294,11 @@ export default function CouncilModePage() {
                     onChange={(e) => handleConfigChange('quality_threshold', parseInt(e.target.value))}
                     className="scale-[0.6] origin-left dark-blue-slider h-px"
                   />
-                  <p className="text-[0.6rem] text-gray-600">Minimum quality score to accept</p>
+                  <p className="text-[0.6rem] text-muted-foreground">Minimum quality score to accept</p>
                 </div>
 
                 <div className="space-y-1">
-                  <Label htmlFor="max_tokens" className="text-xs font-medium text-gray-900">Max Tokens</Label>
+                  <Label htmlFor="max_tokens" className="text-xs font-medium text-foreground">Max Tokens</Label>
                   <Input
                     id="max_tokens"
                     type="number"
@@ -306,11 +308,11 @@ export default function CouncilModePage() {
                     min="100"
                     max="10000"
                   />
-                  <p className="text-[0.6rem] text-gray-600">Maximum tokens per response</p>
+                  <p className="text-[0.6rem] text-muted-foreground">Maximum tokens per response</p>
                 </div>
 
                 <div className="space-y-1">
-                  <Label htmlFor="cost_limit" className="text-xs font-medium text-gray-900">Cost Limit ($)</Label>
+                  <Label htmlFor="cost_limit" className="text-xs font-medium text-foreground">Cost Limit ($)</Label>
                   <Input
                     id="cost_limit"
                     type="number"
@@ -321,24 +323,24 @@ export default function CouncilModePage() {
                     min="0.01"
                     max="10"
                   />
-                  <p className="text-[0.6rem] text-gray-600">Maximum cost per council run</p>
+                  <p className="text-[0.6rem] text-muted-foreground">Maximum cost per council run</p>
                 </div>
 
                 {editableConfig.voting_strategy === 'chairman-led' && (
                   <div className="space-y-1 col-span-2">
-                    <Label htmlFor="chairman_model" className="text-xs font-medium text-gray-900">Chairman Model</Label>
+                    <Label htmlFor="chairman_model" className="text-xs font-medium text-foreground">Chairman Model</Label>
                     <select
                       id="chairman_model"
                       value={editableConfig.chairman_model || ''}
                       onChange={(e) => handleConfigChange('chairman_model', e.target.value)}
-                      className="w-full text-xs h-7 border border-border-light rounded-lg px-2 bg-beige-primary"
+                      className="w-full text-xs h-7 border border-border rounded-lg px-2 bg-card"
                     >
                       <option value="">Select chairman model</option>
                       {editableConfig.models.map((model) => (
                         <option key={model} value={model}>{model}</option>
                       ))}
                     </select>
-                    <p className="text-[0.6rem] text-gray-600">Model that makes final decision in case of tie</p>
+                    <p className="text-[0.6rem] text-muted-foreground">Model that makes final decision in case of tie</p>
                   </div>
                 )}
               </div>
@@ -359,7 +361,7 @@ export default function CouncilModePage() {
         </Card>
 
         {/* Performance Comparison */}
-        <Card className="border-border-light shadow-sm">
+        <Card className="border-border shadow-sm">
           <CardHeader>
             <div className="flex items-center justify-between">
               <div>
@@ -373,8 +375,8 @@ export default function CouncilModePage() {
                     onClick={() => setTimeRange(range as any)}
                     className={`px-2 py-1 text-xs rounded-lg border transition-colors ${
                       timeRange === range
-                        ? 'bg-blue-50 text-blue-700 border-blue-200'
-                        : 'bg-beige-primary text-gray-700 border-border-light hover:bg-beige-secondary'
+                        ? 'bg-blue-50 text-blue-700 border-blue-200 dark:bg-blue-950 dark:text-blue-400 dark:border-blue-900'
+                        : 'bg-card text-foreground border-border hover:bg-muted'
                     }`}
                   >
                     {range}
@@ -387,19 +389,19 @@ export default function CouncilModePage() {
             <div className="grid grid-cols-2 gap-6">
               {/* Quality Delta Chart */}
               <div>
-                <h4 className="text-xs font-medium text-gray-900 mb-3">Quality: Council vs Single Model</h4>
+                <h4 className="text-xs font-medium text-foreground mb-3">Quality: Council vs Single Model</h4>
                 <ResponsiveContainer width="100%" height={200}>
                   <LineChart data={analytics?.quality_delta || []}>
-                    <CartesianGrid strokeDasharray="3 3" stroke="#e5e7eb" />
+                    <CartesianGrid strokeDasharray="3 3" stroke={chartTheme.grid} />
                     <XAxis dataKey="timestamp" tick={{ fontSize: 8 }} tickFormatter={(value) => new Date(value).toLocaleTimeString()} />
                     <YAxis tick={{ fontSize: 8 }} />
                     <Tooltip
-                      contentStyle={{ fontSize: '9px', backgroundColor: '#faf9f7', borderRadius: '6px', border: '1px solid #e5e7eb' }}
+                      contentStyle={{ fontSize: '9px', backgroundColor: chartTheme.tooltip.bg, borderRadius: '6px', border: `1px solid ${chartTheme.tooltip.border}`, color: chartTheme.tooltip.text }}
                       labelFormatter={(value) => new Date(value).toLocaleString()}
                       formatter={(value: any) => value.toFixed(1)}
                     />
                     <Legend wrapperStyle={{ fontSize: 10 }} />
-                    <Line type="monotone" dataKey="council" stroke={CHART_COLORS.primary} strokeWidth={0.5} name="Council" dot={false} />
+                    <Line type="monotone" dataKey="council" stroke={chartTheme.line} strokeWidth={0.5} name="Council" dot={false} />
                     <Line type="monotone" dataKey="single" stroke={CHART_COLORS.gray} strokeWidth={0.5} name="Single" dot={false} />
                   </LineChart>
                 </ResponsiveContainer>
@@ -407,7 +409,7 @@ export default function CouncilModePage() {
 
               {/* Latency Overhead Chart */}
               <div>
-                <h4 className="text-xs font-medium text-gray-900 mb-3">Latency by Model Count</h4>
+                <h4 className="text-xs font-medium text-foreground mb-3">Latency by Model Count</h4>
                 <ResponsiveContainer width="100%" height={200}>
                   <BarChart data={analytics?.latency_overhead || []}>
                     <defs>
@@ -416,11 +418,11 @@ export default function CouncilModePage() {
                         <rect x="2" width="1" height="3" fill="#ffffff" />
                       </pattern>
                     </defs>
-                    <CartesianGrid strokeDasharray="3 3" stroke="#e5e7eb" />
+                    <CartesianGrid strokeDasharray="3 3" stroke={chartTheme.grid} />
                     <XAxis dataKey="model_count" tick={{ fontSize: 8 }} label={{ value: 'Models', fontSize: 8, position: 'insideBottom', offset: -5 }} />
                     <YAxis tick={{ fontSize: 8 }} label={{ value: 'Latency (ms)', fontSize: 8, angle: -90, position: 'insideLeft' }} />
                     <Tooltip
-                      contentStyle={{ fontSize: '9px', backgroundColor: '#faf9f7', borderRadius: '6px', border: '1px solid #e5e7eb' }}
+                      contentStyle={{ fontSize: '9px', backgroundColor: chartTheme.tooltip.bg, borderRadius: '6px', border: `1px solid ${chartTheme.tooltip.border}`, color: chartTheme.tooltip.text }}
                       formatter={(value: any) => `${value.toFixed(0)}ms`}
                     />
                     <Bar dataKey="avg_latency_ms" fill="url(#barStripe)" name="Avg Latency" />
@@ -430,10 +432,10 @@ export default function CouncilModePage() {
 
               {/* Cost vs Quality Scatter */}
               <div>
-                <h4 className="text-xs font-medium text-gray-900 mb-3">Cost vs Quality Trade-off</h4>
+                <h4 className="text-xs font-medium text-foreground mb-3">Cost vs Quality Trade-off</h4>
                 <ResponsiveContainer width="100%" height={200}>
                   <ScatterChart>
-                    <CartesianGrid strokeDasharray="3 3" stroke="#e5e7eb" />
+                    <CartesianGrid strokeDasharray="3 3" stroke={chartTheme.grid} />
                     <XAxis
                       dataKey="cost"
                       type="number"
@@ -451,7 +453,7 @@ export default function CouncilModePage() {
                       tickFormatter={(value) => value.toFixed(0)}
                     />
                     <Tooltip
-                      contentStyle={{ fontSize: '9px', backgroundColor: '#faf9f7', borderRadius: '6px', border: '1px solid #e5e7eb' }}
+                      contentStyle={{ fontSize: '9px', backgroundColor: chartTheme.tooltip.bg, borderRadius: '6px', border: `1px solid ${chartTheme.tooltip.border}`, color: chartTheme.tooltip.text }}
                       cursor={{ strokeDasharray: '3 3' }}
                       formatter={(value: any, name: string) => {
                         if (name === 'cost') return `$${value.toFixed(3)}`;
@@ -489,7 +491,7 @@ export default function CouncilModePage() {
 
               {/* Model Win Rate Pie */}
               <div>
-                <h4 className="text-xs font-medium text-gray-900 mb-3">Model Win Rate</h4>
+                <h4 className="text-xs font-medium text-foreground mb-3">Model Win Rate</h4>
                 <ResponsiveContainer width="100%" height={200}>
                   <PieChart>
                     <defs>
@@ -529,7 +531,7 @@ export default function CouncilModePage() {
                       ))}
                     </Pie>
                     <Tooltip
-                      contentStyle={{ fontSize: '9px', backgroundColor: '#faf9f7', borderRadius: '6px', border: '1px solid #e5e7eb' }}
+                      contentStyle={{ fontSize: '9px', backgroundColor: chartTheme.tooltip.bg, borderRadius: '6px', border: `1px solid ${chartTheme.tooltip.border}`, color: chartTheme.tooltip.text }}
                       formatter={(value: any) => `${value.toFixed(1)}%`}
                     />
                   </PieChart>
@@ -540,7 +542,7 @@ export default function CouncilModePage() {
         </Card>
 
         {/* Recent Council Runs */}
-        <Card className="border-border-light shadow-sm">
+        <Card className="border-border shadow-sm">
           <CardHeader>
             <CardTitle className="text-sm">Recent Council Runs</CardTitle>
             <CardDescription className="text-xs">History of council executions and outcomes</CardDescription>
@@ -549,15 +551,15 @@ export default function CouncilModePage() {
             <div className="overflow-auto max-h-96 hide-scrollbar">
               <table className="w-full text-xs">
                 <thead>
-                  <tr className="border-b border-border-light">
-                    <th className="text-left py-2 px-3 font-medium text-gray-600">Timestamp</th>
-                    <th className="text-left py-2 px-3 font-medium text-gray-600">Request ID</th>
-                    <th className="text-left py-2 px-3 font-medium text-gray-600">Models</th>
-                    <th className="text-left py-2 px-3 font-medium text-gray-600">Outcome</th>
-                    <th className="text-left py-2 px-3 font-medium text-gray-600">Quality (C/S)</th>
-                    <th className="text-left py-2 px-3 font-medium text-gray-600">Cost Δ</th>
-                    <th className="text-left py-2 px-3 font-medium text-gray-600">Latency Δ</th>
-                    <th className="text-left py-2 px-3 font-medium text-gray-600"></th>
+                  <tr className="border-b border-border">
+                    <th className="text-left py-2 px-3 font-medium text-muted-foreground">Timestamp</th>
+                    <th className="text-left py-2 px-3 font-medium text-muted-foreground">Request ID</th>
+                    <th className="text-left py-2 px-3 font-medium text-muted-foreground">Models</th>
+                    <th className="text-left py-2 px-3 font-medium text-muted-foreground">Outcome</th>
+                    <th className="text-left py-2 px-3 font-medium text-muted-foreground">Quality (C/S)</th>
+                    <th className="text-left py-2 px-3 font-medium text-muted-foreground">Cost Δ</th>
+                    <th className="text-left py-2 px-3 font-medium text-muted-foreground">Latency Δ</th>
+                    <th className="text-left py-2 px-3 font-medium text-muted-foreground"></th>
                   </tr>
                 </thead>
                 <tbody>
@@ -565,20 +567,20 @@ export default function CouncilModePage() {
                     <>
                       <tr
                         key={entry.id}
-                        className="border-b border-gray-100 hover:bg-beige-secondary cursor-pointer"
+                        className="border-b border-gray-100 hover:bg-muted cursor-pointer"
                         onClick={() => setExpandedRow(expandedRow === entry.id ? null : entry.id)}
                       >
-                        <td className="py-2 px-3 text-gray-900">
+                        <td className="py-2 px-3 text-foreground">
                           {new Date(entry.timestamp).toLocaleString()}
                         </td>
-                        <td className="py-2 px-3 text-gray-900 font-mono">{entry.request_id}</td>
-                        <td className="py-2 px-3 text-gray-900">{entry.models_used.length} models</td>
+                        <td className="py-2 px-3 text-foreground font-mono">{entry.request_id}</td>
+                        <td className="py-2 px-3 text-foreground">{entry.models_used.length} models</td>
                         <td className="py-2 px-3">
-                          <Badge className="bg-blue-50 text-blue-700 border border-blue-200 text-[0.65rem]">
+                          <Badge className="bg-blue-50 text-blue-700 border border-blue-200 dark:bg-blue-950 dark:text-blue-400 dark:border-blue-900 text-[0.65rem]">
                             {entry.vote_outcome}
                           </Badge>
                         </td>
-                        <td className="py-2 px-3 text-gray-900">
+                        <td className="py-2 px-3 text-foreground">
                           {entry.quality_score_council.toFixed(1)} / {entry.quality_score_single.toFixed(1)}
                         </td>
                         <td className="py-2 px-3 text-red-600 font-medium">
@@ -587,19 +589,19 @@ export default function CouncilModePage() {
                         <td className="py-2 px-3 text-red-600 font-medium">
                           +{entry.latency_delta.toFixed(0)}ms
                         </td>
-                        <td className="py-2 px-3 text-gray-600">
+                        <td className="py-2 px-3 text-muted-foreground">
                           {expandedRow === entry.id ? '▼' : '▶'}
                         </td>
                       </tr>
                       {expandedRow === entry.id && (
-                        <tr className="bg-beige-secondary">
+                        <tr className="bg-muted">
                           <td colSpan={8} className="py-3 px-3">
                             <div className="space-y-2">
                               <div>
-                                <span className="text-gray-600 font-medium">Models Used:</span>
+                                <span className="text-muted-foreground font-medium">Models Used:</span>
                                 <div className="flex gap-2 mt-1 flex-wrap">
                                   {entry.models_used.map((model) => (
-                                    <Badge key={model} className="bg-gray-50 text-gray-700 border text-[0.65rem]">
+                                    <Badge key={model} className="bg-gray-50 text-gray-700 border dark:bg-card dark:text-[#a8a898] dark:border-[#f6f6f4]/5 text-[0.65rem]">
                                       {model}
                                     </Badge>
                                   ))}
@@ -607,8 +609,8 @@ export default function CouncilModePage() {
                               </div>
                               {entry.full_response && (
                                 <div>
-                                  <span className="text-gray-600 font-medium">Full Response:</span>
-                                  <p className="mt-1 text-gray-900 text-xs bg-beige-primary p-2 rounded border border-border-light">
+                                  <span className="text-muted-foreground font-medium">Full Response:</span>
+                                  <p className="mt-1 text-foreground text-xs bg-card p-2 rounded border border-border">
                                     {entry.full_response}
                                   </p>
                                 </div>
@@ -622,7 +624,7 @@ export default function CouncilModePage() {
                 </tbody>
               </table>
               {(!history || history.length === 0) && (
-                <div className="text-center py-8 text-xs text-gray-600">
+                <div className="text-center py-8 text-xs text-muted-foreground">
                   No council runs yet
                 </div>
               )}
@@ -631,7 +633,7 @@ export default function CouncilModePage() {
         </Card>
 
         {/* Actions */}
-        <Card className="border-border-light shadow-sm">
+        <Card className="border-border shadow-sm">
           <CardHeader>
             <CardTitle className="text-sm">Actions</CardTitle>
             <CardDescription className="text-xs">Test and manage Council Mode</CardDescription>
@@ -639,7 +641,7 @@ export default function CouncilModePage() {
           <CardContent>
             <div className="space-y-4">
               <div className="space-y-2">
-                <Label htmlFor="test_prompt" className="text-xs font-medium text-gray-900">Test Council with Sample Prompt</Label>
+                <Label htmlFor="test_prompt" className="text-xs font-medium text-foreground">Test Council with Sample Prompt</Label>
                 <div className="flex gap-2">
                   <Input
                     id="test_prompt"
@@ -659,7 +661,7 @@ export default function CouncilModePage() {
                     {testCouncilMutation.isPending ? 'Running...' : 'Run Test'}
                   </Button>
                 </div>
-                <p className="text-[0.6rem] text-gray-600">Run a test council query to see multi-model consensus in action</p>
+                <p className="text-[0.6rem] text-muted-foreground">Run a test council query to see multi-model consensus in action</p>
               </div>
 
               <div className="flex gap-2">
@@ -693,17 +695,17 @@ export default function CouncilModePage() {
         </Card>
 
         {/* How Council Mode Works */}
-        <Card className="border-border-light shadow-sm">
+        <Card className="border-border shadow-sm">
           <CardHeader>
             <CardTitle className="text-sm">How Council Mode Works</CardTitle>
             <CardDescription className="text-xs">Multi-model consensus for better responses</CardDescription>
           </CardHeader>
           <CardContent>
-            <div className="bg-beige-primary border border-border-light rounded-lg p-4">
-              <p className="text-xs text-gray-800 mb-2">
+            <div className="bg-card border border-border rounded-lg p-4">
+              <p className="text-xs text-foreground mb-2">
                 Council Mode runs multiple models in parallel and synthesizes the best response for complex queries.
               </p>
-              <ul className="text-xs text-gray-800 space-y-1 list-disc list-inside">
+              <ul className="text-xs text-foreground space-y-1 list-disc list-inside">
                 <li>Multiple models process the same query simultaneously</li>
                 <li>Each model generates its own response independently</li>
                 <li>Voting strategy (majority, weighted, or chairman-led) determines the final output</li>

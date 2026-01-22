@@ -10,6 +10,7 @@ import { Badge } from '@/components/ui/badge';
 import { Input } from '@/components/ui/input';
 import { Label } from '@/components/ui/label';
 import { Switch } from '@/components/ui/switch';
+import { useChartTheme } from '@/utils/chartTheme';
 import {
   useEscapeVectorStatus,
   useEscapeVectorConfig,
@@ -37,6 +38,7 @@ function formatDistanceToNow(date: Date): string {
 }
 
 export default function EscapeVectorPage() {
+  const chartTheme = useChartTheme();
   const { data: status, isLoading: statusLoading } = useEscapeVectorStatus();
   const { data: config, isLoading: configLoading } = useEscapeVectorConfig();
   const { data: history, isLoading: historyLoading } = useEscapeVectorHistory();
@@ -96,21 +98,21 @@ export default function EscapeVectorPage() {
     const { cache_status } = status;
     if (cache_status === 'active') {
       return (
-        <Badge className="bg-gray-50 text-gray-700 border">
+        <Badge className="bg-gray-50 text-gray-700 border dark:bg-card dark:text-[#a8a898] dark:border-[#f6f6f4]/5">
           <CheckCircle className="h-3 w-3 mr-1" />
           Active
         </Badge>
       );
     } else if (cache_status === 'expired') {
       return (
-        <Badge className="bg-yellow-50 text-yellow-700 border border-yellow-200">
+        <Badge className="bg-yellow-50 text-yellow-700 border border-yellow-200 dark:bg-yellow-950 dark:text-yellow-400 dark:border-yellow-900">
           <AlertTriangle className="h-3 w-3 mr-1" />
           Expired
         </Badge>
       );
     } else {
       return (
-        <Badge className="bg-gray-50 text-gray-500 border">
+        <Badge className="bg-gray-50 text-gray-500 border dark:bg-card dark:text-[#a8a898] dark:border-[#f6f6f4]/5">
           <XCircle className="h-3 w-3 mr-1" />
           Empty
         </Badge>
@@ -123,9 +125,9 @@ export default function EscapeVectorPage() {
       <div className="max-w-7xl mx-auto space-y-6">
         {/* Header */}
         <div className="flex items-center justify-between">
-          <div className="pb-4 border-b border-border-light">
-            <h1 className="text-base font-medium text-gray-900 font-inter">EscapeVector (72-Hour Cached Routing)</h1>
-            <p className="text-gray-600 mt-1 font-inter text-xs">
+          <div className="pb-4 border-b border-border">
+            <h1 className="text-base font-medium text-foreground font-inter">EscapeVector (72-Hour Cached Routing)</h1>
+            <p className="text-muted-foreground mt-1 font-inter text-xs">
               Emergency fallback routing with AES-256-GCM encrypted cache for seamless degradation
             </p>
           </div>
@@ -154,36 +156,36 @@ export default function EscapeVectorPage() {
         </div>
 
         {/* Overview Cards */}
-        <div className="bg-beige-primary">
+        <div className="bg-card">
           <div className="grid grid-cols-2 divide-x divide-border-light">
             <div className="p-4">
-              <div className="text-xs font-medium text-gray-600 mb-1">Cache Status</div>
+              <div className="text-xs font-medium text-muted-foreground mb-1">Cache Status</div>
               <div className="pb-2">
                 {getStatusBadge()}
               </div>
             </div>
             <div className="p-4">
-              <div className="text-xs font-medium text-gray-600 mb-1">Time Remaining</div>
-              <div className="text-lg font-bold text-gray-900">{status?.time_remaining_hours.toFixed(1)}h</div>
-              <p className="text-[0.65rem] text-gray-600 mt-1">Until cache expires</p>
+              <div className="text-xs font-medium text-muted-foreground mb-1">Time Remaining</div>
+              <div className="text-lg font-bold text-foreground">{status?.time_remaining_hours.toFixed(1)}h</div>
+              <p className="text-[0.65rem] text-muted-foreground mt-1">Until cache expires</p>
             </div>
           </div>
-          <div className="grid grid-cols-2 divide-x divide-border-light border-t border-border-light">
+          <div className="grid grid-cols-2 divide-x divide-border-light border-t border-border">
             <div className="p-4">
-              <div className="text-xs font-medium text-gray-600 mb-1">Hit Rate (24h)</div>
-              <div className="text-lg font-bold text-gray-900">{status?.hit_rate_24h.toFixed(1)}%</div>
-              <p className="text-[0.65rem] text-gray-600 mt-1">Cache efficiency</p>
+              <div className="text-xs font-medium text-muted-foreground mb-1">Hit Rate (24h)</div>
+              <div className="text-lg font-bold text-foreground">{status?.hit_rate_24h.toFixed(1)}%</div>
+              <p className="text-[0.65rem] text-muted-foreground mt-1">Cache efficiency</p>
             </div>
             <div className="p-4">
-              <div className="text-xs font-medium text-gray-600 mb-1">Estimated Savings</div>
-              <div className="text-lg font-bold text-gray-900">${status?.estimated_savings.toFixed(2)}</div>
-              <p className="text-[0.65rem] text-gray-600 mt-1">Past 24 hours</p>
+              <div className="text-xs font-medium text-muted-foreground mb-1">Estimated Savings</div>
+              <div className="text-lg font-bold text-foreground">${status?.estimated_savings.toFixed(2)}</div>
+              <p className="text-[0.65rem] text-muted-foreground mt-1">Past 24 hours</p>
             </div>
           </div>
         </div>
 
         {/* Configuration Form */}
-        <Card className="border-border-light shadow-sm">
+        <Card className="border-border shadow-sm">
           <CardHeader>
             <CardTitle className="text-sm">Configuration</CardTitle>
             <CardDescription className="text-xs">Manage EscapeVector cache settings and behavior</CardDescription>
@@ -193,7 +195,7 @@ export default function EscapeVectorPage() {
               <div className="grid grid-cols-2 gap-4">
                 <div className="space-y-2">
                   <div className="flex items-center justify-between">
-                    <Label htmlFor="enabled" className="text-xs font-medium text-gray-900">Enable EscapeVector</Label>
+                    <Label htmlFor="enabled" className="text-xs font-medium text-foreground">Enable EscapeVector</Label>
                     <Switch
                       id="enabled"
                       checked={editableConfig.enabled}
@@ -201,11 +203,11 @@ export default function EscapeVectorPage() {
                       className="scale-50"
                     />
                   </div>
-                  <p className="text-[0.65rem] text-gray-600">Activate cached routing fallback</p>
+                  <p className="text-[0.65rem] text-muted-foreground">Activate cached routing fallback</p>
                 </div>
 
                 <div className="space-y-2">
-                  <Label htmlFor="cache_ttl" className="text-xs font-medium text-gray-900">Cache TTL (hours)</Label>
+                  <Label htmlFor="cache_ttl" className="text-xs font-medium text-foreground">Cache TTL (hours)</Label>
                   <Input
                     id="cache_ttl"
                     type="number"
@@ -213,11 +215,11 @@ export default function EscapeVectorPage() {
                     onChange={(e) => handleConfigChange('cache_ttl_hours', parseInt(e.target.value))}
                     className="text-xs"
                   />
-                  <p className="text-[0.65rem] text-gray-600">How long cache entries remain valid</p>
+                  <p className="text-[0.65rem] text-muted-foreground">How long cache entries remain valid</p>
                 </div>
 
                 <div className="space-y-2">
-                  <Label htmlFor="quality_threshold" className="text-xs font-medium text-gray-900">Min Quality Threshold (%)</Label>
+                  <Label htmlFor="quality_threshold" className="text-xs font-medium text-foreground">Min Quality Threshold (%)</Label>
                   <Input
                     id="quality_threshold"
                     type="number"
@@ -225,11 +227,11 @@ export default function EscapeVectorPage() {
                     onChange={(e) => handleConfigChange('min_quality_threshold', parseInt(e.target.value))}
                     className="text-xs"
                   />
-                  <p className="text-[0.65rem] text-gray-600">Minimum quality score for caching</p>
+                  <p className="text-[0.65rem] text-muted-foreground">Minimum quality score for caching</p>
                 </div>
 
                 <div className="space-y-2">
-                  <Label htmlFor="refresh_interval" className="text-xs font-medium text-gray-900">Refresh Interval (hours)</Label>
+                  <Label htmlFor="refresh_interval" className="text-xs font-medium text-foreground">Refresh Interval (hours)</Label>
                   <Input
                     id="refresh_interval"
                     type="number"
@@ -237,7 +239,7 @@ export default function EscapeVectorPage() {
                     onChange={(e) => handleConfigChange('refresh_interval_hours', parseInt(e.target.value))}
                     className="text-xs"
                   />
-                  <p className="text-[0.65rem] text-gray-600">Auto-refresh frequency</p>
+                  <p className="text-[0.65rem] text-muted-foreground">Auto-refresh frequency</p>
                 </div>
               </div>
 
@@ -257,7 +259,7 @@ export default function EscapeVectorPage() {
         </Card>
 
         {/* Cache Details & History */}
-        <Card className="border-border-light shadow-sm">
+        <Card className="border-border shadow-sm">
           <CardHeader>
             <CardTitle className="text-sm">Cache Generation History</CardTitle>
             <CardDescription className="text-xs">Recent cache refresh events and details</CardDescription>
@@ -266,28 +268,28 @@ export default function EscapeVectorPage() {
             <div className="overflow-x-auto">
               <table className="w-full text-xs">
                 <thead>
-                  <tr className="border-b border-border-light">
-                    <th className="text-left py-2 px-3 font-medium text-gray-600">Timestamp</th>
-                    <th className="text-left py-2 px-3 font-medium text-gray-600">Trigger</th>
-                    <th className="text-left py-2 px-3 font-medium text-gray-600">Size (MB)</th>
-                    <th className="text-left py-2 px-3 font-medium text-gray-600">Entries</th>
-                    <th className="text-left py-2 px-3 font-medium text-gray-600">TTL (hours)</th>
+                  <tr className="border-b border-border">
+                    <th className="text-left py-2 px-3 font-medium text-muted-foreground">Timestamp</th>
+                    <th className="text-left py-2 px-3 font-medium text-muted-foreground">Trigger</th>
+                    <th className="text-left py-2 px-3 font-medium text-muted-foreground">Size (MB)</th>
+                    <th className="text-left py-2 px-3 font-medium text-muted-foreground">Entries</th>
+                    <th className="text-left py-2 px-3 font-medium text-muted-foreground">TTL (hours)</th>
                   </tr>
                 </thead>
                 <tbody>
                   {history?.map((entry, index) => (
-                    <tr key={index} className="border-b border-gray-100 hover:bg-beige-secondary">
-                      <td className="py-2 px-3 text-gray-900">
+                    <tr key={index} className="border-b border-gray-100 hover:bg-muted">
+                      <td className="py-2 px-3 text-foreground">
                         {formatDistanceToNow(new Date(entry.timestamp))}
                       </td>
                       <td className="py-2 px-3">
-                        <Badge className={entry.trigger === 'manual' ? 'bg-blue-50 text-blue-700 border border-blue-200' : 'bg-gray-50 text-gray-700 border'}>
+                        <Badge className={entry.trigger === 'manual' ? 'bg-blue-50 text-blue-700 border border-blue-200 dark:bg-blue-950 dark:text-blue-400 dark:border-blue-900' : 'bg-gray-50 text-gray-700 border dark:bg-card dark:text-[#a8a898] dark:border-[#f6f6f4]/5'}>
                           {entry.trigger}
                         </Badge>
                       </td>
-                      <td className="py-2 px-3 text-gray-900">{entry.size_mb.toFixed(1)}</td>
-                      <td className="py-2 px-3 text-gray-900">{entry.entries_count.toLocaleString()}</td>
-                      <td className="py-2 px-3 text-gray-900">{entry.ttl_hours}</td>
+                      <td className="py-2 px-3 text-foreground">{entry.size_mb.toFixed(1)}</td>
+                      <td className="py-2 px-3 text-foreground">{entry.entries_count.toLocaleString()}</td>
+                      <td className="py-2 px-3 text-foreground">{entry.ttl_hours}</td>
                     </tr>
                   ))}
                 </tbody>
@@ -298,7 +300,7 @@ export default function EscapeVectorPage() {
 
         {/* Impact & Analytics Charts */}
         <div className="grid gap-4 md:grid-cols-2">
-          <Card className="border-border-light shadow-sm">
+          <Card className="border-border shadow-sm">
             <CardHeader>
               <CardTitle className="text-sm">Cache Usage Over Time</CardTitle>
               <CardDescription className="text-xs">Cache hits vs direct requests (24h)</CardDescription>
@@ -306,7 +308,7 @@ export default function EscapeVectorPage() {
             <CardContent>
               <ResponsiveContainer width="100%" height={200}>
                 <LineChart data={analytics?.cache_usage_timeline || []}>
-                  <CartesianGrid strokeDasharray="3 3" stroke="#e5e7eb" />
+                  <CartesianGrid strokeDasharray="3 3" stroke={chartTheme.grid} />
                   <XAxis
                     dataKey="timestamp"
                     tick={{ fontSize: 8 }}
@@ -314,17 +316,17 @@ export default function EscapeVectorPage() {
                   />
                   <YAxis tick={{ fontSize: 8 }} />
                   <Tooltip
-                    contentStyle={{ fontSize: '9px', borderRadius: '6px', border: '1px solid #e5e7eb', backgroundColor: '#faf9f7' }}
+                    contentStyle={{ fontSize: '9px', borderRadius: '6px', border: `1px solid ${chartTheme.tooltip.border}`, backgroundColor: chartTheme.tooltip.bg, color: chartTheme.tooltip.text }}
                     labelFormatter={(value) => new Date(value).toLocaleString()}
                   />
-                  <Line type="monotone" dataKey="cache_hits" stroke={CHART_COLORS.primary} strokeWidth={0.5} name="Cache Hits" dot={false} />
+                  <Line type="monotone" dataKey="cache_hits" stroke={chartTheme.line} strokeWidth={0.5} name="Cache Hits" dot={false} />
                   <Line type="monotone" dataKey="direct_requests" stroke={CHART_COLORS.gray} strokeWidth={0.5} name="Direct" dot={false} />
                 </LineChart>
               </ResponsiveContainer>
             </CardContent>
           </Card>
 
-          <Card className="border-border-light shadow-sm">
+          <Card className="border-border shadow-sm">
             <CardHeader>
               <CardTitle className="text-sm">Cost Savings Trend</CardTitle>
               <CardDescription className="text-xs">Cumulative savings from cache hits (24h)</CardDescription>
@@ -332,7 +334,7 @@ export default function EscapeVectorPage() {
             <CardContent>
               <ResponsiveContainer width="100%" height={200}>
                 <LineChart data={analytics?.cost_savings_timeline || []}>
-                  <CartesianGrid strokeDasharray="3 3" stroke="#e5e7eb" />
+                  <CartesianGrid strokeDasharray="3 3" stroke={chartTheme.grid} />
                   <XAxis
                     dataKey="timestamp"
                     tick={{ fontSize: 8 }}
@@ -340,18 +342,18 @@ export default function EscapeVectorPage() {
                   />
                   <YAxis tick={{ fontSize: 8 }} />
                   <Tooltip
-                    contentStyle={{ fontSize: '9px', borderRadius: '6px', border: '1px solid #e5e7eb', backgroundColor: '#faf9f7' }}
+                    contentStyle={{ fontSize: '9px', borderRadius: '6px', border: `1px solid ${chartTheme.tooltip.border}`, backgroundColor: chartTheme.tooltip.bg, color: chartTheme.tooltip.text }}
                     labelFormatter={(value) => new Date(value).toLocaleString()}
                     formatter={(value: any) => `$${value.toFixed(2)}`}
                   />
-                  <Line type="monotone" dataKey="cumulative_savings" stroke="#000000" strokeWidth={0.5} name="Cumulative Savings" dot={false} />
+                  <Line type="monotone" dataKey="cumulative_savings" stroke={chartTheme.line} strokeWidth={0.5} name="Cumulative Savings" dot={false} />
                 </LineChart>
               </ResponsiveContainer>
             </CardContent>
           </Card>
         </div>
 
-        <Card className="border-border-light shadow-sm">
+        <Card className="border-border shadow-sm">
           <CardHeader>
             <CardTitle className="text-sm">Provider Failover Events</CardTitle>
             <CardDescription className="text-xs">Times EscapeVector provided fallback routing per provider</CardDescription>
@@ -365,11 +367,11 @@ export default function EscapeVectorPage() {
                     <rect x="1" width="2" height="3" fill="#e5e7eb" />
                   </pattern>
                 </defs>
-                <CartesianGrid strokeDasharray="3 3" stroke="#e5e7eb" />
+                <CartesianGrid strokeDasharray="3 3" stroke={chartTheme.grid} />
                 <XAxis dataKey="provider" tick={{ fontSize: 8 }} />
                 <YAxis tick={{ fontSize: 8 }} />
                 <Tooltip
-                  contentStyle={{ fontSize: '9px', borderRadius: '6px', border: '1px solid #e5e7eb', backgroundColor: '#faf9f7' }}
+                  contentStyle={{ fontSize: '9px', borderRadius: '6px', border: `1px solid ${chartTheme.tooltip.border}`, backgroundColor: chartTheme.tooltip.bg, color: chartTheme.tooltip.text }}
                 />
                 <Bar dataKey="count" fill="url(#diagonalStripes)" name="Failover Count" />
               </BarChart>
@@ -378,46 +380,46 @@ export default function EscapeVectorPage() {
         </Card>
 
         {/* How EscapeVector Works */}
-        <Card className="border-border-light shadow-sm">
+        <Card className="border-border shadow-sm">
           <CardHeader>
             <CardTitle className="text-sm">How EscapeVector Works</CardTitle>
             <CardDescription className="text-xs">AES-256-GCM encrypted 72-hour routing fallback</CardDescription>
           </CardHeader>
           <CardContent>
             <div className="space-y-4">
-              <div className="bg-beige-primary border border-border-light rounded-lg p-4">
-                <h4 className="text-xs font-medium text-gray-900 mb-3">Key Features</h4>
+              <div className="bg-card border border-border rounded-lg p-4">
+                <h4 className="text-xs font-medium text-foreground mb-3">Key Features</h4>
                 <div className="grid grid-cols-2 gap-4 text-xs">
                   <div>
                     <div className="mb-1">
-                      <span className="font-medium text-gray-900">Encrypted Storage</span>
+                      <span className="font-medium text-foreground">Encrypted Storage</span>
                     </div>
-                    <p className="text-xs text-gray-600">AES-256-GCM encryption with tamper detection</p>
+                    <p className="text-xs text-muted-foreground">AES-256-GCM encryption with tamper detection</p>
                   </div>
                   <div>
                     <div className="mb-1">
-                      <span className="font-medium text-gray-900">72-Hour TTL</span>
+                      <span className="font-medium text-foreground">72-Hour TTL</span>
                     </div>
-                    <p className="text-xs text-gray-600">Cached routing decisions valid for 3 days</p>
+                    <p className="text-xs text-muted-foreground">Cached routing decisions valid for 3 days</p>
                   </div>
                   <div>
                     <div className="mb-1">
-                      <span className="font-medium text-gray-900">Fast Fallback</span>
+                      <span className="font-medium text-foreground">Fast Fallback</span>
                     </div>
-                    <p className="text-xs text-gray-600">Instant routing when providers unavailable</p>
+                    <p className="text-xs text-muted-foreground">Instant routing when providers unavailable</p>
                   </div>
                   <div>
                     <div className="mb-1">
-                      <span className="font-medium text-gray-900">Quality Filtering</span>
+                      <span className="font-medium text-foreground">Quality Filtering</span>
                     </div>
-                    <p className="text-xs text-gray-600">Only high-quality routes are cached</p>
+                    <p className="text-xs text-muted-foreground">Only high-quality routes are cached</p>
                   </div>
                 </div>
               </div>
 
-              <div className="bg-beige-primary border border-border-light rounded-lg p-4">
-                <h4 className="text-xs font-medium text-gray-900 mb-2">Emergency Routing Process</h4>
-                <ul className="text-xs text-gray-800 space-y-1 list-disc list-inside">
+              <div className="bg-card border border-border rounded-lg p-4">
+                <h4 className="text-xs font-medium text-foreground mb-2">Emergency Routing Process</h4>
+                <ul className="text-xs text-foreground space-y-1 list-disc list-inside">
                   <li>Overture monitors provider health and routing decisions</li>
                   <li>High-quality routes are encrypted and cached for 72 hours</li>
                   <li>When a provider fails, cached route immediately used as fallback</li>

@@ -320,13 +320,13 @@ export function Sidebar({ open = true, onClose }: SidebarProps) {
           open ? 'translate-x-0' : '-translate-x-full'
         )}
       >
-        <div className="flex h-full flex-col bg-beige-primary border-r border-border-light">
+        <div className="flex h-full flex-col bg-card border-r border-border">
           {/* Logo Section */}
           <div className="h-12 flex items-center px-7">
             <Link href="/dashboard" className="flex items-center">
               <img
-                src="/footers.png"
-                alt="Igris Inertial"
+                src="/dmfoot.png"
+                alt="dmfoot"
                 style={{ width: '25px', height: 'auto' }}
               />
             </Link>
@@ -335,16 +335,16 @@ export function Sidebar({ open = true, onClose }: SidebarProps) {
           {/* Search Bar */}
           <div className="px-4 py-5">
             <div className="relative">
-              <Search className="absolute left-3 top-1/2 transform -translate-y-1/2 h-4 w-4 text-gray-400 pointer-events-none" />
+              <Search className="absolute left-3 top-1/2 transform -translate-y-1/2 h-4 w-4 text-muted-foreground pointer-events-none" />
               <input
                 type="text"
                 placeholder=""
                 readOnly
                 onClick={() => setIsSearchModalOpen(true)}
-                className="w-full pl-9 pr-16 py-2 text-[0.75rem] border border-border-light rounded-lg outline-none bg-beige-primary focus:border-gray-300 transition-colors cursor-pointer"
+                className="w-full pl-9 pr-16 py-2 text-[0.75rem] border border-border rounded-lg outline-none bg-background focus:border-gray-300 dark:focus:border-border transition-colors cursor-pointer text-foreground"
               />
               <div className="absolute right-3 top-1/2 transform -translate-y-1/2 flex items-center gap-1 pointer-events-none">
-                <span className="text-xs font-medium text-gray-400">⌘ F</span>
+                <span className="text-xs font-medium text-muted-foreground">⌘ F</span>
               </div>
             </div>
           </div>
@@ -366,12 +366,12 @@ export function Sidebar({ open = true, onClose }: SidebarProps) {
                         className={cn(
                           'w-full flex items-center justify-between gap-3 rounded-lg px-3 py-2.5 text-[0.75rem] font-medium font-inter transition-colors',
                           hasActiveChild
-                            ? 'bg-beige-secondary text-gray-900'
-                            : 'text-gray-700 hover:bg-beige-primary hover:text-gray-900'
+                            ? 'bg-muted text-foreground'
+                            : 'text-muted-foreground hover:bg-muted/50 hover:text-foreground'
                         )}
                       >
                         <div className="flex items-center gap-3">
-                          <item.icon className="h-5 w-4" style={{ color: 'rgb(75, 85, 99)' }} />
+                          <item.icon className="h-5 w-4 text-gray-600 dark:text-[#a8a898]" />
                           {item.name}
                         </div>
                         <ChevronDown
@@ -384,7 +384,7 @@ export function Sidebar({ open = true, onClose }: SidebarProps) {
 
                       {/* Child Items */}
                       {isExpanded && (
-                        <ul className="mt-1 ml-3 space-y-1 border-l border-border-light pl-2">
+                        <ul className="mt-1 ml-3 space-y-1 border-l border-border pl-2">
                           {item.children.map((child) => {
                             const isActive = pathname === child.href || pathname?.startsWith(child.href + '/');
                             return (
@@ -394,8 +394,8 @@ export function Sidebar({ open = true, onClose }: SidebarProps) {
                                   className={cn(
                                     'flex items-center gap-3 rounded-lg px-3 py-2 text-[0.7rem] font-medium font-inter transition-colors',
                                     isActive
-                                      ? 'bg-beige-secondary text-gray-900'
-                                      : 'text-gray-600 hover:bg-beige-primary hover:text-gray-900'
+                                      ? 'bg-muted text-foreground'
+                                      : 'text-muted-foreground hover:bg-muted/50 hover:text-foreground'
                                   )}
                                   onClick={onClose}
                                 >
@@ -423,12 +423,12 @@ export function Sidebar({ open = true, onClose }: SidebarProps) {
                       className={cn(
                         'flex items-center gap-3 rounded-lg px-3 py-2.5 text-[0.75rem] font-medium font-inter transition-colors',
                         isActive
-                          ? 'bg-beige-secondary text-gray-900'
-                          : 'text-gray-700 hover:bg-beige-primary hover:text-gray-900'
+                          ? 'bg-muted text-foreground'
+                          : 'text-muted-foreground hover:bg-muted/50 hover:text-foreground'
                       )}
                       onClick={onClose}
                     >
-                      <item.icon className="h-5 w-4" style={{ color: 'rgb(75, 85, 99)' }} />
+                      <item.icon className="h-5 w-4 text-gray-600 dark:text-[#a8a898]" />
                       {item.name}
                     </Link>
                   </li>
@@ -447,48 +447,48 @@ export function Sidebar({ open = true, onClose }: SidebarProps) {
                     className="fixed inset-0 z-30"
                     onClick={() => setShowHelpMenu(false)}
                   />
-                  <div className="absolute bottom-full left-0 right-0 mb-2 z-40 bg-beige-primary border border-border-light rounded-lg shadow-sm p-2">
+                   <div className="absolute bottom-full left-0 right-0 mb-2 z-40 bg-card border border-border rounded-lg shadow-sm p-2">
                     {/* Docs Section */}
                     <div className="py-1.5">
-                      <p className="text-[0.6rem] font-medium text-gray-600 mb-1.5 px-2">Documentation</p>
+                      <p className="text-[0.6rem] font-medium text-muted-foreground mb-1.5 px-2">Documentation</p>
                       <a
                         href="https://docs.igrisinertial.com/overture"
                         target="_blank"
                         rel="noopener noreferrer"
-                        className="flex items-center justify-between gap-2 w-full px-2 py-1.5 rounded-lg hover:bg-beige-secondary transition-colors text-left"
+                        className="flex items-center justify-between gap-2 w-full px-2 py-1.5 rounded-lg hover:bg-muted transition-colors text-left"
                         onClick={() => setShowHelpMenu(false)}
                       >
                         <div className="flex items-center gap-2">
-                          <BookOpen className="h-3 w-3 text-gray-700" />
-                          <span className="text-[0.7rem] font-inter text-gray-900">Overture Docs</span>
+                          <BookOpen className="h-3 w-3 text-muted-foreground" />
+                          <span className="text-[0.7rem] font-inter text-foreground">Overture Docs</span>
                         </div>
-                        <ExternalLink className="h-2 w-2 text-gray-600" />
+                        <ExternalLink className="h-2 w-2 text-muted-foreground" />
                       </a>
                       <a
                         href="https://docs.igrisinertial.com/runtime"
                         target="_blank"
                         rel="noopener noreferrer"
-                        className="flex items-center justify-between gap-2 w-full px-2 py-1.5 rounded-lg hover:bg-beige-secondary transition-colors text-left"
+                        className="flex items-center justify-between gap-2 w-full px-2 py-1.5 rounded-lg hover:bg-muted transition-colors text-left"
                         onClick={() => setShowHelpMenu(false)}
                       >
                         <div className="flex items-center gap-2">
-                          <BookOpen className="h-3 w-3 text-gray-700" />
-                          <span className="text-[0.7rem] font-inter text-gray-900">Runtime Docs</span>
+                          <BookOpen className="h-3 w-3 text-muted-foreground" />
+                          <span className="text-[0.7rem] font-inter text-foreground">Runtime Docs</span>
                         </div>
-                        <ExternalLink className="h-2 w-2 text-gray-600" />
+                        <ExternalLink className="h-2 w-2 text-muted-foreground" />
                       </a>
                     </div>
 
-                    <div className="border-t border-border-light my-1"></div>
+                    <div className="border-t border-border my-1"></div>
 
                     {/* Support Email */}
                     <a
                       href="mailto:support@igrisinertial.com"
-                      className="flex items-center gap-2 w-full px-2 py-1.5 rounded-lg hover:bg-beige-secondary transition-colors text-left"
+                      className="flex items-center gap-2 w-full px-2 py-1.5 rounded-lg hover:bg-muted transition-colors text-left"
                       onClick={() => setShowHelpMenu(false)}
                     >
-                      <Mail className="h-3 w-3 text-gray-700" />
-                      <span className="text-[0.7rem] font-inter text-gray-900">Contact Support</span>
+                      <Mail className="h-3 w-3 text-muted-foreground" />
+                      <span className="text-[0.7rem] font-inter text-foreground">Contact Support</span>
                     </a>
 
                     {/* Change Log */}
@@ -496,14 +496,14 @@ export function Sidebar({ open = true, onClose }: SidebarProps) {
                       href="https://changelog.igrisinertial.com"
                       target="_blank"
                       rel="noopener noreferrer"
-                      className="flex items-center justify-between gap-2 w-full px-2 py-1.5 rounded-lg hover:bg-beige-secondary transition-colors text-left"
+                      className="flex items-center justify-between gap-2 w-full px-2 py-1.5 rounded-lg hover:bg-muted transition-colors text-left"
                       onClick={() => setShowHelpMenu(false)}
                     >
                       <div className="flex items-center gap-2">
-                        <ChangeLogIcon className="h-3 w-3 text-gray-700" />
-                        <span className="text-[0.7rem] font-inter text-gray-900">Change Log</span>
+                        <ChangeLogIcon className="h-3 w-3 text-muted-foreground" />
+                        <span className="text-[0.7rem] font-inter text-foreground">Change Log</span>
                       </div>
-                      <ExternalLink className="h-2 w-2 text-gray-600" />
+                      <ExternalLink className="h-2 w-2 text-muted-foreground" />
                     </a>
 
                     {/* System Status */}
@@ -511,14 +511,14 @@ export function Sidebar({ open = true, onClose }: SidebarProps) {
                       href="https://status.igrisinertial.com"
                       target="_blank"
                       rel="noopener noreferrer"
-                      className="flex items-center justify-between gap-2 w-full px-2 py-1.5 rounded-lg hover:bg-beige-secondary transition-colors text-left"
+                      className="flex items-center justify-between gap-2 w-full px-2 py-1.5 rounded-lg hover:bg-muted transition-colors text-left"
                       onClick={() => setShowHelpMenu(false)}
                     >
                       <div className="flex items-center gap-2">
-                        <StatusIcon className="h-3 w-3 text-gray-700" />
-                        <span className="text-[0.7rem] font-inter text-gray-900">System Status</span>
+                        <StatusIcon className="h-3 w-3 text-muted-foreground" />
+                        <span className="text-[0.7rem] font-inter text-foreground">System Status</span>
                       </div>
-                      <ExternalLink className="h-2 w-2 text-gray-600" />
+                      <ExternalLink className="h-2 w-2 text-muted-foreground" />
                     </a>
                   </div>
                 </>
@@ -527,9 +527,9 @@ export function Sidebar({ open = true, onClose }: SidebarProps) {
               {/* Help Button */}
               <button
                 onClick={() => setShowHelpMenu(!showHelpMenu)}
-                className="flex items-center justify-center w-7 h-7 rounded-full border border-border-light hover:bg-beige-secondary transition-colors"
+                className="flex items-center justify-center w-7 h-7 rounded-full border border-border hover:bg-muted transition-colors"
               >
-                <span className="text-gray-500 text-sm font-semibold">?</span>
+                <span className="text-muted-foreground text-sm font-semibold">?</span>
               </button>
             </div>
           </div>
@@ -551,10 +551,10 @@ export function Sidebar({ open = true, onClose }: SidebarProps) {
 
           {/* Modal Content */}
           <div className="relative w-full max-w-2xl mx-4">
-            <div className="bg-white rounded-xl shadow-2xl border border-gray-200 overflow-hidden p-1">
+            <div className="bg-white dark:bg-card rounded-xl shadow-2xl border border-gray-200 dark:border-border overflow-hidden p-1">
               {/* Search Input */}
               <div className="relative">
-                <Search className="absolute left-3 top-1/2 transform -translate-y-1/2 h-4 w-4 text-gray-400" />
+                <Search className="absolute left-3 top-1/2 transform -translate-y-1/2 h-4 w-4 text-muted-foreground" />
                 <input
                   ref={modalInputRef}
                   type="text"
@@ -562,26 +562,26 @@ export function Sidebar({ open = true, onClose }: SidebarProps) {
                   value={searchQuery}
                   onChange={(e) => setSearchQuery(e.target.value)}
                   onKeyDown={handleKeyDown}
-                  className="w-full pl-10 pr-4 py-2 text-sm outline-none rounded-lg border border-gray-200 focus:border-gray-300"
+                  className="w-full pl-10 pr-4 py-2 text-sm outline-none rounded-lg border border-gray-200 dark:border-border focus:border-gray-300 dark:focus:border-border bg-background text-foreground"
                 />
               </div>
 
               {/* Search Results */}
               {showSearchResults && filteredResults.length > 0 && (
-                <div className="max-h-64 overflow-y-auto bg-gray-50 p-2 mt-2 rounded-lg">
+                <div className="max-h-64 overflow-y-auto bg-gray-50 dark:bg-muted p-2 mt-2 rounded-lg">
                   {filteredResults.map((result, index) => (
                     <button
                       key={result.path}
                       onClick={() => handleResultClick(result.path)}
-                      className={`w-full px-3 py-2 transition-colors text-left flex items-start gap-2.5 border-b border-gray-100 last:border-b-0 ${index === selectedIndex ? 'bg-gray-100' : 'hover:bg-gray-50'
+                      className={`w-full px-3 py-2 transition-colors text-left flex items-start gap-2.5 border-b border-gray-100 dark:border-border last:border-b-0 ${index === selectedIndex ? 'bg-gray-100 dark:bg-background' : 'hover:bg-gray-50 dark:hover:bg-background'
                         }`}
                     >
-                      <FileText className="h-4 w-4 text-gray-400 mt-0.5 flex-shrink-0" />
+                      <FileText className="h-4 w-4 text-muted-foreground mt-0.5 flex-shrink-0" />
                       <div className="flex-1 min-w-0">
-                        <div className="text-sm font-medium text-gray-900 mb-0.5">
+                        <div className="text-sm font-medium text-foreground mb-0.5">
                           {result.title}
                         </div>
-                        <div className="text-xs text-gray-500 truncate">
+                        <div className="text-xs text-muted-foreground truncate">
                           {result.path}
                         </div>
                       </div>
@@ -593,7 +593,7 @@ export function Sidebar({ open = true, onClose }: SidebarProps) {
               {/* No Results */}
               {showSearchResults && searchQuery.length > 0 && filteredResults.length === 0 && (
                 <div className="p-4 text-center mt-2">
-                  <p className="text-sm text-gray-500">
+                  <p className="text-sm text-muted-foreground">
                     No results found for "{searchQuery}"
                   </p>
                 </div>
