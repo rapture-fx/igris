@@ -64,10 +64,19 @@ export default function OverturePopup({ isOpen, onClose }: OverturePopupProps) {
             {/* Features Section */}
             <section className="bg-transparent text-gray-900 dark:text-white">
                 <div className="relative px-4 md:px-8 lg:px-12 pt-0 pb-8 flex flex-col bg-transparent border-l border-r border-gray-200 dark:border-[#f6f6f4]/5">
-              <div className="grid grid-cols-1 md:grid-cols-3 gap-0 relative mb-0 h-[280px] border-t-0">
-                {/* Left Column - Features */}
-                <div className="md:col-span-2 flex flex-col pt-0 pb-5 pr-4 border-r border-gray-200 dark:border-[#f6f6f4]/5">
-                  <div className="mb-4 pt-5">
+              <div className="grid grid-cols-1 gap-0 relative mb-0 h-[280px] border-t-0">
+                {/* Row 1 - Title Top */}
+                <div className="flex flex-col justify-start pt-5 pb-2">
+                  <h4 className="text-xs md:text-sm font-medium text-[#111111] dark:text-[#f6f6f4] mb-2 font-inter text-left">
+                    Decision Intelligence & Routing Optimization
+                  </h4>
+                  <p className="text-xs text-gray-600 dark:text-[#c8c8b8] font-inter text-left mb-2">
+                    How the system chooses the best provider, every time.
+                  </p>
+                </div>
+                {/* Features Below Title */}
+                <div className="flex flex-col pt-0 pb-5 pr-4">
+                  <div className="mb-4 pt-0">
                     <h5 className="text-xs font-medium text-gray-900 dark:text-[#f6f6f4] mb-1 font-inter">Thompson Sampling</h5>
                     <p className="text-xs text-gray-600 dark:text-[#c8c8b8] font-inter line-clamp-3">Bayesian multi-armed bandit selects optimal providers based on historical performance, balancing exploration and exploitation.</p>
                   </div>
@@ -84,126 +93,107 @@ export default function OverturePopup({ isOpen, onClose }: OverturePopupProps) {
                     <p className="text-xs text-gray-600 dark:text-[#c8c8b8] font-inter line-clamp-3">Executes full inference across multiple providers and applies peer ranking and consensus to reduce hallucinations and decision risk.</p>
                   </div>
                 </div>
-                {/* Right Column - Title and Description */}
-                <div className="flex flex-col justify-start pt-5 pb-5 pl-4">
-                  <h4 className="text-xs md:text-sm font-medium text-[#111111] dark:text-[#f6f6f4] mb-2 font-inter">
-                    Decision Intelligence & Routing Optimization
-                  </h4>
-                  <p className="text-xs text-gray-600 dark:text-[#c8c8b8] font-inter">
-                    How the system chooses the best provider, every time.
-                  </p>
-                </div>
               </div>
 
               {/* Row 2 */}
-              <div className="grid grid-cols-1 md:grid-cols-3 gap-0 relative border-t border-gray-200 dark:border-[#f6f6f4]/5 h-[280px]">
-                {/* Left Column - Features */}
-                <div className="md:col-span-2 flex flex-col py-5 pr-4 border-r border-gray-200 dark:border-[#f6f6f4]/5">
+              <div className="grid grid-cols-1 gap-0 relative border-t border-gray-200 dark:border-[#f6f6f4]/5 h-[280px]">
+                <div className="flex flex-col justify-start py-5">
+                  <h4 className="text-xs md:text-sm font-medium text-[#111111] dark:text-[#f6f6f4] mb-2 font-inter text-left">
+                    Performance & Resilience
+                  </h4>
+                  <p className="text-xs text-gray-600 dark:text-[#c8c8b8] font-inter text-left mb-2">
+                    How the system stays fast, available, and failure-proof.
+                  </p>
+                </div>
+                <div className="flex flex-col py-0 pr-4">
                   <div className="mb-4">
                     <h5 className="text-xs font-medium text-gray-900 dark:text-[#f6f6f4] mb-1 font-inter">Speculative Execution</h5>
-                    <p className="text-xs text-gray-600 dark:text-[#c8c8b8] font-inter line-clamp-3">Executes 2–4 providers in parallel and returns the fastest response, cutting P99 latency by 40–60%.</p>
+                    <p className="text-xs text-gray-600 dark:text-[#c8c8b8] font-inter">Executes 2–4 providers in parallel and returns the fastest response, cutting P99 latency by 40–60%.</p>
                   </div>
                   <div className="mb-4">
                     <h5 className="text-xs font-medium text-gray-900 dark:text-[#f6f6f4] mb-1 font-inter">Adaptive Circuit Breaker</h5>
-                    <p className="text-xs text-gray-600 dark:text-[#c8c8b8] font-inter line-clamp-3">Fail-closed protection with OPEN / CLOSED / HALF_OPEN states to prevent cascading failures.</p>
+                    <p className="text-xs text-gray-600 dark:text-[#c8c8b8] font-inter">Fail-closed protection with OPEN / CLOSED / HALF_OPEN states to prevent cascading failures.</p>
                   </div>
                   <div>
                     <h5 className="text-xs font-medium text-gray-900 dark:text-[#f6f6f4] mb-1 font-inter">High-Performance Cache</h5>
-                    <p className="text-xs text-gray-600 dark:text-[#c8c8b8] font-inter line-clamp-3">Dragonfly-powered cache delivering 200K RPS with 4GB capacity for routing state and metadata.</p>
+                    <p className="text-xs text-gray-600 dark:text-[#c8c8b8] font-inter">Dragonfly-powered cache delivering 200K RPS with 4GB capacity for routing state and metadata.</p>
                   </div>
-                </div>
-                {/* Right Column - Title and Description */}
-                <div className="flex flex-col justify-start py-5 pl-4">
-                  <h4 className="text-xs md:text-sm font-medium text-[#111111] dark:text-[#f6f6f4] mb-2 font-inter">
-                    Performance & Resilience
-                  </h4>
-                  <p className="text-xs text-gray-600 dark:text-[#c8c8b8] font-inter">
-                    How the system stays fast, available, and failure-proof.
-                  </p>
                 </div>
               </div>
 
               {/* Row 3 */}
-              <div className="grid grid-cols-1 md:grid-cols-3 gap-0 relative border-t border-gray-200 dark:border-[#f6f6f4]/5 h-[280px]">
-                {/* Left Column - Features */}
-                <div className="md:col-span-2 flex flex-col py-5 pr-4 border-r border-gray-200 dark:border-[#f6f6f4]/5">
+              <div className="grid grid-cols-1 gap-0 relative border-t border-gray-200 dark:border-[#f6f6f4]/5 h-[280px]">
+                <div className="flex flex-col justify-start py-5">
+                  <h4 className="text-xs md:text-sm font-medium text-[#111111] dark:text-[#f6f6f4] mb-2 font-inter text-left">
+                    Governance, Policy & Cost Control
+                  </h4>
+                  <p className="text-xs text-gray-600 dark:text-[#c8c8b8] font-inter text-left mb-4">
+                    How enterprises stay compliant, predictable, and in control.
+                  </p>
+                </div>
+                <div className="flex flex-col py-0 pr-4">
                   <div className="mb-4">
                     <h5 className="text-xs font-medium text-gray-900 dark:text-[#f6f6f4] mb-1 font-inter">Policy Engine</h5>
-                    <p className="text-xs text-gray-600 dark:text-[#c8c8b8] font-inter line-clamp-3">Enforces cost ceilings, performance SLAs, compliance constraints, and geo-fencing rules at runtime.</p>
+                    <p className="text-xs text-gray-600 dark:text-[#c8c8b8] font-inter">Enforces cost ceilings, performance SLAs, compliance constraints, and geo-fencing rules at runtime.</p>
                   </div>
                   <div>
                     <h5 className="text-xs font-medium text-gray-900 dark:text-[#f6f6f4] mb-1 font-inter">Real-Time Cost Tracking</h5>
-                    <p className="text-xs text-gray-600 dark:text-[#c8c8b8] font-inter line-clamp-3">Tracks per-request costs in USD with per-provider breakdowns and automatic budget enforcement.</p>
+                    <p className="text-xs text-gray-600 dark:text-[#c8c8b8] font-inter">Tracks per-request costs in USD with per-provider breakdowns and automatic budget enforcement.</p>
                   </div>
-                </div>
-                {/* Right Column - Title and Description */}
-                <div className="flex flex-col justify-start py-5 pl-4">
-                  <h4 className="text-xs md:text-sm font-medium text-[#111111] dark:text-[#f6f6f4] mb-2 font-inter">
-                    Governance, Policy & Cost Control
-                  </h4>
-                  <p className="text-xs text-gray-600 dark:text-[#c8c8b8] font-inter">
-                    How enterprises stay compliant, predictable, and in control.
-                  </p>
                 </div>
               </div>
 
               {/* Row 4 */}
-              <div className="grid grid-cols-1 md:grid-cols-3 gap-0 relative border-t border-gray-200 dark:border-[#f6f6f4]/5 h-[280px]">
-                {/* Left Column - Features */}
-                <div className="md:col-span-2 flex flex-col py-5 pr-4 border-r border-gray-200 dark:border-[#f6f6f4]/5">
-                  <div>
-                    <h5 className="text-xs font-medium text-gray-900 dark:text-[#f6f6f4] mb-1 font-inter">Explainable Decisions</h5>
-                    <p className="text-xs text-gray-600 dark:text-[#c8c8b8] font-inter line-clamp-3">Every routing decision includes full reasoning: Thompson scores, trust scores, and applied policy constraints.</p>
-                  </div>
-                </div>
-                {/* Right Column - Title and Description */}
-                <div className="flex flex-col justify-start py-5 pl-4">
-                  <h4 className="text-xs md:text-sm font-medium text-[#111111] dark:text-[#f6f6f4] mb-2 font-inter">
+              <div className="grid grid-cols-1 gap-0 relative border-t border-gray-200 dark:border-[#f6f6f4]/5 h-[280px]">
+                <div className="flex flex-col justify-start py-5">
+                  <h4 className="text-xs md:text-sm font-medium text-[#111111] dark:text-[#f6f6f4] mb-2 font-inter text-left">
                     Transparency & Explainability
                   </h4>
-                  <p className="text-xs text-gray-600 dark:text-[#c8c8b8] font-inter">
+                  <p className="text-xs text-gray-600 dark:text-[#c8c8b8] font-inter text-left mb-4">
                     How decisions are auditable, defensible, and regulator-ready.
                   </p>
+                </div>
+                <div className="flex flex-col py-0 pr-4">
+                  <div>
+                    <h5 className="text-xs font-medium text-gray-900 dark:text-[#f6f6f4] mb-1 font-inter">Explainable Decisions</h5>
+                    <p className="text-xs text-gray-600 dark:text-[#c8c8b8] font-inter">Every routing decision includes full reasoning: Thompson scores, trust scores, and applied policy constraints.</p>
+                  </div>
                 </div>
               </div>
 
               {/* Row 5 */}
-              <div className="grid grid-cols-1 md:grid-cols-3 gap-0 relative border-t border-gray-200 dark:border-[#f6f6f4]/5 h-[280px]">
-                {/* Left Column - Features */}
-                <div className="md:col-span-2 flex flex-col py-5 pr-4 border-r border-gray-200 dark:border-[#f6f6f4]/5">
-                  <div>
-                    <h5 className="text-xs font-medium text-gray-900 dark:text-[#f6f6f4] mb-1 font-inter">Comprehensive Observability</h5>
-                    <p className="text-xs text-gray-600 dark:text-[#c8c8b8] font-inter line-clamp-3">180+ Prometheus metrics, OpenTelemetry traces, and full decision metadata for debugging, auditing, and compliance.</p>
-                  </div>
-                </div>
-                {/* Right Column - Title and Description */}
-                <div className="flex flex-col justify-start py-5 pl-4">
-                  <h4 className="text-xs md:text-sm font-medium text-[#111111] dark:text-[#f6f6f4] mb-2 font-inter">
+              <div className="grid grid-cols-1 gap-0 relative border-t border-gray-200 dark:border-[#f6f6f4]/5 h-[280px]">
+                <div className="flex flex-col justify-start py-5">
+                  <h4 className="text-xs md:text-sm font-medium text-[#111111] dark:text-[#f6f6f4] mb-2 font-inter text-left">
                     Observability & Diagnostics
                   </h4>
-                  <p className="text-xs text-gray-600 dark:text-[#c8c8b8] font-inter">
+                  <p className="text-xs text-gray-600 dark:text-[#c8c8b8] font-inter text-left mb-4">
                     How operators see, debug, and trust the system in production.
                   </p>
+                </div>
+                <div className="flex flex-col py-0 pr-4">
+                  <div>
+                    <h5 className="text-xs font-medium text-gray-900 dark:text-[#f6f6f4] mb-1 font-inter">Comprehensive Observability</h5>
+                    <p className="text-xs text-gray-600 dark:text-[#c8c8b8] font-inter">180+ Prometheus metrics, OpenTelemetry traces, and full decision metadata for debugging, auditing, and compliance.</p>
+                  </div>
                 </div>
               </div>
 
                {/* Row 6 */}
-               <div className="grid grid-cols-1 md:grid-cols-3 gap-0 relative border-t border-gray-200 dark:border-[#f6f6f4]/5 h-[280px]">
-                {/* Left Column - Features */}
-                <div className="md:col-span-2 flex flex-col pt-0 pb-0 pr-4 border-r border-gray-200 dark:border-[#f6f6f4]/5">
-                  <div className="pt-5">
-                    <h5 className="text-xs font-medium text-gray-900 dark:text-[#f6f6f4] mb-1 font-inter">Multi-Tenancy & BYOK</h5>
-                    <p className="text-xs text-gray-600 dark:text-[#c8c8b8] font-inter line-clamp-3">Full tenant isolation with encrypted API key storage. Customers retain ownership of provider relationships with zero lock-in.</p>
-                  </div>
-                </div>
-                {/* Right Column - Title and Description */}
-                <div className="flex flex-col justify-start pt-0 pb-0 pl-4">
-                  <h4 className="text-xs md:text-sm font-medium text-[#111111] dark:text-[#f6f6f4] mb-2 font-inter">
+               <div className="grid grid-cols-1 gap-0 relative border-t border-gray-200 dark:border-[#f6f6f4]/5 h-[280px]">
+                <div className="flex flex-col justify-start pt-5 pb-5">
+                  <h4 className="text-xs md:text-sm font-medium text-[#111111] dark:text-[#f6f6f4] mb-2 font-inter text-left">
                     Security, Isolation & Enterprise Readiness
                   </h4>
-                  <p className="text-xs text-gray-600 dark:text-[#c8c8b8] font-inter">
+                  <p className="text-xs text-gray-600 dark:text-[#c8c8b8] font-inter text-left mb-4">
                     How the platform scales safely across customers and teams.
                   </p>
+                </div>
+                <div className="flex flex-col pt-0 pb-0 pr-4">
+                  <div className="pt-0">
+                    <h5 className="text-xs font-medium text-gray-900 dark:text-[#f6f6f4] mb-1 font-inter">Multi-Tenancy & BYOK</h5>
+                    <p className="text-xs text-gray-600 dark:text-[#c8c8b8] font-inter">Full tenant isolation with encrypted API key storage. Customers retain ownership of provider relationships with zero lock-in.</p>
+                  </div>
                 </div>
               </div>
             </div>
