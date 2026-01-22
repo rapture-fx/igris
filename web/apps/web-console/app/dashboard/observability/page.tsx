@@ -940,7 +940,7 @@ export default function ObservabilityPage() {
                   <div className="flex items-center gap-2">
                     <div className="relative">
                       <button
-                        className="p-1 hover:bg-card rounded-md transition-colors"
+                        className="p-1 hover:bg-muted rounded-md transition-colors"
                         onMouseEnter={() => setShowTracingInfo(true)}
                         onMouseLeave={() => setShowTracingInfo(false)}
                         onClick={() => setShowTracingInfo(!showTracingInfo)}
@@ -1017,59 +1017,9 @@ export default function ObservabilityPage() {
 
           {/* Traces Tab Content */}
           <TabsContent value="traces" className="space-y-6">
-        {/* Metrics Grid Layout */}
-        <div className="bg-card">
-          <div className="grid grid-cols-3 divide-x divide-border-light">
-            <div className="p-4">
-              <div className="text-xs font-medium text-muted-foreground mb-1">Total Traces</div>
-              <div className="text-lg font-bold text-foreground">{formatNumber(metrics.total)}</div>
-              <p className="text-[0.65rem] text-muted-foreground mt-1">
-                Last {filters.timeRange === '1h' ? 'hour' : filters.timeRange === '24h' ? '24h' : filters.timeRange === '7d' ? '7 days' : '30 days'}
-              </p>
-            </div>
-            <div className="p-4">
-              <div className="text-xs font-medium text-muted-foreground mb-1">Avg Latency</div>
-              <div className="text-lg font-bold text-foreground">{formatLatency(metrics.avgLatency)}</div>
-              <p className="text-[0.65rem] text-muted-foreground mt-1">
-                Response time
-              </p>
-            </div>
-            <div className="p-4">
-              <div className="text-xs font-medium text-muted-foreground mb-1">Total Cost</div>
-              <div className="text-lg font-bold text-foreground">{formatCurrency(metrics.totalCost)}</div>
-              <p className="text-[0.65rem] text-muted-foreground mt-1">
-                This period
-              </p>
-            </div>
-          </div>
-          <div className="grid grid-cols-3 divide-x divide-border-light border-t border-border">
-            <div className="p-4">
-              <div className="text-xs font-medium text-muted-foreground mb-1">Error Rate</div>
-              <div className="text-lg font-bold text-foreground">{metrics.errorRate.toFixed(1)}%</div>
-              <p className="text-[0.65rem] text-muted-foreground mt-1">
-                {tier === 'scale' ? '90-day' : tier === 'growth' ? '7-day' : 'Limited'}
-              </p>
-            </div>
-            <div className="p-4">
-              <div className="text-xs font-medium text-muted-foreground mb-1">Speculative</div>
-              <div className="text-lg font-bold text-foreground">{formatNumber(metrics.speculativeCount)}</div>
-              <p className="text-[0.65rem] text-muted-foreground mt-1">
-                Used parallel
-              </p>
-            </div>
-            <div className="p-4">
-              <div className="text-xs font-medium text-muted-foreground mb-1">Retried</div>
-              <div className="text-lg font-bold text-foreground">{formatNumber(metrics.retriedCount)}</div>
-              <p className="text-[0.65rem] text-muted-foreground mt-1">
-                Had retries
-              </p>
-            </div>
-          </div>
-        </div>
-
         {/* 1. REAL-TIME METRICS - Live updating every 5s */}
-        <div className="bg-card">
-          <div className="px-6 py-4">
+        <Card className="border-border shadow-sm">
+          <CardContent className="px-6 py-4">
             <div className="flex items-center gap-2 mb-4">
               <Activity className="h-3.5 w-3.5 text-foreground" />
               <h3 className="text-sm font-medium text-foreground">
@@ -1137,6 +1087,56 @@ export default function ObservabilityPage() {
                 </div>
                 <p className="text-[10px] text-muted-foreground">Currently responding</p>
               </div>
+            </div>
+          </CardContent>
+        </Card>
+
+        {/* Metrics Grid Layout */}
+        <div className="bg-card">
+          <div className="grid grid-cols-3 divide-x divide-gray-200/20 dark:divide-[#f6f6f4]/5">
+            <div className="p-4">
+              <div className="text-xs font-medium text-muted-foreground mb-1">Total Traces</div>
+              <div className="text-lg font-bold text-foreground">{formatNumber(metrics.total)}</div>
+              <p className="text-[0.65rem] text-muted-foreground mt-1">
+                Last {filters.timeRange === '1h' ? 'hour' : filters.timeRange === '24h' ? '24h' : filters.timeRange === '7d' ? '7 days' : '30 days'}
+              </p>
+            </div>
+            <div className="p-4">
+              <div className="text-xs font-medium text-muted-foreground mb-1">Avg Latency</div>
+              <div className="text-lg font-bold text-foreground">{formatLatency(metrics.avgLatency)}</div>
+              <p className="text-[0.65rem] text-muted-foreground mt-1">
+                Response time
+              </p>
+            </div>
+            <div className="p-4">
+              <div className="text-xs font-medium text-muted-foreground mb-1">Total Cost</div>
+              <div className="text-lg font-bold text-foreground">{formatCurrency(metrics.totalCost)}</div>
+              <p className="text-[0.65rem] text-muted-foreground mt-1">
+                This period
+              </p>
+            </div>
+          </div>
+          <div className="grid grid-cols-3 divide-x divide-gray-200/20 dark:divide-[#f6f6f4]/5 border-t border-border">
+            <div className="p-4">
+              <div className="text-xs font-medium text-muted-foreground mb-1">Error Rate</div>
+              <div className="text-lg font-bold text-foreground">{metrics.errorRate.toFixed(1)}%</div>
+              <p className="text-[0.65rem] text-muted-foreground mt-1">
+                {tier === 'scale' ? '90-day' : tier === 'growth' ? '7-day' : 'Limited'}
+              </p>
+            </div>
+            <div className="p-4">
+              <div className="text-xs font-medium text-muted-foreground mb-1">Speculative</div>
+              <div className="text-lg font-bold text-foreground">{formatNumber(metrics.speculativeCount)}</div>
+              <p className="text-[0.65rem] text-muted-foreground mt-1">
+                Used parallel
+              </p>
+            </div>
+            <div className="p-4">
+              <div className="text-xs font-medium text-muted-foreground mb-1">Retried</div>
+              <div className="text-lg font-bold text-foreground">{formatNumber(metrics.retriedCount)}</div>
+              <p className="text-[0.65rem] text-muted-foreground mt-1">
+                Had retries
+              </p>
             </div>
           </div>
         </div>
@@ -1353,8 +1353,8 @@ export default function ObservabilityPage() {
         </Card>
 
         {/* Request Traces Table */}
-        <div className="bg-card">
-          <div className="px-6 py-4 border-b border-border">
+        <Card className="bg-card border border-border shadow-sm">
+          <CardHeader className="px-6 py-4 border-b border-border">
             <div className="flex items-center gap-2">
               <Database className="h-4 w-4 text-foreground" />
               <h3 className="text-sm font-medium text-foreground">
@@ -1366,9 +1366,10 @@ export default function ObservabilityPage() {
               {tier === 'growth' && ' (Limited to 1,000 requests)'}
               {tier === 'scale' && ' (Up to 100,000 requests)'}
             </p>
-          </div>
+          </CardHeader>
+          <CardContent className="px-6 pb-6 pt-0">
             {filteredTraces.length === 0 ? (
-              <div className="py-16 px-6">
+              <div className="py-16">
                 <div className="max-w-md mx-auto">
                   <p className="text-sm font-normal text-gray-500 mb-3">
                     No requests yet, make your first one to unlock:
@@ -1430,7 +1431,7 @@ export default function ObservabilityPage() {
                     {filteredTraces.map((trace) => (
                       <tr
                         key={trace.id}
-                        className="border-b border-border hover:bg-card cursor-pointer transition-colors"
+                        className="border-b border-border hover:bg-muted cursor-pointer transition-colors"
                         onClick={() => setSelectedTrace(trace)}
                       >
                         <td className="py-1.5 px-2 text-[9px] text-foreground font-inter">
@@ -1523,8 +1524,10 @@ export default function ObservabilityPage() {
                 </div>
               </div>
             )}
-          </div>
-          {/* 3. PERFORMANCE MONITORING - Dedicated Section */}
+          </CardContent>
+        </Card>
+
+        {/* 3. PERFORMANCE MONITORING - Dedicated Section */}
         <Card className="border-border">
           <CardHeader>
             <CardTitle className="text-sm flex items-center gap-2">
@@ -1618,7 +1621,7 @@ export default function ObservabilityPage() {
                     </thead>
                     <tbody>
                       {providerReliabilityMetrics.map((provider, index) => (
-                        <tr key={index} className="border-b border-border hover:bg-card">
+                        <tr key={index} className="border-b border-border hover:bg-muted">
                           <td className="py-1 px-2 text-[9px] font-medium text-foreground">{provider.provider}</td>
                           <td className="text-right py-1 px-2">
                             <span className="text-[9px] font-medium text-foreground">{provider.reliabilityScore}%</span>
@@ -1626,9 +1629,9 @@ export default function ObservabilityPage() {
                           <td className="text-right py-1 px-2">
                             <Badge className={cn(
                               "text-[8px] px-1 py-0 rounded-none",
-                              provider.badge === 'Excellent' ? "bg-card text-foreground border-gray-200 dark:border-[#f6f6f4]/5" :
-                              provider.badge === 'Good' ? "bg-yellow-50 text-yellow-700 border-yellow-200" :
-                              "bg-red-50 text-red-700 border-red-200"
+                              provider.badge === 'Excellent' ? "bg-green-50 dark:bg-green-950 text-green-700 dark:text-green-400 border-green-200 dark:border-green-900" :
+                              provider.badge === 'Good' ? "bg-yellow-50 dark:bg-yellow-950 text-yellow-700 dark:text-yellow-400 border-yellow-200 dark:border-yellow-900" :
+                              "bg-red-50 dark:bg-red-950 text-red-700 dark:text-red-400 border-red-200 dark:border-red-900"
                             )}>
                               {provider.badge}
                             </Badge>
@@ -1667,7 +1670,7 @@ export default function ObservabilityPage() {
                       </thead>
                       <tbody>
                         {latencyCDFMetrics.percentileData.map((provider, index) => (
-                          <tr key={index} className="border-b border-border hover:bg-card">
+                          <tr key={index} className="border-b border-border hover:bg-muted">
                             <td className="py-1 px-2 text-[9px] font-medium text-foreground">{provider.provider}</td>
                             <td className="text-right py-1 px-2 text-[9px] text-foreground">{provider.p50}ms</td>
                             <td className="text-right py-1 px-2 text-[9px] text-foreground">{provider.p75}ms</td>
@@ -1974,8 +1977,8 @@ export default function ObservabilityPage() {
                       dataKey="total_spend_usd"
                       stroke={chartTheme.line}
                       strokeWidth={0.5}
-                      dot={{ fill: '#000000', strokeWidth: 0.5, r: 2 }}
-                      activeDot={{ r: 4, fill: '#000000', stroke: '#f2f1ed', strokeWidth: 0.5 }}
+                      dot={{ fill: chartTheme.line, strokeWidth: 0.5, r: 2 }}
+                      activeDot={{ r: 4, fill: chartTheme.line, stroke: chartTheme.background, strokeWidth: 0.5 }}
                     />
                     <Line
                       type="monotone"
@@ -2018,19 +2021,19 @@ export default function ObservabilityPage() {
                         <defs>
                           <pattern id="obs-stripe-0" patternUnits="userSpaceOnUse" width="3" height="3" patternTransform="rotate(45)">
                             <rect width="2" height="3" fill="#114dcd" />
-                            <rect x="2" width="1" height="3" fill="#ffffff" />
+                            <rect x="2" width="1" height="3" fill="rgba(255,255,255,0.2)" />
                           </pattern>
                           <pattern id="obs-stripe-1" patternUnits="userSpaceOnUse" width="3" height="3" patternTransform="rotate(45)">
                             <rect width="2" height="3" fill="#299a93" />
-                            <rect x="2" width="1" height="3" fill="#ffffff" />
+                            <rect x="2" width="1" height="3" fill="rgba(255,255,255,0.2)" />
                           </pattern>
                           <pattern id="obs-stripe-2" patternUnits="userSpaceOnUse" width="3" height="3" patternTransform="rotate(45)">
                             <rect width="2" height="3" fill="#1f53d0" />
-                            <rect x="2" width="1" height="3" fill="#ffffff" />
+                            <rect x="2" width="1" height="3" fill="rgba(255,255,255,0.2)" />
                           </pattern>
                           <pattern id="obs-stripe-3" patternUnits="userSpaceOnUse" width="3" height="3" patternTransform="rotate(45)">
                             <rect width="2" height="3" fill="#6b7280" />
-                            <rect x="2" width="1" height="3" fill="#ffffff" />
+                            <rect x="2" width="1" height="3" fill="rgba(255,255,255,0.2)" />
                           </pattern>
                         </defs>
                         <Pie
@@ -2040,6 +2043,8 @@ export default function ObservabilityPage() {
                           cx="50%"
                           cy="50%"
                           outerRadius={60}
+                          stroke="rgba(0,0,0,0.1)"
+                          strokeWidth={0.5}
                           label={(entry) => `${entry.percentage}%`}
                           labelLine={false}
                           style={{ fontSize: '8px' }}
@@ -2113,7 +2118,7 @@ export default function ObservabilityPage() {
                         <defs>
                           {/* Super thin diagonal stripe pattern for bars */}
                           <pattern id="bar-stripe" width="2" height="2" patternUnits="userSpaceOnUse" patternTransform="rotate(45)">
-                            <rect width="1" height="2" fill="#000000" />
+                            <rect width="1" height="2" fill="#114dcd" />
                           </pattern>
                         </defs>
                         <XAxis type="number" stroke={chartTheme.axis} style={{ fontSize: '10px' }} />
@@ -2307,10 +2312,10 @@ export default function ObservabilityPage() {
                         <defs>
                           {/* Super thin diagonal stripe patterns for CPU/Memory */}
                           <pattern id="cpu-stripe" width="2" height="2" patternUnits="userSpaceOnUse" patternTransform="rotate(45)">
-                            <rect width="1" height="2" fill="#000000" />
+                            <rect width="1" height="2" fill="#114dcd" />
                           </pattern>
                           <pattern id="memory-stripe" width="2" height="2" patternUnits="userSpaceOnUse" patternTransform="rotate(-45)">
-                            <rect width="1" height="2" fill="#666666" />
+                            <rect width="1" height="2" fill="#299a93" />
                           </pattern>
                         </defs>
                         <XAxis dataKey="name" stroke={chartTheme.axis} style={{ fontSize: '10px' }} />
@@ -2542,7 +2547,7 @@ export default function ObservabilityPage() {
                       return (
                         <div
                           key={log.id}
-                          className="py-2 border-b border-border/50 hover:bg-card/30 transition-colors"
+                          className="py-2 border-b border-border/50 hover:bg-muted/50 transition-colors"
                         >
                           <div className="flex items-start justify-between gap-3">
                             <div className="flex-1 min-w-0">
