@@ -64,122 +64,114 @@ export default function RuntimePopup({ isOpen, onClose }: RuntimePopupProps) {
             {/* Features Section */}
             <section className="bg-transparent text-gray-900 dark:text-white">
                 <div className="relative px-4 md:px-8 lg:px-12 pt-0 pb-8 flex flex-col bg-transparent border-l border-r border-gray-200 dark:border-[#f6f6f4]/5">
-                <div className="grid grid-cols-1 md:grid-cols-3 gap-0 relative mb-0 h-[280px] border-t-0">
-                  {/* Left Column - Features */}
-                  <div className="md:col-span-2 flex flex-col pt-0 pb-5 pr-4 border-r border-gray-200 dark:border-[#f6f6f4]/5">
-                    <div className="mb-4 pt-5">
-                      <h5 className="text-xs font-medium text-gray-900 dark:text-[#f6f6f4] mb-1 font-inter">Resource Safety Limits</h5>
-                      <p className="text-xs text-gray-600 dark:text-[#c8c8b8] font-inter line-clamp-3">Enforces strict limits: max 100 tool calls, 10 recursion depth, 5 minute execution timeout, and 10MB output size.</p>
-                    </div>
-                    <div className="mb-4">
-                      <h5 className="text-xs font-medium text-gray-900 dark:text-[#f6f6f4] mb-1 font-inter">Sandboxed Tool Execution</h5>
-                      <p className="text-xs text-gray-600 dark:text-[#c8c8b8] font-inter line-clamp-3">Executes function calls in isolated environments with tool output size limits, timeouts, and safety constraints.</p>
-                    </div>
-                    <div>
-                      <h5 className="text-xs font-medium text-gray-900 dark:text-[#f6f6f4] mb-1 font-inter">Deterministic Execution Envelopes</h5>
-                      <p className="text-xs text-gray-600 dark:text-[#c8c8b8] font-inter line-clamp-3">Wraps every execution in HMAC-signed, tamper-proof envelopes with cryptographic proof of constraints.</p>
-                    </div>
+                <div className="grid grid-cols-1 gap-0 relative mb-0 h-[280px] border-t-0">
+                  {/* Row 1 - Title Top */}
+                  <div className="flex flex-col justify-start pt-5 pb-5">
+                    <h4 className="text-xs md:text-sm font-medium text-[#111111] dark:text-[#f6f6f4] mb-2 font-inter text-left">
+                      Safe, Sandboxed Execution
+                    </h4>
+                    <p className="text-xs text-gray-600 dark:text-[#c8c8b8] font-inter text-left mb-4">
+                      How the system prevents runaway agents and protects infrastructure.
+                    </p>
                   </div>
-                 {/* Right Column - Title and Description */}
-                 <div className="flex flex-col justify-start pt-5 pb-5 pl-4">
-                   <h4 className="text-xs md:text-sm font-medium text-[#111111] dark:text-[#f6f6f4] mb-2 font-inter">
-                     Safe, Sandboxed Execution
-                   </h4>
-                   <p className="text-xs text-gray-600 dark:text-[#c8c8b8] font-inter">
-                     How the system prevents runaway agents and protects infrastructure.
-                   </p>
-                 </div>
-               </div>
+                  {/* Features Below Title */}
+                  <div className="flex flex-col pt-0 pb-5 pr-4">
+                  <div className="mb-4 pt-0">
+                    <h5 className="text-xs font-medium text-gray-900 dark:text-[#f6f6f4] mb-1 font-inter">Resource Safety Limits</h5>
+                    <p className="text-xs text-gray-600 dark:text-[#c8c8b8] font-inter">Enforces strict limits: max 100 tool calls, 10 recursion depth, 5 minute execution timeout, and 10MB output size.</p>
+                  </div>
+                  <div className="mb-4">
+                    <h5 className="text-xs font-medium text-gray-900 dark:text-[#f6f6f4] mb-1 font-inter">Sandboxed Tool Execution</h5>
+                    <p className="text-xs text-gray-600 dark:text-[#c8c8b8] font-inter">Executes function calls in isolated environments with tool output size limits, timeouts, and safety constraints.</p>
+                  </div>
+                  <div>
+                    <h5 className="text-xs font-medium text-gray-900 dark:text-[#f6f6f4] mb-1 font-inter">Deterministic Execution Envelopes</h5>
+                    <p className="text-xs text-gray-600 dark:text-[#c8c8b8] font-inter">Wraps every execution in HMAC-signed, tamper-proof envelopes with cryptographic proof of constraints.</p>
+                  </div>
+                  </div>
+                </div>
 
               {/* Row 2 */}
-              <div className="grid grid-cols-1 md:grid-cols-3 gap-0 relative border-t border-gray-200 dark:border-[#f6f6f4]/5 h-[280px]">
-                {/* Left Column - Features */}
-                <div className="md:col-span-2 flex flex-col py-5 pr-4 border-r border-gray-200 dark:border-[#f6f6f4]/5">
+              <div className="grid grid-cols-1 gap-0 relative border-t border-gray-200 dark:border-[#f6f6f4]/5 h-[280px]">
+                <div className="flex flex-col justify-start py-5">
+                  <h4 className="text-xs md:text-sm font-medium text-[#111111] dark:text-[#f6f6f4] mb-2 font-inter text-left">
+                    Offline & Edge Operation
+                  </h4>
+                  <p className="text-xs text-gray-600 dark:text-[#c8c8b8] font-inter text-left mb-4">
+                    How the system keeps working when infrastructure fails.
+                  </p>
+                </div>
+                <div className="flex flex-col py-0 pr-4">
                   <div className="mb-4">
                     <h5 className="text-xs font-medium text-gray-900 dark:text-[#f6f6f4] mb-1 font-inter">Offline Operation</h5>
-                    <p className="text-xs text-gray-600 dark:text-[#c8c8b8] font-inter line-clamp-3">Continues serving requests using local models and cached responses when network is unavailable.</p>
+                    <p className="text-xs text-gray-600 dark:text-[#c8c8b8] font-inter">Continues serving requests using local models and cached responses when network is unavailable.</p>
                   </div>
                   <div className="mb-4">
                     <h5 className="text-xs font-medium text-gray-900 dark:text-[#f6f6f4] mb-1 font-inter">Local Model Inference</h5>
-                    <p className="text-xs text-gray-600 dark:text-[#c8c8b8] font-inter line-clamp-3">Runs Phi-3 and custom GGUF models locally for offline operation, privacy-sensitive workloads, and budget fallback.</p>
+                    <p className="text-xs text-gray-600 dark:text-[#c8c8b8] font-inter">Runs Phi-3 and custom GGUF models locally for offline operation, privacy-sensitive workloads, and budget fallback.</p>
                   </div>
                   <div>
                     <h5 className="text-xs font-medium text-gray-900 dark:text-[#f6f6f4] mb-1 font-inter">EscapeVector Semantic Cache</h5>
-                    <p className="text-xs text-gray-600 dark:text-[#c8c8b8] font-inter line-clamp-3">Embedding-based semantic caching reduces API calls by 30-50% with similarity search and configurable TTL.</p>
+                    <p className="text-xs text-gray-600 dark:text-[#c8c8b8] font-inter">Embedding-based semantic caching reduces API calls by 30-50% with similarity search and configurable TTL.</p>
                   </div>
-                </div>
-                {/* Right Column - Title and Description */}
-                <div className="flex flex-col justify-start py-5 pl-4">
-                  <h4 className="text-xs md:text-sm font-medium text-[#111111] dark:text-[#f6f6f4] mb-2 font-inter">
-                    Offline & Edge Operation
-                  </h4>
-                  <p className="text-xs text-gray-600 dark:text-[#c8c8b8] font-inter">
-                    How the system keeps working when infrastructure fails.
-                  </p>
                 </div>
               </div>
 
               {/* Row 3 */}
-              <div className="grid grid-cols-1 md:grid-cols-3 gap-0 relative border-t border-gray-200 dark:border-[#f6f6f4]/5 h-[280px]">
-                {/* Left Column - Features */}
-                <div className="md:col-span-2 flex flex-col py-5 pr-4 border-r border-gray-200 dark:border-[#f6f6f4]/5">
+              <div className="grid grid-cols-1 gap-0 relative border-t border-gray-200 dark:border-[#f6f6f4]/5 h-[280px]">
+                <div className="flex flex-col justify-start py-5">
+                  <h4 className="text-xs md:text-sm font-medium text-[#111111] dark:text-[#f6f6f4] mb-2 font-inter text-left">
+                    Adaptive Fine-Tuning
+                  </h4>
+                  <p className="text-xs text-gray-600 dark:text-[#c8c8b8] font-inter text-left mb-4">
+                    How the system learns and improves from local data.
+                  </p>
+                </div>
+                <div className="flex flex-col py-0 pr-4">
                   <div className="mb-4">
                     <h5 className="text-xs font-medium text-gray-900 dark:text-[#f6f6f4] mb-1 font-inter">LoRA Fine-Tuning</h5>
-                    <p className="text-xs text-gray-600 dark:text-[#c8c8b8] font-inter line-clamp-3">On-device fine-tuning with Metal GPU acceleration for M-series Macs. Adapters are AES-256-GCM encrypted and device-locked.</p>
+                    <p className="text-xs text-gray-600 dark:text-[#c8c8b8] font-inter">On-device fine-tuning with Metal GPU acceleration for M-series Macs. Adapters are AES-256-GCM encrypted and device-locked.</p>
                   </div>
                   <div>
                     <h5 className="text-xs font-medium text-gray-900 dark:text-[#f6f6f4] mb-1 font-inter">Device-Locked Models</h5>
-                    <p className="text-xs text-gray-600 dark:text-[#c8c8b8] font-inter line-clamp-3">LoRA adapters encrypted with device-specific keys cannot run on other devices, enforcing data locality.</p>
+                    <p className="text-xs text-gray-600 dark:text-[#c8c8b8] font-inter">LoRA adapters encrypted with device-specific keys cannot run on other devices, enforcing data locality.</p>
                   </div>
-                </div>
-                {/* Right Column - Title and Description */}
-                <div className="flex flex-col justify-start py-5 pl-4">
-                  <h4 className="text-xs md:text-sm font-medium text-[#111111] dark:text-[#f6f6f4] mb-2 font-inter">
-                    Adaptive Fine-Tuning
-                  </h4>
-                  <p className="text-xs text-gray-600 dark:text-[#c8c8b8] font-inter">
-                    How the system learns and improves from local data.
-                  </p>
                 </div>
               </div>
 
               {/* Row 4 */}
-              <div className="grid grid-cols-1 md:grid-cols-3 gap-0 relative border-t border-gray-200 dark:border-[#f6f6f4]/5 h-[280px]">
-                {/* Left Column - Features */}
-                <div className="md:col-span-2 flex flex-col py-5 pr-4 border-r border-gray-200 dark:border-[#f6f6f4]/5">
-                  <div>
-                    <h5 className="text-xs font-medium text-gray-900 dark:text-[#f6f6f4] mb-1 font-inter">Telemetry Streaming</h5>
-                    <p className="text-xs text-gray-600 dark:text-[#c8c8b8] font-inter line-clamp-3">Streams real-time execution telemetry to Overture via gRPC, feeding Cognitive Advisor and Thompson Sampling updates.</p>
-                  </div>
-                </div>
-                {/* Right Column - Title and Description */}
-                <div className="flex flex-col justify-start py-5 pl-4">
-                  <h4 className="text-xs md:text-sm font-medium text-[#111111] dark:text-[#f6f6f4] mb-2 font-inter">
+              <div className="grid grid-cols-1 gap-0 relative border-t border-gray-200 dark:border-[#f6f6f4]/5 h-[280px]">
+                <div className="flex flex-col justify-start py-5">
+                  <h4 className="text-xs md:text-sm font-medium text-[#111111] dark:text-[#f6f6f4] mb-2 font-inter text-left">
                     Telemetry & Learning
                   </h4>
-                  <p className="text-xs text-gray-600 dark:text-[#c8c8b8] font-inter">
+                  <p className="text-xs text-gray-600 dark:text-[#c8c8b8] font-inter text-left mb-4">
                     How the system feeds data back to Overture for continuous improvement.
                   </p>
+                </div>
+                <div className="flex flex-col py-0 pr-4">
+                  <div>
+                    <h5 className="text-xs font-medium text-gray-900 dark:text-[#f6f6f4] mb-1 font-inter">Telemetry Streaming</h5>
+                    <p className="text-xs text-gray-600 dark:text-[#c8c8b8] font-inter">Streams real-time execution telemetry to Overture via gRPC, feeding Cognitive Advisor and Thompson Sampling updates.</p>
+                  </div>
                 </div>
               </div>
 
                {/* Row 5 */}
-               <div className="grid grid-cols-1 md:grid-cols-3 gap-0 relative border-t border-gray-200 dark:border-[#f6f6f4]/5 h-[280px]">
-                {/* Left Column - Features */}
-                <div className="md:col-span-2 flex flex-col pt-0 pb-0 pr-4 border-r border-gray-200 dark:border-[#f6f6f4]/5">
-                  <div className="pt-5">
-                    <h5 className="text-xs font-medium text-gray-900 dark:text-[#f6f6f4] mb-1 font-inter">Benchmark Fallback</h5>
-                    <p className="text-xs text-gray-600 dark:text-[#c8c8b8] font-inter line-clamp-3">Automatically routes to simulated providers when budget exhausted, enabling zero-cost testing and development.</p>
-                  </div>
-                </div>
-                {/* Right Column - Title and Description */}
-                <div className="flex flex-col justify-start pt-0 pb-0 pl-4">
-                  <h4 className="text-xs md:text-sm font-medium text-[#111111] dark:text-[#f6f6f4] mb-2 font-inter">
+               <div className="grid grid-cols-1 gap-0 relative border-t border-gray-200 dark:border-[#f6f6f4]/5 h-[280px]">
+                <div className="flex flex-col justify-start pt-5 pb-5">
+                  <h4 className="text-xs md:text-sm font-medium text-[#111111] dark:text-[#f6f6f4] mb-2 font-inter text-left">
                     Development & Testing
                   </h4>
-                  <p className="text-xs text-gray-600 dark:text-[#c8c8b8] font-inter">
+                  <p className="text-xs text-gray-600 dark:text-[#c8c8b8] font-inter text-left mb-4">
                     How teams iterate without burning budget.
                   </p>
+                </div>
+                <div className="flex flex-col pt-0 pb-0 pr-4">
+                  <div className="pt-0">
+                    <h5 className="text-xs font-medium text-gray-900 dark:text-[#f6f6f4] mb-1 font-inter">Benchmark Fallback</h5>
+                    <p className="text-xs text-gray-600 dark:text-[#c8c8b8] font-inter">Automatically routes to simulated providers when budget exhausted, enabling zero-cost testing and development.</p>
+                  </div>
                 </div>
                </div>
             </div>
