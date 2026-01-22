@@ -79,7 +79,7 @@ const SheetTitle = ({
   ...props
 }: React.HTMLAttributes<HTMLHeadingElement>) => (
   <h2
-    className={cn("text-lg font-medium font-inter text-gray-900", className)}
+    className={cn("text-lg font-medium font-inter text-[#000000] dark:text-[#f6f6f4]", className)}
     {...props}
   />
 )
@@ -92,13 +92,13 @@ const SheetClose = ({
 }: React.ButtonHTMLAttributes<HTMLButtonElement>) => (
   <button
     className={cn(
-      "rounded-md p-2 hover:bg-beige-primary transition-colors",
+      "rounded-md p-2 hover:bg-muted transition-colors",
       className
     )}
     onClick={onClick}
     {...props}
   >
-    <X className="h-5 w-5 text-gray-600" />
+    <X className="h-5 w-5 text-gray-600 dark:text-[#a8a898]" />
   </button>
 )
 SheetClose.displayName = "SheetClose"

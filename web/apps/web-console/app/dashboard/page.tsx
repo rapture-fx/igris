@@ -693,7 +693,7 @@ export default function DashboardPage() {
         </div>
 
         {/* Recent Activity */}
-        <Card className="bg-transparent shadow-none border-0">
+        <Card className="border-border shadow-sm">
           <CardHeader>
             <div className="flex items-center justify-between">
               <div>
@@ -763,7 +763,7 @@ export default function DashboardPage() {
         </Card>
 
         {/* System Health Panel */}
-        <Card className="bg-transparent shadow-none border-0">
+        <Card className="border-border shadow-sm">
           <CardHeader>
             <div className="flex items-center justify-between">
               <div className="flex items-center gap-2">
