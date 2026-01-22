@@ -127,7 +127,7 @@ export default function OverturePopup({ isOpen, onClose }: OverturePopupProps) {
                   <h4 className="text-xs md:text-sm font-medium text-[#111111] dark:text-[#f6f6f4] mb-2 font-inter text-left">
                     Governance, Policy & Cost Control
                   </h4>
-                  <p className="text-xs text-gray-600 dark:text-[#c8c8b8] font-inter text-left mb-4">
+                  <p className="text-xs text-gray-600 dark:text-[#c8c8b8] font-inter text-left mb-2">
                     How enterprises stay compliant, predictable, and in control.
                   </p>
                 </div>
@@ -149,7 +149,7 @@ export default function OverturePopup({ isOpen, onClose }: OverturePopupProps) {
                   <h4 className="text-xs md:text-sm font-medium text-[#111111] dark:text-[#f6f6f4] mb-2 font-inter text-left">
                     Transparency & Explainability
                   </h4>
-                  <p className="text-xs text-gray-600 dark:text-[#c8c8b8] font-inter text-left mb-4">
+                  <p className="text-xs text-gray-600 dark:text-[#c8c8b8] font-inter text-left mb-2">
                     How decisions are auditable, defensible, and regulator-ready.
                   </p>
                 </div>
@@ -167,7 +167,7 @@ export default function OverturePopup({ isOpen, onClose }: OverturePopupProps) {
                   <h4 className="text-xs md:text-sm font-medium text-[#111111] dark:text-[#f6f6f4] mb-2 font-inter text-left">
                     Observability & Diagnostics
                   </h4>
-                  <p className="text-xs text-gray-600 dark:text-[#c8c8b8] font-inter text-left mb-4">
+                  <p className="text-xs text-gray-600 dark:text-[#c8c8b8] font-inter text-left mb-2">
                     How operators see, debug, and trust the system in production.
                   </p>
                 </div>
@@ -181,11 +181,11 @@ export default function OverturePopup({ isOpen, onClose }: OverturePopupProps) {
 
                {/* Row 6 */}
                <div className="grid grid-cols-1 gap-0 relative border-t border-gray-200 dark:border-[#f6f6f4]/5 h-[280px]">
-                <div className="flex flex-col justify-start pt-5 pb-5">
+                <div className="flex flex-col justify-start pt-5 pb-2">
                   <h4 className="text-xs md:text-sm font-medium text-[#111111] dark:text-[#f6f6f4] mb-2 font-inter text-left">
                     Security, Isolation & Enterprise Readiness
                   </h4>
-                  <p className="text-xs text-gray-600 dark:text-[#c8c8b8] font-inter text-left mb-4">
+                  <p className="text-xs text-gray-600 dark:text-[#c8c8b8] font-inter text-left mb-2">
                     How the platform scales safely across customers and teams.
                   </p>
                 </div>

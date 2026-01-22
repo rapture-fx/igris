@@ -31,14 +31,14 @@ export default function Products() {
 
                {/* Products - Mobile */}
               <div className="space-y-12 text-left">
-                 {/* Overture */}
-                 <div className="text-left">
-                   <h3 className="text-lg md:text-xl font-inter mb-2 text-[#000000] dark:text-[#f6f6f4]">
-                     Overture
-                   </h3>
-                   <p className="text-xs text-gray-600 dark:text-[#a8a898] mb-4">
-                     Decision Layer
-                   </p>
+                {/* Overture */}
+                  <div className="text-left">
+                    <h3 className="text-lg md:text-xl font-inter mb-2 text-[#000000] dark:text-[#f6f6f4]">
+                      Overture
+                    </h3>
+                    <p className="text-xs text-gray-600 dark:text-[#a8a898] mb-4">
+                      Decision Layer
+                    </p>
                     <div className="border border-gray-300 dark:border-[#f6f6f4]/5" style={{ marginTop: '1rem', marginBottom: '1rem', height: '200px', position: 'relative', overflow: 'hidden' }}>
                       <Image
                         src={mounted && theme === 'dark' ? '/ov.png' : '/overtureframe.png'}
@@ -61,14 +61,14 @@ export default function Products() {
                     </button>
                  </div>
 
-               {/* Runtime */}
-               <div>
-                 <h3 className="text-lg md:text-xl font-inter mb-2 text-[#000000] dark:text-[#f6f6f4]">
-                   Runtime
-                 </h3>
-                 <p className="text-xs text-gray-600 dark:text-[#a8a898] mb-4">
-                   Execution Layer
-                 </p>
+                    {/* Runtime */}
+                    <div>
+                      <h3 className="text-lg md:text-xl font-inter mb-2 text-[#000000] dark:text-[#f6f6f4]">
+                        Runtime
+                      </h3>
+                      <p className="text-xs text-gray-600 dark:text-[#a8a898] mb-4">
+                        Execution Layer
+                      </p>
                      <div className="border border-gray-300 dark:border-[#f6f6f4]/5" style={{ marginTop: '1rem', marginBottom: '1rem', height: '200px', position: 'relative', overflow: 'hidden' }}>
                        <Image
                          src={mounted && theme === 'dark' ? '/lig.png' : '/runtimeframe.png'}
@@ -100,14 +100,14 @@ export default function Products() {
             <div className="hidden md:flex md:col-span-2 flex-col items-start justify-start" style={{ paddingTop: '3rem', paddingBottom: '4rem', paddingRight: '2rem' }}>
                 <div className="w-full space-y-12">
 
-                 {/* Overture */}
-                 <div>
-                   <h3 className="text-lg md:text-xl font-inter mb-2 text-[#000000] dark:text-[#f6f6f4]">
-                     Overture
-                   </h3>
-                   <p className="text-xs text-gray-600 dark:text-[#a8a898] mb-4">
-                     Decision Layer
-                   </p>
+                  {/* Overture */}
+                   <div>
+                     <h3 className="text-lg md:text-xl font-inter mb-2 text-[#000000] dark:text-[#f6f6f4]">
+                       Overture
+                     </h3>
+                     <p className="text-xs text-gray-600 dark:text-[#a8a898] mb-4">
+                       Decision Layer
+                     </p>
                     <div className="border border-gray-300 dark:border-[#f6f6f4]/5" style={{ marginTop: '1rem', marginBottom: '1rem', height: '200px', position: 'relative', overflow: 'hidden' }}>
                       <Image
                         src={mounted && theme === 'dark' ? '/ov.png' : '/overtureframe.png'}
@@ -130,14 +130,14 @@ export default function Products() {
                      </button>
                  </div>
 
-                  {/* Runtime */}
-                  <div>
-                    <h3 className="text-lg md:text-xl font-inter mb-2 text-[#000000] dark:text-[#f6f6f4]">
-                      Runtime
-                    </h3>
-                    <p className="text-xs text-gray-600 dark:text-[#a8a898] mb-4">
-                      Execution Layer
-                    </p>
+                    {/* Runtime */}
+                    <div>
+                      <h3 className="text-lg md:text-xl font-inter mb-2 text-[#000000] dark:text-[#f6f6f4]">
+                        Runtime
+                      </h3>
+                      <p className="text-xs text-gray-600 dark:text-[#a8a898] mb-4">
+                        Execution Layer
+                      </p>
                       <div className="border border-gray-300 dark:border-[#f6f6f4]/5" style={{ marginTop: '1rem', marginBottom: '1rem', height: '200px', position: 'relative', overflow: 'hidden' }}>
                         <Image
                           src={mounted && theme === 'dark' ? '/lig.png' : '/runtimeframe.png'}
@@ -163,11 +163,11 @@ export default function Products() {
                </div>
              </div>
 
-              {/* Right Column: Title and Description (Desktop only) */}
-              <div className="hidden md:flex md:col-span-1 md:border-l flex-col justify-start dark:border-[#f6f6f4]/5" style={{ paddingTop: '3rem', paddingBottom: '3rem', paddingLeft: '1rem' }}>
-               <p className="text-base text-[#5fdfeb] mb-2" style={{ fontFamily: 'Roboto Mono, monospace', letterSpacing: '0.05em' }}>
-                 01. PRODUCT
-               </p>
+               {/* Right Column: Title and Description (Desktop only) */}
+               <div className="hidden md:flex md:col-span-1 md:border-l flex-col justify-start dark:border-[#f6f6f4]/5" style={{ paddingTop: '3rem', paddingBottom: '3rem', paddingLeft: '1rem' }}>
+                <p className="text-base text-[#5fdfeb] mb-2" style={{ fontFamily: 'Roboto Mono, monospace', letterSpacing: '0.05em' }}>
+                  01. COMPONENTS
+                </p>
                <h2 className="text-lg md:text-xl lg:text-2xl font-inter mb-4 text-[#000000] dark:text-[#f6f6f4]">
                  Decision and Execution
                </h2>
