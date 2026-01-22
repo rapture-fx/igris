@@ -1718,6 +1718,8 @@ export default function ObservabilityPage() {
                             fontSize: '9px',
                             padding: '4px 6px'
                           }}
+                          labelStyle={{ color: chartTheme.tooltip.text }}
+                          itemStyle={{ color: chartTheme.tooltip.text }}
                         />
                         <Legend wrapperStyle={{ paddingTop: '10px', fontSize: '8px' }} />
                         {latencyCDFMetrics.providers.map((provider, idx) => {
@@ -1973,6 +1975,8 @@ export default function ObservabilityPage() {
                         borderRadius: '8px',
                         fontSize: '10px'
                       }}
+                      labelStyle={{ color: chartTheme.tooltip.text }}
+                      itemStyle={{ color: chartTheme.tooltip.text }}
                     />
                     <Line
                       type="monotone"
@@ -2064,6 +2068,8 @@ export default function ObservabilityPage() {
                             borderRadius: '6px',
                             fontSize: '9px'
                           }}
+                          labelStyle={{ color: chartTheme.tooltip.text }}
+                          itemStyle={{ color: chartTheme.tooltip.text }}
                         />
                       </PieChart>
                     </ResponsiveContainer>
@@ -2140,6 +2146,8 @@ export default function ObservabilityPage() {
                             borderRadius: '8px',
                             fontSize: '10px'
                           }}
+                          labelStyle={{ color: chartTheme.tooltip.text }}
+                          itemStyle={{ color: chartTheme.tooltip.text }}
                         />
                         <Bar dataKey="spend" fill="url(#bar-stripe)" radius={[0, 4, 4, 0]} />
                       </BarChart>
@@ -2331,6 +2339,8 @@ export default function ObservabilityPage() {
                             borderRadius: '8px',
                             fontSize: '10px'
                           }}
+                          labelStyle={{ color: chartTheme.tooltip.text }}
+                          itemStyle={{ color: chartTheme.tooltip.text }}
                         />
                         <Bar dataKey="cpu_usage" name="CPU %" fill="url(#cpu-stripe)" />
                         <Bar dataKey="memory_usage" name="Memory %" fill="url(#memory-stripe)" />
