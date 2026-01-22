@@ -66,11 +66,11 @@ export default function RuntimePopup({ isOpen, onClose }: RuntimePopupProps) {
                 <div className="relative px-4 md:px-8 lg:px-12 pt-0 pb-8 flex flex-col bg-transparent border-l border-r border-gray-200 dark:border-[#f6f6f4]/5">
                 <div className="grid grid-cols-1 gap-0 relative mb-0 h-[280px] border-t-0">
                   {/* Row 1 - Title Top */}
-                  <div className="flex flex-col justify-start pt-5 pb-5">
+                  <div className="flex flex-col justify-start pt-5 pb-2">
                     <h4 className="text-xs md:text-sm font-medium text-[#111111] dark:text-[#f6f6f4] mb-2 font-inter text-left">
                       Safe, Sandboxed Execution
                     </h4>
-                    <p className="text-xs text-gray-600 dark:text-[#c8c8b8] font-inter text-left mb-4">
+                    <p className="text-xs text-gray-600 dark:text-[#c8c8b8] font-inter text-left mb-2">
                       How the system prevents runaway agents and protects infrastructure.
                     </p>
                   </div>
@@ -97,7 +97,7 @@ export default function RuntimePopup({ isOpen, onClose }: RuntimePopupProps) {
                   <h4 className="text-xs md:text-sm font-medium text-[#111111] dark:text-[#f6f6f4] mb-2 font-inter text-left">
                     Offline & Edge Operation
                   </h4>
-                  <p className="text-xs text-gray-600 dark:text-[#c8c8b8] font-inter text-left mb-4">
+                  <p className="text-xs text-gray-600 dark:text-[#c8c8b8] font-inter text-left mb-2">
                     How the system keeps working when infrastructure fails.
                   </p>
                 </div>
@@ -123,7 +123,7 @@ export default function RuntimePopup({ isOpen, onClose }: RuntimePopupProps) {
                   <h4 className="text-xs md:text-sm font-medium text-[#111111] dark:text-[#f6f6f4] mb-2 font-inter text-left">
                     Adaptive Fine-Tuning
                   </h4>
-                  <p className="text-xs text-gray-600 dark:text-[#c8c8b8] font-inter text-left mb-4">
+                  <p className="text-xs text-gray-600 dark:text-[#c8c8b8] font-inter text-left mb-2">
                     How the system learns and improves from local data.
                   </p>
                 </div>
@@ -145,7 +145,7 @@ export default function RuntimePopup({ isOpen, onClose }: RuntimePopupProps) {
                   <h4 className="text-xs md:text-sm font-medium text-[#111111] dark:text-[#f6f6f4] mb-2 font-inter text-left">
                     Telemetry & Learning
                   </h4>
-                  <p className="text-xs text-gray-600 dark:text-[#c8c8b8] font-inter text-left mb-4">
+                  <p className="text-xs text-gray-600 dark:text-[#c8c8b8] font-inter text-left mb-2">
                     How the system feeds data back to Overture for continuous improvement.
                   </p>
                 </div>
@@ -159,11 +159,11 @@ export default function RuntimePopup({ isOpen, onClose }: RuntimePopupProps) {
 
                {/* Row 5 */}
                <div className="grid grid-cols-1 gap-0 relative border-t border-gray-200 dark:border-[#f6f6f4]/5 h-[280px]">
-                <div className="flex flex-col justify-start pt-5 pb-5">
+                <div className="flex flex-col justify-start pt-5 pb-2">
                   <h4 className="text-xs md:text-sm font-medium text-[#111111] dark:text-[#f6f6f4] mb-2 font-inter text-left">
                     Development & Testing
                   </h4>
-                  <p className="text-xs text-gray-600 dark:text-[#c8c8b8] font-inter text-left mb-4">
+                  <p className="text-xs text-gray-600 dark:text-[#c8c8b8] font-inter text-left mb-2">
                     How teams iterate without burning budget.
                   </p>
                 </div>
