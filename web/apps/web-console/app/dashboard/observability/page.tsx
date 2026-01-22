@@ -1711,8 +1711,9 @@ export default function ObservabilityPage() {
                           formatter={(value: any) => `${value}%`}
                           labelFormatter={(label) => `${label}ms`}
                           contentStyle={{
-                            backgroundColor: '#f2f1ed',
-                            border: '1px solid #e5e4e0',
+                            backgroundColor: chartTheme.tooltip.bg,
+                            border: `1px solid ${chartTheme.tooltip.border}`,
+                            color: chartTheme.tooltip.text,
                             borderRadius: '4px',
                             fontSize: '9px',
                             padding: '4px 6px'
@@ -1966,8 +1967,9 @@ export default function ObservabilityPage() {
                       formatter={(value: any) => [`$${value.toFixed(2)}`, 'Spend']}
                       labelFormatter={(label) => `Month: ${label}`}
                       contentStyle={{
-                        backgroundColor: '#f2f1ed',
-                        border: '1px solid #e5e4e0',
+                        backgroundColor: chartTheme.tooltip.bg,
+                        border: `1px solid ${chartTheme.tooltip.border}`,
+                        color: chartTheme.tooltip.text,
                         borderRadius: '8px',
                         fontSize: '10px'
                       }}
@@ -2132,8 +2134,9 @@ export default function ObservabilityPage() {
                         <Tooltip
                           formatter={(value: any) => `$${value.toFixed(2)}`}
                           contentStyle={{
-                            backgroundColor: '#f2f1ed',
-                            border: '1px solid #e5e4e0',
+                            backgroundColor: chartTheme.tooltip.bg,
+                            border: `1px solid ${chartTheme.tooltip.border}`,
+                            color: chartTheme.tooltip.text,
                             borderRadius: '8px',
                             fontSize: '10px'
                           }}
@@ -2322,8 +2325,9 @@ export default function ObservabilityPage() {
                         <YAxis stroke={chartTheme.axis} style={{ fontSize: '10px' }} />
                         <Tooltip
                           contentStyle={{
-                            backgroundColor: '#f2f1ed',
-                            border: '1px solid #e5e4e0',
+                            backgroundColor: chartTheme.tooltip.bg,
+                            border: `1px solid ${chartTheme.tooltip.border}`,
+                            color: chartTheme.tooltip.text,
                             borderRadius: '8px',
                             fontSize: '10px'
                           }}
