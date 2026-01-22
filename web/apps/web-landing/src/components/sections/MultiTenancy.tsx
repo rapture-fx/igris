@@ -60,27 +60,27 @@ export default function MultiTenancy() {
             {/* Two-column layout */}
             <div className="grid grid-cols-1 md:grid-cols-3 gap-0 md:flex-1">
                {/* Left Column - Features (2 columns wide) */}
-               <div className="hidden md:flex md:col-span-2 flex-col" style={{ paddingTop: '3rem', paddingBottom: '3rem', paddingRight: '2rem' }}>
+                <div className="hidden md:flex md:col-span-2 flex-col" style={{ paddingTop: '3rem', paddingRight: '2rem' }}>
                  {/* Section 1: First 2 features with frame */}
                  <div className="flex gap-6 mb-6">
-                   <div className="flex-1">
-                     <div className="flex flex-col gap-6">
-                       {features.slice(0, 2).map((feature) => (
-                         <div key={feature.name} className="text-left pb-6 border-b border-[rgba(156,163,175,0.3)] dark:border-[rgba(246,246,244,0.05)] last:border-0">
-                           <h3 className="text-sm font-semibold mb-3 font-inter text-[#000000] dark:text-[#f6f6f4]">
-                             {feature.name}
-                           </h3>
-                           <p className="text-sm text-gray-600 dark:text-[#a8a898] leading-relaxed font-inter">
-                             {feature.description}
-                           </p>
-                         </div>
-                       ))}
-                     </div>
-                   </div>
-                    <div className="w-[400px] h-auto border border-[rgba(156,163,175,0.3)] dark:border-[rgba(246,246,244,0.05)] flex-shrink-0 overflow-hidden">
-                      <img src="/is.png" alt="" className="w-full h-full object-contain" style={{ opacity: 0.85 }} />
+                   <div className="w-[250px] h-auto border border-[rgba(156,163,175,0.3)] dark:border-[rgba(246,246,244,0.05)] flex-shrink-0 overflow-hidden">
+                      <img src="/is.png" alt="" className="w-full h-auto object-contain" style={{ opacity: 0.85 }} />
                     </div>
-                 </div>
+                    <div className="flex-1">
+                      <div className="flex flex-col gap-6">
+                        {features.slice(0, 2).map((feature) => (
+                          <div key={feature.name} className="text-left pb-6 border-b border-[rgba(156,163,175,0.3)] dark:border-[rgba(246,246,244,0.05)] last:border-0">
+                            <h3 className="text-sm font-semibold mb-3 font-inter text-[#000000] dark:text-[#f6f6f4]">
+                              {feature.name}
+                            </h3>
+                            <p className="text-sm text-gray-600 dark:text-[#a8a898] leading-relaxed font-inter">
+                              {feature.description}
+                            </p>
+                          </div>
+                        ))}
+                      </div>
+                    </div>
+                  </div>
                  {/* Section 2: Last 2 features with frame */}
                  <div className="flex gap-6">
                    <div className="flex-1">
@@ -97,9 +97,15 @@ export default function MultiTenancy() {
                        ))}
                      </div>
                    </div>
-                   <div className="w-[400px] h-auto border border-[rgba(156,163,175,0.3)] dark:border-[rgba(246,246,244,0.05)] flex-shrink-0"></div>
-                 </div>
-               </div>
+                    <div className="w-[250px] h-auto border border-[rgba(156,163,175,0.3)] dark:border-[rgba(246,246,244,0.05)] flex-shrink-0 overflow-hidden flex items-end">
+                       <img src="/ed.png" alt="" className="w-full h-auto object-contain" style={{ opacity: 0.85 }} />
+                     </div>
+                  </div>
+                  {/* Bottom Frame */}
+                  <div className="w-full flex-shrink-0 border-l border-r border-b border-[rgba(156,163,175,0.3)] dark:border-[rgba(246,246,244,0.05)] mt-6" style={{ paddingBottom: '3rem' }}>
+                    <div className="h-[210px] w-full border-t border-[rgba(156,163,175,0.3)] dark:border-[rgba(246,246,244,0.05)]"></div>
+                  </div>
+                </div>
 
               {/* Right Column - Title and Intro (Desktop only) */}
               <div className="hidden md:flex md:col-span-1 md:border-l flex-col justify-start dark:border-[#f6f6f4]/5" style={{ paddingTop: '3rem', paddingBottom: '3rem', paddingLeft: '1rem' }}>

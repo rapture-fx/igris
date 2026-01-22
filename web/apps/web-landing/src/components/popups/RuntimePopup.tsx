@@ -38,6 +38,7 @@ export default function RuntimePopup({ isOpen, onClose }: RuntimePopupProps) {
         <div className="flex-shrink-0 relative" style={{
           minHeight: '200px'
         }}>
+          <img src="/po.png" alt="" className="absolute inset-0 w-full h-full object-cover" style={{ opacity: 0.8 }} />
           <div className="relative px-4 md:px-8 lg:px-12 pb-0 bg-transparent z-10 overflow-visible flex flex-col border-l border-r section-border" style={{
             minHeight: '200px'
           }}>
