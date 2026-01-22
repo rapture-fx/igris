@@ -10,6 +10,7 @@ import { Badge } from '@/components/ui/badge';
 import { Input } from '@/components/ui/input';
 import { Label } from '@/components/ui/label';
 import { Switch } from '@/components/ui/switch';
+import { useChartTheme } from '@/utils/chartTheme';
 import {
   useCognitiveStatus,
   useCognitiveConfig,
@@ -60,6 +61,7 @@ const sliderStyles = `
 `;
 
 export default function CognitiveAdvisorPage() {
+  const chartTheme = useChartTheme();
   const { data: status } = useCognitiveStatus();
   const { data: config } = useCognitiveConfig();
   const { data: observationsData } = useCognitiveObservations();
@@ -135,28 +137,28 @@ export default function CognitiveAdvisorPage() {
   const getSeverityColor = (severity: string) => {
     switch (severity) {
       case 'critical':
-        return 'bg-red-50 text-red-700 border-red-200';
+        return 'bg-red-50 text-red-700 border-red-200 dark:bg-red-950 dark:text-red-400 dark:border-red-900';
       case 'high':
-        return 'bg-orange-50 text-orange-700 border-orange-200';
+        return 'bg-orange-50 text-orange-700 border-orange-200 dark:bg-orange-950 dark:text-orange-400 dark:border-orange-900';
       case 'medium':
-        return 'bg-yellow-50 text-yellow-700 border-yellow-200';
+        return 'bg-yellow-50 text-yellow-700 border-yellow-200 dark:bg-yellow-950 dark:text-yellow-400 dark:border-yellow-900';
       case 'low':
-        return 'bg-blue-50 text-blue-700 border-blue-200';
+        return 'bg-blue-50 text-blue-700 border-blue-200 dark:bg-blue-950 dark:text-blue-400 dark:border-blue-900';
       default:
-        return 'bg-gray-50 text-gray-700 border-gray-200';
+        return 'bg-gray-50 text-gray-700 border dark:bg-card dark:text-[#a8a898] dark:border-[#f6f6f4]/5';
     }
   };
 
   const getPriorityColor = (priority: string) => {
     switch (priority) {
       case 'high':
-        return 'bg-red-50 text-red-700 border-red-200';
+        return 'bg-red-50 text-red-700 border-red-200 dark:bg-red-950 dark:text-red-400 dark:border-red-900';
       case 'medium':
-        return 'bg-yellow-50 text-yellow-700 border-yellow-200';
+        return 'bg-yellow-50 text-yellow-700 border-yellow-200 dark:bg-yellow-950 dark:text-yellow-400 dark:border-yellow-900';
       case 'low':
-        return 'bg-blue-50 text-blue-700 border-blue-200';
+        return 'bg-blue-50 text-blue-700 border-blue-200 dark:bg-blue-950 dark:text-blue-400 dark:border-blue-900';
       default:
-        return 'bg-gray-50 text-gray-700 border-gray-200';
+        return 'bg-gray-50 text-gray-700 border dark:bg-card dark:text-[#a8a898] dark:border-[#f6f6f4]/5';
     }
   };
 
@@ -165,49 +167,49 @@ export default function CognitiveAdvisorPage() {
       <style>{sliderStyles}</style>
       <div className="max-w-7xl mx-auto space-y-6">
         {/* Header */}
-        <div className="pb-4 border-b border-border-light">
-          <h1 className="text-base font-medium text-gray-900 font-inter">Cognitive Advisor</h1>
-          <p className="text-gray-600 mt-1 font-inter text-xs">
+        <div className="pb-4 border-b border-border">
+          <h1 className="text-base font-medium text-foreground font-inter">Cognitive Advisor</h1>
+          <p className="text-muted-foreground mt-1 font-inter text-xs">
             AI-powered observability and automated optimization recommendations
           </p>
         </div>
 
         {/* Overview Cards */}
-        <div className="bg-beige-primary">
+        <div className="bg-card">
           <div className="grid grid-cols-2 divide-x divide-border-light">
             <div className="p-4">
-              <div className="text-xs font-medium text-gray-600 mb-1">Status</div>
+              <div className="text-xs font-medium text-muted-foreground mb-1">Status</div>
               <div className="pb-2">
-                <Badge className="bg-gray-50 text-gray-700 border">
+                <Badge className="bg-gray-50 text-gray-700 border dark:bg-card dark:text-[#a8a898] dark:border-[#f6f6f4]/5">
                   {getStatusIcon(status?.status)}
                   {status?.status === 'active' ? 'Active' : status?.status === 'paused' ? 'Paused' : 'Learning'}
                 </Badge>
               </div>
             </div>
             <div className="p-4">
-              <div className="text-xs font-medium text-gray-600 mb-1">Confidence Score</div>
-              <div className="text-lg font-bold text-gray-900">{status?.confidence_score.toFixed(1)}%</div>
-              <p className="text-[0.65rem] text-gray-600 mt-1">current confidence</p>
+              <div className="text-xs font-medium text-muted-foreground mb-1">Confidence Score</div>
+              <div className="text-lg font-bold text-foreground">{status?.confidence_score.toFixed(1)}%</div>
+              <p className="text-[0.65rem] text-muted-foreground mt-1">current confidence</p>
             </div>
           </div>
-          <div className="grid grid-cols-2 divide-x divide-border-light border-t border-border-light">
+          <div className="grid grid-cols-2 divide-x divide-border-light border-t border-border">
             <div className="p-4">
-              <div className="text-xs font-medium text-gray-600 mb-1">Potential Savings</div>
-              <div className="text-lg font-bold text-gray-900">
+              <div className="text-xs font-medium text-muted-foreground mb-1">Potential Savings</div>
+              <div className="text-lg font-bold text-foreground">
                 ${status?.potential_savings_low}-${status?.potential_savings_high}
               </div>
-              <p className="text-[0.65rem] text-gray-600 mt-1">estimated monthly</p>
+              <p className="text-[0.65rem] text-muted-foreground mt-1">estimated monthly</p>
             </div>
             <div className="p-4">
-              <div className="text-xs font-medium text-gray-600 mb-1">Acceptance Rate</div>
-              <div className="text-lg font-bold text-gray-900">{status?.acceptance_rate.toFixed(1)}%</div>
-              <p className="text-[0.65rem] text-gray-600 mt-1">recommendations applied</p>
+              <div className="text-xs font-medium text-muted-foreground mb-1">Acceptance Rate</div>
+              <div className="text-lg font-bold text-foreground">{status?.acceptance_rate.toFixed(1)}%</div>
+              <p className="text-[0.65rem] text-muted-foreground mt-1">recommendations applied</p>
             </div>
           </div>
         </div>
 
         {/* Current Observations */}
-        <Card className="border-border-light shadow-sm">
+        <Card className="border-border shadow-sm">
           <CardHeader>
             <CardTitle className="text-sm">Current Observations</CardTitle>
             <CardDescription className="text-xs">Detected issues and anomalies ({status?.observations_count || 0})</CardDescription>
@@ -215,23 +217,23 @@ export default function CognitiveAdvisorPage() {
           <CardContent>
             <div className="space-y-3 overflow-auto max-h-96 hide-scrollbar">
               {observations?.map((obs) => (
-                <div key={obs.id} className="flex items-start gap-3 p-3 bg-beige-primary rounded-lg border border-border-light">
+                <div key={obs.id} className="flex items-start gap-3 p-3 bg-card rounded-lg border border-border">
                   <div className="flex-1">
                     <div className="flex items-center gap-2 mb-1">
                       <Badge className={getSeverityColor(obs.severity)}>
                         {obs.severity}
                       </Badge>
-                      <Badge className="bg-gray-50 text-gray-700 border">
+                      <Badge className="bg-gray-50 text-gray-700 border dark:bg-card dark:text-[#a8a898] dark:border-[#f6f6f4]/5">
                         {obs.type}
                       </Badge>
                       {obs.provider && (
-                        <span className="text-xs text-gray-600">{obs.provider}</span>
+                        <span className="text-xs text-muted-foreground">{obs.provider}</span>
                       )}
                       {obs.model && (
-                        <span className="text-xs text-gray-600">{obs.model}</span>
+                        <span className="text-xs text-muted-foreground">{obs.model}</span>
                       )}
                     </div>
-                    <p className="text-xs text-gray-900 font-medium">{obs.description}</p>
+                    <p className="text-xs text-foreground font-medium">{obs.description}</p>
                     <div className="flex items-center gap-2 mt-1">
                       {obs.trend === 'up' ? (
                         <TrendingUp className="h-3 w-3 text-red-600" />
@@ -241,7 +243,7 @@ export default function CognitiveAdvisorPage() {
                       <span className={`text-xs font-medium ${obs.trend === 'up' ? 'text-red-600' : 'text-green-600'}`}>
                         {obs.metric_change}% {obs.metric_unit}
                       </span>
-                      <span className="text-xs text-gray-600">
+                      <span className="text-xs text-muted-foreground">
                         {new Date(obs.timestamp).toLocaleTimeString()}
                       </span>
                     </div>
@@ -249,7 +251,7 @@ export default function CognitiveAdvisorPage() {
                 </div>
               ))}
               {(!observations || observations.length === 0) && (
-                <div className="text-center py-8 text-xs text-gray-600">
+                <div className="text-center py-8 text-xs text-muted-foreground">
                   No observations detected
                 </div>
               )}
@@ -258,7 +260,7 @@ export default function CognitiveAdvisorPage() {
         </Card>
 
         {/* Recommended Actions */}
-        <Card className="border-border-light shadow-sm">
+        <Card className="border-border shadow-sm">
           <CardHeader>
             <CardTitle className="text-sm">Recommended Actions</CardTitle>
             <CardDescription className="text-xs">AI-generated optimization suggestions ({status?.recommendations_count || 0})</CardDescription>
@@ -266,13 +268,13 @@ export default function CognitiveAdvisorPage() {
           <CardContent>
             <div className="space-y-3 overflow-auto max-h-96 hide-scrollbar">
               {recommendations?.map((rec) => (
-                <div key={rec.id} className="p-4 bg-beige-primary rounded-lg border border-border-light">
+                <div key={rec.id} className="p-4 bg-card rounded-lg border border-border">
                   <div className="flex items-start justify-between mb-2">
                     <div className="flex items-center gap-2">
                       <Badge className={getPriorityColor(rec.priority)}>
                         {rec.priority} priority
                       </Badge>
-                      <span className="text-xs text-gray-600">
+                      <span className="text-xs text-muted-foreground">
                         {rec.confidence.toFixed(1)}% confidence
                       </span>
                     </div>
@@ -298,32 +300,32 @@ export default function CognitiveAdvisorPage() {
                       </Button>
                     </div>
                   </div>
-                  <p className="text-xs font-medium text-gray-900 mb-2">{rec.action}</p>
+                  <p className="text-xs font-medium text-foreground mb-2">{rec.action}</p>
                   <div className="grid grid-cols-3 gap-3 text-xs">
                     <div>
-                      <span className="text-gray-600">Quality:</span>
+                      <span className="text-muted-foreground">Quality:</span>
                       <span className={`ml-1 font-medium ${rec.predicted_impact.quality_change >= 0 ? 'text-green-600' : 'text-red-600'}`}>
                         {rec.predicted_impact.quality_change >= 0 ? '+' : ''}{rec.predicted_impact.quality_change.toFixed(1)}%
                       </span>
                     </div>
                     <div>
-                      <span className="text-gray-600">Cost:</span>
+                      <span className="text-muted-foreground">Cost:</span>
                       <span className={`ml-1 font-medium ${rec.predicted_impact.cost_change <= 0 ? 'text-green-600' : 'text-red-600'}`}>
                         {rec.predicted_impact.cost_change >= 0 ? '+' : ''}{rec.predicted_impact.cost_change.toFixed(1)}%
                       </span>
                     </div>
                     <div>
-                      <span className="text-gray-600">Latency:</span>
+                      <span className="text-muted-foreground">Latency:</span>
                       <span className={`ml-1 font-medium ${rec.predicted_impact.latency_change <= 0 ? 'text-green-600' : 'text-red-600'}`}>
                         {rec.predicted_impact.latency_change >= 0 ? '+' : ''}{rec.predicted_impact.latency_change.toFixed(1)}%
                       </span>
                     </div>
                   </div>
-                  <p className="text-xs text-gray-600 mt-2">{rec.reason}</p>
+                  <p className="text-xs text-muted-foreground mt-2">{rec.reason}</p>
                 </div>
               ))}
               {(!recommendations || recommendations.length === 0) && (
-                <div className="text-center py-8 text-xs text-gray-600">
+                <div className="text-center py-8 text-xs text-muted-foreground">
                   No recommendations available
                 </div>
               )}
@@ -332,7 +334,7 @@ export default function CognitiveAdvisorPage() {
         </Card>
 
         {/* History & Performance */}
-        <Card className="border-border-light shadow-sm">
+        <Card className="border-border shadow-sm">
           <CardHeader>
             <CardTitle className="text-sm">History & Performance</CardTitle>
             <CardDescription className="text-xs">Past recommendations and their impact</CardDescription>
@@ -341,34 +343,34 @@ export default function CognitiveAdvisorPage() {
             <div className="overflow-auto max-h-96 hide-scrollbar">
               <table className="w-full text-xs">
                 <thead>
-                  <tr className="border-b border-border-light">
-                    <th className="text-left py-2 px-3 font-medium text-gray-600">Date</th>
-                    <th className="text-left py-2 px-3 font-medium text-gray-600">Action</th>
-                    <th className="text-left py-2 px-3 font-medium text-gray-600">Status</th>
-                    <th className="text-left py-2 px-3 font-medium text-gray-600">Predicted Impact</th>
-                    <th className="text-left py-2 px-3 font-medium text-gray-600">Actual Impact</th>
-                    <th className="text-left py-2 px-3 font-medium text-gray-600">Variance</th>
+                  <tr className="border-b border-border">
+                    <th className="text-left py-2 px-3 font-medium text-muted-foreground">Date</th>
+                    <th className="text-left py-2 px-3 font-medium text-muted-foreground">Action</th>
+                    <th className="text-left py-2 px-3 font-medium text-muted-foreground">Status</th>
+                    <th className="text-left py-2 px-3 font-medium text-muted-foreground">Predicted Impact</th>
+                    <th className="text-left py-2 px-3 font-medium text-muted-foreground">Actual Impact</th>
+                    <th className="text-left py-2 px-3 font-medium text-muted-foreground">Variance</th>
                   </tr>
                 </thead>
                 <tbody>
                   {history?.map((entry) => (
-                    <tr key={entry.id} className="border-b border-gray-100 hover:bg-beige-secondary">
-                      <td className="py-2 px-3 text-gray-900">
+                    <tr key={entry.id} className="border-b border-gray-100 hover:bg-muted">
+                      <td className="py-2 px-3 text-foreground">
                         {new Date(entry.date).toLocaleDateString()}
                       </td>
-                      <td className="py-2 px-3 text-gray-900">{entry.action}</td>
+                      <td className="py-2 px-3 text-foreground">{entry.action}</td>
                       <td className="py-2 px-3">
-                        <Badge className={entry.accepted ? 'bg-green-50 text-green-700 border border-green-200' : 'bg-gray-50 text-gray-700 border'}>
+                        <Badge className={entry.accepted ? 'bg-green-50 text-green-700 border border-green-200 dark:bg-green-950 dark:text-green-400 dark:border-green-900' : 'bg-gray-50 text-gray-700 border dark:bg-card dark:text-[#a8a898] dark:border-[#f6f6f4]/5'}>
                           {entry.accepted ? <ThumbsUp className="h-3 w-3 mr-1" /> : <ThumbsDown className="h-3 w-3 mr-1" />}
                           {entry.accepted ? 'Applied' : 'Rejected'}
                         </Badge>
                       </td>
-                      <td className="py-2 px-3 text-gray-900">
+                      <td className="py-2 px-3 text-foreground">
                         Q: {entry.predicted_impact.quality.toFixed(1)}%,
                         C: {entry.predicted_impact.cost.toFixed(1)}%,
                         L: {entry.predicted_impact.latency.toFixed(1)}%
                       </td>
-                      <td className="py-2 px-3 text-gray-900">
+                      <td className="py-2 px-3 text-foreground">
                         {entry.actual_impact ? (
                           <>
                             Q: {entry.actual_impact.quality.toFixed(1)}%,
@@ -376,7 +378,7 @@ export default function CognitiveAdvisorPage() {
                             L: {entry.actual_impact.latency.toFixed(1)}%
                           </>
                         ) : (
-                          <span className="text-gray-600">N/A</span>
+                          <span className="text-muted-foreground">N/A</span>
                         )}
                       </td>
                       <td className="py-2 px-3">
@@ -385,7 +387,7 @@ export default function CognitiveAdvisorPage() {
                             ±{entry.variance.toFixed(1)}%
                           </span>
                         ) : (
-                          <span className="text-gray-600">-</span>
+                          <span className="text-muted-foreground">-</span>
                         )}
                       </td>
                     </tr>
@@ -397,7 +399,7 @@ export default function CognitiveAdvisorPage() {
         </Card>
 
         {/* Configuration */}
-        <Card className="border-border-light shadow-sm">
+        <Card className="border-border shadow-sm">
           <CardHeader className="pb-3">
             <CardTitle className="text-xs">Configuration</CardTitle>
             <CardDescription className="text-xs">Cognitive Advisor settings and thresholds</CardDescription>
@@ -407,7 +409,7 @@ export default function CognitiveAdvisorPage() {
               <div className="grid grid-cols-2 gap-3">
                 <div className="space-y-1">
                   <div className="flex items-center justify-between">
-                    <Label htmlFor="enabled" className="text-xs font-medium text-gray-900">Enable Cognitive Advisor</Label>
+                    <Label htmlFor="enabled" className="text-xs font-medium text-foreground">Enable Cognitive Advisor</Label>
                     <Switch
                       id="enabled"
                       checked={editableConfig.enabled}
@@ -415,12 +417,12 @@ export default function CognitiveAdvisorPage() {
                       className="scale-50"
                     />
                   </div>
-                  <p className="text-[0.6rem] text-gray-600">Activate AI-powered recommendations</p>
+                  <p className="text-[0.6rem] text-muted-foreground">Activate AI-powered recommendations</p>
                 </div>
 
                 <div className="space-y-1">
                   <div className="flex items-center justify-between">
-                    <Label htmlFor="learning_mode" className="text-xs font-medium text-gray-900">Learning Mode</Label>
+                    <Label htmlFor="learning_mode" className="text-xs font-medium text-foreground">Learning Mode</Label>
                     <Switch
                       id="learning_mode"
                       checked={editableConfig.learning_mode}
@@ -428,11 +430,11 @@ export default function CognitiveAdvisorPage() {
                       className="scale-50"
                     />
                   </div>
-                  <p className="text-[0.6rem] text-gray-600">Observe without applying changes</p>
+                  <p className="text-[0.6rem] text-muted-foreground">Observe without applying changes</p>
                 </div>
 
                 <div className="space-y-1">
-                  <Label htmlFor="aggressiveness" className="text-xs font-medium text-gray-900">
+                  <Label htmlFor="aggressiveness" className="text-xs font-medium text-foreground">
                     Aggressiveness ({editableConfig.aggressiveness}%)
                   </Label>
                   <Input
@@ -444,11 +446,11 @@ export default function CognitiveAdvisorPage() {
                     onChange={(e) => handleConfigChange('aggressiveness', parseInt(e.target.value))}
                     className="scale-[0.6] origin-left dark-blue-slider h-1"
                   />
-                  <p className="text-[0.6rem] text-gray-600">How aggressive optimization should be</p>
+                  <p className="text-[0.6rem] text-muted-foreground">How aggressive optimization should be</p>
                 </div>
 
                 <div className="space-y-1">
-                  <Label htmlFor="min_confidence" className="text-xs font-medium text-gray-900">
+                  <Label htmlFor="min_confidence" className="text-xs font-medium text-foreground">
                     Min Confidence ({editableConfig.min_confidence_threshold}%)
                   </Label>
                   <Input
@@ -460,11 +462,11 @@ export default function CognitiveAdvisorPage() {
                     onChange={(e) => handleConfigChange('min_confidence_threshold', parseInt(e.target.value))}
                     className="scale-[0.6] origin-left dark-blue-slider h-1"
                   />
-                  <p className="text-[0.6rem] text-gray-600">Minimum confidence to show recommendation</p>
+                  <p className="text-[0.6rem] text-muted-foreground">Minimum confidence to show recommendation</p>
                 </div>
 
                 <div className="space-y-1">
-                  <Label htmlFor="auto_apply" className="text-xs font-medium text-gray-900">
+                  <Label htmlFor="auto_apply" className="text-xs font-medium text-foreground">
                     Auto-Apply Threshold ({editableConfig.auto_apply_threshold}%)
                   </Label>
                   <Input
@@ -476,11 +478,11 @@ export default function CognitiveAdvisorPage() {
                     onChange={(e) => handleConfigChange('auto_apply_threshold', parseInt(e.target.value))}
                     className="scale-[0.6] origin-left dark-blue-slider h-1"
                   />
-                  <p className="text-[0.6rem] text-gray-600">Auto-apply recommendations above this confidence</p>
+                  <p className="text-[0.6rem] text-muted-foreground">Auto-apply recommendations above this confidence</p>
                 </div>
 
                 <div className="space-y-1">
-                  <Label htmlFor="observation_window" className="text-xs font-medium text-gray-900">Observation Window (hours)</Label>
+                  <Label htmlFor="observation_window" className="text-xs font-medium text-foreground">Observation Window (hours)</Label>
                   <Input
                     id="observation_window"
                     type="number"
@@ -490,7 +492,7 @@ export default function CognitiveAdvisorPage() {
                     min="1"
                     max="24"
                   />
-                  <p className="text-[0.6rem] text-gray-600">Time window for detecting trends</p>
+                  <p className="text-[0.6rem] text-muted-foreground">Time window for detecting trends</p>
                 </div>
               </div>
 
@@ -510,14 +512,14 @@ export default function CognitiveAdvisorPage() {
         </Card>
 
         {/* How Cognitive Advisor Works */}
-        <Card className="border-border-light shadow-sm">
+        <Card className="border-border shadow-sm">
           <CardHeader>
             <CardTitle className="text-sm">How Cognitive Advisor Works</CardTitle>
             <CardDescription className="text-xs">AI-powered observability and optimization</CardDescription>
           </CardHeader>
           <CardContent>
-            <div className="bg-beige-primary border border-border-light rounded-lg p-4">
-              <ul className="text-xs text-gray-800 space-y-1 list-disc list-inside">
+            <div className="bg-card border border-border rounded-lg p-4">
+              <ul className="text-xs text-foreground space-y-1 list-disc list-inside">
                 <li>Continuously monitors provider performance, latency, cost, and quality metrics</li>
                 <li>Detects anomalies, degradations, and opportunities using machine learning</li>
                 <li>Generates actionable recommendations with predicted impact and confidence scores</li>

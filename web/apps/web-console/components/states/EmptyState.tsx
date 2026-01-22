@@ -25,13 +25,13 @@ export function EmptyState({
   actionLabel = 'Get Started',
   onAction,
 }: EmptyStateProps) {
-  const IconComponent = icon || <Inbox className="h-8 w-8 text-gray-400" />;
+  const IconComponent = icon || <Inbox className="h-8 w-8 text-muted-foreground" />;
 
   return (
     <div className="flex items-center justify-center p-12">
       <Card className="max-w-md w-full border-border-light bg-transparent shadow-none">
         <CardHeader className="text-center">
-          <div className="mx-auto mb-4 w-16 h-16 rounded-full bg-gray-100 flex items-center justify-center">
+          <div className="mx-auto mb-4 w-16 h-16 rounded-full bg-gray-100 dark:bg-gray-800 flex items-center justify-center">
             {IconComponent}
           </div>
           <CardTitle className="text-lg font-medium text-gray-900">

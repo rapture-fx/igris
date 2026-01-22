@@ -7,6 +7,7 @@ import { Menu, Bell, LogOut, CreditCard, ChevronDown } from 'lucide-react';
 import { Button } from '@/components/ui/button';
 import { useTenant } from '@/hooks/useTenant';
 import { getInitials } from '@/utils/helpers';
+import { ThemeSwitcher } from '@/components/ThemeSwitcher';
 import {
   Dialog,
   DialogContent,
@@ -71,7 +72,7 @@ export function Navbar({ onMenuClick }: NavbarProps) {
 
   return (
     <>
-    <nav className="fixed top-0 left-0 md:left-64 right-0 z-40 h-12 bg-beige-primary md:pl-12 md:pr-2">
+    <nav className="fixed top-0 left-0 md:left-64 right-0 z-40 h-12 bg-background md:pl-12 md:pr-2">
         <div className="h-full px-4 sm:px-6 lg:px-8 md:px-0">
           <div className="flex h-full items-center justify-between">
             {/* Left side - Menu button (mobile only) */}
@@ -88,6 +89,9 @@ export function Navbar({ onMenuClick }: NavbarProps) {
 
             {/* Right side - Notifications and Profile */}
             <div className="flex items-center gap-2">
+              {/* Theme Switcher */}
+              <ThemeSwitcher />
+
               {/* Notifications */}
               <div className="relative">
                 <Button
@@ -111,17 +115,17 @@ export function Navbar({ onMenuClick }: NavbarProps) {
                     className="fixed inset-0 z-40"
                     onClick={() => setShowNotifications(false)}
                   />
-                  <div className="absolute right-0 top-full mt-2 w-80 z-50 bg-beige-primary border border-border-light rounded-lg shadow-lg overflow-hidden">
-                    <div className="p-4 border-b border-border-light">
-                      <h3 className="text-sm font-semibold text-gray-900">Notifications</h3>
-                      <p className="text-xs text-gray-600 mt-1">{unreadCount} unread</p>
+                  <div className="absolute right-0 top-full mt-2 w-80 z-50 bg-background border border-border rounded-lg shadow-lg overflow-hidden">
+                    <div className="p-4 border-b border-border">
+                      <h3 className="text-sm font-semibold text-foreground">Notifications</h3>
+                      <p className="text-xs text-muted-foreground mt-1">{unreadCount} unread</p>
                     </div>
                     <div className="max-h-96 overflow-y-auto">
                       {notifications.map((notification) => (
                         <div
                           key={notification.id}
-                          className={`p-4 border-b border-border-light hover:bg-beige-secondary cursor-pointer ${
-                            !notification.read ? 'bg-blue-50' : ''
+                          className={`p-4 border-b border-border hover:bg-muted cursor-pointer ${
+                            !notification.read ? 'bg-primary/10' : ''
                           }`}
                         >
                           <div className="flex items-start gap-3">
@@ -132,16 +136,16 @@ export function Navbar({ onMenuClick }: NavbarProps) {
                               'bg-blue-500'
                             }`} />
                             <div className="flex-1 min-w-0">
-                              <h4 className="text-sm font-medium text-gray-900">{notification.title}</h4>
-                              <p className="text-xs text-gray-600 mt-1">{notification.message}</p>
-                              <p className="text-xs text-gray-500 mt-1">{notification.timestamp}</p>
+                              <h4 className="text-sm font-medium text-foreground">{notification.title}</h4>
+                              <p className="text-xs text-muted-foreground mt-1">{notification.message}</p>
+                              <p className="text-xs text-muted-foreground opacity-75 mt-1">{notification.timestamp}</p>
                             </div>
                           </div>
                         </div>
                       ))}
                     </div>
-                    <div className="p-3 border-t border-border-light bg-beige-primary">
-                      <button className="text-xs text-gray-600 hover:text-gray-900 font-medium w-full text-center">
+                    <div className="p-3 border-t border-border bg-background">
+                      <button className="text-xs text-muted-foreground hover:text-foreground font-medium w-full text-center">
                         View All Notifications
                       </button>
                     </div>
@@ -154,12 +158,12 @@ export function Navbar({ onMenuClick }: NavbarProps) {
               <div className="relative">
                 <button
                   onClick={() => setShowProfileMenu(!showProfileMenu)}
-                  className="flex items-center gap-2 hover:bg-beige-secondary rounded-lg p-1.5 pr-2.5 transition-colors"
+                  className="flex items-center gap-2 hover:bg-muted rounded-lg p-1.5 pr-2.5 transition-colors"
                 >
-                  <div className="flex items-center justify-center w-6 h-6 rounded-full bg-gray-900 text-white font-semibold text-[0.65rem]">
+                  <div className="flex items-center justify-center w-6 h-6 rounded-full bg-foreground text-background font-semibold text-[0.65rem]">
                     {tenant ? getInitials(tenant.name) : 'U'}
                   </div>
-                  <ChevronDown className="h-4 w-4 text-gray-600" />
+                  <ChevronDown className="h-4 w-4 text-muted-foreground" />
                 </button>
 
                 {/* Profile Menu Dropdown */}
@@ -169,41 +173,41 @@ export function Navbar({ onMenuClick }: NavbarProps) {
                       className="fixed inset-0 z-40"
                       onClick={() => setShowProfileMenu(false)}
                     />
-                    <div className="absolute right-0 top-full mt-2 w-56 z-50 bg-beige-primary border border-border-light rounded-lg shadow-lg p-2">
-                      <div className="px-3 py-2 border-b border-border-light">
-                        <p className="text-xs font-medium font-inter text-gray-900">
+                    <div className="absolute right-0 top-full mt-2 w-56 z-50 bg-background border border-border rounded-lg shadow-lg p-2">
+                      <div className="px-3 py-2 border-b border-border">
+                        <p className="text-xs font-medium font-inter text-foreground">
                           {tenant?.name || 'Profile'}
                         </p>
-                        <p className="text-[0.65rem] text-gray-600 font-inter mt-0.5">
+                        <p className="text-[0.65rem] text-muted-foreground font-inter mt-0.5">
                           {tenant?.email || 'user@example.com'}
                         </p>
                       </div>
 
                       <button
-                        className="flex items-center gap-2 w-full px-3 py-2 rounded-lg hover:bg-beige-secondary transition-colors text-left mt-1"
+                        className="flex items-center gap-2 w-full px-3 py-2 rounded-lg hover:bg-muted transition-colors text-left mt-1"
                         onClick={() => {
                           setShowProfileMenu(false);
                           // Billing logic will be implemented later
                         }}
                       >
-                        <CreditCard className="h-3.5 w-3.5 text-gray-700" />
+                        <CreditCard className="h-3.5 w-3.5 text-foreground opacity-70" />
                         <div>
-                          <p className="text-xs font-medium font-inter text-gray-900">Billing</p>
-                          <p className="text-[0.65rem] text-gray-600 font-inter">Manage your subscription</p>
+                          <p className="text-xs font-medium font-inter text-foreground">Billing</p>
+                          <p className="text-[0.65rem] text-muted-foreground font-inter">Manage your subscription</p>
                         </div>
                       </button>
 
                       <button
-                        className="flex items-center gap-2 w-full px-3 py-2 rounded-lg hover:bg-beige-secondary transition-colors text-left border-t border-border-light mt-1 pt-2"
+                        className="flex items-center gap-2 w-full px-3 py-2 rounded-lg hover:bg-muted transition-colors text-left border-t border-border mt-1 pt-2"
                         onClick={() => {
                           setShowProfileMenu(false);
                           setShowLogoutDialog(true);
                         }}
                       >
-                        <LogOut className="h-3.5 w-3.5 text-gray-900" />
+                        <LogOut className="h-3.5 w-3.5 text-foreground" />
                         <div>
-                          <p className="text-xs font-medium font-inter text-gray-900">Logout</p>
-                          <p className="text-[0.65rem] text-gray-600 font-inter">Sign out of your account</p>
+                          <p className="text-xs font-medium font-inter text-foreground">Logout</p>
+                          <p className="text-[0.65rem] text-muted-foreground font-inter">Sign out of your account</p>
                         </div>
                       </button>
                     </div>

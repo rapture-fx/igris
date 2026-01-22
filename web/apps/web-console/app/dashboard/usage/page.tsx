@@ -27,10 +27,12 @@ import {
   Legend,
 } from 'recharts';
 import { CHART_COLORS } from '@/utils/constants';
+import { useChartTheme } from '@/utils/chartTheme';
 
 const COLORS = [CHART_COLORS.primary, CHART_COLORS.secondary, CHART_COLORS.tertiary, CHART_COLORS.warning];
 
 export default function UsagePage() {
+  const chartTheme = useChartTheme();
   const [timeRange, setTimeRange] = useState<'day' | 'week' | 'month'>('week');
   const { data: usage, isLoading } = useUsage({
     granularity: timeRange === 'day' ? 'hour' : 'day',
@@ -90,7 +92,7 @@ export default function UsagePage() {
     return (
       <DashboardLayout>
         <div className="flex items-center justify-center h-64">
-          <Loader2 className="h-12 w-12 animate-spin text-gray-900" />
+          <Loader2 className="h-12 w-12 animate-spin text-foreground" />
         </div>
       </DashboardLayout>
     );
@@ -101,11 +103,11 @@ export default function UsagePage() {
       <div className="max-w-7xl mx-auto space-y-6">
         {/* Header */}
         <div className="flex items-center justify-between">
-          <div className="pb-4 border-b border-border-light">
-            <h1 className="text-base font-medium text-gray-900 font-inter">
+          <div className="pb-4 border-b border-border">
+            <h1 className="text-base font-medium text-foreground font-inter">
               Usage & Analytics
             </h1>
-            <p className="text-gray-600 mt-1 font-inter text-xs">
+            <p className="text-muted-foreground mt-1 font-inter text-xs">
               Detailed insights into your API usage
             </p>
           </div>
@@ -122,35 +124,35 @@ export default function UsagePage() {
         </div>
 
         {/* Metrics Grid Layout */}
-        <div className="bg-beige-primary">
+        <div className="bg-card">
           <div className="grid grid-cols-2 divide-x divide-border-light">
             <div className="p-4">
-              <div className="text-xs font-medium text-gray-600 mb-1">Total Requests</div>
-              <div className="text-lg font-bold text-gray-900">{formatNumber(displayUsage?.total_requests || 0)}</div>
-              <p className="text-[0.65rem] text-gray-600 mt-1">
+              <div className="text-xs font-medium text-muted-foreground mb-1">Total Requests</div>
+              <div className="text-lg font-bold text-foreground">{formatNumber(displayUsage?.total_requests || 0)}</div>
+              <p className="text-[0.65rem] text-muted-foreground mt-1">
                 Across all providers
               </p>
             </div>
             <div className="p-4">
-              <div className="text-xs font-medium text-gray-600 mb-1">Total Cost</div>
-              <div className="text-lg font-bold text-gray-900">{formatCurrency(displayUsage?.total_cost || 0)}</div>
-              <p className="text-[0.65rem] text-gray-600 mt-1">
+              <div className="text-xs font-medium text-muted-foreground mb-1">Total Cost</div>
+              <div className="text-lg font-bold text-foreground">{formatCurrency(displayUsage?.total_cost || 0)}</div>
+              <p className="text-[0.65rem] text-muted-foreground mt-1">
                 This period
               </p>
             </div>
           </div>
-          <div className="grid grid-cols-2 divide-x divide-border-light border-t border-border-light">
+          <div className="grid grid-cols-2 divide-x divide-border-light border-t border-border">
             <div className="p-4">
-              <div className="text-xs font-medium text-gray-600 mb-1">Avg Latency</div>
-              <div className="text-lg font-bold text-gray-900">{formatLatency(displayUsage?.avg_latency || 0)}</div>
-              <p className="text-[0.65rem] text-gray-600 mt-1">
+              <div className="text-xs font-medium text-muted-foreground mb-1">Avg Latency</div>
+              <div className="text-lg font-bold text-foreground">{formatLatency(displayUsage?.avg_latency || 0)}</div>
+              <p className="text-[0.65rem] text-muted-foreground mt-1">
                 Response time
               </p>
             </div>
             <div className="p-4">
-              <div className="text-xs font-medium text-gray-600 mb-1">Total Tokens</div>
-              <div className="text-lg font-bold text-gray-900">{formatNumber(displayUsage?.total_tokens || 0)}</div>
-              <p className="text-[0.65rem] text-gray-600 mt-1">
+              <div className="text-xs font-medium text-muted-foreground mb-1">Total Tokens</div>
+              <div className="text-lg font-bold text-foreground">{formatNumber(displayUsage?.total_tokens || 0)}</div>
+              <p className="text-[0.65rem] text-muted-foreground mt-1">
                 Input + output
               </p>
             </div>
@@ -167,7 +169,7 @@ export default function UsagePage() {
 
           <TabsContent value={timeRange} className="space-y-6">
             {/* Requests & Cost Timeline */}
-            <Card className="border-border-light shadow-sm">
+            <Card className="border-border shadow-sm">
               <CardHeader>
                 <CardTitle className="text-sm">Requests & Cost Over Time</CardTitle>
                 <CardDescription className="text-xs">Track your usage and spending</CardDescription>
@@ -175,11 +177,11 @@ export default function UsagePage() {
               <CardContent>
                 <ResponsiveContainer width="100%" height={200}>
                   <LineChart data={displayUsage?.timeline || []}>
-                    <CartesianGrid strokeDasharray="3 3" stroke="#e5e7eb" strokeWidth={0.5} />
-                    <XAxis dataKey="timestamp" stroke="#6b7280" style={{ fontSize: '10px' }} />
-                    <YAxis yAxisId="left" stroke="#6b7280" style={{ fontSize: '10px' }} />
-                    <YAxis yAxisId="right" orientation="right" stroke="#6b7280" style={{ fontSize: '10px' }} />
-                    <Tooltip contentStyle={{ fontSize: '11px', backgroundColor: '#faf9f7', borderRadius: '6px', border: '1px solid #e5e7eb' }} />
+                    <CartesianGrid strokeDasharray="3 3" stroke={chartTheme.grid} strokeWidth={0.5} />
+                    <XAxis dataKey="timestamp" stroke={chartTheme.axis} style={{ fontSize: '10px' }} />
+                    <YAxis yAxisId="left" stroke={chartTheme.axis} style={{ fontSize: '10px' }} />
+                    <YAxis yAxisId="right" orientation="right" stroke={chartTheme.axis} style={{ fontSize: '10px' }} />
+                    <Tooltip contentStyle={{ fontSize: '11px', backgroundColor: chartTheme.tooltip.bg, borderRadius: '6px', border: `1px solid ${chartTheme.tooltip.border}`, color: chartTheme.tooltip.text }} />
                     <Legend
                     wrapperStyle={{ fontSize: '11px' }}
                   />
@@ -187,7 +189,7 @@ export default function UsagePage() {
                       yAxisId="left"
                       type="monotone"
                       dataKey="requests"
-                      stroke="#000000"
+                      stroke={chartTheme.line}
                       strokeWidth={0.5}
                       strokeDasharray=""
                       name="Requests (—)"
@@ -211,7 +213,7 @@ export default function UsagePage() {
             {/* Provider Breakdown */}
             <div className="grid gap-6 md:grid-cols-2">
               {/* Cost by Provider */}
-              <Card className="border-border-light shadow-sm">
+              <Card className="border-border shadow-sm">
                 <CardHeader>
                   <CardTitle className="text-sm">Cost by Provider</CardTitle>
                   <CardDescription className="text-xs">Spending distribution</CardDescription>
@@ -252,14 +254,14 @@ export default function UsagePage() {
                           <Cell key={`cell-${index}`} fill={`url(#stripe-${index % 4})`} />
                         ))}
                       </Pie>
-                      <Tooltip contentStyle={{ fontSize: '9px', backgroundColor: '#faf9f7', borderRadius: '6px', border: '1px solid #e5e7eb' }} />
+                      <Tooltip contentStyle={{ fontSize: '9px', backgroundColor: chartTheme.tooltip.bg, borderRadius: '6px', border: `1px solid ${chartTheme.tooltip.border}`, color: chartTheme.tooltip.text }} />
                     </PieChart>
                   </ResponsiveContainer>
                 </CardContent>
               </Card>
 
               {/* Latency by Provider */}
-              <Card className="border-border-light shadow-sm">
+              <Card className="border-border shadow-sm">
                 <CardHeader>
                   <CardTitle className="text-sm">Latency by Provider</CardTitle>
                   <CardDescription className="text-xs">Average response times</CardDescription>
@@ -270,13 +272,13 @@ export default function UsagePage() {
                       <defs>
                         {/* Super thin diagonal stripe pattern for bars */}
                         <pattern id="usage-bar-stripe" width="2" height="2" patternUnits="userSpaceOnUse" patternTransform="rotate(45)">
-                          <rect width="1" height="2" fill="#000000" />
+                          <rect width="1" height="2" fill={chartTheme.line} />
                         </pattern>
                       </defs>
-                      <CartesianGrid strokeDasharray="3 3" stroke="#e5e7eb" strokeWidth={0.5} />
-                      <XAxis dataKey="provider" stroke="#6b7280" style={{ fontSize: '10px' }} />
-                      <YAxis stroke="#6b7280" style={{ fontSize: '10px' }} />
-                      <Tooltip contentStyle={{ fontSize: '11px' }} />
+                      <CartesianGrid strokeDasharray="3 3" stroke={chartTheme.grid} strokeWidth={0.5} />
+                      <XAxis dataKey="provider" stroke={chartTheme.axis} style={{ fontSize: '10px' }} />
+                      <YAxis stroke={chartTheme.axis} style={{ fontSize: '10px' }} />
+                      <Tooltip contentStyle={{ fontSize: '11px', backgroundColor: chartTheme.tooltip.bg, borderRadius: '6px', border: `1px solid ${chartTheme.tooltip.border}`, color: chartTheme.tooltip.text }} />
                       <Bar dataKey="avg_latency" fill="url(#usage-bar-stripe)" radius={[8, 8, 0, 0]} />
                     </BarChart>
                   </ResponsiveContainer>
@@ -285,7 +287,7 @@ export default function UsagePage() {
             </div>
 
             {/* Provider Table */}
-            <Card className="border-border-light shadow-sm">
+            <Card className="border-border shadow-sm">
               <CardHeader>
                 <CardTitle className="text-sm">Provider Details</CardTitle>
                 <CardDescription className="text-xs">Detailed breakdown by provider</CardDescription>
@@ -294,30 +296,30 @@ export default function UsagePage() {
                 <div className="overflow-x-auto">
                   <table className="w-full">
                     <thead>
-                      <tr className="border-b border-border-light">
-                        <th className="text-left py-2 px-3 font-medium text-xs text-gray-600">Provider</th>
-                        <th className="text-right py-2 px-3 font-medium text-xs text-gray-600">Requests</th>
-                        <th className="text-right py-2 px-3 font-medium text-xs text-gray-600">Cost</th>
-                        <th className="text-right py-2 px-3 font-medium text-xs text-gray-600">Tokens</th>
-                        <th className="text-right py-2 px-3 font-medium text-xs text-gray-600">Avg Latency</th>
+                      <tr className="border-b border-border">
+                        <th className="text-left py-2 px-3 font-medium text-xs text-muted-foreground">Provider</th>
+                        <th className="text-right py-2 px-3 font-medium text-xs text-muted-foreground">Requests</th>
+                        <th className="text-right py-2 px-3 font-medium text-xs text-muted-foreground">Cost</th>
+                        <th className="text-right py-2 px-3 font-medium text-xs text-muted-foreground">Tokens</th>
+                        <th className="text-right py-2 px-3 font-medium text-xs text-muted-foreground">Avg Latency</th>
                       </tr>
                     </thead>
                     <tbody>
                       {(displayUsage?.by_provider || []).map((provider) => (
-                        <tr key={provider.provider} className="border-b border-border-light hover:bg-beige-primary">
-                          <td className="py-2 px-3 font-medium text-xs text-gray-900">
+                        <tr key={provider.provider} className="border-b border-border hover:bg-card">
+                          <td className="py-2 px-3 font-medium text-xs text-foreground">
                             {provider.provider.charAt(0).toUpperCase() + provider.provider.slice(1)}
                           </td>
-                          <td className="text-right py-2 px-3 text-xs text-gray-900">
+                          <td className="text-right py-2 px-3 text-xs text-foreground">
                             {formatNumber(provider.requests)}
                           </td>
-                          <td className="text-right py-2 px-3 text-xs text-gray-900">
+                          <td className="text-right py-2 px-3 text-xs text-foreground">
                             {formatCurrency(provider.cost)}
                           </td>
-                          <td className="text-right py-2 px-3 text-xs text-gray-900">
+                          <td className="text-right py-2 px-3 text-xs text-foreground">
                             {formatNumber(Math.floor(provider.cost * 100))} {/* Approximate token count */}
                           </td>
-                          <td className="text-right py-2 px-3 text-xs text-gray-900">
+                          <td className="text-right py-2 px-3 text-xs text-foreground">
                             {formatLatency(provider.cost * 10)} {/* Approximate latency */}
                           </td>
                         </tr>
@@ -329,7 +331,7 @@ export default function UsagePage() {
             </Card>
 
             {/* Top Models Table */}
-            <Card className="border-border-light shadow-sm">
+            <Card className="border-border shadow-sm">
               <CardHeader>
                 <CardTitle className="text-sm">Top 10 Models by Spend</CardTitle>
                 <CardDescription className="text-xs">Most expensive models this period</CardDescription>
@@ -338,26 +340,26 @@ export default function UsagePage() {
                 <div className="overflow-x-auto">
                   <table className="w-full">
                     <thead>
-                      <tr className="border-b border-border-light">
-                        <th className="text-left py-2 px-3 font-medium text-xs text-gray-600">Model Name</th>
-                        <th className="text-left py-2 px-3 font-medium text-xs text-gray-600">Provider</th>
-                        <th className="text-right py-2 px-3 font-medium text-xs text-gray-600">Total Requests</th>
-                        <th className="text-right py-2 px-3 font-medium text-xs text-gray-600">Total Spend</th>
+                      <tr className="border-b border-border">
+                        <th className="text-left py-2 px-3 font-medium text-xs text-muted-foreground">Model Name</th>
+                        <th className="text-left py-2 px-3 font-medium text-xs text-muted-foreground">Provider</th>
+                        <th className="text-right py-2 px-3 font-medium text-xs text-muted-foreground">Total Requests</th>
+                        <th className="text-right py-2 px-3 font-medium text-xs text-muted-foreground">Total Spend</th>
                       </tr>
                     </thead>
                     <tbody>
                       {((usage as any)?.top_models || []).map((model: any, index: number) => (
-                        <tr key={index} className="border-b border-border-light hover:bg-beige-primary">
-                          <td className="py-2 px-3 font-medium text-xs text-gray-900">
+                        <tr key={index} className="border-b border-border hover:bg-card">
+                          <td className="py-2 px-3 font-medium text-xs text-foreground">
                             {model.model_name}
                           </td>
-                          <td className="py-2 px-3 text-xs text-gray-900">
+                          <td className="py-2 px-3 text-xs text-foreground">
                             {model.provider.charAt(0).toUpperCase() + model.provider.slice(1)}
                           </td>
-                          <td className="text-right py-2 px-3 text-xs text-gray-900">
+                          <td className="text-right py-2 px-3 text-xs text-foreground">
                             {formatNumber(model.total_requests)}
                           </td>
-                          <td className="text-right py-2 px-3 text-xs text-gray-900">
+                          <td className="text-right py-2 px-3 text-xs text-foreground">
                             {formatCurrency(model.total_spend)}
                           </td>
                         </tr>

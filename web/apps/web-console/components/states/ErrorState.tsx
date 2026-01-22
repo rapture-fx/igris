@@ -37,7 +37,7 @@ export function ErrorState({
     <div className="flex items-center justify-center p-8">
       <Card className="max-w-lg w-full border-border-light">
         <CardHeader className="text-center">
-          <div className="mx-auto mb-4 w-12 h-12 rounded-full bg-red-100 flex items-center justify-center">
+          <div className="mx-auto mb-4 w-12 h-12 rounded-full bg-red-100 dark:bg-red-950 flex items-center justify-center">
             <XCircle className="h-6 w-6 text-red-600" />
           </div>
           <CardTitle className="text-lg font-semibold text-gray-900">
@@ -49,8 +49,8 @@ export function ErrorState({
         </CardHeader>
         <CardContent className="space-y-4">
           {showDetails && detailedError && (
-            <div className="bg-gray-100 rounded-lg p-3 border border-gray-200">
-              <p className="text-xs font-mono text-gray-700 whitespace-pre-wrap">
+            <div className="bg-gray-100 dark:bg-gray-900 rounded-lg p-3 border border-gray-200 dark:border-border">
+              <p className="text-xs font-mono text-foreground whitespace-pre-wrap">
                 {detailedError}
               </p>
             </div>

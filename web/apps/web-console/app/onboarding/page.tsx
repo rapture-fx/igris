@@ -44,11 +44,11 @@ export default function OnboardingPage() {
   }, [isLoaded, user, router]);
 
   return (
-    <div className="min-h-screen bg-beige-primary flex items-center justify-center">
+    <div className="min-h-screen bg-beige-primary dark:bg-background flex items-center justify-center">
       <div className="text-center">
         <div className="animate-pulse">
-          <div className="w-16 h-16 border-4 border-igris-primary border-t-transparent rounded-full animate-spin mx-auto mb-4"></div>
-          <p className="text-igris-primary font-medium">Setting up your account...</p>
+          <div className="w-16 h-16 border-4 border-gray-900 dark:border-gray-100 border-t-transparent rounded-full animate-spin mx-auto mb-4"></div>
+          <p className="text-foreground font-medium">Setting up your account...</p>
         </div>
       </div>
     </div>

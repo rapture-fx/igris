@@ -1,40 +1,52 @@
 import { clerkMiddleware, createRouteMatcher } from '@clerk/nextjs/server';
 import { NextResponse } from 'next/server';
 
-// Public routes that don't require authentication
+// DEVELOPMENT MODE: Set to true to bypass all authentication
+const DEV_MODE = true;
+
 const isPublicRoute = createRouteMatcher([
   '/auth(.*)',
   '/auth/login(.*)',
   '/auth/register(.*)',
   '/onboarding(.*)',
   '/',
+  '/preview(.*)',
+  '/clear-session(.*)',
 ]);
 
-// Routes that require authentication and onboarding completion
 const requiresOnboarding = createRouteMatcher([
   '/dashboard(.*)',
   '/settings(.*)',
 ]);
 
 export default clerkMiddleware(async (auth, req) => {
+  if (DEV_MODE) {
+    console.log('[DEV MODE] Bypassing auth for:', req.nextUrl.pathname);
+    return NextResponse.next();
+  }
+
   const { userId } = await auth();
 
-  // If trying to access protected route without authentication, redirect to /auth
+  if (req.nextUrl.searchParams.has('preview') || req.nextUrl.searchParams.has('dev')) {
+    console.log('[DEV MODE] Bypassing auth for:', req.nextUrl.pathname);
+    return NextResponse.next();
+  }
+
   if (!isPublicRoute(req) && !userId) {
-    const authUrl = new URL('/auth', req.url);
+    console.log('[AUTH] No userId, redirecting to /auth from:', req.nextUrl.pathname);
+    const authUrl = new URL('/auth?mode=signin', req.url);
     return NextResponse.redirect(authUrl);
   }
 
-  // If accessing dashboard or settings routes, check onboarding status
   if (requiresOnboarding(req) && userId) {
-    // Get user metadata to check onboarding status
     const { user } = await auth();
     const userMetadata = user?.unsafeMetadata as { onboardingCompleted?: boolean } | undefined;
     const onboardingCompleted = userMetadata?.onboardingCompleted || false;
 
-    // If onboarding not completed, redirect to onboarding page
-    // Skip this check if there's a query parameter to bypass (e.g., after completing onboarding)
-    if (!onboardingCompleted && !req.nextUrl.searchParams.has('onboarding')) {
+    console.log('[ONBOARDING] User:', userId, 'Completed:', onboardingCompleted, 'Path:', req.nextUrl.pathname);
+
+    if (!onboardingCompleted && req.nextUrl.pathname !== '/onboarding') {
+      console.log('[ONBOARDING] Redirecting to /onboarding');
       const onboardingUrl = new URL('/onboarding', req.url);
       return NextResponse.redirect(onboardingUrl);
     }

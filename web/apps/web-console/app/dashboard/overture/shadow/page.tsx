@@ -10,6 +10,7 @@ import { Badge } from '@/components/ui/badge';
 import { Input } from '@/components/ui/input';
 import { Label } from '@/components/ui/label';
 import { Switch } from '@/components/ui/switch';
+import { useChartTheme } from '@/utils/chartTheme';
 import {
   useShadowStatus,
   useShadowConfig,
@@ -25,6 +26,7 @@ import { LineChart, Line, BarChart, Bar, XAxis, YAxis, CartesianGrid, Tooltip, R
 import { CHART_COLORS } from '@/utils/constants';
 
 export default function OvertureShadowPage() {
+  const chartTheme = useChartTheme();
   const { data: status } = useShadowStatus();
   const { data: config } = useShadowConfig();
   const { data: analytics } = useShadowAnalytics();
@@ -91,9 +93,9 @@ export default function OvertureShadowPage() {
       <div className="max-w-7xl mx-auto space-y-6">
         {/* Header */}
         <div className="flex items-center justify-between">
-          <div className="pb-4 border-b border-border-light">
-            <h1 className="text-base font-medium text-gray-900 font-inter">Shadow Mode</h1>
-            <p className="text-gray-600 mt-1 font-inter text-xs">
+          <div className="pb-4 border-b border-border">
+            <h1 className="text-base font-medium text-foreground font-inter">Shadow Mode</h1>
+            <p className="text-muted-foreground mt-1 font-inter text-xs">
               Compare provider responses in real-time without affecting production
             </p>
           </div>
@@ -122,39 +124,39 @@ export default function OvertureShadowPage() {
         </div>
 
         {/* Overview Cards */}
-        <div className="bg-beige-primary">
+        <div className="bg-card">
           <div className="grid grid-cols-2 divide-x divide-border-light">
             <div className="p-4">
-              <div className="text-xs font-medium text-gray-600 mb-1">Status</div>
+              <div className="text-xs font-medium text-muted-foreground mb-1">Status</div>
               <div className="pb-2">
-                <Badge className="bg-gray-50 text-gray-700 border">
+                <Badge className="bg-gray-50 text-gray-700 border dark:bg-card dark:text-[#a8a898] dark:border-[#f6f6f4]/5">
                   {status?.enabled ? <CheckCircle className="h-3 w-3 mr-1" /> : <XCircle className="h-3 w-3 mr-1" />}
                   {status?.enabled ? 'Active' : 'Inactive'}
                 </Badge>
               </div>
             </div>
             <div className="p-4">
-              <div className="text-xs font-medium text-gray-600 mb-1">Shadow Traffic</div>
-              <div className="text-lg font-bold text-gray-900">{status?.shadow_traffic_percent}%</div>
-              <p className="text-[0.65rem] text-gray-600 mt-1">of requests shadowed</p>
+              <div className="text-xs font-medium text-muted-foreground mb-1">Shadow Traffic</div>
+              <div className="text-lg font-bold text-foreground">{status?.shadow_traffic_percent}%</div>
+              <p className="text-[0.65rem] text-muted-foreground mt-1">of requests shadowed</p>
             </div>
           </div>
-          <div className="grid grid-cols-2 divide-x divide-border-light border-t border-border-light">
+          <div className="grid grid-cols-2 divide-x divide-border-light border-t border-border">
             <div className="p-4">
-              <div className="text-xs font-medium text-gray-600 mb-1">Requests (24h)</div>
-              <div className="text-lg font-bold text-gray-900">{status?.requests_24h.toLocaleString()}</div>
-              <p className="text-[0.65rem] text-gray-600 mt-1">shadowed today</p>
+              <div className="text-xs font-medium text-muted-foreground mb-1">Requests (24h)</div>
+              <div className="text-lg font-bold text-foreground">{status?.requests_24h.toLocaleString()}</div>
+              <p className="text-[0.65rem] text-muted-foreground mt-1">shadowed today</p>
             </div>
             <div className="p-4">
-              <div className="text-xs font-medium text-gray-600 mb-1">Quality Delta</div>
-              <div className="text-lg font-bold text-gray-900">{status?.quality_delta}%</div>
-              <p className="text-[0.65rem] text-gray-600 mt-1">{status?.discrepancies_found} discrepancies</p>
+              <div className="text-xs font-medium text-muted-foreground mb-1">Quality Delta</div>
+              <div className="text-lg font-bold text-foreground">{status?.quality_delta}%</div>
+              <p className="text-[0.65rem] text-muted-foreground mt-1">{status?.discrepancies_found} discrepancies</p>
             </div>
           </div>
         </div>
 
         {/* Configuration Form */}
-        <Card className="border-border-light shadow-sm">
+        <Card className="border-border shadow-sm">
           <CardHeader>
             <CardTitle className="text-sm">Configuration</CardTitle>
             <CardDescription className="text-xs">Shadow mode settings and provider selection</CardDescription>
@@ -164,7 +166,7 @@ export default function OvertureShadowPage() {
               <div className="grid grid-cols-2 gap-4">
                 <div className="space-y-2">
                   <div className="flex items-center justify-between">
-                    <Label htmlFor="enabled" className="text-xs font-medium text-gray-900">Enable Shadow Mode</Label>
+                    <Label htmlFor="enabled" className="text-xs font-medium text-foreground">Enable Shadow Mode</Label>
                     <Switch
                       id="enabled"
                       checked={editableConfig.enabled}
@@ -172,11 +174,11 @@ export default function OvertureShadowPage() {
                       className="scale-50"
                     />
                   </div>
-                  <p className="text-[0.65rem] text-gray-600">Activate shadow traffic</p>
+                  <p className="text-[0.65rem] text-muted-foreground">Activate shadow traffic</p>
                 </div>
 
                 <div className="space-y-2">
-                  <Label htmlFor="shadow_percent" className="text-xs font-medium text-gray-900">Shadow Traffic %</Label>
+                  <Label htmlFor="shadow_percent" className="text-xs font-medium text-foreground">Shadow Traffic %</Label>
                   <Input
                     id="shadow_percent"
                     type="number"
@@ -186,33 +188,33 @@ export default function OvertureShadowPage() {
                     min="0"
                     max="100"
                   />
-                  <p className="text-[0.65rem] text-gray-600">Percentage of traffic to shadow</p>
+                  <p className="text-[0.65rem] text-muted-foreground">Percentage of traffic to shadow</p>
                 </div>
 
                 <div className="space-y-2">
-                  <Label htmlFor="primary_provider" className="text-xs font-medium text-gray-900">Primary Provider</Label>
+                  <Label htmlFor="primary_provider" className="text-xs font-medium text-foreground">Primary Provider</Label>
                   <Input
                     id="primary_provider"
                     value={editableConfig.primary_provider}
                     onChange={(e) => handleConfigChange('primary_provider', e.target.value)}
                     className="text-xs"
                   />
-                  <p className="text-[0.65rem] text-gray-600">Current production provider</p>
+                  <p className="text-[0.65rem] text-muted-foreground">Current production provider</p>
                 </div>
 
                 <div className="space-y-2">
-                  <Label htmlFor="shadow_provider" className="text-xs font-medium text-gray-900">Shadow Provider</Label>
+                  <Label htmlFor="shadow_provider" className="text-xs font-medium text-foreground">Shadow Provider</Label>
                   <Input
                     id="shadow_provider"
                     value={editableConfig.shadow_provider}
                     onChange={(e) => handleConfigChange('shadow_provider', e.target.value)}
                     className="text-xs"
                   />
-                  <p className="text-[0.65rem] text-gray-600">Candidate provider to test</p>
+                  <p className="text-[0.65rem] text-muted-foreground">Candidate provider to test</p>
                 </div>
 
                 <div className="space-y-2">
-                  <Label htmlFor="quality_threshold" className="text-xs font-medium text-gray-900">Quality Threshold (%)</Label>
+                  <Label htmlFor="quality_threshold" className="text-xs font-medium text-foreground">Quality Threshold (%)</Label>
                   <Input
                     id="quality_threshold"
                     type="number"
@@ -220,12 +222,12 @@ export default function OvertureShadowPage() {
                     onChange={(e) => handleConfigChange('quality_threshold', parseInt(e.target.value))}
                     className="text-xs"
                   />
-                  <p className="text-[0.65rem] text-gray-600">Minimum quality score</p>
+                  <p className="text-[0.65rem] text-muted-foreground">Minimum quality score</p>
                 </div>
 
                 <div className="space-y-2">
                   <div className="flex items-center justify-between">
-                    <Label htmlFor="auto_promote" className="text-xs font-medium text-gray-900">Auto-Promote</Label>
+                    <Label htmlFor="auto_promote" className="text-xs font-medium text-foreground">Auto-Promote</Label>
                     <Switch
                       id="auto_promote"
                       checked={editableConfig.auto_promote}
@@ -233,7 +235,7 @@ export default function OvertureShadowPage() {
                       className="scale-50"
                     />
                   </div>
-                  <p className="text-[0.65rem] text-gray-600">Auto-promote if threshold met</p>
+                  <p className="text-[0.65rem] text-muted-foreground">Auto-promote if threshold met</p>
                 </div>
               </div>
 
@@ -254,7 +256,7 @@ export default function OvertureShadowPage() {
 
         {/* Performance Comparison Charts */}
         <div className="grid gap-4 md:grid-cols-2">
-          <Card className="border-border-light shadow-sm">
+          <Card className="border-border shadow-sm">
             <CardHeader>
               <CardTitle className="text-sm">Latency Comparison</CardTitle>
               <CardDescription className="text-xs">Primary vs Shadow latency (24h)</CardDescription>
@@ -262,18 +264,18 @@ export default function OvertureShadowPage() {
             <CardContent>
               <ResponsiveContainer width="100%" height={200}>
                 <LineChart data={analytics?.latency_comparison || []}>
-                  <CartesianGrid strokeDasharray="3 3" stroke="#e5e7eb" />
+                  <CartesianGrid strokeDasharray="3 3" stroke={chartTheme.grid} />
                   <XAxis dataKey="timestamp" tick={{ fontSize: 8 }} tickFormatter={(value) => new Date(value).getHours() + ':00'} />
                   <YAxis tick={{ fontSize: 8 }} />
-                  <Tooltip contentStyle={{ fontSize: '9px', backgroundColor: '#faf9f7', borderRadius: '6px', border: '1px solid #e5e7eb' }} />
-                  <Line type="monotone" dataKey="primary_latency" stroke="#000000" strokeWidth={0.5} name="Primary" dot={false} />
+                  <Tooltip contentStyle={{ fontSize: '9px', backgroundColor: chartTheme.tooltip.bg, borderRadius: '6px', border: `1px solid ${chartTheme.tooltip.border}`, color: chartTheme.tooltip.text }} />
+                  <Line type="monotone" dataKey="primary_latency" stroke={chartTheme.line} strokeWidth={0.5} name="Primary" dot={false} />
                   <Line type="monotone" dataKey="shadow_latency" stroke="#114dcd" strokeWidth={0.5} strokeDasharray="5,5" name="Shadow" dot={false} />
                 </LineChart>
               </ResponsiveContainer>
             </CardContent>
           </Card>
 
-          <Card className="border-border-light shadow-sm">
+          <Card className="border-border shadow-sm">
             <CardHeader>
               <CardTitle className="text-sm">Quality Comparison</CardTitle>
               <CardDescription className="text-xs">Quality scores over time (24h)</CardDescription>
@@ -281,14 +283,14 @@ export default function OvertureShadowPage() {
             <CardContent>
               <ResponsiveContainer width="100%" height={200}>
                 <LineChart data={analytics?.quality_comparison || []}>
-                  <CartesianGrid strokeDasharray="3 3" stroke="#e5e7eb" />
+                  <CartesianGrid strokeDasharray="3 3" stroke={chartTheme.grid} />
                   <XAxis dataKey="timestamp" tick={{ fontSize: 8 }} tickFormatter={(value) => new Date(value).getHours() + ':00'} />
                   <YAxis tick={{ fontSize: 8 }} />
                   <Tooltip 
-                    contentStyle={{ fontSize: '9px', backgroundColor: '#faf9f7', borderRadius: '6px', border: '1px solid #e5e7eb' }}
+                    contentStyle={{ fontSize: '9px', backgroundColor: chartTheme.tooltip.bg, borderRadius: '6px', border: `1px solid ${chartTheme.tooltip.border}`, color: chartTheme.tooltip.text }}
                     formatter={(value: any) => typeof value === 'number' ? value.toFixed(1) : value}
                   />
-                  <Line type="monotone" dataKey="primary_quality" stroke="#000000" strokeWidth={0.5} name="Primary" dot={false} />
+                  <Line type="monotone" dataKey="primary_quality" stroke={chartTheme.line} strokeWidth={0.5} name="Primary" dot={false} />
                   <Line type="monotone" dataKey="shadow_quality" stroke="#114dcd" strokeWidth={0.5} strokeDasharray="5,5" name="Shadow" dot={false} />
                 </LineChart>
               </ResponsiveContainer>
@@ -297,7 +299,7 @@ export default function OvertureShadowPage() {
         </div>
 
         {/* Shadow Request Logs */}
-        <Card className="border-border-light shadow-sm">
+        <Card className="border-border shadow-sm">
           <CardHeader>
             <CardTitle className="text-sm">Recent Shadow Requests</CardTitle>
             <CardDescription className="text-xs">Latest comparisons between primary and shadow</CardDescription>
@@ -306,23 +308,23 @@ export default function OvertureShadowPage() {
             <div className="overflow-x-auto">
               <table className="w-full text-xs">
                 <thead>
-                  <tr className="border-b border-border-light">
-                    <th className="text-left py-2 px-3 font-medium text-gray-600">Request ID</th>
-                    <th className="text-left py-2 px-3 font-medium text-gray-600">Primary</th>
-                    <th className="text-left py-2 px-3 font-medium text-gray-600">Shadow</th>
-                    <th className="text-left py-2 px-3 font-medium text-gray-600">Latency Δ</th>
-                    <th className="text-left py-2 px-3 font-medium text-gray-600">Match</th>
+                  <tr className="border-b border-border">
+                    <th className="text-left py-2 px-3 font-medium text-muted-foreground">Request ID</th>
+                    <th className="text-left py-2 px-3 font-medium text-muted-foreground">Primary</th>
+                    <th className="text-left py-2 px-3 font-medium text-muted-foreground">Shadow</th>
+                    <th className="text-left py-2 px-3 font-medium text-muted-foreground">Latency Δ</th>
+                    <th className="text-left py-2 px-3 font-medium text-muted-foreground">Match</th>
                   </tr>
                 </thead>
                 <tbody>
                   {logs?.map((log, index) => (
-                    <tr key={index} className="border-b border-gray-100 hover:bg-beige-secondary">
-                      <td className="py-2 px-3 text-gray-900 font-mono">{log.request_id.slice(0, 12)}</td>
-                      <td className="py-2 px-3 text-gray-900">{log.primary_provider} ({log.primary_latency}ms)</td>
-                      <td className="py-2 px-3 text-gray-900">{log.shadow_provider} ({log.shadow_latency}ms)</td>
-                      <td className="py-2 px-3 text-gray-900">{log.shadow_latency - log.primary_latency}ms</td>
+                    <tr key={index} className="border-b border-gray-100 hover:bg-muted">
+                      <td className="py-2 px-3 text-foreground font-mono">{log.request_id.slice(0, 12)}</td>
+                      <td className="py-2 px-3 text-foreground">{log.primary_provider} ({log.primary_latency}ms)</td>
+                      <td className="py-2 px-3 text-foreground">{log.shadow_provider} ({log.shadow_latency}ms)</td>
+                      <td className="py-2 px-3 text-foreground">{log.shadow_latency - log.primary_latency}ms</td>
                       <td className="py-2 px-3">
-                        <Badge className={log.quality_match ? 'bg-green-50 text-green-700 border border-green-200' : 'bg-red-50 text-red-700 border border-red-200'}>
+                        <Badge className={log.quality_match ? 'bg-green-50 text-green-700 border border-green-200 dark:bg-green-950 dark:text-green-400 dark:border-green-900' : 'bg-red-50 text-red-700 border border-red-200 dark:bg-red-950 dark:text-red-400 dark:border-red-900'}>
                           {log.quality_match ? 'Match' : 'Mismatch'}
                         </Badge>
                       </td>
@@ -335,14 +337,14 @@ export default function OvertureShadowPage() {
         </Card>
 
         {/* How Shadow Mode Works */}
-        <Card className="border-border-light shadow-sm">
+        <Card className="border-border shadow-sm">
           <CardHeader>
             <CardTitle className="text-sm">How Shadow Mode Works</CardTitle>
             <CardDescription className="text-xs">Real-time A/B testing without affecting production</CardDescription>
           </CardHeader>
           <CardContent>
-            <div className="bg-beige-primary border border-border-light rounded-lg p-4">
-              <ul className="text-xs text-gray-800 space-y-1 list-disc list-inside">
+            <div className="bg-card border border-border rounded-lg p-4">
+              <ul className="text-xs text-[#000000] dark:text-[#f6f6f4] space-y-1 list-disc list-inside">
                 <li>Duplicate requests sent to shadow provider in parallel</li>
                 <li>Primary responses returned to users immediately (zero production impact)</li>
                 <li>Shadow responses collected and compared for latency, cost, and quality</li>
