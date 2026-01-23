@@ -19,7 +19,7 @@ const features = [
   },
   {
     name: 'Every Request Verified',
-    description: 'Each API call is authenticated in context. If a provider goes down, traffic reroutes automatically. Hard limits prevent runaway costs.',
+    description: 'Each API call is authenticated in context. If a provider goes down, traffic reroutes automatically. Hard limits prevent runaway costs. When connected, Hybrid cryptographically binds routing decisions to execution, preventing policy bypass or silent drift.',
     icon: DollarSign,
   },
 ];

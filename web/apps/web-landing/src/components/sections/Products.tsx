@@ -77,9 +77,9 @@ export default function Products() {
                          style={{ objectFit: 'cover' }}
                        />
                      </div>
-                 <p className="text-xs text-gray-600 dark:text-[#a8a898] leading-relaxed font-inter mb-4">
-                   Licensed governed execution engine. Secure defaults and enforced limits. Deterministic execution envelopes with telemetry-backed execution.
-                 </p>
+                  <p className="text-xs text-gray-600 dark:text-[#a8a898] leading-relaxed font-inter mb-4">
+                    Governed execution engine. Secure defaults and enforced limits. Deterministic execution envelopes with telemetry-backed execution.
+                  </p>
                     <button
                       onClick={openRuntime}
                       className="group inline-flex items-center justify-center bg-gray-200 dark:bg-[#f6f6f4] text-gray-900 dark:text-black px-4 py-2 hover:bg-gray-300 dark:hover:bg-gray-200 transition-all duration-200 text-xs font-medium shadow-md hover:shadow-lg"
@@ -146,9 +146,9 @@ export default function Products() {
                           style={{ objectFit: 'cover', objectPosition: 'center' }}
                         />
                       </div>
-                    <p className="text-sm text-gray-600 dark:text-[#a8a898] leading-relaxed font-inter mb-4">
-                      Licensed governed execution engine. Secure defaults and enforced limits. Deterministic execution envelopes with telemetry-backed execution.
-                    </p>
+                     <p className="text-sm text-gray-600 dark:text-[#a8a898] leading-relaxed font-inter mb-4">
+                       Governed execution engine. Secure defaults and enforced limits. Deterministic execution envelopes with telemetry-backed execution.
+                     </p>
                     <button
                       onClick={openRuntime}
                       className="group inline-flex items-center justify-center bg-gray-200 dark:bg-[#f6f6f4] text-gray-900 dark:text-black px-4 py-2 hover:bg-gray-300 dark:hover:bg-gray-200 transition-all duration-200 text-xs font-medium shadow-md hover:shadow-lg"
