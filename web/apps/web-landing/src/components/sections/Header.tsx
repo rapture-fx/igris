@@ -9,9 +9,7 @@ import { useProductPopup } from '../../contexts/ProductPopupContext';
 
 export default function Header() {
   const [mobileMenuOpen, setMobileMenuOpen] = useState(false);
-  const [productDropdownOpen, setProductDropdownOpen] = useState(false);
   const [resourcesDropdownOpen, setResourcesDropdownOpen] = useState(false);
-  const [mobileProductOpen, setMobileProductOpen] = useState(false);
   const [mobileResourcesOpen, setMobileResourcesOpen] = useState(false);
   const [docsHubUrl, setDocsHubUrl] = useState('https://docs.igrisinertial.com/');
   const [consoleUrl, setConsoleUrl] = useState('https://admin.igris-inertial.com');
@@ -20,7 +18,6 @@ export default function Header() {
   const { openEarlyAccessModal } = useModal();
   const { theme } = useTheme();
   const { openOverture, openRuntime } = useProductPopup();
-  const productDropdownRef = useRef<HTMLDivElement>(null);
   const resourcesDropdownRef = useRef<HTMLDivElement>(null);
 
   // Set mounted state for hydration
@@ -58,9 +55,6 @@ export default function Header() {
   // Close dropdowns when clicking outside
   useEffect(() => {
     const handleClickOutside = (event: MouseEvent) => {
-      if (productDropdownRef.current && !productDropdownRef.current.contains(event.target as Node)) {
-        setProductDropdownOpen(false);
-      }
       if (resourcesDropdownRef.current && !resourcesDropdownRef.current.contains(event.target as Node)) {
         setResourcesDropdownOpen(false);
       }
@@ -92,53 +86,16 @@ export default function Header() {
           </div>
 
           <div className="hidden md:flex items-center space-x-6">
-            {/* Product Dropdown */}
-            <div className="relative" ref={productDropdownRef}>
-              <button
-                onClick={() => {
-                  setProductDropdownOpen(!productDropdownOpen);
-                  setResourcesDropdownOpen(false);
-                }}
-                className="text-gray-700 dark:text-[#c8c8b8] hover:text-gray-900 dark:hover:text-[#f6f6f4] transition-colors duration-200 font-medium text-xs font-inter flex items-center gap-1"
-              >
-                Product
-                <ChevronDown className={`h-4 w-4 transition-transform duration-200 ${productDropdownOpen ? 'rotate-180' : ''}`} />
-              </button>
-               {productDropdownOpen && (
-                <div className="absolute top-full left-0 mt-2 w-48 rounded-lg shadow-lg border border-gray-200 dark:border-[#f6f6f4]/5 overflow-hidden bg-[#f6f6f4] dark:bg-dark-bg">
-                   <button
-                       onClick={() => {
-                         setProductDropdownOpen(false);
-                         openOverture();
-                       }}
-                       className="block w-full text-left px-4 py-2 text-xs text-gray-700 dark:text-[#c8c8b8] hover:text-gray-900 dark:hover:text-[#f6f6f4] hover:bg-gray-100 dark:hover:bg-gray-800 transition-colors duration-200"
-                     >
-                       Overture
-                     </button>
-                     <button
-                       onClick={() => {
-                         setProductDropdownOpen(false);
-                         openRuntime();
-                       }}
-                       className="block w-full text-left px-4 py-2 text-xs text-gray-700 dark:text-[#c8c8b8] hover:text-gray-900 dark:hover:text-[#f6f6f4] hover:bg-gray-100 dark:hover:bg-gray-800 transition-colors duration-200"
-                     >
-                       Runtime
-                     </button>
-                </div>
-              )}
-            </div>
-
-            {/* Resources Dropdown */}
-            <div className="relative" ref={resourcesDropdownRef}>
-                 <button
-                 onClick={() => {
-                   setResourcesDropdownOpen(!resourcesDropdownOpen);
-                   setProductDropdownOpen(false);
-                 }}
-                  className="text-gray-700 dark:text-[#c8c8b8] hover:text-gray-900 dark:hover:text-[#f6f6f4] transition-colors duration-200 font-medium text-xs flex items-center gap-1"
-                >
-                  Resources
-                  <ChevronDown className={`h-4 w-4 transition-transform duration-200 ${resourcesDropdownOpen ? 'rotate-180' : ''}`} />
+              {/* Resources Dropdown */}
+              <div className="relative" ref={resourcesDropdownRef}>
+                  <button
+                  onClick={() => {
+                    setResourcesDropdownOpen(!resourcesDropdownOpen);
+                  }}
+                   className="text-gray-700 dark:text-[#c8c8b8] hover:text-gray-900 dark:hover:text-[#f6f6f4] transition-colors duration-200 font-medium text-xs flex items-center gap-1"
+                 >
+                   Resources
+                   <ChevronDown className={`h-4 w-4 transition-transform duration-200 ${resourcesDropdownOpen ? 'rotate-180' : ''}`} />
                 </button>
               {resourcesDropdownOpen && (
                  <div className="absolute top-full left-0 mt-2 w-48 rounded-lg shadow-lg border border-gray-200 dark:border-[#f6f6f4]/5 overflow-hidden bg-[#f6f6f4] dark:bg-dark-bg">
@@ -209,41 +166,6 @@ export default function Header() {
         {mobileMenuOpen && (
           <div className="md:hidden mt-4 pb-4 border-t border-gray-200 dark:border-[#f6f6f4]/5 bg-[#f6f6f4] dark:bg-[#1b1912]">
             <nav className="flex flex-col space-y-4 mt-4">
-              {/* Product Dropdown Mobile */}
-               <div>
-                  <button
-                    onClick={() => setMobileProductOpen(!mobileProductOpen)}
-                    className="w-full flex items-center justify-between text-gray-700 dark:text-[#c8c8b8] hover:text-gray-900 dark:hover:text-[#f6f6f4] transition-colors duration-200 font-medium text-xs"
-                  >
-                   Product
-                   <ChevronDown className={`h-4 w-4 transition-transform duration-200 ${mobileProductOpen ? 'rotate-180' : ''}`} />
-                 </button>
-                  {mobileProductOpen && (
-                    <div className="ml-4 mt-2 space-y-2">
-                       <button
-                         onClick={() => {
-                           setMobileMenuOpen(false);
-                           setMobileProductOpen(false);
-                           openOverture();
-                         }}
-                         className="block text-left text-gray-700 dark:text-[#c8c8b8] hover:text-gray-900 dark:hover:text-[#f6f6f4] transition-colors duration-200 font-medium text-xs"
-                       >
-                         Overture
-                       </button>
-                       <button
-                         onClick={() => {
-                           setMobileMenuOpen(false);
-                           setMobileProductOpen(false);
-                           openRuntime();
-                         }}
-                         className="block text-left text-gray-700 dark:text-[#c8c8b8] hover:text-gray-900 dark:hover:text-[#f6f6f4] transition-colors duration-200 font-medium text-xs"
-                       >
-                         Runtime
-                       </button>
-                    </div>
-                  )}
-               </div>
-
               {/* Resources Dropdown Mobile */}
                <div>
                   <button

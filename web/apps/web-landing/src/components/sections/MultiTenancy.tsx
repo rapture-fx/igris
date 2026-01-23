@@ -103,7 +103,7 @@ export default function MultiTenancy() {
                   </div>
                   {/* Bottom Frame */}
                   <div className="w-full flex-shrink-0 border-l border-r border-b border-[rgba(156,163,175,0.3)] dark:border-[rgba(246,246,244,0.05)] mt-6" style={{ paddingBottom: '3rem' }}>
-                    <div className="h-[300px] w-full border-t border-[rgba(156,163,175,0.3)] dark:border-[rgba(246,246,244,0.05)] relative overflow-hidden">
+                    <div className="h-[250px] w-full border-t border-[rgba(156,163,175,0.3)] dark:border-[rgba(246,246,244,0.05)] relative overflow-hidden">
                       <img src="/blk.png" alt="" className="absolute inset-0 w-full h-full object-cover object-bottom" style={{ opacity: 0.3 }} />
                     </div>
                   </div>
