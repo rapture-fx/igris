@@ -8,12 +8,12 @@ const capabilities = [
     description: 'Routes requests to the best provider based on real performance data. Detects slow or failing providers and shifts traffic automatically. Can query multiple providers and pick the best response.',
   },
   {
-    name: 'Built for Scale',
-    description: 'Handles 50,000+ requests per second with sub-millisecond caching. Each customer gets their own rate limits — no noisy neighbor problems. Requests run in parallel to cut latency.',
+    name: 'Built to Scale',
+    description: 'Designed for high-throughput routing with sub-millisecond decision latency and aggressive caching. Parallel execution reduces tail latency under load.',
   },
   {
     name: 'Isolated and Resilient',
-    description: 'Each customer\'s data is isolated at the database level. Your API keys work even if our servers are unreachable. Routing decisions are cached locally for 72 hours as a fallback.',
+    description: 'Each customer\'s data is isolated at the database level. Cached routing decisions and execution policies continue to operate even if the control plane is temporarily unreachable. Routing decisions are cached locally for 72 hours as a fallback.',
   },
 ]
 
