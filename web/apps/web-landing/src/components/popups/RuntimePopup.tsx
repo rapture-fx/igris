@@ -65,8 +65,8 @@ export default function RuntimePopup({ isOpen, onClose }: RuntimePopupProps) {
             <section className="bg-transparent text-gray-900 dark:text-white">
                 <div className="relative px-4 md:px-8 lg:px-12 pt-0 pb-8 flex flex-col bg-transparent border-l border-r border-gray-200 dark:border-[#f6f6f4]/5">
                 <div className="grid grid-cols-1 gap-0 relative mb-0 h-[280px] border-t-0">
-                  {/* Row 1 - Title Top */}
-                  <div className="flex flex-col justify-start pt-5 pb-2">
+                   {/* Row 1 - Title Top */}
+                   <div className="flex flex-col justify-start py-5">
                     <h4 className="text-xs md:text-sm font-medium text-[#111111] dark:text-[#f6f6f4] mb-2 font-inter text-left">
                       Safe, Sandboxed Execution
                     </h4>
@@ -74,8 +74,8 @@ export default function RuntimePopup({ isOpen, onClose }: RuntimePopupProps) {
                       How the system prevents runaway agents and protects infrastructure.
                     </p>
                   </div>
-                  {/* Features Below Title */}
-                  <div className="flex flex-col pt-0 pb-5 pr-4">
+                   {/* Features Below Title */}
+                   <div className="flex flex-col py-0 pr-4">
                   <div className="mb-4 pt-0">
                     <h5 className="text-xs font-medium text-gray-900 dark:text-[#f6f6f4] mb-1 font-inter">Resource Safety Limits</h5>
                     <p className="text-xs text-gray-600 dark:text-[#c8c8b8] font-inter">Enforces strict limits: max 100 tool calls, 10 recursion depth, 5 minute execution timeout, and 10MB output size.</p>
@@ -157,9 +157,9 @@ export default function RuntimePopup({ isOpen, onClose }: RuntimePopupProps) {
                 </div>
               </div>
 
-               {/* Row 5 */}
-               <div className="grid grid-cols-1 gap-0 relative border-t border-gray-200 dark:border-[#f6f6f4]/5 h-[280px]">
-                <div className="flex flex-col justify-start pt-5 pb-2">
+                {/* Row 5 */}
+                <div className="grid grid-cols-1 gap-0 relative border-t border-gray-200 dark:border-[#f6f6f4]/5 h-[280px]">
+                 <div className="flex flex-col justify-start py-5">
                   <h4 className="text-xs md:text-sm font-medium text-[#111111] dark:text-[#f6f6f4] mb-2 font-inter text-left">
                     Development & Testing
                   </h4>
@@ -167,8 +167,8 @@ export default function RuntimePopup({ isOpen, onClose }: RuntimePopupProps) {
                     How teams iterate without burning budget.
                   </p>
                 </div>
-                <div className="flex flex-col pt-0 pb-0 pr-4">
-                  <div className="pt-0">
+                 <div className="flex flex-col py-0 pr-4">
+                   <div className="pt-0">
                     <h5 className="text-xs font-medium text-gray-900 dark:text-[#f6f6f4] mb-1 font-inter">Benchmark Fallback</h5>
                     <p className="text-xs text-gray-600 dark:text-[#c8c8b8] font-inter">Automatically routes to simulated providers when budget exhausted, enabling zero-cost testing and development.</p>
                   </div>

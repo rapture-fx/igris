@@ -101,12 +101,20 @@ export default function MultiTenancy() {
                         <img src="/ed.png" alt="" className="w-[120%] h-auto object-contain" style={{ opacity: 0.85 }} />
                       </div>
                   </div>
-                  {/* Bottom Frame */}
-                  <div className="w-full flex-shrink-0 border-l border-r border-b border-[rgba(156,163,175,0.3)] dark:border-[rgba(246,246,244,0.05)] mt-6" style={{ paddingBottom: '3rem' }}>
-                    <div className="h-[250px] w-full border-t border-[rgba(156,163,175,0.3)] dark:border-[rgba(246,246,244,0.05)] relative overflow-hidden">
-                      <img src="/blk.png" alt="" className="absolute inset-0 w-full h-full object-cover object-bottom" style={{ opacity: 0.3 }} />
-                    </div>
-                  </div>
+                   {/* Bottom Frame */}
+                   <div className="w-full flex-shrink-0 border-l border-r border-b border-[rgba(156,163,175,0.3)] dark:border-[rgba(246,246,244,0.05)] mt-6" style={{ paddingBottom: '3rem' }}>
+                     <div className="h-[250px] w-full border-t border-[rgba(156,163,175,0.3)] dark:border-[rgba(246,246,244,0.05)] relative overflow-hidden">
+                       <img src="/blk.png" alt="" className="absolute inset-0 w-full h-full object-cover object-bottom" style={{ opacity: 0.3 }} />
+                       <div className="absolute bottom-4 left-4 text-left max-w-xs">
+                         <h4 className="text-xs font-semibold text-[#000000] dark:text-[#f6f6f4] mb-2 font-inter">
+                           Decision–Execution Binding
+                         </h4>
+                         <p className="text-xs text-gray-600 dark:text-[#a8a898] leading-relaxed font-inter">
+                           When connected, Hybrid cryptographically binds routing decisions to execution, preventing policy bypass or silent drift. Every execution is verifiably derived from an approved decision.
+                         </p>
+                       </div>
+                     </div>
+                   </div>
                 </div>
 
               {/* Right Column - Title and Intro (Desktop only) */}
