@@ -97,9 +97,9 @@ export default function MultiTenancy() {
                        ))}
                      </div>
                    </div>
-                    <div className="w-[250px] self-stretch border border-[rgba(156,163,175,0.3)] dark:border-[rgba(246,246,244,0.05)] flex-shrink-0 overflow-hidden">
-                       <img src="/ed.png" alt="" className="w-full h-full object-cover" style={{ opacity: 0.85 }} />
-                     </div>
+                     <div className="w-[250px] h-[200px] border border-[rgba(156,163,175,0.3)] dark:border-[rgba(246,246,244,0.05)] flex-shrink-0 overflow-hidden flex flex-col justify-end items-center">
+                        <img src="/ed.png" alt="" className="w-[120%] h-auto object-contain" style={{ opacity: 0.85 }} />
+                      </div>
                   </div>
                   {/* Bottom Frame */}
                   <div className="w-full flex-shrink-0 border-l border-r border-b border-[rgba(156,163,175,0.3)] dark:border-[rgba(246,246,244,0.05)] mt-6" style={{ paddingBottom: '3rem' }}>
