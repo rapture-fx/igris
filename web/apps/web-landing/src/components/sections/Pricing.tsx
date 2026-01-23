@@ -119,7 +119,7 @@ export default function Pricing() {
                       return (
                          <div
                            key={cardIndex}
-                           className={`relative transition-all duration-300 w-full min-h-[450px] border section-border bg-[#f6f6f4] dark:bg-[#1b1912] ${card.name === 'Growth' ? 'shadow-[0_0_15px_rgba(147,51,234,0.3)]' : ''}`}
+                           className={`relative transition-all duration-300 w-full min-h-[450px] border section-border bg-[#f6f6f4] dark:bg-[#1b1912] rounded-none ${card.name === 'Growth' ? 'shadow-[0_0_8px_rgba(147,51,234,0.3)]' : ''}`}
                          >
                           <div className="p-6 flex flex-col h-full">
                             <div className="flex-grow">
