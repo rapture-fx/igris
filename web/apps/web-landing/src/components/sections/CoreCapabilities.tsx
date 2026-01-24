@@ -54,9 +54,9 @@ export default function CoreCapabilities() {
                 <div className="space-y-6">
                   {capabilities.map((capability, index) => {
                     const getImage = () => {
-                      if (index === 0) return { light: '/tre.png', dark: '/dmone.png' };
-                      if (index === 1) return { light: '/two.png', dark: '/dmtwo.png' };
-                      if (index === 2) return { light: '/one.png', dark: '/dmtre.png' };
+                      if (index === 0) return { light: '/tre.png', dark: '/cr.png' };
+                      if (index === 1) return { light: '/two.png', dark: '/cs.png' };
+                      if (index === 2) return { light: '/one.png', dark: '/cc.png' };
                       return null;
                     };
                     const images = getImage();
@@ -125,7 +125,7 @@ export default function CoreCapabilities() {
                             />
                             {capabilities.indexOf(capability) === 0 && (
                               <img
-                                src={mounted && theme === 'dark' ? '/dmone.png' : '/tre.png'}
+                                src={mounted && theme === 'dark' ? '/cr.png' : '/tre.png'}
                                 alt={capability.name}
                                 style={{
                                   position: 'absolute',
@@ -138,7 +138,7 @@ export default function CoreCapabilities() {
                             )}
                             {capabilities.indexOf(capability) === 1 && (
                               <img
-                                src={mounted && theme === 'dark' ? '/dmtwo.png' : '/two.png'}
+                                src={mounted && theme === 'dark' ? '/cs.png' : '/two.png'}
                                 alt={capability.name}
                                 style={{
                                   position: 'absolute',
@@ -151,7 +151,7 @@ export default function CoreCapabilities() {
                             )}
                             {capabilities.indexOf(capability) === 2 && (
                               <img
-                                src={mounted && theme === 'dark' ? '/dmtre.png' : '/one.png'}
+                                src={mounted && theme === 'dark' ? '/cc.png' : '/one.png'}
                                 alt={capability.name}
                                 style={{
                                   position: 'absolute',
@@ -193,7 +193,7 @@ export default function CoreCapabilities() {
                               }}>
                                 {index === 0 && (
                                   <img
-                                    src="/dmone.png"
+                                    src="/cr.png"
                                     alt={capability.name}
                                     style={{
                                       position: 'absolute',
@@ -206,7 +206,7 @@ export default function CoreCapabilities() {
                                 )}
                                 {index === 1 && (
                                   <img
-                                    src="/dmtwo.png"
+                                    src="/cs.png"
                                     alt={capability.name}
                                     style={{
                                       position: 'absolute',
@@ -219,7 +219,7 @@ export default function CoreCapabilities() {
                                 )}
                                 {index === 2 && (
                                   <img
-                                    src="/dmtre.png"
+                                    src="/cc.png"
                                     alt={capability.name}
                                     style={{
                                       position: 'absolute',

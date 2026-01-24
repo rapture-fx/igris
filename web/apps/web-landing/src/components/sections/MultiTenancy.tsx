@@ -64,7 +64,7 @@ export default function MultiTenancy() {
                  {/* Section 1: First 2 features with frame */}
                  <div className="flex gap-6 mb-6">
                    <div className="w-[250px] h-auto border border-[rgba(156,163,175,0.3)] dark:border-[rgba(246,246,244,0.05)] flex-shrink-0 overflow-hidden">
-                      <img src="/is.png" alt="" className="w-full h-auto object-contain" style={{ opacity: 0.85 }} />
+                      <img src="/si.png" alt="" className="w-full h-auto object-contain" style={{ opacity: 0.85 }} />
                     </div>
                     <div className="flex-1">
                       <div className="flex flex-col gap-6">
@@ -98,13 +98,12 @@ export default function MultiTenancy() {
                      </div>
                    </div>
                      <div className="w-[250px] h-[200px] border border-[rgba(156,163,175,0.3)] dark:border-[rgba(246,246,244,0.05)] flex-shrink-0 overflow-hidden flex flex-col justify-end items-center">
-                        <img src="/ed.png" alt="" className="w-[120%] h-auto object-contain" style={{ opacity: 0.85 }} />
+                        <img src="/de.png" alt="" className="w-[120%] h-auto object-contain" style={{ opacity: 0.85 }} />
                       </div>
                   </div>
                    {/* Bottom Frame */}
-                   <div className="w-full flex-shrink-0 border-l border-r border-b border-[rgba(156,163,175,0.3)] dark:border-[rgba(246,246,244,0.05)] mt-6" style={{ paddingBottom: '3rem' }}>
-                     <div className="h-[250px] w-full border-t border-[rgba(156,163,175,0.3)] dark:border-[rgba(246,246,244,0.05)] relative overflow-hidden">
-                       <img src="/blk.png" alt="" className="absolute inset-0 w-full h-full object-cover object-bottom" style={{ opacity: 0.3 }} />
+                   <div className="w-full flex-shrink-0 border-l border-r border-b border-t border-[rgba(156,163,175,0.3)] dark:border-[rgba(246,246,244,0.05)] mt-6 relative overflow-hidden" style={{ height: '250px' }}>
+                       <img src="/lk.png" alt="" className="absolute inset-0 w-full h-full object-cover object-center" style={{ opacity: 0.3 }} />
                        <div className="absolute bottom-4 left-4 text-left max-w-xs">
                          <h4 className="text-xs font-semibold text-[#000000] dark:text-[#f6f6f4] mb-2 font-inter">
                            Decision–Execution Binding
@@ -113,7 +112,6 @@ export default function MultiTenancy() {
                            When connected, Hybrid cryptographically binds routing decisions to execution, preventing policy bypass or silent drift. Every execution is verifiably derived from an approved decision.
                          </p>
                        </div>
-                     </div>
                    </div>
                 </div>
 
