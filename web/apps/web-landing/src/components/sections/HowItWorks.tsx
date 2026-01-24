@@ -23,7 +23,7 @@ export default function HowItWorks() {
 
           {/* Title Section - Shows first on mobile */}
                 <div className="mb-8 text-left">
-               <p className="text-base text-[#5fdfeb] mb-2" style={{ fontFamily: 'Roboto Mono, monospace', letterSpacing: '0.05em' }}>
+               <p className="text-base text-[#c5b0cd] mb-2" style={{ fontFamily: 'Roboto Mono, monospace', letterSpacing: '0.05em' }}>
                   03. FLOW
                 </p>
                 <h3 className="text-lg md:text-xl lg:text-2xl font-inter mb-2 text-[#000000] dark:text-[#f6f6f4]">
@@ -43,7 +43,7 @@ export default function HowItWorks() {
                         src="/ovr.png"
                         alt="Control Plane"
                         fill
-                        className="opacity-80"
+                        className="opacity-100"
                         style={{ objectFit: 'cover' }}
                       />
                     </div>
@@ -63,7 +63,7 @@ export default function HowItWorks() {
                         src="/xe.png"
                         alt="Runtime Plane"
                         fill
-                        className="opacity-80"
+                        className="opacity-100"
                         style={{ objectFit: 'cover' }}
                       />
                     </div>
@@ -118,7 +118,7 @@ export default function HowItWorks() {
                              alt="Control Plane"
                              width={450}
                              height={450}
-                              className="mb-4 object-contain opacity-80"
+className="mb-4 object-contain opacity-100"
                             />
                           </div>
                            <div className="mt-auto pb-8">
@@ -191,7 +191,7 @@ export default function HowItWorks() {
 
               {/* Right Column - Title (1 column wide with left border) */}
                <div className="md:col-span-1 md:border-l flex flex-col justify-start dark:border-[#f6f6f4]/5" style={{ paddingTop: '3rem', paddingBottom: '3rem', paddingLeft: '1rem' }}>
-                <p className="text-base text-[#5fdfeb] mb-2" style={{ fontFamily: 'Roboto Mono, monospace', letterSpacing: '0.05em' }}>
+                <p className="text-base text-[#c5b0cd] mb-2" style={{ fontFamily: 'Roboto Mono, monospace', letterSpacing: '0.05em' }}>
                   03. FLOW
                 </p>
                <h2 className="text-lg md:text-xl lg:text-2xl font-inter mb-4 text-[#000000] dark:text-[#f6f6f4]">
