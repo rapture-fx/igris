@@ -32,7 +32,7 @@ export default function MultiTenancy() {
 
           {/* Title Section - Shows first on mobile, last on desktop */}
           <div className="mb-6 md:mb-0 md:hidden text-left" style={{ paddingTop: '3rem', paddingBottom: '3rem' }}>
-                <p className="text-base text-[#5fdfeb] mb-2" style={{ fontFamily: 'Roboto Mono, monospace', letterSpacing: '0.05em' }}>
+                <p className="text-base text-[#c5b0cd] mb-2" style={{ fontFamily: 'Roboto Mono, monospace', letterSpacing: '0.05em' }}>
                   04. SECURITY
                 </p>
                 <h3 className="text-lg md:text-xl lg:text-2xl font-inter mb-4 text-[#000000] dark:text-[#f6f6f4]">
@@ -64,7 +64,7 @@ export default function MultiTenancy() {
                  {/* Section 1: First 2 features with frame */}
                  <div className="flex gap-6 mb-6">
                    <div className="w-[250px] h-auto border border-[rgba(156,163,175,0.3)] dark:border-[rgba(246,246,244,0.05)] flex-shrink-0 overflow-hidden">
-                      <img src="/si.png" alt="" className="w-full h-auto object-contain" style={{ opacity: 0.85 }} />
+                      <img src="/si.png" alt="" className="w-full h-auto object-contain" style={{ opacity: 1 }} />
                     </div>
                     <div className="flex-1">
                       <div className="flex flex-col gap-6">
@@ -117,7 +117,7 @@ export default function MultiTenancy() {
 
               {/* Right Column - Title and Intro (Desktop only) */}
               <div className="hidden md:flex md:col-span-1 md:border-l flex-col justify-start dark:border-[#f6f6f4]/5" style={{ paddingTop: '3rem', paddingBottom: '3rem', paddingLeft: '1rem' }}>
-              <p className="text-base text-[#5fdfeb] mb-2" style={{ fontFamily: 'Roboto Mono, monospace', letterSpacing: '0.05em' }}>
+              <p className="text-base text-[#c5b0cd] mb-2" style={{ fontFamily: 'Roboto Mono, monospace', letterSpacing: '0.05em' }}>
                 04. SECURITY
               </p>
               <h3 className="text-lg md:text-xl lg:text-2xl font-inter mb-4 text-[#000000] dark:text-[#f6f6f4]">
