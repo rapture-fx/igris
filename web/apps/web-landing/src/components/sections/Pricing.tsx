@@ -34,7 +34,7 @@ const pricingRows = [
         descriptor: "Run production with accountability.",
         features: [
           "Everything in Startup +",
-          "Up to 2M requests/month",
+          "Up to 1M requests/month",
           "Up to 10 AI providers",
           "Speculative execution",
           "Council mode",
