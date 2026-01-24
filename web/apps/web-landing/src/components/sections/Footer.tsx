@@ -3,7 +3,6 @@
 import Link from 'next/link'
 import { useTheme } from 'next-themes'
 import { useEffect, useState } from 'react'
-import { ThemeSwitcher } from '../ThemeSwitcher'
 
 export default function Footer() {
   const { theme } = useTheme()
@@ -71,11 +70,10 @@ export default function Footer() {
           </div>
 
           {/* Copyright at very bottom */}
-          <div style={{ marginTop: '4rem' }} className="pb-6 flex items-center justify-between">
+          <div style={{ marginTop: '4rem' }} className="pb-6 flex items-center justify-start">
             <span className="text-xs text-gray-500 dark:text-[#a8a898]">
               © 2026 Igris Inertial.
             </span>
-            <ThemeSwitcher />
           </div>
         </div>
       </div>
