@@ -48,7 +48,7 @@ export default function HowItWorks() {
                       />
                     </div>
                     <h4 className="text-sm font-semibold text-[#000000] dark:text-[#f6f6f4] mb-3 font-inter">Decide (Control Plane)</h4>
-                    <p className="text-xs text-gray-600 dark:text-[#a8a898] mb-4 leading-relaxed font-inter">
+                    <p className="text-sm text-gray-600 dark:text-[#a8a898] mb-4 leading-relaxed font-inter">
                       The application sends an AI request. The cloud control plane evaluates policies, budgets, safety rules, and performance constraints, then decides how, where, and whether the request should run.
                     </p>
                     <p className="text-xs text-gray-600 dark:text-[#a8a898] leading-relaxed font-inter italic">
@@ -68,7 +68,7 @@ export default function HowItWorks() {
                       />
                     </div>
                     <h4 className="text-sm font-semibold text-[#000000] dark:text-[#f6f6f4] mb-3 font-inter">Execute (Runtime Plane)</h4>
-                    <p className="text-xs text-gray-600 dark:text-[#a8a898] mb-4 leading-relaxed font-inter">
+                    <p className="text-sm text-gray-600 dark:text-[#a8a898] mb-4 leading-relaxed font-inter">
                       The runtime executes the decision close to the application. It runs the task using cloud models or local models, coordinates tools and agents, and automatically falls back if connectivity or providers fail.
                     </p>
                     <p className="text-xs text-gray-600 dark:text-[#a8a898] leading-relaxed font-inter italic">
@@ -88,7 +88,7 @@ export default function HowItWorks() {
                       />
                     </div>
                     <h4 className="text-sm font-semibold text-[#000000] dark:text-[#f6f6f4] mb-3 font-inter">Verify & Improve (Feedback Loop)</h4>
-                    <p className="text-xs text-gray-600 dark:text-[#a8a898] mb-4 leading-relaxed font-inter">
+                    <p className="text-sm text-gray-600 dark:text-[#a8a898] mb-4 leading-relaxed font-inter">
                       Execution results, telemetry, and metrics flow back to the control plane. Policies, routing logic, and configurations are continuously refined and pushed back to the runtime.
                     </p>
                     <p className="text-xs text-gray-600 dark:text-[#a8a898] leading-relaxed font-inter italic">
@@ -122,14 +122,14 @@ className="mb-4 object-contain opacity-100"
                             />
                           </div>
                            <div className="mt-auto pb-8">
-                             <p className="text-xs text-[#a8a898] leading-relaxed line-clamp-2">
+                             <p className="text-sm text-[#a8a898] leading-relaxed line-clamp-2">
                                This is where governance, routing, and risk control happen—before anything executes.
                              </p>
                            </div>
                         </div>
                        <div className="w-2/5 p-6">
                          <h4 className="text-sm font-medium text-[#f6f6f4] mb-3 font-inter">Decide (Control Plane)</h4>
-                         <p className="text-xs text-[#a8a898] mb-2 leading-relaxed">
+                         <p className="text-sm text-[#a8a898] mb-2 leading-relaxed">
                            The application sends an AI request.<br/>
                            The cloud control plane evaluates policies, budgets, safety rules, and performance constraints, then decides how, where, and whether the request should run.
                          </p>
@@ -154,7 +154,7 @@ className="mb-4 object-contain opacity-100"
                       </div>
                       <div className="w-2/5 p-6">
                         <h4 className="text-sm font-medium text-[#f6f6f4] mb-3 font-inter">Execute (Runtime Plane)</h4>
-                        <p className="text-xs text-[#a8a898] mb-2 leading-relaxed">
+                        <p className="text-sm text-[#a8a898] mb-2 leading-relaxed">
                           The runtime executes the decision close to the application.<br/>
                           It runs the task using cloud models or local models, coordinates tools and agents, and automatically falls back if connectivity or providers fail.
                         </p>
@@ -179,7 +179,7 @@ className="mb-4 object-contain opacity-100"
                        </div>
                       <div className="w-2/5 p-6">
                         <h4 className="text-sm font-medium text-[#f6f6f4] mb-3 font-inter">Verify & Improve (Feedback Loop)</h4>
-                        <p className="text-xs text-[#a8a898] mb-2 leading-relaxed">
+                        <p className="text-sm text-[#a8a898] mb-2 leading-relaxed">
                           Execution results, telemetry, and metrics flow back to the control plane.<br/>
                           Policies, routing logic, and configurations are continuously refined and pushed back to the runtime.
                         </p>

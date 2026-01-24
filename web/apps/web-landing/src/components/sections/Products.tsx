@@ -36,7 +36,7 @@ export default function Products() {
                      <h3 className="text-lg md:text-xl font-inter mb-2 text-[#000000] dark:text-[#f6f6f4]">
                        Overture
                      </h3>
-                     <p className="text-xs text-gray-600 dark:text-[#a8a898] mb-4">
+                     <p className="text-sm text-gray-600 dark:text-[#a8a898] mb-4">
                        Decision Layer
                      </p>
                      <div className="border border-gray-300 dark:border-[#f6f6f4]/5" style={{ marginTop: '1rem', marginBottom: '1rem', height: '200px', position: 'relative', overflow: 'hidden' }}>
@@ -47,7 +47,7 @@ export default function Products() {
                         style={{ objectFit: 'cover', opacity: 0.6 }}
                       />
                      </div>
-                   <p className="text-xs text-gray-600 dark:text-[#a8a898] leading-relaxed font-inter mb-4">
+                   <p className="text-sm text-gray-600 dark:text-[#a8a898] leading-relaxed font-inter mb-4">
                      Decision intelligence and routing control plane. Trust-aware provider selection with cost, quality, and latency optimization. Explainable decisions with full observability.
                    </p>
                     <button
@@ -66,7 +66,7 @@ export default function Products() {
                        <h3 className="text-lg md:text-xl font-inter mb-2 text-[#000000] dark:text-[#f6f6f4]">
                          Runtime
                        </h3>
-                       <p className="text-xs text-gray-600 dark:text-[#a8a898] mb-4">
+                       <p className="text-sm text-gray-600 dark:text-[#a8a898] mb-4">
                          Execution Layer
                        </p>
                       <div className="border border-gray-300 dark:border-[#f6f6f4]/5" style={{ marginTop: '1rem', marginBottom: '1rem', height: '200px', position: 'relative', overflow: 'hidden' }}>
@@ -77,7 +77,7 @@ export default function Products() {
                           style={{ objectFit: 'cover', opacity: 0.6 }}
                         />
                       </div>
-                  <p className="text-xs text-gray-600 dark:text-[#a8a898] leading-relaxed font-inter mb-4">
+                  <p className="text-sm text-gray-600 dark:text-[#a8a898] leading-relaxed font-inter mb-4">
                     Governed execution engine. Secure defaults and enforced limits. Deterministic execution envelopes with telemetry-backed execution.
                   </p>
                     <button
@@ -105,7 +105,7 @@ export default function Products() {
                       <h3 className="text-lg md:text-xl font-inter mb-2 text-[#000000] dark:text-[#f6f6f4]">
                         Overture
                       </h3>
-                      <p className="text-xs text-gray-600 dark:text-[#a8a898] mb-4">
+                      <p className="text-sm text-gray-600 dark:text-[#a8a898] mb-4">
                         Decision Layer
                       </p>
                      <div className="border border-gray-300 dark:border-[#f6f6f4]/5" style={{ marginTop: '1rem', marginBottom: '1rem', height: '200px', position: 'relative', overflow: 'hidden' }}>
@@ -135,7 +135,7 @@ export default function Products() {
                         <h3 className="text-lg md:text-xl font-inter mb-2 text-[#000000] dark:text-[#f6f6f4]">
                           Runtime
                         </h3>
-                      <p className="text-xs text-gray-600 dark:text-[#a8a898] mb-4">
+                      <p className="text-sm text-gray-600 dark:text-[#a8a898] mb-4">
                         Execution Layer
                       </p>
                        <div className="border border-gray-300 dark:border-[#f6f6f4]/5" style={{ marginTop: '1rem', marginBottom: '1rem', height: '200px', position: 'relative', overflow: 'hidden' }}>

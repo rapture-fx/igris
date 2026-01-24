@@ -80,7 +80,7 @@ export default function CoreCapabilities() {
                         <h4 className="text-sm font-semibold mb-2 font-inter text-[#000000] dark:text-[#f6f6f4]">
                           {capability.name}
                         </h4>
-                        <p className="text-xs text-gray-600 dark:text-[#a8a898] leading-relaxed font-inter">
+                        <p className="text-sm text-gray-600 dark:text-[#a8a898] leading-relaxed font-inter">
                           {capability.description}
                         </p>
                       </div>
@@ -236,7 +236,7 @@ export default function CoreCapabilities() {
                                 <h4 className="text-sm font-semibold mb-2 font-inter text-[#f6f6f4]">
                                   {capability.name}
                                 </h4>
-                                <p className="text-xs text-[#a8a898] leading-relaxed font-inter">
+                                <p className="text-sm text-[#a8a898] leading-relaxed font-inter">
                                   {capability.description}
                                 </p>
                               </div>

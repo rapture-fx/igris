@@ -105,10 +105,10 @@ export default function MultiTenancy() {
                     <div className="w-full flex-shrink-0 border-l border-r border-b border-t border-[rgba(156,163,175,0.3)] dark:border-[rgba(246,246,244,0.05)] mt-6 relative overflow-hidden" style={{ height: '250px' }}>
                         <img src="/co.png" alt="" className="absolute inset-0 w-full h-full" style={{ opacity: 0.8, objectFit: 'cover', objectPosition: 'center', transform: 'scale(1.1)' }} />
                        <div className="absolute bottom-4 left-4 text-left max-w-xs">
-                         <h4 className="text-xs font-semibold text-[#000000] dark:text-[#f6f6f4] mb-2 font-inter">
-                           Decision–Execution Binding
-                         </h4>
-                         <p className="text-xs text-gray-600 dark:text-[#a8a898] leading-relaxed font-inter">
+<h4 className="text-sm font-semibold text-[#000000] dark:text-[#f6f6f4] mb-3 font-inter">
+                            Decision–Execution Binding
+                          </h4>
+                          <p className="text-sm text-gray-600 dark:text-[#a8a898] leading-relaxed font-inter">
                            When connected, Hybrid cryptographically binds routing decisions to execution, preventing policy bypass or silent drift. Every execution is verifiably derived from an approved decision.
                          </p>
                        </div>
