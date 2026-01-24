@@ -66,111 +66,111 @@ export default function RuntimePopup({ isOpen, onClose }: RuntimePopupProps) {
                 <div className="relative px-4 md:px-8 lg:px-12 pt-0 pb-8 flex flex-col bg-transparent border-l border-r border-gray-200 dark:border-[#f6f6f4]/5">
                 <div className="grid grid-cols-1 gap-0 relative mb-0 h-[280px] border-t-0">
                    {/* Row 1 - Title Top */}
-                   <div className="flex flex-col justify-start py-5">
-                    <h4 className="text-xs md:text-sm font-medium text-[#111111] dark:text-[#f6f6f4] mb-2 font-inter text-left">
-                      Safe, Sandboxed Execution
-                    </h4>
-                    <p className="text-xs text-gray-600 dark:text-[#c8c8b8] font-inter text-left mb-2">
-                      How the system prevents runaway agents and protects infrastructure.
-                    </p>
-                  </div>
+                    <div className="flex flex-col justify-start py-5">
+                     <h4 className="text-xs md:text-sm font-medium text-[#111111] dark:text-[#f6f6f4] mb-1 font-inter text-left">
+                       Safe, Sandboxed Execution
+                     </h4>
+                      <p className="text-xs text-gray-600 dark:text-[#c8c8b8] font-inter text-left mb-4 max-w-lg">
+                        How the system prevents runaway agents and protects infrastructure.
+                      </p>
+                   </div>
                    {/* Features Below Title */}
                    <div className="flex flex-col py-0 pr-4">
                   <div className="mb-4 pt-0">
                     <h5 className="text-xs font-medium text-gray-900 dark:text-[#f6f6f4] mb-1 font-inter">Resource Safety Limits</h5>
-                    <p className="text-xs text-gray-600 dark:text-[#c8c8b8] font-inter">Enforces strict limits: max 100 tool calls, 10 recursion depth, 5 minute execution timeout, and 10MB output size.</p>
+                     <p className="text-xs text-gray-600 dark:text-[#c8c8b8] font-inter max-w-lg">Enforces strict limits: max 100 tool calls, 10 recursion depth, 5 minute execution timeout, and 10MB output size.</p>
                   </div>
                   <div className="mb-4">
                     <h5 className="text-xs font-medium text-gray-900 dark:text-[#f6f6f4] mb-1 font-inter">Sandboxed Tool Execution</h5>
-                    <p className="text-xs text-gray-600 dark:text-[#c8c8b8] font-inter">Executes function calls in isolated environments with tool output size limits, timeouts, and safety constraints.</p>
+                     <p className="text-xs text-gray-600 dark:text-[#c8c8b8] font-inter max-w-lg">Executes function calls in isolated environments with tool output size limits, timeouts, and safety constraints.</p>
                   </div>
                   <div>
                     <h5 className="text-xs font-medium text-gray-900 dark:text-[#f6f6f4] mb-1 font-inter">Deterministic Execution Envelopes</h5>
-                    <p className="text-xs text-gray-600 dark:text-[#c8c8b8] font-inter">Wraps every execution in HMAC-signed, tamper-proof envelopes with cryptographic proof of constraints.</p>
+                     <p className="text-xs text-gray-600 dark:text-[#c8c8b8] font-inter max-w-lg">Wraps every execution in HMAC-signed, tamper-proof envelopes with cryptographic proof of constraints.</p>
                   </div>
                   </div>
                 </div>
 
               {/* Row 2 */}
               <div className="grid grid-cols-1 gap-0 relative border-t border-gray-200 dark:border-[#f6f6f4]/5 h-[280px]">
-                <div className="flex flex-col justify-start py-5">
-                  <h4 className="text-xs md:text-sm font-medium text-[#111111] dark:text-[#f6f6f4] mb-2 font-inter text-left">
-                    Offline & Edge Operation
-                  </h4>
-                  <p className="text-xs text-gray-600 dark:text-[#c8c8b8] font-inter text-left mb-2">
-                    How the system keeps working when infrastructure fails.
-                  </p>
-                </div>
+                 <div className="flex flex-col justify-start py-5">
+                   <h4 className="text-xs md:text-sm font-medium text-[#111111] dark:text-[#f6f6f4] mb-1 font-inter text-left">
+                     Offline & Edge Operation
+                   </h4>
+                   <p className="text-xs text-gray-600 dark:text-[#c8c8b8] font-inter text-left mb-4 max-w-lg">
+                     How the system keeps working when infrastructure fails.
+                   </p>
+                 </div>
                 <div className="flex flex-col py-0 pr-4">
                   <div className="mb-4">
                     <h5 className="text-xs font-medium text-gray-900 dark:text-[#f6f6f4] mb-1 font-inter">Offline Operation</h5>
-                    <p className="text-xs text-gray-600 dark:text-[#c8c8b8] font-inter">Continues serving requests using local models and cached responses when network is unavailable.</p>
+                     <p className="text-xs text-gray-600 dark:text-[#c8c8b8] font-inter max-w-lg">Continues serving requests using local models and cached responses when network is unavailable.</p>
                   </div>
                   <div className="mb-4">
                     <h5 className="text-xs font-medium text-gray-900 dark:text-[#f6f6f4] mb-1 font-inter">Local Model Inference</h5>
-                    <p className="text-xs text-gray-600 dark:text-[#c8c8b8] font-inter">Runs Phi-3 and custom GGUF models locally for offline operation, privacy-sensitive workloads, and budget fallback.</p>
+                     <p className="text-xs text-gray-600 dark:text-[#c8c8b8] font-inter max-w-lg">Runs Phi-3 and custom GGUF models locally for offline operation, privacy-sensitive workloads, and budget fallback.</p>
                   </div>
                   <div>
                     <h5 className="text-xs font-medium text-gray-900 dark:text-[#f6f6f4] mb-1 font-inter">EscapeVector Semantic Cache</h5>
-                    <p className="text-xs text-gray-600 dark:text-[#c8c8b8] font-inter">Embedding-based semantic caching reduces API calls by 30-50% with similarity search and configurable TTL.</p>
+                     <p className="text-xs text-gray-600 dark:text-[#c8c8b8] font-inter max-w-lg">Embedding-based semantic caching reduces API calls by 30-50% with similarity search and configurable TTL.</p>
                   </div>
                 </div>
               </div>
 
               {/* Row 3 */}
               <div className="grid grid-cols-1 gap-0 relative border-t border-gray-200 dark:border-[#f6f6f4]/5 h-[280px]">
-                <div className="flex flex-col justify-start py-5">
-                  <h4 className="text-xs md:text-sm font-medium text-[#111111] dark:text-[#f6f6f4] mb-2 font-inter text-left">
-                    Adaptive Fine-Tuning
-                  </h4>
-                  <p className="text-xs text-gray-600 dark:text-[#c8c8b8] font-inter text-left mb-2">
-                    How the system learns and improves from local data.
-                  </p>
-                </div>
+                 <div className="flex flex-col justify-start py-5">
+                   <h4 className="text-xs md:text-sm font-medium text-[#111111] dark:text-[#f6f6f4] mb-1 font-inter text-left">
+                     Adaptive Fine-Tuning
+                   </h4>
+                   <p className="text-xs text-gray-600 dark:text-[#c8c8b8] font-inter text-left mb-4 max-w-lg">
+                     How the system learns and improves from local data.
+                   </p>
+                 </div>
                 <div className="flex flex-col py-0 pr-4">
                   <div className="mb-4">
                     <h5 className="text-xs font-medium text-gray-900 dark:text-[#f6f6f4] mb-1 font-inter">LoRA Fine-Tuning</h5>
-                    <p className="text-xs text-gray-600 dark:text-[#c8c8b8] font-inter">On-device fine-tuning with Metal GPU acceleration for M-series Macs. Adapters are AES-256-GCM encrypted and device-locked.</p>
+                     <p className="text-xs text-gray-600 dark:text-[#c8c8b8] font-inter max-w-lg">On-device fine-tuning with Metal GPU acceleration for M-series Macs. Adapters are AES-256-GCM encrypted and device-locked.</p>
                   </div>
                   <div>
                     <h5 className="text-xs font-medium text-gray-900 dark:text-[#f6f6f4] mb-1 font-inter">Device-Locked Models</h5>
-                    <p className="text-xs text-gray-600 dark:text-[#c8c8b8] font-inter">LoRA adapters encrypted with device-specific keys cannot run on other devices, enforcing data locality.</p>
+                     <p className="text-xs text-gray-600 dark:text-[#c8c8b8] font-inter max-w-lg">LoRA adapters encrypted with device-specific keys cannot run on other devices, enforcing data locality.</p>
                   </div>
                 </div>
               </div>
 
               {/* Row 4 */}
               <div className="grid grid-cols-1 gap-0 relative border-t border-gray-200 dark:border-[#f6f6f4]/5 h-[280px]">
-                <div className="flex flex-col justify-start py-5">
-                  <h4 className="text-xs md:text-sm font-medium text-[#111111] dark:text-[#f6f6f4] mb-2 font-inter text-left">
-                    Telemetry & Learning
-                  </h4>
-                  <p className="text-xs text-gray-600 dark:text-[#c8c8b8] font-inter text-left mb-2">
-                    How the system feeds data back to Overture for continuous improvement.
-                  </p>
-                </div>
+                 <div className="flex flex-col justify-start py-5">
+                   <h4 className="text-xs md:text-sm font-medium text-[#111111] dark:text-[#f6f6f4] mb-1 font-inter text-left">
+                     Telemetry & Learning
+                   </h4>
+                   <p className="text-xs text-gray-600 dark:text-[#c8c8b8] font-inter text-left mb-4 max-w-lg">
+                     How the system feeds data back to Overture for continuous improvement.
+                   </p>
+                 </div>
                 <div className="flex flex-col py-0 pr-4">
                   <div>
                     <h5 className="text-xs font-medium text-gray-900 dark:text-[#f6f6f4] mb-1 font-inter">Telemetry Streaming</h5>
-                    <p className="text-xs text-gray-600 dark:text-[#c8c8b8] font-inter">Streams real-time execution telemetry to Overture via gRPC, feeding Cognitive Advisor and Thompson Sampling updates.</p>
+                     <p className="text-xs text-gray-600 dark:text-[#c8c8b8] font-inter max-w-lg">Streams real-time execution telemetry to Overture via gRPC, feeding Cognitive Advisor and Thompson Sampling updates.</p>
                   </div>
                 </div>
               </div>
 
                 {/* Row 5 */}
                 <div className="grid grid-cols-1 gap-0 relative border-t border-gray-200 dark:border-[#f6f6f4]/5 h-[280px]">
-                 <div className="flex flex-col justify-start py-5">
-                  <h4 className="text-xs md:text-sm font-medium text-[#111111] dark:text-[#f6f6f4] mb-2 font-inter text-left">
-                    Development & Testing
-                  </h4>
-                  <p className="text-xs text-gray-600 dark:text-[#c8c8b8] font-inter text-left mb-2">
-                    How teams iterate without burning budget.
-                  </p>
-                </div>
+                  <div className="flex flex-col justify-start py-5">
+                   <h4 className="text-xs md:text-sm font-medium text-[#111111] dark:text-[#f6f6f4] mb-1 font-inter text-left">
+                     Development & Testing
+                   </h4>
+                   <p className="text-xs text-gray-600 dark:text-[#c8c8b8] font-inter text-left mb-4 max-w-lg">
+                     How teams iterate without burning budget.
+                   </p>
+                 </div>
                  <div className="flex flex-col py-0 pr-4">
                    <div className="pt-0">
                     <h5 className="text-xs font-medium text-gray-900 dark:text-[#f6f6f4] mb-1 font-inter">Benchmark Fallback</h5>
-                    <p className="text-xs text-gray-600 dark:text-[#c8c8b8] font-inter">Automatically routes to simulated providers when budget exhausted, enabling zero-cost testing and development.</p>
+                     <p className="text-xs text-gray-600 dark:text-[#c8c8b8] font-inter max-w-lg">Automatically routes to simulated providers when budget exhausted, enabling zero-cost testing and development.</p>
                   </div>
                 </div>
                </div>

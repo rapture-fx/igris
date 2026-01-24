@@ -15,7 +15,7 @@ export default function Products() {
   return (
     <section className="bg-[#f6f6f4] dark:bg-dark-bg text-gray-900 dark:text-[#f6f6f4] transition-colors duration-200">
       <div className="mx-auto max-w-[1100px] px-4 sm:px-6 lg:px-8">
-        <div className="relative px-4 md:px-8 lg:px-12 flex flex-col bg-[#f6f6f4] dark:bg-[#1b1912] border-l border-r border-b section-border min-h-[800px] md:h-[800px]">
+        <div className="relative px-4 md:px-8 lg:px-12 flex flex-col bg-[#f6f6f4] dark:bg-[#1b1912] border-l border-r border-b section-border min-h-[800px] md:h-[850px]">
 
           {/* Title Section - Shows first on mobile, last on desktop */}
            <div className="mb-6 md:mb-0 md:hidden text-left" style={{ paddingTop: '3rem', paddingBottom: '3rem' }}>
@@ -30,23 +30,23 @@ export default function Products() {
             </p>
 
                {/* Products - Mobile */}
-              <div className="space-y-12 text-left">
-                {/* Overture */}
-                  <div className="text-left">
-                    <h3 className="text-lg md:text-xl font-inter mb-2 text-[#000000] dark:text-[#f6f6f4]">
-                      Overture
-                    </h3>
-                    <p className="text-xs text-gray-600 dark:text-[#a8a898] mb-4">
-                      Decision Layer
-                    </p>
-                    <div className="border border-gray-300 dark:border-[#f6f6f4]/5" style={{ marginTop: '1rem', marginBottom: '1rem', height: '200px', position: 'relative', overflow: 'hidden' }}>
+               <div className="space-y-12 text-left">
+                 {/* Overture */}
+                   <div className="text-left border border-gray-300 dark:border-[#f6f6f4]/5 rounded-lg p-6">
+                     <h3 className="text-lg md:text-xl font-inter mb-2 text-[#000000] dark:text-[#f6f6f4]">
+                       Overture
+                     </h3>
+                     <p className="text-xs text-gray-600 dark:text-[#a8a898] mb-4">
+                       Decision Layer
+                     </p>
+                     <div className="border border-gray-300 dark:border-[#f6f6f4]/5" style={{ marginTop: '1rem', marginBottom: '1rem', height: '200px', position: 'relative', overflow: 'hidden' }}>
                       <Image
-                        src={mounted && theme === 'dark' ? '/ov.png' : '/overtureframe.png'}
+                        src="/rtnm.png"
                         alt="Overture Decision Layer"
                         fill
-                        style={{ objectFit: 'cover' }}
+                        style={{ objectFit: 'cover', opacity: 0.6 }}
                       />
-                    </div>
+                     </div>
                    <p className="text-xs text-gray-600 dark:text-[#a8a898] leading-relaxed font-inter mb-4">
                      Decision intelligence and routing control plane. Trust-aware provider selection with cost, quality, and latency optimization. Explainable decisions with full observability.
                    </p>
@@ -58,25 +58,25 @@ export default function Products() {
                         Explore Overture
                       </span>
                       <ChevronRight className="ml-1 h-3 w-3" />
-                    </button>
-                 </div>
+                      </button>
+                  </div>
 
-                    {/* Runtime */}
-                    <div>
-                      <h3 className="text-lg md:text-xl font-inter mb-2 text-[#000000] dark:text-[#f6f6f4]">
-                        Runtime
-                      </h3>
-                      <p className="text-xs text-gray-600 dark:text-[#a8a898] mb-4">
-                        Execution Layer
-                      </p>
-                     <div className="border border-gray-300 dark:border-[#f6f6f4]/5" style={{ marginTop: '1rem', marginBottom: '1rem', height: '200px', position: 'relative', overflow: 'hidden' }}>
-                       <Image
-                         src={mounted && theme === 'dark' ? '/lig.png' : '/runtimeframe.png'}
-                         alt="Runtime Execution Layer"
-                         fill
-                         style={{ objectFit: 'cover' }}
-                       />
-                     </div>
+                     {/* Runtime */}
+                     <div className="border border-gray-300 dark:border-[#f6f6f4]/5 rounded-lg p-6 mb-12">
+                       <h3 className="text-lg md:text-xl font-inter mb-2 text-[#000000] dark:text-[#f6f6f4]">
+                         Runtime
+                       </h3>
+                       <p className="text-xs text-gray-600 dark:text-[#a8a898] mb-4">
+                         Execution Layer
+                       </p>
+                      <div className="border border-gray-300 dark:border-[#f6f6f4]/5" style={{ marginTop: '1rem', marginBottom: '1rem', height: '200px', position: 'relative', overflow: 'hidden' }}>
+                        <Image
+                          src="/r.png"
+                          alt="Runtime Execution Layer"
+                          fill
+                          style={{ objectFit: 'cover', opacity: 0.6 }}
+                        />
+                      </div>
                   <p className="text-xs text-gray-600 dark:text-[#a8a898] leading-relaxed font-inter mb-4">
                     Governed execution engine. Secure defaults and enforced limits. Deterministic execution envelopes with telemetry-backed execution.
                   </p>
@@ -94,28 +94,28 @@ export default function Products() {
           </div>
 
           {/* Split Layout: Left Products (wider), Right Title (narrower) */}
-          <div className="grid grid-cols-1 md:grid-cols-3 gap-0 md:flex-1">
+          <div className="grid grid-cols-1 md:grid-cols-3 gap-0 flex-1">
 
             {/* Left Column: Overture and Runtime - 2 columns wide (Desktop only) */}
-            <div className="hidden md:flex md:col-span-2 flex-col items-start justify-start" style={{ paddingTop: '3rem', paddingBottom: '4rem', paddingRight: '2rem' }}>
-                <div className="w-full space-y-12">
+             <div className="hidden md:flex md:col-span-2 flex-col items-start justify-start" style={{ paddingTop: '3rem', paddingBottom: '3rem', paddingRight: '2rem' }}>
+                 <div className="w-full space-y-12">
 
-                  {/* Overture */}
-                   <div>
-                     <h3 className="text-lg md:text-xl font-inter mb-2 text-[#000000] dark:text-[#f6f6f4]">
-                       Overture
-                     </h3>
-                     <p className="text-xs text-gray-600 dark:text-[#a8a898] mb-4">
-                       Decision Layer
-                     </p>
-                    <div className="border border-gray-300 dark:border-[#f6f6f4]/5" style={{ marginTop: '1rem', marginBottom: '1rem', height: '200px', position: 'relative', overflow: 'hidden' }}>
-                      <Image
-                        src={mounted && theme === 'dark' ? '/ov.png' : '/overtureframe.png'}
-                        alt="Overture Decision Layer"
-                        fill
-                        style={{ objectFit: 'cover' }}
-                      />
-                    </div>
+                   {/* Overture */}
+                    <div className="border border-gray-300 dark:border-[#f6f6f4]/5 rounded-lg p-6">
+                      <h3 className="text-lg md:text-xl font-inter mb-2 text-[#000000] dark:text-[#f6f6f4]">
+                        Overture
+                      </h3>
+                      <p className="text-xs text-gray-600 dark:text-[#a8a898] mb-4">
+                        Decision Layer
+                      </p>
+                     <div className="border border-gray-300 dark:border-[#f6f6f4]/5" style={{ marginTop: '1rem', marginBottom: '1rem', height: '200px', position: 'relative', overflow: 'hidden' }}>
+                       <Image
+                         src="/rtnm.png"
+                         alt="Overture Decision Layer"
+                         fill
+                         style={{ objectFit: 'cover', opacity: 0.6 }}
+                       />
+                     </div>
                    <p className="text-sm text-gray-600 dark:text-[#a8a898] leading-relaxed font-inter mb-4">
                      Decision intelligence and routing control plane. Trust-aware provider selection with cost, quality, and latency optimization. Explainable decisions with full observability.
                    </p>
@@ -128,24 +128,28 @@ export default function Products() {
                        </span>
                        <ChevronRight className="ml-1 h-3 w-3" />
                      </button>
-                 </div>
+                  </div>
 
-                    {/* Runtime */}
-                    <div>
-                      <h3 className="text-lg md:text-xl font-inter mb-2 text-[#000000] dark:text-[#f6f6f4]">
-                        Runtime
-                      </h3>
+                     {/* Runtime */}
+                     <div className="border border-gray-300 dark:border-[#f6f6f4]/5 rounded-lg p-6 mb-12">
+                        <h3 className="text-lg md:text-xl font-inter mb-2 text-[#000000] dark:text-[#f6f6f4]">
+                          Runtime
+                        </h3>
                       <p className="text-xs text-gray-600 dark:text-[#a8a898] mb-4">
                         Execution Layer
                       </p>
-                      <div className="border border-gray-300 dark:border-[#f6f6f4]/5" style={{ marginTop: '1rem', marginBottom: '1rem', height: '200px', position: 'relative', overflow: 'hidden' }}>
-                        <Image
-                          src={mounted && theme === 'dark' ? '/lig.png' : '/runtimeframe.png'}
-                          alt="Runtime Execution Layer"
-                          fill
-                          style={{ objectFit: 'cover', objectPosition: 'center' }}
-                        />
-                      </div>
+                       <div className="border border-gray-300 dark:border-[#f6f6f4]/5" style={{ marginTop: '1rem', marginBottom: '1rem', height: '200px', position: 'relative', overflow: 'hidden' }}>
+                          <img
+                            src="/r.png"
+                            alt="Runtime Execution Layer"
+                            style={{
+                              width: '100%',
+                              height: '100%',
+                              objectFit: 'cover',
+                              opacity: 0.6
+                            }}
+                          />
+                       </div>
                      <p className="text-sm text-gray-600 dark:text-[#a8a898] leading-relaxed font-inter mb-4">
                        Governed execution engine. Secure defaults and enforced limits. Deterministic execution envelopes with telemetry-backed execution.
                      </p>

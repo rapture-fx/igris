@@ -6,23 +6,28 @@ export default function UseCasesTeaser() {
   const useCases = [
     {
       title: 'Enterprise AI Operations',
-      description: 'Multi-tenant cost control, quality monitoring, and intelligent routing for teams managing AI at scale.',
+      description: 'Multi-tenant cost control, policy-driven routing, and trust-aware provider selection for teams managing AI at scale.',
       product: 'Overture'
     },
     {
-      title: 'Autonomous Systems',
-      description: 'Offline-capable AI for robotics, drones, and vehicles that need to keep working without connectivity.',
+      title: 'Hybrid Cloud–Edge Reliability',
+      description: 'Cryptographically bound decision-execution with automatic failover. Keep applications online when cloud providers fail.',
+      product: 'Hybrid'
+    },
+    {
+      title: 'Edge-First AI Systems',
+      description: 'Deterministic execution and local model inference for robotics and autonomous systems with poor connectivity.',
       product: 'Runtime'
     },
     {
-      title: 'Hybrid Deployments',
-      description: 'Cloud routing with automatic local fallback. Keep your applications online when cloud providers fail.',
-      product: 'Both'
+      title: 'Air-Gapped & Restricted Environments',
+      description: 'Isolated operation with encrypted storage and no external telemetry, designed for secure facilities.',
+      product: 'Runtime'
     },
     {
-      title: 'Regulated Environments',
-      description: 'Completely offline operation after setup. Encrypted storage, no telemetry, ideal for secure facilities.',
-      product: 'Runtime'
+      title: 'AI Reliability Engineering',
+      description: 'Decision traces, provider verification, and replayable execution paths for production AI systems.',
+      product: 'Overture + Hybrid'
     },
   ]
 
