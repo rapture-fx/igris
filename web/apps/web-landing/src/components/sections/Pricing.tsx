@@ -17,7 +17,7 @@ const pricingRows = [
         features: [
           "Up to 500K requests/month",
           "Up to 3 AI providers (BYOK)",
-          "Thompson Sampling",
+          "Observed performance-based routing",
           "Quality-aware routing modes (Cost / Balanced / Quality)",
           "Circuit breaker and automatic failover",
           "Real-time cost tracking",
@@ -38,7 +38,7 @@ const pricingRows = [
           "Up to 10 AI providers",
           "Speculative execution",
           "Council mode",
-          "Cognitive advisor (auto-tuning)",
+          "Automatic routing optimization",
           "Policy versioning with hot reload",
           "Basic SLO enforcement",
           "Multi-runtime support",
