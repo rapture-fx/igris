@@ -2,27 +2,14 @@
 
 import React from 'react'
 import Link from 'next/link'
-import Image from 'next/image'
-import { useModal } from '../../contexts/ModalContext'
-
 export default function Hero() {
-  const { openEarlyAccessModal } = useModal();
   return (
     <section className="pt-0 pb-0 bg-[#f6f6f4] dark:bg-dark-bg text-gray-900 dark:text-[#f6f6f4] relative overflow-visible -mt-[72px]">
       <div className="mx-auto max-w-[1100px] px-4 sm:px-6 lg:px-8">
         <div className="relative px-4 md:px-8 lg:px-12 pb-0 bg-transparent dark:bg-[#1b1912] z-10 overflow-hidden flex flex-col border-l border-r section-border" style={{
           minHeight: '500px'
         }}>
-          <div className="absolute bottom-0 right-0 w-[300px] md:w-[600px]" style={{ height: 'auto' }}>
-            <Image
-              src="/corner.png"
-              alt="Corner illustration"
-              width={600}
-              height={350}
-              style={{ width: '100%', height: 'auto' }}
-              className="opacity-30 dark:opacity-80"
-            />
-          </div>
+
           <div className="flex-1" style={{ paddingTop: '100px' }}>
           </div>
           <div className="max-w-[1100px] mx-auto w-full relative z-10" style={{ paddingBottom: '2rem' }}>

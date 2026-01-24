@@ -29,10 +29,10 @@ export default function CoreCapabilities() {
     <>
       <section className="bg-[#f6f6f4] dark:bg-dark-bg text-gray-900 dark:text-[#f6f6f4] transition-colors duration-200">
         <div className="mx-auto max-w-[1100px] px-4 sm:px-6 lg:px-8">
-          <div className="relative px-4 md:px-8 lg:px-12 flex flex-col bg-[#f6f6f4] dark:bg-[#1b1912] border-l border-r border-b section-border min-h-[750px] md:h-[750px]">
+          <div className="relative px-4 md:px-8 lg:px-12 flex flex-col bg-[#f6f6f4] dark:bg-[#1b1912] border-l border-r border-b section-border min-h-[750px] md:h-auto">
 
             {/* Content Container */}
-            <div className="w-full px-0 flex flex-col h-full">
+            <div className="w-full px-0 flex flex-col flex-1">
               {/* No absolute divider - use border on right column instead */}
 
               {/* Mobile Layout - Title first, then capabilities */}
@@ -90,7 +90,7 @@ export default function CoreCapabilities() {
               </div>
 
               {/* Two-column layout */}
-              <div className="hidden md:grid md:grid-cols-3 gap-0 relative h-full">
+              <div className="hidden md:grid md:grid-cols-3 gap-0 relative flex-1">
                 {/* Left Column - Capabilities (2 columns wide) */}
                 <div className="hidden md:flex md:col-span-2 flex-col justify-start" style={{
                   paddingTop: '3rem',
@@ -245,16 +245,6 @@ export default function CoreCapabilities() {
                         </div>
                         {/* Horizontal frame below cards */}
                         <div className="mt-4 w-full border border-[#f6f6f4]/5 bg-[#1b1912] relative overflow-hidden" style={{ height: '250px' }}>
-                          <img
-                            src="/pnkk.png"
-                            alt="Background"
-                            style={{
-                              width: '100%',
-                              height: '100%',
-                              objectFit: 'cover',
-                              opacity: 0.6
-                            }}
-                          />
                         </div>
                       </>
                     )}
