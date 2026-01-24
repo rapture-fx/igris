@@ -72,7 +72,6 @@ export default function UseCasesPopup({ isOpen, onClose }: UseCasesPopupProps) {
         onClick={(e) => e.stopPropagation()}
       >
         <div className="flex-shrink-0 relative" style={{ minHeight: '180px' }}>
-          <img src="/po.png" alt="" className="absolute inset-0 w-full h-full object-cover" style={{ opacity: 0.8 }} />
           <div className="relative px-4 md:px-8 lg:px-12 pb-0 bg-transparent z-10 overflow-visible flex flex-col border-l border-r section-border" style={{ minHeight: '180px' }}>
             <div className="mx-auto w-full relative z-10" style={{ paddingTop: '3rem', paddingBottom: '2rem' }}>
               <div className="mb-6 text-left">
