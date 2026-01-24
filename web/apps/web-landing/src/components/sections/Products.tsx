@@ -32,7 +32,7 @@ export default function Products() {
                {/* Products - Mobile */}
                <div className="space-y-12 text-left">
                  {/* Overture */}
-                   <div className="text-left border border-gray-300 dark:border-[#f6f6f4]/5 rounded-lg p-6">
+                   <div className="text-left border border-gray-300 dark:border-[#f6f6f4]/5 p-6">
                      <h3 className="text-lg md:text-xl font-inter mb-2 text-[#000000] dark:text-[#f6f6f4]">
                        Overture
                      </h3>
@@ -62,7 +62,7 @@ export default function Products() {
                   </div>
 
                      {/* Runtime */}
-                     <div className="border border-gray-300 dark:border-[#f6f6f4]/5 rounded-lg p-6 mb-12">
+                     <div className="border border-gray-300 dark:border-[#f6f6f4]/5 p-6 mb-12">
                        <h3 className="text-lg md:text-xl font-inter mb-2 text-[#000000] dark:text-[#f6f6f4]">
                          Runtime
                        </h3>
@@ -101,7 +101,7 @@ export default function Products() {
                  <div className="w-full space-y-12">
 
                    {/* Overture */}
-                    <div className="border border-gray-300 dark:border-[#f6f6f4]/5 rounded-lg p-6">
+                    <div className="border border-gray-300 dark:border-[#f6f6f4]/5 p-6">
                       <h3 className="text-lg md:text-xl font-inter mb-2 text-[#000000] dark:text-[#f6f6f4]">
                         Overture
                       </h3>
@@ -131,7 +131,7 @@ export default function Products() {
                   </div>
 
                      {/* Runtime */}
-                     <div className="border border-gray-300 dark:border-[#f6f6f4]/5 rounded-lg p-6 mb-12">
+                     <div className="border border-gray-300 dark:border-[#f6f6f4]/5 p-6 mb-12">
                         <h3 className="text-lg md:text-xl font-inter mb-2 text-[#000000] dark:text-[#f6f6f4]">
                           Runtime
                         </h3>

@@ -9,8 +9,20 @@ export default function Hero() {
         <div className="relative px-4 md:px-8 lg:px-12 pb-0 bg-transparent dark:bg-[#1b1912] z-10 overflow-hidden flex flex-col border-l border-r section-border" style={{
           minHeight: '500px'
         }}>
+          {/* Background image with opacity */}
+          <div className="absolute z-0" style={{
+            top: 0,
+            left: 0,
+            right: 0,
+            bottom: 0,
+            backgroundImage: 'url(/hhr.png)',
+            backgroundSize: '120%',
+            backgroundPosition: 'center',
+            backgroundRepeat: 'no-repeat',
+            opacity: 0.6
+          }}></div>
 
-          <div className="flex-1" style={{ paddingTop: '100px' }}>
+          <div className="flex-1 relative z-10" style={{ paddingTop: 'calc(72px + 3rem)' }}>
           </div>
           <div className="max-w-[1100px] mx-auto w-full relative z-10" style={{ paddingBottom: '2rem' }}>
             <div className="mb-6 text-left">
