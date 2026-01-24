@@ -101,9 +101,9 @@ export default function MultiTenancy() {
                         <img src="/de.png" alt="" className="w-[120%] h-auto object-contain" style={{ opacity: 0.85 }} />
                       </div>
                   </div>
-                   {/* Bottom Frame */}
-                   <div className="w-full flex-shrink-0 border-l border-r border-b border-t border-[rgba(156,163,175,0.3)] dark:border-[rgba(246,246,244,0.05)] mt-6 relative overflow-hidden" style={{ height: '250px' }}>
-                       <img src="/lk.png" alt="" className="absolute inset-0 w-full h-full object-cover object-center" style={{ opacity: 0.3 }} />
+{/* Bottom Frame */}
+                    <div className="w-full flex-shrink-0 border-l border-r border-b border-t border-[rgba(156,163,175,0.3)] dark:border-[rgba(246,246,244,0.05)] mt-6 relative overflow-hidden" style={{ height: '250px' }}>
+                        <img src="/co.png" alt="" className="absolute inset-0 w-full h-full" style={{ opacity: 0.8, objectFit: 'cover', objectPosition: 'center', transform: 'scale(1.1)' }} />
                        <div className="absolute bottom-4 left-4 text-left max-w-xs">
                          <h4 className="text-xs font-semibold text-[#000000] dark:text-[#f6f6f4] mb-2 font-inter">
                            Decision–Execution Binding

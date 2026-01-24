@@ -6,8 +6,8 @@ export default function Hero() {
   return (
     <section className="pt-0 pb-0 bg-[#f6f6f4] dark:bg-dark-bg text-gray-900 dark:text-[#f6f6f4] relative overflow-visible -mt-[72px]">
       <div className="mx-auto max-w-[1100px] px-4 sm:px-6 lg:px-8">
-        <div className="relative px-4 md:px-8 lg:px-12 pb-0 bg-transparent dark:bg-[#1b1912] z-10 overflow-hidden flex flex-col border-l border-r section-border" style={{
-          minHeight: '500px'
+        <div className="relative px-4 md:px-8 lg:px-12 pb-0 bg-transparent dark:bg-[#1b1912] z-10 overflow-hidden border-l border-r section-border" style={{
+          height: '500px'
         }}>
           {/* Background image with opacity */}
           <div className="absolute z-0" style={{
@@ -16,15 +16,13 @@ export default function Hero() {
             right: 0,
             bottom: 0,
             backgroundImage: 'url(/hhr.png)',
-            backgroundSize: '120%',
+            backgroundSize: 'cover',
             backgroundPosition: 'center',
             backgroundRepeat: 'no-repeat',
             opacity: 0.6
           }}></div>
 
-          <div className="flex-1 relative z-10" style={{ paddingTop: 'calc(72px + 3rem)' }}>
-          </div>
-          <div className="max-w-[1100px] mx-auto w-full relative z-10" style={{ paddingBottom: '2rem' }}>
+          <div className="max-w-[1100px] mx-auto w-full absolute z-10" style={{ bottom: '5rem', left: 0, right: 0, paddingLeft: '4rem', paddingRight: '4rem' }}>
             <div className="mb-6 text-left">
               <div>
                 <h1 className="text-lg md:text-xl lg:text-2xl font-medium text-[#111111] dark:text-[#f6f6f4] leading-[1.2]">
@@ -40,13 +38,11 @@ export default function Hero() {
                 <Link href="/overture">
                   <button
                     className="inline-flex items-center justify-center bg-black text-white dark:bg-[#f6f6f4] dark:text-black px-3 py-1.5 md:px-4 md:py-2 hover:bg-gray-800 dark:hover:bg-gray-200 transition-all duration-200 text-xs font-medium shadow-md hover:shadow-lg"
-                    style={{ marginBottom: '5rem' }}
                   >
                     Get Started
                   </button>
                 </Link>
              </div>
-             <div className="-mx-4 md:-mx-8 lg:-mx-12" style={{ paddingBottom: '6rem', marginBottom: '1.5rem' }}></div>
           </div>
         </div>
       </div>
