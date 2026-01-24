@@ -147,7 +147,7 @@ className="mb-4 object-contain opacity-100"
                           />
                         </div>
                          <div className="mt-auto pb-4">
-                           <p className="text-xs text-[#a8a898] leading-relaxed">
+                           <p className="text-sm text-[#a8a898] leading-relaxed">
                              This guarantees reliable execution—even offline or under failure conditions.
                            </p>
                          </div>
@@ -172,7 +172,7 @@ className="mb-4 object-contain opacity-100"
                            />
                          </div>
                           <div className="mt-auto pb-4">
-                            <p className="text-xs text-[#a8a898] leading-relaxed">
+                            <p className="text-sm text-[#a8a898] leading-relaxed">
                               The system learns, adapts, and stays compliant in production.
                             </p>
                           </div>
