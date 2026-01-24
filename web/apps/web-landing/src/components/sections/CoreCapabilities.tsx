@@ -129,8 +129,8 @@ export default function CoreCapabilities() {
                                 alt={capability.name}
                                 style={{
                                   position: 'absolute',
-                                  width: '60%',
-                                  height: '60%',
+                                  width: '75%',
+                                  height: '75%',
                                   objectFit: 'contain',
                                   opacity: '0.65'
                                 }}
@@ -142,8 +142,8 @@ export default function CoreCapabilities() {
                                 alt={capability.name}
                                 style={{
                                   position: 'absolute',
-                                  width: '60%',
-                                  height: '60%',
+                                  width: '65%',
+                                  height: '65%',
                                   objectFit: 'contain',
                                   opacity: '0.5'
                                 }}
@@ -155,8 +155,8 @@ export default function CoreCapabilities() {
                                 alt={capability.name}
                                 style={{
                                   position: 'absolute',
-                                  width: '60%',
-                                  height: '60%',
+                                  width: '75%',
+                                  height: '75%',
                                   objectFit: 'contain',
                                   opacity: '0.5'
                                 }}
@@ -193,12 +193,12 @@ export default function CoreCapabilities() {
                               }}>
                                 {index === 0 && (
                                   <img
-                                    src="/cr.png"
+src="/cr.png"
                                     alt={capability.name}
                                     style={{
                                       position: 'absolute',
-                                      width: '55%',
-                                      height: '55%',
+                                      width: '65%',
+                                      height: '65%',
                                       objectFit: 'contain',
                                       opacity: '0.6'
                                     }}
@@ -210,8 +210,8 @@ export default function CoreCapabilities() {
                                     alt={capability.name}
                                     style={{
                                       position: 'absolute',
-                                      width: '45%',
-                                      height: '45%',
+                                      width: '55%',
+                                      height: '55%',
                                       objectFit: 'contain',
                                       opacity: '0.6'
                                     }}
@@ -223,8 +223,8 @@ export default function CoreCapabilities() {
                                     alt={capability.name}
                                     style={{
                                       position: 'absolute',
-                                      width: '50%',
-                                      height: '50%',
+                                      width: '60%',
+                                      height: '60%',
                                       objectFit: 'contain',
                                       opacity: '0.6'
                                     }}
