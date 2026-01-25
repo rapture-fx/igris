@@ -9,9 +9,9 @@ import (
 	"time"
 
 	"github.com/gofiber/fiber/v2"
-	"github.com/Schlep-engine/igris-inertial/cmd/igris-overture/handlers"
-	"github.com/Schlep-engine/igris-inertial/igris-overture/middleware"
-	"github.com/Schlep-engine/igris-inertial/igris-overture/security"
+	"github.com/Igris-inertial/system/cmd/igris-overture/handlers"
+	"github.com/Igris-inertial/system/igris-overture/middleware"
+	"github.com/Igris-inertial/system/igris-overture/security"
 )
 
 // RoutingRouteConfig holds configuration for routing routes

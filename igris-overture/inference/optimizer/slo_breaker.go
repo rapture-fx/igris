@@ -6,8 +6,8 @@ import (
 	"sync"
 	"time"
 
-	"github.com/Schlep-engine/igris-inertial/igris-overture/config"
-	"github.com/Schlep-engine/igris-inertial/igris-overture/inference/optimizer/shadow"
+	"github.com/Igris-inertial/system/igris-overture/config"
+	"github.com/Igris-inertial/system/igris-overture/inference/optimizer/shadow"
 )
 
 // SLOThresholds defines the thresholds for SLO guardrails

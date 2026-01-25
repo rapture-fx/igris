@@ -8,8 +8,8 @@ import (
 	"github.com/gofiber/fiber/v2"
 	"github.com/rs/zerolog/log"
 
-	"github.com/Schlep-engine/igris-inertial/igris-overture/bandit"
-	"github.com/Schlep-engine/igris-inertial/igris-overture/semantic"
+	"github.com/Igris-inertial/system/igris-overture/bandit"
+	"github.com/Igris-inertial/system/igris-overture/semantic"
 )
 
 // SemanticHandler handles semantic routing verification endpoints

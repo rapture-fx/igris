@@ -5,7 +5,7 @@ import (
 	"fmt"
 	"time"
 
-	"github.com/Schlep-engine/igris-inertial/igris-overture/ml"
+	"github.com/Igris-inertial/system/igris-overture/ml"
 )
 
 // ============================================================================

@@ -9,7 +9,7 @@ import (
 
 	"github.com/rs/zerolog/log"
 
-	"github.com/Schlep-engine/igris-inertial/igris-overture/observability"
+	"github.com/Igris-inertial/system/igris-overture/observability"
 )
 
 // AutoApplier manages automatic proposal application and rollback monitoring

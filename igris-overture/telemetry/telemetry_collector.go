@@ -10,11 +10,11 @@ import (
 	"time"
 
 	"github.com/google/uuid"
-	"github.com/Schlep-engine/igris-inertial/igris-overture/adapters"
-	"github.com/Schlep-engine/igris-inertial/igris-overture/logging"
-	"github.com/Schlep-engine/igris-inertial/igris-overture/metrics"
-	"github.com/Schlep-engine/igris-inertial/igris-overture/models"
-	"github.com/Schlep-engine/igris-inertial/igris-overture/routing"
+	"github.com/Igris-inertial/system/igris-overture/adapters"
+	"github.com/Igris-inertial/system/igris-overture/logging"
+	"github.com/Igris-inertial/system/igris-overture/metrics"
+	"github.com/Igris-inertial/system/igris-overture/models"
+	"github.com/Igris-inertial/system/igris-overture/routing"
 )
 
 // TelemetryCollector collects and stores routing telemetry

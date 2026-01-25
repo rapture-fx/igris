@@ -7,7 +7,7 @@ import (
 	"time"
 
 	"github.com/gofiber/fiber/v2"
-	"../security"
+	"github.com/Igris-inertial/system/igris-overture/security"
 )
 
 // FleetConfig holds fleet-related configuration

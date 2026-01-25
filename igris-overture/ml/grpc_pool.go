@@ -14,7 +14,7 @@ import (
 	"google.golang.org/grpc/health/grpc_health_v1"
 	"github.com/rs/zerolog/log"
 
-	pb "github.com/Schlep-engine/igris-inertial/proto"
+	pb "github.com/Igris-inertial/system/proto"
 )
 
 // Connection pool configuration

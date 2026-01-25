@@ -6,7 +6,7 @@ import (
 	"testing"
 	"time"
 
-	"github.com/Schlep-engine/igris-inertial/igris-overture/models"
+	"github.com/Igris-inertial/system/igris-overture/models"
 )
 
 // TestStreamMerger_BasicDelivery tests that tokens are delivered correctly from winner

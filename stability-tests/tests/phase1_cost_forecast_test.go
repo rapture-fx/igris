@@ -4,9 +4,9 @@ import (
 	"fmt"
 	"testing"
 
-	"github.com/Schlep-engine/igris-inertial/igris-overture/config"
-	"github.com/Schlep-engine/igris-inertial/igris-overture/models"
-	"github.com/Schlep-engine/igris-inertial/igris-overture/providers"
+	"github.com/Igris-inertial/system/igris-overture/config"
+	"github.com/Igris-inertial/system/igris-overture/models"
+	"github.com/Igris-inertial/system/igris-overture/providers"
 )
 
 // TestCostMapLoading validates cost_map.yaml can be loaded

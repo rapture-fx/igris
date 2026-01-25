@@ -9,7 +9,7 @@ import (
 
 	"github.com/gofiber/fiber/v2"
 	"github.com/google/uuid"
-	"github.com/Schlep-engine/igris-inertial/igris-overture/auth"
+	"github.com/Igris-inertial/system/igris-overture/auth"
 )
 
 // SSOEnforcerConfig holds SSO enforcement configuration

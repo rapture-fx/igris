@@ -7,9 +7,9 @@ import (
 	"context"
 	"fmt"
 
-	"github.com/Schlep-engine/igris-inertial/igris-overture/config"
-	"github.com/Schlep-engine/igris-inertial/igris-overture/inference/optimizer/ffi"
-	"github.com/Schlep-engine/igris-inertial/igris-overture/inference/optimizer/shadow"
+	"github.com/Igris-inertial/system/igris-overture/config"
+	"github.com/Igris-inertial/system/igris-overture/inference/optimizer/ffi"
+	"github.com/Igris-inertial/system/igris-overture/inference/optimizer/shadow"
 )
 
 // ExampleRouterWithShadow demonstrates how to integrate shadow mode

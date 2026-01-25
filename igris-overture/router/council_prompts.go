@@ -4,7 +4,7 @@ import (
 	"fmt"
 	"strings"
 
-	"github.com/Schlep-engine/igris-inertial/igris-overture/models"
+	"github.com/Igris-inertial/system/igris-overture/models"
 )
 
 // CouncilPrompts contains prompt templates for council mode

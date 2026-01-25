@@ -6,8 +6,8 @@ import (
 	"log"
 	"sync"
 
-	"github.com/Schlep-engine/igris-inertial/igris-overture/models"
-	"github.com/Schlep-engine/igris-inertial/igris-overture/observability"
+	"github.com/Igris-inertial/system/igris-overture/models"
+	"github.com/Igris-inertial/system/igris-overture/observability"
 )
 
 // StreamMerger handles seamless token delivery from a winning provider with

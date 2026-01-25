@@ -6,7 +6,7 @@ import (
 	"net"
 	"sync"
 
-	pb "github.com/Schlep-engine/igris-inertial/proto"
+	pb "github.com/Igris-inertial/system/proto"
 	"google.golang.org/grpc"
 	"google.golang.org/grpc/codes"
 	"google.golang.org/grpc/status"

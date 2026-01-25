@@ -9,11 +9,11 @@ import (
 	"time"
 
 	"github.com/gofiber/fiber/v2"
-	"github.com/Schlep-engine/igris-inertial/igris-overture/middleware"
-	"github.com/Schlep-engine/igris-inertial/igris-overture/models"
-	"github.com/Schlep-engine/igris-inertial/igris-overture/repository"
-	"github.com/Schlep-engine/igris-inertial/igris-overture/security"
-	"github.com/Schlep-engine/igris-inertial/igris-overture/services"
+	"github.com/Igris-inertial/system/igris-overture/middleware"
+	"github.com/Igris-inertial/system/igris-overture/models"
+	"github.com/Igris-inertial/system/igris-overture/repository"
+	"github.com/Igris-inertial/system/igris-overture/security"
+	"github.com/Igris-inertial/system/igris-overture/services"
 )
 
 // ProviderRegistryHandler handles provider registry operations

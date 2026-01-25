@@ -9,7 +9,7 @@ import (
 	"time"
 
 	"github.com/rs/zerolog/log"
-	pb "github.com/Schlep-engine/igris-inertial/proto/orchestration"
+	pb "github.com/Igris-inertial/system/proto/orchestration"
 )
 
 // PolicyVersion represents a versioned set of policies

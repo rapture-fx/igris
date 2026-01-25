@@ -25,7 +25,7 @@ import (
 	"time"
 	"unsafe"
 
-	"github.com/Schlep-engine/igris-inertial/igris-overture/metrics"
+	"github.com/Igris-inertial/system/igris-overture/metrics"
 )
 
 // OptimizerHandle wraps the Rust optimizer handle

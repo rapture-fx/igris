@@ -8,7 +8,7 @@ import (
 
 	"github.com/gofiber/fiber/v2"
 	"github.com/redis/go-redis/v9"
-	"github.com/Schlep-engine/igris-inertial/igris-overture/health"
+	"github.com/Igris-inertial/system/igris-overture/health"
 )
 
 var healthChecker *health.HealthChecker

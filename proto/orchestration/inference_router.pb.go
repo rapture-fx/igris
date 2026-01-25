@@ -8341,7 +8341,7 @@ const file_labs_proto_orchestration_inference_router_proto_rawDesc = "" +
 	"\x0fGetRoutingStats\x12\".orchestration.RoutingStatsRequest\x1a#.orchestration.RoutingStatsResponse2\xc9\x01\n" +
 	"\x19InferenceExecutionService\x12U\n" +
 	"\x10ExecuteInference\x12\x1f.orchestration.InferenceRequest\x1a .orchestration.InferenceResponse\x12U\n" +
-	"\fExecuteBatch\x12\x1f.orchestration.InferenceRequest\x1a .orchestration.InferenceResponse(\x010\x01B<Z:github.com/Schlep-engine/igris-inertial/proto/orchestrationb\x06proto3"
+	"\fExecuteBatch\x12\x1f.orchestration.InferenceRequest\x1a .orchestration.InferenceResponse(\x010\x01B<Z:github.com/Igris-inertial/system/proto/orchestrationb\x06proto3"
 
 var (
 	file_labs_proto_orchestration_inference_router_proto_rawDescOnce sync.Once

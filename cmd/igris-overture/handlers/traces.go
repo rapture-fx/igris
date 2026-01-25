@@ -7,7 +7,7 @@ import (
 	"time"
 
 	"github.com/gofiber/fiber/v2"
-	"github.com/Schlep-engine/igris-inertial/igris-overture/middleware"
+	"github.com/Igris-inertial/system/igris-overture/middleware"
 )
 
 // TracesHandler handles request trace operations

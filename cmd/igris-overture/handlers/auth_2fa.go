@@ -6,8 +6,8 @@ import (
 	"log"
 
 	"github.com/gofiber/fiber/v2"
-	"github.com/Schlep-engine/igris-inertial/igris-overture/auth"
-	"github.com/Schlep-engine/igris-inertial/igris-overture/middleware"
+	"github.com/Igris-inertial/system/igris-overture/auth"
+	"github.com/Igris-inertial/system/igris-overture/middleware"
 )
 
 // AuthHandler handles 2FA authentication operations

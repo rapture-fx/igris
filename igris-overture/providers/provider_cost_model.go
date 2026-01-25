@@ -4,7 +4,7 @@ import (
 	"fmt"
 	"time"
 
-	"github.com/Schlep-engine/igris-inertial/igris-overture/models"
+	"github.com/Igris-inertial/system/igris-overture/models"
 )
 
 // CostModel provides centralized pricing and cost estimation for all providers

@@ -4,7 +4,7 @@ import (
 	"context"
 	"testing"
 
-	"github.com/Schlep-engine/igris-inertial/igris-overture/config"
+	"github.com/Igris-inertial/system/igris-overture/config"
 )
 
 // TestCostAccounting_BasicTracking tests basic cost and token tracking

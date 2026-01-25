@@ -8,9 +8,9 @@ import (
 	"sync"
 	"time"
 
-	"github.com/Schlep-engine/igris-inertial/igris-overture/repository"
-	"github.com/Schlep-engine/igris-inertial/igris-overture/security"
-	"github.com/Schlep-engine/igris-inertial/igris-overture/services"
+	"github.com/Igris-inertial/system/igris-overture/repository"
+	"github.com/Igris-inertial/system/igris-overture/security"
+	"github.com/Igris-inertial/system/igris-overture/services"
 )
 
 // ProviderHealthMonitor monitors provider health and automatically disables unhealthy providers

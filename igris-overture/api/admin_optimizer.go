@@ -6,8 +6,8 @@ import (
 	"time"
 
 	"github.com/gofiber/fiber/v2"
-	"github.com/Schlep-engine/igris-inertial/igris-overture/config"
-	"github.com/Schlep-engine/igris-inertial/igris-overture/inference/optimizer/shadow"
+	"github.com/Igris-inertial/system/igris-overture/config"
+	"github.com/Igris-inertial/system/igris-overture/inference/optimizer/shadow"
 )
 
 // AdminOptimizerHandler handles admin API requests for optimizer configuration

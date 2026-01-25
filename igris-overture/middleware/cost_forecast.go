@@ -6,10 +6,10 @@ import (
 	"sync"
 
 	"github.com/gofiber/fiber/v2"
-	"github.com/Schlep-engine/igris-inertial/igris-overture/config"
-	"github.com/Schlep-engine/igris-inertial/igris-overture/models"
-	"github.com/Schlep-engine/igris-inertial/igris-overture/observability"
-	"github.com/Schlep-engine/igris-inertial/igris-overture/providers"
+	"github.com/Igris-inertial/system/igris-overture/config"
+	"github.com/Igris-inertial/system/igris-overture/models"
+	"github.com/Igris-inertial/system/igris-overture/observability"
+	"github.com/Igris-inertial/system/igris-overture/providers"
 )
 
 // CostForecastMiddleware adds cost estimation headers to inference requests
