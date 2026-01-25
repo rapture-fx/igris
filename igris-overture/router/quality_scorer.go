@@ -6,8 +6,8 @@ import (
 	"strings"
 	"time"
 
-	"github.com/Schlep-engine/igris-inertial/igris-overture/config"
-	"github.com/Schlep-engine/igris-inertial/igris-overture/models"
+	"github.com/Igris-inertial/system/igris-overture/config"
+	"github.com/Igris-inertial/system/igris-overture/models"
 )
 
 // QualityScorer evaluates the quality of early tokens from providers

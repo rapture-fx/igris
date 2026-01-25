@@ -8,10 +8,10 @@ import (
 	"github.com/gofiber/fiber/v2"
 	"github.com/rs/zerolog/log"
 
-	"github.com/Schlep-engine/igris-inertial/igris-overture/cognitive"
-	"github.com/Schlep-engine/igris-inertial/igris-overture/config"
-	"github.com/Schlep-engine/igris-inertial/igris-overture/database"
-	"github.com/Schlep-engine/igris-inertial/igris-overture/middleware"
+	"github.com/Igris-inertial/system/igris-overture/cognitive"
+	"github.com/Igris-inertial/system/igris-overture/config"
+	"github.com/Igris-inertial/system/igris-overture/database"
+	"github.com/Igris-inertial/system/igris-overture/middleware"
 )
 
 // CognitiveHandler handles cognitive advisor API requests

@@ -6,10 +6,10 @@ import (
 	"github.com/gofiber/fiber/v2"
 	"github.com/gofiber/adaptor/v2"
 	"github.com/prometheus/client_golang/prometheus/promhttp"
-	"github.com/Schlep-engine/igris-inertial/igris-overture/database"
-	"github.com/Schlep-engine/igris-inertial/igris-overture/metrics"
-	"github.com/Schlep-engine/igris-inertial/igris-overture/middleware"
-	"github.com/Schlep-engine/igris-inertial/igris-overture/tracing"
+	"github.com/Igris-inertial/system/igris-overture/database"
+	"github.com/Igris-inertial/system/igris-overture/metrics"
+	"github.com/Igris-inertial/system/igris-overture/middleware"
+	"github.com/Igris-inertial/system/igris-overture/tracing"
 )
 
 // RegisterMetricsRoutes registers metrics and telemetry endpoints

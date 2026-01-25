@@ -8,9 +8,9 @@ import (
 	"sort"
 	"strings"
 
-	"github.com/Schlep-engine/igris-inertial/igris-overture/circuitbreaker"
-	"github.com/Schlep-engine/igris-inertial/igris-overture/models"
-	"github.com/Schlep-engine/igris-inertial/igris-overture/repository"
+	"github.com/Igris-inertial/system/igris-overture/circuitbreaker"
+	"github.com/Igris-inertial/system/igris-overture/models"
+	"github.com/Igris-inertial/system/igris-overture/repository"
 )
 
 // SelectionReason describes why a provider was selected

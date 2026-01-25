@@ -9,10 +9,10 @@ import (
 	"sync"
 	"time"
 
-	"github.com/Schlep-engine/igris-inertial/igris-overture/inference/optimizer/ffi"
-	"github.com/Schlep-engine/igris-inertial/igris-overture/inference/quality"
-	"github.com/Schlep-engine/igris-inertial/igris-overture/models"
-	"github.com/Schlep-engine/igris-inertial/igris-overture/providers"
+	"github.com/Igris-inertial/system/igris-overture/inference/optimizer/ffi"
+	"github.com/Igris-inertial/system/igris-overture/inference/quality"
+	"github.com/Igris-inertial/system/igris-overture/models"
+	"github.com/Igris-inertial/system/igris-overture/providers"
 )
 
 // InferenceRouter handles intelligent routing of inference requests

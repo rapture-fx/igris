@@ -9,9 +9,9 @@ import (
 	"net/http"
 	"time"
 
-	"github.com/Schlep-engine/igris-inertial/igris-overture/metrics"
-	"github.com/Schlep-engine/igris-inertial/igris-overture/models"
-	"github.com/Schlep-engine/igris-inertial/igris-overture/providers"
+	"github.com/Igris-inertial/system/igris-overture/metrics"
+	"github.com/Igris-inertial/system/igris-overture/models"
+	"github.com/Igris-inertial/system/igris-overture/providers"
 )
 
 // OpenAIProvider implements the Provider interface for OpenAI API

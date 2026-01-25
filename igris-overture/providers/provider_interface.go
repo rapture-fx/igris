@@ -4,7 +4,7 @@ import (
 	"context"
 	"io"
 
-	"github.com/Schlep-engine/igris-inertial/igris-overture/models"
+	"github.com/Igris-inertial/system/igris-overture/models"
 )
 
 // Provider defines the interface for LLM inference providers

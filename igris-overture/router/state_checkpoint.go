@@ -13,8 +13,8 @@ import (
 	"github.com/prometheus/client_golang/prometheus/promauto"
 	"github.com/rs/zerolog/log"
 
-	"github.com/Schlep-engine/igris-inertial/igris-overture/policies"
-	pb "github.com/Schlep-engine/igris-inertial/proto/orchestration"
+	"github.com/Igris-inertial/system/igris-overture/policies"
+	pb "github.com/Igris-inertial/system/proto/orchestration"
 )
 
 // PolicyEngine type alias for compatibility

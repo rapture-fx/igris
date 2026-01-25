@@ -6,8 +6,8 @@ import (
 
 	"github.com/gofiber/fiber/v2"
 	"github.com/google/uuid"
-	"github.com/Schlep-engine/igris-inertial/igris-overture/logging"
-	"github.com/Schlep-engine/igris-inertial/igris-overture/observability"
+	"github.com/Igris-inertial/system/igris-overture/logging"
+	"github.com/Igris-inertial/system/igris-overture/observability"
 )
 
 // InferenceMetrics is a middleware that tracks metrics and adds trace IDs for /v1/infer requests

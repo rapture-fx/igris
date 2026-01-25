@@ -7,7 +7,7 @@ import (
 
 	"google.golang.org/grpc"
 	"google.golang.org/grpc/credentials/insecure"
-	pb "github.com/Schlep-engine/igris-inertial/proto"
+	pb "github.com/Igris-inertial/system/proto"
 )
 
 // Client is a gRPC client for the Python ML service

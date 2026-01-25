@@ -9,8 +9,8 @@ import (
 	"fmt"
 	"log"
 
-	"github.com/Schlep-engine/igris-inertial/igris-overture/models"
-	"github.com/Schlep-engine/igris-inertial/igris-overture/security"
+	"github.com/Igris-inertial/system/igris-overture/models"
+	"github.com/Igris-inertial/system/igris-overture/security"
 )
 
 // TenantSafetyController wraps SafetyController with tenant-specific features

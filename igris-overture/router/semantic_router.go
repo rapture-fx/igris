@@ -5,8 +5,8 @@ import (
 	"fmt"
 	"time"
 
-	"github.com/Schlep-engine/igris-inertial/igris-overture/bandit"
-	"github.com/Schlep-engine/igris-inertial/igris-overture/semantic"
+	"github.com/Igris-inertial/system/igris-overture/bandit"
+	"github.com/Igris-inertial/system/igris-overture/semantic"
 )
 
 // SemanticRouter combines semantic classification with Thompson Sampling routing

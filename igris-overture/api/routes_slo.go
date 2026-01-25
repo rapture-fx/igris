@@ -7,7 +7,7 @@ import (
 	"net/http"
 	"strconv"
 
-	"github.com/Schlep-engine/igris-inertial/igris-overture/slo"
+	"github.com/Igris-inertial/system/igris-overture/slo"
 )
 
 // SLOHandler handles SLO Enforcer HTTP requests

@@ -4,8 +4,8 @@ import (
 	"sync"
 	"time"
 
-	"github.com/Schlep-engine/igris-inertial/igris-overture/inference/optimizer/ffi"
-	"github.com/Schlep-engine/igris-inertial/igris-overture/inference/optimizer/shadow"
+	"github.com/Igris-inertial/system/igris-overture/inference/optimizer/ffi"
+	"github.com/Igris-inertial/system/igris-overture/inference/optimizer/shadow"
 )
 
 // OptimizerConfig holds configuration for the optimizer

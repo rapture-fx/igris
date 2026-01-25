@@ -9,7 +9,7 @@ import (
 	"sync"
 	"time"
 
-	"github.com/Schlep-engine/igris-inertial/igris-overture/observability"
+	"github.com/Igris-inertial/system/igris-overture/observability"
 	"gonum.org/v1/gonum/stat/distuv"
 )
 

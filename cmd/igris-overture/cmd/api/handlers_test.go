@@ -9,7 +9,7 @@ import (
 	"testing"
 
 	"github.com/gofiber/fiber/v2"
-	"github.com/Schlep-engine/igris-inertial/igris-overture/ml"
+	"github.com/Igris-inertial/system/igris-overture/ml"
 )
 
 func setupTestApp(mlClient *ml.Client) *fiber.App {

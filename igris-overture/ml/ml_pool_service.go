@@ -15,8 +15,8 @@ import (
 	"github.com/gofiber/fiber/v2"
 	"github.com/rs/zerolog/log"
 	
-	pb "github.com/Schlep-engine/igris-inertial/proto"
-	"github.com/Schlep-engine/igris-inertial/igris-overture/metrics"
+	pb "github.com/Igris-inertial/system/proto"
+	"github.com/Igris-inertial/system/igris-overture/metrics"
 )
 
 // PoolService manages ML service connections via connection pooling

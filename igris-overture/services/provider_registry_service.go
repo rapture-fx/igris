@@ -13,9 +13,9 @@ import (
 	"strings"
 	"time"
 
-	"github.com/Schlep-engine/igris-inertial/igris-overture/models"
-	"github.com/Schlep-engine/igris-inertial/igris-overture/repository"
-	"github.com/Schlep-engine/igris-inertial/igris-overture/security"
+	"github.com/Igris-inertial/system/igris-overture/models"
+	"github.com/Igris-inertial/system/igris-overture/repository"
+	"github.com/Igris-inertial/system/igris-overture/security"
 )
 
 // ProviderRegistryService handles provider registration and validation

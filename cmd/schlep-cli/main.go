@@ -13,7 +13,7 @@ import (
 	"os"
 	"time"
 
-	"github.com/Schlep-engine/igris-inertial/igris-overture/emergency"
+	"github.com/Igris-inertial/system/igris-overture/emergency"
 	"github.com/spf13/cobra"
 )
 

@@ -11,7 +11,7 @@ import (
 
 const (
 	tracerKey  = "otel-tracer"
-	tracerName = "github.com/Schlep-engine/igris-inertial"
+	tracerName = "github.com/Igris-inertial/system"
 )
 
 // OTelConfig holds configuration for OpenTelemetry middleware

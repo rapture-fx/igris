@@ -7,7 +7,7 @@ import (
 	"log"
 	"net"
 
-	pb "github.com/Schlep-engine/igris-inertial/proto/orchestration"
+	pb "github.com/Igris-inertial/system/proto/orchestration"
 	"google.golang.org/grpc"
 	"google.golang.org/grpc/reflection"
 )

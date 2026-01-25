@@ -11,7 +11,7 @@ import (
 	"net/http"
 	"time"
 
-	"github.com/Schlep-engine/igris-inertial/igris-overture/alerts"
+	"github.com/Igris-inertial/system/igris-overture/alerts"
 )
 
 // WebhookProvider sends alerts to generic webhook endpoints

@@ -3385,7 +3385,7 @@ const file_labs_proto_ml_service_proto_rawDesc = "" +
 	"\rEvaluateModel\x12\x15.ml.EvaluationRequest\x1a\x16.ml.EvaluationResponse\x12:\n" +
 	"\x0fGetModelMetrics\x12\x12.ml.MetricsRequest\x1a\x13.ml.MetricsResponse\x12>\n" +
 	"\rValidateModel\x12\x15.ml.ValidationRequest\x1a\x16.ml.ValidationResponseBH\n" +
-	"\x13com.schlepengine.mlP\x01Z/github.com/Schlep-engine/igris-inertial/proto/mlb\x06proto3"
+	"\x13com.schlepengine.mlP\x01Z/github.com/Igris-inertial/system/proto/mlb\x06proto3"
 
 var (
 	file_labs_proto_ml_service_proto_rawDescOnce sync.Once

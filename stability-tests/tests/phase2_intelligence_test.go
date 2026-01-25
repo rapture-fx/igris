@@ -4,9 +4,9 @@ import (
 	"context"
 	"testing"
 
-	"github.com/Schlep-engine/igris-inertial/igris-overture/cache"
-	"github.com/Schlep-engine/igris-inertial/igris-overture/policies"
-	"github.com/Schlep-engine/igris-inertial/igris-overture/router"
+	"github.com/Igris-inertial/system/igris-overture/cache"
+	"github.com/Igris-inertial/system/igris-overture/policies"
+	"github.com/Igris-inertial/system/igris-overture/router"
 )
 
 // TestPolicyDSLParsing validates policy YAML parsing
