@@ -438,3 +438,218 @@ func (db *Database) EnsureTenantPreferencesExist(ctx context.Context, tenantID s
 
 	return nil
 }
+
+// SelfTunerConfig represents configurable self-tuner settings per tenant
+type SelfTunerConfig struct {
+	TenantID           string        `json:"tenant_id"`
+	Enabled            bool          `json:"enabled"`
+	Interval           time.Duration `json:"interval"`           // Tuning interval (default: 24h, min: 1h)
+	AutoApplyEnabled   bool          `json:"auto_apply_enabled"` // Auto-apply high-confidence changes
+	AutoApplyThreshold float64       `json:"auto_apply_threshold"` // Min confidence to auto-apply (default: 0.90)
+	MaxRiskScore       float64       `json:"max_risk_score"`       // Max risk for auto-apply (default: 0.3)
+	RollbackWindow     time.Duration `json:"rollback_window"`      // Monitor window for rollback (default: 1h)
+	LatencyDegradationThreshold float64 `json:"latency_degradation_threshold"` // % degradation to trigger rollback
+	ErrorRateDegradationThreshold float64 `json:"error_rate_degradation_threshold"`
+	CostDegradationThreshold float64 `json:"cost_degradation_threshold"`
+	LastRun            time.Time     `json:"last_run"`
+	LastAutoApply      time.Time     `json:"last_auto_apply"`
+	UpdatedAt          time.Time     `json:"updated_at"`
+}
+
+// DefaultSelfTunerConfig returns default self-tuner configuration
+func DefaultSelfTunerConfig(tenantID string) *SelfTunerConfig {
+	return &SelfTunerConfig{
+		TenantID:           tenantID,
+		Enabled:            true,
+		Interval:           24 * time.Hour,
+		AutoApplyEnabled:   false, // Opt-in by default
+		AutoApplyThreshold: 0.90,
+		MaxRiskScore:       0.30,
+		RollbackWindow:     1 * time.Hour,
+		LatencyDegradationThreshold: 0.10, // 10% degradation
+		ErrorRateDegradationThreshold: 0.05, // 5% increase
+		CostDegradationThreshold: 0.10, // 10% increase
+		UpdatedAt:          time.Now(),
+	}
+}
+
+// GetSelfTunerConfig retrieves self-tuner configuration for a tenant
+func (db *Database) GetSelfTunerConfig(ctx context.Context, tenantID string) (*SelfTunerConfig, error) {
+	query := `
+		SELECT
+			tenant_id,
+			enabled,
+			interval_seconds,
+			auto_apply_enabled,
+			auto_apply_threshold,
+			max_risk_score,
+			rollback_window_seconds,
+			latency_degradation_threshold,
+			error_rate_degradation_threshold,
+			cost_degradation_threshold,
+			last_run,
+			last_auto_apply,
+			updated_at
+		FROM tenant_self_tuner_config
+		WHERE tenant_id = $1
+	`
+
+	var config SelfTunerConfig
+	var intervalSeconds, rollbackWindowSeconds int64
+	var lastRun, lastAutoApply sql.NullTime
+
+	err := db.pool.QueryRowContext(ctx, query, tenantID).Scan(
+		&config.TenantID,
+		&config.Enabled,
+		&intervalSeconds,
+		&config.AutoApplyEnabled,
+		&config.AutoApplyThreshold,
+		&config.MaxRiskScore,
+		&rollbackWindowSeconds,
+		&config.LatencyDegradationThreshold,
+		&config.ErrorRateDegradationThreshold,
+		&config.CostDegradationThreshold,
+		&lastRun,
+		&lastAutoApply,
+		&config.UpdatedAt,
+	)
+
+	if err == sql.ErrNoRows {
+		return DefaultSelfTunerConfig(tenantID), nil
+	}
+
+	if err != nil {
+		return nil, fmt.Errorf("failed to get self-tuner config: %w", err)
+	}
+
+	config.Interval = time.Duration(intervalSeconds) * time.Second
+	config.RollbackWindow = time.Duration(rollbackWindowSeconds) * time.Second
+	if lastRun.Valid {
+		config.LastRun = lastRun.Time
+	}
+	if lastAutoApply.Valid {
+		config.LastAutoApply = lastAutoApply.Time
+	}
+
+	return &config, nil
+}
+
+// UpsertSelfTunerConfig creates or updates self-tuner configuration
+func (db *Database) UpsertSelfTunerConfig(ctx context.Context, config *SelfTunerConfig) error {
+	// Enforce minimum interval of 1 hour
+	if config.Interval < time.Hour {
+		config.Interval = time.Hour
+	}
+
+	query := `
+		INSERT INTO tenant_self_tuner_config (
+			tenant_id,
+			enabled,
+			interval_seconds,
+			auto_apply_enabled,
+			auto_apply_threshold,
+			max_risk_score,
+			rollback_window_seconds,
+			latency_degradation_threshold,
+			error_rate_degradation_threshold,
+			cost_degradation_threshold,
+			updated_at
+		)
+		VALUES ($1, $2, $3, $4, $5, $6, $7, $8, $9, $10, NOW())
+		ON CONFLICT (tenant_id) DO UPDATE
+		SET
+			enabled = EXCLUDED.enabled,
+			interval_seconds = EXCLUDED.interval_seconds,
+			auto_apply_enabled = EXCLUDED.auto_apply_enabled,
+			auto_apply_threshold = EXCLUDED.auto_apply_threshold,
+			max_risk_score = EXCLUDED.max_risk_score,
+			rollback_window_seconds = EXCLUDED.rollback_window_seconds,
+			latency_degradation_threshold = EXCLUDED.latency_degradation_threshold,
+			error_rate_degradation_threshold = EXCLUDED.error_rate_degradation_threshold,
+			cost_degradation_threshold = EXCLUDED.cost_degradation_threshold,
+			updated_at = NOW()
+	`
+
+	_, err := db.pool.ExecContext(ctx, query,
+		config.TenantID,
+		config.Enabled,
+		int64(config.Interval.Seconds()),
+		config.AutoApplyEnabled,
+		config.AutoApplyThreshold,
+		config.MaxRiskScore,
+		int64(config.RollbackWindow.Seconds()),
+		config.LatencyDegradationThreshold,
+		config.ErrorRateDegradationThreshold,
+		config.CostDegradationThreshold,
+	)
+
+	if err != nil {
+		return fmt.Errorf("failed to upsert self-tuner config: %w", err)
+	}
+
+	return nil
+}
+
+// UpdateSelfTunerLastRun updates the last run timestamp
+func (db *Database) UpdateSelfTunerLastRun(ctx context.Context, tenantID string) error {
+	query := `
+		UPDATE tenant_self_tuner_config
+		SET last_run = NOW()
+		WHERE tenant_id = $1
+	`
+
+	_, err := db.pool.ExecContext(ctx, query, tenantID)
+	if err != nil {
+		return fmt.Errorf("failed to update last run: %w", err)
+	}
+
+	return nil
+}
+
+// UpdateSelfTunerLastAutoApply updates the last auto-apply timestamp
+func (db *Database) UpdateSelfTunerLastAutoApply(ctx context.Context, tenantID string) error {
+	query := `
+		UPDATE tenant_self_tuner_config
+		SET last_auto_apply = NOW()
+		WHERE tenant_id = $1
+	`
+
+	_, err := db.pool.ExecContext(ctx, query, tenantID)
+	if err != nil {
+		return fmt.Errorf("failed to update last auto-apply: %w", err)
+	}
+
+	return nil
+}
+
+// GetTenantsForSelfTuning returns tenants that need self-tuning based on interval
+func (db *Database) GetTenantsForSelfTuning(ctx context.Context, limit int) ([]string, error) {
+	query := `
+		SELECT tenant_id
+		FROM tenant_self_tuner_config
+		WHERE enabled = TRUE
+		  AND (last_run IS NULL OR last_run + (interval_seconds || ' seconds')::INTERVAL < NOW())
+		ORDER BY COALESCE(last_run, '1970-01-01'::TIMESTAMP) ASC
+		LIMIT $1
+	`
+
+	rows, err := db.pool.QueryContext(ctx, query, limit)
+	if err != nil {
+		return nil, fmt.Errorf("failed to get tenants for self-tuning: %w", err)
+	}
+	defer rows.Close()
+
+	var tenantIDs []string
+	for rows.Next() {
+		var tenantID string
+		if err := rows.Scan(&tenantID); err != nil {
+			return nil, fmt.Errorf("failed to scan tenant ID: %w", err)
+		}
+		tenantIDs = append(tenantIDs, tenantID)
+	}
+
+	return tenantIDs, rows.Err()
+}
+
+// Ignore unused import if pq is only for side effects
+var _ = pq.Array

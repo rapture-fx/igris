@@ -1229,3 +1229,206 @@ func RecordSelfTuningOptimization(class string, performanceImprovement, confiden
 	schlepSelfTuningPerformanceImprovement.WithLabelValues(class).Observe(performanceImprovement)
 	schlepSelfTuningConfidence.WithLabelValues(class).Observe(confidence)
 }
+
+// Phase 1 Security Hardening: Control Surface Metrics
+
+var (
+	// Rate limiting metrics
+	controlSurfaceRateLimitExceeded = promauto.NewCounterVec(
+		prometheus.CounterOpts{
+			Name: "control_surface_rate_limit_exceeded_total",
+			Help: "Total number of rate limit violations on control surface endpoints",
+		},
+		[]string{"tenant_id", "endpoint"},
+	)
+
+	controlSurfaceRateLimitAllowed = promauto.NewCounterVec(
+		prometheus.CounterOpts{
+			Name: "control_surface_rate_limit_allowed_total",
+			Help: "Total number of allowed requests (within rate limit)",
+		},
+		[]string{"tenant_id", "endpoint"},
+	)
+
+	// Signature verification metrics
+	controlSurfaceSignatureVerifications = promauto.NewCounterVec(
+		prometheus.CounterOpts{
+			Name: "control_surface_signature_verifications_total",
+			Help: "Total number of signature verification attempts",
+		},
+		[]string{"tenant_id", "result"}, // result: valid/invalid/missing
+	)
+
+	controlSurfaceSignatureVerificationLatency = promauto.NewHistogramVec(
+		prometheus.HistogramOpts{
+			Name:    "control_surface_signature_verification_latency_us",
+			Help:    "Signature verification latency in microseconds",
+			Buckets: []float64{10, 25, 50, 100, 250, 500, 1000},
+		},
+		[]string{"tenant_id"},
+	)
+
+	// Vault integration metrics
+	vaultSecretsReadTotal = promauto.NewCounterVec(
+		prometheus.CounterOpts{
+			Name: "vault_secrets_read_total",
+			Help: "Total number of secrets read from Vault",
+		},
+		[]string{"path", "result"}, // result: success/error/fallback
+	)
+
+	vaultHealthStatus = promauto.NewGauge(
+		prometheus.GaugeOpts{
+			Name: "vault_health_status",
+			Help: "Vault health status (1=healthy, 0=unhealthy)",
+		},
+	)
+
+	vaultRotationsTotal = promauto.NewCounter(
+		prometheus.CounterOpts{
+			Name: "vault_rotations_total",
+			Help: "Total number of secret rotations performed",
+		},
+	)
+
+	// Tamper detection metrics
+	tamperDetectionsTotal = promauto.NewCounterVec(
+		prometheus.CounterOpts{
+			Name: "tamper_detections_total",
+			Help: "Total number of tamper detection events",
+		},
+		[]string{"tenant_id", "detection_type"}, // detection_type: signature_mismatch/replay_attack/timestamp_drift
+	)
+
+	// Self-tuner metrics (Phase 2)
+	selfTunerRunsTotal = promauto.NewCounterVec(
+		prometheus.CounterOpts{
+			Name: "self_tuner_runs_total",
+			Help: "Total number of self-tuner execution cycles",
+		},
+		[]string{"tenant_id", "status"}, // status: success/error/skipped
+	)
+
+	selfTunerLastRunTimestamp = promauto.NewGaugeVec(
+		prometheus.GaugeOpts{
+			Name: "self_tuner_last_run_timestamp",
+			Help: "Unix timestamp of last self-tuner run",
+		},
+		[]string{"tenant_id"},
+	)
+
+	// Auto-apply metrics (Phase 2)
+	autoAppliedProposalsTotal = promauto.NewCounterVec(
+		prometheus.CounterOpts{
+			Name: "auto_applied_proposals_total",
+			Help: "Total number of automatically applied proposals",
+		},
+		[]string{"tenant_id", "result"}, // result: applied/skipped/failed
+	)
+
+	rollbacksTriggeredTotal = promauto.NewCounterVec(
+		prometheus.CounterOpts{
+			Name: "rollbacks_triggered_total",
+			Help: "Total number of auto-rollbacks triggered due to degradation",
+		},
+		[]string{"tenant_id", "reason"}, // reason: latency_degradation/error_rate/cost_increase
+	)
+
+	// Cryptographic verification metrics (Phase 3)
+	verificationFailuresTotal = promauto.NewCounterVec(
+		prometheus.CounterOpts{
+			Name: "verification_failures_total",
+			Help: "Total number of cryptographic verification failures",
+		},
+		[]string{"tenant_id", "failure_type"}, // failure_type: invalid_signature/expired_nonce/decision_mismatch
+	)
+
+	decisionSigningLatency = promauto.NewHistogramVec(
+		prometheus.HistogramOpts{
+			Name:    "decision_signing_latency_us",
+			Help:    "Routing decision signing latency in microseconds",
+			Buckets: []float64{5, 10, 25, 50, 100, 250, 500},
+		},
+		[]string{"tenant_id"},
+	)
+
+	executionEnvelopeVerificationLatency = promauto.NewHistogramVec(
+		prometheus.HistogramOpts{
+			Name:    "execution_envelope_verification_latency_us",
+			Help:    "Execution envelope verification latency in microseconds",
+			Buckets: []float64{10, 25, 50, 100, 250, 500, 1000},
+		},
+		[]string{"tenant_id"},
+	)
+)
+
+// RecordRateLimitExceeded records a rate limit violation
+func RecordRateLimitExceeded(tenantID, endpoint string) {
+	controlSurfaceRateLimitExceeded.WithLabelValues(tenantID, endpoint).Inc()
+}
+
+// RecordRateLimitAllowed records an allowed request
+func RecordRateLimitAllowed(tenantID, endpoint string) {
+	controlSurfaceRateLimitAllowed.WithLabelValues(tenantID, endpoint).Inc()
+}
+
+// RecordSignatureVerification records a signature verification attempt
+func RecordSignatureVerification(tenantID, result string, latencyUs int64) {
+	controlSurfaceSignatureVerifications.WithLabelValues(tenantID, result).Inc()
+	controlSurfaceSignatureVerificationLatency.WithLabelValues(tenantID).Observe(float64(latencyUs))
+}
+
+// RecordVaultSecretRead records a Vault secret read attempt
+func RecordVaultSecretRead(path, result string) {
+	vaultSecretsReadTotal.WithLabelValues(path, result).Inc()
+}
+
+// RecordVaultHealth records Vault health status
+func RecordVaultHealth(healthy bool) {
+	if healthy {
+		vaultHealthStatus.Set(1)
+	} else {
+		vaultHealthStatus.Set(0)
+	}
+}
+
+// RecordVaultRotation records a secret rotation event
+func RecordVaultRotation() {
+	vaultRotationsTotal.Inc()
+}
+
+// RecordTamperDetection records a tamper detection event
+func RecordTamperDetection(tenantID, detectionType string) {
+	tamperDetectionsTotal.WithLabelValues(tenantID, detectionType).Inc()
+}
+
+// RecordSelfTunerRun records a self-tuner execution
+func RecordSelfTunerRun(tenantID, status string) {
+	selfTunerRunsTotal.WithLabelValues(tenantID, status).Inc()
+	selfTunerLastRunTimestamp.WithLabelValues(tenantID).Set(float64(time.Now().Unix()))
+}
+
+// RecordAutoAppliedProposal records an auto-applied proposal result
+func RecordAutoAppliedProposal(tenantID, result string) {
+	autoAppliedProposalsTotal.WithLabelValues(tenantID, result).Inc()
+}
+
+// RecordRollbackTriggered records a rollback triggered due to degradation
+func RecordRollbackTriggered(tenantID, reason string) {
+	rollbacksTriggeredTotal.WithLabelValues(tenantID, reason).Inc()
+}
+
+// RecordVerificationFailure records a cryptographic verification failure
+func RecordVerificationFailure(tenantID, failureType string) {
+	verificationFailuresTotal.WithLabelValues(tenantID, failureType).Inc()
+}
+
+// RecordDecisionSigningLatency records decision signing performance
+func RecordDecisionSigningLatency(tenantID string, latencyUs int64) {
+	decisionSigningLatency.WithLabelValues(tenantID).Observe(float64(latencyUs))
+}
+
+// RecordExecutionEnvelopeVerificationLatency records envelope verification performance
+func RecordExecutionEnvelopeVerificationLatency(tenantID string, latencyUs int64) {
+	executionEnvelopeVerificationLatency.WithLabelValues(tenantID).Observe(float64(latencyUs))
+}
