@@ -87,71 +87,155 @@ export default function Faq() {
     return (
      <section id="faq" className="bg-[#f6f6f4] dark:bg-dark-bg text-gray-900 dark:text-[#f6f6f4] transition-colors duration-200">
        <div className="max-w-[1100px] mx-auto px-4 sm:px-6 lg:px-8">
-         <div className="relative py-8 md:py-12 lg:py-16 px-4 md:px-8 lg:px-12 border-l border-r section-border bg-[#f6f6f4] dark:bg-[#1b1912]">
+         <div className="relative px-4 md:px-8 lg:px-12 border-l border-r section-border bg-[#f6f6f4] dark:bg-[#1b1912] min-h-[750px] md:h-auto">
 
-           <div className="text-center mb-8 md:mb-12 lg:mb-16">
-             <h2 className="text-xl md:text-xl lg:text-2xl font-inter mb-4 text-[#000000] dark:text-[#f6f6f4]">
-               Questions and answers
-             </h2>
+           {/* Mobile Layout - Title first, then FAQ items */}
+           <div className="mb-6 md:mb-0 md:hidden text-left" style={{ paddingTop: '3rem', paddingBottom: '3rem' }}>
+             {/* Title Section - Shows first on mobile */}
+             <div className="mb-8 text-left">
+               <h2 className="text-lg md:text-xl lg:text-2xl font-inter mb-4 text-[#000000] dark:text-[#f6f6f4]">
+                 Questions and answers
+               </h2>
+             </div>
+
+             {/* FAQ Items - Shows after title on mobile */}
+             <div className="space-y-2">
+               {faqEntries.map((faq, index) => (
+                 <div
+                   key={index}
+                   className="transition-all duration-200 border section-border bg-[#f6f6f4] dark:bg-[#1b1912]"
+                 >
+                   <button
+                     onClick={() => toggleFaq(index)}
+                     className="w-full text-left px-4 md:px-4 py-3 md:py-4 flex items-center justify-between gap-4 hover:opacity-80 transition-opacity"
+                   >
+                     <span className="text-sm md:text-sm font-normal font-inter flex-1 text-[#000000] dark:text-[#f6f6f4]">
+                       {faq.question}
+                     </span>
+                    <ChevronDown
+                      className={`flex-shrink-0 transition-transform duration-200 ${
+                        openIndex === index ? 'rotate-180' : ''
+                      }`}
+                      style={{ color: 'rgba(156, 163, 175, 0.6)' }}
+                      size={18}
+                    />
+                  </button>
+
+                     <div
+                       className={`overflow-hidden transition-all duration-200 ${
+                         openIndex === index ? 'max-h-[300px]' : 'max-h-0'
+                       }`}
+                   >
+                       <div className="px-3 md:px-3 pb-2 md:pb-2.5 pt-0">
+                          {faq.type === 'text' ? (
+                            <p className="text-xs md:text-xs text-gray-700 dark:text-gray-300 font-inter leading-snug">
+                              {faq.answer}
+                            </p>
+                       ) : faq.type === 'code' ? (
+                         <div className="space-y-3">
+                           <p className="text-xs md:text-sm text-gray-700 dark:text-[#c8c8b8] font-inter leading-relaxed">
+                             {faq.answerText}
+                           </p>
+                          <div className="rounded-lg p-3 md:p-4 font-mono text-xs overflow-x-auto bg-black/[0.03] dark:bg-white/[0.03]">
+                            <div className="mb-2">
+                              <span className="text-gray-500 dark:text-[#a8a898]"># Old</span>
+                              <div className="text-gray-900 dark:text-[#c8c8b8] mt-1 break-all">{faq.codeExample.old}</div>
+                            </div>
+                            <div>
+                              <span className="text-gray-500 dark:text-[#a8a898]"># New</span>
+                              <div className="text-gray-900 dark:text-[#c8c8b8] mt-1 break-all">{faq.codeExample.new}</div>
+                            </div>
+                          </div>
+                           <p className="text-xs md:text-sm text-gray-700 dark:text-[#c8c8b8] font-inter leading-relaxed">
+                             {faq.answerFooter}
+                           </p>
+                        </div>
+                      ) : null}
+                    </div>
+                  </div>
+                </div>
+              ))}
+             </div>
            </div>
 
-           <div className="max-w-3xl mx-auto space-y-2">
-           {faqEntries.map((faq, index) => (
-             <div
-               key={index}
-               className="transition-all duration-200 border section-border bg-[#f6f6f4] dark:bg-[#1b1912]"
-             >
-               <button
-                 onClick={() => toggleFaq(index)}
-                 className="w-full text-left px-4 md:px-4 py-3 md:py-4 flex items-center justify-between gap-4 hover:opacity-80 transition-opacity"
-               >
-                 <span className="text-sm md:text-sm font-normal font-inter flex-1 text-[#000000] dark:text-[#f6f6f4]">
-                   {faq.question}
-                 </span>
-                <ChevronDown
-                  className={`flex-shrink-0 transition-transform duration-200 ${
-                    openIndex === index ? 'rotate-180' : ''
-                  }`}
-                  style={{ color: 'rgba(156, 163, 175, 0.6)' }}
-                  size={18}
-                />
-              </button>
+           {/* Desktop Layout - Two-column grid */}
+           <div className="hidden md:grid md:grid-cols-3 gap-0 relative flex-1">
+             {/* Left Column - FAQ Items (2 columns wide) */}
+              <div className="hidden md:flex md:col-span-2 flex-col justify-start" style={{
+                paddingTop: '3rem',
+                paddingBottom: '3rem',
+                paddingRight: '1.5rem'
+              }}>
+               <div className="space-y-2">
+                 {faqEntries.map((faq, index) => (
+                   <div
+                     key={index}
+                     className="transition-all duration-200 border section-border bg-[#f6f6f4] dark:bg-[#1b1912]"
+                   >
+                     <button
+                       onClick={() => toggleFaq(index)}
+                        className="w-full text-left px-3 md:px-3 py-2 md:py-2.5 flex items-center justify-between gap-3 hover:opacity-80 transition-opacity"
+                     >
+                       <span className="text-xs md:text-sm font-normal font-inter flex-1 text-[#000000] dark:text-[#f6f6f4] line-clamp-2">
+                         {faq.question}
+                       </span>
+                      <ChevronDown
+                        className={`flex-shrink-0 transition-transform duration-200 ${
+                          openIndex === index ? 'rotate-180' : ''
+                        }`}
+                        style={{ color: 'rgba(156, 163, 175, 0.6)' }}
+                        size={18}
+                      />
+                    </button>
 
-              <div
-                className={`overflow-hidden transition-all duration-200 ${
-                  openIndex === index ? 'max-h-[500px]' : 'max-h-0'
-                }`}
-              >
-                 <div className="px-4 md:px-4 pb-3 md:pb-4 pt-0">
-                   {faq.type === 'text' ? (
-                     <p className="text-xs md:text-sm text-gray-700 dark:text-gray-300 font-inter leading-relaxed">
-                       {faq.answer}
-                     </p>
-                   ) : faq.type === 'code' ? (
-                     <div className="space-y-3">
-                       <p className="text-xs md:text-sm text-gray-700 dark:text-gray-300 font-inter leading-relaxed">
-                         {faq.answerText}
-                       </p>
-                      <div className="rounded-lg p-3 md:p-4 font-mono text-xs overflow-x-auto bg-black/[0.03] dark:bg-white/[0.03]">
-                        <div className="mb-2">
-                          <span className="text-gray-500 dark:text-[#a8a898]"># Old</span>
-                          <div className="text-gray-900 dark:text-[#c8c8b8] mt-1 break-all">{faq.codeExample.old}</div>
-                        </div>
-                        <div>
-                          <span className="text-gray-500 dark:text-[#a8a898]"># New</span>
-                          <div className="text-gray-900 dark:text-[#c8c8b8] mt-1 break-all">{faq.codeExample.new}</div>
-                        </div>
+                    <div
+                      className={`overflow-hidden transition-all duration-200 ${
+                        openIndex === index ? 'max-h-[500px]' : 'max-h-0'
+                      }`}
+                    >
+                       <div className="px-4 md:px-4 pb-3 md:pb-4 pt-0">
+                         {faq.type === 'text' ? (
+                           <p className="text-xs md:text-sm text-gray-700 dark:text-gray-300 font-inter leading-relaxed">
+                             {faq.answer}
+                           </p>
+                          ) : faq.type === 'code' ? (
+                            <div className="space-y-1">
+                              <p className="text-xs md:text-xs text-gray-700 dark:text-gray-300 font-inter leading-snug">
+                                {faq.answerText}
+                              </p>
+                             <div className="rounded-lg p-2 md:p-3 font-mono text-xs overflow-x-auto bg-black/[0.03] dark:bg-white/[0.03]">
+                              <div className="mb-2">
+                                <span className="text-gray-500 dark:text-[#a8a898]"># Old</span>
+                                <div className="text-gray-900 dark:text-[#c8c8b8] mt-1 break-all">{faq.codeExample.old}</div>
+                              </div>
+                              <div>
+                                <span className="text-gray-500 dark:text-[#a8a898]"># New</span>
+                                <div className="text-gray-900 dark:text-[#c8c8b8] mt-1 break-all">{faq.codeExample.new}</div>
+                              </div>
+                            </div>
+                              <p className="text-xs md:text-xs text-gray-700 dark:text-gray-300 font-inter leading-snug">
+                               {faq.answerFooter}
+                             </p>
+                          </div>
+                        ) : null}
                       </div>
-                       <p className="text-xs md:text-sm text-gray-700 dark:text-gray-300 font-inter leading-relaxed">
-                         {faq.answerFooter}
-                       </p>
                     </div>
-                  ) : null}
-                </div>
-              </div>
-            </div>
-          ))}
-          </div>
+                  </div>
+                ))}
+               </div>
+             </div>
+
+             {/* Right Column - Title (Desktop only) */}
+             <div className="hidden md:flex text-left md:col-span-1 md:border-l flex-col justify-start dark:border-[#f6f6f4]/5 border-gray-300" style={{
+               paddingTop: '3rem',
+               paddingBottom: '3rem',
+               paddingLeft: '1rem'
+             }}>
+               <h2 className="text-lg md:text-xl lg:text-2xl font-inter mb-4 text-[#000000] dark:text-[#f6f6f4]">
+                 Questions and answers
+               </h2>
+             </div>
+           </div>
         </div>
       </div>
     </section>

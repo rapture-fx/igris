@@ -161,21 +161,21 @@ export default function ProvidersPage() {
 
     if (isValid && hasModels) {
       return (
-        <Badge className="bg-green-50 text-green-700 border-green-200 inline-flex items-center gap-1.5 px-2 py-1 text-xs">
+        <Badge className="bg-green-50 dark:bg-green-950 text-green-700 dark:text-green-400 border-green-200 dark:border-green-900 inline-flex items-center gap-1.5 px-2 py-1 text-xs">
           <CheckCircle className="h-3 w-3" />
           Active
         </Badge>
       );
     } else if (!hasModels) {
       return (
-        <Badge className="bg-yellow-50 text-yellow-700 border-yellow-200 inline-flex items-center gap-1.5 px-2 py-1 text-xs">
+        <Badge className="bg-yellow-50 dark:bg-yellow-950 text-yellow-700 dark:text-yellow-400 border-yellow-200 dark:border-yellow-900 inline-flex items-center gap-1.5 px-2 py-1 text-xs">
           <AlertCircle className="h-3 w-3" />
           No models
         </Badge>
       );
     } else {
       return (
-        <Badge className="bg-red-50 text-red-700 border-red-200 inline-flex items-center gap-1.5 px-2 py-1 text-xs">
+        <Badge className="bg-red-50 dark:bg-red-950 text-red-700 dark:text-red-400 border-red-200 dark:border-red-900 inline-flex items-center gap-1.5 px-2 py-1 text-xs">
           <XCircle className="h-3 w-3" />
           Invalid
         </Badge>
@@ -188,15 +188,15 @@ export default function ProvidersPage() {
       <div className="max-w-7xl mx-auto space-y-6">
         {/* Header */}
         <div className="flex items-start justify-between">
-          <div className="flex-1 pb-4 border-b border-border-light">
-            <h1 className="text-base font-medium text-gray-900 font-inter">
+          <div className="flex-1 pb-4 border-b border-border">
+            <h1 className="text-base font-medium text-foreground font-inter">
               Providers & Keys
             </h1>
-            <p className="text-gray-600 mt-1 font-inter text-xs">
+            <p className="text-muted-foreground mt-1 font-inter text-xs">
               Add your API keys for any model. One URL change and you're done.
             </p>
             <div className="flex items-center gap-2 mt-3">
-              <code className="px-2.5 py-1 rounded-md bg-beige-primary border border-border-light text-xs font-mono text-gray-900">
+              <code className="px-2.5 py-1 rounded-md bg-card border border-border text-xs font-mono text-foreground dark:bg-muted">
                 {baseUrl}
               </code>
               <Button
@@ -218,7 +218,7 @@ export default function ProvidersPage() {
               <select
                 value={selectedTenant}
                 onChange={(e) => setSelectedTenant(e.target.value)}
-                className="w-48 h-7 text-xs border border-border-light rounded-md px-2 bg-white"
+                className="w-48 h-7 text-xs border border-border rounded-md px-2 bg-background dark:bg-muted"
               >
                 {mockTenants.map((t) => (
                   <option key={t.id} value={t.id}>{t.name}</option>
@@ -235,42 +235,42 @@ export default function ProvidersPage() {
         {/* Providers Table */}
         <div>
           <div className="pb-3">
-            <h2 className="text-sm font-medium text-gray-900">Your Providers</h2>
-            <p className="text-xs text-gray-600 mt-1">
+            <h2 className="text-sm font-medium text-foreground">Your Providers</h2>
+            <p className="text-xs text-muted-foreground mt-1">
               Manage API keys for all your LLM providers
             </p>
           </div>
           <div>
             {isLoading ? (
               <div className="flex items-center justify-center h-32">
-                <Loader2 className="h-8 w-8 animate-spin text-gray-900" />
+                <Loader2 className="h-8 w-8 animate-spin text-foreground" />
               </div>
             ) : displayProviders && displayProviders.length > 0 ? (
               <div className="overflow-x-auto">
                 <table className="w-full">
                   <thead>
-                    <tr className="border-b border-border-light">
-                      <th className="text-left py-2 px-3 text-xs font-medium text-gray-600 font-inter">
+                    <tr className="border-b border-border">
+                      <th className="text-left py-2 px-3 text-xs font-medium text-muted-foreground font-inter">
                         Provider
                       </th>
-                      <th className="text-left py-2 px-3 text-xs font-medium text-gray-600 font-inter">
+                      <th className="text-left py-2 px-3 text-xs font-medium text-muted-foreground font-inter">
                         Name
                       </th>
                       {tier === 'scale' && (
-                        <th className="text-left py-2 px-3 text-xs font-medium text-gray-600 font-inter">
+                        <th className="text-left py-2 px-3 text-xs font-medium text-muted-foreground font-inter">
                           Tenant
                         </th>
                       )}
-                      <th className="text-left py-2 px-3 text-xs font-medium text-gray-600 font-inter">
+                      <th className="text-left py-2 px-3 text-xs font-medium text-muted-foreground font-inter">
                         Models
                       </th>
-                      <th className="text-left py-2 px-3 text-xs font-medium text-gray-600 font-inter">
+                      <th className="text-left py-2 px-3 text-xs font-medium text-muted-foreground font-inter">
                         Last Used
                       </th>
-                      <th className="text-left py-2 px-3 text-xs font-medium text-gray-600 font-inter">
+                      <th className="text-left py-2 px-3 text-xs font-medium text-muted-foreground font-inter">
                         Status
                       </th>
-                      <th className="text-left py-2 px-3 text-xs font-medium text-gray-600 font-inter">
+                      <th className="text-left py-2 px-3 text-xs font-medium text-muted-foreground font-inter">
                         Actions
                       </th>
                     </tr>
@@ -281,14 +281,14 @@ export default function ProvidersPage() {
                       return (
                         <tr
                           key={provider.id}
-                          className="border-b border-border-light hover:bg-beige-primary transition-colors"
+                          className="border-b border-border hover:bg-card transition-colors dark:hover:bg-muted/50"
                         >
                           <td className="py-2 px-3">
                             <div>
-                              <p className="font-medium text-xs text-gray-900 font-inter">
+                              <p className="font-medium text-xs text-foreground font-inter">
                                 {providerInfo?.name || provider.provider.charAt(0).toUpperCase() + provider.provider.slice(1)}
                               </p>
-                              <p className="text-[0.65rem] text-gray-600 font-mono">
+                              <p className="text-[0.65rem] text-muted-foreground font-mono">
                                 {provider.masked_key}
                               </p>
                             </div>
@@ -296,27 +296,27 @@ export default function ProvidersPage() {
                           <td className="py-2 px-3">
                             {editingNameId === provider.id ? (
                               <div className="flex items-center gap-2">
-                                <Input
-                                  value={editingNameValue}
-                                  onChange={(e) => setEditingNameValue(e.target.value)}
-                                  className="h-8 w-40"
-                                  autoFocus
-                                  onBlur={() => handleNameSave(provider.id)}
-                                  onKeyDown={(e) => {
-                                    if (e.key === 'Enter') handleNameSave(provider.id);
-                                    if (e.key === 'Escape') setEditingNameId(null);
-                                  }}
-                                />
+<Input
+                  value={editingNameValue}
+                  onChange={(e) => setEditingNameValue(e.target.value)}
+                  className="h-8 w-40 text-xs focus-visible:ring-0 focus-visible:ring-offset-0 focus:outline-none focus:border-border"
+                  autoFocus
+                  onBlur={() => handleNameSave(provider.id)}
+                  onKeyDown={(e) => {
+                    if (e.key === 'Enter') handleNameSave(provider.id);
+                    if (e.key === 'Escape') setEditingNameId(null);
+                  }}
+                />
                               </div>
                             ) : (
                               <div
-                                className="flex items-center gap-2 cursor-pointer group"
+                                className="flex items-center gap-2 cursor-pointer group hover:bg-muted/30 p-1 rounded transition-colors"
                                 onClick={() => handleNameEdit(provider)}
                               >
-                                <span className="text-xs text-gray-900">
+                                <span className="text-xs text-foreground">
                                   {provider.key_id || 'Click to add name'}
                                 </span>
-                                <Edit className="h-3 w-3 text-gray-400 opacity-0 group-hover:opacity-100" />
+                                <Edit className="h-3 w-3 text-muted-foreground opacity-0 group-hover:opacity-100" />
                               </div>
                             )}
                           </td>
@@ -325,7 +325,7 @@ export default function ProvidersPage() {
                               <select
                                 value={providerTenants[provider.id] || 'all'}
                                 onChange={(e) => handleTenantChange(provider.id, e.target.value)}
-                                className="w-40 h-7 text-xs"
+                                className="w-40 h-7 text-xs bg-background dark:bg-muted text-foreground border border-border rounded-md px-2"
                               >
                                 <option value="all">All tenants</option>
                                 {mockTenants.slice(1).map((t) => (
@@ -334,10 +334,10 @@ export default function ProvidersPage() {
                               </select>
                             </td>
                           )}
-                          <td className="py-2 px-3 text-xs text-gray-900">
+                          <td className="py-2 px-3 text-xs text-foreground">
                             All
                           </td>
-                          <td className="py-2 px-3 text-xs text-gray-600">
+                          <td className="py-2 px-3 text-xs text-muted-foreground">
                             {provider.last_used ? formatDate(provider.last_used) : 'Never'}
                           </td>
                           <td className="py-2 px-3">
@@ -402,10 +402,10 @@ export default function ProvidersPage() {
               </div>
             ) : (
               <div className="text-center py-10">
-                <p className="text-xs text-gray-900 font-inter font-medium mb-1.5">
+                <p className="text-xs text-foreground font-inter font-medium mb-1.5">
                   No providers added yet
                 </p>
-                <p className="text-[0.65rem] text-gray-600 font-inter">
+                <p className="text-[0.65rem] text-muted-foreground font-inter">
                   Add your first one to get started.
                 </p>
               </div>
@@ -430,7 +430,7 @@ export default function ProvidersPage() {
               </Label>
               <select
                 id="provider"
-                className="flex h-8 w-full rounded-lg border border-border-light bg-beige-primary px-2.5 py-1.5 text-xs font-inter focus-visible:outline-none"
+                className="flex h-8 w-full rounded-lg border border-border bg-card px-2.5 py-1.5 text-xs font-inter focus-visible:outline-none dark:bg-muted dark:text-foreground"
                 value={newProvider}
                 onChange={(e) => setNewProvider(e.target.value)}
               >
@@ -453,7 +453,7 @@ export default function ProvidersPage() {
                   placeholder="sk-..."
                   value={newApiKey}
                   onChange={(e) => setNewApiKey(e.target.value)}
-                  className="pr-10 h-8 text-xs"
+                  className="pr-10 h-8 text-xs focus-visible:ring-0 focus-visible:ring-offset-0 focus:outline-none focus:border-border"
                 />
                 <button
                   type="button"
@@ -476,7 +476,7 @@ export default function ProvidersPage() {
                 placeholder="My OpenAI Key"
                 value={newName}
                 onChange={(e) => setNewName(e.target.value)}
-                className="h-8 text-xs"
+                className="h-8 text-xs focus-visible:ring-0 focus-visible:ring-offset-0 focus:outline-none focus:border-border"
               />
             </div>
           </div>
@@ -521,7 +521,7 @@ export default function ProvidersPage() {
                   placeholder="sk-..."
                   value={newApiKey}
                   onChange={(e) => setNewApiKey(e.target.value)}
-                  className="pr-10 h-8 text-xs"
+                  className="pr-10 h-8 text-xs focus-visible:ring-0 focus-visible:ring-offset-0 focus:outline-none focus:border-border"
                 />
                 <button
                   type="button"
@@ -564,8 +564,8 @@ export default function ProvidersPage() {
             </DialogDescription>
           </DialogHeader>
           <div className="space-y-3 py-3">
-            <div className="p-2.5 rounded-lg bg-blue-50 border border-blue-200">
-              <p className="text-[0.65rem] text-blue-900">
+            <div className="p-2.5 rounded-lg bg-card border border-border">
+              <p className="text-[0.65rem] text-muted-foreground">
                 During the 24-hour transition period, both keys will work. This gives you time to update your applications.
               </p>
             </div>
@@ -580,7 +580,7 @@ export default function ProvidersPage() {
                   placeholder="sk-..."
                   value={rotateApiKey}
                   onChange={(e) => setRotateApiKey(e.target.value)}
-                  className="pr-10 h-8 text-xs"
+                  className="pr-10 h-8 text-xs focus-visible:ring-0 focus-visible:ring-offset-0 focus:outline-none focus:border-border"
                 />
                 <button
                   type="button"
@@ -626,29 +626,29 @@ export default function ProvidersPage() {
           <div className="py-5">
             {isTesting ? (
               <div className="flex flex-col items-center justify-center py-6">
-                <Loader2 className="h-10 w-10 animate-spin text-gray-900 mb-3" />
-                <p className="text-xs text-gray-600">Testing connection...</p>
+                <Loader2 className="h-10 w-10 animate-spin text-foreground mb-3" />
+                <p className="text-xs text-muted-foreground">Testing connection...</p>
               </div>
             ) : testResult ? (
               <div className={`p-3 rounded-lg border ${
                 testResult.success
-                  ? 'bg-green-50 border-green-200'
-                  : 'bg-red-50 border-red-200'
+                  ? 'bg-green-50 border-green-200 dark:bg-green-900/20 dark:border-green-800/30'
+                  : 'bg-red-50 border-red-200 dark:bg-red-900/20 dark:border-red-800/30'
               }`}>
                 <div className="flex items-start gap-2">
                   {testResult.success ? (
-                    <CheckCircle className="h-4 w-4 text-green-600 mt-0.5" />
+                    <CheckCircle className="h-4 w-4 text-green-600 mt-0.5 dark:text-green-400" />
                   ) : (
-                    <XCircle className="h-4 w-4 text-red-600 mt-0.5" />
+                    <XCircle className="h-4 w-4 text-red-600 mt-0.5 dark:text-red-400" />
                   )}
                   <div>
                     <p className={`font-medium text-xs ${
-                      testResult.success ? 'text-green-900' : 'text-red-900'
+                      testResult.success ? 'text-green-900 dark:text-green-100' : 'text-red-900 dark:text-red-100'
                     }`}>
                       {testResult.success ? 'Connection Successful' : 'Connection Failed'}
                     </p>
                     <p className={`text-[0.65rem] mt-1 ${
-                      testResult.success ? 'text-green-700' : 'text-red-700'
+                      testResult.success ? 'text-green-700 dark:text-green-300' : 'text-red-700 dark:text-red-300'
                     }`}>
                       {testResult.message}
                     </p>
@@ -657,8 +657,8 @@ export default function ProvidersPage() {
               </div>
             ) : (
               <div className="text-center py-6">
-                <Plug className="h-10 w-10 text-gray-400 mx-auto mb-3" />
-                <p className="text-xs text-gray-600 mb-3">
+                <Plug className="h-10 w-10 text-muted-foreground mx-auto mb-3" />
+                <p className="text-xs text-muted-foreground mb-3">
                   Click the button below to test the connection
                 </p>
                 <Button

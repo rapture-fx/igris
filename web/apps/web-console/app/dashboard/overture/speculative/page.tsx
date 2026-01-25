@@ -25,7 +25,7 @@ import { CHART_COLORS } from '@/utils/constants';
 
 const PIE_COLORS = ['#114dcd', '#299a93', '#1f53d0', '#6b7280'];
 
-const renderCustomLabel = ({ cx, cy, midAngle, innerRadius, outerRadius, percent, index, provider, win_rate }: any) => {
+const renderCustomLabel = (chartTheme: any) => ({ cx, cy, midAngle, innerRadius, outerRadius, percent, index, provider, win_rate }: any) => {
   const RADIAN = Math.PI / 180;
   const radius = outerRadius + 20;
   const x = cx + radius * Math.cos(-midAngle * RADIAN);
@@ -35,7 +35,7 @@ const renderCustomLabel = ({ cx, cy, midAngle, innerRadius, outerRadius, percent
     <text
       x={x}
       y={y}
-      fill="#374151"
+      fill={chartTheme.tooltip.text}
       textAnchor={x > cx ? 'start' : 'end'}
       dominantBaseline="central"
       style={{ fontSize: '8px', fontFamily: 'Inter, sans-serif' }}
@@ -113,11 +113,11 @@ export default function SpeculativeRouterPage() {
 
         {/* Overview Cards */}
         <div className="bg-card">
-          <div className="grid grid-cols-2 divide-x divide-border-light">
+          <div className="grid grid-cols-2 divide-x divide-gray-200/20 dark:divide-[#f6f6f4]/5">
             <div className="p-4">
               <div className="text-xs font-medium text-muted-foreground mb-1">Status</div>
               <div className="pb-2">
-                <Badge className="bg-gray-50 text-gray-700 border dark:bg-card dark:text-[#a8a898] dark:border-[#f6f6f4]/5">
+                <Badge className="bg-green-50 dark:bg-green-950 text-green-700 dark:text-green-400 border-green-200 dark:border-green-900">
                   {status?.enabled ? <CheckCircle className="h-3 w-3 mr-1" /> : <XCircle className="h-3 w-3 mr-1" />}
                   {status?.enabled ? 'Enabled' : 'Disabled'}
                 </Badge>
@@ -129,7 +129,7 @@ export default function SpeculativeRouterPage() {
               <p className="text-[0.65rem] text-muted-foreground mt-1">{status?.races_24h.toLocaleString()} races today</p>
             </div>
           </div>
-          <div className="grid grid-cols-2 divide-x divide-border-light border-t border-border">
+          <div className="grid grid-cols-2 divide-x divide-gray-200/20 dark:divide-[#f6f6f4]/5 border-t border-border">
             <div className="p-4">
               <div className="text-xs font-medium text-muted-foreground mb-1">Latency Gain</div>
               <div className="text-lg font-bold text-foreground">{status?.latency_improvement_ms}ms</div>
@@ -172,7 +172,7 @@ export default function SpeculativeRouterPage() {
                     type="number"
                     value={editableConfig.max_parallel_providers}
                     onChange={(e) => handleConfigChange('max_parallel_providers', parseInt(e.target.value))}
-                    className="text-xs"
+                    className="text-xs focus-visible:ring-0 focus-visible:ring-offset-0 focus:outline-none focus:border-border"
                     min="2"
                     max="5"
                   />
@@ -186,7 +186,7 @@ export default function SpeculativeRouterPage() {
                     type="number"
                     value={editableConfig.timeout_ms}
                     onChange={(e) => handleConfigChange('timeout_ms', parseInt(e.target.value))}
-                    className="text-xs"
+                    className="text-xs focus-visible:ring-0 focus-visible:ring-offset-0 focus:outline-none focus:border-border"
                   />
                   <p className="text-[0.65rem] text-muted-foreground">Maximum race duration</p>
                 </div>
@@ -198,7 +198,7 @@ export default function SpeculativeRouterPage() {
                     type="number"
                     value={editableConfig.first_token_threshold_ms}
                     onChange={(e) => handleConfigChange('first_token_threshold_ms', parseInt(e.target.value))}
-                    className="text-xs"
+                    className="text-xs focus-visible:ring-0 focus-visible:ring-offset-0 focus:outline-none focus:border-border"
                   />
                   <p className="text-[0.65rem] text-muted-foreground">Winner selection cutoff</p>
                 </div>
@@ -229,24 +229,24 @@ export default function SpeculativeRouterPage() {
             <CardContent>
               <ResponsiveContainer width="100%" height={200}>
                 <PieChart>
-                  <defs>
-                    <pattern id="pieStripe0" patternUnits="userSpaceOnUse" width="3" height="3" patternTransform="rotate(45)">
-                      <rect width="2" height="3" fill="#114dcd" />
-                      <rect x="2" width="1" height="3" fill="#ffffff" />
-                    </pattern>
-                    <pattern id="pieStripe1" patternUnits="userSpaceOnUse" width="3" height="3" patternTransform="rotate(45)">
-                      <rect width="2" height="3" fill="#299a93" />
-                      <rect x="2" width="1" height="3" fill="#ffffff" />
-                    </pattern>
-                    <pattern id="pieStripe2" patternUnits="userSpaceOnUse" width="3" height="3" patternTransform="rotate(45)">
-                      <rect width="2" height="3" fill="#1f53d0" />
-                      <rect x="2" width="1" height="3" fill="#ffffff" />
-                    </pattern>
-                    <pattern id="pieStripe3" patternUnits="userSpaceOnUse" width="3" height="3" patternTransform="rotate(45)">
-                      <rect width="2" height="3" fill="#6b7280" />
-                      <rect x="2" width="1" height="3" fill="#ffffff" />
-                    </pattern>
-                  </defs>
+<defs>
+                        <pattern id="pieStripe0" patternUnits="userSpaceOnUse" width="3" height="3" patternTransform="rotate(45)">
+                          <rect width="2" height="3" fill="#114dcd" />
+                          <rect x="2" width="1" height="3" fill={chartTheme.tooltip.bg} />
+                        </pattern>
+                        <pattern id="pieStripe1" patternUnits="userSpaceOnUse" width="3" height="3" patternTransform="rotate(45)">
+                          <rect width="2" height="3" fill="#299a93" />
+                          <rect x="2" width="1" height="3" fill={chartTheme.tooltip.bg} />
+                        </pattern>
+                        <pattern id="pieStripe2" patternUnits="userSpaceOnUse" width="3" height="3" patternTransform="rotate(45)">
+                          <rect width="2" height="3" fill="#1f53d0" />
+                          <rect x="2" width="1" height="3" fill={chartTheme.tooltip.bg} />
+                        </pattern>
+                        <pattern id="pieStripe3" patternUnits="userSpaceOnUse" width="3" height="3" patternTransform="rotate(45)">
+                          <rect width="2" height="3" fill="#6b7280" />
+                          <rect x="2" width="1" height="3" fill={chartTheme.tooltip.bg} />
+                        </pattern>
+                      </defs>
                   <Pie
                     data={analytics?.race_win_rate || []}
                     dataKey="wins"
@@ -275,12 +275,12 @@ export default function SpeculativeRouterPage() {
             <CardContent>
               <ResponsiveContainer width="100%" height={200}>
                 <BarChart data={analytics?.latency_distribution || []}>
-                  <defs>
-                    <pattern id="diagStripes" patternUnits="userSpaceOnUse" width="3" height="3" patternTransform="rotate(45)">
-                      <rect width="1" height="3" fill="#000000" />
-                      <rect x="1" width="2" height="3" fill="#e5e7eb" />
-                    </pattern>
-                  </defs>
+<defs>
+                        <pattern id="diagStripes" patternUnits="userSpaceOnUse" width="3" height="3" patternTransform="rotate(45)">
+                          <rect width="1" height="3" fill="#000000" />
+                          <rect x="1" width="2" height="3" fill={chartTheme.tooltip.bg} />
+                        </pattern>
+                      </defs>
                   <CartesianGrid strokeDasharray="3 3" stroke={chartTheme.grid} />
                   <XAxis dataKey="bucket" tick={{ fontSize: 8 }} />
                   <YAxis tick={{ fontSize: 8 }} />
@@ -333,7 +333,7 @@ export default function SpeculativeRouterPage() {
                 </thead>
                 <tbody>
                   {races?.map((race, index) => (
-                    <tr key={index} className="border-b border-gray-100 hover:bg-muted">
+                    <tr key={index} className="border-b border-border hover:bg-muted">
                       <td className="py-2 px-3 text-foreground font-mono">{race.request_id.slice(0, 12)}</td>
                       <td className="py-2 px-3">
                         <Badge className="bg-green-50 text-green-700 border border-green-200 dark:bg-green-950 dark:text-green-400 dark:border-green-900">

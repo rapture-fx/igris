@@ -125,7 +125,7 @@ export default function UsagePage() {
 
         {/* Metrics Grid Layout */}
         <div className="bg-card">
-          <div className="grid grid-cols-2 divide-x divide-border-light">
+          <div className="grid grid-cols-2 divide-x divide-gray-200/20 dark:divide-[#f6f6f4]/5">
             <div className="p-4">
               <div className="text-xs font-medium text-muted-foreground mb-1">Total Requests</div>
               <div className="text-lg font-bold text-foreground">{formatNumber(displayUsage?.total_requests || 0)}</div>
@@ -141,7 +141,7 @@ export default function UsagePage() {
               </p>
             </div>
           </div>
-          <div className="grid grid-cols-2 divide-x divide-border-light border-t border-border">
+          <div className="grid grid-cols-2 divide-x divide-gray-200/20 dark:divide-[#f6f6f4]/5 border-t border-border">
             <div className="p-4">
               <div className="text-xs font-medium text-muted-foreground mb-1">Avg Latency</div>
               <div className="text-lg font-bold text-foreground">{formatLatency(displayUsage?.avg_latency || 0)}</div>
@@ -224,19 +224,19 @@ export default function UsagePage() {
                       <defs>
                         <pattern id="stripe-0" patternUnits="userSpaceOnUse" width="3" height="3" patternTransform="rotate(45)">
                           <rect width="2" height="3" fill="#114dcd" />
-                          <rect x="2" width="1" height="3" fill="#ffffff" />
+                          <rect x="2" width="1" height="3" fill={chartTheme.tooltip.bg} />
                         </pattern>
                         <pattern id="stripe-1" patternUnits="userSpaceOnUse" width="3" height="3" patternTransform="rotate(45)">
                           <rect width="2" height="3" fill="#299a93" />
-                          <rect x="2" width="1" height="3" fill="#ffffff" />
+                          <rect x="2" width="1" height="3" fill={chartTheme.tooltip.bg} />
                         </pattern>
                         <pattern id="stripe-2" patternUnits="userSpaceOnUse" width="3" height="3" patternTransform="rotate(45)">
                           <rect width="2" height="3" fill="#1f53d0" />
-                          <rect x="2" width="1" height="3" fill="#ffffff" />
+                          <rect x="2" width="1" height="3" fill={chartTheme.tooltip.bg} />
                         </pattern>
                         <pattern id="stripe-3" patternUnits="userSpaceOnUse" width="3" height="3" patternTransform="rotate(45)">
                           <rect width="2" height="3" fill="#6b7280" />
-                          <rect x="2" width="1" height="3" fill="#ffffff" />
+                          <rect x="2" width="1" height="3" fill={chartTheme.tooltip.bg} />
                         </pattern>
                       </defs>
                       <Pie

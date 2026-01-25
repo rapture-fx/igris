@@ -65,7 +65,7 @@ const AVAILABLE_MODELS = [
   'llama-3-70b',
 ];
 
-const renderCustomPieLabel = ({ cx, cy, midAngle, outerRadius, model, win_rate }: any) => {
+const renderCustomPieLabel = (chartTheme: any) => ({ cx, cy, midAngle, outerRadius, model, win_rate }: any) => {
   const RADIAN = Math.PI / 180;
   const radius = outerRadius + 20;
   const x = cx + radius * Math.cos(-midAngle * RADIAN);
@@ -75,7 +75,7 @@ const renderCustomPieLabel = ({ cx, cy, midAngle, outerRadius, model, win_rate }
     <text
       x={x}
       y={y}
-      fill="#374151"
+      fill={chartTheme.tooltip.text}
       textAnchor={x > cx ? 'start' : 'end'}
       dominantBaseline="central"
       style={{ fontSize: '8px', fontFamily: 'Inter, sans-serif' }}
@@ -170,11 +170,11 @@ export default function CouncilModePage() {
 
         {/* Overview Metrics */}
         <div className="bg-card">
-          <div className="grid grid-cols-3 divide-x divide-border-light">
+          <div className="grid grid-cols-3 divide-x divide-gray-200/20 dark:divide-[#f6f6f4]/5">
             <div className="p-4">
               <div className="text-xs font-medium text-muted-foreground mb-1">Status</div>
               <div className="pb-2">
-                <Badge className={status?.enabled ? 'bg-green-50 text-green-700 border border-green-200 dark:bg-green-950 dark:text-green-400 dark:border-green-900' : 'bg-gray-50 text-gray-700 border dark:bg-card dark:text-[#a8a898] dark:border-[#f6f6f4]/5'}>
+                <Badge className={status?.enabled ? 'bg-green-50 dark:bg-green-950 text-green-700 dark:text-green-400 border-green-200 dark:border-green-900' : 'bg-gray-50 dark:bg-gray-950 text-gray-700 dark:text-gray-400 border-gray-200 dark:border-gray-900'}>
                   {status?.enabled ? <CheckCircle className="h-3 w-3 mr-1" /> : <XCircle className="h-3 w-3 mr-1" />}
                   {status?.enabled ? 'Enabled' : 'Disabled'}
                 </Badge>
@@ -191,7 +191,7 @@ export default function CouncilModePage() {
               <p className="text-[0.65rem] text-muted-foreground mt-1">vs single model</p>
             </div>
           </div>
-          <div className="grid grid-cols-3 divide-x divide-border-light border-t border-border">
+          <div className="grid grid-cols-3 divide-x divide-gray-200/20 dark:divide-[#f6f6f4]/5 border-t border-border">
             <div className="p-4">
               <div className="text-xs font-medium text-muted-foreground mb-1">Cost Overhead</div>
               <div className="text-lg font-bold text-foreground">{status?.cost_overhead_24h.toFixed(1)}x</div>
@@ -241,7 +241,7 @@ export default function CouncilModePage() {
                     max="5"
                     value={editableConfig.num_models}
                     onChange={(e) => handleConfigChange('num_models', parseInt(e.target.value))}
-                    className="scale-[0.6] origin-left dark-blue-slider h-px"
+                    className="scale-[0.6] origin-left dark-blue-slider h-px focus-visible:ring-0 focus-visible:ring-offset-0 focus:outline-none focus:border-border"
                   />
                   <p className="text-[0.6rem] text-muted-foreground">Models to participate in voting</p>
                 </div>
@@ -292,7 +292,7 @@ export default function CouncilModePage() {
                     max="99"
                     value={editableConfig.quality_threshold}
                     onChange={(e) => handleConfigChange('quality_threshold', parseInt(e.target.value))}
-                    className="scale-[0.6] origin-left dark-blue-slider h-px"
+                    className="scale-[0.6] origin-left dark-blue-slider h-px focus-visible:ring-0 focus-visible:ring-offset-0 focus:outline-none focus:border-border"
                   />
                   <p className="text-[0.6rem] text-muted-foreground">Minimum quality score to accept</p>
                 </div>
@@ -523,7 +523,7 @@ export default function CouncilModePage() {
                       cx="50%"
                       cy="50%"
                       outerRadius={60}
-                      label={renderCustomPieLabel}
+                      label={renderCustomPieLabel(chartTheme)}
                       labelLine={false}
                     >
                       {analytics?.model_win_rate?.map((entry, index) => (
@@ -563,11 +563,11 @@ export default function CouncilModePage() {
                   </tr>
                 </thead>
                 <tbody>
-                  {history?.map((entry) => (
+                  {history?.map((entry, index) => (
                     <>
-                      <tr
-                        key={entry.id}
-                        className="border-b border-gray-100 hover:bg-muted cursor-pointer"
+<tr
+                        key={index}
+                        className="border-b border-border hover:bg-muted cursor-pointer"
                         onClick={() => setExpandedRow(expandedRow === entry.id ? null : entry.id)}
                       >
                         <td className="py-2 px-3 text-foreground">
@@ -576,7 +576,7 @@ export default function CouncilModePage() {
                         <td className="py-2 px-3 text-foreground font-mono">{entry.request_id}</td>
                         <td className="py-2 px-3 text-foreground">{entry.models_used.length} models</td>
                         <td className="py-2 px-3">
-                          <Badge className="bg-blue-50 text-blue-700 border border-blue-200 dark:bg-blue-950 dark:text-blue-400 dark:border-blue-900 text-[0.65rem]">
+                          <Badge className="bg-blue-50 dark:bg-blue-950 text-blue-700 dark:text-blue-400 border-blue-200 dark:border-blue-900 text-[0.65rem]">
                             {entry.vote_outcome}
                           </Badge>
                         </td>
@@ -601,7 +601,7 @@ export default function CouncilModePage() {
                                 <span className="text-muted-foreground font-medium">Models Used:</span>
                                 <div className="flex gap-2 mt-1 flex-wrap">
                                   {entry.models_used.map((model) => (
-                                    <Badge key={model} className="bg-gray-50 text-gray-700 border dark:bg-card dark:text-[#a8a898] dark:border-[#f6f6f4]/5 text-[0.65rem]">
+                                    <Badge key={model} className="bg-gray-50 dark:bg-gray-950 text-gray-700 dark:text-gray-400 border-gray-200 dark:border-gray-900 text-[0.65rem]">
                                       {model}
                                     </Badge>
                                   ))}

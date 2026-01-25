@@ -98,21 +98,21 @@ export default function EscapeVectorPage() {
     const { cache_status } = status;
     if (cache_status === 'active') {
       return (
-        <Badge className="bg-gray-50 text-gray-700 border dark:bg-card dark:text-[#a8a898] dark:border-[#f6f6f4]/5">
-          <CheckCircle className="h-3 w-3 mr-1" />
-          Active
-        </Badge>
+<Badge className="bg-green-50 dark:bg-green-950 text-green-700 dark:text-green-400 border-green-200 dark:border-green-900">
+           <CheckCircle className="h-3 w-3 mr-1" />
+           Active
+         </Badge>
       );
     } else if (cache_status === 'expired') {
       return (
-        <Badge className="bg-yellow-50 text-yellow-700 border border-yellow-200 dark:bg-yellow-950 dark:text-yellow-400 dark:border-yellow-900">
+        <Badge className="bg-yellow-50 dark:bg-yellow-950 text-yellow-700 dark:text-yellow-400 border-yellow-200 dark:border-yellow-900">
           <AlertTriangle className="h-3 w-3 mr-1" />
           Expired
         </Badge>
       );
     } else {
       return (
-        <Badge className="bg-gray-50 text-gray-500 border dark:bg-card dark:text-[#a8a898] dark:border-[#f6f6f4]/5">
+        <Badge className="bg-gray-50 dark:bg-gray-950 text-gray-700 dark:text-gray-400 border-gray-200 dark:border-gray-900">
           <XCircle className="h-3 w-3 mr-1" />
           Empty
         </Badge>
@@ -157,7 +157,7 @@ export default function EscapeVectorPage() {
 
         {/* Overview Cards */}
         <div className="bg-card">
-          <div className="grid grid-cols-2 divide-x divide-border-light">
+          <div className="grid grid-cols-2 divide-x divide-gray-200/20 dark:divide-[#f6f6f4]/5">
             <div className="p-4">
               <div className="text-xs font-medium text-muted-foreground mb-1">Cache Status</div>
               <div className="pb-2">
@@ -170,7 +170,7 @@ export default function EscapeVectorPage() {
               <p className="text-[0.65rem] text-muted-foreground mt-1">Until cache expires</p>
             </div>
           </div>
-          <div className="grid grid-cols-2 divide-x divide-border-light border-t border-border">
+          <div className="grid grid-cols-2 divide-x divide-gray-200/20 dark:divide-[#f6f6f4]/5 border-t border-border">
             <div className="p-4">
               <div className="text-xs font-medium text-muted-foreground mb-1">Hit Rate (24h)</div>
               <div className="text-lg font-bold text-foreground">{status?.hit_rate_24h.toFixed(1)}%</div>
@@ -213,7 +213,7 @@ export default function EscapeVectorPage() {
                     type="number"
                     value={editableConfig.cache_ttl_hours}
                     onChange={(e) => handleConfigChange('cache_ttl_hours', parseInt(e.target.value))}
-                    className="text-xs"
+                    className="text-xs focus-visible:ring-0 focus-visible:ring-offset-0 focus:outline-none focus:border-border"
                   />
                   <p className="text-[0.65rem] text-muted-foreground">How long cache entries remain valid</p>
                 </div>
@@ -225,7 +225,7 @@ export default function EscapeVectorPage() {
                     type="number"
                     value={editableConfig.min_quality_threshold}
                     onChange={(e) => handleConfigChange('min_quality_threshold', parseInt(e.target.value))}
-                    className="text-xs"
+                    className="text-xs focus-visible:ring-0 focus-visible:ring-offset-0 focus:outline-none focus:border-border"
                   />
                   <p className="text-[0.65rem] text-muted-foreground">Minimum quality score for caching</p>
                 </div>
@@ -237,7 +237,7 @@ export default function EscapeVectorPage() {
                     type="number"
                     value={editableConfig.refresh_interval_hours}
                     onChange={(e) => handleConfigChange('refresh_interval_hours', parseInt(e.target.value))}
-                    className="text-xs"
+                    className="text-xs focus-visible:ring-0 focus-visible:ring-offset-0 focus:outline-none focus:border-border"
                   />
                   <p className="text-[0.65rem] text-muted-foreground">Auto-refresh frequency</p>
                 </div>
@@ -278,7 +278,7 @@ export default function EscapeVectorPage() {
                 </thead>
                 <tbody>
                   {history?.map((entry, index) => (
-                    <tr key={index} className="border-b border-gray-100 hover:bg-muted">
+                    <tr key={index} className="border-b border-border hover:bg-muted">
                       <td className="py-2 px-3 text-foreground">
                         {formatDistanceToNow(new Date(entry.timestamp))}
                       </td>
@@ -361,12 +361,12 @@ export default function EscapeVectorPage() {
           <CardContent>
             <ResponsiveContainer width="100%" height={200}>
               <BarChart data={analytics?.provider_failover_events || []}>
-                <defs>
-                  <pattern id="diagonalStripes" patternUnits="userSpaceOnUse" width="3" height="3" patternTransform="rotate(45)">
-                    <rect width="1" height="3" fill="#000000" />
-                    <rect x="1" width="2" height="3" fill="#e5e7eb" />
-                  </pattern>
-                </defs>
+<defs>
+                        <pattern id="diagonalStripes" patternUnits="userSpaceOnUse" width="3" height="3" patternTransform="rotate(45)">
+                          <rect width="1" height="3" fill="#000000" />
+                          <rect x="1" width="2" height="3" fill={chartTheme.tooltip.bg} />
+                        </pattern>
+                      </defs>
                 <CartesianGrid strokeDasharray="3 3" stroke={chartTheme.grid} />
                 <XAxis dataKey="provider" tick={{ fontSize: 8 }} />
                 <YAxis tick={{ fontSize: 8 }} />
