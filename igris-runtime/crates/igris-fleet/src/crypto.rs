@@ -131,6 +131,157 @@ pub fn sign_payload<T: Serialize>(keypair: &FleetKeypair, payload: &T) -> Result
     Ok(keypair.sign(&json))
 }
 
+/// Execution envelope for cryptographic verification
+#[derive(Debug, Clone, Serialize, Deserialize)]
+pub struct ExecutionEnvelope {
+    /// Result of the execution
+    pub result: serde_json::Value,
+    /// SHA-256 hash of the signed decision that was executed
+    pub decision_hash: String,
+    /// Agent ID that performed the execution
+    pub agent_id: String,
+    /// Unix timestamp of execution completion
+    pub timestamp: i64,
+    /// Whether execution was successful
+    pub success: bool,
+    /// Execution latency in milliseconds
+    pub latency_ms: i32,
+    /// Provider ID if applicable
+    #[serde(skip_serializing_if = "Option::is_none")]
+    pub provider_id: Option<String>,
+}
+
+/// Signed execution envelope with signature
+#[derive(Debug, Clone, Serialize, Deserialize)]
+pub struct SignedExecutionEnvelope {
+    pub envelope: ExecutionEnvelope,
+    pub signature: String,
+}
+
+impl ExecutionEnvelope {
+    /// Create a new execution envelope
+    pub fn new(
+        result: serde_json::Value,
+        decision_hash: String,
+        agent_id: String,
+        success: bool,
+        latency_ms: i32,
+        provider_id: Option<String>,
+    ) -> Self {
+        Self {
+            result,
+            decision_hash,
+            agent_id,
+            timestamp: chrono::Utc::now().timestamp(),
+            success,
+            latency_ms,
+            provider_id,
+        }
+    }
+
+    /// Sign this envelope with the given keypair
+    pub fn sign(self, keypair: &FleetKeypair) -> Result<SignedExecutionEnvelope> {
+        let json = serde_json::to_vec(&self)
+            .context("Failed to serialize execution envelope")?;
+        let signature = keypair.sign(&json);
+
+        Ok(SignedExecutionEnvelope {
+            envelope: self,
+            signature,
+        })
+    }
+}
+
+/// Signed decision from Overture
+#[derive(Debug, Clone, Serialize, Deserialize)]
+pub struct SignedDecision {
+    /// The actual routing decision
+    pub decision: serde_json::Value,
+    /// Tenant ID
+    pub tenant_id: String,
+    /// Unique decision ID
+    pub decision_id: String,
+    /// Unix timestamp
+    pub timestamp: i64,
+    /// Nonce for anti-replay
+    pub nonce: String,
+    /// Key version used for signing
+    pub key_version: i32,
+}
+
+/// Signed decision envelope from Overture
+#[derive(Debug, Clone, Serialize, Deserialize)]
+pub struct SignedDecisionEnvelope {
+    pub decision: SignedDecision,
+    pub signature: String,
+}
+
+impl SignedDecisionEnvelope {
+    /// Verify the decision signature using Overture's public key
+    pub fn verify(&self, public_key_base64: &str) -> Result<()> {
+        use base64::Engine;
+        use ed25519_dalek::{Signature, VerifyingKey};
+
+        // Decode public key
+        let public_key_bytes = base64::engine::general_purpose::STANDARD
+            .decode(public_key_base64)
+            .context("Failed to decode public key")?;
+
+        if public_key_bytes.len() != 32 {
+            return Err(anyhow::anyhow!(
+                "Invalid public key length: expected 32, got {}",
+                public_key_bytes.len()
+            ));
+        }
+
+        let mut key_array = [0u8; 32];
+        key_array.copy_from_slice(&public_key_bytes);
+        let verifying_key = VerifyingKey::from_bytes(&key_array)
+            .context("Invalid public key format")?;
+
+        // Decode signature
+        let sig_bytes = base64::engine::general_purpose::STANDARD
+            .decode(&self.signature)
+            .context("Failed to decode signature")?;
+
+        if sig_bytes.len() != 64 {
+            return Err(anyhow::anyhow!(
+                "Invalid signature length: expected 64, got {}",
+                sig_bytes.len()
+            ));
+        }
+
+        let signature = Signature::from_slice(&sig_bytes)
+            .context("Invalid signature format")?;
+
+        // Serialize decision for verification (must match Overture's serialization)
+        let decision_json = serde_json::to_vec(&self.decision)
+            .context("Failed to serialize decision")?;
+
+        // Verify
+        use ed25519_dalek::Verifier;
+        verifying_key
+            .verify(&decision_json, &signature)
+            .context("Signature verification failed")?;
+
+        Ok(())
+    }
+
+    /// Compute SHA-256 hash of this signed decision for execution envelope
+    pub fn hash(&self) -> Result<String> {
+        use sha2::{Sha256, Digest};
+
+        let json = serde_json::to_vec(self)
+            .context("Failed to serialize decision for hashing")?;
+
+        let mut hasher = Sha256::new();
+        hasher.update(&json);
+        let hash = hasher.finalize();
+
+        Ok(hex::encode(hash))
+    }
+}
+
 #[cfg(test)]
 mod tests {
     use super::*;
