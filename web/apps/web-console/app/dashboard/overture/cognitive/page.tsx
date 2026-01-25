@@ -176,11 +176,11 @@ export default function CognitiveAdvisorPage() {
 
         {/* Overview Cards */}
         <div className="bg-card">
-          <div className="grid grid-cols-2 divide-x divide-border-light">
+          <div className="grid grid-cols-2 divide-x divide-gray-200/20 dark:divide-[#f6f6f4]/5">
             <div className="p-4">
               <div className="text-xs font-medium text-muted-foreground mb-1">Status</div>
               <div className="pb-2">
-                <Badge className="bg-gray-50 text-gray-700 border dark:bg-card dark:text-[#a8a898] dark:border-[#f6f6f4]/5">
+                <Badge className="bg-green-50 dark:bg-green-950 text-green-700 dark:text-green-400 border-green-200 dark:border-green-900">
                   {getStatusIcon(status?.status)}
                   {status?.status === 'active' ? 'Active' : status?.status === 'paused' ? 'Paused' : 'Learning'}
                 </Badge>
@@ -192,7 +192,7 @@ export default function CognitiveAdvisorPage() {
               <p className="text-[0.65rem] text-muted-foreground mt-1">current confidence</p>
             </div>
           </div>
-          <div className="grid grid-cols-2 divide-x divide-border-light border-t border-border">
+          <div className="grid grid-cols-2 divide-x divide-gray-200/20 dark:divide-[#f6f6f4]/5 border-t border-border">
             <div className="p-4">
               <div className="text-xs font-medium text-muted-foreground mb-1">Potential Savings</div>
               <div className="text-lg font-bold text-foreground">
@@ -304,19 +304,19 @@ export default function CognitiveAdvisorPage() {
                   <div className="grid grid-cols-3 gap-3 text-xs">
                     <div>
                       <span className="text-muted-foreground">Quality:</span>
-                      <span className={`ml-1 font-medium ${rec.predicted_impact.quality_change >= 0 ? 'text-green-600' : 'text-red-600'}`}>
+                      <span className={`ml-1 font-medium ${rec.predicted_impact.quality_change >= 0 ? 'text-green-600 dark:text-green-400' : 'text-red-600 dark:text-red-400'}`}>
                         {rec.predicted_impact.quality_change >= 0 ? '+' : ''}{rec.predicted_impact.quality_change.toFixed(1)}%
                       </span>
                     </div>
                     <div>
                       <span className="text-muted-foreground">Cost:</span>
-                      <span className={`ml-1 font-medium ${rec.predicted_impact.cost_change <= 0 ? 'text-green-600' : 'text-red-600'}`}>
+                      <span className={`ml-1 font-medium ${rec.predicted_impact.cost_change <= 0 ? 'text-green-600 dark:text-green-400' : 'text-red-600 dark:text-red-400'}`}>
                         {rec.predicted_impact.cost_change >= 0 ? '+' : ''}{rec.predicted_impact.cost_change.toFixed(1)}%
                       </span>
                     </div>
                     <div>
                       <span className="text-muted-foreground">Latency:</span>
-                      <span className={`ml-1 font-medium ${rec.predicted_impact.latency_change <= 0 ? 'text-green-600' : 'text-red-600'}`}>
+                      <span className={`ml-1 font-medium ${rec.predicted_impact.latency_change <= 0 ? 'text-green-600 dark:text-green-400' : 'text-red-600 dark:text-red-400'}`}>
                         {rec.predicted_impact.latency_change >= 0 ? '+' : ''}{rec.predicted_impact.latency_change.toFixed(1)}%
                       </span>
                     </div>
@@ -354,7 +354,7 @@ export default function CognitiveAdvisorPage() {
                 </thead>
                 <tbody>
                   {history?.map((entry) => (
-                    <tr key={entry.id} className="border-b border-gray-100 hover:bg-muted">
+                    <tr key={entry.id} className="border-b border-border hover:bg-muted">
                       <td className="py-2 px-3 text-foreground">
                         {new Date(entry.date).toLocaleDateString()}
                       </td>
@@ -383,7 +383,7 @@ export default function CognitiveAdvisorPage() {
                       </td>
                       <td className="py-2 px-3">
                         {entry.variance !== undefined ? (
-                          <span className={`font-medium ${Math.abs(entry.variance) < 10 ? 'text-green-600' : 'text-yellow-600'}`}>
+                          <span className={`font-medium ${Math.abs(entry.variance) < 10 ? 'text-green-600 dark:text-green-400' : 'text-yellow-600 dark:text-yellow-400'}`}>
                             ±{entry.variance.toFixed(1)}%
                           </span>
                         ) : (
@@ -444,7 +444,7 @@ export default function CognitiveAdvisorPage() {
                     max="100"
                     value={editableConfig.aggressiveness}
                     onChange={(e) => handleConfigChange('aggressiveness', parseInt(e.target.value))}
-                    className="scale-[0.6] origin-left dark-blue-slider h-1"
+                    className="scale-[0.6] origin-left dark-blue-slider h-1 focus-visible:ring-0 focus-visible:ring-offset-0 focus:outline-none focus:border-border"
                   />
                   <p className="text-[0.6rem] text-muted-foreground">How aggressive optimization should be</p>
                 </div>
@@ -453,14 +453,14 @@ export default function CognitiveAdvisorPage() {
                   <Label htmlFor="min_confidence" className="text-xs font-medium text-foreground">
                     Min Confidence ({editableConfig.min_confidence_threshold}%)
                   </Label>
-                  <Input
+<Input
                     id="min_confidence"
                     type="range"
                     min="50"
                     max="99"
                     value={editableConfig.min_confidence_threshold}
-                    onChange={(e) => handleConfigChange('min_confidence_threshold', parseInt(e.target.value))}
-                    className="scale-[0.6] origin-left dark-blue-slider h-1"
+                    onChange={(e) => handleConfigChange('min_confidence', parseInt(e.target.value))}
+                    className="scale-[0.6] origin-left dark-blue-slider h-1 focus-visible:ring-0 focus-visible:ring-offset-0 focus:outline-none focus:border-border"
                   />
                   <p className="text-[0.6rem] text-muted-foreground">Minimum confidence to show recommendation</p>
                 </div>
@@ -476,7 +476,7 @@ export default function CognitiveAdvisorPage() {
                     max="99"
                     value={editableConfig.auto_apply_threshold}
                     onChange={(e) => handleConfigChange('auto_apply_threshold', parseInt(e.target.value))}
-                    className="scale-[0.6] origin-left dark-blue-slider h-1"
+                    className="scale-[0.6] origin-left dark-blue-slider h-1 focus-visible:ring-0 focus-visible:ring-offset-0 focus:outline-none focus:border-border"
                   />
                   <p className="text-[0.6rem] text-muted-foreground">Auto-apply recommendations above this confidence</p>
                 </div>

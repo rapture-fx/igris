@@ -104,20 +104,20 @@ export default function Header() {
                         setResourcesDropdownOpen(false);
                         openUseCases();
                       }}
-                      className="block w-full text-left px-4 py-2 text-xs text-gray-700 dark:text-[#c8c8b8] hover:text-gray-900 dark:hover:text-[#f6f6f4] hover:bg-gray-100 dark:hover:bg-gray-800 transition-colors duration-200"
+                      className="block w-full text-left px-4 py-2 text-xs text-gray-700 dark:text-[#c8c8b8] hover:text-gray-900 dark:hover:text-[#f6f6f4] hover:bg-gray-100 dark:hover:bg-[#c6adcf]/20 transition-colors duration-200"
                     >
                       Use Cases
                     </button>
                     <a
                       href={docsHubUrl}
-                      className="block px-4 py-2 text-xs text-gray-700 dark:text-[#c8c8b8] hover:text-gray-900 dark:hover:text-[#f6f6f4] hover:bg-gray-100 dark:hover:bg-gray-800 transition-colors duration-200"
+                      className="block px-4 py-2 text-xs text-gray-700 dark:text-[#c8c8b8] hover:text-gray-900 dark:hover:text-[#f6f6f4] hover:bg-gray-100 dark:hover:bg-[#c6adcf]/20 transition-colors duration-200"
                       onClick={() => setResourcesDropdownOpen(false)}
               >
                 Docs
                     </a>
                <Link
                   href="/blog"
-                       className="block px-4 py-2 text-xs text-gray-700 dark:text-[#c8c8b8] hover:text-gray-900 dark:hover:text-[#f6f6f4] hover:bg-gray-100 dark:hover:bg-gray-800 transition-colors duration-200"
+className="block px-4 py-2 text-xs text-gray-700 dark:text-[#c8c8b8] hover:text-gray-900 dark:hover:text-[#f6f6f4] hover:bg-gray-100 dark:hover:bg-[#c6adcf]/20 transition-colors duration-200"
                        onClick={() => setResourcesDropdownOpen(false)}
                 >
                   Blog
@@ -172,7 +172,7 @@ export default function Header() {
                <div>
                   <button
                     onClick={() => setMobileResourcesOpen(!mobileResourcesOpen)}
-                    className="w-full flex items-center justify-between text-gray-700 dark:text-[#c8c8b8] hover:text-gray-900 dark:hover:text-[#f6f6f4] transition-colors duration-200 font-medium text-xs"
+                     className="w-full flex items-center justify-between text-gray-700 dark:text-[#c8c8b8] hover:text-gray-900 dark:hover:text-[#f6f6f4] transition-colors duration-200 font-medium text-xs"
                   >
                    Resources
                    <ChevronDown className={`h-4 w-4 transition-transform duration-200 ${mobileResourcesOpen ? 'rotate-180' : ''}`} />
@@ -185,13 +185,13 @@ export default function Header() {
                           setMobileResourcesOpen(false);
                           openUseCases();
                         }}
-                        className="block text-left text-gray-700 dark:text-[#c8c8b8] hover:text-gray-900 dark:hover:text-[#f6f6f4] transition-colors duration-200 font-medium text-xs"
+                         className="block text-left text-gray-700 dark:text-[#c8c8b8] hover:text-gray-900 dark:hover:text-[#f6f6f4] transition-colors duration-200 font-medium text-xs"
                       >
                         Use Cases
                       </button>
                       <a
                         href={docsHubUrl}
-                        className="block text-gray-700 dark:text-[#c8c8b8] hover:text-gray-900 dark:hover:text-[#f6f6f4] transition-colors duration-200 font-medium text-xs"
+className="block text-gray-700 dark:text-[#c8c8b8] hover:text-gray-900 dark:hover:text-[#f6f6f4] transition-colors duration-200 font-medium text-xs"
                         onClick={() => {
                           setMobileMenuOpen(false);
                           setMobileResourcesOpen(false);

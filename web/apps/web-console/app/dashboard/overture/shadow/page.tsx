@@ -125,11 +125,11 @@ export default function OvertureShadowPage() {
 
         {/* Overview Cards */}
         <div className="bg-card">
-          <div className="grid grid-cols-2 divide-x divide-border-light">
+          <div className="grid grid-cols-2 divide-x divide-gray-200/20 dark:divide-[#f6f6f4]/5">
             <div className="p-4">
               <div className="text-xs font-medium text-muted-foreground mb-1">Status</div>
               <div className="pb-2">
-                <Badge className="bg-gray-50 text-gray-700 border dark:bg-card dark:text-[#a8a898] dark:border-[#f6f6f4]/5">
+                <Badge className="bg-green-50 dark:bg-green-950 text-green-700 dark:text-green-400 border-green-200 dark:border-green-900">
                   {status?.enabled ? <CheckCircle className="h-3 w-3 mr-1" /> : <XCircle className="h-3 w-3 mr-1" />}
                   {status?.enabled ? 'Active' : 'Inactive'}
                 </Badge>
@@ -141,7 +141,7 @@ export default function OvertureShadowPage() {
               <p className="text-[0.65rem] text-muted-foreground mt-1">of requests shadowed</p>
             </div>
           </div>
-          <div className="grid grid-cols-2 divide-x divide-border-light border-t border-border">
+          <div className="grid grid-cols-2 divide-x divide-gray-200/20 dark:divide-[#f6f6f4]/5 border-t border-border">
             <div className="p-4">
               <div className="text-xs font-medium text-muted-foreground mb-1">Requests (24h)</div>
               <div className="text-lg font-bold text-foreground">{status?.requests_24h.toLocaleString()}</div>
@@ -184,7 +184,7 @@ export default function OvertureShadowPage() {
                     type="number"
                     value={editableConfig.shadow_percent}
                     onChange={(e) => handleConfigChange('shadow_percent', parseInt(e.target.value))}
-                    className="text-xs"
+                    className="text-xs focus-visible:ring-0 focus-visible:ring-offset-0 focus:outline-none focus:border-border"
                     min="0"
                     max="100"
                   />
@@ -197,7 +197,7 @@ export default function OvertureShadowPage() {
                     id="primary_provider"
                     value={editableConfig.primary_provider}
                     onChange={(e) => handleConfigChange('primary_provider', e.target.value)}
-                    className="text-xs"
+                    className="text-xs focus-visible:ring-0 focus-visible:ring-offset-0 focus:outline-none focus:border-border"
                   />
                   <p className="text-[0.65rem] text-muted-foreground">Current production provider</p>
                 </div>
@@ -208,7 +208,7 @@ export default function OvertureShadowPage() {
                     id="shadow_provider"
                     value={editableConfig.shadow_provider}
                     onChange={(e) => handleConfigChange('shadow_provider', e.target.value)}
-                    className="text-xs"
+                    className="text-xs focus-visible:ring-0 focus-visible:ring-offset-0 focus:outline-none focus:border-border"
                   />
                   <p className="text-[0.65rem] text-muted-foreground">Candidate provider to test</p>
                 </div>
@@ -220,7 +220,7 @@ export default function OvertureShadowPage() {
                     type="number"
                     value={editableConfig.quality_threshold}
                     onChange={(e) => handleConfigChange('quality_threshold', parseInt(e.target.value))}
-                    className="text-xs"
+                    className="text-xs focus-visible:ring-0 focus-visible:ring-offset-0 focus:outline-none focus:border-border"
                   />
                   <p className="text-[0.65rem] text-muted-foreground">Minimum quality score</p>
                 </div>
@@ -318,7 +318,7 @@ export default function OvertureShadowPage() {
                 </thead>
                 <tbody>
                   {logs?.map((log, index) => (
-                    <tr key={index} className="border-b border-gray-100 hover:bg-muted">
+                    <tr key={index} className="border-b border-border hover:bg-muted">
                       <td className="py-2 px-3 text-foreground font-mono">{log.request_id.slice(0, 12)}</td>
                       <td className="py-2 px-3 text-foreground">{log.primary_provider} ({log.primary_latency}ms)</td>
                       <td className="py-2 px-3 text-foreground">{log.shadow_provider} ({log.shadow_latency}ms)</td>
@@ -344,7 +344,7 @@ export default function OvertureShadowPage() {
           </CardHeader>
           <CardContent>
             <div className="bg-card border border-border rounded-lg p-4">
-              <ul className="text-xs text-[#000000] dark:text-[#f6f6f4] space-y-1 list-disc list-inside">
+              <ul className="text-xs text-foreground space-y-1 list-disc list-inside">
                 <li>Duplicate requests sent to shadow provider in parallel</li>
                 <li>Primary responses returned to users immediately (zero production impact)</li>
                 <li>Shadow responses collected and compared for latency, cost, and quality</li>
