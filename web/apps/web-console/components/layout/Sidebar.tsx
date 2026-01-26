@@ -327,7 +327,7 @@ export function Sidebar({ open = true, onClose }: SidebarProps) {
               <img
                 src="/dmfoot.png"
                 alt="dmfoot"
-                style={{ width: '25px', height: 'auto' }}
+                 style={{ width: '20px', height: 'auto' }}
               />
             </Link>
           </div>

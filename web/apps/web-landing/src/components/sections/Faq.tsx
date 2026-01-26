@@ -105,20 +105,20 @@ export default function Faq() {
                    key={index}
                    className="transition-all duration-200 border section-border bg-[#f6f6f4] dark:bg-[#1b1912]"
                  >
-                   <button
-                     onClick={() => toggleFaq(index)}
-                     className="w-full text-left px-4 md:px-4 py-3 md:py-4 flex items-center justify-between gap-4 hover:opacity-80 transition-opacity"
-                   >
+                    <button
+                      onClick={() => toggleFaq(index)}
+                      className="w-full text-left px-4 md:px-4 py-3 md:py-4 flex items-center justify-between gap-1 hover:opacity-80 transition-opacity"
+                    >
                      <span className="text-sm md:text-sm font-normal font-inter flex-1 text-[#000000] dark:text-[#f6f6f4]">
                        {faq.question}
                      </span>
-                    <ChevronDown
-                      className={`flex-shrink-0 transition-transform duration-200 ${
-                        openIndex === index ? 'rotate-180' : ''
-                      }`}
-                      style={{ color: 'rgba(156, 163, 175, 0.6)' }}
-                      size={18}
-                    />
+                     <ChevronDown
+                       className={`flex-shrink-0 transition-transform duration-200 ${
+                         openIndex === index ? 'rotate-180' : ''
+                       }`}
+                       style={{ color: 'rgba(156, 163, 175, 0.6)' }}
+                       size={18}
+                     />
                   </button>
 
                      <div
@@ -161,31 +161,31 @@ export default function Faq() {
            {/* Desktop Layout - Two-column grid */}
            <div className="hidden md:grid md:grid-cols-3 gap-0 relative flex-1">
              {/* Left Column - FAQ Items (2 columns wide) */}
-              <div className="hidden md:flex md:col-span-2 flex-col justify-start" style={{
-                paddingTop: '3rem',
-                paddingBottom: '3rem',
-                paddingRight: '1.5rem'
-              }}>
+               <div className="hidden md:flex md:col-span-2 flex-col justify-start" style={{
+                 paddingTop: '3rem',
+                 paddingBottom: '3rem',
+                 paddingRight: '1.5rem'
+               }}>
                <div className="space-y-2">
                  {faqEntries.map((faq, index) => (
                    <div
                      key={index}
                      className="transition-all duration-200 border section-border bg-[#f6f6f4] dark:bg-[#1b1912]"
                    >
-                     <button
-                       onClick={() => toggleFaq(index)}
-                        className="w-full text-left px-3 md:px-3 py-2 md:py-2.5 flex items-center justify-between gap-3 hover:opacity-80 transition-opacity"
-                     >
+<button
+                        onClick={() => toggleFaq(index)}
+                         className="w-full text-left px-3 md:px-3 py-2 md:py-2.5 flex items-center justify-between gap-1 hover:opacity-80 transition-opacity"
+                      >
                        <span className="text-xs md:text-sm font-normal font-inter flex-1 text-[#000000] dark:text-[#f6f6f4] line-clamp-2">
                          {faq.question}
                        </span>
-                      <ChevronDown
-                        className={`flex-shrink-0 transition-transform duration-200 ${
-                          openIndex === index ? 'rotate-180' : ''
-                        }`}
-                        style={{ color: 'rgba(156, 163, 175, 0.6)' }}
-                        size={18}
-                      />
+                       <ChevronDown
+                         className={`flex-shrink-0 transition-transform duration-200 ${
+                           openIndex === index ? 'rotate-180' : ''
+                         }`}
+                         style={{ color: 'rgba(156, 163, 175, 0.6)' }}
+                         size={18}
+                       />
                     </button>
 
                     <div
