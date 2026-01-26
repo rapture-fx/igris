@@ -216,7 +216,7 @@ export default function SettingsPage() {
     return (
       <DashboardLayout>
         <div className="flex items-center justify-center h-64">
-          <Loader2 className="h-12 w-12 animate-spin text-gray-900" />
+          <Loader2 className="h-12 w-12 animate-spin text-gray-900 dark:text-[#f6f6f4]" />
         </div>
       </DashboardLayout>
     );
@@ -226,37 +226,37 @@ export default function SettingsPage() {
     <DashboardLayout>
       <div className="max-w-7xl mx-auto space-y-6">
         {/* Header */}
-        <div className="pb-4 border-b border-border-light">
-          <h1 className="text-base font-medium text-gray-900 font-inter">
+        <div className="pb-4 border-b border-border-light dark:border-[#2d2a24]">
+          <h1 className="text-base font-medium text-gray-900 dark:text-[#f6f6f4] font-inter">
             Settings
           </h1>
-          <p className="text-gray-600 mt-1 font-inter text-xs">
+          <p className="text-gray-600 dark:text-gray-400 mt-1 font-inter text-xs">
             Manage your account and preferences
           </p>
         </div>
 
         {/* Tabs */}
         <Tabs value={activeTab} onValueChange={setActiveTab}>
-          <TabsList className="mb-4 text-xs">
-            <TabsTrigger value="notifications" className="text-xs">Notifications</TabsTrigger>
-            <TabsTrigger value="security" className="text-xs">Security</TabsTrigger>
-            <TabsTrigger value="billing" className="text-xs">Billing</TabsTrigger>
-            <TabsTrigger value="team" className="text-xs">Team</TabsTrigger>
-            <TabsTrigger value="tenants" className="text-xs">Clients & Tenants</TabsTrigger>
-            <TabsTrigger value="vault" className="text-xs">Vault (BYOK/BYOM)</TabsTrigger>
-            <TabsTrigger value="authority" className="text-xs">Authority & Limits</TabsTrigger>
+          <TabsList className="mb-4 text-xs dark:bg-[#1b1912]">
+            <TabsTrigger value="notifications" className="text-xs dark:text-gray-400 dark:data-[state=active]:text-[#f6f6f4]">Notifications</TabsTrigger>
+            <TabsTrigger value="security" className="text-xs dark:text-gray-400 dark:data-[state=active]:text-[#f6f6f4]">Security</TabsTrigger>
+            <TabsTrigger value="billing" className="text-xs dark:text-gray-400 dark:data-[state=active]:text-[#f6f6f4]">Billing</TabsTrigger>
+            <TabsTrigger value="team" className="text-xs dark:text-gray-400 dark:data-[state=active]:text-[#f6f6f4]">Team</TabsTrigger>
+            <TabsTrigger value="tenants" className="text-xs dark:text-gray-400 dark:data-[state=active]:text-[#f6f6f4]">Clients & Tenants</TabsTrigger>
+            <TabsTrigger value="vault" className="text-xs dark:text-gray-400 dark:data-[state=active]:text-[#f6f6f4]">Vault (BYOK/BYOM)</TabsTrigger>
+            <TabsTrigger value="authority" className="text-xs dark:text-gray-400 dark:data-[state=active]:text-[#f6f6f4]">Authority & Limits</TabsTrigger>
           </TabsList>
 
           {/* Team Tab */}
           <TabsContent value="team" className="space-y-6">
             {/* Invite Member */}
             <div className="space-y-4">
-              <div className="pb-4 border-b border-border-light">
-                <div className="flex items-center gap-2 text-xs font-semibold text-gray-900 font-inter">
-                  <UserPlus className="h-4 w-4 text-gray-900" />
+              <div className="pb-4 border-b border-border-light dark:border-[#2d2a24]">
+                <div className="flex items-center gap-2 text-xs font-semibold text-gray-900 dark:text-[#f6f6f4] font-inter">
+                  <UserPlus className="h-4 w-4 text-gray-900 dark:text-[#f6f6f4]" />
                   Invite Team Member
                 </div>
-                <p className="text-xs text-gray-600 mt-1">
+                <p className="text-xs text-gray-600 dark:text-gray-400 mt-1">
                   Add new members to your team
                 </p>
               </div>
@@ -276,27 +276,27 @@ export default function SettingsPage() {
 
             {/* Team Members */}
             <div className="space-y-4">
-              <div className="pb-4 border-b border-border-light">
-                <div className="flex items-center gap-2 text-xs font-semibold text-gray-900 font-inter">
-                  <Users className="h-4 w-4 text-gray-900" />
+              <div className="pb-4 border-b border-border-light dark:border-[#2d2a24]">
+                <div className="flex items-center gap-2 text-xs font-semibold text-gray-900 dark:text-[#f6f6f4] font-inter">
+                  <Users className="h-4 w-4 text-gray-900 dark:text-[#f6f6f4]" />
                   Team Members
                 </div>
-                <p className="text-xs text-gray-600 mt-1">
+                <p className="text-xs text-gray-600 dark:text-gray-400 mt-1">
                   Manage your team members and their roles
                 </p>
               </div>
               <div className="space-y-3">
                 <div className="flex items-center justify-between p-4">
                   <div className="flex items-center gap-3">
-                    <div className="flex items-center justify-center w-10 h-10 rounded-full bg-gray-900 text-white font-semibold text-sm">
+                    <div className="flex items-center justify-center w-10 h-10 rounded-full bg-gray-900 dark:bg-[#f6f6f4] text-white dark:text-[#1b1912] font-semibold text-sm">
                       {tenant ? getInitials(tenant.name) : 'U'}
                     </div>
                     <div>
-                      <h3 className="font-medium text-gray-900 font-inter text-xs">{tenant?.name}</h3>
-                      <p className="text-xs text-gray-600">{tenant?.email}</p>
+                      <h3 className="font-medium text-gray-900 dark:text-[#f6f6f4] font-inter text-xs">{tenant?.name}</h3>
+                      <p className="text-xs text-gray-600 dark:text-gray-400">{tenant?.email}</p>
                     </div>
                   </div>
-                  <span className="px-3 py-1 rounded-full text-xs font-medium bg-gray-100 text-gray-700">
+                  <span className="px-3 py-1 rounded-full text-xs font-medium bg-gray-100 dark:bg-gray-800 text-gray-700 dark:text-gray-400">
                     Owner
                   </span>
                 </div>
@@ -307,33 +307,33 @@ export default function SettingsPage() {
           {/* Tenants Tab */}
           <TabsContent value="tenants" className="space-y-6">
             <div className="space-y-4">
-              <div className="pb-4 border-b border-border-light">
-                <div className="flex items-center gap-2 text-xs font-semibold text-gray-900 font-inter">
-                  <Building2 className="h-4 w-4 text-gray-900" />
+              <div className="pb-4 border-b border-border-light dark:border-[#2d2a24]">
+                <div className="flex items-center gap-2 text-xs font-semibold text-gray-900 dark:text-[#f6f6f4] font-inter">
+                  <Building2 className="h-4 w-4 text-gray-900 dark:text-[#f6f6f4]" />
                   Clients & Tenants
                 </div>
-                <p className="text-xs text-gray-600 mt-1">
+                <p className="text-xs text-gray-600 dark:text-gray-400 mt-1">
                   Create isolated tenants for customers, environments, or teams
                 </p>
               </div>
               <div className="space-y-4">
-                <div className="p-6 rounded-lg bg-gradient-to-br from-beige-primary to-beige-primary">
+                <div className="p-6 rounded-lg bg-gradient-to-br from-beige-primary to-beige-primary dark:from-[#1b1912] dark:to-[#1b1912]">
                   <div className="flex-1">
-                    <div className="grid gap-2 text-xs text-gray-600 mb-4">
+                    <div className="grid gap-2 text-xs text-gray-600 dark:text-gray-400 mb-4">
                       <div className="flex items-center gap-2">
-                        <CheckCircle className="h-4 w-4 text-gray-600" />
+                        <CheckCircle className="h-4 w-4 text-gray-600 dark:text-gray-400" />
                         <span>AES-256 encrypted key storage per tenant</span>
                       </div>
                       <div className="flex items-center gap-2">
-                        <CheckCircle className="h-4 w-4 text-gray-600" />
+                        <CheckCircle className="h-4 w-4 text-gray-600 dark:text-gray-400" />
                         <span>Database-level data isolation (RLS)</span>
                       </div>
                       <div className="flex items-center gap-2">
-                        <CheckCircle className="h-4 w-4 text-gray-600" />
+                        <CheckCircle className="h-4 w-4 text-gray-600 dark:text-gray-400" />
                         <span>Independent budget caps & enforcement</span>
                       </div>
                       <div className="flex items-center gap-2">
-                        <CheckCircle className="h-4 w-4 text-gray-600" />
+                        <CheckCircle className="h-4 w-4 text-gray-600 dark:text-gray-400" />
                         <span>Separate observability & audit logs</span>
                       </div>
                     </div>
@@ -358,12 +358,12 @@ export default function SettingsPage() {
           <TabsContent value="billing" className="space-y-6">
             {/* Current Plan */}
             <div className="space-y-4">
-              <div className="pb-4 border-b border-border-light">
-                <div className="flex items-center gap-2 text-xs font-semibold text-gray-900 font-inter">
-                  <CreditCard className="h-4 w-4 text-gray-900" />
+              <div className="pb-4 border-b border-border-light dark:border-[#2d2a24]">
+                <div className="flex items-center gap-2 text-xs font-semibold text-gray-900 dark:text-[#f6f6f4] font-inter">
+                  <CreditCard className="h-4 w-4 text-gray-900 dark:text-[#f6f6f4]" />
                   Current Plan
                 </div>
-                <p className="text-xs text-gray-600 mt-1">
+                <p className="text-xs text-gray-600 dark:text-gray-400 mt-1">
                   Your subscription details
                 </p>
               </div>
@@ -371,16 +371,16 @@ export default function SettingsPage() {
                 <div className="flex items-center justify-between">
                   <div>
                     <div className="flex items-center gap-3">
-                      <h3 className="text-base font-bold text-gray-900 font-inter">
+                      <h3 className="text-base font-bold text-gray-900 dark:text-[#f6f6f4] font-inter">
                         {tenant?.plan || 'Develop'} Plan
                       </h3>
                       {tenant?.metadata?.trial_active && (
-                        <span className="px-3 py-1 rounded-full text-xs font-medium bg-gray-100 text-gray-800">
+                        <span className="px-3 py-1 rounded-full text-xs font-medium bg-gray-100 dark:bg-gray-800 text-gray-800 dark:text-gray-300">
                           Trial Active
                         </span>
                       )}
                     </div>
-                    <p className="text-xs text-gray-900 font-medium mt-2">
+                    <p className="text-xs text-gray-900 dark:text-[#f6f6f4] font-medium mt-2">
                       {tenant?.metadata?.trial_active ? (
                         <>
                           14-day {tenant?.plan || 'Develop'} trial · Ends in {tenant?.metadata?.trial_days_left || 'N/A'} days
@@ -393,7 +393,7 @@ export default function SettingsPage() {
                         </>
                       )}
                     </p>
-                    <p className="text-xs text-gray-600 mt-1">
+                    <p className="text-xs text-gray-600 dark:text-gray-400 mt-1">
                       Active since {tenant?.created_at ? formatDate(tenant.created_at) : 'N/A'}
                     </p>
                   </div>
@@ -403,11 +403,11 @@ export default function SettingsPage() {
                 </div>
 
                 {tenant?.metadata?.trial_active && (
-                  <div className="mt-4 p-4 rounded-lg bg-beige-primary border border-border-light">
-                    <p className="text-sm text-gray-900 font-medium mb-2">
+                  <div className="mt-4 p-4 rounded-lg bg-beige-primary dark:bg-[#1b1912] border border-border-light dark:border-[#2d2a24]">
+                    <p className="text-sm text-gray-900 dark:text-[#f6f6f4] font-medium mb-2">
                       Your trial includes full {tenant?.plan || 'Develop'} tier access
                     </p>
-                    <p className="text-xs text-gray-800">
+                    <p className="text-xs text-gray-800 dark:text-gray-300">
                       After your trial ends, you'll be automatically downgraded to Develop tier unless you add a payment method.
                     </p>
                   </div>
@@ -417,12 +417,12 @@ export default function SettingsPage() {
 
             {/* Global Monthly Budget */}
             <div className="space-y-4">
-              <div className="pb-4 border-b border-border-light">
-                <div className="flex items-center gap-2 text-xs font-semibold text-gray-900 font-inter">
-                  <Receipt className="h-4 w-4 text-gray-900" />
+              <div className="pb-4 border-b border-border-light dark:border-[#2d2a24]">
+                <div className="flex items-center gap-2 text-xs font-semibold text-gray-900 dark:text-[#f6f6f4] font-inter">
+                  <Receipt className="h-4 w-4 text-gray-900 dark:text-[#f6f6f4]" />
                   Global Monthly Budget
                 </div>
-                <p className="text-xs text-gray-600 mt-1">
+                <p className="text-xs text-gray-600 dark:text-gray-400 mt-1">
                   Set a spending limit across all requests
                 </p>
               </div>
@@ -432,7 +432,7 @@ export default function SettingsPage() {
                     Monthly Budget Limit (USD)
                   </Label>
                   <div className="relative">
-                    <span className="absolute left-3 top-1/2 -translate-y-1/2 text-gray-600">$</span>
+                    <span className="absolute left-3 top-1/2 -translate-y-1/2 text-gray-600 dark:text-gray-400">$</span>
                     <Input
                       id="globalBudget"
                       type="number"
@@ -449,7 +449,7 @@ export default function SettingsPage() {
                     <Label htmlFor="hardCap" className="text-xs font-medium">
                       Hard cap — block all requests at 100%
                     </Label>
-                    <p className="text-xs text-gray-600">
+                    <p className="text-xs text-gray-600 dark:text-gray-400">
                       When enabled, all requests will be blocked once the budget is exhausted
                     </p>
                   </div>
@@ -462,22 +462,22 @@ export default function SettingsPage() {
                 </div>
 
                 {/* Current Usage Bar */}
-                <div className="space-y-3 p-4 rounded-lg bg-beige-primary border border-border-light">
+                <div className="space-y-3 p-4 rounded-lg bg-beige-primary dark:bg-[#1b1912] border border-border-light dark:border-[#2d2a24]">
                   <div className="flex items-center justify-between text-xs">
-                    <span className="font-medium text-gray-900">Current Month Usage</span>
-                    <span className="font-medium text-gray-900">
+                    <span className="font-medium text-gray-900 dark:text-[#f6f6f4]">Current Month Usage</span>
+                    <span className="font-medium text-gray-900 dark:text-[#f6f6f4]">
                       {formatCurrency(currentSpend)} / {formatCurrency(budgetNumber)}
                     </span>
                   </div>
-                  <div className="w-full bg-gray-200 rounded-full h-2 overflow-hidden">
+                  <div className="w-full bg-gray-200 dark:bg-gray-800 rounded-full h-2 overflow-hidden">
                     <div
-                      className="h-full transition-all bg-gray-900"
+                      className="h-full transition-all bg-gray-900 dark:bg-[#f6f6f4]"
                       style={{
                         width: `${Math.min(budgetPercentage, 100)}%`
                       }}
                     />
                   </div>
-                  <div className="flex items-center justify-between text-xs text-gray-600">
+                  <div className="flex items-center justify-between text-xs text-gray-600 dark:text-gray-400">
                     <span>{budgetPercentage.toFixed(1)}% used</span>
                     <span>{formatCurrency(budgetNumber - currentSpend)} remaining</span>
                   </div>
@@ -495,18 +495,18 @@ export default function SettingsPage() {
 
             {/* Payment Method */}
             <div className="space-y-4">
-              <div className="pb-4 border-b border-border-light">
-                <div className="flex items-center gap-2 text-xs font-semibold text-gray-900 font-inter">
-                  <CreditCard className="h-4 w-4 text-gray-900" />
+              <div className="pb-4 border-b border-border-light dark:border-[#2d2a24]">
+                <div className="flex items-center gap-2 text-xs font-semibold text-gray-900 dark:text-[#f6f6f4] font-inter">
+                  <CreditCard className="h-4 w-4 text-gray-900 dark:text-[#f6f6f4]" />
                   Payment Method
                 </div>
-                <p className="text-xs text-gray-600 mt-1">
+                <p className="text-xs text-gray-600 dark:text-gray-400 mt-1">
                   Manage your payment methods
                 </p>
               </div>
               <div className="text-center py-8">
-                <CreditCard className="h-6 w-6 text-gray-400 mx-auto mb-4" />
-                <p className="text-gray-600 font-inter mb-4 text-xs">
+                <CreditCard className="h-6 w-6 text-gray-400 dark:text-gray-500 mx-auto mb-4" />
+                <p className="text-gray-600 dark:text-gray-400 font-inter mb-4 text-xs">
                   No payment method added
                 </p>
                 <Button variant="outline" size="sm" className="h-7 px-3 text-xs">
@@ -517,18 +517,18 @@ export default function SettingsPage() {
 
             {/* Invoices */}
             <div className="space-y-4">
-              <div className="pb-4 border-b border-border-light">
-                <div className="flex items-center gap-2 text-xs font-semibold text-gray-900 font-inter">
-                  <Receipt className="h-4 w-4 text-gray-900" />
+              <div className="pb-4 border-b border-border-light dark:border-[#2d2a24]">
+                <div className="flex items-center gap-2 text-xs font-semibold text-gray-900 dark:text-[#f6f6f4] font-inter">
+                  <Receipt className="h-4 w-4 text-gray-900 dark:text-[#f6f6f4]" />
                   Invoices
                 </div>
-                <p className="text-xs text-gray-600 mt-1">
+                <p className="text-xs text-gray-600 dark:text-gray-400 mt-1">
                   Download your billing history
                 </p>
               </div>
               <div className="text-center py-8">
-                <Receipt className="h-6 w-6 text-gray-400 mx-auto mb-4" />
-                <p className="text-gray-600 font-inter text-xs">
+                <Receipt className="h-6 w-6 text-gray-400 dark:text-gray-500 mx-auto mb-4" />
+                <p className="text-gray-600 dark:text-gray-400 font-inter text-xs">
                   No invoices yet
                 </p>
               </div>
@@ -539,12 +539,12 @@ export default function SettingsPage() {
           <TabsContent value="security" className="space-y-6">
             {/* Two-Factor Authentication */}
             <div className="space-y-4">
-              <div className="pb-4 border-b border-border-light">
-                <div className="flex items-center gap-2 text-xs font-semibold text-gray-900 font-inter">
-                  <Shield className="h-4 w-4 text-gray-900" />
+              <div className="pb-4 border-b border-border-light dark:border-[#2d2a24]">
+                <div className="flex items-center gap-2 text-xs font-semibold text-gray-900 dark:text-[#f6f6f4] font-inter">
+                  <Shield className="h-4 w-4 text-gray-900 dark:text-[#f6f6f4]" />
                   Two-Factor Authentication
                 </div>
-                <p className="text-xs text-gray-600 mt-1">
+                <p className="text-xs text-gray-600 dark:text-gray-400 mt-1">
                   Add an extra layer of security to your account
                 </p>
               </div>
@@ -553,7 +553,7 @@ export default function SettingsPage() {
                   <Label htmlFor="twoFactor" className="text-xs font-medium">
                     Enable 2FA
                   </Label>
-                  <p className="text-xs text-gray-600">
+                  <p className="text-xs text-gray-600 dark:text-gray-400">
                     Require authentication code in addition to password
                   </p>
                 </div>
@@ -569,24 +569,24 @@ export default function SettingsPage() {
 
             {/* Active Sessions */}
             <div className="space-y-4">
-              <div className="pb-4 border-b border-border-light">
-                <div className="flex items-center gap-2 text-xs font-semibold text-gray-900 font-inter">
-                  <User className="h-4 w-4 text-gray-900" />
+              <div className="pb-4 border-b border-border-light dark:border-[#2d2a24]">
+                <div className="flex items-center gap-2 text-xs font-semibold text-gray-900 dark:text-[#f6f6f4] font-inter">
+                  <User className="h-4 w-4 text-gray-900 dark:text-[#f6f6f4]" />
                   Active Sessions
                 </div>
-                <p className="text-xs text-gray-600 mt-1">
+                <p className="text-xs text-gray-600 dark:text-gray-400 mt-1">
                   Manage your active login sessions
                 </p>
               </div>
               <div className="space-y-3">
                 <div className="flex items-center justify-between p-4">
                   <div>
-                    <h3 className="font-medium text-gray-900 font-inter text-xs">Current Session</h3>
-                    <p className="text-xs text-gray-600 mt-1">
+                    <h3 className="font-medium text-gray-900 dark:text-[#f6f6f4] font-inter text-xs">Current Session</h3>
+                    <p className="text-xs text-gray-600 dark:text-gray-400 mt-1">
                       Started {formatDate(new Date().toISOString())}
                     </p>
                   </div>
-                  <span className="px-3 py-1 rounded-full text-xs font-medium bg-gray-50 text-gray-700">
+                  <span className="px-3 py-1 rounded-full text-xs font-medium bg-gray-50 dark:bg-gray-800 text-gray-700 dark:text-gray-400">
                     Active
                   </span>
                 </div>
@@ -595,29 +595,29 @@ export default function SettingsPage() {
 
             {/* Danger Zone */}
             <div className="space-y-4">
-              <div className="pb-4 border-b border-red-200">
-                <div className="flex items-center gap-2 text-xs font-semibold text-red-700 font-inter">
-                  <Shield className="h-4 w-4 text-red-700" />
+              <div className="pb-4 border-b border-red-200 dark:border-red-900">
+                <div className="flex items-center gap-2 text-xs font-semibold text-red-700 dark:text-red-400 font-inter">
+                  <Shield className="h-4 w-4 text-red-700 dark:text-red-400" />
                   Danger Zone
                 </div>
-                <p className="text-xs text-red-600 mt-1">
+                <p className="text-xs text-red-600 dark:text-red-400 mt-1">
                   Irreversible and destructive actions
                 </p>
               </div>
               <div className="space-y-4">
                 <div className="flex items-center justify-between p-4">
                   <div>
-                    <h3 className="font-medium text-red-900 font-inter text-xs">
+                    <h3 className="font-medium text-red-900 dark:text-red-400 font-inter text-xs">
 Sign Out All Sessions
                     </h3>
-                    <p className="text-xs text-red-700 mt-1">
+                    <p className="text-xs text-red-700 dark:text-red-400 mt-1">
 Sign out from all devices and revoke all active sessions
                     </p>
                   </div>
                   <Button
                     variant="destructive"
                     size="sm"
-                    className="bg-red-800 hover:bg-red-900 h-7 px-2 text-xs"
+                    className="bg-red-800 hover:bg-red-900 dark:bg-red-900 dark:hover:bg-red-800 h-7 px-2 text-xs"
                     onClick={() => setShowLogoutDialog(true)}
                   >
                     <LogOut className="mr-1 h-3 w-3" />
@@ -627,17 +627,17 @@ Sign Out All
 
                 <div className="flex items-center justify-between p-4">
                   <div>
-                    <h3 className="font-medium text-red-900 font-inter text-xs">
+                    <h3 className="font-medium text-red-900 dark:text-red-400 font-inter text-xs">
 Delete Account
                     </h3>
-                    <p className="text-xs text-red-700 mt-1">
+                    <p className="text-xs text-red-700 dark:text-red-400 mt-1">
 Permanently delete your account and all associated data
                     </p>
                   </div>
                   <Button
                     variant="destructive"
                     size="sm"
-                    className="bg-red-800 hover:bg-red-900 h-7 px-2 text-xs"
+                    className="bg-red-800 hover:bg-red-900 dark:bg-red-900 dark:hover:bg-red-800 h-7 px-2 text-xs"
                     onClick={() => setShowDeleteDialog(true)}
                   >
                     <Trash2 className="mr-1 h-3 w-3" />
@@ -652,12 +652,12 @@ Delete Account
           <TabsContent value="notifications" className="space-y-6">
             {/* Email Notifications */}
             <div className="space-y-4">
-              <div className="pb-4 border-b border-border-light">
-                <div className="flex items-center gap-2 text-xs font-semibold text-gray-900 font-inter">
-                  <Bell className="h-4 w-4 text-gray-900" />
+              <div className="pb-4 border-b border-border-light dark:border-[#2d2a24]">
+                <div className="flex items-center gap-2 text-xs font-semibold text-gray-900 dark:text-[#f6f6f4] font-inter">
+                  <Bell className="h-4 w-4 text-gray-900 dark:text-[#f6f6f4]" />
                   Email Notifications
                 </div>
-                <p className="text-xs text-gray-600 mt-1">
+                <p className="text-xs text-gray-600 dark:text-gray-400 mt-1">
                   Manage your email notification preferences
                 </p>
               </div>
@@ -667,7 +667,7 @@ Delete Account
                     <Label htmlFor="emailNotifications" className="text-xs font-medium">
                       Email Notifications
                     </Label>
-                    <p className="text-xs text-gray-600">
+                    <p className="text-xs text-gray-600 dark:text-gray-400">
                       Receive updates via email
                     </p>
                   </div>
@@ -684,7 +684,7 @@ Delete Account
                     <Label htmlFor="usageAlerts" className="text-xs font-medium">
                       Usage Alerts
                     </Label>
-                    <p className="text-xs text-gray-600">
+                    <p className="text-xs text-gray-600 dark:text-gray-400">
                       Get notified when approaching budget limits
                     </p>
                   </div>
@@ -700,12 +700,12 @@ Delete Account
 
             {/* Webhook Alerts */}
             <div className="space-y-4">
-              <div className="pb-4 border-b border-border-light">
-                <div className="flex items-center gap-2 text-xs font-semibold text-gray-900 font-inter">
-                  <Webhook className="h-4 w-4 text-gray-900" />
+              <div className="pb-4 border-b border-border-light dark:border-[#2d2a24]">
+                <div className="flex items-center gap-2 text-xs font-semibold text-gray-900 dark:text-[#f6f6f4] font-inter">
+                  <Webhook className="h-4 w-4 text-gray-900 dark:text-[#f6f6f4]" />
                   Webhook Alerts
                 </div>
-                <p className="text-xs text-gray-600 mt-1">
+                <p className="text-xs text-gray-600 dark:text-gray-400 mt-1">
                   Get real-time alerts via webhook when critical events occur
                 </p>
               </div>
@@ -734,7 +734,7 @@ Delete Account
                       Test
                     </Button>
                   </div>
-                  <p className="text-xs text-gray-600">
+                  <p className="text-xs text-gray-600 dark:text-gray-400">
                     Supports Slack, Discord, Microsoft Teams, and custom webhooks
                   </p>
                 </div>
@@ -750,7 +750,7 @@ Delete Account
                         <Label htmlFor="errorRateAlert" className="text-xs font-medium">
                           Error rate threshold (%)
                         </Label>
-                        <p className="text-xs text-gray-600 mt-1">
+                        <p className="text-xs text-gray-600 dark:text-gray-400 mt-1">
                           Alert when error rate exceeds threshold
                         </p>
                       </div>
@@ -773,7 +773,7 @@ Delete Account
                         <Label htmlFor="budgetAlert" className="text-xs font-medium">
                           Budget threshold (%)
                         </Label>
-                        <p className="text-xs text-gray-600 mt-1">
+                        <p className="text-xs text-gray-600 dark:text-gray-400 mt-1">
                           Alert when budget usage exceeds threshold
                         </p>
                       </div>
@@ -796,7 +796,7 @@ Delete Account
                         <Label htmlFor="downtimeAlert" className="text-xs font-medium">
                           Provider downtime (failures)
                         </Label>
-                        <p className="text-xs text-gray-600 mt-1">
+                        <p className="text-xs text-gray-600 dark:text-gray-400 mt-1">
                           Alert when provider fails consecutively
                         </p>
                       </div>
@@ -831,49 +831,49 @@ Delete Account
           <TabsContent value="vault" className="space-y-6">
             {/* Overview Card */}
             <div className="space-y-4">
-              <div className="pb-4 border-b border-border-light">
-                <div className="flex items-center gap-2 text-xs font-semibold text-gray-900 font-inter">
-                  <Key className="h-4 w-4 text-gray-900" />
+              <div className="pb-4 border-b border-border-light dark:border-[#2d2a24]">
+                <div className="flex items-center gap-2 text-xs font-semibold text-gray-900 dark:text-[#f6f6f4] font-inter">
+                  <Key className="h-4 w-4 text-gray-900 dark:text-[#f6f6f4]" />
                   Vault Overview
                 </div>
-                <p className="text-xs text-gray-600 mt-1">
+                <p className="text-xs text-gray-600 dark:text-gray-400 mt-1">
                   Unified key and model management for cloud and edge
                 </p>
               </div>
               <div className="grid grid-cols-4 gap-4">
                 <div className="p-4">
-                  <div className="text-xs text-gray-600 mb-1">Total Cloud Keys</div>
-                  <div className="text-base font-bold text-gray-900">12</div>
-                  <div className="text-xs text-gray-600 mt-1">Active: 10</div>
+                  <div className="text-xs text-gray-600 dark:text-gray-400 mb-1">Total Cloud Keys</div>
+                  <div className="text-base font-bold text-gray-900 dark:text-[#f6f6f4]">12</div>
+                  <div className="text-xs text-gray-600 dark:text-gray-400 mt-1">Active: 10</div>
                 </div>
                 <div className="p-4">
-                  <div className="text-xs text-gray-600 mb-1">Edge Models</div>
-                  <div className="text-base font-bold text-gray-900">5</div>
-                  <div className="text-xs text-gray-600 mt-1">Loaded: 3</div>
+                  <div className="text-xs text-gray-600 dark:text-gray-400 mb-1">Edge Models</div>
+                  <div className="text-base font-bold text-gray-900 dark:text-[#f6f6f4]">5</div>
+                  <div className="text-xs text-gray-600 dark:text-gray-400 mt-1">Loaded: 3</div>
                 </div>
                 <div className="p-4">
-                  <div className="text-xs text-gray-600 mb-1">Last Rotation</div>
-                  <div className="text-base font-bold text-gray-900">7d</div>
-                  <div className="text-xs text-gray-600 mt-1">Next: 23 days</div>
+                  <div className="text-xs text-gray-600 dark:text-gray-400 mb-1">Last Rotation</div>
+                  <div className="text-base font-bold text-gray-900 dark:text-[#f6f6f4]">7d</div>
+                  <div className="text-xs text-gray-600 dark:text-gray-400 mt-1">Next: 23 days</div>
                 </div>
                 <div className="p-4">
-                  <div className="text-xs text-gray-600 mb-1">Security Status</div>
-                  <div className="text-base font-bold text-green-700">Healthy</div>
-                  <div className="text-xs text-gray-600 mt-1">AES-256-GCM</div>
+                  <div className="text-xs text-gray-600 dark:text-gray-400 mb-1">Security Status</div>
+                  <div className="text-base font-bold text-green-700 dark:text-green-400">Healthy</div>
+                  <div className="text-xs text-gray-600 dark:text-gray-400 mt-1">AES-256-GCM</div>
                 </div>
               </div>
             </div>
 
             {/* Cloud Keys Section (Overture BYOK) */}
             <div className="space-y-4">
-              <div className="pb-4 border-b border-border-light">
+              <div className="pb-4 border-b border-border-light dark:border-[#2d2a24]">
                 <div className="flex items-center justify-between">
                   <div>
-                    <div className="flex items-center gap-2 text-xs font-semibold text-gray-900 font-inter">
-                      <CloudCog className="h-4 w-4 text-gray-900" />
+                    <div className="flex items-center gap-2 text-xs font-semibold text-gray-900 dark:text-[#f6f6f4] font-inter">
+                      <CloudCog className="h-4 w-4 text-gray-900 dark:text-[#f6f6f4]" />
                       Cloud Keys (Overture BYOK)
                     </div>
-                    <p className="text-xs text-gray-600 mt-1">
+                    <p className="text-xs text-gray-600 dark:text-gray-400 mt-1">
                       Provider API keys for cloud routing
                     </p>
                   </div>
@@ -884,26 +884,26 @@ Delete Account
                 </div>
               </div>
               <div>
-                <div className="border border-border-light rounded-lg overflow-hidden">
+                <div className="border border-border-light dark:border-[#2d2a24] rounded-lg overflow-hidden">
                   <table className="w-full text-xs">
-                    <thead className="bg-beige-secondary">
-                      <tr className="border-b border-border-light">
-                        <th className="text-left py-2 px-3 font-medium text-gray-600">Provider</th>
-                        <th className="text-left py-2 px-3 font-medium text-gray-600">Alias</th>
-                        <th className="text-left py-2 px-3 font-medium text-gray-600">Last Used</th>
-                        <th className="text-left py-2 px-3 font-medium text-gray-600">Rotation</th>
-                        <th className="text-left py-2 px-3 font-medium text-gray-600">Status</th>
-                        <th className="text-right py-2 px-3 font-medium text-gray-600">Actions</th>
+                    <thead className="bg-beige-secondary dark:bg-[#1b1912]">
+                      <tr className="border-b border-border-light dark:border-[#2d2a24]">
+                        <th className="text-left py-2 px-3 font-medium text-gray-600 dark:text-gray-400">Provider</th>
+                        <th className="text-left py-2 px-3 font-medium text-gray-600 dark:text-gray-400">Alias</th>
+                        <th className="text-left py-2 px-3 font-medium text-gray-600 dark:text-gray-400">Last Used</th>
+                        <th className="text-left py-2 px-3 font-medium text-gray-600 dark:text-gray-400">Rotation</th>
+                        <th className="text-left py-2 px-3 font-medium text-gray-600 dark:text-gray-400">Status</th>
+                        <th className="text-right py-2 px-3 font-medium text-gray-600 dark:text-gray-400">Actions</th>
                       </tr>
                     </thead>
                     <tbody>
-                      <tr className="border-b border-gray-100 hover:bg-beige-secondary">
-                        <td className="py-2 px-3 text-gray-900 font-medium">OpenAI</td>
-                        <td className="py-2 px-3 text-gray-900">prod-primary</td>
-                        <td className="py-2 px-3 text-gray-600">2 mins ago</td>
-                        <td className="py-2 px-3 text-gray-600">Auto (30d)</td>
+                      <tr className="border-b border-gray-100 dark:border-[#2d2a24] hover:bg-beige-secondary dark:hover:bg-[#25231e]">
+                        <td className="py-2 px-3 text-gray-900 dark:text-[#f6f6f4] font-medium">OpenAI</td>
+                        <td className="py-2 px-3 text-gray-900 dark:text-[#f6f6f4]">prod-primary</td>
+                        <td className="py-2 px-3 text-gray-600 dark:text-gray-400">2 mins ago</td>
+                        <td className="py-2 px-3 text-gray-600 dark:text-gray-400">Auto (30d)</td>
                         <td className="py-2 px-3">
-                          <span className="px-2 py-0.5 rounded-full text-xs bg-green-50 text-green-700 border border-green-200">Active</span>
+                          <span className="px-2 py-0.5 rounded-full text-xs bg-green-50 dark:bg-green-950 text-green-700 dark:text-green-400 border border-green-200 dark:border-green-900">Active</span>
                         </td>
                         <td className="py-2 px-3 text-right">
                           <div className="flex gap-1 justify-end">
@@ -912,13 +912,13 @@ Delete Account
                           </div>
                         </td>
                       </tr>
-                      <tr className="border-b border-gray-100 hover:bg-beige-secondary">
-                        <td className="py-2 px-3 text-gray-900 font-medium">Anthropic</td>
-                        <td className="py-2 px-3 text-gray-900">prod-primary</td>
-                        <td className="py-2 px-3 text-gray-600">5 mins ago</td>
-                        <td className="py-2 px-3 text-gray-600">Auto (30d)</td>
+                      <tr className="border-b border-gray-100 dark:border-[#2d2a24] hover:bg-beige-secondary dark:hover:bg-[#25231e]">
+                        <td className="py-2 px-3 text-gray-900 dark:text-[#f6f6f4] font-medium">Anthropic</td>
+                        <td className="py-2 px-3 text-gray-900 dark:text-[#f6f6f4]">prod-primary</td>
+                        <td className="py-2 px-3 text-gray-600 dark:text-gray-400">5 mins ago</td>
+                        <td className="py-2 px-3 text-gray-600 dark:text-gray-400">Auto (30d)</td>
                         <td className="py-2 px-3">
-                          <span className="px-2 py-0.5 rounded-full text-xs bg-green-50 text-green-700 border border-green-200">Active</span>
+                          <span className="px-2 py-0.5 rounded-full text-xs bg-green-50 dark:bg-green-950 text-green-700 dark:text-green-400 border border-green-200 dark:border-green-900">Active</span>
                         </td>
                         <td className="py-2 px-3 text-right">
                           <div className="flex gap-1 justify-end">
@@ -927,13 +927,13 @@ Delete Account
                           </div>
                         </td>
                       </tr>
-                      <tr className="border-b border-gray-100 hover:bg-beige-secondary">
-                        <td className="py-2 px-3 text-gray-900 font-medium">Google</td>
-                        <td className="py-2 px-3 text-gray-900">backup</td>
-                        <td className="py-2 px-3 text-gray-600">1 hour ago</td>
-                        <td className="py-2 px-3 text-gray-600">Manual</td>
+                      <tr className="border-b border-gray-100 dark:border-[#2d2a24] hover:bg-beige-secondary dark:hover:bg-[#25231e]">
+                        <td className="py-2 px-3 text-gray-900 dark:text-[#f6f6f4] font-medium">Google</td>
+                        <td className="py-2 px-3 text-gray-900 dark:text-[#f6f6f4]">backup</td>
+                        <td className="py-2 px-3 text-gray-600 dark:text-gray-400">1 hour ago</td>
+                        <td className="py-2 px-3 text-gray-600 dark:text-gray-400">Manual</td>
                         <td className="py-2 px-3">
-                          <span className="px-2 py-0.5 rounded-full text-xs bg-gray-50 text-gray-700 border border-gray-200">Standby</span>
+                          <span className="px-2 py-0.5 rounded-full text-xs bg-gray-50 dark:bg-gray-800 text-gray-700 dark:text-gray-400 border border-gray-200 dark:border-gray-700">Standby</span>
                         </td>
                         <td className="py-2 px-3 text-right">
                           <div className="flex gap-1 justify-end">
@@ -950,14 +950,14 @@ Delete Account
 
             {/* Edge Models Section (Runtime BYOM) */}
             <div className="space-y-4">
-              <div className="pb-4 border-b border-border-light">
+              <div className="pb-4 border-b border-border-light dark:border-[#2d2a24]">
                 <div className="flex items-center justify-between">
                   <div>
-                    <div className="flex items-center gap-2 text-xs font-semibold text-gray-900 font-inter">
-                      <Server className="h-4 w-4 text-gray-900" />
+                    <div className="flex items-center gap-2 text-xs font-semibold text-gray-900 dark:text-[#f6f6f4] font-inter">
+                      <Server className="h-4 w-4 text-gray-900 dark:text-[#f6f6f4]" />
                       Edge Models (Runtime BYOM)
                     </div>
-                    <p className="text-xs text-gray-600 mt-1">
+                    <p className="text-xs text-gray-600 dark:text-gray-400 mt-1">
                       GGUF models for edge inference
                     </p>
                   </div>
@@ -968,25 +968,25 @@ Delete Account
                 </div>
               </div>
               <div>
-                <div className="border border-border-light rounded-lg overflow-hidden">
+                <div className="border border-border-light dark:border-[#2d2a24] rounded-lg overflow-hidden">
                   <table className="w-full text-xs">
-                    <thead className="bg-beige-secondary">
-                      <tr className="border-b border-border-light">
-                        <th className="text-left py-2 px-3 font-medium text-gray-600">Model Name</th>
-                        <th className="text-left py-2 px-3 font-medium text-gray-600">Path</th>
-                        <th className="text-left py-2 px-3 font-medium text-gray-600">Size</th>
-                        <th className="text-left py-2 px-3 font-medium text-gray-600">Quantization</th>
-                        <th className="text-left py-2 px-3 font-medium text-gray-600">Last Loaded</th>
-                        <th className="text-right py-2 px-3 font-medium text-gray-600">Actions</th>
+                    <thead className="bg-beige-secondary dark:bg-[#1b1912]">
+                      <tr className="border-b border-border-light dark:border-[#2d2a24]">
+                        <th className="text-left py-2 px-3 font-medium text-gray-600 dark:text-gray-400">Model Name</th>
+                        <th className="text-left py-2 px-3 font-medium text-gray-600 dark:text-gray-400">Path</th>
+                        <th className="text-left py-2 px-3 font-medium text-gray-600 dark:text-gray-400">Size</th>
+                        <th className="text-left py-2 px-3 font-medium text-gray-600 dark:text-gray-400">Quantization</th>
+                        <th className="text-left py-2 px-3 font-medium text-gray-600 dark:text-gray-400">Last Loaded</th>
+                        <th className="text-right py-2 px-3 font-medium text-gray-600 dark:text-gray-400">Actions</th>
                       </tr>
                     </thead>
                     <tbody>
-                      <tr className="border-b border-gray-100 hover:bg-beige-secondary">
-                        <td className="py-2 px-3 text-gray-900 font-medium">llama-3.1-8b-instruct</td>
-                        <td className="py-2 px-3 text-gray-600 font-mono text-[0.65rem]">/models/llama3.1-8b-q4.gguf</td>
-                        <td className="py-2 px-3 text-gray-600">4.7 GB</td>
-                        <td className="py-2 px-3 text-gray-600">Q4_K_M</td>
-                        <td className="py-2 px-3 text-gray-600">Active</td>
+                      <tr className="border-b border-gray-100 dark:border-[#2d2a24] hover:bg-beige-secondary dark:hover:bg-[#25231e]">
+                        <td className="py-2 px-3 text-gray-900 dark:text-[#f6f6f4] font-medium">llama-3.1-8b-instruct</td>
+                        <td className="py-2 px-3 text-gray-600 dark:text-gray-400 font-mono text-[0.65rem]">/models/llama3.1-8b-q4.gguf</td>
+                        <td className="py-2 px-3 text-gray-600 dark:text-gray-400">4.7 GB</td>
+                        <td className="py-2 px-3 text-gray-600 dark:text-gray-400">Q4_K_M</td>
+                        <td className="py-2 px-3 text-gray-600 dark:text-gray-400">Active</td>
                         <td className="py-2 px-3 text-right">
                           <div className="flex gap-1 justify-end">
                             <Button variant="outline" size="sm" className="text-xs h-6 px-2">Test</Button>
@@ -994,12 +994,12 @@ Delete Account
                           </div>
                         </td>
                       </tr>
-                      <tr className="border-b border-gray-100 hover:bg-beige-secondary">
-                        <td className="py-2 px-3 text-gray-900 font-medium">mistral-7b-instruct</td>
-                        <td className="py-2 px-3 text-gray-600 font-mono text-[0.65rem]">/models/mistral-7b-q5.gguf</td>
-                        <td className="py-2 px-3 text-gray-600">5.2 GB</td>
-                        <td className="py-2 px-3 text-gray-600">Q5_K_M</td>
-                        <td className="py-2 px-3 text-gray-600">12 mins ago</td>
+                      <tr className="border-b border-gray-100 dark:border-[#2d2a24] hover:bg-beige-secondary dark:hover:bg-[#25231e]">
+                        <td className="py-2 px-3 text-gray-900 dark:text-[#f6f6f4] font-medium">mistral-7b-instruct</td>
+                        <td className="py-2 px-3 text-gray-600 dark:text-gray-400 font-mono text-[0.65rem]">/models/mistral-7b-q5.gguf</td>
+                        <td className="py-2 px-3 text-gray-600 dark:text-gray-400">5.2 GB</td>
+                        <td className="py-2 px-3 text-gray-600 dark:text-gray-400">Q5_K_M</td>
+                        <td className="py-2 px-3 text-gray-600 dark:text-gray-400">12 mins ago</td>
                         <td className="py-2 px-3 text-right">
                           <div className="flex gap-1 justify-end">
                             <Button variant="outline" size="sm" className="text-xs h-6 px-2">Test</Button>
@@ -1015,12 +1015,12 @@ Delete Account
 
             {/* Security & Compliance */}
             <div className="space-y-4">
-              <div className="pb-4 border-b border-border-light">
-                <div className="flex items-center gap-2 text-xs font-semibold text-gray-900 font-inter">
-                  <Shield className="h-4 w-4 text-gray-900" />
+              <div className="pb-4 border-b border-border-light dark:border-[#2d2a24]">
+                <div className="flex items-center gap-2 text-xs font-semibold text-gray-900 dark:text-[#f6f6f4] font-inter">
+                  <Shield className="h-4 w-4 text-gray-900 dark:text-[#f6f6f4]" />
                   Security & Compliance
                 </div>
-                <p className="text-xs text-gray-600 mt-1">
+                <p className="text-xs text-gray-600 dark:text-gray-400 mt-1">
                   Encryption and audit information
                 </p>
               </div>
@@ -1029,20 +1029,20 @@ Delete Account
                   <div className="p-4">
                     <div>
                       <div className="flex-1">
-                        <h4 className="text-xs font-medium text-gray-900 font-inter mb-1">
+                        <h4 className="text-xs font-medium text-gray-900 dark:text-[#f6f6f4] font-inter mb-1">
                           Encryption Details
                         </h4>
-                        <p className="text-xs text-gray-800 mb-2">
+                        <p className="text-xs text-gray-800 dark:text-gray-300 mb-2">
                           All keys and models are encrypted at rest using AES-256-GCM. Cloud keys are encrypted in PostgreSQL, edge models use filesystem encryption.
                         </p>
                         <div className="space-y-2 text-xs">
                           <div>
-                            <span className="text-gray-600">Algorithm:</span>
-                            <span className="ml-2 font-medium text-gray-900">AES-256-GCM</span>
+                            <span className="text-gray-600 dark:text-gray-400">Algorithm:</span>
+                            <span className="ml-2 font-medium text-gray-900 dark:text-[#f6f6f4]">AES-256-GCM</span>
                           </div>
                           <div>
-                            <span className="text-gray-600">Key Derivation:</span>
-                            <span className="ml-2 font-medium text-gray-900">PBKDF2</span>
+                            <span className="text-gray-600 dark:text-gray-400">Key Derivation:</span>
+                            <span className="ml-2 font-medium text-gray-900 dark:text-[#f6f6f4]">PBKDF2</span>
                           </div>
                         </div>
                       </div>
@@ -1052,10 +1052,10 @@ Delete Account
                   <div className="p-4">
                     <div>
                       <div className="flex-1">
-                        <h4 className="text-xs font-medium text-gray-900 font-inter mb-1">
+                        <h4 className="text-xs font-medium text-gray-900 dark:text-[#f6f6f4] font-inter mb-1">
                           Rotation Policy
                         </h4>
-                        <p className="text-xs text-gray-800 mb-2">
+                        <p className="text-xs text-gray-800 dark:text-gray-300 mb-2">
                           Cloud keys auto-rotate every 30 days. Manual rotation available anytime. Edge models do not auto-rotate.
                         </p>
                         <div className="flex gap-2">
@@ -1075,22 +1075,22 @@ Delete Account
 
             {/* Configuration */}
             <div className="space-y-4">
-              <div className="pb-4 border-b border-border-light">
-                <div className="flex items-center gap-2 text-xs font-semibold text-gray-900 font-inter">
-                  <Calendar className="h-4 w-4 text-gray-900" />
+              <div className="pb-4 border-b border-border-light dark:border-[#2d2a24]">
+                <div className="flex items-center gap-2 text-xs font-semibold text-gray-900 dark:text-[#f6f6f4] font-inter">
+                  <Calendar className="h-4 w-4 text-gray-900 dark:text-[#f6f6f4]" />
                   Vault Configuration
                 </div>
-                <p className="text-xs text-gray-600 mt-1">
+                <p className="text-xs text-gray-600 dark:text-gray-400 mt-1">
                   Global settings for key and model management
                 </p>
               </div>
               <div className="space-y-4">
                 <div className="flex items-center justify-between p-4">
                   <div className="flex-1">
-                    <h4 className="text-xs font-medium text-gray-900 font-inter mb-1">
+                    <h4 className="text-xs font-medium text-gray-900 dark:text-[#f6f6f4] font-inter mb-1">
                       Auto-Rotate Cloud Keys
                     </h4>
-                    <p className="text-xs text-gray-600">
+                    <p className="text-xs text-gray-600 dark:text-gray-400">
                       Automatically rotate provider keys every 30 days
                     </p>
                   </div>
@@ -1098,21 +1098,21 @@ Delete Account
                 </div>
 
                 <div className="p-4">
-                  <h4 className="text-xs font-medium text-gray-900 font-inter mb-3">
+                  <h4 className="text-xs font-medium text-gray-900 dark:text-[#f6f6f4] font-inter mb-3">
                     Notification Settings
                   </h4>
-                  <div className="space-y-2 text-xs text-gray-600">
+                  <div className="space-y-2 text-xs text-gray-600 dark:text-gray-400">
                     <div className="flex justify-between">
                       <span>Rotation warnings:</span>
-                      <span className="font-medium text-gray-900">7 days before</span>
+                      <span className="font-medium text-gray-900 dark:text-[#f6f6f4]">7 days before</span>
                     </div>
                     <div className="flex justify-between">
                       <span>Key expiration alerts:</span>
-                      <span className="font-medium text-gray-900">Email + Webhook</span>
+                      <span className="font-medium text-gray-900 dark:text-[#f6f6f4]">Email + Webhook</span>
                     </div>
                     <div className="flex justify-between">
                       <span>Failed rotation attempts:</span>
-                      <span className="font-medium text-gray-900">Immediate</span>
+                      <span className="font-medium text-gray-900 dark:text-[#f6f6f4]">Immediate</span>
                     </div>
                   </div>
                 </div>
@@ -1148,12 +1148,12 @@ Delete Account
           <TabsContent value="authority" className="space-y-6">
             {/* Forbidden Actions */}
             <div className="space-y-4">
-              <div className="pb-4 border-b border-border-light">
-                <div className="flex items-center gap-2 text-xs font-semibold text-gray-900 font-inter">
-                  <XCircle className="h-4 w-4 text-gray-900" />
+              <div className="pb-4 border-b border-border-light dark:border-[#2d2a24]">
+                <div className="flex items-center gap-2 text-xs font-semibold text-gray-900 dark:text-[#f6f6f4] font-inter">
+                  <XCircle className="h-4 w-4 text-gray-900 dark:text-[#f6f6f4]" />
                   Forbidden Actions
                 </div>
-                <p className="text-xs text-gray-600 mt-1">
+                <p className="text-xs text-gray-600 dark:text-gray-400 mt-1">
                   Operations explicitly prohibited by system policy
                 </p>
               </div>
@@ -1161,12 +1161,12 @@ Delete Account
                 <div className="space-y-3">
                   <div className="p-4">
                     <div className="flex items-start gap-3">
-                      <XCircle className="h-4 w-4 text-red-600 flex-shrink-0 mt-0.5" />
+                      <XCircle className="h-4 w-4 text-red-600 dark:text-red-400 flex-shrink-0 mt-0.5" />
                       <div className="flex-1">
-                        <h4 className="text-xs font-medium text-red-900 font-inter mb-1">
+                        <h4 className="text-xs font-medium text-red-900 dark:text-red-400 font-inter mb-1">
                           Direct API Key Exposure
                         </h4>
-                        <p className="text-xs text-red-800">
+                        <p className="text-xs text-red-800 dark:text-red-300">
                           System will never expose full API keys in responses, logs, or traces. All keys are masked after creation.
                         </p>
                       </div>
@@ -1175,12 +1175,12 @@ Delete Account
 
                   <div className="p-4">
                     <div className="flex items-start gap-3">
-                      <XCircle className="h-4 w-4 text-red-600 flex-shrink-0 mt-0.5" />
+                      <XCircle className="h-4 w-4 text-red-600 dark:text-red-400 flex-shrink-0 mt-0.5" />
                       <div className="flex-1">
-                        <h4 className="text-xs font-medium text-red-900 font-inter mb-1">
+                        <h4 className="text-xs font-medium text-red-900 dark:text-red-400 font-inter mb-1">
                           Automatic Data Deletion
                         </h4>
-                        <p className="text-xs text-red-800">
+                        <p className="text-xs text-red-800 dark:text-red-300">
                           System cannot autonomously delete user data, API keys, or tenants without explicit confirmation.
                         </p>
                       </div>
@@ -1189,12 +1189,12 @@ Delete Account
 
                   <div className="p-4">
                     <div className="flex items-start gap-3">
-                      <XCircle className="h-4 w-4 text-red-600 flex-shrink-0 mt-0.5" />
+                      <XCircle className="h-4 w-4 text-red-600 dark:text-red-400 flex-shrink-0 mt-0.5" />
                       <div className="flex-1">
-                        <h4 className="text-xs font-medium text-red-900 font-inter mb-1">
+                        <h4 className="text-xs font-medium text-red-900 dark:text-red-400 font-inter mb-1">
                           Policy Override Without Audit
                         </h4>
-                        <p className="text-xs text-red-800">
+                        <p className="text-xs text-red-800 dark:text-red-300">
                           Routing policies cannot be modified without creating an audit trail. All changes are logged with timestamp and operator.
                         </p>
                       </div>
@@ -1203,12 +1203,12 @@ Delete Account
 
                   <div className="p-4">
                     <div className="flex items-start gap-3">
-                      <XCircle className="h-4 w-4 text-red-600 flex-shrink-0 mt-0.5" />
+                      <XCircle className="h-4 w-4 text-red-600 dark:text-red-400 flex-shrink-0 mt-0.5" />
                       <div className="flex-1">
-                        <h4 className="text-xs font-medium text-red-900 font-inter mb-1">
+                        <h4 className="text-xs font-medium text-red-900 dark:text-red-400 font-inter mb-1">
                           Cross-Tenant Data Access
                         </h4>
-                        <p className="text-xs text-red-800">
+                        <p className="text-xs text-red-800 dark:text-red-300">
                           Database-level row-level security prevents any cross-tenant data leakage. Tenants cannot access each other's keys, traces, or configurations.
                         </p>
                       </div>
@@ -1220,12 +1220,12 @@ Delete Account
 
             {/* Decision Authority Modes */}
             <div className="space-y-4">
-              <div className="pb-4 border-b border-border-light">
-                <div className="flex items-center gap-2 text-xs font-semibold text-gray-900 font-inter">
-                  <SettingsIcon className="h-4 w-4 text-gray-900" />
+              <div className="pb-4 border-b border-border-light dark:border-[#2d2a24]">
+                <div className="flex items-center gap-2 text-xs font-semibold text-gray-900 dark:text-[#f6f6f4] font-inter">
+                  <SettingsIcon className="h-4 w-4 text-gray-900 dark:text-[#f6f6f4]" />
                   Decision Authority Modes
                 </div>
-                <p className="text-xs text-gray-600 mt-1">
+                <p className="text-xs text-gray-600 dark:text-gray-400 mt-1">
                   Configure system autonomy and operator control
                 </p>
               </div>
@@ -1233,15 +1233,15 @@ Delete Account
                 <div className="p-4">
                   <div className="flex items-center justify-between mb-3">
                     <div className="flex-1">
-                      <h4 className="text-xs font-medium text-gray-900 font-inter mb-1">
+                      <h4 className="text-xs font-medium text-gray-900 dark:text-[#f6f6f4] font-inter mb-1">
                         Automatic Failover
                       </h4>
-                      <p className="text-xs text-gray-600">
+                      <p className="text-xs text-gray-600 dark:text-gray-400">
                         System can autonomously switch providers when primary fails (recommended)
                       </p>
                     </div>
                     <div className="flex items-center gap-3">
-                      <span className="px-2 py-1 rounded text-xs font-medium bg-gray-50 text-gray-700">
+                      <span className="px-2 py-1 rounded text-xs font-medium bg-gray-50 dark:bg-gray-800 text-gray-700 dark:text-gray-300">
                         Decision Mode
                       </span>
                       <Switch defaultChecked className="scale-50" />
@@ -1252,15 +1252,15 @@ Delete Account
                 <div className="p-4">
                   <div className="flex items-center justify-between mb-3">
                     <div className="flex-1">
-                      <h4 className="text-xs font-medium text-gray-900 font-inter mb-1">
+                      <h4 className="text-xs font-medium text-gray-900 dark:text-[#f6f6f4] font-inter mb-1">
                         Cost Optimization
                       </h4>
-                      <p className="text-xs text-gray-600">
+                      <p className="text-xs text-gray-600 dark:text-gray-400">
                         System can automatically adjust routing to reduce costs within quality constraints
                       </p>
                     </div>
                     <div className="flex items-center gap-3">
-                      <span className="px-2 py-1 rounded text-xs font-medium bg-gray-50 text-gray-700">
+                      <span className="px-2 py-1 rounded text-xs font-medium bg-gray-50 dark:bg-gray-800 text-gray-700 dark:text-gray-300">
                         Decision Mode
                       </span>
                       <Switch defaultChecked className="scale-50" />
@@ -1271,15 +1271,15 @@ Delete Account
                 <div className="p-4">
                   <div className="flex items-center justify-between mb-3">
                     <div className="flex-1">
-                      <h4 className="text-xs font-medium text-gray-900 font-inter mb-1">
+                      <h4 className="text-xs font-medium text-gray-900 dark:text-[#f6f6f4] font-inter mb-1">
                         Provider Key Rotation
                       </h4>
-                      <p className="text-xs text-gray-600">
+                      <p className="text-xs text-gray-600 dark:text-gray-400">
                         Requires operator approval before rotating API keys (advisory-only mode)
                       </p>
                     </div>
                     <div className="flex items-center gap-3">
-                      <span className="px-2 py-1 rounded text-xs font-medium bg-yellow-100 text-gray-700">
+                      <span className="px-2 py-1 rounded text-xs font-medium bg-yellow-100 dark:bg-yellow-900 text-gray-700 dark:text-yellow-200">
                         Advisory Only
                       </span>
                       <Switch className="scale-50" />
@@ -1290,15 +1290,15 @@ Delete Account
                 <div className="p-4">
                   <div className="flex items-center justify-between mb-3">
                     <div className="flex-1">
-                      <h4 className="text-xs font-medium text-gray-900 font-inter mb-1">
+                      <h4 className="text-xs font-medium text-gray-900 dark:text-[#f6f6f4] font-inter mb-1">
                         Model Selection
                       </h4>
-                      <p className="text-xs text-gray-600">
+                      <p className="text-xs text-gray-600 dark:text-gray-400">
                         System can choose models based on request characteristics and policy constraints
                       </p>
                     </div>
                     <div className="flex items-center gap-3">
-                      <span className="px-2 py-1 rounded text-xs font-medium bg-gray-50 text-gray-700">
+                      <span className="px-2 py-1 rounded text-xs font-medium bg-gray-50 dark:bg-gray-800 text-gray-700 dark:text-gray-300">
                         Decision Mode
                       </span>
                       <Switch defaultChecked className="scale-50" />
@@ -1310,12 +1310,12 @@ Delete Account
 
             {/* Kill Switches */}
             <div className="space-y-4">
-              <div className="pb-4 border-b border-red-200">
-                <div className="flex items-center gap-2 text-xs font-semibold text-red-700 font-inter">
-                  <AlertCircle className="h-4 w-4 text-red-700" />
+              <div className="pb-4 border-b border-red-200 dark:border-red-900">
+                <div className="flex items-center gap-2 text-xs font-semibold text-red-700 dark:text-red-400 font-inter">
+                  <AlertCircle className="h-4 w-4 text-red-700 dark:text-red-400" />
                   Emergency Kill Switches
                 </div>
-                <p className="text-xs text-red-600 mt-1">
+                <p className="text-xs text-red-600 dark:text-red-400 mt-1">
                   Immediate system-wide control actions
                 </p>
               </div>
@@ -1323,14 +1323,14 @@ Delete Account
                 <div className="p-4">
                   <div className="flex items-center justify-between">
                     <div className="flex-1">
-                      <h4 className="text-xs font-medium text-red-900 font-inter mb-1">
+                      <h4 className="text-xs font-medium text-red-900 dark:text-red-400 font-inter mb-1">
                         Emergency Stop All Requests
                       </h4>
-                      <p className="text-xs text-red-800">
+                      <p className="text-xs text-red-800 dark:text-red-300">
                         Immediately halt all outgoing provider requests. Existing in-flight requests will complete.
                       </p>
                     </div>
-                    <Button variant="destructive" size="sm" className="bg-red-800 hover:bg-red-900 h-7 px-3 text-xs">
+                    <Button variant="destructive" size="sm" className="bg-red-800 hover:bg-red-900 dark:bg-red-900 dark:hover:bg-red-800 h-7 px-3 text-xs">
                       Activate
                     </Button>
                   </div>
@@ -1339,10 +1339,10 @@ Delete Account
                 <div className="p-4">
                   <div className="flex items-center justify-between">
                     <div className="flex-1">
-                      <h4 className="text-xs font-medium text-gray-900 font-inter mb-1">
+                      <h4 className="text-xs font-medium text-gray-900 dark:text-[#f6f6f4] font-inter mb-1">
                         Disable Specific Provider
                       </h4>
-                      <p className="text-xs text-gray-800">
+                      <p className="text-xs text-gray-800 dark:text-gray-300">
                         Temporarily block requests to a specific provider. Routes to alternatives.
                       </p>
                     </div>
@@ -1355,10 +1355,10 @@ Delete Account
                 <div className="p-4">
                   <div className="flex items-center justify-between">
                     <div className="flex-1">
-                      <h4 className="text-xs font-medium text-gray-900 font-inter mb-1">
+                      <h4 className="text-xs font-medium text-gray-900 dark:text-[#f6f6f4] font-inter mb-1">
                         Force Manual Approval Mode
                       </h4>
-                      <p className="text-xs text-gray-800">
+                      <p className="text-xs text-gray-800 dark:text-gray-300">
                         Require operator confirmation for all policy decisions. Disables autonomous optimization.
                       </p>
                     </div>
@@ -1370,43 +1370,43 @@ Delete Account
 
             {/* System Capabilities */}
             <div className="space-y-4">
-              <div className="pb-4 border-b border-border-light">
-                <div className="flex items-center gap-2 text-xs font-semibold text-gray-900 font-inter">
-                  <Shield className="h-4 w-4 text-gray-900" />
+              <div className="pb-4 border-b border-border-light dark:border-[#2d2a24]">
+                <div className="flex items-center gap-2 text-xs font-semibold text-gray-900 dark:text-[#f6f6f4] font-inter">
+                  <Shield className="h-4 w-4 text-gray-900 dark:text-[#f6f6f4]" />
                   What This System Cannot Do
                 </div>
-                <p className="text-xs text-gray-600 mt-1">
+                <p className="text-xs text-gray-600 dark:text-gray-400 mt-1">
                   Architectural limitations and boundaries
                 </p>
               </div>
               <div>
-                <div className="space-y-2 text-xs text-gray-900">
+                <div className="space-y-2 text-xs text-gray-900 dark:text-[#f6f6f4]">
                   <div className="flex items-start gap-2">
-                    <span className="text-gray-600 mt-1">•</span>
+                    <span className="text-gray-600 dark:text-gray-400 mt-1">•</span>
                     <span>Cannot read or modify data outside assigned tenant boundaries</span>
                   </div>
                   <div className="flex items-start gap-2">
-                    <span className="text-gray-600 mt-1">•</span>
+                    <span className="text-gray-600 dark:text-gray-400 mt-1">•</span>
                     <span>Cannot bypass authentication or authorization checks</span>
                   </div>
                   <div className="flex items-start gap-2">
-                    <span className="text-gray-600 mt-1">•</span>
+                    <span className="text-gray-600 dark:text-gray-400 mt-1">•</span>
                     <span>Cannot disable audit logging or tamper with historical records</span>
                   </div>
                   <div className="flex items-start gap-2">
-                    <span className="text-gray-600 mt-1">•</span>
+                    <span className="text-gray-600 dark:text-gray-400 mt-1">•</span>
                     <span>Cannot make billing changes or payment method modifications without confirmation</span>
                   </div>
                   <div className="flex items-start gap-2">
-                    <span className="text-gray-600 mt-1">•</span>
+                    <span className="text-gray-600 dark:text-gray-400 mt-1">•</span>
                     <span>Cannot share provider API keys between tenants</span>
                   </div>
                   <div className="flex items-start gap-2">
-                    <span className="text-gray-600 mt-1">•</span>
+                    <span className="text-gray-600 dark:text-gray-400 mt-1">•</span>
                     <span>Cannot execute arbitrary code or shell commands on infrastructure</span>
                   </div>
                   <div className="flex items-start gap-2">
-                    <span className="text-gray-600 mt-1">•</span>
+                    <span className="text-gray-600 dark:text-gray-400 mt-1">•</span>
                     <span>Cannot modify EscapeVector offline policy runtime without redeployment</span>
                   </div>
                 </div>

@@ -73,7 +73,7 @@ const pricingRows = [
         name: "Scale",
         price: "Contact Us",
         period: "",
-        descriptor: "Custom pricing based on scale, risk profile, and compliance requirements.",
+        descriptor: "Custom Pricing",
         features: [
           "Everything in Growth +",
           "Unlimited requests (1000 RPS sustained)",
