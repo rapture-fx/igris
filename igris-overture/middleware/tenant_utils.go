@@ -2,6 +2,7 @@ package middleware
 
 import (
 	"context"
+	"fmt"
 
 	"github.com/gofiber/fiber/v2"
 )
@@ -9,6 +10,16 @@ import (
 // TenantIDContextKey is the context key for tenant ID in standard Go context
 // This allows tenant ID to be passed through context.Context (not just Fiber locals)
 type tenantIDContextKey struct{}
+
+// tierContextKey is the context key for tier information
+type tierContextKey struct{}
+
+// TierInfo holds tier information for feature gating
+type TierInfo struct {
+	Tier           string
+	AuthorityLevel string // observe, influence, enforce, prove
+	Features       map[string]bool
+}
 
 // WithTenantID returns a new context with the tenant ID set
 // Use this to propagate tenant ID from HTTP handlers to downstream services
@@ -69,4 +80,116 @@ func GetTenantRoles(c *fiber.Ctx) []string {
 		return tenantCtx.Roles
 	}
 	return []string{}
+}
+
+// ============================================================================
+// TIER CONTEXT UTILITIES
+// ============================================================================
+
+// WithTierInfo returns a new context with tier information set
+func WithTierInfo(ctx context.Context, tier string, authorityLevel string, features map[string]bool) context.Context {
+	return context.WithValue(ctx, tierContextKey{}, &TierInfo{
+		Tier:           tier,
+		AuthorityLevel: authorityLevel,
+		Features:       features,
+	})
+}
+
+// TierInfoFromContext extracts tier info from context
+// Returns nil if no tier info is set
+func TierInfoFromContext(ctx context.Context) *TierInfo {
+	if info, ok := ctx.Value(tierContextKey{}).(*TierInfo); ok {
+		return info
+	}
+	return nil
+}
+
+// TierFromContext extracts just the tier name from context
+// Returns "hacker" as default (most restrictive)
+func TierFromContext(ctx context.Context) string {
+	if info := TierInfoFromContext(ctx); info != nil {
+		return info.Tier
+	}
+	return "hacker"
+}
+
+// HasFeatureAccess checks if the tier in context has access to a feature
+// Used for runtime guards in router/cognitive modules
+func HasFeatureAccess(ctx context.Context, feature string) bool {
+	info := TierInfoFromContext(ctx)
+	if info == nil || info.Features == nil {
+		// No tier info - deny by default (except resilience features)
+		return isResilienceFeature(feature)
+	}
+
+	if enabled, exists := info.Features[feature]; exists {
+		return enabled
+	}
+
+	// Unknown feature - deny by default (except resilience features)
+	return isResilienceFeature(feature)
+}
+
+// RequireFeature returns an error if the feature is not available for the tier
+// Use this to enforce tier-based feature access in services
+func RequireFeature(ctx context.Context, feature string) error {
+	if !HasFeatureAccess(ctx, feature) {
+		tier := TierFromContext(ctx)
+		return fmt.Errorf("feature '%s' not available in %s tier", feature, tier)
+	}
+	return nil
+}
+
+// isResilienceFeature returns true for features that are free for all tiers
+func isResilienceFeature(feature string) bool {
+	resilienceFeatures := map[string]bool{
+		"escapevector_mode":   true,
+		"emergency_hotfix":    true,
+		"gold_code_override":  true,
+		"rust_wasm_fallback":  true,
+	}
+	return resilienceFeatures[feature]
+}
+
+// ============================================================================
+// TIER AUTHORITY LEVEL CHECKS
+// ============================================================================
+
+// CanObserve returns true if tier can observe (read-only access)
+// All tiers can observe
+func CanObserve(ctx context.Context) bool {
+	return true
+}
+
+// CanInfluence returns true if tier can influence decisions
+// Startup+ tiers
+func CanInfluence(ctx context.Context) bool {
+	info := TierInfoFromContext(ctx)
+	if info == nil {
+		return false
+	}
+	return info.AuthorityLevel == "influence" ||
+		info.AuthorityLevel == "enforce" ||
+		info.AuthorityLevel == "prove"
+}
+
+// CanEnforce returns true if tier can enforce decisions
+// Growth+ tiers
+func CanEnforce(ctx context.Context) bool {
+	info := TierInfoFromContext(ctx)
+	if info == nil {
+		return false
+	}
+	return info.AuthorityLevel == "enforce" ||
+		info.AuthorityLevel == "prove"
+}
+
+// CanProve returns true if tier can prove decisions (cryptographic)
+// Scale tier only
+func CanProve(ctx context.Context) bool {
+	info := TierInfoFromContext(ctx)
+	if info == nil {
+		return false
+	}
+	return info.AuthorityLevel == "prove"
 }

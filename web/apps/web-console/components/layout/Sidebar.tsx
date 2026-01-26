@@ -320,7 +320,7 @@ export function Sidebar({ open = true, onClose }: SidebarProps) {
           open ? 'translate-x-0' : '-translate-x-full'
         )}
       >
-        <div className="flex h-full flex-col bg-card border-r border-border">
+        <div className="flex h-full flex-col border-r border-border" style={{ backgroundColor: '#14120a' }}>
           {/* Logo Section */}
           <div className="h-12 flex items-center px-7">
             <Link href="/dashboard" className="flex items-center">

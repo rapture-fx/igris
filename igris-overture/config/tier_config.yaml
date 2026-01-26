@@ -1,14 +1,20 @@
 # Igris Overture Tier Configuration
-# Version: 1.0.0
-# Last Updated: 2025-01-16
+# Version: 2.0.0
+# Last Updated: 2026-01-27
 # Purpose: Define rate limits, feature flags, and cost controls per tier
+#
+# Authority Progression Model:
+#   - Hacker:  OBSERVE decisions (read-only visibility)
+#   - Startup: INFLUENCE decisions (configure routing, no autonomy)
+#   - Growth:  ENFORCE decisions (auto-apply, rollback, audit trails)
+#   - Scale:   PROVE decisions (cryptographic guarantees, compliance-ready)
 
-version: "1.0.0"
-last_updated: "2025-01-16"
+version: "2.0.0"
+last_updated: "2026-01-27"
 
 # Global tier management settings
 global:
-  default_tier: "developer"
+  default_tier: "hacker"
   allow_self_service_upgrade: true
   allow_self_service_downgrade: true
   downgrade_grace_period_days: 7
@@ -20,12 +26,100 @@ global:
 # Tier definitions
 tiers:
   # ============================================================================
-  # DEVELOPER TIER (Trial tier has same limits during trial period)
+  # HACKER TIER - Authority: OBSERVE
+  # Read-only visibility into routing decisions and metrics
   # ============================================================================
-  developer:
-    name: "developer"
-    display_name: "Developer"
-    description: "Perfect for individual developers and small projects"
+  hacker:
+    name: "hacker"
+    display_name: "Hacker"
+    description: "Free tier for developers. Observe routing decisions."
+    authority_level: "observe"
+
+    price:
+      usd: 0.00
+      currency: "USD"
+      billing_period: "monthly"
+      overage_rate_per_1k: 0.50  # Higher overage rate for free tier
+
+    limits:
+      max_requests_per_month: 50000
+      max_requests_per_second: 5       # 5 RPS
+      max_requests_per_minute: 150     # 150 RPM
+      max_concurrent_requests: 2       # Limited concurrency
+      max_providers: 2
+      max_models_per_provider: 3
+      max_custom_providers: 0
+      max_tenants: 1
+      max_api_keys: 2
+      cache_ttl_seconds: 300
+      max_cached_classifications: 500
+      audit_log_retention_days: 7
+
+    features:
+      # Core Features
+      multi_tenancy: false
+      byok: true  # Can bring own keys
+
+      # Routing & Optimization (READ-ONLY observation)
+      thompson_sampling: false         # No live exploration
+      semantic_routing: false          # Basic routing only
+      cost_aware_routing: true         # Simple cost/latency optimization
+      automatic_failover: true
+      circuit_breaker: true
+      speculative_execution: false
+      council_mode: false
+
+      # Cognitive Advisor (READ-ONLY)
+      cognitive_advisor: true          # Read-only insights
+      cognitive_auto_apply: false      # Cannot auto-apply
+
+      # Analytics & Observability (READ-ONLY)
+      observability_metrics: true
+      cost_forecasting: false
+      real_time_analytics: false
+
+      # Caching
+      redis_caching: true
+      l2_caching: false
+
+      # Authentication & Authorization
+      jwt_auth: true
+      api_key_auth: true
+      rbac: false
+      sso: false
+
+      # Governance & Compliance
+      sla_enforcement: false
+      policy_versioning: false
+      audit_logs: true                 # Read-only audit logs
+      hot_reload_policies: false
+
+      # Cryptographic Features (NONE)
+      cryptographic_signing: false
+      signed_execution_envelopes: false
+      tamper_evident_logs: false
+
+      # Advanced Features
+      custom_sla_targets: false
+      advanced_governance: false
+      on_premise_deployment: false
+      multi_region: false
+
+    cost_controls:
+      enforce_budget: true
+      monthly_budget_usd: 25.00  # Very limited budget for free tier
+      budget_alert_threshold: 0.80
+      cost_per_request_limit: 0.05
+
+  # ============================================================================
+  # STARTUP TIER - Authority: INFLUENCE
+  # Configure routing behavior without autonomous execution
+  # ============================================================================
+  startup:
+    name: "startup"
+    display_name: "Startup"
+    description: "Influence routing decisions with configuration control"
+    authority_level: "influence"
 
     price:
       usd: 79.00
@@ -34,29 +128,36 @@ tiers:
       overage_rate_per_1k: 0.25  # $0.25 per 1,000 requests over limit
 
     limits:
-      max_requests_per_month: 50000
+      max_requests_per_month: 500000
       max_requests_per_second: 10      # 10 RPS
       max_requests_per_minute: 300     # 300 RPM
-      max_concurrent_requests: 5       # P0-4: Concurrent request limit
+      max_concurrent_requests: 5
       max_providers: 3
       max_models_per_provider: 5
       max_custom_providers: 1
       max_tenants: 1
-      max_api_keys: 3
+      max_api_keys: 5
       cache_ttl_seconds: 300
       max_cached_classifications: 1000
+      audit_log_retention_days: 14
 
     features:
       # Core Features
       multi_tenancy: false
-      byok: false
+      byok: true
 
-      # Routing & Optimization
-      thompson_sampling: true
+      # Routing & Optimization (INFLUENCE - configure but no autonomy)
+      thompson_sampling: false         # Historical metrics only, no live exploration
       semantic_routing: true
       cost_aware_routing: true
       automatic_failover: true
       circuit_breaker: true
+      speculative_execution: false     # Growth+ only
+      council_mode: false              # Growth+ only
+
+      # Cognitive Advisor (MANUAL ONLY)
+      cognitive_advisor: true
+      cognitive_auto_apply: false      # Manual apply only
 
       # Analytics & Observability
       observability_metrics: true
@@ -74,10 +175,15 @@ tiers:
       sso: false
 
       # Governance & Compliance
-      sla_enforcement: false
+      sla_enforcement: false           # Monitoring only, no enforcement
       policy_versioning: false
       audit_logs: true
       hot_reload_policies: false
+
+      # Cryptographic Features (NONE - telemetry is non-cryptographic)
+      cryptographic_signing: false
+      signed_execution_envelopes: false
+      tamper_evident_logs: false
 
       # Advanced Features
       custom_sla_targets: false
@@ -87,29 +193,31 @@ tiers:
 
     cost_controls:
       enforce_budget: true
-      monthly_budget_usd: 100.00  # Hard cap for developer tier
+      monthly_budget_usd: 100.00
       budget_alert_threshold: 0.80
       cost_per_request_limit: 0.10
 
   # ============================================================================
-  # GROWTH TIER
+  # GROWTH TIER - Authority: ENFORCE
+  # System-enforced policies with audit trails and mitigations
   # ============================================================================
   growth:
     name: "growth"
     display_name: "Growth"
-    description: "Ideal for growing teams and production workloads"
+    description: "Enforce decisions with accountability and audit trails"
+    authority_level: "enforce"
 
     price:
       usd: 249.00
       currency: "USD"
       billing_period: "monthly"
-      overage_rate_per_1k: 0.20  # $0.20 per 1,000 requests over limit
+      overage_rate_per_1k: 0.20
 
     limits:
-      max_requests_per_month: 500000
-      max_requests_per_second: 50      # 50 RPS
-      max_requests_per_minute: 1500    # 1500 RPM
-      max_concurrent_requests: 50      # P0-4: Concurrent request limit
+      max_requests_per_month: 2000000
+      max_requests_per_second: 50
+      max_requests_per_minute: 1500
+      max_concurrent_requests: 50
       max_providers: 10
       max_models_per_provider: 20
       max_custom_providers: 5
@@ -117,20 +225,27 @@ tiers:
       max_api_keys: 20
       cache_ttl_seconds: 600
       max_cached_classifications: 10000
+      audit_log_retention_days: 30
 
     features:
       # Core Features
       multi_tenancy: true
       byok: true
 
-      # Routing & Optimization
-      thompson_sampling: true
+      # Routing & Optimization (ENFORCE - full autonomy)
+      thompson_sampling: true          # Live exploration enabled
       semantic_routing: true
       cost_aware_routing: true
       automatic_failover: true
       circuit_breaker: true
+      speculative_execution: true      # Parallel provider racing
+      council_mode: true               # Multi-LLM consensus
 
-      # Analytics & Observability
+      # Cognitive Advisor (AUTO-APPLY with rollback)
+      cognitive_advisor: true
+      cognitive_auto_apply: true       # Auto-apply with rollback protection
+
+      # Analytics & Observability (FULL)
       observability_metrics: true
       cost_forecasting: true
       real_time_analytics: true
@@ -145,11 +260,16 @@ tiers:
       rbac: true
       sso: false
 
-      # Governance & Compliance
-      sla_enforcement: true
+      # Governance & Compliance (GUARDED ENFORCEMENT)
+      sla_enforcement: true            # SLO monitoring with guarded enforcement
       policy_versioning: true
       audit_logs: true
       hot_reload_policies: true
+
+      # Cryptographic Features (NONE - non-cryptographic telemetry)
+      cryptographic_signing: false
+      signed_execution_envelopes: false
+      tamper_evident_logs: false
 
       # Advanced Features
       custom_sla_targets: true
@@ -159,50 +279,59 @@ tiers:
 
     cost_controls:
       enforce_budget: true
-      monthly_budget_usd: 500.00  # Soft cap - allows overage with notification
+      monthly_budget_usd: 500.00
       budget_alert_threshold: 0.75
       cost_per_request_limit: 0.50
 
   # ============================================================================
-  # SCALE TIER
+  # SCALE TIER - Authority: PROVE
+  # Cryptographic guarantees, compliance evidence, regulator-ready logs
   # ============================================================================
   scale:
     name: "scale"
     display_name: "Scale"
-    description: "Enterprise-grade for high-volume production systems"
+    description: "Prove decisions with cryptographic guarantees and compliance trails"
+    authority_level: "prove"
 
     price:
       usd: 799.00
       currency: "USD"
       billing_period: "monthly"
-      overage_rate_per_1k: 0.15  # $0.15 per 1,000 requests over limit
+      overage_rate_per_1k: 0.15
 
     limits:
       max_requests_per_month: -1       # Unlimited
-      max_requests_per_second: 1000    # 1000 RPS
-      max_requests_per_minute: 60000   # 60000 RPM
-      max_concurrent_requests: 1000    # P0-4: Concurrent request limit
+      max_requests_per_second: 1000
+      max_requests_per_minute: 60000
+      max_concurrent_requests: 1000
       max_providers: -1                # Unlimited
-      max_models_per_provider: -1      # Unlimited
-      max_custom_providers: -1         # Unlimited
-      max_tenants: -1                  # Unlimited
-      max_api_keys: -1                 # Unlimited
+      max_models_per_provider: -1
+      max_custom_providers: -1
+      max_tenants: -1
+      max_api_keys: -1
       cache_ttl_seconds: 1800
-      max_cached_classifications: -1   # Unlimited
+      max_cached_classifications: -1
+      audit_log_retention_days: 90
 
     features:
       # Core Features
       multi_tenancy: true
       byok: true
 
-      # Routing & Optimization
+      # Routing & Optimization (FULL)
       thompson_sampling: true
       semantic_routing: true
       cost_aware_routing: true
       automatic_failover: true
       circuit_breaker: true
+      speculative_execution: true
+      council_mode: true
 
-      # Analytics & Observability
+      # Cognitive Advisor (FULL)
+      cognitive_advisor: true
+      cognitive_auto_apply: true
+
+      # Analytics & Observability (ADVANCED)
       observability_metrics: true
       cost_forecasting: true
       real_time_analytics: true
@@ -217,11 +346,16 @@ tiers:
       rbac: true
       sso: true
 
-      # Governance & Compliance
-      sla_enforcement: true
+      # Governance & Compliance (FULL ENFORCEMENT + PROOF)
+      sla_enforcement: true            # Advanced SLO with auto-remediation
       policy_versioning: true
       audit_logs: true
       hot_reload_policies: true
+
+      # Cryptographic Features (FULL - Scale-only)
+      cryptographic_signing: true      # Ed25519-signed routing decisions
+      signed_execution_envelopes: true # Cryptographic execution contracts
+      tamper_evident_logs: true        # Immutable audit trails
 
       # Advanced Features
       custom_sla_targets: true
@@ -230,21 +364,56 @@ tiers:
       multi_region: true
 
     cost_controls:
-      enforce_budget: false  # No hard budget for Scale tier
-      monthly_budget_usd: 0  # No limit
+      enforce_budget: false
+      monthly_budget_usd: 0
       budget_alert_threshold: 0
       cost_per_request_limit: 0
 
 # ============================================================================
-# NOTES
+# AUTHORITY LEVEL SUMMARY
 # ============================================================================
 #
-# Rate Limit Summary:
-# - Developer: 10 RPS / 300 RPM / 5 concurrent
-# - Growth:    50 RPS / 1500 RPM / 50 concurrent
-# - Scale:     1000 RPS / 60000 RPM / 1000 concurrent
+# OBSERVE (Hacker):
+#   - Read-only visibility into routing decisions and metrics
+#   - Cannot configure or influence routing behavior
+#   - 7-day log retention
 #
-# Unkillable Resilience Suite (FREE for ALL tiers):
+# INFLUENCE (Startup):
+#   - Configure routing modes and provider preferences
+#   - Historical metrics inform decisions (no live exploration)
+#   - Manual-only cognitive advisor (no auto-apply)
+#   - Non-cryptographic telemetry
+#   - 14-day log retention
+#
+# ENFORCE (Growth):
+#   - System-enforced policies with audit trails
+#   - Thompson Sampling (live exploration)
+#   - Speculative execution and council mode
+#   - Auto-apply with rollback protection
+#   - SLO monitoring with guarded enforcement
+#   - 30-day log retention
+#
+# PROVE (Scale):
+#   - Cryptographic guarantees (Ed25519 signatures)
+#   - Signed decision-to-execution contracts
+#   - Tamper-evident audit logs
+#   - Compliance-ready execution trails
+#   - Advanced SLO with auto-remediation
+#   - 90-day log retention
+#
+# ============================================================================
+# RATE LIMIT SUMMARY
+# ============================================================================
+#
+# Hacker:  5 RPS / 150 RPM / 2 concurrent
+# Startup: 10 RPS / 300 RPM / 5 concurrent
+# Growth:  50 RPS / 1500 RPM / 50 concurrent
+# Scale:   1000 RPS / 60000 RPM / 1000 concurrent
+#
+# ============================================================================
+# UNKILLABLE RESILIENCE SUITE (FREE for ALL tiers)
+# ============================================================================
+#
 # - Gold Code Override (BYOK_BYPASS_CONTROL_PLANE)
 # - EscapeVector Mode (TypeScript + Rust WASM)
 # - Emergency Hotfix Blob fetching & application

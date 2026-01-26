@@ -67,6 +67,8 @@ type SpeculativeResult struct {
 // RouteSpeculative performs speculative execution across multiple providers
 // It selects N providers using the AdaptiveRouter, races them in parallel,
 // and returns the fastest responding stream with mid-stream fallback capability.
+//
+// TIER REQUIREMENT: Growth+ (authority level: enforce or prove)
 func (sr *SpeculativeRouter) RouteSpeculative(
 	ctx context.Context,
 	req *models.InferRequest,
@@ -79,6 +81,12 @@ func (sr *SpeculativeRouter) RouteSpeculative(
 	// Extract tenant ID from context using middleware helper
 	// TenantIDFromContext returns "default" if no tenant ID is set (backward compatible)
 	tenantID := middleware.TenantIDFromContext(ctx)
+
+	// TIER ENFORCEMENT: Speculative execution requires Growth+ tier
+	if err := middleware.RequireFeature(ctx, "speculative_execution"); err != nil {
+		log.Printf("[SpeculativeRouter] Tier enforcement: tenant=%s error=%v", tenantID, err)
+		return nil, nil, nil, fmt.Errorf("speculative execution requires Growth tier or higher: %w", err)
+	}
 
 	// Check if speculative mode is auto-disabled for this tenant
 	if disabled, reason := sr.costAccounting.ShouldDisableSpeculative(tenantID); disabled {

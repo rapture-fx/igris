@@ -4,12 +4,14 @@ import { useState, useEffect } from 'react';
 import { useSignUp, useSignIn } from '@clerk/nextjs';
 import { useRouter, useSearchParams } from 'next/navigation';
 import { Loader2, Mail } from 'lucide-react';
+import { useTheme } from 'next-themes';
 
 
 export default function AuthPage() {
   const router = useRouter();
   const searchParams = useSearchParams();
   const mode = searchParams.get('mode') === 'signin' ? 'signin' : 'signup';
+  const { theme, mounted } = useTheme();
 
   const { signUp, setActive: setActiveSignUp, isLoaded: signUpLoaded } = useSignUp();
   const { signIn, setActive: setActiveSignIn, isLoaded: signInLoaded } = useSignIn();
@@ -252,19 +254,19 @@ export default function AuthPage() {
   };
 
   return (
-    <div className="min-h-screen flex relative bg-background" style={{
-      backgroundImage: 'linear-gradient(rgba(250 250 250 / 0.3), rgba(250 250 250 / 0.3)), url(/cloudbg.png)',
+    <div className="min-h-screen flex relative bg-[#f6f6f4] dark:bg-[#1b1912] text-gray-900 dark:text-[#f6f6f4] transition-colors duration-200" style={{
+      backgroundImage: 'url(/cloudbg.png)',
       backgroundSize: 'cover',
-      backgroundPosition: 'center top -100px',
+      backgroundPosition: 'center',
       backgroundRepeat: 'no-repeat'
     }}>
       {/* Logo */}
       <div className="absolute top-6 left-8 z-10">
-        <img
-          src="/dmfoot.png"
-          alt="Igris Logo"
-          style={{ width: '18px', height: 'auto' }}
-        />
+         <img
+           src="/dmfoot.png"
+           alt="Igris Logo"
+           style={{ width: '18px', height: 'auto' }}
+         />
       </div>
 
 
@@ -286,7 +288,7 @@ export default function AuthPage() {
               <button
                 onClick={() => handleOAuthSignIn('oauth_google')}
                 disabled={loadingProvider !== null}
-                className="w-80 flex items-center justify-center gap-3 px-4 py-3.5 border border-border rounded-lg text-sm font-medium text-foreground font-inter outline-none focus:outline-none focus:ring-0 shadow-sm hover:shadow-md transition-all disabled:opacity-50 disabled:cursor-not-allowed bg-background"
+                className="w-80 flex items-center justify-center gap-3 px-4 py-3.5 border border-gray-300 dark:border-[#f6f6f4]/5 rounded-lg text-sm font-medium text-[#000000] dark:text-[#f6f6f4] font-inter outline-none focus:outline-none focus:ring-0 shadow-sm hover:shadow-md transition-all disabled:opacity-50 disabled:cursor-not-allowed bg-[#f6f6f4] dark:bg-[#1b1912]"
               >
                 {loadingProvider === 'oauth_google' ? (
                   <Loader2 className="h-5 w-5 flex-shrink-0 animate-spin" />

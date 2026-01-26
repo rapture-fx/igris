@@ -27,15 +27,7 @@ export default function ClosingPosition() {
               opacity: 0.5
             }}></div>
 
-            {/* cls.png - background fill (dark mode only) */}
-            {mounted && theme === 'dark' && (
-              <Image
-                src="/cls.png"
-                alt="Closing background"
-                fill
-                style={{ objectFit: 'cover', opacity: 0.6 }}
-              />
-            )}
+
 
             <div className="w-full flex flex-row items-center justify-between relative z-10">
               <div className="max-w-3xl text-left flex flex-col">

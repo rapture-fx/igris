@@ -9,6 +9,7 @@ import (
 	"sync"
 	"time"
 
+	"github.com/Igris-inertial/system/igris-overture/middleware"
 	"github.com/Igris-inertial/system/igris-overture/models"
 	"github.com/Igris-inertial/system/igris-overture/observability"
 	"github.com/Igris-inertial/system/igris-overture/tracing"
@@ -29,6 +30,8 @@ type CouncilMetadata struct {
 
 // RouteCouncil implements council mode with parallel inference, peer ranking, and chairman synthesis
 // This is a non-streaming implementation that uses full Infer() calls
+//
+// TIER REQUIREMENT: Growth+ (authority level: enforce or prove)
 func (sr *SpeculativeRouter) RouteCouncil(
 	ctx context.Context,
 	req *models.InferRequest,
@@ -42,6 +45,15 @@ func (sr *SpeculativeRouter) RouteCouncil(
 	// Add council mode attribute (using tracing package)
 	tracing.AddAttribute(ctx, "council.enabled", true)
 
+	// Extract tenant ID for cost tracking
+	tenantID := middleware.TenantIDFromContext(ctx)
+
+	// TIER ENFORCEMENT: Council mode requires Growth+ tier
+	if err := middleware.RequireFeature(ctx, "council_mode"); err != nil {
+		log.Printf("[CouncilRouter] Tier enforcement: tenant=%s error=%v", tenantID, err)
+		return nil, nil, fmt.Errorf("council mode requires Growth tier or higher: %w", err)
+	}
+
 	// Validate: council mode requires at least 2 providers (3-4 for quality)
 	maxProviders := sr.config.MaxProviders
 	if maxProviders > 4 {
@@ -50,9 +62,6 @@ func (sr *SpeculativeRouter) RouteCouncil(
 	if maxProviders < 2 {
 		return nil, nil, fmt.Errorf("council mode requires at least 2 providers, got %d", maxProviders)
 	}
-
-	// Extract tenant ID for cost tracking
-	tenantID := "default" // TODO: extract from context
 
 	// Check cost threshold before running council
 	if disabled, reason := sr.costAccounting.ShouldDisableSpeculative(tenantID); disabled {
