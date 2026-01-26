@@ -28,7 +28,7 @@ export default function ClosingPosition() {
             }}></div>
 
             {/* cp.png - background image (contained within frame) */}
-            <div className="absolute inset-2 pointer-events-none" style={{
+            <div className="absolute inset-0 pointer-events-none" style={{
               backgroundImage: 'url(/cp.png)',
               backgroundSize: 'cover',
               backgroundPosition: 'center',
