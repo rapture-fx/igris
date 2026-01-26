@@ -126,11 +126,11 @@ export default function Faq() {
                          openIndex === index ? 'max-h-[300px]' : 'max-h-0'
                        }`}
                    >
-                       <div className="px-3 md:px-3 pb-2 md:pb-2.5 pt-0">
-                          {faq.type === 'text' ? (
-                            <p className="text-xs md:text-xs text-gray-700 dark:text-gray-300 font-inter leading-snug">
-                              {faq.answer}
-                            </p>
+                        <div className="px-3 md:px-3 pb-2 md:pb-2.5 pt-0">
+                           {faq.type === 'text' ? (
+                             <p className="text-xs md:text-xs text-gray-700 dark:text-[#c8c8b8] font-inter leading-snug">
+                               {faq.answer}
+                             </p>
                        ) : faq.type === 'code' ? (
                          <div className="space-y-3">
                            <p className="text-xs md:text-sm text-gray-700 dark:text-[#c8c8b8] font-inter leading-relaxed">
@@ -195,14 +195,14 @@ export default function Faq() {
                     >
                        <div className="px-4 md:px-4 pb-3 md:pb-4 pt-0">
                          {faq.type === 'text' ? (
-                           <p className="text-xs md:text-sm text-gray-700 dark:text-gray-300 font-inter leading-relaxed">
-                             {faq.answer}
-                           </p>
-                          ) : faq.type === 'code' ? (
-                            <div className="space-y-1">
-                              <p className="text-xs md:text-xs text-gray-700 dark:text-gray-300 font-inter leading-snug">
-                                {faq.answerText}
-                              </p>
+                            <p className="text-xs md:text-sm text-gray-700 dark:text-[#c8c8b8] font-inter leading-relaxed">
+                              {faq.answer}
+                            </p>
+                           ) : faq.type === 'code' ? (
+                             <div className="space-y-1">
+                               <p className="text-xs md:text-xs text-gray-700 dark:text-[#c8c8b8] font-inter leading-snug">
+                                 {faq.answerText}
+                               </p>
                              <div className="rounded-lg p-2 md:p-3 font-mono text-xs overflow-x-auto bg-black/[0.03] dark:bg-white/[0.03]">
                               <div className="mb-2">
                                 <span className="text-gray-500 dark:text-[#a8a898]"># Old</span>
