@@ -80,7 +80,7 @@ export default function Header() {
               <img
                   src="/ii.png"
                    alt="Igris Inertial"
-                   style={{ width: '80px', height: 'auto' }}
+                    style={{ width: '140px', height: 'auto' }}
                  />
             </Link>
           </div>
