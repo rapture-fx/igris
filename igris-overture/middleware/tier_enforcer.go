@@ -124,11 +124,17 @@ type FeatureFlags struct {
 	BYOK                bool `yaml:"byok"`
 
 	// Routing & Optimization
-	ThompsonSampling    bool `yaml:"thompson_sampling"`
-	SemanticRouting     bool `yaml:"semantic_routing"`
-	CostAwareRouting    bool `yaml:"cost_aware_routing"`
-	AutomaticFailover   bool `yaml:"automatic_failover"`
-	CircuitBreaker      bool `yaml:"circuit_breaker"`
+	ThompsonSampling      bool `yaml:"thompson_sampling"`
+	SemanticRouting       bool `yaml:"semantic_routing"`
+	CostAwareRouting      bool `yaml:"cost_aware_routing"`
+	AutomaticFailover     bool `yaml:"automatic_failover"`
+	CircuitBreaker        bool `yaml:"circuit_breaker"`
+	SpeculativeExecution  bool `yaml:"speculative_execution"`  // Growth+ only
+	CouncilMode           bool `yaml:"council_mode"`           // Growth+ only
+
+	// Cognitive Advisor
+	CognitiveAdvisor      bool `yaml:"cognitive_advisor"`
+	CognitiveAutoApply    bool `yaml:"cognitive_auto_apply"`   // Growth+ only
 
 	// Analytics & Observability
 	ObservabilityMetrics bool `yaml:"observability_metrics"`
@@ -150,6 +156,11 @@ type FeatureFlags struct {
 	PolicyVersioning     bool `yaml:"policy_versioning"`
 	AuditLogs            bool `yaml:"audit_logs"`
 	HotReloadPolicies    bool `yaml:"hot_reload_policies"`
+
+	// Cryptographic Features (Scale only)
+	CryptographicSigning       bool `yaml:"cryptographic_signing"`         // Scale only
+	SignedExecutionEnvelopes   bool `yaml:"signed_execution_envelopes"`    // Scale only
+	TamperEvidentLogs          bool `yaml:"tamper_evident_logs"`           // Scale only
 
 	// Advanced Features
 	CustomSLATargets     bool `yaml:"custom_sla_targets"`
@@ -566,15 +577,33 @@ func (te *TierEnforcer) enforceFeatureFlags(c *fiber.Ctx, tier string, policy Ti
 // getRequiredFeature maps endpoint paths to required features
 func (te *TierEnforcer) getRequiredFeature(path string) string {
 	// Map specific endpoints to features
+	// Authority levels: observe → influence → enforce → prove
 	featureMap := map[string]string{
+		// Governance & Compliance
 		"/v1/sla":             "sla_enforcement",
 		"/v1/policies":        "policy_versioning",
 		"/v1/audit":           "audit_logs",
 		"/v1/governance":      "advanced_governance",
 		"/v1/sso":             "sso",
+
+		// Analytics & Observability
 		"/v1/analytics":       "real_time_analytics",
 		"/v1/forecasting":     "cost_forecasting",
 		"/v1/semantic":        "semantic_routing",
+
+		// Routing Features (Growth+ only)
+		"/v1/speculative":     "speculative_execution",   // Growth+ only
+		"/v1/council":         "council_mode",            // Growth+ only
+		"/v1/thompson":        "thompson_sampling",       // Growth+ only (live exploration)
+
+		// Cognitive Advisor
+		"/v1/cognitive/proposals":      "cognitive_advisor",
+		"/v1/cognitive/config":         "cognitive_auto_apply",  // Growth+ for auto-apply config
+
+		// Cryptographic Features (Scale only)
+		"/v1/crypto":          "cryptographic_signing",   // Scale only
+		"/v1/signed":          "signed_execution_envelopes", // Scale only
+
 		// NOTE: EscapeVector Mode, Emergency Policy, and Gold Code Override
 		// are FREE for all tiers - no gating required
 		"/v1/emergency":       "",  // No gating - free for all
@@ -593,6 +622,7 @@ func (te *TierEnforcer) getRequiredFeature(path string) string {
 // hasFeatureAccess checks if a feature is enabled
 func (te *TierEnforcer) hasFeatureAccess(features FeatureFlags, featureName string) bool {
 	switch featureName {
+	// Governance & Compliance
 	case "sla_enforcement":
 		return features.SLAEnforcement
 	case "policy_versioning":
@@ -603,12 +633,37 @@ func (te *TierEnforcer) hasFeatureAccess(features FeatureFlags, featureName stri
 		return features.AdvancedGovernance
 	case "sso":
 		return features.SSO
+
+	// Analytics & Observability
 	case "real_time_analytics":
 		return features.RealTimeAnalytics
 	case "cost_forecasting":
 		return features.CostForecasting
 	case "semantic_routing":
 		return features.SemanticRouting
+
+	// Routing Features (Growth+ only)
+	case "speculative_execution":
+		return features.SpeculativeExecution
+	case "council_mode":
+		return features.CouncilMode
+	case "thompson_sampling":
+		return features.ThompsonSampling
+
+	// Cognitive Advisor
+	case "cognitive_advisor":
+		return features.CognitiveAdvisor
+	case "cognitive_auto_apply":
+		return features.CognitiveAutoApply
+
+	// Cryptographic Features (Scale only)
+	case "cryptographic_signing":
+		return features.CryptographicSigning
+	case "signed_execution_envelopes":
+		return features.SignedExecutionEnvelopes
+	case "tamper_evident_logs":
+		return features.TamperEvidentLogs
+
 	// ======================================================================
 	// RESILIENCE FEATURES - FREE FOR ALL TIERS
 	// ======================================================================
@@ -857,7 +912,13 @@ func (te *TierEnforcer) calculateOverageCost(currentCount int64, policy TierPoli
 
 // getNextTier returns the next tier up from current tier (for auto-upgrade logic)
 func (te *TierEnforcer) getNextTier(currentTier string) (string, float64, bool) {
-	tierOrder := []string{"developer", "growth", "scale"}
+	// Authority progression: observe → influence → enforce → prove
+	tierOrder := []string{"hacker", "startup", "growth", "scale"}
+
+	// Handle legacy tier name
+	if currentTier == "developer" {
+		currentTier = "startup"
+	}
 
 	for i, tier := range tierOrder {
 		if tier == currentTier && i < len(tierOrder)-1 {
@@ -1113,13 +1174,21 @@ func (te *TierEnforcer) ResetMonthlyCounters(ctx context.Context) (int, error) {
 // ParseTierFromString converts string to tier (validation)
 func ParseTierFromString(tierStr string) (string, error) {
 	validTiers := map[string]bool{
-		"developer": true,
+		"hacker":    true,
+		"startup":   true,
 		"growth":    true,
 		"scale":     true,
+		// Legacy tier names (for backward compatibility)
+		"developer": true, // Maps to startup
 	}
 
 	if !validTiers[tierStr] {
 		return "", fmt.Errorf("invalid tier: %s", tierStr)
+	}
+
+	// Map legacy tier name
+	if tierStr == "developer" {
+		return "startup", nil
 	}
 
 	return tierStr, nil
@@ -1128,9 +1197,11 @@ func ParseTierFromString(tierStr string) (string, error) {
 // GetTierDisplayName returns human-readable tier name
 func GetTierDisplayName(tier string) string {
 	displayNames := map[string]string{
-		"developer": "Developer",
+		"hacker":    "Hacker",
+		"startup":   "Startup",
 		"growth":    "Growth",
 		"scale":     "Scale",
+		"developer": "Startup", // Legacy mapping
 	}
 
 	if name, exists := displayNames[tier]; exists {
@@ -1138,6 +1209,22 @@ func GetTierDisplayName(tier string) string {
 	}
 
 	return tier
+}
+
+// GetTierAuthorityLevel returns the authority level for a tier
+func GetTierAuthorityLevel(tier string) string {
+	authorityLevels := map[string]string{
+		"hacker":  "observe",   // Read-only visibility
+		"startup": "influence", // Configure but no autonomy
+		"growth":  "enforce",   // System-enforced policies
+		"scale":   "prove",     // Cryptographic guarantees
+	}
+
+	if level, exists := authorityLevels[tier]; exists {
+		return level
+	}
+
+	return "observe" // Default to most restrictive
 }
 
 // GetTierPrice returns tier price in USD

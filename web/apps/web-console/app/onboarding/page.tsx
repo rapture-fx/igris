@@ -3,10 +3,12 @@
 import { useEffect } from 'react';
 import { useUser } from '@clerk/nextjs';
 import { useRouter } from 'next/navigation';
+import { useTheme } from 'next-themes';
 
 export default function OnboardingPage() {
   const { user, isLoaded } = useUser();
   const router = useRouter();
+  const { theme, mounted } = useTheme();
 
   useEffect(() => {
     const completeOnboarding = async () => {
@@ -44,11 +46,11 @@ export default function OnboardingPage() {
   }, [isLoaded, user, router]);
 
   return (
-    <div className="min-h-screen bg-beige-primary dark:bg-background flex items-center justify-center">
+    <div className="min-h-screen bg-[#f6f6f4] dark:bg-[#1b1912] text-gray-900 dark:text-[#f6f6f4] transition-colors duration-200 flex items-center justify-center">
       <div className="text-center">
         <div className="animate-pulse">
-          <div className="w-16 h-16 border-4 border-gray-900 dark:border-gray-100 border-t-transparent rounded-full animate-spin mx-auto mb-4"></div>
-          <p className="text-foreground font-medium">Setting up your account...</p>
+          <div className="w-16 h-16 border-4 border-[#000000] dark:border-[#f6f6f4] border-t-transparent rounded-full animate-spin mx-auto mb-4"></div>
+          <p className="text-[#000000] dark:text-[#f6f6f4] font-medium">Setting up your account...</p>
         </div>
       </div>
     </div>

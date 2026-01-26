@@ -390,6 +390,28 @@ func (h *CognitiveHandler) UpdateAutoApplyConfig(c *fiber.Ctx) error {
 		})
 	}
 
+	// TIER ENFORCEMENT: Check if user is trying to enable auto-apply
+	// Auto-apply requires Growth+ tier (cognitive_auto_apply feature)
+	if req.Enabled != nil && *req.Enabled {
+		tierPolicy, ok := c.Locals("tier_policy").(middleware.TierPolicy)
+		if !ok || !tierPolicy.Features.CognitiveAutoApply {
+			tier, _ := c.Locals("tier").(string)
+			log.Warn().
+				Str("tenant_id", tenantCtx.TenantID).
+				Str("tier", tier).
+				Msg("[Cognitive V1 API] Tier enforcement: auto-apply requires Growth+ tier")
+			return c.Status(fiber.StatusForbidden).JSON(fiber.Map{
+				"error": map[string]interface{}{
+					"message": "Auto-apply feature requires Growth tier or higher",
+					"type":    "feature_not_available",
+					"tier":    tier,
+					"feature": "cognitive_auto_apply",
+					"upgrade_url": "/api/v1/account/upgrade",
+				},
+			})
+		}
+	}
+
 	// Build config from request
 	config := database.DefaultSelfTunerConfig(tenantCtx.TenantID)
 
@@ -479,6 +501,28 @@ func (h *CognitiveHandler) PatchAutoApplyConfig(c *fiber.Ctx) error {
 				"type":    "invalid_request_error",
 			},
 		})
+	}
+
+	// TIER ENFORCEMENT: Check if user is trying to enable auto-apply
+	// Auto-apply requires Growth+ tier (cognitive_auto_apply feature)
+	if req.Enabled != nil && *req.Enabled {
+		tierPolicy, ok := c.Locals("tier_policy").(middleware.TierPolicy)
+		if !ok || !tierPolicy.Features.CognitiveAutoApply {
+			tier, _ := c.Locals("tier").(string)
+			log.Warn().
+				Str("tenant_id", tenantCtx.TenantID).
+				Str("tier", tier).
+				Msg("[Cognitive V1 API] Tier enforcement: auto-apply requires Growth+ tier")
+			return c.Status(fiber.StatusForbidden).JSON(fiber.Map{
+				"error": map[string]interface{}{
+					"message": "Auto-apply feature requires Growth tier or higher",
+					"type":    "feature_not_available",
+					"tier":    tier,
+					"feature": "cognitive_auto_apply",
+					"upgrade_url": "/api/v1/account/upgrade",
+				},
+			})
+		}
 	}
 
 	// Apply partial updates

@@ -5,6 +5,7 @@ import { Check } from 'lucide-react';
 import { useModal } from '../../contexts/ModalContext';
 import { useTheme } from 'next-themes';
 
+// Authority progression: Observe → Influence → Enforce → Prove
 const pricingRows = [
   {
     name: "",
@@ -13,16 +14,17 @@ const pricingRows = [
         name: "Hacker",
         price: "$0",
         period: "",
-        descriptor: "For developers and hackers.",
+        descriptor: "Observe decisions.",
+        authorityLevel: "observe",
         features: [
-          "Up to 75K requests/month",
+          "Up to 50K requests/month",
           "Routing across up to 2 AI providers (BYOK)",
-          "Cost or latency–optimized routing",
+          "Latency or cost–optimized routing (round-robin)",
           "Automatic failover and circuit breaking",
-          "Real-time cost and latency visibility",
-          "Decision explanations and provider comparison",
-          "Read-only Cognitive Advisor recommendations",
-          "7-day audit log retention"
+          "Read-only cost and latency visibility",
+          "Decision explanations (no live exploration)",
+          "Read-only Cognitive Advisor insights",
+          "7-day log retention (read-only)"
         ],
         cta: "Get Started"
       },
@@ -30,17 +32,18 @@ const pricingRows = [
         name: "Startup",
         price: "$79",
         period: "month",
-        descriptor: "Get control, safely.",
+        descriptor: "Influence decisions.",
+        authorityLevel: "influence",
         features: [
           "Up to 500K requests/month",
           "Up to 3 AI providers (BYOK)",
-          "Observed performance-based routing",
+          "Historical-metrics–informed routing (no live exploration)",
           "Quality-aware routing modes (Cost / Balanced / Quality)",
           "Circuit breaker and automatic failover",
           "Real-time cost tracking",
           "Core observability metrics",
-          "Single-node execution support",
-          "Best-effort execution telemetry"
+          "Execution telemetry (non-cryptographic)",
+          "Manual configuration only"
         ],
         cta: "Get Started"
       },
@@ -48,23 +51,20 @@ const pricingRows = [
         name: "Growth",
         price: "$249",
         period: "month",
-        descriptor: "Run production with accountability.",
+        descriptor: "Enforce decisions.",
+        authorityLevel: "enforce",
         features: [
           "Everything in Startup +",
           "Up to 2M requests/month",
           "Up to 10 AI providers",
+          "Thompson Sampling (live exploration)",
           "Speculative execution",
           "Council mode",
-          "Automatic routing optimization",
+          "Auto-apply with rollback protection",
           "Policy versioning with hot reload",
-          "Basic SLO enforcement",
-          "Multi-runtime support",
-          "Policy enforcement",
-          "Resource safety limits",
-          "Real-time execution telemetry",
+          "SLO monitoring with guarded enforcement",
           "Decision to execution audit trail",
-          "Observed vs reported provider verification",
-          "Routing traces and audit logs",
+          "Observed vs reported verification",
           "30-day retention"
         ],
         cta: "Get Started"
@@ -73,21 +73,20 @@ const pricingRows = [
         name: "Scale",
         price: "Contact Us",
         period: "",
-        descriptor: "Custom Pricing",
+        descriptor: "Prove and govern decisions.",
+        authorityLevel: "prove",
         features: [
           "Everything in Growth +",
           "Unlimited requests (1000 RPS sustained)",
-          "Up to 20 AI providers",
-          "Advanced observability",
-          "Hard budget caps",
-          "Advanced SLO auto-remediation",
-          "Fleet-wide isolation controls",
-          "Cryptographically enforced trust",
-          "Signed decision to execution contracts",
-          "Compliance-ready execution",
-          "Exports and alerts",
+          "Unlimited AI providers",
+          "Ed25519-signed routing decisions",
+          "Cryptographic execution envelopes",
+          "Tamper-evident audit logs",
+          "Advanced SLO enforcement with auto-remediation",
+          "Compliance-ready execution trails",
+          "Fleet-wide tenant isolation",
           "90-day retention",
-          "Priority support"
+          "Priority support + SLA"
         ],
         cta: "Contact Us"
       }
@@ -116,10 +115,10 @@ export default function Pricing() {
                   Pricing
                 </h2>
                 <p className="text-sm md:text-base text-gray-600 dark:text-[#a8a898] font-inter max-w-2xl mx-auto mb-4">
-                  Progressive control tiers for production AI infrastructure
+                  Progressive authority tiers: Observe → Influence → Enforce → Prove
                 </p>
                 <p className="text-xs md:text-sm text-gray-600 dark:text-[#a8a898] font-inter max-w-2xl mx-auto">
-                  14-day free trial · Full feature access · Hard usage caps · No production guarantees
+                  14-day trial · Hard usage caps · Cryptographic guarantees Scale-only
                 </p>
               </div>
 
