@@ -1,8 +1,29 @@
 package middleware
 
 import (
+	"context"
+
 	"github.com/gofiber/fiber/v2"
 )
+
+// TenantIDContextKey is the context key for tenant ID in standard Go context
+// This allows tenant ID to be passed through context.Context (not just Fiber locals)
+type tenantIDContextKey struct{}
+
+// WithTenantID returns a new context with the tenant ID set
+// Use this to propagate tenant ID from HTTP handlers to downstream services
+func WithTenantID(ctx context.Context, tenantID string) context.Context {
+	return context.WithValue(ctx, tenantIDContextKey{}, tenantID)
+}
+
+// TenantIDFromContext extracts the tenant ID from a standard Go context
+// Returns "default" if no tenant ID is set (backward compatible)
+func TenantIDFromContext(ctx context.Context) string {
+	if tenantID, ok := ctx.Value(tenantIDContextKey{}).(string); ok && tenantID != "" {
+		return tenantID
+	}
+	return "default"
+}
 
 // GetTenantIDFromContext extracts the tenant ID from Fiber context
 // Phase 2: Helper function for multi-tenant request handling
