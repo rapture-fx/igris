@@ -630,6 +630,355 @@ circuit_breaker_state{name="openai"}
 
 </EndpointBlock>
 
+## Cognitive Advisor API
+
+The Cognitive Advisor analyzes routing performance and generates optimization proposals with confidence and risk scoring. Proposals can be auto-applied with automatic rollback protection.
+
+<EndpointBlock method="GET" path="/v1/cognitive/proposals">
+
+### List Proposals
+
+Get all optimization proposals for the tenant with confidence and risk scores.
+
+**Query Parameters:**
+- `status`: Filter by status: "pending", "approved", "rejected", "applied" (optional)
+- `limit`: Maximum number of proposals to return (default: 50)
+- `offset`: Pagination offset (default: 0)
+
+**Response:**
+```json
+{
+  "proposals": [
+    {
+      "proposal_id": "prop_abc123",
+      "tenant_id": "tenant_xyz",
+      "generated_at": "2026-01-26T12:00:00Z",
+      "confidence": 0.92,
+      "risk_score": 0.15,
+      "status": "pending",
+      "rationale": "Thompson Sampling weights have drifted 23% from optimal based on recent performance. Rebalancing will improve p95 latency by estimated 18%.",
+      "proposed_changes": [
+        {
+          "change_type": "weight_adjustment",
+          "provider": "openai",
+          "old_value": 0.45,
+          "new_value": 0.52,
+          "expected_impact": "8% latency improvement"
+        }
+      ],
+      "projected_latency_p95_reduction": 18.5,
+      "projected_cost_saving_monthly": 234.56
+    }
+  ],
+  "total_count": 12,
+  "pending_count": 3
+}
+```
+
+</EndpointBlock>
+
+<EndpointBlock method="GET" path="/v1/cognitive/proposals/{id}">
+
+### Get Proposal Details
+
+Get detailed information about a specific proposal.
+
+**Response:**
+```json
+{
+  "proposal_id": "prop_abc123",
+  "tenant_id": "tenant_xyz",
+  "generated_at": "2026-01-26T12:00:00Z",
+  "confidence": 0.92,
+  "risk_score": 0.15,
+  "status": "pending",
+  "rationale": "Thompson Sampling weights have drifted 23% from optimal...",
+  "proposed_changes": [...],
+  "baseline_metrics": {
+    "latency_p95_ms": 456,
+    "error_rate": 0.012,
+    "cost_per_request_usd": 0.0098
+  },
+  "projected_metrics": {
+    "latency_p95_ms": 372,
+    "error_rate": 0.010,
+    "cost_per_request_usd": 0.0091
+  },
+  "sample_size": 15234,
+  "analysis_window_hours": 24
+}
+```
+
+</EndpointBlock>
+
+<EndpointBlock method="POST" path="/v1/cognitive/proposals/{id}/apply">
+
+### Apply Proposal
+
+Manually apply a proposal. Creates baseline metrics and enables rollback monitoring.
+
+**Request:**
+```json
+{
+  "confirm": true,
+  "rollback_window_hours": 1
+}
+```
+
+**Response:**
+```json
+{
+  "applied": true,
+  "proposal_id": "prop_abc123",
+  "applied_at": "2026-01-26T12:30:00Z",
+  "rollback_enabled": true,
+  "rollback_deadline": "2026-01-26T13:30:00Z",
+  "baseline_recorded": true
+}
+```
+
+</EndpointBlock>
+
+<EndpointBlock method="GET" path="/v1/cognitive/config">
+
+### Get Auto-Apply Configuration
+
+Get the tenant's Cognitive Advisor auto-apply settings.
+
+**Response:**
+```json
+{
+  "tenant_id": "tenant_xyz",
+  "auto_apply_enabled": false,
+  "auto_apply_threshold": 0.90,
+  "max_risk_score": 0.30,
+  "rollback_window_hours": 1,
+  "latency_degradation_threshold": 0.10,
+  "error_rate_degradation_threshold": 0.05,
+  "cost_degradation_threshold": 0.10,
+  "last_updated": "2026-01-20T10:00:00Z"
+}
+```
+
+</EndpointBlock>
+
+<EndpointBlock method="PUT" path="/v1/cognitive/config">
+
+### Update Auto-Apply Configuration
+
+Update the tenant's Cognitive Advisor settings.
+
+**Request:**
+```json
+{
+  "auto_apply_enabled": true,
+  "auto_apply_threshold": 0.95,
+  "max_risk_score": 0.20,
+  "rollback_window_hours": 2,
+  "latency_degradation_threshold": 0.08,
+  "error_rate_degradation_threshold": 0.03
+}
+```
+
+**Response:**
+```json
+{
+  "updated": true,
+  "config": {
+    "auto_apply_enabled": true,
+    "auto_apply_threshold": 0.95,
+    "max_risk_score": 0.20,
+    ...
+  }
+}
+```
+
+</EndpointBlock>
+
+## Self-Tuner API
+
+The Self-Tuner automatically optimizes routing weights based on observed performance.
+
+<EndpointBlock method="GET" path="/v1/self-tuner/config">
+
+### Get Self-Tuner Configuration
+
+**Response:**
+```json
+{
+  "tenant_id": "tenant_xyz",
+  "enabled": true,
+  "interval_hours": 24,
+  "auto_apply_enabled": false,
+  "auto_apply_threshold": 0.90,
+  "max_risk_score": 0.30,
+  "last_run": "2026-01-26T06:00:00Z",
+  "next_run": "2026-01-27T06:00:00Z"
+}
+```
+
+</EndpointBlock>
+
+<EndpointBlock method="GET" path="/v1/self-tuner/results">
+
+### Get Self-Tuner Results
+
+Get recent self-tuning optimization results.
+
+**Response:**
+```json
+{
+  "results": [
+    {
+      "tuning_id": "tune_abc123",
+      "timestamp": "2026-01-26T06:00:00Z",
+      "confidence_score": 0.88,
+      "risk_score": 0.12,
+      "performance_improvement": 0.15,
+      "applied": true,
+      "auto_applied": false,
+      "weight_changes": {
+        "openai": {"old": 0.45, "new": 0.52},
+        "anthropic": {"old": 0.55, "new": 0.48}
+      }
+    }
+  ]
+}
+```
+
+</EndpointBlock>
+
+## Cryptographic Verification API
+
+Verify cryptographic integrity of routing decisions and execution envelopes.
+
+<EndpointBlock method="POST" path="/v1/telemetry/execution">
+
+### Submit Execution Envelope
+
+Submit a signed execution envelope from Runtime for verification.
+
+**Request:**
+```json
+{
+  "execution_id": "exec_abc123",
+  "decision_hash": "sha256:a8f3c2...",
+  "result": {
+    "provider": "anthropic",
+    "model": "claude-3-opus",
+    "latency_ms": 234,
+    "tokens_used": 1247,
+    "cost_usd": 0.0187,
+    "success": true
+  },
+  "timestamp": "2026-01-26T12:00:00Z",
+  "signature": "ed25519:b3e7f1..."
+}
+```
+
+**Response:**
+```json
+{
+  "verified": true,
+  "audit_id": "audit_xyz789",
+  "decision_match": true,
+  "signature_valid": true,
+  "recorded": true
+}
+```
+
+</EndpointBlock>
+
+<EndpointBlock method="GET" path="/v1/audit/decisions/{decision_id}">
+
+### Get Decision Audit Trail
+
+Get the complete audit trail for a routing decision.
+
+**Response:**
+```json
+{
+  "audit_id": "audit_xyz789",
+  "decision": {
+    "decision_id": "dec_abc123",
+    "timestamp": "2026-01-26T12:00:00Z",
+    "selected_provider": "anthropic",
+    "selection_reason": "Thompson Sampling: exploit",
+    "confidence": 0.92,
+    "signature": "ed25519:a8f3c2...",
+    "signature_valid": true
+  },
+  "execution": {
+    "execution_id": "exec_xyz789",
+    "provider": "anthropic",
+    "latency_ms": 234,
+    "cost_usd": 0.0187,
+    "success": true,
+    "signature": "ed25519:b3e7f1...",
+    "signature_valid": true
+  },
+  "verification": {
+    "decision_execution_match": true,
+    "trust_verification_passed": true,
+    "divergence_detected": false,
+    "tamper_detected": false
+  }
+}
+```
+
+</EndpointBlock>
+
+<EndpointBlock method="GET" path="/v1/crypto/keys">
+
+### Get Tenant Public Keys
+
+Get the tenant's public keys for signature verification.
+
+**Response:**
+```json
+{
+  "tenant_id": "tenant_xyz",
+  "keys": [
+    {
+      "key_id": "key_abc123",
+      "algorithm": "Ed25519",
+      "public_key": "base64:MCowBQYDK2VwAyEA...",
+      "created_at": "2026-01-01T00:00:00Z",
+      "active": true,
+      "version": 1
+    }
+  ]
+}
+```
+
+</EndpointBlock>
+
+<EndpointBlock method="POST" path="/v1/crypto/keys/rotate">
+
+### Rotate Cryptographic Keys
+
+Generate a new keypair and deprecate the old one.
+
+**Request:**
+```json
+{
+  "confirm": true,
+  "grace_period_hours": 24
+}
+```
+
+**Response:**
+```json
+{
+  "new_key_id": "key_xyz789",
+  "old_key_id": "key_abc123",
+  "old_key_expires": "2026-01-27T12:00:00Z",
+  "rotated_at": "2026-01-26T12:00:00Z"
+}
+```
+
+</EndpointBlock>
+
 ## Admin Endpoints
 
 <EndpointBlock method="POST" path="/admin/routing/reset">

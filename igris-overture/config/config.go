@@ -134,6 +134,10 @@ type SpeculativeConfig struct {
 
 	// Council mode configuration
 	ChairmanProvider string `json:"chairman_provider"` // Chairman model for council mode (default: "grok-4" or first available)
+
+	// ONNX-based quality scoring configuration
+	UseONNXQualityScoring bool   `json:"use_onnx_quality_scoring"` // Enable ONNX model for quality scoring (fallback to heuristic if false/unavailable)
+	ONNXModelPath         string `json:"onnx_model_path"`          // Path to ONNX quality scoring model
 }
 
 // LoadConfig loads configuration from environment variables
@@ -204,14 +208,16 @@ func LoadConfig() *Config {
 			UseDistributedLock: getEnvBool("USE_DISTRIBUTED_LOCK", false),
 		},
 		Speculative: SpeculativeConfig{
-			Enabled:           getEnvBool("ENABLE_SPECULATIVE", false),
-			DefaultMode:       SpeculativeMode(getEnv("SPECULATIVE_MODE", string(SpeculativeModeLatency))),
-			MaxProviders:      getEnvInt("SPECULATIVE_MAX_PROVIDERS", 3),
-			FirstTokenTimeout: getEnvDuration("SPECULATIVE_FIRST_TOKEN_TIMEOUT", 5*time.Second),
-			EarlyTokenCount:   getEnvInt("SPECULATIVE_EARLY_TOKEN_COUNT", 5),
-			CostMultiplier:    getEnvFloat("SPECULATIVE_COST_MULTIPLIER", 1.5),
-			WasteThreshold:    getEnvFloat("SPECULATIVE_WASTE_THRESHOLD", 0.3),
-			ChairmanProvider:  getEnv("COUNCIL_CHAIRMAN_PROVIDER", "gpt-4"), // Default to gpt-4 for chairman
+			Enabled:               getEnvBool("ENABLE_SPECULATIVE", false),
+			DefaultMode:           SpeculativeMode(getEnv("SPECULATIVE_MODE", string(SpeculativeModeLatency))),
+			MaxProviders:          getEnvInt("SPECULATIVE_MAX_PROVIDERS", 3),
+			FirstTokenTimeout:     getEnvDuration("SPECULATIVE_FIRST_TOKEN_TIMEOUT", 5*time.Second),
+			EarlyTokenCount:       getEnvInt("SPECULATIVE_EARLY_TOKEN_COUNT", 5),
+			CostMultiplier:        getEnvFloat("SPECULATIVE_COST_MULTIPLIER", 1.5),
+			WasteThreshold:        getEnvFloat("SPECULATIVE_WASTE_THRESHOLD", 0.3),
+			ChairmanProvider:      getEnv("COUNCIL_CHAIRMAN_PROVIDER", "gpt-4"), // Default to gpt-4 for chairman
+			UseONNXQualityScoring: getEnvBool("USE_ONNX_QUALITY_SCORING", false), // Disabled by default, falls back to heuristic
+			ONNXModelPath:         getEnv("ONNX_QUALITY_MODEL_PATH", "/models/quality_scorer.onnx"),
 		},
 	}
 }

@@ -8,6 +8,7 @@ import (
 	"time"
 
 	"github.com/Igris-inertial/system/igris-overture/config"
+	"github.com/Igris-inertial/system/igris-overture/middleware"
 	"github.com/Igris-inertial/system/igris-overture/models"
 	"github.com/Igris-inertial/system/igris-overture/observability"
 	"github.com/Igris-inertial/system/igris-overture/providers"
@@ -75,8 +76,9 @@ func (sr *SpeculativeRouter) RouteSpeculative(
 	ctx, span := observability.StartSpan(ctx, "speculative_race")
 	defer span.End()
 
-	// Extract tenant ID from context (TODO: implement proper tenant extraction)
-	tenantID := "default"
+	// Extract tenant ID from context using middleware helper
+	// TenantIDFromContext returns "default" if no tenant ID is set (backward compatible)
+	tenantID := middleware.TenantIDFromContext(ctx)
 
 	// Check if speculative mode is auto-disabled for this tenant
 	if disabled, reason := sr.costAccounting.ShouldDisableSpeculative(tenantID); disabled {

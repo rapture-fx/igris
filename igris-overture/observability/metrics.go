@@ -1432,3 +1432,45 @@ func RecordDecisionSigningLatency(tenantID string, latencyUs int64) {
 func RecordExecutionEnvelopeVerificationLatency(tenantID string, latencyUs int64) {
 	executionEnvelopeVerificationLatency.WithLabelValues(tenantID).Observe(float64(latencyUs))
 }
+
+// Quality Scorer Metrics
+
+var (
+	// Quality scorer fallback events
+	qualityScorerFallbackTotal = promauto.NewCounterVec(
+		prometheus.CounterOpts{
+			Name: "quality_scorer_fallback_total",
+			Help: "Total number of fallbacks from ONNX to heuristic quality scoring",
+		},
+		[]string{"reason"}, // reason: onnx_init_failed/onnx_runtime_error/disabled
+	)
+
+	// Quality scorer results
+	qualityScorerResultTotal = promauto.NewCounterVec(
+		prometheus.CounterOpts{
+			Name: "quality_scorer_result_total",
+			Help: "Total number of quality scoring operations by method",
+		},
+		[]string{"provider", "method"}, // method: onnx/heuristic/heuristic_fallback
+	)
+
+	qualityScorerScore = promauto.NewHistogramVec(
+		prometheus.HistogramOpts{
+			Name:    "quality_scorer_score",
+			Help:    "Quality scores produced by the quality scorer (0-1)",
+			Buckets: []float64{0.1, 0.2, 0.3, 0.4, 0.5, 0.6, 0.7, 0.8, 0.9, 1.0},
+		},
+		[]string{"provider", "method"},
+	)
+)
+
+// RecordQualityScorerFallback records a fallback from ONNX to heuristic scoring
+func RecordQualityScorerFallback(reason string) {
+	qualityScorerFallbackTotal.WithLabelValues(reason).Inc()
+}
+
+// RecordQualityScorerResult records a quality scoring result
+func RecordQualityScorerResult(provider string, score float64, method string) {
+	qualityScorerResultTotal.WithLabelValues(provider, method).Inc()
+	qualityScorerScore.WithLabelValues(provider, method).Observe(score)
+}

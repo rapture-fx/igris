@@ -848,8 +848,10 @@ func (h *InferHandler) handleStreamingInfer(c *fiber.Ctx, req *models.InferReque
 			mode = config.SpeculativeModeLatency
 		}
 
-		// Route speculatively
-		tokenChan, errC, metadata, err := h.speculativeRouter.RouteSpeculative(traceContext, req, mode)
+		// Route speculatively - pass tenant ID through context
+		tenantID := middleware.GetTenantIDFromContext(c)
+		speculativeCtx := middleware.WithTenantID(traceContext, tenantID)
+		tokenChan, errC, metadata, err := h.speculativeRouter.RouteSpeculative(speculativeCtx, req, mode)
 		if err != nil {
 			log.Printf("[Infer] Speculative routing failed: %v, falling back to normal routing", err)
 			chunkChan, errChan = h.router.RouteStream(traceContext, req)
