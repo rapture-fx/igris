@@ -54,14 +54,14 @@ export default function RuntimeConfigPage() {
 
   const getStatusBadge = (status: ConfigPush['status']) => {
     const config = {
-      pending: { icon: Clock },
-      in_progress: { icon: Clock },
-      completed: { icon: CheckCircle },
-      failed: { icon: XCircle },
+      pending: { icon: Clock, className: 'bg-gray-50 dark:bg-gray-800 text-gray-700 dark:text-gray-400 border dark:border-gray-700' },
+      in_progress: { icon: Clock, className: 'bg-blue-50 dark:bg-blue-950 text-blue-700 dark:text-blue-400 border-blue-200 dark:border-blue-900' },
+      completed: { icon: CheckCircle, className: 'bg-green-50 dark:bg-green-950 text-green-700 dark:text-green-400 border-green-200 dark:border-green-900' },
+      failed: { icon: XCircle, className: 'bg-red-50 dark:bg-red-950 text-red-700 dark:text-red-400 border-red-200 dark:border-red-900' },
     };
-    const { icon: Icon } = config[status];
+    const { icon: Icon, className } = config[status];
     return (
-      <Badge className="bg-gray-50 text-gray-700 border flex items-center gap-1">
+      <Badge className={`${className} flex items-center gap-1`}>
         <Icon className="h-3 w-3" />
         {status.replace('_', ' ')}
       </Badge>
@@ -72,9 +72,9 @@ export default function RuntimeConfigPage() {
     <DashboardLayout>
       <div className="max-w-7xl mx-auto space-y-6">
         <div className="flex items-center justify-between">
-          <div className="pb-4 border-b border-border-light">
-            <h1 className="text-base font-medium text-gray-900 font-inter">Config Push</h1>
-            <p className="text-gray-600 mt-1 font-inter text-xs">
+          <div className="pb-4 border-b border-border-light dark:border-[#2d2a24]">
+            <h1 className="text-base font-medium text-gray-900 dark:text-[#f6f6f4] font-inter">Config Push</h1>
+            <p className="text-gray-600 dark:text-gray-400 mt-1 font-inter text-xs">
               Deploy configuration updates to runtime instances
             </p>
           </div>
@@ -86,11 +86,11 @@ export default function RuntimeConfigPage() {
 
         <div className="space-y-4">
           {configPushes.map((push) => (
-            <Card key={push.id} className="border-border-light shadow-sm">
+            <Card key={push.id} className="border-border-light dark:border-[#2d2a24] shadow-sm">
               <CardHeader>
                 <div className="flex items-center justify-between">
                   <div className="flex items-center gap-3">
-                    <Sliders className="h-4 w-4 text-gray-900" />
+                    <Sliders className="h-4 w-4 text-gray-900 dark:text-[#f6f6f4]" />
                     <div>
                       <CardTitle className="text-xs">{push.name}</CardTitle>
                       <CardDescription className="text-xs mt-1">
@@ -103,14 +103,14 @@ export default function RuntimeConfigPage() {
               </CardHeader>
               <CardContent>
                 <div className="space-y-4">
-                  <div className="bg-beige-primary border border-border-light rounded-lg p-4">
+                  <div className="bg-beige-primary dark:bg-[#1b1912] border border-border-light dark:border-[#2d2a24] rounded-lg p-4">
                     <div className="flex items-center justify-between mb-2">
-                      <span className="text-xs font-medium text-gray-900">Progress</span>
-                      <span className="text-xs text-gray-600">
+                      <span className="text-xs font-medium text-gray-900 dark:text-[#f6f6f4]">Progress</span>
+                      <span className="text-xs text-gray-600 dark:text-gray-400">
                         {push.devices_completed}/{push.devices_targeted} devices
                       </span>
                     </div>
-                    <div className="w-full bg-gray-200 rounded-full h-2">
+                    <div className="w-full bg-gray-200 dark:bg-gray-800 rounded-full h-2">
                       <svg width="100%" height="8" className="overflow-visible">
                         <defs>
                           <pattern id={`config-stripe-${push.id}`} width="2" height="2" patternUnits="userSpaceOnUse" patternTransform="rotate(45)">
@@ -132,7 +132,7 @@ export default function RuntimeConfigPage() {
                   </div>
 
                   {push.completed_at && (
-                    <div className="text-xs text-gray-600">
+                    <div className="text-xs text-gray-600 dark:text-gray-400">
                       Completed {push.completed_at}
                     </div>
                   )}

@@ -75,9 +75,9 @@ export default function AgentsToolsPage() {
     <DashboardLayout>
       <div className="max-w-7xl mx-auto space-y-6">
         <div className="flex items-center justify-between">
-          <div className="pb-4 border-b border-border-light">
-            <h1 className="text-base font-medium text-gray-900 font-inter">Tools Management</h1>
-            <p className="text-gray-600 mt-1 font-inter text-xs">
+          <div className="pb-4 border-b border-border-light dark:border-[#2d2a24]">
+            <h1 className="text-base font-medium text-gray-900 dark:text-[#f6f6f4] font-inter">Tools Management</h1>
+            <p className="text-gray-600 dark:text-gray-400 mt-1 font-inter text-xs">
               Manage agent tool access and monitor usage patterns
             </p>
           </div>
@@ -94,7 +94,7 @@ export default function AgentsToolsPage() {
               variant="outline"
               size="sm"
               onClick={() => setSelectedCategory(category)}
-              className={`text-xs ${selectedCategory === category ? 'bg-gray-100' : ''}`}
+              className={`text-xs ${selectedCategory === category ? 'bg-gray-100 dark:bg-gray-800' : ''}`}
             >
               {category}
             </Button>
@@ -103,11 +103,11 @@ export default function AgentsToolsPage() {
 
         <div className="grid gap-4 md:grid-cols-2">
           {filteredTools.map((tool) => (
-            <Card key={tool.id} className="border-border-light shadow-sm">
+            <Card key={tool.id} className="border-border-light dark:border-[#2d2a24] shadow-sm">
               <CardHeader>
                 <div className="flex items-center justify-between">
                   <div className="flex items-center gap-3">
-                    <Wrench className="h-4 w-4 text-gray-900" />
+                    <Wrench className="h-4 w-4 text-gray-900 dark:text-[#f6f6f4]" />
                     <div>
                       <CardTitle className="text-sm">{tool.name}</CardTitle>
                       <CardDescription className="text-xs mt-1">
@@ -115,7 +115,7 @@ export default function AgentsToolsPage() {
                       </CardDescription>
                     </div>
                   </div>
-                  <Badge className={`${tool.enabled ? 'bg-green-50 text-green-700' : 'bg-gray-50 text-gray-700'} border`}>
+                  <Badge className={`${tool.enabled ? 'bg-green-50 dark:bg-green-950 text-green-700 dark:text-green-400 border-green-200 dark:border-green-900' : 'bg-gray-50 dark:bg-gray-800 text-gray-700 dark:text-gray-400 border-gray-200 dark:border-gray-700'}`}>
                     {tool.enabled ? <CheckCircle className="h-3 w-3 mr-1" /> : <XCircle className="h-3 w-3 mr-1" />}
                     {tool.enabled ? 'Enabled' : 'Disabled'}
                   </Badge>
@@ -124,23 +124,23 @@ export default function AgentsToolsPage() {
               <CardContent>
                 <div className="space-y-3">
                   <div className="grid grid-cols-3 gap-3">
-                    <div className="bg-beige-primary border border-border-light rounded-md p-3">
-                      <div className="text-xs text-gray-600">Success Rate</div>
+                    <div className="bg-beige-primary dark:bg-[#1b1912] border border-border-light dark:border-[#2d2a24] rounded-md p-3">
+                      <div className="text-xs text-gray-600 dark:text-gray-400">Success Rate</div>
                       <div className={`text-sm font-medium ${
-                        tool.success_rate > 95 ? 'text-gray-600' :
-                        tool.success_rate > 85 ? 'text-gray-600' :
-                        'text-gray-600'
+                        tool.success_rate > 95 ? 'text-gray-900 dark:text-[#f6f6f4]' :
+                        tool.success_rate > 85 ? 'text-gray-900 dark:text-[#f6f6f4]' :
+                        'text-gray-900 dark:text-[#f6f6f4]'
                       }`}>
                         {tool.success_rate.toFixed(1)}%
                       </div>
                     </div>
-                    <div className="bg-beige-primary border border-border-light rounded-md p-3">
-                      <div className="text-xs text-gray-600">Avg Time</div>
-                      <div className="text-sm font-medium text-gray-900">{tool.avg_execution_time}ms</div>
+                    <div className="bg-beige-primary dark:bg-[#1b1912] border border-border-light dark:border-[#2d2a24] rounded-md p-3">
+                      <div className="text-xs text-gray-600 dark:text-gray-400">Avg Time</div>
+                      <div className="text-sm font-medium text-gray-900 dark:text-[#f6f6f4]">{tool.avg_execution_time}ms</div>
                     </div>
-                    <div className="bg-beige-primary border border-border-light rounded-md p-3">
-                      <div className="text-xs text-gray-600">Last Used</div>
-                      <div className="text-xs font-medium text-gray-900">{tool.last_used}</div>
+                    <div className="bg-beige-primary dark:bg-[#1b1912] border border-border-light dark:border-[#2d2a24] rounded-md p-3">
+                      <div className="text-xs text-gray-600 dark:text-gray-400">Last Used</div>
+                      <div className="text-xs font-medium text-gray-900 dark:text-[#f6f6f4]">{tool.last_used}</div>
                     </div>
                   </div>
 
@@ -162,18 +162,18 @@ export default function AgentsToolsPage() {
           ))}
         </div>
 
-        <Card className="border-border-light shadow-sm">
+        <Card className="border-border-light dark:border-[#2d2a24] shadow-sm">
           <CardHeader>
             <CardTitle className="text-sm">Tool Usage Insights</CardTitle>
             <CardDescription className="text-xs">Last 30 days</CardDescription>
           </CardHeader>
           <CardContent>
-            <div className="bg-gray-50 border border-gray-200 rounded-lg p-4">
+            <div className="bg-gray-50 dark:bg-gray-800 border border-gray-200 dark:border-gray-700 rounded-lg p-4">
               <div className="flex items-center gap-3 mb-2">
-                <TrendingUp className="h-5 w-5 text-gray-600" />
-                <h4 className="text-sm font-medium text-gray-900">Key Insights</h4>
+                <TrendingUp className="h-5 w-5 text-gray-600 dark:text-gray-400" />
+                <h4 className="text-sm font-medium text-gray-900 dark:text-[#f6f6f4]">Key Insights</h4>
               </div>
-              <ul className="text-xs text-gray-800 space-y-1 list-disc list-inside">
+              <ul className="text-xs text-gray-800 dark:text-gray-300 space-y-1 list-disc list-inside">
                 <li>File System Access is most frequently used (2847 calls)</li>
                 <li>Code Execution has lowest success rate (87.3%) - may need review</li>
                 <li>Database Query tool disabled but still showing high success rate when enabled</li>

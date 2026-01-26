@@ -10,6 +10,23 @@ const pricingRows = [
     name: "",
     cards: [
       {
+        name: "Hacker",
+        price: "$0",
+        period: "",
+        descriptor: "For developers and hackers.",
+        features: [
+          "Up to 75K requests/month",
+          "Routing across up to 2 AI providers (BYOK)",
+          "Cost or latency–optimized routing",
+          "Automatic failover and circuit breaking",
+          "Real-time cost and latency visibility",
+          "Decision explanations and provider comparison",
+          "Read-only Cognitive Advisor recommendations",
+          "7-day audit log retention"
+        ],
+        cta: "Get Started"
+      },
+      {
         name: "Startup",
         price: "$79",
         period: "month",
@@ -114,12 +131,12 @@ export default function Pricing() {
                       {row.name}
                     </h3>
                   </div>
-                <div className="grid grid-cols-1 md:grid-cols-3 gap-8">
+                <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-4 gap-4">
                   {row.cards.map((card, cardIndex) => {
                       return (
                          <div
                            key={cardIndex}
-                           className={`relative transition-all duration-300 w-full min-h-[450px] border section-border bg-[#f6f6f4] dark:bg-[#1b1912] rounded-none ${card.name === 'Growth' ? 'shadow-[0_0_16px_rgba(197,176,205,0.4),0_0_32px_rgba(197,176,205,0.2)]' : ''}`}
+                           className={`relative transition-all duration-300 w-full min-h-[450px] border section-border bg-[#f6f6f4] dark:bg-[#1b1912] rounded-none ${card.name === 'Growth' ? 'shadow-[0_0_8px_rgba(197,176,205,0.2),0_0_16px_rgba(197,176,205,0.1)]' : ''}`}
                          >
                           <div className="p-6 flex flex-col h-full">
                             <div className="flex-grow">

@@ -67,9 +67,9 @@ export default function RuntimeDevicesPage() {
     <DashboardLayout>
       <div className="max-w-7xl mx-auto space-y-6">
         <div className="flex items-center justify-between">
-          <div className="pb-4 border-b border-border-light">
-            <h1 className="text-base font-medium text-gray-900 font-inter">Device Details</h1>
-            <p className="text-gray-600 mt-1 font-inter text-xs">
+          <div className="pb-4 border-b border-border-light dark:border-[#2d2a24]">
+            <h1 className="text-base font-medium text-gray-900 dark:text-[#f6f6f4] font-inter">Device Details</h1>
+            <p className="text-gray-600 dark:text-gray-400 mt-1 font-inter text-xs">
               Deep dive into individual runtime instance metrics and logs
             </p>
           </div>
@@ -81,17 +81,17 @@ export default function RuntimeDevicesPage() {
 
         <div className="grid gap-4 md:grid-cols-2">
           {devices.map((device) => (
-            <Card key={device.id} className="border-border-light shadow-sm">
+            <Card key={device.id} className="border-border-light dark:border-[#2d2a24] shadow-sm">
               <CardHeader>
                 <div className="flex items-center justify-between">
                   <div className="flex items-center gap-3">
-                    <Cpu className="h-4 w-4 text-gray-900" />
+                    <Cpu className="h-4 w-4 text-gray-900 dark:text-[#f6f6f4]" />
                     <div>
                       <CardTitle className="text-xs">{device.name}</CardTitle>
                       <CardDescription className="text-xs mt-1">{device.id}</CardDescription>
                     </div>
                   </div>
-                  <Badge className="bg-gray-50 text-gray-700 border">
+                  <Badge className="bg-gray-50 dark:bg-gray-800 text-gray-700 dark:text-gray-400 border dark:border-gray-700">
                     {device.status}
                   </Badge>
                 </div>
@@ -100,20 +100,20 @@ export default function RuntimeDevicesPage() {
                 <div className="space-y-4">
                   <div className="grid grid-cols-2 gap-3 text-xs">
                     <div>
-                      <span className="text-gray-600">Model:</span>
-                      <div className="font-medium text-gray-900">{device.model}</div>
+                      <span className="text-gray-600 dark:text-gray-400">Model:</span>
+                      <div className="font-medium text-gray-900 dark:text-[#f6f6f4]">{device.model}</div>
                     </div>
                     <div>
-                      <span className="text-gray-600">Version:</span>
-                      <div className="font-medium text-gray-900">{device.version}</div>
+                      <span className="text-gray-600 dark:text-gray-400">Version:</span>
+                      <div className="font-medium text-gray-900 dark:text-[#f6f6f4]">{device.version}</div>
                     </div>
                     <div>
-                      <span className="text-gray-600">Region:</span>
-                      <div className="font-medium text-gray-900">{device.region.toUpperCase()}</div>
+                      <span className="text-gray-600 dark:text-gray-400">Region:</span>
+                      <div className="font-medium text-gray-900 dark:text-[#f6f6f4]">{device.region.toUpperCase()}</div>
                     </div>
                     <div>
-                      <span className="text-gray-600">Uptime:</span>
-                      <div className="font-medium text-gray-900">
+                      <span className="text-gray-600 dark:text-gray-400">Uptime:</span>
+                      <div className="font-medium text-gray-900 dark:text-[#f6f6f4]">
                         {Math.floor(device.uptime / 86400)}d {Math.floor((device.uptime % 86400) / 3600)}h
                       </div>
                     </div>
@@ -122,12 +122,12 @@ export default function RuntimeDevicesPage() {
                   <div className="space-y-2">
                     <div>
                       <div className="flex justify-between text-xs mb-1">
-                        <span className="text-gray-600">CPU</span>
-                        <span className="font-medium text-gray-900">
+                        <span className="text-gray-600 dark:text-gray-400">CPU</span>
+                        <span className="font-medium text-gray-900 dark:text-[#f6f6f4]">
                           {device.cpu_usage.toFixed(1)}%
                         </span>
                       </div>
-                      <div className="w-full bg-gray-200 rounded-full h-2">
+                      <div className="w-full bg-gray-200 dark:bg-gray-800 rounded-full h-2">
                         <svg width="100%" height="8" className="overflow-visible">
                           <defs>
                             <pattern id={`cpu-stripe-${device.id}`} width="2" height="2" patternUnits="userSpaceOnUse" patternTransform="rotate(45)">
@@ -150,12 +150,12 @@ export default function RuntimeDevicesPage() {
 
                     <div>
                       <div className="flex justify-between text-xs mb-1">
-                        <span className="text-gray-600">Memory</span>
-                        <span className="font-medium text-gray-900">
+                        <span className="text-gray-600 dark:text-gray-400">Memory</span>
+                        <span className="font-medium text-gray-900 dark:text-[#f6f6f4]">
                           {device.memory_usage.toFixed(1)}%
                         </span>
                       </div>
-                      <div className="w-full bg-gray-200 rounded-full h-2">
+                      <div className="w-full bg-gray-200 dark:bg-gray-800 rounded-full h-2">
                         <svg width="100%" height="8" className="overflow-visible">
                           <defs>
                             <pattern id={`memory-stripe-${device.id}`} width="2" height="2" patternUnits="userSpaceOnUse" patternTransform="rotate(45)">
@@ -178,10 +178,10 @@ export default function RuntimeDevicesPage() {
 
                     <div>
                       <div className="flex justify-between text-xs mb-1">
-                        <span className="text-gray-600">Disk</span>
-                        <span className="font-medium text-gray-900">{device.disk_usage.toFixed(1)}%</span>
+                        <span className="text-gray-600 dark:text-gray-400">Disk</span>
+                        <span className="font-medium text-gray-900 dark:text-[#f6f6f4]">{device.disk_usage.toFixed(1)}%</span>
                       </div>
-                      <div className="w-full bg-gray-200 rounded-full h-2">
+                      <div className="w-full bg-gray-200 dark:bg-gray-800 rounded-full h-2">
                         <svg width="100%" height="8" className="overflow-visible">
                           <defs>
                             <pattern id={`disk-stripe-${device.id}`} width="2" height="2" patternUnits="userSpaceOnUse" patternTransform="rotate(45)">
@@ -203,11 +203,11 @@ export default function RuntimeDevicesPage() {
                     </div>
                   </div>
 
-                  <div className="bg-beige-primary border border-border-light rounded-lg p-3">
-                    <div className="text-xs text-gray-600 mb-1">Network I/O</div>
+                  <div className="bg-beige-primary dark:bg-[#1b1912] border border-border-light dark:border-[#2d2a24] rounded-lg p-3">
+                    <div className="text-xs text-gray-600 dark:text-gray-400 mb-1">Network I/O</div>
                     <div className="flex justify-between text-xs">
-                      <span className="text-gray-900">In: {device.network_in.toFixed(1)} MB/s</span>
-                      <span className="text-gray-900">Out: {device.network_out.toFixed(1)} MB/s</span>
+                      <span className="text-gray-900 dark:text-[#f6f6f4]">In: {device.network_in.toFixed(1)} MB/s</span>
+                      <span className="text-gray-900 dark:text-[#f6f6f4]">Out: {device.network_out.toFixed(1)} MB/s</span>
                     </div>
                   </div>
 
@@ -237,12 +237,12 @@ export default function RuntimeDevicesPage() {
 
         {/* EscapeVector Status Card for Selected Device */}
         {selectedDevice && (
-          <Card className="border-border-light shadow-sm bg-beige-primary">
+          <Card className="border-border-light dark:border-[#2d2a24] shadow-sm bg-beige-primary dark:bg-[#1b1912]">
             <CardHeader>
               <div className="flex items-center justify-between">
                 <div>
                   <CardTitle className="flex items-center gap-2 text-xs">
-                    <Signal className="h-4 w-4 text-gray-900" />
+                    <Signal className="h-4 w-4 text-gray-900 dark:text-[#f6f6f4]" />
                     EscapeVector on {selectedDevice.name}
                   </CardTitle>
                   <CardDescription className="text-xs">
@@ -251,7 +251,7 @@ export default function RuntimeDevicesPage() {
                 </div>
                 <a
                   href="/dashboard/overture/escapevector"
-                  className="text-xs text-gray-900 hover:text-gray-700 underline flex items-center gap-1"
+                  className="text-xs text-gray-900 dark:text-[#f6f6f4] hover:text-gray-700 dark:hover:text-gray-300 underline flex items-center gap-1"
                 >
                   Manage cache →
                 </a>
@@ -259,29 +259,29 @@ export default function RuntimeDevicesPage() {
             </CardHeader>
             <CardContent>
               <div className="grid grid-cols-2 md:grid-cols-4 gap-4">
-                <div className="p-3 bg-beige-primary rounded-lg border border-border-light">
-                  <div className="text-xs text-gray-600 mb-1">Last Sync</div>
-                  <div className="text-sm font-semibold text-gray-900">45 secs ago</div>
-                  <div className="text-xs text-gray-600 mt-1">Sync active</div>
+                <div className="p-3 bg-beige-primary dark:bg-[#1b1912] rounded-lg border border-border-light dark:border-[#2d2a24]">
+                  <div className="text-xs text-gray-600 dark:text-gray-400 mb-1">Last Sync</div>
+                  <div className="text-sm font-semibold text-gray-900 dark:text-[#f6f6f4]">45 secs ago</div>
+                  <div className="text-xs text-gray-600 dark:text-gray-400 mt-1">Sync active</div>
                 </div>
-                <div className="p-3 bg-beige-primary rounded-lg border border-border-light">
-                  <div className="text-xs text-gray-600 mb-1">TTL Remaining</div>
-                  <div className="text-sm font-semibold text-gray-900">5h 12m</div>
-                  <div className="text-xs text-gray-600 mt-1">Auto-refresh enabled</div>
+                <div className="p-3 bg-beige-primary dark:bg-[#1b1912] rounded-lg border border-border-light dark:border-[#2d2a24]">
+                  <div className="text-xs text-gray-600 dark:text-gray-400 mb-1">TTL Remaining</div>
+                  <div className="text-sm font-semibold text-gray-900 dark:text-[#f6f6f4]">5h 12m</div>
+                  <div className="text-xs text-gray-600 dark:text-gray-400 mt-1">Auto-refresh enabled</div>
                 </div>
-                <div className="p-3 bg-beige-primary rounded-lg border border-border-light">
-                  <div className="text-xs text-gray-600 mb-1">Local Hit Rate</div>
-                  <div className="text-sm font-semibold text-gray-900">91.2%</div>
-                  <div className="text-xs text-gray-600 mt-1">This device only</div>
+                <div className="p-3 bg-beige-primary dark:bg-[#1b1912] rounded-lg border border-border-light dark:border-[#2d2a24]">
+                  <div className="text-xs text-gray-600 dark:text-gray-400 mb-1">Local Hit Rate</div>
+                  <div className="text-sm font-semibold text-gray-900 dark:text-[#f6f6f4]">91.2%</div>
+                  <div className="text-xs text-gray-600 dark:text-gray-400 mt-1">This device only</div>
                 </div>
-                <div className="p-3 bg-beige-primary rounded-lg border border-border-light">
-                  <div className="text-xs text-gray-600 mb-1">Fallback Events</div>
-                  <div className="text-sm font-semibold text-gray-900">23</div>
-                  <div className="text-xs text-gray-600 mt-1">Using cache (24h)</div>
+                <div className="p-3 bg-beige-primary dark:bg-[#1b1912] rounded-lg border border-border-light dark:border-[#2d2a24]">
+                  <div className="text-xs text-gray-600 dark:text-gray-400 mb-1">Fallback Events</div>
+                  <div className="text-sm font-semibold text-gray-900 dark:text-[#f6f6f4]">23</div>
+                  <div className="text-xs text-gray-600 dark:text-gray-400 mt-1">Using cache (24h)</div>
                 </div>
               </div>
-              <div className="mt-3 p-3 bg-blue-50 border border-blue-200 rounded-lg">
-                <p className="text-xs text-blue-900">
+              <div className="mt-3 p-3 bg-blue-50 dark:bg-blue-950 border border-blue-200 dark:border-blue-900 rounded-lg">
+                <p className="text-xs text-blue-900 dark:text-blue-400">
                   <strong>Note:</strong> This device receives EscapeVector cache updates from Overture cloud. Cache enables offline operation and reduces latency for repeated queries.
                 </p>
               </div>
@@ -291,12 +291,12 @@ export default function RuntimeDevicesPage() {
 
         {/* Show EscapeVector status for all devices when no device is selected */}
         {!selectedDevice && (
-          <Card className="border-border-light shadow-sm bg-beige-primary">
+          <Card className="border-border-light dark:border-[#2d2a24] shadow-sm bg-beige-primary dark:bg-[#1b1912]">
             <CardHeader>
               <div className="flex items-center justify-between">
                 <div>
                   <CardTitle className="flex items-center gap-2 text-xs">
-                    <Signal className="h-4 w-4 text-gray-900" />
+                    <Signal className="h-4 w-4 text-gray-900 dark:text-[#f6f6f4]" />
                     EscapeVector Status - All Devices
                   </CardTitle>
                   <CardDescription className="text-xs">
@@ -305,7 +305,7 @@ export default function RuntimeDevicesPage() {
                 </div>
                 <a
                   href="/dashboard/overture/escapevector"
-                  className="text-xs text-gray-900 hover:text-gray-700 underline flex items-center gap-1"
+                  className="text-xs text-gray-900 dark:text-[#f6f6f4] hover:text-gray-700 dark:hover:text-gray-300 underline flex items-center gap-1"
                 >
                   Manage cache →
                 </a>
@@ -314,34 +314,34 @@ export default function RuntimeDevicesPage() {
             <CardContent>
               <div className="space-y-3">
                 {devices.map((device) => (
-                  <div key={device.id} className="p-4 bg-beige-primary rounded-lg border border-border-light">
+                  <div key={device.id} className="p-4 bg-beige-primary dark:bg-[#1b1912] rounded-lg border border-border-light dark:border-[#2d2a24]">
                     <div className="flex items-center justify-between mb-3">
-                      <div className="font-medium text-gray-900 text-xs">{device.name}</div>
-                      <Badge className="bg-gray-50 text-gray-700 border text-xs">Synced</Badge>
+                      <div className="font-medium text-gray-900 dark:text-[#f6f6f4] text-xs">{device.name}</div>
+                      <Badge className="bg-gray-50 dark:bg-gray-800 text-gray-700 dark:text-gray-400 border dark:border-gray-700 text-xs">Synced</Badge>
                     </div>
                     <div className="grid grid-cols-4 gap-3">
                       <div>
-                        <div className="text-xs text-gray-600">Last Sync</div>
-                        <div className="text-xs font-semibold text-gray-900 mt-1">2 mins ago</div>
+                        <div className="text-xs text-gray-600 dark:text-gray-400">Last Sync</div>
+                        <div className="text-xs font-semibold text-gray-900 dark:text-[#f6f6f4] mt-1">2 mins ago</div>
                       </div>
                       <div>
-                        <div className="text-xs text-gray-600">TTL Remaining</div>
-                        <div className="text-xs font-semibold text-gray-900 mt-1">4h 45m</div>
+                        <div className="text-xs text-gray-600 dark:text-gray-400">TTL Remaining</div>
+                        <div className="text-xs font-semibold text-gray-900 dark:text-[#f6f6f4] mt-1">4h 45m</div>
                       </div>
                       <div>
-                        <div className="text-xs text-gray-600">Hit Rate</div>
-                        <div className="text-xs font-semibold text-gray-900 mt-1">89.5%</div>
+                        <div className="text-xs text-gray-600 dark:text-gray-400">Hit Rate</div>
+                        <div className="text-xs font-semibold text-gray-900 dark:text-[#f6f6f4] mt-1">89.5%</div>
                       </div>
                       <div>
-                        <div className="text-xs text-gray-600">Fallbacks</div>
-                        <div className="text-xs font-semibold text-gray-900 mt-1">12</div>
+                        <div className="text-xs text-gray-600 dark:text-gray-400">Fallbacks</div>
+                        <div className="text-xs font-semibold text-gray-900 dark:text-[#f6f6f4] mt-1">12</div>
                       </div>
                     </div>
                   </div>
                 ))}
               </div>
-              <div className="mt-3 p-3 bg-blue-50 border border-blue-200 rounded-lg">
-                <p className="text-xs text-blue-900">
+              <div className="mt-3 p-3 bg-blue-50 dark:bg-blue-950 border border-blue-200 dark:border-blue-900 rounded-lg">
+                <p className="text-xs text-blue-900 dark:text-blue-400">
                   <strong>Tip:</strong> Select "View Logs" on a device card to see device-specific EscapeVector metrics and cache performance.
                 </p>
               </div>

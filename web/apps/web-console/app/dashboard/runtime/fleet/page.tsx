@@ -333,11 +333,11 @@ export default function RuntimeFleetPage() {
 
   const getStatusBadge = (status: string) => {
     const config: Record<string, { label: string; className: string }> = {
-      active: { label: 'Online', className: 'bg-green-50 text-green-700 border-green-200 text-[8px] px-1 py-0' },
-      inactive: { label: 'Offline', className: 'bg-gray-50 text-gray-700 border-gray-200 text-[8px] px-1 py-0' },
-      maintenance: { label: 'Maintenance', className: 'bg-yellow-50 text-yellow-700 border-yellow-200 text-[8px] px-1 py-0' },
+      active: { label: 'Online', className: 'bg-green-50 dark:bg-green-950 text-green-700 dark:text-green-400 border-green-200 dark:border-green-900 text-[8px] px-1 py-0' },
+      inactive: { label: 'Offline', className: 'bg-gray-50 dark:bg-gray-800 text-gray-700 dark:text-gray-400 border-gray-200 dark:border-gray-700 text-[8px] px-1 py-0' },
+      maintenance: { label: 'Maintenance', className: 'bg-yellow-50 dark:bg-yellow-950 text-yellow-700 dark:text-yellow-400 border-yellow-200 dark:border-yellow-900 text-[8px] px-1 py-0' },
     };
-    const { label, className } = config[status] || { label: status, className: 'bg-gray-50 text-gray-700 border text-[8px] px-1 py-0' };
+    const { label, className } = config[status] || { label: status, className: 'bg-gray-50 dark:bg-gray-800 text-gray-700 dark:text-gray-400 border text-[8px] px-1 py-0' };
     return <Badge className={className}>{label}</Badge>;
   };
 
@@ -446,13 +446,13 @@ export default function RuntimeFleetPage() {
       <div className="max-w-7xl mx-auto space-y-6">
         {/* Mock Data Notice */}
         {usingMockData && (
-          <Card className="border-border-light">
+          <Card className="border-border-light dark:border-[#2d2a24]">
             <CardContent className="pt-4 pb-4">
               <div className="flex items-center gap-3">
-                <AlertCircle className="h-4 w-4 text-gray-600" />
+                <AlertCircle className="h-4 w-4 text-gray-600 dark:text-gray-400" />
                 <div className="flex-1">
-                  <h3 className="text-xs font-medium text-gray-900">Displaying Demo Data</h3>
-                  <p className="text-[10px] text-gray-700 mt-1">
+                  <h3 className="text-xs font-medium text-gray-900 dark:text-[#f6f6f4]">Displaying Demo Data</h3>
+                  <p className="text-[10px] text-gray-700 dark:text-gray-400 mt-1">
                     Runtime API is not connected. Showing mock data for preview. Start the Runtime server on port 8080 to see real fleet data.
                   </p>
                 </div>
@@ -467,9 +467,9 @@ export default function RuntimeFleetPage() {
 
         {/* Header */}
         <div className="flex items-center justify-between">
-          <div className="pb-4 border-b border-border-light">
-            <h1 className="text-base font-medium text-gray-900 font-inter">Fleet Overview</h1>
-            <p className="text-gray-600 mt-1 font-inter text-xs">
+          <div className="pb-4 border-b border-border-light dark:border-[#2d2a24]">
+            <h1 className="text-base font-medium text-gray-900 dark:text-[#f6f6f4] font-inter">Fleet Overview</h1>
+            <p className="text-gray-600 dark:text-gray-400 mt-1 font-inter text-xs">
               Real-time status of all Runtime instances running in edge environments
             </p>
           </div>
@@ -487,99 +487,99 @@ export default function RuntimeFleetPage() {
         </div>
 
         {/* Overview KPI Cards */}
-        <div className="bg-beige-primary">
-          <div className="grid grid-cols-5 divide-x divide-border-light">
+        <div className="bg-beige-primary dark:bg-[#1b1912]">
+          <div className="grid grid-cols-5 divide-x divide-border-light dark:divide-[#2d2a24]">
             <div className="p-4">
-              <div className="text-[9px] font-medium text-gray-600 mb-1">Total Devices</div>
-              <div className="text-sm font-bold text-gray-900">{fleetMetrics.totalDevices}</div>
+              <div className="text-[9px] font-medium text-gray-600 dark:text-gray-400 mb-1">Total Devices</div>
+              <div className="text-sm font-bold text-gray-900 dark:text-[#f6f6f4]">{fleetMetrics.totalDevices}</div>
               <div className="flex gap-2 mt-1">
-                <span className="text-[7px] text-gray-600">{fleetMetrics.onlineDevices} online</span>
-                <span className="text-[7px] text-gray-400">•</span>
-                <span className="text-[7px] text-gray-600">{fleetMetrics.offlineDevices} offline</span>
+                <span className="text-[7px] text-gray-600 dark:text-gray-400">{fleetMetrics.onlineDevices} online</span>
+                <span className="text-[7px] text-gray-400 dark:text-gray-500">•</span>
+                <span className="text-[7px] text-gray-600 dark:text-gray-400">{fleetMetrics.offlineDevices} offline</span>
               </div>
             </div>
             <div className="p-4">
-              <div className="text-[9px] font-medium text-gray-600 mb-1">Overall Health</div>
-              <div className="text-sm font-bold text-gray-900 capitalize">{fleetMetrics.overallHealth}</div>
+              <div className="text-[9px] font-medium text-gray-600 dark:text-gray-400 mb-1">Overall Health</div>
+              <div className="text-sm font-bold text-gray-900 dark:text-[#f6f6f4] capitalize">{fleetMetrics.overallHealth}</div>
               <div className="flex gap-2 mt-1">
-                <span className="text-[7px] text-gray-600">{fleetMetrics.healthyDevices} healthy</span>
+                <span className="text-[7px] text-gray-600 dark:text-gray-400">{fleetMetrics.healthyDevices} healthy</span>
                 {fleetMetrics.degradedDevices > 0 && (
                   <>
-                    <span className="text-[7px] text-gray-400">•</span>
-                    <span className="text-[7px] text-yellow-600">{fleetMetrics.degradedDevices} degraded</span>
+                    <span className="text-[7px] text-gray-400 dark:text-gray-500">•</span>
+                    <span className="text-[7px] text-yellow-600 dark:text-yellow-400">{fleetMetrics.degradedDevices} degraded</span>
                   </>
                 )}
               </div>
             </div>
             <div className="p-4">
-              <div className="text-[9px] font-medium text-gray-600 mb-1">Avg Latency</div>
-              <div className="text-sm font-bold text-gray-900">{fleetMetrics.avgLatency}ms</div>
-              <p className="text-[7px] text-gray-600 mt-1">Fleet-wide average</p>
+              <div className="text-[9px] font-medium text-gray-600 dark:text-gray-400 mb-1">Avg Latency</div>
+              <div className="text-sm font-bold text-gray-900 dark:text-[#f6f6f4]">{fleetMetrics.avgLatency}ms</div>
+              <p className="text-[7px] text-gray-600 dark:text-gray-400 mt-1">Fleet-wide average</p>
             </div>
             <div className="p-4">
-              <div className="text-[9px] font-medium text-gray-600 mb-1">Tokens (24h)</div>
-              <div className="text-sm font-bold text-gray-900">{fleetMetrics.totalTokens.toLocaleString()}</div>
-              <p className="text-[7px] text-gray-600 mt-1">Total processed</p>
+              <div className="text-[9px] font-medium text-gray-600 dark:text-gray-400 mb-1">Tokens (24h)</div>
+              <div className="text-sm font-bold text-gray-900 dark:text-[#f6f6f4]">{fleetMetrics.totalTokens.toLocaleString()}</div>
+              <p className="text-[7px] text-gray-600 dark:text-gray-400 mt-1">Total processed</p>
             </div>
             <div className="p-4">
-              <div className="text-[9px] font-medium text-gray-600 mb-1">Fallback Events</div>
-              <div className="text-sm font-bold text-gray-900">{fleetMetrics.fallbackEvents}</div>
-              <p className="text-[7px] text-gray-600 mt-1">Last 24 hours</p>
+              <div className="text-[9px] font-medium text-gray-600 dark:text-gray-400 mb-1">Fallback Events</div>
+              <div className="text-sm font-bold text-gray-900 dark:text-[#f6f6f4]">{fleetMetrics.fallbackEvents}</div>
+              <p className="text-[7px] text-gray-600 dark:text-gray-400 mt-1">Last 24 hours</p>
             </div>
           </div>
         </div>
 
         {/* Fleet Health Summary */}
-        <Card className="border-border-light shadow-sm bg-beige-primary">
+        <Card className="border-border-light dark:border-[#2d2a24] shadow-sm bg-beige-primary dark:bg-[#1b1912]">
           <CardHeader>
-            <CardTitle className="text-sm font-medium text-gray-900">Fleet Health Summary</CardTitle>
+            <CardTitle className="text-sm font-medium text-gray-900 dark:text-[#f6f6f4]">Fleet Health Summary</CardTitle>
             <CardDescription className="text-[10px]">Device status breakdown and health metrics</CardDescription>
           </CardHeader>
           <CardContent>
             <div className="grid grid-cols-2 md:grid-cols-4 gap-4">
-              <div className="p-3 bg-beige-primary rounded-lg border border-border-light">
+              <div className="p-3 bg-beige-primary dark:bg-[#1b1912] rounded-lg border border-border-light dark:border-[#2d2a24]">
                 <div className="flex items-center gap-2 mb-1">
-                  <CheckCircle className="h-3.5 w-3.5 text-green-600" />
-                  <div className="text-[8px] text-gray-600">Online Devices</div>
+                  <CheckCircle className="h-3.5 w-3.5 text-green-600 dark:text-green-400" />
+                  <div className="text-[8px] text-gray-600 dark:text-gray-400">Online Devices</div>
                 </div>
-                <div className="text-xs font-semibold text-gray-900">{fleetMetrics.onlineDevices}</div>
-                <div className="text-[7px] text-gray-600 mt-0.5">Active and responding</div>
+                <div className="text-xs font-semibold text-gray-900 dark:text-[#f6f6f4]">{fleetMetrics.onlineDevices}</div>
+                <div className="text-[7px] text-gray-600 dark:text-gray-400 mt-0.5">Active and responding</div>
               </div>
 
-              <div className="p-3 bg-beige-primary rounded-lg border border-border-light">
+              <div className="p-3 bg-beige-primary dark:bg-[#1b1912] rounded-lg border border-border-light dark:border-[#2d2a24]">
                 <div className="flex items-center gap-2 mb-1">
-                  <XCircle className="h-3.5 w-3.5 text-gray-600" />
-                  <div className="text-[8px] text-gray-600">Offline Devices</div>
+                  <XCircle className="h-3.5 w-3.5 text-gray-600 dark:text-gray-400" />
+                  <div className="text-[8px] text-gray-600 dark:text-gray-400">Offline Devices</div>
                 </div>
-                <div className="text-xs font-semibold text-gray-900">{fleetMetrics.offlineDevices}</div>
-                <div className="text-[7px] text-gray-600 mt-0.5">No recent heartbeat</div>
+                <div className="text-xs font-semibold text-gray-900 dark:text-[#f6f6f4]">{fleetMetrics.offlineDevices}</div>
+                <div className="text-[7px] text-gray-600 dark:text-gray-400 mt-0.5">No recent heartbeat</div>
               </div>
 
-              <div className="p-3 bg-beige-primary rounded-lg border border-border-light">
+              <div className="p-3 bg-beige-primary dark:bg-[#1b1912] rounded-lg border border-border-light dark:border-[#2d2a24]">
                 <div className="flex items-center gap-2 mb-1">
-                  <AlertTriangle className="h-3.5 w-3.5 text-yellow-600" />
-                  <div className="text-[8px] text-gray-600">Degraded Devices</div>
+                  <AlertTriangle className="h-3.5 w-3.5 text-yellow-600 dark:text-yellow-400" />
+                  <div className="text-[8px] text-gray-600 dark:text-gray-400">Degraded Devices</div>
                 </div>
-                <div className="text-xs font-semibold text-gray-900">{fleetMetrics.degradedDevices}</div>
-                <div className="text-[7px] text-gray-600 mt-0.5">Performance issues</div>
+                <div className="text-xs font-semibold text-gray-900 dark:text-[#f6f6f4]">{fleetMetrics.degradedDevices}</div>
+                <div className="text-[7px] text-gray-600 dark:text-gray-400 mt-0.5">Performance issues</div>
               </div>
 
-              <div className="p-3 bg-beige-primary rounded-lg border border-border-light">
+              <div className="p-3 bg-beige-primary dark:bg-[#1b1912] rounded-lg border border-border-light dark:border-[#2d2a24]">
                 <div className="flex items-center gap-2 mb-1">
-                  <Signal className="h-3.5 w-3.5 text-gray-900" />
-                  <div className="text-[8px] text-gray-600">Swarm Status</div>
+                  <Signal className="h-3.5 w-3.5 text-gray-900 dark:text-[#f6f6f4]" />
+                  <div className="text-[8px] text-gray-600 dark:text-gray-400">Swarm Status</div>
                 </div>
-                <div className="text-xs font-semibold text-gray-900">N/A</div>
-                <div className="text-[7px] text-gray-600 mt-0.5">No active swarms</div>
+                <div className="text-xs font-semibold text-gray-900 dark:text-[#f6f6f4]">N/A</div>
+                <div className="text-[7px] text-gray-600 dark:text-gray-400 mt-0.5">No active swarms</div>
               </div>
             </div>
           </CardContent>
         </Card>
 
         {/* Quick Actions */}
-        <Card className="border-border-light shadow-sm">
+        <Card className="border-border-light dark:border-[#2d2a24] shadow-sm">
           <CardHeader>
-            <CardTitle className="text-sm font-medium text-gray-900">Quick Actions</CardTitle>
+            <CardTitle className="text-sm font-medium text-gray-900 dark:text-[#f6f6f4]">Quick Actions</CardTitle>
             <CardDescription className="text-xs">Manage fleet instances and configuration</CardDescription>
           </CardHeader>
           <CardContent>
@@ -607,11 +607,11 @@ export default function RuntimeFleetPage() {
             </div>
 
             {showAddInstanceModal && (
-              <div className="mt-4 p-4 bg-beige-primary border border-border-light rounded-lg">
+              <div className="mt-4 p-4 bg-beige-primary dark:bg-[#1b1912] border border-border-light dark:border-[#2d2a24] rounded-lg">
                 <div className="flex items-start justify-between mb-3">
                   <div>
-                    <h4 className="text-sm font-medium text-gray-900">Add New Runtime Instance</h4>
-                    <p className="text-xs text-gray-600 mt-1">Add fleet configuration to your config.json5:</p>
+                    <h4 className="text-sm font-medium text-gray-900 dark:text-[#f6f6f4]">Add New Runtime Instance</h4>
+                    <p className="text-xs text-gray-600 dark:text-gray-400 mt-1">Add fleet configuration to your config.json5:</p>
                   </div>
                   <Button
                     variant="ghost"
@@ -623,7 +623,7 @@ export default function RuntimeFleetPage() {
                   </Button>
                 </div>
                 <div className="relative">
-                  <pre className="bg-beige-primary border border-border-light p-3 rounded text-xs overflow-x-auto text-gray-900">{`fleet: {
+                  <pre className="bg-beige-primary dark:bg-[#1b1912] border border-border-light dark:border-[#2d2a24] p-3 rounded text-xs overflow-x-auto text-gray-900 dark:text-[#f6f6f4]">{`fleet: {
   enabled: true,
   overture_endpoint: "${typeof window !== 'undefined' ? window.location.origin : 'http://localhost:8080'}",
   agent_id: "runtime-edge-001",
@@ -655,11 +655,11 @@ export default function RuntimeFleetPage() {
                     }}
                     className="absolute top-2 right-2 h-6 w-6 p-0"
                   >
-                    {commandCopied ? <Check className="h-3 w-3 text-green-600" /> : <Copy className="h-3 w-3" />}
+                    {commandCopied ? <Check className="h-3 w-3 text-green-600 dark:text-green-400" /> : <Copy className="h-3 w-3" />}
                   </Button>
                 </div>
-                <p className="text-xs text-gray-600 mt-2">
-                  Then run: <code className="bg-gray-100 px-1 rounded">cargo run --release</code>
+                <p className="text-xs text-gray-600 dark:text-gray-400 mt-2">
+                  Then run: <code className="bg-gray-100 dark:bg-gray-800 px-1 rounded">cargo run --release</code>
                 </p>
               </div>
             )}
@@ -667,11 +667,11 @@ export default function RuntimeFleetPage() {
         </Card>
 
         {/* Device List Table */}
-        <Card className="border-border-light shadow-sm">
+        <Card className="border-border-light dark:border-[#2d2a24] shadow-sm">
           <CardHeader>
             <div className="flex items-center justify-between">
               <div>
-                <CardTitle className="text-sm font-medium text-gray-900">Runtime Instances</CardTitle>
+                <CardTitle className="text-sm font-medium text-gray-900 dark:text-[#f6f6f4]">Runtime Instances</CardTitle>
                 <CardDescription className="text-xs">
                   {filteredAgents.length} of {totalAgents} devices {searchTerm || statusFilter !== 'all' || healthFilter !== 'all' ? '(filtered)' : ''}
                 </CardDescription>
@@ -682,7 +682,7 @@ export default function RuntimeFleetPage() {
                   placeholder="Search devices..."
                   value={searchTerm}
                   onChange={(e) => setSearchTerm(e.target.value)}
-                  className="px-3 py-1 text-xs border border-border-light rounded-md bg-beige-primary focus:outline-none"
+                  className="px-3 py-1 text-xs border border-border-light dark:border-[#2d2a24] rounded-md bg-beige-primary dark:bg-[#1b1912] text-gray-900 dark:text-[#f6f6f4] focus:outline-none"
                 />
                 <DropdownMenu>
                   <DropdownMenuTrigger asChild>
@@ -717,13 +717,13 @@ export default function RuntimeFleetPage() {
           <CardContent>
             {filteredAgents.length === 0 ? (
               <div className="text-center py-8">
-                <Server className="h-8 w-8 text-gray-400 mx-auto mb-3" />
-                <h3 className="text-sm font-medium text-gray-900 mb-1">
+                <Server className="h-8 w-8 text-gray-400 dark:text-gray-500 mx-auto mb-3" />
+                <h3 className="text-sm font-medium text-gray-900 dark:text-[#f6f6f4] mb-1">
                   {searchTerm || statusFilter !== 'all' || healthFilter !== 'all'
                     ? 'No devices match your filters'
                     : 'No runtime instances registered yet'}
                 </h3>
-                <p className="text-xs text-gray-600 mb-3">
+                <p className="text-xs text-gray-600 dark:text-gray-400 mb-3">
                   {searchTerm || statusFilter !== 'all' || healthFilter !== 'all'
                     ? 'Try adjusting your search or filters'
                     : 'Add your first Runtime instance to get started'}
@@ -744,48 +744,48 @@ export default function RuntimeFleetPage() {
               <div className="overflow-x-auto">
                 <table className="w-full text-[9px]">
                   <thead>
-                    <tr className="border-b border-border-light">
+                    <tr className="border-b border-border-light dark:border-[#2d2a24]">
                       <th
-                        className="text-left py-1.5 px-2 font-medium text-gray-600 cursor-pointer hover:text-gray-900 text-[8px]"
+                        className="text-left py-1.5 px-2 font-medium text-gray-600 dark:text-gray-400 cursor-pointer hover:text-gray-900 dark:hover:text-[#f6f6f4] text-[8px]"
                         onClick={() => handleSort('hostname')}
                       >
                         Device {sortBy === 'hostname' && (sortOrder === 'asc' ? '↑' : '↓')}
                       </th>
-                      <th className="text-left py-1.5 px-2 font-medium text-gray-600 text-[8px]">Region</th>
-                      <th className="text-left py-1.5 px-2 font-medium text-gray-600 text-[8px]">Status</th>
+                      <th className="text-left py-1.5 px-2 font-medium text-gray-600 dark:text-gray-400 text-[8px]">Region</th>
+                      <th className="text-left py-1.5 px-2 font-medium text-gray-600 dark:text-gray-400 text-[8px]">Status</th>
                       <th
-                        className="text-left py-1.5 px-2 font-medium text-gray-600 cursor-pointer hover:text-gray-900 text-[8px]"
+                        className="text-left py-1.5 px-2 font-medium text-gray-600 dark:text-gray-400 cursor-pointer hover:text-gray-900 dark:hover:text-[#f6f6f4] text-[8px]"
                         onClick={() => handleSort('health')}
                       >
                         Health {sortBy === 'health' && (sortOrder === 'asc' ? '↑' : '↓')}
                       </th>
-                      <th className="text-left py-1.5 px-2 font-medium text-gray-600 text-[8px]">Requests/Latency</th>
-                      <th className="text-left py-1.5 px-2 font-medium text-gray-600 text-[8px]">Version</th>
+                      <th className="text-left py-1.5 px-2 font-medium text-gray-600 dark:text-gray-400 text-[8px]">Requests/Latency</th>
+                      <th className="text-left py-1.5 px-2 font-medium text-gray-600 dark:text-gray-400 text-[8px]">Version</th>
                       <th
-                        className="text-left py-1.5 px-2 font-medium text-gray-600 cursor-pointer hover:text-gray-900 text-[8px]"
+                        className="text-left py-1.5 px-2 font-medium text-gray-600 dark:text-gray-400 cursor-pointer hover:text-gray-900 dark:hover:text-[#f6f6f4] text-[8px]"
                         onClick={() => handleSort('last_seen')}
                       >
                         Last Seen {sortBy === 'last_seen' && (sortOrder === 'asc' ? '↑' : '↓')}
                       </th>
-                      <th className="text-left py-1.5 px-2 font-medium text-gray-600 text-[8px]">Actions</th>
+                      <th className="text-left py-1.5 px-2 font-medium text-gray-600 dark:text-gray-400 text-[8px]">Actions</th>
                     </tr>
                   </thead>
                   <tbody>
                     {filteredAgents.map((agent) => (
-                      <tr key={agent.agent_id} className="border-b border-border-light hover:bg-beige-primary">
+                      <tr key={agent.agent_id} className="border-b border-border-light dark:border-[#2d2a24] hover:bg-beige-primary dark:hover:bg-[#25231e]">
                         <td className="py-1.5 px-2">
                           <div>
-                            <div className="font-medium text-gray-900 text-[9px]">{agent.hostname}</div>
-                            <div className="text-gray-600 text-[7px] font-mono">{agent.agent_id}</div>
+                            <div className="font-medium text-gray-900 dark:text-[#f6f6f4] text-[9px]">{agent.hostname}</div>
+                            <div className="text-gray-600 dark:text-gray-400 text-[7px] font-mono">{agent.agent_id}</div>
                           </div>
                         </td>
                         <td className="py-1.5 px-2">
                           <div className="flex items-center gap-1">
-                            <MapPin className="h-2.5 w-2.5 text-gray-500" />
-                            <span className="text-gray-900 text-[9px]">{agent.region || 'N/A'}</span>
+                            <MapPin className="h-2.5 w-2.5 text-gray-500 dark:text-gray-400" />
+                            <span className="text-gray-900 dark:text-[#f6f6f4] text-[9px]">{agent.region || 'N/A'}</span>
                           </div>
                           {agent.availability_zone && (
-                            <div className="text-gray-600 text-[7px] mt-0.5">AZ: {agent.availability_zone}</div>
+                            <div className="text-gray-600 dark:text-gray-400 text-[7px] mt-0.5">AZ: {agent.availability_zone}</div>
                           )}
                         </td>
                         <td className="py-1.5 px-2">{getStatusBadge(agent.status)}</td>
@@ -793,9 +793,9 @@ export default function RuntimeFleetPage() {
                           <div className="flex items-center gap-1.5">
                             {getHealthBadge(agent.health)}
                             <div>
-                              <div className="capitalize text-gray-900 text-[9px]">{agent.health}</div>
+                              <div className="capitalize text-gray-900 dark:text-[#f6f6f4] text-[9px]">{agent.health}</div>
                               {agent.error_rate !== undefined && (
-                                <div className="text-gray-600 text-[7px]">{agent.error_rate.toFixed(2)}% errors</div>
+                                <div className="text-gray-600 dark:text-gray-400 text-[7px]">{agent.error_rate.toFixed(2)}% errors</div>
                               )}
                             </div>
                           </div>
@@ -803,29 +803,29 @@ export default function RuntimeFleetPage() {
                         <td className="py-1.5 px-2">
                           <div className="space-y-0.5">
                             {agent.requests_processed !== undefined && (
-                              <div className="flex items-center gap-1 text-gray-900 text-[9px]">
-                                <Activity className="h-2.5 w-2.5 text-gray-500" />
+                              <div className="flex items-center gap-1 text-gray-900 dark:text-[#f6f6f4] text-[9px]">
+                                <Activity className="h-2.5 w-2.5 text-gray-500 dark:text-gray-400" />
                                 <span>{(agent.requests_processed / 1000).toFixed(1)}K reqs</span>
                               </div>
                             )}
                             {agent.avg_latency !== undefined && (
-                              <div className="text-gray-600 text-[7px]">{agent.avg_latency.toFixed(0)}ms avg</div>
+                              <div className="text-gray-600 dark:text-gray-400 text-[7px]">{agent.avg_latency.toFixed(0)}ms avg</div>
                             )}
                             {agent.active_requests !== undefined && (
-                              <div className="text-gray-600 text-[7px]">{agent.active_requests} active</div>
+                              <div className="text-gray-600 dark:text-gray-400 text-[7px]">{agent.active_requests} active</div>
                             )}
                           </div>
                         </td>
                         <td className="py-1.5 px-2">
-                          <code className="text-[8px] bg-gray-100 px-1 py-0.5 rounded">{agent.version}</code>
+                          <code className="text-[8px] bg-gray-100 dark:bg-gray-800 px-1 py-0.5 rounded">{agent.version}</code>
                         </td>
                         <td className="py-1.5 px-2">
                           <div className="space-y-0.5">
-                            <div className="flex items-center gap-1.5 text-gray-900 text-[9px]">
+                            <div className="flex items-center gap-1.5 text-gray-900 dark:text-[#f6f6f4] text-[9px]">
                               <Clock className="h-2.5 w-2.5" />
                               {getRelativeTime(agent.last_seen)}
                             </div>
-                            <div className="text-gray-600 text-[7px]">{formatDateTime(agent.last_seen)}</div>
+                            <div className="text-gray-600 dark:text-gray-400 text-[7px]">{formatDateTime(agent.last_seen)}</div>
                           </div>
                         </td>
                         <td className="py-1.5 px-2">
@@ -850,12 +850,12 @@ export default function RuntimeFleetPage() {
         </Card>
 
         {/* EscapeVector Status */}
-        <Card className="border-border-light shadow-sm bg-beige-primary">
+        <Card className="border-border-light dark:border-[#2d2a24] shadow-sm bg-beige-primary dark:bg-[#1b1912]">
           <CardHeader>
             <div className="flex items-center justify-between">
               <div>
                 <CardTitle className="flex items-center gap-2 text-sm">
-                  <Signal className="h-3.5 w-3.5 text-gray-900" />
+                  <Signal className="h-3.5 w-3.5 text-gray-900 dark:text-[#f6f6f4]" />
                   EscapeVector Status (Fleet-Wide)
                 </CardTitle>
                 <CardDescription className="text-[10px]">
@@ -864,7 +864,7 @@ export default function RuntimeFleetPage() {
               </div>
               <a
                 href="/dashboard/runtime/escape"
-                className="text-[10px] text-gray-900 hover:text-gray-700 underline flex items-center gap-1"
+                className="text-[10px] text-gray-900 dark:text-[#f6f6f4] hover:text-gray-700 dark:hover:text-gray-300 underline flex items-center gap-1"
               >
                 Manage cache →
               </a>
@@ -872,29 +872,29 @@ export default function RuntimeFleetPage() {
           </CardHeader>
           <CardContent>
             <div className="grid grid-cols-2 md:grid-cols-4 gap-4">
-              <div className="p-3 bg-beige-primary rounded-lg border border-border-light">
-                <div className="text-[8px] text-gray-600 mb-1">Last Sync</div>
-                <div className="text-[10px] font-medium text-gray-900">2 mins ago</div>
-                <div className="text-[7px] text-gray-600 mt-0.5">All instances synced</div>
+              <div className="p-3 bg-beige-primary dark:bg-[#1b1912] rounded-lg border border-border-light dark:border-[#2d2a24]">
+                <div className="text-[8px] text-gray-600 dark:text-gray-400 mb-1">Last Sync</div>
+                <div className="text-[10px] font-medium text-gray-900 dark:text-[#f6f6f4]">2 mins ago</div>
+                <div className="text-[7px] text-gray-600 dark:text-gray-400 mt-0.5">All instances synced</div>
               </div>
-              <div className="p-3 bg-beige-primary rounded-lg border border-border-light">
-                <div className="text-[8px] text-gray-600 mb-1">TTL Remaining</div>
-                <div className="text-[10px] font-medium text-gray-900">4h 23m</div>
-                <div className="text-[7px] text-gray-600 mt-0.5">Next refresh: 6h</div>
+              <div className="p-3 bg-beige-primary dark:bg-[#1b1912] rounded-lg border border-border-light dark:border-[#2d2a24]">
+                <div className="text-[8px] text-gray-600 dark:text-gray-400 mb-1">TTL Remaining</div>
+                <div className="text-[10px] font-medium text-gray-900 dark:text-[#f6f6f4]">4h 23m</div>
+                <div className="text-[7px] text-gray-600 dark:text-gray-400 mt-0.5">Next refresh: 6h</div>
               </div>
-              <div className="p-3 bg-beige-primary rounded-lg border border-border-light">
-                <div className="text-[8px] text-gray-600 mb-1">Avg Hit Rate</div>
-                <div className="text-[10px] font-medium text-gray-900">87.3%</div>
-                <div className="text-[7px] text-gray-600 mt-0.5">Across all instances</div>
+              <div className="p-3 bg-beige-primary dark:bg-[#1b1912] rounded-lg border border-border-light dark:border-[#2d2a24]">
+                <div className="text-[8px] text-gray-600 dark:text-gray-400 mb-1">Avg Hit Rate</div>
+                <div className="text-[10px] font-medium text-gray-900 dark:text-[#f6f6f4]">87.3%</div>
+                <div className="text-[7px] text-gray-600 dark:text-gray-400 mt-0.5">Across all instances</div>
               </div>
-              <div className="p-3 bg-beige-primary rounded-lg border border-border-light">
-                <div className="text-[8px] text-gray-600 mb-1">Fallback Events</div>
-                <div className="text-[10px] font-medium text-gray-900">{fleetMetrics.fallbackEvents}</div>
-                <div className="text-[7px] text-gray-600 mt-0.5">Using cache (24h)</div>
+              <div className="p-3 bg-beige-primary dark:bg-[#1b1912] rounded-lg border border-border-light dark:border-[#2d2a24]">
+                <div className="text-[8px] text-gray-600 dark:text-gray-400 mb-1">Fallback Events</div>
+                <div className="text-[10px] font-medium text-gray-900 dark:text-[#f6f6f4]">{fleetMetrics.fallbackEvents}</div>
+                <div className="text-[7px] text-gray-600 dark:text-gray-400 mt-0.5">Using cache (24h)</div>
               </div>
             </div>
-            <div className="mt-3 p-3 border border-border-light rounded-lg">
-              <p className="text-[9px] text-gray-900">
+            <div className="mt-3 p-3 border border-border-light dark:border-[#2d2a24] rounded-lg">
+              <p className="text-[9px] text-gray-900 dark:text-[#f6f6f4]">
                 <strong>Note:</strong> EscapeVector cache is synchronized from Overture cloud to all runtime instances.
                 Cache entries are shared across the fleet for offline resilience.
               </p>
