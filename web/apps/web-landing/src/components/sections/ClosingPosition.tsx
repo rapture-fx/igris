@@ -27,6 +27,15 @@ export default function ClosingPosition() {
               opacity: 0.5
             }}></div>
 
+            {/* cp.png - background image (contained within frame) */}
+            <div className="absolute inset-2 pointer-events-none" style={{
+              backgroundImage: 'url(/cp.png)',
+              backgroundSize: 'cover',
+              backgroundPosition: 'center',
+              backgroundRepeat: 'no-repeat',
+              opacity: 0.9
+            }}></div>
+
 
 
             <div className="w-full flex flex-row items-center justify-between relative z-10">
