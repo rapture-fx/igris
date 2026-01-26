@@ -87,7 +87,7 @@ export default function Faq() {
     return (
      <section id="faq" className="bg-[#f6f6f4] dark:bg-dark-bg text-gray-900 dark:text-[#f6f6f4] transition-colors duration-200">
        <div className="max-w-[1100px] mx-auto px-4 sm:px-6 lg:px-8">
-         <div className="relative px-4 md:px-8 lg:px-12 border-l border-r section-border bg-[#f6f6f4] dark:bg-[#1b1912] min-h-[750px] md:h-auto">
+          <div className="relative px-4 md:px-8 lg:px-12 border-l border-r border-b section-border bg-[#f6f6f4] dark:bg-[#1b1912] min-h-[750px] md:h-auto">
 
            {/* Mobile Layout - Title first, then FAQ items */}
            <div className="mb-6 md:mb-0 md:hidden text-left" style={{ paddingTop: '3rem', paddingBottom: '3rem' }}>

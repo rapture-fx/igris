@@ -625,6 +625,204 @@ circuit_breaker_state{name="openai"}
 
 </EndpointBlock>
 
+## Execution Signing API (Hybrid Integration)
+
+Runtime signs execution envelopes for cryptographic verification with Overture.
+
+<EndpointBlock method="POST" path="/v1/execution/sign">
+
+### Sign Execution Result
+
+Sign an execution result for cryptographic verification. Used for Hybrid integration.
+
+**Request:**
+```json
+{
+  "decision_id": "dec_abc123",
+  "decision_hash": "sha256:a8f3c2...",
+  "result": {
+    "provider": "anthropic",
+    "model": "claude-3-opus",
+    "latency_ms": 234,
+    "tokens_used": 1247,
+    "cost_usd": 0.0187,
+    "success": true
+  }
+}
+```
+
+**Response:**
+```json
+{
+  "execution_id": "exec_xyz789",
+  "signed_envelope": {
+    "execution_id": "exec_xyz789",
+    "decision_id": "dec_abc123",
+    "decision_hash": "sha256:a8f3c2...",
+    "result": {...},
+    "timestamp": "2026-01-26T12:00:00Z",
+    "signature": "ed25519:b3e7f1..."
+  }
+}
+```
+
+</EndpointBlock>
+
+<EndpointBlock method="POST" path="/v1/execution/verify-decision">
+
+### Verify Routing Decision
+
+Verify a signed routing decision from Overture before execution.
+
+**Request:**
+```json
+{
+  "signed_decision": {
+    "decision_id": "dec_abc123",
+    "timestamp": "2026-01-26T12:00:00Z",
+    "selected_provider": "anthropic",
+    "tenant_id": "tenant_xyz",
+    "nonce": "nonce_123",
+    "signature": "ed25519:a8f3c2..."
+  },
+  "tenant_public_key": "base64:MCowBQYDK2VwAyEA..."
+}
+```
+
+**Response:**
+```json
+{
+  "verified": true,
+  "decision_id": "dec_abc123",
+  "selected_provider": "anthropic",
+  "timestamp_valid": true,
+  "signature_valid": true,
+  "nonce_valid": true
+}
+```
+
+</EndpointBlock>
+
+<EndpointBlock method="GET" path="/v1/crypto/keypair">
+
+### Get Runtime Keypair Info
+
+Get information about the Runtime's signing keypair.
+
+**Response:**
+```json
+{
+  "public_key": "base64:MCowBQYDK2VwAyEA...",
+  "algorithm": "Ed25519",
+  "key_id": "runtime_key_abc123",
+  "created_at": "2026-01-01T00:00:00Z"
+}
+```
+
+</EndpointBlock>
+
+<EndpointBlock method="POST" path="/v1/crypto/keypair/rotate">
+
+### Rotate Runtime Keypair
+
+Generate a new signing keypair for the Runtime.
+
+**Request:**
+```json
+{
+  "confirm": true
+}
+```
+
+**Response:**
+```json
+{
+  "new_key_id": "runtime_key_xyz789",
+  "new_public_key": "base64:MCowBQYDK2VwAyEA...",
+  "old_key_id": "runtime_key_abc123",
+  "rotated_at": "2026-01-26T12:00:00Z"
+}
+```
+
+</EndpointBlock>
+
+## Fleet Management API
+
+Manage Runtime fleet registration and telemetry with Overture.
+
+<EndpointBlock method="POST" path="/v1/fleet/register">
+
+### Register with Fleet
+
+Register this Runtime instance with the Overture fleet manager.
+
+**Request:**
+```json
+{
+  "fleet_id": "fleet_abc123",
+  "agent_name": "runtime-prod-01",
+  "capabilities": {
+    "local_llm": true,
+    "gpu_available": true,
+    "models": ["phi3", "llama3"]
+  },
+  "overture_endpoint": "https://api.igrisinertial.com"
+}
+```
+
+**Response:**
+```json
+{
+  "registered": true,
+  "agent_id": "agent_xyz789",
+  "fleet_id": "fleet_abc123",
+  "heartbeat_interval_seconds": 30,
+  "config_version": 1
+}
+```
+
+</EndpointBlock>
+
+<EndpointBlock method="POST" path="/v1/fleet/heartbeat">
+
+### Send Heartbeat
+
+Send a health heartbeat to the fleet manager.
+
+**Response:**
+```json
+{
+  "acknowledged": true,
+  "config_update_available": false,
+  "next_heartbeat_seconds": 30
+}
+```
+
+</EndpointBlock>
+
+<EndpointBlock method="GET" path="/v1/fleet/config">
+
+### Get Fleet Configuration
+
+Get the current fleet configuration for this Runtime.
+
+**Response:**
+```json
+{
+  "config_version": 1,
+  "routing_policy": "thompson-sampling",
+  "providers_enabled": ["openai", "anthropic", "local"],
+  "local_model_config": {
+    "model": "phi3",
+    "n_gpu_layers": 0,
+    "context_size": 4096
+  },
+  "fallback_enabled": true
+}
+```
+
+</EndpointBlock>
+
 ## Admin Endpoints
 
 <EndpointBlock method="POST" path="/admin/routing/reset">

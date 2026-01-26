@@ -78,7 +78,7 @@ export default function Header() {
           <div className="flex items-center">
             <Link href="/" className="flex items-center">
               <img
-                  src={mounted && theme === 'dark' ? '/dmnav.png' : '/oklog.png'}
+                  src="/ii.png"
                    alt="Igris Inertial"
                    style={{ width: '80px', height: 'auto' }}
                  />

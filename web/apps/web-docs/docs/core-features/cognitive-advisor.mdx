@@ -2,7 +2,7 @@
 
 **Your AI routing gets smarter every day — automatically.**
 
-Igris Overture analyzes provider performance and suggests optimizations. Every recommendation includes clear reasoning, projected impact, and zero risk of auto-execution.
+Igris Overture analyzes provider performance and suggests optimizations. Every recommendation includes clear reasoning, projected impact, and risk scoring. Choose human-in-the-loop approval or enable auto-apply with automatic rollback protection.
 
 ---
 
@@ -45,20 +45,31 @@ The system continuously analyzes:
 - **Traffic Patterns**: Historical trends and anomalies
 - **Routing Decisions**: Thompson Sampling effectiveness
 
-### Human-in-the-Loop
+### Two Approval Modes
 
-Every recommendation requires your approval:
-- **No Auto-Execution**: Proposals never apply automatically
+Choose the approval mode that fits your workflow:
+
+**Human-in-the-Loop (Default):**
+- **Manual Review**: Proposals require explicit approval
 - **Clear Reasoning**: Understand why changes are suggested
-- **Risk Assessment**: See confidence scores and potential downsides
+- **Risk Assessment**: See confidence and risk scores
 - **One-Click Apply**: Approve recommendations you trust
 
-### Projected Impact
+**Auto-Apply with Rollback Protection (Opt-in):**
+- **Automatic Execution**: High-confidence, low-risk proposals apply automatically
+- **Configurable Thresholds**: Set minimum confidence (default: 0.90) and max risk (default: 0.30)
+- **Automatic Rollback**: Reverts changes if performance degrades >10%
+- **1-Hour Monitoring Window**: Changes monitored for degradation before becoming permanent
 
-Know exactly what will happen before you approve:
+### Confidence & Risk Scoring
+
+Every proposal includes quantified confidence and risk:
 
 ```json
 {
+  "proposal_id": "prop_abc123",
+  "confidence": 0.92,
+  "risk_score": 0.15,
   "projected_impact": {
     "latency_p95_reduction_pct": 35.6,
     "cost_saving_usd_monthly": 124.50,
@@ -66,6 +77,17 @@ Know exactly what will happen before you approve:
   }
 }
 ```
+
+**Confidence Score (0.0 - 1.0):** Statistical certainty in the recommendation based on sample size and variance.
+
+**Risk Score (0.0 - 1.0):** Potential for negative impact, calculated from weight change magnitude and historical variance.
+
+| Confidence | Risk | Recommendation |
+|------------|------|----------------|
+| >0.90 | <0.20 | Safe for auto-apply |
+| >0.85 | <0.30 | Recommended for approval |
+| >0.75 | <0.50 | Review carefully |
+| <0.75 | >0.50 | Extra scrutiny needed |
 
 ---
 
@@ -285,15 +307,17 @@ Track proposal accuracy:
 
 ## Safety Guarantees
 
-**No Auto-Execution**: All proposals require explicit approval
+**Default Human Approval**: Proposals require explicit approval unless auto-apply is enabled
 
-**Confidence Thresholds**: Low-confidence proposals flagged for review
+**Confidence & Risk Scoring**: Every proposal quantifies certainty and potential downside
 
-**Risk Assessment**: High-risk changes get extra validation
+**Auto-Rollback Protection**: Auto-applied changes revert automatically if performance degrades
 
-**Audit Trail**: Complete history of all proposals and approvals
+**Monitoring Window**: 1-hour observation period before changes become permanent
 
-**Easy Rollback**: Previous configurations saved automatically
+**Audit Trail**: Complete history of all proposals, approvals, and rollbacks
+
+**Easy Manual Rollback**: Previous configurations saved and restorable anytime
 
 ---
 
@@ -309,6 +333,58 @@ Settings → Features → Cognitive Advisor → Enable
 - Analysis Interval: 15-60 minutes (default: 15)
 - Minimum Confidence: 0.5-0.95 (default: 0.75)
 - Auto-Notify: Email when proposals are ready
+
+### Auto-Apply Configuration (Scale Tier)
+
+Enable automatic execution with rollback protection:
+
+```bash
+PUT /v1/cognitive/config
+{
+  "auto_apply_enabled": true,
+  "auto_apply_threshold": 0.90,
+  "max_risk_score": 0.30,
+  "rollback_window_hours": 1,
+  "latency_degradation_threshold": 0.10,
+  "error_rate_degradation_threshold": 0.05,
+  "cost_degradation_threshold": 0.10
+}
+```
+
+**Auto-Apply Settings:**
+
+| Setting | Default | Description |
+|---------|---------|-------------|
+| `auto_apply_enabled` | `false` | Enable automatic proposal execution |
+| `auto_apply_threshold` | `0.90` | Minimum confidence for auto-apply |
+| `max_risk_score` | `0.30` | Maximum risk score for auto-apply |
+| `rollback_window_hours` | `1` | Monitoring window before changes are permanent |
+| `latency_degradation_threshold` | `0.10` | Rollback if p95 latency increases >10% |
+| `error_rate_degradation_threshold` | `0.05` | Rollback if error rate increases >5% |
+| `cost_degradation_threshold` | `0.10` | Rollback if cost increases >10% |
+
+### Automatic Rollback
+
+When auto-apply is enabled, the system:
+
+1. **Records Baseline**: Captures current p95 latency, error rate, and cost
+2. **Applies Changes**: Executes the proposal atomically
+3. **Monitors Performance**: Compares live metrics against baseline
+4. **Auto-Rollback**: Reverts if any metric degrades beyond threshold
+5. **Logs Outcome**: Records success/failure in audit log
+
+```json
+// Example rollback event
+{
+  "event": "auto_rollback_triggered",
+  "proposal_id": "prop_abc123",
+  "reason": "p95_latency_degradation",
+  "baseline_p95_ms": 234,
+  "observed_p95_ms": 312,
+  "degradation_pct": 33.3,
+  "rolled_back_at": "2026-01-26T13:15:00Z"
+}
+```
 
 ---
 
@@ -327,7 +403,23 @@ Settings → Features → Cognitive Advisor → Enable
 <details>
 <summary><strong>Does this make automatic changes?</strong></summary>
 
-No. All recommendations require explicit human approval before execution.
+**Default: No.** All recommendations require explicit human approval.
+
+**Opt-in: Yes.** If you enable auto-apply (Scale tier), high-confidence/low-risk proposals execute automatically with rollback protection.
+
+</details>
+
+<details>
+<summary><strong>What happens if auto-apply causes problems?</strong></summary>
+
+Automatic rollback kicks in. The system monitors metrics for 1 hour after applying changes. If p95 latency, error rate, or cost degrades beyond your configured thresholds (default 10%, 5%, 10%), changes revert automatically. You're notified of the rollback via your configured notification channels.
+
+</details>
+
+<details>
+<summary><strong>Can I mix manual and auto-apply?</strong></summary>
+
+Yes. Auto-apply only triggers for proposals that meet BOTH your confidence threshold AND risk threshold. Lower-confidence or higher-risk proposals still require manual approval.
 
 </details>
 
