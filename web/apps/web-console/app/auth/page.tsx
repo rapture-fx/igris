@@ -263,7 +263,7 @@ export default function AuthPage() {
         <img
           src="/dmfoot.png"
           alt="Igris Logo"
-          style={{ width: '25px', height: 'auto' }}
+          style={{ width: '18px', height: 'auto' }}
         />
       </div>
 
