@@ -341,10 +341,10 @@ export function Sidebar({ open = true, onClose }: SidebarProps) {
                 placeholder=""
                 readOnly
                 onClick={() => setIsSearchModalOpen(true)}
-                className="w-full pl-9 pr-16 py-2 text-[0.75rem] border border-border rounded-lg outline-none bg-background focus:border-gray-300 dark:focus:border-border transition-colors cursor-pointer text-foreground"
+                className="w-full pl-9 pr-16 py-2 text-xs border border-border rounded-lg outline-none bg-background focus:border-gray-300 dark:focus:border-border transition-colors cursor-pointer text-foreground"
               />
               <div className="absolute right-3 top-1/2 transform -translate-y-1/2 flex items-center gap-1 pointer-events-none">
-                <span className="text-xs font-medium text-muted-foreground">⌘ F</span>
+                <span className="text-xs text-muted-foreground">⌘ F</span>
               </div>
             </div>
           </div>
@@ -364,14 +364,14 @@ export function Sidebar({ open = true, onClose }: SidebarProps) {
                       <button
                         onClick={() => toggleSection(item.name)}
                         className={cn(
-                          'w-full flex items-center justify-between gap-3 rounded-lg px-3 py-2.5 text-[0.75rem] font-medium font-inter transition-colors',
+                          'w-full flex items-center justify-between gap-3 rounded-lg px-3 py-2.5 text-xs font-medium font-inter transition-colors',
                           hasActiveChild
                             ? 'bg-muted text-foreground'
                             : 'text-muted-foreground hover:bg-muted/50 hover:text-foreground'
                         )}
                       >
                         <div className="flex items-center gap-3">
-                          <item.icon className="h-6 w-5 text-gray-700 dark:text-[#c8c8b8]" />
+                          <item.icon className="h-4 w-4 text-foreground" />
                           {item.name}
                         </div>
                         <ChevronDown
@@ -392,7 +392,7 @@ export function Sidebar({ open = true, onClose }: SidebarProps) {
                                 <Link
                                   href={child.href!}
                                   className={cn(
-                                    'flex items-center gap-3 rounded-lg px-3 py-2 text-[0.7rem] font-medium font-inter transition-colors',
+                                    'flex items-center gap-3 rounded-lg px-3 py-2 text-xs font-medium font-inter transition-colors',
                                     isActive
                                       ? 'bg-muted text-foreground'
                                       : 'text-muted-foreground hover:bg-muted/50 hover:text-foreground'
@@ -421,14 +421,14 @@ export function Sidebar({ open = true, onClose }: SidebarProps) {
                     <Link
                       href={item.href}
                       className={cn(
-                        'flex items-center gap-3 rounded-lg px-3 py-2.5 text-[0.875rem] font-medium font-inter transition-colors',
+                        'flex items-center gap-3 rounded-lg px-3 py-2.5 text-xs font-medium font-inter transition-colors',
                         isActive
-                          ? 'text-[#000000] dark:text-[#f6f6f4]'
-                          : 'text-gray-700 dark:text-[#c8c8b8] hover:text-[#000000] dark:hover:text-[#f6f6f4]'
+                          ? 'text-foreground'
+                          : 'text-muted-foreground hover:text-foreground'
                       )}
                       onClick={onClose}
                     >
-                      <item.icon className="h-5 w-4 text-gray-600 dark:text-[#a8a898]" />
+                      <item.icon className="h-4 w-4 text-muted-foreground" />
                       {item.name}
                     </Link>
                   </li>
@@ -450,7 +450,7 @@ export function Sidebar({ open = true, onClose }: SidebarProps) {
                    <div className="absolute bottom-full left-0 right-0 mb-2 z-40 bg-card border border-border rounded-lg shadow-sm p-2">
                     {/* Docs Section */}
                     <div className="py-1.5">
-                      <p className="text-[0.6rem] font-medium text-muted-foreground mb-1.5 px-2">Documentation</p>
+                      <p className="text-xs font-medium text-muted-foreground mb-1.5 px-2">Documentation</p>
                       <a
                         href="https://docs.igrisinertial.com/overture"
                         target="_blank"
@@ -459,10 +459,10 @@ export function Sidebar({ open = true, onClose }: SidebarProps) {
                         onClick={() => setShowHelpMenu(false)}
                       >
                         <div className="flex items-center gap-2">
-                          <BookOpen className="h-3 w-3 text-muted-foreground" />
-                          <span className="text-[0.7rem] font-inter text-foreground">Overture Docs</span>
+                          <BookOpen className="h-4 w-4 text-muted-foreground" />
+                          <span className="text-xs font-inter text-foreground">Overture Docs</span>
                         </div>
-                        <ExternalLink className="h-2 w-2 text-muted-foreground" />
+                        <ExternalLink className="h-4 w-4 text-muted-foreground" />
                       </a>
                       <a
                         href="https://docs.igrisinertial.com/runtime"
@@ -472,10 +472,10 @@ export function Sidebar({ open = true, onClose }: SidebarProps) {
                         onClick={() => setShowHelpMenu(false)}
                       >
                         <div className="flex items-center gap-2">
-                          <BookOpen className="h-3 w-3 text-muted-foreground" />
-                          <span className="text-[0.7rem] font-inter text-foreground">Runtime Docs</span>
+                          <BookOpen className="h-4 w-4 text-muted-foreground" />
+                          <span className="text-xs font-inter text-foreground">Runtime Docs</span>
                         </div>
-                        <ExternalLink className="h-2 w-2 text-muted-foreground" />
+                        <ExternalLink className="h-4 w-4 text-muted-foreground" />
                       </a>
                     </div>
 
@@ -487,8 +487,8 @@ export function Sidebar({ open = true, onClose }: SidebarProps) {
                       className="flex items-center gap-2 w-full px-2 py-1.5 rounded-lg hover:bg-muted transition-colors text-left"
                       onClick={() => setShowHelpMenu(false)}
                     >
-                      <Mail className="h-3 w-3 text-muted-foreground" />
-                      <span className="text-[0.7rem] font-inter text-foreground">Contact Support</span>
+                      <Mail className="h-4 w-4 text-muted-foreground" />
+                      <span className="text-xs font-inter text-foreground">Contact Support</span>
                     </a>
 
                     {/* Change Log */}
@@ -500,10 +500,10 @@ export function Sidebar({ open = true, onClose }: SidebarProps) {
                       onClick={() => setShowHelpMenu(false)}
                     >
                       <div className="flex items-center gap-2">
-                        <ChangeLogIcon className="h-3 w-3 text-muted-foreground" />
-                        <span className="text-[0.7rem] font-inter text-foreground">Change Log</span>
+                        <ChangeLogIcon className="h-4 w-4 text-muted-foreground" />
+                        <span className="text-xs font-inter text-foreground">Change Log</span>
                       </div>
-                      <ExternalLink className="h-2 w-2 text-muted-foreground" />
+                      <ExternalLink className="h-4 w-4 text-muted-foreground" />
                     </a>
 
                     {/* System Status */}
@@ -515,10 +515,10 @@ export function Sidebar({ open = true, onClose }: SidebarProps) {
                       onClick={() => setShowHelpMenu(false)}
                     >
                       <div className="flex items-center gap-2">
-                        <StatusIcon className="h-3 w-3 text-muted-foreground" />
-                        <span className="text-[0.7rem] font-inter text-foreground">System Status</span>
+                        <StatusIcon className="h-4 w-4 text-muted-foreground" />
+                        <span className="text-xs font-inter text-foreground">System Status</span>
                       </div>
-                      <ExternalLink className="h-2 w-2 text-muted-foreground" />
+                      <ExternalLink className="h-4 w-4 text-muted-foreground" />
                     </a>
                   </div>
                 </>
@@ -529,7 +529,7 @@ export function Sidebar({ open = true, onClose }: SidebarProps) {
                 onClick={() => setShowHelpMenu(!showHelpMenu)}
                 className="flex items-center justify-center w-7 h-7 rounded-full border border-border hover:bg-muted transition-colors"
               >
-                <span className="text-muted-foreground text-sm font-semibold">?</span>
+                <span className="text-muted-foreground text-xs font-semibold">?</span>
               </button>
             </div>
           </div>
@@ -562,7 +562,7 @@ export function Sidebar({ open = true, onClose }: SidebarProps) {
                   value={searchQuery}
                   onChange={(e) => setSearchQuery(e.target.value)}
                   onKeyDown={handleKeyDown}
-                  className="w-full pl-10 pr-4 py-2 text-sm outline-none rounded-lg border border-gray-200 dark:border-border focus:border-gray-300 dark:focus:border-border bg-background text-foreground"
+                  className="w-full pl-10 pr-4 py-2 text-xs outline-none rounded-lg border border-gray-200 dark:border-border focus:border-gray-300 dark:focus:border-border bg-background text-foreground"
                 />
               </div>
 
@@ -578,10 +578,10 @@ export function Sidebar({ open = true, onClose }: SidebarProps) {
                     >
                       <FileText className="h-4 w-4 text-muted-foreground mt-0.5 flex-shrink-0" />
                       <div className="flex-1 min-w-0">
-                        <div className="text-sm font-medium text-foreground mb-0.5">
+                        <div className="text-xs font-medium text-foreground mb-0.5">
                           {result.title}
                         </div>
-                        <div className="text-xs text-muted-foreground truncate">
+                        <div className="text-[0.65rem] text-muted-foreground truncate">
                           {result.path}
                         </div>
                       </div>

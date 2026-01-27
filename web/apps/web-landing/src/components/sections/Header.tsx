@@ -86,11 +86,11 @@ export default function Header() {
           <div className="flex items-center justify-between w-full">
           <div className="flex items-center">
             <Link href="/" className="flex items-center">
-              <img
-                  src="/ii.png"
-                   alt="Igris Inertial"
-                    style={{ width: '140px', height: 'auto' }}
-                 />
+<img
+                   src="/ii.png"
+                    alt="Igris Inertial"
+                     style={{ width: '120px', height: 'auto' }}
+                  />
             </Link>
           </div>
 
