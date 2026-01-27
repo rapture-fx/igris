@@ -67,6 +67,15 @@ export default function Header() {
   }, []);
 
   return (
+    <>
+      {/* Blur overlay when dropdown is open */}
+      {resourcesDropdownOpen && (
+        <div
+          className="fixed inset-0 bg-black/20 backdrop-blur-sm z-40"
+          onClick={() => setResourcesDropdownOpen(false)}
+        />
+      )}
+
        <header
         className={`fixed top-0 left-0 w-full z-50 transition-all duration-300 ${
          isScrolled ? 'backdrop-blur-md bg-[rgba(246,246,244,0.8)] dark:bg-[rgba(27,25,18,0.8)]' : 'bg-[#f6f6f4] dark:bg-[#1b1912]'
@@ -98,30 +107,46 @@ export default function Header() {
                    <ChevronDown className={`h-4 w-4 transition-transform duration-200 ${resourcesDropdownOpen ? 'rotate-180' : ''}`} />
                 </button>
               {resourcesDropdownOpen && (
-                  <div className="absolute top-full left-0 mt-2 w-48 rounded-lg shadow-lg border border-gray-200 dark:border-[#f6f6f4]/5 overflow-hidden bg-[#f6f6f4] dark:bg-dark-bg">
-                    <button
-                      onClick={() => {
-                        setResourcesDropdownOpen(false);
-                        openUseCases();
-                      }}
-                      className="block w-full text-left px-4 py-2 text-xs text-gray-700 dark:text-[#c8c8b8] hover:text-gray-900 dark:hover:text-[#f6f6f4] hover:bg-gray-100 dark:hover:bg-[#c6adcf]/20 transition-colors duration-200"
-                    >
-                      Use Cases
-                    </button>
-                    <a
-                      href={docsHubUrl}
-                      className="block px-4 py-2 text-xs text-gray-700 dark:text-[#c8c8b8] hover:text-gray-900 dark:hover:text-[#f6f6f4] hover:bg-gray-100 dark:hover:bg-[#c6adcf]/20 transition-colors duration-200"
-                      onClick={() => setResourcesDropdownOpen(false)}
-              >
-                Docs
-                    </a>
-               <Link
-                  href="/blog"
-className="block px-4 py-2 text-xs text-gray-700 dark:text-[#c8c8b8] hover:text-gray-900 dark:hover:text-[#f6f6f4] hover:bg-gray-100 dark:hover:bg-[#c6adcf]/20 transition-colors duration-200"
-                       onClick={() => setResourcesDropdownOpen(false)}
-                >
-                  Blog
-                </Link>
+                   <div className="absolute top-full right-0 mt-2 w-[500px] border border-gray-300 dark:border-[#f6f6f4]/5 bg-[#f6f6f4] dark:bg-[#1b1912] shadow-lg z-50 p-2">
+                    <div className="grid grid-cols-2">
+                      {/* Left Column - Docs */}
+                      <a
+                        href={docsHubUrl}
+                        className="p-8 border-r border-gray-300 dark:border-[#f6f6f4]/5 flex items-end min-h-[280px] relative overflow-hidden"
+                        onClick={() => setResourcesDropdownOpen(false)}
+                      >
+                        <div className="absolute inset-0 p-1">
+                          <img
+                            src="/dc.png"
+                            alt=""
+                            className="w-full h-full object-cover opacity-30"
+                          />
+                        </div>
+                        <span className="text-sm font-normal text-gray-900 dark:text-[#f6f6f4] relative z-10">
+                          Docs
+                        </span>
+                      </a>
+
+                      {/* Right Column - Use Cases */}
+                      <button
+                        onClick={() => {
+                          setResourcesDropdownOpen(false);
+                          openUseCases();
+                        }}
+                        className="p-8 flex items-end min-h-[280px] text-left w-full relative overflow-hidden"
+                      >
+                        <div className="absolute inset-0 p-1">
+                          <img
+                            src="/uc.png"
+                            alt=""
+                            className="w-full h-full object-cover opacity-30"
+                          />
+                        </div>
+                        <span className="text-sm font-normal text-gray-900 dark:text-[#f6f6f4] relative z-10">
+                          Use Cases
+                        </span>
+                      </button>
+                    </div>
                   </div>
                )}
             </div>
@@ -240,5 +265,6 @@ className="block text-gray-700 dark:text-[#c8c8b8] hover:text-gray-900 dark:hove
         )}
       </div>
     </header>
+    </>
   );
 }

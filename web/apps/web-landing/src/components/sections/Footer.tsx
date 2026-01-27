@@ -13,7 +13,7 @@ export default function Footer() {
   }, [])
 
   return (
-     <footer className="text-gray-900 dark:text-[#f6f6f4] transition-all duration-200" style={{ backgroundColor: '#14120a' }}>
+     <footer className="bg-[#f6f6f4] dark:bg-dark-bg text-gray-900 dark:text-[#f6f6f4] transition-all duration-200">
       <div className="mx-auto max-w-[1100px] px-4 sm:px-6 lg:px-8">
         <div className="px-4 md:px-8 lg:px-12 border-l border-r border-b section-border text-gray-900 dark:text-[#f6f6f4]" style={{ backgroundColor: '#14120a' }}>
           {/* Main footer content */}
@@ -63,7 +63,7 @@ export default function Footer() {
                 <img
                   src={mounted && theme === 'dark' ? '/dmfoot.png' : '/foot.png'}
                   alt="Igris Inertial"
-                  className="h-6 w-auto"
+                  className="h-4 w-auto"
                 />
               </div>
             </div>
