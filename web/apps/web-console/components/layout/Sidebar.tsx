@@ -371,7 +371,7 @@ export function Sidebar({ open = true, onClose }: SidebarProps) {
                         )}
                       >
                         <div className="flex items-center gap-3">
-                          <item.icon className="h-5 w-4 text-gray-600 dark:text-[#a8a898]" />
+                          <item.icon className="h-6 w-5 text-gray-700 dark:text-[#c8c8b8]" />
                           {item.name}
                         </div>
                         <ChevronDown
@@ -421,10 +421,10 @@ export function Sidebar({ open = true, onClose }: SidebarProps) {
                     <Link
                       href={item.href}
                       className={cn(
-                        'flex items-center gap-3 rounded-lg px-3 py-2.5 text-[0.75rem] font-medium font-inter transition-colors',
+                        'flex items-center gap-3 rounded-lg px-3 py-2.5 text-[0.875rem] font-medium font-inter transition-colors',
                         isActive
-                          ? 'bg-muted text-foreground'
-                          : 'text-muted-foreground hover:bg-muted/50 hover:text-foreground'
+                          ? 'text-[#000000] dark:text-[#f6f6f4]'
+                          : 'text-gray-700 dark:text-[#c8c8b8] hover:text-[#000000] dark:hover:text-[#f6f6f4]'
                       )}
                       onClick={onClose}
                     >

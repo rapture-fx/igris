@@ -115,7 +115,6 @@ export default function Pricing() {
                    Control your AI routing as it grows.
                  </h2>
                 <p className="text-sm md:text-base text-gray-600 dark:text-[#a8a898] font-inter max-w-2xl mx-auto mb-4">
-                  Observe how decisions are made, then influence and enforce them in production.
                 </p>
                 <p className="text-xs text-gray-600 dark:text-[#a8a898] font-inter max-w-2xl mx-auto">
                   14-day trial on paid plans. Usage limits apply to all tiers.
