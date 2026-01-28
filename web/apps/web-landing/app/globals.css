@@ -93,3 +93,103 @@ body.modal-open {
   -webkit-box-orient: vertical;
   overflow: hidden;
 }
+
+/* Pricing slider styles */
+.pricing-slider {
+  -webkit-appearance: none;
+  appearance: none;
+  background: rgba(156, 163, 175, 0.3) !important;
+  cursor: pointer;
+  height: 4px !important;
+  border-radius: 2px !important;
+  outline: none !important;
+  border: 0.5px solid rgba(156, 163, 175, 0.3) !important;
+}
+
+.dark .pricing-slider {
+  background: rgba(246, 246, 244, 0.05) !important;
+  border: 0.5px solid rgba(246, 246, 244, 0.05) !important;
+}
+
+/* Webkit browsers (Chrome, Safari, Edge) */
+.pricing-slider::-webkit-slider-track {
+  height: 4px !important;
+  background: rgba(156, 163, 175, 0.3) !important;
+  border-radius: 2px !important;
+  border: 0.5px solid rgba(156, 163, 175, 0.3) !important;
+}
+
+.dark .pricing-slider::-webkit-slider-track {
+  background: rgba(246, 246, 244, 0.05) !important;
+  border: 0.5px solid rgba(246, 246, 244, 0.05) !important;
+}
+
+.pricing-slider::-webkit-slider-thumb {
+  -webkit-appearance: none;
+  appearance: none;
+  width: 16px;
+  height: 6px;
+  border-radius: 3px;
+  background: #000000;
+  cursor: pointer;
+  transition: transform 0.2s ease;
+  transform: translateY(-1px);
+}
+
+.dark .pricing-slider::-webkit-slider-thumb {
+  background: #f6f6f4;
+  border: 1px solid rgba(156, 163, 175, 0.3);
+  transform: translateY(-1px);
+}
+
+.pricing-slider::-webkit-slider-thumb:hover {
+  transform: translateY(-1px) scale(1.1);
+}
+
+/* Firefox */
+.pricing-slider::-moz-range-track {
+  height: 4px !important;
+  background: rgba(156, 163, 175, 0.3) !important;
+  border-radius: 2px !important;
+  border: 0.5px solid rgba(156, 163, 175, 0.3) !important;
+}
+
+.dark .pricing-slider::-moz-range-track {
+  background: rgba(246, 246, 244, 0.05) !important;
+  border: 0.5px solid rgba(246, 246, 244, 0.05) !important;
+}
+
+.pricing-slider::-moz-range-thumb {
+  width: 16px;
+  height: 6px;
+  border: none;
+  border-radius: 3px;
+  background: #000000;
+  cursor: pointer;
+  transition: transform 0.2s ease;
+  transform: translateY(-1px);
+}
+
+.dark .pricing-slider::-moz-range-thumb {
+  background: #f6f6f4;
+  border: 1px solid rgba(156, 163, 175, 0.3);
+  transform: translateY(-1px);
+}
+
+.pricing-slider::-moz-range-thumb:hover {
+  transform: translateY(-1px) scale(1.1);
+}
+
+/* Price number scrolling animation */
+.price-number-container {
+  display: inline-block;
+  overflow: hidden;
+  vertical-align: baseline;
+  position: relative;
+}
+
+.price-number {
+  font-variant-numeric: tabular-nums;
+  display: inline-block;
+  will-change: contents;
+}

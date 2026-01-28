@@ -84,13 +84,13 @@ export default function Header() {
        <div className="mx-auto max-w-[1100px] px-4 sm:px-6 lg:px-8">
         <div className="px-4 md:px-8 lg:px-12 py-4 border-l border-r border-b border-gray-300 dark:border-[#f6f6f4]/5 bg-[#f6f6f4] dark:bg-[#1b1912]">
           <div className="flex items-center justify-between w-full">
-          <div className="flex items-center">
-            <Link href="/" className="flex items-center">
-<img
-                   src="/ii.png"
-                    alt="Igris Inertial"
-                     style={{ width: '120px', height: 'auto' }}
-                  />
+          <div className="flex">
+            <Link href="/">
+              <img
+                src={mounted && theme === 'dark' ? '/dmfoot.png' : '/foot.png'}
+                alt="Igris Inertial"
+                className="h-8 w-auto"
+              />
             </Link>
           </div>
 
