@@ -54,6 +54,26 @@ const faqSections: FaqSection[] = [
     title: "Pricing & Billing",
     entries: [
       {
+        question: "How does usage-based pricing work?",
+        answer: "You pay a base monthly fee that includes a set number of requests. If you exceed the included requests, you pay a per-1K overage rate. For example, Startup includes 100K requests for $20/month, with additional requests at $0.10 per 1K. Hard limits prevent unexpected bills.",
+        type: "text"
+      },
+      {
+        question: "What happens at hard limits?",
+        answer: "When you reach your tier's hard limit, requests are rate-limited to prevent unexpected charges. You'll receive notifications before reaching the limit. To continue, you can upgrade to a higher tier or wait until your next billing cycle.",
+        type: "text"
+      },
+      {
+        question: "What's included in the Runtime license?",
+        answer: "The Growth tier includes a Runtime license ($500 value) that enables local LLM fallback, reflection agents, on-device inference, and edge deployment. This allows you to run AI routing and execution locally for enhanced privacy and reduced latency.",
+        type: "text"
+      },
+      {
+        question: "Can I downgrade from Growth to Startup?",
+        answer: "Yes. Downgrades take effect at the start of your next billing cycle. Your Runtime license access will end when the downgrade takes effect. All configurations and historical data are preserved.",
+        type: "text"
+      },
+      {
         question: "Why is the free tier limited?",
         answer: "Igris operates production-grade routing and execution infrastructure. The free tier is intentionally constrained to ensure platform stability while allowing teams to validate integration and value.",
         type: "text"
