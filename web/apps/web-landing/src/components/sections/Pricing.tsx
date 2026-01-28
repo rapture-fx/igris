@@ -108,8 +108,6 @@ const pricingTiers: UsageTier[] = [
     authorityLevel: "prove",
     features: [
       "Everything in Growth +",
-      "Minimum commitment: $5K/month",
-      "Trigger: ≥10M requests/month",
       "Unlimited AI providers",
       "Cryptographically signed routing decisions",
       "Cryptographically verified execution",

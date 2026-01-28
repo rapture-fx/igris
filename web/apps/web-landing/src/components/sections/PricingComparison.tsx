@@ -116,10 +116,6 @@ export default function PricingComparison({ tiers, recommendedTier }: PricingCom
         {
           name: 'Budget enforcement',
           values: [false, true, true, true]
-        },
-        {
-          name: 'Geo-fencing & compliance',
-          values: [false, false, true, true]
         }
       ]
     },
@@ -156,11 +152,11 @@ export default function PricingComparison({ tiers, recommendedTier }: PricingCom
           values: [false, false, true, true]
         },
         {
-          name: 'Local models (Phi-3, GGUF)',
+          name: 'Local models (GGUF format)',
           values: [false, false, true, true]
         },
         {
-          name: 'Semantic cache (30-50% reduction)',
+          name: 'Semantic cache',
           values: [false, false, true, true]
         },
         {
@@ -288,10 +284,10 @@ export default function PricingComparison({ tiers, recommendedTier }: PricingCom
               ))}
             </tr>
           </thead>
-          <tbody className="bg-white dark:bg-[#14120a]">
+          <tbody className="bg-[#f6f6f4] dark:bg-[#1b1912]">
             {comparisonFeatures.map((category, categoryIdx) => (
               <React.Fragment key={categoryIdx}>
-                <tr className="bg-gray-100 dark:bg-[#1b1912] border-b section-border">
+                <tr className="bg-[#f6f6f4] dark:bg-[#1b1912] border-b section-border">
                   <td
                     colSpan={tiers.length + 1}
                     className="py-2 pl-4 pr-3 text-left text-xs font-bold text-gray-900 dark:text-[#f6f6f4] sm:pl-6"
@@ -301,14 +297,14 @@ export default function PricingComparison({ tiers, recommendedTier }: PricingCom
                 </tr>
                 {category.features.map((feature, featureIdx) => (
                   <tr key={featureIdx} className="border-b section-border">
-                    <td className="sticky left-0 z-10 bg-white dark:bg-[#14120a] whitespace-nowrap py-3 pl-4 pr-3 text-xs font-medium text-gray-900 dark:text-[#f6f6f4] sm:pl-6">
+                     <td className="sticky left-0 z-10 bg-[#f6f6f4] dark:bg-[#1b1912] whitespace-nowrap py-3 pl-4 pr-3 text-xs font-medium text-gray-900 dark:text-[#f6f6f4] sm:pl-6">
                       {feature.name}
                     </td>
                     {feature.values.map((value, valueIdx) => (
                       <td
                         key={valueIdx}
                         className={`whitespace-nowrap px-3 py-3 text-center transition-colors duration-500 ${
-                          tiers[valueIdx].name === recommendedTier ? 'bg-[#c5b0cd]/5' : ''
+                          tiers[valueIdx].name === recommendedTier ? 'bg-[#c5b0cd]/5' : 'bg-[#f6f6f4] dark:bg-[#1b1912]'
                         }`}
                       >
                         {renderCellValue(value)}
