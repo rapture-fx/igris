@@ -257,12 +257,13 @@ export default function Faq() {
            {/* Desktop Layout - Two-column grid */}
            <div className="hidden md:grid md:grid-cols-3 gap-0 absolute inset-0">
              {/* Left Column - FAQ Items (2 columns wide) */}
-               <div className="hidden md:flex md:col-span-2 flex-col justify-start items-center" style={{
+               <div className="hidden md:flex md:col-span-2 flex-col justify-start items-start" style={{
                  paddingTop: '3rem',
                  paddingBottom: '3rem',
-                 paddingRight: '1.5rem'
+                 paddingLeft: '3rem',
+                 paddingRight: '2rem'
                }}>
-               <div className="space-y-3 w-full max-w-md">
+               <div className="space-y-3 w-full">
                  {faqSections.map((section, sectionIndex) => (
                    <div key={sectionIndex}>
                      {/* Section Title - Clickable */}
