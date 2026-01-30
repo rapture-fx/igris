@@ -1,34 +1,25 @@
 # SDKs
 
-Official client libraries for TypeScript, Python, and Go.
+Official client libraries for Igris Overture in 7 languages.
+
+All SDKs are open-source and available on GitHub: [github.com/Igris-inertial](https://github.com/Igris-inertial)
+
+## Supported Languages
+
+- Python
+- Rust
+- JavaScript/TypeScript
+- Go
+- Java
+- C# (.NET)
+- Ruby
 
 ## Quick Start
 
-### TypeScript/JavaScript
+### Python SDK
 
 ```bash
-npm install @igris/javascript-sdk
-```
-
-```typescript
-import { IgrisOverture } from '@igris/javascript-sdk';
-
-const client = new IgrisOverture({
-  apiKey: process.env.IGRIS_API_KEY
-});
-
-const response = await client.chat.completions.create({
-  model: 'gpt-4',
-  messages: [{ role: 'user', content: 'Hello!' }]
-});
-
-console.log(response.choices[0].message.content);
-```
-
-### Python
-
-```bash
-pip install igris-overture
+pip install schlep-engine
 ```
 
 ```python
@@ -44,14 +35,66 @@ response = client.chat.completions.create(
 print(response.choices[0].message.content)
 ```
 
-### Go
+**Repository:** [github.com/Igris-inertial/igris-python-sdk](https://github.com/Igris-inertial/igris-python-sdk)
+
+---
+
+### Rust SDK
 
 ```bash
-go get github.com/igris-overture/go-sdk
+cargo add schlep_engine
+```
+
+```rust
+use schlep_engine::{SchlepClient, Result};
+
+#[tokio::main]
+async fn main() -> Result<()> {
+    let client = SchlepClient::new("YOUR_IGRIS_API_KEY")?;
+
+    let response = client.infer(/* ... */).await?;
+
+    Ok(())
+}
+```
+
+**Repository:** [github.com/Igris-inertial/igris-rust-sdk](https://github.com/Igris-inertial/igris-rust-sdk)
+
+---
+
+### JavaScript/TypeScript SDK
+
+```bash
+npm install @igris-inertial/javascript-sdk
+```
+
+```typescript
+import { IgrisOverture } from '@igris-inertial/javascript-sdk';
+
+const client = new IgrisOverture({
+  apiKey: process.env.IGRIS_API_KEY
+});
+
+const response = await client.chat.completions.create({
+  model: 'gpt-4',
+  messages: [{ role: 'user', content: 'Hello!' }]
+});
+
+console.log(response.choices[0].message.content);
+```
+
+**Repository:** [github.com/Igris-inertial/igris-javascript-sdk](https://github.com/Igris-inertial/igris-javascript-sdk)
+
+---
+
+### Go SDK
+
+```bash
+go get github.com/Igris-inertial/igris-go-sdk
 ```
 
 ```go
-import "github.com/igris-overture/go-sdk"
+import igrisengine "github.com/Igris-inertial/igris-go-sdk"
 
 client := igrisengine.NewClient("YOUR_IGRIS_API_KEY")
 
@@ -64,6 +107,79 @@ resp, err := client.Chat.Completions.Create(context.Background(), igrisengine.Ch
 
 fmt.Println(resp.Choices[0].Message.Content)
 ```
+
+**Repository:** [github.com/Igris-inertial/igris-go-sdk](https://github.com/Igris-inertial/igris-go-sdk)
+
+---
+
+### Java SDK
+
+```xml
+<dependency>
+    <groupId>io.schlepengine</groupId>
+    <artifactId>schlep-engine-sdk</artifactId>
+    <version>1.0.0</version>
+</dependency>
+```
+
+```java
+import io.schlepengine.SchlepClient;
+
+SchlepClient client = new SchlepClient("YOUR_IGRIS_API_KEY");
+
+var response = client.infer(/* ... */);
+```
+
+**Repository:** [github.com/Igris-inertial/igris-java-sdk](https://github.com/Igris-inertial/igris-java-sdk)
+
+---
+
+### C# (.NET) SDK
+
+```bash
+dotnet add package SchlepEngine.SDK
+```
+
+```csharp
+using SchlepEngine.SDK;
+
+var client = new SchlepClient("YOUR_IGRIS_API_KEY");
+
+var response = await client.Chat.Completions.CreateAsync(new ChatCompletionRequest
+{
+    Model = "gpt-4",
+    Messages = new[] { new Message { Role = "user", Content = "Hello!" } }
+});
+
+Console.WriteLine(response.Choices[0].Message.Content);
+```
+
+**Repository:** [github.com/Igris-inertial/igris-csharp-sdk](https://github.com/Igris-inertial/igris-csharp-sdk)
+
+---
+
+### Ruby SDK
+
+```bash
+gem install schlep_engine
+```
+
+```ruby
+require 'schlep_engine'
+
+client = SchlepEngine::Client.new(api_key: 'YOUR_IGRIS_API_KEY')
+
+response = client.chat.completions.create(
+  model: 'gpt-4',
+  messages: [{ role: 'user', content: 'Hello!' }]
+)
+
+puts response.choices[0].message.content
+```
+
+**Repository:** [github.com/Igris-inertial/igris-ruby-sdk](https://github.com/Igris-inertial/igris-ruby-sdk)
+
+---
 
 ## Using OpenAI SDKs (Drop-In Replacement)
 
@@ -79,8 +195,8 @@ pip install openai
 from openai import OpenAI
 
 client = OpenAI(
-    base_url="https://api.igrisinertial.com/v1",  # Changed
-    api_key="YOUR_IGRIS_API_KEY"  # Your Igris key
+    base_url="https://api.igrisinertial.com/v1",
+    api_key="YOUR_IGRIS_API_KEY"
 )
 
 response = client.chat.completions.create(
@@ -91,16 +207,12 @@ response = client.chat.completions.create(
 
 ### TypeScript/JavaScript (OpenAI SDK)
 
-```bash
-npm install openai
-```
-
 ```typescript
 import OpenAI from 'openai';
 
 const client = new OpenAI({
-  baseURL: 'https://api.igrisinertial.com/v1',  // Changed
-  apiKey: process.env.IGRIS_API_KEY  // Your Igris key
+  baseURL: 'https://api.igrisinertial.com/v1',
+  apiKey: process.env.IGRIS_API_KEY
 });
 
 const response = await client.chat.completions.create({
@@ -109,392 +221,33 @@ const response = await client.chat.completions.create({
 });
 ```
 
-### Go (go-openai SDK)
-
-```bash
-go get github.com/sashabaranov/go-openai
-```
+### Go (OpenAI SDK)
 
 ```go
 import "github.com/sashabaranov/go-openai"
 
 config := openai.DefaultConfig("YOUR_IGRIS_API_KEY")
-config.BaseURL = "https://api.igrisinertial.com/v1"  // Changed
+config.BaseURL = "https://api.igrisinertial.com/v1"
 
 client := openai.NewClientWithConfig(config)
-
-resp, err := client.CreateChatCompletion(
-    context.Background(),
-    openai.ChatCompletionRequest{
-        Model: "gpt-4",
-        Messages: []openai.ChatCompletionMessage{
-            {Role: "user", Content: "Hello!"},
-        },
-    },
-)
 ```
 
-## Igris Overture-Specific Features
+## SDK Repositories
 
-### Speculative Execution
+All SDKs are MIT licensed and open-source:
 
-```typescript
-const response = await client.chat.completions.create({
-  model: 'gpt-4',
-  messages: [{ role: 'user', content: 'What is 2+2?' }],
-  speculative_mode: 'latency'  // Igris Overture-specific
-});
+- **Python:** [github.com/Igris-inertial/igris-python-sdk](https://github.com/Igris-inertial/igris-python-sdk)
+- **Rust:** [github.com/Igris-inertial/igris-rust-sdk](https://github.com/Igris-inertial/igris-rust-sdk)
+- **JavaScript:** [github.com/Igris-inertial/igris-javascript-sdk](https://github.com/Igris-inertial/igris-javascript-sdk)
+- **Go:** [github.com/Igris-inertial/igris-go-sdk](https://github.com/Igris-inertial/igris-go-sdk)
+- **Java:** [github.com/Igris-inertial/igris-java-sdk](https://github.com/Igris-inertial/igris-java-sdk)
+- **C#:** [github.com/Igris-inertial/igris-csharp-sdk](https://github.com/Igris-inertial/igris-csharp-sdk)
+- **Ruby:** [github.com/Igris-inertial/igris-ruby-sdk](https://github.com/Igris-inertial/igris-ruby-sdk)
 
-console.log('Winner:', response.metadata.speculative.winner_provider);
-console.log('Latency saved:', response.metadata.speculative.latency_saved_ms);
-```
+View all repositories: [github.com/orgs/Igris-inertial/repositories](https://github.com/orgs/Igris-inertial/repositories)
 
-### Council Mode
+## Support
 
-```typescript
-const response = await client.chat.completions.create({
-  model: 'gpt-4',
-  messages: [{ role: 'user', content: 'Is this code safe?' }],
-  council_mode: true  // Igris Overture-specific
-});
-
-console.log('Chairman:', response.metadata.council.chairman_provider);
-console.log('Members:', response.metadata.council.members);
-```
-
-### Gold Code Override
-
-```typescript
-const response = await client.chat.completions.create({
-  model: 'gpt-4',
-  messages: [{ role: 'user', content: 'Critical request' }],
-  gold_code: 'EMERGENCY-ABC123'  // Igris Overture-specific
-});
-```
-
-## TypeScript SDK
-
-### Installation
-
-```bash
-npm install @igris/javascript-sdk
-# or
-yarn add @igris/javascript-sdk
-# or
-pnpm add @igris/javascript-sdk
-```
-
-### Complete Example
-
-```typescript
-import { IgrisOverture } from '@igris/javascript-sdk';
-
-const client = new IgrisOverture({
-  apiKey: process.env.IGRIS_API_KEY,
-  baseURL: 'https://api.igrisinertial.com/v1',  // Optional
-  timeout: 30000,  // 30s timeout
-  maxRetries: 3,
-  defaultHeaders: {
-    'X-Custom-Header': 'value'
-  }
-});
-
-// Chat completions
-const chatResponse = await client.chat.completions.create({
-  model: 'gpt-4',
-  messages: [
-    { role: 'system', content: 'You are a helpful assistant.' },
-    { role: 'user', content: 'Explain quantum computing' }
-  ],
-  temperature: 0.7,
-  max_tokens: 500,
-  stream: false
-});
-
-// Streaming
-const stream = await client.chat.completions.create({
-  model: 'gpt-4',
-  messages: [{ role: 'user', content: 'Count to 10' }],
-  stream: true
-});
-
-for await (const chunk of stream) {
-  const content = chunk.choices[0]?.delta?.content;
-  if (content) process.stdout.write(content);
-}
-
-// Embeddings
-const embeddingResponse = await client.embeddings.create({
-  model: 'text-embedding-ada-002',
-  input: 'Sample text to embed'
-});
-
-// List models
-const models = await client.models.list();
-
-// Check health
-const health = await client.health.check();
-```
-
-### Error Handling
-
-```typescript
-import { IgrisOverture, RateLimitError, AuthenticationError } from '@igris/javascript-sdk';
-
-try {
-  const response = await client.chat.completions.create({...});
-} catch (error) {
-  if (error instanceof RateLimitError) {
-    console.log('Rate limited. Retry after:', error.retryAfter);
-  } else if (error instanceof AuthenticationError) {
-    console.log('Invalid API key');
-  } else {
-    console.error('Unknown error:', error);
-  }
-}
-```
-
-## Python SDK
-
-### Installation
-
-```bash
-pip install igris-overture
-```
-
-### Complete Example
-
-```python
-from igris import IgrisOverture
-from igris.types import ChatCompletionRequest
-
-client = IgrisOverture(
-    api_key="YOUR_IGRIS_API_KEY",
-    base_url="https://api.igrisinertial.com/v1",  # Optional
-    timeout=30,  # 30s timeout
-    max_retries=3
-)
-
-# Chat completions
-response = client.chat.completions.create(
-    model="gpt-4",
-    messages=[
-        {"role": "system", "content": "You are a helpful assistant."},
-        {"role": "user", "content": "Explain quantum computing"}
-    ],
-    temperature=0.7,
-    max_tokens=500
-)
-
-print(response.choices[0].message.content)
-
-# Streaming
-stream = client.chat.completions.create(
-    model="gpt-4",
-    messages=[{"role": "user", "content": "Count to 10"}],
-    stream=True
-)
-
-for chunk in stream:
-    if chunk.choices[0].delta.content:
-        print(chunk.choices[0].delta.content, end='')
-
-# Embeddings
-embedding_response = client.embeddings.create(
-    model="text-embedding-ada-002",
-    input="Sample text to embed"
-)
-
-# List models
-models = client.models.list()
-
-# Check health
-health = client.health.check()
-```
-
-### Error Handling
-
-```python
-from igris import IgrisOverture, RateLimitError, AuthenticationError
-
-try:
-    response = client.chat.completions.create(...)
-except RateLimitError as e:
-    print(f"Rate limited. Retry after: {e.retry_after}")
-except AuthenticationError as e:
-    print("Invalid API key")
-except Exception as e:
-    print(f"Unknown error: {e}")
-```
-
-### Async Support
-
-```python
-import asyncio
-from igris import AsyncIgrisOverture
-
-async def main():
-    client = AsyncIgrisOverture(api_key="YOUR_IGRIS_API_KEY")
-
-    response = await client.chat.completions.create(
-        model="gpt-4",
-        messages=[{"role": "user", "content": "Hello!"}]
-    )
-
-    print(response.choices[0].message.content)
-
-asyncio.run(main())
-```
-
-## Go SDK
-
-### Installation
-
-```bash
-go get github.com/igris-overture/go-sdk
-```
-
-### Complete Example
-
-```go
-package main
-
-import (
-    "context"
-    "fmt"
-    "log"
-
-    igrisengine "github.com/igris-overture/go-sdk"
-)
-
-func main() {
-    client := igrisengine.NewClient("YOUR_IGRIS_API_KEY")
-
-    // Chat completions
-    resp, err := client.Chat.Completions.Create(context.Background(), igrisengine.ChatCompletionRequest{
-        Model: "gpt-4",
-        Messages: []igrisengine.Message{
-            {Role: "system", Content: "You are a helpful assistant."},
-            {Role: "user", Content: "Explain quantum computing"},
-        },
-        Temperature: 0.7,
-        MaxTokens:   500,
-    })
-    if err != nil {
-        log.Fatal(err)
-    }
-
-    fmt.Println(resp.Choices[0].Message.Content)
-
-    // Streaming
-    stream, err := client.Chat.Completions.CreateStream(context.Background(), igrisengine.ChatCompletionRequest{
-        Model:    "gpt-4",
-        Messages: []igrisengine.Message{{Role: "user", Content: "Count to 10"}},
-        Stream:   true,
-    })
-    if err != nil {
-        log.Fatal(err)
-    }
-    defer stream.Close()
-
-    for {
-        chunk, err := stream.Recv()
-        if err != nil {
-            break
-        }
-        fmt.Print(chunk.Choices[0].Delta.Content)
-    }
-
-    // Embeddings
-    embResp, err := client.Embeddings.Create(context.Background(), igrisengine.EmbeddingRequest{
-        Model: "text-embedding-ada-002",
-        Input: "Sample text to embed",
-    })
-
-    // List models
-    models, err := client.Models.List(context.Background())
-
-    // Check health
-    health, err := client.Health.Check(context.Background())
-}
-```
-
-### Error Handling
-
-```go
-import "github.com/igris-overture/go-sdk/errors"
-
-resp, err := client.Chat.Completions.Create(ctx, req)
-if err != nil {
-    switch e := err.(type) {
-    case *errors.RateLimitError:
-        fmt.Printf("Rate limited. Retry after: %d\n", e.RetryAfter)
-    case *errors.AuthenticationError:
-        fmt.Println("Invalid API key")
-    default:
-        fmt.Printf("Unknown error: %v\n", err)
-    }
-    return
-}
-```
-
-## Other Languages
-
-### Rust
-
-```bash
-cargo add igris-sdk
-```
-
-```rust
-use igris_sdk::IgrisOverture;
-
-#[tokio::main]
-async fn main() {
-    let client = IgrisOverture::new("YOUR_IGRIS_API_KEY");
-
-    let response = client.chat().completions().create()
-        .model("gpt-4")
-        .message("user", "Hello!")
-        .send()
-        .await?;
-
-    println!("{}", response.choices[0].message.content);
-}
-```
-
-### Ruby
-
-```bash
-gem install igris-overture
-```
-
-```ruby
-require 'igris'
-
-client = IgrisOverture::Client.new(api_key: 'YOUR_IGRIS_API_KEY')
-
-response = client.chat.completions.create(
-  model: 'gpt-4',
-  messages: [{ role: 'user', content: 'Hello!' }]
-)
-
-puts response.choices[0].message.content
-```
-
-## SDK Comparison
-
-| Feature | TypeScript | Python | Go | Rust | Ruby |
-|---------|-----------|--------|-----|------|------|
-| Streaming | Yes | Yes | Yes | Yes | Yes |
-| Async | Yes | Yes | Yes | Yes | No |
-| Retries | Yes | Yes | Yes | Yes | Yes |
-| Timeouts | Yes | Yes | Yes | Yes | Yes |
-| Type Safety | Yes | Yes | Yes | Yes | No |
-
-## Related
-
-- [Quick Start](/docs/api-reference/quick-start) — First curl request
-- [Chat Completions](/docs/api-reference/endpoints/chat-completions) — Full API reference
-- [Errors & Retries](/docs/api-reference/errors-retries) — Handle failures
-- [GitHub](https://github.com/igris-overture) — SDK source code
+- **GitHub Issues:** Report bugs in individual SDK repositories
+- **Documentation:** [github.com/Igris-inertial/docs](https://github.com/Igris-inertial/docs)
+- **Email:** support@igrisinertial.com
