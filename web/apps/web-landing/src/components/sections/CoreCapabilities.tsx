@@ -98,72 +98,62 @@ export default function CoreCapabilities() {
                   paddingRight: '2rem'
                 }}>
                   <div className="w-full">
-                    {/* Light mode - vertical stack */}
-                    <div className={mounted && theme === 'dark' ? 'hidden' : 'space-y-6'}>
-                       {capabilities.map((capability) => (
-                         <div key={capability.name} className="flex gap-4 items-start">
-                           <div className="bg-[#f6f6f4] dark:bg-[#1b1912] border border-gray-300 dark:border-[#f6f6f4]/5" style={{
-                             width: '200px',
-                             height: '200px',
-                             flexShrink: 0,
-                             display: 'flex',
-                             alignItems: 'center',
-                             justifyContent: 'center',
-                             position: 'relative',
-                             overflow: 'hidden'
-                           }}>
-                            <img
-                              src={mounted && theme === 'dark' ? '/fr.png' : '/fr.png'}
-                              alt={capability.name}
-                              style={{
-                                position: 'absolute',
-                                width: '140%',
-                                height: '140%',
-                                objectFit: 'cover',
-                                opacity: '0.7'
-                              }}
-                            />
-                            {capabilities.indexOf(capability) === 0 && (
+                    {/* Same layout for both light and dark mode - horizontal cards */}
+                    <div className="flex gap-4">
+                      {capabilities.map((capability, index) => (
+                        <div key={capability.name} className="flex-1 border border-gray-300 dark:border-[#f6f6f4]/5 bg-[#f6f6f4] dark:bg-[#1b1912]">
+                          {/* Image section */}
+                          <div style={{
+                            width: '100%',
+                            height: '300px',
+                            display: 'flex',
+                            alignItems: 'center',
+                            justifyContent: 'center',
+                            position: 'relative',
+                            overflow: 'hidden'
+                          }}>
+                            {index === 0 && (
                               <img
                                 src={mounted && theme === 'dark' ? '/cr.png' : '/tre.png'}
-                                alt={capability.name}
-                                style={{
-                                  position: 'absolute',
-                                  width: '75%',
-                                  height: '75%',
-                                  objectFit: 'contain',
-                                  opacity: '0.65'
-                                }}
-                              />
-                            )}
-                            {capabilities.indexOf(capability) === 1 && (
-                              <img
-                                src={mounted && theme === 'dark' ? '/cs.png' : '/two.png'}
                                 alt={capability.name}
                                 style={{
                                   position: 'absolute',
                                   width: '65%',
                                   height: '65%',
                                   objectFit: 'contain',
-                                  opacity: '0.5'
+                                  opacity: '0.6'
                                 }}
                               />
                             )}
-                            {capabilities.indexOf(capability) === 2 && (
+                            {index === 1 && (
+                              <img
+                                src={mounted && theme === 'dark' ? '/cs.png' : '/two.png'}
+                                alt={capability.name}
+                                style={{
+                                  position: 'absolute',
+                                  width: '55%',
+                                  height: '55%',
+                                  objectFit: 'contain',
+                                  opacity: '0.6'
+                                }}
+                              />
+                            )}
+                            {index === 2 && (
                               <img
                                 src={mounted && theme === 'dark' ? '/cc.png' : '/one.png'}
                                 alt={capability.name}
                                 style={{
                                   position: 'absolute',
-                                  width: '75%',
-                                  height: '75%',
+                                  width: '60%',
+                                  height: '60%',
                                   objectFit: 'contain',
-                                  opacity: '0.5'
+                                  opacity: '0.6'
                                 }}
                               />
                             )}
                           </div>
-                          <div className="flex-1">
+                          {/* Text section */}
+                          <div className="p-4">
                             <h4 className="text-sm font-semibold mb-2 font-inter text-[#000000] dark:text-[#f6f6f4]">
                               {capability.name}
                             </h4>
@@ -174,86 +164,15 @@ export default function CoreCapabilities() {
                         </div>
                       ))}
                     </div>
-
-                    {/* Dark mode - each card contains image and text together */}
-                    {mounted && theme === 'dark' && (
-                      <>
-                        <div className="flex gap-4">
-                          {capabilities.map((capability, index) => (
-                            <div key={capability.name} className="flex-1 border border-[#f6f6f4]/5 bg-[#1b1912]">
-                              {/* Image section */}
-                              <div style={{
-                                width: '100%',
-                                height: '300px',
-                                display: 'flex',
-                                alignItems: 'center',
-                                justifyContent: 'center',
-                                position: 'relative',
-                                overflow: 'hidden'
-                              }}>
-                                {index === 0 && (
-                                  <img
-src="/cr.png"
-                                    alt={capability.name}
-                                    style={{
-                                      position: 'absolute',
-                                      width: '65%',
-                                      height: '65%',
-                                      objectFit: 'contain',
-                                      opacity: '0.6'
-                                    }}
-                                  />
-                                )}
-                                {index === 1 && (
-                                  <img
-                                    src="/cs.png"
-                                    alt={capability.name}
-                                    style={{
-                                      position: 'absolute',
-                                      width: '55%',
-                                      height: '55%',
-                                      objectFit: 'contain',
-                                      opacity: '0.6'
-                                    }}
-                                  />
-                                )}
-                                {index === 2 && (
-                                  <img
-                                    src="/cc.png"
-                                    alt={capability.name}
-                                    style={{
-                                      position: 'absolute',
-                                      width: '60%',
-                                      height: '60%',
-                                      objectFit: 'contain',
-                                      opacity: '0.6'
-                                    }}
-                                  />
-                                )}
-                              </div>
-                              {/* Text section */}
-                              <div className="p-4">
-                                <h4 className="text-sm font-semibold mb-2 font-inter text-[#f6f6f4]">
-                                  {capability.name}
-                                </h4>
-                                <p className="text-sm text-[#a8a898] leading-relaxed font-inter">
-                                  {capability.description}
-                                </p>
-                              </div>
-                            </div>
-                          ))}
-                        </div>
-                        {/* Horizontal frame below cards */}
-                        <div className="mt-4 w-full border border-[#f6f6f4]/5 bg-[#1b1912] relative overflow-hidden" style={{ height: '250px' }}>
-                          <img
-                            src="/cl.png"
-                            alt=""
-                            className="absolute inset-0 w-full h-full object-cover object-center"
-                            style={{ opacity: 0.8 }}
-                          />
-                        </div>
-                      </>
-                    )}
+                    {/* Horizontal frame below cards */}
+                    <div className="mt-4 w-full border border-gray-300 dark:border-[#f6f6f4]/5 bg-[#f6f6f4] dark:bg-[#1b1912] relative overflow-hidden" style={{ height: '250px' }}>
+                      <img
+                        src="/cl.png"
+                        alt=""
+                        className="absolute inset-0 w-full h-full object-cover object-center"
+                        style={{ opacity: 0.8 }}
+                      />
+                    </div>
                   </div>
                 </div>
 

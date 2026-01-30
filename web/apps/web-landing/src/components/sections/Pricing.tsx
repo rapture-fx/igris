@@ -251,8 +251,7 @@ export default function Pricing() {
                     key={index}
                      className={`relative transition-all duration-500 w-full min-h-[550px] border section-border rounded-none ${
                       isRecommended ? 'shadow-[0_0_8px_rgba(197,176,205,0.2),0_0_16px_rgba(197,176,205,0.1)]' : ''
-                    }`}
-                    style={{ backgroundColor: '#14120a' }}
+                    } bg-[#f6f6f4] dark:bg-[#14120a]`}
                   >
                     <div className="p-6 flex flex-col h-full">
                       <div className="flex-grow">

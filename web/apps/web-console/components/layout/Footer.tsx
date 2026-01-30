@@ -1,5 +1,7 @@
 'use client';
 
+import { ThemeSwitcher } from '@/components/ThemeSwitcher';
+
 export function Footer() {
   const landingUrl = process.env.NEXT_PUBLIC_LANDING_URL || 'http://localhost:3000';
 
@@ -8,6 +10,7 @@ export function Footer() {
       <div className="h-full px-4 sm:px-6 lg:px-8">
         <div className="flex h-full items-center justify-end">
           <div className="flex items-center gap-6 text-xs text-muted-foreground">
+            <ThemeSwitcher />
             <a
               href={`${landingUrl}/terms`}
               target="_blank"
