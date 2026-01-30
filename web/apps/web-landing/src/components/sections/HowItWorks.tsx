@@ -107,86 +107,84 @@ export default function HowItWorks() {
                 backgroundSize: '20px 20px',
                 backgroundPosition: '1rem 3rem'
               }}>
-                {/* Dark mode frames */}
-                {mounted && theme === 'dark' && (
-                   <div className="flex flex-col gap-4 w-full">
-                     <div className="w-full border border-[#f6f6f4]/5 bg-[#1b1912] flex" style={{ height: '240px' }}>
-                        <div className="w-3/5 p-6 flex flex-col justify-between overflow-hidden">
-                          <div>
-                            <Image
-                              src="/ovr.png"
-                             alt="Control Plane"
-                             width={450}
-                             height={450}
-className="mb-4 object-contain opacity-100"
-                            />
-                          </div>
-                           <div className="mt-auto pb-8">
-                             <p className="text-sm text-[#a8a898] leading-relaxed line-clamp-2">
-                               This is where governance, routing, and risk control happen—before anything executes.
-                             </p>
-                           </div>
-                        </div>
-                       <div className="w-2/5 p-6">
-                         <h4 className="text-sm font-medium text-[#f6f6f4] mb-3 font-inter">Decide (Control Plane)</h4>
-                         <p className="text-sm text-[#a8a898] mb-2 leading-relaxed">
-                           The application sends an AI request.<br/>
-                           The cloud control plane evaluates policies, budgets, safety rules, and performance constraints, then decides how, where, and whether the request should run.
-                         </p>
-                       </div>
-                     </div>
-                      <div className="w-full border border-[#f6f6f4]/5 bg-[#1b1912] flex" style={{ height: '210px' }}>
-                       <div className="w-3/5 p-6 flex flex-col justify-between">
-                         <div>
-                           <Image
-                             src="/xe.png"
-                             alt="Runtime Plane"
-                             width={450}
-                             height={450}
-                             className="mb-4 object-contain opacity-80"
+{/* Frames layout for both light and dark mode */}
+                 <div className="flex flex-col gap-4 w-full">
+                   <div className="w-full border border-gray-300 dark:border-[#f6f6f4]/5 bg-[#f6f6f4] dark:bg-[#1b1912] flex" style={{ height: '240px' }}>
+                      <div className="w-3/5 p-6 flex flex-col justify-between overflow-hidden">
+                        <div>
+                          <Image
+                            src="/ovr.png"
+                           alt="Control Plane"
+                           width={450}
+                           height={450}
+  className="mb-4 object-contain opacity-100"
                           />
                         </div>
-                         <div className="mt-auto pb-4">
-                           <p className="text-sm text-[#a8a898] leading-relaxed">
-                             This guarantees reliable execution—even offline or under failure conditions.
-                           </p>
+                         <div className="mt-auto pb-8">
+                          <p className="text-sm text-gray-600 dark:text-[#a8a898] leading-relaxed line-clamp-2">
+                            This is where governance, routing, and risk control happen—before anything executes.
+                          </p>
                          </div>
                       </div>
-                      <div className="w-2/5 p-6">
-                        <h4 className="text-sm font-medium text-[#f6f6f4] mb-3 font-inter">Execute (Runtime Plane)</h4>
-                        <p className="text-sm text-[#a8a898] mb-2 leading-relaxed">
-                          The runtime executes the decision close to the application.<br/>
-                          It runs the task using cloud models or local models, coordinates tools and agents, and automatically falls back if connectivity or providers fail.
-                        </p>
-                      </div>
-                    </div>
-                     <div className="w-full border border-[#f6f6f4]/5 bg-[#1b1912] flex" style={{ height: '210px' }}>
-                       <div className="w-3/5 p-6 flex flex-col justify-between">
-                         <div>
-                           <Image
-                             src="/ol.png"
-                             alt="Feedback Loop"
-                             width={450}
-                             height={450}
-                             className="mb-4 object-contain opacity-100"
-                           />
-                         </div>
-                          <div className="mt-auto pb-4">
-                            <p className="text-sm text-[#a8a898] leading-relaxed">
-                              The system learns, adapts, and stays compliant in production.
-                            </p>
-                          </div>
-                       </div>
-                      <div className="w-2/5 p-6">
-                        <h4 className="text-sm font-medium text-[#f6f6f4] mb-3 font-inter">Verify & Improve (Feedback Loop)</h4>
-                        <p className="text-sm text-[#a8a898] mb-2 leading-relaxed">
-                          Execution results, telemetry, and metrics flow back to the control plane.<br/>
-                          Policies, routing logic, and configurations are continuously refined and pushed back to the runtime.
-                        </p>
-                      </div>
+                     <div className="w-2/5 p-6">
+                      <h4 className="text-sm font-medium text-[#000000] dark:text-[#f6f6f4] mb-3 font-inter">Decide (Control Plane)</h4>
+                      <p className="text-sm text-gray-600 dark:text-[#a8a898] mb-2 leading-relaxed">
+                        The application sends an AI request.<br/>
+                        The cloud control plane evaluates policies, budgets, safety rules, and performance constraints, then decides how, where, and whether the request should run.
+                      </p>
                     </div>
                   </div>
-                )}
+                   <div className="w-full border border-gray-300 dark:border-[#f6f6f4]/5 bg-[#f6f6f4] dark:bg-[#1b1912] flex" style={{ height: '210px' }}>
+                     <div className="w-3/5 p-6 flex flex-col justify-between">
+                      <div>
+                        <Image
+                          src="/xe.png"
+                          alt="Runtime Plane"
+                          width={450}
+                          height={450}
+                          className="mb-4 object-contain opacity-80"
+                       />
+                      </div>
+                      <div className="mt-auto pb-4">
+                        <p className="text-sm text-gray-600 dark:text-[#a8a898] leading-relaxed">
+                          This guarantees reliable execution—even offline or under failure conditions.
+                        </p>
+                      </div>
+                    </div>
+                    <div className="w-2/5 p-6">
+                     <h4 className="text-sm font-medium text-[#000000] dark:text-[#f6f6f4] mb-3 font-inter">Execute (Runtime Plane)</h4>
+                     <p className="text-sm text-gray-600 dark:text-[#a8a898] mb-2 leading-relaxed">
+                       The runtime executes the decision close to the application.<br/>
+                       It runs the task using cloud models or local models, coordinates tools and agents, and automatically falls back if connectivity or providers fail.
+                     </p>
+                   </div>
+                 </div>
+                  <div className="w-full border border-gray-300 dark:border-[#f6f6f4]/5 bg-[#f6f6f4] dark:bg-[#1b1912] flex" style={{ height: '210px' }}>
+                     <div className="w-3/5 p-6 flex flex-col justify-between">
+                      <div>
+                        <Image
+                          src="/ol.png"
+                          alt="Feedback Loop"
+                          width={450}
+                          height={450}
+                          className="mb-4 object-contain opacity-100"
+                        />
+                      </div>
+                       <div className="mt-auto pb-4">
+                         <p className="text-sm text-gray-600 dark:text-[#a8a898] leading-relaxed">
+                           The system learns, adapts, and stays compliant in production.
+                         </p>
+                       </div>
+                    </div>
+                   <div className="w-2/5 p-6">
+                     <h4 className="text-sm font-medium text-[#000000] dark:text-[#f6f6f4] mb-3 font-inter">Verify & Improve (Feedback Loop)</h4>
+                     <p className="text-sm text-gray-600 dark:text-[#a8a898] mb-2 leading-relaxed">
+                       Execution results, telemetry, and metrics flow back to the control plane.<br/>
+                       Policies, routing logic, and configurations are continuously refined and pushed back to the runtime.
+                     </p>
+                   </div>
+                 </div>
+               </div>
               </div>
 
               {/* Right Column - Title (1 column wide with left border) */}
