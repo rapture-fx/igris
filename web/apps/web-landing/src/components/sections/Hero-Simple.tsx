@@ -4,22 +4,26 @@ import React from 'react'
 import Link from 'next/link'
 export default function Hero() {
   return (
-    <section className="pt-0 pb-0 bg-[#f6f6f4] dark:bg-dark-bg text-gray-900 dark:text-[#f6f6f4] relative overflow-visible -mt-[72px]">
+    <section className="pt-0 pb-0 bg-[#f6f6f4] dark:bg-dark-bg text-gray-900 dark:text-[#f6f6f4] relative overflow-visible">
       <div className="mx-auto max-w-[1100px] px-4 sm:px-6 lg:px-8">
-        <div className="relative px-4 md:px-8 lg:px-12 pb-0 bg-transparent dark:bg-[#1b1912] z-10 overflow-hidden border-l border-r border-gray-300 dark:border-[#f6f6f4]/5" style={{
-          height: '500px'
+        <div className="relative px-4 md:px-8 lg:px-12 pb-0 bg-transparent dark:bg-[#1b1912] z-0 overflow-hidden border-l border-r border-gray-300 dark:border-[#f6f6f4]/5" style={{
+          height: '500px',
+          paddingTop: '72px'
         }}>
-          <div className="max-w-[1100px] mx-auto w-full absolute z-10" style={{ bottom: '5rem', left: 0, right: 0, paddingLeft: '4rem', paddingRight: '4rem' }}>
-            {/* Background image hs.png */}
-            <div className="absolute inset-0 z-0 pointer-events-none" style={{
-              backgroundImage: 'url(/hs.png)',
-              backgroundSize: 'contain',
-              backgroundPosition: 'right bottom',
-              backgroundRepeat: 'no-repeat',
-              opacity: 0.8
-            }}></div>
+          {/* Background image hs.png */}
+          <div className="absolute z-0" style={{
+            top: 0,
+            left: 0,
+            right: 0,
+            bottom: 0,
+            backgroundImage: 'url(/hs.png)',
+            backgroundSize: '70% auto',
+            backgroundPosition: 'right bottom',
+            backgroundRepeat: 'no-repeat'
+          }}></div>
 
-            <div className="mb-6 text-left relative z-10">
+          <div className="max-w-[1100px] mx-auto w-full absolute z-10" style={{ bottom: '5rem', left: 0, right: 0, paddingLeft: '4rem', paddingRight: '4rem' }}>
+            <div className="mb-6 text-left">
               <div>
                 <h1 className="text-lg md:text-xl lg:text-2xl font-medium text-[#111111] dark:text-[#f6f6f4] leading-[1.2]">
                   Secure AI execution on any device
@@ -38,7 +42,7 @@ export default function Hero() {
                     Download Runtime
                   </button>
                 </Link>
-             </div>
+              </div>
           </div>
         </div>
       </div>

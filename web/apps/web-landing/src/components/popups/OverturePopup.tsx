@@ -65,14 +65,14 @@ export default function OverturePopup({ isOpen, onClose }: OverturePopupProps) {
       ]
     },
     {
-      title: 'Included Free with Runtime',
-      description: 'Every Runtime license includes full dashboard access at no extra cost.',
-      how: 'The Overture Fleet Dashboard is not a separate product—it\'s included with every Runtime license. Free tier gets basic dashboard access. Pro and Enterprise get advanced features. No separate billing.',
+      title: 'Included with Runtime',
+      description: 'The dashboard unlocks automatically when you scale. No separate purchase.',
+      how: 'The fleet dashboard is not a separate product—it\'s part of Runtime. Free tier gets basic dashboard access. Pro and Enterprise unlock advanced features. No separate billing.',
       features: [
-        'Included with all Runtime licenses',
+        'Included with Runtime',
         'No additional cost',
-        'Scales with your Runtime plan',
-        'Single billing for both products'
+        'Scales with your plan',
+        'Unlocks automatically'
       ]
     },
   ];
@@ -106,13 +106,13 @@ export default function OverturePopup({ isOpen, onClose }: OverturePopupProps) {
             <div className="mx-auto w-full relative z-10" style={{ paddingTop: '3rem', paddingBottom: '2rem' }}>
               <div className="mb-6 text-left">
                 <h1 className="text-xs md:text-sm font-medium text-[#c5b0cd] leading-[1.2] uppercase" style={{ fontFamily: 'Roboto Mono, monospace', letterSpacing: '0.1em' }}>
-                  Overture Fleet Dashboard
+                  Fleet View
                 </h1>
                 <h2 className="text-base md:text-lg lg:text-xl font-inter font-medium text-[#111111] dark:text-[#f6f6f4] leading-[1.2] mt-2">
-                  Manage your Runtime fleet from the cloud.
+                  The horizon that appears when you scale.
                 </h2>
                 <p className="text-xs md:text-sm text-gray-700 dark:text-[#c8c8b8] max-w-md leading-relaxed text-left mt-4 font-inter">
-                  Zero-config fleet management for Igris Runtime devices. Monitor status, deploy models, and manage configurations. Included free with every Runtime license.
+                  When you have multiple Runtime devices, this is the command center. Not a separate product. Not an integration. Just the natural evolution of running more than one thing.
                 </p>
               </div>
             </div>
@@ -159,16 +159,16 @@ export default function OverturePopup({ isOpen, onClose }: OverturePopupProps) {
             <section className="bg-transparent text-gray-900 dark:text-white">
               <div className="relative px-4 md:px-8 lg:px-12 py-8 flex flex-col bg-transparent border-l border-r border-b section-border">
                 <h4 className="text-xs md:text-sm font-medium text-[#111111] dark:text-[#f6f6f4] mb-3 font-inter">
-                  Included with Runtime
+                  The view unlocks when you scale
                 </h4>
                 <p className="text-xs text-gray-600 dark:text-[#c8c8b8] font-inter leading-relaxed mb-4">
-                  The Overture Fleet Dashboard is included free with every Igris Runtime license. There is no separate pricing—dashboard access scales with your Runtime plan. Free tier includes basic dashboard features. Pro and Enterprise unlock advanced fleet management capabilities.
+                  The fleet dashboard is included with Runtime. There is no separate pricing—the view scales with your plan. Free tier includes basic dashboard features. Pro and Enterprise unlock advanced fleet management capabilities.
                 </p>
                 <a
                   href="https://docs.igrisinertial.com/overture"
                   className="inline-flex items-center justify-start bg-gray-200 dark:bg-[#f6f6f4] text-gray-900 dark:text-black px-4 py-2 hover:bg-gray-300 dark:hover:bg-gray-200 transition-all duration-200 text-xs font-medium shadow-md hover:shadow-lg w-fit"
                 >
-                  View Dashboard Documentation
+                  View Fleet Documentation
                 </a>
               </div>
             </section>

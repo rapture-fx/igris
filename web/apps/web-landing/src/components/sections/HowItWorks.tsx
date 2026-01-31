@@ -24,19 +24,19 @@ export default function HowItWorks() {
             {/* Title Section - Shows first on mobile */}
             <div className="mb-8 text-left">
               <p className="text-base text-[#c5b0cd] mb-2" style={{ fontFamily: 'Roboto Mono, monospace', letterSpacing: '0.05em' }}>
-                03. FLOW
+                03. THE FLOW
               </p>
               <h3 className="text-lg md:text-xl lg:text-2xl font-inter mb-2 text-[#000000] dark:text-[#f6f6f4]">
-                How It Works
+                Drop it. Run it. Scale it.
               </h3>
               <p className="text-sm text-gray-600 dark:text-[#a8a898] leading-relaxed font-inter leading-relaxed mb-8">
-                Runtime runs locally on your devices. When online, it syncs with the included Fleet Dashboard for management.
+                Three steps. One binary. Infinite reach.
               </p>
             </div>
 
             {/* Mobile Content - Three Steps */}
             <div className="space-y-8">
-              {/* Step 1: Deploy */}
+              {/* Step 1: Drop it */}
               <div>
                 <div className="border border-gray-300 dark:border-[#f6f6f4]/5 mb-4 bg-[#f6f6f4] dark:bg-[#1b1912]" style={{ height: '150px', position: 'relative', overflow: 'hidden' }}>
                   <Image
@@ -47,16 +47,16 @@ export default function HowItWorks() {
                     style={{ objectFit: 'cover' }}
                   />
                 </div>
-                <h4 className="text-sm font-semibold text-[#000000] dark:text-[#f6f6f4] mb-3 font-inter">1. Deploy</h4>
+                <h4 className="text-sm font-semibold text-[#000000] dark:text-[#f6f6f4] mb-3 font-inter">Drop it</h4>
                 <p className="text-sm text-gray-600 dark:text-[#a8a898] mb-4 leading-relaxed font-inter">
-                  Download the 16MB Runtime binary. Deploy to any device—Raspberry Pi, edge server, or embedded hardware. Add your GGUF models.
+                  A single binary lighter than a photo. It wakes up on hardware you already own. Raspberry Pi. Old industrial PC. That weird ARM board from 2019. It just works.
                 </p>
                 <p className="text-xs text-gray-600 dark:text-[#a8a898] leading-relaxed font-inter italic">
-                  Zero dependencies. No Docker required.
+                  No containers. No cloud contracts.
                 </p>
               </div>
 
-              {/* Step 2: Execute */}
+              {/* Step 2: Run it */}
               <div>
                 <div className="border border-gray-300 dark:border-[#f6f6f4]/5 mb-4 bg-[#f6f6f4] dark:bg-[#1b1912]" style={{ height: '150px', position: 'relative', overflow: 'hidden' }}>
                   <Image
@@ -67,16 +67,16 @@ export default function HowItWorks() {
                     style={{ objectFit: 'cover' }}
                   />
                 </div>
-                <h4 className="text-sm font-semibold text-[#000000] dark:text-[#f6f6f4] mb-3 font-inter">2. Execute</h4>
+                <h4 className="text-sm font-semibold text-[#000000] dark:text-[#f6f6f4] mb-3 font-inter">Run it</h4>
                 <p className="text-sm text-gray-600 dark:text-[#a8a898] mb-4 leading-relaxed font-inter">
-                  Runtime executes AI workloads locally in a sandboxed environment. Runs offline indefinitely with local models. No cloud required.
+                  Your model breathes. The world goes quiet. No API calls. No dependency anxiety. Internet optional.
                 </p>
                 <p className="text-xs text-gray-600 dark:text-[#a8a898] leading-relaxed font-inter italic">
-                  Sandboxed execution with enforced safety limits.
+                  Works in the silence between connections.
                 </p>
               </div>
 
-              {/* Step 3: Sync */}
+              {/* Step 3: Scale it */}
               <div>
                 <div className="border border-gray-300 dark:border-[#f6f6f4]/5 mb-4 bg-[#f6f6f4] dark:bg-[#1b1912]" style={{ height: '150px', position: 'relative', overflow: 'hidden' }}>
                   <Image
@@ -87,12 +87,12 @@ export default function HowItWorks() {
                     style={{ objectFit: 'cover' }}
                   />
                 </div>
-                <h4 className="text-sm font-semibold text-[#000000] dark:text-[#f6f6f4] mb-3 font-inter">3. Sync (When Online)</h4>
+                <h4 className="text-sm font-semibold text-[#000000] dark:text-[#f6f6f4] mb-3 font-inter">Scale it</h4>
                 <p className="text-sm text-gray-600 dark:text-[#a8a898] mb-4 leading-relaxed font-inter">
-                  When connected, Runtime syncs with the Overture Fleet Dashboard. Push model updates, monitor status, and manage configurations across your entire fleet.
+                  When one becomes many, the horizon appears. Push an update. Watch the fleet sync. Sleep through the night. The dashboard isn't a purchase decision—it's the view that unlocks when you're ready to see it.
                 </p>
                 <p className="text-xs text-gray-600 dark:text-[#a8a898] leading-relaxed font-inter italic">
-                  Dashboard is included free with every Runtime license.
+                  The view unlocks automatically. No separate product.
                 </p>
               </div>
             </div>
@@ -127,10 +127,10 @@ export default function HowItWorks() {
                     </div>
                   </div>
                   <div className="w-2/5 p-6">
-                    <h4 className="text-sm font-medium text-[#000000] dark:text-[#f6f6f4] mb-3 font-inter">1. Deploy</h4>
+                    <h4 className="text-sm font-medium text-[#000000] dark:text-[#f6f6f4] mb-3 font-inter">Drop it</h4>
                     <p className="text-sm text-gray-600 dark:text-[#a8a898] mb-2 leading-relaxed">
-                      Download the 16MB Runtime binary.<br/>
-                      Deploy to any device—Raspberry Pi, edge server, or embedded hardware. Add your GGUF models.
+                      A single binary lighter than a photo.<br/>
+                      Wakes up on hardware you already own. It just works.
                     </p>
                   </div>
                 </div>
@@ -152,10 +152,10 @@ export default function HowItWorks() {
                     </div>
                   </div>
                   <div className="w-2/5 p-6">
-                    <h4 className="text-sm font-medium text-[#000000] dark:text-[#f6f6f4] mb-3 font-inter">2. Execute</h4>
+                    <h4 className="text-sm font-medium text-[#000000] dark:text-[#f6f6f4] mb-3 font-inter">Run it</h4>
                     <p className="text-sm text-gray-600 dark:text-[#a8a898] mb-2 leading-relaxed">
-                      Runtime executes AI workloads locally.<br/>
-                      Runs offline indefinitely with local models. No cloud required.
+                      Your model breathes. The world goes quiet.<br/>
+                      No API calls. No dependency anxiety. Internet optional.
                     </p>
                   </div>
                 </div>
@@ -177,10 +177,10 @@ export default function HowItWorks() {
                     </div>
                   </div>
                   <div className="w-2/5 p-6">
-                    <h4 className="text-sm font-medium text-[#000000] dark:text-[#f6f6f4] mb-3 font-inter">3. Sync (When Online)</h4>
+                    <h4 className="text-sm font-medium text-[#000000] dark:text-[#f6f6f4] mb-3 font-inter">Scale it</h4>
                     <p className="text-sm text-gray-600 dark:text-[#a8a898] mb-2 leading-relaxed">
-                      Runtime syncs with the Overture Fleet Dashboard.<br/>
-                      Push model updates, monitor status, and manage configurations across your fleet.
+                      When one becomes many, the horizon appears.<br/>
+                      The dashboard isn't a purchase—it's the view that unlocks when you're ready to see it.
                     </p>
                   </div>
                 </div>
@@ -190,13 +190,13 @@ export default function HowItWorks() {
             {/* Right Column - Title (1 column wide with left border) */}
             <div className="md:col-span-1 md:border-l flex flex-col justify-start dark:border-[#f6f6f4]/5" style={{ paddingTop: '3rem', paddingBottom: '3rem', paddingLeft: '1rem' }}>
               <p className="text-base text-[#c5b0cd] mb-2" style={{ fontFamily: 'Roboto Mono, monospace', letterSpacing: '0.05em' }}>
-                03. FLOW
+                03. THE FLOW
               </p>
               <h2 className="text-lg md:text-xl lg:text-2xl font-inter mb-4 text-[#000000] dark:text-[#f6f6f4]">
-                How It Works
+                Drop it. Run it. Scale it.
               </h2>
               <p className="text-sm text-gray-600 dark:text-[#a8a898] font-inter leading-relaxed">
-                Runtime runs on your devices, executing AI locally. When online, it syncs with the Overture Fleet Dashboard for management and updates.
+                Three steps. One binary. Infinite reach.
               </p>
             </div>
 

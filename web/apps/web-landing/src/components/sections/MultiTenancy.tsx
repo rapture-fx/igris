@@ -3,23 +3,23 @@ import { KeyRound, Database, Shield, Lock } from 'lucide-react';
 
 const features = [
   {
-    name: 'Your Keys, Your Models',
-    description: 'Use your own API keys and GGUF models. Data stays on your devices. No vendor lock-in, no data exfiltration.',
+    name: 'Air-Gap Ready',
+    description: 'Never needs to call home. Your AI runs in the void. Internet goes dark? Runtime keeps breathing. Paranoid IT loves this.',
     icon: KeyRound,
   },
   {
-    name: 'Sandboxed Execution',
-    description: 'Runtime runs AI in isolated sandboxes with enforced limits on memory, CPU, and execution time. Prevents runaway processes.',
+    name: 'Zero-Trust by Default',
+    description: 'Every device cryptographically signs. Compromised hardware tries to phone home? The network rejects it. Trust nothing. Verify everything.',
     icon: Database,
   },
   {
-    name: 'Offline-First Security',
-    description: 'Models and data stay encrypted on-device. No cloud required for operation. Network failures don\'t compromise security.',
+    name: 'Offline-First Encryption',
+    description: 'Models die with the device. Lose hardware to the desert? The model\'s already dead. Keys never leave. Data never leaks.',
     icon: Shield,
   },
   {
-    name: 'Fleet-Verified Updates',
-    description: 'Model updates and configurations are signed and verified before deployment. Only approved changes reach your devices.',
+    name: 'Signed Updates Only',
+    description: 'Model updates are cryptographically signed. Unsigned code dies at the gate. Only verified changes reach your fleet.',
     icon: Lock,
   },
 ];
@@ -36,10 +36,10 @@ export default function MultiTenancy() {
               04. SECURITY
             </p>
             <h3 className="text-lg md:text-xl lg:text-2xl font-inter mb-4 text-[#000000] dark:text-[#f6f6f4]">
-              Secure by Default
+              Trust no one. Verify everything.
             </h3>
             <p className="text-sm text-gray-600 dark:text-[#a8a898] font-inter mb-8">
-              Security built for edge deployment. Your models, your data, your control—whether devices are online or offline.
+              Your AI runs in places you can't physically guard. So we built it to guard itself.
             </p>
 
             {/* Features - Mobile */}
@@ -121,10 +121,10 @@ export default function MultiTenancy() {
                 04. SECURITY
               </p>
               <h3 className="text-lg md:text-xl lg:text-2xl font-inter mb-4 text-[#000000] dark:text-[#f6f6f4]">
-                Secure by Default
+                Trust no one. Verify everything.
               </h3>
               <p className="text-sm text-gray-600 dark:text-[#a8a898] font-inter leading-relaxed">
-                Security built for edge deployment. Your models, your data, your control—whether devices are online or offline.
+                Your AI runs in places you can't physically guard. So we built it to guard itself.
               </p>
             </div>
           </div>
