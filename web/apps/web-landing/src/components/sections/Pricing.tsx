@@ -18,62 +18,59 @@ interface PricingTier {
   highlight?: boolean;
 }
 
-// Simplified 3-tier pricing: Free, Pro, Enterprise
+// Three horizons: The Seed, The Horizon Unlocks, The Infinite
 const pricingTiers: PricingTier[] = [
   {
-    name: "Free",
+    name: "The Seed",
     price: "$0",
     priceDetail: "forever",
-    description: "For development and testing",
-    devices: "1 device",
+    description: "One device. Full power. The dashboard sleeps—you don't need it yet.",
+    devices: "One device",
     features: [
-      "1 Runtime device",
-      "Overture Fleet Dashboard included",
-      "Community support (Discord)",
-      "Basic analytics",
-      "BYOM - bring your own GGUF models",
-      "Offline operation",
+      "One Runtime instance (16MB of certainty)",
+      "BYOM—bring your own GGUF souls",
+      "Offline forever (no cloud, no keys, no lock-in)",
+      "The binary runs anywhere",
+      "Community of builders (Discord)",
       "Self-hosted option available"
     ],
-    cta: "Download Runtime"
+    cta: "Download"
   },
   {
-    name: "Pro",
+    name: "The Horizon Unlocks",
     price: "$49",
     priceDetail: "/device/month",
-    description: "For production fleets",
+    description: "Up to one hundred devices. The view awakens. See them all. Touch them all. From anywhere.",
     devices: "Up to 100 devices",
     features: [
-      "Up to 100 Runtime devices",
-      "Overture Fleet Dashboard included",
-      "Priority email support",
-      "Advanced fleet analytics",
-      "Model deployment management",
-      "QR code device pairing",
-      "Configuration sync across fleet",
-      "7-day log retention"
+      "Everything in Seed, plus:",
+      "The dashboard unfolds (your map of the empire)",
+      "QR-code pairing (devices join in seconds)",
+      "One-click fleet updates",
+      "Seven days of memory",
+      "Priority access to the architects",
+      "Advanced analytics and insights"
     ],
     cta: "Get Started",
     highlight: true
   },
   {
-    name: "Enterprise",
+    name: "The Infinite",
     price: "Custom",
     priceDetail: "pricing",
-    description: "For large-scale deployments with SLA requirements",
-    devices: "Unlimited devices",
+    description: "Unlimited. Unbounded. Custom SLAs for custom gravity. On-premise. Air-gapped. Whatever your security demands.",
+    devices: "Infinite devices",
     features: [
-      "Unlimited Runtime devices",
-      "Overture Fleet Dashboard included",
-      "24/7 dedicated support",
-      "Custom SLA guarantees",
-      "Security audit support",
-      "On-premise deployment option",
-      "Custom integrations",
-      "90-day log retention",
-      "SSO & advanced access controls"
+      "Everything in Horizon, plus:",
+      "Infinite devices",
+      "The view on your own servers",
+      "Security attestation support",
+      "24/7 access to human beings who built this",
+      "Ninety days of memory",
+      "SSO & advanced access controls",
+      "Custom integrations"
     ],
-    cta: "Contact Sales",
+    cta: "Contact",
     isContactUs: true
   }
 ];
@@ -96,14 +93,14 @@ export default function Pricing() {
           <div className="max-w-[1400px] mx-auto pt-48 px-0 md:px-8 lg:px-0 pb-12">
             <div className="text-center mb-12">
               <h2 className="text-2xl md:text-2xl lg:text-3xl font-inter mb-6 text-[#000000] dark:text-[#f6f6f4]">
-                Pricing per device.
-                <br />Dashboard free.
+                Pay for presence.
+                <br />The view is included.
               </h2>
               <p className="text-sm md:text-base text-gray-600 dark:text-[#a8a898] font-inter max-w-2xl mx-auto mb-4">
-                Every Runtime license includes Overture Fleet Dashboard at no extra cost.
+                One binary. Three horizons.
               </p>
               <p className="text-xs text-gray-500 dark:text-[#a8a898] font-inter max-w-2xl mx-auto">
-                Pay only for Runtime execution. No hidden fees for fleet management.
+                Start free. Scale when your fleet finds its wings.
               </p>
             </div>
 
@@ -187,7 +184,7 @@ export default function Pricing() {
 
             <div className="text-center mt-8 mb-8">
               <p className="text-xs text-gray-500 dark:text-[#a8a898] font-inter">
-                All plans include the Overture Fleet Dashboard at no additional cost.
+                The dashboard awakens automatically when you upgrade. One product, three horizons.
               </p>
             </div>
 
