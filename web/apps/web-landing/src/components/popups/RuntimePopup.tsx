@@ -55,8 +55,8 @@ export default function RuntimePopup({ isOpen, onClose }: RuntimePopupProps) {
     },
     {
       title: 'Fleet Dashboard Integration',
-      description: 'Auto-sync with Overture Fleet Dashboard when online. Included free.',
-      how: 'When devices have connectivity, Runtime automatically syncs status, telemetry, and logs with the Overture Fleet Dashboard. Push model updates and configuration changes to your entire fleet. QR code pairing for instant device linking.',
+      description: 'Auto-sync with fleet dashboard when online. Included free.',
+      how: 'When devices have connectivity, Runtime automatically syncs status, telemetry, and logs with the fleet dashboard. Push model updates and configuration changes to your entire fleet. QR code pairing for instant device linking.',
       features: [
         'Zero-config sync',
         'Real-time status monitoring',
@@ -102,7 +102,7 @@ export default function RuntimePopup({ isOpen, onClose }: RuntimePopupProps) {
                   Secure AI execution for edge devices.
                 </h2>
                 <p className="text-xs md:text-sm text-gray-700 dark:text-[#c8c8b8] max-w-md leading-relaxed text-left mt-4 font-inter">
-                  Deploy AI anywhere with a 16MB binary. Run GGUF models locally, work offline, and manage your fleet from the cloud when needed. Overture Fleet Dashboard included free.
+                  Deploy AI anywhere with a 16MB binary. Run GGUF models locally, work offline, and manage your fleet from the cloud when needed. Fleet dashboard included free.
                 </p>
               </div>
             </div>
@@ -152,7 +152,7 @@ export default function RuntimePopup({ isOpen, onClose }: RuntimePopupProps) {
                   Get Started with Runtime
                 </h4>
                 <p className="text-xs text-gray-600 dark:text-[#c8c8b8] font-inter leading-relaxed mb-4">
-                  Download the Runtime binary for your platform, add your GGUF models, and deploy to any device. The Overture Fleet Dashboard is included free for cloud-based fleet management.
+                  Download the Runtime binary for your platform, add your GGUF models, and deploy to any device. The fleet dashboard is included free for cloud-based fleet management.
                 </p>
                 <a
                   href="https://docs.igrisinertial.com/runtime/quickstart"

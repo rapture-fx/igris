@@ -3,16 +3,16 @@ import { useTheme } from 'next-themes'
 
 const capabilities = [
   {
-    name: '16MB Binary',
-    description: 'No Docker, no bloat. A single 16MB executable runs on any device from Raspberry Pi to edge servers. Deploy AI in seconds, not hours.',
+    name: 'Everywhere',
+    description: 'Raspberry Pi to edge server. Same binary. Same behavior. Fits on hardware you already own. Deploy in seconds.',
   },
   {
-    name: 'Works Offline',
-    description: 'Execute GGUF models locally without internet. Your AI keeps running when connectivity fails. Perfect for remote, mobile, and air-gapped environments.',
+    name: 'Always',
+    description: 'Works in the silence between connections. Your AI breathes even when the world goes dark. Internet optional.',
   },
   {
-    name: 'Fleet Dashboard Included',
-    description: 'Zero-config cloud dashboard included free with every Runtime license. Monitor devices, deploy updates, and manage configs. QR code pairing for instant linking.',
+    name: 'Everything',
+    description: 'One view for every device you own. The dashboard unlocks automatically when you need it. No separate purchase.',
   },
 ]
 
@@ -38,13 +38,13 @@ export default function CoreCapabilities() {
                 {/* Title Section - Shows first on mobile */}
                 <div className="mb-8 text-left">
                   <p className="text-base text-[#c5b0cd] mb-2" style={{ fontFamily: 'Roboto Mono, monospace', letterSpacing: '0.05em' }}>
-                    02. WHY RUNTIME
+                    02. THE PILLARS
                   </p>
                   <h3 className="text-lg md:text-xl lg:text-2xl font-inter mb-4 text-[#000000] dark:text-[#f6f6f4]">
-                    AI that runs anywhere
+                    Deploy anywhere. Know everything.
                   </h3>
                   <p className="text-sm text-gray-700 dark:text-[#c8c8b8] font-inter leading-relaxed">
-                    No cloud required. Deploy to any device in seconds. Fleet management when you need it, offline when you don't.
+                    No cloud required. No dependency anxiety. The horizon appears when you're ready to see it.
                   </p>
                 </div>
 
@@ -177,13 +177,13 @@ export default function CoreCapabilities() {
                 {/* Right Column - Title and Intro (Desktop only) */}
                 <div className="hidden md:flex text-left md:col-span-1 md:border-l flex-col justify-start dark:border-[#f6f6f4]/5" style={{ paddingTop: '3rem', paddingBottom: '3rem', paddingLeft: '1rem' }}>
                   <p className="text-base text-[#c5b0cd] mb-2" style={{ fontFamily: 'Roboto Mono, monospace', letterSpacing: '0.05em' }}>
-                    02. WHY RUNTIME
+                    02. THE PILLARS
                   </p>
                   <h3 className="text-lg md:text-xl lg:text-2xl font-inter mb-4 text-[#000000] dark:text-[#f6f6f4]">
-                    AI that runs anywhere
+                    Deploy anywhere. Know everything.
                   </h3>
                   <p className="text-sm text-gray-700 dark:text-[#c8c8b8] font-inter leading-relaxed">
-                    No cloud required. Deploy to any device in seconds. Fleet management when you need it, offline when you don't.
+                    No cloud required. No dependency anxiety. The horizon appears when you're ready to see it.
                   </p>
                 </div>
               </div>

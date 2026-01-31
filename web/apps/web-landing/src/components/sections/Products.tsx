@@ -21,26 +21,20 @@ export default function Products() {
           {/* Title Section - Shows first on mobile, last on desktop */}
           <div className="mb-6 md:mb-0 md:hidden text-left" style={{ paddingTop: '3rem', paddingBottom: '3rem' }}>
             <p className="text-base text-[#c5b0cd] mb-2" style={{ fontFamily: 'Roboto Mono, monospace', letterSpacing: '0.05em' }}>
-              01. WHAT YOU GET
+              01. PRODUCT
             </p>
             <h2 className="text-lg md:text-xl lg:text-2xl font-inter mb-4 text-[#000000] dark:text-[#f6f6f4]">
-              Runtime + Included Fleet Dashboard
+              One binary. Infinite locations.
             </h2>
             <p className="text-sm text-gray-600 dark:text-[#a8a898] font-inter leading-relaxed mb-8">
-              Runtime runs AI on your devices. The Overture Fleet Dashboard manages your fleet from the cloud. Both included—one license.
+              Runtime is the last AI infrastructure you'll ever need to ship. When you scale from one device to one thousand, the dashboard unfolds like a map of your empire.
             </p>
 
-            {/* Products - Mobile */}
-            <div className="space-y-12 text-left">
-              {/* Runtime - Primary Product */}
+            {/* Product Narrative - Mobile */}
+            <div className="space-y-8 text-left">
+              {/* Single unified product story */}
               <div className="border border-gray-300 dark:border-[#f6f6f4]/5 p-6">
-                <h3 className="text-lg md:text-xl font-inter mb-2 text-[#000000] dark:text-[#f6f6f4]">
-                  Igris Runtime
-                </h3>
-                <p className="text-sm text-[#c5b0cd] mb-4 font-medium">
-                  Primary Product
-                </p>
-                <div className="border border-gray-300 dark:border-[#f6f6f4]/5" style={{ marginTop: '1rem', marginBottom: '1rem', height: '200px', position: 'relative', overflow: 'hidden' }}>
+                <div className="border border-gray-300 dark:border-[#f6f6f4]/5" style={{ marginTop: '0', marginBottom: '1.5rem', height: '200px', position: 'relative', overflow: 'hidden' }}>
                   <Image
                     src="/r.png"
                     alt="Runtime AI Execution"
@@ -49,7 +43,10 @@ export default function Products() {
                   />
                 </div>
                 <p className="text-sm text-gray-600 dark:text-[#a8a898] leading-relaxed font-inter mb-4">
-                  16MB binary. Runs GGUF models locally with sandboxed safety. Works completely offline. Syncs automatically with fleet dashboard when online.
+                  Sixteen megabytes that run on a $45 computer in a barn, a factory floor, or a drone hovering over farmland. No containers. No cloud contracts. No explaining to your CFO why the 'simple AI feature' needs a $30,000 GPU cluster.
+                </p>
+                <p className="text-sm text-gray-600 dark:text-[#a8a898] leading-relaxed font-inter mb-4">
+                  When you're ready to scale—from one device to one thousand—the dashboard unfolds like a map of your empire. It's not another product to buy. It's the view that appears when you have something worth seeing.
                 </p>
                 <button
                   onClick={openRuntime}
@@ -62,31 +59,28 @@ export default function Products() {
                 </button>
               </div>
 
-              {/* Overture - Included Dashboard */}
-              <div className="border border-gray-300 dark:border-[#f6f6f4]/5 p-6 mb-12 bg-gray-50 dark:bg-[#1b1912]/50">
-                <h3 className="text-lg md:text-xl font-inter mb-2 text-[#000000] dark:text-[#f6f6f4]">
-                  Overture Fleet Dashboard
+              {/* Fleet view emerges when you scale */}
+              <div className="border border-gray-300 dark:border-[#f6f6f4]/5 p-6 bg-gray-50 dark:bg-[#1b1912]/50">
+                <h3 className="text-base font-inter mb-3 text-[#000000] dark:text-[#f6f6f4]">
+                  The view unlocks when you scale
                 </h3>
-                <p className="text-sm text-gray-500 dark:text-[#a8a898] mb-4">
-                  Included Free with Every Runtime License
-                </p>
-                <div className="border border-gray-300 dark:border-[#f6f6f4]/5" style={{ marginTop: '1rem', marginBottom: '1rem', height: '200px', position: 'relative', overflow: 'hidden' }}>
+                <div className="border border-gray-300 dark:border-[#f6f6f4]/5" style={{ marginTop: '0', marginBottom: '1rem', height: '200px', position: 'relative', overflow: 'hidden' }}>
                   <Image
                     src="/rtnm.png"
-                    alt="Overture Fleet Dashboard"
+                    alt="Fleet Dashboard"
                     fill
                     style={{ objectFit: 'cover', opacity: 0.6 }}
                   />
                 </div>
                 <p className="text-sm text-gray-600 dark:text-[#a8a898] leading-relaxed font-inter mb-4">
-                  Zero-config fleet management. Monitor device status, deploy model updates, and manage configurations from a single dashboard. QR code pairing for instant device linking.
+                  Monitor device status. Deploy model updates. Manage configurations from a single dashboard. The fleet view is included—not as a separate product, but as the natural evolution of running more than one thing.
                 </p>
                 <button
                   onClick={openOverture}
                   className="group inline-flex items-center justify-center bg-gray-200 dark:bg-[#f6f6f4] text-gray-900 dark:text-black px-4 py-2 hover:bg-gray-300 dark:hover:bg-gray-200 transition-all duration-200 text-xs font-medium shadow-md hover:shadow-lg"
                 >
                   <span className="font-inter">
-                    View Dashboard Features
+                    View Fleet Capabilities
                   </span>
                   <ChevronRight className="ml-1 h-3 w-3" />
                 </button>
@@ -97,19 +91,13 @@ export default function Products() {
           {/* Split Layout: Left Products (wider), Right Title (narrower) */}
           <div className="grid grid-cols-1 md:grid-cols-3 gap-0 flex-1">
 
-            {/* Left Column: Runtime and Dashboard - 2 columns wide (Desktop only) */}
+            {/* Left Column: Single product narrative - 2 columns wide (Desktop only) */}
             <div className="hidden md:flex md:col-span-2 flex-col items-start justify-start" style={{ paddingTop: '3rem', paddingBottom: '3rem', paddingRight: '2rem' }}>
-              <div className="w-full space-y-12">
+              <div className="w-full space-y-8">
 
-                {/* Runtime - Primary Product */}
+                {/* Runtime - The complete solution */}
                 <div className="border border-gray-300 dark:border-[#f6f6f4]/5 p-6">
-                  <h3 className="text-lg md:text-xl font-inter mb-2 text-[#000000] dark:text-[#f6f6f4]">
-                    Igris Runtime
-                  </h3>
-                  <p className="text-sm text-[#c5b0cd] mb-4 font-medium">
-                    Primary Product
-                  </p>
-                  <div className="border border-gray-300 dark:border-[#f6f6f4]/5" style={{ marginTop: '1rem', marginBottom: '1rem', height: '200px', position: 'relative', overflow: 'hidden' }}>
+                  <div className="border border-gray-300 dark:border-[#f6f6f4]/5" style={{ marginTop: '0', marginBottom: '1.5rem', height: '200px', position: 'relative', overflow: 'hidden' }}>
                     <img
                       src="/r.png"
                       alt="Runtime AI Execution"
@@ -122,7 +110,10 @@ export default function Products() {
                     />
                   </div>
                   <p className="text-sm text-gray-600 dark:text-[#a8a898] leading-relaxed font-inter mb-4">
-                    16MB binary for secure AI execution on any device. Runs GGUF models locally with sandboxed safety. Works completely offline. Auto-syncs with fleet dashboard when connected.
+                    Runtime is the last AI infrastructure you'll ever need to ship. Sixteen megabytes that run on a $45 computer in a barn, a factory floor, or a drone hovering over farmland. No containers. No cloud contracts. No explaining to your CFO why the 'simple AI feature' needs a $30,000 GPU cluster.
+                  </p>
+                  <p className="text-sm text-gray-600 dark:text-[#a8a898] leading-relaxed font-inter mb-4">
+                    When you're ready to scale—from one device to one thousand—the dashboard unfolds like a map of your empire. It's not another product to buy. It's the view that appears when you have something worth seeing.
                   </p>
                   <button
                     onClick={openRuntime}
@@ -135,31 +126,28 @@ export default function Products() {
                   </button>
                 </div>
 
-                {/* Overture - Included Dashboard */}
+                {/* Fleet View - The horizon that appears */}
                 <div className="border border-gray-300 dark:border-[#f6f6f4]/5 p-6 mb-12 bg-gray-50 dark:bg-[#1b1912]/50">
-                  <h3 className="text-lg md:text-xl font-inter mb-2 text-[#000000] dark:text-[#f6f6f4]">
-                    Overture Fleet Dashboard
+                  <h3 className="text-base font-inter mb-3 text-[#000000] dark:text-[#f6f6f4]">
+                    The view unlocks when you scale
                   </h3>
-                  <p className="text-sm text-gray-500 dark:text-[#a8a898] mb-4">
-                    Included Free with Every Runtime License
-                  </p>
-                  <div className="border border-gray-300 dark:border-[#f6f6f4]/5" style={{ marginTop: '1rem', marginBottom: '1rem', height: '200px', position: 'relative', overflow: 'hidden' }}>
+                  <div className="border border-gray-300 dark:border-[#f6f6f4]/5" style={{ marginTop: '0', marginBottom: '1rem', height: '200px', position: 'relative', overflow: 'hidden' }}>
                     <Image
                       src="/rtnm.png"
-                      alt="Overture Fleet Dashboard"
+                      alt="Fleet Dashboard"
                       fill
                       style={{ objectFit: 'cover', opacity: 0.6 }}
                     />
                   </div>
                   <p className="text-sm text-gray-600 dark:text-[#a8a898] leading-relaxed font-inter mb-4">
-                    Zero-config fleet management. Monitor device status, deploy model updates, and manage configurations from a single dashboard. QR code pairing for instant device linking.
+                    Monitor device status. Deploy model updates. Manage configurations from a single dashboard. The fleet view is included—not as a separate product, but as the natural evolution of running more than one thing.
                   </p>
                   <button
                     onClick={openOverture}
                     className="group inline-flex items-center justify-center bg-gray-200 dark:bg-[#f6f6f4] text-gray-900 dark:text-black px-4 py-2 hover:bg-gray-300 dark:hover:bg-gray-200 transition-all duration-200 text-xs font-medium shadow-md hover:shadow-lg"
                   >
                     <span className="font-inter">
-                      View Dashboard Features
+                      View Fleet Capabilities
                     </span>
                     <ChevronRight className="ml-1 h-3 w-3" />
                   </button>
@@ -174,10 +162,10 @@ export default function Products() {
                 01. PRODUCT
               </p>
               <h2 className="text-lg md:text-xl lg:text-2xl font-inter mb-4 text-[#000000] dark:text-[#f6f6f4]">
-                Runtime + Fleet Dashboard
+                One binary. Infinite locations.
               </h2>
               <p className="text-xs md:text-sm text-gray-600 dark:text-[#a8a898] font-inter leading-relaxed">
-                Igris Runtime executes AI on your devices. The Overture Fleet Dashboard is included free for monitoring and management when devices are online.
+                Runtime runs AI anywhere. As you scale, the dashboard appears—your command center for managing everything from one view. One product, infinite scale.
               </p>
             </div>
 

@@ -25,7 +25,7 @@ export default function HomePage() {
     <>
       <div className="min-h-screen bg-[#f6f6f4] dark:bg-dark-bg transition-colors duration-200">
         <Header />
-        <main className="pt-[70px]">
+        <main>
           <Hero />
           <Solve />
           <Products />

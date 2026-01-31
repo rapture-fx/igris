@@ -5,13 +5,13 @@ import Image from 'next/image'
 
 export default function Solve() {
   const items = [
-    'Decision',
-    'Execution',
-    'Environment',
-    'Failure',
-    'Governance',
-    'Trust',
-    'Survival'
+    'Remote',
+    'Offline',
+    'Scale',
+    'Control',
+    'Latency',
+    'Cost',
+    'Privacy'
   ];
 
   return (
