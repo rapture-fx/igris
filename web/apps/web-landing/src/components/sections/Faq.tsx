@@ -30,22 +30,22 @@ const faqSections: FaqSection[] = [
     entries: [
       {
         question: "Is there a free tier?",
-        answer: "Yes. The Free plan includes 1 Runtime device, the Overture Fleet Dashboard (basic features), community support, and full offline capability. Perfect for development and testing.",
+        answer: "Yes. The Seed. One device. Full power. The dashboard sleeps—you don't need it yet. Community support, full offline capability. Perfect for building in the quiet.",
         type: "text"
       },
       {
         question: "What hardware do I need?",
-        answer: "Runtime runs on any Linux, macOS, or ARM device with at least 512MB RAM. Tested on Raspberry Pi 4, NVIDIA Jetson, edge servers, and standard x86 hardware. The binary is only 16MB.",
+        answer: "Anything with 512MB of breath. Raspberry Pi. NVIDIA Jetson. That weird ARM board gathering dust. The binary is 16MB—lighter than a photo.",
         type: "text"
       },
       {
         question: "Do I need internet connectivity?",
-        answer: "No. Runtime works completely offline. Download the binary, add your GGUF models, and deploy. The Overture Fleet Dashboard is optional—devices sync when online but operate independently when offline.",
+        answer: "No. Runtime works in the silence between connections. Download the binary, add your models, deploy. Internet optional. The view syncs when the world returns.",
         type: "text"
       },
       {
         question: "What models can I use?",
-        answer: "Any GGUF format model. This includes Llama, Mistral, Phi-3, and thousands of models from HuggingFace. You can also use your own fine-tuned models converted to GGUF format.",
+        answer: "Any GGUF soul. Llama. Mistral. Phi-3. Thousands from HuggingFace. Your own fine-tuned weights. Bring your own models. No vendor lock-in.",
         type: "text"
       }
     ]
@@ -55,32 +55,32 @@ const faqSections: FaqSection[] = [
     entries: [
       {
         question: "How does pricing work?",
-        answer: "Simple per-device pricing. Free: 1 device at $0. Pro: $49/device/month for up to 100 devices with priority support and advanced analytics. Enterprise: Custom pricing for unlimited devices with SLA guarantees.",
+        answer: "Pay for presence. The Seed: $0 forever (one device). The Horizon Unlocks: $49/device/month (up to 100 devices, the view awakens). The Infinite: Custom pricing for unbounded reach.",
         type: "text"
       },
       {
-        question: "Is the Fleet Dashboard really free?",
-        answer: "Yes. The Overture Fleet Dashboard is included at no extra cost with every Runtime license. Free tier gets basic dashboard access. Pro and Enterprise unlock advanced fleet management features.",
+        question: "When do I unlock the dashboard?",
+        answer: "When you have more than one device to love. Upgrade to Horizon (Pro), and the view unfolds automatically. It's not a separate purchase—it's the natural evolution of having a fleet.",
         type: "text"
       },
       {
-        question: "What's the difference between Free and Pro?",
-        answer: "Free supports 1 device with community support and basic dashboard. Pro supports up to 100 devices with priority email support, advanced analytics, model deployment management, and 7-day log retention.",
+        question: "Is the dashboard a different product?",
+        answer: "No. It's Runtime seeing itself at scale. One binary on many devices. One view to guide them.",
         type: "text"
       },
       {
         question: "Can I upgrade or downgrade?",
-        answer: "Yes. Upgrades take effect immediately. Downgrades apply at the start of your next billing cycle. No configuration or data is lost when changing plans.",
+        answer: "Yes. Upgrades breathe immediately. Downgrades take effect at your next billing cycle. Nothing is lost when you change horizons.",
         type: "text"
       },
       {
         question: "Are there any hidden fees?",
-        answer: "No. You pay per Runtime device. The Fleet Dashboard is included. No request-based pricing, no overage charges, no surprise bills.",
+        answer: "No. You pay per device. The view is included. No request-based pricing, no overage charges, no hidden temples.",
         type: "text"
       },
       {
         question: "Do I pay for cloud AI providers separately?",
-        answer: "Runtime runs models locally—no cloud AI provider required. If you choose to use cloud APIs from OpenAI, Anthropic, etc., you pay them directly. Igris does not markup provider costs.",
+        answer: "Runtime runs models locally—no cloud required. If you choose to use cloud APIs, you pay them directly. We don't markup provider costs. Software that doesn't hold you hostage.",
         type: "text"
       }
     ]
@@ -89,23 +89,23 @@ const faqSections: FaqSection[] = [
     title: "Product & Architecture",
     entries: [
       {
-        question: "What's the difference between Runtime and the Fleet Dashboard?",
-    "answer": "Runtime is the primary product—a 16MB binary that executes AI on your devices. The Overture Fleet Dashboard is included management software that lets you monitor and manage Runtime devices from the cloud. Think of Runtime as the engine, and the Dashboard as the dashboard in your car—both included together.",
-        type: "text"
-      },
-      {
-        question: "Can I use Runtime without the Dashboard?",
-        answer: "Yes. Runtime works completely standalone. The Dashboard is optional for fleet management. Many users deploy Runtime independently for single-device or offline scenarios.",
+        question: "Can I use Runtime without the dashboard?",
+        answer: "Yes. Runtime works completely standalone. Many users run single devices in the dark, offline forever. The view only matters when you have a fleet.",
         type: "text"
       },
       {
         question: "How does device pairing work?",
-        answer: "Simple QR code pairing. Generate a code in the Dashboard, scan it with your device camera, and the device automatically joins your fleet. No manual configuration, no copying API keys.",
+        answer: "QR code baptism. Generate a code. Scan it with your device. It joins your fleet instantly. No manual configuration. No copying API keys. Devices join in seconds.",
         type: "text"
       },
       {
         question: "Can I deploy models to my entire fleet?",
-        answer: "Yes. Upload GGUF models to the Dashboard and push them to one device or your entire fleet. Devices download and verify models automatically. You can also rollback if issues occur.",
+        answer: "Yes. Upload GGUF models. Push them like whispers across the fleet. One device or one thousand. Devices download and verify automatically. Rollback if the world breaks.",
+        type: "text"
+      },
+      {
+        question: "What happens when I scale from one device to many?",
+        answer: "The horizon appears. Upgrade to Horizon tier, and the view awakens automatically. See all your devices breathing. Touch them all. From anywhere.",
         type: "text"
       }
     ]
@@ -115,22 +115,22 @@ const faqSections: FaqSection[] = [
     entries: [
       {
         question: "How secure is Runtime?",
-        answer: "Runtime uses sandboxed execution with enforced resource limits. Models run in isolated environments with boundaries on memory, CPU, and execution time. Your models and data stay on your devices.",
+        answer: "Trust no one. Sandboxed execution. Enforced resource limits. Models run in isolated cells with boundaries on memory, CPU, execution time. Your models and data stay on your devices. Cryptographically signed. Keys never leave.",
         type: "text"
       },
       {
         question: "What happens if a device goes offline?",
-        answer: "Runtime continues operating normally. All AI execution happens locally. When the device comes back online, it syncs status and any pending updates with the Dashboard automatically.",
+        answer: "Runtime keeps breathing. All AI execution happens locally. When the device returns from the void, it syncs automatically. The world goes quiet. Runtime doesn't care.",
         type: "text"
       },
       {
         question: "Is my data sent to the cloud?",
-    "answer": "No. AI inference happens entirely on-device. Only metadata (device status, model versions, logs) syncs with the Dashboard when online. Your actual data and AI workloads never leave the device unless you choose cloud providers.",
+        answer: "No. AI inference happens on-device. Only metadata (device status, model versions, logs) syncs when online. Your actual data and AI workloads never leave the device. Unless you choose cloud providers—then it's your call.",
         type: "text"
       },
       {
-        question: "What uptime guarantees do you provide?",
-        answer: "Free tier has no SLA. Pro tier includes best-effort support. Enterprise includes custom SLA guarantees with 24/7 dedicated support and 99.9% uptime commitment for the Dashboard.",
+        question: "What about air-gapped deployments?",
+        answer: "Air-gapped factory with paranoid IT? Runtime never needed the internet anyway. Deploy. Execute. Sleep at night. The binary runs in the silence.",
         type: "text"
       }
     ]
@@ -140,22 +140,22 @@ const faqSections: FaqSection[] = [
     entries: [
       {
         question: "Do I retain control of my models?",
-        answer: "Yes. You bring your own GGUF models. Models are stored on your devices, not on our servers. You can update, replace, or remove models at any time.",
+        answer: "Yes. You bring your own souls. Models are stored on your devices, not our servers. Update, replace, remove them at any time. No vendor lock-in. Software that doesn't hold you hostage.",
         type: "text"
       },
       {
         question: "Can I monitor device performance?",
-        answer: "Yes. The Fleet Dashboard shows real-time status, resource usage, model performance, and execution logs for all your devices. Export data for external analysis.",
+        answer: "Yes. When the view awakens (Horizon tier), see real-time status, resource usage, model performance, execution logs for all your devices. Export data for external analysis.",
         type: "text"
       },
       {
         question: "Do you train on my data?",
-        answer: "No. Igris does not train models on your data. Your data stays on your devices. Runtime executes your models locally without sending data to Igris or any third party.",
+        answer: "No. We don't train models on your data. Your data stays on your devices. Runtime executes your models locally without sending data to us or anyone else. Trust no one.",
         type: "text"
       },
       {
         question: "Can I self-host?",
-        answer: "Yes. Enterprise plans include on-premise deployment options. Run the entire stack within your own infrastructure with no external dependencies.",
+        answer: "Yes. The Infinite tier includes on-premise deployment. Run the entire stack within your own infrastructure. No external dependencies. The view on your own servers.",
         type: "text"
       }
     ]
@@ -172,7 +172,7 @@ export default function Faq() {
     return (
      <section id="faq" className="bg-[#f6f6f4] dark:bg-dark-bg text-gray-900 dark:text-[#f6f6f4] transition-colors duration-200">
        <div className="max-w-[1100px] mx-auto px-4 sm:px-6 lg:px-8">
-           <div className="relative px-4 md:px-8 lg:px-12 border-l border-r border-b border-gray-300 dark:border-[#f6f6f4]/5 min-h-[750px]">
+           <div className="relative px-4 md:px-8 lg:px-12 border-l border-r border-b border-gray-300 dark:border-[#f6f6f4]/5 min-h-[750px] flex flex-col">
 
            {/* Mobile Layout - Title first, then FAQ items */}
            <div className="mb-6 md:mb-0 md:hidden text-left" style={{ paddingTop: '3rem', paddingBottom: '3rem' }}>
@@ -319,7 +319,7 @@ export default function Faq() {
              </div>
 
              {/* Right Column - Title and Intro (Desktop only) */}
-             <div className="hidden md:flex md:col-span-1 md:border-l flex-col justify-start dark:border-[#f6f6f4]/5" style={{ paddingTop: '3rem', paddingBottom: '3rem', paddingLeft: '1rem' }}>
+             <div className="hidden md:flex md:col-span-1 md:border-l flex-col justify-start dark:border-[#f6f6f4]/5 h-full" style={{ paddingTop: '3rem', paddingBottom: '3rem', paddingLeft: '1rem' }}>
                <p className="text-base text-[#c5b0cd] mb-2" style={{ fontFamily: 'Roboto Mono, monospace', letterSpacing: '0.05em' }}>
                  05. FAQ
                </p>
@@ -327,7 +327,7 @@ export default function Faq() {
                  Questions and answers
                </h3>
                <p className="text-sm text-gray-600 dark:text-[#a8a898] font-inter leading-relaxed">
-                 Common questions about Runtime deployment, pricing, and the included Fleet Dashboard.
+                 Common questions about Runtime deployment, pricing, and the view that unlocks when you scale.
                </p>
              </div>
            </div>

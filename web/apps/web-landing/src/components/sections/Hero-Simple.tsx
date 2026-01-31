@@ -29,7 +29,7 @@ export default function Hero() {
                   Secure AI execution on any device
                 </h1>
                 <p className="text-sm md:text-base text-gray-700 dark:text-[#c8c8b8] max-w-md leading-relaxed text-left mt-4">
-                  Deploy AI with a single 16MB binary. Run your own GGUF models. Zero cloud dependency. Fleet management included.
+                  Sixteen megabytes to deploy anywhere. Your own GGUF models. The view unfolds as you scale.
                 </p>
               </div>
             </div>

@@ -31,60 +31,31 @@ interface ComparisonFeature {
 export default function PricingComparison({ tiers, recommendedTier }: PricingComparisonProps) {
   const comparisonFeatures: ComparisonFeature[] = [
     {
-      category: 'Runtime Devices',
+      category: 'The Binary',
       features: [
         {
-          name: 'Runtime devices included',
-          values: ['1 device', 'Up to 100 devices', 'Unlimited devices']
+          name: '16MB executable',
+          values: [true, true, true]
         },
         {
-          name: 'Device management',
+          name: 'Linux, macOS, ARM64',
+          values: [true, true, true]
+        },
+        {
+          name: 'Zero dependencies',
           values: [true, true, true]
         }
       ]
     },
     {
-      category: 'Overture Fleet Dashboard (Included Free)',
+      category: 'The Intelligence',
       features: [
         {
-          name: 'Dashboard access',
-          values: ['Basic', 'Advanced', 'Advanced']
-        },
-        {
-          name: 'QR code device pairing',
+          name: 'GGUF model execution',
           values: [true, true, true]
         },
         {
-          name: 'Real-time status monitoring',
-          values: [true, true, true]
-        },
-        {
-          name: 'Over-the-air model updates',
-          values: ['Manual', 'One-click fleet-wide', 'One-click fleet-wide']
-        },
-        {
-          name: 'Configuration sync',
-          values: [true, true, true]
-        },
-        {
-          name: 'Fleet analytics & logs',
-          values: ['Basic', 'Advanced', 'Advanced']
-        }
-      ]
-    },
-    {
-      category: 'Runtime Features',
-      features: [
-        {
-          name: '16MB binary (no Docker)',
-          values: [true, true, true]
-        },
-        {
-          name: 'BYOM - bring your own GGUF model',
-          values: [true, true, true]
-        },
-        {
-          name: 'Offline operation',
+          name: 'Local inference (offline)',
           values: [true, true, true]
         },
         {
@@ -98,10 +69,69 @@ export default function PricingComparison({ tiers, recommendedTier }: PricingCom
       ]
     },
     {
-      category: 'Support',
+      category: 'The View (Fleet Management)',
       features: [
         {
-          name: 'Community support (Discord)',
+          name: 'Single-device view',
+          values: ['Basic', 'Advanced', 'Advanced']
+        },
+        {
+          name: 'Multi-device dashboard',
+          values: ['Seed (1 device)', 'Unlocks at Horizon', 'Unlocks at Horizon']
+        },
+        {
+          name: 'QR code device pairing',
+          values: [false, true, true]
+        },
+        {
+          name: 'Real-time status monitoring',
+          values: ['Basic', 'Advanced', 'Advanced']
+        },
+        {
+          name: 'Fleet-wide model deployment',
+          values: ['Manual', 'One-click', 'One-click + rollback']
+        },
+        {
+          name: 'Configuration sync',
+          values: [false, true, true]
+        }
+      ]
+    },
+    {
+      category: 'The Memory',
+      features: [
+        {
+          name: 'Log retention',
+          values: ['None', '7 days', '90 days']
+        },
+        {
+          name: 'Analytics',
+          values: ['Basic', 'Advanced', 'Advanced + export']
+        }
+      ]
+    },
+    {
+      category: 'The Safety',
+      features: [
+        {
+          name: 'Sandboxed execution',
+          values: [true, true, true]
+        },
+        {
+          name: 'Ed25519 signatures',
+          values: [true, true, true]
+        },
+        {
+          name: 'Encrypted at rest',
+          values: [true, true, true]
+        }
+      ]
+    },
+    {
+      category: 'The Support',
+      features: [
+        {
+          name: 'Community (Discord)',
           values: [true, true, true]
         },
         {
@@ -115,23 +145,19 @@ export default function PricingComparison({ tiers, recommendedTier }: PricingCom
         {
           name: 'SLA guarantee',
           values: [false, false, true]
-        },
-        {
-          name: 'Log retention',
-          values: ['None', '7 days', '90 days']
         }
       ]
     },
     {
-      category: 'Advanced Features',
+      category: 'The Sovereignty',
       features: [
         {
-          name: 'Model deployment management',
-          values: ['Manual', 'One-click', 'One-click + rollback']
+          name: 'Self-hosted option',
+          values: [true, true, true]
         },
         {
-          name: 'Group-based device management',
-          values: [false, true, true]
+          name: 'On-premise dashboard',
+          values: [false, false, 'Infinite only']
         },
         {
           name: 'SSO & access controls',
@@ -142,8 +168,8 @@ export default function PricingComparison({ tiers, recommendedTier }: PricingCom
           values: [false, false, true]
         },
         {
-          name: 'On-premise deployment',
-          values: ['Self-hosted option', 'Self-hosted option', 'Included']
+          name: 'Group-based device management',
+          values: [false, true, true]
         }
       ]
     }
@@ -168,10 +194,10 @@ export default function PricingComparison({ tiers, recommendedTier }: PricingCom
     <div className="mt-16 mb-12">
       <div className="text-center mb-8">
         <h3 className="text-xl md:text-2xl font-inter mb-2 text-[#000000] dark:text-[#f6f6f4]">
-          Feature Comparison
+          Runtime Features
         </h3>
         <p className="text-sm text-gray-600 dark:text-[#a8a898] font-inter">
-          Compare features across all tiers. Overture Fleet Dashboard included with every plan.
+          Single binary, three horizons. The view unlocks when you scale.
         </p>
       </div>
 
