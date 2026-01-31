@@ -26,20 +26,20 @@ export default function Hero() {
             <div className="mb-6 text-left">
               <div>
                 <h1 className="text-lg md:text-xl lg:text-2xl font-medium text-[#111111] dark:text-[#f6f6f4] leading-[1.2]">
-                  Control how AI systems behave<br />in production
+                  Secure AI execution on any device
                 </h1>
                 <p className="text-sm md:text-base text-gray-700 dark:text-[#c8c8b8] max-w-md leading-relaxed text-left mt-4">
-                  A decision control, governed execution, and verification across modern AI stacks.
+                  Deploy AI with a single 16MB binary. Run your own GGUF models. Zero cloud dependency. Fleet management included.
                 </p>
               </div>
             </div>
 
               <div className="flex flex-col sm:flex-row gap-3">
-                <Link href="/overture">
+                <Link href="https://docs.igrisinertial.com/runtime/quickstart">
                   <button
                     className="inline-flex items-center justify-center bg-black text-white dark:bg-[#f6f6f4] dark:text-black px-3 py-1.5 md:px-4 md:py-2 hover:bg-gray-800 dark:hover:bg-gray-200 transition-all duration-200 text-xs font-medium shadow-md hover:shadow-lg"
                   >
-                    Get Started
+                    Download Runtime
                   </button>
                 </Link>
              </div>

@@ -1,6 +1,5 @@
 import React, { useEffect, useState } from 'react'
 import Link from 'next/link'
-import Image from 'next/image'
 import { useTheme } from 'next-themes'
 
 export default function ClosingPosition() {
@@ -34,15 +33,15 @@ export default function ClosingPosition() {
             <div className="w-full flex flex-row items-center justify-between relative z-10">
               <div className="max-w-3xl text-left flex flex-col">
                 <h3 className="text-lg md:text-xl lg:text-2xl font-inter mb-6 text-[#000000] dark:text-[#f6f6f4]">
-                  Control the decision layer.<br />Govern execution everywhere.
+                  Deploy AI to any device.<br />Manage your fleet from anywhere.
                 </h3>
 
                 <div className="flex flex-col sm:flex-row gap-4 pl-0 md:pl-0 lg:pl-0">
-                  <Link href="https://docs.igrisinertial.com/">
+                  <Link href="https://docs.igrisinertial.com/runtime/quickstart">
                     <button
                       className="inline-flex items-center justify-center bg-black text-white dark:bg-[#f6f6f4] dark:text-black px-4 py-2 hover:bg-gray-800 dark:hover:bg-gray-200 transition-all duration-200 text-xs font-medium font-inter"
                     >
-                      Get Started
+                      Download Runtime
                     </button>
                   </Link>
                 </div>

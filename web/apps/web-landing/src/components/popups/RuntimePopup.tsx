@@ -10,58 +10,59 @@ interface RuntimePopupProps {
 export default function RuntimePopup({ isOpen, onClose }: RuntimePopupProps) {
   const capabilities = [
     {
-      title: 'Safe, Sandboxed Execution',
-      description: 'Runtime prevents runaway agents and protects infrastructure with strict safety boundaries.',
-      how: 'Enforces configurable limits on tool calls, recursion depth, execution time, and output size to prevent runaway behavior and resource exhaustion. Executes function calls in isolated environments with safety constraints. Wraps every execution in HMAC-signed, tamper-proof envelopes with cryptographic proof of constraints.',
+      title: '16MB Binary, Zero Dependencies',
+      description: 'Deploy AI to any device without Docker or complex setup.',
+      how: 'Single static binary compiled for Linux, macOS, and ARM architectures. No runtime dependencies, no package managers, no version conflicts. Just download and run.',
       features: [
-        'Configurable resource safety limits',
-        'Sandboxed tool execution with timeouts',
-        'Deterministic execution envelopes',
-        'HMAC-signed tamper-proof constraints'
+        'Single 16MB executable',
+        'Linux, macOS, ARM support',
+        'No Docker required',
+        'Static compilation'
       ]
     },
     {
-      title: 'Offline & Edge Operation',
-      description: 'Keep working when infrastructure fails. Runtime maintains operation even without network connectivity.',
-      how: 'Continues serving requests using local models and cached responses when network is unavailable. Runs Phi-3 and custom GGUF models locally for offline operation, privacy-sensitive workloads, and budget fallback. Embedding-based semantic caching reduces API calls with similarity search and configurable TTL.',
+      title: 'BYOM - Bring Your Own Model',
+      description: 'Run any GGUF model locally. Use open-source models or your own fine-tuned weights.',
+      how: 'Load GGUF format models from HuggingFace, local files, or your own training pipeline. Runtime handles model quantization, memory management, and inference optimization automatically.',
       features: [
-        'Offline operation with local models',
-        'Local model inference (Phi-3, GGUF)',
-        'Semantic cache (30-50% API reduction)',
-        'Network-independent execution'
+        'GGUF model support',
+        'Phi-3, Llama, Mistral compatible',
+        '4-bit and 8-bit quantization',
+        'Automatic memory management'
       ]
     },
     {
-      title: 'Adaptive Fine-Tuning',
-      description: 'Learn from local data and improve performance without sending data to the cloud.',
-      how: 'On-device fine-tuning with Metal GPU acceleration for M-series Macs. Adapters are AES-256-GCM encrypted and device-locked. LoRA adapters encrypted with device-specific keys cannot run on other devices, enforcing data locality.',
+      title: 'Works Offline',
+      description: 'Execute AI without internet connectivity. Perfect for remote, mobile, and air-gapped environments.',
+      how: 'All inference happens locally on-device. Models run entirely in memory with no cloud calls required. Cache persists across restarts. Network outages don\'t stop execution.',
       features: [
-        'LoRA fine-tuning with Metal GPU acceleration',
-        'AES-256-GCM encrypted adapters',
-        'Device-locked models',
-        'Data locality enforcement'
+        '100% offline operation',
+        'No cloud dependencies',
+        'Persistent local cache',
+        'Network-fail resilient'
       ]
     },
     {
-      title: 'Telemetry & Learning',
-      description: 'Feed execution data back to Overture for continuous improvement.',
-      how: 'Streams real-time execution telemetry to Overture via gRPC, enabling continuous routing optimization based on observed performance and reliability.',
+      title: 'Sandboxed Execution',
+      description: 'Secure, isolated AI execution with enforced safety boundaries.',
+      how: 'Every AI workload runs in a sandboxed environment with configurable limits on execution time, memory usage, and output size. Prevents resource exhaustion and runaway processes.',
       features: [
-        'Real-time telemetry streaming via gRPC',
-        'Observed performance feedback',
-        'Continuous routing optimization',
-        'Reliability data collection'
+        'Resource limits enforcement',
+        'Execution timeouts',
+        'Memory boundaries',
+        'Safe process isolation'
       ]
     },
     {
-      title: 'Development & Testing',
-      description: 'Iterate and test without burning budget or making API calls.',
-      how: 'Automatically routes to simulated providers when budget exhausted, enabling zero-cost testing and development.',
+      title: 'Fleet Dashboard Integration',
+      description: 'Auto-sync with Overture Fleet Dashboard when online. Included free.',
+      how: 'When devices have connectivity, Runtime automatically syncs status, telemetry, and logs with the Overture Fleet Dashboard. Push model updates and configuration changes to your entire fleet. QR code pairing for instant device linking.',
       features: [
-        'Benchmark fallback mode',
-        'Zero-cost testing',
-        'Simulated provider support',
-        'Budget-aware development'
+        'Zero-config sync',
+        'Real-time status monitoring',
+        'Over-the-air model updates',
+        'QR code device pairing',
+        'Included free with Runtime'
       ]
     },
   ];
@@ -95,13 +96,13 @@ export default function RuntimePopup({ isOpen, onClose }: RuntimePopupProps) {
             <div className="mx-auto w-full relative z-10" style={{ paddingTop: '3rem', paddingBottom: '2rem' }}>
               <div className="mb-6 text-left">
                 <h1 className="text-xs md:text-sm font-medium text-[#c5b0cd] leading-[1.2] uppercase" style={{ fontFamily: 'Roboto Mono, monospace', letterSpacing: '0.1em' }}>
-                  Runtime
+                  Igris Runtime
                 </h1>
                 <h2 className="text-base md:text-lg lg:text-xl font-inter font-medium text-[#111111] dark:text-[#f6f6f4] leading-[1.2] mt-2">
-                  Keep AI systems running under real-world conditions.
+                  Secure AI execution for edge devices.
                 </h2>
                 <p className="text-xs md:text-sm text-gray-700 dark:text-[#c8c8b8] max-w-md leading-relaxed text-left mt-4 font-inter">
-                  Runtime executes AI workloads across cloud and edge environments. Maintain execution when infrastructure becomes unreliable so your AI workloads remain operational even when underlying dependencies do not.
+                  Deploy AI anywhere with a 16MB binary. Run GGUF models locally, work offline, and manage your fleet from the cloud when needed. Overture Fleet Dashboard included free.
                 </p>
               </div>
             </div>
@@ -119,14 +120,14 @@ export default function RuntimePopup({ isOpen, onClose }: RuntimePopupProps) {
                         {capability.title}
                       </h4>
                       <div className="space-y-3">
-                         <div>
-                           <h5 className="text-xs font-medium text-gray-900 dark:text-[#f6f6f4] mb-1 font-inter">What It Does</h5>
-                           <p className="text-xs text-gray-600 dark:text-[#c8c8b8] font-inter max-w-lg">{capability.description}</p>
-                         </div>
-                         <div>
-                           <h5 className="text-xs font-medium text-gray-900 dark:text-[#f6f6f4] mb-1 font-inter">How It Works</h5>
-                           <p className="text-xs text-gray-600 dark:text-[#c8c8b8] font-inter max-w-lg">{capability.how}</p>
-                         </div>
+                        <div>
+                          <h5 className="text-xs font-medium text-gray-900 dark:text-[#f6f6f4] mb-1 font-inter">What It Does</h5>
+                          <p className="text-xs text-gray-600 dark:text-[#c8c8b8] font-inter max-w-lg">{capability.description}</p>
+                        </div>
+                        <div>
+                          <h5 className="text-xs font-medium text-gray-900 dark:text-[#f6f6f4] mb-1 font-inter">How It Works</h5>
+                          <p className="text-xs text-gray-600 dark:text-[#c8c8b8] font-inter max-w-lg">{capability.how}</p>
+                        </div>
                         <div>
                           <h5 className="text-xs font-medium text-gray-900 dark:text-[#f6f6f4] mb-1 font-inter">Key Features</h5>
                           <ul className="space-y-1">
@@ -148,16 +149,16 @@ export default function RuntimePopup({ isOpen, onClose }: RuntimePopupProps) {
             <section className="bg-transparent text-gray-900 dark:text-white">
               <div className="relative px-4 md:px-8 lg:px-12 py-8 flex flex-col bg-transparent border-l border-r border-b section-border">
                 <h4 className="text-xs md:text-sm font-medium text-[#111111] dark:text-[#f6f6f4] mb-3 font-inter">
-                  Use Runtime your way
+                  Get Started with Runtime
                 </h4>
                 <p className="text-xs text-gray-600 dark:text-[#c8c8b8] font-inter leading-relaxed mb-4">
-                  Runtime can operate as a standalone execution engine or as part of a coordinated fleet managed by Overture. Deploy it independently for edge and offline workloads, or combine it with Overture for centralized decision-making with distributed execution.
+                  Download the Runtime binary for your platform, add your GGUF models, and deploy to any device. The Overture Fleet Dashboard is included free for cloud-based fleet management.
                 </p>
                 <a
-                  href="https://docs.igrisinertial.com/runtime"
+                  href="https://docs.igrisinertial.com/runtime/quickstart"
                   className="inline-flex items-center justify-start bg-gray-200 dark:bg-[#f6f6f4] text-gray-900 dark:text-black px-4 py-2 hover:bg-gray-300 dark:hover:bg-gray-200 transition-all duration-200 text-xs font-medium shadow-md hover:shadow-lg w-fit"
                 >
-                  Explore Documentation
+                  Download Runtime
                 </a>
               </div>
             </section>

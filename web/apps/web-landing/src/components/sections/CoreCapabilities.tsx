@@ -1,19 +1,18 @@
 import React, { useEffect, useState } from 'react'
-import { Shield, Box } from 'lucide-react'
 import { useTheme } from 'next-themes'
 
 const capabilities = [
   {
-    name: 'Smart Routing',
-    description: 'Routes requests to the best provider based on real performance data. Detects slow or failing providers and shifts traffic automatically. Can query multiple providers and pick the best response.',
+    name: '16MB Binary',
+    description: 'No Docker, no bloat. A single 16MB executable runs on any device from Raspberry Pi to edge servers. Deploy AI in seconds, not hours.',
   },
   {
-    name: 'Built to Scale',
-    description: 'Designed for high-throughput routing with sub-millisecond decision latency and aggressive caching. Parallel execution reduces tail latency under load.',
+    name: 'Works Offline',
+    description: 'Execute GGUF models locally without internet. Your AI keeps running when connectivity fails. Perfect for remote, mobile, and air-gapped environments.',
   },
   {
-    name: 'Isolated and Resilient',
-    description: 'Each customer\'s data is isolated at the database level. Cached routing decisions and execution policies continue to operate even if the control plane is temporarily unreachable. Routing decisions are cached locally for 72 hours as a fallback.',
+    name: 'Fleet Dashboard Included',
+    description: 'Zero-config cloud dashboard included free with every Runtime license. Monitor devices, deploy updates, and manage configs. QR code pairing for instant linking.',
   },
 ]
 
@@ -33,20 +32,19 @@ export default function CoreCapabilities() {
 
             {/* Content Container */}
             <div className="w-full px-0 flex flex-col flex-1">
-              {/* No absolute divider - use border on right column instead */}
 
               {/* Mobile Layout - Title first, then capabilities */}
               <div className="mb-6 md:mb-0 md:hidden text-left" style={{ paddingTop: '3rem', paddingBottom: '3rem' }}>
                 {/* Title Section - Shows first on mobile */}
                 <div className="mb-8 text-left">
                   <p className="text-base text-[#c5b0cd] mb-2" style={{ fontFamily: 'Roboto Mono, monospace', letterSpacing: '0.05em' }}>
-                    02. CORE
+                    02. WHY RUNTIME
                   </p>
                   <h3 className="text-lg md:text-xl lg:text-2xl font-inter mb-4 text-[#000000] dark:text-[#f6f6f4]">
-                    System Overview
+                    AI that runs anywhere
                   </h3>
                   <p className="text-sm text-gray-700 dark:text-[#c8c8b8] font-inter leading-relaxed">
-                    Overture decides which provider handles each request. Runtime executes agents safely on edge devices. Hybrid connects them with cryptographic verification.
+                    No cloud required. Deploy to any device in seconds. Fleet management when you need it, offline when you don't.
                   </p>
                 </div>
 
@@ -179,13 +177,13 @@ export default function CoreCapabilities() {
                 {/* Right Column - Title and Intro (Desktop only) */}
                 <div className="hidden md:flex text-left md:col-span-1 md:border-l flex-col justify-start dark:border-[#f6f6f4]/5" style={{ paddingTop: '3rem', paddingBottom: '3rem', paddingLeft: '1rem' }}>
                   <p className="text-base text-[#c5b0cd] mb-2" style={{ fontFamily: 'Roboto Mono, monospace', letterSpacing: '0.05em' }}>
-                    02. CORE
+                    02. WHY RUNTIME
                   </p>
                   <h3 className="text-lg md:text-xl lg:text-2xl font-inter mb-4 text-[#000000] dark:text-[#f6f6f4]">
-                    System Overview
+                    AI that runs anywhere
                   </h3>
                   <p className="text-sm text-gray-700 dark:text-[#c8c8b8] font-inter leading-relaxed">
-                    Overture decides which provider handles each request. Runtime executes agents safely on edge devices. Hybrid connects them with cryptographic verification.
+                    No cloud required. Deploy to any device in seconds. Fleet management when you need it, offline when you don't.
                   </p>
                 </div>
               </div>

@@ -10,21 +10,21 @@ export const viewport = {
 
 export const metadata = {
   metadataBase: new URL('https://igris.inertial'),
-  title: 'Igris Inertial — Control and Execution Platform for Production LLM Systems',
-  description: 'Igris Inertial is a platform combining Overture (control plane) and Runtime (execution plane) for intelligent routing, cost governance, and resilient LLM operations.',
+  title: 'Igris Runtime — Secure AI Execution for Edge Devices',
+  description: 'Deploy AI anywhere with a 16MB binary. BYOM (bring your own model). Works offline with fleet dashboard included free. Secure sandboxed execution for edge devices.',
   openGraph: {
-    title: 'Igris Inertial',
-    description: 'Control and execution platform for production LLM systems.',
+    title: 'Igris Runtime',
+    description: 'Secure AI execution for edge devices. 16MB binary, works offline, fleet dashboard included.',
     url: 'https://igris.inertial',
-    siteName: 'Igris Inertial',
-    images: [{ url: '/logo.svg', width: 1200, height: 630, alt: 'Igris Inertial diagram' }],
+    siteName: 'Igris Runtime',
+    images: [{ url: '/logo.svg', width: 1200, height: 630, alt: 'Igris Runtime diagram' }],
     locale: 'en_US',
     type: 'website'
   },
   twitter: {
     card: 'summary_large_image',
-    title: 'Igris Inertial',
-    description: 'Control and execution platform for production LLM systems.',
+    title: 'Igris Runtime',
+    description: 'Secure AI execution for edge devices. 16MB binary, works offline, fleet dashboard included.',
     images: ['/logo.svg']
   }
 }
