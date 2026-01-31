@@ -3,23 +3,20 @@
 import React from 'react';
 import { Check, X } from 'lucide-react';
 
-interface UsageTier {
+interface PricingTier {
   name: string;
-  basePrice: number;
-  includedRequests: number;
-  overageRate: number;
-  hardLimit: number;
-  providers: number;
-  descriptor: string;
-  authorityLevel: 'observe' | 'influence' | 'enforce' | 'prove';
+  price: string;
+  priceDetail: string;
+  description: string;
+  devices: string;
   features: string[];
   cta: string;
   isContactUs?: boolean;
-  minimumCommitment?: number;
+  highlight?: boolean;
 }
 
 interface PricingComparisonProps {
-  tiers: UsageTier[];
+  tiers: PricingTier[];
   recommendedTier: string;
 }
 
@@ -27,195 +24,76 @@ interface ComparisonFeature {
   category: string;
   features: {
     name: string;
-    values: (string | boolean | number)[];
+    values: (string | boolean)[];
   }[];
 }
 
 export default function PricingComparison({ tiers, recommendedTier }: PricingComparisonProps) {
-  const formatNumber = (num: number) => {
-    if (num >= 1000000) return `${(num / 1000000).toFixed(1)}M`;
-    if (num >= 1000) return `${(num / 1000).toFixed(0)}K`;
-    return num.toString();
-  };
-
   const comparisonFeatures: ComparisonFeature[] = [
     {
-      category: 'Usage & Limits',
+      category: 'Runtime Devices',
       features: [
         {
-          name: 'Monthly requests (hard limit)',
-          values: tiers.map(t =>
-            t.isContactUs ? 'Unlimited' : formatNumber(t.hardLimit)
-          )
+          name: 'Runtime devices included',
+          values: ['1 device', 'Up to 100 devices', 'Unlimited devices']
         },
         {
-          name: 'AI provider limit',
-          values: tiers.map(t =>
-            t.isContactUs ? 'Unlimited' : t.providers.toString()
-          )
-        },
-        {
-          name: 'Pricing model',
-          values: [
-            'Free',
-            'Usage-based',
-            'Usage-based',
-            'Custom'
-          ]
+          name: 'Device management',
+          values: [true, true, true]
         }
       ]
     },
     {
-      category: 'Overture: Routing & Decision Intelligence',
+      category: 'Overture Fleet Dashboard (Included Free)',
       features: [
         {
-          name: 'Basic routing (cost/latency)',
-          values: [true, true, true, true]
+          name: 'Dashboard access',
+          values: ['Basic', 'Advanced', 'Advanced']
         },
         {
-          name: 'Thompson Sampling (ML-based)',
-          values: [false, true, true, true]
+          name: 'QR code device pairing',
+          values: [true, true, true]
         },
         {
-          name: 'Semantic routing',
-          values: [false, true, true, true]
+          name: 'Real-time status monitoring',
+          values: [true, true, true]
         },
         {
-          name: 'Adaptive routing with live learning',
-          values: [false, false, true, true]
+          name: 'Over-the-air model updates',
+          values: ['Manual', 'One-click fleet-wide', 'One-click fleet-wide']
         },
         {
-          name: 'Council mode (reduced hallucinations)',
-          values: [false, false, true, true]
+          name: 'Configuration sync',
+          values: [true, true, true]
         },
         {
-          name: 'Speculative execution (2-4 parallel)',
-          values: [false, false, true, true]
-        },
-        {
-          name: 'Adaptive circuit breaker',
-          values: [true, true, true, true]
-        },
-        {
-          name: 'High-performance cache',
-          values: [false, true, true, true]
+          name: 'Fleet analytics & logs',
+          values: ['Basic', 'Advanced', 'Advanced']
         }
       ]
     },
     {
-      category: 'Overture: Policy & Governance',
+      category: 'Runtime Features',
       features: [
         {
-          name: 'Policy engine (SLAs, compliance)',
-          values: [false, true, true, true]
+          name: '16MB binary (no Docker)',
+          values: [true, true, true]
         },
         {
-          name: 'Real-time cost tracking (USD)',
-          values: [true, true, true, true]
+          name: 'BYOM - bring your own GGUF model',
+          values: [true, true, true]
         },
         {
-          name: 'Budget enforcement',
-          values: [false, true, true, true]
-        }
-      ]
-    },
-    {
-      category: 'Runtime: Execution & Safety',
-      features: [
-        {
-          name: 'Basic execution',
-          values: [true, true, true, true]
-        },
-        {
-          name: 'Runtime license included',
-          values: [false, false, true, true]
+          name: 'Offline operation',
+          values: [true, true, true]
         },
         {
           name: 'Sandboxed execution with limits',
-          values: [false, false, true, true]
+          values: [true, true, true]
         },
         {
-          name: 'HMAC-signed tamper-proof envelopes',
-          values: [false, false, true, true]
-        },
-        {
-          name: 'Multi-provider consensus execution',
-          values: [false, false, true, true]
-        }
-      ]
-    },
-    {
-      category: 'Runtime: Offline & Edge',
-      features: [
-        {
-          name: 'Offline operation',
-          values: [false, false, true, true]
-        },
-        {
-          name: 'Local models (GGUF format)',
-          values: [false, false, true, true]
-        },
-        {
-          name: 'Semantic cache',
-          values: [false, false, true, true]
-        },
-        {
-          name: 'LoRA fine-tuning with GPU',
-          values: [false, false, true, true]
-        },
-        {
-          name: 'Device-locked encrypted adapters',
-          values: [false, false, true, true]
-        }
-      ]
-    },
-    {
-      category: 'Observability & Transparency',
-      features: [
-        {
-          name: 'Cost visibility',
-          values: [true, true, true, true]
-        },
-        {
-          name: 'Log retention',
-          values: ['7 days', '14 days', '30 days', '90 days']
-        },
-        {
-          name: 'Decision explanations',
-          values: [true, true, true, true]
-        },
-        {
-          name: '180+ Prometheus metrics',
-          values: [false, true, true, true]
-        },
-        {
-          name: 'OpenTelemetry traces',
-          values: [false, true, true, true]
-        },
-        {
-          name: 'Real-time telemetry streaming',
-          values: [false, false, true, true]
-        },
-        {
-          name: 'Cryptographic audit trail',
-          values: [false, false, false, true]
-        }
-      ]
-    },
-    {
-      category: 'Security & Enterprise',
-      features: [
-        {
-          name: 'Multi-tenancy with isolation',
-          values: [false, false, true, true]
-        },
-        {
-          name: 'Encrypted API key storage (BYOK)',
-          values: [true, true, true, true]
-        },
-        {
-          name: 'Fleet-wide tenant isolation',
-          values: [false, false, false, true]
+          name: 'Local model support (Phi-3, Llama, Mistral)',
+          values: [true, true, true]
         }
       ]
     },
@@ -223,22 +101,55 @@ export default function PricingComparison({ tiers, recommendedTier }: PricingCom
       category: 'Support',
       features: [
         {
-          name: 'Community support',
-          values: [true, true, true, true]
+          name: 'Community support (Discord)',
+          values: [true, true, true]
         },
         {
           name: 'Email support',
-          values: [false, true, true, true]
+          values: [false, true, true]
         },
         {
-          name: 'Priority support with SLA',
-          values: [false, false, false, true]
+          name: 'Priority support',
+          values: [false, true, true]
+        },
+        {
+          name: 'SLA guarantee',
+          values: [false, false, true]
+        },
+        {
+          name: 'Log retention',
+          values: ['None', '7 days', '90 days']
+        }
+      ]
+    },
+    {
+      category: 'Advanced Features',
+      features: [
+        {
+          name: 'Model deployment management',
+          values: ['Manual', 'One-click', 'One-click + rollback']
+        },
+        {
+          name: 'Group-based device management',
+          values: [false, true, true]
+        },
+        {
+          name: 'SSO & access controls',
+          values: [false, false, true]
+        },
+        {
+          name: 'Security audit support',
+          values: [false, false, true]
+        },
+        {
+          name: 'On-premise deployment',
+          values: ['Self-hosted option', 'Self-hosted option', 'Included']
         }
       ]
     }
   ];
 
-  const renderCellValue = (value: string | boolean | number) => {
+  const renderCellValue = (value: string | boolean) => {
     if (typeof value === 'boolean') {
       return value ? (
         <Check className="h-4 w-4 text-green-600 dark:text-green-400 mx-auto" />
@@ -260,7 +171,7 @@ export default function PricingComparison({ tiers, recommendedTier }: PricingCom
           Feature Comparison
         </h3>
         <p className="text-sm text-gray-600 dark:text-[#a8a898] font-inter">
-          Compare features across all tiers
+          Compare features across all tiers. Overture Fleet Dashboard included with every plan.
         </p>
       </div>
 

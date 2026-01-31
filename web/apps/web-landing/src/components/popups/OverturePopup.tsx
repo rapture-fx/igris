@@ -10,69 +10,69 @@ interface OverturePopupProps {
 export default function OverturePopup({ isOpen, onClose }: OverturePopupProps) {
   const capabilities = [
     {
-      title: 'Decision Intelligence & Routing Optimization',
-      description: 'Overture routes AI requests to the right provider based on real-time performance, cost, and policy compliance.',
-      how: 'Routes requests based on observed provider performance, balancing exploration of new options with proven reliability. Detects provider degradation and adjusts routing parameters within your policy constraints. Maintains control while responding to changing conditions in real time.',
+      title: 'Zero-Config Fleet Management',
+      description: 'Manage all your Runtime devices from a single dashboard. No setup required.',
+      how: 'Runtime devices automatically connect and report status when online. View all your devices, their health, model versions, and activity in real-time. No manual configuration needed.',
       features: [
-        'Performance-based routing with Thompson Sampling',
-        'Automatic degradation response',
-        'Trust-aware selection',
-        'Council mode for reduced hallucinations'
+        'Automatic device discovery',
+        'Real-time status monitoring',
+        'Device health tracking',
+        'Model version overview'
       ]
     },
     {
-      title: 'Performance & Resilience',
-      description: 'Keep your AI systems fast and available even when providers fail or degrade.',
-      how: 'Executes multiple providers in parallel to return the fastest response. Implements circuit breakers to prevent cascading failures. Uses high-performance caching to reduce latency and maintain routing state.',
+      title: 'QR Code Device Pairing',
+      description: 'Add new devices to your fleet in seconds with QR code linking.',
+      how: 'Generate a QR code from the dashboard, scan it with your device, and it\'s instantly linked to your fleet. No API keys to copy, no config files to edit. Perfect for field deployment.',
       features: [
-        'Speculative execution (2–4 providers in parallel)',
-        'Adaptive circuit breaker with OPEN/CLOSED/HALF_OPEN states',
-        'High-performance cache (200K RPS, 4GB capacity)',
-        'P99 latency reduction of 40–60%'
+        'Instant QR code pairing',
+        'No manual configuration',
+        'Bulk device onboarding',
+        'Field-deployment ready'
       ]
     },
     {
-      title: 'Governance, Policy & Cost Control',
-      description: 'Enforce compliance constraints and cost limits across your AI infrastructure.',
-      how: 'Policy engine enforces cost ceilings, performance SLAs, compliance constraints, and geo-fencing rules at runtime. Real-time cost tracking provides per-request visibility with per-provider breakdowns and automatic budget enforcement.',
+      title: 'Over-the-Air Model Updates',
+      description: 'Deploy new models to your entire fleet with a single click.',
+      how: 'Upload GGUF models to the dashboard and push them to selected devices or your entire fleet. Runtime devices download and verify updates automatically. Rollback if issues occur.',
       features: [
-        'Policy engine for SLAs and compliance',
-        'Real-time cost tracking in USD',
-        'Automatic budget enforcement',
-        'Geo-fencing and compliance constraints'
+        'Single-click model deployment',
+        'Selective or fleet-wide updates',
+        'Automatic verification',
+        'Safe rollback capability'
       ]
     },
     {
-      title: 'Transparency & Explainability',
-      description: 'Every routing decision is auditable, defensible, and regulator-ready.',
-      how: 'Every routing decision includes full reasoning with performance scores, trust assessments, and applied policy constraints for complete auditability.',
+      title: 'Configuration Sync',
+      description: 'Keep device configurations consistent across your fleet.',
+      how: 'Define configuration templates in the dashboard and apply them to groups of devices. Runtime syncs configs when online and caches them for offline operation. Changes propagate automatically.',
       features: [
-        'Explainable decisions with full reasoning',
-        'Performance and trust scores',
-        'Applied policy constraints',
-        'Audit-ready decision logs'
+        'Configuration templates',
+        'Group-based management',
+        'Automatic sync when online',
+        'Offline config caching'
       ]
     },
     {
-      title: 'Observability & Diagnostics',
-      description: 'See, debug, and trust the system in production with comprehensive telemetry.',
-      how: 'Comprehensive observability provides 180+ Prometheus metrics, OpenTelemetry traces, and full decision metadata for debugging, auditing, and compliance.',
+      title: 'Fleet Analytics & Logs',
+      description: 'Monitor performance and troubleshoot issues across your entire fleet.',
+      how: 'Aggregate logs, metrics, and telemetry from all Runtime devices. View execution stats, error rates, resource usage, and model performance. Export data for external analysis.',
       features: [
-        '180+ Prometheus metrics',
-        'OpenTelemetry trace integration',
-        'Full decision metadata',
-        'Debugging and compliance ready'
+        'Centralized log aggregation',
+        'Performance metrics',
+        'Error tracking',
+        'Data export (CSV, JSON)'
       ]
     },
     {
-      title: 'Security, Isolation & Enterprise Readiness',
-      description: 'Scale safely across customers and teams with full tenant isolation.',
-      how: 'Full tenant isolation with encrypted API key storage. Customers retain ownership of provider relationships with zero lock-in.',
+      title: 'Included Free with Runtime',
+      description: 'Every Runtime license includes full dashboard access at no extra cost.',
+      how: 'The Overture Fleet Dashboard is not a separate product—it\'s included with every Runtime license. Free tier gets basic dashboard access. Pro and Enterprise get advanced features. No separate billing.',
       features: [
-        'Multi-tenancy with full isolation',
-        'Encrypted API key storage (BYOK)',
-        'Zero lock-in architecture',
-        'Enterprise-grade security'
+        'Included with all Runtime licenses',
+        'No additional cost',
+        'Scales with your Runtime plan',
+        'Single billing for both products'
       ]
     },
   ];
@@ -106,13 +106,13 @@ export default function OverturePopup({ isOpen, onClose }: OverturePopupProps) {
             <div className="mx-auto w-full relative z-10" style={{ paddingTop: '3rem', paddingBottom: '2rem' }}>
               <div className="mb-6 text-left">
                 <h1 className="text-xs md:text-sm font-medium text-[#c5b0cd] leading-[1.2] uppercase" style={{ fontFamily: 'Roboto Mono, monospace', letterSpacing: '0.1em' }}>
-                  Overture
+                  Overture Fleet Dashboard
                 </h1>
                 <h2 className="text-base md:text-lg lg:text-xl font-inter font-medium text-[#111111] dark:text-[#f6f6f4] leading-[1.2] mt-2">
-                  Make the right AI routing decision, every time.
+                  Manage your Runtime fleet from the cloud.
                 </h2>
                 <p className="text-xs md:text-sm text-gray-700 dark:text-[#c8c8b8] max-w-md leading-relaxed text-left mt-4 font-inter">
-                  Overture evaluates policies, cost, performance, and availability to decide where AI requests should run in real time before execution, so your systems remain fast, cost-efficient, and resilient as conditions change.
+                  Zero-config fleet management for Igris Runtime devices. Monitor status, deploy models, and manage configurations. Included free with every Runtime license.
                 </p>
               </div>
             </div>
@@ -130,14 +130,14 @@ export default function OverturePopup({ isOpen, onClose }: OverturePopupProps) {
                         {capability.title}
                       </h4>
                       <div className="space-y-3">
-                         <div>
-                           <h5 className="text-xs font-medium text-gray-900 dark:text-[#f6f6f4] mb-1 font-inter">What It Does</h5>
-                           <p className="text-xs text-gray-600 dark:text-[#c8c8b8] font-inter max-w-lg">{capability.description}</p>
-                         </div>
-                         <div>
-                           <h5 className="text-xs font-medium text-gray-900 dark:text-[#f6f6f4] mb-1 font-inter">How It Works</h5>
-                           <p className="text-xs text-gray-600 dark:text-[#c8c8b8] font-inter max-w-lg">{capability.how}</p>
-                         </div>
+                        <div>
+                          <h5 className="text-xs font-medium text-gray-900 dark:text-[#f6f6f4] mb-1 font-inter">What It Does</h5>
+                          <p className="text-xs text-gray-600 dark:text-[#c8c8b8] font-inter max-w-lg">{capability.description}</p>
+                        </div>
+                        <div>
+                          <h5 className="text-xs font-medium text-gray-900 dark:text-[#f6f6f4] mb-1 font-inter">How It Works</h5>
+                          <p className="text-xs text-gray-600 dark:text-[#c8c8b8] font-inter max-w-lg">{capability.how}</p>
+                        </div>
                         <div>
                           <h5 className="text-xs font-medium text-gray-900 dark:text-[#f6f6f4] mb-1 font-inter">Key Features</h5>
                           <ul className="space-y-1">
@@ -159,16 +159,16 @@ export default function OverturePopup({ isOpen, onClose }: OverturePopupProps) {
             <section className="bg-transparent text-gray-900 dark:text-white">
               <div className="relative px-4 md:px-8 lg:px-12 py-8 flex flex-col bg-transparent border-l border-r border-b section-border">
                 <h4 className="text-xs md:text-sm font-medium text-[#111111] dark:text-[#f6f6f4] mb-3 font-inter">
-                  Use Overture your way
+                  Included with Runtime
                 </h4>
                 <p className="text-xs text-gray-600 dark:text-[#c8c8b8] font-inter leading-relaxed mb-4">
-                  Overture can run as a standalone decision engine or as part of full Igris Inertial system. Use it alone to generate routing decisions, or pair it with Runtime for end-to-end adaptive execution under real-world uncertainty.
+                  The Overture Fleet Dashboard is included free with every Igris Runtime license. There is no separate pricing—dashboard access scales with your Runtime plan. Free tier includes basic dashboard features. Pro and Enterprise unlock advanced fleet management capabilities.
                 </p>
                 <a
                   href="https://docs.igrisinertial.com/overture"
                   className="inline-flex items-center justify-start bg-gray-200 dark:bg-[#f6f6f4] text-gray-900 dark:text-black px-4 py-2 hover:bg-gray-300 dark:hover:bg-gray-200 transition-all duration-200 text-xs font-medium shadow-md hover:shadow-lg w-fit"
                 >
-                  Explore Documentation
+                  View Dashboard Documentation
                 </a>
               </div>
             </section>

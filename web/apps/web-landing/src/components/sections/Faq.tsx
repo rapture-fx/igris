@@ -26,26 +26,26 @@ interface FaqSection {
 
 const faqSections: FaqSection[] = [
   {
-    title: "Getting Started & Trial",
+    title: "Getting Started",
     entries: [
       {
-        question: "Do you offer a free tier?",
-        answer: "Yes. Igris offers a free tier with limited usage, designed for early evaluation, development, and non-production testing.",
+        question: "Is there a free tier?",
+        answer: "Yes. The Free plan includes 1 Runtime device, the Overture Fleet Dashboard (basic features), community support, and full offline capability. Perfect for development and testing.",
         type: "text"
       },
       {
-        question: "What's the difference between the free tier and the trial?",
-        answer: "The free tier provides ongoing access with strict usage limits. The 14-day trial temporarily unlocks full feature access so teams can evaluate Igris under real workloads before upgrading.",
+        question: "What hardware do I need?",
+        answer: "Runtime runs on any Linux, macOS, or ARM device with at least 512MB RAM. Tested on Raspberry Pi 4, NVIDIA Jetson, edge servers, and standard x86 hardware. The binary is only 16MB.",
         type: "text"
       },
       {
-        question: "What happens after my 14-day trial ends?",
-        answer: "After the trial ends, your account automatically reverts to the free tier. All configurations and historical data are preserved. Production SLAs apply only to paid plans.",
+        question: "Do I need internet connectivity?",
+        answer: "No. Runtime works completely offline. Download the binary, add your GGUF models, and deploy. The Overture Fleet Dashboard is optional—devices sync when online but operate independently when offline.",
         type: "text"
       },
       {
-        question: "Is the free tier suitable for production?",
-        answer: "No. The free tier is intended for development, experimentation, and validation. Production workloads require a paid plan to access SLAs, higher limits, and compliance features.",
+        question: "What models can I use?",
+        answer: "Any GGUF format model. This includes Llama, Mistral, Phi-3, and thousands of models from HuggingFace. You can also use your own fine-tuned models converted to GGUF format.",
         type: "text"
       }
     ]
@@ -54,43 +54,33 @@ const faqSections: FaqSection[] = [
     title: "Pricing & Billing",
     entries: [
       {
-        question: "How does usage-based pricing work?",
-        answer: "You pay a base monthly fee that includes a set number of requests. If you exceed the included requests, you pay a per-1K overage rate. For example, Startup includes 100K requests for $20/month, with additional requests at $0.10 per 1K. Hard limits prevent unexpected bills.",
+        question: "How does pricing work?",
+        answer: "Simple per-device pricing. Free: 1 device at $0. Pro: $49/device/month for up to 100 devices with priority support and advanced analytics. Enterprise: Custom pricing for unlimited devices with SLA guarantees.",
         type: "text"
       },
       {
-        question: "What happens at hard limits?",
-        answer: "When you reach your tier's hard limit, requests are rate-limited to prevent unexpected charges. You'll receive notifications before reaching the limit. To continue, you can upgrade to a higher tier or wait until your next billing cycle.",
+        question: "Is the Fleet Dashboard really free?",
+        answer: "Yes. The Overture Fleet Dashboard is included at no extra cost with every Runtime license. Free tier gets basic dashboard access. Pro and Enterprise unlock advanced fleet management features.",
         type: "text"
       },
       {
-        question: "What's included in the Runtime license?",
-        answer: "The Growth tier includes a Runtime license ($500 value) that enables local LLM fallback, reflection agents, on-device inference, and edge deployment. This allows you to run AI routing and execution locally for enhanced privacy and reduced latency.",
+        question: "What's the difference between Free and Pro?",
+        answer: "Free supports 1 device with community support and basic dashboard. Pro supports up to 100 devices with priority email support, advanced analytics, model deployment management, and 7-day log retention.",
         type: "text"
       },
       {
-        question: "Can I downgrade from Growth to Startup?",
-        answer: "Yes. Downgrades take effect at the start of your next billing cycle. Your Runtime license access will end when the downgrade takes effect. All configurations and historical data are preserved.",
+        question: "Can I upgrade or downgrade?",
+        answer: "Yes. Upgrades take effect immediately. Downgrades apply at the start of your next billing cycle. No configuration or data is lost when changing plans.",
         type: "text"
       },
       {
-        question: "Why is the free tier limited?",
-        answer: "Igris operates production-grade routing and execution infrastructure. The free tier is intentionally constrained to ensure platform stability while allowing teams to validate integration and value.",
+        question: "Are there any hidden fees?",
+        answer: "No. You pay per Runtime device. The Fleet Dashboard is included. No request-based pricing, no overage charges, no surprise bills.",
         type: "text"
       },
       {
-        question: "Can I upgrade or downgrade my plan?",
-        answer: "Yes. Upgrades take effect immediately with prorated billing. Downgrades apply at the start of your next billing cycle. No data or configuration is lost.",
-        type: "text"
-      },
-      {
-        question: "Who pays for the underlying model usage?",
-        answer: "You retain direct relationships with your AI providers. Igris routes and executes requests but does not resell model usage.",
-        type: "text"
-      },
-      {
-        question: "Can I cancel anytime?",
-        answer: "Yes. Paid plans can be canceled at any time. Access remains active through the end of the billing period.",
+        question: "Do I pay for cloud AI providers separately?",
+        answer: "Runtime runs models locally—no cloud AI provider required. If you choose to use cloud APIs from OpenAI, Anthropic, etc., you pay them directly. Igris does not markup provider costs.",
         type: "text"
       }
     ]
@@ -99,68 +89,73 @@ const faqSections: FaqSection[] = [
     title: "Product & Architecture",
     entries: [
       {
-        question: "What's the difference between Overture, Runtime, and Hybrid?",
-        answer: "Overture determines the optimal provider for each request. Runtime securely executes those decisions. Hybrid connects decision and execution into a closed-loop system that improves automatically over time. Hybrid represents the complete Igris value proposition.",
+        question: "What's the difference between Runtime and the Fleet Dashboard?",
+    "answer": "Runtime is the primary product—a 16MB binary that executes AI on your devices. The Overture Fleet Dashboard is included management software that lets you monitor and manage Runtime devices from the cloud. Think of Runtime as the engine, and the Dashboard as the dashboard in your car—both included together.",
         type: "text"
       },
       {
-        question: "Can I use Overture or Runtime independently?",
-        answer: "Yes. Both are available as standalone products. Hybrid is optional but delivers compounding performance improvements.",
+        question: "Can I use Runtime without the Dashboard?",
+        answer: "Yes. Runtime works completely standalone. The Dashboard is optional for fleet management. Many users deploy Runtime independently for single-device or offline scenarios.",
         type: "text"
       },
       {
-        question: "How does Igris choose the best model for every request?",
-        answer: "Igris uses Bayesian Thompson Sampling informed by real-time latency, cost, quality, and recent performance signals. Routing adapts continuously without manual tuning.",
+        question: "How does device pairing work?",
+        answer: "Simple QR code pairing. Generate a code in the Dashboard, scan it with your device camera, and the device automatically joins your fleet. No manual configuration, no copying API keys.",
+        type: "text"
+      },
+      {
+        question: "Can I deploy models to my entire fleet?",
+        answer: "Yes. Upload GGUF models to the Dashboard and push them to one device or your entire fleet. Devices download and verify models automatically. You can also rollback if issues occur.",
         type: "text"
       }
     ]
   },
   {
-    title: "Reliability, Security & Failure Handling",
+    title: "Security & Reliability",
     entries: [
       {
-        question: "What happens if a model starts hallucinating or degrading in quality?",
-        answer: "Igris continuously monitors quality and consistency signals. When degradation is detected, traffic is automatically reweighted away from the affected provider. If quality thresholds are breached, the system falls back to a known-safe configuration to protect downstream applications.",
+        question: "How secure is Runtime?",
+        answer: "Runtime uses sandboxed execution with enforced resource limits. Models run in isolated environments with boundaries on memory, CPU, and execution time. Your models and data stay on your devices.",
         type: "text"
       },
       {
-        question: "What happens if an AI provider slows down or fails?",
-        answer: "Igris detects provider degradation within seconds and automatically shifts traffic to healthier providers. Circuit breakers prevent cascading failures.",
+        question: "What happens if a device goes offline?",
+        answer: "Runtime continues operating normally. All AI execution happens locally. When the device comes back online, it syncs status and any pending updates with the Dashboard automatically.",
         type: "text"
       },
       {
-        question: "What happens if the Igris control plane becomes unavailable?",
-        answer: "Igris is designed with a fail-safe architecture. If the control plane becomes unavailable, Runtime continues operating using the last known safe routing configuration. Customer traffic is never blocked. Once the control plane recovers, learning and optimization resume automatically.",
-        type: "text"
-      },
-      {
-        question: "Can a bad routing decision take my system down?",
-        answer: "No. Routing decisions are bounded by policy constraints and enforced at execution time. Quotas, isolation, and circuit breakers ensure that no single decision can cause cascading failures. In worst-case scenarios, Igris reverts to customer-defined fallback behavior.",
+        question: "Is my data sent to the cloud?",
+    "answer": "No. AI inference happens entirely on-device. Only metadata (device status, model versions, logs) syncs with the Dashboard when online. Your actual data and AI workloads never leave the device unless you choose cloud providers.",
         type: "text"
       },
       {
         question: "What uptime guarantees do you provide?",
-        answer: "Paid plans include SLAs ranging from 99.0% to 99.9%, depending on tier. The free tier and trials do not include uptime guarantees.",
+        answer: "Free tier has no SLA. Pro tier includes best-effort support. Enterprise includes custom SLA guarantees with 24/7 dedicated support and 99.9% uptime commitment for the Dashboard.",
         type: "text"
       }
     ]
   },
   {
-    title: "Operations, Control & Trust",
+    title: "Operations & Control",
     entries: [
       {
-        question: "Do I lose control over routing decisions?",
-        answer: "No. You define policies, constraints, and fallback rules. Igris optimizes strictly within those boundaries.",
+        question: "Do I retain control of my models?",
+        answer: "Yes. You bring your own GGUF models. Models are stored on your devices, not on our servers. You can update, replace, or remove models at any time.",
         type: "text"
       },
       {
-        question: "Can I observe and audit routing behavior?",
-        answer: "Yes. All routing and execution outcomes are observable through logs and dashboards.",
+        question: "Can I monitor device performance?",
+        answer: "Yes. The Fleet Dashboard shows real-time status, resource usage, model performance, and execution logs for all your devices. Export data for external analysis.",
         type: "text"
       },
       {
-        question: "Do you train models on my data?",
-        answer: "No. Igris does not train foundation models or share customer data. Data handling follows provider-specific policies and customer-defined retention settings.",
+        question: "Do you train on my data?",
+        answer: "No. Igris does not train models on your data. Your data stays on your devices. Runtime executes your models locally without sending data to Igris or any third party.",
+        type: "text"
+      },
+      {
+        question: "Can I self-host?",
+        answer: "Yes. Enterprise plans include on-premise deployment options. Run the entire stack within your own infrastructure with no external dependencies.",
         type: "text"
       }
     ]
@@ -254,24 +249,19 @@ export default function Faq() {
              </div>
            </div>
 
-           {/* Desktop Layout - Two-column grid */}
-           <div className="hidden md:grid md:grid-cols-3 gap-0 absolute inset-0">
-             {/* Left Column - FAQ Items (2 columns wide) */}
-               <div className="hidden md:flex md:col-span-2 flex-col justify-start items-start" style={{
-                 paddingTop: '3rem',
-                 paddingBottom: '3rem',
-                 paddingLeft: '3rem',
-                 paddingRight: '2rem'
-               }}>
-               <div className="space-y-3 w-full">
+           {/* Two-column layout - Matching other sections */}
+           <div className="hidden md:grid md:grid-cols-3 gap-0 relative flex-1">
+             {/* Left Column - FAQ Content (2 columns wide) */}
+             <div className="md:col-span-2" style={{ paddingTop: '3rem', paddingBottom: '3rem', paddingRight: '2rem' }}>
+               <div className="space-y-4">
                  {faqSections.map((section, sectionIndex) => (
                    <div key={sectionIndex}>
                      {/* Section Title - Clickable */}
                      <button
                        onClick={() => toggleSection(sectionIndex)}
-                       className="w-full text-left px-3 py-2.5 flex items-center justify-between gap-2 hover:opacity-80 transition-opacity border section-border bg-[#f6f6f4] dark:bg-[#1b1912]"
+                       className="w-full text-left px-4 py-3 flex items-center justify-between gap-2 hover:opacity-80 transition-opacity border section-border bg-[#f6f6f4] dark:bg-[#1b1912]"
                      >
-                       <h3 className="text-sm font-semibold font-inter text-[#000000] dark:text-[#f6f6f4]">
+                       <h3 className="text-base font-semibold font-inter text-[#000000] dark:text-[#f6f6f4]">
                          {section.title}
                        </h3>
                        <ChevronDown
@@ -279,7 +269,7 @@ export default function Faq() {
                            openSectionIndex === sectionIndex ? 'rotate-180' : ''
                          }`}
                          style={{ color: 'rgba(156, 163, 175, 0.6)' }}
-                         size={18}
+                         size={20}
                        />
                      </button>
 
@@ -291,8 +281,8 @@ export default function Faq() {
                      >
                        <div className="mt-2 space-y-2">
                          {section.entries.map((faq, entryIndex) => (
-                           <div key={entryIndex} className="border section-border bg-[#f6f6f4] dark:bg-[#1b1912] p-3">
-                             <p className="text-sm font-medium font-inter mb-1.5 text-[#000000] dark:text-[#f6f6f4]">
+                           <div key={entryIndex} className="border section-border bg-[#f6f6f4] dark:bg-[#1b1912] p-4">
+                             <p className="text-sm font-medium font-inter mb-2 text-[#000000] dark:text-[#f6f6f4]">
                                {faq.question}
                              </p>
                              {faq.type === 'text' ? (
@@ -300,11 +290,11 @@ export default function Faq() {
                                  {faq.answer}
                                </p>
                              ) : faq.type === 'code' ? (
-                               <div className="space-y-2">
+                               <div className="space-y-3">
                                  <p className="text-xs text-gray-700 dark:text-[#c8c8b8] font-inter leading-relaxed">
                                    {faq.answerText}
                                  </p>
-                                 <div className="rounded-lg p-2 font-mono text-xs overflow-x-auto bg-black/[0.03] dark:bg-white/[0.03]">
+                                 <div className="rounded-lg p-3 font-mono text-xs overflow-x-auto bg-black/[0.03] dark:bg-white/[0.03]">
                                    <div className="mb-2">
                                      <span className="text-gray-500 dark:text-[#a8a898]"># Old</span>
                                      <div className="text-gray-900 dark:text-[#c8c8b8] mt-1 break-all">{faq.codeExample?.old}</div>
@@ -314,7 +304,7 @@ export default function Faq() {
                                      <div className="text-gray-900 dark:text-[#c8c8b8] mt-1 break-all">{faq.codeExample?.new}</div>
                                    </div>
                                  </div>
-                                 <p className="text-xs text-gray-700 dark:text-gray-300 font-inter leading-relaxed">
+                                 <p className="text-xs text-gray-700 dark:text-[#c8c8b8] font-inter leading-relaxed">
                                    {faq.answerFooter}
                                  </p>
                                </div>
@@ -328,19 +318,22 @@ export default function Faq() {
                </div>
              </div>
 
-             {/* Right Column - Title (Desktop only) */}
-             <div className="hidden md:flex text-left md:col-span-1 md:border-l flex-col justify-start dark:border-[#f6f6f4]/5 border-gray-300" style={{
-               paddingTop: '3rem',
-               paddingBottom: '3rem',
-               paddingLeft: '1rem'
-             }}>
-               <h2 className="text-lg md:text-xl lg:text-2xl font-inter mb-4 text-[#000000] dark:text-[#f6f6f4]">
+             {/* Right Column - Title and Intro (Desktop only) */}
+             <div className="hidden md:flex md:col-span-1 md:border-l flex-col justify-start dark:border-[#f6f6f4]/5" style={{ paddingTop: '3rem', paddingBottom: '3rem', paddingLeft: '1rem' }}>
+               <p className="text-base text-[#c5b0cd] mb-2" style={{ fontFamily: 'Roboto Mono, monospace', letterSpacing: '0.05em' }}>
+                 05. FAQ
+               </p>
+               <h3 className="text-lg md:text-xl lg:text-2xl font-inter mb-4 text-[#000000] dark:text-[#f6f6f4]">
                  Questions and answers
-               </h2>
+               </h3>
+               <p className="text-sm text-gray-600 dark:text-[#a8a898] font-inter leading-relaxed">
+                 Common questions about Runtime deployment, pricing, and the included Fleet Dashboard.
+               </p>
              </div>
            </div>
-        </div>
-      </div>
-    </section>
-  );
-}
+
+         </div>
+       </div>
+     </section>
+   );
+ }
