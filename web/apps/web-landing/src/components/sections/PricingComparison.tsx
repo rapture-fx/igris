@@ -31,7 +31,7 @@ interface ComparisonFeature {
 export default function PricingComparison({ tiers, recommendedTier }: PricingComparisonProps) {
   const comparisonFeatures: ComparisonFeature[] = [
     {
-      category: 'The Binary',
+      category: 'The Binary (16MB, deterministic, sandboxed)',
       features: [
         {
           name: '16MB executable',
@@ -44,6 +44,35 @@ export default function PricingComparison({ tiers, recommendedTier }: PricingCom
         {
           name: 'Zero dependencies',
           values: [true, true, true]
+        },
+        {
+          name: 'Deterministic execution',
+          values: [true, true, true]
+        },
+        {
+          name: 'Hard resource limits (memory, CPU)',
+          values: [true, true, true]
+        }
+      ]
+    },
+    {
+      category: 'The Proof (Cryptographic signing, audit trails)',
+      features: [
+        {
+          name: 'Cryptographic decision signing',
+          values: [true, true, true]
+        },
+        {
+          name: 'Tamper-evident logs',
+          values: [true, true, true]
+        },
+        {
+          name: 'Immutable audit trails',
+          values: ['Basic', '7 days', '90 days']
+        },
+        {
+          name: 'Fleet-wide cryptographic attestation',
+          values: [false, true, true]
         }
       ]
     },
@@ -69,15 +98,15 @@ export default function PricingComparison({ tiers, recommendedTier }: PricingCom
       ]
     },
     {
-      category: 'The View (Fleet Management)',
+      category: 'The View (Fleet management unlocks at Horizon)',
       features: [
         {
-          name: 'Single-device view',
+          name: 'Single-instance view',
           values: ['Basic', 'Advanced', 'Advanced']
         },
         {
-          name: 'Multi-device dashboard',
-          values: ['Seed (1 device)', 'Unlocks at Horizon', 'Unlocks at Horizon']
+          name: 'Multi-instance dashboard',
+          values: ['The view sleeps', 'Unfolds at Horizon', 'Unfolds at Horizon']
         },
         {
           name: 'QR code device pairing',
@@ -85,7 +114,7 @@ export default function PricingComparison({ tiers, recommendedTier }: PricingCom
         },
         {
           name: 'Real-time status monitoring',
-          values: ['Basic', 'Advanced', 'Advanced']
+          values: ['Basic', 'Fleet-wide', 'Fleet-wide']
         },
         {
           name: 'Fleet-wide model deployment',
@@ -94,36 +123,6 @@ export default function PricingComparison({ tiers, recommendedTier }: PricingCom
         {
           name: 'Configuration sync',
           values: [false, true, true]
-        }
-      ]
-    },
-    {
-      category: 'The Memory',
-      features: [
-        {
-          name: 'Log retention',
-          values: ['None', '7 days', '90 days']
-        },
-        {
-          name: 'Analytics',
-          values: ['Basic', 'Advanced', 'Advanced + export']
-        }
-      ]
-    },
-    {
-      category: 'The Safety',
-      features: [
-        {
-          name: 'Sandboxed execution',
-          values: [true, true, true]
-        },
-        {
-          name: 'Ed25519 signatures',
-          values: [true, true, true]
-        },
-        {
-          name: 'Encrypted at rest',
-          values: [true, true, true]
         }
       ]
     },
@@ -194,10 +193,10 @@ export default function PricingComparison({ tiers, recommendedTier }: PricingCom
     <div className="mt-16 mb-12">
       <div className="text-center mb-8">
         <h3 className="text-xl md:text-2xl font-inter mb-2 text-[#000000] dark:text-[#f6f6f4]">
-          Runtime Features
+          Complete Feature Comparison
         </h3>
         <p className="text-sm text-gray-600 dark:text-[#a8a898] font-inter">
-          Single binary, three horizons. The view unlocks when you scale.
+          One product, three states. The view unfolds when you have a fleet.
         </p>
       </div>
 

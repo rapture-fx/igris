@@ -30,12 +30,22 @@ const faqSections: FaqSection[] = [
     entries: [
       {
         question: "Is there a free tier?",
-        answer: "Yes. The Seed. One device. Full power. The dashboard sleeps—you don't need it yet. Community support, full offline capability. Perfect for building in the quiet.",
+        answer: "Yes. The Seed. One instance. Full power. The view sleeps—you don't need it yet. Community support, full offline capability. Perfect for building in the quiet.",
         type: "text"
       },
       {
         question: "What hardware do I need?",
-        answer: "Anything with 512MB of breath. Raspberry Pi. NVIDIA Jetson. That weird ARM board gathering dust. The binary is 16MB—lighter than a photo.",
+        answer: "Anything with 512MB of breath. Raspberry Pi. NVIDIA Jetson. That weird ARM board gathering dust. The binary is 16MB—lighter than a photo. Or run it on your servers for deterministic software agents.",
+        type: "text"
+      },
+      {
+        question: "Does this work for software agents or just robots?",
+        answer: "Both. Runtime enforces deterministic limits on customer service bots, trading algorithms, and logistics AI running in data centers—just as easily as it runs vision models on drones. The nervous system doesn't care if the muscle is a motor or a database.",
+        type: "text"
+      },
+      {
+        question: "What makes this 'deterministic'?",
+        answer: "Hard resource limits (memory, CPU, execution time) enforced at the OS level. Sandboxed execution. No random crashes. Predictable latency. The same input produces the same output, every time, with cryptographic proof.",
         type: "text"
       },
       {
@@ -45,7 +55,7 @@ const faqSections: FaqSection[] = [
       },
       {
         question: "What models can I use?",
-        answer: "Any GGUF soul. Llama. Mistral. Phi-3. Thousands from HuggingFace. Your own fine-tuned weights. Bring your own models. No vendor lock-in.",
+        answer: "Any GGUF model. Llama. Mistral. Phi-3. Thousands from HuggingFace. Your own fine-tuned weights. Bring your own models. No vendor lock-in.",
         type: "text"
       }
     ]
@@ -55,17 +65,17 @@ const faqSections: FaqSection[] = [
     entries: [
       {
         question: "How does pricing work?",
-        answer: "Pay for presence. The Seed: $0 forever (one device). The Horizon Unlocks: $49/device/month (up to 100 devices, the view awakens). The Infinite: Custom pricing for unbounded reach.",
+        answer: "Pay for presence. The Seed: $0 forever (one instance). The Horizon: $49/instance/month (up to 100 instances, the view awakens). The Infinite: Custom pricing for unbounded reach.",
         type: "text"
       },
       {
         question: "When do I unlock the dashboard?",
-        answer: "When you have more than one device to love. Upgrade to Horizon (Pro), and the view unfolds automatically. It's not a separate purchase—it's the natural evolution of having a fleet.",
+        answer: "When you have more than one instance to manage. Upgrade to Horizon, and the view unfolds automatically. It's not a separate purchase—it's the natural evolution of having a fleet.",
         type: "text"
       },
       {
-        question: "Is the dashboard a different product?",
-        answer: "No. It's Runtime seeing itself at scale. One binary on many devices. One view to guide them.",
+        question: "Is the dashboard a separate product?",
+        answer: "No. It's Runtime seeing itself at scale. One binary on many devices—physical or digital. One view to guide them. The view unlocks automatically when you upgrade to Horizon.",
         type: "text"
       },
       {
@@ -75,7 +85,7 @@ const faqSections: FaqSection[] = [
       },
       {
         question: "Are there any hidden fees?",
-        answer: "No. You pay per device. The view is included. No request-based pricing, no overage charges, no hidden temples.",
+        answer: "No. You pay per instance. The view is included. No request-based pricing, no overage charges, no hidden fees.",
         type: "text"
       },
       {
@@ -90,22 +100,32 @@ const faqSections: FaqSection[] = [
     entries: [
       {
         question: "Can I use Runtime without the dashboard?",
-        answer: "Yes. Runtime works completely standalone. Many users run single devices in the dark, offline forever. The view only matters when you have a fleet.",
+        answer: "Yes. Runtime works completely standalone. Many users run single instances in the dark, offline forever. The view only matters when you have a fleet.",
         type: "text"
       },
       {
         question: "How does device pairing work?",
-        answer: "QR code baptism. Generate a code. Scan it with your device. It joins your fleet instantly. No manual configuration. No copying API keys. Devices join in seconds.",
+        answer: "QR code pairing. Generate a code. Scan it with your device. It joins your fleet instantly. No manual configuration. No copying API keys. Devices join in seconds.",
         type: "text"
       },
       {
         question: "Can I deploy models to my entire fleet?",
-        answer: "Yes. Upload GGUF models. Push them like whispers across the fleet. One device or one thousand. Devices download and verify automatically. Rollback if the world breaks.",
+        answer: "Yes. Upload GGUF models. Push them across the fleet. One instance or one thousand. Instances download and verify automatically. Rollback if needed.",
         type: "text"
       },
       {
-        question: "What happens when I scale from one device to many?",
-        answer: "The horizon appears. Upgrade to Horizon tier, and the view awakens automatically. See all your devices breathing. Touch them all. From anywhere.",
+        question: "What happens when I scale from one instance to many?",
+        answer: "The horizon appears. Upgrade to Horizon tier, and the view awakens automatically. See all your instances breathing. Manage them all. From anywhere.",
+        type: "text"
+      },
+      {
+        question: "How do I prove compliance with regulations?",
+        answer: "Every decision is cryptographically signed and logged. The audit trail is tamper-evident and immutable. When regulators or lawyers ask 'what did your AI decide and why,' you show them mathematical proof—not server logs.",
+        type: "text"
+      },
+      {
+        question: "Can I use this in safety-critical applications?",
+        answer: "Runtime provides deterministic execution and cryptographic audit trails—the foundation of safety-critical systems. However, you remain responsible for model validation and system integration. Many customers pair Runtime with existing safety-certified hardware.",
         type: "text"
       }
     ]
@@ -115,17 +135,17 @@ const faqSections: FaqSection[] = [
     entries: [
       {
         question: "How secure is Runtime?",
-        answer: "Trust no one. Sandboxed execution. Enforced resource limits. Models run in isolated cells with boundaries on memory, CPU, execution time. Your models and data stay on your devices. Cryptographically signed. Keys never leave.",
+        answer: "Trust no one. Sandboxed execution. Enforced resource limits. Models run in isolated environments with boundaries on memory, CPU, execution time. Your models and data stay on your devices. Cryptographically signed. Keys never leave.",
         type: "text"
       },
       {
-        question: "What happens if a device goes offline?",
-        answer: "Runtime keeps breathing. All AI execution happens locally. When the device returns from the void, it syncs automatically. The world goes quiet. Runtime doesn't care.",
+        question: "What happens if an instance goes offline?",
+        answer: "Runtime keeps breathing. All AI execution happens locally. When the instance returns, it syncs automatically. The world goes quiet. Runtime doesn't care.",
         type: "text"
       },
       {
         question: "Is my data sent to the cloud?",
-        answer: "No. AI inference happens on-device. Only metadata (device status, model versions, logs) syncs when online. Your actual data and AI workloads never leave the device. Unless you choose cloud providers—then it's your call.",
+        answer: "No. AI inference happens locally. Only metadata (instance status, model versions, logs) syncs when online. Your actual data and AI workloads never leave the instance. Unless you choose cloud providers—then it's your call.",
         type: "text"
       },
       {
@@ -140,17 +160,17 @@ const faqSections: FaqSection[] = [
     entries: [
       {
         question: "Do I retain control of my models?",
-        answer: "Yes. You bring your own souls. Models are stored on your devices, not our servers. Update, replace, remove them at any time. No vendor lock-in. Software that doesn't hold you hostage.",
+        answer: "Yes. You bring your own models. Models are stored on your instances, not our servers. Update, replace, remove them at any time. No vendor lock-in. Software that doesn't hold you hostage.",
         type: "text"
       },
       {
-        question: "Can I monitor device performance?",
-        answer: "Yes. When the view awakens (Horizon tier), see real-time status, resource usage, model performance, execution logs for all your devices. Export data for external analysis.",
+        question: "Can I monitor instance performance?",
+        answer: "Yes. When the view awakens (Horizon tier), see real-time status, resource usage, model performance, execution logs for all your instances. Export data for external analysis.",
         type: "text"
       },
       {
         question: "Do you train on my data?",
-        answer: "No. We don't train models on your data. Your data stays on your devices. Runtime executes your models locally without sending data to us or anyone else. Trust no one.",
+        answer: "No. We don't train models on your data. Your data stays on your instances. Runtime executes your models locally without sending data to us or anyone else. Trust no one.",
         type: "text"
       },
       {
@@ -327,7 +347,7 @@ export default function Faq() {
                  Questions and answers
                </h3>
                <p className="text-sm text-gray-600 dark:text-[#a8a898] font-inter leading-relaxed">
-                 Common questions about Runtime deployment, pricing, and the view that unlocks when you scale.
+                 Common questions about deterministic AI execution, cryptographic provenance, and the view that unfolds when you scale.
                </p>
              </div>
            </div>

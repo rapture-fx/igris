@@ -34,29 +34,46 @@ export default function Footer() {
                 <Link href="/cookies" className="text-xs text-[#a8a898] hover:text-[#f6f6f4] transition-colors">
                   Cookie Policy
                 </Link>
-                {/* Social Media Icons */}
-                <div className="flex gap-3 mt-2">
-                  <Link href="https://x.com/igrisinertial" target="_blank" rel="noopener noreferrer">
-                    <img
-                      src="/dmx.png"
-                      alt="X (Twitter)"
-                      width={12}
-                      height={12}
-                      style={{ width: '12px', height: '12px' }}
-                      className="hover:opacity-70 transition-opacity"
-                    />
-                  </Link>
-                  <Link href="https://www.linkedin.com/company/igrisinertial" target="_blank" rel="noopener noreferrer">
-                    <img
-                      src="/lkd.png"
-                      alt="LinkedIn"
-                      width={12}
-                      height={12}
-                      style={{ width: '12px', height: '12px' }}
-                      className="hover:opacity-70 transition-opacity"
-                    />
-                  </Link>
-                </div>
+                 {/* Social Media Icons */}
+                 <div className="flex gap-3 mt-2 items-center">
+                   <Link href="https://x.com/igrisinertial" target="_blank" rel="noopener noreferrer">
+                     <img
+                       src="/dmx.png"
+                       alt="X (Twitter)"
+                       width={12}
+                       height={12}
+                       style={{ width: '12px', height: '12px' }}
+                       className="hover:opacity-70 transition-opacity"
+                     />
+                   </Link>
+                   <Link href="https://discord.com" target="_blank" rel="noopener noreferrer">
+                     <img
+                       src="/dsc.png"
+                       alt="Discord"
+                       className="h-[14px] w-auto hover:opacity-70 transition-opacity"
+                     />
+                   </Link>
+                   <Link href="https://github.com/igrisinertial" target="_blank" rel="noopener noreferrer">
+                     <img
+                       src="/gh.png"
+                       alt="GitHub"
+                       width={12}
+                       height={12}
+                       style={{ width: '12px', height: '12px' }}
+                       className="hover:opacity-70 transition-opacity"
+                     />
+                   </Link>
+                   <Link href="https://www.linkedin.com/company/igrisinertial" target="_blank" rel="noopener noreferrer">
+                     <img
+                       src="/lkd.png"
+                       alt="LinkedIn"
+                       width={12}
+                       height={12}
+                       style={{ width: '12px', height: '12px' }}
+                       className="hover:opacity-70 transition-opacity"
+                     />
+                   </Link>
+                 </div>
               </div>
 
               {/* Logo - on right top for desktop, centered for mobile */}

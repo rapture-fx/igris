@@ -18,38 +18,37 @@ interface PricingTier {
   highlight?: boolean;
 }
 
-// Three horizons: The Seed, The Horizon Unlocks, The Infinite
+// Three horizons: The Seed, The Horizon, The Infinite
 const pricingTiers: PricingTier[] = [
   {
     name: "The Seed",
     price: "$0",
     priceDetail: "forever",
-    description: "One device. Full power. The dashboard sleeps—you don't need it yet.",
-    devices: "One device",
+    description: "One instance. Full power. The view sleeps—you don't need it yet.",
+    devices: "1 Runtime instance",
     features: [
-      "One Runtime instance (16MB of certainty)",
-      "BYOM—bring your own GGUF souls",
-      "Offline forever (no cloud, no keys, no lock-in)",
-      "The binary runs anywhere",
-      "Community of builders (Discord)",
-      "Self-hosted option available"
+      "1 Runtime instance (16MB of certainty)",
+      "Deterministic execution with hard limits",
+      "Cryptographic signing",
+      "Offline operation",
+      "Community of builders (Discord)"
     ],
     cta: "Download"
   },
   {
-    name: "The Horizon Unlocks",
+    name: "The Horizon",
     price: "$49",
-    priceDetail: "/device/month",
-    description: "Up to one hundred devices. The view awakens. See them all. Touch them all. From anywhere.",
-    devices: "Up to 100 devices",
+    priceDetail: "/instance/month",
+    description: "Up to one hundred instances. The view awakens. See them all. Prove them all. From anywhere.",
+    devices: "Up to 100 instances",
     features: [
       "Everything in Seed, plus:",
       "The dashboard unfolds (your map of the empire)",
+      "Fleet-wide cryptographic attestation",
+      "Immutable audit trails (7 days)",
       "QR-code pairing (devices join in seconds)",
       "One-click fleet updates",
-      "Seven days of memory",
-      "Priority access to the architects",
-      "Advanced analytics and insights"
+      "Priority access to the architects"
     ],
     cta: "Get Started",
     highlight: true
@@ -58,17 +57,16 @@ const pricingTiers: PricingTier[] = [
     name: "The Infinite",
     price: "Custom",
     priceDetail: "pricing",
-    description: "Unlimited. Unbounded. Custom SLAs for custom gravity. On-premise. Air-gapped. Whatever your security demands.",
-    devices: "Infinite devices",
+    description: "Unlimited. Unbounded. Custom SLAs for custom gravity. On-premise. Air-gapped. Whatever your compliance demands.",
+    devices: "Unlimited instances",
     features: [
       "Everything in Horizon, plus:",
-      "Infinite devices",
+      "Infinite instances",
       "The view on your own servers",
-      "Security attestation support",
+      "Security audit support",
+      "Custom compliance certifications",
       "24/7 access to human beings who built this",
-      "Ninety days of memory",
-      "SSO & advanced access controls",
-      "Custom integrations"
+      "Ninety days of audit retention"
     ],
     cta: "Contact",
     isContactUs: true
@@ -93,14 +91,10 @@ export default function Pricing() {
           <div className="max-w-[1400px] mx-auto pt-48 px-0 md:px-8 lg:px-0 pb-12">
             <div className="text-center mb-12">
               <h2 className="text-2xl md:text-2xl lg:text-3xl font-inter mb-6 text-[#000000] dark:text-[#f6f6f4]">
-                Pay for presence.
-                <br />The view is included.
+                Pay for presence. The view unlocks.
               </h2>
               <p className="text-sm md:text-base text-gray-600 dark:text-[#a8a898] font-inter max-w-2xl mx-auto mb-4">
-                One binary. Three horizons.
-              </p>
-              <p className="text-xs text-gray-500 dark:text-[#a8a898] font-inter max-w-2xl mx-auto">
-                Start free. Scale when your fleet finds its wings.
+                One binary. Three horizons. Start free. Scale when your fleet finds its wings.
               </p>
             </div>
 
@@ -184,7 +178,7 @@ export default function Pricing() {
 
             <div className="text-center mt-8 mb-8">
               <p className="text-xs text-gray-500 dark:text-[#a8a898] font-inter">
-                The dashboard awakens automatically when you upgrade. One product, three horizons.
+                The view unfolds automatically when you upgrade to Horizon. One product, three horizons.
               </p>
             </div>
 
