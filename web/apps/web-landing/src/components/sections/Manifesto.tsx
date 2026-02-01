@@ -13,7 +13,7 @@ export default function Manifesto() {
   return (
     <>
       <section className="bg-[#f6f6f4] dark:bg-dark-bg text-gray-900 dark:text-[#f6f6f4] transition-colors duration-200">
-        <div className="mx-auto max-w-[1100px] px-4 sm:px-6 lg:px-8">
+        <div className="mx-auto max-w-[1300px] px-4 sm:px-6 lg:px-8">
           <div className="relative px-4 md:px-8 lg:px-12 flex flex-col justify-center bg-[#f6f6f4] dark:bg-[#1b1912] border-l border-r border-b border-gray-300 dark:border-[#f6f6f4]/5" style={{
             minHeight: '400px'
           }}>
@@ -29,13 +29,16 @@ export default function Manifesto() {
             <div className="w-full flex flex-row items-center justify-between relative z-10">
               <div className="max-w-3xl text-left flex flex-col">
                 <h3 className="text-lg md:text-xl lg:text-2xl font-inter mb-4 text-[#000000] dark:text-[#f6f6f4]">
-                  We are building the infrastructure for deterministic civilization.
+                  Undefined behavior is not a strategy.
                 </h3>
-                <p className="text-sm md:text-base text-gray-700 dark:text-[#c8c8b8] font-inter leading-relaxed mb-4 max-w-2xl">
-                  As AI moves from assistance to autonomy—from suggesting to deciding—we need execution layers that behave exactly as specified. No drift. No surprises. No "it usually works."
+                <p className="text-sm md:text-base text-gray-700 dark:text-[#c8c8b8] font-inter leading-relaxed mb-3 max-w-2xl">
+                  Your system made a decision. Can you prove what it was?
+                </p>
+                <p className="text-sm md:text-base text-gray-700 dark:text-[#c8c8b8] font-inter leading-relaxed mb-3 max-w-2xl">
+                  Can you prove it didn't exceed memory bounds? Can you prove it ran the model version you certified?
                 </p>
                 <p className="text-sm md:text-base text-gray-700 dark:text-[#c8c8b8] font-inter leading-relaxed mb-6 max-w-2xl">
-                  Runtime is the deterministic nervous system. Whether you're shipping robots to farmland or agents to production, deterministic behavior isn't optional. It's the foundation of trust.
+                  Most execution environments offer probabilistic behavior—best effort, hope for the best. Logs tell stories. Stories are not evidence. When your drone enters restricted airspace, or your production job allocates unbounded memory, you need proof. Not logs. Proof.
                 </p>
 
                 <div className="flex flex-col sm:flex-row gap-4 pl-0 md:pl-0 lg:pl-0">
@@ -43,7 +46,7 @@ export default function Manifesto() {
                     <button
                       className="inline-flex items-center justify-center bg-black text-white dark:bg-[#f6f6f4] dark:text-black px-4 py-2 hover:bg-gray-800 dark:hover:bg-gray-200 transition-all duration-200 text-xs font-medium font-inter"
                     >
-                      Build Deterministic AI
+                      Download Runtime
                     </button>
                   </Link>
                 </div>

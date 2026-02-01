@@ -15,7 +15,7 @@ export default function Products() {
 
   return (
     <section className="bg-[#f6f6f4] dark:bg-dark-bg text-gray-900 dark:text-[#f6f6f4] transition-colors duration-200">
-      <div className="mx-auto max-w-[1100px] px-4 sm:px-6 lg:px-8">
+      <div className="mx-auto max-w-[1300px] px-4 sm:px-6 lg:px-8">
         <div className="relative px-4 md:px-8 lg:px-12 flex flex-col bg-[#f6f6f4] dark:bg-[#1b1912] border-t border-l border-r border-b border-gray-300 dark:border-[#f6f6f4]/5 min-h-[800px] md:h-[850px]">
 
           {/* Title Section - Shows first on mobile, last on desktop */}
@@ -24,10 +24,10 @@ export default function Products() {
               01. PRODUCT
             </p>
             <h2 className="text-lg md:text-xl lg:text-2xl font-inter mb-4 text-[#000000] dark:text-[#f6f6f4]">
-              One binary. Infinite locations.
+              16 megabytes. Absolute certainty.
             </h2>
             <p className="text-sm text-gray-600 dark:text-[#a8a898] font-inter leading-relaxed mb-8">
-              Runtime is the last AI infrastructure you'll ever need to ship. When you scale from one device to one thousand, the dashboard unfolds like a map of your empire.
+              Deploy to any hardware—ARM, x86, embedded. Load a GGUF model. Set hard limits: max tokens, max memory, max execution time. Every output cryptographically signed. Run one device or ten thousand.
             </p>
 
             {/* Product Narrative - Mobile */}
@@ -43,10 +43,10 @@ export default function Products() {
                   />
                 </div>
                 <p className="text-sm text-gray-600 dark:text-[#a8a898] leading-relaxed font-inter mb-4">
-                  Sixteen megabytes that run on a $45 computer in a barn, a factory floor, or a drone hovering over farmland. No containers. No cloud contracts. No explaining to your CFO why the 'simple AI feature' needs a $30,000 GPU cluster.
+                  16MB static binary. GGUF model support (Llama, Phi, Mistral, Qwen). OS-level resource enforcement. Ed25519 cryptographic signing. Offline-first, sync-capable. ROS2 compatible.
                 </p>
                 <p className="text-sm text-gray-600 dark:text-[#a8a898] leading-relaxed font-inter mb-4">
-                  When you're ready to scale—from one device to one thousand—the dashboard unfolds like a map of your empire. It's not another product to buy. It's the view that appears when you have something worth seeing.
+                  Deploy to Pi, industrial controller, or rack-mounted server. Set memory caps. Define execution timeouts. Every inference executes within bounds or fails predictably. The view unlocks when you scale.
                 </p>
                 <button
                   onClick={openRuntime}
@@ -110,10 +110,10 @@ export default function Products() {
                     />
                   </div>
                   <p className="text-sm text-gray-600 dark:text-[#a8a898] leading-relaxed font-inter mb-4">
-                    Runtime is the last AI infrastructure you'll ever need to ship. Sixteen megabytes that run on a $45 computer in a barn, a factory floor, or a drone hovering over farmland. No containers. No cloud contracts. No explaining to your CFO why the 'simple AI feature' needs a $30,000 GPU cluster.
+                    16MB static binary. GGUF model support (Llama, Phi, Mistral, Qwen). OS-level resource enforcement. Ed25519 cryptographic signing. Offline-first, sync-capable. ROS2 compatible.
                   </p>
                   <p className="text-sm text-gray-600 dark:text-[#a8a898] leading-relaxed font-inter mb-4">
-                    When you're ready to scale—from one device to one thousand—the dashboard unfolds like a map of your empire. It's not another product to buy. It's the view that appears when you have something worth seeing.
+                    Deploy to Pi, industrial controller, or rack-mounted server. Set memory caps. Define execution timeouts. Every inference executes within bounds or fails predictably. The view unlocks when you scale.
                   </p>
                   <button
                     onClick={openRuntime}
@@ -162,10 +162,10 @@ export default function Products() {
                 01. PRODUCT
               </p>
               <h2 className="text-lg md:text-xl lg:text-2xl font-inter mb-4 text-[#000000] dark:text-[#f6f6f4]">
-                One binary. Infinite locations.
+                16 megabytes. Absolute certainty.
               </h2>
               <p className="text-xs md:text-sm text-gray-600 dark:text-[#a8a898] font-inter leading-relaxed">
-                Runtime runs AI anywhere. As you scale, the dashboard appears—your command center for managing everything from one view. One product, infinite scale.
+                Bounded execution. Cryptographic proof. Offline operation. One binary. Signed decisions across your entire fleet.
               </p>
             </div>
 

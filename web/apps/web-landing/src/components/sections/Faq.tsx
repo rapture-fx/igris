@@ -39,18 +39,18 @@ const faqSections: FaqSection[] = [
         type: "text"
       },
       {
-        question: "Does this work for software agents or just robots?",
-        answer: "Both. Runtime enforces deterministic limits on customer service bots, trading algorithms, and logistics AI running in data centers—just as easily as it runs vision models on drones. The nervous system doesn't care if the muscle is a motor or a database.",
+        question: "Does this work for server-side software or only robots?",
+        answer: "Both. Runtime executes GGUF models with enforced limits. Whether that model controls a drone motor or validates insurance claims, the execution is bounded, signed, and provable. The binary doesn't care if the hardware moves or sits in a rack.",
         type: "text"
       },
       {
-        question: "What makes this 'deterministic'?",
-        answer: "Hard resource limits (memory, CPU, execution time) enforced at the OS level. Sandboxed execution. No random crashes. Predictable latency. The same input produces the same output, every time, with cryptographic proof.",
+        question: "What makes this deterministic?",
+        answer: "Hard resource limits enforced by the OS: memory caps, CPU quotas, execution timeouts. Sandboxed execution. The same input produces the same output, bounded by the same limits, every time. Or it fails predictably. Never randomly.",
         type: "text"
       },
       {
-        question: "Do I need internet connectivity?",
-        answer: "No. Runtime works in the silence between connections. Download the binary, add your models, deploy. Internet optional. The view syncs when the world returns.",
+        question: "What happens when I lose internet?",
+        answer: "Runtime continues executing indefinitely. Models run locally. Limits remain enforced. Decisions continue being signed and logged locally. When connectivity returns, the fleet view syncs state. Offline is the default mode. Sync is optional.",
         type: "text"
       },
       {
@@ -74,8 +74,8 @@ const faqSections: FaqSection[] = [
         type: "text"
       },
       {
-        question: "Is the dashboard a separate product?",
-        answer: "No. It's Runtime seeing itself at scale. One binary on many devices—physical or digital. One view to guide them. The view unlocks automatically when you upgrade to Horizon.",
+        question: "Is the fleet view a separate product?",
+        answer: "No. It is Runtime seeing itself at scale. One binary on many devices. One view to prove them all. The view unlocks when you upgrade from Seed to Horizon.",
         type: "text"
       },
       {
@@ -119,13 +119,13 @@ const faqSections: FaqSection[] = [
         type: "text"
       },
       {
-        question: "How do I prove compliance with regulations?",
-        answer: "Every decision is cryptographically signed and logged. The audit trail is tamper-evident and immutable. When regulators or lawyers ask 'what did your AI decide and why,' you show them mathematical proof—not server logs.",
+        question: "How does cryptographic signing work?",
+        answer: "Runtime generates an Ed25519 keypair on first boot. Every inference output is hashed and signed. The signature, timestamp, model checksum, and input hash are appended to the log. You can verify execution integrity cryptographically—proving exactly what ran and when, independent of our infrastructure.",
         type: "text"
       },
       {
-        question: "Can I use this in safety-critical applications?",
-        answer: "Runtime provides deterministic execution and cryptographic audit trails—the foundation of safety-critical systems. However, you remain responsible for model validation and system integration. Many customers pair Runtime with existing safety-certified hardware.",
+        question: "Can I use this for safety-critical applications?",
+        answer: "Runtime provides deterministic execution and cryptographic provenance—the foundation of safety-critical systems. You remain responsible for model validation, hardware redundancy, and system integration. We provide the execution guarantees. You provide the safety case.",
         type: "text"
       }
     ]
@@ -191,7 +191,7 @@ export default function Faq() {
 
     return (
      <section id="faq" className="bg-[#f6f6f4] dark:bg-dark-bg text-gray-900 dark:text-[#f6f6f4] transition-colors duration-200">
-       <div className="max-w-[1100px] mx-auto px-4 sm:px-6 lg:px-8">
+       <div className="max-w-[1300px] mx-auto px-4 sm:px-6 lg:px-8">
            <div className="relative px-4 md:px-8 lg:px-12 border-l border-r border-b border-gray-300 dark:border-[#f6f6f4]/5 min-h-[750px] flex flex-col">
 
            {/* Mobile Layout - Title first, then FAQ items */}

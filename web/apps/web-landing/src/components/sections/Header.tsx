@@ -81,7 +81,7 @@ export default function Header() {
          isScrolled ? 'backdrop-blur-md bg-[rgba(246,246,244,0.7)] dark:bg-[rgba(27,25,18,0.7)]' : 'bg-transparent'
        }`}
      >
-       <div className="mx-auto max-w-[1100px] px-4 sm:px-6 lg:px-8">
+       <div className="mx-auto max-w-[1300px] px-4 sm:px-6 lg:px-8">
         <div className="px-4 md:px-8 lg:px-12 py-4 border-b border-gray-300 dark:border-[#f6f6f4]/5">
           <div className="flex items-center justify-between w-full">
           <div className="flex">

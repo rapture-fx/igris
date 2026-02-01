@@ -16,7 +16,7 @@ export default function Solve() {
 
   return (
     <section className="bg-[#f6f6f4] dark:bg-dark-bg text-gray-900 dark:text-[#f6f6f4] transition-colors duration-200">
-      <div className="mx-auto max-w-[1100px] px-4 sm:px-6 lg:px-8">
+      <div className="mx-auto max-w-[1300px] px-4 sm:px-6 lg:px-8">
         <div className="relative px-2 md:px-8 lg:px-12 bg-[#f6f6f4] dark:bg-[#1b1912] border-t border-l border-r border-gray-300 dark:border-[#f6f6f4]/5 flex flex-row items-center gap-2 md:gap-4 py-2" style={{
           borderBottomWidth: '0'
         }}>
