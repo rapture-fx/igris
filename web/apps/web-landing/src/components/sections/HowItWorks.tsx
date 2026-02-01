@@ -15,7 +15,7 @@ export default function HowItWorks() {
 
   return (
     <section id="how-it-works" className="bg-[#f6f6f4] dark:bg-dark-bg text-gray-900 dark:text-[#f6f6f4] transition-colors duration-200">
-      <div className="mx-auto max-w-[1100px] px-4 sm:px-6 lg:px-8">
+      <div className="mx-auto max-w-[1300px] px-4 sm:px-6 lg:px-8">
         <div className="relative px-4 md:px-8 lg:px-12 flex flex-col bg-[#f6f6f4] dark:bg-[#1b1912] border-l border-r border-b border-gray-300 dark:border-[#f6f6f4]/5 min-h-[750px] md:h-[750px]">
 
           {/* Content Section - Shows first on mobile */}
@@ -27,7 +27,7 @@ export default function HowItWorks() {
                 03. HOW IT WORKS
               </p>
               <h3 className="text-lg md:text-xl lg:text-2xl font-inter mb-2 text-[#000000] dark:text-[#f6f6f4]">
-                Drop the binary. Set the boundaries. Deploy with proof.
+                Deploy. Bound. Prove.
               </h3>
               <div className="mt-4 p-4 bg-black/[0.05] dark:bg-white/[0.05] border border-gray-300 dark:border-[#f6f6f4]/5 font-mono text-xs overflow-x-auto">
                 <code className="text-gray-900 dark:text-[#f6f6f4]">
@@ -35,10 +35,10 @@ export default function HowItWorks() {
                 </code>
               </div>
               <p className="text-sm text-gray-600 dark:text-[#a8a898] leading-relaxed font-inter mt-4">
-                Every inference cryptographically signed. Every resource limit hardware-enforced. Every log tamper-evident.
+                Download 16MB binary. Configure hard limits. Every inference executes within bounds. Every output cryptographically signed. Logs are tamper-evident.
               </p>
               <p className="text-xs text-gray-600 dark:text-[#a8a898] leading-relaxed font-inter italic mt-3">
-                When one becomes one thousand, the dashboard simply appears. Fleet-wide policies. Cryptographic attestation. Immutable audit trails across your entire deployment—whether it's 1000 drones or 1000 microservices.
+                Fleet view unlocks when scaling. Cryptographic attestation across your entire deployment—whether 1000 drones or 1000 server processes.
               </p>
             </div>
 
@@ -201,7 +201,7 @@ export default function HowItWorks() {
                 03. HOW IT WORKS
               </p>
               <h2 className="text-lg md:text-xl lg:text-2xl font-inter mb-4 text-[#000000] dark:text-[#f6f6f4]">
-                Drop the binary. Set the boundaries. Deploy with proof.
+                Deploy. Bound. Prove.
               </h2>
               <div className="mt-4 p-3 bg-black/[0.05] dark:bg-white/[0.05] border border-gray-300 dark:border-[#f6f6f4]/5 font-mono text-xs overflow-x-auto mb-4">
                 <code className="text-gray-900 dark:text-[#f6f6f4] whitespace-pre-wrap break-all">
@@ -209,7 +209,7 @@ export default function HowItWorks() {
                 </code>
               </div>
               <p className="text-xs text-gray-600 dark:text-[#a8a898] font-inter leading-relaxed">
-                Every inference cryptographically signed. Every resource limit hardware-enforced. Every log tamper-evident.
+                Download 16MB binary. Configure hard limits. Every inference executes within bounds. Every output cryptographically signed.
               </p>
             </div>
 

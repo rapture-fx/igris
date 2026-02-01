@@ -5,26 +5,22 @@ import { ChevronRight } from 'lucide-react'
 export default function UseCasesTeaser() {
   const useCases = [
     {
-      title: 'Autonomous Systems',
-      description: 'Drones, robots, sensors that must make life-or-death decisions offline. Prove the decision was correct. Survive network outages.',
+      title: 'Physical Systems',
+      description: 'Drones, sensors, actuators deployed to farmland, factory floors, or denied environments. Prove flight decisions. Enforce battery limits. Survive radio silence.',
     },
     {
-      title: 'Deterministic Agents',
-      description: 'Customer service bots, trading algorithms, workflow automation that can't hallucinate or exceed resource limits. Hard boundaries. Cryptographic audit trails.',
+      title: 'Production Systems',
+      description: 'Server-side execution, batch processing, automation. Prove compliance. Enforce resource quotas. Prevent runaway allocation. Cryptographic audit trails for regulators.',
     },
     {
-      title: 'Regulated AI',
-      description: 'Healthcare diagnostics, financial compliance, legal analysis where you must prove exactly what the model decided. Immutable logs. Verifiable execution.',
-    },
-    {
-      title: 'Edge Intelligence',
-      description: 'Factory floors, agricultural operations, remote infrastructure where the cloud is a liability. Local inference. Fleet governance. Air-gapped operation.',
+      title: 'Regulated Environments',
+      description: 'Healthcare diagnostics, financial modeling, legal review. Prove exactly which model version ran. Immutable decision logs. Air-gapped deployment options.',
     },
   ]
 
   return (
     <section className="dark:bg-gray-900 text-gray-900 dark:text-white" style={{ backgroundColor: '#f6f6f4' }}>
-      <div className="mx-auto max-w-[1100px] px-4 sm:px-6 lg:px-8">
+      <div className="mx-auto max-w-[1300px] px-4 sm:px-6 lg:px-8">
         <div className="relative py-12 md:py-16 lg:py-20 px-4 md:px-8 lg:px-12 border border-gray-300 dark:border-[#f6f6f4]/5" style={{
           backgroundColor: '#f6f6f4',
           minHeight: '600px'
@@ -54,7 +50,7 @@ export default function UseCasesTeaser() {
                   Use Cases
                 </h3>
                 <p className="text-sm md:text-base text-gray-600 dark:text-gray-400 font-inter mb-12">
-                  Whether you're shipping drones or deploying agents—Runtime enforces deterministic behavior.
+                  Prove execution anywhere. Bounded. Signed. Offline-capable.
                 </p>
 
                 {/* Use Cases List - without cards */}

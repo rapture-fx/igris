@@ -24,14 +24,14 @@ const pricingTiers: PricingTier[] = [
     name: "The Seed",
     price: "$0",
     priceDetail: "forever",
-    description: "One instance. Full power. The view sleeps—you don't need it yet.",
+    description: "One device. Full execution. The view sleeps.",
     devices: "1 Runtime instance",
     features: [
-      "1 Runtime instance (16MB of certainty)",
+      "1 Runtime instance",
       "Deterministic execution with hard limits",
-      "Cryptographic signing",
-      "Offline operation",
-      "Community of builders (Discord)"
+      "Cryptographic signing (Ed25519)",
+      "Offline operation (indefinite)",
+      "Community support"
     ],
     cta: "Download"
   },
@@ -39,16 +39,16 @@ const pricingTiers: PricingTier[] = [
     name: "The Horizon",
     price: "$49",
     priceDetail: "/instance/month",
-    description: "Up to one hundred instances. The view awakens. See them all. Prove them all. From anywhere.",
-    devices: "Up to 100 instances",
+    description: "The view awakens. Prove execution across your fleet.",
+    devices: "Up to 100 Runtime instances",
     features: [
-      "Everything in Seed, plus:",
-      "The dashboard unfolds (your map of the empire)",
+      "Up to 100 Runtime instances",
+      "Fleet view (dashboard unlocks)",
       "Fleet-wide cryptographic attestation",
-      "Immutable audit trails (7 days)",
-      "QR-code pairing (devices join in seconds)",
-      "One-click fleet updates",
-      "Priority access to the architects"
+      "Immutable audit trails (7-day retention)",
+      "QR-code device pairing",
+      "Over-the-air signed updates",
+      "Priority engineering support"
     ],
     cta: "Get Started",
     highlight: true
@@ -57,16 +57,16 @@ const pricingTiers: PricingTier[] = [
     name: "The Infinite",
     price: "Custom",
     priceDetail: "pricing",
-    description: "Unlimited. Unbounded. Custom SLAs for custom gravity. On-premise. Air-gapped. Whatever your compliance demands.",
-    devices: "Unlimited instances",
+    description: "Unbounded proof. On-premise. Compliance-certified.",
+    devices: "Unlimited Runtime instances",
     features: [
-      "Everything in Horizon, plus:",
-      "Infinite instances",
-      "The view on your own servers",
+      "Unlimited Runtime instances",
+      "On-premise fleet view",
+      "Custom SLAs",
+      "90-day audit retention",
       "Security audit support",
-      "Custom compliance certifications",
-      "24/7 access to human beings who built this",
-      "Ninety days of audit retention"
+      "24/7 dedicated engineering",
+      "Compliance certification assistance"
     ],
     cta: "Contact",
     isContactUs: true
@@ -86,15 +86,15 @@ export default function Pricing() {
 
   return (
     <section id="pricing" className="pt-0 pb-0 bg-[#f6f6f4] dark:bg-dark-bg text-gray-900 dark:text-[#f6f6f4] relative overflow-visible -mt-[72px] transition-colors duration-200">
-      <div className="mx-auto max-w-[1100px] px-4 sm:px-6 lg:px-8">
+      <div className="mx-auto max-w-[1300px] px-4 sm:px-6 lg:px-8">
         <div className="relative px-4 md:px-8 lg:px-12 pb-0 bg-transparent z-10 overflow-visible border-l border-r border-b section-border">
           <div className="max-w-[1400px] mx-auto pt-48 px-0 md:px-8 lg:px-0 pb-12">
             <div className="text-center mb-12">
               <h2 className="text-2xl md:text-2xl lg:text-3xl font-inter mb-6 text-[#000000] dark:text-[#f6f6f4]">
-                Pay for presence. The view unlocks.
+                Pay for presence. Prove for certainty.
               </h2>
               <p className="text-sm md:text-base text-gray-600 dark:text-[#a8a898] font-inter max-w-2xl mx-auto mb-4">
-                One binary. Three horizons. Start free. Scale when your fleet finds its wings.
+                One binary. Three horizons. Start free. Scale when you require proof across your fleet.
               </p>
             </div>
 
