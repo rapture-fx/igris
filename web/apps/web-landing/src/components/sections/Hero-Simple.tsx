@@ -26,11 +26,20 @@ export default function Hero() {
             <div className="mb-6 text-left">
               <div>
                 <h1 className="text-lg md:text-xl lg:text-2xl font-medium text-[#111111] dark:text-[#f6f6f4] leading-[1.2]">
-                  Secure AI execution on any device
+                  The Nervous System for Machines That Can't Fail
                 </h1>
-                <p className="text-sm md:text-base text-gray-700 dark:text-[#c8c8b8] max-w-md leading-relaxed text-left mt-4">
-                  Sixteen megabytes to deploy anywhere. Your own GGUF models. The view unfolds as you scale.
+                <p className="text-sm md:text-base text-gray-700 dark:text-[#c8c8b8] max-w-2xl leading-relaxed text-left mt-4">
+                  Deterministic AI execution with cryptographic provenance. Whether you're shipping drones to farmland or agents to production—prove every decision, enforce hard limits, survive the apocalypse.
                 </p>
+                <div className="flex flex-wrap gap-2 md:gap-3 mt-4 text-xs md:text-sm text-gray-600 dark:text-[#a8a898] font-inter">
+                  <span>16MB binary</span>
+                  <span>·</span>
+                  <span>Deterministic execution</span>
+                  <span>·</span>
+                  <span>Cryptographic signing</span>
+                  <span>·</span>
+                  <span>Offline-first</span>
+                </div>
               </div>
             </div>
 

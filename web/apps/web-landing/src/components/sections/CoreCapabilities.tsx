@@ -3,16 +3,16 @@ import { useTheme } from 'next-themes'
 
 const capabilities = [
   {
-    name: 'Everywhere',
-    description: 'Raspberry Pi to edge server. Same binary. Same behavior. Fits on hardware you already own. Deploy in seconds.',
+    name: 'Execute Deterministically',
+    description: 'Hard resource limits. Sandboxed safety. Predictable latency. Your AI behaves exactly as specified—no memory leaks, no runaway processes, no surprises in production.',
   },
   {
-    name: 'Always',
-    description: 'Works in the silence between connections. Your AI breathes even when the world goes dark. Internet optional.',
+    name: 'Prove Cryptographically',
+    description: 'Every decision signed. Every action logged. Every update verified. Whether proving compliance to regulators or debugging a customer incident, you have immutable, cryptographically verifiable proof.',
   },
   {
-    name: 'Everything',
-    description: 'One view for every device you own. The dashboard unlocks automatically when you need it. No separate purchase.',
+    name: 'Survive Independently',
+    description: 'Run for years without the cloud. Sync when possible. Operate when denied. The first AI execution layer designed for the edge and the data center—where deterministic behavior isn\'t optional.',
   },
 ]
 
@@ -38,13 +38,13 @@ export default function CoreCapabilities() {
                 {/* Title Section - Shows first on mobile */}
                 <div className="mb-8 text-left">
                   <p className="text-base text-[#c5b0cd] mb-2" style={{ fontFamily: 'Roboto Mono, monospace', letterSpacing: '0.05em' }}>
-                    02. THE PILLARS
+                    02. THE SOLUTION
                   </p>
                   <h3 className="text-lg md:text-xl lg:text-2xl font-inter mb-4 text-[#000000] dark:text-[#f6f6f4]">
-                    Deploy anywhere. Know everything.
+                    Runtime is the deterministic execution layer for AI
                   </h3>
                   <p className="text-sm text-gray-700 dark:text-[#c8c8b8] font-inter leading-relaxed">
-                    No cloud required. No dependency anxiety. The horizon appears when you're ready to see it.
+                    One binary. Three guarantees.
                   </p>
                 </div>
 
@@ -177,13 +177,13 @@ export default function CoreCapabilities() {
                 {/* Right Column - Title and Intro (Desktop only) */}
                 <div className="hidden md:flex text-left md:col-span-1 md:border-l flex-col justify-start dark:border-[#f6f6f4]/5" style={{ paddingTop: '3rem', paddingBottom: '3rem', paddingLeft: '1rem' }}>
                   <p className="text-base text-[#c5b0cd] mb-2" style={{ fontFamily: 'Roboto Mono, monospace', letterSpacing: '0.05em' }}>
-                    02. THE PILLARS
+                    02. THE SOLUTION
                   </p>
                   <h3 className="text-lg md:text-xl lg:text-2xl font-inter mb-4 text-[#000000] dark:text-[#f6f6f4]">
-                    Deploy anywhere. Know everything.
+                    Runtime is the deterministic execution layer for AI
                   </h3>
                   <p className="text-sm text-gray-700 dark:text-[#c8c8b8] font-inter leading-relaxed">
-                    No cloud required. No dependency anxiety. The horizon appears when you're ready to see it.
+                    One binary. Three guarantees.
                   </p>
                 </div>
               </div>
