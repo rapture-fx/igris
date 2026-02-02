@@ -30,32 +30,22 @@ const faqSections: FaqSection[] = [
     entries: [
       {
         question: "Is there a free tier?",
-        answer: "Yes. The Seed. One instance. Full power. The view sleeps—you don't need it yet. Community support, full offline capability. Perfect for building in the quiet.",
+        answer: "Yes. The Free plan includes 1 Runtime device, the Overture Fleet Dashboard (basic features), community support, and full offline capability. Perfect for development and testing.",
         type: "text"
       },
       {
         question: "What hardware do I need?",
-        answer: "Anything with 512MB of breath. Raspberry Pi. NVIDIA Jetson. That weird ARM board gathering dust. The binary is 16MB—lighter than a photo. Or run it on your servers for deterministic software agents.",
+        answer: "Runtime runs on any Linux, macOS, or ARM device with at least 512MB RAM. Tested on Raspberry Pi 4, NVIDIA Jetson, edge servers, and standard x86 hardware. The binary is only 16MB.",
         type: "text"
       },
       {
-        question: "Does this work for server-side software or only robots?",
-        answer: "Both. Runtime executes GGUF models with enforced limits. Whether that model controls a drone motor or validates insurance claims, the execution is bounded, signed, and provable. The binary doesn't care if the hardware moves or sits in a rack.",
-        type: "text"
-      },
-      {
-        question: "What makes this deterministic?",
-        answer: "Hard resource limits enforced by the OS: memory caps, CPU quotas, execution timeouts. Sandboxed execution. The same input produces the same output, bounded by the same limits, every time. Or it fails predictably. Never randomly.",
-        type: "text"
-      },
-      {
-        question: "What happens when I lose internet?",
-        answer: "Runtime continues executing indefinitely. Models run locally. Limits remain enforced. Decisions continue being signed and logged locally. When connectivity returns, the fleet view syncs state. Offline is the default mode. Sync is optional.",
+        question: "Do I need internet connectivity?",
+        answer: "No. Runtime works completely offline. Download the binary, add your GGUF models, and deploy. The Overture Fleet Dashboard is optional—devices sync when online but operate independently when offline.",
         type: "text"
       },
       {
         question: "What models can I use?",
-        answer: "Any GGUF model. Llama. Mistral. Phi-3. Thousands from HuggingFace. Your own fine-tuned weights. Bring your own models. No vendor lock-in.",
+        answer: "Any GGUF format model. This includes Llama, Mistral, Phi-3, and thousands of models from HuggingFace. You can also use your own fine-tuned models converted to GGUF format.",
         type: "text"
       }
     ]
@@ -65,32 +55,32 @@ const faqSections: FaqSection[] = [
     entries: [
       {
         question: "How does pricing work?",
-        answer: "Pay for presence. The Seed: $0 forever (one instance). The Horizon: $49/instance/month (up to 100 instances, the view awakens). The Infinite: Custom pricing for unbounded reach.",
+        answer: "Simple per-device pricing. Free: 1 device at $0. Pro: $49/device/month for up to 100 devices with priority support and advanced analytics. Enterprise: Custom pricing for unlimited devices with SLA guarantees.",
         type: "text"
       },
       {
-        question: "When do I unlock the dashboard?",
-        answer: "When you have more than one instance to manage. Upgrade to Horizon, and the view unfolds automatically. It's not a separate purchase—it's the natural evolution of having a fleet.",
+        question: "Is the Fleet Dashboard really free?",
+        answer: "Yes. The Overture Fleet Dashboard is included at no extra cost with every Runtime license. Free tier gets basic dashboard access. Pro and Enterprise unlock advanced fleet management features.",
         type: "text"
       },
       {
-        question: "Is the fleet view a separate product?",
-        answer: "No. It is Runtime seeing itself at scale. One binary on many devices. One view to prove them all. The view unlocks when you upgrade from Seed to Horizon.",
+        question: "What's the difference between Free and Pro?",
+        answer: "Free supports 1 device with community support and basic dashboard. Pro supports up to 100 devices with priority email support, advanced analytics, model deployment management, and 7-day log retention.",
         type: "text"
       },
       {
         question: "Can I upgrade or downgrade?",
-        answer: "Yes. Upgrades breathe immediately. Downgrades take effect at your next billing cycle. Nothing is lost when you change horizons.",
+        answer: "Yes. Upgrades take effect immediately. Downgrades apply at the start of your next billing cycle. No configuration or data is lost when changing plans.",
         type: "text"
       },
       {
         question: "Are there any hidden fees?",
-        answer: "No. You pay per instance. The view is included. No request-based pricing, no overage charges, no hidden fees.",
+        answer: "No. You pay per Runtime device. The Fleet Dashboard is included. No request-based pricing, no overage charges, no surprise bills.",
         type: "text"
       },
       {
         question: "Do I pay for cloud AI providers separately?",
-        answer: "Runtime runs models locally—no cloud required. If you choose to use cloud APIs, you pay them directly. We don't markup provider costs. Software that doesn't hold you hostage.",
+        answer: "Runtime runs models locally—no cloud AI provider required. If you choose to use cloud APIs from OpenAI, Anthropic, etc., you pay them directly. Igris does not markup provider costs.",
         type: "text"
       }
     ]
@@ -99,33 +89,23 @@ const faqSections: FaqSection[] = [
     title: "Product & Architecture",
     entries: [
       {
-        question: "Can I use Runtime without the dashboard?",
-        answer: "Yes. Runtime works completely standalone. Many users run single instances in the dark, offline forever. The view only matters when you have a fleet.",
+        question: "What's the difference between Runtime and the Fleet Dashboard?",
+    "answer": "Runtime is the primary product—a 16MB binary that executes AI on your devices. The Overture Fleet Dashboard is included management software that lets you monitor and manage Runtime devices from the cloud. Think of Runtime as the engine, and the Dashboard as the dashboard in your car—both included together.",
+        type: "text"
+      },
+      {
+        question: "Can I use Runtime without the Dashboard?",
+        answer: "Yes. Runtime works completely standalone. The Dashboard is optional for fleet management. Many users deploy Runtime independently for single-device or offline scenarios.",
         type: "text"
       },
       {
         question: "How does device pairing work?",
-        answer: "QR code pairing. Generate a code. Scan it with your device. It joins your fleet instantly. No manual configuration. No copying API keys. Devices join in seconds.",
+        answer: "Simple QR code pairing. Generate a code in the Dashboard, scan it with your device camera, and the device automatically joins your fleet. No manual configuration, no copying API keys.",
         type: "text"
       },
       {
         question: "Can I deploy models to my entire fleet?",
-        answer: "Yes. Upload GGUF models. Push them across the fleet. One instance or one thousand. Instances download and verify automatically. Rollback if needed.",
-        type: "text"
-      },
-      {
-        question: "What happens when I scale from one instance to many?",
-        answer: "The horizon appears. Upgrade to Horizon tier, and the view awakens automatically. See all your instances breathing. Manage them all. From anywhere.",
-        type: "text"
-      },
-      {
-        question: "How does cryptographic signing work?",
-        answer: "Runtime generates an Ed25519 keypair on first boot. Every inference output is hashed and signed. The signature, timestamp, model checksum, and input hash are appended to the log. You can verify execution integrity cryptographically—proving exactly what ran and when, independent of our infrastructure.",
-        type: "text"
-      },
-      {
-        question: "Can I use this for safety-critical applications?",
-        answer: "Runtime provides deterministic execution and cryptographic provenance—the foundation of safety-critical systems. You remain responsible for model validation, hardware redundancy, and system integration. We provide the execution guarantees. You provide the safety case.",
+        answer: "Yes. Upload GGUF models to the Dashboard and push them to one device or your entire fleet. Devices download and verify models automatically. You can also rollback if issues occur.",
         type: "text"
       }
     ]
@@ -135,22 +115,22 @@ const faqSections: FaqSection[] = [
     entries: [
       {
         question: "How secure is Runtime?",
-        answer: "Trust no one. Sandboxed execution. Enforced resource limits. Models run in isolated environments with boundaries on memory, CPU, execution time. Your models and data stay on your devices. Cryptographically signed. Keys never leave.",
+        answer: "Runtime uses sandboxed execution with enforced resource limits. Models run in isolated environments with boundaries on memory, CPU, and execution time. Your models and data stay on your devices.",
         type: "text"
       },
       {
-        question: "What happens if an instance goes offline?",
-        answer: "Runtime keeps breathing. All AI execution happens locally. When the instance returns, it syncs automatically. The world goes quiet. Runtime doesn't care.",
+        question: "What happens if a device goes offline?",
+        answer: "Runtime continues operating normally. All AI execution happens locally. When the device comes back online, it syncs status and any pending updates with the Dashboard automatically.",
         type: "text"
       },
       {
         question: "Is my data sent to the cloud?",
-        answer: "No. AI inference happens locally. Only metadata (instance status, model versions, logs) syncs when online. Your actual data and AI workloads never leave the instance. Unless you choose cloud providers—then it's your call.",
+        answer: "No. AI inference happens entirely on-device. Only metadata (device status, model versions, logs) syncs with the Dashboard when online. Your actual data and AI workloads never leave the device unless you choose cloud providers.",
         type: "text"
       },
       {
-        question: "What about air-gapped deployments?",
-        answer: "Air-gapped factory with paranoid IT? Runtime never needed the internet anyway. Deploy. Execute. Sleep at night. The binary runs in the silence.",
+        question: "What uptime guarantees do you provide?",
+        answer: "Free tier has no SLA. Pro tier includes best-effort support. Enterprise includes custom SLA guarantees with 24/7 dedicated support and 99.9% uptime commitment for the Dashboard.",
         type: "text"
       }
     ]
@@ -160,22 +140,22 @@ const faqSections: FaqSection[] = [
     entries: [
       {
         question: "Do I retain control of my models?",
-        answer: "Yes. You bring your own models. Models are stored on your instances, not our servers. Update, replace, remove them at any time. No vendor lock-in. Software that doesn't hold you hostage.",
+        answer: "Yes. You bring your own GGUF models. Models are stored on your devices, not on our servers. You can update, replace, or remove models at any time.",
         type: "text"
       },
       {
-        question: "Can I monitor instance performance?",
-        answer: "Yes. When the view awakens (Horizon tier), see real-time status, resource usage, model performance, execution logs for all your instances. Export data for external analysis.",
+        question: "Can I monitor device performance?",
+        answer: "Yes. The Fleet Dashboard shows real-time status, resource usage, model performance, and execution logs for all your devices. Export data for external analysis.",
         type: "text"
       },
       {
         question: "Do you train on my data?",
-        answer: "No. We don't train models on your data. Your data stays on your instances. Runtime executes your models locally without sending data to us or anyone else. Trust no one.",
+        answer: "No. Igris does not train models on your data. Your data stays on your devices. Runtime executes your models locally without sending data to Igris or any third party.",
         type: "text"
       },
       {
         question: "Can I self-host?",
-        answer: "Yes. The Infinite tier includes on-premise deployment. Run the entire stack within your own infrastructure. No external dependencies. The view on your own servers.",
+        answer: "Yes. Enterprise plans include on-premise deployment options. Run the entire stack within your own infrastructure with no external dependencies.",
         type: "text"
       }
     ]

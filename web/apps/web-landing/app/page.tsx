@@ -9,6 +9,7 @@ import CoreCapabilities from '../src/components/sections/CoreCapabilities'
 import MultiTenancy from '../src/components/sections/MultiTenancy'
 import Products from '../src/components/sections/Products'
 import HowItWorks from '../src/components/sections/HowItWorks'
+import Manifesto from '../src/components/sections/Manifesto'
 import ClosingPosition from '../src/components/sections/ClosingPosition'
 
 import OverturePopup from '../src/components/popups/OverturePopup'
@@ -32,6 +33,7 @@ export default function HomePage() {
           <CoreCapabilities />
           <HowItWorks />
           <MultiTenancy />
+          <Manifesto />
           <ClosingPosition />
         </main>
         <Footer />

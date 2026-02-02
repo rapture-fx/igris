@@ -3,16 +3,16 @@ import { useTheme } from 'next-themes'
 
 const capabilities = [
   {
-    name: 'Execute with Bounds',
-    description: 'Hard resource limits enforced at the OS level. Memory capped. Execution time bounded. Sandboxed. No undefined behavior. No resource leaks. Predictable or dead—never random.',
+    name: 'Execute Deterministically',
+    description: 'Hard resource limits. Sandboxed safety. Predictable latency. Your AI behaves exactly as specified—no memory leaks, no runaway processes, no surprises in production.',
   },
   {
     name: 'Prove Cryptographically',
-    description: 'Every inference signed with Ed25519. Immutable audit logs. Post-execution verification. Prove exactly what model ran, what input it received, and what it decided. Court-admissible. Regulator-proof.',
+    description: 'Every decision signed. Every action logged. Every update verified. Whether proving compliance to regulators or debugging a customer incident, you have immutable, cryptographically verifiable proof.',
   },
   {
-    name: 'Survive Disconnection',
-    description: 'Run offline indefinitely. No cloud required. No heartbeat dependencies. Sync fleet state when connections return. Air-gapped by default. Apocalypse-resistant.',
+    name: 'Survive Independently',
+    description: 'Run for years without the cloud. Sync when possible. Operate when denied. The first AI execution layer designed for the edge and the data center—where deterministic behavior isn\'t optional.',
   },
 ]
 
@@ -41,10 +41,10 @@ export default function CoreCapabilities() {
                     02. THE SOLUTION
                   </p>
                   <h3 className="text-lg md:text-xl lg:text-2xl font-inter mb-4 text-[#000000] dark:text-[#f6f6f4]">
-                    Deterministic execution with cryptographic provenance.
+                    Runtime is the deterministic execution layer for AI
                   </h3>
                   <p className="text-sm text-gray-700 dark:text-[#c8c8b8] font-inter leading-relaxed">
-                    Bounded. Signed. Offline-capable.
+                    One binary. Three guarantees.
                   </p>
                 </div>
 
@@ -180,10 +180,10 @@ export default function CoreCapabilities() {
                     02. THE SOLUTION
                   </p>
                   <h3 className="text-lg md:text-xl lg:text-2xl font-inter mb-4 text-[#000000] dark:text-[#f6f6f4]">
-                    Deterministic execution with cryptographic provenance.
+                    Runtime is the deterministic execution layer for AI
                   </h3>
                   <p className="text-sm text-gray-700 dark:text-[#c8c8b8] font-inter leading-relaxed">
-                    Bounded. Signed. Offline-capable.
+                    One binary. Three guarantees.
                   </p>
                 </div>
               </div>

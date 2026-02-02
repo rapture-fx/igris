@@ -1,0 +1,40 @@
+[package]
+name = "igris-btree"
+version = "0.1.0"
+edition = "2021"
+authors = ["Igris Team"]
+description = "Hybrid Behavior Tree engine with LLM reasoning nodes for deterministic control + adaptive intelligence"
+license = "MIT OR Apache-2.0"
+
+[dependencies]
+# Core async runtime
+tokio = { version = "1.40", features = ["full"] }
+async-trait = "0.1"
+
+# Error handling
+anyhow = "1.0"
+thiserror = "1.0"
+
+# Serialization
+serde = { version = "1.0", features = ["derive"] }
+serde_json = "1.0"
+
+# Logging
+tracing = "0.1"
+
+# Igris dependencies (workspace crates)
+igris-rt = { path = "../igris-rt" }
+igris-tools = { path = "../igris-tools" }
+igris-core = { path = "../igris-core" }
+
+[dev-dependencies]
+tokio-test = "0.4"
+tracing-subscriber = "0.3"
+
+[lib]
+name = "igris_btree"
+path = "src/lib.rs"
+
+[[example]]
+name = "hybrid_mission"
+path = "examples/hybrid_mission.rs"

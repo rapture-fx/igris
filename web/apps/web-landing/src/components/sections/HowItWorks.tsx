@@ -24,21 +24,13 @@ export default function HowItWorks() {
             {/* Title Section - Shows first on mobile */}
             <div className="mb-8 text-left">
               <p className="text-base text-[#c5b0cd] mb-2" style={{ fontFamily: 'Roboto Mono, monospace', letterSpacing: '0.05em' }}>
-                03. HOW IT WORKS
+                03. THE FLOW
               </p>
               <h3 className="text-lg md:text-xl lg:text-2xl font-inter mb-2 text-[#000000] dark:text-[#f6f6f4]">
-                Deploy. Bound. Prove.
+                Drop it. Run it. Scale it.
               </h3>
-              <div className="mt-4 p-4 bg-black/[0.05] dark:bg-white/[0.05] border border-gray-300 dark:border-[#f6f6f4]/5 font-mono text-xs overflow-x-auto">
-                <code className="text-gray-900 dark:text-[#f6f6f4]">
-                  ./igris-runtime --model llama-3.1.gguf --max-tokens 1024 --max-memory 2gb --sign-decisions
-                </code>
-              </div>
-              <p className="text-sm text-gray-600 dark:text-[#a8a898] leading-relaxed font-inter mt-4">
-                Download 16MB binary. Configure hard limits. Every inference executes within bounds. Every output cryptographically signed. Logs are tamper-evident.
-              </p>
-              <p className="text-xs text-gray-600 dark:text-[#a8a898] leading-relaxed font-inter italic mt-3">
-                Fleet view unlocks when scaling. Cryptographic attestation across your entire deployment—whether 1000 drones or 1000 server processes.
+              <p className="text-sm text-gray-600 dark:text-[#a8a898] leading-relaxed font-inter leading-relaxed mb-8">
+                Three steps. One binary. Infinite reach.
               </p>
             </div>
 
@@ -198,18 +190,13 @@ export default function HowItWorks() {
             {/* Right Column - Title (1 column wide with left border) */}
             <div className="md:col-span-1 md:border-l flex flex-col justify-start dark:border-[#f6f6f4]/5" style={{ paddingTop: '3rem', paddingBottom: '3rem', paddingLeft: '1rem' }}>
               <p className="text-base text-[#c5b0cd] mb-2" style={{ fontFamily: 'Roboto Mono, monospace', letterSpacing: '0.05em' }}>
-                03. HOW IT WORKS
+                03. THE FLOW
               </p>
               <h2 className="text-lg md:text-xl lg:text-2xl font-inter mb-4 text-[#000000] dark:text-[#f6f6f4]">
-                Deploy. Bound. Prove.
+                Drop it. Run it. Scale it.
               </h2>
-              <div className="mt-4 p-3 bg-black/[0.05] dark:bg-white/[0.05] border border-gray-300 dark:border-[#f6f6f4]/5 font-mono text-xs overflow-x-auto mb-4">
-                <code className="text-gray-900 dark:text-[#f6f6f4] whitespace-pre-wrap break-all">
-                  ./igris-runtime --model llama-3.1.gguf --max-tokens 1024 --max-memory 2gb --sign-decisions
-                </code>
-              </div>
-              <p className="text-xs text-gray-600 dark:text-[#a8a898] font-inter leading-relaxed">
-                Download 16MB binary. Configure hard limits. Every inference executes within bounds. Every output cryptographically signed.
+              <p className="text-sm text-gray-600 dark:text-[#a8a898] font-inter leading-relaxed">
+                Three steps. One binary. Infinite reach.
               </p>
             </div>
 
