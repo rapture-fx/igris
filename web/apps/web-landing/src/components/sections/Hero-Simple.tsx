@@ -58,7 +58,7 @@ export default function Hero() {
     <section className="pt-0 pb-0 bg-[#f6f6f4] dark:bg-dark-bg text-gray-900 dark:text-[#f6f6f4] relative overflow-visible">
       <div className="mx-auto max-w-[1300px] px-4 sm:px-6 lg:px-8">
         <div className="relative px-4 md:px-8 lg:px-12 pb-0 bg-transparent dark:bg-[#1b1912] z-0 overflow-hidden border-l border-r border-gray-300 dark:border-[#f6f6f4]/5" style={{
-          height: '650px',
+          height: '500px',
           paddingTop: '72px'
         }}>
           {/* Background image hs.png */}
@@ -80,7 +80,7 @@ export default function Hero() {
                   The Nervous System for <AnimatedText /><br />That Can't Fail
                 </h1>
                 <p className="text-sm md:text-base text-gray-700 dark:text-[#c8c8b8] max-w-2xl leading-relaxed text-left mt-4">
-                  Deterministic AI execution with cryptographic provenance. Run GGUF models on hardware or servers with hard resource limits and signed outputs. Prove every decision. Survive offline. Scale when connected.
+                  A deterministic execution layer for AI that operates across cloud and devices, even when connectivity fails.
                 </p>
                 <div className="flex flex-wrap gap-2 md:gap-3 mt-4 text-xs md:text-sm text-gray-600 dark:text-[#a8a898] font-inter">
                   <span>16MB binary</span>

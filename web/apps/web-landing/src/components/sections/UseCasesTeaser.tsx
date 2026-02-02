@@ -5,16 +5,29 @@ import { ChevronRight } from 'lucide-react'
 export default function UseCasesTeaser() {
   const useCases = [
     {
-      title: 'Physical Systems',
-      description: 'Drones, sensors, actuators deployed to farmland, factory floors, or denied environments. Prove flight decisions. Enforce battery limits. Survive radio silence.',
+      title: 'Enterprise AI Operations',
+      description: 'Multi-tenant cost control, policy-driven routing, and trust-aware provider selection for teams managing AI at scale.',
+      product: 'Overture'
     },
     {
-      title: 'Production Systems',
-      description: 'Server-side execution, batch processing, automation. Prove compliance. Enforce resource quotas. Prevent runaway allocation. Cryptographic audit trails for regulators.',
+      title: 'Hybrid Cloud–Edge Reliability',
+      description: 'Cryptographically bound decision-execution with automatic failover. Keep applications online when cloud providers fail.',
+      product: 'Hybrid'
     },
     {
-      title: 'Regulated Environments',
-      description: 'Healthcare diagnostics, financial modeling, legal review. Prove exactly which model version ran. Immutable decision logs. Air-gapped deployment options.',
+      title: 'Edge-First AI Systems',
+      description: 'Deterministic execution and local model inference for robotics and autonomous systems with poor connectivity.',
+      product: 'Runtime'
+    },
+    {
+      title: 'Air-Gapped & Restricted Environments',
+      description: 'Isolated operation with encrypted storage and no external telemetry, designed for secure facilities.',
+      product: 'Runtime'
+    },
+    {
+      title: 'AI Reliability Engineering',
+      description: 'Decision traces, provider verification, and replayable execution paths for production AI systems.',
+      product: 'Overture + Hybrid'
     },
   ]
 
@@ -35,7 +48,7 @@ export default function UseCasesTeaser() {
                 Use Cases
               </h3>
               <p className="text-sm md:text-base text-gray-600 dark:text-gray-400 font-inter">
-                Whether you're shipping drones or deploying agents—Runtime enforces deterministic behavior.
+                How teams use Igris for AI workloads across cloud and edge.
               </p>
             </div>
 
@@ -50,7 +63,7 @@ export default function UseCasesTeaser() {
                   Use Cases
                 </h3>
                 <p className="text-sm md:text-base text-gray-600 dark:text-gray-400 font-inter mb-12">
-                  Prove execution anywhere. Bounded. Signed. Offline-capable.
+                  How teams use Igris for AI workloads across cloud and edge.
                 </p>
 
                 {/* Use Cases List - without cards */}

@@ -91,10 +91,11 @@ export default function Pricing() {
           <div className="max-w-[1400px] mx-auto pt-48 px-0 md:px-8 lg:px-0 pb-12">
             <div className="text-center mb-12">
               <h2 className="text-2xl md:text-2xl lg:text-3xl font-inter mb-6 text-[#000000] dark:text-[#f6f6f4]">
-                Pay for presence. Prove for certainty.
+                Pricing per device.
+                <br />Dashboard free.
               </h2>
               <p className="text-sm md:text-base text-gray-600 dark:text-[#a8a898] font-inter max-w-2xl mx-auto mb-4">
-                One binary. Three horizons. Start free. Scale when you require proof across your fleet.
+                Runtime runs on your devices. The dashboard runs in the cloud. Both included in every tier.
               </p>
             </div>
 
