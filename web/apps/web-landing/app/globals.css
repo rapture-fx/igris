@@ -69,7 +69,7 @@ body.modal-open {
 }
 
 .animate-scroll-seamless {
-  animation: scroll-seamless 30s linear infinite;
+  animation: scroll-seamless 60s linear infinite;
   will-change: transform;
 }
 
