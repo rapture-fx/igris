@@ -83,13 +83,6 @@ export default function Hero() {
                   A deterministic execution layer for AI that operates across cloud and devices, even when connectivity fails.
                 </p>
                 <div className="flex flex-wrap gap-2 md:gap-3 mt-4 text-xs md:text-sm text-gray-600 dark:text-[#a8a898] font-inter">
-                  <span>16MB binary</span>
-                  <span>·</span>
-                  <span>Deterministic execution</span>
-                  <span>·</span>
-                  <span>Cryptographic signing</span>
-                  <span>·</span>
-                  <span>Offline-first</span>
                 </div>
               </div>
             </div>

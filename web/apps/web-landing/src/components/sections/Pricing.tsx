@@ -24,12 +24,14 @@ const pricingTiers: PricingTier[] = [
     name: "The Seed",
     price: "$0",
     priceDetail: "forever",
-    description: "One device. Full execution. The view sleeps.",
-    devices: "1 Runtime instance",
+    description: "Single device. Full platform. All four layers included.",
+    devices: "1 device",
     features: [
-      "1 Runtime instance",
-      "Deterministic execution with hard limits",
-      "Cryptographic signing (Ed25519)",
+      "Complete nervous system (all 4 layers)",
+      "Execution: Deterministic runtime with hard limits",
+      "Intelligence: Local decision routing",
+      "Memory: Behavioral tracking",
+      "Proof: Cryptographic signing (Ed25519)",
       "Offline operation (indefinite)",
       "Community support"
     ],
@@ -38,16 +40,17 @@ const pricingTiers: PricingTier[] = [
   {
     name: "The Horizon",
     price: "$49",
-    priceDetail: "/instance/month",
-    description: "The view awakens. Prove execution across your fleet.",
-    devices: "Up to 100 Runtime instances",
+    priceDetail: "/device/month",
+    description: "Fleet awakens. Complete observability. Advanced control.",
+    devices: "Up to 100 devices",
     features: [
-      "Up to 100 Runtime instances",
-      "Fleet view (dashboard unlocks)",
-      "Fleet-wide cryptographic attestation",
+      "Everything in The Seed",
+      "Full dashboard access (all four layers visible)",
+      "Fleet-wide monitoring and control",
+      "Advanced routing and cost optimization",
+      "Performance heatmaps and anomaly detection",
       "Immutable audit trails (7-day retention)",
-      "QR-code device pairing",
-      "Over-the-air signed updates",
+      "Over-the-air verified updates",
       "Priority engineering support"
     ],
     cta: "Get Started",
@@ -57,16 +60,17 @@ const pricingTiers: PricingTier[] = [
     name: "The Infinite",
     price: "Custom",
     priceDetail: "pricing",
-    description: "Unbounded proof. On-premise. Compliance-certified.",
-    devices: "Unlimited Runtime instances",
+    description: "Unbounded scale. On-premise deployment. SLA guarantees.",
+    devices: "Unlimited devices",
     features: [
-      "Unlimited Runtime instances",
-      "On-premise fleet view",
-      "Custom SLAs",
-      "90-day audit retention",
-      "Security audit support",
-      "24/7 dedicated engineering",
-      "Compliance certification assistance"
+      "Everything in The Horizon",
+      "On-premise platform deployment",
+      "Custom SLA guarantees",
+      "Extended audit retention (90+ days)",
+      "Dedicated security review support",
+      "24/7 engineering team access",
+      "Compliance certification assistance",
+      "Custom integration support"
     ],
     cta: "Contact",
     isContactUs: true
@@ -95,7 +99,7 @@ export default function Pricing() {
                 <br />Dashboard free.
               </h2>
               <p className="text-sm md:text-base text-gray-600 dark:text-[#a8a898] font-inter max-w-2xl mx-auto mb-4">
-                Runtime runs on your devices. The dashboard runs in the cloud. Both included in every tier.
+                The complete nervous system—execution, intelligence, memory, and proof—included in every tier. Dashboard unlocks advanced features as you scale.
               </p>
             </div>
 
@@ -179,7 +183,7 @@ export default function Pricing() {
 
             <div className="text-center mt-8 mb-8">
               <p className="text-xs text-gray-500 dark:text-[#a8a898] font-inter">
-                The view unfolds automatically when you upgrade to Horizon. One product, three horizons.
+                All tiers include the complete platform. Professional and Enterprise unlock advanced fleet management and observability features.
               </p>
             </div>
 

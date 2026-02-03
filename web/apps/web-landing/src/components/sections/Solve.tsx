@@ -5,13 +5,14 @@ import Image from 'next/image'
 
 export default function Solve() {
   const items = [
-    'Unpredictable AI',
-    'Hallucinated decisions',
-    'Unverifiable logs',
-    'Cloud dependency',
-    'Compliance nightmares',
-    'No cryptographic proof',
-    'Battery drain loops'
+    'Pure LLM hallucinations',
+    'Non-deterministic AI behavior',
+    'Unverifiable decisions',
+    'Cloud-dependent execution',
+    'No fleet visibility',
+    'Hidden performance bottlenecks',
+    'Undetected anomalies',
+    'Zero behavior history'
   ];
 
   return (

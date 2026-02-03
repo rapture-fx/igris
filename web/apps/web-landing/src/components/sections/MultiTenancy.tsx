@@ -4,22 +4,22 @@ import { KeyRound, Database, Shield, Lock } from 'lucide-react';
 const features = [
   {
     name: 'Air-Gap Ready',
-    description: 'Never needs to call home. Your AI runs in the void. Internet goes dark? Runtime keeps breathing. Paranoid IT loves this.',
+    description: 'Operates independently without internet connectivity. Deploy in secure facilities, remote locations, or offline environments. Your AI continues executing when network access is unavailable or prohibited.',
     icon: KeyRound,
   },
   {
-    name: 'Zero-Trust by Default',
-    description: 'Every device cryptographically signs. Compromised hardware tries to phone home? The network rejects it. Trust nothing. Verify everything.',
+    name: 'Zero-Trust Architecture',
+    description: 'Every device authenticates cryptographically before joining your fleet. Compromised hardware is automatically rejected. No implicit trust—only verified participants can communicate with your system.',
     icon: Database,
   },
   {
-    name: 'Offline-First Encryption',
-    description: 'Models die with the device. Lose hardware to the desert? The model\'s already dead. Keys never leave. Data never leaks.',
+    name: 'Device-Bound Encryption',
+    description: 'Models and data are encrypted to specific hardware. If a device is lost or stolen, the AI becomes inaccessible. Cryptographic keys remain on-device and never transmit over networks.',
     icon: Shield,
   },
   {
-    name: 'Signed Updates Only',
-    description: 'Model updates are cryptographically signed. Unsigned code dies at the gate. Only verified changes reach your fleet.',
+    name: 'Verified Updates',
+    description: 'Every model update and configuration change requires cryptographic signatures. Unsigned or tampered code is rejected before deployment. Only authorized changes reach your fleet.',
     icon: Lock,
   },
 ];
@@ -33,13 +33,13 @@ export default function MultiTenancy() {
           {/* Title Section - Shows first on mobile, last on desktop */}
           <div className="mb-6 md:mb-0 md:hidden text-left" style={{ paddingTop: '3rem', paddingBottom: '3rem' }}>
             <p className="text-base text-[#c5b0cd] mb-2" style={{ fontFamily: 'Roboto Mono, monospace', letterSpacing: '0.05em' }}>
-              04. SECURITY
+              04. PROOF
             </p>
             <h3 className="text-lg md:text-xl lg:text-2xl font-inter mb-4 text-[#000000] dark:text-[#f6f6f4]">
-              Trust no one. Verify everything.
+              Trust nothing. Verify everything.
             </h3>
             <p className="text-sm text-gray-600 dark:text-[#a8a898] font-inter mb-8">
-              Your AI runs in places you can't physically guard. So we built it to guard itself.
+              When your AI is running in a barn you visit twice a year, or on a device you shipped to a customer, you can't trust the environment. So we made the AI prove itself. Every decision leaves a trail. Every action carries a signature. Every claim can be verified.
             </p>
 
             {/* Features - Mobile */}
@@ -118,13 +118,13 @@ export default function MultiTenancy() {
             {/* Right Column - Title and Intro (Desktop only) */}
             <div className="hidden md:flex md:col-span-1 md:border-l flex-col justify-start dark:border-[#f6f6f4]/5" style={{ paddingTop: '3rem', paddingBottom: '3rem', paddingLeft: '1rem' }}>
               <p className="text-base text-[#c5b0cd] mb-2" style={{ fontFamily: 'Roboto Mono, monospace', letterSpacing: '0.05em' }}>
-                04. SECURITY
+                04. PROOF
               </p>
               <h3 className="text-lg md:text-xl lg:text-2xl font-inter mb-4 text-[#000000] dark:text-[#f6f6f4]">
-                Trust no one. Verify everything.
+                Trust nothing. Verify everything.
               </h3>
               <p className="text-sm text-gray-600 dark:text-[#a8a898] font-inter leading-relaxed">
-                Your AI runs in places you can't physically guard. So we built it to guard itself.
+                When AI runs where you can't watch it, proof becomes essential. Every decision leaves a trail. Every update carries a signature. When regulators ask or customers complain, you have answers—not guesses.
               </p>
             </div>
           </div>

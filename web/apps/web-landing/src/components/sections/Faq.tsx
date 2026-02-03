@@ -30,17 +30,17 @@ const faqSections: FaqSection[] = [
     entries: [
       {
         question: "Is there a free tier?",
-        answer: "Yes. The Free plan includes 1 Runtime device, the Overture Fleet Dashboard (basic features), community support, and full offline capability. Perfect for development and testing.",
+        answer: "Yes. The Starter plan includes deployment on 1 device with the complete platform—all four layers (execution, intelligence, memory, proof), full offline capability, and community support. Perfect for development and testing.",
         type: "text"
       },
       {
         question: "What hardware do I need?",
-        answer: "Runtime runs on any Linux, macOS, or ARM device with at least 512MB RAM. Tested on Raspberry Pi 4, NVIDIA Jetson, edge servers, and standard x86 hardware. The binary is only 16MB.",
+        answer: "The platform runs on any Linux, macOS, or ARM device with at least 512MB RAM. Tested on Raspberry Pi 4, NVIDIA Jetson, edge servers, and standard x86 hardware. The deployment binary is only 16MB.",
         type: "text"
       },
       {
         question: "Do I need internet connectivity?",
-        answer: "No. Runtime works completely offline. Download the binary, add your GGUF models, and deploy. The Overture Fleet Dashboard is optional—devices sync when online but operate independently when offline.",
+        answer: "No. The platform operates completely offline. All four layers—execution, intelligence, memory, and proof—work independently without internet. The dashboard is optional for fleet management and syncs when connectivity is available.",
         type: "text"
       },
       {
@@ -55,17 +55,17 @@ const faqSections: FaqSection[] = [
     entries: [
       {
         question: "How does pricing work?",
-        answer: "Simple per-device pricing. Free: 1 device at $0. Pro: $49/device/month for up to 100 devices with priority support and advanced analytics. Enterprise: Custom pricing for unlimited devices with SLA guarantees.",
+        answer: "Simple per-device pricing. Starter: 1 device at $0 forever. Professional: $49/device/month for up to 100 devices with full platform access and priority support. Enterprise: Custom pricing for unlimited devices with SLA guarantees and on-premise deployment.",
         type: "text"
       },
       {
-        question: "Is the Fleet Dashboard really free?",
-        answer: "Yes. The Overture Fleet Dashboard is included at no extra cost with every Runtime license. Free tier gets basic dashboard access. Pro and Enterprise unlock advanced fleet management features.",
+        question: "Is the dashboard really included?",
+        answer: "Yes. The complete platform—including the dashboard with all four layers (execution, intelligence, memory, proof)—is included at no extra cost. Starter tier includes basic access. Professional and Enterprise unlock advanced fleet management and observability features.",
         type: "text"
       },
       {
-        question: "What's the difference between Free and Pro?",
-        answer: "Free supports 1 device with community support and basic dashboard. Pro supports up to 100 devices with priority email support, advanced analytics, model deployment management, and 7-day log retention.",
+        question: "What's the difference between Starter and Professional?",
+        answer: "Starter supports 1 device with community support. Professional supports up to 100 devices with full dashboard access, advanced routing, performance heatmaps, anomaly detection, priority support, and 7-day audit retention.",
         type: "text"
       },
       {
@@ -75,12 +75,12 @@ const faqSections: FaqSection[] = [
       },
       {
         question: "Are there any hidden fees?",
-        answer: "No. You pay per Runtime device. The Fleet Dashboard is included. No request-based pricing, no overage charges, no surprise bills.",
+        answer: "No. You pay per device. The complete platform is included—execution, intelligence, memory, proof, and dashboard. No request-based pricing, no overage charges, no surprise bills.",
         type: "text"
       },
       {
         question: "Do I pay for cloud AI providers separately?",
-        answer: "Runtime runs models locally—no cloud AI provider required. If you choose to use cloud APIs from OpenAI, Anthropic, etc., you pay them directly. Igris does not markup provider costs.",
+        answer: "The platform runs models locally—no cloud AI provider required. If you choose to use cloud APIs through the intelligence layer for routing decisions, you pay providers directly. We don't markup provider costs.",
         type: "text"
       }
     ]
@@ -89,13 +89,13 @@ const faqSections: FaqSection[] = [
     title: "Product & Architecture",
     entries: [
       {
-        question: "What's the difference between Runtime and the Fleet Dashboard?",
-    "answer": "Runtime is the primary product—a 16MB binary that executes AI on your devices. The Overture Fleet Dashboard is included management software that lets you monitor and manage Runtime devices from the cloud. Think of Runtime as the engine, and the Dashboard as the dashboard in your car—both included together.",
+        question: "What are the four layers?",
+        answer: "Execution: Deterministic runtime on devices. Intelligence: Decision routing and provider management. Memory: Behavioral tracking and pattern analysis. Proof: Cryptographic verification and audit trails. All four layers work together as one integrated nervous system.",
         type: "text"
       },
       {
-        question: "Can I use Runtime without the Dashboard?",
-        answer: "Yes. Runtime works completely standalone. The Dashboard is optional for fleet management. Many users deploy Runtime independently for single-device or offline scenarios.",
+        question: "Can I use it without the dashboard?",
+        answer: "Yes. The platform operates completely standalone on devices. The dashboard is optional for fleet management and provides visibility into all four layers when you need to monitor or manage multiple devices.",
         type: "text"
       },
       {
@@ -114,18 +114,18 @@ const faqSections: FaqSection[] = [
     title: "Security & Reliability",
     entries: [
       {
-        question: "How secure is Runtime?",
-        answer: "Runtime uses sandboxed execution with enforced resource limits. Models run in isolated environments with boundaries on memory, CPU, and execution time. Your models and data stay on your devices.",
+        question: "How secure is the platform?",
+        answer: "The execution layer uses sandboxed environments with enforced resource limits. The proof layer cryptographically signs every decision. Models run in isolated environments with boundaries on memory, CPU, and execution time. Your models and data stay on your devices.",
         type: "text"
       },
       {
         question: "What happens if a device goes offline?",
-        answer: "Runtime continues operating normally. All AI execution happens locally. When the device comes back online, it syncs status and any pending updates with the Dashboard automatically.",
+        answer: "All four layers continue operating normally. Execution runs locally. Intelligence routes decisions. Memory tracks behaviors. Proof signs everything. When connectivity returns, the device syncs with the dashboard automatically.",
         type: "text"
       },
       {
         question: "Is my data sent to the cloud?",
-        answer: "No. AI inference happens entirely on-device. Only metadata (device status, model versions, logs) syncs with the Dashboard when online. Your actual data and AI workloads never leave the device unless you choose cloud providers.",
+        answer: "No. AI execution happens entirely on-device. Only metadata (device health, performance metrics, audit logs) syncs with the dashboard when online. Your actual data and AI workloads never leave the device unless you explicitly route decisions through cloud providers.",
         type: "text"
       },
       {
@@ -145,12 +145,12 @@ const faqSections: FaqSection[] = [
       },
       {
         question: "Can I monitor device performance?",
-        answer: "Yes. The Fleet Dashboard shows real-time status, resource usage, model performance, and execution logs for all your devices. Export data for external analysis.",
+        answer: "Yes. The dashboard provides visibility into all four layers—execution status, routing decisions, behavior patterns, and cryptographic proofs. Real-time metrics, performance heatmaps, and anomaly detection across your entire fleet. Export data for external analysis.",
         type: "text"
       },
       {
         question: "Do you train on my data?",
-        answer: "No. Igris does not train models on your data. Your data stays on your devices. Runtime executes your models locally without sending data to Igris or any third party.",
+        answer: "No. We don't train models on your data. Your data stays on your devices. The platform executes your models locally without sending data to us or any third party.",
         type: "text"
       },
       {
@@ -327,7 +327,7 @@ export default function Faq() {
                  Questions and answers
                </h3>
                <p className="text-sm text-gray-600 dark:text-[#a8a898] font-inter leading-relaxed">
-                 Common questions about deterministic AI execution, cryptographic provenance, and the view that unfolds when you scale.
+                 Common questions about the platform's four layers, pricing, deployment, and how the nervous system operates at scale.
                </p>
              </div>
            </div>

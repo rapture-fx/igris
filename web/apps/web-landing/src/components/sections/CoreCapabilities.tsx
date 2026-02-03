@@ -3,16 +3,16 @@ import { useTheme } from 'next-themes'
 
 const capabilities = [
   {
-    name: 'Execute Deterministically',
-    description: 'Hard resource limits. Sandboxed safety. Predictable latency. Your AI behaves exactly as specified—no memory leaks, no runaway processes, no surprises in production.',
+    name: 'Execution',
+    description: 'Monitor every device in real-time. Deploy models instantly. Push configurations fleet-wide. From a single agent to thousands—your runtime layer executes with deterministic precision, sandboxed safety, and predictable latency.',
   },
   {
-    name: 'Prove Cryptographically',
-    description: 'Every decision signed. Every action logged. Every update verified. Whether proving compliance to regulators or debugging a customer incident, you have immutable, cryptographically verifiable proof.',
+    name: 'Intelligence',
+    description: 'Route decisions through multiple LLM providers. Balance cost and performance. Test in shadow mode before production. Your decision layer adapts intelligently while maintaining complete control over every choice.',
   },
   {
-    name: 'Survive Independently',
-    description: 'Run for years without the cloud. Sync when possible. Operate when denied. The first AI execution layer designed for the edge and the data center—where deterministic behavior isn\'t optional.',
+    name: 'Memory & Proof',
+    description: 'Track behavior trees across your fleet. Detect anomalies automatically. Replay historical decisions. Every action cryptographically signed. Your audit trail is immutable—from debugging incidents to proving compliance.',
   },
 ]
 
@@ -38,13 +38,13 @@ export default function CoreCapabilities() {
                 {/* Title Section - Shows first on mobile */}
                 <div className="mb-8 text-left">
                   <p className="text-base text-[#c5b0cd] mb-2" style={{ fontFamily: 'Roboto Mono, monospace', letterSpacing: '0.05em' }}>
-                    02. THE SOLUTION
+                    02. THE ARCHITECTURE
                   </p>
                   <h3 className="text-lg md:text-xl lg:text-2xl font-inter mb-4 text-[#000000] dark:text-[#f6f6f4]">
-                    Runtime is the deterministic execution layer for AI
+                    Every layer working in harmony
                   </h3>
                   <p className="text-sm text-gray-700 dark:text-[#c8c8b8] font-inter leading-relaxed">
-                    One binary. Three guarantees.
+                    From edge to cloud. From one to thousands.
                   </p>
                 </div>
 
@@ -177,13 +177,13 @@ export default function CoreCapabilities() {
                 {/* Right Column - Title and Intro (Desktop only) */}
                 <div className="hidden md:flex text-left md:col-span-1 md:border-l flex-col justify-start dark:border-[#f6f6f4]/5" style={{ paddingTop: '3rem', paddingBottom: '3rem', paddingLeft: '1rem' }}>
                   <p className="text-base text-[#c5b0cd] mb-2" style={{ fontFamily: 'Roboto Mono, monospace', letterSpacing: '0.05em' }}>
-                    02. THE SOLUTION
+                    02. THE ARCHITECTURE
                   </p>
                   <h3 className="text-lg md:text-xl lg:text-2xl font-inter mb-4 text-[#000000] dark:text-[#f6f6f4]">
-                    Runtime is the deterministic execution layer for AI
+                    Every layer working in harmony
                   </h3>
                   <p className="text-sm text-gray-700 dark:text-[#c8c8b8] font-inter leading-relaxed">
-                    One binary. Three guarantees.
+                    From edge to cloud. From one to thousands.
                   </p>
                 </div>
               </div>

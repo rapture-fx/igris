@@ -24,10 +24,10 @@ export default function Products() {
               01. PRODUCT
             </p>
             <h2 className="text-lg md:text-xl lg:text-2xl font-inter mb-4 text-[#000000] dark:text-[#f6f6f4]">
-              One binary. Infinite locations.
+              The complete nervous system for your AI fleet.
             </h2>
             <p className="text-sm text-gray-600 dark:text-[#a8a898] font-inter leading-relaxed mb-8">
-              Runtime is the last AI infrastructure you'll ever need to ship. When you scale from one device to one thousand, the dashboard unfolds like a map of your empire.
+              Four integrated layers that execute, decide, remember, and verify—from a single device to thousands. One platform. Complete control.
             </p>
 
             {/* Product Narrative - Mobile */}
@@ -43,10 +43,10 @@ export default function Products() {
                   />
                 </div>
                 <p className="text-sm text-gray-600 dark:text-[#a8a898] leading-relaxed font-inter mb-4">
-                  Sixteen megabytes that run on a $45 computer in a barn, a factory floor, or a drone hovering over farmland. No containers. No cloud contracts. No explaining to your CFO why the 'simple AI feature' needs a $30,000 GPU cluster.
+                  Hybrid behavior trees meet LLM reasoning. Your AI executes deterministically through structured decision paths while leveraging language models only when needed. No pure hallucination. No random behavior. Just predictable intelligence that proves every decision cryptographically.
                 </p>
                 <p className="text-sm text-gray-600 dark:text-[#a8a898] leading-relaxed font-inter mb-4">
-                  When you're ready to scale—from one device to one thousand—the dashboard unfolds like a map of your empire. It's not another product to buy. It's the view that appears when you have something worth seeing.
+                  Four layers—execution, intelligence, memory, proof—work as one nervous system. Deploy on any device. When you scale to hundreds, the dashboard reveals fleet health, routing decisions, behavior patterns, and cryptographic verification. Everything you need to run AI you can actually trust.
                 </p>
                 <button
                   onClick={openRuntime}
@@ -59,10 +59,10 @@ export default function Products() {
                 </button>
               </div>
 
-              {/* Fleet view emerges when you scale */}
+              {/* Four layers working together */}
               <div className="border border-gray-300 dark:border-[#f6f6f4]/5 p-6 bg-gray-50 dark:bg-[#1b1912]/50">
                 <h3 className="text-base font-inter mb-3 text-[#000000] dark:text-[#f6f6f4]">
-                  The view unlocks when you scale
+                  Four layers. One nervous system.
                 </h3>
                 <div className="border border-gray-300 dark:border-[#f6f6f4]/5" style={{ marginTop: '0', marginBottom: '1rem', height: '200px', position: 'relative', overflow: 'hidden' }}>
                   <Image
@@ -73,7 +73,7 @@ export default function Products() {
                   />
                 </div>
                 <p className="text-sm text-gray-600 dark:text-[#a8a898] leading-relaxed font-inter mb-4">
-                  Monitor device status. Deploy model updates. Manage configurations from a single dashboard. The fleet view is included—not as a separate product, but as the natural evolution of running more than one thing.
+                  See what's running. Know what's deciding. Understand what's learned. Prove what happened. The complete picture of your AI fleet in one place—not scattered across vendor dashboards, cloud consoles, and CSV exports.
                 </p>
                 <button
                   onClick={openOverture}
@@ -110,26 +110,26 @@ export default function Products() {
                     />
                   </div>
                   <p className="text-sm text-gray-600 dark:text-[#a8a898] leading-relaxed font-inter mb-4">
-                    Runtime is the last AI infrastructure you'll ever need to ship. Sixteen megabytes that run on a $45 computer in a barn, a factory floor, or a drone hovering over farmland. No containers. No cloud contracts. No explaining to your CFO why the 'simple AI feature' needs a $30,000 GPU cluster.
+                    Hybrid behavior trees meet LLM reasoning. Your AI executes deterministically through structured decision paths while leveraging language models only when needed. No pure hallucination. No random behavior. Just predictable intelligence that proves every decision cryptographically.
                   </p>
                   <p className="text-sm text-gray-600 dark:text-[#a8a898] leading-relaxed font-inter mb-4">
-                    When you're ready to scale—from one device to one thousand—the dashboard unfolds like a map of your empire. It's not another product to buy. It's the view that appears when you have something worth seeing.
+                    Four layers—execution, intelligence, memory, proof—work as one nervous system. Deploy on any device. When you scale to hundreds, the dashboard reveals fleet health, routing decisions, behavior patterns, and cryptographic verification. Everything you need to run AI you can actually trust.
                   </p>
                   <button
                     onClick={openRuntime}
                     className="group inline-flex items-center justify-center bg-black text-white dark:bg-[#f6f6f4] dark:text-black px-4 py-2 hover:bg-gray-800 dark:hover:bg-gray-200 transition-all duration-200 text-xs font-medium shadow-md hover:shadow-lg"
                   >
                     <span className="font-inter">
-                      Explore Runtime
+                      Explore Platform
                     </span>
                     <ChevronRight className="ml-1 h-3 w-3" />
                   </button>
                 </div>
 
-                {/* Fleet View - The horizon that appears */}
+                {/* Four layers working together */}
                 <div className="border border-gray-300 dark:border-[#f6f6f4]/5 p-6 mb-12 bg-gray-50 dark:bg-[#1b1912]/50">
                   <h3 className="text-base font-inter mb-3 text-[#000000] dark:text-[#f6f6f4]">
-                    The view unlocks when you scale
+                    Four layers. One nervous system.
                   </h3>
                   <div className="border border-gray-300 dark:border-[#f6f6f4]/5" style={{ marginTop: '0', marginBottom: '1rem', height: '200px', position: 'relative', overflow: 'hidden' }}>
                     <Image
@@ -140,14 +140,14 @@ export default function Products() {
                     />
                   </div>
                   <p className="text-sm text-gray-600 dark:text-[#a8a898] leading-relaxed font-inter mb-4">
-                    Monitor device status. Deploy model updates. Manage configurations from a single dashboard. The fleet view is included—not as a separate product, but as the natural evolution of running more than one thing.
+                    See what's running. Know what's deciding. Understand what's learned. Prove what happened. The complete picture of your AI fleet in one place—not scattered across vendor dashboards, cloud consoles, and CSV exports.
                   </p>
                   <button
                     onClick={openOverture}
                     className="group inline-flex items-center justify-center bg-gray-200 dark:bg-[#f6f6f4] text-gray-900 dark:text-black px-4 py-2 hover:bg-gray-300 dark:hover:bg-gray-200 transition-all duration-200 text-xs font-medium shadow-md hover:shadow-lg"
                   >
                     <span className="font-inter">
-                      View Fleet Capabilities
+                      View Dashboard
                     </span>
                     <ChevronRight className="ml-1 h-3 w-3" />
                   </button>
@@ -162,10 +162,10 @@ export default function Products() {
                 01. PRODUCT
               </p>
               <h2 className="text-lg md:text-xl lg:text-2xl font-inter mb-4 text-[#000000] dark:text-[#f6f6f4]">
-                One binary. Infinite locations.
+                The complete nervous system for your AI fleet.
               </h2>
               <p className="text-xs md:text-sm text-gray-600 dark:text-[#a8a898] font-inter leading-relaxed">
-                Runtime runs AI anywhere. As you scale, the dashboard appears—your command center for managing everything from one view. One product, infinite scale.
+                Execution, intelligence, memory, and proof—integrated from day one. One platform that scales from a single device to thousands, revealing deeper insights as you grow.
               </p>
             </div>
 
