@@ -95,17 +95,15 @@ export default function AIAgentView() {
 {`+---------------------------+--------+--------------------------------+
 | Endpoint                  | Method | Description                    |
 +---------------------------+--------+--------------------------------+
-| /v1/chat/completions      | POST   | OpenAI-compatible chat API     |
+| /v1/infer                 | POST   | Inference (OpenAI-compatible)  |
+| /v1/chat/completions      | POST   | OpenAI-compatible alias        |
 | /v1/health                | GET    | Health check                   |
-| /metrics                  | GET    | Prometheus metrics             |
-| /v1/lora/status           | GET    | Training status                |
-| /v1/fleet/instances       | GET    | List edge instances            |
-| /v1/fleet/metrics         | GET    | Fleet-wide metrics             |
-| /mcp                      | POST   | Model Context Protocol (MCP)   |
-+---------------------------+--------+--------------------------------+
-
-Modes: speculative, reflection, tools, planning, swarm`}
++---------------------------+--------+--------------------------------+`}
             </pre>
+
+            <p className="text-sm text-gray-600 dark:text-[#a8a898] mt-2">
+              Full API reference: <a href="https://docs.igrisinertial.com/runtime/docs/" target="_blank" rel="noopener noreferrer" className="text-blue-600 dark:text-blue-400 hover:underline">docs.igrisinertial.com/runtime/docs/</a>
+            </p>
 
             <p className="text-[#c5b0cd] mb-2 text-sm font-mono mt-6">### INSTALLATION</p>
             <div className="text-sm text-gray-700 dark:text-[#a8a898] font-mono space-y-2">
@@ -455,7 +453,7 @@ Modes: speculative, reflection, tools, planning, swarm`}
           <div className="animate-fadeInUp border-l border-gray-300 dark:border-[#f6f6f4]/10 pl-4">
             <p className="text-[#c5b0cd] mb-3">## GET STARTED</p>
             <p className="text-[#000000] dark:text-[#f6f6f4] mb-4">### One platform. Four layers. Complete control from edge to cloud.</p>
-            <p className="text-sm mb-2 text-gray-600 dark:text-[#a8a898]">Documentation: <a href="https://docs.igrisinertial.com/runtime/quickstart" target="_blank" rel="noopener noreferrer" className="text-blue-600 dark:text-blue-400 hover:underline">https://docs.igrisinertial.com/runtime/quickstart</a></p>
+            <p className="text-sm mb-2 text-gray-600 dark:text-[#a8a898]">Documentation: <a href="https://docs.igrisinertial.com/runtime/docs/" target="_blank" rel="noopener noreferrer" className="text-blue-600 dark:text-blue-400 hover:underline">https://docs.igrisinertial.com/runtime/docs/</a></p>
             <p className="text-sm mb-2 text-gray-600 dark:text-[#a8a898]">GitHub: <a href="https://github.com/igrisinertial" target="_blank" rel="noopener noreferrer" className="text-blue-600 dark:text-blue-400 hover:underline">https://github.com/igrisinertial</a></p>
             <p className="text-sm mb-2 text-gray-600 dark:text-[#a8a898]">Twitter/X: <a href="https://x.com/igrisinertial" target="_blank" rel="noopener noreferrer" className="text-blue-600 dark:text-blue-400 hover:underline">https://x.com/igrisinertial</a></p>
             <p className="text-sm mb-2 text-gray-600 dark:text-[#a8a898]">LinkedIn: <a href="https://www.linkedin.com/company/igrisinertial" target="_blank" rel="noopener noreferrer" className="text-blue-600 dark:text-blue-400 hover:underline">https://www.linkedin.com/company/igrisinertial</a></p>
