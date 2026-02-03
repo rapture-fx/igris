@@ -38,6 +38,13 @@ sysinfo = "0.30"
 ed25519-dalek = { version = "2.1", features = ["rand_core"] }
 base64 = "0.22"
 rand = "0.8"
+sha2 = { workspace = true }
+
+# Time utilities
+chrono = "0.4"
+
+# Hex encoding
+hex = "0.4"
 
 [dev-dependencies]
 tokio = { workspace = true, features = ["test-util"] }

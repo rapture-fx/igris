@@ -62,6 +62,7 @@ pub mod nodes;
 pub mod parser;
 pub mod runtime;
 pub mod safety;
+pub mod visualizer;
 
 // Re-export commonly used types
 pub mod prelude {

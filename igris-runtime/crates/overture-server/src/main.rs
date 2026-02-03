@@ -9,9 +9,21 @@
 //! - Real-time dashboard
 //!
 //! ## API Endpoints
+//!
+//! ### Fleet Management
 //! - POST `/api/fleet/register` - Register new edge agent
 //! - GET `/api/fleet/{fleet_id}/config` - Fetch configuration for agent
 //! - POST `/api/fleet/{fleet_id}/telemetry` - Receive telemetry from agent
+//!
+//! ### BTree Visualization
+//! - GET `/api/btree/snapshot?agent_id={id}` - Get current tree snapshot
+//! - POST `/api/btree/snapshot/{agent_id}` - Post tree snapshot from agent
+//! - GET `/api/btree/metrics?agent_id={id}` - Get metrics history
+//! - GET `/api/btree/trace/{agent_id}` - Get execution trace
+//! - WebSocket `/ws/btree/live` - Real-time tree updates
+
+mod advanced_analysis;
+mod btree_routes;
 
 use anyhow::{Context, Result};
 use axum::{
@@ -135,13 +147,17 @@ async fn main() -> Result<()> {
         {
             let _ = write_txn.open_table(AGENTS_TABLE)?;
             let _ = write_txn.open_table(TELEMETRY_TABLE)?;
+            let _ = write_txn.open_table(btree_routes::SNAPSHOTS_TABLE)?;
         }
         write_txn.commit()?;
     }
 
+    // Wrap database in Arc for sharing
+    let db_arc = Arc::new(db);
+
     // Initialize application state
     let state = AppState {
-        db: Arc::new(db),
+        db: db_arc.clone(),
         api_key: args.api_key.clone(),
         config_store: Arc::new(RwLock::new(HashMap::new())),
     };
@@ -152,6 +168,12 @@ async fn main() -> Result<()> {
         info!("⚠️  Running without API key authentication (not recommended for production)");
     }
 
+    // Initialize BTree visualization state with database
+    let btree_state = btree_routes::BTreeState::new()
+        .with_database(db_arc.clone())
+        .with_retention_hours(72); // 3 days retention
+    let btree_router = btree_routes::create_btree_router(btree_state);
+
     // Build router
     let app = Router::new()
         .route("/api/fleet/register", post(register_agent))
@@ -159,6 +181,7 @@ async fn main() -> Result<()> {
         .route("/api/fleet/:fleet_id/telemetry", post(receive_telemetry))
         .route("/health", get(health_check))
         .with_state(state)
+        .merge(btree_router)
         .layer(TraceLayer::new_for_http());
 
     // Start server
