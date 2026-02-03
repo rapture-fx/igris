@@ -5,50 +5,63 @@ import Link from 'next/link'
 
 const AnimatedText = () => {
   const words = ['Machines', 'AI Agents']
-  const [currentWordIndex, setCurrentWordIndex] = useState(0)
-  const [currentText, setCurrentText] = useState('')
+  const [displayText, setDisplayText] = useState('')
+  const [wordIndex, setWordIndex] = useState(0)
   const [isDeleting, setIsDeleting] = useState(false)
+  const [isPaused, setIsPaused] = useState(false)
+  const [isMounted, setIsMounted] = useState(false)
 
   useEffect(() => {
-    const currentWord = words[currentWordIndex]
+    setIsMounted(true)
+  }, [])
 
-    const timeout = setTimeout(() => {
+  useEffect(() => {
+    if (!isMounted || isPaused) return
+
+    const currentWord = words[wordIndex]
+    const typingSpeed = isDeleting ? 50 : 100
+    const pauseDuration = 2000
+
+    const timer = setTimeout(() => {
       if (!isDeleting) {
-        // Typing
-        if (currentText.length < currentWord.length) {
-          setCurrentText(currentWord.slice(0, currentText.length + 1))
+        // Typing phase
+        if (displayText.length < currentWord.length) {
+          setDisplayText(currentWord.slice(0, displayText.length + 1))
         } else {
-          // Wait before deleting
-          setTimeout(() => setIsDeleting(true), 2000)
+          // Finished typing, pause before deleting
+          setIsPaused(true)
+          setTimeout(() => {
+            setIsPaused(false)
+            setIsDeleting(true)
+          }, pauseDuration)
         }
       } else {
-        // Deleting
-        if (currentText.length > 0) {
-          setCurrentText(currentText.slice(0, -1))
+        // Deleting phase
+        if (displayText.length > 0) {
+          setDisplayText(displayText.slice(0, -1))
         } else {
-          // Move to next word
+          // Finished deleting, move to next word
           setIsDeleting(false)
-          setCurrentWordIndex((prev) => (prev + 1) % words.length)
+          setWordIndex((prev) => (prev + 1) % words.length)
         }
       }
-    }, isDeleting ? 50 : 100)
+    }, typingSpeed)
 
-    return () => clearTimeout(timeout)
-  }, [currentText, isDeleting, currentWordIndex])
+    return () => clearTimeout(timer)
+  }, [displayText, isDeleting, isPaused, wordIndex, isMounted])
+
+  // Start the animation on mount
+  useEffect(() => {
+    if (isMounted && displayText === '' && !isDeleting && !isPaused) {
+      const currentWord = words[wordIndex]
+      setDisplayText(currentWord.slice(0, 1))
+    }
+  }, [isMounted])
 
   return (
-    <span className="inline-block relative align-bottom" style={{ verticalAlign: 'baseline' }}>
-      {currentText}
-      <span className="inline-block animate-blink">_</span>
-      <style jsx>{`
-        @keyframes blink {
-          0%, 50% { opacity: 1; }
-          51%, 100% { opacity: 0; }
-        }
-        .animate-blink {
-          animation: blink 1s infinite;
-        }
-      `}</style>
+    <span className="inline-block relative align-bottom ml-3" style={{ verticalAlign: 'baseline', fontFamily: "'IBM Plex Mono', monospace", fontSize: '0.9em', letterSpacing: '0.02em', fontWeight: 500 }}>
+      {isMounted ? displayText : words[0]}
+      {isMounted && <span className="inline-block hero-blink">_</span>}
     </span>
   )
 }

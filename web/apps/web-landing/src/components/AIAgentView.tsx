@@ -5,6 +5,7 @@ import React, { useState, useEffect } from 'react';
 export default function AIAgentView() {
   const [visibleSections, setVisibleSections] = useState(0);
   const [loadingStep, setLoadingStep] = useState(0);
+  const [isMounted, setIsMounted] = useState(false);
   const totalSections = 9; // Total number of sections
 
   const loadingSteps = [
@@ -18,6 +19,12 @@ export default function AIAgentView() {
   ];
 
   useEffect(() => {
+    setIsMounted(true);
+  }, []);
+
+  useEffect(() => {
+    if (!isMounted) return;
+    
     // Show loading steps progressively
     const stepInterval = setInterval(() => {
       setLoadingStep((prev) => {
@@ -43,7 +50,7 @@ export default function AIAgentView() {
     }, 400); // 400ms delay between each loading step
 
     return () => clearInterval(stepInterval);
-  }, []);
+  }, [isMounted]);
 
   return (
     <div className="min-h-screen bg-[#f6f6f4] dark:bg-dark-bg text-gray-900 dark:text-[#f6f6f4] transition-colors duration-200" style={{ fontFamily: 'Roboto Mono, monospace' }}>
@@ -78,16 +85,12 @@ export default function AIAgentView() {
             <p className="text-[#c5b0cd] mb-3 text-sm font-mono">## MACHINE_READABLE_DATA</p>
             
             <div className="text-sm text-gray-700 dark:text-[#a8a898] font-mono space-y-1 mb-6">
-              <p>product:          Deterministic AI runtime for edge devices</p>
-              <p>name:             Igris Runtime</p>
+              <p>name:             Igris Inertial</p>
+              <p>product:          Nervous system for autonomous machines and AI agents</p>
               <p>binary_size:      ~16MB (single static binary)</p>
               <p>deployment:       Edge, cloud, or air-gapped environments</p>
-              <p>inference:        BYOM via GGUF (llama.cpp integration)</p>
-              <p>models_supported: Phi-3, Qwen3, DeepSeek, GLM-4, Llama</p>
-              <p>offline:          true (local LLM fallback)</p>
-              <p>gpu_support:      Metal (Apple Silicon), CUDA (NVIDIA)</p>
-              <p>signing:          Ed25519 + AES-256-GCM encryption</p>
-              <p>license:          MIT OR Apache-2.0</p>
+              <p>models:           BYOM (local GGUF) + BYOK (cloud APIs)</p>
+              <p>offline:          true (local inference when cloud fails)</p>
             </div>
 
             <p className="text-[#c5b0cd] mb-2 text-sm font-mono">### API_ENDPOINTS</p>
@@ -107,18 +110,13 @@ export default function AIAgentView() {
 
             <p className="text-[#c5b0cd] mb-2 text-sm font-mono mt-6">### INSTALLATION</p>
             <div className="text-sm text-gray-700 dark:text-[#a8a898] font-mono space-y-2">
-              <p className="text-[#c5b0cd]"># One-line install (16MB binary)</p>
-              <p>curl -sSL https://raw.githubusercontent.com/igrisinertial/igris-runtime/main/install.sh | sh</p>
-              <p>igris-runtime serve</p>
-              
-              <p className="text-[#c5b0cd] mt-2"># Or build from source (Rust 1.75+)</p>
-              <p>git clone https://github.com/igrisinertial/igris-runtime.git</p>
-              <p>cd igris-runtime && cargo build --release</p>
-              <p>./target/release/igris-runtime serve</p>
+              <p className="text-[#c5b0cd]"># Download binary (16MB)</p>
+              <p># Download from: github.com/igrisinertial/igris-runtime/releases</p>
+              <p>chmod +x igris-runtime && ./igris-runtime serve</p>
             </div>
             
             <p className="text-sm text-gray-600 dark:text-[#a8a898] mt-3">
-              Requires: BYOM (GGUF model) or BYOK (cloud API keys in config.json5)
+              Requires: BYOM (local GGUF) or BYOK (dashboard for API keys)
             </p>
 
             <p className="text-[#c5b0cd] mb-2 text-sm font-mono mt-6">### PRICING_TABLE</p>
