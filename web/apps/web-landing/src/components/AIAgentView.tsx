@@ -78,7 +78,7 @@ export default function AIAgentView() {
             <p className="text-[#c5b0cd] mb-3 text-sm font-mono">## MACHINE_READABLE_DATA</p>
             
             <div className="text-sm text-gray-700 dark:text-[#a8a898] font-mono space-y-1 mb-6">
-              <p>product:          Edge AI runtime with local inference</p>
+              <p>product:          Deterministic execution for machines and AI agents</p>
               <p>name:             Igris Runtime</p>
               <p>binary_size:      16MB</p>
               <p>deployment:       Runs anywhere (edge, cloud, air-gapped)</p>
