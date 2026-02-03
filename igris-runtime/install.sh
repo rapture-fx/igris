@@ -4,7 +4,7 @@
 
 set -e
 
-REPO="igrisinertial/igris-runtime"
+REPO="Igris-inertial/Igris"
 INSTALL_DIR="${INSTALL_DIR:-$HOME/.local/bin}"
 TEST_MODE="${TEST_MODE:-false}"
 

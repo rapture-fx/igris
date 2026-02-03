@@ -111,7 +111,7 @@ export default function AIAgentView() {
             <p className="text-[#c5b0cd] mb-2 text-sm font-mono mt-6">### INSTALLATION</p>
             <div className="text-sm text-gray-700 dark:text-[#a8a898] font-mono space-y-2">
               <p className="text-[#c5b0cd]"># Download binary (16MB)</p>
-              <p># Download from: github.com/igrisinertial/igris-runtime/releases</p>
+              <p># Download from: github.com/Igris-inertial/Igris/releases</p>
               <p>chmod +x igris-runtime && ./igris-runtime serve</p>
             </div>
             
