@@ -76,7 +76,7 @@ export default function Hero() {
           <div className="max-w-[1300px] mx-auto w-full absolute z-10" style={{ bottom: '14rem', left: 0, right: 0, paddingLeft: '4rem', paddingRight: '4rem' }}>
             <div className="mb-6 text-left">
               <div>
-                <h1 className="text-2xl md:text-3xl lg:text-4xl font-medium text-[#111111] dark:text-[#f6f6f4] leading-[1.2]">
+                <h1 className="text-xl md:text-2xl lg:text-3xl font-medium text-[#111111] dark:text-[#f6f6f4] leading-[1.2]">
                   The Nervous System for <AnimatedText />
                 </h1>
                 <p className="text-sm md:text-base text-gray-700 dark:text-[#c8c8b8] max-w-2xl leading-relaxed text-left mt-4">
