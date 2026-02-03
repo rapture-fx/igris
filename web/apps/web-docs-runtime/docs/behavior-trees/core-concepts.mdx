@@ -352,7 +352,7 @@ context.blackboard.remove("key").await;
 
 ### Thread Safety
 
-- Thread-safe (Arc<RwLock<HashMap>>)
+- Thread-safe (Arc&lt;RwLock&lt;HashMap&gt;&gt;)
 - Async read/write operations
 - Can be shared across concurrent nodes
 
@@ -634,7 +634,7 @@ let result = executor.execute(&mut tree, &mut context).await?;
 
 ### Node Complexity
 
-- **Simple nodes**: <1ms per tick (actions, conditions)
+- **Simple nodes**: &lt;1ms per tick (actions, conditions)
 - **LLM nodes**: 100ms-5s per tick (bounded by inference)
 - **Parallel nodes**: Sum of concurrent children
 
