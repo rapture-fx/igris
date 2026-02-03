@@ -13,7 +13,7 @@ The `TreeVisualizer` provides comprehensive observability into behavior tree exe
 - **Metrics collection** - Replan count, tick rate, LLM latency, failure rates
 - **Replan tracking** - Before/after subtree diffs for LLM replanning events
 - **JSON export** - Dashboard-ready format for WebSocket/REST integration
-- **Performance optimized** - <5ms export overhead, non-blocking
+- **Performance optimized** - &lt;5ms export overhead, non-blocking
 
 ---
 
@@ -524,20 +524,20 @@ Measured timings on typical hardware:
 - **Simple tree (5 nodes)**: ~0.2ms
 - **Medium tree (20 nodes)**: ~1.5ms
 - **Large tree (100 nodes)**: ~4.8ms
-- **Target**: <5ms for all trees
+- **Target**: &lt;5ms for all trees
 
 ### Memory Usage
 
 - **Trace entries**: ~200 bytes each (default max 100 = 20KB)
 - **Replan events**: ~500 bytes each (default max 10 = 5KB)
 - **Node stats**: ~50 bytes per node
-- **Total overhead**: <100KB for typical trees
+- **Total overhead**: &lt;100KB for typical trees
 
 ### CPU Overhead
 
 - **Export**: ~0.1% of tick time
-- **Metrics update**: <0.01ms
-- **Trace recording**: <0.01ms
+- **Metrics update**: &lt;0.01ms
+- **Trace recording**: &lt;0.01ms
 - **Impact**: Negligible on execution
 
 ### Optimization Techniques
@@ -546,7 +546,7 @@ Measured timings on typical hardware:
 2. **Diff computation**: Send only changes
 3. **Blackboard filtering**: Export only relevant keys
 4. **Lazy serialization**: JSON created on demand
-5. **Arc<RwLock<>>**: Concurrent read access
+5. **Arc&lt;RwLock&lt;&gt;&gt;**: Concurrent read access
 
 ---
 
@@ -823,6 +823,6 @@ Key takeaways:
 - **Execution tracing**: Tick-by-tick history
 - **Metrics collection**: Performance and reliability tracking
 - **Replan tracking**: Monitor LLM replanning events
-- **Performance optimized**: <5ms overhead
+- **Performance optimized**: &lt;5ms overhead
 - **Dashboard ready**: JSON export for WebSocket/REST
 - **Production features**: Alerting, logging, time-series export

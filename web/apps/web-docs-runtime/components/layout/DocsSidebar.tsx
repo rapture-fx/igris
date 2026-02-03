@@ -20,7 +20,10 @@ import {
   FileText,
   ChevronRight,
   ChevronDown,
-  Search
+  Search,
+  Network,
+  Brain,
+  Cpu
 } from 'lucide-react';
 import { cn } from '../../lib/utils';
 
@@ -104,6 +107,51 @@ const navigationSections: NavigationSection[] = [
     ],
   },
   {
+    section: 'Behavior Trees',
+    items: [
+      {
+        name: 'Introduction',
+        href: '/docs/behavior-trees/introduction',
+        icon: Network,
+      },
+      {
+        name: 'Quick Start',
+        href: '/docs/behavior-trees/quickstart',
+        icon: Zap,
+      },
+      {
+        name: 'Core Concepts',
+        href: '/docs/behavior-trees/core-concepts',
+        icon: Brain,
+      },
+      {
+        name: 'Node Types',
+        href: '/docs/behavior-trees/node-types',
+        icon: Box,
+      },
+      {
+        name: 'LLM Integration',
+        href: '/docs/behavior-trees/llm-integration',
+        icon: Cpu,
+      },
+      {
+        name: 'Visualization',
+        href: '/docs/behavior-trees/visualization',
+        icon: BarChart3,
+      },
+      {
+        name: 'Runtime Execution',
+        href: '/docs/behavior-trees/runtime-execution',
+        icon: Layers,
+      },
+      {
+        name: 'Examples',
+        href: '/docs/behavior-trees/examples/simple-mission',
+        icon: Code,
+      },
+    ],
+  },
+  {
     section: 'Deployment',
     items: [
       {
@@ -178,6 +226,14 @@ const apiReferenceSections: NavigationSection[] = [
       { name: 'SDKs', href: '/docs/api-reference/sdks', icon: Package },
     ],
   },
+  {
+    section: 'Behavior Trees',
+    items: [
+      { name: 'Core Traits', href: '/docs/api-reference/behavior-trees/core-traits', icon: Network },
+      { name: 'Executor', href: '/docs/api-reference/behavior-trees/executor', icon: Cpu },
+      { name: 'LLM Provider', href: '/docs/api-reference/behavior-trees/llm-provider', icon: Brain },
+    ],
+  },
 ];
 
 const navigation: NavigationItem[] = [
@@ -220,6 +276,17 @@ const searchIndex = [
   { title: 'SLO Enforcer', path: '/docs/core-features/slo-enforcer', keywords: 'slo enforcer service level objective guardrails monitoring' },
   { title: 'Adaptive Optimization', path: '/docs/core-features/adaptive-optimization', keywords: 'adaptive optimization quality scoring performance tuning automatic' },
   { title: 'Provider Health Checks', path: '/docs/core-features/provider-health', keywords: 'provider health checks monitoring failover resilient availability' },
+  { title: 'Behavior Trees Introduction', path: '/docs/behavior-trees/introduction', keywords: 'behavior trees btree hybrid llm autonomous robotics mission planning' },
+  { title: 'Behavior Trees Quick Start', path: '/docs/behavior-trees/quickstart', keywords: 'behavior trees quickstart getting started first tree example tutorial' },
+  { title: 'Behavior Trees Core Concepts', path: '/docs/behavior-trees/core-concepts', keywords: 'behavior trees concepts tick blackboard nodes status execution fundamentals' },
+  { title: 'Behavior Trees Node Types', path: '/docs/behavior-trees/node-types', keywords: 'behavior trees nodes composite decorator action condition sequence selector parallel' },
+  { title: 'Behavior Trees LLM Integration', path: '/docs/behavior-trees/llm-integration', keywords: 'behavior trees llm integration byom provider planning adaptive replan' },
+  { title: 'Behavior Trees Visualization', path: '/docs/behavior-trees/visualization', keywords: 'behavior trees visualization monitoring metrics dashboard real-time observability' },
+  { title: 'Behavior Trees Runtime Execution', path: '/docs/behavior-trees/runtime-execution', keywords: 'behavior trees runtime executor execution tick loop deadline cancellation' },
+  { title: 'Behavior Trees Examples', path: '/docs/behavior-trees/examples/simple-mission', keywords: 'behavior trees examples mission warehouse navigation tutorial code' },
+  { title: 'Behavior Trees API - Core Traits', path: '/docs/api-reference/behavior-trees/core-traits', keywords: 'behavior trees api btreenode trait blackboard context status' },
+  { title: 'Behavior Trees API - Executor', path: '/docs/api-reference/behavior-trees/executor', keywords: 'behavior trees api executor config execution result tick' },
+  { title: 'Behavior Trees API - LLM Provider', path: '/docs/api-reference/behavior-trees/llm-provider', keywords: 'behavior trees api llm provider trait mock custom implementation' },
 ];
 
 const dropdownItems = [
