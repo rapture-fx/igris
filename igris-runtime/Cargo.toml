@@ -27,7 +27,7 @@ tokio = { version = "1.35", features = ["rt-multi-thread", "macros", "time", "sy
 tokio-util = "0.7"
 
 # Web framework
-axum = { version = "0.7", features = ["macros"] }
+axum = { version = "0.7", features = ["macros", "ws"] }
 tower = { version = "0.4", features = ["timeout", "limit", "buffer", "util"] }
 tower-http = { version = "0.5", features = ["trace", "cors", "compression-gzip"] }
 

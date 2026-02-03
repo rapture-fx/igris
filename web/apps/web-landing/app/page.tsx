@@ -16,28 +16,39 @@ import OverturePopup from '../src/components/popups/OverturePopup'
 import RuntimePopup from '../src/components/popups/RuntimePopup'
 import UseCasesPopup from '../src/components/popups/UseCasesPopup'
 
+import AIAgentView from '../src/components/AIAgentView'
+import ViewModeToggle from '../src/components/ViewModeToggle'
+
 import { useProductPopup } from '../src/contexts/ProductPopupContext'
+import { useViewMode } from '../src/contexts/ViewModeContext'
 
 export default function HomePage() {
 
   const { isOvertureOpen, closeOverture, isRuntimeOpen, closeRuntime, isUseCasesOpen, closeUseCases } = useProductPopup();
+  const { isAIAgentMode } = useViewMode();
 
   return (
     <>
-      <div className="min-h-screen bg-[#f6f6f4] dark:bg-dark-bg transition-colors duration-200">
-        <Header />
-        <main>
-          <Hero />
-          <Solve />
-          <Products />
-          <CoreCapabilities />
-          <HowItWorks />
-          <MultiTenancy />
-          <Manifesto />
-          <ClosingPosition />
-        </main>
-        <Footer />
-      </div>
+      {isAIAgentMode ? (
+        <AIAgentView />
+      ) : (
+        <div className="min-h-screen bg-[#f6f6f4] dark:bg-dark-bg transition-colors duration-200 pb-20">
+          <Header />
+          <main>
+            <Hero />
+            <Solve />
+            <Products />
+            <CoreCapabilities />
+            <HowItWorks />
+            <MultiTenancy />
+            <Manifesto />
+            <ClosingPosition />
+          </main>
+          <Footer />
+        </div>
+      )}
+
+      <ViewModeToggle />
 
       <OverturePopup
         isOpen={isOvertureOpen}

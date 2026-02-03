@@ -2,7 +2,9 @@
 
 use crate::core::{BTreeContext, BTreeNode, NodeStatus};
 use crate::runtime::ExecutionResult;
+use crate::visualizer::TreeVisualizer;
 use anyhow::Result;
+use std::sync::Arc;
 use std::time::{Duration, Instant};
 use tokio::sync::watch;
 use tracing::{debug, info, warn};
@@ -63,6 +65,7 @@ impl Default for ExecutorConfig {
 /// ```
 pub struct BTreeExecutor {
     config: ExecutorConfig,
+    visualizer: Option<Arc<TreeVisualizer>>,
 }
 
 impl BTreeExecutor {
@@ -70,12 +73,22 @@ impl BTreeExecutor {
     pub fn new() -> Self {
         Self {
             config: ExecutorConfig::default(),
+            visualizer: None,
         }
     }
 
     /// Create executor with custom configuration
     pub fn with_config(config: ExecutorConfig) -> Self {
-        Self { config }
+        Self {
+            config,
+            visualizer: None,
+        }
+    }
+
+    /// Attach a visualizer for monitoring and debugging
+    pub fn with_visualizer(mut self, visualizer: Arc<TreeVisualizer>) -> Self {
+        self.visualizer = Some(visualizer);
+        self
     }
 
     /// Set maximum ticks (builder pattern)
@@ -237,6 +250,18 @@ impl BTreeExecutor {
 
             if self.config.enable_tracing {
                 debug!("Tick {} completed with status: {:?}", tick_count, status);
+            }
+
+            // Export visualization state (optimized for <5ms)
+            if let Some(ref visualizer) = self.visualizer {
+                let export_start = Instant::now();
+                if let Err(e) = visualizer.export_snapshot(tree, context, tick_count).await {
+                    warn!("Visualization export failed: {}", e);
+                }
+                let export_duration = export_start.elapsed();
+                if export_duration.as_millis() > 5 {
+                    warn!("Visualization export took {:?} (>5ms threshold)", export_duration);
+                }
             }
 
             // Check if execution is complete

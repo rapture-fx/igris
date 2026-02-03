@@ -3,7 +3,7 @@
 import { useState, useEffect, useRef } from 'react';
 import Link from 'next/link';
 import { usePathname, useRouter } from 'next/navigation';
-import { Home, KeyRound, Network, Settings, X, Activity, Eye, Wrench, FileText, Server, ChevronDown, DollarSign, Shield, Lightbulb, CloudCog, Cpu, Sliders, Radio, Zap, Brain, GraduationCap, Lock, Search, HelpCircle, ExternalLink, Mail, FileText as ChangeLogIcon, Activity as StatusIcon, BookOpen } from 'lucide-react';
+import { Home, KeyRound, Network, Settings, X, Activity, Eye, Wrench, FileText, Server, ChevronDown, DollarSign, Shield, Lightbulb, CloudCog, Cpu, Sliders, Radio, Zap, Brain, GraduationCap, Lock, Search, HelpCircle, ExternalLink, Mail, FileText as ChangeLogIcon, Activity as StatusIcon, BookOpen, GitBranch, Flame, AlertTriangle, TestTube, Sparkles, Play, Bell, LayoutDashboard, Boxes, MonitorSmartphone, Settings as ConfigIcon, Layers, Route, Building2, History, Database } from 'lucide-react';
 import { cn } from '@/utils/helpers';
 
 interface SidebarProps {
@@ -23,130 +23,135 @@ interface NavigationItem {
 }
 
 const navigation: NavigationItem[] = [
+  // OVERVIEW
   {
     name: 'Dashboard',
     href: '/dashboard',
-    icon: Home,
+    icon: LayoutDashboard,
     modes: ['operator', 'architect', 'audit'] as ViewMode[],
   },
+
+  // EXECUTION
   {
-    name: 'Observability',
-    href: '/dashboard/observability',
-    icon: Activity,
-    minTier: 'growth',
-    modes: ['operator', 'audit'] as ViewMode[],
-  },
-  {
-    name: 'Overture',
-    icon: CloudCog,
-    modes: ['operator', 'architect'] as ViewMode[],
+    name: 'Execution',
+    icon: Zap,
+    modes: ['operator', 'architect', 'audit'] as ViewMode[],
     children: [
       {
-        name: 'Providers',
-        href: '/dashboard/providers',
-        icon: Home,
-        modes: ['operator', 'architect'] as ViewMode[],
+        name: 'Fleet',
+        href: '/dashboard/runtime/fleet',
+        icon: Boxes,
+        modes: ['operator', 'audit'] as ViewMode[],
       },
       {
-        name: 'Routing Rules',
-        href: '/dashboard/policy',
-        icon: Home,
+        name: 'Devices',
+        href: '/dashboard/runtime/devices',
+        icon: MonitorSmartphone,
+        modes: ['operator', 'audit'] as ViewMode[],
+      },
+      {
+        name: 'Config',
+        href: '/dashboard/runtime/config',
+        icon: ConfigIcon,
         modes: ['architect'] as ViewMode[],
       },
       {
-        name: 'Cost & Quota',
+        name: 'Models',
+        href: '/dashboard/agents/qlora',
+        icon: Brain,
+        modes: ['architect'] as ViewMode[],
+      },
+    ],
+  },
+
+  // INTELLIGENCE
+  {
+    name: 'Intelligence',
+    icon: Brain,
+    modes: ['operator', 'architect'] as ViewMode[],
+    children: [
+      {
+        name: 'Routing',
+        href: '/dashboard/policy',
+        icon: Route,
+        modes: ['architect'] as ViewMode[],
+      },
+      {
+        name: 'Providers',
+        href: '/dashboard/providers',
+        icon: Building2,
+        modes: ['operator', 'architect'] as ViewMode[],
+      },
+      {
+        name: 'Cost',
         href: '/dashboard/usage',
-        icon: Home,
+        icon: DollarSign,
         modes: ['operator', 'architect'] as ViewMode[],
       },
       {
         name: 'Shadow Mode',
         href: '/dashboard/overture/shadow',
-        icon: Home,
+        icon: Eye,
         modes: ['architect'] as ViewMode[],
-      },
-      {
-        name: 'Speculative Router',
-        href: '/dashboard/overture/speculative',
-        icon: Home,
-        modes: ['architect'] as ViewMode[],
-      },
-      {
-        name: 'Cognitive Advisor',
-        href: '/dashboard/overture/cognitive',
-        icon: Home,
-        modes: ['architect'] as ViewMode[],
-      },
-      {
-        name: 'Council Mode',
-        href: '/dashboard/overture/council',
-        icon: Home,
-        modes: ['architect'] as ViewMode[],
-      },
-      {
-        name: 'EscapeVector (Cloud)',
-        href: '/dashboard/overture/escapevector',
-        icon: Home,
-        modes: ['operator', 'architect'] as ViewMode[],
       },
     ],
   },
+
+  // MEMORY
   {
-    name: 'Runtime',
-    icon: Server,
+    name: 'Memory',
+    icon: Database,
+    modes: ['operator', 'architect', 'audit'] as ViewMode[],
+    children: [
+      {
+        name: 'BTree',
+        href: '/dashboard/btree/fleet',
+        icon: GitBranch,
+        modes: ['operator', 'audit'] as ViewMode[],
+      },
+      {
+        name: 'Performance',
+        href: '/dashboard/btree/heatmap',
+        icon: Flame,
+        modes: ['operator', 'architect'] as ViewMode[],
+      },
+      {
+        name: 'Anomalies',
+        href: '/dashboard/btree/anomalies',
+        icon: AlertTriangle,
+        modes: ['operator', 'audit'] as ViewMode[],
+      },
+    ],
+  },
+
+  // PROOF
+  {
+    name: 'Proof',
+    icon: Shield,
     modes: ['operator', 'audit'] as ViewMode[],
     children: [
       {
-        name: 'Fleet Overview',
-        href: '/dashboard/runtime/fleet',
-        icon: Home,
+        name: 'Observability',
+        href: '/dashboard/observability',
+        icon: Activity,
         modes: ['operator', 'audit'] as ViewMode[],
       },
       {
-        name: 'Device Details',
-        href: '/dashboard/runtime/devices',
-        icon: Home,
-        modes: ['operator', 'audit'] as ViewMode[],
+        name: 'Alerts',
+        href: '/dashboard/btree/alerts',
+        icon: Bell,
+        modes: ['operator', 'architect'] as ViewMode[],
       },
       {
-        name: 'Config Push',
-        href: '/dashboard/runtime/config',
-        icon: Home,
-        modes: ['architect'] as ViewMode[],
-      },
-      {
-        name: 'Swarm Status',
-        href: '/dashboard/runtime/swarm',
-        icon: Home,
+        name: 'History',
+        href: '/dashboard/btree/replay',
+        icon: History,
         modes: ['operator', 'audit'] as ViewMode[],
       },
     ],
   },
-  {
-    name: 'Agents',
-    icon: Brain,
-    modes: ['operator', 'architect'] as ViewMode[],
-    children: [
-      {
-        name: 'Planning & Reflection',
-        href: '/dashboard/agents/planning',
-        icon: Home,
-        modes: ['architect'] as ViewMode[],
-      },
-      {
-        name: 'Tools Management',
-        href: '/dashboard/agents/tools',
-        icon: Home,
-        modes: ['architect'] as ViewMode[],
-      },
-      {
-        name: 'QLoRA Training',
-        href: '/dashboard/agents/qlora',
-        icon: Home,
-        modes: ['architect'] as ViewMode[],
-      },
-    ],
-  },
+
+  // SETTINGS
   {
     name: 'Settings',
     href: '/dashboard/settings',
@@ -185,9 +190,10 @@ export function Sidebar({ open = true, onClose }: SidebarProps) {
   const [selectedIndex, setSelectedIndex] = useState(0);
   const modalInputRef = useRef<HTMLInputElement>(null);
   const [expandedSections, setExpandedSections] = useState<Record<string, boolean>>({
-    Overture: true,
-    Runtime: true,
-    Agents: true,
+    Execution: true,
+    Intelligence: true,
+    Memory: true,
+    Proof: true,
   });
 
   const toggleSection = (sectionName: string) => {
@@ -320,7 +326,7 @@ export function Sidebar({ open = true, onClose }: SidebarProps) {
           open ? 'translate-x-0' : '-translate-x-full'
         )}
       >
-        <div className="flex h-full flex-col border-r border-border" style={{ backgroundColor: '#14120a' }}>
+        <div className="flex h-full flex-col border-r border-border bg-background">
           {/* Logo Section */}
           <div className="h-12 flex items-center px-7">
             <Link href="/dashboard" className="flex items-center">
@@ -364,14 +370,14 @@ export function Sidebar({ open = true, onClose }: SidebarProps) {
                       <button
                         onClick={() => toggleSection(item.name)}
                         className={cn(
-                          'w-full flex items-center justify-between gap-3 rounded-lg px-3 py-2.5 text-xs font-medium font-inter transition-colors',
+                          'w-full flex items-center justify-between gap-3 rounded-lg px-3 py-2.5 text-sm font-medium font-inter transition-colors',
                           hasActiveChild
                             ? 'bg-muted text-foreground'
                             : 'text-muted-foreground hover:bg-muted/50 hover:text-foreground'
                         )}
                       >
                         <div className="flex items-center gap-3">
-                          <item.icon className="h-4 w-4 text-foreground" />
+                          <item.icon className="h-5 w-5 text-foreground" />
                           {item.name}
                         </div>
                         <ChevronDown
@@ -392,7 +398,7 @@ export function Sidebar({ open = true, onClose }: SidebarProps) {
                                 <Link
                                   href={child.href!}
                                   className={cn(
-                                    'flex items-center gap-3 rounded-lg px-3 py-2 text-xs font-medium font-inter transition-colors',
+                                    'flex items-center gap-3 rounded-lg px-3 py-2 text-sm font-medium font-inter transition-colors',
                                     isActive
                                       ? 'bg-muted text-foreground'
                                       : 'text-muted-foreground hover:bg-muted/50 hover:text-foreground'
@@ -421,14 +427,14 @@ export function Sidebar({ open = true, onClose }: SidebarProps) {
                     <Link
                       href={item.href}
                       className={cn(
-                        'flex items-center gap-3 rounded-lg px-3 py-2.5 text-xs font-medium font-inter transition-colors',
+                        'flex items-center gap-3 rounded-lg px-3 py-2.5 text-sm font-medium font-inter transition-colors',
                         isActive
                           ? 'text-foreground'
                           : 'text-muted-foreground hover:text-foreground'
                       )}
                       onClick={onClose}
                     >
-                      <item.icon className="h-4 w-4 text-muted-foreground" />
+                      <item.icon className="h-5 w-5 text-muted-foreground" />
                       {item.name}
                     </Link>
                   </li>

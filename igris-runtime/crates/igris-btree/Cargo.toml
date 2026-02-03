@@ -22,6 +22,12 @@ serde_json = "1.0"
 # Logging
 tracing = "0.1"
 
+# HTTP client for webhooks
+reqwest = { workspace = true }
+
+# Time utilities
+chrono = "0.4"
+
 # Igris dependencies (workspace crates)
 igris-rt = { path = "../igris-rt" }
 igris-tools = { path = "../igris-tools" }
@@ -38,3 +44,7 @@ path = "src/lib.rs"
 [[example]]
 name = "hybrid_mission"
 path = "examples/hybrid_mission.rs"
+
+[[example]]
+name = "visualized_mission"
+path = "examples/visualized_mission.rs"
