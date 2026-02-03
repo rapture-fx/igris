@@ -109,40 +109,42 @@ export default function HowItWorks() {
             }}>
               {/* Frames layout for both light and dark mode */}
               <div className="flex flex-col gap-4 w-full">
-                <div className="w-full border border-gray-300 dark:border-[#f6f6f4]/5 bg-[#f6f6f4] dark:bg-[#1b1912] flex" style={{ minHeight: '240px' }}>
-                  <div className="w-3/5 p-6 flex flex-col justify-between overflow-hidden">
-                    <div>
+                <div className="w-full border border-gray-300 dark:border-[#f6f6f4]/5 bg-[#f6f6f4] dark:bg-[#1b1912] flex min-h-[240px]">
+                  <div className="w-3/5 p-6 flex flex-col justify-between">
+                    <div className="flex-shrink-0" style={{ maxHeight: '180px' }}>
                       <Image
                         src="/ovr.png"
                         alt="Deploy Runtime"
                         width={450}
                         height={450}
                         className="mb-4 object-contain opacity-100"
+                        style={{ maxHeight: '160px' }}
                       />
                     </div>
                     <div className="mt-auto pb-8">
-                      <p className="text-sm text-gray-600 dark:text-[#a8a898] leading-relaxed line-clamp-2">
+                      <p className="text-sm text-gray-600 dark:text-[#a8a898] leading-relaxed">
                         Behavior trees + LLM reasoning. 16MB.
                       </p>
                     </div>
                   </div>
-                  <div className="w-2/5 p-6">
+                  <div className="w-2/5 p-6 flex flex-col justify-start">
                     <h4 className="text-sm font-medium text-[#000000] dark:text-[#f6f6f4] mb-3 font-inter">Deploy</h4>
-                    <p className="text-sm text-gray-600 dark:text-[#a8a898] mb-2 leading-relaxed">
+                    <p className="text-sm text-gray-600 dark:text-[#a8a898] leading-relaxed">
                       Single binary with complete nervous system.<br/>
                       Structured decisions meet language model intelligence. Cryptographically provable.
                     </p>
                   </div>
                 </div>
-                <div className="w-full border border-gray-300 dark:border-[#f6f6f4]/5 bg-[#f6f6f4] dark:bg-[#1b1912] flex" style={{ minHeight: '240px' }}>
+                <div className="w-full border border-gray-300 dark:border-[#f6f6f4]/5 bg-[#f6f6f4] dark:bg-[#1b1912] flex min-h-[240px]">
                   <div className="w-3/5 p-6 flex flex-col justify-between">
-                    <div>
+                    <div className="flex-shrink-0" style={{ maxHeight: '180px' }}>
                       <Image
                         src="/xe.png"
                         alt="Execute Locally"
                         width={450}
                         height={450}
                         className="mb-4 object-contain opacity-80"
+                        style={{ maxHeight: '160px' }}
                       />
                     </div>
                     <div className="mt-auto pb-4">
@@ -151,23 +153,24 @@ export default function HowItWorks() {
                       </p>
                     </div>
                   </div>
-                  <div className="w-2/5 p-6">
+                  <div className="w-2/5 p-6 flex flex-col justify-start">
                     <h4 className="text-sm font-medium text-[#000000] dark:text-[#f6f6f4] mb-3 font-inter">Verify</h4>
-                    <p className="text-sm text-gray-600 dark:text-[#a8a898] mb-2 leading-relaxed">
+                    <p className="text-sm text-gray-600 dark:text-[#a8a898] leading-relaxed">
                       Behavior trees execute predictably. LLMs reason when needed.<br/>
                       Memory tracks decisions. Proof signs everything. No hallucination.
                     </p>
                   </div>
                 </div>
-                <div className="w-full border border-gray-300 dark:border-[#f6f6f4]/5 bg-[#f6f6f4] dark:bg-[#1b1912] flex" style={{ minHeight: '260px' }}>
+                <div className="w-full border border-gray-300 dark:border-[#f6f6f4]/5 bg-[#f6f6f4] dark:bg-[#1b1912] flex min-h-[280px]">
                   <div className="w-3/5 p-6 flex flex-col justify-between">
-                    <div>
+                    <div className="flex-shrink-0" style={{ maxHeight: '180px' }}>
                       <Image
                         src="/ol.png"
                         alt="Fleet Dashboard"
                         width={450}
                         height={450}
                         className="mb-4 object-contain opacity-100"
+                        style={{ maxHeight: '160px' }}
                       />
                     </div>
                     <div className="mt-auto pb-4">
@@ -176,9 +179,9 @@ export default function HowItWorks() {
                       </p>
                     </div>
                   </div>
-                  <div className="w-2/5 p-6">
+                  <div className="w-2/5 p-6 flex flex-col justify-start">
                     <h4 className="text-sm font-medium text-[#000000] dark:text-[#f6f6f4] mb-3 font-inter">Optimize</h4>
-                    <p className="text-sm text-gray-600 dark:text-[#a8a898] mb-2 leading-relaxed">
+                    <p className="text-sm text-gray-600 dark:text-[#a8a898] leading-relaxed">
                       Dashboard reveals all four layers across your fleet.<br/>
                       Heatmaps, anomaly detection, A/B testing. Complete nervous system visibility.
                     </p>
