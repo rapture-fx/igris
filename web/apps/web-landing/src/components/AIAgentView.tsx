@@ -78,17 +78,52 @@ export default function AIAgentView() {
             <p className="text-[#c5b0cd] mb-3 text-sm font-mono">## MACHINE_READABLE_DATA</p>
             
             <div className="text-sm text-gray-700 dark:text-[#a8a898] font-mono space-y-1 mb-6">
-              <p>product:          Deterministic execution for machines and AI agents</p>
+              <p>product:          Deterministic AI runtime for edge devices</p>
               <p>name:             Igris Runtime</p>
-              <p>binary_size:      16MB</p>
-              <p>deployment:       Runs anywhere (edge, cloud, air-gapped)</p>
-              <p>models:           BYOM via GGUF</p>
-              <p>offline:          true</p>
-              <p>signing:          Ed25519</p>
-              <p>layers:           execution, intelligence, memory, proof</p>
+              <p>binary_size:      ~16MB (single static binary)</p>
+              <p>deployment:       Edge, cloud, or air-gapped environments</p>
+              <p>inference:        BYOM via GGUF (llama.cpp integration)</p>
+              <p>models_supported: Phi-3, Qwen3, DeepSeek, GLM-4, Llama</p>
+              <p>offline:          true (local LLM fallback)</p>
+              <p>gpu_support:      Metal (Apple Silicon), CUDA (NVIDIA)</p>
+              <p>signing:          Ed25519 + AES-256-GCM encryption</p>
+              <p>license:          MIT OR Apache-2.0</p>
             </div>
 
-            <p className="text-[#c5b0cd] mb-2 text-sm font-mono">### PRICING_TABLE</p>
+            <p className="text-[#c5b0cd] mb-2 text-sm font-mono">### API_ENDPOINTS</p>
+            <pre className="text-sm text-gray-700 dark:text-[#a8a898] font-mono whitespace-pre overflow-x-auto">
+{`+---------------------------+--------+--------------------------------+
+| Endpoint                  | Method | Description                    |
++---------------------------+--------+--------------------------------+
+| /v1/chat/completions      | POST   | OpenAI-compatible chat API     |
+| /v1/health                | GET    | Health check                   |
+| /metrics                  | GET    | Prometheus metrics             |
+| /v1/lora/status           | GET    | Training status                |
+| /v1/fleet/instances       | GET    | List edge instances            |
+| /v1/fleet/metrics         | GET    | Fleet-wide metrics             |
+| /mcp                      | POST   | Model Context Protocol (MCP)   |
++---------------------------+--------+--------------------------------+
+
+Modes: speculative, reflection, tools, planning, swarm`}
+            </pre>
+
+            <p className="text-[#c5b0cd] mb-2 text-sm font-mono mt-6">### INSTALLATION</p>
+            <div className="text-sm text-gray-700 dark:text-[#a8a898] font-mono space-y-2">
+              <p className="text-[#c5b0cd]"># One-line install (16MB binary)</p>
+              <p>curl -sSL https://raw.githubusercontent.com/igrisinertial/igris-runtime/main/install.sh | sh</p>
+              <p>igris-runtime serve</p>
+              
+              <p className="text-[#c5b0cd] mt-2"># Or build from source (Rust 1.75+)</p>
+              <p>git clone https://github.com/igrisinertial/igris-runtime.git</p>
+              <p>cd igris-runtime && cargo build --release</p>
+              <p>./target/release/igris-runtime serve</p>
+            </div>
+            
+            <p className="text-sm text-gray-600 dark:text-[#a8a898] mt-3">
+              Requires: BYOM (GGUF model) or BYOK (cloud API keys in config.json5)
+            </p>
+
+            <p className="text-[#c5b0cd] mb-2 text-sm font-mono mt-6">### PRICING_TABLE</p>
             <pre className="text-sm text-gray-700 dark:text-[#a8a898] font-mono whitespace-pre overflow-x-auto">
 {`+----------+----------------+-----------+----------------------------------+
 | Tier     | Price          | Devices   | Support & Features               |
@@ -333,6 +368,85 @@ export default function AIAgentView() {
                 </div>
               </div>
             </div>
+          </div>
+        )}
+
+        {/* API Endpoints */}
+        {visibleSections >= 9 && (
+          <div className="animate-fadeInUp border-l border-gray-300 dark:border-[#f6f6f4]/10 pl-4">
+            <p className="text-[#c5b0cd] mb-3 text-sm font-mono">## API_ENDPOINTS</p>
+            <p className="text-sm mb-4 text-gray-600 dark:text-[#a8a898]">OpenAI-compatible inference endpoints</p>
+            <pre className="text-sm text-gray-700 dark:text-[#a8a898] font-mono whitespace-pre overflow-x-auto">
+{`+-------------+--------+------------------------------------------+
+| Endpoint    | Method | Description                              |
++-------------+--------+------------------------------------------+
+| /v1/health  | GET    | Health check                             |
+| /v1/chat    | POST   | Chat completions (OpenAI-compatible)     |
+| /v1/plan    | POST   | Multi-step planning with tools           |
+| /v1/reflect | POST   | Self-critique and response improvement   |
+| /metrics    | GET    | Prometheus metrics                       |
++-------------+--------+------------------------------------------+`}
+            </pre>
+          </div>
+        )}
+
+        {/* Quick Installation */}
+        {visibleSections >= 9 && (
+          <div className="animate-fadeInUp border-l border-gray-300 dark:border-[#f6f6f4]/10 pl-4">
+            <p className="text-[#c5b0cd] mb-3 text-sm font-mono">## QUICK_INSTALL</p>
+            <p className="text-sm mb-4 text-gray-600 dark:text-[#a8a898]">Download and run in one command</p>
+            <div className="text-sm text-gray-700 dark:text-[#a8a898] font-mono space-y-2">
+              <p className="text-[#c5b0cd]"># Download binary</p>
+              <p>curl -sSL https://github.com/igrisinertial/igris-runtime/releases/latest/download/igris-runtime -o igris-runtime</p>
+              <p className="text-[#c5b0cd] mt-2"># Make executable and run</p>
+              <p>chmod +x igris-runtime && ./igris-runtime serve</p>
+              <p className="text-[#c5b0cd] mt-2"># Or use Docker</p>
+              <p>docker run -p 8080:8080 igris/inertial:latest</p>
+            </div>
+          </div>
+        )}
+
+        {/* Changelog */}
+        {visibleSections >= 9 && (
+          <div className="animate-fadeInUp border-l border-gray-300 dark:border-[#f6f6f4]/10 pl-4">
+            <p className="text-[#c5b0cd] mb-3 text-sm font-mono">## CHANGELOG</p>
+            <div className="text-sm text-gray-700 dark:text-[#a8a898] font-mono space-y-1">
+              <p>v1.6.1 (current) - Production-ready: local inference, SSE streaming, tool calling, security hardening</p>
+              <p>v1.4.0 (Feb 2026) - Multi-model registry (6 models), reflection loops, benchmarking suite</p>
+              <p>v1.3.0 (Dec 2025) - On-device QLoRA training, adapter hot-swap, encrypted adapters</p>
+              <p>v1.2.0 - MCP Swarm Mode, Model Context Protocol, distributed context sync</p>
+              <p>v1.1.0 - Local LLM fallback (Phi-3), speculative execution, GPU Metal support</p>
+            </div>
+          </div>
+        )}
+
+        {/* JSON-LD Schema for AI parsing */}
+        {visibleSections >= 9 && (
+          <div className="hidden" aria-hidden="true">
+            <script type="application/ld+json">
+              {JSON.stringify({
+                "@context": "https://schema.org",
+                "@type": "SoftwareApplication",
+                "name": "Igris Inertial",
+                "description": "Nervous system for autonomous machines and AI agents",
+                "applicationCategory": "DeveloperApplication",
+                "operatingSystem": "Linux, macOS, ARM64",
+                "softwareVersion": "1.6.1",
+                "offers": {
+                  "@type": "Offer",
+                  "price": "0",
+                  "priceCurrency": "USD"
+                },
+                "featureList": [
+                  "Deterministic execution",
+                  "Local LLM inference",
+                  "Offline capability",
+                  "Cryptographic proof",
+                  "Fleet management",
+                  "BYOK and BYOM support"
+                ]
+              })}
+            </script>
           </div>
         )}
 
