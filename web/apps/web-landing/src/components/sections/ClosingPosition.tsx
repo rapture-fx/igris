@@ -33,7 +33,7 @@ export default function ClosingPosition() {
             <div className="w-full flex flex-row items-center justify-between relative z-10">
               <div className="max-w-3xl text-left flex flex-col">
                 <h3 className="text-lg md:text-xl lg:text-2xl font-inter mb-6 text-[#000000] dark:text-[#f6f6f4]">
-                  Deploy AI anywhere.<br />Manage everything from one view.
+                  One platform. Four layers.<br />Complete control from edge to cloud.
                 </h3>
 
                 <div className="flex flex-col sm:flex-row gap-4 pl-0 md:pl-0 lg:pl-0">
@@ -41,7 +41,7 @@ export default function ClosingPosition() {
                     <button
                       className="inline-flex items-center justify-center bg-black text-white dark:bg-[#f6f6f4] dark:text-black px-4 py-2 hover:bg-gray-800 dark:hover:bg-gray-200 transition-all duration-200 text-xs font-medium font-inter"
                     >
-                      Download Runtime
+                      Get Started
                     </button>
                   </Link>
                 </div>
