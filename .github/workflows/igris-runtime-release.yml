@@ -21,7 +21,7 @@ jobs:
             os: ubuntu-latest
             name: linux-arm64
           - target: x86_64-apple-darwin
-            os: macos-13  # Intel Mac
+            os: macos-15-large  # Intel Mac (new runner)
             name: macos-x64
           - target: aarch64-apple-darwin
             os: macos-14  # Apple Silicon Mac
@@ -47,7 +47,7 @@ jobs:
         run: cross build --release --target ${{ matrix.target }} --bin igris-runtime
 
       - name: Build (macOS native)
-        if: matrix.os == 'macos-13' || matrix.os == 'macos-14'
+        if: startsWith(matrix.os, 'macos-')
         working-directory: igris-runtime
         run: |
           cargo build --release --target ${{ matrix.target }} --bin igris-runtime
