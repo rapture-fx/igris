@@ -64,7 +64,7 @@ export default function AIAgentView() {
                   <span className="text-gray-600 dark:text-[#a8a898]">{step}</span>
                 )}
                 {index === loadingSteps.length - 1 && (
-                  <span className="text-green-600 dark:text-green-400">{step}</span>
+                  <span className="text-[#c5b0cd]">{step}</span>
                 )}
               </div>
             ))}
@@ -77,24 +77,24 @@ export default function AIAgentView() {
         </div>
       )}
 
-      <div className={`max-w-4xl mx-auto space-y-6 p-8 pb-24 ${visibleSections === 0 ? 'hidden' : ''}`}>
-
-        {/* Machine Data - Structured for AI Parsing */}
+      <div className={`flex flex-col h-screen ${visibleSections === 0 ? 'hidden' : ''}`}>
+        {/* Machine Data - Structured for AI Parsing - Fixed Header */}
         {visibleSections >= 1 && (
-          <div className="animate-fadeInUp border-l border-gray-300 dark:border-[#f6f6f4]/10 pl-4 bg-gray-50 dark:bg-[#1b1912]/30 py-4">
-            <p className="text-[#c5b0cd] mb-3 text-sm font-mono">## MACHINE_READABLE_DATA</p>
-            
-            <div className="text-sm text-gray-700 dark:text-[#a8a898] font-mono space-y-1 mb-6">
-              <p>name:             Igris Inertial</p>
-              <p>product:          Nervous system for autonomous machines and AI agents</p>
-              <p>binary_size:      ~16MB (single static binary)</p>
-              <p>deployment:       Edge, cloud, or air-gapped environments</p>
-              <p>models:           BYOM (local GGUF) + BYOK (cloud APIs)</p>
-              <p>offline:          true (local inference when cloud fails)</p>
-            </div>
+          <div className="flex-shrink-0 animate-fadeInUp border-b border-gray-300 dark:border-[#f6f6f4]/10 px-8 py-4 bg-gray-50 dark:bg-[#1b1912]/30 shadow-md">
+            <div className="max-w-4xl mx-auto">
+              <p className="text-[#c5b0cd] mb-3 text-sm font-mono">## MACHINE_READABLE_DATA</p>
+              
+              <div className="text-sm text-gray-700 dark:text-[#a8a898] font-mono space-y-1 mb-6">
+                <p>name:             Igris Inertial</p>
+                <p>product:          Nervous system for autonomous machines and AI agents</p>
+                <p>binary_size:      ~16MB (single static binary)</p>
+                <p>deployment:       Edge, cloud, or air-gapped environments</p>
+                <p>models:           BYOM (local GGUF) + BYOK (cloud APIs)</p>
+                <p>offline:          true (local inference when cloud fails)</p>
+              </div>
 
-            <p className="text-[#c5b0cd] mb-2 text-sm font-mono">### API_ENDPOINTS</p>
-            <pre className="text-sm text-gray-700 dark:text-[#a8a898] font-mono whitespace-pre overflow-x-auto">
+              <p className="text-[#c5b0cd] mb-2 text-sm font-mono">### API_ENDPOINTS</p>
+              <pre className="text-sm text-gray-700 dark:text-[#a8a898] font-mono whitespace-pre overflow-x-auto">
 {`+---------------------------+--------+--------------------------------+
 | Endpoint                  | Method | Description                    |
 +---------------------------+--------+--------------------------------+
@@ -102,45 +102,39 @@ export default function AIAgentView() {
 | /v1/chat/completions      | POST   | OpenAI-compatible alias        |
 | /v1/health                | GET    | Health check                   |
 +---------------------------+--------+--------------------------------+`}
-            </pre>
+              </pre>
 
-            <p className="text-sm text-gray-600 dark:text-[#a8a898] mt-2">
-              Full API reference: <a href="https://docs.igrisinertial.com/runtime/docs/" target="_blank" rel="noopener noreferrer" className="text-blue-600 dark:text-blue-400 hover:underline">docs.igrisinertial.com/runtime/docs/</a>
-            </p>
+              <p className="text-sm text-gray-600 dark:text-[#a8a898] mt-2">
+                Full API reference: <a href="https://docs.igrisinertial.com/runtime/docs/" target="_blank" rel="noopener noreferrer" className="text-blue-600 dark:text-blue-400 hover:underline">docs.igrisinertial.com/runtime/docs/</a>
+              </p>
 
-            <p className="text-[#c5b0cd] mb-2 text-sm font-mono mt-6">### INSTALLATION</p>
-            <div className="text-sm text-gray-700 dark:text-[#a8a898] font-mono space-y-2">
-              <p className="text-[#c5b0cd]"># Download binary (16MB)</p>
-              <p># Download from: github.com/Igris-inertial/Igris/releases</p>
-              <p>chmod +x igris-runtime && ./igris-runtime serve</p>
+              <p className="text-[#c5b0cd] mb-2 text-sm font-mono mt-6">### INSTALLATION</p>
+              <div className="text-sm text-gray-700 dark:text-[#a8a898] font-mono space-y-2">
+                <p className="text-[#c5b0cd]"># Download binary (16MB)</p>
+                <p># Download from: github.com/Igris-inertial/Igris/releases</p>
+                <p>chmod +x igris-runtime && ./igris-runtime serve</p>
+              </div>
+              
+              <p className="text-sm text-gray-600 dark:text-[#a8a898] mt-3">
+                Requires: BYOM (local GGUF) or BYOK (dashboard for API keys)
+              </p>
             </div>
-            
-            <p className="text-sm text-gray-600 dark:text-[#a8a898] mt-3">
-              Requires: BYOM (local GGUF) or BYOK (dashboard for API keys)
-            </p>
-
-            <p className="text-[#c5b0cd] mb-2 text-sm font-mono mt-6">### PRICING_TABLE</p>
-            <pre className="text-sm text-gray-700 dark:text-[#a8a898] font-mono whitespace-pre overflow-x-auto">
-{`+----------+----------------+-----------+----------------------------------+
-| Tier     | Price          | Devices   | Support & Features               |
-+----------+----------------+-----------+----------------------------------+
-| Seed     | $0             | 1         | 4 layers, offline, community     |
-| Horizon  | $49/device/mo  | 100       | 4 layers + dashboard, priority   |
-| Infinite | Custom         | Unlimited | 4 layers + on-prem, 24/7, SLA    |
-+----------+----------------+-----------+----------------------------------+`}
-            </pre>
           </div>
         )}
 
-        {/* Hero */}
-        {visibleSections >= 1 && (
-          <div className="sticky top-0 z-50 bg-[#f6f6f4] dark:bg-dark-bg animate-fadeInUp border-l border-gray-300 dark:border-[#f6f6f4]/10 pl-4 pb-6">
-            <p className="text-[#000000] dark:text-[#f6f6f4] mb-2"># The Nervous System for Machines and AI Agents</p>
-            <p className="text-sm text-gray-600 dark:text-[#a8a898] leading-relaxed mb-4">
-              A deterministic execution layer for AI that operates across cloud and devices, even when connectivity fails.
-            </p>
-          </div>
-        )}
+        {/* Scrollable Content */}
+        <div className="flex-1 overflow-y-auto">
+          <div className="max-w-4xl mx-auto space-y-6 p-8 pb-24">
+
+            {/* Hero */}
+            {visibleSections >= 1 && (
+              <div className="animate-fadeInUp border-l border-gray-300 dark:border-[#f6f6f4]/10 pl-4 pb-6">
+                <p className="text-[#000000] dark:text-[#f6f6f4] mb-2"># The Nervous System for Machines and AI Agents</p>
+                <p className="text-sm text-gray-600 dark:text-[#a8a898] leading-relaxed mb-4">
+                  A deterministic execution layer for AI that operates across cloud and devices, even when connectivity fails.
+                </p>
+              </div>
+            )}
 
         {/* Solve */}
         {visibleSections >= 2 && (
