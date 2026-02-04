@@ -20,11 +20,8 @@ jobs:
           - target: aarch64-unknown-linux-musl
             os: ubuntu-latest
             name: linux-arm64
-          - target: x86_64-apple-darwin
-            os: macos-15-large  # Intel Mac (new runner)
-            name: macos-x64
           - target: aarch64-apple-darwin
-            os: macos-14  # Apple Silicon Mac
+            os: macos-latest  # Apple Silicon Mac (free runner)
             name: macos-arm64
 
     steps:
@@ -80,8 +77,7 @@ jobs:
 
             - Linux x64 (x86_64-unknown-linux-musl)
             - Linux ARM64 (aarch64-unknown-linux-musl)
-            - macOS x64 (Intel)
-            - macOS ARM64 (Apple Silicon)
+            - macOS ARM64 (Apple Silicon M1/M2/M3/M4)
 
             ## What's Included
 
