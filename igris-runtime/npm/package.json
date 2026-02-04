@@ -1,0 +1,45 @@
+{
+  "name": "@igris/runtime",
+  "version": "1.6.0",
+  "description": "Igris Runtime - AI routing engine with automatic local LLM fallback",
+  "main": "index.js",
+  "bin": {
+    "igris-runtime": "./bin/igris-runtime.js"
+  },
+  "scripts": {
+    "postinstall": "node install.js"
+  },
+  "keywords": [
+    "ai",
+    "llm",
+    "runtime",
+    "inference",
+    "router",
+    "anthropic",
+    "openai",
+    "local-llm",
+    "offline"
+  ],
+  "author": "Igris Team",
+  "license": "MIT",
+  "repository": {
+    "type": "git",
+    "url": "https://github.com/Igris-inertial/system.git",
+    "directory": "igris-runtime"
+  },
+  "homepage": "https://igrisinertial.com",
+  "bugs": {
+    "url": "https://github.com/Igris-inertial/system/issues"
+  },
+  "engines": {
+    "node": ">=14.0.0"
+  },
+  "os": [
+    "darwin",
+    "linux"
+  ],
+  "cpu": [
+    "x64",
+    "arm64"
+  ]
+}

@@ -1,0 +1,9 @@
+# Don't include downloaded binaries in the npm package
+# They will be downloaded during postinstall
+bin/igris-runtime
+*.tar.gz
+*.log
+
+# Development files
+.DS_Store
+node_modules
