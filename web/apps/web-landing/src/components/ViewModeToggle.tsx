@@ -30,7 +30,7 @@ export default function ViewModeToggle() {
             }`}
           >
             <Bot className="h-3 w-3" />
-            AI Agent
+            AI
           </button>
       </div>
     </div>

@@ -80,8 +80,8 @@ export default function AIAgentView() {
       <div className={`flex flex-col h-screen ${visibleSections === 0 ? 'hidden' : ''}`}>
         {/* Machine Data - Structured for AI Parsing - Fixed Header */}
         {visibleSections >= 1 && (
-          <div className="flex-shrink-0 animate-fadeInUp border-b border-gray-300 dark:border-[#f6f6f4]/10 px-8 py-4 bg-gray-50 dark:bg-[#1b1912]/30 shadow-md">
-            <div className="max-w-4xl mx-auto pl-6">
+          <div className="flex-shrink-0 animate-fadeInUp px-8 py-4 bg-gray-50 dark:bg-[#1b1912]/30 shadow-md">
+            <div className="max-w-4xl mx-auto pl-8 pb-4">
               <p className="text-[#c5b0cd] mb-3 text-sm font-mono">## MACHINE_READABLE_DATA</p>
               
               <div className="text-sm text-gray-700 dark:text-[#a8a898] font-mono space-y-1 mb-6">
