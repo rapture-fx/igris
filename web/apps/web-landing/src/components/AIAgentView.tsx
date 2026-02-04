@@ -80,8 +80,9 @@ export default function AIAgentView() {
       <div className={`flex flex-col h-screen ${visibleSections === 0 ? 'hidden' : ''}`}>
         {/* Machine Data - Structured for AI Parsing - Fixed Header */}
         {visibleSections >= 1 && (
-          <div className="flex-shrink-0 animate-fadeInUp px-8 py-4 bg-gray-50 dark:bg-[#1b1912]/30 shadow-md">
-            <div className="max-w-4xl mx-auto pl-8 pb-4">
+          <div className="flex-shrink-0 animate-fadeInUp py-4 bg-[#f6f6f4] dark:bg-[#1b1912]/30">
+            <div className="max-w-4xl mx-auto p-8 pb-4">
+              <div className="pl-4 pb-4 border-l border-gray-300 dark:border-[#f6f6f4]/10">
               <p className="text-[#c5b0cd] mb-3 text-sm font-mono">## MACHINE_READABLE_DATA</p>
               
               <div className="text-sm text-gray-700 dark:text-[#a8a898] font-mono space-y-1 mb-6">
@@ -95,6 +96,7 @@ export default function AIAgentView() {
               <p className="text-sm text-gray-600 dark:text-[#a8a898] mt-2">
                 Full API reference: <a href="https://docs.igrisinertial.com/runtime/docs/" target="_blank" rel="noopener noreferrer" className="text-blue-600 dark:text-blue-400 hover:underline">docs.igrisinertial.com/runtime/docs/</a>
               </p>
+              </div>
             </div>
           </div>
         )}
