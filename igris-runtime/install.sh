@@ -1,10 +1,11 @@
 #!/bin/bash
-# Igris Runtime Installer (TEST VERSION)
-# Tests locally with simulated GitHub release
+# Igris Runtime Installer
+# Downloads and installs the latest igris-runtime binary
 
 set -e
 
-REPO="Igris-inertial/system"
+VERSION="${VERSION:-v1.6.0}"
+BASE_URL="https://runtime.igrisinertial.com"
 INSTALL_DIR="${INSTALL_DIR:-$HOME/.local/bin}"
 TEST_MODE="${TEST_MODE:-false}"
 
@@ -68,22 +69,26 @@ bundle_local_binary() {
     echo "$TMP_DIR/igris-runtime-${PLATFORM}.tar.gz"
 }
 
-# Download from GitHub
-download_from_github() {
+# Download binary
+download_binary() {
     local PLATFORM=$1
-    local VERSION=$2
     local FILENAME="igris-runtime-${PLATFORM}.tar.gz"
-    local URL="https://github.com/${REPO}/releases/download/${VERSION}/${FILENAME}"
+    local URL="${BASE_URL}/${VERSION}/${FILENAME}"
     local TMP_DIR=$(mktemp -d)
-    
-    echo "Downloading from GitHub: $URL"
-    
-    if ! curl -sL "$URL" -o "$TMP_DIR/$FILENAME"; then
+
+    echo "Downloading igris-runtime ${VERSION} for ${PLATFORM}..."
+    echo "From: $URL"
+
+    if ! curl -fsSL "$URL" -o "$TMP_DIR/$FILENAME"; then
+        echo ""
         echo "Error: Failed to download from $URL" >&2
+        echo ""
+        echo "Platform ${PLATFORM} may not be supported in this release."
+        echo "Supported platforms: linux-x64, linux-arm64, macos-arm64"
         rm -rf "$TMP_DIR"
         exit 1
     fi
-    
+
     echo "$TMP_DIR/$FILENAME"
 }
 
@@ -135,23 +140,11 @@ main() {
         install_from_archive "$ARCHIVE"
         rm -rf "$(dirname "$ARCHIVE")"
     else
-        # Production mode - download from GitHub
-        echo "Checking for latest release..."
-        VERSION=$(curl -s "https://api.github.com/repos/$REPO/releases/latest" | grep '"tag_name":' | sed -E 's/.*"([^"]+)".*/\1/')
-        
-        if [ -z "$VERSION" ]; then
-            echo "Error: Could not determine latest version from GitHub"
-            echo ""
-            echo "To test locally, build the binary first:"
-            echo "  cargo build --release"
-            echo "  TEST_MODE=true ./install.sh"
-            exit 1
-        fi
-        
-        echo "Latest version: $VERSION"
+        # Production mode - download from CDN
+        echo "Installing version: $VERSION"
         echo ""
-        
-        ARCHIVE=$(download_from_github "$PLATFORM" "$VERSION")
+
+        ARCHIVE=$(download_binary "$PLATFORM")
         install_from_archive "$ARCHIVE"
         rm -rf "$(dirname "$ARCHIVE")"
     fi
@@ -185,12 +178,15 @@ if [ "$1" = "--help" ] || [ "$1" = "-h" ]; then
     echo "Igris Runtime Installer"
     echo ""
     echo "Usage:"
-    echo "  ./install.sh                    # Download and install from GitHub"
-    echo "  TEST_MODE=true ./install.sh     # Test with local binary"
-    echo "  INSTALL_DIR=~/bin ./install.sh  # Install to custom directory"
+    echo "  curl -sSL igrisinertial.com/install | bash  # Download and install"
+    echo "  VERSION=v1.5.0 ./install.sh                 # Install specific version"
+    echo "  INSTALL_DIR=~/bin ./install.sh              # Install to custom directory"
+    echo "  TEST_MODE=true ./install.sh                 # Test with local binary"
     echo ""
-    echo "Prerequisites for TEST_MODE:"
-    echo "  - Build binary: cargo build --release"
+    echo "Environment variables:"
+    echo "  VERSION      - Release version (default: v1.6.0)"
+    echo "  INSTALL_DIR  - Installation directory (default: ~/.local/bin)"
+    echo "  TEST_MODE    - Use local binary for testing"
     exit 0
 fi
 
