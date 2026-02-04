@@ -81,42 +81,19 @@ export default function AIAgentView() {
         {/* Machine Data - Structured for AI Parsing - Fixed Header */}
         {visibleSections >= 1 && (
           <div className="flex-shrink-0 animate-fadeInUp border-b border-gray-300 dark:border-[#f6f6f4]/10 px-8 py-4 bg-gray-50 dark:bg-[#1b1912]/30 shadow-md">
-            <div className="max-w-4xl mx-auto">
+            <div className="max-w-4xl mx-auto pl-6">
               <p className="text-[#c5b0cd] mb-3 text-sm font-mono">## MACHINE_READABLE_DATA</p>
               
               <div className="text-sm text-gray-700 dark:text-[#a8a898] font-mono space-y-1 mb-6">
                 <p>name:             Igris Inertial</p>
                 <p>product:          Nervous system for autonomous machines and AI agents</p>
-                <p>binary_size:      ~16MB (single static binary)</p>
                 <p>deployment:       Edge, cloud, or air-gapped environments</p>
                 <p>models:           BYOM (local GGUF) + BYOK (cloud APIs)</p>
                 <p>offline:          true (local inference when cloud fails)</p>
               </div>
 
-              <p className="text-[#c5b0cd] mb-2 text-sm font-mono">### API_ENDPOINTS</p>
-              <pre className="text-sm text-gray-700 dark:text-[#a8a898] font-mono whitespace-pre overflow-x-auto">
-{`+---------------------------+--------+--------------------------------+
-| Endpoint                  | Method | Description                    |
-+---------------------------+--------+--------------------------------+
-| /v1/infer                 | POST   | Inference (OpenAI-compatible)  |
-| /v1/chat/completions      | POST   | OpenAI-compatible alias        |
-| /v1/health                | GET    | Health check                   |
-+---------------------------+--------+--------------------------------+`}
-              </pre>
-
               <p className="text-sm text-gray-600 dark:text-[#a8a898] mt-2">
                 Full API reference: <a href="https://docs.igrisinertial.com/runtime/docs/" target="_blank" rel="noopener noreferrer" className="text-blue-600 dark:text-blue-400 hover:underline">docs.igrisinertial.com/runtime/docs/</a>
-              </p>
-
-              <p className="text-[#c5b0cd] mb-2 text-sm font-mono mt-6">### INSTALLATION</p>
-              <div className="text-sm text-gray-700 dark:text-[#a8a898] font-mono space-y-2">
-                <p className="text-[#c5b0cd]"># Download binary (16MB)</p>
-                <p># Download from: github.com/Igris-inertial/Igris/releases</p>
-                <p>chmod +x igris-runtime && ./igris-runtime serve</p>
-              </div>
-              
-              <p className="text-sm text-gray-600 dark:text-[#a8a898] mt-3">
-                Requires: BYOM (local GGUF) or BYOK (dashboard for API keys)
               </p>
             </div>
           </div>
@@ -372,9 +349,6 @@ export default function AIAgentView() {
 +-------------+--------+------------------------------------------+
 | /v1/health  | GET    | Health check                             |
 | /v1/chat    | POST   | Chat completions (OpenAI-compatible)     |
-| /v1/plan    | POST   | Multi-step planning with tools           |
-| /v1/reflect | POST   | Self-critique and response improvement   |
-| /metrics    | GET    | Prometheus metrics                       |
 +-------------+--------+------------------------------------------+`}
             </pre>
           </div>
@@ -465,6 +439,8 @@ export default function AIAgentView() {
         )}
 
       </div>
+    </div>
+    </div>
     </div>
   );
 }
