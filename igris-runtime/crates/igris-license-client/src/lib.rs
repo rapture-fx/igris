@@ -213,7 +213,7 @@ impl LicenseClient {
 
 /// Perform license validation on startup
 pub async fn validate_license_on_startup(license_key: &str) -> Result<ValidationResponse> {
-    info!("🔐 Validating license...");
+    info!("Validating license...");
 
     let client = LicenseClient::new(None);
     let device_id = LicenseClient::generate_device_id();
@@ -222,12 +222,12 @@ pub async fn validate_license_on_startup(license_key: &str) -> Result<Validation
     let validation = client.validate(license_key, &device_id, VERSION).await?;
 
     if !validation.valid {
-        error!("❌ License validation failed");
+        error!("License validation failed");
         return Err(anyhow!("Invalid license"));
     }
 
     info!(
-        "✓ License valid: {} (Tier: {}, Devices: {}/{})",
+        "License valid: {} (Tier: {}, Devices: {}/{})",
         validation.customer_email.as_deref().unwrap_or("unknown"),
         validation.tier.as_deref().unwrap_or("unknown"),
         validation.devices_active.unwrap_or(0),
@@ -238,12 +238,12 @@ pub async fn validate_license_on_startup(license_key: &str) -> Result<Validation
     match client.register_device(license_key, &device_id).await {
         Ok(reg) => {
             info!(
-                "✓ Device registered: {} (Total: {} devices)",
+                "Device registered: {} (Total: {} devices)",
                 device_id, reg.device_count
             );
         }
         Err(e) => {
-            warn!("⚠ Device registration failed: {}", e);
+            warn!("Device registration failed: {}", e);
         }
     }
 
@@ -260,10 +260,10 @@ pub async fn start_heartbeat_loop(license_key: String, device_id: String) {
 
         match client.heartbeat(&license_key, &device_id).await {
             Ok(_) => {
-                info!("💓 Heartbeat sent successfully");
+                info!("Heartbeat sent successfully");
             }
             Err(e) => {
-                warn!("⚠ Heartbeat failed: {}", e);
+                warn!("Heartbeat failed: {}", e);
             }
         }
     }
