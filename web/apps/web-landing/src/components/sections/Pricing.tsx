@@ -117,6 +117,57 @@ function getTierPrice(deviceCount: number): { price: string; perDevice: string }
   }
 }
 
+// Calculate actual monthly cost for a tier based on device count (volume pricing)
+function calculateTierCost(tierName: string, deviceCount: number): { monthly: number; perDevice: number } {
+  if (tierName === "The Seed") {
+    return { monthly: 0, perDevice: 0 };
+  }
+
+  if (tierName === "The Horizon") {
+    // Up to 50 devices
+    const cappedDevices = Math.min(deviceCount, 50);
+    let totalCost = 0;
+
+    // Volume pricing tiers
+    if (cappedDevices <= 10) {
+      totalCost = cappedDevices * 9;
+    } else if (cappedDevices <= 25) {
+      totalCost = 10 * 9 + (cappedDevices - 10) * 7;
+    } else {
+      totalCost = 10 * 9 + 15 * 7 + (cappedDevices - 25) * 5;
+    }
+
+    return { monthly: totalCost, perDevice: totalCost / cappedDevices };
+  }
+
+  if (tierName === "The Infinite") {
+    // Up to 250 devices
+    const cappedDevices = Math.min(deviceCount, 250);
+    let totalCost = 0;
+
+    // Volume pricing tiers
+    if (cappedDevices <= 50) {
+      // Calculate Horizon pricing first
+      if (cappedDevices <= 10) {
+        totalCost = cappedDevices * 9;
+      } else if (cappedDevices <= 25) {
+        totalCost = 10 * 9 + (cappedDevices - 10) * 7;
+      } else {
+        totalCost = 10 * 9 + 15 * 7 + (cappedDevices - 25) * 5;
+      }
+    } else if (cappedDevices <= 100) {
+      totalCost = 10 * 9 + 15 * 7 + 25 * 5 + (cappedDevices - 50) * 4;
+    } else {
+      totalCost = 10 * 9 + 15 * 7 + 25 * 5 + 50 * 4 + (cappedDevices - 100) * 3;
+    }
+
+    return { monthly: totalCost, perDevice: totalCost / cappedDevices };
+  }
+
+  // Enterprise
+  return { monthly: 0, perDevice: 0 };
+}
+
 export default function Pricing() {
   const { openEarlyAccessModal } = useModal();
   const { theme } = useTheme();
@@ -187,6 +238,7 @@ export default function Pricing() {
               {pricingTiers.map((tier, index) => {
                 const isRecommended = tier.name === recommendedTier;
                 const isHighlighted = isRecommended;
+                const cost = calculateTierCost(tier.name, deviceCount);
 
                 return (
                   <div
@@ -207,25 +259,42 @@ export default function Pricing() {
                             </span>
                           )}
                         </div>
-                        
+
                         <p className="text-xs text-gray-500 dark:text-[#a8a898] font-inter mb-4">
                           {tier.description}
                         </p>
 
                         <div className="mb-6">
                           {tier.isContactUs ? (
-                            <div className="flex items-baseline">
+                            <div className="flex flex-col">
                               <span className="text-2xl font-inter text-[#000000] dark:text-[#f6f6f4]">
                                 Custom
                               </span>
+                              <span className="text-xs text-gray-600 dark:text-[#a8a898] font-inter mt-1">
+                                pricing
+                              </span>
+                            </div>
+                          ) : tier.name === "The Seed" ? (
+                            <div className="flex flex-col">
+                              <span className="text-2xl font-inter text-[#000000] dark:text-[#f6f6f4] transition-all duration-300">
+                                $0
+                              </span>
+                              <span className="text-xs text-gray-600 dark:text-[#a8a898] font-inter mt-1">
+                                /forever
+                              </span>
                             </div>
                           ) : (
-                            <div className="flex items-baseline">
-                              <span className="text-2xl font-inter text-[#000000] dark:text-[#f6f6f4]">
-                                {tier.price}
-                              </span>
-                              <span className="ml-2 text-gray-600 dark:text-[#a8a898] font-inter text-sm">
-                                {tier.priceDetail}
+                            <div className="flex flex-col">
+                              <div className="flex items-baseline">
+                                <span className="text-2xl font-inter text-[#000000] dark:text-[#f6f6f4] transition-all duration-300 tabular-nums">
+                                  ${cost.monthly}
+                                </span>
+                                <span className="ml-2 text-gray-600 dark:text-[#a8a898] font-inter text-sm">
+                                  /month
+                                </span>
+                              </div>
+                              <span className="text-xs text-[#c5b0cd] font-inter mt-1 transition-all duration-300 tabular-nums">
+                                ${cost.perDevice.toFixed(2)}/device
                               </span>
                             </div>
                           )}
