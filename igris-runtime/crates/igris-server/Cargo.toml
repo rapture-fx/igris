@@ -36,6 +36,7 @@ igris-core = { path = "../igris-core" }
 igris-routing = { path = "../igris-routing", features = ["local-llm"] }
 igris-emergency = { path = "../igris-emergency" }
 igris-local-llm = { path = "../igris-local-llm" }
+igris-license-client = { path = "../igris-license-client" }
 igris-mcp-server = { path = "../mcp-server" }
 igris-mcp-client = { path = "../mcp-client" }
 igris-reflection = { path = "../igris-reflection" }
