@@ -18,31 +18,31 @@ interface PricingTier {
   highlight?: boolean;
 }
 
-// Three horizons: The Seed, The Horizon, The Infinite
+// Capacity-based pricing tiers
 const pricingTiers: PricingTier[] = [
   {
     name: "The Seed",
     price: "$0",
-    priceDetail: "forever",
+    priceDetail: "/forever",
     description: "Single device. Full platform. All four layers included.",
     devices: "1 device",
     features: [
       "Complete nervous system (all 4 layers)",
-      "Execution: Deterministic runtime with hard limits",
+      "Execution: Deterministic runtime",
       "Intelligence: Local decision routing",
       "Memory: Behavioral tracking",
       "Proof: Cryptographic signing (Ed25519)",
       "Offline operation (indefinite)",
       "Community support"
     ],
-    cta: "Download"
+    cta: "Get Started"
   },
   {
     name: "The Horizon",
-    price: "$49",
-    priceDetail: "/device/month",
+    price: "$149",
+    priceDetail: "/month",
     description: "Fleet awakens. Complete observability. Advanced control.",
-    devices: "Up to 100 devices",
+    devices: "Up to 50 devices",
     features: [
       "Everything in The Seed",
       "Full dashboard access (all four layers visible)",
@@ -51,73 +51,70 @@ const pricingTiers: PricingTier[] = [
       "Performance heatmaps and anomaly detection",
       "Immutable audit trails (7-day retention)",
       "Over-the-air verified updates",
-      "Priority engineering support"
+      "Priority engineering support",
+      "~$3 per device average"
     ],
     cta: "Get Started",
     highlight: true
   },
   {
     name: "The Infinite",
-    price: "Custom",
-    priceDetail: "pricing",
+    price: "$399",
+    priceDetail: "/month",
     description: "Unbounded scale. On-premise deployment. SLA guarantees.",
-    devices: "Unlimited devices",
+    devices: "Up to 250 devices",
     features: [
       "Everything in The Horizon",
-      "On-premise platform deployment",
-      "Custom SLA guarantees",
       "Extended audit retention (90+ days)",
+      "Advanced analytics dashboard",
+      "Custom SLA guarantees",
+      "On-premise deployment option",
       "Dedicated security review support",
       "24/7 engineering team access",
       "Compliance certification assistance",
-      "Custom integration support"
+      "~$1.60 per device average"
+    ],
+    cta: "Get Started"
+  },
+  {
+    name: "Enterprise",
+    price: "Custom",
+    priceDetail: "pricing",
+    description: "Unlimited scale. Full customization. Dedicated support.",
+    devices: "Unlimited devices",
+    features: [
+      "Everything in The Infinite",
+      "Unlimited devices",
+      "Full on-premise platform deployment",
+      "Custom integration support",
+      "Dedicated account manager",
+      "Custom SLA with uptime guarantees",
+      "White-glove onboarding",
+      "Priority feature requests"
     ],
     cta: "Contact",
     isContactUs: true
   }
 ];
 
-// Calculate monthly cost based on device count with volume pricing
-function calculateDeviceCost(deviceCount: number): number {
-  if (deviceCount === 1) return 0; // Free tier
+// Capacity-based pricing tiers
+function getRecommendedTier(deviceCount: number): string {
+  if (deviceCount === 1) return "The Seed";
+  if (deviceCount <= 50) return "The Horizon";
+  if (deviceCount <= 250) return "The Infinite";
+  return "Enterprise";
+}
 
-  let cost = 0;
-  let remaining = deviceCount;
-
-  // Tier 1: First 10 devices at $9/device
-  const tier1 = Math.min(remaining, 10);
-  cost += tier1 * 9;
-  remaining -= tier1;
-
-  if (remaining > 0) {
-    // Tier 2: Next 15 devices (11-25) at $7/device
-    const tier2 = Math.min(remaining, 15);
-    cost += tier2 * 7;
-    remaining -= tier2;
+function getTierPrice(deviceCount: number): { price: string; perDevice: string } {
+  if (deviceCount === 1) {
+    return { price: "$0", perDevice: "Free forever" };
+  } else if (deviceCount <= 50) {
+    return { price: "$149", perDevice: `~$${(149 / deviceCount).toFixed(2)}/device` };
+  } else if (deviceCount <= 250) {
+    return { price: "$399", perDevice: `~$${(399 / deviceCount).toFixed(2)}/device` };
+  } else {
+    return { price: "Custom", perDevice: "Contact sales" };
   }
-
-  if (remaining > 0) {
-    // Tier 3: Next 25 devices (26-50) at $5/device
-    const tier3 = Math.min(remaining, 25);
-    cost += tier3 * 5;
-    remaining -= tier3;
-  }
-
-  if (remaining > 0) {
-    // Tier 4: Next 50 devices (51-100) at $4/device
-    const tier4 = Math.min(remaining, 50);
-    cost += tier4 * 4;
-    remaining -= tier4;
-  }
-
-  if (remaining > 0) {
-    // Tier 5: Next 150 devices (101-250) at $3/device
-    const tier5 = Math.min(remaining, 150);
-    cost += tier5 * 3;
-    remaining -= tier5;
-  }
-
-  return cost;
 }
 
 export default function Pricing() {
@@ -131,7 +128,8 @@ export default function Pricing() {
   }, []);
 
   const isDark = mounted && theme === 'dark';
-  const monthlyCost = calculateDeviceCost(deviceCount);
+  const recommendedTier = getRecommendedTier(deviceCount);
+  const tierPrice = getTierPrice(deviceCount);
 
   return (
     <section id="pricing" className="pt-0 pb-0 bg-[#f6f6f4] dark:bg-dark-bg text-gray-900 dark:text-[#f6f6f4] relative overflow-visible -mt-[72px] transition-colors duration-200">
@@ -174,27 +172,21 @@ export default function Pricing() {
                   />
                   <div className="flex justify-between items-center">
                     <span className="text-xs text-gray-600 dark:text-[#a8a898] font-inter">
-                      {deviceCount === 1 ? (
-                        <span className="text-[#c5b0cd] font-semibold">Free forever</span>
-                      ) : deviceCount > 250 ? (
-                        <span className="text-[#c5b0cd]">Contact for custom pricing</span>
-                      ) : (
-                        <span>
-                          ${monthlyCost}/month
-                          <span className="text-[#c5b0cd] ml-2">
-                            ~${(monthlyCost / deviceCount).toFixed(2)}/device
-                          </span>
-                        </span>
-                      )}
+                      {tierPrice.price}
+                      <span className="text-[#c5b0cd] ml-2">{tierPrice.perDevice}</span>
+                    </span>
+                    <span className="text-xs text-[#c5b0cd] font-inter font-semibold">
+                      Recommended: {recommendedTier}
                     </span>
                   </div>
                 </div>
               </div>
             </div>
 
-            <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-4 max-w-[100rem] mx-auto mb-16">
+            <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-4 gap-4 max-w-[100rem] mx-auto mb-16">
               {pricingTiers.map((tier, index) => {
-                const isHighlighted = tier.highlight;
+                const isRecommended = tier.name === recommendedTier;
+                const isHighlighted = isRecommended;
 
                 return (
                   <div
@@ -209,9 +201,9 @@ export default function Pricing() {
                           <h3 className="text-lg font-inter text-[#000000] dark:text-[#f6f6f4]">
                             {tier.name}
                           </h3>
-                          {isHighlighted && (
+                          {isRecommended && (
                             <span className="text-xs px-2 py-1 bg-[#c5b0cd]/20 text-[#c5b0cd] rounded font-semibold">
-                              Popular
+                              Recommended
                             </span>
                           )}
                         </div>
