@@ -5,6 +5,7 @@ import (
 	"context"
 	"crypto/hmac"
 	"crypto/sha256"
+	"database/sql"
 	"encoding/hex"
 	"encoding/json"
 	"fmt"
@@ -12,6 +13,9 @@ import (
 	"log"
 	"net/http"
 	"time"
+
+	"github.com/Igris-inertial/system/igris-overture/models"
+	"github.com/google/uuid"
 )
 
 // ============================================================================
@@ -54,13 +58,15 @@ type SubscriptionEventData struct {
 // WebhookHandler processes Polar webhook events
 type WebhookHandler struct {
 	client *PolarClient
+	db     *sql.DB
 	logger *log.Logger
 }
 
 // NewWebhookHandler creates a webhook handler
-func NewWebhookHandler(client *PolarClient) *WebhookHandler {
+func NewWebhookHandler(client *PolarClient, db *sql.DB) *WebhookHandler {
 	return &WebhookHandler{
 		client: client,
+		db:     db,
 		logger: log.Default(),
 	}
 }
@@ -166,14 +172,31 @@ func (h *WebhookHandler) handleSubscriptionCreated(event *WebhookEvent) error {
 	// Convert to internal subscription
 	sub := h.convertToSubscription(&data)
 
-	// Update cache
+	// Map price ID to tier
+	tier := h.mapPriceIDToTier(data.PriceID)
+
+	// Generate license key
+	licenseKey, err := models.GenerateLicenseKey(tier)
+	if err != nil {
+		return fmt.Errorf("failed to generate license key: %w", err)
+	}
+
+	// Store license in database
 	ctx := context.Background()
+	if err := h.storeLicense(ctx, licenseKey, tier, data.CustomerEmail, data.CustomerID); err != nil {
+		return fmt.Errorf("failed to store license: %w", err)
+	}
+
+	// Update cache
 	if err := h.client.UpdateSubscription(ctx, sub); err != nil {
 		return fmt.Errorf("failed to update subscription: %w", err)
 	}
 
-	// Send welcome email (async)
-	go h.sendWelcomeEmail(data.CustomerID, data.CustomerEmail, sub)
+	// Send welcome email with license key (async)
+	go h.sendWelcomeEmail(data.CustomerID, data.CustomerEmail, sub, licenseKey)
+
+	h.logger.Printf("[Webhook] License generated: key=%s tier=%s customer=%s",
+		maskKey(licenseKey), tier, data.CustomerEmail)
 
 	return nil
 }
@@ -232,8 +255,14 @@ func (h *WebhookHandler) handleSubscriptionCanceled(event *WebhookEvent) error {
 	sub := h.convertToSubscription(&data)
 	sub.Status = StatusCanceled
 
-	// Update cache
+	// Update license status to suspended
 	ctx := context.Background()
+	if err := h.updateLicenseStatus(ctx, data.CustomerID, "suspended"); err != nil {
+		h.logger.Printf("[Webhook] Failed to update license status: %v", err)
+		// Continue even if license update fails
+	}
+
+	// Update cache
 	if err := h.client.UpdateSubscription(ctx, sub); err != nil {
 		return fmt.Errorf("failed to update subscription: %w", err)
 	}
@@ -257,7 +286,13 @@ func (h *WebhookHandler) handleSubscriptionExpired(event *WebhookEvent) error {
 	sub := h.convertToSubscription(&data)
 	sub.Status = StatusCanceled
 
+	// Update license status to expired
 	ctx := context.Background()
+	if err := h.updateLicenseStatus(ctx, data.CustomerID, "expired"); err != nil {
+		h.logger.Printf("[Webhook] Failed to update license status: %v", err)
+		// Continue even if license update fails
+	}
+
 	if err := h.client.UpdateSubscription(ctx, sub); err != nil {
 		return fmt.Errorf("failed to update subscription: %w", err)
 	}
@@ -332,10 +367,15 @@ func (h *WebhookHandler) convertToSubscription(data *SubscriptionEventData) *Sub
 // ============================================================================
 
 // sendWelcomeEmail sends welcome email to new subscriber
-func (h *WebhookHandler) sendWelcomeEmail(tenantID, email string, sub *Subscription) {
-	h.logger.Printf("[Email] Welcome email queued: tenant=%s email=%s tier=%s",
-		tenantID, email, sub.Metadata["tier"])
+func (h *WebhookHandler) sendWelcomeEmail(tenantID, email string, sub *Subscription, licenseKey string) {
+	h.logger.Printf("[Email] Welcome email queued: tenant=%s email=%s tier=%s license=%s",
+		tenantID, email, sub.Metadata["tier"], maskKey(licenseKey))
 	// TODO: Integrate with email service (Postmark, SendGrid, etc.)
+	// Email should include:
+	// - Welcome message
+	// - License key: licenseKey
+	// - Getting started guide: https://docs.igrisinertial.com/runtime/quickstart
+	// - What's included in their tier
 }
 
 // sendUpgradeEmail sends upgrade congratulations email
@@ -355,4 +395,89 @@ func (h *WebhookHandler) sendCancellationEmail(tenantID, email string) {
 func (h *WebhookHandler) sendTrialEndEmail(tenantID, email string) {
 	h.logger.Printf("[Email] Trial end email queued: tenant=%s email=%s", tenantID, email)
 	// TODO: Integrate with email service
+}
+
+// ============================================================================
+// LICENSE MANAGEMENT
+// ============================================================================
+
+// mapPriceIDToTier maps Polar price ID to tier name
+func (h *WebhookHandler) mapPriceIDToTier(priceID string) string {
+	// TODO: Configure price ID mapping in environment or config
+	// This is a placeholder mapping - actual price IDs come from Polar dashboard
+	tierMapping := map[string]string{
+		// These are example price IDs - replace with actual ones from Polar
+		"price_horizon_monthly":   "horizon",
+		"price_infinite_monthly":  "infinite",
+		"price_enterprise_custom": "enterprise",
+	}
+
+	if tier, ok := tierMapping[priceID]; ok {
+		return tier
+	}
+
+	// Default to seed for unknown price IDs (shouldn't happen)
+	h.logger.Printf("[Webhook] WARNING: Unknown price ID %s, defaulting to seed tier", priceID)
+	return "seed"
+}
+
+// storeLicense creates a new license in the database
+func (h *WebhookHandler) storeLicense(ctx context.Context, licenseKey, tier, customerEmail, customerID string) error {
+	if h.db == nil {
+		return fmt.Errorf("database connection not configured")
+	}
+
+	licenseID := uuid.New().String()
+	devicesLimit := models.GetDevicesLimit(tier)
+
+	_, err := h.db.ExecContext(ctx, `
+		INSERT INTO licenses (id, license_key, tier, customer_email, customer_id, devices_limit, status, created_at)
+		VALUES ($1, $2, $3, $4, $5, $6, 'active', NOW())
+		ON CONFLICT (license_key) DO UPDATE SET
+			tier = EXCLUDED.tier,
+			customer_email = EXCLUDED.customer_email,
+			customer_id = EXCLUDED.customer_id,
+			devices_limit = EXCLUDED.devices_limit,
+			status = 'active'
+	`, licenseID, licenseKey, tier, customerEmail, customerID, devicesLimit)
+
+	if err != nil {
+		return fmt.Errorf("failed to insert license: %w", err)
+	}
+
+	h.logger.Printf("[License] Stored: id=%s tier=%s email=%s devices_limit=%d",
+		licenseID, tier, customerEmail, devicesLimit)
+
+	return nil
+}
+
+// updateLicenseStatus updates license status (for cancellation/expiration)
+func (h *WebhookHandler) updateLicenseStatus(ctx context.Context, customerID, status string) error {
+	if h.db == nil {
+		return fmt.Errorf("database connection not configured")
+	}
+
+	result, err := h.db.ExecContext(ctx, `
+		UPDATE licenses
+		SET status = $1
+		WHERE customer_id = $2
+	`, status, customerID)
+
+	if err != nil {
+		return fmt.Errorf("failed to update license status: %w", err)
+	}
+
+	rowsAffected, _ := result.RowsAffected()
+	h.logger.Printf("[License] Updated status: customer=%s status=%s rows=%d",
+		customerID, status, rowsAffected)
+
+	return nil
+}
+
+// maskKey masks a license key for logging
+func maskKey(key string) string {
+	if len(key) <= 10 {
+		return "****"
+	}
+	return key[:8] + "****" + key[len(key)-4:]
 }

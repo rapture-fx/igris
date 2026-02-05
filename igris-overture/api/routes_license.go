@@ -160,9 +160,31 @@ func (h *LicenseHandler) ValidateLicense(c *fiber.Ctx) error {
 	features := models.GetFeaturesForTier(license.Tier)
 	cloudRequestsLimit := models.GetCloudRequestsLimit(license.Tier)
 
-	// TODO: Get actual cloud requests used this month from usage tracking
-	// For now, return 0 - implement usage tracking in separate PR
-	cloudRequestsUsed := 0
+	// Get actual cloud requests used this month from usage tracking
+	var cloudRequestsUsed int
+	err = h.db.QueryRow(`
+		SELECT COALESCE(get_monthly_cloud_requests($1), 0)
+	`, license.ID).Scan(&cloudRequestsUsed)
+
+	if err != nil {
+		log.Error().Err(err).Str("license_id", license.ID).Msg("[License] Failed to get cloud request usage")
+		cloudRequestsUsed = 0 // Fail open - don't block validation if usage query fails
+	}
+
+	// Check cloud request quota (only if not unlimited)
+	if cloudRequestsLimit > 0 && cloudRequestsUsed >= cloudRequestsLimit {
+		return c.Status(fiber.StatusForbidden).JSON(models.ValidationResponse{
+			Valid:              false,
+			Error:              "cloud_quota_exceeded",
+			Message:            "Cloud request quota exceeded for this month. Upgrade your plan for higher limits.",
+			Tier:               license.Tier,
+			DevicesLimit:       license.DevicesLimit,
+			DevicesActive:      activeDevices,
+			CloudRequestsLimit: cloudRequestsLimit,
+			CloudRequestsUsed:  cloudRequestsUsed,
+			UpgradeURL:         "https://igrisinertial.com/pricing",
+		})
+	}
 
 	// Return successful validation
 	response := models.ValidationResponse{
