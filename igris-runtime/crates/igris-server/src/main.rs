@@ -1563,6 +1563,35 @@ async fn main() -> anyhow::Result<()> {
 
     info!("Config loaded successfully");
 
+    // License validation (if enabled)
+    let license_key = std::env::var("IGRIS_LICENSE_KEY").ok();
+
+    if let Some(key) = license_key {
+        info!("🔐 License key provided, validating...");
+        match igris_license_client::validate_license_on_startup(&key).await {
+            Ok(validation) => {
+                info!("✓ License validated successfully");
+                // Start heartbeat loop in background
+                let key_clone = key.clone();
+                let device_id = igris_license_client::LicenseClient::generate_device_id();
+                tokio::spawn(async move {
+                    igris_license_client::start_heartbeat_loop(key_clone, device_id).await;
+                });
+            }
+            Err(e) => {
+                error!("❌ License validation failed: {}", e);
+                error!("Get your license at: https://igrisinertial.com/pricing");
+                error!("Set license key: export IGRIS_LICENSE_KEY=lic_xxxxx_xxxxx");
+                // For now, allow startup with a warning - will enforce in future version
+                warn!("⚠ Continuing startup without valid license (enforcement coming soon)");
+            }
+        }
+    } else {
+        warn!("⚠ No license key provided (IGRIS_LICENSE_KEY not set)");
+        warn!("Get your FREE license (1 device) at: https://igrisinertial.com/signup");
+        warn!("License will be required in future versions");
+    }
+
     // Validate tool configuration (RUNTIME-01: Secure Runtime Defaults)
     if let Some(tools_cfg) = &config.tools {
         if let Err(e) = tools_cfg.validate() {
