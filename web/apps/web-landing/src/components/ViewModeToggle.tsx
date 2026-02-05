@@ -2,10 +2,12 @@
 
 import React from 'react';
 import { useViewMode } from '../contexts/ViewModeContext';
-import { User, Bot } from 'lucide-react';
+import { User, Bot, Sun, Moon } from 'lucide-react';
+import { useTheme } from 'next-themes';
 
 export default function ViewModeToggle() {
   const { viewMode, setViewMode } = useViewMode();
+  const { theme, setTheme } = useTheme();
 
   return (
     <div className="fixed bottom-4 right-4 z-50">
@@ -31,6 +33,13 @@ export default function ViewModeToggle() {
           >
             <Bot className="h-3 w-3" />
             AI
+          </button>
+          <div className="w-px h-4 bg-gray-300 dark:bg-[#f6f6f4]/20" />
+          <button
+            onClick={() => setTheme(theme === 'dark' ? 'light' : 'dark')}
+            className="flex items-center gap-1.5 px-3 py-1.5 text-gray-500 dark:text-[#6a6a60] hover:text-gray-700 dark:hover:text-[#a8a898] transition-all duration-200 text-xs font-inter"
+          >
+            {theme === 'dark' ? <Sun className="h-3 w-3" /> : <Moon className="h-3 w-3" />}
           </button>
       </div>
     </div>

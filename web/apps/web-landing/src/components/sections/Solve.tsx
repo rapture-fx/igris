@@ -18,9 +18,7 @@ export default function Solve() {
   return (
     <section className="bg-[#f6f6f4] dark:bg-dark-bg text-gray-900 dark:text-[#f6f6f4] transition-colors duration-200">
       <div className="mx-auto max-w-[1300px] px-4 sm:px-6 lg:px-8">
-        <div className="relative px-2 md:px-8 lg:px-12 bg-[#f6f6f4] dark:bg-[#1b1912] border-t border-l border-r border-gray-300 dark:border-[#f6f6f4]/5 flex flex-row items-center gap-2 md:gap-4 py-2" style={{
-          borderBottomWidth: '0'
-        }}>
+        <div className="relative px-2 md:px-8 lg:px-12 bg-[#f6f6f4] dark:bg-[#1b1912] border-l border-r border-gray-300 dark:border-[#f6f6f4]/10 flex flex-row items-center gap-2 md:gap-4 py-2">
           {/* Static title */}
           <span className="text-[10px] md:text-sm lg:text-base font-inter font-normal text-[#000000] dark:text-[#f6f6f4] flex-shrink-0 whitespace-nowrap" style={{ fontWeight: 300 }}>
             The Challenge We Solve :
@@ -33,7 +31,7 @@ export default function Solve() {
                 {items.map((item, index) => (
                   <span
                     key={`first-${index}`}
-                    className="inline-block mx-1 md:mx-2 px-2 md:px-3 py-0.5 md:py-1 border border-gray-300 dark:border-[#f6f6f4]/5 min-w-[120px] md:min-w-[140px] text-center font-normal flex-shrink-0 cursor-pointer hover:bg-gray-50 dark:hover:bg-[#2a2520] transition-colors text-xs md:text-sm whitespace-nowrap"
+                    className="inline-block mx-1 md:mx-2 px-2 md:px-3 py-0.5 md:py-1 border border-gray-300 dark:border-[#f6f6f4]/10 rounded-sm min-w-[120px] md:min-w-[140px] text-center font-normal flex-shrink-0 cursor-pointer hover:bg-gray-50 dark:hover:bg-[#2a2520] transition-colors text-xs md:text-sm whitespace-nowrap"
                     style={{ fontWeight: 300 }}
                     title=""
                   >
@@ -44,7 +42,7 @@ export default function Solve() {
                 {items.map((item, index) => (
                   <span
                     key={`second-${index}`}
-                    className="inline-block mx-1 md:mx-2 px-2 md:px-3 py-0.5 md:py-1 border border-gray-300 dark:border-[#f6f6f4]/5 min-w-[120px] md:min-w-[140px] text-center font-normal flex-shrink-0 cursor-pointer hover:bg-gray-50 dark:hover:bg-[#2a2520] transition-colors text-xs md:text-sm whitespace-nowrap"
+                    className="inline-block mx-1 md:mx-2 px-2 md:px-3 py-0.5 md:py-1 border border-gray-300 dark:border-[#f6f6f4]/10 rounded-sm min-w-[120px] md:min-w-[140px] text-center font-normal flex-shrink-0 cursor-pointer hover:bg-gray-50 dark:hover:bg-[#2a2520] transition-colors text-xs md:text-sm whitespace-nowrap"
                     style={{ fontWeight: 300 }}
                     title=""
                   >

@@ -20,7 +20,7 @@ export default function Products() {
 
           {/* Title Section - Shows first on mobile, last on desktop */}
           <div className="mb-6 md:mb-0 md:hidden text-left" style={{ paddingTop: '3rem', paddingBottom: '3rem' }}>
-            <p className="text-base text-[#c5b0cd] mb-2" style={{ fontFamily: 'Roboto Mono, monospace', letterSpacing: '0.05em' }}>
+            <p className="text-base text-[#85612c] dark:text-[#c5b0cd] mb-2" style={{ fontFamily: 'Roboto Mono, monospace', letterSpacing: '0.05em' }}>
               01. PRODUCT
             </p>
             <h2 className="text-lg md:text-xl lg:text-2xl font-inter mb-4 text-[#000000] dark:text-[#f6f6f4]">
@@ -60,7 +60,7 @@ export default function Products() {
               </div>
 
               {/* Four layers working together */}
-              <div className="border border-gray-300 dark:border-[#f6f6f4]/5 p-6 bg-gray-50 dark:bg-[#1b1912]/50">
+              <div className="border border-gray-300 dark:border-[#f6f6f4]/5 p-6 bg-[#f6f6f4] dark:bg-[#1b1912]/50">
                 <h3 className="text-base font-inter mb-3 text-[#000000] dark:text-[#f6f6f4]">
                   Four layers. One nervous system.
                 </h3>
@@ -127,7 +127,7 @@ export default function Products() {
                 </div>
 
                 {/* Four layers working together */}
-                <div className="border border-gray-300 dark:border-[#f6f6f4]/5 p-6 mb-12 bg-gray-50 dark:bg-[#1b1912]/50">
+                <div className="border border-gray-300 dark:border-[#f6f6f4]/5 p-6 mb-12 bg-[#f6f6f4] dark:bg-[#1b1912]/50">
                   <h3 className="text-base font-inter mb-3 text-[#000000] dark:text-[#f6f6f4]">
                     Four layers. One nervous system.
                   </h3>
@@ -158,7 +158,7 @@ export default function Products() {
 
             {/* Right Column: Title and Description (Desktop only) */}
             <div className="hidden md:flex md:col-span-1 md:border-l flex-col justify-start dark:border-[#f6f6f4]/5" style={{ paddingTop: '3rem', paddingBottom: '3rem', paddingLeft: '1rem' }}>
-              <p className="text-base text-[#c5b0cd] mb-2" style={{ fontFamily: 'Roboto Mono, monospace', letterSpacing: '0.05em' }}>
+              <p className="text-base text-[#85612c] dark:text-[#c5b0cd] mb-2" style={{ fontFamily: 'Roboto Mono, monospace', letterSpacing: '0.05em' }}>
                 01. PRODUCT
               </p>
               <h2 className="text-lg md:text-xl lg:text-2xl font-inter mb-4 text-[#000000] dark:text-[#f6f6f4]">

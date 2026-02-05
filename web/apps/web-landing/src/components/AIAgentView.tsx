@@ -64,7 +64,7 @@ export default function AIAgentView() {
                   <span className="text-gray-600 dark:text-[#a8a898]">{step}</span>
                 )}
                 {index === loadingSteps.length - 1 && (
-                  <span className="text-[#c5b0cd]">{step}</span>
+                  <span className="text-[#85612c] dark:text-[#c5b0cd]">{step}</span>
                 )}
               </div>
             ))}
@@ -81,9 +81,9 @@ export default function AIAgentView() {
         {/* Machine Data - Structured for AI Parsing - Fixed Header */}
         {visibleSections >= 1 && (
           <div className="flex-shrink-0 animate-fadeInUp py-4 bg-[#f6f6f4] dark:bg-[#1b1912]/30">
-            <div className="max-w-4xl mx-auto p-8 pb-4">
+            <div className="max-w-4xl mx-auto px-8 pb-4">
               <div className="pl-4 pb-4 border-l border-gray-300 dark:border-[#f6f6f4]/10">
-              <p className="text-[#c5b0cd] mb-3 text-sm font-mono">## MACHINE_READABLE_DATA</p>
+              <p className="text-[#85612c] dark:text-[#c5b0cd] mb-3 text-sm font-mono">## MACHINE_READABLE_DATA</p>
               
               <div className="text-sm text-gray-700 dark:text-[#a8a898] font-mono space-y-1 mb-6">
                 <p>name:             Igris Inertial</p>
@@ -118,7 +118,7 @@ export default function AIAgentView() {
         {/* Solve */}
         {visibleSections >= 2 && (
           <div className="animate-fadeInUp border-l border-gray-300 dark:border-[#f6f6f4]/10 pl-4">
-            <p className="text-[#c5b0cd] mb-3">## THE CHALLENGE WE SOLVE</p>
+            <p className="text-[#85612c] dark:text-[#c5b0cd] mb-3">## THE CHALLENGE WE SOLVE</p>
             <div className="text-gray-600 dark:text-[#a8a898] text-sm space-y-1">
               <p>- Pure LLM hallucinations</p>
               <p>- Non-deterministic AI behavior</p>
@@ -135,7 +135,7 @@ export default function AIAgentView() {
         {/* Products */}
         {visibleSections >= 3 && (
           <div className="animate-fadeInUp border-l border-gray-300 dark:border-[#f6f6f4]/10 pl-4">
-            <p className="text-[#c5b0cd] mb-3">## 01. PRODUCT</p>
+            <p className="text-[#85612c] dark:text-[#c5b0cd] mb-3">## 01. PRODUCT</p>
             <p className="text-[#000000] dark:text-[#f6f6f4] mb-3">### The complete nervous system for your AI fleet.</p>
 
             <p className="text-sm mb-4 text-gray-600 dark:text-[#a8a898] leading-relaxed">
@@ -156,7 +156,7 @@ export default function AIAgentView() {
         {/* Core Capabilities - The Architecture */}
         {visibleSections >= 4 && (
           <div className="animate-fadeInUp border-l border-gray-300 dark:border-[#f6f6f4]/10 pl-4">
-            <p className="text-[#c5b0cd] mb-3">## 02. THE ARCHITECTURE</p>
+            <p className="text-[#85612c] dark:text-[#c5b0cd] mb-3">## 02. THE ARCHITECTURE</p>
             <p className="text-[#000000] dark:text-[#f6f6f4] mb-3">### Every layer working in harmony</p>
             <p className="text-sm mb-6 text-gray-600 dark:text-[#a8a898]">From edge to cloud. From one to thousands.</p>
 
@@ -188,7 +188,7 @@ export default function AIAgentView() {
         {/* Deployment */}
         {visibleSections >= 5 && (
           <div className="animate-fadeInUp border-l border-gray-300 dark:border-[#f6f6f4]/10 pl-4">
-            <p className="text-[#c5b0cd] mb-3">## 03. DEPLOYMENT</p>
+            <p className="text-[#85612c] dark:text-[#c5b0cd] mb-3">## 03. DEPLOYMENT</p>
             <p className="text-[#000000] dark:text-[#f6f6f4] mb-3">### Deploy. Verify. Optimize.</p>
             <p className="text-sm mb-6 text-gray-600 dark:text-[#a8a898]">Hybrid behavior trees meet LLM reasoning. Deterministic execution meets cryptographic proof.</p>
 
@@ -229,7 +229,7 @@ export default function AIAgentView() {
         {/* Proof - Security */}
         {visibleSections >= 6 && (
           <div className="animate-fadeInUp border-l border-gray-300 dark:border-[#f6f6f4]/10 pl-4">
-            <p className="text-[#c5b0cd] mb-3">## 04. PROOF</p>
+            <p className="text-[#85612c] dark:text-[#c5b0cd] mb-3">## 04. PROOF</p>
             <p className="text-[#000000] dark:text-[#f6f6f4] mb-3">### Trust nothing. Verify everything.</p>
             <p className="text-sm mb-6 text-gray-600 dark:text-[#a8a898]">
               When your AI is running in a barn you visit twice a year, or on a device you shipped to a customer, you can't trust the environment. So we made the AI prove itself. Every decision leaves a trail. Every action carries a signature. Every claim can be verified.
@@ -270,7 +270,7 @@ export default function AIAgentView() {
         {/* Manifesto */}
         {visibleSections >= 7 && (
           <div className="animate-fadeInUp border-l border-gray-300 dark:border-[#f6f6f4]/10 pl-4">
-            <p className="text-[#c5b0cd] mb-3">## MANIFESTO</p>
+            <p className="text-[#85612c] dark:text-[#c5b0cd] mb-3">## MANIFESTO</p>
             <p className="text-[#000000] dark:text-[#f6f6f4] mb-3">### The nervous system for machines and AI agents.</p>
 
             <p className="text-sm mb-4 text-gray-600 dark:text-[#a8a898] leading-relaxed">
@@ -286,7 +286,7 @@ export default function AIAgentView() {
         {/* Pricing */}
         {visibleSections >= 8 && (
           <div className="animate-fadeInUp border-l border-gray-300 dark:border-[#f6f6f4]/10 pl-4">
-            <p className="text-[#c5b0cd] mb-3">## PRICING</p>
+            <p className="text-[#85612c] dark:text-[#c5b0cd] mb-3">## PRICING</p>
             <p className="text-[#000000] dark:text-[#f6f6f4] mb-3">### Pricing per device. Dashboard free.</p>
             <p className="text-sm mb-6 text-gray-600 dark:text-[#a8a898]">
               The complete nervous system—execution, intelligence, memory, and proof—included in every tier. Dashboard unlocks advanced features as you scale.
@@ -343,7 +343,7 @@ export default function AIAgentView() {
         {/* API Endpoints */}
         {visibleSections >= 9 && (
           <div className="animate-fadeInUp border-l border-gray-300 dark:border-[#f6f6f4]/10 pl-4">
-            <p className="text-[#c5b0cd] mb-3 text-sm font-mono">## API_ENDPOINTS</p>
+            <p className="text-[#85612c] dark:text-[#c5b0cd] mb-3 text-sm font-mono">## API_ENDPOINTS</p>
             <p className="text-sm mb-4 text-gray-600 dark:text-[#a8a898]">OpenAI-compatible inference endpoints</p>
             <pre className="text-sm text-gray-700 dark:text-[#a8a898] font-mono whitespace-pre overflow-x-auto">
 {`+-------------+--------+------------------------------------------+
@@ -359,14 +359,14 @@ export default function AIAgentView() {
         {/* Quick Installation */}
         {visibleSections >= 9 && (
           <div className="animate-fadeInUp border-l border-gray-300 dark:border-[#f6f6f4]/10 pl-4">
-            <p className="text-[#c5b0cd] mb-3 text-sm font-mono">## QUICK_INSTALL</p>
+            <p className="text-[#85612c] dark:text-[#c5b0cd] mb-3 text-sm font-mono">## QUICK_INSTALL</p>
             <p className="text-sm mb-4 text-gray-600 dark:text-[#a8a898]">Download and run in one command</p>
             <div className="text-sm text-gray-700 dark:text-[#a8a898] font-mono space-y-2">
-              <p className="text-[#c5b0cd]"># Download binary</p>
+                <p className="text-[#85612c] dark:text-[#c5b0cd]"># Download binary</p>
               <p>curl -sSL https://github.com/igrisinertial/igris-runtime/releases/latest/download/igris-runtime -o igris-runtime</p>
-              <p className="text-[#c5b0cd] mt-2"># Make executable and run</p>
+                <p className="text-[#85612c] dark:text-[#c5b0cd] mt-2"># Make executable and run</p>
               <p>chmod +x igris-runtime && ./igris-runtime serve</p>
-              <p className="text-[#c5b0cd] mt-2"># Or use Docker</p>
+                <p className="text-[#85612c] dark:text-[#c5b0cd] mt-2"># Or use Docker</p>
               <p>docker run -p 8080:8080 igris/inertial:latest</p>
             </div>
           </div>
@@ -375,7 +375,7 @@ export default function AIAgentView() {
         {/* Changelog */}
         {visibleSections >= 9 && (
           <div className="animate-fadeInUp border-l border-gray-300 dark:border-[#f6f6f4]/10 pl-4">
-            <p className="text-[#c5b0cd] mb-3 text-sm font-mono">## CHANGELOG</p>
+            <p className="text-[#85612c] dark:text-[#c5b0cd] mb-3 text-sm font-mono">## CHANGELOG</p>
             <div className="text-sm text-gray-700 dark:text-[#a8a898] font-mono space-y-1">
               <p>v1.6.1 (current) - Production-ready: local inference, SSE streaming, tool calling, security hardening</p>
               <p>v1.4.0 (Feb 2026) - Multi-model registry (6 models), reflection loops, benchmarking suite</p>
@@ -419,7 +419,7 @@ export default function AIAgentView() {
         {/* Closing */}
         {visibleSections >= 9 && (
           <div className="animate-fadeInUp border-l border-gray-300 dark:border-[#f6f6f4]/10 pl-4">
-            <p className="text-[#c5b0cd] mb-3">## GET STARTED</p>
+            <p className="text-[#85612c] dark:text-[#c5b0cd] mb-3">## GET STARTED</p>
             <p className="text-[#000000] dark:text-[#f6f6f4] mb-4">### One platform. Four layers. Complete control from edge to cloud.</p>
             <p className="text-sm mb-2 text-gray-600 dark:text-[#a8a898]">Documentation: <a href="https://docs.igrisinertial.com/runtime/docs/" target="_blank" rel="noopener noreferrer" className="text-blue-600 dark:text-blue-400 hover:underline">https://docs.igrisinertial.com/runtime/docs/</a></p>
             <p className="text-sm mb-2 text-gray-600 dark:text-[#a8a898]">GitHub: <a href="https://github.com/igrisinertial" target="_blank" rel="noopener noreferrer" className="text-blue-600 dark:text-blue-400 hover:underline">https://github.com/igrisinertial</a></p>

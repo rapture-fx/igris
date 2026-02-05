@@ -1563,7 +1563,7 @@ async fn main() -> anyhow::Result<()> {
 
     info!("Config loaded successfully");
 
-    // License validation (if enabled)
+    // License validation (REQUIRED)
     let license_key = std::env::var("IGRIS_LICENSE_KEY").ok();
 
     if let Some(key) = license_key {
@@ -1571,6 +1571,14 @@ async fn main() -> anyhow::Result<()> {
         match igris_license_client::validate_license_on_startup(&key).await {
             Ok(validation) => {
                 info!("License validated successfully");
+                info!("Tier: {} | Devices: {}/{} | Cloud requests: {}/{}/month",
+                    validation.tier.as_deref().unwrap_or("unknown"),
+                    validation.devices_active.unwrap_or(0),
+                    validation.devices_limit.unwrap_or(0),
+                    validation.cloud_requests_used.unwrap_or(0),
+                    validation.cloud_requests_limit.unwrap_or(0)
+                );
+
                 // Start heartbeat loop in background
                 let key_clone = key.clone();
                 let device_id = igris_license_client::LicenseClient::generate_device_id();
@@ -1579,17 +1587,41 @@ async fn main() -> anyhow::Result<()> {
                 });
             }
             Err(e) => {
-                error!("License validation failed: {}", e);
-                error!("Get your license at: https://igrisinertial.com/pricing");
-                error!("Set license key: export IGRIS_LICENSE_KEY=lic_xxxxx_xxxxx");
-                // For now, allow startup with a warning - will enforce in future version
-                warn!("Continuing startup without valid license (enforcement coming soon)");
+                error!("────────────────────────────────────────────────");
+                error!("LICENSE VALIDATION FAILED");
+                error!("────────────────────────────────────────────────");
+                error!("{}", e);
+                error!("");
+                error!("Igris Platform requires a valid license to run.");
+                error!("");
+                error!("Get your FREE license (1 device + 50k cloud requests/month):");
+                error!("→ https://igrisinertial.com/signup");
+                error!("");
+                error!("Or view paid tiers with more devices + cloud quota:");
+                error!("→ https://igrisinertial.com/pricing");
+                error!("");
+                error!("Set your license key:");
+                error!("export IGRIS_LICENSE_KEY=lic_xxxxx_xxxxx");
+                error!("────────────────────────────────────────────────");
+                std::process::exit(1);
             }
         }
     } else {
-        warn!("No license key provided (IGRIS_LICENSE_KEY not set)");
-        warn!("Get your FREE license (1 device) at: https://igrisinertial.com/signup");
-        warn!("License will be required in future versions");
+        error!("────────────────────────────────────────────────");
+        error!("NO LICENSE KEY PROVIDED");
+        error!("────────────────────────────────────────────────");
+        error!("Igris Platform requires a license key to run.");
+        error!("");
+        error!("Get your FREE license (1 device + 50k cloud requests/month):");
+        error!("→ https://igrisinertial.com/signup");
+        error!("");
+        error!("Already have a license? Set it:");
+        error!("export IGRIS_LICENSE_KEY=lic_xxxxx_xxxxx");
+        error!("");
+        error!("View all tiers:");
+        error!("→ https://igrisinertial.com/pricing");
+        error!("────────────────────────────────────────────────");
+        std::process::exit(1);
     }
 
     // Validate tool configuration (RUNTIME-01: Secure Runtime Defaults)
