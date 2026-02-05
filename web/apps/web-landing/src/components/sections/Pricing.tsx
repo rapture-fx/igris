@@ -77,16 +77,61 @@ const pricingTiers: PricingTier[] = [
   }
 ];
 
+// Calculate monthly cost based on device count with volume pricing
+function calculateDeviceCost(deviceCount: number): number {
+  if (deviceCount === 1) return 0; // Free tier
+
+  let cost = 0;
+  let remaining = deviceCount;
+
+  // Tier 1: First 10 devices at $9/device
+  const tier1 = Math.min(remaining, 10);
+  cost += tier1 * 9;
+  remaining -= tier1;
+
+  if (remaining > 0) {
+    // Tier 2: Next 15 devices (11-25) at $7/device
+    const tier2 = Math.min(remaining, 15);
+    cost += tier2 * 7;
+    remaining -= tier2;
+  }
+
+  if (remaining > 0) {
+    // Tier 3: Next 25 devices (26-50) at $5/device
+    const tier3 = Math.min(remaining, 25);
+    cost += tier3 * 5;
+    remaining -= tier3;
+  }
+
+  if (remaining > 0) {
+    // Tier 4: Next 50 devices (51-100) at $4/device
+    const tier4 = Math.min(remaining, 50);
+    cost += tier4 * 4;
+    remaining -= tier4;
+  }
+
+  if (remaining > 0) {
+    // Tier 5: Next 150 devices (101-250) at $3/device
+    const tier5 = Math.min(remaining, 150);
+    cost += tier5 * 3;
+    remaining -= tier5;
+  }
+
+  return cost;
+}
+
 export default function Pricing() {
   const { openEarlyAccessModal } = useModal();
   const { theme } = useTheme();
   const [mounted, setMounted] = useState(false);
+  const [deviceCount, setDeviceCount] = useState(10);
 
   useEffect(() => {
     setMounted(true);
   }, []);
 
   const isDark = mounted && theme === 'dark';
+  const monthlyCost = calculateDeviceCost(deviceCount);
 
   return (
     <section id="pricing" className="pt-0 pb-0 bg-[#f6f6f4] dark:bg-dark-bg text-gray-900 dark:text-[#f6f6f4] relative overflow-visible -mt-[72px] transition-colors duration-200">
@@ -101,6 +146,50 @@ export default function Pricing() {
               <p className="text-sm md:text-base text-gray-600 dark:text-[#a8a898] font-inter max-w-2xl mx-auto mb-4">
                 The complete nervous system—execution, intelligence, memory, and proof—included in every tier. Dashboard unlocks advanced features as you scale.
               </p>
+            </div>
+
+            {/* Device Count Slider */}
+            <div className="mb-12 max-w-lg mx-auto">
+              <div className="px-4">
+                <label className="text-sm text-gray-900 dark:text-[#f6f6f4] font-inter mb-3 block text-center">
+                  Adjust to see pricing for your fleet size. Volume discounts applied automatically.
+                </label>
+                <div className="max-w-sm mx-auto">
+                  <div className="text-center mb-4">
+                    <span className="text-3xl font-inter font-bold text-[#000000] dark:text-[#f6f6f4]">
+                      {deviceCount}
+                    </span>
+                    <span className="text-sm text-gray-600 dark:text-[#a8a898] ml-2">
+                      {deviceCount === 1 ? 'device' : 'devices'}
+                    </span>
+                  </div>
+                  <input
+                    type="range"
+                    min={1}
+                    max={250}
+                    step={1}
+                    value={deviceCount}
+                    onChange={(e) => setDeviceCount(parseInt(e.target.value))}
+                    className="pricing-slider w-full appearance-none cursor-pointer mb-3"
+                  />
+                  <div className="flex justify-between items-center">
+                    <span className="text-xs text-gray-600 dark:text-[#a8a898] font-inter">
+                      {deviceCount === 1 ? (
+                        <span className="text-[#c5b0cd] font-semibold">Free forever</span>
+                      ) : deviceCount > 250 ? (
+                        <span className="text-[#c5b0cd]">Contact for custom pricing</span>
+                      ) : (
+                        <span>
+                          ${monthlyCost}/month
+                          <span className="text-[#c5b0cd] ml-2">
+                            ~${(monthlyCost / deviceCount).toFixed(2)}/device
+                          </span>
+                        </span>
+                      )}
+                    </span>
+                  </div>
+                </div>
+              </div>
             </div>
 
             <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-4 max-w-[100rem] mx-auto mb-16">
