@@ -87,15 +87,15 @@ async function install() {
     // Clean up tar file
     fs.unlinkSync(tarPath);
 
-    console.log('✓ Igris Runtime installed successfully!');
+    console.log('Igris Runtime installed successfully!');
     console.log('');
-    console.log('🚀 Get Started:');
+    console.log('Get Started:');
     console.log('  1. Get your FREE license (1 device): https://igrisinertial.com/signup');
     console.log('  2. Set license key: export IGRIS_LICENSE_KEY=lic_xxxxx_xxxxx');
     console.log('  3. Run: npx @igris/runtime serve');
     console.log('');
-    console.log('📖 Documentation: https://docs.igrisinertial.com');
-    console.log('💰 Pricing: https://igrisinertial.com/pricing');
+    console.log('Documentation: https://docs.igrisinertial.com');
+    console.log('Pricing: https://igrisinertial.com/pricing');
   } catch (error) {
     console.error('Installation failed:', error.message);
     process.exit(1);
