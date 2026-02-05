@@ -356,62 +356,181 @@ export default function SettingsPage() {
 
           {/* Billing Tab */}
           <TabsContent value="billing" className="space-y-6">
-            {/* Current Plan */}
+            {/* Current Subscription */}
             <div className="space-y-4">
               <div className="pb-4 border-b border-border-light dark:border-[#2d2a24]">
                 <div className="flex items-center gap-2 text-xs font-semibold text-gray-900 dark:text-[#f6f6f4] font-inter">
                   <CreditCard className="h-4 w-4 text-gray-900 dark:text-[#f6f6f4]" />
-                  Current Plan
+                  Your Igris Subscription
                 </div>
                 <p className="text-xs text-gray-600 dark:text-gray-400 mt-1">
-                  Your subscription details
+                  Cloud routing and edge devices in one plan
                 </p>
               </div>
-              <div className="space-y-4">
-                <div className="flex items-center justify-between">
-                  <div>
-                    <div className="flex items-center gap-3">
+
+              {/* Subscription Details */}
+              <div className="p-6 rounded-lg bg-beige-primary dark:bg-[#1b1912] border border-border-light dark:border-[#2d2a24] space-y-4">
+                <div>
+                  <div className="flex items-center justify-between mb-4">
+                    <div>
                       <h3 className="text-base font-bold text-gray-900 dark:text-[#f6f6f4] font-inter">
-                        {tenant?.plan || 'Develop'} Plan
+                        The Horizon
                       </h3>
-                      {tenant?.metadata?.trial_active && (
-                        <span className="px-3 py-1 rounded-full text-xs font-medium bg-gray-100 dark:bg-gray-800 text-gray-800 dark:text-gray-300">
-                          Trial Active
-                        </span>
-                      )}
+                      <p className="text-xs text-gray-900 dark:text-[#f6f6f4] font-medium mt-1">
+                        $149/month
+                      </p>
                     </div>
-                    <p className="text-xs text-gray-900 dark:text-[#f6f6f4] font-medium mt-2">
-                      {tenant?.metadata?.trial_active ? (
-                        <>
-                          14-day {tenant?.plan || 'Develop'} trial · Ends in {tenant?.metadata?.trial_days_left || 'N/A'} days
-                        </>
-                      ) : (
-                        <>
-                          {tenant?.plan === 'Develop' && '$149/month'}
-                          {tenant?.plan === 'Growth' && '$899/month'}
-                          {tenant?.plan === 'Scale' && '$2,999/month'}
-                        </>
-                      )}
-                    </p>
-                    <p className="text-xs text-gray-600 dark:text-gray-400 mt-1">
-                      Active since {tenant?.created_at ? formatDate(tenant.created_at) : 'N/A'}
-                    </p>
+                    <Button variant="outline" size="sm" className="h-7 px-3 text-xs" onClick={handlePlanUpgrade}>
+                      Upgrade Plan
+                    </Button>
                   </div>
-                  <Button variant="outline" size="sm" className="h-7 px-3 text-xs" onClick={handlePlanUpgrade}>
-                    {tenant?.metadata?.trial_active ? 'Upgrade Now' : 'Change Plan'}
-                  </Button>
+
+                  {/* What's Included */}
+                  <div className="space-y-3 text-xs">
+                    <div className="font-medium text-gray-900 dark:text-[#f6f6f4]">What's Included:</div>
+
+                    {/* Edge Devices */}
+                    <div className="pl-4 space-y-1">
+                      <div className="flex items-center justify-between">
+                        <div className="flex items-center gap-2">
+                          <Server className="h-3 w-3 text-gray-600 dark:text-gray-400" />
+                          <span className="text-gray-900 dark:text-[#f6f6f4]">Edge Devices:</span>
+                          <span className="font-medium text-gray-900 dark:text-[#f6f6f4]">15/50 active</span>
+                        </div>
+                      </div>
+                      <div className="pl-5 text-gray-600 dark:text-gray-400">
+                        Average: $2.98 per device
+                      </div>
+                    </div>
+
+                    {/* Cloud Requests */}
+                    <div className="pl-4 space-y-1">
+                      <div className="flex items-center gap-2">
+                        <CloudCog className="h-3 w-3 text-gray-600 dark:text-gray-400" />
+                        <span className="text-gray-900 dark:text-[#f6f6f4]">Cloud Requests:</span>
+                        <span className="font-medium text-gray-900 dark:text-[#f6f6f4]">234,567/500,000 this month</span>
+                      </div>
+                      <div className="pl-5 space-y-1">
+                        <div className="text-gray-600 dark:text-gray-400">
+                          46.9% used, 265,433 remaining
+                        </div>
+                        <div className="w-full bg-gray-200 dark:bg-gray-800 rounded-full h-1.5 overflow-hidden">
+                          <div
+                            className="h-full transition-all bg-gray-900 dark:bg-[#f6f6f4]"
+                            style={{ width: '46.9%' }}
+                          />
+                        </div>
+                      </div>
+                    </div>
+
+                    {/* Dashboard Access */}
+                    <div className="pl-4 flex items-center gap-2">
+                      <CheckCircle className="h-3 w-3 text-gray-600 dark:text-gray-400" />
+                      <span className="text-gray-900 dark:text-[#f6f6f4]">Dashboard: Full access</span>
+                    </div>
+
+                    {/* Support */}
+                    <div className="pl-4 flex items-center gap-2">
+                      <CheckCircle className="h-3 w-3 text-gray-600 dark:text-gray-400" />
+                      <span className="text-gray-900 dark:text-[#f6f6f4]">Support: Priority email support</span>
+                    </div>
+                  </div>
+
+                  {/* Billing Info */}
+                  <div className="mt-4 pt-4 border-t border-border-light dark:border-[#2d2a24] space-y-2 text-xs">
+                    <div className="flex justify-between">
+                      <span className="text-gray-600 dark:text-gray-400">Next Invoice:</span>
+                      <span className="text-gray-900 dark:text-[#f6f6f4] font-medium">March 1, 2026 ($149.00)</span>
+                    </div>
+                    <div className="flex justify-between">
+                      <span className="text-gray-600 dark:text-gray-400">Payment Method:</span>
+                      <span className="text-gray-900 dark:text-[#f6f6f4] font-medium">•••• 4242</span>
+                    </div>
+                  </div>
+
+                  {/* Actions */}
+                  <div className="mt-4 flex gap-2">
+                    <Button variant="outline" size="sm" className="h-7 px-3 text-xs flex-1">
+                      Manage Payment
+                    </Button>
+                    <Button variant="outline" size="sm" className="h-7 px-3 text-xs">
+                      View Invoices
+                    </Button>
+                  </div>
+                </div>
+              </div>
+
+              {/* Usage This Month */}
+              <div className="space-y-4">
+                <div className="pb-4 border-b border-border-light dark:border-[#2d2a24]">
+                  <div className="text-xs font-semibold text-gray-900 dark:text-[#f6f6f4] font-inter">
+                    Usage This Month
+                  </div>
                 </div>
 
-                {tenant?.metadata?.trial_active && (
-                  <div className="mt-4 p-4 rounded-lg bg-beige-primary dark:bg-[#1b1912] border border-border-light dark:border-[#2d2a24]">
-                    <p className="text-sm text-gray-900 dark:text-[#f6f6f4] font-medium mb-2">
-                      Your trial includes full {tenant?.plan || 'Develop'} tier access
-                    </p>
-                    <p className="text-xs text-gray-800 dark:text-gray-300">
-                      After your trial ends, you'll be automatically downgraded to Develop tier unless you add a payment method.
-                    </p>
+                {/* Edge Devices Usage */}
+                <div>
+                  <div className="flex items-center justify-between mb-3">
+                    <h4 className="text-xs font-medium text-gray-900 dark:text-[#f6f6f4] font-inter">
+                      Edge Devices (15 active)
+                    </h4>
+                    <Button variant="outline" size="sm" className="h-6 px-2 text-xs">
+                      View All
+                    </Button>
                   </div>
-                )}
+                  <div className="space-y-2 text-xs">
+                    <div className="flex items-center justify-between p-2 rounded bg-beige-secondary dark:bg-[#1b1912]">
+                      <div className="flex items-center gap-2">
+                        <div className="w-2 h-2 rounded-full bg-green-500"></div>
+                        <span className="text-gray-900 dark:text-[#f6f6f4]">device-001 (robot-01)</span>
+                      </div>
+                      <span className="text-gray-600 dark:text-gray-400">Online, 2m ago</span>
+                    </div>
+                    <div className="flex items-center justify-between p-2 rounded bg-beige-secondary dark:bg-[#1b1912]">
+                      <div className="flex items-center gap-2">
+                        <div className="w-2 h-2 rounded-full bg-green-500"></div>
+                        <span className="text-gray-900 dark:text-[#f6f6f4]">device-002 (robot-02)</span>
+                      </div>
+                      <span className="text-gray-600 dark:text-gray-400">Online, 5m ago</span>
+                    </div>
+                    <div className="flex items-center justify-between p-2 rounded bg-beige-secondary dark:bg-[#1b1912]">
+                      <div className="flex items-center gap-2">
+                        <div className="w-2 h-2 rounded-full bg-gray-400"></div>
+                        <span className="text-gray-900 dark:text-[#f6f6f4]">device-003 (gateway-west)</span>
+                      </div>
+                      <span className="text-gray-600 dark:text-gray-400">Offline, 2h ago</span>
+                    </div>
+                    <div className="p-2 text-center text-gray-600 dark:text-gray-400">
+                      ... and 12 more devices
+                    </div>
+                  </div>
+                </div>
+
+                {/* Cloud Routing Usage */}
+                <div>
+                  <div className="flex items-center justify-between mb-3">
+                    <h4 className="text-xs font-medium text-gray-900 dark:text-[#f6f6f4] font-inter">
+                      Cloud Routing (234k requests)
+                    </h4>
+                    <Button variant="outline" size="sm" className="h-6 px-2 text-xs">
+                      View Analytics
+                    </Button>
+                  </div>
+                  <div className="space-y-2 text-xs">
+                    <div className="flex items-center justify-between p-2 rounded bg-beige-secondary dark:bg-[#1b1912]">
+                      <span className="text-gray-900 dark:text-[#f6f6f4]">OpenAI</span>
+                      <span className="text-gray-600 dark:text-gray-400">123k requests</span>
+                    </div>
+                    <div className="flex items-center justify-between p-2 rounded bg-beige-secondary dark:bg-[#1b1912]">
+                      <span className="text-gray-900 dark:text-[#f6f6f4]">Anthropic</span>
+                      <span className="text-gray-600 dark:text-gray-400">89k requests</span>
+                    </div>
+                    <div className="flex items-center justify-between p-2 rounded bg-beige-secondary dark:bg-[#1b1912]">
+                      <span className="text-gray-900 dark:text-[#f6f6f4]">Google</span>
+                      <span className="text-gray-600 dark:text-gray-400">22k requests</span>
+                    </div>
+                  </div>
+                </div>
               </div>
             </div>
 

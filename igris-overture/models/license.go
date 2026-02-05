@@ -2,6 +2,10 @@
 package models
 
 import (
+	"crypto/rand"
+	"crypto/sha256"
+	"encoding/hex"
+	"fmt"
 	"time"
 )
 
@@ -202,5 +206,42 @@ func GetFeaturesForTier(tier string) LicenseFeatures {
 	default:
 		// Return all disabled for unknown tiers
 		return LicenseFeatures{}
+	}
+}
+
+// GenerateLicenseKey generates a license key for the given tier
+// Format: lic_[tier]_[random12]_[checksum4]
+// Example: lic_horizon_a1b2c3d4e5f6_d3e4
+func GenerateLicenseKey(tier string) (string, error) {
+	// Generate 12 random characters
+	randomBytes := make([]byte, 6)
+	if _, err := rand.Read(randomBytes); err != nil {
+		return "", fmt.Errorf("failed to generate random bytes: %w", err)
+	}
+	randomPart := hex.EncodeToString(randomBytes)
+
+	// Generate checksum from tier + random part
+	checksumData := fmt.Sprintf("%s:%s", tier, randomPart)
+	hash := sha256.Sum256([]byte(checksumData))
+	checksum := hex.EncodeToString(hash[:2])
+
+	// Construct license key
+	licenseKey := fmt.Sprintf("lic_%s_%s_%s", tier, randomPart, checksum)
+	return licenseKey, nil
+}
+
+// GetDevicesLimit returns the device limit for a tier
+func GetDevicesLimit(tier string) int {
+	switch tier {
+	case "seed":
+		return 1
+	case "horizon":
+		return 50
+	case "infinite":
+		return 250
+	case "enterprise":
+		return -1 // Unlimited
+	default:
+		return 0
 	}
 }

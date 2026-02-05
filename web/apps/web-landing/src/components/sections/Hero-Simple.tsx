@@ -83,8 +83,8 @@ export default function Hero() {
           height: '600px',
           backgroundColor: mounted && theme === 'dark' ? '#1b1912' : '#f6f6f4'
         }}>
-          {/* Background images - dark mode and light mode */}
-          {mounted && theme === 'dark' ? (
+          {/* Background image - dark mode only */}
+          {mounted && theme === 'dark' && (
             <div className="absolute z-0" style={{
               top: 0,
               left: 0,
@@ -94,18 +94,6 @@ export default function Hero() {
               backgroundSize: '70% auto',
               backgroundPosition: 'right bottom',
               backgroundRepeat: 'no-repeat'
-            }}></div>
-          ) : (
-            <div className="absolute z-0 bg-[#f6f6f4]" style={{
-              top: 0,
-              left: 0,
-              right: 0,
-              bottom: 0,
-              backgroundImage: 'url(/lgt.png)',
-              backgroundSize: 'contain',
-              backgroundPosition: 'right top',
-              backgroundRepeat: 'no-repeat',
-              opacity: 0.7
             }}></div>
           )}
 
