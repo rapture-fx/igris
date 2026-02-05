@@ -65,17 +65,19 @@ type ValidationRequest struct {
 
 // ValidationResponse represents a license validation response
 type ValidationResponse struct {
-	Valid         bool             `json:"valid"`
-	Tier          string           `json:"tier,omitempty"`
-	CustomerEmail string           `json:"customer_email,omitempty"`
-	DevicesLimit  int              `json:"devices_limit,omitempty"`
-	DevicesActive int              `json:"devices_active,omitempty"`
-	Features      LicenseFeatures  `json:"features,omitempty"`
-	ExpiresAt     *time.Time       `json:"expires_at,omitempty"`
-	Status        string           `json:"status,omitempty"`
-	Error         string           `json:"error,omitempty"`
-	Message       string           `json:"message,omitempty"`
-	UpgradeURL    string           `json:"upgrade_url,omitempty"`
+	Valid              bool             `json:"valid"`
+	Tier               string           `json:"tier,omitempty"`
+	CustomerEmail      string           `json:"customer_email,omitempty"`
+	DevicesLimit       int              `json:"devices_limit,omitempty"`
+	DevicesActive      int              `json:"devices_active,omitempty"`
+	CloudRequestsLimit int              `json:"cloud_requests_limit,omitempty"`       // Cloud requests/month included
+	CloudRequestsUsed  int              `json:"cloud_requests_used,omitempty"`        // Cloud requests used this month
+	Features           LicenseFeatures  `json:"features,omitempty"`
+	ExpiresAt          *time.Time       `json:"expires_at,omitempty"`
+	Status             string           `json:"status,omitempty"`
+	Error              string           `json:"error,omitempty"`
+	Message            string           `json:"message,omitempty"`
+	UpgradeURL         string           `json:"upgrade_url,omitempty"`
 }
 
 // RegisterDeviceRequest represents a device registration request
@@ -118,6 +120,22 @@ type DeregisterDeviceResponse struct {
 	Deregistered bool   `json:"deregistered"`
 	DeviceCount  int    `json:"device_count"`
 	Error        string `json:"error,omitempty"`
+}
+
+// GetCloudRequestsLimit returns the monthly cloud request limit for a tier
+func GetCloudRequestsLimit(tier string) int {
+	switch tier {
+	case "seed":
+		return 50000 // 50k requests/month
+	case "horizon":
+		return 500000 // 500k requests/month
+	case "infinite":
+		return 2000000 // 2M requests/month
+	case "enterprise":
+		return -1 // Unlimited
+	default:
+		return 0
+	}
 }
 
 // GetFeaturesForTier returns the feature flags for a given tier

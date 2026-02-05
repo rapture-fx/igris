@@ -41,6 +41,8 @@ pub struct ValidationResponse {
     pub customer_email: Option<String>,
     pub devices_limit: Option<i32>,
     pub devices_active: Option<i32>,
+    pub cloud_requests_limit: Option<i32>,
+    pub cloud_requests_used: Option<i32>,
     pub features: Option<LicenseFeatures>,
     pub expires_at: Option<String>,
     pub status: Option<String>,

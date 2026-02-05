@@ -156,19 +156,26 @@ func (h *LicenseHandler) ValidateLicense(c *fiber.Ctx) error {
 		})
 	}
 
-	// Get features for tier
+	// Get features and cloud request limits for tier
 	features := models.GetFeaturesForTier(license.Tier)
+	cloudRequestsLimit := models.GetCloudRequestsLimit(license.Tier)
+
+	// TODO: Get actual cloud requests used this month from usage tracking
+	// For now, return 0 - implement usage tracking in separate PR
+	cloudRequestsUsed := 0
 
 	// Return successful validation
 	response := models.ValidationResponse{
-		Valid:         true,
-		Tier:          license.Tier,
-		CustomerEmail: license.CustomerEmail,
-		DevicesLimit:  license.DevicesLimit,
-		DevicesActive: activeDevices,
-		Features:      features,
-		ExpiresAt:     license.ExpiresAt,
-		Status:        license.Status,
+		Valid:              true,
+		Tier:               license.Tier,
+		CustomerEmail:      license.CustomerEmail,
+		DevicesLimit:       license.DevicesLimit,
+		DevicesActive:      activeDevices,
+		CloudRequestsLimit: cloudRequestsLimit,
+		CloudRequestsUsed:  cloudRequestsUsed,
+		Features:           features,
+		ExpiresAt:          license.ExpiresAt,
+		Status:             license.Status,
 	}
 
 	log.Info().

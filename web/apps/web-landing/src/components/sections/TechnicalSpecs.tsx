@@ -11,7 +11,7 @@ export default function TechnicalSpecs() {
           {/* Mobile Layout */}
           <div className="md:hidden text-left" style={{ paddingTop: '3rem', paddingBottom: '3rem' }}>
             <div className="mb-8">
-              <p className="text-base text-[#c5b0cd] mb-2" style={{ fontFamily: 'Roboto Mono, monospace', letterSpacing: '0.05em' }}>
+              <p className="text-base text-[#85612c] dark:text-[#c5b0cd] mb-2" style={{ fontFamily: 'Roboto Mono, monospace', letterSpacing: '0.05em' }}>
                 TECHNICAL SPECIFICATIONS
               </p>
               <h3 className="text-lg md:text-xl font-inter mb-4 text-[#000000] dark:text-[#f6f6f4]">
@@ -159,7 +159,7 @@ export default function TechnicalSpecs() {
 
             {/* Right Column - Title */}
             <div className="md:col-span-1 md:border-l flex flex-col justify-start dark:border-[#f6f6f4]/5" style={{ paddingTop: '3rem', paddingBottom: '3rem', paddingLeft: '1rem' }}>
-              <p className="text-base text-[#c5b0cd] mb-2" style={{ fontFamily: 'Roboto Mono, monospace', letterSpacing: '0.05em' }}>
+              <p className="text-base text-[#85612c] dark:text-[#c5b0cd] mb-2" style={{ fontFamily: 'Roboto Mono, monospace', letterSpacing: '0.05em' }}>
                 05. TECHNICAL SPECS
               </p>
               <h3 className="text-lg md:text-xl lg:text-2xl font-inter mb-4 text-[#000000] dark:text-[#f6f6f4]">

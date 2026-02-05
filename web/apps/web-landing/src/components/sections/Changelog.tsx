@@ -78,7 +78,7 @@ export default function Changelog() {
 
             <div className="space-y-4">
               {changelog.map((release, index) => (
-                <div key={index} className="border border-gray-300 dark:border-[#f6f6f4]/5 p-4 bg-gray-50 dark:bg-[#1b1912]/50">
+                <div key={index} className="border border-gray-300 dark:border-[#f6f6f4]/5 p-4 bg-[#f6f6f4] dark:bg-[#1b1912]/50">
                   <div className="flex justify-between items-start mb-3">
                     <div>
                       <h4 className="text-sm font-semibold text-[#000000] dark:text-[#f6f6f4] font-mono">
@@ -113,7 +113,7 @@ export default function Changelog() {
           <div className="hidden md:grid md:grid-cols-3 gap-0 md:flex-1">
             {/* Left Column - Content (2 columns wide) */}
             <div className="md:col-span-2 flex flex-col justify-start" style={{ paddingTop: '3rem', paddingBottom: '3rem', paddingRight: '2rem' }}>
-              <div className="border border-gray-300 dark:border-[#f6f6f4]/5 bg-gray-50 dark:bg-[#1b1912]/50">
+              <div className="border border-gray-300 dark:border-[#f6f6f4]/5 bg-[#f6f6f4] dark:bg-[#1b1912]/50">
                 <div className="p-4 border-b border-gray-300 dark:border-[#f6f6f4]/5 bg-[#f6f6f4] dark:bg-[#1b1912]">
                   <div className="grid grid-cols-12 gap-4 text-xs font-semibold text-gray-600 dark:text-[#a8a898] font-mono">
                     <div className="col-span-2">Version</div>
