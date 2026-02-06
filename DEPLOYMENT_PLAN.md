@@ -664,6 +664,501 @@ func (h *WebhookHandler) sendWelcomeEmail(tenantID, email string, sub *Subscript
 
 ---
 
+### Phase 5: Package Publishing (npm/pnpm) 📦
+
+#### 5.1 Setup Package Registry
+
+**Create npm Organization**:
+```bash
+# 1. Create npm account at https://www.npmjs.com
+# 2. Create organization: @igris
+# 3. Invite team members (optional)
+```
+
+**Using pnpm (Recommended for Monorepo)**:
+```bash
+# Install pnpm globally
+npm install -g pnpm
+
+# Configure workspace
+cd /Users/wira/Desktop/system
+pnpm install
+```
+
+---
+
+#### 5.2 Publish JavaScript SDK + WASM
+
+**Package**: `@igris/sdk`
+
+**Directory**: `igris-overture/sdk/javascript/`
+
+**Pre-Publishing Checklist**:
+- [ ] WASM module built (<180KB)
+- [ ] TypeScript compiled to dist/
+- [ ] Type definitions (.d.ts) generated
+- [ ] README.md updated
+- [ ] Version bumped in package.json
+- [ ] CHANGELOG.md updated
+
+**Step-by-Step Publishing**:
+
+```bash
+# 1. Build WASM module
+cd rust/escapevector-wasm
+./build.sh
+# Output: igris-overture/sdk/javascript/wasm/escapevector_wasm_bg.wasm (186KB)
+
+# 2. Navigate to SDK directory
+cd ../../igris-overture/sdk/javascript
+
+# 3. Install dependencies
+pnpm install
+
+# 4. Build TypeScript
+pnpm run build
+
+# 5. Verify package contents
+pnpm pack --dry-run
+# Should include: dist/, wasm/, package.json, README.md
+
+# 6. Test locally before publishing
+cd ../../../web/apps/web-console
+pnpm add file:../../../igris-overture/sdk/javascript
+# Test imports work
+
+# 7. Login to npm (one-time)
+npm login
+# Username: your-npm-username
+# Email: your-email@example.com
+
+# 8. Publish to npm
+cd ../../../igris-overture/sdk/javascript
+npm publish --access public
+
+# 9. Verify published
+npm view @igris/sdk
+```
+
+**Expected Output**:
+```
++ @igris/sdk@1.0.0
+✨ Published to npm registry
+```
+
+**Installation for Users**:
+```bash
+# npm
+npm install @igris/sdk
+
+# pnpm
+pnpm add @igris/sdk
+
+# yarn
+yarn add @igris/sdk
+```
+
+---
+
+#### 5.3 Publish Python SDK
+
+**Package**: `igris-sdk`
+
+**Directory**: `igris-python-sdk/`
+
+**Setup PyPI Account**:
+```bash
+# 1. Create account at https://pypi.org
+# 2. Generate API token
+# 3. Configure credentials
+```
+
+**Publishing Steps**:
+```bash
+cd igris-python-sdk
+
+# 1. Update version in setup.py or pyproject.toml
+# version = "1.0.0"
+
+# 2. Install build tools
+pip install build twine
+
+# 3. Build distribution
+python -m build
+# Creates: dist/igris_sdk-1.0.0-py3-none-any.whl
+
+# 4. Check package
+twine check dist/*
+
+# 5. Upload to TestPyPI (optional, for testing)
+twine upload --repository testpypi dist/*
+
+# 6. Test install from TestPyPI
+pip install --index-url https://test.pypi.org/simple/ igris-sdk
+
+# 7. Upload to PyPI (production)
+twine upload dist/*
+
+# 8. Verify
+pip search igris-sdk
+```
+
+**Installation for Users**:
+```bash
+pip install igris-sdk
+```
+
+---
+
+#### 5.4 Publish Go SDK
+
+**Package**: `github.com/igris-inertial/igris-go-sdk`
+
+**Directory**: `igris-go-sdk/`
+
+**Publishing to Go Modules** (No manual publish needed):
+```bash
+cd igris-go-sdk
+
+# 1. Ensure go.mod is correct
+go mod tidy
+
+# 2. Tag a release
+git tag v1.0.0
+git push origin v1.0.0
+
+# 3. Go proxy automatically indexes it
+# Users can now: go get github.com/igris-inertial/igris-go-sdk@v1.0.0
+```
+
+**Usage**:
+```go
+import "github.com/igris-inertial/igris-go-sdk"
+```
+
+---
+
+#### 5.5 Publish Rust SDK
+
+**Package**: `igris-sdk`
+
+**Directory**: `igris-rust-sdk/`
+
+**Publishing to crates.io**:
+```bash
+cd igris-rust-sdk
+
+# 1. Login to crates.io (one-time)
+cargo login
+# Paste your API token from https://crates.io/me
+
+# 2. Update Cargo.toml
+# [package]
+# version = "1.0.0"
+# license = "MIT OR Apache-2.0"
+# description = "Igris Rust SDK for edge AI runtime"
+# repository = "https://github.com/igris-inertial/igris"
+
+# 3. Verify package
+cargo package --list
+
+# 4. Dry run
+cargo publish --dry-run
+
+# 5. Publish
+cargo publish
+
+# 6. Verify
+cargo search igris-sdk
+```
+
+**Installation for Users**:
+```toml
+[dependencies]
+igris-sdk = "1.0.0"
+```
+
+---
+
+#### 5.6 Monorepo Package Management
+
+**Using pnpm Workspaces** (Recommended):
+
+**File**: `pnpm-workspace.yaml` (root)
+```yaml
+packages:
+  - 'web/apps/*'
+  - 'web/packages/*'
+  - 'igris-overture/sdk/javascript'
+```
+
+**Benefits**:
+- Shared dependencies across workspace
+- Faster installs (global cache)
+- Automatic linking between packages
+
+**Commands**:
+```bash
+# Install all workspace dependencies
+pnpm install
+
+# Build all packages
+pnpm -r build
+
+# Run command in specific package
+pnpm --filter @igris/sdk build
+
+# Publish all changed packages
+pnpm -r publish
+```
+
+---
+
+#### 5.7 Versioning Strategy
+
+**Semantic Versioning** (semver):
+- **MAJOR** (1.0.0 → 2.0.0): Breaking changes
+- **MINOR** (1.0.0 → 1.1.0): New features (backward compatible)
+- **PATCH** (1.0.0 → 1.0.1): Bug fixes
+
+**Release Workflow**:
+```bash
+# 1. Update version
+npm version patch  # or minor, or major
+
+# 2. Update CHANGELOG.md
+# Add release notes
+
+# 3. Commit
+git add .
+git commit -m "Release v1.0.1"
+
+# 4. Tag
+git tag v1.0.1
+
+# 5. Push
+git push && git push --tags
+
+# 6. Publish
+npm publish
+
+# 7. Create GitHub release
+gh release create v1.0.1 --notes "Bug fixes and improvements"
+```
+
+---
+
+#### 5.8 Automated Publishing (CI/CD)
+
+**GitHub Actions Workflow**:
+
+**File**: `.github/workflows/publish-packages.yml`
+```yaml
+name: Publish Packages
+
+on:
+  push:
+    tags:
+      - 'v*'
+
+jobs:
+  publish-npm:
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v3
+
+      - name: Setup Node.js
+        uses: actions/setup-node@v3
+        with:
+          node-version: '18'
+          registry-url: 'https://registry.npmjs.org'
+
+      - name: Setup pnpm
+        uses: pnpm/action-setup@v2
+        with:
+          version: 8
+
+      - name: Build WASM
+        run: |
+          cd rust/escapevector-wasm
+          cargo install wasm-pack
+          ./build.sh
+
+      - name: Build SDK
+        run: |
+          cd igris-overture/sdk/javascript
+          pnpm install
+          pnpm run build
+
+      - name: Publish to npm
+        run: |
+          cd igris-overture/sdk/javascript
+          npm publish --access public
+        env:
+          NODE_AUTH_TOKEN: ${{ secrets.NPM_TOKEN }}
+
+  publish-pypi:
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v3
+
+      - name: Setup Python
+        uses: actions/setup-python@v4
+        with:
+          python-version: '3.11'
+
+      - name: Build and publish
+        run: |
+          cd igris-python-sdk
+          pip install build twine
+          python -m build
+          twine upload dist/*
+        env:
+          TWINE_USERNAME: __token__
+          TWINE_PASSWORD: ${{ secrets.PYPI_TOKEN }}
+
+  publish-crates:
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v3
+
+      - name: Setup Rust
+        uses: actions-rs/toolchain@v1
+        with:
+          toolchain: stable
+
+      - name: Publish to crates.io
+        run: |
+          cd igris-rust-sdk
+          cargo publish --token ${{ secrets.CARGO_TOKEN }}
+```
+
+**Setup GitHub Secrets**:
+```bash
+# Add these secrets in GitHub repo settings:
+# Settings → Secrets → Actions → New repository secret
+
+NPM_TOKEN=npm_xxxxxxxxxxxxx
+PYPI_TOKEN=pypi-xxxxxxxxxxxxxx
+CARGO_TOKEN=crates-io-token-here
+```
+
+---
+
+#### 5.9 Package Testing Before Publishing
+
+**npm/pnpm Package Testing**:
+```bash
+# 1. Pack locally
+cd igris-overture/sdk/javascript
+npm pack
+# Creates: igris-sdk-1.0.0.tgz
+
+# 2. Install in test project
+cd /tmp
+mkdir test-igris
+cd test-igris
+npm init -y
+npm install /path/to/igris-sdk-1.0.0.tgz
+
+# 3. Test imports
+node
+> const igris = require('@igris/sdk')
+> console.log(igris)
+
+# 4. Test TypeScript
+cat > test.ts << EOF
+import { BayesianState } from '@igris/sdk'
+const state = BayesianState.getDefault()
+console.log(state)
+EOF
+
+npx ts-node test.ts
+```
+
+**Python Package Testing**:
+```bash
+# Install from local build
+pip install dist/igris_sdk-1.0.0-py3-none-any.whl
+
+# Test import
+python
+>>> import igris_sdk
+>>> print(igris_sdk.__version__)
+```
+
+---
+
+#### 5.10 Package Registry Dashboard
+
+**Monitor Published Packages**:
+
+**npm**:
+- https://www.npmjs.com/package/@igris/sdk
+- Weekly downloads, version history, dependents
+
+**PyPI**:
+- https://pypi.org/project/igris-sdk/
+- Download stats, version releases
+
+**crates.io**:
+- https://crates.io/crates/igris-sdk
+- Total downloads, recent downloads
+
+**Track Metrics**:
+- Downloads per week
+- GitHub stars/forks
+- Issue count
+- Community contributions
+
+---
+
+#### 5.11 Package Documentation
+
+**npm README.md Template**:
+```markdown
+# @igris/sdk
+
+Igris JavaScript SDK with WASM-powered Thompson Sampling
+
+## Installation
+
+\`\`\`bash
+npm install @igris/sdk
+\`\`\`
+
+## Quick Start
+
+\`\`\`typescript
+import { BayesianState, thompson_select_arm } from '@igris/sdk'
+
+// Initialize state
+const state = BayesianState.getDefault()
+
+// Select best provider
+const provider = thompson_select_arm(state)
+console.log('Selected:', provider.name)
+\`\`\`
+
+## Features
+
+- 🚀 WASM-powered Thompson Sampling (<180KB)
+- 🎯 Multi-armed bandit optimization
+- 🔒 AES-GCM encryption built-in
+- 📊 Real-time provider selection
+- ⚡ 3-5x faster than pure TypeScript
+
+## Documentation
+
+https://docs.igrisinertial.com/sdk/javascript
+
+## License
+
+MIT
+```
+
+---
+
 ## 📊 Testing Checklist
 
 ### Backend API
