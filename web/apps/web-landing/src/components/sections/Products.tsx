@@ -16,139 +16,133 @@ export default function Products() {
   return (
     <section className="bg-[#f6f6f4] dark:bg-dark-bg text-gray-900 dark:text-[#f6f6f4] transition-colors duration-200">
       <div className="mx-auto max-w-[1300px] px-4 sm:px-6 lg:px-8">
-        <div className="relative px-4 md:px-8 lg:px-12 flex flex-col bg-[#f6f6f4] dark:bg-[#1b1912] border-t border-l border-r border-b border-gray-300 dark:border-[#f6f6f4]/5 min-h-[800px] md:h-[850px]">
+          <div className="relative px-4 md:px-8 lg:px-12 flex flex-col bg-[#f6f6f4] dark:bg-[#1b1912] border-l border-r section-border min-h-[800px]">
 
           {/* Title Section - Shows first on mobile, last on desktop */}
           <div className="mb-6 md:mb-0 md:hidden text-left" style={{ paddingTop: '3rem', paddingBottom: '3rem' }}>
             <p className="text-base text-[#85612c] dark:text-[#c5b0cd] mb-2" style={{ fontFamily: 'Roboto Mono, monospace', letterSpacing: '0.05em' }}>
               01. PRODUCT
             </p>
-            <h2 className="text-lg md:text-xl lg:text-2xl font-inter mb-4 text-[#000000] dark:text-[#f6f6f4]">
+            <h2 className="text-lg md:text-xl lg:text-2xl mb-4 text-[#000000] dark:text-[#f6f6f4]" style={{ fontFamily: "'IBM Plex Mono', monospace", fontWeight: 400 }}>
               The complete nervous system for your AI fleet.
             </h2>
-            <p className="text-sm text-gray-600 dark:text-[#a8a898] font-inter leading-relaxed mb-8">
+            <p className="text-sm text-gray-600 dark:text-[#a8a898] leading-relaxed mb-8" style={{ fontFamily: "'IBM Plex Mono', monospace", fontWeight: 400 }}>
               Four integrated layers that execute, decide, remember, and verify—from a single device to thousands. One platform. Complete control.
             </p>
 
             {/* Product Narrative - Mobile */}
             <div className="space-y-8 text-left">
-              {/* Single unified product story */}
-              <div className="border border-gray-300 dark:border-[#f6f6f4]/5 p-6">
-                <div className="border border-gray-300 dark:border-[#f6f6f4]/5" style={{ marginTop: '0', marginBottom: '1.5rem', height: '200px', position: 'relative', overflow: 'hidden' }}>
+              {/* First frame - Top */}
+              <div className="border border-gray-300 dark:border-[#f6f6f4]/5 p-6 min-h-[350px] flex flex-col">
+                <div className="flex-1 flex items-end justify-center" style={{ marginTop: '0', marginBottom: '1rem', height: '200px', position: 'relative', overflow: 'hidden' }}>
                   <Image
-                    src="/r.png"
+                    src={mounted && theme === 'dark' ? '/r.png' : '/prol.png'}
                     alt="Runtime AI Execution"
                     fill
-                    style={{ objectFit: 'cover', opacity: 0.6 }}
+                    style={{ objectFit: 'cover', opacity: 0.4 }}
                   />
                 </div>
-                <p className="text-sm text-gray-600 dark:text-[#a8a898] leading-relaxed font-inter mb-4">
-                  Hybrid behavior trees meet LLM reasoning. Your AI executes deterministically through structured decision paths while leveraging language models only when needed. No pure hallucination. No random behavior. Just predictable intelligence that proves every decision cryptographically.
+                <p className="text-sm text-gray-600 dark:text-[#a8a898] leading-relaxed mb-4" style={{ fontFamily: "'IBM Plex Mono', monospace", fontWeight: 400 }}>
+                  Hybrid behavior trees meet LLM reasoning. Your AI executes through structured decision paths, invoking language models only when needed. Execution is deterministic and bounded—no uncontrolled behavior, no silent failures. Every decision is recorded and cryptographically verifiable.
                 </p>
-                <p className="text-sm text-gray-600 dark:text-[#a8a898] leading-relaxed font-inter mb-4">
-                  Four layers—execution, intelligence, memory, proof—work as one nervous system. Deploy on any device. When you scale to hundreds, the dashboard reveals fleet health, routing decisions, behavior patterns, and cryptographic verification. Everything you need to run AI you can actually trust.
+                <p className="text-sm text-gray-600 dark:text-[#a8a898] leading-relaxed mb-4" style={{ fontFamily: "'IBM Plex Mono', monospace", fontWeight: 400 }}>
+                  Four layers—execution, intelligence, memory, and proof—work as one nervous system. Deploy on any device. As fleets grow, the dashboard reveals execution health, decision routing, behavioral patterns, and cryptographic verification across the system.
                 </p>
                 <button
                   onClick={openRuntime}
-                  className="group inline-flex items-center justify-center bg-black text-white dark:bg-[#f6f6f4] dark:text-black px-4 py-2 hover:bg-gray-800 dark:hover:bg-gray-200 transition-all duration-200 text-xs font-medium shadow-md hover:shadow-lg"
+                  className="group inline-flex items-center justify-center w-fit bg-black text-white dark:bg-[#f6f6f4] dark:text-black px-4 py-2 hover:bg-gray-800 dark:hover:bg-gray-200 transition-all duration-200 text-xs font-medium shadow-md hover:shadow-lg"
+                  style={{ fontFamily: "'IBM Plex Mono', monospace", fontWeight: 400 }}
                 >
-                  <span className="font-inter">
-                    Explore Runtime
-                  </span>
+                  Explore Platform
                   <ChevronRight className="ml-1 h-3 w-3" />
                 </button>
               </div>
 
-              {/* Four layers working together */}
-              <div className="border border-gray-300 dark:border-[#f6f6f4]/5 p-6 bg-[#f6f6f4] dark:bg-[#1b1912]/50">
-                <h3 className="text-base font-inter mb-3 text-[#000000] dark:text-[#f6f6f4]">
+              {/* Second frame - Bottom with title */}
+              <div className="border border-gray-300 dark:border-[#f6f6f4]/5 p-6 min-h-[350px] flex flex-col shadow-[0_0_10px_rgba(0,0,0,0.08)] dark:shadow-[0_0_15px_rgba(246,246,244,0.08)]">
+                <h3 className="text-base mb-3 text-[#000000] dark:text-[#f6f6f4]" style={{ fontFamily: "'IBM Plex Mono', monospace", fontWeight: 400 }}>
                   Four layers. One nervous system.
                 </h3>
                 <div className="border border-gray-300 dark:border-[#f6f6f4]/5" style={{ marginTop: '0', marginBottom: '1rem', height: '200px', position: 'relative', overflow: 'hidden' }}>
                   <Image
-                    src="/rtnm.png"
+                    src={mounted && theme === 'dark' ? '/rtnm.png' : '/prolg.png'}
                     alt="Fleet Dashboard"
                     fill
-                    style={{ objectFit: 'cover', opacity: 0.6 }}
+                    style={{ objectFit: 'cover', opacity: 0.4 }}
                   />
                 </div>
-                <p className="text-sm text-gray-600 dark:text-[#a8a898] leading-relaxed font-inter mb-4">
-                  See what's running. Know what's deciding. Understand what's learned. Prove what happened. The complete picture of your AI fleet in one place—not scattered across vendor dashboards, cloud consoles, and CSV exports.
+                <p className="text-sm text-gray-600 dark:text-[#a8a898] leading-relaxed mb-4" style={{ fontFamily: "'IBM Plex Mono', monospace", fontWeight: 400 }}>
+                  See what's running. Know what's deciding. Understand what's learned. Prove what happened. A complete view of your AI fleet in one place—not scattered across vendor dashboards, cloud consoles, and exports.
                 </p>
                 <button
                   onClick={openOverture}
                   className="group inline-flex items-center justify-center bg-gray-200 dark:bg-[#f6f6f4] text-gray-900 dark:text-black px-4 py-2 hover:bg-gray-300 dark:hover:bg-gray-200 transition-all duration-200 text-xs font-medium shadow-md hover:shadow-lg"
+                  style={{ fontFamily: "'IBM Plex Mono', monospace", fontWeight: 400 }}
                 >
-                  <span className="font-inter">
-                    View Fleet Capabilities
-                  </span>
+                  View Fleet Capabilities
                   <ChevronRight className="ml-1 h-3 w-3" />
                 </button>
               </div>
             </div>
           </div>
 
-          {/* Split Layout: Left Products (wider), Right Title (narrower) */}
+          {/* Split Layout: Left Content, Right Column */}
           <div className="grid grid-cols-1 md:grid-cols-3 gap-0 flex-1">
 
-            {/* Left Column: Single product narrative - 2 columns wide (Desktop only) */}
+            {/* Left Column: Two frames - 2 columns wide */}
             <div className="hidden md:flex md:col-span-2 flex-col items-start justify-start" style={{ paddingTop: '3rem', paddingBottom: '3rem', paddingRight: '2rem' }}>
               <div className="w-full space-y-8">
 
-                {/* Runtime - The complete solution */}
-                <div className="border border-gray-300 dark:border-[#f6f6f4]/5 p-6">
-                  <div className="border border-gray-300 dark:border-[#f6f6f4]/5" style={{ marginTop: '0', marginBottom: '1.5rem', height: '200px', position: 'relative', overflow: 'hidden' }}>
-                    <img
-                      src="/r.png"
-                      alt="Runtime AI Execution"
-                      style={{
-                        width: '100%',
-                        height: '100%',
-                        objectFit: 'cover',
-                        opacity: 0.6
-                      }}
-                    />
+                {/* First frame - Top */}
+                <div className="border border-gray-300 dark:border-[#f6f6f4]/5 p-6 shadow-[0_0_10px_rgba(0,0,0,0.08)] dark:shadow-[0_0_15px_rgba(246,246,244,0.08)] min-h-[400px] flex flex-col">
+                <div className="flex-1 flex items-end justify-center relative" style={{ marginTop: '0', marginBottom: '1rem', height: '200px', overflow: 'hidden' }}>
+                  <Image
+                    src={mounted ? (theme === 'dark' ? '/r.png' : '/prol.png') : '/prol.png'}
+                    alt="Runtime AI Execution"
+                    fill
+                    className="object-cover"
+                    style={{ opacity: 0.9 }}
+                  />
                   </div>
-                  <p className="text-sm text-gray-600 dark:text-[#a8a898] leading-relaxed font-inter mb-4">
-                    Hybrid behavior trees meet LLM reasoning. Your AI executes deterministically through structured decision paths while leveraging language models only when needed. No pure hallucination. No random behavior. Just predictable intelligence that proves every decision cryptographically.
+                  <p className="text-sm text-gray-600 dark:text-[#a8a898] leading-relaxed mb-4" style={{ fontFamily: "'IBM Plex Mono', monospace", fontWeight: 400 }}>
+                    Hybrid behavior trees meet LLM reasoning. Your AI executes through structured decision paths, invoking language models only when needed. Execution is deterministic and bounded—no uncontrolled behavior, no silent failures. Every decision is recorded and cryptographically verifiable.
                   </p>
-                  <p className="text-sm text-gray-600 dark:text-[#a8a898] leading-relaxed font-inter mb-4">
-                    Four layers—execution, intelligence, memory, proof—work as one nervous system. Deploy on any device. When you scale to hundreds, the dashboard reveals fleet health, routing decisions, behavior patterns, and cryptographic verification. Everything you need to run AI you can actually trust.
+                  <p className="text-sm text-gray-600 dark:text-[#a8a898] leading-relaxed mb-4" style={{ fontFamily: "'IBM Plex Mono', monospace", fontWeight: 400 }}>
+                    Four layers—execution, intelligence, memory, and proof—work as one nervous system. Deploy on any device. As fleets grow, the dashboard reveals execution health, decision routing, behavioral patterns, and cryptographic verification across the system.
                   </p>
                   <button
                     onClick={openRuntime}
-                    className="group inline-flex items-center justify-center bg-black text-white dark:bg-[#f6f6f4] dark:text-black px-4 py-2 hover:bg-gray-800 dark:hover:bg-gray-200 transition-all duration-200 text-xs font-medium shadow-md hover:shadow-lg"
+                    className="group inline-flex items-center justify-center w-fit bg-[#14120a] text-white dark:bg-[#f6f6f4] dark:text-black px-4 py-2 hover:opacity-90 transition-all duration-200 text-xs font-medium shadow-md rounded-md"
+                    style={{ fontFamily: "'IBM Plex Mono', monospace" }}
                   >
-                    <span className="font-inter">
-                      Explore Platform
-                    </span>
+                    Explore Platform
                     <ChevronRight className="ml-1 h-3 w-3" />
                   </button>
                 </div>
 
-                {/* Four layers working together */}
-                <div className="border border-gray-300 dark:border-[#f6f6f4]/5 p-6 mb-12 bg-[#f6f6f4] dark:bg-[#1b1912]/50">
-                  <h3 className="text-base font-inter mb-3 text-[#000000] dark:text-[#f6f6f4]">
-                    Four layers. One nervous system.
-                  </h3>
-                  <div className="border border-gray-300 dark:border-[#f6f6f4]/5" style={{ marginTop: '0', marginBottom: '1rem', height: '200px', position: 'relative', overflow: 'hidden' }}>
+                {/* Second frame - Bottom with title */}
+                <div className="border border-gray-300 dark:border-[#f6f6f4]/5 p-6 bg-[#f6f6f4] dark:bg-[#1b1912]/50 shadow-[0_0_10px_rgba(0,0,0,0.08)] dark:shadow-[0_0_15px_rgba(246,246,244,0.08)] flex flex-col">
+                  <div className="relative" style={{ marginTop: '0', marginBottom: '1rem', height: '200px', overflow: 'hidden' }}>
                     <Image
-                      src="/rtnm.png"
+                      src={mounted ? (theme === 'dark' ? '/rtnm.png' : '/prolg.png') : '/prolg.png'}
                       alt="Fleet Dashboard"
                       fill
-                      style={{ objectFit: 'cover', opacity: 0.6 }}
+                      className="object-cover"
+                      style={{ opacity: 0.9 }}
                     />
                   </div>
-                  <p className="text-sm text-gray-600 dark:text-[#a8a898] leading-relaxed font-inter mb-4">
-                    See what's running. Know what's deciding. Understand what's learned. Prove what happened. The complete picture of your AI fleet in one place—not scattered across vendor dashboards, cloud consoles, and CSV exports.
+                  <h3 className="text-base mb-3 text-[#000000] dark:text-[#f6f6f4]" style={{ fontFamily: "'IBM Plex Mono', monospace", fontWeight: 400 }}>
+                    Four layers. One nervous system.
+                  </h3>
+                  <p className="text-sm text-gray-600 dark:text-[#a8a898] leading-relaxed mb-4" style={{ fontFamily: "'IBM Plex Mono', monospace", fontWeight: 400 }}>
+                    See what's running. Know what's deciding. Understand what's learned. Prove what happened. A complete view of your AI fleet in one place—not scattered across vendor dashboards, cloud consoles, and exports.
                   </p>
                   <button
                     onClick={openOverture}
-                    className="group inline-flex items-center justify-center bg-gray-200 dark:bg-[#f6f6f4] text-gray-900 dark:text-black px-4 py-2 hover:bg-gray-300 dark:hover:bg-gray-200 transition-all duration-200 text-xs font-medium shadow-md hover:shadow-lg"
+                    className="group inline-flex items-center justify-center w-fit bg-[#f6f6f4] text-[#1b1912] dark:bg-[#f6f6f4] dark:text-black px-4 py-2 hover:opacity-90 transition-all duration-200 text-xs font-medium shadow-md rounded-md border"
+                    style={{ fontFamily: "'IBM Plex Mono', monospace", borderColor: 'rgba(20, 18, 10, 0.3)' }}
                   >
-                    <span className="font-inter">
-                      View Dashboard
-                    </span>
+                    View Dashboard
                     <ChevronRight className="ml-1 h-3 w-3" />
                   </button>
                 </div>
@@ -156,16 +150,16 @@ export default function Products() {
               </div>
             </div>
 
-            {/* Right Column: Title and Description (Desktop only) */}
+            {/* Right Column: Title and Description */}
             <div className="hidden md:flex md:col-span-1 md:border-l flex-col justify-start dark:border-[#f6f6f4]/5" style={{ paddingTop: '3rem', paddingBottom: '3rem', paddingLeft: '1rem' }}>
               <p className="text-base text-[#85612c] dark:text-[#c5b0cd] mb-2" style={{ fontFamily: 'Roboto Mono, monospace', letterSpacing: '0.05em' }}>
                 01. PRODUCT
               </p>
-              <h2 className="text-lg md:text-xl lg:text-2xl font-inter mb-4 text-[#000000] dark:text-[#f6f6f4]">
+              <h2 className="text-lg md:text-xl lg:text-2xl mb-4 text-[#000000] dark:text-[#f6f6f4]" style={{ fontFamily: "'IBM Plex Mono', monospace", fontWeight: 400 }}>
                 The complete nervous system for your AI fleet.
               </h2>
-              <p className="text-xs md:text-sm text-gray-600 dark:text-[#a8a898] font-inter leading-relaxed">
-                Execution, intelligence, memory, and proof—integrated from day one. One platform that scales from a single device to thousands, revealing deeper insights as you grow.
+              <p className="text-xs md:text-sm text-gray-600 dark:text-[#a8a898] leading-relaxed" style={{ fontFamily: "'IBM Plex Mono', monospace", fontWeight: 400 }}>
+                Execution, intelligence, memory, and proof—integrated from day one. One platform that starts on a single device and scales to fleets as adoption grows.
               </p>
             </div>
 
