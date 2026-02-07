@@ -1,7 +1,7 @@
 /**
- * Schlep-engine JavaScript SDK
+ * Igris Inertial JavaScript SDK
  *
- * Official JavaScript/TypeScript SDK for Schlep-engine - Intelligent AI routing and cost optimization.
+ * Official JavaScript/TypeScript SDK for Igris Inertial - Intelligent AI routing and cost optimization.
  *
  * @packageDocumentation
  */
@@ -90,7 +90,7 @@ export interface ProviderStats {
  * Client configuration options
  */
 export interface ClientConfig {
-  /** Base URL of the Schlep-engine API */
+  /** Base URL of the Igris Inertial API */
   baseUrl?: string;
   /** API key for authentication */
   apiKey?: string;
@@ -103,13 +103,13 @@ export interface ClientConfig {
 /**
  * Custom error class for Schlep API errors
  */
-export class SchlepError extends Error {
+export class IgrisError extends Error {
   statusCode?: number;
   response?: any;
 
   constructor(message: string, statusCode?: number, response?: any) {
     super(message);
-    this.name = 'SchlepError';
+    this.name = 'IgrisError';
     this.statusCode = statusCode;
     this.response = response;
   }
@@ -118,7 +118,7 @@ export class SchlepError extends Error {
 /**
  * Authentication error
  */
-export class AuthenticationError extends SchlepError {
+export class AuthenticationError extends IgrisError {
   constructor(message: string = 'Authentication failed') {
     super(message, 401);
     this.name = 'AuthenticationError';
@@ -128,7 +128,7 @@ export class AuthenticationError extends SchlepError {
 /**
  * Network error
  */
-export class NetworkError extends SchlepError {
+export class NetworkError extends IgrisError {
   constructor(message: string) {
     super(message);
     this.name = 'NetworkError';
@@ -136,16 +136,16 @@ export class NetworkError extends SchlepError {
 }
 
 /**
- * Main Schlep client class
+ * Main Igris Inertial client class
  *
  * Features EscapeVector Mode - Thompson Sampling-powered resilience that
  * continues Bayesian optimization even during total control plane outages.
  *
  * @example
  * ```typescript
- * import { Schlep } from 'schlep';
+ * import { Igris } from 'igris-inertial';
  *
- * const client = new Schlep({
+ * const client = new Igris({
  *   baseUrl: 'http://localhost:8081',
  *   apiKey: 'your-api-key' // optional
  * });
@@ -156,7 +156,7 @@ export class NetworkError extends SchlepError {
  * });
  * ```
  */
-export class Schlep {
+export class Igris {
   private baseUrl: string;
   private apiKey?: string;
   private timeout: number;
@@ -174,7 +174,7 @@ export class Schlep {
     this.timeout = config.timeout || 30000;
     this.headers = {
       'Content-Type': 'application/json',
-      'User-Agent': 'schlep-javascript-sdk/1.0.0-rc1',
+      'User-Agent': 'igris-inertial-sdk/1.0.0',
       ...config.headers,
     };
 
@@ -227,10 +227,10 @@ export class Schlep {
         try {
           const errorData = await response.json();
           errorMessage = errorData.error || errorMessage;
-          throw new SchlepError(errorMessage, response.status, errorData);
+          throw new IgrisError(errorMessage, response.status, errorData);
         } catch (e) {
-          if (e instanceof SchlepError) throw e;
-          throw new SchlepError(errorMessage, response.status);
+          if (e instanceof IgrisError) throw e;
+          throw new IgrisError(errorMessage, response.status);
         }
       }
 
@@ -247,7 +247,7 @@ export class Schlep {
         throw new NetworkError('Request timeout');
       }
 
-      if (error instanceof SchlepError) {
+      if (error instanceof IgrisError) {
         throw error;
       }
 
@@ -256,7 +256,7 @@ export class Schlep {
   }
 
   /**
-   * Make an inference request using Schlep-engine's intelligent routing
+   * Make an inference request using Igris Inertial's intelligent routing
    *
    * @param request - Inference request parameters
    * @returns Inference response
@@ -329,5 +329,14 @@ export class Schlep {
   }
 }
 
+// Backward compatibility alias
+export { Igris as Schlep };
+
+// Export EscapeVector components
+export { EscapeVectorMode } from './escapevector';
+export type { BayesianState, BanditArm } from './escapevector/bayesian-state';
+export type { InferRequest as EscapeVectorInferRequest, InferResponse as EscapeVectorInferResponse } from './escapevector/thompson-router';
+export { RustThompsonRouter, RustCircuitBreaker, RustBayesianSigner } from './escapevector/wasm-wrapper';
+
 // Export default for CommonJS compatibility
-export default Schlep;
+export default Igris;

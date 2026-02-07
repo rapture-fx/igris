@@ -1,5 +1,3 @@
-const path = require('path');
-
 /** @type {import('next').NextConfig} */
 const nextConfig = {
   // SSR mode for Cloudflare Pages (required for Clerk middleware)
@@ -7,13 +5,14 @@ const nextConfig = {
   reactStrictMode: true,
 
   typescript: {
-    ignoreBuildErrors: true, // Ignore TypeScript errors during build
+    ignoreBuildErrors: true,
   },
 
   eslint: {
-    ignoreDuringBuilds: true, // Ignore ESLint errors during build
+    ignoreDuringBuilds: true,
   },
 
+  // Inline workspace packages into the bundle (replaces outputFileTracingRoot)
   transpilePackages: [
     '@igris-inertial/ui',
     '@igris-inertial/types',
@@ -27,9 +26,6 @@ const nextConfig = {
   images: {
     unoptimized: true, // Required for Cloudflare Pages
   },
-
-  // Monorepo support
-  outputFileTracingRoot: path.join(__dirname, '../../'),
 }
 
 module.exports = nextConfig
