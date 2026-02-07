@@ -22,30 +22,34 @@ export default function HowItWorks() {
     <section id="how-it-works" className="bg-[#f6f6f4] dark:bg-dark-bg text-gray-900 dark:text-[#f6f6f4] transition-colors duration-200">
       <div className="mx-auto max-w-[1300px] px-4 sm:px-6 lg:px-8">
         <div className="relative px-4 md:px-8 lg:px-12 py-4 md:py-8 lg:py-12 border-l border-r border-b border-gray-300 dark:border-[#f6f6f4]/10">
-          <div className="text-left mb-8" style={{ paddingTop: '3rem' }}>
-            <p className="text-base text-[#85612c] dark:text-[#c5b0cd] mb-2" style={{ fontFamily: 'Roboto Mono, monospace', letterSpacing: '0.05em' }}>
-              04. DEPLOYMENT
-            </p>
-            <h3 className="text-lg md:text-xl lg:text-2xl mb-4 text-[#000000] dark:text-[#f6f6f4]" style={{ fontFamily: "'IBM Plex Mono', monospace", fontWeight: 400 }}>
-              Deploy. Verify. Optimize.
-            </h3>
-            <p className="text-sm text-gray-600 dark:text-[#a8a898] leading-relaxed" style={{ fontFamily: "'IBM Plex Mono', monospace", fontWeight: 400, maxWidth: '360px' }}>
-              The system is designed to move from initial installation to fleet-level operation without changing how execution works.
-            </p>
-          </div>
+          <div className="grid grid-cols-1 md:grid-cols-2 gap-8">
+            {/* Left side - Intro */}
+            <div className="text-left" style={{ paddingTop: '3rem' }}>
+              <p className="text-base text-[#85612c] dark:text-[#c5b0cd] mb-2" style={{ letterSpacing: '0.05em' }}>
+                04. DEPLOYMENT
+              </p>
+              <h3 className="text-lg md:text-xl lg:text-2xl mb-4 text-[#000000] dark:text-[#f6f6f4]" style={{ fontWeight: 400 }}>
+                Deploy. Verify. Optimize.
+              </h3>
+              <p className="text-sm text-gray-600 dark:text-[#a8a898] leading-relaxed" style={{ fontWeight: 400, maxWidth: '360px' }}>
+                The system is designed to move from initial installation to fleet-level operation without changing how execution works.
+              </p>
+            </div>
 
-          <div className="flex flex-col items-center justify-center">
-            <div className="max-w-xl w-full">
-              {steps.map((step) => (
-                <div key={step.name} className="border-b border-gray-300 dark:border-[#f6f6f4]/5 pb-4 last:border-0 last:pb-0">
-                  <h4 className="text-sm font-bold mb-2 text-[#000000] dark:text-[#f6f6f4]" style={{ fontFamily: "'IBM Plex Mono', monospace" }}>
-                    {step.name}
-                  </h4>
-                  <p className="text-sm text-gray-600 dark:text-[#a8a898] leading-relaxed" style={{ fontFamily: "'IBM Plex Mono', monospace", fontWeight: 400 }}>
-                    {step.description}
-                  </p>
-                </div>
-              ))}
+            {/* Right side - Steps */}
+            <div className="flex flex-col items-start justify-start" style={{ paddingTop: '3rem' }}>
+              <div className="w-full max-w-xl">
+                {steps.map((step) => (
+                  <div key={step.name} className="border-b border-gray-300 dark:border-[#f6f6f4]/5 pb-4 last:border-0 last:pb-0">
+                    <h4 className="text-sm font-bold mb-2 text-[#000000] dark:text-[#f6f6f4]">
+                      {step.name}
+                    </h4>
+                    <p className="text-sm text-gray-600 dark:text-[#a8a898] leading-relaxed" style={{ fontWeight: 400 }}>
+                      {step.description}
+                    </p>
+                  </div>
+                ))}
+              </div>
             </div>
           </div>
         </div>
