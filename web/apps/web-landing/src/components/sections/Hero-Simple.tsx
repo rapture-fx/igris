@@ -77,47 +77,51 @@ export default function Hero() {
   }, [])
 
   return (
-    <section className="pt-[50px] pb-0 bg-[#f6f6f4] dark:bg-dark-bg text-gray-900 dark:text-[#f6f6f4] relative overflow-visible">
-      <div className="mx-auto max-w-[1300px]">
-        <div className="relative px-4 md:px-8 lg:px-12 pb-0 z-0 overflow-hidden border-l border-r border-gray-300 dark:border-[#f6f6f4]/5" style={{
-          height: '600px',
-          backgroundColor: mounted && theme === 'dark' ? '#1b1912' : '#f6f6f4'
+    <section className="pb-0 bg-[#f6f6f4] dark:bg-dark-bg text-gray-900 dark:text-[#f6f6f4] relative overflow-visible transition-colors duration-200">
+      <div className="mx-auto max-w-[1300px] px-4 sm:px-6 lg:px-8">
+        <div className="relative px-4 md:px-8 lg:px-12 pb-0 overflow-hidden border-l border-r section-border" style={{
+          height: '750px',
+          backgroundColor: mounted && theme === 'dark' ? '#1b1912' : '#f6f6f4',
+          position: 'relative',
+          zIndex: 1
         }}>
-          {/* Background image - dark mode only */}
-          {mounted && theme === 'dark' && (
-            <div className="absolute z-0" style={{
-              top: 0,
-              left: 0,
-              right: 0,
-              bottom: 0,
-              backgroundImage: 'url(/hs.png)',
-              backgroundSize: '70% auto',
-              backgroundPosition: 'right bottom',
-              backgroundRepeat: 'no-repeat'
-            }}></div>
-          )}
+          <img
+            src="/hrlg.png"
+            alt=""
+            className="absolute inset-0 w-full h-full object-cover z-0"
+            style={{ opacity: 0.9 }}
+          />
 
             <div className="max-w-[1300px] mx-auto w-full absolute z-10" style={{ bottom: '16rem', left: 0, right: 0, paddingLeft: '4rem', paddingRight: '4rem' }}>
             <div className="mb-6 text-left">
               <div>
-                <h1 className="text-2xl md:text-3xl lg:text-4xl font-medium leading-[1.2]" style={{ color: mounted && theme === 'dark' ? '#f6f6f4' : '#1b1912' }}>
-                  The Nervous System for <AnimatedText />
+                <h1 className="text-3xl md:text-4xl lg:text-5xl font-medium" style={{ color: mounted && theme === 'dark' ? '#f6f6f4' : '#1b1912' }}>
+                  <span className="block mb-3">The Nervous System</span>
+                  <span className="block">for <AnimatedText /></span>
                 </h1>
-                <p className="text-lg md:text-xl max-w-2xl leading-relaxed text-left mt-4" style={{ color: mounted && theme === 'dark' ? '#c8c8b8' : '#4a4a4a' }}>
+                <p className="text-xl md:text-2xl max-w-xl leading-relaxed text-left mt-8" style={{ color: mounted && theme === 'dark' ? '#c8c8b8' : '#4a4a4a' }}>
                   A deterministic execution layer for AI that operates across cloud and devices, even when connectivity fails.
                 </p>
-                <div className="flex flex-wrap gap-2 md:gap-3 mt-4 text-xs md:text-sm font-inter" style={{ color: mounted && theme === 'dark' ? '#a8a898' : '#6a6a6a' }}>
+                <div className="flex flex-wrap gap-2 md:gap-3 mt-4 text-xs md:text-sm" style={{ fontFamily: "'IBM Plex Mono', monospace", color: mounted && theme === 'dark' ? '#a8a898' : '#6a6a6a' }}>
                 </div>
               </div>
             </div>
 
-              <div className="flex flex-col sm:flex-row gap-3">
+              <div className="flex flex-wrap gap-4 mt-8">
                 <Link href="https://docs.igrisinertial.com/runtime/quickstart">
                   <button
-                    className="inline-flex items-center justify-center px-3 py-1.5 md:px-4 md:py-2 hover:opacity-80 transition-all duration-200 text-xs font-medium shadow-md"
-                    style={{ backgroundColor: mounted && theme === 'dark' ? '#f6f6f4' : '#1b1912', color: mounted && theme === 'dark' ? '#1b1912' : '#f6f6f4' }}
+                    className="inline-flex items-center justify-center px-4 py-2 md:px-6 md:py-3 hover:opacity-80 transition-all duration-200 text-xs font-medium shadow-md rounded-md"
+                    style={{ backgroundColor: '#14120a', color: '#f6f6f4' }}
                   >
-                    Download Runtime
+                    Download
+                  </button>
+                </Link>
+                <Link href="https://github.com/igris-inertial">
+                  <button
+                    className="inline-flex items-center justify-center px-4 py-2 md:px-6 md:py-3 hover:opacity-80 transition-all duration-200 text-xs font-medium shadow-md rounded-md border"
+                    style={{ backgroundColor: mounted && theme === 'dark' ? '#1b1912' : '#f6f6f4', color: mounted && theme === 'dark' ? '#f6f6f4' : '#1b1912', borderColor: 'rgba(20, 18, 10, 0.3)' }}
+                  >
+                    GitHub
                   </button>
                 </Link>
               </div>

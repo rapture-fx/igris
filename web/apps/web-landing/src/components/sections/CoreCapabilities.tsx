@@ -4,15 +4,15 @@ import { useTheme } from 'next-themes'
 const capabilities = [
   {
     name: 'Execution',
-    description: 'Monitor every device in real-time. Deploy models instantly. Push configurations fleet-wide. From a single agent to thousands—your runtime layer executes with deterministic precision, sandboxed safety, and predictable latency.',
+    description: 'Execute AI with deterministic precision and sandboxed safety. Monitor devices in real time, deploy models instantly, and push configurations fleet-wide. From one agent to thousands, execution remains predictable and bounded.',
   },
   {
     name: 'Intelligence',
-    description: 'Route decisions through multiple LLM providers. Balance cost and performance. Test in shadow mode before production. Your decision layer adapts intelligently while maintaining complete control over every choice.',
+    description: 'Route decisions across multiple LLM providers. Balance cost and performance. Test in shadow mode before production. The decision layer adapts intelligently while keeping execution fully controlled.',
   },
   {
     name: 'Memory & Proof',
-    description: 'Track behavior trees across your fleet. Detect anomalies automatically. Replay historical decisions. Every action cryptographically signed. Your audit trail is immutable—from debugging incidents to proving compliance.',
+    description: 'Track behavior trees across the fleet. Detect anomalies automatically. Inspect historical decisions end-to-end. Every action is cryptographically signed, creating an immutable audit trail—from debugging incidents to proving compliance.',
   },
 ]
 
@@ -25,172 +25,95 @@ export default function CoreCapabilities() {
   }, [])
 
   return (
-    <>
-      <section className="bg-[#f6f6f4] dark:bg-dark-bg text-gray-900 dark:text-[#f6f6f4] transition-colors duration-200">
-        <div className="mx-auto max-w-[1300px] px-4 sm:px-6 lg:px-8">
-          <div className="relative px-4 md:px-8 lg:px-12 flex flex-col bg-[#f6f6f4] dark:bg-[#1b1912] border-l border-r border-b border-gray-300 dark:border-[#f6f6f4]/5 min-h-[750px] md:h-auto">
-
-            {/* Content Container */}
-            <div className="w-full px-0 flex flex-col flex-1">
-
-              {/* Mobile Layout - Title first, then capabilities */}
-              <div className="mb-6 md:mb-0 md:hidden text-left" style={{ paddingTop: '3rem', paddingBottom: '3rem' }}>
-                {/* Title Section - Shows first on mobile */}
-                <div className="mb-8 text-left">
-                  <p className="text-base text-[#85612c] dark:text-[#c5b0cd] mb-2" style={{ fontFamily: 'Roboto Mono, monospace', letterSpacing: '0.05em' }}>
-                    02. THE ARCHITECTURE
-                  </p>
-                  <h3 className="text-lg md:text-xl lg:text-2xl font-inter mb-4 text-[#000000] dark:text-[#f6f6f4]">
-                    Every layer working in harmony
-                  </h3>
-                  <p className="text-sm text-gray-700 dark:text-[#c8c8b8] font-inter leading-relaxed">
-                    From edge to cloud. From one to thousands.
-                  </p>
-                </div>
-
-                {/* Capabilities - Shows after title on mobile */}
-                <div className="space-y-6">
-                  {capabilities.map((capability, index) => {
-                    const getImage = () => {
-                      if (index === 0) return { light: '/tre.png', dark: '/cr.png' };
-                      if (index === 1) return { light: '/two.png', dark: '/cs.png' };
-                      if (index === 2) return { light: '/one.png', dark: '/cc.png' };
-                      return null;
-                    };
-                    const images = getImage();
-
-                    return (
-                      <div key={capability.name}>
-                        {images && (
-                          <div className="border border-gray-300 dark:border-[#f6f6f4]/5 mb-4" style={{ height: '150px', position: 'relative', overflow: 'hidden', display: 'flex', alignItems: 'center', justifyContent: 'center' }}>
-                            <img
-                              src={mounted && theme === 'dark' ? images.dark : images.light}
-                              alt={capability.name}
-                              style={{
-                                width: '60%',
-                                height: '60%',
-                                objectFit: 'contain',
-                                opacity: '0.6'
-                              }}
-                            />
-                          </div>
-                        )}
-                        <h4 className="text-sm font-semibold mb-2 font-inter text-[#000000] dark:text-[#f6f6f4]">
-                          {capability.name}
-                        </h4>
-                        <p className="text-sm text-gray-600 dark:text-[#a8a898] leading-relaxed font-inter">
-                          {capability.description}
-                        </p>
-                      </div>
-                    );
-                  })}
-                </div>
-              </div>
-
-              {/* Two-column layout */}
-              <div className="hidden md:grid md:grid-cols-3 gap-0 relative flex-1">
-                {/* Left Column - Capabilities (2 columns wide) */}
-                <div className="hidden md:flex md:col-span-2 flex-col justify-start" style={{
-                  paddingTop: '3rem',
-                  paddingBottom: '3rem',
-                  paddingRight: '2rem'
-                }}>
-                  <div className="w-full">
-                    {/* Same layout for both light and dark mode - horizontal cards */}
-                    <div className="flex gap-4">
-                      {capabilities.map((capability, index) => (
-                        <div key={capability.name} className="flex-1 border border-gray-300 dark:border-[#f6f6f4]/5 bg-[#f6f6f4] dark:bg-[#1b1912]">
-                          {/* Image section */}
-                          <div style={{
-                            width: '100%',
-                            height: '300px',
-                            display: 'flex',
-                            alignItems: 'center',
-                            justifyContent: 'center',
-                            position: 'relative',
-                            overflow: 'hidden'
-                          }}>
-                            {index === 0 && (
-                              <img
-                                src={mounted && theme === 'dark' ? '/cr.png' : '/tre.png'}
-                                alt={capability.name}
-                                style={{
-                                  position: 'absolute',
-                                  width: '65%',
-                                  height: '65%',
-                                  objectFit: 'contain',
-                                  opacity: '0.6'
-                                }}
-                              />
-                            )}
-                            {index === 1 && (
-                              <img
-                                src={mounted && theme === 'dark' ? '/cs.png' : '/two.png'}
-                                alt={capability.name}
-                                style={{
-                                  position: 'absolute',
-                                  width: '55%',
-                                  height: '55%',
-                                  objectFit: 'contain',
-                                  opacity: '0.6'
-                                }}
-                              />
-                            )}
-                            {index === 2 && (
-                              <img
-                                src={mounted && theme === 'dark' ? '/cc.png' : '/one.png'}
-                                alt={capability.name}
-                                style={{
-                                  position: 'absolute',
-                                  width: '60%',
-                                  height: '60%',
-                                  objectFit: 'contain',
-                                  opacity: '0.6'
-                                }}
-                              />
-                            )}
-                          </div>
-                          {/* Text section */}
-                          <div className="p-4">
-                            <h4 className="text-sm font-semibold mb-2 font-inter text-[#000000] dark:text-[#f6f6f4]">
-                              {capability.name}
-                            </h4>
-                            <p className="text-sm text-gray-600 dark:text-[#a8a898] leading-relaxed font-inter">
-                              {capability.description}
-                            </p>
-                          </div>
-                        </div>
-                      ))}
+    <section className="bg-[#f6f6f4] dark:bg-dark-bg text-gray-900 dark:text-[#f6f6f4] transition-colors duration-200">
+      <div className="mx-auto max-w-[1300px] px-4 sm:px-6 lg:px-8">
+        <div className="relative px-4 md:px-8 lg:px-12 border-l border-r border-b border-gray-300 dark:border-[#f6f6f4]/10 min-h-[900px]">
+          {/* Title outside the frame */}
+          <div className="text-left mb-8" style={{ paddingTop: '3rem' }}>
+            <p className="text-base text-[#85612c] dark:text-[#c5b0cd] mb-2" style={{ fontFamily: 'Roboto Mono, monospace', letterSpacing: '0.05em' }}>
+              02. THE ARCHITECTURE
+            </p>
+            <h3 className="text-lg md:text-xl lg:text-2xl mb-4 text-[#000000] dark:text-[#f6f6f4]" style={{ fontFamily: "'IBM Plex Mono', monospace", fontWeight: 400 }}>
+              Every layer working together
+            </h3>
+            <p className="text-sm text-gray-600 dark:text-[#a8a898] leading-relaxed" style={{ fontFamily: "'IBM Plex Mono', monospace", fontWeight: 400 }}>
+              From a single device to fleets. From edge to cloud.
+            </p>
+          </div>
+          
+          {/* Frame with centered cards */}
+          <div className="border border-gray-300 dark:border-[#f6f6f4]/10 rounded-lg flex items-center justify-center relative overflow-hidden" style={{ height: '700px', paddingBottom: '3rem' }}>
+            <img
+              src="/arc.png"
+              alt=""
+              className="absolute inset-0 w-full h-full object-cover z-0"
+              style={{ opacity: 0.9 }}
+            />
+            <div className="flex gap-4 z-10">
+              {capabilities.map((capability, index) => (
+                <React.Fragment key={capability.name}>
+                  <div className="bg-[#f6f6f4] dark:bg-[#1b1912] border border-gray-300 dark:border-[#f6f6f4]/10 rounded-lg w-[220px] shadow-md">
+                    <div style={{
+                      width: '100%',
+                      height: '150px',
+                      display: 'flex',
+                      alignItems: 'center',
+                      justifyContent: 'center',
+                      position: 'relative',
+                      overflow: 'hidden'
+                    }}>
+                      {index === 0 && (
+                        <img
+                          src={mounted && theme === 'dark' ? '/cr.png' : '/exc.png'}
+                          alt={capability.name}
+                          style={{
+                            width: '60%',
+                            height: '60%',
+                            objectFit: 'contain',
+                            opacity: '0.6'
+                          }}
+                        />
+                      )}
+                      {index === 1 && (
+                        <img
+                          src={mounted && theme === 'dark' ? '/cs.png' : '/tre.png'}
+                          alt={capability.name}
+                          style={{
+                            width: '60%',
+                            height: '60%',
+                            objectFit: 'contain',
+                            opacity: '0.6'
+                          }}
+                        />
+                      )}
+                      {index === 2 && (
+                        <img
+                          src={mounted && theme === 'dark' ? '/cc.png' : '/one.png'}
+                          alt={capability.name}
+                          style={{
+                            width: '60%',
+                            height: '60%',
+                            objectFit: 'contain',
+                            opacity: '0.6'
+                          }}
+                        />
+                      )}
                     </div>
-                    {/* Horizontal frame below cards */}
-                    <div className="mt-4 w-full border border-gray-300 dark:border-[#f6f6f4]/5 bg-[#f6f6f4] dark:bg-[#1b1912] relative overflow-hidden" style={{ height: '250px' }}>
-                      <img
-                        src="/cl.png"
-                        alt=""
-                        className="absolute inset-0 w-full h-full object-cover object-center"
-                        style={{ opacity: 0.8 }}
-                      />
+                    <div className="p-4">
+                      <h4 className="text-sm font-bold mb-2 text-[#000000] dark:text-[#f6f6f4]" style={{ fontFamily: "'IBM Plex Mono', monospace" }}>
+                        {capability.name}
+                      </h4>
+                      <p className="text-sm text-gray-600 dark:text-[#a8a898] leading-relaxed" style={{ fontFamily: "'IBM Plex Mono', monospace", fontWeight: 400 }}>
+                        {capability.description}
+                      </p>
                     </div>
                   </div>
-                </div>
-
-                {/* Right Column - Title and Intro (Desktop only) */}
-                <div className="hidden md:flex text-left md:col-span-1 md:border-l flex-col justify-start dark:border-[#f6f6f4]/5" style={{ paddingTop: '3rem', paddingBottom: '3rem', paddingLeft: '1rem' }}>
-                  <p className="text-base text-[#85612c] dark:text-[#c5b0cd] mb-2" style={{ fontFamily: 'Roboto Mono, monospace', letterSpacing: '0.05em' }}>
-                    02. THE ARCHITECTURE
-                  </p>
-                  <h3 className="text-lg md:text-xl lg:text-2xl font-inter mb-4 text-[#000000] dark:text-[#f6f6f4]">
-                    Every layer working in harmony
-                  </h3>
-                  <p className="text-sm text-gray-700 dark:text-[#c8c8b8] font-inter leading-relaxed">
-                    From edge to cloud. From one to thousands.
-                  </p>
-                </div>
-              </div>
+                </React.Fragment>
+              ))}
             </div>
           </div>
         </div>
-      </section>
-    </>
+      </div>
+    </section>
   )
 }

@@ -76,21 +76,21 @@ export default function Header() {
         />
       )}
 
-       <header
-         className={`fixed top-0 left-0 w-full z-50 transition-all duration-300 ${
-           isScrolled ? 'backdrop-blur-md bg-[rgba(246,246,244,0.7)] dark:bg-[rgba(27,25,18,0.7)]' : 'bg-transparent'
-         }`}
-         style={{ backgroundColor: mounted && theme === 'dark' ? '#1b1912' : '#f6f6f4' }}
-       >
-         <div className="mx-auto max-w-[1300px]">
-           <div className="px-4 md:px-8 lg:px-12 py-4 border-l border-r border-gray-300 dark:border-[#f6f6f4]/5">
+        <header
+          className={`fixed top-0 left-0 w-full z-50 border-b section-border transition-all duration-300 ${
+            isScrolled ? 'backdrop-blur-md bg-[rgba(246,246,244,0.7)] dark:bg-[rgba(27,25,18,0.7)]' : 'bg-transparent'
+          }`}
+          style={{ backgroundColor: mounted && theme === 'dark' ? '#1b1912' : '#f6f6f4' }}
+        >
+          <div className="mx-auto max-w-[1300px] px-4 sm:px-6 lg:px-8">
+            <div className="px-4 md:px-8 lg:px-12 py-6">
           <div className="flex items-center justify-between w-full">
           <div className="flex">
             <Link href="/">
               <img
                 src={mounted && theme === 'dark' ? '/dmfoot.png' : '/foot.png'}
                 alt="Igris Inertial"
-                className="h-8 w-auto"
+                className="h-12 w-auto"
               />
             </Link>
           </div>
@@ -98,15 +98,15 @@ export default function Header() {
           <div className="hidden md:flex items-center space-x-6">
               {/* Resources Dropdown */}
               <div className="relative" ref={resourcesDropdownRef}>
-                  <button
-                  onClick={() => {
-                    setResourcesDropdownOpen(!resourcesDropdownOpen);
-                  }}
-                   className="text-gray-700 dark:text-[#c8c8b8] hover:text-gray-900 dark:hover:text-[#f6f6f4] transition-colors duration-200 font-medium text-xs flex items-center gap-1"
-                 >
-                   Resources
-                   <ChevronDown className={`h-4 w-4 transition-transform duration-200 ${resourcesDropdownOpen ? 'rotate-180' : ''}`} />
-                </button>
+                   <button
+                   onClick={() => {
+                     setResourcesDropdownOpen(!resourcesDropdownOpen);
+                   }}
+                    className="text-gray-700 dark:text-[#c8c8b8] hover:text-gray-900 dark:hover:text-[#f6f6f4] transition-colors duration-200 font-medium text-sm flex items-center gap-1"
+                  >
+                    Resources
+                    <ChevronDown className={`h-4 w-4 transition-transform duration-200 ${resourcesDropdownOpen ? 'rotate-180' : ''}`} />
+                 </button>
               {resourcesDropdownOpen && (
                     <div className="absolute top-full right-0 mt-2 w-[500px] border border-gray-300 dark:border-[#f6f6f4]/5 bg-[#f6f6f4] dark:bg-[#1b1912] shadow-lg z-50 p-2">
                      <div className="grid grid-cols-2">
@@ -152,27 +152,27 @@ export default function Header() {
                )}
             </div>
 
-               <Link
-                 href="/pricing"
-                 className="text-gray-700 dark:text-[#c8c8b8] hover:text-gray-900 dark:hover:text-[#f6f6f4] transition-colors duration-200 font-medium text-xs"
-               >
-                 Pricing
-               </Link>
-
-               <a
-                 href={consoleUrl ? `${consoleUrl}/auth?mode=signin` : '#'}
-                 className="text-gray-700 dark:text-[#c8c8b8] hover:text-gray-900 dark:hover:text-[#f6f6f4] transition-colors duration-200 font-medium text-xs"
-               >
-                 Sign In
-               </a>
-
-               <a
-                  href={consoleUrl ? `${consoleUrl}/auth?mode=signup` : '#'}
-                  className="bg-black text-white dark:bg-[#f6f6f4] dark:text-black px-2.5 py-1 hover:bg-gray-800 dark:hover:bg-gray-200 transition-all duration-200 text-xs shadow-md hover:shadow-lg"
+                <Link
+                  href="/pricing"
+                  className="text-gray-700 dark:text-[#c8c8b8] hover:text-gray-900 dark:hover:text-[#f6f6f4] transition-colors duration-200 font-medium text-sm"
                 >
-                 Get Started
-               </a>
-          </div>
+                  Pricing
+                </Link>
+
+                <a
+                  href={consoleUrl ? `${consoleUrl}/auth?mode=signin` : '#'}
+                  className="text-gray-700 dark:text-[#c8c8b8] hover:text-gray-900 dark:hover:text-[#f6f6f4] transition-colors duration-200 font-medium text-sm"
+                >
+                  Sign In
+                </a>
+
+                 <a
+                    href={consoleUrl ? `${consoleUrl}/auth?mode=signup` : '#'}
+                    className="bg-[#14120a] text-white dark:bg-[#f6f6f4] dark:text-black px-4 py-2 hover:opacity-90 transition-all duration-200 text-xs shadow-md rounded-md inline-flex items-center justify-center"
+                  >
+                   Get Started
+                 </a>
+           </div>
 
           <div className="md:hidden flex items-center">
              <button
