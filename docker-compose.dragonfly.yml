@@ -8,7 +8,7 @@ services:
   # P0-4: Dragonfly Cache (replaces Redis)
   dragonfly:
     image: docker.dragonflydb.io/dragonflydb/dragonfly:latest
-    container_name: schlep-dragonfly
+    container_name: igris-dragonfly
     ports:
       - "6379:6379"
     volumes:
@@ -27,12 +27,12 @@ services:
       retries: 5
     restart: unless-stopped
     networks:
-      - schlep-network
+      - igris-network
 
   # P0-5: pgBouncer connection pooler
   pgbouncer:
     image: edoburu/pgbouncer:latest
-    container_name: schlep-pgbouncer
+    container_name: igris-pgbouncer
     environment:
       - DATABASE_URL=postgres://${POSTGRES_USER:-postgres}:${POSTGRES_PASSWORD:-postgres}@postgres:5432/${POSTGRES_DB:-igris_overture}
       - POOL_MODE=transaction
@@ -47,12 +47,12 @@ services:
       - postgres
     restart: unless-stopped
     networks:
-      - schlep-network
+      - igris-network
 
   # Postgres Database
   postgres:
     image: postgres:16-alpine
-    container_name: schlep-postgres
+    container_name: igris-postgres
     environment:
       - POSTGRES_USER=${POSTGRES_USER:-postgres}
       - POSTGRES_PASSWORD=${POSTGRES_PASSWORD:-postgres}
@@ -83,12 +83,12 @@ services:
       retries: 5
     restart: unless-stopped
     networks:
-      - schlep-network
+      - igris-network
 
 volumes:
   dragonfly-data:
   postgres-data:
 
 networks:
-  schlep-network:
+  igris-network:
     driver: bridge

@@ -8,11 +8,11 @@ services:
   # PostgreSQL with strict memory limits
   postgres:
     image: postgres:15-alpine
-    container_name: schlep-postgres-minimal
+    container_name: igris-postgres-minimal
     restart: unless-stopped
     environment:
       POSTGRES_DB: ${POSTGRES_DB:-igris_overture}
-      POSTGRES_USER: ${POSTGRES_USER:-schlep_user}
+      POSTGRES_USER: ${POSTGRES_USER:-igris_user}
       POSTGRES_PASSWORD: ${POSTGRES_PASSWORD:-changeme}
       # Limit PostgreSQL memory
       POSTGRES_INITDB_ARGS: "-c shared_buffers=128MB -c effective_cache_size=256MB"
@@ -34,17 +34,17 @@ services:
         reservations:
           memory: 128M
     healthcheck:
-      test: ["CMD-SHELL", "pg_isready -U ${POSTGRES_USER:-schlep_user}"]
+      test: ["CMD-SHELL", "pg_isready -U ${POSTGRES_USER:-igris_user}"]
       interval: 30s
       timeout: 5s
       retries: 3
     networks:
-      - schlep-network
+      - igris-network
 
   # Redis (standard) instead of Dragonfly - much lower memory
   cache:
     image: redis:7-alpine
-    container_name: schlep-redis-minimal
+    container_name: igris-redis-minimal
     restart: unless-stopped
     command: >
       redis-server
@@ -69,9 +69,9 @@ services:
       timeout: 3s
       retries: 3
     networks:
-      - schlep-network
+      - igris-network
 
-  # Schlep-Engine API with strict limits
+  # Igris Overture API with strict limits
   api:
     build:
       context: .
@@ -87,7 +87,7 @@ services:
       ENV: development
 
       # Database Configuration (minimal connections)
-      DATABASE_URL: postgres://${POSTGRES_USER:-schlep_user}:${POSTGRES_PASSWORD:-changeme}@postgres:5432/${POSTGRES_DB:-igris_overture}?sslmode=disable
+      DATABASE_URL: postgres://${POSTGRES_USER:-igris_user}:${POSTGRES_PASSWORD:-changeme}@postgres:5432/${POSTGRES_DB:-igris_overture}?sslmode=disable
       ENABLE_PERSISTENCE: "true"
       DB_MAX_OPEN_CONNS: 10
       DB_MAX_IDLE_CONNS: 2
@@ -140,7 +140,7 @@ services:
       retries: 2
       start_period: 40s
     networks:
-      - schlep-network
+      - igris-network
     logging:
       driver: "json-file"
       options:
@@ -148,7 +148,7 @@ services:
         max-file: "2"
 
 networks:
-  schlep-network:
+  igris-network:
     driver: bridge
 
 volumes:

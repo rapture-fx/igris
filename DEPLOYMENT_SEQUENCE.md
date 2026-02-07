@@ -14,16 +14,17 @@
                          │ HTTPS
                          ▼
 ┌─────────────────────────────────────────────────────────┐
-│                      Fly.io                             │
+│                   Hetzner CX22                          │
+│                   (~€3.99/mo)                           │
 │                                                         │
-│  api.igrisinertial.com (or igris-overture.fly.dev)      │
-│  Go backend (Fiber) on port 8080                        │
+│  api.igrisinertial.com                                  │
+│  Docker Compose (docker-compose.production.yml)         │
 │                                                         │
-│  ┌──────────┐  ┌──────────┐  ┌──────────────────────┐  │
-│  │ Postgres │  │  Redis   │  │ Rust FFI (embedded)  │  │
-│  │ (Fly)    │  │  (Fly)   │  │ Thompson Sampling    │  │
-│  │          │  │          │  │ SLO Enforcer         │  │
-│  └──────────┘  └──────────┘  └──────────────────────┘  │
+│  ┌──────────┐  ┌──────────────┐  ┌─────────────────┐   │
+│  │ Postgres │  │  Dragonfly   │  │ Igris Overture  │   │
+│  │ 15-alpine│  │  (Redis-     │  │ Go API + Rust   │   │
+│  │          │  │   compatible)│  │ FFI (cgo)       │   │
+│  └──────────┘  └──────────────┘  └─────────────────┘   │
 └─────────────────────────────────────────────────────────┘
                          │
               ┌──────────┼──────────┐
@@ -37,84 +38,135 @@
 Everything depends on the backend being live first.
 
 ```
-Step 1: Fly.io (backend)     ← web-console needs API URL
-Step 2: Cloudflare Pages     ← web-console + web-landing
-Step 3: npm publish           ← SDK needs live API URL in README
+Step 1: Hetzner VPS (backend)   ← web-console needs API URL
+Step 2: Cloudflare Pages        ← web-console + web-landing
+Step 3: npm publish             ← SDK needs live API URL in README
 ```
 
 ---
 
-## Step 1: Backend to Fly.io
+## Step 1: Backend to Hetzner
 
-### What you need from Fly.io
+### What you need
 
-- **Account**: Sign up at https://fly.io
-- **Credit card**: Required even for free tier (fraud prevention)
-- **CLI**: `brew install flyctl` (or `curl -L https://fly.io/install.sh | sh`)
-- **Login**: `fly auth login`
+- **Hetzner Cloud account**: https://console.hetzner.cloud
+- **Server**: CX22 (2 vCPU, 4GB RAM, 40GB SSD, ~€3.99/mo)
+- **OS**: Ubuntu 22.04 or Debian 12
+- **Domain**: `api.igrisinertial.com` pointed to server IP
 
-### Fly.io resources we'll create
-
-| Resource | Purpose | Estimated Cost |
-|----------|---------|----------------|
-| App (`igris-overture`) | Go backend, shared-cpu-1x, 512MB | ~$3-5/mo |
-| Postgres (`igris-overture-db`) | Managed Postgres, 1GB | ~$0 (free tier) |
-| Redis (Upstash via Fly) | Session/cache/billing state | ~$0 (free tier) |
-
-Total: **~$5/mo** to start. Scale up later.
-
-### Deploy commands (run after signup)
+### Server setup
 
 ```bash
-# 1. Create the app (don't deploy yet)
-fly launch --name igris-overture --region sjc --no-deploy
+# SSH into your Hetzner server
+ssh root@YOUR_SERVER_IP
 
-# 2. Create Postgres
-fly postgres create --name igris-overture-db --region sjc
-fly postgres attach igris-overture-db --app igris-overture
+# Install Docker + Docker Compose
+apt update && apt upgrade -y
+apt install -y docker.io docker-compose-v2
+systemctl enable docker && systemctl start docker
 
-# 3. Create Redis (Upstash)
-fly redis create --name igris-overture-redis --region sjc
-# This outputs REDIS_URL — save it
+# Clone the repo
+git clone https://github.com/Igris-inertial/system.git /opt/igris
+cd /opt/igris
 
-# 4. Set all secrets
-fly secrets set \
-  POLAR_API_KEY="your-polar-api-key" \
-  POLAR_WEBHOOK_SECRET="your-polar-webhook-secret" \
-  RESEND_API_KEY="your-resend-api-key" \
-  RESEND_FROM_EMAIL="Igris Inertial <noreply@igrisinertial.com>" \
-  JWT_SECRET="$(openssl rand -hex 32)" \
-  REDIS_URL="redis://..." \
-  --app igris-overture
+# Create .env from your secrets
+cat > .env << 'EOF'
+POSTGRES_DB=igris_overture
+POSTGRES_USER=igris_user
+POSTGRES_PASSWORD=CHANGE_ME_STRONG_PASSWORD
+REDIS_PASSWORD=CHANGE_ME_STRONG_PASSWORD
+JWT_SECRET=CHANGE_ME_GENERATE_WITH_OPENSSL
+VAULT_MASTER_KEY=CHANGE_ME_GENERATE_WITH_OPENSSL
+PROVIDER_MODE=benchmark
+OPENAI_API_KEY=
+ANTHROPIC_API_KEY=
+EOF
 
-# 5. Deploy
-fly deploy
+# Generate secrets
+sed -i "s/JWT_SECRET=.*/JWT_SECRET=$(openssl rand -hex 32)/" .env
+sed -i "s/VAULT_MASTER_KEY=.*/VAULT_MASTER_KEY=$(openssl rand -hex 32)/" .env
 
-# 6. Verify
-curl https://igris-overture.fly.dev/v1/health
+# Deploy
+docker compose -f docker-compose.production.yml up -d --build
+
+# Verify
+curl http://localhost:8080/v1/health
 ```
 
-### Custom domain (optional, after deploy works)
+### SSL with Let's Encrypt (after DNS is pointed)
 
 ```bash
-fly certs add api.igrisinertial.com --app igris-overture
-# Then add CNAME: api.igrisinertial.com → igris-overture.fly.dev
+# Install certbot
+apt install -y certbot
+
+# Get certificate
+certbot certonly --standalone -d api.igrisinertial.com
+
+# Or use the included ssl-setup script
+bash scripts/ssl-setup.sh
 ```
 
-### Environment variables on Fly.io
+### Firewall setup
+
+```bash
+# Use included firewall script or manual:
+bash scripts/setup_firewall.sh
+
+# Manual alternative:
+ufw allow 22/tcp    # SSH
+ufw allow 80/tcp    # HTTP (redirect to HTTPS)
+ufw allow 443/tcp   # HTTPS
+ufw enable
+```
+
+### Environment variables (in .env)
 
 | Variable | Source | Required |
 |----------|--------|----------|
-| `DATABASE_URL` | Auto-set by `fly postgres attach` | Yes |
-| `REDIS_URL` | Output of `fly redis create` | Yes |
-| `POLAR_API_KEY` | Polar.sh dashboard → Settings → API | Yes |
-| `POLAR_WEBHOOK_SECRET` | Polar.sh dashboard → Webhooks | Yes |
-| `RESEND_API_KEY` | Resend dashboard → API Keys | Yes |
-| `RESEND_FROM_EMAIL` | Your verified sender | Yes |
-| `JWT_SECRET` | Generate: `openssl rand -hex 32` | Yes |
-| `ENABLE_PERSISTENCE` | `true` | Set in fly.toml |
-| `USE_REDIS` | `true` | Set in fly.toml |
-| `ENABLE_MULTI_TENANCY` | `true` | Set in fly.toml |
+| `POSTGRES_PASSWORD` | Generate strong password | Yes |
+| `REDIS_PASSWORD` | Generate strong password | Yes |
+| `JWT_SECRET` | `openssl rand -hex 32` | Yes |
+| `VAULT_MASTER_KEY` | `openssl rand -hex 32` | Yes |
+| `POLAR_API_KEY` | Polar.sh dashboard | For billing |
+| `POLAR_WEBHOOK_SECRET` | Polar.sh webhooks | For billing |
+| `RESEND_API_KEY` | Resend dashboard | For emails |
+| `OPENAI_API_KEY` | OpenAI dashboard | For live inference |
+| `ANTHROPIC_API_KEY` | Anthropic dashboard | For live inference |
+
+### What runs on the server
+
+| Container | Image | Port | Memory |
+|-----------|-------|------|--------|
+| `igris-postgres` | postgres:15-alpine | 5432 | ~256MB |
+| `igris-dragonfly` | dragonflydb/dragonfly:latest | 6379 | ~512MB (4GB limit) |
+| `igris-overture` | Built from Dockerfile | 8080 | ~256MB |
+
+Optional monitoring (enable with `--profile monitoring`):
+| `igris-prometheus` | prom/prometheus | 9090 |
+| `igris-grafana` | grafana/grafana | 3000 |
+| `igris-jaeger` | jaegertracing/all-in-one | 16686 |
+
+### Management commands
+
+```bash
+# View logs
+docker compose -f docker-compose.production.yml logs -f api
+
+# Restart API only
+docker compose -f docker-compose.production.yml restart api
+
+# Stop everything
+docker compose -f docker-compose.production.yml down
+
+# Update and redeploy
+cd /opt/igris && git pull && docker compose -f docker-compose.production.yml up -d --build
+
+# Database backup
+bash scripts/backup_database.sh
+
+# Enable monitoring stack
+docker compose -f docker-compose.production.yml --profile monitoring up -d
+```
 
 ---
 
@@ -134,7 +186,7 @@ fly certs add api.igrisinertial.com --app igris-overture
 
 | Variable | Value | Source |
 |----------|-------|--------|
-| `NEXT_PUBLIC_API_URL` | `https://igris-overture.fly.dev` (or custom domain) | Fly.io |
+| `NEXT_PUBLIC_API_URL` | `https://api.igrisinertial.com` | Your Hetzner server |
 | `NEXT_PUBLIC_CLERK_PUBLISHABLE_KEY` | `pk_live_...` | Clerk Dashboard |
 | `CLERK_SECRET_KEY` | `sk_live_...` | Clerk Dashboard |
 | `NEXT_PUBLIC_CLERK_SIGN_IN_URL` | `/auth?mode=signin` | Fixed |
@@ -144,12 +196,10 @@ fly certs add api.igrisinertial.com --app igris-overture
 | `NEXT_PUBLIC_ENV` | `production` | Fixed |
 | `NEXT_PUBLIC_ENABLE_MOCK_DATA` | `false` | Fixed |
 
-#### Pre-deploy code change
+#### Code changes already applied
 
-```
-File: web/apps/web-console/middleware.ts
-Line 5: Change `const DEV_MODE = true` → `const DEV_MODE = false`
-```
+- `middleware.ts`: `DEV_MODE = false` (done)
+- `app/auth/page.tsx`: `useSearchParams` wrapped in Suspense (done)
 
 ### web-landing (igrisinertial.com)
 
@@ -213,10 +263,10 @@ Location: `igris-overture/billing/resend.go`
 
 | Template | Function | Triggered by | Subject line |
 |----------|----------|-------------|--------------|
-| Welcome | `SendWelcomeEmail(email, tier, licenseKey)` | Polar webhook: new subscription | "Welcome to Igris Inertial — Your License Key" |
-| Upgrade | `SendUpgradeEmail(email, newTier)` | Polar webhook: plan change | "Plan Upgraded — Igris Inertial" |
-| Cancellation | `SendCancellationEmail(email)` | Polar webhook: subscription canceled | "Subscription Canceled — Igris Inertial" |
-| Trial ending | `SendTrialEndEmail(email)` | Polar webhook: trial expiring | "Trial Ending Soon — Igris Inertial" |
+| Welcome | `SendWelcomeEmail(email, tier, licenseKey)` | Polar webhook: new subscription | "Welcome to Igris Inertial -- Your License Key" |
+| Upgrade | `SendUpgradeEmail(email, newTier)` | Polar webhook: plan change | "Plan Upgraded -- Igris Inertial" |
+| Cancellation | `SendCancellationEmail(email)` | Polar webhook: subscription canceled | "Subscription Canceled -- Igris Inertial" |
+| Trial ending | `SendTrialEndEmail(email)` | Polar webhook: trial expiring | "Trial Ending Soon -- Igris Inertial" |
 
 All emails use inline HTML, no external CSS. Sender: `Igris Inertial <noreply@igrisinertial.com>`.
 
@@ -226,12 +276,12 @@ Requires Resend domain verification: add DNS records for `igrisinertial.com` in 
 
 ## Clerk Authentication
 
-Location: `web/apps/web-console/` (Cloudflare Pages, NOT Fly.io)
+Location: `web/apps/web-console/` (Cloudflare Pages, NOT Hetzner)
 
 | Component | File | Status |
 |-----------|------|--------|
 | Provider | `app/layout.tsx` | Done |
-| Middleware | `middleware.ts` | Done (DEV_MODE=true, flip before deploy) |
+| Middleware | `middleware.ts` | Done (DEV_MODE=false) |
 | Auth page | `app/auth/page.tsx` | Done (sign in + sign up + Google OAuth) |
 | Onboarding | `app/onboarding/page.tsx` | Done |
 | SSO callback | `app/sso-callback/page.tsx` | Done |
@@ -240,7 +290,7 @@ Location: `web/apps/web-console/` (Cloudflare Pages, NOT Fly.io)
 
 ### Clerk production setup
 
-1. Go to https://clerk.com → your app → **Production** instance
+1. Go to https://clerk.com -> your app -> **Production** instance
 2. Copy `pk_live_...` and `sk_live_...` keys
 3. Set them in Cloudflare Pages environment variables
 4. Enable Google OAuth in Clerk production settings
@@ -248,12 +298,26 @@ Location: `web/apps/web-console/` (Cloudflare Pages, NOT Fly.io)
 
 ---
 
+## Pricing Tiers
+
+| Tier | Price | Tier key in code |
+|------|-------|-----------------|
+| Trial | Free (14 days) | `trial` |
+| Develop | $149/mo | `develop` |
+| Growth | $899/mo | `growth` |
+| Scale | $2,999/mo | `scale` |
+
+Defined in: `igris-overture/billing/polar_client.go`
+Mapped from Polar price IDs in: `igris-overture/billing/webhook_handler.go`
+
+---
+
 ## Pre-Deploy Checklist
 
 ### Accounts needed
 
-- [ ] Fly.io account + credit card
-- [ ] Cloudflare account (you likely have this)
+- [ ] Hetzner Cloud account
+- [ ] Cloudflare account
 - [ ] npm account (for SDK publish)
 - [ ] Clerk production keys (pk_live, sk_live)
 - [ ] Polar.sh API key + webhook secret
@@ -265,21 +329,22 @@ Location: `web/apps/web-console/` (Cloudflare Pages, NOT Fly.io)
 |--------|------|-------|
 | `igrisinertial.com` | CNAME | Cloudflare Pages (web-landing) |
 | `console.igrisinertial.com` | CNAME | Cloudflare Pages (web-console) |
-| `api.igrisinertial.com` | CNAME | `igris-overture.fly.dev` |
+| `api.igrisinertial.com` | A | Hetzner server IP |
 | Resend verification | TXT/CNAME | From Resend dashboard |
 
 ### Code changes before deploy
 
-- [ ] `middleware.ts`: Set `DEV_MODE = false`
+- [x] `middleware.ts`: Set `DEV_MODE = false`
+- [x] `auth/page.tsx`: Wrapped `useSearchParams` in Suspense
 - [ ] `polar_client.go`: Map real Polar product/price IDs
-- [ ] Verify `fly.toml` region matches your preference
+- [ ] `webhook_handler.go`: Map real Polar price IDs to tiers
 
 ---
 
 ## Post-Deploy Verification
 
 ```bash
-# Backend health
+# Backend health (from your machine)
 curl https://api.igrisinertial.com/v1/health
 
 # API endpoints
@@ -288,8 +353,10 @@ curl -X POST https://api.igrisinertial.com/v1/license/validate \
   -H "Content-Type: application/json" \
   -d '{"license_key": "test"}'
 
+# Server logs (SSH into Hetzner)
+docker compose -f docker-compose.production.yml logs -f api
+
 # Polar webhook (test from Polar dashboard)
-# Check Fly logs: fly logs --app igris-overture
 
 # Clerk (visit in browser)
 # https://console.igrisinertial.com/auth
