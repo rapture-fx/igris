@@ -37,7 +37,6 @@ export default function WhatThisIs() {
                 <p 
                   key={index}
                   className="text-sm md:text-base mb-3 text-[#000000] dark:text-[#f6f6f4] leading-relaxed"
-                  style={{ fontFamily: "'IBM Plex Mono', monospace", fontWeight: 400 }}
                 >
                   {line}
                 </p>

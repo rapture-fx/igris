@@ -31,26 +31,26 @@ export default function MultiTenancy() {
           <div className="grid grid-cols-1 md:grid-cols-2 gap-8">
             {/* Left side - Intro */}
             <div className="text-left" style={{ paddingTop: '3rem' }}>
-              <p className="text-base text-[#85612c] dark:text-[#c5b0cd] mb-2" style={{ fontFamily: 'Roboto Mono, monospace', letterSpacing: '0.05em' }}>
+              <p className="text-base text-[#85612c] dark:text-[#c5b0cd] mb-2" style={{ letterSpacing: '0.05em' }}>
                 03. PROOF
               </p>
-              <h3 className="text-lg md:text-xl lg:text-2xl mb-4 text-[#000000] dark:text-[#f6f6f4]" style={{ fontFamily: "'IBM Plex Mono', monospace", fontWeight: 400 }}>
+              <h3 className="text-lg md:text-xl lg:text-2xl mb-4 text-[#000000] dark:text-[#f6f6f4]" style={{ fontWeight: 400 }}>
                 Verifiable execution by design
               </h3>
-              <p className="text-sm text-gray-600 dark:text-[#a8a898] leading-relaxed" style={{ fontFamily: "'IBM Plex Mono', monospace", fontWeight: 400, maxWidth: '360px' }}>
+              <p className="text-sm text-gray-600 dark:text-[#a8a898] leading-relaxed" style={{ fontWeight: 400, maxWidth: '360px' }}>
                 When AI runs outside your line of sight, verification matters. Every decision is recorded. Every update is signed. Execution can be inspected after the fact—without relying on trust, assumptions, or continuous connectivity. This makes it possible to answer questions from operators, auditors, or regulators with evidence rather than inference.
               </p>
             </div>
 
             {/* Right side - Features */}
-            <div className="flex flex-col items-start justify-start">
+            <div className="flex flex-col items-start justify-start" style={{ paddingTop: '3rem' }}>
               <div className="w-full max-w-xl">
                 {features.map((feature) => (
                   <div key={feature.title} className="border-b border-gray-300 dark:border-[#f6f6f4]/5 pb-4 last:border-0 last:pb-0">
-                    <h4 className="text-sm font-bold mb-2 text-[#000000] dark:text-[#f6f6f4]" style={{ fontFamily: "'IBM Plex Mono', monospace" }}>
+                    <h4 className="text-sm font-bold mb-2 text-[#000000] dark:text-[#f6f6f4]">
                       {feature.title}
                     </h4>
-                    <p className="text-sm text-gray-600 dark:text-[#a8a898] leading-relaxed" style={{ fontFamily: "'IBM Plex Mono', monospace", fontWeight: 400 }}>
+                    <p className="text-sm text-gray-600 dark:text-[#a8a898] leading-relaxed" style={{ fontWeight: 400 }}>
                       {feature.description}
                     </p>
                   </div>
