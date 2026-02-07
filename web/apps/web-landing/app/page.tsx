@@ -39,8 +39,8 @@ export default function HomePage() {
             <Products />
             <WhatThisIs />
             <CoreCapabilities />
-            <HowItWorks />
             <MultiTenancy />
+            <HowItWorks />
             <WhyItExists />
           </main>
           <Footer />

@@ -1,135 +1,65 @@
 import React from 'react'
-import { KeyRound, Database, Shield, Lock } from 'lucide-react';
 
 const features = [
   {
-    name: 'Air-Gap Ready',
-    description: 'Operates independently without internet connectivity. Deploy in secure facilities, remote locations, or offline environments. Your AI continues executing when network access is unavailable or prohibited.',
-    icon: KeyRound,
+    title: 'Air-gapped operation',
+    description: 'The system is designed to operate independently of network access. Deploy in secure facilities, remote environments, or fully offline locations. Execution continues uninterrupted when connectivity is unavailable or restricted.',
   },
   {
-    name: 'Zero-Trust Architecture',
-    description: 'Every device authenticates cryptographically before joining your fleet. Compromised hardware is automatically rejected. No implicit trust—only verified participants can communicate with your system.',
-    icon: Database,
+    title: 'Zero-trust device enrollment',
+    description: 'Devices authenticate cryptographically before joining a fleet. Each device is verified individually. Untrusted or compromised hardware is rejected automatically. No device is trusted implicitly.',
   },
   {
-    name: 'Device-Bound Encryption',
-    description: 'Models and data are encrypted to specific hardware. If a device is lost or stolen, the AI becomes inaccessible. Cryptographic keys remain on-device and never transmit over networks.',
-    icon: Shield,
+    title: 'Device-bound encryption',
+    description: 'Models and execution data are encrypted and bound to specific hardware. If a device is lost or removed, its data remains inaccessible. Cryptographic keys are generated and stored on-device and are never transmitted over the network.',
   },
   {
-    name: 'Verified Updates',
-    description: 'Every model update and configuration change requires cryptographic signatures. Unsigned or tampered code is rejected before deployment. Only authorized changes reach your fleet.',
-    icon: Lock,
+    title: 'Verified updates',
+    description: 'Model updates and configuration changes require cryptographic signatures. Unsigned or modified artifacts are rejected before deployment. Only approved updates are allowed to execute across the fleet.',
   },
-];
+  {
+    title: 'Verified fleet synchronization',
+    description: 'When connectivity is available, fleet state and configuration changes are verified before being applied. Only signed and authorized updates propagate to devices. Execution guarantees remain unchanged regardless of network state.',
+  },
+]
 
 export default function MultiTenancy() {
   return (
     <section className="bg-[#f6f6f4] dark:bg-dark-bg text-gray-900 dark:text-[#f6f6f4] transition-colors duration-200">
       <div className="mx-auto max-w-[1300px] px-4 sm:px-6 lg:px-8">
-          <div className="relative px-4 md:px-8 lg:px-12 flex flex-col bg-[#f6f6f4] dark:bg-[#1b1912] border-l border-r section-border min-h-[800px] md:h-[800px]">
-
-          {/* Title Section - Shows first on mobile, last on desktop */}
-          <div className="mb-6 md:mb-0 md:hidden text-left" style={{ paddingTop: '3rem', paddingBottom: '3rem' }}>
-            <p className="text-base text-[#85612c] dark:text-[#c5b0cd] mb-2" style={{ fontFamily: 'Roboto Mono, monospace', letterSpacing: '0.05em' }}>
-              04. PROOF
-            </p>
-            <h3 className="text-lg md:text-xl lg:text-2xl font-inter mb-4 text-[#000000] dark:text-[#f6f6f4]">
-              Trust nothing. Verify everything.
-            </h3>
-            <p className="text-sm text-gray-600 dark:text-[#a8a898] font-inter mb-8">
-              When your AI is running in a barn you visit twice a year, or on a device you shipped to a customer, you can't trust the environment. So we made the AI prove itself. Every decision leaves a trail. Every action carries a signature. Every claim can be verified.
-            </p>
-
-            {/* Features - Mobile */}
-            <div className="flex flex-col gap-8 text-left">
-              {features.map((feature, index) => (
-                <div key={feature.name}>
-                  <h3 className="text-sm font-semibold text-gray-900 dark:text-[#f6f6f4] mb-3 font-inter">
-                    {feature.name}
-                  </h3>
-                  <p className="text-xs text-gray-600 dark:text-[#a8a898] leading-relaxed font-inter">
-                    {feature.description}
-                  </p>
-                </div>
-              ))}
-            </div>
-          </div>
-
-          {/* Two-column layout */}
-          <div className="grid grid-cols-1 md:grid-cols-3 gap-0 md:flex-1">
-            {/* Left Column - Features (2 columns wide) */}
-            <div className="hidden md:flex md:col-span-2 flex-col" style={{ paddingTop: '3rem', paddingRight: '2rem' }}>
-              {/* Section 1: First 2 features with frame */}
-              <div className="flex gap-6 mb-6">
-                <div className="w-[250px] h-auto border border-[rgba(156,163,175,0.3)] dark:border-[rgba(246,246,244,0.05)] flex-shrink-0 overflow-hidden">
-                  <img src="/si.png" alt="" className="w-full h-auto object-contain" style={{ opacity: 1 }} />
-                </div>
-                <div className="flex-1">
-                  <div className="flex flex-col gap-6">
-                    {features.slice(0, 2).map((feature) => (
-                      <div key={feature.name} className="text-left pb-6 border-b border-[rgba(156,163,175,0.3)] dark:border-[rgba(246,246,244,0.05)] last:border-0">
-                        <h3 className="text-sm font-semibold mb-3 font-inter text-[#000000] dark:text-[#f6f6f4]">
-                          {feature.name}
-                        </h3>
-                        <p className="text-sm text-gray-600 dark:text-[#a8a898] leading-relaxed font-inter">
-                          {feature.description}
-                        </p>
-                      </div>
-                    ))}
-                  </div>
-                </div>
-              </div>
-              {/* Section 2: Last 2 features with frame */}
-              <div className="flex gap-6">
-                <div className="flex-1">
-                  <div className="flex flex-col gap-6">
-                    {features.slice(2, 4).map((feature) => (
-                      <div key={feature.name} className="text-left pb-6 border-b border-[rgba(156,163,175,0.3)] dark:border-[rgba(246,246,244,0.05)] last:border-0">
-                        <h3 className="text-sm font-semibold mb-3 font-inter text-[#000000] dark:text-[#f6f6f4]">
-                          {feature.name}
-                        </h3>
-                        <p className="text-sm text-gray-600 dark:text-[#a8a898] leading-relaxed font-inter">
-                          {feature.description}
-                        </p>
-                      </div>
-                    ))}
-                  </div>
-                </div>
-                <div className="w-[250px] h-[200px] border border-[rgba(156,163,175,0.3)] dark:border-[rgba(246,246,244,0.05)] flex-shrink-0 overflow-hidden flex flex-col justify-end items-center">
-                  <img src="/de.png" alt="" className="w-[120%] h-auto object-contain" style={{ opacity: 0.85 }} />
-                </div>
-              </div>
-              {/* Bottom Frame */}
-              <div className="w-full flex-shrink-0 border-l border-r border-b border-t border-[rgba(156,163,175,0.3)] dark:border-[rgba(246,246,244,0.05)] mt-6 relative overflow-hidden" style={{ height: '250px' }}>
-                <img src="/co.png" alt="" className="absolute inset-0 w-full h-full" style={{ opacity: 0.8, objectFit: 'cover', objectPosition: 'center', transform: 'scale(1.1)' }} />
-                <div className="absolute bottom-4 left-4 text-left max-w-xs">
-                  <h4 className="text-sm font-semibold text-[#000000] dark:text-[#f6f6f4] mb-3 font-inter">
-                    Verified Fleet Sync
-                  </h4>
-                  <p className="text-sm text-gray-600 dark:text-[#a8a898] leading-relaxed font-inter">
-                    When connected, Runtime verifies all dashboard updates before applying them. Only signed, approved changes reach your devices.
-                  </p>
-                </div>
-              </div>
-            </div>
-
-            {/* Right Column - Title and Intro (Desktop only) */}
-            <div className="hidden md:flex md:col-span-1 md:border-l flex-col justify-start dark:border-[#f6f6f4]/5" style={{ paddingTop: '3rem', paddingBottom: '3rem', paddingLeft: '1rem' }}>
-              <p className="text-base text-[#c5b0cd] mb-2" style={{ fontFamily: 'Roboto Mono, monospace', letterSpacing: '0.05em' }}>
-                04. PROOF
+        <div className="relative px-4 md:px-8 lg:px-12 py-4 md:py-8 lg:py-12 border-l border-r border-b border-gray-300 dark:border-[#f6f6f4]/10">
+          <div className="grid grid-cols-1 md:grid-cols-2 gap-8">
+            {/* Left side - Intro */}
+            <div className="text-left" style={{ paddingTop: '3rem' }}>
+              <p className="text-base text-[#85612c] dark:text-[#c5b0cd] mb-2" style={{ fontFamily: 'Roboto Mono, monospace', letterSpacing: '0.05em' }}>
+                03. PROOF
               </p>
-              <h3 className="text-lg md:text-xl lg:text-2xl font-inter mb-4 text-[#000000] dark:text-[#f6f6f4]">
-                Trust nothing. Verify everything.
+              <h3 className="text-lg md:text-xl lg:text-2xl mb-4 text-[#000000] dark:text-[#f6f6f4]" style={{ fontFamily: "'IBM Plex Mono', monospace", fontWeight: 400 }}>
+                Verifiable execution by design
               </h3>
-              <p className="text-sm text-gray-600 dark:text-[#a8a898] font-inter leading-relaxed">
-                When AI runs where you can't watch it, proof becomes essential. Every decision leaves a trail. Every update carries a signature. When regulators ask or customers complain, you have answers—not guesses.
+              <p className="text-sm text-gray-600 dark:text-[#a8a898] leading-relaxed" style={{ fontFamily: "'IBM Plex Mono', monospace", fontWeight: 400, maxWidth: '360px' }}>
+                When AI runs outside your line of sight, verification matters. Every decision is recorded. Every update is signed. Execution can be inspected after the fact—without relying on trust, assumptions, or continuous connectivity. This makes it possible to answer questions from operators, auditors, or regulators with evidence rather than inference.
               </p>
+            </div>
+
+            {/* Right side - Features */}
+            <div className="flex flex-col items-start justify-start">
+              <div className="w-full max-w-xl">
+                {features.map((feature) => (
+                  <div key={feature.title} className="border-b border-gray-300 dark:border-[#f6f6f4]/5 pb-4 last:border-0 last:pb-0">
+                    <h4 className="text-sm font-bold mb-2 text-[#000000] dark:text-[#f6f6f4]" style={{ fontFamily: "'IBM Plex Mono', monospace" }}>
+                      {feature.title}
+                    </h4>
+                    <p className="text-sm text-gray-600 dark:text-[#a8a898] leading-relaxed" style={{ fontFamily: "'IBM Plex Mono', monospace", fontWeight: 400 }}>
+                      {feature.description}
+                    </p>
+                  </div>
+                ))}
+              </div>
             </div>
           </div>
         </div>
       </div>
     </section>
-  );
+  )
 }

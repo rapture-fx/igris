@@ -19,7 +19,7 @@ WORKDIR /build/slo_enforcer
 RUN cargo build --release
 
 # Stage 2: Build Go application (with CGO for Rust FFI)
-FROM golang:1.23-alpine AS go-builder
+FROM golang:1.24-alpine AS go-builder
 
 # Install build dependencies (CGO needs gcc + musl)
 RUN apk add --no-cache git gcc musl-dev

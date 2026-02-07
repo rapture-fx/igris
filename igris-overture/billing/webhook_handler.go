@@ -416,19 +416,19 @@ func (h *WebhookHandler) mapPriceIDToTier(priceID string) string {
 	// TODO: Configure price ID mapping in environment or config
 	// This is a placeholder mapping - actual price IDs come from Polar dashboard
 	tierMapping := map[string]string{
-		// These are example price IDs - replace with actual ones from Polar
-		"price_horizon_monthly":   "horizon",
-		"price_infinite_monthly":  "infinite",
-		"price_enterprise_custom": "enterprise",
+		// TODO: Replace with actual Polar price IDs from dashboard
+		"price_develop_monthly": "develop",
+		"price_growth_monthly":  "growth",
+		"price_scale_monthly":   "scale",
 	}
 
 	if tier, ok := tierMapping[priceID]; ok {
 		return tier
 	}
 
-	// Default to seed for unknown price IDs (shouldn't happen)
-	h.logger.Printf("[Webhook] WARNING: Unknown price ID %s, defaulting to seed tier", priceID)
-	return "seed"
+	// Default to trial for unknown price IDs
+	h.logger.Printf("[Webhook] WARNING: Unknown price ID %s, defaulting to trial tier", priceID)
+	return "trial"
 }
 
 // storeLicense creates a new license in the database

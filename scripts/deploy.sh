@@ -1,11 +1,11 @@
 #!/bin/bash
 
-# Schlep Engine VPS Deployment Script
+# Igris Inertial VPS Deployment Script
 # Simple deployment for VPS hosting
 
 set -e
 
-echo "🚀 Starting Schlep Engine VPS deployment..."
+echo "🚀 Starting Igris Inertial VPS deployment..."
 
 # Colors for output
 GREEN='\033[0;32m'
