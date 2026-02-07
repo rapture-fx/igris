@@ -194,3 +194,4 @@ export class EscapeVectorMode {
 export * from './bayesian-state';
 export * from './thompson-router';
 export * from './cache';
+export { RustThompsonRouter, RustCircuitBreaker, RustBayesianSigner, deriveEncryptionKeyRust } from './wasm-wrapper';

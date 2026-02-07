@@ -14,6 +14,7 @@ import (
 	"github.com/gofiber/fiber/v2/middleware/recover"
 	"github.com/redis/go-redis/v9"
 	"github.com/Igris-inertial/system/igris-overture/api"
+	"github.com/Igris-inertial/system/igris-overture/billing"
 	"github.com/Igris-inertial/system/igris-overture/cache"
 	"github.com/Igris-inertial/system/igris-overture/cognitive"
 	"github.com/Igris-inertial/system/igris-overture/database"
@@ -70,8 +71,8 @@ func main() {
 
 	// Initialize Fiber app with security limits
 	app := fiber.New(fiber.Config{
-		AppName:      "Schlep-Engine API",
-		ServerHeader: "Schlep-Engine",
+		AppName:      "Igris Inertial API",
+		ServerHeader: "Igris-Inertial",
 		ErrorHandler: customErrorHandler,
 		// Security limits
 		BodyLimit:    bodyLimitMB * 1024 * 1024,         // Convert MB to bytes
@@ -326,6 +327,36 @@ func main() {
 		log.Fatalf("Failed to register routes: %v", err)
 	}
 
+	// Register license validation and usage tracking routes (requires database)
+	if dbInstance != nil {
+		api.RegisterLicenseRoutes(app, dbInstance)
+		api.RegisterUsageRoutes(app, dbInstance)
+		log.Println("[Licensing] ✅ License and usage endpoints registered")
+	} else {
+		log.Println("[Licensing] ⚠️  Database not available — license endpoints disabled")
+	}
+
+	// Initialize Polar billing webhook handler (if configured)
+	enableBilling := os.Getenv("POLAR_API_KEY") != ""
+	if enableBilling && redisClient != nil && dbInstance != nil {
+		log.Println("[Billing] Initializing Polar webhook handler...")
+		polarCfg, err := billing.LoadPolarConfig(redisClient)
+		if err != nil {
+			log.Printf("[Billing] ⚠️  Failed to load Polar config: %v", err)
+		} else {
+			polarClient, err := billing.NewPolarClient(*polarCfg)
+			if err != nil {
+				log.Printf("[Billing] ⚠️  Failed to create Polar client: %v", err)
+			} else {
+				webhookHandler := billing.NewWebhookHandler(polarClient, dbInstance)
+				app.Post("/webhooks/polar", adaptor.HTTPHandlerFunc(webhookHandler.HandleWebhook))
+				log.Println("[Billing] ✅ Polar webhook handler registered at POST /webhooks/polar")
+			}
+		}
+	} else if enableBilling {
+		log.Println("[Billing] ⚠️  POLAR_API_KEY set but Redis or DB not available — webhooks disabled")
+	}
+
 	// Root health check
 	app.Get("/", func(c *fiber.Ctx) error {
 		endpoints := fiber.Map{
@@ -336,6 +367,17 @@ func main() {
 			"startup":   "/startupz",
 			"models":    "/v1/models",
 			"metrics":   "/metrics",
+		}
+
+		// Add license endpoints if database is available
+		if dbInstance != nil {
+			endpoints["license_validate"] = "/api/v1/license/validate"
+			endpoints["usage_log"] = "/api/v1/usage/log"
+		}
+
+		// Add billing webhook if configured
+		if enableBilling {
+			endpoints["webhooks_polar"] = "/webhooks/polar"
 		}
 
 		// Add multi-tenancy endpoints if enabled
@@ -375,6 +417,8 @@ func main() {
 				"multi_tenancy":      enableMultiTenancy,
 				"redis":              useRedis,
 				"persistence":        dbEnabled,
+				"licensing":          dbInstance != nil,
+				"billing":            enableBilling,
 				"cognitive_advisor":  enableCognitiveAdvisor,
 				"slo_enforcer":       enableSLOEnforcer,
 				"simatic_layer":      enableOrchestration,
@@ -395,6 +439,14 @@ func main() {
 	log.Printf("   📍 Liveness:  http://localhost:%s/healthz", port)
 	log.Printf("   📍 Readiness: http://localhost:%s/readyz", port)
 	log.Printf("   📍 Metrics:   http://localhost:%s/metrics", port)
+
+	if dbInstance != nil {
+		log.Printf("   📍 License:   http://localhost:%s/api/v1/license/validate", port)
+		log.Printf("   📍 Usage:     http://localhost:%s/api/v1/usage/log", port)
+	}
+	if enableBilling {
+		log.Printf("   📍 Webhooks:  http://localhost:%s/webhooks/polar", port)
+	}
 
 	if enableMultiTenancy {
 		log.Printf("   📍 Auth:      http://localhost:%s/v1/auth/login", port)

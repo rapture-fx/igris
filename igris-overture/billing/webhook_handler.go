@@ -59,6 +59,7 @@ type SubscriptionEventData struct {
 type WebhookHandler struct {
 	client *PolarClient
 	db     *sql.DB
+	email  *ResendClient
 	logger *log.Logger
 }
 
@@ -67,6 +68,7 @@ func NewWebhookHandler(client *PolarClient, db *sql.DB) *WebhookHandler {
 	return &WebhookHandler{
 		client: client,
 		db:     db,
+		email:  NewResendClient(),
 		logger: log.Default(),
 	}
 }
@@ -366,35 +368,43 @@ func (h *WebhookHandler) convertToSubscription(data *SubscriptionEventData) *Sub
 // EMAIL NOTIFICATIONS (Placeholders)
 // ============================================================================
 
-// sendWelcomeEmail sends welcome email to new subscriber
+// sendWelcomeEmail sends welcome email to new subscriber via Resend
 func (h *WebhookHandler) sendWelcomeEmail(tenantID, email string, sub *Subscription, licenseKey string) {
-	h.logger.Printf("[Email] Welcome email queued: tenant=%s email=%s tier=%s license=%s",
-		tenantID, email, sub.Metadata["tier"], maskKey(licenseKey))
-	// TODO: Integrate with email service (Postmark, SendGrid, etc.)
-	// Email should include:
-	// - Welcome message
-	// - License key: licenseKey
-	// - Getting started guide: https://docs.igrisinertial.com/runtime/quickstart
-	// - What's included in their tier
+	tier := sub.Metadata["tier"]
+	h.logger.Printf("[Email] Sending welcome email: tenant=%s email=%s tier=%s license=%s",
+		tenantID, email, tier, maskKey(licenseKey))
+
+	if err := h.email.SendWelcomeEmail(email, tier, licenseKey); err != nil {
+		h.logger.Printf("[Email] Failed to send welcome email: %v", err)
+	}
 }
 
-// sendUpgradeEmail sends upgrade congratulations email
+// sendUpgradeEmail sends upgrade congratulations email via Resend
 func (h *WebhookHandler) sendUpgradeEmail(tenantID, email string, sub *Subscription) {
-	h.logger.Printf("[Email] Upgrade email queued: tenant=%s email=%s tier=%s",
-		tenantID, email, sub.Metadata["tier"])
-	// TODO: Integrate with email service
+	tier := sub.Metadata["tier"]
+	h.logger.Printf("[Email] Sending upgrade email: tenant=%s email=%s tier=%s", tenantID, email, tier)
+
+	if err := h.email.SendUpgradeEmail(email, tier); err != nil {
+		h.logger.Printf("[Email] Failed to send upgrade email: %v", err)
+	}
 }
 
-// sendCancellationEmail sends cancellation feedback email
+// sendCancellationEmail sends cancellation feedback email via Resend
 func (h *WebhookHandler) sendCancellationEmail(tenantID, email string) {
-	h.logger.Printf("[Email] Cancellation email queued: tenant=%s email=%s", tenantID, email)
-	// TODO: Integrate with email service
+	h.logger.Printf("[Email] Sending cancellation email: tenant=%s email=%s", tenantID, email)
+
+	if err := h.email.SendCancellationEmail(email); err != nil {
+		h.logger.Printf("[Email] Failed to send cancellation email: %v", err)
+	}
 }
 
-// sendTrialEndEmail sends trial end notification with upgrade CTA
+// sendTrialEndEmail sends trial end notification with upgrade CTA via Resend
 func (h *WebhookHandler) sendTrialEndEmail(tenantID, email string) {
-	h.logger.Printf("[Email] Trial end email queued: tenant=%s email=%s", tenantID, email)
-	// TODO: Integrate with email service
+	h.logger.Printf("[Email] Sending trial end email: tenant=%s email=%s", tenantID, email)
+
+	if err := h.email.SendTrialEndEmail(email); err != nil {
+		h.logger.Printf("[Email] Failed to send trial end email: %v", err)
+	}
 }
 
 // ============================================================================

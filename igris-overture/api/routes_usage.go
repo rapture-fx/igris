@@ -159,10 +159,4 @@ func (h *UsageHandler) LogUsage(c *fiber.Ctx) error {
 	})
 }
 
-// maskLicenseKey masks a license key for logging
-func maskLicenseKey(key string) string {
-	if len(key) <= 10 {
-		return "****"
-	}
-	return key[:8] + "****" + key[len(key)-4:]
-}
+// Note: maskLicenseKey is defined in routes_license.go (same package)

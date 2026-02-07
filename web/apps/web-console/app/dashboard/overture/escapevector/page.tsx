@@ -20,7 +20,8 @@ import {
   useRefreshEscapeVectorCache,
   useClearEscapeVectorCache,
 } from '@/hooks/useEscapeVector';
-import { Shield, RefreshCw, Trash2, Clock, TrendingUp, Database, Zap, CheckCircle, XCircle, AlertTriangle, DollarSign, Activity } from 'lucide-react';
+import { Shield, RefreshCw, Trash2, Clock, TrendingUp, Database, Zap, CheckCircle, XCircle, AlertTriangle, DollarSign, Activity, Cpu, Box } from 'lucide-react';
+import { useWasmEngine } from '@/hooks/useWasmEngine';
 import { LineChart, Line, BarChart, Bar, XAxis, YAxis, CartesianGrid, Tooltip, ResponsiveContainer } from 'recharts';
 import { CHART_COLORS } from '@/utils/constants';
 
@@ -43,6 +44,8 @@ export default function EscapeVectorPage() {
   const { data: config, isLoading: configLoading } = useEscapeVectorConfig();
   const { data: history, isLoading: historyLoading } = useEscapeVectorHistory();
   const { data: analytics, isLoading: analyticsLoading } = useEscapeVectorAnalytics();
+
+  const { status: wasmStatus, benchmark: wasmBenchmark, runBenchmark } = useWasmEngine();
 
   const updateConfigMutation = useUpdateEscapeVectorConfig();
   const refreshCacheMutation = useRefreshEscapeVectorCache();
@@ -183,6 +186,123 @@ export default function EscapeVectorPage() {
             </div>
           </div>
         </div>
+
+        {/* WASM Engine Status */}
+        <Card className="border-border shadow-sm">
+          <CardHeader>
+            <CardTitle className="text-sm flex items-center gap-2">
+              <Cpu className="h-4 w-4" />
+              WASM Engine Status
+            </CardTitle>
+            <CardDescription className="text-xs">
+              Rust-compiled WebAssembly module for 3-5x faster Thompson Sampling
+            </CardDescription>
+          </CardHeader>
+          <CardContent>
+            <div className="space-y-4">
+              <div className="grid grid-cols-3 gap-4">
+                <div className="space-y-1">
+                  <div className="text-xs font-medium text-muted-foreground">Module Status</div>
+                  <div className="flex items-center gap-1.5">
+                    {wasmStatus.loading ? (
+                      <Badge className="bg-blue-50 dark:bg-blue-950 text-blue-700 dark:text-blue-400 border-blue-200 dark:border-blue-900">
+                        <RefreshCw className="h-3 w-3 mr-1 animate-spin" />
+                        Loading
+                      </Badge>
+                    ) : wasmStatus.loaded ? (
+                      <Badge className="bg-green-50 dark:bg-green-950 text-green-700 dark:text-green-400 border-green-200 dark:border-green-900">
+                        <CheckCircle className="h-3 w-3 mr-1" />
+                        Loaded
+                      </Badge>
+                    ) : wasmStatus.error ? (
+                      <Badge className="bg-yellow-50 dark:bg-yellow-950 text-yellow-700 dark:text-yellow-400 border-yellow-200 dark:border-yellow-900">
+                        <AlertTriangle className="h-3 w-3 mr-1" />
+                        Fallback (TS)
+                      </Badge>
+                    ) : (
+                      <Badge className="bg-gray-50 dark:bg-gray-950 text-gray-700 dark:text-gray-400 border-gray-200 dark:border-gray-900">
+                        <XCircle className="h-3 w-3 mr-1" />
+                        Not Supported
+                      </Badge>
+                    )}
+                  </div>
+                </div>
+                <div className="space-y-1">
+                  <div className="text-xs font-medium text-muted-foreground">Module Size</div>
+                  <div className="text-lg font-bold text-foreground">
+                    {wasmStatus.moduleSize ? `${(wasmStatus.moduleSize / 1024).toFixed(0)} KB` : '--'}
+                  </div>
+                  <p className="text-[0.65rem] text-muted-foreground">&lt;180 KB gzipped target</p>
+                </div>
+                <div className="space-y-1">
+                  <div className="text-xs font-medium text-muted-foreground">Compile Time</div>
+                  <div className="text-lg font-bold text-foreground">
+                    {wasmStatus.compileTimeMs !== null ? `${wasmStatus.compileTimeMs} ms` : '--'}
+                  </div>
+                  <p className="text-[0.65rem] text-muted-foreground">Fetch + compile</p>
+                </div>
+              </div>
+
+              {wasmStatus.loaded && (
+                <div className="bg-card border border-border rounded-lg p-3">
+                  <div className="flex items-center justify-between mb-2">
+                    <h4 className="text-xs font-medium text-foreground flex items-center gap-1.5">
+                      <Box className="h-3 w-3" />
+                      Exported Functions ({wasmStatus.exports.length})
+                    </h4>
+                    <Button
+                      variant="outline"
+                      size="sm"
+                      className="text-[0.65rem] px-2 py-0.5 h-6 shadow-sm"
+                      onClick={() => runBenchmark(100)}
+                    >
+                      <Zap className="h-3 w-3 mr-1" />
+                      Run Benchmark
+                    </Button>
+                  </div>
+                  <div className="flex flex-wrap gap-1.5">
+                    {wasmStatus.exports.slice(0, 12).map((name) => (
+                      <span key={name} className="text-[0.6rem] px-1.5 py-0.5 bg-muted rounded font-mono text-muted-foreground">
+                        {name}
+                      </span>
+                    ))}
+                    {wasmStatus.exports.length > 12 && (
+                      <span className="text-[0.6rem] px-1.5 py-0.5 text-muted-foreground">
+                        +{wasmStatus.exports.length - 12} more
+                      </span>
+                    )}
+                  </div>
+                  {wasmBenchmark && (
+                    <div className="mt-3 pt-3 border-t border-border">
+                      <div className="grid grid-cols-3 gap-4 text-xs">
+                        <div>
+                          <span className="text-muted-foreground">Iterations:</span>{' '}
+                          <span className="font-medium text-foreground">{wasmBenchmark.iterations.toLocaleString()}</span>
+                        </div>
+                        <div>
+                          <span className="text-muted-foreground">Total:</span>{' '}
+                          <span className="font-medium text-foreground">{wasmBenchmark.totalMs} ms</span>
+                        </div>
+                        <div>
+                          <span className="text-muted-foreground">Avg/op:</span>{' '}
+                          <span className="font-medium text-foreground">{wasmBenchmark.avgPerIterationUs} us</span>
+                        </div>
+                      </div>
+                    </div>
+                  )}
+                </div>
+              )}
+
+              {wasmStatus.error && (
+                <div className="bg-yellow-50 dark:bg-yellow-950/30 border border-yellow-200 dark:border-yellow-900 rounded-lg p-3">
+                  <p className="text-xs text-yellow-700 dark:text-yellow-400">
+                    WASM unavailable: {wasmStatus.error}. Using TypeScript fallback (functionally identical, ~3-5x slower for Thompson Sampling).
+                  </p>
+                </div>
+              )}
+            </div>
+          </CardContent>
+        </Card>
 
         {/* Configuration Form */}
         <Card className="border-border shadow-sm">

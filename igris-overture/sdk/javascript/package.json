@@ -1,7 +1,7 @@
 {
-  "name": "igris",
-  "version": "1.0.0-rc1",
-  "description": "Official Igris Overture JavaScript SDK for intelligent AI routing and cost optimization",
+  "name": "igris-inertial",
+  "version": "1.0.0",
+  "description": "Official Igris Inertial JavaScript SDK - Intelligent AI routing, Thompson Sampling, and cost optimization with Rust WASM acceleration",
   "main": "./dist/index.cjs",
   "module": "./dist/index.js",
   "types": "./dist/index.d.ts",
@@ -10,32 +10,39 @@
       "import": "./dist/index.js",
       "require": "./dist/index.cjs",
       "types": "./dist/index.d.ts"
+    },
+    "./wasm": {
+      "import": "./wasm/escapevector_wasm.js",
+      "types": "./wasm/escapevector_wasm.d.ts"
     }
   },
   "files": [
     "dist",
+    "wasm",
     "README.md",
     "LICENSE"
   ],
   "scripts": {
     "build": "npm run build:esm && npm run build:cjs && npm run build:types",
-    "build:esm": "esbuild src/index.ts --bundle --platform=node --target=node14 --format=esm --outfile=dist/index.js --external:node-fetch",
-    "build:cjs": "esbuild src/index.ts --bundle --platform=node --target=node14 --format=cjs --outfile=dist/index.cjs --external:node-fetch",
+    "build:esm": "esbuild src/index.ts --bundle --platform=node --target=node16 --format=esm --outfile=dist/index.js --external:node-fetch",
+    "build:cjs": "esbuild src/index.ts --bundle --platform=node --target=node16 --format=cjs --outfile=dist/index.cjs --external:node-fetch",
     "build:types": "tsc --declaration --emitDeclarationOnly --outDir dist",
     "test": "jest",
     "prepublishOnly": "npm run build"
   },
   "keywords": [
     "igris",
-    "igris-overture",
+    "igris-inertial",
     "ai-routing",
     "llm",
     "openai",
     "anthropic",
     "cost-optimization",
+    "thompson-sampling",
+    "wasm",
     "byok"
   ],
-  "author": "Igris Overture Team <hello@igris-overture.com>",
+  "author": "Igris Inertial Team <support@igrisinertial.com>",
   "license": "MIT",
   "repository": {
     "type": "git",
@@ -45,7 +52,7 @@
   "bugs": {
     "url": "https://github.com/Igris-inertial/system/issues"
   },
-  "homepage": "https://github.com/Igris-inertial/system#readme",
+  "homepage": "https://docs.igrisinertial.com/sdk/javascript",
   "dependencies": {
     "node-fetch": "^2.7.0"
   },
@@ -59,6 +66,6 @@
     "ts-jest": "^29.0.0"
   },
   "engines": {
-    "node": ">=14.0.0"
+    "node": ">=16.0.0"
   }
 }
