@@ -16,7 +16,7 @@ export default function HowItWorks() {
   return (
     <section id="how-it-works" className="bg-[#f6f6f4] dark:bg-dark-bg text-gray-900 dark:text-[#f6f6f4] transition-colors duration-200">
       <div className="mx-auto max-w-[1300px] px-4 sm:px-6 lg:px-8">
-        <div className="relative px-4 md:px-8 lg:px-12 flex flex-col bg-[#f6f6f4] dark:bg-[#1b1912] border-l border-r border-b border-gray-300 dark:border-[#f6f6f4]/5 min-h-[900px] md:h-[900px]">
+          <div className="relative px-4 md:px-8 lg:px-12 flex flex-col bg-[#f6f6f4] dark:bg-[#1b1912] border-l border-r min-h-[900px] md:h-[900px]">
 
           {/* Content Section - Shows first on mobile */}
           <div className="md:hidden text-left" style={{ paddingTop: '3rem', paddingBottom: '3rem' }}>
@@ -26,10 +26,10 @@ export default function HowItWorks() {
               <p className="text-base text-[#85612c] dark:text-[#c5b0cd] mb-2" style={{ fontFamily: 'Roboto Mono, monospace', letterSpacing: '0.05em' }}>
                 03. DEPLOYMENT
               </p>
-              <h3 className="text-lg md:text-xl lg:text-2xl font-inter mb-2 text-[#000000] dark:text-[#f6f6f4]">
+              <h3 className="text-lg md:text-xl lg:text-2xl mb-2 text-[#000000] dark:text-[#f6f6f4]" style={{ fontFamily: "'IBM Plex Mono', monospace", fontWeight: 400 }}>
                 Deploy. Verify. Optimize.
               </h3>
-              <p className="text-sm text-gray-600 dark:text-[#a8a898] leading-relaxed font-inter leading-relaxed mb-8">
+              <p className="text-sm text-gray-600 dark:text-[#a8a898] leading-relaxed mb-8" style={{ fontFamily: "'IBM Plex Mono', monospace", fontWeight: 400 }}>
                 Hybrid behavior trees meet LLM reasoning. Deterministic execution meets cryptographic proof.
               </p>
             </div>
@@ -47,11 +47,11 @@ export default function HowItWorks() {
                     style={{ objectFit: 'cover' }}
                   />
                 </div>
-                <h4 className="text-sm font-semibold text-[#000000] dark:text-[#f6f6f4] mb-3 font-inter">Deploy</h4>
-                <p className="text-sm text-gray-600 dark:text-[#a8a898] mb-4 leading-relaxed font-inter">
+                <h4 className="text-sm font-semibold text-[#000000] dark:text-[#f6f6f4] mb-3" style={{ fontFamily: "'IBM Plex Mono', monospace", fontWeight: 400 }}>Deploy</h4>
+                <p className="text-sm text-gray-600 dark:text-[#a8a898] mb-4 leading-relaxed" style={{ fontFamily: "'IBM Plex Mono', monospace", fontWeight: 400 }}>
                   16MB binary. The complete nervous system in a single file. Behavior trees for structure, LLM reasoning for intelligence, cryptographic signing for proof. Deploy on a Raspberry Pi or industrial edge device. Hardware you already own becomes AI-capable in minutes.
                 </p>
-                <p className="text-xs text-gray-600 dark:text-[#a8a898] leading-relaxed font-inter italic">
+                <p className="text-xs text-gray-600 dark:text-[#a8a898] leading-relaxed italic" style={{ fontFamily: "'IBM Plex Mono', monospace", fontWeight: 400 }}>
                   No containers. No dependencies. No cloud required.
                 </p>
               </div>
@@ -67,11 +67,11 @@ export default function HowItWorks() {
                     style={{ objectFit: 'cover' }}
                   />
                 </div>
-                <h4 className="text-sm font-semibold text-[#000000] dark:text-[#f6f6f4] mb-3 font-inter">Verify</h4>
-                <p className="text-sm text-gray-600 dark:text-[#a8a898] mb-4 leading-relaxed font-inter">
+                <h4 className="text-sm font-semibold text-[#000000] dark:text-[#f6f6f4] mb-3" style={{ fontFamily: "'IBM Plex Mono', monospace", fontWeight: 400 }}>Verify</h4>
+                <p className="text-sm text-gray-600 dark:text-[#a8a898] mb-4 leading-relaxed" style={{ fontFamily: "'IBM Plex Mono', monospace", fontWeight: 400 }}>
                   Behavior trees execute deterministically. LLMs reason when needed. Memory layer tracks every decision. Proof layer signs everything. Your AI operates predictably offline while the nervous system records what it does, why it did it, and proves it happened exactly as specified.
                 </p>
-                <p className="text-xs text-gray-600 dark:text-[#a8a898] leading-relaxed font-inter italic">
+                <p className="text-xs text-gray-600 dark:text-[#a8a898] leading-relaxed italic" style={{ fontFamily: "'IBM Plex Mono', monospace", fontWeight: 400 }}>
                   Deterministic execution. Cryptographic proof. Zero hallucination risk.
                 </p>
               </div>
@@ -87,120 +87,82 @@ export default function HowItWorks() {
                     style={{ objectFit: 'cover' }}
                   />
                 </div>
-                <h4 className="text-sm font-semibold text-[#000000] dark:text-[#f6f6f4] mb-3 font-inter">Optimize</h4>
-                <p className="text-sm text-gray-600 dark:text-[#a8a898] mb-4 leading-relaxed font-inter">
+                <h4 className="text-sm font-semibold text-[#000000] dark:text-[#f6f6f4] mb-3" style={{ fontFamily: "'IBM Plex Mono', monospace", fontWeight: 400 }}>Optimize</h4>
+                <p className="text-sm text-gray-600 dark:text-[#a8a898] mb-4 leading-relaxed" style={{ fontFamily: "'IBM Plex Mono', monospace", fontWeight: 400 }}>
                   Deploy to hundreds of devices. The dashboard awakens—fleet health across execution layer, routing decisions from intelligence layer, behavior patterns in memory layer, cryptographic verification from proof layer. Performance heatmaps reveal bottlenecks. Anomaly detection catches failures before they cascade. A/B test behavior trees across your fleet.
                 </p>
-                <p className="text-xs text-gray-600 dark:text-[#a8a898] leading-relaxed font-inter italic">
+                <p className="text-xs text-gray-600 dark:text-[#a8a898] leading-relaxed italic" style={{ fontFamily: "'IBM Plex Mono', monospace", fontWeight: 400 }}>
                   Complete observability. Advanced optimization. Full control.
                 </p>
               </div>
             </div>
           </div>
 
-          {/* Two-column layout - Matching Products section */}
+          {/* Two-column layout - Empty left, Text on right */}
           <div className="hidden md:grid md:grid-cols-3 gap-0 md:flex-1">
-            {/* Left Column - Content (2 columns wide) */}
-            <div className="md:col-span-2 flex flex-col justify-start relative" style={{
+            {/* Left Column - Empty */}
+            <div className="md:col-span-2" style={{
               padding: '3rem 2rem 3rem 0',
               backgroundImage: mounted && theme === 'dark' ? 'none' : 'radial-gradient(circle, rgba(0, 0, 0, 0.1) 1px, transparent 1px)',
               backgroundSize: '20px 20px',
               backgroundPosition: '1rem 3rem'
             }}>
-              {/* Frames layout for both light and dark mode */}
-              <div className="flex flex-col gap-4 w-full">
-                <div className="w-full border border-gray-300 dark:border-[#f6f6f4]/5 bg-[#f6f6f4] dark:bg-[#1b1912] flex min-h-[240px]">
-                  <div className="w-3/5 p-6 flex flex-col justify-between">
-                    <div className="flex-shrink-0" style={{ maxHeight: '180px' }}>
-                      <Image
-                        src="/ovr.png"
-                        alt="Deploy Runtime"
-                        width={450}
-                        height={450}
-                        className="mb-4 object-contain opacity-100"
-                        style={{ maxHeight: '160px' }}
-                      />
-                    </div>
-                    <div className="mt-auto pb-8">
-                      <p className="text-sm text-gray-600 dark:text-[#a8a898] leading-relaxed">
-                        Behavior trees + LLM reasoning. 16MB.
-                      </p>
-                    </div>
-                  </div>
-                  <div className="w-2/5 p-6 flex flex-col justify-start">
-                    <h4 className="text-sm font-medium text-[#000000] dark:text-[#f6f6f4] mb-3 font-inter">Deploy</h4>
-                    <p className="text-sm text-gray-600 dark:text-[#a8a898] leading-relaxed">
-                      Single binary with complete nervous system.<br/>
-                      Structured decisions meet language model intelligence. Cryptographically provable.
-                    </p>
-                  </div>
-                </div>
-                <div className="w-full border border-gray-300 dark:border-[#f6f6f4]/5 bg-[#f6f6f4] dark:bg-[#1b1912] flex min-h-[240px]">
-                  <div className="w-3/5 p-6 flex flex-col justify-between">
-                    <div className="flex-shrink-0" style={{ maxHeight: '180px' }}>
-                      <Image
-                        src="/xe.png"
-                        alt="Execute Locally"
-                        width={450}
-                        height={450}
-                        className="mb-4 object-contain opacity-80"
-                        style={{ maxHeight: '160px' }}
-                      />
-                    </div>
-                    <div className="mt-auto pb-4">
-                      <p className="text-sm text-gray-600 dark:text-[#a8a898] leading-relaxed">
-                        Deterministic + intelligent. Offline capable.
-                      </p>
-                    </div>
-                  </div>
-                  <div className="w-2/5 p-6 flex flex-col justify-start">
-                    <h4 className="text-sm font-medium text-[#000000] dark:text-[#f6f6f4] mb-3 font-inter">Verify</h4>
-                    <p className="text-sm text-gray-600 dark:text-[#a8a898] leading-relaxed">
-                      Behavior trees execute predictably. LLMs reason when needed.<br/>
-                      Memory tracks decisions. Proof signs everything. No hallucination.
-                    </p>
-                  </div>
-                </div>
-                <div className="w-full border border-gray-300 dark:border-[#f6f6f4]/5 bg-[#f6f6f4] dark:bg-[#1b1912] flex min-h-[280px]">
-                  <div className="w-3/5 p-6 flex flex-col justify-between">
-                    <div className="flex-shrink-0" style={{ maxHeight: '180px' }}>
-                      <Image
-                        src="/ol.png"
-                        alt="Fleet Dashboard"
-                        width={450}
-                        height={450}
-                        className="mb-4 object-contain opacity-100"
-                        style={{ maxHeight: '160px' }}
-                      />
-                    </div>
-                    <div className="mt-auto pb-4">
-                      <p className="text-sm text-gray-600 dark:text-[#a8a898] leading-relaxed">
-                        Fleet observability. Advanced analytics. Full control.
-                      </p>
-                    </div>
-                  </div>
-                  <div className="w-2/5 p-6 flex flex-col justify-start">
-                    <h4 className="text-sm font-medium text-[#000000] dark:text-[#f6f6f4] mb-3 font-inter">Optimize</h4>
-                    <p className="text-sm text-gray-600 dark:text-[#a8a898] leading-relaxed">
-                      Dashboard reveals all four layers across your fleet.<br/>
-                      Heatmaps, anomaly detection, A/B testing. Complete nervous system visibility.
-                    </p>
-                  </div>
-                </div>
-              </div>
             </div>
 
-            {/* Right Column - Title (1 column wide with left border) */}
+            {/* Right Column - Title and all text content */}
             <div className="md:col-span-1 md:border-l flex flex-col justify-start dark:border-[#f6f6f4]/5" style={{ paddingTop: '3rem', paddingBottom: '3rem', paddingLeft: '1rem' }}>
               <p className="text-base text-[#85612c] dark:text-[#c5b0cd] mb-2" style={{ fontFamily: 'Roboto Mono, monospace', letterSpacing: '0.05em' }}>
                 03. DEPLOYMENT
               </p>
-              <h2 className="text-lg md:text-xl lg:text-2xl font-inter mb-4 text-[#000000] dark:text-[#f6f6f4]">
+              <h2 className="text-lg md:text-xl lg:text-2xl mb-4 text-[#000000] dark:text-[#f6f6f4]" style={{ fontFamily: "'IBM Plex Mono', monospace", fontWeight: 400 }}>
                 Deploy. Verify. Optimize.
               </h2>
-              <p className="text-sm text-gray-600 dark:text-[#a8a898] font-inter leading-relaxed">
-                Hybrid behavior trees meet LLM reasoning. Deterministic execution meets cryptographic proof.
+              <p className="text-sm text-gray-600 dark:text-[#a8a898] leading-relaxed mb-6" style={{ fontFamily: "'IBM Plex Mono', monospace", fontWeight: 400 }}>
+                The system is designed to move from initial installation to fleet-level operation without changing how execution works.
               </p>
+              
+              {/* Text content in right column */}
+              <div className="flex flex-col gap-6">
+                <div className="p-4">
+                  <h4 className="text-sm font-medium text-[#000000] dark:text-[#f6f6f4] mb-2" style={{ fontFamily: "'IBM Plex Mono', monospace", fontWeight: 400 }}>Deploy</h4>
+                  <p className="text-sm text-gray-600 dark:text-[#a8a898] leading-relaxed mb-2">
+                    Install a single binary on any supported device.
+                  </p>
+                  <p className="text-sm text-gray-600 dark:text-[#a8a898] leading-relaxed mb-2">
+                    Execution, decision routing, memory, and proof are included from the start. Structured decision paths run locally, while language models are invoked only when required.
+                  </p>
+                  <p className="text-sm text-gray-600 dark:text-[#a8a898] leading-relaxed">
+                    The runtime operates independently of containers or external services and does not require continuous connectivity. Offline operation is supported by default.
+                  </p>
+                </div>
+                <div className="p-4">
+                  <h4 className="text-sm font-medium text-[#000000] dark:text-[#f6f6f4] mb-2" style={{ fontFamily: "'IBM Plex Mono', monospace", fontWeight: 400 }}>Verify</h4>
+                  <p className="text-sm text-gray-600 dark:text-[#a8a898] leading-relaxed mb-2">
+                    Execution follows defined constraints.
+                  </p>
+                  <p className="text-sm text-gray-600 dark:text-[#a8a898] leading-relaxed mb-2">
+                    Behavior trees execute predictably. Language models operate within enforced limits. Each decision is recorded and cryptographically signed.
+                  </p>
+                  <p className="text-sm text-gray-600 dark:text-[#a8a898] leading-relaxed mb-2">
+                    Verification does not depend on network access. You can trace what ran, when it ran, and under which conditions.
+                  </p>
+                </div>
+                <div className="p-4">
+                  <h4 className="text-sm font-medium text-[#000000] dark:text-[#f6f6f4] mb-2" style={{ fontFamily: "'IBM Plex Mono', monospace", fontWeight: 400 }}>Optimize</h4>
+                  <p className="text-sm text-gray-600 dark:text-[#a8a898] leading-relaxed mb-2">
+                    As deployments expand, visibility increases.
+                  </p>
+                  <p className="text-sm text-gray-600 dark:text-[#a8a898] leading-relaxed mb-2">
+                    The dashboard provides insight into execution health, decision routing, historical behavior, and verification status across the fleet.
+                  </p>
+                  <p className="text-sm text-gray-600 dark:text-[#a8a898] leading-relaxed mb-2">
+                    Performance patterns become visible over time. Anomalies can be identified early. Behavior can be evaluated and refined without altering the underlying execution model.
+                  </p>
+                  <p className="text-sm text-gray-600 dark:text-[#a8a898] leading-relaxed">
+                    Execution remains consistent. Only observability evolves.
+                  </p>
+                </div>
+              </div>
             </div>
 
           </div>

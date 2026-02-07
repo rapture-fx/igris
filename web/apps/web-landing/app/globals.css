@@ -31,6 +31,8 @@
     min-height: 100vh;
     overflow-x: hidden;
     overflow-y: auto;
+    font-family: 'IBM Plex Mono', monospace !important;
+    font-weight: 400 !important;
   }
 
   /* Dark mode styles */

@@ -2,16 +2,14 @@
 
 import Header from '../src/components/sections/Header'
 import Hero from '../src/components/sections/Hero-Simple'
-import Solve from '../src/components/sections/Solve'
+import WhatThisIs from '../src/components/sections/WhatThisIs'
+import WhyItExists from '../src/components/sections/WhyItExists'
 import Footer from '../src/components/sections/Footer'
+import Solve from '../src/components/sections/Solve'
 import CoreCapabilities from '../src/components/sections/CoreCapabilities'
 import MultiTenancy from '../src/components/sections/MultiTenancy'
 import Products from '../src/components/sections/Products'
 import HowItWorks from '../src/components/sections/HowItWorks'
-import Manifesto from '../src/components/sections/Manifesto'
-import ClosingPosition from '../src/components/sections/ClosingPosition'
-import Installation from '../src/components/sections/Installation'
-import Changelog from '../src/components/sections/Changelog'
 
 import OverturePopup from '../src/components/popups/OverturePopup'
 import RuntimePopup from '../src/components/popups/RuntimePopup'
@@ -39,13 +37,11 @@ export default function HomePage() {
             <Hero />
             <Solve />
             <Products />
+            <WhatThisIs />
             <CoreCapabilities />
             <HowItWorks />
             <MultiTenancy />
-            <Manifesto />
-            <Installation />
-            <Changelog />
-            <ClosingPosition />
+            <WhyItExists />
           </main>
           <Footer />
         </div>
