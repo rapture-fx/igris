@@ -20200,6 +20200,7 @@ downloads/
 eggs/
 .eggs/
 lib/
+!web/apps/web-console/lib/
 lib64/
 parts/.env.production
 *.env
