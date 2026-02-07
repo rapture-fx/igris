@@ -100,13 +100,14 @@ export default function HowItWorks() {
 
           {/* Two-column layout - Empty left, Text on right */}
           <div className="hidden md:grid md:grid-cols-3 gap-0 md:flex-1">
-            {/* Left Column - Empty */}
-            <div className="md:col-span-2" style={{
-              padding: '3rem 2rem 3rem 0',
-              backgroundImage: mounted && theme === 'dark' ? 'none' : 'radial-gradient(circle, rgba(0, 0, 0, 0.1) 1px, transparent 1px)',
-              backgroundSize: '20px 20px',
-              backgroundPosition: '1rem 3rem'
-            }}>
+            {/* Left Column - With hw.png image */}
+            <div className="md:col-span-2 relative" style={{ padding: '1rem' }}>
+              <img
+                src="/hw.png"
+                alt=""
+                className="absolute inset-0 w-full h-full object-cover"
+                style={{ opacity: 0.9 }}
+              />
             </div>
 
             {/* Right Column - Title and all text content */}

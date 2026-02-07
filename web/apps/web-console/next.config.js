@@ -1,19 +1,20 @@
 const path = require('path');
 
+// Workspace root: web/ (where pnpm-workspace.yaml and node_modules live)
+const workspaceRoot = path.join(__dirname, '../../');
+
 /** @type {import('next').NextConfig} */
 const nextConfig = {
-  // SSR mode for Cloudflare Pages (required for Clerk middleware)
-  // DO NOT use output: 'export' - it breaks authentication middleware
   reactStrictMode: true,
 
   typescript: {
     ignoreBuildErrors: true,
   },
 
-  // Turbopack needs to know the workspace root to resolve packages
-  // Points to web/ where pnpm-workspace.yaml and node_modules live
+  // Both must point to the same directory for Next.js 16
+  outputFileTracingRoot: workspaceRoot,
   turbopack: {
-    root: path.join(__dirname, '../../'),
+    root: workspaceRoot,
   },
 
   // Inline workspace packages into the bundle
@@ -28,7 +29,7 @@ const nextConfig = {
   },
 
   images: {
-    unoptimized: true, // Required for Cloudflare Pages
+    unoptimized: true,
   },
 }
 
