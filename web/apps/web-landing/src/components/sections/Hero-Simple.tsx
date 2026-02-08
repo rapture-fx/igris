@@ -61,7 +61,7 @@ const AnimatedText = () => {
   }, [isMounted])
 
   return (
-    <span className="inline-block relative align-bottom ml-3" style={{ verticalAlign: 'baseline', fontFamily: "'IBM Plex Mono', monospace", fontSize: '1em', letterSpacing: '0.02em', fontWeight: 500, color: isMounted && theme === 'dark' ? '#f6f6f4' : '#1b1912' }}>
+    <span className="inline-block relative align-bottom ml-3" style={{ verticalAlign: 'baseline', fontFamily: 'var(--font-geist-pixel-square, "Geist Pixel", monospace)', fontSize: '1em', letterSpacing: '0.02em', fontWeight: 700, color: isMounted && theme === 'dark' ? '#f6f6f4' : '#1b1912' }}>
       {isMounted ? displayText : words[0]}
       {isMounted && <span className="inline-block hero-blink" style={{ color: isMounted && theme === 'dark' ? '#f6f6f4' : '#1b1912' }}>_</span>}
     </span>
@@ -86,14 +86,14 @@ export default function Hero() {
           zIndex: 1
         }}>
 
-            <div className="max-w-[1300px] mx-auto w-full absolute z-10" style={{ bottom: '12rem', left: 0, right: 0, paddingLeft: '1.5rem', paddingRight: '1.5rem' }}>
+            <div className="max-w-[1300px] mx-auto w-full" style={{ paddingTop: '16rem' }}>
             <div className="mb-6 text-left">
               <div>
-                <h1 className="text-2xl md:text-3xl lg:text-4xl font-medium" style={{ color: mounted && theme === 'dark' ? '#f6f6f4' : '#1b1912' }}>
+                <h1 className="text-3xl md:text-4xl lg:text-5xl font-bold" style={{ color: mounted && theme === 'dark' ? '#f6f6f4' : '#1b1912', fontFamily: 'var(--font-geist-pixel-square, "Geist Pixel", monospace)' }}>
                   <span className="block mb-3">The Nervous System</span>
                   <span className="block">for <AnimatedText /></span>
                 </h1>
-                <p className="text-lg md:text-2xl max-w-xl leading-relaxed text-left mt-8" style={{ color: mounted && theme === 'dark' ? '#c8c8b8' : '#4a4a4a' }}>
+                <p className="text-lg md:text-xl max-w-2xl leading-relaxed text-left mt-8" style={{ color: mounted && theme === 'dark' ? '#c8c8b8' : '#4a4a4a' }}>
                   A deterministic execution layer for AI that operates across cloud and devices, even when connectivity fails.
                 </p>
                 <div className="flex flex-wrap gap-2 md:gap-3 mt-4 text-xs md:text-sm" style={{ fontFamily: "'IBM Plex Mono', monospace", color: mounted && theme === 'dark' ? '#a8a898' : '#6a6a6a' }}>

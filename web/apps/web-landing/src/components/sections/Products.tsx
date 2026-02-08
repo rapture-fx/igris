@@ -16,14 +16,14 @@ export default function Products() {
   return (
     <section className="bg-[#f6f6f4] dark:bg-dark-bg text-gray-900 dark:text-[#f6f6f4] transition-colors duration-200">
       <div className="mx-auto max-w-[1300px] px-4 sm:px-6 lg:px-8">
-          <div className="relative px-4 md:px-8 lg:px-12 flex flex-col bg-[#f6f6f4] dark:bg-[#1b1912] border-l border-r section-border min-h-[800px]">
+          <div className="relative px-4 md:px-8 lg:px-12 flex flex-col bg-[#f6f6f4] dark:bg-[#1b1912] border-l border-r section-border min-h-[1000px]">
 
           {/* Title Section - Shows first on mobile, last on desktop */}
           <div className="mb-6 md:mb-0 md:hidden text-left" style={{ paddingTop: '3rem', paddingBottom: '3rem' }}>
             <p className="text-base text-[#85612c] dark:text-[#c5b0cd] mb-2" style={{ letterSpacing: '0.05em' }}>
               01. PRODUCT
             </p>
-            <h2 className="text-lg md:text-xl lg:text-2xl mb-4 text-[#000000] dark:text-[#f6f6f4]">
+            <h2 className="text-lg md:text-xl lg:text-2xl mb-4 text-[#000000] dark:text-[#f6f6f4]" style={{ fontWeight: 700, fontFamily: 'var(--font-geist-pixel-square, "Geist Pixel", monospace)' }}>
               The complete nervous system for your AI fleet.
             </h2>
             <p className="text-sm text-gray-600 dark:text-[#a8a898] leading-relaxed mb-8">
@@ -33,12 +33,13 @@ export default function Products() {
             {/* Product Narrative - Mobile */}
             <div className="space-y-8 text-left">
               {/* First frame - Top */}
-              <div className="border border-gray-300 dark:border-[#f6f6f4]/5 p-6 min-h-[350px] flex flex-col">
-                <div className="flex-1 flex items-end justify-center" style={{ marginTop: '0', marginBottom: '1rem', height: '200px', position: 'relative', overflow: 'hidden' }}>
+              <div className="border border-gray-300 dark:border-[#f6f6f4]/5 p-6 min-h-[450px] flex flex-col rounded-lg">
+                <div className="flex-1 flex items-end justify-center rounded-lg" style={{ marginTop: '0', marginBottom: '1rem', height: '200px', position: 'relative', overflow: 'hidden' }}>
                   <Image
                     src={mounted && theme === 'dark' ? '/r.png' : '/prol.png'}
                     alt="Runtime AI Execution"
                     fill
+                    className="rounded-lg"
                     style={{ objectFit: 'cover', opacity: 0.85 }}
                   />
                 </div>
@@ -58,15 +59,16 @@ export default function Products() {
               </div>
 
               {/* Second frame - Bottom with title */}
-              <div className="border border-gray-300 dark:border-[#f6f6f4]/5 p-6 min-h-[350px] flex flex-col shadow-[0_0_10px_rgba(0,0,0,0.08)] dark:shadow-[0_0_15px_rgba(246,246,244,0.08)]">
-                  <h3 className="text-base mb-3 text-[#000000] dark:text-[#f6f6f4]">
+              <div className="border border-gray-300 dark:border-[#f6f6f4]/5 p-6 min-h-[450px] flex flex-col shadow-[0_0_10px_rgba(0,0,0,0.08)] dark:shadow-[0_0_15px_rgba(246,246,244,0.08)] rounded-lg">
+                  <h3 className="text-base mb-3 text-[#000000] dark:text-[#f6f6f4]" style={{ fontWeight: 700, fontFamily: 'var(--font-geist-pixel-square, "Geist Pixel", monospace)' }}>
                   Four layers. One nervous system.
                 </h3>
-                <div className="border border-gray-300 dark:border-[#f6f6f4]/5" style={{ marginTop: '0', marginBottom: '1rem', height: '200px', position: 'relative', overflow: 'hidden' }}>
+                <div className="border border-gray-300 dark:border-[#f6f6f4]/5 rounded-lg" style={{ marginTop: '0', marginBottom: '1rem', height: '200px', position: 'relative', overflow: 'hidden' }}>
                   <Image
                     src={mounted && theme === 'dark' ? '/rtnm.png' : '/prolg.png'}
                     alt="Fleet Dashboard"
                     fill
+                    className="rounded-lg"
                     style={{ objectFit: 'cover', opacity: 0.85 }}
                   />
                 </div>
@@ -92,13 +94,13 @@ export default function Products() {
               <div className="w-full space-y-8">
 
                 {/* First frame - Top */}
-                <div className="border border-gray-300 dark:border-[#f6f6f4]/5 p-6 shadow-[0_0_10px_rgba(0,0,0,0.08)] dark:shadow-[0_0_15px_rgba(246,246,244,0.08)] min-h-[400px] flex flex-col">
-                  <div className="flex-1 flex items-end justify-center relative" style={{ marginTop: '0', marginBottom: '1rem', height: '200px', overflow: 'hidden' }}>
+                <div className="border border-gray-300 dark:border-[#f6f6f4]/5 p-6 shadow-[0_0_10px_rgba(0,0,0,0.08)] dark:shadow-[0_0_15px_rgba(246,246,244,0.08)] min-h-[500px] flex flex-col rounded-lg">
+                  <div className="flex-1 flex items-end justify-center relative rounded-lg" style={{ marginTop: '0', marginBottom: '1rem', height: '200px', overflow: 'hidden' }}>
                     <Image
                       src={mounted ? (theme === 'dark' ? '/r.png' : '/prol.png') : '/prol.png'}
                       alt="Runtime AI Execution"
                       fill
-                      className="object-cover"
+                      className="object-cover rounded-lg"
                       style={{ opacity: 0.85 }}
                     />
                   </div>
@@ -119,13 +121,13 @@ export default function Products() {
                 </div>
 
                 {/* Second frame - Bottom with title */}
-                <div className="border border-gray-300 dark:border-[#f6f6f4]/5 p-6 bg-[#f6f6f4] dark:bg-[#1b1912]/50 shadow-[0_0_10px_rgba(0,0,0,0.08)] dark:shadow-[0_0_15px_rgba(246,246,244,0.08)] flex flex-col">
-                  <div className="relative" style={{ marginTop: '0', marginBottom: '1rem', height: '200px', overflow: 'hidden' }}>
+                <div className="border border-gray-300 dark:border-[#f6f6f4]/5 p-6 bg-[#f6f6f4] dark:bg-[#1b1912]/50 shadow-[0_0_10px_rgba(0,0,0,0.08)] dark:shadow-[0_0_15px_rgba(246,246,244,0.08)] min-h-[500px] flex flex-col">
+                  <div className="flex-1 flex items-end justify-center relative rounded-lg" style={{ marginTop: '0', marginBottom: '1rem', height: '200px', overflow: 'hidden' }}>
                     <Image
                       src={mounted ? (theme === 'dark' ? '/rtnm.png' : '/prolg.png') : '/prolg.png'}
                       alt="Fleet Dashboard"
                       fill
-                      className="object-cover"
+                      className="object-cover rounded-lg"
                       style={{ opacity: 0.85 }}
                     />
                   </div>
@@ -150,7 +152,7 @@ export default function Products() {
             <p className="text-base text-[#85612c] dark:text-[#c5b0cd] mb-2" style={{ letterSpacing: '0.05em' }}>
                 01. PRODUCT
               </p>
-            <h2 className="text-lg md:text-xl lg:text-2xl mb-4 text-[#000000] dark:text-[#f6f6f4]">
+            <h2 className="text-lg md:text-xl lg:text-2xl mb-4 text-[#000000] dark:text-[#f6f6f4]" style={{ fontWeight: 700, fontFamily: 'var(--font-geist-pixel-square, "Geist Pixel", monospace)' }}>
                 Hybrid behavior trees meet LLM reasoning.
               </h2>
               <p className="text-xs md:text-sm text-gray-600 dark:text-[#a8a898] leading-relaxed">
