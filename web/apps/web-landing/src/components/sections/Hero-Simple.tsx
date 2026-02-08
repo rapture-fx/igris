@@ -80,22 +80,16 @@ export default function Hero() {
     <section className="pb-0 bg-[#f6f6f4] dark:bg-dark-bg text-gray-900 dark:text-[#f6f6f4] relative overflow-visible transition-colors duration-200">
       <div className="mx-auto max-w-[1300px] px-4 sm:px-6 lg:px-8">
         <div className="relative px-4 md:px-8 lg:px-12 pb-0 overflow-hidden border-l border-r section-border" style={{
-          height: '750px',
+          height: '550px',
           backgroundColor: mounted && theme === 'dark' ? '#1b1912' : '#f6f6f4',
           position: 'relative',
           zIndex: 1
         }}>
-          <img
-            src="/hrlg.png"
-            alt=""
-            className="absolute inset-0 w-full h-full object-cover z-0"
-            style={{ opacity: 0.9 }}
-          />
 
             <div className="max-w-[1300px] mx-auto w-full absolute z-10" style={{ bottom: '16rem', left: 0, right: 0, paddingLeft: '4rem', paddingRight: '4rem' }}>
             <div className="mb-6 text-left">
               <div>
-                <h1 className="text-3xl md:text-4xl lg:text-5xl font-medium" style={{ color: mounted && theme === 'dark' ? '#f6f6f4' : '#1b1912' }}>
+                <h1 className="text-2xl md:text-3xl lg:text-4xl font-medium" style={{ color: mounted && theme === 'dark' ? '#f6f6f4' : '#1b1912' }}>
                   <span className="block mb-3">The Nervous System</span>
                   <span className="block">for <AnimatedText /></span>
                 </h1>

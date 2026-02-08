@@ -39,14 +39,16 @@ export default function HowItWorks() {
             {/* Right side - Steps */}
             <div className="flex flex-col items-start justify-start" style={{ paddingTop: '3rem' }}>
               <div className="w-full max-w-xl">
-                {steps.map((step) => (
-                  <div key={step.name} className="border-b border-gray-300 dark:border-[#f6f6f4]/5 pb-4 last:border-0 last:pb-0">
-                    <h4 className="text-sm font-bold mb-2 text-[#000000] dark:text-[#f6f6f4]">
-                      {step.name}
-                    </h4>
-                    <p className="text-sm text-gray-600 dark:text-[#a8a898] leading-relaxed" style={{ fontWeight: 400 }}>
-                      {step.description}
-                    </p>
+                {steps.map((step, index) => (
+                  <div key={step.name} className={`pb-2 ${index < steps.length - 1 ? 'border-b border-gray-400 dark:border-[#f6f6f4]/20' : ''}`}>
+                    <div className="pt-2">
+                      <h4 className="text-sm font-bold mb-4 text-[#000000] dark:text-[#f6f6f4]">
+                        {step.name}
+                      </h4>
+                      <p className="text-sm text-gray-600 dark:text-[#a8a898] leading-relaxed" style={{ fontWeight: 400 }}>
+                        {step.description}
+                      </p>
+                    </div>
                   </div>
                 ))}
               </div>

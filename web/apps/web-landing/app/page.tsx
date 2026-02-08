@@ -3,6 +3,7 @@
 import Header from '../src/components/sections/Header'
 import Hero from '../src/components/sections/Hero-Simple'
 import WhatThisIs from '../src/components/sections/WhatThisIs'
+import ClosingPosition from '../src/components/sections/ClosingPosition'
 import WhyItExists from '../src/components/sections/WhyItExists'
 import Footer from '../src/components/sections/Footer'
 import Solve from '../src/components/sections/Solve'
@@ -42,6 +43,7 @@ export default function HomePage() {
             <MultiTenancy />
             <HowItWorks />
             <WhyItExists />
+            <ClosingPosition />
           </main>
           <Footer />
         </div>
