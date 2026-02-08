@@ -86,7 +86,7 @@ export default function Hero() {
           zIndex: 1
         }}>
 
-            <div className="max-w-[1300px] mx-auto w-full absolute z-10" style={{ bottom: '16rem', left: 0, right: 0, paddingLeft: '4rem', paddingRight: '4rem' }}>
+            <div className="max-w-[1300px] mx-auto w-full absolute z-10" style={{ bottom: '12rem', left: 0, right: 0, paddingLeft: '4rem', paddingRight: '4rem' }}>
             <div className="mb-6 text-left">
               <div>
                 <h1 className="text-2xl md:text-3xl lg:text-4xl font-medium" style={{ color: mounted && theme === 'dark' ? '#f6f6f4' : '#1b1912' }}>

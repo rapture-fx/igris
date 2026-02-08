@@ -67,8 +67,8 @@ export default function CoreCapabilities() {
                           src={mounted && theme === 'dark' ? '/cr.png' : '/exc.png'}
                           alt={capability.name}
                           style={{
-                            width: '60%',
-                            height: '60%',
+                            width: '65%',
+                            height: '65%',
                             objectFit: 'contain',
                             opacity: '0.6'
                           }}
@@ -79,8 +79,8 @@ export default function CoreCapabilities() {
                           src={mounted && theme === 'dark' ? '/cs.png' : '/tre.png'}
                           alt={capability.name}
                           style={{
-                            width: '60%',
-                            height: '60%',
+                            width: '65%',
+                            height: '65%',
                             objectFit: 'contain',
                             opacity: '0.6'
                           }}
@@ -91,15 +91,15 @@ export default function CoreCapabilities() {
                           src={mounted && theme === 'dark' ? '/cc.png' : '/one.png'}
                           alt={capability.name}
                           style={{
-                            width: '60%',
-                            height: '60%',
+                            width: '65%',
+                            height: '65%',
                             objectFit: 'contain',
                             opacity: '0.6'
                           }}
                         />
                       )}
                     </div>
-                    <div className="p-4">
+                    <div className="p-8">
                       <h4 className="text-sm font-bold mb-2 text-[#000000] dark:text-[#f6f6f4]">
                         {capability.name}
                       </h4>
