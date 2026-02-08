@@ -85,7 +85,7 @@ export default function Header() {
           <div className="mx-auto max-w-[1300px] px-4 sm:px-6 lg:px-8">
             <div className="px-4 md:px-8 lg:px-12 py-6">
           <div className="flex items-center justify-between w-full">
-          <div className="flex">
+          <div className="flex" style={{ marginLeft: '1rem' }}>
             <Link href="/">
               <img
                 src={mounted && theme === 'dark' ? '/dmfoot.png' : '/foot.png'}
