@@ -19,7 +19,7 @@ export default function ClosingPosition() {
                 <div className="flex flex-col sm:flex-row gap-4">
                   <Link href="https://docs.igrisinertial.com/runtime/quickstart">
                     <button
-                      className="inline-flex items-center justify-center bg-black text-white dark:bg-[#f6f6f4] dark:text-black px-4 py-2 hover:bg-gray-800 dark:hover:bg-gray-200 transition-all duration-200 text-xs font-medium"
+                      className="inline-flex items-center justify-center bg-black text-white dark:bg-[#f6f6f4] dark:text-black px-4 py-2 hover:opacity-80 transition-all duration-200 text-xs font-medium shadow-sm rounded-md"
                     >
                       Get Started
                     </button>
