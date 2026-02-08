@@ -27,7 +27,7 @@ export default function MultiTenancy() {
   return (
     <section className="bg-[#f6f6f4] dark:bg-dark-bg text-gray-900 dark:text-[#f6f6f4] transition-colors duration-200">
       <div className="mx-auto max-w-[1300px] px-4 sm:px-6 lg:px-8">
-        <div className="relative px-4 md:px-8 lg:px-12 border-l border-r border-b border-gray-300 dark:border-[#f6f6f4]/10" style={{ paddingTop: '1rem', paddingBottom: '1rem' }}>
+        <div className="relative px-4 md:px-8 lg:px-12 border-l border-r border-b section-border" style={{ paddingTop: '1rem', paddingBottom: '1rem' }}>
           <div className="grid grid-cols-1 md:grid-cols-2 gap-8">
             {/* Left side - Intro */}
             <div className="text-left self-start" style={{ paddingTop: '3rem' }}>
@@ -52,7 +52,7 @@ export default function MultiTenancy() {
               <div className="w-full h-full rounded-lg p-6 flex flex-col justify-center relative z-10">
                 <div className="w-full max-w-xl space-y-4">
                   {features.map((feature) => (
-                    <div key={feature.title} className="border border-gray-300 dark:border-[#f6f6f4]/5 rounded-lg p-4 bg-[#f6f6f4] dark:bg-[#1b1912]">
+                    <div key={feature.title} className="border border-white/50 dark:border-[#f6f6f4]/25 rounded-lg p-4 bg-white/60 dark:bg-[#1b1912]/60 backdrop-blur-md">
                       <h4 className="text-sm font-bold mb-2 text-[#000000] dark:text-[#f6f6f4]">
                         {feature.title}
                       </h4>

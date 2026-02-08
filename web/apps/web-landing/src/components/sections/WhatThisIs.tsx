@@ -23,7 +23,7 @@ export default function WhatThisIs() {
   return (
     <section className="bg-[#f6f6f4] dark:bg-dark-bg text-gray-900 dark:text-[#f6f6f4] transition-colors duration-200">
       <div className="mx-auto max-w-[1300px] px-4 sm:px-6 lg:px-8">
-        <div className="relative px-4 md:px-8 lg:px-12 py-4 md:py-8 lg:py-12 border-l border-r border-b border-gray-300 dark:border-[#f6f6f4]/10">
+        <div className="relative px-4 md:px-8 lg:px-12 py-4 md:py-8 lg:py-12 border-l border-r border-b section-border">
           {/* Frame with centered card */}
           <div className="rounded-lg flex items-center justify-center relative overflow-hidden" style={{ height: '700px', padding: '3rem' }}>
             <img

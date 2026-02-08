@@ -27,7 +27,7 @@ export default function CoreCapabilities() {
   return (
     <section className="bg-[#f6f6f4] dark:bg-dark-bg text-gray-900 dark:text-[#f6f6f4] transition-colors duration-200">
       <div className="mx-auto max-w-[1300px] px-4 sm:px-6 lg:px-8">
-        <div className="relative px-4 md:px-8 lg:px-12 border-l border-r border-b border-gray-300 dark:border-[#f6f6f4]/10 min-h-[900px]">
+        <div className="relative px-4 md:px-8 lg:px-12 border-l border-r border-b section-border min-h-[900px]">
           {/* Title outside the frame */}
           <div className="text-left mb-8" style={{ paddingTop: '3rem' }}>
             <p className="text-base text-[#85612c] dark:text-[#c5b0cd] mb-2" style={{ letterSpacing: '0.05em' }}>

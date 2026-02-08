@@ -21,7 +21,7 @@ export default function HowItWorks() {
   return (
     <section id="how-it-works" className="bg-[#f6f6f4] dark:bg-dark-bg text-gray-900 dark:text-[#f6f6f4] transition-colors duration-200">
       <div className="mx-auto max-w-[1300px] px-4 sm:px-6 lg:px-8">
-        <div className="relative px-4 md:px-8 lg:px-12 py-4 md:py-8 lg:py-12 border-l border-r border-b border-gray-300 dark:border-[#f6f6f4]/10">
+        <div className="relative px-4 md:px-8 lg:px-12 py-4 md:py-8 lg:py-12 border-l border-r border-b section-border">
           <div className="grid grid-cols-1 md:grid-cols-2 gap-8">
             {/* Left side - Intro */}
             <div className="text-left" style={{ paddingTop: '3rem' }}>
@@ -40,7 +40,7 @@ export default function HowItWorks() {
             <div className="flex flex-col items-start justify-start" style={{ paddingTop: '3rem' }}>
               <div className="w-full max-w-xl">
                 {steps.map((step, index) => (
-                  <div key={step.name} className={`pb-2 ${index < steps.length - 1 ? 'border-b border-gray-400 dark:border-[#f6f6f4]/20' : ''}`}>
+                  <div key={step.name} className={`pb-2 ${index < steps.length - 1 ? 'border-b border-[rgba(156,163,175,0.3)] dark:border-[rgba(246,246,244,0.1)]' : ''}`}>
                     <div className="pt-2">
                       <h4 className="text-sm font-bold mb-4 text-[#000000] dark:text-[#f6f6f4]">
                         {step.name}
