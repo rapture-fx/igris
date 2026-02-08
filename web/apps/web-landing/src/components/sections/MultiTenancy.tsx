@@ -27,10 +27,10 @@ export default function MultiTenancy() {
   return (
     <section className="bg-[#f6f6f4] dark:bg-dark-bg text-gray-900 dark:text-[#f6f6f4] transition-colors duration-200">
       <div className="mx-auto max-w-[1300px] px-4 sm:px-6 lg:px-8">
-        <div className="relative px-4 md:px-8 lg:px-12 py-4 md:py-8 lg:py-12 border-l border-r border-b border-gray-300 dark:border-[#f6f6f4]/10">
+        <div className="relative px-4 md:px-8 lg:px-12 border-l border-r border-b border-gray-300 dark:border-[#f6f6f4]/10" style={{ paddingTop: '1rem', paddingBottom: '1rem' }}>
           <div className="grid grid-cols-1 md:grid-cols-2 gap-8">
             {/* Left side - Intro */}
-            <div className="text-left" style={{ paddingTop: '3rem' }}>
+            <div className="text-left self-start" style={{ paddingTop: '3rem' }}>
               <p className="text-base text-[#85612c] dark:text-[#c5b0cd] mb-2" style={{ letterSpacing: '0.05em' }}>
                 03. PROOF
               </p>
@@ -38,23 +38,30 @@ export default function MultiTenancy() {
                 Verifiable execution by design
               </h3>
               <p className="text-sm text-gray-600 dark:text-[#a8a898] leading-relaxed" style={{ fontWeight: 400, maxWidth: '360px' }}>
-                When AI runs outside your line of sight, verification matters. Every decision is recorded. Every update is signed. Execution can be inspected after the fact—without relying on trust, assumptions, or continuous connectivity. This makes it possible to answer questions from operators, auditors, or regulators with evidence rather than inference.
+                Every decision is recorded. Every update is signed. Execution can be inspected after the fact—without relying on trust, assumptions, or continuous connectivity.
               </p>
             </div>
 
             {/* Right side - Features */}
-            <div className="flex flex-col items-start justify-start" style={{ paddingTop: '3rem' }}>
-              <div className="w-full max-w-xl">
-                {features.map((feature) => (
-                  <div key={feature.title} className="border-b border-gray-300 dark:border-[#f6f6f4]/5 pb-4 last:border-0 last:pb-0">
-                    <h4 className="text-sm font-bold mb-2 text-[#000000] dark:text-[#f6f6f4]">
-                      {feature.title}
-                    </h4>
-                    <p className="text-sm text-gray-600 dark:text-[#a8a898] leading-relaxed" style={{ fontWeight: 400 }}>
-                      {feature.description}
-                    </p>
-                  </div>
-                ))}
+            <div className="h-full relative">
+                <img
+                  src="/hrllg.png"
+                  alt=""
+                  className="absolute inset-0 w-full h-full object-cover rounded-lg"
+                />
+              <div className="w-full h-full rounded-lg p-6 flex flex-col justify-center relative z-10">
+                <div className="w-full max-w-xl space-y-4">
+                  {features.map((feature) => (
+                    <div key={feature.title} className="border border-gray-300 dark:border-[#f6f6f4]/5 rounded-lg p-4 bg-[#f6f6f4] dark:bg-[#1b1912]">
+                      <h4 className="text-sm font-bold mb-2 text-[#000000] dark:text-[#f6f6f4]">
+                        {feature.title}
+                      </h4>
+                      <p className="text-sm text-gray-600 dark:text-[#a8a898] leading-relaxed" style={{ fontWeight: 400 }}>
+                        {feature.description}
+                      </p>
+                    </div>
+                  ))}
+                </div>
               </div>
             </div>
           </div>

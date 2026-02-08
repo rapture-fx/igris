@@ -90,7 +90,7 @@ export default function Header() {
               <img
                 src={mounted && theme === 'dark' ? '/dmfoot.png' : '/foot.png'}
                 alt="Igris Inertial"
-                className="h-12 w-auto"
+                className="h-10 w-auto"
               />
             </Link>
           </div>

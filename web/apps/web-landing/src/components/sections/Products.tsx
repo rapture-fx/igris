@@ -93,9 +93,6 @@ export default function Products() {
 
                 {/* First frame - Top */}
                 <div className="border border-gray-300 dark:border-[#f6f6f4]/5 p-6 shadow-[0_0_10px_rgba(0,0,0,0.08)] dark:shadow-[0_0_15px_rgba(246,246,244,0.08)] min-h-[400px] flex flex-col">
-                  <p className="text-sm font-semibold mb-4 text-[#000000] dark:text-[#f6f6f4]">
-                    Hybrid behavior trees meet LLM reasoning.
-                  </p>
                   <div className="flex-1 flex items-end justify-center relative" style={{ marginTop: '0', marginBottom: '1rem', height: '200px', overflow: 'hidden' }}>
                     <Image
                       src={mounted ? (theme === 'dark' ? '/r.png' : '/prol.png') : '/prol.png'}
@@ -109,7 +106,8 @@ export default function Products() {
                     Your AI executes through structured decision paths, invoking language models only when needed. Execution is deterministic and bounded—no uncontrolled behavior, no silent failures. Every decision is recorded and cryptographically verifiable.
                   </p>
                   <p className="text-sm text-gray-600 dark:text-[#a8a898] leading-relaxed mb-4">
-                    Four layers—execution, intelligence, memory, and proof—work as one nervous system. Deploy on any device. As fleets grow, the dashboard reveals execution health, decision routing, behavioral patterns, and cryptographic verification across the system.
+                    Execution, intelligence, memory, and proof are designed to work together as one system.
+                    The runtime can be deployed on individual devices or across fleets. As scale increases, the dashboard makes execution state, decision routing, historical behavior, and verification data visible across the system.
                   </p>
                   <button
                     onClick={openRuntime}
@@ -122,16 +120,13 @@ export default function Products() {
 
                 {/* Second frame - Bottom with title */}
                 <div className="border border-gray-300 dark:border-[#f6f6f4]/5 p-6 bg-[#f6f6f4] dark:bg-[#1b1912]/50 shadow-[0_0_10px_rgba(0,0,0,0.08)] dark:shadow-[0_0_15px_rgba(246,246,244,0.08)] flex flex-col">
-                  <p className="text-sm font-semibold mb-4 text-[#000000] dark:text-[#f6f6f4]">
-                    Four layers. One nervous system.
-                  </p>
                   <div className="relative" style={{ marginTop: '0', marginBottom: '1rem', height: '200px', overflow: 'hidden' }}>
                     <Image
                       src={mounted ? (theme === 'dark' ? '/rtnm.png' : '/prolg.png') : '/prolg.png'}
                       alt="Fleet Dashboard"
                       fill
                       className="object-cover"
-                      style={{ opacity: 0.9 }}
+                      style={{ opacity: 1 }}
                     />
                   </div>
                   <p className="text-sm text-gray-600 dark:text-[#a8a898] leading-relaxed mb-4">
@@ -156,7 +151,7 @@ export default function Products() {
                 01. PRODUCT
               </p>
             <h2 className="text-lg md:text-xl lg:text-2xl mb-4 text-[#000000] dark:text-[#f6f6f4]">
-                The complete nervous system for your AI fleet.
+                Hybrid behavior trees meet LLM reasoning.
               </h2>
               <p className="text-xs md:text-sm text-gray-600 dark:text-[#a8a898] leading-relaxed">
                 Execution, intelligence, memory, and proof—integrated from day one. One platform that starts on a single device and scales to fleets as adoption grows.
