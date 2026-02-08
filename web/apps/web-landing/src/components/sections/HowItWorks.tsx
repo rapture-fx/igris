@@ -24,7 +24,7 @@ export default function HowItWorks() {
         <div className="relative px-4 md:px-8 lg:px-12 py-4 md:py-8 lg:py-12 border-l border-r border-b section-border">
           <div className="grid grid-cols-1 md:grid-cols-2 gap-8">
             {/* Left side - Intro */}
-            <div className="text-left" style={{ paddingTop: '3rem' }}>
+            <div className="text-left" style={{ paddingTop: '3rem', paddingBottom: '3rem' }}>
               <p className="text-base text-[#85612c] dark:text-[#c5b0cd] mb-2" style={{ letterSpacing: '0.05em' }}>
                 04. DEPLOYMENT
               </p>
@@ -37,7 +37,7 @@ export default function HowItWorks() {
             </div>
 
             {/* Right side - Steps */}
-            <div className="flex flex-col items-start justify-start" style={{ paddingTop: '3rem' }}>
+            <div className="flex flex-col items-start justify-start" style={{ paddingTop: '3rem', paddingBottom: '3rem' }}>
               <div className="w-full max-w-xl">
                 {steps.map((step, index) => (
                   <div key={step.name} className={`pb-2 ${index < steps.length - 1 ? 'border-b border-[rgba(156,163,175,0.3)] dark:border-[rgba(246,246,244,0.1)]' : ''}`}>

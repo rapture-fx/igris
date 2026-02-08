@@ -27,22 +27,22 @@ export default function CoreCapabilities() {
   return (
     <section className="bg-[#f6f6f4] dark:bg-dark-bg text-gray-900 dark:text-[#f6f6f4] transition-colors duration-200">
       <div className="mx-auto max-w-[1300px] px-4 sm:px-6 lg:px-8">
-        <div className="relative px-4 md:px-8 lg:px-12 border-l border-r border-b section-border min-h-[900px]">
+        <div className="relative px-4 md:px-8 lg:px-12 border-l border-r border-b section-border" style={{ minHeight: 'auto' }}>
           {/* Title outside the frame */}
-          <div className="text-left mb-8" style={{ paddingTop: '3rem' }}>
+          <div className="text-left mb-8" style={{ paddingTop: '3rem', paddingBottom: '3rem' }}>
             <p className="text-base text-[#85612c] dark:text-[#c5b0cd] mb-2" style={{ letterSpacing: '0.05em' }}>
               02. THE ARCHITECTURE
             </p>
             <h3 className="text-lg md:text-xl lg:text-2xl mb-4 text-[#000000] dark:text-[#f6f6f4]" style={{ fontWeight: 400 }}>
               Every layer working together
             </h3>
-                      <p className="text-sm text-gray-600 dark:text-[#a8a898] leading-relaxed" style={{ fontWeight: 400 }}>
+                        <p className="text-sm text-gray-600 dark:text-[#a8a898] leading-relaxed" style={{ fontWeight: 400 }}>
               From a single device to fleets. From edge to cloud.
             </p>
           </div>
           
           {/* Frame with centered cards */}
-          <div className="rounded-lg flex items-center justify-center relative overflow-hidden" style={{ height: '700px', paddingBottom: '3rem' }}>
+          <div className="rounded-lg flex items-center justify-center relative overflow-hidden" style={{ minHeight: '700px', paddingBottom: '3rem' }}>
             <img
               src="/arc.png"
               alt=""

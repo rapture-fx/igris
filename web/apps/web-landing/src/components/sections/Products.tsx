@@ -39,7 +39,7 @@ export default function Products() {
                     src={mounted && theme === 'dark' ? '/r.png' : '/prol.png'}
                     alt="Runtime AI Execution"
                     fill
-                    style={{ objectFit: 'cover', opacity: 0.4 }}
+                    style={{ objectFit: 'cover', opacity: 0.85 }}
                   />
                 </div>
                 <p className="text-sm text-gray-600 dark:text-[#a8a898] leading-relaxed mb-4" style={{ fontFamily: "'IBM Plex Mono', monospace", fontWeight: 400 }}>
@@ -67,7 +67,7 @@ export default function Products() {
                     src={mounted && theme === 'dark' ? '/rtnm.png' : '/prolg.png'}
                     alt="Fleet Dashboard"
                     fill
-                    style={{ objectFit: 'cover', opacity: 0.4 }}
+                    style={{ objectFit: 'cover', opacity: 0.85 }}
                   />
                 </div>
                 <p className="text-sm text-gray-600 dark:text-[#a8a898] leading-relaxed mb-4" style={{ fontFamily: "'IBM Plex Mono', monospace", fontWeight: 400 }}>
