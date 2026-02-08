@@ -27,14 +27,14 @@ export default function MultiTenancy() {
   return (
     <section className="bg-[#f6f6f4] dark:bg-dark-bg text-gray-900 dark:text-[#f6f6f4] transition-colors duration-200">
       <div className="mx-auto max-w-[1300px] px-4 sm:px-6 lg:px-8">
-        <div className="relative px-4 md:px-8 lg:px-12 border-l border-r border-b section-border" style={{ paddingTop: '1rem', paddingBottom: '1rem' }}>
+        <div className="relative px-4 md:px-8 lg:px-12 border-l border-r section-border min-h-[800px]" style={{ paddingTop: '3rem', paddingBottom: '3rem' }}>
           <div className="grid grid-cols-1 md:grid-cols-2 gap-8">
             {/* Left side - Intro */}
-            <div className="text-left" style={{ paddingTop: '3rem', paddingBottom: '3rem' }}>
+            <div className="text-left self-start">
               <p className="text-base text-[#85612c] dark:text-[#c5b0cd] mb-2" style={{ letterSpacing: '0.05em' }}>
                 03. PROOF
               </p>
-              <h3 className="text-lg md:text-xl lg:text-2xl mb-4 text-[#000000] dark:text-[#f6f6f4]" style={{ fontWeight: 400 }}>
+              <h3 className="text-lg md:text-xl lg:text-2xl mb-4 text-[#000000] dark:text-[#f6f6f4]" style={{ fontWeight: 700, fontFamily: 'var(--font-geist-pixel-square, "Geist Pixel", monospace)' }}>
                 Verifiable execution by design
               </h3>
               <p className="text-sm text-gray-600 dark:text-[#a8a898] leading-relaxed" style={{ fontWeight: 400, maxWidth: '360px' }}>
@@ -43,13 +43,13 @@ export default function MultiTenancy() {
             </div>
 
             {/* Right side - Features */}
-            <div className="relative">
+            <div className="h-full relative flex items-center justify-center" style={{ minHeight: '700px' }}>
                 <img
                   src="/hrllg.png"
                   alt=""
                   className="absolute inset-0 w-full h-full object-cover rounded-lg"
                 />
-              <div className="relative z-10">
+              <div className="relative z-10 w-full flex items-center justify-center h-full">
                 <div className="w-full max-w-xl space-y-4">
                   {features.map((feature) => (
                     <div key={feature.title} className="border border-white/50 dark:border-[#f6f6f4]/25 rounded-lg p-4 bg-white/60 dark:bg-[#1b1912]/60 backdrop-blur-md">
