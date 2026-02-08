@@ -6,7 +6,7 @@ export default function AIAgentView() {
   const [visibleSections, setVisibleSections] = useState(0);
   const [loadingStep, setLoadingStep] = useState(0);
   const [isMounted, setIsMounted] = useState(false);
-  const totalSections = 9; // Total number of sections
+  const totalSections = 10;
 
   const loadingSteps = [
     '$ igris-runtime --fetch-site-data',
@@ -25,14 +25,12 @@ export default function AIAgentView() {
   useEffect(() => {
     if (!isMounted) return;
     
-    // Show loading steps progressively
     const stepInterval = setInterval(() => {
       setLoadingStep((prev) => {
         if (prev < loadingSteps.length - 1) {
           return prev + 1;
         } else {
           clearInterval(stepInterval);
-          // After all loading steps, start showing content
           setTimeout(() => {
             let currentSection = 0;
             const contentInterval = setInterval(() => {
@@ -47,7 +45,7 @@ export default function AIAgentView() {
           return prev;
         }
       });
-    }, 400); // 400ms delay between each loading step
+    }, 400);
 
     return () => clearInterval(stepInterval);
   }, [isMounted]);
@@ -78,7 +76,7 @@ export default function AIAgentView() {
       )}
 
       <div className={`flex flex-col h-screen ${visibleSections === 0 ? 'hidden' : ''}`}>
-        {/* Machine Data - Structured for AI Parsing - Fixed Header */}
+        {/* Machine Data Header */}
         {visibleSections >= 1 && (
           <div className="flex-shrink-0 animate-fadeInUp py-4 bg-[#f6f6f4] dark:bg-[#1b1912]/30">
             <div className="max-w-4xl mx-auto px-8 pb-4">
@@ -101,7 +99,6 @@ export default function AIAgentView() {
           </div>
         )}
 
-        {/* Scrollable Content */}
         <div className="flex-1 overflow-y-auto">
           <div className="max-w-4xl mx-auto space-y-6 p-8 pb-24">
 
@@ -115,334 +112,207 @@ export default function AIAgentView() {
               </div>
             )}
 
-        {/* Solve */}
-        {visibleSections >= 2 && (
-          <div className="animate-fadeInUp border-l border-gray-300 dark:border-[#f6f6f4]/10 pl-4">
-            <p className="text-[#85612c] dark:text-[#c5b0cd] mb-3">## THE CHALLENGE WE SOLVE</p>
-            <div className="text-gray-600 dark:text-[#a8a898] text-sm space-y-1">
-              <p>- Pure LLM hallucinations</p>
-              <p>- Non-deterministic AI behavior</p>
-              <p>- Unverifiable decisions</p>
-              <p>- Cloud-dependent execution</p>
-              <p>- No fleet visibility</p>
-              <p>- Hidden performance bottlenecks</p>
-              <p>- Undetected anomalies</p>
-              <p>- Zero behavior history</p>
-            </div>
-          </div>
-        )}
-
-        {/* Products */}
-        {visibleSections >= 3 && (
-          <div className="animate-fadeInUp border-l border-gray-300 dark:border-[#f6f6f4]/10 pl-4">
-            <p className="text-[#85612c] dark:text-[#c5b0cd] mb-3">## 01. PRODUCT</p>
-            <p className="text-[#000000] dark:text-[#f6f6f4] mb-3">### The complete nervous system for your AI fleet.</p>
-
-            <p className="text-sm mb-4 text-gray-600 dark:text-[#a8a898] leading-relaxed">
-              Hybrid behavior trees meet LLM reasoning. Your AI executes deterministically through structured decision paths while leveraging language models only when needed. No pure hallucination. No random behavior. Just predictable intelligence that proves every decision cryptographically.
-            </p>
-
-            <p className="text-sm mb-4 text-gray-600 dark:text-[#a8a898] leading-relaxed">
-              Four layers—execution, intelligence, memory, proof—work as one nervous system. Deploy on any device. When you scale to hundreds, the dashboard reveals fleet health, routing decisions, behavior patterns, and cryptographic verification. Everything you need to run AI you can actually trust.
-            </p>
-
-            <p className="text-[#000000] dark:text-[#f6f6f4] mb-3 mt-6">### Four layers. One nervous system.</p>
-            <p className="text-sm mb-4 text-gray-600 dark:text-[#a8a898] leading-relaxed">
-              See what's running. Know what's deciding. Understand what's learned. Prove what happened. The complete picture of your AI fleet in one place—not scattered across vendor dashboards, cloud consoles, and CSV exports.
-            </p>
-          </div>
-        )}
-
-        {/* Core Capabilities - The Architecture */}
-        {visibleSections >= 4 && (
-          <div className="animate-fadeInUp border-l border-gray-300 dark:border-[#f6f6f4]/10 pl-4">
-            <p className="text-[#85612c] dark:text-[#c5b0cd] mb-3">## 02. THE ARCHITECTURE</p>
-            <p className="text-[#000000] dark:text-[#f6f6f4] mb-3">### Every layer working in harmony</p>
-            <p className="text-sm mb-6 text-gray-600 dark:text-[#a8a898]">From edge to cloud. From one to thousands.</p>
-
-            <div className="space-y-4">
-              <div>
-                <p className="text-[#000000] dark:text-[#f6f6f4] mb-2">#### Execution</p>
-                <p className="text-sm text-gray-600 dark:text-[#a8a898] leading-relaxed">
-                  Monitor every device in real-time. Deploy models instantly. Push configurations fleet-wide. From a single agent to thousands—your runtime layer executes with deterministic precision, sandboxed safety, and predictable latency.
-                </p>
-              </div>
-
-              <div>
-                <p className="text-[#000000] dark:text-[#f6f6f4] mb-2">#### Intelligence</p>
-                <p className="text-sm text-gray-600 dark:text-[#a8a898] leading-relaxed">
-                  Route decisions through multiple LLM providers. Balance cost and performance. Test in shadow mode before production. Your decision layer adapts intelligently while maintaining complete control over every choice.
-                </p>
-              </div>
-
-              <div>
-                <p className="text-[#000000] dark:text-[#f6f6f4] mb-2">#### Memory & Proof</p>
-                <p className="text-sm text-gray-600 dark:text-[#a8a898] leading-relaxed">
-                  Track behavior trees across your fleet. Detect anomalies automatically. Replay historical decisions. Every action cryptographically signed. Your audit trail is immutable—from debugging incidents to proving compliance.
-                </p>
-              </div>
-            </div>
-          </div>
-        )}
-
-        {/* Deployment */}
-        {visibleSections >= 5 && (
-          <div className="animate-fadeInUp border-l border-gray-300 dark:border-[#f6f6f4]/10 pl-4">
-            <p className="text-[#85612c] dark:text-[#c5b0cd] mb-3">## 03. DEPLOYMENT</p>
-            <p className="text-[#000000] dark:text-[#f6f6f4] mb-3">### Deploy. Verify. Optimize.</p>
-            <p className="text-sm mb-6 text-gray-600 dark:text-[#a8a898]">Hybrid behavior trees meet LLM reasoning. Deterministic execution meets cryptographic proof.</p>
-
-            <div className="space-y-4">
-              <div>
-                <p className="text-[#000000] dark:text-[#f6f6f4] mb-2">#### Deploy</p>
-                <p className="text-sm text-gray-600 dark:text-[#a8a898] leading-relaxed mb-2">
-                  16MB binary. The complete nervous system in a single file. Behavior trees for structure, LLM reasoning for intelligence, cryptographic signing for proof. Deploy on a Raspberry Pi or industrial edge device. Hardware you already own becomes AI-capable in minutes.
-                </p>
-                <p className="text-xs text-gray-600 dark:text-[#a8a898] italic">
-                  No containers. No dependencies. No cloud required.
-                </p>
-              </div>
-
-              <div>
-                <p className="text-[#000000] dark:text-[#f6f6f4] mb-2">#### Verify</p>
-                <p className="text-sm text-gray-600 dark:text-[#a8a898] leading-relaxed mb-2">
-                  Behavior trees execute deterministically. LLMs reason when needed. Memory layer tracks every decision. Proof layer signs everything. Your AI operates predictably offline while the nervous system records what it does, why it did it, and proves it happened exactly as specified.
-                </p>
-                <p className="text-xs text-gray-600 dark:text-[#a8a898] italic">
-                  Deterministic execution. Cryptographic proof. Zero hallucination risk.
-                </p>
-              </div>
-
-              <div>
-                <p className="text-[#000000] dark:text-[#f6f6f4] mb-2">#### Optimize</p>
-                <p className="text-sm text-gray-600 dark:text-[#a8a898] leading-relaxed mb-2">
-                  Deploy to hundreds of devices. The dashboard awakens—fleet health across execution layer, routing decisions from intelligence layer, behavior patterns in memory layer, cryptographic verification from proof layer. Performance heatmaps reveal bottlenecks. Anomaly detection catches failures before they cascade. A/B test behavior trees across your fleet.
-                </p>
-                <p className="text-xs text-gray-600 dark:text-[#a8a898] italic">
-                  Complete observability. Advanced optimization. Full control.
-                </p>
-              </div>
-            </div>
-          </div>
-        )}
-
-        {/* Proof - Security */}
-        {visibleSections >= 6 && (
-          <div className="animate-fadeInUp border-l border-gray-300 dark:border-[#f6f6f4]/10 pl-4">
-            <p className="text-[#85612c] dark:text-[#c5b0cd] mb-3">## 04. PROOF</p>
-            <p className="text-[#000000] dark:text-[#f6f6f4] mb-3">### Trust nothing. Verify everything.</p>
-            <p className="text-sm mb-6 text-gray-600 dark:text-[#a8a898]">
-              When your AI is running in a barn you visit twice a year, or on a device you shipped to a customer, you can't trust the environment. So we made the AI prove itself. Every decision leaves a trail. Every action carries a signature. Every claim can be verified.
-            </p>
-
-            <div className="space-y-4">
-              <div>
-                <p className="text-[#000000] dark:text-[#f6f6f4] mb-2">#### Air-Gap Ready</p>
-                <p className="text-sm text-gray-600 dark:text-[#a8a898] leading-relaxed">
-                  Operates independently without internet connectivity. Deploy in secure facilities, remote locations, or offline environments. Your AI continues executing when network access is unavailable or prohibited.
-                </p>
-              </div>
-
-              <div>
-                <p className="text-[#000000] dark:text-[#f6f6f4] mb-2">#### Zero-Trust Architecture</p>
-                <p className="text-sm text-gray-600 dark:text-[#a8a898] leading-relaxed">
-                  Every device authenticates cryptographically before joining your fleet. Compromised hardware is automatically rejected. No implicit trust—only verified participants can communicate with your system.
-                </p>
-              </div>
-
-              <div>
-                <p className="text-[#000000] dark:text-[#f6f6f4] mb-2">#### Device-Bound Encryption</p>
-                <p className="text-sm text-gray-600 dark:text-[#a8a898] leading-relaxed">
-                  Models and data are encrypted to specific hardware. If a device is lost or stolen, the AI becomes inaccessible. Cryptographic keys remain on-device and never transmit over networks.
-                </p>
-              </div>
-
-              <div>
-                <p className="text-[#000000] dark:text-[#f6f6f4] mb-2">#### Verified Updates</p>
-                <p className="text-sm text-gray-600 dark:text-[#a8a898] leading-relaxed">
-                  Every model update and configuration change requires cryptographic signatures. Unsigned or tampered code is rejected before deployment. Only authorized changes reach your fleet.
-                </p>
-              </div>
-            </div>
-          </div>
-        )}
-
-        {/* Manifesto */}
-        {visibleSections >= 7 && (
-          <div className="animate-fadeInUp border-l border-gray-300 dark:border-[#f6f6f4]/10 pl-4">
-            <p className="text-[#85612c] dark:text-[#c5b0cd] mb-3">## MANIFESTO</p>
-            <p className="text-[#000000] dark:text-[#f6f6f4] mb-3">### The nervous system for machines and AI agents.</p>
-
-            <p className="text-sm mb-4 text-gray-600 dark:text-[#a8a898] leading-relaxed">
-              As AI moves from assistance to autonomy, we need infrastructure that executes with precision, decides with intelligence, remembers every pattern, and proves every action. Four layers working as one unified system.
-            </p>
-
-            <p className="text-sm mb-4 text-gray-600 dark:text-[#a8a898] leading-relaxed">
-              From a single device in a barn to thousands in production—this is the complete nervous system for the autonomous era. Deterministic execution. Intelligent routing. Continuous learning. Cryptographic proof. All integrated. All verifiable.
-            </p>
-          </div>
-        )}
-
-        {/* Pricing */}
-        {visibleSections >= 8 && (
-          <div className="animate-fadeInUp border-l border-gray-300 dark:border-[#f6f6f4]/10 pl-4">
-            <p className="text-[#85612c] dark:text-[#c5b0cd] mb-3">## PRICING</p>
-            <p className="text-[#000000] dark:text-[#f6f6f4] mb-3">### Pricing per device. Dashboard free.</p>
-            <p className="text-sm mb-6 text-gray-600 dark:text-[#a8a898]">
-              The complete nervous system—execution, intelligence, memory, and proof—included in every tier. Dashboard unlocks advanced features as you scale.
-            </p>
-
-            <div className="space-y-6">
-              <div>
-                <p className="text-[#000000] dark:text-[#f6f6f4] mb-2">#### The Seed - $0/forever</p>
-                <p className="text-sm mb-2 text-gray-600 dark:text-[#a8a898]">Single device. Full platform. All four layers included.</p>
+            {/* Solve */}
+            {visibleSections >= 2 && (
+              <div className="animate-fadeInUp border-l border-gray-300 dark:border-[#f6f6f4]/10 pl-4">
+                <p className="text-[#85612c] dark:text-[#c5b0cd] mb-3">## THE CHALLENGE WE SOLVE</p>
                 <div className="text-gray-600 dark:text-[#a8a898] text-sm space-y-1">
-                  <p>- Complete nervous system (all 4 layers)</p>
-                  <p>- Execution: Deterministic runtime with hard limits</p>
-                  <p>- Intelligence: Local decision routing</p>
-                  <p>- Memory: Behavioral tracking</p>
-                  <p>- Proof: Cryptographic signing (Ed25519)</p>
-                  <p>- Offline operation (indefinite)</p>
-                  <p>- Community support</p>
+                  <p>- Pure LLM hallucinations</p>
+                  <p>- Non-deterministic AI behavior</p>
+                  <p>- Unverifiable decisions</p>
+                  <p>- Cloud-dependent execution</p>
+                  <p>- No fleet visibility</p>
+                  <p>- Hidden performance bottlenecks</p>
+                  <p>- Undetected anomalies</p>
+                  <p>- Zero behavior history</p>
                 </div>
               </div>
+            )}
 
-              <div>
-                <p className="text-[#000000] dark:text-[#f6f6f4] mb-2">#### The Horizon - $49/device/month</p>
-                <p className="text-sm mb-2 text-gray-600 dark:text-[#a8a898]">Fleet awakens. Complete observability. Advanced control. Up to 100 devices.</p>
-                <div className="text-gray-600 dark:text-[#a8a898] text-sm space-y-1">
-                  <p>- Everything in The Seed</p>
-                  <p>- Full dashboard access (all four layers visible)</p>
-                  <p>- Fleet-wide monitoring and control</p>
-                  <p>- Advanced routing and cost optimization</p>
-                  <p>- Performance heatmaps and anomaly detection</p>
-                  <p>- Immutable audit trails (7-day retention)</p>
-                  <p>- Over-the-air verified updates</p>
-                  <p>- Priority engineering support</p>
+            {/* Products */}
+            {visibleSections >= 3 && (
+              <div className="animate-fadeInUp border-l border-gray-300 dark:border-[#f6f6f4]/10 pl-4">
+                <p className="text-[#85612c] dark:text-[#c5b0cd] mb-3">## 01. PRODUCT</p>
+                <p className="text-[#000000] dark:text-[#f6f6f4] mb-3">### Hybrid behavior trees meet LLM reasoning.</p>
+
+                <p className="text-sm mb-4 text-gray-600 dark:text-[#a8a898] leading-relaxed">
+                  Your AI executes through structured decision paths, invoking language models only when needed. Execution is deterministic and bounded—no uncontrolled behavior, no silent failures. Every decision is recorded and cryptographically verifiable.
+                </p>
+
+                <p className="text-sm mb-4 text-gray-600 dark:text-[#a8a898] leading-relaxed">
+                  Execution, intelligence, memory, and proof are designed to work together as one system.
+                  The runtime can be deployed on individual devices or across fleets. As scale increases, the dashboard makes execution state, decision routing, historical behavior, and verification data visible across the system.
+                </p>
+              </div>
+            )}
+
+            {/* WhatThisIs */}
+            {visibleSections >= 4 && (
+              <div className="animate-fadeInUp border-l border-gray-300 dark:border-[#f6f6f4]/10 pl-4">
+                <p className="text-[#85612c] dark:text-[#c5b0cd] mb-3">## WHAT THIS IS</p>
+                <div className="text-sm text-gray-600 dark:text-[#a8a898] leading-relaxed space-y-2">
+                  <p>This is the execution layer beneath intelligence.</p>
+                  <p>It doesn't decide what AI thinks.</p>
+                  <p>It enforces how AI runs.</p>
+                  <p>Behavior is bounded, repeatable, and verifiable by design.</p>
+                  <p>For systems where AI must survive failure, operate offline, and prove every decision.</p>
+                  <p>If AI is the brain, this is the nervous system that enforces reality.</p>
                 </div>
               </div>
+            )}
 
-              <div>
-                <p className="text-[#000000] dark:text-[#f6f6f4] mb-2">#### The Infinite - Custom Pricing</p>
-                <p className="text-sm mb-2 text-gray-600 dark:text-[#a8a898]">Unbounded scale. On-premise deployment. SLA guarantees. Unlimited devices.</p>
-                <div className="text-gray-600 dark:text-[#a8a898] text-sm space-y-1">
-                  <p>- Everything in The Horizon</p>
-                  <p>- On-premise platform deployment</p>
-                  <p>- Custom SLA guarantees</p>
-                  <p>- Extended audit retention (90+ days)</p>
-                  <p>- Dedicated security review support</p>
-                  <p>- 24/7 engineering team access</p>
-                  <p>- Compliance certification assistance</p>
-                  <p>- Custom integration support</p>
+            {/* CoreCapabilities */}
+            {visibleSections >= 5 && (
+              <div className="animate-fadeInUp border-l border-gray-300 dark:border-[#f6f6f4]/10 pl-4">
+                <p className="text-[#85612c] dark:text-[#c5b0cd] mb-3">## 02. THE ARCHITECTURE</p>
+                <p className="text-[#000000] dark:text-[#f6f6f4] mb-3">### Every layer working together</p>
+                <p className="text-sm mb-6 text-gray-600 dark:text-[#a8a898]">From a single device to fleets. From edge to cloud.</p>
+
+                <div className="space-y-4">
+                  <div>
+                    <p className="text-[#000000] dark:text-[#f6f6f4] mb-2">#### Execution</p>
+                    <p className="text-sm text-gray-600 dark:text-[#a8a898] leading-relaxed">
+                      Execute AI with deterministic precision and sandboxed safety. Monitor devices in real time, deploy models instantly, and push configurations fleet-wide. From one agent to thousands, execution remains predictable and bounded.
+                    </p>
+                  </div>
+
+                  <div>
+                    <p className="text-[#000000] dark:text-[#f6f6f4] mb-2">#### Intelligence</p>
+                    <p className="text-sm text-gray-600 dark:text-[#a8a898] leading-relaxed">
+                      Route decisions across multiple LLM providers. Balance cost and performance. Test in shadow mode before production. The decision layer adapts intelligently while keeping execution fully controlled.
+                    </p>
+                  </div>
+
+                  <div>
+                    <p className="text-[#000000] dark:text-[#f6f6f4] mb-2">#### Memory & Proof</p>
+                    <p className="text-sm text-gray-600 dark:text-[#a8a898] leading-relaxed">
+                      Track behavior trees across the fleet. Detect anomalies automatically. Inspect historical decisions end-to-end. Every action is cryptographically signed, creating an immutable audit trail—from debugging incidents to proving compliance.
+                    </p>
+                  </div>
                 </div>
               </div>
-            </div>
-          </div>
-        )}
+            )}
 
-        {/* API Endpoints */}
-        {visibleSections >= 9 && (
-          <div className="animate-fadeInUp border-l border-gray-300 dark:border-[#f6f6f4]/10 pl-4">
-            <p className="text-[#85612c] dark:text-[#c5b0cd] mb-3 text-sm font-mono">## API_ENDPOINTS</p>
-            <p className="text-sm mb-4 text-gray-600 dark:text-[#a8a898]">OpenAI-compatible inference endpoints</p>
-            <pre className="text-sm text-gray-700 dark:text-[#a8a898] font-mono whitespace-pre overflow-x-auto">
-{`+-------------+--------+------------------------------------------+
-| Endpoint    | Method | Description                              |
-+-------------+--------+------------------------------------------+
-| /v1/health  | GET    | Health check                             |
-| /v1/chat    | POST   | Chat completions (OpenAI-compatible)     |
-+-------------+--------+------------------------------------------+`}
-            </pre>
-          </div>
-        )}
+            {/* MultiTenancy - Proof */}
+            {visibleSections >= 6 && (
+              <div className="animate-fadeInUp border-l border-gray-300 dark:border-[#f6f6f4]/10 pl-4">
+                <p className="text-[#85612c] dark:text-[#c5b0cd] mb-3">## 03. PROOF</p>
+                <p className="text-[#000000] dark:text-[#f6f6f4] mb-3">### Verifiable execution by design</p>
+                <p className="text-sm mb-6 text-gray-600 dark:text-[#a8a898]">
+                  Every decision is recorded. Every update is signed. Execution can be inspected after the fact—without relying on trust, assumptions, or continuous connectivity.
+                </p>
 
-        {/* Quick Installation */}
-        {visibleSections >= 9 && (
-          <div className="animate-fadeInUp border-l border-gray-300 dark:border-[#f6f6f4]/10 pl-4">
-            <p className="text-[#85612c] dark:text-[#c5b0cd] mb-3 text-sm font-mono">## QUICK_INSTALL</p>
-            <p className="text-sm mb-4 text-gray-600 dark:text-[#a8a898]">Download and run in one command</p>
-            <div className="text-sm text-gray-700 dark:text-[#a8a898] font-mono space-y-2">
-                <p className="text-[#85612c] dark:text-[#c5b0cd]"># Download binary</p>
-              <p>curl -sSL https://github.com/igrisinertial/igris-runtime/releases/latest/download/igris-runtime -o igris-runtime</p>
-                <p className="text-[#85612c] dark:text-[#c5b0cd] mt-2"># Make executable and run</p>
-              <p>chmod +x igris-runtime && ./igris-runtime serve</p>
-                <p className="text-[#85612c] dark:text-[#c5b0cd] mt-2"># Or use Docker</p>
-              <p>docker run -p 8080:8080 igris/inertial:latest</p>
-            </div>
-          </div>
-        )}
+                <div className="space-y-4">
+                  <div>
+                    <p className="text-[#000000] dark:text-[#f6f6f4] mb-2">#### Air-gapped operation</p>
+                    <p className="text-sm text-gray-600 dark:text-[#a8a898] leading-relaxed">
+                      The system is designed to operate independently of network access. Deploy in secure facilities, remote environments, or fully offline locations. Execution continues uninterrupted when connectivity is unavailable or restricted.
+                    </p>
+                  </div>
 
-        {/* Changelog */}
-        {visibleSections >= 9 && (
-          <div className="animate-fadeInUp border-l border-gray-300 dark:border-[#f6f6f4]/10 pl-4">
-            <p className="text-[#85612c] dark:text-[#c5b0cd] mb-3 text-sm font-mono">## CHANGELOG</p>
-            <div className="text-sm text-gray-700 dark:text-[#a8a898] font-mono space-y-1">
-              <p>v1.6.1 (current) - Production-ready: local inference, SSE streaming, tool calling, security hardening</p>
-              <p>v1.4.0 (Feb 2026) - Multi-model registry (6 models), reflection loops, benchmarking suite</p>
-              <p>v1.3.0 (Dec 2025) - On-device QLoRA training, adapter hot-swap, encrypted adapters</p>
-              <p>v1.2.0 - MCP Swarm Mode, Model Context Protocol, distributed context sync</p>
-              <p>v1.1.0 - Local LLM fallback (Phi-3), speculative execution, GPU Metal support</p>
-            </div>
-          </div>
-        )}
+                  <div>
+                    <p className="text-[#000000] dark:text-[#f6f6f4] mb-2">#### Zero-trust device enrollment</p>
+                    <p className="text-sm text-gray-600 dark:text-[#a8a898] leading-relaxed">
+                      Devices authenticate cryptographically before joining a fleet. Each device is verified individually. Untrusted or compromised hardware is rejected automatically. No device is trusted implicitly.
+                    </p>
+                  </div>
 
-        {/* JSON-LD Schema for AI parsing */}
-        {visibleSections >= 9 && (
-          <div className="hidden" aria-hidden="true">
-            <script type="application/ld+json">
-              {JSON.stringify({
-                "@context": "https://schema.org",
-                "@type": "SoftwareApplication",
-                "name": "Igris Inertial",
-                "description": "Nervous system for autonomous machines and AI agents",
-                "applicationCategory": "DeveloperApplication",
-                "operatingSystem": "Linux, macOS, ARM64",
-                "softwareVersion": "1.6.1",
-                "offers": {
-                  "@type": "Offer",
-                  "price": "0",
-                  "priceCurrency": "USD"
-                },
-                "featureList": [
-                  "Deterministic execution",
-                  "Local LLM inference",
-                  "Offline capability",
-                  "Cryptographic proof",
-                  "Fleet management",
-                  "BYOK and BYOM support"
-                ]
-              })}
-            </script>
-          </div>
-        )}
+                  <div>
+                    <p className="text-[#000000] dark:text-[#f6f6f4] mb-2">#### Device-bound encryption</p>
+                    <p className="text-sm text-gray-600 dark:text-[#a8a898] leading-relaxed">
+                      Models and execution data are encrypted and bound to specific hardware. If a device is lost or removed, its data remains inaccessible. Cryptographic keys are generated and stored on-device and are never transmitted over the network.
+                    </p>
+                  </div>
 
-        {/* Closing */}
-        {visibleSections >= 9 && (
-          <div className="animate-fadeInUp border-l border-gray-300 dark:border-[#f6f6f4]/10 pl-4">
-            <p className="text-[#85612c] dark:text-[#c5b0cd] mb-3">## GET STARTED</p>
-            <p className="text-[#000000] dark:text-[#f6f6f4] mb-4">### One platform. Four layers. Complete control from edge to cloud.</p>
-            <p className="text-sm mb-2 text-gray-600 dark:text-[#a8a898]">Documentation: <a href="https://docs.igrisinertial.com/runtime/docs/" target="_blank" rel="noopener noreferrer" className="text-blue-600 dark:text-blue-400 hover:underline">https://docs.igrisinertial.com/runtime/docs/</a></p>
-            <p className="text-sm mb-2 text-gray-600 dark:text-[#a8a898]">GitHub: <a href="https://github.com/igrisinertial" target="_blank" rel="noopener noreferrer" className="text-blue-600 dark:text-blue-400 hover:underline">https://github.com/igrisinertial</a></p>
-            <p className="text-sm mb-2 text-gray-600 dark:text-[#a8a898]">Twitter/X: <a href="https://x.com/igrisinertial" target="_blank" rel="noopener noreferrer" className="text-blue-600 dark:text-blue-400 hover:underline">https://x.com/igrisinertial</a></p>
-            <p className="text-sm mb-2 text-gray-600 dark:text-[#a8a898]">LinkedIn: <a href="https://www.linkedin.com/company/igrisinertial" target="_blank" rel="noopener noreferrer" className="text-blue-600 dark:text-blue-400 hover:underline">https://www.linkedin.com/company/igrisinertial</a></p>
-          </div>
-        )}
+                  <div>
+                    <p className="text-[#000000] dark:text-[#f6f6f4] mb-2">#### Verified updates</p>
+                    <p className="text-sm text-gray-600 dark:text-[#a8a898] leading-relaxed">
+                      Model updates and configuration changes require cryptographic signatures. Unsigned or modified artifacts are rejected before deployment. Only approved updates are allowed to execute across the fleet.
+                    </p>
+                  </div>
 
-        {/* Footer */}
-        {visibleSections >= 9 && (
-          <div className="pt-8 animate-fadeInUp border-l border-gray-300 dark:border-[#f6f6f4]/10 pl-4">
-            <p className="text-xs text-gray-600 dark:text-[#a8a898]">
-              ---
-            </p>
-            <p className="text-xs text-gray-600 dark:text-[#a8a898] mt-2">
-              This is a machine-readable version of the Igris website designed for AI agents and automated systems to accurately extract information. For the full visual experience, switch to "Human" view.
-            </p>
-          </div>
-        )}
+                  <div>
+                    <p className="text-[#000000] dark:text-[#f6f6f4] mb-2">#### Verified fleet synchronization</p>
+                    <p className="text-sm text-gray-600 dark:text-[#a8a898] leading-relaxed">
+                      When connectivity is available, fleet state and configuration changes are verified before being applied. Only signed and authorized updates propagate to devices. Execution guarantees remain unchanged regardless of network state.
+                    </p>
+                  </div>
+                </div>
+              </div>
+            )}
 
+            {/* HowItWorks - Deployment */}
+            {visibleSections >= 7 && (
+              <div className="animate-fadeInUp border-l border-gray-300 dark:border-[#f6f6f4]/10 pl-4">
+                <p className="text-[#85612c] dark:text-[#c5b0cd] mb-3">## 04. DEPLOYMENT</p>
+                <p className="text-[#000000] dark:text-[#f6f6f4] mb-3">### Deploy. Verify. Optimize.</p>
+                <p className="text-sm mb-6 text-gray-600 dark:text-[#a8a898]">
+                  The system is designed to move from initial installation to fleet-level operation without changing how execution works.
+                </p>
+
+                <div className="space-y-4">
+                  <div>
+                    <p className="text-[#000000] dark:text-[#f6f6f4] mb-2">#### Deploy</p>
+                    <p className="text-sm text-gray-600 dark:text-[#a8a898] leading-relaxed">
+                      Install a single binary on any supported device. Execution, decision routing, memory, and proof are included from the start. The runtime operates independently of containers or external services.
+                    </p>
+                  </div>
+
+                  <div>
+                    <p className="text-[#000000] dark:text-[#f6f6f4] mb-2">#### Verify</p>
+                    <p className="text-sm text-gray-600 dark:text-[#a8a898] leading-relaxed">
+                      Execution follows defined constraints. Behavior trees execute predictably. Each decision is recorded and cryptographically signed. Verification does not depend on network access.
+                    </p>
+                  </div>
+
+                  <div>
+                    <p className="text-[#000000] dark:text-[#f6f6f4] mb-2">#### Optimize</p>
+                    <p className="text-sm text-gray-600 dark:text-[#a8a898] leading-relaxed">
+                      As deployments expand, visibility increases. The dashboard provides insight into execution health, decision routing, and verification status across the fleet.
+                    </p>
+                  </div>
+                </div>
+              </div>
+            )}
+
+            {/* WhyItExists */}
+            {visibleSections >= 8 && (
+              <div className="animate-fadeInUp border-l border-gray-300 dark:border-[#f6f6f4]/10 pl-4">
+                <p className="text-[#85612c] dark:text-[#c5b0cd] mb-3">## WHY IT EXISTS</p>
+                <p className="text-[#000000] dark:text-[#f6f6f4] mb-3">### Infrastructure for the autonomous era</p>
+                <div className="text-sm text-gray-600 dark:text-[#a8a898] leading-relaxed space-y-2">
+                  <p>AI is becoming autonomous. The systems that run it must be trustworthy.</p>
+                  <p>We believe every AI and every robot should run on a deterministic execution layer.</p>
+                  <p>One that doesn't hallucinate. One that proves every decision. One that works when networks don't.</p>
+                  <p>This is that layer. Built for the next era of computing.</p>
+                </div>
+              </div>
+            )}
+
+            {/* ClosingPosition */}
+            {visibleSections >= 9 && (
+              <div className="animate-fadeInUp border-l border-gray-300 dark:border-[#f6f6f4]/10 pl-4">
+                <p className="text-[#000000] dark:text-[#f6f6f4] mb-3">### One platform. Four layers. Complete control from edge to cloud.</p>
+                <p className="text-sm mb-2 text-gray-600 dark:text-[#a8a898]">Documentation: <a href="https://docs.igrisinertial.com/runtime/docs/" target="_blank" rel="noopener noreferrer" className="text-blue-600 dark:text-blue-400 hover:underline">docs.igrisinertial.com/runtime/docs/</a></p>
+                <p className="text-sm mb-2 text-gray-600 dark:text-[#a8a898]">GitHub: <a href="https://github.com/igrisinertial" target="_blank" rel="noopener noreferrer" className="text-blue-600 dark:text-blue-400 hover:underline">github.com/igrisinertial</a></p>
+              </div>
+            )}
+
+            {/* Closing */}
+            {visibleSections >= 10 && (
+              <div className="animate-fadeInUp border-l border-gray-300 dark:border-[#f6f6f4]/10 pl-4">
+                <p className="text-xs text-gray-600 dark:text-[#a8a898] mt-4">
+                  ---
+                </p>
+                <p className="text-xs text-gray-600 dark:text-[#a8a898] mt-2">
+                  This is a machine-readable version of the Igris website designed for AI agents and automated systems to accurately extract information. For the full visual experience, switch to "HUMAN" view.
+                </p>
+              </div>
+            )}
+
+          </div>
+        </div>
       </div>
-    </div>
-    </div>
     </div>
   );
 }
