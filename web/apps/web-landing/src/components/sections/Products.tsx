@@ -99,7 +99,7 @@ export default function Products() {
                       alt="Runtime AI Execution"
                       fill
                       className="object-cover"
-                      style={{ opacity: 1 }}
+                      style={{ opacity: 0.85 }}
                     />
                   </div>
                   <p className="text-sm text-gray-600 dark:text-[#a8a898] leading-relaxed mb-4">
@@ -126,7 +126,7 @@ export default function Products() {
                       alt="Fleet Dashboard"
                       fill
                       className="object-cover"
-                      style={{ opacity: 1 }}
+                      style={{ opacity: 0.85 }}
                     />
                   </div>
                   <p className="text-sm text-gray-600 dark:text-[#a8a898] leading-relaxed mb-4">
