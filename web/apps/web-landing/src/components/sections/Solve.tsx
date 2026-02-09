@@ -31,8 +31,8 @@ export default function Solve() {
                 {items.map((item, index) => (
                   <span
                     key={`first-${index}`}
-                    className="inline-block mx-1 md:mx-2 px-2 md:px-3 py-0.5 md:py-1 border border-gray-300 dark:border-[#f6f6f4]/10 rounded-sm min-w-[120px] md:min-w-[140px] text-center font-normal flex-shrink-0 cursor-pointer hover:bg-gray-50 dark:hover:bg-[#2a2520] transition-colors text-xs md:text-sm whitespace-nowrap"
-                    style={{ fontWeight: 300, fontFamily: 'var(--font-geist-sans)' }}
+                    className="inline-block mx-1 md:mx-2 px-2 md:px-3 py-0.5 md:py-1 rounded-sm min-w-[120px] md:min-w-[140px] text-center font-normal flex-shrink-0 cursor-pointer hover:bg-gray-50 dark:hover:bg-[#2a2520] transition-colors text-xs md:text-sm whitespace-nowrap"
+                    style={{ fontWeight: 300, fontFamily: 'var(--font-geist-sans)', border: '0.5px solid #d1d5db' }}
                     title=""
                   >
                     {item}
@@ -42,8 +42,8 @@ export default function Solve() {
                 {items.map((item, index) => (
                   <span
                     key={`second-${index}`}
-                    className="inline-block mx-1 md:mx-2 px-2 md:px-3 py-0.5 md:py-1 border border-gray-300 dark:border-[#f6f6f4]/10 rounded-sm min-w-[120px] md:min-w-[140px] text-center font-normal flex-shrink-0 cursor-pointer hover:bg-gray-50 dark:hover:bg-[#2a2520] transition-colors text-xs md:text-sm whitespace-nowrap"
-                    style={{ fontWeight: 300, fontFamily: 'var(--font-geist-sans)' }}
+                    className="inline-block mx-1 md:mx-2 px-2 md:px-3 py-0.5 md:py-1 rounded-sm min-w-[120px] md:min-w-[140px] text-center font-normal flex-shrink-0 cursor-pointer hover:bg-gray-50 dark:hover:bg-[#2a2520] transition-colors text-xs md:text-sm whitespace-nowrap"
+                    style={{ fontWeight: 300, fontFamily: 'var(--font-geist-sans)', border: '0.5px solid #d1d5db' }}
                     title=""
                   >
                     {item}

@@ -26,7 +26,7 @@ export default function Products() {
             <h2 className="text-lg md:text-xl lg:text-2xl mb-4 text-[#000000] dark:text-[#f6f6f4]" style={{ fontWeight: 700, fontFamily: 'var(--font-geist-pixel-square)' }}>
               The complete nervous system for your AI fleet.
             </h2>
-            <p className="text-sm text-gray-600 dark:text-[#a8a898] leading-relaxed mb-8" style={{ fontFamily: 'var(--font-geist-sans)' }}>
+            <p className="text-sm md:text-base text-gray-600 dark:text-[#a8a898] leading-relaxed mb-8" style={{ fontFamily: 'var(--font-geist-sans)' }}>
               Four integrated layers that execute, decide, remember, and verify—from a single device to thousands. One platform. Complete control.
             </p>
 
@@ -34,19 +34,19 @@ export default function Products() {
             <div className="space-y-8 text-left">
               {/* First frame - Top */}
               <div className="border border-gray-300 dark:border-[#f6f6f4]/5 p-6 min-h-[450px] flex flex-col rounded-lg">
-                <div className="flex-1 flex items-end justify-center rounded-lg" style={{ marginTop: '0', marginBottom: '1rem', height: '200px', position: 'relative', overflow: 'hidden' }}>
+                <div className="flex-1 flex items-end justify-center rounded" style={{ marginTop: '0', marginBottom: '1rem', height: '200px', position: 'relative', overflow: 'hidden' }}>
                   <Image
                     src={mounted && theme === 'dark' ? '/r.png' : '/prol.png'}
                     alt="Runtime AI Execution"
                     fill
-                    className="rounded-lg"
+                    className="rounded"
                     style={{ objectFit: 'cover', opacity: 0.85 }}
                   />
                 </div>
-                <p className="text-sm text-gray-600 dark:text-[#a8a898] leading-relaxed mb-4" style={{ fontFamily: 'var(--font-geist-sans)', fontWeight: 400 }}>
+                <p className="text-sm md:text-base text-gray-600 dark:text-[#a8a898] leading-relaxed mb-4" style={{ fontFamily: 'var(--font-geist-sans)', fontWeight: 400 }}>
                   Hybrid behavior trees meet LLM reasoning. Your AI executes through structured decision paths, invoking language models only when needed. Execution is deterministic and bounded—no uncontrolled behavior, no silent failures. Every decision is recorded and cryptographically verifiable.
                 </p>
-                <p className="text-sm text-gray-600 dark:text-[#a8a898] leading-relaxed mb-4" style={{ fontFamily: 'var(--font-geist-sans)' }}>
+                <p className="text-sm md:text-base text-gray-600 dark:text-[#a8a898] leading-relaxed mb-4" style={{ fontFamily: 'var(--font-geist-sans)' }}>
                   Four layers—execution, intelligence, memory, and proof—work as one nervous system. Deploy on any device. As fleets grow, the dashboard reveals execution health, decision routing, behavioral patterns, and cryptographic verification across the system.
                 </p>
                 <button
@@ -68,11 +68,11 @@ export default function Products() {
                     src={mounted && theme === 'dark' ? '/rtnm.png' : '/prolg.png'}
                     alt="Fleet Dashboard"
                     fill
-                    className="rounded-lg"
+                    className="rounded"
                     style={{ objectFit: 'cover', opacity: 0.85 }}
                   />
                 </div>
-                <p className="text-sm text-gray-600 dark:text-[#a8a898] leading-relaxed mb-4" style={{ fontFamily: 'var(--font-geist-sans)', fontWeight: 400 }}>
+                <p className="text-sm md:text-base text-gray-600 dark:text-[#a8a898] leading-relaxed mb-4" style={{ fontFamily: 'var(--font-geist-sans)', fontWeight: 400 }}>
                   See what's running. Know what's deciding. Understand what's learned. Prove what happened. A complete view of your AI fleet in one place—not scattered across vendor dashboards, cloud consoles, and exports.
                 </p>
                 <button
@@ -100,14 +100,14 @@ export default function Products() {
                       src={mounted ? (theme === 'dark' ? '/r.png' : '/prol.png') : '/prol.png'}
                       alt="Runtime AI Execution"
                       fill
-                      className="object-cover rounded-lg"
+                      className="object-cover rounded"
                       style={{ opacity: 0.85 }}
                     />
                   </div>
-                  <p className="text-sm text-gray-600 dark:text-[#a8a898] leading-relaxed mb-4" style={{ fontFamily: 'var(--font-geist-sans)' }}>
+                  <p className="text-sm md:text-base text-gray-600 dark:text-[#a8a898] leading-relaxed mb-4" style={{ fontFamily: 'var(--font-geist-sans)' }}>
 Your AI executes through structured decision paths, invoking language models only when needed. Execution is deterministic and bounded—no uncontrolled behavior, no silent failures. Every decision is recorded and cryptographically verifiable.
                   </p>
-                  <p className="text-sm text-gray-600 dark:text-[#a8a898] leading-relaxed mb-4" style={{ fontFamily: 'var(--font-geist-sans)' }}>
+                  <p className="text-sm md:text-base text-gray-600 dark:text-[#a8a898] leading-relaxed mb-4" style={{ fontFamily: 'var(--font-geist-sans)' }}>
                     Execution, intelligence, memory, and proof are designed to work together as one system.
                     The runtime can be deployed on individual devices or across fleets. As scale increases, the dashboard makes execution state, decision routing, historical behavior, and verification data visible across the system.
                   </p>
@@ -127,11 +127,11 @@ Your AI executes through structured decision paths, invoking language models onl
                       src={mounted ? (theme === 'dark' ? '/rtnm.png' : '/prolg.png') : '/prolg.png'}
                       alt="Fleet Dashboard"
                       fill
-                      className="object-cover rounded-lg"
+                      className="object-cover rounded"
                       style={{ opacity: 0.85 }}
                     />
                   </div>
-                  <p className="text-sm text-gray-600 dark:text-[#a8a898] leading-relaxed mb-4" style={{ fontFamily: 'var(--font-geist-sans)' }}>
+                  <p className="text-sm md:text-base text-gray-600 dark:text-[#a8a898] leading-relaxed mb-4" style={{ fontFamily: 'var(--font-geist-sans)' }}>
                     See what's running. Know what's deciding. Understand what's learned. Prove what happened. A complete view of your AI fleet in one place—not scattered across vendor dashboards, cloud consoles, and exports.
                   </p>
                   <button
@@ -155,7 +155,7 @@ Your AI executes through structured decision paths, invoking language models onl
             <h2 className="text-lg md:text-xl lg:text-2xl mb-4 text-[#000000] dark:text-[#f6f6f4]" style={{ fontWeight: 700, fontFamily: 'var(--font-geist-pixel-square)' }}>
                 Hybrid behavior trees meet LLM reasoning.
               </h2>
-              <p className="text-xs md:text-sm text-gray-600 dark:text-[#a8a898] leading-relaxed" style={{ fontFamily: 'var(--font-geist-sans)' }}>
+              <p className="text-sm md:text-base text-gray-600 dark:text-[#a8a898] leading-relaxed" style={{ fontFamily: 'var(--font-geist-sans)' }}>
                 Execution, intelligence, memory, and proof—integrated from day one. One platform that starts on a single device and scales to fleets as adoption grows.
               </p>
             </div>
