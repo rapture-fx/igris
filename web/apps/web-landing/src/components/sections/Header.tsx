@@ -269,8 +269,10 @@ export default function Header() {
                       }}
                     >
                       <div className="grid grid-cols-3 min-h-[280px]">
-                        {/* Left column - empty */}
-                        <div className="p-8 border-r border-gray-200 dark:border-[#f6f6f4]/5" />
+                        {/* Left column - image */}
+                        <div className="p-8 border-r border-gray-200 dark:border-[#f6f6f4]/5 relative overflow-hidden">
+                          <img src="/hov.png" alt="" className="absolute inset-0 w-full h-full object-cover opacity-30" />
+                        </div>
 
                         {/* Middle column - Routing & Optimization + Agents */}
                         <div className="p-8 border-r border-gray-200 dark:border-[#f6f6f4]/5">
