@@ -28,7 +28,7 @@
     min-height: 100vh;
     overflow-x: hidden;
     overflow-y: auto;
-    font-family: 'Inter', -apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, sans-serif !important;
+    font-family: var(--font-geist-pixel-square), 'Geist Pixel Square', monospace !important;
     font-weight: 400 !important;
   }
 

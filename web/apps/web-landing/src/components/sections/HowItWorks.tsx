@@ -31,7 +31,7 @@ export default function HowItWorks() {
               <h3 className="text-lg md:text-xl lg:text-2xl mb-4 text-[#000000] dark:text-[#f6f6f4]" style={{ fontWeight: 700, fontFamily: 'var(--font-geist-pixel-square)' }}>
                 Deploy. Verify. Optimize.
               </h3>
-              <p className="text-sm text-gray-600 dark:text-[#a8a898] leading-relaxed" style={{ fontWeight: 400, maxWidth: '360px', fontFamily: 'var(--font-geist-sans)' }}>
+              <p className="text-sm md:text-base text-gray-600 dark:text-[#a8a898] leading-relaxed" style={{ fontWeight: 400, maxWidth: '360px', fontFamily: 'var(--font-geist-sans)' }}>
                 The system is designed to move from initial installation to fleet-level operation without changing how execution works.
               </p>
             </div>
@@ -45,7 +45,7 @@ export default function HowItWorks() {
                       <h4 className="text-sm font-bold mb-4 text-[#000000] dark:text-[#f6f6f4]">
                         {step.name}
                       </h4>
-                      <p className="text-sm text-gray-600 dark:text-[#a8a898] leading-relaxed" style={{ fontWeight: 400, fontFamily: 'var(--font-geist-sans)' }}>
+                      <p className="text-sm md:text-base text-gray-600 dark:text-[#a8a898] leading-relaxed" style={{ fontWeight: 400, fontFamily: 'var(--font-geist-sans)' }}>
                         {step.description}
                       </p>
                     </div>

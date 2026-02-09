@@ -36,7 +36,7 @@ export default function CoreCapabilities() {
             <h3 className="text-lg md:text-xl lg:text-2xl mb-4 text-[#000000] dark:text-[#f6f6f4]" style={{ fontWeight: 700, fontFamily: 'var(--font-geist-pixel-square)' }}>
               Every layer working together
             </h3>
-<p className="text-sm text-gray-600 dark:text-[#a8a898] leading-relaxed" style={{ fontWeight: 400, fontFamily: 'var(--font-geist-sans)' }}>
+<p className="text-sm md:text-base text-gray-600 dark:text-[#a8a898] leading-relaxed" style={{ fontWeight: 400, fontFamily: 'var(--font-geist-sans)' }}>
               From a single device to fleets. From edge to cloud.
             </p>
           </div>
@@ -104,7 +104,7 @@ export default function CoreCapabilities() {
                       <h4 className="text-sm font-bold mb-2 text-[#000000] dark:text-[#f6f6f4]">
                         {capability.name}
                       </h4>
-            <p className="text-sm text-gray-600 dark:text-[#a8a898] leading-relaxed" style={{ fontWeight: 400, fontFamily: 'var(--font-geist-sans)' }}>
+            <p className="text-sm md:text-base text-gray-600 dark:text-[#a8a898] leading-relaxed" style={{ fontWeight: 400, fontFamily: 'var(--font-geist-sans)' }}>
                         {capability.description}
                       </p>
                     </div>

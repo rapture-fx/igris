@@ -37,7 +37,7 @@ export default function MultiTenancy() {
               <h3 className="text-lg md:text-xl lg:text-2xl mb-4 text-[#000000] dark:text-[#f6f6f4]" style={{ fontWeight: 700, fontFamily: 'var(--font-geist-pixel-square)' }}>
                 Verifiable execution by design
               </h3>
-              <p className="text-sm text-gray-600 dark:text-[#a8a898] leading-relaxed" style={{ fontWeight: 400, maxWidth: '360px', fontFamily: 'var(--font-geist-sans)' }}>
+              <p className="text-sm md:text-base text-gray-600 dark:text-[#a8a898] leading-relaxed" style={{ fontWeight: 400, maxWidth: '360px', fontFamily: 'var(--font-geist-sans)' }}>
                 Every decision is recorded. Every update is signed. Execution can be inspected after the fact—without relying on trust, assumptions, or continuous connectivity.
               </p>
             </div>
@@ -56,7 +56,7 @@ export default function MultiTenancy() {
                       <h4 className="text-sm font-bold mb-2 text-[#000000] dark:text-[#f6f6f4]">
                         {feature.title}
                       </h4>
-                      <p className="text-sm text-gray-600 dark:text-[#a8a898] leading-relaxed" style={{ fontWeight: 400, fontFamily: 'var(--font-geist-sans)' }}>
+                      <p className="text-sm md:text-base text-gray-600 dark:text-[#a8a898] leading-relaxed" style={{ fontWeight: 400, fontFamily: 'var(--font-geist-sans)' }}>
                         {feature.description}
                       </p>
                     </div>

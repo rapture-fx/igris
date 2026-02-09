@@ -96,22 +96,23 @@ export default function OverturePopup({ isOpen, onClose }: OverturePopupProps) {
   if (!isOpen) return null;
 
   return (
-    <div className="fixed inset-0 z-[9999] flex items-center justify-center p-4 bg-[#f6f6f4] dark:bg-dark-bg bg-opacity-80 dark:bg-opacity-80" onClick={onClose}>
+    <div className="fixed inset-0 z-[9999] bg-black/50 backdrop-blur-sm transition-opacity" onClick={onClose}>
       <div
-        className="relative w-full max-w-[700px] h-[90vh] bg-[#f6f6f4] dark:bg-dark-bg shadow-[0_0_10px_rgba(255,255,255,0.04)] flex flex-col overflow-hidden"
+        className="fixed right-0 top-0 h-full w-full max-w-[800px] bg-[#f6f6f4] dark:bg-dark-bg shadow-xl flex flex-col overflow-hidden transform transition-transform duration-300 ease-in-out"
+        style={{ transform: isOpen ? 'translateX(0)' : 'translateX(100%)' }}
         onClick={(e) => e.stopPropagation()}
       >
         <div className="flex-shrink-0 relative" style={{ minHeight: '180px' }}>
           <div className="relative px-4 md:px-8 lg:px-12 pb-0 bg-transparent z-10 overflow-visible flex flex-col border-l border-r section-border" style={{ minHeight: '180px' }}>
             <div className="mx-auto w-full relative z-10" style={{ paddingTop: '3rem', paddingBottom: '2rem' }}>
               <div className="mb-6 text-left">
-                <h1 className="text-xs md:text-sm font-medium text-[#c5b0cd] leading-[1.2] uppercase" style={{ fontFamily: 'Roboto Mono, monospace', letterSpacing: '0.1em' }}>
+                <h1 className="text-sm md:text-base font-medium text-[#c5b0cd] leading-[1.2] uppercase" style={{ fontFamily: 'Roboto Mono, monospace', letterSpacing: '0.1em' }}>
                   Fleet View
                 </h1>
-                <h2 className="text-base md:text-lg lg:text-xl font-inter font-medium text-[#111111] dark:text-[#f6f6f4] leading-[1.2] mt-2">
+                <h2 className="text-base md:text-lg lg:text-xl font-geist-sans font-medium text-[#111111] dark:text-[#f6f6f4] leading-[1.2] mt-2">
                   The horizon that appears when you scale.
                 </h2>
-                <p className="text-xs md:text-sm text-gray-700 dark:text-[#c8c8b8] max-w-md leading-relaxed text-left mt-4 font-inter">
+                <p className="text-sm md:text-base text-gray-700 dark:text-[#c8c8b8] max-w-md leading-relaxed text-left mt-4 font-geist-sans">
                   When you have multiple Runtime devices, this is the command center. Not a separate product. Not an integration. Just the natural evolution of running more than one thing.
                 </p>
               </div>
@@ -126,23 +127,23 @@ export default function OverturePopup({ isOpen, onClose }: OverturePopupProps) {
                 {capabilities.map((capability, index) => (
                   <div key={capability.title} className="grid grid-cols-1 gap-0 relative border-t border-gray-200 dark:border-[#f6f6f4]/5 h-auto py-6">
                     <div className="flex flex-col justify-start">
-                      <h4 className="text-xs md:text-sm font-medium text-[#111111] dark:text-[#f6f6f4] mb-2 font-inter text-left">
+                      <h4 className="text-sm md:text-base font-medium text-[#111111] dark:text-[#f6f6f4] mb-2 font-geist-sans text-left">
                         {capability.title}
                       </h4>
                       <div className="space-y-3">
                         <div>
-                          <h5 className="text-xs font-medium text-gray-900 dark:text-[#f6f6f4] mb-1 font-inter">What It Does</h5>
-                          <p className="text-xs text-gray-600 dark:text-[#c8c8b8] font-inter max-w-lg">{capability.description}</p>
+                          <h5 className="text-sm font-medium text-gray-900 dark:text-[#f6f6f4] mb-1 font-geist-sans">What It Does</h5>
+                          <p className="text-sm text-gray-600 dark:text-[#c8c8b8] font-geist-sans max-w-lg">{capability.description}</p>
                         </div>
                         <div>
-                          <h5 className="text-xs font-medium text-gray-900 dark:text-[#f6f6f4] mb-1 font-inter">How It Works</h5>
-                          <p className="text-xs text-gray-600 dark:text-[#c8c8b8] font-inter max-w-lg">{capability.how}</p>
+                          <h5 className="text-sm font-medium text-gray-900 dark:text-[#f6f6f4] mb-1 font-geist-sans">How It Works</h5>
+                          <p className="text-sm text-gray-600 dark:text-[#c8c8b8] font-geist-sans max-w-lg">{capability.how}</p>
                         </div>
                         <div>
-                          <h5 className="text-xs font-medium text-gray-900 dark:text-[#f6f6f4] mb-1 font-inter">Key Features</h5>
+                          <h5 className="text-sm font-medium text-gray-900 dark:text-[#f6f6f4] mb-1 font-geist-sans">Key Features</h5>
                           <ul className="space-y-1">
                             {capability.features.map((feature) => (
-                              <li key={feature} className="text-xs text-gray-600 dark:text-[#c8c8b8] font-inter flex items-start">
+                              <li key={feature} className="text-sm text-gray-600 dark:text-[#c8c8b8] font-geist-sans flex items-start">
                                 <span className="mr-2">•</span>
                                 <span>{feature}</span>
                               </li>
@@ -158,15 +159,15 @@ export default function OverturePopup({ isOpen, onClose }: OverturePopupProps) {
 
             <section className="bg-transparent text-gray-900 dark:text-white">
               <div className="relative px-4 md:px-8 lg:px-12 py-8 flex flex-col bg-transparent border-l border-r border-b section-border">
-                <h4 className="text-xs md:text-sm font-medium text-[#111111] dark:text-[#f6f6f4] mb-3 font-inter">
+                <h4 className="text-sm md:text-base font-medium text-[#111111] dark:text-[#f6f6f4] mb-3 font-geist-sans">
                   The view unlocks when you scale
                 </h4>
-                <p className="text-xs text-gray-600 dark:text-[#c8c8b8] font-inter leading-relaxed mb-4">
+                <p className="text-sm text-gray-600 dark:text-[#c8c8b8] font-geist-sans leading-relaxed mb-4">
                   The fleet dashboard is included with Runtime. There is no separate pricing—the view scales with your plan. Free tier includes basic dashboard features. Pro and Enterprise unlock advanced fleet management capabilities.
                 </p>
                 <a
                   href="https://docs.igrisinertial.com/overture"
-                  className="inline-flex items-center justify-start bg-gray-200 dark:bg-[#f6f6f4] text-gray-900 dark:text-black px-4 py-2 hover:bg-gray-300 dark:hover:bg-gray-200 transition-all duration-200 text-xs font-medium shadow-md hover:shadow-lg w-fit"
+                  className="inline-flex items-center justify-start bg-gray-200 dark:bg-[#f6f6f4] text-gray-900 dark:text-black px-4 py-2 hover:bg-gray-300 dark:hover:bg-gray-200 transition-all duration-200 text-sm font-medium shadow-md hover:shadow-lg w-fit"
                 >
                   View Fleet Documentation
                 </a>
