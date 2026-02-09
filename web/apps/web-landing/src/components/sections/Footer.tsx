@@ -28,11 +28,13 @@ export default function Footer() {
                 <Link href="/privacy" className="text-xs text-[#a8a898] hover:text-[#f6f6f4] transition-colors" style={{ fontFamily: 'var(--font-geist-sans)' }}>
                   Privacy Policy
                 </Link>
-                <Link href="/cookies" className="text-xs text-[#a8a898] hover:text-[#f6f6f4] transition-colors" style={{ fontFamily: 'var(--font-geist-sans)' }}>
+<Link href="/cookies" className="text-xs text-[#a8a898] hover:text-[#f6f6f4] transition-colors" style={{ fontFamily: 'var(--font-geist-sans)' }}>
                   Cookie Policy
                 </Link>
-                 {/* Social Media Icons */}
-                 <div className="flex gap-3 mt-2 items-center">
+                <span className="text-xs text-[#f6f6f4] font-medium mb-1 mt-4">
+                  Social
+                </span>
+                  <div className="flex gap-3 mt-2 items-center">
                    <Link href="https://x.com/igrisinertial" target="_blank" rel="noopener noreferrer">
                      <img
                        src="/dmx.png"
