@@ -117,6 +117,9 @@ export default function Footer() {
                   <a href="https://docs.igrisinertial.com" target="_blank" rel="noopener noreferrer" className="text-sm text-[#a8a898] hover:text-[#f6f6f4] transition-colors" style={{ fontFamily: 'var(--font-geist-sans)' }}>
                     Docs
                   </a>
+                  <Link href="/changelog" className="text-sm text-[#a8a898] hover:text-[#f6f6f4] transition-colors" style={{ fontFamily: 'var(--font-geist-sans)' }}>
+                    Changelog
+                  </Link>
                 </div>
 
                 {/* Social links */}
@@ -127,14 +130,24 @@ export default function Footer() {
                   <a href="https://github.com/igrisinertial" target="_blank" rel="noopener noreferrer" className="text-sm text-[#a8a898] hover:text-[#f6f6f4] transition-colors" style={{ fontFamily: 'var(--font-geist-sans)' }}>
                     GitHub
                   </a>
-                  <a href="https://discord.com" target="_blank" rel="noopener noreferrer" className="text-sm text-[#a8a898] hover:text-[#f6f6f4] transition-colors" style={{ fontFamily: 'var(--font-geist-sans)' }}>
-                    Discord
-                  </a>
                   <a href="https://x.com/igrisinertial" target="_blank" rel="noopener noreferrer" className="text-sm text-[#a8a898] hover:text-[#f6f6f4] transition-colors" style={{ fontFamily: 'var(--font-geist-sans)' }}>
                     X (Twitter)
                   </a>
                   <a href="https://www.linkedin.com/company/igrisinertial" target="_blank" rel="noopener noreferrer" className="text-sm text-[#a8a898] hover:text-[#f6f6f4] transition-colors" style={{ fontFamily: 'var(--font-geist-sans)' }}>
                     LinkedIn
+                  </a>
+                </div>
+
+                {/* Support links */}
+                <div className="flex flex-col gap-2 text-left">
+                  <span className="text-sm text-[#f6f6f4] font-medium mb-1" style={{ fontFamily: 'var(--font-geist-sans)' }}>
+                    Support
+                  </span>
+                  <a href="https://discord.com" target="_blank" rel="noopener noreferrer" className="text-sm text-[#a8a898] hover:text-[#f6f6f4] transition-colors" style={{ fontFamily: 'var(--font-geist-sans)' }}>
+                    Discord
+                  </a>
+                  <a href="mailto:support@igrisinertial.com" className="text-sm text-[#a8a898] hover:text-[#f6f6f4] transition-colors" style={{ fontFamily: 'var(--font-geist-sans)' }}>
+                    Contact us
                   </a>
                 </div>
               </div>

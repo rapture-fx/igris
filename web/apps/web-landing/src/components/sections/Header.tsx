@@ -271,7 +271,7 @@ export default function Header() {
                       <div className="grid grid-cols-3 min-h-[280px]">
                         {/* Left column - image */}
                         <div className="p-8 border-r border-gray-200 dark:border-[#f6f6f4]/5 relative overflow-hidden">
-                          <img src="/hov.png" alt="" className="absolute inset-0 w-full h-full object-cover opacity-30 hover:opacity-90 transition-opacity duration-300" />
+                          <img src="/hov.png" alt="" className="absolute inset-0 w-full h-full object-cover opacity-70 hover:opacity-90 transition-opacity duration-300" />
                         </div>
 
                         {/* Middle column - Routing & Optimization + Agents */}
@@ -332,48 +332,56 @@ export default function Header() {
                         pointerEvents: renderedDropdown === 'resources' ? 'auto' : 'none',
                       }}
                     >
-                      <div className="grid grid-cols-3">
-                        <a
-                          href={docsHubUrl}
-                          onClick={() => setActiveDropdown(null)}
-                          className="p-8 border-r border-gray-200 dark:border-[#f6f6f4]/5 flex items-end min-h-[280px] relative overflow-hidden group/card"
-                        >
-                          <div className="absolute inset-0 p-1">
-                            <img src="/dc.png" alt="" className="w-full h-full object-cover opacity-20 group-hover/card:opacity-90 transition-opacity duration-300" />
+                      <div className="grid grid-cols-3 min-h-[280px]">
+                        {/* Left column - Documentation */}
+                        <div className="p-8 border-r border-gray-200 dark:border-[#f6f6f4]/5">
+                          <span className="text-xs font-medium uppercase tracking-wider mb-3 block" style={{ fontFamily: 'var(--font-geist-pixel-square)', color: '#1b1912' }}>Documentation</span>
+                          <div className="flex flex-col gap-1.5">
+                            <span className="text-xs text-gray-500 dark:text-[#a8a898] hover:text-gray-900 dark:hover:text-[#f6f6f4] transition-colors cursor-pointer" style={{ fontFamily: 'var(--font-geist-sans)' }}>Getting Started</span>
+                            <span className="text-xs text-gray-500 dark:text-[#a8a898] hover:text-gray-900 dark:hover:text-[#f6f6f4] transition-colors cursor-pointer" style={{ fontFamily: 'var(--font-geist-sans)' }}>API Reference</span>
+                            <span className="text-xs text-gray-500 dark:text-[#a8a898] hover:text-gray-900 dark:hover:text-[#f6f6f4] transition-colors cursor-pointer" style={{ fontFamily: 'var(--font-geist-sans)' }}>SDK Documentation</span>
                           </div>
-                          <div className="relative z-10">
-                            <span className="text-sm font-normal text-gray-900 dark:text-[#f6f6f4]" style={{ fontFamily: 'var(--font-geist-sans)' }}>Documentation</span>
-                            <p className="text-xs text-gray-500 dark:text-[#a8a898] mt-1" style={{ fontFamily: 'var(--font-geist-sans)' }}>Guides and API reference</p>
+                          <span className="text-xs font-medium uppercase tracking-wider mt-5 mb-3 block" style={{ fontFamily: 'var(--font-geist-pixel-square)', color: '#1b1912' }}>Routing & Optimization</span>
+                          <div className="flex flex-col gap-1.5">
+                            <span className="text-xs text-gray-500 dark:text-[#a8a898] hover:text-gray-900 dark:hover:text-[#f6f6f4] transition-colors cursor-pointer" style={{ fontFamily: 'var(--font-geist-sans)' }}>Thompson Sampling</span>
+                            <span className="text-xs text-gray-500 dark:text-[#a8a898] hover:text-gray-900 dark:hover:text-[#f6f6f4] transition-colors cursor-pointer" style={{ fontFamily: 'var(--font-geist-sans)' }}>Speculative Execution</span>
+                            <span className="text-xs text-gray-500 dark:text-[#a8a898] hover:text-gray-900 dark:hover:text-[#f6f6f4] transition-colors cursor-pointer" style={{ fontFamily: 'var(--font-geist-sans)' }}>Council Mode</span>
                           </div>
-                        </a>
+                          <span className="text-xs font-medium uppercase tracking-wider mt-5 mb-3 block" style={{ fontFamily: 'var(--font-geist-pixel-square)', color: '#1b1912' }}>Agents</span>
+                          <div className="flex flex-col gap-1.5">
+                            <span className="text-xs text-gray-500 dark:text-[#a8a898] hover:text-gray-900 dark:hover:text-[#f6f6f4] transition-colors cursor-pointer" style={{ fontFamily: 'var(--font-geist-sans)' }}>Planning Agents</span>
+                            <span className="text-xs text-gray-500 dark:text-[#a8a898] hover:text-gray-900 dark:hover:text-[#f6f6f4] transition-colors cursor-pointer" style={{ fontFamily: 'var(--font-geist-sans)' }}>Behavior Trees</span>
+                            <span className="text-xs text-gray-500 dark:text-[#a8a898] hover:text-gray-900 dark:hover:text-[#f6f6f4] transition-colors cursor-pointer" style={{ fontFamily: 'var(--font-geist-sans)' }}>Multi-Agent Swarms</span>
+                          </div>
+                        </div>
 
-                        <button
-                          onClick={() => { setActiveDropdown(null); openUseCases(); }}
-                          className="p-8 border-r border-gray-200 dark:border-[#f6f6f4]/5 flex items-end min-h-[280px] text-left w-full relative overflow-hidden group/card"
-                        >
-                          <div className="absolute inset-0 p-1">
-                            <img src="/uc.png" alt="" className="w-full h-full object-cover opacity-20 group-hover/card:opacity-90 transition-opacity duration-300" />
+                        {/* Middle column - Use Cases & Blog */}
+                        <div className="p-8 border-r border-gray-200 dark:border-[#f6f6f4]/5">
+                          <span className="text-xs font-medium uppercase tracking-wider mb-3 block" style={{ fontFamily: 'var(--font-geist-pixel-square)', color: '#1b1912' }}>Use Cases</span>
+                          <div className="flex flex-col gap-1.5">
+                            <span onClick={() => { setActiveDropdown(null); openUseCases(); }} className="text-xs text-gray-500 dark:text-[#a8a898] hover:text-gray-900 dark:hover:text-[#f6f6f4] transition-colors cursor-pointer" style={{ fontFamily: 'var(--font-geist-sans)' }}>Enterprise AI</span>
+                            <span onClick={() => { setActiveDropdown(null); openUseCases(); }} className="text-xs text-gray-500 dark:text-[#a8a898] hover:text-gray-900 dark:hover:text-[#f6f6f4] transition-colors cursor-pointer" style={{ fontFamily: 'var(--font-geist-sans)' }}>Multi-Agent Systems</span>
+                            <span onClick={() => { setActiveDropdown(null); openUseCases(); }} className="text-xs text-gray-500 dark:text-[#a8a898] hover:text-gray-900 dark:hover:text-[#f6f6f4] transition-colors cursor-pointer" style={{ fontFamily: 'var(--font-geist-sans)' }}>Real-time Optimization</span>
+                            <span onClick={() => { setActiveDropdown(null); openUseCases(); }} className="text-xs text-gray-500 dark:text-[#a8a898] hover:text-gray-900 dark:hover:text-[#f6f6f4] transition-colors cursor-pointer" style={{ fontFamily: 'var(--font-geist-sans)' }}>Edge Deployment</span>
                           </div>
-                          <div className="relative z-10">
-                            <span className="text-sm font-normal text-gray-900 dark:text-[#f6f6f4]" style={{ fontFamily: 'var(--font-geist-sans)' }}>Use Cases</span>
-                            <p className="text-xs text-gray-500 dark:text-[#a8a898] mt-1" style={{ fontFamily: 'var(--font-geist-sans)' }}>Real-world deployments</p>
+                          <span className="text-xs font-medium uppercase tracking-wider mt-5 mb-3 block" style={{ fontFamily: 'var(--font-geist-pixel-square)', color: '#1b1912' }}>Blog</span>
+                          <div className="flex flex-col gap-1.5">
+                            <Link href="/blog" prefetch={false} onClick={() => setActiveDropdown(null)} className="text-xs text-gray-500 dark:text-[#a8a898] hover:text-gray-900 dark:hover:text-[#f6f6f4] transition-colors cursor-pointer" style={{ fontFamily: 'var(--font-geist-sans)' }}>Latest Updates</Link>
+                            <Link href="/blog" prefetch={false} onClick={() => setActiveDropdown(null)} className="text-xs text-gray-500 dark:text-[#a8a898] hover:text-gray-900 dark:hover:text-[#f6f6f4] transition-colors cursor-pointer" style={{ fontFamily: 'var(--font-geist-sans)' }}>Product Insights</Link>
+                            <Link href="/blog" prefetch={false} onClick={() => setActiveDropdown(null)} className="text-xs text-gray-500 dark:text-[#a8a898] hover:text-gray-900 dark:hover:text-[#f6f6f4] transition-colors cursor-pointer" style={{ fontFamily: 'var(--font-geist-sans)' }}>Technical Deep Dives</Link>
+                            <Link href="/blog" prefetch={false} onClick={() => setActiveDropdown(null)} className="text-xs text-gray-500 dark:text-[#a8a898] hover:text-gray-900 dark:hover:text-[#f6f6f4] transition-colors cursor-pointer" style={{ fontFamily: 'var(--font-geist-sans)' }}>Industry News</Link>
                           </div>
-                        </button>
+                          <span className="text-xs font-medium uppercase tracking-wider mt-5 mb-3 block" style={{ fontFamily: 'var(--font-geist-pixel-square)', color: '#1b1912' }}>Changelog</span>
+                          <div className="flex flex-col gap-1.5">
+                            <span className="text-xs text-gray-500 dark:text-[#a8a898] hover:text-gray-900 dark:hover:text-[#f6f6f4] transition-colors cursor-pointer" style={{ fontFamily: 'var(--font-geist-sans)' }}>v2.0 Release</span>
+                            <span className="text-xs text-gray-500 dark:text-[#a8a898] hover:text-gray-900 dark:hover:text-[#f6f6f4] transition-colors cursor-pointer" style={{ fontFamily: 'var(--font-geist-sans)' }}>v1.9 Updates</span>
+                          </div>
+                        </div>
 
-                        <Link
-                          href="/blog"
-                          prefetch={false}
-                          onClick={() => setActiveDropdown(null)}
-                          className="p-8 flex items-end min-h-[280px] relative overflow-hidden group/card"
-                        >
-                          <div className="absolute inset-0 p-1">
-                            <img src="/exc.png" alt="" className="w-full h-full object-cover opacity-20 group-hover/card:opacity-90 transition-opacity duration-300" />
-                          </div>
-                          <div className="relative z-10">
-                            <span className="text-sm font-normal text-gray-900 dark:text-[#f6f6f4]" style={{ fontFamily: 'var(--font-geist-sans)' }}>Blog</span>
-                            <p className="text-xs text-gray-500 dark:text-[#a8a898] mt-1" style={{ fontFamily: 'var(--font-geist-sans)' }}>Updates and insights</p>
-                          </div>
-                        </Link>
+                        {/* Right column - Image */}
+                        <div className="relative overflow-hidden">
+                          <img src="/hrulg.png" alt="" className="absolute inset-0 w-full h-full object-cover opacity-70 hover:opacity-90 transition-opacity duration-300" />
+                        </div>
                       </div>
                     </div>
                   </div>
