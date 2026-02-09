@@ -13,18 +13,21 @@
   body {
     margin: 0;
     padding: 0;
-    background-color: #f6f6f4;
+    background-color: #f6f6f4 !important;
+    background: #f6f6f4 !important;
     box-sizing: border-box;
   }
 
   /* Ensure consistent background on mobile overscroll */
   html {
-    background: #f6f6f4;
+    background: #f6f6f4 !important;
+    background-color: #f6f6f4 !important;
     overflow-x: hidden;
   }
 
   body {
-    background: #f6f6f4;
+    background: #f6f6f4 !important;
+    background-color: #f6f6f4 !important;
     min-height: 100vh;
     overflow-x: hidden;
     overflow-y: auto;
@@ -32,11 +35,71 @@
     font-weight: 400 !important;
   }
 
-  /* Dark mode styles */
+  /* Dark mode styles - Force background color everywhere */
   html.dark,
   html.dark body {
-    background-color: #1b1912;
-    background: #1b1912;
+    background-color: #1b1912 !important;
+    background: #1b1912 !important;
+  }
+
+  /* Ensure no black overscroll in dark mode */
+  html.dark {
+    background-color: #1b1912 !important;
+    background: #1b1912 !important;
+  }
+
+  html.dark::before,
+  html.dark::after,
+  html.dark body::before,
+  html.dark body::after {
+    background-color: #1b1912 !important;
+    background: #1b1912 !important;
+  }
+
+  /* Prevent black overscroll on iOS/Safari */
+  @supports (-webkit-overflow-scrolling: touch) {
+    html.dark {
+      background: #1b1912 !important;
+      background-color: #1b1912 !important;
+    }
+
+    html.dark body {
+      background: #1b1912 !important;
+      background-color: #1b1912 !important;
+    }
+  }
+
+  /* Prevent any default black backgrounds */
+  #__next {
+    background: #f6f6f4 !important;
+    background-color: #f6f6f4 !important;
+  }
+
+  html.dark #__next {
+    background: #1b1912 !important;
+    background-color: #1b1912 !important;
+  }
+
+  /* Force background on all viewport areas including overscroll */
+  @media screen {
+    html {
+      background: #f6f6f4 !important;
+    }
+
+    html.dark {
+      background: #1b1912 !important;
+    }
+  }
+
+  /* Remove any black from browser defaults */
+  :root {
+    background: #f6f6f4 !important;
+    background-color: #f6f6f4 !important;
+  }
+
+  :root:has(html.dark) {
+    background: #1b1912 !important;
+    background-color: #1b1912 !important;
   }
 
   *, *::before, *::after {

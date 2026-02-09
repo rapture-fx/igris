@@ -24,11 +24,11 @@ const pricingTiers: PricingTier[] = [
     price: "$0 / forever",
     limits: "1 device",
     features: [
-      "Execution: Deterministic runtime with enforced bounds",
-      "Intelligence: Local decision routing",
-      "Memory: Behavioral tracking",
-      "Proof: Cryptographic signing (Ed25519)",
+      "Full runtime layer (edge + cloud)",
+      "Unlimited execution (no request limits)",
+      "All core features included",
       "Offline operation (indefinite)",
+      "Cryptographic signing (Ed25519)",
       "Community support"
     ],
     cta: "Get Started"
@@ -36,17 +36,17 @@ const pricingTiers: PricingTier[] = [
   {
     name: "The Horizon",
     tagline: "Fleet awakens. Visibility and control.",
-    price: "$90 / month",
-    limits: "Up to 50 devices (~$1.80 per device)",
+    price: "$99 / month",
+    limits: "Up to 50 devices",
     features: [
       "Everything in The Seed",
-      "Full dashboard access",
-      "Fleet-wide monitoring and control",
-      "Advanced routing and cost optimization",
-      "Performance heatmaps and anomaly detection",
-      "Immutable audit trails (7-day retention)",
+      "Full dashboard & fleet view",
+      "All Edge features (QLoRA, Swarms, Planning, Tools)",
+      "All Cloud features (Speculative, Council, Health)",
       "Over-the-air verified updates",
-      "Priority engineering support"
+      "Audit trails (7-day retention)",
+      "Email support (24h response)",
+      "$2/device/month over 50 devices"
     ],
     cta: "Get Started",
     recommended: true
@@ -54,17 +54,17 @@ const pricingTiers: PricingTier[] = [
   {
     name: "The Infinite",
     tagline: "Serious scale. Real guarantees.",
-    price: "$399 / month",
-    limits: "Up to 250 devices (~$1.60 per device)",
+    price: "$499 / month",
+    limits: "Up to 500 devices",
     features: [
       "Everything in The Horizon",
-      "Extended audit retention (90+ days)",
-      "Advanced analytics dashboard",
-      "Custom SLA guarantees",
       "On-premise deployment option",
-      "Dedicated security review support",
-      "24/7 engineering team access",
-      "Compliance certification assistance"
+      "Extended audit retention (90 days)",
+      "99.5% SLA guarantee",
+      "Slack support (4h critical response)",
+      "Compliance assistance (SOC2, ISO27001)",
+      "Advanced analytics & anomaly detection",
+      "$1.50/device/month over 500 devices"
     ],
     cta: "Get Started"
   },
@@ -75,11 +75,11 @@ const pricingTiers: PricingTier[] = [
     limits: "Unlimited devices",
     features: [
       "Everything in The Infinite",
-      "Unlimited devices",
+      "Air-gapped operation support",
       "Full on-premise platform deployment",
-      "Custom integrations",
+      "Custom integrations & white-label",
       "Dedicated account manager",
-      "Custom SLA with uptime guarantees",
+      "Custom SLA (99.9%+ uptime)",
       "White-glove onboarding",
       "Priority feature requests"
     ],
@@ -89,12 +89,12 @@ const pricingTiers: PricingTier[] = [
 ];
 
 const pricingPrinciples = [
-  "No per-request pricing",
-  "No token billing",
-  "No usage surprises",
-  "You pay for presence, not consumption",
-  "This layer does not meter intelligence.",
-  "It holds it."
+  "One price. Unlimited execution.",
+  "No token counting. No request metering.",
+  "Pay for devices. Execute without limits.",
+  "This is infrastructure, not API rental.",
+  "Scale freely. No surprise bills.",
+  "The layer holds intelligence. It doesn't meter it."
 ];
 
 export default function Pricing() {
@@ -109,65 +109,46 @@ export default function Pricing() {
   const isDark = mounted && theme === 'dark';
 
   return (
-    <section id="pricing" className="pt-0 pb-0 bg-[#f6f6f4] dark:bg-dark-bg text-gray-900 dark:text-[#f6f6f4] relative overflow-visible transition-colors duration-200">
+    <section id="pricing" className="pt-0 pb-0 bg-[#f6f6f4] dark:bg-[#1b1912] text-gray-900 dark:text-[#f6f6f4] relative transition-colors duration-200">
       <div className="mx-auto max-w-[1300px] px-4 sm:px-6 lg:px-8">
-        <div className="relative px-4 md:px-8 lg:px-12 pb-0 bg-transparent z-10 overflow-visible" style={{ borderLeft: '0.5px solid #d1d5db', borderRight: '0.5px solid #d1d5db', borderBottom: '0.5px solid #d1d5db' }}>
-          <div className="max-w-[1400px] mx-auto pt-16 px-0 md:px-8 lg:px-0 pb-16">
+        <div className="relative px-4 md:px-8 lg:px-12 pb-0 pt-[70px] bg-[#f6f6f4] dark:bg-[#1b1912] z-10" style={{ borderLeft: '0.5px solid #d1d5db', borderRight: '0.5px solid #d1d5db', borderBottom: '0.5px solid #d1d5db' }}>
+          <div className="max-w-[1400px] mx-auto pt-24 px-0 md:px-8 lg:px-0 pb-24">
             <div className="text-center mb-12">
-              <h2 className="text-2xl md:text-2xl lg:text-3xl font-inter mb-6 text-[#000000] dark:text-[#f6f6f4]">
-                The execution layer everything runs on
+              <h2 className="text-4xl md:text-5xl lg:text-6xl mb-6 text-[#000000] dark:text-[#f6f6f4]" style={{ fontFamily: 'var(--font-geist-pixel-square)' }}>
+                Pricing
               </h2>
-              <div className="max-w-2xl mx-auto space-y-2">
-                <p className="text-sm md:text-base text-gray-700 dark:text-[#a8a898] font-inter">
-                  This is not usage-based AI.
-                </p>
-                <p className="text-sm md:text-base text-gray-700 dark:text-[#a8a898] font-inter">
-                  This is the deterministic execution layer that holds intelligence in place.
-                </p>
-              </div>
             </div>
 
-            <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-4 gap-4 max-w-[100rem] mx-auto mb-16">
+            <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-4 gap-4 max-w-[900px] mx-auto mb-16">
               {pricingTiers.map((tier, index) => (
                 <div
                   key={index}
-                  className={`relative transition-all duration-500 w-full min-h-[500px] border rounded-none ${
-                    tier.recommended 
-                      ? 'shadow-[0_0_4px_rgba(197,176,205,0.15)] border-[#c5b0cd]' 
+                  className={`group relative transition-all duration-500 w-full border rounded-none ${
+                    tier.recommended
+                      ? 'shadow-[0_0_4px_rgba(197,176,205,0.15)] border-gray-300 dark:border-[#f6f6f4]/10'
                       : 'border-gray-300 dark:border-[#f6f6f4]/10'
                   } bg-[#f6f6f4] dark:bg-[#14120a]`}
                 >
                   <div className="p-6 flex flex-col h-full">
                     <div className="flex-grow">
-                      <div className="flex items-center justify-between mb-2">
-                        <h3 className="text-lg font-inter text-[#000000] dark:text-[#f6f6f4]">
+                      <div className="mb-2">
+                        <h3 className="text-lg text-[#000000] dark:text-[#f6f6f4]" style={{ fontFamily: 'var(--font-geist-pixel-square)' }}>
                           {tier.name}
                         </h3>
-                        {tier.recommended && (
-                          <span className="text-xs px-2 py-1 bg-[#c5b0cd]/20 text-[#c5b0cd] rounded font-semibold">
-                            Recommended
-                          </span>
-                        )}
                       </div>
-
-                      <p className="text-xs text-gray-500 dark:text-[#a8a898] font-inter mb-4">
-                        {tier.tagline}
-                      </p>
 
                       <div className="mb-6">
                         {tier.isContactUs ? (
                           <div className="flex flex-col">
-                            <span className="text-2xl font-inter text-[#000000] dark:text-[#f6f6f4]">
+                            <span className="text-4xl md:text-5xl text-[#000000] dark:text-[#f6f6f4]" style={{ fontFamily: 'var(--font-geist-pixel-square)' }}>
                               Custom
-                            </span>
-                            <span className="text-xs text-gray-600 dark:text-[#a8a898] font-inter mt-1">
-                              pricing
                             </span>
                           </div>
                         ) : (
                           <div className="flex flex-col">
-                            <span className="text-2xl font-inter text-[#000000] dark:text-[#f6f6f4] transition-all duration-300">
-                              {tier.price}
+                            <span className="text-[#000000] dark:text-[#f6f6f4] transition-all duration-300" style={{ fontFamily: 'var(--font-geist-pixel-square)' }}>
+                              <span className="text-4xl md:text-5xl">{tier.price.split(' / ')[0]}</span>
+                              <span className="text-sm md:text-base text-gray-600 dark:text-[#a8a898]"> / {tier.price.split(' / ')[1]}</span>
                             </span>
                           </div>
                         )}
@@ -190,30 +171,17 @@ export default function Pricing() {
                     </div>
                     <button
                       onClick={openEarlyAccessModal}
-                      className={`inline-flex items-center px-3 py-1 md:px-4 md:py-1.5 transition-all duration-200 text-xs font-inter self-start mt-8 w-full justify-center ${
-                        tier.recommended 
-                          ? 'text-white dark:text-[#1b1912] bg-[#000000] dark:bg-[#f6f6f4] hover:bg-gray-800 dark:hover:bg-[#e6e6e4] border border-black dark:border-[#f6f6f4]' 
+                      className={`inline-flex items-center justify-center px-6 py-2 rounded-md transition-all duration-200 text-sm font-inter mt-8 opacity-0 group-hover:opacity-100 self-start ${
+                        tier.recommended
+                          ? 'text-white dark:text-[#1b1912] bg-[#000000] dark:bg-[#f6f6f4] hover:bg-gray-800 dark:hover:bg-[#e6e6e4] border border-black dark:border-[#f6f6f4]'
                           : 'text-gray-900 dark:text-[#f6f6f4] bg-gray-200 dark:bg-[#f6f6f4]/10 hover:bg-gray-300 dark:hover:bg-[#f6f6f4]/20 border border-gray-300 dark:border-[#f6f6f4]/20'
                       }`}
                     >
-                      {tier.cta}
+                      Select
                     </button>
                   </div>
                 </div>
               ))}
-            </div>
-
-            <div className="max-w-3xl mx-auto text-center">
-              <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
-                {pricingPrinciples.map((principle, index) => (
-                  <p 
-                    key={index}
-                    className="text-sm text-gray-600 dark:text-[#a8a898] font-inter"
-                  >
-                    {principle}
-                  </p>
-                ))}
-              </div>
             </div>
           </div>
         </div>

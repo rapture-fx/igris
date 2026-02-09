@@ -178,7 +178,7 @@ export default function Faq() {
            <div className="mb-6 md:mb-0 md:hidden text-left" style={{ paddingTop: '3rem', paddingBottom: '3rem' }}>
              {/* Title Section - Shows first on mobile */}
              <div className="mb-8 text-left">
-               <h2 className="text-lg md:text-xl lg:text-2xl font-inter mb-4 text-[#000000] dark:text-[#f6f6f4]">
+               <h2 className="text-lg md:text-xl lg:text-2xl mb-4 text-[#000000] dark:text-[#f6f6f4]" style={{ fontFamily: 'var(--font-geist-pixel-square)' }}>
                  Questions and answers
                </h2>
              </div>
@@ -323,7 +323,7 @@ export default function Faq() {
                 <p className="text-base text-[#85612c] dark:text-[#c5b0cd] mb-2" style={{ fontFamily: 'Roboto Mono, monospace', letterSpacing: '0.05em' }}>
                   05. FAQ
                 </p>
-               <h3 className="text-lg md:text-xl lg:text-2xl font-inter mb-4 text-[#000000] dark:text-[#f6f6f4]">
+               <h3 className="text-lg md:text-xl lg:text-2xl mb-4 text-[#000000] dark:text-[#f6f6f4]" style={{ fontFamily: 'var(--font-geist-pixel-square)' }}>
                  Questions and answers
                </h3>
                <p className="text-sm text-gray-600 dark:text-[#a8a898] font-inter leading-relaxed">

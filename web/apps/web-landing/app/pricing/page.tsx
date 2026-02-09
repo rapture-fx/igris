@@ -13,11 +13,11 @@ export default function PricingPage() {
 
   return (
     <>
-      <div className="relative min-h-screen bg-[#0A0A0A]">
+      <div className="relative min-h-screen bg-[#f6f6f4] dark:bg-[#1b1912]">
 
         <div className="relative z-10">
           <Header />
-          <main className="pt-[70px]">
+          <main>
             <Pricing />
             <Faq />
             <ClosingPosition />
