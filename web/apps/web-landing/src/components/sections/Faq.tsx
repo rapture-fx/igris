@@ -197,9 +197,9 @@ export default function Faq() {
                      onClick={() => toggleSection(sectionIndex)}
                      className="w-full text-left px-4 py-3 flex items-center justify-between gap-2 hover:opacity-80 transition-opacity border section-border bg-[#f6f6f4] dark:bg-[#1b1912]"
                    >
-                     <h3 className="text-base font-semibold font-inter text-[#000000] dark:text-[#f6f6f4]">
-                       {section.title}
-                     </h3>
+                        <h3 className="text-base font-semibold text-[#000000] dark:text-[#f6f6f4]" style={{ fontFamily: 'var(--font-geist-pixel-square)' }}>
+                          {section.title}
+                        </h3>
                      <ChevronDown
                        className={`flex-shrink-0 transition-transform duration-200 ${
                          openSectionIndex === sectionIndex ? 'rotate-180' : ''
@@ -218,18 +218,18 @@ export default function Faq() {
                       <div className="mt-2 space-y-2">
                         {section.entries.map((faq, entryIndex) => (
                           <div key={entryIndex} className="border section-border bg-[#f6f6f4] dark:bg-[#1b1912] p-4">
-                            <p className="text-sm font-medium font-inter mb-2 text-[#000000] dark:text-[#f6f6f4]">
-                              {faq.question}
-                            </p>
-                             {faq.type === 'text' ? (
-                               <p className="text-xs text-gray-700 dark:text-[#c8c8b8] leading-relaxed" style={{ fontFamily: 'var(--font-geist-mono)' }}>
-                                 {faq.answer}
-                               </p>
-                             ) : faq.type === 'code' ? (
-                               <div className="space-y-3">
-                                 <p className="text-xs text-gray-700 dark:text-[#c8c8b8] leading-relaxed" style={{ fontFamily: 'var(--font-geist-mono)' }}>
-                                   {faq.answerText}
-                                 </p>
+                             <p className="text-sm font-medium mb-2 text-[#000000] dark:text-[#f6f6f4]" style={{ fontFamily: 'var(--font-geist-pixel-square)' }}>
+                               {faq.question}
+                             </p>
+                              {faq.type === 'text' ? (
+                                <p className="text-xs text-gray-700 dark:text-[#c8c8b8] leading-relaxed" style={{ fontFamily: 'var(--font-geist-mono)' }}>
+                                  {faq.answer}
+                                </p>
+                              ) : faq.type === 'code' ? (
+                                <div className="space-y-3">
+                                  <p className="text-xs text-gray-700 dark:text-[#c8c8b8] leading-relaxed" style={{ fontFamily: 'var(--font-geist-mono)' }}>
+                                    {faq.answerText}
+                                  </p>
                                  <div className="rounded-lg p-3 font-mono text-xs overflow-x-auto bg-black/[0.03] dark:bg-white/[0.03]">
                                    <div className="mb-2">
                                      <span className="text-gray-500 dark:text-[#a8a898]"># Old</span>
@@ -266,9 +266,9 @@ export default function Faq() {
                        onClick={() => toggleSection(sectionIndex)}
                        className="w-full text-left px-4 py-3 flex items-center justify-between gap-2 hover:opacity-80 transition-opacity border section-border bg-[#f6f6f4] dark:bg-[#1b1912]"
                      >
-                       <h3 className="text-base font-semibold font-inter text-[#000000] dark:text-[#f6f6f4]">
-                         {section.title}
-                       </h3>
+                        <h3 className="text-base font-semibold text-[#000000] dark:text-[#f6f6f4]" style={{ fontFamily: 'var(--font-geist-pixel-square)' }}>
+                          {section.title}
+                        </h3>
                        <ChevronDown
                          className={`flex-shrink-0 transition-transform duration-200 ${
                            openSectionIndex === sectionIndex ? 'rotate-180' : ''
@@ -287,18 +287,18 @@ export default function Faq() {
                         <div className="mt-2 space-y-2">
                           {section.entries.map((faq, entryIndex) => (
                             <div key={entryIndex} className="border section-border bg-[#f6f6f4] dark:bg-[#1b1912] p-4">
-                              <p className="text-sm font-medium font-inter mb-2 text-[#000000] dark:text-[#f6f6f4]">
-                                {faq.question}
-                              </p>
-                             {faq.type === 'text' ? (
-                               <p className="text-xs text-gray-700 dark:text-[#c8c8b8] leading-relaxed" style={{ fontFamily: 'var(--font-geist-mono)' }}>
-                                 {faq.answer}
-                               </p>
-                             ) : faq.type === 'code' ? (
-                               <div className="space-y-3">
-                                 <p className="text-xs text-gray-700 dark:text-[#c8c8b8] leading-relaxed" style={{ fontFamily: 'var(--font-geist-mono)' }}>
-                                   {faq.answerText}
-                                 </p>
+                             <p className="text-sm font-medium mb-2 text-[#000000] dark:text-[#f6f6f4]" style={{ fontFamily: 'var(--font-geist-pixel-square)' }}>
+                               {faq.question}
+                             </p>
+                              {faq.type === 'text' ? (
+                                <p className="text-xs text-gray-700 dark:text-[#c8c8b8] leading-relaxed" style={{ fontFamily: 'var(--font-geist-mono)' }}>
+                                  {faq.answer}
+                                </p>
+                              ) : faq.type === 'code' ? (
+                                <div className="space-y-3">
+                                  <p className="text-xs text-gray-700 dark:text-[#c8c8b8] leading-relaxed" style={{ fontFamily: 'var(--font-geist-mono)' }}>
+                                    {faq.answerText}
+                                  </p>
                                  <div className="rounded-lg p-3 font-mono text-xs overflow-x-auto bg-black/[0.03] dark:bg-white/[0.03]">
                                    <div className="mb-2">
                                      <span className="text-gray-500 dark:text-[#a8a898]"># Old</span>
