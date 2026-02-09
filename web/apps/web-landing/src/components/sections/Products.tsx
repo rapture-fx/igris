@@ -16,17 +16,17 @@ export default function Products() {
   return (
     <section className="bg-[#f6f6f4] dark:bg-dark-bg text-gray-900 dark:text-[#f6f6f4] transition-colors duration-200">
       <div className="mx-auto max-w-[1300px] px-4 sm:px-6 lg:px-8">
-          <div className="relative px-4 md:px-8 lg:px-12 flex flex-col bg-[#f6f6f4] dark:bg-[#1b1912] border-l border-r section-border min-h-[1000px]">
+          <div className="relative px-4 md:px-8 lg:px-12 flex flex-col bg-[#f6f6f4] dark:bg-[#1b1912] min-h-[1000px]" style={{ borderLeft: '0.5px solid #d1d5db', borderRight: '0.5px solid #d1d5db', borderBottom: '0.5px solid #d1d5db' }}>
 
           {/* Title Section - Shows first on mobile, last on desktop */}
           <div className="mb-6 md:mb-0 md:hidden text-left" style={{ paddingTop: '3rem', paddingBottom: '3rem' }}>
-            <p className="text-base text-[#85612c] dark:text-[#c5b0cd] mb-2" style={{ letterSpacing: '0.05em' }}>
+            <p className="text-base text-[#85612c] dark:text-[#c5b0cd] mb-2" style={{ letterSpacing: '0.05em', fontFamily: 'var(--font-geist-mono, "Geist Mono", monospace)' }}>
               01. PRODUCT
             </p>
-            <h2 className="text-lg md:text-xl lg:text-2xl mb-4 text-[#000000] dark:text-[#f6f6f4]" style={{ fontWeight: 700, fontFamily: 'var(--font-geist-pixel-square, "Geist Pixel", monospace)' }}>
+            <h2 className="text-lg md:text-xl lg:text-2xl mb-4 text-[#000000] dark:text-[#f6f6f4]" style={{ fontWeight: 700, fontFamily: 'var(--font-geist-pixel-square)' }}>
               The complete nervous system for your AI fleet.
             </h2>
-            <p className="text-sm text-gray-600 dark:text-[#a8a898] leading-relaxed mb-8">
+            <p className="text-sm text-gray-600 dark:text-[#a8a898] leading-relaxed mb-8" style={{ fontFamily: 'var(--font-geist-sans)' }}>
               Four integrated layers that execute, decide, remember, and verify—from a single device to thousands. One platform. Complete control.
             </p>
 
@@ -43,10 +43,10 @@ export default function Products() {
                     style={{ objectFit: 'cover', opacity: 0.85 }}
                   />
                 </div>
-                <p className="text-sm text-gray-600 dark:text-[#a8a898] leading-relaxed mb-4" style={{ fontFamily: "'IBM Plex Mono', monospace", fontWeight: 400 }}>
+                <p className="text-sm text-gray-600 dark:text-[#a8a898] leading-relaxed mb-4" style={{ fontFamily: 'var(--font-geist-sans)', fontWeight: 400 }}>
                   Hybrid behavior trees meet LLM reasoning. Your AI executes through structured decision paths, invoking language models only when needed. Execution is deterministic and bounded—no uncontrolled behavior, no silent failures. Every decision is recorded and cryptographically verifiable.
                 </p>
-                <p className="text-sm text-gray-600 dark:text-[#a8a898] leading-relaxed mb-4">
+                <p className="text-sm text-gray-600 dark:text-[#a8a898] leading-relaxed mb-4" style={{ fontFamily: 'var(--font-geist-sans)' }}>
                   Four layers—execution, intelligence, memory, and proof—work as one nervous system. Deploy on any device. As fleets grow, the dashboard reveals execution health, decision routing, behavioral patterns, and cryptographic verification across the system.
                 </p>
                 <button
@@ -60,7 +60,7 @@ export default function Products() {
 
               {/* Second frame - Bottom with title */}
               <div className="border border-gray-300 dark:border-[#f6f6f4]/5 p-6 min-h-[450px] flex flex-col shadow-[0_0_10px_rgba(0,0,0,0.08)] dark:shadow-[0_0_15px_rgba(246,246,244,0.08)] rounded-lg">
-                  <h3 className="text-base mb-3 text-[#000000] dark:text-[#f6f6f4]" style={{ fontWeight: 700, fontFamily: 'var(--font-geist-pixel-square, "Geist Pixel", monospace)' }}>
+                  <h3 className="text-base mb-3 text-[#000000] dark:text-[#f6f6f4]" style={{ fontWeight: 700, fontFamily: 'var(--font-geist-pixel-square)' }}>
                   Four layers. One nervous system.
                 </h3>
                 <div className="border border-gray-300 dark:border-[#f6f6f4]/5 rounded-lg" style={{ marginTop: '0', marginBottom: '1rem', height: '200px', position: 'relative', overflow: 'hidden' }}>
@@ -72,7 +72,7 @@ export default function Products() {
                     style={{ objectFit: 'cover', opacity: 0.85 }}
                   />
                 </div>
-                <p className="text-sm text-gray-600 dark:text-[#a8a898] leading-relaxed mb-4" style={{ fontFamily: "'IBM Plex Mono', monospace", fontWeight: 400 }}>
+                <p className="text-sm text-gray-600 dark:text-[#a8a898] leading-relaxed mb-4" style={{ fontFamily: 'var(--font-geist-sans)', fontWeight: 400 }}>
                   See what's running. Know what's deciding. Understand what's learned. Prove what happened. A complete view of your AI fleet in one place—not scattered across vendor dashboards, cloud consoles, and exports.
                 </p>
                 <button
@@ -104,10 +104,10 @@ export default function Products() {
                       style={{ opacity: 0.85 }}
                     />
                   </div>
-                  <p className="text-sm text-gray-600 dark:text-[#a8a898] leading-relaxed mb-4">
-                    Your AI executes through structured decision paths, invoking language models only when needed. Execution is deterministic and bounded—no uncontrolled behavior, no silent failures. Every decision is recorded and cryptographically verifiable.
+                  <p className="text-sm text-gray-600 dark:text-[#a8a898] leading-relaxed mb-4" style={{ fontFamily: 'var(--font-geist-sans)' }}>
+Your AI executes through structured decision paths, invoking language models only when needed. Execution is deterministic and bounded—no uncontrolled behavior, no silent failures. Every decision is recorded and cryptographically verifiable.
                   </p>
-                  <p className="text-sm text-gray-600 dark:text-[#a8a898] leading-relaxed mb-4">
+                  <p className="text-sm text-gray-600 dark:text-[#a8a898] leading-relaxed mb-4" style={{ fontFamily: 'var(--font-geist-sans)' }}>
                     Execution, intelligence, memory, and proof are designed to work together as one system.
                     The runtime can be deployed on individual devices or across fleets. As scale increases, the dashboard makes execution state, decision routing, historical behavior, and verification data visible across the system.
                   </p>
@@ -131,7 +131,7 @@ export default function Products() {
                       style={{ opacity: 0.85 }}
                     />
                   </div>
-                  <p className="text-sm text-gray-600 dark:text-[#a8a898] leading-relaxed mb-4">
+                  <p className="text-sm text-gray-600 dark:text-[#a8a898] leading-relaxed mb-4" style={{ fontFamily: 'var(--font-geist-sans)' }}>
                     See what's running. Know what's deciding. Understand what's learned. Prove what happened. A complete view of your AI fleet in one place—not scattered across vendor dashboards, cloud consoles, and exports.
                   </p>
                   <button
@@ -149,13 +149,13 @@ export default function Products() {
 
             {/* Right Column: Title and Description */}
             <div className="hidden md:flex md:col-span-1 md:border-l flex-col justify-start dark:border-[#f6f6f4]/5" style={{ paddingTop: '3rem', paddingBottom: '3rem', paddingLeft: '1rem' }}>
-            <p className="text-base text-[#85612c] dark:text-[#c5b0cd] mb-2" style={{ letterSpacing: '0.05em' }}>
+            <p className="text-base text-[#85612c] dark:text-[#c5b0cd] mb-2" style={{ letterSpacing: '0.05em', fontFamily: 'var(--font-geist-mono, "Geist Mono", monospace)' }}>
                 01. PRODUCT
               </p>
-            <h2 className="text-lg md:text-xl lg:text-2xl mb-4 text-[#000000] dark:text-[#f6f6f4]" style={{ fontWeight: 700, fontFamily: 'var(--font-geist-pixel-square, "Geist Pixel", monospace)' }}>
+            <h2 className="text-lg md:text-xl lg:text-2xl mb-4 text-[#000000] dark:text-[#f6f6f4]" style={{ fontWeight: 700, fontFamily: 'var(--font-geist-pixel-square)' }}>
                 Hybrid behavior trees meet LLM reasoning.
               </h2>
-              <p className="text-xs md:text-sm text-gray-600 dark:text-[#a8a898] leading-relaxed">
+              <p className="text-xs md:text-sm text-gray-600 dark:text-[#a8a898] leading-relaxed" style={{ fontFamily: 'var(--font-geist-sans)' }}>
                 Execution, intelligence, memory, and proof—integrated from day one. One platform that starts on a single device and scales to fleets as adoption grows.
               </p>
             </div>

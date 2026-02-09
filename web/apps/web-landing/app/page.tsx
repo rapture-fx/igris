@@ -32,7 +32,7 @@ export default function HomePage() {
       {isAIAgentMode ? (
         <AIAgentView />
       ) : (
-        <div className="min-h-screen bg-[#f6f6f4] dark:bg-dark-bg transition-colors duration-200 pb-20">
+        <div className="min-h-screen bg-[#f6f6f4] dark:bg-dark-bg transition-colors duration-200">
           <Header />
           <main>
             <Hero />

@@ -27,16 +27,16 @@ export default function CoreCapabilities() {
   return (
     <section className="bg-[#f6f6f4] dark:bg-dark-bg text-gray-900 dark:text-[#f6f6f4] transition-colors duration-200">
       <div className="mx-auto max-w-[1300px] px-4 sm:px-6 lg:px-8">
-        <div className="relative px-4 md:px-8 lg:px-12 border-l border-r border-b section-border min-h-[900px]">
+        <div className="relative px-4 md:px-8 lg:px-12 min-h-[900px]" style={{ borderLeft: '0.5px solid #d1d5db', borderRight: '0.5px solid #d1d5db', borderBottom: '0.5px solid #d1d5db' }}>
           {/* Title outside the frame */}
           <div className="text-left mb-4" style={{ paddingTop: '3rem', paddingBottom: '1rem' }}>
-            <p className="text-base text-[#85612c] dark:text-[#c5b0cd] mb-2" style={{ letterSpacing: '0.05em' }}>
+            <p className="text-base text-[#85612c] dark:text-[#c5b0cd] mb-2" style={{ letterSpacing: '0.05em', fontFamily: 'var(--font-geist-mono, "Geist Mono", monospace)' }}>
               02. THE ARCHITECTURE
             </p>
-            <h3 className="text-lg md:text-xl lg:text-2xl mb-4 text-[#000000] dark:text-[#f6f6f4]" style={{ fontWeight: 700, fontFamily: 'var(--font-geist-pixel-square, "Geist Pixel", monospace)' }}>
+            <h3 className="text-lg md:text-xl lg:text-2xl mb-4 text-[#000000] dark:text-[#f6f6f4]" style={{ fontWeight: 700, fontFamily: 'var(--font-geist-pixel-square)' }}>
               Every layer working together
             </h3>
-                        <p className="text-sm text-gray-600 dark:text-[#a8a898] leading-relaxed" style={{ fontWeight: 400 }}>
+<p className="text-sm text-gray-600 dark:text-[#a8a898] leading-relaxed" style={{ fontWeight: 400, fontFamily: 'var(--font-geist-sans)' }}>
               From a single device to fleets. From edge to cloud.
             </p>
           </div>
@@ -104,7 +104,7 @@ export default function CoreCapabilities() {
                       <h4 className="text-sm font-bold mb-2 text-[#000000] dark:text-[#f6f6f4]">
                         {capability.name}
                       </h4>
-            <p className="text-sm text-gray-600 dark:text-[#a8a898] leading-relaxed" style={{ fontWeight: 400 }}>
+            <p className="text-sm text-gray-600 dark:text-[#a8a898] leading-relaxed" style={{ fontWeight: 400, fontFamily: 'var(--font-geist-sans)' }}>
                         {capability.description}
                       </p>
                     </div>

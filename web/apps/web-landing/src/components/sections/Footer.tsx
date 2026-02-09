@@ -13,7 +13,7 @@ export default function Footer() {
   return (
      <footer className="bg-[#f6f6f4] dark:bg-dark-bg text-gray-900 dark:text-[#f6f6f4] transition-all duration-200">
       <div className="mx-auto max-w-[1300px] px-4 sm:px-6 lg:px-8">
-          <div className="px-4 md:px-8 lg:px-12 border-l border-r section-border text-[#f6f6f4]" style={{ backgroundColor: '#14120a' }}>
+          <div className="px-4 md:px-8 lg:px-12 text-[#f6f6f4]" style={{ backgroundColor: '#14120a', borderLeft: '0.5px solid #d1d5db', borderRight: '0.5px solid #d1d5db', borderBottom: '0.5px solid #d1d5db' }}>
           {/* Main footer content */}
           <div className="py-8 md:py-16">
             <div className="flex flex-col md:flex-row md:items-start md:justify-between gap-6">
@@ -22,13 +22,13 @@ export default function Footer() {
                 <span className="text-xs text-[#f6f6f4] font-medium mb-1">
                   Company
                 </span>
-                <Link href="/terms" className="text-xs text-[#a8a898] hover:text-[#f6f6f4] transition-colors">
+                <Link href="/terms" className="text-xs text-[#a8a898] hover:text-[#f6f6f4] transition-colors" style={{ fontFamily: 'var(--font-geist-sans)' }}>
                   Terms of Service
                 </Link>
-                <Link href="/privacy" className="text-xs text-[#a8a898] hover:text-[#f6f6f4] transition-colors">
+                <Link href="/privacy" className="text-xs text-[#a8a898] hover:text-[#f6f6f4] transition-colors" style={{ fontFamily: 'var(--font-geist-sans)' }}>
                   Privacy Policy
                 </Link>
-                <Link href="/cookies" className="text-xs text-[#a8a898] hover:text-[#f6f6f4] transition-colors">
+                <Link href="/cookies" className="text-xs text-[#a8a898] hover:text-[#f6f6f4] transition-colors" style={{ fontFamily: 'var(--font-geist-sans)' }}>
                   Cookie Policy
                 </Link>
                  {/* Social Media Icons */}
@@ -86,7 +86,7 @@ export default function Footer() {
 
           {/* Copyright at very bottom */}
           <div style={{ marginTop: '4rem' }} className="pb-6 flex items-center justify-between">
-            <span className="text-xs text-[#a8a898]">
+            <span className="text-xs text-[#a8a898]" style={{ fontFamily: 'var(--font-geist-sans)' }}>
               © 2026 Igris Inertial.
             </span>
           </div>

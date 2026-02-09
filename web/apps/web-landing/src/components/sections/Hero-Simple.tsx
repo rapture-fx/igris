@@ -61,7 +61,7 @@ const AnimatedText = () => {
   }, [isMounted])
 
   return (
-    <span className="inline-block relative align-bottom ml-3" style={{ verticalAlign: 'baseline', fontFamily: 'var(--font-geist-pixel-square, "Geist Pixel", monospace)', fontSize: '1em', letterSpacing: '0.02em', fontWeight: 700, color: isMounted && theme === 'dark' ? '#f6f6f4' : '#1b1912' }}>
+    <span className="inline-block relative align-bottom ml-3" style={{ verticalAlign: 'baseline', fontFamily: 'var(--font-geist-pixel-square)', fontSize: '1em', letterSpacing: '0.02em', fontWeight: 700, color: isMounted && theme === 'dark' ? '#f6f6f4' : '#1b1912' }}>
       {isMounted ? displayText : words[0]}
       {isMounted && <span className="inline-block hero-blink" style={{ color: isMounted && theme === 'dark' ? '#f6f6f4' : '#1b1912' }}>_</span>}
     </span>
@@ -79,7 +79,7 @@ export default function Hero() {
   return (
     <section className="pb-0 bg-[#f6f6f4] dark:bg-dark-bg text-gray-900 dark:text-[#f6f6f4] relative overflow-visible transition-colors duration-200">
       <div className="mx-auto max-w-[1300px] px-4 sm:px-6 lg:px-8">
-        <div className="relative px-4 md:px-8 lg:px-12 pb-0 overflow-hidden border-l border-r section-border" style={{
+        <div className="relative px-4 md:px-8 lg:px-12 pb-0 overflow-hidden" style={{ borderLeft: '0.5px solid #d1d5db', borderRight: '0.5px solid #d1d5db',
           minHeight: '550px',
           backgroundColor: mounted && theme === 'dark' ? '#1b1912' : '#f6f6f4',
           position: 'relative',
@@ -89,11 +89,11 @@ export default function Hero() {
             <div className="max-w-[1300px] mx-auto w-full" style={{ paddingTop: '16rem' }}>
             <div className="mb-6 text-left">
               <div>
-                <h1 className="text-3xl md:text-4xl lg:text-5xl font-bold" style={{ color: mounted && theme === 'dark' ? '#f6f6f4' : '#1b1912', fontFamily: 'var(--font-geist-pixel-square, "Geist Pixel", monospace)' }}>
+                <h1 className="text-3xl md:text-4xl lg:text-5xl font-bold" style={{ color: mounted && theme === 'dark' ? '#f6f6f4' : '#1b1912', fontFamily: 'var(--font-geist-pixel-square)' }}>
                   <span className="block mb-3">The Nervous System</span>
                   <span className="block">for <AnimatedText /></span>
                 </h1>
-                <p className="text-lg md:text-xl max-w-2xl leading-relaxed text-left mt-8" style={{ color: mounted && theme === 'dark' ? '#c8c8b8' : '#4a4a4a' }}>
+                <p className="text-lg md:text-xl max-w-2xl leading-relaxed text-left mt-8" style={{ color: mounted && theme === 'dark' ? '#c8c8b8' : '#4a4a4a', fontFamily: 'var(--font-geist-sans)' }}>
                   A deterministic execution layer for AI that operates across cloud and devices, even when connectivity fails.
                 </p>
                 <div className="flex flex-wrap gap-2 md:gap-3 mt-4 text-xs md:text-sm" style={{ fontFamily: "'IBM Plex Mono', monospace", color: mounted && theme === 'dark' ? '#a8a898' : '#6a6a6a' }}>
