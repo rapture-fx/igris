@@ -6,8 +6,9 @@
 //! - **Leader Election:** Dynamic leader selection using Raft-style consensus
 //! - **Conflict Resolution:** Automatic resolution of conflicting decisions
 //! - **Decentralized Planning:** Distributed task planning across swarm members
+//! - **Task Execution:** Run consensus-approved tasks with pluggable handlers
 //! - **Scalability:** Support for 100+ agents
-//! - **Fault Tolerance:** Automatic failover and recovery
+//! - **Fault Tolerance:** Automatic failover, stale agent cleanup, and recovery
 //!
 //! # Example
 //! ```no_run
@@ -29,7 +30,13 @@
 //! }
 //! ```
 
-use anyhow::{Context, Result};
+pub mod task_executor;
+pub mod transport;
+
+pub use task_executor::{TaskExecutor, TaskHandler, TaskExecutionResult, InferenceTaskHandler, HealthCheckHandler};
+pub use transport::{SwarmBus, SwarmMessage, SwarmTransport, SwarmTransportHandle};
+
+use anyhow::Result;
 use rand::Rng;
 use serde::{Deserialize, Serialize};
 use std::collections::{HashMap, HashSet};
@@ -71,6 +78,9 @@ pub struct SwarmConfig {
 
     /// Conflict resolution strategy
     pub conflict_strategy: ConflictStrategy,
+
+    /// Stale agent timeout in seconds (remove if no heartbeat)
+    pub stale_agent_timeout_secs: u64,
 }
 
 impl Default for SwarmConfig {
@@ -82,6 +92,7 @@ impl Default for SwarmConfig {
             max_agents: 100,
             enable_conflict_resolution: true,
             conflict_strategy: ConflictStrategy::Voting,
+            stale_agent_timeout_secs: 30,
         }
     }
 }
@@ -105,7 +116,7 @@ pub struct AgentInfo {
     pub id: String,
     pub role: AgentRole,
     pub last_heartbeat: u64,
-    pub term: u64, // Election term
+    pub term: u64,
     pub priority: u8,
     pub capabilities: Vec<String>,
 }
@@ -119,7 +130,7 @@ pub struct TaskProposal {
     pub parameters: serde_json::Value,
     pub priority: u8,
     pub timestamp: u64,
-    pub votes: HashMap<String, bool>, // agent_id -> approve/reject
+    pub votes: HashMap<String, bool>,
 }
 
 impl TaskProposal {
@@ -137,6 +148,17 @@ impl TaskProposal {
     }
 }
 
+/// Swarm status summary
+#[derive(Debug, Clone, Serialize, Deserialize)]
+pub struct SwarmStatus {
+    pub agent_id: String,
+    pub role: AgentRole,
+    pub term: u64,
+    pub leader_id: Option<String>,
+    pub swarm_size: usize,
+    pub pending_proposals: usize,
+}
+
 /// Swarm Coordinator
 pub struct SwarmCoordinator {
     config: SwarmConfig,
@@ -147,6 +169,9 @@ pub struct SwarmCoordinator {
     current_term: Arc<RwLock<u64>>,
     voted_for: Arc<RwLock<Option<String>>>,
 
+    // Election tracking
+    votes_received: Arc<RwLock<HashSet<String>>>,
+
     // Swarm state
     agents: Arc<RwLock<HashMap<String, AgentInfo>>>,
     leader_id: Arc<RwLock<Option<String>>>,
@@ -156,6 +181,9 @@ pub struct SwarmCoordinator {
 
     // Election state
     last_heartbeat_received: Arc<RwLock<SystemTime>>,
+
+    // Task executor
+    task_executor: Option<Arc<TaskExecutor>>,
 }
 
 impl SwarmCoordinator {
@@ -171,17 +199,46 @@ impl SwarmCoordinator {
             current_role: Arc::new(RwLock::new(AgentRole::Follower)),
             current_term: Arc::new(RwLock::new(0)),
             voted_for: Arc::new(RwLock::new(None)),
+            votes_received: Arc::new(RwLock::new(HashSet::new())),
             agents: Arc::new(RwLock::new(HashMap::new())),
             leader_id: Arc::new(RwLock::new(None)),
             proposals: Arc::new(RwLock::new(HashMap::new())),
             last_heartbeat_received: Arc::new(RwLock::new(SystemTime::now())),
+            task_executor: None,
         };
 
         Ok(coordinator)
     }
 
+    /// Create with a specific agent ID
+    pub async fn with_id(config: SwarmConfig, agent_id: &str) -> Result<Self> {
+        let mut coordinator = Self::new(config).await?;
+        coordinator.agent_id = agent_id.to_string();
+        Ok(coordinator)
+    }
+
+    /// Attach a task executor for handling consensus-approved tasks
+    pub fn set_task_executor(&mut self, executor: Arc<TaskExecutor>) {
+        self.task_executor = Some(executor);
+    }
+
+    /// Get this agent's ID
+    pub fn agent_id(&self) -> &str {
+        &self.agent_id
+    }
+
     /// Join the swarm
     pub async fn join_swarm(&self, custom_id: &str) -> Result<()> {
+        let agents = self.agents.read().await;
+        if agents.len() >= self.config.max_agents {
+            return Err(anyhow::anyhow!(
+                "Swarm full: {}/{} agents",
+                agents.len(),
+                self.config.max_agents
+            ));
+        }
+        drop(agents);
+
         info!("Agent {} joining swarm", custom_id);
 
         let info = AgentInfo {
@@ -226,7 +283,6 @@ impl SwarmCoordinator {
                     if *role == AgentRole::Follower {
                         warn!("Election timeout - becoming candidate");
                         *role = AgentRole::Candidate;
-                        // In production, trigger election
                     }
                 }
             }
@@ -235,7 +291,7 @@ impl SwarmCoordinator {
         Ok(())
     }
 
-    /// Start an election
+    /// Start an election (Raft-style with vote counting)
     pub async fn start_election(&self) -> Result<()> {
         info!("Starting leader election");
 
@@ -248,22 +304,94 @@ impl SwarmCoordinator {
         let mut voted = self.voted_for.write().await;
         *voted = Some(self.agent_id.clone());
 
+        // Track votes received (start with self-vote)
+        let mut votes = self.votes_received.write().await;
+        votes.clear();
+        votes.insert(self.agent_id.clone());
+
         // Become candidate
         let mut role = self.current_role.write().await;
         *role = AgentRole::Candidate;
 
         debug!("Agent {} is candidate for term {}", self.agent_id, new_term);
 
-        // In production, this would:
-        // 1. Send RequestVote RPCs to all agents
-        // 2. Wait for majority votes
-        // 3. Become leader if majority achieved
-
-        // For now, simulate winning election if we're the only agent
+        // Check if we're the only agent (auto-win)
         let agents = self.agents.read().await;
-        if agents.len() <= 1 {
+        let total_agents = agents.len().max(1); // At least count ourselves
+        let required_votes = (total_agents / 2) + 1;
+
+        if votes.len() >= required_votes {
             drop(agents);
+            drop(votes);
+            drop(voted);
+            drop(term);
+            drop(role);
             self.become_leader().await?;
+        }
+        // Otherwise, wait for RequestVote responses via process_vote_response()
+
+        Ok(())
+    }
+
+    /// Process a vote request from another candidate
+    pub async fn process_vote_request(&self, candidate_id: &str, candidate_term: u64) -> (bool, u64) {
+        let current_term = *self.current_term.read().await;
+
+        // Reject if candidate's term is stale
+        if candidate_term < current_term {
+            return (false, current_term);
+        }
+
+        // Step down if candidate's term is higher
+        if candidate_term > current_term {
+            *self.current_term.write().await = candidate_term;
+            *self.current_role.write().await = AgentRole::Follower;
+            *self.voted_for.write().await = None;
+        }
+
+        // Vote if we haven't voted in this term
+        let mut voted_for = self.voted_for.write().await;
+        if voted_for.is_none() || voted_for.as_ref() == Some(&candidate_id.to_string()) {
+            *voted_for = Some(candidate_id.to_string());
+            info!("Voting for {} in term {}", candidate_id, candidate_term);
+            (true, candidate_term)
+        } else {
+            debug!("Already voted for {:?} in term {}", *voted_for, candidate_term);
+            (false, candidate_term)
+        }
+    }
+
+    /// Process a vote response (called when another agent votes for us)
+    pub async fn process_vote_response(&self, voter_id: &str, granted: bool, response_term: u64) -> Result<()> {
+        let current_term = *self.current_term.read().await;
+
+        // If response has higher term, step down
+        if response_term > current_term {
+            *self.current_term.write().await = response_term;
+            *self.current_role.write().await = AgentRole::Follower;
+            *self.voted_for.write().await = None;
+            return Ok(());
+        }
+
+        // Only process if we're still a candidate in the same term
+        let role = *self.current_role.read().await;
+        if role != AgentRole::Candidate || response_term != current_term {
+            return Ok(());
+        }
+
+        if granted {
+            let mut votes = self.votes_received.write().await;
+            votes.insert(voter_id.to_string());
+
+            let agents = self.agents.read().await;
+            let total_agents = agents.len().max(1);
+            let required_votes = (total_agents / 2) + 1;
+
+            if votes.len() >= required_votes {
+                drop(votes);
+                drop(agents);
+                self.become_leader().await?;
+            }
         }
 
         Ok(())
@@ -271,15 +399,39 @@ impl SwarmCoordinator {
 
     /// Become leader
     async fn become_leader(&self) -> Result<()> {
-        info!("Agent {} became leader", self.agent_id);
+        info!("Agent {} became leader for term {}", self.agent_id, *self.current_term.read().await);
 
-        let mut role = self.current_role.write().await;
-        *role = AgentRole::Leader;
-
-        let mut leader = self.leader_id.write().await;
-        *leader = Some(self.agent_id.clone());
+        *self.current_role.write().await = AgentRole::Leader;
+        *self.leader_id.write().await = Some(self.agent_id.clone());
 
         Ok(())
+    }
+
+    /// Process a heartbeat from the leader
+    pub async fn process_heartbeat(&self, leader_id: &str, leader_term: u64) {
+        let current_term = *self.current_term.read().await;
+
+        if leader_term >= current_term {
+            // Accept leader's authority
+            if leader_term > current_term {
+                *self.current_term.write().await = leader_term;
+            }
+
+            *self.current_role.write().await = AgentRole::Follower;
+            *self.leader_id.write().await = Some(leader_id.to_string());
+            *self.last_heartbeat_received.write().await = SystemTime::now();
+
+            // Update agent info for leader
+            let mut agents = self.agents.write().await;
+            if let Some(agent) = agents.get_mut(leader_id) {
+                agent.last_heartbeat = SystemTime::now()
+                    .duration_since(SystemTime::UNIX_EPOCH)
+                    .unwrap_or_default()
+                    .as_secs();
+                agent.role = AgentRole::Leader;
+                agent.term = leader_term;
+            }
+        }
     }
 
     /// Send heartbeat (leader only)
@@ -290,29 +442,17 @@ impl SwarmCoordinator {
         }
 
         debug!("Leader sending heartbeat");
-
-        // In production, send AppendEntries RPC to all followers
-
-        Ok(())
-    }
-
-    /// Receive heartbeat (follower only)
-    pub async fn receive_heartbeat(&self) -> Result<()> {
-        let mut last = self.last_heartbeat_received.write().await;
-        *last = SystemTime::now();
-
-        // Reset to follower if we're a candidate
-        let mut role = self.current_role.write().await;
-        if *role == AgentRole::Candidate {
-            *role = AgentRole::Follower;
-        }
-
         Ok(())
     }
 
     /// Get current role
     pub async fn get_role(&self) -> AgentRole {
         *self.current_role.read().await
+    }
+
+    /// Get current term
+    pub async fn get_term(&self) -> u64 {
+        *self.current_term.read().await
     }
 
     /// Get leader ID
@@ -369,6 +509,37 @@ impl SwarmCoordinator {
         Ok(())
     }
 
+    /// Check if proposal has reached consensus and execute if so
+    pub async fn check_and_execute_proposal(&self, proposal_id: &str) -> Result<Option<TaskExecutionResult>> {
+        let agents = self.agents.read().await;
+        let total_agents = agents.len().max(1);
+        let required_votes = (total_agents / 2) + 1;
+        drop(agents);
+
+        let proposals = self.proposals.read().await;
+        let proposal = proposals
+            .get(proposal_id)
+            .ok_or_else(|| anyhow::anyhow!("Proposal not found"))?;
+
+        if !proposal.has_consensus(required_votes) {
+            return Ok(None);
+        }
+
+        let task_type = proposal.task_type.clone();
+        let parameters = proposal.parameters.clone();
+        let pid = proposal.id.clone();
+        drop(proposals);
+
+        // Execute via task executor if available
+        if let Some(ref executor) = self.task_executor {
+            let result = executor.execute_task(&pid, &task_type, parameters).await?;
+            Ok(Some(result))
+        } else {
+            info!("Proposal {} reached consensus but no task executor configured", proposal_id);
+            Ok(None)
+        }
+    }
+
     /// Check if proposal has reached consensus
     pub async fn check_proposal_consensus(&self, proposal_id: &str) -> Result<bool> {
         let proposals = self.proposals.read().await;
@@ -378,7 +549,7 @@ impl SwarmCoordinator {
             .ok_or_else(|| anyhow::anyhow!("Proposal not found"))?;
 
         let agents = self.agents.read().await;
-        let total_agents = agents.len();
+        let total_agents = agents.len().max(1);
         let required_votes = (total_agents / 2) + 1;
 
         Ok(proposal.has_consensus(required_votes))
@@ -403,12 +574,10 @@ impl SwarmCoordinator {
         let winner = match self.config.conflict_strategy {
             ConflictStrategy::LeaderDecides => {
                 // Leader's proposal wins
+                let leader = self.leader_id.read().await;
                 conflicting_proposals
                     .iter()
-                    .find(|p| {
-                        let leader = self.leader_id.blocking_read();
-                        leader.as_ref() == Some(&p.proposer_id)
-                    })
+                    .find(|p| leader.as_ref() == Some(&p.proposer_id))
                     .or_else(|| conflicting_proposals.first())
             }
             ConflictStrategy::Voting => {
@@ -424,7 +593,7 @@ impl SwarmCoordinator {
             ConflictStrategy::Consensus => {
                 // First to reach consensus wins
                 let agents = self.agents.read().await;
-                let required = (agents.len() / 2) + 1;
+                let required = (agents.len().max(1) / 2) + 1;
                 conflicting_proposals
                     .iter()
                     .find(|p| p.has_consensus(required))
@@ -432,6 +601,50 @@ impl SwarmCoordinator {
         };
 
         Ok(winner.map(|p| p.id.clone()))
+    }
+
+    /// Clean up stale agents that haven't sent heartbeats
+    pub async fn cleanup_stale_agents(&self) -> Vec<String> {
+        let now = SystemTime::now()
+            .duration_since(SystemTime::UNIX_EPOCH)
+            .unwrap_or_default()
+            .as_secs();
+
+        let timeout = self.config.stale_agent_timeout_secs;
+        let mut agents = self.agents.write().await;
+        let mut removed = Vec::new();
+
+        agents.retain(|id, info| {
+            if now.saturating_sub(info.last_heartbeat) > timeout {
+                warn!("Removing stale agent: {} (last seen {}s ago)", id, now - info.last_heartbeat);
+                removed.push(id.clone());
+                false
+            } else {
+                true
+            }
+        });
+
+        // If leader was removed, reset leader
+        if let Some(ref leader) = *self.leader_id.read().await {
+            if removed.contains(leader) {
+                *self.leader_id.write().await = None;
+                info!("Leader {} was stale; leader reset", leader);
+            }
+        }
+
+        removed
+    }
+
+    /// Get swarm status summary
+    pub async fn get_status(&self) -> SwarmStatus {
+        SwarmStatus {
+            agent_id: self.agent_id.clone(),
+            role: *self.current_role.read().await,
+            term: *self.current_term.read().await,
+            leader_id: self.leader_id.read().await.clone(),
+            swarm_size: self.agents.read().await.len(),
+            pending_proposals: self.proposals.read().await.len(),
+        }
     }
 
     /// Get swarm size
@@ -442,6 +655,75 @@ impl SwarmCoordinator {
     /// Get all agents
     pub async fn get_agents(&self) -> Vec<AgentInfo> {
         self.agents.read().await.values().cloned().collect()
+    }
+
+    /// Process an incoming swarm message (from transport layer)
+    pub async fn process_message(&self, message: SwarmMessage) -> Result<Option<SwarmMessage>> {
+        match message {
+            SwarmMessage::RequestVote { candidate_id, term } => {
+                let (granted, response_term) = self.process_vote_request(&candidate_id, term).await;
+                Ok(Some(SwarmMessage::VoteResponse {
+                    voter_id: self.agent_id.clone(),
+                    term: response_term,
+                    granted,
+                }))
+            }
+            SwarmMessage::VoteResponse { voter_id, term, granted } => {
+                self.process_vote_response(&voter_id, granted, term).await?;
+                Ok(None)
+            }
+            SwarmMessage::Heartbeat { leader_id, term } => {
+                self.process_heartbeat(&leader_id, term).await;
+                Ok(None)
+            }
+            SwarmMessage::TaskProposed { proposal_id, proposer_id, task_type, parameters, priority } => {
+                // Store the proposal from another agent
+                let proposal = TaskProposal {
+                    id: proposal_id,
+                    proposer_id,
+                    task_type,
+                    parameters,
+                    priority,
+                    timestamp: SystemTime::now()
+                        .duration_since(SystemTime::UNIX_EPOCH)?
+                        .as_secs(),
+                    votes: HashMap::new(),
+                };
+                self.proposals.write().await.insert(proposal.id.clone(), proposal);
+                Ok(None)
+            }
+            SwarmMessage::TaskVote { proposal_id, voter_id, approve } => {
+                let mut proposals = self.proposals.write().await;
+                if let Some(proposal) = proposals.get_mut(&proposal_id) {
+                    proposal.votes.insert(voter_id, approve);
+                }
+                Ok(None)
+            }
+            SwarmMessage::AgentJoined { agent_id, capabilities } => {
+                let info = AgentInfo {
+                    id: agent_id.clone(),
+                    role: AgentRole::Follower,
+                    last_heartbeat: SystemTime::now()
+                        .duration_since(SystemTime::UNIX_EPOCH)?
+                        .as_secs(),
+                    term: 0,
+                    priority: 1,
+                    capabilities,
+                };
+                self.agents.write().await.insert(agent_id.clone(), info);
+                info!("Agent {} joined swarm", agent_id);
+                Ok(None)
+            }
+            SwarmMessage::AgentLeft { agent_id } => {
+                self.agents.write().await.remove(&agent_id);
+                info!("Agent {} left swarm", agent_id);
+                Ok(None)
+            }
+            SwarmMessage::TaskResult { .. } => {
+                // Task results can be handled by the application layer
+                Ok(None)
+            }
+        }
     }
 }
 
@@ -466,14 +748,47 @@ mod tests {
     }
 
     #[tokio::test]
-    async fn test_leader_election() {
+    async fn test_leader_election_single_agent() {
         let config = SwarmConfig::default();
-        let coordinator = SwarmCoordinator::new(config).await.unwrap();
+        let coordinator = SwarmCoordinator::with_id(config, "agent-1").await.unwrap();
+        coordinator.join_swarm("agent-1").await.unwrap();
 
         assert_eq!(coordinator.get_role().await, AgentRole::Follower);
 
         coordinator.start_election().await.unwrap();
         assert_eq!(coordinator.get_role().await, AgentRole::Leader);
+    }
+
+    #[tokio::test]
+    async fn test_multi_agent_election() {
+        let config = SwarmConfig::default();
+
+        // Create two coordinators
+        let c1 = SwarmCoordinator::with_id(config.clone(), "agent-1").await.unwrap();
+        let c2 = SwarmCoordinator::with_id(config, "agent-2").await.unwrap();
+
+        // Register agents in both coordinators
+        c1.join_swarm("agent-1").await.unwrap();
+        c1.join_swarm("agent-2").await.unwrap();
+        c2.join_swarm("agent-1").await.unwrap();
+        c2.join_swarm("agent-2").await.unwrap();
+
+        // Agent-1 starts election
+        c1.start_election().await.unwrap();
+
+        // Agent-1 is now a candidate (not yet leader - needs 2 votes with 2 agents)
+        // It has 1 self-vote, needs 2 total
+        assert_eq!(c1.get_role().await, AgentRole::Candidate);
+
+        // Agent-2 processes vote request and grants vote
+        let (granted, _term) = c2.process_vote_request("agent-1", 1).await;
+        assert!(granted);
+
+        // Agent-1 receives the vote response
+        c1.process_vote_response("agent-2", true, 1).await.unwrap();
+
+        // Now agent-1 should be leader (2/2 votes)
+        assert_eq!(c1.get_role().await, AgentRole::Leader);
     }
 
     #[tokio::test]
@@ -503,20 +818,12 @@ mod tests {
 
         // Create two proposals with different priorities
         let p1 = coordinator
-            .propose_task(
-                "task1".to_string(),
-                serde_json::json!({}),
-                1,
-            )
+            .propose_task("task1".to_string(), serde_json::json!({}), 1)
             .await
             .unwrap();
 
         let p2 = coordinator
-            .propose_task(
-                "task2".to_string(),
-                serde_json::json!({}),
-                5,
-            )
+            .propose_task("task2".to_string(), serde_json::json!({}), 5)
             .await
             .unwrap();
 
@@ -539,5 +846,116 @@ mod tests {
 
         // Send heartbeat
         coordinator.send_heartbeat().await.unwrap();
+    }
+
+    #[tokio::test]
+    async fn test_heartbeat_processing() {
+        let config = SwarmConfig::default();
+        let coordinator = SwarmCoordinator::with_id(config, "agent-2").await.unwrap();
+
+        // Process heartbeat from leader
+        coordinator.process_heartbeat("agent-1", 5).await;
+
+        assert_eq!(coordinator.get_role().await, AgentRole::Follower);
+        assert_eq!(coordinator.get_leader_id().await, Some("agent-1".to_string()));
+        assert_eq!(coordinator.get_term().await, 5);
+    }
+
+    #[tokio::test]
+    async fn test_stale_agent_cleanup() {
+        let config = SwarmConfig {
+            stale_agent_timeout_secs: 0, // Immediate timeout for testing
+            ..Default::default()
+        };
+        let coordinator = SwarmCoordinator::new(config).await.unwrap();
+
+        coordinator.join_swarm("agent-1").await.unwrap();
+        assert_eq!(coordinator.get_swarm_size().await, 1);
+
+        // Manually backdate the agent's last heartbeat to force staleness
+        {
+            let mut agents = coordinator.agents.write().await;
+            if let Some(info) = agents.get_mut("agent-1") {
+                info.last_heartbeat = info.last_heartbeat.saturating_sub(2);
+            }
+        }
+
+        let removed = coordinator.cleanup_stale_agents().await;
+        assert_eq!(removed.len(), 1);
+        assert_eq!(coordinator.get_swarm_size().await, 0);
+    }
+
+    #[tokio::test]
+    async fn test_process_message_vote_request() {
+        let config = SwarmConfig::default();
+        let coordinator = SwarmCoordinator::with_id(config, "agent-2").await.unwrap();
+
+        let response = coordinator
+            .process_message(SwarmMessage::RequestVote {
+                candidate_id: "agent-1".to_string(),
+                term: 1,
+            })
+            .await
+            .unwrap();
+
+        match response {
+            Some(SwarmMessage::VoteResponse { voter_id, granted, .. }) => {
+                assert_eq!(voter_id, "agent-2");
+                assert!(granted);
+            }
+            _ => panic!("Expected VoteResponse"),
+        }
+    }
+
+    #[tokio::test]
+    async fn test_swarm_status() {
+        let config = SwarmConfig::default();
+        let coordinator = SwarmCoordinator::with_id(config, "agent-1").await.unwrap();
+
+        coordinator.join_swarm("agent-1").await.unwrap();
+        coordinator.join_swarm("agent-2").await.unwrap();
+
+        let status = coordinator.get_status().await;
+        assert_eq!(status.agent_id, "agent-1");
+        assert_eq!(status.role, AgentRole::Follower);
+        assert_eq!(status.swarm_size, 2);
+    }
+
+    #[tokio::test]
+    async fn test_task_execution_after_consensus() {
+        let config = SwarmConfig::default();
+        let mut coordinator = SwarmCoordinator::with_id(config, "agent-1").await.unwrap();
+        coordinator.join_swarm("agent-1").await.unwrap();
+
+        // Set up task executor with health check handler
+        let executor = Arc::new(TaskExecutor::new("agent-1"));
+        executor.register_handler("health", Arc::new(HealthCheckHandler)).await;
+        coordinator.set_task_executor(executor);
+
+        // Propose and vote
+        let proposal_id = coordinator
+            .propose_task("health".to_string(), serde_json::json!({}), 1)
+            .await
+            .unwrap();
+
+        coordinator.vote_on_proposal(&proposal_id, true).await.unwrap();
+
+        // Check and execute
+        let result = coordinator.check_and_execute_proposal(&proposal_id).await.unwrap();
+        assert!(result.is_some());
+        assert!(result.unwrap().success);
+    }
+
+    #[tokio::test]
+    async fn test_max_agents_limit() {
+        let config = SwarmConfig {
+            max_agents: 2,
+            ..Default::default()
+        };
+        let coordinator = SwarmCoordinator::new(config).await.unwrap();
+
+        coordinator.join_swarm("agent-1").await.unwrap();
+        coordinator.join_swarm("agent-2").await.unwrap();
+        assert!(coordinator.join_swarm("agent-3").await.is_err());
     }
 }

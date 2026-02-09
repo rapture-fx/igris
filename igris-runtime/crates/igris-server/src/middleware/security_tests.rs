@@ -43,6 +43,8 @@ mod tests {
             swarm_config: None,
             swarm_peer_id: "test".to_string(),
             lora_training: None,
+            federated_manager: None,
+            swarm_manager: None,
             rate_limiter: Some(RateLimiter::new(60, 1)),
             metrics: Arc::new(Metrics::new()),
             escapevector_cache: None, // Disable for tests
