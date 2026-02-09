@@ -1,5 +1,9 @@
 @import url('https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600&display=swap');
 
+:root {
+  --font-geist-pixel-square: 'Geist Pixel Square', monospace;
+}
+
 @tailwind base;
 @tailwind components;
 @tailwind utilities;
@@ -49,6 +53,31 @@
 .dark .section-border {
   border-color: rgba(246, 246, 244, 0.05);
   border-width: 0.5px;
+}
+
+/* Specific border utilities with thin width */
+.border-l-thin {
+  border-left-width: 1px;
+  border-left-style: solid;
+  border-left-color: rgba(0, 0, 0, 0.1);
+}
+
+.border-r-thin {
+  border-right-width: 1px;
+  border-right-style: solid;
+  border-right-color: rgba(0, 0, 0, 0.1);
+}
+
+.border-b-thin {
+  border-bottom-width: 1px;
+  border-bottom-style: solid;
+  border-bottom-color: rgba(0, 0, 0, 0.1);
+}
+
+.border-t-thin {
+  border-top-width: 1px;
+  border-top-style: solid;
+  border-top-color: rgba(0, 0, 0, 0.1);
 }
 
 /* Modal open - prevent body scroll */

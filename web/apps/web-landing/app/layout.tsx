@@ -45,7 +45,7 @@ export default function RootLayout({
             __html: `
               (function() {
                 try {
-                  var theme = localStorage.getItem('igris-theme') || 'dark';
+                  var theme = localStorage.getItem('igris-theme') || 'light';
                   document.documentElement.classList.add(theme);
                 } catch (e) {}
               })();
