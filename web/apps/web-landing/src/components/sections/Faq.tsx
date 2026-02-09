@@ -30,22 +30,27 @@ const faqSections: FaqSection[] = [
     entries: [
       {
         question: "Is there a free tier?",
-        answer: "Yes. The Starter plan includes deployment on 1 device with the complete platform—all four layers (execution, intelligence, memory, proof), full offline capability, and community support. Perfect for development and testing.",
+        answer: "Yes. The Seed plan gives you 1 device with the full runtime — local LLM inference, Thompson Sampling routing, cryptographic signing, and offline operation. No time limit. Free forever.",
         type: "text"
       },
       {
         question: "What hardware do I need?",
-        answer: "The platform runs on any Linux, macOS, or ARM device with at least 512MB RAM. Tested on Raspberry Pi 4, NVIDIA Jetson, edge servers, and standard x86 hardware. The deployment binary is only 16MB.",
+        answer: "Any x86_64 or ARM64 device running Linux or macOS with at least 512MB RAM. Tested on Raspberry Pi 4, NVIDIA Jetson, Apple Silicon, and standard servers. The runtime binary is under 16MB.",
         type: "text"
       },
       {
         question: "Do I need internet connectivity?",
-        answer: "No. The platform operates completely offline. All four layers—execution, intelligence, memory, and proof—work independently without internet. The dashboard is optional for fleet management and syncs when connectivity is available.",
+        answer: "No. The runtime operates fully offline with local LLM inference via llama.cpp. When connectivity is available, it routes to cloud providers for better results. The switch between local and cloud is automatic — same API either way.",
         type: "text"
       },
       {
         question: "What models can I use?",
-        answer: "Any GGUF format model. This includes Llama, Mistral, Phi-3, and thousands of models from HuggingFace. You can also use your own fine-tuned models converted to GGUF format.",
+        answer: "Any GGUF format model — Llama, Mistral, Phi-3, Qwen, and thousands more from HuggingFace. You can also fine-tune on-device with QLoRA and use your own custom models. Bring your own model, no vendor lock-in.",
+        type: "text"
+      },
+      {
+        question: "How is this different from using OpenAI/Anthropic directly?",
+        answer: "We sit between your application and providers. Thompson Sampling learns which provider performs best for your workload. You get automatic failover, cost optimization, local fallback when cloud is down, and features like Council Mode and Speculative Execution that no single provider offers.",
         type: "text"
       }
     ]
@@ -55,107 +60,107 @@ const faqSections: FaqSection[] = [
     entries: [
       {
         question: "How does pricing work?",
-        answer: "Simple per-device pricing. Starter: 1 device at $0 forever. Professional: $49/device/month for up to 100 devices with full platform access and priority support. Enterprise: Custom pricing for unlimited devices with SLA guarantees and on-premise deployment.",
+        answer: "Per-device pricing with no request limits. The Seed: 1 device, $0 forever. The Horizon: up to 50 devices at $99/month ($2/device over 50). The Infinite: up to 500 devices at $499/month ($1.50/device over 500). Enterprise: custom pricing for unlimited devices.",
         type: "text"
       },
       {
-        question: "Is the dashboard really included?",
-        answer: "Yes. The complete platform—including the dashboard with all four layers (execution, intelligence, memory, proof)—is included at no extra cost. Starter tier includes basic access. Professional and Enterprise unlock advanced fleet management and observability features.",
+        question: "Are there any hidden fees or request metering?",
+        answer: "No. You pay per device, not per request. Unlimited execution on every plan. No token counting, no overage charges, no surprise bills. If you use cloud AI providers through our routing, you pay them directly — we don't mark up provider costs.",
         type: "text"
       },
       {
-        question: "What's the difference between Starter and Professional?",
-        answer: "Starter supports 1 device with community support. Professional supports up to 100 devices with full dashboard access, advanced routing, performance heatmaps, anomaly detection, priority support, and 7-day audit retention.",
+        question: "What's included in The Horizon vs The Infinite?",
+        answer: "The Horizon adds fleet management, Speculative Execution, Council Mode, Planning/Reflection/Swarm agents, QLoRA training, OTA updates, and 7-day audit trails. The Infinite adds Cognitive Advisor, Shadow Mode, SLO Enforcer, federated learning, 90-day audit retention, and on-premise deployment.",
         type: "text"
       },
       {
         question: "Can I upgrade or downgrade?",
         answer: "Yes. Upgrades take effect immediately. Downgrades apply at the start of your next billing cycle. No configuration or data is lost when changing plans.",
         type: "text"
-      },
-      {
-        question: "Are there any hidden fees?",
-        answer: "No. You pay per device. The complete platform is included—execution, intelligence, memory, proof, and dashboard. No request-based pricing, no overage charges, no surprise bills.",
-        type: "text"
-      },
-      {
-        question: "Do I pay for cloud AI providers separately?",
-        answer: "The platform runs models locally—no cloud AI provider required. If you choose to use cloud APIs through the intelligence layer for routing decisions, you pay providers directly. We don't markup provider costs.",
-        type: "text"
       }
     ]
   },
   {
-    title: "Product & Architecture",
+    title: "Platform & Features",
     entries: [
       {
-        question: "What are the four layers?",
-        answer: "Execution: Deterministic runtime on devices. Intelligence: Decision routing and provider management. Memory: Behavioral tracking and pattern analysis. Proof: Cryptographic verification and audit trails. All four layers work together as one integrated nervous system.",
+        question: "What is Thompson Sampling?",
+        answer: "A Bayesian learning algorithm that routes each request to the best provider based on observed latency, cost, error rate, and quality. It learns your specific workload patterns — starting with cautious exploration and converging to optimal routing after ~500 requests.",
+        type: "text"
+      },
+      {
+        question: "What are Speculative Execution and Council Mode?",
+        answer: "Speculative Execution races 2-3 providers in parallel and returns the fastest quality response. Council Mode sends a request to multiple providers, has them evaluate each other's answers, then synthesizes the best response. Speed vs. quality — you choose per request.",
+        type: "text"
+      },
+      {
+        question: "How do the AI agents work?",
+        answer: "Planning agents break complex tasks into steps using chain-of-thought reasoning. Reflection agents self-critique and regenerate until quality thresholds are met. Swarm agents run multiple perspectives in parallel with consensus voting. All agents support tool use (HTTP, shell, filesystem) with sandboxed execution.",
+        type: "text"
+      },
+      {
+        question: "What are Behavior Trees?",
+        answer: "A hybrid execution engine combining deterministic control flow (sequence, selector, parallel nodes) with LLM-powered adaptive reasoning. The LLM can generate and modify subtrees at runtime, with watchdog safety and bounded execution guarantees.",
         type: "text"
       },
       {
         question: "Can I use it without the dashboard?",
-        answer: "Yes. The platform operates completely standalone on devices. The dashboard is optional for fleet management and provides visibility into all four layers when you need to monitor or manage multiple devices.",
-        type: "text"
-      },
-      {
-        question: "How does device pairing work?",
-        answer: "Simple QR code pairing. Generate a code in the Dashboard, scan it with your device camera, and the device automatically joins your fleet. No manual configuration, no copying API keys.",
-        type: "text"
-      },
-      {
-        question: "Can I deploy models to my entire fleet?",
-        answer: "Yes. Upload GGUF models to the Dashboard and push them to one device or your entire fleet. Devices download and verify models automatically. You can also rollback if issues occur.",
+        answer: "Yes. The runtime operates completely standalone. The dashboard is optional for fleet management and provides visibility into routing decisions, device health, and audit trails when you need to manage multiple devices.",
         type: "text"
       }
     ]
   },
   {
-    title: "Security & Reliability",
+    title: "Security & Privacy",
     entries: [
       {
         question: "How secure is the platform?",
-        answer: "The execution layer uses sandboxed environments with enforced resource limits. The proof layer cryptographically signs every decision. Models run in isolated environments with boundaries on memory, CPU, and execution time. Your models and data stay on your devices.",
-        type: "text"
-      },
-      {
-        question: "What happens if a device goes offline?",
-        answer: "All four layers continue operating normally. Execution runs locally. Intelligence routes decisions. Memory tracks behaviors. Proof signs everything. When connectivity returns, the device syncs with the dashboard automatically.",
+        answer: "Every routing decision is cryptographically signed with Ed25519. API keys are encrypted at rest with AES-256-GCM. The runtime uses post-quantum TLS (Rustls + AWS-LC-RS). JWT authentication with token blacklisting protects all API endpoints. Tool execution runs in sandboxed environments with enforced resource limits on memory, CPU, and execution time.",
         type: "text"
       },
       {
         question: "Is my data sent to the cloud?",
-        answer: "No. AI execution happens entirely on-device. Only metadata (device health, performance metrics, audit logs) syncs with the dashboard when online. Your actual data and AI workloads never leave the device unless you explicitly route decisions through cloud providers.",
+        answer: "AI execution on-device stays on-device. Only metadata (device health, performance metrics, audit logs) syncs with the dashboard when online. If you route requests through cloud providers, that data goes to the provider you selected — we don't intercept or store it. Provider API keys are stored encrypted in your own vault.",
         type: "text"
       },
       {
-        question: "What uptime guarantees do you provide?",
-        answer: "Free tier has no SLA. Pro tier includes best-effort support. Enterprise includes custom SLA guarantees with 24/7 dedicated support and 99.9% uptime commitment for the Dashboard.",
+        question: "What is EscapeVector?",
+        answer: "A 72-hour encrypted response cache (AES-256-GCM) that activates when all providers fail. Pre-cached responses keep your system operational during extended outages. Combined with local LLM fallback, the platform degrades gracefully rather than failing.",
+        type: "text"
+      },
+      {
+        question: "What is Gold Code?",
+        answer: "An Ed25519-signed emergency override protocol. Gold Code patches are cryptographically verified before execution — only patches signed by your authorized keys are accepted. This gives you a secure way to push emergency fixes to fleet devices.",
+        type: "text"
+      },
+      {
+        question: "Do you train on my data?",
+        answer: "No. We never train models on your data. QLoRA fine-tuning happens entirely on your device. Federated learning shares only encrypted model weight updates across your fleet — raw data never leaves the device.",
         type: "text"
       }
     ]
   },
   {
-    title: "Operations & Control",
+    title: "Deployment & Operations",
     entries: [
       {
-        question: "Do I retain control of my models?",
-        answer: "Yes. You bring your own GGUF models. Models are stored on your devices, not on our servers. You can update, replace, or remove models at any time.",
+        question: "What happens if a device goes offline?",
+        answer: "The runtime continues operating with local LLM inference, cached responses via EscapeVector, and local agent execution. All decisions are still cryptographically signed. When connectivity returns, the device syncs telemetry and audit logs with the dashboard automatically.",
         type: "text"
       },
       {
-        question: "Can I monitor device performance?",
-        answer: "Yes. The dashboard provides visibility into all four layers—execution status, routing decisions, behavior patterns, and cryptographic proofs. Real-time metrics, performance heatmaps, and anomaly detection across your entire fleet. Export data for external analysis.",
-        type: "text"
-      },
-      {
-        question: "Do you train on my data?",
-        answer: "No. We don't train models on your data. Your data stays on your devices. The platform executes your models locally without sending data to us or any third party.",
+        question: "How does fleet management work?",
+        answer: "Devices register with Ed25519 signatures via the fleet API. The dashboard shows device health, telemetry, and configuration. You can push model updates, configuration changes, and emergency patches (Gold Code) to individual devices or your entire fleet with cryptographic verification.",
         type: "text"
       },
       {
         question: "Can I self-host?",
-        answer: "Yes. Enterprise plans include on-premise deployment options. Run the entire stack within your own infrastructure with no external dependencies.",
+        answer: "Yes. The Infinite plan includes on-premise deployment. Enterprise plans support air-gapped operation with no external dependencies. The entire stack — runtime, routing, fleet management — runs within your infrastructure.",
+        type: "text"
+      },
+      {
+        question: "What observability do I get?",
+        answer: "Prometheus-compatible metrics (150+), distributed request tracing, per-request cost tracking, routing decision audit logs, and provider performance leaderboards. The Cognitive Advisor (Infinite tier) automatically proposes optimizations based on observed patterns.",
         type: "text"
       }
     ]
@@ -327,7 +332,7 @@ export default function Faq() {
                  Questions and answers
                </h3>
                 <p className="text-sm text-gray-600 dark:text-[#a8a898] leading-relaxed" style={{ fontFamily: 'var(--font-geist-mono)' }}>
-                  Common questions about the platform's four layers, pricing, deployment, and how the nervous system operates at scale.
+                  Common questions about routing, agents, security, pricing, and deployment.
                 </p>
              </div>
            </div>
