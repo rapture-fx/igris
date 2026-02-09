@@ -165,7 +165,7 @@ export default function Pricing() {
                       <ul className="space-y-2">
                         {tier.features.map((feature, featureIndex) => (
                           <li key={featureIndex} className="flex items-start">
-                            <Check className="h-3 w-3 mr-3 flex-shrink-0 mt-0.5 text-[#000000] dark:text-[#f6f6f4]" />
+                            <Check className="h-3 w-3 mr-3 flex-shrink-0 mt-0.5 text-green-500" />
                             <span className="text-xs text-gray-700 dark:text-[#c8c8b8]" style={{ fontFamily: 'var(--font-geist-mono)' }}>{feature}</span>
                           </li>
                         ))}
