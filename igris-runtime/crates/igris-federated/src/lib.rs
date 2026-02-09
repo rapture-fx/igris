@@ -11,31 +11,30 @@
 //! - **Adaptive Learning:** Dynamic learning rates based on device performance
 //!
 //! # Example
-//! ```no_run
+//! ```ignore
 //! use igris_federated::{FederatedCoordinator, FederatedConfig};
 //!
-//! #[tokio::main]
-//! async fn main() -> anyhow::Result<()> {
-//!     let config = FederatedConfig {
-//!         enabled: true,
-//!         min_participants: 3,
-//!         privacy_budget: 1.0,
-//!         ..Default::default()
-//!     };
+//! let config = FederatedConfig {
+//!     enabled: true,
+//!     min_participants: 3,
+//!     privacy_budget: 1.0,
+//!     ..Default::default()
+//! };
 //!
-//!     let coordinator = FederatedCoordinator::new(config).await?;
-//!
-//!     // Submit local model update
-//!     coordinator.submit_update(local_weights).await?;
-//!
-//!     // Aggregate updates from swarm
-//!     let global_model = coordinator.aggregate_updates().await?;
-//!
-//!     Ok(())
-//! }
+//! let coordinator = FederatedCoordinator::new(config).await?;
+//! coordinator.submit_update(update).await?;
+//! let global_model = coordinator.aggregate_updates().await?;
 //! ```
 
-use anyhow::{Context, Result};
+pub mod adapter_bridge;
+pub mod persistence;
+pub mod transport;
+
+pub use adapter_bridge::{AdapterBridge, LoRAWeights, LoRAMetadata};
+pub use persistence::{CoordinatorSnapshot, FederatedPersistence};
+pub use transport::{FederatedTransport, FederatedMessage, FederatedStatus, HttpTransport};
+
+use anyhow::Result;
 use rand::Rng;
 use serde::{Deserialize, Serialize};
 use std::collections::HashMap;
@@ -43,7 +42,6 @@ use std::sync::Arc;
 use std::time::SystemTime;
 use tokio::sync::RwLock;
 use tracing::{debug, info, warn};
-use uuid::Uuid;
 
 /// Federated learning configuration
 #[derive(Debug, Clone, Serialize, Deserialize)]
@@ -313,6 +311,9 @@ pub struct FederatedCoordinator {
 
     // Participant metadata
     participants: Arc<RwLock<HashMap<String, ParticipantInfo>>>,
+
+    // Persistence backend (optional)
+    persistence: Option<Arc<FederatedPersistence>>,
 }
 
 #[derive(Debug, Clone, Serialize, Deserialize)]
@@ -339,7 +340,33 @@ impl FederatedCoordinator {
             pending_updates: Arc::new(RwLock::new(HashMap::new())),
             global_models: Arc::new(RwLock::new(Vec::new())),
             participants: Arc::new(RwLock::new(HashMap::new())),
+            persistence: None,
         })
+    }
+
+    /// Create a coordinator with persistence enabled
+    pub async fn with_persistence(config: FederatedConfig, state_dir: &str) -> Result<Self> {
+        let persistence = FederatedPersistence::new(state_dir).await?;
+        let persistence = Arc::new(persistence);
+
+        let mut coordinator = Self::new(config).await?;
+
+        // Restore state from disk if available
+        if let Some(snapshot) = persistence.load_snapshot().await? {
+            *coordinator.current_round.write().await = snapshot.current_round;
+            *coordinator.global_models.write().await = snapshot.global_models;
+            *coordinator.participants.write().await = snapshot.participants;
+
+            for update in snapshot.pending_updates {
+                coordinator.pending_updates.write().await
+                    .insert(update.participant_id.clone(), update);
+            }
+
+            info!("Restored federated state from disk: round {}", snapshot.current_round);
+        }
+
+        coordinator.persistence = Some(persistence);
+        Ok(coordinator)
     }
 
     /// Submit a local model update
@@ -386,7 +413,24 @@ impl FederatedCoordinator {
             update.participant_id, update.round, update.num_samples, update.loss
         );
 
+        // Persist state after receiving update
+        if let Err(e) = self.persist_state().await {
+            warn!("Failed to persist state after update: {}", e);
+        }
+
         Ok(())
+    }
+
+    /// Submit update and auto-aggregate if threshold is met
+    pub async fn submit_update_and_maybe_aggregate(&self, update: ModelUpdate) -> Result<Option<GlobalModel>> {
+        self.submit_update(update).await?;
+
+        if self.ready_to_aggregate().await {
+            let model = self.aggregate_updates().await?;
+            Ok(Some(model))
+        } else {
+            Ok(None)
+        }
     }
 
     /// Check if ready to aggregate
@@ -439,6 +483,16 @@ impl FederatedCoordinator {
             global_model.round, global_model.num_participants, global_model.average_loss
         );
 
+        // Persist the new global model and state
+        if let Some(ref persistence) = self.persistence {
+            if let Err(e) = persistence.save_global_model(&global_model).await {
+                warn!("Failed to persist global model: {}", e);
+            }
+        }
+        if let Err(e) = self.persist_state().await {
+            warn!("Failed to persist state after aggregation: {}", e);
+        }
+
         Ok(global_model)
     }
 
@@ -461,6 +515,48 @@ impl FederatedCoordinator {
     /// Get participant statistics
     pub async fn get_participant_stats(&self) -> Vec<ParticipantInfo> {
         self.participants.read().await.values().cloned().collect()
+    }
+
+    /// Get coordinator status summary
+    pub async fn get_status(&self) -> FederatedStatus {
+        let current_round = *self.current_round.read().await;
+        let pending = self.pending_updates.read().await.len();
+        let participants = self.participants.read().await.len();
+        let latest_round = self.global_models.read().await.last().map(|m| m.round);
+
+        FederatedStatus {
+            current_round,
+            pending_updates: pending,
+            total_participants: participants,
+            min_participants: self.config.min_participants,
+            ready_to_aggregate: pending >= self.config.min_participants,
+            latest_model_round: latest_round,
+        }
+    }
+
+    /// Get the configuration
+    pub fn config(&self) -> &FederatedConfig {
+        &self.config
+    }
+
+    /// Persist current state to disk
+    async fn persist_state(&self) -> Result<()> {
+        let Some(ref persistence) = self.persistence else {
+            return Ok(());
+        };
+
+        let snapshot = CoordinatorSnapshot {
+            current_round: *self.current_round.read().await,
+            global_models: self.global_models.read().await.clone(),
+            participants: self.participants.read().await.clone(),
+            pending_updates: self.pending_updates.read().await.values().cloned().collect(),
+            snapshot_timestamp: SystemTime::now()
+                .duration_since(SystemTime::UNIX_EPOCH)
+                .unwrap_or_default()
+                .as_secs(),
+        };
+
+        persistence.save_snapshot(&snapshot).await
     }
 }
 

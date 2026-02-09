@@ -9,6 +9,7 @@ license.workspace = true
 # Core async runtime
 tokio = { workspace = true }
 futures = { workspace = true }
+async-trait = "0.1"
 
 # Serialization
 serde = { workspace = true }
@@ -24,5 +25,9 @@ uuid = { workspace = true }
 rand = { workspace = true }
 sha2 = { workspace = true }
 
+# HTTP transport for multi-device federation
+reqwest = { workspace = true }
+
 [dev-dependencies]
 tokio = { workspace = true, features = ["test-util"] }
+tempfile = "3"

@@ -44,6 +44,7 @@ mod swarm_agent;
 use swarm_agent::{run_swarm, SwarmConfig};
 // RUNTIME-04: Execution graph observability
 mod execution_graph;
+#[allow(unused_imports)]
 use execution_graph::ExecutionGraphRegistry;
 // RUNTIME-05: Resource safety limits
 mod resource_limits;
@@ -54,6 +55,10 @@ use igris_tools::filesystem::FileSystemTool;
 mod lora_training;
 use lora_training::LoraTrainingManager;
 use igris_lora_trainer::{LoRATrainingConfig, TrainingDataStore};
+mod federated_integration;
+use federated_integration::FederatedManager;
+mod swarm_integration;
+use swarm_integration::SwarmManager;
 mod middleware;
 use axum::middleware::from_fn_with_state;
 use middleware::security::{security_middleware, RateLimiter};
@@ -83,6 +88,8 @@ pub(crate) struct AppState {
     pub(crate) swarm_config: Option<SwarmConfig>,
     pub(crate) swarm_peer_id: String,
     pub(crate) lora_training: Option<Arc<LoraTrainingManager>>,
+    pub(crate) federated_manager: Option<Arc<FederatedManager>>,
+    pub(crate) swarm_manager: Option<Arc<SwarmManager>>,
     pub(crate) rate_limiter: Option<middleware::security::RateLimiter>,
     pub(crate) metrics: Arc<Metrics>,
     pub(crate) escapevector_cache: Option<Arc<EscapeVectorCache>>,
@@ -561,6 +568,159 @@ async fn lora_status(State(state): State<AppState>) -> Result<Response, ApiError
         last_result,
     };
     Ok((StatusCode::OK, Json(resp)).into_response())
+}
+
+// ============================================================================
+// Federated Learning endpoints
+// ============================================================================
+
+async fn federated_status(State(state): State<AppState>) -> Result<Response, ApiError> {
+    let Some(mgr) = &state.federated_manager else {
+        return Ok((StatusCode::OK, Json(serde_json::json!({"enabled": false}))).into_response());
+    };
+    let status = mgr.get_status().await;
+    Ok((StatusCode::OK, Json(status)).into_response())
+}
+
+async fn federated_submit_update(
+    State(state): State<AppState>,
+    Json(update): Json<igris_federated::ModelUpdate>,
+) -> Result<Response, ApiError> {
+    let Some(mgr) = &state.federated_manager else {
+        return Err(ApiError::ServiceUnavailable("Federated learning not enabled".to_string()));
+    };
+    match mgr.submit_update(update).await {
+        Ok(Some(model)) => Ok((StatusCode::OK, Json(serde_json::json!({
+            "aggregated": true,
+            "global_model": model,
+        }))).into_response()),
+        Ok(None) => Ok((StatusCode::ACCEPTED, Json(serde_json::json!({
+            "aggregated": false,
+            "message": "Update accepted, waiting for more participants",
+        }))).into_response()),
+        Err(e) => Err(ApiError::BadRequest(e.to_string())),
+    }
+}
+
+async fn federated_latest_model(State(state): State<AppState>) -> Result<Response, ApiError> {
+    let Some(mgr) = &state.federated_manager else {
+        return Err(ApiError::ServiceUnavailable("Federated learning not enabled".to_string()));
+    };
+    match mgr.get_latest_model().await {
+        Some(model) => Ok((StatusCode::OK, Json(model)).into_response()),
+        None => Ok((StatusCode::NOT_FOUND, Json(serde_json::json!({
+            "message": "No global model available yet"
+        }))).into_response()),
+    }
+}
+
+async fn federated_participants(State(state): State<AppState>) -> Result<Response, ApiError> {
+    let Some(mgr) = &state.federated_manager else {
+        return Err(ApiError::ServiceUnavailable("Federated learning not enabled".to_string()));
+    };
+    let participants = mgr.get_participants().await;
+    Ok((StatusCode::OK, Json(participants)).into_response())
+}
+
+// ============================================================================
+// Swarm Intelligence endpoints
+// ============================================================================
+
+async fn swarm_status(State(state): State<AppState>) -> Result<Response, ApiError> {
+    let Some(mgr) = &state.swarm_manager else {
+        return Ok((StatusCode::OK, Json(serde_json::json!({"enabled": false}))).into_response());
+    };
+    let status = mgr.get_status().await;
+    Ok((StatusCode::OK, Json(status)).into_response())
+}
+
+async fn swarm_agents(State(state): State<AppState>) -> Result<Response, ApiError> {
+    let Some(mgr) = &state.swarm_manager else {
+        return Err(ApiError::ServiceUnavailable("Swarm not enabled".to_string()));
+    };
+    let agents = mgr.get_agents().await;
+    Ok((StatusCode::OK, Json(agents)).into_response())
+}
+
+#[derive(Deserialize)]
+struct SwarmJoinRequest {
+    agent_id: String,
+}
+
+async fn swarm_join(
+    State(state): State<AppState>,
+    Json(req): Json<SwarmJoinRequest>,
+) -> Result<Response, ApiError> {
+    let Some(mgr) = &state.swarm_manager else {
+        return Err(ApiError::ServiceUnavailable("Swarm not enabled".to_string()));
+    };
+    mgr.join_agent(&req.agent_id).await
+        .map_err(|e| ApiError::BadRequest(e.to_string()))?;
+    Ok((StatusCode::OK, Json(serde_json::json!({
+        "joined": true,
+        "agent_id": req.agent_id,
+    }))).into_response())
+}
+
+#[derive(Deserialize)]
+struct SwarmProposeRequest {
+    task_type: String,
+    parameters: serde_json::Value,
+    #[serde(default = "default_priority")]
+    priority: u8,
+}
+
+fn default_priority() -> u8 { 1 }
+
+async fn swarm_propose(
+    State(state): State<AppState>,
+    Json(req): Json<SwarmProposeRequest>,
+) -> Result<Response, ApiError> {
+    let Some(mgr) = &state.swarm_manager else {
+        return Err(ApiError::ServiceUnavailable("Swarm not enabled".to_string()));
+    };
+    let proposal_id = mgr.propose_task(req.task_type, req.parameters, req.priority)
+        .await
+        .map_err(|e| ApiError::BadRequest(e.to_string()))?;
+    Ok((StatusCode::OK, Json(serde_json::json!({
+        "proposal_id": proposal_id,
+    }))).into_response())
+}
+
+#[derive(Deserialize)]
+struct SwarmVoteRequest {
+    proposal_id: String,
+    approve: bool,
+}
+
+async fn swarm_vote(
+    State(state): State<AppState>,
+    Json(req): Json<SwarmVoteRequest>,
+) -> Result<Response, ApiError> {
+    let Some(mgr) = &state.swarm_manager else {
+        return Err(ApiError::ServiceUnavailable("Swarm not enabled".to_string()));
+    };
+    mgr.vote(&req.proposal_id, req.approve)
+        .await
+        .map_err(|e| ApiError::BadRequest(e.to_string()))?;
+
+    // Check if proposal now has consensus and execute
+    match mgr.check_and_execute(&req.proposal_id).await {
+        Ok(Some(result)) => Ok((StatusCode::OK, Json(serde_json::json!({
+            "voted": true,
+            "consensus_reached": true,
+            "execution_result": result,
+        }))).into_response()),
+        Ok(None) => Ok((StatusCode::OK, Json(serde_json::json!({
+            "voted": true,
+            "consensus_reached": false,
+        }))).into_response()),
+        Err(e) => Ok((StatusCode::OK, Json(serde_json::json!({
+            "voted": true,
+            "consensus_reached": true,
+            "execution_error": e.to_string(),
+        }))).into_response()),
+    }
 }
 
 /// Planning endpoint - execute multi-step tasks with optional tool usage
@@ -2027,6 +2187,41 @@ async fn main() -> anyhow::Result<()> {
         info!("Fleet Management not configured");
     }
 
+    // Initialize Federated Learning (always available, just may be disabled)
+    let federated_manager: Option<Arc<FederatedManager>> = {
+        let fed_config = igris_federated::FederatedConfig {
+            enabled: true,
+            min_participants: 3,
+            ..Default::default()
+        };
+        let state_dir = ".federated_state";
+        match FederatedManager::new(fed_config, state_dir).await {
+            Ok(mgr) => {
+                info!("Federated Learning coordinator initialized");
+                Some(Arc::new(mgr))
+            }
+            Err(e) => {
+                warn!("Federated Learning disabled: {}", e);
+                None
+            }
+        }
+    };
+
+    // Initialize Swarm Intelligence
+    let swarm_manager: Option<Arc<SwarmManager>> = {
+        let agent_id = format!("runtime-{}", &swarm_peer_id[..8.min(swarm_peer_id.len())]);
+        match SwarmManager::new(&agent_id).await {
+            Ok(mgr) => {
+                info!("Swarm coordinator initialized for agent {}", agent_id);
+                Some(Arc::new(mgr))
+            }
+            Err(e) => {
+                warn!("Swarm coordination disabled: {}", e);
+                None
+            }
+        }
+    };
+
     let state = AppState {
         config: Arc::new(config),
         storage: Arc::new(storage),
@@ -2044,6 +2239,8 @@ async fn main() -> anyhow::Result<()> {
         swarm_config,
         swarm_peer_id,
         lora_training,
+        federated_manager,
+        swarm_manager,
         rate_limiter,
         metrics,
         escapevector_cache,
@@ -2059,6 +2256,17 @@ async fn main() -> anyhow::Result<()> {
         .route("/v1/reflect", post(reflect_endpoint))
         .route("/v1/fleet/instances", get(fleet_instances))
         .route("/v1/fleet/metrics", get(fleet_metrics))
+        // Federated Learning endpoints
+        .route("/v1/federated/status", get(federated_status))
+        .route("/v1/federated/update", post(federated_submit_update))
+        .route("/v1/federated/model/latest", get(federated_latest_model))
+        .route("/v1/federated/participants", get(federated_participants))
+        // Swarm Intelligence endpoints
+        .route("/v1/swarm/status", get(swarm_status))
+        .route("/v1/swarm/agents", get(swarm_agents))
+        .route("/v1/swarm/join", post(swarm_join))
+        .route("/v1/swarm/propose", post(swarm_propose))
+        .route("/v1/swarm/vote", post(swarm_vote))
         .merge(SwaggerUi::new("/swagger-ui").url("/api-docs/openapi.json", ApiDoc::openapi()))
         .layer(TraceLayer::new_for_http())
         .layer(CorsLayer::permissive())

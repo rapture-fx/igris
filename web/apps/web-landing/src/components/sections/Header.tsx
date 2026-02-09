@@ -271,12 +271,12 @@ export default function Header() {
                       <div className="grid grid-cols-3 min-h-[280px]">
                         {/* Left column - image */}
                         <div className="p-8 border-r border-gray-200 dark:border-[#f6f6f4]/5 relative overflow-hidden">
-                          <img src="/hov.png" alt="" className="absolute inset-0 w-full h-full object-cover opacity-30" />
+                          <img src="/hov.png" alt="" className="absolute inset-0 w-full h-full object-cover opacity-30 hover:opacity-90 transition-opacity duration-300" />
                         </div>
 
                         {/* Middle column - Routing & Optimization + Agents */}
                         <div className="p-8 border-r border-gray-200 dark:border-[#f6f6f4]/5">
-                          <span className="text-xs font-medium text-gray-400 dark:text-[#a8a898] uppercase tracking-wider mb-3 block" style={{ fontFamily: 'var(--font-geist-sans)' }}>Routing & Optimization</span>
+                          <span className="text-xs font-medium uppercase tracking-wider mb-3 block" style={{ fontFamily: 'var(--font-geist-pixel-square)', color: '#1b1912' }}>Routing & Optimization</span>
                           <div className="flex flex-col gap-1.5">
                             <span onClick={() => setActiveDropdown(null)} className="text-xs text-gray-500 dark:text-[#a8a898] hover:text-gray-900 dark:hover:text-[#f6f6f4] transition-colors cursor-default" style={{ fontFamily: 'var(--font-geist-sans)' }}>Thompson Sampling</span>
                             <span onClick={() => setActiveDropdown(null)} className="text-xs text-gray-500 dark:text-[#a8a898] hover:text-gray-900 dark:hover:text-[#f6f6f4] transition-colors cursor-default" style={{ fontFamily: 'var(--font-geist-sans)' }}>Speculative Execution</span>
@@ -285,7 +285,7 @@ export default function Header() {
                             <span onClick={() => setActiveDropdown(null)} className="text-xs text-gray-500 dark:text-[#a8a898] hover:text-gray-900 dark:hover:text-[#f6f6f4] transition-colors cursor-default" style={{ fontFamily: 'var(--font-geist-sans)' }}>Adaptive Optimization</span>
                             <span onClick={() => setActiveDropdown(null)} className="text-xs text-gray-500 dark:text-[#a8a898] hover:text-gray-900 dark:hover:text-[#f6f6f4] transition-colors cursor-default" style={{ fontFamily: 'var(--font-geist-sans)' }}>Provider Health & Failover</span>
                           </div>
-                          <span className="text-xs font-medium text-gray-400 dark:text-[#a8a898] uppercase tracking-wider mt-5 mb-3 block" style={{ fontFamily: 'var(--font-geist-sans)' }}>Agents</span>
+                          <span className="text-xs font-medium uppercase tracking-wider mt-5 mb-3 block" style={{ fontFamily: 'var(--font-geist-pixel-square)', color: '#1b1912' }}>Agents</span>
                           <div className="flex flex-col gap-1.5">
                             <span className="text-xs text-gray-500 dark:text-[#a8a898] cursor-default" style={{ fontFamily: 'var(--font-geist-sans)' }}>Planning Agents</span>
                             <span className="text-xs text-gray-500 dark:text-[#a8a898] cursor-default" style={{ fontFamily: 'var(--font-geist-sans)' }}>Reflection Agents</span>
@@ -297,7 +297,7 @@ export default function Header() {
 
                         {/* Right column - Infrastructure + Security */}
                         <div className="p-8">
-                          <span className="text-xs font-medium text-gray-400 dark:text-[#a8a898] uppercase tracking-wider mb-3 block" style={{ fontFamily: 'var(--font-geist-sans)' }}>Infrastructure</span>
+                          <span className="text-xs font-medium uppercase tracking-wider mb-3 block" style={{ fontFamily: 'var(--font-geist-pixel-square)', color: '#1b1912' }}>Infrastructure</span>
                           <div className="flex flex-col gap-1.5">
                             <span className="text-xs text-gray-500 dark:text-[#a8a898] cursor-default" style={{ fontFamily: 'var(--font-geist-sans)' }}>Local LLM Fallback</span>
                             <span className="text-xs text-gray-500 dark:text-[#a8a898] cursor-default" style={{ fontFamily: 'var(--font-geist-sans)' }}>QLoRA On-Device Training</span>
@@ -306,7 +306,7 @@ export default function Header() {
                             <span className="text-xs text-gray-500 dark:text-[#a8a898] cursor-default" style={{ fontFamily: 'var(--font-geist-sans)' }}>Fleet Management</span>
                             <span className="text-xs text-gray-500 dark:text-[#a8a898] cursor-default" style={{ fontFamily: 'var(--font-geist-sans)' }}>Model Management</span>
                           </div>
-                          <span className="text-xs font-medium text-gray-400 dark:text-[#a8a898] uppercase tracking-wider mt-5 mb-3 block" style={{ fontFamily: 'var(--font-geist-sans)' }}>Security & Resilience</span>
+                          <span className="text-xs font-medium uppercase tracking-wider mt-5 mb-3 block" style={{ fontFamily: 'var(--font-geist-pixel-square)', color: '#1b1912' }}>Security & Resilience</span>
                           <div className="flex flex-col gap-1.5">
                             <span className="text-xs text-gray-500 dark:text-[#a8a898] cursor-default" style={{ fontFamily: 'var(--font-geist-sans)' }}>Shadow Mode</span>
                             <span className="text-xs text-gray-500 dark:text-[#a8a898] cursor-default" style={{ fontFamily: 'var(--font-geist-sans)' }}>EscapeVector</span>
@@ -339,7 +339,7 @@ export default function Header() {
                           className="p-8 border-r border-gray-200 dark:border-[#f6f6f4]/5 flex items-end min-h-[280px] relative overflow-hidden group/card"
                         >
                           <div className="absolute inset-0 p-1">
-                            <img src="/dc.png" alt="" className="w-full h-full object-cover opacity-20 group-hover/card:opacity-40 transition-opacity duration-300" />
+                            <img src="/dc.png" alt="" className="w-full h-full object-cover opacity-20 group-hover/card:opacity-90 transition-opacity duration-300" />
                           </div>
                           <div className="relative z-10">
                             <span className="text-sm font-normal text-gray-900 dark:text-[#f6f6f4]" style={{ fontFamily: 'var(--font-geist-sans)' }}>Documentation</span>
@@ -352,7 +352,7 @@ export default function Header() {
                           className="p-8 border-r border-gray-200 dark:border-[#f6f6f4]/5 flex items-end min-h-[280px] text-left w-full relative overflow-hidden group/card"
                         >
                           <div className="absolute inset-0 p-1">
-                            <img src="/uc.png" alt="" className="w-full h-full object-cover opacity-20 group-hover/card:opacity-40 transition-opacity duration-300" />
+                            <img src="/uc.png" alt="" className="w-full h-full object-cover opacity-20 group-hover/card:opacity-90 transition-opacity duration-300" />
                           </div>
                           <div className="relative z-10">
                             <span className="text-sm font-normal text-gray-900 dark:text-[#f6f6f4]" style={{ fontFamily: 'var(--font-geist-sans)' }}>Use Cases</span>
@@ -367,7 +367,7 @@ export default function Header() {
                           className="p-8 flex items-end min-h-[280px] relative overflow-hidden group/card"
                         >
                           <div className="absolute inset-0 p-1">
-                            <img src="/exc.png" alt="" className="w-full h-full object-cover opacity-20 group-hover/card:opacity-40 transition-opacity duration-300" />
+                            <img src="/exc.png" alt="" className="w-full h-full object-cover opacity-20 group-hover/card:opacity-90 transition-opacity duration-300" />
                           </div>
                           <div className="relative z-10">
                             <span className="text-sm font-normal text-gray-900 dark:text-[#f6f6f4]" style={{ fontFamily: 'var(--font-geist-sans)' }}>Blog</span>
