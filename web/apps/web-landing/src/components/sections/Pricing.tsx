@@ -24,10 +24,10 @@ const pricingTiers: PricingTier[] = [
     price: "$0 / forever",
     limits: "1 device",
     features: [
-      "Full runtime layer (edge + cloud)",
+      "Full runtime (local + cloud routing)",
       "Unlimited execution (no request limits)",
-      "All core features included",
-      "Offline operation (indefinite)",
+      "Local LLM fallback (offline capable)",
+      "Thompson Sampling routing",
       "Cryptographic signing (Ed25519)",
       "Community support"
     ],
@@ -40,9 +40,10 @@ const pricingTiers: PricingTier[] = [
     limits: "Up to 50 devices",
     features: [
       "Everything in The Seed",
-      "Full dashboard & fleet view",
-      "All Edge features (QLoRA, Swarms, Planning, Tools)",
-      "All Cloud features (Speculative, Council, Health)",
+      "Dashboard & fleet management",
+      "Speculative Execution & Council Mode",
+      "Planning, Reflection & Swarm agents",
+      "QLoRA on-device training",
       "Over-the-air verified updates",
       "Audit trails (7-day retention)",
       "Email support (24h response)",
@@ -59,11 +60,12 @@ const pricingTiers: PricingTier[] = [
     features: [
       "Everything in The Horizon",
       "On-premise deployment option",
+      "Cognitive Advisor (auto-optimization)",
+      "Shadow Mode (risk-free testing)",
+      "SLO Enforcer with auto-remediation",
       "Extended audit retention (90 days)",
-      "99.5% SLA guarantee",
-      "Slack support (4h critical response)",
-      "Compliance assistance (SOC2, ISO27001)",
-      "Advanced analytics & anomaly detection",
+      "Federated learning across fleet",
+      "Priority email support (8h response)",
       "$1.50/device/month over 500 devices"
     ],
     cta: "Get Started"
@@ -79,7 +81,7 @@ const pricingTiers: PricingTier[] = [
       "Full on-premise platform deployment",
       "Custom integrations & white-label",
       "Dedicated account manager",
-      "Custom SLA (99.9%+ uptime)",
+      "Custom SLA (up to 99.9% uptime)",
       "White-glove onboarding",
       "Priority feature requests"
     ],
@@ -123,9 +125,9 @@ export default function Pricing() {
               {pricingTiers.map((tier, index) => (
                 <div
                   key={index}
-                  className={`group relative transition-all duration-500 w-full border rounded-none ${
+                  className={`group relative transition-all duration-500 w-full border rounded-xl shadow-lg hover:shadow-xl ${
                     tier.recommended
-                      ? 'shadow-[0_0_4px_rgba(197,176,205,0.15)] border-gray-300 dark:border-[#f6f6f4]/10'
+                      ? 'border-gray-300 dark:border-[#f6f6f4]/10'
                       : 'border-gray-300 dark:border-[#f6f6f4]/10'
                   } bg-[#f6f6f4] dark:bg-[#14120a]`}
                 >
@@ -164,7 +166,7 @@ export default function Pricing() {
                         {tier.features.map((feature, featureIndex) => (
                           <li key={featureIndex} className="flex items-start">
                             <Check className="h-3 w-3 mr-3 flex-shrink-0 mt-0.5 text-[#000000] dark:text-[#f6f6f4]" />
-                            <span className="text-xs text-gray-700 dark:text-[#c8c8b8] font-inter">{feature}</span>
+                            <span className="text-xs text-gray-700 dark:text-[#c8c8b8]" style={{ fontFamily: 'var(--font-geist-mono)' }}>{feature}</span>
                           </li>
                         ))}
                       </ul>
