@@ -3,6 +3,7 @@ package security
 
 import (
 	"context"
+	"crypto/ed25519"
 	"database/sql"
 	"encoding/base64"
 	"encoding/hex"
@@ -370,40 +371,71 @@ func (rr *RuntimeRegistry) UnregisterRuntime(runtimeID string) {
 	}
 }
 
-// verifyRuntimeSignature verifies a Runtime registration signature
+// verifyRuntimeSignature verifies a Runtime registration signature using Ed25519
 func verifyRuntimeSignature(reg *RuntimeRegistration) error {
-	// The signature covers: runtime_id + tenant_id + timestamp
-	// Verification uses the public key provided in the registration
-	// This establishes trust in the Runtime's identity
-
 	if reg.PublicKeyBase64 == "" {
 		return fmt.Errorf("public key is required")
 	}
 
-	// For now, accept registrations with valid public key format
-	// Full Ed25519 verification is done when processing execution envelopes
-	_, err := base64.StdEncoding.DecodeString(reg.PublicKeyBase64)
+	if reg.Signature == "" {
+		return fmt.Errorf("signature is required for registration")
+	}
+
+	// Decode public key
+	pubKeyBytes, err := base64.StdEncoding.DecodeString(reg.PublicKeyBase64)
 	if err != nil {
 		return fmt.Errorf("invalid public key encoding: %w", err)
+	}
+
+	if len(pubKeyBytes) != ed25519.PublicKeySize {
+		return fmt.Errorf("invalid public key size: expected %d bytes, got %d", ed25519.PublicKeySize, len(pubKeyBytes))
+	}
+
+	// Reconstruct the signed message: runtime_id + tenant_id + timestamp
+	message := fmt.Sprintf("%s:%s:%d", reg.RuntimeID, reg.TenantID, reg.Timestamp)
+
+	// Decode signature
+	sigBytes, err := base64.StdEncoding.DecodeString(reg.Signature)
+	if err != nil {
+		return fmt.Errorf("invalid signature encoding: %w", err)
+	}
+
+	// Verify Ed25519 signature
+	if !ed25519.Verify(ed25519.PublicKey(pubKeyBytes), []byte(message), sigBytes) {
+		return fmt.Errorf("Ed25519 signature verification failed")
 	}
 
 	return nil
 }
 
-// verifyHeartbeatSignature verifies a Runtime heartbeat signature
+// verifyHeartbeatSignature verifies a Runtime heartbeat signature using Ed25519
 func verifyHeartbeatSignature(hb *RuntimeHeartbeat, publicKeyBase64 string) error {
-	// For now, accept heartbeats with valid structure
-	// Allow unsigned heartbeats in non-strict mode
 	if hb.Signature == "" {
-		return nil
+		return fmt.Errorf("heartbeat signature is required")
 	}
 
-	// If signature is provided, it can be verified using VerifyEd25519Signature
-	// but we need the actual message that was signed
-	// For now, just validate signature is valid base64
-	_, err := base64.StdEncoding.DecodeString(hb.Signature)
+	// Decode public key
+	pubKeyBytes, err := base64.StdEncoding.DecodeString(publicKeyBase64)
+	if err != nil {
+		return fmt.Errorf("invalid public key encoding: %w", err)
+	}
+
+	if len(pubKeyBytes) != ed25519.PublicKeySize {
+		return fmt.Errorf("invalid public key size: expected %d bytes, got %d", ed25519.PublicKeySize, len(pubKeyBytes))
+	}
+
+	// Reconstruct the signed message: runtime_id + tenant_id + timestamp
+	message := fmt.Sprintf("%s:%s:%d", hb.RuntimeID, hb.TenantID, hb.Timestamp)
+
+	// Decode signature
+	sigBytes, err := base64.StdEncoding.DecodeString(hb.Signature)
 	if err != nil {
 		return fmt.Errorf("invalid signature encoding: %w", err)
+	}
+
+	// Verify Ed25519 signature
+	if !ed25519.Verify(ed25519.PublicKey(pubKeyBytes), []byte(message), sigBytes) {
+		return fmt.Errorf("heartbeat Ed25519 signature verification failed")
 	}
 
 	return nil

@@ -122,8 +122,8 @@ func (gm *GatingMiddleware) enforceRequestLimits(ctx context.Context, tenantID s
 	count, err := gm.client.IncrementRequestCount(ctx, tenantID)
 	if err != nil {
 		gm.logger.Printf("[Gating] Failed to increment request count: tenant=%s error=%v", tenantID, err)
-		// Fail open (allow request) but log error
-		return nil
+		// SECURITY: Fail closed — deny request when billing counter is unavailable
+		return fiber.NewError(fiber.StatusServiceUnavailable, "Billing service temporarily unavailable. Please try again.")
 	}
 
 	// Check if over limit

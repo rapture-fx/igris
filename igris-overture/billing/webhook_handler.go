@@ -123,10 +123,10 @@ func (h *WebhookHandler) HandleWebhook(w http.ResponseWriter, r *http.Request) {
 
 // verifySignature validates HMAC signature
 func (h *WebhookHandler) verifySignature(body []byte, signature string) bool {
-	// Skip verification if no secret configured (development only)
+	// SECURITY: Reject all webhooks if no secret is configured
 	if h.client.webhookSecret == "" {
-		h.logger.Println("[Webhook] WARNING: Signature verification skipped (no secret)")
-		return true
+		h.logger.Println("[Webhook] REJECTED: No webhook secret configured. Set POLAR_WEBHOOK_SECRET.")
+		return false
 	}
 
 	// Compute HMAC

@@ -104,7 +104,11 @@ func (be *BudgetEnforcer) EnforceMiddleware() fiber.Handler {
 		exceeded, currentSpend, budget, err := be.isBudgetExceeded(c.Context(), tenantIDStr)
 		if err != nil {
 			be.logger.Printf("[BudgetEnforcer] Failed to check budget: %v", err)
-			return c.Next() // Fail open
+			// SECURITY: Fail closed — deny request when billing state is unknown
+			return c.Status(fiber.StatusServiceUnavailable).JSON(fiber.Map{
+				"error":   "billing_unavailable",
+				"message": "Unable to verify billing status. Please try again shortly.",
+			})
 		}
 
 		if exceeded {

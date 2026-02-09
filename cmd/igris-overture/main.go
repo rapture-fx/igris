@@ -88,7 +88,13 @@ func main() {
 
 	// Global middleware
 	app.Use(recover.New())
-	app.Use(cors.New())
+	app.Use(cors.New(cors.Config{
+		AllowOrigins:     getAllowedOrigins(),
+		AllowMethods:     "GET,POST,PUT,DELETE,PATCH,OPTIONS",
+		AllowHeaders:     "Origin,Content-Type,Accept,Authorization,X-API-Key,X-Trace-ID,X-Budget-Override",
+		AllowCredentials: true,
+		MaxAge:           3600,
+	}))
 
 	// OpenTelemetry tracing middleware (if enabled)
 	if tracingEnabled {
@@ -97,6 +103,16 @@ func main() {
 
 	app.Use(middleware.TraceID())           // Add trace IDs to all requests
 	app.Use(middleware.RequestLogger())      // Structured request logging
+
+	// Global rate limiting (per-IP, per-tenant when authenticated)
+	globalRateLimit := 100 // requests per minute default
+	if envRate := os.Getenv("RATE_LIMIT_PER_MINUTE"); envRate != "" {
+		if parsed, err := strconv.Atoi(envRate); err == nil && parsed > 0 {
+			globalRateLimit = parsed
+		}
+	}
+	rateLimiter := middleware.NewRateLimiter(globalRateLimit, time.Minute)
+	app.Use(rateLimiter.RateLimitMiddleware())
 
 	// Phase 2: Initialize multi-tenancy BEFORE registering routes (if enabled)
 	var tenantAuth *middleware.TenantAuth
@@ -456,6 +472,16 @@ func main() {
 	if err := app.Listen(":" + port); err != nil {
 		log.Fatal(err)
 	}
+}
+
+// getAllowedOrigins returns CORS allowed origins from environment or defaults
+func getAllowedOrigins() string {
+	origins := os.Getenv("CORS_ALLOWED_ORIGINS")
+	if origins != "" {
+		return origins
+	}
+	// Default: production domains + localhost for development
+	return "https://igrisinertial.com,https://www.igrisinertial.com,https://admin.igris-inertial.com,https://docs.igrisinertial.com,http://localhost:3000,http://localhost:3001,http://localhost:3005"
 }
 
 func customErrorHandler(c *fiber.Ctx, err error) error {
