@@ -19,83 +19,68 @@ export default function Footer() {
             <div className="flex flex-col md:flex-row md:items-start md:justify-between gap-6">
               {/* Left side - Company + Features + Resources + Social */}
               <div className="flex gap-12">
-                {/* Edge Features links */}
+                {/* Routing & Agents */}
                 <div className="flex flex-col gap-2 text-left">
                   <span className="text-sm text-[#f6f6f4] font-medium mb-1" style={{ fontFamily: 'var(--font-geist-sans)' }}>
-                    Edge
+                    Routing & Agents
                   </span>
-                  <Link href="/runtime#local-fallback" className="text-sm text-[#a8a898] hover:text-[#f6f6f4] transition-colors" style={{ fontFamily: 'var(--font-geist-sans)' }}>
-                    Local LLM Fallback
+                  <Link href="/features#thompson-sampling" prefetch={false} className="text-sm text-[#a8a898] hover:text-[#f6f6f4] transition-colors" style={{ fontFamily: 'var(--font-geist-sans)' }}>
+                    Thompson Sampling
                   </Link>
-                  <Link href="/runtime#qlora" className="text-sm text-[#a8a898] hover:text-[#f6f6f4] transition-colors" style={{ fontFamily: 'var(--font-geist-sans)' }}>
-                    QLoRA Training
+                  <Link href="/features#speculative" prefetch={false} className="text-sm text-[#a8a898] hover:text-[#f6f6f4] transition-colors" style={{ fontFamily: 'var(--font-geist-sans)' }}>
+                    Speculative Execution
                   </Link>
-                  <Link href="/runtime#mcp-swarm" className="text-sm text-[#a8a898] hover:text-[#f6f6f4] transition-colors" style={{ fontFamily: 'var(--font-geist-sans)' }}>
-                    MCP Swarm Mode
+                  <Link href="/features#council-mode" prefetch={false} className="text-sm text-[#a8a898] hover:text-[#f6f6f4] transition-colors" style={{ fontFamily: 'var(--font-geist-sans)' }}>
+                    Council Mode
                   </Link>
-                  <Link href="/runtime#tools" className="text-sm text-[#a8a898] hover:text-[#f6f6f4] transition-colors" style={{ fontFamily: 'var(--font-geist-sans)' }}>
-                    Tool Execution
+                  <Link href="/features#cognitive-advisor" prefetch={false} className="text-sm text-[#a8a898] hover:text-[#f6f6f4] transition-colors" style={{ fontFamily: 'var(--font-geist-sans)' }}>
+                    Cognitive Advisor
                   </Link>
-                  <Link href="/runtime#planning" className="text-sm text-[#a8a898] hover:text-[#f6f6f4] transition-colors" style={{ fontFamily: 'var(--font-geist-sans)' }}>
+                  <Link href="/features#planning" prefetch={false} className="text-sm text-[#a8a898] hover:text-[#f6f6f4] transition-colors" style={{ fontFamily: 'var(--font-geist-sans)' }}>
                     Planning Agents
                   </Link>
-                  <Link href="/runtime#reflection" className="text-sm text-[#a8a898] hover:text-[#f6f6f4] transition-colors" style={{ fontFamily: 'var(--font-geist-sans)' }}>
+                  <Link href="/features#reflection" prefetch={false} className="text-sm text-[#a8a898] hover:text-[#f6f6f4] transition-colors" style={{ fontFamily: 'var(--font-geist-sans)' }}>
                     Reflection Agents
                   </Link>
-                  <Link href="/runtime#swarm" className="text-sm text-[#a8a898] hover:text-[#f6f6f4] transition-colors" style={{ fontFamily: 'var(--font-geist-sans)' }}>
+                  <Link href="/features#swarm" prefetch={false} className="text-sm text-[#a8a898] hover:text-[#f6f6f4] transition-colors" style={{ fontFamily: 'var(--font-geist-sans)' }}>
                     Multi-Agent Swarms
                   </Link>
-                  <Link href="/runtime#robotics" className="text-sm text-[#a8a898] hover:text-[#f6f6f4] transition-colors" style={{ fontFamily: 'var(--font-geist-sans)' }}>
-                    ROS2 Integration
-                  </Link>
-                  <Link href="/runtime#federated" className="text-sm text-[#a8a898] hover:text-[#f6f6f4] transition-colors" style={{ fontFamily: 'var(--font-geist-sans)' }}>
-                    Federated Learning
-                  </Link>
-                  <Link href="/runtime#hitl" className="text-sm text-[#a8a898] hover:text-[#f6f6f4] transition-colors" style={{ fontFamily: 'var(--font-geist-sans)' }}>
-                    Human-in-the-Loop
-                  </Link>
-                  <Link href="/runtime#model-mgmt" className="text-sm text-[#a8a898] hover:text-[#f6f6f4] transition-colors" style={{ fontFamily: 'var(--font-geist-sans)' }}>
-                    Model Management
-                  </Link>
-                  <Link href="/runtime#behavior-trees" className="text-sm text-[#a8a898] hover:text-[#f6f6f4] transition-colors" style={{ fontFamily: 'var(--font-geist-sans)' }}>
+                  <Link href="/features#behavior-trees" prefetch={false} className="text-sm text-[#a8a898] hover:text-[#f6f6f4] transition-colors" style={{ fontFamily: 'var(--font-geist-sans)' }}>
                     Behavior Trees
                   </Link>
                 </div>
 
-                {/* Cloud Features links */}
+                {/* Infrastructure & Security */}
                 <div className="flex flex-col gap-2 text-left">
                   <span className="text-sm text-[#f6f6f4] font-medium mb-1" style={{ fontFamily: 'var(--font-geist-sans)' }}>
-                    Cloud
+                    Infrastructure & Security
                   </span>
-                  <Link href="/overture#slo-enforcer" className="text-sm text-[#a8a898] hover:text-[#f6f6f4] transition-colors" style={{ fontFamily: 'var(--font-geist-sans)' }}>
+                  <Link href="/features#local-fallback" prefetch={false} className="text-sm text-[#a8a898] hover:text-[#f6f6f4] transition-colors" style={{ fontFamily: 'var(--font-geist-sans)' }}>
+                    Local LLM Fallback
+                  </Link>
+                  <Link href="/features#qlora" prefetch={false} className="text-sm text-[#a8a898] hover:text-[#f6f6f4] transition-colors" style={{ fontFamily: 'var(--font-geist-sans)' }}>
+                    QLoRA Training
+                  </Link>
+                  <Link href="/features#federated" prefetch={false} className="text-sm text-[#a8a898] hover:text-[#f6f6f4] transition-colors" style={{ fontFamily: 'var(--font-geist-sans)' }}>
+                    Federated Learning
+                  </Link>
+                  <Link href="/features#slo-enforcer" prefetch={false} className="text-sm text-[#a8a898] hover:text-[#f6f6f4] transition-colors" style={{ fontFamily: 'var(--font-geist-sans)' }}>
                     SLO Enforcer
                   </Link>
-                  <Link href="/overture#cognitive-advisor" className="text-sm text-[#a8a898] hover:text-[#f6f6f4] transition-colors" style={{ fontFamily: 'var(--font-geist-sans)' }}>
-                    Cognitive Advisor
-                  </Link>
-                  <Link href="/overture#speculative" className="text-sm text-[#a8a898] hover:text-[#f6f6f4] transition-colors" style={{ fontFamily: 'var(--font-geist-sans)' }}>
-                    Speculative Execution
-                  </Link>
-                  <Link href="/overture#council-mode" className="text-sm text-[#a8a898] hover:text-[#f6f6f4] transition-colors" style={{ fontFamily: 'var(--font-geist-sans)' }}>
-                    Council Mode
-                  </Link>
-                  <Link href="/overture#provider-health" className="text-sm text-[#a8a898] hover:text-[#f6f6f4] transition-colors" style={{ fontFamily: 'var(--font-geist-sans)' }}>
+                  <Link href="/features#provider-health" prefetch={false} className="text-sm text-[#a8a898] hover:text-[#f6f6f4] transition-colors" style={{ fontFamily: 'var(--font-geist-sans)' }}>
                     Provider Health
                   </Link>
-                  <Link href="/overture#adaptive-optimization" className="text-sm text-[#a8a898] hover:text-[#f6f6f4] transition-colors" style={{ fontFamily: 'var(--font-geist-sans)' }}>
-                    Adaptive Optimization
+                  <Link href="/features#fleet" prefetch={false} className="text-sm text-[#a8a898] hover:text-[#f6f6f4] transition-colors" style={{ fontFamily: 'var(--font-geist-sans)' }}>
+                    Fleet Management
                   </Link>
-                  <Link href="/overture#shadow-mode" className="text-sm text-[#a8a898] hover:text-[#f6f6f4] transition-colors" style={{ fontFamily: 'var(--font-geist-sans)' }}>
+                  <Link href="/features#shadow-mode" prefetch={false} className="text-sm text-[#a8a898] hover:text-[#f6f6f4] transition-colors" style={{ fontFamily: 'var(--font-geist-sans)' }}>
                     Shadow Mode
                   </Link>
-                  <Link href="/overture#escapevector" className="text-sm text-[#a8a898] hover:text-[#f6f6f4] transition-colors" style={{ fontFamily: 'var(--font-geist-sans)' }}>
+                  <Link href="/features#escapevector" prefetch={false} className="text-sm text-[#a8a898] hover:text-[#f6f6f4] transition-colors" style={{ fontFamily: 'var(--font-geist-sans)' }}>
                     EscapeVector
                   </Link>
-                  <Link href="/overture#gold-code" className="text-sm text-[#a8a898] hover:text-[#f6f6f4] transition-colors" style={{ fontFamily: 'var(--font-geist-sans)' }}>
+                  <Link href="/features#gold-code" prefetch={false} className="text-sm text-[#a8a898] hover:text-[#f6f6f4] transition-colors" style={{ fontFamily: 'var(--font-geist-sans)' }}>
                     Gold Code
-                  </Link>
-                  <Link href="/overture#hotfix-blob" className="text-sm text-[#a8a898] hover:text-[#f6f6f4] transition-colors" style={{ fontFamily: 'var(--font-geist-sans)' }}>
-                    Hotfix Blob
                   </Link>
                 </div>
 
