@@ -42,7 +42,7 @@ export default function HowItWorks() {
                 {steps.map((step, index) => (
                   <div key={step.name} className="pb-2" style={index < steps.length - 1 ? { borderBottom: '0.5px solid #d1d5db' } : {}}>
                     <div className="pt-2">
-                      <h4 className="text-sm font-bold mb-4 text-[#000000] dark:text-[#f6f6f4]">
+                      <h4 className="text-base md:text-lg font-bold mb-4 text-[#000000] dark:text-[#f6f6f4]">
                         {step.name}
                       </h4>
                       <p className="text-sm md:text-base text-gray-600 dark:text-[#a8a898] leading-relaxed" style={{ fontWeight: 400, fontFamily: 'var(--font-geist-sans)' }}>

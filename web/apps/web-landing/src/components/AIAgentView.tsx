@@ -51,7 +51,7 @@ export default function AIAgentView() {
   }, [isMounted]);
 
   return (
-    <div className="min-h-screen bg-[#f6f6f4] dark:bg-dark-bg text-gray-900 dark:text-[#f6f6f4] transition-colors duration-200" style={{ fontFamily: 'Roboto Mono, monospace' }}>
+    <div className="min-h-screen bg-[#f6f6f4] dark:bg-dark-bg text-gray-900 dark:text-[#f6f6f4] transition-colors duration-200" style={{ fontFamily: 'var(--font-geist-mono)' }}>
       {visibleSections === 0 && (
         <div className="fixed inset-0 flex items-center justify-center bg-[#f6f6f4] dark:bg-dark-bg">
           <div className="flex flex-col items-start gap-1 text-sm">

@@ -53,7 +53,7 @@ export default function MultiTenancy() {
                 <div className="w-full max-w-xl space-y-4">
                   {features.map((feature) => (
                     <div key={feature.title} className="border border-white/50 dark:border-[#f6f6f4]/25 rounded-lg p-4 bg-white/60 dark:bg-[#1b1912]/60 backdrop-blur-md">
-                      <h4 className="text-sm font-bold mb-2 text-[#000000] dark:text-[#f6f6f4]">
+                      <h4 className="text-base md:text-lg font-bold mb-2 text-[#000000] dark:text-[#f6f6f4]">
                         {feature.title}
                       </h4>
                       <p className="text-sm md:text-base text-gray-600 dark:text-[#a8a898] leading-relaxed" style={{ fontWeight: 400, fontFamily: 'var(--font-geist-sans)' }}>
