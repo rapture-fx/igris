@@ -35,13 +35,13 @@ export default function MultiTenancy() {
             </h3>
           </div>
 
-          {/* Bento grid: 2 on top, 3 on bottom - compact centered */}
-          <div className="max-w-[700px] mx-auto flex flex-col gap-4">
+          {/* Bento grid: 2 on top, 3 on bottom */}
+          <div className="flex flex-col gap-4">
             {/* Top row - 2 items */}
             <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
               {features.slice(0, 2).map((feature) => (
-                <div key={feature.title} className="border border-gray-200 dark:border-[#f6f6f4]/8 rounded-2xl p-5 bg-[#edece9] dark:bg-[#1b1912]/60 hover:border-gray-300 dark:hover:border-[#f6f6f4]/15 transition-colors duration-200 min-h-[180px]">
-                  <h4 className="text-sm md:text-base font-bold mb-2 text-[#000000] dark:text-[#f6f6f4]">
+                <div key={feature.title} className="border border-gray-200 dark:border-[#f6f6f4]/8 rounded-2xl p-6 bg-[#edece9] dark:bg-[#1b1912]/60 hover:border-gray-300 dark:hover:border-[#f6f6f4]/15 transition-colors duration-200 min-h-[340px]">
+                  <h4 className="text-sm md:text-base font-bold mb-2 text-[#000000] dark:text-[#f6f6f4]" style={{ fontFamily: 'var(--font-geist-sans)' }}>
                     {feature.title}
                   </h4>
                   <p className="text-xs md:text-sm text-gray-600 dark:text-[#a8a898] leading-relaxed" style={{ fontWeight: 400, fontFamily: 'var(--font-geist-sans)' }}>
@@ -54,8 +54,8 @@ export default function MultiTenancy() {
             {/* Bottom row - 3 items */}
             <div className="grid grid-cols-1 md:grid-cols-3 gap-4">
               {features.slice(2).map((feature) => (
-                <div key={feature.title} className="border border-gray-200 dark:border-[#f6f6f4]/8 rounded-2xl p-5 bg-[#edece9] dark:bg-[#1b1912]/60 hover:border-gray-300 dark:hover:border-[#f6f6f4]/15 transition-colors duration-200 min-h-[180px]">
-                  <h4 className="text-sm md:text-base font-bold mb-2 text-[#000000] dark:text-[#f6f6f4]">
+                <div key={feature.title} className="border border-gray-200 dark:border-[#f6f6f4]/8 rounded-2xl p-6 bg-[#edece9] dark:bg-[#1b1912]/60 hover:border-gray-300 dark:hover:border-[#f6f6f4]/15 transition-colors duration-200 min-h-[280px]">
+                  <h4 className="text-sm md:text-base font-bold mb-2 text-[#000000] dark:text-[#f6f6f4]" style={{ fontFamily: 'var(--font-geist-sans)' }}>
                     {feature.title}
                   </h4>
                   <p className="text-xs md:text-sm text-gray-600 dark:text-[#a8a898] leading-relaxed" style={{ fontWeight: 400, fontFamily: 'var(--font-geist-sans)' }}>
