@@ -43,7 +43,7 @@ export default function MultiTenancy() {
             </div>
 
             {/* Right side - Features */}
-            <div className="h-full relative flex items-center justify-center" style={{ minHeight: '700px' }}>
+            <div className="h-full relative flex items-center justify-center mobile-auto-height" style={{ minHeight: '700px' }}>
                 <img
                   src="/hrllg.png"
                   alt=""

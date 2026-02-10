@@ -52,13 +52,13 @@ export default function UseCasesTeaser() {
               </p>
             </div>
 
-            <div className="grid grid-cols-1 lg:grid-cols-3 gap-6" style={{ minHeight: '750px' }}>
+            <div className="grid grid-cols-1 lg:grid-cols-3 gap-6 mobile-auto-height" style={{ minHeight: '750px' }}>
               {/* Left Column - Empty */}
-              <div className="hidden lg:flex text-left lg:col-span-2 pl-0 md:pl-4 lg:pl-8 flex-col justify-center" style={{ minHeight: '750px' }}>
+              <div className="hidden lg:flex text-left lg:col-span-2 pl-0 md:pl-4 lg:pl-8 flex-col justify-center mobile-auto-height" style={{ minHeight: '750px' }}>
               </div>
 
               {/* Right Column - All Content */}
-              <div className="text-left lg:col-span-1 pl-0 md:pl-4 lg:pl-8 flex flex-col justify-center" style={{ minHeight: '750px' }}>
+              <div className="text-left lg:col-span-1 pl-0 md:pl-4 lg:pl-8 flex flex-col justify-center mobile-auto-height" style={{ minHeight: '750px' }}>
                 <h3 className="text-2xl md:text-2xl lg:text-3xl font-inter mb-4" style={{ color: '#000000' }}>
                   Use Cases
                 </h3>

@@ -160,6 +160,11 @@
     padding-top: 2rem;
     padding-bottom: 2rem;
   }
+
+  /* Override inline minHeight on mobile so content isn't forced tall */
+  .mobile-auto-height {
+    min-height: auto !important;
+  }
 }
 
 /* Modal open - prevent body scroll */
