@@ -55,9 +55,8 @@ export default function CoreCapabilities() {
               {capabilities.map((capability, index) => (
                 <React.Fragment key={capability.name}>
                    <div className="bg-[#f6f6f4] dark:bg-[#1b1912] border border-gray-300 dark:border-[#f6f6f4]/10 rounded-2xl w-full md:w-[280px] shadow-md flex flex-col" style={{ minHeight: '380px' }}>
-                    <div style={{
+                    <div className="flex-1" style={{
                       width: '100%',
-                      height: '220px',
                       display: 'flex',
                       alignItems: 'center',
                       justifyContent: 'center',
@@ -101,11 +100,11 @@ export default function CoreCapabilities() {
                         />
                       )}
                     </div>
-                    <div className="p-6 pt-4">
+                    <div className="p-6 pt-4 mt-auto">
                       <h4 className="text-base md:text-lg mb-2 text-[#000000] dark:text-[#f6f6f4]" style={{ fontFamily: 'var(--font-geist-sans)' }}>
                         {capability.name}
                       </h4>
-            <p className="text-sm md:text-base text-gray-600 dark:text-[#a8a898] leading-relaxed" style={{ fontWeight: 400, fontFamily: 'var(--font-geist-sans)' }}>
+                      <p className="text-sm md:text-base text-gray-600 dark:text-[#a8a898] leading-relaxed" style={{ fontWeight: 400, fontFamily: 'var(--font-geist-sans)' }}>
                         {capability.description}
                       </p>
                     </div>
