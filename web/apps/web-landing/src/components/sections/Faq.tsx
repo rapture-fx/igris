@@ -176,14 +176,14 @@ export default function Faq() {
 
     return (
      <section id="faq" className="bg-[#f6f6f4] dark:bg-dark-bg text-gray-900 dark:text-[#f6f6f4] transition-colors duration-200">
-       <div className="max-w-[1300px] mx-auto px-4 sm:px-6 lg:px-8">
+       <div className="max-w-[1100px] mx-auto px-4 sm:px-6 lg:px-8">
             <div className="relative px-4 md:px-8 lg:px-12 min-h-0 md:min-h-[750px] flex flex-col" style={{ borderLeft: '0.5px solid rgba(209, 213, 219, 0.35)', borderRight: '0.5px solid rgba(209, 213, 219, 0.35)', borderBottom: '0.5px solid rgba(209, 213, 219, 0.35)' }}>
 
            {/* Mobile Layout - Title first, then FAQ items */}
            <div className="mb-6 md:mb-0 md:hidden text-left" style={{ paddingTop: '3rem', paddingBottom: '3rem' }}>
              {/* Title Section - Shows first on mobile */}
              <div className="mb-8 text-left">
-               <h2 className="text-xl md:text-2xl lg:text-3xl mb-4 text-[#000000] dark:text-[#f6f6f4]" style={{ fontFamily: 'var(--font-geist-pixel-square)' }}>
+               <h2 className="text-xl md:text-2xl lg:text-3xl mb-4 text-[#000000] dark:text-[#f6f6f4]" style={{ fontFamily: 'var(--font-geist-sans)' }}>
                  Questions and answers
                </h2>
              </div>
@@ -197,7 +197,7 @@ export default function Faq() {
                      onClick={() => toggleSection(sectionIndex)}
                      className="w-full text-left px-4 py-3 flex items-center justify-between gap-2 hover:opacity-80 transition-opacity border section-border bg-[#f6f6f4] dark:bg-[#1b1912]"
                    >
-                        <h3 className="text-base font-semibold text-[#000000] dark:text-[#f6f6f4]" style={{ fontFamily: 'var(--font-geist-pixel-square)' }}>
+                        <h3 className="text-base font-semibold text-[#000000] dark:text-[#f6f6f4]" style={{ fontFamily: 'var(--font-geist-sans)' }}>
                           {section.title}
                         </h3>
                      <ChevronDown
@@ -218,7 +218,7 @@ export default function Faq() {
                       <div className="mt-2 space-y-2">
                         {section.entries.map((faq, entryIndex) => (
                           <div key={entryIndex} className="border section-border bg-[#f6f6f4] dark:bg-[#1b1912] p-4">
-                             <p className="text-sm font-medium mb-2 text-[#000000] dark:text-[#f6f6f4]" style={{ fontFamily: 'var(--font-geist-pixel-square)' }}>
+                             <p className="text-sm font-medium mb-2 text-[#000000] dark:text-[#f6f6f4]" style={{ fontFamily: 'var(--font-geist-sans)' }}>
                                {faq.question}
                              </p>
                               {faq.type === 'text' ? (
@@ -266,7 +266,7 @@ export default function Faq() {
                        onClick={() => toggleSection(sectionIndex)}
                        className="w-full text-left px-4 py-3 flex items-center justify-between gap-2 hover:opacity-80 transition-opacity border section-border bg-[#f6f6f4] dark:bg-[#1b1912]"
                      >
-                        <h3 className="text-base font-semibold text-[#000000] dark:text-[#f6f6f4]" style={{ fontFamily: 'var(--font-geist-pixel-square)' }}>
+                        <h3 className="text-base font-semibold text-[#000000] dark:text-[#f6f6f4]" style={{ fontFamily: 'var(--font-geist-sans)' }}>
                           {section.title}
                         </h3>
                        <ChevronDown
@@ -287,7 +287,7 @@ export default function Faq() {
                         <div className="mt-2 space-y-2">
                           {section.entries.map((faq, entryIndex) => (
                             <div key={entryIndex} className="border section-border bg-[#f6f6f4] dark:bg-[#1b1912] p-4">
-                             <p className="text-sm font-medium mb-2 text-[#000000] dark:text-[#f6f6f4]" style={{ fontFamily: 'var(--font-geist-pixel-square)' }}>
+                             <p className="text-sm font-medium mb-2 text-[#000000] dark:text-[#f6f6f4]" style={{ fontFamily: 'var(--font-geist-sans)' }}>
                                {faq.question}
                              </p>
                               {faq.type === 'text' ? (
@@ -328,7 +328,7 @@ export default function Faq() {
                 <p className="text-base text-[#85612c] dark:text-[#c5b0cd] mb-2" style={{ fontFamily: 'var(--font-geist-mono)', letterSpacing: '0.05em' }}>
                   05. FAQ
                 </p>
-               <h3 className="text-xl md:text-2xl lg:text-3xl mb-4 text-[#000000] dark:text-[#f6f6f4]" style={{ fontFamily: 'var(--font-geist-pixel-square)' }}>
+               <h3 className="text-xl md:text-2xl lg:text-3xl mb-4 text-[#000000] dark:text-[#f6f6f4]" style={{ fontFamily: 'var(--font-geist-sans)' }}>
                  Questions and answers
                </h3>
                 <p className="text-sm text-gray-600 dark:text-[#a8a898] leading-relaxed" style={{ fontFamily: 'var(--font-geist-mono)' }}>
