@@ -116,7 +116,7 @@ export default function Pricing() {
         <div className="relative px-4 md:px-8 lg:px-12 pb-0 pt-[70px] bg-[#f6f6f4] dark:bg-[#1b1912] z-10" style={{ borderLeft: '0.5px solid rgba(209, 213, 219, 0.35)', borderRight: '0.5px solid rgba(209, 213, 219, 0.35)', borderBottom: '0.5px solid rgba(209, 213, 219, 0.35)' }}>
           <div className="max-w-[1400px] mx-auto pt-24 px-0 md:px-8 lg:px-0 pb-24">
             <div className="text-center mb-12">
-              <h2 className="text-4xl md:text-5xl lg:text-6xl mb-6 text-[#000000] dark:text-[#f6f6f4]" style={{ fontFamily: 'var(--font-geist-pixel-square)' }}>
+              <h2 className="text-3xl md:text-5xl lg:text-6xl mb-6 text-[#000000] dark:text-[#f6f6f4]" style={{ fontFamily: 'var(--font-geist-pixel-square)' }}>
                 Pricing
               </h2>
             </div>
@@ -173,7 +173,7 @@ export default function Pricing() {
                     </div>
                     <button
                       onClick={openEarlyAccessModal}
-                      className="inline-flex items-center justify-center px-4 py-1.5 rounded-md transition-all duration-200 text-xs mt-8 opacity-0 group-hover:opacity-100 self-start text-white dark:text-[#1b1912] bg-[#000000] dark:bg-[#f6f6f4] hover:bg-gray-800 dark:hover:bg-[#e6e6e4] border border-black dark:border-[#f6f6f4]"
+                      className="inline-flex items-center justify-center px-4 py-1.5 rounded-md transition-all duration-200 text-xs mt-8 opacity-100 md:opacity-0 md:group-hover:opacity-100 self-start text-white dark:text-[#1b1912] bg-[#000000] dark:bg-[#f6f6f4] hover:bg-gray-800 dark:hover:bg-[#e6e6e4] border border-black dark:border-[#f6f6f4]"
                       style={{ fontFamily: 'var(--font-geist-pixel-square)' }}
                     >
                       Select

@@ -42,7 +42,7 @@ export default function CoreCapabilities() {
           </div>
           
           {/* Frame with centered cards */}
-          <div className="rounded-lg flex items-center justify-center relative overflow-hidden" style={{ minHeight: '400px', paddingBottom: '3rem' }}>
+          <div className="rounded-lg flex items-center justify-center relative overflow-hidden core-cards-frame" style={{ height: '700px', paddingBottom: '3rem' }}>
             <img
               src="/arc.png"
               alt=""

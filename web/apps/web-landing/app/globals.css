@@ -143,6 +143,25 @@
   border-top-color: rgba(0, 0, 0, 0.1);
 }
 
+/* Hero top padding - mobile-friendly */
+.hero-top-padding {
+  padding-top: 16rem;
+}
+
+@media (max-width: 767px) {
+  .hero-top-padding {
+    padding-top: 7rem;
+  }
+
+  /* Core capabilities cards frame - auto height on mobile */
+  .core-cards-frame {
+    height: auto !important;
+    min-height: 0 !important;
+    padding-top: 2rem;
+    padding-bottom: 2rem;
+  }
+}
+
 /* Modal open - prevent body scroll */
 body.modal-open {
   overflow: hidden !important;
