@@ -66,7 +66,7 @@ export default function Solve() {
                 className="border border-gray-200 dark:border-[#f6f6f4]/8 rounded-2xl p-6 flex flex-col gap-3 hover:border-gray-300 dark:hover:border-[#f6f6f4]/15 transition-colors duration-200 bg-[#edece9] dark:bg-[#1b1912]/60 min-h-[140px]"
               >
                 <span
-                  className="text-sm font-medium text-[#000000] dark:text-[#f6f6f4]"
+                  className="text-sm text-[#000000] dark:text-[#f6f6f4]"
                   style={{ fontFamily: 'var(--font-geist-sans)' }}
                 >
                   {item.label}

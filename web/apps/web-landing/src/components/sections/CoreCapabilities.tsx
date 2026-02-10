@@ -102,7 +102,7 @@ export default function CoreCapabilities() {
                       )}
                     </div>
                     <div className="p-6 pt-4">
-                      <h4 className="text-base md:text-lg font-bold mb-2 text-[#000000] dark:text-[#f6f6f4]" style={{ fontFamily: 'var(--font-geist-sans)' }}>
+                      <h4 className="text-base md:text-lg mb-2 text-[#000000] dark:text-[#f6f6f4]" style={{ fontFamily: 'var(--font-geist-sans)' }}>
                         {capability.name}
                       </h4>
             <p className="text-sm md:text-base text-gray-600 dark:text-[#a8a898] leading-relaxed" style={{ fontWeight: 400, fontFamily: 'var(--font-geist-sans)' }}>
