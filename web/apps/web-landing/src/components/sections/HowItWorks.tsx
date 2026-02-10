@@ -32,11 +32,11 @@ export default function HowItWorks() {
           {/* 3-column seamless table */}
           <div className="grid grid-cols-1 md:grid-cols-3 pt-8">
             {steps.map((step, index) => (
-              <div key={step.name} className="p-6 pb-0" style={{ borderRight: index < steps.length - 1 ? '0.5px solid rgba(209, 213, 219, 0.35)' : 'none' }}>
+              <div key={step.name} className={`pb-0 pt-6 pr-6 ${index === 0 ? 'pl-0' : 'pl-6'}`}>
                 <span className="text-xs text-[#85612c] dark:text-[#c5b0cd] mb-3 block" style={{ fontFamily: 'var(--font-geist-mono, "Geist Mono", monospace)' }}>
                   0{index + 1}
                 </span>
-                <h4 className="text-base md:text-lg font-bold mb-2 text-[#000000] dark:text-[#f6f6f4]">
+                <h4 className="text-base md:text-lg font-bold mb-2 text-[#000000] dark:text-[#f6f6f4]" style={{ fontFamily: 'var(--font-geist-sans)' }}>
                   {step.name}
                 </h4>
                 <p className="text-sm md:text-base text-gray-600 dark:text-[#a8a898] leading-relaxed" style={{ fontWeight: 400, fontFamily: 'var(--font-geist-sans)' }}>

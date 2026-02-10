@@ -54,10 +54,10 @@ export default function CoreCapabilities() {
             <div className="flex flex-col md:flex-row gap-4 z-10 w-full md:w-auto px-4 md:px-0 py-8 md:py-0">
               {capabilities.map((capability, index) => (
                 <React.Fragment key={capability.name}>
-                  <div className="bg-[#f6f6f4] dark:bg-[#1b1912] border border-gray-300 dark:border-[#f6f6f4]/10 rounded-2xl w-full md:w-[240px] shadow-md flex flex-col" style={{ minHeight: '300px' }}>
+                   <div className="bg-[#f6f6f4] dark:bg-[#1b1912] border border-gray-300 dark:border-[#f6f6f4]/10 rounded-2xl w-full md:w-[280px] shadow-md flex flex-col" style={{ minHeight: '380px' }}>
                     <div style={{
                       width: '100%',
-                      height: '180px',
+                      height: '220px',
                       display: 'flex',
                       alignItems: 'center',
                       justifyContent: 'center',
@@ -69,8 +69,8 @@ export default function CoreCapabilities() {
                           src={mounted && theme === 'dark' ? '/cr.png' : '/exc.png'}
                           alt={capability.name}
                           style={{
-                            width: '70%',
-                            height: '70%',
+                            width: '85%',
+                            height: '85%',
                             objectFit: 'contain',
                             opacity: '0.6'
                           }}
@@ -81,8 +81,8 @@ export default function CoreCapabilities() {
                           src={mounted && theme === 'dark' ? '/cs.png' : '/tre.png'}
                           alt={capability.name}
                           style={{
-                            width: '70%',
-                            height: '70%',
+                            width: '85%',
+                            height: '85%',
                             objectFit: 'contain',
                             opacity: '0.6'
                           }}
@@ -93,8 +93,8 @@ export default function CoreCapabilities() {
                           src={mounted && theme === 'dark' ? '/cc.png' : '/one.png'}
                           alt={capability.name}
                           style={{
-                            width: '70%',
-                            height: '70%',
+                            width: '85%',
+                            height: '85%',
                             objectFit: 'contain',
                             opacity: '0.6'
                           }}
@@ -102,7 +102,7 @@ export default function CoreCapabilities() {
                       )}
                     </div>
                     <div className="p-6 pt-4">
-                      <h4 className="text-base md:text-lg font-bold mb-2 text-[#000000] dark:text-[#f6f6f4]">
+                      <h4 className="text-base md:text-lg font-bold mb-2 text-[#000000] dark:text-[#f6f6f4]" style={{ fontFamily: 'var(--font-geist-sans)' }}>
                         {capability.name}
                       </h4>
             <p className="text-sm md:text-base text-gray-600 dark:text-[#a8a898] leading-relaxed" style={{ fontWeight: 400, fontFamily: 'var(--font-geist-sans)' }}>
