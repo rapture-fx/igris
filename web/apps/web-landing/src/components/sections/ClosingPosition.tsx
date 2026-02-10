@@ -5,17 +5,17 @@ export default function ClosingPosition() {
   return (
     <>
       <section className="bg-[#f6f6f4] dark:bg-dark-bg text-gray-900 dark:text-[#f6f6f4] transition-colors duration-200">
-        <div className="mx-auto max-w-[1300px] px-4 sm:px-6 lg:px-8">
+        <div className="mx-auto max-w-[1100px] px-4 sm:px-6 lg:px-8">
             <div className="relative px-4 md:px-8 lg:px-12 flex flex-col justify-center bg-[#f6f6f4] dark:bg-[#1b1912]" style={{
-              minHeight: '500px',
+              minHeight: '300px',
               borderLeft: '0.5px solid rgba(209, 213, 219, 0.35)',
               borderRight: '0.5px solid rgba(209, 213, 219, 0.35)'
             }}>
 
-            <div className="w-full flex flex-row items-center justify-between relative z-10" style={{ minHeight: '500px' }}>
+            <div className="w-full flex flex-row items-center justify-between relative z-10" style={{ minHeight: '300px' }}>
               <div className="max-w-3xl text-left flex flex-col">
                 <h3 className="text-xl md:text-2xl lg:text-3xl mb-6 text-[#000000] dark:text-[#f6f6f4]" style={{ fontFamily: 'var(--font-geist-pixel-square)' }}>
-                  One platform. Four layers.<br />Complete control from edge to cloud.
+                  Complete control from edge to cloud.
                 </h3>
 
                 <div className="flex flex-col sm:flex-row gap-4">
@@ -31,6 +31,8 @@ export default function ClosingPosition() {
             </div>
           </div>
         </div>
+        {/* Full-width bottom border */}
+        <div style={{ borderBottom: '0.5px solid rgba(209, 213, 219, 0.35)' }} />
       </section>
     </>
   )

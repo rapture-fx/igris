@@ -143,10 +143,10 @@ export default function Header() {
                 ? 'opacity-100 backdrop-blur-md bg-[rgba(246,246,244,0.85)] dark:bg-[rgba(27,25,18,0.85)]'
                 : 'opacity-100 bg-[#f6f6f4] dark:bg-[#1b1912]'
           }`}
-          style={{ borderBottom: '0.5px solid rgba(209, 213, 219, 0.35)' }}
+          style={{ borderBottom: 'none' }}
         />
 
-        <div className="relative mx-auto max-w-[1300px] px-4 sm:px-6 lg:px-8">
+        <div className="relative mx-auto max-w-[1100px] px-4 sm:px-6 lg:px-8">
           {/* Nav bar + dropdown wrapper */}
           <div
             onMouseLeave={scheduleClose}
@@ -162,7 +162,7 @@ export default function Header() {
             <div
               className={`px-4 md:px-8 lg:px-12 flex items-center justify-between w-full transition-all duration-300 ${
                 isFloating
-                  ? 'bg-[#f6f6f4] dark:bg-[#1b1912] shadow-[0_4px_24px_rgba(0,0,0,0.08)] rounded-t-xl'
+                  ? 'bg-[#f6f6f4] dark:bg-[#1b1912] shadow-[0_4px_24px_rgba(0,0,0,0.08)] rounded-t-2xl'
                   : 'bg-transparent'
               }`}
               style={{
@@ -254,7 +254,7 @@ export default function Header() {
                 onMouseEnter={cancelClose}
               >
                 <div
-                  className={`bg-[#f6f6f4] dark:bg-[#1b1912] shadow-[0_4px_24px_rgba(0,0,0,0.08)] rounded-b-xl border-t border-gray-200 dark:border-[#f6f6f4]/5 transition-all duration-300 ease-out ${
+                  className={`bg-[#f6f6f4] dark:bg-[#1b1912] shadow-[0_4px_24px_rgba(0,0,0,0.08)] rounded-b-2xl border-t border-gray-200 dark:border-[#f6f6f4]/5 transition-all duration-300 ease-out ${
                     isDropdownVisible
                       ? 'opacity-100 max-h-[400px]'
                       : 'opacity-0 max-h-0'

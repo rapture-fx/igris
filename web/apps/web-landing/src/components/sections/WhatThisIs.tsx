@@ -22,22 +22,22 @@ export default function WhatThisIs() {
 
   return (
     <section className="bg-[#f6f6f4] dark:bg-dark-bg text-gray-900 dark:text-[#f6f6f4] transition-colors duration-200">
-      <div className="mx-auto max-w-[1300px] px-4 sm:px-6 lg:px-8">
-        <div className="relative px-4 md:px-8 lg:px-12 py-4 md:py-8 lg:py-12" style={{ borderLeft: '0.5px solid rgba(209, 213, 219, 0.35)', borderRight: '0.5px solid rgba(209, 213, 219, 0.35)', borderBottom: '0.5px solid rgba(209, 213, 219, 0.35)' }}>
+      <div className="mx-auto max-w-[1100px] px-4 sm:px-6 lg:px-8">
+        <div className="relative px-4 md:px-8 lg:px-12 py-4 md:py-6 lg:py-8" style={{ borderLeft: '0.5px solid rgba(209, 213, 219, 0.35)', borderRight: '0.5px solid rgba(209, 213, 219, 0.35)', borderBottom: '0.5px solid rgba(209, 213, 219, 0.35)' }}>
           {/* Frame with centered card */}
-          <div className="rounded-lg flex items-center justify-center relative overflow-hidden mobile-auto-height" style={{ minHeight: '700px', padding: '1.5rem' }}>
+          <div className="rounded-2xl flex items-center justify-center relative overflow-hidden mobile-auto-height" style={{ minHeight: '450px', padding: '1.5rem' }}>
             <img
               src={mounted && theme === 'dark' ? '/hs.png' : '/runtimeframe.png'}
               alt=""
-              className="absolute inset-0 w-full h-full object-cover z-0"
+              className="absolute inset-0 w-full h-full object-cover z-0 rounded-2xl"
               style={{ opacity: 0.9 }}
             />
-            <div className="max-w-sm mx-auto bg-[#f6f6f4] dark:bg-[#1b1912] border border-gray-300 dark:border-[#f6f6f4]/5 p-6 md:p-12 rounded-lg shadow-[0_0_20px_rgba(0,0,0,0.15)] dark:shadow-[0_0_30px_rgba(246,246,244,0.15)] z-10">
+            <div className="max-w-sm mx-auto bg-[#f6f6f4] dark:bg-[#1b1912] border border-gray-300 dark:border-[#f6f6f4]/5 p-6 md:p-12 rounded-2xl shadow-[0_0_20px_rgba(0,0,0,0.15)] dark:shadow-[0_0_30px_rgba(246,246,244,0.15)] z-10">
               {lines.map((line, index) => (
                 <p 
                   key={index}
                   className="text-sm md:text-base mb-3 text-[#000000] dark:text-[#f6f6f4] leading-relaxed"
-                  style={{ fontFamily: 'var(--font-geist-pixel-square)' }}
+                  style={{ fontFamily: 'var(--font-geist-sans)' }}
                 >
                   {line}
                 </p>

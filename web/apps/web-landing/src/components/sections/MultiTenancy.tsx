@@ -3,66 +3,66 @@ import React from 'react'
 const features = [
   {
     title: 'Air-gapped operation',
-    description: 'The system is designed to operate independently of network access. Deploy in secure facilities, remote environments, or fully offline locations. Execution continues uninterrupted when connectivity is unavailable or restricted.',
+    description: 'The system is designed to operate independently of network access. Deploy in secure facilities, remote environments, or fully offline locations.',
   },
   {
     title: 'Zero-trust device enrollment',
-    description: 'Devices authenticate cryptographically before joining a fleet. Each device is verified individually. Untrusted or compromised hardware is rejected automatically. No device is trusted implicitly.',
+    description: 'Devices authenticate cryptographically before joining a fleet. Each device is verified individually. Untrusted or compromised hardware is rejected automatically.',
   },
   {
     title: 'Device-bound encryption',
-    description: 'Models and execution data are encrypted and bound to specific hardware. If a device is lost or removed, its data remains inaccessible. Cryptographic keys are generated and stored on-device and are never transmitted over the network.',
+    description: 'Models and execution data are encrypted and bound to specific hardware. If a device is lost or removed, its data remains inaccessible.',
   },
   {
     title: 'Verified updates',
-    description: 'Model updates and configuration changes require cryptographic signatures. Unsigned or modified artifacts are rejected before deployment. Only approved updates are allowed to execute across the fleet.',
+    description: 'Model updates and configuration changes require cryptographic signatures. Unsigned or modified artifacts are rejected before deployment.',
   },
   {
     title: 'Verified fleet synchronization',
-    description: 'When connectivity is available, fleet state and configuration changes are verified before being applied. Only signed and authorized updates propagate to devices. Execution guarantees remain unchanged regardless of network state.',
+    description: 'When connectivity is available, fleet state and configuration changes are verified before being applied. Only signed and authorized updates propagate.',
   },
 ]
 
 export default function MultiTenancy() {
   return (
     <section className="bg-[#f6f6f4] dark:bg-dark-bg text-gray-900 dark:text-[#f6f6f4] transition-colors duration-200">
-      <div className="mx-auto max-w-[1300px] px-4 sm:px-6 lg:px-8">
-        <div className="relative px-4 md:px-8 lg:px-12 min-h-0 md:min-h-[800px]" style={{ paddingTop: '3rem', paddingBottom: '3rem', borderLeft: '0.5px solid rgba(209, 213, 219, 0.35)', borderRight: '0.5px solid rgba(209, 213, 219, 0.35)', borderBottom: '0.5px solid rgba(209, 213, 219, 0.35)' }}>
-          <div className="grid grid-cols-1 md:grid-cols-2 gap-8">
-            {/* Left side - Intro */}
-            <div className="text-left self-start">
-              <p className="text-base text-[#85612c] dark:text-[#c5b0cd] mb-2" style={{ letterSpacing: '0.05em', fontFamily: 'var(--font-geist-mono, "Geist Mono", monospace)' }}>
-                03. PROOF
-              </p>
-              <h3 className="text-xl md:text-2xl lg:text-3xl mb-4 text-[#000000] dark:text-[#f6f6f4]" style={{ fontWeight: 700, fontFamily: 'var(--font-geist-pixel-square)' }}>
-                Verifiable execution by design
-              </h3>
-              <p className="text-sm md:text-base text-gray-600 dark:text-[#a8a898] leading-relaxed" style={{ fontWeight: 400, maxWidth: '360px', fontFamily: 'var(--font-geist-sans)' }}>
-                Every decision is recorded. Every update is signed. Execution can be inspected after the fact—without relying on trust, assumptions, or continuous connectivity.
-              </p>
+      <div className="mx-auto max-w-[1100px] px-4 sm:px-6 lg:px-8">
+        <div className="relative px-4 md:px-8 lg:px-12" style={{ paddingTop: '4rem', paddingBottom: '4rem', borderLeft: '0.5px solid rgba(209, 213, 219, 0.35)', borderRight: '0.5px solid rgba(209, 213, 219, 0.35)', borderBottom: '0.5px solid rgba(209, 213, 219, 0.35)' }}>
+          {/* Title */}
+          <div className="text-left mb-8">
+            <h3 className="text-xl md:text-2xl lg:text-3xl mb-4 text-[#000000] dark:text-[#f6f6f4]" style={{ fontFamily: 'var(--font-geist-sans)' }}>
+              Verifiable execution by design
+            </h3>
+          </div>
+
+          {/* Bento grid: 2 on top, 3 on bottom - compact centered */}
+          <div className="max-w-[700px] mx-auto flex flex-col gap-4">
+            {/* Top row - 2 items */}
+            <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
+              {features.slice(0, 2).map((feature) => (
+                <div key={feature.title} className="border border-gray-200 dark:border-[#f6f6f4]/8 rounded-2xl p-5 bg-[#edece9] dark:bg-[#1b1912]/60 hover:border-gray-300 dark:hover:border-[#f6f6f4]/15 transition-colors duration-200 min-h-[180px]">
+                  <h4 className="text-sm md:text-base font-bold mb-2 text-[#000000] dark:text-[#f6f6f4]">
+                    {feature.title}
+                  </h4>
+                  <p className="text-xs md:text-sm text-gray-600 dark:text-[#a8a898] leading-relaxed" style={{ fontWeight: 400, fontFamily: 'var(--font-geist-sans)' }}>
+                    {feature.description}
+                  </p>
+                </div>
+              ))}
             </div>
 
-            {/* Right side - Features */}
-            <div className="h-full relative flex items-center justify-center mobile-auto-height" style={{ minHeight: '700px' }}>
-                <img
-                  src="/hrllg.png"
-                  alt=""
-                  className="absolute inset-0 w-full h-full object-cover rounded-lg"
-                />
-              <div className="relative z-10 w-full flex items-center justify-center h-full">
-                <div className="w-full max-w-xl space-y-4">
-                  {features.map((feature) => (
-                    <div key={feature.title} className="border border-white/50 dark:border-[#f6f6f4]/25 rounded-lg p-4 bg-white/60 dark:bg-[#1b1912]/60 backdrop-blur-md">
-                      <h4 className="text-base md:text-lg font-bold mb-2 text-[#000000] dark:text-[#f6f6f4]">
-                        {feature.title}
-                      </h4>
-                      <p className="text-sm md:text-base text-gray-600 dark:text-[#a8a898] leading-relaxed" style={{ fontWeight: 400, fontFamily: 'var(--font-geist-sans)' }}>
-                        {feature.description}
-                      </p>
-                    </div>
-                  ))}
+            {/* Bottom row - 3 items */}
+            <div className="grid grid-cols-1 md:grid-cols-3 gap-4">
+              {features.slice(2).map((feature) => (
+                <div key={feature.title} className="border border-gray-200 dark:border-[#f6f6f4]/8 rounded-2xl p-5 bg-[#edece9] dark:bg-[#1b1912]/60 hover:border-gray-300 dark:hover:border-[#f6f6f4]/15 transition-colors duration-200 min-h-[180px]">
+                  <h4 className="text-sm md:text-base font-bold mb-2 text-[#000000] dark:text-[#f6f6f4]">
+                    {feature.title}
+                  </h4>
+                  <p className="text-xs md:text-sm text-gray-600 dark:text-[#a8a898] leading-relaxed" style={{ fontWeight: 400, fontFamily: 'var(--font-geist-sans)' }}>
+                    {feature.description}
+                  </p>
                 </div>
-              </div>
+              ))}
             </div>
           </div>
         </div>

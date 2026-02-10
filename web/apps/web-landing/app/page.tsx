@@ -6,7 +6,7 @@ import WhatThisIs from '../src/components/sections/WhatThisIs'
 import ClosingPosition from '../src/components/sections/ClosingPosition'
 import WhyItExists from '../src/components/sections/WhyItExists'
 import Footer from '../src/components/sections/Footer'
-import Solve from '../src/components/sections/Solve'
+
 import CoreCapabilities from '../src/components/sections/CoreCapabilities'
 import MultiTenancy from '../src/components/sections/MultiTenancy'
 import Products from '../src/components/sections/Products'
@@ -36,7 +36,6 @@ export default function HomePage() {
           <Header />
           <main>
             <Hero />
-            <Solve />
             <Products />
             <WhatThisIs />
             <CoreCapabilities />

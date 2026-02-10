@@ -1,56 +1,86 @@
 'use client'
 
 import React from 'react'
-import Image from 'next/image'
 
 export default function Solve() {
   const items = [
-    'Pure LLM hallucinations',
-    'Non-deterministic AI behavior',
-    'Unverifiable decisions',
-    'Cloud-dependent execution',
-    'No fleet visibility',
-    'Hidden performance bottlenecks',
-    'Undetected anomalies',
-    'Zero behavior history'
+    {
+      label: 'Pure LLM hallucinations',
+      detail: 'Ungrounded outputs that drift from facts, producing unreliable results at scale.',
+    },
+    {
+      label: 'Non-deterministic AI behavior',
+      detail: 'Identical inputs producing different outputs, making systems unpredictable in production.',
+    },
+    {
+      label: 'Unverifiable decisions',
+      detail: 'No audit trail for why an AI chose a specific action—impossible to debug or prove compliance.',
+    },
+    {
+      label: 'Cloud-dependent execution',
+      detail: 'A single connectivity failure takes down the entire AI fleet. No offline fallback.',
+    },
+    {
+      label: 'No fleet visibility',
+      detail: 'Hundreds of devices running AI with zero centralized insight into what they\'re doing.',
+    },
+    {
+      label: 'Hidden performance bottlenecks',
+      detail: 'Latency spikes and cost overruns buried across provider dashboards and scattered logs.',
+    },
+    {
+      label: 'Undetected anomalies',
+      detail: 'Behavioral drift goes unnoticed until it causes failures in production environments.',
+    },
+    {
+      label: 'Zero behavior history',
+      detail: 'No record of past decisions, making it impossible to learn from or reproduce outcomes.',
+    },
   ];
 
   return (
     <section className="bg-[#f6f6f4] dark:bg-dark-bg text-gray-900 dark:text-[#f6f6f4] transition-colors duration-200">
-      <div className="mx-auto max-w-[1300px] px-4 sm:px-6 lg:px-8">
-          <div className="relative px-2 md:px-8 lg:px-12 bg-[#f6f6f4] dark:bg-[#1b1912] flex flex-row items-center gap-2 md:gap-4 py-2" style={{ borderLeft: '0.5px solid rgba(209, 213, 219, 0.35)', borderRight: '0.5px solid rgba(209, 213, 219, 0.35)', borderTop: '0.5px solid rgba(209, 213, 219, 0.35)', borderBottom: '0.5px solid rgba(209, 213, 219, 0.35)' }}>
-          {/* Static title */}
-          <span className="text-[10px] md:text-sm lg:text-base font-inter font-normal text-[#000000] dark:text-[#f6f6f4] flex-shrink-0 whitespace-nowrap" style={{ fontWeight: 300, fontFamily: 'var(--font-geist-sans)' }}>
-            The Challenge We Solve :
-          </span>
+      {/* Full-width top border */}
+      <div style={{ borderTop: '0.5px solid rgba(209, 213, 219, 0.35)' }} />
+      <div className="mx-auto max-w-[1100px] px-4 sm:px-6 lg:px-8">
+        <div className="relative px-4 md:px-8 lg:px-12 bg-[#f6f6f4] dark:bg-[#1b1912]" style={{ borderLeft: '0.5px solid rgba(209, 213, 219, 0.35)', borderRight: '0.5px solid rgba(209, 213, 219, 0.35)', borderBottom: '0.5px solid rgba(209, 213, 219, 0.35)' }}>
 
-          {/* Scrolling container */}
-          <div className="flex-1 overflow-hidden relative scroll-container">
-            <div className="flex animate-scroll-seamless" style={{ width: 'fit-content' }}>
-              {/* First set of items */}
-                {items.map((item, index) => (
-                  <span
-                    key={`first-${index}`}
-                    className="inline-block mx-1 md:mx-2 px-2 md:px-3 py-0.5 md:py-1 rounded-sm min-w-[120px] md:min-w-[140px] text-center font-normal flex-shrink-0 cursor-pointer hover:bg-gray-50 dark:hover:bg-[#2a2520] transition-colors text-xs md:text-sm whitespace-nowrap"
-                    style={{ fontWeight: 300, fontFamily: 'var(--font-geist-sans)', border: '0.5px solid rgba(209, 213, 219, 0.35)' }}
-                    title=""
-                  >
-                    {item}
-                  </span>
-                ))}
-              {/* Duplicate set for seamless loop */}
-                {items.map((item, index) => (
-                  <span
-                    key={`second-${index}`}
-                    className="inline-block mx-1 md:mx-2 px-2 md:px-3 py-0.5 md:py-1 rounded-sm min-w-[120px] md:min-w-[140px] text-center font-normal flex-shrink-0 cursor-pointer hover:bg-gray-50 dark:hover:bg-[#2a2520] transition-colors text-xs md:text-sm whitespace-nowrap"
-                    style={{ fontWeight: 300, fontFamily: 'var(--font-geist-sans)', border: '0.5px solid rgba(209, 213, 219, 0.35)' }}
-                    title=""
-                  >
-                    {item}
-                  </span>
-                ))}
-            </div>
+          {/* Title area */}
+          <div className="text-left" style={{ paddingTop: '4rem', paddingBottom: '2.5rem' }}>
+            <p className="text-base text-[#85612c] dark:text-[#c5b0cd] mb-2" style={{ letterSpacing: '0.05em', fontFamily: 'var(--font-geist-mono, "Geist Mono", monospace)' }}>
+              THE CHALLENGE
+            </p>
+            <h3 className="text-xl md:text-2xl lg:text-3xl mb-4 text-[#000000] dark:text-[#f6f6f4]" style={{ fontFamily: 'var(--font-geist-sans)' }}>
+              What we solve
+            </h3>
+            <p className="text-sm md:text-base text-gray-600 dark:text-[#a8a898] leading-relaxed" style={{ fontWeight: 400, fontFamily: 'var(--font-geist-sans)' }}>
+              Every problem that makes AI unreliable in production.
+            </p>
           </div>
+
+          {/* 2x4 Grid */}
+          <div className="grid grid-cols-1 sm:grid-cols-2 gap-5" style={{ paddingBottom: '4rem' }}>
+            {items.map((item, index) => (
+              <div
+                key={index}
+                className="border border-gray-200 dark:border-[#f6f6f4]/8 rounded-2xl p-6 flex flex-col gap-3 hover:border-gray-300 dark:hover:border-[#f6f6f4]/15 transition-colors duration-200 bg-[#edece9] dark:bg-[#1b1912]/60 min-h-[140px]"
+              >
+                <span
+                  className="text-sm font-medium text-[#000000] dark:text-[#f6f6f4]"
+                  style={{ fontFamily: 'var(--font-geist-sans)' }}
+                >
+                  {item.label}
+                </span>
+                <span
+                  className="text-xs text-gray-500 dark:text-[#a8a898] leading-relaxed"
+                  style={{ fontWeight: 300, fontFamily: 'var(--font-geist-sans)' }}
+                >
+                  {item.detail}
+                </span>
+              </div>
+            ))}
+          </div>
+
         </div>
       </div>
     </section>
