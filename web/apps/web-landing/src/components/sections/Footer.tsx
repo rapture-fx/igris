@@ -18,7 +18,7 @@ export default function Footer() {
           <div className="py-8 md:py-16">
             <div className="flex flex-col md:flex-row md:items-start md:justify-between gap-6">
               {/* Left side - Company + Features + Resources + Social */}
-              <div className="flex gap-12">
+              <div className="grid grid-cols-2 gap-6 md:flex md:gap-12">
                 {/* Routing & Agents */}
                 <div className="flex flex-col gap-2 text-left">
                   <span className="text-sm text-[#f6f6f4] font-medium mb-1" style={{ fontFamily: 'var(--font-geist-sans)' }}>

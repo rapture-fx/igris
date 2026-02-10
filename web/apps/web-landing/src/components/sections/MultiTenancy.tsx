@@ -27,7 +27,7 @@ export default function MultiTenancy() {
   return (
     <section className="bg-[#f6f6f4] dark:bg-dark-bg text-gray-900 dark:text-[#f6f6f4] transition-colors duration-200">
       <div className="mx-auto max-w-[1300px] px-4 sm:px-6 lg:px-8">
-        <div className="relative px-4 md:px-8 lg:px-12 min-h-[800px]" style={{ paddingTop: '3rem', paddingBottom: '3rem', borderLeft: '0.5px solid rgba(209, 213, 219, 0.35)', borderRight: '0.5px solid rgba(209, 213, 219, 0.35)', borderBottom: '0.5px solid rgba(209, 213, 219, 0.35)' }}>
+        <div className="relative px-4 md:px-8 lg:px-12 min-h-0 md:min-h-[800px]" style={{ paddingTop: '3rem', paddingBottom: '3rem', borderLeft: '0.5px solid rgba(209, 213, 219, 0.35)', borderRight: '0.5px solid rgba(209, 213, 219, 0.35)', borderBottom: '0.5px solid rgba(209, 213, 219, 0.35)' }}>
           <div className="grid grid-cols-1 md:grid-cols-2 gap-8">
             {/* Left side - Intro */}
             <div className="text-left self-start">
@@ -43,7 +43,7 @@ export default function MultiTenancy() {
             </div>
 
             {/* Right side - Features */}
-            <div className="h-full relative flex items-center justify-center" style={{ minHeight: '700px' }}>
+            <div className="h-full relative flex items-center justify-center" style={{ minHeight: '400px' }}>
                 <img
                   src="/hrllg.png"
                   alt=""

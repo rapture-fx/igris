@@ -49,6 +49,16 @@ export default function Header() {
     return () => window.removeEventListener('scroll', handleScroll);
   }, []);
 
+  // Lock body scroll when mobile menu is open
+  useEffect(() => {
+    if (mobileMenuOpen) {
+      document.body.style.overflow = 'hidden';
+    } else {
+      document.body.style.overflow = '';
+    }
+    return () => { document.body.style.overflow = ''; };
+  }, [mobileMenuOpen]);
+
   // Animate dropdown open/close
   useEffect(() => {
     if (activeDropdown) {
@@ -390,24 +400,42 @@ export default function Header() {
             )}
           </div>
 
-          {/* Mobile Menu */}
+          {/* Mobile Menu Overlay */}
           {mobileMenuOpen && (
-            <div className="md:hidden mt-4 pb-4 border-t border-gray-200 dark:border-[#f6f6f4]/5 bg-[#f6f6f4] dark:bg-[#1b1912]">
-              <nav className="flex flex-col space-y-4 mt-4 px-4">
+            <div className="md:hidden fixed inset-0 top-0 z-50 bg-[#f6f6f4] dark:bg-[#1b1912] overflow-y-auto">
+              {/* Mobile menu header */}
+              <div className="flex items-center justify-between px-4 sm:px-6" style={{ paddingTop: '1.5rem', paddingBottom: '1.5rem' }}>
+                <Link href="/" prefetch={false} onClick={() => setMobileMenuOpen(false)}>
+                  <img
+                    src={isDark ? '/dmfoot.png' : '/foot.png'}
+                    alt="Igris Inertial"
+                    className="h-10 w-auto"
+                  />
+                </Link>
+                <button
+                  type="button"
+                  className="text-gray-700 dark:text-[#c8c8b8] hover:text-gray-900 dark:hover:text-[#f6f6f4] transition-colors duration-300"
+                  onClick={() => setMobileMenuOpen(false)}
+                >
+                  <X className="h-5 w-5" />
+                </button>
+              </div>
+
+              <nav className="flex flex-col space-y-5 px-6 pt-4 pb-8">
                 <div>
                   <button
                     onClick={() => setMobileFeaturesOpen(!mobileFeaturesOpen)}
-                    className="w-full flex items-center justify-between text-gray-700 dark:text-[#c8c8b8] hover:text-gray-900 dark:hover:text-[#f6f6f4] transition-colors duration-200 font-medium text-xs"
+                    className="w-full flex items-center justify-between text-gray-700 dark:text-[#c8c8b8] hover:text-gray-900 dark:hover:text-[#f6f6f4] transition-colors duration-200 font-medium text-sm"
                     style={{ fontFamily: 'var(--font-geist-sans)' }}
                   >
                     Feature
                     <ChevronDown className={`h-4 w-4 transition-transform duration-200 ${mobileFeaturesOpen ? 'rotate-180' : ''}`} />
                   </button>
                   {mobileFeaturesOpen && (
-                    <div className="ml-4 mt-2 space-y-2">
-                      <button onClick={() => { setMobileMenuOpen(false); setMobileFeaturesOpen(false); openRuntime(); }} className="block text-left text-gray-700 dark:text-[#c8c8b8] hover:text-gray-900 dark:hover:text-[#f6f6f4] transition-colors duration-200 font-medium text-xs" style={{ fontFamily: 'var(--font-geist-sans)' }}>Runtime</button>
-                      <button onClick={() => { setMobileMenuOpen(false); setMobileFeaturesOpen(false); openOverture(); }} className="block text-left text-gray-700 dark:text-[#c8c8b8] hover:text-gray-900 dark:hover:text-[#f6f6f4] transition-colors duration-200 font-medium text-xs" style={{ fontFamily: 'var(--font-geist-sans)' }}>Overture</button>
-                      <button onClick={() => { setMobileMenuOpen(false); setMobileFeaturesOpen(false); openUseCases(); }} className="block text-left text-gray-700 dark:text-[#c8c8b8] hover:text-gray-900 dark:hover:text-[#f6f6f4] transition-colors duration-200 font-medium text-xs" style={{ fontFamily: 'var(--font-geist-sans)' }}>Use Cases</button>
+                    <div className="ml-4 mt-3 space-y-3">
+                      <button onClick={() => { setMobileMenuOpen(false); setMobileFeaturesOpen(false); openRuntime(); }} className="block text-left text-gray-700 dark:text-[#c8c8b8] hover:text-gray-900 dark:hover:text-[#f6f6f4] transition-colors duration-200 font-medium text-sm" style={{ fontFamily: 'var(--font-geist-sans)' }}>Runtime</button>
+                      <button onClick={() => { setMobileMenuOpen(false); setMobileFeaturesOpen(false); openOverture(); }} className="block text-left text-gray-700 dark:text-[#c8c8b8] hover:text-gray-900 dark:hover:text-[#f6f6f4] transition-colors duration-200 font-medium text-sm" style={{ fontFamily: 'var(--font-geist-sans)' }}>Overture</button>
+                      <button onClick={() => { setMobileMenuOpen(false); setMobileFeaturesOpen(false); openUseCases(); }} className="block text-left text-gray-700 dark:text-[#c8c8b8] hover:text-gray-900 dark:hover:text-[#f6f6f4] transition-colors duration-200 font-medium text-sm" style={{ fontFamily: 'var(--font-geist-sans)' }}>Use Cases</button>
                     </div>
                   )}
                 </div>
@@ -415,24 +443,24 @@ export default function Header() {
                 <div>
                   <button
                     onClick={() => setMobileResourcesOpen(!mobileResourcesOpen)}
-                    className="w-full flex items-center justify-between text-gray-700 dark:text-[#c8c8b8] hover:text-gray-900 dark:hover:text-[#f6f6f4] transition-colors duration-200 font-medium text-xs"
+                    className="w-full flex items-center justify-between text-gray-700 dark:text-[#c8c8b8] hover:text-gray-900 dark:hover:text-[#f6f6f4] transition-colors duration-200 font-medium text-sm"
                     style={{ fontFamily: 'var(--font-geist-sans)' }}
                   >
                     Resources
                     <ChevronDown className={`h-4 w-4 transition-transform duration-200 ${mobileResourcesOpen ? 'rotate-180' : ''}`} />
                   </button>
                   {mobileResourcesOpen && (
-                    <div className="ml-4 mt-2 space-y-2">
-                      <a href={docsHubUrl} className="block text-gray-700 dark:text-[#c8c8b8] hover:text-gray-900 dark:hover:text-[#f6f6f4] transition-colors duration-200 font-medium text-xs" style={{ fontFamily: 'var(--font-geist-sans)' }} onClick={() => { setMobileMenuOpen(false); setMobileResourcesOpen(false); }}>Documentation</a>
-                      <button onClick={() => { setMobileMenuOpen(false); setMobileResourcesOpen(false); openUseCases(); }} className="block text-left text-gray-700 dark:text-[#c8c8b8] hover:text-gray-900 dark:hover:text-[#f6f6f4] transition-colors duration-200 font-medium text-xs" style={{ fontFamily: 'var(--font-geist-sans)' }}>Use Cases</button>
-                      <Link href="/blog" prefetch={false} className="block text-gray-700 dark:text-[#c8c8b8] hover:text-gray-900 dark:hover:text-[#f6f6f4] transition-colors duration-200 font-medium text-xs" style={{ fontFamily: 'var(--font-geist-sans)' }} onClick={() => { setMobileMenuOpen(false); setMobileResourcesOpen(false); }}>Blog</Link>
+                    <div className="ml-4 mt-3 space-y-3">
+                      <a href={docsHubUrl} className="block text-gray-700 dark:text-[#c8c8b8] hover:text-gray-900 dark:hover:text-[#f6f6f4] transition-colors duration-200 font-medium text-sm" style={{ fontFamily: 'var(--font-geist-sans)' }} onClick={() => { setMobileMenuOpen(false); setMobileResourcesOpen(false); }}>Documentation</a>
+                      <button onClick={() => { setMobileMenuOpen(false); setMobileResourcesOpen(false); openUseCases(); }} className="block text-left text-gray-700 dark:text-[#c8c8b8] hover:text-gray-900 dark:hover:text-[#f6f6f4] transition-colors duration-200 font-medium text-sm" style={{ fontFamily: 'var(--font-geist-sans)' }}>Use Cases</button>
+                      <Link href="/blog" prefetch={false} className="block text-gray-700 dark:text-[#c8c8b8] hover:text-gray-900 dark:hover:text-[#f6f6f4] transition-colors duration-200 font-medium text-sm" style={{ fontFamily: 'var(--font-geist-sans)' }} onClick={() => { setMobileMenuOpen(false); setMobileResourcesOpen(false); }}>Blog</Link>
                     </div>
                   )}
                 </div>
 
-                <Link href="/pricing" prefetch={false} className="text-gray-700 dark:text-[#c8c8b8] hover:text-gray-900 dark:hover:text-[#f6f6f4] transition-colors duration-200 font-medium text-xs" style={{ fontFamily: 'var(--font-geist-sans)' }} onClick={() => setMobileMenuOpen(false)}>Pricing</Link>
-                <a href={consoleUrl ? `${consoleUrl}/auth?mode=signin` : '#'} className="text-gray-700 dark:text-[#c8c8b8] hover:text-gray-900 dark:hover:text-[#f6f6f4] transition-colors duration-200 font-medium text-xs" style={{ fontFamily: 'var(--font-geist-sans)' }} onClick={() => setMobileMenuOpen(false)}>Sign In</a>
-                <a href={consoleUrl ? `${consoleUrl}/auth?mode=signup` : '#'} onClick={() => setMobileMenuOpen(false)} className="bg-black text-white dark:bg-[#f6f6f4] dark:text-black px-3 py-1.5 hover:bg-gray-800 dark:hover:bg-gray-200 transition-all duration-200 text-xs shadow-md inline-block text-center" style={{ fontFamily: 'var(--font-geist-sans)' }}>Get Started</a>
+                <Link href="/pricing" prefetch={false} className="text-gray-700 dark:text-[#c8c8b8] hover:text-gray-900 dark:hover:text-[#f6f6f4] transition-colors duration-200 font-medium text-sm" style={{ fontFamily: 'var(--font-geist-sans)' }} onClick={() => setMobileMenuOpen(false)}>Pricing</Link>
+                <a href={consoleUrl ? `${consoleUrl}/auth?mode=signin` : '#'} className="text-gray-700 dark:text-[#c8c8b8] hover:text-gray-900 dark:hover:text-[#f6f6f4] transition-colors duration-200 font-medium text-sm" style={{ fontFamily: 'var(--font-geist-sans)' }} onClick={() => setMobileMenuOpen(false)}>Sign In</a>
+                <a href={consoleUrl ? `${consoleUrl}/auth?mode=signup` : '#'} onClick={() => setMobileMenuOpen(false)} className="bg-[#14120a] text-white dark:bg-[#f6f6f4] dark:text-black px-4 py-2.5 hover:opacity-90 transition-all duration-200 text-sm shadow-md inline-block text-center rounded-md" style={{ fontFamily: 'var(--font-geist-sans)' }}>Get Started</a>
               </nav>
             </div>
           )}
