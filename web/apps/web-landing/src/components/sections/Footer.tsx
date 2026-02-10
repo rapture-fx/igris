@@ -13,7 +13,7 @@ export default function Footer() {
   return (
      <footer className="bg-[#f6f6f4] dark:bg-dark-bg text-gray-900 dark:text-[#f6f6f4] transition-all duration-200">
       <div className="mx-auto max-w-[1300px] px-4 sm:px-6 lg:px-8">
-          <div className="px-4 md:px-8 lg:px-12 text-[#f6f6f4]" style={{ backgroundColor: '#14120a', borderLeft: '0.5px solid #d1d5db', borderRight: '0.5px solid #d1d5db', borderBottom: '0.5px solid #d1d5db' }}>
+          <div className="px-4 md:px-8 lg:px-12 text-[#f6f6f4]" style={{ backgroundColor: '#14120a', borderLeft: '0.5px solid rgba(209, 213, 219, 0.35)', borderRight: '0.5px solid rgba(209, 213, 219, 0.35)', borderBottom: '0.5px solid rgba(209, 213, 219, 0.35)' }}>
 {/* Main footer content */}
           <div className="py-8 md:py-16">
             <div className="flex flex-col md:flex-row md:items-start md:justify-between gap-6">

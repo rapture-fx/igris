@@ -8,8 +8,8 @@ export default function ClosingPosition() {
         <div className="mx-auto max-w-[1300px] px-4 sm:px-6 lg:px-8">
             <div className="relative px-4 md:px-8 lg:px-12 flex flex-col justify-center bg-[#f6f6f4] dark:bg-[#1b1912]" style={{
               minHeight: '500px',
-              borderLeft: '0.5px solid #d1d5db',
-              borderRight: '0.5px solid #d1d5db'
+              borderLeft: '0.5px solid rgba(209, 213, 219, 0.35)',
+              borderRight: '0.5px solid rgba(209, 213, 219, 0.35)'
             }}>
 
             <div className="w-full flex flex-row items-center justify-between relative z-10" style={{ minHeight: '500px' }}>
