@@ -79,14 +79,14 @@ export default function Hero() {
   return (
     <section className="pb-0 bg-[#f6f6f4] dark:bg-dark-bg text-gray-900 dark:text-[#f6f6f4] relative overflow-visible transition-colors duration-200">
       <div className="mx-auto max-w-[1300px] px-4 sm:px-6 lg:px-8">
-        <div className="relative px-4 md:px-8 lg:px-12 pb-8 md:pb-0 overflow-hidden" style={{ borderLeft: '0.5px solid rgba(209, 213, 219, 0.35)', borderRight: '0.5px solid rgba(209, 213, 219, 0.35)',
-          minHeight: '450px',
+        <div className="relative px-4 md:px-8 lg:px-12 pb-12 md:pb-0 overflow-hidden" style={{ borderLeft: '0.5px solid rgba(209, 213, 219, 0.35)', borderRight: '0.5px solid rgba(209, 213, 219, 0.35)',
+          minHeight: '550px',
           backgroundColor: mounted && theme === 'dark' ? '#1b1912' : '#f6f6f4',
           position: 'relative',
           zIndex: 1
         }}>
 
-            <div className="max-w-[1300px] mx-auto w-full pt-28 md:pt-48 lg:pt-64">
+            <div className="max-w-[1300px] mx-auto w-full hero-top-padding">
             <div className="mb-6 text-left">
               <div>
                 <h1 className="text-3xl md:text-4xl lg:text-5xl font-bold" style={{ color: mounted && theme === 'dark' ? '#f6f6f4' : '#1b1912', fontFamily: 'var(--font-geist-pixel-square)' }}>
