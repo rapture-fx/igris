@@ -173,11 +173,8 @@ export default function Pricing() {
                     </div>
                     <button
                       onClick={openEarlyAccessModal}
-                      className={`inline-flex items-center justify-center px-6 py-2 rounded-md transition-all duration-200 text-sm font-inter mt-8 opacity-0 group-hover:opacity-100 self-start ${
-                        tier.recommended
-                          ? 'text-white dark:text-[#1b1912] bg-[#000000] dark:bg-[#f6f6f4] hover:bg-gray-800 dark:hover:bg-[#e6e6e4] border border-black dark:border-[#f6f6f4]'
-                          : 'text-gray-900 dark:text-[#f6f6f4] bg-gray-200 dark:bg-[#f6f6f4]/10 hover:bg-gray-300 dark:hover:bg-[#f6f6f4]/20 border border-gray-300 dark:border-[#f6f6f4]/20'
-                      }`}
+                      className="inline-flex items-center justify-center px-6 py-2 rounded-md transition-all duration-200 text-sm mt-8 opacity-0 group-hover:opacity-100 self-start text-white dark:text-[#1b1912] bg-[#000000] dark:bg-[#f6f6f4] hover:bg-gray-800 dark:hover:bg-[#e6e6e4] border border-black dark:border-[#f6f6f4]"
+                      style={{ fontFamily: 'var(--font-geist-pixel-square)' }}
                     >
                       Select
                     </button>
