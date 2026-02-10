@@ -6,11 +6,10 @@ import { useTheme } from 'next-themes'
 export default function WhatThisIs() {
   const lines = [
     "This is the execution layer beneath intelligence.",
-    "It doesn't decide what AI thinks.",
-    "It enforces how AI runs.",
-    "Behavior is bounded, repeatable, and verifiable by design.",
-    "For systems where AI must survive failure, operate offline, and prove every decision.",
-    "If AI is the brain, this is the nervous system that enforces reality."
+    "It does not decide what models think; it governs how they run.",
+    "Execution is deterministic, bounded, and cryptographically verifiable by design.",
+    "Built for systems that must survive failure, operate offline, and prove every decision.",
+    "If models are the brain, this is the nervous system that enforces behavior."
   ]
 
   const { theme } = useTheme()
@@ -32,7 +31,7 @@ export default function WhatThisIs() {
               className="absolute inset-0 w-full h-full object-cover z-0 rounded-2xl"
               style={{ opacity: 0.9 }}
             />
-            <div className="w-full max-w-md bg-[#f6f6f4] dark:bg-[#1b1912] border border-gray-300 dark:border-[#f6f6f4]/5 p-8 md:p-10 rounded-2xl shadow-[0_0_20px_rgba(0,0,0,0.15)] dark:shadow-[0_0_30px_rgba(246,246,244,0.15)] z-10 flex flex-col justify-center">
+            <div className="w-full max-w-md bg-[#f6f6f4] dark:bg-[#1b1912] border border-gray-300 dark:border-[#f6f6f4]/5 p-8 md:p-10 rounded-2xl shadow-[0_0_20px_rgba(0,0,0,0.15)] dark:shadow-[0_0_30px_rgba(246,246,244,0.15)] z-10 flex flex-col justify-start">
               {lines.map((line, index) => (
                 <p 
                   key={index}
