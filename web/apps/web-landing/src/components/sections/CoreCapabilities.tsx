@@ -27,7 +27,7 @@ export default function CoreCapabilities() {
   return (
     <section className="bg-[#f6f6f4] dark:bg-dark-bg text-gray-900 dark:text-[#f6f6f4] transition-colors duration-200">
       <div className="mx-auto max-w-[1300px] px-4 sm:px-6 lg:px-8">
-        <div className="relative px-4 md:px-8 lg:px-12 min-h-[900px]" style={{ borderLeft: '0.5px solid rgba(209, 213, 219, 0.35)', borderRight: '0.5px solid rgba(209, 213, 219, 0.35)', borderBottom: '0.5px solid rgba(209, 213, 219, 0.35)' }}>
+        <div className="relative px-4 md:px-8 lg:px-12 min-h-0 md:min-h-[900px]" style={{ borderLeft: '0.5px solid rgba(209, 213, 219, 0.35)', borderRight: '0.5px solid rgba(209, 213, 219, 0.35)', borderBottom: '0.5px solid rgba(209, 213, 219, 0.35)' }}>
           {/* Title outside the frame */}
           <div className="text-left mb-4" style={{ paddingTop: '3rem', paddingBottom: '1rem' }}>
             <p className="text-base text-[#85612c] dark:text-[#c5b0cd] mb-2" style={{ letterSpacing: '0.05em', fontFamily: 'var(--font-geist-mono, "Geist Mono", monospace)' }}>
@@ -42,17 +42,17 @@ export default function CoreCapabilities() {
           </div>
           
           {/* Frame with centered cards */}
-          <div className="rounded-lg flex items-center justify-center relative overflow-hidden" style={{ height: '700px', paddingBottom: '3rem' }}>
+          <div className="rounded-lg flex items-center justify-center relative overflow-hidden" style={{ minHeight: '400px', paddingBottom: '3rem' }}>
             <img
               src="/arc.png"
               alt=""
               className="absolute inset-0 w-full h-full object-cover z-0"
               style={{ opacity: 0.9 }}
             />
-            <div className="flex gap-4 z-10">
+            <div className="flex flex-col md:flex-row gap-4 z-10 w-full md:w-auto px-4 md:px-0 py-8 md:py-0">
               {capabilities.map((capability, index) => (
                 <React.Fragment key={capability.name}>
-                  <div className="bg-[#f6f6f4] dark:bg-[#1b1912] border border-gray-300 dark:border-[#f6f6f4]/10 rounded-lg w-[220px] shadow-md">
+                  <div className="bg-[#f6f6f4] dark:bg-[#1b1912] border border-gray-300 dark:border-[#f6f6f4]/10 rounded-lg w-full md:w-[220px] shadow-md">
                     <div style={{
                       width: '100%',
                       height: '150px',

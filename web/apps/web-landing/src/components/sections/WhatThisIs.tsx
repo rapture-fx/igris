@@ -25,7 +25,7 @@ export default function WhatThisIs() {
       <div className="mx-auto max-w-[1300px] px-4 sm:px-6 lg:px-8">
         <div className="relative px-4 md:px-8 lg:px-12 py-4 md:py-8 lg:py-12" style={{ borderLeft: '0.5px solid rgba(209, 213, 219, 0.35)', borderRight: '0.5px solid rgba(209, 213, 219, 0.35)', borderBottom: '0.5px solid rgba(209, 213, 219, 0.35)' }}>
           {/* Frame with centered card */}
-          <div className="rounded-lg flex items-center justify-center relative overflow-hidden" style={{ minHeight: '700px', padding: '1.5rem' }}>
+          <div className="rounded-lg flex items-center justify-center relative overflow-hidden" style={{ minHeight: '400px', padding: '1rem' }}>
             <img
               src={mounted && theme === 'dark' ? '/hs.png' : '/runtimeframe.png'}
               alt=""
