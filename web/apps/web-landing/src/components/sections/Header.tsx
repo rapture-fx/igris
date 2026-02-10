@@ -133,7 +133,7 @@ export default function Header() {
                 ? 'opacity-100 backdrop-blur-md bg-[rgba(246,246,244,0.85)] dark:bg-[rgba(27,25,18,0.85)]'
                 : 'opacity-100 bg-[#f6f6f4] dark:bg-[#1b1912]'
           }`}
-          style={{ borderBottom: '0.5px solid #d1d5db' }}
+          style={{ borderBottom: '0.5px solid rgba(209, 213, 219, 0.35)' }}
         />
 
         <div className="relative mx-auto max-w-[1300px] px-4 sm:px-6 lg:px-8">

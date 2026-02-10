@@ -18,7 +18,7 @@ export default function Solve() {
   return (
     <section className="bg-[#f6f6f4] dark:bg-dark-bg text-gray-900 dark:text-[#f6f6f4] transition-colors duration-200">
       <div className="mx-auto max-w-[1300px] px-4 sm:px-6 lg:px-8">
-          <div className="relative px-2 md:px-8 lg:px-12 bg-[#f6f6f4] dark:bg-[#1b1912] flex flex-row items-center gap-2 md:gap-4 py-2" style={{ borderLeft: '0.5px solid #d1d5db', borderRight: '0.5px solid #d1d5db', borderTop: '0.5px solid #d1d5db', borderBottom: '0.5px solid #d1d5db' }}>
+          <div className="relative px-2 md:px-8 lg:px-12 bg-[#f6f6f4] dark:bg-[#1b1912] flex flex-row items-center gap-2 md:gap-4 py-2" style={{ borderLeft: '0.5px solid rgba(209, 213, 219, 0.35)', borderRight: '0.5px solid rgba(209, 213, 219, 0.35)', borderTop: '0.5px solid rgba(209, 213, 219, 0.35)', borderBottom: '0.5px solid rgba(209, 213, 219, 0.35)' }}>
           {/* Static title */}
           <span className="text-[10px] md:text-sm lg:text-base font-inter font-normal text-[#000000] dark:text-[#f6f6f4] flex-shrink-0 whitespace-nowrap" style={{ fontWeight: 300, fontFamily: 'var(--font-geist-sans)' }}>
             The Challenge We Solve :
@@ -32,7 +32,7 @@ export default function Solve() {
                   <span
                     key={`first-${index}`}
                     className="inline-block mx-1 md:mx-2 px-2 md:px-3 py-0.5 md:py-1 rounded-sm min-w-[120px] md:min-w-[140px] text-center font-normal flex-shrink-0 cursor-pointer hover:bg-gray-50 dark:hover:bg-[#2a2520] transition-colors text-xs md:text-sm whitespace-nowrap"
-                    style={{ fontWeight: 300, fontFamily: 'var(--font-geist-sans)', border: '0.5px solid #d1d5db' }}
+                    style={{ fontWeight: 300, fontFamily: 'var(--font-geist-sans)', border: '0.5px solid rgba(209, 213, 219, 0.35)' }}
                     title=""
                   >
                     {item}
@@ -43,7 +43,7 @@ export default function Solve() {
                   <span
                     key={`second-${index}`}
                     className="inline-block mx-1 md:mx-2 px-2 md:px-3 py-0.5 md:py-1 rounded-sm min-w-[120px] md:min-w-[140px] text-center font-normal flex-shrink-0 cursor-pointer hover:bg-gray-50 dark:hover:bg-[#2a2520] transition-colors text-xs md:text-sm whitespace-nowrap"
-                    style={{ fontWeight: 300, fontFamily: 'var(--font-geist-sans)', border: '0.5px solid #d1d5db' }}
+                    style={{ fontWeight: 300, fontFamily: 'var(--font-geist-sans)', border: '0.5px solid rgba(209, 213, 219, 0.35)' }}
                     title=""
                   >
                     {item}
