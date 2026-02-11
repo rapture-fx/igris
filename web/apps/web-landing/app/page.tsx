@@ -36,8 +36,8 @@ export default function HomePage() {
           <Header />
           <main>
             <Hero />
-            <Products />
             <WhatThisIs />
+            <Products />
             <CoreCapabilities />
             <MultiTenancy />
             <HowItWorks />

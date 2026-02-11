@@ -79,8 +79,8 @@ export default function Hero() {
   return (
     <section className="pb-0 bg-[#f6f6f4] dark:bg-dark-bg text-gray-900 dark:text-[#f6f6f4] relative overflow-visible transition-colors duration-200">
       <div className="mx-auto max-w-[1100px] px-4 sm:px-6 lg:px-8">
-        <div className="relative px-4 md:px-8 lg:px-12 pb-12 md:pb-0 overflow-hidden" style={{
-          minHeight: '550px',
+        <div className="relative px-4 md:px-8 lg:px-12 pb-16 md:pb-16 overflow-hidden" style={{
+          minHeight: '400px',
           backgroundColor: mounted && theme === 'dark' ? '#1b1912' : '#f6f6f4',
           position: 'relative',
           zIndex: 1

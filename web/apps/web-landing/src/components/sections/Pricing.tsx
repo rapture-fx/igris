@@ -113,7 +113,7 @@ export default function Pricing() {
   return (
     <section id="pricing" className="pt-0 pb-0 bg-[#f6f6f4] dark:bg-[#1b1912] text-gray-900 dark:text-[#f6f6f4] relative transition-colors duration-200">
       <div className="mx-auto max-w-[1100px] px-4 sm:px-6 lg:px-8">
-        <div className="relative px-4 md:px-8 lg:px-12 pb-0 pt-[70px] bg-[#f6f6f4] dark:bg-[#1b1912] z-10" style={{ borderLeft: '0.5px solid rgba(209, 213, 219, 0.35)', borderRight: '0.5px solid rgba(209, 213, 219, 0.35)', borderBottom: '0.5px solid rgba(209, 213, 219, 0.35)' }}>
+        <div className="relative px-4 md:px-8 lg:px-12 pb-0 pt-[70px] bg-[#f6f6f4] dark:bg-[#1b1912] z-10">
           <div className="max-w-[1400px] mx-auto pt-24 px-0 md:px-8 lg:px-0 pb-24">
             <div className="text-center mb-12">
               <h2 className="text-3xl md:text-5xl lg:text-6xl mb-6 text-[#000000] dark:text-[#f6f6f4]" style={{ fontFamily: 'var(--font-geist-sans)' }}>
@@ -142,14 +142,14 @@ export default function Pricing() {
                       <div className="mb-6">
                         {tier.isContactUs ? (
                           <div className="flex flex-col">
-                            <span className="text-4xl md:text-5xl text-[#000000] dark:text-[#f6f6f4]" style={{ fontFamily: 'var(--font-geist-sans)' }}>
+                            <span className="text-4xl md:text-5xl text-[#000000] dark:text-[#f6f6f4]" style={{ fontFamily: 'var(--font-geist-pixel-square)' }}>
                               Custom
                             </span>
                           </div>
                         ) : (
                           <div className="flex flex-col">
-                            <span className="text-[#000000] dark:text-[#f6f6f4] transition-all duration-300" style={{ fontFamily: 'var(--font-geist-sans)' }}>
-                              <span className="text-4xl md:text-5xl">{tier.price.split(' / ')[0]}</span>
+                            <span className="text-[#000000] dark:text-[#f6f6f4] transition-all duration-300">
+                              <span className="text-4xl md:text-5xl" style={{ fontFamily: 'var(--font-geist-pixel-square)' }}>{tier.price.split(' / ')[0]}</span>
                               <span className="text-sm md:text-base text-gray-600 dark:text-[#a8a898]"> / {tier.price.split(' / ')[1]}</span>
                             </span>
                           </div>
