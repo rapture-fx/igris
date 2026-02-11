@@ -23,7 +23,7 @@ export default function Header() {
   const [slideFrom, setSlideFrom] = useState<'left' | 'right' | 'none'>('none');
   const { openEarlyAccessModal } = useModal();
   const { theme } = useTheme();
-  const { openOverture, openRuntime, openUseCases } = useProductPopup();
+  const { openUseCases } = useProductPopup();
   const closeTimeoutRef = useRef<NodeJS.Timeout | null>(null);
   const prevDropdownRef = useRef<DropdownKey>(null);
 
@@ -433,8 +433,8 @@ export default function Header() {
                   </button>
                   {mobileFeaturesOpen && (
                     <div className="ml-4 mt-3 space-y-3">
-                      <button onClick={() => { setMobileMenuOpen(false); setMobileFeaturesOpen(false); openRuntime(); }} className="block text-left text-gray-700 dark:text-[#c8c8b8] hover:text-gray-900 dark:hover:text-[#f6f6f4] transition-colors duration-200 font-medium text-sm" style={{ fontFamily: 'var(--font-geist-sans)' }}>Runtime</button>
-                      <button onClick={() => { setMobileMenuOpen(false); setMobileFeaturesOpen(false); openOverture(); }} className="block text-left text-gray-700 dark:text-[#c8c8b8] hover:text-gray-900 dark:hover:text-[#f6f6f4] transition-colors duration-200 font-medium text-sm" style={{ fontFamily: 'var(--font-geist-sans)' }}>Overture</button>
+                      <Link href="/runtime" prefetch={false} onClick={() => { setMobileMenuOpen(false); setMobileFeaturesOpen(false); }} className="block text-left text-gray-700 dark:text-[#c8c8b8] hover:text-gray-900 dark:hover:text-[#f6f6f4] transition-colors duration-200 font-medium text-sm" style={{ fontFamily: 'var(--font-geist-sans)' }}>Runtime</Link>
+                      <Link href="/runtime" prefetch={false} onClick={() => { setMobileMenuOpen(false); setMobileFeaturesOpen(false); }} className="block text-left text-gray-700 dark:text-[#c8c8b8] hover:text-gray-900 dark:hover:text-[#f6f6f4] transition-colors duration-200 font-medium text-sm" style={{ fontFamily: 'var(--font-geist-sans)' }}>Overture</Link>
                       <button onClick={() => { setMobileMenuOpen(false); setMobileFeaturesOpen(false); openUseCases(); }} className="block text-left text-gray-700 dark:text-[#c8c8b8] hover:text-gray-900 dark:hover:text-[#f6f6f4] transition-colors duration-200 font-medium text-sm" style={{ fontFamily: 'var(--font-geist-sans)' }}>Use Cases</button>
                     </div>
                   )}
