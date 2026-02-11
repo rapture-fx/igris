@@ -340,11 +340,9 @@ export default function Faq() {
              </div>
            </div>
 
-          </div>
-        </div>
-        {/* Full-width bottom border */}
-        <div style={{ borderBottom: '0.5px solid rgba(209, 213, 219, 0.35)' }} />
-      </section>
-    </>
+           </div>
+         </div>
+       </section>
+     </>
     );
  }
