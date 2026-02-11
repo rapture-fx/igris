@@ -174,175 +174,91 @@ export default function Faq() {
     setOpenSectionIndex(openSectionIndex === index ? null : index);
   };
 
-    return (
-      <>
-        {/* Full-width top border */}
-        <div style={{ borderTop: '0.5px solid rgba(209, 213, 219, 0.35)' }} />
-        <section id="faq" className="bg-[#f6f6f4] dark:bg-dark-bg text-gray-900 dark:text-[#f6f6f4] transition-colors duration-200">
+  return (
+    <>
+      {/* Full-width top border */}
+      <div style={{ borderTop: '0.5px solid rgba(209, 213, 219, 0.35)' }} />
+      <section id="faq" className="bg-[#f6f6f4] dark:bg-dark-bg text-gray-900 dark:text-[#f6f6f4] transition-colors duration-200">
         <div className="max-w-[1100px] mx-auto px-4 sm:px-6 lg:px-8">
-           <div className="relative px-4 md:px-8 lg:px-12 min-h-0 md:min-h-[750px] flex flex-col" style={{ borderLeft: '0.5px solid rgba(209, 213, 219, 0.35)', borderRight: '0.5px solid rgba(209, 213, 219, 0.35)' }}>
+          <div className="relative px-4 md:px-8 lg:px-12 min-h-0 md:min-h-[750px] flex flex-col" style={{ borderLeft: '0.5px solid rgba(209, 213, 219, 0.35)', borderRight: '0.5px solid rgba(209, 213, 219, 0.35)' }}>
+            
+            {/* Title - Moved above FAQ stack */}
+            <div className="text-left" style={{ paddingTop: '3rem', paddingBottom: '2rem' }}>
+              <h2 className="text-xl md:text-2xl lg:text-3xl text-[#000000] dark:text-[#f6f6f4]" style={{ fontFamily: 'var(--font-geist-sans)' }}>
+                Questions and answers
+              </h2>
+            </div>
 
-           {/* Mobile Layout - Title first, then FAQ items */}
-           <div className="mb-6 md:mb-0 md:hidden text-left" style={{ paddingTop: '3rem', paddingBottom: '3rem' }}>
-             {/* Title Section - Shows first on mobile */}
-             <div className="mb-8 text-left">
-               <h2 className="text-xl md:text-2xl lg:text-3xl mb-4 text-[#000000] dark:text-[#f6f6f4]" style={{ fontFamily: 'var(--font-geist-sans)' }}>
-                 Questions and answers
-               </h2>
-             </div>
+            {/* Single Column FAQ Layout */}
+            <div className="flex flex-col" style={{ paddingBottom: '3rem' }}>
+              <div className="space-y-4">
+                {faqSections.map((section, sectionIndex) => (
+                  <div key={sectionIndex}>
+                    {/* Section Title - Clickable */}
+                    <button
+                      onClick={() => toggleSection(sectionIndex)}
+                      className="w-full text-left px-4 py-3 flex items-center justify-between gap-2 hover:opacity-80 transition-opacity border section-border bg-[#f6f6f4] dark:bg-[#1b1912]"
+                    >
+                      <h3 className="text-base font-semibold text-[#000000] dark:text-[#f6f6f4]" style={{ fontFamily: 'var(--font-geist-sans)' }}>
+                        {section.title}
+                      </h3>
+                      <ChevronDown
+                        className={`flex-shrink-0 transition-transform duration-200 ${
+                          openSectionIndex === sectionIndex ? 'rotate-180' : ''
+                        }`}
+                        style={{ color: 'rgba(156, 163, 175, 0.6)' }}
+                        size={20}
+                      />
+                    </button>
 
-             {/* FAQ Items - Shows after title on mobile */}
-             <div className="space-y-4">
-               {faqSections.map((section, sectionIndex) => (
-                 <div key={sectionIndex}>
-                   {/* Section Title - Clickable */}
-                   <button
-                     onClick={() => toggleSection(sectionIndex)}
-                     className="w-full text-left px-4 py-3 flex items-center justify-between gap-2 hover:opacity-80 transition-opacity border section-border bg-[#f6f6f4] dark:bg-[#1b1912]"
-                   >
-                        <h3 className="text-base font-semibold text-[#000000] dark:text-[#f6f6f4]" style={{ fontFamily: 'var(--font-geist-sans)' }}>
-                          {section.title}
-                        </h3>
-                     <ChevronDown
-                       className={`flex-shrink-0 transition-transform duration-200 ${
-                         openSectionIndex === sectionIndex ? 'rotate-180' : ''
-                       }`}
-                       style={{ color: 'rgba(156, 163, 175, 0.6)' }}
-                       size={20}
-                     />
-                   </button>
-
-                   {/* Section FAQ Items - Collapsible */}
-                   <div
-                     className={`overflow-hidden transition-all duration-300 ${
-                       openSectionIndex === sectionIndex ? 'max-h-[3000px]' : 'max-h-0'
-                     }`}
-                   >
+                    {/* Section FAQ Items - Collapsible */}
+                    <div
+                      className={`overflow-hidden transition-all duration-300 ${
+                        openSectionIndex === sectionIndex ? 'max-h-[3000px]' : 'max-h-0'
+                      }`}
+                    >
                       <div className="mt-2 space-y-2">
                         {section.entries.map((faq, entryIndex) => (
-                          <div key={entryIndex} className="border section-border bg-[#f6f6f4] dark:bg-[#1b1912] p-4">
-                             <p className="text-sm font-medium mb-2 text-[#000000] dark:text-[#f6f6f4]" style={{ fontFamily: 'var(--font-geist-sans)' }}>
-                               {faq.question}
-                             </p>
-                              {faq.type === 'text' ? (
+                          <div key={entryIndex} className="bg-[#f6f6f4] dark:bg-[#1b1912] p-4">
+                            <p className="text-sm font-medium mb-2 text-[#000000] dark:text-[#f6f6f4]" style={{ fontFamily: 'var(--font-geist-sans)' }}>
+                              {faq.question}
+                            </p>
+                            {faq.type === 'text' ? (
+                              <p className="text-xs text-gray-700 dark:text-[#c8c8b8] leading-relaxed" style={{ fontFamily: 'var(--font-geist-mono)' }}>
+                                {faq.answer}
+                              </p>
+                            ) : faq.type === 'code' ? (
+                              <div className="space-y-3">
                                 <p className="text-xs text-gray-700 dark:text-[#c8c8b8] leading-relaxed" style={{ fontFamily: 'var(--font-geist-mono)' }}>
-                                  {faq.answer}
+                                  {faq.answerText}
                                 </p>
-                              ) : faq.type === 'code' ? (
-                                <div className="space-y-3">
-                                  <p className="text-xs text-gray-700 dark:text-[#c8c8b8] leading-relaxed" style={{ fontFamily: 'var(--font-geist-mono)' }}>
-                                    {faq.answerText}
-                                  </p>
-                                 <div className="rounded-lg p-3 font-mono text-xs overflow-x-auto bg-black/[0.03] dark:bg-white/[0.03]">
-                                   <div className="mb-2">
-                                     <span className="text-gray-500 dark:text-[#a8a898]"># Old</span>
-                                     <div className="text-gray-900 dark:text-[#c8c8b8] mt-1 break-all">{faq.codeExample?.old}</div>
-                                   </div>
-                                   <div>
-                                     <span className="text-gray-500 dark:text-[#a8a898]"># New</span>
-                                     <div className="text-gray-900 dark:text-[#c8c8b8] mt-1 break-all">{faq.codeExample?.new}</div>
-                                   </div>
-                                 </div>
-                                 <p className="text-xs text-gray-700 dark:text-[#c8c8b8] leading-relaxed" style={{ fontFamily: 'var(--font-geist-mono)' }}>
-                                   {faq.answerFooter}
-                                 </p>
-                               </div>
-                             ) : null}
+                                <div className="rounded-lg p-3 font-mono text-xs overflow-x-auto bg-black/[0.03] dark:bg-white/[0.03]">
+                                  <div className="mb-2">
+                                    <span className="text-gray-500 dark:text-[#a8a898]"># Old</span>
+                                    <div className="text-gray-900 dark:text-[#c8c8b8] mt-1 break-all">{faq.codeExample?.old}</div>
+                                  </div>
+                                  <div>
+                                    <span className="text-gray-500 dark:text-[#a8a898]"># New</span>
+                                    <div className="text-gray-900 dark:text-[#c8c8b8] mt-1 break-all">{faq.codeExample?.new}</div>
+                                  </div>
+                                </div>
+                                <p className="text-xs text-gray-700 dark:text-[#c8c8b8] leading-relaxed" style={{ fontFamily: 'var(--font-geist-mono)' }}>
+                                  {faq.answerFooter}
+                                </p>
+                              </div>
+                            ) : null}
                           </div>
                         ))}
                       </div>
-                   </div>
-                 </div>
-               ))}
-             </div>
-           </div>
+                    </div>
+                  </div>
+                ))}
+              </div>
+            </div>
 
-           {/* Two-column layout - Matching other sections */}
-           <div className="hidden md:grid md:grid-cols-3 gap-0 relative flex-1">
-             {/* Left Column - FAQ Content (2 columns wide) */}
-             <div className="md:col-span-2" style={{ paddingTop: '3rem', paddingBottom: '3rem', paddingRight: '2rem' }}>
-               <div className="space-y-4">
-                 {faqSections.map((section, sectionIndex) => (
-                   <div key={sectionIndex}>
-                     {/* Section Title - Clickable */}
-                     <button
-                       onClick={() => toggleSection(sectionIndex)}
-                       className="w-full text-left px-4 py-3 flex items-center justify-between gap-2 hover:opacity-80 transition-opacity border section-border bg-[#f6f6f4] dark:bg-[#1b1912]"
-                     >
-                        <h3 className="text-base font-semibold text-[#000000] dark:text-[#f6f6f4]" style={{ fontFamily: 'var(--font-geist-sans)' }}>
-                          {section.title}
-                        </h3>
-                       <ChevronDown
-                         className={`flex-shrink-0 transition-transform duration-200 ${
-                           openSectionIndex === sectionIndex ? 'rotate-180' : ''
-                         }`}
-                         style={{ color: 'rgba(156, 163, 175, 0.6)' }}
-                         size={20}
-                       />
-                     </button>
-
-                     {/* Section FAQ Items - Collapsible */}
-                     <div
-                       className={`overflow-hidden transition-all duration-300 ${
-                         openSectionIndex === sectionIndex ? 'max-h-[3000px]' : 'max-h-0'
-                       }`}
-                      >
-                        <div className="mt-2 space-y-2">
-                          {section.entries.map((faq, entryIndex) => (
-                            <div key={entryIndex} className="border section-border bg-[#f6f6f4] dark:bg-[#1b1912] p-4">
-                             <p className="text-sm font-medium mb-2 text-[#000000] dark:text-[#f6f6f4]" style={{ fontFamily: 'var(--font-geist-sans)' }}>
-                               {faq.question}
-                             </p>
-                              {faq.type === 'text' ? (
-                                <p className="text-xs text-gray-700 dark:text-[#c8c8b8] leading-relaxed" style={{ fontFamily: 'var(--font-geist-mono)' }}>
-                                  {faq.answer}
-                                </p>
-                              ) : faq.type === 'code' ? (
-                                <div className="space-y-3">
-                                  <p className="text-xs text-gray-700 dark:text-[#c8c8b8] leading-relaxed" style={{ fontFamily: 'var(--font-geist-mono)' }}>
-                                    {faq.answerText}
-                                  </p>
-                                 <div className="rounded-lg p-3 font-mono text-xs overflow-x-auto bg-black/[0.03] dark:bg-white/[0.03]">
-                                   <div className="mb-2">
-                                     <span className="text-gray-500 dark:text-[#a8a898]"># Old</span>
-                                     <div className="text-gray-900 dark:text-[#c8c8b8] mt-1 break-all">{faq.codeExample?.old}</div>
-                                   </div>
-                                   <div>
-                                     <span className="text-gray-500 dark:text-[#a8a898]"># New</span>
-                                     <div className="text-gray-900 dark:text-[#c8c8b8] mt-1 break-all">{faq.codeExample?.new}</div>
-                                   </div>
-                                 </div>
-                                 <p className="text-xs text-gray-700 dark:text-[#c8c8b8] leading-relaxed" style={{ fontFamily: 'var(--font-geist-mono)' }}>
-                                   {faq.answerFooter}
-                                 </p>
-                               </div>
-                             ) : null}
-                            </div>
-                          ))}
-                        </div>
-                      </div>
-                   </div>
-                 ))}
-               </div>
-             </div>
-
-             {/* Right Column - Title and Intro (Desktop only) */}
-             <div className="hidden md:flex md:col-span-1 md:border-l flex-col justify-start dark:border-[#f6f6f4]/5 h-full" style={{ paddingTop: '3rem', paddingBottom: '3rem', paddingLeft: '1rem' }}>
-                <p className="text-base text-[#85612c] dark:text-[#c5b0cd] mb-2" style={{ fontFamily: 'var(--font-geist-mono)', letterSpacing: '0.05em' }}>
-                  05. FAQ
-                </p>
-               <h3 className="text-xl md:text-2xl lg:text-3xl mb-4 text-[#000000] dark:text-[#f6f6f4]" style={{ fontFamily: 'var(--font-geist-sans)' }}>
-                 Questions and answers
-               </h3>
-                <p className="text-sm text-gray-600 dark:text-[#a8a898] leading-relaxed" style={{ fontFamily: 'var(--font-geist-mono)' }}>
-                  Common questions about routing, agents, security, pricing, and deployment.
-                </p>
-             </div>
-           </div>
-
-           </div>
-         </div>
-       </section>
-     </>
-    );
- }
+          </div>
+        </div>
+      </section>
+    </>
+  );
+}

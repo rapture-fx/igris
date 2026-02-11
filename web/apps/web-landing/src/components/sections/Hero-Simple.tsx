@@ -89,14 +89,11 @@ export default function Hero() {
             <div className="max-w-[1100px] mx-auto w-full hero-top-padding">
             <div className="mb-6 text-left">
               <div>
-                <h1 className="text-3xl md:text-4xl lg:text-5xl font-bold" style={{ color: mounted && theme === 'dark' ? '#f6f6f4' : '#1b1912', fontFamily: 'var(--font-geist-pixel-square)' }}>
+                <h1 className="text-2xl md:text-3xl lg:text-4xl font-bold" style={{ color: mounted && theme === 'dark' ? '#f6f6f4' : '#1b1912', fontFamily: 'var(--font-geist-pixel-square)' }}>
                   <span className="block mb-3">The Nervous System</span>
                   <span className="block">for <AnimatedText /></span>
                 </h1>
-                <p className="text-lg md:text-xl max-w-2xl leading-relaxed text-left mt-8" style={{ color: mounted && theme === 'dark' ? '#c8c8b8' : '#4a4a4a', fontFamily: 'var(--font-geist-sans)' }}>
-                  A deterministic execution layer for AI that operates across cloud and devices, even when connectivity fails.
-                </p>
-                <div className="flex flex-wrap gap-2 md:gap-3 mt-4 text-xs md:text-sm" style={{ fontFamily: "'IBM Plex Mono', monospace", color: mounted && theme === 'dark' ? '#a8a898' : '#6a6a6a' }}>
+                <div className="flex flex-wrap gap-2 md:gap-3 mt-8 text-xs md:text-sm" style={{ fontFamily: "'IBM Plex Mono', monospace", color: mounted && theme === 'dark' ? '#a8a898' : '#6a6a6a' }}>
                 </div>
               </div>
             </div>
