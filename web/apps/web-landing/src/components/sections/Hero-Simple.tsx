@@ -3,6 +3,7 @@
 import React, { useState, useEffect } from 'react'
 import Link from 'next/link'
 import { useTheme } from 'next-themes'
+import { ChevronRight } from 'lucide-react'
 
 const AnimatedText = () => {
   const words = ['Machines', 'AI Agents']
@@ -79,8 +80,8 @@ export default function Hero() {
   return (
     <section className="pb-0 bg-[#f6f6f4] dark:bg-dark-bg text-gray-900 dark:text-[#f6f6f4] relative overflow-visible transition-colors duration-200">
       <div className="mx-auto max-w-[1100px] px-4 sm:px-6 lg:px-8">
-        <div className="relative px-4 md:px-8 lg:px-12 pb-16 md:pb-16 overflow-hidden" style={{
-          minHeight: '400px',
+        <div className="relative px-4 md:px-8 lg:px-12 pb-10 md:pb-10 overflow-hidden" style={{
+          minHeight: '280px',
           backgroundColor: mounted && theme === 'dark' ? '#1b1912' : '#f6f6f4',
           position: 'relative',
           zIndex: 1
@@ -101,18 +102,11 @@ export default function Hero() {
                 <div className="flex flex-wrap gap-4 mt-8">
                   <Link href="https://docs.igrisinertial.com/runtime/quickstart">
                     <button
-                      className="inline-flex items-center justify-center px-4 py-2 md:px-6 md:py-3 hover:opacity-80 transition-all duration-200 text-xs font-medium shadow-sm rounded-md"
+                      className="inline-flex items-center justify-center px-6 py-3 hover:opacity-80 transition-all duration-200 text-xs font-medium shadow-sm rounded-md"
                       style={{ backgroundColor: '#14120a', color: '#f6f6f4' }}
                     >
-                      Download
-                    </button>
-                  </Link>
-                  <Link href="https://github.com/igris-inertial">
-                    <button
-                      className="inline-flex items-center justify-center px-4 py-2 md:px-6 md:py-3 hover:opacity-80 transition-all duration-200 text-xs font-medium shadow-sm rounded-md border"
-                      style={{ backgroundColor: mounted && theme === 'dark' ? '#1b1912' : '#f6f6f4', color: mounted && theme === 'dark' ? '#f6f6f4' : '#1b1912', borderColor: 'rgba(20, 18, 10, 0.1)' }}
-                    >
-                      GitHub
+                      Get Started
+                      <ChevronRight className="ml-1 h-3 w-3" />
                     </button>
                   </Link>
                 </div>

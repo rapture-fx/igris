@@ -1,7 +1,7 @@
 'use client';
 
 import React, { useEffect, useState } from 'react';
-import { Check } from 'lucide-react';
+import { Check, ChevronRight } from 'lucide-react';
 import { useModal } from '../../contexts/ModalContext';
 import { useTheme } from 'next-themes';
 import PricingComparison from './PricingComparison';
@@ -173,10 +173,11 @@ export default function Pricing() {
                     </div>
                     <button
                       onClick={openEarlyAccessModal}
-                      className="inline-flex items-center justify-center px-4 py-1.5 rounded-md transition-all duration-200 text-xs mt-8 opacity-100 md:opacity-0 md:group-hover:opacity-100 self-start text-white dark:text-[#1b1912] bg-[#000000] dark:bg-[#f6f6f4] hover:bg-gray-800 dark:hover:bg-[#e6e6e4] border border-black dark:border-[#f6f6f4]"
-                      style={{ fontFamily: 'var(--font-geist-sans)' }}
+                      className="inline-flex items-center justify-center px-4 py-2 hover:opacity-80 transition-all duration-200 text-xs font-medium shadow-sm rounded-md mt-8 opacity-100 md:opacity-0 md:group-hover:opacity-100 self-start"
+                      style={{ fontFamily: 'var(--font-geist-sans)', backgroundColor: '#14120a', color: '#f6f6f4' }}
                     >
                       Select
+                      <ChevronRight className="ml-1 h-3 w-3" />
                     </button>
                   </div>
                 </div>
