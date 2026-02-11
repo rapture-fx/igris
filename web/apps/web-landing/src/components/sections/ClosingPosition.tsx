@@ -20,7 +20,7 @@ export default function ClosingPosition() {
             <Link href="https://docs.igrisinertial.com/runtime/quickstart">
               <button
                 className="inline-flex items-center justify-center px-6 py-3 hover:opacity-80 transition-all duration-200 text-xs font-medium shadow-sm rounded-md shrink-0 ml-4"
-                style={{ backgroundColor: '#14120a', color: '#f6f6f4' }}
+                style={{ backgroundColor: '#1b1912', color: '#f6f6f4' }}
               >
                 Get Started
                 <ChevronRight className="ml-1 h-3 w-3" />

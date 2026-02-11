@@ -230,7 +230,7 @@ export default function Header() {
                   href={consoleUrl ? `${consoleUrl}/auth?mode=signup` : '#'}
                   onMouseEnter={scheduleClose}
                   className="inline-flex items-center justify-center px-4 py-2 hover:opacity-80 transition-all duration-200 text-xs font-medium shadow-sm rounded-md"
-                  style={{ fontFamily: 'var(--font-geist-sans)', backgroundColor: '#14120a', color: '#f6f6f4' }}
+                  style={{ fontFamily: 'var(--font-geist-sans)', backgroundColor: '#1b1912', color: '#f6f6f4' }}
                 >
                   Get Started
                 </a>
