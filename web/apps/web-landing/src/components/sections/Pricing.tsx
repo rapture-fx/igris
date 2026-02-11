@@ -129,7 +129,7 @@ export default function Pricing() {
                     tier.recommended
                       ? 'border-gray-300 dark:border-[#f6f6f4]/10'
                       : 'border-gray-300 dark:border-[#f6f6f4]/10'
-                  } bg-[#f6f6f4] dark:bg-[#14120a]`}
+                  } bg-[#f6f6f4] dark:bg-[#1b1912]`}
                 >
                   <div className="p-6 flex flex-col h-full">
                     <div className="flex-grow">
@@ -174,7 +174,7 @@ export default function Pricing() {
                     <button
                       onClick={openEarlyAccessModal}
                       className="inline-flex items-center justify-center px-4 py-2 hover:opacity-80 transition-all duration-200 text-xs font-medium shadow-sm rounded-md mt-8 opacity-100 md:opacity-0 md:group-hover:opacity-100 self-start"
-                      style={{ fontFamily: 'var(--font-geist-sans)', backgroundColor: '#14120a', color: '#f6f6f4' }}
+                      style={{ fontFamily: 'var(--font-geist-sans)', backgroundColor: '#1b1912', color: '#f6f6f4' }}
                     >
                       Select
                       <ChevronRight className="ml-1 h-3 w-3" />

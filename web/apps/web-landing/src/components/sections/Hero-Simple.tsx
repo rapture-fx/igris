@@ -90,10 +90,12 @@ export default function Hero() {
             <div className="max-w-[1100px] mx-auto w-full hero-top-padding">
             <div className="mb-6 text-left">
               <div>
-                <h1 className="text-2xl md:text-3xl lg:text-4xl font-bold" style={{ color: mounted && theme === 'dark' ? '#f6f6f4' : '#1b1912', fontFamily: 'var(--font-geist-pixel-square)' }}>
+                <h1 className="text-3xl md:text-4xl lg:text-5xl font-bold" style={{ color: mounted && theme === 'dark' ? '#f6f6f4' : '#1b1912', fontFamily: 'var(--font-geist-pixel-square)' }}>
                   <span className="block mb-3">The Nervous System</span>
-                  <span className="block">for <AnimatedText /></span>
                 </h1>
+                <h2 className="text-xl md:text-2xl lg:text-3xl font-medium mt-2" style={{ color: mounted && theme === 'dark' ? '#f6f6f4' : '#1b1912', fontFamily: 'var(--font-geist-pixel-square)' }}>
+                  Deterministic execution for AI that cannot fail.
+                </h2>
                 <div className="flex flex-wrap gap-2 md:gap-3 mt-8 text-xs md:text-sm" style={{ fontFamily: "'IBM Plex Mono', monospace", color: mounted && theme === 'dark' ? '#a8a898' : '#6a6a6a' }}>
                 </div>
               </div>
@@ -103,7 +105,7 @@ export default function Hero() {
                   <Link href="https://docs.igrisinertial.com/runtime/quickstart">
                     <button
                       className="inline-flex items-center justify-center px-6 py-3 hover:opacity-80 transition-all duration-200 text-xs font-medium shadow-sm rounded-md"
-                      style={{ backgroundColor: '#14120a', color: '#f6f6f4' }}
+                      style={{ backgroundColor: '#1b1912', color: '#f6f6f4' }}
                     >
                       Get Started
                       <ChevronRight className="ml-1 h-3 w-3" />
