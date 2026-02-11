@@ -88,18 +88,10 @@ export default function Products() {
             </div>
           </div>
           {/* Col 2 - Text */}
-          <div className="flex flex-col justify-center py-6 px-4 md:px-8 lg:pr-12">
+          <div className="flex flex-col justify-start py-6 px-4 md:px-8 lg:pr-12">
             <p className="text-sm md:text-base text-gray-600 dark:text-[#a8a898] leading-relaxed mb-3" style={{ fontFamily: 'var(--font-geist-sans)' }}>
               See what's running. Know what's deciding. Understand what's learned. Prove what happened. A complete view of your AI fleet in one place—not scattered across vendor dashboards, cloud consoles, and exports.
             </p>
-            <Link
-              href="/runtime"
-              className="group inline-flex items-center justify-center w-fit bg-[#f6f6f4] text-[#1b1912] dark:bg-[#f6f6f4] dark:text-black px-3 py-1.5 hover:opacity-90 transition-all duration-200 text-xs font-medium shadow-md rounded-md border mt-auto"
-              style={{ borderColor: 'rgba(20, 18, 10, 0.3)' }}
-            >
-              View Dashboard
-              <ChevronRight className="ml-1 h-3 w-3" />
-            </Link>
           </div>
         </div>
       </div>
