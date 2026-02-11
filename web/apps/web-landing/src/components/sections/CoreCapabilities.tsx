@@ -71,8 +71,8 @@ export default function CoreCapabilities() {
                           src={mounted && theme === 'dark' ? '/cr.png' : '/exc.png'}
                           alt={capability.name}
                           style={{
-                            width: '85%',
-                            height: '85%',
+                            width: '65%',
+                            height: '65%',
                             objectFit: 'contain',
                             opacity: '0.6'
                           }}
@@ -83,8 +83,8 @@ export default function CoreCapabilities() {
                           src={mounted && theme === 'dark' ? '/cs.png' : '/tre.png'}
                           alt={capability.name}
                           style={{
-                            width: '85%',
-                            height: '85%',
+                            width: '65%',
+                            height: '65%',
                             objectFit: 'contain',
                             opacity: '0.6'
                           }}
@@ -95,8 +95,8 @@ export default function CoreCapabilities() {
                           src={mounted && theme === 'dark' ? '/cc.png' : '/one.png'}
                           alt={capability.name}
                           style={{
-                            width: '85%',
-                            height: '85%',
+                            width: '65%',
+                            height: '65%',
                             objectFit: 'contain',
                             opacity: '0.6'
                           }}
