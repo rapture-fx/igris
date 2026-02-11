@@ -26,7 +26,8 @@ export default function Products() {
             </h2>
             <Link
               href="/runtime"
-              className="group inline-flex items-center justify-center w-fit bg-[#14120a] text-white dark:bg-[#f6f6f4] dark:text-black px-3 py-1.5 hover:opacity-90 transition-all duration-200 text-xs font-medium shadow-md rounded-md shrink-0 ml-4"
+              className="group inline-flex items-center justify-center px-6 py-3 hover:opacity-80 transition-all duration-200 text-xs font-medium shadow-sm rounded-md shrink-0 ml-4"
+              style={{ backgroundColor: '#14120a', color: '#f6f6f4' }}
             >
               Explore Platform
               <ChevronRight className="ml-1 h-3 w-3" />
