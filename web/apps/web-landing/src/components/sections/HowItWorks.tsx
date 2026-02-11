@@ -19,18 +19,21 @@ const steps = [
 
 export default function HowItWorks() {
   return (
-    <section id="how-it-works" className="bg-[#f6f6f4] dark:bg-dark-bg text-gray-900 dark:text-[#f6f6f4] transition-colors duration-200">
+    <section id="how-it-works" className="bg-[#f6f6f4] dark:bg-dark-bg text-gray-900 dark:text-[#f6f6f4] transition-colors duration-200 overflow-hidden">
       <div className="mx-auto max-w-[1100px] px-4 sm:px-6 lg:px-8">
-        <div className="relative px-4 md:px-8 lg:px-12" style={{ paddingTop: '3rem', paddingBottom: '3rem', borderLeft: '0.5px solid rgba(209, 213, 219, 0.35)', borderRight: '0.5px solid rgba(209, 213, 219, 0.35)' }}>
+        <div className="px-4 md:px-8 lg:px-12" style={{ borderLeft: '0.5px solid rgba(209, 213, 219, 0.35)', borderRight: '0.5px solid rgba(209, 213, 219, 0.35)' }}>
           {/* Title */}
-          <div className="text-left mb-8">
-            <h3 className="text-xl md:text-2xl lg:text-3xl mb-4 text-[#000000] dark:text-[#f6f6f4]" style={{ fontFamily: 'var(--font-geist-sans)' }}>
+          <div className="text-left" style={{ paddingTop: '3rem', paddingBottom: '2rem' }}>
+            <h3 className="text-xl md:text-2xl lg:text-3xl text-[#000000] dark:text-[#f6f6f4]" style={{ fontFamily: 'var(--font-geist-sans)' }}>
               Deploy. Verify. Optimize.
             </h3>
           </div>
 
+          {/* Full-width border below title */}
+          <div style={{ borderTop: '0.5px solid rgba(209, 213, 219, 0.35)', width: '100vw', marginLeft: '50%', transform: 'translateX(-50%)' }} />
+
           {/* 3-column seamless table */}
-          <div className="grid grid-cols-1 md:grid-cols-3 pt-8">
+          <div className="grid grid-cols-1 md:grid-cols-3" style={{ paddingTop: '2rem', paddingBottom: '3rem' }}>
             {steps.map((step, index) => (
               <div key={step.name} className={`pb-0 pt-6 pr-6 ${index === 0 ? 'pl-0' : 'pl-6'}`}>
                 <span className="text-xs text-[#85612c] dark:text-[#c5b0cd] mb-3 block" style={{ fontFamily: 'var(--font-geist-mono, "Geist Mono", monospace)' }}>
@@ -47,6 +50,7 @@ export default function HowItWorks() {
           </div>
         </div>
       </div>
+
     </section>
   )
 }

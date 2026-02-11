@@ -1,4 +1,5 @@
 import React, { useEffect, useState } from 'react'
+import Link from 'next/link'
 import { useTheme } from 'next-themes'
 
 const capabilities = [
@@ -25,26 +26,28 @@ export default function CoreCapabilities() {
   }, [])
 
   return (
-    <section className="bg-[#f6f6f4] dark:bg-dark-bg text-gray-900 dark:text-[#f6f6f4] transition-colors duration-200">
+    <section className="bg-[#f6f6f4] dark:bg-dark-bg text-gray-900 dark:text-[#f6f6f4] transition-colors duration-200 overflow-hidden">
       <div className="mx-auto max-w-[1100px] px-4 sm:px-6 lg:px-8">
-        <div className="relative px-4 md:px-8 lg:px-12" style={{ borderLeft: '0.5px solid rgba(209, 213, 219, 0.35)', borderRight: '0.5px solid rgba(209, 213, 219, 0.35)', borderBottom: '0.5px solid rgba(209, 213, 219, 0.35)' }}>
-          {/* Title outside the frame */}
-          <div className="flex items-end justify-between mb-4" style={{ paddingTop: '3rem', paddingBottom: '1rem' }}>
-            <div className="text-left">
-              <h3 className="text-xl md:text-2xl lg:text-3xl mb-4 text-[#000000] dark:text-[#f6f6f4]" style={{ fontFamily: 'var(--font-geist-sans)' }}>
-                Every layer working together
-              </h3>
-            </div>
-            <button
-              className="inline-flex items-center justify-center px-4 py-2 md:px-6 md:py-3 hover:opacity-80 transition-all duration-200 text-xs font-medium shadow-sm rounded-md border shrink-0"
+        <div className="px-4 md:px-8 lg:px-12" style={{ borderLeft: '0.5px solid rgba(209, 213, 219, 0.35)', borderRight: '0.5px solid rgba(209, 213, 219, 0.35)', paddingBottom: '2rem' }}>
+          {/* Title */}
+          <div className="flex items-center justify-between" style={{ paddingTop: '3rem', paddingBottom: '2rem' }}>
+            <h3 className="text-xl md:text-2xl lg:text-3xl text-[#000000] dark:text-[#f6f6f4]" style={{ fontFamily: 'var(--font-geist-sans)' }}>
+              Every layer working together
+            </h3>
+            <Link
+              href="/core"
+              className="inline-flex items-center justify-center px-4 py-2 md:px-6 md:py-3 hover:opacity-80 transition-all duration-200 text-xs font-medium shadow-sm rounded-md border shrink-0 ml-4"
               style={{ backgroundColor: mounted && theme === 'dark' ? '#1b1912' : '#f6f6f4', color: mounted && theme === 'dark' ? '#f6f6f4' : '#1b1912', borderColor: 'rgba(20, 18, 10, 0.1)' }}
             >
               Learn More
-            </button>
+            </Link>
           </div>
-          
+
+          {/* Full-width border below title */}
+          <div style={{ borderTop: '0.5px solid rgba(209, 213, 219, 0.35)', width: '100vw', marginLeft: '50%', transform: 'translateX(-50%)' }} />
+
           {/* Frame with centered cards */}
-          <div className="rounded-2xl flex items-center justify-center relative overflow-hidden core-cards-frame" style={{ height: '600px', marginBottom: '4rem' }}>
+          <div className="rounded-2xl flex items-center justify-center relative overflow-hidden core-cards-frame" style={{ height: '600px', marginTop: '2rem' }}>
             <img
               src="/arc.png"
               alt=""
@@ -115,6 +118,9 @@ export default function CoreCapabilities() {
           </div>
         </div>
       </div>
+
+      {/* Full-width bottom border */}
+      <div style={{ borderTop: '0.5px solid rgba(209, 213, 219, 0.35)' }} />
     </section>
   )
 }

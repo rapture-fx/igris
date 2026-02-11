@@ -12,8 +12,6 @@ import MultiTenancy from '../src/components/sections/MultiTenancy'
 import Products from '../src/components/sections/Products'
 import HowItWorks from '../src/components/sections/HowItWorks'
 
-import OverturePopup from '../src/components/popups/OverturePopup'
-import RuntimePopup from '../src/components/popups/RuntimePopup'
 import UseCasesPopup from '../src/components/popups/UseCasesPopup'
 
 import AIAgentView from '../src/components/AIAgentView'
@@ -24,7 +22,7 @@ import { useViewMode } from '../src/contexts/ViewModeContext'
 
 export default function HomePage() {
 
-  const { isOvertureOpen, closeOverture, isRuntimeOpen, closeRuntime, isUseCasesOpen, closeUseCases } = useProductPopup();
+  const { isUseCasesOpen, closeUseCases } = useProductPopup();
   const { isAIAgentMode } = useViewMode();
 
   return (
@@ -50,14 +48,6 @@ export default function HomePage() {
 
       <ViewModeToggle />
 
-      <OverturePopup
-        isOpen={isOvertureOpen}
-        onClose={closeOverture}
-      />
-      <RuntimePopup
-        isOpen={isRuntimeOpen}
-        onClose={closeRuntime}
-      />
       <UseCasesPopup
         isOpen={isUseCasesOpen}
         onClose={closeUseCases}
