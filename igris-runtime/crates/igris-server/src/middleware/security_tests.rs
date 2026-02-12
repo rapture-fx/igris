@@ -45,6 +45,7 @@ mod tests {
             lora_training: None,
             federated_manager: None,
             swarm_manager: None,
+            fleet_manager: None,
             rate_limiter: Some(RateLimiter::new(60, 1)),
             metrics: Arc::new(Metrics::new()),
             escapevector_cache: None, // Disable for tests
