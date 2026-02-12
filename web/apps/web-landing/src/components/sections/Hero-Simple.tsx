@@ -94,7 +94,7 @@ export default function Hero() {
                   <h1 className="text-3xl md:text-4xl lg:text-5xl font-bold" style={{ color: mounted && theme === 'dark' ? '#f6f6f4' : '#1b1912', fontFamily: 'var(--font-geist-pixel-square)' }}>
                     <span className="block">The Nervous System</span>
                   </h1>
-                  <div className="text-base md:text-lg lg:text-xl font-medium max-w-md" style={{ color: mounted && theme === 'dark' ? '#f6f6f4' : '#1b1912', fontFamily: 'var(--font-geist-pixel-square)' }}>
+                  <div className="text-base md:text-lg lg:text-xl max-w-md" style={{ color: mounted && theme === 'dark' ? '#f6f6f4' : '#1b1912', fontFamily: 'var(--font-geist-sans)' }}>
                     <span className="block">A deterministic execution and coordination layer for AI—enforcing behavior, adapting decisions, and verifying every action across autonomous systems.</span>
                   </div>
                 </div>

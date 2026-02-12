@@ -56,15 +56,11 @@ export default function Products() {
           </div>
           {/* Col 2 - Text */}
           <div className="flex flex-col justify-start pt-6 pb-6 px-4 md:px-8 lg:pr-12">
-            <h3 className="text-base md:text-lg mb-3 text-[#000000] dark:text-[#f6f6f4]" style={{ fontFamily: 'var(--font-geist-sans)' }}>
-              Hybrid behavior trees meet LLM reasoning.
-            </h3>
             <p className="text-sm md:text-base text-gray-600 dark:text-[#a8a898] leading-relaxed mb-3" style={{ fontFamily: 'var(--font-geist-sans)' }}>
-              Your AI executes through structured decision paths, invoking language models only when needed. Execution is deterministic and bounded—no uncontrolled behavior, no silent failures. Every decision is recorded and cryptographically verifiable.
+              Your AI executes through structured decision paths. Language models generate decisions; the runtime enforces boundaries. Execution is deterministic and bounded—no uncontrolled behavior, no silent failures. Every decision is recorded and cryptographically verifiable.
             </p>
             <p className="text-sm md:text-base text-gray-600 dark:text-[#a8a898] leading-relaxed mb-3" style={{ fontFamily: 'var(--font-geist-sans)' }}>
-              Execution, intelligence, memory, and proof are designed to work together as one system.
-              The runtime can be deployed on individual devices or across fleets.
+              Execution, intelligence, memory, and proof operate as a single system. The same runtime deploys on servers, edge devices, or robotics hardware.
             </p>
           </div>
         </div>
