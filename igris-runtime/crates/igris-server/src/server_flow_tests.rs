@@ -87,6 +87,7 @@ mod tests {
             lora_training: None,
             federated_manager: None,
             swarm_manager: None,
+            fleet_manager: None,
             rate_limiter: None,
             metrics: Arc::new(Metrics::new()),
             escapevector_cache: None, // Disable for tests
@@ -236,6 +237,7 @@ mod tests {
             lora_training: None,
             federated_manager: None,
             swarm_manager: None,
+            fleet_manager: None,
             rate_limiter: None,
             metrics: Arc::new(Metrics::new()),
             escapevector_cache: Some(cache.clone()),
@@ -321,6 +323,7 @@ mod tests {
             lora_training: None,
             federated_manager: None,
             swarm_manager: None,
+            fleet_manager: None,
             rate_limiter: None,
             metrics: Arc::new(Metrics::new()),
             escapevector_cache: Some(cache.clone()),

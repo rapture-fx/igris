@@ -59,6 +59,8 @@ mod federated_integration;
 use federated_integration::FederatedManager;
 mod swarm_integration;
 use swarm_integration::SwarmManager;
+mod fleet_integration;
+use fleet_integration::FleetManager;
 mod middleware;
 use axum::middleware::from_fn_with_state;
 use middleware::security::{security_middleware, RateLimiter};
@@ -90,6 +92,7 @@ pub(crate) struct AppState {
     pub(crate) lora_training: Option<Arc<LoraTrainingManager>>,
     pub(crate) federated_manager: Option<Arc<FederatedManager>>,
     pub(crate) swarm_manager: Option<Arc<SwarmManager>>,
+    pub(crate) fleet_manager: Option<Arc<FleetManager>>,
     pub(crate) rate_limiter: Option<middleware::security::RateLimiter>,
     pub(crate) metrics: Arc<Metrics>,
     pub(crate) escapevector_cache: Option<Arc<EscapeVectorCache>>,
@@ -367,7 +370,8 @@ async fn metrics_handler(State(state): State<AppState>) -> Response {
         .into_response()
 }
 
-/// Fleet instances endpoint - returns all edge runtime instances
+/// Fleet types retained for OpenAPI schema generation (utoipa)
+#[allow(dead_code)]
 #[derive(Serialize, Deserialize)]
 #[serde(rename_all = "lowercase")]
 enum InstanceStatus {
@@ -377,6 +381,7 @@ enum InstanceStatus {
     Syncing,
 }
 
+#[allow(dead_code)]
 #[derive(Serialize, Deserialize)]
 #[serde(rename_all = "lowercase")]
 enum SyncStatus {
@@ -385,6 +390,7 @@ enum SyncStatus {
     Syncing,
 }
 
+#[allow(dead_code)]
 #[derive(Serialize, Deserialize)]
 struct EdgeRuntimeInstance {
     id: String,
@@ -407,6 +413,7 @@ struct EdgeRuntimeInstance {
     active_requests: u32,
 }
 
+#[allow(dead_code)]
 #[derive(Serialize, Deserialize)]
 struct FleetMetrics {
     total_instances: u32,
@@ -429,89 +436,16 @@ struct FleetMetrics {
         (status = 200, description = "List of fleet instances", body = Vec<EdgeRuntimeInstance>)
     )
 )]
-async fn fleet_instances(State(_state): State<AppState>) -> Result<Response, ApiError> {
-    use std::time::SystemTime;
-
-    // For now, return this instance + a few simulated instances
-    // In production, this would query the fleet control plane (Overture)
-    let now = SystemTime::now()
-        .duration_since(SystemTime::UNIX_EPOCH)
-        .unwrap()
-        .as_secs();
-
-    // Format timestamp as ISO 8601
-    let format_timestamp = |secs_ago: u64| -> String {
-        let timestamp = now - secs_ago;
-        format!("2025-12-28T{:02}:{:02}:{:02}Z",
-            (timestamp / 3600) % 24,
-            (timestamp / 60) % 60,
-            timestamp % 60)
+async fn fleet_instances(State(state): State<AppState>) -> Result<Response, ApiError> {
+    let Some(mgr) = &state.fleet_manager else {
+        return Ok((StatusCode::OK, Json(serde_json::json!({
+            "enabled": false,
+            "instances": []
+        }))).into_response());
     };
 
-    let instances = vec![
-        EdgeRuntimeInstance {
-            id: "igris-runtime-us-east-1-a".to_string(),
-            name: "US-EAST-1 A Runtime".to_string(),
-            region: "us-east-1".to_string(),
-            availability_zone: "a".to_string(),
-            status: InstanceStatus::Online,
-            version: "v1.6.0".to_string(),
-            last_heartbeat: format_timestamp(5),
-            uptime_seconds: 86400,
-            requests_processed: 125000,
-            error_rate: 0.5,
-            avg_latency: 85.0,
-            cpu_usage: 45.2,
-            memory_usage: 62.8,
-            sync_status: SyncStatus::InSync,
-            last_sync_time: format_timestamp(10),
-            capabilities: vec!["speculative_execution".to_string(), "council_mode".to_string()],
-            provider_connections: 3,
-            active_requests: 12,
-        },
-        EdgeRuntimeInstance {
-            id: "igris-runtime-us-west-2-a".to_string(),
-            name: "US-WEST-2 A Runtime".to_string(),
-            region: "us-west-2".to_string(),
-            availability_zone: "a".to_string(),
-            status: InstanceStatus::Online,
-            version: "v1.6.0".to_string(),
-            last_heartbeat: format_timestamp(3),
-            uptime_seconds: 172800,
-            requests_processed: 98000,
-            error_rate: 0.3,
-            avg_latency: 92.0,
-            cpu_usage: 38.5,
-            memory_usage: 58.2,
-            sync_status: SyncStatus::InSync,
-            last_sync_time: format_timestamp(8),
-            capabilities: vec!["speculative_execution".to_string()],
-            provider_connections: 3,
-            active_requests: 8,
-        },
-        EdgeRuntimeInstance {
-            id: "igris-runtime-eu-west-1-a".to_string(),
-            name: "EU-WEST-1 A Runtime".to_string(),
-            region: "eu-west-1".to_string(),
-            availability_zone: "a".to_string(),
-            status: InstanceStatus::Online,
-            version: "v1.6.0".to_string(),
-            last_heartbeat: format_timestamp(7),
-            uptime_seconds: 259200,
-            requests_processed: 156000,
-            error_rate: 0.4,
-            avg_latency: 78.0,
-            cpu_usage: 52.1,
-            memory_usage: 65.3,
-            sync_status: SyncStatus::InSync,
-            last_sync_time: format_timestamp(15),
-            capabilities: vec!["speculative_execution".to_string(), "council_mode".to_string(), "cache_optimization".to_string()],
-            provider_connections: 4,
-            active_requests: 15,
-        },
-    ];
-
-    Ok((StatusCode::OK, Json(instances)).into_response())
+    let instance = mgr.get_instance_info().await;
+    Ok((StatusCode::OK, Json(vec![instance])).into_response())
 }
 
 #[utoipa::path(
@@ -522,21 +456,14 @@ async fn fleet_instances(State(_state): State<AppState>) -> Result<Response, Api
         (status = 200, description = "Fleet-wide metrics", body = FleetMetrics)
     )
 )]
-async fn fleet_metrics(State(_state): State<AppState>) -> Result<Response, ApiError> {
-    // In production, aggregate from all instances via Overture
-    let metrics = FleetMetrics {
-        total_instances: 3,
-        online_instances: 3,
-        offline_instances: 0,
-        maintenance_instances: 0,
-        avg_uptime_percentage: 99.8,
-        total_requests_served: 379000,
-        fleet_error_rate: 0.4,
-        regions_covered: 3,
-        total_capacity: 300,
-        used_capacity: 35,
+async fn fleet_metrics(State(state): State<AppState>) -> Result<Response, ApiError> {
+    let Some(mgr) = &state.fleet_manager else {
+        return Ok((StatusCode::OK, Json(serde_json::json!({
+            "enabled": false
+        }))).into_response());
     };
 
+    let metrics = mgr.get_metrics().await;
     Ok((StatusCode::OK, Json(metrics)).into_response())
 }
 
@@ -2131,61 +2058,46 @@ async fn main() -> anyhow::Result<()> {
     };
 
     // Initialize Fleet Management (Phase 2, Dev 10)
-    if let Some(fleet_runtime_config) = &config.fleet {
-        if fleet_runtime_config.enabled {
-            info!("Fleet Management is ENABLED");
-            info!("Overture endpoint: {}", fleet_runtime_config.overture_endpoint);
-            info!("Agent ID: {}", fleet_runtime_config.agent_id);
+    let fleet_manager: Option<Arc<FleetManager>> = {
+        if let Some(fleet_runtime_config) = &config.fleet {
+            if fleet_runtime_config.enabled {
+                info!("Fleet Management is ENABLED");
+                info!("Overture endpoint: {}", fleet_runtime_config.overture_endpoint);
+                info!("Agent ID: {}", fleet_runtime_config.agent_id);
 
-            // Convert RuntimeConfig to FleetConfig
-            let api_key = std::env::var(&fleet_runtime_config.api_key_env).ok();
-            let fleet_config = igris_fleet::FleetConfig {
-                enabled: fleet_runtime_config.enabled,
-                overture_endpoint: fleet_runtime_config.overture_endpoint.clone(),
-                agent_id: fleet_runtime_config.agent_id.clone(),
-                api_key,
-                enable_tls: fleet_runtime_config.enable_tls,
-                sync_interval_secs: fleet_runtime_config.sync_interval_secs,
-                auto_sync_config: fleet_runtime_config.auto_sync_config,
-                enable_telemetry: fleet_runtime_config.enable_telemetry,
-                telemetry_interval_secs: fleet_runtime_config.telemetry_interval_secs,
-                mock_mode: false,  // Never use mock mode in production
-            };
+                let api_key = std::env::var(&fleet_runtime_config.api_key_env).ok();
+                let fleet_config = igris_fleet::FleetConfig {
+                    enabled: fleet_runtime_config.enabled,
+                    overture_endpoint: fleet_runtime_config.overture_endpoint.clone(),
+                    agent_id: fleet_runtime_config.agent_id.clone(),
+                    api_key,
+                    enable_tls: fleet_runtime_config.enable_tls,
+                    sync_interval_secs: fleet_runtime_config.sync_interval_secs,
+                    auto_sync_config: fleet_runtime_config.auto_sync_config,
+                    enable_telemetry: fleet_runtime_config.enable_telemetry,
+                    telemetry_interval_secs: fleet_runtime_config.telemetry_interval_secs,
+                    mock_mode: false,
+                };
 
-            match igris_fleet::FleetAgent::new(fleet_config).await {
-                Ok(agent) => {
-                    // Register with fleet control plane
-                    match agent.register().await {
-                        Ok(response) => {
-                            info!(
-                                "Successfully registered with fleet: {} (role: {}, config_version: {})",
-                                response.fleet_id, response.assigned_role, response.config_version
-                            );
-
-                            // Start background sync loops for config and telemetry
-                            if let Err(e) = agent.start_sync_loops().await {
-                                warn!("Failed to start fleet sync loops: {}", e);
-                            } else {
-                                info!("Fleet sync loops started (config + telemetry)");
-                            }
-                        }
-                        Err(e) => {
-                            warn!("Failed to register with fleet: {}", e);
-                            warn!("Fleet management will continue in degraded mode");
-                        }
+                match FleetManager::new(fleet_config).await {
+                    Ok(mgr) => {
+                        info!("Fleet manager initialized");
+                        Some(Arc::new(mgr))
+                    }
+                    Err(e) => {
+                        warn!("Failed to initialize fleet manager: {}", e);
+                        None
                     }
                 }
-                Err(e) => {
-                    warn!("Failed to initialize fleet agent: {}", e);
-                    warn!("Fleet management will not be available");
-                }
+            } else {
+                info!("Fleet Management is DISABLED in config");
+                None
             }
         } else {
-            info!("Fleet Management is DISABLED in config");
+            info!("Fleet Management not configured");
+            None
         }
-    } else {
-        info!("Fleet Management not configured");
-    }
+    };
 
     // Initialize Federated Learning (always available, just may be disabled)
     let federated_manager: Option<Arc<FederatedManager>> = {
@@ -2241,6 +2153,7 @@ async fn main() -> anyhow::Result<()> {
         lora_training,
         federated_manager,
         swarm_manager,
+        fleet_manager,
         rate_limiter,
         metrics,
         escapevector_cache,
