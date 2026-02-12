@@ -69,24 +69,6 @@ const pricingTiers: PricingTier[] = [
       "$1.50/device/month over 500 devices"
     ],
     cta: "Get Started"
-  },
-  {
-    name: "Enterprise",
-    tagline: "The layer at maximum scale.",
-    price: "Custom pricing",
-    limits: "Unlimited devices",
-    features: [
-      "Everything in The Infinite",
-      "Air-gapped operation support",
-      "Full on-premise platform deployment",
-      "Custom integrations & white-label",
-      "Dedicated account manager",
-      "Custom SLA (up to 99.9% uptime)",
-      "White-glove onboarding",
-      "Priority feature requests"
-    ],
-    cta: "Contact Sales",
-    isContactUs: true
   }
 ];
 
@@ -121,7 +103,7 @@ export default function Pricing() {
               </h2>
             </div>
 
-            <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-4 gap-4 max-w-[900px] mx-auto mb-16">
+            <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-4 max-w-[900px] mx-auto mb-16">
               {pricingTiers.map((tier, index) => (
                 <div
                   key={index}

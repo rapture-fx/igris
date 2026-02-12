@@ -91,11 +91,11 @@ export default function Hero() {
             <div className="mb-1 text-left">
               <div>
                 <div className="flex flex-col md:flex-row md:items-start md:justify-between gap-4 md:gap-8">
-                  <h1 className="text-3xl md:text-4xl lg:text-5xl font-bold" style={{ color: mounted && theme === 'dark' ? '#f6f6f4' : '#1b1912', fontFamily: 'var(--font-geist-pixel-square)' }}>
+                  <h1 className="text-2xl md:text-3xl lg:text-4xl font-bold" style={{ color: mounted && theme === 'dark' ? '#f6f6f4' : '#1b1912', fontFamily: 'var(--font-geist-pixel-square)' }}>
                     <span className="block">The Nervous System</span>
                   </h1>
                   <div className="text-base md:text-lg lg:text-xl max-w-md" style={{ color: mounted && theme === 'dark' ? '#f6f6f4' : '#1b1912', fontFamily: 'var(--font-geist-sans)' }}>
-                    <span className="block">A deterministic execution and coordination layer for AI—enforcing behavior, adapting decisions, and verifying every action across autonomous systems.</span>
+                    <span className="block">A deterministic execution and coordination layer for AI that enforces structured behavior, adapts decisions over time, and verifies every action across autonomous systems.</span>
                   </div>
                 </div>
                 <div className="flex flex-wrap gap-2 md:gap-3 mt-8 text-xs md:text-sm" style={{ fontFamily: "'IBM Plex Mono', monospace", color: mounted && theme === 'dark' ? '#a8a898' : '#6a6a6a' }}>
@@ -103,7 +103,7 @@ export default function Hero() {
               </div>
             </div>
 
-                <div className="flex flex-wrap gap-4 mt-2">
+                <div className="flex flex-wrap gap-4 mt-0">
                   <Link href="https://docs.igrisinertial.com/runtime/quickstart">
                     <button
                       className="inline-flex items-center justify-center px-6 py-3 hover:opacity-80 transition-all duration-200 text-xs font-medium shadow-sm rounded-md"

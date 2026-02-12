@@ -56,11 +56,14 @@ export default function Products() {
           </div>
           {/* Col 2 - Text */}
           <div className="flex flex-col justify-start pt-6 pb-6 px-4 md:px-8 lg:pr-12">
+            <h3 className="text-base md:text-lg mb-3 text-[#000000] dark:text-[#f6f6f4]" style={{ fontFamily: 'var(--font-geist-sans)' }}>
+              Hybrid behavior trees meet LLM reasoning.
+            </h3>
             <p className="text-sm md:text-base text-gray-600 dark:text-[#a8a898] leading-relaxed mb-3" style={{ fontFamily: 'var(--font-geist-sans)' }}>
-              Your AI executes through structured decision paths. Language models generate decisions; the runtime enforces boundaries. Execution is deterministic and bounded—no uncontrolled behavior, no silent failures. Every decision is recorded and cryptographically verifiable.
+              Your AI runs through structured decision paths, where language models produce reasoning and the runtime governs how that reasoning is executed. Behavior remains bounded and predictable. There are no uncontrolled processes and no silent failures. Every action is recorded and cryptographically verifiable.
             </p>
             <p className="text-sm md:text-base text-gray-600 dark:text-[#a8a898] leading-relaxed mb-3" style={{ fontFamily: 'var(--font-geist-sans)' }}>
-              Execution, intelligence, memory, and proof operate as a single system. The same runtime deploys on servers, edge devices, or robotics hardware.
+              Execution, intelligence, memory, and proof function together as a single system. The same runtime deploys consistently across servers, edge devices, and robotic hardware—preserving identical guarantees in every environment.
             </p>
           </div>
         </div>
@@ -87,7 +90,7 @@ export default function Products() {
           {/* Col 2 - Text */}
           <div className="flex flex-col justify-start py-6 px-4 md:px-8 lg:pr-12">
             <p className="text-sm md:text-base text-gray-600 dark:text-[#a8a898] leading-relaxed mb-3" style={{ fontFamily: 'var(--font-geist-sans)' }}>
-              See what's running. Know what's deciding. Understand what's learned. Prove what happened. A complete view of your AI fleet in one place—not scattered across vendor dashboards, cloud consoles, and exports.
+              Observe how your systems operate in real time—how decisions evolve, how behavior adapts, and how each action is recorded and verified.
             </p>
           </div>
         </div>
