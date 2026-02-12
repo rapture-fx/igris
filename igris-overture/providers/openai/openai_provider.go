@@ -394,7 +394,7 @@ func estimatePromptTokens(req *models.InferRequest) int {
 	// STUB: Rough estimate (1 token ≈ 4 characters)
 	totalChars := 0
 	for _, msg := range req.Messages {
-		totalChars += len(msg.Content)
+		totalChars += len(msg.GetTextContent())
 	}
 	return totalChars / 4
 }
@@ -469,8 +469,21 @@ type OpenAIChatCompletionRequest struct {
 }
 
 type OpenAIMessage struct {
-	Role    string `json:"role"`
-	Content string `json:"content"`
+	Role    string      `json:"role"`
+	Content interface{} `json:"content"` // string or []OpenAIContentPart for vision
+}
+
+// OpenAIContentPart represents a content part in OpenAI's multimodal format
+type OpenAIContentPart struct {
+	Type     string          `json:"type"`                // "text" or "image_url"
+	Text     string          `json:"text,omitempty"`      // For type "text"
+	ImageURL *OpenAIImageURL `json:"image_url,omitempty"` // For type "image_url"
+}
+
+// OpenAIImageURL represents an image URL in OpenAI format
+type OpenAIImageURL struct {
+	URL    string `json:"url"`
+	Detail string `json:"detail,omitempty"` // "auto", "low", "high"
 }
 
 type OpenAIChatCompletionResponse struct {
@@ -539,9 +552,37 @@ func (p *OpenAIProvider) buildOpenAIRequest(req *models.InferRequest) *OpenAICha
 
 	// Convert messages
 	for i, msg := range req.Messages {
-		openaiReq.Messages[i] = OpenAIMessage{
-			Role:    msg.Role,
-			Content: msg.Content,
+		if msg.IsMultimodal() {
+			// Build multimodal content parts for vision
+			parts := make([]OpenAIContentPart, 0, len(msg.ContentParts))
+			for _, part := range msg.ContentParts {
+				switch part.Type {
+				case "text":
+					parts = append(parts, OpenAIContentPart{
+						Type: "text",
+						Text: part.Text,
+					})
+				case "image_url":
+					if part.ImageURL != nil {
+						parts = append(parts, OpenAIContentPart{
+							Type: "image_url",
+							ImageURL: &OpenAIImageURL{
+								URL:    part.ImageURL.URL,
+								Detail: part.ImageURL.Detail,
+							},
+						})
+					}
+				}
+			}
+			openaiReq.Messages[i] = OpenAIMessage{
+				Role:    msg.Role,
+				Content: parts,
+			}
+		} else {
+			openaiReq.Messages[i] = OpenAIMessage{
+				Role:    msg.Role,
+				Content: msg.Content,
+			}
 		}
 	}
 
@@ -555,9 +596,15 @@ func (p *OpenAIProvider) convertToInferResponse(openaiResp *OpenAIChatCompletion
 	// Convert choices
 	if len(openaiResp.Choices) > 0 {
 		choice := openaiResp.Choices[0]
+		// Extract string content from interface{} (responses are always text)
+		content := ""
+		switch v := choice.Message.Content.(type) {
+		case string:
+			content = v
+		}
 		response.AddChoice(choice.Index, &models.Message{
 			Role:    choice.Message.Role,
-			Content: choice.Message.Content,
+			Content: content,
 		}, choice.FinishReason)
 	}
 

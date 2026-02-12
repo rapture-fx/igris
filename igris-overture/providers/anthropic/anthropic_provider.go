@@ -7,6 +7,7 @@ import (
 	"fmt"
 	"io"
 	"net/http"
+	"strings"
 	"time"
 
 	"github.com/Igris-inertial/system/igris-overture/metrics"
@@ -438,7 +439,7 @@ func estimatePromptTokens(req *models.InferRequest) int {
 	// STUB: Rough estimate (1 token ≈ 4 characters)
 	totalChars := 0
 	for _, msg := range req.Messages {
-		totalChars += len(msg.Content)
+		totalChars += len(msg.GetTextContent())
 	}
 	return totalChars / 4
 }
@@ -511,8 +512,22 @@ type AnthropicMessageRequest struct {
 }
 
 type AnthropicMessage struct {
-	Role    string `json:"role"`
-	Content string `json:"content"`
+	Role    string      `json:"role"`
+	Content interface{} `json:"content"` // string or []AnthropicContentBlock for vision
+}
+
+// AnthropicContentBlock represents a content block in Anthropic's multimodal format
+type AnthropicContentBlock struct {
+	Type   string                `json:"type"`             // "text" or "image"
+	Text   string                `json:"text,omitempty"`   // For type "text"
+	Source *AnthropicImageSource `json:"source,omitempty"` // For type "image"
+}
+
+// AnthropicImageSource represents an image source in Anthropic format
+type AnthropicImageSource struct {
+	Type      string `json:"type"`       // "base64" or "url"
+	MediaType string `json:"media_type"` // "image/jpeg", "image/png", etc.
+	Data      string `json:"data"`       // base64-encoded data or URL
 }
 
 type AnthropicMessageResponse struct {
@@ -579,7 +594,31 @@ func (p *AnthropicProvider) buildAnthropicRequest(req *models.InferRequest) *Ant
 	// Anthropic requires system message as separate parameter
 	for _, msg := range req.Messages {
 		if msg.Role == "system" {
-			anthropicReq.System = msg.Content
+			anthropicReq.System = msg.GetTextContent()
+		} else if msg.IsMultimodal() {
+			// Build multimodal content blocks for vision
+			blocks := make([]AnthropicContentBlock, 0, len(msg.ContentParts))
+			for _, part := range msg.ContentParts {
+				switch part.Type {
+				case "text":
+					blocks = append(blocks, AnthropicContentBlock{
+						Type: "text",
+						Text: part.Text,
+					})
+				case "image_url":
+					if part.ImageURL != nil {
+						source := convertToAnthropicImageSource(part.ImageURL.URL)
+						blocks = append(blocks, AnthropicContentBlock{
+							Type:   "image",
+							Source: source,
+						})
+					}
+				}
+			}
+			anthropicReq.Messages = append(anthropicReq.Messages, AnthropicMessage{
+				Role:    msg.Role,
+				Content: blocks,
+			})
 		} else {
 			anthropicReq.Messages = append(anthropicReq.Messages, AnthropicMessage{
 				Role:    msg.Role,
@@ -589,6 +628,31 @@ func (p *AnthropicProvider) buildAnthropicRequest(req *models.InferRequest) *Ant
 	}
 
 	return anthropicReq
+}
+
+// convertToAnthropicImageSource converts an image URL or data URI to Anthropic's format
+func convertToAnthropicImageSource(url string) *AnthropicImageSource {
+	// Check if it's a base64 data URI: data:image/jpeg;base64,/9j/4AAQ...
+	if strings.HasPrefix(url, "data:") {
+		parts := strings.SplitN(url, ",", 2)
+		if len(parts) == 2 {
+			// Extract media type from "data:image/jpeg;base64"
+			mediaTypePart := strings.TrimPrefix(parts[0], "data:")
+			mediaType := strings.SplitN(mediaTypePart, ";", 2)[0]
+			return &AnthropicImageSource{
+				Type:      "base64",
+				MediaType: mediaType,
+				Data:      parts[1],
+			}
+		}
+	}
+
+	// For remote URLs, pass as URL type
+	return &AnthropicImageSource{
+		Type:      "url",
+		MediaType: "image/jpeg",
+		Data:      url,
+	}
 }
 
 // convertToInferResponse converts Anthropic response to unified format

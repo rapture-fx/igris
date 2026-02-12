@@ -3,12 +3,57 @@ package models
 import (
 	"encoding/json"
 	"fmt"
+	"strings"
 )
 
 // Message represents a chat message in the inference request
 type Message struct {
-	Role    string `json:"role"`    // "system", "user", "assistant"
-	Content string `json:"content"` // Message content
+	Role         string        `json:"role"`                      // "system", "user", "assistant"
+	Content      string        `json:"content"`                   // Text-only content (backward compatible)
+	ContentParts []ContentPart `json:"content_parts,omitempty"`   // Multimodal content parts
+}
+
+// ContentPart represents a single part of multimodal content
+type ContentPart struct {
+	Type     string    `json:"type"`                // "text" or "image_url"
+	Text     string    `json:"text,omitempty"`      // For type "text"
+	ImageURL *ImageURL `json:"image_url,omitempty"` // For type "image_url"
+}
+
+// ImageURL represents an image reference in a multimodal message
+type ImageURL struct {
+	URL    string `json:"url"`              // URL or base64 data URI (data:image/jpeg;base64,...)
+	Detail string `json:"detail,omitempty"` // "auto", "low", "high" (OpenAI-specific)
+}
+
+// GetTextContent returns the text content of the message, handling both
+// simple Content string and multimodal ContentParts
+func (m *Message) GetTextContent() string {
+	if len(m.ContentParts) > 0 {
+		var text strings.Builder
+		for _, part := range m.ContentParts {
+			if part.Type == "text" {
+				text.WriteString(part.Text)
+			}
+		}
+		return text.String()
+	}
+	return m.Content
+}
+
+// HasImages returns true if the message contains image content parts
+func (m *Message) HasImages() bool {
+	for _, part := range m.ContentParts {
+		if part.Type == "image_url" && part.ImageURL != nil {
+			return true
+		}
+	}
+	return false
+}
+
+// IsMultimodal returns true if the message uses content parts
+func (m *Message) IsMultimodal() bool {
+	return len(m.ContentParts) > 0
 }
 
 // InferRequest represents a unified inference API request
@@ -63,11 +108,29 @@ func (r *InferRequest) Validate() error {
 	// Validate message roles
 	validRoles := map[string]bool{"system": true, "user": true, "assistant": true}
 	for i, msg := range r.Messages {
-		if msg.Content == "" {
+		if msg.Content == "" && len(msg.ContentParts) == 0 {
 			return fmt.Errorf("message[%d]: content cannot be empty", i)
 		}
 		if !validRoles[msg.Role] {
 			return fmt.Errorf("message[%d]: invalid role '%s', must be system/user/assistant", i, msg.Role)
+		}
+		// Validate content parts if present
+		for j, part := range msg.ContentParts {
+			if part.Type == "" {
+				return fmt.Errorf("message[%d].content_parts[%d]: type is required", i, j)
+			}
+			switch part.Type {
+			case "text":
+				if part.Text == "" {
+					return fmt.Errorf("message[%d].content_parts[%d]: text cannot be empty", i, j)
+				}
+			case "image_url":
+				if part.ImageURL == nil || part.ImageURL.URL == "" {
+					return fmt.Errorf("message[%d].content_parts[%d]: image_url.url is required", i, j)
+				}
+			default:
+				return fmt.Errorf("message[%d].content_parts[%d]: unsupported type '%s'", i, j, part.Type)
+			}
 		}
 	}
 
@@ -148,9 +211,29 @@ func (r *InferRequest) Clone() *InferRequest {
 		CouncilMode:      r.CouncilMode,
 	}
 
-	// Deep copy messages
+	// Deep copy messages (including ContentParts)
 	clone.Messages = make([]Message, len(r.Messages))
-	copy(clone.Messages, r.Messages)
+	for i, msg := range r.Messages {
+		clone.Messages[i] = Message{
+			Role:    msg.Role,
+			Content: msg.Content,
+		}
+		if len(msg.ContentParts) > 0 {
+			clone.Messages[i].ContentParts = make([]ContentPart, len(msg.ContentParts))
+			for j, part := range msg.ContentParts {
+				clone.Messages[i].ContentParts[j] = ContentPart{
+					Type: part.Type,
+					Text: part.Text,
+				}
+				if part.ImageURL != nil {
+					clone.Messages[i].ContentParts[j].ImageURL = &ImageURL{
+						URL:    part.ImageURL.URL,
+						Detail: part.ImageURL.Detail,
+					}
+				}
+			}
+		}
+	}
 
 	// Deep copy stop sequences
 	if r.Stop != nil {

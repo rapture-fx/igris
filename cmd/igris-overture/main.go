@@ -14,6 +14,7 @@ import (
 	"github.com/gofiber/fiber/v2/middleware/recover"
 	"github.com/redis/go-redis/v9"
 	"github.com/Igris-inertial/system/igris-overture/api"
+	"github.com/Igris-inertial/system/igris-overture/bandit"
 	"github.com/Igris-inertial/system/igris-overture/billing"
 	"github.com/Igris-inertial/system/igris-overture/cache"
 	"github.com/Igris-inertial/system/igris-overture/cognitive"
@@ -25,6 +26,7 @@ import (
 	"github.com/Igris-inertial/system/igris-overture/policies"
 	"github.com/Igris-inertial/system/igris-overture/router"
 	"github.com/Igris-inertial/system/igris-overture/security"
+	"github.com/Igris-inertial/system/igris-overture/semantic"
 	"github.com/Igris-inertial/system/igris-overture/slo"
 )
 
@@ -201,10 +203,30 @@ func main() {
 				// Initialize Advanced Policy Engine for cognitive layer
 				advancedPolicyEngine := policies.NewAdvancedPolicyEngine(db.DB, redisClient)
 
-				// Initialize semantic router (required for cognitive layer)
-				// Note: Semantic router may be disabled - cognitive will work with nil
-				var semanticRouter *router.SemanticRouter
-				// TODO: Initialize semantic router when ONNX issues are fixed
+				// Initialize semantic router (keyword-based classifier, no ONNX needed)
+				var semanticCache semantic.ClassificationCache
+				if redisClient != nil {
+					semanticCache = semantic.NewRedisClassificationCache(redisClient)
+				} else {
+					semanticCache = semantic.NewNullCache()
+				}
+				var semanticDB semantic.ClassificationDB
+				if db.DB != nil {
+					semanticDB = semantic.NewPostgresClassificationDB(db.DB)
+				} else {
+					semanticDB = semantic.NewNullDB()
+				}
+				classifier := semantic.NewClassifier(semanticCache, semanticDB)
+
+				// Initialize reward engine (Thompson Sampling per semantic class)
+				rewardEngine := bandit.NewRewardEngine(db.DB)
+
+				// Initialize adaptive router for semantic routing backend selection
+				adaptiveRouter := router.NewAdaptiveRouter(router.PolicyThompsonSampling, 5*time.Minute)
+
+				// Create semantic router
+				semanticRouter := router.NewSemanticRouter(classifier, rewardEngine, adaptiveRouter)
+				log.Println("[SemanticRouter] Keyword-based semantic router initialized")
 
 				// Initialize cognitive worker (creates advisor and applier internally)
 				worker := cognitive.NewWorker(db.DB, advancedPolicyEngine, semanticRouter)

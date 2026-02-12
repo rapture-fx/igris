@@ -59,7 +59,7 @@ type TenantRoutingPreference struct {
 }
 
 // GetTenantPreferences retrieves routing preferences for a tenant
-func (db *Database) GetTenantPreferences(ctx context.Context, tenantID string) (*TenantRoutingPreference, error) {
+func (db *DB) GetTenantPreferences(ctx context.Context, tenantID string) (*TenantRoutingPreference, error) {
 	query := `
 		SELECT
 			tenant_id,
@@ -82,7 +82,7 @@ func (db *Database) GetTenantPreferences(ctx context.Context, tenantID string) (
 	var rewardWeightsJSON []byte
 	var semanticWeightsJSON []byte
 
-	err := db.pool.QueryRowContext(ctx, query, tenantID).Scan(
+	err := db.DB.QueryRowContext(ctx, query, tenantID).Scan(
 		&pref.TenantID,
 		&rewardWeightsJSON,
 		&pref.ExplorationRate,
@@ -134,11 +134,11 @@ func (db *Database) GetTenantPreferences(ctx context.Context, tenantID string) (
 
 // GetTenantRewardWeights retrieves just the reward weights for a tenant
 // Uses the database helper function for efficient retrieval
-func (db *Database) GetTenantRewardWeights(ctx context.Context, tenantID string) (TenantRewardWeights, error) {
+func (db *DB) GetTenantRewardWeights(ctx context.Context, tenantID string) (TenantRewardWeights, error) {
 	query := `SELECT get_tenant_reward_weights($1)`
 
 	var weightsJSON []byte
-	err := db.pool.QueryRowContext(ctx, query, tenantID).Scan(&weightsJSON)
+	err := db.DB.QueryRowContext(ctx, query, tenantID).Scan(&weightsJSON)
 	if err != nil {
 		return DefaultRewardWeights(), fmt.Errorf("failed to get reward weights: %w", err)
 	}
@@ -152,7 +152,7 @@ func (db *Database) GetTenantRewardWeights(ctx context.Context, tenantID string)
 }
 
 // GetSemanticClassWeights retrieves reward weights for a specific semantic class
-func (db *Database) GetSemanticClassWeights(ctx context.Context, tenantID, semanticClass string) (TenantRewardWeights, error) {
+func (db *DB) GetSemanticClassWeights(ctx context.Context, tenantID, semanticClass string) (TenantRewardWeights, error) {
 	pref, err := db.GetTenantPreferences(ctx, tenantID)
 	if err != nil {
 		return DefaultRewardWeights(), err
@@ -171,7 +171,7 @@ func (db *Database) GetSemanticClassWeights(ctx context.Context, tenantID, seman
 
 // UpdateTenantPreferenceWeights updates the reward weights for a tenant
 // Uses the database helper function
-func (db *Database) UpdateTenantPreferenceWeights(
+func (db *DB) UpdateTenantPreferenceWeights(
 	ctx context.Context,
 	tenantID string,
 	weights TenantRewardWeights,
@@ -188,7 +188,7 @@ func (db *Database) UpdateTenantPreferenceWeights(
 
 	query := `SELECT update_tenant_preference_weights($1, $2, $3, $4)`
 
-	_, err = db.pool.ExecContext(ctx, query, tenantID, weightsJSON, sampleCount, confidence)
+	_, err = db.DB.ExecContext(ctx, query, tenantID, weightsJSON, sampleCount, confidence)
 	if err != nil {
 		return fmt.Errorf("failed to update preference weights: %w", err)
 	}
@@ -197,7 +197,7 @@ func (db *Database) UpdateTenantPreferenceWeights(
 }
 
 // IncrementTenantSampleCount increments the sample count for a tenant
-func (db *Database) IncrementTenantSampleCount(ctx context.Context, tenantID string) error {
+func (db *DB) IncrementTenantSampleCount(ctx context.Context, tenantID string) error {
 	query := `
 		INSERT INTO tenant_routing_preferences (tenant_id, sample_count, last_updated)
 		VALUES ($1, 1, NOW())
@@ -206,7 +206,7 @@ func (db *Database) IncrementTenantSampleCount(ctx context.Context, tenantID str
 		    last_updated = NOW()
 	`
 
-	_, err := db.pool.ExecContext(ctx, query, tenantID)
+	_, err := db.DB.ExecContext(ctx, query, tenantID)
 	if err != nil {
 		return fmt.Errorf("failed to increment sample count: %w", err)
 	}
@@ -215,7 +215,7 @@ func (db *Database) IncrementTenantSampleCount(ctx context.Context, tenantID str
 }
 
 // UpdateSemanticClassWeights updates weights for a specific semantic class
-func (db *Database) UpdateSemanticClassWeights(
+func (db *DB) UpdateSemanticClassWeights(
 	ctx context.Context,
 	tenantID string,
 	semanticClass string,
@@ -249,7 +249,7 @@ func (db *Database) UpdateSemanticClassWeights(
 		WHERE tenant_id = $2
 	`
 
-	_, err = db.pool.ExecContext(ctx, query, weightsJSON, tenantID)
+	_, err = db.DB.ExecContext(ctx, query, weightsJSON, tenantID)
 	if err != nil {
 		return fmt.Errorf("failed to update semantic weights: %w", err)
 	}
@@ -258,7 +258,7 @@ func (db *Database) UpdateSemanticClassWeights(
 }
 
 // SetLearningEnabled enables or disables learning for a tenant
-func (db *Database) SetLearningEnabled(ctx context.Context, tenantID string, enabled bool) error {
+func (db *DB) SetLearningEnabled(ctx context.Context, tenantID string, enabled bool) error {
 	query := `
 		INSERT INTO tenant_routing_preferences (tenant_id, learning_enabled, last_updated)
 		VALUES ($1, $2, NOW())
@@ -267,7 +267,7 @@ func (db *Database) SetLearningEnabled(ctx context.Context, tenantID string, ena
 		    last_updated = NOW()
 	`
 
-	_, err := db.pool.ExecContext(ctx, query, tenantID, enabled)
+	_, err := db.DB.ExecContext(ctx, query, tenantID, enabled)
 	if err != nil {
 		return fmt.Errorf("failed to set learning enabled: %w", err)
 	}
@@ -277,7 +277,7 @@ func (db *Database) SetLearningEnabled(ctx context.Context, tenantID string, ena
 
 // GetTenantsNeedingUpdate returns tenants that should have their weights updated
 // based on sample count reaching update frequency
-func (db *Database) GetTenantsNeedingUpdate(ctx context.Context, limit int) ([]string, error) {
+func (db *DB) GetTenantsNeedingUpdate(ctx context.Context, limit int) ([]string, error) {
 	query := `
 		SELECT tenant_id
 		FROM tenant_routing_preferences
@@ -289,7 +289,7 @@ func (db *Database) GetTenantsNeedingUpdate(ctx context.Context, limit int) ([]s
 		LIMIT $1
 	`
 
-	rows, err := db.pool.QueryContext(ctx, query, limit)
+	rows, err := db.DB.QueryContext(ctx, query, limit)
 	if err != nil {
 		return nil, fmt.Errorf("failed to get tenants needing update: %w", err)
 	}
@@ -312,7 +312,7 @@ func (db *Database) GetTenantsNeedingUpdate(ctx context.Context, limit int) ([]s
 }
 
 // BatchUpdateTenantWeights updates multiple tenants' weights in a transaction
-func (db *Database) BatchUpdateTenantWeights(
+func (db *DB) BatchUpdateTenantWeights(
 	ctx context.Context,
 	updates []struct {
 		TenantID    string
@@ -321,7 +321,7 @@ func (db *Database) BatchUpdateTenantWeights(
 		Confidence  float64
 	},
 ) error {
-	tx, err := db.pool.BeginTx(ctx, nil)
+	tx, err := db.DB.BeginTx(ctx, nil)
 	if err != nil {
 		return fmt.Errorf("failed to begin transaction: %w", err)
 	}
@@ -357,7 +357,7 @@ func (db *Database) BatchUpdateTenantWeights(
 }
 
 // GetPreferenceStats returns statistics about tenant preferences
-func (db *Database) GetPreferenceStats(ctx context.Context) (map[string]interface{}, error) {
+func (db *DB) GetPreferenceStats(ctx context.Context) (map[string]interface{}, error) {
 	query := `
 		SELECT
 			COUNT(*) as total_tenants,
@@ -371,7 +371,7 @@ func (db *Database) GetPreferenceStats(ctx context.Context) (map[string]interfac
 	var totalTenants, learningEnabledCount int
 	var avgSampleCount, avgConfidence, avgExplorationRate sql.NullFloat64
 
-	err := db.pool.QueryRowContext(ctx, query).Scan(
+	err := db.DB.QueryRowContext(ctx, query).Scan(
 		&totalTenants,
 		&learningEnabledCount,
 		&avgSampleCount,
@@ -395,13 +395,13 @@ func (db *Database) GetPreferenceStats(ctx context.Context) (map[string]interfac
 }
 
 // ResetTenantPreferences resets a tenant's preferences to defaults
-func (db *Database) ResetTenantPreferences(ctx context.Context, tenantID string) error {
+func (db *DB) ResetTenantPreferences(ctx context.Context, tenantID string) error {
 	query := `
 		DELETE FROM tenant_routing_preferences
 		WHERE tenant_id = $1
 	`
 
-	_, err := db.pool.ExecContext(ctx, query, tenantID)
+	_, err := db.DB.ExecContext(ctx, query, tenantID)
 	if err != nil {
 		return fmt.Errorf("failed to reset tenant preferences: %w", err)
 	}
@@ -410,7 +410,7 @@ func (db *Database) ResetTenantPreferences(ctx context.Context, tenantID string)
 }
 
 // EnsureTenantPreferencesExist creates default preferences if they don't exist
-func (db *Database) EnsureTenantPreferencesExist(ctx context.Context, tenantID string) error {
+func (db *DB) EnsureTenantPreferencesExist(ctx context.Context, tenantID string) error {
 	defaults := DefaultRewardWeights()
 	weightsJSON, err := json.Marshal(defaults)
 	if err != nil {
@@ -431,7 +431,7 @@ func (db *Database) EnsureTenantPreferencesExist(ctx context.Context, tenantID s
 		ON CONFLICT (tenant_id) DO NOTHING
 	`
 
-	_, err = db.pool.ExecContext(ctx, query, tenantID, weightsJSON)
+	_, err = db.DB.ExecContext(ctx, query, tenantID, weightsJSON)
 	if err != nil {
 		return fmt.Errorf("failed to ensure preferences exist: %w", err)
 	}
@@ -474,7 +474,7 @@ func DefaultSelfTunerConfig(tenantID string) *SelfTunerConfig {
 }
 
 // GetSelfTunerConfig retrieves self-tuner configuration for a tenant
-func (db *Database) GetSelfTunerConfig(ctx context.Context, tenantID string) (*SelfTunerConfig, error) {
+func (db *DB) GetSelfTunerConfig(ctx context.Context, tenantID string) (*SelfTunerConfig, error) {
 	query := `
 		SELECT
 			tenant_id,
@@ -498,7 +498,7 @@ func (db *Database) GetSelfTunerConfig(ctx context.Context, tenantID string) (*S
 	var intervalSeconds, rollbackWindowSeconds int64
 	var lastRun, lastAutoApply sql.NullTime
 
-	err := db.pool.QueryRowContext(ctx, query, tenantID).Scan(
+	err := db.DB.QueryRowContext(ctx, query, tenantID).Scan(
 		&config.TenantID,
 		&config.Enabled,
 		&intervalSeconds,
@@ -535,7 +535,7 @@ func (db *Database) GetSelfTunerConfig(ctx context.Context, tenantID string) (*S
 }
 
 // UpsertSelfTunerConfig creates or updates self-tuner configuration
-func (db *Database) UpsertSelfTunerConfig(ctx context.Context, config *SelfTunerConfig) error {
+func (db *DB) UpsertSelfTunerConfig(ctx context.Context, config *SelfTunerConfig) error {
 	// Enforce minimum interval of 1 hour
 	if config.Interval < time.Hour {
 		config.Interval = time.Hour
@@ -570,7 +570,7 @@ func (db *Database) UpsertSelfTunerConfig(ctx context.Context, config *SelfTuner
 			updated_at = NOW()
 	`
 
-	_, err := db.pool.ExecContext(ctx, query,
+	_, err := db.DB.ExecContext(ctx, query,
 		config.TenantID,
 		config.Enabled,
 		int64(config.Interval.Seconds()),
@@ -591,14 +591,14 @@ func (db *Database) UpsertSelfTunerConfig(ctx context.Context, config *SelfTuner
 }
 
 // UpdateSelfTunerLastRun updates the last run timestamp
-func (db *Database) UpdateSelfTunerLastRun(ctx context.Context, tenantID string) error {
+func (db *DB) UpdateSelfTunerLastRun(ctx context.Context, tenantID string) error {
 	query := `
 		UPDATE tenant_self_tuner_config
 		SET last_run = NOW()
 		WHERE tenant_id = $1
 	`
 
-	_, err := db.pool.ExecContext(ctx, query, tenantID)
+	_, err := db.DB.ExecContext(ctx, query, tenantID)
 	if err != nil {
 		return fmt.Errorf("failed to update last run: %w", err)
 	}
@@ -607,14 +607,14 @@ func (db *Database) UpdateSelfTunerLastRun(ctx context.Context, tenantID string)
 }
 
 // UpdateSelfTunerLastAutoApply updates the last auto-apply timestamp
-func (db *Database) UpdateSelfTunerLastAutoApply(ctx context.Context, tenantID string) error {
+func (db *DB) UpdateSelfTunerLastAutoApply(ctx context.Context, tenantID string) error {
 	query := `
 		UPDATE tenant_self_tuner_config
 		SET last_auto_apply = NOW()
 		WHERE tenant_id = $1
 	`
 
-	_, err := db.pool.ExecContext(ctx, query, tenantID)
+	_, err := db.DB.ExecContext(ctx, query, tenantID)
 	if err != nil {
 		return fmt.Errorf("failed to update last auto-apply: %w", err)
 	}
@@ -623,7 +623,7 @@ func (db *Database) UpdateSelfTunerLastAutoApply(ctx context.Context, tenantID s
 }
 
 // GetTenantsForSelfTuning returns tenants that need self-tuning based on interval
-func (db *Database) GetTenantsForSelfTuning(ctx context.Context, limit int) ([]string, error) {
+func (db *DB) GetTenantsForSelfTuning(ctx context.Context, limit int) ([]string, error) {
 	query := `
 		SELECT tenant_id
 		FROM tenant_self_tuner_config
@@ -633,7 +633,7 @@ func (db *Database) GetTenantsForSelfTuning(ctx context.Context, limit int) ([]s
 		LIMIT $1
 	`
 
-	rows, err := db.pool.QueryContext(ctx, query, limit)
+	rows, err := db.DB.QueryContext(ctx, query, limit)
 	if err != nil {
 		return nil, fmt.Errorf("failed to get tenants for self-tuning: %w", err)
 	}

@@ -5,16 +5,17 @@ import (
 	"database/sql"
 	"fmt"
 	"math"
-	"math/rand"
 	"sync"
 	"time"
+
+	exprand "golang.org/x/exp/rand"
 
 	"github.com/Igris-inertial/system/igris-overture/observability"
 	"gonum.org/v1/gonum/stat/distuv"
 )
 
 // Thread-safe random source for Thompson Sampling
-var rng = rand.New(rand.NewSource(time.Now().UnixNano()))
+var rng = exprand.New(exprand.NewSource(uint64(time.Now().UnixNano())))
 
 // RewardEngine implements composite reward calculation for Thompson Sampling
 type RewardEngine struct {

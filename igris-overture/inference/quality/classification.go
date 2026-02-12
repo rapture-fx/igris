@@ -45,7 +45,7 @@ func extractContent(req *models.InferRequest) string {
 	var content strings.Builder
 	for _, msg := range req.Messages {
 		if msg.Role == "user" || msg.Role == "system" {
-			content.WriteString(msg.Content)
+			content.WriteString(msg.GetTextContent())
 			content.WriteString(" ")
 		}
 	}

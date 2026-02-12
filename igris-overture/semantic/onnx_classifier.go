@@ -1,4 +1,4 @@
-//go:build ignore
+//go:build onnx
 package semantic
 
 import (
@@ -175,18 +175,20 @@ func (c *ONNXClassifier) Classify(ctx context.Context, prompt string) (*Classifi
 
 	// Build result
 	result := &ClassificationResult{
-		Class:      c.classes[predictedIdx],
-		Confidence: maxProb,
-		LatencyMs:  float64(latency.Milliseconds()),
-		CacheHit:   false, // ONNX inference is always a cache miss
+		Class:             c.classes[predictedIdx],
+		Confidence:        float64(maxProb),
+		LatencyMs:         latency.Milliseconds(),
+		CacheHit:          false, // ONNX inference is always a cache miss
+		PromptHash:        "",
+		ClassifierVersion: "onnx-v1",
 	}
 
 	// Add alternative classes
 	for i, prob := range probabilities {
 		if i != predictedIdx && prob > 0.1 { // Only include if >10% probability
-			result.Alternatives = append(result.Alternatives, ClassAlternative{
+			result.AlternativeClasses = append(result.AlternativeClasses, AlternativeClass{
 				Class:      c.classes[i],
-				Confidence: prob,
+				Confidence: float64(prob),
 			})
 		}
 	}
@@ -351,17 +353,4 @@ func min(a, b int) int {
 	return b
 }
 
-// ClassificationResult represents the classification output
-type ClassificationResult struct {
-	Class        string             `json:"class"`
-	Confidence   float32            `json:"confidence"`
-	LatencyMs    float64            `json:"latency_ms"`
-	CacheHit     bool               `json:"cache_hit"`
-	Alternatives []ClassAlternative `json:"alternatives,omitempty"`
-}
-
-// ClassAlternative represents an alternative classification
-type ClassAlternative struct {
-	Class      string  `json:"class"`
-	Confidence float32 `json:"confidence"`
-}
+// ClassificationResult and AlternativeClass are defined in classifier.go

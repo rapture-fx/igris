@@ -175,7 +175,7 @@ func (aa *AutoApplier) processAutoApplyProposals(ctx context.Context) {
 		}
 
 		// Apply the proposal
-		if err := aa.applier.ApplyProposal(ctx, proposal.ProposalID, "auto-applier"); err != nil {
+		if err := aa.applier.ApplyProposal(ctx, proposal.ProposalID); err != nil {
 			log.Error().Err(err).Str("proposal_id", proposal.ProposalID).Msg("Failed to auto-apply proposal")
 			observability.RecordAutoAppliedProposal(proposal.TenantID, "failed")
 			continue

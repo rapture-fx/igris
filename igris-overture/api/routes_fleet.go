@@ -210,7 +210,7 @@ func RegisterFleetRoutes(app *fiber.App, config FleetConfig) error {
 
 	// POST /api/fleet/:fleet_id/telemetry - Upload telemetry data
 	fleet.Post("/:fleet_id/telemetry", func(c *fiber.Ctx) error {
-		fleetID := c.Params("fleet_id")
+		_ = c.Params("fleet_id")
 
 		var telemetry TelemetryData
 		if err := c.BodyParser(&telemetry); err != nil {

@@ -229,7 +229,7 @@ func (p *MockAnthropicProvider) simulatePromptTokens(req *models.InferRequest, c
 	// Estimate based on message content length
 	totalChars := 0
 	for _, msg := range req.Messages {
-		totalChars += len(msg.Content)
+		totalChars += len(msg.GetTextContent())
 	}
 
 	// Rough estimate: 1 token ≈ 4 characters (similar to OpenAI)
