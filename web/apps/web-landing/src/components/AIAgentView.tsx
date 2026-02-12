@@ -84,11 +84,11 @@ export default function AIAgentView() {
               <p className="text-[#85612c] dark:text-[#c5b0cd] mb-3 text-sm font-mono">## MACHINE_READABLE_DATA</p>
               
               <div className="text-sm text-gray-700 dark:text-[#a8a898] font-mono space-y-1 mb-6">
-                <p>name:             Igris Inertial</p>
-                <p>product:          Nervous system for autonomous machines and AI agents</p>
-                <p>deployment:       Edge, cloud, or air-gapped environments</p>
-                <p>models:           BYOM (local GGUF) + BYOK (cloud APIs)</p>
-                <p>offline:          true (local inference when cloud fails)</p>
+                <p>name: Igris Inertial</p>
+                <p>product: Nervous system for autonomous systems</p>
+                <p>deployment: Servers, edge devices, or air-gapped environments</p>
+                <p>models: BYOM (local GGUF) + BYOK (cloud APIs)</p>
+                <p>offline: true (local execution when cloud fails)</p>
               </div>
 
               <p className="text-sm text-gray-600 dark:text-[#a8a898] mt-2">
@@ -105,9 +105,9 @@ export default function AIAgentView() {
             {/* Hero */}
             {visibleSections >= 1 && (
               <div className="animate-fadeInUp border-l border-gray-300 dark:border-[#f6f6f4]/10 pl-4 pb-6">
-                <p className="text-[#000000] dark:text-[#f6f6f4] mb-2"># The Nervous System for Machines and AI Agents</p>
+                <p className="text-[#000000] dark:text-[#f6f6f4] mb-2"># The Nervous System for Autonomous Systems</p>
                 <p className="text-sm text-gray-600 dark:text-[#a8a898] leading-relaxed mb-4">
-                  A deterministic execution layer for AI that operates across cloud and devices, even when connectivity fails.
+                  A deterministic execution layer for AI that operates anywhere—even when connectivity fails.
                 </p>
               </div>
             )}
@@ -117,7 +117,6 @@ export default function AIAgentView() {
               <div className="animate-fadeInUp border-l border-gray-300 dark:border-[#f6f6f4]/10 pl-4">
                 <p className="text-[#85612c] dark:text-[#c5b0cd] mb-3">## THE CHALLENGE WE SOLVE</p>
                 <div className="text-gray-600 dark:text-[#a8a898] text-sm space-y-1">
-                  <p>- Pure LLM hallucinations</p>
                   <p>- Non-deterministic AI behavior</p>
                   <p>- Unverifiable decisions</p>
                   <p>- Cloud-dependent execution</p>
@@ -133,15 +132,18 @@ export default function AIAgentView() {
             {visibleSections >= 3 && (
               <div className="animate-fadeInUp border-l border-gray-300 dark:border-[#f6f6f4]/10 pl-4">
                 <p className="text-[#85612c] dark:text-[#c5b0cd] mb-3">## 01. PRODUCT</p>
-                <p className="text-[#000000] dark:text-[#f6f6f4] mb-3">### Hybrid behavior trees meet LLM reasoning.</p>
+                <p className="text-[#000000] dark:text-[#f6f6f4] mb-3">### Execution, intelligence, memory, and proof—as one system.</p>
 
                 <p className="text-sm mb-4 text-gray-600 dark:text-[#a8a898] leading-relaxed">
-                  Your AI executes through structured decision paths, invoking language models only when needed. Execution is deterministic and bounded—no uncontrolled behavior, no silent failures. Every decision is recorded and cryptographically verifiable.
+                  Language models reason. Behavior trees enforce. Memory persists. Proof verifies. All running deterministically, whether on a single server or across thousands of instances.
                 </p>
 
                 <p className="text-sm mb-4 text-gray-600 dark:text-[#a8a898] leading-relaxed">
-                  Execution, intelligence, memory, and proof are designed to work together as one system.
-                  The runtime can be deployed on individual devices or across fleets. As scale increases, the dashboard makes execution state, decision routing, historical behavior, and verification data visible across the system.
+                  Your AI executes with structured, bounded behavior. Every decision is recorded and cryptographically verifiable. No uncontrolled execution. No silent failures.
+                </p>
+
+                <p className="text-sm mb-4 text-gray-600 dark:text-[#a8a898] leading-relaxed">
+                  As scale increases, the dashboard makes execution state, decision routing, historical behavior, and verification data visible across the entire fleet.
                 </p>
               </div>
             )}
@@ -152,11 +154,11 @@ export default function AIAgentView() {
                 <p className="text-[#85612c] dark:text-[#c5b0cd] mb-3">## WHAT THIS IS</p>
                 <div className="text-sm text-gray-600 dark:text-[#a8a898] leading-relaxed space-y-2">
                   <p>This is the execution layer beneath intelligence.</p>
-                  <p>It doesn't decide what AI thinks.</p>
+                  <p>It doesn&apos;t decide what AI thinks.</p>
                   <p>It enforces how AI runs.</p>
                   <p>Behavior is bounded, repeatable, and verifiable by design.</p>
                   <p>For systems where AI must survive failure, operate offline, and prove every decision.</p>
-                  <p>If AI is the brain, this is the nervous system that enforces reality.</p>
+                  <p>If AI is the brain, this is the nervous system.</p>
                 </div>
               </div>
             )}
@@ -166,27 +168,27 @@ export default function AIAgentView() {
               <div className="animate-fadeInUp border-l border-gray-300 dark:border-[#f6f6f4]/10 pl-4">
                 <p className="text-[#85612c] dark:text-[#c5b0cd] mb-3">## 02. THE ARCHITECTURE</p>
                 <p className="text-[#000000] dark:text-[#f6f6f4] mb-3">### Every layer working together</p>
-                <p className="text-sm mb-6 text-gray-600 dark:text-[#a8a898]">From a single device to fleets. From edge to cloud.</p>
+                <p className="text-sm mb-6 text-gray-600 dark:text-[#a8a898]">From a single instance to thousands. From cloud to edge.</p>
 
                 <div className="space-y-4">
                   <div>
                     <p className="text-[#000000] dark:text-[#f6f6f4] mb-2">#### Execution</p>
                     <p className="text-sm text-gray-600 dark:text-[#a8a898] leading-relaxed">
-                      Execute AI with deterministic precision and sandboxed safety. Monitor devices in real time, deploy models instantly, and push configurations fleet-wide. From one agent to thousands, execution remains predictable and bounded.
+                      Execute AI with deterministic precision and sandboxed safety. Monitor in real time, deploy models instantly, and push configurations fleet-wide. From one agent to thousands, execution remains predictable and bounded.
                     </p>
                   </div>
 
                   <div>
                     <p className="text-[#000000] dark:text-[#f6f6f4] mb-2">#### Intelligence</p>
                     <p className="text-sm text-gray-600 dark:text-[#a8a898] leading-relaxed">
-                      Route decisions across multiple LLM providers. Balance cost and performance. Test in shadow mode before production. The decision layer adapts intelligently while keeping execution fully controlled.
+                      Route decisions across multiple LLM providers. Balance cost and performance. Test in shadow mode before production. The decision layer adapts while execution stays controlled.
                     </p>
                   </div>
 
                   <div>
                     <p className="text-[#000000] dark:text-[#f6f6f4] mb-2">#### Memory & Proof</p>
                     <p className="text-sm text-gray-600 dark:text-[#a8a898] leading-relaxed">
-                      Track behavior trees across the fleet. Detect anomalies automatically. Inspect historical decisions end-to-end. Every action is cryptographically signed, creating an immutable audit trail—from debugging incidents to proving compliance.
+                      Track behavior across the fleet. Detect anomalies automatically. Inspect historical decisions end-to-end. Every action is cryptographically signed, creating an immutable audit trail—from debugging incidents to proving compliance.
                     </p>
                   </div>
                 </div>
@@ -206,35 +208,35 @@ export default function AIAgentView() {
                   <div>
                     <p className="text-[#000000] dark:text-[#f6f6f4] mb-2">#### Air-gapped operation</p>
                     <p className="text-sm text-gray-600 dark:text-[#a8a898] leading-relaxed">
-                      The system is designed to operate independently of network access. Deploy in secure facilities, remote environments, or fully offline locations. Execution continues uninterrupted when connectivity is unavailable or restricted.
+                      Operate independently of network access. Deploy in secure facilities, remote environments, or fully offline locations. Execution continues when connectivity is unavailable or restricted.
                     </p>
                   </div>
 
                   <div>
-                    <p className="text-[#000000] dark:text-[#f6f6f4] mb-2">#### Zero-trust device enrollment</p>
+                    <p className="text-[#000000] dark:text-[#f6f6f4] mb-2">#### Zero-trust enrollment</p>
                     <p className="text-sm text-gray-600 dark:text-[#a8a898] leading-relaxed">
-                      Devices authenticate cryptographically before joining a fleet. Each device is verified individually. Untrusted or compromised hardware is rejected automatically. No device is trusted implicitly.
+                      Instances authenticate cryptographically before joining a fleet. Each verified individually. Untrusted systems rejected automatically. Nothing trusted implicitly.
                     </p>
                   </div>
 
                   <div>
-                    <p className="text-[#000000] dark:text-[#f6f6f4] mb-2">#### Device-bound encryption</p>
+                    <p className="text-[#000000] dark:text-[#f6f6f4] mb-2">#### Instance-bound encryption</p>
                     <p className="text-sm text-gray-600 dark:text-[#a8a898] leading-relaxed">
-                      Models and execution data are encrypted and bound to specific hardware. If a device is lost or removed, its data remains inaccessible. Cryptographic keys are generated and stored on-device and are never transmitted over the network.
+                      Models and execution data encrypted and bound to specific systems. If an instance is lost, data remains inaccessible. Keys generated and stored locally, never transmitted.
                     </p>
                   </div>
 
                   <div>
                     <p className="text-[#000000] dark:text-[#f6f6f4] mb-2">#### Verified updates</p>
                     <p className="text-sm text-gray-600 dark:text-[#a8a898] leading-relaxed">
-                      Model updates and configuration changes require cryptographic signatures. Unsigned or modified artifacts are rejected before deployment. Only approved updates are allowed to execute across the fleet.
+                      Model updates and configuration changes require cryptographic signatures. Unsigned artifacts rejected before deployment. Only approved updates execute across the fleet.
                     </p>
                   </div>
 
                   <div>
-                    <p className="text-[#000000] dark:text-[#f6f6f4] mb-2">#### Verified fleet synchronization</p>
+                    <p className="text-[#000000] dark:text-[#f6f6f4] mb-2">#### Verified synchronization</p>
                     <p className="text-sm text-gray-600 dark:text-[#a8a898] leading-relaxed">
-                      When connectivity is available, fleet state and configuration changes are verified before being applied. Only signed and authorized updates propagate to devices. Execution guarantees remain unchanged regardless of network state.
+                      When connectivity is available, fleet state changes are verified before application. Only signed updates propagate. Execution guarantees remain unchanged regardless of network state.
                     </p>
                   </div>
                 </div>
@@ -247,21 +249,21 @@ export default function AIAgentView() {
                 <p className="text-[#85612c] dark:text-[#c5b0cd] mb-3">## 04. DEPLOYMENT</p>
                 <p className="text-[#000000] dark:text-[#f6f6f4] mb-3">### Deploy. Verify. Optimize.</p>
                 <p className="text-sm mb-6 text-gray-600 dark:text-[#a8a898]">
-                  The system is designed to move from initial installation to fleet-level operation without changing how execution works.
+                  From initial installation to fleet-level operation without changing how execution works.
                 </p>
 
                 <div className="space-y-4">
                   <div>
                     <p className="text-[#000000] dark:text-[#f6f6f4] mb-2">#### Deploy</p>
                     <p className="text-sm text-gray-600 dark:text-[#a8a898] leading-relaxed">
-                      Install a single binary on any supported device. Execution, decision routing, memory, and proof are included from the start. The runtime operates independently of containers or external services.
+                      Install a single binary on any supported system. Execution, decision routing, memory, and proof included from the start. Operates independently of containers or external services.
                     </p>
                   </div>
 
                   <div>
                     <p className="text-[#000000] dark:text-[#f6f6f4] mb-2">#### Verify</p>
                     <p className="text-sm text-gray-600 dark:text-[#a8a898] leading-relaxed">
-                      Execution follows defined constraints. Behavior trees execute predictably. Each decision is recorded and cryptographically signed. Verification does not depend on network access.
+                      Execution follows defined constraints. Behavior trees execute predictably. Each decision recorded and cryptographically signed. Verification does not depend on network access.
                     </p>
                   </div>
 
@@ -282,8 +284,8 @@ export default function AIAgentView() {
                 <p className="text-[#000000] dark:text-[#f6f6f4] mb-3">### Infrastructure for the autonomous era</p>
                 <div className="text-sm text-gray-600 dark:text-[#a8a898] leading-relaxed space-y-2">
                   <p>AI is becoming autonomous. The systems that run it must be trustworthy.</p>
-                  <p>We believe every AI and every robot should run on a deterministic execution layer.</p>
-                  <p>One that doesn't hallucinate. One that proves every decision. One that works when networks don't.</p>
+                  <p>We believe every AI—whether software agent or physical robot—should run on a deterministic execution layer.</p>
+                  <p>One that proves every decision. One that works when networks don&apos;t.</p>
                   <p>This is that layer. Built for the next era of computing.</p>
                 </div>
               </div>
@@ -292,7 +294,7 @@ export default function AIAgentView() {
             {/* ClosingPosition */}
             {visibleSections >= 9 && (
               <div className="animate-fadeInUp border-l border-gray-300 dark:border-[#f6f6f4]/10 pl-4">
-                <p className="text-[#000000] dark:text-[#f6f6f4] mb-3">### One platform. Four layers. Complete control from edge to cloud.</p>
+                <p className="text-[#000000] dark:text-[#f6f6f4] mb-3">### One platform. Four layers. Complete control.</p>
                 <p className="text-sm mb-2 text-gray-600 dark:text-[#a8a898]">Documentation: <a href="https://docs.igrisinertial.com/runtime/docs/" target="_blank" rel="noopener noreferrer" className="text-blue-600 dark:text-blue-400 hover:underline">docs.igrisinertial.com/runtime/docs/</a></p>
                 <p className="text-sm mb-2 text-gray-600 dark:text-[#a8a898]">GitHub: <a href="https://github.com/igrisinertial" target="_blank" rel="noopener noreferrer" className="text-blue-600 dark:text-blue-400 hover:underline">github.com/igrisinertial</a></p>
               </div>
@@ -305,7 +307,7 @@ export default function AIAgentView() {
                   ---
                 </p>
                 <p className="text-xs text-gray-600 dark:text-[#a8a898] mt-2">
-                  This is a machine-readable version of the Igris website designed for AI agents and automated systems to accurately extract information. For the full visual experience, switch to "HUMAN" view.
+                  This is a machine-readable version of the Igris website designed for AI agents and automated systems to accurately extract information. For the full visual experience, switch to HUMAN view.
                 </p>
               </div>
             )}
