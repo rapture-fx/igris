@@ -88,20 +88,23 @@ export default function Hero() {
         }}>
 
             <div className="max-w-[1100px] mx-auto w-full hero-top-padding">
-            <div className="mb-6 text-left">
+            <div className="mb-2 text-left">
               <div>
-                <h1 className="text-3xl md:text-4xl lg:text-5xl font-bold" style={{ color: mounted && theme === 'dark' ? '#f6f6f4' : '#1b1912', fontFamily: 'var(--font-geist-pixel-square)' }}>
-                  <span className="block mb-3">The Nervous System</span>
-                </h1>
-                <h2 className="text-xl md:text-2xl lg:text-3xl font-medium mt-2" style={{ color: mounted && theme === 'dark' ? '#f6f6f4' : '#1b1912', fontFamily: 'var(--font-geist-pixel-square)' }}>
-                  Deterministic execution for AI that cannot fail.
-                </h2>
+                <div className="flex flex-col md:flex-row md:items-start md:justify-between gap-4 md:gap-8">
+                  <h1 className="text-3xl md:text-4xl lg:text-5xl font-bold" style={{ color: mounted && theme === 'dark' ? '#f6f6f4' : '#1b1912', fontFamily: 'var(--font-geist-pixel-square)' }}>
+                    <span className="block">The Nervous System</span>
+                  </h1>
+                  <div className="text-lg md:text-xl lg:text-2xl font-medium md:text-right" style={{ color: mounted && theme === 'dark' ? '#f6f6f4' : '#1b1912', fontFamily: 'var(--font-geist-pixel-square)' }}>
+                    <span className="block">Deterministic execution</span>
+                    <span className="block">for AI that cannot fail.</span>
+                  </div>
+                </div>
                 <div className="flex flex-wrap gap-2 md:gap-3 mt-8 text-xs md:text-sm" style={{ fontFamily: "'IBM Plex Mono', monospace", color: mounted && theme === 'dark' ? '#a8a898' : '#6a6a6a' }}>
                 </div>
               </div>
             </div>
 
-                <div className="flex flex-wrap gap-4 mt-8">
+                <div className="flex flex-wrap gap-4 mt-4">
                   <Link href="https://docs.igrisinertial.com/runtime/quickstart">
                     <button
                       className="inline-flex items-center justify-center px-6 py-3 hover:opacity-80 transition-all duration-200 text-xs font-medium shadow-sm rounded-md"
