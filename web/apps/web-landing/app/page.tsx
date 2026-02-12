@@ -11,6 +11,8 @@ import CoreCapabilities from '../src/components/sections/CoreCapabilities'
 import MultiTenancy from '../src/components/sections/MultiTenancy'
 import Products from '../src/components/sections/Products'
 import HowItWorks from '../src/components/sections/HowItWorks'
+import SDKs from '../src/components/sections/SDKs'
+import AutonomousSystems from '../src/components/sections/AutonomousSystems'
 
 import UseCasesPopup from '../src/components/popups/UseCasesPopup'
 
@@ -38,6 +40,8 @@ export default function HomePage() {
             <Products />
             <CoreCapabilities />
             <MultiTenancy />
+            <SDKs />
+            <AutonomousSystems />
             <HowItWorks />
             <WhyItExists />
             <ClosingPosition />
