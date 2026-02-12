@@ -114,7 +114,7 @@ func (b *BaseProviderAdapter) GetProviderName() string {
 func (b *BaseProviderAdapter) EstimateInputTokens(req *models.InferRequest) int {
 	totalChars := 0
 	for _, msg := range req.Messages {
-		totalChars += len(msg.Content)
+		totalChars += len(msg.GetTextContent())
 		totalChars += len(msg.Role) + 10 // Account for role and formatting
 	}
 

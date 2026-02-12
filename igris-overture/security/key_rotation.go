@@ -416,7 +416,7 @@ func (krm *KeyRotationManager) StartAutoRotation() {
 
 			if shouldRotate {
 				krm.logger.Println("[KeyRotation] Auto-rotation triggered")
-				if newKeyHex, newKeyID, err := krm.RotateMasterKey(); err != nil {
+				if _, newKeyID, err := krm.RotateMasterKey(); err != nil {
 					krm.logger.Printf("[KeyRotation] Auto-rotation failed: %v", err)
 				} else {
 					krm.logger.Printf("[KeyRotation] Auto-rotation successful: key_id=%s (update VAULT_MASTER_KEY in environment)", newKeyID)

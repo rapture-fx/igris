@@ -261,7 +261,7 @@ func (h *TelemetryHandler) HandleRuntimeRegister(c *fiber.Ctx) error {
 		} else {
 			log.Info().
 				Str("tenant_id", req.TenantID).
-				Int("key_version", tenantKey.Version).
+				Int("key_version", tenantKey.KeyVersion).
 				Msg("Tenant key ensured for crypto integration")
 		}
 	}

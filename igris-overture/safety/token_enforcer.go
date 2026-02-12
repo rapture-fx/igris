@@ -99,7 +99,7 @@ func (te *TokenEnforcer) EstimateTokens(req *models.InferRequest) int {
 
 	// Count characters in all messages
 	for _, msg := range req.Messages {
-		totalChars += len(msg.Content)
+		totalChars += len(msg.GetTextContent())
 	}
 
 	// Rough estimate: 1 token ≈ 4 characters

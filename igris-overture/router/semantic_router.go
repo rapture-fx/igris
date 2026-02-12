@@ -48,6 +48,7 @@ func NewSemanticRouter(
 		rewardEngine:    rewardEngine,
 		adaptiveRouter:  adaptiveRouter,
 		explorationRate: 0.15, // 15% exploration rate (configurable)
+		enabled:         true,
 	}
 }
 

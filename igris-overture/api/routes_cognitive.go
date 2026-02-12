@@ -17,7 +17,7 @@ import (
 // CognitiveHandler handles cognitive advisor API requests
 type CognitiveHandler struct {
 	applier       *cognitive.Applier
-	db            *database.Database
+	db            *database.DB
 	runtimeConfig *config.RuntimeOptimizerConfig
 }
 
@@ -30,7 +30,7 @@ func NewCognitiveHandler(applier *cognitive.Applier) *CognitiveHandler {
 }
 
 // NewCognitiveHandlerWithDB creates a new cognitive handler with database access
-func NewCognitiveHandlerWithDB(applier *cognitive.Applier, db *database.Database) *CognitiveHandler {
+func NewCognitiveHandlerWithDB(applier *cognitive.Applier, db *database.DB) *CognitiveHandler {
 	return &CognitiveHandler{
 		applier:       applier,
 		db:            db,
@@ -66,7 +66,7 @@ func RegisterCognitiveRoutes(app *fiber.App, applier *cognitive.Applier) {
 }
 
 // RegisterCognitiveV1Routes registers v1 API routes for cognitive advisor (tenant-scoped)
-func RegisterCognitiveV1Routes(app *fiber.App, applier *cognitive.Applier, db *database.Database) {
+func RegisterCognitiveV1Routes(app *fiber.App, applier *cognitive.Applier, db *database.DB) {
 	handler := NewCognitiveHandlerWithDB(applier, db)
 
 	// v1 API routes (tenant-scoped via API key authentication)
@@ -278,8 +278,7 @@ func (h *CognitiveHandler) V1ApplyProposal(c *fiber.Ctx) error {
 	}
 
 	// Apply the proposal
-	actor := fmt.Sprintf("api:%s", tenantCtx.TenantID)
-	if err := h.applier.ApplyProposal(c.Context(), proposalID, actor); err != nil {
+	if err := h.applier.ApplyProposal(c.Context(), proposalID); err != nil {
 		log.Error().Err(err).Str("proposal_id", proposalID).Msg("[Cognitive V1 API] Failed to apply proposal")
 		return c.Status(fiber.StatusInternalServerError).JSON(fiber.Map{
 			"error": map[string]interface{}{
