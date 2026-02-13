@@ -27,9 +27,6 @@ export default function AutonomousSystems() {
               <h2 className="text-xl md:text-2xl lg:text-3xl text-[#000000] dark:text-[#f6f6f4]" style={{ fontFamily: '-apple-system, BlinkMacSystemFont, "Segoe UI", Roboto, Helvetica, Arial, sans-serif' }}>
                 One Runtime. Any Autonomous System.
               </h2>
-              <p className="text-sm md:text-base text-gray-600 dark:text-[#a8a898] mt-2" style={{ fontFamily: '-apple-system, BlinkMacSystemFont, "Segoe UI", Roboto, Helvetica, Arial, sans-serif' }}>
-                Different bodies. Same nervous system.
-              </p>
             </div>
           </div>
 
@@ -38,14 +35,8 @@ export default function AutonomousSystems() {
 
           {/* Row 1 */}
           <div className="grid grid-cols-1 md:grid-cols-2">
-            {/* Col 1 - Image */}
-            <div className="p-4 md:pl-8 lg:pl-12" style={{ height: '320px', borderRight: '0.5px solid rgba(209, 213, 219, 0.35)' }}>
-              <div className="relative w-full h-full rounded-2xl overflow-hidden bg-transparent">
-                {/* Blank image placeholder */}
-              </div>
-            </div>
-            {/* Col 2 - Text */}
-            <div className="flex flex-col justify-start pt-6 pb-6 px-4 md:px-8 lg:pr-12">
+            {/* Col 1 - Text */}
+            <div className="flex flex-col justify-start pt-6 pb-6 px-4 md:px-8 lg:pl-12" style={{ borderRight: '0.5px solid rgba(209, 213, 219, 0.35)' }}>
               <h3 className="text-base md:text-lg mb-3 text-[#000000] dark:text-[#f6f6f4]" style={{ fontFamily: '-apple-system, BlinkMacSystemFont, "Segoe UI", Roboto, Helvetica, Arial, sans-serif' }}>
                 The same 16MB binary runs everywhere.
               </h3>
@@ -55,6 +46,12 @@ export default function AutonomousSystems() {
               <p className="text-sm md:text-base text-gray-600 dark:text-[#a8a898] leading-relaxed mb-3" style={{ fontFamily: '-apple-system, BlinkMacSystemFont, "Segoe UI", Roboto, Helvetica, Arial, sans-serif' }}>
                 Language models generate decisions. Behavior trees structure execution. The runtime enforces limits and records every action. Whether intelligence runs in software or moves in space, execution remains deterministic and provable.
               </p>
+            </div>
+            {/* Col 2 - Image */}
+            <div className="p-4 md:pr-8 lg:pr-12" style={{ height: '320px' }}>
+              <div className="relative w-full h-full rounded-2xl overflow-hidden bg-transparent">
+                {/* Blank image placeholder */}
+              </div>
             </div>
           </div>
         </div>
@@ -66,21 +63,23 @@ export default function AutonomousSystems() {
       {/* Row 2 */}
       <div className="mx-auto max-w-[1100px] px-4 sm:px-6 lg:px-8">
         <div className="grid grid-cols-1 md:grid-cols-2" style={{ borderLeft: '0.5px solid rgba(209, 213, 219, 0.35)', borderRight: '0.5px solid rgba(209, 213, 219, 0.35)' }}>
-          {/* Col 1 - Image */}
-          <div className="p-4 md:pl-8 lg:pl-12" style={{ height: '320px', borderRight: '0.5px solid rgba(209, 213, 219, 0.35)' }}>
-            <div className="relative w-full h-full rounded-2xl overflow-hidden bg-transparent">
-              {/* Blank image placeholder */}
-            </div>
-          </div>
-          {/* Col 2 - Text */}
-          <div className="flex flex-col justify-start py-6 px-4 md:px-8 lg:pr-12">
+          {/* Col 1 - Text */}
+          <div className="flex flex-col justify-start py-6 px-4 md:px-8 lg:pl-12" style={{ borderRight: '0.5px solid rgba(209, 213, 219, 0.35)' }}>
             <p className="text-sm md:text-base text-gray-600 dark:text-[#a8a898] leading-relaxed mb-3" style={{ fontFamily: '-apple-system, BlinkMacSystemFont, "Segoe UI", Roboto, Helvetica, Arial, sans-serif' }}>
               Deploy to servers, edge devices, or robotic hardware with identical guarantees. Manage diverse autonomous systems from a single control plane with bounded behavior and cryptographically verified actions.
             </p>
           </div>
+          {/* Col 2 - Image */}
+          <div className="p-4 md:pr-8 lg:pr-12" style={{ height: '320px' }}>
+            <div className="relative w-full h-full rounded-2xl overflow-hidden bg-transparent">
+              {/* Blank image placeholder */}
+            </div>
+          </div>
         </div>
       </div>
 
+      {/* Full-width bottom border */}
+      <div style={{ borderTop: '0.5px solid rgba(209, 213, 219, 0.35)' }} />
     </section>
   )
 }
