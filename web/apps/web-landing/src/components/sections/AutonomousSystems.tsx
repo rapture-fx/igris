@@ -36,7 +36,7 @@ export default function AutonomousSystems() {
           {/* Row 1 */}
           <div className="grid grid-cols-1 md:grid-cols-2">
             {/* Col 1 - Text */}
-            <div className="flex flex-col justify-start pt-6 pb-6 px-4 md:px-8 lg:pl-12" style={{ borderRight: '0.5px solid rgba(209, 213, 219, 0.35)' }}>
+            <div className="flex flex-col justify-start p-4 md:pl-8 lg:pl-12" style={{ borderRight: '0.5px solid rgba(209, 213, 219, 0.35)' }}>
               <h3 className="text-base md:text-lg mb-3 text-[#000000] dark:text-[#f6f6f4]" style={{ fontFamily: '-apple-system, BlinkMacSystemFont, "Segoe UI", Roboto, Helvetica, Arial, sans-serif' }}>
                 The same 16MB binary runs everywhere.
               </h3>
@@ -63,8 +63,8 @@ export default function AutonomousSystems() {
       {/* Row 2 */}
       <div className="mx-auto max-w-[1100px] px-4 sm:px-6 lg:px-8">
         <div className="grid grid-cols-1 md:grid-cols-2" style={{ borderLeft: '0.5px solid rgba(209, 213, 219, 0.35)', borderRight: '0.5px solid rgba(209, 213, 219, 0.35)' }}>
-          {/* Col 1 - Text */}
-          <div className="flex flex-col justify-start py-6 px-4 md:px-8 lg:pl-12" style={{ borderRight: '0.5px solid rgba(209, 213, 219, 0.35)' }}>
+            {/* Col 1 - Text */}
+            <div className="flex flex-col justify-start p-4 md:pl-8 lg:pl-12" style={{ borderRight: '0.5px solid rgba(209, 213, 219, 0.35)' }}>
             <p className="text-sm md:text-base text-gray-600 dark:text-[#a8a898] leading-relaxed mb-3" style={{ fontFamily: '-apple-system, BlinkMacSystemFont, "Segoe UI", Roboto, Helvetica, Arial, sans-serif' }}>
               Deploy to servers, edge devices, or robotic hardware with identical guarantees. Manage diverse autonomous systems from a single control plane with bounded behavior and cryptographically verified actions.
             </p>
