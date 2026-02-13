@@ -229,7 +229,7 @@ export default function Header() {
                 <a
                   href={consoleUrl ? `${consoleUrl}/auth?mode=signup` : '#'}
                   onMouseEnter={scheduleClose}
-                  className="inline-flex items-center justify-center px-4 py-2 hover:opacity-80 transition-all duration-200 text-xs font-medium shadow-sm rounded-md"
+                  className="inline-flex items-center justify-center px-4 py-2 hover:opacity-80 transition-all duration-200 text-sm font-medium shadow-sm rounded-md"
                   style={{ fontFamily: 'var(--font-geist-sans)', backgroundColor: '#1b1912', color: '#f6f6f4' }}
                 >
                   Get Started
@@ -460,7 +460,7 @@ export default function Header() {
 
                 <Link href="/pricing" prefetch={false} className="text-gray-700 dark:text-[#c8c8b8] hover:text-gray-900 dark:hover:text-[#f6f6f4] transition-colors duration-200 font-medium text-sm" style={{ fontFamily: 'var(--font-geist-sans)' }} onClick={() => setMobileMenuOpen(false)}>Pricing</Link>
                 <a href={consoleUrl ? `${consoleUrl}/auth?mode=signin` : '#'} className="text-gray-700 dark:text-[#c8c8b8] hover:text-gray-900 dark:hover:text-[#f6f6f4] transition-colors duration-200 font-medium text-sm" style={{ fontFamily: 'var(--font-geist-sans)' }} onClick={() => setMobileMenuOpen(false)}>Sign In</a>
-                <a href={consoleUrl ? `${consoleUrl}/auth?mode=signup` : '#'} onClick={() => setMobileMenuOpen(false)} className="inline-flex items-center justify-center px-4 py-2 hover:opacity-80 transition-all duration-200 text-xs font-medium shadow-sm rounded-md" style={{ fontFamily: 'var(--font-geist-sans)', backgroundColor: '#14120a', color: '#f6f6f4' }}>Get Started</a>
+                <a href={consoleUrl ? `${consoleUrl}/auth?mode=signup` : '#'} onClick={() => setMobileMenuOpen(false)} className="inline-flex items-center justify-center px-4 py-2 hover:opacity-80 transition-all duration-200 text-sm font-medium shadow-sm rounded-md" style={{ fontFamily: 'var(--font-geist-sans)', backgroundColor: '#14120a', color: '#f6f6f4' }}>Get Started</a>
               </nav>
             </div>
           )}

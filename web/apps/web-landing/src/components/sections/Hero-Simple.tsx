@@ -94,7 +94,7 @@ export default function Hero() {
                   <h1 className="text-2xl md:text-3xl lg:text-4xl font-bold" style={{ color: mounted && theme === 'dark' ? '#f6f6f4' : '#1b1912', fontFamily: 'var(--font-geist-pixel-square)' }}>
                     <span className="block">The Nervous System</span>
                   </h1>
-                  <div className="text-base md:text-lg lg:text-xl max-w-md" style={{ color: mounted && theme === 'dark' ? '#f6f6f4' : '#1b1912', fontFamily: 'var(--font-geist-sans)' }}>
+                  <div className="text-sm md:text-base lg:text-lg max-w-md font-normal text-gray-600 dark:text-[#a8a898]" style={{ fontFamily: 'var(--font-geist-sans)' }}>
                     <span className="block">A deterministic execution and coordination layer for AI that enforces structured behavior, adapts decisions over time, and verifies every action across autonomous systems.</span>
                   </div>
                 </div>
@@ -106,11 +106,11 @@ export default function Hero() {
                 <div className="flex flex-wrap gap-4 mt-0">
                   <Link href="https://docs.igrisinertial.com/runtime/quickstart">
                     <button
-                      className="inline-flex items-center justify-center px-6 py-3 hover:opacity-80 transition-all duration-200 text-xs font-medium shadow-sm rounded-md"
-                      style={{ backgroundColor: '#1b1912', color: '#f6f6f4' }}
+                      className="inline-flex items-center justify-center px-6 py-3 hover:opacity-80 transition-all duration-200 text-sm font-medium shadow-sm rounded-md"
+                      style={{ backgroundColor: '#1b1912', color: '#f6f6f4', fontFamily: 'var(--font-geist-sans)' }}
                     >
                       Get Started
-                      <ChevronRight className="ml-1 h-3 w-3" />
+                      <ChevronRight className="ml-1 h-4 w-4" />
                     </button>
                   </Link>
                 </div>

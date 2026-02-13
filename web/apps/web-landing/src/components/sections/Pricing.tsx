@@ -155,11 +155,11 @@ export default function Pricing() {
                     </div>
                     <button
                       onClick={openEarlyAccessModal}
-                      className="inline-flex items-center justify-center px-4 py-2 hover:opacity-80 transition-all duration-200 text-xs font-medium shadow-sm rounded-md mt-8 opacity-100 md:opacity-0 md:group-hover:opacity-100 self-start"
+                      className="inline-flex items-center justify-center px-4 py-2 hover:opacity-80 transition-all duration-200 text-sm font-medium shadow-sm rounded-md mt-8 opacity-100 md:opacity-0 md:group-hover:opacity-100 self-start"
                       style={{ fontFamily: 'var(--font-geist-sans)', backgroundColor: '#1b1912', color: '#f6f6f4' }}
                     >
                       Select
-                      <ChevronRight className="ml-1 h-3 w-3" />
+                      <ChevronRight className="ml-1 h-4 w-4" />
                     </button>
                   </div>
                 </div>
