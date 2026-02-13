@@ -13,11 +13,11 @@ export default function SDKs() {
   }, [])
 
   return (
-    <section className="bg-[#f6f6f4] dark:bg-dark-bg text-gray-900 dark:text-[#f6f6f4] transition-colors duration-200 overflow-hidden">
+    <section className="bg-[#f6f6f4] dark:bg-dark-bg text-gray-900 dark:text-[#f6f6f4] transition-colors duration-200">
       <div className="mx-auto max-w-[1100px] px-4 sm:px-6 lg:px-8">
         <div className="px-4 md:px-8 lg:px-12" style={{ borderLeft: '0.5px solid rgba(209, 213, 219, 0.35)', borderRight: '0.5px solid rgba(209, 213, 219, 0.35)' }}>
           {/* Title */}
-          <div className="text-left" style={{ paddingTop: '3rem', paddingBottom: '1rem' }}>
+          <div className="text-left" style={{ paddingTop: '3rem', paddingBottom: '2rem' }}>
             <h3 className="text-xl md:text-2xl lg:text-3xl text-[#000000] dark:text-[#f6f6f4]" style={{ fontFamily: '-apple-system, BlinkMacSystemFont, "Segoe UI", Roboto, Helvetica, Arial, sans-serif' }}>
               Build on the Nervous System
             </h3>
@@ -29,7 +29,7 @@ export default function SDKs() {
           {/* Row 1 */}
           <div className="grid grid-cols-1 md:grid-cols-2">
             {/* Col 1 - Text */}
-            <div className="flex flex-col justify-start pt-6 pb-6 px-4 md:px-8 lg:pl-12" style={{ borderRight: '0.5px solid rgba(209, 213, 219, 0.35)' }}>
+            <div className="flex flex-col justify-start p-4 md:pl-8 lg:pl-12" style={{ borderRight: '0.5px solid rgba(209, 213, 219, 0.35)' }}>
               <h3 className="text-base md:text-lg mb-3 text-[#000000] dark:text-[#f6f6f4]" style={{ fontFamily: '-apple-system, BlinkMacSystemFont, "Segoe UI", Roboto, Helvetica, Arial, sans-serif' }}>
                 Consistent API across all environments.
               </h3>
@@ -56,8 +56,8 @@ export default function SDKs() {
       {/* Row 2 */}
       <div className="mx-auto max-w-[1100px] px-4 sm:px-6 lg:px-8">
         <div className="grid grid-cols-1 md:grid-cols-2" style={{ borderLeft: '0.5px solid rgba(209, 213, 219, 0.35)', borderRight: '0.5px solid rgba(209, 213, 219, 0.35)' }}>
-          {/* Col 1 - Text */}
-          <div className="flex flex-col justify-start py-6 px-4 md:px-8 lg:pl-12" style={{ borderRight: '0.5px solid rgba(209, 213, 219, 0.35)' }}>
+            {/* Col 1 - Text */}
+            <div className="flex flex-col justify-start p-4 md:pl-8 lg:pl-12" style={{ borderRight: '0.5px solid rgba(209, 213, 219, 0.35)' }}>
             <p className="text-sm md:text-base text-gray-600 dark:text-[#a8a898] leading-relaxed mb-3" style={{ fontFamily: '-apple-system, BlinkMacSystemFont, "Segoe UI", Roboto, Helvetica, Arial, sans-serif' }}>
               Deploy anywhere with consistent error handling and structured error responses across all supported languages.
             </p>
