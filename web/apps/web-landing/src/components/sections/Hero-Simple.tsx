@@ -3,7 +3,7 @@
 import React, { useState, useEffect } from 'react'
 import Link from 'next/link'
 import { useTheme } from 'next-themes'
-import { ChevronRight } from 'lucide-react'
+
 
 const AnimatedText = () => {
   const words = ['Machines', 'AI Agents']
@@ -91,29 +91,16 @@ export default function Hero() {
             <div className="mb-1 text-left">
               <div>
                 <div className="flex flex-col md:flex-row md:items-start md:justify-between gap-4 md:gap-8">
-                  <h1 className="text-2xl md:text-3xl lg:text-4xl font-bold" style={{ color: mounted && theme === 'dark' ? '#f6f6f4' : '#1b1912', fontFamily: 'var(--font-geist-pixel-square)' }}>
-                    <span className="block">The Nervous System</span>
+                  <h1 className="text-2xl md:text-3xl lg:text-4xl" style={{ color: mounted && theme === 'dark' ? '#f6f6f4' : '#1b1912', fontFamily: '-apple-system, BlinkMacSystemFont, "Segoe UI", Roboto, Helvetica, Arial, sans-serif', fontWeight: 400 }}>
+                    <span className="block">Execution governance layer</span>
+                    <span className="block">for autonomous systems.</span>
                   </h1>
-                  <div className="text-sm md:text-base lg:text-lg max-w-md font-normal text-gray-600 dark:text-[#a8a898]" style={{ fontFamily: 'var(--font-geist-sans)' }}>
+                  <div className="text-sm md:text-base lg:text-lg max-w-md font-normal text-gray-600 dark:text-[#a8a898]" style={{ fontFamily: '-apple-system, BlinkMacSystemFont, "Segoe UI", Roboto, Helvetica, Arial, sans-serif', fontWeight: 400 }}>
                     <span className="block">A deterministic execution and coordination layer for AI that enforces structured behavior, adapts decisions over time, and verifies every action across autonomous systems.</span>
                   </div>
                 </div>
-                <div className="flex flex-wrap gap-2 md:gap-3 mt-8 text-xs md:text-sm" style={{ fontFamily: "'IBM Plex Mono', monospace", color: mounted && theme === 'dark' ? '#a8a898' : '#6a6a6a' }}>
-                </div>
               </div>
             </div>
-
-                <div className="flex flex-wrap gap-4 mt-0">
-                  <Link href="https://docs.igrisinertial.com/runtime/quickstart">
-                    <button
-                      className="inline-flex items-center justify-center px-6 py-3 hover:opacity-80 transition-all duration-200 text-sm font-medium shadow-sm rounded-md"
-                      style={{ backgroundColor: '#1b1912', color: '#f6f6f4', fontFamily: 'var(--font-geist-sans)' }}
-                    >
-                      Get Started
-                      <ChevronRight className="ml-1 h-4 w-4" />
-                    </button>
-                  </Link>
-                </div>
             </div>
         </div>
       </div>
