@@ -279,8 +279,8 @@ export default function EarlyAccessModal({ isOpen, onClose }: EarlyAccessModalPr
                     <button
                       type="submit"
                       disabled={isSubmitting}
-                      className="inline-flex items-center justify-center w-full px-3 py-2 md:px-6 md:py-3 text-black rounded-lg transition-all duration-200 font-semibold text-xs md:text-base border border-gray-300 hover:opacity-70 font-inter disabled:opacity-50 disabled:cursor-not-allowed"
-                      style={{ backgroundColor: '#f6f6f4', minHeight: '40px' }}
+                      className="inline-flex items-center justify-center w-full px-3 py-2 md:px-6 md:py-3 text-black rounded-lg transition-all duration-200 font-semibold text-sm md:text-lg border border-gray-300 hover:opacity-70 disabled:opacity-50 disabled:cursor-not-allowed"
+                      style={{ backgroundColor: '#f6f6f4', minHeight: '40px', fontFamily: 'var(--font-geist-sans)' }}
                     >
                       {isSubmitting ? (
                         <>
