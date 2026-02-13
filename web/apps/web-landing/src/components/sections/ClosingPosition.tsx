@@ -19,11 +19,11 @@ export default function ClosingPosition() {
             </h3>
             <Link href="https://docs.igrisinertial.com/runtime/quickstart">
               <button
-                className="inline-flex items-center justify-center px-6 py-3 hover:opacity-80 transition-all duration-200 text-xs font-medium shadow-sm rounded-md shrink-0 ml-4"
-                style={{ backgroundColor: '#1b1912', color: '#f6f6f4' }}
+                className="inline-flex items-center justify-center px-6 py-3 hover:opacity-80 transition-all duration-200 text-sm font-medium shadow-sm rounded-md shrink-0 ml-4"
+                style={{ backgroundColor: '#1b1912', color: '#f6f6f4', fontFamily: 'var(--font-geist-sans)' }}
               >
                 Get Started
-                <ChevronRight className="ml-1 h-3 w-3" />
+                <ChevronRight className="ml-1 h-4 w-4" />
               </button>
             </Link>
           </div>

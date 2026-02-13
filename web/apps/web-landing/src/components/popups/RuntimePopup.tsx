@@ -157,7 +157,8 @@ export default function RuntimePopup({ isOpen, onClose }: RuntimePopupProps) {
                 </p>
                 <a
                   href="https://docs.igrisinertial.com/runtime/quickstart"
-                  className="inline-flex items-center justify-start bg-gray-200 dark:bg-[#f6f6f4] text-gray-900 dark:text-black px-4 py-2 hover:bg-gray-300 dark:hover:bg-gray-200 transition-all duration-200 text-sm font-medium shadow-md hover:shadow-lg w-fit"
+                  className="inline-flex items-center justify-start bg-gray-200 dark:bg-[#f6f6f4] text-gray-900 dark:text-black px-4 py-2 hover:bg-gray-300 dark:hover:bg-gray-200 transition-all duration-200 text-base font-medium shadow-md hover:shadow-lg w-fit"
+                  style={{ fontFamily: 'var(--font-geist-sans)' }}
                 >
                   Download Runtime
                 </a>
