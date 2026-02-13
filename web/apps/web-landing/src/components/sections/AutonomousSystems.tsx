@@ -24,10 +24,10 @@ export default function AutonomousSystems() {
           {/* Title */}
           <div className="flex items-center justify-between" style={{ paddingTop: '3rem', paddingBottom: '2rem' }}>
             <div>
-              <h2 className="text-xl md:text-2xl lg:text-3xl text-[#000000] dark:text-[#f6f6f4]" style={{ fontFamily: 'var(--font-geist-sans)' }}>
+              <h2 className="text-xl md:text-2xl lg:text-3xl text-[#000000] dark:text-[#f6f6f4]" style={{ fontFamily: '-apple-system, BlinkMacSystemFont, "Segoe UI", Roboto, Helvetica, Arial, sans-serif' }}>
                 One Runtime. Any Autonomous System.
               </h2>
-              <p className="text-sm md:text-base text-gray-600 dark:text-[#a8a898] mt-2" style={{ fontFamily: 'var(--font-geist-sans)' }}>
+              <p className="text-sm md:text-base text-gray-600 dark:text-[#a8a898] mt-2" style={{ fontFamily: '-apple-system, BlinkMacSystemFont, "Segoe UI", Roboto, Helvetica, Arial, sans-serif' }}>
                 Different bodies. Same nervous system.
               </p>
             </div>
@@ -46,13 +46,13 @@ export default function AutonomousSystems() {
             </div>
             {/* Col 2 - Text */}
             <div className="flex flex-col justify-start pt-6 pb-6 px-4 md:px-8 lg:pr-12">
-              <h3 className="text-base md:text-lg mb-3 text-[#000000] dark:text-[#f6f6f4]" style={{ fontFamily: 'var(--font-geist-sans)' }}>
+              <h3 className="text-base md:text-lg mb-3 text-[#000000] dark:text-[#f6f6f4]" style={{ fontFamily: '-apple-system, BlinkMacSystemFont, "Segoe UI", Roboto, Helvetica, Arial, sans-serif' }}>
                 The same 16MB binary runs everywhere.
               </h3>
-              <p className="text-sm md:text-base text-gray-600 dark:text-[#a8a898] leading-relaxed mb-3" style={{ fontFamily: 'var(--font-geist-sans)' }}>
+              <p className="text-sm md:text-base text-gray-600 dark:text-[#a8a898] leading-relaxed mb-3" style={{ fontFamily: '-apple-system, BlinkMacSystemFont, "Segoe UI", Roboto, Helvetica, Arial, sans-serif' }}>
                 The same 16MB binary runs AI agents on servers and robots on physical hardware. Execution rules, routing behavior, verification, and fleet coordination remain identical across environments.
               </p>
-              <p className="text-sm md:text-base text-gray-600 dark:text-[#a8a898] leading-relaxed mb-3" style={{ fontFamily: 'var(--font-geist-sans)' }}>
+              <p className="text-sm md:text-base text-gray-600 dark:text-[#a8a898] leading-relaxed mb-3" style={{ fontFamily: '-apple-system, BlinkMacSystemFont, "Segoe UI", Roboto, Helvetica, Arial, sans-serif' }}>
                 Language models generate decisions. Behavior trees structure execution. The runtime enforces limits and records every action. Whether intelligence runs in software or moves in space, execution remains deterministic and provable.
               </p>
             </div>
@@ -74,7 +74,7 @@ export default function AutonomousSystems() {
           </div>
           {/* Col 2 - Text */}
           <div className="flex flex-col justify-start py-6 px-4 md:px-8 lg:pr-12">
-            <p className="text-sm md:text-base text-gray-600 dark:text-[#a8a898] leading-relaxed mb-3" style={{ fontFamily: 'var(--font-geist-sans)' }}>
+            <p className="text-sm md:text-base text-gray-600 dark:text-[#a8a898] leading-relaxed mb-3" style={{ fontFamily: '-apple-system, BlinkMacSystemFont, "Segoe UI", Roboto, Helvetica, Arial, sans-serif' }}>
               Deploy to servers, edge devices, or robotic hardware with identical guarantees. Manage diverse autonomous systems from a single control plane with bounded behavior and cryptographically verified actions.
             </p>
           </div>

@@ -98,7 +98,7 @@ export default function Pricing() {
         <div className="relative px-4 md:px-8 lg:px-12 pb-0 pt-[70px] bg-[#f6f6f4] dark:bg-[#1b1912] z-10">
           <div className="max-w-[1400px] mx-auto pt-24 px-0 md:px-8 lg:px-0 pb-24">
             <div className="text-center mb-12">
-              <h2 className="text-3xl md:text-5xl lg:text-6xl mb-6 text-[#000000] dark:text-[#f6f6f4]" style={{ fontFamily: 'var(--font-geist-sans)' }}>
+              <h2 className="text-3xl md:text-5xl lg:text-6xl mb-6 text-[#000000] dark:text-[#f6f6f4]" style={{ fontFamily: '-apple-system, BlinkMacSystemFont, "Segoe UI", Roboto, Helvetica, Arial, sans-serif' }}>
                 Pricing
               </h2>
             </div>
@@ -116,7 +116,7 @@ export default function Pricing() {
                   <div className="p-6 flex flex-col h-full">
                     <div className="flex-grow">
                       <div className="mb-2">
-                        <h3 className="text-lg text-[#000000] dark:text-[#f6f6f4]" style={{ fontFamily: 'var(--font-geist-sans)' }}>
+                        <h3 className="text-lg text-[#000000] dark:text-[#f6f6f4]" style={{ fontFamily: '-apple-system, BlinkMacSystemFont, "Segoe UI", Roboto, Helvetica, Arial, sans-serif' }}>
                           {tier.name}
                         </h3>
                       </div>
@@ -124,14 +124,14 @@ export default function Pricing() {
                       <div className="mb-6">
                         {tier.isContactUs ? (
                           <div className="flex flex-col">
-                            <span className="text-4xl md:text-5xl text-[#000000] dark:text-[#f6f6f4]" style={{ fontFamily: 'var(--font-geist-pixel-square)' }}>
+                            <span className="text-4xl md:text-5xl text-[#000000] dark:text-[#f6f6f4]" style={{ fontFamily: '-apple-system, BlinkMacSystemFont, "Segoe UI", Roboto, Helvetica, Arial, sans-serif' }}>
                               Custom
                             </span>
                           </div>
                         ) : (
                           <div className="flex flex-col">
                             <span className="text-[#000000] dark:text-[#f6f6f4] transition-all duration-300">
-                              <span className="text-4xl md:text-5xl" style={{ fontFamily: 'var(--font-geist-pixel-square)' }}>{tier.price.split(' / ')[0]}</span>
+                              <span className="text-4xl md:text-5xl" style={{ fontFamily: '-apple-system, BlinkMacSystemFont, "Segoe UI", Roboto, Helvetica, Arial, sans-serif' }}>{tier.price.split(' / ')[0]}</span>
                               <span className="text-sm md:text-base text-gray-600 dark:text-[#a8a898]"> / {tier.price.split(' / ')[1]}</span>
                             </span>
                           </div>
@@ -148,7 +148,7 @@ export default function Pricing() {
                         {tier.features.map((feature, featureIndex) => (
                           <li key={featureIndex} className="flex items-start">
                             <Check className="h-3 w-3 mr-3 flex-shrink-0 mt-0.5 text-green-500" />
-                            <span className="text-xs text-gray-700 dark:text-[#c8c8b8]" style={{ fontFamily: 'var(--font-geist-mono)' }}>{feature}</span>
+                            <span className="text-xs text-gray-700 dark:text-[#c8c8b8]" style={{ fontFamily: 'SF Mono, Monaco, Inconsolata, Fira Code, monospace' }}>{feature}</span>
                           </li>
                         ))}
                       </ul>
@@ -156,7 +156,7 @@ export default function Pricing() {
                     <button
                       onClick={openEarlyAccessModal}
                       className="inline-flex items-center justify-center px-4 py-2 hover:opacity-80 transition-all duration-200 text-sm font-medium shadow-sm rounded-md mt-8 opacity-100 md:opacity-0 md:group-hover:opacity-100 self-start"
-                      style={{ fontFamily: 'var(--font-geist-sans)', backgroundColor: '#1b1912', color: '#f6f6f4' }}
+                      style={{ fontFamily: '-apple-system, BlinkMacSystemFont, "Segoe UI", Roboto, Helvetica, Arial, sans-serif', backgroundColor: '#1b1912', color: '#f6f6f4' }}
                     >
                       Select
                       <ChevronRight className="ml-1 h-4 w-4" />

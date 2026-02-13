@@ -50,10 +50,10 @@ export default function Solve() {
             <p className="text-base text-[#85612c] dark:text-[#c5b0cd] mb-2" style={{ letterSpacing: '0.05em', fontFamily: 'var(--font-geist-mono, "Geist Mono", monospace)' }}>
               THE CHALLENGE
             </p>
-            <h3 className="text-xl md:text-2xl lg:text-3xl mb-4 text-[#000000] dark:text-[#f6f6f4]" style={{ fontFamily: 'var(--font-geist-sans)' }}>
+            <h3 className="text-xl md:text-2xl lg:text-3xl mb-4 text-[#000000] dark:text-[#f6f6f4]" style={{ fontFamily: '-apple-system, BlinkMacSystemFont, "Segoe UI", Roboto, Helvetica, Arial, sans-serif' }}>
               What we solve
             </h3>
-            <p className="text-sm md:text-base text-gray-600 dark:text-[#a8a898] leading-relaxed" style={{ fontWeight: 400, fontFamily: 'var(--font-geist-sans)' }}>
+            <p className="text-sm md:text-base text-gray-600 dark:text-[#a8a898] leading-relaxed" style={{ fontWeight: 400, fontFamily: '-apple-system, BlinkMacSystemFont, "Segoe UI", Roboto, Helvetica, Arial, sans-serif' }}>
               Every problem that makes AI unreliable in production.
             </p>
           </div>
@@ -67,13 +67,13 @@ export default function Solve() {
               >
                 <span
                   className="text-sm text-[#000000] dark:text-[#f6f6f4]"
-                  style={{ fontFamily: 'var(--font-geist-sans)' }}
+                  style={{ fontFamily: '-apple-system, BlinkMacSystemFont, "Segoe UI", Roboto, Helvetica, Arial, sans-serif' }}
                 >
                   {item.label}
                 </span>
                 <span
                   className="text-xs text-gray-500 dark:text-[#a8a898] leading-relaxed"
-                  style={{ fontWeight: 300, fontFamily: 'var(--font-geist-sans)' }}
+                  style={{ fontWeight: 300, fontFamily: '-apple-system, BlinkMacSystemFont, "Segoe UI", Roboto, Helvetica, Arial, sans-serif' }}
                 >
                   {item.detail}
                 </span>

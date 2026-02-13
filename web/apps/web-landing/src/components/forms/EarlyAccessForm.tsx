@@ -84,7 +84,7 @@ export default function EarlyAccessForm() {
             <button
               onClick={() => setIsSubmitted(false)}
               className="inline-flex items-center px-6 py-3 text-white rounded-lg transition-all duration-200 font-semibold text-base shadow-md hover:shadow-lg"
-              style={{ backgroundColor: '#1f53d0', fontFamily: 'var(--font-geist-sans)' }}
+              style={{ backgroundColor: '#1f53d0', fontFamily: '-apple-system, BlinkMacSystemFont, "Segoe UI", Roboto, Helvetica, Arial, sans-serif' }}
             >
               Submit Another Request
             </button>
@@ -208,7 +208,7 @@ export default function EarlyAccessForm() {
               type="submit"
               disabled={isSubmitting}
               className="w-full inline-flex items-center justify-center px-6 py-4 text-white rounded-lg transition-all duration-200 font-semibold text-lg shadow-md hover:shadow-lg disabled:opacity-50 disabled:cursor-not-allowed"
-              style={{ backgroundColor: '#1f53d0', fontFamily: 'var(--font-geist-sans)' }}
+              style={{ backgroundColor: '#1f53d0', fontFamily: '-apple-system, BlinkMacSystemFont, "Segoe UI", Roboto, Helvetica, Arial, sans-serif' }}
             >
               {isSubmitting ? (
                 <>
