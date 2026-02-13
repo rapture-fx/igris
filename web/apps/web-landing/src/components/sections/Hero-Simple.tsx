@@ -62,7 +62,7 @@ const AnimatedText = () => {
   }, [isMounted])
 
   return (
-    <span className="inline-block relative align-bottom ml-3" style={{ verticalAlign: 'baseline', fontFamily: 'var(--font-geist-pixel-square)', fontSize: '1em', letterSpacing: '0.02em', fontWeight: 700, color: isMounted && theme === 'dark' ? '#f6f6f4' : '#1b1912' }}>
+    <span className="inline-block relative align-bottom ml-3" style={{ verticalAlign: 'baseline', fontFamily: '-apple-system, BlinkMacSystemFont, "Segoe UI", Roboto, Helvetica, Arial, sans-serif', fontSize: '1em', letterSpacing: '0.02em', fontWeight: 700, color: isMounted && theme === 'dark' ? '#f6f6f4' : '#1b1912' }}>
       {isMounted ? displayText : words[0]}
       {isMounted && <span className="inline-block hero-blink" style={{ color: isMounted && theme === 'dark' ? '#f6f6f4' : '#1b1912' }}>_</span>}
     </span>

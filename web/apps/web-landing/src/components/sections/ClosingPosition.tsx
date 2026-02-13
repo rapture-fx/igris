@@ -14,13 +14,13 @@ export default function ClosingPosition() {
           borderRight: '0.5px solid rgba(209, 213, 219, 0.35)'
         }}>
           <div className="flex items-center justify-between" style={{ paddingTop: '3rem', paddingBottom: '3rem' }}>
-            <h3 className="text-xl md:text-2xl lg:text-3xl text-[#000000] dark:text-[#f6f6f4]" style={{ fontFamily: 'var(--font-geist-pixel-square)' }}>
+            <h3 className="text-xl md:text-2xl lg:text-3xl text-[#000000] dark:text-[#f6f6f4]" style={{ fontFamily: '-apple-system, BlinkMacSystemFont, "Segoe UI", Roboto, Helvetica, Arial, sans-serif' }}>
               Complete control from edge to cloud.
             </h3>
             <Link href="https://docs.igrisinertial.com/runtime/quickstart">
               <button
                 className="inline-flex items-center justify-center px-6 py-3 hover:opacity-80 transition-all duration-200 text-sm font-medium shadow-sm rounded-md shrink-0 ml-4"
-                style={{ backgroundColor: '#1b1912', color: '#f6f6f4', fontFamily: 'var(--font-geist-sans)' }}
+                style={{ backgroundColor: '#1b1912', color: '#f6f6f4', fontFamily: '-apple-system, BlinkMacSystemFont, "Segoe UI", Roboto, Helvetica, Arial, sans-serif' }}
               >
                 Get Started
                 <ChevronRight className="ml-1 h-4 w-4" />

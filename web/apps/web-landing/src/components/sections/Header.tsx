@@ -188,7 +188,7 @@ export default function Header() {
                       ? 'text-gray-900 dark:text-[#f6f6f4]'
                       : 'text-gray-700 dark:text-[#c8c8b8] hover:text-gray-900 dark:hover:text-[#f6f6f4]'
                   }`}
-                  style={{ fontFamily: 'var(--font-geist-sans)' }}
+                  style={{ fontFamily: '-apple-system, BlinkMacSystemFont, "Segoe UI", Roboto, Helvetica, Arial, sans-serif' }}
                 >
                   Feature
                   <ChevronDown className={`h-4 w-4 transition-transform duration-200 ${activeDropdown === 'features' ? 'rotate-180' : ''}`} />
@@ -201,7 +201,7 @@ export default function Header() {
                       ? 'text-gray-900 dark:text-[#f6f6f4]'
                       : 'text-gray-700 dark:text-[#c8c8b8] hover:text-gray-900 dark:hover:text-[#f6f6f4]'
                   }`}
-                  style={{ fontFamily: 'var(--font-geist-sans)' }}
+                  style={{ fontFamily: '-apple-system, BlinkMacSystemFont, "Segoe UI", Roboto, Helvetica, Arial, sans-serif' }}
                 >
                   Resources
                   <ChevronDown className={`h-4 w-4 transition-transform duration-200 ${activeDropdown === 'resources' ? 'rotate-180' : ''}`} />
@@ -212,7 +212,7 @@ export default function Header() {
                   prefetch={false}
                   onMouseEnter={scheduleClose}
                   className="text-gray-700 dark:text-[#c8c8b8] hover:text-gray-900 dark:hover:text-[#f6f6f4] transition-colors duration-200 font-medium text-sm"
-                  style={{ fontFamily: 'var(--font-geist-sans)' }}
+                  style={{ fontFamily: '-apple-system, BlinkMacSystemFont, "Segoe UI", Roboto, Helvetica, Arial, sans-serif' }}
                 >
                   Pricing
                 </Link>
@@ -221,7 +221,7 @@ export default function Header() {
                   href={consoleUrl ? `${consoleUrl}/auth?mode=signin` : '#'}
                   onMouseEnter={scheduleClose}
                   className="text-gray-700 dark:text-[#c8c8b8] hover:text-gray-900 dark:hover:text-[#f6f6f4] transition-colors duration-200 font-medium text-sm"
-                  style={{ fontFamily: 'var(--font-geist-sans)' }}
+                  style={{ fontFamily: '-apple-system, BlinkMacSystemFont, "Segoe UI", Roboto, Helvetica, Arial, sans-serif' }}
                 >
                   Sign In
                 </a>
@@ -230,7 +230,7 @@ export default function Header() {
                   href={consoleUrl ? `${consoleUrl}/auth?mode=signup` : '#'}
                   onMouseEnter={scheduleClose}
                   className="inline-flex items-center justify-center px-3 py-1.5 hover:opacity-80 transition-all duration-200 text-xs font-medium shadow-sm rounded-md"
-                  style={{ fontFamily: 'var(--font-geist-sans)', backgroundColor: '#1b1912', color: '#f6f6f4' }}
+                  style={{ fontFamily: '-apple-system, BlinkMacSystemFont, "Segoe UI", Roboto, Helvetica, Arial, sans-serif', backgroundColor: '#1b1912', color: '#f6f6f4' }}
                 >
                   Get Started
                 </a>
@@ -286,42 +286,42 @@ export default function Header() {
 
                         {/* Middle column - Routing & Optimization + Agents */}
                         <div className="p-8 border-r border-gray-200 dark:border-[#f6f6f4]/5">
-                          <span className="text-xs font-medium uppercase tracking-wider mb-3 block" style={{ fontFamily: 'var(--font-geist-pixel-square)', color: '#1b1912' }}>Routing & Optimization</span>
+                          <span className="text-xs font-medium uppercase tracking-wider mb-3 block" style={{ fontFamily: '-apple-system, BlinkMacSystemFont, "Segoe UI", Roboto, Helvetica, Arial, sans-serif', color: '#1b1912' }}>Routing & Optimization</span>
                           <div className="flex flex-col gap-1.5">
-                            <span onClick={() => setActiveDropdown(null)} className="text-xs text-gray-500 dark:text-[#a8a898] hover:text-gray-900 dark:hover:text-[#f6f6f4] transition-colors cursor-default" style={{ fontFamily: 'var(--font-geist-sans)' }}>Thompson Sampling</span>
-                            <span onClick={() => setActiveDropdown(null)} className="text-xs text-gray-500 dark:text-[#a8a898] hover:text-gray-900 dark:hover:text-[#f6f6f4] transition-colors cursor-default" style={{ fontFamily: 'var(--font-geist-sans)' }}>Speculative Execution</span>
-                            <span onClick={() => setActiveDropdown(null)} className="text-xs text-gray-500 dark:text-[#a8a898] hover:text-gray-900 dark:hover:text-[#f6f6f4] transition-colors cursor-default" style={{ fontFamily: 'var(--font-geist-sans)' }}>Council Mode</span>
-                            <span onClick={() => setActiveDropdown(null)} className="text-xs text-gray-500 dark:text-[#a8a898] hover:text-gray-900 dark:hover:text-[#f6f6f4] transition-colors cursor-default" style={{ fontFamily: 'var(--font-geist-sans)' }}>Cognitive Advisor</span>
-                            <span onClick={() => setActiveDropdown(null)} className="text-xs text-gray-500 dark:text-[#a8a898] hover:text-gray-900 dark:hover:text-[#f6f6f4] transition-colors cursor-default" style={{ fontFamily: 'var(--font-geist-sans)' }}>Adaptive Optimization</span>
-                            <span onClick={() => setActiveDropdown(null)} className="text-xs text-gray-500 dark:text-[#a8a898] hover:text-gray-900 dark:hover:text-[#f6f6f4] transition-colors cursor-default" style={{ fontFamily: 'var(--font-geist-sans)' }}>Provider Health & Failover</span>
+                            <span onClick={() => setActiveDropdown(null)} className="text-xs text-gray-500 dark:text-[#a8a898] hover:text-gray-900 dark:hover:text-[#f6f6f4] transition-colors cursor-default" style={{ fontFamily: '-apple-system, BlinkMacSystemFont, "Segoe UI", Roboto, Helvetica, Arial, sans-serif' }}>Thompson Sampling</span>
+                            <span onClick={() => setActiveDropdown(null)} className="text-xs text-gray-500 dark:text-[#a8a898] hover:text-gray-900 dark:hover:text-[#f6f6f4] transition-colors cursor-default" style={{ fontFamily: '-apple-system, BlinkMacSystemFont, "Segoe UI", Roboto, Helvetica, Arial, sans-serif' }}>Speculative Execution</span>
+                            <span onClick={() => setActiveDropdown(null)} className="text-xs text-gray-500 dark:text-[#a8a898] hover:text-gray-900 dark:hover:text-[#f6f6f4] transition-colors cursor-default" style={{ fontFamily: '-apple-system, BlinkMacSystemFont, "Segoe UI", Roboto, Helvetica, Arial, sans-serif' }}>Council Mode</span>
+                            <span onClick={() => setActiveDropdown(null)} className="text-xs text-gray-500 dark:text-[#a8a898] hover:text-gray-900 dark:hover:text-[#f6f6f4] transition-colors cursor-default" style={{ fontFamily: '-apple-system, BlinkMacSystemFont, "Segoe UI", Roboto, Helvetica, Arial, sans-serif' }}>Cognitive Advisor</span>
+                            <span onClick={() => setActiveDropdown(null)} className="text-xs text-gray-500 dark:text-[#a8a898] hover:text-gray-900 dark:hover:text-[#f6f6f4] transition-colors cursor-default" style={{ fontFamily: '-apple-system, BlinkMacSystemFont, "Segoe UI", Roboto, Helvetica, Arial, sans-serif' }}>Adaptive Optimization</span>
+                            <span onClick={() => setActiveDropdown(null)} className="text-xs text-gray-500 dark:text-[#a8a898] hover:text-gray-900 dark:hover:text-[#f6f6f4] transition-colors cursor-default" style={{ fontFamily: '-apple-system, BlinkMacSystemFont, "Segoe UI", Roboto, Helvetica, Arial, sans-serif' }}>Provider Health & Failover</span>
                           </div>
-                          <span className="text-xs font-medium uppercase tracking-wider mt-5 mb-3 block" style={{ fontFamily: 'var(--font-geist-pixel-square)', color: '#1b1912' }}>Agents</span>
+                          <span className="text-xs font-medium uppercase tracking-wider mt-5 mb-3 block" style={{ fontFamily: '-apple-system, BlinkMacSystemFont, "Segoe UI", Roboto, Helvetica, Arial, sans-serif', color: '#1b1912' }}>Agents</span>
                           <div className="flex flex-col gap-1.5">
-                            <span className="text-xs text-gray-500 dark:text-[#a8a898] cursor-default" style={{ fontFamily: 'var(--font-geist-sans)' }}>Planning Agents</span>
-                            <span className="text-xs text-gray-500 dark:text-[#a8a898] cursor-default" style={{ fontFamily: 'var(--font-geist-sans)' }}>Reflection Agents</span>
-                            <span className="text-xs text-gray-500 dark:text-[#a8a898] cursor-default" style={{ fontFamily: 'var(--font-geist-sans)' }}>Behavior Trees</span>
-                            <span className="text-xs text-gray-500 dark:text-[#a8a898] cursor-default" style={{ fontFamily: 'var(--font-geist-sans)' }}>Multi-Agent Swarms</span>
-                            <span className="text-xs text-gray-500 dark:text-[#a8a898] cursor-default" style={{ fontFamily: 'var(--font-geist-sans)' }}>Tool Execution</span>
+                            <span className="text-xs text-gray-500 dark:text-[#a8a898] cursor-default" style={{ fontFamily: '-apple-system, BlinkMacSystemFont, "Segoe UI", Roboto, Helvetica, Arial, sans-serif' }}>Planning Agents</span>
+                            <span className="text-xs text-gray-500 dark:text-[#a8a898] cursor-default" style={{ fontFamily: '-apple-system, BlinkMacSystemFont, "Segoe UI", Roboto, Helvetica, Arial, sans-serif' }}>Reflection Agents</span>
+                            <span className="text-xs text-gray-500 dark:text-[#a8a898] cursor-default" style={{ fontFamily: '-apple-system, BlinkMacSystemFont, "Segoe UI", Roboto, Helvetica, Arial, sans-serif' }}>Behavior Trees</span>
+                            <span className="text-xs text-gray-500 dark:text-[#a8a898] cursor-default" style={{ fontFamily: '-apple-system, BlinkMacSystemFont, "Segoe UI", Roboto, Helvetica, Arial, sans-serif' }}>Multi-Agent Swarms</span>
+                            <span className="text-xs text-gray-500 dark:text-[#a8a898] cursor-default" style={{ fontFamily: '-apple-system, BlinkMacSystemFont, "Segoe UI", Roboto, Helvetica, Arial, sans-serif' }}>Tool Execution</span>
                           </div>
                         </div>
 
                         {/* Right column - Infrastructure + Security */}
                         <div className="p-8">
-                          <span className="text-xs font-medium uppercase tracking-wider mb-3 block" style={{ fontFamily: 'var(--font-geist-pixel-square)', color: '#1b1912' }}>Infrastructure</span>
+                          <span className="text-xs font-medium uppercase tracking-wider mb-3 block" style={{ fontFamily: '-apple-system, BlinkMacSystemFont, "Segoe UI", Roboto, Helvetica, Arial, sans-serif', color: '#1b1912' }}>Infrastructure</span>
                           <div className="flex flex-col gap-1.5">
-                            <span className="text-xs text-gray-500 dark:text-[#a8a898] cursor-default" style={{ fontFamily: 'var(--font-geist-sans)' }}>Local LLM Fallback</span>
-                            <span className="text-xs text-gray-500 dark:text-[#a8a898] cursor-default" style={{ fontFamily: 'var(--font-geist-sans)' }}>QLoRA On-Device Training</span>
-                            <span className="text-xs text-gray-500 dark:text-[#a8a898] cursor-default" style={{ fontFamily: 'var(--font-geist-sans)' }}>Federated Learning</span>
-                            <span className="text-xs text-gray-500 dark:text-[#a8a898] cursor-default" style={{ fontFamily: 'var(--font-geist-sans)' }}>SLO Enforcer</span>
-                            <span className="text-xs text-gray-500 dark:text-[#a8a898] cursor-default" style={{ fontFamily: 'var(--font-geist-sans)' }}>Fleet Management</span>
-                            <span className="text-xs text-gray-500 dark:text-[#a8a898] cursor-default" style={{ fontFamily: 'var(--font-geist-sans)' }}>Model Management</span>
+                            <span className="text-xs text-gray-500 dark:text-[#a8a898] cursor-default" style={{ fontFamily: '-apple-system, BlinkMacSystemFont, "Segoe UI", Roboto, Helvetica, Arial, sans-serif' }}>Local LLM Fallback</span>
+                            <span className="text-xs text-gray-500 dark:text-[#a8a898] cursor-default" style={{ fontFamily: '-apple-system, BlinkMacSystemFont, "Segoe UI", Roboto, Helvetica, Arial, sans-serif' }}>QLoRA On-Device Training</span>
+                            <span className="text-xs text-gray-500 dark:text-[#a8a898] cursor-default" style={{ fontFamily: '-apple-system, BlinkMacSystemFont, "Segoe UI", Roboto, Helvetica, Arial, sans-serif' }}>Federated Learning</span>
+                            <span className="text-xs text-gray-500 dark:text-[#a8a898] cursor-default" style={{ fontFamily: '-apple-system, BlinkMacSystemFont, "Segoe UI", Roboto, Helvetica, Arial, sans-serif' }}>SLO Enforcer</span>
+                            <span className="text-xs text-gray-500 dark:text-[#a8a898] cursor-default" style={{ fontFamily: '-apple-system, BlinkMacSystemFont, "Segoe UI", Roboto, Helvetica, Arial, sans-serif' }}>Fleet Management</span>
+                            <span className="text-xs text-gray-500 dark:text-[#a8a898] cursor-default" style={{ fontFamily: '-apple-system, BlinkMacSystemFont, "Segoe UI", Roboto, Helvetica, Arial, sans-serif' }}>Model Management</span>
                           </div>
-                          <span className="text-xs font-medium uppercase tracking-wider mt-5 mb-3 block" style={{ fontFamily: 'var(--font-geist-pixel-square)', color: '#1b1912' }}>Security & Resilience</span>
+                          <span className="text-xs font-medium uppercase tracking-wider mt-5 mb-3 block" style={{ fontFamily: '-apple-system, BlinkMacSystemFont, "Segoe UI", Roboto, Helvetica, Arial, sans-serif', color: '#1b1912' }}>Security & Resilience</span>
                           <div className="flex flex-col gap-1.5">
-                            <span className="text-xs text-gray-500 dark:text-[#a8a898] cursor-default" style={{ fontFamily: 'var(--font-geist-sans)' }}>Shadow Mode</span>
-                            <span className="text-xs text-gray-500 dark:text-[#a8a898] cursor-default" style={{ fontFamily: 'var(--font-geist-sans)' }}>EscapeVector</span>
-                            <span className="text-xs text-gray-500 dark:text-[#a8a898] cursor-default" style={{ fontFamily: 'var(--font-geist-sans)' }}>Gold Code</span>
-                            <span className="text-xs text-gray-500 dark:text-[#a8a898] cursor-default" style={{ fontFamily: 'var(--font-geist-sans)' }}>Cryptographic Signing</span>
+                            <span className="text-xs text-gray-500 dark:text-[#a8a898] cursor-default" style={{ fontFamily: '-apple-system, BlinkMacSystemFont, "Segoe UI", Roboto, Helvetica, Arial, sans-serif' }}>Shadow Mode</span>
+                            <span className="text-xs text-gray-500 dark:text-[#a8a898] cursor-default" style={{ fontFamily: '-apple-system, BlinkMacSystemFont, "Segoe UI", Roboto, Helvetica, Arial, sans-serif' }}>EscapeVector</span>
+                            <span className="text-xs text-gray-500 dark:text-[#a8a898] cursor-default" style={{ fontFamily: '-apple-system, BlinkMacSystemFont, "Segoe UI", Roboto, Helvetica, Arial, sans-serif' }}>Gold Code</span>
+                            <span className="text-xs text-gray-500 dark:text-[#a8a898] cursor-default" style={{ fontFamily: '-apple-system, BlinkMacSystemFont, "Segoe UI", Roboto, Helvetica, Arial, sans-serif' }}>Cryptographic Signing</span>
                           </div>
                         </div>
                       </div>
@@ -345,46 +345,46 @@ export default function Header() {
                       <div className="grid grid-cols-3 min-h-[280px]">
                         {/* Left column - Documentation */}
                         <div className="p-8 border-r border-gray-200 dark:border-[#f6f6f4]/5">
-                          <span className="text-xs font-medium uppercase tracking-wider mb-3 block" style={{ fontFamily: 'var(--font-geist-pixel-square)', color: '#1b1912' }}>Documentation</span>
+                          <span className="text-xs font-medium uppercase tracking-wider mb-3 block" style={{ fontFamily: '-apple-system, BlinkMacSystemFont, "Segoe UI", Roboto, Helvetica, Arial, sans-serif', color: '#1b1912' }}>Documentation</span>
                           <div className="flex flex-col gap-1.5">
-                            <span className="text-xs text-gray-500 dark:text-[#a8a898] hover:text-gray-900 dark:hover:text-[#f6f6f4] transition-colors cursor-pointer" style={{ fontFamily: 'var(--font-geist-sans)' }}>Getting Started</span>
-                            <span className="text-xs text-gray-500 dark:text-[#a8a898] hover:text-gray-900 dark:hover:text-[#f6f6f4] transition-colors cursor-pointer" style={{ fontFamily: 'var(--font-geist-sans)' }}>API Reference</span>
-                            <span className="text-xs text-gray-500 dark:text-[#a8a898] hover:text-gray-900 dark:hover:text-[#f6f6f4] transition-colors cursor-pointer" style={{ fontFamily: 'var(--font-geist-sans)' }}>SDK Documentation</span>
+                            <span className="text-xs text-gray-500 dark:text-[#a8a898] hover:text-gray-900 dark:hover:text-[#f6f6f4] transition-colors cursor-pointer" style={{ fontFamily: '-apple-system, BlinkMacSystemFont, "Segoe UI", Roboto, Helvetica, Arial, sans-serif' }}>Getting Started</span>
+                            <span className="text-xs text-gray-500 dark:text-[#a8a898] hover:text-gray-900 dark:hover:text-[#f6f6f4] transition-colors cursor-pointer" style={{ fontFamily: '-apple-system, BlinkMacSystemFont, "Segoe UI", Roboto, Helvetica, Arial, sans-serif' }}>API Reference</span>
+                            <span className="text-xs text-gray-500 dark:text-[#a8a898] hover:text-gray-900 dark:hover:text-[#f6f6f4] transition-colors cursor-pointer" style={{ fontFamily: '-apple-system, BlinkMacSystemFont, "Segoe UI", Roboto, Helvetica, Arial, sans-serif' }}>SDK Documentation</span>
                           </div>
-                          <span className="text-xs font-medium uppercase tracking-wider mt-5 mb-3 block" style={{ fontFamily: 'var(--font-geist-pixel-square)', color: '#1b1912' }}>Routing & Optimization</span>
+                          <span className="text-xs font-medium uppercase tracking-wider mt-5 mb-3 block" style={{ fontFamily: '-apple-system, BlinkMacSystemFont, "Segoe UI", Roboto, Helvetica, Arial, sans-serif', color: '#1b1912' }}>Routing & Optimization</span>
                           <div className="flex flex-col gap-1.5">
-                            <span className="text-xs text-gray-500 dark:text-[#a8a898] hover:text-gray-900 dark:hover:text-[#f6f6f4] transition-colors cursor-pointer" style={{ fontFamily: 'var(--font-geist-sans)' }}>Thompson Sampling</span>
-                            <span className="text-xs text-gray-500 dark:text-[#a8a898] hover:text-gray-900 dark:hover:text-[#f6f6f4] transition-colors cursor-pointer" style={{ fontFamily: 'var(--font-geist-sans)' }}>Speculative Execution</span>
-                            <span className="text-xs text-gray-500 dark:text-[#a8a898] hover:text-gray-900 dark:hover:text-[#f6f6f4] transition-colors cursor-pointer" style={{ fontFamily: 'var(--font-geist-sans)' }}>Council Mode</span>
+                            <span className="text-xs text-gray-500 dark:text-[#a8a898] hover:text-gray-900 dark:hover:text-[#f6f6f4] transition-colors cursor-pointer" style={{ fontFamily: '-apple-system, BlinkMacSystemFont, "Segoe UI", Roboto, Helvetica, Arial, sans-serif' }}>Thompson Sampling</span>
+                            <span className="text-xs text-gray-500 dark:text-[#a8a898] hover:text-gray-900 dark:hover:text-[#f6f6f4] transition-colors cursor-pointer" style={{ fontFamily: '-apple-system, BlinkMacSystemFont, "Segoe UI", Roboto, Helvetica, Arial, sans-serif' }}>Speculative Execution</span>
+                            <span className="text-xs text-gray-500 dark:text-[#a8a898] hover:text-gray-900 dark:hover:text-[#f6f6f4] transition-colors cursor-pointer" style={{ fontFamily: '-apple-system, BlinkMacSystemFont, "Segoe UI", Roboto, Helvetica, Arial, sans-serif' }}>Council Mode</span>
                           </div>
-                          <span className="text-xs font-medium uppercase tracking-wider mt-5 mb-3 block" style={{ fontFamily: 'var(--font-geist-pixel-square)', color: '#1b1912' }}>Agents</span>
+                          <span className="text-xs font-medium uppercase tracking-wider mt-5 mb-3 block" style={{ fontFamily: '-apple-system, BlinkMacSystemFont, "Segoe UI", Roboto, Helvetica, Arial, sans-serif', color: '#1b1912' }}>Agents</span>
                           <div className="flex flex-col gap-1.5">
-                            <span className="text-xs text-gray-500 dark:text-[#a8a898] hover:text-gray-900 dark:hover:text-[#f6f6f4] transition-colors cursor-pointer" style={{ fontFamily: 'var(--font-geist-sans)' }}>Planning Agents</span>
-                            <span className="text-xs text-gray-500 dark:text-[#a8a898] hover:text-gray-900 dark:hover:text-[#f6f6f4] transition-colors cursor-pointer" style={{ fontFamily: 'var(--font-geist-sans)' }}>Behavior Trees</span>
-                            <span className="text-xs text-gray-500 dark:text-[#a8a898] hover:text-gray-900 dark:hover:text-[#f6f6f4] transition-colors cursor-pointer" style={{ fontFamily: 'var(--font-geist-sans)' }}>Multi-Agent Swarms</span>
+                            <span className="text-xs text-gray-500 dark:text-[#a8a898] hover:text-gray-900 dark:hover:text-[#f6f6f4] transition-colors cursor-pointer" style={{ fontFamily: '-apple-system, BlinkMacSystemFont, "Segoe UI", Roboto, Helvetica, Arial, sans-serif' }}>Planning Agents</span>
+                            <span className="text-xs text-gray-500 dark:text-[#a8a898] hover:text-gray-900 dark:hover:text-[#f6f6f4] transition-colors cursor-pointer" style={{ fontFamily: '-apple-system, BlinkMacSystemFont, "Segoe UI", Roboto, Helvetica, Arial, sans-serif' }}>Behavior Trees</span>
+                            <span className="text-xs text-gray-500 dark:text-[#a8a898] hover:text-gray-900 dark:hover:text-[#f6f6f4] transition-colors cursor-pointer" style={{ fontFamily: '-apple-system, BlinkMacSystemFont, "Segoe UI", Roboto, Helvetica, Arial, sans-serif' }}>Multi-Agent Swarms</span>
                           </div>
                         </div>
 
                         {/* Middle column - Use Cases & Blog */}
                         <div className="p-8 border-r border-gray-200 dark:border-[#f6f6f4]/5">
-                          <span className="text-xs font-medium uppercase tracking-wider mb-3 block" style={{ fontFamily: 'var(--font-geist-pixel-square)', color: '#1b1912' }}>Use Cases</span>
+                          <span className="text-xs font-medium uppercase tracking-wider mb-3 block" style={{ fontFamily: '-apple-system, BlinkMacSystemFont, "Segoe UI", Roboto, Helvetica, Arial, sans-serif', color: '#1b1912' }}>Use Cases</span>
                           <div className="flex flex-col gap-1.5">
-                            <span onClick={() => { setActiveDropdown(null); openUseCases(); }} className="text-xs text-gray-500 dark:text-[#a8a898] hover:text-gray-900 dark:hover:text-[#f6f6f4] transition-colors cursor-pointer" style={{ fontFamily: 'var(--font-geist-sans)' }}>Enterprise AI</span>
-                            <span onClick={() => { setActiveDropdown(null); openUseCases(); }} className="text-xs text-gray-500 dark:text-[#a8a898] hover:text-gray-900 dark:hover:text-[#f6f6f4] transition-colors cursor-pointer" style={{ fontFamily: 'var(--font-geist-sans)' }}>Multi-Agent Systems</span>
-                            <span onClick={() => { setActiveDropdown(null); openUseCases(); }} className="text-xs text-gray-500 dark:text-[#a8a898] hover:text-gray-900 dark:hover:text-[#f6f6f4] transition-colors cursor-pointer" style={{ fontFamily: 'var(--font-geist-sans)' }}>Real-time Optimization</span>
-                            <span onClick={() => { setActiveDropdown(null); openUseCases(); }} className="text-xs text-gray-500 dark:text-[#a8a898] hover:text-gray-900 dark:hover:text-[#f6f6f4] transition-colors cursor-pointer" style={{ fontFamily: 'var(--font-geist-sans)' }}>Edge Deployment</span>
+                            <span onClick={() => { setActiveDropdown(null); openUseCases(); }} className="text-xs text-gray-500 dark:text-[#a8a898] hover:text-gray-900 dark:hover:text-[#f6f6f4] transition-colors cursor-pointer" style={{ fontFamily: '-apple-system, BlinkMacSystemFont, "Segoe UI", Roboto, Helvetica, Arial, sans-serif' }}>Enterprise AI</span>
+                            <span onClick={() => { setActiveDropdown(null); openUseCases(); }} className="text-xs text-gray-500 dark:text-[#a8a898] hover:text-gray-900 dark:hover:text-[#f6f6f4] transition-colors cursor-pointer" style={{ fontFamily: '-apple-system, BlinkMacSystemFont, "Segoe UI", Roboto, Helvetica, Arial, sans-serif' }}>Multi-Agent Systems</span>
+                            <span onClick={() => { setActiveDropdown(null); openUseCases(); }} className="text-xs text-gray-500 dark:text-[#a8a898] hover:text-gray-900 dark:hover:text-[#f6f6f4] transition-colors cursor-pointer" style={{ fontFamily: '-apple-system, BlinkMacSystemFont, "Segoe UI", Roboto, Helvetica, Arial, sans-serif' }}>Real-time Optimization</span>
+                            <span onClick={() => { setActiveDropdown(null); openUseCases(); }} className="text-xs text-gray-500 dark:text-[#a8a898] hover:text-gray-900 dark:hover:text-[#f6f6f4] transition-colors cursor-pointer" style={{ fontFamily: '-apple-system, BlinkMacSystemFont, "Segoe UI", Roboto, Helvetica, Arial, sans-serif' }}>Edge Deployment</span>
                           </div>
-                          <span className="text-xs font-medium uppercase tracking-wider mt-5 mb-3 block" style={{ fontFamily: 'var(--font-geist-pixel-square)', color: '#1b1912' }}>Blog</span>
+                          <span className="text-xs font-medium uppercase tracking-wider mt-5 mb-3 block" style={{ fontFamily: '-apple-system, BlinkMacSystemFont, "Segoe UI", Roboto, Helvetica, Arial, sans-serif', color: '#1b1912' }}>Blog</span>
                           <div className="flex flex-col gap-1.5">
-                            <Link href="/blog" prefetch={false} onClick={() => setActiveDropdown(null)} className="text-xs text-gray-500 dark:text-[#a8a898] hover:text-gray-900 dark:hover:text-[#f6f6f4] transition-colors cursor-pointer" style={{ fontFamily: 'var(--font-geist-sans)' }}>Latest Updates</Link>
-                            <Link href="/blog" prefetch={false} onClick={() => setActiveDropdown(null)} className="text-xs text-gray-500 dark:text-[#a8a898] hover:text-gray-900 dark:hover:text-[#f6f6f4] transition-colors cursor-pointer" style={{ fontFamily: 'var(--font-geist-sans)' }}>Product Insights</Link>
-                            <Link href="/blog" prefetch={false} onClick={() => setActiveDropdown(null)} className="text-xs text-gray-500 dark:text-[#a8a898] hover:text-gray-900 dark:hover:text-[#f6f6f4] transition-colors cursor-pointer" style={{ fontFamily: 'var(--font-geist-sans)' }}>Technical Deep Dives</Link>
-                            <Link href="/blog" prefetch={false} onClick={() => setActiveDropdown(null)} className="text-xs text-gray-500 dark:text-[#a8a898] hover:text-gray-900 dark:hover:text-[#f6f6f4] transition-colors cursor-pointer" style={{ fontFamily: 'var(--font-geist-sans)' }}>Industry News</Link>
+                            <Link href="/blog" prefetch={false} onClick={() => setActiveDropdown(null)} className="text-xs text-gray-500 dark:text-[#a8a898] hover:text-gray-900 dark:hover:text-[#f6f6f4] transition-colors cursor-pointer" style={{ fontFamily: '-apple-system, BlinkMacSystemFont, "Segoe UI", Roboto, Helvetica, Arial, sans-serif' }}>Latest Updates</Link>
+                            <Link href="/blog" prefetch={false} onClick={() => setActiveDropdown(null)} className="text-xs text-gray-500 dark:text-[#a8a898] hover:text-gray-900 dark:hover:text-[#f6f6f4] transition-colors cursor-pointer" style={{ fontFamily: '-apple-system, BlinkMacSystemFont, "Segoe UI", Roboto, Helvetica, Arial, sans-serif' }}>Product Insights</Link>
+                            <Link href="/blog" prefetch={false} onClick={() => setActiveDropdown(null)} className="text-xs text-gray-500 dark:text-[#a8a898] hover:text-gray-900 dark:hover:text-[#f6f6f4] transition-colors cursor-pointer" style={{ fontFamily: '-apple-system, BlinkMacSystemFont, "Segoe UI", Roboto, Helvetica, Arial, sans-serif' }}>Technical Deep Dives</Link>
+                            <Link href="/blog" prefetch={false} onClick={() => setActiveDropdown(null)} className="text-xs text-gray-500 dark:text-[#a8a898] hover:text-gray-900 dark:hover:text-[#f6f6f4] transition-colors cursor-pointer" style={{ fontFamily: '-apple-system, BlinkMacSystemFont, "Segoe UI", Roboto, Helvetica, Arial, sans-serif' }}>Industry News</Link>
                           </div>
-                          <span className="text-xs font-medium uppercase tracking-wider mt-5 mb-3 block" style={{ fontFamily: 'var(--font-geist-pixel-square)', color: '#1b1912' }}>Changelog</span>
+                          <span className="text-xs font-medium uppercase tracking-wider mt-5 mb-3 block" style={{ fontFamily: '-apple-system, BlinkMacSystemFont, "Segoe UI", Roboto, Helvetica, Arial, sans-serif', color: '#1b1912' }}>Changelog</span>
                           <div className="flex flex-col gap-1.5">
-                            <span className="text-xs text-gray-500 dark:text-[#a8a898] hover:text-gray-900 dark:hover:text-[#f6f6f4] transition-colors cursor-pointer" style={{ fontFamily: 'var(--font-geist-sans)' }}>v2.0 Release</span>
-                            <span className="text-xs text-gray-500 dark:text-[#a8a898] hover:text-gray-900 dark:hover:text-[#f6f6f4] transition-colors cursor-pointer" style={{ fontFamily: 'var(--font-geist-sans)' }}>v1.9 Updates</span>
+                            <span className="text-xs text-gray-500 dark:text-[#a8a898] hover:text-gray-900 dark:hover:text-[#f6f6f4] transition-colors cursor-pointer" style={{ fontFamily: '-apple-system, BlinkMacSystemFont, "Segoe UI", Roboto, Helvetica, Arial, sans-serif' }}>v2.0 Release</span>
+                            <span className="text-xs text-gray-500 dark:text-[#a8a898] hover:text-gray-900 dark:hover:text-[#f6f6f4] transition-colors cursor-pointer" style={{ fontFamily: '-apple-system, BlinkMacSystemFont, "Segoe UI", Roboto, Helvetica, Arial, sans-serif' }}>v1.9 Updates</span>
                           </div>
                         </div>
 
@@ -426,16 +426,16 @@ export default function Header() {
                   <button
                     onClick={() => setMobileFeaturesOpen(!mobileFeaturesOpen)}
                     className="w-full flex items-center justify-between text-gray-700 dark:text-[#c8c8b8] hover:text-gray-900 dark:hover:text-[#f6f6f4] transition-colors duration-200 font-medium text-sm"
-                    style={{ fontFamily: 'var(--font-geist-sans)' }}
+                    style={{ fontFamily: '-apple-system, BlinkMacSystemFont, "Segoe UI", Roboto, Helvetica, Arial, sans-serif' }}
                   >
                     Feature
                     <ChevronDown className={`h-4 w-4 transition-transform duration-200 ${mobileFeaturesOpen ? 'rotate-180' : ''}`} />
                   </button>
                   {mobileFeaturesOpen && (
                     <div className="ml-4 mt-3 space-y-3">
-                      <Link href="/runtime" prefetch={false} onClick={() => { setMobileMenuOpen(false); setMobileFeaturesOpen(false); }} className="block text-left text-gray-700 dark:text-[#c8c8b8] hover:text-gray-900 dark:hover:text-[#f6f6f4] transition-colors duration-200 font-medium text-sm" style={{ fontFamily: 'var(--font-geist-sans)' }}>Runtime</Link>
-                      <Link href="/runtime" prefetch={false} onClick={() => { setMobileMenuOpen(false); setMobileFeaturesOpen(false); }} className="block text-left text-gray-700 dark:text-[#c8c8b8] hover:text-gray-900 dark:hover:text-[#f6f6f4] transition-colors duration-200 font-medium text-sm" style={{ fontFamily: 'var(--font-geist-sans)' }}>Overture</Link>
-                      <button onClick={() => { setMobileMenuOpen(false); setMobileFeaturesOpen(false); openUseCases(); }} className="block text-left text-gray-700 dark:text-[#c8c8b8] hover:text-gray-900 dark:hover:text-[#f6f6f4] transition-colors duration-200 font-medium text-sm" style={{ fontFamily: 'var(--font-geist-sans)' }}>Use Cases</button>
+                      <Link href="/runtime" prefetch={false} onClick={() => { setMobileMenuOpen(false); setMobileFeaturesOpen(false); }} className="block text-left text-gray-700 dark:text-[#c8c8b8] hover:text-gray-900 dark:hover:text-[#f6f6f4] transition-colors duration-200 font-medium text-sm" style={{ fontFamily: '-apple-system, BlinkMacSystemFont, "Segoe UI", Roboto, Helvetica, Arial, sans-serif' }}>Runtime</Link>
+                      <Link href="/runtime" prefetch={false} onClick={() => { setMobileMenuOpen(false); setMobileFeaturesOpen(false); }} className="block text-left text-gray-700 dark:text-[#c8c8b8] hover:text-gray-900 dark:hover:text-[#f6f6f4] transition-colors duration-200 font-medium text-sm" style={{ fontFamily: '-apple-system, BlinkMacSystemFont, "Segoe UI", Roboto, Helvetica, Arial, sans-serif' }}>Overture</Link>
+                      <button onClick={() => { setMobileMenuOpen(false); setMobileFeaturesOpen(false); openUseCases(); }} className="block text-left text-gray-700 dark:text-[#c8c8b8] hover:text-gray-900 dark:hover:text-[#f6f6f4] transition-colors duration-200 font-medium text-sm" style={{ fontFamily: '-apple-system, BlinkMacSystemFont, "Segoe UI", Roboto, Helvetica, Arial, sans-serif' }}>Use Cases</button>
                     </div>
                   )}
                 </div>
@@ -444,23 +444,23 @@ export default function Header() {
                   <button
                     onClick={() => setMobileResourcesOpen(!mobileResourcesOpen)}
                     className="w-full flex items-center justify-between text-gray-700 dark:text-[#c8c8b8] hover:text-gray-900 dark:hover:text-[#f6f6f4] transition-colors duration-200 font-medium text-sm"
-                    style={{ fontFamily: 'var(--font-geist-sans)' }}
+                    style={{ fontFamily: '-apple-system, BlinkMacSystemFont, "Segoe UI", Roboto, Helvetica, Arial, sans-serif' }}
                   >
                     Resources
                     <ChevronDown className={`h-4 w-4 transition-transform duration-200 ${mobileResourcesOpen ? 'rotate-180' : ''}`} />
                   </button>
                   {mobileResourcesOpen && (
                     <div className="ml-4 mt-3 space-y-3">
-                      <a href={docsHubUrl} className="block text-gray-700 dark:text-[#c8c8b8] hover:text-gray-900 dark:hover:text-[#f6f6f4] transition-colors duration-200 font-medium text-sm" style={{ fontFamily: 'var(--font-geist-sans)' }} onClick={() => { setMobileMenuOpen(false); setMobileResourcesOpen(false); }}>Documentation</a>
-                      <button onClick={() => { setMobileMenuOpen(false); setMobileResourcesOpen(false); openUseCases(); }} className="block text-left text-gray-700 dark:text-[#c8c8b8] hover:text-gray-900 dark:hover:text-[#f6f6f4] transition-colors duration-200 font-medium text-sm" style={{ fontFamily: 'var(--font-geist-sans)' }}>Use Cases</button>
-                      <Link href="/blog" prefetch={false} className="block text-gray-700 dark:text-[#c8c8b8] hover:text-gray-900 dark:hover:text-[#f6f6f4] transition-colors duration-200 font-medium text-sm" style={{ fontFamily: 'var(--font-geist-sans)' }} onClick={() => { setMobileMenuOpen(false); setMobileResourcesOpen(false); }}>Blog</Link>
+                      <a href={docsHubUrl} className="block text-gray-700 dark:text-[#c8c8b8] hover:text-gray-900 dark:hover:text-[#f6f6f4] transition-colors duration-200 font-medium text-sm" style={{ fontFamily: '-apple-system, BlinkMacSystemFont, "Segoe UI", Roboto, Helvetica, Arial, sans-serif' }} onClick={() => { setMobileMenuOpen(false); setMobileResourcesOpen(false); }}>Documentation</a>
+                      <button onClick={() => { setMobileMenuOpen(false); setMobileResourcesOpen(false); openUseCases(); }} className="block text-left text-gray-700 dark:text-[#c8c8b8] hover:text-gray-900 dark:hover:text-[#f6f6f4] transition-colors duration-200 font-medium text-sm" style={{ fontFamily: '-apple-system, BlinkMacSystemFont, "Segoe UI", Roboto, Helvetica, Arial, sans-serif' }}>Use Cases</button>
+                      <Link href="/blog" prefetch={false} className="block text-gray-700 dark:text-[#c8c8b8] hover:text-gray-900 dark:hover:text-[#f6f6f4] transition-colors duration-200 font-medium text-sm" style={{ fontFamily: '-apple-system, BlinkMacSystemFont, "Segoe UI", Roboto, Helvetica, Arial, sans-serif' }} onClick={() => { setMobileMenuOpen(false); setMobileResourcesOpen(false); }}>Blog</Link>
                     </div>
                   )}
                 </div>
 
-                <Link href="/pricing" prefetch={false} className="text-gray-700 dark:text-[#c8c8b8] hover:text-gray-900 dark:hover:text-[#f6f6f4] transition-colors duration-200 font-medium text-sm" style={{ fontFamily: 'var(--font-geist-sans)' }} onClick={() => setMobileMenuOpen(false)}>Pricing</Link>
-                <a href={consoleUrl ? `${consoleUrl}/auth?mode=signin` : '#'} className="text-gray-700 dark:text-[#c8c8b8] hover:text-gray-900 dark:hover:text-[#f6f6f4] transition-colors duration-200 font-medium text-sm" style={{ fontFamily: 'var(--font-geist-sans)' }} onClick={() => setMobileMenuOpen(false)}>Sign In</a>
-                <a href={consoleUrl ? `${consoleUrl}/auth?mode=signup` : '#'} onClick={() => setMobileMenuOpen(false)} className="inline-flex items-center justify-center px-4 py-2 hover:opacity-80 transition-all duration-200 text-sm font-medium shadow-sm rounded-md" style={{ fontFamily: 'var(--font-geist-sans)', backgroundColor: '#14120a', color: '#f6f6f4' }}>Get Started</a>
+                <Link href="/pricing" prefetch={false} className="text-gray-700 dark:text-[#c8c8b8] hover:text-gray-900 dark:hover:text-[#f6f6f4] transition-colors duration-200 font-medium text-sm" style={{ fontFamily: '-apple-system, BlinkMacSystemFont, "Segoe UI", Roboto, Helvetica, Arial, sans-serif' }} onClick={() => setMobileMenuOpen(false)}>Pricing</Link>
+                <a href={consoleUrl ? `${consoleUrl}/auth?mode=signin` : '#'} className="text-gray-700 dark:text-[#c8c8b8] hover:text-gray-900 dark:hover:text-[#f6f6f4] transition-colors duration-200 font-medium text-sm" style={{ fontFamily: '-apple-system, BlinkMacSystemFont, "Segoe UI", Roboto, Helvetica, Arial, sans-serif' }} onClick={() => setMobileMenuOpen(false)}>Sign In</a>
+                <a href={consoleUrl ? `${consoleUrl}/auth?mode=signup` : '#'} onClick={() => setMobileMenuOpen(false)} className="inline-flex items-center justify-center px-4 py-2 hover:opacity-80 transition-all duration-200 text-sm font-medium shadow-sm rounded-md" style={{ fontFamily: '-apple-system, BlinkMacSystemFont, "Segoe UI", Roboto, Helvetica, Arial, sans-serif', backgroundColor: '#14120a', color: '#f6f6f4' }}>Get Started</a>
               </nav>
             </div>
           )}

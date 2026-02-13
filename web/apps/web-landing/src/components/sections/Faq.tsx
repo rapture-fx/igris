@@ -184,7 +184,7 @@ export default function Faq() {
             
             {/* Title - Moved above FAQ stack */}
             <div className="text-left" style={{ paddingTop: '3rem', paddingBottom: '2rem' }}>
-              <h2 className="text-xl md:text-2xl lg:text-3xl text-[#000000] dark:text-[#f6f6f4]" style={{ fontFamily: 'var(--font-geist-sans)' }}>
+              <h2 className="text-xl md:text-2xl lg:text-3xl text-[#000000] dark:text-[#f6f6f4]" style={{ fontFamily: '-apple-system, BlinkMacSystemFont, "Segoe UI", Roboto, Helvetica, Arial, sans-serif' }}>
                 Questions and answers
               </h2>
             </div>
@@ -199,7 +199,7 @@ export default function Faq() {
                       onClick={() => toggleSection(sectionIndex)}
                       className="w-full text-left px-4 py-3 flex items-center justify-between gap-2 hover:opacity-80 transition-opacity border section-border bg-[#f6f6f4] dark:bg-[#1b1912]"
                     >
-                      <h3 className="text-base font-semibold text-[#000000] dark:text-[#f6f6f4]" style={{ fontFamily: 'var(--font-geist-sans)' }}>
+                      <h3 className="text-base font-semibold text-[#000000] dark:text-[#f6f6f4]" style={{ fontFamily: '-apple-system, BlinkMacSystemFont, "Segoe UI", Roboto, Helvetica, Arial, sans-serif' }}>
                         {section.title}
                       </h3>
                       <ChevronDown
@@ -220,16 +220,16 @@ export default function Faq() {
                       <div className="mt-2 space-y-2">
                         {section.entries.map((faq, entryIndex) => (
                           <div key={entryIndex} className="bg-[#f6f6f4] dark:bg-[#1b1912] p-4">
-                            <p className="text-sm font-medium mb-2 text-[#000000] dark:text-[#f6f6f4]" style={{ fontFamily: 'var(--font-geist-sans)' }}>
+                            <p className="text-sm font-medium mb-2 text-[#000000] dark:text-[#f6f6f4]" style={{ fontFamily: '-apple-system, BlinkMacSystemFont, "Segoe UI", Roboto, Helvetica, Arial, sans-serif' }}>
                               {faq.question}
                             </p>
                             {faq.type === 'text' ? (
-                              <p className="text-xs text-gray-700 dark:text-[#c8c8b8] leading-relaxed" style={{ fontFamily: 'var(--font-geist-mono)' }}>
+                              <p className="text-xs text-gray-700 dark:text-[#c8c8b8] leading-relaxed" style={{ fontFamily: 'SF Mono, Monaco, Inconsolata, Fira Code, monospace' }}>
                                 {faq.answer}
                               </p>
                             ) : faq.type === 'code' ? (
                               <div className="space-y-3">
-                                <p className="text-xs text-gray-700 dark:text-[#c8c8b8] leading-relaxed" style={{ fontFamily: 'var(--font-geist-mono)' }}>
+                                <p className="text-xs text-gray-700 dark:text-[#c8c8b8] leading-relaxed" style={{ fontFamily: 'SF Mono, Monaco, Inconsolata, Fira Code, monospace' }}>
                                   {faq.answerText}
                                 </p>
                                 <div className="rounded-lg p-3 font-mono text-xs overflow-x-auto bg-black/[0.03] dark:bg-white/[0.03]">
@@ -242,7 +242,7 @@ export default function Faq() {
                                     <div className="text-gray-900 dark:text-[#c8c8b8] mt-1 break-all">{faq.codeExample?.new}</div>
                                   </div>
                                 </div>
-                                <p className="text-xs text-gray-700 dark:text-[#c8c8b8] leading-relaxed" style={{ fontFamily: 'var(--font-geist-mono)' }}>
+                                <p className="text-xs text-gray-700 dark:text-[#c8c8b8] leading-relaxed" style={{ fontFamily: 'SF Mono, Monaco, Inconsolata, Fira Code, monospace' }}>
                                   {faq.answerFooter}
                                 </p>
                               </div>

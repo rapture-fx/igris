@@ -96,10 +96,10 @@ export default function RuntimePopup({ isOpen, onClose }: RuntimePopupProps) {
           <div className="relative px-4 md:px-8 lg:px-12 pb-0 bg-transparent z-10 overflow-visible flex flex-col border-l border-r section-border" style={{ minHeight: '180px' }}>
             <div className="mx-auto w-full relative z-10" style={{ paddingTop: '3rem', paddingBottom: '2rem' }}>
               <div className="mb-6 text-left">
-                <h1 className="text-sm md:text-base font-medium text-[#c5b0cd] leading-[1.2] uppercase" style={{ fontFamily: 'var(--font-geist-pixel-square)', letterSpacing: '0.1em' }}>
+                <h1 className="text-sm md:text-base font-medium text-[#c5b0cd] leading-[1.2] uppercase" style={{ fontFamily: '-apple-system, BlinkMacSystemFont, "Segoe UI", Roboto, Helvetica, Arial, sans-serif', letterSpacing: '0.1em' }}>
                   Igris Runtime
                 </h1>
-                <h2 className="text-xl md:text-2xl lg:text-3xl font-medium text-[#111111] dark:text-[#f6f6f4] leading-[1.2] mt-2" style={{ fontFamily: 'var(--font-geist-pixel-square)' }}>
+                <h2 className="text-xl md:text-2xl lg:text-3xl font-medium text-[#111111] dark:text-[#f6f6f4] leading-[1.2] mt-2" style={{ fontFamily: '-apple-system, BlinkMacSystemFont, "Segoe UI", Roboto, Helvetica, Arial, sans-serif' }}>
                   Secure AI execution for edge devices.
                 </h2>
                 <p className="text-sm md:text-base text-gray-700 dark:text-[#c8c8b8] max-w-md leading-relaxed text-left mt-4 font-geist-sans">
@@ -158,7 +158,7 @@ export default function RuntimePopup({ isOpen, onClose }: RuntimePopupProps) {
                 <a
                   href="https://docs.igrisinertial.com/runtime/quickstart"
                   className="inline-flex items-center justify-start bg-gray-200 dark:bg-[#f6f6f4] text-gray-900 dark:text-black px-4 py-2 hover:bg-gray-300 dark:hover:bg-gray-200 transition-all duration-200 text-base font-medium shadow-md hover:shadow-lg w-fit"
-                  style={{ fontFamily: 'var(--font-geist-sans)' }}
+                  style={{ fontFamily: '-apple-system, BlinkMacSystemFont, "Segoe UI", Roboto, Helvetica, Arial, sans-serif' }}
                 >
                   Download Runtime
                 </a>
