@@ -35,8 +35,26 @@ export default function AutonomousSystems() {
 
           {/* Row 1 */}
           <div className="grid grid-cols-1 md:grid-cols-2" style={{ minHeight: '280px' }}>
-            {/* Col 1 - Text */}
-            <div className="flex flex-col pt-6 pb-8 pr-4" style={{ borderRight: borderStyle }}>
+            {/* Col 1 - Image + Button */}
+            <div className="relative flex flex-col justify-end items-end" style={{ borderRight: borderStyle, minHeight: '280px' }}>
+              <Image
+                src="/sft.png"
+                alt="AI Agents"
+                fill
+                className="object-cover"
+                style={{ opacity: 0.9 }}
+              />
+              <Link
+                href="/software"
+                className="relative z-10 inline-flex items-center justify-center px-4 py-2 hover:opacity-80 transition-all duration-200 text-sm font-medium shadow-sm rounded-md border m-4"
+                style={{ backgroundColor: mounted && theme === 'dark' ? '#1b1912' : '#f6f6f4', color: mounted && theme === 'dark' ? '#f6f6f4' : '#1b1912', borderColor: 'rgba(20, 18, 10, 0.1)', fontFamily }}
+              >
+                AI Agents
+                <ChevronRight className="ml-1 h-4 w-4" />
+              </Link>
+            </div>
+            {/* Col 2 - Text */}
+            <div className="flex flex-col pt-6 pb-8 pl-4">
               <div className="max-w-md">
                 <p className="text-sm md:text-base text-gray-600 dark:text-[#a8a898] leading-relaxed mb-3" style={{ fontFamily }}>
                   The same system governs AI execution in software and robotics environments.
@@ -45,17 +63,6 @@ export default function AutonomousSystems() {
                   If you're building AI agents that run on servers, see how execution, coordination, and verification apply to software-based systems.
                 </p>
               </div>
-            </div>
-            {/* Col 2 - Button */}
-            <div className="flex flex-col justify-end items-end pt-6 pb-8 pl-4">
-              <Link
-                href="/software"
-                className="inline-flex items-center justify-center px-4 py-2 hover:opacity-80 transition-all duration-200 text-sm font-medium shadow-sm rounded-md border"
-                style={{ backgroundColor: mounted && theme === 'dark' ? '#1b1912' : '#f6f6f4', color: mounted && theme === 'dark' ? '#f6f6f4' : '#1b1912', borderColor: 'rgba(20, 18, 10, 0.1)', fontFamily }}
-              >
-                AI Agents
-                <ChevronRight className="ml-1 h-4 w-4" />
-              </Link>
             </div>
           </div>
         </div>
@@ -79,11 +86,18 @@ export default function AutonomousSystems() {
               </p>
             </div>
           </div>
-            {/* Col 2 - Button */}
-            <div className="flex flex-col justify-end items-end pt-6 pb-8 pl-4">
+            {/* Col 2 - Full Background Image */}
+            <div className="relative flex flex-col justify-end items-end" style={{ minHeight: '280px' }}>
+              <Image
+                src="/roz.png"
+                alt="Robotics"
+                fill
+                className="object-cover"
+                style={{ opacity: 0.9 }}
+              />
               <Link
                 href="/robotics"
-                className="inline-flex items-center justify-center px-4 py-2 hover:opacity-80 transition-all duration-200 text-sm font-medium shadow-sm rounded-md border"
+                className="relative z-10 inline-flex items-center justify-center px-4 py-2 hover:opacity-80 transition-all duration-200 text-sm font-medium shadow-sm rounded-md border m-4"
                 style={{ backgroundColor: mounted && theme === 'dark' ? '#1b1912' : '#f6f6f4', color: mounted && theme === 'dark' ? '#f6f6f4' : '#1b1912', borderColor: 'rgba(20, 18, 10, 0.1)', fontFamily }}
               >
                 Robotics
