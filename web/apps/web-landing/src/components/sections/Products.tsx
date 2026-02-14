@@ -41,10 +41,21 @@ export default function Products() {
 
       {/* Row 1 */}
       <div className="mx-auto max-w-[1100px] px-4 sm:px-6 lg:px-8">
-        <div className="grid grid-cols-1 md:grid-cols-2" style={{ borderLeft: '0.5px solid rgba(209, 213, 219, 0.35)', borderRight: '0.5px solid rgba(209, 213, 219, 0.35)' }}>
-          {/* Col 1 - Image */}
-          <div className="p-4 md:pl-8 lg:pl-12" style={{ height: '320px', borderRight: '0.5px solid rgba(209, 213, 219, 0.35)' }}>
-            <div className="relative w-full h-full rounded-2xl overflow-hidden">
+        <div className="grid grid-cols-1 md:grid-cols-12" style={{ borderLeft: '0.5px solid rgba(209, 213, 219, 0.35)', borderRight: '0.5px solid rgba(209, 213, 219, 0.35)' }}>
+          {/* Col 1 - Text + Image */}
+          <div className="md:col-span-8 flex flex-col justify-between p-4 md:pl-8 lg:pl-12" style={{ borderRight: '0.5px solid rgba(209, 213, 219, 0.35)' }}>
+            <div>
+              <h3 className="text-base md:text-lg mb-3 text-[#000000] dark:text-[#f6f6f4]" style={{ fontFamily: '-apple-system, BlinkMacSystemFont, "Segoe UI", Roboto, Helvetica, Arial, sans-serif' }}>
+                Hybrid behavior trees meet LLM reasoning.
+              </h3>
+              <p className="text-sm md:text-base text-gray-600 dark:text-[#a8a898] leading-relaxed mb-3" style={{ fontFamily: '-apple-system, BlinkMacSystemFont, "Segoe UI", Roboto, Helvetica, Arial, sans-serif' }}>
+                Your AI runs through structured decision paths, where language models produce reasoning and the runtime governs how that reasoning is executed. Behavior remains bounded and predictable. There are no uncontrolled processes and no silent failures. Every action is recorded and cryptographically verifiable.
+              </p>
+              <p className="text-sm md:text-base text-gray-600 dark:text-[#a8a898] leading-relaxed" style={{ fontFamily: '-apple-system, BlinkMacSystemFont, "Segoe UI", Roboto, Helvetica, Arial, sans-serif' }}>
+                Execution, intelligence, memory, and proof function together as a single system. The same runtime deploys consistently across servers, edge devices, and robotic hardware—preserving identical guarantees in every environment.
+              </p>
+            </div>
+            <div className="relative w-full rounded-2xl overflow-hidden mt-6" style={{ height: '320px' }}>
               <Image
                 src={mounted ? (theme === 'dark' ? '/r.png' : '/prol.png') : '/prol.png'}
                 alt="Runtime AI Execution"
@@ -54,30 +65,14 @@ export default function Products() {
               />
             </div>
           </div>
-          {/* Col 2 - Text */}
-          <div className="flex flex-col justify-start pt-6 pb-6 px-4 md:px-8 lg:pr-12">
-            <h3 className="text-base md:text-lg mb-3 text-[#000000] dark:text-[#f6f6f4]" style={{ fontFamily: '-apple-system, BlinkMacSystemFont, "Segoe UI", Roboto, Helvetica, Arial, sans-serif' }}>
-              Hybrid behavior trees meet LLM reasoning.
-            </h3>
-            <p className="text-sm md:text-base text-gray-600 dark:text-[#a8a898] leading-relaxed mb-3" style={{ fontFamily: '-apple-system, BlinkMacSystemFont, "Segoe UI", Roboto, Helvetica, Arial, sans-serif' }}>
-              Your AI runs through structured decision paths, where language models produce reasoning and the runtime governs how that reasoning is executed. Behavior remains bounded and predictable. There are no uncontrolled processes and no silent failures. Every action is recorded and cryptographically verifiable.
-            </p>
-            <p className="text-sm md:text-base text-gray-600 dark:text-[#a8a898] leading-relaxed mb-3" style={{ fontFamily: '-apple-system, BlinkMacSystemFont, "Segoe UI", Roboto, Helvetica, Arial, sans-serif' }}>
-              Execution, intelligence, memory, and proof function together as a single system. The same runtime deploys consistently across servers, edge devices, and robotic hardware—preserving identical guarantees in every environment.
-            </p>
-          </div>
-        </div>
-      </div>
-
-      {/* Full-width middle border */}
-      <div style={{ borderTop: '0.5px solid rgba(209, 213, 219, 0.35)' }} />
-
-      {/* Row 2 */}
-      <div className="mx-auto max-w-[1100px] px-4 sm:px-6 lg:px-8">
-        <div className="grid grid-cols-1 md:grid-cols-2" style={{ borderLeft: '0.5px solid rgba(209, 213, 219, 0.35)', borderRight: '0.5px solid rgba(209, 213, 219, 0.35)' }}>
-          {/* Col 1 - Image */}
-          <div className="p-4 md:pl-8 lg:pl-12" style={{ height: '320px', borderRight: '0.5px solid rgba(209, 213, 219, 0.35)' }}>
-            <div className="relative w-full h-full rounded-2xl overflow-hidden">
+          {/* Col 2 - Text + Image */}
+          <div className="md:col-span-4 flex flex-col justify-between p-4 md:px-8 lg:pr-12">
+            <div className="mt-8">
+              <p className="text-sm md:text-base text-gray-600 dark:text-[#a8a898] leading-relaxed" style={{ fontFamily: '-apple-system, BlinkMacSystemFont, "Segoe UI", Roboto, Helvetica, Arial, sans-serif' }}>
+                Observe how your systems operate in real time—how decisions evolve, how behavior adapts, and how each action is recorded and verified.
+              </p>
+            </div>
+            <div className="relative w-full rounded-2xl overflow-hidden mt-6" style={{ height: '320px' }}>
               <Image
                 src={mounted ? (theme === 'dark' ? '/rtnm.png' : '/prolg.png') : '/prolg.png'}
                 alt="Fleet Dashboard"
@@ -86,12 +81,6 @@ export default function Products() {
                 style={{ opacity: 0.85 }}
               />
             </div>
-          </div>
-          {/* Col 2 - Text */}
-          <div className="flex flex-col justify-start py-6 px-4 md:px-8 lg:pr-12">
-            <p className="text-sm md:text-base text-gray-600 dark:text-[#a8a898] leading-relaxed mb-3" style={{ fontFamily: '-apple-system, BlinkMacSystemFont, "Segoe UI", Roboto, Helvetica, Arial, sans-serif' }}>
-              Observe how your systems operate in real time—how decisions evolve, how behavior adapts, and how each action is recorded and verified.
-            </p>
           </div>
         </div>
       </div>
