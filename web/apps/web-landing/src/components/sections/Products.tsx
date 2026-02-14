@@ -49,10 +49,10 @@ export default function Products() {
                 Hybrid behavior trees meet LLM reasoning.
               </h3>
               <p className="text-sm md:text-base text-gray-600 dark:text-[#a8a898] leading-relaxed mb-3" style={{ fontFamily: '-apple-system, BlinkMacSystemFont, "Segoe UI", Roboto, Helvetica, Arial, sans-serif' }}>
-                Your AI runs through structured decision paths, where language models produce reasoning and the runtime governs how that reasoning is executed. Behavior remains bounded and predictable. There are no uncontrolled processes and no silent failures. Every action is recorded and cryptographically verifiable.
+                Where AI models meet real-world execution. Your systems need more than raw intelligence. They need execution that survives failure and proves every decision.
               </p>
               <p className="text-sm md:text-base text-gray-600 dark:text-[#a8a898] leading-relaxed" style={{ fontFamily: '-apple-system, BlinkMacSystemFont, "Segoe UI", Roboto, Helvetica, Arial, sans-serif' }}>
-                Execution, intelligence, memory, and proof function together as a single system. The same runtime deploys consistently across servers, edge devices, and robotic hardware—preserving identical guarantees in every environment.
+                The Nervous System governs how language model reasoning becomes action. Structured paths keep behavior bounded. Hard limits prevent runaway processes. Cryptographic signatures prove what happened.
               </p>
             </div>
             <div className="relative w-full rounded-2xl overflow-hidden mt-6" style={{ height: '320px' }}>
@@ -67,9 +67,15 @@ export default function Products() {
           </div>
           {/* Col 2 - Text + Image */}
           <div className="md:col-span-4 flex flex-col justify-between p-4 md:px-8 lg:pr-12">
-            <div className="mt-8">
+            <div>
+              <h3 className="text-base md:text-lg mb-3 text-[#000000] dark:text-[#f6f6f4]" style={{ fontFamily: '-apple-system, BlinkMacSystemFont, "Segoe UI", Roboto, Helvetica, Arial, sans-serif' }}>
+                One system, everywhere
+              </h3>
+              <p className="text-sm md:text-base text-gray-600 dark:text-[#a8a898] leading-relaxed mb-3" style={{ fontFamily: '-apple-system, BlinkMacSystemFont, "Segoe UI", Roboto, Helvetica, Arial, sans-serif' }}>
+                One binary runs on servers, robots, and edge devices. Same guarantees anywhere.
+              </p>
               <p className="text-sm md:text-base text-gray-600 dark:text-[#a8a898] leading-relaxed" style={{ fontFamily: '-apple-system, BlinkMacSystemFont, "Segoe UI", Roboto, Helvetica, Arial, sans-serif' }}>
-                Observe how your systems operate in real time—how decisions evolve, how behavior adapts, and how each action is recorded and verified.
+                Observe decisions in real time. Replay actions. Verify outcomes. Trust what happened.
               </p>
             </div>
             <div className="relative w-full rounded-2xl overflow-hidden mt-6" style={{ height: '320px' }}>

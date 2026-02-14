@@ -91,12 +91,16 @@ export default function Hero() {
             <div className="mb-1 text-left">
               <div>
                 <div className="flex flex-col md:flex-row md:items-start md:justify-between gap-4 md:gap-8">
+                  <div>
                   <h1 className="text-2xl md:text-3xl lg:text-4xl" style={{ color: mounted && theme === 'dark' ? '#f6f6f4' : '#1b1912', fontFamily: '-apple-system, BlinkMacSystemFont, "Segoe UI", Roboto, Helvetica, Arial, sans-serif', fontWeight: 400 }}>
-                    <span className="block">The Execution Boundary</span>
-                    <span className="block">for Autonomous Systems.</span>
+                    The Nervous System
                   </h1>
+                  <h2 className="text-xl md:text-2xl lg:text-3xl mt-3 max-w-md" style={{ color: mounted && theme === 'dark' ? '#a8a898' : '#6b6b6b', fontFamily: '-apple-system, BlinkMacSystemFont, "Segoe UI", Roboto, Helvetica, Arial, sans-serif', fontWeight: 400 }}>
+                    Run AI that survives failure and proves what it did.
+                  </h2>
+                </div>
                   <div className="text-sm md:text-base lg:text-lg max-w-md font-normal text-gray-600 dark:text-[#a8a898]" style={{ fontFamily: '-apple-system, BlinkMacSystemFont, "Segoe UI", Roboto, Helvetica, Arial, sans-serif', fontWeight: 400 }}>
-                    <span className="block">A deterministic layer that governs how intelligence becomes action — enforcing limits, coordinating distributed instances, adapting routing under policy, and verifying every decision.</span>
+                    <span className="block">Deterministic runtime. Cloud + local fallback. Cryptographically signed execution. ROS 2 integration.</span>
                   </div>
                 </div>
               </div>
