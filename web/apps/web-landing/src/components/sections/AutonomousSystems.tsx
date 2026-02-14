@@ -45,7 +45,7 @@ export default function AutonomousSystems() {
                 style={{ opacity: 0.9 }}
               />
               <Link
-                href="/software"
+                href="/ai-agents"
                 className="relative z-10 inline-flex items-center justify-center px-4 py-2 hover:opacity-80 transition-all duration-200 text-sm font-medium shadow-sm rounded-md border m-4"
                 style={{ backgroundColor: mounted && theme === 'dark' ? '#1b1912' : '#f6f6f4', color: mounted && theme === 'dark' ? '#f6f6f4' : '#1b1912', borderColor: 'rgba(20, 18, 10, 0.1)', fontFamily }}
               >
@@ -96,7 +96,7 @@ export default function AutonomousSystems() {
                 style={{ opacity: 0.9 }}
               />
               <Link
-                href="/robotics"
+                href="/Robotics"
                 className="relative z-10 inline-flex items-center justify-center px-4 py-2 hover:opacity-80 transition-all duration-200 text-sm font-medium shadow-sm rounded-md border m-4"
                 style={{ backgroundColor: mounted && theme === 'dark' ? '#1b1912' : '#f6f6f4', color: mounted && theme === 'dark' ? '#f6f6f4' : '#1b1912', borderColor: 'rgba(20, 18, 10, 0.1)', fontFamily }}
               >
