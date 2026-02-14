@@ -10,7 +10,7 @@ const nextConfig = {
   eslint: {
     ignoreDuringBuilds: true,
   },
-  devIndicators: true,
+
   images: {
     unoptimized: true, // Required for Cloudflare Pages
     remotePatterns: [
