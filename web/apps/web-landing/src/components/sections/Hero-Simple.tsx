@@ -92,11 +92,11 @@ export default function Hero() {
               <div>
                 <div className="flex flex-col md:flex-row md:items-start md:justify-between gap-4 md:gap-8">
                   <h1 className="text-2xl md:text-3xl lg:text-4xl" style={{ color: mounted && theme === 'dark' ? '#f6f6f4' : '#1b1912', fontFamily: '-apple-system, BlinkMacSystemFont, "Segoe UI", Roboto, Helvetica, Arial, sans-serif', fontWeight: 400 }}>
-                    <span className="block">Execution governance layer</span>
-                    <span className="block">for autonomous systems.</span>
+                    <span className="block">The Execution Boundary</span>
+                    <span className="block">for Autonomous Systems.</span>
                   </h1>
                   <div className="text-sm md:text-base lg:text-lg max-w-md font-normal text-gray-600 dark:text-[#a8a898]" style={{ fontFamily: '-apple-system, BlinkMacSystemFont, "Segoe UI", Roboto, Helvetica, Arial, sans-serif', fontWeight: 400 }}>
-                    <span className="block">A deterministic execution and coordination layer for AI that enforces structured behavior, adapts decisions over time, and verifies every action across autonomous systems.</span>
+                    <span className="block">A deterministic layer that governs how intelligence becomes action — enforcing limits, coordinating distributed instances, adapting routing under policy, and verifying every decision.</span>
                   </div>
                 </div>
               </div>

@@ -61,11 +61,11 @@ export default function MultiTenancy() {
             {/* Top row - 2 items */}
             <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
               {features.slice(0, 2).map((feature) => (
-                <div key={feature.title} className="border border-gray-200 dark:border-[#f6f6f4]/8 rounded-2xl p-6 bg-[#edece9] dark:bg-[#1b1912]/60 hover:border-gray-300 dark:hover:border-[#f6f6f4]/15 transition-colors duration-200 min-h-[340px]">
-                  <h4 className="text-base md:text-lg mb-2 text-[#000000] dark:text-[#f6f6f4]" style={{ fontFamily: '-apple-system, BlinkMacSystemFont, "Segoe UI", Roboto, Helvetica, Arial, sans-serif' }}>
+                <div key={feature.title} className="border border-gray-200 dark:border-[#f6f6f4]/8 rounded-2xl p-6 bg-[#edece9] dark:bg-[#1b1912]/60 hover:border-gray-300 dark:hover:border-[#f6f6f4]/15 transition-colors duration-200 min-h-[340px] flex flex-col">
+                  <h4 className="text-base md:text-lg text-[#000000] dark:text-[#f6f6f4]" style={{ fontFamily: '-apple-system, BlinkMacSystemFont, "Segoe UI", Roboto, Helvetica, Arial, sans-serif' }}>
                     {feature.title}
                   </h4>
-                  <p className="text-sm md:text-base text-gray-600 dark:text-[#a8a898] leading-relaxed" style={{ fontWeight: 400, fontFamily: '-apple-system, BlinkMacSystemFont, "Segoe UI", Roboto, Helvetica, Arial, sans-serif' }}>
+                  <p className="text-sm md:text-base text-gray-600 dark:text-[#a8a898] leading-relaxed mt-auto" style={{ fontWeight: 400, fontFamily: '-apple-system, BlinkMacSystemFont, "Segoe UI", Roboto, Helvetica, Arial, sans-serif' }}>
                     {feature.description}
                   </p>
                 </div>
@@ -75,11 +75,11 @@ export default function MultiTenancy() {
             {/* Bottom row - 3 items */}
             <div className="grid grid-cols-1 md:grid-cols-3 gap-4">
               {features.slice(2).map((feature) => (
-                <div key={feature.title} className="border border-gray-200 dark:border-[#f6f6f4]/8 rounded-2xl p-6 bg-[#edece9] dark:bg-[#1b1912]/60 hover:border-gray-300 dark:hover:border-[#f6f6f4]/15 transition-colors duration-200 min-h-[280px]">
-                  <h4 className="text-base md:text-lg mb-2 text-[#000000] dark:text-[#f6f6f4]" style={{ fontFamily: '-apple-system, BlinkMacSystemFont, "Segoe UI", Roboto, Helvetica, Arial, sans-serif' }}>
+                <div key={feature.title} className="border border-gray-200 dark:border-[#f6f6f4]/8 rounded-2xl p-6 bg-[#edece9] dark:bg-[#1b1912]/60 hover:border-gray-300 dark:hover:border-[#f6f6f4]/15 transition-colors duration-200 min-h-[280px] flex flex-col">
+                  <h4 className="text-base md:text-lg text-[#000000] dark:text-[#f6f6f4]" style={{ fontFamily: '-apple-system, BlinkMacSystemFont, "Segoe UI", Roboto, Helvetica, Arial, sans-serif' }}>
                     {feature.title}
                   </h4>
-                  <p className="text-sm md:text-base text-gray-600 dark:text-[#a8a898] leading-relaxed" style={{ fontWeight: 400, fontFamily: '-apple-system, BlinkMacSystemFont, "Segoe UI", Roboto, Helvetica, Arial, sans-serif' }}>
+                  <p className="text-sm md:text-base text-gray-600 dark:text-[#a8a898] leading-relaxed mt-auto" style={{ fontWeight: 400, fontFamily: '-apple-system, BlinkMacSystemFont, "Segoe UI", Roboto, Helvetica, Arial, sans-serif' }}>
                     {feature.description}
                   </p>
                 </div>
