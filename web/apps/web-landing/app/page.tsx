@@ -39,9 +39,9 @@ export default function HomePage() {
             <WhatThisIs />
             <Products />
             <CoreCapabilities />
-            <MultiTenancy />
-            <SDKs />
             <AutonomousSystems />
+            <SDKs />
+            <MultiTenancy />
             <HowItWorks />
             <WhyItExists />
             <ClosingPosition />

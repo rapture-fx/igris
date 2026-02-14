@@ -20,8 +20,8 @@ interface PricingTier {
 const pricingTiers: PricingTier[] = [
   {
     name: "The Seed",
-    tagline: "One device. Full layer. Free forever.",
-    price: "$0 / forever",
+    tagline: "One device. Full layer. $9 per month.",
+    price: "$9 / month",
     limits: "1 device",
     features: [
       "Full runtime (local + cloud routing)",
@@ -139,7 +139,7 @@ export default function Pricing() {
                       </div>
 
                       <div className="mb-4">
-                        <p className="text-sm font-medium text-[#000000] dark:text-[#f6f6f4] font-inter">
+                        <p className="text-sm font-medium text-[#000000] dark:text-[#f6f6f4]" style={{ fontFamily: '-apple-system, BlinkMacSystemFont, "Segoe UI", Roboto, Helvetica, Arial, sans-serif' }}>
                           {tier.limits}
                         </p>
                       </div>
@@ -148,7 +148,7 @@ export default function Pricing() {
                         {tier.features.map((feature, featureIndex) => (
                           <li key={featureIndex} className="flex items-start">
                             <Check className="h-3 w-3 mr-3 flex-shrink-0 mt-0.5 text-green-500" />
-                            <span className="text-xs text-gray-700 dark:text-[#c8c8b8]" style={{ fontFamily: 'SF Mono, Monaco, Inconsolata, Fira Code, monospace' }}>{feature}</span>
+                             <span className="text-sm text-gray-700 dark:text-[#c8c8b8]" style={{ fontFamily: '-apple-system, BlinkMacSystemFont, "Segoe UI", Roboto, Helvetica, Arial, sans-serif' }}>{feature}</span>
                           </li>
                         ))}
                       </ul>

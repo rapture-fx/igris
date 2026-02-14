@@ -224,14 +224,14 @@ export default function Faq() {
                               {faq.question}
                             </p>
                             {faq.type === 'text' ? (
-                              <p className="text-xs text-gray-700 dark:text-[#c8c8b8] leading-relaxed" style={{ fontFamily: 'SF Mono, Monaco, Inconsolata, Fira Code, monospace' }}>
-                                {faq.answer}
-                              </p>
+                             <p className="text-sm text-gray-700 dark:text-[#c8c8b8] leading-relaxed" style={{ fontFamily: '-apple-system, BlinkMacSystemFont, "Segoe UI", Roboto, Helvetica, Arial, sans-serif' }}>
+                               {faq.answer}
+                             </p>
                             ) : faq.type === 'code' ? (
                               <div className="space-y-3">
-                                <p className="text-xs text-gray-700 dark:text-[#c8c8b8] leading-relaxed" style={{ fontFamily: 'SF Mono, Monaco, Inconsolata, Fira Code, monospace' }}>
-                                  {faq.answerText}
-                                </p>
+                                  <p className="text-sm text-gray-700 dark:text-[#c8c8b8] leading-relaxed" style={{ fontFamily: '-apple-system, BlinkMacSystemFont, "Segoe UI", Roboto, Helvetica, Arial, sans-serif' }}>
+                                    {faq.answerText}
+                                  </p>
                                 <div className="rounded-lg p-3 font-mono text-xs overflow-x-auto bg-black/[0.03] dark:bg-white/[0.03]">
                                   <div className="mb-2">
                                     <span className="text-gray-500 dark:text-[#a8a898]"># Old</span>
@@ -242,9 +242,9 @@ export default function Faq() {
                                     <div className="text-gray-900 dark:text-[#c8c8b8] mt-1 break-all">{faq.codeExample?.new}</div>
                                   </div>
                                 </div>
-                                <p className="text-xs text-gray-700 dark:text-[#c8c8b8] leading-relaxed" style={{ fontFamily: 'SF Mono, Monaco, Inconsolata, Fira Code, monospace' }}>
-                                  {faq.answerFooter}
-                                </p>
+                                  <p className="text-sm text-gray-700 dark:text-[#c8c8b8] leading-relaxed" style={{ fontFamily: '-apple-system, BlinkMacSystemFont, "Segoe UI", Roboto, Helvetica, Arial, sans-serif' }}>
+                                    {faq.answerFooter}
+                                  </p>
                               </div>
                             ) : null}
                           </div>
