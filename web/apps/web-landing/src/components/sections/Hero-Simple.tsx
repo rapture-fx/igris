@@ -95,7 +95,7 @@ export default function Hero() {
                   <h1 className="text-2xl md:text-3xl lg:text-4xl" style={{ color: mounted && theme === 'dark' ? '#f6f6f4' : '#1b1912', fontFamily: '-apple-system, BlinkMacSystemFont, "Segoe UI", Roboto, Helvetica, Arial, sans-serif', fontWeight: 400 }}>
                     The Nervous System
                   </h1>
-                  <h2 className="text-xl md:text-2xl lg:text-3xl mt-3 max-w-md" style={{ color: mounted && theme === 'dark' ? '#a8a898' : '#6b6b6b', fontFamily: '-apple-system, BlinkMacSystemFont, "Segoe UI", Roboto, Helvetica, Arial, sans-serif', fontWeight: 400 }}>
+                  <h2 className="text-2xl md:text-3xl lg:text-4xl mt-3 max-w-md" style={{ color: mounted && theme === 'dark' ? '#f6f6f4' : '#1b1912', fontFamily: '-apple-system, BlinkMacSystemFont, "Segoe UI", Roboto, Helvetica, Arial, sans-serif', fontWeight: 400 }}>
                     Run AI that survives failure and proves what it did.
                   </h2>
                 </div>
