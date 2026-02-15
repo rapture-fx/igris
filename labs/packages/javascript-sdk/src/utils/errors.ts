@@ -1,5 +1,5 @@
 /**
- * Error classes for Schlep-engine JavaScript SDK
+ * Error classes for Igris-engine JavaScript SDK
  */
 
 import { ErrorResponse, SDKError } from '../types/common';
@@ -7,7 +7,7 @@ import { ErrorResponse, SDKError } from '../types/common';
 /**
  * Base SDK error class
  */
-export class SchlepEngineError extends Error implements SDKError {
+export class IgrisError extends Error implements SDKError {
   public readonly code?: string;
   public readonly statusCode?: number;
   public readonly response?: ErrorResponse;
@@ -21,7 +21,7 @@ export class SchlepEngineError extends Error implements SDKError {
     isRetryable = false
   ) {
     super(message);
-    this.name = 'SchlepEngineError';
+    this.name = 'IgrisError';
     this.code = code;
     this.statusCode = statusCode;
     this.response = response;
@@ -29,7 +29,7 @@ export class SchlepEngineError extends Error implements SDKError {
 
     // Maintain proper stack trace for where our error was thrown (only available on V8)
     if (Error.captureStackTrace) {
-      Error.captureStackTrace(this, SchlepEngineError);
+      Error.captureStackTrace(this, IgrisError);
     }
   }
 }
@@ -37,7 +37,7 @@ export class SchlepEngineError extends Error implements SDKError {
 /**
  * API error for HTTP-related issues
  */
-export class APIError extends SchlepEngineError {
+export class APIError extends IgrisError {
   constructor(
     message: string,
     statusCode: number,
@@ -52,7 +52,7 @@ export class APIError extends SchlepEngineError {
 /**
  * Authentication error
  */
-export class AuthenticationError extends SchlepEngineError {
+export class AuthenticationError extends IgrisError {
   constructor(message = 'Authentication failed', response?: ErrorResponse) {
     super(message, 'AUTH_ERROR', 401, response, false);
     this.name = 'AuthenticationError';
@@ -62,7 +62,7 @@ export class AuthenticationError extends SchlepEngineError {
 /**
  * Authorization error
  */
-export class AuthorizationError extends SchlepEngineError {
+export class AuthorizationError extends IgrisError {
   constructor(message = 'Access denied', response?: ErrorResponse) {
     super(message, 'AUTHORIZATION_ERROR', 403, response, false);
     this.name = 'AuthorizationError';
@@ -72,7 +72,7 @@ export class AuthorizationError extends SchlepEngineError {
 /**
  * Rate limiting error
  */
-export class RateLimitError extends SchlepEngineError {
+export class RateLimitError extends IgrisError {
   public readonly retryAfter?: number;
 
   constructor(
@@ -89,7 +89,7 @@ export class RateLimitError extends SchlepEngineError {
 /**
  * Network error for connection issues
  */
-export class NetworkError extends SchlepEngineError {
+export class NetworkError extends IgrisError {
   public readonly originalError?: Error;
 
   constructor(message: string, originalError?: Error) {
@@ -102,7 +102,7 @@ export class NetworkError extends SchlepEngineError {
 /**
  * Timeout error
  */
-export class TimeoutError extends SchlepEngineError {
+export class TimeoutError extends IgrisError {
   constructor(message = 'Request timeout') {
     super(message, 'TIMEOUT_ERROR', 408, undefined, true);
     this.name = 'TimeoutError';
@@ -112,7 +112,7 @@ export class TimeoutError extends SchlepEngineError {
 /**
  * Server error (5xx status codes)
  */
-export class ServerError extends SchlepEngineError {
+export class ServerError extends IgrisError {
   constructor(message: string, statusCode: number, response?: ErrorResponse) {
     super(message, 'SERVER_ERROR', statusCode, response, true);
     this.name = 'ServerError';
@@ -122,7 +122,7 @@ export class ServerError extends SchlepEngineError {
 /**
  * Client error (4xx status codes, excluding auth and rate limit)
  */
-export class ClientError extends SchlepEngineError {
+export class ClientError extends IgrisError {
   constructor(message: string, statusCode: number, response?: ErrorResponse) {
     super(message, 'CLIENT_ERROR', statusCode, response, false);
     this.name = 'ClientError';
@@ -132,7 +132,7 @@ export class ClientError extends SchlepEngineError {
 /**
  * Configuration error
  */
-export class ConfigurationError extends SchlepEngineError {
+export class ConfigurationError extends IgrisError {
   constructor(message: string) {
     super(message, 'CONFIG_ERROR');
     this.name = 'ConfigurationError';
@@ -142,7 +142,7 @@ export class ConfigurationError extends SchlepEngineError {
 /**
  * Validation error for input validation failures
  */
-export class ValidationError extends SchlepEngineError {
+export class ValidationError extends IgrisError {
   public readonly details?: Array<{ field: string; message: string }>;
 
   constructor(message: string, details?: Array<{ field: string; message: string }>) {
@@ -158,7 +158,7 @@ export class ValidationError extends SchlepEngineError {
 export function parseAPIError(
   response: ErrorResponse,
   statusCode: number
-): SchlepEngineError {
+): IgrisError {
   const message = response.message || response.error || 'Unknown API error';
 
   // Handle specific error types based on status code
@@ -189,7 +189,7 @@ export function parseAPIError(
  * Check if error is retryable
  */
 export function isRetryableError(error: Error): boolean {
-  if (error instanceof SchlepEngineError) {
+  if (error instanceof IgrisError) {
     return error.isRetryable || false;
   }
 
@@ -221,7 +221,7 @@ export function getRetryAfter(error: RateLimitError | Headers): number | undefin
 }
 
 export default {
-  SchlepEngineError,
+  IgrisError,
   APIError,
   AuthenticationError,
   AuthorizationError,

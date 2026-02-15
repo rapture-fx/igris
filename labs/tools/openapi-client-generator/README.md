@@ -1,6 +1,6 @@
 # OpenAPI Client Generator
 
-Multi-language OpenAPI client generation system for Schlep-engine API with automatic CI/CD integration.
+Multi-language OpenAPI client generation system for Igris-engine API with automatic CI/CD integration.
 
 ## Features
 
@@ -124,18 +124,18 @@ The system includes automated workflows for:
 ### Python
 
 ```python
-from igris_overture_client import SchlepEngineClient
+from igris_overture_client import IgrisClient
 
-client = SchlepEngineClient(api_key="your_key", base_url="https://api.igris-inertial.com")
+client = IgrisClient(api_key="your_key", base_url="https://api.igris-inertial.com")
 response = client.upload_file("data.csv")
 ```
 
 ### TypeScript
 
 ```typescript
-import { SchlepEngineClient } from '@igris-inertial/client';
+import { IgrisClient } from '@igris-inertial/client';
 
-const client = new SchlepEngineClient({ apiKey: 'your_key' });
+const client = new IgrisClient({ apiKey: 'your_key' });
 const response = await client.uploadFile('data.csv');
 ```
 
@@ -144,7 +144,7 @@ const response = await client.uploadFile('data.csv');
 ```go
 import "github.com/igris-inertial/go-client"
 
-client := schlepengine.NewClient("your_key")
+client := igris.NewClient("your_key")
 response, err := client.UploadFile("data.csv")
 ```
 

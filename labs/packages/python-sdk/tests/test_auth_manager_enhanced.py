@@ -6,10 +6,10 @@ import pytest
 from unittest.mock import AsyncMock, MagicMock, patch
 from datetime import datetime, timedelta
 
-from schlep_engine.auth.manager import AuthManager
-from schlep_engine.auth.token_storage import SecureTokenStorage
-from schlep_engine.models.auth import TokenResponse, UserInfo
-from schlep_engine.exceptions.base import AuthenticationError, ConfigurationError
+from igris.auth.manager import AuthManager
+from igris.auth.token_storage import SecureTokenStorage
+from igris.models.auth import TokenResponse, UserInfo
+from igris.exceptions.base import AuthenticationError, ConfigurationError
 
 
 class TestAuthManagerEnhanced:
@@ -22,7 +22,7 @@ class TestAuthManagerEnhanced:
     
     def test_init_with_secure_storage_disabled(self):
         """Test AuthManager initialization with secure storage disabled."""
-        from schlep_engine.auth.token_storage import TokenStorage
+        from igris.auth.token_storage import TokenStorage
         auth_manager = AuthManager(use_secure_storage=False)
         assert isinstance(auth_manager.token_storage, TokenStorage)
         assert not isinstance(auth_manager.token_storage, SecureTokenStorage)

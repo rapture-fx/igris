@@ -24,7 +24,7 @@ import type {
   OAuthProvider,
   RegisterFormProps,
   PasswordStrength 
-} from '@schlep-engine/types/auth'
+} from '@igris-inertial/types/auth'
 import { checkPasswordStrength } from './AuthAPI'
 
 interface ValidationErrors {

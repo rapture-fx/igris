@@ -1,4 +1,4 @@
-# Schlep-Engine Stability Testing - Quick Reference Card
+# Igris Inertial Stability Testing - Quick Reference Card
 
 ## 🚀 Quick Start (5 minutes)
 

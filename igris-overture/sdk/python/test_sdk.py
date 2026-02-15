@@ -27,7 +27,7 @@ def test_context_manager():
         print(f"✓ Context manager works")
 
 if __name__ == "__main__":
-    print("Testing Schlep Python SDK\n")
+    print("Testing Igris Python SDK\n")
     print("-" * 50)
 
     test_sdk_import()

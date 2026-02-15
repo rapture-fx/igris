@@ -15,7 +15,7 @@ import (
 func main() {
 	// Initialize client with configuration
 	cfg := &config.Config{
-		APIKey:           os.Getenv("SCHLEP_API_KEY"),
+		APIKey:           os.Getenv("IGRIS_API_KEY"),
 		BaseURL:          "https://api.igris-inertial.com",
 		EnableMetrics:    true,
 		EnableTracing:    true,
@@ -29,25 +29,25 @@ func main() {
 	}
 
 	// Create client
-	schlepClient, err := client.NewClient(cfg)
+	igrisClient, err := client.NewClient(cfg)
 	if err != nil {
 		log.Fatalf("Failed to create client: %v", err)
 	}
-	defer schlepClient.Close()
+	defer igrisClient.Close()
 
 	ctx := context.Background()
 
 	// Test authentication
-	if !schlepClient.IsAuthenticated() {
-		log.Fatal("Client is not authenticated. Please set SCHLEP_API_KEY environment variable.")
+	if !igrisClient.IsAuthenticated() {
+		log.Fatal("Client is not authenticated. Please set IGRIS_API_KEY environment variable.")
 	}
 
-	fmt.Println("🚀 Basic Schlep-engine Go SDK Example")
+	fmt.Println("🚀 Basic Igris-engine Go SDK Example")
 	fmt.Println("=====================================")
 
 	// Example 1: Health Check
 	fmt.Println("\n1. Health Check")
-	health, err := schlepClient.Monitor.GetHealth(ctx)
+	health, err := igrisClient.Monitor.GetHealth(ctx)
 	if err != nil {
 		log.Printf("Health check failed: %v", err)
 	} else {
@@ -73,7 +73,7 @@ func main() {
 		Async:    true,
 	}
 
-	result, err := schlepClient.Data.ProcessFile(ctx, processReq)
+	result, err := igrisClient.Data.ProcessFile(ctx, processReq)
 	if err != nil {
 		log.Printf("File processing failed: %v", err)
 	} else {
@@ -89,7 +89,7 @@ func main() {
 		fmt.Print("   Waiting for completion")
 		
 		for {
-			job, err := schlepClient.Data.GetJobStatus(ctx, result.JobID)
+			job, err := igrisClient.Data.GetJobStatus(ctx, result.JobID)
 			if err != nil {
 				log.Printf("Failed to get job status: %v", err)
 				break
@@ -112,7 +112,7 @@ func main() {
 
 	// Example 4: List recent jobs
 	fmt.Println("\n4. List Recent Jobs")
-	jobs, err := schlepClient.Data.ListJobs(ctx, &models.ListOptions{
+	jobs, err := igrisClient.Data.ListJobs(ctx, &models.ListOptions{
 		Page:      1,
 		PerPage:   5,
 		SortBy:    "created_at",
@@ -127,7 +127,7 @@ func main() {
 
 	// Example 5: Get system metrics
 	fmt.Println("\n5. System Metrics")
-	metrics, err := schlepClient.Monitor.GetMetrics(ctx)
+	metrics, err := igrisClient.Monitor.GetMetrics(ctx)
 	if err != nil {
 		log.Printf("Failed to get metrics: %v", err)
 	} else {
@@ -171,7 +171,7 @@ func main() {
 		IsActive: true,
 	}
 
-	createdPipeline, err := schlepClient.ML.CreatePipeline(ctx, mlPipeline)
+	createdPipeline, err := igrisClient.ML.CreatePipeline(ctx, mlPipeline)
 	if err != nil {
 		log.Printf("Failed to create ML pipeline: %v", err)
 	} else {

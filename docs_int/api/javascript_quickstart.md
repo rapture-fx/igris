@@ -1,17 +1,17 @@
 # JavaScript SDK Quickstart
 
-Get started with the Schlep-engine JavaScript/TypeScript SDK in minutes.
+Get started with the Igris Inertial JavaScript/TypeScript SDK in minutes.
 
 ## Installation
 
 Install via npm, yarn, or pnpm:
 
 ```bash
-npm install schlep
+npm install igris
 # or
-yarn add schlep
+yarn add igris
 # or
-pnpm add schlep
+pnpm add igris
 ```
 
 ## Quick Start
@@ -19,10 +19,10 @@ pnpm add schlep
 ### TypeScript/ESM
 
 ```typescript
-import { Schlep } from 'schlep';
+import { Igris } from 'igris';
 
 // Initialize the client
-const client = new Schlep({
+const client = new Igris({
   baseUrl: 'http://localhost:8081'
 });
 
@@ -42,9 +42,9 @@ console.log(response.choices[0].message.content);
 ### CommonJS (Node.js)
 
 ```javascript
-const { Schlep } = require('schlep');
+const { Igris } = require('igris');
 
-const client = new Schlep({
+const client = new Igris({
   baseUrl: 'http://localhost:8081'
 });
 
@@ -63,10 +63,10 @@ main();
 ### With Authentication
 
 ```typescript
-import { Schlep } from 'schlep';
+import { Igris } from 'igris';
 
-const client = new Schlep({
-  baseUrl: 'https://api.schlep.com',
+const client = new Igris({
+  baseUrl: 'https://api.igris-inertial.com',
   apiKey: 'your-api-key-here'
 });
 
@@ -78,33 +78,33 @@ const response = await client.infer({
 
 ## BYOK (Bring Your Own Key) Configuration
 
-Schlep-engine supports BYOK for using your own provider API keys:
+Igris Inertial supports BYOK for using your own provider API keys:
 
 ### Using the CLI
 
 ```bash
 # Install CLI
-pip install schlep-cli
+pip install igris-cli
 
 # Configure
-schlep login --url http://localhost:8081
+igris login --url http://localhost:8081
 
 # Add provider keys
-schlep add-key --provider openai --key sk-...
-schlep add-key --provider anthropic --key sk-ant-...
+igris add-key --provider openai --key sk-...
+igris add-key --provider anthropic --key sk-ant-...
 ```
 
 ### Using the SDK
 
 ```typescript
-import { Schlep } from 'schlep';
+import { Igris } from 'igris';
 
 // SDK routes to the best provider automatically
-const client = new Schlep({
+const client = new Igris({
   baseUrl: 'http://localhost:8081'
 });
 
-// Schlep-engine intelligently routes to available providers
+// Igris Inertial intelligently routes to available providers
 const response = await client.infer({
   model: 'gpt-4',
   messages: [{ role: 'user', content: 'Hello!' }]
@@ -116,9 +116,9 @@ const response = await client.infer({
 ### Chat Conversation
 
 ```typescript
-import { Schlep, type Message } from 'schlep';
+import { Igris, type Message } from 'igris';
 
-const client = new Schlep({ baseUrl: 'http://localhost:8081' });
+const client = new Igris({ baseUrl: 'http://localhost:8081' });
 
 // Multi-turn conversation
 const messages: Message[] = [
@@ -152,9 +152,9 @@ console.log(response2.choices[0].message.content);
 ### List Available Models
 
 ```typescript
-import { Schlep } from 'schlep';
+import { Igris } from 'igris';
 
-const client = new Schlep({ baseUrl: 'http://localhost:8081' });
+const client = new Igris({ baseUrl: 'http://localhost:8081' });
 
 // Get all available models
 const models = await client.listModels();
@@ -168,9 +168,9 @@ models.data.forEach(model => {
 ### Health Check
 
 ```typescript
-import { Schlep } from 'schlep';
+import { Igris } from 'igris';
 
-const client = new Schlep({ baseUrl: 'http://localhost:8081' });
+const client = new Igris({ baseUrl: 'http://localhost:8081' });
 
 // Check API health
 const health = await client.health();
@@ -185,13 +185,13 @@ if (health.status === 'healthy') {
 
 ```typescript
 import {
-  Schlep,
-  SchlepError,
+  Igris,
+  IgrisError,
   AuthenticationError,
   NetworkError
-} from 'schlep';
+} from 'igris';
 
-const client = new Schlep({ baseUrl: 'http://localhost:8081' });
+const client = new Igris({ baseUrl: 'http://localhost:8081' });
 
 try {
   const response = await client.infer({
@@ -205,7 +205,7 @@ try {
     console.error('Authentication failed:', error.message);
   } else if (error instanceof NetworkError) {
     console.error('Network error:', error.message);
-  } else if (error instanceof SchlepError) {
+  } else if (error instanceof IgrisError) {
     console.error(`API error: ${error.message} (${error.statusCode})`);
   } else {
     console.error('Unexpected error:', error);
@@ -218,7 +218,7 @@ try {
 ### Client Configuration
 
 ```typescript
-import { Schlep, type ClientConfig } from 'schlep';
+import { Igris, type ClientConfig } from 'igris';
 
 const config: ClientConfig = {
   baseUrl: 'http://localhost:8081',  // API endpoint
@@ -229,15 +229,15 @@ const config: ClientConfig = {
   }
 };
 
-const client = new Schlep(config);
+const client = new Igris(config);
 ```
 
 ### Inference Parameters
 
 ```typescript
-import { Schlep, type InferRequest } from 'schlep';
+import { Igris, type InferRequest } from 'igris';
 
-const client = new Schlep();
+const client = new Igris();
 
 const request: InferRequest = {
   model: 'gpt-4',                    // Model name
@@ -257,12 +257,12 @@ const response = await client.infer(request);
 
 ```typescript
 // app/api/chat/route.ts
-import { Schlep } from 'schlep';
+import { Igris } from 'igris';
 import { NextRequest, NextResponse } from 'next/server';
 
-const client = new Schlep({
-  baseUrl: process.env.SCHLEP_API_URL || 'http://localhost:8081',
-  apiKey: process.env.SCHLEP_API_KEY
+const client = new Igris({
+  baseUrl: process.env.IGRIS_API_URL || 'http://localhost:8081',
+  apiKey: process.env.IGRIS_API_KEY
 });
 
 export async function POST(request: NextRequest) {
@@ -289,13 +289,13 @@ export async function POST(request: NextRequest) {
 
 ```typescript
 import express from 'express';
-import { Schlep } from 'schlep';
+import { Igris } from 'igris';
 
 const app = express();
 app.use(express.json());
 
-const client = new Schlep({
-  baseUrl: process.env.SCHLEP_API_URL || 'http://localhost:8081'
+const client = new Igris({
+  baseUrl: process.env.IGRIS_API_URL || 'http://localhost:8081'
 });
 
 app.post('/api/chat', async (req, res) => {
@@ -367,11 +367,11 @@ function ChatComponent() {
 ## Example: Real-time Chat CLI
 
 ```typescript
-import { Schlep, type Message } from 'schlep';
+import { Igris, type Message } from 'igris';
 import * as readline from 'readline';
 
 async function chatLoop() {
-  const client = new Schlep({ baseUrl: 'http://localhost:8081' });
+  const client = new Igris({ baseUrl: 'http://localhost:8081' });
 
   const messages: Message[] = [
     { role: 'system', content: 'You are a helpful AI assistant.' }
@@ -422,16 +422,16 @@ chatLoop();
 
 ```bash
 # .env
-SCHLEP_API_URL=http://localhost:8081
-SCHLEP_API_KEY=your-api-key
+IGRIS_API_URL=http://localhost:8081
+IGRIS_API_KEY=your-api-key
 ```
 
 ```typescript
-import { Schlep } from 'schlep';
+import { Igris } from 'igris';
 
-const client = new Schlep({
-  baseUrl: process.env.SCHLEP_API_URL,
-  apiKey: process.env.SCHLEP_API_KEY
+const client = new Igris({
+  baseUrl: process.env.IGRIS_API_URL,
+  apiKey: process.env.IGRIS_API_KEY
 });
 ```
 
@@ -450,4 +450,4 @@ const client = new Schlep({
 
 ---
 
-**Schlep-engine** - Intelligent AI Routing and Cost Optimization
+**Igris Inertial** - Intelligent AI Routing and Cost Optimization

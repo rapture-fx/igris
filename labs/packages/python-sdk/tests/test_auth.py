@@ -9,10 +9,10 @@ import json
 import tempfile
 from pathlib import Path
 
-from schlep_engine.auth.manager import AuthManager
-from schlep_engine.auth.token_storage import TokenStorage
-from schlep_engine.models.auth import TokenResponse, UserInfo, LoginRequest, RegisterRequest
-from schlep_engine.exceptions.base import AuthenticationError, ConfigurationError
+from igris.auth.manager import AuthManager
+from igris.auth.token_storage import TokenStorage
+from igris.models.auth import TokenResponse, UserInfo, LoginRequest, RegisterRequest
+from igris.exceptions.base import AuthenticationError, ConfigurationError
 
 
 class TestAuthManager:
@@ -198,7 +198,7 @@ class TestTokenStorage:
         storage = TokenStorage()
         
         assert storage.storage_path.name == "tokens.json"
-        assert ".schlep_engine" in str(storage.storage_path)
+        assert ".igris" in str(storage.storage_path)
 
     def test_initialization_custom_path(self, tmp_path):
         """Test TokenStorage initialization with custom path."""

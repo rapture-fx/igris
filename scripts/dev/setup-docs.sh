@@ -1,6 +1,6 @@
 #!/bin/bash
 
-echo "Setting up Schlep Engine API Documentation..."
+echo "Setting up Igris Inertial API Documentation..."
 
 # Check if Node.js is installed
 if ! command -v node &> /dev/null; then

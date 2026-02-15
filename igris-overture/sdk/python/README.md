@@ -1,6 +1,6 @@
-# Schlep Python SDK
+# Igris Python SDK
 
-Official Python SDK for Schlep-engine - Intelligent AI routing and cost optimization.
+Official Python SDK for Igris-engine - Intelligent AI routing and cost optimization.
 
 ## Installation
 
@@ -15,7 +15,7 @@ pip install -r requirements.txt
 ## Quick Start
 
 ```python
-from schlep import Client
+from igris import Client
 
 # Initialize client
 client = Client(base_url="http://localhost:8081")
@@ -43,7 +43,7 @@ print(response)
 ### Basic Inference
 
 ```python
-from schlep import Client
+from igris import Client
 
 client = Client(base_url="http://localhost:8081")
 
@@ -63,7 +63,7 @@ print(response["choices"][0]["message"]["content"])
 ### Using Context Manager
 
 ```python
-from schlep import Client
+from igris import Client
 
 with Client(base_url="http://localhost:8081") as client:
     response = client.infer(
@@ -76,7 +76,7 @@ with Client(base_url="http://localhost:8081") as client:
 ### List Available Models
 
 ```python
-from schlep import Client
+from igris import Client
 
 client = Client(base_url="http://localhost:8081")
 models = client.list_models()
@@ -89,7 +89,7 @@ for model in models.get("data", []):
 ### Check API Health
 
 ```python
-from schlep import Client
+from igris import Client
 
 client = Client(base_url="http://localhost:8081")
 health = client.health()
@@ -100,11 +100,11 @@ print(f"Status: {health['status']}")
 ### With Authentication
 
 ```python
-from schlep import Client
+from igris import Client
 
 # Initialize with API key
 client = Client(
-    base_url="https://api.schlep.com",
+    base_url="https://api.igris-inertial.com",
     api_key="your-api-key-here"
 )
 
@@ -117,7 +117,7 @@ response = client.infer(
 ### Error Handling
 
 ```python
-from schlep import Client, APIError, AuthenticationError, NetworkError
+from igris import Client, APIError, AuthenticationError, NetworkError
 
 client = Client(base_url="http://localhost:8081")
 
@@ -140,15 +140,15 @@ except NetworkError as e:
 
 #### `__init__(base_url, api_key, timeout)`
 
-Initialize the Schlep client.
+Initialize the Igris client.
 
-- `base_url` (str): Base URL of the Schlep-engine API (default: "http://localhost:8081")
+- `base_url` (str): Base URL of the Igris-engine API (default: "http://localhost:8081")
 - `api_key` (str, optional): API key for authentication
 - `timeout` (int): Request timeout in seconds (default: 30)
 
 #### `infer(model, messages, max_tokens, temperature, **kwargs)`
 
-Make an inference request using Schlep-engine's intelligent routing.
+Make an inference request using Igris-engine's intelligent routing.
 
 - `model` (str): The model to use (e.g., "gpt-4", "claude-3-opus")
 - `messages` (list): List of message dicts with "role" and "content"
@@ -196,7 +196,7 @@ pytest
 black .
 
 # Type checking
-mypy schlep
+mypy igris
 ```
 
 ## License

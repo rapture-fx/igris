@@ -2,19 +2,19 @@
 generator-name: csharp
 input-spec: "../../apps/api/openapi.json"
 output-dir: "./generated/csharp"
-package-name: "SchlepEngine.Client"
+package-name: "Igris.Client"
 package-version: "2.0.0"
 
 # C#-specific configuration
 additional-properties:
-  packageName: SchlepEngine.Client
-  clientPackage: SchlepEngine.Client
+  packageName: Igris.Client
+  clientPackage: Igris.Client
   packageVersion: 2.0.0
-  packageTitle: "Schlep-engine API Client"
-  packageCompany: "Schlep-engine"
-  packageAuthors: "Schlep-engine Team"
-  packageCopyright: "Copyright © Schlep-engine 2024"
-  packageDescription: "C# client library for Schlep-engine API - comprehensive data processing and ML pipeline platform"
+  packageTitle: "Igris-engine API Client"
+  packageCompany: "Igris-engine"
+  packageAuthors: "Igris-engine Team"
+  packageCopyright: "Copyright © Igris-engine 2024"
+  packageDescription: "C# client library for Igris-engine API - comprehensive data processing and ML pipeline platform"
   packageKeywords: "data-processing,machine-learning,api-client,igris-inertial,csharp,dotnet"
   
   # .NET configuration
@@ -74,7 +74,7 @@ template-dir: "./templates/csharp"
 
 # Files to generate
 supporting-files:
-  - SchlepEngine.Client.csproj
+  - Igris.Client.csproj
   - README.md
   - .gitignore
   - nuget.config
@@ -144,7 +144,7 @@ versioning:
 publishing:
   enabled: true
   registry: "nuget"
-  package-name: "SchlepEngine.Client"
+  package-name: "Igris.Client"
   
   # NuGet metadata
   nuget-metadata:

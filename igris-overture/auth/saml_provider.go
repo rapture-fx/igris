@@ -41,7 +41,7 @@ func NewSAMLProvider(config *SSOProviderConfig) (*SAMLProvider, error) {
 func (p *SAMLProvider) GetAuthorizationURL(state string, redirectURI string) (string, error) {
 	// Generate SAML AuthnRequest
 	authnRequest := &SAMLAuthnRequest{
-		ID:                fmt.Sprintf("_schlep_%d", time.Now().Unix()),
+		ID:                fmt.Sprintf("_igris_%d", time.Now().Unix()),
 		Version:           "2.0",
 		IssueInstant:      time.Now().UTC().Format(time.RFC3339),
 		Destination:       p.config.SAMLSSOURL,

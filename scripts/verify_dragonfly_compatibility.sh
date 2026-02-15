@@ -56,24 +56,24 @@ echo "Waiting for services to be healthy (30s)..."
 sleep 30
 
 # Verify Redis is running
-run_test "Redis is healthy" "docker exec schlep-redis-staging redis-cli ping"
+run_test "Redis is healthy" "docker exec igris-redis-staging redis-cli ping"
 
 # Verify Dragonfly is running
-run_test "Dragonfly is healthy" "docker exec schlep-dragonfly-staging redis-cli ping"
+run_test "Dragonfly is healthy" "docker exec igris-dragonfly-staging redis-cli ping"
 
 echo ""
 echo "Phase 2: Redis Client Compatibility"
 echo "------------------------------------"
 
 # Test basic Redis operations against Dragonfly
-run_test "Dragonfly SET command" "docker exec schlep-dragonfly-staging redis-cli SET test:key test:value"
-run_test "Dragonfly GET command" "docker exec schlep-dragonfly-staging redis-cli GET test:key"
-run_test "Dragonfly DEL command" "docker exec schlep-dragonfly-staging redis-cli DEL test:key"
-run_test "Dragonfly INCR command" "docker exec schlep-dragonfly-staging redis-cli INCR test:counter"
-run_test "Dragonfly EXPIRE command" "docker exec schlep-dragonfly-staging redis-cli SETEX test:ttl 60 value"
-run_test "Dragonfly HSET command" "docker exec schlep-dragonfly-staging redis-cli HSET test:hash field1 value1"
-run_test "Dragonfly LPUSH command" "docker exec schlep-dragonfly-staging redis-cli LPUSH test:list item1"
-run_test "Dragonfly SADD command" "docker exec schlep-dragonfly-staging redis-cli SADD test:set member1"
+run_test "Dragonfly SET command" "docker exec igris-dragonfly-staging redis-cli SET test:key test:value"
+run_test "Dragonfly GET command" "docker exec igris-dragonfly-staging redis-cli GET test:key"
+run_test "Dragonfly DEL command" "docker exec igris-dragonfly-staging redis-cli DEL test:key"
+run_test "Dragonfly INCR command" "docker exec igris-dragonfly-staging redis-cli INCR test:counter"
+run_test "Dragonfly EXPIRE command" "docker exec igris-dragonfly-staging redis-cli SETEX test:ttl 60 value"
+run_test "Dragonfly HSET command" "docker exec igris-dragonfly-staging redis-cli HSET test:hash field1 value1"
+run_test "Dragonfly LPUSH command" "docker exec igris-dragonfly-staging redis-cli LPUSH test:list item1"
+run_test "Dragonfly SADD command" "docker exec igris-dragonfly-staging redis-cli SADD test:set member1"
 
 echo ""
 echo "Phase 3: Go Redis Client Tests"

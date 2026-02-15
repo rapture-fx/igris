@@ -4,8 +4,8 @@
 
 set -euo pipefail
 
-CHAOS_LOG="/var/log/schlep/chaos_phase13.log"
-CHAOS_RESULTS="/var/log/schlep/chaos_phase13_results.json"
+CHAOS_LOG="/var/log/igris/chaos_phase13.log"
+CHAOS_RESULTS="/var/log/igris/chaos_phase13_results.json"
 
 log() {
     echo "[$(date +'%Y-%m-%d %H:%M:%S')] $*" | tee -a "$CHAOS_LOG"
@@ -204,7 +204,7 @@ chaos_cognitive_decision_under_chaos() {
     {
         for i in $(seq 1 10); do
             # Kill random pod
-            local pod=$(kubectl get pods -l app=schlep-worker -o jsonpath='{.items[*].metadata.name}' | tr ' ' '\n' | shuf -n 1)
+            local pod=$(kubectl get pods -l app=igris-worker -o jsonpath='{.items[*].metadata.name}' | tr ' ' '\n' | shuf -n 1)
             kubectl delete pod "$pod" --force --grace-period=0 2>/dev/null || true
 
             # Inject network latency
@@ -269,7 +269,7 @@ chaos_shadow_mode_resilience() {
 
     # Enable shadow mode
     log "Enabling shadow mode..."
-    kubectl set env deployment/schlep-autonomous-controller SHADOW_MODE=true
+    kubectl set env deployment/igris-autonomous-controller SHADOW_MODE=true
 
     # Inject extreme forecasts
     log "Injecting extreme forecasts in shadow mode..."
@@ -287,7 +287,7 @@ chaos_shadow_mode_resilience() {
     local actions=$(curl -s http://localhost:8081/control/recent_decisions | jq '.decisions | length')
 
     # Verify shadow mode logged decisions but didn't execute
-    local shadow_logs=$(kubectl logs deployment/schlep-autonomous-controller | grep -c "SHADOW:" || true)
+    local shadow_logs=$(kubectl logs deployment/igris-autonomous-controller | grep -c "SHADOW:" || true)
 
     if [ $actions -eq 0 ] && [ $shadow_logs -gt 0 ]; then
         log "PASSED: Shadow mode prevented execution while logging decisions"

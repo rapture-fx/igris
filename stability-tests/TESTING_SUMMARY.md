@@ -1,8 +1,8 @@
-# Schlep-Engine Stability Testing - Executive Summary
+# Igris Inertial Stability Testing - Executive Summary
 
 ## Overview
 
-Complete stability testing framework implemented for Schlep-Engine with focus on:
+Complete stability testing framework implemented for Igris Inertial with focus on:
 - **Zero 5xx errors** to customers
 - **FFI boundary stability** (Go ↔ Rust)
 - **Streaming reliability** (SSE)

@@ -1,7 +1,7 @@
 {
-  "name": "schlep-docs-automation",
+  "name": "igris-docs-automation",
   "version": "1.0.0",
-  "description": "Automated documentation extraction and sync for Schlep Engine",
+  "description": "Automated documentation extraction and sync for Igris Inertial",
   "scripts": {
     "extract:metrics": "node extract-metrics.js",
     "extract:config": "node extract-config.js",

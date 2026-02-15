@@ -4,7 +4,7 @@ This directory contains scripts and documentation for training the ONNX-based se
 
 ## Overview
 
-The Schlep-Engine semantic classifier uses a fine-tuned DistilBERT model exported to ONNX format for efficient CPU inference. This replaces the keyword-based classifier with a machine learning model capable of ≥92% accuracy across 8 semantic classes.
+The Igris Inertial semantic classifier uses a fine-tuned DistilBERT model exported to ONNX format for efficient CPU inference. This replaces the keyword-based classifier with a machine learning model capable of ≥92% accuracy across 8 semantic classes.
 
 ## Model Architecture
 
@@ -43,7 +43,7 @@ prompt,label
 ### Data Collection
 
 1. **Synthetic Data**: Use GPT-4 to generate diverse examples
-2. **Production Logs**: Sample from Schlep-Engine classification history
+2. **Production Logs**: Sample from Igris Inertial classification history
 3. **Public Datasets**: HuggingFace datasets for specific tasks
 
 **Target**: 1,000 examples per class (8,000 total)
@@ -202,7 +202,7 @@ print(f"Predicted class: {class_names[predicted_class]}")
 1. **Place Model File**: Copy `semantic_classifier.onnx` to `/internal/semantic/models/`
 2. **Enable ONNX Classifier**: Set environment variable `USE_ONNX_CLASSIFIER=true`
 3. **Shadow Mode**: Run both keyword and ONNX classifiers, compare results
-4. **Monitor Metrics**: Track `schlep_semantic_model_confidence` and `schlep_semantic_model_fallbacks_total`
+4. **Monitor Metrics**: Track `igris_semantic_model_confidence` and `igris_semantic_model_fallbacks_total`
 5. **Gradual Rollout**: Start with 10% traffic, increase to 100% over 7 days
 
 ## Performance Benchmarks

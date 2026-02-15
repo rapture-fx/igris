@@ -1,7 +1,7 @@
 import React, { useMemo } from 'react'
 import { LineChart, Line, XAxis, YAxis, CartesianGrid, Tooltip, Legend, ResponsiveContainer, ReferenceLine } from 'recharts'
 import { TrendingUp, Activity, Settings, Award, Clock } from 'lucide-react'
-import { RLProgress } from '@schlep-engine/types'
+import { RLProgress } from '@igris-inertial/types'
 import { useRLOptimization } from '../hooks'
 import { cn } from '../../styles/utils'
 

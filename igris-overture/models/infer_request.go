@@ -73,7 +73,7 @@ type InferRequest struct {
 	FrequencyPenalty float64  `json:"frequency_penalty,omitempty"`  // Frequency penalty (OpenAI)
 	Stop             []string `json:"stop,omitempty"`               // Stop sequences
 
-	// Routing and optimization (Schlep-engine specific)
+	// Routing and optimization (Igris-engine specific)
 	Policy          *PolicyOverride    `json:"policy,omitempty"`           // Routing policy override
 	EnableCaching   bool               `json:"enable_caching,omitempty"`   // Enable response caching
 	CacheTTL        int                `json:"cache_ttl,omitempty"`        // Cache TTL in seconds
@@ -162,7 +162,7 @@ func (r *InferRequest) GetProvider() (string, string) {
 	if len(r.Model) > 0 {
 		switch {
 		// Mock provider models
-		case len(r.Model) >= 12 && r.Model[:12] == "schlep-mock-":
+		case len(r.Model) >= 12 && r.Model[:12] == "igris-mock-":
 			return "mock-openai", r.Model
 		// OpenAI models
 		case len(r.Model) >= 3 && r.Model[:3] == "gpt":

@@ -1,6 +1,6 @@
 #!/bin/bash
 #
-# Schlep-Engine Automated Rollback Script
+# Igris Inertial Automated Rollback Script
 # Automatically rolls back to the previous stable deployment
 # Trigger conditions: High error rate, complete outage, or manual trigger
 #
@@ -203,7 +203,7 @@ send_notification() {
     if [ -n "${SLACK_WEBHOOK_URL:-}" ]; then
         curl -X POST "${SLACK_WEBHOOK_URL}" \
             -H 'Content-Type: application/json' \
-            -d "{\"text\": \"🚨 Schlep-Engine Rollback ${status}: ${message}\"}" \
+            -d "{\"text\": \"🚨 Igris Inertial Rollback ${status}: ${message}\"}" \
             2>/dev/null || log_warn "Failed to send Slack notification"
     fi
 
@@ -215,7 +215,7 @@ send_notification() {
 
     # Email (example)
     if [ -n "${EMAIL_ALERT_RECIPIENTS:-}" ]; then
-        echo "${message}" | mail -s "Schlep-Engine Rollback ${status}" "${EMAIL_ALERT_RECIPIENTS}" || log_warn "Failed to send email"
+        echo "${message}" | mail -s "Igris Inertial Rollback ${status}" "${EMAIL_ALERT_RECIPIENTS}" || log_warn "Failed to send email"
     fi
 }
 

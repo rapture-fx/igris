@@ -1,6 +1,6 @@
-using SchlepEngine.Types;
+using Igris.Types;
 
-namespace SchlepEngine.API;
+namespace Igris.API;
 
 /// <summary>
 /// Client for data quality operations.
@@ -11,20 +11,20 @@ namespace SchlepEngine.API;
 /// </remarks>
 /// <example>
 /// <code>
-/// var client = new SchlepClient("your-api-key");
+/// var client = new IgrisClient("your-api-key");
 /// var assessment = await client.Quality.AssessQualityAsync("dataset-id", new[] { "completeness", "accuracy" });
 /// Console.WriteLine($"Quality score: {assessment.OverallScore}");
 /// </code>
 /// </example>
 public class QualityClient
 {
-    private readonly SchlepClient _client;
+    private readonly IgrisClient _client;
 
     /// <summary>
     /// Initializes a new instance of the QualityClient class.
     /// </summary>
-    /// <param name="client">The parent SchlepClient instance.</param>
-    internal QualityClient(SchlepClient client)
+    /// <param name="client">The parent IgrisClient instance.</param>
+    internal QualityClient(IgrisClient client)
     {
         _client = client;
     }

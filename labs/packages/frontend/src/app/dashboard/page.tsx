@@ -166,7 +166,7 @@ export default function DashboardPage() {
     return (
       <div className="space-y-8">
         <PageHeader
-          title="Welcome to Schlep-engine"
+          title="Welcome to Igris-engine"
           description="Your Infrastructure for AI companies data intelligence platform"
           showDivider={false}
         />

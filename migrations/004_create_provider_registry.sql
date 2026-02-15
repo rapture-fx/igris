@@ -1,7 +1,7 @@
 -- Migration: 004_create_provider_registry
 -- Description: Universal Provider Registration & Validation Layer (BYOK MVP)
 -- Purpose: Enable users to register, validate, and monitor any AI provider
--- Author: Schlep-Engine Team
+-- Author: Igris Inertial Team
 -- Date: 2025-11-05
 
 -- ============================================================================
@@ -66,7 +66,7 @@ CREATE TABLE IF NOT EXISTS provider_registry (
 
     -- Flags
     is_verified BOOLEAN DEFAULT false,  -- True for pre-seeded verified providers
-    is_official BOOLEAN DEFAULT false,  -- True for Schlep-official providers
+    is_official BOOLEAN DEFAULT false,  -- True for Igris-official providers
 
     -- Audit Trail
     created_at TIMESTAMP WITH TIME ZONE DEFAULT CURRENT_TIMESTAMP,
@@ -179,7 +179,7 @@ VALUES (
     '00000000-0000-0000-0000-000000000000',
     'system',
     'System Tenant',
-    'system@schlep-engine.io',
+    'system@igris-inertial.io',
     'active',
     999999.99  -- Unlimited budget for system providers
 )

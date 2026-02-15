@@ -1,13 +1,13 @@
-//! Integration tests for the Schlep-engine Rust SDK.
+//! Integration tests for the Igris-engine Rust SDK.
 
 use mockito::{Matcher, Server};
 use serde_json::json;
-use schlep_engine::{SchlepClient, Error};
+use igris::{IgrisClient, Error};
 
 #[tokio::test]
 async fn test_upload_success() {
     let mut server = Server::new_async().await;
-    let client = SchlepClient::with_base_url("test-api-key", &server.url()).unwrap();
+    let client = IgrisClient::with_base_url("test-api-key", &server.url()).unwrap();
 
     let _mock = server
         .mock("POST", "/upload")
@@ -36,7 +36,7 @@ async fn test_upload_success() {
 #[tokio::test]
 async fn test_train_pipeline() {
     let mut server = Server::new_async().await;
-    let client = SchlepClient::with_base_url("test-api-key", &server.url()).unwrap();
+    let client = IgrisClient::with_base_url("test-api-key", &server.url()).unwrap();
 
     let _mock = server
         .mock("POST", "/train")
@@ -71,7 +71,7 @@ async fn test_train_pipeline() {
 #[tokio::test]
 async fn test_deploy_returns_endpoint() {
     let mut server = Server::new_async().await;
-    let client = SchlepClient::with_base_url("test-api-key", &server.url()).unwrap();
+    let client = IgrisClient::with_base_url("test-api-key", &server.url()).unwrap();
 
     let _mock = server
         .mock("POST", "/deploy")
@@ -84,7 +84,7 @@ async fn test_deploy_returns_endpoint() {
         .with_header("content-type", "application/json")
         .with_body(json!({
             "deployment_id": "deploy_101",
-            "endpoint_url": "https://api.schlep-engine.com/models/model_789/predict",
+            "endpoint_url": "https://api.igris-inertial.com/models/model_789/predict",
             "status": "deployed",
             "message": "Model deployed successfully"
         }).to_string())
@@ -94,14 +94,14 @@ async fn test_deploy_returns_endpoint() {
     let result = client.deploy("model_789").await.unwrap();
 
     assert_eq!(result.deployment_id, "deploy_101");
-    assert_eq!(result.endpoint_url, "https://api.schlep-engine.com/models/model_789/predict");
+    assert_eq!(result.endpoint_url, "https://api.igris-inertial.com/models/model_789/predict");
     assert_eq!(result.status, "deployed");
 }
 
 #[tokio::test]
 async fn test_status_check() {
     let mut server = Server::new_async().await;
-    let client = SchlepClient::with_base_url("test-api-key", &server.url()).unwrap();
+    let client = IgrisClient::with_base_url("test-api-key", &server.url()).unwrap();
 
     let _mock = server
         .mock("GET", "/status/job_123")
@@ -132,7 +132,7 @@ async fn test_status_check() {
 #[tokio::test]
 async fn test_invalid_api_key() {
     let mut server = Server::new_async().await;
-    let client = SchlepClient::with_base_url("invalid-key", &server.url()).unwrap();
+    let client = IgrisClient::with_base_url("invalid-key", &server.url()).unwrap();
 
     let _mock = server
         .mock("POST", "/upload")
@@ -159,15 +159,15 @@ async fn test_invalid_api_key() {
 
 #[tokio::test]
 async fn test_client_creation_from_env() {
-    std::env::set_var("SCHLEP_API_KEY", "env-api-key");
-    let _client = SchlepClient::from_env().unwrap();
+    std::env::set_var("IGRIS_API_KEY", "env-api-key");
+    let _client = IgrisClient::from_env().unwrap();
     // We can verify the client was created successfully by checking we can create it
     // (the api_key field is private, so we can't directly access it)
 }
 
 #[tokio::test]
 async fn test_client_creation_empty_api_key() {
-    let result = SchlepClient::new("");
+    let result = IgrisClient::new("");
     assert!(result.is_err());
     match result.unwrap_err() {
         Error::Config(msg) => assert!(msg.contains("API key cannot be empty")),
@@ -178,7 +178,7 @@ async fn test_client_creation_empty_api_key() {
 #[tokio::test]
 async fn test_api_error_handling() {
     let mut server = Server::new_async().await;
-    let client = SchlepClient::with_base_url("test-api-key", &server.url()).unwrap();
+    let client = IgrisClient::with_base_url("test-api-key", &server.url()).unwrap();
 
     let _mock = server
         .mock("POST", "/train")

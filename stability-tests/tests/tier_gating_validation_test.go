@@ -101,7 +101,7 @@ func testDeveloperTierLimits(t *testing.T, db *sql.DB, redis *redis.Client, app 
 	t.Run("Enforce 500K Request Limit", func(t *testing.T) {
 		// Simulate 500,000 requests
 		ctx := context.Background()
-		redisKey := fmt.Sprintf("schlep:ratelimit:%s:%s:request_count",
+		redisKey := fmt.Sprintf("igris:ratelimit:%s:%s:request_count",
 			tenantID, time.Now().Format("2006-01"))
 
 		redis.Set(ctx, redisKey, 500000, 30*24*time.Hour)
@@ -162,7 +162,7 @@ func testGrowthTierLimits(t *testing.T, db *sql.DB, redis *redis.Client, app *fi
 
 	t.Run("Enforce 2M Request Limit", func(t *testing.T) {
 		ctx := context.Background()
-		redisKey := fmt.Sprintf("schlep:ratelimit:%s:%s:request_count",
+		redisKey := fmt.Sprintf("igris:ratelimit:%s:%s:request_count",
 			tenantID, time.Now().Format("2006-01"))
 
 		redis.Set(ctx, redisKey, 2000000, 30*24*time.Hour)
@@ -233,7 +233,7 @@ func testScaleTierLimits(t *testing.T, db *sql.DB, redis *redis.Client, app *fib
 	t.Run("Allow Unlimited Requests", func(t *testing.T) {
 		// Simulate 10 million requests
 		ctx := context.Background()
-		redisKey := fmt.Sprintf("schlep:ratelimit:%s:%s:request_count",
+		redisKey := fmt.Sprintf("igris:ratelimit:%s:%s:request_count",
 			tenantID, time.Now().Format("2006-01"))
 
 		redis.Set(ctx, redisKey, 10000000, 30*24*time.Hour)
@@ -279,7 +279,7 @@ func testRequestLimitEnforcement(t *testing.T, db *sql.DB, redis *redis.Client, 
 
 	t.Run("Accurate Request Counting", func(t *testing.T) {
 		ctx := context.Background()
-		redisKey := fmt.Sprintf("schlep:ratelimit:%s:%s:request_count",
+		redisKey := fmt.Sprintf("igris:ratelimit:%s:%s:request_count",
 			tenantID, time.Now().Format("2006-01"))
 
 		// Start at 0
@@ -300,7 +300,7 @@ func testRequestLimitEnforcement(t *testing.T, db *sql.DB, redis *redis.Client, 
 
 	t.Run("Monthly TTL Expiry", func(t *testing.T) {
 		ctx := context.Background()
-		redisKey := fmt.Sprintf("schlep:ratelimit:%s:%s:request_count",
+		redisKey := fmt.Sprintf("igris:ratelimit:%s:%s:request_count",
 			tenantID, time.Now().Format("2006-01"))
 
 		// Make a request to create counter
@@ -429,7 +429,7 @@ func testSoftLimitWarnings(t *testing.T, db *sql.DB, redis *redis.Client, app *f
 
 	t.Run("Issue Warning at 80% Request Limit", func(t *testing.T) {
 		ctx := context.Background()
-		redisKey := fmt.Sprintf("schlep:ratelimit:%s:%s:request_count",
+		redisKey := fmt.Sprintf("igris:ratelimit:%s:%s:request_count",
 			tenantID, time.Now().Format("2006-01"))
 
 		// Set to 80% of 500K limit (400,000)
@@ -526,7 +526,7 @@ func testRedisRequestCounterAccuracy(t *testing.T, db *sql.DB, redis *redis.Clie
 
 	t.Run("Atomic Increment Under Concurrency", func(t *testing.T) {
 		ctx := context.Background()
-		redisKey := fmt.Sprintf("schlep:ratelimit:%s:%s:request_count",
+		redisKey := fmt.Sprintf("igris:ratelimit:%s:%s:request_count",
 			tenantID, time.Now().Format("2006-01"))
 
 		redis.Del(ctx, redisKey)
@@ -564,7 +564,7 @@ func testHighLoadRequestCounting(t *testing.T, db *sql.DB, redis *redis.Client, 
 
 	t.Run("Handle 1000 RPS Request Counting", func(t *testing.T) {
 		ctx := context.Background()
-		redisKey := fmt.Sprintf("schlep:ratelimit:%s:%s:request_count",
+		redisKey := fmt.Sprintf("igris:ratelimit:%s:%s:request_count",
 			tenantID, time.Now().Format("2006-01"))
 
 		redis.Del(ctx, redisKey)
@@ -608,7 +608,7 @@ func testHighLoadRequestCounting(t *testing.T, db *sql.DB, redis *redis.Client, 
 
 func setupTestEnvironment(t *testing.T) (*sql.DB, *redis.Client, *fiber.App) {
 	// Setup test database
-	db, err := sql.Open("postgres", "postgres://localhost/schlep_test?sslmode=disable")
+	db, err := sql.Open("postgres", "postgres://localhost/igris_test?sslmode=disable")
 	require.NoError(t, err)
 
 	// Setup test Redis

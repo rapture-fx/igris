@@ -25,13 +25,13 @@ import gc
 import tracemalloc
 
 try:
-    from schlep_engine_sdk import SchlepEngineClient
-    from schlep_engine_sdk.auth import AuthManager
-    from schlep_engine_sdk.data_processing import DataProcessor
-    from schlep_engine_sdk.streaming import WebSocketManager
+    from igris_sdk import IgrisClient
+    from igris_sdk.auth import AuthManager
+    from igris_sdk.data_processing import DataProcessor
+    from igris_sdk.streaming import WebSocketManager
 except ImportError:
     # Mock imports for testing
-    class SchlepEngineClient:
+    class IgrisClient:
         def __init__(self, *args, **kwargs):
             pass
     
@@ -94,7 +94,7 @@ def performance_suite():
 @pytest.fixture
 def mock_client():
     """Create mock client for performance testing"""
-    with patch('schlep_engine_sdk.SchlepEngineClient') as mock:
+    with patch('igris_sdk.IgrisClient') as mock:
         client = Mock()
         
         # Mock authentication

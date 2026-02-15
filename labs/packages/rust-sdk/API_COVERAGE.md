@@ -1,21 +1,21 @@
-# Schlep-engine Rust SDK - Complete API Coverage
+# Igris-engine Rust SDK - Complete API Coverage
 
 This document outlines the comprehensive API implementation that brings the Rust SDK to feature parity with the Python, Go, Ruby, Java, and JavaScript SDKs.
 
 ## Overview
 
-The Rust SDK now provides complete coverage of all Schlep-engine API endpoints through 9 specialized API client modules, matching the comprehensive functionality available in other SDK languages.
+The Rust SDK now provides complete coverage of all Igris-engine API endpoints through 9 specialized API client modules, matching the comprehensive functionality available in other SDK languages.
 
 ## Architecture
 
-The SDK is organized using the builder pattern with specialized API clients accessible through the main `SchlepClient`:
+The SDK is organized using the builder pattern with specialized API clients accessible through the main `IgrisClient`:
 
 ```rust
-use igris_overture::{SchlepClient, Result};
+use igris_overture::{IgrisClient, Result};
 
 #[tokio::main]
 async fn main() -> Result<()> {
-    let client = SchlepClient::new("your-api-key")?;
+    let client = IgrisClient::new("your-api-key")?;
 
     // Access specialized API clients
     client.data()       // Data Processing API
@@ -304,7 +304,7 @@ The SDK includes comprehensive type definitions for all API responses:
 
 ## Helper Methods
 
-The main `SchlepClient` includes helper methods used internally by API modules:
+The main `IgrisClient` includes helper methods used internally by API modules:
 
 - `get<T>(path: &str)` - HTTP GET request
 - `post<T>(path: &str, body: Value)` - HTTP POST request
@@ -381,7 +381,7 @@ $ cargo check
 
 ## Summary
 
-The Rust SDK now provides complete, production-ready access to all Schlep-engine APIs with:
+The Rust SDK now provides complete, production-ready access to all Igris-engine APIs with:
 
 - **9 API client modules** covering all platform capabilities
 - **40+ response types** with full type safety
@@ -390,4 +390,4 @@ The Rust SDK now provides complete, production-ready access to all Schlep-engine
 - **Clean compilation** with no warnings
 - **Full feature parity** with all other SDK languages
 
-This implementation establishes the Rust SDK as a first-class citizen in the Schlep-engine SDK ecosystem.
+This implementation establishes the Rust SDK as a first-class citizen in the Igris-engine SDK ecosystem.

@@ -2,7 +2,7 @@ import React, { useState } from 'react'
 import { Bell, X, CheckCircle, AlertTriangle, Info, AlertCircle, ExternalLink, Clock } from 'lucide-react'
 import * as Dialog from '@radix-ui/react-dialog'
 import * as DropdownMenu from '@radix-ui/react-dropdown-menu'
-import { NotificationData } from '@schlep-engine/types'
+import { NotificationData } from '@igris-inertial/types'
 import { useNotifications, useConnectionStatus } from '../hooks'
 import { cn } from '../../styles/utils'
 

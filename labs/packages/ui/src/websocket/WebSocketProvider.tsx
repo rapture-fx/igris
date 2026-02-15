@@ -7,7 +7,7 @@ import {
   WebSocketOptions,
   WebSocketContextValue,
   QueuedMessage
-} from '@schlep-engine/types'
+} from '@igris-inertial/types'
 
 const WebSocketContext = createContext<WebSocketContextValue | null>(null)
 

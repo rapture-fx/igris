@@ -1,10 +1,10 @@
-# Schlep-engine Java SDK
+# Igris-engine Java SDK
 
 **Status:** 🚧 In Development - Planned for Future Release
 
 ## Overview
 
-The Schlep-engine Java SDK is currently under development and not yet ready for production use.
+The Igris-engine Java SDK is currently under development and not yet ready for production use.
 
 ## Planned Features
 
@@ -21,8 +21,8 @@ The Schlep-engine Java SDK is currently under development and not yet ready for 
 
 ```xml
 <dependency>
-    <groupId>com.schlepengine</groupId>
-    <artifactId>schlep-java-sdk</artifactId>
+    <groupId>com.igris</groupId>
+    <artifactId>igris-java-sdk</artifactId>
     <version>1.0.0</version>
 </dependency>
 ```
@@ -30,20 +30,20 @@ The Schlep-engine Java SDK is currently under development and not yet ready for 
 ### Gradle
 
 ```gradle
-implementation 'com.schlepengine:schlep-java-sdk:1.0.0'
+implementation 'com.igris:igris-java-sdk:1.0.0'
 ```
 
 ## Planned Usage
 
 ```java
-import com.schlepengine.Schlep;
-import com.schlepengine.models.InferRequest;
-import com.schlepengine.models.InferResponse;
-import com.schlepengine.models.Message;
+import com.igris.Igris;
+import com.igris.models.InferRequest;
+import com.igris.models.InferResponse;
+import com.igris.models.Message;
 
 public class Example {
     public static void main(String[] args) {
-        Schlep client = Schlep.builder()
+        Igris client = Igris.builder()
             .baseUrl("http://localhost:8081")
             .apiKey("your-api-key")
             .build();
@@ -89,4 +89,4 @@ For questions or to express interest in early access:
 
 ---
 
-**Schlep-engine** - Intelligent AI Routing and Cost Optimization
+**Igris-engine** - Intelligent AI Routing and Cost Optimization

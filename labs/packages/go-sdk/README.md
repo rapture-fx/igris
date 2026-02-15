@@ -1,11 +1,11 @@
-# Schlep-engine Go SDK
+# Igris-engine Go SDK
 
 [![Go Version](https://img.shields.io/badge/Go-1.21+-blue.svg)](https://golang.org)
 [![License](https://img.shields.io/badge/License-MIT-green.svg)](LICENSE)
 [![Go Reference](https://pkg.go.dev/badge/github.com/igris-inertial/go-sdk.svg)](https://pkg.go.dev/github.com/igris-inertial/go-sdk)
 [![Go Report Card](https://goreportcard.com/badge/github.com/igris-inertial/go-sdk)](https://goreportcard.com/report/github.com/igris-inertial/go-sdk)
 
-The official Go SDK for [Schlep-engine](https://igris-inertial.com) - a comprehensive cloud-native data processing and ML platform. This SDK is designed specifically for cloud-native applications and microservices, providing robust observability, resilience patterns, and enterprise-grade features.
+The official Go SDK for [Igris-engine](https://igris-inertial.com) - a comprehensive cloud-native data processing and ML platform. This SDK is designed specifically for cloud-native applications and microservices, providing robust observability, resilience patterns, and enterprise-grade features.
 
 ## 🚀 Features
 
@@ -52,11 +52,11 @@ func main() {
     }
 
     // Create client
-    schlepClient, err := client.NewClient(cfg)
+    igrisClient, err := client.NewClient(cfg)
     if err != nil {
         log.Fatal(err)
     }
-    defer schlepClient.Close()
+    defer igrisClient.Close()
 
     // Create a data investigation
     investigation := &models.DataInvestigationCreate{
@@ -67,7 +67,7 @@ func main() {
     }
 
     ctx := context.Background()
-    result, err := schlepClient.Data.CreateDataInvestigation(ctx, investigation)
+    result, err := igrisClient.Data.CreateDataInvestigation(ctx, investigation)
     if err != nil {
         log.Fatal(err)
     }
@@ -90,19 +90,19 @@ The SDK can be configured through multiple methods:
 
 ```bash
 # Authentication
-export SCHLEP_API_KEY="your-api-key"
+export IGRIS_API_KEY="your-api-key"
 
 # Connection
-export SCHLEP_BASE_URL="https://api.igris-inertial.com"
-export SCHLEP_TIMEOUT_SECONDS="60"
+export IGRIS_BASE_URL="https://api.igris-inertial.com"
+export IGRIS_TIMEOUT_SECONDS="60"
 
 # Retry & Circuit Breaker
-export SCHLEP_MAX_RETRIES="5"
-export SCHLEP_CIRCUIT_BREAKER_ENABLED="true"
+export IGRIS_MAX_RETRIES="5"
+export IGRIS_CIRCUIT_BREAKER_ENABLED="true"
 
 # Observability
-export SCHLEP_ENABLE_METRICS="true"
-export SCHLEP_ENABLE_TRACING="true"
+export IGRIS_ENABLE_METRICS="true"
+export IGRIS_ENABLE_TRACING="true"
 export LOG_LEVEL="info"
 export SERVICE_NAME="my-service"
 ```
@@ -147,7 +147,7 @@ The SDK provides several specialized clients:
 
 ```go
 // Process a file
-result, err := schlepClient.Data.ProcessFile(ctx, &models.ProcessFileRequest{
+result, err := igrisClient.Data.ProcessFile(ctx, &models.ProcessFileRequest{
     FileURL:      "https://example.com/data.csv",
     DataFormat:   models.DataFormatCSV,
     OutputFormat: models.DataFormatJSON,
@@ -155,48 +155,48 @@ result, err := schlepClient.Data.ProcessFile(ctx, &models.ProcessFileRequest{
 })
 
 // Create data investigation
-investigation, err := schlepClient.Data.CreateDataInvestigation(ctx, &models.DataInvestigationCreate{
+investigation, err := igrisClient.Data.CreateDataInvestigation(ctx, &models.DataInvestigationCreate{
     WorkspaceID:    workspaceID,
     Name:          "Analysis",
     Description:   stringPtr("Customer data analysis"),
 })
 
 // Get investigation status
-status, err := schlepClient.Data.GetDataInvestigation(ctx, investigation.ID.String())
+status, err := igrisClient.Data.GetDataInvestigation(ctx, investigation.ID.String())
 ```
 
 #### ML Pipeline Client
 
 ```go
 // Create ML pipeline
-pipeline, err := schlepClient.ML.CreatePipeline(ctx, &models.MLPipeline{
+pipeline, err := igrisClient.ML.CreatePipeline(ctx, &models.MLPipeline{
     Name:        "Customer Churn Prediction",
     Type:        models.ModelTypeClassification,
     Framework:   models.MLFrameworkScikit,
 })
 
 // Train model
-trainingJob, err := schlepClient.ML.TrainModel(ctx, &models.TrainingRequest{
+trainingJob, err := igrisClient.ML.TrainModel(ctx, &models.TrainingRequest{
     PipelineID:     pipeline.ID,
     DatasetID:      datasetID,
     TargetColumn:   "churn",
 })
 
 // Get training status
-status, err := schlepClient.ML.GetTrainingJob(ctx, trainingJob.JobID)
+status, err := igrisClient.ML.GetTrainingJob(ctx, trainingJob.JobID)
 ```
 
 #### Storage Client
 
 ```go
 // Upload file
-upload, err := schlepClient.Storage.UploadFile(ctx, file, "data.csv", nil)
+upload, err := igrisClient.Storage.UploadFile(ctx, file, "data.csv", nil)
 
 // Download file
-data, err := schlepClient.Storage.DownloadFile(ctx, fileID)
+data, err := igrisClient.Storage.DownloadFile(ctx, fileID)
 
 // List files
-files, err := schlepClient.Storage.ListFiles(ctx, &models.ListOptions{
+files, err := igrisClient.Storage.ListFiles(ctx, &models.ListOptions{
     Page:    1,
     PerPage: 50,
 })
@@ -208,22 +208,22 @@ The SDK supports WebSocket streaming for real-time events:
 
 ```go
 // Connect to streaming
-err := schlepClient.Streaming.ConnectWithReconnect(ctx)
+err := igrisClient.Streaming.ConnectWithReconnect(ctx)
 if err != nil {
     log.Fatal(err)
 }
 
 // Subscribe to channels
-err = schlepClient.Streaming.Subscribe(ctx, "data.processing")
-err = schlepClient.Streaming.Subscribe(ctx, "jobs.status")
+err = igrisClient.Streaming.Subscribe(ctx, "data.processing")
+err = igrisClient.Streaming.Subscribe(ctx, "jobs.status")
 
 // Register event handlers
-schlepClient.Streaming.On(models.EventTypeJobCompleted, func(event *models.Event) error {
+igrisClient.Streaming.On(models.EventTypeJobCompleted, func(event *models.Event) error {
     log.Printf("Job %s completed", event.JobID)
     return nil
 })
 
-schlepClient.Streaming.On(models.EventTypeJobFailed, func(event *models.Event) error {
+igrisClient.Streaming.On(models.EventTypeJobFailed, func(event *models.Event) error {
     log.Printf("Job %s failed", event.JobID)
     return nil
 })
@@ -235,16 +235,16 @@ Perfect for Kubernetes deployments:
 
 ```go
 // Add custom health checks
-schlepClient.AddHealthCheck("database", func() error {
+igrisClient.AddHealthCheck("database", func() error {
     return checkDatabaseConnection()
 })
 
-schlepClient.AddHealthCheck("external_service", func() error {
+igrisClient.AddHealthCheck("external_service", func() error {
     return checkExternalService()
 })
 
 // Use with HTTP server
-http.HandleFunc("/health", schlepClient.HealthCheck)
+http.HandleFunc("/health", igrisClient.HealthCheck)
 http.HandleFunc("/health/live", func(w http.ResponseWriter, r *http.Request) {
     // Liveness probe - is the service alive?
     w.WriteHeader(http.StatusOK)
@@ -262,7 +262,7 @@ http.HandleFunc("/health/live", func(w http.ResponseWriter, r *http.Request) {
 http.Handle("/metrics", promhttp.Handler())
 
 // Custom metrics
-schlepClient.GetMetrics().RecordCustomMetric(
+igrisClient.GetMetrics().RecordCustomMetric(
     ctx,
     "business_events_total",
     1,
@@ -277,7 +277,7 @@ schlepClient.GetMetrics().RecordCustomMetric(
 ```go
 // Tracing is automatically integrated
 // Just use contexts properly
-ctx, span := schlepClient.GetTracer().StartSpan(ctx, "business_operation")
+ctx, span := igrisClient.GetTracer().StartSpan(ctx, "business_operation")
 defer span.End()
 
 // Add attributes
@@ -287,14 +287,14 @@ span.SetAttributes(
 )
 
 // Child operations will automatically inherit the trace
-result, err := schlepClient.Data.ProcessFile(ctx, request)
+result, err := igrisClient.Data.ProcessFile(ctx, request)
 ```
 
 #### Structured Logging
 
 ```go
 // Get logger with context
-logger := schlepClient.GetLogger()
+logger := igrisClient.GetLogger()
 
 // Log with fields
 logger.WithFields(map[string]interface{}{
@@ -329,12 +329,12 @@ spec:
       containers:
       - name: app
         env:
-        - name: SCHLEP_API_KEY
+        - name: IGRIS_API_KEY
           valueFrom:
             secretKeyRef:
-              name: schlep-secret
+              name: igris-secret
               key: api-key
-        - name: SCHLEP_ENABLE_METRICS
+        - name: IGRIS_ENABLE_METRICS
           value: "true"
         - name: SERVICE_NAME
           value: "my-app"
@@ -395,7 +395,7 @@ ENTRYPOINT ["/main"]
 
 See the complete microservice example in [`examples/microservice/`](examples/microservice/) which demonstrates:
 
-- HTTP API server with Schlep-engine integration
+- HTTP API server with Igris-engine integration
 - Health checks for Kubernetes probes
 - Prometheus metrics exposure
 - Graceful shutdown
@@ -524,11 +524,11 @@ Store your API key securely:
 
 ```bash
 # Kubernetes Secret
-kubectl create secret generic schlep-secret \
+kubectl create secret generic igris-secret \
   --from-literal=api-key="your-api-key"
 
 # Environment variable
-export SCHLEP_API_KEY="your-api-key"
+export IGRIS_API_KEY="your-api-key"
 ```
 
 ## 🐛 Error Handling
@@ -626,7 +626,7 @@ This project is licensed under the MIT License - see the [LICENSE](LICENSE) file
 
 ## 🙏 Acknowledgments
 
-Built with ❤️ by the Schlep-engine team for the Go community.
+Built with ❤️ by the Igris-engine team for the Go community.
 
 ---
 

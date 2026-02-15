@@ -1,4 +1,4 @@
-# @schlep/pricing-config
+# @igris/pricing-config
 
 Canonical pricing configuration package for Igris Overture's inference orchestration platform.
 
@@ -16,7 +16,7 @@ This package provides a single source of truth for pricing tiers, quotas, and bi
 ## Installation
 
 ```bash
-pnpm add @schlep/pricing-config
+pnpm add @igris/pricing-config
 ```
 
 ## Usage
@@ -24,7 +24,7 @@ pnpm add @schlep/pricing-config
 ### Import Pricing Data
 
 ```typescript
-import { pricing, calculateMonthlyBill, getRecommendedTier } from '@schlep/pricing-config';
+import { pricing, calculateMonthlyBill, getRecommendedTier } from '@igris/pricing-config';
 
 // Access tier information
 console.log(pricing.tiers.professional.base_price_monthly); // 299
@@ -36,7 +36,7 @@ console.log(pricing.tiers.enterprise.features);
 ### Calculate Monthly Costs
 
 ```typescript
-import { calculateMonthlyBill } from '@schlep/pricing-config';
+import { calculateMonthlyBill } from '@igris/pricing-config';
 
 // Calculate bill for Professional tier with usage
 const cost = calculateMonthlyBill(
@@ -54,7 +54,7 @@ console.log(`Monthly cost: $${cost}`); // $449 (base $299 + $150 overage)
 ### Get Tier Recommendations
 
 ```typescript
-import { getRecommendedTier } from '@schlep/pricing-config';
+import { getRecommendedTier } from '@igris/pricing-config';
 
 const recommended = getRecommendedTier(
   10000000,  // 10M CPU inferences

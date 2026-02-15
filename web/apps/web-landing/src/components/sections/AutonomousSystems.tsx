@@ -24,7 +24,8 @@ export default function AutonomousSystems() {
           {/* Title */}
           <div className="flex flex-col md:flex-row md:items-start md:justify-between gap-4 md:gap-8" style={{ paddingTop: '3rem', paddingBottom: '2rem' }}>
             <h2 className="text-xl md:text-2xl lg:text-3xl text-[#000000] dark:text-[#f6f6f4]" style={{ fontFamily }}>
-              One System. Two Environments.
+              One System.<br />
+              Two Environments.
             </h2>
             <p className="text-sm md:text-base text-gray-600 dark:text-[#a8a898] max-w-md" style={{ fontFamily }}>
               The same nervous system governs AI execution—whether your system thinks in code or moves in space.

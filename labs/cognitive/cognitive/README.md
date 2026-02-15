@@ -141,9 +141,9 @@ ReasonerConfig {
 ## Usage Example
 
 ```rust
-use schlep_kernel::cognitive::{PolicyReasoner, ReasonerConfig};
-use schlep_kernel::rl::rl_agent::AgentDecision;
-use schlep_kernel::orchestration::policy_engine::{TelemetrySnapshot, PolicyUpdate};
+use igris_kernel::cognitive::{PolicyReasoner, ReasonerConfig};
+use igris_kernel::rl::rl_agent::AgentDecision;
+use igris_kernel::orchestration::policy_engine::{TelemetrySnapshot, PolicyUpdate};
 
 // Create reasoner
 let config = ReasonerConfig::default();

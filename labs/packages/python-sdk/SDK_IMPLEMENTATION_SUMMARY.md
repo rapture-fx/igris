@@ -1,20 +1,20 @@
-# Schlep-engine Python SDK Implementation Summary
+# Igris-engine Python SDK Implementation Summary
 
 ## Overview
 
-A comprehensive Python SDK has been successfully implemented for **Schlep-engine** with full API coverage, modern async/await support, and production-ready features.
+A comprehensive Python SDK has been successfully implemented for **Igris-engine** with full API coverage, modern async/await support, and production-ready features.
 
 ## ✅ Completed Features
 
 ### 1. **Package Structure & Branding**
 - ✅ Proper Python package structure in `/packages/python-sdk/`
-- ✅ Consistent "Schlep-engine" branding throughout all files
+- ✅ Consistent "Igris-engine" branding throughout all files
 - ✅ Professional package metadata and configuration
 - ✅ MIT license and comprehensive README
 
 ### 2. **Core Client Implementation**
-- ✅ `SchlepEngineClient` - Main async client class
-- ✅ `SchlepEngineClientSync` - Synchronous wrapper for compatibility
+- ✅ `IgrisClient` - Main async client class
+- ✅ `IgrisClientSync` - Synchronous wrapper for compatibility
 - ✅ Context manager support for automatic resource cleanup
 - ✅ Configurable base URL, timeout, and retry settings
 
@@ -113,7 +113,7 @@ Based on the FastAPI backend routes, implemented all major endpoints:
 ```
 /packages/python-sdk/
 ├── igris_overture/                 # Main package
-│   ├── __init__.py               # Package init with Schlep-engine branding
+│   ├── __init__.py               # Package init with Igris-engine branding
 │   ├── py.typed                  # Type annotations marker
 │   ├── api/                      # API endpoint implementations
 │   │   ├── auth.py              # Authentication API
@@ -130,7 +130,7 @@ Based on the FastAPI backend routes, implemented all major endpoints:
 │   │   ├── manager.py           # Auth manager
 │   │   └── token_storage.py     # Secure token storage
 │   ├── client/                   # Main client classes
-│   │   └── main.py              # SchlepEngineClient
+│   │   └── main.py              # IgrisClient
 │   ├── exceptions/               # Error handling
 │   │   └── base.py              # Exception hierarchy
 │   ├── models/                   # Data models
@@ -155,14 +155,14 @@ Based on the FastAPI backend routes, implemented all major endpoints:
 
 ### Async/Await Support
 ```python
-async with SchlepEngineClient(api_key="your-key") as client:
+async with IgrisClient(api_key="your-key") as client:
     result = await client.data.process_file("data.csv")
     models = await client.ml.list_models()
 ```
 
 ### Synchronous Compatibility
 ```python
-client = SchlepEngineClientSync(api_key="your-key")
+client = IgrisClientSync(api_key="your-key")
 result = client.data.process_file("data.csv")
 ```
 
@@ -235,7 +235,7 @@ pip install -e .  # Development install
 
 ✅ **Package Structure**: Complete Python package in `/packages/python-sdk/`  
 ✅ **Installation**: Configured for `pip install igris-inertial`  
-✅ **Company Branding**: "Schlep-engine" used consistently throughout  
+✅ **Company Branding**: "Igris-engine" used consistently throughout  
 ✅ **Authentication**: API key and JWT token support  
 ✅ **API Coverage**: All FastAPI endpoints implemented  
 ✅ **Type Hints**: Full type safety throughout  
@@ -253,6 +253,6 @@ This SDK is **production-ready** and provides:
 - Secure authentication and token management
 - Comprehensive type safety and documentation
 - Easy installation and usage
-- Proper Schlep-engine branding throughout
+- Proper Igris-engine branding throughout
 
-The SDK is now ready for users to integrate Schlep-engine's powerful data processing, machine learning, and analytics capabilities into their Python applications.
+The SDK is now ready for users to integrate Igris-engine's powerful data processing, machine learning, and analytics capabilities into their Python applications.

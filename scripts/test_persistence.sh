@@ -1,7 +1,7 @@
 #!/bin/bash
 
 # ============================================================================
-# Schlep-Engine Phase 13: Persistence Testing Script
+# Igris Inertial Phase 13: Persistence Testing Script
 # ============================================================================
 # This script validates database persistence and backward compatibility
 
@@ -18,7 +18,7 @@ BLUE='\033[0;34m'
 NC='\033[0m' # No Color
 
 echo -e "${BLUE}╔════════════════════════════════════════════════════════════════╗${NC}"
-echo -e "${BLUE}║     Schlep-Engine Phase 13 Persistence Test Suite             ║${NC}"
+echo -e "${BLUE}║     Igris Inertial Phase 13 Persistence Test Suite             ║${NC}"
 echo -e "${BLUE}╔════════════════════════════════════════════════════════════════╗${NC}"
 echo ""
 
@@ -61,7 +61,7 @@ echo -e "${YELLOW}[Test 2] Database Connection${NC}"
 if [ -z "$DATABASE_URL" ] && [ -z "$POSTGRES_URL" ]; then
     echo -e "${YELLOW}⚠ DATABASE_URL not set - skipping database tests${NC}"
     echo "To run full test suite, set DATABASE_URL:"
-    echo "  export DATABASE_URL='postgres://user:pass@localhost:5432/schlep_test?sslmode=disable'"
+    echo "  export DATABASE_URL='postgres://user:pass@localhost:5432/igris_test?sslmode=disable'"
     echo ""
     echo -e "${BLUE}Summary: Backward compatibility tests PASSED${NC}"
     echo -e "${YELLOW}Database tests SKIPPED (no DATABASE_URL)${NC}"

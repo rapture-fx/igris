@@ -14,21 +14,21 @@ var (
 	// Redis pool metrics
 	redisPoolActiveConnections = promauto.NewGauge(
 		prometheus.GaugeOpts{
-			Name: "schlep_redis_pool_active_connections",
+			Name: "igris_redis_pool_active_connections",
 			Help: "Number of active Redis pool connections",
 		},
 	)
 
 	redisPoolIdleConnections = promauto.NewGauge(
 		prometheus.GaugeOpts{
-			Name: "schlep_redis_pool_idle_connections",
+			Name: "igris_redis_pool_idle_connections",
 			Help: "Number of idle Redis pool connections",
 		},
 	)
 
 	redisLatencyMs = promauto.NewHistogramVec(
 		prometheus.HistogramOpts{
-			Name:    "schlep_redis_latency_ms",
+			Name:    "igris_redis_latency_ms",
 			Help:    "Redis operation latency in milliseconds",
 			Buckets: []float64{0.1, 0.5, 1, 2, 5, 10, 25, 50, 100},
 		},

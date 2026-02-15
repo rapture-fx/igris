@@ -46,9 +46,9 @@ export function AuthLayout({ children, title, subtitle, showBackButton = true }:
         <div className="max-w-7xl mx-auto flex items-center justify-between">
           {/* Logo */}
           <Link href="/" className="flex items-center space-x-3 group">
-            <Logo width={48} height={48} alt="Schlep-engine Logo" className="group-hover:scale-105 transition-all duration-300" />
+            <Logo width={48} height={48} alt="Igris-engine Logo" className="group-hover:scale-105 transition-all duration-300" />
             <span className="text-2xl font-bold text-gray-900 group-hover:text-blue-600 transition-colors">
-              Schlep-engine
+              Igris-engine
             </span>
           </Link>
 

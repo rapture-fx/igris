@@ -1,7 +1,7 @@
 import React from 'react'
 import * as Progress from '@radix-ui/react-progress'
 import { CheckCircle, XCircle, Clock, AlertCircle, Loader2 } from 'lucide-react'
-import { ProgressTrackingConfig } from '@schlep-engine/types'
+import { ProgressTrackingConfig } from '@igris-inertial/types'
 import { useProgress } from '../hooks'
 import { cn } from '../../styles/utils'
 

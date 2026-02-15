@@ -1,4 +1,4 @@
-# Schlep-Engine Database Backup & Restore
+# Igris Inertial Database Backup & Restore
 
 Automated PostgreSQL backup and restore scripts with S3 integration and notification support.
 
@@ -77,7 +77,7 @@ RETENTION_DAYS=14 ./backup.sh
 crontab -e
 
 # Daily backup at 2 AM
-0 2 * * * /opt/igris-inertial/ops/backups/backup.sh >> /var/log/schlep-backup.log 2>&1
+0 2 * * * /opt/igris-inertial/ops/backups/backup.sh >> /var/log/igris-backup.log 2>&1
 ```
 
 ### Docker Cron Container
@@ -99,10 +99,10 @@ services:
       - POSTGRES_HOST=postgres
       - POSTGRES_PORT=5432
       - POSTGRES_DB=igris_overture
-      - POSTGRES_USER=schlep_user
+      - POSTGRES_USER=igris_user
       - POSTGRES_PASSWORD=changeme
     networks:
-      - schlep-network
+      - igris-network
 ```
 
 ---
@@ -118,7 +118,7 @@ services:
 | `POSTGRES_HOST` | `localhost` | Database host |
 | `POSTGRES_PORT` | `5432` | Database port |
 | `POSTGRES_DB` | `igris_overture` | Database name |
-| `POSTGRES_USER` | `schlep_user` | Database user |
+| `POSTGRES_USER` | `igris_user` | Database user |
 | `POSTGRES_PASSWORD` | `changeme` | Database password |
 | `S3_BACKUP_ENABLED` | `false` | Enable S3 upload |
 | `S3_BUCKET` | `igris-inertial-backups` | S3 bucket name |
@@ -266,7 +266,7 @@ S3_BACKUP_ENABLED=true ./restore.sh igris_overture_backup_20251026_143000.sql.gz
 
 ```bash
 # View backup logs
-tail -f /var/log/schlep-backup.log
+tail -f /var/log/igris-backup.log
 
 # Check last backup
 ls -lht ./data/ | head -n 5
@@ -397,7 +397,7 @@ gzip -t ./data/igris_overture_backup_*.sql.gz
 
 For issues or questions:
 - **Documentation**: `/docs_int/reports/phase4_task_4.5.1_database_backups_complete.md`
-- **Logs**: `/var/log/schlep-backup.log`
+- **Logs**: `/var/log/igris-backup.log`
 - **Monitoring**: Grafana dashboard "Database Backups"
 
 ---

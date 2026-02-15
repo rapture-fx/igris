@@ -26,21 +26,21 @@ func TestDefaultConfig(t *testing.T) {
 
 func TestLoadConfigFromEnv(t *testing.T) {
 	// Set environment variables
-	os.Setenv("SCHLEP_API_KEY", "test-api-key")
-	os.Setenv("SCHLEP_BASE_URL", "https://test.api.com")
-	os.Setenv("SCHLEP_TIMEOUT", "60s")
-	os.Setenv("SCHLEP_MAX_RETRIES", "5")
-	os.Setenv("SCHLEP_ENABLE_METRICS", "false")
-	os.Setenv("SCHLEP_LOG_LEVEL", "debug")
+	os.Setenv("IGRIS_API_KEY", "test-api-key")
+	os.Setenv("IGRIS_BASE_URL", "https://test.api.com")
+	os.Setenv("IGRIS_TIMEOUT", "60s")
+	os.Setenv("IGRIS_MAX_RETRIES", "5")
+	os.Setenv("IGRIS_ENABLE_METRICS", "false")
+	os.Setenv("IGRIS_LOG_LEVEL", "debug")
 	
 	defer func() {
 		// Cleanup
-		os.Unsetenv("SCHLEP_API_KEY")
-		os.Unsetenv("SCHLEP_BASE_URL")
-		os.Unsetenv("SCHLEP_TIMEOUT")
-		os.Unsetenv("SCHLEP_MAX_RETRIES")
-		os.Unsetenv("SCHLEP_ENABLE_METRICS")
-		os.Unsetenv("SCHLEP_LOG_LEVEL")
+		os.Unsetenv("IGRIS_API_KEY")
+		os.Unsetenv("IGRIS_BASE_URL")
+		os.Unsetenv("IGRIS_TIMEOUT")
+		os.Unsetenv("IGRIS_MAX_RETRIES")
+		os.Unsetenv("IGRIS_ENABLE_METRICS")
+		os.Unsetenv("IGRIS_LOG_LEVEL")
 	}()
 	
 	cfg, err := config.LoadConfig()
@@ -129,9 +129,9 @@ func TestConfigValidation(t *testing.T) {
 func TestGetSDKInfo(t *testing.T) {
 	info := config.GetSDKInfo()
 	
-	assert.Equal(t, "Schlep-engine Go SDK", info["name"])
+	assert.Equal(t, "Igris-engine Go SDK", info["name"])
 	assert.Equal(t, "1.0.0", info["version"])
-	assert.Equal(t, "Schlep-engine", info["company"])
+	assert.Equal(t, "Igris-engine", info["company"])
 	assert.Contains(t, info["description"], "Go SDK")
 	assert.Contains(t, info["documentation"], "docs.igris-inertial.com")
 	

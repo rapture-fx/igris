@@ -5,7 +5,7 @@ package orchestration;
 import "google/protobuf/timestamp.proto";
 import "google/protobuf/struct.proto";
 
-option go_package = "github.com/schlep-engine/schlep-engine/proto/orchestration";
+option go_package = "github.com/igris-inertial/igris-inertial/proto/orchestration";
 
 // ============================================================================
 // Core Routing Policy Schema

@@ -6,13 +6,13 @@
 
 ## Overview
 
-Successfully activated and productionized the Schlep-engine Go SDK, creating a clean, idiomatic implementation aligned with Python and JavaScript SDK standards.
+Successfully activated and productionized the Igris-engine Go SDK, creating a clean, idiomatic implementation aligned with Python and JavaScript SDK standards.
 
 ## Implementation Details
 
 ### Module Information
 - **Module:** `github.com/igris-inertial/sdk-go`
-- **Package:** `schlep`
+- **Package:** `igris`
 - **Version:** `v1.0.0-rc1`
 - **Go Version:** 1.21+
 - **License:** MIT
@@ -71,7 +71,7 @@ Successfully activated and productionized the Schlep-engine Go SDK, creating a c
 ├── go.sum                  # Dependency checksums
 ├── README.md               # SDK documentation
 ├── GO_SDK_ACTIVATION_SUMMARY.md
-├── schlep/
+├── igris/
 │   ├── client.go           # Main client implementation
 │   └── client_test.go      # Comprehensive tests
 └── examples/
@@ -160,7 +160,7 @@ func Float64(v float64) *float64
 === RUN   TestHelperFunctions
 --- PASS: TestHelperFunctions (0.00s)
 PASS
-ok  	github.com/igris-inertial/sdk-go/schlep	3.118s
+ok  	github.com/igris-inertial/sdk-go/igris	3.118s
 ```
 
 **All tests passing! ✅**
@@ -185,22 +185,22 @@ import (
 	"fmt"
 	"log"
 
-	"github.com/igris-inertial/sdk-go/schlep"
+	"github.com/igris-inertial/sdk-go/igris"
 )
 
 func main() {
-	client := schlep.NewClient(&schlep.Config{
+	client := igris.NewClient(&igris.Config{
 		BaseURL: "http://localhost:8081",
 	})
 
 	ctx := context.Background()
-	response, err := client.Infer(ctx, &schlep.InferRequest{
+	response, err := client.Infer(ctx, &igris.InferRequest{
 		Model: "gpt-4",
-		Messages: []schlep.Message{
+		Messages: []igris.Message{
 			{Role: "user", Content: "Hello!"},
 		},
-		MaxTokens:   schlep.Int(100),
-		Temperature: schlep.Float64(0.7),
+		MaxTokens:   igris.Int(100),
+		Temperature: igris.Float64(0.7),
 	})
 
 	if err != nil {
@@ -270,7 +270,7 @@ This SDK is built from scratch for production use with:
 - Module name: `github.com/igris-inertial/sdk-go`
 - Version: `v1.0.0-rc1`
 - License: MIT
-- Author: Schlep-engine Team
+- Author: Igris-engine Team
 
 ### GoDoc ✅
 - All exported types documented
@@ -322,7 +322,7 @@ go get github.com/igris-inertial/sdk-go@v1.0.0-rc1
 ## Success Criteria Met ✅
 
 - ✅ Go SDK relocated to /internal/sdk/go
-- ✅ Package name standardized to "schlep"
+- ✅ Package name standardized to "igris"
 - ✅ Module: github.com/igris-inertial/sdk-go
 - ✅ Infer, ListModels, Health methods implemented
 - ✅ BYOK support via Config
@@ -338,17 +338,17 @@ go get github.com/igris-inertial/sdk-go@v1.0.0-rc1
 
 ## Conclusion
 
-The Schlep-engine Go SDK is now production-ready with:
+The Igris-engine Go SDK is now production-ready with:
 - Clean, idiomatic Go code
 - Comprehensive test coverage
 - Full documentation
 - Alignment with Python and JavaScript SDKs
 - Ready for publication as `github.com/igris-inertial/sdk-go`
 
-The SDK provides a simple, powerful interface to the Schlep-engine API with proper error handling, retry logic, and context support, following Go best practices.
+The SDK provides a simple, powerful interface to the Igris-engine API with proper error handling, retry logic, and context support, following Go best practices.
 
 ---
 
-**Schlep-engine Go SDK** - v1.0.0-rc1
+**Igris-engine Go SDK** - v1.0.0-rc1
 
 _Production Ready • Well Tested • Fully Documented_

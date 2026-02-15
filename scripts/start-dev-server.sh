@@ -1,6 +1,6 @@
 #!/bin/bash
 
-# Schlep Engine Development Server Starter
+# Igris Inertial Development Server Starter
 # This script ensures the dev server runs persistently
 
 PID_FILE="/tmp/igris-inertial-dev.pid"
@@ -23,7 +23,7 @@ is_running() {
 
 # Function to start the server
 start_server() {
-    echo "Starting Schlep Engine dev server..."
+    echo "Starting Igris Inertial dev server..."
     cd "$APP_DIR"
 
     # Start server in background with nohup to survive shell exits

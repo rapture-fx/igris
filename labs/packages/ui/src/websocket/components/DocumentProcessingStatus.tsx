@@ -1,7 +1,7 @@
 import React from 'react'
 import { FileText, Image, Table, CheckCircle, Clock, AlertCircle, Loader2, Info } from 'lucide-react'
 import * as Progress from '@radix-ui/react-progress'
-import { DocumentProcessingProgress } from '@schlep-engine/types'
+import { DocumentProcessingProgress } from '@igris-inertial/types'
 import { useDocumentProcessing } from '../hooks'
 import { cn } from '../../styles/utils'
 

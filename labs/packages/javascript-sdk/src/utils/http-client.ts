@@ -1,5 +1,5 @@
 /**
- * HTTP client for Schlep-engine JavaScript SDK
+ * HTTP client for Igris-engine JavaScript SDK
  * Provides universal fetch-based HTTP client for browser and Node.js
  */
 
@@ -15,7 +15,7 @@ import {
 } from '../types/common';
 
 import {
-  SchlepEngineError,
+  IgrisError,
   APIError,
   NetworkError,
   TimeoutError,
@@ -131,7 +131,7 @@ class RateLimiter {
 }
 
 /**
- * Universal HTTP client for Schlep-engine API
+ * Universal HTTP client for Igris-engine API
  */
 export class HTTPClient extends EventEmitter {
   private baseUrl: string;
@@ -419,7 +419,7 @@ export class HTTPClient extends EventEmitter {
         throw new NetworkError('Network error', error);
       }
       
-      if (error instanceof SchlepEngineError) {
+      if (error instanceof IgrisError) {
         throw error;
       }
       
@@ -520,9 +520,9 @@ export class HTTPClient extends EventEmitter {
     const version = '1.0.0'; // Will be replaced by build process
     
     if (isBrowser) {
-      return `Schlep-engine-JS-SDK/${version} (Browser)`;
+      return `Igris-engine-JS-SDK/${version} (Browser)`;
     } else {
-      return `Schlep-engine-JS-SDK/${version} (Node.js)`;
+      return `Igris-engine-JS-SDK/${version} (Node.js)`;
     }
   }
 

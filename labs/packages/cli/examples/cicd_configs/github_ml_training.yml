@@ -54,7 +54,7 @@ jobs:
       - name: Validate training data
         id: validate
         run: |
-          schlep process batch "data/training/*.csv" --validate --dry-run
+          igris process batch "data/training/*.csv" --validate --dry-run
           echo "passed=true" >> $GITHUB_OUTPUT
           
       - name: Upload data validation report
@@ -88,11 +88,11 @@ jobs:
           pip install -r requirements.txt
           
       - name: Authenticate with Igris Overture
-        run: schlep auth login --api-key ${{ secrets.IGRIS_OVERTURE_API_KEY }}
+        run: igris auth login --api-key ${{ secrets.IGRIS_OVERTURE_API_KEY }}
         
       - name: Process training data
         run: |
-          schlep process batch "data/training/*.csv" \
+          igris process batch "data/training/*.csv" \
             --parallel 4 \
             --clean \
             --profile \
@@ -102,16 +102,16 @@ jobs:
         id: training
         run: |
           MODEL_TYPE=${{ github.event.inputs.model_type || 'fraud-detection' }}
-          PIPELINE_ID=$(schlep pipeline create config/${MODEL_TYPE}-${{ matrix.environment }}.yml --auto-start | grep "Pipeline ID" | cut -d: -f2 | xargs)
+          PIPELINE_ID=$(igris pipeline create config/${MODEL_TYPE}-${{ matrix.environment }}.yml --auto-start | grep "Pipeline ID" | cut -d: -f2 | xargs)
           echo "pipeline-id=$PIPELINE_ID" >> $GITHUB_OUTPUT
           
       - name: Monitor training progress
         run: |
-          schlep pipeline status ${{ steps.training.outputs.pipeline-id }} --watch
+          igris pipeline status ${{ steps.training.outputs.pipeline-id }} --watch
           
       - name: Validate model performance
         run: |
-          schlep monitoring job ${{ steps.training.outputs.pipeline-id }}
+          igris monitoring job ${{ steps.training.outputs.pipeline-id }}
           
       - name: Upload model artifacts
         uses: actions/upload-artifact@v3
@@ -150,18 +150,18 @@ jobs:
           pip install igris-inertial-cli
           
       - name: Authenticate with Igris Overture
-        run: schlep auth login --api-key ${{ secrets.IGRIS_OVERTURE_API_KEY }}
+        run: igris auth login --api-key ${{ secrets.IGRIS_OVERTURE_API_KEY }}
         
       - name: Deploy model to production
         run: |
-          schlep devops deploy infrastructure/ml-serving/ \
+          igris devops deploy infrastructure/ml-serving/ \
             --env production \
             --parallel 3 \
             --rollback-on-failure
             
       - name: Run health checks
         run: |
-          schlep devops health-check infrastructure/ml-serving/*.yml \
+          igris devops health-check infrastructure/ml-serving/*.yml \
             --health-check-url "https://{service}.api.igris-inertial.com/health" \
             --timeout 60 \
             --max-retries 3

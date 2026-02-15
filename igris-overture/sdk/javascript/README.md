@@ -1,18 +1,18 @@
-# Schlep JavaScript SDK
+# Igris JavaScript SDK
 
-Official JavaScript/TypeScript SDK for Schlep-engine - Intelligent AI routing and cost optimization.
+Official JavaScript/TypeScript SDK for Igris-engine - Intelligent AI routing and cost optimization.
 
-[![npm version](https://img.shields.io/npm/v/schlep.svg)](https://www.npmjs.com/package/schlep)
+[![npm version](https://img.shields.io/npm/v/igris.svg)](https://www.npmjs.com/package/igris)
 [![License: MIT](https://img.shields.io/badge/License-MIT-yellow.svg)](https://opensource.org/licenses/MIT)
 
 ## Installation
 
 ```bash
-npm install schlep
+npm install igris
 # or
-yarn add schlep
+yarn add igris
 # or
-pnpm add schlep
+pnpm add igris
 ```
 
 ## Quick Start
@@ -20,9 +20,9 @@ pnpm add schlep
 ### TypeScript/ESM
 
 ```typescript
-import { Schlep } from 'schlep';
+import { Igris } from 'igris';
 
-const client = new Schlep({
+const client = new Igris({
   baseUrl: 'http://localhost:8081',
   apiKey: 'your-api-key' // optional
 });
@@ -39,9 +39,9 @@ console.log(response.choices[0].message.content);
 ### CommonJS
 
 ```javascript
-const { Schlep } = require('schlep');
+const { Igris } = require('igris');
 
-const client = new Schlep({
+const client = new Igris({
   baseUrl: 'http://localhost:8081'
 });
 
@@ -71,7 +71,7 @@ main();
 ### Constructor
 
 ```typescript
-const client = new Schlep(config?: ClientConfig)
+const client = new Igris(config?: ClientConfig)
 ```
 
 **ClientConfig:**
@@ -84,7 +84,7 @@ const client = new Schlep(config?: ClientConfig)
 
 #### `infer(request: InferRequest): Promise<InferResponse>`
 
-Make an inference request using Schlep-engine's intelligent routing.
+Make an inference request using Igris-engine's intelligent routing.
 
 ```typescript
 const response = await client.infer({
@@ -155,9 +155,9 @@ console.log(stats);
 ### Basic Inference
 
 ```typescript
-import { Schlep } from 'schlep';
+import { Igris } from 'igris';
 
-const client = new Schlep({ baseUrl: 'http://localhost:8081' });
+const client = new Igris({ baseUrl: 'http://localhost:8081' });
 
 const response = await client.infer({
   model: 'gpt-4',
@@ -170,8 +170,8 @@ console.log(response.choices[0].message.content);
 ### With Authentication
 
 ```typescript
-const client = new Schlep({
-  baseUrl: 'https://api.schlep.com',
+const client = new Igris({
+  baseUrl: 'https://api.igris-inertial.com',
   apiKey: 'your-api-key-here'
 });
 
@@ -184,9 +184,9 @@ const response = await client.infer({
 ### Error Handling
 
 ```typescript
-import { Schlep, SchlepError, AuthenticationError, NetworkError } from 'schlep';
+import { Igris, IgrisError, AuthenticationError, NetworkError } from 'igris';
 
-const client = new Schlep({ baseUrl: 'http://localhost:8081' });
+const client = new Igris({ baseUrl: 'http://localhost:8081' });
 
 try {
   const response = await client.infer({
@@ -199,7 +199,7 @@ try {
     console.error('Authentication failed:', error.message);
   } else if (error instanceof NetworkError) {
     console.error('Network error:', error.message);
-  } else if (error instanceof SchlepError) {
+  } else if (error instanceof IgrisError) {
     console.error('API error:', error.message, error.statusCode);
   } else {
     console.error('Unexpected error:', error);
@@ -226,10 +226,10 @@ for await (const chunk of stream) {
 
 ```typescript
 // app/api/chat/route.ts
-import { Schlep } from 'schlep';
+import { Igris } from 'igris';
 import { NextRequest, NextResponse } from 'next/server';
 
-const client = new Schlep({
+const client = new Igris({
   baseUrl: process.env.SCHLEP_API_URL || 'http://localhost:8081',
   apiKey: process.env.SCHLEP_API_KEY
 });
@@ -253,7 +253,7 @@ export async function POST(request: NextRequest) {
 ### Custom Timeout and Headers
 
 ```typescript
-const client = new Schlep({
+const client = new Igris({
   baseUrl: 'http://localhost:8081',
   timeout: 60000, // 60 seconds
   headers: {
@@ -264,12 +264,12 @@ const client = new Schlep({
 
 ## BYOK (Bring Your Own Key)
 
-Schlep-engine supports BYOK, allowing you to use your own API keys for providers:
+Igris-engine supports BYOK, allowing you to use your own API keys for providers:
 
 ```typescript
 // Keys are managed server-side via the /v1/vault/keys endpoint
-// Use the Schlep CLI to manage keys:
-// $ schlep add-key --provider openai --key sk-...
+// Use the Igris CLI to manage keys:
+// $ igris add-key --provider openai --key sk-...
 ```
 
 ## TypeScript Support
@@ -278,20 +278,20 @@ This package includes full TypeScript definitions. Import types as needed:
 
 ```typescript
 import {
-  Schlep,
+  Igris,
   InferRequest,
   InferResponse,
   Message,
   ClientConfig,
-  SchlepError
-} from 'schlep';
+  IgrisError
+} from 'igris';
 
 const request: InferRequest = {
   model: 'gpt-4',
   messages: [{ role: 'user', content: 'Hello!' }]
 };
 
-const client = new Schlep();
+const client = new Igris();
 const response: InferResponse = await client.infer(request);
 ```
 
@@ -305,7 +305,7 @@ SCHLEP_API_KEY=your-api-key
 ```
 
 ```typescript
-const client = new Schlep({
+const client = new Igris({
   baseUrl: process.env.SCHLEP_API_URL,
   apiKey: process.env.SCHLEP_API_KEY
 });

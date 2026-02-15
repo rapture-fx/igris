@@ -1,5 +1,5 @@
 /**
- * Authentication API for Schlep-engine JavaScript SDK
+ * Authentication API for Igris-engine JavaScript SDK
  */
 
 import { BaseAPI } from './base';

@@ -63,7 +63,7 @@ class InertialCache:
     def __init__(self, cache_dir: Optional[str] = None):
         if not cache_dir:
             home = Path.home()
-            cache_dir = str(home / ".config" / "schlep")
+            cache_dir = str(home / ".config" / "igris")
 
         self.cache_dir = Path(cache_dir)
         self.cache_path = self.cache_dir / "bayesian_state.enc"

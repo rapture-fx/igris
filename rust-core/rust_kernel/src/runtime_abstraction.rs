@@ -1,4 +1,4 @@
-//! Runtime Abstraction Layer for Schlep-Engine
+//! Runtime Abstraction Layer for Igris Inertial
 //! 
 //! Provides a unified interface for different inference runtimes
 //! including native Rust, Python gRPC, and future WASM runtimes.

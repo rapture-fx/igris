@@ -1,7 +1,7 @@
 -- Migration: 007_create_policy_audit_log
 -- Description: Policy DSL v2 Audit Logging & SLA Management
 -- Purpose: Track all routing decisions with policy versioning and enforce SLA compliance
--- Author: Schlep-Engine Team
+-- Author: Igris Inertial Team
 -- Date: 2025-11-09
 -- Phase: 4 (Adaptive Governance)
 
@@ -472,7 +472,7 @@ SELECT
     3,
     10
 FROM tenants
-WHERE email = 'system@schlep.io' OR name = 'System'
+WHERE email = 'system@igris.io' OR name = 'System'
 ON CONFLICT (tenant_id) DO NOTHING;
 
 -- ============================================================================

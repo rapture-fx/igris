@@ -25,9 +25,9 @@ validate-data:
     - pip install igris-inertial-cli
     - pip install -r requirements.txt
   script:
-    - schlep auth login --api-key $IGRIS_OVERTURE_API_KEY
-    - schlep process batch "data/raw/*.csv" --validate --dry-run
-    - schlep process batch "data/raw/*.json" --validate --dry-run
+    - igris auth login --api-key $IGRIS_OVERTURE_API_KEY
+    - igris process batch "data/raw/*.csv" --validate --dry-run
+    - igris process batch "data/raw/*.json" --validate --dry-run
   artifacts:
     reports:
       junit: validation-report.xml
@@ -51,20 +51,20 @@ process-data-dev:
     - pip install igris-inertial-cli
     - pip install -r requirements.txt
   script:
-    - schlep auth login --api-key $IGRIS_OVERTURE_API_KEY
+    - igris auth login --api-key $IGRIS_OVERTURE_API_KEY
     - |
       # Submit batch processing jobs
-      schlep batch submit-files "data/raw/*.csv" \
+      igris batch submit-files "data/raw/*.csv" \
         --batch-size 50 \
         --parallel-jobs 6 \
         --priority normal \
         --tags data-processing dev-environment
     - |
       # Start the batch processor
-      schlep batch start-processor --max-workers 4
+      igris batch start-processor --max-workers 4
     - |
       # Monitor processing jobs
-      schlep batch list-jobs --status running --watch
+      igris batch list-jobs --status running --watch
   environment:
     name: dev
   artifacts:
@@ -85,17 +85,17 @@ process-data-staging:
     - pip install igris-inertial-cli
     - pip install -r requirements.txt
   script:
-    - schlep auth login --api-key $IGRIS_OVERTURE_API_KEY
+    - igris auth login --api-key $IGRIS_OVERTURE_API_KEY
     - |
       # Process with higher batch size for staging
-      schlep batch submit-files "data/raw/*.csv" \
+      igris batch submit-files "data/raw/*.csv" \
         --batch-size 100 \
         --parallel-jobs 8 \
         --priority high \
         --tags data-processing staging-environment \
         --timeout 1800
-    - schlep batch start-processor --max-workers 6
-    - schlep batch list-jobs --status running --watch
+    - igris batch start-processor --max-workers 6
+    - igris batch list-jobs --status running --watch
   environment:
     name: staging
   artifacts:
@@ -117,16 +117,16 @@ quality-check:
     - source venv/bin/activate
     - pip install igris-inertial-cli
   script:
-    - schlep auth login --api-key $IGRIS_OVERTURE_API_KEY
+    - igris auth login --api-key $IGRIS_OVERTURE_API_KEY
     - |
       # Generate data quality reports
-      schlep process batch "processed_data/*.parquet" \
+      igris process batch "processed_data/*.parquet" \
         --profile \
         --clean \
         --config config/data-quality.yml
     - |
       # Monitor data quality metrics
-      schlep monitoring metrics --json > quality-metrics.json
+      igris monitoring metrics --json > quality-metrics.json
   artifacts:
     reports:
       junit: quality-report.xml
@@ -146,22 +146,22 @@ deploy-pipeline-prod:
     - source venv/bin/activate
     - pip install igris-inertial-cli
   script:
-    - schlep auth login --api-key $IGRIS_OVERTURE_API_KEY
+    - igris auth login --api-key $IGRIS_OVERTURE_API_KEY
     - |
       # Deploy infrastructure components
-      schlep devops deploy infrastructure/data-pipeline/ \
+      igris devops deploy infrastructure/data-pipeline/ \
         --env production \
         --parallel 3 \
         --validate-only
     - |
       # Actual deployment after validation
-      schlep devops deploy infrastructure/data-pipeline/ \
+      igris devops deploy infrastructure/data-pipeline/ \
         --env production \
         --parallel 3 \
         --rollback-on-failure
     - |
       # Health checks
-      schlep devops health-check infrastructure/data-pipeline/*.yml \
+      igris devops health-check infrastructure/data-pipeline/*.yml \
         --timeout 120 \
         --max-retries 3
   environment:
@@ -180,13 +180,13 @@ monitor-infrastructure:
     - source venv/bin/activate
     - pip install igris-inertial-cli
   script:
-    - schlep auth login --api-key $IGRIS_OVERTURE_API_KEY
+    - igris auth login --api-key $IGRIS_OVERTURE_API_KEY
     - |
       # Monitor infrastructure status
-      schlep devops status --provider kubernetes --output-format json > infrastructure-status.json
+      igris devops status --provider kubernetes --output-format json > infrastructure-status.json
     - |
       # Monitor batch job queue
-      schlep batch queue-stats > queue-stats.json
+      igris batch queue-stats > queue-stats.json
   artifacts:
     paths:
       - infrastructure-status.json
@@ -205,10 +205,10 @@ cleanup-jobs:
     - source venv/bin/activate
     - pip install igris-inertial-cli
   script:
-    - schlep auth login --api-key $IGRIS_OVERTURE_API_KEY
+    - igris auth login --api-key $IGRIS_OVERTURE_API_KEY
     - |
       # Clean up old completed jobs (older than 7 days)
-      schlep batch cleanup \
+      igris batch cleanup \
         --older-than 7d \
         --status completed \
         --status failed

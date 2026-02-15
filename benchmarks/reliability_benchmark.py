@@ -1,6 +1,6 @@
 #!/usr/bin/env python3
 """
-Schlep-Engine Reliability Validation Benchmark
+Igris Inertial Reliability Validation Benchmark
 Tests rate-limiting and fallback improvements with 1000 live API requests
 """
 
@@ -383,8 +383,8 @@ class ReliabilityBenchmark:
 def main():
     import argparse
 
-    parser = argparse.ArgumentParser(description='Schlep-Engine Reliability Validation Benchmark')
-    parser.add_argument('--url', default='http://localhost:8081', help='Base URL of Schlep-Engine API')
+    parser = argparse.ArgumentParser(description='Igris Inertial Reliability Validation Benchmark')
+    parser.add_argument('--url', default='http://localhost:8081', help='Base URL of Igris Inertial API')
     parser.add_argument('--requests', type=int, default=1000, help='Number of requests to send')
     parser.add_argument('--workers', type=int, default=20, help='Number of concurrent workers')
     parser.add_argument('--output', default='benchmarks/results/reliability_benchmark.json', help='Output file for results')
@@ -400,7 +400,7 @@ def main():
             print(f"⚠️  API returned status {response.status_code}")
     except Exception as e:
         print(f"❌ Cannot reach API: {e}")
-        print("Please ensure the Schlep-Engine API is running")
+        print("Please ensure the Igris Inertial API is running")
         sys.exit(1)
 
     # Run benchmark

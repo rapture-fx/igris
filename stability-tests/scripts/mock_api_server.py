@@ -1,7 +1,7 @@
 #!/usr/bin/env python3
 """
 Mock API Server for Testing the Stability Test Framework
-Simulates Schlep-Engine API responses for demonstration
+Simulates Igris Inertial API responses for demonstration
 """
 
 from flask import Flask, request, jsonify, Response
@@ -165,7 +165,7 @@ if __name__ == '__main__':
     print("🚀 MOCK SCHLEP-ENGINE API SERVER")
     print("="*70)
     print(f"Starting on http://localhost:8081")
-    print(f"Simulates Schlep-Engine API for stability testing")
+    print(f"Simulates Igris Inertial API for stability testing")
     print("="*70 + "\n")
 
     app.run(host='0.0.0.0', port=8081, debug=False)

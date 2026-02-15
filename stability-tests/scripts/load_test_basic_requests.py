@@ -234,7 +234,7 @@ class LoadTestRunner:
 
 def main():
     import argparse
-    parser = argparse.ArgumentParser(description='Load test Schlep-engine API')
+    parser = argparse.ArgumentParser(description='Load test Igris-engine API')
     parser.add_argument('--url', default='http://localhost:8080', help='Base URL of the API')
     parser.add_argument('--requests', type=int, default=1000, help='Total number of requests')
     parser.add_argument('--concurrency', type=int, default=50, help='Concurrent requests')

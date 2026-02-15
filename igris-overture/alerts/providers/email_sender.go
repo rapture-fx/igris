@@ -323,7 +323,7 @@ const emailHTMLTemplate = `
             {{end}}
         </div>
         <div class="footer">
-            <p>This is an automated alert from Schlep-Engine</p>
+            <p>This is an automated alert from Igris Inertial</p>
             <p>Alert ID: {{.Alert.ID}}</p>
         </div>
     </div>

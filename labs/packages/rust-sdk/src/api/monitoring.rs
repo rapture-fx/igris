@@ -1,8 +1,8 @@
-//! Monitoring API client for Schlep-engine.
+//! Monitoring API client for Igris-engine.
 
 use serde_json::Value;
 
-use crate::client::SchlepClient;
+use crate::client::IgrisClient;
 use crate::error::Result;
 use crate::types::{AlertResponse, HealthResponse, MetricsResponse};
 
@@ -10,12 +10,12 @@ use crate::types::{AlertResponse, HealthResponse, MetricsResponse};
 ///
 /// Provides methods for getting system metrics, health checks, and alerts.
 pub struct MonitoringClient<'a> {
-    client: &'a SchlepClient,
+    client: &'a IgrisClient,
 }
 
 impl<'a> MonitoringClient<'a> {
     /// Create a new Monitoring API client.
-    pub fn new(client: &'a SchlepClient) -> Self {
+    pub fn new(client: &'a IgrisClient) -> Self {
         Self { client }
     }
 
@@ -28,11 +28,11 @@ impl<'a> MonitoringClient<'a> {
     /// # Example
     ///
     /// ```rust,no_run
-    /// # use schlep_engine::{SchlepClient, Result};
+    /// # use igris::{IgrisClient, Result};
     /// # use serde_json::json;
     /// # #[tokio::main]
     /// # async fn main() -> Result<()> {
-    /// # let client = SchlepClient::new("your-api-key")?;
+    /// # let client = IgrisClient::new("your-api-key")?;
     /// let params = json!({
     ///     "from": "2024-01-01T00:00:00Z",
     ///     "to": "2024-01-31T23:59:59Z",
@@ -51,10 +51,10 @@ impl<'a> MonitoringClient<'a> {
     /// # Example
     ///
     /// ```rust,no_run
-    /// # use schlep_engine::{SchlepClient, Result};
+    /// # use igris::{IgrisClient, Result};
     /// # #[tokio::main]
     /// # async fn main() -> Result<()> {
-    /// # let client = SchlepClient::new("your-api-key")?;
+    /// # let client = IgrisClient::new("your-api-key")?;
     /// let health = client.monitoring().get_health().await?;
     /// println!("Status: {}", health.status);
     /// # Ok(())
@@ -69,10 +69,10 @@ impl<'a> MonitoringClient<'a> {
     /// # Example
     ///
     /// ```rust,no_run
-    /// # use schlep_engine::{SchlepClient, Result};
+    /// # use igris::{IgrisClient, Result};
     /// # #[tokio::main]
     /// # async fn main() -> Result<()> {
-    /// # let client = SchlepClient::new("your-api-key")?;
+    /// # let client = IgrisClient::new("your-api-key")?;
     /// let alerts = client.monitoring().list_alerts().await?;
     /// for alert in alerts {
     ///     println!("Alert: {} - {}", alert.severity, alert.message);

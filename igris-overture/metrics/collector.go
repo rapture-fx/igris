@@ -349,7 +349,7 @@ func (mc *MetricsCollector) PrometheusMetrics() []prometheus.Metric {
 		for model, stats := range models {
 			// Request count metric
 			requestMetric := prometheus.NewGauge(prometheus.GaugeOpts{
-				Name:        "schlep_infer_requests_total_aggregated",
+				Name:        "igris_infer_requests_total_aggregated",
 				Help:        "Aggregated total number of inference requests",
 				ConstLabels: prometheus.Labels{"provider": provider, "model": model},
 			})
@@ -362,7 +362,7 @@ func (mc *MetricsCollector) PrometheusMetrics() []prometheus.Metric {
 				successRate = float64(stats.SuccessCount) / float64(stats.RequestCount)
 			}
 			successMetric := prometheus.NewGauge(prometheus.GaugeOpts{
-				Name:        "schlep_infer_success_rate_aggregated",
+				Name:        "igris_infer_success_rate_aggregated",
 				Help:        "Aggregated success rate for inference requests",
 				ConstLabels: prometheus.Labels{"provider": provider, "model": model},
 			})
@@ -375,7 +375,7 @@ func (mc *MetricsCollector) PrometheusMetrics() []prometheus.Metric {
 				avgLatency = float64(stats.TotalLatencyMs) / float64(stats.RequestCount)
 			}
 			latencyMetric := prometheus.NewGauge(prometheus.GaugeOpts{
-				Name:        "schlep_infer_avg_latency_ms_aggregated",
+				Name:        "igris_infer_avg_latency_ms_aggregated",
 				Help:        "Aggregated average latency in milliseconds",
 				ConstLabels: prometheus.Labels{"provider": provider, "model": model},
 			})

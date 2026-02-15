@@ -3,19 +3,19 @@ requires = ["setuptools>=61.0", "wheel"]
 build-backend = "setuptools.build_meta"
 
 [project]
-name = "schlep-engine"
+name = "igris-inertial"
 version = "1.0.0"
-description = "Official Python SDK for Schlep-engine API - Advanced data processing, machine learning, and analytics platform"
+description = "Official Python SDK for Igris-engine API - Advanced data processing, machine learning, and analytics platform"
 readme = "README.md"
 license = {text = "MIT"}
 authors = [
-    {name = "Schlep-engine", email = "support@igris-inertial.com"}
+    {name = "Igris-engine", email = "support@igris-inertial.com"}
 ]
 maintainers = [
-    {name = "Schlep-engine", email = "support@igris-inertial.com"}
+    {name = "Igris-engine", email = "support@igris-inertial.com"}
 ]
 keywords = [
-    "schlep-engine",
+    "igris-inertial",
     "data-processing", 
     "machine-learning",
     "analytics",
@@ -90,11 +90,11 @@ package-dir = {"" = "."}
 
 [tool.setuptools.packages.find]
 where = ["."]
-include = ["schlep_engine*"]
+include = ["igris*"]
 exclude = ["tests*", "docs*", "examples*"]
 
 [tool.setuptools.package-data]
-schlep_engine = ["py.typed"]
+igris = ["py.typed"]
 
 # Black configuration
 [tool.black]
@@ -161,7 +161,7 @@ markers = [
 
 # Coverage configuration
 [tool.coverage.run]
-source = ["schlep_engine"]
+source = ["igris"]
 omit = [
     "*/tests/*",
     "*/test_*",

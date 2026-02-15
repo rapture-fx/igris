@@ -1,7 +1,7 @@
 package rust
 
 /*
-#cgo LDFLAGS: -L${SRCDIR}/../../lib -lschlep_kernel
+#cgo LDFLAGS: -L${SRCDIR}/../../lib -ligris_kernel
 #include <stdlib.h>
 
 extern int rust_add(int x, int y);

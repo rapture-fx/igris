@@ -22,9 +22,9 @@ func TestIntegration(t *testing.T) {
 	}
 
 	// Ensure API key is available
-	apiKey := os.Getenv("SCHLEP_API_KEY")
+	apiKey := os.Getenv("IGRIS_API_KEY")
 	if apiKey == "" {
-		t.Skip("SCHLEP_API_KEY environment variable required for integration tests")
+		t.Skip("IGRIS_API_KEY environment variable required for integration tests")
 	}
 
 	// Create test configuration
@@ -43,32 +43,32 @@ func TestIntegration(t *testing.T) {
 	}
 
 	// Create client
-	schlepClient, err := client.NewClient(cfg)
+	igrisClient, err := client.NewClient(cfg)
 	require.NoError(t, err, "Failed to create client")
-	defer schlepClient.Close()
+	defer igrisClient.Close()
 
 	ctx := context.Background()
 
 	t.Run("Authentication", func(t *testing.T) {
-		assert.True(t, schlepClient.IsAuthenticated(), "Client should be authenticated")
+		assert.True(t, igrisClient.IsAuthenticated(), "Client should be authenticated")
 	})
 
 	t.Run("Health Check", func(t *testing.T) {
-		health, err := schlepClient.Monitor.GetHealth(ctx)
+		health, err := igrisClient.Monitor.GetHealth(ctx)
 		require.NoError(t, err, "Health check should succeed")
 		assert.NotEmpty(t, health.Status, "Health status should not be empty")
 		assert.NotZero(t, health.Timestamp, "Health timestamp should be set")
 	})
 
 	t.Run("System Metrics", func(t *testing.T) {
-		metrics, err := schlepClient.Monitor.GetMetrics(ctx)
+		metrics, err := igrisClient.Monitor.GetMetrics(ctx)
 		require.NoError(t, err, "Metrics retrieval should succeed")
 		assert.NotNil(t, metrics, "Metrics should not be nil")
 		assert.NotZero(t, metrics.Timestamp, "Metrics timestamp should be set")
 	})
 
 	t.Run("List Jobs", func(t *testing.T) {
-		jobs, err := schlepClient.Data.ListJobs(ctx, &models.ListOptions{
+		jobs, err := igrisClient.Data.ListJobs(ctx, &models.ListOptions{
 			Page:    1,
 			PerPage: 10,
 		})
@@ -94,14 +94,14 @@ func TestIntegration(t *testing.T) {
 			Tags:         []string{"integration-test"},
 		}
 
-		result, err := schlepClient.Data.ProcessFile(ctx, processReq)
+		result, err := igrisClient.Data.ProcessFile(ctx, processReq)
 		require.NoError(t, err, "File processing should succeed")
 		assert.NotEmpty(t, result.JobID, "Job ID should be generated")
 		assert.True(t, result.Status.IsValid(), "Job status should be valid")
 
 		// Wait a bit and check job status
 		time.Sleep(2 * time.Second)
-		job, err := schlepClient.Data.GetJobStatus(ctx, result.JobID)
+		job, err := igrisClient.Data.GetJobStatus(ctx, result.JobID)
 		require.NoError(t, err, "Job status check should succeed")
 		assert.Equal(t, result.JobID, job.ID, "Job IDs should match")
 	})
@@ -130,7 +130,7 @@ func TestIntegration(t *testing.T) {
 			IsActive: true,
 		}
 
-		createdPipeline, err := schlepClient.ML.CreatePipeline(ctx, pipeline)
+		createdPipeline, err := igrisClient.ML.CreatePipeline(ctx, pipeline)
 		if err != nil {
 			// ML pipeline creation might not be available in all environments
 			t.Logf("ML pipeline creation failed (may not be available): %v", err)
@@ -139,7 +139,7 @@ func TestIntegration(t *testing.T) {
 			assert.Equal(t, pipeline.Name, createdPipeline.Name, "Pipeline names should match")
 
 			// List pipelines to verify it was created
-			pipelines, err := schlepClient.ML.ListModels(ctx, &models.ListOptions{
+			pipelines, err := igrisClient.ML.ListModels(ctx, &models.ListOptions{
 				Page:    1,
 				PerPage: 10,
 			})
@@ -151,7 +151,7 @@ func TestIntegration(t *testing.T) {
 
 	t.Run("Error Handling", func(t *testing.T) {
 		// Test with invalid job ID
-		_, err := schlepClient.Data.GetJobStatus(ctx, "invalid-job-id")
+		_, err := igrisClient.Data.GetJobStatus(ctx, "invalid-job-id")
 		assert.Error(t, err, "Invalid job ID should return error")
 
 		// Test with malformed request
@@ -160,12 +160,12 @@ func TestIntegration(t *testing.T) {
 			DataFormat:   models.DataFormatCSV,
 			OutputFormat: models.DataFormatJSON,
 		}
-		_, err = schlepClient.Data.ProcessFile(ctx, invalidReq)
+		_, err = igrisClient.Data.ProcessFile(ctx, invalidReq)
 		assert.Error(t, err, "Invalid request should return error")
 	})
 
 	t.Run("Client Configuration", func(t *testing.T) {
-		clientConfig := schlepClient.GetConfig()
+		clientConfig := igrisClient.GetConfig()
 		assert.Equal(t, cfg.APIKey, clientConfig.APIKey, "API keys should match")
 		assert.Equal(t, cfg.BaseURL, clientConfig.BaseURL, "Base URLs should match")
 		assert.Equal(t, cfg.ServiceName, clientConfig.ServiceName, "Service names should match")
@@ -175,17 +175,17 @@ func TestIntegration(t *testing.T) {
 
 	t.Run("Observability Components", func(t *testing.T) {
 		// Test logger
-		logger := schlepClient.GetLogger()
+		logger := igrisClient.GetLogger()
 		assert.NotNil(t, logger, "Logger should be available")
 		assert.True(t, logger.IsDebugEnabled(), "Debug logging should be enabled")
 
 		// Test metrics collector
-		metrics := schlepClient.GetMetrics()
+		metrics := igrisClient.GetMetrics()
 		assert.NotNil(t, metrics, "Metrics collector should be available")
 		assert.True(t, metrics.IsEnabled(), "Metrics should be enabled")
 
 		// Test tracer
-		tracer := schlepClient.GetTracer()
+		tracer := igrisClient.GetTracer()
 		assert.NotNil(t, tracer, "Tracer should be available")
 		assert.True(t, tracer.IsEnabled(), "Tracing should be enabled")
 	})
@@ -201,27 +201,27 @@ func TestClientLifecycle(t *testing.T) {
 	}
 
 	// Create client
-	schlepClient, err := client.NewClient(cfg)
+	igrisClient, err := client.NewClient(cfg)
 	require.NoError(t, err, "Client creation should succeed")
 
 	// Test client is properly initialized
-	assert.NotNil(t, schlepClient.GetConfig(), "Config should be available")
-	assert.NotNil(t, schlepClient.GetLogger(), "Logger should be available")
-	assert.NotNil(t, schlepClient.GetMetrics(), "Metrics should be available")
-	assert.NotNil(t, schlepClient.GetTracer(), "Tracer should be available")
+	assert.NotNil(t, igrisClient.GetConfig(), "Config should be available")
+	assert.NotNil(t, igrisClient.GetLogger(), "Logger should be available")
+	assert.NotNil(t, igrisClient.GetMetrics(), "Metrics should be available")
+	assert.NotNil(t, igrisClient.GetTracer(), "Tracer should be available")
 
 	// Test API clients are initialized
-	assert.NotNil(t, schlepClient.Data, "Data client should be available")
-	assert.NotNil(t, schlepClient.ML, "ML client should be available")
-	assert.NotNil(t, schlepClient.Storage, "Storage client should be available")
-	assert.NotNil(t, schlepClient.Monitor, "Monitor client should be available")
-	assert.NotNil(t, schlepClient.Auth, "Auth client should be available")
+	assert.NotNil(t, igrisClient.Data, "Data client should be available")
+	assert.NotNil(t, igrisClient.ML, "ML client should be available")
+	assert.NotNil(t, igrisClient.Storage, "Storage client should be available")
+	assert.NotNil(t, igrisClient.Monitor, "Monitor client should be available")
+	assert.NotNil(t, igrisClient.Auth, "Auth client should be available")
 
 	// Test authentication status
-	assert.True(t, schlepClient.IsAuthenticated(), "Client should be authenticated with API key")
+	assert.True(t, igrisClient.IsAuthenticated(), "Client should be authenticated with API key")
 
 	// Test graceful shutdown
-	err = schlepClient.Close()
+	err = igrisClient.Close()
 	assert.NoError(t, err, "Client shutdown should succeed")
 
 	// Test that client is properly closed
@@ -241,9 +241,9 @@ func TestConcurrency(t *testing.T) {
 		Timeout:     10 * time.Second,
 	}
 
-	schlepClient, err := client.NewClient(cfg)
+	igrisClient, err := client.NewClient(cfg)
 	require.NoError(t, err)
-	defer schlepClient.Close()
+	defer igrisClient.Close()
 
 	ctx := context.Background()
 	numGoroutines := 10
@@ -253,7 +253,7 @@ func TestConcurrency(t *testing.T) {
 	for i := 0; i < numGoroutines; i++ {
 		go func(id int) {
 			// Test concurrent health checks
-			_, err := schlepClient.Monitor.GetHealth(ctx)
+			_, err := igrisClient.Monitor.GetHealth(ctx)
 			results <- err
 		}(i)
 	}
@@ -270,7 +270,7 @@ func TestConcurrency(t *testing.T) {
 
 // Helper functions
 func getTestBaseURL() string {
-	if url := os.Getenv("SCHLEP_TEST_BASE_URL"); url != "" {
+	if url := os.Getenv("IGRIS_TEST_BASE_URL"); url != "" {
 		return url
 	}
 	return "https://api.igris-inertial.com"

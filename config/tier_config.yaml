@@ -1,4 +1,4 @@
-# Schlep-Engine Tier Configuration
+# Igris Inertial Tier Configuration
 # Generated: 2025-11-30 (FINAL LAUNCH PRICING)
 # Phase: v2.0.0 - LAUNCH - Public Pricing, Observability, 14-Day Trial
 # Purpose: Define tier-based limits and feature gates for Polar.sh subscription model
@@ -403,11 +403,11 @@ global:
 
   # Rate Limiting Strategy
   rate_limit_strategy: "sliding_window"  # or "token_bucket", "leaky_bucket"
-  rate_limit_redis_key_prefix: "schlep:ratelimit:"
+  rate_limit_redis_key_prefix: "igris:ratelimit:"
 
   # Cache Configuration
   cache_strategy: "redis"               # L1 cache only
-  cache_key_prefix: "schlep:cache:"
+  cache_key_prefix: "igris:cache:"
 
   # Provider Health Checks
   provider_health_check_interval_seconds: 60

@@ -1,4 +1,4 @@
-//! Comprehensive example demonstrating all API modules in the Schlep-engine Rust SDK.
+//! Comprehensive example demonstrating all API modules in the Igris-engine Rust SDK.
 //!
 //! This example showcases the full API coverage including:
 //! - Data Processing
@@ -11,15 +11,15 @@
 //! - Users
 //! - Admin (requires admin privileges)
 
-use schlep_engine::{SchlepClient, Result, ListParams};
+use igris::{IgrisClient, Result, ListParams};
 use serde_json::json;
 
 #[tokio::main]
 async fn main() -> Result<()> {
     // Initialize the client
-    let client = SchlepClient::new("your-api-key")?;
+    let client = IgrisClient::new("your-api-key")?;
 
-    println!("=== Schlep-engine Rust SDK - Comprehensive Example ===\n");
+    println!("=== Igris-engine Rust SDK - Comprehensive Example ===\n");
 
     // 1. DATA PROCESSING API
     println!("1. Data Processing API");

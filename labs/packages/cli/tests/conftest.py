@@ -1,5 +1,5 @@
 """
-Pytest configuration and fixtures for Schlep-engine CLI tests.
+Pytest configuration and fixtures for Igris-engine CLI tests.
 """
 
 import os
@@ -9,9 +9,9 @@ from pathlib import Path
 from unittest.mock import Mock, patch
 from click.testing import CliRunner
 
-from schlep_cli.main import cli
-from schlep_cli.core.config import Config
-from schlep_cli.core.client import APIClient
+from igris_cli.main import cli
+from igris_cli.core.config import Config
+from igris_cli.core.client import APIClient
 
 
 @pytest.fixture
@@ -30,7 +30,7 @@ def temp_dir():
 @pytest.fixture
 def config_dir(temp_dir):
     """Create a temporary config directory."""
-    config_dir = temp_dir / ".schlep"
+    config_dir = temp_dir / ".igris"
     config_dir.mkdir()
     return config_dir
 
@@ -105,15 +105,15 @@ parameters:
 def mock_config_paths(config_dir, monkeypatch):
     """Mock configuration paths to use temporary directory."""
     monkeypatch.setattr(
-        "schlep_cli.core.config.Config.get_config_dir",
+        "igris_cli.core.config.Config.get_config_dir",
         lambda: config_dir
     )
     monkeypatch.setattr(
-        "schlep_cli.core.config.Config.get_config_file",
+        "igris_cli.core.config.Config.get_config_file",
         lambda: config_dir / "config.yml"
     )
     monkeypatch.setattr(
-        "schlep_cli.core.config.Config.get_auth_file",
+        "igris_cli.core.config.Config.get_auth_file",
         lambda: config_dir / "auth.json"
     )
 
@@ -121,8 +121,8 @@ def mock_config_paths(config_dir, monkeypatch):
 @pytest.fixture
 def mock_sdk_available():
     """Mock SDK availability."""
-    with patch('schlep_cli.core.client.SDK_AVAILABLE', True):
-        with patch('schlep_cli.core.client.SchlepEngineClient') as mock_sdk:
+    with patch('igris_cli.core.client.SDK_AVAILABLE', True):
+        with patch('igris_cli.core.client.IgrisClient') as mock_sdk:
             mock_client = Mock()
             mock_client.health.check.return_value = {'status': 'healthy'}
             mock_client.users.get_current.return_value = {
@@ -136,7 +136,7 @@ def mock_sdk_available():
 @pytest.fixture
 def mock_sdk_unavailable():
     """Mock SDK unavailability."""
-    with patch('schlep_cli.core.client.SDK_AVAILABLE', False):
+    with patch('igris_cli.core.client.SDK_AVAILABLE', False):
         yield
 
 
@@ -237,11 +237,11 @@ def sample_metrics():
 def clean_env(monkeypatch):
     """Clean environment variables."""
     env_vars = [
-        'SCHLEP_API_KEY',
-        'SCHLEP_BASE_URL',
-        'SCHLEP_TIMEOUT',
-        'SCHLEP_PARALLEL_JOBS',
-        'SCHLEP_DEBUG'
+        'IGRIS_API_KEY',
+        'IGRIS_BASE_URL',
+        'IGRIS_TIMEOUT',
+        'IGRIS_PARALLEL_JOBS',
+        'IGRIS_DEBUG'
     ]
     
     for var in env_vars:
@@ -251,8 +251,8 @@ def clean_env(monkeypatch):
 @pytest.fixture
 def env_with_api_key(monkeypatch):
     """Environment with API key set."""
-    monkeypatch.setenv('SCHLEP_API_KEY', 'sk-test-env-key')
-    monkeypatch.setenv('SCHLEP_BASE_URL', 'https://api.test-env.com')
+    monkeypatch.setenv('IGRIS_API_KEY', 'sk-test-env-key')
+    monkeypatch.setenv('IGRIS_BASE_URL', 'https://api.test-env.com')
 
 
 # Parametrized fixtures

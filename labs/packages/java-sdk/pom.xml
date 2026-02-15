@@ -5,14 +5,14 @@
          http://maven.apache.org/xsd/maven-4.0.0.xsd">
     <modelVersion>4.0.0</modelVersion>
 
-    <groupId>io.schlepengine</groupId>
-    <artifactId>schlep-engine</artifactId>
+    <groupId>io.igris</groupId>
+    <artifactId>igris-inertial</artifactId>
     <version>1.0.0</version>
     <packaging>jar</packaging>
 
-    <name>Schlep-engine Java SDK</name>
-    <description>Official Java SDK for the Schlep-engine API platform</description>
-    <url>https://github.com/schlep-engine/java-sdk</url>
+    <name>Igris-engine Java SDK</name>
+    <description>Official Java SDK for the Igris-engine API platform</description>
+    <url>https://github.com/igris-inertial/java-sdk</url>
 
     <licenses>
         <license>
@@ -24,17 +24,17 @@
 
     <developers>
         <developer>
-            <name>Schlep-engine Team</name>
-            <email>support@schlep-engine.com</email>
-            <organization>Schlep-engine</organization>
-            <organizationUrl>https://schlep-engine.com</organizationUrl>
+            <name>Igris-engine Team</name>
+            <email>support@igris-inertial.com</email>
+            <organization>Igris-engine</organization>
+            <organizationUrl>https://igris-inertial.com</organizationUrl>
         </developer>
     </developers>
 
     <scm>
-        <connection>scm:git:git://github.com/schlep-engine/java-sdk.git</connection>
-        <developerConnection>scm:git:ssh://github.com:schlep-engine/java-sdk.git</developerConnection>
-        <url>https://github.com/schlep-engine/java-sdk/tree/main</url>
+        <connection>scm:git:git://github.com/igris-inertial/java-sdk.git</connection>
+        <developerConnection>scm:git:ssh://github.com:igris-inertial/java-sdk.git</developerConnection>
+        <url>https://github.com/igris-inertial/java-sdk/tree/main</url>
     </scm>
 
     <properties>

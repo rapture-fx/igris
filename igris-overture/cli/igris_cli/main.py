@@ -1,4 +1,4 @@
-"""Main CLI entry point for Schlep-engine"""
+"""Main CLI entry point for Igris-engine"""
 
 import sys
 import json
@@ -12,16 +12,16 @@ from .config import Config
 @click.version_option(version="0.1.0")
 def cli():
     """
-    Schlep CLI - Command-line interface for Schlep-engine
+    Igris CLI - Command-line interface for Igris-engine
 
-    Schlep-engine provides intelligent AI routing and cost optimization
+    Igris-engine provides intelligent AI routing and cost optimization
     for large language models.
 
     Examples:
-        schlep login --url http://localhost:8081
-        schlep add-key --provider openai --key sk-...
-        schlep infer --prompt "Hello, world!"
-        schlep models
+        igris login --url http://localhost:8081
+        igris add-key --provider openai --key sk-...
+        igris infer --prompt "Hello, world!"
+        igris models
     """
     pass
 
@@ -31,18 +31,18 @@ def cli():
 @click.option("--api-key", help="Optional API key for authentication")
 def login(url: str, api_key: Optional[str]):
     """
-    Configure Schlep CLI with API endpoint.
+    Configure Igris CLI with API endpoint.
 
     Example:
-        schlep login --url http://localhost:8081
-        schlep login --url https://api.schlep.com --api-key sk-xxx
+        igris login --url http://localhost:8081
+        igris login --url https://api.igris-inertial.com --api-key sk-xxx
     """
     Config.set("base_url", url)
 
     if api_key:
         Config.set_api_key(api_key)
 
-    click.echo(f"✓ Configured Schlep CLI")
+    click.echo(f"✓ Configured Igris CLI")
     click.echo(f"  Base URL: {url}")
     if api_key:
         click.echo(f"  API Key: {api_key[:8]}...{api_key[-4:]}")
@@ -52,7 +52,7 @@ def login(url: str, api_key: Optional[str]):
         import requests
         response = requests.get(f"{url}/v1/health", timeout=5)
         if response.status_code == 200:
-            click.echo(f"✓ Successfully connected to Schlep-engine")
+            click.echo(f"✓ Successfully connected to Igris-engine")
         else:
             click.echo(f"⚠ Warning: Health check returned status {response.status_code}", err=True)
     except Exception as e:
@@ -66,12 +66,12 @@ def add_key(provider: str, key: str):
     """
     Add a provider API key to your local vault.
 
-    This stores the key locally in ~/.schlep/config.json for use with
-    the Schlep-engine BYOK (Bring Your Own Key) feature.
+    This stores the key locally in ~/.igris/config.json for use with
+    the Igris-engine BYOK (Bring Your Own Key) feature.
 
     Example:
-        schlep add-key --provider openai --key sk-...
-        schlep add-key --provider anthropic --key sk-ant-...
+        igris add-key --provider openai --key sk-...
+        igris add-key --provider anthropic --key sk-ant-...
     """
     Config.add_provider_key(provider, key)
     click.echo(f"✓ Added {provider} API key")
@@ -86,12 +86,12 @@ def add_key(provider: str, key: str):
 @click.option("--json-output", is_flag=True, help="Output raw JSON response")
 def infer(prompt: str, model: str, max_tokens: Optional[int], temperature: Optional[float], json_output: bool):
     """
-    Make an inference request using Schlep-engine.
+    Make an inference request using Igris-engine.
 
     Example:
-        schlep infer --prompt "Hello, world!"
-        schlep infer -p "Explain quantum computing" -m claude-3-opus
-        schlep infer -p "Write a poem" --max-tokens 100 --json-output
+        igris infer --prompt "Hello, world!"
+        igris infer -p "Explain quantum computing" -m claude-3-opus
+        igris infer -p "Write a poem" --max-tokens 100 --json-output
     """
     import requests
 
@@ -165,8 +165,8 @@ def models(json_output: bool):
     List available models.
 
     Example:
-        schlep models
-        schlep models --json-output
+        igris models
+        igris models --json-output
     """
     import requests
 
@@ -216,8 +216,8 @@ def metrics(json_output: bool):
     View usage metrics and statistics.
 
     Example:
-        schlep metrics
-        schlep metrics --json-output
+        igris metrics
+        igris metrics --json-output
     """
     import requests
 
@@ -259,7 +259,7 @@ def config():
     Show current configuration.
 
     Example:
-        schlep config
+        igris config
     """
     current_config = Config.load()
 

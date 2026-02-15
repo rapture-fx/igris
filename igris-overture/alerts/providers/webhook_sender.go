@@ -132,7 +132,7 @@ func (p *WebhookProvider) sendRequest(ctx context.Context, url string, data []by
 
 	// Set headers
 	req.Header.Set("Content-Type", "application/json")
-	req.Header.Set("User-Agent", "Schlep-Engine-Alerts/1.0")
+	req.Header.Set("User-Agent", "Igris Inertial-Alerts/1.0")
 
 	// Add custom headers
 	for key, value := range p.config.Headers {
@@ -151,8 +151,8 @@ func (p *WebhookProvider) sendRequest(ctx context.Context, url string, data []by
 		timestamp := time.Now().Unix()
 		signature := p.generateSignature(data, timestamp)
 
-		req.Header.Set("X-Schlep-Signature", signature)
-		req.Header.Set("X-Schlep-Timestamp", fmt.Sprintf("%d", timestamp))
+		req.Header.Set("X-Igris-Signature", signature)
+		req.Header.Set("X-Igris-Timestamp", fmt.Sprintf("%d", timestamp))
 	}
 
 	// Send request

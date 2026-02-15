@@ -36,7 +36,7 @@ import type {
   SecurityEvent,
   LoginAttempt,
   RateLimitInfo
-} from '@schlep-engine/types'
+} from '@igris-inertial/types'
 
 interface APIConfig {
   baseURL: string

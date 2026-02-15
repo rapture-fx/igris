@@ -19,7 +19,7 @@ CREATE POLICY tenant_isolation_policy ON tenants
 -- Policy: Allow service role to access all tenants (for admin operations)
 CREATE POLICY tenant_service_policy ON tenants
     FOR ALL
-    TO schlep_service
+    TO igris_service
     USING (TRUE);
 
 -- 2. Enable RLS on tenant_budget_usage table
@@ -31,7 +31,7 @@ CREATE POLICY tenant_budget_isolation_policy ON tenant_budget_usage
 
 CREATE POLICY tenant_budget_service_policy ON tenant_budget_usage
     FOR ALL
-    TO schlep_service
+    TO igris_service
     USING (TRUE);
 
 -- 3. Enable RLS on tenant_request_log table
@@ -43,7 +43,7 @@ CREATE POLICY tenant_request_log_isolation_policy ON tenant_request_log
 
 CREATE POLICY tenant_request_log_service_policy ON tenant_request_log
     FOR ALL
-    TO schlep_service
+    TO igris_service
     USING (TRUE);
 
 -- 4. Enable RLS on routing_telemetry table (if it has tenant_id)
@@ -61,7 +61,7 @@ BEGIN
 
         EXECUTE 'CREATE POLICY routing_telemetry_service_policy ON routing_telemetry
             FOR ALL
-            TO schlep_service
+            TO igris_service
             USING (TRUE)';
     END IF;
 END$$;
@@ -81,7 +81,7 @@ BEGIN
 
         EXECUTE 'CREATE POLICY slo_audit_service_policy ON slo_audit_events
             FOR ALL
-            TO schlep_service
+            TO igris_service
             USING (TRUE)';
     END IF;
 END$$;
@@ -101,7 +101,7 @@ BEGIN
 
         EXECUTE 'CREATE POLICY semantic_bandit_service_policy ON semantic_bandit_rewards
             FOR ALL
-            TO schlep_service
+            TO igris_service
             USING (TRUE)';
     END IF;
 END$$;
@@ -121,7 +121,7 @@ BEGIN
 
         EXECUTE 'CREATE POLICY policy_audit_service_policy ON policy_audit_log
             FOR ALL
-            TO schlep_service
+            TO igris_service
             USING (TRUE)';
     END IF;
 END$$;
@@ -146,7 +146,7 @@ BEGIN
 
             EXECUTE 'CREATE POLICY api_keys_service_policy ON api_keys
                 FOR ALL
-                TO schlep_service
+                TO igris_service
                 USING (TRUE)';
         END IF;
     END IF;
@@ -171,7 +171,7 @@ BEGIN
 
             EXECUTE 'CREATE POLICY routing_prefs_service_policy ON customer_routing_preferences
                 FOR ALL
-                TO schlep_service
+                TO igris_service
                 USING (TRUE)';
         END IF;
     END IF;
@@ -180,10 +180,10 @@ END$$;
 -- 10. Create service role if it doesn't exist
 DO $$
 BEGIN
-    IF NOT EXISTS (SELECT 1 FROM pg_roles WHERE rolname = 'schlep_service') THEN
-        CREATE ROLE schlep_service;
-        GRANT ALL PRIVILEGES ON ALL TABLES IN SCHEMA public TO schlep_service;
-        GRANT ALL PRIVILEGES ON ALL SEQUENCES IN SCHEMA public TO schlep_service;
+    IF NOT EXISTS (SELECT 1 FROM pg_roles WHERE rolname = 'igris_service') THEN
+        CREATE ROLE igris_service;
+        GRANT ALL PRIVILEGES ON ALL TABLES IN SCHEMA public TO igris_service;
+        GRANT ALL PRIVILEGES ON ALL SEQUENCES IN SCHEMA public TO igris_service;
     END IF;
 END$$;
 
@@ -243,5 +243,5 @@ DO $$
 BEGIN
     RAISE NOTICE 'Row-Level Security enabled on all tenant tables';
     RAISE NOTICE 'Remember to call set_tenant_context() after JWT validation in your application';
-    RAISE NOTICE 'Service role "schlep_service" can bypass RLS for administrative operations';
+    RAISE NOTICE 'Service role "igris_service" can bypass RLS for administrative operations';
 END$$;

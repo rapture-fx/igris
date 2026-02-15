@@ -14,21 +14,21 @@ use std::path::Path;
 use std::fs;
 use std::time::{SystemTime, UNIX_EPOCH};
 
-use schlep_kernel::cognitive::proposal_schema::{
+use igris_kernel::cognitive::proposal_schema::{
     PolicyProposal, ActionType, PolicyParameters, ExpectedImpact,
     ProposalRationale, EvidenceLinks, SafetyAssessment, SafetyLevel,
     Metadata, SystemState, EvidenceReference, EvidenceType
 };
-use schlep_kernel::cognitive::proposal_engine::{
+use igris_kernel::cognitive::proposal_engine::{
     ProposalEngine, ProposalEngineConfig, ProposalInput, SimulationData, 
     ForecastData, TelemetrySnapshot
 };
-use schlep_kernel::cognitive::proposal_safety::{
+use igris_kernel::cognitive::proposal_safety::{
     ProposalSafetyValidator, SafetyValidationResult
 };
-use schlep_kernel::cognitive::proposal_actions::ProposalActions;
-use schlep_kernel::cognitive::cognitive_control::{ReasoningOutput, RiskLevel};
-use schlep_kernel::cognitive::utils::json_writer::JsonWriter;
+use igris_kernel::cognitive::proposal_actions::ProposalActions;
+use igris_kernel::cognitive::cognitive_control::{ReasoningOutput, RiskLevel};
+use igris_kernel::cognitive::utils::json_writer::JsonWriter;
 
 #[test]
 fn test_proposal_schema_structure() {

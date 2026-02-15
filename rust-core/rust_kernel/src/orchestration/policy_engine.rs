@@ -11,7 +11,7 @@
 //!
 //! # Example
 //! ```no_run
-//! use schlep_kernel::orchestration::AdaptivePolicyEngine;
+//! use igris_kernel::orchestration::AdaptivePolicyEngine;
 //!
 //! let engine = AdaptivePolicyEngine::new(config);
 //! engine.update_from_telemetry(&telemetry_snapshot);

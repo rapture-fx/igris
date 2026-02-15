@@ -44,7 +44,7 @@ Recommendation: Review failures before production deployment
 5. Ensure all dependencies (database, Redis, providers) are healthy
 
 Next Steps:
-- Review API logs: kubectl logs deployment/schlep-engine-api --tail=500
+- Review API logs: kubectl logs deployment/igris-inertial-api --tail=500
 - Check provider health: curl http://localhost:8081/v1/providers/stats
 - Review metrics: curl http://localhost:8081/metrics
 - Check database connectivity and query performance

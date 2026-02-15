@@ -1,5 +1,5 @@
 """
-Comprehensive error handling tests for Schlep-engine Python SDK
+Comprehensive error handling tests for Igris-engine Python SDK
 """
 
 import pytest
@@ -7,12 +7,12 @@ import asyncio
 from unittest.mock import AsyncMock, MagicMock, patch
 import json
 
-from schlep_engine.exceptions.base import (
-    SchlepEngineError, APIError, AuthenticationError, RateLimitError,
+from igris.exceptions.base import (
+    IgrisError, APIError, AuthenticationError, RateLimitError,
     NetworkError, ValidationError, TimeoutError
 )
-from schlep_engine.utils.retry import RetryHandler, RetryConfig
-from schlep_engine.utils.http_client import HTTPClient
+from igris.utils.retry import RetryHandler, RetryConfig
+from igris.utils.http_client import HTTPClient
 
 
 class TestExceptionHierarchy:
@@ -20,7 +20,7 @@ class TestExceptionHierarchy:
 
     def test_base_exception_properties(self):
         """Test base exception properties."""
-        error = SchlepEngineError("Test error", error_code="TEST_ERROR")
+        error = IgrisError("Test error", error_code="TEST_ERROR")
         
         assert str(error) == "Test error"
         assert error.message == "Test error"
@@ -39,7 +39,7 @@ class TestExceptionHierarchy:
         assert error.status_code == 400
         assert error.error_code == "BAD_REQUEST"
         assert error.request_id == "req-123"
-        assert isinstance(error, SchlepEngineError)
+        assert isinstance(error, IgrisError)
 
     def test_authentication_error(self):
         """Test AuthenticationError."""
@@ -47,7 +47,7 @@ class TestExceptionHierarchy:
         
         assert str(error) == "Invalid token"
         assert isinstance(error, APIError)
-        assert isinstance(error, SchlepEngineError)
+        assert isinstance(error, IgrisError)
 
     def test_rate_limit_error_properties(self):
         """Test RateLimitError specific properties."""
@@ -68,21 +68,21 @@ class TestExceptionHierarchy:
         error = NetworkError("Connection failed", timeout=30.0)
         
         assert error.timeout == 30.0
-        assert isinstance(error, SchlepEngineError)
+        assert isinstance(error, IgrisError)
 
     def test_validation_error(self):
         """Test ValidationError."""
         error = ValidationError("Invalid input", field="email")
         
         assert error.field == "email"
-        assert isinstance(error, SchlepEngineError)
+        assert isinstance(error, IgrisError)
 
     def test_timeout_error(self):
         """Test TimeoutError."""
         error = TimeoutError("Request timed out", timeout=30.0)
         
         assert error.timeout == 30.0
-        assert isinstance(error, SchlepEngineError)
+        assert isinstance(error, IgrisError)
 
 
 class TestRetryHandler:
@@ -486,7 +486,7 @@ class TestErrorLogging:
     @pytest.mark.asyncio
     async def test_error_context_preservation(self):
         """Test that error context is preserved through the call stack."""
-        class ContextualError(SchlepEngineError):
+        class ContextualError(IgrisError):
             def __init__(self, message, context=None):
                 super().__init__(message)
                 self.context = context or {}

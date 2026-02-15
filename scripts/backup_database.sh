@@ -1,5 +1,5 @@
 #!/bin/bash
-# Database backup script for Schlep Engine
+# Database backup script for Igris Inertial
 
 set -e
 

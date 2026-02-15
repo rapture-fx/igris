@@ -111,7 +111,7 @@ func (wn *WebhookNotifier) SendEvent(event WebhookEvent) error {
 
 		// Set headers
 		req.Header.Set("Content-Type", "application/json")
-		req.Header.Set("User-Agent", "Schlep-Engine-KeyVault/1.0")
+		req.Header.Set("User-Agent", "Igris Inertial-KeyVault/1.0")
 		req.Header.Set("X-Event-Type", event.EventType)
 		req.Header.Set("X-Event-ID", event.EventID)
 		req.Header.Set("X-Tenant-ID", event.TenantID)

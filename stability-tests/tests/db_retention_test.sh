@@ -6,11 +6,11 @@
 
 set -euo pipefail
 
-DATABASE_URL="${DATABASE_URL:-postgres://schlep:schlep_ci_password@localhost:5433/schlep_test?sslmode=disable}"
+DATABASE_URL="${DATABASE_URL:-postgres://igris:igris_ci_password@localhost:5433/igris_test?sslmode=disable}"
 RETENTION_DAYS=90
 
 echo "========================================"
-echo "Schlep-Engine Data Retention Test"
+echo "Igris Inertial Data Retention Test"
 echo "========================================"
 echo "Retention Policy: ${RETENTION_DAYS} days"
 echo ""
@@ -163,7 +163,7 @@ echo "Generating summary report..."
 
 cat > db_retention_test_results.txt <<EOF
 ======================================
-Schlep-Engine Data Retention Test Report
+Igris Inertial Data Retention Test Report
 ======================================
 Test Date: $(date)
 Retention Policy: ${RETENTION_DAYS} days

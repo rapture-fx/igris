@@ -1,9 +1,9 @@
-# Schlep-engine Java SDK
+# Igris-engine Java SDK
 
-Official Java SDK for the Schlep-engine API platform.
+Official Java SDK for the Igris-engine API platform.
 
-[![Maven Central](https://img.shields.io/maven-central/v/io.schlepengine/igris-inertial.svg)](https://search.maven.org/artifact/io.schlepengine/igris-inertial)
-[![Javadoc](https://javadoc.io/badge2/io.schlepengine/igris-inertial/javadoc.svg)](https://javadoc.io/doc/io.schlepengine/igris-inertial)
+[![Maven Central](https://img.shields.io/maven-central/v/io.igris/igris-inertial.svg)](https://search.maven.org/artifact/io.igris/igris-inertial)
+[![Javadoc](https://javadoc.io/badge2/io.igris/igris-inertial/javadoc.svg)](https://javadoc.io/doc/io.igris/igris-inertial)
 [![License](https://img.shields.io/github/license/igris-inertial/java-sdk.svg)](LICENSE)
 
 ## Features
@@ -19,7 +19,7 @@ Official Java SDK for the Schlep-engine API platform.
 
 ## API Modules
 
-The SDK provides comprehensive clients for all Schlep-engine API modules:
+The SDK provides comprehensive clients for all Igris-engine API modules:
 
 - **Data Processing** (`client.data()`) - Process, transform, and manage data
 - **ML Pipeline** (`client.ml()`) - Create, train, and deploy ML models
@@ -39,7 +39,7 @@ Add this dependency to your `pom.xml`:
 
 ```xml
 <dependency>
-    <groupId>io.schlepengine</groupId>
+    <groupId>io.igris</groupId>
     <artifactId>igris-inertial</artifactId>
     <version>1.0.0</version>
 </dependency>
@@ -50,7 +50,7 @@ Add this dependency to your `pom.xml`:
 Add this to your `build.gradle`:
 
 ```gradle
-implementation 'io.schlepengine:igris-inertial:1.0.0'
+implementation 'io.igris:igris-inertial:1.0.0'
 ```
 
 ## Quick Start
@@ -58,16 +58,16 @@ implementation 'io.schlepengine:igris-inertial:1.0.0'
 ### Basic Usage
 
 ```java
-import io.schlepengine.SchlepClient;
-import io.schlepengine.types.*;
+import io.igris.IgrisClient;
+import io.igris.types.*;
 
 public class Example {
     public static void main(String[] args) throws Exception {
         // Create client with API key
-        SchlepClient client = new SchlepClient("your-api-key");
+        IgrisClient client = new IgrisClient("your-api-key");
 
-        // Or from environment variable SCHLEP_API_KEY
-        SchlepClient client = SchlepClient.fromEnv();
+        // Or from environment variable IGRIS_API_KEY
+        IgrisClient client = IgrisClient.fromEnv();
 
         try {
             // Upload data
@@ -95,15 +95,15 @@ public class Example {
 ### Using API Modules
 
 ```java
-import io.schlepengine.SchlepClient;
-import io.schlepengine.api.*;
-import io.schlepengine.types.*;
+import io.igris.IgrisClient;
+import io.igris.api.*;
+import io.igris.types.*;
 import java.io.File;
 import java.util.*;
 
 public class ModulesExample {
     public static void main(String[] args) throws Exception {
-        SchlepClient client = new SchlepClient("your-api-key");
+        IgrisClient client = new IgrisClient("your-api-key");
 
         // Data Processing
         DataProcessingClient dataClient = client.data();
@@ -153,13 +153,13 @@ public class ModulesExample {
 
 ```java
 // With API key
-SchlepClient client = new SchlepClient("your-api-key");
+IgrisClient client = new IgrisClient("your-api-key");
 
 // From environment variable
-SchlepClient client = SchlepClient.fromEnv();
+IgrisClient client = IgrisClient.fromEnv();
 
 // With custom base URL
-SchlepClient client = new SchlepClient("your-api-key", "https://custom.api.com/v1");
+IgrisClient client = new IgrisClient("your-api-key", "https://custom.api.com/v1");
 ```
 
 ### Upload Data
@@ -251,7 +251,7 @@ try {
 
 ## Environment Variables
 
-- `SCHLEP_API_KEY`: Your Schlep-engine API key
+- `IGRIS_API_KEY`: Your Igris-engine API key
 
 ## Build and Test
 
@@ -262,9 +262,9 @@ mvn compile
 # Run tests
 mvn test
 
-# Run example (set SCHLEP_API_KEY first)
-export SCHLEP_API_KEY=your-api-key-here
-mvn exec:java -Dexec.mainClass="io.schlepengine.examples.BasicUsageExample"
+# Run example (set IGRIS_API_KEY first)
+export IGRIS_API_KEY=your-api-key-here
+mvn exec:java -Dexec.mainClass="io.igris.examples.BasicUsageExample"
 
 # Generate documentation
 mvn javadoc:javadoc
@@ -282,7 +282,7 @@ The SDK includes comprehensive tests with mocked HTTP responses:
 mvn test
 
 # Run specific test class
-mvn test -Dtest=SchlepClientTest
+mvn test -Dtest=IgrisClientTest
 
 # Run tests with detailed output
 mvn test -X
@@ -301,7 +301,7 @@ The SDK uses SLF4J for logging. To see debug logs, configure your logging framew
         </encoder>
     </appender>
 
-    <logger name="io.schlepengine" level="DEBUG"/>
+    <logger name="io.igris" level="DEBUG"/>
 
     <root level="INFO">
         <appender-ref ref="STDOUT"/>
@@ -491,10 +491,10 @@ futureJob.thenAccept(job -> {
 
 ## Examples
 
-Check out the [examples](src/main/java/io/schlepengine/examples/) directory:
+Check out the [examples](src/main/java/io/igris/examples/) directory:
 
-- [BasicUsageExample](src/main/java/io/schlepengine/examples/BasicUsageExample.java) - Complete workflow from upload to deployment
-- [ComprehensiveExample](src/main/java/io/schlepengine/examples/ComprehensiveExample.java) - Demonstrates all API modules
+- [BasicUsageExample](src/main/java/io/igris/examples/BasicUsageExample.java) - Complete workflow from upload to deployment
+- [ComprehensiveExample](src/main/java/io/igris/examples/ComprehensiveExample.java) - Demonstrates all API modules
 
 ## Java Version Compatibility
 

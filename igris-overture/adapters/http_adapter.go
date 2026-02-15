@@ -136,7 +136,7 @@ func (a *HTTPAdapter) SendChatCompletion(
 
 	// Set headers
 	req.Header.Set("Content-Type", "application/json")
-	req.Header.Set("User-Agent", "Schlep-Engine/1.0")
+	req.Header.Set("User-Agent", "Igris-Inertial/1.0")
 
 	// Set authentication header
 	authHeader := strings.Replace(provider.AuthHeaderTemplate, "{key}", apiKey, 1)
@@ -148,8 +148,8 @@ func (a *HTTPAdapter) SendChatCompletion(
 			provider.Name, logging.MaskProviderID(provider.ID))
 	}
 
-	// Add trace headers (REMOVED x-schlep-tenant-id for security - don't leak tenant info to external providers)
-	req.Header.Set("x-schlep-provider-id", logging.MaskProviderID(provider.ID))
+	// Add trace headers (REMOVED x-igris-tenant-id for security - don't leak tenant info to external providers)
+	req.Header.Set("x-igris-provider-id", logging.MaskProviderID(provider.ID))
 
 	// Send request
 	resp, err := a.httpClient.Do(req)

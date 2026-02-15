@@ -7,7 +7,7 @@
 
 import React, { useEffect, useState } from 'react'
 import { Shield, Lock, AlertTriangle, Loader2, Eye } from 'lucide-react'
-import type { ProtectedRouteProps, User, AuthError } from '@schlep-engine/types/auth'
+import type { ProtectedRouteProps, User, AuthError } from '@igris-inertial/types/auth'
 import { useAuth } from './AuthContext'
 
 interface LoadingState {

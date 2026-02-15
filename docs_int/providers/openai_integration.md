@@ -345,5 +345,5 @@ provider, _ := openai.NewOpenAIProvider(config)
 ---
 
 **Document Version:** 1.0.0
-**Author:** Schlep-Engine Team
+**Author:** Igris Inertial Team
 **Last Review:** October 24, 2025

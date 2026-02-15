@@ -1,6 +1,6 @@
-# Schlep-Engine Architecture Diagrams
+# Igris Inertial Architecture Diagrams
 
-This directory contains Mermaid diagrams documenting the Schlep-engine architecture.
+This directory contains Mermaid diagrams documenting the Igris Inertial architecture.
 
 **Last Updated:** 2025-10-20
 

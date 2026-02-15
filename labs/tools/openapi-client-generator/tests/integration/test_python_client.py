@@ -16,9 +16,9 @@ CLIENT_PATH = os.path.join(os.path.dirname(__file__), '../../generated/python')
 sys.path.insert(0, CLIENT_PATH)
 
 try:
-    import schlep_engine_client
-    from schlep_engine_client.api_client import ApiClient
-    from schlep_engine_client.configuration import Configuration
+    import igris_client
+    from igris_client.api_client import ApiClient
+    from igris_client.configuration import Configuration
 except ImportError as e:
     pytest.skip(f"Generated Python client not found: {e}", allow_module_level=True)
 
@@ -29,14 +29,14 @@ class TestPythonClientIntegration:
     @classmethod
     def setup_class(cls):
         """Set up test environment"""
-        cls.base_url = "https://api.schlep-engine.com"
+        cls.base_url = "https://api.igris-inertial.com"
         cls.api_key = "test_api_key_12345"
         cls.test_timeout = 30
     
     def test_client_import(self):
         """Test that client can be imported successfully"""
-        assert hasattr(schlep_engine_client, '__version__')
-        assert schlep_engine_client.__version__ is not None
+        assert hasattr(igris_client, '__version__')
+        assert igris_client.__version__ is not None
     
     def test_configuration_creation(self):
         """Test configuration object creation"""
@@ -157,7 +157,7 @@ class TestPythonClientIntegration:
         
         # Check default user agent
         assert client.user_agent is not None
-        assert 'schlep-engine-python-client' in client.user_agent.lower()
+        assert 'igris-inertial-python-client' in client.user_agent.lower()
     
     def test_ssl_verification(self):
         """Test SSL verification settings"""
@@ -243,7 +243,7 @@ class TestPythonClientModels:
         try:
             # Try to import common model classes
             # Note: Actual imports depend on generated models
-            from schlep_engine_client.models import *
+            from igris_client.models import *
             # If we get here, models imported successfully
             assert True
         except ImportError:
@@ -265,7 +265,7 @@ class TestPythonClientAPIs:
         try:
             # Try to import API classes
             # Note: Actual imports depend on generated APIs
-            from schlep_engine_client.api import *
+            from igris_client.api import *
             # If we get here, APIs imported successfully
             assert True
         except ImportError:

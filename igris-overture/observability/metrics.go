@@ -542,51 +542,51 @@ func RecordInferLatency(provider, model string, latencyMs int64) {
 
 var (
 	// Cost forecasting metrics
-	schlepEstimatedCostUSDTotal = promauto.NewCounterVec(
+	igrisEstimatedCostUSDTotal = promauto.NewCounterVec(
 		prometheus.CounterOpts{
-			Name: "schlep_estimated_cost_usd_total",
+			Name: "igris_estimated_cost_usd_total",
 			Help: "Total estimated cost in USD across all requests",
 		},
 		[]string{"provider", "model"},
 	)
 
-	schlepForecastRequestsTotal = promauto.NewCounterVec(
+	igrisForecastRequestsTotal = promauto.NewCounterVec(
 		prometheus.CounterOpts{
-			Name: "schlep_forecast_requests_total",
+			Name: "igris_forecast_requests_total",
 			Help: "Total number of requests with cost forecast",
 		},
 		[]string{"provider", "model", "forecast_method"}, // forecast_method: pre_request, post_request
 	)
 
-	schlepProviderCostRatio = promauto.NewGaugeVec(
+	igrisProviderCostRatio = promauto.NewGaugeVec(
 		prometheus.GaugeOpts{
-			Name: "schlep_provider_cost_ratio",
+			Name: "igris_provider_cost_ratio",
 			Help: "Cost efficiency ratio per provider (lower is better)",
 		},
 		[]string{"provider", "model"},
 	)
 
-	schlepCostPerToken = promauto.NewHistogramVec(
+	igrisCostPerToken = promauto.NewHistogramVec(
 		prometheus.HistogramOpts{
-			Name:    "schlep_cost_per_token",
+			Name:    "igris_cost_per_token",
 			Help:    "Cost per token distribution in USD",
 			Buckets: []float64{0.000001, 0.00001, 0.0001, 0.001, 0.01, 0.1},
 		},
 		[]string{"provider", "model", "token_type"}, // token_type: input, output, total
 	)
 
-	schlepRequestCostUSD = promauto.NewHistogramVec(
+	igrisRequestCostUSD = promauto.NewHistogramVec(
 		prometheus.HistogramOpts{
-			Name:    "schlep_request_cost_usd",
+			Name:    "igris_request_cost_usd",
 			Help:    "Per-request cost distribution in USD",
 			Buckets: []float64{0.000001, 0.00001, 0.0001, 0.001, 0.01, 0.1, 1.0},
 		},
 		[]string{"provider", "model"},
 	)
 
-	schlepCostForecastAccuracy = promauto.NewHistogramVec(
+	igrisCostForecastAccuracy = promauto.NewHistogramVec(
 		prometheus.HistogramOpts{
-			Name:    "schlep_cost_forecast_accuracy",
+			Name:    "igris_cost_forecast_accuracy",
 			Help:    "Accuracy of cost forecasts (estimated vs actual)",
 			Buckets: []float64{0.5, 0.7, 0.8, 0.9, 0.95, 0.99, 1.0, 1.1, 1.2, 1.5},
 		},
@@ -597,52 +597,52 @@ var (
 // RecordEstimatedCost records estimated cost for a request (before inference)
 func RecordEstimatedCost(provider, model string, estimatedCostUSD float64, inputTokens, outputTokens int) {
 	// Record total estimated cost
-	schlepEstimatedCostUSDTotal.WithLabelValues(provider, model).Add(estimatedCostUSD)
+	igrisEstimatedCostUSDTotal.WithLabelValues(provider, model).Add(estimatedCostUSD)
 
 	// Record forecast request
-	schlepForecastRequestsTotal.WithLabelValues(provider, model, "pre_request").Inc()
+	igrisForecastRequestsTotal.WithLabelValues(provider, model, "pre_request").Inc()
 
 	// Record cost distribution
-	schlepRequestCostUSD.WithLabelValues(provider, model).Observe(estimatedCostUSD)
+	igrisRequestCostUSD.WithLabelValues(provider, model).Observe(estimatedCostUSD)
 
 	// Record cost per token if tokens are provided
 	if inputTokens > 0 {
 		costPerInputToken := estimatedCostUSD / float64(inputTokens+outputTokens)
-		schlepCostPerToken.WithLabelValues(provider, model, "input").Observe(costPerInputToken)
+		igrisCostPerToken.WithLabelValues(provider, model, "input").Observe(costPerInputToken)
 	}
 }
 
 // RecordActualCost records actual cost after inference completes
 func RecordActualCost(provider, model string, actualCostUSD, estimatedCostUSD float64, inputTokens, outputTokens int) {
 	// Record actual cost
-	schlepEstimatedCostUSDTotal.WithLabelValues(provider, model).Add(actualCostUSD)
+	igrisEstimatedCostUSDTotal.WithLabelValues(provider, model).Add(actualCostUSD)
 
 	// Record forecast request
-	schlepForecastRequestsTotal.WithLabelValues(provider, model, "post_request").Inc()
+	igrisForecastRequestsTotal.WithLabelValues(provider, model, "post_request").Inc()
 
 	// Record cost distribution
-	schlepRequestCostUSD.WithLabelValues(provider, model).Observe(actualCostUSD)
+	igrisRequestCostUSD.WithLabelValues(provider, model).Observe(actualCostUSD)
 
 	// Record forecast accuracy
 	if estimatedCostUSD > 0 && actualCostUSD > 0 {
 		accuracy := actualCostUSD / estimatedCostUSD
-		schlepCostForecastAccuracy.WithLabelValues(provider, model).Observe(accuracy)
+		igrisCostForecastAccuracy.WithLabelValues(provider, model).Observe(accuracy)
 	}
 
 	// Record cost per token
 	totalTokens := inputTokens + outputTokens
 	if totalTokens > 0 {
 		costPerToken := actualCostUSD / float64(totalTokens)
-		schlepCostPerToken.WithLabelValues(provider, model, "total").Observe(costPerToken)
+		igrisCostPerToken.WithLabelValues(provider, model, "total").Observe(costPerToken)
 
 		if inputTokens > 0 {
 			costPerInputToken := (actualCostUSD * float64(inputTokens) / float64(totalTokens)) / float64(inputTokens)
-			schlepCostPerToken.WithLabelValues(provider, model, "input").Observe(costPerInputToken)
+			igrisCostPerToken.WithLabelValues(provider, model, "input").Observe(costPerInputToken)
 		}
 
 		if outputTokens > 0 {
 			costPerOutputToken := (actualCostUSD * float64(outputTokens) / float64(totalTokens)) / float64(outputTokens)
-			schlepCostPerToken.WithLabelValues(provider, model, "output").Observe(costPerOutputToken)
+			igrisCostPerToken.WithLabelValues(provider, model, "output").Observe(costPerOutputToken)
 		}
 	}
 }
@@ -650,23 +650,23 @@ func RecordActualCost(provider, model string, actualCostUSD, estimatedCostUSD fl
 // RecordProviderCostRatio records the cost efficiency ratio for a provider
 // Lower ratio = more cost efficient
 func RecordProviderCostRatio(provider, model string, costRatio float64) {
-	schlepProviderCostRatio.WithLabelValues(provider, model).Set(costRatio)
+	igrisProviderCostRatio.WithLabelValues(provider, model).Set(costRatio)
 }
 
 // Phase 2: Policy-based routing and fallback metrics
 
 var (
-	schlepPolicyRouteDecisionsTotal = promauto.NewCounterVec(
+	igrisPolicyRouteDecisionsTotal = promauto.NewCounterVec(
 		prometheus.CounterOpts{
-			Name: "schlep_policy_route_decisions_total",
+			Name: "igris_policy_route_decisions_total",
 			Help: "Total number of policy-based routing decisions",
 		},
 		[]string{"provider", "strategy", "preference"}, // strategy: policy_based, default
 	)
 
-	schlepCostBasedFallbacksTotal = promauto.NewCounterVec(
+	igrisCostBasedFallbacksTotal = promauto.NewCounterVec(
 		prometheus.CounterOpts{
-			Name: "schlep_cost_based_fallbacks_total",
+			Name: "igris_cost_based_fallbacks_total",
 			Help: "Total number of cost-based provider fallbacks",
 		},
 		[]string{"provider"},
@@ -675,38 +675,38 @@ var (
 
 // RecordPolicyRouteDecision records a policy-based routing decision
 func RecordPolicyRouteDecision(provider, strategy, preference string) {
-	schlepPolicyRouteDecisionsTotal.WithLabelValues(provider, strategy, preference).Inc()
+	igrisPolicyRouteDecisionsTotal.WithLabelValues(provider, strategy, preference).Inc()
 }
 
 // RecordCostBasedFallback records when a provider is selected due to cost constraints
 func RecordCostBasedFallback(provider string) {
-	schlepCostBasedFallbacksTotal.WithLabelValues(provider).Inc()
+	igrisCostBasedFallbacksTotal.WithLabelValues(provider).Inc()
 }
 
 // Phase 3: Semantic Routing & Adaptive Learning Metrics
 
 var (
 	// Semantic classification metrics
-	schlepSemanticClassificationsTotal = promauto.NewCounterVec(
+	igrisSemanticClassificationsTotal = promauto.NewCounterVec(
 		prometheus.CounterOpts{
-			Name: "schlep_semantic_classifications_total",
+			Name: "igris_semantic_classifications_total",
 			Help: "Total number of semantic classifications performed",
 		},
 		[]string{"class", "cache_hit"}, // cache_hit: true/false
 	)
 
-	schlepSemanticClassificationLatency = promauto.NewHistogramVec(
+	igrisSemanticClassificationLatency = promauto.NewHistogramVec(
 		prometheus.HistogramOpts{
-			Name:    "schlep_semantic_classification_latency_ms",
+			Name:    "igris_semantic_classification_latency_ms",
 			Help:    "Semantic classification latency in milliseconds",
 			Buckets: []float64{1, 2, 5, 10, 15, 20, 30, 50, 100},
 		},
 		[]string{"class", "cache_hit"},
 	)
 
-	schlepSemanticClassificationConfidence = promauto.NewHistogramVec(
+	igrisSemanticClassificationConfidence = promauto.NewHistogramVec(
 		prometheus.HistogramOpts{
-			Name:    "schlep_semantic_classification_confidence",
+			Name:    "igris_semantic_classification_confidence",
 			Help:    "Confidence score of semantic classifications (0-1)",
 			Buckets: []float64{0.1, 0.2, 0.3, 0.4, 0.5, 0.6, 0.7, 0.8, 0.9, 0.95, 1.0},
 		},
@@ -714,86 +714,86 @@ var (
 	)
 
 	// Bandit algorithm metrics
-	schlepBanditRewardUpdatesTotal = promauto.NewCounterVec(
+	igrisBanditRewardUpdatesTotal = promauto.NewCounterVec(
 		prometheus.CounterOpts{
-			Name: "schlep_bandit_reward_updates_total",
+			Name: "igris_bandit_reward_updates_total",
 			Help: "Total number of bandit reward updates processed",
 		},
 		[]string{"provider", "class", "status"}, // status: success/error
 	)
 
-	schlepProviderRewardMean = promauto.NewGaugeVec(
+	igrisProviderRewardMean = promauto.NewGaugeVec(
 		prometheus.GaugeOpts{
-			Name: "schlep_provider_reward_mean",
+			Name: "igris_provider_reward_mean",
 			Help: "Mean composite reward for each provider per semantic class (Thompson Sampling)",
 		},
 		[]string{"provider", "class"},
 	)
 
-	schlepProviderRewardAlpha = promauto.NewGaugeVec(
+	igrisProviderRewardAlpha = promauto.NewGaugeVec(
 		prometheus.GaugeOpts{
-			Name: "schlep_provider_reward_alpha",
+			Name: "igris_provider_reward_alpha",
 			Help: "Beta distribution alpha parameter (successes) for Thompson Sampling",
 		},
 		[]string{"provider", "class"},
 	)
 
-	schlepProviderRewardBeta = promauto.NewGaugeVec(
+	igrisProviderRewardBeta = promauto.NewGaugeVec(
 		prometheus.GaugeOpts{
-			Name: "schlep_provider_reward_beta",
+			Name: "igris_provider_reward_beta",
 			Help: "Beta distribution beta parameter (failures) for Thompson Sampling",
 		},
 		[]string{"provider", "class"},
 	)
 
 	// Feedback processing metrics
-	schlepFeedbackLatencyMs = promauto.NewHistogramVec(
+	igrisFeedbackLatencyMs = promauto.NewHistogramVec(
 		prometheus.HistogramOpts{
-			Name:    "schlep_feedback_latency_ms",
+			Name:    "igris_feedback_latency_ms",
 			Help:    "Feedback event processing latency in milliseconds",
 			Buckets: []float64{1, 2, 5, 10, 15, 20, 30, 50, 100},
 		},
 		[]string{"provider", "class"},
 	)
 
-	schlepFeedbackEventsTotal = promauto.NewCounterVec(
+	igrisFeedbackEventsTotal = promauto.NewCounterVec(
 		prometheus.CounterOpts{
-			Name: "schlep_feedback_events_total",
+			Name: "igris_feedback_events_total",
 			Help: "Total number of feedback events received",
 		},
 		[]string{"provider", "class", "success"},
 	)
 
-	schlepFeedbackProcessedTotal = promauto.NewCounterVec(
+	igrisFeedbackProcessedTotal = promauto.NewCounterVec(
 		prometheus.CounterOpts{
-			Name: "schlep_feedback_processed_total",
+			Name: "igris_feedback_processed_total",
 			Help: "Total number of feedback events processed asynchronously",
 		},
 		[]string{"status"}, // status: success/error
 	)
 
 	// Composite reward component metrics
-	schlepRewardComponentLatency = promauto.NewHistogramVec(
+	igrisRewardComponentLatency = promauto.NewHistogramVec(
 		prometheus.HistogramOpts{
-			Name:    "schlep_reward_component_latency",
+			Name:    "igris_reward_component_latency",
 			Help:    "Latency score component of composite reward (0-1, higher is better)",
 			Buckets: []float64{0.1, 0.2, 0.3, 0.4, 0.5, 0.6, 0.7, 0.8, 0.9, 1.0},
 		},
 		[]string{"provider", "class"},
 	)
 
-	schlepRewardComponentCost = promauto.NewHistogramVec(
+	igrisRewardComponentCost = promauto.NewHistogramVec(
 		prometheus.HistogramOpts{
-			Name:    "schlep_reward_component_cost",
+			Name:    "igris_reward_component_cost",
 			Help:    "Cost efficiency component of composite reward (0-1, higher is better)",
 			Buckets: []float64{0.1, 0.2, 0.3, 0.4, 0.5, 0.6, 0.7, 0.8, 0.9, 1.0},
 		},
 		[]string{"provider", "class"},
 	)
 
-	schlepRewardComponentSuccess = promauto.NewHistogramVec(
+	igrisRewardComponentSuccess = promauto.NewHistogramVec(
 		prometheus.HistogramOpts{
-			Name:    "schlep_reward_component_success",
+			Name:    "igris_reward_component_success",
 			Help:    "Success rate component of composite reward (0-1)",
 			Buckets: []float64{0.0, 0.1, 0.5, 0.9, 0.95, 0.99, 1.0},
 		},
@@ -801,9 +801,9 @@ var (
 	)
 
 	// Weight tracking for adaptive learning
-	schlepCompositeRewardWeights = promauto.NewGaugeVec(
+	igrisCompositeRewardWeights = promauto.NewGaugeVec(
 		prometheus.GaugeOpts{
-			Name: "schlep_composite_reward_weights",
+			Name: "igris_composite_reward_weights",
 			Help: "Current weights for composite reward calculation (α, β, γ)",
 		},
 		[]string{"component", "class"}, // component: latency/cost/success
@@ -814,25 +814,25 @@ var (
 
 var (
 	// Policy routing metrics
-	schlepPolicyVersionActive = promauto.NewGaugeVec(
+	igrisPolicyVersionActive = promauto.NewGaugeVec(
 		prometheus.GaugeOpts{
-			Name: "schlep_policy_version_active",
+			Name: "igris_policy_version_active",
 			Help: "Currently active policy version per tenant (1=active, 0=inactive)",
 		},
 		[]string{"tenant_id", "version"},
 	)
 
-	schlepPolicyReloadTotal = promauto.NewCounterVec(
+	igrisPolicyReloadTotal = promauto.NewCounterVec(
 		prometheus.CounterOpts{
-			Name: "schlep_policy_reload_total",
+			Name: "igris_policy_reload_total",
 			Help: "Total number of policy hot reloads",
 		},
 		[]string{"tenant_id", "status"}, // status: success/error
 	)
 
-	schlepPolicyReloadLatency = promauto.NewHistogramVec(
+	igrisPolicyReloadLatency = promauto.NewHistogramVec(
 		prometheus.HistogramOpts{
-			Name:    "schlep_policy_reload_latency_seconds",
+			Name:    "igris_policy_reload_latency_seconds",
 			Help:    "Policy reload latency in seconds",
 			Buckets: []float64{0.1, 0.25, 0.5, 0.75, 1.0, 2.0, 5.0},
 		},
@@ -840,83 +840,83 @@ var (
 	)
 
 	// SLA tracking metrics
-	schlepSLAViolationsTotal = promauto.NewCounterVec(
+	igrisSLAViolationsTotal = promauto.NewCounterVec(
 		prometheus.CounterOpts{
-			Name: "schlep_sla_violations_total",
+			Name: "igris_sla_violations_total",
 			Help: "Total number of SLA violations",
 		},
 		[]string{"tenant_id", "provider", "violation_type", "severity"}, // violation_type: uptime/latency_p95/latency_p99/cost/success_rate
 	)
 
-	schlepSLAComplianceStatus = promauto.NewGaugeVec(
+	igrisSLAComplianceStatus = promauto.NewGaugeVec(
 		prometheus.GaugeOpts{
-			Name: "schlep_sla_compliance_status",
+			Name: "igris_sla_compliance_status",
 			Help: "Current SLA compliance status (1=compliant, 0.5=warning, 0=critical)",
 		},
 		[]string{"tenant_id"},
 	)
 
-	schlepProviderDegradedTotal = promauto.NewCounterVec(
+	igrisProviderDegradedTotal = promauto.NewCounterVec(
 		prometheus.CounterOpts{
-			Name: "schlep_provider_degraded_total",
+			Name: "igris_provider_degraded_total",
 			Help: "Total number of times providers marked as degraded due to SLA violations",
 		},
 		[]string{"provider", "reason"},
 	)
 
-	schlepSLAMeasuredValue = promauto.NewGaugeVec(
+	igrisSLAMeasuredValue = promauto.NewGaugeVec(
 		prometheus.GaugeOpts{
-			Name: "schlep_sla_measured_value",
+			Name: "igris_sla_measured_value",
 			Help: "Current measured value for SLA metrics",
 		},
 		[]string{"tenant_id", "provider", "metric_type"}, // metric_type: uptime/latency_p95/latency_p99/cost/success_rate
 	)
 
-	schlepSLATargetValue = promauto.NewGaugeVec(
+	igrisSLATargetValue = promauto.NewGaugeVec(
 		prometheus.GaugeOpts{
-			Name: "schlep_sla_target_value",
+			Name: "igris_sla_target_value",
 			Help: "Target value for SLA metrics",
 		},
 		[]string{"tenant_id", "metric_type"},
 	)
 
 	// Audit log metrics
-	schlepAuditLogEntriesTotal = promauto.NewCounterVec(
+	igrisAuditLogEntriesTotal = promauto.NewCounterVec(
 		prometheus.CounterOpts{
-			Name: "schlep_audit_log_entries_total",
+			Name: "igris_audit_log_entries_total",
 			Help: "Total number of audit log entries created",
 		},
 		[]string{"tenant_id", "policy_version"},
 	)
 
-	schlepAuditLogRetentionCleanup = promauto.NewCounter(
+	igrisAuditLogRetentionCleanup = promauto.NewCounter(
 		prometheus.CounterOpts{
-			Name: "schlep_audit_log_retention_cleanup_total",
+			Name: "igris_audit_log_retention_cleanup_total",
 			Help: "Total number of audit log entries cleaned up due to retention policy",
 		},
 	)
 
 	// Self-tuning metrics
-	schlepSelfTuningOptimizationsTotal = promauto.NewCounterVec(
+	igrisSelfTuningOptimizationsTotal = promauto.NewCounterVec(
 		prometheus.CounterOpts{
-			Name: "schlep_self_tuning_optimizations_total",
+			Name: "igris_self_tuning_optimizations_total",
 			Help: "Total number of self-tuning weight optimizations performed",
 		},
 		[]string{"class", "status"}, // status: applied/rejected
 	)
 
-	schlepSelfTuningPerformanceImprovement = promauto.NewHistogramVec(
+	igrisSelfTuningPerformanceImprovement = promauto.NewHistogramVec(
 		prometheus.HistogramOpts{
-			Name:    "schlep_self_tuning_performance_improvement",
+			Name:    "igris_self_tuning_performance_improvement",
 			Help:    "Expected performance improvement from self-tuning (percentage)",
 			Buckets: []float64{-10, -5, 0, 1, 2, 5, 10, 15, 20, 30, 50},
 		},
 		[]string{"class"},
 	)
 
-	schlepSelfTuningConfidence = promauto.NewHistogramVec(
+	igrisSelfTuningConfidence = promauto.NewHistogramVec(
 		prometheus.HistogramOpts{
-			Name:    "schlep_self_tuning_confidence",
+			Name:    "igris_self_tuning_confidence",
 			Help:    "Confidence score for self-tuning optimization (0-1)",
 			Buckets: []float64{0.5, 0.6, 0.7, 0.8, 0.9, 0.95, 1.0},
 		},
@@ -933,9 +933,9 @@ func RecordSemanticClassification(class string, latencyMs int64, confidence floa
 		cacheHitStr = "true"
 	}
 
-	schlepSemanticClassificationsTotal.WithLabelValues(class, cacheHitStr).Inc()
-	schlepSemanticClassificationLatency.WithLabelValues(class, cacheHitStr).Observe(float64(latencyMs))
-	schlepSemanticClassificationConfidence.WithLabelValues(class).Observe(confidence)
+	igrisSemanticClassificationsTotal.WithLabelValues(class, cacheHitStr).Inc()
+	igrisSemanticClassificationLatency.WithLabelValues(class, cacheHitStr).Observe(float64(latencyMs))
+	igrisSemanticClassificationConfidence.WithLabelValues(class).Observe(confidence)
 }
 
 // RecordBanditRewardUpdate records a bandit reward update event
@@ -945,15 +945,15 @@ func RecordBanditRewardUpdate(provider, class string, latencyMs int64, success b
 		status = "error"
 	}
 
-	schlepBanditRewardUpdatesTotal.WithLabelValues(provider, class, status).Inc()
-	schlepFeedbackLatencyMs.WithLabelValues(provider, class).Observe(float64(latencyMs))
+	igrisBanditRewardUpdatesTotal.WithLabelValues(provider, class, status).Inc()
+	igrisFeedbackLatencyMs.WithLabelValues(provider, class).Observe(float64(latencyMs))
 }
 
 // RecordProviderReward records Thompson Sampling parameters for a provider
 func RecordProviderReward(provider, class string, alpha, beta, compositeMean float64) {
-	schlepProviderRewardAlpha.WithLabelValues(provider, class).Set(alpha)
-	schlepProviderRewardBeta.WithLabelValues(provider, class).Set(beta)
-	schlepProviderRewardMean.WithLabelValues(provider, class).Set(compositeMean)
+	igrisProviderRewardAlpha.WithLabelValues(provider, class).Set(alpha)
+	igrisProviderRewardBeta.WithLabelValues(provider, class).Set(beta)
+	igrisProviderRewardMean.WithLabelValues(provider, class).Set(compositeMean)
 }
 
 // RecordFeedbackEvent records a feedback event
@@ -963,10 +963,10 @@ func RecordFeedbackEvent(provider, class string, success bool, processingLatency
 		successStr = "true"
 	}
 
-	schlepFeedbackEventsTotal.WithLabelValues(provider, class, successStr).Inc()
+	igrisFeedbackEventsTotal.WithLabelValues(provider, class, successStr).Inc()
 
 	if processingLatencyMs > 0 {
-		schlepFeedbackLatencyMs.WithLabelValues(provider, class).Observe(float64(processingLatencyMs))
+		igrisFeedbackLatencyMs.WithLabelValues(provider, class).Observe(float64(processingLatencyMs))
 	}
 }
 
@@ -976,21 +976,21 @@ func RecordFeedbackProcessed(success bool) {
 	if !success {
 		status = "error"
 	}
-	schlepFeedbackProcessedTotal.WithLabelValues(status).Inc()
+	igrisFeedbackProcessedTotal.WithLabelValues(status).Inc()
 }
 
 // RecordCompositeRewardComponents records individual reward components
 func RecordCompositeRewardComponents(provider, class string, latencyScore, costEfficiency, successRate float64) {
-	schlepRewardComponentLatency.WithLabelValues(provider, class).Observe(latencyScore)
-	schlepRewardComponentCost.WithLabelValues(provider, class).Observe(costEfficiency)
-	schlepRewardComponentSuccess.WithLabelValues(provider, class).Observe(successRate)
+	igrisRewardComponentLatency.WithLabelValues(provider, class).Observe(latencyScore)
+	igrisRewardComponentCost.WithLabelValues(provider, class).Observe(costEfficiency)
+	igrisRewardComponentSuccess.WithLabelValues(provider, class).Observe(successRate)
 }
 
 // RecordCompositeRewardWeights records current weight configuration
 func RecordCompositeRewardWeights(class string, latencyWeight, costWeight, successWeight float64) {
-	schlepCompositeRewardWeights.WithLabelValues("latency", class).Set(latencyWeight)
-	schlepCompositeRewardWeights.WithLabelValues("cost", class).Set(costWeight)
-	schlepCompositeRewardWeights.WithLabelValues("success", class).Set(successWeight)
+	igrisCompositeRewardWeights.WithLabelValues("latency", class).Set(latencyWeight)
+	igrisCompositeRewardWeights.WithLabelValues("cost", class).Set(costWeight)
+	igrisCompositeRewardWeights.WithLabelValues("success", class).Set(successWeight)
 }
 
 // Phase 5: Speculative Execution Metrics
@@ -1163,7 +1163,7 @@ func RecordPolicyVersionActive(tenantID, version string, active bool) {
 	if active {
 		value = 1.0
 	}
-	schlepPolicyVersionActive.WithLabelValues(tenantID, version).Set(value)
+	igrisPolicyVersionActive.WithLabelValues(tenantID, version).Set(value)
 }
 
 // RecordPolicyReload records a policy hot reload event
@@ -1173,13 +1173,13 @@ func RecordPolicyReload(tenantID string, latencySeconds float64, success bool) {
 		status = "error"
 	}
 
-	schlepPolicyReloadTotal.WithLabelValues(tenantID, status).Inc()
-	schlepPolicyReloadLatency.WithLabelValues(tenantID).Observe(latencySeconds)
+	igrisPolicyReloadTotal.WithLabelValues(tenantID, status).Inc()
+	igrisPolicyReloadLatency.WithLabelValues(tenantID).Observe(latencySeconds)
 }
 
 // RecordSLAViolation records an SLA violation
 func RecordSLAViolation(tenantID, provider, violationType, severity string) {
-	schlepSLAViolationsTotal.WithLabelValues(tenantID, provider, violationType, severity).Inc()
+	igrisSLAViolationsTotal.WithLabelValues(tenantID, provider, violationType, severity).Inc()
 }
 
 // RecordSLACompliance updates SLA compliance status
@@ -1194,28 +1194,28 @@ func RecordSLACompliance(tenantID string, status string) {
 	case "critical":
 		value = 0.0
 	}
-	schlepSLAComplianceStatus.WithLabelValues(tenantID).Set(value)
+	igrisSLAComplianceStatus.WithLabelValues(tenantID).Set(value)
 }
 
 // RecordProviderDegraded records when a provider is marked as degraded
 func RecordProviderDegraded(provider, reason string) {
-	schlepProviderDegradedTotal.WithLabelValues(provider, reason).Inc()
+	igrisProviderDegradedTotal.WithLabelValues(provider, reason).Inc()
 }
 
 // RecordSLAMetrics records current SLA measurements vs targets
 func RecordSLAMetrics(tenantID, provider, metricType string, measuredValue, targetValue float64) {
-	schlepSLAMeasuredValue.WithLabelValues(tenantID, provider, metricType).Set(measuredValue)
-	schlepSLATargetValue.WithLabelValues(tenantID, metricType).Set(targetValue)
+	igrisSLAMeasuredValue.WithLabelValues(tenantID, provider, metricType).Set(measuredValue)
+	igrisSLATargetValue.WithLabelValues(tenantID, metricType).Set(targetValue)
 }
 
 // RecordAuditLogEntry records creation of an audit log entry
 func RecordAuditLogEntry(tenantID, policyVersion string) {
-	schlepAuditLogEntriesTotal.WithLabelValues(tenantID, policyVersion).Inc()
+	igrisAuditLogEntriesTotal.WithLabelValues(tenantID, policyVersion).Inc()
 }
 
 // RecordAuditLogCleanup records cleanup of old audit entries
 func RecordAuditLogCleanup(count int) {
-	schlepAuditLogRetentionCleanup.Add(float64(count))
+	igrisAuditLogRetentionCleanup.Add(float64(count))
 }
 
 // RecordSelfTuningOptimization records a self-tuning optimization event
@@ -1225,9 +1225,9 @@ func RecordSelfTuningOptimization(class string, performanceImprovement, confiden
 		status = "applied"
 	}
 
-	schlepSelfTuningOptimizationsTotal.WithLabelValues(class, status).Inc()
-	schlepSelfTuningPerformanceImprovement.WithLabelValues(class).Observe(performanceImprovement)
-	schlepSelfTuningConfidence.WithLabelValues(class).Observe(confidence)
+	igrisSelfTuningOptimizationsTotal.WithLabelValues(class, status).Inc()
+	igrisSelfTuningPerformanceImprovement.WithLabelValues(class).Observe(performanceImprovement)
+	igrisSelfTuningConfidence.WithLabelValues(class).Observe(confidence)
 }
 
 // Phase 1 Security Hardening: Control Surface Metrics

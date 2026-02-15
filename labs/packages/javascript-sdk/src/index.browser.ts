@@ -1,9 +1,9 @@
 /**
- * Schlep-engine JavaScript SDK for Browser
+ * Igris-engine JavaScript SDK for Browser
  */
 
 // Main client
-export { SchlepEngineClient, SDK_INFO } from './client/schlep-engine';
+export { IgrisClient, SDK_INFO } from './client/igris-inertial';
 
 // API classes
 export {
@@ -33,7 +33,7 @@ export {
 export {
   HTTPClient,
   RetryHandler,
-  SchlepEngineError,
+  IgrisError,
   APIError,
   AuthenticationError,
   NetworkError,
@@ -45,4 +45,4 @@ export {
 export * from './types';
 
 // Default export
-export { SchlepEngineClient as default } from './client/schlep-engine';
+export { IgrisClient as default } from './client/igris-inertial';

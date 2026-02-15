@@ -296,9 +296,9 @@ echo ""
 log_info "Fetching metrics from Prometheus..."
 sleep 2
 
-CLASSIFICATIONS_TOTAL=$(curl -s "${METRICS_URL}" | grep "^schlep_semantic_classifications_total" | grep -v "#" | awk '{sum+=$2} END {print sum}')
-BANDIT_UPDATES=$(curl -s "${METRICS_URL}" | grep "^schlep_bandit_reward_updates_total" | grep -v "#" | awk '{sum+=$2} END {print sum}')
-FEEDBACK_PROCESSED=$(curl -s "${METRICS_URL}" | grep "^schlep_feedback_processed_total" | grep -v "#" | awk '{sum+=$2} END {print sum}')
+CLASSIFICATIONS_TOTAL=$(curl -s "${METRICS_URL}" | grep "^igris_semantic_classifications_total" | grep -v "#" | awk '{sum+=$2} END {print sum}')
+BANDIT_UPDATES=$(curl -s "${METRICS_URL}" | grep "^igris_bandit_reward_updates_total" | grep -v "#" | awk '{sum+=$2} END {print sum}')
+FEEDBACK_PROCESSED=$(curl -s "${METRICS_URL}" | grep "^igris_feedback_processed_total" | grep -v "#" | awk '{sum+=$2} END {print sum}')
 
 echo "Prometheus Metrics:"
 echo "  Classifications Total:  ${CLASSIFICATIONS_TOTAL:-0}"

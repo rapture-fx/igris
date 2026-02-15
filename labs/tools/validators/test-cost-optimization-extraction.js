@@ -437,7 +437,7 @@ class CostOptimizationValidator {
   }
 
   run() {
-    this.log(`${colors.magenta}💰 SCHLEP-ENGINE COST OPTIMIZATION SECTION VALIDATION${colors.reset}`);
+    this.log(`${colors.magenta}💰 IGRIS-ENGINE COST OPTIMIZATION SECTION VALIDATION${colors.reset}`);
     this.log(`${colors.cyan}Starting comprehensive validation of cost optimization extraction...${colors.reset}\n`);
     
     // Run all validation tests

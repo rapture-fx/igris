@@ -12,7 +12,7 @@
 //!
 //! # Example
 //! ```no_run
-//! use schlep_kernel::orchestration::DriftMonitor;
+//! use igris_kernel::orchestration::DriftMonitor;
 //!
 //! let monitor = DriftMonitor::new(config);
 //! let drift = monitor.check_drift(&current_metrics, &baseline_metrics);

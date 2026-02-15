@@ -110,7 +110,7 @@ func (p *MockOpenAIProvider) Infer(ctx context.Context, req *models.InferRequest
 
 	// Set comprehensive metadata
 	response.Metadata.Provider = "mock-openai"
-	response.Metadata.ModelUsed = "schlep-mock-gpt-4"
+	response.Metadata.ModelUsed = "igris-mock-gpt-4"
 	response.Metadata.LatencyMs = latencyMs
 	response.Metadata.InferenceTimeMs = latencyMs - 5 // Simulate queue time
 	response.Metadata.QueueTimeMs = 5
@@ -283,10 +283,10 @@ func (p *MockOpenAIProvider) generateMockContent(req *models.InferRequest, laten
 	}
 
 	content := fmt.Sprintf(
-		"Hello from Schlep Mock OpenAI! 🎭\n\n"+
+		"Hello from Igris Mock OpenAI! 🎭\n\n"+
 			"Your request has been simulated successfully.\n\n"+
 			"📊 **Simulation Metrics:**\n"+
-			"- Model: schlep-mock-gpt-4\n"+
+			"- Model: igris-mock-gpt-4\n"+
 			"- Tokens Used: %d tokens\n"+
 			"- Latency: %dms\n"+
 			"- Estimated Cost: $%.6f\n\n"+
@@ -307,7 +307,7 @@ func (p *MockOpenAIProvider) generateStreamingWords(targetTokens int) []string {
 	// Generate a sequence of words that approximates the target token count
 	// Roughly 1 token per word for simplicity
 	words := []string{
-		"Hello", " from", " Schlep", " Mock", " OpenAI!", " ",
+		"Hello", " from", " Igris", " Mock", " OpenAI!", " ",
 		"This", " is", " a", " simulated", " streaming", " response.", " ",
 	}
 
@@ -328,8 +328,8 @@ func (p *MockOpenAIProvider) generateStreamingWords(targetTokens int) []string {
 func getMockOpenAICapabilities() *providers.ProviderCapabilities {
 	return &providers.ProviderCapabilities{
 		Models: []string{
-			"schlep-mock-gpt-4",
-			"schlep-mock-gpt-3.5-turbo",
+			"igris-mock-gpt-4",
+			"igris-mock-gpt-3.5-turbo",
 		},
 		SupportsStreaming:        true,
 		SupportsVision:           true,

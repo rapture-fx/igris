@@ -1,25 +1,25 @@
-# Schlep-engine SDK Overview
+# Igris Inertial SDK Overview
 
-Complete guide to all Schlep-engine Software Development Kits (SDKs).
+Complete guide to all Igris Inertial Software Development Kits (SDKs).
 
 ## Production-Ready SDKs
 
 ### Python SDK ✅
 
 **Status:** Production Ready (v1.0.0-rc1)
-**Package:** `schlep`
+**Package:** `igris`
 **Registry:** PyPI
 
-Official Python SDK for Schlep-engine with minimal dependencies and full type hints.
+Official Python SDK for Igris Inertial with minimal dependencies and full type hints.
 
 **Installation:**
 ```bash
-pip install schlep
+pip install igris
 ```
 
 **Quick Example:**
 ```python
-from schlep import Client
+from igris import Client
 
 client = Client(base_url="http://localhost:8081")
 response = client.infer(
@@ -35,8 +35,8 @@ print(response["choices"][0]["message"]["content"])
 - ✅ Type hints for IDE support
 - ✅ Context manager support
 - ✅ Comprehensive error handling
-- ✅ CLI integration (`schlep` command)
-- ✅ Secure config storage (~/.schlep/config.json)
+- ✅ CLI integration (`igris` command)
+- ✅ Secure config storage (~/.igris/config.json)
 
 **Documentation:**
 - [Python Quickstart](/docs/api/python_quickstart.md)
@@ -49,21 +49,21 @@ print(response["choices"][0]["message"]["content"])
 ### JavaScript/TypeScript SDK ✅
 
 **Status:** Production Ready (v1.0.0-rc1)
-**Package:** `schlep`
+**Package:** `igris`
 **Registry:** npm
 
 Official JavaScript/TypeScript SDK with full type definitions and ESM/CJS support.
 
 **Installation:**
 ```bash
-npm install schlep
+npm install igris
 ```
 
 **Quick Example:**
 ```typescript
-import { Schlep } from 'schlep';
+import { Igris } from 'igris';
 
-const client = new Schlep({ baseUrl: 'http://localhost:8081' });
+const client = new Igris({ baseUrl: 'http://localhost:8081' });
 const response = await client.infer({
   model: 'gpt-4',
   messages: [{ role: 'user', content: 'Hello!' }]
@@ -90,9 +90,9 @@ console.log(response.choices[0].message.content);
 
 **Status:** Production Ready (v1.0.0-rc1)
 **Module:** `github.com/igris-inertial/sdk-go`
-**Package:** `schlep`
+**Package:** `igris`
 
-Official Go SDK for Schlep-engine with idiomatic Go patterns and minimal dependencies.
+Official Go SDK for Igris Inertial with idiomatic Go patterns and minimal dependencies.
 
 **Installation:**
 ```bash
@@ -101,16 +101,16 @@ go get github.com/igris-inertial/sdk-go
 
 **Quick Example:**
 ```go
-import "github.com/igris-inertial/sdk-go/schlep"
+import "github.com/igris-inertial/sdk-go/igris"
 
-client := schlep.NewClient(&schlep.Config{
+client := igris.NewClient(&igris.Config{
     BaseURL: "http://localhost:8081",
 })
 
 ctx := context.Background()
-response, err := client.Infer(ctx, &schlep.InferRequest{
+response, err := client.Infer(ctx, &igris.InferRequest{
     Model: "gpt-4",
-    Messages: []schlep.Message{
+    Messages: []igris.Message{
         {Role: "user", Content: "Hello!"},
     },
 })
@@ -137,21 +137,21 @@ fmt.Println(response.Choices[0].Message.Content)
 ### JavaScript/TypeScript SDK ✅
 
 **Status:** Production Ready (v1.0.0-rc1)
-**Package:** `schlep`
+**Package:** `igris`
 **Registry:** npm
 
 Official JavaScript/TypeScript SDK with full type definitions and ESM/CJS support.
 
 **Installation:**
 ```bash
-npm install schlep
+npm install igris
 ```
 
 **Quick Example:**
 ```typescript
-import { Schlep } from 'schlep';
+import { Igris } from 'igris';
 
-const client = new Schlep({ baseUrl: 'http://localhost:8081' });
+const client = new Igris({ baseUrl: 'http://localhost:8081' });
 const response = await client.infer({
   model: 'gpt-4',
   messages: [{ role: 'user', content: 'Hello!' }]
@@ -187,13 +187,13 @@ Idiomatic Go SDK with context support and structured error handling.
 
 **Planned Usage:**
 ```go
-client := schlep.NewClient(schlep.Config{
+client := igris.NewClient(igris.Config{
     BaseURL: "http://localhost:8081",
 })
 
-resp, err := client.Infer(ctx, &schlep.InferRequest{
+resp, err := client.Infer(ctx, &igris.InferRequest{
     Model: "gpt-4",
-    Messages: []schlep.Message{{Role: "user", Content: "Hello!"}},
+    Messages: []igris.Message{{Role: "user", Content: "Hello!"}},
 })
 ```
 
@@ -235,7 +235,7 @@ Java 11+ SDK with fluent API and Spring Boot integration.
 
 **Planned Usage:**
 ```java
-Schlep client = Schlep.builder()
+Igris client = Igris.builder()
     .baseUrl("http://localhost:8081")
     .build();
 
@@ -260,7 +260,7 @@ InferResponse response = client.infer(
 
 **Planned Usage:**
 ```csharp
-var client = new SchlepClient(new SchlepClientOptions
+var client = new IgrisClient(new IgrisClientOptions
 {
     BaseUrl = "http://localhost:8081"
 });
@@ -285,7 +285,7 @@ Idiomatic Ruby SDK with Rails integration.
 
 **Planned Usage:**
 ```ruby
-client = Schlep::Client.new(base_url: 'http://localhost:8081')
+client = Igris::Client.new(base_url: 'http://localhost:8081')
 
 response = client.infer(
   model: 'gpt-4',
@@ -299,7 +299,7 @@ response = client.infer(
 
 ## API Endpoints
 
-All SDKs support the following Schlep-engine v1 API endpoints:
+All SDKs support the following Igris Inertial v1 API endpoints:
 
 ### Core Endpoints
 
@@ -336,14 +336,14 @@ client = Client(api_key="your-key")
 
 ```typescript
 // JavaScript
-const client = new Schlep({ apiKey: 'your-key' });
+const client = new Igris({ apiKey: 'your-key' });
 ```
 
 ### Error Handling
 
 ```python
 # Python
-from schlep import APIError, AuthenticationError, NetworkError
+from igris import APIError, AuthenticationError, NetworkError
 
 try:
     response = client.infer(...)
@@ -357,7 +357,7 @@ except NetworkError:
 
 ```typescript
 // JavaScript
-import { SchlepError, AuthenticationError, NetworkError } from 'schlep';
+import { IgrisError, AuthenticationError, NetworkError } from 'igris';
 
 try {
   const response = await client.infer(...);
@@ -376,11 +376,11 @@ All SDKs support BYOK via the server-side vault:
 
 ```bash
 # Configure provider keys using CLI
-schlep add-key --provider openai --key sk-...
-schlep add-key --provider anthropic --key sk-ant-...
+igris add-key --provider openai --key sk-...
+igris add-key --provider anthropic --key sk-ant-...
 ```
 
-Then use the SDK normally - Schlep-engine routes to the best available provider:
+Then use the SDK normally - Igris Inertial routes to the best available provider:
 
 ```python
 # Python
@@ -396,10 +396,10 @@ response = client.infer(
 
 | Language | Package Manager | Command |
 |----------|----------------|---------|
-| Python | pip | `pip install schlep` |
-| JavaScript/TypeScript | npm | `npm install schlep` |
-| JavaScript/TypeScript | yarn | `yarn add schlep` |
-| JavaScript/TypeScript | pnpm | `pnpm add schlep` |
+| Python | pip | `pip install igris` |
+| JavaScript/TypeScript | npm | `npm install igris` |
+| JavaScript/TypeScript | yarn | `yarn add igris` |
+| JavaScript/TypeScript | pnpm | `pnpm add igris` |
 | Go | go get | Coming Soon |
 | Rust | cargo | Coming Soon |
 | Java | Maven/Gradle | Coming Soon |
@@ -414,10 +414,10 @@ response = client.infer(
 
 ```typescript
 // app/api/chat/route.ts
-import { Schlep } from 'schlep';
+import { Igris } from 'igris';
 
-const client = new Schlep({
-  baseUrl: process.env.SCHLEP_API_URL!
+const client = new Igris({
+  baseUrl: process.env.IGRIS_API_URL!
 });
 
 export async function POST(req: Request) {
@@ -434,7 +434,7 @@ export async function POST(req: Request) {
 
 ```python
 from fastapi import FastAPI
-from schlep import Client
+from igris import Client
 
 app = FastAPI()
 client = Client(base_url="http://localhost:8081")
@@ -452,10 +452,10 @@ async def chat(message: str):
 
 ```typescript
 import express from 'express';
-import { Schlep } from 'schlep';
+import { Igris } from 'igris';
 
 const app = express();
-const client = new Schlep();
+const client = new Igris();
 
 app.post('/api/chat', async (req, res) => {
   const response = await client.infer({
@@ -476,26 +476,26 @@ Both production SDKs support environment variable configuration:
 
 ```bash
 # .env
-SCHLEP_API_URL=http://localhost:8081
-SCHLEP_API_KEY=your-api-key
+IGRIS_API_URL=http://localhost:8081
+IGRIS_API_KEY=your-api-key
 ```
 
 **Python:**
 ```python
 import os
-from schlep import Client
+from igris import Client
 
 client = Client(
-    base_url=os.getenv("SCHLEP_API_URL"),
-    api_key=os.getenv("SCHLEP_API_KEY")
+    base_url=os.getenv("IGRIS_API_URL"),
+    api_key=os.getenv("IGRIS_API_KEY")
 )
 ```
 
 **JavaScript:**
 ```typescript
-const client = new Schlep({
-  baseUrl: process.env.SCHLEP_API_URL,
-  apiKey: process.env.SCHLEP_API_KEY
+const client = new Igris({
+  baseUrl: process.env.IGRIS_API_URL,
+  apiKey: process.env.IGRIS_API_KEY
 });
 ```
 
@@ -503,26 +503,26 @@ const client = new Schlep({
 
 ## CLI Tool
 
-The Schlep CLI is integrated with the Python SDK:
+The Igris CLI is integrated with the Python SDK:
 
 ```bash
 # Install
-pip install schlep-cli
+pip install igris-cli
 
 # Configure
-schlep login --url http://localhost:8081
+igris login --url http://localhost:8081
 
 # Add provider keys (BYOK)
-schlep add-key --provider openai --key sk-...
+igris add-key --provider openai --key sk-...
 
 # Test inference
-schlep infer --prompt "Hello!"
+igris infer --prompt "Hello!"
 
 # List models
-schlep models
+igris models
 
 # View configuration
-schlep config
+igris config
 ```
 
 [CLI Documentation](/internal/cli/README.md)
@@ -605,10 +605,10 @@ For early access to SDKs in development, contact hello@igris-inertial.com
 
 ## License
 
-All Schlep-engine SDKs are licensed under the MIT License.
+All Igris Inertial SDKs are licensed under the MIT License.
 
 ---
 
-**Schlep-engine** - Intelligent AI Routing and Cost Optimization
+**Igris Inertial** - Intelligent AI Routing and Cost Optimization
 
 _Making AI accessible, affordable, and reliable._

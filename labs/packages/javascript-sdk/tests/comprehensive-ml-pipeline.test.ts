@@ -1,9 +1,9 @@
 /**
- * Comprehensive ML pipeline tests for Schlep-engine JavaScript SDK
+ * Comprehensive ML pipeline tests for Igris-engine JavaScript SDK
  */
 
 import { describe, test, expect, beforeEach, afterEach, jest } from '@jest/globals';
-import { SchlepEngineClient } from '../src/client/schlep-engine';
+import { IgrisClient } from '../src/client/igris-inertial';
 import { MLPipelineAPI } from '../src/api/ml-pipeline';
 import { APIError, ValidationError, TimeoutError } from '../src/utils/errors';
 import { 
@@ -22,11 +22,11 @@ import { mockResponse, mockApiError } from './setup';
 global.fetch = jest.fn();
 
 describe('MLPipelineAPI', () => {
-  let client: SchlepEngineClient;
+  let client: IgrisClient;
   let mlAPI: MLPipelineAPI;
 
   beforeEach(() => {
-    client = new SchlepEngineClient({
+    client = new IgrisClient({
       apiKey: 'test-api-key',
       baseUrl: 'https://api.test.com'
     });
@@ -608,7 +608,7 @@ describe('MLPipelineAPI', () => {
         version_id: 'v2.0',
         environment: 'production',
         status: 'deploying',
-        endpoint_url: 'https://api.schlep-engine.com/ml/pipeline-123/predict'
+        endpoint_url: 'https://api.igris-inertial.com/ml/pipeline-123/predict'
       };
 
       (global.fetch as jest.Mock).mockResolvedValueOnce({
@@ -843,10 +843,10 @@ describe('MLPipelineAPI', () => {
 });
 
 describe('ML Pipeline Integration', () => {
-  let client: SchlepEngineClient;
+  let client: IgrisClient;
 
   beforeEach(() => {
-    client = new SchlepEngineClient({
+    client = new IgrisClient({
       apiKey: 'test-api-key',
       baseUrl: 'https://api.test.com'
     });

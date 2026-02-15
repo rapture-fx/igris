@@ -1,7 +1,7 @@
 -- Migration: 009_add_sso_providers_table
 -- Description: Add SSO (OAuth2 + SAML) authentication support for Growth and Scale tiers
 -- Purpose: Enable enterprise SSO integration with configurable providers per tenant
--- Author: Schlep-Engine Team
+-- Author: Igris Inertial Team
 -- Date: 2025-11-10
 -- Phase: 5.3 - Feature Gap Closure
 -- Dependencies: 008_add_tier_column_to_tenants.sql

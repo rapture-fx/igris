@@ -1,5 +1,5 @@
 /**
- * Document Extraction API for Schlep-engine JavaScript SDK
+ * Document Extraction API for Igris-engine JavaScript SDK
  * Provides comprehensive document processing and extraction capabilities
  */
 

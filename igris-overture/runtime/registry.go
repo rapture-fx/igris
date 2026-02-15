@@ -8,7 +8,7 @@ import (
 )
 
 // ============================================================================
-// Runtime Registry for Schlep-Engine
+// Runtime Registry for Igris Inertial
 // ============================================================================
 //
 // Manages multiple inference runtimes with:

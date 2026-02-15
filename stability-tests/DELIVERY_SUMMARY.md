@@ -2,7 +2,7 @@
 
 ## ✅ What Was Delivered
 
-I've built a **comprehensive, production-ready stability testing framework** for Schlep-Engine with **19 files** totaling **160KB** of testing infrastructure.
+I've built a **comprehensive, production-ready stability testing framework** for Igris Inertial with **19 files** totaling **160KB** of testing infrastructure.
 
 ### Status: **FRAMEWORK COMPLETE** ✅ | **AWAITING CODE FIXES** ⚠️
 

@@ -10,8 +10,8 @@ additional-properties:
   npmName: "@igris-inertial/client"
   npmVersion: "2.0.0"
   npmRepository: "https://github.com/igris-inertial/typescript-client.git"
-  npmDescription: "TypeScript/JavaScript client library for Schlep-engine API - comprehensive data processing and ML pipeline platform"
-  npmAuthor: "Schlep-engine Team <support@igris-inertial.com>"
+  npmDescription: "TypeScript/JavaScript client library for Igris-engine API - comprehensive data processing and ML pipeline platform"
+  npmAuthor: "Igris-engine Team <support@igris-inertial.com>"
   npmKeywords: "data-processing,machine-learning,api-client,igris-inertial,typescript,javascript"
   
   # TypeScript-specific configuration

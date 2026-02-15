@@ -9,10 +9,10 @@ cargo build --release
 # Determine the library extension based on OS
 if [[ "$OSTYPE" == "linux-gnu"* ]]; then
     LIB_EXT="so"
-    LIB_NAME="libschlep_kernel.so"
+    LIB_NAME="libigris_kernel.so"
 elif [[ "$OSTYPE" == "darwin"* ]]; then
     LIB_EXT="dylib"
-    LIB_NAME="libschlep_kernel.dylib"
+    LIB_NAME="libigris_kernel.dylib"
 else
     echo "⚠️  Unsupported OS: $OSTYPE"
     exit 1

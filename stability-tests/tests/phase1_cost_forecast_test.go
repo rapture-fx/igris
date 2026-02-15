@@ -238,8 +238,8 @@ func TestCostForecastIntegration(t *testing.T) {
 	}
 
 	headerName := costMap.GetForecastHeaderName()
-	if headerName != "X-Schlep-Est-Cost-USD" {
-		t.Errorf("Unexpected header name: got %s, want X-Schlep-Est-Cost-USD", headerName)
+	if headerName != "X-Igris-Est-Cost-USD" {
+		t.Errorf("Unexpected header name: got %s, want X-Igris-Est-Cost-USD", headerName)
 	}
 
 	// Verify cost logging enabled
@@ -310,7 +310,7 @@ func TestPhase1SuccessCriteria(t *testing.T) {
 	// Note: Metrics are defined and ready to emit
 	// Actual emission happens at runtime when HTTP service is running
 	criteria["telemetry_metrics_active"] = true
-	t.Log("✓ Telemetry metrics defined (schlep_estimated_cost_usd_total, schlep_forecast_requests_total, schlep_provider_cost_ratio)")
+	t.Log("✓ Telemetry metrics defined (igris_estimated_cost_usd_total, igris_forecast_requests_total, igris_provider_cost_ratio)")
 	t.Log("  Note: Metrics will emit when HTTP service processes requests")
 
 	// Print summary

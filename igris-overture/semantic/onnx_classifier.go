@@ -102,23 +102,23 @@ func NewONNXClassifier(config ONNXConfig) (*ONNXClassifier, error) {
 // initMetrics initializes Prometheus metrics
 func (c *ONNXClassifier) initMetrics() {
 	c.inferenceLatency = promauto.NewHistogram(prometheus.HistogramOpts{
-		Name:    "schlep_semantic_model_inference_latency_ms",
+		Name:    "igris_semantic_model_inference_latency_ms",
 		Help:    "ONNX model inference latency in milliseconds",
 		Buckets: prometheus.ExponentialBuckets(1, 2, 10), // 1ms to 512ms
 	})
 
 	c.confidence = promauto.NewGauge(prometheus.GaugeOpts{
-		Name: "schlep_semantic_model_confidence",
+		Name: "igris_semantic_model_confidence",
 		Help: "ONNX model classification confidence score",
 	})
 
 	c.fallbacks = promauto.NewCounter(prometheus.CounterOpts{
-		Name: "schlep_semantic_model_fallbacks_total",
+		Name: "igris_semantic_model_fallbacks_total",
 		Help: "Total number of fallbacks to keyword classifier",
 	})
 
 	c.shadowMismatches = promauto.NewCounter(prometheus.CounterOpts{
-		Name: "schlep_semantic_shadow_mismatches_total",
+		Name: "igris_semantic_shadow_mismatches_total",
 		Help: "Total mismatches between ONNX and keyword classifiers in shadow mode",
 	})
 }

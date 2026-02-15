@@ -318,7 +318,7 @@ export function getDefaultBayesianState(): BayesianState {
  * Derive encryption key from API key using SHA-256
  */
 export async function deriveEncryptionKey(apiKey: string): Promise<Uint8Array> {
-  const key = apiKey || 'schlep-default-encryption-key-change-me';
+  const key = apiKey || 'igris-default-encryption-key-change-me';
   const hash = await webcrypto.subtle.digest('SHA-256', new TextEncoder().encode(key));
   return new Uint8Array(hash);
 }

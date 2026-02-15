@@ -2,7 +2,7 @@
 End-to-End Phase 1-5 Integration Example
 ==========================================
 
-This example demonstrates the complete Schlep-Engine workflow:
+This example demonstrates the complete Igris Inertial workflow:
 - Phase 1: Multi-format data ingestion & ETL
 - Phase 2: Model registry & hot reload
 - Phase 3: L1/L2 caching & edge inference
@@ -10,26 +10,26 @@ This example demonstrates the complete Schlep-Engine workflow:
 - Phase 5: Kubernetes deployment (infrastructure)
 
 Prerequisites:
-- Schlep-Engine API running (local or cloud)
+- Igris Inertial API running (local or cloud)
 - API key or user credentials
 - Sample data files (CSV, JSON, Parquet, Avro)
 """
 
 import asyncio
 from pathlib import Path
-from schlep_engine import SchlepEngineClient
+from igris import IgrisClient
 import json
 
 async def main():
     # Initialize client
-    client = SchlepEngineClient(
+    client = IgrisClient(
         api_key="your-api-key-here",  # Or use auth.login()
         base_url="http://localhost:8000",  # Adjust for your environment
         debug=True
     )
 
     print("=" * 60)
-    print("SCHLEP-ENGINE: Phase 1-5 Integration Demo")
+    print("IGRIS-ENGINE: Phase 1-5 Integration Demo")
     print("=" * 60)
 
     # ============================================================

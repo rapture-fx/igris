@@ -64,20 +64,20 @@ fi
 log_info "Step 2: Validating Phase 3 metrics..."
 
 PHASE3_METRICS=(
-    "schlep_semantic_classifications_total"
-    "schlep_semantic_classification_latency_ms"
-    "schlep_semantic_classification_confidence"
-    "schlep_bandit_reward_updates_total"
-    "schlep_provider_reward_mean"
-    "schlep_provider_reward_alpha"
-    "schlep_provider_reward_beta"
-    "schlep_feedback_latency_ms"
-    "schlep_feedback_events_total"
-    "schlep_feedback_processed_total"
-    "schlep_reward_component_latency"
-    "schlep_reward_component_cost"
-    "schlep_reward_component_success"
-    "schlep_composite_reward_weights"
+    "igris_semantic_classifications_total"
+    "igris_semantic_classification_latency_ms"
+    "igris_semantic_classification_confidence"
+    "igris_bandit_reward_updates_total"
+    "igris_provider_reward_mean"
+    "igris_provider_reward_alpha"
+    "igris_provider_reward_beta"
+    "igris_feedback_latency_ms"
+    "igris_feedback_events_total"
+    "igris_feedback_processed_total"
+    "igris_reward_component_latency"
+    "igris_reward_component_cost"
+    "igris_reward_component_success"
+    "igris_composite_reward_weights"
 )
 
 METRICS_FOUND=0
@@ -96,18 +96,18 @@ log_info "Phase 3 metrics found: ${METRICS_FOUND}/${#PHASE3_METRICS[@]}"
 log_info "Step 3: Validating Phase 4 metrics..."
 
 PHASE4_METRICS=(
-    "schlep_policy_version_active"
-    "schlep_policy_reload_total"
-    "schlep_policy_reload_latency_seconds"
-    "schlep_sla_violations_total"
-    "schlep_sla_compliance_status"
-    "schlep_provider_degraded_total"
-    "schlep_sla_measured_value"
-    "schlep_sla_target_value"
-    "schlep_audit_log_entries_total"
-    "schlep_self_tuning_optimizations_total"
-    "schlep_self_tuning_performance_improvement"
-    "schlep_self_tuning_confidence"
+    "igris_policy_version_active"
+    "igris_policy_reload_total"
+    "igris_policy_reload_latency_seconds"
+    "igris_sla_violations_total"
+    "igris_sla_compliance_status"
+    "igris_provider_degraded_total"
+    "igris_sla_measured_value"
+    "igris_sla_target_value"
+    "igris_audit_log_entries_total"
+    "igris_self_tuning_optimizations_total"
+    "igris_self_tuning_performance_improvement"
+    "igris_self_tuning_confidence"
 )
 
 for metric in "${PHASE4_METRICS[@]}"; do
@@ -176,11 +176,11 @@ log_info "Step 6: Verifying metric increments..."
 
 sleep 2  # Allow metrics to be recorded
 
-CLASSIFICATIONS_TOTAL=$(curl -s "${METRICS_URL}" | grep "schlep_semantic_classifications_total" | grep "code_generation" | awk '{print $2}' | head -1)
+CLASSIFICATIONS_TOTAL=$(curl -s "${METRICS_URL}" | grep "igris_semantic_classifications_total" | grep "code_generation" | awk '{print $2}' | head -1)
 if [ -n "$CLASSIFICATIONS_TOTAL" ] && [ "$CLASSIFICATIONS_TOTAL" -gt 0 ]; then
-    log_success "schlep_semantic_classifications_total incremented: $CLASSIFICATIONS_TOTAL"
+    log_success "igris_semantic_classifications_total incremented: $CLASSIFICATIONS_TOTAL"
 else
-    log_warning "schlep_semantic_classifications_total not yet incremented"
+    log_warning "igris_semantic_classifications_total not yet incremented"
 fi
 
 # 7. Test feedback stats endpoint
@@ -224,13 +224,13 @@ fi
 log_info "Step 10: Validating metric labels..."
 
 # Check if metrics have proper labels
-if curl -s "${METRICS_URL}" | grep -q 'schlep_semantic_classifications_total{.*class=.*cache_hit='; then
+if curl -s "${METRICS_URL}" | grep -q 'igris_semantic_classifications_total{.*class=.*cache_hit='; then
     log_success "Metrics have correct labels (class, cache_hit)"
 else
     log_error "Metrics missing proper labels"
 fi
 
-if curl -s "${METRICS_URL}" | grep -q 'schlep_bandit_reward_updates_total{.*provider=.*class=.*status='; then
+if curl -s "${METRICS_URL}" | grep -q 'igris_bandit_reward_updates_total{.*provider=.*class=.*status='; then
     log_success "Bandit metrics have correct labels (provider, class, status)"
 else
     log_error "Bandit metrics missing proper labels"
@@ -239,14 +239,14 @@ fi
 # 11. Check metric value ranges
 log_info "Step 11: Validating metric value ranges..."
 
-CONFIDENCE_VALUES=$(curl -s "${METRICS_URL}" | grep "schlep_semantic_classification_confidence_bucket" | grep -v "#" | wc -l)
+CONFIDENCE_VALUES=$(curl -s "${METRICS_URL}" | grep "igris_semantic_classification_confidence_bucket" | grep -v "#" | wc -l)
 if [ "$CONFIDENCE_VALUES" -gt 0 ]; then
     log_success "Confidence histogram has data points"
 else
     log_warning "Confidence histogram has no data yet"
 fi
 
-LATENCY_VALUES=$(curl -s "${METRICS_URL}" | grep "schlep_feedback_latency_ms" | grep -v "#" | wc -l)
+LATENCY_VALUES=$(curl -s "${METRICS_URL}" | grep "igris_feedback_latency_ms" | grep -v "#" | wc -l)
 if [ "$LATENCY_VALUES" -gt 0 ]; then
     log_success "Feedback latency metrics recorded"
 else
@@ -257,7 +257,7 @@ fi
 log_info "Step 12: Validating performance targets..."
 
 # Check feedback latency p95 < 15ms (converted to seconds for Prometheus)
-FEEDBACK_P95=$(curl -s "${METRICS_URL}" | grep 'schlep_feedback_latency_ms.*quantile="0.95"' | awk '{print $2}' | head -1)
+FEEDBACK_P95=$(curl -s "${METRICS_URL}" | grep 'igris_feedback_latency_ms.*quantile="0.95"' | awk '{print $2}' | head -1)
 if [ -n "$FEEDBACK_P95" ]; then
     if (( $(echo "$FEEDBACK_P95 < 15" | bc -l) )); then
         log_success "Feedback latency p95 < 15ms: ${FEEDBACK_P95}ms"

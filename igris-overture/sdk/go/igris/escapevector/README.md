@@ -30,7 +30,7 @@ While competitors revert to round-robin during outages, we continue running the 
 
 ```
 ┌─────────────────────────────────────────┐
-│         Schlep SDK Client               │
+│         Igris SDK Client               │
 │                                         │
 │  ┌──────────────────────────────────┐  │
 │  │  Control Plane Detector          │  │
@@ -61,17 +61,17 @@ While competitors revert to round-robin during outages, we continue running the 
 ### Basic Usage (Automatic)
 
 ```go
-import "github.com/igris-inertial/igris-inertial/internal/sdk/go/schlep"
+import "github.com/igris-inertial/igris-inertial/internal/sdk/go/igris"
 
-client := schlep.NewClient(&schlep.Config{
+client := igris.NewClient(&igris.Config{
     BaseURL: "http://localhost:8081",
     APIKey:  "your-api-key",
 })
 
 // EscapeVector Mode activates automatically on control plane failure
-response, err := client.Infer(ctx, &schlep.InferRequest{
+response, err := client.Infer(ctx, &igris.InferRequest{
     Model: "gpt-4",
-    Messages: []schlep.Message{
+    Messages: []igris.Message{
         {Role: "user", Content: "Hello!"},
     },
 })
@@ -89,7 +89,7 @@ export SCHLEP_CACHE_DIR="/custom/path"
 
 ```go
 // Client automatically uses Thompson Sampling fallback
-client := schlep.NewClient(nil)
+client := igris.NewClient(nil)
 response, err := client.Infer(ctx, req) // Always uses local Thompson Sampling
 ```
 
@@ -156,7 +156,7 @@ BenchmarkCircuitBreaker-8        1000000     345 ns/op       0 B/op    0 allocs/
 - Automatic fallback to Gold Code on tampering
 
 ### Cache Location
-- **Default**: `~/.config/schlep/bayesian_state.enc`
+- **Default**: `~/.config/igris/bayesian_state.enc`
 - **Permissions**: 0600 (owner read/write only)
 - **Format**: JSON-encrypted blob
 

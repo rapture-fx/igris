@@ -49,16 +49,16 @@ func NewMetricsCollector(serviceName string, enabled bool) *MetricsCollector {
 	// Create Prometheus metrics
 	requestCounter := promauto.NewCounterVec(
 		prometheus.CounterOpts{
-			Name: "schlep_requests_total",
-			Help: "Total number of HTTP requests made to Schlep-engine API",
+			Name: "igris_requests_total",
+			Help: "Total number of HTTP requests made to Igris-engine API",
 		},
 		[]string{"method", "endpoint", "status_code", "service"},
 	)
 
 	requestDuration := promauto.NewHistogramVec(
 		prometheus.HistogramOpts{
-			Name:    "schlep_request_duration_seconds",
-			Help:    "Duration of HTTP requests to Schlep-engine API",
+			Name:    "igris_request_duration_seconds",
+			Help:    "Duration of HTTP requests to Igris-engine API",
 			Buckets: prometheus.DefBuckets,
 		},
 		[]string{"method", "endpoint", "status_code", "service"},
@@ -66,7 +66,7 @@ func NewMetricsCollector(serviceName string, enabled bool) *MetricsCollector {
 
 	requestsInFlight := promauto.NewGaugeVec(
 		prometheus.GaugeOpts{
-			Name: "schlep_requests_in_flight",
+			Name: "igris_requests_in_flight",
 			Help: "Number of HTTP requests currently in flight",
 		},
 		[]string{"method", "endpoint", "service"},
@@ -74,7 +74,7 @@ func NewMetricsCollector(serviceName string, enabled bool) *MetricsCollector {
 
 	errorCounter := promauto.NewCounterVec(
 		prometheus.CounterOpts{
-			Name: "schlep_errors_total",
+			Name: "igris_errors_total",
 			Help: "Total number of errors by type",
 		},
 		[]string{"error_type", "component", "service"},
@@ -82,7 +82,7 @@ func NewMetricsCollector(serviceName string, enabled bool) *MetricsCollector {
 
 	circuitBreakerState := promauto.NewGaugeVec(
 		prometheus.GaugeOpts{
-			Name: "schlep_circuit_breaker_state",
+			Name: "igris_circuit_breaker_state",
 			Help: "Circuit breaker state (0=closed, 1=half-open, 2=open)",
 		},
 		[]string{"name", "service"},
@@ -90,7 +90,7 @@ func NewMetricsCollector(serviceName string, enabled bool) *MetricsCollector {
 
 	retryCounter := promauto.NewCounterVec(
 		prometheus.CounterOpts{
-			Name: "schlep_retries_total",
+			Name: "igris_retries_total",
 			Help: "Total number of retry attempts",
 		},
 		[]string{"operation", "success", "service"},
@@ -98,7 +98,7 @@ func NewMetricsCollector(serviceName string, enabled bool) *MetricsCollector {
 
 	authCounter := promauto.NewCounterVec(
 		prometheus.CounterOpts{
-			Name: "schlep_auth_attempts_total",
+			Name: "igris_auth_attempts_total",
 			Help: "Total number of authentication attempts",
 		},
 		[]string{"method", "success", "service"},
@@ -106,7 +106,7 @@ func NewMetricsCollector(serviceName string, enabled bool) *MetricsCollector {
 
 	jobCounter := promauto.NewCounterVec(
 		prometheus.CounterOpts{
-			Name: "schlep_jobs_total",
+			Name: "igris_jobs_total",
 			Help: "Total number of jobs processed",
 		},
 		[]string{"job_type", "status", "service"},
@@ -114,7 +114,7 @@ func NewMetricsCollector(serviceName string, enabled bool) *MetricsCollector {
 
 	jobDuration := promauto.NewHistogramVec(
 		prometheus.HistogramOpts{
-			Name:    "schlep_job_duration_seconds",
+			Name:    "igris_job_duration_seconds",
 			Help:    "Duration of job processing",
 			Buckets: []float64{1, 5, 10, 30, 60, 300, 600, 1800, 3600}, // 1s to 1h
 		},
@@ -123,7 +123,7 @@ func NewMetricsCollector(serviceName string, enabled bool) *MetricsCollector {
 
 	healthCheckStatus := promauto.NewGaugeVec(
 		prometheus.GaugeOpts{
-			Name: "schlep_health_check_status",
+			Name: "igris_health_check_status",
 			Help: "Health check status (1=healthy, 0=unhealthy)",
 		},
 		[]string{"check_name", "service"},
@@ -131,7 +131,7 @@ func NewMetricsCollector(serviceName string, enabled bool) *MetricsCollector {
 
 	cacheHits := promauto.NewCounterVec(
 		prometheus.CounterOpts{
-			Name: "schlep_cache_operations_total",
+			Name: "igris_cache_operations_total",
 			Help: "Total number of cache operations",
 		},
 		[]string{"operation", "hit", "service"},
@@ -139,7 +139,7 @@ func NewMetricsCollector(serviceName string, enabled bool) *MetricsCollector {
 
 	rateLimitHits := promauto.NewCounterVec(
 		prometheus.CounterOpts{
-			Name: "schlep_rate_limit_hits_total",
+			Name: "igris_rate_limit_hits_total",
 			Help: "Total number of rate limit hits",
 		},
 		[]string{"operation", "allowed", "service"},
@@ -147,7 +147,7 @@ func NewMetricsCollector(serviceName string, enabled bool) *MetricsCollector {
 
 	websocketConnections := promauto.NewGaugeVec(
 		prometheus.GaugeOpts{
-			Name: "schlep_websocket_connections",
+			Name: "igris_websocket_connections",
 			Help: "Number of active WebSocket connections",
 		},
 		[]string{"channel", "service"},
@@ -155,7 +155,7 @@ func NewMetricsCollector(serviceName string, enabled bool) *MetricsCollector {
 
 	websocketMessages := promauto.NewCounterVec(
 		prometheus.CounterOpts{
-			Name: "schlep_websocket_messages_total",
+			Name: "igris_websocket_messages_total",
 			Help: "Total number of WebSocket messages",
 		},
 		[]string{"channel", "type", "direction", "service"},
@@ -416,7 +416,7 @@ func (m *MetricsCollector) RecordCustomMetric(ctx context.Context, name string, 
 	// Create a counter for the custom metric
 	counter, err := m.otelMeter.Float64Counter(
 		name,
-		metric.WithDescription("Custom metric from Schlep-engine Go SDK"),
+		metric.WithDescription("Custom metric from Igris-engine Go SDK"),
 	)
 	if err != nil {
 		return
@@ -437,7 +437,7 @@ func (m *MetricsCollector) RecordHistogram(ctx context.Context, name string, val
 	// Create a histogram for the metric
 	histogram, err := m.otelMeter.Float64Histogram(
 		name,
-		metric.WithDescription("Histogram metric from Schlep-engine Go SDK"),
+		metric.WithDescription("Histogram metric from Igris-engine Go SDK"),
 	)
 	if err != nil {
 		return

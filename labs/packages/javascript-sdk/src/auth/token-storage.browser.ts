@@ -1,6 +1,6 @@
 
 /**
- * Token storage utilities for Schlep-engine JavaScript SDK - Browser Environments
+ * Token storage utilities for Igris-engine JavaScript SDK - Browser Environments
  */
 
 import { TokenStorage } from '../types/common';
@@ -12,7 +12,7 @@ import { TokenResponse } from '../types/auth';
 export class BrowserTokenStorage implements TokenStorage {
   private readonly storageKey: string;
 
-  constructor(storageKey: string = 'schlep-engine-token') {
+  constructor(storageKey: string = 'igris-inertial-token') {
     this.storageKey = storageKey;
   }
 

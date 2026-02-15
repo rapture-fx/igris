@@ -82,7 +82,7 @@ class SectionValidator {
     }
 
     run() {
-      this.log(`${colors.magenta}🔍 SCHLEP-ENGINE OBSERVABILITY SECTION VALIDATION${colors.reset}`);
+      this.log(`${colors.magenta}🔍 IGRIS-ENGINE OBSERVABILITY SECTION VALIDATION${colors.reset}`);
       this.log(`${colors.cyan}Starting comprehensive validation of observability extraction...${colors.reset}\n`);
       
       this.test("Readme file exists and is not empty", () => {

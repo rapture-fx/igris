@@ -92,11 +92,11 @@ func TestSanitizeHeaders(t *testing.T) {
 			name: "API key header",
 			headers: map[string]string{
 				"X-API-Key":    "secret-key",
-				"User-Agent":   "Schlep-Engine/1.0",
+				"User-Agent":   "Igris Inertial/1.0",
 			},
 			expected: map[string]string{
 				"X-API-Key":    "***REDACTED***",
-				"User-Agent":   "Schlep-Engine/1.0",
+				"User-Agent":   "Igris Inertial/1.0",
 			},
 		},
 		{

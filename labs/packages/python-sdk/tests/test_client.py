@@ -1,30 +1,30 @@
 """
-Tests for the main SchlepEngineClient class
+Tests for the main IgrisClient class
 """
 
 import pytest
 from unittest.mock import AsyncMock, patch, MagicMock
-from schlep_engine import SchlepEngineClient
-from schlep_engine.client.main import SchlepEngineClientSync
-from schlep_engine.exceptions.base import ConfigurationError, AuthenticationError
+from igris import IgrisClient
+from igris.client.main import IgrisClientSync
+from igris.exceptions.base import ConfigurationError, AuthenticationError
 
 
-class TestSchlepEngineClient:
+class TestIgrisClient:
     """Test cases for the main async client."""
 
     def test_client_initialization(self, test_api_key, test_base_url):
         """Test client initialization with various parameters."""
         # Test with API key
-        client = SchlepEngineClient(api_key=test_api_key)
+        client = IgrisClient(api_key=test_api_key)
         assert client.auth_manager.api_key == test_api_key
         assert client.is_authenticated is True
         
         # Test with custom base URL
-        client = SchlepEngineClient(base_url=test_base_url)
+        client = IgrisClient(base_url=test_base_url)
         assert client.base_url == test_base_url
         
         # Test with all parameters
-        client = SchlepEngineClient(
+        client = IgrisClient(
             api_key=test_api_key,
             base_url=test_base_url,
             timeout=10.0,
@@ -35,19 +35,19 @@ class TestSchlepEngineClient:
 
     def test_client_properties(self, test_api_key):
         """Test client property methods."""
-        client = SchlepEngineClient(api_key=test_api_key)
+        client = IgrisClient(api_key=test_api_key)
         
         assert client.is_authenticated is True
         assert client.auth_method == "api_key"
         
         # Test without API key
-        client_no_auth = SchlepEngineClient()
+        client_no_auth = IgrisClient()
         assert client_no_auth.is_authenticated is False
         assert client_no_auth.auth_method == "none"
 
     def test_sdk_info(self, test_api_key, test_base_url):
         """Test SDK info retrieval."""
-        client = SchlepEngineClient(
+        client = IgrisClient(
             api_key=test_api_key,
             base_url=test_base_url
         )
@@ -63,7 +63,7 @@ class TestSchlepEngineClient:
 
     def test_api_endpoints_initialized(self, test_api_key):
         """Test that all API endpoints are properly initialized."""
-        client = SchlepEngineClient(api_key=test_api_key)
+        client = IgrisClient(api_key=test_api_key)
         
         # Check that all expected endpoints exist
         expected_endpoints = [
@@ -77,7 +77,7 @@ class TestSchlepEngineClient:
 
     async def test_context_manager(self, test_api_key):
         """Test client as async context manager."""
-        async with SchlepEngineClient(api_key=test_api_key) as client:
+        async with IgrisClient(api_key=test_api_key) as client:
             assert client.is_authenticated is True
             # Client should be usable within context
 
@@ -136,19 +136,19 @@ class TestSchlepEngineClient:
 
     async def test_close_cleanup(self, test_api_key):
         """Test client cleanup on close."""
-        client = SchlepEngineClient(api_key=test_api_key)
+        client = IgrisClient(api_key=test_api_key)
         
         with patch.object(client.http_client, 'close', new_callable=AsyncMock) as mock_close:
             await client.close()
             mock_close.assert_called_once()
 
 
-class TestSchlepEngineClientSync:
+class TestIgrisClientSync:
     """Test cases for the synchronous client wrapper."""
 
     def test_sync_client_initialization(self, test_api_key, test_base_url):
         """Test sync client initialization."""
-        client = SchlepEngineClientSync(
+        client = IgrisClientSync(
             api_key=test_api_key,
             base_url=test_base_url
         )
@@ -189,12 +189,12 @@ class TestClientErrorHandling:
     def test_invalid_base_url(self):
         """Test handling of invalid base URLs."""
         # Should not raise during initialization
-        client = SchlepEngineClient(base_url="invalid-url")
+        client = IgrisClient(base_url="invalid-url")
         assert client.base_url == "invalid-url"
 
     async def test_request_error_handling(self, client):
         """Test error handling in requests."""
-        from schlep_engine.exceptions.base import NetworkError
+        from igris.exceptions.base import NetworkError
         
         with patch.object(client.http_client, 'get', side_effect=NetworkError("Network error")):
             with pytest.raises(NetworkError):
@@ -202,7 +202,7 @@ class TestClientErrorHandling:
 
     async def test_authentication_error_handling(self, client):
         """Test authentication error handling."""
-        from schlep_engine.exceptions.base import AuthenticationError
+        from igris.exceptions.base import AuthenticationError
         
         with patch.object(client.http_client, 'get', side_effect=AuthenticationError("Auth failed")):
             with pytest.raises(AuthenticationError):
@@ -215,7 +215,7 @@ class TestClientConfiguration:
     def test_custom_user_agent(self, test_api_key):
         """Test custom user agent configuration."""
         custom_ua = "MyApp/1.0"
-        client = SchlepEngineClient(
+        client = IgrisClient(
             api_key=test_api_key,
             user_agent=custom_ua
         )
@@ -226,7 +226,7 @@ class TestClientConfiguration:
     def test_custom_timeout(self, test_api_key):
         """Test custom timeout configuration."""
         timeout = 60.0
-        client = SchlepEngineClient(
+        client = IgrisClient(
             api_key=test_api_key,
             timeout=timeout
         )
@@ -236,7 +236,7 @@ class TestClientConfiguration:
 
     def test_debug_mode(self, test_api_key):
         """Test debug mode configuration."""
-        client = SchlepEngineClient(
+        client = IgrisClient(
             api_key=test_api_key,
             debug=True
         )
@@ -245,7 +245,7 @@ class TestClientConfiguration:
 
     def test_retry_configuration(self, test_api_key, retry_config):
         """Test retry configuration."""
-        client = SchlepEngineClient(
+        client = IgrisClient(
             api_key=test_api_key,
             retry_config=retry_config
         )

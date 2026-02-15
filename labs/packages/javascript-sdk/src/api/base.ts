@@ -1,5 +1,5 @@
 /**
- * Base API class for Schlep-engine JavaScript SDK
+ * Base API class for Igris-engine JavaScript SDK
  * Provides common functionality for all API endpoint implementations
  */
 
@@ -10,16 +10,16 @@ import {
   HTTPMethod 
 } from '../types/common';
 
-import { SchlepEngineClient } from '../client/schlep-engine';
+import { IgrisClient } from '../client/igris-inertial';
 
 /**
  * Base class for all API endpoint implementations
  */
 export abstract class BaseAPI {
-  protected client: SchlepEngineClient;
+  protected client: IgrisClient;
   protected basePath: string;
 
-  constructor(client: SchlepEngineClient) {
+  constructor(client: IgrisClient) {
     this.client = client;
     this.basePath = ''; // Override in subclasses
   }

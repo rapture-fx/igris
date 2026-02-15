@@ -1,6 +1,6 @@
 # Architecture Overview
 
-Schlep Engine uses a hybrid polyglot architecture that leverages the strengths of Go, Rust, and Python to build a high-performance, intelligent LLM routing platform.
+Igris Inertial uses a hybrid polyglot architecture that leverages the strengths of Go, Rust, and Python to build a high-performance, intelligent LLM routing platform.
 
 ## System Architecture
 
@@ -65,7 +65,7 @@ Schlep Engine uses a hybrid polyglot architecture that leverages the strengths o
 
 ### Go Gateway (High-Concurrency HTTP)
 
-**Location:** `/cmd/schlep-api/`, `/internal/`
+**Location:** `/cmd/igris-api/`, `/internal/`
 
 **Responsibilities:**
 - HTTP request handling via Fiber web framework
@@ -317,7 +317,7 @@ PostgreSQL Schema:
 
 ```
 HashiCorp Vault:
-/schlep-engine/
+/igris-inertial/
   ├── tenants/
   │   └── {tenant_id}/
   │       └── providers/
@@ -358,9 +358,9 @@ Request with tenant_id
 Middleware: Rate Limiter
    ├── Get tier limits from tier_config.yaml
    ├── Check Redis counter for tenant
-   │   ├── Key: "schlep:ratelimit:{tenant_id}:second"
-   │   ├── Key: "schlep:ratelimit:{tenant_id}:minute"
-   │   └── Key: "schlep:ratelimit:{tenant_id}:month"
+   │   ├── Key: "igris:ratelimit:{tenant_id}:second"
+   │   ├── Key: "igris:ratelimit:{tenant_id}:minute"
+   │   └── Key: "igris:ratelimit:{tenant_id}:month"
    ├── Increment counters
    └── If limit exceeded → Return 429
    ↓
@@ -400,7 +400,7 @@ services:
       - "8080:8080"
     environment:
       - PROVIDER_MODE=benchmark
-      - POSTGRES_URL=postgres://db:5432/schlep
+      - POSTGRES_URL=postgres://db:5432/igris
       - REDIS_URL=redis://redis:6379
     depends_on:
       - postgres
@@ -415,7 +415,7 @@ services:
   postgres:
     image: postgres:15
     environment:
-      - POSTGRES_DB=schlep
+      - POSTGRES_DB=igris
       - POSTGRES_PASSWORD=secret
 
   redis:
@@ -438,17 +438,17 @@ services:
 apiVersion: apps/v1
 kind: Deployment
 metadata:
-  name: schlep-engine-api
+  name: igris-inertial-api
 spec:
   replicas: 3
   selector:
     matchLabels:
-      app: schlep-engine-api
+      app: igris-inertial-api
   template:
     spec:
       containers:
       - name: api
-        image: schlep-engine/api:1.2.1
+        image: igris-inertial/api:1.2.1
         ports:
         - containerPort: 8080
         resources:

@@ -1,10 +1,10 @@
 # Multi-Tenancy Guide
 
-Schlep Engine provides complete tenant isolation with BYOK (Bring Your Own Key), per-tenant configuration, and usage tracking.
+Igris Inertial provides complete tenant isolation with BYOK (Bring Your Own Key), per-tenant configuration, and usage tracking.
 
 ## Overview
 
-Multi-tenancy in Schlep Engine ensures:
+Multi-tenancy in Igris Inertial ensures:
 
 - **Complete Isolation**: Tenant data never mixes
 - **BYOK Support**: Each tenant uses their own provider API keys
@@ -135,7 +135,7 @@ POST /v1/admin/tenants
 <Tab label="Go">
 
 ```go
-import "github.com/schlep-engine/schlep-engine/internal/database"
+import "github.com/igris-inertial/igris-inertial/internal/database"
 
 tenant, err := db.CreateTenant(&database.Tenant{
     Name:  "Acme Corp",
@@ -461,13 +461,13 @@ POST /v1/tenants/{tenant_id}/budget
 ```
 Subject: Budget Alert - 90% of Monthly Limit Reached
 
-Your Schlep Engine account has used 90% of your monthly budget:
+Your Igris Inertial account has used 90% of your monthly budget:
 
 Budget: $5,000.00
 Used: $4,500.00
 Remaining: $500.00
 
-View details: https://dashboard.schlep-engine.com/billing
+View details: https://dashboard.igris-inertial.com/billing
 ```
 
 **Webhook Alert:**

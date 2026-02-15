@@ -298,7 +298,7 @@ impl SLOEnforcer {
 
         // Create runbook entry
         self.create_runbook_entry(
-            &format!("https://runbook.schlep.io/slo/{:?}", evaluation.slo_type),
+            &format!("https://runbook.igris-inertial.com/slo/{:?}", evaluation.slo_type),
             &action.action_type,
             &format!(
                 "Auto-remediation for {:?} SLO breach: {} > {}",

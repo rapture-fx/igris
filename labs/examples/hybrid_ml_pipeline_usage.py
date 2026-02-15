@@ -1,6 +1,6 @@
 #!/usr/bin/env python3
 """
-Example usage of Schlep-Engine Hybrid ML Pipeline
+Example usage of Igris Inertial Hybrid ML Pipeline
 Demonstrates batch + streaming dual mode with Rust/Python integration
 """
 
@@ -277,7 +277,7 @@ async def main():
     """Run all examples"""
 
     print("=" * 80)
-    print("Schlep-Engine Hybrid ML Pipeline Examples")
+    print("Igris Inertial Hybrid ML Pipeline Examples")
     print("=" * 80)
 
     print("\n1. Batch REST Upload:")

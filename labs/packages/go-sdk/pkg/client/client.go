@@ -17,7 +17,7 @@ import (
 	"go.opentelemetry.io/otel/attribute"
 )
 
-// Client is the main Schlep-engine SDK client
+// Client is the main Igris-engine SDK client
 type Client struct {
 	config          *config.Config
 	httpClient      *httpClient.Client
@@ -48,7 +48,7 @@ type Client struct {
 	mu     sync.RWMutex
 }
 
-// NewClient creates a new Schlep-engine client
+// NewClient creates a new Igris-engine client
 func NewClient(cfg *config.Config) (*Client, error) {
 	if cfg == nil {
 		var err error
@@ -127,7 +127,7 @@ func NewClient(cfg *config.Config) (*Client, error) {
 		"service_version": cfg.ServiceVersion,
 		"metrics_enabled": cfg.EnableMetrics,
 		"tracing_enabled": cfg.EnableTracing,
-	}).Info("Schlep-engine client initialized")
+	}).Info("Igris-engine client initialized")
 
 	return client, nil
 }
@@ -401,7 +401,7 @@ func (c *Client) Close() error {
 	// Close auth manager
 	c.authManager.Close()
 
-	c.logger.Info("Schlep-engine client closed")
+	c.logger.Info("Igris-engine client closed")
 	return nil
 }
 

@@ -6,11 +6,11 @@
 //! 3. Produces correct reasoning for multiple scenarios
 //! 4. Properly assesses risk and confidence
 
-use schlep_kernel::cognitive::{
+use igris_kernel::cognitive::{
     PolicyReasoner, ReasonerConfig, ActionType, RiskLevel, TrendDirection,
 };
-use schlep_kernel::rl::rl_agent::AgentDecision;
-use schlep_kernel::orchestration::policy_engine::{TelemetrySnapshot, PolicyUpdate};
+use igris_kernel::rl::rl_agent::AgentDecision;
+use igris_kernel::orchestration::policy_engine::{TelemetrySnapshot, PolicyUpdate};
 
 #[test]
 fn test_shadow_no_action_scenario() {
@@ -374,7 +374,7 @@ fn test_shadow_json_roundtrip() {
     let json = reasoning.to_json().expect("Failed to serialize");
 
     // Deserialize back
-    use schlep_kernel::cognitive::ReasoningOutput;
+    use igris_kernel::cognitive::ReasoningOutput;
     let deserialized = ReasoningOutput::from_json(&json)
         .expect("Failed to deserialize");
 

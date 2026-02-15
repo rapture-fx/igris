@@ -1,5 +1,5 @@
 """
-Pytest configuration and fixtures for Schlep-engine SDK tests
+Pytest configuration and fixtures for Igris-engine SDK tests
 """
 
 import pytest
@@ -7,12 +7,12 @@ import asyncio
 from typing import Generator, AsyncGenerator
 from unittest.mock import AsyncMock, MagicMock, patch
 
-from schlep_engine import SchlepEngineClient
-from schlep_engine.client.main import SchlepEngineClientSync
-from schlep_engine.auth.manager import AuthManager
-from schlep_engine.utils.retry import RetryConfig
-from schlep_engine.models.auth import TokenResponse, UserInfo
-from schlep_engine.models.common import APIResponse
+from igris import IgrisClient
+from igris.client.main import IgrisClientSync
+from igris.auth.manager import AuthManager
+from igris.utils.retry import RetryConfig
+from igris.models.auth import TokenResponse, UserInfo
+from igris.models.common import APIResponse
 
 
 @pytest.fixture
@@ -24,7 +24,7 @@ def test_api_key() -> str:
 @pytest.fixture
 def test_base_url() -> str:
     """Test base URL fixture."""
-    return "https://api.test.schlep-engine.com"
+    return "https://api.test.igris-inertial.com"
 
 
 @pytest.fixture
@@ -38,9 +38,9 @@ def retry_config() -> RetryConfig:
 
 
 @pytest.fixture
-async def client(test_api_key: str, test_base_url: str) -> AsyncGenerator[SchlepEngineClient, None]:
+async def client(test_api_key: str, test_base_url: str) -> AsyncGenerator[IgrisClient, None]:
     """Test client fixture."""
-    client = SchlepEngineClient(
+    client = IgrisClient(
         api_key=test_api_key,
         base_url=test_base_url,
         timeout=5.0
@@ -55,9 +55,9 @@ async def client(test_api_key: str, test_base_url: str) -> AsyncGenerator[Schlep
 
 
 @pytest.fixture
-def sync_client(test_api_key: str, test_base_url: str) -> Generator[SchlepEngineClientSync, None, None]:
+def sync_client(test_api_key: str, test_base_url: str) -> Generator[IgrisClientSync, None, None]:
     """Test synchronous client fixture."""
-    client = SchlepEngineClientSync(
+    client = IgrisClientSync(
         api_key=test_api_key,
         base_url=test_base_url,
         timeout=5.0

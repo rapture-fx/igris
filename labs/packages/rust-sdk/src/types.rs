@@ -1,4 +1,4 @@
-//! Type definitions for the Schlep-engine Rust SDK.
+//! Type definitions for the Igris-engine Rust SDK.
 
 use serde::{Deserialize, Serialize};
 use std::collections::HashMap;

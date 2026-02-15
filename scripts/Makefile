@@ -1,9 +1,9 @@
-# Schlep Engine Monorepo Testing Commands
+# Igris Inertial Monorepo Testing Commands
 
 .PHONY: help test test-api test-rl install-test clean
 
 help: ## Show available commands
-	@echo "Schlep Engine Testing Commands:"
+	@echo "Igris Inertial Testing Commands:"
 	@echo "  test        - Run all tests with proper monorepo setup"
 	@echo "  test-api    - Run API tests only"  
 	@echo "  test-rl     - Run RL optimization tests only"
@@ -18,7 +18,7 @@ install-test: ## Install testing dependencies
 
 # Main test command with proper monorepo setup
 test: ## Run all tests across the monorepo
-	@echo "Running tests for Schlep Engine monorepo..."
+	@echo "Running tests for Igris Inertial monorepo..."
 	@echo "Setting up Python paths and environment..."
 	PYTHONPATH="apps/api:packages/cli/src:packages/python-sdk/src:." python -m pytest -v --tb=short
 

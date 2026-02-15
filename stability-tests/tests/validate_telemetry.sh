@@ -1,6 +1,6 @@
 #!/bin/bash
 #
-# Schlep-Engine Telemetry Aggregation Validation
+# Igris Inertial Telemetry Aggregation Validation
 # Validates telemetry collection and aggregation under load
 #
 # Usage: ./validate_telemetry.sh [BASE_URL]

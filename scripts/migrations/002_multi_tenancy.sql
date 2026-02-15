@@ -1,6 +1,6 @@
 -- Migration: 002_multi_tenancy
 -- Description: Add multi-tenancy and BYOK vault support (Phase 14)
--- Author: Schlep-engine Team
+-- Author: Igris-engine Team
 -- Date: 2025-10-20
 
 BEGIN;

@@ -1,5 +1,5 @@
 /**
- * Test setup for Schlep-engine JavaScript SDK
+ * Test setup for Igris-engine JavaScript SDK
  */
 
 import 'jest';

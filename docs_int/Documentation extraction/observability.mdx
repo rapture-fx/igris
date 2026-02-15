@@ -1,6 +1,6 @@
 # Observability
 
-Schlep Engine provides comprehensive observability through Prometheus metrics, distributed tracing, and structured logging.
+Igris Inertial provides comprehensive observability through Prometheus metrics, distributed tracing, and structured logging.
 
 ---
 
@@ -206,7 +206,7 @@ Add this to your `prometheus.yml`:
 
 ```yaml
 scrape_configs:
-  - job_name: 'schlep-engine'
+  - job_name: 'igris-inertial'
     scrape_interval: 15s
     static_configs:
       - targets: ['localhost:8081']
@@ -287,7 +287,7 @@ All logs are output in JSON format for easy parsing:
 **API Server Down**
 ```yaml
 - alert: APIServerDown
-  expr: up{job="schlep-engine"} == 0
+  expr: up{job="igris-inertial"} == 0
   for: 1m
   labels:
     severity: critical

@@ -3,16 +3,16 @@ requires = ["setuptools>=61.0", "wheel"]
 build-backend = "setuptools.build_meta"
 
 [project]
-name = "schlep-engine-cli"
+name = "igris-inertial-cli"
 version = "1.0.0"
-description = "Official command-line interface for Schlep-engine API"
+description = "Official command-line interface for Igris-engine API"
 readme = "README.md"
 license = {text = "MIT"}
 authors = [
-    {name = "Schlep-engine", email = "support@igris-inertial.com"}
+    {name = "Igris-engine", email = "support@igris-inertial.com"}
 ]
 maintainers = [
-    {name = "Schlep-engine", email = "support@igris-inertial.com"}
+    {name = "Igris-engine", email = "support@igris-inertial.com"}
 ]
 keywords = [
     "cli", "data-processing", "machine-learning", "devops", 
@@ -71,7 +71,7 @@ test = [
     "freezegun>=1.2.0"
 ]
 sdk = [
-    "schlep-engine>=1.0.0"
+    "igris-inertial>=1.0.0"
 ]
 
 [project.urls]
@@ -82,7 +82,7 @@ Repository = "https://github.com/igris-inertial/cli"
 Changelog = "https://github.com/igris-inertial/cli/blob/main/CHANGELOG.md"
 
 [project.scripts]
-schlep = "schlep_cli.main:cli"
+igris = "igris_cli.main:cli"
 
 [tool.setuptools]
 package-dir = {"" = "src"}
@@ -91,7 +91,7 @@ package-dir = {"" = "src"}
 where = ["src"]
 
 [tool.setuptools.package-data]
-schlep_cli = ["py.typed"]
+igris_cli = ["py.typed"]
 
 [tool.black]
 line-length = 88
@@ -115,7 +115,7 @@ extend-exclude = '''
 profile = "black"
 multi_line_output = 3
 line_length = 88
-known_first_party = ["schlep_cli"]
+known_first_party = ["igris_cli"]
 known_third_party = ["click", "rich", "pydantic", "yaml", "requests"]
 
 [tool.mypy]
@@ -140,7 +140,7 @@ strict_equality = true
 
 [[tool.mypy.overrides]]
 module = [
-    "schlep_engine.*",
+    "igris.*",
     "yaml.*",
     "colorama.*",
     "tqdm.*"
@@ -164,7 +164,7 @@ markers = [
 ]
 
 [tool.coverage.run]
-source = ["src/schlep_cli"]
+source = ["src/igris_cli"]
 branch = true
 omit = [
     "*/tests/*",

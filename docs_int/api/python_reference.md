@@ -1,18 +1,18 @@
 # Python SDK API Reference
 
-Complete API reference for the Schlep-engine Python SDK.
+Complete API reference for the Igris Inertial Python SDK.
 
 ## Installation
 
 ```bash
-pip install schlep
+pip install igris
 ```
 
-## Module: `schlep`
+## Module: `igris`
 
 ### Class: `Client`
 
-Main client class for interacting with the Schlep-engine API.
+Main client class for interacting with the Igris Inertial API.
 
 #### Constructor
 
@@ -21,7 +21,7 @@ Client(base_url: str = "http://localhost:8081", api_key: Optional[str] = None, t
 ```
 
 **Parameters:**
-- `base_url` (str, optional): Base URL of the Schlep-engine API. Default: `"http://localhost:8081"`
+- `base_url` (str, optional): Base URL of the Igris Inertial API. Default: `"http://localhost:8081"`
 - `api_key` (str, optional): API key for authentication. Default: `None`
 - `timeout` (int, optional): Request timeout in seconds. Default: `30`
 
@@ -29,14 +29,14 @@ Client(base_url: str = "http://localhost:8081", api_key: Optional[str] = None, t
 
 **Example:**
 ```python
-from schlep import Client
+from igris import Client
 
 # Local instance
 client = Client()
 
 # Remote instance with authentication
 client = Client(
-    base_url="https://api.schlep.com",
+    base_url="https://api.igris-inertial.com",
     api_key="your-api-key",
     timeout=60
 )
@@ -46,7 +46,7 @@ client = Client(
 
 #### Method: `infer()`
 
-Make an inference request using Schlep-engine's intelligent routing.
+Make an inference request using Igris Inertial's intelligent routing.
 
 ```python
 infer(
@@ -264,12 +264,12 @@ with Client(base_url="http://localhost:8081") as client:
 
 ## Exceptions
 
-### `SchlepError`
+### `IgrisError`
 
-Base exception for all Schlep SDK errors.
+Base exception for all Igris SDK errors.
 
 ```python
-class SchlepError(Exception):
+class IgrisError(Exception):
     pass
 ```
 
@@ -282,7 +282,7 @@ class SchlepError(Exception):
 Raised when an API request fails.
 
 ```python
-class APIError(SchlepError):
+class APIError(IgrisError):
     def __init__(self, message: str, status_code: int = None, response: dict = None)
 ```
 
@@ -293,7 +293,7 @@ class APIError(SchlepError):
 
 **Example:**
 ```python
-from schlep import Client, APIError
+from igris import Client, APIError
 
 client = Client()
 try:
@@ -309,13 +309,13 @@ except APIError as e:
 Raised when authentication fails.
 
 ```python
-class AuthenticationError(SchlepError):
+class AuthenticationError(IgrisError):
     pass
 ```
 
 **Example:**
 ```python
-from schlep import Client, AuthenticationError
+from igris import Client, AuthenticationError
 
 client = Client(api_key="invalid-key")
 try:
@@ -331,13 +331,13 @@ except AuthenticationError:
 Raised when network connection fails.
 
 ```python
-class NetworkError(SchlepError):
+class NetworkError(IgrisError):
     pass
 ```
 
 **Example:**
 ```python
-from schlep import Client, NetworkError
+from igris import Client, NetworkError
 
 client = Client(base_url="http://invalid-url")
 try:
@@ -377,7 +377,7 @@ The SDK uses type hints for better IDE support:
 
 ```python
 from typing import List, Dict, Any, Optional
-from schlep import Client
+from igris import Client
 
 client: Client = Client()
 
@@ -398,17 +398,17 @@ response: Dict[str, Any] = client.infer(
 You can configure the SDK using environment variables:
 
 ```bash
-export SCHLEP_BASE_URL="http://localhost:8081"
-export SCHLEP_API_KEY="your-api-key"
+export IGRIS_BASE_URL="http://localhost:8081"
+export IGRIS_API_KEY="your-api-key"
 ```
 
 ```python
 import os
-from schlep import Client
+from igris import Client
 
 client = Client(
-    base_url=os.getenv("SCHLEP_BASE_URL", "http://localhost:8081"),
-    api_key=os.getenv("SCHLEP_API_KEY")
+    base_url=os.getenv("IGRIS_BASE_URL", "http://localhost:8081"),
+    api_key=os.getenv("IGRIS_API_KEY")
 )
 ```
 
@@ -417,9 +417,9 @@ client = Client(
 ## Version Information
 
 ```python
-import schlep
+import igris
 
-print(schlep.__version__)  # "0.1.0"
+print(igris.__version__)  # "0.1.0"
 ```
 
 ---
@@ -427,14 +427,14 @@ print(schlep.__version__)  # "0.1.0"
 ## Complete Example
 
 ```python
-from schlep import Client, SchlepError, APIError, NetworkError
+from igris import Client, IgrisError, APIError, NetworkError
 import os
 
 def main():
     # Initialize client with environment variables
     client = Client(
-        base_url=os.getenv("SCHLEP_BASE_URL", "http://localhost:8081"),
-        api_key=os.getenv("SCHLEP_API_KEY"),
+        base_url=os.getenv("IGRIS_BASE_URL", "http://localhost:8081"),
+        api_key=os.getenv("IGRIS_API_KEY"),
         timeout=60
     )
 
@@ -470,8 +470,8 @@ def main():
         print(f"API Error: {e} (status: {e.status_code})")
     except NetworkError as e:
         print(f"Network Error: {e}")
-    except SchlepError as e:
-        print(f"Schlep Error: {e}")
+    except IgrisError as e:
+        print(f"Igris Error: {e}")
     finally:
         client.close()
 
@@ -489,4 +489,4 @@ if __name__ == "__main__":
 
 ---
 
-**Schlep-engine** - Intelligent AI Routing and Cost Optimization
+**Igris Inertial** - Intelligent AI Routing and Cost Optimization

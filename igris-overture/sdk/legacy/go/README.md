@@ -1,14 +1,14 @@
-# Schlep-engine Go SDK
+# Igris-engine Go SDK
 
 **Status:** 🚧 In Development - Planned for Future Release
 
 ## Overview
 
-The Schlep-engine Go SDK is currently under development and not yet ready for production use.
+The Igris-engine Go SDK is currently under development and not yet ready for production use.
 
 ## Planned Features
 
-- Native Go client for Schlep-engine API
+- Native Go client for Igris-engine API
 - Full support for `/v1/infer`, `/v1/models`, `/v1/health` endpoints
 - Context-aware request handling
 - Structured error types
@@ -18,7 +18,7 @@ The Schlep-engine Go SDK is currently under development and not yet ready for pr
 ## Installation (Coming Soon)
 
 ```bash
-go get github.com/igris-inertial/schlep-go
+go get github.com/igris-inertial/igris-go
 ```
 
 ## Planned Usage
@@ -29,18 +29,18 @@ package main
 import (
     "context"
     "fmt"
-    "github.com/igris-inertial/schlep-go"
+    "github.com/igris-inertial/igris-go"
 )
 
 func main() {
-    client := schlep.NewClient(schlep.Config{
+    client := igris.NewClient(igris.Config{
         BaseURL: "http://localhost:8081",
         APIKey:  "your-api-key",
     })
 
-    resp, err := client.Infer(context.Background(), &schlep.InferRequest{
+    resp, err := client.Infer(context.Background(), &igris.InferRequest{
         Model: "gpt-4",
-        Messages: []schlep.Message{
+        Messages: []igris.Message{
             {Role: "user", Content: "Hello!"},
         },
     })
@@ -82,4 +82,4 @@ For questions or to express interest in early access:
 
 ---
 
-**Schlep-engine** - Intelligent AI Routing and Cost Optimization
+**Igris-engine** - Intelligent AI Routing and Cost Optimization

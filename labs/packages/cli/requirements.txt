@@ -1,4 +1,4 @@
-# Core dependencies for Schlep-engine CLI
+# Core dependencies for Igris-engine CLI
 click>=8.0.0
 rich>=13.0.0
 pydantic>=2.0.0

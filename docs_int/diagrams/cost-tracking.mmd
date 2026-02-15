@@ -1,10 +1,10 @@
 ---
-title: Schlep Engine Cost Tracking Architecture
+title: Igris Inertial Cost Tracking Architecture
 ---
 
 flowchart TD
     Client[Client Request] --> LB[Load Balancer]
-    LB --> GW[Schlep API Gateway]
+    LB --> GW[Igris API Gateway]
     
     GW --> CT[Cost Tracker]
     CT --> Auth[Authentication & Tenant ID]

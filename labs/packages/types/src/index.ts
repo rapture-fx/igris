@@ -1,4 +1,4 @@
-// Shared TypeScript types for Schlep-engine
+// Shared TypeScript types for Igris-engine
 
 // Core types
 export * from './api'

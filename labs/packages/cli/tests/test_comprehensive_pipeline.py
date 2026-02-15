@@ -1,5 +1,5 @@
 """
-Comprehensive pipeline tests for Schlep-engine CLI tool
+Comprehensive pipeline tests for Igris-engine CLI tool
 
 This test suite covers complete pipeline workflows, batch processing,
 CI/CD integration, and complex command combinations.
@@ -15,12 +15,12 @@ from unittest.mock import patch, mock_open, MagicMock, call
 from click.testing import CliRunner
 from datetime import datetime, timedelta
 
-from schlep_cli.main import cli
-from schlep_cli.commands.pipeline import pipeline
-from schlep_cli.commands.batch import batch
-from schlep_cli.commands.cicd import cicd
-from schlep_cli.core.config import Config
-from schlep_cli.core.client import APIClient
+from igris_cli.main import cli
+from igris_cli.commands.pipeline import pipeline
+from igris_cli.commands.batch import batch
+from igris_cli.commands.cicd import cicd
+from igris_cli.core.config import Config
+from igris_cli.core.client import APIClient
 
 
 class TestPipelineCommands:
@@ -113,8 +113,8 @@ class TestPipelineCommands:
 
     def test_pipeline_create_from_config(self, runner, mock_client, sample_pipeline_config):
         """Test creating pipeline from configuration file."""
-        with patch('schlep_cli.core.client.APIClient') as MockAPIClient, \
-             patch('schlep_cli.core.config.Config.load') as mock_load_config:
+        with patch('igris_cli.core.client.APIClient') as MockAPIClient, \
+             patch('igris_cli.core.config.Config.load') as mock_load_config:
             
             MockAPIClient.return_value = mock_client
             mock_load_config.return_value = MagicMock(api_key="test-key")
@@ -142,8 +142,8 @@ class TestPipelineCommands:
 
     def test_pipeline_run_with_monitoring(self, runner, mock_client, sample_pipeline_config):
         """Test running pipeline with real-time monitoring."""
-        with patch('schlep_cli.core.client.APIClient') as MockAPIClient, \
-             patch('schlep_cli.core.config.Config.load') as mock_load_config:
+        with patch('igris_cli.core.client.APIClient') as MockAPIClient, \
+             patch('igris_cli.core.config.Config.load') as mock_load_config:
             
             MockAPIClient.return_value = mock_client
             mock_load_config.return_value = MagicMock(api_key="test-key")
@@ -205,8 +205,8 @@ class TestPipelineCommands:
 
     def test_pipeline_list_with_filters(self, runner, mock_client):
         """Test listing pipelines with filters."""
-        with patch('schlep_cli.core.client.APIClient') as MockAPIClient, \
-             patch('schlep_cli.core.config.Config.load') as mock_load_config:
+        with patch('igris_cli.core.client.APIClient') as MockAPIClient, \
+             patch('igris_cli.core.config.Config.load') as mock_load_config:
             
             MockAPIClient.return_value = mock_client
             mock_load_config.return_value = MagicMock(api_key="test-key")
@@ -245,8 +245,8 @@ class TestPipelineCommands:
 
     def test_pipeline_status_detailed(self, runner, mock_client):
         """Test detailed pipeline status with execution history."""
-        with patch('schlep_cli.core.client.APIClient') as MockAPIClient, \
-             patch('schlep_cli.core.config.Config.load') as mock_load_config:
+        with patch('igris_cli.core.client.APIClient') as MockAPIClient, \
+             patch('igris_cli.core.config.Config.load') as mock_load_config:
             
             MockAPIClient.return_value = mock_client
             mock_load_config.return_value = MagicMock(api_key="test-key")
@@ -345,8 +345,8 @@ class TestBatchProcessing:
 
     def test_batch_job_create(self, runner, mock_client, batch_job_config):
         """Test creating batch job."""
-        with patch('schlep_cli.core.client.APIClient') as MockAPIClient, \
-             patch('schlep_cli.core.config.Config.load') as mock_load_config:
+        with patch('igris_cli.core.client.APIClient') as MockAPIClient, \
+             patch('igris_cli.core.config.Config.load') as mock_load_config:
             
             MockAPIClient.return_value = mock_client
             mock_load_config.return_value = MagicMock(api_key="test-key")
@@ -373,8 +373,8 @@ class TestBatchProcessing:
 
     def test_batch_job_list_with_status(self, runner, mock_client):
         """Test listing batch jobs with status filtering."""
-        with patch('schlep_cli.core.client.APIClient') as MockAPIClient, \
-             patch('schlep_cli.core.config.Config.load') as mock_load_config:
+        with patch('igris_cli.core.client.APIClient') as MockAPIClient, \
+             patch('igris_cli.core.config.Config.load') as mock_load_config:
             
             MockAPIClient.return_value = mock_client
             mock_load_config.return_value = MagicMock(api_key="test-key")
@@ -412,8 +412,8 @@ class TestBatchProcessing:
 
     def test_batch_job_run_now(self, runner, mock_client):
         """Test manually triggering batch job execution."""
-        with patch('schlep_cli.core.client.APIClient') as MockAPIClient, \
-             patch('schlep_cli.core.config.Config.load') as mock_load_config:
+        with patch('igris_cli.core.client.APIClient') as MockAPIClient, \
+             patch('igris_cli.core.config.Config.load') as mock_load_config:
             
             MockAPIClient.return_value = mock_client
             mock_load_config.return_value = MagicMock(api_key="test-key")
@@ -433,8 +433,8 @@ class TestBatchProcessing:
 
     def test_batch_job_history(self, runner, mock_client):
         """Test viewing batch job execution history."""
-        with patch('schlep_cli.core.client.APIClient') as MockAPIClient, \
-             patch('schlep_cli.core.config.Config.load') as mock_load_config:
+        with patch('igris_cli.core.client.APIClient') as MockAPIClient, \
+             patch('igris_cli.core.config.Config.load') as mock_load_config:
             
             MockAPIClient.return_value = mock_client
             mock_load_config.return_value = MagicMock(api_key="test-key")
@@ -504,9 +504,9 @@ class TestCICDIntegration:
                     "steps": [
                         {"uses": "actions/checkout@v3"},
                         {"name": "Setup Python", "uses": "actions/setup-python@v4"},
-                        {"name": "Install dependencies", "run": "pip install schlep-engine-cli"},
-                        {"name": "Validate pipeline", "run": "schlep pipeline validate --config pipeline.yaml"},
-                        {"name": "Run tests", "run": "schlep validate --config test-pipeline.yaml"}
+                        {"name": "Install dependencies", "run": "pip install igris-inertial-cli"},
+                        {"name": "Validate pipeline", "run": "igris pipeline validate --config pipeline.yaml"},
+                        {"name": "Run tests", "run": "igris validate --config test-pipeline.yaml"}
                     ]
                 },
                 "deploy": {
@@ -514,8 +514,8 @@ class TestCICDIntegration:
                     "runs-on": "ubuntu-latest",
                     "if": "github.ref == 'refs/heads/main'",
                     "steps": [
-                        {"name": "Deploy pipeline", "run": "schlep pipeline create --config pipeline.yaml"},
-                        {"name": "Run smoke test", "run": "schlep pipeline run --config smoke-test.yaml"}
+                        {"name": "Deploy pipeline", "run": "igris pipeline create --config pipeline.yaml"},
+                        {"name": "Run smoke test", "run": "igris pipeline run --config smoke-test.yaml"}
                     ]
                 }
             }
@@ -548,21 +548,21 @@ class TestCICDIntegration:
             assert "GitHub workflow generated" in result.output
             
             # Verify workflow file was created
-            workflow_file = Path(temp_dir) / ".github" / "workflows" / "schlep-pipeline.yml"
+            workflow_file = Path(temp_dir) / ".github" / "workflows" / "igris-pipeline.yml"
             assert workflow_file.exists()
             
             # Verify workflow content
             with open(workflow_file) as f:
                 workflow_content = yaml.safe_load(f)
             
-            assert workflow_content["name"] == "Schlep Engine Pipeline CI/CD"
+            assert workflow_content["name"] == "Igris Inertial Pipeline CI/CD"
             assert "main" in workflow_content["on"]["push"]["branches"]
             assert "develop" in workflow_content["on"]["push"]["branches"]
 
     def test_cicd_validate_environment(self, runner, mock_client):
         """Test validating CI/CD environment setup."""
-        with patch('schlep_cli.core.client.APIClient') as MockAPIClient, \
-             patch('schlep_cli.core.config.Config.load') as mock_load_config:
+        with patch('igris_cli.core.client.APIClient') as MockAPIClient, \
+             patch('igris_cli.core.config.Config.load') as mock_load_config:
             
             MockAPIClient.return_value = mock_client
             mock_load_config.return_value = MagicMock(api_key="test-key")
@@ -580,8 +580,8 @@ class TestCICDIntegration:
 
     def test_cicd_deploy_pipeline(self, runner, mock_client):
         """Test deploying pipeline in CI/CD environment."""
-        with patch('schlep_cli.core.client.APIClient') as MockAPIClient, \
-             patch('schlep_cli.core.config.Config.load') as mock_load_config, \
+        with patch('igris_cli.core.client.APIClient') as MockAPIClient, \
+             patch('igris_cli.core.config.Config.load') as mock_load_config, \
              patch.dict(os.environ, {'GITHUB_ACTIONS': 'true', 'GITHUB_SHA': 'abc123'}):
             
             MockAPIClient.return_value = mock_client
@@ -619,8 +619,8 @@ class TestCICDIntegration:
 
     def test_cicd_run_tests(self, runner, mock_client):
         """Test running pipeline tests in CI/CD."""
-        with patch('schlep_cli.core.client.APIClient') as MockAPIClient, \
-             patch('schlep_cli.core.config.Config.load') as mock_load_config:
+        with patch('igris_cli.core.client.APIClient') as MockAPIClient, \
+             patch('igris_cli.core.config.Config.load') as mock_load_config:
             
             MockAPIClient.return_value = mock_client
             mock_load_config.return_value = MagicMock(api_key="test-key")
@@ -671,8 +671,8 @@ class TestCICDIntegration:
 
     def test_cicd_rollback(self, runner, mock_client):
         """Test pipeline rollback functionality."""
-        with patch('schlep_cli.core.client.APIClient') as MockAPIClient, \
-             patch('schlep_cli.core.config.Config.load') as mock_load_config:
+        with patch('igris_cli.core.client.APIClient') as MockAPIClient, \
+             patch('igris_cli.core.config.Config.load') as mock_load_config:
             
             MockAPIClient.return_value = mock_client
             mock_load_config.return_value = MagicMock(api_key="test-key")
@@ -713,8 +713,8 @@ class TestComplexWorkflows:
 
     def test_end_to_end_data_pipeline(self, runner, mock_client):
         """Test complete end-to-end data pipeline workflow."""
-        with patch('schlep_cli.core.client.APIClient') as MockAPIClient, \
-             patch('schlep_cli.core.config.Config.load') as mock_load_config, \
+        with patch('igris_cli.core.client.APIClient') as MockAPIClient, \
+             patch('igris_cli.core.config.Config.load') as mock_load_config, \
              patch('builtins.open', mock_open(read_data="col1,col2\nval1,val2")):
             
             MockAPIClient.return_value = mock_client
@@ -750,8 +750,8 @@ class TestComplexWorkflows:
 
     def test_batch_processing_workflow(self, runner, mock_client):
         """Test batch processing workflow with monitoring."""
-        with patch('schlep_cli.core.client.APIClient') as MockAPIClient, \
-             patch('schlep_cli.core.config.Config.load') as mock_load_config:
+        with patch('igris_cli.core.client.APIClient') as MockAPIClient, \
+             patch('igris_cli.core.config.Config.load') as mock_load_config:
             
             MockAPIClient.return_value = mock_client
             mock_load_config.return_value = MagicMock(api_key="test-key")
@@ -793,8 +793,8 @@ class TestComplexWorkflows:
 
     def test_multi_environment_deployment(self, runner, mock_client):
         """Test deploying pipeline across multiple environments."""
-        with patch('schlep_cli.core.client.APIClient') as MockAPIClient, \
-             patch('schlep_cli.core.config.Config.load') as mock_load_config:
+        with patch('igris_cli.core.client.APIClient') as MockAPIClient, \
+             patch('igris_cli.core.config.Config.load') as mock_load_config:
             
             MockAPIClient.return_value = mock_client
             mock_load_config.return_value = MagicMock(api_key="test-key")
@@ -847,8 +847,8 @@ class TestErrorHandlingAndRecovery:
 
     def test_pipeline_failure_recovery(self, runner, mock_client):
         """Test pipeline failure detection and recovery."""
-        with patch('schlep_cli.core.client.APIClient') as MockAPIClient, \
-             patch('schlep_cli.core.config.Config.load') as mock_load_config:
+        with patch('igris_cli.core.client.APIClient') as MockAPIClient, \
+             patch('igris_cli.core.config.Config.load') as mock_load_config:
             
             MockAPIClient.return_value = mock_client
             mock_load_config.return_value = MagicMock(api_key="test-key")
@@ -882,8 +882,8 @@ class TestErrorHandlingAndRecovery:
 
     def test_network_error_handling(self, runner, mock_client):
         """Test handling of network errors with retries."""
-        with patch('schlep_cli.core.client.APIClient') as MockAPIClient, \
-             patch('schlep_cli.core.config.Config.load') as mock_load_config:
+        with patch('igris_cli.core.client.APIClient') as MockAPIClient, \
+             patch('igris_cli.core.config.Config.load') as mock_load_config:
             
             MockAPIClient.return_value = mock_client
             mock_load_config.return_value = MagicMock(api_key="test-key", max_retries=3)

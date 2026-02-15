@@ -1,5 +1,5 @@
 /**
- * Storage API for Schlep-engine JavaScript SDK
+ * Storage API for Igris-engine JavaScript SDK
  */
 
 import { BaseAPI } from './base';

@@ -1,5 +1,5 @@
 """
-Comprehensive data processing API tests for Schlep-engine Python SDK
+Comprehensive data processing API tests for Igris-engine Python SDK
 """
 
 import pytest
@@ -8,13 +8,13 @@ import io
 from unittest.mock import AsyncMock, MagicMock, patch, mock_open
 from pathlib import Path
 
-from schlep_engine.api.data_processing import DataProcessingAPI
-from schlep_engine.models.data import (
+from igris.api.data_processing import DataProcessingAPI
+from igris.models.data import (
     ProcessingJob, DataSource, ProcessingConfig, ProcessingResult,
     DataFormat, ValidationResult, QualityMetrics
 )
-from schlep_engine.exceptions.base import APIError, ValidationError
-from schlep_engine.models.common import PaginationInfo
+from igris.exceptions.base import APIError, ValidationError
+from igris.models.common import PaginationInfo
 
 
 class TestDataProcessingAPI:

@@ -225,5 +225,5 @@ def get_default_bayesian_state() -> BayesianState:
 def derive_encryption_key(api_key: str = "") -> bytes:
     """Derive 32-byte encryption key from API key using SHA-256"""
     if not api_key:
-        api_key = "schlep-default-encryption-key-change-me"
+        api_key = "igris-default-encryption-key-change-me"
     return hashlib.sha256(api_key.encode('utf-8')).digest()

@@ -21,7 +21,7 @@ const banner = `/**
  * ${pkg.name} v${pkg.version}
  * ${pkg.description}
  * 
- * Copyright (c) 2024 Schlep-engine
+ * Copyright (c) 2024 Igris-engine
  * Licensed under ${pkg.license}
  */`;
 
@@ -84,7 +84,7 @@ export default [
     output: {
       file: 'dist/index.umd.js',
       format: 'umd',
-      name: 'SchlepEngine',
+      name: 'Igris',
       sourcemap: true,
       banner,
       globals

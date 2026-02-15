@@ -14,8 +14,8 @@
 //! # Example
 //!
 //! ```rust,no_run
-//! use schlep_kernel::optimizer::bandits::{ThompsonSampling, ThompsonSamplingConfig};
-//! use schlep_kernel::optimizer::rewards::RewardMetrics;
+//! use igris_kernel::optimizer::bandits::{ThompsonSampling, ThompsonSamplingConfig};
+//! use igris_kernel::optimizer::rewards::RewardMetrics;
 //!
 //! let config = ThompsonSamplingConfig::default();
 //! let mut optimizer = ThompsonSampling::new(config);

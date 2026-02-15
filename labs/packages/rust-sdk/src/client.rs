@@ -1,4 +1,4 @@
-//! Main client implementation for the Schlep-engine Rust SDK.
+//! Main client implementation for the Igris-engine Rust SDK.
 
 use std::env;
 
@@ -15,7 +15,7 @@ use crate::error::{Error, Result};
 use crate::types::{DeployResponse, StatusResponse, StreamConfig, TrainResponse, UploadResponse};
 use crate::DEFAULT_BASE_URL;
 
-/// Main client for interacting with the Schlep-engine API.
+/// Main client for interacting with the Igris-engine API.
 ///
 /// The client provides methods for uploading data, training models, deploying models,
 /// checking job status, and streaming real-time events.
@@ -23,17 +23,17 @@ use crate::DEFAULT_BASE_URL;
 /// # Authentication
 ///
 /// The client requires an API key for authentication. You can provide it either:
-/// - As a parameter when creating the client: `SchlepClient::new("your-api-key")`
-/// - Via the `SCHLEP_API_KEY` environment variable
+/// - As a parameter when creating the client: `IgrisClient::new("your-api-key")`
+/// - Via the `IGRIS_API_KEY` environment variable
 ///
 /// # Example
 ///
 /// ```rust,no_run
-/// use schlep_engine::{SchlepClient, Result};
+/// use igris::{IgrisClient, Result};
 ///
 /// #[tokio::main]
 /// async fn main() -> Result<()> {
-///     let client = SchlepClient::new("your-api-key")?;
+///     let client = IgrisClient::new("your-api-key")?;
 ///
 ///     let upload_result = client.upload("sample data").await?;
 ///     println!("Upload job ID: {}", upload_result.job_id);
@@ -42,18 +42,18 @@ use crate::DEFAULT_BASE_URL;
 /// }
 /// ```
 #[derive(Debug, Clone)]
-pub struct SchlepClient {
+pub struct IgrisClient {
     client: Client,
     base_url: String,
     api_key: String,
 }
 
-impl SchlepClient {
-    /// Create a new Schlep-engine client with the provided API key.
+impl IgrisClient {
+    /// Create a new Igris-engine client with the provided API key.
     ///
     /// # Arguments
     ///
-    /// * `api_key` - Your Schlep-engine API key
+    /// * `api_key` - Your Igris-engine API key
     ///
     /// # Errors
     ///
@@ -72,14 +72,14 @@ impl SchlepClient {
         })
     }
 
-    /// Create a new client using the API key from the `SCHLEP_API_KEY` environment variable.
+    /// Create a new client using the API key from the `IGRIS_API_KEY` environment variable.
     ///
     /// # Errors
     ///
     /// Returns an error if the environment variable is not set or empty.
     pub fn from_env() -> Result<Self> {
-        let api_key = env::var("SCHLEP_API_KEY")
-            .map_err(|_| Error::config_error("SCHLEP_API_KEY environment variable not set"))?;
+        let api_key = env::var("IGRIS_API_KEY")
+            .map_err(|_| Error::config_error("IGRIS_API_KEY environment variable not set"))?;
         Self::new(api_key)
     }
 
@@ -87,7 +87,7 @@ impl SchlepClient {
     ///
     /// # Arguments
     ///
-    /// * `api_key` - Your Schlep-engine API key
+    /// * `api_key` - Your Igris-engine API key
     /// * `base_url` - Custom base URL for the API
     pub fn with_base_url(api_key: impl Into<String>, base_url: impl Into<String>) -> Result<Self> {
         let mut client = Self::new(api_key)?;
@@ -95,7 +95,7 @@ impl SchlepClient {
         Ok(client)
     }
 
-    /// Upload data to Schlep-engine for processing.
+    /// Upload data to Igris-engine for processing.
     ///
     /// # Arguments
     ///
@@ -108,10 +108,10 @@ impl SchlepClient {
     /// # Example
     ///
     /// ```rust,no_run
-    /// # use schlep_engine::{SchlepClient, Result};
+    /// # use igris::{IgrisClient, Result};
     /// # #[tokio::main]
     /// # async fn main() -> Result<()> {
-    /// let client = SchlepClient::new("your-api-key")?;
+    /// let client = IgrisClient::new("your-api-key")?;
     /// let result = client.upload("Hello, world!").await?;
     /// println!("Job ID: {}", result.job_id);
     /// # Ok(())
@@ -147,10 +147,10 @@ impl SchlepClient {
     /// # Example
     ///
     /// ```rust,no_run
-    /// # use schlep_engine::{SchlepClient, TrainConfig, Result};
+    /// # use igris::{IgrisClient, TrainConfig, Result};
     /// # #[tokio::main]
     /// # async fn main() -> Result<()> {
-    /// let client = SchlepClient::new("your-api-key")?;
+    /// let client = IgrisClient::new("your-api-key")?;
     /// let config = serde_json::json!({
     ///     "model_type": "classification",
     ///     "dataset_id": "upload_job_123"
@@ -187,10 +187,10 @@ impl SchlepClient {
     /// # Example
     ///
     /// ```rust,no_run
-    /// # use schlep_engine::{SchlepClient, Result};
+    /// # use igris::{IgrisClient, Result};
     /// # #[tokio::main]
     /// # async fn main() -> Result<()> {
-    /// let client = SchlepClient::new("your-api-key")?;
+    /// let client = IgrisClient::new("your-api-key")?;
     /// let result = client.deploy("model_123").await?;
     /// println!("Endpoint URL: {}", result.endpoint_url);
     /// # Ok(())
@@ -226,10 +226,10 @@ impl SchlepClient {
     /// # Example
     ///
     /// ```rust,no_run
-    /// # use schlep_engine::{SchlepClient, Result};
+    /// # use igris::{IgrisClient, Result};
     /// # #[tokio::main]
     /// # async fn main() -> Result<()> {
-    /// let client = SchlepClient::new("your-api-key")?;
+    /// let client = IgrisClient::new("your-api-key")?;
     /// let status = client.status("job_123").await?;
     /// println!("Status: {}", status.status);
     /// if let Some(progress) = status.progress {
@@ -251,7 +251,7 @@ impl SchlepClient {
         self.handle_response(response).await
     }
 
-    /// Stream real-time events from Schlep-engine.
+    /// Stream real-time events from Igris-engine.
     ///
     /// This is a basic WebSocket streaming implementation. For production use,
     /// you may want to implement more sophisticated event handling and reconnection logic.
@@ -267,10 +267,10 @@ impl SchlepClient {
     /// # Example
     ///
     /// ```rust,no_run
-    /// # use schlep_engine::{SchlepClient, StreamConfig, Result};
+    /// # use igris::{IgrisClient, StreamConfig, Result};
     /// # #[tokio::main]
     /// # async fn main() -> Result<()> {
-    /// let client = SchlepClient::new("your-api-key")?;
+    /// let client = IgrisClient::new("your-api-key")?;
     /// let config = StreamConfig {
     ///     event_types: vec!["training".to_string(), "deployment".to_string()],
     ///     filters: Default::default(),
@@ -501,10 +501,10 @@ impl SchlepClient {
     /// # Example
     ///
     /// ```rust,no_run
-    /// # use schlep_engine::{SchlepClient, Result};
+    /// # use igris::{IgrisClient, Result};
     /// # #[tokio::main]
     /// # async fn main() -> Result<()> {
-    /// let client = SchlepClient::new("your-api-key")?;
+    /// let client = IgrisClient::new("your-api-key")?;
     /// let file_data = std::fs::read("data.csv")?;
     /// let result = client.data().process_file(&file_data, "csv").await?;
     /// # Ok(())
@@ -519,11 +519,11 @@ impl SchlepClient {
     /// # Example
     ///
     /// ```rust,no_run
-    /// # use schlep_engine::{SchlepClient, Result};
+    /// # use igris::{IgrisClient, Result};
     /// # use serde_json::json;
     /// # #[tokio::main]
     /// # async fn main() -> Result<()> {
-    /// let client = SchlepClient::new("your-api-key")?;
+    /// let client = IgrisClient::new("your-api-key")?;
     /// let config = json!({"name": "My Pipeline", "task_type": "classification"});
     /// let pipeline = client.ml().create_pipeline(config).await?;
     /// # Ok(())
@@ -538,11 +538,11 @@ impl SchlepClient {
     /// # Example
     ///
     /// ```rust,no_run
-    /// # use schlep_engine::{SchlepClient, Result};
+    /// # use igris::{IgrisClient, Result};
     /// # use serde_json::json;
     /// # #[tokio::main]
     /// # async fn main() -> Result<()> {
-    /// let client = SchlepClient::new("your-api-key")?;
+    /// let client = IgrisClient::new("your-api-key")?;
     /// let query = json!({"sql": "SELECT * FROM users"});
     /// let result = client.analytics().execute_query(query).await?;
     /// # Ok(())
@@ -557,10 +557,10 @@ impl SchlepClient {
     /// # Example
     ///
     /// ```rust,no_run
-    /// # use schlep_engine::{SchlepClient, Result};
+    /// # use igris::{IgrisClient, Result};
     /// # #[tokio::main]
     /// # async fn main() -> Result<()> {
-    /// let client = SchlepClient::new("your-api-key")?;
+    /// let client = IgrisClient::new("your-api-key")?;
     /// let file_data = std::fs::read("document.pdf")?;
     /// let result = client.document().extract_text(&file_data, "pdf").await?;
     /// # Ok(())
@@ -575,10 +575,10 @@ impl SchlepClient {
     /// # Example
     ///
     /// ```rust,no_run
-    /// # use schlep_engine::{SchlepClient, Result};
+    /// # use igris::{IgrisClient, Result};
     /// # #[tokio::main]
     /// # async fn main() -> Result<()> {
-    /// let client = SchlepClient::new("your-api-key")?;
+    /// let client = IgrisClient::new("your-api-key")?;
     /// let assessment = client.quality().assess_quality("job_123").await?;
     /// # Ok(())
     /// # }
@@ -592,10 +592,10 @@ impl SchlepClient {
     /// # Example
     ///
     /// ```rust,no_run
-    /// # use schlep_engine::{SchlepClient, Result};
+    /// # use igris::{IgrisClient, Result};
     /// # #[tokio::main]
     /// # async fn main() -> Result<()> {
-    /// let client = SchlepClient::new("your-api-key")?;
+    /// let client = IgrisClient::new("your-api-key")?;
     /// let file_data = std::fs::read("data.csv")?;
     /// let result = client.storage().upload_file(&file_data, "data.csv").await?;
     /// # Ok(())
@@ -610,10 +610,10 @@ impl SchlepClient {
     /// # Example
     ///
     /// ```rust,no_run
-    /// # use schlep_engine::{SchlepClient, Result};
+    /// # use igris::{IgrisClient, Result};
     /// # #[tokio::main]
     /// # async fn main() -> Result<()> {
-    /// let client = SchlepClient::new("your-api-key")?;
+    /// let client = IgrisClient::new("your-api-key")?;
     /// let health = client.monitoring().get_health().await?;
     /// # Ok(())
     /// # }
@@ -627,10 +627,10 @@ impl SchlepClient {
     /// # Example
     ///
     /// ```rust,no_run
-    /// # use schlep_engine::{SchlepClient, Result};
+    /// # use igris::{IgrisClient, Result};
     /// # #[tokio::main]
     /// # async fn main() -> Result<()> {
-    /// let client = SchlepClient::new("your-api-key")?;
+    /// let client = IgrisClient::new("your-api-key")?;
     /// let profile = client.users().get_profile().await?;
     /// # Ok(())
     /// # }
@@ -644,10 +644,10 @@ impl SchlepClient {
     /// # Example
     ///
     /// ```rust,no_run
-    /// # use schlep_engine::{SchlepClient, Result};
+    /// # use igris::{IgrisClient, Result};
     /// # #[tokio::main]
     /// # async fn main() -> Result<()> {
-    /// let client = SchlepClient::new("your-api-key")?;
+    /// let client = IgrisClient::new("your-api-key")?;
     /// let stats = client.admin().get_system_stats().await?;
     /// # Ok(())
     /// # }

@@ -1,6 +1,6 @@
 # Load Testing Framework - Phase 4.1
 
-This directory contains the production-grade load and soak testing infrastructure for Schlep-Engine Phase 4 (Observability & Optimization).
+This directory contains the production-grade load and soak testing infrastructure for Igris Inertial Phase 4 (Observability & Optimization).
 
 ## Overview
 

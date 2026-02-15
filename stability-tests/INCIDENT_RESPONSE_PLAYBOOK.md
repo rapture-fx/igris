@@ -1,4 +1,4 @@
-# Schlep-Engine Incident Response Playbook
+# Igris Inertial Incident Response Playbook
 
 **Version**: 1.0
 **Last Updated**: 2025-01-21
@@ -377,7 +377,7 @@ kubectl rollout restart deployment/igris-overture -n production
 ### SEV-1 Initial Alert
 
 ```
-🚨 **SEV-1 INCIDENT - Schlep-Engine API Outage**
+🚨 **SEV-1 INCIDENT - Igris Inertial API Outage**
 
 **Status**: Investigating
 **Impact**: Complete API outage - all customer requests failing
@@ -397,7 +397,7 @@ kubectl rollout restart deployment/igris-overture -n production
 ### SEV-1 Resolution
 
 ```
-✅ **SEV-1 RESOLVED - Schlep-Engine API Restored**
+✅ **SEV-1 RESOLVED - Igris Inertial API Restored**
 
 **Duration**: 14:32 - 14:47 UTC (15 minutes)
 **Root Cause**: Database connection pool exhausted
@@ -419,7 +419,7 @@ kubectl rollout restart deployment/igris-overture -n production
 ### Customer Communication (Breach)
 
 ```
-Subject: Schlep-Engine Service Disruption - [Date]
+Subject: Igris Inertial Service Disruption - [Date]
 
 Dear Valued Customer,
 
@@ -446,7 +446,7 @@ Our database connection pool reached capacity, preventing new API requests from 
 We sincerely apologize for any inconvenience. If you have questions, please contact support@igris-inertial.com.
 
 Best regards,
-Schlep-Engine Platform Team
+Igris Inertial Platform Team
 ```
 
 ---

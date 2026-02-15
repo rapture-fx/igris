@@ -1,6 +1,6 @@
-# Schlep-engine Go SDK
+# Igris-engine Go SDK
 
-Official Go SDK for Schlep-engine - Intelligent AI routing and cost optimization.
+Official Go SDK for Igris-engine - Intelligent AI routing and cost optimization.
 
 [![Go Reference](https://pkg.go.dev/badge/github.com/igris-inertial/sdk-go.svg)](https://pkg.go.dev/github.com/igris-inertial/sdk-go)
 [![Go Report Card](https://goreportcard.com/badge/github.com/igris-inertial/sdk-go)](https://goreportcard.com/report/github.com/igris-inertial/sdk-go)
@@ -22,21 +22,21 @@ import (
 	"fmt"
 	"log"
 
-	"github.com/igris-inertial/sdk-go/schlep"
+	"github.com/igris-inertial/sdk-go/igris"
 )
 
 func main() {
 	// Create client
-	client := schlep.NewClient(&schlep.Config{
+	client := igris.NewClient(&igris.Config{
 		BaseURL: "http://localhost:8081",
 		APIKey:  "your-api-key", // Optional
 	})
 
 	// Make inference request
 	ctx := context.Background()
-	response, err := client.Infer(ctx, &schlep.InferRequest{
+	response, err := client.Infer(ctx, &igris.InferRequest{
 		Model: "gpt-4",
-		Messages: []schlep.Message{
+		Messages: []igris.Message{
 			{Role: "user", Content: "Hello, world!"},
 		},
 	})
@@ -64,28 +64,28 @@ func main() {
 ### Client Configuration
 
 ```go
-import "github.com/igris-inertial/sdk-go/schlep"
+import "github.com/igris-inertial/sdk-go/igris"
 
 // Basic configuration
-client := schlep.NewClient(&schlep.Config{
+client := igris.NewClient(&igris.Config{
 	BaseURL: "http://localhost:8081",
 })
 
 // With API key
-client := schlep.NewClient(&schlep.Config{
+client := igris.NewClient(&igris.Config{
 	BaseURL: "http://localhost:8081",
 	APIKey:  "your-api-key",
 })
 
 // With custom timeout
-client := schlep.NewClient(&schlep.Config{
+client := igris.NewClient(&igris.Config{
 	BaseURL: "http://localhost:8081",
 	Timeout: 60 * time.Second,
 })
 
 // With environment variables
 // SCHLEP_BASE_URL and SCHLEP_API_KEY will be used automatically
-client := schlep.NewClient(nil)
+client := igris.NewClient(nil)
 ```
 
 ### Making Inference Requests
@@ -93,14 +93,14 @@ client := schlep.NewClient(nil)
 ```go
 ctx := context.Background()
 
-response, err := client.Infer(ctx, &schlep.InferRequest{
+response, err := client.Infer(ctx, &igris.InferRequest{
 	Model: "gpt-4",
-	Messages: []schlep.Message{
+	Messages: []igris.Message{
 		{Role: "system", Content: "You are a helpful assistant."},
 		{Role: "user", Content: "Explain quantum computing."},
 	},
-	MaxTokens:   schlep.Int(200),
-	Temperature: schlep.Float64(0.7),
+	MaxTokens:   igris.Int(200),
+	Temperature: igris.Float64(0.7),
 })
 
 if err != nil {
@@ -150,15 +150,15 @@ if health.Status == "healthy" {
 ```go
 import "errors"
 
-response, err := client.Infer(ctx, &schlep.InferRequest{
+response, err := client.Infer(ctx, &igris.InferRequest{
 	Model: "gpt-4",
-	Messages: []schlep.Message{
+	Messages: []igris.Message{
 		{Role: "user", Content: "Hello"},
 	},
 })
 
 if err != nil {
-	var apiErr *schlep.APIError
+	var apiErr *igris.APIError
 	if errors.As(err, &apiErr) {
 		fmt.Printf("API Error %d: %s\n", apiErr.StatusCode, apiErr.Message)
 	} else {
@@ -177,9 +177,9 @@ import "time"
 ctx, cancel := context.WithTimeout(context.Background(), 30*time.Second)
 defer cancel()
 
-response, err := client.Infer(ctx, &schlep.InferRequest{
+response, err := client.Infer(ctx, &igris.InferRequest{
 	Model: "gpt-4",
-	Messages: []schlep.Message{
+	Messages: []igris.Message{
 		{Role: "user", Content: "Hello"},
 	},
 })
@@ -197,30 +197,30 @@ response, err := client.Health(ctx)
 ### Multi-turn Conversation
 
 ```go
-messages := []schlep.Message{
+messages := []igris.Message{
 	{Role: "system", Content: "You are helpful."},
 	{Role: "user", Content: "What is AI?"},
 }
 
 // First response
-response1, err := client.Infer(ctx, &schlep.InferRequest{
+response1, err := client.Infer(ctx, &igris.InferRequest{
 	Model:    "gpt-4",
 	Messages: messages,
 })
 
 // Add assistant response to conversation
-messages = append(messages, schlep.Message{
+messages = append(messages, igris.Message{
 	Role:    "assistant",
 	Content: response1.Choices[0].Message.Content,
 })
 
 // Continue conversation
-messages = append(messages, schlep.Message{
+messages = append(messages, igris.Message{
 	Role:    "user",
 	Content: "Tell me more",
 })
 
-response2, err := client.Infer(ctx, &schlep.InferRequest{
+response2, err := client.Infer(ctx, &igris.InferRequest{
 	Model:    "gpt-4",
 	Messages: messages,
 })
@@ -291,7 +291,7 @@ The SDK supports the following environment variables:
 ### Methods
 
 **NewClient(cfg *Config) *Client**
-Creates a new Schlep client
+Creates a new Igris client
 
 **Infer(ctx context.Context, req *InferRequest) (*InferResponse, error)**
 Makes an inference request
@@ -352,6 +352,6 @@ MIT License - see LICENSE file for details.
 
 ---
 
-**Schlep-engine** - Intelligent AI Routing and Cost Optimization
+**Igris-engine** - Intelligent AI Routing and Cost Optimization
 
 _v1.0.0-rc1_

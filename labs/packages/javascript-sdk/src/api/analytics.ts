@@ -1,5 +1,5 @@
 /**
- * Analytics API for Schlep-engine JavaScript SDK
+ * Analytics API for Igris-engine JavaScript SDK
  * Provides comprehensive analytics query and reporting capabilities
  */
 

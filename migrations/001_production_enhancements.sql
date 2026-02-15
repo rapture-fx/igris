@@ -1,5 +1,5 @@
 -- ===========================================
--- Schlep Engine Production Enhancements Migration
+-- Igris Inertial Production Enhancements Migration
 -- Version: v1.4.0
 -- Date: 2025-12-11
 -- ===========================================

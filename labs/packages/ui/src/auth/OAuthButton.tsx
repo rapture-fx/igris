@@ -5,7 +5,7 @@
 
 import React, { useState } from 'react'
 import { Github, Mail, Loader2, ExternalLink } from 'lucide-react'
-import type { OAuthProvider, OAuthButtonProps } from '@schlep-engine/types/auth'
+import type { OAuthProvider, OAuthButtonProps } from '@igris-inertial/types/auth'
 
 // Provider icons mapping
 const ProviderIcons = {

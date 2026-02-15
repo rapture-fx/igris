@@ -64,7 +64,7 @@ pub fn create_optimizer_span(
     trace_id: Option<&str>,
     span_id: Option<&str>,
 ) -> Context {
-    let tracer = global::tracer("schlep-optimizer");
+    let tracer = global::tracer("igris-optimizer");
 
     let mut span_builder = tracer
         .span_builder(format!("optimizer.{}", operation))

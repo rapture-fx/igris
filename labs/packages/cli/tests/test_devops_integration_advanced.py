@@ -1,5 +1,5 @@
 """
-Advanced DevOps Integration Tests for Schlep-engine CLI
+Advanced DevOps Integration Tests for Igris-engine CLI
 
 This module contains comprehensive tests for DevOps workflows, CI/CD integration,
 container orchestration, infrastructure automation, and monitoring scenarios.
@@ -18,12 +18,12 @@ from unittest.mock import Mock, patch, MagicMock, call
 from click.testing import CliRunner
 from contextlib import contextmanager
 
-from schlep_cli.main import cli
-from schlep_cli.core.config import Config
-from schlep_cli.core.client import APIClient
-from schlep_cli.commands.cicd import cicd
-from schlep_cli.commands.devops import devops
-from schlep_cli.commands.monitoring import monitoring
+from igris_cli.main import cli
+from igris_cli.core.config import Config
+from igris_cli.core.client import APIClient
+from igris_cli.commands.cicd import cicd
+from igris_cli.commands.devops import devops
+from igris_cli.commands.monitoring import monitoring
 
 
 class TestAdvancedDevOpsIntegration:
@@ -45,11 +45,11 @@ class TestAdvancedDevOpsIntegration:
                 'docker-compose.yml': {
                     'version': '3.8',
                     'services': {
-                        'schlep-api': {
-                            'image': 'schlep-engine:latest',
+                        'igris-api': {
+                            'image': 'igris-inertial:latest',
                             'ports': ['8000:8000'],
                             'environment': {
-                                'SCHLEP_API_KEY': '${SCHLEP_API_KEY}',
+                                'IGRIS_API_KEY': '${IGRIS_API_KEY}',
                                 'ENVIRONMENT': 'production'
                             }
                         },
@@ -60,8 +60,8 @@ class TestAdvancedDevOpsIntegration:
                         'postgres': {
                             'image': 'postgres:15',
                             'environment': {
-                                'POSTGRES_DB': 'schlep_db',
-                                'POSTGRES_USER': 'schlep_user',
+                                'POSTGRES_DB': 'igris_db',
+                                'POSTGRES_USER': 'igris_user',
                                 'POSTGRES_PASSWORD': '${DB_PASSWORD}'
                             }
                         }
@@ -70,23 +70,23 @@ class TestAdvancedDevOpsIntegration:
                 'kubernetes/deployment.yaml': {
                     'apiVersion': 'apps/v1',
                     'kind': 'Deployment',
-                    'metadata': {'name': 'schlep-engine'},
+                    'metadata': {'name': 'igris-inertial'},
                     'spec': {
                         'replicas': 3,
                         'selector': {
-                            'matchLabels': {'app': 'schlep-engine'}
+                            'matchLabels': {'app': 'igris-inertial'}
                         },
                         'template': {
                             'metadata': {
-                                'labels': {'app': 'schlep-engine'}
+                                'labels': {'app': 'igris-inertial'}
                             },
                             'spec': {
                                 'containers': [{
-                                    'name': 'schlep-api',
-                                    'image': 'schlep-engine:v1.0.0',
+                                    'name': 'igris-api',
+                                    'image': 'igris-inertial:v1.0.0',
                                     'ports': [{'containerPort': 8000}],
                                     'env': [
-                                        {'name': 'SCHLEP_API_KEY', 'valueFrom': {'secretKeyRef': {'name': 'schlep-secrets', 'key': 'api-key'}}}
+                                        {'name': 'IGRIS_API_KEY', 'valueFrom': {'secretKeyRef': {'name': 'igris-secrets', 'key': 'api-key'}}}
                                     ]
                                 }]
                             }
@@ -102,8 +102,8 @@ class TestAdvancedDevOpsIntegration:
                             'steps': [
                                 {'uses': 'actions/checkout@v3'},
                                 {'name': 'Setup Python', 'uses': 'actions/setup-python@v4', 'with': {'python-version': '3.11'}},
-                                {'name': 'Install CLI', 'run': 'pip install schlep-engine-cli'},
-                                {'name': 'Run Tests', 'run': 'schlep validate --config config.yml'}
+                                {'name': 'Install CLI', 'run': 'pip install igris-inertial-cli'},
+                                {'name': 'Run Tests', 'run': 'igris validate --config config.yml'}
                             ]
                         },
                         'deploy': {
@@ -111,7 +111,7 @@ class TestAdvancedDevOpsIntegration:
                             'runs-on': 'ubuntu-latest',
                             'if': "github.ref == 'refs/heads/main'",
                             'steps': [
-                                {'name': 'Deploy', 'run': 'schlep deploy --environment production'}
+                                {'name': 'Deploy', 'run': 'igris deploy --environment production'}
                             ]
                         }
                     }
@@ -121,21 +121,21 @@ class TestAdvancedDevOpsIntegration:
                       region = var.aws_region
                     }
                     
-                    resource "aws_ecs_cluster" "schlep_cluster" {
-                      name = "schlep-engine-cluster"
+                    resource "aws_ecs_cluster" "igris_cluster" {
+                      name = "igris-inertial-cluster"
                     }
                     
-                    resource "aws_ecs_service" "schlep_service" {
-                      name            = "schlep-engine-service"
-                      cluster         = aws_ecs_cluster.schlep_cluster.id
-                      task_definition = aws_ecs_task_definition.schlep_task.arn
+                    resource "aws_ecs_service" "igris_service" {
+                      name            = "igris-inertial-service"
+                      cluster         = aws_ecs_cluster.igris_cluster.id
+                      task_definition = aws_ecs_task_definition.igris_task.arn
                       desired_count   = 3
                     }
                 """,
                 'monitoring/prometheus.yml': {
                     'global': {'scrape_interval': '15s'},
                     'scrape_configs': [{
-                        'job_name': 'schlep-engine',
+                        'job_name': 'igris-inertial',
                         'static_configs': [{
                             'targets': ['localhost:8000']
                         }],
@@ -145,18 +145,18 @@ class TestAdvancedDevOpsIntegration:
                 },
                 'config.yml': {
                     'api_key': 'test-key',
-                    'base_url': 'https://api.schlep-engine.com',
+                    'base_url': 'https://api.igris-inertial.com',
                     'environments': {
                         'development': {
-                            'base_url': 'https://dev-api.schlep-engine.com',
+                            'base_url': 'https://dev-api.igris-inertial.com',
                             'debug': True
                         },
                         'staging': {
-                            'base_url': 'https://staging-api.schlep-engine.com',
+                            'base_url': 'https://staging-api.igris-inertial.com',
                             'parallel_jobs': 2
                         },
                         'production': {
-                            'base_url': 'https://api.schlep-engine.com',
+                            'base_url': 'https://api.igris-inertial.com',
                             'parallel_jobs': 8,
                             'timeout': 30
                         }
@@ -199,7 +199,7 @@ class TestAdvancedDevOpsIntegration:
         with patch('subprocess.run') as mock_run:
             mock_run.return_value = MagicMock(
                 returncode=0,
-                stdout="deployment.apps/schlep-engine created",
+                stdout="deployment.apps/igris-inertial created",
                 stderr=""
             )
             yield mock_run
@@ -215,7 +215,7 @@ class TestAdvancedDevOpsIntegration:
         assert "Docker Compose configuration is valid" in result.output
         
         # Test Docker Compose deployment
-        with patch.dict(os.environ, {'SCHLEP_API_KEY': 'test-key', 'DB_PASSWORD': 'test-password'}):
+        with patch.dict(os.environ, {'IGRIS_API_KEY': 'test-key', 'DB_PASSWORD': 'test-password'}):
             result = runner.invoke(cli, ['devops', 'deploy-compose', 'docker-compose.yml', '--env', 'production'])
             
             assert result.exit_code == 0
@@ -255,13 +255,13 @@ class TestAdvancedDevOpsIntegration:
         """Test CI/CD pipeline integration and automation."""
         os.chdir(temp_workspace)
         
-        with patch('schlep_cli.core.client.APIClient') as mock_client:
+        with patch('igris_cli.core.client.APIClient') as mock_client:
             mock_client_instance = Mock()
             mock_client.return_value = mock_client_instance
             mock_client_instance.create_pipeline.return_value = {
                 'pipeline_id': 'pipeline-123',
                 'status': 'created',
-                'webhook_url': 'https://api.schlep-engine.com/webhooks/pipeline-123'
+                'webhook_url': 'https://api.igris-inertial.com/webhooks/pipeline-123'
             }
             
             # Test CI/CD pipeline setup
@@ -327,12 +327,12 @@ class TestAdvancedDevOpsIntegration:
         """Test monitoring and observability configuration."""
         os.chdir(temp_workspace)
         
-        with patch('schlep_cli.core.client.APIClient') as mock_client:
+        with patch('igris_cli.core.client.APIClient') as mock_client:
             mock_client_instance = Mock()
             mock_client.return_value = mock_client_instance
             mock_client_instance.setup_monitoring.return_value = {
                 'monitoring_id': 'monitor-456',
-                'dashboard_url': 'https://dashboard.schlep-engine.com/monitor-456',
+                'dashboard_url': 'https://dashboard.igris-inertial.com/monitor-456',
                 'status': 'configured'
             }
             
@@ -346,7 +346,7 @@ class TestAdvancedDevOpsIntegration:
             
             assert result.exit_code == 0
             assert "Monitoring configured" in result.output
-            assert "dashboard.schlep-engine.com" in result.output
+            assert "dashboard.igris-inertial.com" in result.output
             
             # Test metrics collection
             mock_client_instance.get_metrics.return_value = {
@@ -367,7 +367,7 @@ class TestAdvancedDevOpsIntegration:
         """Test environment-specific configuration and deployment."""
         os.chdir(temp_workspace)
         
-        with patch('schlep_cli.core.client.APIClient') as mock_client:
+        with patch('igris_cli.core.client.APIClient') as mock_client:
             mock_client_instance = Mock()
             mock_client.return_value = mock_client_instance
             
@@ -392,7 +392,7 @@ class TestAdvancedDevOpsIntegration:
                 'deployment_id': 'prod-deploy-456',
                 'environment': 'production',
                 'status': 'deployed',
-                'health_check_url': 'https://api.schlep-engine.com/health'
+                'health_check_url': 'https://api.igris-inertial.com/health'
             }
             
             result = runner.invoke(cli, [
@@ -409,7 +409,7 @@ class TestAdvancedDevOpsIntegration:
 
     def test_secrets_management_integration(self, runner, temp_workspace):
         """Test secrets management and secure configuration."""
-        with patch('schlep_cli.core.client.APIClient') as mock_client:
+        with patch('igris_cli.core.client.APIClient') as mock_client:
             mock_client_instance = Mock()
             mock_client.return_value = mock_client_instance
             
@@ -446,7 +446,7 @@ class TestAdvancedDevOpsIntegration:
 
     def test_backup_and_disaster_recovery(self, runner, temp_workspace):
         """Test backup and disaster recovery procedures."""
-        with patch('schlep_cli.core.client.APIClient') as mock_client:
+        with patch('igris_cli.core.client.APIClient') as mock_client:
             mock_client_instance = Mock()
             mock_client.return_value = mock_client_instance
             
@@ -491,7 +491,7 @@ class TestAdvancedDevOpsIntegration:
 
     def test_load_testing_integration(self, runner, temp_workspace):
         """Test load testing and performance validation."""
-        with patch('schlep_cli.core.client.APIClient') as mock_client:
+        with patch('igris_cli.core.client.APIClient') as mock_client:
             mock_client_instance = Mock()
             mock_client.return_value = mock_client_instance
             
@@ -499,14 +499,14 @@ class TestAdvancedDevOpsIntegration:
             mock_client_instance.create_load_test.return_value = {
                 'test_id': 'load-test-301',
                 'status': 'running',
-                'target_url': 'https://api.schlep-engine.com',
+                'target_url': 'https://api.igris-inertial.com',
                 'concurrent_users': 100,
                 'duration': '5m'
             }
             
             result = runner.invoke(cli, [
                 'devops', 'load-test',
-                '--url', 'https://api.schlep-engine.com',
+                '--url', 'https://api.igris-inertial.com',
                 '--users', '100',
                 '--duration', '5m',
                 '--ramp-up', '30s'
@@ -538,7 +538,7 @@ class TestAdvancedDevOpsIntegration:
 
     def test_multi_region_deployment(self, runner, temp_workspace):
         """Test multi-region deployment and failover."""
-        with patch('schlep_cli.core.client.APIClient') as mock_client:
+        with patch('igris_cli.core.client.APIClient') as mock_client:
             mock_client_instance = Mock()
             mock_client.return_value = mock_client_instance
             
@@ -551,7 +551,7 @@ class TestAdvancedDevOpsIntegration:
                     'eu-west-1': {'status': 'deployed', 'health': 'healthy'}
                 },
                 'load_balancer': {
-                    'url': 'https://global.schlep-engine.com',
+                    'url': 'https://global.igris-inertial.com',
                     'status': 'active'
                 }
             }
@@ -592,7 +592,7 @@ class TestAdvancedDevOpsIntegration:
 
     def test_automated_scaling_configuration(self, runner, temp_workspace):
         """Test automated scaling and resource management."""
-        with patch('schlep_cli.core.client.APIClient') as mock_client:
+        with patch('igris_cli.core.client.APIClient') as mock_client:
             mock_client_instance = Mock()
             mock_client.return_value = mock_client_instance
             
@@ -678,7 +678,7 @@ class TestContinuousIntegrationScenarios:
     
     def test_webhook_triggered_pipeline(self, runner, github_webhook_payload):
         """Test webhook-triggered CI/CD pipeline."""
-        with patch('schlep_cli.core.client.APIClient') as mock_client:
+        with patch('igris_cli.core.client.APIClient') as mock_client:
             mock_client_instance = Mock()
             mock_client.return_value = mock_client_instance
             
@@ -705,7 +705,7 @@ class TestContinuousIntegrationScenarios:
     
     def test_parallel_pipeline_execution(self, runner):
         """Test parallel pipeline stage execution."""
-        with patch('schlep_cli.core.client.APIClient') as mock_client:
+        with patch('igris_cli.core.client.APIClient') as mock_client:
             mock_client_instance = Mock()
             mock_client.return_value = mock_client_instance
             
@@ -749,7 +749,7 @@ class TestContinuousIntegrationScenarios:
     
     def test_pipeline_failure_and_rollback(self, runner):
         """Test pipeline failure handling and automatic rollback."""
-        with patch('schlep_cli.core.client.APIClient') as mock_client:
+        with patch('igris_cli.core.client.APIClient') as mock_client:
             mock_client_instance = Mock()
             mock_client.return_value = mock_client_instance
             
@@ -795,7 +795,7 @@ class TestEnvironmentManagement:
     
     def test_environment_provisioning(self, runner):
         """Test automated environment provisioning."""
-        with patch('schlep_cli.core.client.APIClient') as mock_client:
+        with patch('igris_cli.core.client.APIClient') as mock_client:
             mock_client_instance = Mock()
             mock_client.return_value = mock_client_instance
             
@@ -811,8 +811,8 @@ class TestEnvironmentManagement:
                     'storage': '20 GB'
                 },
                 'endpoints': {
-                    'api': 'https://feature-123.staging.schlep-engine.com',
-                    'admin': 'https://admin-feature-123.staging.schlep-engine.com'
+                    'api': 'https://feature-123.staging.igris-inertial.com',
+                    'admin': 'https://admin-feature-123.staging.igris-inertial.com'
                 },
                 'status': 'provisioning'
             }
@@ -828,11 +828,11 @@ class TestEnvironmentManagement:
             assert result.exit_code == 0
             assert "Environment created: env-901" in result.output
             assert "feature-branch-123" in result.output
-            assert "https://feature-123.staging.schlep-engine.com" in result.output
+            assert "https://feature-123.staging.igris-inertial.com" in result.output
     
     def test_environment_cleanup_and_cost_optimization(self, runner):
         """Test automatic environment cleanup and cost optimization."""
-        with patch('schlep_cli.core.client.APIClient') as mock_client:
+        with patch('igris_cli.core.client.APIClient') as mock_client:
             mock_client_instance = Mock()
             mock_client.return_value = mock_client_instance
             

@@ -1,4 +1,4 @@
-# Development dependencies for Schlep-engine CLI
+# Development dependencies for Igris-engine CLI
 
 # Include core requirements
 -r requirements.txt
@@ -22,4 +22,4 @@ twine>=4.0.0
 build>=0.10.0
 
 # Optional SDK integration
-schlep-engine>=1.0.0
+igris-inertial>=1.0.0

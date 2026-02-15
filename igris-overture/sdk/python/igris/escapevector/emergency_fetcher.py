@@ -35,7 +35,7 @@ class EmergencyFetcher:
         ...     print(f"New policy version {policy.version}")
         >>>
         >>> fetcher = EmergencyFetcher(
-        ...     endpoint="https://emergency.schlep.ai/v1/emergency/policy",
+        ...     endpoint="https://emergency.igris.ai/v1/emergency/policy",
         ...     check_interval=30.0,
         ...     on_policy_update=on_policy
         ... )

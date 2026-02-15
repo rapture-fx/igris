@@ -3,7 +3,7 @@
 Comprehensive Load Testing Execution Script
 ==========================================
 
-This script orchestrates the complete load testing suite for Schlep-engine,
+This script orchestrates the complete load testing suite for Igris-engine,
 executing all test categories and generating comprehensive reports.
 
 Features:
@@ -42,8 +42,8 @@ Usage:
     python tools/scripts/run_comprehensive_load_tests.py \\
         --users 500 \\
         --duration 60 \\
-        --backend-url http://prod-api.schlep-engine.com \\
-        --report-email team@schlep-engine.com
+        --backend-url http://prod-api.igris-inertial.com \\
+        --report-email team@igris-inertial.com
 """
 
 import asyncio
@@ -94,7 +94,7 @@ class LoadTestConfiguration:
     frontend_docs_url: str = "http://localhost:3001"
     
     # Database and infrastructure
-    database_url: str = "postgresql://localhost:5432/schlep_test"
+    database_url: str = "postgresql://localhost:5432/igris_test"
     redis_url: str = "redis://localhost:6379/0"
     
     # Test configuration
@@ -766,7 +766,7 @@ def parse_arguments():
                         help='Frontend docs page URL')
     
     # Database and infrastructure
-    parser.add_argument('--database-url', default='postgresql://localhost:5432/schlep_test',
+    parser.add_argument('--database-url', default='postgresql://localhost:5432/igris_test',
                         help='Database connection URL')
     parser.add_argument('--redis-url', default='redis://localhost:6379/0',
                         help='Redis connection URL')
@@ -853,7 +853,7 @@ def create_configuration_from_args(args) -> LoadTestConfiguration:
 async def main():
     """Main execution function"""
     
-    print("🚀 Schlep-engine Comprehensive Load Testing Suite")
+    print("🚀 Igris-engine Comprehensive Load Testing Suite")
     print("=" * 60)
     
     # Parse arguments and create configuration
@@ -918,7 +918,7 @@ async def main():
 if __name__ == "__main__":
     # Ensure we're in the correct directory
     script_dir = Path(__file__).parent.parent.parent
-    if script_dir.name == 'schlep-engine':
+    if script_dir.name == 'igris-inertial':
         import os
         os.chdir(script_dir)
     

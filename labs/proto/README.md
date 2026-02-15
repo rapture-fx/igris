@@ -4,7 +4,7 @@
 **Last Updated:** 2025-10-09
 **Status:** ✅ Production Ready
 
-This directory contains the **single source of truth** for all gRPC proto definitions in Schlep-Engine.
+This directory contains the **single source of truth** for all gRPC proto definitions in Igris Inertial.
 
 ## Quick Start
 
@@ -304,5 +304,5 @@ cd proto && ./generate.sh
 
 ---
 
-**Maintained by:** Schlep-Engine Team
+**Maintained by:** Igris Inertial Team
 **Issues:** Report to #engineering-runtime channel

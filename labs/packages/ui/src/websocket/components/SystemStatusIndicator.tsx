@@ -1,7 +1,7 @@
 import React, { useMemo } from 'react'
 import { Server, Cpu, HardDrive, Zap, Thermometer, Activity, AlertTriangle, CheckCircle } from 'lucide-react'
 import { LineChart, Line, XAxis, YAxis, ResponsiveContainer, Tooltip } from 'recharts'
-import { SystemStatus } from '@schlep-engine/types'
+import { SystemStatus } from '@igris-inertial/types'
 import { useSystemStatus } from '../hooks'
 import { cn } from '../../styles/utils'
 

@@ -1,7 +1,7 @@
 using System.Text.Json.Serialization;
 using System.Web;
 
-namespace SchlepEngine.Types;
+namespace Igris.Types;
 
 /// <summary>
 /// Parameters for list operations with pagination and filtering.

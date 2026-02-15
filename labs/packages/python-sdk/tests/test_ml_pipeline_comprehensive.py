@@ -1,5 +1,5 @@
 """
-Comprehensive ML pipeline tests for Schlep-engine Python SDK
+Comprehensive ML pipeline tests for Igris-engine Python SDK
 
 This test suite covers machine learning pipeline operations, model training,
 inference, monitoring, and advanced ML workflows.
@@ -15,8 +15,8 @@ from pathlib import Path
 import tempfile
 import pickle
 
-from schlep_engine.api.ml_pipeline import MLPipelineAPI
-from schlep_engine.models.ml import (
+from igris.api.ml_pipeline import MLPipelineAPI
+from igris.models.ml import (
     MLJob,
     MLJobStatus,
     ModelConfig,
@@ -30,8 +30,8 @@ from schlep_engine.models.ml import (
     AutoMLConfig,
     FeatureImportance
 )
-from schlep_engine.models.common import APIResponse, PaginationParams
-from schlep_engine.exceptions.base import (
+from igris.models.common import APIResponse, PaginationParams
+from igris.exceptions.base import (
     APIError,
     MLError,
     ModelError,
@@ -47,7 +47,7 @@ class TestMLPipelineAPI:
     @pytest.fixture
     def api_client(self):
         """Create a mock ML Pipeline API client."""
-        from schlep_engine.utils.http_client import HTTPClient
+        from igris.utils.http_client import HTTPClient
         http_client = AsyncMock(spec=HTTPClient)
         return MLPipelineAPI(http_client)
 
@@ -669,7 +669,7 @@ class TestMLPipelineEdgeCases:
     @pytest.fixture
     def api_client(self):
         """Create mock ML Pipeline API client."""
-        from schlep_engine.utils.http_client import HTTPClient
+        from igris.utils.http_client import HTTPClient
         http_client = AsyncMock(spec=HTTPClient)
         return MLPipelineAPI(http_client)
 
@@ -843,7 +843,7 @@ class TestMLPipelinePerformance:
     @pytest.fixture
     def api_client(self):
         """Create mock ML Pipeline API client."""
-        from schlep_engine.utils.http_client import HTTPClient
+        from igris.utils.http_client import HTTPClient
         http_client = AsyncMock(spec=HTTPClient)
         return MLPipelineAPI(http_client)
 

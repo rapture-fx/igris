@@ -12,7 +12,7 @@ import {
   NotificationData,
   ProgressTrackingConfig,
   WebSocketConnectionState
-} from '@schlep-engine/types'
+} from '@igris-inertial/types'
 import { useWebSocketContext } from './WebSocketProvider'
 
 // Core WebSocket hook

@@ -45,7 +45,7 @@ igris_overture/
 **Target: Pure HTTP client with validation only**
 
 ```python
-class SchlepEngineClient:
+class IgrisClient:
     """Thin HTTP client - business logic in backend only"""
     
     def __init__(self, base_url: str, api_key: str = None, auth_manager = None):
@@ -117,7 +117,7 @@ class SchlepEngineClient:
 ### Phase 3: Migration Layer for Backward Compatibility
 
 ```python
-class LegacySchlepEngineClient(SchlepEngineClient):
+class LegacyIgrisClient(IgrisClient):
     """Maintains backward compatibility for existing code"""
     
     async def process_dataframe(self, df, operations: List[str]) -> dict:
@@ -165,7 +165,7 @@ class LegacySchlepEngineClient(SchlepEngineClient):
 ### Week 3: Migration Layer
 
 **Tasks:**
-- [ ] Implement `LegacySchlepEngineClient` wrapper
+- [ ] Implement `LegacyIgrisClient` wrapper
 - [ ] Add deprecation warnings for old methods
 - [ ] Create automated migration script
 - [ ] Update documentation and examples

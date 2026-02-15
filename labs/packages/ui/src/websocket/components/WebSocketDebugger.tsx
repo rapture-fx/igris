@@ -1,7 +1,7 @@
 import React, { useState, useEffect, useRef } from 'react'
 import { Bug, Send, Trash2, Copy, Download, Eye, EyeOff } from 'lucide-react'
 import * as Dialog from '@radix-ui/react-dialog'
-import { WebSocketMessage, WebSocketEventType } from '@schlep-engine/types'
+import { WebSocketMessage, WebSocketEventType } from '@igris-inertial/types'
 import { useWebSocket } from '../hooks'
 import { cn } from '../../styles/utils'
 

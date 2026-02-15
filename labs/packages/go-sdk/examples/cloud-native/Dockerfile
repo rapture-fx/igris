@@ -48,10 +48,10 @@ HEALTHCHECK --interval=30s --timeout=10s --start-period=40s --retries=3 \
 ENTRYPOINT ["/app/main"]
 
 # Metadata labels
-LABEL maintainer="Schlep-engine Team" \
+LABEL maintainer="Igris Inertial Team" \
       version="1.0.0" \
-      description="Cloud-native microservice using Schlep-engine Go SDK" \
+      description="Cloud-native microservice using Igris Inertial Go SDK" \
       org.opencontainers.image.source="https://github.com/igris-inertial/go-sdk" \
       org.opencontainers.image.version="1.0.0" \
-      org.opencontainers.image.title="Schlep Cloud Native Service" \
-      org.opencontainers.image.description="A cloud-native microservice demonstrating Schlep-engine Go SDK usage"
+      org.opencontainers.image.title="Igris Cloud Native Service" \
+      org.opencontainers.image.description="A cloud-native microservice demonstrating Igris Inertial Go SDK usage"

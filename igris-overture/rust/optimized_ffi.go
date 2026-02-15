@@ -1,7 +1,7 @@
 package rust
 
 /*
-#cgo LDFLAGS: -L${SRCDIR}/../../rust-core/rust_kernel/target/release -lschlep_kernel
+#cgo LDFLAGS: -L${SRCDIR}/../../rust-core/rust_kernel/target/release -ligris_kernel
 #include <stdlib.h>
 #include <stdint.h>
 

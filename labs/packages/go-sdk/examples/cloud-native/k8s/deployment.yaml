@@ -1,10 +1,10 @@
 apiVersion: apps/v1
 kind: Deployment
 metadata:
-  name: schlep-cloud-native-service
+  name: igris-cloud-native-service
   namespace: default
   labels:
-    app: schlep-cloud-native-service
+    app: igris-cloud-native-service
     version: v1.0.0
     component: data-processing
     tier: backend
@@ -17,11 +17,11 @@ spec:
       maxUnavailable: 0
   selector:
     matchLabels:
-      app: schlep-cloud-native-service
+      app: igris-cloud-native-service
   template:
     metadata:
       labels:
-        app: schlep-cloud-native-service
+        app: igris-cloud-native-service
         version: v1.0.0
       annotations:
         prometheus.io/scrape: "true"
@@ -36,7 +36,7 @@ spec:
       
       containers:
       - name: app
-        image: schlep-cloud-native-service:latest
+        image: igris-cloud-native-service:latest
         imagePullPolicy: IfNotPresent
         
         ports:
@@ -47,7 +47,7 @@ spec:
         # Environment variables
         env:
         - name: SERVICE_NAME
-          value: "schlep-cloud-native-service"
+          value: "igris-cloud-native-service"
         - name: SERVICE_VERSION
           value: "1.0.0"
         - name: PORT
@@ -63,57 +63,57 @@ spec:
             fieldRef:
               fieldPath: metadata.name
         
-        # Schlep-engine API configuration
-        - name: SCHLEP_API_KEY
+        # Igris-engine API configuration
+        - name: IGRIS_API_KEY
           valueFrom:
             secretKeyRef:
               name: igris-overture-secret
               key: api-key
-        - name: SCHLEP_BASE_URL
+        - name: IGRIS_BASE_URL
           value: "https://api.igris-inertial.com"
-        - name: SCHLEP_TIMEOUT_SECONDS
+        - name: IGRIS_TIMEOUT_SECONDS
           value: "60"
-        - name: SCHLEP_MAX_RETRIES
+        - name: IGRIS_MAX_RETRIES
           value: "5"
-        - name: SCHLEP_RETRY_WAIT_SECONDS
+        - name: IGRIS_RETRY_WAIT_SECONDS
           value: "2"
-        - name: SCHLEP_RETRY_MAX_WAIT_SECONDS
+        - name: IGRIS_RETRY_MAX_WAIT_SECONDS
           value: "30"
-        - name: SCHLEP_RETRY_BACKOFF_FACTOR
+        - name: IGRIS_RETRY_BACKOFF_FACTOR
           value: "2.0"
         
         # Circuit breaker configuration
-        - name: SCHLEP_CIRCUIT_BREAKER_ENABLED
+        - name: IGRIS_CIRCUIT_BREAKER_ENABLED
           value: "true"
-        - name: SCHLEP_CB_FAILURE_THRESHOLD
+        - name: IGRIS_CB_FAILURE_THRESHOLD
           value: "5"
-        - name: SCHLEP_CB_TIMEOUT_SECONDS
+        - name: IGRIS_CB_TIMEOUT_SECONDS
           value: "60"
-        - name: SCHLEP_CB_MAX_REQUESTS
+        - name: IGRIS_CB_MAX_REQUESTS
           value: "3"
         
         # Observability configuration
-        - name: SCHLEP_ENABLE_METRICS
+        - name: IGRIS_ENABLE_METRICS
           value: "true"
-        - name: SCHLEP_ENABLE_TRACING
+        - name: IGRIS_ENABLE_TRACING
           value: "true"
-        - name: SCHLEP_ENABLE_LOGGING
+        - name: IGRIS_ENABLE_LOGGING
           value: "true"
         
         # HTTP client optimization
-        - name: SCHLEP_MAX_IDLE_CONNS
+        - name: IGRIS_MAX_IDLE_CONNS
           value: "100"
-        - name: SCHLEP_MAX_IDLE_CONNS_PER_HOST
+        - name: IGRIS_MAX_IDLE_CONNS_PER_HOST
           value: "10"
-        - name: SCHLEP_IDLE_CONN_TIMEOUT_SECONDS
+        - name: IGRIS_IDLE_CONN_TIMEOUT_SECONDS
           value: "90"
         
         # Health check configuration
-        - name: SCHLEP_ENABLE_HEALTH_CHECKS
+        - name: IGRIS_ENABLE_HEALTH_CHECKS
           value: "true"
-        - name: SCHLEP_HEALTH_CHECK_INTERVAL_SECONDS
+        - name: IGRIS_HEALTH_CHECK_INTERVAL_SECONDS
           value: "30"
-        - name: SCHLEP_HEALTH_CHECK_TIMEOUT_SECONDS
+        - name: IGRIS_HEALTH_CHECK_TIMEOUT_SECONDS
           value: "10"
         - name: HEALTH_CHECK_MAX_CPU
           value: "85.0"
@@ -195,7 +195,7 @@ spec:
         emptyDir: {}
       
       # Service account
-      serviceAccountName: schlep-cloud-native-service
+      serviceAccountName: igris-cloud-native-service
       
       # Node selection and affinity
       nodeSelector:
@@ -211,7 +211,7 @@ spec:
                 - key: app
                   operator: In
                   values:
-                  - schlep-cloud-native-service
+                  - igris-cloud-native-service
               topologyKey: kubernetes.io/hostname
       
       # Tolerations
@@ -235,10 +235,10 @@ spec:
 apiVersion: v1
 kind: Service
 metadata:
-  name: schlep-cloud-native-service
+  name: igris-cloud-native-service
   namespace: default
   labels:
-    app: schlep-cloud-native-service
+    app: igris-cloud-native-service
   annotations:
     prometheus.io/scrape: "true"
     prometheus.io/port: "8080"
@@ -251,16 +251,16 @@ spec:
     protocol: TCP
     name: http
   selector:
-    app: schlep-cloud-native-service
+    app: igris-cloud-native-service
 
 ---
 apiVersion: v1
 kind: ServiceAccount
 metadata:
-  name: schlep-cloud-native-service
+  name: igris-cloud-native-service
   namespace: default
   labels:
-    app: schlep-cloud-native-service
+    app: igris-cloud-native-service
 
 ---
 apiVersion: v1
@@ -269,7 +269,7 @@ metadata:
   name: igris-overture-secret
   namespace: default
   labels:
-    app: schlep-cloud-native-service
+    app: igris-cloud-native-service
 type: Opaque
 data:
   # Base64 encoded API key - replace with your actual API key
@@ -281,13 +281,13 @@ data:
 apiVersion: autoscaling/v2
 kind: HorizontalPodAutoscaler
 metadata:
-  name: schlep-cloud-native-service-hpa
+  name: igris-cloud-native-service-hpa
   namespace: default
 spec:
   scaleTargetRef:
     apiVersion: apps/v1
     kind: Deployment
-    name: schlep-cloud-native-service
+    name: igris-cloud-native-service
   minReplicas: 3
   maxReplicas: 10
   metrics:
@@ -322,12 +322,12 @@ spec:
 apiVersion: networking.k8s.io/v1
 kind: NetworkPolicy
 metadata:
-  name: schlep-cloud-native-service-netpol
+  name: igris-cloud-native-service-netpol
   namespace: default
 spec:
   podSelector:
     matchLabels:
-      app: schlep-cloud-native-service
+      app: igris-cloud-native-service
   policyTypes:
   - Ingress
   - Egress

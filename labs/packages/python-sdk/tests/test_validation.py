@@ -6,8 +6,8 @@ import pytest
 from pathlib import Path
 from tempfile import NamedTemporaryFile
 
-from schlep_engine.utils.validation import InputValidator, validate_file_for_api
-from schlep_engine.exceptions.base import ValidationError
+from igris.utils.validation import InputValidator, validate_file_for_api
+from igris.exceptions.base import ValidationError
 
 
 class TestInputValidator:

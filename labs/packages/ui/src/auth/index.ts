@@ -57,4 +57,4 @@ export type {
   MFAVerifyResponse,
   MFAStatus,
   UseOAuthReturn
-} from '@schlep-engine/types/auth'
+} from '@igris-inertial/types/auth'

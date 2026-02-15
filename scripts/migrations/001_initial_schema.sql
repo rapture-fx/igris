@@ -1,6 +1,6 @@
 -- Migration: 001_initial_schema
 -- Description: Initial database schema for Phase 13 persistence
--- Author: Schlep-engine Team
+-- Author: Igris-engine Team
 -- Date: 2025-10-20
 
 -- This migration creates all tables, indexes, views, functions, and triggers

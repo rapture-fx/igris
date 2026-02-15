@@ -1,9 +1,9 @@
 /**
- * Comprehensive data processing tests for Schlep-engine JavaScript SDK
+ * Comprehensive data processing tests for Igris-engine JavaScript SDK
  */
 
 import { describe, test, expect, beforeEach, afterEach, jest } from '@jest/globals';
-import { SchlepEngineClient } from '../src/client/schlep-engine';
+import { IgrisClient } from '../src/client/igris-inertial';
 import { DataProcessingAPI } from '../src/api/data-processing';
 import { APIError, ValidationError, TimeoutError } from '../src/utils/errors';
 import { 
@@ -20,11 +20,11 @@ import { mockResponse, mockApiError, createMockFile } from './setup';
 global.fetch = jest.fn();
 
 describe('DataProcessingAPI', () => {
-  let client: SchlepEngineClient;
+  let client: IgrisClient;
   let dataAPI: DataProcessingAPI;
 
   beforeEach(() => {
-    client = new SchlepEngineClient({
+    client = new IgrisClient({
       apiKey: 'test-api-key',
       baseUrl: 'https://api.test.com'
     });
@@ -646,10 +646,10 @@ describe('DataProcessingAPI', () => {
 });
 
 describe('Data Processing Integration', () => {
-  let client: SchlepEngineClient;
+  let client: IgrisClient;
 
   beforeEach(() => {
-    client = new SchlepEngineClient({
+    client = new IgrisClient({
       apiKey: 'test-api-key',
       baseUrl: 'https://api.test.com'
     });

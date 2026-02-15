@@ -425,7 +425,7 @@ export function EnhancedSidebar({ isCollapsed, onToggle }: SidebarProps) {
               <Sparkles className="w-6 h-6 text-white" />
             </div>
             <div>
-              <h2 className="text-lg font-bold text-gray-900">Schlep-engine</h2>
+              <h2 className="text-lg font-bold text-gray-900">Igris-engine</h2>
               <p className="text-xs text-gray-500">Data Intelligence Platform</p>
             </div>
           </div>

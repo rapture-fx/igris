@@ -173,7 +173,7 @@ class ResponseFormatValidator:
 
 def main():
     import argparse
-    parser = argparse.ArgumentParser(description='Validate Schlep-engine API response formats')
+    parser = argparse.ArgumentParser(description='Validate Igris-engine API response formats')
     parser.add_argument('--url', default='http://localhost:8080', help='Base URL of the API')
     parser.add_argument('--iterations', type=int, default=100, help='Number of test iterations')
     args = parser.parse_args()

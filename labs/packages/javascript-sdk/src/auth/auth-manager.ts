@@ -1,5 +1,5 @@
 /**
- * Authentication manager for Schlep-engine JavaScript SDK
+ * Authentication manager for Igris-engine JavaScript SDK
  * Handles API keys, JWT tokens, user authentication, and token refresh
  */
 
@@ -18,7 +18,7 @@ import {
 
 import { APIResponse, AuthMethod } from '../types/common';
 import { HTTPClient } from '../utils/http-client';
-import { SchlepEngineError, AuthenticationError, ConfigurationError } from '../utils/errors';
+import { IgrisError, AuthenticationError, ConfigurationError } from '../utils/errors';
 import { createTokenStorage } from './token-storage';
 import { TokenStorage } from '../types/common';
 
@@ -50,7 +50,7 @@ export class AuthManager extends EventEmitter {
     super();
     
     this.apiKey = config.apiKey;
-    this.baseUrl = config.baseUrl || 'https://api.schlep-engine.com';
+    this.baseUrl = config.baseUrl || 'https://api.igris-inertial.com';
     this.tokenStorage = config.tokenStorage || createTokenStorage();
     this.autoRefresh = config.autoRefresh ?? true;
     this.refreshBuffer = config.refreshBuffer ?? 5; // 5 minutes default

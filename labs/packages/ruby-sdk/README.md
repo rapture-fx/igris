@@ -1,6 +1,6 @@
-# Schlep-engine Ruby SDK
+# Igris-engine Ruby SDK
 
-Official Ruby SDK for the Schlep-engine API platform.
+Official Ruby SDK for the Igris-engine API platform.
 
 [![Gem Version](https://badge.fury.io/rb/igris_overture.svg)](https://badge.fury.io/rb/igris_overture)
 [![Documentation](https://img.shields.io/badge/docs-online-blue.svg)](https://docs.igris-inertial.com/sdk/ruby)
@@ -42,10 +42,10 @@ $ gem install igris_overture
 require 'igris_overture'
 
 # Create client with API key
-client = Schlep::Engine::Client.new('your-api-key')
+client = Igris::Engine::Client.new('your-api-key')
 
-# Or from environment variable SCHLEP_API_KEY
-client = Schlep::Engine::Client.from_env
+# Or from environment variable IGRIS_API_KEY
+client = Igris::Engine::Client.from_env
 
 # Upload data
 upload_result = client.upload('Hello, world!')
@@ -71,13 +71,13 @@ end
 
 ```ruby
 # With API key
-client = Schlep::Engine::Client.new('your-api-key')
+client = Igris::Engine::Client.new('your-api-key')
 
 # From environment variable
-client = Schlep::Engine::Client.from_env
+client = Igris::Engine::Client.from_env
 
 # With custom base URL
-client = Schlep::Engine::Client.new('your-api-key', base_url: 'https://custom.api.com/v1')
+client = Igris::Engine::Client.new('your-api-key', base_url: 'https://custom.api.com/v1')
 ```
 
 ### Upload Data
@@ -149,7 +149,7 @@ The SDK provides comprehensive error handling:
 begin
   result = client.upload('data')
   puts "Success: #{result.job_id}"
-rescue Schlep::Engine::ApiError => e
+rescue Igris::Engine::ApiError => e
   puts "API error #{e.status_code}: #{e.message}"
 
   # Handle specific error codes
@@ -161,9 +161,9 @@ rescue Schlep::Engine::ApiError => e
   else
     puts 'Unexpected error'
   end
-rescue Schlep::Engine::ConfigurationError => e
+rescue Igris::Engine::ConfigurationError => e
   puts "Configuration error: #{e.message}"
-rescue Schlep::Engine::NetworkError => e
+rescue Igris::Engine::NetworkError => e
   puts "Network error: #{e.message}"
 end
 ```
@@ -208,7 +208,7 @@ status.updated_at   # => "2024-01-01T01:00:00Z"
 
 ## Environment Variables
 
-- `SCHLEP_API_KEY`: Your Schlep-engine API key
+- `IGRIS_API_KEY`: Your Igris-engine API key
 
 ## Development
 
@@ -260,16 +260,16 @@ COVERAGE=true bundle exec rspec
 
 # config/initializers/igris_overture.rb
 Rails.application.config.after_initialize do
-  $schlep_client = Schlep::Engine::Client.from_env
+  $igris_client = Igris::Engine::Client.from_env
 end
 
 # In your controller
 class DataController < ApplicationController
   def upload
     begin
-      result = $schlep_client.upload(params[:data])
+      result = $igris_client.upload(params[:data])
       render json: { job_id: result.job_id, status: result.status }
-    rescue Schlep::Engine::ApiError => e
+    rescue Igris::Engine::ApiError => e
       render json: { error: e.message }, status: e.status_code
     end
   end
@@ -282,9 +282,9 @@ class DataController < ApplicationController
         parameters: params[:parameters] || {}
       }
 
-      result = $schlep_client.train(config)
+      result = $igris_client.train(config)
       render json: { job_id: result.job_id, model_id: result.model_id }
-    rescue Schlep::Engine::ApiError => e
+    rescue Igris::Engine::ApiError => e
       render json: { error: e.message }, status: e.status_code
     end
   end
@@ -298,7 +298,7 @@ class TrainingJob < ApplicationJob
   queue_as :default
 
   def perform(dataset_id, model_config)
-    client = Schlep::Engine::Client.from_env
+    client = Igris::Engine::Client.from_env
 
     begin
       result = client.train(model_config.merge(dataset_id: dataset_id))
@@ -321,7 +321,7 @@ class TrainingJob < ApplicationJob
           sleep 30
         end
       end
-    rescue Schlep::Engine::ApiError => e
+    rescue Igris::Engine::ApiError => e
       handle_training_error(e)
     end
   end

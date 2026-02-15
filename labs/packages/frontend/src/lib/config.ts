@@ -144,11 +144,11 @@ export const config: AppConfig = {
   },
 
   app: {
-    name: getEnvVar('NEXT_PUBLIC_APP_NAME', 'Schlep Engine'),
+    name: getEnvVar('NEXT_PUBLIC_APP_NAME', 'Igris Inertial'),
     version: getEnvVar('NEXT_PUBLIC_APP_VERSION', '0.1.0'),
     url: getEnvVar('NEXT_PUBLIC_APP_URL', 'http://localhost:3000'),
-    supportEmail: getEnvVar('NEXT_PUBLIC_SUPPORT_EMAIL', 'support@schlep-engine.com'),
-    docsUrl: getEnvVar('NEXT_PUBLIC_DOCS_URL', 'https://docs.schlep-engine.com'),
+    supportEmail: getEnvVar('NEXT_PUBLIC_SUPPORT_EMAIL', 'support@igris-inertial.com'),
+    docsUrl: getEnvVar('NEXT_PUBLIC_DOCS_URL', 'https://docs.igris-inertial.com'),
   },
 
   auth: {

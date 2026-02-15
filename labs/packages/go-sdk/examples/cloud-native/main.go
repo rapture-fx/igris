@@ -23,7 +23,7 @@ import (
 
 // CloudNativeService demonstrates advanced cloud-native patterns
 type CloudNativeService struct {
-	schlepClient *client.Client
+	igrisClient *client.Client
 	server       *http.Server
 	tracer       trace.Tracer
 }
@@ -33,14 +33,14 @@ func NewCloudNativeService() (*CloudNativeService, error) {
 	// Load configuration with cloud-native defaults
 	cfg := loadCloudNativeConfig()
 
-	// Create Schlep-engine client
-	schlepClient, err := client.NewClient(cfg)
+	// Create Igris-engine client
+	igrisClient, err := client.NewClient(cfg)
 	if err != nil {
-		return nil, fmt.Errorf("failed to create Schlep-engine client: %w", err)
+		return nil, fmt.Errorf("failed to create Igris-engine client: %w", err)
 	}
 
 	// Create OpenTelemetry tracer for distributed tracing
-	tracer := otel.Tracer("schlep-cloud-native-service")
+	tracer := otel.Tracer("igris-cloud-native-service")
 
 	// Create HTTP server with cloud-native configuration
 	mux := http.NewServeMux()
@@ -53,7 +53,7 @@ func NewCloudNativeService() (*CloudNativeService, error) {
 	}
 
 	service := &CloudNativeService{
-		schlepClient: schlepClient,
+		igrisClient: igrisClient,
 		server:       server,
 		tracer:       tracer,
 	}
@@ -64,7 +64,7 @@ func NewCloudNativeService() (*CloudNativeService, error) {
 	// Initialize WebSocket streaming if enabled
 	if getEnvAsBool("ENABLE_STREAMING", true) {
 		if err := service.initializeStreaming(); err != nil {
-			schlepClient.GetLogger().WithError(err).Warn("Failed to initialize streaming, continuing without it")
+			igrisClient.GetLogger().WithError(err).Warn("Failed to initialize streaming, continuing without it")
 		}
 	}
 
@@ -75,54 +75,54 @@ func NewCloudNativeService() (*CloudNativeService, error) {
 func loadCloudNativeConfig() *config.Config {
 	return &config.Config{
 		// Authentication
-		APIKey: getRequiredEnv("SCHLEP_API_KEY"),
+		APIKey: getRequiredEnv("IGRIS_API_KEY"),
 
 		// Connection settings
-		BaseURL: getEnvOrDefault("SCHLEP_BASE_URL", "https://api.igris-inertial.com"),
-		Timeout: time.Duration(getEnvAsInt("SCHLEP_TIMEOUT_SECONDS", 60)) * time.Second,
+		BaseURL: getEnvOrDefault("IGRIS_BASE_URL", "https://api.igris-inertial.com"),
+		Timeout: time.Duration(getEnvAsInt("IGRIS_TIMEOUT_SECONDS", 60)) * time.Second,
 
 		// Retry configuration (important for cloud environments)
-		MaxRetries:         getEnvAsInt("SCHLEP_MAX_RETRIES", 5),
-		RetryWaitTime:      time.Duration(getEnvAsInt("SCHLEP_RETRY_WAIT_SECONDS", 2)) * time.Second,
-		RetryMaxWaitTime:   time.Duration(getEnvAsInt("SCHLEP_RETRY_MAX_WAIT_SECONDS", 30)) * time.Second,
-		RetryBackoffFactor: getEnvAsFloat("SCHLEP_RETRY_BACKOFF_FACTOR", 2.0),
+		MaxRetries:         getEnvAsInt("IGRIS_MAX_RETRIES", 5),
+		RetryWaitTime:      time.Duration(getEnvAsInt("IGRIS_RETRY_WAIT_SECONDS", 2)) * time.Second,
+		RetryMaxWaitTime:   time.Duration(getEnvAsInt("IGRIS_RETRY_MAX_WAIT_SECONDS", 30)) * time.Second,
+		RetryBackoffFactor: getEnvAsFloat("IGRIS_RETRY_BACKOFF_FACTOR", 2.0),
 
 		// Circuit breaker (essential for cloud-native resilience)
-		CircuitBreakerEnabled:          getEnvAsBool("SCHLEP_CIRCUIT_BREAKER_ENABLED", true),
-		CircuitBreakerFailureThreshold: uint32(getEnvAsInt("SCHLEP_CB_FAILURE_THRESHOLD", 5)),
-		CircuitBreakerTimeout:          time.Duration(getEnvAsInt("SCHLEP_CB_TIMEOUT_SECONDS", 60)) * time.Second,
-		CircuitBreakerMaxRequests:      uint32(getEnvAsInt("SCHLEP_CB_MAX_REQUESTS", 3)),
+		CircuitBreakerEnabled:          getEnvAsBool("IGRIS_CIRCUIT_BREAKER_ENABLED", true),
+		CircuitBreakerFailureThreshold: uint32(getEnvAsInt("IGRIS_CB_FAILURE_THRESHOLD", 5)),
+		CircuitBreakerTimeout:          time.Duration(getEnvAsInt("IGRIS_CB_TIMEOUT_SECONDS", 60)) * time.Second,
+		CircuitBreakerMaxRequests:      uint32(getEnvAsInt("IGRIS_CB_MAX_REQUESTS", 3)),
 
 		// Observability (critical for cloud-native)
-		EnableMetrics:      getEnvAsBool("SCHLEP_ENABLE_METRICS", true),
-		EnableTracing:      getEnvAsBool("SCHLEP_ENABLE_TRACING", true),
-		EnableLogging:      getEnvAsBool("SCHLEP_ENABLE_LOGGING", true),
+		EnableMetrics:      getEnvAsBool("IGRIS_ENABLE_METRICS", true),
+		EnableTracing:      getEnvAsBool("IGRIS_ENABLE_TRACING", true),
+		EnableLogging:      getEnvAsBool("IGRIS_ENABLE_LOGGING", true),
 		LogLevel:          getEnvOrDefault("LOG_LEVEL", "info"),
-		ServiceName:       getEnvOrDefault("SERVICE_NAME", "schlep-cloud-native-service"),
+		ServiceName:       getEnvOrDefault("SERVICE_NAME", "igris-cloud-native-service"),
 		ServiceVersion:    getEnvOrDefault("SERVICE_VERSION", "1.0.0"),
 
 		// HTTP Client (optimized for cloud)
-		MaxIdleConns:        getEnvAsInt("SCHLEP_MAX_IDLE_CONNS", 100),
-		MaxIdleConnsPerHost: getEnvAsInt("SCHLEP_MAX_IDLE_CONNS_PER_HOST", 10),
-		IdleConnTimeout:     time.Duration(getEnvAsInt("SCHLEP_IDLE_CONN_TIMEOUT_SECONDS", 90)) * time.Second,
-		DisableKeepAlives:   getEnvAsBool("SCHLEP_DISABLE_KEEP_ALIVES", false),
+		MaxIdleConns:        getEnvAsInt("IGRIS_MAX_IDLE_CONNS", 100),
+		MaxIdleConnsPerHost: getEnvAsInt("IGRIS_MAX_IDLE_CONNS_PER_HOST", 10),
+		IdleConnTimeout:     time.Duration(getEnvAsInt("IGRIS_IDLE_CONN_TIMEOUT_SECONDS", 90)) * time.Second,
+		DisableKeepAlives:   getEnvAsBool("IGRIS_DISABLE_KEEP_ALIVES", false),
 
 		// Health checks
-		EnableHealthChecks:     getEnvAsBool("SCHLEP_ENABLE_HEALTH_CHECKS", true),
-		HealthCheckInterval:    time.Duration(getEnvAsInt("SCHLEP_HEALTH_CHECK_INTERVAL_SECONDS", 30)) * time.Second,
-		HealthCheckTimeout:     time.Duration(getEnvAsInt("SCHLEP_HEALTH_CHECK_TIMEOUT_SECONDS", 10)) * time.Second,
+		EnableHealthChecks:     getEnvAsBool("IGRIS_ENABLE_HEALTH_CHECKS", true),
+		HealthCheckInterval:    time.Duration(getEnvAsInt("IGRIS_HEALTH_CHECK_INTERVAL_SECONDS", 30)) * time.Second,
+		HealthCheckTimeout:     time.Duration(getEnvAsInt("IGRIS_HEALTH_CHECK_TIMEOUT_SECONDS", 10)) * time.Second,
 
 		// Rate limiting (client-side protection)
-		EnableRateLimit: getEnvAsBool("SCHLEP_ENABLE_RATE_LIMIT", false),
-		RateLimit:      getEnvAsInt("SCHLEP_RATE_LIMIT_RPS", 100),
-		RateBurst:      getEnvAsInt("SCHLEP_RATE_BURST", 200),
+		EnableRateLimit: getEnvAsBool("IGRIS_ENABLE_RATE_LIMIT", false),
+		RateLimit:      getEnvAsInt("IGRIS_RATE_LIMIT_RPS", 100),
+		RateBurst:      getEnvAsInt("IGRIS_RATE_BURST", 200),
 
 		// User Agent (for monitoring and support)
-		UserAgent: fmt.Sprintf("schlep-cloud-native-service/%s (kubernetes)", getEnvOrDefault("SERVICE_VERSION", "1.0.0")),
+		UserAgent: fmt.Sprintf("igris-cloud-native-service/%s (kubernetes)", getEnvOrDefault("SERVICE_VERSION", "1.0.0")),
 
 		// Development settings
 		Debug:                getEnvAsBool("DEBUG", false),
-		InsecureSkipVerify:   getEnvAsBool("SCHLEP_INSECURE_SKIP_VERIFY", false),
+		InsecureSkipVerify:   getEnvAsBool("IGRIS_INSECURE_SKIP_VERIFY", false),
 	}
 }
 
@@ -155,45 +155,45 @@ func (s *CloudNativeService) initializeStreaming() error {
 	ctx := context.Background()
 
 	// Connect to streaming with automatic reconnection
-	if err := s.schlepClient.Streaming.ConnectWithReconnect(ctx); err != nil {
+	if err := s.igrisClient.Streaming.ConnectWithReconnect(ctx); err != nil {
 		return fmt.Errorf("failed to connect to streaming: %w", err)
 	}
 
 	// Subscribe to relevant event channels
 	channels := []string{"data.processing", "jobs.status", "system.health"}
 	for _, channel := range channels {
-		if err := s.schlepClient.Streaming.Subscribe(ctx, channel); err != nil {
-			s.schlepClient.GetLogger().WithError(err).WithFields(map[string]interface{}{
+		if err := s.igrisClient.Streaming.Subscribe(ctx, channel); err != nil {
+			s.igrisClient.GetLogger().WithError(err).WithFields(map[string]interface{}{
 				"channel": channel,
 			}).Warn("Failed to subscribe to channel")
 		}
 	}
 
 	// Register event handlers
-	s.schlepClient.Streaming.On(models.EventTypeJobCreated, s.handleJobCreatedEvent)
-	s.schlepClient.Streaming.On(models.EventTypeJobCompleted, s.handleJobCompletedEvent)
-	s.schlepClient.Streaming.On(models.EventTypeJobFailed, s.handleJobFailedEvent)
-	s.schlepClient.Streaming.On(models.EventTypeSystemHealth, s.handleSystemHealthEvent)
+	s.igrisClient.Streaming.On(models.EventTypeJobCreated, s.handleJobCreatedEvent)
+	s.igrisClient.Streaming.On(models.EventTypeJobCompleted, s.handleJobCompletedEvent)
+	s.igrisClient.Streaming.On(models.EventTypeJobFailed, s.handleJobFailedEvent)
+	s.igrisClient.Streaming.On(models.EventTypeSystemHealth, s.handleSystemHealthEvent)
 
-	s.schlepClient.GetLogger().Info("Streaming initialized successfully")
+	s.igrisClient.GetLogger().Info("Streaming initialized successfully")
 	return nil
 }
 
 // addCloudNativeHealthChecks adds comprehensive health checks for cloud environments
 func (s *CloudNativeService) addCloudNativeHealthChecks() {
 	// Kubernetes readiness check - checks if service is ready to handle traffic
-	s.schlepClient.AddHealthCheck("kubernetes_readiness", func() error {
-		// Check if Schlep-engine API is reachable
+	s.igrisClient.AddHealthCheck("kubernetes_readiness", func() error {
+		// Check if Igris-engine API is reachable
 		ctx, cancel := context.WithTimeout(context.Background(), 5*time.Second)
 		defer cancel()
 
-		if err := s.schlepClient.Auth.TestConnection(ctx); err != nil {
+		if err := s.igrisClient.Auth.TestConnection(ctx); err != nil {
 			return fmt.Errorf("igris-inertial API not reachable: %w", err)
 		}
 
 		// Check if streaming is connected (if enabled)
 		if getEnvAsBool("ENABLE_STREAMING", true) {
-			if !s.schlepClient.Streaming.IsConnected() {
+			if !s.igrisClient.Streaming.IsConnected() {
 				return fmt.Errorf("streaming connection not available")
 			}
 		}
@@ -202,9 +202,9 @@ func (s *CloudNativeService) addCloudNativeHealthChecks() {
 	})
 
 	// Kubernetes liveness check - checks if service is alive
-	s.schlepClient.AddHealthCheck("kubernetes_liveness", func() error {
-		// Check if we can authenticate with Schlep-engine
-		if !s.schlepClient.IsAuthenticated() {
+	s.igrisClient.AddHealthCheck("kubernetes_liveness", func() error {
+		// Check if we can authenticate with Igris-engine
+		if !s.igrisClient.IsAuthenticated() {
 			return fmt.Errorf("not authenticated with igris-inertial")
 		}
 
@@ -212,7 +212,7 @@ func (s *CloudNativeService) addCloudNativeHealthChecks() {
 		ctx, cancel := context.WithTimeout(context.Background(), 5*time.Second)
 		defer cancel()
 
-		metrics, err := s.schlepClient.Monitor.GetMetrics(ctx)
+		metrics, err := s.igrisClient.Monitor.GetMetrics(ctx)
 		if err != nil {
 			return fmt.Errorf("failed to get system metrics: %w", err)
 		}
@@ -226,11 +226,11 @@ func (s *CloudNativeService) addCloudNativeHealthChecks() {
 	})
 
 	// Resource availability check
-	s.schlepClient.AddHealthCheck("resource_availability", func() error {
+	s.igrisClient.AddHealthCheck("resource_availability", func() error {
 		ctx, cancel := context.WithTimeout(context.Background(), 5*time.Second)
 		defer cancel()
 
-		metrics, err := s.schlepClient.Monitor.GetMetrics(ctx)
+		metrics, err := s.igrisClient.Monitor.GetMetrics(ctx)
 		if err != nil {
 			return fmt.Errorf("failed to get metrics: %w", err)
 		}
@@ -251,7 +251,7 @@ func (s *CloudNativeService) addCloudNativeHealthChecks() {
 	})
 
 	// Circuit breaker health check
-	s.schlepClient.AddHealthCheck("circuit_breaker", func() error {
+	s.igrisClient.AddHealthCheck("circuit_breaker", func() error {
 		// In a real implementation, you'd check the circuit breaker state
 		// For now, we'll just return healthy
 		return nil
@@ -261,7 +261,7 @@ func (s *CloudNativeService) addCloudNativeHealthChecks() {
 // Cloud-native health check handlers (Kubernetes probes)
 
 func (s *CloudNativeService) handleHealthCheck(w http.ResponseWriter, r *http.Request) {
-	s.schlepClient.HealthCheck(w, r)
+	s.igrisClient.HealthCheck(w, r)
 }
 
 func (s *CloudNativeService) handleLivenessProbe(w http.ResponseWriter, r *http.Request) {
@@ -286,7 +286,7 @@ func (s *CloudNativeService) handleReadinessProbe(w http.ResponseWriter, r *http
 	span.SetAttributes(attribute.String("probe.type", "readiness"))
 
 	// Check if service is ready to handle traffic
-	if !s.schlepClient.IsAuthenticated() {
+	if !s.igrisClient.IsAuthenticated() {
 		span.SetAttributes(attribute.Bool("ready", false))
 		w.Header().Set("Content-Type", "application/json")
 		w.WriteHeader(http.StatusServiceUnavailable)
@@ -302,7 +302,7 @@ func (s *CloudNativeService) handleReadinessProbe(w http.ResponseWriter, r *http
 	testCtx, cancel := context.WithTimeout(ctx, 3*time.Second)
 	defer cancel()
 
-	if err := s.schlepClient.Auth.TestConnection(testCtx); err != nil {
+	if err := s.igrisClient.Auth.TestConnection(testCtx); err != nil {
 		span.SetAttributes(attribute.Bool("ready", false))
 		w.Header().Set("Content-Type", "application/json")
 		w.WriteHeader(http.StatusServiceUnavailable)
@@ -331,7 +331,7 @@ func (s *CloudNativeService) handleStartupProbe(w http.ResponseWriter, r *http.R
 
 	// Check if service has completed startup
 	// For this example, we'll check if we can authenticate and get basic metrics
-	if !s.schlepClient.IsAuthenticated() {
+	if !s.igrisClient.IsAuthenticated() {
 		span.SetAttributes(attribute.Bool("started", false))
 		w.Header().Set("Content-Type", "application/json")
 		w.WriteHeader(http.StatusServiceUnavailable)
@@ -383,10 +383,10 @@ func (s *CloudNativeService) listDataInvestigations(w http.ResponseWriter, r *ht
 	}
 
 	// List investigations
-	investigations, err := s.schlepClient.Data.ListDataInvestigations(ctx, workspacePtr, nil)
+	investigations, err := s.igrisClient.Data.ListDataInvestigations(ctx, workspacePtr, nil)
 	if err != nil {
 		span.RecordError(err)
-		s.schlepClient.GetLogger().WithContext(ctx).WithError(err).Error("Failed to list data investigations")
+		s.igrisClient.GetLogger().WithContext(ctx).WithError(err).Error("Failed to list data investigations")
 		http.Error(w, fmt.Sprintf("Failed to list investigations: %v", err), http.StatusInternalServerError)
 		return
 	}
@@ -401,7 +401,7 @@ func (s *CloudNativeService) listDataInvestigations(w http.ResponseWriter, r *ht
 	}
 
 	if err := json.NewEncoder(w).Encode(response); err != nil {
-		s.schlepClient.GetLogger().WithContext(ctx).WithError(err).Error("Failed to encode response")
+		s.igrisClient.GetLogger().WithContext(ctx).WithError(err).Error("Failed to encode response")
 	}
 }
 
@@ -422,10 +422,10 @@ func (s *CloudNativeService) createDataInvestigation(w http.ResponseWriter, r *h
 	)
 
 	// Create investigation
-	investigation, err := s.schlepClient.Data.CreateDataInvestigation(ctx, &req)
+	investigation, err := s.igrisClient.Data.CreateDataInvestigation(ctx, &req)
 	if err != nil {
 		span.RecordError(err)
-		s.schlepClient.GetLogger().WithContext(ctx).WithError(err).Error("Failed to create data investigation")
+		s.igrisClient.GetLogger().WithContext(ctx).WithError(err).Error("Failed to create data investigation")
 		http.Error(w, fmt.Sprintf("Failed to create investigation: %v", err), http.StatusInternalServerError)
 		return
 	}
@@ -440,14 +440,14 @@ func (s *CloudNativeService) createDataInvestigation(w http.ResponseWriter, r *h
 	}
 
 	if err := json.NewEncoder(w).Encode(response); err != nil {
-		s.schlepClient.GetLogger().WithContext(ctx).WithError(err).Error("Failed to encode response")
+		s.igrisClient.GetLogger().WithContext(ctx).WithError(err).Error("Failed to encode response")
 	}
 }
 
 // WebSocket event handlers
 
 func (s *CloudNativeService) handleJobCreatedEvent(event *models.Event) error {
-	s.schlepClient.GetLogger().WithFields(map[string]interface{}{
+	s.igrisClient.GetLogger().WithFields(map[string]interface{}{
 		"event_type": event.Type,
 		"job_id":     event.JobID,
 		"source":     event.Source,
@@ -463,14 +463,14 @@ func (s *CloudNativeService) handleJobCreatedEvent(event *models.Event) error {
 }
 
 func (s *CloudNativeService) handleJobCompletedEvent(event *models.Event) error {
-	s.schlepClient.GetLogger().WithFields(map[string]interface{}{
+	s.igrisClient.GetLogger().WithFields(map[string]interface{}{
 		"event_type": event.Type,
 		"job_id":     event.JobID,
 		"source":     event.Source,
 	}).Info("Job completed event received")
 
 	// Record custom metrics
-	s.schlepClient.GetMetrics().RecordCustomMetric(
+	s.igrisClient.GetMetrics().RecordCustomMetric(
 		context.Background(),
 		"job_completed_events_total",
 		1,
@@ -483,14 +483,14 @@ func (s *CloudNativeService) handleJobCompletedEvent(event *models.Event) error 
 }
 
 func (s *CloudNativeService) handleJobFailedEvent(event *models.Event) error {
-	s.schlepClient.GetLogger().WithFields(map[string]interface{}{
+	s.igrisClient.GetLogger().WithFields(map[string]interface{}{
 		"event_type": event.Type,
 		"job_id":     event.JobID,
 		"source":     event.Source,
 	}).Warn("Job failed event received")
 
 	// Record custom metrics
-	s.schlepClient.GetMetrics().RecordCustomMetric(
+	s.igrisClient.GetMetrics().RecordCustomMetric(
 		context.Background(),
 		"job_failed_events_total",
 		1,
@@ -503,7 +503,7 @@ func (s *CloudNativeService) handleJobFailedEvent(event *models.Event) error {
 }
 
 func (s *CloudNativeService) handleSystemHealthEvent(event *models.Event) error {
-	s.schlepClient.GetLogger().WithFields(map[string]interface{}{
+	s.igrisClient.GetLogger().WithFields(map[string]interface{}{
 		"event_type": event.Type,
 		"source":     event.Source,
 	}).Debug("System health event received")
@@ -519,7 +519,7 @@ func (s *CloudNativeService) handleDebugConfig(w http.ResponseWriter, r *http.Re
 		return
 	}
 
-	config := s.schlepClient.GetConfig()
+	config := s.igrisClient.GetConfig()
 	
 	// Create a safe version of config without sensitive data
 	safeConfig := map[string]interface{}{
@@ -552,7 +552,7 @@ func (s *CloudNativeService) handleStreamingEvents(w http.ResponseWriter, r *htt
 	
 	response := map[string]interface{}{
 		"streaming_enabled": getEnvAsBool("ENABLE_STREAMING", true),
-		"connected": s.schlepClient.Streaming.IsConnected(),
+		"connected": s.igrisClient.Streaming.IsConnected(),
 	}
 	
 	json.NewEncoder(w).Encode(response)
@@ -577,11 +577,11 @@ func (s *CloudNativeService) handleDataInvestigationByID(w http.ResponseWriter, 
 // Service lifecycle methods
 
 func (s *CloudNativeService) Start() error {
-	logger := s.schlepClient.GetLogger()
+	logger := s.igrisClient.GetLogger()
 	
 	logger.WithFields(map[string]interface{}{
-		"service_name":    s.schlepClient.GetConfig().ServiceName,
-		"service_version": s.schlepClient.GetConfig().ServiceVersion,
+		"service_name":    s.igrisClient.GetConfig().ServiceName,
+		"service_version": s.igrisClient.GetConfig().ServiceVersion,
 		"addr":            s.server.Addr,
 		"pid":             os.Getpid(),
 		"kubernetes":      os.Getenv("KUBERNETES_SERVICE_HOST") != "",
@@ -599,7 +599,7 @@ func (s *CloudNativeService) Start() error {
 }
 
 func (s *CloudNativeService) Stop() error {
-	logger := s.schlepClient.GetLogger()
+	logger := s.igrisClient.GetLogger()
 	
 	logger.Info("Shutting down cloud-native service...")
 
@@ -613,9 +613,9 @@ func (s *CloudNativeService) Stop() error {
 		return err
 	}
 
-	// Close Schlep-engine client (includes streaming)
-	if err := s.schlepClient.Close(); err != nil {
-		logger.WithError(err).Error("Failed to close Schlep-engine client")
+	// Close Igris-engine client (includes streaming)
+	if err := s.igrisClient.Close(); err != nil {
+		logger.WithError(err).Error("Failed to close Igris-engine client")
 		return err
 	}
 
@@ -645,9 +645,9 @@ func main() {
 	signal.Notify(sigChan, os.Interrupt, syscall.SIGTERM)
 
 	// Print startup information
-	fmt.Printf("🚀 Schlep-engine Cloud-Native Service\n")
+	fmt.Printf("🚀 Igris-engine Cloud-Native Service\n")
 	fmt.Printf("   Service: %s v%s\n", 
-		getEnvOrDefault("SERVICE_NAME", "schlep-cloud-native-service"),
+		getEnvOrDefault("SERVICE_NAME", "igris-cloud-native-service"),
 		getEnvOrDefault("SERVICE_VERSION", "1.0.0"))
 	fmt.Printf("   Port: %s\n", getEnvOrDefault("PORT", "8080"))
 	fmt.Printf("   PID: %d\n", os.Getpid())
@@ -737,7 +737,7 @@ func getEnvAsBool(key string, defaultValue bool) bool {
 }
 
 func validateRequiredEnv() error {
-	required := []string{"SCHLEP_API_KEY"}
+	required := []string{"IGRIS_API_KEY"}
 	
 	for _, key := range required {
 		if os.Getenv(key) == "" {

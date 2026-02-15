@@ -51,11 +51,11 @@ conductor/
 ehthumbs.db
 Thumbs.db
 
-# Go compiled binaries (schlep-engine)
-schlep-api
-schlep-cli
-schlep-engine-api
-/cmd/*/schlep-*
+# Go compiled binaries (igris-inertial)
+igris-api
+igris-cli
+igris-inertial-api
+/cmd/*/igris-*
 *.exe
 *.exe~
 *.dll

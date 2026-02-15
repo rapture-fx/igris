@@ -1,4 +1,4 @@
-// Shared UI Components for Schlep-engine
+// Shared UI Components for Igris-engine
 export * from './components/button'
 export * from './components/dialog'
 export * from './components/input'

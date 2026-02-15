@@ -1,4 +1,4 @@
-# Prometheus AlertManager Rules for Schlep-Engine
+# Prometheus AlertManager Rules for Igris Inertial
 # Critical alerts for API stability and customer application protection
 
 groups:

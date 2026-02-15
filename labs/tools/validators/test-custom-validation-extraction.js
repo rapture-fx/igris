@@ -448,7 +448,7 @@ class CustomValidationValidator {
   }
 
   run() {
-    this.log(`${colors.magenta}✅ SCHLEP-ENGINE CUSTOM VALIDATION SECTION VALIDATION${colors.reset}`);
+    this.log(`${colors.magenta}✅ IGRIS-ENGINE CUSTOM VALIDATION SECTION VALIDATION${colors.reset}`);
     this.log(`${colors.cyan}Starting comprehensive validation of custom validation extraction...${colors.reset}\n`);
     
     // Run all validation tests

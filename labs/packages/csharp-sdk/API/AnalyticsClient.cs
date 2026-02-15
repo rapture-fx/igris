@@ -1,6 +1,6 @@
-using SchlepEngine.Types;
+using Igris.Types;
 
-namespace SchlepEngine.API;
+namespace Igris.API;
 
 /// <summary>
 /// Client for analytics operations.
@@ -11,7 +11,7 @@ namespace SchlepEngine.API;
 /// </remarks>
 /// <example>
 /// <code>
-/// var client = new SchlepClient("your-api-key");
+/// var client = new IgrisClient("your-api-key");
 /// var query = new { dataset = "sales", metrics = new[] { "revenue", "count" } };
 /// var result = await client.Analytics.QueryAsync(query);
 /// Console.WriteLine($"Results: {result.Data.Count} rows");
@@ -19,13 +19,13 @@ namespace SchlepEngine.API;
 /// </example>
 public class AnalyticsClient
 {
-    private readonly SchlepClient _client;
+    private readonly IgrisClient _client;
 
     /// <summary>
     /// Initializes a new instance of the AnalyticsClient class.
     /// </summary>
-    /// <param name="client">The parent SchlepClient instance.</param>
-    internal AnalyticsClient(SchlepClient client)
+    /// <param name="client">The parent IgrisClient instance.</param>
+    internal AnalyticsClient(IgrisClient client)
     {
         _client = client;
     }

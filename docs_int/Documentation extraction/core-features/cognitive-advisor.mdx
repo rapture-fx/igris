@@ -2,7 +2,7 @@
 
 ## Overview
 
-**Cognitive Advisor** is Schlep Engine's AI-native operational autonomy system that generates explainable policy recommendations by analyzing provider performance, telemetry, and historical patterns. It operates in shadow-only mode, producing proposals for human review rather than making autonomous changes.
+**Cognitive Advisor** is Igris Inertial's AI-native operational autonomy system that generates explainable policy recommendations by analyzing provider performance, telemetry, and historical patterns. It operates in shadow-only mode, producing proposals for human review rather than making autonomous changes.
 
 The implementation is located in `/internal/cognitive/` and is fully operational in production environments.
 
@@ -82,7 +82,7 @@ Every proposal includes:
 The Cognitive Advisor runs as a background process analyzing provider performance:
 
 ```go
-import "github.com/schlep-engine/internal/cognitive"
+import "github.com/igris-inertial/internal/cognitive"
 
 // Initialize advisor
 advisor := cognitive.NewAdvisor(db)
@@ -602,7 +602,7 @@ Thompson Sampling makes real-time routing decisions. Cognitive Advisor generates
 
 For questions about Cognitive Advisor:
 - Documentation: /docs/cognitive-advisor
-- Email: support@schlep-engine.com
+- Email: support@igris-inertial.com
 - GitHub: Issues tagged `cognitive-advisor`
 - Discord: #cognitive-advisor channel
 

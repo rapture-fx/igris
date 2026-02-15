@@ -1,11 +1,11 @@
 #!/bin/bash
 
-# Schlep-engine Vercel Deployment Script
+# Igris-engine Vercel Deployment Script
 # This script deploys the frontend and admin applications to Vercel
 
 set -e
 
-echo "Starting Vercel deployment for Schlep-engine..."
+echo "Starting Vercel deployment for Igris-engine..."
 
 # Check if Vercel CLI is installed
 if ! command -v vercel &> /dev/null; then

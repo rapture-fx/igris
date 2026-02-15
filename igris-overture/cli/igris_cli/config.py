@@ -1,4 +1,4 @@
-"""Configuration management for Schlep CLI"""
+"""Configuration management for Igris CLI"""
 
 import json
 import os
@@ -7,9 +7,9 @@ from typing import Optional
 
 
 class Config:
-    """Manage CLI configuration stored in ~/.schlep/config.json"""
+    """Manage CLI configuration stored in ~/.igris/config.json"""
 
-    CONFIG_DIR = Path.home() / ".schlep"
+    CONFIG_DIR = Path.home() / ".igris"
     CONFIG_FILE = CONFIG_DIR / "config.json"
 
     @classmethod

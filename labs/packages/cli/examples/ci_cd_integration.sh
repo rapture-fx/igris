@@ -1,30 +1,30 @@
 #!/bin/bash
 
-# Schlep-engine CLI CI/CD Integration Examples
+# Igris-engine CLI CI/CD Integration Examples
 # This script demonstrates how to integrate the CLI into CI/CD pipelines
 
 set -e  # Exit on any error
 
-echo "🚀 Schlep-engine CI/CD Integration Example"
+echo "🚀 Igris-engine CI/CD Integration Example"
 echo "=========================================="
 
 # Environment variables that should be set in CI/CD
-# SCHLEP_API_KEY - API key for authentication
-# SCHLEP_ENVIRONMENT - Environment (dev/staging/prod)
-# SCHLEP_PROJECT_ID - Project identifier
+# IGRIS_API_KEY - API key for authentication
+# IGRIS_ENVIRONMENT - Environment (dev/staging/prod)
+# IGRIS_PROJECT_ID - Project identifier
 
 # Check required environment variables
 check_env_vars() {
     echo "📋 Checking environment variables..."
     
-    if [ -z "$SCHLEP_API_KEY" ]; then
-        echo "❌ SCHLEP_API_KEY environment variable is required"
+    if [ -z "$IGRIS_API_KEY" ]; then
+        echo "❌ IGRIS_API_KEY environment variable is required"
         exit 1
     fi
     
-    if [ -z "$SCHLEP_ENVIRONMENT" ]; then
-        echo "⚠️  SCHLEP_ENVIRONMENT not set, defaulting to 'dev'"
-        export SCHLEP_ENVIRONMENT="dev"
+    if [ -z "$IGRIS_ENVIRONMENT" ]; then
+        echo "⚠️  IGRIS_ENVIRONMENT not set, defaulting to 'dev'"
+        export IGRIS_ENVIRONMENT="dev"
     fi
     
     echo "✅ Environment variables validated"
@@ -35,24 +35,24 @@ setup_cli() {
     echo "🔧 Setting up CLI configuration..."
     
     # Initialize configuration
-    schlep config init
+    igris config init
     
     # Set environment-specific settings
-    if [ "$SCHLEP_ENVIRONMENT" = "prod" ]; then
-        schlep config set parallel_jobs 16
-        schlep config set timeout 120
-        schlep config set retry_attempts 5
+    if [ "$IGRIS_ENVIRONMENT" = "prod" ]; then
+        igris config set parallel_jobs 16
+        igris config set timeout 120
+        igris config set retry_attempts 5
     else
-        schlep config set parallel_jobs 4
-        schlep config set timeout 60
-        schlep config set retry_attempts 3
+        igris config set parallel_jobs 4
+        igris config set timeout 60
+        igris config set retry_attempts 3
     fi
     
     # Authenticate using API key from environment
-    schlep auth login --api-key "$SCHLEP_API_KEY"
+    igris auth login --api-key "$IGRIS_API_KEY"
     
     # Verify authentication
-    if ! schlep auth status --json | jq -e '.authenticated == true' > /dev/null; then
+    if ! igris auth status --json | jq -e '.authenticated == true' > /dev/null; then
         echo "❌ Authentication failed"
         exit 1
     fi
@@ -73,7 +73,7 @@ run_data_processing() {
     # Process all CSV files in data directory
     if ls data/*.csv 1> /dev/null 2>&1; then
         echo "Processing CSV files..."
-        schlep process batch "data/*.csv" \
+        igris process batch "data/*.csv" \
             --format parquet \
             --clean \
             --profile \
@@ -85,7 +85,7 @@ run_data_processing() {
     # Process JSON files if they exist
     if ls data/*.json 1> /dev/null 2>&1; then
         echo "Processing JSON files..."
-        schlep process batch "data/*.json" \
+        igris process batch "data/*.json" \
             --format parquet \
             --parallel 2 \
             --output-dir "processed_data/"
@@ -102,20 +102,20 @@ deploy_ml_pipeline() {
     if [ ! -f "pipeline.yml" ]; then
         echo "⚠️  No pipeline.yml found, creating default configuration"
         cat > pipeline.yml << EOF
-name: ci-cd-pipeline-${SCHLEP_ENVIRONMENT}
+name: ci-cd-pipeline-${IGRIS_ENVIRONMENT}
 description: Automated pipeline deployed from CI/CD
 model_type: auto
 auto_deploy: true
-environment: ${SCHLEP_ENVIRONMENT}
+environment: ${IGRIS_ENVIRONMENT}
 tags:
   - ci-cd
   - automated
-  - ${SCHLEP_ENVIRONMENT}
+  - ${IGRIS_ENVIRONMENT}
 EOF
     fi
     
     # Create and start pipeline
-    PIPELINE_ID=$(schlep pipeline create pipeline.yml --auto-start --json | jq -r '.pipeline_id')
+    PIPELINE_ID=$(igris pipeline create pipeline.yml --auto-start --json | jq -r '.pipeline_id')
     
     if [ "$PIPELINE_ID" = "null" ] || [ -z "$PIPELINE_ID" ]; then
         echo "❌ Failed to create pipeline"
@@ -130,7 +130,7 @@ EOF
     ELAPSED=0
     
     while [ $ELAPSED -lt $TIMEOUT ]; do
-        STATUS=$(schlep pipeline status "$PIPELINE_ID" --json | jq -r '.status')
+        STATUS=$(igris pipeline status "$PIPELINE_ID" --json | jq -r '.status')
         
         case $STATUS in
             "completed")
@@ -139,7 +139,7 @@ EOF
                 ;;
             "failed")
                 echo "❌ Pipeline failed"
-                schlep pipeline logs "$PIPELINE_ID" --lines 50
+                igris pipeline logs "$PIPELINE_ID" --lines 50
                 exit 1
                 ;;
             "running"|"pending")
@@ -164,19 +164,19 @@ run_quality_gates() {
     echo "🔍 Running quality gates..."
     
     # Check system health
-    if ! schlep monitoring status --json | jq -e '.api_connection == "healthy"' > /dev/null; then
+    if ! igris monitoring status --json | jq -e '.api_connection == "healthy"' > /dev/null; then
         echo "❌ API health check failed"
         exit 1
     fi
     
     # Validate configuration
-    if ! schlep config validate; then
+    if ! igris config validate; then
         echo "❌ Configuration validation failed"
         exit 1
     fi
     
     # Check for failed jobs
-    FAILED_JOBS=$(schlep monitoring jobs --status failed --json | jq length)
+    FAILED_JOBS=$(igris monitoring jobs --status failed --json | jq length)
     if [ "$FAILED_JOBS" -gt 0 ]; then
         echo "⚠️  Warning: $FAILED_JOBS failed jobs found"
         # In production, you might want to fail the build here
@@ -195,12 +195,12 @@ cleanup() {
     
     # Optionally clean up old pipelines (keep last 5)
     echo "🗑️  Cleaning up old pipelines..."
-    OLD_PIPELINES=$(schlep pipeline list --json | jq -r '.[] | select(.created_at < (now - 86400*7)) | .id' | head -n -5)
+    OLD_PIPELINES=$(igris pipeline list --json | jq -r '.[] | select(.created_at < (now - 86400*7)) | .id' | head -n -5)
     
     if [ -n "$OLD_PIPELINES" ]; then
         echo "$OLD_PIPELINES" | while read -r pipeline_id; do
             echo "Deleting old pipeline: $pipeline_id"
-            schlep pipeline delete "$pipeline_id" --force || true
+            igris pipeline delete "$pipeline_id" --force || true
         done
     fi
     
@@ -218,14 +218,14 @@ generate_report() {
 {
   "deployment": {
     "timestamp": "$(date -u +%Y-%m-%dT%H:%M:%SZ)",
-    "environment": "$SCHLEP_ENVIRONMENT",
+    "environment": "$IGRIS_ENVIRONMENT",
     "commit": "${GITHUB_SHA:-$(git rev-parse HEAD 2>/dev/null || echo 'unknown')}",
     "branch": "${GITHUB_REF_NAME:-$(git rev-parse --abbrev-ref HEAD 2>/dev/null || echo 'unknown')}",
     "build_number": "${GITHUB_RUN_NUMBER:-unknown}"
   },
-  "system_status": $(schlep monitoring status --json 2>/dev/null || echo '{}'),
-  "pipeline_count": $(schlep pipeline list --json 2>/dev/null | jq length || echo '0'),
-  "recent_jobs": $(schlep monitoring jobs --limit 10 --json 2>/dev/null || echo '[]')
+  "system_status": $(igris monitoring status --json 2>/dev/null || echo '{}'),
+  "pipeline_count": $(igris pipeline list --json 2>/dev/null | jq length || echo '0'),
+  "recent_jobs": $(igris monitoring jobs --limit 10 --json 2>/dev/null || echo '[]')
 }
 EOF
     
@@ -269,19 +269,19 @@ Commands:
   all       - Run complete pipeline (default)
 
 Environment Variables:
-  SCHLEP_API_KEY (required)     - API key for authentication
-  SCHLEP_ENVIRONMENT (optional) - Environment (dev/staging/prod)
-  SCHLEP_PROJECT_ID (optional)  - Project identifier
+  IGRIS_API_KEY (required)     - API key for authentication
+  IGRIS_ENVIRONMENT (optional) - Environment (dev/staging/prod)
+  IGRIS_PROJECT_ID (optional)  - Project identifier
 
 Examples:
   # Complete pipeline
-  SCHLEP_API_KEY=sk-123... $0
+  IGRIS_API_KEY=sk-123... $0
 
   # Only data processing
-  SCHLEP_API_KEY=sk-123... $0 process
+  IGRIS_API_KEY=sk-123... $0 process
 
   # Production deployment
-  SCHLEP_API_KEY=sk-123... SCHLEP_ENVIRONMENT=prod $0 deploy
+  IGRIS_API_KEY=sk-123... IGRIS_ENVIRONMENT=prod $0 deploy
 EOF
 }
 

@@ -1,6 +1,6 @@
 using System.Text.Json.Serialization;
 
-namespace SchlepEngine.Types;
+namespace Igris.Types;
 
 /// <summary>
 /// User profile information.

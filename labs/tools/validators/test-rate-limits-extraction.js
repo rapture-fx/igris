@@ -1,7 +1,7 @@
 #!/usr/bin/env node
 
 /**
- * SCHLEP-ENGINE RATE LIMITS SECTION VALIDATION
+ * IGRIS-ENGINE RATE LIMITS SECTION VALIDATION
  * 
  * This script validates the complete extraction and implementation of the rate-limits documentation section.
  * It checks section content, code examples, React components, TypeScript integration, and overall structure.
@@ -430,7 +430,7 @@ class RateLimitsValidator {
   }
 
   async run() {
-    console.log('✅ SCHLEP-ENGINE RATE LIMITS SECTION VALIDATION');
+    console.log('✅ IGRIS-ENGINE RATE LIMITS SECTION VALIDATION');
     console.log('Starting comprehensive validation of rate limits extraction...\n');
 
     this.validateSectionContent();

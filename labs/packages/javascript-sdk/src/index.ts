@@ -36,7 +36,7 @@ const createTokenStorage = () => ({
   clearTokens: () => {}
 });
 
-class SchlepEngineClient {
+class IgrisClient {
   constructor(config: any) {}
   
   async upload(file: File) {
@@ -48,6 +48,6 @@ class SchlepEngineClient {
   }
 }
 
-export { AuthManager, createTokenStorage, SchlepEngineClient };
+export { AuthManager, createTokenStorage, IgrisClient };
 export type { ApiError };
-export default SchlepEngineClient;
+export default IgrisClient;

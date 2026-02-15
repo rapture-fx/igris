@@ -1,8 +1,8 @@
-# Schlep-engine .NET SDK
+# Igris-engine .NET SDK
 
-Official .NET SDK for the Schlep-engine API platform.
+Official .NET SDK for the Igris-engine API platform.
 
-[![NuGet](https://img.shields.io/nuget/v/SchlepEngine.SDK.svg)](https://www.nuget.org/packages/SchlepEngine.SDK)
+[![NuGet](https://img.shields.io/nuget/v/Igris.SDK.svg)](https://www.nuget.org/packages/Igris.SDK)
 [![Documentation](https://img.shields.io/badge/docs-online-blue.svg)](https://docs.igris-inertial.com/sdk/dotnet)
 [![License](https://img.shields.io/github/license/igris-inertial/csharp-sdk.svg)](LICENSE)
 
@@ -20,30 +20,30 @@ Official .NET SDK for the Schlep-engine API platform.
 
 ### Package Manager Console
 ```powershell
-Install-Package SchlepEngine.SDK
+Install-Package Igris.SDK
 ```
 
 ### .NET CLI
 ```bash
-dotnet add package SchlepEngine.SDK
+dotnet add package Igris.SDK
 ```
 
 ### PackageReference
 ```xml
-<PackageReference Include="SchlepEngine.SDK" Version="1.0.0" />
+<PackageReference Include="Igris.SDK" Version="1.0.0" />
 ```
 
 ## Quick Start
 
 ```csharp
-using SchlepEngine;
-using SchlepEngine.Types;
+using Igris;
+using Igris.Types;
 
 // Create client with API key
-var client = new SchlepClient("your-api-key");
+var client = new IgrisClient("your-api-key");
 
-// Or from environment variable SCHLEP_API_KEY
-var client = SchlepClient.FromEnvironment();
+// Or from environment variable IGRIS_API_KEY
+var client = IgrisClient.FromEnvironment();
 
 try
 {
@@ -78,18 +78,18 @@ finally
 
 ```csharp
 // With API key
-var client = new SchlepClient("your-api-key");
+var client = new IgrisClient("your-api-key");
 
 // From environment variable
-var client = SchlepClient.FromEnvironment();
+var client = IgrisClient.FromEnvironment();
 
 // With custom base URL
-var client = new SchlepClient("your-api-key", "https://custom.api.com/v1");
+var client = new IgrisClient("your-api-key", "https://custom.api.com/v1");
 
 // With dependency injection
-services.AddHttpClient<SchlepClient>();
+services.AddHttpClient<IgrisClient>();
 services.AddSingleton(provider =>
-    new SchlepClient("your-api-key", provider.GetService<HttpClient>()));
+    new IgrisClient("your-api-key", provider.GetService<HttpClient>()));
 ```
 
 ### Upload Data
@@ -203,28 +203,28 @@ The SDK integrates with Microsoft.Extensions.Logging:
 ```csharp
 // Configure logging
 var loggerFactory = LoggerFactory.Create(builder => builder.AddConsole());
-var logger = loggerFactory.CreateLogger<SchlepClient>();
+var logger = loggerFactory.CreateLogger<IgrisClient>();
 
 // Create client with logger
-var client = new SchlepClient("your-api-key", logger: logger);
+var client = new IgrisClient("your-api-key", logger: logger);
 ```
 
 ### ASP.NET Core Integration
 
 ```csharp
 // In Startup.cs or Program.cs
-services.AddHttpClient<SchlepClient>();
-services.AddSingleton<SchlepClient>(provider =>
+services.AddHttpClient<IgrisClient>();
+services.AddSingleton<IgrisClient>(provider =>
 {
     var httpClient = provider.GetService<HttpClient>();
-    var logger = provider.GetService<ILogger<SchlepClient>>();
-    return SchlepClient.FromEnvironment(httpClient, logger);
+    var logger = provider.GetService<ILogger<IgrisClient>>();
+    return IgrisClient.FromEnvironment(httpClient, logger);
 });
 ```
 
 ## Environment Variables
 
-- `SCHLEP_API_KEY`: Your Schlep-engine API key
+- `IGRIS_API_KEY`: Your Igris-engine API key
 
 ## Build and Test
 
@@ -235,8 +235,8 @@ dotnet build
 # Run tests
 dotnet test
 
-# Run example (set SCHLEP_API_KEY first)
-$env:SCHLEP_API_KEY="your-api-key-here"
+# Run example (set IGRIS_API_KEY first)
+$env:IGRIS_API_KEY="your-api-key-here"
 dotnet run --project Examples
 
 # Create NuGet package
@@ -264,38 +264,38 @@ The SDK works seamlessly with .NET's dependency injection:
 
 ```csharp
 // Configure services
-services.AddHttpClient<SchlepClient>();
-services.Configure<SchlepClientOptions>(options =>
+services.AddHttpClient<IgrisClient>();
+services.Configure<IgrisClientOptions>(options =>
 {
     options.ApiKey = "your-api-key";
     options.BaseUrl = "https://api.igris-inertial.com/v1";
 });
 
 // Register client
-services.AddScoped<SchlepClient>(provider =>
+services.AddScoped<IgrisClient>(provider =>
 {
-    var options = provider.GetRequiredService<IOptions<SchlepClientOptions>>().Value;
+    var options = provider.GetRequiredService<IOptions<IgrisClientOptions>>().Value;
     var httpClient = provider.GetRequiredService<HttpClient>();
-    var logger = provider.GetRequiredService<ILogger<SchlepClient>>();
+    var logger = provider.GetRequiredService<ILogger<IgrisClient>>();
 
-    return new SchlepClient(options.ApiKey, options.BaseUrl, httpClient, logger);
+    return new IgrisClient(options.ApiKey, options.BaseUrl, httpClient, logger);
 });
 
 // Use in controller
 [ApiController]
 public class MyController : ControllerBase
 {
-    private readonly SchlepClient _schlepClient;
+    private readonly IgrisClient _igrisClient;
 
-    public MyController(SchlepClient schlepClient)
+    public MyController(IgrisClient igrisClient)
     {
-        _schlepClient = schlepClient;
+        _igrisClient = igrisClient;
     }
 
     [HttpPost("upload")]
     public async Task<IActionResult> Upload([FromBody] string data)
     {
-        var result = await _schlepClient.UploadAsync(data);
+        var result = await _igrisClient.UploadAsync(data);
         return Ok(result);
     }
 }

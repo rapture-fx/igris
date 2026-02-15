@@ -1,10 +1,10 @@
-//! Data Processing API client for Schlep-engine.
+//! Data Processing API client for Igris-engine.
 //!
 //! Provides methods for processing, transforming, and validating data.
 
 use serde_json::Value;
 
-use crate::client::SchlepClient;
+use crate::client::IgrisClient;
 use crate::error::Result;
 use crate::types::{
     ListParams, ProcessingJobResponse, TransformationResponse, ValidationResponse,
@@ -18,12 +18,12 @@ use crate::types::{
 /// # Example
 ///
 /// ```rust,no_run
-/// use schlep_engine::{SchlepClient, Result};
+/// use igris::{IgrisClient, Result};
 /// use serde_json::json;
 ///
 /// #[tokio::main]
 /// async fn main() -> Result<()> {
-///     let client = SchlepClient::new("your-api-key")?;
+///     let client = IgrisClient::new("your-api-key")?;
 ///
 ///     // Process a file
 ///     let file_data = std::fs::read("data.csv")?;
@@ -43,14 +43,14 @@ use crate::types::{
 /// }
 /// ```
 pub struct DataClient<'a> {
-    client: &'a SchlepClient,
+    client: &'a IgrisClient,
 }
 
 impl<'a> DataClient<'a> {
     /// Create a new Data Processing API client.
     ///
-    /// This is typically called internally by `SchlepClient`.
-    pub fn new(client: &'a SchlepClient) -> Self {
+    /// This is typically called internally by `IgrisClient`.
+    pub fn new(client: &'a IgrisClient) -> Self {
         Self { client }
     }
 
@@ -70,10 +70,10 @@ impl<'a> DataClient<'a> {
     /// # Example
     ///
     /// ```rust,no_run
-    /// # use schlep_engine::{SchlepClient, Result};
+    /// # use igris::{IgrisClient, Result};
     /// # #[tokio::main]
     /// # async fn main() -> Result<()> {
-    /// # let client = SchlepClient::new("your-api-key")?;
+    /// # let client = IgrisClient::new("your-api-key")?;
     /// let file_data = std::fs::read("data.csv")?;
     /// let result = client.data().process_file(&file_data, "csv").await?;
     /// println!("Job ID: {}", result.job_id);
@@ -105,11 +105,11 @@ impl<'a> DataClient<'a> {
     /// # Example
     ///
     /// ```rust,no_run
-    /// # use schlep_engine::{SchlepClient, Result};
+    /// # use igris::{IgrisClient, Result};
     /// # use serde_json::json;
     /// # #[tokio::main]
     /// # async fn main() -> Result<()> {
-    /// # let client = SchlepClient::new("your-api-key")?;
+    /// # let client = IgrisClient::new("your-api-key")?;
     /// let transformations = json!({
     ///     "operations": [
     ///         {"type": "rename", "from": "old_name", "to": "new_name"},
@@ -144,11 +144,11 @@ impl<'a> DataClient<'a> {
     /// # Example
     ///
     /// ```rust,no_run
-    /// # use schlep_engine::{SchlepClient, Result};
+    /// # use igris::{IgrisClient, Result};
     /// # use serde_json::json;
     /// # #[tokio::main]
     /// # async fn main() -> Result<()> {
-    /// # let client = SchlepClient::new("your-api-key")?;
+    /// # let client = IgrisClient::new("your-api-key")?;
     /// let schema = json!({
     ///     "fields": [
     ///         {"name": "id", "type": "integer", "required": true},
@@ -185,10 +185,10 @@ impl<'a> DataClient<'a> {
     /// # Example
     ///
     /// ```rust,no_run
-    /// # use schlep_engine::{SchlepClient, Result};
+    /// # use igris::{IgrisClient, Result};
     /// # #[tokio::main]
     /// # async fn main() -> Result<()> {
-    /// # let client = SchlepClient::new("your-api-key")?;
+    /// # let client = IgrisClient::new("your-api-key")?;
     /// let job = client.data().get_job("job_123").await?;
     /// println!("Status: {}", job.status);
     /// # Ok(())
@@ -207,10 +207,10 @@ impl<'a> DataClient<'a> {
     /// # Example
     ///
     /// ```rust,no_run
-    /// # use schlep_engine::{SchlepClient, Result, ListParams};
+    /// # use igris::{IgrisClient, Result, ListParams};
     /// # #[tokio::main]
     /// # async fn main() -> Result<()> {
-    /// # let client = SchlepClient::new("your-api-key")?;
+    /// # let client = IgrisClient::new("your-api-key")?;
     /// let params = ListParams {
     ///     page: Some(1),
     ///     page_size: Some(20),

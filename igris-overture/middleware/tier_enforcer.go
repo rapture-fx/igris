@@ -25,7 +25,7 @@ var (
 	// Tier enforcement metrics
 	tierEnforcementHits = promauto.NewCounterVec(
 		prometheus.CounterOpts{
-			Name: "schlep_tier_enforcement_hits_total",
+			Name: "igris_tier_enforcement_hits_total",
 			Help: "Total number of tier enforcement checks performed",
 		},
 		[]string{"tier", "feature", "result"}, // result: allowed/denied
@@ -33,7 +33,7 @@ var (
 
 	tierLimitExceeded = promauto.NewCounterVec(
 		prometheus.CounterOpts{
-			Name: "schlep_tier_limit_exceeded_total",
+			Name: "igris_tier_limit_exceeded_total",
 			Help: "Total number of tier limit violations",
 		},
 		[]string{"tier", "limit_type"}, // limit_type: requests/providers/features
@@ -41,7 +41,7 @@ var (
 
 	tierRequestUsage = promauto.NewGaugeVec(
 		prometheus.GaugeOpts{
-			Name: "schlep_tier_request_usage",
+			Name: "igris_tier_request_usage",
 			Help: "Current request usage for each tenant tier",
 		},
 		[]string{"tier", "tenant_id"},
@@ -49,7 +49,7 @@ var (
 
 	tierProviderUsage = promauto.NewGaugeVec(
 		prometheus.GaugeOpts{
-			Name: "schlep_tier_provider_usage",
+			Name: "igris_tier_provider_usage",
 			Help: "Current provider count for each tenant tier",
 		},
 		[]string{"tier", "tenant_id"},
@@ -57,7 +57,7 @@ var (
 
 	tierLimitPercentage = promauto.NewGaugeVec(
 		prometheus.GaugeOpts{
-			Name: "schlep_tier_limit_percentage",
+			Name: "igris_tier_limit_percentage",
 			Help: "Percentage of tier limit consumed (0-100)",
 		},
 		[]string{"tier", "tenant_id", "limit_type"},
@@ -65,7 +65,7 @@ var (
 
 	tierSoftLimitWarnings = promauto.NewCounterVec(
 		prometheus.CounterOpts{
-			Name: "schlep_tier_soft_limit_warnings_total",
+			Name: "igris_tier_soft_limit_warnings_total",
 			Help: "Total soft limit warnings issued (80% threshold)",
 		},
 		[]string{"tier", "tenant_id", "limit_type"},

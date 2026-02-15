@@ -17,7 +17,7 @@ type InferResponse struct {
 	// Usage statistics
 	Usage *UsageStats `json:"usage,omitempty"` // Token usage information
 
-	// Schlep-engine metadata
+	// Igris-engine metadata
 	Metadata *ResponseMetadata `json:"metadata,omitempty"` // Performance and routing metadata
 
 	// Streaming support
@@ -39,7 +39,7 @@ type UsageStats struct {
 	TotalTokens      int `json:"total_tokens"`      // Total tokens used
 }
 
-// ResponseMetadata contains Schlep-engine specific performance data
+// ResponseMetadata contains Igris-engine specific performance data
 type ResponseMetadata struct {
 	// Routing information
 	Provider      string  `json:"provider"`                // Provider used ("openai", "anthropic", "python-adapter")

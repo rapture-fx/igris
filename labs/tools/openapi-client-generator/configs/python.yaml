@@ -4,8 +4,8 @@ input-spec: "../../apps/api/openapi.json"
 output-dir: "./generated/python"
 package-name: "igris-inertial-client"
 package-url: "https://github.com/igris-inertial/python-client"
-package-company: "Schlep-engine"
-package-description: "Python client library for Schlep-engine API"
+package-company: "Igris-engine"
+package-description: "Python client library for Igris-engine API"
 package-version: "2.0.0"
 project-name: "igris-inertial-client"
 
@@ -15,10 +15,10 @@ additional-properties:
   projectName: igris-inertial-client
   packageVersion: 2.0.0
   packageUrl: https://github.com/igris-inertial/python-client
-  packageCompany: Schlep-engine
-  packageAuthor: Schlep-engine Team
+  packageCompany: Igris-engine
+  packageAuthor: Igris-engine Team
   packageEmail: support@igris-inertial.com
-  packageDescription: Python client library for Schlep-engine API - comprehensive data processing and ML pipeline platform
+  packageDescription: Python client library for Igris-engine API - comprehensive data processing and ML pipeline platform
   packageKeywords: "data-processing,machine-learning,api-client,igris-inertial"
   
   # Python-specific configuration

@@ -1,6 +1,6 @@
-using SchlepEngine.Types;
+using Igris.Types;
 
-namespace SchlepEngine.API;
+namespace Igris.API;
 
 /// <summary>
 /// Client for document extraction operations.
@@ -11,7 +11,7 @@ namespace SchlepEngine.API;
 /// </remarks>
 /// <example>
 /// <code>
-/// var client = new SchlepClient("your-api-key");
+/// var client = new IgrisClient("your-api-key");
 /// var fileData = await File.ReadAllBytesAsync("document.pdf");
 /// var result = await client.Document.ExtractTextAsync(fileData, "document.pdf");
 /// Console.WriteLine($"Extracted text: {result.Text}");
@@ -19,13 +19,13 @@ namespace SchlepEngine.API;
 /// </example>
 public class DocumentClient
 {
-    private readonly SchlepClient _client;
+    private readonly IgrisClient _client;
 
     /// <summary>
     /// Initializes a new instance of the DocumentClient class.
     /// </summary>
-    /// <param name="client">The parent SchlepClient instance.</param>
-    internal DocumentClient(SchlepClient client)
+    /// <param name="client">The parent IgrisClient instance.</param>
+    internal DocumentClient(IgrisClient client)
     {
         _client = client;
     }

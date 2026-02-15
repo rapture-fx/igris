@@ -1,5 +1,5 @@
 /**
- * Admin API for Schlep-engine JavaScript SDK
+ * Admin API for Igris-engine JavaScript SDK
  * Provides administrative functions for system management (admin only)
  */
 

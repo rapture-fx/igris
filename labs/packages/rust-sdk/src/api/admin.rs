@@ -1,6 +1,6 @@
-//! Admin API client for Schlep-engine.
+//! Admin API client for Igris-engine.
 
-use crate::client::SchlepClient;
+use crate::client::IgrisClient;
 use crate::error::Result;
 use crate::types::{ListParams, SystemStats, UserSummary};
 
@@ -8,12 +8,12 @@ use crate::types::{ListParams, SystemStats, UserSummary};
 ///
 /// Provides administrative methods for managing users and viewing system statistics.
 pub struct AdminClient<'a> {
-    client: &'a SchlepClient,
+    client: &'a IgrisClient,
 }
 
 impl<'a> AdminClient<'a> {
     /// Create a new Admin API client.
-    pub fn new(client: &'a SchlepClient) -> Self {
+    pub fn new(client: &'a IgrisClient) -> Self {
         Self { client }
     }
 
@@ -26,10 +26,10 @@ impl<'a> AdminClient<'a> {
     /// # Example
     ///
     /// ```rust,no_run
-    /// # use schlep_engine::{SchlepClient, Result, ListParams};
+    /// # use igris::{IgrisClient, Result, ListParams};
     /// # #[tokio::main]
     /// # async fn main() -> Result<()> {
-    /// # let client = SchlepClient::new("your-api-key")?;
+    /// # let client = IgrisClient::new("your-api-key")?;
     /// let params = ListParams {
     ///     page: Some(1),
     ///     page_size: Some(50),
@@ -70,10 +70,10 @@ impl<'a> AdminClient<'a> {
     /// # Example
     ///
     /// ```rust,no_run
-    /// # use schlep_engine::{SchlepClient, Result};
+    /// # use igris::{IgrisClient, Result};
     /// # #[tokio::main]
     /// # async fn main() -> Result<()> {
-    /// # let client = SchlepClient::new("your-api-key")?;
+    /// # let client = IgrisClient::new("your-api-key")?;
     /// let stats = client.admin().get_system_stats().await?;
     /// println!("Total users: {}", stats.total_users);
     /// println!("Active jobs: {}", stats.active_jobs);

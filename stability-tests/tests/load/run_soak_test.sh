@@ -6,7 +6,7 @@
 set -e
 
 echo "=========================================="
-echo " Schlep-Engine 24-Hour Soak Test Runner  "
+echo " Igris Inertial 24-Hour Soak Test Runner  "
 echo " Phase 4.1.3 - Memory Stability Testing  "
 echo "=========================================="
 echo ""

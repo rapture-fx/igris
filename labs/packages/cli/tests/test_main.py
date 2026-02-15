@@ -5,8 +5,8 @@ Test main CLI interface.
 import pytest
 from click.testing import CliRunner
 
-from schlep_cli.main import cli
-from schlep_cli import __version__
+from igris_cli.main import cli
+from igris_cli import __version__
 
 
 class TestMainCLI:
@@ -16,7 +16,7 @@ class TestMainCLI:
         """Test CLI help command."""
         result = runner.invoke(cli, ['--help'])
         assert result.exit_code == 0
-        assert 'Schlep-engine CLI' in result.output
+        assert 'Igris-engine CLI' in result.output
         assert 'Advanced data processing' in result.output
         assert 'auth' in result.output
         assert 'process' in result.output
@@ -38,8 +38,8 @@ class TestMainCLI:
         """Test CLI without arguments shows welcome message."""
         result = runner.invoke(cli, [])
         assert result.exit_code == 0
-        assert 'Welcome to Schlep-engine CLI' in result.output
-        assert 'schlep auth login' in result.output
+        assert 'Welcome to Igris-engine CLI' in result.output
+        assert 'igris auth login' in result.output
     
     def test_cli_with_debug_flag(self, runner):
         """Test CLI with debug flag."""
@@ -68,7 +68,7 @@ class TestMainCLI:
             return cli.main(*args, **kwargs)
         
         with monkeypatch.context() as m:
-            m.setattr('schlep_cli.main.cli.main', mock_cli_with_context)
+            m.setattr('igris_cli.main.cli.main', mock_cli_with_context)
             result = runner.invoke(cli, ['health'])
             # Note: This might still fail due to the complex mocking needed
             # In a real test environment, we'd use more sophisticated mocking

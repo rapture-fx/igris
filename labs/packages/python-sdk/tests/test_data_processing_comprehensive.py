@@ -1,5 +1,5 @@
 """
-Comprehensive data processing tests for Schlep-engine Python SDK
+Comprehensive data processing tests for Igris-engine Python SDK
 
 This test suite covers all data processing API endpoints, file handling,
 validation, error scenarios, and edge cases.
@@ -14,8 +14,8 @@ from unittest.mock import AsyncMock, MagicMock, patch, mock_open
 from datetime import datetime, timedelta
 from pathlib import Path
 
-from schlep_engine.api.data_processing import DataProcessingAPI
-from schlep_engine.models.data import (
+from igris.api.data_processing import DataProcessingAPI
+from igris.models.data import (
     ProcessingJob, 
     JobStatus, 
     DataFile, 
@@ -24,8 +24,8 @@ from schlep_engine.models.data import (
     DataQualityReport,
     ExportFormat
 )
-from schlep_engine.models.common import APIResponse, PaginationParams
-from schlep_engine.exceptions.base import (
+from igris.models.common import APIResponse, PaginationParams
+from igris.exceptions.base import (
     APIError, 
     ValidationError, 
     FileUploadError, 
@@ -40,7 +40,7 @@ class TestDataProcessingAPI:
     @pytest.fixture
     def api_client(self):
         """Create a mock API client."""
-        from schlep_engine.utils.http_client import HTTPClient
+        from igris.utils.http_client import HTTPClient
         http_client = AsyncMock(spec=HTTPClient)
         return DataProcessingAPI(http_client)
 
@@ -551,7 +551,7 @@ class TestDataProcessingEdgeCases:
     @pytest.fixture
     def api_client(self):
         """Create a mock API client."""
-        from schlep_engine.utils.http_client import HTTPClient
+        from igris.utils.http_client import HTTPClient
         http_client = AsyncMock(spec=HTTPClient)
         return DataProcessingAPI(http_client)
 

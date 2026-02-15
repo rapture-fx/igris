@@ -1,5 +1,5 @@
 /**
- * Document extraction types for Schlep-engine JavaScript SDK
+ * Document extraction types for Igris-engine JavaScript SDK
  */
 
 /**

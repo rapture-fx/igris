@@ -53,7 +53,7 @@ func main() {
 			},
 			{
 				Role:    "user",
-				Content: "Explain what Schlep-engine does in one sentence.",
+				Content: "Explain what Igris-engine does in one sentence.",
 			},
 		},
 		MaxTokens:   igris.Int(100),

@@ -1,6 +1,6 @@
 # Changelog
 
-All notable changes to Schlep Engine are documented here. The format is based on [Keep a Changelog](https://keepachangelog.com/en/1.0.0/), and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0.html).
+All notable changes to Igris Inertial are documented here. The format is based on [Keep a Changelog](https://keepachangelog.com/en/1.0.0/), and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0.html).
 
 ## [1.2.1-speculative] - 2025-11-24
 
@@ -61,7 +61,7 @@ All notable changes to Schlep Engine are documented here. The format is based on
 - 9 tests: BasicTracking, AutoDisable, CoolDownPeriod, etc.
 
 **PR #6: Handler Integration** (`8cafb498b`)
-- `cmd/schlep-engine-api/handlers/infer.go`: Integrated into `/v1/infer`
+- `cmd/igris-inertial-api/handlers/infer.go`: Integrated into `/v1/infer`
   - Check `speculative_mode` parameter in request
   - Route through SpeculativeRouter when mode specified
   - Fallback to normal routing if disabled or fails
@@ -139,7 +139,7 @@ rate(speculative_switches_total{reason="provider_failure"}[5m])
 ## [1.1.0] - 2025-11-15
 
 ### Added
-- Initial release of Schlep Engine API
+- Initial release of Igris Inertial API
 - Multi-provider LLM routing (OpenAI, Anthropic)
 - Thompson Sampling for adaptive routing
 - Prometheus metrics and OpenTelemetry tracing

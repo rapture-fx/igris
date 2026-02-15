@@ -1,6 +1,6 @@
-using SchlepEngine.Types;
+using Igris.Types;
 
-namespace SchlepEngine.API;
+namespace Igris.API;
 
 /// <summary>
 /// Client for storage operations.
@@ -10,7 +10,7 @@ namespace SchlepEngine.API;
 /// </remarks>
 /// <example>
 /// <code>
-/// var client = new SchlepClient("your-api-key");
+/// var client = new IgrisClient("your-api-key");
 /// var fileData = await File.ReadAllBytesAsync("data.csv");
 /// var upload = await client.Storage.UploadFileAsync(fileData, "data.csv");
 /// Console.WriteLine($"File uploaded: {upload.Url}");
@@ -18,13 +18,13 @@ namespace SchlepEngine.API;
 /// </example>
 public class StorageClient
 {
-    private readonly SchlepClient _client;
+    private readonly IgrisClient _client;
 
     /// <summary>
     /// Initializes a new instance of the StorageClient class.
     /// </summary>
-    /// <param name="client">The parent SchlepClient instance.</param>
-    internal StorageClient(SchlepClient client)
+    /// <param name="client">The parent IgrisClient instance.</param>
+    internal StorageClient(IgrisClient client)
     {
         _client = client;
     }

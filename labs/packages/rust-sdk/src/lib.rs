@@ -1,16 +1,16 @@
-//! # Schlep-engine Rust SDK
+//! # Igris-engine Rust SDK
 //!
-//! Official Rust client for the Schlep-engine API platform.
+//! Official Rust client for the Igris-engine API platform.
 //!
 //! ## Quick Start
 //!
 //! ```rust,no_run
-//! use schlep_engine::{SchlepClient, Result};
+//! use igris::{IgrisClient, Result};
 //! use serde_json::json;
 //!
 //! #[tokio::main]
 //! async fn main() -> Result<()> {
-//!     let client = SchlepClient::new("your-api-key")?;
+//!     let client = IgrisClient::new("your-api-key")?;
 //!
 //!     // Process data
 //!     let file_data = std::fs::read("data.csv")?;
@@ -54,7 +54,7 @@ pub mod client;
 pub mod error;
 pub mod types;
 
-pub use client::SchlepClient;
+pub use client::IgrisClient;
 pub use error::{Error, Result};
 pub use types::*;
 
@@ -64,4 +64,4 @@ pub use api::{
     QualityClient, StorageClient, UsersClient,
 };
 
-pub const DEFAULT_BASE_URL: &str = "https://api.schlep-engine.com/v1";
+pub const DEFAULT_BASE_URL: &str = "https://api.igris-inertial.com/v1";

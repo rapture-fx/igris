@@ -1,5 +1,5 @@
 /**
- * Data Processing API for Schlep-engine JavaScript SDK
+ * Data Processing API for Igris-engine JavaScript SDK
  */
 
 import { BaseAPI } from './base';

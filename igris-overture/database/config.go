@@ -1,5 +1,5 @@
 // Package database provides database connection management and configuration
-// for the Schlep-engine persistence layer (Phase 13+).
+// for the Igris Inertial persistence layer (Phase 13+).
 //
 // This package enables optional PostgreSQL persistence for budget tracking,
 // policy storage, and audit logging while maintaining backward compatibility
@@ -19,7 +19,7 @@ import (
 
 // Config holds database configuration settings
 type Config struct {
-	// Database connection URL (e.g., "postgres://user:pass@localhost:5432/schlep?sslmode=disable")
+	// Database connection URL (e.g., "postgres://user:pass@localhost:5432/igris?sslmode=disable")
 	DatabaseURL string
 
 	// Connection pool settings

@@ -1,5 +1,5 @@
 /**
- * Type definitions for Schlep-engine JavaScript SDK
+ * Type definitions for Igris-engine JavaScript SDK
  */
 
 // Common types

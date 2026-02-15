@@ -1,7 +1,7 @@
 #!/usr/bin/env python3
 """
 Quality-Aware Routing Validation Test
-Proves Schlep-Engine maintains quality while optimizing costs
+Proves Igris Inertial maintains quality while optimizing costs
 Not just "pick the cheapest model"
 """
 
@@ -307,7 +307,7 @@ class QualityRoutingValidator:
 
             if criteria_met:
                 print("✅ QUALITY-AWARE ROUTING VALIDATED!")
-                print("   Schlep-Engine successfully balances cost and quality")
+                print("   Igris Inertial successfully balances cost and quality")
                 return 0
             else:
                 print("⚠️  QUALITY-AWARE ROUTING NEEDS IMPROVEMENT")
@@ -348,7 +348,7 @@ def main():
     print(f"\n{'='*70}")
     print(f"🎯 QUALITY-AWARE ROUTING VALIDATION")
     print(f"{'='*70}")
-    print(f"Objective: Prove Schlep-Engine maintains quality while optimizing costs")
+    print(f"Objective: Prove Igris Inertial maintains quality while optimizing costs")
     print(f"Not just 'pick the cheapest model'")
     print(f"\nTarget URL: {args.url}")
     print(f"Started: {datetime.now().strftime('%Y-%m-%d %H:%M:%S')}")

@@ -2,16 +2,16 @@
 generator-name: java
 input-spec: "../../apps/api/openapi.json"
 output-dir: "./generated/java"
-package-name: "com.schlepengine.client"
+package-name: "com.igris.client"
 package-version: "2.0.0"
 
 # Java-specific configuration
 additional-properties:
-  groupId: com.schlepengine
+  groupId: com.igris
   artifactId: igris-inertial-client
   artifactVersion: 2.0.0
   artifactUrl: https://github.com/igris-inertial/java-client
-  artifactDescription: "Java client library for Schlep-engine API - comprehensive data processing and ML pipeline platform"
+  artifactDescription: "Java client library for Igris-engine API - comprehensive data processing and ML pipeline platform"
   
   # Java configuration
   dateLibrary: java8
@@ -23,9 +23,9 @@ additional-properties:
   serializationLibrary: gson
   
   # API Configuration
-  modelPackage: com.schlepengine.client.model
-  apiPackage: com.schlepengine.client.api
-  invokerPackage: com.schlepengine.client
+  modelPackage: com.igris.client.model
+  apiPackage: com.igris.client.api
+  invokerPackage: com.igris.client
   
   # Code generation
   supportJava11: true
@@ -43,9 +43,9 @@ additional-properties:
   sortModelPropertiesByRequiredFlag: true
   
   # Developer info
-  developerName: "Schlep-engine Team"
+  developerName: "Igris-engine Team"
   developerEmail: "support@igris-inertial.com"
-  developerOrganization: "Schlep-engine"
+  developerOrganization: "Igris-engine"
   developerOrganizationUrl: "https://igris-inertial.com"
   
   # License

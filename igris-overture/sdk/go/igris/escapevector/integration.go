@@ -36,7 +36,7 @@ func NewEscapeVectorMode() (*EscapeVectorMode, error) {
 		if err != nil {
 			return nil, fmt.Errorf("failed to get home directory: %w", err)
 		}
-		cacheDir = filepath.Join(homeDir, ".config", "schlep")
+		cacheDir = filepath.Join(homeDir, ".config", "igris")
 	}
 
 	// Generate encryption key from API key or use default
@@ -150,7 +150,7 @@ func (evm *EscapeVectorMode) GetMetrics() map[string]interface{} {
 func deriveEncryptionKey(apiKey string) []byte {
 	if apiKey == "" {
 		// Default key for development (CHANGE IN PRODUCTION)
-		apiKey = "schlep-default-encryption-key-change-me"
+		apiKey = "igris-default-encryption-key-change-me"
 	}
 	hash := sha256.Sum256([]byte(apiKey))
 	return hash[:]

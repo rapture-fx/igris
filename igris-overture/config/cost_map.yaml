@@ -1,4 +1,4 @@
-# Schlep-Engine Provider Cost Map
+# Igris Inertial Provider Cost Map
 # Official provider pricing for token-based inference costs
 # All costs in USD per 1,000 tokens
 # Source: Provider official pricing pages (as of January 2025)
@@ -123,7 +123,7 @@ config:
   enable_forecast_header: true
 
   # Header name for cost forecast
-  forecast_header_name: "X-Schlep-Est-Cost-USD"
+  forecast_header_name: "X-Igris-Est-Cost-USD"
 
   # Whether to log cost estimates for telemetry
   enable_cost_logging: true
