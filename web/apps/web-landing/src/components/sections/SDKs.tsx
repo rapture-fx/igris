@@ -166,7 +166,7 @@ export default function SDKs() {
           {/* Title */}
           <div className="text-left" style={{ paddingTop: '3rem', paddingBottom: '2rem' }}>
             <h3 className="text-xl md:text-2xl lg:text-3xl text-[#000000] dark:text-[#f6f6f4]" style={{ fontFamily }}>
-              Build on the Nervous System
+              Connect your stack
             </h3>
           </div>
 
@@ -182,7 +182,7 @@ export default function SDKs() {
                   {languages.map((lang, i) => (
                     <React.Fragment key={lang}>
                       {i > 0 && i < languages.length - 1 && ', '}
-                      {i === languages.length - 1 && ', and '}
+                      {i === languages.length - 1 && ', '}
                       <button
                         onClick={() => setSelectedLang(lang)}
                         className={`underline decoration-dotted underline-offset-2 transition-colors cursor-pointer ${
@@ -198,10 +198,10 @@ export default function SDKs() {
                 </p>
 
                 <p className="text-sm md:text-base text-gray-600 dark:text-[#a8a898] leading-relaxed mb-4" style={{ fontFamily }}>
-                  All SDKs connect to the same unified execution and coordination layer. The API surface is consistent across languages, and behavior remains identical between local development and production environments.
+                  One API. Drop the SDK into your existing codebase. Your app becomes deterministic, provable, survivable—without rewrite.
                 </p>
                 <p className="text-sm md:text-base text-gray-600 dark:text-[#a8a898] leading-relaxed mb-6" style={{ fontFamily }}>
-                  Develop locally. Deploy anywhere. Same execution guarantees.
+                  Local development matches production exactly. Test on your laptop. Deploy to servers, robots, or edge devices.
                 </p>
                 <div>
                   <a
@@ -209,7 +209,7 @@ export default function SDKs() {
                     className="text-sm text-gray-900 dark:text-[#f6f6f4] underline decoration-dotted underline-offset-2 hover:text-gray-600 dark:hover:text-gray-300 transition-colors"
                     style={{ fontFamily }}
                   >
-                    View SDK documentation
+                    View SDKs
                   </a>
                 </div>
               </div>
