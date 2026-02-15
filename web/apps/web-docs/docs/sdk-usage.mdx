@@ -1,6 +1,108 @@
 # SDK Usage
 
-Igris Overture provides official SDKs for **Go**, **Python**, and **OpenAI-compatible** clients. All SDKs support intelligent routing with Thompson Sampling and EscapeVector Mode for zero-downtime resilience.
+Igris Overture provides official SDKs for **JavaScript/TypeScript**, **Python**, **Go**, **Rust**, and **OpenAI-compatible** clients. All SDKs support intelligent routing with Thompson Sampling and EscapeVector Mode for zero-downtime resilience.
+
+---
+
+## JavaScript/TypeScript SDK
+
+The official JavaScript/TypeScript SDK provides a full-featured client with type safety, provider management, and automatic health monitoring.
+
+### Installation
+
+```bash
+npm install @igris-inertial/sdk
+```
+
+### Quick Start
+
+```typescript
+import { IgrisClient } from '@igris-inertial/sdk';
+
+const client = new IgrisClient({
+  baseUrl: 'https://api.igris-inertial.com',
+  apiKey: 'your-api-key',
+});
+
+// Simple inference
+const response = await client.infer({
+  model: 'gpt-4',
+  messages: [{ role: 'user', content: 'Hello, world!' }],
+  max_tokens: 100,
+});
+
+console.log(response.choices[0].message.content);
+console.log('Provider:', response.metadata?.provider);
+```
+
+### API Methods
+
+```typescript
+// List available models
+const models = await client.listModels();
+
+// Provider management
+const providers = await client.providers.list();
+
+// Health check
+const health = await client.health();
+console.log('Gateway status:', health.status);
+```
+
+**Repository:** [github.com/Igris-inertial/igris-javascript-sdk](https://github.com/Igris-inertial/igris-javascript-sdk)
+
+---
+
+## Python SDK
+
+The Python SDK provides a typed client with `InferRequest`/`Message` models, provider management, and health checks.
+
+### Installation
+
+```bash
+pip install igris-inertial
+```
+
+### Quick Start
+
+```python
+from igris import IgrisClient, InferRequest, Message
+
+client = IgrisClient(
+    base_url="https://api.igris-inertial.com",
+    api_key="your-api-key",
+)
+
+# Simple inference
+response = client.infer(InferRequest(
+    model="gpt-4",
+    messages=[Message(role="user", content="Hello, world!")],
+    max_tokens=100,
+))
+
+print(response.choices[0].message.content)
+print(f"Provider: {response.metadata.provider if response.metadata else 'N/A'}")
+```
+
+### API Methods
+
+```python
+# List available models
+models = client.list_models()
+
+# Provider management
+providers = client.providers.list()
+for p in providers:
+    print(f"Provider: {p.name} ({p.type}) - {p.status}")
+
+# Health check
+health = client.health()
+print(f"Gateway status: {health.status}")
+
+client.close()
+```
+
+**Repository:** [github.com/Igris-inertial/igris-python-sdk](https://github.com/Igris-inertial/igris-python-sdk)
 
 ---
 
@@ -11,7 +113,7 @@ The official Go SDK provides a native client with automatic retry logic, EscapeV
 ### Installation
 
 ```bash
-go get github.com/igris-inertial/igris-overture/internal/sdk/go/igris
+go get github.com/igris-inertial/go-sdk
 ```
 
 ### Quick Start
@@ -24,116 +126,104 @@ import (
     "fmt"
     "log"
 
-    "github.com/igris-inertial/igris-overture/internal/sdk/go/igris"
+    igris "github.com/igris-inertial/go-sdk"
 )
 
 func main() {
-    // Create client with default configuration
-    client := igris.NewClient(&igris.Config{
-        BaseURL: "http://localhost:8081",
-        APIKey:  "your-api-key", // optional
-    })
+    client := igris.NewClient(
+        "https://api.igris-inertial.com",
+        "your-api-key",
+    )
 
-    // Make inference request
     ctx := context.Background()
-    response, err := client.Infer(ctx, &igris.InferRequest{
+
+    // Simple inference
+    resp, err := client.Infer(ctx, &igris.InferRequest{
         Model: "gpt-4",
         Messages: []igris.Message{
-            {Role: "user", Content: "Explain Thompson Sampling"},
+            {Role: "user", Content: "Hello, world!"},
         },
-        MaxTokens: igris.Int(200),
-        Temperature: igris.Float64(0.7),
     })
-
     if err != nil {
         log.Fatal(err)
     }
 
-    fmt.Println(response.Choices[0].Message.Content)
+    fmt.Printf("Response: %s\n", resp.Choices[0].Message.Content)
 }
 ```
-
-### Configuration
-
-The client supports environment variables and explicit configuration:
-
-```go
-client := igris.NewClient(&igris.Config{
-    BaseURL: "http://localhost:8081",        // default: http://localhost:8081
-    APIKey:  os.Getenv("IGRIS_API_KEY"),    // optional authentication
-    Timeout: 60 * time.Second,                // default: 30s
-})
-```
-
-**Environment Variables:**
-- `IGRIS_BASE_URL` - API base URL
-- `IGRIS_API_KEY` - API authentication key
 
 ### API Methods
 
-#### Infer
-
-Make an inference request using intelligent routing:
-
 ```go
-response, err := client.Infer(ctx, &igris.InferRequest{
-    Model: "gpt-4",
-    Messages: []igris.Message{
-        {Role: "system", Content: "You are a helpful assistant."},
-        {Role: "user", Content: "Hello!"},
-    },
-    MaxTokens: igris.Int(200),
-    Temperature: igris.Float64(0.7),
-    TopP: igris.Float64(0.9),
-})
-```
-
-#### List Models
-
-Retrieve all available models:
-
-```go
+// List models
 models, err := client.ListModels(ctx)
-if err != nil {
-    log.Fatal(err)
-}
 
-for _, model := range models.Data {
-    fmt.Printf("Model: %s (owned by %s)\n", model.ID, model.OwnedBy)
-}
-```
-
-#### Health Check
-
-Verify API status:
-
-```go
+// Health check
 health, err := client.Health(ctx)
-if err != nil {
-    log.Fatal(err)
-}
+fmt.Printf("Gateway status: %s\n", health.Status)
 
-if health.Status == "healthy" {
-    fmt.Println("API is operational")
+// List providers
+providers, err := client.Providers.List(ctx)
+for _, p := range providers {
+    fmt.Printf("Provider: %s (%s) - %s\n", p.Name, p.Type, p.Status)
 }
 ```
 
-#### Provider Statistics
+**Repository:** [github.com/Igris-inertial/igris-go-sdk](https://github.com/Igris-inertial/igris-go-sdk)
 
-Get provider performance metrics:
+---
 
-```go
-stats, err := client.ProviderStats(ctx)
-if err != nil {
-    log.Fatal(err)
-}
+## Rust SDK
 
-fmt.Printf("Stats: %+v\n", stats)
+The Rust SDK provides an async client built on `tokio` with the builder pattern, typed requests, and full inference support.
+
+### Installation
+
+```bash
+cargo add igris-inertial
 ```
+
+### Quick Start
+
+```rust
+use igris_inertial::{IgrisClient, InferRequest, Message};
+
+#[tokio::main]
+async fn main() -> Result<(), Box<dyn std::error::Error>> {
+    let client = IgrisClient::builder("https://api.igris-inertial.com")
+        .api_key("your-api-key")
+        .build()?;
+
+    let request = InferRequest {
+        model: "gpt-4".to_string(),
+        messages: vec![Message {
+            role: "user".to_string(),
+            content: "Hello, world!".to_string(),
+            ..Default::default()
+        }],
+        ..Default::default()
+    };
+
+    let response = client.infer(&request).await?;
+    println!("{}", response.choices[0].message.content);
+
+    // Health check
+    let health = client.health().await?;
+    println!("Gateway status: {}", health.status);
+
+    // List models
+    let models = client.list_models().await?;
+    println!("Models: {:?}", models.models);
+
+    Ok(())
+}
+```
+
+**Repository:** [github.com/Igris-inertial/igris-rust-sdk](https://github.com/Igris-inertial/igris-rust-sdk)
 
 ### EscapeVector Mode
 
-The Go SDK includes **EscapeVector Mode** - Thompson Sampling-powered resilience that continues Bayesian optimization during control plane outages.
+All SDKs include **EscapeVector Mode** - Thompson Sampling-powered resilience that continues Bayesian optimization during control plane outages.
 
 **How it works:**
 - Monitors control plane health (3 consecutive timeouts > 500ms)
@@ -141,103 +231,7 @@ The Go SDK includes **EscapeVector Mode** - Thompson Sampling-powered resilience
 - Uses cached Bayesian parameters
 - Ensures zero dropped tokens during outages
 
-```go
-// EscapeVector is automatically initialized in the client
-client := igris.NewClient(&igris.Config{
-    BaseURL: "http://localhost:8081",
-})
-
-// Automatic failover during control plane outage
-response, err := client.Infer(ctx, &igris.InferRequest{
-    Model: "gpt-4",
-    Messages: []igris.Message{
-        {Role: "user", Content: "Test during outage"},
-    },
-})
-// SDK automatically uses EscapeVector Mode if control plane is down
-```
-
-### Error Handling
-
-The SDK provides typed errors:
-
-```go
-response, err := client.Infer(ctx, req)
-if err != nil {
-    if apiErr, ok := err.(*igris.APIError); ok {
-        fmt.Printf("API Error %d: %s\n", apiErr.StatusCode, apiErr.Message)
-    } else {
-        fmt.Printf("Request error: %v\n", err)
-    }
-}
-```
-
-### Context and Timeouts
-
-All methods support context cancellation:
-
-```go
-// Request with timeout
-ctx, cancel := context.WithTimeout(context.Background(), 10*time.Second)
-defer cancel()
-
-response, err := client.Infer(ctx, req)
-```
-
----
-
-## Python SDK
-
-The Python SDK provides a thin HTTP client with authentication and error handling.
-
-### Installation
-
-```bash
-pip install igris-overture
-```
-
-### Quick Start
-
-```python
-from igris import Client
-
-# Create client
-client = Client(base_url="http://localhost:8081")
-
-# Make inference request
-response = client.infer(
-    model="gpt-4",
-    messages=[
-        {"role": "user", "content": "Hello!"}
-    ],
-    max_tokens=200
-)
-
-print(response["choices"][0]["message"]["content"])
-```
-
-### Context Manager
-
-Use the client as a context manager for automatic cleanup:
-
-```python
-with Client(base_url="http://localhost:8081") as client:
-    health = client.health()
-    print(f"Status: {health['status']}")
-```
-
-### Health Check
-
-```python
-from igris import Client, IgrisError
-
-client = Client(base_url="http://localhost:8081")
-try:
-    health = client.health()
-    print(f"Health: {health}")
-except IgrisError as e:
-    print(f"Error: {e}")
-```
+EscapeVector is automatically initialized in the client - no additional configuration needed.
 
 ---
 

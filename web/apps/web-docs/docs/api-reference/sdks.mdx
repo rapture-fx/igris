@@ -1,36 +1,37 @@
 # SDKs
 
-Official client libraries for Igris Overture in 7 languages.
+Official client libraries for Igris Overture in 4 languages.
 
 All SDKs are open-source and available on GitHub: [github.com/Igris-inertial](https://github.com/Igris-inertial)
 
 ## Supported Languages
 
 - Python
-- Rust
 - JavaScript/TypeScript
 - Go
-- Java
-- C# (.NET)
-- Ruby
+- Rust
 
 ## Quick Start
 
 ### Python SDK
 
 ```bash
-pip install schlep-engine
+pip install igris-inertial
 ```
 
 ```python
-from igris import IgrisOverture
+from igris import IgrisClient, InferRequest, Message
 
-client = IgrisOverture(api_key="YOUR_IGRIS_API_KEY")
-
-response = client.chat.completions.create(
-    model="gpt-4",
-    messages=[{"role": "user", "content": "Hello!"}]
+client = IgrisClient(
+    base_url="https://api.igris-inertial.com",
+    api_key="your-api-key",
 )
+
+response = client.infer(InferRequest(
+    model="gpt-4",
+    messages=[Message(role="user", content="Hello, world!")],
+    max_tokens=100,
+))
 
 print(response.choices[0].message.content)
 ```
@@ -39,45 +40,24 @@ print(response.choices[0].message.content)
 
 ---
 
-### Rust SDK
-
-```bash
-cargo add schlep_engine
-```
-
-```rust
-use schlep_engine::{SchlepClient, Result};
-
-#[tokio::main]
-async fn main() -> Result<()> {
-    let client = SchlepClient::new("YOUR_IGRIS_API_KEY")?;
-
-    let response = client.infer(/* ... */).await?;
-
-    Ok(())
-}
-```
-
-**Repository:** [github.com/Igris-inertial/igris-rust-sdk](https://github.com/Igris-inertial/igris-rust-sdk)
-
----
-
 ### JavaScript/TypeScript SDK
 
 ```bash
-npm install @igris-inertial/javascript-sdk
+npm install @igris-inertial/sdk
 ```
 
 ```typescript
-import { IgrisOverture } from '@igris-inertial/javascript-sdk';
+import { IgrisClient } from '@igris-inertial/sdk';
 
-const client = new IgrisOverture({
-  apiKey: process.env.IGRIS_API_KEY
+const client = new IgrisClient({
+  baseUrl: 'https://api.igris-inertial.com',
+  apiKey: 'your-api-key',
 });
 
-const response = await client.chat.completions.create({
+const response = await client.infer({
   model: 'gpt-4',
-  messages: [{ role: 'user', content: 'Hello!' }]
+  messages: [{ role: 'user', content: 'Hello, world!' }],
+  max_tokens: 100,
 });
 
 console.log(response.choices[0].message.content);
@@ -90,18 +70,21 @@ console.log(response.choices[0].message.content);
 ### Go SDK
 
 ```bash
-go get github.com/Igris-inertial/igris-go-sdk
+go get github.com/igris-inertial/go-sdk
 ```
 
 ```go
-import igrisengine "github.com/Igris-inertial/igris-go-sdk"
+import igris "github.com/igris-inertial/go-sdk"
 
-client := igrisengine.NewClient("YOUR_IGRIS_API_KEY")
+client := igris.NewClient(
+    "https://api.igris-inertial.com",
+    "your-api-key",
+)
 
-resp, err := client.Chat.Completions.Create(context.Background(), igrisengine.ChatCompletionRequest{
+resp, err := client.Infer(ctx, &igris.InferRequest{
     Model: "gpt-4",
-    Messages: []igrisengine.Message{
-        {Role: "user", Content: "Hello!"},
+    Messages: []igris.Message{
+        {Role: "user", Content: "Hello, world!"},
     },
 })
 
@@ -112,72 +95,39 @@ fmt.Println(resp.Choices[0].Message.Content)
 
 ---
 
-### Java SDK
-
-```xml
-<dependency>
-    <groupId>io.schlepengine</groupId>
-    <artifactId>schlep-engine-sdk</artifactId>
-    <version>1.0.0</version>
-</dependency>
-```
-
-```java
-import io.schlepengine.SchlepClient;
-
-SchlepClient client = new SchlepClient("YOUR_IGRIS_API_KEY");
-
-var response = client.infer(/* ... */);
-```
-
-**Repository:** [github.com/Igris-inertial/igris-java-sdk](https://github.com/Igris-inertial/igris-java-sdk)
-
----
-
-### C# (.NET) SDK
+### Rust SDK
 
 ```bash
-dotnet add package SchlepEngine.SDK
+cargo add igris-inertial
 ```
 
-```csharp
-using SchlepEngine.SDK;
+```rust
+use igris_inertial::{IgrisClient, InferRequest, Message};
 
-var client = new SchlepClient("YOUR_IGRIS_API_KEY");
+#[tokio::main]
+async fn main() -> Result<(), Box<dyn std::error::Error>> {
+    let client = IgrisClient::builder("https://api.igris-inertial.com")
+        .api_key("your-api-key")
+        .build()?;
 
-var response = await client.Chat.Completions.CreateAsync(new ChatCompletionRequest
-{
-    Model = "gpt-4",
-    Messages = new[] { new Message { Role = "user", Content = "Hello!" } }
-});
+    let request = InferRequest {
+        model: "gpt-4".to_string(),
+        messages: vec![Message {
+            role: "user".to_string(),
+            content: "Hello, world!".to_string(),
+            ..Default::default()
+        }],
+        ..Default::default()
+    };
 
-Console.WriteLine(response.Choices[0].Message.Content);
+    let response = client.infer(&request).await?;
+    println!("{}", response.choices[0].message.content);
+
+    Ok(())
+}
 ```
 
-**Repository:** [github.com/Igris-inertial/igris-csharp-sdk](https://github.com/Igris-inertial/igris-csharp-sdk)
-
----
-
-### Ruby SDK
-
-```bash
-gem install schlep_engine
-```
-
-```ruby
-require 'schlep_engine'
-
-client = SchlepEngine::Client.new(api_key: 'YOUR_IGRIS_API_KEY')
-
-response = client.chat.completions.create(
-  model: 'gpt-4',
-  messages: [{ role: 'user', content: 'Hello!' }]
-)
-
-puts response.choices[0].message.content
-```
-
-**Repository:** [github.com/Igris-inertial/igris-ruby-sdk](https://github.com/Igris-inertial/igris-ruby-sdk)
+**Repository:** [github.com/Igris-inertial/igris-rust-sdk](https://github.com/Igris-inertial/igris-rust-sdk)
 
 ---
 
@@ -237,12 +187,9 @@ client := openai.NewClientWithConfig(config)
 All SDKs are MIT licensed and open-source:
 
 - **Python:** [github.com/Igris-inertial/igris-python-sdk](https://github.com/Igris-inertial/igris-python-sdk)
-- **Rust:** [github.com/Igris-inertial/igris-rust-sdk](https://github.com/Igris-inertial/igris-rust-sdk)
 - **JavaScript:** [github.com/Igris-inertial/igris-javascript-sdk](https://github.com/Igris-inertial/igris-javascript-sdk)
 - **Go:** [github.com/Igris-inertial/igris-go-sdk](https://github.com/Igris-inertial/igris-go-sdk)
-- **Java:** [github.com/Igris-inertial/igris-java-sdk](https://github.com/Igris-inertial/igris-java-sdk)
-- **C#:** [github.com/Igris-inertial/igris-csharp-sdk](https://github.com/Igris-inertial/igris-csharp-sdk)
-- **Ruby:** [github.com/Igris-inertial/igris-ruby-sdk](https://github.com/Igris-inertial/igris-ruby-sdk)
+- **Rust:** [github.com/Igris-inertial/igris-rust-sdk](https://github.com/Igris-inertial/igris-rust-sdk)
 
 View all repositories: [github.com/orgs/Igris-inertial/repositories](https://github.com/orgs/Igris-inertial/repositories)
 
