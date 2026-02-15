@@ -22,21 +22,33 @@ export default function AutonomousSystems() {
       <div className="mx-auto max-w-[1100px] px-4 sm:px-6 lg:px-8">
         <div className="px-4 md:px-8 lg:px-12" style={{ borderLeft: borderStyle, borderRight: borderStyle }}>
           {/* Title */}
-          <div className="flex items-center justify-between" style={{ paddingTop: '3rem', paddingBottom: '2rem' }}>
-            <div>
-              <h2 className="text-xl md:text-2xl lg:text-3xl text-[#000000] dark:text-[#f6f6f4]" style={{ fontFamily }}>
-                One System. Two Environments.
-              </h2>
-            </div>
+          <div className="flex flex-col md:flex-row md:items-start md:justify-between gap-4 md:gap-8" style={{ paddingTop: '3rem', paddingBottom: '2rem' }}>
+            <h2 className="text-xl md:text-2xl lg:text-3xl text-[#000000] dark:text-[#f6f6f4]" style={{ fontFamily }}>
+              One System. Two Environments.
+            </h2>
+            <p className="text-sm md:text-base text-gray-600 dark:text-[#a8a898] max-w-md" style={{ fontFamily }}>
+              The same nervous system governs AI execution—whether your system thinks in code or moves in space.
+            </p>
           </div>
 
           {/* Full-width border below title */}
           <div style={{ borderTop: borderStyle, width: '100vw', marginLeft: '50%', transform: 'translateX(-50%)' }} />
 
-          {/* Row 1 */}
+          {/* Row 1 - AI Agents */}
           <div className="grid grid-cols-1 md:grid-cols-2" style={{ minHeight: '280px' }}>
-            {/* Col 1 - Image + Button */}
-            <div className="relative flex flex-col justify-end items-end" style={{ borderRight: borderStyle, minHeight: '280px' }}>
+            {/* Col 1 - Text */}
+            <div className="flex flex-col pt-6 pb-8 pr-4" style={{ borderRight: borderStyle }}>
+              <div className="max-w-md">
+                <h3 className="text-base md:text-lg mb-2 text-[#000000] dark:text-[#f6f6f4]" style={{ fontFamily }}>
+                  For AI agents
+                </h3>
+                <p className="text-sm md:text-base text-gray-600 dark:text-[#a8a898] leading-relaxed" style={{ fontFamily }}>
+                  Run on servers. Coordinate distributed fleets. Prove every decision to regulators. Survive when cloud APIs fail.
+                </p>
+              </div>
+            </div>
+            {/* Col 2 - Image + Button */}
+            <div className="relative flex flex-col justify-end items-end" style={{ minHeight: '280px' }}>
               <Image
                 src="/sft.png"
                 alt="AI Agents"
@@ -53,17 +65,6 @@ export default function AutonomousSystems() {
                 <ChevronRight className="ml-1 h-4 w-4" />
               </Link>
             </div>
-            {/* Col 2 - Text */}
-            <div className="flex flex-col pt-6 pb-8 pl-4">
-              <div className="max-w-md">
-                <p className="text-sm md:text-base text-gray-600 dark:text-[#a8a898] leading-relaxed mb-3" style={{ fontFamily }}>
-                  The same system governs AI execution in software and robotics environments.
-                </p>
-                <p className="text-sm md:text-base text-gray-600 dark:text-[#a8a898] leading-relaxed" style={{ fontFamily }}>
-                  If you're building AI agents that run on servers, see how execution, coordination, and verification apply to software-based systems.
-                </p>
-              </div>
-            </div>
           </div>
         </div>
       </div>
@@ -71,21 +72,21 @@ export default function AutonomousSystems() {
       {/* Full-width middle border */}
       <div style={{ borderTop: borderStyle }} />
 
-          {/* Row 2 */}
+      {/* Row 2 - Robots */}
       <div className="mx-auto max-w-[1100px] px-4 sm:px-6 lg:px-8">
         <div className="px-4 md:px-8 lg:px-12" style={{ borderLeft: borderStyle, borderRight: borderStyle }}>
           <div className="grid grid-cols-1 md:grid-cols-2" style={{ minHeight: '280px' }}>
             {/* Col 1 - Text */}
             <div className="flex flex-col pt-6 pb-8 pr-4" style={{ borderRight: borderStyle }}>
-            <div className="max-w-md">
-              <p className="text-sm md:text-base text-gray-600 dark:text-[#a8a898] leading-relaxed mb-3" style={{ fontFamily }}>
-                If you're building robots or edge devices, see how the system integrates with ROS 2 and enforces safe, bounded AI execution in the physical world.
-              </p>
-              <p className="text-sm md:text-base text-gray-600 dark:text-[#a8a898] leading-relaxed" style={{ fontFamily }}>
-                Different environments. The same nervous system.
-              </p>
+              <div className="max-w-md">
+                <h3 className="text-base md:text-lg mb-2 text-[#000000] dark:text-[#f6f6f4]" style={{ fontFamily }}>
+                  For robots
+                </h3>
+                <p className="text-sm md:text-base text-gray-600 dark:text-[#a8a898] leading-relaxed" style={{ fontFamily }}>
+                  Integrate with ROS 2. Control physical motors. Enforce safety limits. Execute offline indefinitely.
+                </p>
+              </div>
             </div>
-          </div>
             {/* Col 2 - Full Background Image */}
             <div className="relative flex flex-col justify-end items-end" style={{ minHeight: '280px' }}>
               <Image

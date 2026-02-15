@@ -5,16 +5,16 @@ import { useTheme } from 'next-themes'
 
 const capabilities = [
   {
-    name: 'Execution',
-    description: 'Runs AI with defined limits, ensuring behavior remains predictable across devices and fleets.',
+    name: 'Execute with Bounds',
+    description: 'Deterministic runtime with enforced limits on memory, CPU, and execution time. Exceed them and the process terminates cleanly. No leaks. No drift. Deterministic or terminated.',
   },
   {
-    name: 'Intelligence',
-    description: 'Handles decision-making using language models, while execution remains structured and controlled.',
+    name: 'Decide with Structure',
+    description: 'Language models reason. The runtime governs. Every suggestion passes through structured decision paths before becoming action. Intelligence remains flexible. Execution remains controlled.',
   },
   {
-    name: 'Memory & Proof',
-    description: 'Keeps a complete record of decisions and execution, with cryptographic verification for auditing and review.',
+    name: 'Remember with Proof',
+    description: 'Every decision is recorded and cryptographically signed (Ed25519). The result is a tamper-evident history of what ran, when, and why — independent of our control plane.',
   },
 ]
 
@@ -33,7 +33,7 @@ export default function CoreCapabilities() {
           {/* Title */}
           <div className="flex items-center justify-between" style={{ paddingTop: '3rem', paddingBottom: '2rem' }}>
             <h3 className="text-xl md:text-2xl lg:text-3xl text-[#000000] dark:text-[#f6f6f4]" style={{ fontFamily: '-apple-system, BlinkMacSystemFont, "Segoe UI", Roboto, Helvetica, Arial, sans-serif' }}>
-              Every layer working together
+              The Guarantees
             </h3>
             <Link
               href="/core"
