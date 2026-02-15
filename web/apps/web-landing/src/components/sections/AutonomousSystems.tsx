@@ -51,7 +51,7 @@ export default function AutonomousSystems() {
             {/* Col 2 - Image + Button */}
             <div className="relative rounded-r-2xl overflow-hidden" style={{ minHeight: '280px' }}>
               <div 
-                className="absolute top-4 bottom-4 left-4 right-0 bg-cover bg-center rounded-xl"
+                className="absolute top-2 bottom-2 left-2 right-0 bg-cover bg-center rounded-xl"
                 style={{ 
                   backgroundImage: 'url(/sft.png)',
                   backgroundSize: '120%',
@@ -92,8 +92,8 @@ export default function AutonomousSystems() {
               </div>
             </div>
             {/* Col 2 - Full Background Image */}
-            <div className="relative flex flex-col justify-end items-end rounded-r-2xl overflow-hidden p-4" style={{ minHeight: '280px' }}>
-              <div className="absolute inset-4 rounded-xl overflow-hidden">
+            <div className="relative flex flex-col justify-end items-end rounded-r-2xl overflow-hidden" style={{ minHeight: '280px' }}>
+              <div className="absolute top-2 bottom-2 left-2 right-0 rounded-xl overflow-hidden">
                 <Image
                   src="/roz.png"
                   alt="Robotics"
