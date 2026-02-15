@@ -51,17 +51,17 @@ export default function AutonomousSystems() {
             {/* Col 2 - Image + Button */}
             <div className="relative rounded-r-2xl overflow-hidden" style={{ minHeight: '280px' }}>
               <div 
-                className="absolute inset-0 bg-cover bg-center"
+                className="absolute top-4 bottom-4 left-4 right-0 bg-cover bg-center rounded-xl"
                 style={{ 
                   backgroundImage: 'url(/sft.png)',
-                  backgroundSize: '150%',
+                  backgroundSize: '120%',
                   opacity: 0.9
                 }}
               />
               <div className="absolute top-4 right-4 z-10">
                 <Link
                   href="/ai-agents"
-                  className="inline-flex items-center justify-center px-4 py-2 hover:opacity-80 transition-all duration-200 text-sm font-medium shadow-sm rounded-md border"
+                  className="inline-flex items-center justify-center px-4 py-2 hover:opacity-80 transition-all duration-200 text-sm font-medium shadow-sm rounded-md border m-4"
                   style={{ backgroundColor: mounted && theme === 'dark' ? '#1b1912' : '#f6f6f4', color: mounted && theme === 'dark' ? '#f6f6f4' : '#1b1912', borderColor: 'rgba(20, 18, 10, 0.1)', fontFamily }}
                 >
                   AI Agents
@@ -92,14 +92,16 @@ export default function AutonomousSystems() {
               </div>
             </div>
             {/* Col 2 - Full Background Image */}
-            <div className="relative flex flex-col justify-end items-end" style={{ minHeight: '280px' }}>
-              <Image
-                src="/roz.png"
-                alt="Robotics"
-                fill
-                className="object-cover"
-                style={{ opacity: 0.9 }}
-              />
+            <div className="relative flex flex-col justify-end items-end rounded-r-2xl overflow-hidden p-4" style={{ minHeight: '280px' }}>
+              <div className="absolute inset-4 rounded-xl overflow-hidden">
+                <Image
+                  src="/roz.png"
+                  alt="Robotics"
+                  fill
+                  className="object-cover"
+                  style={{ opacity: 0.9 }}
+                />
+              </div>
               <Link
                 href="/robotics"
                 className="relative z-10 inline-flex items-center justify-center px-4 py-2 hover:opacity-80 transition-all duration-200 text-sm font-medium shadow-sm rounded-md border m-4"
