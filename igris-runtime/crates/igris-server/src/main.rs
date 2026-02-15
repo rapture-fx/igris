@@ -242,6 +242,219 @@ struct LoraTrainingStatusResponse {
     last_result: Option<serde_json::Value>,
 }
 
+// ============================================================================
+// Model Management types and handlers
+// ============================================================================
+
+/// Model info response
+#[derive(Debug, Clone, Serialize, Deserialize, utoipa::ToSchema)]
+struct ModelInfoResponse {
+    name: String,
+    path: String,
+    context_size: u32,
+    status: String,
+    n_gpu_layers: u32,
+    #[serde(skip_serializing_if = "Option::is_none")]
+    lora_adapter_path: Option<String>,
+}
+
+/// Load model request
+#[derive(Debug, Clone, Serialize, Deserialize, utoipa::ToSchema)]
+struct LoadModelRequest {
+    /// Path to the GGUF model file
+    model_path: String,
+    /// Number of GPU layers to offload
+    #[serde(default)]
+    n_gpu_layers: Option<u32>,
+    /// Context size for the model
+    #[serde(default)]
+    context_size: Option<u32>,
+}
+
+/// Swap model request
+#[derive(Debug, Clone, Serialize, Deserialize, utoipa::ToSchema)]
+struct SwapModelRequest {
+    /// Path to the new GGUF model file
+    model_path: String,
+    /// Optional LoRA adapter path
+    #[serde(default)]
+    lora_adapter_path: Option<String>,
+    /// Number of GPU layers to offload
+    #[serde(default)]
+    n_gpu_layers: Option<u32>,
+    /// Context size for the model
+    #[serde(default)]
+    context_size: Option<u32>,
+}
+
+/// List loaded models
+#[utoipa::path(
+    get,
+    path = "/v1/admin/models",
+    tag = "admin",
+    responses(
+        (status = 200, description = "List of loaded models", body = Vec<ModelInfoResponse>)
+    )
+)]
+async fn list_models(State(state): State<AppState>) -> Result<Response, ApiError> {
+    let Some(local_provider) = &state.local_provider else {
+        return Ok((StatusCode::OK, Json(serde_json::json!({
+            "models": [],
+            "local_llm_enabled": false
+        }))).into_response());
+    };
+
+    let config = local_provider.config().await;
+    let adapter_path = local_provider.get_adapter_path().await;
+
+    let model_info = ModelInfoResponse {
+        name: config.model_display_name(),
+        path: config.resolve_model_path(),
+        context_size: config.resolve_context_size(),
+        status: "loaded".to_string(),
+        n_gpu_layers: config.n_gpu_layers,
+        lora_adapter_path: adapter_path.map(|p| p.display().to_string()),
+    };
+
+    Ok((StatusCode::OK, Json(serde_json::json!({
+        "models": [model_info],
+        "local_llm_enabled": true
+    }))).into_response())
+}
+
+/// Load a GGUF model
+#[utoipa::path(
+    post,
+    path = "/v1/admin/models/load",
+    tag = "admin",
+    request_body = LoadModelRequest,
+    responses(
+        (status = 200, description = "Model loaded successfully", body = ModelInfoResponse),
+        (status = 400, description = "Bad request", body = ErrorResponse),
+        (status = 503, description = "Local LLM not enabled", body = ErrorResponse)
+    )
+)]
+async fn load_model(
+    State(state): State<AppState>,
+    Json(req): Json<LoadModelRequest>,
+) -> Result<Response, ApiError> {
+    let Some(local_provider) = &state.local_provider else {
+        return Err(ApiError::ServiceUnavailable(
+            "Local LLM is not enabled. Configure local_fallback in config to use model management.".to_string()
+        ));
+    };
+
+    let model_path = std::path::PathBuf::from(&req.model_path);
+    if !model_path.exists() {
+        return Err(ApiError::BadRequest(format!(
+            "Model file not found: {}",
+            req.model_path
+        )));
+    }
+
+    info!("Loading model: {}", req.model_path);
+
+    local_provider
+        .hot_swap(
+            model_path,
+            req.context_size,
+            None, // threads
+            req.n_gpu_layers,
+            None, // main_gpu
+        )
+        .await
+        .map_err(|e| ApiError::InternalError(format!("Failed to load model: {}", e)))?;
+
+    let config = local_provider.config().await;
+
+    let model_info = ModelInfoResponse {
+        name: config.model_display_name(),
+        path: config.resolve_model_path(),
+        context_size: config.resolve_context_size(),
+        status: "loaded".to_string(),
+        n_gpu_layers: config.n_gpu_layers,
+        lora_adapter_path: None,
+    };
+
+    info!("Model loaded successfully: {}", req.model_path);
+    Ok((StatusCode::OK, Json(model_info)).into_response())
+}
+
+/// Hot-swap the active model
+#[utoipa::path(
+    post,
+    path = "/v1/admin/models/swap",
+    tag = "admin",
+    request_body = SwapModelRequest,
+    responses(
+        (status = 200, description = "Model swapped successfully", body = ModelInfoResponse),
+        (status = 400, description = "Bad request", body = ErrorResponse),
+        (status = 503, description = "Local LLM not enabled", body = ErrorResponse)
+    )
+)]
+async fn swap_model(
+    State(state): State<AppState>,
+    Json(req): Json<SwapModelRequest>,
+) -> Result<Response, ApiError> {
+    let Some(local_provider) = &state.local_provider else {
+        return Err(ApiError::ServiceUnavailable(
+            "Local LLM is not enabled. Configure local_fallback in config to use model management.".to_string()
+        ));
+    };
+
+    let model_path = std::path::PathBuf::from(&req.model_path);
+    if !model_path.exists() {
+        return Err(ApiError::BadRequest(format!(
+            "Model file not found: {}",
+            req.model_path
+        )));
+    }
+
+    info!("Swapping model to: {}", req.model_path);
+
+    // Swap the base model
+    local_provider
+        .hot_swap(
+            model_path,
+            req.context_size,
+            None,
+            req.n_gpu_layers,
+            None,
+        )
+        .await
+        .map_err(|e| ApiError::InternalError(format!("Failed to swap model: {}", e)))?;
+
+    // Optionally load LoRA adapter
+    if let Some(ref lora_path) = req.lora_adapter_path {
+        let adapter_path = std::path::PathBuf::from(lora_path);
+        if !adapter_path.exists() {
+            return Err(ApiError::BadRequest(format!(
+                "LoRA adapter file not found: {}",
+                lora_path
+            )));
+        }
+        local_provider
+            .load_lora_adapter(Some(adapter_path))
+            .await
+            .map_err(|e| ApiError::InternalError(format!("Failed to load LoRA adapter: {}", e)))?;
+    }
+
+    let config = local_provider.config().await;
+    let adapter_path = local_provider.get_adapter_path().await;
+
+    let model_info = ModelInfoResponse {
+        name: config.model_display_name(),
+        path: config.resolve_model_path(),
+        context_size: config.resolve_context_size(),
+        status: "loaded".to_string(),
+        n_gpu_layers: config.n_gpu_layers,
+        lora_adapter_path: adapter_path.map(|p| p.display().to_string()),
+    };
+
+    info!("Model swapped successfully: {}", req.model_path);
+    Ok((StatusCode::OK, Json(model_info)).into_response())
+}
+
 /// Planning request
 #[derive(Debug, Clone, Serialize, Deserialize, utoipa::ToSchema)]
 struct PlanningRequest {
@@ -2167,6 +2380,10 @@ async fn main() -> anyhow::Result<()> {
         .route("/v1/chat/completions", post(chat_completions))
         .route("/v1/plan", post(plan_endpoint))
         .route("/v1/reflect", post(reflect_endpoint))
+        // Model management endpoints
+        .route("/v1/admin/models", get(list_models))
+        .route("/v1/admin/models/load", post(load_model))
+        .route("/v1/admin/models/swap", post(swap_model))
         .route("/v1/fleet/instances", get(fleet_instances))
         .route("/v1/fleet/metrics", get(fleet_metrics))
         // Federated Learning endpoints
