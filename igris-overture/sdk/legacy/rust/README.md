@@ -1,10 +1,10 @@
-# Schlep-engine Rust SDK
+# Igris-engine Rust SDK
 
 **Status:** 🚧 In Development - Planned for Future Release
 
 ## Overview
 
-The Schlep-engine Rust SDK is currently under development and not yet ready for production use.
+The Igris-engine Rust SDK is currently under development and not yet ready for production use.
 
 ## Planned Features
 
@@ -19,14 +19,14 @@ The Schlep-engine Rust SDK is currently under development and not yet ready for 
 
 ```toml
 [dependencies]
-schlep = "1.0.0"
+igris = "1.0.0"
 tokio = { version = "1", features = ["full"] }
 ```
 
 ## Planned Usage
 
 ```rust
-use schlep::{Client, InferRequest, Message};
+use igris::{Client, InferRequest, Message};
 
 #[tokio::main]
 async fn main() -> Result<(), Box<dyn std::error::Error>> {
@@ -77,4 +77,4 @@ For questions or to express interest in early access:
 
 ---
 
-**Schlep-engine** - Intelligent AI Routing and Cost Optimization
+**Igris-engine** - Intelligent AI Routing and Cost Optimization

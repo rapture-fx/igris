@@ -1,5 +1,5 @@
 #!/bin/bash
-# Database restore script for Schlep Engine
+# Database restore script for Igris Inertial
 
 set -e
 

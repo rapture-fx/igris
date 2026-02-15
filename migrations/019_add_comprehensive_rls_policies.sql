@@ -23,10 +23,10 @@
 -- ============================================================================
 DO $$
 BEGIN
-    IF NOT EXISTS (SELECT 1 FROM pg_roles WHERE rolname = 'schlep_service') THEN
-        CREATE ROLE schlep_service;
-        GRANT ALL PRIVILEGES ON ALL TABLES IN SCHEMA public TO schlep_service;
-        GRANT ALL PRIVILEGES ON ALL SEQUENCES IN SCHEMA public TO schlep_service;
+    IF NOT EXISTS (SELECT 1 FROM pg_roles WHERE rolname = 'igris_service') THEN
+        CREATE ROLE igris_service;
+        GRANT ALL PRIVILEGES ON ALL TABLES IN SCHEMA public TO igris_service;
+        GRANT ALL PRIVILEGES ON ALL SEQUENCES IN SCHEMA public TO igris_service;
     END IF;
 END$$;
 
@@ -50,7 +50,7 @@ BEGIN
         -- Service role bypass
         CREATE POLICY budgets_service_policy ON budgets
             FOR ALL
-            TO schlep_service
+            TO igris_service
             USING (TRUE);
 
         RAISE NOTICE 'RLS enabled on budgets table';
@@ -74,7 +74,7 @@ BEGIN
 
         CREATE POLICY spending_log_service_policy ON spending_log
             FOR ALL
-            TO schlep_service
+            TO igris_service
             USING (TRUE);
 
         RAISE NOTICE 'RLS enabled on spending_log table';
@@ -98,7 +98,7 @@ BEGIN
 
         CREATE POLICY policy_settings_service_policy ON policy_settings
             FOR ALL
-            TO schlep_service
+            TO igris_service
             USING (TRUE);
 
         RAISE NOTICE 'RLS enabled on policy_settings table';
@@ -122,7 +122,7 @@ BEGIN
 
         CREATE POLICY audit_events_service_policy ON audit_events
             FOR ALL
-            TO schlep_service
+            TO igris_service
             USING (TRUE);
 
         RAISE NOTICE 'RLS enabled on audit_events table';
@@ -147,7 +147,7 @@ BEGIN
 
         CREATE POLICY feedback_events_service_policy ON feedback_events
             FOR ALL
-            TO schlep_service
+            TO igris_service
             USING (TRUE);
 
         RAISE NOTICE 'RLS enabled on feedback_events table';
@@ -171,7 +171,7 @@ BEGIN
 
         CREATE POLICY cognitive_proposals_service_policy ON cognitive_proposals
             FOR ALL
-            TO schlep_service
+            TO igris_service
             USING (TRUE);
 
         RAISE NOTICE 'RLS enabled on cognitive_proposals table';
@@ -195,7 +195,7 @@ BEGIN
 
         CREATE POLICY policy_versions_service_policy ON policy_versions
             FOR ALL
-            TO schlep_service
+            TO igris_service
             USING (TRUE);
 
         RAISE NOTICE 'RLS enabled on policy_versions table';
@@ -219,7 +219,7 @@ BEGIN
 
         CREATE POLICY sla_configurations_service_policy ON sla_configurations
             FOR ALL
-            TO schlep_service
+            TO igris_service
             USING (TRUE);
 
         RAISE NOTICE 'RLS enabled on sla_configurations table';
@@ -243,7 +243,7 @@ BEGIN
 
         CREATE POLICY sla_violations_service_policy ON sla_violations
             FOR ALL
-            TO schlep_service
+            TO igris_service
             USING (TRUE);
 
         RAISE NOTICE 'RLS enabled on sla_violations table';
@@ -272,7 +272,7 @@ BEGIN
 
         CREATE POLICY self_tuning_history_service_policy ON self_tuning_history
             FOR ALL
-            TO schlep_service
+            TO igris_service
             USING (TRUE);
 
         RAISE NOTICE 'RLS enabled on self_tuning_history table';

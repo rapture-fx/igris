@@ -1,5 +1,5 @@
 """
-Performance and load tests for Schlep-engine Python SDK
+Performance and load tests for Igris-engine Python SDK
 """
 
 import pytest
@@ -10,10 +10,10 @@ from unittest.mock import AsyncMock, MagicMock, patch
 import concurrent.futures
 from typing import List, Dict, Any
 
-from schlep_engine import SchlepEngineClient
-from schlep_engine.exceptions.base import APIError, RateLimitError
-from schlep_engine.utils.rate_limiter import RateLimiter
-from schlep_engine.models.common import APIResponse
+from igris import IgrisClient
+from igris.exceptions.base import APIError, RateLimitError
+from igris.utils.rate_limiter import RateLimiter
+from igris.models.common import APIResponse
 
 
 @pytest.mark.performance
@@ -23,7 +23,7 @@ class TestSDKPerformance:
     @pytest.fixture
     def performance_client(self, test_api_key, test_base_url):
         """Performance testing client with optimized settings."""
-        return SchlepEngineClient(
+        return IgrisClient(
             api_key=test_api_key,
             base_url=test_base_url,
             timeout=30.0,
@@ -349,7 +349,7 @@ class TestLoadHandling:
         client_refs = []
         
         async def create_and_use_client():
-            temp_client = SchlepEngineClient(
+            temp_client = IgrisClient(
                 api_key="test-key",
                 base_url="https://api.test.com"
             )

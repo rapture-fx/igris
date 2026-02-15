@@ -10,7 +10,7 @@
 //!
 //! # Example
 //! ```no_run
-//! use schlep_kernel::orchestration::FeedbackLoop;
+//! use igris_kernel::orchestration::FeedbackLoop;
 //!
 //! let loop_engine = FeedbackLoop::new(config);
 //! let reward = loop_engine.compute_reward(&metrics);

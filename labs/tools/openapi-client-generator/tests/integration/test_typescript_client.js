@@ -16,13 +16,13 @@ if (!fs.existsSync(packageJsonPath)) {
 }
 
 // Try to import the generated client
-let SchlepEngineClient, Configuration, ApiClient;
+let IgrisClient, Configuration, ApiClient;
 try {
     // Add the generated client to module path
     require('module')._nodeModulePaths.unshift(clientPath);
     
     const clientModule = require(clientPath);
-    SchlepEngineClient = clientModule.SchlepEngineClient;
+    IgrisClient = clientModule.IgrisClient;
     Configuration = clientModule.Configuration;
     ApiClient = clientModule.ApiClient;
 } catch (error) {
@@ -31,13 +31,13 @@ try {
 }
 
 describe('TypeScript Client Integration Tests', () => {
-    const baseUrl = 'https://api.schlep-engine.com';
+    const baseUrl = 'https://api.igris-inertial.com';
     const apiKey = 'test_api_key_12345';
     const testTimeout = 30000;
 
     describe('Client Creation', () => {
         test('should create client instance', () => {
-            const client = new SchlepEngineClient({
+            const client = new IgrisClient({
                 basePath: baseUrl,
                 apiKey: apiKey
             });
@@ -78,7 +78,7 @@ describe('TypeScript Client Integration Tests', () => {
             // Mock fetch globally
             global.fetch = mockFetch;
             
-            const client = new SchlepEngineClient({
+            const client = new IgrisClient({
                 basePath: baseUrl,
                 apiKey: apiKey
             });
@@ -101,7 +101,7 @@ describe('TypeScript Client Integration Tests', () => {
 
         test('should handle missing API key', () => {
             expect(() => {
-                new SchlepEngineClient({
+                new IgrisClient({
                     basePath: baseUrl
                     // No API key provided
                 });
@@ -121,7 +121,7 @@ describe('TypeScript Client Integration Tests', () => {
             
             global.fetch = mockFetch;
             
-            const client = new SchlepEngineClient({
+            const client = new IgrisClient({
                 basePath: baseUrl,
                 apiKey: apiKey
             });
@@ -146,7 +146,7 @@ describe('TypeScript Client Integration Tests', () => {
             
             global.fetch = mockFetch;
             
-            const client = new SchlepEngineClient({
+            const client = new IgrisClient({
                 basePath: baseUrl,
                 apiKey: apiKey
             });
@@ -164,7 +164,7 @@ describe('TypeScript Client Integration Tests', () => {
             
             global.fetch = mockFetch;
             
-            const client = new SchlepEngineClient({
+            const client = new IgrisClient({
                 basePath: baseUrl,
                 apiKey: apiKey,
                 timeout: 1000
@@ -190,7 +190,7 @@ describe('TypeScript Client Integration Tests', () => {
             
             global.fetch = mockFetch;
             
-            const client = new SchlepEngineClient({
+            const client = new IgrisClient({
                 basePath: baseUrl,
                 apiKey: apiKey
             });
@@ -207,11 +207,11 @@ describe('TypeScript Client Integration Tests', () => {
             const userAgent = requestInit.headers['User-Agent'];
             
             expect(userAgent).toBeDefined();
-            expect(userAgent).toContain('schlep-engine');
+            expect(userAgent).toContain('igris-inertial');
         });
 
         test('should handle custom request timeout', async () => {
-            const client = new SchlepEngineClient({
+            const client = new IgrisClient({
                 basePath: baseUrl,
                 apiKey: apiKey,
                 timeout: 5000
@@ -223,7 +223,7 @@ describe('TypeScript Client Integration Tests', () => {
         test('should handle custom base path', () => {
             const customBasePath = 'https://custom-api.example.com';
             
-            const client = new SchlepEngineClient({
+            const client = new IgrisClient({
                 basePath: customBasePath,
                 apiKey: apiKey
             });
@@ -242,7 +242,7 @@ describe('TypeScript Client Integration Tests', () => {
                 objectField: { nested: 'value' }
             };
             
-            const client = new SchlepEngineClient({
+            const client = new IgrisClient({
                 basePath: baseUrl,
                 apiKey: apiKey
             });
@@ -273,7 +273,7 @@ describe('TypeScript Client Integration Tests', () => {
     describe('Type Safety', () => {
         test('should maintain TypeScript type safety', () => {
             // This test verifies that TypeScript types are properly generated
-            const client = new SchlepEngineClient({
+            const client = new IgrisClient({
                 basePath: baseUrl,
                 apiKey: apiKey
             });
@@ -319,7 +319,7 @@ describe('TypeScript Client Integration Tests', () => {
         });
 
         test('should connect to local development server', async () => {
-            const client = new SchlepEngineClient({
+            const client = new IgrisClient({
                 basePath: 'http://localhost:8000',
                 apiKey: 'test_key'
             });

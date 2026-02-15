@@ -1,9 +1,9 @@
 /**
- * Performance and load tests for Schlep-engine JavaScript SDK
+ * Performance and load tests for Igris-engine JavaScript SDK
  */
 
 import { describe, test, expect, beforeEach, afterEach, jest } from '@jest/globals';
-import { SchlepEngineClient } from '../src/client/schlep-engine';
+import { IgrisClient } from '../src/client/igris-inertial';
 import { APIError, RateLimitError, NetworkError } from '../src/utils/errors';
 import { mockResponse, mockApiError } from './setup';
 
@@ -17,10 +17,10 @@ Object.defineProperty(global, 'performance', {
 global.fetch = jest.fn();
 
 describe('SDK Performance Tests', () => {
-  let client: SchlepEngineClient;
+  let client: IgrisClient;
 
   beforeEach(() => {
-    client = new SchlepEngineClient({
+    client = new IgrisClient({
       apiKey: 'test-api-key',
       baseUrl: 'https://api.test.com',
       timeout: 30000,
@@ -71,7 +71,7 @@ describe('SDK Performance Tests', () => {
     });
 
     test('should respect connection limits', async () => {
-      const limitedClient = new SchlepEngineClient({
+      const limitedClient = new IgrisClient({
         apiKey: 'test-api-key',
         baseUrl: 'https://api.test.com',
         maxConcurrentRequests: 5
@@ -153,7 +153,7 @@ describe('SDK Performance Tests', () => {
     });
 
     test('should handle timeout scenarios gracefully', async () => {
-      const shortTimeoutClient = new SchlepEngineClient({
+      const shortTimeoutClient = new IgrisClient({
         apiKey: 'test-api-key',
         baseUrl: 'https://api.test.com',
         timeout: 100 // Very short timeout
@@ -215,7 +215,7 @@ describe('SDK Performance Tests', () => {
       
       // Create and destroy many clients
       for (let i = 0; i < 50; i++) {
-        const tempClient = new SchlepEngineClient({
+        const tempClient = new IgrisClient({
           apiKey: 'test-api-key',
           baseUrl: 'https://api.test.com'
         });
@@ -281,7 +281,7 @@ describe('SDK Performance Tests', () => {
       const retryDelays: number[] = [];
       let requestCount = 0;
 
-      const clientWithRetry = new SchlepEngineClient({
+      const clientWithRetry = new IgrisClient({
         apiKey: 'test-api-key',
         baseUrl: 'https://api.test.com',
         retryConfig: {
@@ -566,7 +566,7 @@ describe('SDK Performance Tests', () => {
 });
 
 describe('Browser Performance Tests', () => {
-  let client: SchlepEngineClient;
+  let client: IgrisClient;
 
   beforeEach(() => {
     // Mock browser environment
@@ -582,7 +582,7 @@ describe('Browser Performance Tests', () => {
       configurable: true
     });
 
-    client = new SchlepEngineClient({
+    client = new IgrisClient({
       apiKey: 'test-api-key',
       baseUrl: 'https://api.test.com'
     });

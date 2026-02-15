@@ -8,7 +8,7 @@
 import { jest, describe, it, expect, beforeEach, afterEach } from '@jest/globals';
 
 // Browser-specific mocks and interfaces
-interface BrowserSchlepEngineClient {
+interface BrowserIgrisClient {
   uploadFile(file: File, options?: UploadOptions): Promise<UploadResult>;
   downloadBlob(fileId: string): Promise<Blob>;
   createWebWorkerProcessor(): Promise<WebWorkerProcessor>;
@@ -55,7 +55,7 @@ interface ProcessingResult {
 }
 
 // Mock implementations for browser environment
-class MockBrowserClient implements BrowserSchlepEngineClient {
+class MockBrowserClient implements BrowserIgrisClient {
   private mockFiles = new Map<string, Blob>();
   private mockProgress = 0;
 

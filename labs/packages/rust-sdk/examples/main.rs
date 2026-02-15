@@ -1,6 +1,6 @@
-//! Basic usage example for the Schlep-engine Rust SDK.
+//! Basic usage example for the Igris-engine Rust SDK.
 
-use schlep_engine::{SchlepClient, Result};
+use igris::{IgrisClient, Result};
 use serde_json::json;
 use std::time::Duration;
 use tokio::time::sleep;
@@ -8,17 +8,17 @@ use tokio::time::sleep;
 #[tokio::main]
 async fn main() -> Result<()> {
     // Initialize the client with API key from environment variable
-    // Make sure to set SCHLEP_API_KEY before running this example
-    let client = match SchlepClient::from_env() {
+    // Make sure to set IGRIS_API_KEY before running this example
+    let client = match IgrisClient::from_env() {
         Ok(client) => client,
         Err(_) => {
-            println!("SCHLEP_API_KEY environment variable not set. Using placeholder.");
-            println!("Set your API key: export SCHLEP_API_KEY=your-api-key-here");
+            println!("IGRIS_API_KEY environment variable not set. Using placeholder.");
+            println!("Set your API key: export IGRIS_API_KEY=your-api-key-here");
             return Ok(());
         }
     };
 
-    println!("🚀 Schlep-engine Rust SDK Example");
+    println!("🚀 Igris-engine Rust SDK Example");
     println!("==================================");
 
     // Step 1: Upload data
@@ -97,7 +97,7 @@ async fn main() -> Result<()> {
 // Additional example showing error handling
 #[allow(dead_code)]
 async fn example_with_error_handling() -> Result<()> {
-    let client = SchlepClient::new("your-api-key")?;
+    let client = IgrisClient::new("your-api-key")?;
 
     match client.upload("test data").await {
         Ok(result) => {
@@ -106,13 +106,13 @@ async fn example_with_error_handling() -> Result<()> {
         Err(e) => {
             eprintln!("Upload failed: {}", e);
             match e {
-                schlep_engine::Error::Api { code, message } => {
+                igris::Error::Api { code, message } => {
                     eprintln!("API error {}: {}", code, message);
                 }
-                schlep_engine::Error::Http(http_err) => {
+                igris::Error::Http(http_err) => {
                     eprintln!("Network error: {}", http_err);
                 }
-                schlep_engine::Error::Config(config_err) => {
+                igris::Error::Config(config_err) => {
                     eprintln!("Configuration error: {}", config_err);
                 }
                 _ => {

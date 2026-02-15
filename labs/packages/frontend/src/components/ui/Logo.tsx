@@ -40,7 +40,7 @@ export function Logo({ className, size = 'md', variant = 'default' }: LogoProps)
         textSizeClasses[size],
         colorClasses[variant]
       )}>
-        Schlep
+        Igris
       </span>
     </div>
   );

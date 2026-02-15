@@ -1,6 +1,6 @@
-# Schlep-engine CLI - API Commands Documentation
+# Igris-engine CLI - API Commands Documentation
 
-This document provides comprehensive documentation for all API command modules in the Schlep-engine CLI tool.
+This document provides comprehensive documentation for all API command modules in the Igris-engine CLI tool.
 
 ## Table of Contents
 
@@ -21,7 +21,7 @@ The `analytics` command group provides operations for executing queries, managin
 ### Usage
 
 ```bash
-schlep analytics [COMMAND] [OPTIONS]
+igris analytics [COMMAND] [OPTIONS]
 ```
 
 ### Commands
@@ -32,7 +32,7 @@ Execute an analytics query against your data.
 
 **Syntax:**
 ```bash
-schlep analytics query QUERY [OPTIONS]
+igris analytics query QUERY [OPTIONS]
 ```
 
 **Arguments:**
@@ -44,13 +44,13 @@ schlep analytics query QUERY [OPTIONS]
 **Examples:**
 ```bash
 # Execute a query with table output
-schlep analytics query "SELECT * FROM sales WHERE amount > 1000"
+igris analytics query "SELECT * FROM sales WHERE amount > 1000"
 
 # Execute a query with JSON output
-schlep analytics query "SELECT region, SUM(revenue) FROM sales GROUP BY region" --format json
+igris analytics query "SELECT region, SUM(revenue) FROM sales GROUP BY region" --format json
 
 # Execute a query with CSV output for export
-schlep analytics query "SELECT * FROM customers" --format csv > customers.csv
+igris analytics query "SELECT * FROM customers" --format csv > customers.csv
 ```
 
 #### `create-report`
@@ -59,7 +59,7 @@ Create a new analytics report with custom configuration.
 
 **Syntax:**
 ```bash
-schlep analytics create-report NAME [OPTIONS]
+igris analytics create-report NAME [OPTIONS]
 ```
 
 **Arguments:**
@@ -71,10 +71,10 @@ schlep analytics create-report NAME [OPTIONS]
 **Examples:**
 ```bash
 # Create a report with default settings
-schlep analytics create-report "Monthly Sales Report"
+igris analytics create-report "Monthly Sales Report"
 
 # Create a report with custom configuration
-schlep analytics create-report "Custom Analytics" --config ./report-config.json
+igris analytics create-report "Custom Analytics" --config ./report-config.json
 ```
 
 **Sample Configuration:**
@@ -93,7 +93,7 @@ Retrieve an existing analytics report.
 
 **Syntax:**
 ```bash
-schlep analytics get-report REPORT_ID
+igris analytics get-report REPORT_ID
 ```
 
 **Arguments:**
@@ -101,7 +101,7 @@ schlep analytics get-report REPORT_ID
 
 **Examples:**
 ```bash
-schlep analytics get-report report-12345
+igris analytics get-report report-12345
 ```
 
 #### `create-dataset`
@@ -110,7 +110,7 @@ Create a new analytics dataset from a data source.
 
 **Syntax:**
 ```bash
-schlep analytics create-dataset NAME --source SOURCE
+igris analytics create-dataset NAME --source SOURCE
 ```
 
 **Arguments:**
@@ -122,10 +122,10 @@ schlep analytics create-dataset NAME --source SOURCE
 **Examples:**
 ```bash
 # Create dataset from database table
-schlep analytics create-dataset "CustomerData" --source "db://main/customers"
+igris analytics create-dataset "CustomerData" --source "db://main/customers"
 
 # Create dataset from file
-schlep analytics create-dataset "SalesData" --source "s3://bucket/sales.parquet"
+igris analytics create-dataset "SalesData" --source "s3://bucket/sales.parquet"
 ```
 
 #### `list-datasets`
@@ -134,12 +134,12 @@ List all available analytics datasets.
 
 **Syntax:**
 ```bash
-schlep analytics list-datasets
+igris analytics list-datasets
 ```
 
 **Examples:**
 ```bash
-schlep analytics list-datasets
+igris analytics list-datasets
 ```
 
 ---
@@ -151,7 +151,7 @@ The `document` command group provides document processing capabilities including
 ### Usage
 
 ```bash
-schlep document [COMMAND] [OPTIONS]
+igris document [COMMAND] [OPTIONS]
 ```
 
 ### Commands
@@ -162,7 +162,7 @@ Extract text content from various document formats.
 
 **Syntax:**
 ```bash
-schlep document extract-text FILE --format FORMAT [OPTIONS]
+igris document extract-text FILE --format FORMAT [OPTIONS]
 ```
 
 **Arguments:**
@@ -175,13 +175,13 @@ schlep document extract-text FILE --format FORMAT [OPTIONS]
 **Examples:**
 ```bash
 # Extract text from PDF
-schlep document extract-text invoice.pdf --format pdf --output invoice.txt
+igris document extract-text invoice.pdf --format pdf --output invoice.txt
 
 # Extract text from Word document
-schlep document extract-text report.docx --format docx --output report.txt
+igris document extract-text report.docx --format docx --output report.txt
 
 # Extract text and display in terminal
-schlep document extract-text document.pdf --format pdf
+igris document extract-text document.pdf --format pdf
 ```
 
 #### `extract-tables`
@@ -190,7 +190,7 @@ Extract tables from documents into structured format.
 
 **Syntax:**
 ```bash
-schlep document extract-tables FILE [OPTIONS]
+igris document extract-tables FILE [OPTIONS]
 ```
 
 **Arguments:**
@@ -202,10 +202,10 @@ schlep document extract-tables FILE [OPTIONS]
 **Examples:**
 ```bash
 # Extract tables from PDF
-schlep document extract-tables financial-report.pdf --output tables.csv
+igris document extract-tables financial-report.pdf --output tables.csv
 
 # Extract tables without saving
-schlep document extract-tables data.pdf
+igris document extract-tables data.pdf
 ```
 
 #### `extract-images`
@@ -214,7 +214,7 @@ Extract all images from a document.
 
 **Syntax:**
 ```bash
-schlep document extract-images FILE [OPTIONS]
+igris document extract-images FILE [OPTIONS]
 ```
 
 **Arguments:**
@@ -226,10 +226,10 @@ schlep document extract-images FILE [OPTIONS]
 **Examples:**
 ```bash
 # Extract images to specific directory
-schlep document extract-images presentation.pdf --output-dir ./images
+igris document extract-images presentation.pdf --output-dir ./images
 
 # Extract images to current directory
-schlep document extract-images document.pdf
+igris document extract-images document.pdf
 ```
 
 #### `ocr`
@@ -238,7 +238,7 @@ Perform Optical Character Recognition on document images.
 
 **Syntax:**
 ```bash
-schlep document ocr FILE [OPTIONS]
+igris document ocr FILE [OPTIONS]
 ```
 
 **Arguments:**
@@ -251,13 +251,13 @@ schlep document ocr FILE [OPTIONS]
 **Examples:**
 ```bash
 # Perform OCR on English document
-schlep document ocr scanned-invoice.pdf --output invoice-text.txt
+igris document ocr scanned-invoice.pdf --output invoice-text.txt
 
 # Perform OCR on Spanish document
-schlep document ocr documento.jpg --language spa --output documento.txt
+igris document ocr documento.jpg --language spa --output documento.txt
 
 # Multiple language OCR
-schlep document ocr mixed-doc.pdf --language eng+spa
+igris document ocr mixed-doc.pdf --language eng+spa
 ```
 
 **Supported Languages:**
@@ -278,7 +278,7 @@ The `quality` command group provides data quality assessment, rule management, a
 ### Usage
 
 ```bash
-schlep quality [COMMAND] [OPTIONS]
+igris quality [COMMAND] [OPTIONS]
 ```
 
 ### Commands
@@ -289,7 +289,7 @@ Assess data quality for a processing job.
 
 **Syntax:**
 ```bash
-schlep quality assess JOB_ID [OPTIONS]
+igris quality assess JOB_ID [OPTIONS]
 ```
 
 **Arguments:**
@@ -301,10 +301,10 @@ schlep quality assess JOB_ID [OPTIONS]
 **Examples:**
 ```bash
 # Assess quality with table output
-schlep quality assess job-12345
+igris quality assess job-12345
 
 # Assess quality with JSON output
-schlep quality assess job-12345 --format json
+igris quality assess job-12345 --format json
 ```
 
 **Quality Metrics:**
@@ -321,7 +321,7 @@ Create a new data quality rule.
 
 **Syntax:**
 ```bash
-schlep quality create-rule NAME --config CONFIG
+igris quality create-rule NAME --config CONFIG
 ```
 
 **Arguments:**
@@ -332,7 +332,7 @@ schlep quality create-rule NAME --config CONFIG
 
 **Examples:**
 ```bash
-schlep quality create-rule "EmailValidation" --config ./rules/email-rule.json
+igris quality create-rule "EmailValidation" --config ./rules/email-rule.json
 ```
 
 **Sample Rule Configuration:**
@@ -352,7 +352,7 @@ Validate data against specified quality rules.
 
 **Syntax:**
 ```bash
-schlep quality validate JOB_ID RULES...
+igris quality validate JOB_ID RULES...
 ```
 
 **Arguments:**
@@ -362,10 +362,10 @@ schlep quality validate JOB_ID RULES...
 **Examples:**
 ```bash
 # Validate against single rule
-schlep quality validate job-12345 rule-email
+igris quality validate job-12345 rule-email
 
 # Validate against multiple rules
-schlep quality validate job-12345 rule-email rule-phone rule-address
+igris quality validate job-12345 rule-email rule-phone rule-address
 ```
 
 #### `list-rules`
@@ -374,12 +374,12 @@ List all available quality rules.
 
 **Syntax:**
 ```bash
-schlep quality list-rules
+igris quality list-rules
 ```
 
 **Examples:**
 ```bash
-schlep quality list-rules
+igris quality list-rules
 ```
 
 ---
@@ -391,7 +391,7 @@ The `storage` command group provides file storage operations including upload, d
 ### Usage
 
 ```bash
-schlep storage [COMMAND] [OPTIONS]
+igris storage [COMMAND] [OPTIONS]
 ```
 
 ### Commands
@@ -402,7 +402,7 @@ Upload a file to cloud storage.
 
 **Syntax:**
 ```bash
-schlep storage upload FILE [OPTIONS]
+igris storage upload FILE [OPTIONS]
 ```
 
 **Arguments:**
@@ -414,13 +414,13 @@ schlep storage upload FILE [OPTIONS]
 **Examples:**
 ```bash
 # Upload private file
-schlep storage upload data.csv
+igris storage upload data.csv
 
 # Upload public file
-schlep storage upload report.pdf --public
+igris storage upload report.pdf --public
 
 # Upload with custom metadata
-schlep storage upload dataset.parquet --private
+igris storage upload dataset.parquet --private
 ```
 
 #### `download`
@@ -429,7 +429,7 @@ Download a file from cloud storage.
 
 **Syntax:**
 ```bash
-schlep storage download FILE_ID --output OUTPUT
+igris storage download FILE_ID --output OUTPUT
 ```
 
 **Arguments:**
@@ -441,10 +441,10 @@ schlep storage download FILE_ID --output OUTPUT
 **Examples:**
 ```bash
 # Download file
-schlep storage download file-abc123 --output ./downloads/data.csv
+igris storage download file-abc123 --output ./downloads/data.csv
 
 # Download to current directory
-schlep storage download file-xyz789 --output ./report.pdf
+igris storage download file-xyz789 --output ./report.pdf
 ```
 
 #### `list`
@@ -453,7 +453,7 @@ List all stored files.
 
 **Syntax:**
 ```bash
-schlep storage list [OPTIONS]
+igris storage list [OPTIONS]
 ```
 
 **Options:**
@@ -462,10 +462,10 @@ schlep storage list [OPTIONS]
 **Examples:**
 ```bash
 # List with default limit
-schlep storage list
+igris storage list
 
 # List more files
-schlep storage list --limit 100
+igris storage list --limit 100
 ```
 
 #### `delete`
@@ -474,7 +474,7 @@ Delete a file from storage.
 
 **Syntax:**
 ```bash
-schlep storage delete FILE_ID [OPTIONS]
+igris storage delete FILE_ID [OPTIONS]
 ```
 
 **Arguments:**
@@ -486,10 +486,10 @@ schlep storage delete FILE_ID [OPTIONS]
 **Examples:**
 ```bash
 # Delete with confirmation
-schlep storage delete file-abc123
+igris storage delete file-abc123
 
 # Force delete without confirmation
-schlep storage delete file-abc123 --force
+igris storage delete file-abc123 --force
 ```
 
 ---
@@ -501,7 +501,7 @@ The `ml` command group provides machine learning operations including pipeline m
 ### Usage
 
 ```bash
-schlep ml [COMMAND] [OPTIONS]
+igris ml [COMMAND] [OPTIONS]
 ```
 
 ### Commands
@@ -512,7 +512,7 @@ Create a new ML pipeline.
 
 **Syntax:**
 ```bash
-schlep ml create-pipeline NAME --config CONFIG [OPTIONS]
+igris ml create-pipeline NAME --config CONFIG [OPTIONS]
 ```
 
 **Arguments:**
@@ -525,10 +525,10 @@ schlep ml create-pipeline NAME --config CONFIG [OPTIONS]
 **Examples:**
 ```bash
 # Create pipeline
-schlep ml create-pipeline "FraudDetection" --config ./ml/fraud-pipeline.yml
+igris ml create-pipeline "FraudDetection" --config ./ml/fraud-pipeline.yml
 
 # Create and auto-start pipeline
-schlep ml create-pipeline "CustomerSegmentation" --config ./ml/segmentation.yml --auto-start
+igris ml create-pipeline "CustomerSegmentation" --config ./ml/segmentation.yml --auto-start
 ```
 
 **Sample Pipeline Configuration:**
@@ -558,7 +558,7 @@ Train an ML model using a pipeline.
 
 **Syntax:**
 ```bash
-schlep ml train PIPELINE_ID [OPTIONS]
+igris ml train PIPELINE_ID [OPTIONS]
 ```
 
 **Arguments:**
@@ -571,13 +571,13 @@ schlep ml train PIPELINE_ID [OPTIONS]
 **Examples:**
 ```bash
 # Start training
-schlep ml train pipeline-12345
+igris ml train pipeline-12345
 
 # Train with custom config
-schlep ml train pipeline-12345 --config ./custom-training.yml
+igris ml train pipeline-12345 --config ./custom-training.yml
 
 # Train and watch progress
-schlep ml train pipeline-12345 --watch
+igris ml train pipeline-12345 --watch
 ```
 
 #### `deploy`
@@ -586,7 +586,7 @@ Deploy a trained ML model to an environment.
 
 **Syntax:**
 ```bash
-schlep ml deploy MODEL_ID [OPTIONS]
+igris ml deploy MODEL_ID [OPTIONS]
 ```
 
 **Arguments:**
@@ -598,13 +598,13 @@ schlep ml deploy MODEL_ID [OPTIONS]
 **Examples:**
 ```bash
 # Deploy to production
-schlep ml deploy model-67890
+igris ml deploy model-67890
 
 # Deploy to staging
-schlep ml deploy model-67890 --environment staging
+igris ml deploy model-67890 --environment staging
 
 # Deploy to development
-schlep ml deploy model-67890 --environment dev
+igris ml deploy model-67890 --environment dev
 ```
 
 #### `predict`
@@ -613,7 +613,7 @@ Make predictions using a deployed model.
 
 **Syntax:**
 ```bash
-schlep ml predict ENDPOINT DATA_FILE [OPTIONS]
+igris ml predict ENDPOINT DATA_FILE [OPTIONS]
 ```
 
 **Arguments:**
@@ -626,10 +626,10 @@ schlep ml predict ENDPOINT DATA_FILE [OPTIONS]
 **Examples:**
 ```bash
 # Make predictions
-schlep ml predict model-endpoint-123 ./input-data.csv --output predictions.json
+igris ml predict model-endpoint-123 ./input-data.csv --output predictions.json
 
 # Make predictions and display
-schlep ml predict fraud-detection ./transactions.csv
+igris ml predict fraud-detection ./transactions.csv
 ```
 
 #### `list-pipelines`
@@ -638,12 +638,12 @@ List all ML pipelines.
 
 **Syntax:**
 ```bash
-schlep ml list-pipelines
+igris ml list-pipelines
 ```
 
 **Examples:**
 ```bash
-schlep ml list-pipelines
+igris ml list-pipelines
 ```
 
 ---
@@ -655,7 +655,7 @@ The `users` command group provides user profile management and API key operation
 ### Usage
 
 ```bash
-schlep users [COMMAND] [OPTIONS]
+igris users [COMMAND] [OPTIONS]
 ```
 
 ### Commands
@@ -666,7 +666,7 @@ Get user profile information.
 
 **Syntax:**
 ```bash
-schlep users profile [OPTIONS]
+igris users profile [OPTIONS]
 ```
 
 **Options:**
@@ -675,10 +675,10 @@ schlep users profile [OPTIONS]
 **Examples:**
 ```bash
 # Get profile as table
-schlep users profile
+igris users profile
 
 # Get profile as JSON
-schlep users profile --format json
+igris users profile --format json
 ```
 
 #### `update-profile`
@@ -687,7 +687,7 @@ Update user profile information.
 
 **Syntax:**
 ```bash
-schlep users update-profile [OPTIONS]
+igris users update-profile [OPTIONS]
 ```
 
 **Options:**
@@ -697,13 +697,13 @@ schlep users update-profile [OPTIONS]
 **Examples:**
 ```bash
 # Update name
-schlep users update-profile --name "John Doe"
+igris users update-profile --name "John Doe"
 
 # Update email
-schlep users update-profile --email "john.doe@example.com"
+igris users update-profile --email "john.doe@example.com"
 
 # Update both
-schlep users update-profile --name "John Doe" --email "john.doe@example.com"
+igris users update-profile --name "John Doe" --email "john.doe@example.com"
 ```
 
 #### `list-api-keys`
@@ -712,12 +712,12 @@ List all API keys for the current user.
 
 **Syntax:**
 ```bash
-schlep users list-api-keys
+igris users list-api-keys
 ```
 
 **Examples:**
 ```bash
-schlep users list-api-keys
+igris users list-api-keys
 ```
 
 #### `create-api-key`
@@ -726,7 +726,7 @@ Create a new API key.
 
 **Syntax:**
 ```bash
-schlep users create-api-key NAME
+igris users create-api-key NAME
 ```
 
 **Arguments:**
@@ -735,10 +735,10 @@ schlep users create-api-key NAME
 **Examples:**
 ```bash
 # Create API key for production
-schlep users create-api-key "Production API Key"
+igris users create-api-key "Production API Key"
 
 # Create API key for development
-schlep users create-api-key "Development Testing"
+igris users create-api-key "Development Testing"
 ```
 
 **Note:** Save the generated API key immediately as it will only be displayed once.
@@ -749,7 +749,7 @@ Revoke an existing API key.
 
 **Syntax:**
 ```bash
-schlep users revoke-api-key KEY_ID
+igris users revoke-api-key KEY_ID
 ```
 
 **Arguments:**
@@ -758,7 +758,7 @@ schlep users revoke-api-key KEY_ID
 **Examples:**
 ```bash
 # Revoke API key with confirmation
-schlep users revoke-api-key key-abc123
+igris users revoke-api-key key-abc123
 ```
 
 **Warning:** This action cannot be undone. Any applications using this key will immediately lose access.
@@ -772,7 +772,7 @@ The `admin` command group provides administrative operations. These commands req
 ### Usage
 
 ```bash
-schlep admin [COMMAND] [OPTIONS]
+igris admin [COMMAND] [OPTIONS]
 ```
 
 **Note:** All admin commands require administrator privileges. Unauthorized access attempts will be logged.
@@ -785,7 +785,7 @@ List all users in the system.
 
 **Syntax:**
 ```bash
-schlep admin list-users [OPTIONS]
+igris admin list-users [OPTIONS]
 ```
 
 **Options:**
@@ -795,16 +795,16 @@ schlep admin list-users [OPTIONS]
 **Examples:**
 ```bash
 # List all users
-schlep admin list-users
+igris admin list-users
 
 # List only active users
-schlep admin list-users --status active
+igris admin list-users --status active
 
 # List with custom limit
-schlep admin list-users --limit 100
+igris admin list-users --limit 100
 
 # List suspended users
-schlep admin list-users --status suspended
+igris admin list-users --status suspended
 ```
 
 #### `system-stats`
@@ -813,7 +813,7 @@ Get system-wide statistics and metrics.
 
 **Syntax:**
 ```bash
-schlep admin system-stats [OPTIONS]
+igris admin system-stats [OPTIONS]
 ```
 
 **Options:**
@@ -822,10 +822,10 @@ schlep admin system-stats [OPTIONS]
 **Examples:**
 ```bash
 # Get stats as table
-schlep admin system-stats
+igris admin system-stats
 
 # Get stats as JSON
-schlep admin system-stats --format json
+igris admin system-stats --format json
 ```
 
 **Metrics Included:**
@@ -842,7 +842,7 @@ Get detailed information about a specific user.
 
 **Syntax:**
 ```bash
-schlep admin get-user USER_ID
+igris admin get-user USER_ID
 ```
 
 **Arguments:**
@@ -850,7 +850,7 @@ schlep admin get-user USER_ID
 
 **Examples:**
 ```bash
-schlep admin get-user user-12345
+igris admin get-user user-12345
 ```
 
 **Information Displayed:**
@@ -876,13 +876,13 @@ All commands support these common options:
 Most commands require authentication. Ensure you're logged in before using these commands:
 
 ```bash
-schlep auth login --api-key YOUR_API_KEY
+igris auth login --api-key YOUR_API_KEY
 ```
 
 To check your authentication status:
 
 ```bash
-schlep auth status
+igris auth status
 ```
 
 ## Configuration
@@ -891,13 +891,13 @@ Configure default settings for commands:
 
 ```bash
 # Set default output format
-schlep config set output.format json
+igris config set output.format json
 
 # Set default environment
-schlep config set ml.default_environment staging
+igris config set ml.default_environment staging
 
 # View all settings
-schlep config list
+igris config list
 ```
 
 ## Error Handling
@@ -924,51 +924,51 @@ Where applicable, commands support multiple output formats:
 
 ```bash
 # 1. Create a dataset
-schlep analytics create-dataset "Q1_Sales" --source "db://warehouse/sales"
+igris analytics create-dataset "Q1_Sales" --source "db://warehouse/sales"
 
 # 2. Execute a query
-schlep analytics query "SELECT * FROM Q1_Sales WHERE revenue > 10000" --format csv > high-value-sales.csv
+igris analytics query "SELECT * FROM Q1_Sales WHERE revenue > 10000" --format csv > high-value-sales.csv
 
 # 3. Create a report
-schlep analytics create-report "Q1 Performance" --config ./reports/q1-config.json
+igris analytics create-report "Q1 Performance" --config ./reports/q1-config.json
 
 # 4. Get the report
-schlep analytics get-report report-12345
+igris analytics get-report report-12345
 ```
 
 ### Complete ML Workflow
 
 ```bash
 # 1. Create ML pipeline
-schlep ml create-pipeline "ChurnPrediction" --config ./ml/churn-pipeline.yml
+igris ml create-pipeline "ChurnPrediction" --config ./ml/churn-pipeline.yml
 
 # 2. Train the model
-schlep ml train pipeline-12345 --watch
+igris ml train pipeline-12345 --watch
 
 # 3. Deploy to staging
-schlep ml deploy model-67890 --environment staging
+igris ml deploy model-67890 --environment staging
 
 # 4. Make predictions
-schlep ml predict churn-endpoint ./new-customers.csv --output predictions.json
+igris ml predict churn-endpoint ./new-customers.csv --output predictions.json
 
 # 5. Deploy to production
-schlep ml deploy model-67890 --environment production
+igris ml deploy model-67890 --environment production
 ```
 
 ### Document Processing Workflow
 
 ```bash
 # 1. Extract text from PDF
-schlep document extract-text invoice.pdf --format pdf --output invoice.txt
+igris document extract-text invoice.pdf --format pdf --output invoice.txt
 
 # 2. Extract tables
-schlep document extract-tables invoice.pdf --output invoice-tables.csv
+igris document extract-tables invoice.pdf --output invoice-tables.csv
 
 # 3. Extract images
-schlep document extract-images invoice.pdf --output-dir ./invoice-images
+igris document extract-images invoice.pdf --output-dir ./invoice-images
 
 # 4. Perform OCR on scanned document
-schlep document ocr scanned-receipt.jpg --output receipt-text.txt
+igris document ocr scanned-receipt.jpg --output receipt-text.txt
 ```
 
 ## Support
@@ -981,6 +981,6 @@ For additional help:
 
 ## Version
 
-These commands are available in Schlep-engine CLI v1.0.0 and later.
+These commands are available in Igris-engine CLI v1.0.0 and later.
 
 For changelog and version history, see [CHANGELOG.md](./CHANGELOG.md).

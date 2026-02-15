@@ -1,7 +1,7 @@
-namespace SchlepEngine.Exceptions;
+namespace Igris.Exceptions;
 
 /// <summary>
-/// Exception thrown when the Schlep-engine API returns an error response.
+/// Exception thrown when the Igris-engine API returns an error response.
 /// </summary>
 /// <remarks>
 /// This exception includes both the HTTP status code and the error message

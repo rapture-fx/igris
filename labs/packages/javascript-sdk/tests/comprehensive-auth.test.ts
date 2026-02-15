@@ -1,9 +1,9 @@
 /**
- * Comprehensive authentication tests for Schlep-engine JavaScript SDK
+ * Comprehensive authentication tests for Igris-engine JavaScript SDK
  */
 
 import { describe, test, expect, beforeEach, afterEach, jest } from '@jest/globals';
-import { SchlepEngineClient } from '../src/client/schlep-engine';
+import { IgrisClient } from '../src/client/igris-inertial';
 import { AuthManager, BrowserTokenStorage, MemoryTokenStorage } from '../src/auth';
 import { AuthenticationError, APIError, NetworkError } from '../src/utils/errors';
 import { TokenResponse, UserInfo, AuthConfig } from '../src/types/auth';
@@ -503,11 +503,11 @@ describe('TokenStorage', () => {
   });
 });
 
-describe('SchlepEngineClient Authentication Integration', () => {
-  let client: SchlepEngineClient;
+describe('IgrisClient Authentication Integration', () => {
+  let client: IgrisClient;
 
   beforeEach(() => {
-    client = new SchlepEngineClient({
+    client = new IgrisClient({
       apiKey: 'test-api-key',
       baseUrl: 'https://api.test.com'
     });

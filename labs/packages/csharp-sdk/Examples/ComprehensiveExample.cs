@@ -1,10 +1,10 @@
-using SchlepEngine;
-using SchlepEngine.Types;
+using Igris;
+using Igris.Types;
 
-namespace SchlepEngine.Examples;
+namespace Igris.Examples;
 
 /// <summary>
-/// Comprehensive example demonstrating all Schlep-engine SDK API modules.
+/// Comprehensive example demonstrating all Igris-engine SDK API modules.
 /// </summary>
 /// <remarks>
 /// This example showcases the complete API surface of the C# SDK including:
@@ -23,7 +23,7 @@ public class ComprehensiveExample
     public static async Task Main(string[] args)
     {
         // Initialize the client with your API key
-        var client = new SchlepClient("your-api-key");
+        var client = new IgrisClient("your-api-key");
 
         try
         {

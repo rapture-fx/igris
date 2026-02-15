@@ -1,7 +1,7 @@
 #!/bin/bash
 
-# Schlep-engine Deployment Script
-# This script automates the deployment of the Schlep-engine application
+# Igris-engine Deployment Script
+# This script automates the deployment of the Igris-engine application
 
 set -e  # Exit on any error
 

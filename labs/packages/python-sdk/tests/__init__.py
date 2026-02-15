@@ -1,5 +1,5 @@
 """
-Test suite for Schlep-engine Python SDK
+Test suite for Igris-engine Python SDK
 
 This module contains comprehensive tests for all SDK components including:
 - Unit tests for individual modules and classes  

@@ -108,8 +108,8 @@ func (e *CostBudgetEnforcer) Middleware() fiber.Handler {
 
 		// Set warning header if soft limit reached
 		if warning != nil {
-			c.Set("X-Schlep-Budget-Warning", warning.Message)
-			c.Set("X-Schlep-Budget-Usage", fmt.Sprintf("%.2f%%", warning.UsagePercent))
+			c.Set("X-Igris-Budget-Warning", warning.Message)
+			c.Set("X-Igris-Budget-Usage", fmt.Sprintf("%.2f%%", warning.UsagePercent))
 		}
 
 		// Block if hard limit reached and blocking enabled

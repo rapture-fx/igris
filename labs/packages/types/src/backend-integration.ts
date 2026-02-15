@@ -1,4 +1,4 @@
-// Backend Integration Types - Generated for Schlep-engine API
+// Backend Integration Types - Generated for Igris-engine API
 // Comprehensive types for all backend endpoints
 // Note: Authentication types are now in auth.ts to avoid duplication
 

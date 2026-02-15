@@ -1,7 +1,7 @@
 using System.Text.Json;
 using System.Text.Json.Serialization;
 
-namespace SchlepEngine.Types;
+namespace Igris.Types;
 
 /// <summary>
 /// Response from the status endpoint.

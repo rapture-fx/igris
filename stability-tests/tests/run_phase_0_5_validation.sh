@@ -1,6 +1,6 @@
 #!/bin/bash
 #
-# Schlep-Engine Phase 0.5 Validation Suite Runner
+# Igris Inertial Phase 0.5 Validation Suite Runner
 # Orchestrates all validation tests and generates comprehensive summary
 #
 # Usage: ./run_phase_0_5_validation.sh [BASE_URL] [REDIS_URL]
@@ -19,14 +19,14 @@ SUMMARY_FILE="$RESULTS_DIR/phase_0_5_validation_summary.json"
 mkdir -p "$RESULTS_DIR" "$SECURITY_DIR"
 
 echo "========================================="
-echo "Schlep-Engine Phase 0.5 Validation Suite"
+echo "Igris Inertial Phase 0.5 Validation Suite"
 echo "========================================="
 echo "Base URL: $BASE_URL"
 echo "Redis URL: $REDIS_URL"
 echo "Results Directory: $RESULTS_DIR"
 echo "========================================="
 echo
-echo "Objective: Verify Schlep-Engine backend foundation is"
+echo "Objective: Verify Igris Inertial backend foundation is"
 echo "operationally safe, observably correct, and performant"
 echo "under realistic load before enabling Phase 1."
 echo
@@ -130,9 +130,9 @@ else
 fi
 
 # Parse load test results (from log file)
-if [ -f "/tmp/schlep_load_test_results.txt" ]; then
-    P95_LATENCY=$(grep "95% in" /tmp/schlep_load_test_results.txt | awk '{print $3}' || echo "N/A")
-    SUCCESS_RATE=$(grep "Status code distribution" /tmp/schlep_load_test_results.txt -A 5 | grep "200" | awk '{print $3}' || echo "N/A")
+if [ -f "/tmp/igris_load_test_results.txt" ]; then
+    P95_LATENCY=$(grep "95% in" /tmp/igris_load_test_results.txt | awk '{print $3}' || echo "N/A")
+    SUCCESS_RATE=$(grep "Status code distribution" /tmp/igris_load_test_results.txt -A 5 | grep "200" | awk '{print $3}' || echo "N/A")
 
     LOAD_RESULT=$(cat <<EOF
 {
@@ -183,7 +183,7 @@ echo "Generating Phase 0.5 validation summary..."
 
 cat > "$SUMMARY_FILE" <<EOF
 {
-  "validation_suite": "Schlep-Engine Phase 0.5 Validation",
+  "validation_suite": "Igris Inertial Phase 0.5 Validation",
   "version": "0.5",
   "timestamp": "$(date -u +"%Y-%m-%dT%H:%M:%SZ")",
   "duration_seconds": $DURATION,
@@ -241,7 +241,7 @@ echo "Individual module results:"
 echo "  - Redis Lock: $RESULTS_DIR/redis_lock_perf.json"
 echo "  - JWT Security: $SECURITY_DIR/jwt_rotation_test.log"
 echo "  - Telemetry: $RESULTS_DIR/metrics_coverage_report.json"
-echo "  - Load Test: /tmp/schlep_load_test_results.txt"
+echo "  - Load Test: /tmp/igris_load_test_results.txt"
 echo "========================================="
 
 # Exit with appropriate code

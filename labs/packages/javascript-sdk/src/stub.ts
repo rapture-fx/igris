@@ -33,7 +33,7 @@ export const createTokenStorage = (): any => ({
   clearTokens: () => {}
 });
 
-export class SchlepEngineClient {
+export class IgrisClient {
   constructor(config: any) {}
   
   async upload(file: File): Promise<any> {

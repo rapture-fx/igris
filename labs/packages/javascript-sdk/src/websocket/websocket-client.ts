@@ -1,5 +1,5 @@
 /**
- * WebSocket client for Schlep-engine JavaScript SDK
+ * WebSocket client for Igris-engine JavaScript SDK
  * Provides real-time streaming capabilities for data processing, ML training, and system events
  */
 
@@ -10,7 +10,7 @@ import {
   StreamEvent,
   StreamEventType
 } from '../types/common';
-import { SchlepEngineError, NetworkError } from '../utils/errors';
+import { IgrisError, NetworkError } from '../utils/errors';
 
 /**
  * WebSocket connection states
@@ -61,7 +61,7 @@ interface ActiveSubscription {
 }
 
 /**
- * WebSocket client for real-time communication with Schlep-engine
+ * WebSocket client for real-time communication with Igris-engine
  */
 export class WebSocketClient extends EventEmitter {
   private config: Required<WebSocketConfig>;

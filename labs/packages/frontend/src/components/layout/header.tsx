@@ -14,7 +14,7 @@ export function Header() {
               <span className="text-white font-bold text-sm">S</span>
             </div>
             <div className="font-dm-sans text-xl text-gray-800 whitespace-nowrap">
-              <span className="font-bold text-blue-600">Schlep</span>
+              <span className="font-bold text-blue-600">Igris</span>
               <span className="text-gray-700">-engine</span>
             </div>
         </Link>

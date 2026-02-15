@@ -1,7 +1,7 @@
-//! API modules for the Schlep-engine Rust SDK.
+//! API modules for the Igris-engine Rust SDK.
 //!
 //! This module contains all API client implementations for different
-//! Schlep-engine services organized by functionality.
+//! Igris-engine services organized by functionality.
 
 pub mod data;
 pub mod ml;

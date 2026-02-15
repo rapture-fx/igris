@@ -18,7 +18,7 @@ import * as path from 'path';
 import * as os from 'os';
 
 // Mock SDK interfaces and types
-interface SchlepEngineClient {
+interface IgrisClient {
     authenticate(): Promise<AuthResult>;
     uploadFile(file: File | ArrayBuffer | Buffer, metadata?: any): Promise<UploadResult>;
     downloadFile(fileId: string): Promise<ArrayBuffer>;
@@ -92,7 +92,7 @@ interface WebSocketConnection extends EventEmitter {
 }
 
 // Mock implementations
-const createMockClient = (): SchlepEngineClient => {
+const createMockClient = (): IgrisClient => {
     const generateId = () => `mock_${Math.random().toString(36).substring(2, 15)}`;
     
     return {
@@ -234,7 +234,7 @@ class MockWebSocketConnection extends EventEmitter implements WebSocketConnectio
 }
 
 interface E2ETestSuite {
-    client: SchlepEngineClient;
+    client: IgrisClient;
     tempFiles: string[];
     workflowState: Record<string, any>;
     tempDir: string;
@@ -244,7 +244,7 @@ interface E2ETestSuite {
 }
 
 class E2ETestSuiteImpl implements E2ETestSuite {
-    client: SchlepEngineClient;
+    client: IgrisClient;
     tempFiles: string[] = [];
     workflowState: Record<string, any> = {};
     tempDir: string;

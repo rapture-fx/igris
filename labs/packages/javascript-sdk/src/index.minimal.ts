@@ -22,7 +22,7 @@ export const createTokenStorage = (): any => ({
   clearTokens: () => {}
 });
 
-export class SchlepEngineClient {
+export class IgrisClient {
   constructor(config: any) {}
   async upload(file: File): Promise<any> { return null; }
   async processData(data: any): Promise<any> { return null; }
@@ -30,7 +30,7 @@ export class SchlepEngineClient {
 
 export const SDK_INFO = {
   version: '1.0.0',
-  name: '@schlep-engine/javascript-sdk'
+  name: '@igris-inertial/javascript-sdk'
 };
 
-export default SchlepEngineClient;
+export default IgrisClient;

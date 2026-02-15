@@ -1,7 +1,7 @@
 # C# SDK Implementation Summary
 
 ## Overview
-This document summarizes the comprehensive implementation of the Schlep-engine C# SDK, bringing it to feature parity with the Python, Go, Ruby, Java, JavaScript, and Rust SDKs.
+This document summarizes the comprehensive implementation of the Igris-engine C# SDK, bringing it to feature parity with the Python, Go, Ruby, Java, JavaScript, and Rust SDKs.
 
 ## Implementation Date
 October 1, 2025
@@ -150,7 +150,7 @@ All type definitions have been created in the `/Types/` directory:
 - `UserSummary` - User summary for admin operations
 - `SystemStats` - System statistics
 
-### 3. SchlepClient.cs Enhancements
+### 3. IgrisClient.cs Enhancements
 Updated the main client with:
 
 #### New API Client Properties
@@ -240,11 +240,11 @@ To ensure quality, the following should be tested:
 ## Usage Example
 
 ```csharp
-using SchlepEngine;
-using SchlepEngine.Types;
+using Igris;
+using Igris.Types;
 
 // Initialize client
-var client = new SchlepClient("your-api-key");
+var client = new IgrisClient("your-api-key");
 
 try
 {
@@ -315,7 +315,7 @@ csharp-sdk/
 │   ├── Quality.cs
 │   ├── Storage.cs
 │   └── Users.cs
-├── SchlepClient.cs
+├── IgrisClient.cs
 └── IMPLEMENTATION_SUMMARY.md
 ```
 

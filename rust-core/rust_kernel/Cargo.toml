@@ -1,12 +1,12 @@
 [package]
-name = "schlep-kernel"
+name = "igris-kernel"
 version = "0.1.0"
 edition = "2021"
-authors = ["Schlep-Engine Team"]
+authors = ["Igris Inertial Team"]
 description = "Minimal Rust kernel for Go FFI prototype"
 
 [lib]
-name = "schlep_kernel"
+name = "igris_kernel"
 crate-type = ["cdylib", "staticlib", "rlib"]  # rlib for Rust-to-Rust linking
 
 [features]

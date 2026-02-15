@@ -31,13 +31,13 @@ import gc
 
 # Mock CLI imports
 try:
-    from schlep_cli import SchlepCLI, PipelineProcessor, ConfigManager
-    from schlep_cli.commands import CommandRegistry
-    from schlep_cli.pipeline import PipelineRunner
-    from schlep_cli.config import ConfigLoader
+    from igris_cli import IgrisCLI, PipelineProcessor, ConfigManager
+    from igris_cli.commands import CommandRegistry
+    from igris_cli.pipeline import PipelineRunner
+    from igris_cli.config import ConfigLoader
 except ImportError:
     # Mock imports for testing
-    class SchlepCLI:
+    class IgrisCLI:
         def __init__(self, *args, **kwargs):
             pass
         
@@ -194,7 +194,7 @@ def performance_suite():
 @pytest.fixture
 def mock_cli():
     """Create mock CLI for performance testing"""
-    cli = Mock(spec=SchlepCLI)
+    cli = Mock(spec=IgrisCLI)
     
     # Mock command execution
     def mock_run_command(command, *args, **kwargs):
@@ -304,7 +304,7 @@ class TestCommandExecutionPerformance:
             for i in range(10):
                 _, startup_time = performance_suite.measure_execution_time(
                     subprocess.run,
-                    ["schlep-cli", "--version"],
+                    ["igris-cli", "--version"],
                     capture_output=True,
                     text=True
                 )

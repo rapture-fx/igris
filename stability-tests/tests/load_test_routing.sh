@@ -1,6 +1,6 @@
 #!/bin/bash
 #
-# Schlep-Engine Routing Layer Load Test
+# Igris Inertial Routing Layer Load Test
 # Tests concurrent routing requests with fallback simulation
 #
 # Usage: ./load_test_routing.sh [BASE_URL] [RPS] [DURATION]
@@ -15,7 +15,7 @@ DURATION="${3:-60}"
 TOTAL_REQUESTS=$((RPS * DURATION))
 
 echo "========================================="
-echo "Schlep-Engine Routing Layer Load Test"
+echo "Igris Inertial Routing Layer Load Test"
 echo "========================================="
 echo "Base URL: $BASE_URL"
 echo "Target RPS: $RPS"
@@ -58,7 +58,7 @@ echo
 
 # Step 2: Prepare test payload
 echo "[2/5] Preparing test payload..."
-cat > /tmp/schlep_load_test_payload.json <<'EOF'
+cat > /tmp/igris_load_test_payload.json <<'EOF'
 {
   "model": "gpt-4-turbo",
   "messages": [
@@ -79,7 +79,7 @@ hey -n 10 -c 2 \
     -H "Authorization: Bearer $TOKEN" \
     -H "Content-Type: application/json" \
     -m POST \
-    -D /tmp/schlep_load_test_payload.json \
+    -D /tmp/igris_load_test_payload.json \
     "$BASE_URL/v1/chat/completions" > /dev/null 2>&1
 
 echo "✓ Warmup complete"
@@ -92,8 +92,8 @@ hey -z ${DURATION}s -q $RPS -c $((RPS / 2)) \
     -H "Authorization: Bearer $TOKEN" \
     -H "Content-Type: application/json" \
     -m POST \
-    -D /tmp/schlep_load_test_payload.json \
-    "$BASE_URL/v1/chat/completions" | tee /tmp/schlep_load_test_results.txt
+    -D /tmp/igris_load_test_payload.json \
+    "$BASE_URL/v1/chat/completions" | tee /tmp/igris_load_test_results.txt
 
 echo
 echo
@@ -103,11 +103,11 @@ echo "[5/5] Analyzing results..."
 echo
 
 # Extract key metrics
-SUCCESS_RATE=$(grep "Status code distribution" /tmp/schlep_load_test_results.txt -A 5 | grep "200" | awk '{print $3}')
-AVG_LATENCY=$(grep "Average:" /tmp/schlep_load_test_results.txt | awk '{print $2}')
-P95_LATENCY=$(grep "95% in" /tmp/schlep_load_test_results.txt | awk '{print $3}')
-P99_LATENCY=$(grep "99% in" /tmp/schlep_load_test_results.txt | awk '{print $3}')
-ERRORS=$(grep -E "Error distribution|Non-2xx" /tmp/schlep_load_test_results.txt -A 10 || echo "No errors")
+SUCCESS_RATE=$(grep "Status code distribution" /tmp/igris_load_test_results.txt -A 5 | grep "200" | awk '{print $3}')
+AVG_LATENCY=$(grep "Average:" /tmp/igris_load_test_results.txt | awk '{print $2}')
+P95_LATENCY=$(grep "95% in" /tmp/igris_load_test_results.txt | awk '{print $3}')
+P99_LATENCY=$(grep "99% in" /tmp/igris_load_test_results.txt | awk '{print $3}')
+ERRORS=$(grep -E "Error distribution|Non-2xx" /tmp/igris_load_test_results.txt -A 10 || echo "No errors")
 
 # Get routing statistics
 echo "Fetching routing statistics..."
@@ -154,17 +154,17 @@ else
 fi
 
 # Check 3: No database timeouts
-if ! grep -qi "timeout\|too many connections" /tmp/schlep_load_test_results.txt; then
+if ! grep -qi "timeout\|too many connections" /tmp/igris_load_test_results.txt; then
     echo "✓ No database connection issues"
 else
     echo "✗ FAIL: Database connection issues detected"
 fi
 
 echo
-echo "Full results saved to: /tmp/schlep_load_test_results.txt"
+echo "Full results saved to: /tmp/igris_load_test_results.txt"
 echo
 
 # Cleanup
-rm -f /tmp/schlep_load_test_payload.json
+rm -f /tmp/igris_load_test_payload.json
 
 echo "Load test complete!"

@@ -1,6 +1,6 @@
 #!/bin/bash
 #
-# Schlep-Engine Database Restore Script
+# Igris Inertial Database Restore Script
 # Purpose: Restore PostgreSQL database from backup
 # Usage: ./restore.sh <backup_file> [options]
 #
@@ -18,7 +18,7 @@ BACKUP_DIR="${BACKUP_DIR:-$SCRIPT_DIR/data}"
 DB_HOST="${POSTGRES_HOST:-localhost}"
 DB_PORT="${POSTGRES_PORT:-5432}"
 DB_NAME="${POSTGRES_DB:-igris_overture}"
-DB_USER="${POSTGRES_USER:-schlep_user}"
+DB_USER="${POSTGRES_USER:-igris_user}"
 DB_PASSWORD="${POSTGRES_PASSWORD:-changeme}"
 
 # S3 configuration
@@ -42,7 +42,7 @@ usage() {
     cat <<EOF
 Usage: $0 <backup_file> [options]
 
-Restore Schlep-Engine database from backup file.
+Restore Igris Inertial database from backup file.
 
 Arguments:
   <backup_file>    Path to backup file or S3 key
@@ -61,7 +61,7 @@ Environment Variables:
   POSTGRES_HOST    Database host (default: localhost)
   POSTGRES_PORT    Database port (default: 5432)
   POSTGRES_DB      Database name (default: igris_overture)
-  POSTGRES_USER    Database user (default: schlep_user)
+  POSTGRES_USER    Database user (default: igris_user)
   POSTGRES_PASSWORD Database password (default: changeme)
 
 Examples:
@@ -325,7 +325,7 @@ main() {
     fi
 
     log "=========================================="
-    log "Schlep-Engine Database Restore"
+    log "Igris Inertial Database Restore"
     log "=========================================="
 
     # Handle "latest" keyword

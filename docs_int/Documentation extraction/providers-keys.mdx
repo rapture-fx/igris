@@ -1,10 +1,10 @@
 # Provider Keys & Configuration
 
-Complete guide to configuring and managing LLM provider API keys in Schlep Engine.
+Complete guide to configuring and managing LLM provider API keys in Igris Inertial.
 
 ## Overview
 
-Schlep Engine supports multiple LLM providers through a flexible **Bring Your Own Key (BYOK)** system with:
+Igris Inertial supports multiple LLM providers through a flexible **Bring Your Own Key (BYOK)** system with:
 
 - **Zero-downtime key rotation** with dual-key support
 - **Multi-tenant isolation** with per-tenant provider configurations
@@ -54,9 +54,9 @@ KEY_ROTATION_GRACE_PERIOD=15m         # Default: 15 minutes
 
 ```go
 import (
-    "github.com/schlep-engine/schlep-engine/internal/providers"
-    "github.com/schlep-engine/schlep-engine/internal/providers/openai"
-    "github.com/schlep-engine/schlep-engine/internal/providers/anthropic"
+    "github.com/igris-inertial/igris-inertial/internal/providers"
+    "github.com/igris-inertial/igris-inertial/internal/providers/openai"
+    "github.com/igris-inertial/igris-inertial/internal/providers/anthropic"
 )
 
 // Initialize provider registry
@@ -131,7 +131,7 @@ type ProviderCapabilities struct {
 
 ## Key Rotation
 
-Schlep Engine supports **zero-downtime key rotation** with dual-key support during grace periods.
+Igris Inertial supports **zero-downtime key rotation** with dual-key support during grace periods.
 
 ### How It Works
 
@@ -143,7 +143,7 @@ Schlep Engine supports **zero-downtime key rotation** with dual-key support duri
 ### Key Rotation Manager
 
 ```go
-import "github.com/schlep-engine/schlep-engine/internal/providers"
+import "github.com/igris-inertial/igris-inertial/internal/providers"
 
 // Initialize key rotation manager
 krm := providers.NewKeyRotationManager(
@@ -298,15 +298,15 @@ POST /v1/tenants/{tenant_id}/providers/{provider_id}/keys/rotate
 
 ```bash
 # Enable KV v2 secrets engine
-vault secrets enable -path=schlep-engine kv-v2
+vault secrets enable -path=igris-inertial kv-v2
 
 # Store provider keys
-vault kv put schlep-engine/tenants/tenant-123/providers/openai \
+vault kv put igris-inertial/tenants/tenant-123/providers/openai \
   api_key="sk-..." \
   base_url="https://api.openai.com/v1"
 
 # Read provider keys
-vault kv get schlep-engine/tenants/tenant-123/providers/openai
+vault kv get igris-inertial/tenants/tenant-123/providers/openai
 ```
 
 ### Vault Client Interface
@@ -323,7 +323,7 @@ type VaultClient interface {
 
 ## Provider Modes
 
-Schlep Engine supports multiple provider modes for different use cases:
+Igris Inertial supports multiple provider modes for different use cases:
 
 ### 1. Benchmark Mode (Default)
 
@@ -367,7 +367,7 @@ PROVIDER_MODE=hybrid
 
 ## Provider Health Checks
 
-Schlep Engine continuously monitors provider health:
+Igris Inertial continuously monitors provider health:
 
 ```go
 // Check provider health

@@ -1,6 +1,6 @@
-# Schlep-engine Rust SDK
+# Igris-engine Rust SDK
 
-Official Rust SDK for the Schlep-engine API platform.
+Official Rust SDK for the Igris-engine API platform.
 
 [![Crates.io](https://img.shields.io/crates/v/igris_overture.svg)](https://crates.io/crates/igris_overture)
 [![Documentation](https://docs.rs/igris_overture/badge.svg)](https://docs.rs/igris_overture)
@@ -28,16 +28,16 @@ tokio = { version = "1.0", features = ["full"] }
 ## Quick Start
 
 ```rust
-use igris_overture::{SchlepClient, Result};
+use igris_overture::{IgrisClient, Result};
 use serde_json::json;
 
 #[tokio::main]
 async fn main() -> Result<()> {
     // Create client with API key
-    let client = SchlepClient::new("your-api-key")?;
+    let client = IgrisClient::new("your-api-key")?;
 
-    // Or from environment variable SCHLEP_API_KEY
-    let client = SchlepClient::from_env()?;
+    // Or from environment variable IGRIS_API_KEY
+    let client = IgrisClient::from_env()?;
 
     // Upload data
     let upload_result = client.upload("Hello, world!").await?;
@@ -66,13 +66,13 @@ async fn main() -> Result<()> {
 
 ```rust
 // With API key
-let client = SchlepClient::new("your-api-key")?;
+let client = IgrisClient::new("your-api-key")?;
 
 // From environment variable
-let client = SchlepClient::from_env()?;
+let client = IgrisClient::from_env()?;
 
 // With custom base URL
-let client = SchlepClient::with_base_url("your-api-key", "https://custom.api.com/v1")?;
+let client = IgrisClient::with_base_url("your-api-key", "https://custom.api.com/v1")?;
 ```
 
 ### Upload Data
@@ -149,7 +149,7 @@ match client.upload("data").await {
 
 ## Environment Variables
 
-- `SCHLEP_API_KEY`: Your Schlep-engine API key
+- `IGRIS_API_KEY`: Your Igris-engine API key
 
 ## Build and Test
 
@@ -161,7 +161,7 @@ cargo build
 cargo test
 
 # Run example
-export SCHLEP_API_KEY=your-api-key-here
+export IGRIS_API_KEY=your-api-key-here
 cargo run --example igris_overture_example
 
 # Generate documentation

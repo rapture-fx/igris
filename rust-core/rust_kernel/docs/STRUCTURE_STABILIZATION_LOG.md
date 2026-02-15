@@ -15,7 +15,7 @@
 - ✅ **mod.rs**: Module organization and public API
 
 #### Build Artifacts
-- ✅ `libschlep_kernel.dylib` (721KB) - Compiled Rust library
+- ✅ `libigris_kernel.dylib` (721KB) - Compiled Rust library
 - ✅ `optimizer.h` - C header for cgo integration
 
 #### Go Integration (internal/inference/optimizer/)
@@ -103,7 +103,7 @@ optimizer_free(handle)
 - `rust-core/rust_kernel/src/optimizer/{mod.rs, arms.rs, bandits.rs, rewards.rs, ffi.rs}`
 - `rust-core/rust_kernel/src/lib.rs` (added optimizer module)
 - `rust-core/rust_kernel/cbindgen.toml`
-- `rust-core/rust_kernel/target/release/libschlep_kernel.dylib`
+- `rust-core/rust_kernel/target/release/libigris_kernel.dylib`
 - `rust-core/rust_kernel/target/release/optimizer.h`
 
 **Go:**

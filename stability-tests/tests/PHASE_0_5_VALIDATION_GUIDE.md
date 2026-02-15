@@ -1,8 +1,8 @@
-# Schlep-Engine Phase 0.5 Validation Suite
+# Igris Inertial Phase 0.5 Validation Suite
 
 ## Overview
 
-This validation suite verifies the Schlep-Engine backend foundation is **operationally safe**, **observably correct**, and **performant under realistic load** before enabling Phase 1 intelligence builds.
+This validation suite verifies the Igris Inertial backend foundation is **operationally safe**, **observably correct**, and **performant under realistic load** before enabling Phase 1 intelligence builds.
 
 **Estimated Runtime**: 15-30 minutes on staging hardware (CX31 spec)
 
@@ -52,13 +52,13 @@ go test -v -run TestJWTAndBYOKSecurityAudit ./tests/
 **Test**: `tests/telemetry_completeness_check.sh`
 
 **Required Metrics**:
-- `schlep_routing_latency_seconds`
-- `schlep_provider_latency_seconds`
-- `schlep_provider_requests_total`
-- `schlep_telemetry_recorded_total`
-- `schlep_telemetry_errors_total`
-- `schlep_telemetry_dropped_total`
-- `schlep_circuit_breaker_state`
+- `igris_routing_latency_seconds`
+- `igris_provider_latency_seconds`
+- `igris_provider_requests_total`
+- `igris_telemetry_recorded_total`
+- `igris_telemetry_errors_total`
+- `igris_telemetry_dropped_total`
+- `igris_circuit_breaker_state`
 
 **Command**:
 ```bash
@@ -84,7 +84,7 @@ bash tests/telemetry_completeness_check.sh http://localhost:8080/metrics
 bash tests/load_test_routing.sh http://localhost:8080 500 60
 ```
 
-**Results**: `/tmp/schlep_load_test_results.txt`
+**Results**: `/tmp/igris_load_test_results.txt`
 
 ---
 
@@ -97,7 +97,7 @@ bash tests/load_test_routing.sh http://localhost:8080 500 60
 redis-server
 ```
 
-2. **Schlep-Engine HTTP service** running on `port 8080`:
+2. **Igris Inertial HTTP service** running on `port 8080`:
 ```bash
 cd cmd/igris-overture
 go run main.go
@@ -296,5 +296,5 @@ For issues or questions about the validation suite, review:
 ---
 
 **Generated**: 2025-11-08
-**Author**: Schlep-Engine Validation Suite v0.5
+**Author**: Igris Inertial Validation Suite v0.5
 **Purpose**: Pre-Phase 1 Infrastructure Validation

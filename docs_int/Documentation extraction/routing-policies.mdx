@@ -1,10 +1,10 @@
 # Routing Policies & Strategies
 
-Comprehensive guide to intelligent request routing in Schlep Engine, including Thompson Sampling, speculative execution, and semantic routing.
+Comprehensive guide to intelligent request routing in Igris Inertial, including Thompson Sampling, speculative execution, and semantic routing.
 
 ## Overview
 
-Schlep Engine provides **multiple routing strategies** to optimize LLM inference across providers:
+Igris Inertial provides **multiple routing strategies** to optimize LLM inference across providers:
 
 - **Thompson Sampling** - Bayesian multi-armed bandit with adaptive learning
 - **Speculative Execution** - Race multiple providers for 60% faster TTFT
@@ -338,7 +338,7 @@ type Backend struct {
 
 ## Adaptive Learning
 
-Schlep Engine continuously learns and adapts routing decisions based on performance.
+Igris Inertial continuously learns and adapts routing decisions based on performance.
 
 ### Self-Tuning Reward Weights
 
@@ -535,7 +535,7 @@ rate(provider_requests_total{provider="openai"}[1h])
 ### Routing Configuration
 
 ```yaml
-# /Users/wira/Desktop/schlep-engine/config/tier_config.yaml
+# /Users/wira/Desktop/igris-inertial/config/tier_config.yaml
 
 # Thompson Sampling
 bandit_exploration_rate: 0.15

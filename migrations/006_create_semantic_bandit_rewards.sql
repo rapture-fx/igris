@@ -1,7 +1,7 @@
 -- Migration: 006_create_semantic_bandit_rewards
 -- Description: Semantic Classification & Thompson Sampling State Management
 -- Purpose: Enable semantic routing with cached classifications and adaptive learning
--- Author: Schlep-Engine Team
+-- Author: Igris Inertial Team
 -- Date: 2025-11-09
 -- Phase: 3 (Semantic Routing + Adaptive Learning)
 

@@ -7,8 +7,8 @@ import asyncio
 import time
 from unittest.mock import AsyncMock, patch
 
-from schlep_engine.utils.rate_limiter import AdaptiveRateLimiter, RateLimitInfo, QueuedRequest
-from schlep_engine.exceptions.base import RateLimitError
+from igris.utils.rate_limiter import AdaptiveRateLimiter, RateLimitInfo, QueuedRequest
+from igris.exceptions.base import RateLimitError
 
 
 class TestRateLimitInfo:
@@ -391,7 +391,7 @@ class TestAdaptiveRateLimiter:
 @pytest.mark.asyncio
 async def test_rate_limited_session():
     """Test rate limited session context manager."""
-    from schlep_engine.utils.rate_limiter import rate_limited_session
+    from igris.utils.rate_limiter import rate_limited_session
     
     limiter = AdaptiveRateLimiter()
     

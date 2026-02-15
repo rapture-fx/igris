@@ -1,6 +1,6 @@
-# Schlep-Engine Architecture Overview
+# Igris Inertial Architecture Overview
 
-This document provides a comprehensive overview of Schlep-Engine's architecture, covering Phases 3 & 4 implementations (Semantic Routing, Adaptive Learning, and Adaptive Governance).
+This document provides a comprehensive overview of Igris Inertial's architecture, covering Phases 3 & 4 implementations (Semantic Routing, Adaptive Learning, and Adaptive Governance).
 
 ## Table of Contents
 
@@ -595,31 +595,31 @@ CREATE INDEX idx_sla_violations_provider ON sla_violations(provider);
 #### Semantic Routing (13 metrics)
 
 ```
-schlep_semantic_classifications_total
-schlep_semantic_classification_latency_ms
-schlep_semantic_model_confidence
-schlep_semantic_model_fallbacks_total
-schlep_semantic_shadow_mismatches_total
-schlep_semantic_cache_hits_total
+igris_semantic_classifications_total
+igris_semantic_classification_latency_ms
+igris_semantic_model_confidence
+igris_semantic_model_fallbacks_total
+igris_semantic_shadow_mismatches_total
+igris_semantic_cache_hits_total
 ```
 
 #### Adaptive Learning (9 metrics)
 
 ```
-schlep_bandit_arm_selections_total
-schlep_bandit_reward_updates_total
-schlep_feedback_events_total
-schlep_bayesian_tuner_applied_total
-schlep_bayesian_tuner_confidence
+igris_bandit_arm_selections_total
+igris_bandit_reward_updates_total
+igris_feedback_events_total
+igris_bayesian_tuner_applied_total
+igris_bayesian_tuner_confidence
 ```
 
 #### Governance (9 metrics)
 
 ```
-schlep_policy_reloads_total
-schlep_policy_reload_errors_total
-schlep_sla_violations_total
-schlep_sla_compliance_rate
+igris_policy_reloads_total
+igris_policy_reload_errors_total
+igris_sla_violations_total
+igris_sla_compliance_rate
 ```
 
 ### Alert Rules
@@ -667,12 +667,12 @@ spec:
         - name: DATABASE_URL
           valueFrom:
             secretKeyRef:
-              name: schlep-secrets
+              name: igris-secrets
               key: database-url
         - name: REDIS_URL
           valueFrom:
             secretKeyRef:
-              name: schlep-secrets
+              name: igris-secrets
               key: redis-url
         resources:
           requests:
@@ -731,7 +731,7 @@ spec:
 
 ## Conclusion
 
-Schlep-Engine provides a robust, scalable platform for intelligent LLM routing with adaptive learning and governance. The architecture balances performance, reliability, and maintainability while enabling continuous optimization through machine learning.
+Igris Inertial provides a robust, scalable platform for intelligent LLM routing with adaptive learning and governance. The architecture balances performance, reliability, and maintainability while enabling continuous optimization through machine learning.
 
 For further details, see:
 - [ONBOARDING.md](./ONBOARDING.md)

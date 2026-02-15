@@ -2,7 +2,7 @@ version: '3.8'
 
 services:
   # Main application
-  schlep-service:
+  igris-service:
     build:
       context: .
       dockerfile: Dockerfile
@@ -10,41 +10,41 @@ services:
       - "8080:8080"
     environment:
       # Service configuration
-      - SERVICE_NAME=schlep-cloud-native-service
+      - SERVICE_NAME=igris-cloud-native-service
       - SERVICE_VERSION=1.0.0
       - PORT=8080
       - LOG_LEVEL=info
       - DEBUG=true
       
-      # Schlep-engine configuration
-      - SCHLEP_API_KEY=${SCHLEP_API_KEY}
-      - SCHLEP_BASE_URL=https://api.igris-inertial.com
-      - SCHLEP_TIMEOUT_SECONDS=60
-      - SCHLEP_MAX_RETRIES=5
-      - SCHLEP_RETRY_WAIT_SECONDS=2
-      - SCHLEP_RETRY_MAX_WAIT_SECONDS=30
-      - SCHLEP_RETRY_BACKOFF_FACTOR=2.0
+      # Igris-engine configuration
+      - IGRIS_API_KEY=${IGRIS_API_KEY}
+      - IGRIS_BASE_URL=https://api.igris-inertial.com
+      - IGRIS_TIMEOUT_SECONDS=60
+      - IGRIS_MAX_RETRIES=5
+      - IGRIS_RETRY_WAIT_SECONDS=2
+      - IGRIS_RETRY_MAX_WAIT_SECONDS=30
+      - IGRIS_RETRY_BACKOFF_FACTOR=2.0
       
       # Circuit breaker
-      - SCHLEP_CIRCUIT_BREAKER_ENABLED=true
-      - SCHLEP_CB_FAILURE_THRESHOLD=5
-      - SCHLEP_CB_TIMEOUT_SECONDS=60
-      - SCHLEP_CB_MAX_REQUESTS=3
+      - IGRIS_CIRCUIT_BREAKER_ENABLED=true
+      - IGRIS_CB_FAILURE_THRESHOLD=5
+      - IGRIS_CB_TIMEOUT_SECONDS=60
+      - IGRIS_CB_MAX_REQUESTS=3
       
       # Observability
-      - SCHLEP_ENABLE_METRICS=true
-      - SCHLEP_ENABLE_TRACING=true
-      - SCHLEP_ENABLE_LOGGING=true
+      - IGRIS_ENABLE_METRICS=true
+      - IGRIS_ENABLE_TRACING=true
+      - IGRIS_ENABLE_LOGGING=true
       
       # HTTP client optimization
-      - SCHLEP_MAX_IDLE_CONNS=100
-      - SCHLEP_MAX_IDLE_CONNS_PER_HOST=10
-      - SCHLEP_IDLE_CONN_TIMEOUT_SECONDS=90
+      - IGRIS_MAX_IDLE_CONNS=100
+      - IGRIS_MAX_IDLE_CONNS_PER_HOST=10
+      - IGRIS_IDLE_CONN_TIMEOUT_SECONDS=90
       
       # Health checks
-      - SCHLEP_ENABLE_HEALTH_CHECKS=true
-      - SCHLEP_HEALTH_CHECK_INTERVAL_SECONDS=30
-      - SCHLEP_HEALTH_CHECK_TIMEOUT_SECONDS=10
+      - IGRIS_ENABLE_HEALTH_CHECKS=true
+      - IGRIS_HEALTH_CHECK_INTERVAL_SECONDS=30
+      - IGRIS_HEALTH_CHECK_TIMEOUT_SECONDS=10
       - HEALTH_CHECK_MAX_CPU=85.0
       - HEALTH_CHECK_MAX_MEMORY=90.0
       
@@ -69,8 +69,8 @@ services:
       start_period: 40s
     labels:
       - "traefik.enable=true"
-      - "traefik.http.routers.schlep-service.rule=Host(`localhost`)"
-      - "traefik.http.services.schlep-service.loadbalancer.server.port=8080"
+      - "traefik.http.routers.igris-service.rule=Host(`localhost`)"
+      - "traefik.http.services.igris-service.loadbalancer.server.port=8080"
 
   # Prometheus for metrics collection
   prometheus:
@@ -156,7 +156,7 @@ services:
     volumes:
       - /var/run/docker.sock:/var/run/docker.sock:ro
     depends_on:
-      - schlep-service
+      - igris-service
 
 volumes:
   prometheus_data:

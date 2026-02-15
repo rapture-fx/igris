@@ -190,7 +190,7 @@ func (cm *CostMapConfig) GetForecastHeaderName() string {
 	if cm.Config != nil && cm.Config.ForecastHeaderName != "" {
 		return cm.Config.ForecastHeaderName
 	}
-	return "X-Schlep-Est-Cost-USD"
+	return "X-Igris-Est-Cost-USD"
 }
 
 // IsForecastHeaderEnabled returns whether forecast header should be added
@@ -211,7 +211,7 @@ func DefaultCostConfig() *CostConfig {
 		MaxCostPerRequest:     1.0,
 		TokenEstimationMethod: "approximate",
 		EnableForecastHeader:  true,
-		ForecastHeaderName:    "X-Schlep-Est-Cost-USD",
+		ForecastHeaderName:    "X-Igris-Est-Cost-USD",
 		EnableCostLogging:     true,
 	}
 }

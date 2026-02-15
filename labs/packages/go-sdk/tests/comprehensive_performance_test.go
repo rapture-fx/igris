@@ -28,20 +28,20 @@ import (
 )
 
 // Mock client interfaces
-type SchlepEngineClient struct {
+type IgrisClient struct {
 	httpClient *http.Client
 	baseURL    string
 	apiKey     string
 }
 
 type AuthManager struct {
-	client     *SchlepEngineClient
+	client     *IgrisClient
 	tokenCache map[string]interface{}
 	mutex      sync.RWMutex
 }
 
 type DataProcessor struct {
-	client *SchlepEngineClient
+	client *IgrisClient
 }
 
 type WebSocketManager struct {
@@ -52,7 +52,7 @@ type WebSocketManager struct {
 
 // Performance test suite
 type PerformanceTestSuite struct {
-	client      *SchlepEngineClient
+	client      *IgrisClient
 	testResults map[string]interface{}
 	mutex       sync.RWMutex
 }
@@ -78,7 +78,7 @@ type MemoryStats struct {
 // Helper functions
 func NewPerformanceTestSuite() *PerformanceTestSuite {
 	return &PerformanceTestSuite{
-		client:      &SchlepEngineClient{httpClient: &http.Client{}},
+		client:      &IgrisClient{httpClient: &http.Client{}},
 		testResults: make(map[string]interface{}),
 	}
 }
@@ -158,7 +158,7 @@ func TestAuthenticationPerformance(t *testing.T) {
 	server := CreateMockServer(50 * time.Millisecond) // 50ms delay
 	defer server.Close()
 	
-	client := &SchlepEngineClient{
+	client := &IgrisClient{
 		httpClient: &http.Client{Timeout: 30 * time.Second},
 		baseURL:    server.URL,
 		apiKey:     "test-api-key",
@@ -285,7 +285,7 @@ func TestDataProcessingPerformance(t *testing.T) {
 	server := CreateMockServer(10 * time.Millisecond)
 	defer server.Close()
 
-	client := &SchlepEngineClient{
+	client := &IgrisClient{
 		httpClient: &http.Client{Timeout: 30 * time.Second},
 		baseURL:    server.URL,
 	}
@@ -564,7 +564,7 @@ func TestRateLimitingAndLoad(t *testing.T) {
 	server := CreateMockServer(10 * time.Millisecond)
 	defer server.Close()
 
-	client := &SchlepEngineClient{
+	client := &IgrisClient{
 		httpClient: &http.Client{Timeout: 30 * time.Second},
 		baseURL:    server.URL,
 	}
@@ -844,7 +844,7 @@ func TestGoroutineLeakDetection(t *testing.T) {
 	t.Run("GoroutineLeakPrevention", func(t *testing.T) {
 		initialGoroutines := runtime.NumGoroutine()
 		
-		client := &SchlepEngineClient{
+		client := &IgrisClient{
 			httpClient: &http.Client{Timeout: 5 * time.Second},
 			baseURL:    server.URL,
 		}

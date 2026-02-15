@@ -1,5 +1,5 @@
 /**
- * Comprehensive WebSocket and streaming tests for Schlep-engine JavaScript SDK
+ * Comprehensive WebSocket and streaming tests for Igris-engine JavaScript SDK
  */
 
 import { describe, test, expect, beforeEach, afterEach, jest } from '@jest/globals';

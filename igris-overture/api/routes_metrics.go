@@ -26,7 +26,7 @@ func RegisterMetricsRoutes(app *fiber.App) error {
 	})
 	log.Println("[Routes] ✓ GET /metrics (Prometheus metrics)")
 
-	// Schlep-engine specific aggregated metrics endpoint
+	// Igris-engine specific aggregated metrics endpoint
 	// Returns JSON with provider statistics and aggregated metrics
 	app.Get("/v1/metrics", func(c *fiber.Ctx) error {
 		// Start trace for metrics request

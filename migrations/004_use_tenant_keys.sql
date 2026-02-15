@@ -321,5 +321,5 @@ COMMENT ON COLUMN tenant_keys.rotated_from_key_id IS 'Previous key ID in rotatio
 -- ============================================================================
 -- GRANT PERMISSIONS (adjust as needed)
 -- ============================================================================
--- GRANT SELECT, INSERT, UPDATE, DELETE ON tenant_keys TO schlep_api_role;
--- GRANT USAGE ON ALL SEQUENCES IN SCHEMA public TO schlep_api_role;
+-- GRANT SELECT, INSERT, UPDATE, DELETE ON tenant_keys TO igris_api_role;
+-- GRANT USAGE ON ALL SEQUENCES IN SCHEMA public TO igris_api_role;

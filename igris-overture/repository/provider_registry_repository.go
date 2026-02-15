@@ -1,4 +1,4 @@
-// Package repository provides data access layer for Schlep-Engine
+// Package repository provides data access layer for Igris Inertial
 package repository
 
 import (

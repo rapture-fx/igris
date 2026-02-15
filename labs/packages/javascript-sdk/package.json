@@ -1,9 +1,9 @@
 {
   "name": "@igris-inertial/javascript-sdk",
   "version": "1.0.0",
-  "description": "Official JavaScript/TypeScript SDK for Schlep-engine - Advanced data processing, machine learning, and analytics platform",
+  "description": "Official JavaScript/TypeScript SDK for Igris-engine - Advanced data processing, machine learning, and analytics platform",
   "keywords": [
-    "schlep-engine",
+    "igris-inertial",
     "data-processing",
     "machine-learning",
     "analytics",
@@ -12,7 +12,7 @@
     "typescript",
     "javascript"
   ],
-  "author": "Schlep-engine <support@igris-inertial.com>",
+  "author": "Igris-engine <support@igris-inertial.com>",
   "license": "MIT",
   "type": "module",
   "homepage": "https://igris-inertial.com",

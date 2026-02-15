@@ -1,4 +1,4 @@
-// Package models provides data models for the Schlep-Engine API
+// Package models provides data models for the Igris Inertial API
 package models
 
 import (

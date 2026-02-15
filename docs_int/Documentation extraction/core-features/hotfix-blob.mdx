@@ -2,7 +2,7 @@
 
 ## Overview
 
-**Hotfix Blob** is Schlep Engine's emergency configuration delivery system that enables instant, zero-downtime updates to critical system parameters without requiring redeployment or control plane restart.
+**Hotfix Blob** is Igris Inertial's emergency configuration delivery system that enables instant, zero-downtime updates to critical system parameters without requiring redeployment or control plane restart.
 
 ## Status
 
@@ -125,9 +125,9 @@ TODO: Implement budget override mechanism
 
 ```go
 // TODO: Implement hotfix client
-import "github.com/schlep-engine/sdk/hotfix"
+import "github.com/igris-inertial/sdk/hotfix"
 
-client := schlep.NewClient(&schlep.Config{
+client := igris.NewClient(&igris.Config{
     APIKey: "your-api-key",
     HotfixEnabled: true,
     HotfixPollInterval: 60 * time.Second,
@@ -247,20 +247,20 @@ TODO: Implement alerting integration
 
 ```bash
 # Enable hotfix system
-SCHLEP_HOTFIX_ENABLED=true
+IGRIS_HOTFIX_ENABLED=true
 
 # Hotfix polling interval (seconds)
-SCHLEP_HOTFIX_POLL_INTERVAL=60
+IGRIS_HOTFIX_POLL_INTERVAL=60
 
 # Hotfix distribution endpoint
-SCHLEP_HOTFIX_ENDPOINT=https://hotfix.schlep-engine.com
+IGRIS_HOTFIX_ENDPOINT=https://hotfix.igris-inertial.com
 
 # Public key for signature verification
-SCHLEP_HOTFIX_PUBLIC_KEY=ed25519:AbCd...
+IGRIS_HOTFIX_PUBLIC_KEY=ed25519:AbCd...
 
 # Automatic rollback on high error rate
-SCHLEP_HOTFIX_AUTO_ROLLBACK=true
-SCHLEP_HOTFIX_ROLLBACK_ERROR_THRESHOLD=0.15
+IGRIS_HOTFIX_AUTO_ROLLBACK=true
+IGRIS_HOTFIX_ROLLBACK_ERROR_THRESHOLD=0.15
 ```
 
 ## Related Research
@@ -338,7 +338,7 @@ Yes, the admin UI will support dry-run mode and canary deployment.
 
 We're actively seeking feedback on the Hotfix Blob design:
 
-- Email: research@schlep-engine.com
+- Email: research@igris-inertial.com
 - GitHub Discussions: Feature Design - Hotfix Blob
 - Discord: #hotfix-blob channel
 

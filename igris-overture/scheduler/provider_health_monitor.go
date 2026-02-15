@@ -1,4 +1,4 @@
-// Package scheduler provides background job scheduling for Schlep-Engine
+// Package scheduler provides background job scheduling for Igris Inertial
 package scheduler
 
 import (

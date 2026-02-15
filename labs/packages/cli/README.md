@@ -1,16 +1,16 @@
-# Schlep-engine CLI
+# Igris-engine CLI
 
 [![PyPI version](https://badge.fury.io/py/igris-inertial-cli.svg)](https://badge.fury.io/py/igris-inertial-cli)
 [![Python Support](https://img.shields.io/pypi/pyversions/igris-inertial-cli.svg)](https://pypi.org/project/igris-inertial-cli/)
 [![License: MIT](https://img.shields.io/badge/License-MIT-yellow.svg)](https://opensource.org/licenses/MIT)
 [![Downloads](https://pepy.tech/badge/igris-inertial-cli)](https://pepy.tech/project/igris-inertial-cli)
 
-Official command-line interface for [Schlep-engine](https://igris-inertial.com) - Advanced data processing, machine learning, DevOps automation, and analytics platform.
+Official command-line interface for [Igris-engine](https://igris-inertial.com) - Advanced data processing, machine learning, DevOps automation, and analytics platform.
 
 ## 🚀 Features
 
 ### Core Features
-- **Complete CLI Interface**: Full access to all Schlep-engine API features
+- **Complete CLI Interface**: Full access to all Igris-engine API features
 - **Batch Processing**: Process multiple files in parallel with intelligent queue management
 - **Pipeline Management**: Create, monitor, and manage ML pipelines with real-time updates
 - **Rich Terminal UI**: Beautiful progress bars, tables, live dashboards, and status displays
@@ -57,59 +57,59 @@ pip install -e ".[dev]"
 
 ### 1. Authentication
 
-Get your API key from the [Schlep-engine Dashboard](https://dashboard.igris-inertial.com/api-keys):
+Get your API key from the [Igris-engine Dashboard](https://dashboard.igris-inertial.com/api-keys):
 
 ```bash
 # Interactive login
-schlep auth login
+igris auth login
 
 # Or with API key directly
-schlep auth login --api-key sk-your-api-key-here
+igris auth login --api-key sk-your-api-key-here
 
 # Check authentication status
-schlep auth status
+igris auth status
 ```
 
 ### 2. Process Data
 
 ```bash
 # Process a single file
-schlep process file data.csv --output processed.parquet
+igris process file data.csv --output processed.parquet
 
 # Batch process multiple files
-schlep process batch "data/*.csv" --parallel 4 --clean
+igris process batch "data/*.csv" --parallel 4 --clean
 
 # Upload file to storage
-schlep process upload data.csv --public
+igris process upload data.csv --public
 ```
 
 ### 3. Manage Pipelines
 
 ```bash
 # Create pipeline from config
-schlep pipeline create fraud-detection.yml --auto-start
+igris pipeline create fraud-detection.yml --auto-start
 
 # List all pipelines
-schlep pipeline list --status running
+igris pipeline list --status running
 
 # Monitor pipeline progress
-schlep pipeline status my-pipeline --watch
+igris pipeline status my-pipeline --watch
 
 # View pipeline logs
-schlep pipeline logs my-pipeline --follow
+igris pipeline logs my-pipeline --follow
 ```
 
 ### 4. System Monitoring
 
 ```bash
 # System health check
-schlep monitoring status --detailed
+igris monitoring status --detailed
 
 # View system metrics
-schlep monitoring metrics --watch
+igris monitoring metrics --watch
 
 # List processing jobs
-schlep monitoring jobs --status running
+igris monitoring jobs --status running
 ```
 
 ## 📚 Documentation
@@ -117,7 +117,7 @@ schlep monitoring jobs --status running
 ### Command Overview
 
 ```
-schlep [COMMAND] [SUBCOMMAND] [OPTIONS]
+igris [COMMAND] [SUBCOMMAND] [OPTIONS]
 
 Commands:
   auth        Authentication and user management
@@ -131,111 +131,111 @@ Commands:
 
 ```bash
 # Login with API key
-schlep auth login --api-key sk-123...
+igris auth login --api-key sk-123...
 
 # Interactive login
-schlep auth login --interactive
+igris auth login --interactive
 
 # Check authentication status
-schlep auth status
+igris auth status
 
 # Show current user info
-schlep auth whoami
+igris auth whoami
 
 # Logout and clear credentials
-schlep auth logout
+igris auth logout
 ```
 
 ### Data Processing Commands
 
 ```bash
 # Process single file
-schlep process file input.csv \
+igris process file input.csv \
   --output processed.parquet \
   --format parquet \
   --clean \
   --profile
 
 # Batch process files
-schlep process batch "data/*.csv" \
+igris process batch "data/*.csv" \
   --parallel 8 \
   --format parquet \
   --output-dir processed/ \
   --continue-on-error
 
 # Upload file
-schlep process upload data.csv \
+igris process upload data.csv \
   --bucket my-bucket \
   --public \
   --metadata project=demo
 
 # Download file
-schlep process download file-12345 --output data.csv
+igris process download file-12345 --output data.csv
 ```
 
 ### Pipeline Management
 
 ```bash
 # Create pipeline
-schlep pipeline create config.yml --name "My Pipeline"
+igris pipeline create config.yml --name "My Pipeline"
 
 # List pipelines
-schlep pipeline list --status running --limit 20
+igris pipeline list --status running --limit 20
 
 # Get pipeline details
-schlep pipeline status my-pipeline --json
+igris pipeline status my-pipeline --json
 
 # Start/stop pipeline
-schlep pipeline start my-pipeline
-schlep pipeline stop my-pipeline --force
+igris pipeline start my-pipeline
+igris pipeline stop my-pipeline --force
 
 # View logs
-schlep pipeline logs my-pipeline --lines 500 --follow
+igris pipeline logs my-pipeline --lines 500 --follow
 
 # Delete pipeline
-schlep pipeline delete my-pipeline
+igris pipeline delete my-pipeline
 ```
 
 ### Configuration Management
 
 ```bash
 # Initialize config
-schlep config init
+igris config init
 
 # List all settings
-schlep config list
+igris config list
 
 # Set configuration value
-schlep config set parallel_jobs 8
-schlep config set timeout 60
+igris config set parallel_jobs 8
+igris config set timeout 60
 
 # Get configuration value
-schlep config get base_url
+igris config get base_url
 
 # Update multiple values
-schlep config update parallel_jobs=8 timeout=60 auto_clean=true
+igris config update parallel_jobs=8 timeout=60 auto_clean=true
 
 # Reset to defaults
-schlep config reset
+igris config reset
 ```
 
 ### Monitoring Commands
 
 ```bash
 # System status
-schlep monitoring status --detailed
+igris monitoring status --detailed
 
 # System metrics
-schlep monitoring metrics --watch --interval 5
+igris monitoring metrics --watch --interval 5
 
 # List jobs
-schlep monitoring jobs --status running
+igris monitoring jobs --status running
 
 # Job details
-schlep monitoring job job-12345 --watch
+igris monitoring job job-12345 --watch
 
 # Cancel job
-schlep monitoring cancel-job job-12345
+igris monitoring cancel-job job-12345
 ```
 
 ## ⚙️ Configuration
@@ -243,14 +243,14 @@ schlep monitoring cancel-job job-12345
 The CLI uses a hierarchical configuration system:
 
 1. **Command line options** (highest priority)
-2. **Environment variables** (prefixed with `SCHLEP_`)
-3. **Configuration file** (`~/.schlep/config.yml`)
+2. **Environment variables** (prefixed with `IGRIS_`)
+3. **Configuration file** (`~/.igris/config.yml`)
 4. **Defaults** (lowest priority)
 
 ### Configuration File Example
 
 ```yaml
-# ~/.schlep/config.yml
+# ~/.igris/config.yml
 api:
   base_url: https://api.igris-inertial.com
   timeout: 30
@@ -277,18 +277,18 @@ pipelines:
 
 ```bash
 # API Configuration
-export SCHLEP_API_KEY="sk-your-api-key"
-export SCHLEP_BASE_URL="https://api.igris-inertial.com"
-export SCHLEP_TIMEOUT=30
+export IGRIS_API_KEY="sk-your-api-key"
+export IGRIS_BASE_URL="https://api.igris-inertial.com"
+export IGRIS_TIMEOUT=30
 
 # Processing Settings
-export SCHLEP_DEFAULT_FORMAT="parquet"
-export SCHLEP_PARALLEL_JOBS=8
-export SCHLEP_AUTO_CLEAN=true
+export IGRIS_DEFAULT_FORMAT="parquet"
+export IGRIS_PARALLEL_JOBS=8
+export IGRIS_AUTO_CLEAN=true
 
 # Output Settings
-export SCHLEP_OUTPUT_DIR="./output"
-export SCHLEP_LOG_LEVEL="INFO"
+export IGRIS_OUTPUT_DIR="./output"
+export IGRIS_LOG_LEVEL="INFO"
 ```
 
 ## 🔧 Advanced Usage
@@ -335,7 +335,7 @@ compression: snappy
 EOF
 
 # Process with config
-schlep process batch "data/*.csv" --config processing_config.yml
+igris process batch "data/*.csv" --config processing_config.yml
 ```
 
 ### CI/CD Integration
@@ -345,29 +345,29 @@ schlep process batch "data/*.csv" --config processing_config.yml
 # ci-cd-pipeline.sh
 
 # Authenticate
-schlep auth login --api-key $SCHLEP_API_KEY
+igris auth login --api-key $IGRIS_API_KEY
 
 # Process data
-schlep process batch "data/*.csv" --parallel 8 --continue-on-error
+igris process batch "data/*.csv" --parallel 8 --continue-on-error
 
 # Deploy pipeline
-schlep pipeline create production.yml --auto-start
+igris pipeline create production.yml --auto-start
 
 # Monitor deployment
-schlep pipeline status production-pipeline --watch
+igris pipeline status production-pipeline --watch
 ```
 
 ### Watch Mode for Real-time Monitoring
 
 ```bash
 # Watch pipeline progress
-schlep pipeline status my-pipeline --watch
+igris pipeline status my-pipeline --watch
 
 # Monitor system metrics
-schlep monitoring metrics --watch --interval 10
+igris monitoring metrics --watch --interval 10
 
 # Follow pipeline logs
-schlep pipeline logs my-pipeline --follow
+igris pipeline logs my-pipeline --follow
 ```
 
 ## 🎯 Use Cases
@@ -376,7 +376,7 @@ schlep pipeline logs my-pipeline --follow
 
 ```bash
 # Automated data processing in CI/CD
-schlep process batch "$DATA_DIR/*.csv" \
+igris process batch "$DATA_DIR/*.csv" \
   --config production.yml \
   --parallel $CPU_CORES \
   --continue-on-error
@@ -386,21 +386,21 @@ schlep process batch "$DATA_DIR/*.csv" \
 
 ```bash
 # Process experimental data
-schlep process file experiment_data.csv \
+igris process file experiment_data.csv \
   --clean \
   --profile \
   --output experiments/processed_data.parquet
 
 # Create and monitor ML pipeline
-schlep pipeline create experiment.yml --auto-start
-schlep pipeline status experiment --watch
+igris pipeline create experiment.yml --auto-start
+igris pipeline status experiment --watch
 ```
 
 ### Batch Processing
 
 ```bash
 # Process large datasets in parallel
-schlep process batch "raw_data/**/*.json" \
+igris process batch "raw_data/**/*.json" \
   --parallel 16 \
   --format parquet \
   --output-dir processed_data/ \
@@ -413,14 +413,14 @@ The CLI includes comprehensive error handling:
 
 ```bash
 # Continue processing other files if one fails
-schlep process batch "*.csv" --continue-on-error
+igris process batch "*.csv" --continue-on-error
 
 # Retry failed operations
-schlep config set retry_attempts 5
-schlep config set retry_delay 10
+igris config set retry_attempts 5
+igris config set retry_delay 10
 
 # Debug mode for troubleshooting
-SCHLEP_DEBUG=1 schlep process file data.csv
+IGRIS_DEBUG=1 igris process file data.csv
 ```
 
 ## 📊 Output Formats
@@ -434,10 +434,10 @@ The CLI supports multiple output formats:
 
 ```bash
 # JSON output for scripting
-schlep auth status --json | jq '.authenticated'
+igris auth status --json | jq '.authenticated'
 
 # Table output for humans
-schlep pipeline list --status running
+igris pipeline list --status running
 ```
 
 ## 🔌 Integration Examples
@@ -466,10 +466,10 @@ jobs:
         
       - name: Process Data
         run: |
-          schlep auth login --api-key ${{ secrets.SCHLEP_API_KEY }}
-          schlep process batch "data/*.csv" --parallel 4
+          igris auth login --api-key ${{ secrets.IGRIS_API_KEY }}
+          igris process batch "data/*.csv" --parallel 4
         env:
-          SCHLEP_API_KEY: ${{ secrets.SCHLEP_API_KEY }}
+          IGRIS_API_KEY: ${{ secrets.IGRIS_API_KEY }}
 ```
 
 ### Jenkins Pipeline
@@ -479,7 +479,7 @@ pipeline {
     agent any
     
     environment {
-        SCHLEP_API_KEY = credentials('igris-overture-key')
+        IGRIS_API_KEY = credentials('igris-overture-key')
     }
     
     stages {
@@ -487,8 +487,8 @@ pipeline {
             steps {
                 sh '''
                     pip install igris-inertial-cli
-                    schlep auth login --api-key $SCHLEP_API_KEY
-                    schlep process batch "data/*.csv" --parallel 8
+                    igris auth login --api-key $IGRIS_API_KEY
+                    igris process batch "data/*.csv" --parallel 8
                 '''
             }
         }
@@ -496,7 +496,7 @@ pipeline {
         stage('Deploy Pipeline') {
             steps {
                 sh '''
-                    schlep pipeline create production.yml --auto-start
+                    igris pipeline create production.yml --auto-start
                 '''
             }
         }
@@ -516,7 +516,7 @@ COPY pipeline.yml /app/
 
 WORKDIR /app
 
-CMD ["schlep", "pipeline", "create", "pipeline.yml", "--auto-start"]
+CMD ["igris", "pipeline", "create", "pipeline.yml", "--auto-start"]
 ```
 
 ## 🧪 Testing
@@ -531,7 +531,7 @@ pip install -e ".[test]"
 pytest
 
 # Run with coverage
-pytest --cov=schlep_cli
+pytest --cov=igris_cli
 
 # Run specific test categories
 pytest -m "unit"
@@ -597,4 +597,4 @@ Built with:
 
 ---
 
-Made with ❤️ by the [Schlep-engine](https://igris-inertial.com) team.
+Made with ❤️ by the [Igris-engine](https://igris-inertial.com) team.

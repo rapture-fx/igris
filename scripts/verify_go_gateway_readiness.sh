@@ -1,5 +1,5 @@
 #!/bin/bash
-# Schlep-Engine Go Gateway Production Readiness Verification
+# Igris Inertial Go Gateway Production Readiness Verification
 # Phase 1: Verify 100% traffic handling capability
 
 set -e

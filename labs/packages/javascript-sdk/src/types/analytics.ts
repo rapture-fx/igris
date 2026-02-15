@@ -1,5 +1,5 @@
 /**
- * Analytics types for Schlep-engine JavaScript SDK
+ * Analytics types for Igris-engine JavaScript SDK
  */
 
 /**

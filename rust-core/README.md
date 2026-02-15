@@ -1,6 +1,6 @@
 # Rust Core — Production Rust Modules
 
-This directory contains **production-ready Rust libraries** integrated with Schlep-engine's Go codebase via FFI.
+This directory contains **production-ready Rust libraries** integrated with Igris Inertial's Go codebase via FFI.
 
 ## Production Modules
 

@@ -141,7 +141,7 @@ jobs:
               # Create minimal spec for testing
               minimal_spec = {
                   "openapi": "3.0.0",
-                  "info": {"title": "Schlep-engine API", "version": "2.0.0"},
+                  "info": {"title": "Igris-engine API", "version": "2.0.0"},
                   "paths": {},
                   "components": {"securitySchemes": {"ApiKeyAuth": {"type": "apiKey", "in": "header", "name": "X-API-Key"}}},
                   "security": [{"ApiKeyAuth": []}]
@@ -469,14 +469,14 @@ jobs:
           
           ## Generated Clients
           
-          This release includes automatically generated client libraries for the Schlep-engine API.
+          This release includes automatically generated client libraries for the Igris-engine API.
           
           ### Languages Supported
           - Python (PyPI: `igris-inertial-client`)
           - TypeScript/JavaScript (NPM: `@igris-inertial/client`)
           - Go (GitHub: `github.com/igris-inertial/go-client`)
-          - Java (Maven Central: `com.schlepengine:igris-inertial-client`)
-          - C# (NuGet: `SchlepEngine.Client`)
+          - Java (Maven Central: `com.igris:igris-inertial-client`)
+          - C# (NuGet: `Igris.Client`)
           
           ### Changes in This Release
           - Updated API specification
@@ -504,7 +504,7 @@ jobs:
           **Java:**
           ```xml
           <dependency>
-            <groupId>com.schlepengine</groupId>
+            <groupId>com.igris</groupId>
             <artifactId>igris-inertial-client</artifactId>
             <version>2.0.0</version>
           </dependency>
@@ -512,7 +512,7 @@ jobs:
           
           **C#:**
           ```bash
-          dotnet add package SchlepEngine.Client
+          dotnet add package Igris.Client
           ```
           
           EOF

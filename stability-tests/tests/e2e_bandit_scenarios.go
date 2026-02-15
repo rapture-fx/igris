@@ -314,7 +314,7 @@ func randFloat() float64 {
 func setupTestDatabase(t *testing.T) *sql.DB {
 	dbURL := os.Getenv("DATABASE_URL")
 	if dbURL == "" {
-		dbURL = "postgres://schlep:schlep_ci_password@localhost:5433/schlep_test?sslmode=disable"
+		dbURL = "postgres://igris:igris_ci_password@localhost:5433/igris_test?sslmode=disable"
 	}
 
 	db, err := sql.Open("postgres", dbURL)

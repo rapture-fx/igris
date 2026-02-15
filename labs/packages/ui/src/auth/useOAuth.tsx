@@ -12,7 +12,7 @@ import type {
   UseOAuthReturn,
   OAuthAuthorizationUrl,
   AuthResponse 
-} from '@schlep-engine/types/auth'
+} from '@igris-inertial/types/auth'
 import { authAPI, AuthError as APIError } from './AuthAPI'
 
 interface UseOAuthOptions {

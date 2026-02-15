@@ -1,7 +1,7 @@
 # RFC: Optimizer Migration from Go to Rust via FFI
 
 **Status**: Draft
-**Author**: Schlep-Engine Team
+**Author**: Igris Inertial Team
 **Created**: 2025-10-15
 **Updated**: 2025-10-15
 
@@ -765,7 +765,7 @@ func (c *OptimizerClient) SelectAction() (*Action, error) {
 2. Agrawal, S., & Goyal, N. (2013). "Thompson Sampling for Contextual Bandits with Linear Payoffs". ICML.
 3. Go cgo documentation: https://golang.org/cmd/cgo/
 4. Rust FFI documentation: https://doc.rust-lang.org/nomicon/ffi.html
-5. Schlep-Engine Thompson Sampling implementation: `labs/research/rl/thompson_sampling.rs`
+5. Igris Inertial Thompson Sampling implementation: `labs/research/rl/thompson_sampling.rs`
 
 ---
 

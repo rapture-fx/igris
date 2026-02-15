@@ -7,14 +7,14 @@
 set -euo pipefail
 
 # Configuration
-DATABASE_URL="${DATABASE_URL:-postgres://schlep:schlep_ci_password@localhost:5433/schlep_test?sslmode=disable}"
+DATABASE_URL="${DATABASE_URL:-postgres://igris:igris_ci_password@localhost:5433/igris_test?sslmode=disable}"
 TEST_DURATION_DAYS=30
 REQUESTS_PER_DAY=10000
 SEMANTIC_CLASSES=("code_generation" "question_answering" "translation" "summarization" "creative_writing" "data_analysis" "conversational" "default")
 PROVIDERS=("openai" "anthropic" "cohere" "google")
 
 echo "========================================"
-echo "Schlep-Engine Database Load Test"
+echo "Igris Inertial Database Load Test"
 echo "========================================"
 echo "Duration: ${TEST_DURATION_DAYS} days (simulated)"
 echo "Requests/day: ${REQUESTS_PER_DAY}"
@@ -238,7 +238,7 @@ echo "[7/7] Generating summary report..."
 
 cat > db_load_test_results.txt <<EOF
 ======================================
-Schlep-Engine Database Load Test Report
+Igris Inertial Database Load Test Report
 ======================================
 Test Date: $(date)
 Test Duration: ${TEST_DURATION_DAYS} days (simulated)

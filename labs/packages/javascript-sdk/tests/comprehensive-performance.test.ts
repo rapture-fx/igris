@@ -17,7 +17,7 @@ import { performance, PerformanceObserver } from 'perf_hooks';
 import { EventEmitter } from 'events';
 
 // Mock SDK imports
-interface SchlepEngineClient {
+interface IgrisClient {
     authenticate(): Promise<any>;
     createJob(data: any): Promise<any>;
     getJobStatus(jobId: string): Promise<any>;
@@ -42,7 +42,7 @@ interface WebSocketManager extends EventEmitter {
 }
 
 // Mock implementations
-const createMockClient = (): SchlepEngineClient => ({
+const createMockClient = (): IgrisClient => ({
     authenticate: jest.fn().mockResolvedValue({ token: 'test-token', expiresIn: 3600 }),
     createJob: jest.fn().mockResolvedValue({ jobId: 'test-job-123', status: 'created' }),
     getJobStatus: jest.fn().mockResolvedValue({ jobId: 'test-job-123', status: 'completed' }),
@@ -158,7 +158,7 @@ class PerformanceTestSuite {
 
 describe('JavaScript SDK Performance Tests', () => {
     let performanceSuite: PerformanceTestSuite;
-    let mockClient: SchlepEngineClient;
+    let mockClient: IgrisClient;
     let mockAuthManager: AuthManager;
     let mockDataProcessor: DataProcessor;
 

@@ -1,20 +1,20 @@
 """
-Basic usage examples for Schlep-engine Python SDK
+Basic usage examples for Igris-engine Python SDK
 
 This file demonstrates common usage patterns for the SDK.
 """
 
 import asyncio
-from schlep_engine import SchlepEngineClient
-from schlep_engine.models.data import DataFormat, ProcessingMode
-from schlep_engine.models.ml import MLPipelineConfig, MLTaskType, ModelType
+from igris import IgrisClient
+from igris.models.data import DataFormat, ProcessingMode
+from igris.models.ml import MLPipelineConfig, MLTaskType, ModelType
 
 
 async def basic_data_processing():
     """Example: Basic data processing"""
     
     # Initialize client with API key
-    client = SchlepEngineClient(api_key="your-api-key-here")
+    client = IgrisClient(api_key="your-api-key-here")
     
     try:
         # Process a CSV file
@@ -47,7 +47,7 @@ async def basic_data_processing():
 async def machine_learning_example():
     """Example: Machine learning pipeline"""
     
-    async with SchlepEngineClient(api_key="your-api-key") as client:
+    async with IgrisClient(api_key="your-api-key") as client:
         
         # Create ML pipeline configuration
         config = MLPipelineConfig(
@@ -104,7 +104,7 @@ async def machine_learning_example():
 async def user_authentication_example():
     """Example: User authentication workflow"""
     
-    client = SchlepEngineClient()
+    client = IgrisClient()
     
     try:
         # Login with username and password
@@ -148,7 +148,7 @@ async def user_authentication_example():
 async def document_extraction_example():
     """Example: Document extraction"""
     
-    async with SchlepEngineClient(api_key="your-api-key") as client:
+    async with IgrisClient(api_key="your-api-key") as client:
         
         # Extract text from a PDF document
         result = await client.extract.extract_text(
@@ -172,10 +172,10 @@ async def document_extraction_example():
 def synchronous_example():
     """Example: Using synchronous client"""
     
-    from schlep_engine import SchlepEngineClientSync
+    from igris import IgrisClientSync
     
     # Synchronous client for non-async environments
-    client = SchlepEngineClientSync(api_key="your-api-key")
+    client = IgrisClientSync(api_key="your-api-key")
     
     try:
         # Test connection

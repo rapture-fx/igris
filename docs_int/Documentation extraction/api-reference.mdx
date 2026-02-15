@@ -1,12 +1,12 @@
 # API Reference
 
-Complete REST API reference for Schlep Engine. All endpoints are OpenAI-compatible with additional enterprise features.
+Complete REST API reference for Igris Inertial. All endpoints are OpenAI-compatible with additional enterprise features.
 
 ## Base URL
 
 ```
-Production:  https://api.schlep-engine.com
-Staging:     https://api-staging.schlep-engine.com
+Production:  https://api.igris-inertial.com
+Staging:     https://api-staging.igris-inertial.com
 Local:       http://localhost:8080
 ```
 
@@ -17,7 +17,7 @@ All API requests require authentication via **API Key** or **JWT token**.
 ### API Key Authentication
 
 ```bash
-curl https://api.schlep-engine.com/v1/infer \
+curl https://api.igris-inertial.com/v1/infer \
   -H "Authorization: Bearer YOUR_API_KEY" \
   -H "Content-Type: application/json"
 ```
@@ -26,7 +26,7 @@ curl https://api.schlep-engine.com/v1/infer \
 
 ```bash
 # Login to get token
-curl -X POST https://api.schlep-engine.com/v1/auth/login \
+curl -X POST https://api.igris-inertial.com/v1/auth/login \
   -H "Content-Type: application/json" \
   -d '{
     "email": "user@example.com",
@@ -34,7 +34,7 @@ curl -X POST https://api.schlep-engine.com/v1/auth/login \
   }'
 
 # Use token in subsequent requests
-curl https://api.schlep-engine.com/v1/infer \
+curl https://api.igris-inertial.com/v1/infer \
   -H "Authorization: Bearer JWT_TOKEN" \
   -H "Content-Type: application/json"
 ```
@@ -51,7 +51,7 @@ Check API health and version.
 ```json
 {
   "status": "ok",
-  "service": "schlep-engine-api",
+  "service": "igris-inertial-api",
   "version": "1.2.1",
   "uptime_seconds": 86400,
   "rust_kernel_loaded": true,
@@ -81,7 +81,7 @@ Perform inference with automatic provider selection.
   "max_tokens": 1000,
   "stream": false,
 
-  // Schlep Engine extensions
+  // Igris Inertial extensions
   "routing_policy": "thompson-sampling",
   "speculative_mode": "latency",
   "enable_semantic_routing": true,
@@ -672,7 +672,7 @@ All errors follow a consistent format:
     "code": "invalid_api_key",
     "message": "The API key provided is invalid",
     "request_id": "req_abc123",
-    "documentation_url": "https://docs.schlep-engine.com/errors/invalid_api_key"
+    "documentation_url": "https://docs.igris-inertial.com/errors/invalid_api_key"
   }
 }
 ```
@@ -726,7 +726,7 @@ X-RateLimit-Reset: 1701234567
 The API uses URL versioning. Current version is **v1**.
 
 ```
-https://api.schlep-engine.com/v1/infer
+https://api.igris-inertial.com/v1/infer
 ```
 
 When breaking changes are introduced, a new version (v2) will be released alongside v1.
@@ -736,7 +736,7 @@ When breaking changes are introduced, a new version (v2) will be released alongs
 Connect to WebSocket for real-time streaming and updates.
 
 ```javascript
-const ws = new WebSocket('wss://api.schlep-engine.com/v1/stream');
+const ws = new WebSocket('wss://api.igris-inertial.com/v1/stream');
 
 ws.onmessage = (event) => {
   const data = JSON.parse(event.data);
@@ -754,11 +754,11 @@ ws.send(JSON.stringify({
 ## SDK Support
 
 Official SDKs available for:
-- **Python**: `pip install schlep-engine`
-- **JavaScript/TypeScript**: `npm install @schlep-engine/javascript-sdk`
-- **Go**: `go get github.com/schlep-engine/go-sdk`
-- **Rust**: `cargo add schlep-engine-sdk`
-- **Ruby**: `gem install schlep-engine`
+- **Python**: `pip install igris-inertial`
+- **JavaScript/TypeScript**: `npm install @igris-inertial/javascript-sdk`
+- **Go**: `go get github.com/igris-inertial/go-sdk`
+- **Rust**: `cargo add igris-inertial-sdk`
+- **Ruby**: `gem install igris-inertial`
 - **Java**: Maven/Gradle support
 - **C#**: NuGet package
 

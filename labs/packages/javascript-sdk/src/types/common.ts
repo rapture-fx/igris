@@ -1,5 +1,5 @@
 /**
- * Common types and interfaces for Schlep-engine JavaScript SDK
+ * Common types and interfaces for Igris-engine JavaScript SDK
  */
 
 /**

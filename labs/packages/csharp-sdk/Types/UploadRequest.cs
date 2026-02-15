@@ -1,9 +1,9 @@
 using System.Text.Json.Serialization;
 
-namespace SchlepEngine.Types;
+namespace Igris.Types;
 
 /// <summary>
-/// Request object for uploading data to Schlep-engine.
+/// Request object for uploading data to Igris-engine.
 /// </summary>
 public class UploadRequest
 {

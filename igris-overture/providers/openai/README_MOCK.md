@@ -55,7 +55,7 @@ provider, err := openai.NewMockOpenAIProvider(config)
 
 ```go
 req := &models.InferRequest{
-    Model: "schlep-mock-gpt-4",
+    Model: "igris-mock-gpt-4",
     Messages: []models.Message{
         {Role: "user", Content: "Hello!"},
     },
@@ -81,8 +81,8 @@ resp, err := provider.Infer(ctx, req)
 
 ## Supported Models
 
-- `schlep-mock-gpt-4`
-- `schlep-mock-gpt-3.5-turbo`
+- `igris-mock-gpt-4`
+- `igris-mock-gpt-3.5-turbo`
 
 ## API Compatibility
 
@@ -120,12 +120,12 @@ The mock provider returns OpenAI-compatible responses with additional simulation
 {
   "id": "chatcmpl-1729012345000000000",
   "object": "chat.completion",
-  "model": "schlep-mock-gpt-4",
+  "model": "igris-mock-gpt-4",
   "choices": [{
     "index": 0,
     "message": {
       "role": "assistant",
-      "content": "Hello from Schlep Mock OpenAI! 🎭..."
+      "content": "Hello from Igris Mock OpenAI! 🎭..."
     },
     "finish_reason": "stop"
   }],
@@ -136,7 +136,7 @@ The mock provider returns OpenAI-compatible responses with additional simulation
   },
   "metadata": {
     "provider": "mock-openai",
-    "model_used": "schlep-mock-gpt-4",
+    "model_used": "igris-mock-gpt-4",
     "latency_ms": 127,
     "cost_usd": 0.000684,
     "quality_score": 0.95

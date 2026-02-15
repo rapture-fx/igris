@@ -10,7 +10,7 @@ include pyproject.toml
 include setup.py
 
 # Include type information
-recursive-include src/schlep_cli *.py *.typed
+recursive-include src/igris_cli *.py *.typed
 
 # Include examples
 recursive-include examples *.py *.yml *.yaml *.json *.md

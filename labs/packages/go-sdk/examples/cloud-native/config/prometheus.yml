@@ -7,10 +7,10 @@ rule_files:
   - "alert_rules.yml"
 
 scrape_configs:
-  # Schlep Cloud Native Service
-  - job_name: 'schlep-cloud-native-service'
+  # Igris Cloud Native Service
+  - job_name: 'igris-cloud-native-service'
     static_configs:
-      - targets: ['schlep-service:8080']
+      - targets: ['igris-service:8080']
     metrics_path: '/metrics'
     scrape_interval: 30s
     scrape_timeout: 10s

@@ -1,10 +1,10 @@
-# Schlep-engine Ruby SDK
+# Igris-engine Ruby SDK
 
 **Status:** 🚧 In Development - Planned for Future Release
 
 ## Overview
 
-The Schlep-engine Ruby SDK is currently under development and not yet ready for production use.
+The Igris-engine Ruby SDK is currently under development and not yet ready for production use.
 
 ## Planned Features
 
@@ -18,21 +18,21 @@ The Schlep-engine Ruby SDK is currently under development and not yet ready for 
 ## Installation (Coming Soon)
 
 ```ruby
-gem install schlep
+gem install igris
 ```
 
 Or add to your Gemfile:
 
 ```ruby
-gem 'schlep', '~> 1.0'
+gem 'igris', '~> 1.0'
 ```
 
 ## Planned Usage
 
 ```ruby
-require 'schlep'
+require 'igris'
 
-client = Schlep::Client.new(
+client = Igris::Client.new(
   base_url: 'http://localhost:8081',
   api_key: 'your-api-key'
 )
@@ -51,8 +51,8 @@ puts response.choices.first.message.content
 ## Rails Integration
 
 ```ruby
-# config/initializers/schlep.rb
-Schlep.configure do |config|
+# config/initializers/igris.rb
+Igris.configure do |config|
   config.base_url = ENV['SCHLEP_BASE_URL']
   config.api_key = ENV['SCHLEP_API_KEY']
   config.timeout = 30
@@ -61,7 +61,7 @@ end
 # app/services/chat_service.rb
 class ChatService
   def initialize
-    @client = Schlep::Client.new
+    @client = Igris::Client.new
   end
 
   def chat(message)
@@ -102,4 +102,4 @@ For questions or to express interest in early access:
 
 ---
 
-**Schlep-engine** - Intelligent AI Routing and Cost Optimization
+**Igris-engine** - Intelligent AI Routing and Cost Optimization

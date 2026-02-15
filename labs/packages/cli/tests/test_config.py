@@ -6,8 +6,8 @@ import json
 import pytest
 from pathlib import Path
 
-from schlep_cli.core.config import Config
-from schlep_cli.commands.config import config as config_cli
+from igris_cli.core.config import Config
+from igris_cli.commands.config import config as config_cli
 
 
 class TestConfig:
@@ -16,7 +16,7 @@ class TestConfig:
     def test_config_creation(self):
         """Test basic config creation."""
         config = Config()
-        assert config.base_url == "https://api.schlep-engine.com"
+        assert config.base_url == "https://api.igris-inertial.com"
         assert config.parallel_jobs == 4
         assert config.default_format == "parquet"
         assert config.timeout == 30
@@ -25,7 +25,7 @@ class TestConfig:
         """Test loading default configuration."""
         config = Config.load()
         assert isinstance(config, Config)
-        assert config.base_url == "https://api.schlep-engine.com"
+        assert config.base_url == "https://api.igris-inertial.com"
     
     def test_config_save_and_load(self, sample_config, config_dir):
         """Test saving and loading configuration."""
@@ -59,10 +59,10 @@ class TestConfig:
     
     def test_config_environment_variables(self, monkeypatch):
         """Test configuration from environment variables."""
-        monkeypatch.setenv('SCHLEP_API_KEY', 'sk-env-key')
-        monkeypatch.setenv('SCHLEP_PARALLEL_JOBS', '16')
-        monkeypatch.setenv('SCHLEP_TIMEOUT', '60')
-        monkeypatch.setenv('SCHLEP_AUTO_CLEAN', 'true')
+        monkeypatch.setenv('IGRIS_API_KEY', 'sk-env-key')
+        monkeypatch.setenv('IGRIS_PARALLEL_JOBS', '16')
+        monkeypatch.setenv('IGRIS_TIMEOUT', '60')
+        monkeypatch.setenv('IGRIS_AUTO_CLEAN', 'true')
         
         config = Config.load()
         assert config.api_key == 'sk-env-key'
@@ -94,7 +94,7 @@ class TestConfig:
     ])
     def test_config_type_conversion(self, key, value, expected_type, monkeypatch):
         """Test environment variable type conversion."""
-        env_key = f'SCHLEP_{key.upper()}'
+        env_key = f'IGRIS_{key.upper()}'
         monkeypatch.setenv(env_key, value)
         
         config = Config.load()

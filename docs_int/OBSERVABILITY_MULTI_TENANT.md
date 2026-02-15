@@ -127,8 +127,8 @@ Ensure all Prometheus metrics include `tenant_id` label (already implemented in 
 ```go
 // ✅ Already implemented - examples:
 speculativeRequestsTotal.WithLabelValues(mode, winnerProvider, tenantID).Inc()
-schlepPolicyVersionActive.WithLabelValues(tenantID, version).Set(value)
-schlepSLAViolationsTotal.WithLabelValues(tenantID, provider, violationType, severity).Inc()
+igrisPolicyVersionActive.WithLabelValues(tenantID, version).Set(value)
+igrisSLAViolationsTotal.WithLabelValues(tenantID, provider, violationType, severity).Inc()
 ```
 
 ### 6. Storage Layer Updates

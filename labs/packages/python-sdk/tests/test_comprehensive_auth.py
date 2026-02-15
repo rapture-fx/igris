@@ -1,5 +1,5 @@
 """
-Comprehensive authentication tests for Schlep-engine Python SDK
+Comprehensive authentication tests for Igris-engine Python SDK
 """
 
 import pytest
@@ -8,10 +8,10 @@ from unittest.mock import AsyncMock, MagicMock, patch
 from datetime import datetime, timedelta
 import json
 
-from schlep_engine.auth.manager import AuthManager
-from schlep_engine.auth.token_storage import MemoryTokenStorage, FileTokenStorage
-from schlep_engine.models.auth import TokenResponse, UserInfo
-from schlep_engine.exceptions.base import AuthenticationError, APIError
+from igris.auth.manager import AuthManager
+from igris.auth.token_storage import MemoryTokenStorage, FileTokenStorage
+from igris.models.auth import TokenResponse, UserInfo
+from igris.exceptions.base import AuthenticationError, APIError
 
 
 class TestAuthManager:

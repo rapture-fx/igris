@@ -1,7 +1,7 @@
 #!/bin/bash
 
 # =============================================================================
-# Schlep-engine AI PLATFORM - DEPLOYMENT SCRIPT
+# Igris-engine AI PLATFORM - DEPLOYMENT SCRIPT
 # =============================================================================
 # Usage: ./scripts/deploy.sh [environment]
 # Environments: development, staging, production
@@ -18,7 +18,7 @@ NC='\033[0m' # No Color
 # Default environment
 ENVIRONMENT=${1:-staging}
 
-echo -e "${BLUE} Schlep-engine AI Platform Deployment${NC}"
+echo -e "${BLUE} Igris-engine AI Platform Deployment${NC}"
 echo -e "${BLUE}Environment: ${ENVIRONMENT}${NC}"
 echo "=============================================="
 
@@ -101,7 +101,7 @@ case $ENVIRONMENT in
         sleep 10
         
         # Add your production URL here
-        PROD_URL="https://Schlep-engine.vercel.app"
+        PROD_URL="https://Igris-engine.vercel.app"
         if curl -f -s "$PROD_URL" > /dev/null; then
             echo -e "${GREEN} Health check passed${NC}"
         else

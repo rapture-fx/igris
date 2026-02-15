@@ -6,14 +6,14 @@ import { SignUpForm } from '@/components/auth/SignUpForm';
 import { AuthLayout } from '@/components/auth/AuthLayout';
 
 export const metadata: Metadata = {
-  title: 'Sign Up | Schlep-engine Platform',
-  description: 'Create your Schlep-engine Platform account',
+  title: 'Sign Up | Igris-engine Platform',
+  description: 'Create your Igris-engine Platform account',
 };
 
 export default function SignUpPage() {
   return (
     <AuthLayout
-      title="Join Schlep-engine"
+      title="Join Igris-engine"
       subtitle="Create your account and start transforming data"
     >
       <SignUpForm />

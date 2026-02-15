@@ -1,5 +1,5 @@
 """
-Comprehensive error handling and edge case tests for Schlep-engine Python SDK
+Comprehensive error handling and edge case tests for Igris-engine Python SDK
 
 This test suite covers all error scenarios, edge cases, input validation,
 network failures, timeout handling, and recovery mechanisms.
@@ -15,8 +15,8 @@ from datetime import datetime, timedelta
 import aiohttp
 import httpx
 
-from schlep_engine import SchlepEngineClient
-from schlep_engine.exceptions.base import (
+from igris import IgrisClient
+from igris.exceptions.base import (
     APIError,
     ValidationError,
     AuthenticationError,
@@ -30,8 +30,8 @@ from schlep_engine.exceptions.base import (
     InferenceError,
     TrainingError
 )
-from schlep_engine.models.data import JobStatus
-from schlep_engine.models.ml import MLJobStatus
+from igris.models.data import JobStatus
+from igris.models.ml import MLJobStatus
 
 
 class TestAPIErrorHandling:
@@ -40,7 +40,7 @@ class TestAPIErrorHandling:
     @pytest.fixture
     def client(self):
         """Mock client for error testing."""
-        return SchlepEngineClient(api_key="test-key", base_url="https://api.test.com")
+        return IgrisClient(api_key="test-key", base_url="https://api.test.com")
 
     @pytest.mark.asyncio
     async def test_http_status_code_errors(self, client):
@@ -191,7 +191,7 @@ class TestNetworkErrorHandling:
 
     @pytest.fixture
     def client(self):
-        return SchlepEngineClient(api_key="test-key", base_url="https://api.test.com")
+        return IgrisClient(api_key="test-key", base_url="https://api.test.com")
 
     @pytest.mark.asyncio
     async def test_connection_timeout(self, client):
@@ -291,7 +291,7 @@ class TestInputValidationErrors:
 
     @pytest.fixture
     def client(self):
-        return SchlepEngineClient(api_key="test-key", base_url="https://api.test.com")
+        return IgrisClient(api_key="test-key", base_url="https://api.test.com")
 
     @pytest.mark.asyncio
     async def test_empty_job_id_validation(self, client):
@@ -396,7 +396,7 @@ class TestFileHandlingErrors:
 
     @pytest.fixture
     def client(self):
-        return SchlepEngineClient(api_key="test-key", base_url="https://api.test.com")
+        return IgrisClient(api_key="test-key", base_url="https://api.test.com")
 
     @pytest.mark.asyncio
     async def test_upload_nonexistent_file(self, client):
@@ -531,7 +531,7 @@ class TestMLErrorHandling:
 
     @pytest.fixture
     def client(self):
-        return SchlepEngineClient(api_key="test-key", base_url="https://api.test.com")
+        return IgrisClient(api_key="test-key", base_url="https://api.test.com")
 
     @pytest.mark.asyncio
     async def test_insufficient_training_data(self, client):
@@ -692,7 +692,7 @@ class TestConcurrencyErrors:
 
     @pytest.fixture
     def client(self):
-        return SchlepEngineClient(api_key="test-key", base_url="https://api.test.com")
+        return IgrisClient(api_key="test-key", base_url="https://api.test.com")
 
     @pytest.mark.asyncio
     async def test_concurrent_job_limit_exceeded(self, client):
@@ -798,7 +798,7 @@ class TestEdgeCasesAndBoundaryConditions:
 
     @pytest.fixture
     def client(self):
-        return SchlepEngineClient(api_key="test-key", base_url="https://api.test.com")
+        return IgrisClient(api_key="test-key", base_url="https://api.test.com")
 
     @pytest.mark.asyncio
     async def test_extremely_long_job_id(self, client):
@@ -936,7 +936,7 @@ class TestEdgeCasesAndBoundaryConditions:
     async def test_extreme_timeout_values(self, client):
         """Test handling of extreme timeout values."""
         # Test with very short timeout
-        client_short_timeout = SchlepEngineClient(
+        client_short_timeout = IgrisClient(
             api_key="test-key", 
             base_url="https://api.test.com",
             timeout=0.001  # 1ms timeout
@@ -949,7 +949,7 @@ class TestEdgeCasesAndBoundaryConditions:
                 await client_short_timeout.data.get_job_status("job_123")
 
         # Test with very long timeout (should not cause issues)
-        client_long_timeout = SchlepEngineClient(
+        client_long_timeout = IgrisClient(
             api_key="test-key",
             base_url="https://api.test.com", 
             timeout=3600  # 1 hour timeout

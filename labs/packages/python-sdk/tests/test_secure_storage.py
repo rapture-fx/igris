@@ -8,9 +8,9 @@ from datetime import datetime, timedelta
 from pathlib import Path
 from unittest.mock import patch, MagicMock
 
-from schlep_engine.auth.token_storage import TokenStorage, SecureTokenStorage
-from schlep_engine.models.auth import TokenResponse, UserInfo
-from schlep_engine.exceptions.base import ConfigurationError
+from igris.auth.token_storage import TokenStorage, SecureTokenStorage
+from igris.models.auth import TokenResponse, UserInfo
+from igris.exceptions.base import ConfigurationError
 
 
 class TestTokenStorage:
@@ -20,7 +20,7 @@ class TestTokenStorage:
         """Test TokenStorage initialization with default path."""
         storage = TokenStorage()
         assert storage.storage_path.name == "tokens.json"
-        assert ".schlep_engine" in str(storage.storage_path)
+        assert ".igris" in str(storage.storage_path)
     
     def test_init_custom_path(self, tmp_path):
         """Test TokenStorage initialization with custom path."""
@@ -151,13 +151,13 @@ class TestSecureTokenStorage:
     
     def test_init_with_keyring(self, tmp_path):
         """Test SecureTokenStorage initialization with keyring available."""
-        with patch('schlep_engine.auth.token_storage.HAS_KEYRING', True):
+        with patch('igris.auth.token_storage.HAS_KEYRING', True):
             storage = SecureTokenStorage(str(tmp_path / "tokens.json"))
             assert storage.use_keyring is True
     
     def test_init_without_keyring(self, tmp_path):
         """Test SecureTokenStorage initialization without keyring."""
-        with patch('schlep_engine.auth.token_storage.HAS_KEYRING', False):
+        with patch('igris.auth.token_storage.HAS_KEYRING', False):
             storage = SecureTokenStorage(str(tmp_path / "tokens.json"))
             assert storage.use_keyring is False
     
@@ -165,8 +165,8 @@ class TestSecureTokenStorage:
         """Test saving tokens to keyring."""
         mock_keyring = MagicMock()
         
-        with patch('schlep_engine.auth.token_storage.HAS_KEYRING', True):
-            with patch('schlep_engine.auth.token_storage.keyring', mock_keyring):
+        with patch('igris.auth.token_storage.HAS_KEYRING', True):
+            with patch('igris.auth.token_storage.keyring', mock_keyring):
                 storage = SecureTokenStorage(str(tmp_path / "tokens.json"))
                 storage.save_tokens(mock_token_response)
                 
@@ -185,8 +185,8 @@ class TestSecureTokenStorage:
         mock_keyring = MagicMock()
         mock_keyring.set_password.side_effect = Exception("Keyring error")
         
-        with patch('schlep_engine.auth.token_storage.HAS_KEYRING', True):
-            with patch('schlep_engine.auth.token_storage.keyring', mock_keyring):
+        with patch('igris.auth.token_storage.HAS_KEYRING', True):
+            with patch('igris.auth.token_storage.keyring', mock_keyring):
                 storage = SecureTokenStorage(str(tmp_path / "tokens.json"))
                 storage.save_tokens(mock_token_response)
                 
@@ -212,8 +212,8 @@ class TestSecureTokenStorage:
         mock_keyring = MagicMock()
         mock_keyring.get_password.return_value = json.dumps(token_data)
         
-        with patch('schlep_engine.auth.token_storage.HAS_KEYRING', True):
-            with patch('schlep_engine.auth.token_storage.keyring', mock_keyring):
+        with patch('igris.auth.token_storage.HAS_KEYRING', True):
+            with patch('igris.auth.token_storage.keyring', mock_keyring):
                 storage = SecureTokenStorage(str(tmp_path / "tokens.json"))
                 loaded_tokens = storage.load_tokens()
                 
@@ -230,8 +230,8 @@ class TestSecureTokenStorage:
         file_storage = TokenStorage(str(tmp_path / "tokens.json"))
         file_storage.save_tokens(mock_token_response)
         
-        with patch('schlep_engine.auth.token_storage.HAS_KEYRING', True):
-            with patch('schlep_engine.auth.token_storage.keyring', mock_keyring):
+        with patch('igris.auth.token_storage.HAS_KEYRING', True):
+            with patch('igris.auth.token_storage.keyring', mock_keyring):
                 storage = SecureTokenStorage(str(tmp_path / "tokens.json"))
                 loaded_tokens = storage.load_tokens()
                 
@@ -250,8 +250,8 @@ class TestSecureTokenStorage:
         file_storage = TokenStorage(str(tmp_path / "tokens.json"))
         file_storage.save_tokens(mock_token_response)
         
-        with patch('schlep_engine.auth.token_storage.HAS_KEYRING', True):
-            with patch('schlep_engine.auth.token_storage.keyring', mock_keyring):
+        with patch('igris.auth.token_storage.HAS_KEYRING', True):
+            with patch('igris.auth.token_storage.keyring', mock_keyring):
                 storage = SecureTokenStorage(str(tmp_path / "tokens.json"))
                 storage.clear_tokens()
                 
@@ -265,8 +265,8 @@ class TestSecureTokenStorage:
         """Test saving API key securely."""
         mock_keyring = MagicMock()
         
-        with patch('schlep_engine.auth.token_storage.HAS_KEYRING', True):
-            with patch('schlep_engine.auth.token_storage.keyring', mock_keyring):
+        with patch('igris.auth.token_storage.HAS_KEYRING', True):
+            with patch('igris.auth.token_storage.keyring', mock_keyring):
                 storage = SecureTokenStorage()
                 storage.save_api_key("test-api-key", "test-identifier")
                 
@@ -278,7 +278,7 @@ class TestSecureTokenStorage:
     
     def test_save_api_key_empty(self):
         """Test saving empty API key raises error."""
-        with patch('schlep_engine.auth.token_storage.HAS_KEYRING', True):
+        with patch('igris.auth.token_storage.HAS_KEYRING', True):
             storage = SecureTokenStorage()
             
             with pytest.raises(ConfigurationError, match="cannot be empty"):
@@ -286,7 +286,7 @@ class TestSecureTokenStorage:
     
     def test_save_api_key_no_keyring(self):
         """Test saving API key without keyring raises error."""
-        with patch('schlep_engine.auth.token_storage.HAS_KEYRING', False):
+        with patch('igris.auth.token_storage.HAS_KEYRING', False):
             storage = SecureTokenStorage()
             
             with pytest.raises(ConfigurationError, match="not available"):
@@ -297,8 +297,8 @@ class TestSecureTokenStorage:
         mock_keyring = MagicMock()
         mock_keyring.get_password.return_value = "test-api-key"
         
-        with patch('schlep_engine.auth.token_storage.HAS_KEYRING', True):
-            with patch('schlep_engine.auth.token_storage.keyring', mock_keyring):
+        with patch('igris.auth.token_storage.HAS_KEYRING', True):
+            with patch('igris.auth.token_storage.keyring', mock_keyring):
                 storage = SecureTokenStorage()
                 api_key = storage.load_api_key("test-identifier")
                 
@@ -313,8 +313,8 @@ class TestSecureTokenStorage:
         mock_keyring = MagicMock()
         mock_keyring.get_password.return_value = None
         
-        with patch('schlep_engine.auth.token_storage.HAS_KEYRING', True):
-            with patch('schlep_engine.auth.token_storage.keyring', mock_keyring):
+        with patch('igris.auth.token_storage.HAS_KEYRING', True):
+            with patch('igris.auth.token_storage.keyring', mock_keyring):
                 storage = SecureTokenStorage()
                 api_key = storage.load_api_key("nonexistent")
                 
@@ -324,8 +324,8 @@ class TestSecureTokenStorage:
         """Test deleting API key securely."""
         mock_keyring = MagicMock()
         
-        with patch('schlep_engine.auth.token_storage.HAS_KEYRING', True):
-            with patch('schlep_engine.auth.token_storage.keyring', mock_keyring):
+        with patch('igris.auth.token_storage.HAS_KEYRING', True):
+            with patch('igris.auth.token_storage.keyring', mock_keyring):
                 storage = SecureTokenStorage()
                 storage.delete_api_key("test-identifier")
                 
@@ -339,8 +339,8 @@ class TestSecureTokenStorage:
         mock_keyring = MagicMock()
         mock_keyring.get_password.return_value = "some token data"
         
-        with patch('schlep_engine.auth.token_storage.HAS_KEYRING', True):
-            with patch('schlep_engine.auth.token_storage.keyring', mock_keyring):
+        with patch('igris.auth.token_storage.HAS_KEYRING', True):
+            with patch('igris.auth.token_storage.keyring', mock_keyring):
                 storage = SecureTokenStorage()
                 result = storage.has_tokens()
                 
@@ -352,8 +352,8 @@ class TestSecureTokenStorage:
         mock_keyring = MagicMock()
         mock_keyring.get_password.return_value = "invalid json data"
         
-        with patch('schlep_engine.auth.token_storage.HAS_KEYRING', True):
-            with patch('schlep_engine.auth.token_storage.keyring', mock_keyring):
+        with patch('igris.auth.token_storage.HAS_KEYRING', True):
+            with patch('igris.auth.token_storage.keyring', mock_keyring):
                 storage = SecureTokenStorage(str(tmp_path / "tokens.json"))
                 loaded_tokens = storage.load_tokens()
                 

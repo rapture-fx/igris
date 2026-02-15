@@ -1,5 +1,5 @@
 /**
- * Users API for Schlep-engine JavaScript SDK
+ * Users API for Igris-engine JavaScript SDK
  * Provides user management and profile operations
  */
 

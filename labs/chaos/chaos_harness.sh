@@ -4,9 +4,9 @@
 
 set -euo pipefail
 
-CHAOS_LOG="/var/log/schlep/chaos_harness.log"
-CHAOS_RESULTS="/var/log/schlep/chaos_results.json"
-CHAOS_CONFIG="${CHAOS_CONFIG:-/etc/schlep/chaos_config.json}"
+CHAOS_LOG="/var/log/igris/chaos_harness.log"
+CHAOS_RESULTS="/var/log/igris/chaos_results.json"
+CHAOS_CONFIG="${CHAOS_CONFIG:-/etc/igris/chaos_config.json}"
 
 log() {
     echo "[$(date +'%Y-%m-%d %H:%M:%S')] $*" | tee -a "$CHAOS_LOG"
@@ -107,7 +107,7 @@ chaos_disk_io_pressure() {
     log "CHAOS: Disk IO Pressure for ${duration_sec}s"
 
     # Use stress-ng or dd to create disk pressure
-    local pods=$(kubectl get pods -l app=schlep-worker -o jsonpath='{.items[*].metadata.name}')
+    local pods=$(kubectl get pods -l app=igris-worker -o jsonpath='{.items[*].metadata.name}')
 
     for pod in $pods; do
         kubectl exec "$pod" -- sh -c "
@@ -144,7 +144,7 @@ chaos_mempool_pressure() {
     log "CHAOS: Mempool Pressure for ${duration_sec}s"
 
     # Allocate large objects to stress memory pool
-    local pods=$(kubectl get pods -l app=schlep-worker -o jsonpath='{.items[*].metadata.name}')
+    local pods=$(kubectl get pods -l app=igris-worker -o jsonpath='{.items[*].metadata.name}')
 
     for pod in $pods; do
         kubectl exec "$pod" -- sh -c "
@@ -186,14 +186,14 @@ chaos_random_pod_kills() {
     local start_time=$(date +%s)
 
     for i in $(seq 1 "$count"); do
-        local pod=$(kubectl get pods -l app=schlep-worker -o jsonpath='{.items[*].metadata.name}' | tr ' ' '\n' | shuf -n 1)
+        local pod=$(kubectl get pods -l app=igris-worker -o jsonpath='{.items[*].metadata.name}' | tr ' ' '\n' | shuf -n 1)
         log "Killing pod: $pod"
         kubectl delete pod "$pod" --force --grace-period=0
 
         sleep "$interval_sec"
 
         # Check if all pods recovered
-        local ready_pods=$(kubectl get pods -l app=schlep-worker --no-headers | grep -c "Running" || true)
+        local ready_pods=$(kubectl get pods -l app=igris-worker --no-headers | grep -c "Running" || true)
         if [ "$ready_pods" -lt 3 ]; then
             ((failures++))
         fi

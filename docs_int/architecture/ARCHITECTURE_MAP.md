@@ -1,4 +1,4 @@
-# Schlep-Engine Architecture Map
+# Igris Inertial Architecture Map
 
 **Purpose**: Technical reference for generating accurate architecture diagrams for landing page and documentation.
 
@@ -8,7 +8,7 @@
 
 ## System Overview
 
-Schlep-Engine is an **LLM inference gateway** with intelligent routing and cost optimization. It provides:
+Igris Inertial is an **LLM inference gateway** with intelligent routing and cost optimization. It provides:
 - Unified API compatible with OpenAI and Anthropic
 - Multi-provider routing with automatic fallback
 - Rust-powered Thompson Sampling optimizer (with phased rollout)
@@ -786,5 +786,5 @@ These are NOT in the current codebase, mentioned for completeness:
 ---
 
 **Generated**: 2025-10-19
-**Source**: Schlep-Engine codebase
+**Source**: Igris Inertial codebase
 **Purpose**: Technical reference for architecture diagrams (landing page, docs)

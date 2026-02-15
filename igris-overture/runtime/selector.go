@@ -9,7 +9,7 @@ import (
 )
 
 // ============================================================================
-// Runtime Selector for Schlep-Engine
+// Runtime Selector for Igris Inertial
 // ============================================================================
 //
 // Intelligent runtime selection based on:

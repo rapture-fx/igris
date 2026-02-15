@@ -1,4 +1,4 @@
-# 🚀 START HERE - Schlep-Engine Stability Testing
+# 🚀 START HERE - Igris Inertial Stability Testing
 
 ## Quick Start (5 Minutes)
 
@@ -22,7 +22,7 @@ go run cmd/igris-overture/main.go
 
 **Expected Output:**
 ```
-🚀 Schlep-Engine API Server
+🚀 Igris Inertial API Server
 📡 Starting on port 8081
 ✅ Database connected
 ✅ Redis connected
@@ -137,7 +137,7 @@ python3 test_slo_enforcer.py --url http://localhost:8081
 **Problem**: `panic: dial tcp connect: connection refused`
 ```bash
 # Check if database is running
-psql postgres://wira@localhost:5432/schlep -c "SELECT 1"
+psql postgres://wira@localhost:5432/igris -c "SELECT 1"
 
 # If not running, start PostgreSQL
 brew services start postgresql@14

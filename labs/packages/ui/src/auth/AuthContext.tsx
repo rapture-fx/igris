@@ -36,7 +36,7 @@ import type {
   AuthError,
   AuthContextValue,
   PasswordStrength
-} from '@schlep-engine/types/auth'
+} from '@igris-inertial/types/auth'
 
 import { authAPI, AuthError as APIError, checkPasswordStrength } from './AuthAPI'
 

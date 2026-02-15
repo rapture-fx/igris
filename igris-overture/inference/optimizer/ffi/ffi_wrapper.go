@@ -2,8 +2,8 @@
 package ffi
 
 /*
-#cgo darwin LDFLAGS: -L${SRCDIR}/../../../../rust-core/rust_kernel/target/release -lschlep_kernel
-#cgo linux LDFLAGS: -L${SRCDIR}/../../../../rust-core/rust_kernel/target/release -lschlep_kernel -ldl -lm
+#cgo darwin LDFLAGS: -L${SRCDIR}/../../../../rust-core/rust_kernel/target/release -ligris_kernel
+#cgo linux LDFLAGS: -L${SRCDIR}/../../../../rust-core/rust_kernel/target/release -ligris_kernel -ldl -lm
 #include <stdlib.h>
 
 typedef struct OptimizerHandle OptimizerHandle;

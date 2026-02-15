@@ -1,8 +1,8 @@
 {
-  "name": "@Schlep-engine/web",
+  "name": "@Igris-engine/web",
   "version": "0.1.0",
   "private": true,
-  "description": "Schlep-engine Web Interface - Upload your data disasters, get clean data back",
+  "description": "Igris-engine Web Interface - Upload your data disasters, get clean data back",
   "scripts": {
     "dev": "next dev",
     "build": "next build",
@@ -30,15 +30,15 @@
     "csv-processing",
     "data-cleaning",
     "file-handler",
-    "data-schlep"
+    "data-igris"
   ],
-  "author": "Schlep-engine Team",
+  "author": "Igris-engine Team",
   "license": "MIT",
   "dependencies": {
     "@headlessui/react": "^1.7.17",
     "@heroicons/react": "^2.0.18",
     "@hookform/resolvers": "^3.3.2",
-    "@schlep/pricing-config": "workspace:*",
+    "@igris/pricing-config": "workspace:*",
     "@next/bundle-analyzer": "^14.0.3",
     "@radix-ui/react-avatar": "^1.1.1",
     "@radix-ui/react-collapsible": "^1.1.11",

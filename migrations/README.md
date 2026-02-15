@@ -1,6 +1,6 @@
 # Database Migrations
 
-This directory contains SQL migration scripts for Schlep-Engine database schema.
+This directory contains SQL migration scripts for Igris Inertial database schema.
 
 ## Migration Files
 
@@ -242,7 +242,7 @@ Migrations are idempotent (use `IF NOT EXISTS`). Safe to re-run.
 
 Ensure database user has CREATE privileges:
 ```sql
-GRANT CREATE ON SCHEMA public TO schlep_user;
+GRANT CREATE ON SCHEMA public TO igris_user;
 ```
 
 ### Performance issues after migration

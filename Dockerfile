@@ -37,8 +37,8 @@ COPY adapters/ ./adapters/
 COPY config/ ./config/
 
 # Copy Rust static libraries from rust-builder
-COPY --from=rust-builder /build/rust_kernel/target/release/libschlep_kernel.a /build/rust-core/rust_kernel/target/release/
-COPY --from=rust-builder /build/slo_enforcer/target/release/libschlep_slo_enforcer.a /build/rust-core/production_slo_enforcer/target/release/
+COPY --from=rust-builder /build/rust_kernel/target/release/libigris_kernel.a /build/rust-core/rust_kernel/target/release/
+COPY --from=rust-builder /build/slo_enforcer/target/release/libigris_slo_enforcer.a /build/rust-core/production_slo_enforcer/target/release/
 
 # Build Go binary
 RUN CGO_ENABLED=1 GOOS=linux go build -a -installsuffix cgo \

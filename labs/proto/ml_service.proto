@@ -2,12 +2,12 @@ syntax = "proto3";
 
 package ml;
 
-option go_package = "github.com/schlep-engine/schlep-engine/proto/ml";
-option java_package = "com.schlepengine.ml";
+option go_package = "github.com/igris-inertial/igris-inertial/proto/ml";
+option java_package = "com.igris.ml";
 option java_multiple_files = true;
 
 // ============================================================================
-// Schlep-Engine ML Service - Unified Proto Contract
+// Igris Inertial ML Service - Unified Proto Contract
 // ============================================================================
 //
 // Version: v1.0.0

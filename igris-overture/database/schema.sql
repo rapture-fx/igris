@@ -1,5 +1,5 @@
 -- ============================================================================
--- SCHLEP-ENGINE PHASE 13: PERSISTENCE AND MULTI-TENANCY DATABASE SCHEMA
+-- IGRIS INERTIAL PHASE 13: PERSISTENCE AND MULTI-TENANCY DATABASE SCHEMA
 -- ============================================================================
 -- Version: 1.0.0
 -- Purpose: Enable persistent budget tracking, policy storage, and audit logging

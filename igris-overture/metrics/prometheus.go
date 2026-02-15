@@ -17,7 +17,7 @@ var (
 	// InferenceRequestsTotal counts total inference requests by provider, model, and status
 	InferenceRequestsTotal = promauto.NewCounterVec(
 		prometheus.CounterOpts{
-			Name: "schlep_inference_requests_total",
+			Name: "igris_inference_requests_total",
 			Help: "Total number of inference requests",
 		},
 		[]string{"provider", "model", "status", "tenant_id"},
@@ -26,7 +26,7 @@ var (
 	// InferenceRequestDuration tracks request latency distribution
 	InferenceRequestDuration = promauto.NewHistogramVec(
 		prometheus.HistogramOpts{
-			Name:    "schlep_inference_request_duration_seconds",
+			Name:    "igris_inference_request_duration_seconds",
 			Help:    "Duration of inference requests in seconds",
 			Buckets: prometheus.ExponentialBuckets(0.01, 2, 12), // 10ms to ~40s
 		},
@@ -36,7 +36,7 @@ var (
 	// InferenceRequestLatencyMs tracks detailed latency in milliseconds
 	InferenceRequestLatencyMs = promauto.NewHistogramVec(
 		prometheus.HistogramOpts{
-			Name:    "schlep_inference_latency_milliseconds",
+			Name:    "igris_inference_latency_milliseconds",
 			Help:    "Inference request latency in milliseconds",
 			Buckets: []float64{10, 25, 50, 100, 250, 500, 1000, 2000, 5000, 10000},
 		},
@@ -50,7 +50,7 @@ var (
 	// OptimizerDecisionsTotal counts optimizer decisions by provider
 	OptimizerDecisionsTotal = promauto.NewCounterVec(
 		prometheus.CounterOpts{
-			Name: "schlep_optimizer_decisions_total",
+			Name: "igris_optimizer_decisions_total",
 			Help: "Total number of optimizer provider selections",
 		},
 		[]string{"provider", "algorithm"},
@@ -59,7 +59,7 @@ var (
 	// OptimizerSelectionDuration tracks optimizer decision latency
 	OptimizerSelectionDuration = promauto.NewHistogram(
 		prometheus.HistogramOpts{
-			Name:    "schlep_optimizer_selection_duration_microseconds",
+			Name:    "igris_optimizer_selection_duration_microseconds",
 			Help:    "Time taken for optimizer to select provider in microseconds",
 			Buckets: []float64{100, 250, 500, 1000, 2500, 5000, 10000},
 		},
@@ -68,7 +68,7 @@ var (
 	// OptimizerArmStats tracks Thompson Sampling arm statistics
 	OptimizerArmStats = promauto.NewGaugeVec(
 		prometheus.GaugeOpts{
-			Name: "schlep_optimizer_arm_stats",
+			Name: "igris_optimizer_arm_stats",
 			Help: "Thompson Sampling arm statistics (alpha/beta parameters)",
 		},
 		[]string{"provider", "stat_type"}, // stat_type: alpha, beta, success_rate
@@ -77,7 +77,7 @@ var (
 	// OptimizerRewardValue tracks reward values
 	OptimizerRewardValue = promauto.NewHistogramVec(
 		prometheus.HistogramOpts{
-			Name:    "schlep_optimizer_reward_value",
+			Name:    "igris_optimizer_reward_value",
 			Help:    "Distribution of reward values given to optimizer",
 			Buckets: []float64{0.0, 0.1, 0.2, 0.3, 0.4, 0.5, 0.6, 0.7, 0.8, 0.9, 1.0},
 		},
@@ -91,7 +91,7 @@ var (
 	// InferenceCostUSD tracks cost per request
 	InferenceCostUSD = promauto.NewHistogramVec(
 		prometheus.HistogramOpts{
-			Name:    "schlep_inference_cost_usd",
+			Name:    "igris_inference_cost_usd",
 			Help:    "Cost per inference request in USD",
 			Buckets: []float64{0.0001, 0.0005, 0.001, 0.005, 0.01, 0.05, 0.1, 0.5, 1.0},
 		},
@@ -101,7 +101,7 @@ var (
 	// InferenceTotalCostUSD tracks cumulative costs
 	InferenceTotalCostUSD = promauto.NewCounterVec(
 		prometheus.CounterOpts{
-			Name: "schlep_inference_total_cost_usd",
+			Name: "igris_inference_total_cost_usd",
 			Help: "Total cumulative cost of inference requests in USD",
 		},
 		[]string{"provider", "model", "tenant_id"},
@@ -110,7 +110,7 @@ var (
 	// TenantMonthlyCostUSD tracks per-tenant monthly costs
 	TenantMonthlyCostUSD = promauto.NewGaugeVec(
 		prometheus.GaugeOpts{
-			Name: "schlep_tenant_monthly_cost_usd",
+			Name: "igris_tenant_monthly_cost_usd",
 			Help: "Current month-to-date cost per tenant in USD",
 		},
 		[]string{"tenant_id"},
@@ -119,7 +119,7 @@ var (
 	// TenantBudgetUtilization tracks budget usage percentage
 	TenantBudgetUtilization = promauto.NewGaugeVec(
 		prometheus.GaugeOpts{
-			Name: "schlep_tenant_budget_utilization_percent",
+			Name: "igris_tenant_budget_utilization_percent",
 			Help: "Percentage of monthly budget utilized by tenant",
 		},
 		[]string{"tenant_id"},
@@ -132,7 +132,7 @@ var (
 	// InferenceTokensTotal tracks token usage
 	InferenceTokensTotal = promauto.NewCounterVec(
 		prometheus.CounterOpts{
-			Name: "schlep_inference_tokens_total",
+			Name: "igris_inference_tokens_total",
 			Help: "Total tokens processed in inference requests",
 		},
 		[]string{"provider", "model", "token_type"}, // token_type: prompt, completion, total
@@ -141,7 +141,7 @@ var (
 	// InferenceTokensPerRequest tracks token distribution
 	InferenceTokensPerRequest = promauto.NewHistogramVec(
 		prometheus.HistogramOpts{
-			Name:    "schlep_inference_tokens_per_request",
+			Name:    "igris_inference_tokens_per_request",
 			Help:    "Distribution of tokens per request",
 			Buckets: []float64{10, 50, 100, 250, 500, 1000, 2000, 4000, 8000, 16000},
 		},
@@ -155,7 +155,7 @@ var (
 	// ProviderAvailability tracks provider success rate
 	ProviderAvailability = promauto.NewGaugeVec(
 		prometheus.GaugeOpts{
-			Name: "schlep_provider_availability_percent",
+			Name: "igris_provider_availability_percent",
 			Help: "Provider availability/success rate percentage",
 		},
 		[]string{"provider"},
@@ -164,7 +164,7 @@ var (
 	// ProviderErrorsTotal counts errors by type
 	ProviderErrorsTotal = promauto.NewCounterVec(
 		prometheus.CounterOpts{
-			Name: "schlep_provider_errors_total",
+			Name: "igris_provider_errors_total",
 			Help: "Total provider errors by type",
 		},
 		[]string{"provider", "error_type"}, // error_type: timeout, auth, rate_limit, api_error, etc.
@@ -173,7 +173,7 @@ var (
 	// ProviderTimeouts tracks timeout occurrences
 	ProviderTimeouts = promauto.NewCounterVec(
 		prometheus.CounterOpts{
-			Name: "schlep_provider_timeouts_total",
+			Name: "igris_provider_timeouts_total",
 			Help: "Total number of provider timeouts",
 		},
 		[]string{"provider"},
@@ -186,7 +186,7 @@ var (
 	// ProviderRateLimitHits counts rate limit hits (HTTP 429)
 	ProviderRateLimitHits = promauto.NewCounterVec(
 		prometheus.CounterOpts{
-			Name: "schlep_provider_rate_limit_hits_total",
+			Name: "igris_provider_rate_limit_hits_total",
 			Help: "Total number of rate limit hits (HTTP 429) by provider",
 		},
 		[]string{"provider"},
@@ -195,7 +195,7 @@ var (
 	// ProviderRetryAttempts counts retry attempts by reason
 	ProviderRetryAttempts = promauto.NewCounterVec(
 		prometheus.CounterOpts{
-			Name: "schlep_provider_retry_attempts_total",
+			Name: "igris_provider_retry_attempts_total",
 			Help: "Total number of retry attempts by provider and reason",
 		},
 		[]string{"provider", "reason"}, // reason: rate_limit, server_error, timeout
@@ -204,7 +204,7 @@ var (
 	// ProviderQueueWaitMs tracks time spent waiting in queue
 	ProviderQueueWaitMs = promauto.NewHistogramVec(
 		prometheus.HistogramOpts{
-			Name:    "schlep_provider_queue_wait_milliseconds",
+			Name:    "igris_provider_queue_wait_milliseconds",
 			Help:    "Time spent waiting in rate limiter queue in milliseconds",
 			Buckets: []float64{10, 25, 50, 100, 250, 500, 1000, 2000, 5000, 10000},
 		},
@@ -214,7 +214,7 @@ var (
 	// ProviderQueueLength tracks current queue length
 	ProviderQueueLength = promauto.NewGaugeVec(
 		prometheus.GaugeOpts{
-			Name: "schlep_provider_queue_length",
+			Name: "igris_provider_queue_length",
 			Help: "Current number of requests waiting in rate limiter queue",
 		},
 		[]string{"provider"},
@@ -223,7 +223,7 @@ var (
 	// ProviderRateLimiterTokens tracks available rate limiter tokens
 	ProviderRateLimiterTokens = promauto.NewGaugeVec(
 		prometheus.GaugeOpts{
-			Name: "schlep_provider_rate_limiter_tokens",
+			Name: "igris_provider_rate_limiter_tokens",
 			Help: "Available tokens in rate limiter (request or token budget)",
 		},
 		[]string{"provider", "token_type"}, // token_type: request, api_token
@@ -236,7 +236,7 @@ var (
 	// CacheOperations tracks cache hits/misses
 	CacheOperations = promauto.NewCounterVec(
 		prometheus.CounterOpts{
-			Name: "schlep_cache_operations_total",
+			Name: "igris_cache_operations_total",
 			Help: "Total cache operations by result",
 		},
 		[]string{"operation", "result"}, // operation: get, set, delete; result: hit, miss, error
@@ -245,7 +245,7 @@ var (
 	// CacheLatency tracks cache operation latency
 	CacheLatency = promauto.NewHistogramVec(
 		prometheus.HistogramOpts{
-			Name:    "schlep_cache_operation_duration_milliseconds",
+			Name:    "igris_cache_operation_duration_milliseconds",
 			Help:    "Cache operation latency in milliseconds",
 			Buckets: []float64{0.1, 0.5, 1, 2, 5, 10, 25, 50, 100},
 		},
@@ -255,7 +255,7 @@ var (
 	// CacheHitRate tracks cache hit rate
 	CacheHitRate = promauto.NewGauge(
 		prometheus.GaugeOpts{
-			Name: "schlep_cache_hit_rate_percent",
+			Name: "igris_cache_hit_rate_percent",
 			Help: "Cache hit rate percentage",
 		},
 	)
@@ -267,7 +267,7 @@ var (
 	// DatabaseQueryDuration tracks database query latency
 	DatabaseQueryDuration = promauto.NewHistogramVec(
 		prometheus.HistogramOpts{
-			Name:    "schlep_database_query_duration_milliseconds",
+			Name:    "igris_database_query_duration_milliseconds",
 			Help:    "Database query duration in milliseconds",
 			Buckets: []float64{1, 5, 10, 25, 50, 100, 250, 500, 1000},
 		},
@@ -277,7 +277,7 @@ var (
 	// DatabaseConnectionPoolSize tracks connection pool metrics
 	DatabaseConnectionPoolSize = promauto.NewGaugeVec(
 		prometheus.GaugeOpts{
-			Name: "schlep_database_connection_pool",
+			Name: "igris_database_connection_pool",
 			Help: "Database connection pool metrics",
 		},
 		[]string{"state"}, // state: idle, in_use, max
@@ -290,7 +290,7 @@ var (
 	// ActiveTenantsTotal tracks number of active tenants
 	ActiveTenantsTotal = promauto.NewGauge(
 		prometheus.GaugeOpts{
-			Name: "schlep_active_tenants_total",
+			Name: "igris_active_tenants_total",
 			Help: "Total number of active tenants",
 		},
 	)
@@ -298,7 +298,7 @@ var (
 	// TenantRequestsTotal tracks per-tenant request counts
 	TenantRequestsTotal = promauto.NewCounterVec(
 		prometheus.CounterOpts{
-			Name: "schlep_tenant_requests_total",
+			Name: "igris_tenant_requests_total",
 			Help: "Total requests per tenant",
 		},
 		[]string{"tenant_id"},
@@ -307,7 +307,7 @@ var (
 	// ModelUsageTotal tracks model popularity
 	ModelUsageTotal = promauto.NewCounterVec(
 		prometheus.CounterOpts{
-			Name: "schlep_model_usage_total",
+			Name: "igris_model_usage_total",
 			Help: "Total usage count per model",
 		},
 		[]string{"provider", "model"},
@@ -320,7 +320,7 @@ var (
 	// SystemInfo provides static system information
 	SystemInfo = promauto.NewGaugeVec(
 		prometheus.GaugeOpts{
-			Name: "schlep_system_info",
+			Name: "igris_system_info",
 			Help: "System version and build information",
 		},
 		[]string{"version", "go_version", "rust_enabled"},
@@ -329,7 +329,7 @@ var (
 	// GoroutinesActive tracks active goroutines
 	GoroutinesActive = promauto.NewGauge(
 		prometheus.GaugeOpts{
-			Name: "schlep_goroutines_active",
+			Name: "igris_goroutines_active",
 			Help: "Number of active goroutines",
 		},
 	)
@@ -505,7 +505,7 @@ var (
 	// CognitiveProposalsGenerated tracks total proposals generated
 	CognitiveProposalsGenerated = promauto.NewCounterVec(
 		prometheus.CounterOpts{
-			Name: "schlep_cognitive_proposals_generated_total",
+			Name: "igris_cognitive_proposals_generated_total",
 			Help: "Total number of cognitive proposals generated",
 		},
 		[]string{"tenant_id"},
@@ -514,7 +514,7 @@ var (
 	// CognitiveProposalsApproved tracks approved proposals
 	CognitiveProposalsApproved = promauto.NewCounterVec(
 		prometheus.CounterOpts{
-			Name: "schlep_cognitive_proposals_approved_total",
+			Name: "igris_cognitive_proposals_approved_total",
 			Help: "Total number of cognitive proposals approved",
 		},
 		[]string{"tenant_id"},
@@ -523,7 +523,7 @@ var (
 	// CognitiveProposalsRejected tracks rejected proposals
 	CognitiveProposalsRejected = promauto.NewCounterVec(
 		prometheus.CounterOpts{
-			Name: "schlep_cognitive_proposals_rejected_total",
+			Name: "igris_cognitive_proposals_rejected_total",
 			Help: "Total number of cognitive proposals rejected",
 		},
 		[]string{"tenant_id"},
@@ -532,7 +532,7 @@ var (
 	// CognitiveProposalsApplied tracks applied proposals
 	CognitiveProposalsApplied = promauto.NewCounterVec(
 		prometheus.CounterOpts{
-			Name: "schlep_cognitive_proposals_applied_total",
+			Name: "igris_cognitive_proposals_applied_total",
 			Help: "Total number of cognitive proposals applied",
 		},
 		[]string{"tenant_id"},
@@ -541,7 +541,7 @@ var (
 	// CognitiveConfidence tracks confidence distribution
 	CognitiveConfidenceHistogram = promauto.NewHistogram(
 		prometheus.HistogramOpts{
-			Name:    "schlep_cognitive_confidence_histogram",
+			Name:    "igris_cognitive_confidence_histogram",
 			Help:    "Distribution of cognitive proposal confidence scores",
 			Buckets: []float64{0.5, 0.6, 0.7, 0.75, 0.8, 0.85, 0.9, 0.95, 1.0},
 		},
@@ -550,7 +550,7 @@ var (
 	// CognitiveRiskScore tracks risk score distribution
 	CognitiveRiskScore = promauto.NewHistogram(
 		prometheus.HistogramOpts{
-			Name:    "schlep_cognitive_risk_score_histogram",
+			Name:    "igris_cognitive_risk_score_histogram",
 			Help:    "Distribution of cognitive proposal risk scores",
 			Buckets: []float64{0.0, 0.1, 0.2, 0.3, 0.4, 0.5, 0.6, 0.7, 0.8, 0.9, 1.0},
 		},
@@ -559,7 +559,7 @@ var (
 	// CognitiveAnalysisDuration tracks analysis time
 	CognitiveAnalysisDuration = promauto.NewHistogram(
 		prometheus.HistogramOpts{
-			Name:    "schlep_cognitive_analysis_duration_seconds",
+			Name:    "igris_cognitive_analysis_duration_seconds",
 			Help:    "Time taken for cognitive analysis in seconds",
 			Buckets: []float64{0.1, 0.5, 1, 2, 5, 10, 30, 60},
 		},
@@ -568,7 +568,7 @@ var (
 	// CognitiveProjectedSavings tracks projected cost savings
 	CognitiveProjectedSavingsUSD = promauto.NewHistogram(
 		prometheus.HistogramOpts{
-			Name:    "schlep_cognitive_projected_savings_usd",
+			Name:    "igris_cognitive_projected_savings_usd",
 			Help:    "Projected monthly cost savings in USD",
 			Buckets: []float64{10, 50, 100, 250, 500, 1000, 2500, 5000, 10000},
 		},
@@ -577,7 +577,7 @@ var (
 	// CognitiveProjectedLatencyReduction tracks projected latency improvements
 	CognitiveProjectedLatencyReduction = promauto.NewHistogram(
 		prometheus.HistogramOpts{
-			Name:    "schlep_cognitive_projected_latency_reduction_pct",
+			Name:    "igris_cognitive_projected_latency_reduction_pct",
 			Help:    "Projected P95 latency reduction percentage",
 			Buckets: []float64{5, 10, 15, 20, 25, 30, 40, 50},
 		},

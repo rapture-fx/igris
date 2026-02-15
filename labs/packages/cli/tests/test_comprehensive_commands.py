@@ -1,5 +1,5 @@
 """
-Comprehensive command tests for Schlep-engine CLI
+Comprehensive command tests for Igris-engine CLI
 """
 
 import pytest
@@ -11,9 +11,9 @@ from pathlib import Path
 from unittest.mock import Mock, patch, mock_open
 from click.testing import CliRunner
 
-from schlep_cli.main import cli
-from schlep_cli.core.config import Config
-from schlep_cli.commands import process, pipeline, config as config_cmd, validate, batch, monitoring
+from igris_cli.main import cli
+from igris_cli.core.config import Config
+from igris_cli.commands import process, pipeline, config as config_cmd, validate, batch, monitoring
 
 
 class TestProcessCommands:
@@ -27,8 +27,8 @@ class TestProcessCommands:
             'progress': {'current': 0, 'total': 100}
         }
 
-        with patch('schlep_cli.commands.process.get_auth_context', return_value=auth_context):
-            with patch('schlep_cli.commands.process.APIClient', return_value=mock_client):
+        with patch('igris_cli.commands.process.get_auth_context', return_value=auth_context):
+            with patch('igris_cli.commands.process.APIClient', return_value=mock_client):
                 result = runner.invoke(cli, [
                     'process', 'file', str(sample_data_file),
                     '--format', 'json',
@@ -50,8 +50,8 @@ class TestProcessCommands:
         mock_client.data.process_file.return_value = job_states[0]
         mock_client.data.get_job_status.side_effect = job_states
 
-        with patch('schlep_cli.commands.process.get_auth_context', return_value=auth_context):
-            with patch('schlep_cli.commands.process.APIClient', return_value=mock_client):
+        with patch('igris_cli.commands.process.get_auth_context', return_value=auth_context):
+            with patch('igris_cli.commands.process.APIClient', return_value=mock_client):
                 with patch('time.sleep'):  # Speed up polling
                     result = runner.invoke(cli, [
                         'process', 'file', str(sample_data_file),
@@ -75,8 +75,8 @@ class TestProcessCommands:
             }
         }
 
-        with patch('schlep_cli.commands.process.get_auth_context', return_value=auth_context):
-            with patch('schlep_cli.commands.process.APIClient', return_value=mock_client):
+        with patch('igris_cli.commands.process.get_auth_context', return_value=auth_context):
+            with patch('igris_cli.commands.process.APIClient', return_value=mock_client):
                 result = runner.invoke(cli, [
                     'process', 'file', str(sample_data_file),
                     '--format', 'json',
@@ -101,8 +101,8 @@ class TestProcessCommands:
             ]
         }
 
-        with patch('schlep_cli.commands.process.get_auth_context', return_value=auth_context):
-            with patch('schlep_cli.commands.process.APIClient', return_value=mock_client):
+        with patch('igris_cli.commands.process.get_auth_context', return_value=auth_context):
+            with patch('igris_cli.commands.process.APIClient', return_value=mock_client):
                 result = runner.invoke(cli, [
                     'process', 'file', str(sample_data_file),
                     '--format', 'json',
@@ -125,8 +125,8 @@ class TestProcessCommands:
             'estimated_completion': '2024-01-01T12:30:00Z'
         }
 
-        with patch('schlep_cli.commands.process.get_auth_context', return_value=auth_context):
-            with patch('schlep_cli.commands.process.APIClient', return_value=mock_client):
+        with patch('igris_cli.commands.process.get_auth_context', return_value=auth_context):
+            with patch('igris_cli.commands.process.APIClient', return_value=mock_client):
                 result = runner.invoke(cli, ['process', 'status', 'status-job-123'])
 
         assert result.exit_code == 0
@@ -141,8 +141,8 @@ class TestProcessCommands:
             'pagination': {'page': 1, 'total': len(sample_jobs), 'pages': 1}
         }
 
-        with patch('schlep_cli.commands.process.get_auth_context', return_value=auth_context):
-            with patch('schlep_cli.commands.process.APIClient', return_value=mock_client):
+        with patch('igris_cli.commands.process.get_auth_context', return_value=auth_context):
+            with patch('igris_cli.commands.process.APIClient', return_value=mock_client):
                 result = runner.invoke(cli, ['process', 'list'])
 
         assert result.exit_code == 0
@@ -156,8 +156,8 @@ class TestProcessCommands:
             'message': 'Job cancelled successfully'
         }
 
-        with patch('schlep_cli.commands.process.get_auth_context', return_value=auth_context):
-            with patch('schlep_cli.commands.process.APIClient', return_value=mock_client):
+        with patch('igris_cli.commands.process.get_auth_context', return_value=auth_context):
+            with patch('igris_cli.commands.process.APIClient', return_value=mock_client):
                 result = runner.invoke(cli, ['process', 'cancel', 'cancel-job-123'])
 
         assert result.exit_code == 0
@@ -171,8 +171,8 @@ class TestProcessCommands:
 
         output_file = temp_dir / "result.json"
 
-        with patch('schlep_cli.commands.process.get_auth_context', return_value=auth_context):
-            with patch('schlep_cli.commands.process.APIClient', return_value=mock_client):
+        with patch('igris_cli.commands.process.get_auth_context', return_value=auth_context):
+            with patch('igris_cli.commands.process.APIClient', return_value=mock_client):
                 result = runner.invoke(cli, [
                     'process', 'download', 'download-job-123',
                     '--output', str(output_file)
@@ -196,8 +196,8 @@ class TestPipelineCommands:
             'model_type': 'random_forest'
         }
 
-        with patch('schlep_cli.commands.pipeline.get_auth_context', return_value=auth_context):
-            with patch('schlep_cli.commands.pipeline.APIClient', return_value=mock_client):
+        with patch('igris_cli.commands.pipeline.get_auth_context', return_value=auth_context):
+            with patch('igris_cli.commands.pipeline.APIClient', return_value=mock_client):
                 result = runner.invoke(cli, [
                     'pipeline', 'create',
                     '--name', 'test-pipeline',
@@ -218,8 +218,8 @@ class TestPipelineCommands:
             'progress': {'current_epoch': 0, 'total_epochs': 100}
         }
 
-        with patch('schlep_cli.commands.pipeline.get_auth_context', return_value=auth_context):
-            with patch('schlep_cli.commands.pipeline.APIClient', return_value=mock_client):
+        with patch('igris_cli.commands.pipeline.get_auth_context', return_value=auth_context):
+            with patch('igris_cli.commands.pipeline.APIClient', return_value=mock_client):
                 result = runner.invoke(cli, [
                     'pipeline', 'train', 'pipeline-123',
                     '--dataset', 'training-data-123',
@@ -247,8 +247,8 @@ class TestPipelineCommands:
 
         output_file = temp_dir / "predictions.json"
 
-        with patch('schlep_cli.commands.pipeline.get_auth_context', return_value=auth_context):
-            with patch('schlep_cli.commands.pipeline.APIClient', return_value=mock_client):
+        with patch('igris_cli.commands.pipeline.get_auth_context', return_value=auth_context):
+            with patch('igris_cli.commands.pipeline.APIClient', return_value=mock_client):
                 result = runner.invoke(cli, [
                     'pipeline', 'predict', 'pipeline-123',
                     '--input', str(input_file),
@@ -269,8 +269,8 @@ class TestPipelineCommands:
             'pagination': {'page': 1, 'total': len(sample_pipelines), 'pages': 1}
         }
 
-        with patch('schlep_cli.commands.pipeline.get_auth_context', return_value=auth_context):
-            with patch('schlep_cli.commands.pipeline.APIClient', return_value=mock_client):
+        with patch('igris_cli.commands.pipeline.get_auth_context', return_value=auth_context):
+            with patch('igris_cli.commands.pipeline.APIClient', return_value=mock_client):
                 result = runner.invoke(cli, ['pipeline', 'list'])
 
         assert result.exit_code == 0
@@ -292,8 +292,8 @@ class TestPipelineCommands:
             }
         }
 
-        with patch('schlep_cli.commands.pipeline.get_auth_context', return_value=auth_context):
-            with patch('schlep_cli.commands.pipeline.APIClient', return_value=mock_client):
+        with patch('igris_cli.commands.pipeline.get_auth_context', return_value=auth_context):
+            with patch('igris_cli.commands.pipeline.APIClient', return_value=mock_client):
                 result = runner.invoke(cli, ['pipeline', 'status', 'status-pipeline-123'])
 
         assert result.exit_code == 0
@@ -307,8 +307,8 @@ class TestPipelineCommands:
             'message': 'Pipeline deleted successfully'
         }
 
-        with patch('schlep_cli.commands.pipeline.get_auth_context', return_value=auth_context):
-            with patch('schlep_cli.commands.pipeline.APIClient', return_value=mock_client):
+        with patch('igris_cli.commands.pipeline.get_auth_context', return_value=auth_context):
+            with patch('igris_cli.commands.pipeline.APIClient', return_value=mock_client):
                 with patch('click.confirm', return_value=True):
                     result = runner.invoke(cli, ['pipeline', 'delete', 'delete-pipeline-123'])
 
@@ -332,8 +332,8 @@ class TestPipelineCommands:
             }
         }
 
-        with patch('schlep_cli.commands.pipeline.get_auth_context', return_value=auth_context):
-            with patch('schlep_cli.commands.pipeline.APIClient', return_value=mock_client):
+        with patch('igris_cli.commands.pipeline.get_auth_context', return_value=auth_context):
+            with patch('igris_cli.commands.pipeline.APIClient', return_value=mock_client):
                 result = runner.invoke(cli, [
                     'pipeline', 'evaluate', 'eval-pipeline-123',
                     '--test-data', 'test-dataset-456',
@@ -366,8 +366,8 @@ class TestValidateCommands:
             }
         }
 
-        with patch('schlep_cli.commands.validate.get_auth_context', return_value=auth_context):
-            with patch('schlep_cli.commands.validate.APIClient', return_value=mock_client):
+        with patch('igris_cli.commands.validate.get_auth_context', return_value=auth_context):
+            with patch('igris_cli.commands.validate.APIClient', return_value=mock_client):
                 result = runner.invoke(cli, ['validate', 'file', str(sample_data_file)])
 
         assert result.exit_code == 0
@@ -398,8 +398,8 @@ class TestValidateCommands:
             }
         }
 
-        with patch('schlep_cli.commands.validate.get_auth_context', return_value=auth_context):
-            with patch('schlep_cli.commands.validate.APIClient', return_value=mock_client):
+        with patch('igris_cli.commands.validate.get_auth_context', return_value=auth_context):
+            with patch('igris_cli.commands.validate.APIClient', return_value=mock_client):
                 result = runner.invoke(cli, ['validate', 'file', str(sample_data_file)])
 
         assert result.exit_code != 0
@@ -415,8 +415,8 @@ class TestValidateCommands:
             'warnings': ['Consider increasing n_estimators for better performance']
         }
 
-        with patch('schlep_cli.commands.validate.get_auth_context', return_value=auth_context):
-            with patch('schlep_cli.commands.validate.APIClient', return_value=mock_client):
+        with patch('igris_cli.commands.validate.get_auth_context', return_value=auth_context):
+            with patch('igris_cli.commands.validate.APIClient', return_value=mock_client):
                 result = runner.invoke(cli, ['validate', 'pipeline', str(sample_pipeline_config)])
 
         assert result.exit_code == 0
@@ -443,8 +443,8 @@ class TestBatchCommands:
             'processed_files': 0
         }
 
-        with patch('schlep_cli.commands.batch.get_auth_context', return_value=auth_context):
-            with patch('schlep_cli.commands.batch.APIClient', return_value=mock_client):
+        with patch('igris_cli.commands.batch.get_auth_context', return_value=auth_context):
+            with patch('igris_cli.commands.batch.APIClient', return_value=mock_client):
                 result = runner.invoke(cli, [
                     'batch', 'process',
                     '--files', ','.join(files),
@@ -472,8 +472,8 @@ class TestBatchCommands:
             ]
         }
 
-        with patch('schlep_cli.commands.batch.get_auth_context', return_value=auth_context):
-            with patch('schlep_cli.commands.batch.APIClient', return_value=mock_client):
+        with patch('igris_cli.commands.batch.get_auth_context', return_value=auth_context):
+            with patch('igris_cli.commands.batch.APIClient', return_value=mock_client):
                 result = runner.invoke(cli, ['batch', 'status', 'batch-status-123'])
 
         assert result.exit_code == 0
@@ -490,8 +490,8 @@ class TestBatchCommands:
             'completed_files': 2
         }
 
-        with patch('schlep_cli.commands.batch.get_auth_context', return_value=auth_context):
-            with patch('schlep_cli.commands.batch.APIClient', return_value=mock_client):
+        with patch('igris_cli.commands.batch.get_auth_context', return_value=auth_context):
+            with patch('igris_cli.commands.batch.APIClient', return_value=mock_client):
                 with patch('click.confirm', return_value=True):
                     result = runner.invoke(cli, ['batch', 'cancel', 'batch-cancel-123'])
 
@@ -507,8 +507,8 @@ class TestMonitoringCommands:
         """Test monitoring status command."""
         mock_client.monitoring.get_system_status.return_value = sample_metrics
 
-        with patch('schlep_cli.commands.monitoring.get_auth_context', return_value=auth_context):
-            with patch('schlep_cli.commands.monitoring.APIClient', return_value=mock_client):
+        with patch('igris_cli.commands.monitoring.get_auth_context', return_value=auth_context):
+            with patch('igris_cli.commands.monitoring.APIClient', return_value=mock_client):
                 result = runner.invoke(cli, ['monitoring', 'status'])
 
         assert result.exit_code == 0
@@ -525,8 +525,8 @@ class TestMonitoringCommands:
         ]
         mock_client.monitoring.get_logs.return_value = {'logs': mock_logs}
 
-        with patch('schlep_cli.commands.monitoring.get_auth_context', return_value=auth_context):
-            with patch('schlep_cli.commands.monitoring.APIClient', return_value=mock_client):
+        with patch('igris_cli.commands.monitoring.get_auth_context', return_value=auth_context):
+            with patch('igris_cli.commands.monitoring.APIClient', return_value=mock_client):
                 result = runner.invoke(cli, [
                     'monitoring', 'logs',
                     '--lines', '10',
@@ -557,8 +557,8 @@ class TestMonitoringCommands:
         ]
         mock_client.monitoring.get_alerts.return_value = {'alerts': mock_alerts}
 
-        with patch('schlep_cli.commands.monitoring.get_auth_context', return_value=auth_context):
-            with patch('schlep_cli.commands.monitoring.APIClient', return_value=mock_client):
+        with patch('igris_cli.commands.monitoring.get_auth_context', return_value=auth_context):
+            with patch('igris_cli.commands.monitoring.APIClient', return_value=mock_client):
                 result = runner.invoke(cli, ['monitoring', 'alerts'])
 
         assert result.exit_code == 0
@@ -572,7 +572,7 @@ class TestConfigCommands:
 
     def test_config_show_command(self, runner, sample_config):
         """Test config show command."""
-        with patch('schlep_cli.commands.config.Config') as MockConfig:
+        with patch('igris_cli.commands.config.Config') as MockConfig:
             MockConfig.return_value = sample_config
             
             result = runner.invoke(cli, ['config', 'show'])
@@ -586,7 +586,7 @@ class TestConfigCommands:
         """Test config set command."""
         config_file = temp_dir / "config.yml"
         
-        with patch('schlep_cli.core.config.Config.get_config_file', return_value=config_file):
+        with patch('igris_cli.core.config.Config.get_config_file', return_value=config_file):
             result = runner.invoke(cli, [
                 'config', 'set',
                 'api_key', 'sk-new-api-key-456'
@@ -599,7 +599,7 @@ class TestConfigCommands:
 
     def test_config_get_command(self, runner, sample_config):
         """Test config get command."""
-        with patch('schlep_cli.commands.config.Config') as MockConfig:
+        with patch('igris_cli.commands.config.Config') as MockConfig:
             MockConfig.return_value = sample_config
             
             result = runner.invoke(cli, ['config', 'get', 'base_url'])
@@ -612,7 +612,7 @@ class TestConfigCommands:
         config_file = temp_dir / "config.yml"
         config_file.write_text("api_key: old-key\nbase_url: old-url")
 
-        with patch('schlep_cli.core.config.Config.get_config_file', return_value=config_file):
+        with patch('igris_cli.core.config.Config.get_config_file', return_value=config_file):
             with patch('click.confirm', return_value=True):
                 result = runner.invoke(cli, ['config', 'reset'])
 
@@ -625,7 +625,7 @@ class TestErrorHandling:
 
     def test_unauthenticated_command(self, runner):
         """Test command execution without authentication."""
-        with patch('schlep_cli.commands.process.get_auth_context', return_value=None):
+        with patch('igris_cli.commands.process.get_auth_context', return_value=None):
             result = runner.invoke(cli, ['process', 'list'])
 
         assert result.exit_code != 0
@@ -635,8 +635,8 @@ class TestErrorHandling:
         """Test handling of network errors."""
         mock_client.data.list_jobs.side_effect = ConnectionError("Network unreachable")
 
-        with patch('schlep_cli.commands.process.get_auth_context', return_value=auth_context):
-            with patch('schlep_cli.commands.process.APIClient', return_value=mock_client):
+        with patch('igris_cli.commands.process.get_auth_context', return_value=auth_context):
+            with patch('igris_cli.commands.process.APIClient', return_value=mock_client):
                 result = runner.invoke(cli, ['process', 'list'])
 
         assert result.exit_code != 0
@@ -646,8 +646,8 @@ class TestErrorHandling:
         """Test handling of API errors."""
         mock_client.data.get_job_status.side_effect = Exception("Job not found")
 
-        with patch('schlep_cli.commands.process.get_auth_context', return_value=auth_context):
-            with patch('schlep_cli.commands.process.APIClient', return_value=mock_client):
+        with patch('igris_cli.commands.process.get_auth_context', return_value=auth_context):
+            with patch('igris_cli.commands.process.APIClient', return_value=mock_client):
                 result = runner.invoke(cli, ['process', 'status', 'nonexistent-job'])
 
         assert result.exit_code != 0
@@ -655,7 +655,7 @@ class TestErrorHandling:
 
     def test_file_not_found_error(self, runner, auth_context, mock_client):
         """Test handling when input file doesn't exist."""
-        with patch('schlep_cli.commands.process.get_auth_context', return_value=auth_context):
+        with patch('igris_cli.commands.process.get_auth_context', return_value=auth_context):
             result = runner.invoke(cli, [
                 'process', 'file', '/nonexistent/path/file.csv',
                 '--format', 'json'
@@ -694,8 +694,8 @@ class TestInteractiveFeatures:
             'status': 'running'
         }
 
-        with patch('schlep_cli.commands.process.get_auth_context', return_value=auth_context):
-            with patch('schlep_cli.commands.process.APIClient', return_value=mock_client):
+        with patch('igris_cli.commands.process.get_auth_context', return_value=auth_context):
+            with patch('igris_cli.commands.process.APIClient', return_value=mock_client):
                 with patch('click.prompt') as mock_prompt:
                     mock_prompt.return_value = str(temp_dir / "file_0.csv")
                     
@@ -717,8 +717,8 @@ class TestInteractiveFeatures:
         mock_client.data.process_file.return_value = job_states[0]
         mock_client.data.get_job_status.side_effect = job_states
 
-        with patch('schlep_cli.commands.process.get_auth_context', return_value=auth_context):
-            with patch('schlep_cli.commands.process.APIClient', return_value=mock_client):
+        with patch('igris_cli.commands.process.get_auth_context', return_value=auth_context):
+            with patch('igris_cli.commands.process.APIClient', return_value=mock_client):
                 with patch('time.sleep'):  # Speed up polling
                     result = runner.invoke(cli, [
                         'process', 'file', str(sample_data_file),

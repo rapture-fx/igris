@@ -1,8 +1,8 @@
-//! Users API client for Schlep-engine.
+//! Users API client for Igris-engine.
 
 use serde_json::Value;
 
-use crate::client::SchlepClient;
+use crate::client::IgrisClient;
 use crate::error::Result;
 use crate::types::{ApiKeyInfo, UserProfile};
 
@@ -10,12 +10,12 @@ use crate::types::{ApiKeyInfo, UserProfile};
 ///
 /// Provides methods for managing user profiles and API keys.
 pub struct UsersClient<'a> {
-    client: &'a SchlepClient,
+    client: &'a IgrisClient,
 }
 
 impl<'a> UsersClient<'a> {
     /// Create a new Users API client.
-    pub fn new(client: &'a SchlepClient) -> Self {
+    pub fn new(client: &'a IgrisClient) -> Self {
         Self { client }
     }
 
@@ -24,10 +24,10 @@ impl<'a> UsersClient<'a> {
     /// # Example
     ///
     /// ```rust,no_run
-    /// # use schlep_engine::{SchlepClient, Result};
+    /// # use igris::{IgrisClient, Result};
     /// # #[tokio::main]
     /// # async fn main() -> Result<()> {
-    /// # let client = SchlepClient::new("your-api-key")?;
+    /// # let client = IgrisClient::new("your-api-key")?;
     /// let profile = client.users().get_profile().await?;
     /// println!("User: {} ({})", profile.email, profile.user_id);
     /// # Ok(())
@@ -46,11 +46,11 @@ impl<'a> UsersClient<'a> {
     /// # Example
     ///
     /// ```rust,no_run
-    /// # use schlep_engine::{SchlepClient, Result};
+    /// # use igris::{IgrisClient, Result};
     /// # use serde_json::json;
     /// # #[tokio::main]
     /// # async fn main() -> Result<()> {
-    /// # let client = SchlepClient::new("your-api-key")?;
+    /// # let client = IgrisClient::new("your-api-key")?;
     /// let updates = json!({
     ///     "name": "John Doe",
     ///     "preferences": {
@@ -70,10 +70,10 @@ impl<'a> UsersClient<'a> {
     /// # Example
     ///
     /// ```rust,no_run
-    /// # use schlep_engine::{SchlepClient, Result};
+    /// # use igris::{IgrisClient, Result};
     /// # #[tokio::main]
     /// # async fn main() -> Result<()> {
-    /// # let client = SchlepClient::new("your-api-key")?;
+    /// # let client = IgrisClient::new("your-api-key")?;
     /// let keys = client.users().list_api_keys().await?;
     /// for key in keys {
     ///     println!("Key: {} ({})", key.name, key.key_prefix);
@@ -94,10 +94,10 @@ impl<'a> UsersClient<'a> {
     /// # Example
     ///
     /// ```rust,no_run
-    /// # use schlep_engine::{SchlepClient, Result};
+    /// # use igris::{IgrisClient, Result};
     /// # #[tokio::main]
     /// # async fn main() -> Result<()> {
-    /// # let client = SchlepClient::new("your-api-key")?;
+    /// # let client = IgrisClient::new("your-api-key")?;
     /// let new_key = client.users()
     ///     .create_api_key("Production Key").await?;
     /// println!("Created key: {}", new_key.key_id);
@@ -121,10 +121,10 @@ impl<'a> UsersClient<'a> {
     /// # Example
     ///
     /// ```rust,no_run
-    /// # use schlep_engine::{SchlepClient, Result};
+    /// # use igris::{IgrisClient, Result};
     /// # #[tokio::main]
     /// # async fn main() -> Result<()> {
-    /// # let client = SchlepClient::new("your-api-key")?;
+    /// # let client = IgrisClient::new("your-api-key")?;
     /// client.users().revoke_api_key("key_123").await?;
     /// # Ok(())
     /// # }

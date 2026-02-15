@@ -1,11 +1,11 @@
 #!/bin/bash
 
-# SSL Certificate Setup for Schlep Engine
+# SSL Certificate Setup for Igris Inertial
 # This script sets up Let's Encrypt certificates for Cloudflare integration
 
 set -e
 
-echo "🔒 Setting up SSL certificates for Schlep Engine..."
+echo "🔒 Setting up SSL certificates for Igris Inertial..."
 
 # Colors for output
 RED='\033[0;31m'

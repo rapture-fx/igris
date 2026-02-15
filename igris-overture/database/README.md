@@ -1,6 +1,6 @@
 # Database Package - Phase 13 Persistence Layer
 
-This package provides PostgreSQL persistence for Schlep-engine's safety features, enabling production-grade budget tracking, policy storage, and audit logging.
+This package provides PostgreSQL persistence for Igris Inertial's safety features, enabling production-grade budget tracking, policy storage, and audit logging.
 
 ## Quick Start
 
@@ -8,15 +8,15 @@ This package provides PostgreSQL persistence for Schlep-engine's safety features
 
 ```bash
 # Start PostgreSQL with Docker
-docker run --name schlep-postgres \
-  -e POSTGRES_USER=schlep \
-  -e POSTGRES_PASSWORD=schlep \
-  -e POSTGRES_DB=schlep \
+docker run --name igris-postgres \
+  -e POSTGRES_USER=igris \
+  -e POSTGRES_PASSWORD=igris \
+  -e POSTGRES_DB=igris \
   -p 5432:5432 \
   -d postgres:13
 
 # Set database URL
-export DATABASE_URL="postgres://schlep:schlep@localhost:5432/schlep?sslmode=disable"
+export DATABASE_URL="postgres://igris:igris@localhost:5432/igris?sslmode=disable"
 export ENABLE_PERSISTENCE=true
 
 # Run migrations
@@ -30,7 +30,7 @@ psql $DATABASE_URL -c "SELECT COUNT(*) FROM budgets;"
 
 ```bash
 # Set database URL (use secrets management in production)
-export DATABASE_URL="postgres://user:pass@prod-db:5432/schlep?sslmode=require"
+export DATABASE_URL="postgres://user:pass@prod-db:5432/igris?sslmode=require"
 export ENABLE_PERSISTENCE=true
 export DB_MAX_OPEN_CONNS=50
 export DB_MAX_IDLE_CONNS=10
@@ -240,21 +240,21 @@ ORDER BY idx_scan DESC;
 ```bash
 # Daily backup script
 #!/bin/bash
-BACKUP_DIR="/var/backups/schlep"
+BACKUP_DIR="/var/backups/igris"
 DATE=$(date +%Y%m%d)
 
-pg_dump $DATABASE_URL > $BACKUP_DIR/schlep_$DATE.sql
-gzip $BACKUP_DIR/schlep_$DATE.sql
+pg_dump $DATABASE_URL > $BACKUP_DIR/igris_$DATE.sql
+gzip $BACKUP_DIR/igris_$DATE.sql
 
 # Keep last 30 days
-find $BACKUP_DIR -name "schlep_*.sql.gz" -mtime +30 -delete
+find $BACKUP_DIR -name "igris_*.sql.gz" -mtime +30 -delete
 ```
 
 ### Point-in-Time Recovery
 
 ```bash
 # Restore from backup
-gunzip < /var/backups/schlep/schlep_20251020.sql.gz | psql $DATABASE_URL
+gunzip < /var/backups/igris/igris_20251020.sql.gz | psql $DATABASE_URL
 ```
 
 ## Troubleshooting
@@ -266,10 +266,10 @@ gunzip < /var/backups/schlep/schlep_20251020.sql.gz | psql $DATABASE_URL
 psql $DATABASE_URL -c "SELECT 1;"
 
 # Check connection pool
-psql $DATABASE_URL -c "SELECT count(*) FROM pg_stat_activity WHERE datname = 'schlep';"
+psql $DATABASE_URL -c "SELECT count(*) FROM pg_stat_activity WHERE datname = 'igris';"
 
 # View active queries
-psql $DATABASE_URL -c "SELECT pid, query, state FROM pg_stat_activity WHERE datname = 'schlep';"
+psql $DATABASE_URL -c "SELECT pid, query, state FROM pg_stat_activity WHERE datname = 'igris';"
 ```
 
 ### Performance Issues
@@ -324,9 +324,9 @@ HAVING ABS(b.total_spend_usd - COALESCE(SUM(sl.cost_usd), 0)) > 0.01;
 2. **Least Privilege:**
    ```sql
    -- Create read-only user for reporting
-   CREATE USER schlep_reader WITH PASSWORD 'secure_password';
-   GRANT CONNECT ON DATABASE schlep TO schlep_reader;
-   GRANT SELECT ON ALL TABLES IN SCHEMA public TO schlep_reader;
+   CREATE USER igris_reader WITH PASSWORD 'secure_password';
+   GRANT CONNECT ON DATABASE igris TO igris_reader;
+   GRANT SELECT ON ALL TABLES IN SCHEMA public TO igris_reader;
    ```
 
 3. **Secrets Management:**
@@ -338,7 +338,7 @@ HAVING ABS(b.total_spend_usd - COALESCE(SUM(sl.cost_usd), 0)) > 0.01;
 4. **Connection Limits:**
    ```sql
    -- Set per-user connection limit
-   ALTER USER schlep CONNECTION LIMIT 50;
+   ALTER USER igris CONNECTION LIMIT 50;
    ```
 
 ## See Also

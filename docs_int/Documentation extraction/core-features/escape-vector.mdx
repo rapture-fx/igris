@@ -2,7 +2,7 @@
 
 ## Overview
 
-**EscapeVector Mode** is Schlep Engine's zero-downtime failover system that uses Thompson Sampling Bayesian optimization to maintain intelligent AI routing even when the control plane is completely unavailable.
+**EscapeVector Mode** is Igris Inertial's zero-downtime failover system that uses Thompson Sampling Bayesian optimization to maintain intelligent AI routing even when the control plane is completely unavailable.
 
 While competitors revert to round-robin during outages, EscapeVector continues running the **exact same Thompson Sampling algorithm** that powers normal operation, ensuring optimal provider selection during failures.
 
@@ -33,7 +33,7 @@ While competitors revert to round-robin during outages, EscapeVector continues r
 
 ```
 ┌─────────────────────────────────────────┐
-│         Schlep SDK Client               │
+│         Igris SDK Client               │
 │                                         │
 │  ┌──────────────────────────────────┐  │
 │  │  Control Plane Detector          │  │
@@ -66,17 +66,17 @@ While competitors revert to round-robin during outages, EscapeVector continues r
 EscapeVector Mode activates automatically when the control plane becomes unavailable:
 
 ```go
-import "github.com/schlep-engine/schlep-engine/internal/sdk/go/schlep"
+import "github.com/igris-inertial/igris-inertial/internal/sdk/go/igris"
 
-client := schlep.NewClient(&schlep.Config{
+client := igris.NewClient(&igris.Config{
     BaseURL: "http://localhost:8081",
     APIKey:  "your-api-key",
 })
 
 // EscapeVector Mode activates automatically on control plane failure
-response, err := client.Infer(ctx, &schlep.InferRequest{
+response, err := client.Infer(ctx, &igris.InferRequest{
     Model: "gpt-4",
-    Messages: []schlep.Message{
+    Messages: []igris.Message{
         {Role: "user", Content: "Hello!"},
     },
 })
@@ -91,12 +91,12 @@ For air-gapped or permanently offline deployments:
 export BYOK_BYPASS_CONTROL_PLANE=true
 
 # Custom cache directory
-export SCHLEP_CACHE_DIR="/custom/path"
+export IGRIS_CACHE_DIR="/custom/path"
 ```
 
 ```go
 // Client automatically uses Thompson Sampling fallback
-client := schlep.NewClient(nil)
+client := igris.NewClient(nil)
 response, err := client.Infer(ctx, req) // Always uses local Thompson Sampling
 ```
 
@@ -166,7 +166,7 @@ BenchmarkCircuitBreaker-8        1000000     345 ns/op       0 B/op    0 allocs/
 
 ### Cache Location
 
-- **Default**: `~/.config/schlep/bayesian_state.enc`
+- **Default**: `~/.config/igris/bayesian_state.enc`
 - **Permissions**: 0600 (owner read/write only)
 - **Format**: JSON-encrypted blob
 
@@ -210,7 +210,7 @@ Where:
 
 ## Comparison: EscapeVector vs Round-Robin
 
-| Feature | EscapeVector (Schlep) | Round-Robin (Competitors) |
+| Feature | EscapeVector (Igris) | Round-Robin (Competitors) |
 |---------|---------------------|---------------------------|
 | **Selection Strategy** | Thompson Sampling Bayesian | Fixed rotation |
 | **Learns from feedback** | ✅ Yes (α/β updates) | ❌ No |

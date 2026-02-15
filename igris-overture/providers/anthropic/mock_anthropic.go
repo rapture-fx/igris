@@ -110,7 +110,7 @@ func (p *MockAnthropicProvider) Infer(ctx context.Context, req *models.InferRequ
 
 	// Set comprehensive metadata
 	response.Metadata.Provider = "mock-anthropic"
-	response.Metadata.ModelUsed = "schlep-mock-claude-3-sonnet"
+	response.Metadata.ModelUsed = "igris-mock-claude-3-sonnet"
 	response.Metadata.LatencyMs = latencyMs
 	response.Metadata.InferenceTimeMs = latencyMs - 8 // Simulate slightly higher queue time
 	response.Metadata.QueueTimeMs = 8
@@ -283,10 +283,10 @@ func (p *MockAnthropicProvider) generateMockContent(req *models.InferRequest, la
 	}
 
 	content := fmt.Sprintf(
-		"Hello from Schlep Mock Anthropic!\n\n"+
+		"Hello from Igris Mock Anthropic!\n\n"+
 			"Your request has been simulated successfully.\n\n"+
 			"**Simulation Metrics:**\n"+
-			"- Model: schlep-mock-claude-3-sonnet\n"+
+			"- Model: igris-mock-claude-3-sonnet\n"+
 			"- Tokens Used: %d tokens\n"+
 			"- Latency: %dms\n"+
 			"- Estimated Cost: $%.6f\n\n"+
@@ -308,7 +308,7 @@ func (p *MockAnthropicProvider) generateStreamingWords(targetTokens int) []strin
 	// Generate a sequence of words that approximates the target token count
 	// Roughly 1 token per word for simplicity
 	words := []string{
-		"Hello", " from", " Schlep", " Mock", " Anthropic!", " ",
+		"Hello", " from", " Igris", " Mock", " Anthropic!", " ",
 		"This", " is", " a", " simulated", " streaming", " response", " from", " Claude.", " ",
 	}
 
@@ -330,9 +330,9 @@ func (p *MockAnthropicProvider) generateStreamingWords(targetTokens int) []strin
 func getMockAnthropicCapabilities() *providers.ProviderCapabilities {
 	return &providers.ProviderCapabilities{
 		Models: []string{
-			"schlep-mock-claude-3-opus",
-			"schlep-mock-claude-3-sonnet",
-			"schlep-mock-claude-3-haiku",
+			"igris-mock-claude-3-opus",
+			"igris-mock-claude-3-sonnet",
+			"igris-mock-claude-3-haiku",
 		},
 		SupportsStreaming:        true,
 		SupportsVision:           true,

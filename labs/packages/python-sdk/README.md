@@ -1,14 +1,14 @@
-# Schlep-engine Python SDK
+# Igris-engine Python SDK
 
 [![PyPI version](https://badge.fury.io/py/igris-inertial.svg)](https://badge.fury.io/py/igris-inertial)
 [![Python Support](https://img.shields.io/pypi/pyversions/igris-inertial.svg)](https://pypi.org/project/igris-inertial/)
 [![License: MIT](https://img.shields.io/badge/License-MIT-yellow.svg)](https://opensource.org/licenses/MIT)
 
-Official Python SDK for the **Schlep-engine** API - Advanced data processing, machine learning, and analytics platform.
+Official Python SDK for the **Igris-engine** API - Advanced data processing, machine learning, and analytics platform.
 
 ## Features
 
-- **Complete API Coverage**: Full support for all Schlep-engine endpoints
+- **Complete API Coverage**: Full support for all Igris-engine endpoints
 - **Async/Await Support**: Modern async Python with full synchronous compatibility
 - **Authentication Management**: Automatic token handling and refresh
 - **Error Handling**: Comprehensive error handling with automatic retries
@@ -36,10 +36,10 @@ pip install "igris-inertial[dev]"
 ### API Key Authentication
 
 ```python
-from igris_overture import SchlepEngineClient
+from igris_overture import IgrisClient
 
 # Initialize client with API key
-client = SchlepEngineClient(api_key="your-api-key-here")
+client = IgrisClient(api_key="your-api-key-here")
 
 # Process a data file
 result = await client.data.process_file(
@@ -56,10 +56,10 @@ print(f"Processing complete! Job ID: {result.job_id}")
 ### User Authentication
 
 ```python
-from igris_overture import SchlepEngineClient
+from igris_overture import IgrisClient
 
 # Initialize client
-client = SchlepEngineClient()
+client = IgrisClient()
 
 # Login with credentials
 tokens = await client.auth.login("user@example.com", "password")
@@ -72,10 +72,10 @@ pipelines = await client.ml.list_pipelines()
 ### Synchronous Usage
 
 ```python
-from igris_overture import SchlepEngineClientSync
+from igris_overture import IgrisClientSync
 
 # Synchronous client for non-async environments
-client = SchlepEngineClientSync(api_key="your-api-key")
+client = IgrisClientSync(api_key="your-api-key")
 
 # Same methods, but synchronous
 result = client.data.process_file("data.csv")
@@ -215,7 +215,7 @@ for row in results.data:
 
 ```python
 # Automatic resource cleanup
-async with SchlepEngineClient(api_key="your-key") as client:
+async with IgrisClient(api_key="your-key") as client:
     # All your API calls here
     result = await client.data.process_file("data.csv")
     models = await client.ml.list_models()
@@ -235,7 +235,7 @@ retry_config = RetryConfig(
     backoff_factor=2.0
 )
 
-client = SchlepEngineClient(
+client = IgrisClient(
     api_key="your-key",
     base_url="https://api.igris-inertial.com",
     timeout=60.0,
@@ -248,7 +248,7 @@ client = SchlepEngineClient(
 
 ```python
 from igris_overture.exceptions import (
-    SchlepEngineError, APIError, AuthenticationError, 
+    IgrisError, APIError, AuthenticationError, 
     RateLimitError, ValidationError
 )
 
@@ -262,7 +262,7 @@ except RateLimitError as e:
     print(f"Rate limited. Retry after {e.retry_after} seconds")
 except APIError as e:
     print(f"API error ({e.status_code}): {e.message}")
-except SchlepEngineError as e:
+except IgrisError as e:
     print(f"SDK error: {e}")
 ```
 
@@ -286,12 +286,12 @@ IGRIS_OVERTURE_LOG_LEVEL=DEBUG
 ### E-commerce Data Processing Pipeline
 
 ```python
-from igris_overture import SchlepEngineClient
+from igris_overture import IgrisClient
 from igris_overture.models import DataPipeline, TransformationRule, ProcessingMode
 import asyncio
 
 async def process_ecommerce_data():
-    client = SchlepEngineClient(api_key="your-api-key")
+    client = IgrisClient(api_key="your-api-key")
     
     # Define transformation pipeline for e-commerce data
     pipeline = DataPipeline(
@@ -368,11 +368,11 @@ asyncio.run(process_ecommerce_data())
 ### Fraud Detection ML Pipeline
 
 ```python
-from igris_overture import SchlepEngineClient
+from igris_overture import IgrisClient
 from igris_overture.models.ml import MLPipelineConfig, MLTaskType, ModelType
 
 async def setup_fraud_detection():
-    client = SchlepEngineClient(api_key="your-api-key")
+    client = IgrisClient(api_key="your-api-key")
     
     # Configure ML pipeline for fraud detection
     config = MLPipelineConfig(
@@ -451,11 +451,11 @@ model_id = asyncio.run(setup_fraud_detection())
 ### Data Quality Monitoring System
 
 ```python
-from igris_overture import SchlepEngineClient
+from igris_overture import IgrisClient
 from igris_overture.models.quality import DataQualityRules, QualityThreshold
 
 async def setup_data_quality_monitoring():
-    client = SchlepEngineClient(api_key="your-api-key")
+    client = IgrisClient(api_key="your-api-key")
     
     # Define comprehensive data quality rules
     quality_rules = DataQualityRules(
@@ -556,7 +556,7 @@ asyncio.run(setup_data_quality_monitoring())
 ### Connection Pooling and Async Optimization
 
 ```python
-from igris_overture import SchlepEngineClient
+from igris_overture import IgrisClient
 from igris_overture.utils.retry import RetryConfig, RetryStrategy
 import asyncio
 import aiohttp
@@ -581,7 +581,7 @@ async def create_optimized_client():
         retry_on_status_codes=[429, 502, 503, 504]
     )
     
-    client = SchlepEngineClient(
+    client = IgrisClient(
         api_key="your-api-key",
         base_url="https://api.igris-inertial.com",
         timeout=120.0,
@@ -640,12 +640,12 @@ The v2.0 release includes several breaking changes and new features:
 1. **Client Initialization**
    ```python
    # v1.x (deprecated)
-   from igris_overture import SchlepClient
-   client = SchlepClient(api_key="your-key")
+   from igris_overture import IgrisClient
+   client = IgrisClient(api_key="your-key")
    
    # v2.x (new)
-   from igris_overture import SchlepEngineClient
-   client = SchlepEngineClient(api_key="your-key")
+   from igris_overture import IgrisClient
+   client = IgrisClient(api_key="your-key")
    ```
 
 2. **Method Names**
@@ -678,7 +678,7 @@ The v2.0 release includes several breaking changes and new features:
 import asyncio
 from typing import Dict, Any
 
-class SchlepEngineV2Migrator:
+class IgrisV2Migrator:
     """Helper class to migrate from v1.x to v2.x"""
     
     def __init__(self, old_client, new_client):
@@ -739,10 +739,10 @@ class SchlepEngineV2Migrator:
 
 # Usage example
 async def migrate_existing_workflows():
-    from igris_overture import SchlepEngineClient
+    from igris_overture import IgrisClient
     
     # Initialize new client
-    new_client = SchlepEngineClient(api_key="your-api-key")
+    new_client = IgrisClient(api_key="your-api-key")
     
     # Your existing v1.x job configurations
     v1_jobs = [
@@ -756,7 +756,7 @@ async def migrate_existing_workflows():
         # ... more jobs
     ]
     
-    migrator = SchlepEngineV2Migrator(None, new_client)
+    migrator = IgrisV2Migrator(None, new_client)
     
     migration_results = []
     for job in v1_jobs:
@@ -785,7 +785,7 @@ asyncio.run(migrate_existing_workflows())
 from igris_overture.exceptions import AuthenticationError
 
 try:
-    client = SchlepEngineClient(api_key="invalid-key")
+    client = IgrisClient(api_key="invalid-key")
     result = await client.data.process_file("data.csv")
 except AuthenticationError as e:
     print(f"Authentication failed: {e}")
@@ -813,7 +813,7 @@ except RateLimitError as e:
     await asyncio.sleep(e.retry_after)
     
     # Or use built-in rate limiting
-    client = SchlepEngineClient(
+    client = IgrisClient(
         api_key="your-key",
         enable_rate_limiting=True,
         rate_limit_requests_per_second=5
@@ -832,7 +832,7 @@ try:
 except TimeoutError:
     # Solutions:
     # 1. Increase timeout
-    client = SchlepEngineClient(
+    client = IgrisClient(
         api_key="your-key",
         timeout=300.0  # 5 minutes
     )
@@ -865,7 +865,7 @@ with open("large_file.csv", "r") as f:
 # ✅ Do this instead:
 # Use streaming upload for large files
 async def process_large_file(file_path):
-    client = SchlepEngineClient(api_key="your-key")
+    client = IgrisClient(api_key="your-key")
     
     # Enable streaming mode
     result = await client.data.process_file(
@@ -908,19 +908,19 @@ ssl_context = ssl.create_default_context()
 ssl_context.check_hostname = False
 ssl_context.verify_mode = ssl.CERT_NONE
 
-client = SchlepEngineClient(
+client = IgrisClient(
     api_key="your-key",
     ssl_context=ssl_context
 )
 
 # Option 2: Configure custom certificate bundle
-client = SchlepEngineClient(
+client = IgrisClient(
     api_key="your-key",
     ca_cert_path="/path/to/custom/ca-bundle.crt"
 )
 
 # Option 3: Disable SSL verification (development only)
-client = SchlepEngineClient(
+client = IgrisClient(
     api_key="your-key",
     verify_ssl=False  # Only for development!
 )
@@ -930,12 +930,12 @@ client = SchlepEngineClient(
 
 ```python
 import logging
-from igris_overture import SchlepEngineClient
+from igris_overture import IgrisClient
 
 # Enable debug mode
 logging.basicConfig(level=logging.DEBUG)
 
-client = SchlepEngineClient(
+client = IgrisClient(
     api_key="your-key",
     debug=True,  # Enables verbose logging
     log_requests=True,  # Logs all HTTP requests
@@ -996,4 +996,4 @@ We welcome contributions! Please see our [Contributing Guide](CONTRIBUTING.md) f
 
 ---
 
-Made with ❤️ by the **Schlep-engine** team
+Made with ❤️ by the **Igris-engine** team

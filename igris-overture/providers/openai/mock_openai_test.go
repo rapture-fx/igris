@@ -21,7 +21,7 @@ func TestMockProviderBasic(t *testing.T) {
 	}
 
 	req := &models.InferRequest{
-		Model: "schlep-mock-gpt-4",
+		Model: "igris-mock-gpt-4",
 		Messages: []models.Message{
 			{Role: "user", Content: "Test message"},
 		},
@@ -80,7 +80,7 @@ func TestMockProviderStreaming(t *testing.T) {
 	}
 
 	req := &models.InferRequest{
-		Model:  "schlep-mock-gpt-4",
+		Model:  "igris-mock-gpt-4",
 		Messages: []models.Message{
 			{Role: "user", Content: "Stream test"},
 		},
@@ -147,7 +147,7 @@ func TestMockProviderCostEstimation(t *testing.T) {
 	}
 
 	req := &models.InferRequest{
-		Model: "schlep-mock-gpt-4",
+		Model: "igris-mock-gpt-4",
 		Messages: []models.Message{
 			{Role: "user", Content: "Estimate my cost"},
 		},
@@ -189,7 +189,7 @@ func TestMockProviderConfig(t *testing.T) {
 	}
 
 	req := &models.InferRequest{
-		Model: "schlep-mock-gpt-4",
+		Model: "igris-mock-gpt-4",
 		Messages: []models.Message{
 			{Role: "user", Content: "Custom config test"},
 		},

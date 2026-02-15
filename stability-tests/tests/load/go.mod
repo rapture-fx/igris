@@ -1,4 +1,4 @@
-module github.com/schlep-engine/load-tests
+module github.com/igris-inertial/load-tests
 
 go 1.21
 

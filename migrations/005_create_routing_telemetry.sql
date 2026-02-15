@@ -1,7 +1,7 @@
 -- Migration: 005_create_routing_telemetry
 -- Description: Universal Routing Layer Telemetry
 -- Purpose: Track every routed request for cost, performance, and intelligence
--- Author: Schlep-Engine Team
+-- Author: Igris Inertial Team
 -- Date: 2025-11-05
 
 -- ============================================================================

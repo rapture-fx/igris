@@ -211,7 +211,7 @@ export function SignInForm() {
         </div>
         <div className="relative flex justify-center text-sm">
           <span className="px-4 bg-white text-gray-500">
-            New to Schlep-engine?
+            New to Igris-engine?
           </span>
         </div>
       </div>

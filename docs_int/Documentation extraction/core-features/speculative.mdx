@@ -2,7 +2,7 @@
 
 ## Overview
 
-**Speculative Execution** is Schlep Engine's parallel provider racing system that simultaneously queries multiple AI providers and intelligently selects the best response using Bayesian winner selection. Unlike naive racing that simply returns the fastest response, Speculative Execution considers quality, cost, and performance history to make optimal decisions.
+**Speculative Execution** is Igris Inertial's parallel provider racing system that simultaneously queries multiple AI providers and intelligently selects the best response using Bayesian winner selection. Unlike naive racing that simply returns the fastest response, Speculative Execution considers quality, cost, and performance history to make optimal decisions.
 
 This feature is integrated into both normal operation and [EscapeVector Mode](/docs/core-features/escape-vector) for maximum resilience.
 
@@ -167,7 +167,7 @@ func calculateCompositeScore(result *RaceResult) float64 {
 ### Enable Speculative Execution
 
 ```go
-client := schlep.NewClient(&schlep.Config{
+client := igris.NewClient(&igris.Config{
     APIKey: "your-api-key",
     SpeculativeExecution: true,
     RaceCount: 3, // Race top 3 providers
@@ -180,25 +180,25 @@ client := schlep.NewClient(&schlep.Config{
 
 ```bash
 # Enable speculative execution
-SCHLEP_SPECULATIVE_ENABLED=true
+IGRIS_SPECULATIVE_ENABLED=true
 
 # Number of providers to race
-SCHLEP_RACE_COUNT=3
+IGRIS_RACE_COUNT=3
 
 # Maximum cost per race (USD)
-SCHLEP_RACE_COST_LIMIT=0.05
+IGRIS_RACE_COST_LIMIT=0.05
 
 # Minimum confidence difference to trigger race
-SCHLEP_RACE_CONFIDENCE_THRESHOLD=0.15
+IGRIS_RACE_CONFIDENCE_THRESHOLD=0.15
 
 # Race timeout (seconds)
-SCHLEP_RACE_TIMEOUT=30
+IGRIS_RACE_TIMEOUT=30
 ```
 
 ### Per-Request Control
 
 ```go
-response, err := client.Infer(ctx, &schlep.InferRequest{
+response, err := client.Infer(ctx, &igris.InferRequest{
     Model: "gpt-4",
     Messages: messages,
     Options: &InferOptions{
@@ -243,7 +243,7 @@ Speculative Execution improves reliability:
 
 ```go
 // Financial trading system - minimize latency
-client := schlep.NewClient(&schlep.Config{
+client := igris.NewClient(&igris.Config{
     SpeculativeExecution: true,
     RaceCount: 3,
     RaceCostLimit: 0.50, // Higher cost acceptable
@@ -254,7 +254,7 @@ client := schlep.NewClient(&schlep.Config{
 
 ```go
 // Medical diagnosis - maximize reliability
-client := schlep.NewClient(&schlep.Config{
+client := igris.NewClient(&igris.Config{
     SpeculativeExecution: true,
     RaceCount: 2,
     MinQualityScore: 0.95, // Only race high-quality providers
@@ -265,7 +265,7 @@ client := schlep.NewClient(&schlep.Config{
 
 ```go
 // Batch processing - balance cost and performance
-client := schlep.NewClient(&schlep.Config{
+client := igris.NewClient(&igris.Config{
     SpeculativeExecution: true,
     RaceCount: 2,
     RaceCostLimit: 0.02, // Tight cost control
@@ -295,19 +295,19 @@ response, err := router.Infer(ctx, req)
 
 ```prometheus
 # Total races initiated
-schlep_races_total{result="winner_selected|all_failed|timeout"}
+igris_races_total{result="winner_selected|all_failed|timeout"}
 
 # Race latency distribution
-schlep_race_duration_seconds{quantile="0.5|0.95|0.99"}
+igris_race_duration_seconds{quantile="0.5|0.95|0.99"}
 
 # Race cost efficiency
-schlep_race_cost_efficiency{race_count="2|3|4"}
+igris_race_cost_efficiency{race_count="2|3|4"}
 
 # Winner distribution
-schlep_race_winner{provider="openai|anthropic|..."}
+igris_race_winner{provider="openai|anthropic|..."}
 
 # Race cancellations (early termination)
-schlep_race_cancellations_total{reason="cost|timeout|quality"}
+igris_race_cancellations_total{reason="cost|timeout|quality"}
 ```
 
 ### Observability
@@ -329,7 +329,7 @@ fmt.Printf("Success Rate: %.2f%%\n", stats.SuccessRate)
 Customize how response quality is evaluated:
 
 ```go
-client := schlep.NewClient(&schlep.Config{
+client := igris.NewClient(&igris.Config{
     SpeculativeExecution: true,
     QualityScorer: func(response *InferResponse) float64 {
         // Custom quality scoring logic
@@ -360,7 +360,7 @@ client := schlep.NewClient(&schlep.Config{
 Adjust race count based on load:
 
 ```go
-client := schlep.NewClient(&schlep.Config{
+client := igris.NewClient(&igris.Config{
     SpeculativeExecution: true,
     DynamicRaceCount: func(ctx context.Context) int {
         // Race more during off-peak hours
@@ -404,7 +404,7 @@ client := schlep.NewClient(&schlep.Config{
 
 ```go
 // Smart racing based on request type
-client := schlep.NewClient(&schlep.Config{
+client := igris.NewClient(&igris.Config{
     SpeculativeExecution: true,
     ShouldRace: func(req *InferRequest) bool {
         // Only race for short prompts (cheaper)
@@ -420,7 +420,7 @@ client := schlep.NewClient(&schlep.Config{
 
 ```go
 // Validate race results
-client := schlep.NewClient(&schlep.Config{
+client := igris.NewClient(&igris.Config{
     SpeculativeExecution: true,
     ValidateRaceResults: true, // Compare responses
     MinQualityDifference: 0.1, // Alert if quality varies significantly
@@ -465,7 +465,7 @@ They're discarded, but the outcome (latency, cost) is recorded and used to updat
 Yes, use the `RaceProviders` option in the request:
 
 ```go
-response, err := client.Infer(ctx, &schlep.InferRequest{
+response, err := client.Infer(ctx, &igris.InferRequest{
     Model: "gpt-4",
     Options: &InferOptions{
         RaceProviders: []string{"openai", "anthropic"},
@@ -493,18 +493,18 @@ Technically unlimited, but practically 2-4 providers. Beyond that, cost increase
 
 ```bash
 # Test different race counts
-schlep-cli benchmark --race-count 2 --requests 1000
-schlep-cli benchmark --race-count 3 --requests 1000
+igris-cli benchmark --race-count 2 --requests 1000
+igris-cli benchmark --race-count 3 --requests 1000
 
 # Compare results
-schlep-cli benchmark compare race-2 race-3
+igris-cli benchmark compare race-2 race-3
 ```
 
 ### Monitor Race Effectiveness
 
 ```go
 // Log race outcomes for analysis
-client := schlep.NewClient(&schlep.Config{
+client := igris.NewClient(&igris.Config{
     SpeculativeExecution: true,
     OnRaceComplete: func(result *RaceResult) {
         log.Printf("Race: winner=%s latency=%dms cost=$%.4f quality=%.2f",

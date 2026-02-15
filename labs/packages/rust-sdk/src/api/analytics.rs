@@ -1,8 +1,8 @@
-//! Analytics API client for Schlep-engine.
+//! Analytics API client for Igris-engine.
 
 use serde_json::Value;
 
-use crate::client::SchlepClient;
+use crate::client::IgrisClient;
 use crate::error::Result;
 use crate::types::{DatasetResponse, QueryResponse, ReportResponse};
 
@@ -10,12 +10,12 @@ use crate::types::{DatasetResponse, QueryResponse, ReportResponse};
 ///
 /// Provides methods for executing queries, creating reports, and managing datasets.
 pub struct AnalyticsClient<'a> {
-    client: &'a SchlepClient,
+    client: &'a IgrisClient,
 }
 
 impl<'a> AnalyticsClient<'a> {
     /// Create a new Analytics API client.
-    pub fn new(client: &'a SchlepClient) -> Self {
+    pub fn new(client: &'a IgrisClient) -> Self {
         Self { client }
     }
 
@@ -28,11 +28,11 @@ impl<'a> AnalyticsClient<'a> {
     /// # Example
     ///
     /// ```rust,no_run
-    /// # use schlep_engine::{SchlepClient, Result};
+    /// # use igris::{IgrisClient, Result};
     /// # use serde_json::json;
     /// # #[tokio::main]
     /// # async fn main() -> Result<()> {
-    /// # let client = SchlepClient::new("your-api-key")?;
+    /// # let client = IgrisClient::new("your-api-key")?;
     /// let query = json!({
     ///     "sql": "SELECT * FROM users WHERE age > 18",
     ///     "dataset_id": "dataset_123"

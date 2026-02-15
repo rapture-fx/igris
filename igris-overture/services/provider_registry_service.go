@@ -1,4 +1,4 @@
-// Package services provides business logic for Schlep-Engine
+// Package services provides business logic for Igris Inertial
 package services
 
 import (
@@ -229,8 +229,8 @@ func (s *ProviderRegistryService) validateOpenAICompatible(ctx context.Context, 
 	}
 
 	// Add trace headers
-	req.Header.Set("x-schlep-provider-id", provider.ID)
-	req.Header.Set("User-Agent", "Schlep-Engine/1.0")
+	req.Header.Set("x-igris-provider-id", provider.ID)
+	req.Header.Set("User-Agent", "Igris Inertial/1.0")
 
 	resp, err := s.httpClient.Do(req)
 	if err != nil {
@@ -299,7 +299,7 @@ func (s *ProviderRegistryService) validateCustomAdapter(ctx context.Context, pro
 		return err
 	}
 
-	req.Header.Set("User-Agent", "Schlep-Engine/1.0")
+	req.Header.Set("User-Agent", "Igris Inertial/1.0")
 
 	resp, err := s.httpClient.Do(req)
 	if err != nil {

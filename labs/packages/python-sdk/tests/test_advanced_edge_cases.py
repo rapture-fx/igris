@@ -1,5 +1,5 @@
 """
-Advanced Edge Case Tests for Schlep-engine Python SDK
+Advanced Edge Case Tests for Igris-engine Python SDK
 
 This module adds comprehensive testing for edge cases that might not be covered
 in standard tests, focusing on boundary conditions and unusual scenarios.
@@ -22,8 +22,8 @@ import uuid
 import hashlib
 import time
 
-from schlep_engine import SchlepEngineClient
-from schlep_engine.exceptions.base import (
+from igris import IgrisClient
+from igris.exceptions.base import (
     APIError,
     ValidationError,
     AuthenticationError,
@@ -31,10 +31,10 @@ from schlep_engine.exceptions.base import (
     NetworkError,
     TimeoutError
 )
-from schlep_engine.models.data import JobStatus, ProcessingJob
-from schlep_engine.models.ml import MLJobStatus, ModelTrainingJob
-from schlep_engine.utils.rate_limiter import RateLimiter
-from schlep_engine.utils.retry import RetryConfig
+from igris.models.data import JobStatus, ProcessingJob
+from igris.models.ml import MLJobStatus, ModelTrainingJob
+from igris.utils.rate_limiter import RateLimiter
+from igris.utils.retry import RetryConfig
 
 
 class TestAdvancedEdgeCases:
@@ -43,7 +43,7 @@ class TestAdvancedEdgeCases:
     @pytest.fixture
     def client(self):
         """Client fixture with extended timeout for edge case testing."""
-        return SchlepEngineClient(
+        return IgrisClient(
             api_key="test-key",
             base_url="https://api.test.com",
             timeout=30.0,  # Extended timeout for edge cases
@@ -261,7 +261,7 @@ class TestAdvancedEdgeCases:
                 await asyncio.sleep(0.1)  # Simulate network delay
                 return {"type": "response", "data": f"response-{len(self.messages)}"}
         
-        with patch('schlep_engine.websocket.WebSocketClient', return_value=MockWebSocket()):
+        with patch('igris.websocket.WebSocketClient', return_value=MockWebSocket()):
             ws_client = await client.websocket.connect("ws://test.com/stream")
             
             # Test resilient message sending with automatic reconnection
@@ -294,7 +294,7 @@ class TestAdvancedEdgeCases:
         
         def create_and_use_client(client_id):
             try:
-                client = SchlepEngineClient(
+                client = IgrisClient(
                     api_key=f"test-key-{client_id}",
                     base_url="https://api.test.com"
                 )
@@ -466,7 +466,7 @@ class TestAdvancedEdgeCases:
         compatibility_results = {}
         
         for version in api_versions:
-            client_with_version = SchlepEngineClient(
+            client_with_version = IgrisClient(
                 api_key="test-key",
                 base_url=f"https://api.test.com/{version}"
             )

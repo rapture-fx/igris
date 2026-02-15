@@ -2,16 +2,16 @@
 generator-name: go
 input-spec: "../../apps/api/openapi.json"
 output-dir: "./generated/go"
-package-name: "schlepengine"
+package-name: "igris"
 package-version: "v2.0.0"
 
 # Go-specific configuration
 additional-properties:
-  packageName: schlepengine
+  packageName: igris
   packageVersion: v2.0.0
   packageUrl: https://github.com/igris-inertial/go-client
-  packageCompany: Schlep-engine
-  packageDescription: "Go client library for Schlep-engine API - comprehensive data processing and ML pipeline platform"
+  packageCompany: Igris-engine
+  packageDescription: "Go client library for Igris-engine API - comprehensive data processing and ML pipeline platform"
   
   # Go module configuration
   moduleName: github.com/igris-inertial/go-client

@@ -1,10 +1,10 @@
-# Schlep-engine JavaScript SDK
+# Igris-engine JavaScript SDK
 
 [![npm version](https://badge.fury.io/js/%40igris-inertial%2Fjavascript-sdk.svg)](https://badge.fury.io/js/%40igris-inertial%2Fjavascript-sdk)
 [![TypeScript](https://badges.aleen42.io/src/typescript.svg)](https://www.typescriptlang.org/)
 [![License: MIT](https://img.shields.io/badge/License-MIT-yellow.svg)](https://opensource.org/licenses/MIT)
 
-Official JavaScript/TypeScript SDK for [Schlep-engine](https://igris-inertial.com) - Advanced data processing, machine learning, and analytics platform.
+Official JavaScript/TypeScript SDK for [Igris-engine](https://igris-inertial.com) - Advanced data processing, machine learning, and analytics platform.
 
 ## 🚀 Features
 
@@ -36,9 +36,9 @@ pnpm add @igris-inertial/javascript-sdk
 ### API Key Authentication
 
 ```typescript
-import { SchlepEngineClient, DataFormat } from '@igris-inertial/javascript-sdk';
+import { IgrisClient, DataFormat } from '@igris-inertial/javascript-sdk';
 
-const client = new SchlepEngineClient({
+const client = new IgrisClient({
   apiKey: 'your-api-key',
   baseUrl: 'https://api.igris-inertial.com'
 });
@@ -53,7 +53,7 @@ const result = await client.data.processFile(file, {
 ### User Authentication
 
 ```typescript
-const client = new SchlepEngineClient();
+const client = new IgrisClient();
 
 // Login
 await client.auth.login('user@example.com', 'password');
@@ -144,7 +144,7 @@ streaming.subscribeToMLTraining({
 ### Client Configuration
 
 ```typescript
-const client = new SchlepEngineClient({
+const client = new IgrisClient({
   apiKey?: string;           // API key for authentication
   baseUrl?: string;          // API base URL (default: production)
   timeout?: number;          // Request timeout in ms (default: 30000)
@@ -258,7 +258,7 @@ await client.monitoring.getActiveAlerts();
 ```html
 <script src="https://unpkg.com/@igris-inertial/javascript-sdk/dist/index.umd.js"></script>
 <script>
-  const client = new SchlepEngine.SchlepEngineClient({
+  const client = new Igris.IgrisClient({
     apiKey: 'your-api-key'
   });
 </script>
@@ -285,18 +285,18 @@ if (file) {
 ### Environment Variables
 
 ```bash
-export SCHLEP_API_KEY="your-api-key"
-export SCHLEP_BASE_URL="https://api.igris-inertial.com"
+export IGRIS_API_KEY="your-api-key"
+export IGRIS_BASE_URL="https://api.igris-inertial.com"
 ```
 
 ### File Processing
 
 ```typescript
 import fs from 'fs';
-import { SchlepEngineClient } from '@igris-inertial/javascript-sdk';
+import { IgrisClient } from '@igris-inertial/javascript-sdk';
 
-const client = new SchlepEngineClient({
-  apiKey: process.env.SCHLEP_API_KEY
+const client = new IgrisClient({
+  apiKey: process.env.IGRIS_API_KEY
 });
 
 // Process local file
@@ -310,7 +310,7 @@ const result = await client.data.processFile(file);
 
 ```typescript
 import { 
-  SchlepEngineError, 
+  IgrisError, 
   APIError, 
   AuthenticationError, 
   RateLimitError 
@@ -338,7 +338,7 @@ try {
 The SDK includes automatic retry logic for transient errors:
 
 ```typescript
-const client = new SchlepEngineClient({
+const client = new IgrisClient({
   retries: 5,              // Number of retries
   retryDelay: 1000,        // Initial delay (ms)
   // Exponential backoff with jitter is applied automatically
@@ -430,4 +430,4 @@ See [CHANGELOG.md](CHANGELOG.md) for details about changes in each version.
 
 ---
 
-Built with ❤️ by the [Schlep-engine](https://igris-inertial.com) team
+Built with ❤️ by the [Igris-engine](https://igris-inertial.com) team

@@ -101,7 +101,7 @@ export interface ClientConfig {
 }
 
 /**
- * Custom error class for Schlep API errors
+ * Custom error class for Igris API errors
  */
 export class IgrisError extends Error {
   statusCode?: number;
@@ -164,7 +164,7 @@ export class Igris {
   private escapeVectorPromise: Promise<any> | null = null;
 
   /**
-   * Create a new Schlep client
+   * Create a new Igris client
    *
    * @param config - Client configuration
    */
@@ -330,7 +330,7 @@ export class Igris {
 }
 
 // Backward compatibility alias
-export { Igris as Schlep };
+export { Igris as Igris };
 
 // Export EscapeVector components
 export { EscapeVectorMode } from './escapevector';

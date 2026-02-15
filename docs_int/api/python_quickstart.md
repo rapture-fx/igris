@@ -1,13 +1,13 @@
 # Python SDK Quickstart
 
-Get started with the Schlep-engine Python SDK in minutes.
+Get started with the Igris Inertial Python SDK in minutes.
 
 ## Installation
 
-Install the Schlep Python SDK using pip:
+Install the Igris Python SDK using pip:
 
 ```bash
-pip install schlep
+pip install igris
 ```
 
 Or install from source:
@@ -22,7 +22,7 @@ pip install -e .
 ### Basic Usage
 
 ```python
-from schlep import Client
+from igris import Client
 
 # Initialize the client
 client = Client(base_url="http://localhost:8081")
@@ -43,11 +43,11 @@ print(response["choices"][0]["message"]["content"])
 ### With Authentication
 
 ```python
-from schlep import Client
+from igris import Client
 
 # Initialize with API key
 client = Client(
-    base_url="https://api.schlep.com",
+    base_url="https://api.igris-inertial.com",
     api_key="your-api-key-here"
 )
 
@@ -59,32 +59,32 @@ response = client.infer(
 
 ## BYOK (Bring Your Own Key) Configuration
 
-Schlep-engine supports BYOK, allowing you to use your own provider API keys:
+Igris Inertial supports BYOK, allowing you to use your own provider API keys:
 
 ### Using the CLI
 
 ```bash
-# Configure Schlep CLI
-schlep login --url http://localhost:8081
+# Configure Igris CLI
+igris login --url http://localhost:8081
 
 # Add provider keys
-schlep add-key --provider openai --key sk-...
-schlep add-key --provider anthropic --key sk-ant-...
+igris add-key --provider openai --key sk-...
+igris add-key --provider anthropic --key sk-ant-...
 
 # Test inference
-schlep infer --prompt "Hello!"
+igris infer --prompt "Hello!"
 ```
 
 ### Using the SDK
 
 ```python
-from schlep import Client
+from igris import Client
 
 # The SDK uses the API to route to the best provider
 # Keys are managed server-side via the vault
 client = Client(base_url="http://localhost:8081")
 
-# Schlep-engine automatically routes to the best available provider
+# Igris Inertial automatically routes to the best available provider
 response = client.infer(
     model="gpt-4",  # Requested model
     messages=[{"role": "user", "content": "Hello!"}]
@@ -96,7 +96,7 @@ response = client.infer(
 ### Chat Conversation
 
 ```python
-from schlep import Client
+from igris import Client
 
 client = Client(base_url="http://localhost:8081")
 
@@ -132,7 +132,7 @@ print(response["choices"][0]["message"]["content"])
 ### List Available Models
 
 ```python
-from schlep import Client
+from igris import Client
 
 client = Client(base_url="http://localhost:8081")
 
@@ -147,7 +147,7 @@ for model in models.get("data", []):
 ### Health Check
 
 ```python
-from schlep import Client
+from igris import Client
 
 client = Client(base_url="http://localhost:8081")
 
@@ -162,7 +162,7 @@ if health['status'] == 'healthy':
 ### Error Handling
 
 ```python
-from schlep import Client, APIError, AuthenticationError, NetworkError
+from igris import Client, APIError, AuthenticationError, NetworkError
 
 client = Client(base_url="http://localhost:8081")
 
@@ -189,7 +189,7 @@ except Exception as e:
 ### Using Context Manager
 
 ```python
-from schlep import Client
+from igris import Client
 
 # Automatically close connection when done
 with Client(base_url="http://localhost:8081") as client:
@@ -205,7 +205,7 @@ with Client(base_url="http://localhost:8081") as client:
 ### Client Configuration
 
 ```python
-from schlep import Client
+from igris import Client
 
 client = Client(
     base_url="http://localhost:8081",  # API endpoint
@@ -230,7 +230,7 @@ response = client.infer(
 ## Example: Real-time Chat Application
 
 ```python
-from schlep import Client
+from igris import Client
 
 def chat_loop():
     client = Client(base_url="http://localhost:8081")
@@ -281,4 +281,4 @@ if __name__ == "__main__":
 
 ---
 
-**Schlep-engine** - Intelligent AI Routing and Cost Optimization
+**Igris Inertial** - Intelligent AI Routing and Cost Optimization

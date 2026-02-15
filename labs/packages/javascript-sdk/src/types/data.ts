@@ -1,5 +1,5 @@
 /**
- * Data processing types for Schlep-engine JavaScript SDK
+ * Data processing types for Igris-engine JavaScript SDK
  */
 
 import { JobStatus } from './common';

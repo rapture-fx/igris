@@ -1,5 +1,5 @@
 """
-Comprehensive mock tests for external dependencies in Schlep-engine Python SDK
+Comprehensive mock tests for external dependencies in Igris-engine Python SDK
 
 This test suite covers mocking of all external dependencies including HTTP clients,
 authentication services, storage systems, databases, and third-party APIs.
@@ -17,15 +17,15 @@ from datetime import datetime, timedelta
 import tempfile
 from pathlib import Path
 
-from schlep_engine import SchlepEngineClient
-from schlep_engine.auth.manager import AuthManager
-from schlep_engine.auth.token_storage import FileTokenStorage, MemoryTokenStorage
-from schlep_engine.utils.http_client import HTTPClient
-from schlep_engine.utils.rate_limiter import RateLimiter
-from schlep_engine.utils.retry import RetryHandler
-from schlep_engine.models.auth import TokenResponse, UserInfo
-from schlep_engine.models.data import ProcessingJob, JobStatus
-from schlep_engine.exceptions.base import APIError, NetworkError, AuthenticationError
+from igris import IgrisClient
+from igris.auth.manager import AuthManager
+from igris.auth.token_storage import FileTokenStorage, MemoryTokenStorage
+from igris.utils.http_client import HTTPClient
+from igris.utils.rate_limiter import RateLimiter
+from igris.utils.retry import RetryHandler
+from igris.models.auth import TokenResponse, UserInfo
+from igris.models.data import ProcessingJob, JobStatus
+from igris.exceptions.base import APIError, NetworkError, AuthenticationError
 
 
 class TestHTTPClientMocking:
@@ -751,16 +751,16 @@ class TestEnvironmentVariableMocking:
     async def test_mock_environment_variables(self):
         """Test mocking environment variables."""
         with patch.dict(os.environ, {
-            'SCHLEP_ENGINE_API_KEY': 'mock_api_key_12345',
-            'SCHLEP_ENGINE_BASE_URL': 'https://mock-api.test.com',
-            'SCHLEP_ENGINE_TIMEOUT': '30',
-            'SCHLEP_ENGINE_MAX_RETRIES': '3'
+            'IGRIS_API_KEY': 'mock_api_key_12345',
+            'IGRIS_BASE_URL': 'https://mock-api.test.com',
+            'IGRIS_TIMEOUT': '30',
+            'IGRIS_MAX_RETRIES': '3'
         }):
             # Test environment variable access
-            assert os.environ.get('SCHLEP_ENGINE_API_KEY') == 'mock_api_key_12345'
-            assert os.environ.get('SCHLEP_ENGINE_BASE_URL') == 'https://mock-api.test.com'
-            assert int(os.environ.get('SCHLEP_ENGINE_TIMEOUT', 0)) == 30
-            assert int(os.environ.get('SCHLEP_ENGINE_MAX_RETRIES', 0)) == 3
+            assert os.environ.get('IGRIS_API_KEY') == 'mock_api_key_12345'
+            assert os.environ.get('IGRIS_BASE_URL') == 'https://mock-api.test.com'
+            assert int(os.environ.get('IGRIS_TIMEOUT', 0)) == 30
+            assert int(os.environ.get('IGRIS_MAX_RETRIES', 0)) == 3
 
     @pytest.mark.asyncio
     async def test_mock_configuration_loading(self):
@@ -798,12 +798,12 @@ class TestEnvironmentVariableMocking:
         """Test handling of missing environment variables."""
         with patch.dict(os.environ, {}, clear=True):
             # Test missing required environment variables
-            assert os.environ.get('SCHLEP_ENGINE_API_KEY') is None
-            assert os.environ.get('SCHLEP_ENGINE_BASE_URL') is None
+            assert os.environ.get('IGRIS_API_KEY') is None
+            assert os.environ.get('IGRIS_BASE_URL') is None
             
             # Test with defaults
-            api_key = os.environ.get('SCHLEP_ENGINE_API_KEY', 'default_key')
-            base_url = os.environ.get('SCHLEP_ENGINE_BASE_URL', 'https://default.example.com')
+            api_key = os.environ.get('IGRIS_API_KEY', 'default_key')
+            base_url = os.environ.get('IGRIS_BASE_URL', 'https://default.example.com')
             
             assert api_key == 'default_key'
             assert base_url == 'https://default.example.com'

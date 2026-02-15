@@ -1,5 +1,5 @@
 /**
- * Authentication types for Schlep-engine JavaScript SDK
+ * Authentication types for Igris-engine JavaScript SDK
  */
 
 /**

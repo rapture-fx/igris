@@ -1,8 +1,8 @@
 /**
- * Tests for SchlepEngineClient
+ * Tests for IgrisClient
  */
 
-import { SchlepEngineClient } from '../src/client/schlep-engine';
+import { IgrisClient } from '../src/client/igris-inertial';
 import { AuthenticationError, ConfigurationError } from '../src/utils/errors';
 import { mockResponse, mockApiError } from './setup';
 
@@ -10,21 +10,21 @@ import { mockResponse, mockApiError } from './setup';
 const mockFetch = jest.fn();
 global.fetch = mockFetch;
 
-describe('SchlepEngineClient', () => {
+describe('IgrisClient', () => {
   beforeEach(() => {
     mockFetch.mockClear();
   });
 
   describe('Initialization', () => {
     it('should initialize with default configuration', () => {
-      const client = new SchlepEngineClient();
+      const client = new IgrisClient();
       
-      expect(client.baseUrl).toBe('https://api.schlep-engine.com');
+      expect(client.baseUrl).toBe('https://api.igris-inertial.com');
       expect(client.isAuthenticated).toBe(false);
     });
 
     it('should initialize with API key', () => {
-      const client = new SchlepEngineClient({
+      const client = new IgrisClient({
         apiKey: 'test-api-key',
         baseUrl: 'https://test.api.com'
       });
@@ -34,7 +34,7 @@ describe('SchlepEngineClient', () => {
     });
 
     it('should initialize with custom configuration', () => {
-      const client = new SchlepEngineClient({
+      const client = new IgrisClient({
         baseUrl: 'https://custom.api.com',
         timeout: 60000,
         debug: true,
@@ -51,7 +51,7 @@ describe('SchlepEngineClient', () => {
 
   describe('Authentication', () => {
     it('should set API key', () => {
-      const client = new SchlepEngineClient();
+      const client = new IgrisClient();
       expect(client.isAuthenticated).toBe(false);
 
       client.setApiKey('test-api-key');
@@ -59,7 +59,7 @@ describe('SchlepEngineClient', () => {
     });
 
     it('should get auth state', () => {
-      const client = new SchlepEngineClient({ apiKey: 'test-key' });
+      const client = new IgrisClient({ apiKey: 'test-key' });
       const authState = client.authState;
 
       expect(authState.isAuthenticated).toBe(true);
@@ -69,7 +69,7 @@ describe('SchlepEngineClient', () => {
 
   describe('HTTP Requests', () => {
     it('should make GET request', async () => {
-      const client = new SchlepEngineClient({ apiKey: 'test-key' });
+      const client = new IgrisClient({ apiKey: 'test-key' });
       const responseData = mockResponse({ test: 'data' });
 
       mockFetch.mockResolvedValueOnce({
@@ -84,7 +84,7 @@ describe('SchlepEngineClient', () => {
       expect(response.success).toBe(true);
       expect(response.data).toEqual({ test: 'data' });
       expect(mockFetch).toHaveBeenCalledWith(
-        'https://api.schlep-engine.com/test',
+        'https://api.igris-inertial.com/test',
         expect.objectContaining({
           method: 'GET',
           headers: expect.objectContaining({
@@ -95,7 +95,7 @@ describe('SchlepEngineClient', () => {
     });
 
     it('should make POST request', async () => {
-      const client = new SchlepEngineClient({ apiKey: 'test-key' });
+      const client = new IgrisClient({ apiKey: 'test-key' });
       const responseData = mockResponse({ created: 'success' });
 
       mockFetch.mockResolvedValueOnce({
@@ -114,7 +114,7 @@ describe('SchlepEngineClient', () => {
     });
 
     it('should handle API errors', async () => {
-      const client = new SchlepEngineClient({ apiKey: 'test-key' });
+      const client = new IgrisClient({ apiKey: 'test-key' });
       const errorData = mockApiError('Test error', 400);
 
       mockFetch.mockResolvedValueOnce({
@@ -128,7 +128,7 @@ describe('SchlepEngineClient', () => {
     });
 
     it('should handle authentication errors', async () => {
-      const client = new SchlepEngineClient({ apiKey: 'invalid-key' });
+      const client = new IgrisClient({ apiKey: 'invalid-key' });
 
       mockFetch.mockResolvedValueOnce({
         ok: false,
@@ -141,7 +141,7 @@ describe('SchlepEngineClient', () => {
     });
 
     it('should handle network errors', async () => {
-      const client = new SchlepEngineClient({ apiKey: 'test-key' });
+      const client = new IgrisClient({ apiKey: 'test-key' });
 
       mockFetch.mockRejectedValueOnce(new Error('Network error'));
 
@@ -151,7 +151,7 @@ describe('SchlepEngineClient', () => {
 
   describe('Connection Testing', () => {
     it('should test connection successfully', async () => {
-      const client = new SchlepEngineClient({ apiKey: 'test-key' });
+      const client = new IgrisClient({ apiKey: 'test-key' });
       const healthData = mockResponse({
         status: 'healthy',
         version: '1.0.0',
@@ -172,7 +172,7 @@ describe('SchlepEngineClient', () => {
     });
 
     it('should handle connection test failure', async () => {
-      const client = new SchlepEngineClient({ apiKey: 'test-key' });
+      const client = new IgrisClient({ apiKey: 'test-key' });
 
       mockFetch.mockRejectedValueOnce(new Error('Connection failed'));
 
@@ -182,7 +182,7 @@ describe('SchlepEngineClient', () => {
 
   describe('SDK Info', () => {
     it('should return SDK information', () => {
-      const client = new SchlepEngineClient({
+      const client = new IgrisClient({
         apiKey: 'test-key',
         baseUrl: 'https://test.api.com',
         debug: true
@@ -190,7 +190,7 @@ describe('SchlepEngineClient', () => {
 
       const info = client.getSdkInfo();
 
-      expect(info.name).toBe('Schlep-engine JavaScript SDK');
+      expect(info.name).toBe('Igris-engine JavaScript SDK');
       expect(info.version).toBe('1.0.0');
       expect(info.config.baseUrl).toBe('https://test.api.com');
       expect(info.config.debug).toBe(true);
@@ -201,7 +201,7 @@ describe('SchlepEngineClient', () => {
 
   describe('Event Handling', () => {
     it('should emit connection events', async () => {
-      const client = new SchlepEngineClient({ apiKey: 'test-key' });
+      const client = new IgrisClient({ apiKey: 'test-key' });
       
       let connectionSuccessEmitted = false;
       client.on('connection:success', () => {
@@ -222,7 +222,7 @@ describe('SchlepEngineClient', () => {
     });
 
     it('should emit API response events', async () => {
-      const client = new SchlepEngineClient({ apiKey: 'test-key', debug: true });
+      const client = new IgrisClient({ apiKey: 'test-key', debug: true });
       
       let apiResponseEmitted = false;
       client.on('api:response', () => {
@@ -245,7 +245,7 @@ describe('SchlepEngineClient', () => {
 
   describe('Cleanup', () => {
     it('should close client properly', async () => {
-      const client = new SchlepEngineClient({ apiKey: 'test-key' });
+      const client = new IgrisClient({ apiKey: 'test-key' });
       
       await client.close();
       
@@ -254,7 +254,7 @@ describe('SchlepEngineClient', () => {
     });
 
     it('should remove event listeners on close', async () => {
-      const client = new SchlepEngineClient({ apiKey: 'test-key' });
+      const client = new IgrisClient({ apiKey: 'test-key' });
       
       const eventHandler = jest.fn();
       client.on('test', eventHandler);
@@ -268,7 +268,7 @@ describe('SchlepEngineClient', () => {
 
   describe('File Upload', () => {
     it('should upload file successfully', async () => {
-      const client = new SchlepEngineClient({ apiKey: 'test-key' });
+      const client = new IgrisClient({ apiKey: 'test-key' });
       const file = new File(['test content'], 'test.txt', { type: 'text/plain' });
       const uploadResponse = mockResponse({
         file_id: 'file_123',
@@ -288,7 +288,7 @@ describe('SchlepEngineClient', () => {
       expect(response.success).toBe(true);
       expect(response.data.file_id).toBe('file_123');
       expect(mockFetch).toHaveBeenCalledWith(
-        'https://api.schlep-engine.com/upload',
+        'https://api.igris-inertial.com/upload',
         expect.objectContaining({
           method: 'POST',
           body: expect.any(FormData)
@@ -300,7 +300,7 @@ describe('SchlepEngineClient', () => {
 
 describe('Error Scenarios', () => {
   it('should handle timeout errors', async () => {
-    const client = new SchlepEngineClient({ 
+    const client = new IgrisClient({ 
       apiKey: 'test-key',
       timeout: 100 
     });
@@ -314,7 +314,7 @@ describe('Error Scenarios', () => {
   });
 
   it('should handle rate limit errors', async () => {
-    const client = new SchlepEngineClient({ apiKey: 'test-key' });
+    const client = new IgrisClient({ apiKey: 'test-key' });
 
     mockFetch.mockResolvedValueOnce({
       ok: false,
@@ -329,7 +329,7 @@ describe('Error Scenarios', () => {
 
 describe('Authentication Integration', () => {
   it('should integrate with auth manager', () => {
-    const client = new SchlepEngineClient();
+    const client = new IgrisClient();
     
     expect(client.authManager).toBeDefined();
     expect(client.isAuthenticated).toBe(false);
@@ -339,7 +339,7 @@ describe('Authentication Integration', () => {
   });
 
   it('should handle auth events', (done) => {
-    const client = new SchlepEngineClient();
+    const client = new IgrisClient();
     
     client.on('auth:api-key-set', (event) => {
       expect(event.apiKey).toBe('test-key...');

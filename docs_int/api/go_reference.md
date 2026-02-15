@@ -1,6 +1,6 @@
 # Go SDK API Reference
 
-Complete API reference for the Schlep-engine Go SDK.
+Complete API reference for the Igris Inertial Go SDK.
 
 ## Installation
 
@@ -11,12 +11,12 @@ go get github.com/igris-inertial/sdk-go
 ## Import
 
 ```go
-import "github.com/igris-inertial/sdk-go/schlep"
+import "github.com/igris-inertial/sdk-go/igris"
 ```
 
-## Package: `schlep`
+## Package: `igris`
 
-The `schlep` package provides the official Go SDK for Schlep-engine.
+The `igris` package provides the official Go SDK for Igris Inertial.
 
 ### Constants
 
@@ -32,7 +32,7 @@ const (
 
 ## Type: `Client`
 
-The main Schlep-engine SDK client.
+The main Igris Inertial SDK client.
 
 ```go
 type Client struct {
@@ -46,7 +46,7 @@ type Client struct {
 func NewClient(cfg *Config) *Client
 ```
 
-Creates a new Schlep-engine client. If `cfg` is nil, default configuration is used.
+Creates a new Igris Inertial client. If `cfg` is nil, default configuration is used.
 
 **Parameters:**
 - `cfg` (*Config): Client configuration (optional)
@@ -57,10 +57,10 @@ Creates a new Schlep-engine client. If `cfg` is nil, default configuration is us
 **Example:**
 ```go
 // Default configuration
-client := schlep.NewClient(nil)
+client := igris.NewClient(nil)
 
 // Custom configuration
-client := schlep.NewClient(&schlep.Config{
+client := igris.NewClient(&igris.Config{
 	BaseURL: "http://localhost:8081",
 	APIKey:  "your-api-key",
 	Timeout: 60 * time.Second,
@@ -75,7 +75,7 @@ client := schlep.NewClient(&schlep.Config{
 func (c *Client) Infer(ctx context.Context, req *InferRequest) (*InferResponse, error)
 ```
 
-Makes an inference request using Schlep-engine's intelligent routing.
+Makes an inference request using Igris Inertial's intelligent routing.
 
 **Parameters:**
 - `ctx` (context.Context): Request context for cancellation/timeout
@@ -88,14 +88,14 @@ Makes an inference request using Schlep-engine's intelligent routing.
 **Example:**
 ```go
 ctx := context.Background()
-response, err := client.Infer(ctx, &schlep.InferRequest{
+response, err := client.Infer(ctx, &igris.InferRequest{
 	Model: "gpt-4",
-	Messages: []schlep.Message{
+	Messages: []igris.Message{
 		{Role: "system", Content: "You are helpful."},
 		{Role: "user", Content: "Hello!"},
 	},
-	MaxTokens:   schlep.Int(100),
-	Temperature: schlep.Float64(0.7),
+	MaxTokens:   igris.Int(100),
+	Temperature: igris.Float64(0.7),
 })
 ```
 
@@ -203,15 +203,15 @@ type Config struct {
 ```
 
 **Fields:**
-- `BaseURL` (string): API base URL (default: http://localhost:8081 or SCHLEP_BASE_URL)
-- `APIKey` (string): API key for authentication (default: SCHLEP_API_KEY)
+- `BaseURL` (string): API base URL (default: http://localhost:8081 or IGRIS_BASE_URL)
+- `APIKey` (string): API key for authentication (default: IGRIS_API_KEY)
 - `Timeout` (time.Duration): Request timeout (default: 30 seconds)
 - `HTTPClient` (*http.Client): Custom HTTP client (optional)
 
 **Example:**
 ```go
-config := &schlep.Config{
-	BaseURL: "https://api.schlep.com",
+config := &igris.Config{
+	BaseURL: "https://api.igris-inertial.com",
 	APIKey:  "your-api-key",
 	Timeout: 60 * time.Second,
 }
@@ -236,7 +236,7 @@ type Message struct {
 
 **Example:**
 ```go
-messages := []schlep.Message{
+messages := []igris.Message{
 	{Role: "system", Content: "You are helpful."},
 	{Role: "user", Content: "Hello!"},
 }
@@ -267,14 +267,14 @@ type InferRequest struct {
 
 **Example:**
 ```go
-request := &schlep.InferRequest{
+request := &igris.InferRequest{
 	Model: "gpt-4",
-	Messages: []schlep.Message{
+	Messages: []igris.Message{
 		{Role: "user", Content: "Hello"},
 	},
-	MaxTokens:   schlep.Int(200),
-	Temperature: schlep.Float64(0.7),
-	TopP:        schlep.Float64(0.9),
+	MaxTokens:   igris.Int(200),
+	Temperature: igris.Float64(0.7),
+	TopP:        igris.Float64(0.9),
 }
 ```
 
@@ -455,7 +455,7 @@ import "errors"
 
 response, err := client.Infer(ctx, request)
 if err != nil {
-	var apiErr *schlep.APIError
+	var apiErr *igris.APIError
 	if errors.As(err, &apiErr) {
 		fmt.Printf("API Error %d: %s\n", apiErr.StatusCode, apiErr.Message)
 		return
@@ -478,10 +478,10 @@ Returns a pointer to the int value passed in. Useful for optional fields.
 
 **Example:**
 ```go
-request := &schlep.InferRequest{
+request := &igris.InferRequest{
 	Model:     "gpt-4",
 	Messages:  messages,
-	MaxTokens: schlep.Int(200), // Convert int to *int
+	MaxTokens: igris.Int(200), // Convert int to *int
 }
 ```
 
@@ -497,10 +497,10 @@ Returns a pointer to the float64 value passed in. Useful for optional fields.
 
 **Example:**
 ```go
-request := &schlep.InferRequest{
+request := &igris.InferRequest{
 	Model:       "gpt-4",
 	Messages:    messages,
-	Temperature: schlep.Float64(0.7), // Convert float64 to *float64
+	Temperature: igris.Float64(0.7), // Convert float64 to *float64
 }
 ```
 
@@ -561,7 +561,7 @@ import "errors"
 response, err := client.Infer(ctx, request)
 if err != nil {
 	// Check for API errors
-	var apiErr *schlep.APIError
+	var apiErr *igris.APIError
 	if errors.As(err, &apiErr) {
 		switch apiErr.StatusCode {
 		case 401:
@@ -601,14 +601,14 @@ import (
 	"os"
 	"time"
 
-	"github.com/igris-inertial/sdk-go/schlep"
+	"github.com/igris-inertial/sdk-go/igris"
 )
 
 func main() {
 	// Initialize client with environment variables
-	client := schlep.NewClient(&schlep.Config{
-		BaseURL: os.Getenv("SCHLEP_BASE_URL"),
-		APIKey:  os.Getenv("SCHLEP_API_KEY"),
+	client := igris.NewClient(&igris.Config{
+		BaseURL: os.Getenv("IGRIS_BASE_URL"),
+		APIKey:  os.Getenv("IGRIS_API_KEY"),
 		Timeout: 60 * time.Second,
 	})
 
@@ -631,18 +631,18 @@ func main() {
 	fmt.Printf("Available models: %d\n", len(models.Data))
 
 	// Make inference request
-	response, err := client.Infer(ctx, &schlep.InferRequest{
+	response, err := client.Infer(ctx, &igris.InferRequest{
 		Model: "gpt-4",
-		Messages: []schlep.Message{
+		Messages: []igris.Message{
 			{Role: "system", Content: "You are helpful."},
 			{Role: "user", Content: "Explain AI in one sentence."},
 		},
-		MaxTokens:   schlep.Int(100),
-		Temperature: schlep.Float64(0.7),
+		MaxTokens:   igris.Int(100),
+		Temperature: igris.Float64(0.7),
 	})
 
 	if err != nil {
-		var apiErr *schlep.APIError
+		var apiErr *igris.APIError
 		if errors.As(err, &apiErr) {
 			log.Fatalf("API Error %d: %s", apiErr.StatusCode, apiErr.Message)
 		}
@@ -664,8 +664,8 @@ func main() {
 
 ## Environment Variables
 
-- `SCHLEP_BASE_URL` - API base URL (default: http://localhost:8081)
-- `SCHLEP_API_KEY` - API key for authentication
+- `IGRIS_BASE_URL` - API base URL (default: http://localhost:8081)
+- `IGRIS_API_KEY` - API key for authentication
 
 ---
 
@@ -678,6 +678,6 @@ func main() {
 
 ---
 
-**Schlep-engine** - Intelligent AI Routing and Cost Optimization
+**Igris Inertial** - Intelligent AI Routing and Cost Optimization
 
 _v1.0.0-rc1_

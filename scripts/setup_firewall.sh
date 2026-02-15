@@ -1,5 +1,5 @@
 #!/bin/bash
-# Firewall configuration script for Schlep Engine
+# Firewall configuration script for Igris Inertial
 
 set -e
 
@@ -7,7 +7,7 @@ log() {
     echo "[$(date '+%Y-%m-%d %H:%M:%S')] $1"
 }
 
-log "Setting up firewall rules for Schlep Engine..."
+log "Setting up firewall rules for Igris Inertial..."
 
 # Reset UFW to defaults
 ufw --force reset

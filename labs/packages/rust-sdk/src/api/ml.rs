@@ -1,10 +1,10 @@
-//! Machine Learning Pipeline API client for Schlep-engine.
+//! Machine Learning Pipeline API client for Igris-engine.
 //!
 //! Provides methods for creating ML pipelines, training models, and making predictions.
 
 use serde_json::Value;
 
-use crate::client::SchlepClient;
+use crate::client::IgrisClient;
 use crate::error::Result;
 use crate::types::{
     DeploymentResponse, ListParams, PipelineResponse, PredictionResponse, TrainingJobResponse,
@@ -18,12 +18,12 @@ use crate::types::{
 /// # Example
 ///
 /// ```rust,no_run
-/// use schlep_engine::{SchlepClient, Result};
+/// use igris::{IgrisClient, Result};
 /// use serde_json::json;
 ///
 /// #[tokio::main]
 /// async fn main() -> Result<()> {
-///     let client = SchlepClient::new("your-api-key")?;
+///     let client = IgrisClient::new("your-api-key")?;
 ///
 ///     // Create an ML pipeline
 ///     let config = json!({
@@ -42,12 +42,12 @@ use crate::types::{
 /// }
 /// ```
 pub struct MLClient<'a> {
-    client: &'a SchlepClient,
+    client: &'a IgrisClient,
 }
 
 impl<'a> MLClient<'a> {
     /// Create a new ML Pipeline API client.
-    pub fn new(client: &'a SchlepClient) -> Self {
+    pub fn new(client: &'a IgrisClient) -> Self {
         Self { client }
     }
 
@@ -60,11 +60,11 @@ impl<'a> MLClient<'a> {
     /// # Example
     ///
     /// ```rust,no_run
-    /// # use schlep_engine::{SchlepClient, Result};
+    /// # use igris::{IgrisClient, Result};
     /// # use serde_json::json;
     /// # #[tokio::main]
     /// # async fn main() -> Result<()> {
-    /// # let client = SchlepClient::new("your-api-key")?;
+    /// # let client = IgrisClient::new("your-api-key")?;
     /// let config = json!({
     ///     "name": "My Pipeline",
     ///     "task_type": "regression",
@@ -131,11 +131,11 @@ impl<'a> MLClient<'a> {
     /// # Example
     ///
     /// ```rust,no_run
-    /// # use schlep_engine::{SchlepClient, Result};
+    /// # use igris::{IgrisClient, Result};
     /// # use serde_json::json;
     /// # #[tokio::main]
     /// # async fn main() -> Result<()> {
-    /// # let client = SchlepClient::new("your-api-key")?;
+    /// # let client = IgrisClient::new("your-api-key")?;
     /// let config = json!({
     ///     "epochs": 50,
     ///     "batch_size": 32,
@@ -181,11 +181,11 @@ impl<'a> MLClient<'a> {
     /// # Example
     ///
     /// ```rust,no_run
-    /// # use schlep_engine::{SchlepClient, Result};
+    /// # use igris::{IgrisClient, Result};
     /// # use serde_json::json;
     /// # #[tokio::main]
     /// # async fn main() -> Result<()> {
-    /// # let client = SchlepClient::new("your-api-key")?;
+    /// # let client = IgrisClient::new("your-api-key")?;
     /// let config = json!({
     ///     "replicas": 3,
     ///     "auto_scale": true
@@ -219,11 +219,11 @@ impl<'a> MLClient<'a> {
     /// # Example
     ///
     /// ```rust,no_run
-    /// # use schlep_engine::{SchlepClient, Result};
+    /// # use igris::{IgrisClient, Result};
     /// # use serde_json::json;
     /// # #[tokio::main]
     /// # async fn main() -> Result<()> {
-    /// # let client = SchlepClient::new("your-api-key")?;
+    /// # let client = IgrisClient::new("your-api-key")?;
     /// let input_data = json!({
     ///     "features": [1.5, 2.3, 3.1, 4.2]
     /// });

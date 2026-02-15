@@ -163,7 +163,7 @@ User ID: ${errorDetails.userId || 'Anonymous'}
 Additional Context:
 `
 
-    const mailtoLink = `mailto:support@schlep-engine.com?subject=${encodeURIComponent(subject)}&body=${encodeURIComponent(body)}`
+    const mailtoLink = `mailto:support@igris-inertial.com?subject=${encodeURIComponent(subject)}&body=${encodeURIComponent(body)}`
     window.open(mailtoLink)
   }
 

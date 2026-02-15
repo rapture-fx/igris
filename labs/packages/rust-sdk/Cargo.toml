@@ -1,13 +1,13 @@
 [package]
-name = "schlep_engine"
+name = "igris"
 version = "1.0.0"
 edition = "2021"
-authors = ["Schlep-engine <support@igris-inertial.com>"]
-description = "Official Rust SDK for the Schlep-engine API platform"
+authors = ["Igris-engine <support@igris-inertial.com>"]
+description = "Official Rust SDK for the Igris-engine API platform"
 license = "MIT"
 repository = "https://github.com/igris-inertial/rust-sdk"
 documentation = "https://docs.igris-inertial.com/sdk/rust"
-keywords = ["api", "sdk", "data-processing", "machine-learning", "schlep-engine"]
+keywords = ["api", "sdk", "data-processing", "machine-learning", "igris-inertial"]
 categories = ["api-bindings", "web-programming::http-client"]
 
 [dependencies]
@@ -29,5 +29,5 @@ name = "basic_usage"
 path = "examples/main.rs"
 
 [lib]
-name = "schlep_engine"
+name = "igris"
 path = "src/lib.rs"

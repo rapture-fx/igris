@@ -6,8 +6,8 @@ import { Providers } from './providers'
 const inter = Inter({ subsets: ['latin'] })
 
 export const metadata: Metadata = {
-  title: 'Schlep-engine Admin',
-  description: 'System Status and Administration for Schlep-engine',
+  title: 'Igris-engine Admin',
+  description: 'System Status and Administration for Igris-engine',
 }
 
 export default function RootLayout({

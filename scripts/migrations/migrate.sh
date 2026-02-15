@@ -1,6 +1,6 @@
 #!/bin/bash
 
-# Migration script for Schlep-engine Phase 13 persistence
+# Migration script for Igris-engine Phase 13 persistence
 # This script applies database migrations in order
 
 set -e  # Exit on error
@@ -17,14 +17,14 @@ NC='\033[0m' # No Color
 # Check if DATABASE_URL is set
 if [ -z "$DATABASE_URL" ] && [ -z "$POSTGRES_URL" ]; then
     echo -e "${RED}Error: DATABASE_URL or POSTGRES_URL environment variable is not set${NC}"
-    echo "Example: export DATABASE_URL='postgres://user:pass@localhost:5432/schlep?sslmode=disable'"
+    echo "Example: export DATABASE_URL='postgres://user:pass@localhost:5432/igris?sslmode=disable'"
     exit 1
 fi
 
 # Use DATABASE_URL if set, otherwise use POSTGRES_URL
 DB_URL="${DATABASE_URL:-$POSTGRES_URL}"
 
-echo -e "${GREEN}Schlep-engine Database Migration Tool${NC}"
+echo -e "${GREEN}Igris-engine Database Migration Tool${NC}"
 echo "========================================"
 echo ""
 

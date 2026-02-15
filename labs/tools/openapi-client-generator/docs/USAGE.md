@@ -1,6 +1,6 @@
 # OpenAPI Client Generator Usage Guide
 
-This guide covers how to use the OpenAPI Client Generator system to create, validate, and maintain multi-language client libraries for the Schlep-engine API.
+This guide covers how to use the OpenAPI Client Generator system to create, validate, and maintain multi-language client libraries for the Igris-engine API.
 
 ## Table of Contents
 
@@ -93,7 +93,7 @@ additional-properties:
   packageName: igris_overture_client
   packageVersion: 2.0.0
   packageUrl: https://github.com/igris-inertial/python-client
-  packageDescription: "Python client library for Schlep-engine API"
+  packageDescription: "Python client library for Igris-engine API"
   
   # Python-specific settings
   pythonAttr: true
@@ -191,7 +191,7 @@ Integration tests verify client functionality:
 ```python
 # Python integration test example
 def test_authentication():
-    client = SchlepEngineClient(api_key="test_key")
+    client = IgrisClient(api_key="test_key")
     response = client.health_check()
     assert response.status == "healthy"
 ```
@@ -199,7 +199,7 @@ def test_authentication():
 ```typescript
 // TypeScript integration test example
 test('should authenticate correctly', async () => {
-  const client = new SchlepEngineClient({ apiKey: 'test_key' });
+  const client = new IgrisClient({ apiKey: 'test_key' });
   const response = await client.healthCheck();
   expect(response.status).toBe('healthy');
 });
@@ -393,6 +393,6 @@ alerts:
 
 - [OpenAPI Generator Documentation](https://openapi-generator.tech/docs/)
 - [FastAPI OpenAPI Guide](https://fastapi.tiangolo.com/tutorial/metadata/)
-- [Schlep-engine API Documentation](https://docs.igris-inertial.com)
+- [Igris-engine API Documentation](https://docs.igris-inertial.com)
 - [SDK Comparison Report](../SDK_COMPARISON_REPORT.md)
 - [Troubleshooting Guide](./TROUBLESHOOTING.md)

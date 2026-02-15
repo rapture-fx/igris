@@ -1,5 +1,5 @@
 """
-Comprehensive ML pipeline tests for Schlep-engine Python SDK
+Comprehensive ML pipeline tests for Igris-engine Python SDK
 """
 
 import pytest
@@ -7,12 +7,12 @@ import asyncio
 from unittest.mock import AsyncMock, MagicMock, patch
 from datetime import datetime, timedelta
 
-from schlep_engine.api.ml_pipeline import MLPipelineAPI
-from schlep_engine.models.ml import (
+from igris.api.ml_pipeline import MLPipelineAPI
+from igris.models.ml import (
     MLPipeline, TrainingJob, ModelConfig, HyperParameters,
     ModelMetrics, PredictionJob, ModelVersion, FeatureConfig
 )
-from schlep_engine.exceptions.base import APIError, ValidationError
+from igris.exceptions.base import APIError, ValidationError
 
 
 class TestMLPipelineAPI:

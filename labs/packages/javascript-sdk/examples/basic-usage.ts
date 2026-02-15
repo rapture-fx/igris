@@ -1,23 +1,23 @@
 /**
- * Basic usage example for Schlep-engine JavaScript SDK
+ * Basic usage example for Igris-engine JavaScript SDK
  */
 
 import { 
-  SchlepEngineClient, 
+  IgrisClient, 
   DataFormat, 
   ProcessingMode,
   MLTaskType,
   ModelType,
   StreamingManager
-} from '@schlep-engine/javascript-sdk';
+} from '@igris-inertial/javascript-sdk';
 
 /**
  * Example 1: Initialize client with API key
  */
 async function initializeWithAPIKey() {
-  const client = new SchlepEngineClient({
-    apiKey: process.env.SCHLEP_API_KEY,
-    baseUrl: 'https://api.schlep-engine.com',
+  const client = new IgrisClient({
+    apiKey: process.env.IGRIS_API_KEY,
+    baseUrl: 'https://api.igris-inertial.com',
     debug: true
   });
 
@@ -36,8 +36,8 @@ async function initializeWithAPIKey() {
  * Example 2: User authentication
  */
 async function authenticateUser() {
-  const client = new SchlepEngineClient({
-    baseUrl: 'https://api.schlep-engine.com'
+  const client = new IgrisClient({
+    baseUrl: 'https://api.igris-inertial.com'
   });
 
   try {
@@ -67,7 +67,7 @@ async function authenticateUser() {
 /**
  * Example 3: File upload and data processing
  */
-async function processDataFile(client: SchlepEngineClient) {
+async function processDataFile(client: IgrisClient) {
   // In browser environment
   if (typeof window !== 'undefined') {
     const fileInput = document.querySelector('input[type="file"]') as HTMLInputElement;
@@ -134,7 +134,7 @@ async function processDataFile(client: SchlepEngineClient) {
 /**
  * Example 4: Machine Learning Pipeline
  */
-async function trainMLModel(client: SchlepEngineClient) {
+async function trainMLModel(client: IgrisClient) {
   try {
     // Create ML pipeline
     const pipelineResponse = await client.ml.createPipeline({
@@ -203,7 +203,7 @@ async function trainMLModel(client: SchlepEngineClient) {
 /**
  * Example 5: Make predictions
  */
-async function makePredictions(client: SchlepEngineClient) {
+async function makePredictions(client: IgrisClient) {
   try {
     // Single prediction
     const prediction = await client.ml.predict({
@@ -243,7 +243,7 @@ async function makePredictions(client: SchlepEngineClient) {
 /**
  * Example 6: File storage management
  */
-async function manageFiles(client: SchlepEngineClient) {
+async function manageFiles(client: IgrisClient) {
   if (typeof window === 'undefined') return;
 
   try {
@@ -300,11 +300,11 @@ async function manageFiles(client: SchlepEngineClient) {
 /**
  * Example 7: Real-time streaming
  */
-async function setupRealTimeStreaming(client: SchlepEngineClient) {
+async function setupRealTimeStreaming(client: IgrisClient) {
   try {
     const streaming = new StreamingManager({
       baseUrl: client.baseUrl,
-      apiKey: process.env.SCHLEP_API_KEY,
+      apiKey: process.env.IGRIS_API_KEY,
       debug: true
     });
 
@@ -369,7 +369,7 @@ async function setupRealTimeStreaming(client: SchlepEngineClient) {
 /**
  * Example 8: System monitoring
  */
-async function monitorSystem(client: SchlepEngineClient) {
+async function monitorSystem(client: IgrisClient) {
   try {
     // Get system health
     const health = await client.monitoring.getHealth();
@@ -407,11 +407,11 @@ async function monitorSystem(client: SchlepEngineClient) {
  * Main example function
  */
 async function main() {
-  console.log('Starting Schlep-engine SDK examples...');
+  console.log('Starting Igris-engine SDK examples...');
 
   try {
     // Choose authentication method
-    const client = process.env.SCHLEP_API_KEY 
+    const client = process.env.IGRIS_API_KEY 
       ? await initializeWithAPIKey()
       : await authenticateUser();
 

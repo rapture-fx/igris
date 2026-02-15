@@ -1,5 +1,5 @@
 /**
- * Machine Learning types for Schlep-engine JavaScript SDK
+ * Machine Learning types for Igris-engine JavaScript SDK
  */
 
 /**

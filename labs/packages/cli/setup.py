@@ -1,5 +1,5 @@
 """
-Setup script for Schlep-engine CLI.
+Setup script for Igris-engine CLI.
 This file exists for backward compatibility and editable installs.
 """
 
@@ -59,7 +59,7 @@ extras_require = {
         "freezegun>=1.2.0"
     ],
     'sdk': [
-        "schlep-engine>=1.0.0"
+        "igris-inertial>=1.0.0"
     ]
 }
 
@@ -69,20 +69,20 @@ for deps in extras_require.values():
     extras_require['all'].extend(deps)
 
 setup(
-    name="schlep-engine-cli",
+    name="igris-inertial-cli",
     version="1.0.0",
-    author="Schlep-engine",
-    author_email="support@schlep-engine.com",
-    description="Official command-line interface for Schlep-engine API",
+    author="Igris-engine",
+    author_email="support@igris-inertial.com",
+    description="Official command-line interface for Igris-engine API",
     long_description=long_description,
     long_description_content_type="text/markdown",
-    url="https://github.com/schlep-engine/cli",
+    url="https://github.com/igris-inertial/cli",
     project_urls={
-        "Documentation": "https://docs.schlep-engine.com/cli",
-        "Bug Tracker": "https://github.com/schlep-engine/cli/issues",
-        "Homepage": "https://schlep-engine.com",
-        "Repository": "https://github.com/schlep-engine/cli",
-        "Changelog": "https://github.com/schlep-engine/cli/blob/main/CHANGELOG.md",
+        "Documentation": "https://docs.igris-inertial.com/cli",
+        "Bug Tracker": "https://github.com/igris-inertial/cli/issues",
+        "Homepage": "https://igris-inertial.com",
+        "Repository": "https://github.com/igris-inertial/cli",
+        "Changelog": "https://github.com/igris-inertial/cli/blob/main/CHANGELOG.md",
     },
     packages=find_packages(where="src"),
     package_dir={"": "src"},
@@ -110,7 +110,7 @@ setup(
     extras_require=extras_require,
     entry_points={
         "console_scripts": [
-            "schlep=schlep_cli.main:cli",
+            "igris=igris_cli.main:cli",
         ],
     },
     keywords=[
@@ -119,7 +119,7 @@ setup(
     ],
     include_package_data=True,
     package_data={
-        "schlep_cli": ["py.typed"],
+        "igris_cli": ["py.typed"],
     },
     zip_safe=False,
     # Minimum versions for key dependencies

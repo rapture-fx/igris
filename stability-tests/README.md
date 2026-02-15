@@ -1,4 +1,4 @@
-# Schlep-Engine Stability Testing Suite
+# Igris Inertial Stability Testing Suite
 
 Comprehensive stability testing framework to ensure API reliability, prevent customer application breaks, and validate FFI stability.
 

@@ -9,7 +9,7 @@ import (
 	"github.com/spf13/viper"
 )
 
-// Config holds the configuration for the Schlep-engine client
+// Config holds the configuration for the Igris-engine client
 type Config struct {
 	// Authentication
 	APIKey string `mapstructure:"api_key" json:"api_key"`
@@ -135,210 +135,210 @@ func LoadConfig() (*Config, error) {
 // loadFromEnv loads configuration from environment variables
 func loadFromEnv(config *Config) error {
 	// Authentication
-	if apiKey := os.Getenv("SCHLEP_API_KEY"); apiKey != "" {
+	if apiKey := os.Getenv("IGRIS_API_KEY"); apiKey != "" {
 		config.APIKey = apiKey
 	}
 
 	// Connection settings
-	if baseURL := os.Getenv("SCHLEP_BASE_URL"); baseURL != "" {
+	if baseURL := os.Getenv("IGRIS_BASE_URL"); baseURL != "" {
 		config.BaseURL = baseURL
 	}
 
-	if timeout := os.Getenv("SCHLEP_TIMEOUT"); timeout != "" {
+	if timeout := os.Getenv("IGRIS_TIMEOUT"); timeout != "" {
 		if d, err := time.ParseDuration(timeout); err == nil {
 			config.Timeout = d
 		}
-	} else if timeoutSeconds := os.Getenv("SCHLEP_TIMEOUT_SECONDS"); timeoutSeconds != "" {
+	} else if timeoutSeconds := os.Getenv("IGRIS_TIMEOUT_SECONDS"); timeoutSeconds != "" {
 		if n, err := strconv.Atoi(timeoutSeconds); err == nil && n > 0 {
 			config.Timeout = time.Duration(n) * time.Second
 		}
 	}
 
 	// Retry configuration
-	if maxRetries := os.Getenv("SCHLEP_MAX_RETRIES"); maxRetries != "" {
+	if maxRetries := os.Getenv("IGRIS_MAX_RETRIES"); maxRetries != "" {
 		if n, err := strconv.Atoi(maxRetries); err == nil && n >= 0 {
 			config.MaxRetries = n
 		}
 	}
 
-	if retryWait := os.Getenv("SCHLEP_RETRY_WAIT_TIME"); retryWait != "" {
+	if retryWait := os.Getenv("IGRIS_RETRY_WAIT_TIME"); retryWait != "" {
 		if d, err := time.ParseDuration(retryWait); err == nil {
 			config.RetryWaitTime = d
 		}
-	} else if retryWaitSeconds := os.Getenv("SCHLEP_RETRY_WAIT_SECONDS"); retryWaitSeconds != "" {
+	} else if retryWaitSeconds := os.Getenv("IGRIS_RETRY_WAIT_SECONDS"); retryWaitSeconds != "" {
 		if n, err := strconv.Atoi(retryWaitSeconds); err == nil && n > 0 {
 			config.RetryWaitTime = time.Duration(n) * time.Second
 		}
 	}
 
-	if retryMaxWait := os.Getenv("SCHLEP_RETRY_MAX_WAIT_TIME"); retryMaxWait != "" {
+	if retryMaxWait := os.Getenv("IGRIS_RETRY_MAX_WAIT_TIME"); retryMaxWait != "" {
 		if d, err := time.ParseDuration(retryMaxWait); err == nil {
 			config.RetryMaxWaitTime = d
 		}
-	} else if retryMaxWaitSeconds := os.Getenv("SCHLEP_RETRY_MAX_WAIT_SECONDS"); retryMaxWaitSeconds != "" {
+	} else if retryMaxWaitSeconds := os.Getenv("IGRIS_RETRY_MAX_WAIT_SECONDS"); retryMaxWaitSeconds != "" {
 		if n, err := strconv.Atoi(retryMaxWaitSeconds); err == nil && n > 0 {
 			config.RetryMaxWaitTime = time.Duration(n) * time.Second
 		}
 	}
 
-	if backoffFactor := os.Getenv("SCHLEP_RETRY_BACKOFF_FACTOR"); backoffFactor != "" {
+	if backoffFactor := os.Getenv("IGRIS_RETRY_BACKOFF_FACTOR"); backoffFactor != "" {
 		if f, err := strconv.ParseFloat(backoffFactor, 64); err == nil && f > 0 {
 			config.RetryBackoffFactor = f
 		}
 	}
 
 	// Circuit breaker configuration
-	if cbEnabled := os.Getenv("SCHLEP_CIRCUIT_BREAKER_ENABLED"); cbEnabled != "" {
+	if cbEnabled := os.Getenv("IGRIS_CIRCUIT_BREAKER_ENABLED"); cbEnabled != "" {
 		if b, err := strconv.ParseBool(cbEnabled); err == nil {
 			config.CircuitBreakerEnabled = b
 		}
 	}
 
-	if cbThreshold := os.Getenv("SCHLEP_CB_FAILURE_THRESHOLD"); cbThreshold != "" {
+	if cbThreshold := os.Getenv("IGRIS_CB_FAILURE_THRESHOLD"); cbThreshold != "" {
 		if n, err := strconv.ParseUint(cbThreshold, 10, 32); err == nil && n > 0 {
 			config.CircuitBreakerFailureThreshold = uint32(n)
 		}
 	}
 
-	if cbTimeout := os.Getenv("SCHLEP_CB_TIMEOUT"); cbTimeout != "" {
+	if cbTimeout := os.Getenv("IGRIS_CB_TIMEOUT"); cbTimeout != "" {
 		if d, err := time.ParseDuration(cbTimeout); err == nil {
 			config.CircuitBreakerTimeout = d
 		}
-	} else if cbTimeoutSeconds := os.Getenv("SCHLEP_CB_TIMEOUT_SECONDS"); cbTimeoutSeconds != "" {
+	} else if cbTimeoutSeconds := os.Getenv("IGRIS_CB_TIMEOUT_SECONDS"); cbTimeoutSeconds != "" {
 		if n, err := strconv.Atoi(cbTimeoutSeconds); err == nil && n > 0 {
 			config.CircuitBreakerTimeout = time.Duration(n) * time.Second
 		}
 	}
 
-	if cbMaxRequests := os.Getenv("SCHLEP_CB_MAX_REQUESTS"); cbMaxRequests != "" {
+	if cbMaxRequests := os.Getenv("IGRIS_CB_MAX_REQUESTS"); cbMaxRequests != "" {
 		if n, err := strconv.ParseUint(cbMaxRequests, 10, 32); err == nil && n > 0 {
 			config.CircuitBreakerMaxRequests = uint32(n)
 		}
 	}
 
 	// Observability
-	if enableMetrics := os.Getenv("SCHLEP_ENABLE_METRICS"); enableMetrics != "" {
+	if enableMetrics := os.Getenv("IGRIS_ENABLE_METRICS"); enableMetrics != "" {
 		if b, err := strconv.ParseBool(enableMetrics); err == nil {
 			config.EnableMetrics = b
 		}
 	}
 
-	if enableTracing := os.Getenv("SCHLEP_ENABLE_TRACING"); enableTracing != "" {
+	if enableTracing := os.Getenv("IGRIS_ENABLE_TRACING"); enableTracing != "" {
 		if b, err := strconv.ParseBool(enableTracing); err == nil {
 			config.EnableTracing = b
 		}
 	}
 
-	if enableLogging := os.Getenv("SCHLEP_ENABLE_LOGGING"); enableLogging != "" {
+	if enableLogging := os.Getenv("IGRIS_ENABLE_LOGGING"); enableLogging != "" {
 		if b, err := strconv.ParseBool(enableLogging); err == nil {
 			config.EnableLogging = b
 		}
 	}
 
-	if logLevel := os.Getenv("SCHLEP_LOG_LEVEL"); logLevel != "" {
+	if logLevel := os.Getenv("IGRIS_LOG_LEVEL"); logLevel != "" {
 		config.LogLevel = logLevel
 	} else if logLevel := os.Getenv("LOG_LEVEL"); logLevel != "" {
 		config.LogLevel = logLevel
 	}
 
-	if serviceName := os.Getenv("SCHLEP_SERVICE_NAME"); serviceName != "" {
+	if serviceName := os.Getenv("IGRIS_SERVICE_NAME"); serviceName != "" {
 		config.ServiceName = serviceName
 	} else if serviceName := os.Getenv("SERVICE_NAME"); serviceName != "" {
 		config.ServiceName = serviceName
 	}
 
-	if serviceVersion := os.Getenv("SCHLEP_SERVICE_VERSION"); serviceVersion != "" {
+	if serviceVersion := os.Getenv("IGRIS_SERVICE_VERSION"); serviceVersion != "" {
 		config.ServiceVersion = serviceVersion
 	} else if serviceVersion := os.Getenv("SERVICE_VERSION"); serviceVersion != "" {
 		config.ServiceVersion = serviceVersion
 	}
 
 	// HTTP Client configuration
-	if maxIdleConns := os.Getenv("SCHLEP_MAX_IDLE_CONNS"); maxIdleConns != "" {
+	if maxIdleConns := os.Getenv("IGRIS_MAX_IDLE_CONNS"); maxIdleConns != "" {
 		if n, err := strconv.Atoi(maxIdleConns); err == nil && n > 0 {
 			config.MaxIdleConns = n
 		}
 	}
 
-	if maxIdleConnsPerHost := os.Getenv("SCHLEP_MAX_IDLE_CONNS_PER_HOST"); maxIdleConnsPerHost != "" {
+	if maxIdleConnsPerHost := os.Getenv("IGRIS_MAX_IDLE_CONNS_PER_HOST"); maxIdleConnsPerHost != "" {
 		if n, err := strconv.Atoi(maxIdleConnsPerHost); err == nil && n > 0 {
 			config.MaxIdleConnsPerHost = n
 		}
 	}
 
-	if idleConnTimeout := os.Getenv("SCHLEP_IDLE_CONN_TIMEOUT"); idleConnTimeout != "" {
+	if idleConnTimeout := os.Getenv("IGRIS_IDLE_CONN_TIMEOUT"); idleConnTimeout != "" {
 		if d, err := time.ParseDuration(idleConnTimeout); err == nil {
 			config.IdleConnTimeout = d
 		}
-	} else if idleConnTimeoutSeconds := os.Getenv("SCHLEP_IDLE_CONN_TIMEOUT_SECONDS"); idleConnTimeoutSeconds != "" {
+	} else if idleConnTimeoutSeconds := os.Getenv("IGRIS_IDLE_CONN_TIMEOUT_SECONDS"); idleConnTimeoutSeconds != "" {
 		if n, err := strconv.Atoi(idleConnTimeoutSeconds); err == nil && n > 0 {
 			config.IdleConnTimeout = time.Duration(n) * time.Second
 		}
 	}
 
-	if disableKeepAlives := os.Getenv("SCHLEP_DISABLE_KEEP_ALIVES"); disableKeepAlives != "" {
+	if disableKeepAlives := os.Getenv("IGRIS_DISABLE_KEEP_ALIVES"); disableKeepAlives != "" {
 		if b, err := strconv.ParseBool(disableKeepAlives); err == nil {
 			config.DisableKeepAlives = b
 		}
 	}
 
 	// Health checks
-	if enableHealthChecks := os.Getenv("SCHLEP_ENABLE_HEALTH_CHECKS"); enableHealthChecks != "" {
+	if enableHealthChecks := os.Getenv("IGRIS_ENABLE_HEALTH_CHECKS"); enableHealthChecks != "" {
 		if b, err := strconv.ParseBool(enableHealthChecks); err == nil {
 			config.EnableHealthChecks = b
 		}
 	}
 
-	if healthCheckInterval := os.Getenv("SCHLEP_HEALTH_CHECK_INTERVAL"); healthCheckInterval != "" {
+	if healthCheckInterval := os.Getenv("IGRIS_HEALTH_CHECK_INTERVAL"); healthCheckInterval != "" {
 		if d, err := time.ParseDuration(healthCheckInterval); err == nil {
 			config.HealthCheckInterval = d
 		}
-	} else if healthCheckIntervalSeconds := os.Getenv("SCHLEP_HEALTH_CHECK_INTERVAL_SECONDS"); healthCheckIntervalSeconds != "" {
+	} else if healthCheckIntervalSeconds := os.Getenv("IGRIS_HEALTH_CHECK_INTERVAL_SECONDS"); healthCheckIntervalSeconds != "" {
 		if n, err := strconv.Atoi(healthCheckIntervalSeconds); err == nil && n > 0 {
 			config.HealthCheckInterval = time.Duration(n) * time.Second
 		}
 	}
 
-	if healthCheckTimeout := os.Getenv("SCHLEP_HEALTH_CHECK_TIMEOUT"); healthCheckTimeout != "" {
+	if healthCheckTimeout := os.Getenv("IGRIS_HEALTH_CHECK_TIMEOUT"); healthCheckTimeout != "" {
 		if d, err := time.ParseDuration(healthCheckTimeout); err == nil {
 			config.HealthCheckTimeout = d
 		}
-	} else if healthCheckTimeoutSeconds := os.Getenv("SCHLEP_HEALTH_CHECK_TIMEOUT_SECONDS"); healthCheckTimeoutSeconds != "" {
+	} else if healthCheckTimeoutSeconds := os.Getenv("IGRIS_HEALTH_CHECK_TIMEOUT_SECONDS"); healthCheckTimeoutSeconds != "" {
 		if n, err := strconv.Atoi(healthCheckTimeoutSeconds); err == nil && n > 0 {
 			config.HealthCheckTimeout = time.Duration(n) * time.Second
 		}
 	}
 
 	// Rate limiting
-	if enableRateLimit := os.Getenv("SCHLEP_ENABLE_RATE_LIMIT"); enableRateLimit != "" {
+	if enableRateLimit := os.Getenv("IGRIS_ENABLE_RATE_LIMIT"); enableRateLimit != "" {
 		if b, err := strconv.ParseBool(enableRateLimit); err == nil {
 			config.EnableRateLimit = b
 		}
 	}
 
-	if rateLimit := os.Getenv("SCHLEP_RATE_LIMIT"); rateLimit != "" {
+	if rateLimit := os.Getenv("IGRIS_RATE_LIMIT"); rateLimit != "" {
 		if n, err := strconv.Atoi(rateLimit); err == nil && n > 0 {
 			config.RateLimit = n
 		}
-	} else if rateLimitRPS := os.Getenv("SCHLEP_RATE_LIMIT_RPS"); rateLimitRPS != "" {
+	} else if rateLimitRPS := os.Getenv("IGRIS_RATE_LIMIT_RPS"); rateLimitRPS != "" {
 		if n, err := strconv.Atoi(rateLimitRPS); err == nil && n > 0 {
 			config.RateLimit = n
 		}
 	}
 
-	if rateBurst := os.Getenv("SCHLEP_RATE_BURST"); rateBurst != "" {
+	if rateBurst := os.Getenv("IGRIS_RATE_BURST"); rateBurst != "" {
 		if n, err := strconv.Atoi(rateBurst); err == nil && n > 0 {
 			config.RateBurst = n
 		}
 	}
 
 	// User Agent
-	if userAgent := os.Getenv("SCHLEP_USER_AGENT"); userAgent != "" {
+	if userAgent := os.Getenv("IGRIS_USER_AGENT"); userAgent != "" {
 		config.UserAgent = userAgent
 	}
 
 	// Development/Debug
-	if debug := os.Getenv("SCHLEP_DEBUG"); debug != "" {
+	if debug := os.Getenv("IGRIS_DEBUG"); debug != "" {
 		if b, err := strconv.ParseBool(debug); err == nil {
 			config.Debug = b
 		}
@@ -348,7 +348,7 @@ func loadFromEnv(config *Config) error {
 		}
 	}
 
-	if insecureSkipVerify := os.Getenv("SCHLEP_INSECURE_SKIP_VERIFY"); insecureSkipVerify != "" {
+	if insecureSkipVerify := os.Getenv("IGRIS_INSECURE_SKIP_VERIFY"); insecureSkipVerify != "" {
 		if b, err := strconv.ParseBool(insecureSkipVerify); err == nil {
 			config.InsecureSkipVerify = b
 		}
@@ -385,10 +385,10 @@ func validateConfig(config *Config) error {
 // GetSDKInfo returns SDK information for debugging and support
 func GetSDKInfo() map[string]interface{} {
 	return map[string]interface{}{
-		"name":         "Schlep-engine Go SDK",
+		"name":         "Igris-engine Go SDK",
 		"version":      "1.0.0",
-		"company":      "Schlep-engine",
-		"description":  "Official Go SDK for Schlep-engine API - Cloud-native data processing platform",
+		"company":      "Igris-engine",
+		"description":  "Official Go SDK for Igris-engine API - Cloud-native data processing platform",
 		"documentation": "https://docs.igris-inertial.com/sdk/go",
 		"support":      "https://support.igris-inertial.com",
 		"github":       "https://github.com/igris-inertial/go-sdk",

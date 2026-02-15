@@ -2,7 +2,7 @@
 package slo
 
 /*
-#cgo LDFLAGS: -L${SRCDIR}/../../rust-core/production_slo_enforcer/target/release -lschlep_slo_enforcer
+#cgo LDFLAGS: -L${SRCDIR}/../../rust-core/production_slo_enforcer/target/release -ligris_slo_enforcer
 #include "../../rust-core/production_slo_enforcer/slo_enforcer.h"
 #include <stdlib.h>
 */

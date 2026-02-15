@@ -1,6 +1,6 @@
 #!/bin/bash
 # ======================================================================================
-# Deployment Script for Schlep Engine Monitoring Infrastructure
+# Deployment Script for Igris Inertial Monitoring Infrastructure
 # Deploys comprehensive monitoring, tracing, and service mesh observability
 # ======================================================================================
 
@@ -203,7 +203,7 @@ grafana:
       providers:
       - name: 'igris-inertial-dashboards'
         orgId: 1
-        folder: 'Schlep Engine'
+        folder: 'Igris Inertial'
         type: file
         disableDeletion: false
         editable: true
@@ -420,7 +420,7 @@ generate_summary() {
     cat <<EOF
 
 ==============================================================================
-                    SCHLEP ENGINE MONITORING DEPLOYMENT SUMMARY
+                    IGRIS ENGINE MONITORING DEPLOYMENT SUMMARY
 ==============================================================================
 
 Environment: $ENVIRONMENT
@@ -503,7 +503,7 @@ cleanup() {
 
 # Main execution
 main() {
-    log_info "Starting Schlep Engine monitoring infrastructure deployment..."
+    log_info "Starting Igris Inertial monitoring infrastructure deployment..."
     log_info "Environment: $ENVIRONMENT"
     log_info "Cluster: $CLUSTER_NAME"
     log_info "Domain: $DOMAIN_NAME"

@@ -17,9 +17,9 @@ import (
 	"github.com/igris-inertial/go-sdk/pkg/models"
 )
 
-// DataProcessingService demonstrates a microservice using Schlep-engine SDK
+// DataProcessingService demonstrates a microservice using Igris-engine SDK
 type DataProcessingService struct {
-	schlepClient *client.Client
+	igrisClient *client.Client
 	server       *http.Server
 }
 
@@ -27,8 +27,8 @@ type DataProcessingService struct {
 func NewDataProcessingService() (*DataProcessingService, error) {
 	// Load configuration from environment
 	cfg := &config.Config{
-		APIKey:                os.Getenv("SCHLEP_API_KEY"),
-		BaseURL:              getEnvOrDefault("SCHLEP_BASE_URL", "https://api.igris-inertial.com"),
+		APIKey:                os.Getenv("IGRIS_API_KEY"),
+		BaseURL:              getEnvOrDefault("IGRIS_BASE_URL", "https://api.igris-inertial.com"),
 		EnableMetrics:         true,
 		EnableTracing:         true,
 		EnableLogging:         true,
@@ -42,10 +42,10 @@ func NewDataProcessingService() (*DataProcessingService, error) {
 		HealthCheckInterval:   30 * time.Second,
 	}
 
-	// Create Schlep-engine client
-	schlepClient, err := client.NewClient(cfg)
+	// Create Igris-engine client
+	igrisClient, err := client.NewClient(cfg)
 	if err != nil {
-		return nil, fmt.Errorf("failed to create Schlep-engine client: %w", err)
+		return nil, fmt.Errorf("failed to create Igris-engine client: %w", err)
 	}
 
 	// Create HTTP server
@@ -59,7 +59,7 @@ func NewDataProcessingService() (*DataProcessingService, error) {
 	}
 
 	service := &DataProcessingService{
-		schlepClient: schlepClient,
+		igrisClient: igrisClient,
 		server:       server,
 	}
 
@@ -71,8 +71,8 @@ func NewDataProcessingService() (*DataProcessingService, error) {
 
 // registerRoutes sets up HTTP routes for the microservice
 func (s *DataProcessingService) registerRoutes(mux *http.ServeMux) {
-	// Health check endpoint (using Schlep-engine SDK)
-	mux.HandleFunc("/health", s.schlepClient.HealthCheck)
+	// Health check endpoint (using Igris-engine SDK)
+	mux.HandleFunc("/health", s.igrisClient.HealthCheck)
 
 	// Prometheus metrics endpoint
 	mux.Handle("/metrics", promhttp.Handler())
@@ -86,17 +86,17 @@ func (s *DataProcessingService) registerRoutes(mux *http.ServeMux) {
 	s.addCustomHealthChecks()
 }
 
-// addCustomHealthChecks adds custom health checks to the Schlep-engine client
+// addCustomHealthChecks adds custom health checks to the Igris-engine client
 func (s *DataProcessingService) addCustomHealthChecks() {
 	// Database connectivity check (example)
-	s.schlepClient.AddHealthCheck("database", func() error {
+	s.igrisClient.AddHealthCheck("database", func() error {
 		// In a real microservice, you'd check your database connection
 		// For this example, we'll just simulate a check
 		return nil
 	})
 
 	// External service check
-	s.schlepClient.AddHealthCheck("external_service", func() error {
+	s.igrisClient.AddHealthCheck("external_service", func() error {
 		// Check if we can reach another service
 		client := &http.Client{Timeout: 5 * time.Second}
 		resp, err := client.Get("https://httpbin.org/status/200")
@@ -113,12 +113,12 @@ func (s *DataProcessingService) addCustomHealthChecks() {
 	})
 
 	// Custom business logic check
-	s.schlepClient.AddHealthCheck("processing_capacity", func() error {
+	s.igrisClient.AddHealthCheck("processing_capacity", func() error {
 		// Check if we have processing capacity
 		ctx, cancel := context.WithTimeout(context.Background(), 5*time.Second)
 		defer cancel()
 		
-		metrics, err := s.schlepClient.Monitor.GetMetrics(ctx)
+		metrics, err := s.igrisClient.Monitor.GetMetrics(ctx)
 		if err != nil {
 			return fmt.Errorf("failed to get metrics: %w", err)
 		}
@@ -136,7 +136,7 @@ func (s *DataProcessingService) addCustomHealthChecks() {
 	})
 }
 
-// handleProcessData processes incoming data using Schlep-engine
+// handleProcessData processes incoming data using Igris-engine
 func (s *DataProcessingService) handleProcessData(w http.ResponseWriter, r *http.Request) {
 	if r.Method != http.MethodPost {
 		http.Error(w, "Method not allowed", http.StatusMethodNotAllowed)
@@ -177,10 +177,10 @@ func (s *DataProcessingService) handleProcessData(w http.ResponseWriter, r *http
 		Async:           true, // Always async in microservice
 	}
 
-	// Process data using Schlep-engine
-	result, err := s.schlepClient.Data.ProcessFile(ctx, processReq)
+	// Process data using Igris-engine
+	result, err := s.igrisClient.Data.ProcessFile(ctx, processReq)
 	if err != nil {
-		s.schlepClient.GetLogger().WithContext(ctx).WithError(err).Error("Failed to process data")
+		s.igrisClient.GetLogger().WithContext(ctx).WithError(err).Error("Failed to process data")
 		http.Error(w, fmt.Sprintf("Processing failed: %v", err), http.StatusInternalServerError)
 		return
 	}
@@ -195,10 +195,10 @@ func (s *DataProcessingService) handleProcessData(w http.ResponseWriter, r *http
 	}
 
 	if err := json.NewEncoder(w).Encode(response); err != nil {
-		s.schlepClient.GetLogger().WithContext(ctx).WithError(err).Error("Failed to encode response")
+		s.igrisClient.GetLogger().WithContext(ctx).WithError(err).Error("Failed to encode response")
 	}
 
-	s.schlepClient.GetLogger().WithContext(ctx).WithFields(map[string]interface{}{
+	s.igrisClient.GetLogger().WithContext(ctx).WithFields(map[string]interface{}{
 		"job_id":      result.JobID,
 		"data_url":    req.DataURL,
 		"priority":    req.Priority,
@@ -224,9 +224,9 @@ func (s *DataProcessingService) handleGetJob(w http.ResponseWriter, r *http.Requ
 	ctx := r.Context()
 
 	// Get job status
-	job, err := s.schlepClient.Data.GetJobStatus(ctx, jobID)
+	job, err := s.igrisClient.Data.GetJobStatus(ctx, jobID)
 	if err != nil {
-		s.schlepClient.GetLogger().WithContext(ctx).WithError(err).Error("Failed to get job status")
+		s.igrisClient.GetLogger().WithContext(ctx).WithError(err).Error("Failed to get job status")
 		http.Error(w, fmt.Sprintf("Failed to get job: %v", err), http.StatusInternalServerError)
 		return
 	}
@@ -239,7 +239,7 @@ func (s *DataProcessingService) handleGetJob(w http.ResponseWriter, r *http.Requ
 	}
 
 	if err := json.NewEncoder(w).Encode(response); err != nil {
-		s.schlepClient.GetLogger().WithContext(ctx).WithError(err).Error("Failed to encode response")
+		s.igrisClient.GetLogger().WithContext(ctx).WithError(err).Error("Failed to encode response")
 	}
 }
 
@@ -253,17 +253,17 @@ func (s *DataProcessingService) handleServiceStatus(w http.ResponseWriter, r *ht
 	ctx := r.Context()
 
 	// Get system metrics
-	metrics, err := s.schlepClient.Monitor.GetMetrics(ctx)
+	metrics, err := s.igrisClient.Monitor.GetMetrics(ctx)
 	if err != nil {
-		s.schlepClient.GetLogger().WithContext(ctx).WithError(err).Error("Failed to get metrics")
+		s.igrisClient.GetLogger().WithContext(ctx).WithError(err).Error("Failed to get metrics")
 		http.Error(w, fmt.Sprintf("Failed to get metrics: %v", err), http.StatusInternalServerError)
 		return
 	}
 
 	// Get health status
-	health, err := s.schlepClient.Monitor.GetHealth(ctx)
+	health, err := s.igrisClient.Monitor.GetHealth(ctx)
 	if err != nil {
-		s.schlepClient.GetLogger().WithContext(ctx).WithError(err).Error("Failed to get health")
+		s.igrisClient.GetLogger().WithContext(ctx).WithError(err).Error("Failed to get health")
 		http.Error(w, fmt.Sprintf("Failed to get health: %v", err), http.StatusInternalServerError)
 		return
 	}
@@ -272,30 +272,30 @@ func (s *DataProcessingService) handleServiceStatus(w http.ResponseWriter, r *ht
 	w.Header().Set("Content-Type", "application/json")
 	response := map[string]interface{}{
 		"service": map[string]interface{}{
-			"name":    s.schlepClient.GetConfig().ServiceName,
-			"version": s.schlepClient.GetConfig().ServiceVersion,
+			"name":    s.igrisClient.GetConfig().ServiceName,
+			"version": s.igrisClient.GetConfig().ServiceVersion,
 			"status":  "running",
 		},
 		"health":  health,
 		"metrics": metrics,
 		"sdk_info": map[string]interface{}{
-			"metrics_enabled": s.schlepClient.GetMetrics().IsEnabled(),
-			"tracing_enabled": s.schlepClient.GetTracer().IsEnabled(),
-			"authenticated":   s.schlepClient.IsAuthenticated(),
+			"metrics_enabled": s.igrisClient.GetMetrics().IsEnabled(),
+			"tracing_enabled": s.igrisClient.GetTracer().IsEnabled(),
+			"authenticated":   s.igrisClient.IsAuthenticated(),
 		},
 	}
 
 	if err := json.NewEncoder(w).Encode(response); err != nil {
-		s.schlepClient.GetLogger().WithContext(ctx).WithError(err).Error("Failed to encode response")
+		s.igrisClient.GetLogger().WithContext(ctx).WithError(err).Error("Failed to encode response")
 	}
 }
 
 // Start starts the microservice
 func (s *DataProcessingService) Start() error {
-	logger := s.schlepClient.GetLogger()
+	logger := s.igrisClient.GetLogger()
 	
 	logger.WithFields(map[string]interface{}{
-		"service_name": s.schlepClient.GetConfig().ServiceName,
+		"service_name": s.igrisClient.GetConfig().ServiceName,
 		"addr":         s.server.Addr,
 	}).Info("Starting data processing microservice")
 
@@ -312,7 +312,7 @@ func (s *DataProcessingService) Start() error {
 
 // Stop stops the microservice gracefully
 func (s *DataProcessingService) Stop() error {
-	logger := s.schlepClient.GetLogger()
+	logger := s.igrisClient.GetLogger()
 	
 	logger.Info("Stopping data processing microservice...")
 
@@ -326,9 +326,9 @@ func (s *DataProcessingService) Stop() error {
 		return err
 	}
 
-	// Close Schlep-engine client
-	if err := s.schlepClient.Close(); err != nil {
-		logger.WithError(err).Error("Failed to close Schlep-engine client")
+	// Close Igris-engine client
+	if err := s.igrisClient.Close(); err != nil {
+		logger.WithError(err).Error("Failed to close Igris-engine client")
 		return err
 	}
 

@@ -409,7 +409,7 @@ func setupTestClient(t *testing.T) *redis.Client {
 // ============================================================================
 // FEATURE INTEGRATION TESTS
 // ============================================================================
-// These verify that all Schlep-Engine features work with Dragonfly
+// These verify that all Igris Inertial features work with Dragonfly
 
 // TestDragonfly_BudgetTracking verifies budget enforcement still works
 func TestDragonfly_BudgetTracking(t *testing.T) {

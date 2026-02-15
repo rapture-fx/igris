@@ -1,6 +1,6 @@
 # Quick Start
 
-Get started with Schlep Engine in **5 minutes**. Start with cloud hosted (easiest) or self-host for full control.
+Get started with Igris Inertial in **5 minutes**. Start with cloud hosted (easiest) or self-host for full control.
 
 ---
 
@@ -10,7 +10,7 @@ Get started with Schlep Engine in **5 minutes**. Start with cloud hosted (easies
 
 No credit card required. All features unlocked for 14 days.
 
-[Start Free Trial →](https://app.schlep.cloud/signup)
+[Start Free Trial →](https://app.igris-inertial.com/signup)
 
 ### Step 2: Get Your API Key
 
@@ -20,15 +20,15 @@ After signup, copy your API key from the dashboard:
 Dashboard → Settings → API Keys → Copy
 ```
 
-Your API key looks like: `sk-schlep-abc123...`
+Your API key looks like: `sk-igris-abc123...`
 
 ### Step 3: Make Your First Request
 
 **Using cURL:**
 
 ```bash
-curl -X POST https://api.schlep.cloud/v1/infer \
-  -H "Authorization: Bearer sk-schlep-YOUR_KEY" \
+curl -X POST https://api.igris-inertial.com/v1/infer \
+  -H "Authorization: Bearer sk-igris-YOUR_KEY" \
   -H "Content-Type: application/json" \
   -d '{
     "model": "gpt-4",
@@ -44,8 +44,8 @@ curl -X POST https://api.schlep.cloud/v1/infer \
 from openai import OpenAI
 
 client = OpenAI(
-    base_url="https://api.schlep.cloud/v1",
-    api_key="sk-schlep-YOUR_KEY"
+    base_url="https://api.igris-inertial.com/v1",
+    api_key="sk-igris-YOUR_KEY"
 )
 
 response = client.chat.completions.create(
@@ -64,8 +64,8 @@ print(f"Provider: {response.metadata['provider']}")
 import OpenAI from 'openai';
 
 const client = new OpenAI({
-  baseURL: 'https://api.schlep.cloud/v1',
-  apiKey: 'sk-schlep-YOUR_KEY'
+  baseURL: 'https://api.igris-inertial.com/v1',
+  apiKey: 'sk-igris-YOUR_KEY'
 });
 
 const response = await client.chat.completions.create({
@@ -88,18 +88,18 @@ import (
     "fmt"
     "log"
 
-    "github.com/schlep-engine/schlep-engine/internal/sdk/go/schlep"
+    "github.com/igris-inertial/igris-inertial/internal/sdk/go/igris"
 )
 
 func main() {
-    client := schlep.NewClient(&schlep.Config{
-        BaseURL: "https://api.schlep.cloud",
-        APIKey:  "sk-schlep-YOUR_KEY",
+    client := igris.NewClient(&igris.Config{
+        BaseURL: "https://api.igris-inertial.com",
+        APIKey:  "sk-igris-YOUR_KEY",
     })
 
-    response, err := client.Infer(context.Background(), &schlep.InferRequest{
+    response, err := client.Infer(context.Background(), &igris.InferRequest{
         Model: "gpt-4",
-        Messages: []schlep.Message{
+        Messages: []igris.Message{
             {Role: "user", Content: "Hello!"},
         },
     })
@@ -122,7 +122,7 @@ Check your dashboard to see:
 - Latency metrics
 - Token usage
 
-[View Dashboard →](https://app.schlep.cloud/dashboard)
+[View Dashboard →](https://app.igris-inertial.com/dashboard)
 
 ---
 
@@ -169,8 +169,8 @@ Every request includes metadata about routing:
 Request the cheapest provider that meets quality standards:
 
 ```bash
-curl -X POST https://api.schlep.cloud/v1/infer \
-  -H "Authorization: Bearer sk-schlep-YOUR_KEY" \
+curl -X POST https://api.igris-inertial.com/v1/infer \
+  -H "Authorization: Bearer sk-igris-YOUR_KEY" \
   -H "Content-Type: application/json" \
   -d '{
     "model": "gpt-3.5-turbo",
@@ -184,8 +184,8 @@ curl -X POST https://api.schlep.cloud/v1/infer \
 Request the fastest provider:
 
 ```bash
-curl -X POST https://api.schlep.cloud/v1/infer \
-  -H "Authorization: Bearer sk-schlep-YOUR_KEY" \
+curl -X POST https://api.igris-inertial.com/v1/infer \
+  -H "Authorization: Bearer sk-igris-YOUR_KEY" \
   -H "Content-Type: application/json" \
   -d '{
     "model": "gpt-4",
@@ -199,8 +199,8 @@ curl -X POST https://api.schlep.cloud/v1/infer \
 Race multiple providers for 60% faster time-to-first-token:
 
 ```bash
-curl -X POST https://api.schlep.cloud/v1/infer \
-  -H "Authorization: Bearer sk-schlep-YOUR_KEY" \
+curl -X POST https://api.igris-inertial.com/v1/infer \
+  -H "Authorization: Bearer sk-igris-YOUR_KEY" \
   -H "Content-Type: application/json" \
   -d '{
     "model": "gpt-4",
@@ -217,8 +217,8 @@ Get tokens as they're generated:
 from openai import OpenAI
 
 client = OpenAI(
-    base_url="https://api.schlep.cloud/v1",
-    api_key="sk-schlep-YOUR_KEY"
+    base_url="https://api.igris-inertial.com/v1",
+    api_key="sk-igris-YOUR_KEY"
 )
 
 response = client.chat.completions.create(
@@ -236,7 +236,7 @@ for chunk in response:
 
 ## Option 2: Self-Hosted
 
-Deploy Schlep Engine in your own infrastructure (Scale tier required).
+Deploy Igris Inertial in your own infrastructure (Scale tier required).
 
 ### Prerequisites
 
@@ -247,8 +247,8 @@ Deploy Schlep Engine in your own infrastructure (Scale tier required).
 
 ```bash
 # Clone repository
-git clone https://github.com/schlep-engine/schlep-engine
-cd schlep-engine
+git clone https://github.com/igris-inertial/igris-inertial
+cd igris-inertial
 
 # Configure environment
 cp .env.example .env
@@ -272,18 +272,18 @@ curl http://localhost:8081/v1/health
 
 ```bash
 # Add Helm repo
-helm repo add schlep-engine https://charts.schlep.cloud
+helm repo add igris-inertial https://charts.igris-inertial.com
 helm repo update
 
 # Install with default values
-helm install schlep-engine schlep-engine/schlep-engine \
+helm install igris-inertial igris-inertial/igris-inertial \
   --set postgresql.enabled=true \
   --set redis.enabled=true \
   --set ingress.enabled=true \
   --set ingress.host=api.yourcompany.com
 
 # Check status
-kubectl get pods -l app=schlep-engine
+kubectl get pods -l app=igris-inertial
 ```
 
 ### Configuration
@@ -296,7 +296,7 @@ export OPENAI_API_KEY="sk-..."
 export ANTHROPIC_API_KEY="sk-ant-..."
 
 # Or using Kubernetes secrets
-kubectl create secret generic schlep-provider-keys \
+kubectl create secret generic igris-provider-keys \
   --from-literal=openai-key=sk-... \
   --from-literal=anthropic-key=sk-ant-...
 ```
@@ -394,10 +394,10 @@ Access Grafana at `http://localhost:3000`
 
 ```bash
 # Docker Compose
-docker-compose logs -f schlep-api
+docker-compose logs -f igris-api
 
 # Kubernetes
-kubectl logs -f deployment/schlep-engine -c api
+kubectl logs -f deployment/igris-inertial -c api
 ```
 
 ---
@@ -410,7 +410,7 @@ Test without real API calls:
 
 ```bash
 export PROVIDER_MODE=benchmark
-./schlep-api
+./igris-api
 ```
 
 Benchmark mode simulates:
@@ -427,7 +427,7 @@ Use actual provider APIs:
 export PROVIDER_MODE=real
 export OPENAI_API_KEY="sk-..."
 export ANTHROPIC_API_KEY="sk-ant-..."
-./schlep-api
+./igris-api
 ```
 
 ---
@@ -486,8 +486,8 @@ Check your API key:
 
 ```bash
 # Test with curl
-curl -H "Authorization: Bearer sk-schlep-YOUR_KEY" \
-  https://api.schlep.cloud/v1/health
+curl -H "Authorization: Bearer sk-igris-YOUR_KEY" \
+  https://api.igris-inertial.com/v1/health
 ```
 
 ### High Latency
@@ -509,7 +509,7 @@ curl -X POST http://localhost:8081/v1/infer \
 
 ## Get Help
 
-- **Documentation:** [docs.schlep.cloud](https://docs.schlep.cloud)
-- **Discord:** [Join community](https://discord.gg/schlep-engine)
-- **GitHub Issues:** [Report a bug](https://github.com/schlep-engine/schlep-engine/issues)
-- **Email:** support@schlep-engine.com
+- **Documentation:** [docs.igris-inertial.com](https://docs.igris-inertial.com)
+- **Discord:** [Join community](https://discord.gg/igris-inertial)
+- **GitHub Issues:** [Report a bug](https://github.com/igris-inertial/igris-inertial/issues)
+- **Email:** support@igris-inertial.com

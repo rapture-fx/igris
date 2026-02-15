@@ -1,5 +1,5 @@
 /**
- * Data Quality API for Schlep-engine JavaScript SDK
+ * Data Quality API for Igris-engine JavaScript SDK
  * Provides comprehensive data quality assessment and monitoring capabilities
  */
 

@@ -1,5 +1,5 @@
 /**
- * ML Pipeline API for Schlep-engine JavaScript SDK
+ * ML Pipeline API for Igris-engine JavaScript SDK
  */
 
 import { BaseAPI } from './base';

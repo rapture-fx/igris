@@ -45,7 +45,7 @@ show_usage() {
     cat << EOF
 Usage: $0 [OPTIONS]
 
-OpenAPI Client Generator for Schlep-engine API
+OpenAPI Client Generator for Igris-engine API
 
 OPTIONS:
     -l, --language LANG     Generate client for specific language
@@ -143,7 +143,7 @@ except Exception as e:
     # Create a minimal spec for testing
     minimal_spec = {
         "openapi": "3.0.0",
-        "info": {"title": "Schlep-engine API", "version": "2.0.0"},
+        "info": {"title": "Igris-engine API", "version": "2.0.0"},
         "paths": {}
     }
     with open('openapi.json', 'w') as f:
@@ -157,7 +157,7 @@ EOF
 {
   "openapi": "3.0.0",
   "info": {
-    "title": "Schlep-engine API",
+    "title": "Igris-engine API",
     "description": "Comprehensive data processing and ML pipeline platform",
     "version": "2.0.0"
   },
@@ -269,24 +269,24 @@ post_process_client() {
             # Fix Python imports and add additional files
             if [ -f "$output_dir/setup.py" ]; then
                 # Update setup.py with additional metadata
-                sed -i.bak 's/author="OpenAPI Generator community"/author="Schlep-engine Team"/g' "$output_dir/setup.py"
+                sed -i.bak 's/author="OpenAPI Generator community"/author="Igris-engine Team"/g' "$output_dir/setup.py"
                 rm -f "$output_dir/setup.py.bak"
             fi
             
             # Create __init__.py with convenience imports
             cat > "$output_dir/igris_overture_client/__init__.py" << 'EOF'
-"""Schlep-engine Python Client
+"""Igris-engine Python Client
 
-A comprehensive Python client library for the Schlep-engine API.
+A comprehensive Python client library for the Igris-engine API.
 """
 
 __version__ = "2.0.0"
 
-from .client.main import SchlepEngineClient
+from .client.main import IgrisClient
 from .api_client import ApiClient
 from .configuration import Configuration
 
-__all__ = ['SchlepEngineClient', 'ApiClient', 'Configuration']
+__all__ = ['IgrisClient', 'ApiClient', 'Configuration']
 EOF
             ;;
             

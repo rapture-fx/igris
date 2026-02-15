@@ -2,7 +2,7 @@
 
 ## Overview
 
-Schlep-Engine supports Single Sign-On (SSO) authentication for **Growth** and **Scale** tier tenants. This feature enables enterprise customers to integrate with their existing identity providers using industry-standard protocols:
+Igris Inertial supports Single Sign-On (SSO) authentication for **Growth** and **Scale** tier tenants. This feature enables enterprise customers to integrate with their existing identity providers using industry-standard protocols:
 
 - **OAuth2/OpenID Connect (OIDC)** - For modern cloud identity providers
 - **SAML 2.0** - For traditional enterprise identity providers
@@ -19,7 +19,7 @@ Schlep-Engine supports Single Sign-On (SSO) authentication for **Growth** and **
 
 ### Pre-configured Providers
 
-Schlep-Engine includes pre-configured templates for popular identity providers:
+Igris Inertial includes pre-configured templates for popular identity providers:
 
 - **Auth0**
 - **Okta**
@@ -63,7 +63,7 @@ Apply the SSO database migration to create required tables:
 
 ```bash
 # Run migration 009
-psql -h localhost -U schlep_user -d schlep_db -f migrations/009_add_sso_providers_table.sql
+psql -h localhost -U igris_user -d igris_db -f migrations/009_add_sso_providers_table.sql
 ```
 
 This creates:
@@ -430,10 +430,10 @@ WHERE tenant_id = '00000000-0000-0000-0000-000000000001';
 
 Prometheus metrics are exposed for SSO monitoring:
 
-- `schlep_sso_login_attempts_total{provider, status}` - Total SSO login attempts
-- `schlep_sso_login_duration_seconds{provider}` - SSO login duration
-- `schlep_sso_provider_errors_total{provider, error_type}` - SSO provider errors
-- `schlep_sso_users_provisioned_total{provider}` - Auto-provisioned users
+- `igris_sso_login_attempts_total{provider, status}` - Total SSO login attempts
+- `igris_sso_login_duration_seconds{provider}` - SSO login duration
+- `igris_sso_provider_errors_total{provider, error_type}` - SSO provider errors
+- `igris_sso_users_provisioned_total{provider}` - Auto-provisioned users
 
 ---
 
@@ -498,14 +498,14 @@ export LOG_LEVEL=debug
 ### Apply Migration
 
 ```bash
-psql -h localhost -U schlep_user -d schlep_db -f migrations/009_add_sso_providers_table.sql
+psql -h localhost -U igris_user -d igris_db -f migrations/009_add_sso_providers_table.sql
 ```
 
 ### Rollback Migration
 
 ```bash
 # Run rollback commands from migration file
-psql -h localhost -U schlep_user -d schlep_db <<EOF
+psql -h localhost -U igris_user -d igris_db <<EOF
 DROP VIEW IF EXISTS tenant_sso_summary CASCADE;
 DROP VIEW IF EXISTS sso_provider_stats CASCADE;
 DROP FUNCTION IF EXISTS update_sso_last_login CASCADE;
@@ -535,7 +535,7 @@ EOF
 ## Support
 
 For additional help:
-- Check the [Schlep-Engine Documentation](https://docs.igris-inertial.com)
+- Check the [Igris Inertial Documentation](https://docs.igris-inertial.com)
 - Review [provider-specific guides](#provider-specific-configuration)
 - Contact support: support@igris-inertial.com
 - File an issue: https://github.com/igris-inertial/issues

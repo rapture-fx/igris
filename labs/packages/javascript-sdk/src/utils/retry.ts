@@ -1,5 +1,5 @@
 /**
- * Retry utility for Schlep-engine JavaScript SDK
+ * Retry utility for Igris-engine JavaScript SDK
  */
 
 import { RetryConfig } from '../types/common';

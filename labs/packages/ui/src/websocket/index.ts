@@ -61,4 +61,4 @@ export type {
   SystemStatus,
   NotificationData,
   ProgressTrackingConfig
-} from '@schlep-engine/types'
+} from '@igris-inertial/types'

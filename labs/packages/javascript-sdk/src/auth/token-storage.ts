@@ -1,5 +1,5 @@
 /**
- * Token storage utilities for Schlep-engine JavaScript SDK
+ * Token storage utilities for Igris-engine JavaScript SDK
  * Provides secure token storage for browser and Node.js environments
  */
 
@@ -171,7 +171,7 @@ export class FileTokenStorage implements TokenStorage {
   private getDefaultPath(): string {
     const os = require('os');
     
-    return path.join(os.homedir(), '.schlep-engine', 'tokens.json');
+    return path.join(os.homedir(), '.igris-inertial', 'tokens.json');
   }
 
   private getApiKeyPath(identifier: string): string {

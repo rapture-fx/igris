@@ -1,6 +1,6 @@
-# Schlep-Engine Developer Onboarding Guide
+# Igris Inertial Developer Onboarding Guide
 
-Welcome to the Schlep-Engine project! This guide will help you get up and running quickly.
+Welcome to the Igris Inertial project! This guide will help you get up and running quickly.
 
 ## Table of Contents
 
@@ -17,7 +17,7 @@ Welcome to the Schlep-Engine project! This guide will help you get up and runnin
 
 ## Project Overview
 
-**Schlep-Engine** is an intelligent LLM routing and governance platform that:
+**Igris Inertial** is an intelligent LLM routing and governance platform that:
 
 - **Semantic Routing**: Classifies prompts and routes to optimal providers
 - **Adaptive Learning**: Uses Thompson Sampling bandits to learn from feedback
@@ -143,7 +143,7 @@ docker-compose down
 
 ```bash
 # Terminal 1: Start API server
-export DATABASE_URL="postgres://schlep:password@localhost:5432/schlep_dev?sslmode=disable"
+export DATABASE_URL="postgres://igris:password@localhost:5432/igris_dev?sslmode=disable"
 export REDIS_URL="redis://localhost:6379/0"
 go run cmd/igris-overture/main.go
 
@@ -405,7 +405,7 @@ docker-compose -f docker-compose.ci.yml down -v
 docker-compose -f docker-compose.ci.yml up -d
 
 # Re-run migrations
-DATABASE_URL="postgres://schlep:schlep_ci_password@localhost:5433/schlep_test?sslmode=disable" \
+DATABASE_URL="postgres://igris:igris_ci_password@localhost:5433/igris_test?sslmode=disable" \
   ./scripts/run_migrations.sh
 
 # Run tests with verbose output
@@ -468,7 +468,7 @@ curl -X POST http://localhost:9090/-/reload
 - **Slack**: #igris-inertial-dev
 - **GitHub Issues**: https://github.com/your-org/igris-inertial/issues
 - **Team Lead**: @tech-lead
-- **Documentation**: https://docs.schlep.io
+- **Documentation**: https://docs.igris-inertial.com
 
 ---
 

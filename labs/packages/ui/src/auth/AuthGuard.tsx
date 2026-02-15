@@ -6,7 +6,7 @@
 'use client'
 
 import React from 'react'
-import type { AuthGuardProps, User } from '@schlep-engine/types/auth'
+import type { AuthGuardProps, User } from '@igris-inertial/types/auth'
 import { useAuth } from './AuthContext'
 
 // Helper function to check user permissions

@@ -1,5 +1,5 @@
 """
-Comprehensive authentication tests for Schlep-engine CLI
+Comprehensive authentication tests for Igris-engine CLI
 """
 
 import pytest
@@ -10,10 +10,10 @@ from pathlib import Path
 from unittest.mock import Mock, patch, mock_open
 from click.testing import CliRunner
 
-from schlep_cli.main import cli
-from schlep_cli.core.config import Config
-from schlep_cli.core.client import APIClient
-from schlep_cli.commands.auth import login, logout, status, refresh
+from igris_cli.main import cli
+from igris_cli.core.config import Config
+from igris_cli.core.client import APIClient
+from igris_cli.commands.auth import login, logout, status, refresh
 
 
 class TestAuthCommands:
@@ -31,7 +31,7 @@ class TestAuthCommands:
             }
         }
 
-        with patch('schlep_cli.commands.auth.APIClient', return_value=mock_client):
+        with patch('igris_cli.commands.auth.APIClient', return_value=mock_client):
             result = runner.invoke(cli, [
                 'auth', 'login', 
                 '--email', 'test@example.com',
@@ -47,7 +47,7 @@ class TestAuthCommands:
         mock_client = Mock()
         mock_client.auth.login.side_effect = Exception("Invalid credentials")
 
-        with patch('schlep_cli.commands.auth.APIClient', return_value=mock_client):
+        with patch('igris_cli.commands.auth.APIClient', return_value=mock_client):
             result = runner.invoke(cli, [
                 'auth', 'login', 
                 '--email', 'invalid@example.com',
@@ -69,7 +69,7 @@ class TestAuthCommands:
             }
         }
 
-        with patch('schlep_cli.commands.auth.APIClient', return_value=mock_client):
+        with patch('igris_cli.commands.auth.APIClient', return_value=mock_client):
             with patch('click.prompt') as mock_prompt:
                 mock_prompt.side_effect = ['interactive@example.com', 'interactive123']
                 
@@ -89,7 +89,7 @@ class TestAuthCommands:
             }
         }
 
-        with patch('schlep_cli.commands.auth.APIClient', return_value=mock_client):
+        with patch('igris_cli.commands.auth.APIClient', return_value=mock_client):
             result = runner.invoke(cli, [
                 'auth', 'login', 
                 '--api-key', 'sk-test-api-key-123'
@@ -110,8 +110,8 @@ class TestAuthCommands:
             }
         }
 
-        with patch('schlep_cli.commands.auth.APIClient', return_value=mock_client):
-            with patch('schlep_cli.core.config.Config.get_auth_file', return_value=config_dir / "auth.json"):
+        with patch('igris_cli.commands.auth.APIClient', return_value=mock_client):
+            with patch('igris_cli.core.config.Config.get_auth_file', return_value=config_dir / "auth.json"):
                 result = runner.invoke(cli, [
                     'auth', 'login', 
                     '--email', 'save@example.com',
@@ -128,8 +128,8 @@ class TestAuthCommands:
         """Test successful logout command."""
         mock_client.auth.logout.return_value = {'message': 'Successfully logged out'}
 
-        with patch('schlep_cli.commands.auth.APIClient', return_value=mock_client):
-            with patch('schlep_cli.commands.auth.get_auth_context', return_value=auth_context):
+        with patch('igris_cli.commands.auth.APIClient', return_value=mock_client):
+            with patch('igris_cli.commands.auth.get_auth_context', return_value=auth_context):
                 result = runner.invoke(cli, ['auth', 'logout'])
 
         assert result.exit_code == 0
@@ -137,7 +137,7 @@ class TestAuthCommands:
 
     def test_logout_not_authenticated(self, runner):
         """Test logout when not authenticated."""
-        with patch('schlep_cli.commands.auth.get_auth_context', return_value=None):
+        with patch('igris_cli.commands.auth.get_auth_context', return_value=None):
             result = runner.invoke(cli, ['auth', 'logout'])
 
         assert result.exit_code != 0
@@ -152,7 +152,7 @@ class TestAuthCommands:
             'user': {'email': 'test@example.com'}
         }))
 
-        with patch('schlep_cli.core.config.Config.get_auth_file', return_value=auth_file):
+        with patch('igris_cli.core.config.Config.get_auth_file', return_value=auth_file):
             result = runner.invoke(cli, ['auth', 'logout', '--local'])
 
         assert result.exit_code == 0
@@ -168,8 +168,8 @@ class TestAuthCommands:
             'plan': 'Pro'
         }
 
-        with patch('schlep_cli.commands.auth.get_auth_context', return_value=auth_context):
-            with patch('schlep_cli.commands.auth.APIClient', return_value=mock_client):
+        with patch('igris_cli.commands.auth.get_auth_context', return_value=auth_context):
+            with patch('igris_cli.commands.auth.APIClient', return_value=mock_client):
                 result = runner.invoke(cli, ['auth', 'status'])
 
         assert result.exit_code == 0
@@ -179,7 +179,7 @@ class TestAuthCommands:
 
     def test_status_not_authenticated(self, runner):
         """Test status command when not authenticated."""
-        with patch('schlep_cli.commands.auth.get_auth_context', return_value=None):
+        with patch('igris_cli.commands.auth.get_auth_context', return_value=None):
             result = runner.invoke(cli, ['auth', 'status'])
 
         assert result.exit_code != 0
@@ -199,8 +199,8 @@ class TestAuthCommands:
             'permissions': ['read', 'write', 'admin']
         }
 
-        with patch('schlep_cli.commands.auth.get_auth_context', return_value=auth_context):
-            with patch('schlep_cli.commands.auth.APIClient', return_value=mock_client):
+        with patch('igris_cli.commands.auth.get_auth_context', return_value=auth_context):
+            with patch('igris_cli.commands.auth.APIClient', return_value=mock_client):
                 result = runner.invoke(cli, ['auth', 'status', '--verbose'])
 
         assert result.exit_code == 0
@@ -218,8 +218,8 @@ class TestAuthCommands:
             'expires_in': 3600
         }
 
-        with patch('schlep_cli.commands.auth.get_auth_context', return_value=auth_context):
-            with patch('schlep_cli.commands.auth.APIClient', return_value=mock_client):
+        with patch('igris_cli.commands.auth.get_auth_context', return_value=auth_context):
+            with patch('igris_cli.commands.auth.APIClient', return_value=mock_client):
                 result = runner.invoke(cli, ['auth', 'refresh'])
 
         assert result.exit_code == 0
@@ -229,8 +229,8 @@ class TestAuthCommands:
         """Test token refresh with expired refresh token."""
         mock_client.auth.refresh_token.side_effect = Exception("Refresh token expired")
 
-        with patch('schlep_cli.commands.auth.get_auth_context', return_value=auth_context):
-            with patch('schlep_cli.commands.auth.APIClient', return_value=mock_client):
+        with patch('igris_cli.commands.auth.get_auth_context', return_value=auth_context):
+            with patch('igris_cli.commands.auth.APIClient', return_value=mock_client):
                 result = runner.invoke(cli, ['auth', 'refresh'])
 
         assert result.exit_code != 0
@@ -239,7 +239,7 @@ class TestAuthCommands:
 
     def test_refresh_token_not_authenticated(self, runner):
         """Test token refresh when not authenticated."""
-        with patch('schlep_cli.commands.auth.get_auth_context', return_value=None):
+        with patch('igris_cli.commands.auth.get_auth_context', return_value=None):
             result = runner.invoke(cli, ['auth', 'refresh'])
 
         assert result.exit_code != 0
@@ -273,7 +273,7 @@ class TestAuthenticationFlow:
         # Mock logout response
         mock_client.auth.logout.return_value = {'message': 'Successfully logged out'}
 
-        with patch('schlep_cli.commands.auth.APIClient', return_value=mock_client):
+        with patch('igris_cli.commands.auth.APIClient', return_value=mock_client):
             # Step 1: Login
             login_result = runner.invoke(cli, [
                 'auth', 'login',
@@ -285,7 +285,7 @@ class TestAuthenticationFlow:
             assert 'Successfully logged in' in login_result.output
 
             # Step 2: Check status
-            with patch('schlep_cli.commands.auth.get_auth_context') as mock_auth:
+            with patch('igris_cli.commands.auth.get_auth_context') as mock_auth:
                 mock_auth.return_value = {
                     'config': Config(),
                     'client': mock_client,
@@ -321,8 +321,8 @@ class TestAuthenticationFlow:
             'username': 'persistentuser'
         }
 
-        with patch('schlep_cli.core.config.Config.get_auth_file', return_value=auth_file):
-            with patch('schlep_cli.commands.auth.APIClient', return_value=mock_client):
+        with patch('igris_cli.core.config.Config.get_auth_file', return_value=auth_file):
+            with patch('igris_cli.commands.auth.APIClient', return_value=mock_client):
                 # First invocation - should load existing session
                 result1 = runner.invoke(cli, ['auth', 'status'])
                 assert result1.exit_code == 0
@@ -361,8 +361,8 @@ class TestAuthenticationFlow:
             'username': 'refreshuser'
         }
 
-        with patch('schlep_cli.core.config.Config.get_auth_file', return_value=auth_file):
-            with patch('schlep_cli.commands.auth.APIClient', return_value=mock_client):
+        with patch('igris_cli.core.config.Config.get_auth_file', return_value=auth_file):
+            with patch('igris_cli.commands.auth.APIClient', return_value=mock_client):
                 result = runner.invoke(cli, ['auth', 'status'])
 
         assert result.exit_code == 0
@@ -388,8 +388,8 @@ class TestAuthenticationSecurity:
 
         auth_file = config_dir / "auth.json"
 
-        with patch('schlep_cli.commands.auth.APIClient', return_value=mock_client):
-            with patch('schlep_cli.core.config.Config.get_auth_file', return_value=auth_file):
+        with patch('igris_cli.commands.auth.APIClient', return_value=mock_client):
+            with patch('igris_cli.core.config.Config.get_auth_file', return_value=auth_file):
                 result = runner.invoke(cli, [
                     'auth', 'login',
                     '--email', 'secure@example.com',
@@ -416,8 +416,8 @@ class TestAuthenticationSecurity:
             }
         }
 
-        with patch('schlep_cli.commands.auth.get_auth_context', return_value=auth_context):
-            with patch('schlep_cli.commands.auth.APIClient', return_value=mock_client):
+        with patch('igris_cli.commands.auth.get_auth_context', return_value=auth_context):
+            with patch('igris_cli.commands.auth.APIClient', return_value=mock_client):
                 result = runner.invoke(cli, ['auth', 'status', '--verbose'])
 
         assert result.exit_code == 0
@@ -435,7 +435,7 @@ class TestAuthenticationSecurity:
         }
         auth_file.write_text(json.dumps(sensitive_data))
 
-        with patch('schlep_cli.core.config.Config.get_auth_file', return_value=auth_file):
+        with patch('igris_cli.core.config.Config.get_auth_file', return_value=auth_file):
             result = runner.invoke(cli, ['auth', 'logout', '--local'])
 
         assert result.exit_code == 0
@@ -465,8 +465,8 @@ class TestAuthenticationSecurity:
         # Mock refresh failure (refresh token also expired)
         mock_client.auth.refresh_token.side_effect = Exception("Refresh token expired")
 
-        with patch('schlep_cli.core.config.Config.get_auth_file', return_value=auth_file):
-            with patch('schlep_cli.commands.auth.APIClient', return_value=mock_client):
+        with patch('igris_cli.core.config.Config.get_auth_file', return_value=auth_file):
+            with patch('igris_cli.commands.auth.APIClient', return_value=mock_client):
                 result = runner.invoke(cli, ['auth', 'status'])
 
         assert result.exit_code != 0
@@ -481,7 +481,7 @@ class TestAuthenticationEdgeCases:
         auth_file = config_dir / "auth.json"
         auth_file.write_text("invalid json content")
 
-        with patch('schlep_cli.core.config.Config.get_auth_file', return_value=auth_file):
+        with patch('igris_cli.core.config.Config.get_auth_file', return_value=auth_file):
             result = runner.invoke(cli, ['auth', 'status'])
 
         assert result.exit_code != 0
@@ -504,8 +504,8 @@ class TestAuthenticationEdgeCases:
             'user': {'email': 'test@example.com', 'username': 'testuser'}
         }
 
-        with patch('schlep_cli.commands.auth.APIClient', return_value=mock_client):
-            with patch('schlep_cli.core.config.Config.get_auth_file', return_value=auth_file):
+        with patch('igris_cli.commands.auth.APIClient', return_value=mock_client):
+            with patch('igris_cli.core.config.Config.get_auth_file', return_value=auth_file):
                 result = runner.invoke(cli, [
                     'auth', 'login',
                     '--email', 'test@example.com',
@@ -526,7 +526,7 @@ class TestAuthenticationEdgeCases:
         mock_client = Mock()
         mock_client.auth.login.side_effect = ConnectionError("Network unreachable")
 
-        with patch('schlep_cli.commands.auth.APIClient', return_value=mock_client):
+        with patch('igris_cli.commands.auth.APIClient', return_value=mock_client):
             result = runner.invoke(cli, [
                 'auth', 'login',
                 '--email', 'test@example.com',
@@ -541,7 +541,7 @@ class TestAuthenticationEdgeCases:
         mock_client = Mock()
         mock_client.auth.login.side_effect = Exception("Rate limit exceeded. Try again in 60 seconds.")
 
-        with patch('schlep_cli.commands.auth.APIClient', return_value=mock_client):
+        with patch('igris_cli.commands.auth.APIClient', return_value=mock_client):
             result = runner.invoke(cli, [
                 'auth', 'login',
                 '--email', 'test@example.com',
@@ -563,7 +563,7 @@ class TestAuthenticationEdgeCases:
             'user': {'email': 'concurrent@example.com', 'username': 'concurrentuser'}
         }
 
-        with patch('schlep_cli.commands.auth.APIClient', return_value=mock_client):
+        with patch('igris_cli.commands.auth.APIClient', return_value=mock_client):
             result = runner.invoke(cli, [
                 'auth', 'login',
                 '--email', 'concurrent@example.com',

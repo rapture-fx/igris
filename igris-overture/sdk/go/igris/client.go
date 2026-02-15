@@ -40,14 +40,14 @@ const (
 //
 // Example usage:
 //
-//	client := schlep.NewClient(&schlep.Config{
+//	client := igris.NewClient(&igris.Config{
 //		BaseURL: "http://localhost:8081",
 //		APIKey:  "your-api-key", // optional
 //	})
 //
-//	response, err := client.Infer(context.Background(), &schlep.InferRequest{
+//	response, err := client.Infer(context.Background(), &igris.InferRequest{
 //		Model: "gpt-4",
-//		Messages: []schlep.Message{
+//		Messages: []igris.Message{
 //			{Role: "user", Content: "Hello!"},
 //		},
 //	})
@@ -82,7 +82,7 @@ type Config struct {
 //
 // Example:
 //
-//	client := schlep.NewClient(&schlep.Config{
+//	client := igris.NewClient(&igris.Config{
 //		BaseURL: "http://localhost:8081",
 //		APIKey:  os.Getenv("IGRIS_API_KEY"),
 //		Timeout: 60 * time.Second,
@@ -324,14 +324,14 @@ func (c *Client) parseResponse(resp *http.Response, v interface{}) error {
 // Example:
 //
 //	ctx := context.Background()
-//	response, err := client.Infer(ctx, &schlep.InferRequest{
+//	response, err := client.Infer(ctx, &igris.InferRequest{
 //		Model: "gpt-4",
-//		Messages: []schlep.Message{
+//		Messages: []igris.Message{
 //			{Role: "system", Content: "You are a helpful assistant."},
 //			{Role: "user", Content: "Explain quantum computing."},
 //		},
-//		MaxTokens: schlep.Int(200),
-//		Temperature: schlep.Float64(0.7),
+//		MaxTokens: igris.Int(200),
+//		Temperature: igris.Float64(0.7),
 //	})
 //	if err != nil {
 //		log.Fatal(err)

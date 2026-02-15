@@ -93,7 +93,7 @@ The system uses a **hybrid polyglot architecture** to leverage the strengths of 
 
 ```bash
 # Clone repository
-git clone https://github.com/Schlep-engine/igris-inertial.git
+git clone https://github.com/Igris-engine/igris-inertial.git
 cd igris-inertial
 
 # Start all services
@@ -593,7 +593,7 @@ We welcome contributions! Please see [CONTRIBUTING.md](CONTRIBUTING.md) for guid
 ## Support
 
 - **Documentation:** [https://docs.igris-inertial.com](https://docs.igris-inertial.com)
-- **Issues:** [GitHub Issues](https://github.com/Schlep-engine/igris-inertial/issues)
+- **Issues:** [GitHub Issues](https://github.com/Igris-engine/igris-inertial/issues)
 - **Email:** support@igris-inertial.com
 - **Discord:** [Join our community](https://discord.gg/igris-inertial)
 

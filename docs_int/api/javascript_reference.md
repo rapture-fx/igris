@@ -1,11 +1,11 @@
 # JavaScript SDK API Reference
 
-Complete API reference for the Schlep-engine JavaScript/TypeScript SDK.
+Complete API reference for the Igris Inertial JavaScript/TypeScript SDK.
 
 ## Installation
 
 ```bash
-npm install schlep
+npm install igris
 ```
 
 ## Import
@@ -13,23 +13,23 @@ npm install schlep
 ### ES Modules (TypeScript/Modern JavaScript)
 
 ```typescript
-import { Schlep } from 'schlep';
+import { Igris } from 'igris';
 ```
 
 ### CommonJS (Node.js)
 
 ```javascript
-const { Schlep } = require('schlep');
+const { Igris } = require('igris');
 ```
 
-## Class: `Schlep`
+## Class: `Igris`
 
-Main client class for interacting with the Schlep-engine API.
+Main client class for interacting with the Igris Inertial API.
 
 ### Constructor
 
 ```typescript
-new Schlep(config?: ClientConfig)
+new Igris(config?: ClientConfig)
 ```
 
 **Parameters:**
@@ -45,16 +45,16 @@ interface ClientConfig {
 }
 ```
 
-**Returns:** `Schlep` instance
+**Returns:** `Igris` instance
 
 **Example:**
 ```typescript
 // Basic
-const client = new Schlep();
+const client = new Igris();
 
 // With configuration
-const client = new Schlep({
-  baseUrl: 'https://api.schlep.com',
+const client = new Igris({
+  baseUrl: 'https://api.igris-inertial.com',
   apiKey: 'your-api-key',
   timeout: 60000,
   headers: {
@@ -67,7 +67,7 @@ const client = new Schlep({
 
 ### Method: `infer()`
 
-Make an inference request using Schlep-engine's intelligent routing.
+Make an inference request using Igris Inertial's intelligent routing.
 
 ```typescript
 async infer(request: InferRequest): Promise<InferResponse>
@@ -122,7 +122,7 @@ interface InferResponse {
 
 **Throws:**
 - `AuthenticationError`: Authentication failed
-- `SchlepError`: API request failed
+- `IgrisError`: API request failed
 - `NetworkError`: Network connection failed
 
 **Example:**
@@ -273,12 +273,12 @@ console.log('Provider stats:', stats);
 
 ## Error Classes
 
-### `SchlepError`
+### `IgrisError`
 
-Base error class for all Schlep SDK errors.
+Base error class for all Igris SDK errors.
 
 ```typescript
-class SchlepError extends Error {
+class IgrisError extends Error {
   statusCode?: number;
   response?: any;
 
@@ -288,18 +288,18 @@ class SchlepError extends Error {
 
 **Properties:**
 - `message` (string): Error message
-- `name` (string): Error name ('SchlepError')
+- `name` (string): Error name ('IgrisError')
 - `statusCode` (number, optional): HTTP status code
 - `response` (any, optional): Full response data
 
 **Example:**
 ```typescript
-import { SchlepError } from 'schlep';
+import { IgrisError } from 'igris';
 
 try {
   const response = await client.infer(...);
 } catch (error) {
-  if (error instanceof SchlepError) {
+  if (error instanceof IgrisError) {
     console.log(`Error ${error.statusCode}: ${error.message}`);
     console.log('Response:', error.response);
   }
@@ -310,22 +310,22 @@ try {
 
 ### `AuthenticationError`
 
-Authentication error (extends `SchlepError`).
+Authentication error (extends `IgrisError`).
 
 ```typescript
-class AuthenticationError extends SchlepError {
+class AuthenticationError extends IgrisError {
   constructor(message?: string);
 }
 ```
 
 **Properties:**
-- Inherits all properties from `SchlepError`
+- Inherits all properties from `IgrisError`
 - `statusCode`: Always `401`
 - `name`: 'AuthenticationError'
 
 **Example:**
 ```typescript
-import { AuthenticationError } from 'schlep';
+import { AuthenticationError } from 'igris';
 
 try {
   const response = await client.infer(...);
@@ -340,21 +340,21 @@ try {
 
 ### `NetworkError`
 
-Network connection error (extends `SchlepError`).
+Network connection error (extends `IgrisError`).
 
 ```typescript
-class NetworkError extends SchlepError {
+class NetworkError extends IgrisError {
   constructor(message: string);
 }
 ```
 
 **Properties:**
-- Inherits all properties from `SchlepError`
+- Inherits all properties from `IgrisError`
 - `name`: 'NetworkError'
 
 **Example:**
 ```typescript
-import { NetworkError } from 'schlep';
+import { NetworkError } from 'igris';
 
 try {
   const response = await client.health();
@@ -374,7 +374,7 @@ All exported types and interfaces:
 ```typescript
 import {
   // Main class
-  Schlep,
+  Igris,
 
   // Configuration
   ClientConfig,
@@ -389,10 +389,10 @@ import {
   ProviderStats,
 
   // Errors
-  SchlepError,
+  IgrisError,
   AuthenticationError,
   NetworkError
-} from 'schlep';
+} from 'igris';
 ```
 
 ---
@@ -479,9 +479,9 @@ interface ProviderStats {
 ### Type-Safe Inference
 
 ```typescript
-import { Schlep, type InferRequest, type InferResponse } from 'schlep';
+import { Igris, type InferRequest, type InferResponse } from 'igris';
 
-const client = new Schlep();
+const client = new Igris();
 
 const request: InferRequest = {
   model: 'gpt-4',
@@ -503,13 +503,13 @@ const tokens: number | undefined = response.usage?.total_tokens;
 
 ```typescript
 import {
-  Schlep,
-  SchlepError,
+  Igris,
+  IgrisError,
   AuthenticationError,
   NetworkError
-} from 'schlep';
+} from 'igris';
 
-const client = new Schlep();
+const client = new Igris();
 
 try {
   const response = await client.infer({
@@ -526,7 +526,7 @@ try {
   } else if (error instanceof NetworkError) {
     // TypeScript knows this is NetworkError
     console.error('Network error:', error.message);
-  } else if (error instanceof SchlepError) {
+  } else if (error instanceof IgrisError) {
     // TypeScript knows this has statusCode and response
     console.error(`API error ${error.statusCode}:`, error.message);
   } else {
@@ -538,7 +538,7 @@ try {
 ### Custom Type Guards
 
 ```typescript
-import { InferResponse } from 'schlep';
+import { InferResponse } from 'igris';
 
 function hasUsage(response: InferResponse): response is InferResponse & {
   usage: NonNullable<InferResponse['usage']>
@@ -562,16 +562,16 @@ Configure via environment variables:
 
 ```typescript
 // .env
-SCHLEP_API_URL=http://localhost:8081
-SCHLEP_API_KEY=your-api-key
-SCHLEP_TIMEOUT=60000
+IGRIS_API_URL=http://localhost:8081
+IGRIS_API_KEY=your-api-key
+IGRIS_TIMEOUT=60000
 ```
 
 ```typescript
-const client = new Schlep({
-  baseUrl: process.env.SCHLEP_API_URL,
-  apiKey: process.env.SCHLEP_API_KEY,
-  timeout: parseInt(process.env.SCHLEP_TIMEOUT || '30000')
+const client = new Igris({
+  baseUrl: process.env.IGRIS_API_URL,
+  apiKey: process.env.IGRIS_API_KEY,
+  timeout: parseInt(process.env.IGRIS_TIMEOUT || '30000')
 });
 ```
 
@@ -581,19 +581,19 @@ const client = new Schlep({
 
 ```typescript
 import {
-  Schlep,
+  Igris,
   type InferRequest,
   type Message,
-  SchlepError,
+  IgrisError,
   AuthenticationError,
   NetworkError
-} from 'schlep';
+} from 'igris';
 
 async function main() {
   // Initialize client
-  const client = new Schlep({
-    baseUrl: process.env.SCHLEP_API_URL || 'http://localhost:8081',
-    apiKey: process.env.SCHLEP_API_KEY,
+  const client = new Igris({
+    baseUrl: process.env.IGRIS_API_URL || 'http://localhost:8081',
+    apiKey: process.env.IGRIS_API_KEY,
     timeout: 60000
   });
 
@@ -635,7 +635,7 @@ async function main() {
       console.error('Authentication failed');
     } else if (error instanceof NetworkError) {
       console.error('Network error:', error.message);
-    } else if (error instanceof SchlepError) {
+    } else if (error instanceof IgrisError) {
       console.error(`API error: ${error.message} (${error.statusCode})`);
     } else {
       console.error('Unexpected error:', error);
@@ -666,4 +666,4 @@ main();
 
 ---
 
-**Schlep-engine** - Intelligent AI Routing and Cost Optimization
+**Igris Inertial** - Intelligent AI Routing and Cost Optimization

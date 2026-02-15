@@ -1,6 +1,6 @@
-//! Document Extraction API client for Schlep-engine.
+//! Document Extraction API client for Igris-engine.
 
-use crate::client::SchlepClient;
+use crate::client::IgrisClient;
 use crate::error::Result;
 use crate::types::{
     ExtractionResponse, ImageExtractionResponse, OCRResponse, TableExtractionResponse,
@@ -10,12 +10,12 @@ use crate::types::{
 ///
 /// Provides methods for extracting text, tables, images, and performing OCR.
 pub struct DocumentClient<'a> {
-    client: &'a SchlepClient,
+    client: &'a IgrisClient,
 }
 
 impl<'a> DocumentClient<'a> {
     /// Create a new Document Extraction API client.
-    pub fn new(client: &'a SchlepClient) -> Self {
+    pub fn new(client: &'a IgrisClient) -> Self {
         Self { client }
     }
 
@@ -29,10 +29,10 @@ impl<'a> DocumentClient<'a> {
     /// # Example
     ///
     /// ```rust,no_run
-    /// # use schlep_engine::{SchlepClient, Result};
+    /// # use igris::{IgrisClient, Result};
     /// # #[tokio::main]
     /// # async fn main() -> Result<()> {
-    /// # let client = SchlepClient::new("your-api-key")?;
+    /// # let client = IgrisClient::new("your-api-key")?;
     /// let file_data = std::fs::read("document.pdf")?;
     /// let result = client.document()
     ///     .extract_text(&file_data, "pdf").await?;
@@ -101,10 +101,10 @@ impl<'a> DocumentClient<'a> {
     /// # Example
     ///
     /// ```rust,no_run
-    /// # use schlep_engine::{SchlepClient, Result};
+    /// # use igris::{IgrisClient, Result};
     /// # #[tokio::main]
     /// # async fn main() -> Result<()> {
-    /// # let client = SchlepClient::new("your-api-key")?;
+    /// # let client = IgrisClient::new("your-api-key")?;
     /// let image_data = std::fs::read("scan.jpg")?;
     /// let result = client.document()
     ///     .ocr(&image_data, Some("en")).await?;

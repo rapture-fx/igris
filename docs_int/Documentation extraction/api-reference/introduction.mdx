@@ -1,9 +1,9 @@
 # API Reference
 
-**TL;DR:** Schlep Engine is an OpenAI-compatible inference gateway with superpowers. One URL change, infinite providers.
+**TL;DR:** Igris Inertial is an OpenAI-compatible inference gateway with superpowers. One URL change, infinite providers.
 
 ```bash
-curl https://api.schlep-engine.com/v1/chat/completions \
+curl https://api.igris-inertial.com/v1/chat/completions \
   -H "Authorization: Bearer YOUR_API_KEY" \
   -H "Content-Type: application/json" \
   -d '{
@@ -14,9 +14,9 @@ curl https://api.schlep-engine.com/v1/chat/completions \
 
 ## Philosophy
 
-Schlep Engine provides **100% OpenAI-compatible** endpoints with enterprise-grade enhancements:
+Igris Inertial provides **100% OpenAI-compatible** endpoints with enterprise-grade enhancements:
 
-- **Drop-in replacement**: Change your base URL from `api.openai.com` to `api.schlep-engine.com`
+- **Drop-in replacement**: Change your base URL from `api.openai.com` to `api.igris-inertial.com`
 - **Multi-provider routing**: Automatic failover across OpenAI, Anthropic, and custom providers
 - **Thompson Sampling**: ML-powered routing that learns which provider works best
 - **Speculative Execution**: Race providers for ultra-low latency
@@ -26,18 +26,18 @@ Schlep Engine provides **100% OpenAI-compatible** endpoints with enterprise-grad
 ## Base URLs
 
 ```
-Production:  https://api.schlep-engine.com/v1
-Staging:     https://api-staging.schlep-engine.com/v1
+Production:  https://api.igris-inertial.com/v1
+Staging:     https://api-staging.igris-inertial.com/v1
 Local:       http://localhost:8080/v1
 ```
 
 ## Quick Start
 
-1. **Get your API key** from the [dashboard](https://console.schlep-engine.com)
+1. **Get your API key** from the [dashboard](https://console.igris-inertial.com)
 2. **Change your base URL**:
    ```diff
    - https://api.openai.com/v1/chat/completions
-   + https://api.schlep-engine.com/v1/chat/completions
+   + https://api.igris-inertial.com/v1/chat/completions
    ```
 3. **You're live** — your existing OpenAI SDK code works unchanged
 

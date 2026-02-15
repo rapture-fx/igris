@@ -773,7 +773,7 @@ test('ML operation tracking', () => {
 
 ## 📄 License
 
-This monitoring integration is part of the Schlep-engine project and follows the same licensing terms.
+This monitoring integration is part of the Igris-engine project and follows the same licensing terms.
 
 ---
 

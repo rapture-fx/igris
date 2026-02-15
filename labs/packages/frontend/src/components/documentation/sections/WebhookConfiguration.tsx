@@ -18,11 +18,11 @@ export function WebhookConfiguration({ section }: WebhookConfigurationProps) {
   }
 }`;
 
-  const curlString = `curl -X POST "https://api.schlep-engine.com/v1/webhooks" \\
+  const curlString = `curl -X POST "https://api.igris-inertial.com/v1/webhooks" \\
 -H "Authorization: Bearer YOUR_API_KEY" \\
 -H "Content-Type: application/json" \\
 -d '{
-  "url": "https://your-app.com/webhooks/schlep-engine",
+  "url": "https://your-app.com/webhooks/igris-inertial",
   "events": ["data.investigation.completed", "data.investigation.failed"]
 }'`;
 

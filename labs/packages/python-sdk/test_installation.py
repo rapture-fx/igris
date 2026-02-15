@@ -1,6 +1,6 @@
 #!/usr/bin/env python3
 """
-Installation test for Schlep-engine Python SDK
+Installation test for Igris-engine Python SDK
 
 This script tests that the SDK can be imported and initialized correctly.
 Run this after installing the package to verify everything is working.
@@ -14,11 +14,11 @@ def test_basic_import():
     """Test basic package import"""
     print("Testing basic import...")
     try:
-        import schlep_engine
-        print(f"✓ Successfully imported schlep_engine v{schlep_engine.__version__}")
+        import igris
+        print(f"✓ Successfully imported igris v{igris.__version__}")
         return True
     except Exception as e:
-        print(f"✗ Failed to import schlep_engine: {e}")
+        print(f"✗ Failed to import igris: {e}")
         return False
 
 
@@ -26,11 +26,11 @@ def test_client_import():
     """Test client class import"""
     print("Testing client import...")
     try:
-        from schlep_engine import SchlepEngineClient
-        print("✓ Successfully imported SchlepEngineClient")
+        from igris import IgrisClient
+        print("✓ Successfully imported IgrisClient")
         return True
     except Exception as e:
-        print(f"✗ Failed to import SchlepEngineClient: {e}")
+        print(f"✗ Failed to import IgrisClient: {e}")
         return False
 
 
@@ -38,11 +38,11 @@ def test_sync_client_import():
     """Test synchronous client import"""
     print("Testing sync client import...")
     try:
-        from schlep_engine.client.main import SchlepEngineClientSync
-        print("✓ Successfully imported SchlepEngineClientSync")
+        from igris.client.main import IgrisClientSync
+        print("✓ Successfully imported IgrisClientSync")
         return True
     except Exception as e:
-        print(f"✗ Failed to import SchlepEngineClientSync: {e}")
+        print(f"✗ Failed to import IgrisClientSync: {e}")
         return False
 
 
@@ -50,7 +50,7 @@ def test_models_import():
     """Test model imports"""
     print("Testing models import...")
     try:
-        from schlep_engine.models import (
+        from igris.models import (
             APIResponse, PaginationInfo, TokenResponse, UserInfo,
             DataProcessingRequest, MLPipelineConfig, AnalyticsQuery
         )
@@ -65,8 +65,8 @@ def test_exceptions_import():
     """Test exception imports"""
     print("Testing exceptions import...")
     try:
-        from schlep_engine.exceptions import (
-            SchlepEngineError, APIError, AuthenticationError, RateLimitError
+        from igris.exceptions import (
+            IgrisError, APIError, AuthenticationError, RateLimitError
         )
         print("✓ Successfully imported exceptions")
         return True
@@ -79,14 +79,14 @@ def test_client_initialization():
     """Test client initialization without API key"""
     print("Testing client initialization...")
     try:
-        from schlep_engine import SchlepEngineClient
+        from igris import IgrisClient
         
         # Test initialization without API key (should work)
-        client = SchlepEngineClient()
+        client = IgrisClient()
         print("✓ Successfully initialized client (no API key)")
         
         # Test initialization with dummy API key
-        client_with_key = SchlepEngineClient(api_key="test-key")
+        client_with_key = IgrisClient(api_key="test-key")
         print("✓ Successfully initialized client (with API key)")
         
         # Test SDK info
@@ -104,9 +104,9 @@ def test_sync_client_initialization():
     """Test sync client initialization"""
     print("Testing sync client initialization...")
     try:
-        from schlep_engine.client.main import SchlepEngineClientSync
+        from igris.client.main import IgrisClientSync
         
-        client = SchlepEngineClientSync(api_key="test-key")
+        client = IgrisClientSync(api_key="test-key")
         print("✓ Successfully initialized sync client")
         return True
     except Exception as e:
@@ -118,7 +118,7 @@ def test_auth_manager():
     """Test authentication manager"""
     print("Testing authentication manager...")
     try:
-        from schlep_engine.auth import AuthManager
+        from igris.auth import AuthManager
         
         auth_manager = AuthManager(api_key="test-key")
         print("✓ Successfully created AuthManager")
@@ -141,8 +141,8 @@ def test_utilities():
     """Test utility modules"""
     print("Testing utilities...")
     try:
-        from schlep_engine.utils import RetryConfig, RetryStrategy
-        from schlep_engine.utils.logging import setup_logging, get_logger
+        from igris.utils import RetryConfig, RetryStrategy
+        from igris.utils.logging import setup_logging, get_logger
         
         # Test retry config
         retry_config = RetryConfig(max_retries=3)
@@ -161,7 +161,7 @@ def test_utilities():
 def main():
     """Run all tests"""
     print("=" * 60)
-    print("Schlep-engine Python SDK Installation Test")
+    print("Igris-engine Python SDK Installation Test")
     print("=" * 60)
     print(f"Python version: {sys.version}")
     print("=" * 60)
@@ -197,16 +197,16 @@ def main():
     if passed == total:
         print("🎉 All tests passed! The SDK is ready to use.")
         print("\nNext steps:")
-        print("1. Get your API key from https://app.schlep-engine.com/settings/api-keys")
+        print("1. Get your API key from https://app.igris-inertial.com/settings/api-keys")
         print("2. Check out the examples in the examples/ directory")
-        print("3. Read the documentation at https://docs.schlep-engine.com/sdk/python")
+        print("3. Read the documentation at https://docs.igris-inertial.com/sdk/python")
         return 0
     else:
         print("❌ Some tests failed. Please check your installation.")
         print("\nTroubleshooting:")
-        print("1. Make sure you installed the package: pip install schlep-engine")
+        print("1. Make sure you installed the package: pip install igris-inertial")
         print("2. Check for missing dependencies: pip install httpx aiohttp pydantic")
-        print("3. Try reinstalling: pip uninstall schlep-engine && pip install schlep-engine")
+        print("3. Try reinstalling: pip uninstall igris-inertial && pip install igris-inertial")
         return 1
 
 

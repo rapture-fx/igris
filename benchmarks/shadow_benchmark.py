@@ -1,6 +1,6 @@
 #!/usr/bin/env python3
 """
-Schlep-Engine Shadow Benchmark
+Igris Inertial Shadow Benchmark
 Runs 1000 inference requests across OpenAI and Anthropic providers
 Collects metrics for latency, cost, provider selection, and errors
 """
@@ -301,8 +301,8 @@ class BenchmarkRunner:
 def main():
     import argparse
 
-    parser = argparse.ArgumentParser(description='Schlep-Engine Shadow Benchmark')
-    parser.add_argument('--url', default='http://localhost:8081', help='Base URL of Schlep-Engine API')
+    parser = argparse.ArgumentParser(description='Igris Inertial Shadow Benchmark')
+    parser.add_argument('--url', default='http://localhost:8081', help='Base URL of Igris Inertial API')
     parser.add_argument('--requests', type=int, default=1000, help='Number of requests to send')
     parser.add_argument('--output', default='benchmarks/results/shadow_benchmark_v1.json', help='Output file for results')
     parser.add_argument('--concurrent', action='store_true', help='Run concurrent benchmark')
@@ -331,7 +331,7 @@ def main():
             print(f"\n⚠️  API returned status {response.status_code}")
     except Exception as e:
         print(f"\n❌ Cannot reach API: {e}")
-        print("Please ensure the Schlep-Engine API is running")
+        print("Please ensure the Igris Inertial API is running")
         sys.exit(1)
 
     # Run benchmark

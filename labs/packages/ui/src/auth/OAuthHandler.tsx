@@ -12,7 +12,7 @@ import type {
   OAuthAuthorizationUrl, 
   OAuthCallbackRequest,
   AuthError 
-} from '@schlep-engine/types/auth'
+} from '@igris-inertial/types/auth'
 
 interface OAuthHandlerProps {
   provider: OAuthProvider

@@ -156,16 +156,16 @@ sync_python_sdk() {
     
     # Add custom __init__.py with convenience imports
     cat > "$existing_dir/igris_overture/__init__.py" << 'EOF'
-"""Schlep-engine Python SDK
+"""Igris-engine Python SDK
 
-A comprehensive Python client library for the Schlep-engine API.
+A comprehensive Python client library for the Igris-engine API.
 Combines generated OpenAPI client with custom enhancements.
 """
 
 __version__ = "2.0.0"
 
 # Import generated client
-from .client.main import SchlepEngineClient
+from .client.main import IgrisClient
 from .api_client import ApiClient
 from .configuration import Configuration
 
@@ -180,7 +180,7 @@ except ImportError:
 
 # Convenience exports
 __all__ = [
-    'SchlepEngineClient',
+    'IgrisClient',
     'ApiClient', 
     'Configuration',
     'AuthManager',
@@ -274,7 +274,7 @@ sync_typescript_sdk() {
     # Add custom index.ts with enhanced exports
     cat > "$existing_dir/src/index.ts" << 'EOF'
 /**
- * Schlep-engine TypeScript/JavaScript SDK
+ * Igris-engine TypeScript/JavaScript SDK
  * 
  * A comprehensive client library combining generated OpenAPI client
  * with custom enhancements for better developer experience.
@@ -291,8 +291,8 @@ export { RetryConfig } from './utils/retry';
 export { RateLimiter } from './utils/rate-limiter';
 
 // Default export
-import { SchlepEngineClient } from './client/igris-inertial';
-export default SchlepEngineClient;
+import { IgrisClient } from './client/igris-inertial';
+export default IgrisClient;
 EOF
     
     log_success "TypeScript SDK synced successfully"

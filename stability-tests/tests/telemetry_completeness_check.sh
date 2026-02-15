@@ -1,6 +1,6 @@
 #!/bin/bash
 #
-# Schlep-Engine Telemetry Completeness Check
+# Igris Inertial Telemetry Completeness Check
 # Validates presence of all required Prometheus metrics
 #
 # Usage: ./telemetry_completeness_check.sh [METRICS_URL]
@@ -22,25 +22,25 @@ echo "Metrics URL: $METRICS_URL"
 echo "========================================="
 echo
 
-# Define required Schlep-specific metrics
+# Define required Igris-specific metrics
 REQUIRED_METRICS=(
-    "schlep_routing_latency_seconds"
-    "schlep_provider_latency_seconds"
-    "schlep_provider_requests_total"
-    "schlep_telemetry_recorded_total"
-    "schlep_telemetry_errors_total"
-    "schlep_telemetry_dropped_total"
-    "schlep_circuit_breaker_state"
+    "igris_routing_latency_seconds"
+    "igris_provider_latency_seconds"
+    "igris_provider_requests_total"
+    "igris_telemetry_recorded_total"
+    "igris_telemetry_errors_total"
+    "igris_telemetry_dropped_total"
+    "igris_circuit_breaker_state"
 )
 
 # Phase 1: Cost visibility metrics
 PHASE1_COST_METRICS=(
-    "schlep_estimated_cost_usd_total"
-    "schlep_forecast_requests_total"
-    "schlep_provider_cost_ratio"
-    "schlep_cost_per_token"
-    "schlep_request_cost_usd"
-    "schlep_cost_forecast_accuracy"
+    "igris_estimated_cost_usd_total"
+    "igris_forecast_requests_total"
+    "igris_provider_cost_ratio"
+    "igris_cost_per_token"
+    "igris_request_cost_usd"
+    "igris_cost_forecast_accuracy"
 )
 
 # Also check for standard metrics that should be present
@@ -70,8 +70,8 @@ fi
 echo "✓ Successfully fetched metrics ($(echo "$METRICS_CONTENT" | wc -l) lines)"
 echo
 
-# Check for required Schlep metrics
-echo "[2/4] Checking required Schlep-specific metrics..."
+# Check for required Igris metrics
+echo "[2/4] Checking required Igris-specific metrics..."
 MISSING_SCHLEP_METRICS=()
 PRESENT_SCHLEP_METRICS=()
 
@@ -86,7 +86,7 @@ for metric in "${REQUIRED_METRICS[@]}"; do
 done
 
 echo
-echo "Schlep metrics found: ${#PRESENT_SCHLEP_METRICS[@]}/${#REQUIRED_METRICS[@]}"
+echo "Igris metrics found: ${#PRESENT_SCHLEP_METRICS[@]}/${#REQUIRED_METRICS[@]}"
 
 # Check for Phase 1 cost metrics
 echo
@@ -148,8 +148,8 @@ RECOMMENDATIONS=()
 
 if [ ${#MISSING_SCHLEP_METRICS[@]} -gt 0 ]; then
     PASS_FAIL="FAIL"
-    STATUS_MESSAGE="Missing critical Schlep-specific metrics"
-    RECOMMENDATIONS+=("Implement missing Schlep-specific metrics: ${MISSING_SCHLEP_METRICS[*]}")
+    STATUS_MESSAGE="Missing critical Igris-specific metrics"
+    RECOMMENDATIONS+=("Implement missing Igris-specific metrics: ${MISSING_SCHLEP_METRICS[*]}")
     RECOMMENDATIONS+=("Review internal/observability/metrics.go for metric definitions")
 fi
 
@@ -184,7 +184,7 @@ cat > "$OUTPUT_FILE" <<EOF
   "pass_fail": "$PASS_FAIL",
   "metrics_url": "$METRICS_URL",
   "total_metrics_exposed": $TOTAL_METRICS,
-  "required_schlep_metrics": {
+  "required_igris_metrics": {
     "total": ${#REQUIRED_METRICS[@]},
     "present": ${#PRESENT_SCHLEP_METRICS[@]},
     "missing": ${#MISSING_SCHLEP_METRICS[@]},
@@ -214,7 +214,7 @@ echo "========================================="
 echo "Status: $PASS_FAIL"
 echo "Message: $STATUS_MESSAGE"
 echo
-echo "Required Schlep Metrics:"
+echo "Required Igris Metrics:"
 echo "  Present: ${#PRESENT_SCHLEP_METRICS[@]}/${#REQUIRED_METRICS[@]}"
 if [ ${#MISSING_SCHLEP_METRICS[@]} -gt 0 ]; then
     echo "  Missing: ${MISSING_SCHLEP_METRICS[*]}"

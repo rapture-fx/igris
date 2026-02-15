@@ -1,6 +1,6 @@
-# Schlep-engine Ruby SDK - API Documentation
+# Igris-engine Ruby SDK - API Documentation
 
-Complete API documentation for the Schlep-engine Ruby SDK.
+Complete API documentation for the Igris-engine Ruby SDK.
 
 ## Table of Contents
 
@@ -39,11 +39,11 @@ gem install igris_overture
 require 'igris_overture'
 
 # Initialize client with API key
-client = Schlep::Engine::Client.new('your-api-key')
+client = Igris::Engine::Client.new('your-api-key')
 
 # Or use environment variable
-ENV['SCHLEP_API_KEY'] = 'your-api-key'
-client = Schlep::Engine::Client.from_env
+ENV['IGRIS_API_KEY'] = 'your-api-key'
+client = Igris::Engine::Client.from_env
 
 # Process data
 result = client.data.process_file('data.csv')
@@ -623,23 +623,23 @@ The SDK provides custom exception classes for different error types:
 ```ruby
 begin
   client.data.process_file('invalid.csv')
-rescue Schlep::Engine::ApiError => e
+rescue Igris::Engine::ApiError => e
   puts "API Error (#{e.status_code}): #{e.message}"
-rescue Schlep::Engine::NetworkError => e
+rescue Igris::Engine::NetworkError => e
   puts "Network Error: #{e.message}"
-rescue Schlep::Engine::ConfigurationError => e
+rescue Igris::Engine::ConfigurationError => e
   puts "Configuration Error: #{e.message}"
-rescue Schlep::Engine::Error => e
+rescue Igris::Engine::Error => e
   puts "General Error: #{e.message}"
 end
 ```
 
 ### Error Types
 
-- `Schlep::Engine::Error` - Base error class
-- `Schlep::Engine::ApiError` - API returned an error (includes status code)
-- `Schlep::Engine::NetworkError` - Network or connection error
-- `Schlep::Engine::ConfigurationError` - Client configuration error
+- `Igris::Engine::Error` - Base error class
+- `Igris::Engine::ApiError` - API returned an error (includes status code)
+- `Igris::Engine::NetworkError` - Network or connection error
+- `Igris::Engine::ConfigurationError` - Client configuration error
 
 ## Response Types
 
@@ -674,7 +674,7 @@ All response types inherit from `BaseResponse` and provide attribute accessors f
 ### Custom Base URL
 
 ```ruby
-client = Schlep::Engine::Client.new(
+client = Igris::Engine::Client.new(
   'api-key',
   base_url: 'https://custom.api.example.com/v1'
 )
@@ -683,8 +683,8 @@ client = Schlep::Engine::Client.new(
 ### Environment Variables
 
 ```ruby
-ENV['SCHLEP_API_KEY'] = 'your-api-key'
-client = Schlep::Engine::Client.from_env
+ENV['IGRIS_API_KEY'] = 'your-api-key'
+client = Igris::Engine::Client.from_env
 ```
 
 ### Pagination

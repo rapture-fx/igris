@@ -42,8 +42,8 @@
 //!
 //! # Usage Example
 //! ```rust,no_run
-//! use schlep_kernel::cognitive::{ProposalEngine, ProposalEngineConfig};
-//! use schlep_kernel::cognitive::{ProposalInput, TelemetrySnapshot};
+//! use igris_kernel::cognitive::{ProposalEngine, ProposalEngineConfig};
+//! use igris_kernel::cognitive::{ProposalInput, TelemetrySnapshot};
 //!
 //! let config = ProposalEngineConfig::default();
 //! let engine = ProposalEngine::new(config)?;

@@ -1,6 +1,6 @@
-# Schlep CLI
+# Igris CLI
 
-Official command-line interface for Schlep-engine - Intelligent AI routing and cost optimization.
+Official command-line interface for Igris-engine - Intelligent AI routing and cost optimization.
 
 ## Installation
 
@@ -12,76 +12,76 @@ pip install -e .
 pip install -r requirements.txt
 ```
 
-After installation, the `schlep` command will be available globally.
+After installation, the `igris` command will be available globally.
 
 ## Quick Start
 
 ```bash
 # Configure CLI with your API endpoint
-schlep login --url http://localhost:8081
+igris login --url http://localhost:8081
 
 # Make an inference request
-schlep infer --prompt "Hello, world!"
+igris infer --prompt "Hello, world!"
 
 # List available models
-schlep models
+igris models
 ```
 
 ## Commands
 
-### `schlep login`
+### `igris login`
 
-Configure Schlep CLI with API endpoint.
+Configure Igris CLI with API endpoint.
 
 ```bash
 # Connect to local instance
-schlep login --url http://localhost:8081
+igris login --url http://localhost:8081
 
 # Connect to remote instance with API key
-schlep login --url https://api.schlep.com --api-key sk-xxx
+igris login --url https://api.igris-inertial.com --api-key sk-xxx
 ```
 
 **Options:**
 - `--url`: API base URL (default: http://localhost:8081)
 - `--api-key`: Optional API key for authentication
 
-### `schlep add-key`
+### `igris add-key`
 
 Add a provider API key to your local vault.
 
 ```bash
 # Add OpenAI API key
-schlep add-key --provider openai --key sk-...
+igris add-key --provider openai --key sk-...
 
 # Add Anthropic API key
-schlep add-key --provider anthropic --key sk-ant-...
+igris add-key --provider anthropic --key sk-ant-...
 
 # Add other providers
-schlep add-key --provider cohere --key <your-key>
+igris add-key --provider cohere --key <your-key>
 ```
 
 **Options:**
 - `--provider`: Provider name (required)
 - `--key`: Provider API key (required)
 
-Keys are stored securely in `~/.schlep/config.json` with restrictive file permissions (0600).
+Keys are stored securely in `~/.igris/config.json` with restrictive file permissions (0600).
 
-### `schlep infer`
+### `igris infer`
 
-Make an inference request using Schlep-engine.
+Make an inference request using Igris-engine.
 
 ```bash
 # Basic inference
-schlep infer --prompt "Hello, world!"
+igris infer --prompt "Hello, world!"
 
 # Specify model
-schlep infer --prompt "Explain quantum computing" --model claude-3-opus
+igris infer --prompt "Explain quantum computing" --model claude-3-opus
 
 # Control output
-schlep infer --prompt "Write a poem" --max-tokens 100 --temperature 0.8
+igris infer --prompt "Write a poem" --max-tokens 100 --temperature 0.8
 
 # Get raw JSON output
-schlep infer --prompt "Test" --json-output
+igris infer --prompt "Test" --json-output
 ```
 
 **Options:**
@@ -91,36 +91,36 @@ schlep infer --prompt "Test" --json-output
 - `--temperature`: Sampling temperature (0.0 to 2.0)
 - `--json-output`: Output raw JSON response
 
-### `schlep models`
+### `igris models`
 
 List available models.
 
 ```bash
 # List models
-schlep models
+igris models
 
 # Get raw JSON output
-schlep models --json-output
+igris models --json-output
 ```
 
-### `schlep metrics`
+### `igris metrics`
 
 View usage metrics and statistics.
 
 ```bash
 # View metrics
-schlep metrics
+igris metrics
 
 # Get raw JSON output
-schlep metrics --json-output
+igris metrics --json-output
 ```
 
-### `schlep config`
+### `igris config`
 
 Show current configuration.
 
 ```bash
-schlep config
+igris config
 ```
 
 This displays:
@@ -131,7 +131,7 @@ This displays:
 
 ## Configuration
 
-The CLI stores configuration in `~/.schlep/config.json`:
+The CLI stores configuration in `~/.igris/config.json`:
 
 ```json
 {
@@ -152,47 +152,47 @@ The config directory and file have restrictive permissions (700 and 600 respecti
 
 ```bash
 # 1. Configure CLI
-schlep login --url http://localhost:8081
+igris login --url http://localhost:8081
 
 # 2. Add provider keys (for BYOK)
-schlep add-key --provider openai --key sk-...
-schlep add-key --provider anthropic --key sk-ant-...
+igris add-key --provider openai --key sk-...
+igris add-key --provider anthropic --key sk-ant-...
 
 # 3. Test inference
-schlep infer --prompt "Hello!"
+igris infer --prompt "Hello!"
 
 # 4. Check available models
-schlep models
+igris models
 
 # 5. View configuration
-schlep config
+igris config
 ```
 
 ### Different Models
 
 ```bash
 # Use GPT-4
-schlep infer -p "Explain AI" -m gpt-4
+igris infer -p "Explain AI" -m gpt-4
 
 # Use Claude
-schlep infer -p "Explain AI" -m claude-3-opus-20240229
+igris infer -p "Explain AI" -m claude-3-opus-20240229
 
 # Use GPT-3.5 Turbo
-schlep infer -p "Explain AI" -m gpt-3.5-turbo
+igris infer -p "Explain AI" -m gpt-3.5-turbo
 ```
 
 ### Advanced Inference
 
 ```bash
 # Long-form content generation
-schlep infer \
+igris infer \
   --prompt "Write a detailed explanation of machine learning" \
   --model gpt-4 \
   --max-tokens 500 \
   --temperature 0.7
 
 # Code generation with low temperature
-schlep infer \
+igris infer \
   --prompt "Write a Python function to calculate fibonacci numbers" \
   --model claude-3-opus \
   --temperature 0.2
@@ -202,11 +202,11 @@ schlep infer \
 
 ```bash
 # Get raw JSON for parsing
-response=$(schlep infer -p "Hello" --json-output)
+response=$(igris infer -p "Hello" --json-output)
 echo "$response" | jq '.choices[0].message.content'
 
 # Check models programmatically
-models=$(schlep models --json-output)
+models=$(igris models --json-output)
 echo "$models" | jq '.data[].id'
 ```
 
@@ -230,7 +230,7 @@ If you can't connect to the API:
 curl http://localhost:8081/v1/health
 
 # Check if the API is running
-schlep config  # Check your base_url
+igris config  # Check your base_url
 ```
 
 ### API Key Issues
@@ -239,10 +239,10 @@ If you're getting authentication errors:
 
 ```bash
 # Verify your API key is set
-schlep config
+igris config
 
 # Re-login with correct credentials
-schlep login --url <your-url> --api-key <your-key>
+igris login --url <your-url> --api-key <your-key>
 ```
 
 ### Permission Issues
@@ -251,8 +251,8 @@ If you get permission errors with the config file:
 
 ```bash
 # Fix permissions
-chmod 700 ~/.schlep
-chmod 600 ~/.schlep/config.json
+chmod 700 ~/.igris
+chmod 600 ~/.igris/config.json
 ```
 
 ## Development
@@ -262,12 +262,12 @@ chmod 600 ~/.schlep/config.json
 pip install -e .
 
 # Run CLI directly
-python -m schlep_cli.main --help
+python -m igris_cli.main --help
 ```
 
 ## Security
 
-- All credentials are stored locally in `~/.schlep/config.json`
+- All credentials are stored locally in `~/.igris/config.json`
 - File permissions are automatically set to 600 (owner read/write only)
 - Config directory permissions are set to 700 (owner access only)
 - API keys are masked when displayed in the terminal

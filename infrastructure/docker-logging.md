@@ -1,8 +1,8 @@
-# Docker Logging Configuration for Schlep-Engine
+# Docker Logging Configuration for Igris Inertial
 
 ## Overview
 
-Docker containers generate logs that, if unrotated, can consume all available disk space. This document describes log rotation strategies for Schlep-Engine containers.
+Docker containers generate logs that, if unrotated, can consume all available disk space. This document describes log rotation strategies for Igris Inertial containers.
 
 ---
 
@@ -76,7 +76,7 @@ services:
   @type elasticsearch
   host elasticsearch
   port 9200
-  index_name schlep-logs
+  index_name igris-logs
   type_name _doc
 
   <buffer>

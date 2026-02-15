@@ -185,18 +185,18 @@ func (t *HFTokenizer) initSpecialTokens(config TokenizerConfig) {
 // initMetrics initializes Prometheus metrics
 func (t *HFTokenizer) initMetrics() {
 	t.tokenizationLatency = promauto.NewHistogram(prometheus.HistogramOpts{
-		Name:    "schlep_tokenizer_latency_ms",
+		Name:    "igris_tokenizer_latency_ms",
 		Help:    "HuggingFace tokenizer latency in milliseconds",
 		Buckets: prometheus.ExponentialBuckets(0.1, 2, 10), // 0.1ms to 51.2ms
 	})
 
 	t.tokenizationCount = promauto.NewCounter(prometheus.CounterOpts{
-		Name: "schlep_tokenizer_count_total",
+		Name: "igris_tokenizer_count_total",
 		Help: "Total number of tokenization operations",
 	})
 
 	t.fallbackCount = promauto.NewCounter(prometheus.CounterOpts{
-		Name: "schlep_tokenizer_fallback_total",
+		Name: "igris_tokenizer_fallback_total",
 		Help: "Total number of tokenizer fallbacks to simple tokenizer",
 	})
 }
@@ -403,7 +403,8 @@ func (t *HFTokenizer) Close() error {
 
 func isWhitespace(char rune) bool {
 	return char == ' ' || char == '	' || char == '
-' || char == ''
+' || char == '
+'
 }
 
 func isPunctuation(char rune) bool {

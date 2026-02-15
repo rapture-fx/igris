@@ -10,13 +10,13 @@ from unittest.mock import AsyncMock, MagicMock, patch
 from aiohttp import web
 from aiohttp.test_utils import AioHTTPTestCase, unittest_mock_server
 
-from schlep_engine import SchlepEngineClient
-from schlep_engine.models.auth import TokenResponse, UserInfo
-from schlep_engine.exceptions.base import RateLimitError, AuthenticationError, ValidationError
+from igris import IgrisClient
+from igris.models.auth import TokenResponse, UserInfo
+from igris.exceptions.base import RateLimitError, AuthenticationError, ValidationError
 
 
-class MockSchlepEngineServer:
-    """Mock server that simulates Schlep Engine API behavior."""
+class MockIgrisServer:
+    """Mock server that simulates Igris Inertial API behavior."""
     
     def __init__(self):
         self.users = {}
@@ -240,7 +240,7 @@ class TestIntegrationFlows:
     @pytest.mark.asyncio
     async def test_login_flow_success(self):
         """Test complete login flow with mock server."""
-        mock_server = MockSchlepEngineServer()
+        mock_server = MockIgrisServer()
         
         # Mock the HTTP client requests
         async def mock_post(path, **kwargs):
@@ -248,7 +248,7 @@ class TestIntegrationFlows:
                 return await mock_server.login(MagicMock(json=AsyncMock(return_value=kwargs["json"])))
             return {"error": "Not found"}
         
-        client = SchlepEngineClient(base_url="http://test-server")
+        client = IgrisClient(base_url="http://test-server")
         
         with patch.object(client.http_client, 'post', side_effect=mock_post):
             # Test successful login
@@ -268,7 +268,7 @@ class TestIntegrationFlows:
     @pytest.mark.asyncio
     async def test_login_flow_failure(self):
         """Test login flow with invalid credentials."""
-        mock_server = MockSchlepEngineServer()
+        mock_server = MockIgrisServer()
         
         async def mock_post(path, **kwargs):
             if path == "/auth/login":
@@ -277,12 +277,12 @@ class TestIntegrationFlows:
                 mock_request.json = AsyncMock(return_value={"email": "test@example.com", "password": "wrong"})
                 response_data = await mock_server.login(mock_request)
                 if response_data.status == 401:
-                    from schlep_engine.exceptions.base import AuthenticationError
+                    from igris.exceptions.base import AuthenticationError
                     raise AuthenticationError("Invalid credentials")
                 return response_data
             return {"error": "Not found"}
         
-        client = SchlepEngineClient(base_url="http://test-server")
+        client = IgrisClient(base_url="http://test-server")
         
         with patch.object(client.http_client, 'post', side_effect=mock_post):
             with pytest.raises(AuthenticationError, match="Invalid credentials"):
@@ -293,7 +293,7 @@ class TestIntegrationFlows:
     @pytest.mark.asyncio
     async def test_token_refresh_flow(self):
         """Test automatic token refresh flow."""
-        mock_server = MockSchlepEngineServer()
+        mock_server = MockIgrisServer()
         
         async def mock_post(path, **kwargs):
             if path == "/auth/refresh":
@@ -302,7 +302,7 @@ class TestIntegrationFlows:
                 return await mock_server.refresh(mock_request)
             return {"error": "Not found"}
         
-        client = SchlepEngineClient(base_url="http://test-server")
+        client = IgrisClient(base_url="http://test-server")
         
         # Set up a token that expires soon
         expires_soon_token = TokenResponse(
@@ -328,7 +328,7 @@ class TestIntegrationFlows:
     @pytest.mark.asyncio
     async def test_api_key_authentication_flow(self):
         """Test API key authentication flow."""
-        mock_server = MockSchlepEngineServer()
+        mock_server = MockIgrisServer()
         
         async def mock_get(path, **kwargs):
             if path == "/api/protected":
@@ -338,7 +338,7 @@ class TestIntegrationFlows:
                 return json.loads(response.text)
             return {"error": "Not found"}
         
-        client = SchlepEngineClient(api_key="test-api-key", base_url="http://test-server")
+        client = IgrisClient(api_key="test-api-key", base_url="http://test-server")
         
         with patch.object(client.http_client, 'get', side_effect=mock_get):
             # Test authenticated request
@@ -353,7 +353,7 @@ class TestIntegrationFlows:
     @pytest.mark.asyncio
     async def test_rate_limiting_flow(self):
         """Test rate limiting and backoff flow."""
-        mock_server = MockSchlepEngineServer()
+        mock_server = MockIgrisServer()
         
         # Set rate limit to very low for testing
         mock_server.rate_limit_remaining = 2
@@ -370,7 +370,7 @@ class TestIntegrationFlows:
                 return json.loads(response.text)
             return {"error": "Not found"}
         
-        client = SchlepEngineClient(
+        client = IgrisClient(
             api_key="test-api-key", 
             base_url="http://test-server"
         )
@@ -395,7 +395,7 @@ class TestIntegrationFlows:
     @pytest.mark.asyncio
     async def test_validation_flow_success(self):
         """Test input validation flow with valid data."""
-        mock_server = MockSchlepEngineServer()
+        mock_server = MockIgrisServer()
         
         async def mock_post(path, **kwargs):
             if path == "/api/validate":
@@ -405,7 +405,7 @@ class TestIntegrationFlows:
                 return json.loads(response.text)
             return {"error": "Not found"}
         
-        client = SchlepEngineClient(
+        client = IgrisClient(
             api_key="test-api-key", 
             base_url="http://test-server"
         )
@@ -427,7 +427,7 @@ class TestIntegrationFlows:
     @pytest.mark.asyncio
     async def test_validation_flow_failure(self):
         """Test input validation flow with invalid data."""
-        mock_server = MockSchlepEngineServer()
+        mock_server = MockIgrisServer()
         
         async def mock_post(path, **kwargs):
             if path == "/api/validate":
@@ -437,7 +437,7 @@ class TestIntegrationFlows:
                 
                 if response.status == 422:
                     response_data = json.loads(response.text)
-                    from schlep_engine.exceptions.base import ValidationError
+                    from igris.exceptions.base import ValidationError
                     raise ValidationError(
                         response_data["error"],
                         validation_errors=response_data["validation_errors"]
@@ -446,7 +446,7 @@ class TestIntegrationFlows:
                 return json.loads(response.text)
             return {"error": "Not found"}
         
-        client = SchlepEngineClient(
+        client = IgrisClient(
             api_key="test-api-key", 
             base_url="http://test-server"
         )
@@ -471,7 +471,7 @@ class TestIntegrationFlows:
     @pytest.mark.asyncio
     async def test_end_to_end_authenticated_flow(self):
         """Test complete end-to-end authenticated flow."""
-        mock_server = MockSchlepEngineServer()
+        mock_server = MockIgrisServer()
         
         login_called = False
         protected_called = False
@@ -495,7 +495,7 @@ class TestIntegrationFlows:
             
             return {"error": "Not found"}
         
-        client = SchlepEngineClient(base_url="http://test-server")
+        client = IgrisClient(base_url="http://test-server")
         
         # Mock both post and get methods
         with patch.object(client.http_client, 'post') as mock_post:
@@ -521,7 +521,7 @@ class TestIntegrationFlows:
     @pytest.mark.asyncio
     async def test_connection_pooling_behavior(self):
         """Test that connection pooling is working correctly."""
-        client = SchlepEngineClient(api_key="test-api-key", base_url="http://test-server")
+        client = IgrisClient(api_key="test-api-key", base_url="http://test-server")
         
         # Mock successful responses
         async def mock_get(path, **kwargs):
@@ -544,17 +544,17 @@ class TestIntegrationFlows:
     @pytest.mark.asyncio
     async def test_secure_storage_integration(self):
         """Test secure storage integration in real scenario."""
-        with patch('schlep_engine.auth.token_storage.HAS_KEYRING', True):
+        with patch('igris.auth.token_storage.HAS_KEYRING', True):
             mock_keyring = MagicMock()
             
-            with patch('schlep_engine.auth.token_storage.keyring', mock_keyring):
-                client = SchlepEngineClient(base_url="http://test-server")
+            with patch('igris.auth.token_storage.keyring', mock_keyring):
+                client = IgrisClient(base_url="http://test-server")
                 
                 # Test saving API key securely
                 client.auth.save_api_key_securely("super-secret-key", "production")
                 
                 mock_keyring.set_password.assert_called_once_with(
-                    "schlep-engine-api-key",
+                    "igris-inertial-api-key",
                     "production", 
                     "super-secret-key"
                 )
@@ -565,7 +565,7 @@ class TestIntegrationFlows:
                 
                 assert loaded_key == "loaded-secret-key"
                 mock_keyring.get_password.assert_called_with(
-                    "schlep-engine-api-key",
+                    "igris-inertial-api-key",
                     "production"
                 )
         

@@ -1,10 +1,10 @@
 ---
-title: Schlep Engine Distributed Tracing Flow
+title: Igris Inertial Distributed Tracing Flow
 ---
 
 %% Simplified Distributed Tracing Architecture
 flowchart TD
-    Client[Client POST /v1/infer] --> API[Schlep API Middleware]
+    Client[Client POST /v1/infer] --> API[Igris API Middleware]
     API --> Tracer[Start Trace<br/>Generate TraceID]
     
     %% Inference Flow  

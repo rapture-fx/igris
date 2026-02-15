@@ -1,6 +1,6 @@
-//! Storage API client for Schlep-engine.
+//! Storage API client for Igris-engine.
 
-use crate::client::SchlepClient;
+use crate::client::IgrisClient;
 use crate::error::Result;
 use crate::types::{FileMetadata, FileUploadResponse, ListParams};
 
@@ -8,12 +8,12 @@ use crate::types::{FileMetadata, FileUploadResponse, ListParams};
 ///
 /// Provides methods for uploading, downloading, listing, and deleting files.
 pub struct StorageClient<'a> {
-    client: &'a SchlepClient,
+    client: &'a IgrisClient,
 }
 
 impl<'a> StorageClient<'a> {
     /// Create a new Storage API client.
-    pub fn new(client: &'a SchlepClient) -> Self {
+    pub fn new(client: &'a IgrisClient) -> Self {
         Self { client }
     }
 
@@ -27,10 +27,10 @@ impl<'a> StorageClient<'a> {
     /// # Example
     ///
     /// ```rust,no_run
-    /// # use schlep_engine::{SchlepClient, Result};
+    /// # use igris::{IgrisClient, Result};
     /// # #[tokio::main]
     /// # async fn main() -> Result<()> {
-    /// # let client = SchlepClient::new("your-api-key")?;
+    /// # let client = IgrisClient::new("your-api-key")?;
     /// let file_data = std::fs::read("data.csv")?;
     /// let result = client.storage()
     ///     .upload_file(&file_data, "data.csv").await?;
@@ -64,10 +64,10 @@ impl<'a> StorageClient<'a> {
     /// # Example
     ///
     /// ```rust,no_run
-    /// # use schlep_engine::{SchlepClient, Result};
+    /// # use igris::{IgrisClient, Result};
     /// # #[tokio::main]
     /// # async fn main() -> Result<()> {
-    /// # let client = SchlepClient::new("your-api-key")?;
+    /// # let client = IgrisClient::new("your-api-key")?;
     /// let file_data = client.storage()
     ///     .download_file("file_123").await?;
     /// std::fs::write("downloaded.csv", file_data)?;
@@ -89,10 +89,10 @@ impl<'a> StorageClient<'a> {
     /// # Example
     ///
     /// ```rust,no_run
-    /// # use schlep_engine::{SchlepClient, Result, ListParams};
+    /// # use igris::{IgrisClient, Result, ListParams};
     /// # #[tokio::main]
     /// # async fn main() -> Result<()> {
-    /// # let client = SchlepClient::new("your-api-key")?;
+    /// # let client = IgrisClient::new("your-api-key")?;
     /// let files = client.storage().list_files(None).await?;
     /// for file in files {
     ///     println!("File: {} ({})", file.filename, file.file_id);
@@ -132,10 +132,10 @@ impl<'a> StorageClient<'a> {
     /// # Example
     ///
     /// ```rust,no_run
-    /// # use schlep_engine::{SchlepClient, Result};
+    /// # use igris::{IgrisClient, Result};
     /// # #[tokio::main]
     /// # async fn main() -> Result<()> {
-    /// # let client = SchlepClient::new("your-api-key")?;
+    /// # let client = IgrisClient::new("your-api-key")?;
     /// client.storage().delete_file("file_123").await?;
     /// # Ok(())
     /// # }

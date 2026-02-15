@@ -1,5 +1,5 @@
 /**
- * Streaming manager for Schlep-engine JavaScript SDK
+ * Streaming manager for Igris-engine JavaScript SDK
  * Provides high-level interface for real-time data streaming and events
  */
 

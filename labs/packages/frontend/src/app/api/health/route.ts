@@ -6,7 +6,7 @@ export async function GET() {
     const healthStatus = {
       status: 'healthy',
       timestamp: new Date().toISOString(),
-      service: 'schlep-engine-frontend',
+      service: 'igris-inertial-frontend',
       version: process.env.npm_package_version || 'unknown',
       environment: process.env.NODE_ENV || 'development',
       uptime: process.uptime(),

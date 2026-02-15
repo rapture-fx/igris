@@ -1,7 +1,7 @@
 -- Migration: 010_add_budget_fields_to_tenants
 -- Description: Add cost budget tracking and enforcement fields to tenants table
 -- Purpose: Enable real-time cost budget enforcement with soft/hard limits
--- Author: Schlep-Engine Team
+-- Author: Igris Inertial Team
 -- Date: 2025-11-10
 -- Phase: 5.3 - Feature Gap Closure
 -- Dependencies: 008_add_tier_column_to_tenants.sql

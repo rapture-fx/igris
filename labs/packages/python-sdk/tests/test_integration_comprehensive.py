@@ -1,5 +1,5 @@
 """
-Comprehensive integration tests for Schlep-engine Python SDK
+Comprehensive integration tests for Igris-engine Python SDK
 
 These tests verify integration with real API endpoints and cross-SDK compatibility.
 They should only be run in integration test environments with proper API keys.
@@ -13,10 +13,10 @@ import json
 from pathlib import Path
 from datetime import datetime, timedelta
 
-from schlep_engine import SchlepEngineClient
-from schlep_engine.models.data import JobStatus, ExportFormat
-from schlep_engine.models.ml import MLJobStatus
-from schlep_engine.exceptions.base import APIError, ValidationError
+from igris import IgrisClient
+from igris.models.data import JobStatus, ExportFormat
+from igris.models.ml import MLJobStatus
+from igris.exceptions.base import APIError, ValidationError
 
 
 # Integration test markers
@@ -26,13 +26,13 @@ pytestmark = pytest.mark.integration
 @pytest.fixture(scope="session")
 def integration_client():
     """Create client for integration tests."""
-    api_key = os.getenv("SCHLEP_ENGINE_API_KEY")
-    base_url = os.getenv("SCHLEP_ENGINE_BASE_URL", "https://api.schlep-engine.com")
+    api_key = os.getenv("IGRIS_API_KEY")
+    base_url = os.getenv("IGRIS_BASE_URL", "https://api.igris-inertial.com")
     
     if not api_key:
-        pytest.skip("Integration tests require SCHLEP_ENGINE_API_KEY environment variable")
+        pytest.skip("Integration tests require IGRIS_API_KEY environment variable")
     
-    return SchlepEngineClient(api_key=api_key, base_url=base_url)
+    return IgrisClient(api_key=api_key, base_url=base_url)
 
 
 @pytest.fixture
@@ -288,7 +288,7 @@ class TestWebSocketIntegration:
         """Test WebSocket connection and real-time messaging."""
         # This test requires WebSocket endpoint to be available
         try:
-            from schlep_engine.websocket.streaming_client import StreamingClient
+            from igris.websocket.streaming_client import StreamingClient
             
             config = {
                 'url': f"wss://{integration_client.base_url.replace('https://', '').replace('http://', '')}/stream",
@@ -527,7 +527,7 @@ class TestErrorScenarios:
     async def test_invalid_authentication(self, integration_client):
         """Test behavior with invalid authentication."""
         # Create client with invalid API key
-        invalid_client = SchlepEngineClient(
+        invalid_client = IgrisClient(
             api_key="invalid_api_key_12345",
             base_url=integration_client.base_url
         )
@@ -543,7 +543,7 @@ class TestErrorScenarios:
     async def test_network_timeout_handling(self, integration_client):
         """Test network timeout handling."""
         # Create client with very short timeout
-        timeout_client = SchlepEngineClient(
+        timeout_client = IgrisClient(
             api_key=integration_client.auth_manager.get_auth_headers()['Authorization'].replace('Bearer ', ''),
             base_url=integration_client.base_url,
             timeout=0.001  # Very short timeout
@@ -561,8 +561,8 @@ class TestErrorScenarios:
 def requires_api_key():
     """Decorator to skip tests if API key is not available."""
     return pytest.mark.skipif(
-        not os.getenv("SCHLEP_ENGINE_API_KEY"),
-        reason="Integration tests require SCHLEP_ENGINE_API_KEY environment variable"
+        not os.getenv("IGRIS_API_KEY"),
+        reason="Integration tests require IGRIS_API_KEY environment variable"
     )
 
 

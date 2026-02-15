@@ -1,6 +1,6 @@
-using SchlepEngine.Types;
+using Igris.Types;
 
-namespace SchlepEngine.API;
+namespace Igris.API;
 
 /// <summary>
 /// Client for user operations.
@@ -10,20 +10,20 @@ namespace SchlepEngine.API;
 /// </remarks>
 /// <example>
 /// <code>
-/// var client = new SchlepClient("your-api-key");
+/// var client = new IgrisClient("your-api-key");
 /// var profile = await client.Users.GetProfileAsync();
 /// Console.WriteLine($"User: {profile.Email}");
 /// </code>
 /// </example>
 public class UsersClient
 {
-    private readonly SchlepClient _client;
+    private readonly IgrisClient _client;
 
     /// <summary>
     /// Initializes a new instance of the UsersClient class.
     /// </summary>
-    /// <param name="client">The parent SchlepClient instance.</param>
-    internal UsersClient(SchlepClient client)
+    /// <param name="client">The parent IgrisClient instance.</param>
+    internal UsersClient(IgrisClient client)
     {
         _client = client;
     }

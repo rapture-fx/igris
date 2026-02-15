@@ -10,8 +10,8 @@ export function Footer() {
         <div className="grid lg:grid-cols-4 gap-8 mb-8">
           <div className="lg:col-span-2">
             <div className="flex items-center space-x-2 mb-4">
-              <Logo width={32} height={32} alt="Schlep-engine Logo" />
-              <span className="text-lg font-bold text-gray-900 font-apple">Schlep-engine</span>
+              <Logo width={32} height={32} alt="Igris-engine Logo" />
+              <span className="text-lg font-bold text-gray-900 font-apple">Igris-engine</span>
             </div>
             <p className="text-gray-600 text-sm leading-relaxed max-w-md font-apple">
               The open source data intelligence platform that gives you everything you need to build, deploy, and scale your data applications.
@@ -41,7 +41,7 @@ export function Footer() {
         
         <div className="border-t border-gray-200 pt-6 flex flex-col md:flex-row justify-between items-center w-full">
           <p className="text-gray-600 text-xs font-apple">
-            © 2024 Schlep-engine. All rights reserved.
+            © 2024 Igris-engine. All rights reserved.
           </p>
           <div className="flex items-center space-x-6 mt-3 md:mt-0">
             <Link href="/terms" className="text-gray-600 hover:text-gray-900 transition-colors text-xs font-apple">Terms</Link>

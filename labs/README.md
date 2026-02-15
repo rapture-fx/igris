@@ -1,4 +1,4 @@
-# SCHLEP LABS — ARCHIVED R&D MODULES
+# IGRIS LABS — ARCHIVED R&D MODULES
 
 ⚠️ **IMPORTANT:** **NOTHING in /labs is production-integrated.**
 
@@ -31,7 +31,7 @@ This directory preserves experimental research, prototypes, and archived modules
 ### ✅ SLO Enforcer (2025-11-20)
 - **Old Location:** `labs/research/slo_enforcer/`
 - **New Location:** `rust-core/production_slo_enforcer/`
-- **Production Crate:** `schlep_slo_enforcer` v1.1.0
+- **Production Crate:** `igris_slo_enforcer` v1.1.0
 - **Status:** Production-ready, FFI-integrated, runs every 20s
 
 ## Integration Policy

@@ -1,10 +1,10 @@
-# Schlep-engine .NET SDK
+# Igris-engine .NET SDK
 
 **Status:** 🚧 In Development - Planned for Future Release
 
 ## Overview
 
-The Schlep-engine .NET SDK is currently under development and not yet ready for production use.
+The Igris-engine .NET SDK is currently under development and not yet ready for production use.
 
 ## Planned Features
 
@@ -18,22 +18,22 @@ The Schlep-engine .NET SDK is currently under development and not yet ready for 
 ## Installation (Coming Soon)
 
 ```bash
-dotnet add package Schlep
+dotnet add package Igris
 ```
 
 Or via Package Manager:
 
 ```powershell
-Install-Package Schlep
+Install-Package Igris
 ```
 
 ## Planned Usage
 
 ```csharp
-using Schlep;
-using Schlep.Models;
+using Igris;
+using Igris.Models;
 
-var client = new SchlepClient(new SchlepClientOptions
+var client = new IgrisClient(new IgrisClientOptions
 {
     BaseUrl = "http://localhost:8081",
     ApiKey = "your-api-key"
@@ -56,26 +56,26 @@ Console.WriteLine(response.Choices[0].Message.Content);
 
 ```csharp
 // Startup.cs or Program.cs
-services.AddSchlep(options =>
+services.AddIgris(options =>
 {
-    options.BaseUrl = Configuration["Schlep:BaseUrl"];
-    options.ApiKey = Configuration["Schlep:ApiKey"];
+    options.BaseUrl = Configuration["Igris:BaseUrl"];
+    options.ApiKey = Configuration["Igris:ApiKey"];
 });
 
 // Controller
 public class ChatController : ControllerBase
 {
-    private readonly ISchlepClient _schlepClient;
+    private readonly IIgrisClient _igrisClient;
 
-    public ChatController(ISchlepClient schlepClient)
+    public ChatController(IIgrisClient igrisClient)
     {
-        _schlepClient = schlepClient;
+        _igrisClient = igrisClient;
     }
 
     [HttpPost]
     public async Task<IActionResult> Chat([FromBody] ChatRequest request)
     {
-        var response = await _schlepClient.InferAsync(new InferRequest
+        var response = await _igrisClient.InferAsync(new InferRequest
         {
             Model = "gpt-4",
             Messages = new[] { new Message { Role = "user", Content = request.Message } }
@@ -115,4 +115,4 @@ For questions or to express interest in early access:
 
 ---
 
-**Schlep-engine** - Intelligent AI Routing and Cost Optimization
+**Igris-engine** - Intelligent AI Routing and Cost Optimization

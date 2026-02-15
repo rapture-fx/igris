@@ -23,7 +23,7 @@ var (
 	// Concurrent request metrics
 	concurrentRequestsGauge = promauto.NewGaugeVec(
 		prometheus.GaugeOpts{
-			Name: "schlep_concurrent_requests",
+			Name: "igris_concurrent_requests",
 			Help: "Current number of concurrent requests per tenant",
 		},
 		[]string{"tenant_id", "tier"},
@@ -31,7 +31,7 @@ var (
 
 	concurrentLimitExceeded = promauto.NewCounterVec(
 		prometheus.CounterOpts{
-			Name: "schlep_concurrent_limit_exceeded_total",
+			Name: "igris_concurrent_limit_exceeded_total",
 			Help: "Total number of concurrent limit violations",
 		},
 		[]string{"tenant_id", "tier"},
@@ -39,7 +39,7 @@ var (
 
 	concurrentRequestDuration = promauto.NewHistogramVec(
 		prometheus.HistogramOpts{
-			Name:    "schlep_concurrent_request_duration_seconds",
+			Name:    "igris_concurrent_request_duration_seconds",
 			Help:    "Duration of concurrent requests",
 			Buckets: prometheus.DefBuckets,
 		},

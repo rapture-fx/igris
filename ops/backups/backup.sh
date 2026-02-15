@@ -1,6 +1,6 @@
 #!/bin/bash
 #
-# Schlep-Engine Database Backup Script
+# Igris Inertial Database Backup Script
 # Purpose: Create timestamped PostgreSQL backups with optional S3 upload
 # Usage: ./backup.sh [options]
 # Schedule: Run daily via cron: 0 2 * * * /opt/igris-inertial/ops/backups/backup.sh
@@ -27,7 +27,7 @@ BACKUP_PATH="$BACKUP_DIR/$BACKUP_NAME"
 DB_HOST="${POSTGRES_HOST:-localhost}"
 DB_PORT="${POSTGRES_PORT:-5432}"
 DB_NAME="${POSTGRES_DB:-igris_overture}"
-DB_USER="${POSTGRES_USER:-schlep_user}"
+DB_USER="${POSTGRES_USER:-igris_user}"
 DB_PASSWORD="${POSTGRES_PASSWORD:-changeme}"
 
 # S3 configuration (optional)
@@ -61,13 +61,13 @@ notify_success() {
     if [ -n "$SLACK_WEBHOOK" ]; then
         curl -X POST "$SLACK_WEBHOOK" \
             -H 'Content-Type: application/json' \
-            -d "{\"text\":\"✅ Schlep-Engine Backup Success\\n$message\\nSize: $size\"}" \
+            -d "{\"text\":\"✅ Igris Inertial Backup Success\\n$message\\nSize: $size\"}" \
             2>/dev/null || true
     fi
 
     # Email notification
     if [ -n "$EMAIL_TO" ] && command -v mail >/dev/null 2>&1; then
-        echo "$message" | mail -s "✅ Schlep-Engine Backup Success" "$EMAIL_TO"
+        echo "$message" | mail -s "✅ Igris Inertial Backup Success" "$EMAIL_TO"
     fi
 }
 
@@ -80,13 +80,13 @@ notify_failure() {
     if [ -n "$SLACK_WEBHOOK" ]; then
         curl -X POST "$SLACK_WEBHOOK" \
             -H 'Content-Type: application/json' \
-            -d "{\"text\":\"❌ Schlep-Engine Backup Failed\\n$message\"}" \
+            -d "{\"text\":\"❌ Igris Inertial Backup Failed\\n$message\"}" \
             2>/dev/null || true
     fi
 
     # Email notification
     if [ -n "$EMAIL_TO" ] && command -v mail >/dev/null 2>&1; then
-        echo "$message" | mail -s "❌ Schlep-Engine Backup Failed" "$EMAIL_TO"
+        echo "$message" | mail -s "❌ Igris Inertial Backup Failed" "$EMAIL_TO"
     fi
 }
 
@@ -231,7 +231,7 @@ EOF
 
 main() {
     log "=========================================="
-    log "Schlep-Engine Database Backup"
+    log "Igris Inertial Database Backup"
     log "=========================================="
     log "Database: $DB_NAME@$DB_HOST:$DB_PORT"
     log "Backup dir: $BACKUP_DIR"

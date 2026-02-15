@@ -1,8 +1,8 @@
-//! Data Quality API client for Schlep-engine.
+//! Data Quality API client for Igris-engine.
 
 use serde_json::Value;
 
-use crate::client::SchlepClient;
+use crate::client::IgrisClient;
 use crate::error::Result;
 use crate::types::{QualityAssessmentResponse, QualityRuleResponse, ValidationResultResponse};
 
@@ -11,12 +11,12 @@ use crate::types::{QualityAssessmentResponse, QualityRuleResponse, ValidationRes
 /// Provides methods for assessing data quality, creating quality rules,
 /// and validating data against quality standards.
 pub struct QualityClient<'a> {
-    client: &'a SchlepClient,
+    client: &'a IgrisClient,
 }
 
 impl<'a> QualityClient<'a> {
     /// Create a new Data Quality API client.
-    pub fn new(client: &'a SchlepClient) -> Self {
+    pub fn new(client: &'a IgrisClient) -> Self {
         Self { client }
     }
 
@@ -29,10 +29,10 @@ impl<'a> QualityClient<'a> {
     /// # Example
     ///
     /// ```rust,no_run
-    /// # use schlep_engine::{SchlepClient, Result};
+    /// # use igris::{IgrisClient, Result};
     /// # #[tokio::main]
     /// # async fn main() -> Result<()> {
-    /// # let client = SchlepClient::new("your-api-key")?;
+    /// # let client = IgrisClient::new("your-api-key")?;
     /// let assessment = client.quality()
     ///     .assess_quality("job_123").await?;
     /// println!("Quality score: {}", assessment.quality_score);
@@ -54,11 +54,11 @@ impl<'a> QualityClient<'a> {
     /// # Example
     ///
     /// ```rust,no_run
-    /// # use schlep_engine::{SchlepClient, Result};
+    /// # use igris::{IgrisClient, Result};
     /// # use serde_json::json;
     /// # #[tokio::main]
     /// # async fn main() -> Result<()> {
-    /// # let client = SchlepClient::new("your-api-key")?;
+    /// # let client = IgrisClient::new("your-api-key")?;
     /// let rule = json!({
     ///     "name": "Email Validation",
     ///     "type": "format",
@@ -83,10 +83,10 @@ impl<'a> QualityClient<'a> {
     /// # Example
     ///
     /// ```rust,no_run
-    /// # use schlep_engine::{SchlepClient, Result};
+    /// # use igris::{IgrisClient, Result};
     /// # #[tokio::main]
     /// # async fn main() -> Result<()> {
-    /// # let client = SchlepClient::new("your-api-key")?;
+    /// # let client = IgrisClient::new("your-api-key")?;
     /// let rules = vec!["rule_1".to_string(), "rule_2".to_string()];
     /// let validation = client.quality()
     ///     .validate_data("job_123", rules).await?;

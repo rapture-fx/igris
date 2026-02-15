@@ -6,7 +6,7 @@
 set -e
 
 echo "=========================================="
-echo " Schlep-Engine Extended Load Test Runner"
+echo " Igris Inertial Extended Load Test Runner"
 echo " Phase 4.1.2 - Production Load Testing   "
 echo "=========================================="
 echo ""

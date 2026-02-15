@@ -1,11 +1,11 @@
-//! Error types for the Schlep-engine Rust SDK.
+//! Error types for the Igris-engine Rust SDK.
 
 use thiserror::Error;
 
 /// Result type alias for SDK operations.
 pub type Result<T> = std::result::Result<T, Error>;
 
-/// Error types that can occur when using the Schlep-engine SDK.
+/// Error types that can occur when using the Igris-engine SDK.
 #[derive(Error, Debug)]
 pub enum Error {
     /// HTTP request failed.

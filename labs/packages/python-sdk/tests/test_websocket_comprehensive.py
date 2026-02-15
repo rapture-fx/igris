@@ -1,5 +1,5 @@
 """
-Comprehensive WebSocket and real-time streaming tests for Schlep-engine Python SDK
+Comprehensive WebSocket and real-time streaming tests for Igris-engine Python SDK
 
 This test suite covers WebSocket connections, real-time data streaming,
 connection management, error handling, and reconnection logic.
@@ -14,16 +14,16 @@ from datetime import datetime, timedelta
 import websockets
 from websockets.exceptions import ConnectionClosed, InvalidStatusCode, InvalidURI
 
-from schlep_engine.websocket.streaming_client import StreamingClient
-from schlep_engine.websocket.message_handler import MessageHandler
-from schlep_engine.models.streaming import (
+from igris.websocket.streaming_client import StreamingClient
+from igris.websocket.message_handler import MessageHandler
+from igris.models.streaming import (
     StreamingMessage,
     MessageType,
     ConnectionStatus,
     StreamingConfig,
     RealtimeEvent
 )
-from schlep_engine.exceptions.base import (
+from igris.exceptions.base import (
     WebSocketError,
     ConnectionError,
     AuthenticationError,
@@ -565,7 +565,7 @@ class TestRealtimeEvents:
     @pytest.fixture
     def event_processor(self):
         """Create event processor."""
-        from schlep_engine.websocket.event_processor import EventProcessor
+        from igris.websocket.event_processor import EventProcessor
         return EventProcessor()
 
     def test_job_progress_events(self, event_processor):

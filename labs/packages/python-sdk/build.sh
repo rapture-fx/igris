@@ -1,13 +1,13 @@
 #!/bin/bash
 """
-Build script for Schlep-engine Python SDK
+Build script for Igris-engine Python SDK
 
 This script helps build and package the SDK for distribution.
 """
 
 set -e
 
-echo "🏗️  Building Schlep-engine Python SDK"
+echo "🏗️  Building Igris-engine Python SDK"
 echo "=================================="
 
 # Check if we're in the right directory

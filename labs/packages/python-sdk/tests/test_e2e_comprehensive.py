@@ -24,15 +24,15 @@ from typing import List, Dict, Any, Optional
 
 # Mock SDK imports with comprehensive functionality
 try:
-    from schlep_engine_sdk import SchlepEngineClient
-    from schlep_engine_sdk.auth import AuthManager
-    from schlep_engine_sdk.data_processing import DataProcessor
-    from schlep_engine_sdk.ml_pipeline import MLPipeline
-    from schlep_engine_sdk.streaming import WebSocketManager
-    from schlep_engine_sdk.exceptions import SchlepEngineException, AuthenticationError, ProcessingError
+    from igris_sdk import IgrisClient
+    from igris_sdk.auth import AuthManager
+    from igris_sdk.data_processing import DataProcessor
+    from igris_sdk.ml_pipeline import MLPipeline
+    from igris_sdk.streaming import WebSocketManager
+    from igris_sdk.exceptions import IgrisException, AuthenticationError, ProcessingError
 except ImportError:
     # Comprehensive mock implementations
-    class SchlepEngineClient:
+    class IgrisClient:
         def __init__(self, api_key, base_url="https://api.example.com"):
             self.api_key = api_key
             self.base_url = base_url
@@ -59,13 +59,13 @@ except ImportError:
         def __init__(self, client):
             self.client = client
     
-    class SchlepEngineException(Exception):
+    class IgrisException(Exception):
         pass
     
-    class AuthenticationError(SchlepEngineException):
+    class AuthenticationError(IgrisException):
         pass
     
-    class ProcessingError(SchlepEngineException):
+    class ProcessingError(IgrisException):
         pass
 
 
@@ -88,7 +88,7 @@ class E2ETestSuite:
         
     def create_mock_client(self):
         """Create comprehensive mock client"""
-        client = Mock(spec=SchlepEngineClient)
+        client = Mock(spec=IgrisClient)
         client.api_key = "test-api-key"
         client.base_url = "https://api.example.com"
         

@@ -1,11 +1,11 @@
 [package]
-name = "schlep_slo_enforcer"
+name = "igris_slo_enforcer"
 version = "1.1.0"
 edition = "2021"
-authors = ["Schlep Engine Team"]
+authors = ["Igris Inertial Team"]
 
 [lib]
-name = "schlep_slo_enforcer"
+name = "igris_slo_enforcer"
 crate-type = ["staticlib"]
 
 [dependencies]

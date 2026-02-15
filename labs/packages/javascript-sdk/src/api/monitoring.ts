@@ -1,5 +1,5 @@
 /**
- * Monitoring API for Schlep-engine JavaScript SDK
+ * Monitoring API for Igris-engine JavaScript SDK
  */
 
 import { BaseAPI } from './base';

@@ -1,7 +1,7 @@
 'use client'
 
 import React, { createContext, useContext, useEffect, useReducer, ReactNode } from 'react'
-import { User, AuthResponse } from '@schlep-engine/types/backend-integration'
+import { User, AuthResponse } from '@igris-inertial/types/backend-integration'
 import { authAPI } from '../lib/api'
 import Cookies from 'js-cookie'
 

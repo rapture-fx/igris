@@ -1,6 +1,6 @@
 {
   "dashboard": {
-    "title": "Schlep-Engine Stability Monitoring",
+    "title": "Igris Inertial Stability Monitoring",
     "tags": ["stability", "reliability", "slo"],
     "timezone": "utc",
     "refresh": "30s",

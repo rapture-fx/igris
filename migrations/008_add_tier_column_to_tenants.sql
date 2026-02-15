@@ -1,7 +1,7 @@
 -- Migration: 008_add_tier_column_to_tenants
 -- Description: Add tier-based gating support for multi-tenant pricing
 -- Purpose: Enable differential feature access and usage limits per tenant tier
--- Author: Schlep-Engine Team
+-- Author: Igris Inertial Team
 -- Date: 2025-11-10
 -- Phase: 5.2 - Tier Gating and Request Enforcement
 

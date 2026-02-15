@@ -2,7 +2,7 @@
 name = "slo_enforcer"
 version = "1.0.0"
 edition = "2021"
-authors = ["Schlep Engine Team"]
+authors = ["Igris Inertial Team"]
 
 [lib]
 name = "slo_enforcer"

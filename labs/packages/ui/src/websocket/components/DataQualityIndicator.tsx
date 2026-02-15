@@ -1,6 +1,6 @@
 import React from 'react'
 import { CheckCircle, AlertTriangle, XCircle, Info, Shield } from 'lucide-react'
-import { QualityAssessmentResult } from '@schlep-engine/types'
+import { QualityAssessmentResult } from '@igris-inertial/types'
 import { useQualityAssessment } from '../hooks'
 import { cn } from '../../styles/utils'
 

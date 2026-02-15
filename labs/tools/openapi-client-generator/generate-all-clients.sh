@@ -149,10 +149,10 @@ try:
     openapi_spec = app.openapi()
     
     # Enhance the spec with additional metadata
-    openapi_spec["info"]["title"] = "Schlep-engine API"
+    openapi_spec["info"]["title"] = "Igris-engine API"
     openapi_spec["info"]["description"] = "Comprehensive data processing and ML pipeline platform"
     openapi_spec["info"]["contact"] = {
-        "name": "Schlep-engine Support",
+        "name": "Igris-engine Support",
         "url": "https://igris-inertial.com",
         "email": "support@igris-inertial.com"
     }
@@ -188,7 +188,7 @@ except Exception as e:
     minimal_spec = {
         "openapi": "3.0.0",
         "info": {
-            "title": "Schlep-engine API",
+            "title": "Igris-engine API",
             "version": "2.0.0",
             "description": "Comprehensive data processing and ML pipeline platform"
         },
@@ -472,14 +472,14 @@ create_release() {
 
 ## Generated Clients
 
-This release includes automatically generated client libraries for the Schlep-engine API.
+This release includes automatically generated client libraries for the Igris-engine API.
 
 ### Languages Supported
 - Python (PyPI: `igris-inertial-client`)
 - TypeScript/JavaScript (NPM: `@igris-inertial/client`)
 - Go (GitHub: `github.com/igris-inertial/go-client`)
-- Java (Maven Central: `com.schlepengine:igris-inertial-client`)
-- C# (NuGet: `SchlepEngine.Client`)
+- Java (Maven Central: `com.igris:igris-inertial-client`)
+- C# (NuGet: `Igris.Client`)
 
 ### Features
 - Complete API coverage

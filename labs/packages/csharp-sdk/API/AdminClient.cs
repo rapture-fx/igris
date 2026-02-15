@@ -1,6 +1,6 @@
-using SchlepEngine.Types;
+using Igris.Types;
 
-namespace SchlepEngine.API;
+namespace Igris.API;
 
 /// <summary>
 /// Client for administrative operations.
@@ -11,20 +11,20 @@ namespace SchlepEngine.API;
 /// </remarks>
 /// <example>
 /// <code>
-/// var client = new SchlepClient("your-admin-api-key");
+/// var client = new IgrisClient("your-admin-api-key");
 /// var stats = await client.Admin.GetSystemStatsAsync();
 /// Console.WriteLine($"Total users: {stats.TotalUsers}");
 /// </code>
 /// </example>
 public class AdminClient
 {
-    private readonly SchlepClient _client;
+    private readonly IgrisClient _client;
 
     /// <summary>
     /// Initializes a new instance of the AdminClient class.
     /// </summary>
-    /// <param name="client">The parent SchlepClient instance.</param>
-    internal AdminClient(SchlepClient client)
+    /// <param name="client">The parent IgrisClient instance.</param>
+    internal AdminClient(IgrisClient client)
     {
         _client = client;
     }

@@ -18,7 +18,7 @@ export class InertialCache {
     // Default cache directory
     if (!cacheDir) {
       const homeDir = os.homedir();
-      cacheDir = path.join(homeDir, '.config', 'schlep');
+      cacheDir = path.join(homeDir, '.config', 'igris');
     }
 
     this.cachePath = path.join(cacheDir, 'bayesian_state.enc');

@@ -35,7 +35,7 @@ The observability stack (Prometheus, Grafana, Jaeger) is currently **non-operati
 - 🔸 **Live Benchmark Monitoring**: No cost/performance visibility
 
 ### Still Operational
-- ✅ **Schlep-Engine API**: localhost:8081 responsive
+- ✅ **Igris Inertial API**: localhost:8081 responsive
 - ✅ **Mock Benchmark**: Successfully completed with 100% success rate
 - ✅ **API Keys**: Configured in .env (user confirmed populated)
 
@@ -116,7 +116,7 @@ If Docker cannot be recovered quickly:
 - ✅ `curl -I http://localhost:9090` returns 200 OK
 - ✅ `curl -I http://localhost:3002` returns 200 OK  
 - ✅ `curl -I http://localhost:16686` returns 200 OK
-- ✅ Prometheus scraping Schlep metrics
+- ✅ Prometheus scraping Igris metrics
 - ✅ Jaeger receiving trace data
 - ✅ Grafana dashboards accessible
 
@@ -125,7 +125,7 @@ If Docker cannot be recovered quickly:
 ### Immediate (Within 30 minutes)
 1. **Resolve Docker Daemon**: Try Option 1 recovery steps
 2. **Verify Services**: Run health checks  
-3. **Test Metrics Flow**: Confirm Prometheus > Schlep-Engine data collection
+3. **Test Metrics Flow**: Confirm Prometheus > Igris Inertial data collection
 
 ### If Unresolved
 1. **Document Limitation**: Proceed with live benchmark but note observability outage

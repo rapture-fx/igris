@@ -1,7 +1,7 @@
 #!/bin/bash
 
 ################################################################################
-# Cost Report Generator for Schlep-Engine
+# Cost Report Generator for Igris Inertial
 #
 # Generates comprehensive cost reports from Prometheus metrics including:
 # - Daily/weekly/monthly cost summaries

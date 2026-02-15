@@ -1,7 +1,7 @@
-namespace SchlepEngine.Exceptions;
+namespace Igris.Exceptions;
 
 /// <summary>
-/// Exception thrown when there's a configuration error with the Schlep-engine client.
+/// Exception thrown when there's a configuration error with the Igris-engine client.
 /// </summary>
 /// <remarks>
 /// This typically occurs when:

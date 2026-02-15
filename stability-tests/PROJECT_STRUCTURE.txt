@@ -52,10 +52,10 @@ QUICK START COMMANDS
 ====================
 
 # 1. Start API (Terminal 1)
-export PROVIDER_MODE=benchmark && go run cmd/schlep-engine-api/main.go
+export PROVIDER_MODE=benchmark && go run cmd/igris-inertial-api/main.go
 
 # 2. Run Tests (Terminal 2 - new window)
-cd /Users/wira/Desktop/schlep-engine/stability-tests/scripts
+cd /Users/wira/Desktop/igris-inertial/stability-tests/scripts
 ./setup_and_test.sh
 
 # 3. View Results
@@ -132,7 +132,7 @@ ROLLBACK PROCEDURES
 ./scripts/rollback_automation.sh
 
 # Manual (Kubernetes)
-kubectl rollout undo deployment/schlep-engine-api
+kubectl rollout undo deployment/igris-inertial-api
 
 # Manual (Docker)
 docker-compose down && docker-compose up -d

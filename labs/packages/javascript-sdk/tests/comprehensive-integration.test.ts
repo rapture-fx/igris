@@ -1,12 +1,12 @@
 /**
- * Comprehensive integration tests for Schlep-engine JavaScript SDK
+ * Comprehensive integration tests for Igris-engine JavaScript SDK
  * 
  * These tests verify integration with real API endpoints and cross-platform compatibility.
  * They should only be run in integration test environments with proper API keys.
  */
 
 import { describe, test, expect, beforeAll, afterAll, beforeEach, jest } from '@jest/globals';
-import { SchlepEngineClient } from '../src/client/schlep-engine';
+import { IgrisClient } from '../src/client/igris-inertial';
 import { JobStatus, ExportFormat } from '../src/types/data';
 import { MLJobStatus } from '../src/types/ml';
 import { APIError, ValidationError, NetworkError } from '../src/utils/errors';
@@ -16,8 +16,8 @@ const INTEGRATION_TIMEOUT = 300000; // 5 minutes
 const ML_TIMEOUT = 1800000; // 30 minutes for ML operations
 
 // Check for required environment variables
-const API_KEY = process.env.SCHLEP_ENGINE_API_KEY;
-const BASE_URL = process.env.SCHLEP_ENGINE_BASE_URL || 'https://api.schlep-engine.com';
+const API_KEY = process.env.IGRIS_API_KEY;
+const BASE_URL = process.env.IGRIS_BASE_URL || 'https://api.igris-inertial.com';
 
 // Skip all tests if API key is not provided
 const describeIntegration = API_KEY ? describe : describe.skip;
@@ -48,14 +48,14 @@ async function sleep(ms: number): Promise<void> {
 }
 
 describeIntegration('Data Processing Integration Tests', () => {
-  let client: SchlepEngineClient;
+  let client: IgrisClient;
 
   beforeAll(() => {
     if (!API_KEY) {
-      throw new Error('SCHLEP_ENGINE_API_KEY environment variable is required for integration tests');
+      throw new Error('IGRIS_API_KEY environment variable is required for integration tests');
     }
 
-    client = new SchlepEngineClient({
+    client = new IgrisClient({
       apiKey: API_KEY,
       baseUrl: BASE_URL
     });
@@ -466,7 +466,7 @@ describeIntegration('Data Processing Integration Tests', () => {
 
     test('should handle invalid authentication', async () => {
       // Create client with invalid API key
-      const invalidClient = new SchlepEngineClient({
+      const invalidClient = new IgrisClient({
         apiKey: 'invalid_api_key_12345',
         baseUrl: BASE_URL
       });
@@ -484,7 +484,7 @@ describeIntegration('Data Processing Integration Tests', () => {
 
     test('should handle network timeout', async () => {
       // Create client with very short timeout
-      const timeoutClient = new SchlepEngineClient({
+      const timeoutClient = new IgrisClient({
         apiKey: API_KEY,
         baseUrl: BASE_URL,
         timeout: 1 // Very short timeout
@@ -509,14 +509,14 @@ describeIntegration('Data Processing Integration Tests', () => {
 // Browser-specific integration tests
 if (typeof window !== 'undefined') {
   describeIntegration('Browser Environment Integration', () => {
-    let client: SchlepEngineClient;
+    let client: IgrisClient;
 
     beforeAll(() => {
       if (!API_KEY) {
-        throw new Error('SCHLEP_ENGINE_API_KEY environment variable is required for integration tests');
+        throw new Error('IGRIS_API_KEY environment variable is required for integration tests');
       }
 
-      client = new SchlepEngineClient({
+      client = new IgrisClient({
         apiKey: API_KEY,
         baseUrl: BASE_URL
       });
@@ -587,14 +587,14 @@ if (typeof window !== 'undefined') {
 // Node.js-specific integration tests  
 if (typeof process !== 'undefined' && process.versions?.node) {
   describeIntegration('Node.js Environment Integration', () => {
-    let client: SchlepEngineClient;
+    let client: IgrisClient;
 
     beforeAll(() => {
       if (!API_KEY) {
-        throw new Error('SCHLEP_ENGINE_API_KEY environment variable is required for integration tests');
+        throw new Error('IGRIS_API_KEY environment variable is required for integration tests');
       }
 
-      client = new SchlepEngineClient({
+      client = new IgrisClient({
         apiKey: API_KEY,
         baseUrl: BASE_URL
       });

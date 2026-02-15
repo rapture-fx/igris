@@ -91,7 +91,7 @@ impl Default for CacheConfig {
             redis_pool_size: 10,
             connection_timeout_ms: 5000,
             command_timeout_ms: 1000,
-            key_prefix: "schlep:cache:".to_string(),
+            key_prefix: "igris:cache:".to_string(),
             enable_compression: true,
             compression_threshold_bytes: 1024,
             health_check_interval_secs: 30,

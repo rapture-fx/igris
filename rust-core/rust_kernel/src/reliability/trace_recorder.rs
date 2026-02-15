@@ -39,7 +39,7 @@ impl Default for TraceConfig {
             max_entries: 10_000,
             flush_interval_secs: 1,
             persist_to_disk: false,
-            trace_path: "/tmp/schlep_traces".to_string(),
+            trace_path: "/tmp/igris_traces".to_string(),
         }
     }
 }
