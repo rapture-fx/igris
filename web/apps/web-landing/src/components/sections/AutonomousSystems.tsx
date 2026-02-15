@@ -48,25 +48,26 @@ export default function AutonomousSystems() {
               </div>
             </div>
             {/* Col 2 - Image + Button */}
-            <div className="flex flex-col justify-end items-end p-4" style={{ minHeight: '280px' }}>
-              <div className="flex-1 flex items-center justify-center w-full">
+            <div className="relative flex flex-col justify-between" style={{ minHeight: '280px' }}>
+              <div className="relative flex-1 w-full">
                 <Image
                   src="/sft.png"
                   alt="AI Agents"
-                  width={220}
-                  height={220}
-                  className="object-contain"
+                  fill
+                  className="object-cover"
                   style={{ opacity: 0.9 }}
                 />
               </div>
-              <Link
-                href="/ai-agents"
-                className="inline-flex items-center justify-center px-4 py-2 hover:opacity-80 transition-all duration-200 text-sm font-medium shadow-sm rounded-md border"
-                style={{ backgroundColor: mounted && theme === 'dark' ? '#1b1912' : '#f6f6f4', color: mounted && theme === 'dark' ? '#f6f6f4' : '#1b1912', borderColor: 'rgba(20, 18, 10, 0.1)', fontFamily }}
-              >
-                AI Agents
-                <ChevronRight className="ml-1 h-4 w-4" />
-              </Link>
+              <div className="flex justify-end p-4">
+                <Link
+                  href="/ai-agents"
+                  className="inline-flex items-center justify-center px-4 py-2 hover:opacity-80 transition-all duration-200 text-sm font-medium shadow-sm rounded-md border"
+                  style={{ backgroundColor: mounted && theme === 'dark' ? '#1b1912' : '#f6f6f4', color: mounted && theme === 'dark' ? '#f6f6f4' : '#1b1912', borderColor: 'rgba(20, 18, 10, 0.1)', fontFamily }}
+                >
+                  AI Agents
+                  <ChevronRight className="ml-1 h-4 w-4" />
+                </Link>
+              </div>
             </div>
           </div>
         </div>

@@ -34,6 +34,16 @@ impl LocalProvider {
             .hot_swap(new_model_path, context_size, threads, n_gpu_layers, main_gpu)
             .await
     }
+
+    /// Get the current config of the underlying engine.
+    pub async fn config(&self) -> igris_local_llm::LocalLLMConfig {
+        self.adapter.engine().config().await
+    }
+
+    /// Get the current adapter path.
+    pub async fn get_adapter_path(&self) -> Option<std::path::PathBuf> {
+        self.adapter.engine().get_adapter_path().await
+    }
 }
 
 impl Provider for LocalProvider {
