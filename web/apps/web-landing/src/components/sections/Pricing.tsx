@@ -20,53 +20,48 @@ interface PricingTier {
 const pricingTiers: PricingTier[] = [
   {
     name: "The Seed",
-    tagline: "One device. Full layer. $9 per month.",
-    price: "$9 / month",
-    limits: "1 device",
+    tagline: "Core runtime for one instance.",
+    price: "Free",
+    limits: "1 instance",
     features: [
-      "Full runtime (local + cloud routing)",
-      "Unlimited execution (no request limits)",
-      "Local LLM fallback (offline capable)",
-      "Thompson Sampling routing",
-      "Cryptographic signing (Ed25519)",
-      "Community support"
+      "Core deterministic runtime.",
+      "Local + cloud routing.",
+      "Offline survival.",
+      "Cryptographic signing.",
+      "7-day execution retention.",
+      "Community support.",
+      "Runs anywhere. Server, edge, robot."
     ],
     cta: "Get Started"
   },
   {
     name: "The Horizon",
-    tagline: "Fleet awakens. Visibility and control.",
-    price: "$99 / month",
-    limits: "Up to 50 devices",
+    tagline: "Fleet management with dashboard and updates.",
+    price: "$149 / month",
+    limits: "Up to 50 instances",
     features: [
-      "Everything in The Seed",
-      "Dashboard & fleet management",
-      "Speculative Execution & Council Mode",
-      "Planning, Reflection & Swarm agents",
-      "QLoRA on-device training",
-      "Over-the-air verified updates",
-      "Audit trails (7-day retention)",
-      "Email support (24h response)",
-      "$2/device/month over 50 devices"
+      "Fleet dashboard.",
+      "Over-the-air verified updates.",
+      "30-day signed execution retention.",
+      "Role-based access control.",
+      "Email support (24h).",
+      "$3 per instance beyond 50."
     ],
     cta: "Get Started",
     recommended: true
   },
   {
     name: "The Infinite",
-    tagline: "Serious scale. Real guarantees.",
-    price: "$499 / month",
-    limits: "Up to 500 devices",
+    tagline: "Enterprise scale with on-premise and SLO enforcement.",
+    price: "$699 / month",
+    limits: "Up to 500 instances",
     features: [
-      "Everything in The Horizon",
-      "On-premise deployment option",
-      "Cognitive Advisor (auto-optimization)",
-      "Shadow Mode (risk-free testing)",
-      "SLO Enforcer with auto-remediation",
-      "Extended audit retention (90 days)",
-      "Federated learning across fleet",
-      "Priority email support (8h response)",
-      "$1.50/device/month over 500 devices"
+      "On-premise deployment option.",
+      "90-day retention.",
+      "SLO enforcement with auto-remediation.",
+      "Priority support (8h).",
+      "Security review assistance.",
+      "Volume pricing beyond 500."
     ],
     cta: "Get Started"
   }
@@ -121,6 +116,25 @@ export default function Pricing() {
                         </h3>
                       </div>
 
+                      {tier.name === "The Horizon" ? (
+                        <div 
+                          className="border border-gray-300 dark:border-[#f6f6f4]/20 rounded-lg w-full h-48 mb-6 bg-cover bg-center"
+                          style={{ backgroundImage: 'url(/hrz.png)' }}
+                        />
+                      ) : tier.name === "The Infinite" ? (
+                        <div 
+                          className="border border-gray-300 dark:border-[#f6f6f4]/20 rounded-lg w-full h-48 mb-6 bg-cover bg-center"
+                          style={{ backgroundImage: 'url(/pkrol.png)' }}
+                        />
+                      ) : tier.name === "The Seed" ? (
+                        <div 
+                          className="border border-gray-300 dark:border-[#f6f6f4]/20 rounded-lg w-full h-48 mb-6 bg-cover bg-center"
+                          style={{ backgroundImage: 'url(/see.png)' }}
+                        />
+                      ) : (
+                        <div className="border border-gray-300 dark:border-[#f6f6f4]/20 rounded-lg w-full h-48 mb-6 bg-gray-100 dark:bg-gray-800" />
+                      )}
+
                       <div className="mb-6">
                         {tier.isContactUs ? (
                           <div className="flex flex-col">
@@ -132,7 +146,9 @@ export default function Pricing() {
                           <div className="flex flex-col">
                             <span className="text-[#000000] dark:text-[#f6f6f4] transition-all duration-300">
                               <span className="text-4xl md:text-5xl" style={{ fontFamily: '-apple-system, BlinkMacSystemFont, "Segoe UI", Roboto, Helvetica, Arial, sans-serif' }}>{tier.price.split(' / ')[0]}</span>
-                              <span className="text-sm md:text-base text-gray-600 dark:text-[#a8a898]"> / {tier.price.split(' / ')[1]}</span>
+                              {tier.price.includes(' / ') && (
+                                <span className="text-sm md:text-base text-gray-600 dark:text-[#a8a898]"> / {tier.price.split(' / ')[1]}</span>
+                              )}
                             </span>
                           </div>
                         )}
