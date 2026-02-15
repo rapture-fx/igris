@@ -49,17 +49,16 @@ export default function AutonomousSystems() {
               </div>
             </div>
             {/* Col 2 - Image + Button */}
-            <div className="relative flex flex-col justify-between" style={{ minHeight: '280px' }}>
-              <div className="relative flex-1 w-full">
-                <Image
-                  src="/sft.png"
-                  alt="AI Agents"
-                  fill
-                  className="object-cover"
-                  style={{ opacity: 0.9 }}
-                />
-              </div>
-              <div className="flex justify-end p-4">
+            <div className="relative rounded-r-2xl overflow-hidden" style={{ minHeight: '280px' }}>
+              <div 
+                className="absolute inset-0 bg-cover bg-center"
+                style={{ 
+                  backgroundImage: 'url(/sft.png)',
+                  backgroundSize: '150%',
+                  opacity: 0.9
+                }}
+              />
+              <div className="absolute top-4 right-4 z-10">
                 <Link
                   href="/ai-agents"
                   className="inline-flex items-center justify-center px-4 py-2 hover:opacity-80 transition-all duration-200 text-sm font-medium shadow-sm rounded-md border"
