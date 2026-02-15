@@ -65,8 +65,17 @@ export default function Products() {
               />
             </div>
           </div>
-          {/* Col 2 - Text + Image */}
+          {/* Col 2 - Image + Text */}
           <div className="flex flex-col justify-between p-4 md:px-8 lg:pr-12">
+            <div className="relative w-full rounded-2xl overflow-hidden mb-6" style={{ height: '320px' }}>
+              <Image
+                src={mounted ? (theme === 'dark' ? '/rtnm.png' : '/prolg.png') : '/prolg.png'}
+                alt="Fleet Dashboard"
+                fill
+                className="object-cover"
+                style={{ opacity: 0.85 }}
+              />
+            </div>
             <div>
               <h3 className="text-base md:text-lg mb-3 text-[#000000] dark:text-[#f6f6f4]" style={{ fontFamily: '-apple-system, BlinkMacSystemFont, "Segoe UI", Roboto, Helvetica, Arial, sans-serif' }}>
                 One system, everywhere
@@ -77,15 +86,6 @@ export default function Products() {
               <p className="text-sm md:text-base text-gray-600 dark:text-[#a8a898] leading-relaxed" style={{ fontFamily: '-apple-system, BlinkMacSystemFont, "Segoe UI", Roboto, Helvetica, Arial, sans-serif' }}>
                 Observe decisions in real time. Replay actions. Verify outcomes. Trust what happened.
               </p>
-            </div>
-            <div className="relative w-full rounded-2xl overflow-hidden mt-6" style={{ height: '320px' }}>
-              <Image
-                src={mounted ? (theme === 'dark' ? '/rtnm.png' : '/prolg.png') : '/prolg.png'}
-                alt="Fleet Dashboard"
-                fill
-                className="object-cover"
-                style={{ opacity: 0.85 }}
-              />
             </div>
           </div>
         </div>
