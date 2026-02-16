@@ -32,7 +32,7 @@ export default function MultiTenancy() {
 
   const cardClass = "border border-gray-200 dark:border-[#f6f6f4]/8 rounded-2xl p-6 bg-[#edece9] dark:bg-[#1b1912]/60 hover:border-gray-300 dark:hover:border-[#f6f6f4]/15 transition-colors duration-200 flex flex-col"
   const titleClass = "text-base md:text-lg text-[#000000] dark:text-[#f6f6f4]"
-  const descClass = "text-sm md:text-base text-gray-600 dark:text-[#a8a898] leading-relaxed mt-auto"
+  const descClass = "text-sm md:text-base text-gray-600 dark:text-[#a8a898] leading-relaxed max-w-[280px]"
   const fontFamily = '-apple-system, BlinkMacSystemFont, "Segoe UI", Roboto, Helvetica, Arial, sans-serif'
 
   return (
@@ -61,41 +61,49 @@ export default function MultiTenancy() {
           <div className="grid grid-cols-1 md:grid-cols-3 gap-4" style={{ paddingTop: '2rem', paddingBottom: '2rem' }}>
             {/* Row 1: Signed execution (2 cols) | Fail-safe (1 col, spans 2 rows) */}
             <div className={cardClass + " md:col-span-2"} style={{ minHeight: '200px', fontFamily }}>
-              <h4 className={titleClass} style={{ fontFamily }}>
-                {features[0].title}
-              </h4>
-              <p className={descClass} style={{ fontFamily }}>
-                {features[0].description}
-              </p>
+              <div className="mt-auto">
+                <h4 className={titleClass} style={{ fontFamily }}>
+                  {features[0].title}
+                </h4>
+                <p className={descClass} style={{ fontFamily }}>
+                  {features[0].description}
+                </p>
+              </div>
             </div>
             
             {/* Tall card spanning 2 rows */}
-            <div className={cardClass + " md:row-span-2"} style={{ minHeight: '200px', fontFamily }}>
-              <h4 className={titleClass} style={{ fontFamily }}>
-                {features[1].title}
-              </h4>
-              <p className={descClass} style={{ fontFamily }}>
-                {features[1].description}
-              </p>
+            <div className={cardClass + " md:row-span-2"} style={{ minHeight: '200px', fontFamily, backgroundImage: 'url(/o.png)', backgroundSize: 'cover', backgroundPosition: 'center' }}>
+              <div className="mt-auto">
+                <h4 className={titleClass} style={{ fontFamily }}>
+                  {features[1].title}
+                </h4>
+                <p className={descClass} style={{ fontFamily }}>
+                  {features[1].description}
+                </p>
+              </div>
             </div>
 
             {/* Row 2: Air-gapped (1 col) | Verified (1 col) */}
             <div className={cardClass} style={{ minHeight: '200px', fontFamily }}>
-              <h4 className={titleClass} style={{ fontFamily }}>
-                {features[2].title}
-              </h4>
-              <p className={descClass} style={{ fontFamily }}>
-                {features[2].description}
-              </p>
+              <div className="mt-auto">
+                <h4 className={titleClass} style={{ fontFamily }}>
+                  {features[2].title}
+                </h4>
+                <p className={descClass} style={{ fontFamily }}>
+                  {features[2].description}
+                </p>
+              </div>
             </div>
             
             <div className={cardClass} style={{ minHeight: '200px', fontFamily }}>
-              <h4 className={titleClass} style={{ fontFamily }}>
-                {features[3].title}
-              </h4>
-              <p className={descClass} style={{ fontFamily }}>
-                {features[3].description}
-              </p>
+              <div className="mt-auto">
+                <h4 className={titleClass} style={{ fontFamily }}>
+                  {features[3].title}
+                </h4>
+                <p className={descClass} style={{ fontFamily }}>
+                  {features[3].description}
+                </p>
+              </div>
             </div>
           </div>
         </div>
