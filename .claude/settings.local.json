@@ -75,7 +75,9 @@
       "Bash(if [ -d \"./igris-$sdk-sdk\" ])",
       "Bash(chmod:*)",
       "Bash(if [ -f \"igris-java-sdk/pom.xml\" ])",
-      "Bash(then sed -i '' 's/Schlep-engine/Igris Inertial/g' igris-java-sdk/pom.xml)"
+      "Bash(then sed -i '' 's/Schlep-engine/Igris Inertial/g' igris-java-sdk/pom.xml)",
+      "Bash(python3 -m pytest:*)",
+      "Bash(pip3 install:*)"
     ],
     "deny": [],
     "ask": []
