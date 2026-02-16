@@ -91,8 +91,9 @@ export default function Hero() {
             <div className="mb-1 text-left">
               <div>
                 <div className="flex flex-col md:flex-row md:items-start md:justify-between gap-4 md:gap-8">
-                  <h1 className="text-2xl md:text-3xl lg:text-4xl max-w-md" style={{ color: mounted && theme === 'dark' ? '#f6f6f4' : '#1b1912', fontFamily: '-apple-system, BlinkMacSystemFont, "Segoe UI", Roboto, Helvetica, Arial, sans-serif', fontWeight: 400 }}>
-                  Run AI that survives failure and proves what it did.
+                  <h1 className="text-2xl md:text-3xl lg:text-4xl" style={{ color: mounted && theme === 'dark' ? '#f6f6f4' : '#1b1912', fontFamily: '-apple-system, BlinkMacSystemFont, "Segoe UI", Roboto, Helvetica, Arial, sans-serif', fontWeight: 400 }}>
+                  Run AI that survives failure<br />
+                  and proves what it did.
                 </h1>
                   <div className="text-sm md:text-base lg:text-lg max-w-md font-normal text-gray-600 dark:text-[#a8a898]" style={{ fontFamily: '-apple-system, BlinkMacSystemFont, "Segoe UI", Roboto, Helvetica, Arial, sans-serif', fontWeight: 400 }}>
                     <span className="block">Deterministic runtime. Cloud + local fallback. Cryptographically signed execution. ROS 2 integration.</span>
