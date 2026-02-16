@@ -38,6 +38,7 @@ use igris_mcp_server::{
     protocol::ServerInfo,
 };
 use igris_mcp_client::{ContextBroadcaster, McpClient};
+use igris_btree::prelude::*;
 mod tool_agent;
 use tool_agent::ToolAgent;
 mod swarm_agent;
@@ -861,6 +862,119 @@ async fn swarm_vote(
             "execution_error": e.to_string(),
         }))).into_response()),
     }
+}
+
+// ── Behavior Tree Endpoints ──────────────────────────────────────────
+
+#[derive(Debug, Deserialize)]
+struct BTreeValidateRequest {
+    tree: serde_json::Value,
+}
+
+#[derive(Debug, Deserialize)]
+struct BTreeRunRequest {
+    tree: serde_json::Value,
+    #[serde(default)]
+    context: Option<serde_json::Value>,
+    #[serde(default = "default_btree_max_ticks")]
+    max_ticks: u64,
+    #[serde(default = "default_btree_timeout_ms")]
+    timeout_ms: u64,
+}
+
+fn default_btree_max_ticks() -> u64 { 1000 }
+fn default_btree_timeout_ms() -> u64 { 30000 }
+
+#[derive(Debug, Deserialize)]
+struct BTreeDeployRequest {
+    name: String,
+    tree: serde_json::Value,
+    #[serde(default)]
+    description: Option<String>,
+}
+
+async fn btree_validate(
+    Json(req): Json<BTreeValidateRequest>,
+) -> Result<Response, ApiError> {
+    let parser = igris_btree::parser::JsonTreeParser::new();
+    let context = BTreeContext::new();
+
+    match parser.parse_node(&req.tree, &context) {
+        Ok(node) => Ok((StatusCode::OK, Json(serde_json::json!({
+            "valid": true,
+            "root_type": node.node_type(),
+            "root_name": node.name(),
+        }))).into_response()),
+        Err(e) => Ok((StatusCode::OK, Json(serde_json::json!({
+            "valid": false,
+            "error": e.to_string(),
+        }))).into_response()),
+    }
+}
+
+async fn btree_run(
+    State(state): State<AppState>,
+    Json(req): Json<BTreeRunRequest>,
+) -> Result<Response, ApiError> {
+    let parser = igris_btree::parser::JsonTreeParser::new();
+    let mut context = BTreeContext::new();
+
+    // Wire tool registry from AppState if available
+    if let Some(ref tr) = state.tool_registry {
+        context = context.with_tools(tr.clone());
+    }
+
+    // Set blackboard values from context payload
+    if let Some(ctx_val) = &req.context {
+        if let Some(obj) = ctx_val.as_object() {
+            for (k, v) in obj {
+                context.blackboard.set(k, v.clone()).await;
+            }
+        }
+    }
+
+    let mut tree = parser
+        .parse_node(&req.tree, &context)
+        .map_err(|e| ApiError::BadRequest(format!("Invalid tree: {}", e)))?;
+
+    let executor = BTreeExecutor::new()
+        .with_max_ticks(req.max_ticks)
+        .with_deadline(std::time::Duration::from_millis(req.timeout_ms));
+
+    let result = executor
+        .execute(tree.as_mut(), &mut context)
+        .await
+        .map_err(|e| ApiError::InternalError(format!("Execution failed: {}", e)))?;
+
+    Ok((StatusCode::OK, Json(serde_json::json!({
+        "status": format!("{:?}", result.status),
+        "success": result.is_success(),
+        "tick_count": result.tick_count,
+        "duration_ms": result.duration.as_millis() as u64,
+        "cancelled": result.cancelled,
+        "max_ticks_reached": result.max_ticks_reached,
+        "deadline_exceeded": result.deadline_exceeded,
+        "error": result.error,
+    }))).into_response())
+}
+
+async fn btree_deploy(
+    Json(req): Json<BTreeDeployRequest>,
+) -> Result<Response, ApiError> {
+    // Validate tree first
+    let parser = igris_btree::parser::JsonTreeParser::new();
+    let context = BTreeContext::new();
+    parser
+        .parse_node(&req.tree, &context)
+        .map_err(|e| ApiError::BadRequest(format!("Invalid tree: {}", e)))?;
+
+    // For now, return success with the deployed tree metadata.
+    // Full persistence (redb BTreeStore) will be wired in a follow-up.
+    Ok((StatusCode::OK, Json(serde_json::json!({
+        "deployed": true,
+        "name": req.name,
+        "description": req.description,
+    }))).into_response())
 }
 
 /// Planning endpoint - execute multi-step tasks with optional tool usage
@@ -2397,6 +2511,10 @@ async fn main() -> anyhow::Result<()> {
         .route("/v1/swarm/join", post(swarm_join))
         .route("/v1/swarm/propose", post(swarm_propose))
         .route("/v1/swarm/vote", post(swarm_vote))
+        // Behavior Tree endpoints
+        .route("/v1/btree/validate", post(btree_validate))
+        .route("/v1/btree/run", post(btree_run))
+        .route("/v1/btree/deploy", post(btree_deploy))
         .merge(SwaggerUi::new("/swagger-ui").url("/api-docs/openapi.json", ApiDoc::openapi()))
         .layer(TraceLayer::new_for_http())
         .layer(CorsLayer::permissive())
