@@ -5,6 +5,7 @@ import Image from 'next/image'
 import { useTheme } from 'next-themes'
 import { ChevronRight } from 'lucide-react'
 import Link from 'next/link'
+import HeroInertial from '../ui/HeroInertial'
 
 export default function AutonomousSystems() {
   const { theme } = useTheme()
@@ -58,6 +59,11 @@ export default function AutonomousSystems() {
                   opacity: 0.9
                 }}
               />
+              <div className="absolute inset-2 z-[5] rounded-xl overflow-hidden">
+                <div className="relative w-full h-full">
+                  <HeroInertial />
+                </div>
+              </div>
               <div className="absolute top-4 right-4 z-10">
                 <Link
                   href="/ai-agents"

@@ -44,7 +44,7 @@ export default function Products() {
         <div className="grid grid-cols-1 md:grid-cols-2" style={{ borderLeft: '0.5px solid rgba(209, 213, 219, 0.35)', borderRight: '0.5px solid rgba(209, 213, 219, 0.35)' }}>
           {/* Col 1 - Image only */}
           <div className="flex flex-col justify-center p-4 md:pl-8 lg:pl-12" style={{ borderRight: '0.5px solid rgba(209, 213, 219, 0.35)' }}>
-            <div className="relative w-full rounded-2xl overflow-hidden flex items-start justify-start" style={{ height: '320px' }}>
+            <div className="relative w-full rounded-2xl overflow-hidden flex items-start justify-start" style={{ height: '200px' }}>
               <Image
                 src={mounted ? (theme === 'dark' ? '/r.png' : '/prol.png') : '/prol.png'}
                 alt="Runtime AI Execution"
@@ -55,7 +55,7 @@ export default function Products() {
             </div>
           </div>
           {/* Col 2 - Text at top and bottom */}
-          <div className="flex flex-col justify-between p-4 md:px-8 lg:pr-12" style={{ minHeight: '100%' }}>
+          <div className="flex flex-col justify-start p-4 md:px-8 lg:pr-12" style={{ minHeight: '100%' }}>
             <div>
               <h3 className="text-base md:text-lg mb-3 text-[#000000] dark:text-[#f6f6f4]" style={{ fontFamily: '-apple-system, BlinkMacSystemFont, "Segoe UI", Roboto, Helvetica, Arial, sans-serif' }}>
                 Hybrid behavior trees meet LLM reasoning.
@@ -67,7 +67,7 @@ export default function Products() {
                 The Nervous System governs how language model reasoning becomes action. Structured paths keep behavior bounded. Hard limits prevent runaway processes. Cryptographic signatures prove what happened.
               </p>
             </div>
-            <div className="mt-8">
+            <div className="mt-6">
               <h3 className="text-base md:text-lg mb-3 text-[#000000] dark:text-[#f6f6f4]" style={{ fontFamily: '-apple-system, BlinkMacSystemFont, "Segoe UI", Roboto, Helvetica, Arial, sans-serif' }}>
                 One system, everywhere
               </h3>
