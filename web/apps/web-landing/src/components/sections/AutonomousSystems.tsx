@@ -27,7 +27,7 @@ export default function AutonomousSystems() {
               One System.<br />
               Two Environments.
             </h2>
-            <p className="text-sm md:text-base text-gray-600 dark:text-[#a8a898] max-w-md" style={{ fontFamily }}>
+            <p className="text-base md:text-lg text-[#000000] dark:text-[#f6f6f4] max-w-md" style={{ fontFamily }}>
               The same nervous system governs AI execution—whether your system thinks in code or moves in space.
             </p>
           </div>

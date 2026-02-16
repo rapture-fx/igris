@@ -10,7 +10,6 @@ import Footer from '../src/components/sections/Footer'
 import CoreCapabilities from '../src/components/sections/CoreCapabilities'
 import MultiTenancy from '../src/components/sections/MultiTenancy'
 import Products from '../src/components/sections/Products'
-import HowItWorks from '../src/components/sections/HowItWorks'
 import SDKs from '../src/components/sections/SDKs'
 import AutonomousSystems from '../src/components/sections/AutonomousSystems'
 
@@ -42,7 +41,6 @@ export default function HomePage() {
             <AutonomousSystems />
             <SDKs />
             <MultiTenancy />
-            <HowItWorks />
             <WhyItExists />
             <ClosingPosition />
           </main>
