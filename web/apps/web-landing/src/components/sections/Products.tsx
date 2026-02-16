@@ -43,8 +43,8 @@ export default function Products() {
       <div className="mx-auto max-w-[1100px] px-4 sm:px-6 lg:px-8">
         <div className="grid grid-cols-1 md:grid-cols-2" style={{ borderLeft: '0.5px solid rgba(209, 213, 219, 0.35)', borderRight: '0.5px solid rgba(209, 213, 219, 0.35)' }}>
           {/* Col 1 - Image only */}
-          <div className="flex flex-col justify-center p-4 md:pl-8 lg:pl-12" style={{ borderRight: '0.5px solid rgba(209, 213, 219, 0.35)' }}>
-            <div className="relative w-full rounded-2xl overflow-hidden flex items-start justify-start" style={{ height: '450px' }}>
+          <div className="flex flex-col justify-center p-4 md:pl-8 lg:pl-12" style={{ borderRight: '0.5px solid rgba(209, 213, 219, 0.35)', minHeight: '450px' }}>
+            <div className="relative w-full rounded-2xl overflow-hidden flex items-start justify-start" style={{ height: '200px' }}>
               <Image
                 src={mounted ? (theme === 'dark' ? '/r.png' : '/prol.png') : '/prol.png'}
                 alt="Runtime AI Execution"
