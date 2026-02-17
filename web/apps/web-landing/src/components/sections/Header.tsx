@@ -160,14 +160,14 @@ export default function Header() {
 
             {/* Nav bar inner content */}
             <div
-              className={`px-4 md:px-8 lg:px-12 flex items-center justify-between w-full transition-all duration-300 ${
+              className={`flex items-center justify-between w-full transition-all duration-300 ${
                 isFloating
                   ? 'bg-[#f6f6f4] dark:bg-[#1b1912] shadow-[0_4px_24px_rgba(0,0,0,0.08)] rounded-t-2xl'
                   : 'bg-transparent'
               }`}
-              style={{
-                paddingTop: '1.5rem',
-                paddingBottom: '1.5rem',
+                style={{
+                paddingTop: '0.5rem',
+                paddingBottom: '0.5rem',
               }}
             >
               <div className="flex">

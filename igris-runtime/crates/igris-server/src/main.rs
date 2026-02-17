@@ -958,7 +958,67 @@ async fn btree_run(
     }))).into_response())
 }
 
+/// MCP SSE streaming endpoint - accepts JSON-RPC requests and streams responses
+async fn mcp_stream(
+    State(state): State<AppState>,
+    Json(req): Json<igris_mcp_server::JsonRpcRequest>,
+) -> Result<Response, ApiError> {
+    use igris_mcp_server::protocol::ServerInfo;
+
+    let context_store = state
+        .mcp_context_store
+        .clone()
+        .ok_or_else(|| ApiError::ServiceUnavailable("MCP is not enabled".to_string()))?;
+
+    let mcp_state = igris_mcp_server::McpState {
+        context_store,
+        peer_id: state.swarm_peer_id.clone(),
+        server_info: ServerInfo {
+            name: "Igris Runtime MCP Server".to_string(),
+            version: "1.2.0".to_string(),
+        },
+        tool_registry: state.tool_registry.clone(),
+        execution_signer: Some(Arc::new(igris_mcp_server::ExecutionSigner::new())),
+    };
+
+    // Build a temporary MCP router and dispatch the request internally
+    let mcp_router = igris_mcp_server::build_mcp_router(mcp_state);
+
+    // Serialize the request to make an internal axum call
+    let body = serde_json::to_vec(&req).map_err(|e| ApiError::BadRequest(e.to_string()))?;
+
+    let internal_req = axum::http::Request::builder()
+        .method(axum::http::Method::POST)
+        .uri("/mcp")
+        .header("content-type", "application/json")
+        .body(axum::body::Body::from(body))
+        .map_err(|e| ApiError::InternalError(e.to_string()))?;
+
+    let response = tower::ServiceExt::oneshot(mcp_router, internal_req)
+        .await
+        .map_err(|e| ApiError::InternalError(e.to_string()))?;
+
+    // Read the response body
+    let (parts, body) = response.into_parts();
+    let body_bytes = axum::body::to_bytes(body, 1024 * 1024)
+        .await
+        .map_err(|e| ApiError::InternalError(e.to_string()))?;
+
+    let result_json: serde_json::Value = serde_json::from_slice(&body_bytes)
+        .unwrap_or_else(|_| serde_json::json!({"error": "Failed to parse MCP response"}));
+
+    // Stream the response as SSE events
+    let events = vec![
+        Ok::<Event, Infallible>(Event::default().event("message").data(result_json.to_string())),
+        Ok::<Event, Infallible>(Event::default().data("[DONE]")),
+    ];
+    let stream = futures::stream::iter(events);
+
+    Ok(Sse::new(stream).keep_alive(KeepAlive::default()).into_response())
+}
+
 async fn btree_deploy(
+    State(state): State<AppState>,
     Json(req): Json<BTreeDeployRequest>,
 ) -> Result<Response, ApiError> {
     // Validate tree first
@@ -968,8 +1028,18 @@ async fn btree_deploy(
         .parse_node(&req.tree, &context)
         .map_err(|e| ApiError::BadRequest(format!("Invalid tree: {}", e)))?;
 
-    // For now, return success with the deployed tree metadata.
-    // Full persistence (redb BTreeStore) will be wired in a follow-up.
+    // Persist to redb BTreeStore
+    let entry = serde_json::json!({
+        "name": req.name,
+        "description": req.description,
+        "tree": req.tree,
+        "deployed_at": std::time::SystemTime::now().duration_since(std::time::UNIX_EPOCH).unwrap_or_default().as_secs(),
+    });
+    state
+        .storage
+        .set(igris_core::storage::BTREE_STORE, &req.name, &entry)
+        .map_err(|e| ApiError::InternalError(format!("Failed to persist tree: {}", e)))?;
+
     Ok((StatusCode::OK, Json(serde_json::json!({
         "deployed": true,
         "name": req.name,
@@ -2302,6 +2372,9 @@ async fn main() -> anyhow::Result<()> {
             });
 
             // Build MCP router
+            let execution_signer = Arc::new(igris_mcp_server::ExecutionSigner::new());
+            info!("MCP execution signer initialized (public key: {})", execution_signer.public_key_hex());
+
             let mcp_state = McpState {
                 context_store: context_store.clone(),
                 peer_id: peer_id.clone(),
@@ -2309,6 +2382,8 @@ async fn main() -> anyhow::Result<()> {
                     name: "Igris Runtime MCP Server".to_string(),
                     version: "1.2.0".to_string(),
                 },
+                tool_registry: tool_registry.clone(),
+                execution_signer: Some(execution_signer),
             };
 
             let mcp_router = build_mcp_router(mcp_state);
@@ -2515,6 +2590,8 @@ async fn main() -> anyhow::Result<()> {
         .route("/v1/btree/validate", post(btree_validate))
         .route("/v1/btree/run", post(btree_run))
         .route("/v1/btree/deploy", post(btree_deploy))
+        // MCP SSE streaming endpoint
+        .route("/mcp/stream", post(mcp_stream))
         .merge(SwaggerUi::new("/swagger-ui").url("/api-docs/openapi.json", ApiDoc::openapi()))
         .layer(TraceLayer::new_for_http())
         .layer(CorsLayer::permissive())

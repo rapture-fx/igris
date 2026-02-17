@@ -201,6 +201,49 @@ pub struct SharedContextEnvelope {
     pub peer_id: String,
 }
 
+/// Parameters for tools/call JSON-RPC method
+#[derive(Debug, Clone, Serialize, Deserialize)]
+pub struct ToolCallParams {
+    /// Name of the tool to invoke
+    pub name: String,
+    /// Arguments to pass to the tool
+    #[serde(default)]
+    pub arguments: Value,
+}
+
+/// Result returned from a tools/call invocation
+#[derive(Debug, Clone, Serialize, Deserialize)]
+pub struct ToolCallResult {
+    /// Content blocks returned by the tool
+    pub content: Vec<ToolResultContent>,
+    /// Whether the tool execution resulted in an error
+    #[serde(rename = "isError", skip_serializing_if = "Option::is_none")]
+    pub is_error: Option<bool>,
+}
+
+/// A single content block within a tool call result
+#[derive(Debug, Clone, Serialize, Deserialize)]
+pub struct ToolResultContent {
+    /// Content type (e.g. "text")
+    #[serde(rename = "type")]
+    pub type_field: String,
+    /// Text content
+    pub text: String,
+}
+
+/// Signed execution envelope for verified tool execution results
+#[derive(Debug, Clone, Serialize, Deserialize)]
+pub struct SignedExecutionEnvelope {
+    /// The tool execution result payload
+    pub result: Value,
+    /// Cryptographic signature over the result
+    pub signature: String,
+    /// ISO-8601 timestamp of execution
+    pub timestamp: String,
+    /// Unique identifier for this execution
+    pub execution_id: String,
+}
+
 #[cfg(test)]
 mod tests {
     use super::*;

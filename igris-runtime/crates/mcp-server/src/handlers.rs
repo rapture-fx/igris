@@ -11,6 +11,8 @@ use tracing::{info, warn};
 
 use crate::context::ContextStore;
 use crate::protocol::*;
+use crate::signing::ExecutionSigner;
+use igris_tools::ToolRegistry;
 
 /// MCP Router State
 #[derive(Clone)]
@@ -18,6 +20,8 @@ pub struct McpState {
     pub context_store: Arc<ContextStore>,
     pub peer_id: String,
     pub server_info: ServerInfo,
+    pub tool_registry: Option<Arc<ToolRegistry>>,
+    pub execution_signer: Option<Arc<ExecutionSigner>>,
 }
 
 /// Build MCP Router with all endpoints
@@ -41,7 +45,8 @@ async fn handle_jsonrpc(
         "context/sync" => handle_context_sync(state, req.params).await,
         "context/get" => handle_context_get(state, req.params).await,
         "context/list" => handle_context_list(state).await,
-        "tools/list" => handle_tools_list(),
+        "tools/list" => handle_tools_list(state.clone()),
+        "tools/call" => handle_tools_call(state, req.params).await,
         "resources/list" => handle_resources_list(),
         "prompts/list" => handle_prompts_list(),
         _ => Err(JsonRpcError::method_not_found(
@@ -154,10 +159,91 @@ async fn handle_context_list(state: McpState) -> Result<Value, JsonRpcError> {
     Ok(json!({ "contexts": contexts }))
 }
 
-fn handle_tools_list() -> Result<Value, JsonRpcError> {
-    Ok(json!({
-        "tools": []
-    }))
+fn handle_tools_list(state: McpState) -> Result<Value, JsonRpcError> {
+    if let Some(ref registry) = state.tool_registry {
+        let definitions: Vec<Value> = registry
+            .get_definitions()
+            .into_iter()
+            .map(|def| {
+                json!({
+                    "name": def.name,
+                    "description": def.description,
+                    "inputSchema": def.parameters,
+                })
+            })
+            .collect();
+        Ok(json!({ "tools": definitions }))
+    } else {
+        Ok(json!({ "tools": [] }))
+    }
+}
+
+async fn handle_tools_call(
+    state: McpState,
+    params: Option<Value>,
+) -> Result<Value, JsonRpcError> {
+    let call_params: ToolCallParams = params
+        .and_then(|v| serde_json::from_value(v).ok())
+        .ok_or_else(|| JsonRpcError::invalid_params(Value::Null))?;
+
+    info!("MCP tools/call: name={}", call_params.name);
+
+    let registry = match &state.tool_registry {
+        Some(r) => r,
+        None => {
+            let result = ToolCallResult {
+                content: vec![ToolResultContent {
+                    type_field: "text".to_string(),
+                    text: format!("No tool registry available; cannot execute '{}'", call_params.name),
+                }],
+                is_error: Some(true),
+            };
+            return Ok(serde_json::to_value(result).unwrap());
+        }
+    };
+
+    if !registry.has_tool(&call_params.name) {
+        let result = ToolCallResult {
+            content: vec![ToolResultContent {
+                type_field: "text".to_string(),
+                text: format!("Tool not found: {}", call_params.name),
+            }],
+            is_error: Some(true),
+        };
+        return Ok(serde_json::to_value(result).unwrap());
+    }
+
+    match registry.execute(&call_params.name, call_params.arguments).await {
+        Ok(tool_result) => {
+            let result = ToolCallResult {
+                content: vec![ToolResultContent {
+                    type_field: "text".to_string(),
+                    text: tool_result.output,
+                }],
+                is_error: if tool_result.success { None } else { Some(true) },
+            };
+            let result_value = serde_json::to_value(&result).unwrap();
+
+            // Wrap in signed execution envelope if signer is available
+            if let Some(ref signer) = state.execution_signer {
+                let envelope = signer.sign_result(&result_value);
+                Ok(serde_json::to_value(envelope).unwrap())
+            } else {
+                Ok(result_value)
+            }
+        }
+        Err(e) => {
+            warn!("Tool execution error: {}", e);
+            let result = ToolCallResult {
+                content: vec![ToolResultContent {
+                    type_field: "text".to_string(),
+                    text: format!("Tool execution failed: {}", e),
+                }],
+                is_error: Some(true),
+            };
+            Ok(serde_json::to_value(result).unwrap())
+        }
+    }
 }
 
 fn handle_resources_list() -> Result<Value, JsonRpcError> {

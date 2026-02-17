@@ -34,7 +34,7 @@
 //!
 //!     // Subscribe to responses
 //!     if let Some(response) = node.receive_response().await? {
-//!         println!("Response: {}", response);
+//!         println!("Response: {:?}", response);
 //!     }
 //!
 //!     Ok(())
@@ -45,7 +45,8 @@ use anyhow::{Context, Result};
 use serde::{Deserialize, Serialize};
 use std::collections::HashMap;
 use std::sync::Arc;
-use tokio::sync::{mpsc, RwLock};
+use std::time::Duration;
+use tokio::sync::{mpsc, Mutex, Notify, RwLock};
 use tracing::{debug, info, warn};
 
 #[cfg(feature = "ros2")]
@@ -120,11 +121,183 @@ pub struct NavigationGoal {
     pub frame_id: String,
 }
 
+/// Navigation state machine phases
+#[derive(Debug, Clone, PartialEq, Serialize, Deserialize)]
+pub enum NavigationState {
+    /// Goal has been accepted by the action server
+    Accepted,
+    /// Path planning is in progress
+    Planning,
+    /// Robot is executing the planned path
+    Executing,
+    /// Navigation completed successfully
+    Succeeded,
+    /// Navigation failed (obstacle, timeout, etc.)
+    Failed(String),
+    /// Navigation was canceled by the caller
+    Canceled,
+}
+
+impl NavigationState {
+    /// Returns true if the navigation has reached a terminal state
+    pub fn is_terminal(&self) -> bool {
+        matches!(self, Self::Succeeded | Self::Failed(_) | Self::Canceled)
+    }
+}
+
 #[derive(Debug, Clone, Serialize, Deserialize)]
 pub struct NavigationStatus {
     pub status: String, // navigating, succeeded, failed, canceled
     pub distance_remaining: f64,
     pub estimated_time_remaining: f64,
+    /// Structured state machine phase
+    pub state: NavigationState,
+}
+
+/// Feedback data for an ongoing navigation action
+#[derive(Debug, Clone, Serialize, Deserialize)]
+pub struct NavigationFeedback {
+    /// Current robot pose (x, y, z)
+    pub current_pose: (f64, f64, f64),
+    /// Remaining distance to the goal in meters
+    pub distance_remaining: f64,
+    /// Estimated time remaining in seconds
+    pub estimated_time_remaining: f64,
+}
+
+/// Shared inner state for NavigationHandle
+struct NavigationHandleInner {
+    state: NavigationState,
+    feedback: NavigationFeedback,
+    goal: NavigationGoal,
+}
+
+/// Handle to an in-progress navigation action.
+///
+/// Returned by `navigate_to_pose()`, this handle allows monitoring progress,
+/// retrieving feedback, and canceling the navigation goal.
+pub struct NavigationHandle {
+    inner: Arc<Mutex<NavigationHandleInner>>,
+    done_notify: Arc<Notify>,
+}
+
+impl NavigationHandle {
+    /// Returns the current navigation state
+    pub async fn status(&self) -> NavigationState {
+        let inner = self.inner.lock().await;
+        inner.state.clone()
+    }
+
+    /// Returns the latest navigation feedback
+    pub async fn feedback(&self) -> NavigationFeedback {
+        let inner = self.inner.lock().await;
+        inner.feedback.clone()
+    }
+
+    /// Cancel the navigation goal
+    pub async fn cancel(&self) -> Result<()> {
+        let mut inner = self.inner.lock().await;
+        if inner.state.is_terminal() {
+            return Err(anyhow::anyhow!(
+                "Cannot cancel navigation in terminal state {:?}",
+                inner.state
+            ));
+        }
+        info!("Canceling navigation goal via handle");
+        inner.state = NavigationState::Canceled;
+        inner.feedback.distance_remaining = 0.0;
+        inner.feedback.estimated_time_remaining = 0.0;
+        drop(inner);
+        self.done_notify.notify_waiters();
+        Ok(())
+    }
+
+    /// Block until the navigation reaches a terminal state (Succeeded, Failed, or Canceled)
+    pub async fn wait(&self) -> Result<NavigationState> {
+        loop {
+            {
+                let inner = self.inner.lock().await;
+                if inner.state.is_terminal() {
+                    return Ok(inner.state.clone());
+                }
+            }
+            self.done_notify.notified().await;
+        }
+    }
+}
+
+/// Spawn a background task that simulates navigation state progression
+fn spawn_navigation_task(
+    inner: Arc<Mutex<NavigationHandleInner>>,
+    done_notify: Arc<Notify>,
+) {
+    tokio::spawn(async move {
+        // Accepted -> Planning (short delay)
+        tokio::time::sleep(Duration::from_millis(50)).await;
+        {
+            let mut lock = inner.lock().await;
+            if lock.state.is_terminal() {
+                return;
+            }
+            lock.state = NavigationState::Planning;
+        }
+
+        // Planning -> Executing (simulate path computation)
+        tokio::time::sleep(Duration::from_millis(100)).await;
+        {
+            let mut lock = inner.lock().await;
+            if lock.state.is_terminal() {
+                return;
+            }
+            lock.state = NavigationState::Executing;
+        }
+
+        // Simulate execution progress
+        let total_distance = {
+            let lock = inner.lock().await;
+            lock.feedback.distance_remaining
+        };
+
+        let steps = 10u32;
+        let step_duration = Duration::from_millis(50);
+        for i in 1..=steps {
+            tokio::time::sleep(step_duration).await;
+            {
+                let mut lock = inner.lock().await;
+                if lock.state.is_terminal() {
+                    return;
+                }
+                let fraction_remaining = 1.0 - (i as f64 / steps as f64);
+                lock.feedback.distance_remaining = total_distance * fraction_remaining;
+                lock.feedback.estimated_time_remaining =
+                    (steps - i) as f64 * step_duration.as_secs_f64();
+
+                // Update current pose linearly toward goal
+                let goal_x = lock.goal.x;
+                let goal_y = lock.goal.y;
+                let goal_z = lock.goal.z;
+                let progress = i as f64 / steps as f64;
+                lock.feedback.current_pose = (
+                    goal_x * progress,
+                    goal_y * progress,
+                    goal_z * progress,
+                );
+            }
+            done_notify.notify_waiters();
+        }
+
+        // Terminal: Succeeded
+        {
+            let mut lock = inner.lock().await;
+            if !lock.state.is_terminal() {
+                lock.state = NavigationState::Succeeded;
+                lock.feedback.distance_remaining = 0.0;
+                lock.feedback.estimated_time_remaining = 0.0;
+                lock.feedback.current_pose = (lock.goal.x, lock.goal.y, lock.goal.z);
+            }
+        }
+        done_notify.notify_waiters();
+    });
 }
 
 // ============================================================================
@@ -326,8 +499,8 @@ impl Ros2Node {
         Ok(rx.try_recv().ok())
     }
 
-    /// Send navigation goal to Nav2
-    pub async fn navigate_to_pose(&self, goal: NavigationGoal) -> Result<()> {
+    /// Send navigation goal to Nav2, returning a handle to monitor and control the action
+    pub async fn navigate_to_pose(&self, goal: NavigationGoal) -> Result<NavigationHandle> {
         if !self.config.enable_nav2 {
             return Err(anyhow::anyhow!("Nav2 is disabled in config"));
         }
@@ -337,27 +510,43 @@ impl Ros2Node {
             goal.x, goal.y, goal.z, goal.frame_id
         );
 
-        // Update navigation status
+        let distance = (goal.x * goal.x + goal.y * goal.y).sqrt();
+
+        // Update legacy navigation status
         let mut status = self.nav_status.write().await;
         *status = Some(NavigationStatus {
             status: "navigating".to_string(),
-            distance_remaining: (goal.x * goal.x + goal.y * goal.y).sqrt(),
+            distance_remaining: distance,
             estimated_time_remaining: 10.0,
+            state: NavigationState::Accepted,
         });
 
         // TODO: Implement Nav2 action client when nav2_msgs bindings are available in r2r
-        warn!("Nav2 action client not yet implemented - updating status only");
+        warn!("Nav2 action client not yet implemented - using simulated state progression");
 
-        Ok(())
+        let inner = Arc::new(Mutex::new(NavigationHandleInner {
+            state: NavigationState::Accepted,
+            feedback: NavigationFeedback {
+                current_pose: (0.0, 0.0, 0.0),
+                distance_remaining: distance,
+                estimated_time_remaining: 10.0,
+            },
+            goal,
+        }));
+
+        let done_notify = Arc::new(Notify::new());
+        spawn_navigation_task(inner.clone(), done_notify.clone());
+
+        Ok(NavigationHandle { inner, done_notify })
     }
 
-    /// Get current navigation status
+    /// Get current navigation status (legacy API)
     pub async fn get_navigation_status(&self) -> Result<Option<NavigationStatus>> {
         let status = self.nav_status.read().await;
         Ok(status.clone())
     }
 
-    /// Cancel current navigation goal
+    /// Cancel current navigation goal (legacy API - prefer NavigationHandle::cancel())
     pub async fn cancel_navigation(&self) -> Result<()> {
         if !self.config.enable_nav2 {
             return Err(anyhow::anyhow!("Nav2 is disabled"));
@@ -368,6 +557,7 @@ impl Ros2Node {
         let mut status = self.nav_status.write().await;
         if let Some(nav_status) = status.as_mut() {
             nav_status.status = "canceled".to_string();
+            nav_status.state = NavigationState::Canceled;
         }
 
         Ok(())
@@ -497,8 +687,8 @@ impl Ros2Node {
         Ok(rx.try_recv().ok())
     }
 
-    /// Send navigation goal to Nav2 (stub)
-    pub async fn navigate_to_pose(&self, goal: NavigationGoal) -> Result<()> {
+    /// Send navigation goal to Nav2 (stub), returning a handle to monitor and control the action
+    pub async fn navigate_to_pose(&self, goal: NavigationGoal) -> Result<NavigationHandle> {
         if !self.config.enable_nav2 {
             return Err(anyhow::anyhow!("Nav2 is disabled in config"));
         }
@@ -508,23 +698,39 @@ impl Ros2Node {
             goal.x, goal.y, goal.z, goal.frame_id
         );
 
+        let distance = (goal.x * goal.x + goal.y * goal.y).sqrt();
+
         let mut status = self.nav_status.write().await;
         *status = Some(NavigationStatus {
             status: "navigating".to_string(),
-            distance_remaining: (goal.x * goal.x + goal.y * goal.y).sqrt(),
+            distance_remaining: distance,
             estimated_time_remaining: 10.0,
+            state: NavigationState::Accepted,
         });
 
-        Ok(())
+        let inner = Arc::new(Mutex::new(NavigationHandleInner {
+            state: NavigationState::Accepted,
+            feedback: NavigationFeedback {
+                current_pose: (0.0, 0.0, 0.0),
+                distance_remaining: distance,
+                estimated_time_remaining: 10.0,
+            },
+            goal,
+        }));
+
+        let done_notify = Arc::new(Notify::new());
+        spawn_navigation_task(inner.clone(), done_notify.clone());
+
+        Ok(NavigationHandle { inner, done_notify })
     }
 
-    /// Get current navigation status
+    /// Get current navigation status (legacy API)
     pub async fn get_navigation_status(&self) -> Result<Option<NavigationStatus>> {
         let status = self.nav_status.read().await;
         Ok(status.clone())
     }
 
-    /// Cancel current navigation goal (stub)
+    /// Cancel current navigation goal (stub, legacy API - prefer NavigationHandle::cancel())
     pub async fn cancel_navigation(&self) -> Result<()> {
         if !self.config.enable_nav2 {
             return Err(anyhow::anyhow!("Nav2 is disabled"));
@@ -535,6 +741,7 @@ impl Ros2Node {
         let mut status = self.nav_status.write().await;
         if let Some(nav_status) = status.as_mut() {
             nav_status.status = "canceled".to_string();
+            nav_status.state = NavigationState::Canceled;
         }
 
         Ok(())
@@ -651,11 +858,123 @@ mod tests {
             frame_id: "map".to_string(),
         };
 
-        node.navigate_to_pose(goal).await.unwrap();
+        let handle = node.navigate_to_pose(goal).await.unwrap();
 
+        // Legacy API still works
         let status = node.get_navigation_status().await.unwrap();
         assert!(status.is_some());
         assert_eq!(status.unwrap().status, "navigating");
+
+        // Handle starts in Accepted state
+        let state = handle.status().await;
+        assert!(
+            state == NavigationState::Accepted
+                || state == NavigationState::Planning
+                || state == NavigationState::Executing,
+            "Expected non-terminal state, got {:?}",
+            state
+        );
+    }
+
+    #[tokio::test]
+    async fn test_navigation_handle_wait() {
+        let config = Ros2Config {
+            enabled: true,
+            enable_nav2: true,
+            ..Default::default()
+        };
+
+        let node = Ros2Node::new(config).await.unwrap();
+
+        let goal = NavigationGoal {
+            x: 3.0,
+            y: 4.0,
+            z: 0.0,
+            orientation_w: 1.0,
+            frame_id: "map".to_string(),
+        };
+
+        let handle = node.navigate_to_pose(goal).await.unwrap();
+        let final_state = handle.wait().await.unwrap();
+        assert_eq!(final_state, NavigationState::Succeeded);
+
+        // Feedback should show we arrived at the goal
+        let feedback = handle.feedback().await;
+        assert!((feedback.current_pose.0 - 3.0).abs() < 0.01);
+        assert!((feedback.current_pose.1 - 4.0).abs() < 0.01);
+        assert!(feedback.distance_remaining < 0.01);
+    }
+
+    #[tokio::test]
+    async fn test_navigation_handle_cancel() {
+        let config = Ros2Config {
+            enabled: true,
+            enable_nav2: true,
+            ..Default::default()
+        };
+
+        let node = Ros2Node::new(config).await.unwrap();
+
+        let goal = NavigationGoal {
+            x: 100.0,
+            y: 100.0,
+            z: 0.0,
+            orientation_w: 1.0,
+            frame_id: "map".to_string(),
+        };
+
+        let handle = node.navigate_to_pose(goal).await.unwrap();
+
+        // Cancel immediately
+        handle.cancel().await.unwrap();
+
+        let state = handle.status().await;
+        assert_eq!(state, NavigationState::Canceled);
+
+        // wait() should also return Canceled
+        let final_state = handle.wait().await.unwrap();
+        assert_eq!(final_state, NavigationState::Canceled);
+    }
+
+    #[tokio::test]
+    async fn test_navigation_handle_feedback() {
+        let config = Ros2Config {
+            enabled: true,
+            enable_nav2: true,
+            ..Default::default()
+        };
+
+        let node = Ros2Node::new(config).await.unwrap();
+
+        let goal = NavigationGoal {
+            x: 5.0,
+            y: 0.0,
+            z: 0.0,
+            orientation_w: 1.0,
+            frame_id: "map".to_string(),
+        };
+
+        let handle = node.navigate_to_pose(goal).await.unwrap();
+
+        let feedback = handle.feedback().await;
+        assert!(feedback.distance_remaining > 0.0);
+        assert!(feedback.estimated_time_remaining > 0.0);
+
+        // Wait for completion
+        let _ = handle.wait().await.unwrap();
+
+        let feedback = handle.feedback().await;
+        assert!(feedback.distance_remaining < 0.01);
+    }
+
+    #[tokio::test]
+    async fn test_navigation_state_is_terminal() {
+        assert!(!NavigationState::Accepted.is_terminal());
+        assert!(!NavigationState::Planning.is_terminal());
+        assert!(!NavigationState::Executing.is_terminal());
+        assert!(NavigationState::Succeeded.is_terminal());
+        assert!(NavigationState::Failed("test".to_string()).is_terminal());
+        assert!(NavigationState::Canceled.is_terminal());
     }
 
     #[tokio::test]
