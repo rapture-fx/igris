@@ -147,9 +147,10 @@ export default function Header() {
         />
 
         <div className="relative mx-auto max-w-[1100px] px-4 sm:px-6 lg:px-8">
-          {/* Nav bar + dropdown wrapper */}
+          {/* Nav bar + dropdown wrapper — negative margin extends floating card beyond content */}
           <div
             onMouseLeave={scheduleClose}
+            className="-mx-5"
           >
             {/* Top spacing when floating */}
             <div
@@ -158,14 +159,14 @@ export default function Header() {
               }`}
             />
 
-            {/* Nav bar inner content */}
+            {/* Nav bar inner content — px-5 always keeps content aligned */}
             <div
-              className={`flex items-center justify-between w-full transition-all duration-300 ${
+              className={`flex items-center justify-between w-full px-5 transition-all duration-300 ${
                 isFloating
                   ? 'bg-[#f6f6f4] dark:bg-[#1b1912] shadow-[0_4px_24px_rgba(0,0,0,0.08)] rounded-t-2xl'
                   : 'bg-transparent'
               }`}
-                style={{
+              style={{
                 paddingTop: '0.5rem',
                 paddingBottom: '0.5rem',
               }}
