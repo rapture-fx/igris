@@ -182,16 +182,16 @@ export default function Faq() {
         <div className="max-w-[1100px] mx-auto px-4 sm:px-6 lg:px-8">
           <div className="relative px-4 md:px-8 lg:px-12 min-h-0 md:min-h-[750px] flex flex-col" style={{ borderLeft: '0.5px solid rgba(209, 213, 219, 0.35)', borderRight: '0.5px solid rgba(209, 213, 219, 0.35)' }}>
             
-            {/* Title - Moved above FAQ stack */}
-            <div className="text-left" style={{ paddingTop: '3rem', paddingBottom: '2rem' }}>
-              <h2 className="text-xl md:text-2xl lg:text-3xl text-[#000000] dark:text-[#f6f6f4]" style={{ fontFamily: '-apple-system, BlinkMacSystemFont, "Segoe UI", Roboto, Helvetica, Arial, sans-serif' }}>
-                Questions and answers
-              </h2>
-            </div>
-
             {/* Single Column FAQ Layout */}
-            <div className="flex flex-col" style={{ paddingBottom: '3rem' }}>
-              <div className="space-y-4">
+            <div className="flex flex-col items-center" style={{ paddingTop: '3rem', paddingBottom: '3rem' }}>
+              {/* Title - Centered container, left-aligned text */}
+              <div className="w-full max-w-[600px] text-left mb-8">
+                <h2 className="text-xl md:text-2xl lg:text-3xl text-[#000000] dark:text-[#f6f6f4]" style={{ fontFamily: '-apple-system, BlinkMacSystemFont, "Segoe UI", Roboto, Helvetica, Arial, sans-serif' }}>
+                  Questions and answers
+                </h2>
+              </div>
+
+              <div className="space-y-4 w-full max-w-[600px]">
                 {faqSections.map((section, sectionIndex) => (
                   <div key={sectionIndex}>
                     {/* Section Title - Clickable */}

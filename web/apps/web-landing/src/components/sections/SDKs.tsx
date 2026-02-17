@@ -23,11 +23,25 @@ const codeExamples: Record<Language, string[]> = {
     '',
     'const response = await client.infer({',
     "  model: 'gpt-4',",
-    "  messages: [{ role: 'user', content: 'Hello, world!' }],",
-    '  max_tokens: 100,',
+    "  messages: [{ role: 'user', content: 'Plan a route.' }],",
+    '  maxTokens: 100,',
     '});',
     '',
     'console.log(response.choices[0].message.content);',
+    '',
+    '// Local runtime with cloud fallback',
+    "import { Runtime } from '@igris-inertial/sdk';",
+    '',
+    'const runtime = new Runtime({',
+    "  localUrl: 'http://localhost:8080',",
+    "  cloudUrl: 'https://api.igris-inertial.com',",
+    '  autoFallback: true,',
+    '});',
+    '',
+    'const local = await runtime.chat({',
+    "  model: 'llama-3-8b',",
+    "  messages: [{ role: 'user', content: 'Hello' }],",
+    '});',
   ],
   python: [
     'from igris import IgrisClient, InferRequest, Message',
@@ -39,11 +53,25 @@ const codeExamples: Record<Language, string[]> = {
     '',
     'response = client.infer(InferRequest(',
     '    model="gpt-4",',
-    '    messages=[Message(role="user", content="Hello, world!")],',
+    '    messages=[Message(role="user", content="Plan a route.")],',
     '    max_tokens=100,',
     '))',
     '',
     'print(response.choices[0].message.content)',
+    '',
+    '# Local runtime with cloud fallback',
+    'from igris import Runtime, RuntimeConfig',
+    '',
+    'runtime = Runtime(RuntimeConfig(',
+    '    local_url="http://localhost:8080",',
+    '    cloud_url="https://api.igris-inertial.com",',
+    '    auto_fallback=True,',
+    '))',
+    '',
+    'local = runtime.chat(InferRequest(',
+    '    model="llama-3-8b",',
+    '    messages=[Message(role="user", content="Hello")],',
+    '))',
   ],
   go: [
     'import (',
@@ -59,7 +87,21 @@ const codeExamples: Record<Language, string[]> = {
     'resp, err := client.Infer(ctx, &igris.InferRequest{',
     '    Model: "gpt-4",',
     '    Messages: []igris.Message{',
-    '        {Role: "user", Content: "Hello, world!"},',
+    '        {Role: "user", Content: "Plan a route."},',
+    '    },',
+    '})',
+    '',
+    '// Local runtime with cloud fallback',
+    'runtime := igris.NewRuntime(',
+    '    "http://localhost:8080",',
+    '    igris.WithCloudURL("https://api.igris-inertial.com"),',
+    '    igris.WithAutoFallback(true),',
+    ')',
+    '',
+    'local, err := runtime.Chat(ctx, &igris.InferRequest{',
+    '    Model: "llama-3-8b",',
+    '    Messages: []igris.Message{',
+    '        {Role: "user", Content: "Hello"},',
     '    },',
     '})',
   ],
@@ -70,18 +112,125 @@ const codeExamples: Record<Language, string[]> = {
     '    .api_key("your-api-key")',
     '    .build()?;',
     '',
-    'let request = InferRequest {',
-    '    model: "gpt-4".to_string(),',
+    'let response = client.infer(&InferRequest {',
+    '    model: "gpt-4".into(),',
     '    messages: vec![Message {',
-    '        role: "user".to_string(),',
-    '        content: "Hello, world!".to_string(),',
+    '        role: "user".into(),',
+    '        content: "Plan a route.".into(),',
     '        ..Default::default()',
     '    }],',
     '    ..Default::default()',
-    '};',
+    '})',
+    '.await?;',
     '',
-    'let response = client.infer(&request).await?;',
-    'println!("{}", response.choices[0].message.content);',
+    '// Local runtime with cloud fallback',
+    'use igris_inertial::Runtime;',
+    '',
+    'let runtime = Runtime::builder("http://localhost:8080")',
+    '    .cloud_url("https://api.igris-inertial.com")',
+    '    .auto_fallback(true)',
+    '    .build()?;',
+    '',
+    'let local = runtime.chat(&request).await?;',
+  ],
+}
+
+const btreeExamples: Record<Language, string[]> = {
+  javascript: [
+    "import { Runtime, BehaviorTree } from '@igris-inertial/sdk';",
+    "import { SequenceNode, ActionNode } from '@igris-inertial/sdk';",
+    '',
+    'const runtime = new Runtime({',
+    "  localUrl: 'http://localhost:8080',",
+    '});',
+    '',
+    '// Define behavior tree programmatically',
+    "const tree = BehaviorTree.fromJson({",
+    "  type: 'sequence',",
+    "  name: 'patrol',",
+    '  children: [',
+    "    ActionNode('scan_area', { sensor: 'lidar' }),",
+    "    ActionNode('navigate', { waypoint: 'alpha' }),",
+    "    ActionNode('report_status'),",
+    '  ],',
+    '}, runtime);',
+    '',
+    'const result = await tree.validate();',
+    "// { valid: true, root_type: 'sequence' }",
+    '',
+    'const execution = await tree.run();',
+    "// { status: 'success', tick_count: 3 }",
+  ],
+  python: [
+    'from igris import Runtime, RuntimeConfig',
+    'from igris.btree import BehaviorTree, Sequence, Action',
+    '',
+    'runtime = Runtime(RuntimeConfig(',
+    '    local_url="http://localhost:8080",',
+    '))',
+    '',
+    '# Define behavior tree programmatically',
+    'tree = BehaviorTree.from_json({',
+    '    "type": "sequence",',
+    '    "name": "patrol",',
+    '    "children": [',
+    '        Action("scan_area", config={"sensor": "lidar"}),',
+    '        Action("navigate", config={"waypoint": "alpha"}),',
+    '        Action("report_status"),',
+    '    ],',
+    '}, runtime)',
+    '',
+    'result = tree.validate()',
+    '# ValidationResult(valid=True, root_type="sequence")',
+    '',
+    'execution = tree.run()',
+    '# ExecutionResult(status="success", tick_count=3)',
+  ],
+  go: [
+    'import igris "github.com/igris-inertial/go-sdk"',
+    '',
+    'runtime := igris.NewRuntime("http://localhost:8080")',
+    '',
+    '// Define behavior tree programmatically',
+    'tree := igris.NewBehaviorTree(igris.BTreeDef{',
+    '    Type: "sequence",',
+    '    Name: "patrol",',
+    '    Children: []igris.NodeDef{',
+    '        igris.NewActionNode("scan_area", nil),',
+    '        igris.NewActionNode("navigate", nil),',
+    '        igris.NewActionNode("report_status", nil),',
+    '    },',
+    '}, runtime)',
+    '',
+    'result, err := tree.Validate(ctx)',
+    '// result.Valid == true',
+    '',
+    'execution, err := tree.Run(ctx, nil)',
+    '// execution.Status == "success"',
+  ],
+  rust: [
+    'use igris_inertial::{Runtime, BehaviorTree};',
+    'use igris_inertial::btree::*;',
+    '',
+    'let runtime = Runtime::builder("http://localhost:8080")',
+    '    .build()?;',
+    '',
+    '// Define behavior tree programmatically',
+    'let tree = BehaviorTree::new(serde_json::json!({',
+    '    "type": "sequence",',
+    '    "name": "patrol",',
+    '    "children": [',
+    '        action_node("scan_area", None),',
+    '        action_node("navigate", None),',
+    '        action_node("report_status", None),',
+    '    ]',
+    '}), runtime);',
+    '',
+    'let result = tree.validate().await?;',
+    '// result.valid == true',
+    '',
+    'let execution = tree.run(None).await?;',
+    '// execution.status == "success"',
   ],
 }
 
@@ -165,10 +314,10 @@ export default function SDKs() {
           {/* Full-width border below title */}
           <div style={{ borderTop: borderStyle, width: '100vw', marginLeft: '50%', transform: 'translateX(-50%)' }} />
 
-          {/* Single row - tall */}
-          <div className="grid grid-cols-1 md:grid-cols-2" style={{ minHeight: '480px' }}>
+          {/* Row 1 - Cloud + Runtime SDK */}
+          <div className="grid grid-cols-1 md:grid-cols-2" style={{ minHeight: '280px' }}>
             {/* Col 1 - Text */}
-            <div className="flex flex-col justify-start pt-8 pb-8 pr-4 md:pr-8" style={{ borderRight: borderStyle }}>
+            <div className="flex flex-col justify-start pt-6 pb-8 pr-4" style={{ borderRight: borderStyle }}>
               <div className="max-w-md">
                 <p className="text-sm md:text-base text-gray-600 dark:text-[#a8a898] leading-relaxed mb-4" style={{ fontFamily }}>
                   {languages.map((lang, i) => (
@@ -193,7 +342,7 @@ export default function SDKs() {
                   One API. Drop the SDK into your existing codebase. Your app becomes deterministic, provable, survivable—without rewrite.
                 </p>
                 <p className="text-sm md:text-base text-gray-600 dark:text-[#a8a898] leading-relaxed mb-6" style={{ fontFamily }}>
-                  Local development matches production exactly. Test on your laptop. Deploy to servers, robots, or edge devices.
+                  Local runtime with automatic cloud fallback. Test on your laptop. Deploy to servers, robots, or edge devices.
                 </p>
                 <div>
                   <a
@@ -207,9 +356,49 @@ export default function SDKs() {
               </div>
             </div>
             {/* Col 2 - Code */}
-            <div className="pt-8 pb-8 pl-4 md:pl-8">
-              <div className="rounded-2xl border border-gray-200 dark:border-[#f6f6f4]/8 bg-[#edece9] dark:bg-[#1b1912]/60 p-6 w-full h-[340px] overflow-auto">
-                <CodeBlock code={codeExamples[selectedLang]} language={selectedLang} />
+            <div className="relative" style={{ minHeight: '280px' }}>
+              <div className="absolute top-2 bottom-2 left-2 right-0 rounded-2xl border border-gray-200 dark:border-[#f6f6f4]/8 bg-[#edece9] dark:bg-[#1b1912]/60 p-4 overflow-hidden">
+                <div className="h-full overflow-y-auto scrollbar-hide" style={{ scrollbarWidth: 'none', msOverflowStyle: 'none' }}>
+                  <CodeBlock code={codeExamples[selectedLang]} language={selectedLang} />
+                </div>
+              </div>
+            </div>
+          </div>
+
+          {/* Full-width border between rows */}
+          <div style={{ borderTop: borderStyle, width: '100vw', marginLeft: '50%', transform: 'translateX(-50%)' }} />
+
+          {/* Row 2 - Behavior Trees */}
+          <div className="grid grid-cols-1 md:grid-cols-2" style={{ minHeight: '280px' }}>
+            {/* Col 1 - Text */}
+            <div className="flex flex-col justify-start pt-6 pb-8 pr-4" style={{ borderRight: borderStyle }}>
+              <div className="max-w-md">
+                <h4 className="text-lg md:text-xl text-[#000000] dark:text-[#f6f6f4] mb-4" style={{ fontFamily }}>
+                  Behavior Trees
+                </h4>
+                <p className="text-sm md:text-base text-gray-600 dark:text-[#a8a898] leading-relaxed mb-4" style={{ fontFamily }}>
+                  Define, validate, and execute behavior trees programmatically. Compose sequences, selectors, and actions into autonomous workflows that run locally on the runtime.
+                </p>
+                <p className="text-sm md:text-base text-gray-600 dark:text-[#a8a898] leading-relaxed mb-6" style={{ fontFamily }}>
+                  Deploy trees to devices. Validate client-side and server-side. Get signed execution traces for every run.
+                </p>
+                <div>
+                  <a
+                    href="https://runtime.igrisinertial.com/"
+                    className="text-sm text-gray-900 dark:text-[#f6f6f4] underline decoration-dotted underline-offset-2 hover:text-gray-600 dark:hover:text-gray-300 transition-colors"
+                    style={{ fontFamily }}
+                  >
+                    View Runtime Docs
+                  </a>
+                </div>
+              </div>
+            </div>
+            {/* Col 2 - Code */}
+            <div className="relative" style={{ minHeight: '280px' }}>
+              <div className="absolute top-2 bottom-2 left-2 right-0 rounded-2xl border border-gray-200 dark:border-[#f6f6f4]/8 bg-[#edece9] dark:bg-[#1b1912]/60 p-4 overflow-hidden">
+                <div className="h-full overflow-y-auto scrollbar-hide" style={{ scrollbarWidth: 'none', msOverflowStyle: 'none' }}>
+                  <CodeBlock code={btreeExamples[selectedLang]} language={selectedLang} />
+                </div>
               </div>
             </div>
           </div>
