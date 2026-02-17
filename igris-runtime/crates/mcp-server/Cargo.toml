@@ -26,6 +26,11 @@ futures = { workspace = true }
 
 # Internal dependencies
 igris-core = { path = "../igris-core" }
+igris-tools = { path = "../igris-tools" }
+
+# Cryptographic signing
+ed25519-dalek = { workspace = true, features = ["rand_core"] }
+rand = { workspace = true }
 
 # mDNS discovery
 mdns-sd = { workspace = true }

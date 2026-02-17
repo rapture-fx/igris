@@ -10,6 +10,7 @@ const OPTIMIZER_STATES: TableDefinition<&str, &[u8]> = TableDefinition::new("opt
 const BANDIT_ARMS: TableDefinition<&str, &[u8]> = TableDefinition::new("bandit_arms");
 const RATE_LIMITS: TableDefinition<&str, &[u8]> = TableDefinition::new("rate_limits");
 const PROVIDER_REGISTRY: TableDefinition<&str, &[u8]> = TableDefinition::new("providers");
+pub const BTREE_STORE: TableDefinition<&str, &[u8]> = TableDefinition::new("btree_store");
 
 pub struct RedbStorage {
     db: Database,
@@ -29,6 +30,7 @@ impl RedbStorage {
             write_txn.open_table(BANDIT_ARMS)?;
             write_txn.open_table(RATE_LIMITS)?;
             write_txn.open_table(PROVIDER_REGISTRY)?;
+            write_txn.open_table(BTREE_STORE)?;
         }
         write_txn.commit()?;
 
@@ -68,6 +70,40 @@ impl RedbStorage {
         }
         write_txn.commit()?;
         Ok(())
+    }
+
+    /// List all keys and values from a table.
+    pub fn list_all<T: for<'de> Deserialize<'de>>(
+        &self,
+        table: TableDefinition<&str, &[u8]>,
+    ) -> anyhow::Result<Vec<(String, T)>> {
+        let read_txn = self.db.begin_read()?;
+        let table = read_txn.open_table(table)?;
+        let mut results = Vec::new();
+        for entry in table.iter()? {
+            let (key, value) = entry?;
+            let deserialized: T = serde_json::from_slice(value.value())?;
+            results.push((key.value().to_string(), deserialized));
+        }
+        Ok(results)
+    }
+
+    /// Delete a key from a table.
+    pub fn delete(
+        &self,
+        table: TableDefinition<&str, &[u8]>,
+        key: &str,
+    ) -> anyhow::Result<bool> {
+        let write_txn = self.db.begin_write()?;
+        let removed = {
+            let mut tbl = write_txn.open_table(table)?;
+            let result = tbl.remove(key)?;
+            let was_present = result.is_some();
+            drop(result);
+            was_present
+        };
+        write_txn.commit()?;
+        Ok(removed)
     }
 
     // Atomic increment for budget tracking

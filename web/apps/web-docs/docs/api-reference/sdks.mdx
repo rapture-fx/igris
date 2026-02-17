@@ -182,6 +182,90 @@ config.BaseURL = "https://api.igrisinertial.com/v1"
 client := openai.NewClientWithConfig(config)
 ```
 
+## Runtime SDK
+
+All SDKs include a `Runtime` class for connecting to the local Igris Runtime with automatic cloud fallback.
+
+### Python
+
+```python
+from igris import Runtime, RuntimeConfig, InferRequest, Message
+
+runtime = Runtime(RuntimeConfig(
+    local_url="http://localhost:8080",
+    cloud_url="https://api.igris-inertial.com",
+    auto_fallback=True,
+))
+
+# Chat - tries local first, falls back to cloud
+response = runtime.chat(InferRequest(
+    model="llama-3-8b",
+    messages=[Message(role="user", content="Hello")],
+))
+
+# Model management
+runtime.load_model("/models/llama-3-8b.gguf")
+runtime.swap_model("mistral-7b")
+models = runtime.list_models()
+
+# Health check
+health = runtime.health()
+```
+
+### JavaScript
+
+```typescript
+import { Runtime } from '@igris-inertial/sdk';
+
+const runtime = new Runtime({
+  localUrl: 'http://localhost:8080',
+  cloudUrl: 'https://api.igris-inertial.com',
+  autoFallback: true,
+});
+
+const response = await runtime.chat({
+  model: 'llama-3-8b',
+  messages: [{ role: 'user', content: 'Hello' }],
+});
+
+await runtime.loadModel('/models/llama-3-8b.gguf');
+const models = await runtime.listModels();
+const health = await runtime.health();
+```
+
+### Go
+
+```go
+runtime := igris.NewRuntime(
+    "http://localhost:8080",
+    igris.WithCloudURL("https://api.igris-inertial.com"),
+    igris.WithAutoFallback(true),
+)
+
+resp, err := runtime.Chat(ctx, &igris.InferRequest{
+    Model: "llama-3-8b",
+    Messages: []igris.Message{{Role: "user", Content: "Hello"}},
+})
+
+runtime.LoadModel(ctx, "/models/llama-3-8b.gguf", "")
+health, _ := runtime.Health(ctx)
+```
+
+### Rust
+
+```rust
+use igris_inertial::Runtime;
+
+let runtime = Runtime::builder("http://localhost:8080")
+    .cloud_url("https://api.igris-inertial.com")
+    .auto_fallback(true)
+    .build()?;
+
+let response = runtime.chat(&request).await?;
+runtime.load_model("/models/llama-3-8b.gguf", None).await?;
+let health = runtime.health().await?;
+```
+
 ## SDK Repositories
 
 All SDKs are MIT licensed and open-source:

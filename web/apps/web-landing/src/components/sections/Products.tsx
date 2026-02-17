@@ -45,7 +45,7 @@ export default function Products() {
           <div className="grid grid-cols-1 md:grid-cols-2">
             {/* Col 1 - Image only */}
             <div className="relative" style={{ borderRight: '0.5px solid rgba(209, 213, 219, 0.35)', minHeight: '280px' }}>
-              <div className="absolute top-2 bottom-2 left-0 right-2 rounded-2xl overflow-hidden bg-[#edece9] dark:bg-[#1b1912]/60">
+              <div className="absolute top-2 bottom-2 left-0 right-2 rounded-2xl overflow-hidden bg-[#edece9] dark:bg-[#1b1912]/60 border border-gray-200 dark:border-[#f6f6f4]/8">
                 <Image
                   src={mounted ? (theme === 'dark' ? '/r.png' : '/prol.png') : '/prol.png'}
                   alt="Runtime AI Execution"
