@@ -70,7 +70,7 @@ export default function CoreCapabilities() {
                     }}>
                       {index === 0 && (
                         <img
-                          src={mounted && theme === 'dark' ? '/cr.png' : '/exc.png'}
+                          src={mounted && theme === 'dark' ? '/cr.png?v=2' : '/exc.png?v=2'}
                           alt={capability.name}
                           style={{
                             width: '65%',
