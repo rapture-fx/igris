@@ -3,16 +3,45 @@
 import React, { useEffect, useState } from 'react'
 import { useTheme } from 'next-themes'
 
-type Language = 'javascript' | 'python' | 'go' | 'rust'
+type Language = 'javascript' | 'python' | 'go' | 'rust' | 'curl'
 
 const languageLabels: Record<Language, string> = {
   javascript: 'JavaScript',
   python: 'Python',
   go: 'Go',
   rust: 'Rust',
+  curl: 'cURL',
 }
 
 const codeExamples: Record<Language, string[]> = {
+  curl: [
+    '# Cloud inference',
+    'curl -X POST https://api.igris-inertial.com/v1/infer \\',
+    '  -H "Authorization: Bearer your-api-key" \\',
+    '  -H "Content-Type: application/json" \\',
+    '  -d \'{',
+    '    "model": "gpt-4",',
+    '    "messages": [{"role": "user", "content": "Plan a route."}],',
+    '    "max_tokens": 100',
+    '  }\'',
+    '',
+    '# Local runtime (OpenAI-compatible)',
+    'curl -X POST http://localhost:8080/v1/chat/completions \\',
+    '  -H "Content-Type: application/json" \\',
+    '  -d \'{',
+    '    "model": "llama-3-8b",',
+    '    "messages": [{"role": "user", "content": "Hello"}]',
+    '  }\'',
+    '',
+    '# Deploy a behavior tree',
+    'curl -X POST http://localhost:8080/v1/btree/deploy \\',
+    '  -H "Content-Type: application/json" \\',
+    '  -d \'{',
+    '    "name": "patrol",',
+    '    "tree": {"type": "sequence", "children": [...]},',
+    '    "description": "Patrol and report"',
+    '  }\'',
+  ],
   javascript: [
     "import { IgrisClient } from '@igris-inertial/sdk';",
     '',
@@ -24,7 +53,7 @@ const codeExamples: Record<Language, string[]> = {
     'const response = await client.infer({',
     "  model: 'gpt-4',",
     "  messages: [{ role: 'user', content: 'Plan a route.' }],",
-    '  maxTokens: 100,',
+    '  max_tokens: 100,',
     '});',
     '',
     'console.log(response.choices[0].message.content);',
@@ -136,6 +165,32 @@ const codeExamples: Record<Language, string[]> = {
 }
 
 const btreeExamples: Record<Language, string[]> = {
+  curl: [
+    '# Deploy a behavior tree',
+    'curl -X POST http://localhost:8080/v1/btree/deploy \\',
+    '  -H "Content-Type: application/json" \\',
+    '  -d \'{',
+    '    "name": "patrol",',
+    '    "description": "Autonomous patrol sequence",',
+    '    "tree": {',
+    '      "type": "sequence",',
+    '      "name": "patrol",',
+    '      "children": [',
+    '        {"type": "action", "name": "scan_area"},',
+    '        {"type": "action", "name": "navigate"},',
+    '        {"type": "action", "name": "report_status"}',
+    '      ]',
+    '    }',
+    '  }\'',
+    '',
+    '# Validate a tree definition',
+    'curl -X POST http://localhost:8080/v1/btree/validate \\',
+    '  -H "Content-Type: application/json" \\',
+    '  -d \'{"tree": {"type": "sequence", "children": [...]}}\'',
+    '',
+    '# Execute a deployed tree',
+    'curl -X POST http://localhost:8080/v1/btree/patrol/run',
+  ],
   javascript: [
     "import { Runtime, BehaviorTree } from '@igris-inertial/sdk';",
     "import { SequenceNode, ActionNode } from '@igris-inertial/sdk';",
@@ -263,7 +318,7 @@ function SyntaxLine({ line, language }: { line: string; language: Language }) {
       remaining = match[4]
     } else {
       const highlighted = remaining
-        .replace(/\b(import|from|use|async|await|const|let|var|def|fn|pub|func|try|catch|except|match|if|else|return|new|class|struct|module|require|begin|rescue|end|using|namespace)\b/g, '___KW___$1___/KW___')
+        .replace(/\b(import|from|use|async|await|const|let|var|def|fn|pub|func|try|catch|except|match|if|else|return|new|class|struct|module|require|begin|rescue|end|using|namespace|curl)\b/g, '___KW___$1___/KW___')
         .replace(/\b(true|false|nil|null|None|Ok|Err|Some)\b/g, '___LIT___$1___/LIT___')
 
       const tokens = highlighted.split(/(___KW___|___\/KW___|___LIT___|___\/LIT___)/g)
@@ -291,7 +346,7 @@ export default function SDKs() {
   const { theme } = useTheme()
   const [mounted, setMounted] = useState(false)
   const [selectedLang, setSelectedLang] = useState<Language>('javascript')
-  const languages: Language[] = ['javascript', 'python', 'go', 'rust']
+  const languages: Language[] = ['javascript', 'python', 'go', 'rust', 'curl']
 
   useEffect(() => {
     setMounted(true)
