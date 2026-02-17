@@ -59,7 +59,7 @@ export default function CoreCapabilities() {
             <div className="flex flex-col md:flex-row gap-4 z-10 w-full md:w-auto px-4 md:px-0 py-8 md:py-0">
               {capabilities.map((capability, index) => (
                 <React.Fragment key={capability.name}>
-                   <div className="bg-[#f6f6f4] dark:bg-[#1b1912] border border-gray-300 dark:border-[#f6f6f4]/10 rounded-2xl w-full md:w-[280px] shadow-md flex flex-col" style={{ minHeight: '380px' }}>
+                   <div className="bg-[#edece9] dark:bg-[#1b1912]/60 border border-gray-200 dark:border-[#f6f6f4]/8 rounded-2xl w-full md:w-[280px] flex flex-col" style={{ minHeight: '380px' }}>
                     <div className="flex-1" style={{
                       width: '100%',
                       display: 'flex',
