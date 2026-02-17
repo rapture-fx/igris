@@ -2,7 +2,6 @@
 
 import Header from '../src/components/sections/Header'
 import Hero from '../src/components/sections/Hero-Simple'
-import WhatThisIs from '../src/components/sections/WhatThisIs'
 import ClosingPosition from '../src/components/sections/ClosingPosition'
 import WhyItExists from '../src/components/sections/WhyItExists'
 import Footer from '../src/components/sections/Footer'
@@ -35,7 +34,6 @@ export default function HomePage() {
           <Header />
           <main>
             <Hero />
-            <WhatThisIs />
             <Products />
             <CoreCapabilities />
             <AutonomousSystems />
