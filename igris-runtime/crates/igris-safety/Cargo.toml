@@ -4,7 +4,7 @@ version.workspace = true
 edition.workspace = true
 authors.workspace = true
 license.workspace = true
-description = "Kernel-enforced deterministic containment for Igris Runtime"
+description = "Kernel-enforced deterministic containment with supervised worker isolation"
 
 [dependencies]
 tokio = { workspace = true }
@@ -21,6 +21,9 @@ chrono = { version = "0.4", features = ["serde"] }
 
 [target.'cfg(target_os = "linux")'.dependencies]
 cgroups-rs = "0.4"
+
+[target.'cfg(unix)'.dependencies]
+nix = { version = "0.29", features = ["signal", "process"] }
 
 [dev-dependencies]
 tokio = { workspace = true, features = ["test-util"] }

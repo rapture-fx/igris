@@ -52,6 +52,23 @@ impl CGroup {
         }
     }
 
+    /// Add an arbitrary process by PID to the cgroup (used by Supervisor for worker PIDs).
+    pub fn apply_to_pid(&self, pid: u32) -> Result<(), String> {
+        #[cfg(target_os = "linux")]
+        {
+            use cgroups_rs::CgroupPid;
+            self.cgroup
+                .add_task(CgroupPid::from(pid as u64))
+                .map_err(|e| e.to_string())
+        }
+
+        #[cfg(not(target_os = "linux"))]
+        {
+            let _ = pid;
+            Ok(())
+        }
+    }
+
     /// Remove this cgroup from the hierarchy.
     pub fn destroy(self) -> Result<(), String> {
         #[cfg(target_os = "linux")]
