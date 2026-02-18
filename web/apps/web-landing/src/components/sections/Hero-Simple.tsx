@@ -87,7 +87,7 @@ export default function Hero() {
             {/* Background image - matching header/logo alignment */}
             <div className="absolute inset-x-0 top-0 bottom-0 mx-0 rounded-2xl overflow-hidden">
               <img
-                src={mounted && theme === 'dark' ? '/hs.png' : '/runtimeframe.png'}
+                src={mounted && theme === 'dark' ? '/hs.png' : '/runtimeframe.png?v=2'}
                 alt=""
                 className="absolute inset-0 w-full h-full object-cover z-0"
                 style={{ opacity: 0.9 }}
