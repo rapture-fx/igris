@@ -15,7 +15,6 @@ import (
 	"github.com/rs/zerolog/log"
 
 	pb "github.com/Igris-inertial/system/proto/orchestration"
-	"github.com/Igris-inertial/system/igris-overture/metrics"
 	"github.com/Igris-inertial/system/igris-overture/vault"
 )
 
@@ -168,9 +167,9 @@ func (e *PolicyEngine) RouteInference(ctx context.Context, req *pb.RouteInferenc
 
 	// Generate response
 	response := &pb.RouteInferenceResponse{
-		ModelId:       selectedModel.ModelId,
-		PolicyId:       selectedPolicy.PolicyId,
-		RuntimeType:   selectedModel.RuntimeType,
+		ModelId:     selectedModel.ModelId,
+		PolicyId:    selectedPolicy.PolicyId,
+		RuntimeType: selectedModel.RuntimeType.String(),
 		DecisionInfo: &pb.RoutingDecisionInfo{
 			Decisions:     decisions,
 			TotalScore:    calculateTotalScore(decisions),
@@ -235,7 +234,10 @@ func (e *PolicyEngine) matchesConditions(policy *pb.RoutingPolicy, req *pb.Route
 	// Check model conditions
 	if len(conditions.ModelIds) > 0 {
 		// Extract model preference from request
-		preferredModels := req.RoutingHints.PreferredModels
+		var preferredModels []string
+		if hints := req.InferenceRequest.GetRoutingHints(); hints != nil {
+			preferredModels = hints.GetPreferredModels()
+		}
 		if containsAny(preferredModels, conditions.ModelIds) {
 			return true
 		}
@@ -401,30 +403,30 @@ func (e *PolicyEngine) scoreByCriterion(model *pb.ModelInfo, metrics *ModelMetri
 	var reasoning string
 
 	switch criterion {
-	case pb.SELECTION_CRITERIA_COST:
+	case pb.SelectionCriteria_SELECTION_CRITERIA_COST:
 		costPerInference := metrics.CostPer1000Inferences
 		// Lower cost = higher score
 		score = 1000.0 / (costPerInference + 1e-6) // Avoid division by zero
 		reasoning = fmt.Sprintf("Cost score: $%.4f per 1k inferences", costPerInference)
 
-	case pb.SELECTION_CRITERIA_LATENCY:
+	case pb.SelectionCriteria_SELECTION_CRITERIA_LATENCY:
 		latencyP95 := metrics.AvgLatencyMs
 		// Lower latency = higher score
 		score = 1000.0 / (float64(latencyP95) + 1e-6)
 		reasoning = fmt.Sprintf("Latency score: %dms P95", latencyP95)
 
-	case pb.SELECTION_CRITERIA_AVAILABILITY:
+	case pb.SelectionCriteria_SELECTION_CRITERIA_AVAILABILITY:
 		availability := metrics.Availability
 		score = availability * 100.0
 		reasoning = fmt.Sprintf("Availability: %.1f%%", availability*100)
 
-	case pb.SELECTION_CRITERIA_ACCURACY:
-		accuracy := model.Quality.OverallScore
+	case pb.SelectionCriteria_SELECTION_CRITERIA_ACCURACY:
+		accuracy := model.GetQuality().GetOverallScore()
 		score = accuracy * 100.0
 		reasoning = fmt.Sprintf("Accuracy: %.1f%%", accuracy*100)
 
-	case pb.SELECTION_CRITERIA_THROUGHPUT:
-		throughput := model.Performance.MaxThroughputRps
+	case pb.SelectionCriteria_SELECTION_CRITERIA_THROUGHPUT:
+		throughput := model.GetPerformance().GetMaxThroughputRps()
 		score = float64(throughput) / 1000.0
 		reasoning = fmt.Sprintf("Throughput: %d RPS", throughput)
 
@@ -443,11 +445,11 @@ func (e *PolicyEngine) scoreByCriterion(model *pb.ModelInfo, metrics *ModelMetri
 }
 
 func (e *PolicyEngine) scoreByCost(model *pb.ModelInfo, metrics *ModelMetrics) *pb.RoutingDecision {
-	return e.scoreByCriterion(model, metrics, pb.SELECTION_CRITERIA_COST)
+	return e.scoreByCriterion(model, metrics, pb.SelectionCriteria_SELECTION_CRITERIA_COST)
 }
 
 func (e *PolicyEngine) scoreByLatency(model *pb.ModelInfo, metrics *ModelMetrics) *pb.RoutingDecision {
-	return e.scoreByCriterion(model, metrics, pb.SELECTION_CRITERIA_LATENCY)
+	return e.scoreByCriterion(model, metrics, pb.SelectionCriteria_SELECTION_CRITERIA_LATENCY)
 }
 
 func (e *PolicyEngine) getQueueLength(modelID string) int32 { return 0 }
@@ -515,7 +517,7 @@ func (e *PolicyEngine) estimatePerformance(model *pb.ModelInfo, decisions []*pb.
 	estimates := &pb.PerformanceEstimate{
 		EstimatedP50LatencyMs:  int32(float64(modelMetrics.AvgLatencyMs) * latencyAdjustment * 0.5), // P50 typically half of P95
 		EstimatedP95LatencyMs:  int32(float64(modelMetrics.AvgLatencyMs) * latencyAdjustment),
-		EstimatedThroughputRps: int32(float64(modelMetrics.ThroughputRPS) * throughputAdjustment),
+		EstimatedThroughputRps: float64(modelMetrics.ThroughputRPS) * throughputAdjustment,
 		EstimatedAvailability:  modelMetrics.Availability,
 	}
 
@@ -525,7 +527,7 @@ func (e *PolicyEngine) estimatePerformance(model *pb.ModelInfo, decisions []*pb.
 // estimateCost provides cost estimates for the selected model
 func (e *PolicyEngine) estimateCost(model *pb.ModelInfo, decisions []*pb.RoutingDecision) *pb.CostEstimate {
 	// Get pricing information from model
-	costPerInference := model.Cost.CostPer1kInferences
+	costPerInference := model.GetCost().GetCostPer_1KInferences()
 	if costPerInference == 0 {
 		costPerInference = 0.001 // Default fallback
 	}
@@ -541,17 +543,16 @@ func (e *PolicyEngine) estimateCost(model *pb.ModelInfo, decisions []*pb.Routing
 	estimatedCost := costPerInference * costMultiplier
 
 	// Get token cost if available
-	costPerTokens := model.Cost.CostPer1kTokens
+	costPerTokens := model.GetCost().GetCostPer_1KTokens()
 	if costPerTokens == 0 {
 		costPerTokens = costPerInference // Fallback
 	}
 
 	return &pb.CostEstimate{
 		EstimatedCost:       estimatedCost,
-		CostPer1kTokens:      costPerTokens,
-		CostPer1kInferences:  costPerInference,
-		PricingModel:        model.Cost.PricingModel,
-		Currency:           model.Cost.Currency,
+		CostPer_1KTokens:    costPerTokens,
+		CostPer_1KInferences: costPerInference,
+		PricingModel:        model.GetCost().GetPricingModel(),
 	}
 }
 
@@ -573,26 +574,34 @@ func (e *PolicyEngine) getQueueInfo(model *pb.ModelInfo) *pb.QueueInfo {
 
 func (e *PolicyEngine) createDecisionCacheKey(req *pb.RouteInferenceRequest) string {
 	// Create a hash that uniquely identifies routing requirements
-	keyParts := []string{
-		req.InferenceRequest.RequestId,
-		strings.Join(req.RoutingHints.PreferredModels, ","),
-		strings.Join(req.RoutingHints.BlockedModels, ","),
-		fmt.Sprintf("%v", req.QosRequirements.Priority),
+	var preferredModels, blockedModels []string
+	if hints := req.InferenceRequest.GetRoutingHints(); hints != nil {
+		preferredModels = hints.GetPreferredModels()
+		blockedModels = hints.GetBlockedModels()
 	}
-	
+	keyParts := []string{
+		req.InferenceRequest.GetRequestId(),
+		strings.Join(preferredModels, ","),
+		strings.Join(blockedModels, ","),
+	}
+
 	return fmt.Sprintf("routing:%s", strings.Join(keyParts, ":"))
 }
 
 func (e *PolicyEngine) loadPoliciesFromVault() error {
-	// Load policies from Vault
-	policies, err := e.vault.GetSecrets(e.config.VaultPoliciesPath, "")
+	// Load policies from Vault (stored as a single secret map)
+	secretData, err := e.vault.GetSecret(e.config.VaultPoliciesPath)
 	if err != nil {
 		return fmt.Errorf("failed to load policies from Vault: %w", err)
 	}
 
 	// Parse policies
 	parsedPolicies := make(map[string]*pb.RoutingPolicy)
-	for policyID, policyData := range policies {
+	for policyID, v := range secretData {
+		policyData, ok := v.(string)
+		if !ok {
+			continue
+		}
 		var policy pb.RoutingPolicy
 		if err := json.Unmarshal([]byte(policyData), &policy); err != nil {
 			log.Error().Err(err).Str("policy_id", policyID).Msg("Failed to parse policy")
@@ -626,23 +635,23 @@ func (e *PolicyEngine) updatePrometheusMetrics() {
 	policyCount := len(e.policies)
 	e.mu.RUnlock()
 
-	metrics.PoliciesGauge.Set(float64(policyCount))
-	metrics.PolicyEngineUptimeGauge.SetToCurrentTime()
+	PoliciesGauge.Set(float64(policyCount))
+	PolicyEngineUptimeGauge.SetToCurrentTime()
 }
 
 func (e *PolicyEngine) recordRoutingMetrics(policy *pb.RoutingPolicy, model *pb.ModelInfo, decisions []*pb.RoutingDecision, duration time.Duration) {
-	metrics.RoutingRequestsTotal.Inc()
-	metrics.RoutingLatencyHistogram.Observe(duration.Seconds())
+	RoutingRequestsTotal.Inc()
+	RoutingRequestsDuration.Observe(duration.Seconds())
 
 	// Record policy usage
-	metrics.PolicyUsage.WithLabelValues(policy.PolicyId).Inc()
-	
+	PolicyUsage.WithLabelValues(policy.PolicyId).Inc()
+
 	// Record model usage
-	metrics.ModelUsage.WithLabelValues(model.ModelId).Inc()
+	ModelUsage.WithLabelValues(model.ModelId).Inc()
 
 	// Record scoring
 	for _, decision := range decisions {
-		metrics.CriteriaScore.WithLabelValues(decision.Criterion).Observe(decision.Score)
+		CriteriaScore.WithLabelValues(decision.Criterion).Observe(decision.Score)
 	}
 }
 
@@ -721,20 +730,20 @@ func modelSupportsCapabilities(model *pb.ModelInfo, capabilities []string) bool 
 }
 
 func meetsPerformanceRequirements(model *pb.ModelInfo, requirements *pb.PerformanceRequirements) bool {
-	if requirements.MaxP95LatencyMs > 0 && model.Performance.MaxP95LatencyMs > requirements.MaxP95LatencyMs {
+	if requirements.GetMaxP95LatencyMs() > 0 && model.GetPerformance().GetMaxP95LatencyMs() > requirements.GetMaxP95LatencyMs() {
 		return false
 	}
-	if requirements.MaxThroughputRps > 0 && model.Performance.MaxThroughputRps < requirements.MaxThroughputRps {
+	if requirements.GetMinThroughputRps() > 0 && model.GetPerformance().GetMaxThroughputRps() < requirements.GetMinThroughputRps() {
 		return false
 	}
-	if requirements.MaxMemoryUsage > 0 && model.Performance.MaxMemoryGb > requirements.MaxMemoryUsage {
+	if requirements.GetMaxMemoryUsage() > 0 && model.GetPerformance().GetMaxMemoryGb() > requirements.GetMaxMemoryUsage() {
 		return false
 	}
 	return true
 }
 
 func requiresWarmStart(model *pb.ModelInfo) bool {
-	return model.Performance.RequiresWarmStart
+	return model.GetPerformance().GetRequiresWarmStart()
 }
 
 func calculateTotalScore(decisions []*pb.RoutingDecision) float64 {

@@ -346,8 +346,8 @@ func (m *DefaultPolicyMatcher) Matches(policy *pb.RoutingPolicy, req *pb.RouteIn
 	// Check model conditions
 	if len(conditions.ModelIds) > 0 {
 		// Check if request preferences match
-		if req.RoutingHints != nil {
-			for _, preferredModel := range req.RoutingHints.PreferredModels {
+		if hints := req.InferenceRequest.GetRoutingHints(); hints != nil {
+			for _, preferredModel := range hints.GetPreferredModels() {
 				for _, allowedModel := range conditions.ModelIds {
 					if preferredModel == allowedModel {
 						return true

@@ -3,20 +3,16 @@ package ml
 import (
 	"context"
 	"fmt"
-	"time"
 	"sync"
-	"encoding/json"
-	"net/http"
+	"time"
 
 	"google.golang.org/grpc/codes"
 	"google.golang.org/grpc/status"
-	"google.golang.org/protobuf/types/known/emptypb"
 
 	"github.com/gofiber/fiber/v2"
 	"github.com/rs/zerolog/log"
-	
+
 	pb "github.com/Igris-inertial/system/proto"
-	"github.com/Igris-inertial/system/igris-overture/metrics"
 )
 
 // PoolService manages ML service connections via connection pooling
@@ -138,16 +134,14 @@ func (s *PoolService) Predict(ctx context.Context, req *MLPredictRequest) (*MLPr
 	// Check cache if enabled
 	if s.config.EnableCaching {
 		if cached, found := s.checkCache(req); found {
-			metrics.IncrementCounter("ml_cache_hits")
 			s.cacheHitsCount++
-			
+
 			log.Debug().
 				Str("model_id", req.ModelID).
 				Msg("Serving prediction from cache")
-			
+
 			return cached, nil
 		}
-		metrics.IncrementCounter("ml_cache_misses")
 		s.cacheMissesCount++
 	}
 	
@@ -192,8 +186,8 @@ func (s *PoolService) Predict(ctx context.Context, req *MLPredictRequest) (*MLPr
 		ModelID:       response.ModelId,
 		Probabilities: response.Probabilities,
 		Metadata: map[string]interface{}{
-			"inference_time_ms": response.InferenceTimeMs,
-			"runtime_type":      response.RuntimeType,
+			"inference_time_ms": float64(response.LatencyMs),
+			"runtime_type":      response.GetMetadata()["runtime_type"],
 			"pooled_connection": true,
 			"timestamp":         time.Now().UTC().Format(time.RFC3339),
 		},
@@ -205,13 +199,12 @@ func (s *PoolService) Predict(ctx context.Context, req *MLPredictRequest) (*MLPr
 		s.setCache(req, result)
 	}
 	
-	metrics.IncrementCounter("ml_predictions")
 	s.predictionCount++
 	
 	log.Debug().
 		Str("model_id", req.ModelID).
 		Float64("prediction", result.Prediction).
-		Dur("inference_time", time.Duration(result.Metadata["inference_time_ms"].(float64))*time.Millisecond).
+		Int64("inference_time_ms", response.LatencyMs).
 		Msg("Prediction completed")
 	
 	return result, nil
@@ -302,8 +295,6 @@ func (s *PoolService) BatchPredict(ctx context.Context, req *MLBatchPredictReque
 		},
 	}
 	
-	metrics.IncrementCounter("ml_batch_predictions")
-	
 	log.Info().
 		Int("batch_size", len(req.Requests)).
 		Int("success_count", batchResponse.SuccessCount).
@@ -332,7 +323,7 @@ func (s *PoolService) ListModels(ctx context.Context) (*MLModelsResponse, error)
 	var models *pb.ListModelsResponse
 	err := s.pool.WithRetry(ctx, func(ctx context.Context, client pb.MLServiceClient) error {
 		var listErr error
-		models, listErr = client.ListModels(ctx, &emptypb.Empty{})
+		models, listErr = client.ListModels(ctx, &pb.ListModelsRequest{})
 		return listErr
 	})
 	
@@ -340,8 +331,13 @@ func (s *PoolService) ListModels(ctx context.Context) (*MLModelsResponse, error)
 		return nil, fmt.Errorf("failed to list models: %w", err)
 	}
 	
+	modelIDs := make([]string, len(models.Models))
+	for i, m := range models.Models {
+		modelIDs[i] = m.GetModelId()
+	}
+
 	return &MLModelsResponse{
-		Models:    models.Models,
+		Models:    modelIDs,
 		Total:     int32(len(models.Models)),
 		Timestamp: time.Now().UTC().Format(time.RFC3339),
 	}, nil
@@ -349,29 +345,29 @@ func (s *PoolService) ListModels(ctx context.Context) (*MLModelsResponse, error)
 
 // GetModelInfo gets information about a specific model
 func (s *PoolService) GetModelInfo(ctx context.Context, modelID string) (*MLModelInfo, error) {
-	req := &pb.GetModelInfoRequest{
+	req := &pb.ModelInfoRequest{
 		ModelId: modelID,
 	}
-	
-	var info *pb.GetModelInfoResponse
+
+	var info *pb.ModelInfoResponse
 	err := s.pool.WithRetry(ctx, func(ctx context.Context, client pb.MLServiceClient) error {
 		var infoErr error
 		info, infoErr = client.GetModelInfo(ctx, req)
 		return infoErr
 	})
-	
+
 	if err != nil {
 		return nil, fmt.Errorf("failed to get model info: %w", err)
 	}
-	
+
 	return &MLModelInfo{
 		ModelId:            info.ModelId,
 		ModelType:          info.ModelType,
-		LoadedAt:           info.LoadedAt,
-		MemoryUsageMb:      info.MemoryUsageMb,
-		InferenceCount:     info.InferenceCount,
-		AvgInferenceTimeMs: info.AvgInferenceTimeMs,
-		LastUsed:           info.LastUsed,
+		LoadedAt:           info.CreatedAt,
+		MemoryUsageMb:      float64(info.SizeBytes) / 1024 / 1024,
+		InferenceCount:     0,
+		AvgInferenceTimeMs: 0,
+		LastUsed:           info.CreatedAt,
 	}, nil
 }
 
@@ -437,10 +433,7 @@ func (s *PoolService) updatePredictionMetrics(duration time.Duration) {
 		s.avgPredictionTime = time.Duration(float64(s.avgPredictionTime)*(1-alpha) + float64(duration)*alpha)
 	}
 	
-	// Update Prometheus metrics
-	metrics.RecordDuration("ml_prediction_duration_seconds", duration)
-	metrics.SetGauge("ml_active_connections", float64(s.pool.Stats().ActiveConnections))
-	metrics.SetGauge("ml_idle_connections", float64(s.pool.Stats().IdleConnections))
+	_ = duration // duration tracked via avgPredictionTime above
 }
 
 // GetStats returns detailed statistics about the pool service
@@ -568,15 +561,15 @@ type MLModelInfo struct {
 }
 
 type PoolHealthStatus struct {
-	Healthy   bool       `json:"healthy"`
-	Stats     PoolStats  `json:"stats"`
-	LastCheck string     `json:"last_check"`
+	Healthy   bool                `json:"healthy"`
+	Stats     ConnectionPoolStats `json:"stats"`
+	LastCheck string              `json:"last_check"`
 }
 
 type PoolServiceStats struct {
-	PoolStats    PoolStats    `json:"pool_stats"`
-	ServiceStats ServiceStats `json:"service_stats"`
-	Config       PoolServiceConfig `json:"config"`
+	PoolStats    ConnectionPoolStats `json:"pool_stats"`
+	ServiceStats ServiceStats        `json:"service_stats"`
+	Config       PoolServiceConfig   `json:"config"`
 }
 
 type ServiceStats struct {
