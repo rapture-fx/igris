@@ -233,6 +233,7 @@ impl AdaptiveRewardPolicy {
             return; // Invalid input
         }
 
+        let lr = self.weight_learning_rate;
         let weights = self.get_weights_mut(key);
         let current_weights = weights.to_weight_vector();
 
@@ -246,7 +247,7 @@ impl AdaptiveRewardPolicy {
 
             // Gradient descent update: w_new = w_old + α * (corr - w_old)
             let updated_weight = current_weights[i]
-                + self.weight_learning_rate * (correlation - current_weights[i]);
+                + lr * (correlation - current_weights[i]);
 
             new_weights.push(updated_weight.clamp(0.0, 1.0));
         }
@@ -272,6 +273,7 @@ impl AdaptiveRewardPolicy {
             return;
         }
 
+        let lr = self.weight_learning_rate;
         let weights = self.get_weights_mut(key);
         let mut current_weights = weights.to_weight_vector();
 
@@ -293,7 +295,7 @@ impl AdaptiveRewardPolicy {
         // Update weights using averaged correlations
         for (i, &corr) in correlations.iter().enumerate() {
             current_weights[i] +=
-                self.weight_learning_rate * (corr - current_weights[i]);
+                lr * (corr - current_weights[i]);
             current_weights[i] = current_weights[i].clamp(0.0, 1.0);
         }
 

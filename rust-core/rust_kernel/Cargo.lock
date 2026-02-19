@@ -852,6 +852,42 @@ dependencies = [
 ]
 
 [[package]]
+name = "igris-kernel"
+version = "0.1.0"
+dependencies = [
+ "async-trait",
+ "bytes",
+ "chrono",
+ "crossbeam",
+ "dashmap",
+ "hashbrown 0.16.0",
+ "hex",
+ "hmac",
+ "lazy_static",
+ "libc",
+ "log",
+ "lru",
+ "num_cpus",
+ "once_cell",
+ "opentelemetry",
+ "opentelemetry-jaeger",
+ "opentelemetry_sdk",
+ "parking_lot",
+ "rayon",
+ "redis",
+ "serde",
+ "serde_json",
+ "sha2",
+ "thiserror",
+ "tokio",
+ "tokio-test",
+ "tonic",
+ "tracing",
+ "tracing-opentelemetry",
+ "tracing-subscriber",
+]
+
+[[package]]
 name = "indexmap"
 version = "1.9.3"
 source = "registry+https://github.com/rust-lang/crates.io-index"
@@ -1429,42 +1465,6 @@ name = "ryu"
 version = "1.0.20"
 source = "registry+https://github.com/rust-lang/crates.io-index"
 checksum = "28d3b2b1366ec20994f1fd18c3c594f05c5dd4bc44d8bb0c1c632c8d6829481f"
-
-[[package]]
-name = "schlep-kernel"
-version = "0.1.0"
-dependencies = [
- "async-trait",
- "bytes",
- "chrono",
- "crossbeam",
- "dashmap",
- "hashbrown 0.16.0",
- "hex",
- "hmac",
- "lazy_static",
- "libc",
- "log",
- "lru",
- "num_cpus",
- "once_cell",
- "opentelemetry",
- "opentelemetry-jaeger",
- "opentelemetry_sdk",
- "parking_lot",
- "rayon",
- "redis",
- "serde",
- "serde_json",
- "sha2",
- "thiserror",
- "tokio",
- "tokio-test",
- "tonic",
- "tracing",
- "tracing-opentelemetry",
- "tracing-subscriber",
-]
 
 [[package]]
 name = "scopeguard"
