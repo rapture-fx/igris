@@ -1,6 +1,7 @@
 package handlers
 
 import (
+	"context"
 	"database/sql"
 	"fmt"
 	"log"
@@ -27,6 +28,15 @@ import (
 	"github.com/Igris-inertial/system/igris-overture/tracing"
 )
 
+// RuntimeExecutor forwards inference to a remote Runtime instance.
+// Keeping this as an interface avoids a circular import between the
+// cmd/handlers package and igris-overture/internal.
+type RuntimeExecutor interface {
+	ForwardExecution(ctx context.Context, tenantID string, req *models.InferRequest, boundsHeader string) (*models.InferResponse, error)
+	Health(ctx context.Context) error
+	BaseURL() string
+}
+
 // InferHandler handles /v1/infer requests
 type InferHandler struct {
 	router            *router.InferenceRouter
@@ -37,6 +47,9 @@ type InferHandler struct {
 	activationMetrics *optimizer.ActivationMetricsRecorder
 	safetyController  *safety.SafetyController
 	rand              *rand.Rand
+	// runtimeExecutor forwards execution to igris-server when IGRIS_RUNTIME_URL is set.
+	// When nil, Overture routes directly to cloud providers (legacy path).
+	runtimeExecutor RuntimeExecutor
 }
 
 // NewInferHandler creates a new infer handler
@@ -348,6 +361,15 @@ func NewInferHandler(db *database.DB) (*InferHandler, error) {
 	}, nil
 }
 
+// SetRuntimeExecutor attaches a RuntimeExecutor to the handler.  When set,
+// HandleInfer forwards non-streaming requests to the Runtime instead of
+// calling cloud providers directly.  On Runtime failure, execution falls back
+// to the direct-routing path for backward compatibility.
+func (h *InferHandler) SetRuntimeExecutor(e RuntimeExecutor) {
+	h.runtimeExecutor = e
+	log.Printf("[Handler] Runtime executor attached: %s", e.BaseURL())
+}
+
 // HandleInfer handles POST /v1/infer
 func (h *InferHandler) HandleInfer(c *fiber.Ctx) error {
 	startTime := time.Now()
@@ -475,22 +497,39 @@ func (h *InferHandler) HandleInfer(c *fiber.Ctx) error {
 	// Route and execute inference
 	var resp *models.InferResponse
 
-	if useRustOptimizer {
-		// Try Rust optimizer with automatic Go fallback on error
-		resp, err = h.routeWithRustOptimizer(c, &req)
+	// Forward to Runtime instance if configured.  Overture is the control plane;
+	// the Runtime is the sole execution authority.  On failure we fall through to
+	// the direct-routing path for backward compatibility.
+	if h.runtimeExecutor != nil {
+		boundsHeader := string(c.Request().Header.Peek("X-Igris-Bounds"))
+		resp, err = h.runtimeExecutor.ForwardExecution(ctx, tenantID, &req, boundsHeader)
 		if err != nil {
-			// Rust failed, fallback to Go
-			log.Printf("[Infer] Rust optimizer failed, falling back to Go: %v", err)
-			h.activationMetrics.RecordGoFallback("error")
-			h.activationMetrics.RecordRustFailure("routing_error")
-			decisionSource = "go_router"
-			resp, err = h.router.Route(c.Context(), &req)
+			log.Printf("[Infer] Runtime forward failed, falling back to direct routing: %v", err)
+			err = nil
+			resp = nil
 		} else {
-			h.activationMetrics.RecordRustDecision()
+			decisionSource = "runtime"
 		}
-	} else {
-		// Use Go router
-		resp, err = h.router.Route(c.Context(), &req)
+	}
+
+	if resp == nil {
+		if useRustOptimizer {
+			// Try Rust optimizer with automatic Go fallback on error
+			resp, err = h.routeWithRustOptimizer(c, &req)
+			if err != nil {
+				// Rust failed, fallback to Go
+				log.Printf("[Infer] Rust optimizer failed, falling back to Go: %v", err)
+				h.activationMetrics.RecordGoFallback("error")
+				h.activationMetrics.RecordRustFailure("routing_error")
+				decisionSource = "go_router"
+				resp, err = h.router.Route(c.Context(), &req)
+			} else {
+				h.activationMetrics.RecordRustDecision()
+			}
+		} else {
+			// Use Go router
+			resp, err = h.router.Route(c.Context(), &req)
+		}
 	}
 
 	// Record request with decision source
