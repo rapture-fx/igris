@@ -63,6 +63,9 @@ const navigationSections: NavigationSection[] = [
         name: 'Architecture',
         href: '/docs/architecture',
         icon: Layers,
+        children: [
+          { name: 'Containment Model', href: '/docs/architecture/containment' },
+        ],
       },
     ],
   },
@@ -250,6 +253,7 @@ const searchIndex = [
   { title: 'Quickstart', path: '/docs/quickstart', keywords: 'quick start begin setup install' },
   { title: 'SDK Usage', path: '/docs/sdk-usage', keywords: 'sdk usage how to use implementation' },
   { title: 'Architecture', path: '/docs/architecture', keywords: 'architecture design system structure' },
+  { title: 'Containment Model', path: '/docs/architecture/containment', keywords: 'containment supervisor worker cgroup sigkill timeout violation record hash chain process isolation safety bounds cpu memory tick' },
   { title: 'API Reference', path: '/docs/api-reference/introduction', keywords: 'api reference endpoints methods' },
   { title: 'API Quick Start', path: '/docs/api-reference/quick-start', keywords: 'api quick start curl first request' },
   { title: 'Authentication', path: '/docs/api-reference/authentication', keywords: 'authentication auth api key jwt token bearer' },
