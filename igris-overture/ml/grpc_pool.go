@@ -2,16 +2,17 @@ package ml
 
 import (
 	"context"
-	"fmt"
-	"sync"
-	"time"
-	"sync/atomic"
-	"net"
 	"errors"
+	"fmt"
+	"strings"
+	"sync"
+	"sync/atomic"
+	"time"
 
 	"google.golang.org/grpc"
 	"google.golang.org/grpc/credentials/insecure"
 	"google.golang.org/grpc/health/grpc_health_v1"
+	"google.golang.org/grpc/keepalive"
 	"github.com/rs/zerolog/log"
 
 	pb "github.com/Igris-inertial/system/proto"
@@ -167,7 +168,6 @@ func (p *ConnectionPool) createConnection(index int) (*PooledConnection, error) 
 			PermitWithoutStream: true,
 		}),
 		grpc.WithDefaultCallOptions(
-			grpc.MaxRetryRPCDefaultCalls(3),
 			grpc.MaxCallRecvMsgSize(4*1024*1024), // 4MB max receive size
 			grpc.MaxCallSendMsgSize(4*1024*1024), // 4MB max send size
 		),
@@ -178,14 +178,14 @@ func (p *ConnectionPool) createConnection(index int) (*PooledConnection, error) 
 	
 	// Create client
 	client := pb.NewMLServiceClient(conn)
-	
+
 	// Test connection health
-	client := pb.NewMLServiceClient(conn)
 	healthReq := &grpc_health_v1.HealthCheckRequest{
 		Service: "ml.service",
 	}
 	
-	healthResp, err := client.Check(ctx, healthReq)
+	healthClient := grpc_health_v1.NewHealthClient(conn)
+	healthResp, err := healthClient.Check(ctx, healthReq)
 	if err != nil || healthResp.Status != grpc_health_v1.HealthCheckResponse_SERVING {
 		conn.Close()
 		return nil, fmt.Errorf("health check failed: %w", err)
@@ -405,8 +405,9 @@ func (p *ConnectionPool) checkConnectionHealth(conn *PooledConnection) {
 		Service: "ml.service",
 	}
 	
-	healthResp, err := conn.client.Check(ctx, healthReq)
-	
+	healthClient := grpc_health_v1.NewHealthClient(conn.conn)
+	healthResp, err := healthClient.Check(ctx, healthReq)
+
 	conn.mu.Lock()
 	healthy := err == nil && healthResp.Status == grpc_health_v1.HealthCheckResponse_SERVING
 	
@@ -416,7 +417,6 @@ func (p *ConnectionPool) checkConnectionHealth(conn *PooledConnection) {
 		log.Info().Int("connection_index", conn.index).Msg("Connection recovered healthy status")
 	}
 	
-	conn.healthy = healthy
 	conn.healthy = healthy
 	conn.mu.Unlock()
 }
@@ -429,41 +429,41 @@ func (p *PooledConnection) isHealthy() bool {
 }
 
 // Stats returns connection pool statistics
-func (p *ConnectionPool) Stats() PoolStats {
+func (p *ConnectionPool) Stats() ConnectionPoolStats {
 	p.mu.RLock()
 	defer p.mu.RUnlock()
-	
-	return PoolStats{
-		TotalConnections:      atomic.LoadInt64(&p.totalConnections),
-		ActiveConnections:     atomic.LoadInt64(&p.activeConnections),
-		IdleConnections:       int64(len(p.available)),
-		TotalRequests:         atomic.LoadInt64(&p.totalRequests),
-		SuccessfulRequests:    atomic.LoadInt64(&p.successfulRequests),
-		FailedRequests:        atomic.LoadInt64(&p.failedRequests),
-		ConnectionsCreated:    atomic.LoadInt64(&p.connectionsCreated),
-		ConnectionsDestroyed:  atomic.LoadInt64(&p.connectionsDestroyed),
-		MLEndpoint:            p.mlServiceEndpoint,
-		MinConnections:        p.minConnections,
-		MaxConnections:        p.maxConnections,
+
+	return ConnectionPoolStats{
+		TotalConnections:     atomic.LoadInt64(&p.totalConnections),
+		ActiveConnections:    atomic.LoadInt64(&p.activeConnections),
+		IdleConnections:      int64(len(p.available)),
+		TotalRequests:        atomic.LoadInt64(&p.totalRequests),
+		SuccessfulRequests:   atomic.LoadInt64(&p.successfulRequests),
+		FailedRequests:       atomic.LoadInt64(&p.failedRequests),
+		ConnectionsCreated:   atomic.LoadInt64(&p.connectionsCreated),
+		ConnectionsDestroyed: atomic.LoadInt64(&p.connectionsDestroyed),
+		MLEndpoint:           p.mlServiceEndpoint,
+		MinConnections:       p.minConnections,
+		MaxConnections:       p.maxConnections,
 	}
 }
 
-// PoolStats contains connection pool statistics
-type PoolStats struct {
-	TotalConnections      int64  `json:"total_connections"`
-	ActiveConnections     int64  `json:"active_connections"`
-	IdleConnections       int64  `json:"idle_connections"`
-	TotalRequests         int64  `json:"total_requests"`
-	SuccessfulRequests    int64  `json:"successful_requests"`
-	FailedRequests        int64  `json:"failed_requests"`
-	ConnectionsCreated    int64  `json:"connections_created"`
-	ConnectionsDestroyed  int64  `json:"connections_destroyed"`
-	MLEndpoint            string `json:"ml_endpoint"`
-	MinConnections        int    `json:"min_connections"`
-	MaxConnections        int    `json:"max_connections"`
+// ConnectionPoolStats contains connection pool statistics
+type ConnectionPoolStats struct {
+	TotalConnections     int64  `json:"total_connections"`
+	ActiveConnections    int64  `json:"active_connections"`
+	IdleConnections      int64  `json:"idle_connections"`
+	TotalRequests        int64  `json:"total_requests"`
+	SuccessfulRequests   int64  `json:"successful_requests"`
+	FailedRequests       int64  `json:"failed_requests"`
+	ConnectionsCreated   int64  `json:"connections_created"`
+	ConnectionsDestroyed int64  `json:"connections_destroyed"`
+	MLEndpoint           string `json:"ml_endpoint"`
+	MinConnections       int    `json:"min_connections"`
+	MaxConnections       int    `json:"max_connections"`
 }
 
-func (p *PoolStats) SuccessRate() float64 {
+func (p *ConnectionPoolStats) SuccessRate() float64 {
 	if p.TotalRequests == 0 {
 		return 0
 	}
