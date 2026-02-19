@@ -7,6 +7,7 @@ import (
 	"github.com/gofiber/fiber/v2"
 	"github.com/Igris-inertial/system/cmd/igris-overture/handlers"
 	"github.com/Igris-inertial/system/igris-overture/database"
+	"github.com/Igris-inertial/system/igris-overture/internal"
 	"github.com/Igris-inertial/system/igris-overture/middleware"
 )
 
@@ -17,6 +18,17 @@ func RegisterInferRoutes(app *fiber.App, tenantAuth *middleware.TenantAuth, db *
 	inferHandler, err := handlers.NewInferHandler(db)
 	if err != nil {
 		return err
+	}
+
+	// Attach Runtime executor when IGRIS_RUNTIME_URL is configured.
+	// When set, Overture delegates all inference to the Runtime instance
+	// and acts as a pure control plane (auth, billing, policy).
+	if runtimeURL := os.Getenv("IGRIS_RUNTIME_URL"); runtimeURL != "" {
+		rc := internal.NewRuntimeClient(runtimeURL)
+		inferHandler.SetRuntimeExecutor(rc)
+		log.Printf("[Routes] Runtime executor configured: %s", runtimeURL)
+	} else {
+		log.Println("[Routes] IGRIS_RUNTIME_URL not set — direct provider routing active")
 	}
 
 	log.Println("[Routes] Registering /v1/infer endpoints...")

@@ -27,6 +27,8 @@ use igris_routing::{
     council::CouncilRouter,
     Provider,
 };
+mod runtime_execute;
+use runtime_execute::{ViolationLog, PeerRegistry};
 use igris_local_llm::{LocalLLMConfig, LocalLLMProviderAdapter};
 use igris_routing::local_provider::LocalProvider;
 use igris_emergency::EscapeVectorCache;
@@ -97,6 +99,13 @@ pub(crate) struct AppState {
     pub(crate) rate_limiter: Option<middleware::security::RateLimiter>,
     pub(crate) metrics: Arc<Metrics>,
     pub(crate) escapevector_cache: Option<Arc<EscapeVectorCache>>,
+    /// In-memory violation log populated by `POST /v1/runtime/execute` timeouts.
+    pub(crate) violation_log: Option<ViolationLog>,
+    /// Registry of registered peer (edge) runtimes keyed by runtime_id.
+    pub(crate) peer_registry: Option<PeerRegistry>,
+    /// This server's Ed25519 verifying key (hex-encoded), sent to edge runtimes
+    /// on registration so they can verify signed config messages.
+    pub(crate) runtime_public_key: Option<String>,
 }
 
 /// Reflection LLM provider backed by the local provider (real llama.cpp execution).
@@ -1795,7 +1804,7 @@ async fn chat_completions(
 
 // Wrapper to allow CloudProvider to be cloned in Box<dyn Provider>
 #[derive(Clone)]
-struct CloudProviderWrapper(CloudProvider);
+pub(crate) struct CloudProviderWrapper(CloudProvider);
 
 impl Provider for CloudProviderWrapper {
     fn id(&self) -> &str {
@@ -2536,6 +2545,21 @@ async fn main() -> anyhow::Result<()> {
         }
     };
 
+    // Generate Ed25519 identity for this runtime instance.
+    let (runtime_public_key, _signing_key) = {
+        use ed25519_dalek::SigningKey;
+        use rand::rngs::OsRng;
+        let signing_key = SigningKey::generate(&mut OsRng);
+        let verifying_key = signing_key.verifying_key();
+        let hex_key = verifying_key
+            .as_bytes()
+            .iter()
+            .map(|b| format!("{:02x}", b))
+            .collect::<String>();
+        info!("[Runtime/Identity] Ed25519 verifying key: {}", &hex_key[..16]);
+        (hex_key, signing_key)
+    };
+
     let state = AppState {
         config: Arc::new(config),
         storage: Arc::new(storage),
@@ -2559,6 +2583,9 @@ async fn main() -> anyhow::Result<()> {
         rate_limiter,
         metrics,
         escapevector_cache,
+        violation_log: Some(Arc::new(tokio::sync::Mutex::new(Vec::new()))),
+        peer_registry: Some(Arc::new(tokio::sync::RwLock::new(std::collections::HashMap::new()))),
+        runtime_public_key: Some(runtime_public_key),
     };
 
     // Build router
@@ -2592,6 +2619,10 @@ async fn main() -> anyhow::Result<()> {
         .route("/v1/btree/deploy", post(btree_deploy))
         // MCP SSE streaming endpoint
         .route("/mcp/stream", post(mcp_stream))
+        // Runtime execution API (Overture → Runtime boundary)
+        .route("/v1/runtime/execute", post(runtime_execute::handle_execute))
+        .route("/v1/runtime/violations", get(runtime_execute::handle_violations))
+        .route("/v1/runtime/register", post(runtime_execute::handle_register))
         .merge(SwaggerUi::new("/swagger-ui").url("/api-docs/openapi.json", ApiDoc::openapi()))
         .layer(TraceLayer::new_for_http())
         .layer(CorsLayer::permissive())
