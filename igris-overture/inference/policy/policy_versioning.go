@@ -8,6 +8,7 @@ import (
 	"sync"
 	"time"
 
+	"github.com/prometheus/client_golang/prometheus"
 	"github.com/rs/zerolog/log"
 	pb "github.com/Igris-inertial/system/proto/orchestration"
 )
@@ -339,7 +340,7 @@ type PolicyMatcher interface {
 type DefaultPolicyMatcher struct{}
 
 // Matches checks if a policy matches a request
-func (m *DefaultPolicyMatcher) Matches(policy *pb.RoutingPolicy, req *pb.RouteInferferenceRequest) bool {
+func (m *DefaultPolicyMatcher) Matches(policy *pb.RoutingPolicy, req *pb.RouteInferenceRequest) bool {
 	conditions := policy.Conditions
 	
 	// Check model conditions

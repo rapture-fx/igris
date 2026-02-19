@@ -13,11 +13,30 @@ import (
 	"github.com/Igris-inertial/system/igris-overture/observability"
 )
 
+// InferResult holds the output of a model inference call.
+type InferResult struct {
+	Prediction float64
+	Confidence float64
+}
+
+// InferencePool is satisfied by *ml.AdaptiveInferencePool.
+type InferencePool interface{}
+
+// InferenceRuntime is satisfied by *ml.GPURuntime.
+type InferenceRuntime interface {
+	Infer(ctx context.Context, features []float64, modelID string) (*InferResult, error)
+}
+
+// ModelRouter is satisfied by *core.MultiModelRouter (or *ml.MultiModelRouter).
+type ModelRouter interface {
+	SelectModel(requestedModelID string) (string, RuntimeType)
+}
+
 // StreamingInferenceHandler manages WebSocket streaming inference
 type StreamingInferenceHandler struct {
-	pool           *AdaptiveInferencePool
-	gpuRuntime     *GPURuntime
-	router         *MultiModelRouter
+	pool           InferencePool
+	gpuRuntime     InferenceRuntime
+	router         ModelRouter
 
 	// Connection management
 	connections    map[string]*StreamConnection
@@ -71,9 +90,9 @@ type StreamResult struct {
 
 // NewStreamingInferenceHandler creates a new streaming handler
 func NewStreamingInferenceHandler(
-	pool *AdaptiveInferencePool,
-	gpuRuntime *GPURuntime,
-	router *MultiModelRouter,
+	pool InferencePool,
+	gpuRuntime InferenceRuntime,
+	router ModelRouter,
 ) *StreamingInferenceHandler {
 	return &StreamingInferenceHandler{
 		pool:           pool,

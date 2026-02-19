@@ -53,9 +53,16 @@ type DriftMetrics struct {
 	RecommendRetraining   bool
 }
 
+// ModelPerformanceUpdater is the interface FeedbackMonitor uses to record
+// inference outcomes back into the routing bandit.  Satisfied by
+// *core.MultiModelRouter without creating a circular import.
+type ModelPerformanceUpdater interface {
+	UpdateModelPerformance(modelID string, success bool, latency time.Duration)
+}
+
 // FeedbackMonitor collects and analyzes inference feedback
 type FeedbackMonitor struct {
-	router     *MultiModelRouter
+	router     ModelPerformanceUpdater
 
 	// Signal collection
 	signals        []FeedbackSignal
@@ -104,7 +111,7 @@ type DriftWindow struct {
 }
 
 // NewFeedbackMonitor creates a new feedback monitoring system
-func NewFeedbackMonitor(router *MultiModelRouter) *FeedbackMonitor {
+func NewFeedbackMonitor(router ModelPerformanceUpdater) *FeedbackMonitor {
 	ctx, cancel := context.WithCancel(context.Background())
 
 	monitor := &FeedbackMonitor{

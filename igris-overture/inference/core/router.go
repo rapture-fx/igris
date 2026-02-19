@@ -13,6 +13,17 @@ import (
 	"github.com/Igris-inertial/system/igris-overture/observability"
 )
 
+// RuntimeType identifies the execution runtime backend.
+// Defined independently in this package to avoid importing ml.
+type RuntimeType string
+
+const (
+	RuntimePyTorch  RuntimeType = "pytorch"
+	RuntimeONNX     RuntimeType = "onnx"
+	RuntimeTensorRT RuntimeType = "tensorrt"
+	RuntimeCPU      RuntimeType = "cpu"
+)
+
 // ModelMetadata contains information about a registered model
 type ModelMetadata struct {
 	ID              string
