@@ -112,7 +112,7 @@ export default function Hero() {
                     </a>
                   </div>
                   <div className="text-sm md:text-base lg:text-lg max-w-xs font-normal" style={{ color: '#f6f6f4', fontFamily: '-apple-system, BlinkMacSystemFont, "Segoe UI", Roboto, Helvetica, Arial, sans-serif', fontWeight: 400 }}>
-                    <span className="block">Deterministic runtime. Cloud + local fallback. Cryptographically signed execution. ROS 2 integration.</span>
+                    <span className="block">Deterministic runtime. Cloud + local fallback. OS-level containment with signed violation logs. Deploy anywhere.</span>
                   </div>
                 </div>
               </div>
