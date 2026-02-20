@@ -106,6 +106,8 @@ pub(crate) struct AppState {
     /// This server's Ed25519 verifying key (hex-encoded), sent to edge runtimes
     /// on registration so they can verify signed config messages.
     pub(crate) runtime_public_key: Option<String>,
+    /// Ed25519 signing key used to sign ExecuteResponse and ViolationRecord hashes.
+    pub(crate) signing_key: Option<Arc<ed25519_dalek::SigningKey>>,
 }
 
 /// Reflection LLM provider backed by the local provider (real llama.cpp execution).
@@ -2056,6 +2058,18 @@ async fn main() -> anyhow::Result<()> {
 
     info!("Config loaded successfully");
 
+    // P0-C: Override auth when IGRIS_RUNTIME_SECRET is set so that only
+    // Overture (which sends Authorization: Bearer <secret>) can reach the
+    // execution and violations endpoints.
+    let mut config = config;
+    if let Ok(secret) = std::env::var("IGRIS_RUNTIME_SECRET") {
+        if !secret.is_empty() {
+            config.auth.api_key = secret;
+            config.auth.enabled = true;
+            info!("[Runtime/Auth] Bearer token auth enforced via IGRIS_RUNTIME_SECRET");
+        }
+    }
+
     // License validation (REQUIRED)
     let license_key = std::env::var("IGRIS_LICENSE_KEY").ok();
 
@@ -2546,7 +2560,7 @@ async fn main() -> anyhow::Result<()> {
     };
 
     // Generate Ed25519 identity for this runtime instance.
-    let (runtime_public_key, _signing_key) = {
+    let (runtime_public_key, signing_key) = {
         use ed25519_dalek::SigningKey;
         use rand::rngs::OsRng;
         let signing_key = SigningKey::generate(&mut OsRng);
@@ -2586,6 +2600,7 @@ async fn main() -> anyhow::Result<()> {
         violation_log: Some(Arc::new(tokio::sync::Mutex::new(Vec::new()))),
         peer_registry: Some(Arc::new(tokio::sync::RwLock::new(std::collections::HashMap::new()))),
         runtime_public_key: Some(runtime_public_key),
+        signing_key: Some(Arc::new(signing_key)),
     };
 
     // Build router

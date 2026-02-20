@@ -9,6 +9,8 @@ use axum::{
     http::{HeaderMap, StatusCode},
     response::IntoResponse,
 };
+use base64::Engine;
+use ed25519_dalek::Signer;
 use serde::{Deserialize, Serialize};
 use sha2::{Digest, Sha256};
 use std::collections::HashMap;
@@ -137,6 +139,10 @@ pub struct ExecuteResponse {
     pub usage: ExecuteUsage,
     #[serde(skip_serializing_if = "Option::is_none")]
     pub metadata: Option<ExecuteMetadata>,
+    /// Ed25519 signature over "id:model:finish_reason" (base64). Present when
+    /// the runtime was started with an Ed25519 signing key.
+    #[serde(skip_serializing_if = "Option::is_none")]
+    pub signature: Option<String>,
 }
 
 /// `POST /v1/runtime/execute`
@@ -187,8 +193,18 @@ pub async fn handle_execute(
         Ok(Ok((content, provider_name))) => {
             let pt = token_estimate(&prompt);
             let ct = token_estimate(&content);
+            let resp_id = format!("exec-{}", Uuid::new_v4());
+            let finish_reason = "stop".to_string();
+
+            // S2: Sign "id:model:finish_reason" with the runtime's Ed25519 key.
+            let signature = state.signing_key.as_ref().map(|sk| {
+                let msg = format!("{}:{}:{}", resp_id, req.model, finish_reason);
+                let sig = sk.sign(msg.as_bytes());
+                base64::engine::general_purpose::STANDARD.encode(sig.to_bytes())
+            });
+
             let resp = ExecuteResponse {
-                id: format!("exec-{}", Uuid::new_v4()),
+                id: resp_id,
                 object: "chat.completion".to_string(),
                 created: unix_now(),
                 model: req.model.clone(),
@@ -198,7 +214,7 @@ pub async fn handle_execute(
                         role: "assistant".to_string(),
                         content,
                     },
-                    finish_reason: "stop".to_string(),
+                    finish_reason,
                 }],
                 usage: ExecuteUsage {
                     prompt_tokens: pt,
@@ -212,6 +228,7 @@ pub async fn handle_execute(
                     bounds_applied: bounds,
                     containment_active: true,
                 }),
+                signature,
             };
             (StatusCode::OK, Json(resp)).into_response()
         }
@@ -242,6 +259,7 @@ pub async fn handle_execute(
                         "tenant_id": tenant_id,
                         "max_tick_ms": max_tick_ms,
                     }),
+                    state.signing_key.as_ref(),
                 )
                 .await;
             }
@@ -438,16 +456,26 @@ fn days_to_ymd(days: u64) -> (u64, u64, u64) {
 }
 
 /// Append a violation record to the in-memory log.
+/// S3: Signs the hash using the Ed25519 signing key when available.
 async fn append_violation(
     log: &ViolationLog,
     kind: &str,
     context: serde_json::Value,
+    signing_key: Option<&Arc<ed25519_dalek::SigningKey>>,
 ) {
     let mut guard = log.lock().await;
     let previous_hash = guard.last().map(|r| r.hash.clone()).unwrap_or_default();
     let id = Uuid::new_v4().to_string();
     let canonical = format!("{}:{}:{}", id, kind, previous_hash);
     let hash = format!("{:x}", Sha256::digest(canonical.as_bytes()));
+
+    // Sign "id:kind:hash" if a signing key is available.
+    let signature = signing_key.map(|sk| {
+        let msg = format!("{}:{}:{}", id, kind, hash);
+        let sig = sk.sign(msg.as_bytes());
+        base64::engine::general_purpose::STANDARD.encode(sig.to_bytes())
+    }).unwrap_or_default();
+
     guard.push(ViolationRecord {
         id,
         timestamp: iso8601_now(),
@@ -455,9 +483,7 @@ async fn append_violation(
         context,
         previous_hash,
         hash,
-        // Signing requires the runtime's Ed25519 key; left empty for in-memory
-        // records to avoid a lock dependency on the signing key here.
-        signature: String::new(),
+        signature,
     });
 }
 
