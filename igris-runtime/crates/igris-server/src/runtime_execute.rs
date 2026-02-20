@@ -13,7 +13,7 @@ use base64::Engine;
 use ed25519_dalek::Signer;
 use serde::{Deserialize, Serialize};
 use sha2::{Digest, Sha256};
-use std::collections::HashMap;
+use std::collections::{BTreeMap, HashMap};
 use std::sync::Arc;
 use std::time::{Duration, SystemTime, UNIX_EPOCH};
 use tokio::sync::{Mutex, RwLock};
@@ -129,6 +129,28 @@ pub struct ExecuteMetadata {
     pub containment_active: bool,
 }
 
+/// Canonical execution proof — all fields used as signing input are sorted
+/// alphabetically to guarantee a stable canonical JSON form.
+#[derive(Debug, Serialize, Deserialize, Clone)]
+pub struct ExecutionEnvelope {
+    #[serde(skip_serializing_if = "Option::is_none")]
+    pub bounds_applied: Option<Bounds>,
+    pub execution_id: String,
+    pub finish_reason: String,
+    pub model: String,
+    pub request_hash: String,
+    pub response_hash: String,
+    pub routing_decision: String,
+    /// Ed25519 signature (base64) over SHA-256 of the canonical JSON form of
+    /// all other fields in this envelope (keys sorted alphabetically).
+    pub signature: String,
+    #[serde(skip_serializing_if = "Option::is_none")]
+    pub tenant_id: Option<String>,
+    pub timestamp: String,
+    #[serde(skip_serializing_if = "Option::is_none")]
+    pub violation: Option<String>,
+}
+
 #[derive(Debug, Serialize)]
 pub struct ExecuteResponse {
     pub id: String,
@@ -139,10 +161,10 @@ pub struct ExecuteResponse {
     pub usage: ExecuteUsage,
     #[serde(skip_serializing_if = "Option::is_none")]
     pub metadata: Option<ExecuteMetadata>,
-    /// Ed25519 signature over "id:model:finish_reason" (base64). Present when
-    /// the runtime was started with an Ed25519 signing key.
+    /// Full execution envelope with Ed25519 signature. Present when the runtime
+    /// has an Ed25519 signing key configured.
     #[serde(skip_serializing_if = "Option::is_none")]
-    pub signature: Option<String>,
+    pub execution_envelope: Option<ExecutionEnvelope>,
 }
 
 /// `POST /v1/runtime/execute`
@@ -195,12 +217,45 @@ pub async fn handle_execute(
             let ct = token_estimate(&content);
             let resp_id = format!("exec-{}", Uuid::new_v4());
             let finish_reason = "stop".to_string();
+            let ts = iso8601_now();
 
-            // S2: Sign "id:model:finish_reason" with the runtime's Ed25519 key.
-            let signature = state.signing_key.as_ref().map(|sk| {
-                let msg = format!("{}:{}:{}", resp_id, req.model, finish_reason);
-                let sig = sk.sign(msg.as_bytes());
-                base64::engine::general_purpose::STANDARD.encode(sig.to_bytes())
+            // Compute hashes before content/req are moved into structs.
+            let request_hash = {
+                let b = serde_json::to_vec(&req).unwrap_or_default();
+                format!("{:x}", Sha256::digest(&b))
+            };
+            let response_hash = format!("{:x}", Sha256::digest(content.as_bytes()));
+
+            // Build canonical execution envelope and sign it.
+            let execution_envelope = state.signing_key.as_ref().map(|sk| {
+                let canon = canonical_envelope_bytes(
+                    &resp_id,
+                    &ts,
+                    tenant_id.as_deref(),
+                    &req.model,
+                    &request_hash,
+                    &response_hash,
+                    &provider_name,
+                    bounds.as_ref(),
+                    &finish_reason,
+                    None,
+                );
+                let hash = Sha256::digest(&canon);
+                let sig = sk.sign(&hash);
+                let sig_b64 = base64::engine::general_purpose::STANDARD.encode(sig.to_bytes());
+                ExecutionEnvelope {
+                    bounds_applied: bounds.clone(),
+                    execution_id: resp_id.clone(),
+                    finish_reason: finish_reason.clone(),
+                    model: req.model.clone(),
+                    request_hash,
+                    response_hash,
+                    routing_decision: provider_name.clone(),
+                    signature: sig_b64,
+                    tenant_id: tenant_id.clone(),
+                    timestamp: ts,
+                    violation: None,
+                }
             });
 
             let resp = ExecuteResponse {
@@ -228,7 +283,7 @@ pub async fn handle_execute(
                     bounds_applied: bounds,
                     containment_active: true,
                 }),
-                signature,
+                execution_envelope,
             };
             (StatusCode::OK, Json(resp)).into_response()
         }
@@ -509,4 +564,131 @@ async fn do_route(state: AppState, prompt: String) -> anyhow::Result<(String, St
     }
 
     anyhow::bail!("No providers available")
+}
+
+/// Produce the canonical JSON bytes used as signing input for an execution envelope.
+///
+/// Uses `BTreeMap` at every level so keys are always alphabetically sorted —
+/// this matches Go's `json.Marshal(map[string]interface{})` behaviour, which
+/// also sorts map keys lexicographically, ensuring both sides compute identical
+/// bytes from the same logical envelope.
+fn canonical_envelope_bytes(
+    execution_id: &str,
+    timestamp: &str,
+    tenant_id: Option<&str>,
+    model: &str,
+    request_hash: &str,
+    response_hash: &str,
+    routing_decision: &str,
+    bounds: Option<&Bounds>,
+    finish_reason: &str,
+    violation: Option<&str>,
+) -> Vec<u8> {
+    let mut canon = BTreeMap::<&str, serde_json::Value>::new();
+
+    // Nested bounds: explicit BTreeMap so keys are alphabetical, matching Go
+    // re-serialization order (cpu_percent < max_tick_ms < memory_mb).
+    if let Some(b) = bounds {
+        let mut bm = BTreeMap::<&str, serde_json::Value>::new();
+        if let Some(v) = b.cpu_percent { bm.insert("cpu_percent", serde_json::json!(v)); }
+        if let Some(v) = b.max_tick_ms { bm.insert("max_tick_ms", serde_json::json!(v)); }
+        if let Some(v) = b.memory_mb   { bm.insert("memory_mb",   serde_json::json!(v)); }
+        if !bm.is_empty() {
+            canon.insert("bounds_applied", serde_json::to_value(bm).unwrap_or_default());
+        }
+    }
+
+    canon.insert("execution_id",     serde_json::json!(execution_id));
+    canon.insert("finish_reason",    serde_json::json!(finish_reason));
+    canon.insert("model",            serde_json::json!(model));
+    canon.insert("request_hash",     serde_json::json!(request_hash));
+    canon.insert("response_hash",    serde_json::json!(response_hash));
+    canon.insert("routing_decision", serde_json::json!(routing_decision));
+    if let Some(tid) = tenant_id {
+        canon.insert("tenant_id", serde_json::json!(tid));
+    }
+    canon.insert("timestamp", serde_json::json!(timestamp));
+    if let Some(v) = violation {
+        canon.insert("violation", serde_json::json!(v));
+    }
+
+    serde_json::to_vec(&canon).unwrap_or_default()
+}
+
+#[cfg(test)]
+mod tests {
+    use super::*;
+    use ed25519_dalek::{SigningKey, Verifier};
+    use rand::rngs::OsRng;
+
+    #[test]
+    fn test_envelope_sign_verify() {
+        let sk = SigningKey::generate(&mut OsRng);
+        let vk = sk.verifying_key();
+
+        let bounds = Bounds {
+            cpu_percent: Some(80),
+            memory_mb:   Some(512),
+            max_tick_ms: Some(5_000),
+        };
+        let canon = canonical_envelope_bytes(
+            "exec-001",
+            "2026-02-20T12:00:00Z",
+            Some("tenant-abc"),
+            "gpt-4o",
+            "aabbccdd",
+            "eeff0011",
+            "openai",
+            Some(&bounds),
+            "stop",
+            None,
+        );
+        let hash = Sha256::digest(&canon);
+        let sig = sk.sign(&hash);
+
+        // Verification must succeed with the same canonical bytes.
+        assert!(vk.verify(&hash, &sig).is_ok(), "valid signature should verify");
+    }
+
+    #[test]
+    fn test_envelope_tamper_detection() {
+        let sk = SigningKey::generate(&mut OsRng);
+        let vk = sk.verifying_key();
+
+        let canon = canonical_envelope_bytes(
+            "exec-002",
+            "2026-02-20T12:00:00Z",
+            None,
+            "claude-3-5-sonnet",
+            "aabbccdd",
+            "eeff0011",
+            "anthropic",
+            None,
+            "stop",
+            None,
+        );
+        let hash = Sha256::digest(&canon);
+        let sig = sk.sign(&hash);
+
+        // Produce canonical bytes for a tampered envelope (different model).
+        let tampered = canonical_envelope_bytes(
+            "exec-002",
+            "2026-02-20T12:00:00Z",
+            None,
+            "gpt-4o", // tampered field
+            "aabbccdd",
+            "eeff0011",
+            "anthropic",
+            None,
+            "stop",
+            None,
+        );
+        let tampered_hash = Sha256::digest(&tampered);
+
+        // Original sig must NOT verify against tampered bytes.
+        assert!(
+            vk.verify(&tampered_hash, &sig).is_err(),
+            "tampered envelope must fail verification"
+        );
+    }
 }
