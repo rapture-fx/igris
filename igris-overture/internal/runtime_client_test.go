@@ -1,12 +1,20 @@
 package internal
 
 import (
+	"context"
 	"crypto/ed25519"
 	"crypto/rand"
 	"crypto/sha256"
 	"encoding/base64"
 	"encoding/json"
+	"errors"
+	"io"
+	"net/http"
+	"net/http/httptest"
 	"testing"
+	"time"
+
+	"github.com/Igris-inertial/system/igris-overture/models"
 )
 
 // buildAndSignEnvelope marshals the given fields (without a "signature" key),
@@ -89,3 +97,311 @@ func TestVerifyEnvelope_NoKey(t *testing.T) {
 		t.Fatalf("expected nil (no key configured), got: %v", err)
 	}
 }
+
+// minimalExecuteResponseJSON returns a JSON response body that ForwardExecution can decode.
+func minimalExecuteResponseJSON(t *testing.T) []byte {
+	t.Helper()
+	resp := map[string]interface{}{
+		"id":      "test-id",
+		"object":  "chat.completion",
+		"created": time.Now().Unix(),
+		"model":   "mock",
+		"choices": []interface{}{
+			map[string]interface{}{
+				"index":         0,
+				"message":       map[string]interface{}{"role": "assistant", "content": "hi"},
+				"finish_reason": "stop",
+			},
+		},
+		"usage": map[string]interface{}{
+			"prompt_tokens": 1, "completion_tokens": 1, "total_tokens": 2,
+		},
+	}
+	b, err := json.Marshal(resp)
+	if err != nil {
+		t.Fatalf("minimalExecuteResponseJSON: %v", err)
+	}
+	return b
+}
+
+// minimalInferRequest returns a minimal *models.InferRequest for tests.
+func minimalInferRequest() *models.InferRequest {
+	return &models.InferRequest{
+		Model:    "mock",
+		Messages: []models.Message{{Role: "user", Content: "hi"}},
+	}
+}
+
+// ============================================================================
+// P0-2: Bearer auth header tests
+// ============================================================================
+
+// TestRuntimeClient_BearerSent verifies that when a secret is configured,
+// Authorization: Bearer <secret> is sent on every ForwardExecution call.
+func TestRuntimeClient_BearerSent(t *testing.T) {
+	var gotAuth string
+	srv := httptest.NewServer(http.HandlerFunc(func(w http.ResponseWriter, r *http.Request) {
+		gotAuth = r.Header.Get("Authorization")
+		w.Header().Set("Content-Type", "application/json")
+		w.WriteHeader(http.StatusOK)
+		w.Write(minimalExecuteResponseJSON(t))
+	}))
+	defer srv.Close()
+
+	c := &RuntimeClient{
+		baseURL:    srv.URL,
+		secret:     "s3cr3t",
+		httpClient: srv.Client(),
+	}
+	_, err := c.ForwardExecution(context.Background(), "t1", minimalInferRequest(), "")
+	if err != nil {
+		t.Fatalf("ForwardExecution failed: %v", err)
+	}
+	if gotAuth != "Bearer s3cr3t" {
+		t.Errorf("expected Authorization: Bearer s3cr3t, got %q", gotAuth)
+	}
+}
+
+// TestRuntimeClient_NoBearer verifies that when no secret is configured,
+// no Authorization header is sent.
+func TestRuntimeClient_NoBearer(t *testing.T) {
+	var gotAuth string
+	srv := httptest.NewServer(http.HandlerFunc(func(w http.ResponseWriter, r *http.Request) {
+		gotAuth = r.Header.Get("Authorization")
+		w.Header().Set("Content-Type", "application/json")
+		w.WriteHeader(http.StatusOK)
+		w.Write(minimalExecuteResponseJSON(t))
+	}))
+	defer srv.Close()
+
+	c := &RuntimeClient{
+		baseURL:    srv.URL,
+		secret:     "", // no secret
+		httpClient: srv.Client(),
+	}
+	_, err := c.ForwardExecution(context.Background(), "t1", minimalInferRequest(), "")
+	if err != nil {
+		t.Fatalf("ForwardExecution failed: %v", err)
+	}
+	if gotAuth != "" {
+		t.Errorf("expected no Authorization header, got %q", gotAuth)
+	}
+}
+
+// ============================================================================
+// P0-3: Decision signature header tests
+// ============================================================================
+
+// TestDecisionSigHeader_Sent verifies that when a signing key is configured,
+// X-Igris-Decision-Sig is sent with a valid Ed25519 signature over SHA-256(body).
+func TestDecisionSigHeader_Sent(t *testing.T) {
+	pub, priv, err := ed25519.GenerateKey(rand.Reader)
+	if err != nil {
+		t.Fatalf("GenerateKey: %v", err)
+	}
+
+	var gotSig string
+	var gotBody []byte
+	srv := httptest.NewServer(http.HandlerFunc(func(w http.ResponseWriter, r *http.Request) {
+		gotSig = r.Header.Get("X-Igris-Decision-Sig")
+		gotBody, _ = io.ReadAll(r.Body)
+		w.Header().Set("Content-Type", "application/json")
+		w.WriteHeader(http.StatusOK)
+		w.Write(minimalExecuteResponseJSON(t))
+	}))
+	defer srv.Close()
+
+	c := &RuntimeClient{
+		baseURL:    srv.URL,
+		signingKey: priv,
+		httpClient: srv.Client(),
+	}
+	_, err = c.ForwardExecution(context.Background(), "t1", minimalInferRequest(), "")
+	if err != nil {
+		t.Fatalf("ForwardExecution failed: %v", err)
+	}
+	if gotSig == "" {
+		t.Fatal("expected X-Igris-Decision-Sig header to be set")
+	}
+	// Verify the signature is valid.
+	sigBytes, err := base64.StdEncoding.DecodeString(gotSig)
+	if err != nil {
+		t.Fatalf("signature base64 decode: %v", err)
+	}
+	hash := sha256.Sum256(gotBody)
+	if !ed25519.Verify(pub, hash[:], sigBytes) {
+		t.Error("decision signature verification failed")
+	}
+}
+
+// TestDecisionSigHeader_NotSent verifies that when no signing key is configured,
+// X-Igris-Decision-Sig is not sent.
+func TestDecisionSigHeader_NotSent(t *testing.T) {
+	var gotSig string
+	srv := httptest.NewServer(http.HandlerFunc(func(w http.ResponseWriter, r *http.Request) {
+		gotSig = r.Header.Get("X-Igris-Decision-Sig")
+		w.Header().Set("Content-Type", "application/json")
+		w.WriteHeader(http.StatusOK)
+		w.Write(minimalExecuteResponseJSON(t))
+	}))
+	defer srv.Close()
+
+	c := &RuntimeClient{
+		baseURL:    srv.URL,
+		httpClient: srv.Client(),
+	}
+	_, err := c.ForwardExecution(context.Background(), "t1", minimalInferRequest(), "")
+	if err != nil {
+		t.Fatalf("ForwardExecution failed: %v", err)
+	}
+	if gotSig != "" {
+		t.Errorf("expected no X-Igris-Decision-Sig header, got %q", gotSig)
+	}
+}
+
+// ============================================================================
+// P0-4: Execution envelope passthrough tests
+// ============================================================================
+
+// TestForwardExecution_EnvelopePassthrough verifies that a verified execution
+// envelope from the Runtime is attached to the returned InferResponse.
+func TestForwardExecution_EnvelopePassthrough(t *testing.T) {
+	pub, priv, err := ed25519.GenerateKey(rand.Reader)
+	if err != nil {
+		t.Fatalf("GenerateKey: %v", err)
+	}
+
+	// Build a signed execution envelope.
+	envelope := buildAndSignEnvelope(t, priv, map[string]interface{}{
+		"execution_id":     "exec-pass",
+		"finish_reason":    "stop",
+		"model":            "mock",
+		"request_hash":     "aabb",
+		"response_hash":    "ccdd",
+		"routing_decision": "openai",
+		"timestamp":        "2026-02-20T12:00:00Z",
+	})
+
+	// Build response JSON including the envelope.
+	respPayload := map[string]interface{}{
+		"id":      "test-id",
+		"object":  "chat.completion",
+		"created": time.Now().Unix(),
+		"model":   "mock",
+		"choices": []interface{}{
+			map[string]interface{}{
+				"index":         0,
+				"message":       map[string]interface{}{"role": "assistant", "content": "hi"},
+				"finish_reason": "stop",
+			},
+		},
+		"usage": map[string]interface{}{
+			"prompt_tokens": 1, "completion_tokens": 1, "total_tokens": 2,
+		},
+		"execution_envelope": envelope,
+	}
+	respBytes, _ := json.Marshal(respPayload)
+
+	srv := httptest.NewServer(http.HandlerFunc(func(w http.ResponseWriter, r *http.Request) {
+		w.Header().Set("Content-Type", "application/json")
+		w.WriteHeader(http.StatusOK)
+		w.Write(respBytes)
+	}))
+	defer srv.Close()
+
+	c := &RuntimeClient{
+		baseURL:    srv.URL,
+		publicKey:  pub,
+		httpClient: srv.Client(),
+	}
+	resp, err := c.ForwardExecution(context.Background(), "t1", minimalInferRequest(), "")
+	if err != nil {
+		t.Fatalf("ForwardExecution failed: %v", err)
+	}
+	if resp.ExecutionEnvelope == nil {
+		t.Fatal("expected ExecutionEnvelope to be attached to InferResponse")
+	}
+	if resp.ExecutionEnvelope["execution_id"] != "exec-pass" {
+		t.Errorf("unexpected execution_id in envelope: %v", resp.ExecutionEnvelope["execution_id"])
+	}
+}
+
+// TestForwardExecution_TamperedEnvelope_ReturnsSecurityError verifies that
+// a tampered execution envelope causes ForwardExecution to return ErrRuntimeSecurity.
+func TestForwardExecution_TamperedEnvelope_ReturnsSecurityError(t *testing.T) {
+	pub, priv, err := ed25519.GenerateKey(rand.Reader)
+	if err != nil {
+		t.Fatalf("GenerateKey: %v", err)
+	}
+
+	envelope := buildAndSignEnvelope(t, priv, map[string]interface{}{
+		"execution_id": "exec-tamper",
+		"model":        "mock",
+		"timestamp":    "2026-02-20T12:00:00Z",
+	})
+	// Tamper after signing.
+	envelope["model"] = "evil-model"
+
+	respPayload := map[string]interface{}{
+		"id":      "test-id",
+		"object":  "chat.completion",
+		"created": time.Now().Unix(),
+		"model":   "mock",
+		"choices": []interface{}{
+			map[string]interface{}{
+				"index":         0,
+				"message":       map[string]interface{}{"role": "assistant", "content": "hi"},
+				"finish_reason": "stop",
+			},
+		},
+		"usage":              map[string]interface{}{"prompt_tokens": 1, "completion_tokens": 1, "total_tokens": 2},
+		"execution_envelope": envelope,
+	}
+	respBytes, _ := json.Marshal(respPayload)
+
+	srv := httptest.NewServer(http.HandlerFunc(func(w http.ResponseWriter, r *http.Request) {
+		w.Header().Set("Content-Type", "application/json")
+		w.WriteHeader(http.StatusOK)
+		w.Write(respBytes)
+	}))
+	defer srv.Close()
+
+	c := &RuntimeClient{
+		baseURL:    srv.URL,
+		publicKey:  pub,
+		httpClient: srv.Client(),
+	}
+	_, err = c.ForwardExecution(context.Background(), "t1", minimalInferRequest(), "")
+	if err == nil {
+		t.Fatal("expected error for tampered envelope, got nil")
+	}
+	if !errors.Is(err, models.ErrRuntimeSecurity) {
+		t.Errorf("expected ErrRuntimeSecurity, got: %v", err)
+	}
+}
+
+// ============================================================================
+// P0-5: Security rejection does not fall back (sentinel error)
+// ============================================================================
+
+// TestForwardExecution_401_ReturnsSecurityError verifies that a 401 from the
+// Runtime is wrapped as ErrRuntimeSecurity (not a connectivity error).
+func TestForwardExecution_401_ReturnsSecurityError(t *testing.T) {
+	srv := httptest.NewServer(http.HandlerFunc(func(w http.ResponseWriter, r *http.Request) {
+		w.WriteHeader(http.StatusUnauthorized)
+	}))
+	defer srv.Close()
+
+	c := &RuntimeClient{
+		baseURL:    srv.URL,
+		httpClient: srv.Client(),
+	}
+	_, err := c.ForwardExecution(context.Background(), "t1", minimalInferRequest(), "")
+	if err == nil {
+		t.Fatal("expected error for 401 response, got nil")
+	}
+	if !errors.Is(err, models.ErrRuntimeSecurity) {
+		t.Errorf("expected ErrRuntimeSecurity for 401, got: %v", err)
+	}
+}
+

@@ -108,6 +108,9 @@ pub(crate) struct AppState {
     pub(crate) runtime_public_key: Option<String>,
     /// Ed25519 signing key used to sign ExecuteResponse and ViolationRecord hashes.
     pub(crate) signing_key: Option<Arc<ed25519_dalek::SigningKey>>,
+    /// Overture's Ed25519 verifying key for X-Igris-Decision-Sig verification.
+    /// Populated from IGRIS_OVERTURE_PUBLIC_KEY env var (hex). None = skip verify.
+    pub(crate) overture_public_key: Option<Arc<ed25519_dalek::VerifyingKey>>,
 }
 
 /// Reflection LLM provider backed by the local provider (real llama.cpp execution).
@@ -2574,6 +2577,23 @@ async fn main() -> anyhow::Result<()> {
         (hex_key, signing_key)
     };
 
+    // Load Overture's public key for decision-signature verification (P0-3).
+    let overture_public_key = std::env::var("IGRIS_OVERTURE_PUBLIC_KEY").ok().and_then(|hex| {
+        let bytes: Option<Vec<u8>> = (0..hex.len())
+            .step_by(2)
+            .map(|i| u8::from_str_radix(&hex[i..i + 2], 16).ok())
+            .collect();
+        bytes
+            .and_then(|b| {
+                let arr: [u8; 32] = b.try_into().ok()?;
+                ed25519_dalek::VerifyingKey::from_bytes(&arr).ok()
+            })
+            .map(Arc::new)
+    });
+    if overture_public_key.is_some() {
+        info!("[Runtime/Security] Overture public key loaded — decision signatures will be verified");
+    }
+
     let state = AppState {
         config: Arc::new(config),
         storage: Arc::new(storage),
@@ -2601,6 +2621,7 @@ async fn main() -> anyhow::Result<()> {
         peer_registry: Some(Arc::new(tokio::sync::RwLock::new(std::collections::HashMap::new()))),
         runtime_public_key: Some(runtime_public_key),
         signing_key: Some(Arc::new(signing_key)),
+        overture_public_key,
     };
 
     // Build router

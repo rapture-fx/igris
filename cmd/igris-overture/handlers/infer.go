@@ -3,6 +3,7 @@ package handlers
 import (
 	"context"
 	"database/sql"
+	"errors"
 	"fmt"
 	"log"
 	"math/rand"
@@ -474,6 +475,15 @@ func (h *InferHandler) HandleInfer(c *fiber.Ctx) error {
 		}
 		resp, err = h.runtimeExecutor.ForwardExecution(ctx, tenantID, &req, boundsHeader)
 		if err != nil {
+			if errors.Is(err, models.ErrRuntimeSecurity) {
+				// Security rejection (auth failure, signature mismatch, envelope tamper):
+				// hard-fail and return 502 — never fall back to direct provider routing.
+				log.Printf("[Infer] Runtime security rejection — not falling back: %v", err)
+				return c.Status(fiber.StatusBadGateway).JSON(fiber.Map{
+					"error": "upstream security rejection",
+				})
+			}
+			// Connectivity / timeout failure: fall back to direct routing.
 			log.Printf("[Infer] Runtime forward failed, falling back to direct routing: %v", err)
 			err = nil
 			resp = nil

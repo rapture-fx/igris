@@ -22,8 +22,9 @@ import (
 // tenancy); the Runtime is the sole execution authority.
 type RuntimeClient struct {
 	baseURL    string
-	secret     string           // IGRIS_RUNTIME_SECRET — sent as Authorization: Bearer <secret>
+	secret     string            // IGRIS_RUNTIME_SECRET — sent as Authorization: Bearer <secret>
 	publicKey  ed25519.PublicKey // IGRIS_RUNTIME_PUBLIC_KEY (hex) — used to verify execution envelopes
+	signingKey ed25519.PrivateKey // IGRIS_OVERTURE_SIGNING_KEY (hex) — signs routing decisions
 	httpClient *http.Client
 }
 
@@ -44,10 +45,18 @@ func NewRuntimeClient(baseURL string) *RuntimeClient {
 		}
 	}
 
+	var signingKey ed25519.PrivateKey
+	if hexKey := os.Getenv("IGRIS_OVERTURE_SIGNING_KEY"); hexKey != "" {
+		if decoded, err := hex.DecodeString(hexKey); err == nil && len(decoded) == ed25519.PrivateKeySize {
+			signingKey = ed25519.PrivateKey(decoded)
+		}
+	}
+
 	return &RuntimeClient{
-		baseURL:   baseURL,
-		secret:    os.Getenv("IGRIS_RUNTIME_SECRET"),
-		publicKey: pubKey,
+		baseURL:    baseURL,
+		secret:     os.Getenv("IGRIS_RUNTIME_SECRET"),
+		publicKey:  pubKey,
+		signingKey: signingKey,
 		httpClient: &http.Client{
 			Timeout: timeout,
 		},
@@ -59,6 +68,18 @@ func (c *RuntimeClient) setAuthHeader(req *http.Request) {
 	if c.secret != "" {
 		req.Header.Set("Authorization", "Bearer "+c.secret)
 	}
+}
+
+// setDecisionSigHeader signs the request body with Overture's Ed25519 signing key
+// and attaches the base64-encoded signature as X-Igris-Decision-Sig. No-op when
+// IGRIS_OVERTURE_SIGNING_KEY is not configured.
+func (c *RuntimeClient) setDecisionSigHeader(req *http.Request, body []byte) {
+	if len(c.signingKey) == 0 {
+		return
+	}
+	hash := sha256.Sum256(body)
+	sig := ed25519.Sign(c.signingKey, hash[:])
+	req.Header.Set("X-Igris-Decision-Sig", base64.StdEncoding.EncodeToString(sig))
 }
 
 // verifyEnvelope verifies the Ed25519 signature embedded in an execution envelope.
@@ -217,6 +238,7 @@ func (c *RuntimeClient) ForwardExecution(
 	}
 	httpReq.Header.Set("Content-Type", "application/json")
 	c.setAuthHeader(httpReq)
+	c.setDecisionSigHeader(httpReq, data)
 	if tenantID != "" {
 		httpReq.Header.Set("X-Igris-Tenant", tenantID)
 	}
@@ -231,6 +253,9 @@ func (c *RuntimeClient) ForwardExecution(
 	}
 	defer httpResp.Body.Close()
 
+	if httpResp.StatusCode == http.StatusUnauthorized || httpResp.StatusCode == http.StatusForbidden {
+		return nil, fmt.Errorf("%w: status %d", models.ErrRuntimeSecurity, httpResp.StatusCode)
+	}
 	if httpResp.StatusCode != http.StatusOK {
 		return nil, fmt.Errorf("runtime_client: runtime returned status %d", httpResp.StatusCode)
 	}
@@ -242,10 +267,10 @@ func (c *RuntimeClient) ForwardExecution(
 
 	// Verify execution envelope signature before accepting the response.
 	// When IGRIS_RUNTIME_PUBLIC_KEY is configured, a missing or invalid signature
-	// causes ForwardExecution to return an error so the caller can apply fallback.
+	// is a security rejection — callers must NOT fall back to direct routing.
 	if execResp.ExecutionEnvelope != nil {
 		if err := c.verifyEnvelope(execResp.ExecutionEnvelope); err != nil {
-			return nil, fmt.Errorf("runtime_client: security: %w", err)
+			return nil, fmt.Errorf("%w: %v", models.ErrRuntimeSecurity, err)
 		}
 	}
 
@@ -270,6 +295,11 @@ func (c *RuntimeClient) ForwardExecution(
 		Provider:      provider,
 		RouteDecision: "forwarded_to_runtime",
 		Timestamp:     time.Now(),
+	}
+
+	// Attach verified execution envelope for SDK passthrough (P0-4).
+	if execResp.ExecutionEnvelope != nil {
+		inferResp.ExecutionEnvelope = execResp.ExecutionEnvelope
 	}
 
 	return inferResp, nil

@@ -5,6 +5,7 @@ use axum::{
     middleware::Next,
     response::{IntoResponse, Response},
 };
+use ed25519_dalek::Verifier;
 use base64::Engine;
 use sha2::{Digest, Sha256};
 use std::collections::HashMap;
@@ -187,6 +188,45 @@ pub async fn security_middleware(
         return next.run(req).await;
     }
 
+    // P0-3: Verify Overture's decision signature for /v1/runtime/execute.
+    // Applied before auth.enabled check so it fires even in auth-disabled deployments.
+    if path == "/v1/runtime/execute" {
+        if let Some(overture_key) = &state.overture_public_key {
+            let sig_b64 = req
+                .headers()
+                .get("x-igris-decision-sig")
+                .and_then(|h| h.to_str().ok())
+                .map(|s| s.to_string());
+
+            let (parts, body) = req.into_parts();
+            let body_bytes = axum::body::to_bytes(body, 1 << 20)
+                .await
+                .unwrap_or_default();
+
+            let verified = sig_b64
+                .and_then(|b64| {
+                    base64::engine::general_purpose::STANDARD.decode(b64).ok()
+                })
+                .and_then(|sig_bytes| {
+                    let arr: [u8; 64] = sig_bytes.try_into().ok()?;
+                    Some(ed25519_dalek::Signature::from_bytes(&arr))
+                })
+                .map(|sig| {
+                    use sha2::Digest;
+                    let hash = sha2::Sha256::digest(&body_bytes);
+                    overture_key.verify(&hash, &sig).is_ok()
+                })
+                .unwrap_or(false);
+
+            if !verified {
+                warn!(path = %path, "decision_sig_invalid");
+                return (StatusCode::UNAUTHORIZED, "invalid decision signature").into_response();
+            }
+
+            req = Request::from_parts(parts, Body::from(body_bytes));
+        }
+    }
+
     let auth = &state.config.auth;
     // FIX: Respect auth.enabled flag (previously checked api_key != "default-api-key" which broke config)
     if !auth.enabled {
@@ -254,6 +294,7 @@ pub async fn security_middleware(
 
     req.extensions_mut().insert(identity.clone());
     info!(path = %path, identity = %identity, "auth_ok");
+
     next.run(req).await
 }
 

@@ -2,8 +2,14 @@ package models
 
 import (
 	"encoding/json"
+	"errors"
 	"time"
 )
+
+// ErrRuntimeSecurity is returned by RuntimeExecutor implementations when the
+// Runtime rejects a request with a security error (401/403 or execution envelope
+// verification failure). Callers must NOT fall back to direct provider routing.
+var ErrRuntimeSecurity = errors.New("runtime: security rejection")
 
 // InferResponse represents the unified inference API response
 type InferResponse struct {
@@ -22,6 +28,10 @@ type InferResponse struct {
 
 	// Streaming support
 	StreamID string `json:"stream_id,omitempty"` // For streaming responses
+
+	// ExecutionEnvelope is the verified execution proof from the Runtime.
+	// Included when IGRIS_RUNTIME_PUBLIC_KEY is set and verification succeeds.
+	ExecutionEnvelope map[string]interface{} `json:"execution_envelope,omitempty"`
 }
 
 // Choice represents a single completion choice

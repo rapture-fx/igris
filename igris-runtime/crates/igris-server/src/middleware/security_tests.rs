@@ -4,9 +4,10 @@ mod tests {
         body::Body,
         http::{Request, StatusCode},
         middleware::from_fn_with_state,
-        routing::get,
+        routing::{get, post},
         Router,
     };
+    use base64::Engine;
     use std::sync::Arc;
     use tower::ServiceExt;
 
@@ -53,6 +54,7 @@ mod tests {
             peer_registry: None,
             runtime_public_key: None,
             signing_key: None,
+            overture_public_key: None,
         }
     }
 
@@ -87,6 +89,110 @@ mod tests {
             .unwrap();
         let resp = app.oneshot(req).await.unwrap();
         assert_eq!(resp.status(), StatusCode::OK);
+    }
+
+    /// Build a state with IGRIS_OVERTURE_PUBLIC_KEY set to the given verifying key.
+    fn make_state_with_overture_key(verifying_key: ed25519_dalek::VerifyingKey) -> AppState {
+        let mut state = make_state(false, "");
+        state.overture_public_key = Some(Arc::new(verifying_key));
+        state
+    }
+
+    /// Sign body bytes with the given signing key and return base64-encoded signature.
+    fn sign_body(signing_key: &ed25519_dalek::SigningKey, body: &[u8]) -> String {
+        use ed25519_dalek::Signer;
+        use sha2::Digest;
+        let hash = sha2::Sha256::digest(body);
+        let sig = signing_key.sign(&hash);
+        base64::engine::general_purpose::STANDARD.encode(sig.to_bytes())
+    }
+
+    // P0-3: Valid decision signature → request passes through (200).
+    #[tokio::test]
+    async fn decision_sig_valid_passes() {
+        use ed25519_dalek::SigningKey;
+        use rand::rngs::OsRng;
+
+        let signing_key = SigningKey::generate(&mut OsRng);
+        let verifying_key = signing_key.verifying_key();
+        let state = make_state_with_overture_key(verifying_key);
+
+        let body = br#"{"model":"mock","messages":[]}"#;
+        let sig = sign_body(&signing_key, body);
+
+        let app = Router::new()
+            .route("/v1/runtime/execute", post(ok))
+            .layer(from_fn_with_state(state.clone(), security_middleware))
+            .with_state(state);
+
+        let req = Request::builder()
+            .method("POST")
+            .uri("/v1/runtime/execute")
+            .header("content-type", "application/json")
+            .header("x-igris-decision-sig", sig)
+            .body(Body::from(body.as_slice()))
+            .unwrap();
+
+        let resp = app.oneshot(req).await.unwrap();
+        assert_eq!(resp.status(), StatusCode::OK);
+    }
+
+    // P0-3: Invalid/tampered decision signature → 401.
+    #[tokio::test]
+    async fn decision_sig_invalid_rejected() {
+        use ed25519_dalek::SigningKey;
+        use rand::rngs::OsRng;
+
+        let signing_key = SigningKey::generate(&mut OsRng);
+        let verifying_key = signing_key.verifying_key();
+        let state = make_state_with_overture_key(verifying_key);
+
+        // Sign original body, then tamper with it.
+        let original_body = br#"{"model":"mock","messages":[]}"#;
+        let sig = sign_body(&signing_key, original_body);
+        let tampered_body = br#"{"model":"evil","messages":[]}"#;
+
+        let app = Router::new()
+            .route("/v1/runtime/execute", post(ok))
+            .layer(from_fn_with_state(state.clone(), security_middleware))
+            .with_state(state);
+
+        let req = Request::builder()
+            .method("POST")
+            .uri("/v1/runtime/execute")
+            .header("content-type", "application/json")
+            .header("x-igris-decision-sig", sig)
+            .body(Body::from(tampered_body.as_slice()))
+            .unwrap();
+
+        let resp = app.oneshot(req).await.unwrap();
+        assert_eq!(resp.status(), StatusCode::UNAUTHORIZED);
+    }
+
+    // P0-3: Missing decision signature when overture key is set → 401.
+    #[tokio::test]
+    async fn decision_sig_missing_rejected() {
+        use ed25519_dalek::SigningKey;
+        use rand::rngs::OsRng;
+
+        let signing_key = SigningKey::generate(&mut OsRng);
+        let verifying_key = signing_key.verifying_key();
+        let state = make_state_with_overture_key(verifying_key);
+
+        let app = Router::new()
+            .route("/v1/runtime/execute", post(ok))
+            .layer(from_fn_with_state(state.clone(), security_middleware))
+            .with_state(state);
+
+        let req = Request::builder()
+            .method("POST")
+            .uri("/v1/runtime/execute")
+            .header("content-type", "application/json")
+            .body(Body::from(br#"{"model":"mock","messages":[]}"#.as_slice()))
+            .unwrap();
+
+        let resp = app.oneshot(req).await.unwrap();
+        assert_eq!(resp.status(), StatusCode::UNAUTHORIZED);
     }
 }
 
