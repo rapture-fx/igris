@@ -1,0 +1,144 @@
+package internal
+
+import (
+	"context"
+	"fmt"
+	"log"
+	"sync"
+	"time"
+
+	"github.com/Igris-inertial/system/igris-overture/circuitbreaker"
+	"github.com/Igris-inertial/system/igris-overture/models"
+)
+
+// RuntimeRepositoryI is the subset of RuntimeRepository used by RuntimeSelector,
+// declared here so tests can supply a mock without a real database.
+type RuntimeRepositoryI interface {
+	ListHealthy(ctx context.Context) ([]RuntimeInstance, error)
+	ListAll(ctx context.Context) ([]RuntimeInstance, error)
+	UpdateHealth(ctx context.Context, runtimeID string, healthy bool) error
+}
+
+// RuntimeSelector implements the handlers.RuntimeExecutor interface and selects
+// a healthy runtime instance from the DB-backed registry on every request.
+//
+// Selection policy (simple, no load balancing):
+//  1. Load healthy instances ordered edge-first.
+//  2. Skip any whose circuit breaker is open.
+//  3. Forward to the first available instance.
+//  4. On failure: record CB failure, try next.
+//  5. Fall back to cloud (is_edge=false) if all edge circuits are open.
+//  6. Return error if no instance succeeds → caller falls back to direct routing.
+type RuntimeSelector struct {
+	repo     RuntimeRepositoryI
+	breakers *circuitbreaker.ProviderCircuitBreakers
+	clients  sync.Map // endpoint string → *RuntimeClient
+}
+
+// NewRuntimeSelector creates a selector backed by the given repository.
+// Uses the existing circuitbreaker package with threshold=3 and
+// recovery=30s (aligned with the health-poll interval).
+func NewRuntimeSelector(repo RuntimeRepositoryI) *RuntimeSelector {
+	return &RuntimeSelector{
+		repo: repo,
+		breakers: circuitbreaker.NewProviderCircuitBreakers(circuitbreaker.Config{
+			FailureThreshold: 3,
+			RecoveryTimeout:  30 * time.Second,
+		}),
+	}
+}
+
+// ForwardExecution selects a healthy runtime and delegates the request to it.
+// It implements the handlers.RuntimeExecutor interface.
+func (s *RuntimeSelector) ForwardExecution(
+	ctx context.Context,
+	tenantID string,
+	req *models.InferRequest,
+	boundsHeader string,
+) (*models.InferResponse, error) {
+	instances, err := s.repo.ListHealthy(ctx)
+	if err != nil {
+		return nil, fmt.Errorf("runtime_selector: list_healthy: %w", err)
+	}
+
+	for _, inst := range instances {
+		if !s.breakers.IsProviderAvailable(inst.RuntimeID) {
+			log.Printf("[RuntimeSelector] circuit open for %s — skipping", inst.RuntimeID)
+			continue
+		}
+
+		client := s.getOrCreateClient(inst.Endpoint)
+		resp, ferr := client.ForwardExecution(ctx, tenantID, req, boundsHeader)
+		if ferr != nil {
+			log.Printf("[RuntimeSelector] runtime %s failed: %v — trying next", inst.RuntimeID, ferr)
+			s.breakers.RecordFailure(inst.RuntimeID)
+			continue
+		}
+		s.breakers.RecordSuccess(inst.RuntimeID)
+		return resp, nil
+	}
+
+	return nil, fmt.Errorf("runtime_selector: no healthy runtime available")
+}
+
+// Health satisfies handlers.RuntimeExecutor; the selector itself is always alive.
+func (s *RuntimeSelector) Health(_ context.Context) error { return nil }
+
+// BaseURL satisfies handlers.RuntimeExecutor for logging purposes.
+func (s *RuntimeSelector) BaseURL() string { return "runtime-registry" }
+
+// getOrCreateClient returns a cached *RuntimeClient for endpoint, creating one if absent.
+func (s *RuntimeSelector) getOrCreateClient(endpoint string) *RuntimeClient {
+	if v, ok := s.clients.Load(endpoint); ok {
+		return v.(*RuntimeClient)
+	}
+	rc := NewRuntimeClient(endpoint)
+	// Store only once; if another goroutine races, the existing value wins.
+	actual, _ := s.clients.LoadOrStore(endpoint, rc)
+	return actual.(*RuntimeClient)
+}
+
+// StartHealthPoller launches a background goroutine that polls every 30 seconds
+// and updates is_healthy in the database.  The goroutine stops when ctx is cancelled.
+func (s *RuntimeSelector) StartHealthPoller(ctx context.Context) {
+	go func() {
+		ticker := time.NewTicker(30 * time.Second)
+		defer ticker.Stop()
+		for {
+			select {
+			case <-ctx.Done():
+				return
+			case <-ticker.C:
+				s.pollHealth(ctx)
+			}
+		}
+	}()
+}
+
+// pollHealth iterates all registered runtimes, checks /v1/health, and writes
+// the result back to the DB.  Failures are non-fatal (logged only).
+func (s *RuntimeSelector) pollHealth(ctx context.Context) {
+	instances, err := s.repo.ListAll(ctx)
+	if err != nil {
+		log.Printf("[RuntimeSelector] health poll: list_all failed: %v", err)
+		return
+	}
+
+	for _, inst := range instances {
+		hctx, cancel := context.WithTimeout(ctx, 5*time.Second)
+		client := s.getOrCreateClient(inst.Endpoint)
+		err := client.Health(hctx)
+		cancel()
+
+		healthy := err == nil
+		if healthy {
+			log.Printf("[RuntimeSelector] health poll: %s OK", inst.RuntimeID)
+		} else {
+			log.Printf("[RuntimeSelector] health poll: %s unhealthy: %v", inst.RuntimeID, err)
+		}
+
+		if dbErr := s.repo.UpdateHealth(ctx, inst.RuntimeID, healthy); dbErr != nil {
+			log.Printf("[RuntimeSelector] health poll: UpdateHealth(%s) failed: %v", inst.RuntimeID, dbErr)
+		}
+	}
+}

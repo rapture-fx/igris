@@ -8,24 +8,43 @@ import (
 	"github.com/gofiber/fiber/v2"
 	"github.com/rs/zerolog/log"
 
+	"github.com/Igris-inertial/system/igris-overture/internal"
 	"github.com/Igris-inertial/system/igris-overture/middleware"
 	"github.com/Igris-inertial/system/igris-overture/observability"
 	"github.com/Igris-inertial/system/igris-overture/security"
 )
 
+// runtimeRegisterRequest is the extended registration payload.
+// It embeds security.RuntimeRegistration (for signature verification) and adds
+// the fields needed to populate the runtime_instances DB table.
+type runtimeRegisterRequest struct {
+	security.RuntimeRegistration
+	Endpoint     string   `json:"endpoint"`
+	IsEdge       bool     `json:"is_edge"`
+	Capabilities []string `json:"capabilities"`
+	Platform     string   `json:"platform"`
+	Version      string   `json:"version"`
+}
+
 // TelemetryHandler handles telemetry and execution feedback endpoints
 type TelemetryHandler struct {
-	db              *sql.DB
+	db                 *sql.DB
 	routingIntegration *security.RoutingIntegration
 	runtimeRegistry    *security.RuntimeRegistry
+	repo               *internal.RuntimeRepository // nil when DB unavailable
 }
 
 // NewTelemetryHandler creates a new telemetry handler
 func NewTelemetryHandler(db *sql.DB, routingIntegration *security.RoutingIntegration) *TelemetryHandler {
+	var repo *internal.RuntimeRepository
+	if db != nil {
+		repo = internal.NewRuntimeRepository(db)
+	}
 	return &TelemetryHandler{
 		db:                 db,
 		routingIntegration: routingIntegration,
 		runtimeRegistry:    security.NewRuntimeRegistry(),
+		repo:               repo,
 	}
 }
 
@@ -200,7 +219,7 @@ func (h *TelemetryHandler) HandleExecutionFeedback(c *fiber.Ctx) error {
 
 // HandleRuntimeRegister handles POST /api/v1/runtime/register
 func (h *TelemetryHandler) HandleRuntimeRegister(c *fiber.Ctx) error {
-	var req security.RuntimeRegistration
+	var req runtimeRegisterRequest
 	if err := c.BodyParser(&req); err != nil {
 		return c.Status(fiber.StatusBadRequest).JSON(fiber.Map{
 			"error":   "invalid_request",
@@ -235,8 +254,8 @@ func (h *TelemetryHandler) HandleRuntimeRegister(c *fiber.Ctx) error {
 		req.Timestamp = time.Now().Unix()
 	}
 
-	// Register the Runtime
-	if err := h.runtimeRegistry.RegisterRuntime(&req); err != nil {
+	// Register the Runtime (in-memory, with signature verification)
+	if err := h.runtimeRegistry.RegisterRuntime(&req.RuntimeRegistration); err != nil {
 		log.Error().
 			Err(err).
 			Str("runtime_id", req.RuntimeID).
@@ -247,6 +266,26 @@ func (h *TelemetryHandler) HandleRuntimeRegister(c *fiber.Ctx) error {
 			"error":   "registration_failed",
 			"message": err.Error(),
 		})
+	}
+
+	// Persist to runtime_instances DB table when endpoint is provided.
+	if h.repo != nil && req.Endpoint != "" {
+		inst := internal.RuntimeInstance{
+			RuntimeID:    req.RuntimeID,
+			Endpoint:     req.Endpoint,
+			PublicKey:    req.PublicKeyBase64,
+			Capabilities: req.Capabilities,
+			Platform:     req.Platform,
+			Version:      req.Version,
+			IsEdge:       req.IsEdge,
+		}
+		if err := h.repo.Upsert(c.UserContext(), inst); err != nil {
+			log.Warn().Err(err).Str("runtime_id", req.RuntimeID).
+				Msg("Failed to persist runtime to DB (non-fatal)")
+		} else {
+			log.Info().Str("runtime_id", req.RuntimeID).Bool("is_edge", req.IsEdge).
+				Msg("Runtime persisted to runtime_instances")
+		}
 	}
 
 	// If crypto integration is enabled, ensure tenant has signing keys
@@ -297,7 +336,7 @@ func (h *TelemetryHandler) HandleRuntimeHeartbeat(c *fiber.Ctx) error {
 		req.Timestamp = time.Now().Unix()
 	}
 
-	// Update heartbeat
+	// Update heartbeat (in-memory registry)
 	if err := h.runtimeRegistry.UpdateHeartbeat(&req); err != nil {
 		log.Warn().
 			Err(err).
@@ -308,6 +347,14 @@ func (h *TelemetryHandler) HandleRuntimeHeartbeat(c *fiber.Ctx) error {
 			"error":   "heartbeat_failed",
 			"message": err.Error(),
 		})
+	}
+
+	// Also refresh is_healthy in the DB table (non-fatal).
+	if h.repo != nil {
+		if err := h.repo.UpdateHealth(c.UserContext(), req.RuntimeID, true); err != nil {
+			log.Warn().Err(err).Str("runtime_id", req.RuntimeID).
+				Msg("Failed to update runtime health in DB (non-fatal)")
+		}
 	}
 
 	return c.JSON(fiber.Map{

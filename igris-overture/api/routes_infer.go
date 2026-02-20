@@ -1,6 +1,7 @@
 package api
 
 import (
+	"context"
 	"log"
 	"os"
 
@@ -20,10 +21,17 @@ func RegisterInferRoutes(app *fiber.App, tenantAuth *middleware.TenantAuth, db *
 		return err
 	}
 
-	// Attach Runtime executor when IGRIS_RUNTIME_URL is configured.
-	// When set, Overture delegates all inference to the Runtime instance
-	// and acts as a pure control plane (auth, billing, policy).
-	if runtimeURL := os.Getenv("IGRIS_RUNTIME_URL"); runtimeURL != "" {
+	// Attach Runtime executor.
+	// Priority 1: DB-backed registry (dynamic edge/cloud selection + health polling).
+	// Priority 2: Single static IGRIS_RUNTIME_URL (backward compat, no DB required).
+	// Priority 3: Direct provider routing (no runtime configured).
+	if db != nil && db.IsEnabled() {
+		repo := internal.NewRuntimeRepository(db.DB)
+		sel := internal.NewRuntimeSelector(repo)
+		sel.StartHealthPoller(context.Background())
+		inferHandler.SetRuntimeExecutor(sel)
+		log.Printf("[Routes] Runtime selector active (DB-backed registry with health polling)")
+	} else if runtimeURL := os.Getenv("IGRIS_RUNTIME_URL"); runtimeURL != "" {
 		rc := internal.NewRuntimeClient(runtimeURL)
 		inferHandler.SetRuntimeExecutor(rc)
 		log.Printf("[Routes] Runtime executor configured: %s", runtimeURL)
