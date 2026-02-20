@@ -4,6 +4,10 @@ package internal
 import (
 	"bytes"
 	"context"
+	"crypto/ed25519"
+	"crypto/sha256"
+	"encoding/base64"
+	"encoding/hex"
 	"encoding/json"
 	"fmt"
 	"net/http"
@@ -18,7 +22,8 @@ import (
 // tenancy); the Runtime is the sole execution authority.
 type RuntimeClient struct {
 	baseURL    string
-	secret     string // IGRIS_RUNTIME_SECRET — sent as Authorization: Bearer <secret>
+	secret     string           // IGRIS_RUNTIME_SECRET — sent as Authorization: Bearer <secret>
+	publicKey  ed25519.PublicKey // IGRIS_RUNTIME_PUBLIC_KEY (hex) — used to verify execution envelopes
 	httpClient *http.Client
 }
 
@@ -32,9 +37,17 @@ func NewRuntimeClient(baseURL string) *RuntimeClient {
 			timeout = d
 		}
 	}
+	var pubKey ed25519.PublicKey
+	if hexKey := os.Getenv("IGRIS_RUNTIME_PUBLIC_KEY"); hexKey != "" {
+		if decoded, err := hex.DecodeString(hexKey); err == nil && len(decoded) == ed25519.PublicKeySize {
+			pubKey = ed25519.PublicKey(decoded)
+		}
+	}
+
 	return &RuntimeClient{
-		baseURL: baseURL,
-		secret:  os.Getenv("IGRIS_RUNTIME_SECRET"),
+		baseURL:   baseURL,
+		secret:    os.Getenv("IGRIS_RUNTIME_SECRET"),
+		publicKey: pubKey,
 		httpClient: &http.Client{
 			Timeout: timeout,
 		},
@@ -46,6 +59,52 @@ func (c *RuntimeClient) setAuthHeader(req *http.Request) {
 	if c.secret != "" {
 		req.Header.Set("Authorization", "Bearer "+c.secret)
 	}
+}
+
+// verifyEnvelope verifies the Ed25519 signature embedded in an execution envelope.
+//
+// The canonical form is produced by removing "signature" from the envelope map,
+// marshalling the remainder with json.Marshal (which sorts map keys alphabetically —
+// identical to the Rust BTreeMap serialisation used on the signing side), then
+// SHA-256 hashing those bytes. The signature is verified against that hash.
+//
+// Returns nil if verification succeeds, if no public key is configured, or if the
+// envelope is nil. Returns a non-nil error if a key is configured but verification
+// fails, which the caller must treat as a security rejection (502).
+func (c *RuntimeClient) verifyEnvelope(envelope map[string]interface{}) error {
+	if len(c.publicKey) == 0 {
+		return nil
+	}
+
+	sigRaw, ok := envelope["signature"]
+	if !ok {
+		return fmt.Errorf("execution_envelope missing signature field")
+	}
+	sigStr, _ := sigRaw.(string)
+	sigBytes, err := base64.StdEncoding.DecodeString(sigStr)
+	if err != nil {
+		return fmt.Errorf("execution_envelope signature base64 decode: %w", err)
+	}
+
+	// Remove signature before canonical serialisation.
+	delete(envelope, "signature")
+
+	// json.Marshal on map[string]interface{} always sorts keys alphabetically,
+	// matching Rust's BTreeMap<&str, Value> serialisation order.
+	canonBytes, err := json.Marshal(envelope)
+
+	// Restore signature immediately so the caller can still inspect the envelope.
+	envelope["signature"] = sigStr
+
+	if err != nil {
+		return fmt.Errorf("execution_envelope canonical marshal: %w", err)
+	}
+
+	hash := sha256.Sum256(canonBytes)
+	if !ed25519.Verify(c.publicKey, hash[:], sigBytes) {
+		return fmt.Errorf("execution_envelope signature verification failed")
+	}
+	return nil
 }
 
 // executeRequest is the JSON payload sent to POST /v1/runtime/execute.
@@ -98,9 +157,10 @@ type executeResponse struct {
 		TenantID          string `json:"tenant_id"`
 		ContainmentActive bool   `json:"containment_active"`
 	} `json:"metadata,omitempty"`
-	// Signature is the Ed25519 signature (base64) over "id:model:finish_reason".
-	// Present when the Runtime has a signing key configured.
-	Signature string `json:"signature,omitempty"`
+	// ExecutionEnvelope replaces the previous Signature field. Decoded as a
+	// raw map so we can remove "signature" and re-marshal for verification
+	// without a separate struct definition.
+	ExecutionEnvelope map[string]interface{} `json:"execution_envelope,omitempty"`
 }
 
 // ForwardExecution sends req to the Runtime's POST /v1/runtime/execute endpoint
@@ -178,6 +238,15 @@ func (c *RuntimeClient) ForwardExecution(
 	var execResp executeResponse
 	if err := json.NewDecoder(httpResp.Body).Decode(&execResp); err != nil {
 		return nil, fmt.Errorf("runtime_client: decode: %w", err)
+	}
+
+	// Verify execution envelope signature before accepting the response.
+	// When IGRIS_RUNTIME_PUBLIC_KEY is configured, a missing or invalid signature
+	// causes ForwardExecution to return an error so the caller can apply fallback.
+	if execResp.ExecutionEnvelope != nil {
+		if err := c.verifyEnvelope(execResp.ExecutionEnvelope); err != nil {
+			return nil, fmt.Errorf("runtime_client: security: %w", err)
+		}
 	}
 
 	// Convert to the Overture InferResponse type.

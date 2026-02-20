@@ -90,7 +90,11 @@ mod tests {
             fleet_manager: None,
             rate_limiter: None,
             metrics: Arc::new(Metrics::new()),
-            escapevector_cache: None, // Disable for tests
+            escapevector_cache: None,
+            violation_log: None,
+            peer_registry: None,
+            runtime_public_key: None,
+            signing_key: None,
         }
     }
 
@@ -241,6 +245,10 @@ mod tests {
             rate_limiter: None,
             metrics: Arc::new(Metrics::new()),
             escapevector_cache: Some(cache.clone()),
+            violation_log: None,
+            peer_registry: None,
+            runtime_public_key: None,
+            signing_key: None,
         };
 
         let app = build_test_app(state);
@@ -327,6 +335,10 @@ mod tests {
             rate_limiter: None,
             metrics: Arc::new(Metrics::new()),
             escapevector_cache: Some(cache.clone()),
+            violation_log: None,
+            peer_registry: None,
+            runtime_public_key: None,
+            signing_key: None,
         };
 
         let app = build_test_app(state);

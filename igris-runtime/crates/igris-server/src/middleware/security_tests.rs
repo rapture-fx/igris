@@ -48,7 +48,11 @@ mod tests {
             fleet_manager: None,
             rate_limiter: Some(RateLimiter::new(60, 1)),
             metrics: Arc::new(Metrics::new()),
-            escapevector_cache: None, // Disable for tests
+            escapevector_cache: None,
+            violation_log: None,
+            peer_registry: None,
+            runtime_public_key: None,
+            signing_key: None,
         }
     }
 
