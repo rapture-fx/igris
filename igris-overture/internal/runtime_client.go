@@ -7,6 +7,7 @@ import (
 	"encoding/json"
 	"fmt"
 	"net/http"
+	"os"
 	"time"
 
 	"github.com/Igris-inertial/system/igris-overture/models"
@@ -17,28 +18,48 @@ import (
 // tenancy); the Runtime is the sole execution authority.
 type RuntimeClient struct {
 	baseURL    string
+	secret     string // IGRIS_RUNTIME_SECRET — sent as Authorization: Bearer <secret>
 	httpClient *http.Client
 }
 
 // NewRuntimeClient creates a RuntimeClient targeting the given base URL
 // (e.g. "http://localhost:8080" or the cloud-runtime URL).
+// It reads IGRIS_RUNTIME_SECRET and IGRIS_RUNTIME_TIMEOUT from the environment.
 func NewRuntimeClient(baseURL string) *RuntimeClient {
+	timeout := 5 * time.Second
+	if v := os.Getenv("IGRIS_RUNTIME_TIMEOUT"); v != "" {
+		if d, err := time.ParseDuration(v); err == nil {
+			timeout = d
+		}
+	}
 	return &RuntimeClient{
 		baseURL: baseURL,
+		secret:  os.Getenv("IGRIS_RUNTIME_SECRET"),
 		httpClient: &http.Client{
-			Timeout: 60 * time.Second,
+			Timeout: timeout,
 		},
 	}
 }
 
+// setAuthHeader adds Authorization: Bearer <secret> when a secret is configured.
+func (c *RuntimeClient) setAuthHeader(req *http.Request) {
+	if c.secret != "" {
+		req.Header.Set("Authorization", "Bearer "+c.secret)
+	}
+}
+
 // executeRequest is the JSON payload sent to POST /v1/runtime/execute.
+// Field types match igris-server's ExecuteRequest / Bounds exactly to avoid
+// silent truncation at the JSON boundary.
 type executeRequest struct {
-	Model     string           `json:"model"`
-	Messages  []executeMessage `json:"messages"`
-	MaxTokens *int             `json:"max_tokens,omitempty"`
-	TenantID  string           `json:"tenant_id,omitempty"`
-	Mode      string           `json:"mode,omitempty"`
-	Bounds    *executeBounds   `json:"bounds,omitempty"`
+	Model       string         `json:"model"`
+	Messages    []executeMessage `json:"messages"`
+	MaxTokens   *uint32        `json:"max_tokens,omitempty"`
+	Temperature *float32       `json:"temperature,omitempty"`
+	Stream      bool           `json:"stream,omitempty"`
+	TenantID    string         `json:"tenant_id,omitempty"`
+	Mode        string         `json:"mode,omitempty"`
+	Bounds      *executeBounds `json:"bounds,omitempty"`
 }
 
 type executeMessage struct {
@@ -47,9 +68,9 @@ type executeMessage struct {
 }
 
 type executeBounds struct {
-	CpuPercent *int `json:"cpu_percent,omitempty"`
-	MemoryMb   *int `json:"memory_mb,omitempty"`
-	MaxTickMs  *int `json:"max_tick_ms,omitempty"`
+	CpuPercent *uint8  `json:"cpu_percent,omitempty"`
+	MemoryMb   *uint32 `json:"memory_mb,omitempty"`
+	MaxTickMs  *uint64 `json:"max_tick_ms,omitempty"`
 }
 
 // executeResponse mirrors igris-server's ExecuteResponse.
@@ -77,6 +98,9 @@ type executeResponse struct {
 		TenantID          string `json:"tenant_id"`
 		ContainmentActive bool   `json:"containment_active"`
 	} `json:"metadata,omitempty"`
+	// Signature is the Ed25519 signature (base64) over "id:model:finish_reason".
+	// Present when the Runtime has a signing key configured.
+	Signature string `json:"signature,omitempty"`
 }
 
 // ForwardExecution sends req to the Runtime's POST /v1/runtime/execute endpoint
@@ -103,9 +127,18 @@ func (c *RuntimeClient) ForwardExecution(
 		Model:    req.Model,
 		Messages: msgs,
 		TenantID: tenantID,
+		Stream:   req.Stream,
 	}
 	if req.MaxTokens > 0 {
-		payload.MaxTokens = &req.MaxTokens
+		v := uint32(req.MaxTokens)
+		payload.MaxTokens = &v
+	}
+	if req.Temperature != 0 {
+		v := float32(req.Temperature)
+		payload.Temperature = &v
+	}
+	if req.SpeculativeMode != "" {
+		payload.Mode = req.SpeculativeMode
 	}
 
 	data, err := json.Marshal(payload)
@@ -123,6 +156,7 @@ func (c *RuntimeClient) ForwardExecution(
 		return nil, fmt.Errorf("runtime_client: build request: %w", err)
 	}
 	httpReq.Header.Set("Content-Type", "application/json")
+	c.setAuthHeader(httpReq)
 	if tenantID != "" {
 		httpReq.Header.Set("X-Igris-Tenant", tenantID)
 	}
@@ -184,6 +218,7 @@ func (c *RuntimeClient) GetViolations(ctx context.Context) ([]map[string]interfa
 	if err != nil {
 		return nil, err
 	}
+	c.setAuthHeader(req)
 
 	resp, err := c.httpClient.Do(req)
 	if err != nil {
@@ -212,6 +247,7 @@ func (c *RuntimeClient) Health(ctx context.Context) error {
 	if err != nil {
 		return err
 	}
+	c.setAuthHeader(req)
 
 	resp, err := c.httpClient.Do(req)
 	if err != nil {

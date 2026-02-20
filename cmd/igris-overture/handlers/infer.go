@@ -459,18 +459,42 @@ func (h *InferHandler) HandleInfer(c *fiber.Ctx) error {
 		safety.RecordBudgetFallback(time.Now().Format("2006-01"), traceID)
 	}
 
-	// Handle council mode (non-streaming only)
-	if req.CouncilMode {
-		if req.Stream {
+	// Route and execute inference.
+	var resp *models.InferResponse
+
+	// P0 FIX: Runtime executor intercepts ALL paths (council, stream, non-stream) before
+	// the early-return branches below.  This ensures council and streaming requests are
+	// forwarded to the Runtime when IGRIS_RUNTIME_URL is configured.
+	if h.runtimeExecutor != nil {
+		boundsHeader := string(c.Request().Header.Peek("X-Igris-Bounds"))
+		// Council mode disables streaming per existing policy.
+		if req.CouncilMode && req.Stream {
 			log.Printf("[Infer] Council mode does not support streaming, disabling stream")
 			req.Stream = false
 		}
-		return h.handleCouncilInfer(c, &req)
+		resp, err = h.runtimeExecutor.ForwardExecution(ctx, tenantID, &req, boundsHeader)
+		if err != nil {
+			log.Printf("[Infer] Runtime forward failed, falling back to direct routing: %v", err)
+			err = nil
+			resp = nil
+		}
 	}
 
-	// Handle streaming requests
-	if req.Stream {
-		return h.handleStreamingInfer(c, &req)
+	// Fallback paths — only used when runtimeExecutor is not configured or forward failed.
+	if resp == nil {
+		// Handle council mode (non-streaming only)
+		if req.CouncilMode {
+			if req.Stream {
+				log.Printf("[Infer] Council mode does not support streaming, disabling stream")
+				req.Stream = false
+			}
+			return h.handleCouncilInfer(c, &req)
+		}
+
+		// Handle streaming requests
+		if req.Stream {
+			return h.handleStreamingInfer(c, &req)
+		}
 	}
 
 	// Determine routing decision source based on optimizer mode
@@ -478,38 +502,25 @@ func (h *InferHandler) HandleInfer(c *fiber.Ctx) error {
 	currentSampleRate := h.runtimeConfig.GetSampleRate()
 	useRustOptimizer := false
 	decisionSource := "go_router"
-
-	// Phase 10: Phased rollout logic
-	if currentMode == shadow.ShadowModeRust && h.shadowRunner != nil {
-		// In Rust mode: sample requests based on sample rate
-		if h.rand.Float64() < currentSampleRate {
-			useRustOptimizer = true
-			decisionSource = "rust_optimizer"
-		} else {
-			// Not sampled, fallback to Go
-			h.activationMetrics.RecordGoFallback("sample_skip")
-		}
+	if resp != nil {
+		decisionSource = "runtime"
 	}
 
-	log.Printf("[Infer] Mode=%s, SampleRate=%.4f, UseRust=%v",
-		currentMode, currentSampleRate, useRustOptimizer)
-
-	// Route and execute inference
-	var resp *models.InferResponse
-
-	// Forward to Runtime instance if configured.  Overture is the control plane;
-	// the Runtime is the sole execution authority.  On failure we fall through to
-	// the direct-routing path for backward compatibility.
-	if h.runtimeExecutor != nil {
-		boundsHeader := string(c.Request().Header.Peek("X-Igris-Bounds"))
-		resp, err = h.runtimeExecutor.ForwardExecution(ctx, tenantID, &req, boundsHeader)
-		if err != nil {
-			log.Printf("[Infer] Runtime forward failed, falling back to direct routing: %v", err)
-			err = nil
-			resp = nil
-		} else {
-			decisionSource = "runtime"
+	// Phase 10: Phased rollout logic (only relevant for direct routing path)
+	if resp == nil {
+		if currentMode == shadow.ShadowModeRust && h.shadowRunner != nil {
+			// In Rust mode: sample requests based on sample rate
+			if h.rand.Float64() < currentSampleRate {
+				useRustOptimizer = true
+				decisionSource = "rust_optimizer"
+			} else {
+				// Not sampled, fallback to Go
+				h.activationMetrics.RecordGoFallback("sample_skip")
+			}
 		}
+
+		log.Printf("[Infer] Mode=%s, SampleRate=%.4f, UseRust=%v",
+			currentMode, currentSampleRate, useRustOptimizer)
 	}
 
 	if resp == nil {
