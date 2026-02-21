@@ -6,15 +6,15 @@ import { useTheme } from 'next-themes'
 const capabilities = [
   {
     name: 'Execute with Bounds',
-    description: 'Every execution runs in an isolated worker process. Memory, CPU, and time are enforced at the OS level. If a limit is exceeded, the worker is killed. The runtime continues. Every violation is signed and hash-chained.',
+    description: 'Every execution runs in an isolated worker. Memory, CPU, and time are enforced at the OS level. Exceed a limit and the worker is killed. Every violation is signed and hash-chained.',
   },
   {
     name: 'Decide with Structure',
-    description: 'Language models reason. The runtime governs. Every suggestion passes through structured decision paths before becoming action. Intelligence remains flexible. Execution remains controlled.',
+    description: 'Language models generate reasoning. The runtime governs execution through bounded control paths. Isolated, time-limited, and supervised. Intelligence remains flexible.',
   },
   {
     name: 'Remember with Proof',
-    description: 'Every decision is recorded and cryptographically signed (Ed25519). The result is a tamper-evident history of what ran, when, and why — independent of our control plane.',
+    description: 'Every execution produces a signed envelope. Violations are hash-chained and tamper-evident. Verify independently — without our control plane. You verify the system.',
   },
 ]
 
@@ -75,8 +75,8 @@ export default function CoreCapabilities() {
                           src={mounted && theme === 'dark' ? '/cr.png?v=2' : '/exc.png?v=2'}
                           alt={capability.name}
                           style={{
-                            width: '65%',
-                            height: '65%',
+                            width: '85%',
+                            height: '85%',
                             objectFit: 'contain',
                             opacity: '0.6'
                           }}
@@ -87,8 +87,8 @@ export default function CoreCapabilities() {
                           src={mounted && theme === 'dark' ? '/cs.png' : '/tre.png'}
                           alt={capability.name}
                           style={{
-                            width: '65%',
-                            height: '65%',
+                            width: '85%',
+                            height: '85%',
                             objectFit: 'contain',
                             opacity: '0.6'
                           }}
@@ -99,8 +99,8 @@ export default function CoreCapabilities() {
                           src={mounted && theme === 'dark' ? '/cc.png' : '/one.png'}
                           alt={capability.name}
                           style={{
-                            width: '65%',
-                            height: '65%',
+                            width: '85%',
+                            height: '85%',
                             objectFit: 'contain',
                             opacity: '0.6'
                           }}
