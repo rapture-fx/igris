@@ -44,26 +44,14 @@ export default function AutonomousSystems() {
                 <h3 className="text-base md:text-lg mb-2 text-[#000000] dark:text-[#f6f6f4]" style={{ fontFamily }}>
                   For AI Agents
                 </h3>
-                <p className="text-sm md:text-base text-gray-600 dark:text-[#a8a898] leading-relaxed mb-1" style={{ fontFamily }}>
-                  Run on servers or edge nodes.
+                <p className="text-sm md:text-base text-gray-600 dark:text-[#a8a898] leading-relaxed mb-3" style={{ fontFamily }}>
+                  Run on servers or edge nodes with every execution isolated and time-bounded. If a task exceeds limits, it is terminated — not retried silently.
                 </p>
-                <p className="text-sm md:text-base text-gray-600 dark:text-[#a8a898] leading-relaxed mb-1" style={{ fontFamily }}>
-                  Every execution is isolated and time-bounded.
-                </p>
-                <p className="text-sm md:text-base text-gray-600 dark:text-[#a8a898] leading-relaxed mb-1" style={{ fontFamily }}>
-                  If a task exceeds limits, it is terminated — not retried silently.
-                </p>
-                <p className="text-sm md:text-base text-gray-600 dark:text-[#a8a898] leading-relaxed mb-1" style={{ fontFamily }}>
-                  Signed execution envelopes provide a verifiable audit trail.
-                </p>
-                <p className="text-sm md:text-base text-gray-600 dark:text-[#a8a898] leading-relaxed mb-1" style={{ fontFamily }}>
-                  Survive provider outages with local fallback.
-                </p>
-                <p className="text-sm md:text-base text-gray-600 dark:text-[#a8a898] leading-relaxed mb-1" style={{ fontFamily }}>
-                  No runaway loops.
+                <p className="text-sm md:text-base text-gray-600 dark:text-[#a8a898] leading-relaxed mb-3" style={{ fontFamily }}>
+                  Signed execution envelopes provide a verifiable audit trail, and provider outages are survived with local fallback.
                 </p>
                 <p className="text-sm md:text-base text-gray-600 dark:text-[#a8a898] leading-relaxed" style={{ fontFamily }}>
-                  No undefined state.
+                  No runaway loops. No undefined state.
                 </p>
               </div>
             </div>
@@ -110,23 +98,14 @@ export default function AutonomousSystems() {
                 <h3 className="text-base md:text-lg mb-2 text-[#000000] dark:text-[#f6f6f4]" style={{ fontFamily }}>
                   For Robots
                 </h3>
-                <p className="text-sm md:text-base text-gray-600 dark:text-[#a8a898] leading-relaxed mb-1" style={{ fontFamily }}>
-                  ROS 2 integration binds reasoning to motor control.
+                <p className="text-sm md:text-base text-gray-600 dark:text-[#a8a898] leading-relaxed mb-3" style={{ fontFamily }}>
+                  ROS 2 integration binds reasoning to motor control. On violation, navigation is cancelled and zero velocity is enforced within 50ms.
                 </p>
-                <p className="text-sm md:text-base text-gray-600 dark:text-[#a8a898] leading-relaxed mb-1" style={{ fontFamily }}>
-                  On violation, navigation is cancelled and zero velocity is enforced within 50ms.
-                </p>
-                <p className="text-sm md:text-base text-gray-600 dark:text-[#a8a898] leading-relaxed mb-1" style={{ fontFamily }}>
-                  Safety logic is deterministic and independent of the LLM.
-                </p>
-                <p className="text-sm md:text-base text-gray-600 dark:text-[#a8a898] leading-relaxed mb-1" style={{ fontFamily }}>
-                  Signed violation records include pose and motion context.
-                </p>
-                <p className="text-sm md:text-base text-gray-600 dark:text-[#a8a898] leading-relaxed mb-1" style={{ fontFamily }}>
-                  No undefined actuator state.
+                <p className="text-sm md:text-base text-gray-600 dark:text-[#a8a898] leading-relaxed mb-3" style={{ fontFamily }}>
+                  Safety logic is deterministic and independent of the LLM, with signed violation records that include pose and motion context.
                 </p>
                 <p className="text-sm md:text-base text-gray-600 dark:text-[#a8a898] leading-relaxed" style={{ fontFamily }}>
-                  Offline by default. Sync when available.
+                  No undefined actuator state. Offline by default. Sync when available.
                 </p>
               </div>
             </div>
