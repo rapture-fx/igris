@@ -42,10 +42,28 @@ export default function AutonomousSystems() {
             <div className="flex flex-col pt-6 pb-8 pr-4" style={{ borderRight: borderStyle }}>
               <div className="max-w-md">
                 <h3 className="text-base md:text-lg mb-2 text-[#000000] dark:text-[#f6f6f4]" style={{ fontFamily }}>
-                  For AI agents
+                  For AI Agents
                 </h3>
+                <p className="text-sm md:text-base text-gray-600 dark:text-[#a8a898] leading-relaxed mb-1" style={{ fontFamily }}>
+                  Run on servers or edge nodes.
+                </p>
+                <p className="text-sm md:text-base text-gray-600 dark:text-[#a8a898] leading-relaxed mb-1" style={{ fontFamily }}>
+                  Every execution is isolated and time-bounded.
+                </p>
+                <p className="text-sm md:text-base text-gray-600 dark:text-[#a8a898] leading-relaxed mb-1" style={{ fontFamily }}>
+                  If a task exceeds limits, it is terminated — not retried silently.
+                </p>
+                <p className="text-sm md:text-base text-gray-600 dark:text-[#a8a898] leading-relaxed mb-1" style={{ fontFamily }}>
+                  Signed execution envelopes provide a verifiable audit trail.
+                </p>
+                <p className="text-sm md:text-base text-gray-600 dark:text-[#a8a898] leading-relaxed mb-1" style={{ fontFamily }}>
+                  Survive provider outages with local fallback.
+                </p>
+                <p className="text-sm md:text-base text-gray-600 dark:text-[#a8a898] leading-relaxed mb-1" style={{ fontFamily }}>
+                  No runaway loops.
+                </p>
                 <p className="text-sm md:text-base text-gray-600 dark:text-[#a8a898] leading-relaxed" style={{ fontFamily }}>
-                  Run on servers. Coordinate distributed fleets. Survive when cloud APIs fail.
+                  No undefined state.
                 </p>
               </div>
             </div>
@@ -90,10 +108,25 @@ export default function AutonomousSystems() {
             <div className="flex flex-col pt-6 pb-8 pr-4" style={{ borderRight: borderStyle }}>
               <div className="max-w-md">
                 <h3 className="text-base md:text-lg mb-2 text-[#000000] dark:text-[#f6f6f4]" style={{ fontFamily }}>
-                  For robots
+                  For Robots
                 </h3>
+                <p className="text-sm md:text-base text-gray-600 dark:text-[#a8a898] leading-relaxed mb-1" style={{ fontFamily }}>
+                  ROS 2 integration binds reasoning to motor control.
+                </p>
+                <p className="text-sm md:text-base text-gray-600 dark:text-[#a8a898] leading-relaxed mb-1" style={{ fontFamily }}>
+                  On violation, navigation is cancelled and zero velocity is enforced within 50ms.
+                </p>
+                <p className="text-sm md:text-base text-gray-600 dark:text-[#a8a898] leading-relaxed mb-1" style={{ fontFamily }}>
+                  Safety logic is deterministic and independent of the LLM.
+                </p>
+                <p className="text-sm md:text-base text-gray-600 dark:text-[#a8a898] leading-relaxed mb-1" style={{ fontFamily }}>
+                  Signed violation records include pose and motion context.
+                </p>
+                <p className="text-sm md:text-base text-gray-600 dark:text-[#a8a898] leading-relaxed mb-1" style={{ fontFamily }}>
+                  No undefined actuator state.
+                </p>
                 <p className="text-sm md:text-base text-gray-600 dark:text-[#a8a898] leading-relaxed" style={{ fontFamily }}>
-                  Integrate with ROS 2. Control physical motors. Enforce safety limits. Execute offline indefinitely.
+                  Offline by default. Sync when available.
                 </p>
               </div>
             </div>

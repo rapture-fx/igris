@@ -9,8 +9,8 @@ const features = [
     description: 'Every decision cryptographically signed. Verify independently—without our control plane.',
   },
   {
-    title: 'Fail-safe execution',
-    description: 'Hard limits on memory, CPU, time. Exceed them, process dies cleanly. No leaks. No surprises.',
+    title: 'Fail-Safe Execution',
+    description: 'An independent supervisor enforces hard limits. No in-process corruption. No silent fallback. If execution breaks its contract, it stops. The system survives.',
   },
   {
     title: 'Air-gapped operation',

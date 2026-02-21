@@ -6,7 +6,7 @@ import { useTheme } from 'next-themes'
 const capabilities = [
   {
     name: 'Execute with Bounds',
-    description: 'Deterministic runtime with enforced limits on memory, CPU, and execution time. Exceed them and the process terminates cleanly. No leaks. No drift. Deterministic or terminated.',
+    description: 'Every execution runs in an isolated worker process. Memory, CPU, and time are enforced at the OS level. If a limit is exceeded, the worker is killed. The runtime continues. Every violation is signed and hash-chained.',
   },
   {
     name: 'Decide with Structure',
@@ -60,13 +60,15 @@ export default function CoreCapabilities() {
               {capabilities.map((capability, index) => (
                 <React.Fragment key={capability.name}>
                    <div className="bg-[#edece9] dark:bg-[#1b1912]/60 border border-gray-200 dark:border-[#f6f6f4]/8 rounded-2xl w-full md:w-[280px] flex flex-col" style={{ minHeight: '380px' }}>
-                    <div className="flex-1" style={{
+                    <div style={{
                       width: '100%',
+                      height: '200px',
                       display: 'flex',
                       alignItems: 'center',
                       justifyContent: 'center',
                       position: 'relative',
                       overflow: 'hidden',
+                      flexShrink: 0,
                     }}>
                       {index === 0 && (
                         <img
