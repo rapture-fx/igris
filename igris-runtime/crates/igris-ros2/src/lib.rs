@@ -9,6 +9,7 @@
 //! - Nav2 integration for path planning
 //! - Action client for goal-based navigation
 //! - Service calls for robot control
+//! - Deterministic containment bridge (see [`containment_bridge`])
 //!
 //! # Compilation
 //! - By default, uses stub implementation (no ROS2 required)
@@ -41,6 +42,8 @@
 //! }
 //! ```
 
+pub mod containment_bridge;
+
 use anyhow::{Context, Result};
 use serde::{Deserialize, Serialize};
 use std::collections::HashMap;
@@ -48,6 +51,7 @@ use std::sync::Arc;
 use std::time::Duration;
 use tokio::sync::{mpsc, Mutex, Notify, RwLock};
 use tracing::{debug, info, warn};
+use uuid::Uuid;
 
 #[cfg(feature = "ros2")]
 use r2r;
@@ -167,6 +171,8 @@ pub struct NavigationFeedback {
 
 /// Shared inner state for NavigationHandle
 struct NavigationHandleInner {
+    /// Unique goal identifier (UUIDv7) for violation record correlation.
+    goal_id: String,
     state: NavigationState,
     feedback: NavigationFeedback,
     goal: NavigationGoal,
@@ -176,12 +182,20 @@ struct NavigationHandleInner {
 ///
 /// Returned by `navigate_to_pose()`, this handle allows monitoring progress,
 /// retrieving feedback, and canceling the navigation goal.
+///
+/// Cheaply cloneable — all clones share the same underlying goal state.
+#[derive(Clone)]
 pub struct NavigationHandle {
     inner: Arc<Mutex<NavigationHandleInner>>,
     done_notify: Arc<Notify>,
 }
 
 impl NavigationHandle {
+    /// Returns the unique identifier assigned to this navigation goal.
+    pub async fn goal_id(&self) -> String {
+        self.inner.lock().await.goal_id.clone()
+    }
+
     /// Returns the current navigation state
     pub async fn status(&self) -> NavigationState {
         let inner = self.inner.lock().await;
@@ -194,7 +208,9 @@ impl NavigationHandle {
         inner.feedback.clone()
     }
 
-    /// Cancel the navigation goal
+    /// Cancel the navigation goal.
+    ///
+    /// Returns an error if the goal is already in a terminal state.
     pub async fn cancel(&self) -> Result<()> {
         let mut inner = self.inner.lock().await;
         if inner.state.is_terminal() {
@@ -203,13 +219,30 @@ impl NavigationHandle {
                 inner.state
             ));
         }
-        info!("Canceling navigation goal via handle");
+        info!("Canceling navigation goal {} via handle", inner.goal_id);
         inner.state = NavigationState::Canceled;
         inner.feedback.distance_remaining = 0.0;
         inner.feedback.estimated_time_remaining = 0.0;
         drop(inner);
         self.done_notify.notify_waiters();
         Ok(())
+    }
+
+    /// Cancel the goal with a hard timeout.
+    ///
+    /// Returns `Ok(goal_id)` if cancelled within `timeout_ms`, or an error on timeout.
+    /// Safe to call even if no active goal exists — returns the current goal_id either way.
+    pub async fn cancel_with_timeout(&self, timeout_ms: u64) -> Result<String> {
+        let goal_id = self.goal_id().await;
+        tokio::time::timeout(Duration::from_millis(timeout_ms), self.cancel())
+            .await
+            .context("Nav2 cancel timed out")?
+            .or_else(|e| {
+                // Already terminal — treat as success for safety purposes.
+                debug!("Goal {} already terminal during cancel: {}", goal_id, e);
+                Ok::<(), anyhow::Error>(())
+            })?;
+        Ok(goal_id)
     }
 
     /// Block until the navigation reaches a terminal state (Succeeded, Failed, or Canceled)
@@ -226,10 +259,14 @@ impl NavigationHandle {
     }
 }
 
-/// Spawn a background task that simulates navigation state progression
+/// Spawn a background task that simulates navigation state progression.
+///
+/// `velocity_tracker` is updated to reflect the simulated robot velocity
+/// during execution so the containment bridge can capture it before zeroing.
 fn spawn_navigation_task(
     inner: Arc<Mutex<NavigationHandleInner>>,
     done_notify: Arc<Notify>,
+    velocity_tracker: Arc<RwLock<[f64; 2]>>,
 ) {
     tokio::spawn(async move {
         // Accepted -> Planning (short delay)
@@ -258,6 +295,14 @@ fn spawn_navigation_task(
             lock.feedback.distance_remaining
         };
 
+        // Simulated linear velocity during execution (m/s).
+        let simulated_linear_x = if total_distance > 0.0 {
+            (total_distance / 10.0_f64).clamp(0.1, 1.0)
+        } else {
+            0.1
+        };
+        *velocity_tracker.write().await = [simulated_linear_x, 0.0];
+
         let steps = 10u32;
         let step_duration = Duration::from_millis(50);
         for i in 1..=steps {
@@ -265,6 +310,7 @@ fn spawn_navigation_task(
             {
                 let mut lock = inner.lock().await;
                 if lock.state.is_terminal() {
+                    *velocity_tracker.write().await = [0.0, 0.0];
                     return;
                 }
                 let fraction_remaining = 1.0 - (i as f64 / steps as f64);
@@ -286,7 +332,8 @@ fn spawn_navigation_task(
             done_notify.notify_waiters();
         }
 
-        // Terminal: Succeeded
+        // Terminal: Succeeded — zero velocity before notifying.
+        *velocity_tracker.write().await = [0.0, 0.0];
         {
             let mut lock = inner.lock().await;
             if !lock.state.is_terminal() {
@@ -323,6 +370,13 @@ pub struct Ros2Node {
 
     // Node active flag
     active: Arc<RwLock<bool>>,
+
+    // Active navigation handle (set by navigate_to_pose; used by containment bridge).
+    active_nav_handle: Arc<RwLock<Option<NavigationHandle>>>,
+
+    // Last known robot velocity [linear_x_m_s, angular_z_rad_s].
+    // Updated by the navigation task during execution; read by the bridge before zeroing.
+    last_velocity: Arc<RwLock<[f64; 2]>>,
 }
 
 #[cfg(feature = "ros2")]
@@ -416,6 +470,8 @@ impl Ros2Node {
             response_rx: Arc::new(RwLock::new(response_rx)),
             nav_status: Arc::new(RwLock::new(None)),
             active: Arc::new(RwLock::new(true)),
+            active_nav_handle: Arc::new(RwLock::new(None)),
+            last_velocity: Arc::new(RwLock::new([0.0, 0.0])),
         })
     }
 
@@ -505,9 +561,10 @@ impl Ros2Node {
             return Err(anyhow::anyhow!("Nav2 is disabled in config"));
         }
 
+        let goal_id = Uuid::now_v7().to_string();
         info!(
-            "Sending navigation goal to ({}, {}, {}) in frame '{}'",
-            goal.x, goal.y, goal.z, goal.frame_id
+            "Sending navigation goal {} to ({}, {}, {}) in frame '{}'",
+            goal_id, goal.x, goal.y, goal.z, goal.frame_id
         );
 
         let distance = (goal.x * goal.x + goal.y * goal.y).sqrt();
@@ -525,6 +582,7 @@ impl Ros2Node {
         warn!("Nav2 action client not yet implemented - using simulated state progression");
 
         let inner = Arc::new(Mutex::new(NavigationHandleInner {
+            goal_id: goal_id.clone(),
             state: NavigationState::Accepted,
             feedback: NavigationFeedback {
                 current_pose: (0.0, 0.0, 0.0),
@@ -535,9 +593,12 @@ impl Ros2Node {
         }));
 
         let done_notify = Arc::new(Notify::new());
-        spawn_navigation_task(inner.clone(), done_notify.clone());
+        let velocity_tracker = self.last_velocity.clone();
+        spawn_navigation_task(inner.clone(), done_notify.clone(), velocity_tracker);
 
-        Ok(NavigationHandle { inner, done_notify })
+        let handle = NavigationHandle { inner, done_notify };
+        *self.active_nav_handle.write().await = Some(handle.clone());
+        Ok(handle)
     }
 
     /// Get current navigation status (legacy API)
@@ -560,6 +621,35 @@ impl Ros2Node {
             nav_status.state = NavigationState::Canceled;
         }
 
+        Ok(())
+    }
+
+    /// Get the current active navigation handle (used by containment bridge).
+    pub async fn get_active_handle(&self) -> Option<NavigationHandle> {
+        self.active_nav_handle.read().await.clone()
+    }
+
+    /// Get the last known robot velocity [linear_x_m_s, angular_z_rad_s].
+    pub async fn last_velocity(&self) -> [f64; 2] {
+        *self.last_velocity.read().await
+    }
+
+    /// Publish a zero-velocity Twist command to `/cmd_vel`.
+    ///
+    /// In the real ROS2 path this would publish `geometry_msgs/msg/Twist` with all
+    /// fields set to zero. Until nav2_msgs bindings are available this logs the
+    /// command as a string on the response topic.
+    ///
+    /// The containment bridge calls this in a tight loop (every 100 ms for 3 s) from
+    /// a dedicated tokio task. This method is intentionally non-blocking.
+    pub async fn publish_zero_velocity(&self) -> Result<()> {
+        debug!("Publishing zero velocity to /cmd_vel");
+        // TODO: publish geometry_msgs/msg/Twist{} when nav2_msgs bindings land
+        let msg = r2r::std_msgs::msg::String {
+            data: r#"{"linear":{"x":0,"y":0,"z":0},"angular":{"x":0,"y":0,"z":0}}"#.to_string(),
+        };
+        let mut pub_lock = self.response_pub.write().await;
+        let _ = pub_lock.publish(&msg); // best-effort; containment does not depend on delivery
         Ok(())
     }
 
@@ -599,6 +689,15 @@ pub struct Ros2Node {
 
     // Node active flag
     active: Arc<RwLock<bool>>,
+
+    // Active navigation handle (set by navigate_to_pose; used by containment bridge).
+    active_nav_handle: Arc<RwLock<Option<NavigationHandle>>>,
+
+    // Last known robot velocity [linear_x_m_s, angular_z_rad_s].
+    last_velocity: Arc<RwLock<[f64; 2]>>,
+
+    // Log of zero-velocity commands for test verification.
+    cmd_vel_log: Arc<RwLock<Vec<[f64; 2]>>>,
 }
 
 #[cfg(not(feature = "ros2"))]
@@ -632,6 +731,9 @@ impl Ros2Node {
             response_rx: Arc::new(RwLock::new(response_rx)),
             nav_status: Arc::new(RwLock::new(None)),
             active: Arc::new(RwLock::new(true)),
+            active_nav_handle: Arc::new(RwLock::new(None)),
+            last_velocity: Arc::new(RwLock::new([0.0, 0.0])),
+            cmd_vel_log: Arc::new(RwLock::new(Vec::new())),
         })
     }
 
@@ -693,9 +795,10 @@ impl Ros2Node {
             return Err(anyhow::anyhow!("Nav2 is disabled in config"));
         }
 
+        let goal_id = Uuid::now_v7().to_string();
         info!(
-            "Sending navigation goal (stub) to ({}, {}, {}) in frame '{}'",
-            goal.x, goal.y, goal.z, goal.frame_id
+            "Sending navigation goal {} (stub) to ({}, {}, {}) in frame '{}'",
+            goal_id, goal.x, goal.y, goal.z, goal.frame_id
         );
 
         let distance = (goal.x * goal.x + goal.y * goal.y).sqrt();
@@ -709,6 +812,7 @@ impl Ros2Node {
         });
 
         let inner = Arc::new(Mutex::new(NavigationHandleInner {
+            goal_id: goal_id.clone(),
             state: NavigationState::Accepted,
             feedback: NavigationFeedback {
                 current_pose: (0.0, 0.0, 0.0),
@@ -719,9 +823,12 @@ impl Ros2Node {
         }));
 
         let done_notify = Arc::new(Notify::new());
-        spawn_navigation_task(inner.clone(), done_notify.clone());
+        let velocity_tracker = self.last_velocity.clone();
+        spawn_navigation_task(inner.clone(), done_notify.clone(), velocity_tracker);
 
-        Ok(NavigationHandle { inner, done_notify })
+        let handle = NavigationHandle { inner, done_notify };
+        *self.active_nav_handle.write().await = Some(handle.clone());
+        Ok(handle)
     }
 
     /// Get current navigation status (legacy API)
@@ -745,6 +852,37 @@ impl Ros2Node {
         }
 
         Ok(())
+    }
+
+    /// Get the current active navigation handle (used by containment bridge).
+    pub async fn get_active_handle(&self) -> Option<NavigationHandle> {
+        self.active_nav_handle.read().await.clone()
+    }
+
+    /// Get the last known robot velocity [linear_x_m_s, angular_z_rad_s].
+    pub async fn last_velocity(&self) -> [f64; 2] {
+        *self.last_velocity.read().await
+    }
+
+    /// Publish a zero-velocity command (stub — logs for test verification).
+    ///
+    /// The containment bridge calls this every 100 ms for 3 s from a dedicated task.
+    /// This method is intentionally non-blocking.
+    pub async fn publish_zero_velocity(&self) -> Result<()> {
+        debug!("Publishing zero velocity to /cmd_vel (stub)");
+        let mut log = self.cmd_vel_log.write().await;
+        log.push([0.0, 0.0]);
+        // Cap the log to avoid unbounded growth in long-running tests.
+        if log.len() > 100 {
+            let excess = log.len() - 100;
+            log.drain(..excess);
+        }
+        Ok(())
+    }
+
+    /// Number of zero-velocity commands recorded (test helper).
+    pub async fn cmd_vel_command_count(&self) -> usize {
+        self.cmd_vel_log.read().await.len()
     }
 
     /// Shutdown the ROS2 node (stub)
@@ -874,6 +1012,25 @@ mod tests {
             "Expected non-terminal state, got {:?}",
             state
         );
+
+        // Active handle should be available
+        let active = node.get_active_handle().await;
+        assert!(active.is_some());
+    }
+
+    #[tokio::test]
+    async fn test_navigation_goal_id_assigned() {
+        let config = Ros2Config {
+            enabled: true,
+            enable_nav2: true,
+            ..Default::default()
+        };
+
+        let node = Ros2Node::new(config).await.unwrap();
+        let goal = NavigationGoal { x: 1.0, y: 1.0, z: 0.0, orientation_w: 1.0, frame_id: "map".to_string() };
+        let handle = node.navigate_to_pose(goal).await.unwrap();
+        let goal_id = handle.goal_id().await;
+        assert!(!goal_id.is_empty(), "goal_id must be non-empty");
     }
 
     #[tokio::test]
@@ -937,6 +1094,41 @@ mod tests {
     }
 
     #[tokio::test]
+    async fn test_navigation_handle_cancel_with_timeout() {
+        let config = Ros2Config {
+            enabled: true,
+            enable_nav2: true,
+            ..Default::default()
+        };
+        let node = Ros2Node::new(config).await.unwrap();
+        let goal = NavigationGoal { x: 50.0, y: 50.0, z: 0.0, orientation_w: 1.0, frame_id: "map".to_string() };
+        let handle = node.navigate_to_pose(goal).await.unwrap();
+
+        let result = handle.cancel_with_timeout(20).await;
+        assert!(result.is_ok(), "cancel_with_timeout must succeed within 20ms");
+        let goal_id = result.unwrap();
+        assert!(!goal_id.is_empty());
+        assert_eq!(handle.status().await, NavigationState::Canceled);
+    }
+
+    #[tokio::test]
+    async fn test_navigation_handle_clone_shares_state() {
+        let config = Ros2Config {
+            enabled: true,
+            enable_nav2: true,
+            ..Default::default()
+        };
+        let node = Ros2Node::new(config).await.unwrap();
+        let goal = NavigationGoal { x: 10.0, y: 10.0, z: 0.0, orientation_w: 1.0, frame_id: "map".to_string() };
+        let handle = node.navigate_to_pose(goal).await.unwrap();
+        let clone = handle.clone();
+
+        // Cancel via clone; original should see Canceled state.
+        clone.cancel().await.unwrap();
+        assert_eq!(handle.status().await, NavigationState::Canceled);
+    }
+
+    #[tokio::test]
     async fn test_navigation_handle_feedback() {
         let config = Ros2Config {
             enabled: true,
@@ -975,6 +1167,17 @@ mod tests {
         assert!(NavigationState::Succeeded.is_terminal());
         assert!(NavigationState::Failed("test".to_string()).is_terminal());
         assert!(NavigationState::Canceled.is_terminal());
+    }
+
+    #[tokio::test]
+    async fn test_publish_zero_velocity() {
+        let config = Ros2Config { enabled: true, ..Default::default() };
+        let node = Ros2Node::new(config).await.unwrap();
+
+        assert_eq!(node.cmd_vel_command_count().await, 0);
+        node.publish_zero_velocity().await.unwrap();
+        node.publish_zero_velocity().await.unwrap();
+        assert_eq!(node.cmd_vel_command_count().await, 2);
     }
 
     #[tokio::test]

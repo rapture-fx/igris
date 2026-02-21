@@ -1,5 +1,6 @@
 use crate::{
     bounds::Bounds,
+    event_bus::ViolationEventBus,
     violation::{ViolationKind, ViolationRecord},
 };
 use ed25519_dalek::SigningKey;
@@ -23,6 +24,9 @@ struct SupervisorConfig {
     signing_key: SigningKey,
     log_path: String,
     last_hash: String,
+    /// Optional broadcast bus; events are emitted after the violation record is
+    /// written and hash-chained. Safety recording is NOT gated on delivery.
+    event_bus: Option<ViolationEventBus>,
 }
 
 /// Supervisor manages a persistent worker process for true process-level containment.
@@ -34,12 +38,17 @@ struct SupervisorConfig {
 /// - Reads JSON results from stdout
 /// - Enforces a hard timeout via `tokio::time::timeout`
 /// - SIGKILLs the worker on timeout, writes a signed violation record, and respawns
+///
+/// Optionally, a [`ViolationEventBus`] can be injected via [`Supervisor::new_with_bus`]
+/// so that downstream subsystems (e.g., the ROS2 containment bridge) receive
+/// violation events immediately after the record is committed to the log.
 pub struct Supervisor {
     config: SupervisorConfig,
     worker: Option<WorkerHandle>,
 }
 
 impl Supervisor {
+    /// Create a supervisor without a violation event bus.
     pub fn new(bounds: Bounds, signing_key: SigningKey, log_path: String) -> Self {
         Self {
             config: SupervisorConfig {
@@ -47,6 +56,29 @@ impl Supervisor {
                 signing_key,
                 log_path,
                 last_hash: String::new(),
+                event_bus: None,
+            },
+            worker: None,
+        }
+    }
+
+    /// Create a supervisor that broadcasts violation events to `bus`.
+    ///
+    /// The event is emitted *after* the record is written and hash-chained,
+    /// so subscribers always see a record that is already persisted.
+    pub fn new_with_bus(
+        bounds: Bounds,
+        signing_key: SigningKey,
+        log_path: String,
+        event_bus: ViolationEventBus,
+    ) -> Self {
+        Self {
+            config: SupervisorConfig {
+                bounds,
+                signing_key,
+                log_path,
+                last_hash: String::new(),
+                event_bus: Some(event_bus),
             },
             worker: None,
         }
@@ -114,7 +146,10 @@ impl Supervisor {
         }
     }
 
-    /// Write a signed violation record and update the hash chain.
+    /// Write a signed violation record, update the hash chain, and optionally
+    /// emit an event on the violation bus.
+    ///
+    /// The record is always written to the JSONL log before any event is emitted.
     fn record_violation(&mut self, kind: ViolationKind, context: Value) {
         let record = ViolationRecord::new(
             kind,
@@ -124,6 +159,12 @@ impl Supervisor {
         );
         let _ = record.append_to_log(&self.config.log_path);
         self.config.last_hash = record.hash.clone();
+
+        // Emit after the record is committed. Non-blocking; safety does not depend
+        // on whether any subscriber receives the event.
+        if let Some(bus) = &self.config.event_bus {
+            bus.emit_violation(record);
+        }
     }
 
     /// Execute a job in the worker process.
@@ -190,6 +231,41 @@ mod tests {
         let signing_key = SigningKey::from_bytes(&secret);
         let sup = Supervisor::new(bounds, signing_key, "/tmp/test.jsonl".to_string());
         assert!(sup.worker.is_none(), "worker must not be spawned at construction");
+    }
+
+    #[test]
+    fn test_supervisor_new_with_bus() {
+        let bounds = Bounds::new(50, 100);
+        let signing_key = SigningKey::from_bytes(&[0u8; 32]);
+        let bus = ViolationEventBus::new();
+        let sup = Supervisor::new_with_bus(bounds, signing_key, "/tmp/test.jsonl".to_string(), bus);
+        assert!(sup.worker.is_none());
+        assert!(sup.config.event_bus.is_some());
+    }
+
+    #[test]
+    fn test_record_violation_emits_event() {
+        // Use a synchronous test; the emit is non-blocking so we can check it
+        // immediately via try_recv.
+        let bounds = Bounds::new(50, 100);
+        let signing_key = SigningKey::from_bytes(&[5u8; 32]);
+        let bus = ViolationEventBus::new();
+        let mut rx = bus.subscribe();
+        let log = std::env::temp_dir()
+            .join("igris_sup_emit_test.jsonl")
+            .to_string_lossy()
+            .into_owned();
+        let _ = std::fs::remove_file(&log);
+
+        let mut sup = Supervisor::new_with_bus(bounds, signing_key, log.clone(), bus);
+        sup.record_violation(ViolationKind::Time, serde_json::json!({"test": true}));
+
+        let event = rx.try_recv().expect("event must be immediately available");
+        let crate::event_bus::ContainmentEvent::Violation(r) = event;
+        assert!(matches!(r.violation_kind, ViolationKind::Time));
+        assert!(!r.hash.is_empty());
+
+        let _ = std::fs::remove_file(&log);
     }
 
     /// Full supervisor round-trip test.
