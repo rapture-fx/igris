@@ -65,6 +65,8 @@ const navigationSections: NavigationSection[] = [
         icon: Layers,
         children: [
           { name: 'Containment Model', href: '/docs/architecture/containment' },
+          { name: 'Execution Envelope', href: '/docs/architecture/execution-envelope' },
+          { name: 'Supervisor Model', href: '/docs/architecture/supervisor-model' },
         ],
       },
     ],
@@ -254,6 +256,8 @@ const searchIndex = [
   { title: 'SDK Usage', path: '/docs/sdk-usage', keywords: 'sdk usage how to use implementation' },
   { title: 'Architecture', path: '/docs/architecture', keywords: 'architecture design system structure' },
   { title: 'Containment Model', path: '/docs/architecture/containment', keywords: 'containment supervisor worker cgroup sigkill timeout violation record hash chain process isolation safety bounds cpu memory tick' },
+  { title: 'Execution Envelope', path: '/docs/architecture/execution-envelope', keywords: 'execution envelope signature signing verification ed25519 proof audit envelope passthrough sdk trust cryptographic' },
+  { title: 'Supervisor Model', path: '/docs/architecture/supervisor-model', keywords: 'supervisor worker process isolation restart sigkill violation recording stdin stdout communication architecture' },
   { title: 'API Reference', path: '/docs/api-reference/introduction', keywords: 'api reference endpoints methods' },
   { title: 'API Quick Start', path: '/docs/api-reference/quick-start', keywords: 'api quick start curl first request' },
   { title: 'Authentication', path: '/docs/api-reference/authentication', keywords: 'authentication auth api key jwt token bearer' },

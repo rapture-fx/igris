@@ -117,6 +117,11 @@ const navigationSections: NavigationSection[] = [
         name: 'Architecture',
         href: '/docs/architecture',
         icon: Layers,
+        children: [
+          { name: 'Trust Chain', href: '/docs/architecture/trust-chain' },
+          { name: 'Hybrid Execution', href: '/docs/architecture/hybrid-execution' },
+          { name: 'Streaming', href: '/docs/architecture/streaming' },
+        ],
       },
       {
         name: 'FAQ',
@@ -176,6 +181,9 @@ const searchIndex = [
   { title: 'Quickstart', path: '/docs/quickstart', keywords: 'quick start begin setup install' },
   { title: 'SDK Usage', path: '/docs/sdk-usage', keywords: 'sdk usage how to use implementation' },
   { title: 'Architecture', path: '/docs/architecture', keywords: 'architecture design system structure' },
+  { title: 'Trust Chain', path: '/docs/architecture/trust-chain', keywords: 'trust chain cryptographic signing verification ed25519 bearer decision signature execution envelope fail-closed security' },
+  { title: 'Hybrid Execution Architecture', path: '/docs/architecture/hybrid-execution', keywords: 'hybrid execution architecture overture runtime registry circuit breaker health selection containment bounds two plane' },
+  { title: 'Streaming & Enforcement', path: '/docs/architecture/streaming', keywords: 'streaming sse enforcement containment bounds modes speculative council max tick deadline runtime execution' },
   { title: 'API Reference', path: '/docs/api-reference/introduction', keywords: 'api reference endpoints methods' },
   { title: 'API Quick Start', path: '/docs/api-reference/quick-start', keywords: 'api quick start curl first request' },
   { title: 'Authentication', path: '/docs/api-reference/authentication', keywords: 'authentication auth api key jwt token bearer' },
