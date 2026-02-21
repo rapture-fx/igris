@@ -45,7 +45,7 @@ export default function AutonomousSystems() {
                   For AI agents
                 </h3>
                 <p className="text-sm md:text-base text-gray-600 dark:text-[#a8a898] leading-relaxed" style={{ fontFamily }}>
-                  Run on servers. Coordinate distributed fleets. Prove every decision to regulators. Survive when cloud APIs fail.
+                  Run on servers. Coordinate distributed fleets. Survive when cloud APIs fail.
                 </p>
               </div>
             </div>

@@ -116,24 +116,7 @@ export default function Pricing() {
                         </h3>
                       </div>
 
-                      {tier.name === "The Horizon" ? (
-                        <div 
-                          className="border border-gray-300 dark:border-[#f6f6f4]/20 rounded-lg w-full h-48 mb-6 bg-cover bg-center"
-                          style={{ backgroundImage: 'url(/hrz.png)' }}
-                        />
-                      ) : tier.name === "The Infinite" ? (
-                        <div 
-                          className="border border-gray-300 dark:border-[#f6f6f4]/20 rounded-lg w-full h-48 mb-6 bg-cover bg-center"
-                          style={{ backgroundImage: 'url(/pkrol.png)' }}
-                        />
-                      ) : tier.name === "The Seed" ? (
-                        <div 
-                          className="border border-gray-300 dark:border-[#f6f6f4]/20 rounded-lg w-full h-48 mb-6 bg-cover bg-center"
-                          style={{ backgroundImage: 'url(/see.png)' }}
-                        />
-                      ) : (
-                        <div className="border border-gray-300 dark:border-[#f6f6f4]/20 rounded-lg w-full h-48 mb-6 bg-gray-100 dark:bg-gray-800" />
-                      )}
+
 
                       <div className="mb-6">
                         {tier.isContactUs ? (

@@ -76,7 +76,7 @@ export default function Products() {
                   One binary runs on servers, robots, and edge devices. Same guarantees anywhere.
                 </p>
                 <p className="text-sm md:text-base text-gray-600 dark:text-[#a8a898] leading-relaxed" style={{ fontFamily: '-apple-system, BlinkMacSystemFont, "Segoe UI", Roboto, Helvetica, Arial, sans-serif' }}>
-                  Observe decisions in real time. Replay actions. Verify outcomes. Trust what happened.
+                  Observe decisions in real time. Inspect actions. Verify outcomes. Trust what happened.
                 </p>
               </div>
             </div>
