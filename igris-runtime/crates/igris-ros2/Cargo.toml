@@ -19,6 +19,15 @@ anyhow = { workspace = true }
 thiserror = { workspace = true }
 tracing = { workspace = true }
 
+# Containment integration
+igris-safety = { path = "../igris-safety" }
+
+# Unique IDs for navigation goals
+uuid = { workspace = true, features = ["v7"] }
+
+# Ed25519 signing for the containment bridge's supplementary violation records
+ed25519-dalek = { workspace = true }
+
 # ROS2 bindings - feature-gated for optional ROS2 support
 # Using r2r (Rust ROS2 client library) as it's stable on crates.io
 # Falls back to stub implementation when feature not enabled

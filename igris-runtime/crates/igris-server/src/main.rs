@@ -69,6 +69,7 @@ use axum::middleware::from_fn_with_state;
 use middleware::security::{security_middleware, RateLimiter};
 mod metrics;
 use metrics::Metrics;
+pub mod ros2_integration;
 #[cfg(test)]
 mod server_flow_tests;
 

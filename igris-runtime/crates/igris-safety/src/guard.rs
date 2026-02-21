@@ -1,4 +1,9 @@
-use crate::{bounds::Bounds, supervisor::Supervisor, violation::ViolationKind};
+use crate::{
+    bounds::Bounds,
+    event_bus::ViolationEventBus,
+    supervisor::Supervisor,
+    violation::ViolationKind,
+};
 use ed25519_dalek::SigningKey;
 
 /// High-level guard that enforces CPU and time bounds via a supervised worker process.
@@ -9,14 +14,33 @@ use ed25519_dalek::SigningKey;
 /// - Enforces a hard timeout; SIGKILLs on violation
 /// - Writes signed, hash-chained violation records to a JSONL log
 /// - Respawns a fresh worker after each violation
+///
+/// To integrate with downstream safety subsystems (e.g., the ROS2 containment bridge),
+/// use [`ContainmentGuard::new_with_bus`] and pass the [`ViolationEventBus`] to any
+/// subscriber before violations can occur.
 pub struct ContainmentGuard {
     supervisor: Supervisor,
 }
 
 impl ContainmentGuard {
+    /// Create a guard without a violation event bus.
     pub fn new(bounds: Bounds, signing_key: SigningKey, log_path: String) -> Self {
         Self {
             supervisor: Supervisor::new(bounds, signing_key, log_path),
+        }
+    }
+
+    /// Create a guard that broadcasts violation events to `bus`.
+    ///
+    /// Events are emitted *after* the violation record is committed to the JSONL log.
+    pub fn new_with_bus(
+        bounds: Bounds,
+        signing_key: SigningKey,
+        log_path: String,
+        event_bus: ViolationEventBus,
+    ) -> Self {
+        Self {
+            supervisor: Supervisor::new_with_bus(bounds, signing_key, log_path, event_bus),
         }
     }
 
@@ -45,6 +69,15 @@ mod tests {
         let secret: [u8; 32] = [1u8; 32];
         let signing_key = SigningKey::from_bytes(&secret);
         let _guard = ContainmentGuard::new(bounds, signing_key, "/tmp/test.jsonl".to_string());
+    }
+
+    #[test]
+    fn test_guard_construction_with_bus() {
+        let bounds = Bounds::new(50, 100);
+        let signing_key = SigningKey::from_bytes(&[2u8; 32]);
+        let bus = ViolationEventBus::new();
+        let _guard =
+            ContainmentGuard::new_with_bus(bounds, signing_key, "/tmp/test.jsonl".to_string(), bus);
     }
 
     /// Verify that a ViolationRecord is correctly written and signed (no worker needed).

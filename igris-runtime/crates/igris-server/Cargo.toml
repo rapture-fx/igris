@@ -24,7 +24,7 @@ anyhow = { workspace = true }
 tracing = { workspace = true }
 tracing-subscriber = { workspace = true }
 reqwest = { workspace = true }
-uuid = { workspace = true }
+uuid = { workspace = true, features = ["v7"] }
 futures = { workspace = true }
 async-trait = "0.1"
 sha2 = { workspace = true }
@@ -49,6 +49,8 @@ igris-fleet = { path = "../igris-fleet" }
 igris-federated = { path = "../igris-federated" }
 igris-swarm = { path = "../igris-swarm" }
 igris-btree = { path = "../igris-btree" }
+igris-ros2 = { path = "../igris-ros2" }
+igris-safety = { path = "../igris-safety" }
 
 [dev-dependencies]
 tokio = { workspace = true, features = ["test-util"] }
