@@ -36,12 +36,12 @@ export default function Products() {
         </div>
       </div>
 
-      {/* Full-width grid top border */}
-      <div style={{ borderTop: '0.5px solid rgba(209, 213, 219, 0.35)' }} />
-
       {/* Frame with two-column layout */}
       <div className="mx-auto max-w-[1100px] px-4 sm:px-6 lg:px-8">
         <div className="px-4 md:px-8 lg:px-12" style={{ borderLeft: '0.5px solid rgba(209, 213, 219, 0.35)', borderRight: '0.5px solid rgba(209, 213, 219, 0.35)', paddingBottom: '2rem' }}>
+          {/* Full-width border below title */}
+          <div style={{ borderTop: '0.5px solid rgba(209, 213, 219, 0.35)', width: '100vw', marginLeft: '50%', transform: 'translateX(-50%)' }} />
+
           <div className="rounded-2xl flex items-center justify-center relative overflow-hidden" style={{ height: '600px', marginTop: '2rem' }}>
             <img
               src="/arc.png"
