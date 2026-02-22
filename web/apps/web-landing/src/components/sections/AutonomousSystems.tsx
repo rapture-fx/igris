@@ -45,13 +45,10 @@ export default function AutonomousSystems() {
                   For AI Agents
                 </h3>
                 <p className="text-sm md:text-base text-gray-600 dark:text-[#a8a898] leading-relaxed mb-3" style={{ fontFamily }}>
-                  Run on servers or edge nodes with every execution isolated and time-bounded. If a task exceeds limits, it is terminated — not retried silently.
-                </p>
-                <p className="text-sm md:text-base text-gray-600 dark:text-[#a8a898] leading-relaxed mb-3" style={{ fontFamily }}>
-                  Signed execution envelopes provide a verifiable audit trail, and provider outages are survived with local fallback.
+                  Run on servers or edge. Every execution is isolated and time-bounded. Exceed limits and the task terminates — not retried silently.
                 </p>
                 <p className="text-sm md:text-base text-gray-600 dark:text-[#a8a898] leading-relaxed" style={{ fontFamily }}>
-                  No runaway loops. No undefined state.
+                  Signed envelopes provide verifiable audit trails. Survive outages with local fallback. No runaway loops. No undefined state.
                 </p>
               </div>
             </div>
@@ -99,13 +96,10 @@ export default function AutonomousSystems() {
                   For Robots
                 </h3>
                 <p className="text-sm md:text-base text-gray-600 dark:text-[#a8a898] leading-relaxed mb-3" style={{ fontFamily }}>
-                  ROS 2 integration binds reasoning to motor control. On violation, navigation is cancelled and zero velocity is enforced within 50ms.
-                </p>
-                <p className="text-sm md:text-base text-gray-600 dark:text-[#a8a898] leading-relaxed mb-3" style={{ fontFamily }}>
-                  Safety logic is deterministic and independent of the LLM, with signed violation records that include pose and motion context.
+                  ROS 2 binds reasoning to motor control. On violation, navigation cancels and zero velocity enforces within 50ms.
                 </p>
                 <p className="text-sm md:text-base text-gray-600 dark:text-[#a8a898] leading-relaxed" style={{ fontFamily }}>
-                  No undefined actuator state. Offline by default. Sync when available.
+                  Safety logic is deterministic and LLM-independent. Signed violations include pose context. Offline by default. Sync when available.
                 </p>
               </div>
             </div>
