@@ -54,8 +54,8 @@ func (w *Worker) Start(ctx context.Context) {
 	// Start periodic analysis
 	go w.run()
 
-	// Start auto-apply worker for high-confidence proposals (if enabled)
-	// go w.runAutoApply()
+	// FIX-2026-02: cognitive-advisor — enable autonomous self-tuning via auto-apply
+	go w.runAutoApply()
 }
 
 // Stop stops the cognitive worker
@@ -112,6 +112,20 @@ func (w *Worker) cleanupExpiredProposals() error {
 	}
 
 	return nil
+}
+
+// runAutoApply starts the autonomous proposal auto-apply loop.
+// FIX-2026-02: cognitive-advisor — implements the previously-commented-out goroutine.
+// Runs inside the worker's context so it shuts down with the worker.
+func (w *Worker) runAutoApply() {
+	if w.ctx == nil {
+		return // context not yet initialised (should not happen in normal Start flow)
+	}
+	aa := NewAutoApplier(w.advisor.db, w.applier)
+	aa.Start(w.ctx)
+	// Block until context is cancelled so the goroutine doesn't return prematurely
+	<-w.ctx.Done()
+	aa.Stop()
 }
 
 // GetAdvisor returns the advisor instance

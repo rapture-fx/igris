@@ -133,6 +133,65 @@ func (f *TokenizerFactory) Create(config TokenizerConfig) (Tokenizer, error) {
 	}
 }
 
+// SimpleTokenizer is a basic whitespace tokenizer
+type SimpleTokenizer struct {
+	vocabSize int
+	maxLength int
+}
+
+// Tokenize implements Tokenizer interface
+func (st *SimpleTokenizer) Tokenize(text string) (*TokenizedOutput, error) {
+	// Simple whitespace tokenization
+	tokens := splitByWhitespace(text)
+	if len(tokens) > st.maxLength {
+		tokens = tokens[:st.maxLength]
+	}
+
+	inputIDs := make([]int64, len(tokens))
+	attentionMask := make([]int64, len(tokens))
+	for i := range tokens {
+		inputIDs[i] = int64(i % st.vocabSize)
+		attentionMask[i] = 1
+	}
+
+	return &TokenizedOutput{
+		InputIDs:      inputIDs,
+		AttentionMask: attentionMask,
+		Tokens:        tokens,
+	}, nil
+}
+
+// Decode implements Tokenizer interface
+func (st *SimpleTokenizer) Decode(tokenIDs []int64) (string, error) {
+	// Simple decode - just return empty for now
+	return "", nil
+}
+
+// Close implements Tokenizer interface
+func (st *SimpleTokenizer) Close() error {
+	return nil
+}
+
+// splitByWhitespace splits text by whitespace
+func splitByWhitespace(text string) []string {
+	var tokens []string
+	current := ""
+	for _, r := range text {
+		if r == ' ' || r == '\t' || r == '\n' || r == '\r' {
+			if current != "" {
+				tokens = append(tokens, current)
+				current = ""
+			}
+		} else {
+			current += string(r)
+		}
+	}
+	if current != "" {
+		tokens = append(tokens, current)
+	}
+	return tokens
+}
+
 // NewSimpleTokenizerFromConfig creates a simple tokenizer from config
 func NewSimpleTokenizerFromConfig(config TokenizerConfig) *SimpleTokenizer {
 	maxLength := config.MaxLength
