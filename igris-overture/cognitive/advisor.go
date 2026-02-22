@@ -195,21 +195,28 @@ func (a *Advisor) getProviderMetrics(ctx context.Context, tenantID string) ([]Pr
 	var allMetrics []ProviderMetrics
 	for rows.Next() {
 		var m ProviderMetrics
+		// FIX-2026-02: cognitive-advisor — fixed SQL scan column order.
+		// Previous code scanned col 5 (avg_latency) into P95Latency twice, and
+		// col 8 (avg_cost) into SuccessRate, corrupting both fields.
+		// Now avg_latency and avg_cost are captured in dedicated temp variables.
+		var avgLatency, avgCost float64
 		if err := rows.Scan(
-			&m.Provider,
-			&m.Intent,
-			&m.RequestCount,
-			&m.SuccessRate,
-			&m.P95Latency,
-			&m.P95Latency,
-			&m.P99Latency,
-			&m.SuccessRate,
-			&m.ThompsonAlpha,
-			&m.ThompsonBeta,
+			&m.Provider,     // col 1: provider_id
+			&m.Intent,       // col 2: semantic_class
+			&m.RequestCount, // col 3: request_count
+			&m.SuccessRate,  // col 4: success_rate ✓
+			&avgLatency,     // col 5: avg_latency  (not in ProviderMetrics; kept for SQL arity)
+			&m.P95Latency,   // col 6: p95_latency  ✓
+			&m.P99Latency,   // col 7: p99_latency  ✓
+			&avgCost,        // col 8: avg_cost     (FIX: was incorrectly writing to SuccessRate)
+			&m.ThompsonAlpha, // col 9: alpha ✓
+			&m.ThompsonBeta,  // col 10: beta ✓
 		); err != nil {
 			log.Error().Err(err).Msg("Failed to scan provider metrics")
 			continue
 		}
+		_ = avgLatency // informational; p95_latency (col 6) is the authoritative latency value
+		_ = avgCost    // FIX-2026-02: cognitive-advisor — avg_cost available for future cost field
 
 		m.ErrorRate = 1.0 - m.SuccessRate
 		allMetrics = append(allMetrics, m)

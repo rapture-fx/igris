@@ -2,6 +2,7 @@ package lineage
 
 import (
 	"context"
+	"database/sql"
 	"encoding/json"
 	"fmt"
 	"time"
@@ -11,10 +12,12 @@ import (
 	"go.opentelemetry.io/otel/trace"
 )
 
-// DataLineageTracker tracks data flow and transformations throughout the system
+// DataLineageTracker tracks data flow and transformations throughout the system.
+// FIX-2026-02: data-lineage — added db field for durable event persistence.
 type DataLineageTracker struct {
 	natsConn *nats.Conn
 	tracer   trace.Tracer
+	db       *sql.DB // FIX-2026-02: data-lineage — non-nil enables DB persistence
 }
 
 // LineageEvent represents a single event in the data lineage
@@ -75,17 +78,58 @@ type InferenceResult struct {
 	Metadata      map[string]interface{} `json:"metadata,omitempty"`
 }
 
-// NewDataLineageTracker creates a new lineage tracker
+// NewDataLineageTracker creates a new lineage tracker (NATS only, no DB persistence).
+// Existing callers remain backward-compatible.
 func NewDataLineageTracker(natsURL string, tracer trace.Tracer) (*DataLineageTracker, error) {
 	nc, err := nats.Connect(natsURL)
 	if err != nil {
 		return nil, fmt.Errorf("failed to connect to NATS: %w", err)
 	}
+	return &DataLineageTracker{natsConn: nc, tracer: tracer}, nil
+}
 
-	return &DataLineageTracker{
-		natsConn: nc,
-		tracer:   tracer,
-	}, nil
+// NewDataLineageTrackerWithDB creates a lineage tracker with both NATS real-time
+// publish and PostgreSQL persistence for historical trace queries.
+// FIX-2026-02: data-lineage — new constructor; existing callers use NewDataLineageTracker.
+func NewDataLineageTrackerWithDB(natsURL string, tracer trace.Tracer, db *sql.DB) (*DataLineageTracker, error) {
+	nc, err := nats.Connect(natsURL)
+	if err != nil {
+		return nil, fmt.Errorf("failed to connect to NATS: %w", err)
+	}
+
+	// FIX-2026-02: data-lineage — ensure lineage_events table exists
+	if db != nil {
+		if err := ensureLineageTable(db); err != nil {
+			return nil, fmt.Errorf("lineage: failed to ensure DB table: %w", err)
+		}
+	}
+
+	return &DataLineageTracker{natsConn: nc, tracer: tracer, db: db}, nil
+}
+
+// ensureLineageTable creates the lineage_events table if it does not exist.
+// FIX-2026-02: data-lineage — idempotent schema bootstrap for the lineage package.
+func ensureLineageTable(db *sql.DB) error {
+	_, err := db.Exec(`
+		CREATE TABLE IF NOT EXISTS lineage_events (
+			event_id       TEXT        PRIMARY KEY,
+			request_id     TEXT        NOT NULL,
+			occurred_at    TIMESTAMPTZ NOT NULL DEFAULT NOW(),
+			stage          TEXT        NOT NULL,
+			component      TEXT        NOT NULL,
+			operation      TEXT        NOT NULL,
+			input_schema   TEXT,
+			output_schema  TEXT,
+			data_size      BIGINT      DEFAULT 0,
+			parent_event_id TEXT,
+			metadata       JSONB
+		)
+	`)
+	if err != nil {
+		return fmt.Errorf("CREATE TABLE lineage_events: %w", err)
+	}
+	_, err = db.Exec(`CREATE INDEX IF NOT EXISTS idx_lineage_request_id ON lineage_events (request_id)`)
+	return err
 }
 
 // TrackEvent records a lineage event
@@ -108,7 +152,7 @@ func (dlt *DataLineageTracker) TrackEvent(ctx context.Context, event *LineageEve
 		span.SetAttributes(attribute.String("lineage.output_schema", event.OutputSchema))
 	}
 
-	// Publish to NATS for persistence
+	// Publish to NATS for real-time consumers
 	data, err := json.Marshal(event)
 	if err != nil {
 		return fmt.Errorf("failed to marshal lineage event: %w", err)
@@ -117,6 +161,34 @@ func (dlt *DataLineageTracker) TrackEvent(ctx context.Context, event *LineageEve
 	subject := fmt.Sprintf("lineage.events.%s", event.Stage)
 	if err := dlt.natsConn.Publish(subject, data); err != nil {
 		return fmt.Errorf("failed to publish lineage event: %w", err)
+	}
+
+	// FIX-2026-02: data-lineage — persist event to PostgreSQL for historical queries
+	if dlt.db != nil {
+		metaJSON, _ := json.Marshal(event.Metadata)
+		_, dbErr := dlt.db.ExecContext(ctx, `
+			INSERT INTO lineage_events
+				(event_id, request_id, occurred_at, stage, component, operation,
+				 input_schema, output_schema, data_size, parent_event_id, metadata)
+			VALUES ($1, $2, $3, $4, $5, $6, $7, $8, $9, $10, $11)
+			ON CONFLICT (event_id) DO NOTHING
+		`,
+			event.EventID,
+			event.RequestID,
+			event.Timestamp,
+			event.Stage,
+			event.Component,
+			event.Operation,
+			event.InputSchema,
+			event.OutputSchema,
+			event.DataSize,
+			event.ParentEventID,
+			metaJSON,
+		)
+		if dbErr != nil {
+			// Non-fatal: NATS publish already succeeded; log and continue
+			span.SetAttributes(attribute.String("lineage.db_error", dbErr.Error()))
+		}
 	}
 
 	return nil
@@ -225,12 +297,58 @@ func (dlt *DataLineageTracker) SubmitFeedback(ctx context.Context, feedback *Fee
 	return nil
 }
 
-// GetLineageTrace retrieves complete lineage trace for a request
+// GetLineageTrace retrieves the complete lineage trace for a request.
+// FIX-2026-02: data-lineage — queries PostgreSQL when db is set (returns historical data).
+// Falls back to the old NATS SubscribeSync path if db is nil (backward-compatible).
 func (dlt *DataLineageTracker) GetLineageTrace(requestID string) ([]*LineageEvent, error) {
-	// This would typically query a time-series database (e.g., TimescaleDB)
-	// For now, we'll return from NATS JetStream if available
+	if dlt.db != nil {
+		return dlt.getLineageTraceFromDB(requestID)
+	}
+	// FIX-2026-02: data-lineage — legacy NATS path (only sees in-flight messages)
+	return dlt.getLineageTraceFromNATS(requestID)
+}
 
-	// Subscribe to lineage events for this request
+// getLineageTraceFromDB queries the lineage_events table for historical trace data.
+// FIX-2026-02: data-lineage — replaces in-memory NATS SubscribeSync with real DB query.
+func (dlt *DataLineageTracker) getLineageTraceFromDB(requestID string) ([]*LineageEvent, error) {
+	ctx, cancel := context.WithTimeout(context.Background(), 5*time.Second)
+	defer cancel()
+
+	rows, err := dlt.db.QueryContext(ctx, `
+		SELECT event_id, request_id, occurred_at, stage, component, operation,
+		       COALESCE(input_schema, ''), COALESCE(output_schema, ''),
+		       data_size, COALESCE(parent_event_id, ''), metadata
+		FROM lineage_events
+		WHERE request_id = $1
+		ORDER BY occurred_at ASC
+	`, requestID)
+	if err != nil {
+		return nil, fmt.Errorf("lineage DB query failed: %w", err)
+	}
+	defer rows.Close()
+
+	var events []*LineageEvent
+	for rows.Next() {
+		var e LineageEvent
+		var metaJSON []byte
+		if err := rows.Scan(
+			&e.EventID, &e.RequestID, &e.Timestamp, &e.Stage, &e.Component,
+			&e.Operation, &e.InputSchema, &e.OutputSchema,
+			&e.DataSize, &e.ParentEventID, &metaJSON,
+		); err != nil {
+			continue
+		}
+		if len(metaJSON) > 0 {
+			_ = json.Unmarshal(metaJSON, &e.Metadata)
+		}
+		events = append(events, &e)
+	}
+	return events, rows.Err()
+}
+
+// getLineageTraceFromNATS is the original implementation using SubscribeSync.
+// FIX-2026-02: data-lineage — retained for backward-compatibility when db is nil.
+func (dlt *DataLineageTracker) getLineageTraceFromNATS(requestID string) ([]*LineageEvent, error) {
 	subject := fmt.Sprintf("lineage.events.*.%s", requestID)
 
 	sub, err := dlt.natsConn.SubscribeSync(subject)
@@ -251,12 +369,10 @@ func (dlt *DataLineageTracker) GetLineageTrace(requestID string) ([]*LineageEven
 			if err != nil {
 				return events, nil
 			}
-
 			var event LineageEvent
 			if err := json.Unmarshal(msg.Data, &event); err != nil {
 				continue
 			}
-
 			events = append(events, &event)
 		}
 	}

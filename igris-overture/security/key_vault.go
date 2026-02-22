@@ -5,6 +5,7 @@
 package security
 
 import (
+	"bytes"
 	"crypto/aes"
 	"crypto/cipher"
 	"crypto/rand"
@@ -12,15 +13,24 @@ import (
 	"database/sql"
 	"encoding/base64"
 	"encoding/hex"
+	"encoding/json"
 	"fmt"
 	"io"
 	"log"
+	"net/http"
 	"strings"
 	"sync"
 	"time"
 
 	"github.com/google/uuid"
 )
+
+// validationCacheEntry holds a cached provider validation result.
+// FIX-2026-02: byok — validation cache entry (keyed by "tenantID:provider")
+type validationCacheEntry struct {
+	IsValid   bool
+	CachedAt  time.Time
+}
 
 // KeyVault provides secure storage for tenant API keys using AES-256-GCM encryption
 type KeyVault struct {
@@ -30,6 +40,11 @@ type KeyVault struct {
 	inMemoryKeys map[string]*EncryptedKey // Fallback for when DB is disabled
 	mu          sync.RWMutex
 	logger      *log.Logger
+
+	// FIX-2026-02: byok — provider validation cache (1h TTL, keyed by "tenantID:provider")
+	validationCache    map[string]validationCacheEntry
+	validationCacheMu  sync.RWMutex
+	httpClient         *http.Client
 }
 
 // EncryptedKey represents an encrypted API key
@@ -95,11 +110,16 @@ func NewKeyVault(db *sql.DB, masterKeyHex string) (*KeyVault, error) {
 	enabled := db != nil
 
 	kv := &KeyVault{
-		db:          db,
-		masterKey:   masterKey,
-		enabled:     enabled,
+		db:           db,
+		masterKey:    masterKey,
+		enabled:      enabled,
 		inMemoryKeys: make(map[string]*EncryptedKey),
-		logger:      log.Default(),
+		logger:       log.Default(),
+		// FIX-2026-02: byok — initialise validation cache and HTTP client
+		validationCache: make(map[string]validationCacheEntry),
+		httpClient: &http.Client{
+			Timeout: 10 * time.Second,
+		},
 	}
 
 	if enabled {
@@ -644,8 +664,25 @@ func (kv *KeyVault) ValidateKey(tenantID, provider string) (bool, error) {
 		return false, fmt.Errorf("failed to decrypt key: %w", err)
 	}
 
-	// Validate with provider (simplified - would call actual provider API)
+	// FIX-2026-02: byok — check validation cache (1h TTL) before calling provider API
+	cacheKey := tenantID + ":" + provider
+	kv.validationCacheMu.RLock()
+	entry, cached := kv.validationCache[cacheKey]
+	kv.validationCacheMu.RUnlock()
+	if cached && time.Since(entry.CachedAt) < time.Hour {
+		kv.logger.Printf("[KeyVault] Validation cache hit: tenant=%s provider=%s valid=%v", tenantID, provider, entry.IsValid)
+		return entry.IsValid, nil
+	}
+
+	// Validate with provider via real HTTP call
 	isValid, validationErr := kv.validateWithProvider(provider, plainKey)
+
+	// FIX-2026-02: byok — store result in cache (only cache definitive results)
+	if validationErr == nil {
+		kv.validationCacheMu.Lock()
+		kv.validationCache[cacheKey] = validationCacheEntry{IsValid: isValid, CachedAt: time.Now()}
+		kv.validationCacheMu.Unlock()
+	}
 
 	// Update validation status in database
 	if kv.enabled {
@@ -678,43 +715,136 @@ func (kv *KeyVault) ValidateKey(tenantID, provider string) (bool, error) {
 	return isValid, nil
 }
 
-// validateWithProvider performs actual validation against provider API
-// This is a placeholder - real implementation would make API calls
+// validateWithProvider performs real HTTP validation against the provider's API.
+// FIX-2026-02: byok — replaced prefix-only stubs with actual provider API calls.
+// Results are cached for 1 hour to avoid hammering provider rate limits.
 func (kv *KeyVault) validateWithProvider(provider, apiKey string) (bool, error) {
-	// TODO: Implement actual provider validation
-	// For now, basic checks:
-
 	switch provider {
 	case "openai":
-		// OpenAI keys start with "sk-"
+		// FIX-2026-02: byok — real OpenAI validation via GET /v1/models
 		if !strings.HasPrefix(apiKey, "sk-") {
 			return false, fmt.Errorf("invalid OpenAI key format (expected sk-* prefix)")
 		}
-		// In production: make test API call to OpenAI
-		// Example: GET https://api.openai.com/v1/models
-		return true, nil
+		return kv.validateOpenAI(apiKey)
 
 	case "anthropic":
-		// Anthropic keys start with "sk-ant-"
+		// FIX-2026-02: byok — real Anthropic validation via POST /v1/messages
 		if !strings.HasPrefix(apiKey, "sk-ant-") {
 			return false, fmt.Errorf("invalid Anthropic key format (expected sk-ant-* prefix)")
 		}
-		// In production: make test API call to Anthropic
-		return true, nil
+		return kv.validateAnthropic(apiKey)
+
+	case "xai":
+		// FIX-2026-02: byok — real xAI validation via POST /v1/chat/completions
+		return kv.validateXAI(apiKey)
 
 	case "google", "cohere", "azure":
-		// Basic non-empty check for now
+		// Basic length check (no public key-validation endpoint available without auth scope)
 		if len(apiKey) < 10 {
 			return false, fmt.Errorf("key appears to be too short")
 		}
 		return true, nil
 
 	case "benchmark":
-		// Benchmark mode doesn't require validation
 		return true, nil
 
 	default:
 		return false, fmt.Errorf("unknown provider: %s", provider)
+	}
+}
+
+// validateOpenAI validates an OpenAI key by calling GET /v1/models.
+// A 200 or 429 (rate-limited) response means the key is valid.
+// FIX-2026-02: byok — real HTTP call to OpenAI.
+func (kv *KeyVault) validateOpenAI(apiKey string) (bool, error) {
+	req, err := http.NewRequest(http.MethodGet, "https://api.openai.com/v1/models", nil)
+	if err != nil {
+		return false, fmt.Errorf("failed to build OpenAI request: %w", err)
+	}
+	req.Header.Set("Authorization", "Bearer "+apiKey)
+
+	resp, err := kv.httpClient.Do(req)
+	if err != nil {
+		return false, fmt.Errorf("OpenAI validation request failed: %w", err)
+	}
+	defer resp.Body.Close()
+
+	switch resp.StatusCode {
+	case http.StatusOK, http.StatusTooManyRequests:
+		return true, nil // 429 = valid key, just rate-limited
+	case http.StatusUnauthorized, http.StatusForbidden:
+		return false, nil
+	default:
+		return false, fmt.Errorf("OpenAI validation returned unexpected status %d", resp.StatusCode)
+	}
+}
+
+// validateAnthropic validates an Anthropic key by sending a minimal messages request.
+// FIX-2026-02: byok — real HTTP call to Anthropic /v1/messages with minimal tokens.
+func (kv *KeyVault) validateAnthropic(apiKey string) (bool, error) {
+	body, _ := json.Marshal(map[string]interface{}{
+		"model":      "claude-haiku-4-5-20251001",
+		"max_tokens": 1,
+		"messages": []map[string]string{
+			{"role": "user", "content": "hi"},
+		},
+	})
+
+	req, err := http.NewRequest(http.MethodPost, "https://api.anthropic.com/v1/messages", bytes.NewReader(body))
+	if err != nil {
+		return false, fmt.Errorf("failed to build Anthropic request: %w", err)
+	}
+	req.Header.Set("x-api-key", apiKey)
+	req.Header.Set("anthropic-version", "2023-06-01")
+	req.Header.Set("content-type", "application/json")
+
+	resp, err := kv.httpClient.Do(req)
+	if err != nil {
+		return false, fmt.Errorf("Anthropic validation request failed: %w", err)
+	}
+	defer resp.Body.Close()
+
+	switch resp.StatusCode {
+	case http.StatusOK, http.StatusTooManyRequests:
+		return true, nil
+	case http.StatusUnauthorized, http.StatusForbidden:
+		return false, nil
+	default:
+		return false, fmt.Errorf("Anthropic validation returned unexpected status %d", resp.StatusCode)
+	}
+}
+
+// validateXAI validates an xAI API key via POST /v1/chat/completions.
+// FIX-2026-02: byok — real HTTP call to xAI.
+func (kv *KeyVault) validateXAI(apiKey string) (bool, error) {
+	body, _ := json.Marshal(map[string]interface{}{
+		"model": "grok-beta",
+		"messages": []map[string]string{
+			{"role": "user", "content": "hi"},
+		},
+		"max_tokens": 1,
+	})
+
+	req, err := http.NewRequest(http.MethodPost, "https://api.x.ai/v1/chat/completions", bytes.NewReader(body))
+	if err != nil {
+		return false, fmt.Errorf("failed to build xAI request: %w", err)
+	}
+	req.Header.Set("Authorization", "Bearer "+apiKey)
+	req.Header.Set("content-type", "application/json")
+
+	resp, err := kv.httpClient.Do(req)
+	if err != nil {
+		return false, fmt.Errorf("xAI validation request failed: %w", err)
+	}
+	defer resp.Body.Close()
+
+	switch resp.StatusCode {
+	case http.StatusOK, http.StatusTooManyRequests:
+		return true, nil
+	case http.StatusUnauthorized, http.StatusForbidden:
+		return false, nil
+	default:
+		return false, fmt.Errorf("xAI validation returned unexpected status %d", resp.StatusCode)
 	}
 }
 

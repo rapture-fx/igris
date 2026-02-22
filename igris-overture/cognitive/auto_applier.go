@@ -24,6 +24,11 @@ type AutoApplier struct {
 	defaultLatencyThreshold   float64
 	defaultErrorRateThreshold float64
 	defaultCostThreshold      float64
+
+	// FIX-2026-02: cognitive-advisor — per-tenant rate limit (1 apply per 5min per tenant)
+	lastApplyPerTenant map[string]time.Time
+	lastApplyMu        sync.Mutex
+	applyRateLimit     time.Duration
 }
 
 // AutoApplierConfig holds configuration for the auto-applier
@@ -60,6 +65,9 @@ func NewAutoApplierWithConfig(db *sql.DB, applier *Applier, config AutoApplierCo
 		defaultLatencyThreshold:   config.DefaultLatencyThreshold,
 		defaultErrorRateThreshold: config.DefaultErrorRateThreshold,
 		defaultCostThreshold:      config.DefaultCostThreshold,
+		// FIX-2026-02: cognitive-advisor — initialise per-tenant rate limit (1 apply per 5min)
+		lastApplyPerTenant: make(map[string]time.Time),
+		applyRateLimit:     5 * time.Minute,
 	}
 }
 
@@ -168,6 +176,18 @@ func (aa *AutoApplier) processAutoApplyProposals(ctx context.Context) {
 			continue
 		}
 
+		// FIX-2026-02: cognitive-advisor — enforce 1 apply per 5min per tenant
+		aa.lastApplyMu.Lock()
+		lastApply, seen := aa.lastApplyPerTenant[proposal.TenantID]
+		aa.lastApplyMu.Unlock()
+		if seen && time.Since(lastApply) < aa.applyRateLimit {
+			log.Debug().
+				Str("tenant_id", proposal.TenantID).
+				Dur("since_last_apply", time.Since(lastApply)).
+				Msg("Cognitive auto-apply rate limit: skipping (< 5min since last apply)")
+			continue
+		}
+
 		// Record baseline before applying
 		if err := aa.recordBaseline(ctx, proposal); err != nil {
 			log.Error().Err(err).Str("proposal_id", proposal.ProposalID).Msg("Failed to record baseline")
@@ -180,6 +200,11 @@ func (aa *AutoApplier) processAutoApplyProposals(ctx context.Context) {
 			observability.RecordAutoAppliedProposal(proposal.TenantID, "failed")
 			continue
 		}
+
+		// FIX-2026-02: cognitive-advisor — record apply time for rate limiting
+		aa.lastApplyMu.Lock()
+		aa.lastApplyPerTenant[proposal.TenantID] = time.Now()
+		aa.lastApplyMu.Unlock()
 
 		observability.RecordAutoAppliedProposal(proposal.TenantID, "applied")
 

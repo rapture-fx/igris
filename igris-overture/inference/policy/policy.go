@@ -12,6 +12,7 @@ import (
 	"github.com/prometheus/client_golang/api"
 	v1 "github.com/prometheus/client_golang/api/prometheus/v1"
 	"github.com/prometheus/client_golang/prometheus"
+	prommodel "github.com/prometheus/common/model" // FIX-2026-02: policy-engine — Prometheus model types
 	"github.com/rs/zerolog/log"
 
 	pb "github.com/Igris-inertial/system/proto/orchestration"
@@ -33,9 +34,19 @@ type PolicyEngine struct {
 	// Metrics integration
 	metricsCollector *PrometheusMetricsCollector
 
+	// FIX-2026-02: policy-engine — Prometheus metrics cache (keyed by model_id)
+	metricsCache    map[string]*cachedModelMetrics
+	metricsCacheMu  sync.RWMutex
+
 	// Runtime information
 	modelRegistry    ModelRegistry
 	infraProvider    InfrastructureProvider
+}
+
+// FIX-2026-02: policy-engine — cached Prometheus metrics per model, with timestamp for TTL
+type cachedModelMetrics struct {
+	Metrics  *ModelMetrics
+	CachedAt time.Time
 }
 
 // PolicyEngineConfig holds configuration for the policy engine
@@ -114,6 +125,8 @@ func NewPolicyEngine(config *PolicyEngineConfig, vault *vault.Client) (*PolicyEn
 		metricsCollector: metricsCollector,
 		policies:         make(map[string]*pb.RoutingPolicy),
 		decisionCache:    NewMemoryDecisionCache(config.DecisionCacheTTL),
+		// FIX-2026-02: policy-engine — initialise Prometheus metrics cache
+		metricsCache:     make(map[string]*cachedModelMetrics),
 	}
 
 	// Initialize policies from Vault
@@ -456,12 +469,54 @@ func (e *PolicyEngine) getQueueLength(modelID string) int32 { return 0 }
 
 func (e *PolicyEngine) estimateWaitTime(modelID string, queueLength int32) int { return 0 }
 
-// getModelsMetrics fetches current metrics for multiple models from Prometheus
+// getModelsMetrics fetches current metrics for multiple models from Prometheus.
+// FIX-2026-02: policy-engine — replaced hardcoded stubs with real Prometheus queries.
+// Falls back to last-known cached values on scrape failure; falls back to defaults
+// if no cached value exists yet (first boot or Prometheus unreachable from the start).
 func (e *PolicyEngine) getModelsMetrics(ctx context.Context, models []*pb.ModelInfo) (map[string]*ModelMetrics, error) {
+	cacheTTL := e.config.MetricsCacheTTL
+	if cacheTTL == 0 {
+		cacheTTL = 30 * time.Second // FIX-2026-02: policy-engine — default 30s cache TTL
+	}
+
+	// FIX-2026-02: policy-engine — attempt batch Prometheus scrape for all models
+	live, scrapeErr := e.queryModelMetricsFromPrometheus(ctx)
+
 	metricsMap := make(map[string]*ModelMetrics)
 	for _, model := range models {
-		// Stub: return default metrics; real Prometheus integration can be added later
-		metricsMap[model.ModelId] = &ModelMetrics{
+		id := model.ModelId
+
+		if scrapeErr == nil {
+			if m, ok := live[id]; ok {
+				// FIX-2026-02: policy-engine — store fresh metrics in cache
+				e.metricsCacheMu.Lock()
+				e.metricsCache[id] = &cachedModelMetrics{Metrics: m, CachedAt: time.Now()}
+				e.metricsCacheMu.Unlock()
+				metricsMap[id] = m
+				continue
+			}
+		}
+
+		// Scrape failed or model not found in result — try cache
+		e.metricsCacheMu.RLock()
+		cached, hasCached := e.metricsCache[id]
+		e.metricsCacheMu.RUnlock()
+
+		if hasCached && time.Since(cached.CachedAt) < cacheTTL*10 { // FIX-2026-02: policy-engine — tolerate up to 10× TTL for stale cache
+			log.Warn().
+				Str("model_id", id).
+				Err(scrapeErr).
+				Msg("Prometheus scrape failed; using cached model metrics")
+			metricsMap[id] = cached.Metrics
+			continue
+		}
+
+		// FIX-2026-02: policy-engine — absolute fallback (no live data, no cache)
+		log.Warn().
+			Str("model_id", id).
+			Err(scrapeErr).
+			Msg("No live or cached metrics; using safe defaults for model")
+		metricsMap[id] = &ModelMetrics{
 			AvgLatencyMs:          100,
 			Availability:          0.99,
 			CostPer1000Inferences: 0.001,
@@ -469,6 +524,85 @@ func (e *PolicyEngine) getModelsMetrics(ctx context.Context, models []*pb.ModelI
 		}
 	}
 	return metricsMap, nil
+}
+
+// queryModelMetricsFromPrometheus executes PromQL queries and returns metrics keyed by model_id.
+// FIX-2026-02: policy-engine — new helper that queries Prometheus HTTP API.
+func (e *PolicyEngine) queryModelMetricsFromPrometheus(ctx context.Context) (map[string]*ModelMetrics, error) {
+	timeout := e.config.MetricsTimeout
+	if timeout == 0 {
+		timeout = 5 * time.Second
+	}
+	qctx, cancel := context.WithTimeout(ctx, timeout)
+	defer cancel()
+
+	now := time.Now()
+	result := make(map[string]*ModelMetrics)
+
+	// --- P95 latency (seconds → ms) ---
+	// FIX-2026-02: policy-engine — real PromQL for P95 latency per model_id
+	latencyQuery := `histogram_quantile(0.95, sum(rate(inference_latency_seconds_bucket[5m])) by (le, model_id))`
+	latencyVal, _, err := e.client.Query(qctx, latencyQuery, now)
+	if err != nil {
+		return nil, fmt.Errorf("prometheus latency query failed: %w", err)
+	}
+	applyVectorToMetrics(latencyVal, result, func(m *ModelMetrics, val float64) {
+		m.AvgLatencyMs = int32(val * 1000) // seconds → ms
+	})
+
+	// --- Throughput (RPS) ---
+	// FIX-2026-02: policy-engine — real PromQL for throughput per model_id
+	throughputQuery := `sum(rate(inference_requests_total[5m])) by (model_id)`
+	throughputVal, _, err := e.client.Query(qctx, throughputQuery, now)
+	if err != nil {
+		return nil, fmt.Errorf("prometheus throughput query failed: %w", err)
+	}
+	applyVectorToMetrics(throughputVal, result, func(m *ModelMetrics, val float64) {
+		m.ThroughputRPS = int32(val)
+	})
+
+	// --- Availability (1 − error_rate) ---
+	// FIX-2026-02: policy-engine — real PromQL for availability per model_id
+	availQuery := `1 - (sum(rate(inference_errors_total[5m])) by (model_id) / clamp_min(sum(rate(inference_requests_total[5m])) by (model_id), 1))`
+	availVal, _, err := e.client.Query(qctx, availQuery, now)
+	if err != nil {
+		return nil, fmt.Errorf("prometheus availability query failed: %w", err)
+	}
+	applyVectorToMetrics(availVal, result, func(m *ModelMetrics, val float64) {
+		if val < 0 {
+			val = 0
+		}
+		if val > 1 {
+			val = 1
+		}
+		m.Availability = val
+	})
+
+	return result, nil
+}
+
+// applyVectorToMetrics applies a Prometheus model.Vector result to the metrics map.
+// FIX-2026-02: policy-engine — type-safe vector parser using prommodel.Vector.
+// v1.API.Query returns prommodel.Value; for instant queries the concrete type is prommodel.Vector.
+func applyVectorToMetrics(val prommodel.Value, result map[string]*ModelMetrics, apply func(*ModelMetrics, float64)) {
+	vec, ok := val.(prommodel.Vector)
+	if !ok {
+		return
+	}
+	for _, sample := range vec {
+		modelID := string(sample.Metric["model_id"])
+		if modelID == "" {
+			continue
+		}
+		if _, exists := result[modelID]; !exists {
+			result[modelID] = &ModelMetrics{
+				Availability:  0.99,  // FIX-2026-02: policy-engine — safe defaults before metrics fill in
+				AvgLatencyMs: 100,
+				ThroughputRPS: 1000,
+			}
+		}
+		apply(result[modelID], float64(sample.Value))
+	}
 }
 
 // ModelMetrics holds current performance metrics for a model

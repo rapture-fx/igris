@@ -303,6 +303,8 @@ export default function Header() {
                             <span className="text-xs text-gray-500 dark:text-[#a8a898] cursor-default" style={{ fontFamily: '-apple-system, BlinkMacSystemFont, "Segoe UI", Roboto, Helvetica, Arial, sans-serif' }}>Behavior Trees</span>
                             <span className="text-xs text-gray-500 dark:text-[#a8a898] cursor-default" style={{ fontFamily: '-apple-system, BlinkMacSystemFont, "Segoe UI", Roboto, Helvetica, Arial, sans-serif' }}>Multi-Agent Swarms</span>
                             <span className="text-xs text-gray-500 dark:text-[#a8a898] cursor-default" style={{ fontFamily: '-apple-system, BlinkMacSystemFont, "Segoe UI", Roboto, Helvetica, Arial, sans-serif' }}>Tool Execution</span>
+                            <span className="text-xs text-gray-500 dark:text-[#a8a898] cursor-default" style={{ fontFamily: '-apple-system, BlinkMacSystemFont, "Segoe UI", Roboto, Helvetica, Arial, sans-serif' }}>Human-in-the-Loop</span>
+                            <span className="text-xs text-gray-500 dark:text-[#a8a898] cursor-default" style={{ fontFamily: '-apple-system, BlinkMacSystemFont, "Segoe UI", Roboto, Helvetica, Arial, sans-serif' }}>Agent Memory</span>
                           </div>
                         </div>
 
@@ -316,6 +318,8 @@ export default function Header() {
                             <span className="text-xs text-gray-500 dark:text-[#a8a898] cursor-default" style={{ fontFamily: '-apple-system, BlinkMacSystemFont, "Segoe UI", Roboto, Helvetica, Arial, sans-serif' }}>SLO Enforcer</span>
                             <span className="text-xs text-gray-500 dark:text-[#a8a898] cursor-default" style={{ fontFamily: '-apple-system, BlinkMacSystemFont, "Segoe UI", Roboto, Helvetica, Arial, sans-serif' }}>Fleet Management</span>
                             <span className="text-xs text-gray-500 dark:text-[#a8a898] cursor-default" style={{ fontFamily: '-apple-system, BlinkMacSystemFont, "Segoe UI", Roboto, Helvetica, Arial, sans-serif' }}>Model Management</span>
+                            <span className="text-xs text-gray-500 dark:text-[#a8a898] cursor-default" style={{ fontFamily: '-apple-system, BlinkMacSystemFont, "Segoe UI", Roboto, Helvetica, Arial, sans-serif' }}>Multi-Tenancy</span>
+                            <span className="text-xs text-gray-500 dark:text-[#a8a898] cursor-default" style={{ fontFamily: '-apple-system, BlinkMacSystemFont, "Segoe UI", Roboto, Helvetica, Arial, sans-serif' }}>MCP Integration</span>
                           </div>
                           <span className="text-xs font-medium uppercase tracking-wider mt-5 mb-3 block" style={{ fontFamily: '-apple-system, BlinkMacSystemFont, "Segoe UI", Roboto, Helvetica, Arial, sans-serif', color: '#1b1912' }}>Security & Resilience</span>
                           <div className="flex flex-col gap-1.5">
@@ -323,6 +327,8 @@ export default function Header() {
                             <span className="text-xs text-gray-500 dark:text-[#a8a898] cursor-default" style={{ fontFamily: '-apple-system, BlinkMacSystemFont, "Segoe UI", Roboto, Helvetica, Arial, sans-serif' }}>EscapeVector</span>
                             <span className="text-xs text-gray-500 dark:text-[#a8a898] cursor-default" style={{ fontFamily: '-apple-system, BlinkMacSystemFont, "Segoe UI", Roboto, Helvetica, Arial, sans-serif' }}>Gold Code</span>
                             <span className="text-xs text-gray-500 dark:text-[#a8a898] cursor-default" style={{ fontFamily: '-apple-system, BlinkMacSystemFont, "Segoe UI", Roboto, Helvetica, Arial, sans-serif' }}>Cryptographic Signing</span>
+                            <span className="text-xs text-gray-500 dark:text-[#a8a898] cursor-default" style={{ fontFamily: '-apple-system, BlinkMacSystemFont, "Segoe UI", Roboto, Helvetica, Arial, sans-serif' }}>Safety Containment</span>
+                            <span className="text-xs text-gray-500 dark:text-[#a8a898] cursor-default" style={{ fontFamily: '-apple-system, BlinkMacSystemFont, "Segoe UI", Roboto, Helvetica, Arial, sans-serif' }}>BYOK Key Vault</span>
                           </div>
                         </div>
                       </div>
