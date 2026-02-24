@@ -5,7 +5,7 @@ package orchestration;
 import "google/protobuf/timestamp.proto";
 import "google/protobuf/struct.proto";
 
-option go_package = "github.com/igris-inertial/igris-inertial/proto/orchestration";
+option go_package = "github.com/Igris-inertial/system/proto/orchestration";
 
 // ============================================================================
 // Core Routing Policy Schema
