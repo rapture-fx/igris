@@ -52,5 +52,8 @@ igris-btree = { path = "../igris-btree" }
 igris-ros2 = { path = "../igris-ros2" }
 igris-safety = { path = "../igris-safety" }
 
+[target.'cfg(target_os = "linux")'.dependencies]
+libc = "0.2"
+
 [dev-dependencies]
 tokio = { workspace = true, features = ["test-util"] }

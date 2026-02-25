@@ -55,6 +55,8 @@ mod tests {
             runtime_public_key: None,
             signing_key: None,
             overture_public_key: None,
+            receipt_log: None,
+            lifecycle_registry: None,
         }
     }
 
