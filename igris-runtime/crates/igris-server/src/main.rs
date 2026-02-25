@@ -29,6 +29,13 @@ use igris_routing::{
 };
 mod runtime_execute;
 use runtime_execute::{ViolationLog, PeerRegistry};
+// ── Phase 1–4: Deterministic execution hardening ───────────────────────────
+mod namespace;
+mod capabilities;
+mod receipt;
+mod lifecycle;
+use lifecycle::{LifecycleRegistry, new_lifecycle_registry};
+use receipt::ReceiptLog;
 use igris_local_llm::{LocalLLMConfig, LocalLLMProviderAdapter};
 use igris_routing::local_provider::LocalProvider;
 use igris_emergency::EscapeVectorCache;
@@ -112,6 +119,12 @@ pub(crate) struct AppState {
     /// Overture's Ed25519 verifying key for X-Igris-Decision-Sig verification.
     /// Populated from IGRIS_OVERTURE_PUBLIC_KEY env var (hex). None = skip verify.
     pub(crate) overture_public_key: Option<Arc<ed25519_dalek::VerifyingKey>>,
+    // ── Phase 3 ─────────────────────────────────────────────────────────────
+    /// Append-only, hash-chained execution receipt log.
+    pub(crate) receipt_log: Option<Arc<ReceiptLog>>,
+    // ── Phase 4 ─────────────────────────────────────────────────────────────
+    /// Registry of per-agent lifecycle state machines.
+    pub(crate) lifecycle_registry: Option<LifecycleRegistry>,
 }
 
 /// Reflection LLM provider backed by the local provider (real llama.cpp execution).
@@ -2595,6 +2608,28 @@ async fn main() -> anyhow::Result<()> {
         info!("[Runtime/Security] Overture public key loaded — decision signatures will be verified");
     }
 
+    // ── Phase 3: Execution receipt log ──────────────────────────────────────
+    let receipt_log_path = std::env::var("IGRIS_RECEIPT_LOG")
+        .unwrap_or_else(|_| "/var/lib/igris/receipts.jsonl".to_string());
+    let receipt_log = match receipt::ReceiptLog::open(
+        &receipt_log_path,
+        Some(Arc::new(signing_key.clone())),
+    )
+    .await
+    {
+        Ok(log) => {
+            info!("[Runtime/Receipt] log={}", receipt_log_path);
+            Some(Arc::new(log))
+        }
+        Err(e) => {
+            warn!("[Runtime/Receipt] Could not open receipt log at {}: {}", receipt_log_path, e);
+            None
+        }
+    };
+
+    // ── Phase 4: Lifecycle registry ─────────────────────────────────────────
+    let lifecycle_registry = Some(new_lifecycle_registry());
+
     let state = AppState {
         config: Arc::new(config),
         storage: Arc::new(storage),
@@ -2623,6 +2658,8 @@ async fn main() -> anyhow::Result<()> {
         runtime_public_key: Some(runtime_public_key),
         signing_key: Some(Arc::new(signing_key)),
         overture_public_key,
+        receipt_log,
+        lifecycle_registry,
     };
 
     // Build router
@@ -2660,6 +2697,8 @@ async fn main() -> anyhow::Result<()> {
         .route("/v1/runtime/execute", post(runtime_execute::handle_execute))
         .route("/v1/runtime/violations", get(runtime_execute::handle_violations))
         .route("/v1/runtime/register", post(runtime_execute::handle_register))
+        // Phase 4: Agent lifecycle state endpoint
+        .route("/v1/runtime/agent/:id/state", get(lifecycle::handle_agent_state))
         .merge(SwaggerUi::new("/swagger-ui").url("/api-docs/openapi.json", ApiDoc::openapi()))
         .layer(TraceLayer::new_for_http())
         .layer(CorsLayer::permissive())

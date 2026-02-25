@@ -192,6 +192,8 @@ pub async fn handle_execute(
         .and_then(|b| b.max_tick_ms)
         .unwrap_or(30_000);
 
+    let wall_start = std::time::Instant::now();
+
     info!(
         "[Runtime/Execute] model={} tenant={:?} max_tick_ms={}",
         req.model, tenant_id, max_tick_ms
@@ -258,6 +260,15 @@ pub async fn handle_execute(
                 }
             });
 
+            // Emit execution receipt.
+            let wall_ms = wall_start.elapsed().as_millis() as u64;
+            let agent_id_str = tenant_id.as_deref().unwrap_or("anonymous");
+            if let Some(rl) = &state.receipt_log {
+                let _ = rl
+                    .append(agent_id_str, 0, wall_ms, 0, 0, 0, false)
+                    .await;
+            }
+
             let resp = ExecuteResponse {
                 id: resp_id,
                 object: "chat.completion".to_string(),
@@ -317,6 +328,14 @@ pub async fn handle_execute(
                     state.signing_key.as_ref(),
                 )
                 .await;
+            }
+            // Emit violation receipt.
+            let wall_ms = wall_start.elapsed().as_millis() as u64;
+            let agent_id_str = tenant_id.as_deref().unwrap_or("anonymous");
+            if let Some(rl) = &state.receipt_log {
+                let _ = rl
+                    .append(agent_id_str, 0, wall_ms, 0, 0, 0, true)
+                    .await;
             }
             (
                 StatusCode::REQUEST_TIMEOUT,

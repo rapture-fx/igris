@@ -32,9 +32,11 @@
 
 pub mod task_executor;
 pub mod transport;
+pub mod message_signing;
 
 pub use task_executor::{TaskExecutor, TaskHandler, TaskExecutionResult, InferenceTaskHandler, HealthCheckHandler};
 pub use transport::{SwarmBus, SwarmMessage, SwarmTransport, SwarmTransportHandle};
+pub use message_signing::{SignedSwarmEnvelope, SwarmMessageSigner, verify_envelope};
 
 use anyhow::Result;
 use rand::Rng;

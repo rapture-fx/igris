@@ -96,6 +96,8 @@ mod tests {
             runtime_public_key: None,
             signing_key: None,
             overture_public_key: None,
+            receipt_log: None,
+            lifecycle_registry: None,
         }
     }
 
@@ -251,6 +253,8 @@ mod tests {
             runtime_public_key: None,
             signing_key: None,
             overture_public_key: None,
+            receipt_log: None,
+            lifecycle_registry: None,
         };
 
         let app = build_test_app(state);
@@ -342,6 +346,8 @@ mod tests {
             runtime_public_key: None,
             signing_key: None,
             overture_public_key: None,
+            receipt_log: None,
+            lifecycle_registry: None,
         };
 
         let app = build_test_app(state);
