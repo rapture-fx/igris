@@ -1,0 +1,46 @@
+name: Sync Docs to Public Repo
+
+on:
+  push:
+    branches:
+      - main
+    paths:
+      - 'web/apps/web-docs/docs/**'
+      - 'web/apps/web-docs-runtime/docs/**'
+
+jobs:
+  sync:
+    runs-on: ubuntu-latest
+    steps:
+      - name: Checkout monorepo
+        uses: actions/checkout@v4
+
+      - name: Clone public docs repo
+        run: |
+          git clone https://x-access-token:${{ secrets.DOCS_SYNC_TOKEN }}@github.com/Igris-inertial/docs.git /tmp/public-docs
+
+      - name: Sync overture docs
+        run: |
+          rsync -av --delete \
+            web/apps/web-docs/docs/ \
+            /tmp/public-docs/docs/overture/
+
+      - name: Sync runtime docs
+        run: |
+          rsync -av --delete \
+            web/apps/web-docs-runtime/docs/ \
+            /tmp/public-docs/docs/runtime/
+
+      - name: Commit and push if changed
+        run: |
+          cd /tmp/public-docs
+          git config user.name "github-actions[bot]"
+          git config user.email "github-actions[bot]@users.noreply.github.com"
+          git add -A
+          if git diff --cached --quiet; then
+            echo "No changes to sync."
+          else
+            COMMIT_SHA="${{ github.sha }}"
+            git commit -m "docs: sync from monorepo ${COMMIT_SHA:0:7}"
+            git push
+          fi
