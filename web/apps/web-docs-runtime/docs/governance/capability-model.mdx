@@ -1,0 +1,119 @@
+# Capability Model
+
+The Runtime enforces a **capability-based access model** for every agent execution. Before a tool invocation is permitted, the Runtime checks the agent's declared capabilities. Unauthorised access attempts are blocked, recorded as signed violation records, and included in the execution receipt.
+
+---
+
+## Capability fields
+
+Each agent execution is governed by an `AgentCapabilities` struct:
+
+| Capability | Type | Description |
+|---|---|---|
+| `allow_http` | `bool` | Whether outbound HTTP requests are permitted |
+| `allow_shell` | `bool` | Whether shell command execution is permitted |
+| `allow_filesystem` | `bool` | Whether filesystem access is permitted |
+| `max_file_write_bytes` | `u64` | Maximum bytes the agent may write per execution |
+| `allowed_http_domains` | `Vec<String>` | Domain whitelist for HTTP; empty means all domains allowed |
+
+Capabilities are configured per-agent and applied at the Runtime level. They are not advisory: a blocked capability produces an error that terminates the tool call.
+
+---
+
+## Enforcement points
+
+### HTTP access
+
+When `allow_http` is `false`, any outbound HTTP request by the agent is blocked before the connection is established. When `allow_http` is `true` but `allowed_http_domains` is non-empty, the target domain is checked against the whitelist. A request to a domain not in the whitelist is blocked even when HTTP is generally permitted.
+
+### Shell access
+
+When `allow_shell` is `false`, any attempt to spawn a subprocess or execute a shell command is blocked at the syscall boundary. This is enforced independently of the filesystem capability.
+
+### Filesystem access
+
+When `allow_filesystem` is `false`, all filesystem operations are blocked. When `allow_filesystem` is `true`, write operations are additionally subject to `max_file_write_bytes`: if the accumulated bytes written during an execution would exceed this limit, the write is rejected.
+
+---
+
+## Violation records
+
+Each blocked access produces a signed `CapabilityViolation` record:
+
+```json
+{
+  "id": "viol-0194f3b2-...",
+  "agent_id": "agent-abc123",
+  "kind": "HttpDomainNotAllowed",
+  "detail": "domain not in whitelist: api.example.com",
+  "timestamp": "2026-02-21T10:00:01.456Z",
+  "previous_hash": "sha256:001122...",
+  "hash": "sha256:334455...",
+  "signature": "base64:MEQ..."
+}
+```
+
+| Field | Description |
+|---|---|
+| `id` | Unique identifier for this violation |
+| `agent_id` | Agent that triggered the violation |
+| `kind` | Violation category (see below) |
+| `detail` | Human-readable description of the blocked operation |
+| `timestamp` | ISO-8601 UTC timestamp |
+| `previous_hash` | Hash of the preceding violation in the chain |
+| `hash` | SHA-256 of this record's canonical JSON (excluding `signature`) |
+| `signature` | Ed25519 signature over `hash` |
+
+### Violation kinds
+
+| Kind | Trigger |
+|---|---|
+| `HttpNotAllowed` | HTTP access attempted but `allow_http` is `false` |
+| `HttpDomainNotAllowed` | Target domain not in `allowed_http_domains` |
+| `ShellNotAllowed` | Shell command attempted but `allow_shell` is `false` |
+| `FilesystemNotAllowed` | Filesystem access attempted but `allow_filesystem` is `false` |
+| `FilesystemWriteLimitExceeded` | Write would exceed `max_file_write_bytes` |
+
+---
+
+## Hash chaining
+
+Violation records use the same hash-chain mechanism as execution receipts. Each violation includes the `previous_hash` of the prior violation in the agent's violation log. This ensures the violation history is tamper-evident and cannot be silently truncated.
+
+The chain is independent of the receipt chain: violation records and receipts maintain separate `previous_hash` sequences.
+
+---
+
+## Impact on execution receipts
+
+When `violation_occurred` is `true` in an execution receipt, it indicates that at least one capability violation was recorded during that execution. The receipt itself does not enumerate the individual violations; the full violation log is available via the `GET /v1/runtime/violations` endpoint.
+
+---
+
+## Configuration
+
+Capabilities are set at agent registration or execution request time. The following fields on the execute request control the capability envelope:
+
+```json
+{
+  "agent_id": "agent-abc123",
+  "capabilities": {
+    "allow_http": true,
+    "allow_shell": false,
+    "allow_filesystem": true,
+    "max_file_write_bytes": 10485760,
+    "allowed_http_domains": ["api.openai.com", "api.anthropic.com"]
+  }
+}
+```
+
+If `capabilities` is omitted, the Runtime applies the default policy: HTTP allowed (no domain restriction), shell blocked, filesystem allowed with a default write limit.
+
+---
+
+## Related
+
+- [Containment Model](/docs/architecture/containment)
+- [Execution Receipts](/docs/governance/execution-receipts)
+- [Agent Lifecycle](/docs/governance/agent-lifecycle)
+- [Transaction Boundary](/docs/governance/transaction-boundary)

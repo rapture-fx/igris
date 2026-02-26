@@ -69,6 +69,17 @@ const navigationSections: NavigationSection[] = [
           { name: 'Supervisor Model', href: '/docs/architecture/supervisor-model' },
         ],
       },
+      {
+        name: 'Governance',
+        href: '/docs/governance/execution-receipts',
+        icon: FileText,
+        children: [
+          { name: 'Execution Receipts', href: '/docs/governance/execution-receipts' },
+          { name: 'Capability Model', href: '/docs/governance/capability-model' },
+          { name: 'Agent Lifecycle', href: '/docs/governance/agent-lifecycle' },
+          { name: 'Transaction Boundary', href: '/docs/governance/transaction-boundary' },
+        ],
+      },
     ],
   },
   {
@@ -258,6 +269,10 @@ const searchIndex = [
   { title: 'Containment Model', path: '/docs/architecture/containment', keywords: 'containment supervisor worker cgroup sigkill timeout violation record hash chain process isolation safety bounds cpu memory tick' },
   { title: 'Execution Envelope', path: '/docs/architecture/execution-envelope', keywords: 'execution envelope signature signing verification ed25519 proof audit envelope passthrough sdk trust cryptographic' },
   { title: 'Supervisor Model', path: '/docs/architecture/supervisor-model', keywords: 'supervisor worker process isolation restart sigkill violation recording stdin stdout communication architecture' },
+  { title: 'Execution Receipts', path: '/docs/governance/execution-receipts', keywords: 'execution receipt resource accounting audit hash chain ed25519 signature cpu wall memory fs bytes tool calls violation lineage jsonl' },
+  { title: 'Capability Model', path: '/docs/governance/capability-model', keywords: 'capability model http shell filesystem tool enforcement domain whitelist violation kind signed record agent access control' },
+  { title: 'Agent Lifecycle', path: '/docs/governance/agent-lifecycle', keywords: 'agent lifecycle state machine init running idle degraded safe idle recovering terminated transition signed history registry' },
+  { title: 'Transaction Boundary', path: '/docs/governance/transaction-boundary', keywords: 'transaction boundary pending committed aborted execution atomicity lineage anchor uuidv7 hash chain signed canonical' },
   { title: 'API Reference', path: '/docs/api-reference/introduction', keywords: 'api reference endpoints methods' },
   { title: 'API Quick Start', path: '/docs/api-reference/quick-start', keywords: 'api quick start curl first request' },
   { title: 'Authentication', path: '/docs/api-reference/authentication', keywords: 'authentication auth api key jwt token bearer' },

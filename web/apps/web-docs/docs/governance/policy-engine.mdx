@@ -1,0 +1,133 @@
+# Policy Engine
+
+The Igris policy engine is the set of rules and enforcement mechanisms that govern what an agent execution is permitted to do, how long it may run, and what happens when a limit is exceeded. Policies are expressed at two levels: containment bounds (Runtime-enforced hard limits) and capability rules (per-agent access control).
+
+---
+
+## Policy layers
+
+```
+┌─────────────────────────────────────────────────────────────┐
+│                         SDK caller                          │
+│  Declares bounds: X-Igris-Bounds header                     │
+└────────────────────────────┬────────────────────────────────┘
+                             │
+┌────────────────────────────▼────────────────────────────────┐
+│                         Overture                            │
+│  Forwards bounds to Runtime as X-Igris-Bounds               │
+│  Verifies receipts and persists to execution_lineage        │
+└────────────────────────────┬────────────────────────────────┘
+                             │
+┌────────────────────────────▼────────────────────────────────┐
+│                         Runtime                             │
+│  ┌──────────────────────────────────────────────────────┐   │
+│  │  Containment bounds (cpu_percent, memory_mb, tick_ms)│   │
+│  │  Capability rules  (allow_http, allow_shell, fs)     │   │
+│  │  Agent lifecycle   (INIT → RUNNING → IDLE/TERMINATED)│   │
+│  │  Transaction boundary (PENDING → COMMITTED/ABORTED)  │   │
+│  └──────────────────────────────────────────────────────┘   │
+└─────────────────────────────────────────────────────────────┘
+```
+
+---
+
+## Containment bounds
+
+Containment bounds are numeric limits applied to every execution. They are declared by the SDK caller in the `X-Igris-Bounds` header and enforced by the Runtime's OS-level containment subsystem.
+
+| Bound | Field | Description |
+|---|---|---|
+| CPU limit | `cpu_percent` | Maximum CPU utilisation (0–100) |
+| Memory limit | `memory_mb` | Maximum RSS memory in megabytes |
+| Tick deadline | `max_tick_ms` | Maximum wall-clock time per inference tick |
+
+When any bound is exceeded, the Runtime records a violation, sets `violation_occurred = true` in the execution receipt, and aborts the execution. The `ExecutionTransaction` is sealed as `ABORTED`.
+
+---
+
+## Capability rules
+
+Capability rules are per-agent access controls enforced by the Runtime's capability subsystem. They constrain which categories of tool use are permitted within a single execution.
+
+| Rule | Default | Description |
+|---|---|---|
+| `allow_http` | `true` | Permit outbound HTTP requests |
+| `allow_shell` | `false` | Permit shell command execution |
+| `allow_filesystem` | `true` | Permit filesystem access |
+| `max_file_write_bytes` | 10 MiB | Maximum bytes writable per execution |
+| `allowed_http_domains` | `[]` (any) | Domain whitelist for HTTP |
+
+Capability violations produce signed `CapabilityViolation` records. Each violation sets `violation_occurred = true` in the execution receipt for that run.
+
+---
+
+## Policy evaluation order
+
+For each tool invocation within an execution:
+
+1. **Capability check** — Is the tool category permitted? If not, produce a `CapabilityViolation` and reject the call.
+2. **Domain check** (HTTP only) — Is the target domain in the allowed list? If not, produce a `CapabilityViolation` and reject.
+3. **Write limit check** (filesystem only) — Would this write exceed `max_file_write_bytes`? If so, produce a `CapabilityViolation` and reject.
+4. **Containment bounds** — Is the execution within CPU / memory / tick limits? If not, terminate the execution and set `violation_occurred`.
+
+Checks 1–3 happen at call time. Check 4 is enforced continuously by the OS-level containment subsystem.
+
+---
+
+## Execution receipt as policy evidence
+
+The execution receipt is the authoritative record of whether a policy was violated during an execution:
+
+- `violation_occurred: false` — all bounds and capability checks passed.
+- `violation_occurred: true` — at least one bound or capability check failed.
+
+The receipt is signed by the Runtime and verified by Overture before being persisted to `execution_lineage`. This means the policy evidence is cryptographically bound to the Runtime instance that enforced the policy.
+
+---
+
+## Audit and compliance
+
+The `execution_lineage` table in Overture's PostgreSQL database provides a queryable, append-only record of every verified execution. Key query patterns:
+
+**Executions with violations:**
+```sql
+SELECT * FROM execution_lineage
+WHERE violation_occurred = TRUE
+ORDER BY persisted_at DESC;
+```
+
+**Executions per tenant:**
+```sql
+SELECT * FROM execution_lineage
+WHERE tenant_id = 'tenant-abc'
+ORDER BY persisted_at DESC
+LIMIT 100;
+```
+
+**Chain traversal (receipt audit):**
+```sql
+SELECT * FROM execution_lineage
+WHERE previous_hash = 'sha256:aabb...'
+ORDER BY persisted_at ASC;
+```
+
+Each row in `execution_lineage` also carries `transaction_id` and `transaction_hash`, linking the receipt to its bounding `ExecutionTransaction` for full execution lifecycle reconstruction.
+
+---
+
+## Future policy controls
+
+The policy engine is designed to be extended without breaking existing receipts or lineage records. Planned extensions include:
+
+- **Per-tenant capability profiles** — centrally managed capability rules per tenant, applied at Overture routing time.
+- **Dynamic bound adjustment** — Overture adjusts containment bounds based on real-time SLO feedback from the production SLO enforcer.
+- **Violation-based circuit breaking** — repeated violations from a specific agent trigger automatic capability restriction.
+
+---
+
+## Related
+
+- [Execution Verification](/docs/governance/execution-verification)
+- [Trust Chain](/docs/architecture/trust-chain)
+- [Hybrid Execution](/docs/hybrid-execution)
+- [Observability](/docs/observability)

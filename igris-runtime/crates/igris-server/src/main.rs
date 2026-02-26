@@ -34,6 +34,7 @@ mod namespace;
 mod capabilities;
 mod receipt;
 mod lifecycle;
+mod transaction;
 use lifecycle::{LifecycleRegistry, new_lifecycle_registry};
 use receipt::ReceiptLog;
 use igris_local_llm::{LocalLLMConfig, LocalLLMProviderAdapter};

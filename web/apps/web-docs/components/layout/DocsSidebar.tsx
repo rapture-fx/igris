@@ -124,6 +124,15 @@ const navigationSections: NavigationSection[] = [
         ],
       },
       {
+        name: 'Governance',
+        href: '/docs/governance/execution-verification',
+        icon: GitBranch,
+        children: [
+          { name: 'Execution Verification', href: '/docs/governance/execution-verification' },
+          { name: 'Policy Engine', href: '/docs/governance/policy-engine' },
+        ],
+      },
+      {
         name: 'FAQ',
         href: '/docs/faq',
         icon: HelpCircle,
@@ -181,7 +190,9 @@ const searchIndex = [
   { title: 'Quickstart', path: '/docs/quickstart', keywords: 'quick start begin setup install' },
   { title: 'SDK Usage', path: '/docs/sdk-usage', keywords: 'sdk usage how to use implementation' },
   { title: 'Architecture', path: '/docs/architecture', keywords: 'architecture design system structure' },
-  { title: 'Trust Chain', path: '/docs/architecture/trust-chain', keywords: 'trust chain cryptographic signing verification ed25519 bearer decision signature execution envelope fail-closed security' },
+  { title: 'Trust Chain', path: '/docs/architecture/trust-chain', keywords: 'trust chain cryptographic signing verification ed25519 bearer decision signature execution envelope receipt fail-closed security transaction lineage' },
+  { title: 'Execution Verification', path: '/docs/governance/execution-verification', keywords: 'execution verification receipt envelope ed25519 canonical json sha256 lineage persistence errruntimesecurity 502 overture audit' },
+  { title: 'Policy Engine', path: '/docs/governance/policy-engine', keywords: 'policy engine containment bounds capability rules cpu memory tick filesystem http shell violation receipt audit compliance tenant' },
   { title: 'Hybrid Execution Architecture', path: '/docs/architecture/hybrid-execution', keywords: 'hybrid execution architecture overture runtime registry circuit breaker health selection containment bounds two plane' },
   { title: 'Streaming & Enforcement', path: '/docs/architecture/streaming', keywords: 'streaming sse enforcement containment bounds modes speculative council max tick deadline runtime execution' },
   { title: 'API Reference', path: '/docs/api-reference/introduction', keywords: 'api reference endpoints methods' },

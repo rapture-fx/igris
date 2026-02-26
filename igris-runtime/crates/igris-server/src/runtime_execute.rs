@@ -260,12 +260,21 @@ pub async fn handle_execute(
                 }
             });
 
-            // Emit execution receipt.
+            // Emit execution receipt with transaction boundary.
             let wall_ms = wall_start.elapsed().as_millis() as u64;
             let agent_id_str = tenant_id.as_deref().unwrap_or("anonymous");
             if let Some(rl) = &state.receipt_log {
+                // Build and commit a transaction for this execution.
+                let tx = crate::transaction::ExecutionTransaction::begin(
+                    agent_id_str,
+                    "",
+                    state.signing_key.as_ref(),
+                )
+                .commit(state.signing_key.as_ref());
+                let tx_id = tx.transaction_id.clone();
+                let tx_hash = tx.hash.clone();
                 let _ = rl
-                    .append(agent_id_str, 0, wall_ms, 0, 0, 0, false)
+                    .append(agent_id_str, &tx_id, &tx_hash, 0, wall_ms, 0, 0, 0, false)
                     .await;
             }
 
@@ -329,12 +338,20 @@ pub async fn handle_execute(
                 )
                 .await;
             }
-            // Emit violation receipt.
+            // Emit violation receipt with aborted transaction boundary.
             let wall_ms = wall_start.elapsed().as_millis() as u64;
             let agent_id_str = tenant_id.as_deref().unwrap_or("anonymous");
             if let Some(rl) = &state.receipt_log {
+                let tx = crate::transaction::ExecutionTransaction::begin(
+                    agent_id_str,
+                    "",
+                    state.signing_key.as_ref(),
+                )
+                .abort(state.signing_key.as_ref());
+                let tx_id = tx.transaction_id.clone();
+                let tx_hash = tx.hash.clone();
                 let _ = rl
-                    .append(agent_id_str, 0, wall_ms, 0, 0, 0, true)
+                    .append(agent_id_str, &tx_id, &tx_hash, 0, wall_ms, 0, 0, 0, true)
                     .await;
             }
             (

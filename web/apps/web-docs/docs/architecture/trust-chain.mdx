@@ -4,7 +4,7 @@ When Overture is configured with a Runtime backend, every request passes through
 
 ---
 
-## The Six Steps
+## The Eight Steps
 
 ### Step 1 — SDK to Overture (HTTPS + API key)
 
@@ -41,17 +41,38 @@ Either failure returns 401. The request is rejected unconditionally.
 
 ---
 
-### Step 5 — Runtime executes and signs the result
+### Step 5 — Runtime opens an ExecutionTransaction
 
-The Runtime executes the request under the OS-level containment bounds specified in `X-Igris-Bounds`. On completion, the Runtime assembles a signed execution envelope containing the response and observed execution metrics. The envelope is signed with the Runtime's own Ed25519 private key, which is generated at startup.
+Before inference begins, the Runtime creates a signed `ExecutionTransaction` record in the `PENDING` state. The transaction is assigned a UUIDv7 identifier and a `previous_hash` linking it to the preceding transaction in the chain.
 
 ---
 
-### Step 6 — Overture verifies the execution envelope
+### Step 6 — Runtime executes, seals the transaction, and signs both artifacts
 
-Overture verifies the execution envelope signature using the configured `IGRIS_RUNTIME_PUBLIC_KEY`. If verification fails, Overture returns 502 to the SDK. There is no retry and no silent fallback to a different provider — an invalid envelope is treated as a security failure, not a routing error.
+The Runtime executes the request under the OS-level containment bounds specified in `X-Igris-Bounds`. On completion:
 
-When verification passes, the execution envelope is forwarded to the SDK in the response body.
+1. The `ExecutionTransaction` is sealed: committed on success, aborted on timeout or error. The sealed record is re-signed with a `COMMITTED` or `ABORTED` status.
+2. The Runtime assembles a signed **execution envelope** containing the response and routing metadata.
+3. The Runtime emits a signed **execution receipt** recording resource consumption (CPU, wall time, memory, filesystem writes, tool calls, violations). The receipt embeds `transaction_id` and `transaction_hash` from the sealed transaction, binding the two records cryptographically.
+
+Both the envelope and receipt are signed with the Runtime's Ed25519 private key.
+
+---
+
+### Step 7 — Overture verifies both the envelope and the receipt
+
+Overture verifies two signatures using `IGRIS_RUNTIME_PUBLIC_KEY`:
+
+1. The execution envelope signature.
+2. The execution receipt signature.
+
+Both use the same canonical-JSON + SHA-256 + Ed25519 algorithm. Either failure returns 502 to the SDK. There is no retry, no rerouting, and no fallback to direct provider routing.
+
+---
+
+### Step 8 — Overture persists the receipt to the lineage table
+
+After both verifications pass, Overture writes the verified receipt to the `execution_lineage` table in PostgreSQL. The row is append-only and links to the bounding transaction via `transaction_id` and `transaction_hash`. The verified envelope and receipt are then forwarded to the SDK in the response body.
 
 ---
 
@@ -62,6 +83,7 @@ sequenceDiagram
     participant SDK
     participant Overture
     participant Runtime
+    participant DB as PostgreSQL
 
     SDK->>Overture: POST /v1/infer (HTTPS + API key)
     Overture->>Overture: Authenticate SDK caller
@@ -69,12 +91,17 @@ sequenceDiagram
     Overture->>Runtime: POST /v1/runtime/execute<br/>Authorization: Bearer<br/>X-Igris-Decision-Sig<br/>X-Igris-Bounds
     Runtime->>Runtime: Verify Bearer token
     Runtime->>Runtime: Verify decision signature (Ed25519)
+    Runtime->>Runtime: Begin ExecutionTransaction (PENDING)
     Runtime->>Runtime: Execute under containment bounds
+    Runtime->>Runtime: Seal transaction (COMMITTED/ABORTED)
     Runtime->>Runtime: Sign execution envelope (Ed25519)
-    Runtime->>Overture: 200 OK { execution_envelope }
+    Runtime->>Runtime: Sign execution receipt (Ed25519)
+    Runtime->>Overture: 200 OK { execution_envelope, execution_receipt }
     Overture->>Overture: Verify envelope signature
+    Overture->>Overture: Verify receipt signature
     alt All verifications pass
-        Overture->>SDK: 200 OK { execution_envelope }
+        Overture->>DB: INSERT execution_lineage (receipt)
+        Overture->>SDK: 200 OK { execution_envelope, execution_receipt }
     else Any verification fails
         Overture->>SDK: 502 Bad Gateway
     end
@@ -91,6 +118,7 @@ The trust chain is fail-closed at every verification step. A failed check does n
 | Bearer auth rejected by Runtime | 502 Bad Gateway |
 | Decision signature rejected by Runtime | 502 Bad Gateway |
 | Execution envelope signature invalid | 502 Bad Gateway |
+| Execution receipt signature invalid | 502 Bad Gateway |
 | Runtime unreachable (timeout, network error) | Falls back to direct provider routing |
 
 The last row is the only case where the request proceeds without Runtime involvement. Connectivity failures are treated as availability issues, not security failures. All cryptographic verification failures are hard-rejected.
@@ -124,6 +152,8 @@ Bearer auth via `IGRIS_RUNTIME_SECRET` is enforced whenever it is configured, re
 
 ## Related
 
+- [Execution Verification](/docs/governance/execution-verification)
+- [Policy Engine](/docs/governance/policy-engine)
 - [Execution Envelope](/docs/architecture/execution-envelope)
 - [Hybrid Execution Architecture](/docs/architecture/hybrid-execution)
 - [Streaming & Enforcement](/docs/architecture/streaming)

@@ -93,39 +93,65 @@ func (c *RuntimeClient) setDecisionSigHeader(req *http.Request, body []byte) {
 // envelope is nil. Returns a non-nil error if a key is configured but verification
 // fails, which the caller must treat as a security rejection (502).
 func (c *RuntimeClient) verifyEnvelope(envelope map[string]interface{}) error {
+	return c.verifySignedJSON(envelope, "execution_envelope")
+}
+
+// verifySignedJSON is the shared verification primitive used by both
+// verifyEnvelope and verifyReceipt.
+//
+// It accepts a raw JSON map, removes the "signature" key, marshals the
+// remainder canonically (json.Marshal sorts map keys alphabetically, matching
+// Rust's BTreeMap serialization), SHA-256 hashes the result, and verifies the
+// signature with the configured Ed25519 public key.
+//
+// Returns nil when no public key is configured (skip verification), or when
+// the signed field is absent (treated as unsigned / not present). Returns a
+// non-nil error when a key is configured and verification fails.
+func (c *RuntimeClient) verifySignedJSON(record map[string]interface{}, recordName string) error {
 	if len(c.publicKey) == 0 {
 		return nil
 	}
 
-	sigRaw, ok := envelope["signature"]
+	sigRaw, ok := record["signature"]
 	if !ok {
-		return fmt.Errorf("execution_envelope missing signature field")
+		// No signature field — reject when a key is configured.
+		return fmt.Errorf("%s missing signature field", recordName)
 	}
 	sigStr, _ := sigRaw.(string)
+	if sigStr == "" {
+		return fmt.Errorf("%s has empty signature", recordName)
+	}
 	sigBytes, err := base64.StdEncoding.DecodeString(sigStr)
 	if err != nil {
-		return fmt.Errorf("execution_envelope signature base64 decode: %w", err)
+		return fmt.Errorf("%s signature base64 decode: %w", recordName, err)
 	}
 
 	// Remove signature before canonical serialisation.
-	delete(envelope, "signature")
+	delete(record, "signature")
 
-	// json.Marshal on map[string]interface{} always sorts keys alphabetically,
-	// matching Rust's BTreeMap<&str, Value> serialisation order.
-	canonBytes, err := json.Marshal(envelope)
+	canonBytes, err := json.Marshal(record)
 
-	// Restore signature immediately so the caller can still inspect the envelope.
-	envelope["signature"] = sigStr
+	// Restore signature immediately so the caller can still inspect the record.
+	record["signature"] = sigStr
 
 	if err != nil {
-		return fmt.Errorf("execution_envelope canonical marshal: %w", err)
+		return fmt.Errorf("%s canonical marshal: %w", recordName, err)
 	}
 
 	hash := sha256.Sum256(canonBytes)
 	if !ed25519.Verify(c.publicKey, hash[:], sigBytes) {
-		return fmt.Errorf("execution_envelope signature verification failed")
+		return fmt.Errorf("%s signature verification failed", recordName)
 	}
 	return nil
+}
+
+// verifyReceipt verifies the Ed25519 signature of an ExecutionReceipt using
+// the same canonical-JSON + SHA-256 algorithm as verifyEnvelope.
+//
+// When IGRIS_RUNTIME_PUBLIC_KEY is configured and verification fails, the
+// caller must treat this as ErrRuntimeSecurity (502).
+func (c *RuntimeClient) verifyReceipt(receipt map[string]interface{}) error {
+	return c.verifySignedJSON(receipt, "execution_receipt")
 }
 
 // executeRequest is the JSON payload sent to POST /v1/runtime/execute.
@@ -182,6 +208,10 @@ type executeResponse struct {
 	// raw map so we can remove "signature" and re-marshal for verification
 	// without a separate struct definition.
 	ExecutionEnvelope map[string]interface{} `json:"execution_envelope,omitempty"`
+	// ExecutionReceipt is the deterministic resource-accounting receipt emitted
+	// by the Runtime after each execution (Phase 3 of Execution Hardening).
+	// It is signed with the same Runtime Ed25519 key as ExecutionEnvelope.
+	ExecutionReceipt map[string]interface{} `json:"execution_receipt,omitempty"`
 }
 
 // ForwardExecution sends req to the Runtime's POST /v1/runtime/execute endpoint
@@ -274,6 +304,15 @@ func (c *RuntimeClient) ForwardExecution(
 		}
 	}
 
+	// Verify execution receipt signature when present.
+	// The receipt uses the same Ed25519 key and BTreeMap canonical-JSON algorithm
+	// as the envelope; failure is a hard security rejection (no fallback).
+	if execResp.ExecutionReceipt != nil {
+		if err := c.verifyReceipt(execResp.ExecutionReceipt); err != nil {
+			return nil, fmt.Errorf("%w: %v", models.ErrRuntimeSecurity, err)
+		}
+	}
+
 	// Convert to the Overture InferResponse type.
 	inferResp := models.NewInferResponse(execResp.ID, execResp.Model)
 	inferResp.Created = execResp.Created
@@ -297,9 +336,14 @@ func (c *RuntimeClient) ForwardExecution(
 		Timestamp:     time.Now(),
 	}
 
-	// Attach verified execution envelope for SDK passthrough (P0-4).
+	// Attach verified execution envelope for SDK passthrough.
 	if execResp.ExecutionEnvelope != nil {
 		inferResp.ExecutionEnvelope = execResp.ExecutionEnvelope
+	}
+
+	// Attach verified execution receipt for SDK passthrough.
+	if execResp.ExecutionReceipt != nil {
+		inferResp.ExecutionReceipt = execResp.ExecutionReceipt
 	}
 
 	return inferResp, nil
