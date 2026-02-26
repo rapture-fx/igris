@@ -1,0 +1,139 @@
+# Agent Lifecycle
+
+The Runtime tracks every active agent through a deterministic **finite state machine**. State transitions are validated against a fixed transition table and each transition is individually signed and hash-chained, producing an auditable lifecycle history.
+
+---
+
+## States
+
+| State | Description |
+|---|---|
+| `INIT` | Agent has been registered but has not yet begun execution |
+| `RUNNING` | Agent is actively executing an inference or tool call |
+| `IDLE` | Agent completed a step and is waiting for the next instruction |
+| `DEGRADED` | Agent encountered a recoverable error and is operating in reduced capacity |
+| `SAFE_IDLE` | Agent has been paused by a containment event and is awaiting review |
+| `RECOVERING` | Agent is recovering from a `DEGRADED` or `SAFE_IDLE` state |
+| `TERMINATED` | Agent has ended. This is a terminal state with no further transitions |
+
+---
+
+## Valid transitions
+
+Not every state change is permitted. The Runtime enforces the following transition table:
+
+| From | To | Trigger |
+|---|---|---|
+| `INIT` | `RUNNING` | Execution request received |
+| `RUNNING` | `IDLE` | Execution step completed successfully |
+| `RUNNING` | `DEGRADED` | Execution encountered a recoverable error |
+| `RUNNING` | `SAFE_IDLE` | Containment violation triggered automatic pause |
+| `RUNNING` | `TERMINATED` | Explicit termination or fatal error |
+| `IDLE` | `RUNNING` | Next execution step started |
+| `IDLE` | `TERMINATED` | Explicit termination |
+| `DEGRADED` | `RECOVERING` | Recovery procedure initiated |
+| `DEGRADED` | `TERMINATED` | Explicit termination or unrecoverable error |
+| `SAFE_IDLE` | `RECOVERING` | Operator or policy review approved recovery |
+| `SAFE_IDLE` | `TERMINATED` | Operator decision to terminate |
+| `RECOVERING` | `IDLE` | Recovery completed successfully |
+| `RECOVERING` | `TERMINATED` | Recovery failed |
+
+Any transition not in this table is rejected by the Runtime. Attempting an invalid transition returns an error; the agent's state is unchanged.
+
+---
+
+## Transition records
+
+Each state change produces a signed `LifecycleTransition` record:
+
+```json
+{
+  "id": "trans-0194f3b2-...",
+  "agent_id": "agent-abc123",
+  "from": "RUNNING",
+  "to": "IDLE",
+  "reason": "execution step completed",
+  "timestamp": "2026-02-21T10:00:01.789Z",
+  "hash": "sha256:aabb...",
+  "signature": "base64:MEQ..."
+}
+```
+
+| Field | Description |
+|---|---|
+| `id` | Unique identifier for this transition |
+| `agent_id` | Agent whose state changed |
+| `from` | Previous state |
+| `to` | New state |
+| `reason` | Human-readable explanation of the transition trigger |
+| `timestamp` | ISO-8601 UTC timestamp |
+| `hash` | SHA-256 of this record's canonical JSON (excluding `signature`) |
+| `signature` | Ed25519 signature over `hash` using the Runtime's signing key |
+
+---
+
+## Lifecycle registry
+
+The Runtime maintains a `LifecycleRegistry` — a concurrent map of `agent_id → AgentLifecycle`. Each `AgentLifecycle` holds:
+
+- The current `AgentState` (mutex-protected).
+- The full ordered list of signed `LifecycleTransition` records.
+- A reference to the Runtime's Ed25519 signing key.
+
+Agents are registered in the `INIT` state when first seen and remain in the registry until `TERMINATED`.
+
+---
+
+## State query endpoint
+
+Current state and transition history are available via:
+
+```
+GET /v1/runtime/agent/:id/state
+```
+
+**Response:**
+
+```json
+{
+  "agent_id": "agent-abc123",
+  "state": "IDLE",
+  "transitions": [
+    {
+      "id": "trans-...",
+      "from": "INIT",
+      "to": "RUNNING",
+      "reason": "execution started",
+      "timestamp": "2026-02-21T10:00:00.000Z",
+      "hash": "sha256:...",
+      "signature": "base64:..."
+    },
+    {
+      "id": "trans-...",
+      "from": "RUNNING",
+      "to": "IDLE",
+      "reason": "execution step completed",
+      "timestamp": "2026-02-21T10:00:01.789Z",
+      "hash": "sha256:...",
+      "signature": "base64:..."
+    }
+  ]
+}
+```
+
+If the agent ID is not found, the endpoint returns **404**.
+
+---
+
+## Force termination
+
+An operator or a containment system can force an agent to `TERMINATED` regardless of its current state using `force_terminate()`. This bypasses the transition table validation and is intended for emergency shutdown scenarios. The resulting transition record is still signed and appended to the history.
+
+---
+
+## Related
+
+- [Containment Model](/docs/architecture/containment)
+- [Capability Model](/docs/governance/capability-model)
+- [Execution Receipts](/docs/governance/execution-receipts)
+- [Transaction Boundary](/docs/governance/transaction-boundary)

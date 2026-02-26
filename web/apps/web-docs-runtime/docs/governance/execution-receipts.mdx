@@ -1,0 +1,121 @@
+# Execution Receipts
+
+Every inference call handled by a Runtime instance produces a signed **execution receipt** — a deterministic, hash-chained record of the resources consumed during that execution. Receipts are appended to an on-disk audit log and forwarded to Overture for lineage persistence.
+
+---
+
+## What a receipt contains
+
+```json
+{
+  "execution_id": "0194f3b2-1a2c-7000-8000-000000000001",
+  "agent_id": "agent-abc123",
+  "transaction_id": "0194f3b2-1a2c-7000-8000-000000000000",
+  "transaction_hash": "sha256:aabbcc...",
+  "cpu_time_ms": 142,
+  "wall_time_ms": 380,
+  "memory_peak_mb": 48,
+  "fs_bytes_written": 0,
+  "tool_calls": 3,
+  "violation_occurred": false,
+  "timestamp_utc": "2026-02-21T10:00:00.123Z",
+  "previous_hash": "sha256:001122...",
+  "hash": "sha256:ddeeff...",
+  "signature": "base64:MEQ..."
+}
+```
+
+| Field | Description |
+|---|---|
+| `execution_id` | UUIDv7 assigned by the Runtime at execution start |
+| `agent_id` | Identifier of the agent that triggered the execution |
+| `transaction_id` | UUIDv7 of the bounding `ExecutionTransaction` |
+| `transaction_hash` | SHA-256 digest of the sealed transaction record |
+| `cpu_time_ms` | CPU time consumed during inference (milliseconds) |
+| `wall_time_ms` | Wall-clock elapsed time (milliseconds) |
+| `memory_peak_mb` | Peak RSS memory during execution (megabytes) |
+| `fs_bytes_written` | Bytes written to the filesystem during execution |
+| `tool_calls` | Number of tool invocations within this execution |
+| `violation_occurred` | `true` if any containment bound was exceeded |
+| `timestamp_utc` | ISO-8601 UTC timestamp at execution completion |
+| `previous_hash` | SHA-256 of the preceding receipt in the chain |
+| `hash` | SHA-256 of this receipt's canonical JSON (excluding `signature`) |
+| `signature` | Ed25519 signature over `hash`, using the Runtime's signing key |
+
+---
+
+## Canonical signing
+
+Receipt signing uses the same canonical-JSON algorithm as the execution envelope:
+
+1. All fields except `signature` are inserted into a **BTreeMap** (alphabetical key order).
+2. The BTreeMap is serialised to compact JSON.
+3. The result is SHA-256 hashed.
+4. The hash is signed with the Runtime instance's Ed25519 private key.
+
+Because BTreeMap guarantees alphabetical key ordering and `serde_json` produces deterministic compact output, the canonical form is reproducible by any verifier — including Overture's Go verification logic, which uses `json.Marshal` on `map[string]interface{}` (which also sorts keys alphabetically).
+
+---
+
+## Hash chaining
+
+Each receipt includes the `previous_hash` of the receipt immediately before it in the log. The first receipt in a log uses an empty string as `previous_hash`.
+
+This forms a tamper-evident chain: altering any historical receipt changes its hash, breaking the `previous_hash` reference of every subsequent receipt. A verifier can detect gaps by walking the chain and confirming that each `previous_hash` matches the prior record's `hash`.
+
+The chain is recovered across Runtime restarts: on startup, `ReceiptLog` reads the last line of the JSONL file and extracts its `hash` to continue the chain correctly.
+
+---
+
+## On-disk format
+
+Receipts are persisted as newline-delimited JSON (JSONL) at the path specified by `IGRIS_RECEIPT_LOG`:
+
+```
+{"execution_id":"...","agent_id":"...","hash":"sha256:aabb...","signature":"base64:..."}
+{"execution_id":"...","agent_id":"...","previous_hash":"sha256:aabb...","hash":"sha256:ccdd...","signature":"base64:..."}
+```
+
+Each record is a complete, self-contained JSON object. The file is append-only. The Runtime never rewrites existing entries.
+
+---
+
+## Verification by Overture
+
+When Overture receives an execution response containing an `execution_receipt`, it verifies the receipt signature before accepting the result. The verification procedure mirrors the signing procedure exactly:
+
+1. Extract and base64-decode `signature`.
+2. Remove `signature` from the receipt map.
+3. Marshal the remainder with alphabetically sorted keys.
+4. Compute SHA-256 of the canonical bytes.
+5. Verify the signature against the hash using `IGRIS_RUNTIME_PUBLIC_KEY`.
+
+If verification fails, Overture returns **502** to the SDK caller. There is no fallback. The verified receipt is then persisted to the `execution_lineage` table and forwarded to the SDK caller under `execution_receipt`.
+
+---
+
+## Lineage persistence
+
+Verified receipts are written to the `execution_lineage` table in Overture's PostgreSQL database. The table is append-only: records are never updated or deleted. Each row links to its bounding transaction via `transaction_id` and `transaction_hash`.
+
+```
+execution_lineage
+├── execution_id  (UNIQUE — one receipt per execution)
+├── transaction_id
+├── transaction_hash
+├── agent_id
+├── cpu_time_ms / wall_time_ms / memory_peak_mb / fs_bytes_written / tool_calls
+├── violation_occurred
+├── receipt_hash / previous_hash / signature
+├── runtime_id / tenant_id
+└── timestamp_utc / persisted_at
+```
+
+---
+
+## Related
+
+- [Transaction Boundary](/docs/governance/transaction-boundary)
+- [Execution Envelope](/docs/architecture/execution-envelope)
+- [Capability Model](/docs/governance/capability-model)
+- [Containment Model](/docs/architecture/containment)

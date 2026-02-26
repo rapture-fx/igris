@@ -384,6 +384,239 @@ func TestForwardExecution_TamperedEnvelope_ReturnsSecurityError(t *testing.T) {
 // P0-5: Security rejection does not fall back (sentinel error)
 // ============================================================================
 
+// ============================================================================
+// Phase 2: ExecutionReceipt verification tests
+// ============================================================================
+
+// buildAndSignReceipt builds and signs a minimal ExecutionReceipt map using
+// the same BTreeMap-canonical-JSON + SHA-256 + Ed25519 algorithm as the runtime.
+func buildAndSignReceipt(t *testing.T, priv ed25519.PrivateKey, fields map[string]interface{}) map[string]interface{} {
+	t.Helper()
+	delete(fields, "signature")
+	b, err := json.Marshal(fields)
+	if err != nil {
+		t.Fatalf("buildAndSignReceipt: marshal: %v", err)
+	}
+	hash := sha256.Sum256(b)
+	sig := ed25519.Sign(priv, hash[:])
+	fields["signature"] = base64.StdEncoding.EncodeToString(sig)
+	return fields
+}
+
+// TestVerifyReceipt_Valid verifies that a correctly signed receipt passes.
+func TestVerifyReceipt_Valid(t *testing.T) {
+	pub, priv, err := ed25519.GenerateKey(rand.Reader)
+	if err != nil {
+		t.Fatalf("GenerateKey: %v", err)
+	}
+
+	receipt := buildAndSignReceipt(t, priv, map[string]interface{}{
+		"execution_id":      "exec-receipt-001",
+		"agent_id":          "tenant-a",
+		"transaction_id":    "tx-001",
+		"transaction_hash":  "abcdef01",
+		"cpu_time_ms":       "0",
+		"wall_time_ms":      "250",
+		"memory_peak_mb":    "0",
+		"fs_bytes_written":  "0",
+		"tool_calls":        "0",
+		"violation_occurred": "false",
+		"timestamp_utc":     "2026-02-26T10:00:00Z",
+		"previous_hash":     "",
+	})
+
+	c := &RuntimeClient{publicKey: pub}
+	if err := c.verifyReceipt(receipt); err != nil {
+		t.Fatalf("expected nil error for valid receipt, got: %v", err)
+	}
+}
+
+// TestVerifyReceipt_Tampered verifies that field modification after signing fails.
+func TestVerifyReceipt_Tampered(t *testing.T) {
+	pub, priv, err := ed25519.GenerateKey(rand.Reader)
+	if err != nil {
+		t.Fatalf("GenerateKey: %v", err)
+	}
+
+	receipt := buildAndSignReceipt(t, priv, map[string]interface{}{
+		"execution_id":      "exec-receipt-002",
+		"agent_id":          "tenant-b",
+		"cpu_time_ms":       "0",
+		"wall_time_ms":      "100",
+		"memory_peak_mb":    "0",
+		"fs_bytes_written":  "0",
+		"tool_calls":        "0",
+		"violation_occurred": "false",
+		"timestamp_utc":     "2026-02-26T10:00:00Z",
+		"previous_hash":     "",
+	})
+
+	// Tamper: claim a violation did not occur when it did.
+	receipt["violation_occurred"] = "true"
+
+	c := &RuntimeClient{publicKey: pub}
+	if err := c.verifyReceipt(receipt); err == nil {
+		t.Fatal("expected verification error for tampered receipt, got nil")
+	}
+}
+
+// TestVerifyReceipt_MissingSignature verifies that a receipt without a
+// signature is rejected when a public key is configured.
+func TestVerifyReceipt_MissingSignature(t *testing.T) {
+	pub, _, err := ed25519.GenerateKey(rand.Reader)
+	if err != nil {
+		t.Fatalf("GenerateKey: %v", err)
+	}
+
+	receipt := map[string]interface{}{
+		"execution_id": "exec-no-sig",
+		"agent_id":     "tenant-c",
+	}
+	// No "signature" key.
+
+	c := &RuntimeClient{publicKey: pub}
+	if err := c.verifyReceipt(receipt); err == nil {
+		t.Fatal("expected error for missing signature, got nil")
+	}
+}
+
+// TestVerifyReceipt_NoKey verifies that when no public key is configured,
+// receipt verification is skipped (backward compatibility).
+func TestVerifyReceipt_NoKey(t *testing.T) {
+	c := &RuntimeClient{} // no publicKey
+	receipt := map[string]interface{}{
+		"execution_id": "exec-no-key",
+		"agent_id":     "tenant-d",
+		"signature":    "not-verified",
+	}
+	if err := c.verifyReceipt(receipt); err != nil {
+		t.Fatalf("expected nil (no key configured), got: %v", err)
+	}
+}
+
+// TestForwardExecution_ReceiptPassthrough verifies that a verified
+// ExecutionReceipt is attached to the returned InferResponse.
+func TestForwardExecution_ReceiptPassthrough(t *testing.T) {
+	pub, priv, err := ed25519.GenerateKey(rand.Reader)
+	if err != nil {
+		t.Fatalf("GenerateKey: %v", err)
+	}
+
+	receipt := buildAndSignReceipt(t, priv, map[string]interface{}{
+		"execution_id":      "exec-rcpt-pass",
+		"agent_id":          "t1",
+		"transaction_id":    "tx-pass-001",
+		"transaction_hash":  "deadbeef",
+		"cpu_time_ms":       "0",
+		"wall_time_ms":      "300",
+		"memory_peak_mb":    "0",
+		"fs_bytes_written":  "0",
+		"tool_calls":        "0",
+		"violation_occurred": "false",
+		"timestamp_utc":     "2026-02-26T10:00:00Z",
+		"previous_hash":     "",
+	})
+
+	respPayload := map[string]interface{}{
+		"id":      "test-id",
+		"object":  "chat.completion",
+		"created": time.Now().Unix(),
+		"model":   "mock",
+		"choices": []interface{}{
+			map[string]interface{}{
+				"index":         0,
+				"message":       map[string]interface{}{"role": "assistant", "content": "hi"},
+				"finish_reason": "stop",
+			},
+		},
+		"usage":             map[string]interface{}{"prompt_tokens": 1, "completion_tokens": 1, "total_tokens": 2},
+		"execution_receipt": receipt,
+	}
+	respBytes, _ := json.Marshal(respPayload)
+
+	srv := httptest.NewServer(http.HandlerFunc(func(w http.ResponseWriter, r *http.Request) {
+		w.Header().Set("Content-Type", "application/json")
+		w.WriteHeader(http.StatusOK)
+		w.Write(respBytes)
+	}))
+	defer srv.Close()
+
+	c := &RuntimeClient{
+		baseURL:    srv.URL,
+		publicKey:  pub,
+		httpClient: srv.Client(),
+	}
+	resp, err := c.ForwardExecution(context.Background(), "t1", minimalInferRequest(), "")
+	if err != nil {
+		t.Fatalf("ForwardExecution failed: %v", err)
+	}
+	if resp.ExecutionReceipt == nil {
+		t.Fatal("expected ExecutionReceipt to be attached to InferResponse")
+	}
+	if resp.ExecutionReceipt["execution_id"] != "exec-rcpt-pass" {
+		t.Errorf("unexpected execution_id in receipt: %v", resp.ExecutionReceipt["execution_id"])
+	}
+	if resp.ExecutionReceipt["transaction_id"] != "tx-pass-001" {
+		t.Errorf("unexpected transaction_id in receipt: %v", resp.ExecutionReceipt["transaction_id"])
+	}
+}
+
+// TestForwardExecution_TamperedReceipt_ReturnsSecurityError verifies that a
+// tampered ExecutionReceipt causes ForwardExecution to return ErrRuntimeSecurity.
+func TestForwardExecution_TamperedReceipt_ReturnsSecurityError(t *testing.T) {
+	pub, priv, err := ed25519.GenerateKey(rand.Reader)
+	if err != nil {
+		t.Fatalf("GenerateKey: %v", err)
+	}
+
+	receipt := buildAndSignReceipt(t, priv, map[string]interface{}{
+		"execution_id":      "exec-rcpt-tamper",
+		"agent_id":          "t1",
+		"violation_occurred": "false",
+		"timestamp_utc":     "2026-02-26T10:00:00Z",
+		"previous_hash":     "",
+	})
+	// Tamper: claim violation did not occur.
+	receipt["violation_occurred"] = "true"
+
+	respPayload := map[string]interface{}{
+		"id":      "test-id",
+		"object":  "chat.completion",
+		"created": time.Now().Unix(),
+		"model":   "mock",
+		"choices": []interface{}{
+			map[string]interface{}{
+				"index":         0,
+				"message":       map[string]interface{}{"role": "assistant", "content": "hi"},
+				"finish_reason": "stop",
+			},
+		},
+		"usage":             map[string]interface{}{"prompt_tokens": 1, "completion_tokens": 1, "total_tokens": 2},
+		"execution_receipt": receipt,
+	}
+	respBytes, _ := json.Marshal(respPayload)
+
+	srv := httptest.NewServer(http.HandlerFunc(func(w http.ResponseWriter, r *http.Request) {
+		w.Header().Set("Content-Type", "application/json")
+		w.WriteHeader(http.StatusOK)
+		w.Write(respBytes)
+	}))
+	defer srv.Close()
+
+	c := &RuntimeClient{
+		baseURL:    srv.URL,
+		publicKey:  pub,
+		httpClient: srv.Client(),
+	}
+	_, err = c.ForwardExecution(context.Background(), "t1", minimalInferRequest(), "")
+	if err == nil {
+		t.Fatal("expected error for tampered receipt, got nil")
+	}
+	if !errors.Is(err, models.ErrRuntimeSecurity) {
+		t.Errorf("expected ErrRuntimeSecurity, got: %v", err)
+	}
+}
+
 // TestForwardExecution_401_ReturnsSecurityError verifies that a 401 from the
 // Runtime is wrapped as ErrRuntimeSecurity (not a connectivity error).
 func TestForwardExecution_401_ReturnsSecurityError(t *testing.T) {

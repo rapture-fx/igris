@@ -32,6 +32,12 @@ type InferResponse struct {
 	// ExecutionEnvelope is the verified execution proof from the Runtime.
 	// Included when IGRIS_RUNTIME_PUBLIC_KEY is set and verification succeeds.
 	ExecutionEnvelope map[string]interface{} `json:"execution_envelope,omitempty"`
+
+	// ExecutionReceipt is the verified resource-accounting receipt from the Runtime.
+	// Carries transaction_id, cpu/wall/memory/fs metrics, violation_occurred, and
+	// a hash-chained Ed25519 signature.  Included when the Runtime emits a receipt
+	// and IGRIS_RUNTIME_PUBLIC_KEY verification passes.
+	ExecutionReceipt map[string]interface{} `json:"execution_receipt,omitempty"`
 }
 
 // Choice represents a single completion choice

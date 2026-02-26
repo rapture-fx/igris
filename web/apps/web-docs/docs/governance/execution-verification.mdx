@@ -1,0 +1,113 @@
+# Execution Verification
+
+Overture verifies every artifact produced by a Runtime instance before accepting the response or persisting the audit record. Verification is performed using the Runtime's Ed25519 public key and fails closed — an invalid signature produces a 502 with no fallback.
+
+---
+
+## What Overture verifies
+
+For each response received from a Runtime instance, Overture verifies two separate artifacts:
+
+| Artifact | Description |
+|---|---|
+| **Execution envelope** | Proof of execution: model, routing decision, request/response hashes, timestamp |
+| **Execution receipt** | Resource-accounting record: CPU, wall time, memory, filesystem writes, tool calls, violation flag |
+
+Both artifacts are signed with the Runtime's Ed25519 private key using the same canonical-JSON algorithm. Both must pass verification before Overture returns a response to the SDK.
+
+---
+
+## Verification algorithm
+
+The verification procedure for both artifacts is identical:
+
+1. Extract the `signature` field and base64-decode it.
+2. Remove `signature` from the record map.
+3. Marshal the remaining fields to compact JSON with alphabetical key ordering (Go: `json.Marshal` on `map[string]interface{}`).
+4. Compute SHA-256 of the canonical JSON bytes.
+5. Verify the decoded signature against the hash using `IGRIS_RUNTIME_PUBLIC_KEY`.
+
+This is the mirror image of the signing procedure used by the Runtime (Rust: `BTreeMap` → `serde_json::to_string` → `sha2::Sha256` → `ed25519_dalek::SigningKey::sign`). Because both sides use alphabetical key ordering, the canonical form is reproducible without any shared schema.
+
+---
+
+## Security properties
+
+**Receipt verification fails closed.** When `IGRIS_RUNTIME_PUBLIC_KEY` is configured:
+
+- A missing `signature` field is rejected.
+- An empty `signature` is rejected.
+- A signature that does not verify against the canonical form is rejected.
+- All rejections return `ErrRuntimeSecurity`, which the routing layer maps to **502 Bad Gateway**.
+
+**No fallback on security rejection.** Unlike connectivity failures (which trigger failover to direct provider routing), a `ErrRuntimeSecurity` error from `ForwardExecution` is terminal. The routing layer does not retry the request against a different Runtime instance or a direct provider.
+
+**Backward compatibility when key not configured.** When `IGRIS_RUNTIME_PUBLIC_KEY` is not set, signature verification is skipped entirely. The artifact is accepted as-is. This is suitable for development environments where Runtime identity assurance is not required.
+
+---
+
+## Lineage persistence
+
+After both the envelope and receipt pass verification, Overture writes the receipt to the `execution_lineage` table:
+
+```sql
+INSERT INTO execution_lineage (
+    execution_id, transaction_id, transaction_hash,
+    agent_id, cpu_time_ms, wall_time_ms, memory_peak_mb,
+    fs_bytes_written, tool_calls, violation_occurred,
+    receipt_hash, previous_hash, signature,
+    runtime_id, tenant_id, timestamp_utc
+) VALUES (...)
+```
+
+The row is append-only. No update or delete operations are performed on `execution_lineage`. Each row links to its bounding transaction via `transaction_id` and `transaction_hash`, enabling full audit trail reconstruction from either direction.
+
+---
+
+## SDK passthrough
+
+Verified artifacts are forwarded to the SDK caller in the response body:
+
+```json
+{
+  "id": "chatcmpl-xyz",
+  "object": "chat.completion",
+  "choices": [...],
+  "execution_envelope": { "...": "..." },
+  "execution_receipt": {
+    "execution_id": "0194f3b2-...",
+    "transaction_id": "0194f3b2-...",
+    "transaction_hash": "sha256:...",
+    "cpu_time_ms": 142,
+    "wall_time_ms": 380,
+    "memory_peak_mb": 48,
+    "fs_bytes_written": 0,
+    "tool_calls": 3,
+    "violation_occurred": false,
+    "timestamp_utc": "2026-02-21T10:00:00.123Z",
+    "previous_hash": "sha256:...",
+    "hash": "sha256:...",
+    "signature": "base64:..."
+  }
+}
+```
+
+SDK callers can use the receipt for their own audit, compliance, or billing workflows. The `violation_occurred` flag is particularly useful for alerting when an agent exceeded its declared capability bounds during execution.
+
+---
+
+## Configuration reference
+
+| Variable | Required for verification | Purpose |
+|---|---|---|
+| `IGRIS_RUNTIME_PUBLIC_KEY` | Yes | Runtime's Ed25519 public key (64 hex chars) |
+
+Set `IGRIS_RUNTIME_PUBLIC_KEY` to the hex-encoded public key that corresponds to the Runtime's signing key (`IGRIS_RUNTIME_SIGNING_KEY` on the Runtime side). Key rotation requires updating both sides simultaneously.
+
+---
+
+## Related
+
+- [Trust Chain](/docs/architecture/trust-chain)
+- [Policy Engine](/docs/governance/policy-engine)
+- [Hybrid Execution](/docs/hybrid-execution)
