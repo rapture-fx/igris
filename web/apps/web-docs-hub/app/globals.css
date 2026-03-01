@@ -184,14 +184,23 @@
   font-size: 0.875rem;
   border-radius: 0.5rem;
   overflow: hidden;
-  border: 1px solid rgba(156, 163, 175, 0.2);
+  border: 1px solid rgba(0, 0, 0, 0.08);
+}
+
+.dark .prose table {
+  border-color: rgba(255, 255, 255, 0.08);
 }
 
 .prose th, .prose td {
-  border-right: 1px solid rgba(156, 163, 175, 0.2);
-  border-bottom: 1px solid rgba(156, 163, 175, 0.2);
+  border-right: 1px solid rgba(0, 0, 0, 0.06);
+  border-bottom: 1px solid rgba(0, 0, 0, 0.06);
   padding: 0.75rem 1rem;
   text-align: left;
+}
+
+.dark .prose th, .dark .prose td {
+  border-right-color: rgba(255, 255, 255, 0.06);
+  border-bottom-color: rgba(255, 255, 255, 0.06);
 }
 
 .prose th:first-child, .prose td:first-child {
@@ -211,20 +220,35 @@
 }
 
 .prose th {
-  background-color: var(--card);
+  background-color: #f5f5f5;
   font-weight: 600;
-  color: var(--foreground);
+  color: #111;
   font-size: 0.8125rem;
   text-transform: uppercase;
   letter-spacing: 0.025em;
 }
 
+.dark .prose th {
+  background-color: #2c2a22;
+  color: #e8e8e0;
+}
+
 .prose td {
-  background-color: var(--card);
+  background-color: #fafafa;
+  color: #333;
+}
+
+.dark .prose td {
+  background-color: #1e1c15;
+  color: #c8c8b8;
 }
 
 .prose tbody tr:hover td {
-  background-color: rgba(156, 163, 175, 0.1);
+  background-color: #f0f0f0;
+}
+
+.dark .prose tbody tr:hover td {
+  background-color: #2a2820;
 }
 
 .prose hr {
