@@ -26,7 +26,7 @@ A reflection agent generates an initial response, evaluates its own quality, and
 
 **When to use:** Tasks where response quality must meet a minimum bar before the result is returned — code generation, structured output, reasoning tasks.
 
-[Reflection Agents →](/runtime/docs/core-features/reflection)
+[Execution Model →](/docs/execution-model)
 
 ---
 
@@ -51,7 +51,7 @@ The agent maintains a working plan that is revised after each step. Planning ste
 
 **When to use:** Multi-step tasks where the approach depends on intermediate results — research, code generation with testing, multi-stage workflows.
 
-[Planning Agents →](/runtime/docs/core-features/planning)
+[Execution Model →](/docs/execution-model)
 
 ---
 
@@ -81,7 +81,7 @@ Tool calls are recorded in the execution receipt including the call parameters, 
 }
 ```
 
-[Tools →](/docs/tools) · [Capability Model →](/runtime/docs/governance/capability-model)
+[Tools →](/docs/tools) · [Capability Model →](/docs/capability-model)
 
 ---
 
@@ -105,7 +105,7 @@ A swarm executes a task using multiple specialized agents in parallel. Each agen
 
 Each agent in the swarm runs its own execution envelope. The swarm's total resource consumption is the sum of all agent envelopes.
 
-[Multi-Agent Swarms →](/runtime/docs/core-features/swarm)
+[Memory →](/docs/memory)
 
 ---
 
@@ -120,7 +120,7 @@ Any instance in the swarm can continue an execution that another instance starte
 - Edge deployments where context must persist across reboots
 - Multi-robot coordination where agents share mission state
 
-[MCP Swarm Mode →](/runtime/docs/core-features/mcp-swarm)
+[Memory →](/docs/memory)
 
 ---
 
@@ -138,4 +138,4 @@ Created → Active → Completing → Completed
 
 Lifecycle events are recorded in the execution envelope and queryable via the observability API.
 
-[Agent Lifecycle →](/runtime/docs/governance/agent-lifecycle)
+[Agent Lifecycle →](/docs/agent-lifecycle)

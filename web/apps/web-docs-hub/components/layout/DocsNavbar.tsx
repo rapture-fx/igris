@@ -20,6 +20,14 @@ const labelMap: Record<string, string> = {
   robotics: 'Robotics',
   'cloud-coordination': 'Cloud Coordination',
   audit: 'Audit',
+  'execution-receipts': 'Execution Receipts',
+  'capability-model': 'Capabilities & Limits',
+  'agent-lifecycle': 'Agent Lifecycle',
+  'behavior-trees': 'Behavior Trees',
+  'fleet-management': 'Fleet Management',
+  'ros2-integration': 'ROS2 Integration',
+  policy: 'Policy',
+  'api-reference': 'API Reference',
 };
 
 export function DocsNavbar() {

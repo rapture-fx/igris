@@ -1,0 +1,118 @@
+# Behavior Trees
+
+Igris includes a production-grade behavior tree engine that combines deterministic control flow with LLM-powered adaptive reasoning. Use it to build agents that follow structured logic but can invoke an LLM when the situation requires judgment.
+
+---
+
+## Why Behavior Trees
+
+Traditional behavior trees are deterministic: the same inputs always produce the same outputs. This is ideal for safety-critical systems but breaks down when the task requires language understanding or contextual reasoning.
+
+Igris behavior trees let you mix both:
+- **Deterministic nodes** — sequence, selector, condition, action — execute reliably and predictably
+- **LLM nodes** — call a local or cloud model when the situation requires judgment
+
+The result: agents that are auditable and safe by default, with AI where it adds value.
+
+---
+
+## Node Types
+
+| Type | Behavior |
+|---|---|
+| `Sequence` | Runs children left to right; stops on first failure |
+| `Selector` | Runs children left to right; stops on first success |
+| `Condition` | Returns success/failure based on a test |
+| `Action` | Executes a task (HTTP call, shell command, etc.) |
+| `LLM` | Calls a model; returns success if response meets criteria |
+
+---
+
+## Quick Example
+
+```json
+{
+  "type": "Sequence",
+  "children": [
+    {
+      "type": "Condition",
+      "check": "sensor.temperature > 80"
+    },
+    {
+      "type": "LLM",
+      "prompt": "The temperature is {{sensor.temperature}}. Should we shut down the process?",
+      "model": "phi3",
+      "success_if": "response contains 'yes'"
+    },
+    {
+      "type": "Action",
+      "call": "http://localhost:9000/shutdown"
+    }
+  ]
+}
+```
+
+This tree: checks a sensor value, asks the LLM whether to act, and only shuts down the process if both the condition and the model agree.
+
+---
+
+## Deploying a Tree
+
+```bash
+# Deploy a behavior tree to a running engine
+curl -X POST http://localhost:8080/v1/btree/deploy \
+  -H "Content-Type: application/json" \
+  -d @my-tree.json
+
+# Run the tree once
+curl -X POST http://localhost:8080/v1/btree/run \
+  -H "Content-Type: application/json" \
+  -d '{"tree_id": "shutdown-guard", "context": {"sensor": {"temperature": 92}}}'
+
+# Run on a tick loop (e.g. every 100ms)
+curl -X POST http://localhost:8080/v1/btree/run \
+  -d '{"tree_id": "shutdown-guard", "tick_interval_ms": 100}'
+```
+
+---
+
+## Using the SDK
+
+```typescript
+import { BehaviorTree, SequenceNode, ConditionNode, ActionNode } from '@igris-inertial/sdk';
+
+const tree = new BehaviorTree({
+  root: new SequenceNode([
+    new ConditionNode({ check: 'sensor.temperature > 80' }),
+    new ActionNode({ call: 'http://localhost:9000/shutdown' }),
+  ]),
+});
+
+const result = await tree.run({ sensor: { temperature: 92 } });
+console.log(result.status); // 'success' | 'failure' | 'running'
+```
+
+```python
+from igris.btree import BehaviorTree, sequence, condition, action
+
+tree = BehaviorTree(
+    root=sequence([
+        condition("sensor.temperature > 80"),
+        action("http://localhost:9000/shutdown"),
+    ])
+)
+
+result = tree.run({"sensor": {"temperature": 92}})
+print(result.status)
+```
+
+---
+
+## Production Characteristics
+
+- Trees are validated at deploy time — malformed trees are rejected before execution
+- Each tick produces an execution receipt with the node path taken and outcome
+- LLM node calls are subject to the same capability gates as any other tool call
+- Trees can be hot-reloaded without restarting the engine
+
+[Agents →](/docs/agents) · [Tools →](/docs/tools) · [Robotics →](/docs/robotics)

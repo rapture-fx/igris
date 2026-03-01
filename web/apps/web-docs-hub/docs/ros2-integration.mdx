@@ -1,0 +1,141 @@
+# ROS2 Integration
+
+Igris integrates natively with ROS2, exposing AI inference and agent execution as standard ROS2 nodes, topics, and services. Robots using ROS2 can invoke Igris without any custom transport code.
+
+---
+
+## Overview
+
+The Igris ROS2 node acts as a bridge between your robot's ROS2 graph and the execution engine. It subscribes to command topics, forwards requests to the local engine, and publishes results back onto the graph.
+
+```
+ROS2 Node → /igris/infer (topic) → Igris ROS2 Bridge → Execution Engine
+                                                               │
+ROS2 Node ← /igris/response (topic) ←──────────────────── Response
+```
+
+---
+
+## Installation
+
+The Igris ROS2 package targets ROS2 Humble and Iron.
+
+```bash
+# Add the Igris apt repository
+curl -fsSL https://packages.igrisinertial.com/ros2/key.gpg | sudo apt-key add -
+echo "deb https://packages.igrisinertial.com/ros2 $(lsb_release -cs) main" \
+  | sudo tee /etc/apt/sources.list.d/igris-ros2.list
+
+sudo apt update
+sudo apt install ros-humble-igris
+```
+
+Or build from source:
+```bash
+cd ~/ros2_ws/src
+git clone https://github.com/igris-inertial/ros2-igris
+cd ~/ros2_ws
+colcon build --packages-select igris
+```
+
+---
+
+## Starting the Node
+
+```bash
+ros2 launch igris igris.launch.py \
+  engine_url:=http://localhost:8080 \
+  api_key:=$(cat ~/.igris/api_key)
+```
+
+The node publishes on `/igris/status` when it is connected and ready.
+
+---
+
+## Sending an Inference Request
+
+Publish to `/igris/infer` using the `igris_msgs/InferRequest` message type:
+
+```bash
+ros2 topic pub /igris/infer igris_msgs/InferRequest '{
+  request_id: "req-001",
+  model: "phi3",
+  messages: [{role: "user", content: "Is the path ahead safe?"}]
+}'
+```
+
+Subscribe to `/igris/response` to receive the result:
+
+```bash
+ros2 topic echo /igris/response
+```
+
+```yaml
+request_id: "req-001"
+status: "success"
+content: "Based on the sensor data, the path appears clear."
+provider: "local"
+cost_usd: 0.0
+wall_time_ms: 84
+```
+
+---
+
+## ROS2 Service Interface
+
+For synchronous calls, use the `/igris/infer_sync` service:
+
+```bash
+ros2 service call /igris/infer_sync igris_msgs/InferSync '{
+  model: "phi3",
+  messages: [{role: "user", content: "What action should I take?"}]
+}'
+```
+
+---
+
+## Behavior Tree Integration
+
+The Igris ROS2 node exposes behavior tree execution as ROS2 actions:
+
+```bash
+# Deploy a behavior tree
+ros2 action send_goal /igris/btree/deploy igris_msgs/DeployTree \
+  '{tree_json: "/path/to/tree.json"}'
+
+# Run a behavior tree tick
+ros2 action send_goal /igris/btree/run igris_msgs/RunTree \
+  '{tree_id: "navigation-guard", context: {sensor: {temperature: 72}}}'
+```
+
+---
+
+## Configuration
+
+The ROS2 node reads a configuration file at startup:
+
+```yaml
+# igris_ros2.yaml
+igris:
+  ros__parameters:
+    engine_url: "http://localhost:8080"
+    default_model: "phi3"
+    timeout_ms: 5000
+    publish_receipts: true        # publish signed receipts to /igris/receipts
+    receipt_topic_qos: reliable
+```
+
+---
+
+## Message Types
+
+| Message | Type | Description |
+|---|---|---|
+| `igris_msgs/InferRequest` | Topic | Asynchronous inference request |
+| `igris_msgs/InferResponse` | Topic | Inference result |
+| `igris_msgs/InferSync` | Service | Synchronous inference |
+| `igris_msgs/DeployTree` | Action | Deploy a behavior tree |
+| `igris_msgs/RunTree` | Action | Run a behavior tree tick |
+| `igris_msgs/ExecutionReceipt` | Topic | Signed execution receipt |
+
+[Robotics →](/docs/robotics) · [Behavior Trees →](/docs/behavior-trees) · [Fleet Management →](/docs/fleet-management)
