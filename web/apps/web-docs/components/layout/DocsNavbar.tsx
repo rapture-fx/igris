@@ -3,9 +3,17 @@
 import { usePathname } from 'next/navigation';
 import Link from 'next/link';
 import { ChevronRight } from 'lucide-react';
+import { useState, useEffect } from 'react';
 
 export function DocsNavbar() {
   const pathname = usePathname();
+  const [hubUrl, setHubUrl] = useState('https://docs.igrisinertial.com/');
+
+  useEffect(() => {
+    if (typeof window !== 'undefined' && window.location.hostname === 'localhost') {
+      setHubUrl('http://localhost:3001/docs');
+    }
+  }, []);
 
   // Generate breadcrumbs from pathname
   const generateBreadcrumbs = () => {
@@ -62,20 +70,20 @@ export function DocsNavbar() {
 
             {/* Right side: Dashboard and Sign Up buttons */}
             <div className="hidden xl:flex items-center gap-3 w-64">
+              {/* Hub Link */}
+              <a
+                href={hubUrl}
+                className="px-3 py-1.5 text-xs font-medium text-gray-900 dark:text-[#f6f6f4] bg-[#f6f6f4] dark:bg-[#25231e] hover:bg-beige-secondary dark:hover:bg-[#2a2820] rounded-lg transition-colors whitespace-nowrap shadow-sm border border-gray-200 dark:border-[#f6f6f4]/10"
+              >
+                ← All Docs
+              </a>
+
               {/* Dashboard Button */}
               <Link
                 href="/dashboard"
                 className="px-3 py-1.5 text-xs font-medium text-gray-900 dark:text-[#f6f6f4] bg-[#f6f6f4] dark:bg-[#25231e] hover:bg-beige-secondary dark:hover:bg-[#2a2820] rounded-lg transition-colors whitespace-nowrap shadow-sm border border-gray-200 dark:border-[#f6f6f4]/10"
               >
                 Dashboard
-              </Link>
-
-              {/* Sign Up Button */}
-              <Link
-                href="/signup"
-                className="px-3 py-1.5 text-xs font-medium text-gray-900 dark:text-[#f6f6f4] bg-[#f6f6f4] dark:bg-[#25231e] hover:bg-beige-secondary dark:hover:bg-[#2a2820] rounded-lg transition-colors whitespace-nowrap shadow-sm border border-gray-200 dark:border-[#f6f6f4]/10"
-              >
-                Sign Up
               </Link>
             </div>
           </div>
