@@ -67,6 +67,11 @@ const navigationSections: NavigationSection[] = [
         icon: Key,
       },
       {
+        name: 'Key Vault (BYOK)',
+        href: '/docs/byok-vault',
+        icon: Key,
+      },
+      {
         name: 'Routing Policies',
         href: '/docs/routing-policies',
         icon: GitBranch,
@@ -92,6 +97,11 @@ const navigationSections: NavigationSection[] = [
         name: 'Multi-Tenancy',
         href: '/docs/multi-tenancy',
         icon: Users,
+      },
+      {
+        name: 'Runtime Fleet',
+        href: '/docs/runtime-fleet',
+        icon: Box,
       },
       {
         name: 'Observability',
@@ -188,6 +198,8 @@ const navigation: NavigationItem[] = [
 const searchIndex = [
   { title: 'Introduction', path: '/docs/introduction', keywords: 'intro getting started welcome overview' },
   { title: 'Quickstart', path: '/docs/quickstart', keywords: 'quick start begin setup install' },
+  { title: 'Key Vault (BYOK)', path: '/docs/byok-vault', keywords: 'byok vault bring your own key provider api key rotation encryption tenant isolation' },
+  { title: 'Runtime Fleet', path: '/docs/runtime-fleet', keywords: 'fleet runtime registration heartbeat edge device management configuration telemetry' },
   { title: 'SDK Usage', path: '/docs/sdk-usage', keywords: 'sdk usage how to use implementation' },
   { title: 'Architecture', path: '/docs/architecture', keywords: 'architecture design system structure' },
   { title: 'Trust Chain', path: '/docs/architecture/trust-chain', keywords: 'trust chain cryptographic signing verification ed25519 bearer decision signature execution envelope receipt fail-closed security transaction lineage' },
@@ -422,7 +434,7 @@ export function DocsSidebar({ open = true, onClose }: DocsSidebarProps) {
           open ? 'translate-x-0' : '-translate-x-full'
         )}
       >
-        <div className="flex h-full flex-col border-r border-gray-200 dark:border-[#f6f6f4]/10" style={{ backgroundColor: '#14120a' }}>
+        <div className="flex h-full flex-col border-r border-gray-200 dark:border-[#f6f6f4]/10 bg-[#f7f7f3] dark:bg-[#14120a]">
           {/* Logo Section */}
           <div className="h-12 flex items-center px-7">
             <a href={hubUrl} className="flex items-center">
