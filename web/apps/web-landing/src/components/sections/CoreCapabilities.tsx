@@ -29,7 +29,7 @@ export default function CoreCapabilities() {
   return (
     <section className="bg-white dark:bg-dark-bg text-gray-900 dark:text-[#f6f6f4] transition-colors duration-200 overflow-hidden relative z-0">
       <div className="mx-auto max-w-[1100px] px-4 sm:px-6 lg:px-8">
-        <div className="px-4 md:px-8 lg:px-12" style={{ borderLeft: '0.5px solid rgba(209, 213, 219, 0.35)', borderRight: '0.5px solid rgba(209, 213, 219, 0.35)', paddingBottom: '2rem' }}>
+        <div className="px-4 md:px-8 lg:px-12" style={{ borderLeft: '0.5px solid rgba(209, 213, 219, 0.35)', borderRight: '0.5px solid rgba(209, 213, 219, 0.35)', paddingBottom: 0 }}>
           {/* Title */}
           <div className="flex items-center justify-between" style={{ paddingTop: '3rem', paddingBottom: '2rem' }}>
             <h3 className="text-xl md:text-2xl lg:text-3xl text-[#000000] dark:text-[#f6f6f4]" style={{ fontFamily: '-apple-system, BlinkMacSystemFont, "Segoe UI", Roboto, Helvetica, Arial, sans-serif' }}>
@@ -48,78 +48,61 @@ export default function CoreCapabilities() {
           {/* Full-width border below title */}
           <div style={{ borderTop: '0.5px solid rgba(209, 213, 219, 0.35)', width: '100vw', marginLeft: '50%', transform: 'translateX(-50%)' }} />
 
-          {/* Frame with centered cards */}
-          <div className="rounded-2xl flex items-center justify-center relative overflow-hidden core-cards-frame" style={{ height: '600px', marginTop: '2rem' }}>
-            <img
-              src="/arc.png"
-              alt=""
-              className="absolute inset-0 w-full h-full object-cover z-0 rounded-2xl"
-              style={{ opacity: 0.9 }}
-            />
-            <div className="flex flex-col md:flex-row gap-4 z-10 w-full md:w-auto px-4 md:px-0 py-8 md:py-0">
-              {capabilities.map((capability, index) => (
-                <React.Fragment key={capability.name}>
-                   <div className="bg-[#f9f9fa] dark:bg-[#1b1912]/60 border border-gray-200 dark:border-[#f6f6f4]/8 rounded-2xl w-full md:w-[280px] flex flex-col" style={{ minHeight: '380px' }}>
+          {/* Table layout */}
+          <table className="w-full" style={{ borderCollapse: 'collapse', marginTop: 0 }}>
+            <tbody>
+              <tr>
+                {capabilities.map((capability, index) => (
+                  <td
+                    key={capability.name}
+                    style={{
+                      width: '33.333%',
+                      padding: '3rem 2rem 5rem',
+                      verticalAlign: 'top',
+                      borderRight: index < capabilities.length - 1 ? '0.5px solid rgba(209, 213, 219, 0.35)' : 'none',
+                    }}
+                  >
                     <div style={{
                       width: '100%',
-                      height: '200px',
+                      height: '220px',
                       display: 'flex',
                       alignItems: 'center',
                       justifyContent: 'center',
-                      position: 'relative',
-                      overflow: 'hidden',
-                      flexShrink: 0,
+                      marginBottom: '1.25rem',
                     }}>
                       {index === 0 && (
                         <img
                           src={mounted && theme === 'dark' ? '/cr.png?v=2' : '/exc.png?v=2'}
                           alt={capability.name}
-                          style={{
-                            width: '85%',
-                            height: '85%',
-                            objectFit: 'contain',
-                            opacity: '0.6'
-                          }}
+                          style={{ width: '100%', height: '100%', objectFit: 'contain', opacity: 0.85 }}
                         />
                       )}
                       {index === 1 && (
                         <img
                           src={mounted && theme === 'dark' ? '/cs.png' : '/tre.png'}
                           alt={capability.name}
-                          style={{
-                            width: '85%',
-                            height: '85%',
-                            objectFit: 'contain',
-                            opacity: '0.6'
-                          }}
+                          style={{ width: '100%', height: '100%', objectFit: 'contain', opacity: 0.85 }}
                         />
                       )}
                       {index === 2 && (
                         <img
                           src={mounted && theme === 'dark' ? '/cc.png' : '/one.png'}
                           alt={capability.name}
-                          style={{
-                            width: '85%',
-                            height: '85%',
-                            objectFit: 'contain',
-                            opacity: '0.6'
-                          }}
+                          style={{ width: '100%', height: '100%', objectFit: 'contain', opacity: 0.85 }}
                         />
                       )}
                     </div>
-                    <div className="p-6 pt-4 mt-auto">
-                      <h4 className="text-base md:text-lg mb-2 text-[#000000] dark:text-[#f6f6f4]" style={{ fontFamily: '-apple-system, BlinkMacSystemFont, "Segoe UI", Roboto, Helvetica, Arial, sans-serif' }}>
-                        {capability.name}
-                      </h4>
-                      <p className="text-sm md:text-base text-gray-600 dark:text-[#a8a898] leading-relaxed" style={{ fontWeight: 400, fontFamily: '-apple-system, BlinkMacSystemFont, "Segoe UI", Roboto, Helvetica, Arial, sans-serif' }}>
-                        {capability.description}
-                      </p>
-                    </div>
-                  </div>
-                </React.Fragment>
-              ))}
-            </div>
-          </div>
+                    <h4 className="text-base md:text-lg mb-2 text-[#000000] dark:text-[#f6f6f4]" style={{ fontFamily: '-apple-system, BlinkMacSystemFont, "Segoe UI", Roboto, Helvetica, Arial, sans-serif' }}>
+                      {capability.name}
+                    </h4>
+                    <p className="text-sm md:text-base text-gray-600 dark:text-[#a8a898] leading-relaxed" style={{ fontWeight: 400, fontFamily: '-apple-system, BlinkMacSystemFont, "Segoe UI", Roboto, Helvetica, Arial, sans-serif' }}>
+                      {capability.description}
+                    </p>
+                  </td>
+                ))}
+              </tr>
+            </tbody>
+          </table>
         </div>
       </div>
 
