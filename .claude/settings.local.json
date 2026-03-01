@@ -78,7 +78,9 @@
       "Bash(then sed -i '' 's/Schlep-engine/Igris Inertial/g' igris-java-sdk/pom.xml)",
       "Bash(python3 -m pytest:*)",
       "Bash(pip3 install:*)",
-      "Bash(grep:*)"
+      "Bash(grep:*)",
+      "Bash(/Users/wira/Desktop/system/web/apps/web-docs-hub/docs/agent-lifecycle.mdx:*)",
+      "Bash(/Users/wira/Desktop/system/web/apps/web-docs-hub/docs/behavior-trees.mdx:*)"
     ],
     "deny": [],
     "ask": []
