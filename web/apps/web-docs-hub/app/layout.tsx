@@ -18,7 +18,7 @@ export default function RootLayout({
       <body className="font-inter antialiased m-0 p-0" suppressHydrationWarning>
         <ThemeProvider
           attribute="class"
-          defaultTheme="dark"
+          defaultTheme="light"
           enableSystem={false}
           disableTransitionOnChange
           storageKey="igris-theme"
