@@ -3,7 +3,7 @@
 import { useState } from 'react';
 import { Copy, Check } from 'lucide-react';
 import { Prism as SyntaxHighlighter } from 'react-syntax-highlighter';
-import { vscDarkPlus } from 'react-syntax-highlighter/dist/esm/styles/prism';
+import { oneLight } from 'react-syntax-highlighter/dist/esm/styles/prism';
 
 interface CodeBlockProps {
   children?: React.ReactNode;
@@ -48,13 +48,13 @@ export function CodeBlock({ children, className }: CodeBlockProps) {
       </button>
       <SyntaxHighlighter
         language={language}
-        style={vscDarkPlus}
+        style={oneLight}
         customStyle={{
           margin: 0,
           borderRadius: '0.5rem',
           padding: '1rem',
           fontSize: '0.875rem',
-          background: '#1e1e1e',
+          background: '#f5f5f5',
         }}
       >
         {code}
