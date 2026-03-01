@@ -412,7 +412,7 @@ export default function SDKs() {
             </div>
             {/* Col 2 - Code */}
             <div className="relative" style={{ minHeight: '280px' }}>
-              <div className="absolute top-2 bottom-2 left-2 right-0 rounded-2xl border border-gray-200 dark:border-[#f6f6f4]/8 bg-[#f2f1ed] dark:bg-[#1b1912]/60 p-4 overflow-hidden">
+              <div className="absolute top-2 bottom-2 left-2 right-0 rounded-2xl border border-gray-200 dark:border-[#f6f6f4]/8 bg-[#f9f9fa] dark:bg-[#1b1912]/60 p-4 overflow-hidden">
                 <div className="h-full overflow-y-auto scrollbar-hide" style={{ scrollbarWidth: 'none', msOverflowStyle: 'none' }}>
                   <CodeBlock code={codeExamples[selectedLang]} language={selectedLang} />
                 </div>
@@ -450,7 +450,7 @@ export default function SDKs() {
             </div>
             {/* Col 2 - Code */}
             <div className="relative" style={{ minHeight: '280px' }}>
-              <div className="absolute top-2 bottom-2 left-2 right-0 rounded-2xl border border-gray-200 dark:border-[#f6f6f4]/8 bg-[#f2f1ed] dark:bg-[#1b1912]/60 p-4 overflow-hidden">
+              <div className="absolute top-2 bottom-2 left-2 right-0 rounded-2xl border border-gray-200 dark:border-[#f6f6f4]/8 bg-[#f9f9fa] dark:bg-[#1b1912]/60 p-4 overflow-hidden">
                 <div className="h-full overflow-y-auto scrollbar-hide" style={{ scrollbarWidth: 'none', msOverflowStyle: 'none' }}>
                   <CodeBlock code={btreeExamples[selectedLang]} language={selectedLang} />
                 </div>

@@ -198,7 +198,7 @@ export default function Faq() {
                       openSectionIndex === sectionIndex
                         ? 'border-gray-300 dark:border-[#f6f6f4]/10 shadow-lg'
                         : 'border-gray-200 dark:border-[#f6f6f4]/5 shadow-sm hover:shadow-md'
-                    } bg-[#f2f1ed] dark:bg-[#1b1912]`}
+                    } bg-[#f9f9fa] dark:bg-[#1b1912]`}
                   >
                     {/* Section Title */}
                     <button
