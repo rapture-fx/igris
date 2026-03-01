@@ -35,7 +35,7 @@ Deployment targets:
 - **Kubernetes** — Helm charts available
 - **Bare metal** — Single binary, low resource requirements
 
-[Self-hosted deployment guide →](/overture/docs/deployment)
+[Cloud Coordination →](/docs/cloud-coordination)
 
 ---
 
@@ -93,7 +93,7 @@ sudo systemctl enable igris-runtime
 sudo systemctl start igris-runtime
 ```
 
-[Full deployment guide →](/runtime/docs/deployment)
+[SDK →](/docs/sdk)
 
 ---
 
@@ -122,7 +122,7 @@ Configure in `config.json`:
 }
 ```
 
-[Local Models guide →](/runtime/docs/local-models) · [Configuration reference →](/runtime/docs/configuration)
+[Execution Model →](/docs/execution-model) · [Architecture →](/docs/architecture)
 
 ---
 
@@ -142,7 +142,7 @@ curl -X POST https://api.igrisinertial.com/api/v1/runtime/register \
 
 Once registered, the coordination layer can route requests to the local engine as part of its provider selection. This enables hybrid cloud/local execution with automatic failover.
 
-[Cloud Coordination →](/docs/cloud-coordination) · [Fleet Management →](/runtime/docs/fleet-management)
+[Cloud Coordination →](/docs/cloud-coordination) · [Fleet Management →](/docs/fleet-management)
 
 ---
 

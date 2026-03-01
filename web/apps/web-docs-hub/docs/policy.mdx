@@ -1,0 +1,148 @@
+# Policy
+
+Igris enforces routing and capability policies at the coordination layer. Policies are tenant-scoped, version-controlled, and hot-reloadable — changes take effect without redeployment.
+
+---
+
+## What Policies Control
+
+Policies configure four areas:
+
+| Area | What it covers |
+|---|---|
+| **Provider selection** | Which cloud providers a tenant may use |
+| **Budget limits** | Soft warning threshold and hard block limit |
+| **Routing strategy** | Cost-optimized, latency-optimized, or custom |
+| **Fallback behavior** | What happens when providers fail |
+
+---
+
+## Creating a Policy
+
+```bash
+curl -X POST https://api.igrisinertial.com/v1/policies \
+  -H "Authorization: Bearer YOUR_API_KEY" \
+  -H "Content-Type: application/json" \
+  -d '{
+    "name": "production-policy",
+    "routing": {
+      "strategy": "cost-optimized",
+      "allowed_providers": ["openai", "anthropic"],
+      "fallback_chain": ["anthropic", "openai", "local"]
+    },
+    "budget": {
+      "monthly_limit_usd": 500,
+      "warning_threshold": 0.9
+    }
+  }'
+```
+
+---
+
+## Routing Strategies
+
+**`thompson-sampling` (default)**
+
+Adaptive multi-armed bandit. Balances exploration and exploitation across configured providers. No configuration required.
+
+**`cost-optimized`**
+
+Always selects the cheapest provider for the requested model. Use when cost matters more than latency.
+
+**`latency-optimized`**
+
+Always selects the provider with the lowest observed p50 latency. Use for real-time applications.
+
+**Provider pinning**
+
+Override routing for specific models:
+
+```json
+{
+  "routing": {
+    "strategy": "thompson-sampling",
+    "provider_pins": {
+      "model:gpt-4": "openai",
+      "model:claude-3-haiku": "anthropic"
+    }
+  }
+}
+```
+
+---
+
+## Budget Enforcement
+
+Policies set monthly budget limits per tenant:
+
+```json
+{
+  "budget": {
+    "monthly_limit_usd": 200,
+    "warning_threshold": 0.9
+  }
+}
+```
+
+**Behavior:**
+- At 90% of monthly budget: `X-Igris-Budget-Warning: true` header is added to responses
+- At 100%: Igris returns HTTP 402 before forwarding the request to any provider
+
+Budget usage is reset on the first of each month.
+
+---
+
+## Fallback Chains
+
+Define the order in which providers are tried when the primary fails:
+
+```json
+{
+  "routing": {
+    "fallback_chain": ["anthropic", "openai", "google", "local"]
+  }
+}
+```
+
+`local` in the fallback chain routes to a registered execution engine instance on your infrastructure. This enables full offline fallback with no code changes.
+
+---
+
+## Listing and Updating Policies
+
+```bash
+# List all policies
+curl https://api.igrisinertial.com/v1/policies \
+  -H "Authorization: Bearer YOUR_API_KEY"
+
+# Get a specific policy
+curl https://api.igrisinertial.com/v1/policies/production-policy \
+  -H "Authorization: Bearer YOUR_API_KEY"
+
+# Update a policy (hot reload — takes effect immediately)
+curl -X PATCH https://api.igrisinertial.com/v1/policies/production-policy \
+  -H "Authorization: Bearer YOUR_API_KEY" \
+  -H "Content-Type: application/json" \
+  -d '{"budget": {"monthly_limit_usd": 750}}'
+```
+
+Policy updates take effect on the next request. There is no deployment step.
+
+---
+
+## Policy Versioning
+
+Every update creates a new policy version. You can view the history and roll back:
+
+```bash
+# List versions
+curl https://api.igrisinertial.com/v1/policies/production-policy/versions \
+  -H "Authorization: Bearer YOUR_API_KEY"
+
+# Roll back to a previous version
+curl -X POST https://api.igrisinertial.com/v1/policies/production-policy/rollback \
+  -H "Authorization: Bearer YOUR_API_KEY" \
+  -d '{"version": 3}'
+```
+
+[Cloud Coordination →](/docs/cloud-coordination) · [Audit →](/docs/audit) · [Governance →](/docs/governance)

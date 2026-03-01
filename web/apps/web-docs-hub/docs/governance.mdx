@@ -27,7 +27,7 @@ Receipts contain:
 
 Receipts are stored locally on the execution engine. They can be queried via API and exported for audit workflows.
 
-[Execution Receipts →](/runtime/docs/governance/execution-receipts)
+[Execution Receipts →](/docs/execution-receipts)
 
 ---
 
@@ -48,7 +48,7 @@ Capabilities include:
 
 A request that exceeds its capability grant is rejected with an error. The rejection is recorded in the execution receipt.
 
-[Capability Model →](/runtime/docs/governance/capability-model)
+[Capability Model →](/docs/capability-model)
 
 ---
 
@@ -61,7 +61,7 @@ For long-running agents, Igris enforces:
 - Maximum active duration
 - Graceful shutdown on deadline
 
-[Agent Lifecycle →](/runtime/docs/governance/agent-lifecycle)
+[Agent Lifecycle →](/docs/agent-lifecycle)
 
 ---
 
@@ -69,7 +69,7 @@ For long-running agents, Igris enforces:
 
 Igris uses transaction boundaries to ensure that multi-step agent executions are atomic from a receipt perspective: either the full execution is recorded, or none of it is. Partial receipts do not exist.
 
-[Transaction Boundary →](/runtime/docs/governance/transaction-boundary)
+[Execution Model →](/docs/execution-model)
 
 ---
 
@@ -84,7 +84,7 @@ Igris enforces routing policies at the coordination layer. Policies control:
 
 Policies are version-controlled, hot-reloadable, and tenant-scoped.
 
-[Policy Engine →](/overture/docs/governance/policy-engine)
+[Policy →](/docs/policy)
 
 ---
 
@@ -107,7 +107,7 @@ Audit log (queryable record, exportable for compliance)
 
 A request's full lineage — from the application call to the signed execution — can be traced through both systems using the request ID.
 
-[Trust Chain →](/overture/docs/architecture/trust-chain)
+[Architecture →](/docs/architecture)
 
 ---
 

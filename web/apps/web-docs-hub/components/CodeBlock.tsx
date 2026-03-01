@@ -17,17 +17,26 @@ export function CodeBlock({ children, className }: CodeBlockProps) {
   const isDark = resolvedTheme === 'dark';
 
   // MDX renders <pre><code class="language-X">...</code></pre>
-  // The language className lives on the inner <code>, not on <pre>.
-  const codeEl = React.Children.toArray(children).find(
-    (child: any) => child?.props?.className?.includes('language-')
+  // Language class is on the inner <code>; plain ``` blocks have no class.
+  const allChildren = React.Children.toArray(children);
+  const codeEl = (
+    allChildren.find((c: any) => c?.props?.className?.includes('language-')) ||
+    allChildren.find((c: any) => c?.props !== undefined)
   ) as React.ReactElement<any> | undefined;
 
   const language = (codeEl?.props?.className || className || '')
     .replace(/language-/, '') || 'text';
 
-  const code = typeof codeEl?.props?.children === 'string'
-    ? codeEl.props.children
-    : String(codeEl?.props?.children ?? '');
+  const getTextContent = (node: any): string => {
+    if (typeof node === 'string') return node;
+    if (Array.isArray(node)) return node.map(getTextContent).join('');
+    if (node?.props?.children !== undefined) return getTextContent(node.props.children);
+    return '';
+  };
+
+  const code = codeEl
+    ? (typeof codeEl.props.children === 'string' ? codeEl.props.children : getTextContent(codeEl.props.children))
+    : getTextContent(children);
 
   const handleCopy = async () => {
     try {

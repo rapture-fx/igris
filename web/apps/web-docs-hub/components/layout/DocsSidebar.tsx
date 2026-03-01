@@ -26,23 +26,6 @@ interface DocsSidebarProps {
   onClose?: () => void;
 }
 
-// Resolve cross-module URLs based on environment
-function useModuleUrl(overtureBase: string, runtimeBase: string) {
-  const [overture, setOverture] = useState(overtureBase);
-  const [runtime, setRuntime] = useState(runtimeBase);
-
-  useEffect(() => {
-    if (typeof window !== 'undefined' && window.location.hostname === 'localhost') {
-      setOverture('http://localhost:3002');
-      setRuntime('http://localhost:3004');
-    }
-  }, []);
-
-  return { overture, runtime };
-}
-
-// Internal link (hub pages) — uses Next.js Link
-// External link (overture/runtime pages) — uses <a> tag
 interface NavItem {
   name: string;
   href: string;
@@ -62,20 +45,27 @@ const searchIndex = [
   { title: 'Quick Start', path: '/docs/quickstart', keywords: 'quick start getting started setup api key' },
   { title: 'Execution Model', path: '/docs/execution-model', keywords: 'execution model envelope bounds signing cloud local path' },
   { title: 'Safety & Containment', path: '/docs/safety', keywords: 'safety containment cgroup bounds violation handling secure defaults' },
+  { title: 'Capabilities & Limits', path: '/docs/capability-model', keywords: 'capabilities limits capability model grants tool http shell filesystem max tokens steps' },
+  { title: 'Execution Receipts', path: '/docs/execution-receipts', keywords: 'execution receipts signed audit record query export' },
+  { title: 'Agent Lifecycle', path: '/docs/agent-lifecycle', keywords: 'agent lifecycle states init running idle degraded terminated' },
   { title: 'Agents', path: '/docs/agents', keywords: 'agents reflection planning swarm tool-use' },
+  { title: 'Behavior Trees', path: '/docs/behavior-trees', keywords: 'behavior trees deterministic llm nodes sequence selector condition action' },
   { title: 'Tools', path: '/docs/tools', keywords: 'tools http shell filesystem config security' },
   { title: 'Memory', path: '/docs/memory', keywords: 'memory vector store kv cache cross-instance context mcp swarm' },
   { title: 'Robotics', path: '/docs/robotics', keywords: 'robotics ros2 fleet mission execution safety' },
+  { title: 'ROS2 Integration', path: '/docs/ros2-integration', keywords: 'ros2 integration robot humble iron topics services behavior trees' },
   { title: 'Cloud Coordination', path: '/docs/cloud-coordination', keywords: 'cloud routing failover cost provider health' },
+  { title: 'Fleet Management', path: '/docs/fleet-management', keywords: 'fleet management instances ota update config push registration health' },
+  { title: 'Policy', path: '/docs/policy', keywords: 'policy routing strategy budget limits provider selection fallback' },
   { title: 'Governance', path: '/docs/governance', keywords: 'governance receipts capability policy trust chain audit' },
   { title: 'Audit', path: '/docs/audit', keywords: 'audit lineage compliance receipt export' },
-  { title: 'SDK', path: '/docs/sdk', keywords: 'sdk client libraries javascript python go rust ruby java csharp' },
+  { title: 'SDK', path: '/docs/sdk', keywords: 'sdk client libraries javascript python go rust' },
   { title: 'Deployment', path: '/docs/deployment', keywords: 'deployment cloud edge self-hosted fly kubernetes' },
+  { title: 'API Reference', path: '/docs/api-reference', keywords: 'api reference endpoints inference management receipts fleet policy' },
 ];
 
 export function DocsSidebar({ open = true, onClose }: DocsSidebarProps) {
   const pathname = usePathname();
-  const { overture: overtureBase, runtime: runtimeBase } = useModuleUrl('/overture', '/runtime');
 
   const [searchQuery, setSearchQuery] = useState('');
   const [isSearchModalOpen, setIsSearchModalOpen] = useState(false);
@@ -83,9 +73,6 @@ export function DocsSidebar({ open = true, onClose }: DocsSidebarProps) {
   const [showSearchResults, setShowSearchResults] = useState(false);
   const [selectedIndex, setSelectedIndex] = useState(0);
   const modalInputRef = useRef<HTMLInputElement>(null);
-
-  const o = (path: string) => `${overtureBase}${path}`;
-  const r = (path: string) => `${runtimeBase}${path}`;
 
   const navigationSections: NavSection[] = [
     {
@@ -101,16 +88,16 @@ export function DocsSidebar({ open = true, onClose }: DocsSidebarProps) {
       items: [
         { name: 'Execution Model', href: '/docs/execution-model', icon: Cpu },
         { name: 'Safety & Containment', href: '/docs/safety', icon: Shield },
-        { name: 'Capabilities & Limits', href: r('/docs/governance/capability-model'), external: true, icon: Box },
-        { name: 'Execution Receipts', href: r('/docs/governance/execution-receipts'), external: true, icon: FileText },
-        { name: 'Agent Lifecycle', href: r('/docs/governance/agent-lifecycle'), external: true, icon: GitBranch },
+        { name: 'Capabilities & Limits', href: '/docs/capability-model', icon: Box },
+        { name: 'Execution Receipts', href: '/docs/execution-receipts', icon: FileText },
+        { name: 'Agent Lifecycle', href: '/docs/agent-lifecycle', icon: GitBranch },
       ],
     },
     {
       section: 'Agents',
       items: [
         { name: 'Agents', href: '/docs/agents', icon: Bot },
-        { name: 'Behavior Trees', href: r('/docs/behavior-trees/introduction'), external: true, icon: GitBranch },
+        { name: 'Behavior Trees', href: '/docs/behavior-trees', icon: GitBranch },
         { name: 'Tools', href: '/docs/tools', icon: Wrench },
         { name: 'Memory', href: '/docs/memory', icon: Database },
       ],
@@ -119,15 +106,15 @@ export function DocsSidebar({ open = true, onClose }: DocsSidebarProps) {
       section: 'Robotics',
       items: [
         { name: 'Robotics', href: '/docs/robotics', icon: Cpu },
-        { name: 'ROS2 Integration', href: r('/docs/ros2-integration'), external: true, icon: Globe },
+        { name: 'ROS2 Integration', href: '/docs/ros2-integration', icon: Globe },
       ],
     },
     {
       section: 'Cloud & Fleet',
       items: [
         { name: 'Cloud Coordination', href: '/docs/cloud-coordination', icon: Globe },
-        { name: 'Fleet Management', href: r('/docs/fleet-management'), external: true, icon: Layers },
-        { name: 'Policy', href: o('/docs/governance/policy-engine'), external: true, icon: Shield },
+        { name: 'Fleet Management', href: '/docs/fleet-management', icon: Layers },
+        { name: 'Policy', href: '/docs/policy', icon: Shield },
         { name: 'Audit', href: '/docs/audit', icon: FileText },
       ],
     },
@@ -136,7 +123,7 @@ export function DocsSidebar({ open = true, onClose }: DocsSidebarProps) {
       items: [
         { name: 'SDK', href: '/docs/sdk', icon: Package },
         { name: 'Deployment', href: '/docs/deployment', icon: Globe },
-        { name: 'API Reference', href: o('/docs/api-reference/introduction'), external: true, icon: FileText },
+        { name: 'API Reference', href: '/docs/api-reference', icon: FileText },
       ],
     },
   ];

@@ -20,6 +20,14 @@ const slugToFile: Record<string, string> = {
   robotics: 'robotics',
   'cloud-coordination': 'cloud-coordination',
   audit: 'audit',
+  'execution-receipts': 'execution-receipts',
+  'capability-model': 'capability-model',
+  'agent-lifecycle': 'agent-lifecycle',
+  'behavior-trees': 'behavior-trees',
+  'fleet-management': 'fleet-management',
+  'ros2-integration': 'ros2-integration',
+  policy: 'policy',
+  'api-reference': 'api-reference',
 };
 
 export async function generateStaticParams() {

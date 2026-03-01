@@ -1,0 +1,140 @@
+# Fleet Management
+
+Igris can manage large numbers of execution engine instances from a central coordination layer. Fleet management covers registration, health monitoring, configuration distribution, and lifecycle control.
+
+---
+
+## Registering an Instance
+
+Each execution engine instance registers with the coordination layer on startup. Registration requires an endpoint, a name, and optional tags for routing.
+
+```bash
+curl -X POST https://api.igrisinertial.com/api/v1/runtime/register \
+  -H "Authorization: Bearer YOUR_API_KEY" \
+  -H "Content-Type: application/json" \
+  -d '{
+    "name": "robot-arm-01",
+    "endpoint": "http://192.168.1.42:8080",
+    "tags": ["robotics", "arm", "site-a"]
+  }'
+```
+
+Response:
+```json
+{
+  "instance_id": "inst_abc123",
+  "name": "robot-arm-01",
+  "status": "registered",
+  "registered_at": "2026-03-01T12:00:00Z"
+}
+```
+
+---
+
+## Health Monitoring
+
+Registered instances send heartbeat signals every 30 seconds (configurable). The coordination layer tracks:
+
+- **Last seen**: timestamp of most recent heartbeat
+- **Status**: `healthy`, `degraded`, `offline`
+- **Error rate**: fraction of recent requests that returned errors
+- **Latency**: p50 and p95 response times
+
+If an instance misses three consecutive heartbeats, it is marked `offline`. Requests are no longer routed to offline instances.
+
+List all instances:
+```bash
+curl https://api.igrisinertial.com/api/v1/runtime/instances \
+  -H "Authorization: Bearer YOUR_API_KEY"
+```
+
+Response:
+```json
+{
+  "instances": [
+    {
+      "instance_id": "inst_abc123",
+      "name": "robot-arm-01",
+      "status": "healthy",
+      "last_seen": "2026-03-01T12:00:28Z",
+      "tags": ["robotics", "arm", "site-a"]
+    }
+  ]
+}
+```
+
+---
+
+## Configuration Push
+
+Configuration updates can be pushed to the entire fleet or to specific instances by tag, without restarting the engine process.
+
+```bash
+# Push config to all instances tagged "site-a"
+curl -X POST https://api.igrisinertial.com/api/v1/runtime/config/push \
+  -H "Authorization: Bearer YOUR_API_KEY" \
+  -H "Content-Type: application/json" \
+  -d '{
+    "selector": {"tags": ["site-a"]},
+    "config": {
+      "local_fallback": {"enabled": true, "model_path": "models/phi-3-mini-4k-instruct-q4.gguf"},
+      "max_concurrent_requests": 4
+    }
+  }'
+```
+
+The push is acknowledged by each instance. If an instance is offline at push time, the config is delivered when it reconnects.
+
+---
+
+## OTA Updates
+
+On Horizon and Infinite tiers, execution engine instances can be updated over the air. The coordination layer distributes the new binary and triggers a rolling restart.
+
+```bash
+curl -X POST https://api.igrisinertial.com/api/v1/runtime/update \
+  -H "Authorization: Bearer YOUR_API_KEY" \
+  -d '{
+    "selector": {"tags": ["robotics"]},
+    "version": "2.3.1",
+    "strategy": "rolling",
+    "max_unavailable": 1
+  }'
+```
+
+Update strategies:
+- `rolling`: update instances one at a time
+- `all-at-once`: update all selected instances simultaneously
+- `canary`: update one instance first, verify health, then proceed
+
+---
+
+## Tag-Based Routing
+
+Requests can be routed to a specific instance or group of instances by tag:
+
+```json
+{
+  "model": "gpt-4",
+  "messages": [{"role": "user", "content": "Hello"}],
+  "routing": {
+    "require_tags": ["robotics", "arm"]
+  }
+}
+```
+
+If no matching instance is available, the request falls back to cloud providers (unless `require_local` is set).
+
+---
+
+## Tier Limits
+
+| | Seed | Horizon | Infinite |
+|---|---|---|---|
+| Registered instances | 1 | Up to 50 | Up to 500 |
+| OTA updates | — | ✓ | ✓ |
+| Config push | — | ✓ | ✓ |
+| Fleet dashboard | — | ✓ | ✓ |
+| Additional instances | — | $3/instance | Included |
+
+[Cloud Coordination →](/docs/cloud-coordination) · [Deployment →](/docs/deployment)

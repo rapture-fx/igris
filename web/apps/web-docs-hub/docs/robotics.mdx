@@ -40,7 +40,7 @@ ros2:
 
 The ROS2 bridge is governed by the same capability model as other tool use. Publish operations require `tool_ros2_publish` capability grant. Subscribe operations are read-only and require no grant.
 
-[ROS2 Integration →](/runtime/docs/ros2-integration)
+[ROS2 Integration →](/docs/ros2-integration)
 
 ---
 
@@ -61,7 +61,7 @@ Navigate to waypoint
 
 Behavior trees run inside the execution envelope. Each tick of the tree consumes from `max_steps`. If the tree exhausts its step budget, the mission is terminated gracefully and the receipt records the state at termination.
 
-[Behavior Trees →](/runtime/docs/behavior-trees/introduction)
+[Behavior Trees →](/docs/behavior-trees)
 
 ---
 
@@ -88,4 +88,4 @@ Multiple engine instances on multiple robots can be coordinated from the cloud l
 - **Fleet health**: heartbeats from each instance are monitored; missing instances trigger alerts
 - **Remote execution**: initiate missions on specific robots or groups from the cloud
 
-[Fleet Management →](/runtime/docs/fleet-management) · [Cloud Coordination →](/docs/cloud-coordination)
+[Fleet Management →](/docs/fleet-management) · [Cloud Coordination →](/docs/cloud-coordination)
