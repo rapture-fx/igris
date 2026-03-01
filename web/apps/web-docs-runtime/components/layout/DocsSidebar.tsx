@@ -512,7 +512,7 @@ export function DocsSidebar({ open = true, onClose }: DocsSidebarProps) {
           open ? 'translate-x-0' : '-translate-x-full'
         )}
       >
-        <div className="flex h-full flex-col border-r border-gray-200 dark:border-[#f6f6f4]/10" style={{ backgroundColor: '#14120a' }}>
+        <div className="flex h-full flex-col border-r border-gray-200 dark:border-[#f6f6f4]/10 bg-[#f7f7f3] dark:bg-[#14120a]">
           {/* Logo Section - Original docs */}
           <div className="h-12 flex items-center px-7">
             <a href={hubUrl} className="flex items-center">
