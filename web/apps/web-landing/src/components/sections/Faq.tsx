@@ -196,8 +196,8 @@ export default function Faq() {
                     key={sectionIndex}
                     className={`rounded-xl border transition-all duration-300 ${
                       openSectionIndex === sectionIndex
-                        ? 'border-gray-300 dark:border-[#f6f6f4]/10 shadow-lg'
-                        : 'border-gray-200 dark:border-[#f6f6f4]/5 shadow-sm hover:shadow-md'
+                        ? 'border-gray-300 dark:border-[#f6f6f4]/10 shadow-sm'
+                        : 'border-gray-200 dark:border-[#f6f6f4]/5 hover:shadow-sm'
                     } bg-[#f9f9fa] dark:bg-[#1b1912]`}
                   >
                     {/* Section Title */}
