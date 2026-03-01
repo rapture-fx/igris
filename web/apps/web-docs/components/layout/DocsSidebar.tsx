@@ -196,7 +196,7 @@ const navigation: NavigationItem[] = [
 
 // Search index for documentation
 const searchIndex = [
-  { title: 'Introduction', path: '/docs/introduction', keywords: 'intro getting started welcome overview' },
+  { title: 'Introduction', path: '/docs', keywords: 'intro getting started welcome overview' },
   { title: 'Quickstart', path: '/docs/quickstart', keywords: 'quick start begin setup install' },
   { title: 'Key Vault (BYOK)', path: '/docs/byok-vault', keywords: 'byok vault bring your own key provider api key rotation encryption tenant isolation' },
   { title: 'Runtime Fleet', path: '/docs/runtime-fleet', keywords: 'fleet runtime registration heartbeat edge device management configuration telemetry' },
