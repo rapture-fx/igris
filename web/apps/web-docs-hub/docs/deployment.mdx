@@ -1,0 +1,163 @@
+# Deployment
+
+Igris can be deployed as a cloud-hosted API, as a local execution engine on your own hardware, or in a hybrid configuration combining both.
+
+---
+
+## Cloud API
+
+Use the cloud API endpoint with zero infrastructure to manage. Point your SDK at the API and start making requests.
+
+```python
+from openai import OpenAI
+
+client = OpenAI(
+    base_url="https://api.igrisinertial.com/v1",
+    api_key="your-api-key"
+)
+```
+
+The cloud API handles:
+- High availability and failover across providers
+- Provider health monitoring and automatic routing
+- Cost tracking and budget enforcement
+- Upgrades and maintenance
+
+### Self-Hosted Coordination (Infinite Tier)
+
+Deploy the coordination layer in your own infrastructure for data residency, compliance, or custom integration requirements.
+
+The coordination layer ships as a single Go binary with a PostgreSQL backend and optional Redis cache.
+
+Deployment targets:
+- **Fly.io** — Official deployment configuration included
+- **AWS / GCP / Azure** — Standard containerized deployment
+- **Kubernetes** — Helm charts available
+- **Bare metal** — Single binary, low resource requirements
+
+[Self-hosted deployment guide →](/overture/docs/deployment)
+
+---
+
+## Local / Edge Execution Engine
+
+The execution engine runs on your infrastructure — a server, an edge device, or a Kubernetes cluster. It is not a cloud service.
+
+### Supported Platforms
+
+| Platform | Architecture | Notes |
+|---|---|---|
+| Ubuntu 22.04+ | x86_64, ARM64 | Recommended for production |
+| Debian 11+ | x86_64, ARM64 | |
+| Alpine Linux | x86_64, ARM64 | Musl build available |
+| macOS 13+ | Intel, Apple Silicon | Development use |
+| Raspberry Pi 4/5 | ARM64 | Edge deployments |
+| NVIDIA Jetson | ARM64 | GPU inference |
+| Windows (WSL2) | x86_64 | Development use |
+
+### Deployment Methods
+
+**Binary (fastest)**
+```bash
+./igris-runtime --config config.json
+```
+
+**Docker**
+```bash
+docker run -p 8080:8080 \
+  -v ./models:/models \
+  -v ./config.json:/config.json \
+  ghcr.io/igris-inertial/igris-runtime:latest
+```
+
+**Kubernetes**
+```yaml
+apiVersion: apps/v1
+kind: Deployment
+metadata:
+  name: igris-runtime
+spec:
+  replicas: 1
+  template:
+    spec:
+      containers:
+        - name: runtime
+          image: ghcr.io/igris-inertial/igris-runtime:latest
+          ports:
+            - containerPort: 8080
+```
+
+**systemd (production Linux)**
+```bash
+sudo systemctl enable igris-runtime
+sudo systemctl start igris-runtime
+```
+
+[Full deployment guide →](/runtime/docs/deployment)
+
+---
+
+## Local Models
+
+The execution engine includes a local inference runtime. To enable offline fallback, download a compatible model:
+
+```bash
+# Phi-3 Mini (recommended starting point, ~2.3GB)
+./download-model.sh phi3-mini
+
+# Mistral 7B (higher quality, ~4.1GB)
+./download-model.sh mistral-7b
+
+# Llama 3 8B (best open-source quality, ~4.7GB)
+./download-model.sh llama3-8b
+```
+
+Configure in `config.json`:
+```json
+{
+  "local_fallback": {
+    "enabled": true,
+    "model_path": "models/phi-3-mini-4k-instruct-q4.gguf"
+  }
+}
+```
+
+[Local Models guide →](/runtime/docs/local-models) · [Configuration reference →](/runtime/docs/configuration)
+
+---
+
+## Connecting Edge to Cloud
+
+To register a local execution engine instance with the cloud coordination layer:
+
+```bash
+curl -X POST https://api.igrisinertial.com/api/v1/runtime/register \
+  -H "Authorization: Bearer YOUR_API_KEY" \
+  -d '{
+    "name": "edge-device-01",
+    "endpoint": "http://your-runtime-instance:8080",
+    "tier": "local"
+  }'
+```
+
+Once registered, the coordination layer can route requests to the local engine as part of its provider selection. This enables hybrid cloud/local execution with automatic failover.
+
+[Cloud Coordination →](/docs/cloud-coordination) · [Fleet Management →](/runtime/docs/fleet-management)
+
+---
+
+## Tier Comparison
+
+| | Seed | Horizon | Infinite |
+|---|---|---|---|
+| Price | Free | $99/mo | $499/mo |
+| Engine instances | 1 | Up to 50 | Up to 500 |
+| Execution retention | 7 days | 30 days | 90 days |
+| Fleet dashboard | — | ✓ | ✓ |
+| OTA updates | — | ✓ | ✓ |
+| Self-hosted coordination layer | — | — | ✓ |
+| SLO enforcement | — | — | ✓ |
+| Support | Community | Email (24h) | Priority (8h) |
+| Additional instances | — | $3/instance | Included |
+
+[Pricing details →](https://igrisinertial.com/pricing)

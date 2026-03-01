@@ -1,0 +1,115 @@
+# Memory
+
+Igris supports three memory systems: vector store for semantic retrieval, KV cache for fast key-value lookup, and cross-instance context via MCP Swarm Mode.
+
+---
+
+## Vector Store
+
+The vector store indexes embeddings and retrieves semantically similar documents at query time. It gives agents access to a long-term knowledge base without including everything in the context window.
+
+**How it works:**
+1. Documents are embedded and stored in the local vector index
+2. At query time, the agent provides a query string
+3. The vector store returns the top-K most similar documents
+4. Retrieved documents are injected into the agent's context
+
+**Configuration:**
+```json
+{
+  "memory": {
+    "vector_store": {
+      "enabled": true,
+      "top_k": 5,
+      "similarity_threshold": 0.75
+    }
+  }
+}
+```
+
+**Supported embedding models:**
+- Any GGUF-format embedding model
+- External embedding APIs (via the HTTP tool)
+
+The vector index is stored on device. Embeddings do not leave the device unless you configure an external embedding endpoint.
+
+---
+
+## KV Cache
+
+The KV cache provides fast key-value storage for agent state that must persist across steps or across executions.
+
+**Use cases:**
+- Storing intermediate results between planning steps
+- Persisting agent state across tool calls
+- Caching frequently accessed data to reduce tool call latency
+
+**Access:**
+```json
+{
+  "kv_cache": {
+    "set": {"key": "task_state", "value": {"step": 3, "progress": "in-progress"}},
+    "get": {"key": "task_state"},
+    "ttl_seconds": 3600
+  }
+}
+```
+
+KV entries expire after `ttl_seconds`. The cache is local to the engine instance unless MCP Swarm Mode is enabled.
+
+---
+
+## Cross-Instance Context (MCP Swarm Mode)
+
+MCP Swarm Mode enables execution context to be shared across multiple engine instances. Any instance in the swarm can access context written by another instance.
+
+**How it works:**
+- Instances auto-discover each other via mDNS on the local network
+- Context is written to shared encrypted storage (AES-256-GCM)
+- Any instance can read context written by any other instance
+- Context is available within milliseconds of being written
+
+**Use cases:**
+- Multi-robot coordination: one robot updates mission state, others read it
+- High-availability: if one instance goes offline, another continues the execution
+- Distributed agents: agents on different nodes share a working memory
+
+**Configuration:**
+```json
+{
+  "mcp_swarm": {
+    "enabled": true,
+    "discovery": "mdns",
+    "encryption_key_path": "/etc/igris/swarm.key"
+  }
+}
+```
+
+The encryption key is device-specific and must be distributed to all instances in the swarm. Context encrypted with one key cannot be read by an instance with a different key.
+
+[MCP Swarm Mode →](/runtime/docs/core-features/mcp-swarm)
+
+---
+
+## On-Device Training
+
+Igris can fine-tune the local model based on execution history, creating domain-specific LoRA adapters without sending data off-device.
+
+**How it works:**
+1. Execution history accumulates locally
+2. After N executions (configurable, default 100), training triggers automatically
+3. A LoRA adapter is created (typically < 64 MB)
+4. The adapter is loaded and applied to subsequent inferences
+
+Training data stays on device. The adapter is encrypted with a device-specific key. No network calls are made during training.
+
+**Configuration:**
+```json
+{
+  "on_device_training": {
+    "enabled": true,
+    "trigger_after_n_requests": 100,
+    "lora_rank": 16
+  }
+}
+```

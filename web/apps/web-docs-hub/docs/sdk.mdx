@@ -1,0 +1,251 @@
+# SDKs
+
+Igris exposes an OpenAI-compatible API. Any existing OpenAI SDK works without modification — just change the base URL.
+
+For teams that prefer native Igris clients with additional metadata support, official SDKs are available in seven languages.
+
+---
+
+## Quick Setup
+
+All SDKs connect to the same API endpoint:
+
+```
+https://api.igrisinertial.com/v1
+```
+
+For local execution, the endpoint is your execution engine's address (default `http://localhost:8080/v1`).
+
+---
+
+## JavaScript / TypeScript
+
+Install:
+```bash
+npm install @igris/sdk
+# or use the OpenAI SDK directly:
+npm install openai
+```
+
+Using the OpenAI SDK (zero changes to existing code):
+```typescript
+import OpenAI from 'openai';
+
+const client = new OpenAI({
+  baseURL: 'https://api.igrisinertial.com/v1',
+  apiKey: process.env.IGRIS_API_KEY,
+});
+
+const response = await client.chat.completions.create({
+  model: 'gpt-4',
+  messages: [{ role: 'user', content: 'Hello' }],
+});
+```
+
+Using the native Igris SDK for extended metadata:
+```typescript
+import { IgrisClient } from '@igris/sdk';
+
+const client = new IgrisClient({ apiKey: process.env.IGRIS_API_KEY });
+
+const response = await client.chat.completions.create({
+  model: 'gpt-4',
+  messages: [{ role: 'user', content: 'Hello' }],
+});
+
+// Extended metadata available
+console.log(response.metadata.provider);       // 'anthropic'
+console.log(response.metadata.cost_usd);       // 0.00021
+console.log(response.metadata.routing_decision); // 'thompson-sampling'
+```
+
+---
+
+## Python
+
+Install:
+```bash
+pip install igris-sdk
+# or use openai directly:
+pip install openai
+```
+
+Using the OpenAI SDK:
+```python
+from openai import OpenAI
+
+client = OpenAI(
+    base_url="https://api.igrisinertial.com/v1",
+    api_key=os.environ["IGRIS_API_KEY"]
+)
+
+response = client.chat.completions.create(
+    model="gpt-4",
+    messages=[{"role": "user", "content": "Hello"}]
+)
+```
+
+Using the native Igris SDK:
+```python
+from igris import IgrisClient
+
+client = IgrisClient(api_key=os.environ["IGRIS_API_KEY"])
+
+response = client.chat.completions.create(
+    model="gpt-4",
+    messages=[{"role": "user", "content": "Hello"}]
+)
+
+print(response.metadata.provider)    # 'openai'
+print(response.metadata.cost_usd)    # 0.00034
+```
+
+---
+
+## Go
+
+Install:
+```bash
+go get github.com/Igris-inertial/igris-go-sdk
+```
+
+Using the native SDK:
+```go
+import igris "github.com/Igris-inertial/igris-go-sdk"
+
+client := igris.NewClient(os.Getenv("IGRIS_API_KEY"))
+
+resp, err := client.Chat.Completions.Create(ctx, igris.ChatCompletionParams{
+    Model: "gpt-4",
+    Messages: []igris.Message{
+        {Role: "user", Content: "Hello"},
+    },
+})
+if err != nil {
+    log.Fatal(err)
+}
+
+fmt.Println(resp.Metadata.Provider)  // "anthropic"
+fmt.Println(resp.Metadata.CostUSD)   // 0.00021
+```
+
+---
+
+## Rust
+
+Add to `Cargo.toml`:
+```toml
+[dependencies]
+igris-sdk = "0.1"
+```
+
+```rust
+use igris_sdk::IgrisClient;
+
+let client = IgrisClient::new(&std::env::var("IGRIS_API_KEY")?);
+
+let response = client.chat().completions().create(
+    ChatCompletionRequest::new("gpt-4")
+        .messages(vec![Message::user("Hello")])
+).await?;
+
+println!("{}", response.metadata.provider);
+```
+
+---
+
+## Ruby
+
+Install:
+```bash
+gem install igris-sdk
+```
+
+```ruby
+require 'igris'
+
+client = Igris::Client.new(api_key: ENV['IGRIS_API_KEY'])
+
+response = client.chat.completions.create(
+  model: 'gpt-4',
+  messages: [{ role: 'user', content: 'Hello' }]
+)
+
+puts response.metadata.provider
+puts response.metadata.cost_usd
+```
+
+---
+
+## Java
+
+Add to `pom.xml`:
+```xml
+<dependency>
+  <groupId>com.igrisinertial</groupId>
+  <artifactId>igris-java-sdk</artifactId>
+  <version>0.1.0</version>
+</dependency>
+```
+
+```java
+import com.igrisinertial.IgrisClient;
+import com.igrisinertial.model.ChatCompletionRequest;
+import com.igrisinertial.model.Message;
+
+IgrisClient client = new IgrisClient(System.getenv("IGRIS_API_KEY"));
+
+ChatCompletionRequest request = ChatCompletionRequest.builder()
+    .model("gpt-4")
+    .message(Message.user("Hello"))
+    .build();
+
+var response = client.chat().completions().create(request);
+System.out.println(response.getMetadata().getProvider());
+```
+
+---
+
+## C#
+
+Install:
+```bash
+dotnet add package Igris.SDK
+```
+
+```csharp
+using Igris;
+
+var client = new IgrisClient(Environment.GetEnvironmentVariable("IGRIS_API_KEY"));
+
+var response = await client.Chat.Completions.CreateAsync(new ChatCompletionRequest
+{
+    Model = "gpt-4",
+    Messages = new[] { new Message { Role = "user", Content = "Hello" } }
+});
+
+Console.WriteLine(response.Metadata.Provider);
+Console.WriteLine(response.Metadata.CostUsd);
+```
+
+---
+
+## API Reference
+
+The full API reference documents all available endpoints, request parameters, response formats, error codes, and authentication details.
+
+[View API Reference →](/overture/docs/api-reference/introduction)
+
+---
+
+## SDK Source
+
+All SDKs are open source:
+
+- [igris-javascript-sdk](https://github.com/Igris-inertial/igris-javascript-sdk)
+- [igris-python-sdk](https://github.com/Igris-inertial/igris-python-sdk)
+- [igris-go-sdk](https://github.com/Igris-inertial/igris-go-sdk)
+- [igris-rust-sdk](https://github.com/Igris-inertial/igris-rust-sdk)
+- [igris-ruby-sdk](https://github.com/Igris-inertial/igris-ruby-sdk)
+- [igris-java-sdk](https://github.com/Igris-inertial/igris-java-sdk)
+- [igris-dotnet-sdk](https://github.com/Igris-inertial/igris-dotnet-sdk)
