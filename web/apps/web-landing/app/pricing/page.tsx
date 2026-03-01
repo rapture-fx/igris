@@ -13,7 +13,7 @@ export default function PricingPage() {
 
   return (
     <>
-      <div className="relative min-h-screen bg-[#f6f6f4] dark:bg-[#1b1912]">
+      <div className="relative min-h-screen bg-white dark:bg-[#25231e]">
 
         <div className="relative z-10">
           <Header />
