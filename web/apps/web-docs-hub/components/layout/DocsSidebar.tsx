@@ -186,14 +186,17 @@ export function DocsSidebar({ open = true, onClose }: DocsSidebarProps) {
         : pathname === item.href || pathname === item.href + '/'
     );
 
+    const sharedBase = 'flex items-center gap-2.5 rounded-lg px-3 py-2 text-[0.75rem] font-medium font-inter transition-colors';
+    const inactiveStyle = 'text-gray-600 dark:text-[#c8c8b8] hover:text-gray-900 dark:hover:text-[#f6f6f4] hover:bg-[#f5f5f5] dark:hover:bg-[#2c2a22]';
+
     if (item.external) {
       return (
         <li key={item.name}>
           <a
             href={item.href}
-            className="flex items-center gap-2.5 rounded-lg px-3 py-2 text-[0.75rem] font-medium font-inter transition-colors text-gray-700 dark:text-[#c8c8b8] hover:text-gray-900 dark:hover:text-[#f6f6f4]"
+            className={cn(sharedBase, inactiveStyle)}
           >
-            {item.icon && <item.icon className="h-4 w-4 text-gray-700 dark:text-[#c8c8b8]" />}
+            {item.icon && <item.icon className="h-4 w-4 text-gray-400 dark:text-[#c8c8b8]" />}
             {item.name}
           </a>
         </li>
@@ -205,15 +208,15 @@ export function DocsSidebar({ open = true, onClose }: DocsSidebarProps) {
         <Link
           href={item.href}
           className={cn(
-            'flex items-center gap-2.5 rounded-lg px-3 py-2 text-[0.75rem] font-medium font-inter transition-colors',
+            sharedBase,
             isHubActive
-              ? 'bg-blue-50 dark:bg-blue-500/10 text-[#114dcd] dark:text-[#3b82f6] font-semibold'
-              : 'text-gray-600 dark:text-[#c8c8b8] hover:text-gray-900 dark:hover:text-[#f6f6f4] hover:bg-gray-50 dark:hover:bg-white/5'
+              ? 'bg-[#f5f5f5] dark:bg-[#282c34] text-gray-900 dark:text-[#f6f6f4] font-semibold'
+              : inactiveStyle
           )}
           onClick={onClose}
         >
           {item.icon && (
-            <item.icon className={cn('h-4 w-4', isHubActive ? 'text-[#114dcd] dark:text-[#3b82f6]' : 'text-gray-400 dark:text-[#c8c8b8]')} />
+            <item.icon className={cn('h-4 w-4', isHubActive ? 'text-gray-700 dark:text-[#abb2bf]' : 'text-gray-400 dark:text-[#c8c8b8]')} />
           )}
           {item.name}
         </Link>
