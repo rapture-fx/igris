@@ -88,9 +88,9 @@ export default function Pricing() {
   const isDark = mounted && theme === 'dark';
 
   return (
-    <section id="pricing" className="pt-0 pb-0 bg-[#f6f6f4] dark:bg-[#1b1912] text-gray-900 dark:text-[#f6f6f4] relative transition-colors duration-200">
+    <section id="pricing" className="pt-0 pb-0 bg-white dark:bg-[#1b1912] text-gray-900 dark:text-[#f6f6f4] relative transition-colors duration-200">
       <div className="mx-auto max-w-[1100px] px-4 sm:px-6 lg:px-8">
-        <div className="relative px-4 md:px-8 lg:px-12 pb-0 pt-[70px] bg-[#f6f6f4] dark:bg-[#1b1912] z-10">
+        <div className="relative px-4 md:px-8 lg:px-12 pb-0 pt-[70px] bg-white dark:bg-[#1b1912] z-10">
           <div className="max-w-[1400px] mx-auto pt-24 px-0 md:px-8 lg:px-0 pb-24">
             <div className="text-center mb-12">
               <h2 className="text-3xl md:text-5xl lg:text-6xl mb-6 text-[#000000] dark:text-[#f6f6f4]" style={{ fontFamily: '-apple-system, BlinkMacSystemFont, "Segoe UI", Roboto, Helvetica, Arial, sans-serif' }}>
@@ -106,7 +106,7 @@ export default function Pricing() {
                     tier.recommended
                       ? 'border-gray-300 dark:border-[#f6f6f4]/10'
                       : 'border-gray-300 dark:border-[#f6f6f4]/10'
-                  } bg-[#f6f6f4] dark:bg-[#1b1912]`}
+                  } bg-[#f2f1ed] dark:bg-[#1b1912]`}
                 >
                   <div className="p-6 flex flex-col h-full">
                     <div className="flex-grow">

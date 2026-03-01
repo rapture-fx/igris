@@ -178,7 +178,7 @@ export default function Faq() {
     <>
       {/* Full-width top border */}
       <div style={{ borderTop: '0.5px solid rgba(209, 213, 219, 0.35)' }} />
-      <section id="faq" className="bg-[#f6f6f4] dark:bg-dark-bg text-gray-900 dark:text-[#f6f6f4] transition-colors duration-200">
+      <section id="faq" className="bg-white dark:bg-dark-bg text-gray-900 dark:text-[#f6f6f4] transition-colors duration-200">
         <div className="max-w-[1100px] mx-auto px-4 sm:px-6 lg:px-8">
           <div className="relative px-4 md:px-8 lg:px-12 min-h-0 flex flex-col" style={{ borderLeft: '0.5px solid rgba(209, 213, 219, 0.35)', borderRight: '0.5px solid rgba(209, 213, 219, 0.35)' }}>
 
@@ -198,7 +198,7 @@ export default function Faq() {
                       openSectionIndex === sectionIndex
                         ? 'border-gray-300 dark:border-[#f6f6f4]/10 shadow-lg'
                         : 'border-gray-200 dark:border-[#f6f6f4]/5 shadow-sm hover:shadow-md'
-                    } bg-[#f6f6f4] dark:bg-[#1b1912]`}
+                    } bg-[#f2f1ed] dark:bg-[#1b1912]`}
                   >
                     {/* Section Title */}
                     <button
