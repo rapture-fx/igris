@@ -45,9 +45,9 @@ export default function RootLayout({
   children: React.ReactNode
 }) {
   return (
-    <html lang="en" suppressHydrationWarning className={`${GeistSans.variable} ${GeistMono.variable} ${GeistPixelSquare.variable}`} style={{ backgroundColor: '#f6f6f4' }}>
+    <html lang="en" suppressHydrationWarning className={`${GeistSans.variable} ${GeistMono.variable} ${GeistPixelSquare.variable}`} style={{ backgroundColor: '#f7f7f3' }}>
       <head>
-        <meta name="theme-color" content="#f6f6f4" media="(prefers-color-scheme: light)" />
+        <meta name="theme-color" content="#f7f7f3" media="(prefers-color-scheme: light)" />
         <meta name="theme-color" content="#1b1912" media="(prefers-color-scheme: dark)" />
         <script
           dangerouslySetInnerHTML={{
@@ -56,14 +56,14 @@ export default function RootLayout({
                 try {
                   var theme = localStorage.getItem('igris-theme') || 'light';
                   document.documentElement.classList.add(theme);
-                  document.documentElement.style.backgroundColor = theme === 'dark' ? '#1b1912' : '#f6f6f4';
+                  document.documentElement.style.backgroundColor = theme === 'dark' ? '#1b1912' : '#f7f7f3';
                 } catch (e) {}
               })();
             `,
           }}
         />
       </head>
-      <body suppressHydrationWarning style={{ backgroundColor: '#f6f6f4' }}>
+      <body suppressHydrationWarning style={{ backgroundColor: '#f7f7f3' }}>
         <Providers>
           {children}
         </Providers>

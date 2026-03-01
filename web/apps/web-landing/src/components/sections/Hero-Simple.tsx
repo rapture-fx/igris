@@ -78,7 +78,7 @@ export default function Hero() {
   }, [])
 
   return (
-    <section className="pb-0 bg-[#f6f6f4] dark:bg-dark-bg text-gray-900 dark:text-[#f6f6f4] relative overflow-visible transition-colors duration-200" style={{ marginTop: '52px' }}>
+    <section className="pb-0 bg-[#f7f7f3] dark:bg-dark-bg text-gray-900 dark:text-[#f6f6f4] relative overflow-visible transition-colors duration-200" style={{ marginTop: '52px' }}>
       <div className="mx-auto max-w-[1100px] px-4 sm:px-6 lg:px-8">
         <div className="relative overflow-hidden flex flex-col justify-end" style={{
           minHeight: '600px',
@@ -106,7 +106,7 @@ export default function Hero() {
                     <a
                       href="https://admin.igris-inertial.com/auth?mode=signup"
                       className="inline-flex items-center justify-center px-6 py-3 hover:opacity-80 transition-all duration-200 text-sm font-medium shadow-sm rounded-md"
-                      style={{ fontFamily: '-apple-system, BlinkMacSystemFont, "Segoe UI", Roboto, Helvetica, Arial, sans-serif', backgroundColor: '#f6f6f4', color: '#1b1912' }}
+                      style={{ fontFamily: '-apple-system, BlinkMacSystemFont, "Segoe UI", Roboto, Helvetica, Arial, sans-serif', backgroundColor: '#f7f7f3', color: '#1b1912' }}
                     >
                       Get Started
                     </a>
