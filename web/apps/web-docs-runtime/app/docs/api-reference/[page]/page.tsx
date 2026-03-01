@@ -16,6 +16,8 @@ const pageToFile: Record<string, string> = {
   'errors-retries': 'errors-retries',
   'rate-limits-budgets': 'rate-limits-budgets',
   sdks: 'sdks',
+  modes: 'modes',
+  streaming: 'streaming',
 };
 
 export async function generateStaticParams() {
