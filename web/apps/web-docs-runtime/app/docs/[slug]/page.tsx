@@ -25,6 +25,10 @@ const slugToFile: Record<string, string> = {
   'ros2-integration': 'ros2-integration',
   multimodal: 'multimodal',
   'qlora-training': 'qlora-training',
+  'local-models': 'local-models',
+  deployment: 'deployment',
+  configuration: 'configuration',
+  'hybrid-execution': 'hybrid-execution',
 };
 
 export async function generateStaticParams() {
