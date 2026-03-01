@@ -106,7 +106,7 @@ export default function Hero() {
                     <a
                       href="https://admin.igris-inertial.com/auth?mode=signup"
                       className="inline-flex items-center justify-center px-6 py-3 hover:opacity-80 transition-all duration-200 text-sm font-medium shadow-sm rounded-md"
-                      style={{ fontFamily: '-apple-system, BlinkMacSystemFont, "Segoe UI", Roboto, Helvetica, Arial, sans-serif', backgroundColor: '#ffffff', color: '#1b1912' }}
+                      style={{ fontFamily: '-apple-system, BlinkMacSystemFont, "Segoe UI", Roboto, Helvetica, Arial, sans-serif', backgroundColor: '#f2f1ed', color: '#1b1912' }}
                     >
                       Get Started
                     </a>
