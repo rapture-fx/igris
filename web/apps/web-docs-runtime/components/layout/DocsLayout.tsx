@@ -13,7 +13,7 @@ export function DocsLayout({ children }: DocsLayoutProps) {
   const [sidebarOpen, setSidebarOpen] = useState(false);
 
   return (
-    <div className="relative min-h-screen m-0 p-0 overflow-x-hidden bg-[#1b1912]">
+    <div className="relative min-h-screen m-0 p-0 overflow-x-hidden bg-[#f7f7f3] dark:bg-[#1b1912]">
       <div className="relative z-10 flex h-screen">
         <DocsSidebar open={sidebarOpen} onClose={() => setSidebarOpen(false)} />
 
