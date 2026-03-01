@@ -20258,6 +20258,7 @@ database_*.env
 igris-runtime/models/
 !web/apps/web-docs/lib/
 !web/apps/web-docs-runtime/lib/
+!web/apps/web-docs-hub/lib/
 
 # Separate SDK repositories (published independently)
 igris-*-sdk/
