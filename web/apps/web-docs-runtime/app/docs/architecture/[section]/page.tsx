@@ -10,6 +10,8 @@ interface PageProps {
 
 const sectionToFile: Record<string, string> = {
   containment: 'containment',
+  'execution-envelope': 'execution-envelope',
+  'supervisor-model': 'supervisor-model',
 };
 
 export async function generateStaticParams() {
