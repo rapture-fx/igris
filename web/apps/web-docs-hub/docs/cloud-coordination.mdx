@@ -1,0 +1,136 @@
+# Cloud Coordination
+
+Igris coordinates AI inference across multiple cloud providers from a central coordination layer. It selects providers, handles failover, tracks cost, and manages fleet instances — without exposing these mechanics to your application.
+
+---
+
+## Provider Routing
+
+Igris maintains real-time performance statistics for each configured cloud provider:
+
+- **Success rate**: fraction of requests that returned a valid response
+- **Latency**: p50 and p95 response times, tracked with exponential decay
+- **Cost**: per-token cost at the provider's current pricing
+
+At request time, Igris selects a provider using Thompson Sampling: a Bayesian multi-armed bandit algorithm that balances exploration (trying providers to keep statistics fresh) and exploitation (using the provider known to perform best for this workload).
+
+Selection is re-evaluated on every request. A provider that degrades will see its traffic share drop as statistics update in real time.
+
+---
+
+## Failover
+
+When a selected provider returns an error or times out, Igris automatically selects the next-best provider from the pool and retries. This happens within the same API call, before returning a response to your application.
+
+Failover behavior:
+- The first provider failure triggers an immediate retry with the next provider
+- If the retry also fails, Igris continues down the provider ranking
+- If all cloud providers fail and a local execution engine is registered, the request routes there
+- If no path succeeds, Igris returns an error after exhausting all options
+
+Your application sees one request and one response. The `metadata.fallback` field indicates whether failover occurred.
+
+---
+
+## Cost Tracking
+
+Every request is attributed to a tenant and tracked against a monthly budget:
+
+```json
+{
+  "metadata": {
+    "provider": "anthropic",
+    "model_used": "claude-3-haiku",
+    "cost_usd": 0.00021,
+    "routing_decision": "thompson-sampling"
+  }
+}
+```
+
+**Budget enforcement:**
+- At 90% of monthly budget: a warning header is added to responses
+- At 100%: Igris returns HTTP 402 before forwarding the request
+
+Budget limits are configurable per tenant and can be updated without redeployment.
+
+---
+
+## Provider Health Monitoring
+
+Igris monitors provider health continuously:
+
+- **Synthetic probes**: periodic requests to verify provider availability and latency
+- **Error rate tracking**: consecutive errors trigger circuit-breaker behavior
+- **Recovery detection**: providers that return to health are re-admitted to the routing pool automatically
+
+The provider health dashboard is available at [app.igrisinertial.com](https://app.igrisinertial.com).
+
+---
+
+## BYOK (Bring Your Own Keys)
+
+Each tenant provides their own cloud provider API keys. Keys are encrypted at rest and never exposed in logs or responses.
+
+Add a provider key:
+
+```bash
+curl -X POST https://api.igrisinertial.com/v1/vault/keys \
+  -H "Authorization: Bearer YOUR_IGRIS_KEY" \
+  -H "Content-Type: application/json" \
+  -d '{"provider": "openai", "key": "sk-..."}'
+```
+
+Supported providers: OpenAI, Anthropic, Google (Gemini), Mistral, Cohere, and any OpenAI-compatible endpoint.
+
+[Providers & Keys →](/overture/docs/providers-keys)
+
+---
+
+## Fleet Integration
+
+The coordination layer manages registered execution engine instances:
+
+- **Registration**: instances register with an endpoint and a unique name
+- **Heartbeat**: instances send periodic health signals; missing instances trigger alerts
+- **Configuration push**: configuration updates are distributed to the fleet without instance restarts
+- **Telemetry collection**: execution receipts from fleet instances are aggregated centrally
+- **Routing**: specific requests can be routed to specific instances by name or tag
+
+```bash
+# Register an execution engine instance
+curl -X POST https://api.igrisinertial.com/api/v1/runtime/register \
+  -H "Authorization: Bearer YOUR_API_KEY" \
+  -d '{
+    "name": "robot-arm-01",
+    "endpoint": "http://192.168.1.42:8080",
+    "tags": ["robotics", "arm"]
+  }'
+```
+
+[Fleet Management →](/runtime/docs/fleet-management)
+
+---
+
+## Routing Policies
+
+Routing behavior can be overridden with per-tenant policies:
+
+```json
+{
+  "routing": {
+    "strategy": "cost-optimized",
+    "provider_pins": {
+      "model:gpt-4": "openai"
+    },
+    "fallback_chain": ["anthropic", "google", "runtime:robot-arm-01"]
+  }
+}
+```
+
+Policy options:
+- `cost-optimized`: minimize cost per token
+- `latency-optimized`: minimize p50 latency
+- `thompson-sampling`: adaptive multi-armed bandit (default)
+- Manual provider pins for specific models
+
+[Policy →](/overture/docs/governance/policy-engine)
