@@ -141,7 +141,7 @@ export default function Header() {
               ? 'opacity-0'
               : isScrolled
                 ? 'opacity-100 backdrop-blur-md bg-[rgba(246,246,244,0.85)] dark:bg-[rgba(27,25,18,0.85)]'
-                : 'opacity-100 bg-[#f6f6f4] dark:bg-[#1b1912]'
+                : 'opacity-100 bg-white dark:bg-[#1b1912]'
           }`}
           style={{ borderBottom: 'none' }}
         />
@@ -163,7 +163,7 @@ export default function Header() {
             <div
               className={`flex items-center justify-between w-full px-5 transition-all duration-300 ${
                 isFloating
-                  ? 'bg-[#f6f6f4] dark:bg-[#1b1912] shadow-[0_4px_24px_rgba(0,0,0,0.08)] rounded-t-2xl'
+                  ? 'bg-white dark:bg-[#1b1912] shadow-[0_4px_24px_rgba(0,0,0,0.08)] rounded-t-2xl'
                   : 'bg-transparent'
               }`}
               style={{
@@ -255,7 +255,7 @@ export default function Header() {
                 onMouseEnter={cancelClose}
               >
                 <div
-                  className={`bg-[#f6f6f4] dark:bg-[#1b1912] shadow-[0_4px_24px_rgba(0,0,0,0.08)] rounded-b-2xl border-t border-gray-200 dark:border-[#f6f6f4]/5 transition-all duration-300 ease-out ${
+                  className={`bg-white dark:bg-[#1b1912] shadow-[0_4px_24px_rgba(0,0,0,0.08)] rounded-b-2xl border-t border-gray-200 dark:border-[#f6f6f4]/5 transition-all duration-300 ease-out ${
                     isDropdownVisible
                       ? 'opacity-100 max-h-[400px]'
                       : 'opacity-0 max-h-0'
@@ -409,7 +409,7 @@ export default function Header() {
 
           {/* Mobile Menu Overlay */}
           {mobileMenuOpen && (
-            <div className="md:hidden fixed inset-0 top-0 z-50 bg-[#f6f6f4] dark:bg-[#1b1912] overflow-y-auto">
+            <div className="md:hidden fixed inset-0 top-0 z-50 bg-white dark:bg-[#1b1912] overflow-y-auto">
               {/* Mobile menu header */}
               <div className="flex items-center justify-between px-4 sm:px-6" style={{ paddingTop: '1.5rem', paddingBottom: '1.5rem' }}>
                 <Link href="/" prefetch={false} onClick={() => setMobileMenuOpen(false)}>
