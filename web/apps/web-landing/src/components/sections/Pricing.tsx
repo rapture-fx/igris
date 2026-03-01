@@ -106,7 +106,7 @@ export default function Pricing() {
                     tier.recommended
                       ? 'border-gray-300 dark:border-[#f6f6f4]/10'
                       : 'border-gray-300 dark:border-[#f6f6f4]/10'
-                  } bg-[#f2f1ed] dark:bg-[#1b1912]`}
+                  } bg-[#f9f9fa] dark:bg-[#1b1912]`}
                 >
                   <div className="p-6 flex flex-col h-full">
                     <div className="flex-grow">

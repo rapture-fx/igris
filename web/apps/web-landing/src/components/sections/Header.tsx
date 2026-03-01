@@ -140,7 +140,7 @@ export default function Header() {
             isFloating
               ? 'opacity-0'
               : isScrolled
-                ? 'opacity-100 backdrop-blur-md bg-[rgba(246,246,244,0.85)] dark:bg-[rgba(27,25,18,0.85)]'
+                ? 'opacity-100 backdrop-blur-md bg-[rgba(255,255,255,0.85)] dark:bg-[rgba(27,25,18,0.85)]'
                 : 'opacity-100 bg-white dark:bg-[#1b1912]'
           }`}
           style={{ borderBottom: 'none' }}
