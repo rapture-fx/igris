@@ -57,7 +57,10 @@ export default function CoreCapabilities() {
                     key={capability.name}
                     style={{
                       width: '33.333%',
-                      padding: '3rem 2rem 5rem',
+                      paddingTop: '3rem',
+                      paddingBottom: '10rem',
+                      paddingLeft: index === 0 ? 0 : '2rem',
+                      paddingRight: index === capabilities.length - 1 ? 0 : '2rem',
                       verticalAlign: 'top',
                       borderRight: index < capabilities.length - 1 ? '0.5px solid rgba(209, 213, 219, 0.35)' : 'none',
                     }}
@@ -74,21 +77,21 @@ export default function CoreCapabilities() {
                         <img
                           src={mounted && theme === 'dark' ? '/cr.png?v=2' : '/exc.png?v=2'}
                           alt={capability.name}
-                          style={{ width: '100%', height: '100%', objectFit: 'contain', opacity: 0.85 }}
+                          style={{ width: '100%', height: '100%', objectFit: 'contain', opacity: 0.45 }}
                         />
                       )}
                       {index === 1 && (
                         <img
                           src={mounted && theme === 'dark' ? '/cs.png' : '/tre.png'}
                           alt={capability.name}
-                          style={{ width: '100%', height: '100%', objectFit: 'contain', opacity: 0.85 }}
+                          style={{ width: '100%', height: '100%', objectFit: 'contain', opacity: 0.45 }}
                         />
                       )}
                       {index === 2 && (
                         <img
                           src={mounted && theme === 'dark' ? '/cc.png' : '/one.png'}
                           alt={capability.name}
-                          style={{ width: '100%', height: '100%', objectFit: 'contain', opacity: 0.85 }}
+                          style={{ width: '100%', height: '100%', objectFit: 'contain', opacity: 0.45 }}
                         />
                       )}
                     </div>

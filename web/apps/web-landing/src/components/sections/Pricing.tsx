@@ -102,7 +102,7 @@ export default function Pricing() {
               {pricingTiers.map((tier, index) => (
                 <div
                   key={index}
-                  className={`group relative transition-all duration-500 w-full border rounded-xl shadow-lg hover:shadow-xl ${
+                  className={`group relative transition-all duration-500 w-full border rounded-xl shadow-sm hover:shadow-md ${
                     tier.recommended
                       ? 'border-gray-300 dark:border-[#f6f6f4]/10'
                       : 'border-gray-300 dark:border-[#f6f6f4]/10'
