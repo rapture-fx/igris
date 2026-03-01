@@ -13,21 +13,21 @@
   body {
     margin: 0;
     padding: 0;
-    background-color: #f6f6f4 !important;
-    background: #f6f6f4 !important;
+    background-color: #f7f7f3 !important;
+    background: #f7f7f3 !important;
     box-sizing: border-box;
   }
 
   /* Ensure consistent background on mobile overscroll */
   html {
-    background: #f6f6f4 !important;
-    background-color: #f6f6f4 !important;
+    background: #f7f7f3 !important;
+    background-color: #f7f7f3 !important;
     overflow-x: hidden;
   }
 
   body {
-    background: #f6f6f4 !important;
-    background-color: #f6f6f4 !important;
+    background: #f7f7f3 !important;
+    background-color: #f7f7f3 !important;
     min-height: 100vh;
     overflow-x: hidden;
     overflow-y: auto;
@@ -71,8 +71,8 @@
 
   /* Prevent any default black backgrounds */
   #__next {
-    background: #f6f6f4 !important;
-    background-color: #f6f6f4 !important;
+    background: #f7f7f3 !important;
+    background-color: #f7f7f3 !important;
   }
 
   html.dark #__next {
@@ -83,7 +83,7 @@
   /* Force background on all viewport areas including overscroll */
   @media screen {
     html {
-      background: #f6f6f4 !important;
+      background: #f7f7f3 !important;
     }
 
     html.dark {
@@ -93,8 +93,8 @@
 
   /* Remove any black from browser defaults */
   :root {
-    background: #f6f6f4 !important;
-    background-color: #f6f6f4 !important;
+    background: #f7f7f3 !important;
+    background-color: #f7f7f3 !important;
   }
 
   :root:has(html.dark) {
@@ -267,7 +267,7 @@ body.modal-open {
 }
 
 .dark .pricing-slider::-webkit-slider-thumb {
-  background: #f6f6f4;
+  background: #f7f7f3;
   border: 1px solid rgba(156, 163, 175, 0.3);
   transform: translateY(-1px);
 }
@@ -301,7 +301,7 @@ body.modal-open {
 }
 
 .dark .pricing-slider::-moz-range-thumb {
-  background: #f6f6f4;
+  background: #f7f7f3;
   border: 1px solid rgba(156, 163, 175, 0.3);
   transform: translateY(-1px);
 }
