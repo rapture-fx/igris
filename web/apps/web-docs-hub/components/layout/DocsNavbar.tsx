@@ -8,11 +8,18 @@ const labelMap: Record<string, string> = {
   docs: 'Docs',
   overview: 'Overview',
   architecture: 'Architecture',
-  'execution-flow': 'Execution Flow',
   governance: 'Governance',
   sdk: 'SDKs',
   deployment: 'Deployment',
   quickstart: 'Quick Start',
+  'execution-model': 'Execution Model',
+  safety: 'Safety & Containment',
+  agents: 'Agents',
+  tools: 'Tools',
+  memory: 'Memory',
+  robotics: 'Robotics',
+  'cloud-coordination': 'Cloud Coordination',
+  audit: 'Audit',
 };
 
 export function DocsNavbar() {
