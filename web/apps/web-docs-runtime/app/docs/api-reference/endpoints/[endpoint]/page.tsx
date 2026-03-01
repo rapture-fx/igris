@@ -14,6 +14,9 @@ const endpointToFile: Record<string, string> = {
   models: 'models',
   embeddings: 'embeddings',
   status: 'status',
+  health: 'health',
+  metrics: 'metrics',
+  'lora-status': 'lora-status',
 };
 
 export async function generateStaticParams() {
