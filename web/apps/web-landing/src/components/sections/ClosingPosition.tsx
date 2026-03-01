@@ -4,12 +4,12 @@ import { ChevronRight } from 'lucide-react'
 
 export default function ClosingPosition() {
   return (
-    <section className="bg-[#f6f6f4] dark:bg-dark-bg text-gray-900 dark:text-[#f6f6f4] transition-colors duration-200">
+    <section className="bg-white dark:bg-dark-bg text-gray-900 dark:text-[#f6f6f4] transition-colors duration-200">
       {/* Full-width top border */}
       <div style={{ borderTop: '0.5px solid rgba(209, 213, 219, 0.35)' }} />
 
       <div className="mx-auto max-w-[1100px] px-4 sm:px-6 lg:px-8">
-        <div className="px-4 md:px-8 lg:px-12 bg-[#f6f6f4] dark:bg-[#1b1912]" style={{
+        <div className="px-4 md:px-8 lg:px-12 bg-white dark:bg-[#1b1912]" style={{
           borderLeft: '0.5px solid rgba(209, 213, 219, 0.35)',
           borderRight: '0.5px solid rgba(209, 213, 219, 0.35)'
         }}>

@@ -356,7 +356,7 @@ export default function SDKs() {
   const borderStyle = '0.5px solid rgba(209, 213, 219, 0.35)'
 
   return (
-    <section className="bg-[#f7f7f3] dark:bg-dark-bg text-gray-900 dark:text-[#f6f6f4] transition-colors duration-200">
+    <section className="bg-white dark:bg-dark-bg text-gray-900 dark:text-[#f6f6f4] transition-colors duration-200">
       <div className="mx-auto max-w-[1100px] px-4 sm:px-6 lg:px-8">
         <div className="px-4 md:px-8 lg:px-12" style={{ borderLeft: borderStyle, borderRight: borderStyle }}>
           {/* Title */}
@@ -412,7 +412,7 @@ export default function SDKs() {
             </div>
             {/* Col 2 - Code */}
             <div className="relative" style={{ minHeight: '280px' }}>
-              <div className="absolute top-2 bottom-2 left-2 right-0 rounded-2xl border border-gray-200 dark:border-[#f6f6f4]/8 bg-[#edece9] dark:bg-[#1b1912]/60 p-4 overflow-hidden">
+              <div className="absolute top-2 bottom-2 left-2 right-0 rounded-2xl border border-gray-200 dark:border-[#f6f6f4]/8 bg-[#f2f1ed] dark:bg-[#1b1912]/60 p-4 overflow-hidden">
                 <div className="h-full overflow-y-auto scrollbar-hide" style={{ scrollbarWidth: 'none', msOverflowStyle: 'none' }}>
                   <CodeBlock code={codeExamples[selectedLang]} language={selectedLang} />
                 </div>
@@ -450,7 +450,7 @@ export default function SDKs() {
             </div>
             {/* Col 2 - Code */}
             <div className="relative" style={{ minHeight: '280px' }}>
-              <div className="absolute top-2 bottom-2 left-2 right-0 rounded-2xl border border-gray-200 dark:border-[#f6f6f4]/8 bg-[#edece9] dark:bg-[#1b1912]/60 p-4 overflow-hidden">
+              <div className="absolute top-2 bottom-2 left-2 right-0 rounded-2xl border border-gray-200 dark:border-[#f6f6f4]/8 bg-[#f2f1ed] dark:bg-[#1b1912]/60 p-4 overflow-hidden">
                 <div className="h-full overflow-y-auto scrollbar-hide" style={{ scrollbarWidth: 'none', msOverflowStyle: 'none' }}>
                   <CodeBlock code={btreeExamples[selectedLang]} language={selectedLang} />
                 </div>

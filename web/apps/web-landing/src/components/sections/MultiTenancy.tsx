@@ -30,13 +30,13 @@ export default function MultiTenancy() {
     setMounted(true)
   }, [])
 
-  const cardClass = "border border-gray-200 dark:border-[#f6f6f4]/8 rounded-2xl p-6 bg-[#edece9] dark:bg-[#1b1912]/60 hover:border-gray-300 dark:hover:border-[#f6f6f4]/15 transition-colors duration-200 flex flex-col"
+  const cardClass = "border border-gray-200 dark:border-[#f6f6f4]/8 rounded-2xl p-6 bg-[#f2f1ed] dark:bg-[#1b1912]/60 hover:border-gray-300 dark:hover:border-[#f6f6f4]/15 transition-colors duration-200 flex flex-col"
   const titleClass = "text-base md:text-lg text-[#000000] dark:text-[#f6f6f4]"
   const descClass = "text-sm md:text-base text-gray-600 dark:text-[#a8a898] leading-relaxed max-w-[280px]"
   const fontFamily = '-apple-system, BlinkMacSystemFont, "Segoe UI", Roboto, Helvetica, Arial, sans-serif'
 
   return (
-    <section className="bg-[#f7f7f3] dark:bg-dark-bg text-gray-900 dark:text-[#f6f6f4] transition-colors duration-200 overflow-hidden">
+    <section className="bg-white dark:bg-dark-bg text-gray-900 dark:text-[#f6f6f4] transition-colors duration-200 overflow-hidden">
       <div className="mx-auto max-w-[1100px] px-4 sm:px-6 lg:px-8">
         <div className="px-4 md:px-8 lg:px-12" style={{ borderLeft: '0.5px solid rgba(209, 213, 219, 0.35)', borderRight: '0.5px solid rgba(209, 213, 219, 0.35)' }}>
           {/* Title */}
@@ -47,7 +47,7 @@ export default function MultiTenancy() {
             <Link
               href="/security"
               className="inline-flex items-center justify-center px-4 py-2 md:px-6 md:py-3 hover:opacity-80 transition-all duration-200 text-sm font-medium shadow-sm rounded-md border shrink-0 ml-4"
-              style={{ backgroundColor: mounted && theme === 'dark' ? '#1b1912' : '#f7f7f3', color: mounted && theme === 'dark' ? '#f6f6f4' : '#1b1912', borderColor: 'rgba(20, 18, 10, 0.1)', fontFamily }}
+              style={{ backgroundColor: mounted && theme === 'dark' ? '#1b1912' : '#f2f1ed', color: mounted && theme === 'dark' ? '#f6f6f4' : '#1b1912', borderColor: 'rgba(20, 18, 10, 0.1)', fontFamily }}
             >
               Learn More
               <ChevronRight className="ml-1 h-4 w-4" />

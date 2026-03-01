@@ -13,7 +13,7 @@ export default function Footer() {
   }, [])
 
   return (
-     <footer className="bg-[#f7f7f3] dark:bg-dark-bg text-gray-900 dark:text-[#f6f6f4] transition-all duration-200">
+     <footer className="bg-white dark:bg-dark-bg text-gray-900 dark:text-[#f6f6f4] transition-all duration-200">
       <div className="mx-auto max-w-[1100px] px-4 sm:px-6 lg:px-8">
           <div className="px-4 md:px-8 lg:px-12 text-gray-900 dark:text-[#f6f6f4]" style={{ backgroundColor: 'transparent' }}>
 {/* Main footer content */}
