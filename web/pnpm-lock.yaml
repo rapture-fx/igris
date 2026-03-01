@@ -436,12 +436,30 @@ importers:
 
   apps/web-docs-hub:
     dependencies:
+      '@mdx-js/loader':
+        specifier: ^3.0.0
+        version: 3.1.1
+      '@mdx-js/react':
+        specifier: ^3.0.0
+        version: 3.1.1(@types/react@18.3.27)(react@18.3.1)
+      '@next/mdx':
+        specifier: ^15.1.8
+        version: 15.5.9(@mdx-js/loader@3.1.1)(@mdx-js/react@3.1.1)
+      clsx:
+        specifier: ^2.1.0
+        version: 2.1.1
+      gray-matter:
+        specifier: ^4.0.3
+        version: 4.0.3
       lucide-react:
         specifier: ^0.294.0
         version: 0.294.0(react@18.3.1)
       next:
         specifier: 15.5.9
         version: 15.5.9(react-dom@18.3.1)(react@18.3.1)
+      next-mdx-remote:
+        specifier: ^4.4.1
+        version: 4.4.1(react-dom@18.3.1)(react@18.3.1)
       next-themes:
         specifier: ^0.2.1
         version: 0.2.1(next@15.5.9)(react-dom@18.3.1)(react@18.3.1)
@@ -451,6 +469,12 @@ importers:
       react-dom:
         specifier: ^18.3.1
         version: 18.3.1(react@18.3.1)
+      remark-gfm:
+        specifier: ^4.0.1
+        version: 4.0.1
+      tailwind-merge:
+        specifier: ^2.2.0
+        version: 2.6.0
     devDependencies:
       '@types/node':
         specifier: ^20.14.0
@@ -7652,7 +7676,7 @@ packages:
       '@nolyfill/is-core-module': 1.0.39
       debug: 4.4.3
       eslint: 8.57.1
-      eslint-plugin-import: 2.32.0(@typescript-eslint/parser@6.21.0)(eslint-import-resolver-typescript@3.10.1)(eslint@8.57.1)
+      eslint-plugin-import: 2.32.0(@typescript-eslint/parser@8.50.0)(eslint-import-resolver-typescript@3.10.1)(eslint@8.57.1)
       get-tsconfig: 4.13.0
       is-bun-module: 2.0.0
       stable-hash: 0.0.5
