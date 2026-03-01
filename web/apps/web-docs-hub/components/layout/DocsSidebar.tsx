@@ -181,7 +181,9 @@ export function DocsSidebar({ open = true, onClose }: DocsSidebarProps) {
 
   const renderNavItem = (item: NavItem) => {
     const isHubActive = !item.external && (
-      item.href === '/docs' ? pathname === '/docs' : pathname === item.href
+      item.href === '/docs' 
+        ? pathname === '/docs' || pathname === '/docs/'
+        : pathname === item.href || pathname === item.href + '/'
     );
 
     if (item.external) {
@@ -205,12 +207,14 @@ export function DocsSidebar({ open = true, onClose }: DocsSidebarProps) {
           className={cn(
             'flex items-center gap-2.5 rounded-lg px-3 py-2 text-[0.75rem] font-medium font-inter transition-colors',
             isHubActive
-              ? 'text-primary dark:text-[#3b82f6] font-semibold'
-              : 'text-gray-700 dark:text-[#c8c8b8] hover:text-gray-900 dark:hover:text-[#f6f6f4]'
+              ? 'bg-blue-50 dark:bg-blue-500/10 text-[#114dcd] dark:text-[#3b82f6] font-semibold'
+              : 'text-gray-600 dark:text-[#c8c8b8] hover:text-gray-900 dark:hover:text-[#f6f6f4] hover:bg-gray-50 dark:hover:bg-white/5'
           )}
           onClick={onClose}
         >
-          {item.icon && <item.icon className="h-4 w-4 text-gray-700 dark:text-[#c8c8b8]" />}
+          {item.icon && (
+            <item.icon className={cn('h-4 w-4', isHubActive ? 'text-[#114dcd] dark:text-[#3b82f6]' : 'text-gray-400 dark:text-[#c8c8b8]')} />
+          )}
           {item.name}
         </Link>
       </li>

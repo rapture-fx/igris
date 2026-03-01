@@ -1,9 +1,10 @@
 'use client';
 
-import { useState } from 'react';
+import React, { useState } from 'react';
 import { Copy, Check } from 'lucide-react';
 import { Prism as SyntaxHighlighter } from 'react-syntax-highlighter';
-import { oneLight } from 'react-syntax-highlighter/dist/esm/styles/prism';
+import { oneLight, oneDark } from 'react-syntax-highlighter/dist/esm/styles/prism';
+import { useTheme } from 'next-themes';
 
 interface CodeBlockProps {
   children?: React.ReactNode;
@@ -12,16 +13,21 @@ interface CodeBlockProps {
 
 export function CodeBlock({ children, className }: CodeBlockProps) {
   const [copied, setCopied] = useState(false);
+  const { resolvedTheme } = useTheme();
+  const isDark = resolvedTheme === 'dark';
 
-  const getTextContent = (node: any): string => {
-    if (typeof node === 'string') return node;
-    if (Array.isArray(node)) return node.map(getTextContent).join('');
-    if (node?.props?.children) return getTextContent(node.props.children);
-    return '';
-  };
+  // MDX renders <pre><code class="language-X">...</code></pre>
+  // The language className lives on the inner <code>, not on <pre>.
+  const codeEl = React.Children.toArray(children).find(
+    (child: any) => child?.props?.className?.includes('language-')
+  ) as React.ReactElement<any> | undefined;
 
-  const language = className?.replace(/language-/, '') || 'text';
-  const code = getTextContent(children);
+  const language = (codeEl?.props?.className || className || '')
+    .replace(/language-/, '') || 'text';
+
+  const code = typeof codeEl?.props?.children === 'string'
+    ? codeEl.props.children
+    : String(codeEl?.props?.children ?? '');
 
   const handleCopy = async () => {
     try {
@@ -37,24 +43,21 @@ export function CodeBlock({ children, className }: CodeBlockProps) {
     <div className="relative group my-4 rounded-lg overflow-hidden">
       <button
         onClick={handleCopy}
-        className="absolute top-2 right-2 p-1.5 rounded-md text-gray-400 opacity-0 group-hover:opacity-100 transition-opacity z-10"
+        className="absolute top-2 right-2 p-1.5 rounded-md opacity-0 group-hover:opacity-100 transition-opacity z-10 text-gray-400 hover:text-gray-600 dark:text-gray-500 dark:hover:text-gray-300"
         aria-label="Copy code"
       >
-        {copied ? (
-          <Check className="h-4 w-4" />
-        ) : (
-          <Copy className="h-4 w-4" />
-        )}
+        {copied ? <Check className="h-4 w-4" /> : <Copy className="h-4 w-4" />}
       </button>
       <SyntaxHighlighter
         language={language}
-        style={oneLight}
+        style={isDark ? oneDark : oneLight}
         customStyle={{
           margin: 0,
+          border: 'none',
           borderRadius: '0.5rem',
-          padding: '1rem',
-          fontSize: '0.875rem',
-          background: '#f5f5f5',
+          padding: '1.25rem',
+          fontSize: '0.8125rem',
+          lineHeight: '1.6',
         }}
       >
         {code}
