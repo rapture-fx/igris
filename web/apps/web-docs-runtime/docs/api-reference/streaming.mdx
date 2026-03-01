@@ -1,0 +1,150 @@
+# Streaming
+
+The execution engine supports server-sent events (SSE) streaming for chat completions, compatible with the OpenAI streaming format.
+
+---
+
+## Enabling Streaming
+
+Set `"stream": true` in your request body:
+
+```bash
+curl -X POST http://localhost:8080/v1/chat/completions \
+  -H "Content-Type: application/json" \
+  -d '{
+    "model": "phi3",
+    "stream": true,
+    "messages": [{"role": "user", "content": "Write a haiku about edge computing."}]
+  }'
+```
+
+---
+
+## Stream Format
+
+The response is a sequence of `data:` lines in SSE format:
+
+```
+data: {"id":"chatcmpl-abc123","object":"chat.completion.chunk","choices":[{"delta":{"role":"assistant"},"index":0,"finish_reason":null}]}
+
+data: {"id":"chatcmpl-abc123","object":"chat.completion.chunk","choices":[{"delta":{"content":"Data"},"index":0,"finish_reason":null}]}
+
+data: {"id":"chatcmpl-abc123","object":"chat.completion.chunk","choices":[{"delta":{"content":" flows"},"index":0,"finish_reason":null}]}
+
+data: {"id":"chatcmpl-abc123","object":"chat.completion.chunk","choices":[{"delta":{"content":" at the edge,"},"index":0,"finish_reason":null}]}
+
+data: {"id":"chatcmpl-abc123","object":"chat.completion.chunk","choices":[{"delta":{},"index":0,"finish_reason":"stop"}]}
+
+data: [DONE]
+```
+
+Each chunk contains a partial `delta` with incremental content. The stream ends with `data: [DONE]`.
+
+---
+
+## SDK Examples
+
+### Python (OpenAI SDK)
+
+```python
+from openai import OpenAI
+
+client = OpenAI(
+    base_url="http://localhost:8080/v1",
+    api_key="not-required"
+)
+
+stream = client.chat.completions.create(
+    model="phi3",
+    messages=[{"role": "user", "content": "Write a haiku about edge computing."}],
+    stream=True,
+)
+
+for chunk in stream:
+    if chunk.choices[0].delta.content is not None:
+        print(chunk.choices[0].delta.content, end="", flush=True)
+```
+
+### JavaScript / TypeScript
+
+```typescript
+import OpenAI from 'openai';
+
+const client = new OpenAI({
+  baseURL: 'http://localhost:8080/v1',
+  apiKey: 'not-required',
+});
+
+const stream = await client.chat.completions.create({
+  model: 'phi3',
+  messages: [{ role: 'user', content: 'Write a haiku about edge computing.' }],
+  stream: true,
+});
+
+for await (const chunk of stream) {
+  process.stdout.write(chunk.choices[0]?.delta?.content ?? '');
+}
+```
+
+### Go
+
+```go
+stream, err := client.Chat.Completions.NewStreaming(ctx, openai.ChatCompletionNewParams{
+    Model: openai.F("phi3"),
+    Messages: openai.F([]openai.ChatCompletionMessageParamUnion{
+        openai.UserMessage("Write a haiku about edge computing."),
+    }),
+})
+
+for stream.Next() {
+    chunk := stream.Current()
+    if len(chunk.Choices) > 0 {
+        fmt.Print(chunk.Choices[0].Delta.Content)
+    }
+}
+```
+
+### curl with raw SSE
+
+```bash
+curl -X POST http://localhost:8080/v1/chat/completions \
+  -H "Content-Type: application/json" \
+  -H "Accept: text/event-stream" \
+  -d '{"model": "phi3", "stream": true, "messages": [{"role": "user", "content": "Hello"}]}' \
+  --no-buffer
+```
+
+---
+
+## Streaming with Modes
+
+Streaming is supported in all request modes. For reflection and planning modes, chunks are emitted as each stage completes:
+
+```bash
+curl -X POST http://localhost:8080/v1/chat/completions \
+  -H "Content-Type: application/json" \
+  -d '{
+    "model": "phi3",
+    "mode": "reflection",
+    "stream": true,
+    "messages": [{"role": "user", "content": "Explain Byzantine fault tolerance."}]
+  }'
+```
+
+In reflection mode, the stream may pause between the initial generation and the critique/regeneration phases.
+
+---
+
+## Error Handling
+
+If a streaming request fails after the stream has started, the engine emits an error chunk before closing:
+
+```
+data: {"error": {"message": "Provider timed out", "type": "provider_error", "code": "timeout"}}
+
+data: [DONE]
+```
+
+Always handle the case where `chunk.choices` may be empty or `finish_reason` is `"error"`.
+
+[Request Modes →](/docs/api-reference/modes) · [Chat Completions →](/docs/api-reference/endpoints/chat-completions)
