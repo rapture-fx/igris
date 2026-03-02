@@ -161,7 +161,7 @@ export default function Header() {
 
             {/* Nav bar inner content — px-5 always keeps content aligned */}
             <div
-              className={`flex items-center justify-between w-full px-5 transition-all duration-300 ${
+              className={`w-full px-5 transition-all duration-300 ${
                 isFloating
                   ? 'bg-white dark:bg-[#1b1912] shadow-[0_4px_24px_rgba(0,0,0,0.08)] rounded-t-2xl'
                   : 'bg-transparent'
@@ -171,80 +171,83 @@ export default function Header() {
                 paddingBottom: '0.5rem',
               }}
             >
-              <div className="flex">
-                <Link href="/" prefetch={false}>
-                  <img
-                    src={isDark ? '/dmfoot.png' : '/foot.png'}
-                    alt="Igris Inertial"
-                    className="h-10 w-auto"
-                  />
-                </Link>
-              </div>
+              {/* Inner padding matches hero content: px-4 md:px-8 lg:px-12 */}
+              <div className="flex items-center justify-between w-full px-4 md:px-8 lg:px-12">
+                <div className="flex">
+                  <Link href="/" prefetch={false}>
+                    <img
+                      src={isDark ? '/dmfoot.png' : '/foot.png'}
+                      alt="Igris Inertial"
+                      className="h-10 w-auto"
+                    />
+                  </Link>
+                </div>
 
-              <div className="hidden md:flex items-center space-x-1">
-                <button
-                  onMouseEnter={() => openDropdown('features')}
-                  className={`px-3 py-2 text-sm font-medium flex items-center gap-1 transition-all duration-200 rounded-lg ${
-                    activeDropdown === 'features'
-                      ? 'text-gray-900 dark:text-[#f6f6f4] bg-gray-100 dark:bg-[#25231e]'
-                      : 'text-gray-700 dark:text-[#c8c8b8] hover:text-gray-900 dark:hover:text-[#f6f6f4] hover:bg-gray-100 dark:hover:bg-[#25231e]'
-                  }`}
-                  style={{ fontFamily: '-apple-system, BlinkMacSystemFont, "Segoe UI", Roboto, Helvetica, Arial, sans-serif' }}
-                >
-                  Feature
-                  <ChevronDown className={`h-4 w-4 transition-transform duration-200 ${activeDropdown === 'features' ? 'rotate-180' : ''}`} />
-                </button>
+                <div className="hidden md:flex items-center space-x-1">
+                  <button
+                    onMouseEnter={() => openDropdown('features')}
+                    className={`px-3 py-1.5 text-sm font-medium flex items-center gap-1 transition-all duration-200 rounded-md ${
+                      activeDropdown === 'features'
+                        ? 'text-gray-900 dark:text-[#f6f6f4] bg-black/[0.05] dark:bg-white/[0.08]'
+                        : 'text-gray-600 dark:text-[#c8c8b8] hover:text-gray-900 dark:hover:text-[#f6f6f4] hover:bg-black/[0.05] dark:hover:bg-white/[0.08]'
+                    }`}
+                    style={{ fontFamily: '-apple-system, BlinkMacSystemFont, "Segoe UI", Roboto, Helvetica, Arial, sans-serif' }}
+                  >
+                    Feature
+                    <ChevronDown className={`h-4 w-4 transition-transform duration-200 ${activeDropdown === 'features' ? 'rotate-180' : ''}`} />
+                  </button>
 
-                <button
-                  onMouseEnter={() => openDropdown('resources')}
-                  className={`px-3 py-2 text-sm font-medium flex items-center gap-1 transition-all duration-200 rounded-lg ${
-                    activeDropdown === 'resources'
-                      ? 'text-gray-900 dark:text-[#f6f6f4] bg-gray-100 dark:bg-[#25231e]'
-                      : 'text-gray-700 dark:text-[#c8c8b8] hover:text-gray-900 dark:hover:text-[#f6f6f4] hover:bg-gray-100 dark:hover:bg-[#25231e]'
-                  }`}
-                  style={{ fontFamily: '-apple-system, BlinkMacSystemFont, "Segoe UI", Roboto, Helvetica, Arial, sans-serif' }}
-                >
-                  Resources
-                  <ChevronDown className={`h-4 w-4 transition-transform duration-200 ${activeDropdown === 'resources' ? 'rotate-180' : ''}`} />
-                </button>
+                  <button
+                    onMouseEnter={() => openDropdown('resources')}
+                    className={`px-3 py-1.5 text-sm font-medium flex items-center gap-1 transition-all duration-200 rounded-md ${
+                      activeDropdown === 'resources'
+                        ? 'text-gray-900 dark:text-[#f6f6f4] bg-black/[0.05] dark:bg-white/[0.08]'
+                        : 'text-gray-600 dark:text-[#c8c8b8] hover:text-gray-900 dark:hover:text-[#f6f6f4] hover:bg-black/[0.05] dark:hover:bg-white/[0.08]'
+                    }`}
+                    style={{ fontFamily: '-apple-system, BlinkMacSystemFont, "Segoe UI", Roboto, Helvetica, Arial, sans-serif' }}
+                  >
+                    Resources
+                    <ChevronDown className={`h-4 w-4 transition-transform duration-200 ${activeDropdown === 'resources' ? 'rotate-180' : ''}`} />
+                  </button>
 
-                <Link
-                  href="/pricing"
-                  prefetch={false}
-                  onMouseEnter={scheduleClose}
-                  className="px-3 py-2 text-gray-700 dark:text-[#c8c8b8] hover:text-gray-900 dark:hover:text-[#f6f6f4] hover:bg-gray-100 dark:hover:bg-[#25231e] transition-all duration-200 font-medium text-sm rounded-lg"
-                  style={{ fontFamily: '-apple-system, BlinkMacSystemFont, "Segoe UI", Roboto, Helvetica, Arial, sans-serif' }}
-                >
-                  Pricing
-                </Link>
+                  <Link
+                    href="/pricing"
+                    prefetch={false}
+                    onMouseEnter={scheduleClose}
+                    className="px-3 py-1.5 text-gray-600 dark:text-[#c8c8b8] hover:text-gray-900 dark:hover:text-[#f6f6f4] hover:bg-black/[0.05] dark:hover:bg-white/[0.08] transition-all duration-200 font-medium text-sm rounded-md"
+                    style={{ fontFamily: '-apple-system, BlinkMacSystemFont, "Segoe UI", Roboto, Helvetica, Arial, sans-serif' }}
+                  >
+                    Pricing
+                  </Link>
 
-                <a
-                  href={consoleUrl ? `${consoleUrl}/auth?mode=signin` : '#'}
-                  onMouseEnter={scheduleClose}
-                  className="px-3 py-2 text-gray-700 dark:text-[#c8c8b8] hover:text-gray-900 dark:hover:text-[#f6f6f4] hover:bg-gray-100 dark:hover:bg-[#25231e] transition-all duration-200 font-medium text-sm rounded-lg"
-                  style={{ fontFamily: '-apple-system, BlinkMacSystemFont, "Segoe UI", Roboto, Helvetica, Arial, sans-serif' }}
-                >
-                  Sign In
-                </a>
+                  <a
+                    href={consoleUrl ? `${consoleUrl}/auth?mode=signin` : '#'}
+                    onMouseEnter={scheduleClose}
+                    className="px-3 py-1.5 text-gray-600 dark:text-[#c8c8b8] hover:text-gray-900 dark:hover:text-[#f6f6f4] hover:bg-black/[0.05] dark:hover:bg-white/[0.08] transition-all duration-200 font-medium text-sm rounded-md"
+                    style={{ fontFamily: '-apple-system, BlinkMacSystemFont, "Segoe UI", Roboto, Helvetica, Arial, sans-serif' }}
+                  >
+                    Sign In
+                  </a>
 
-                <a
-                  href={consoleUrl ? `${consoleUrl}/auth?mode=signup` : '#'}
-                  onMouseEnter={scheduleClose}
-                  className="inline-flex items-center justify-center px-3 py-1.5 hover:opacity-80 transition-all duration-200 text-xs font-medium shadow-sm rounded-md"
-                  style={{ fontFamily: '-apple-system, BlinkMacSystemFont, "Segoe UI", Roboto, Helvetica, Arial, sans-serif', backgroundColor: '#1b1912', color: '#f6f6f4' }}
-                >
-                  Get Started
-                </a>
-              </div>
+                  <a
+                    href={consoleUrl ? `${consoleUrl}/auth?mode=signup` : '#'}
+                    onMouseEnter={scheduleClose}
+                    className="inline-flex items-center justify-center px-3 py-1.5 hover:opacity-80 transition-all duration-200 text-xs font-medium shadow-sm rounded-md"
+                    style={{ fontFamily: '-apple-system, BlinkMacSystemFont, "Segoe UI", Roboto, Helvetica, Arial, sans-serif', backgroundColor: '#1b1912', color: '#f6f6f4' }}
+                  >
+                    Get Started
+                  </a>
+                </div>
 
-              <div className="md:hidden flex items-center">
-                <button
-                  type="button"
-                  className="text-gray-700 dark:text-[#c8c8b8] hover:text-gray-900 dark:hover:text-[#f6f6f4] transition-colors duration-300"
-                  onClick={() => setMobileMenuOpen(!mobileMenuOpen)}
-                >
-                  {mobileMenuOpen ? <X className="h-5 w-5" /> : <Menu className="h-5 w-5" />}
-                </button>
+                <div className="md:hidden flex items-center">
+                  <button
+                    type="button"
+                    className="text-gray-700 dark:text-[#c8c8b8] hover:text-gray-900 dark:hover:text-[#f6f6f4] transition-colors duration-300"
+                    onClick={() => setMobileMenuOpen(!mobileMenuOpen)}
+                  >
+                    {mobileMenuOpen ? <X className="h-5 w-5" /> : <Menu className="h-5 w-5" />}
+                  </button>
+                </div>
               </div>
             </div>
 
