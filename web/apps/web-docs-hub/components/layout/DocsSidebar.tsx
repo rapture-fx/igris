@@ -46,9 +46,10 @@ interface NavSection {
 type Section = 'docs' | 'api' | 'changelog' | 'articles';
 
 function detectSection(pathname: string): Section {
-  if (pathname.startsWith('/docs/articles')) return 'articles';
-  if (pathname === '/docs/changelog') return 'changelog';
-  if (pathname === '/docs/api-reference') return 'api';
+  const p = pathname.replace(/\/$/, '');
+  if (p.startsWith('/docs/articles')) return 'articles';
+  if (p === '/docs/changelog') return 'changelog';
+  if (p === '/docs/api-reference') return 'api';
   return 'docs';
 }
 
