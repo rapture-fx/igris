@@ -46,7 +46,6 @@ export default function HomePage() {
             <SDKs />
             <MultiTenancy />
             <section className="bg-white dark:bg-dark-bg">
-              <div style={{ borderTop: '0.5px solid rgba(209, 213, 219, 0.35)' }} />
               <div className="mx-auto max-w-[1100px] px-4 sm:px-6 lg:px-8">
                 <div className="px-4 md:px-8 lg:px-12" style={{ borderLeft: '0.5px solid rgba(209, 213, 219, 0.35)', borderRight: '0.5px solid rgba(209, 213, 219, 0.35)' }}>
                   <table className="w-full" style={{ borderCollapse: 'collapse', height: '400px' }}>
@@ -56,25 +55,32 @@ export default function HomePage() {
                           <h3 className="text-xl md:text-2xl lg:text-3xl text-[#000000] dark:text-[#f6f6f4]" style={{ fontFamily: '-apple-system, BlinkMacSystemFont, "Segoe UI", Roboto, Helvetica, Arial, sans-serif', marginBottom: '2rem' }}>
                             Latest Update
                           </h3>
-                          <div className="flex flex-col gap-4">
-                            <div className="border border-gray-200 dark:border-[#f6f6f4]/10 rounded-xl p-4 bg-[#f9f9fa] dark:bg-[#1b1912]/60" style={{ minHeight: '120px' }}>
+                          <div className="flex flex-col gap-4" style={{ maxWidth: '40%' }}>
+                            <div className="border border-gray-200 dark:border-[#f6f6f4]/10 rounded-xl p-4 bg-[#f9f9fa] dark:bg-[#1b1912]/60" style={{ minHeight: '140px' }}>
                             </div>
-                            <div className="border border-gray-200 dark:border-[#f6f6f4]/10 rounded-xl p-4 bg-[#f9f9fa] dark:bg-[#1b1912]/60" style={{ minHeight: '120px' }}>
-                            </div>
-                            <div className="border border-gray-200 dark:border-[#f6f6f4]/10 rounded-xl p-4 bg-[#f9f9fa] dark:bg-[#1b1912]/60" style={{ minHeight: '120px' }}>
+                            <div className="border border-gray-200 dark:border-[#f6f6f4]/10 rounded-xl p-4 bg-[#f9f9fa] dark:bg-[#1b1912]/60" style={{ minHeight: '140px' }}>
                             </div>
                           </div>
                         </td>
                         <td style={{ width: '35%', padding: '3rem 0 3rem 2rem', verticalAlign: 'top' }}>
-                          <h3 className="text-xl md:text-2xl lg:text-3xl text-[#000000] dark:text-[#f6f6f4]" style={{ fontFamily: '-apple-system, BlinkMacSystemFont, "Segoe UI", Roboto, Helvetica, Arial, sans-serif' }}>
+                          <h3 className="text-xl md:text-2xl lg:text-3xl text-[#000000] dark:text-[#f6f6f4]" style={{ fontFamily: '-apple-system, BlinkMacSystemFont, "Segoe UI", Roboto, Helvetica, Arial, sans-serif', marginBottom: '2rem' }}>
                             Change Log
                           </h3>
+                          <div className="flex flex-col gap-4">
+                            <div style={{ minHeight: '100px' }}>
+                              <p className="text-sm text-gray-600 dark:text-[#a8a898]" style={{ fontFamily: '-apple-system, BlinkMacSystemFont, "Segoe UI", Roboto, Helvetica, Arial, sans-serif' }}>v2.0 - Latest release notes</p>
+                            </div>
+                            <div style={{ minHeight: '100px' }}>
+                              <p className="text-sm text-gray-600 dark:text-[#a8a898]" style={{ fontFamily: '-apple-system, BlinkMacSystemFont, "Segoe UI", Roboto, Helvetica, Arial, sans-serif' }}>v1.9 - Previous update</p>
+                            </div>
+                          </div>
                         </td>
                       </tr>
                     </tbody>
                   </table>
                 </div>
               </div>
+              <div style={{ borderTop: '0.5px solid rgba(209, 213, 219, 0.35)' }} />
             </section>
             <WhyItExists />
             <ClosingPosition />
