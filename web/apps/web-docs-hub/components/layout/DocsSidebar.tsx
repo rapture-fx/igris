@@ -18,6 +18,9 @@ import {
   Bot,
   Wrench,
   Database,
+  ChevronDown,
+  Clock,
+  BookOpen,
 } from 'lucide-react';
 import { cn } from '@/lib/utils';
 
@@ -32,12 +35,45 @@ interface NavItem {
   external?: boolean;
   icon?: React.ComponentType<{ className?: string }>;
   badge?: string;
+  noActive?: boolean;
 }
 
 interface NavSection {
   section: string;
   items: NavItem[];
 }
+
+type Section = 'docs' | 'api' | 'changelog' | 'articles';
+
+function detectSection(pathname: string): Section {
+  if (pathname.startsWith('/docs/articles')) return 'articles';
+  if (pathname === '/docs/changelog') return 'changelog';
+  if (pathname === '/docs/api-reference') return 'api';
+  return 'docs';
+}
+
+const sectionLabels: Record<Section, string> = {
+  docs: 'Documentation',
+  api: 'API Reference',
+  changelog: 'Changelog',
+  articles: 'Articles',
+};
+
+const sectionHrefs: Record<Section, string> = {
+  docs: '/docs',
+  api: '/docs/api-reference',
+  changelog: '/docs/changelog',
+  articles: '/docs/articles',
+};
+
+const methodColors: Record<string, string> = {
+  GET:    'bg-emerald-50 text-emerald-700 dark:bg-emerald-900/20 dark:text-emerald-400',
+  POST:   'bg-blue-50 text-blue-700 dark:bg-blue-900/20 dark:text-blue-400',
+  DELETE: 'bg-red-50 text-red-700 dark:bg-red-900/20 dark:text-red-400',
+  DEL:    'bg-red-50 text-red-700 dark:bg-red-900/20 dark:text-red-400',
+  PATCH:  'bg-amber-50 text-amber-700 dark:bg-amber-900/20 dark:text-amber-400',
+  PUT:    'bg-purple-50 text-purple-700 dark:bg-purple-900/20 dark:text-purple-400',
+};
 
 const searchIndex = [
   { title: 'Overview', path: '/docs', keywords: 'overview introduction what is igris execution system' },
@@ -62,10 +98,149 @@ const searchIndex = [
   { title: 'SDK', path: '/docs/sdk', keywords: 'sdk client libraries javascript python go rust' },
   { title: 'Deployment', path: '/docs/deployment', keywords: 'deployment cloud edge self-hosted fly kubernetes' },
   { title: 'API Reference', path: '/docs/api-reference', keywords: 'api reference endpoints inference management receipts fleet policy' },
+  { title: 'Changelog', path: '/docs/changelog', keywords: 'changelog release notes version history changes updates fixes' },
+  { title: 'Articles', path: '/docs/articles', keywords: 'articles engineering notes architecture deep dive' },
 ];
+
+const docsNavSections: NavSection[] = [
+  {
+    section: 'Getting Started',
+    items: [
+      { name: 'Overview', href: '/docs', icon: Home },
+      { name: 'Architecture', href: '/docs/architecture', icon: Layers },
+      { name: 'Quick Start', href: '/docs/quickstart', icon: Zap },
+    ],
+  },
+  {
+    section: 'Execution',
+    items: [
+      { name: 'Execution Model', href: '/docs/execution-model', icon: Cpu },
+      { name: 'Safety & Containment', href: '/docs/safety', icon: Shield },
+      { name: 'Capabilities & Limits', href: '/docs/capability-model', icon: Box },
+      { name: 'Execution Receipts', href: '/docs/execution-receipts', icon: FileText },
+      { name: 'Agent Lifecycle', href: '/docs/agent-lifecycle', icon: GitBranch },
+    ],
+  },
+  {
+    section: 'Agents',
+    items: [
+      { name: 'Agents', href: '/docs/agents', icon: Bot },
+      { name: 'Behavior Trees', href: '/docs/behavior-trees', icon: GitBranch },
+      { name: 'Tools', href: '/docs/tools', icon: Wrench },
+      { name: 'Memory', href: '/docs/memory', icon: Database },
+    ],
+  },
+  {
+    section: 'Robotics',
+    items: [
+      { name: 'Robotics', href: '/docs/robotics', icon: Cpu },
+      { name: 'ROS2 Integration', href: '/docs/ros2-integration', icon: Globe },
+    ],
+  },
+  {
+    section: 'Cloud & Fleet',
+    items: [
+      { name: 'Cloud Coordination', href: '/docs/cloud-coordination', icon: Globe },
+      { name: 'Fleet Management', href: '/docs/fleet-management', icon: Layers },
+      { name: 'Policy', href: '/docs/policy', icon: Shield },
+      { name: 'Audit', href: '/docs/audit', icon: FileText },
+    ],
+  },
+  {
+    section: 'Reference',
+    items: [
+      { name: 'SDK', href: '/docs/sdk', icon: Package },
+      { name: 'Deployment', href: '/docs/deployment', icon: Globe },
+    ],
+  },
+];
+
+const apiNavSections: NavSection[] = [
+  {
+    section: 'Inference',
+    items: [
+      { name: '/chat/completions', href: '/docs/api-reference', badge: 'POST', noActive: true },
+      { name: '/completions',      href: '/docs/api-reference', badge: 'POST', noActive: true },
+    ],
+  },
+  {
+    section: 'Providers',
+    items: [
+      { name: '/vault/keys',        href: '/docs/api-reference', badge: 'GET',  noActive: true },
+      { name: '/vault/keys',        href: '/docs/api-reference', badge: 'POST', noActive: true },
+      { name: '/vault/keys/{id}',   href: '/docs/api-reference', badge: 'DEL',  noActive: true },
+    ],
+  },
+  {
+    section: 'Policies',
+    items: [
+      { name: '/policies',          href: '/docs/api-reference', badge: 'GET',   noActive: true },
+      { name: '/policies',          href: '/docs/api-reference', badge: 'POST',  noActive: true },
+      { name: '/policies/{name}',   href: '/docs/api-reference', badge: 'GET',   noActive: true },
+      { name: '/policies/{name}',   href: '/docs/api-reference', badge: 'PATCH', noActive: true },
+      { name: '/policies/rollback', href: '/docs/api-reference', badge: 'POST',  noActive: true },
+    ],
+  },
+  {
+    section: 'Fleet',
+    items: [
+      { name: '/runtime/register',  href: '/docs/api-reference', badge: 'POST', noActive: true },
+      { name: '/runtime/instances', href: '/docs/api-reference', badge: 'GET',  noActive: true },
+      { name: '/runtime/config',    href: '/docs/api-reference', badge: 'POST', noActive: true },
+      { name: '/runtime/update',    href: '/docs/api-reference', badge: 'POST', noActive: true },
+    ],
+  },
+  {
+    section: 'Receipts',
+    items: [
+      { name: '/receipts',          href: '/docs/api-reference', badge: 'GET', noActive: true },
+      { name: '/receipts/{id}',     href: '/docs/api-reference', badge: 'GET', noActive: true },
+      { name: '/receipts/export',   href: '/docs/api-reference', badge: 'GET', noActive: true },
+    ],
+  },
+  {
+    section: 'Local Engine',
+    items: [
+      { name: '/health',            href: '/docs/api-reference', badge: 'GET',  noActive: true },
+      { name: '/metrics',           href: '/docs/api-reference', badge: 'GET',  noActive: true },
+      { name: '/btree/deploy',      href: '/docs/api-reference', badge: 'POST', noActive: true },
+      { name: '/btree/run',         href: '/docs/api-reference', badge: 'POST', noActive: true },
+    ],
+  },
+];
+
+const changelogNavSections: NavSection[] = [
+  {
+    section: 'Release Notes',
+    items: [
+      { name: 'Changelog', href: '/docs/changelog', icon: Clock },
+    ],
+  },
+];
+
+const articlesNavSections: NavSection[] = [
+  {
+    section: 'Articles',
+    items: [
+      { name: 'All Articles',  href: '/docs/articles',              icon: BookOpen },
+      { name: 'Draft Article', href: '/docs/articles/first-article', icon: FileText },
+    ],
+  },
+];
+
+const navBySections: Record<Section, NavSection[]> = {
+  docs:      docsNavSections,
+  api:       apiNavSections,
+  changelog: changelogNavSections,
+  articles:  articlesNavSections,
+};
 
 export function DocsSidebar({ open = true, onClose }: DocsSidebarProps) {
   const pathname = usePathname();
+  const activeSection = detectSection(pathname);
+
+  const [sectionOpen, setSectionOpen] = useState(false);
+  const sectionRef = useRef<HTMLDivElement>(null);
 
   const [searchQuery, setSearchQuery] = useState('');
   const [isSearchModalOpen, setIsSearchModalOpen] = useState(false);
@@ -74,59 +249,17 @@ export function DocsSidebar({ open = true, onClose }: DocsSidebarProps) {
   const [selectedIndex, setSelectedIndex] = useState(0);
   const modalInputRef = useRef<HTMLInputElement>(null);
 
-  const navigationSections: NavSection[] = [
-    {
-      section: 'Getting Started',
-      items: [
-        { name: 'Overview', href: '/docs', icon: Home },
-        { name: 'Architecture', href: '/docs/architecture', icon: Layers },
-        { name: 'Quick Start', href: '/docs/quickstart', icon: Zap },
-      ],
-    },
-    {
-      section: 'Execution',
-      items: [
-        { name: 'Execution Model', href: '/docs/execution-model', icon: Cpu },
-        { name: 'Safety & Containment', href: '/docs/safety', icon: Shield },
-        { name: 'Capabilities & Limits', href: '/docs/capability-model', icon: Box },
-        { name: 'Execution Receipts', href: '/docs/execution-receipts', icon: FileText },
-        { name: 'Agent Lifecycle', href: '/docs/agent-lifecycle', icon: GitBranch },
-      ],
-    },
-    {
-      section: 'Agents',
-      items: [
-        { name: 'Agents', href: '/docs/agents', icon: Bot },
-        { name: 'Behavior Trees', href: '/docs/behavior-trees', icon: GitBranch },
-        { name: 'Tools', href: '/docs/tools', icon: Wrench },
-        { name: 'Memory', href: '/docs/memory', icon: Database },
-      ],
-    },
-    {
-      section: 'Robotics',
-      items: [
-        { name: 'Robotics', href: '/docs/robotics', icon: Cpu },
-        { name: 'ROS2 Integration', href: '/docs/ros2-integration', icon: Globe },
-      ],
-    },
-    {
-      section: 'Cloud & Fleet',
-      items: [
-        { name: 'Cloud Coordination', href: '/docs/cloud-coordination', icon: Globe },
-        { name: 'Fleet Management', href: '/docs/fleet-management', icon: Layers },
-        { name: 'Policy', href: '/docs/policy', icon: Shield },
-        { name: 'Audit', href: '/docs/audit', icon: FileText },
-      ],
-    },
-    {
-      section: 'Reference',
-      items: [
-        { name: 'SDK', href: '/docs/sdk', icon: Package },
-        { name: 'Deployment', href: '/docs/deployment', icon: Globe },
-        { name: 'API Reference', href: '/docs/api-reference', icon: FileText },
-      ],
-    },
-  ];
+  const navigationSections = navBySections[activeSection];
+
+  useEffect(() => {
+    const handleClickOutside = (e: MouseEvent) => {
+      if (sectionRef.current && !sectionRef.current.contains(e.target as Node)) {
+        setSectionOpen(false);
+      }
+    };
+    document.addEventListener('mousedown', handleClickOutside);
+    return () => document.removeEventListener('mousedown', handleClickOutside);
+  }, []);
 
   useEffect(() => {
     if (searchQuery.trim().length > 0) {
@@ -166,46 +299,53 @@ export function DocsSidebar({ open = true, onClose }: DocsSidebarProps) {
     }
   }, [isSearchModalOpen]);
 
-  const renderNavItem = (item: NavItem) => {
-    const isHubActive = !item.external && (
-      item.href === '/docs' 
+  const renderNavItem = (item: NavItem, index: number) => {
+    const isActive = !item.external && !item.noActive && (
+      item.href === '/docs'
         ? pathname === '/docs' || pathname === '/docs/'
         : pathname === item.href || pathname === item.href + '/'
     );
 
-    const sharedBase = 'flex items-center gap-2.5 rounded-lg px-3 py-2 text-[0.75rem] font-medium font-inter transition-colors';
+    const sharedBase = 'flex items-center gap-2 rounded-lg px-3 py-1.5 text-[0.75rem] font-medium font-inter transition-colors';
     const inactiveStyle = 'text-gray-600 dark:text-[#c8c8b8] hover:text-gray-900 dark:hover:text-[#f6f6f4] hover:bg-[#f5f5f5] dark:hover:bg-[#2c2a22]';
+
+    const content = (
+      <>
+        {item.icon && (
+          <item.icon className={cn('h-4 w-4 flex-shrink-0', isActive ? 'text-gray-700 dark:text-[#abb2bf]' : 'text-gray-400 dark:text-[#c8c8b8]')} />
+        )}
+        {item.badge && (
+          <span className={cn('inline-flex items-center rounded px-1 py-0.5 text-[0.65rem] font-bold font-mono leading-none flex-shrink-0', methodColors[item.badge] ?? 'bg-gray-100 text-gray-600')}>
+            {item.badge}
+          </span>
+        )}
+        <span className="truncate">{item.name}</span>
+      </>
+    );
 
     if (item.external) {
       return (
-        <li key={item.name}>
-          <a
-            href={item.href}
-            className={cn(sharedBase, inactiveStyle)}
-          >
-            {item.icon && <item.icon className="h-4 w-4 text-gray-400 dark:text-[#c8c8b8]" />}
-            {item.name}
-          </a>
+        <li key={`${item.name}-${item.badge ?? ''}-${index}`}>
+          <a href={item.href} className={cn(sharedBase, inactiveStyle)}>{content}</a>
         </li>
       );
     }
 
     return (
-      <li key={item.name}>
+      <li key={`${item.name}-${item.badge ?? ''}-${index}`}>
         <Link
           href={item.href}
           className={cn(
             sharedBase,
-            isHubActive
+            isActive
               ? 'bg-[#f5f5f5] dark:bg-[#282c34] text-gray-900 dark:text-[#f6f6f4] font-semibold'
-              : inactiveStyle
+              : item.noActive
+                ? 'text-gray-500 dark:text-[#a8a89a] hover:text-gray-800 dark:hover:text-[#f6f6f4] hover:bg-[#f5f5f5] dark:hover:bg-[#2c2a22]'
+                : inactiveStyle
           )}
           onClick={onClose}
         >
-          {item.icon && (
-            <item.icon className={cn('h-4 w-4', isHubActive ? 'text-gray-700 dark:text-[#abb2bf]' : 'text-gray-400 dark:text-[#c8c8b8]')} />
-          )}
-          {item.name}
+          {content}
         </Link>
       </li>
     );
@@ -227,19 +367,16 @@ export function DocsSidebar({ open = true, onClose }: DocsSidebarProps) {
         )}
       >
         <div className="flex h-full flex-col border-r border-gray-200 dark:border-[#f6f6f4]/10 bg-white dark:bg-[#25231e]">
+
           {/* Logo */}
           <div className="h-12 flex items-center px-7">
             <a href="https://igrisinertial.com" className="flex items-center">
-              <img
-                src="/foot.png"
-                alt="Igris Inertial"
-                style={{ width: '25px', height: 'auto' }}
-              />
+              <img src="/foot.png" alt="Igris Inertial" style={{ width: '25px', height: 'auto' }} />
             </a>
           </div>
 
           {/* Search */}
-          <div className="px-6 py-5">
+          <div className="px-6 pt-5 pb-3">
             <div className="relative">
               <Search className="absolute left-3 top-1/2 transform -translate-y-1/2 h-4 w-4 text-gray-400 pointer-events-none" />
               <input
@@ -255,16 +392,49 @@ export function DocsSidebar({ open = true, onClose }: DocsSidebarProps) {
             </div>
           </div>
 
+          {/* Section switcher */}
+          <div className="px-6 pb-4" ref={sectionRef}>
+            <div className="relative">
+              <button
+                onClick={() => setSectionOpen((v) => !v)}
+                className="w-full flex items-center justify-between px-3 py-2 text-[0.75rem] font-medium rounded-lg border border-gray-200 dark:border-[#f6f6f4]/10 bg-white dark:bg-[#25231e] text-gray-700 dark:text-[#c8c8b8] hover:bg-gray-50 dark:hover:bg-[#2c2a22] transition-colors"
+              >
+                <span>{sectionLabels[activeSection]}</span>
+                <ChevronDown className={cn('h-3.5 w-3.5 text-gray-400 transition-transform duration-150', sectionOpen && 'rotate-180')} />
+              </button>
+
+              {sectionOpen && (
+                <div className="absolute top-full left-0 right-0 mt-1 bg-white dark:bg-[#1b1912] border border-gray-200 dark:border-[#f6f6f4]/10 rounded-lg shadow-lg z-10 overflow-hidden">
+                  {(Object.keys(sectionLabels) as Section[]).map((section) => (
+                    <Link
+                      key={section}
+                      href={sectionHrefs[section]}
+                      onClick={() => { setSectionOpen(false); onClose?.(); }}
+                      className={cn(
+                        'flex items-center px-3 py-2 text-[0.75rem] font-medium transition-colors',
+                        activeSection === section
+                          ? 'bg-gray-50 dark:bg-[#2c2a22] text-gray-900 dark:text-[#f6f6f4]'
+                          : 'text-gray-600 dark:text-[#c8c8b8] hover:bg-gray-50 dark:hover:bg-[#2c2a22] hover:text-gray-900 dark:hover:text-[#f6f6f4]'
+                      )}
+                    >
+                      {sectionLabels[section]}
+                    </Link>
+                  ))}
+                </div>
+              )}
+            </div>
+          </div>
+
           {/* Navigation */}
-          <nav className="flex-1 overflow-y-auto px-4 pt-2 pb-4 scrollbar-hide">
+          <nav className="flex-1 overflow-y-auto px-4 pb-4 scrollbar-hide">
             <div className="space-y-6">
               {navigationSections.map((section) => (
                 <div key={section.section}>
                   <h3 className="px-3 mb-2 text-xs font-semibold text-gray-500 dark:text-gray-400 tracking-wider uppercase">
                     {section.section}
                   </h3>
-                  <ul className="space-y-1">
-                    {section.items.map(renderNavItem)}
+                  <ul className="space-y-0.5">
+                    {section.items.map((item, i) => renderNavItem(item, i))}
                   </ul>
                 </div>
               ))}
@@ -319,12 +489,8 @@ export function DocsSidebar({ open = true, onClose }: DocsSidebarProps) {
                     >
                       <FileText className="h-4 w-4 text-gray-400 mt-0.5 flex-shrink-0" />
                       <div className="flex-1 min-w-0">
-                        <div className="text-sm font-medium text-gray-900 dark:text-[#f6f6f4] mb-0.5">
-                          {result.title}
-                        </div>
-                        <div className="text-xs text-gray-500 dark:text-gray-400 truncate">
-                          {result.path}
-                        </div>
+                        <div className="text-sm font-medium text-gray-900 dark:text-[#f6f6f4] mb-0.5">{result.title}</div>
+                        <div className="text-xs text-gray-500 dark:text-gray-400 truncate">{result.path}</div>
                       </div>
                     </a>
                   ))}
