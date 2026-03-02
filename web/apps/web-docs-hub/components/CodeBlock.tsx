@@ -5,6 +5,7 @@ import { Copy, Check } from 'lucide-react';
 import { Prism as SyntaxHighlighter } from 'react-syntax-highlighter';
 import { oneLight, oneDark } from 'react-syntax-highlighter/dist/esm/styles/prism';
 import { useTheme } from 'next-themes';
+import { MermaidChart } from './MermaidChart';
 
 interface CodeBlockProps {
   children?: React.ReactNode;
@@ -37,6 +38,10 @@ export function CodeBlock({ children, className }: CodeBlockProps) {
   const code = codeEl
     ? (typeof codeEl.props.children === 'string' ? codeEl.props.children : getTextContent(codeEl.props.children))
     : getTextContent(children);
+
+  if (language === 'mermaid') {
+    return <MermaidChart chart={code} />;
+  }
 
   const handleCopy = async () => {
     try {
