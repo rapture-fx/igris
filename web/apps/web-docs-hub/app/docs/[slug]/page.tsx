@@ -28,6 +28,8 @@ const slugToFile: Record<string, string> = {
   'ros2-integration': 'ros2-integration',
   policy: 'policy',
   'api-reference': 'api-reference',
+  changelog: 'changelog',
+  articles: 'articles/index',
 };
 
 export async function generateStaticParams() {
