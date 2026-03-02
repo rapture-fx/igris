@@ -91,9 +91,9 @@ export function DocsNavbar() {
             </a>
             <a
               href="https://app.igrisinertial.com/signup"
-              className="px-3 py-1.5 text-xs font-medium text-gray-900 dark:text-[#f6f6f4] bg-[#f6f6f4] dark:bg-[#25231e] hover:bg-beige-secondary dark:hover:bg-[#2a2820] rounded-lg transition-colors whitespace-nowrap shadow-sm border border-gray-200 dark:border-[#f6f6f4]/10"
+              className="px-3 py-1.5 text-xs font-medium text-white bg-black hover:bg-gray-800 rounded-lg transition-colors whitespace-nowrap shadow-sm border border-black"
             >
-              Sign Up
+              Get Started
             </a>
           </div>
         </div>
