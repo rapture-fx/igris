@@ -48,14 +48,22 @@ export default function HomePage() {
             <section className="bg-white dark:bg-dark-bg">
               <div style={{ borderTop: '0.5px solid rgba(209, 213, 219, 0.35)' }} />
               <div className="mx-auto max-w-[1100px] px-4 sm:px-6 lg:px-8">
-                <div style={{ borderLeft: '0.5px solid rgba(209, 213, 219, 0.35)', borderRight: '0.5px solid rgba(209, 213, 219, 0.35)' }}>
+                <div className="px-4 md:px-8 lg:px-12" style={{ borderLeft: '0.5px solid rgba(209, 213, 219, 0.35)', borderRight: '0.5px solid rgba(209, 213, 219, 0.35)' }}>
                   <table className="w-full" style={{ borderCollapse: 'collapse', height: '400px' }}>
                     <tbody>
                       <tr>
                         <td style={{ width: '65%', padding: '3rem 2rem 3rem 0', verticalAlign: 'top', borderRight: '0.5px solid rgba(209, 213, 219, 0.35)' }}>
-                          <h3 className="text-xl md:text-2xl lg:text-3xl text-[#000000] dark:text-[#f6f6f4]" style={{ fontFamily: '-apple-system, BlinkMacSystemFont, "Segoe UI", Roboto, Helvetica, Arial, sans-serif' }}>
+                          <h3 className="text-xl md:text-2xl lg:text-3xl text-[#000000] dark:text-[#f6f6f4]" style={{ fontFamily: '-apple-system, BlinkMacSystemFont, "Segoe UI", Roboto, Helvetica, Arial, sans-serif', marginBottom: '2rem' }}>
                             Latest Update
                           </h3>
+                          <div className="flex flex-col gap-4">
+                            <div className="border border-gray-200 dark:border-[#f6f6f4]/10 rounded-xl p-4 bg-[#f9f9fa] dark:bg-[#1b1912]/60" style={{ minHeight: '120px' }}>
+                            </div>
+                            <div className="border border-gray-200 dark:border-[#f6f6f4]/10 rounded-xl p-4 bg-[#f9f9fa] dark:bg-[#1b1912]/60" style={{ minHeight: '120px' }}>
+                            </div>
+                            <div className="border border-gray-200 dark:border-[#f6f6f4]/10 rounded-xl p-4 bg-[#f9f9fa] dark:bg-[#1b1912]/60" style={{ minHeight: '120px' }}>
+                            </div>
+                          </div>
                         </td>
                         <td style={{ width: '35%', padding: '3rem 0 3rem 2rem', verticalAlign: 'top' }}>
                           <h3 className="text-xl md:text-2xl lg:text-3xl text-[#000000] dark:text-[#f6f6f4]" style={{ fontFamily: '-apple-system, BlinkMacSystemFont, "Segoe UI", Roboto, Helvetica, Arial, sans-serif' }}>
