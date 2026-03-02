@@ -181,13 +181,13 @@ export default function Header() {
                 </Link>
               </div>
 
-              <div className="hidden md:flex items-center space-x-6">
+              <div className="hidden md:flex items-center space-x-1">
                 <button
                   onMouseEnter={() => openDropdown('features')}
-                  className={`text-sm font-medium flex items-center gap-1 transition-colors duration-200 ${
+                  className={`px-3 py-2 text-sm font-medium flex items-center gap-1 transition-all duration-200 rounded-lg ${
                     activeDropdown === 'features'
-                      ? 'text-gray-900 dark:text-[#f6f6f4]'
-                      : 'text-gray-700 dark:text-[#c8c8b8] hover:text-gray-900 dark:hover:text-[#f6f6f4]'
+                      ? 'text-gray-900 dark:text-[#f6f6f4] bg-gray-100 dark:bg-[#25231e]'
+                      : 'text-gray-700 dark:text-[#c8c8b8] hover:text-gray-900 dark:hover:text-[#f6f6f4] hover:bg-gray-100 dark:hover:bg-[#25231e]'
                   }`}
                   style={{ fontFamily: '-apple-system, BlinkMacSystemFont, "Segoe UI", Roboto, Helvetica, Arial, sans-serif' }}
                 >
@@ -197,10 +197,10 @@ export default function Header() {
 
                 <button
                   onMouseEnter={() => openDropdown('resources')}
-                  className={`text-sm font-medium flex items-center gap-1 transition-colors duration-200 ${
+                  className={`px-3 py-2 text-sm font-medium flex items-center gap-1 transition-all duration-200 rounded-lg ${
                     activeDropdown === 'resources'
-                      ? 'text-gray-900 dark:text-[#f6f6f4]'
-                      : 'text-gray-700 dark:text-[#c8c8b8] hover:text-gray-900 dark:hover:text-[#f6f6f4]'
+                      ? 'text-gray-900 dark:text-[#f6f6f4] bg-gray-100 dark:bg-[#25231e]'
+                      : 'text-gray-700 dark:text-[#c8c8b8] hover:text-gray-900 dark:hover:text-[#f6f6f4] hover:bg-gray-100 dark:hover:bg-[#25231e]'
                   }`}
                   style={{ fontFamily: '-apple-system, BlinkMacSystemFont, "Segoe UI", Roboto, Helvetica, Arial, sans-serif' }}
                 >
@@ -212,7 +212,7 @@ export default function Header() {
                   href="/pricing"
                   prefetch={false}
                   onMouseEnter={scheduleClose}
-                  className="text-gray-700 dark:text-[#c8c8b8] hover:text-gray-900 dark:hover:text-[#f6f6f4] transition-colors duration-200 font-medium text-sm"
+                  className="px-3 py-2 text-gray-700 dark:text-[#c8c8b8] hover:text-gray-900 dark:hover:text-[#f6f6f4] hover:bg-gray-100 dark:hover:bg-[#25231e] transition-all duration-200 font-medium text-sm rounded-lg"
                   style={{ fontFamily: '-apple-system, BlinkMacSystemFont, "Segoe UI", Roboto, Helvetica, Arial, sans-serif' }}
                 >
                   Pricing
@@ -221,7 +221,7 @@ export default function Header() {
                 <a
                   href={consoleUrl ? `${consoleUrl}/auth?mode=signin` : '#'}
                   onMouseEnter={scheduleClose}
-                  className="text-gray-700 dark:text-[#c8c8b8] hover:text-gray-900 dark:hover:text-[#f6f6f4] transition-colors duration-200 font-medium text-sm"
+                  className="px-3 py-2 text-gray-700 dark:text-[#c8c8b8] hover:text-gray-900 dark:hover:text-[#f6f6f4] hover:bg-gray-100 dark:hover:bg-[#25231e] transition-all duration-200 font-medium text-sm rounded-lg"
                   style={{ fontFamily: '-apple-system, BlinkMacSystemFont, "Segoe UI", Roboto, Helvetica, Arial, sans-serif' }}
                 >
                   Sign In
@@ -279,13 +279,8 @@ export default function Header() {
                         pointerEvents: renderedDropdown === 'features' ? 'auto' : 'none',
                       }}
                     >
-                      <div className="grid grid-cols-3 min-h-[280px]">
-                        {/* Left column - image */}
-                        <div className="p-8 border-r border-gray-200 dark:border-[#f6f6f4]/5 relative overflow-hidden">
-                          <img src="/hov.png" alt="" className="absolute inset-0 w-full h-full object-cover opacity-70 hover:opacity-90 transition-opacity duration-300" />
-                        </div>
-
-                        {/* Middle column - Routing & Optimization + Agents */}
+                      <div className="grid grid-cols-2 min-h-[280px]">
+                        {/* Left column - Routing & Optimization + Agents */}
                         <div className="p-8 border-r border-gray-200 dark:border-[#f6f6f4]/5">
                           <span className="text-xs font-medium uppercase tracking-wider mb-3 block" style={{ fontFamily: '-apple-system, BlinkMacSystemFont, "Segoe UI", Roboto, Helvetica, Arial, sans-serif', color: '#1b1912' }}>Routing & Optimization</span>
                           <div className="flex flex-col gap-1.5">
@@ -349,7 +344,7 @@ export default function Header() {
                         pointerEvents: renderedDropdown === 'resources' ? 'auto' : 'none',
                       }}
                     >
-                      <div className="grid grid-cols-3 min-h-[280px]">
+                      <div className="grid grid-cols-2 min-h-[280px]">
                         {/* Left column - Documentation */}
                         <div className="p-8 border-r border-gray-200 dark:border-[#f6f6f4]/5">
                           <span className="text-xs font-medium uppercase tracking-wider mb-3 block" style={{ fontFamily: '-apple-system, BlinkMacSystemFont, "Segoe UI", Roboto, Helvetica, Arial, sans-serif', color: '#1b1912' }}>Documentation</span>
@@ -372,8 +367,8 @@ export default function Header() {
                           </div>
                         </div>
 
-                        {/* Middle column - Use Cases & Blog */}
-                        <div className="p-8 border-r border-gray-200 dark:border-[#f6f6f4]/5">
+                        {/* Right column - Use Cases & Blog */}
+                        <div className="p-8">
                           <span className="text-xs font-medium uppercase tracking-wider mb-3 block" style={{ fontFamily: '-apple-system, BlinkMacSystemFont, "Segoe UI", Roboto, Helvetica, Arial, sans-serif', color: '#1b1912' }}>Use Cases</span>
                           <div className="flex flex-col gap-1.5">
                             <span onClick={() => { setActiveDropdown(null); openUseCases(); }} className="text-xs text-gray-500 dark:text-[#a8a898] hover:text-gray-900 dark:hover:text-[#f6f6f4] transition-colors cursor-pointer" style={{ fontFamily: '-apple-system, BlinkMacSystemFont, "Segoe UI", Roboto, Helvetica, Arial, sans-serif' }}>Enterprise AI</span>
@@ -393,11 +388,6 @@ export default function Header() {
                             <span className="text-xs text-gray-500 dark:text-[#a8a898] hover:text-gray-900 dark:hover:text-[#f6f6f4] transition-colors cursor-pointer" style={{ fontFamily: '-apple-system, BlinkMacSystemFont, "Segoe UI", Roboto, Helvetica, Arial, sans-serif' }}>v2.0 Release</span>
                             <span className="text-xs text-gray-500 dark:text-[#a8a898] hover:text-gray-900 dark:hover:text-[#f6f6f4] transition-colors cursor-pointer" style={{ fontFamily: '-apple-system, BlinkMacSystemFont, "Segoe UI", Roboto, Helvetica, Arial, sans-serif' }}>v1.9 Updates</span>
                           </div>
-                        </div>
-
-                        {/* Right column - Image */}
-                        <div className="relative overflow-hidden">
-                          <img src="/hrulg.png" alt="" className="absolute inset-0 w-full h-full object-cover opacity-70 hover:opacity-90 transition-opacity duration-300" />
                         </div>
                       </div>
                     </div>
