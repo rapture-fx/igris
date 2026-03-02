@@ -1,5 +1,4 @@
 import React, { useEffect, useState } from 'react'
-import Image from 'next/image'
 import Link from 'next/link'
 import { ChevronRight } from 'lucide-react'
 import { useTheme } from 'next-themes'
@@ -42,21 +41,7 @@ export default function Products() {
           {/* Full-width border below title */}
           <div style={{ borderTop: '0.5px solid rgba(209, 213, 219, 0.35)', width: '100vw', marginLeft: '50%', transform: 'translateX(-50%)' }} />
 
-          <div className="grid grid-cols-1 md:grid-cols-2 items-center" style={{ marginTop: '2rem', paddingBottom: '3rem', gap: '2rem' }}>
-            {/* Col 1 - Image only */}
-            <div className="relative flex items-center justify-start">
-              <div className="relative w-[280px] h-[280px] rounded-2xl overflow-hidden bg-[#f9f9fa] dark:bg-[#1b1912]/60 border border-gray-200 dark:border-[#f6f6f4]/8">
-                <Image
-                  src={mounted ? (theme === 'dark' ? '/r.png' : '/prol.png') : '/prol.png'}
-                  alt="Runtime AI Execution"
-                  fill
-                  className="object-cover"
-                  style={{ opacity: 0.85 }}
-                />
-              </div>
-            </div>
-            {/* Col 2 - Text */}
-            <div className="flex flex-col justify-center" style={{ maxWidth: '400px' }}>
+          <div style={{ paddingTop: '3rem', paddingBottom: '12rem', maxWidth: '500px' }}>
               <div>
                 <h3 className="text-base md:text-lg mb-3 text-[#000000] dark:text-[#f6f6f4]" style={{ fontFamily: '-apple-system, BlinkMacSystemFont, "Segoe UI", Roboto, Helvetica, Arial, sans-serif' }}>
                   Hybrid behavior trees meet LLM reasoning.
@@ -79,7 +64,6 @@ export default function Products() {
                   Observe decisions in real time. Inspect actions. Verify outcomes. Trust what happened.
                 </p>
               </div>
-            </div>
           </div>
         </div>
       </div>
