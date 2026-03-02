@@ -81,7 +81,7 @@ export default function Hero() {
     <section className="pb-0 bg-white dark:bg-dark-bg text-gray-900 dark:text-[#f6f6f4] relative overflow-visible transition-colors duration-200" style={{ marginTop: '52px' }}>
       <div className="mx-auto max-w-[1100px] px-4 sm:px-6 lg:px-8">
         <div className="relative overflow-hidden flex flex-col justify-end" style={{
-          minHeight: '600px',
+          height: 'calc(100vh - 52px)',
           marginBottom: '2rem'
         }}>
             <div className="max-w-[1100px] mx-auto w-full relative z-10 pb-10 px-4 md:px-8 lg:px-12">
