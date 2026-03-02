@@ -41,7 +41,7 @@ export default function Products() {
           {/* Full-width border below title */}
           <div style={{ borderTop: '0.5px solid rgba(209, 213, 219, 0.35)', width: '100vw', marginLeft: '50%', transform: 'translateX(-50%)' }} />
 
-          <div style={{ paddingTop: '3rem', paddingBottom: '12rem', maxWidth: '500px' }}>
+          <div style={{ paddingTop: '3rem', paddingBottom: '12rem', maxWidth: '380px' }}>
               <div>
                 <h3 className="text-base md:text-lg mb-3 text-[#000000] dark:text-[#f6f6f4]" style={{ fontFamily: '-apple-system, BlinkMacSystemFont, "Segoe UI", Roboto, Helvetica, Arial, sans-serif' }}>
                   Hybrid behavior trees meet LLM reasoning.
