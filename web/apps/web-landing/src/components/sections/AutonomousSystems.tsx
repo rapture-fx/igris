@@ -54,19 +54,12 @@ export default function AutonomousSystems() {
             </div>
             {/* Col 2 - Image + Button */}
             <div className="relative rounded-r-2xl overflow-hidden" style={{ minHeight: '280px' }}>
-              <div 
-                className="absolute top-2 bottom-2 left-2 right-0 bg-cover bg-center rounded-xl"
-                style={{ 
-                  backgroundImage: 'url(/sft.png)',
-                  backgroundSize: '120%',
-                  opacity: 0.9
-                }}
+              <img 
+                src="/spm.png" 
+                alt="" 
+                className="absolute inset-0 w-full h-full object-contain"
+                style={{ opacity: 1, transform: 'scale(1.3)' }}
               />
-              <div className="absolute inset-2 z-[5] rounded-xl overflow-hidden">
-                <div className="relative w-full h-full">
-                  <HeroInertial />
-                </div>
-              </div>
               <div className="absolute top-4 right-4 z-10">
                 <Link
                   href="/ai-agents"
