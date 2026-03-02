@@ -1,5 +1,3 @@
-import { DiagramTabs } from '@/components/DiagramTabs';
-
 # Architecture
 
 Igris is one execution system. Internally it has two components: a coordination layer that handles cloud routing and policy, and an execution engine that runs on your infrastructure. Both share the same governance model and trust chain.
@@ -69,13 +67,13 @@ The execution engine runs on your infrastructure — a server, an edge device, a
 
 The coordination layer and execution engine share a trust model. A request's full lineage — from API call to signed execution — is traceable by a single request ID.
 
-| Step | Component | What it produces |
-|---|---|---|
-| 1 | Application | Request with unique ID (`abc123`) |
-| 2 | Coordination Layer | Routing decision, tenant context, selected provider |
-| 3 | Execution Engine | Execution envelope with capability grants applied |
-| 4 | Signed Receipt | Canonical hash over inputs, outputs, and resource usage |
-| 5 | Audit Log | Queryable, exportable, tamper-evident record |
+<StepChain steps={[
+  { label: "Application Request", description: "Initiates with a unique request ID (e.g. abc123)" },
+  { label: "Coordination Layer", description: "Produces routing decision, tenant context, and selected provider" },
+  { label: "Execution Engine", description: "Applies capability grants and wraps execution in a signed envelope" },
+  { label: "Signed Receipt", description: "Canonical hash over inputs, outputs, timing, and resource usage" },
+  { label: "Audit Log", description: "Queryable, exportable, tamper-evident — linked by request ID" }
+]} />
 
 Each step is linked to the next by the shared request ID. Receipt signatures chain across sessions, making the log tamper-evident.
 
