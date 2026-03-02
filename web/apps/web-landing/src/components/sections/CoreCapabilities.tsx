@@ -67,11 +67,11 @@ export default function CoreCapabilities() {
                   >
                     <div style={{
                       width: '100%',
-                      height: '220px',
+                      height: '160px',
                       display: 'flex',
                       alignItems: 'center',
                       justifyContent: 'center',
-                      marginBottom: '1.25rem',
+                      marginBottom: '7rem',
                     }}>
                       {index === 0 && (
                         <img
