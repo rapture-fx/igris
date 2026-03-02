@@ -1,0 +1,29 @@
+# Changelog
+
+Release notes for Igris Inertial. Breaking changes are marked explicitly.
+
+---
+
+## 0.4.0 — Runtime Hardening Phase 4
+
+### Added
+
+- **Agent namespace isolation** — each agent now executes in an isolated namespace; cross-agent resource access is denied by default
+- **Capability enforcement model** — capability grants are declared in the execution envelope and enforced at runtime before any tool call proceeds
+- **ExecutionReceipt (signed, hash-chained)** — every execution now produces a receipt that is cryptographically signed and chained to the previous receipt in the session, forming a tamper-evident log
+- **Lifecycle state machine** — agents transition through formal states (`initializing → running → idle → degraded → terminated`); invalid transitions are rejected
+- **Swarm message signing** — messages exchanged between swarm members are signed; unsigned or unverifiable messages are dropped
+- **Transaction boundary** — tool sequences can be declared as a transaction; partial completion is recorded and surfaced in the receipt
+- **Trust verification between cloud and edge** — the cloud coordination layer and edge runtime now perform mutual trust verification on session establishment
+
+### Changed
+
+- **Execution now requires verified envelope** — envelopes without a valid signature from an authorized issuer are rejected before any execution begins
+- **Runtime always emits signed receipt** — previously, receipt emission was conditional; it is now unconditional for every execution path including errors and timeouts
+
+### Docs
+
+- Unified documentation navigation across all product areas
+- Governance model documentation — covers receipt chain, capability gates, and audit query API
+- Execution receipt documentation — describes receipt structure, signing, chaining, and export
+- Capability model documentation — covers grant declaration, enforcement, and override policy
