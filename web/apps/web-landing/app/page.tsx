@@ -34,11 +34,23 @@ export default function HomePage() {
           <Header />
           <main>
             <Hero />
+            <section className="bg-white dark:bg-dark-bg">
+              <div style={{ borderTop: '0.5px solid rgba(209, 213, 219, 0.35)' }} />
+              <div className="mx-auto max-w-[1100px] px-4 sm:px-6 lg:px-8">
+                <div style={{ borderLeft: '0.5px solid rgba(209, 213, 219, 0.35)', borderRight: '0.5px solid rgba(209, 213, 219, 0.35)', height: '400px' }} />
+              </div>
+            </section>
             <Products />
             <CoreCapabilities />
             <AutonomousSystems />
             <SDKs />
             <MultiTenancy />
+            <section className="bg-white dark:bg-dark-bg">
+              <div className="mx-auto max-w-[1100px] px-4 sm:px-6 lg:px-8">
+                <div style={{ borderLeft: '0.5px solid rgba(209, 213, 219, 0.35)', borderRight: '0.5px solid rgba(209, 213, 219, 0.35)', height: '400px' }} />
+              </div>
+              <div style={{ borderTop: '0.5px solid rgba(209, 213, 219, 0.35)' }} />
+            </section>
             <WhyItExists />
             <ClosingPosition />
           </main>
