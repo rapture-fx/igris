@@ -21,7 +21,8 @@ export default function HeroInertial() {
         className="object-contain"
         style={{
           width: '85%',
-          height: '85%'
+          height: '85%',
+          opacity: 0.7
         }}
       />
     </div>
