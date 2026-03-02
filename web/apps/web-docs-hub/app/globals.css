@@ -113,11 +113,10 @@
 }
 
 .prose code {
-  background-color: var(--card);
-  border: 1px solid rgba(156, 163, 175, 0.2);
-  border-radius: 0.375rem;
-  padding: 0.2rem 0.4rem;
-  font-size: 0.75rem;
+  background-color: transparent;
+  border: none;
+  padding: 0;
+  font-size: inherit;
   font-family: 'Space Mono', 'Inconsolata', monospace;
 }
 
@@ -182,9 +181,10 @@
   margin-top: 1rem;
   margin-bottom: 1rem;
   font-size: 0.8125rem;
-  border-radius: 0.5rem;
+  border-radius: 0.75rem;
   overflow: hidden;
-  border: 1px solid rgba(0, 0, 0, 0.08);
+  background-color: var(--card);
+  border: 1px solid rgba(156, 163, 175, 0.2);
 }
 
 .dark .prose table {
