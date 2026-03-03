@@ -14,7 +14,7 @@ const CONFIGS: Record<ChainStatus, { dot: string; text: string; label: string }>
 export function HashChainIndicator({ status }: HashChainIndicatorProps) {
   const c = CONFIGS[status];
   return (
-    <span className={`inline-flex items-center gap-1 text-[10px] font-mono ${c.text}`}>
+    <span className={`inline-flex items-center gap-1 text-[10px] ${c.text}`}>
       <span className={`w-1.5 h-1.5 rounded-full flex-shrink-0 ${c.dot}`} />
       {c.label}
     </span>
