@@ -130,14 +130,14 @@ export default function HistoryMetricsPage() {
           {/* Latency */}
           <MetricChart title="Latency (ms)" data={latencyData} loading={isLoading}>
             <LineChart data={latencyData} margin={{ top: 4, right: 4, left: -20, bottom: 0 }}>
-              <CartesianGrid strokeDasharray="3 3" stroke="#f1f5f9" vertical={false} />
+              <CartesianGrid strokeDasharray="2 4" stroke="#efefef" vertical={false} />
               <XAxis dataKey="time" tick={{ fontSize: 10, fill: '#9ca3af' }} axisLine={false} tickLine={false} />
               <YAxis tick={{ fontSize: 10, fill: '#9ca3af' }} axisLine={false} tickLine={false} />
               <Tooltip {...CHART_TOOLTIP_STYLE} />
               <Legend iconType="circle" iconSize={8} wrapperStyle={{ fontSize: 11 }} />
-              <Line type="monotone" dataKey="p50" stroke="#3b82f6" strokeWidth={1.5} dot={false} name="p50" />
-              <Line type="monotone" dataKey="p95" stroke="#f59e0b" strokeWidth={1.5} dot={false} name="p95" />
-              <Line type="monotone" dataKey="p99" stroke="#ef4444" strokeWidth={1.5} dot={false} name="p99" />
+              <Line type="monotone" dataKey="p50" stroke="#3b82f6" strokeWidth={1} dot={false} name="p50" />
+              <Line type="monotone" dataKey="p95" stroke="#f59e0b" strokeWidth={1} dot={false} name="p95" />
+              <Line type="monotone" dataKey="p99" stroke="#ef4444" strokeWidth={1} dot={false} name="p99" />
             </LineChart>
           </MetricChart>
 
@@ -150,11 +150,11 @@ export default function HistoryMetricsPage() {
                   <stop offset="95%" stopColor="#10b981" stopOpacity={0} />
                 </linearGradient>
               </defs>
-              <CartesianGrid strokeDasharray="3 3" stroke="#f1f5f9" vertical={false} />
+              <CartesianGrid strokeDasharray="2 4" stroke="#efefef" vertical={false} />
               <XAxis dataKey="time" tick={{ fontSize: 10, fill: '#9ca3af' }} axisLine={false} tickLine={false} />
               <YAxis tick={{ fontSize: 10, fill: '#9ca3af' }} axisLine={false} tickLine={false} />
               <Tooltip {...CHART_TOOLTIP_STYLE} />
-              <Area type="monotone" dataKey="req/s" stroke="#10b981" strokeWidth={1.5} fill="url(#tpFill)" dot={false} />
+              <Area type="monotone" dataKey="req/s" stroke="#10b981" strokeWidth={1} fill="url(#tpFill)" dot={false} />
             </AreaChart>
           </MetricChart>
 
@@ -167,24 +167,24 @@ export default function HistoryMetricsPage() {
                   <stop offset="95%" stopColor="#ef4444" stopOpacity={0} />
                 </linearGradient>
               </defs>
-              <CartesianGrid strokeDasharray="3 3" stroke="#f1f5f9" vertical={false} />
+              <CartesianGrid strokeDasharray="2 4" stroke="#efefef" vertical={false} />
               <XAxis dataKey="time" tick={{ fontSize: 10, fill: '#9ca3af' }} axisLine={false} tickLine={false} />
               <YAxis tick={{ fontSize: 10, fill: '#9ca3af' }} axisLine={false} tickLine={false} />
               <Tooltip {...CHART_TOOLTIP_STYLE} />
-              <Area type="monotone" dataKey="error%" stroke="#ef4444" strokeWidth={1.5} fill="url(#errFill)" dot={false} />
+              <Area type="monotone" dataKey="error%" stroke="#ef4444" strokeWidth={1} fill="url(#errFill)" dot={false} />
             </AreaChart>
           </MetricChart>
 
           {/* Resource Usage */}
           <MetricChart title="Resource Usage" data={cpuData} loading={isLoading}>
             <LineChart data={cpuData} margin={{ top: 4, right: 4, left: -20, bottom: 0 }}>
-              <CartesianGrid strokeDasharray="3 3" stroke="#f1f5f9" vertical={false} />
+              <CartesianGrid strokeDasharray="2 4" stroke="#efefef" vertical={false} />
               <XAxis dataKey="time" tick={{ fontSize: 10, fill: '#9ca3af' }} axisLine={false} tickLine={false} />
               <YAxis tick={{ fontSize: 10, fill: '#9ca3af' }} axisLine={false} tickLine={false} />
               <Tooltip {...CHART_TOOLTIP_STYLE} />
               <Legend iconType="circle" iconSize={8} wrapperStyle={{ fontSize: 11 }} />
-              <Line type="monotone" dataKey="cpu" stroke="#8b5cf6" strokeWidth={1.5} dot={false} name="CPU %" />
-              <Line type="monotone" dataKey="memory" stroke="#06b6d4" strokeWidth={1.5} dot={false} name="Mem GB" />
+              <Line type="monotone" dataKey="cpu" stroke="#8b5cf6" strokeWidth={1} dot={false} name="CPU %" />
+              <Line type="monotone" dataKey="memory" stroke="#06b6d4" strokeWidth={1} dot={false} name="Mem GB" />
             </LineChart>
           </MetricChart>
         </div>
