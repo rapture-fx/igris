@@ -79,7 +79,7 @@ export default function SettingsLicensePage() {
     <DashboardLayout>
       <div className="space-y-5 max-w-2xl">
         <div>
-          <h1 className="text-xl font-semibold text-gray-900">License</h1>
+          <h1 className="text-base font-semibold text-gray-900">License</h1>
           <p className="text-xs text-gray-500 mt-0.5">Plan, license key, and quota usage.</p>
         </div>
 
@@ -100,7 +100,7 @@ export default function SettingsLicensePage() {
             ) : (
               <div className="space-y-4">
                 <div className="flex items-center gap-3">
-                  <span className="text-2xl font-semibold text-gray-900">{plan}</span>
+                  <span className="text-base font-semibold text-gray-900">{plan}</span>
                   <StatusBadge status={(tenant?.status ?? 'active').toUpperCase()} />
                 </div>
 

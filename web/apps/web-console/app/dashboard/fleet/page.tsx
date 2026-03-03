@@ -120,9 +120,9 @@ export default function FleetPage() {
             <div>
               <div className="text-2xl font-bold text-gray-900">{metrics.total_instances}</div>
               <div className="flex gap-2 mt-1">
-                <span className="text-xs text-green-600">{metrics.online_instances} online</span>
-                <span className="text-xs text-gray-400">•</span>
-                <span className="text-xs text-red-600">{metrics.offline_instances} offline</span>
+                <span className="text-xs text-black">{metrics.online_instances} online</span>
+                <span className="text-xs text-black">•</span>
+                <span className="text-xs text-black">{metrics.offline_instances} offline</span>
               </div>
             </div>
           </div>
@@ -153,13 +153,13 @@ export default function FleetPage() {
               <div className="text-2xl font-bold text-gray-900">{metrics.fleet_error_rate.toFixed(2)}%</div>
               {metrics.fleet_error_rate > 3 ? (
                 <div className="flex items-center gap-1 mt-1">
-                  <TrendingUp className="h-3 w-3 text-red-600" />
-                  <span className="text-xs text-red-600">Above threshold</span>
+                  <TrendingUp className="h-3 w-3 text-black" />
+                  <span className="text-xs text-black">Above threshold</span>
                 </div>
               ) : (
                 <div className="flex items-center gap-1 mt-1">
-                  <TrendingDown className="h-3 w-3 text-green-600" />
-                  <span className="text-xs text-green-600">Healthy</span>
+                  <TrendingDown className="h-3 w-3 text-black" />
+                  <span className="text-xs text-black">Healthy</span>
                 </div>
               )}
             </div>
@@ -421,9 +421,9 @@ export default function FleetPage() {
                     <div>
                       <div className="text-xs text-gray-600">Error Rate</div>
                       <div className={`text-lg font-medium ${
-                        selectedInstance.error_rate < 1 ? 'text-green-600' :
+                        selectedInstance.error_rate < 1 ? 'text-black' :
                         selectedInstance.error_rate < 3 ? 'text-yellow-600' :
-                        'text-red-600'
+                        'text-black'
                       }`}>
                         {selectedInstance.error_rate.toFixed(2)}%
                       </div>

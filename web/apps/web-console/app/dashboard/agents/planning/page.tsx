@@ -99,11 +99,11 @@ export default function AgentsPlanningPage() {
                   </div>
                   <div className="flex items-center gap-2">
                     {test.status === 'completed' ? (
-                      <CheckCircle className="h-4 w-4 text-green-600 dark:text-green-400" />
+                      <CheckCircle className="h-4 w-4 text-black text-black" />
                     ) : test.status === 'in_progress' ? (
-                      <Clock className="h-4 w-4 text-blue-600 dark:text-blue-400" />
+                      <Clock className="h-4 w-4 text-black text-black" />
                     ) : (
-                      <XCircle className="h-4 w-4 text-red-600 dark:text-red-400" />
+                      <XCircle className="h-4 w-4 text-black text-black" />
                     )}
                   </div>
                 </div>

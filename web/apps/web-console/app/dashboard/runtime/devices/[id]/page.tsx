@@ -234,7 +234,7 @@ export default function DeviceDetailsPage({ params }: { params: Promise<{ id: st
 
   const getHealthIcon = (health: string) => {
     switch (health) {
-      case 'healthy': return <CheckCircle className="h-4 w-4 text-green-600" />;
+      case 'healthy': return <CheckCircle className="h-4 w-4 text-black" />;
       case 'degraded': return <AlertTriangle className="h-4 w-4 text-yellow-600" />;
       case 'unhealthy': return <XCircle className="h-4 w-4 text-red-600" />;
       default: return <Activity className="h-4 w-4 text-gray-600" />;

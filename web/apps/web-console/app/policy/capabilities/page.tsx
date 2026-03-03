@@ -111,7 +111,7 @@ export default function PolicyCapabilitiesPage() {
     <DashboardLayout>
       <div className="space-y-5">
         <div>
-          <h1 className="text-xl font-semibold text-gray-900">Capabilities</h1>
+          <h1 className="text-base font-semibold text-gray-900">Capabilities</h1>
           <p className="text-xs text-gray-500 mt-0.5">Allowed operations for agents.</p>
         </div>
 

@@ -140,10 +140,10 @@ export default function BTreeFleetPage() {
             <Card>
               <CardHeader className="flex flex-row items-center justify-between space-y-0 pb-2">
                 <CardTitle className="text-sm font-medium">Healthy Agents</CardTitle>
-                <CheckCircle className="h-4 w-4 text-green-500" />
+                <CheckCircle className="h-4 w-4 text-black" />
               </CardHeader>
               <CardContent>
-                <div className="text-2xl font-bold text-green-500">{fleetData.healthy_agents}</div>
+                <div className="text-2xl font-bold text-black">{fleetData.healthy_agents}</div>
                 <p className="text-xs text-muted-foreground">
                   {fleetData.total_agents > 0
                     ? Math.round((fleetData.healthy_agents / fleetData.total_agents) * 100)
@@ -262,7 +262,7 @@ export default function BTreeFleetPage() {
                           <span className={cn(
                             agent.failure_rate > 0.5 ? 'text-red-500' :
                             agent.failure_rate > 0.2 ? 'text-yellow-500' :
-                            'text-green-500'
+                            'text-black'
                           )}>
                             {(agent.failure_rate * 100).toFixed(1)}%
                           </span>

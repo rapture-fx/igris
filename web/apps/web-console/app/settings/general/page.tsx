@@ -83,7 +83,7 @@ export default function SettingsGeneralPage() {
     <DashboardLayout>
       <div className="space-y-5 max-w-2xl">
         <div>
-          <h1 className="text-xl font-semibold text-gray-900">General</h1>
+          <h1 className="text-base font-semibold text-gray-900">General</h1>
           <p className="text-xs text-gray-500 mt-0.5">Organization profile and notification preferences.</p>
         </div>
 

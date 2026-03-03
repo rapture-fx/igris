@@ -206,7 +206,7 @@ export default function ProvidersPage() {
                 className="h-7"
               >
                 {copiedUrl ? (
-                  <CheckCircle className="h-3.5 w-3.5 text-green-600" />
+                  <CheckCircle className="h-3.5 w-3.5 text-black" />
                 ) : (
                   <Copy className="h-3.5 w-3.5" />
                 )}
@@ -382,7 +382,7 @@ export default function ProvidersPage() {
                                   Rotate Key
                                 </DropdownMenuItem>
                                 <DropdownMenuItem
-                                  className="text-red-600"
+                                  className="text-black"
                                   onClick={() => {
                                     setSelectedProvider(provider);
                                     setShowDeleteDialog(true);
@@ -426,7 +426,7 @@ export default function ProvidersPage() {
           <div className="space-y-3 py-3">
             <div className="space-y-1.5">
               <Label htmlFor="provider" className="text-xs">
-                Provider <span className="text-red-600">*</span>
+                Provider <span className="text-black">*</span>
               </Label>
               <select
                 id="provider"
@@ -444,7 +444,7 @@ export default function ProvidersPage() {
             </div>
             <div className="space-y-1.5">
               <Label htmlFor="apiKey" className="text-xs">
-                API Key <span className="text-red-600">*</span>
+                API Key <span className="text-black">*</span>
               </Label>
               <div className="relative">
                 <Input
@@ -461,9 +461,9 @@ export default function ProvidersPage() {
                   onClick={() => setShowApiKey(!showApiKey)}
                 >
                   {showApiKey ? (
-                    <EyeOff className="h-3.5 w-3.5 text-gray-400" />
+                    <EyeOff className="h-3.5 w-3.5 text-black" />
                   ) : (
-                    <Eye className="h-3.5 w-3.5 text-gray-400" />
+                    <Eye className="h-3.5 w-3.5 text-black" />
                   )}
                 </button>
               </div>
@@ -512,7 +512,7 @@ export default function ProvidersPage() {
           <div className="space-y-3 py-3">
             <div className="space-y-1.5">
               <Label htmlFor="editApiKey" className="text-xs">
-                New API Key <span className="text-red-600">*</span>
+                New API Key <span className="text-black">*</span>
               </Label>
               <div className="relative">
                 <Input
@@ -529,9 +529,9 @@ export default function ProvidersPage() {
                   onClick={() => setShowApiKey(!showApiKey)}
                 >
                   {showApiKey ? (
-                    <EyeOff className="h-3.5 w-3.5 text-gray-400" />
+                    <EyeOff className="h-3.5 w-3.5 text-black" />
                   ) : (
-                    <Eye className="h-3.5 w-3.5 text-gray-400" />
+                    <Eye className="h-3.5 w-3.5 text-black" />
                   )}
                 </button>
               </div>
@@ -571,7 +571,7 @@ export default function ProvidersPage() {
             </div>
             <div className="space-y-1.5">
               <Label htmlFor="rotateApiKey" className="text-xs">
-                New API Key <span className="text-red-600">*</span>
+                New API Key <span className="text-black">*</span>
               </Label>
               <div className="relative">
                 <Input
@@ -588,9 +588,9 @@ export default function ProvidersPage() {
                   onClick={() => setShowApiKey(!showApiKey)}
                 >
                   {showApiKey ? (
-                    <EyeOff className="h-3.5 w-3.5 text-gray-400" />
+                    <EyeOff className="h-3.5 w-3.5 text-black" />
                   ) : (
-                    <Eye className="h-3.5 w-3.5 text-gray-400" />
+                    <Eye className="h-3.5 w-3.5 text-black" />
                   )}
                 </button>
               </div>
@@ -637,9 +637,9 @@ export default function ProvidersPage() {
               }`}>
                 <div className="flex items-start gap-2">
                   {testResult.success ? (
-                    <CheckCircle className="h-4 w-4 text-green-600 mt-0.5 dark:text-green-400" />
+                    <CheckCircle className="h-4 w-4 text-black mt-0.5 dark:text-green-400" />
                   ) : (
-                    <XCircle className="h-4 w-4 text-red-600 mt-0.5 dark:text-red-400" />
+                    <XCircle className="h-4 w-4 text-black mt-0.5 dark:text-red-400" />
                   )}
                   <div>
                     <p className={`font-medium text-xs ${

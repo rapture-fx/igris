@@ -256,7 +256,7 @@ export function Sidebar({ open = true, onClose }: SidebarProps) {
                     <li key={item.name}>
                       <button
                         onClick={() => toggleSection(item.name)}
-                        className="w-full flex items-center justify-between gap-3 rounded-lg px-3 py-2 text-[0.75rem] font-medium font-inter transition-colors text-gray-600 dark:text-[#c8c8b8] hover:text-gray-900 dark:hover:text-[#f6f6f4] hover:bg-[#f5f5f5] dark:hover:bg-[#2c2a22]"
+                        className="w-full flex items-center justify-between gap-3 rounded-lg px-3 py-2 text-xs font-medium transition-colors text-gray-600 dark:text-[#c8c8b8] hover:text-gray-900 dark:hover:text-[#f6f6f4] hover:bg-[#f5f5f5] dark:hover:bg-[#2c2a22]"
                       >
                         <div className="flex items-center gap-2">
                           <item.icon className="h-4 w-4 text-gray-400 dark:text-[#c8c8b8]" />
@@ -282,7 +282,7 @@ export function Sidebar({ open = true, onClose }: SidebarProps) {
                                   href={child.href}
                                   onClick={onClose}
                                   className={cn(
-                                    'flex items-center rounded-lg px-2.5 py-1.5 text-[0.75rem] font-medium font-inter transition-colors',
+                                    'flex items-center rounded-lg px-2.5 py-1.5 text-xs font-medium transition-colors',
                                     isActive
                                       ? 'bg-[#f5f5f5] dark:bg-[#282c34] text-gray-900 dark:text-[#f6f6f4] font-semibold'
                                       : 'text-gray-600 dark:text-[#c8c8b8] hover:text-gray-900 dark:hover:text-[#f6f6f4] hover:bg-[#f5f5f5] dark:hover:bg-[#2c2a22]'
@@ -307,7 +307,7 @@ export function Sidebar({ open = true, onClose }: SidebarProps) {
                       href={item.href}
                       onClick={onClose}
                       className={cn(
-                        'flex items-center gap-2 rounded-lg px-3 py-1.5 text-[0.75rem] font-medium font-inter transition-colors',
+                        'flex items-center gap-2 rounded-lg px-3 py-1.5 text-xs font-medium transition-colors',
                         isActive
                           ? 'bg-[#f5f5f5] dark:bg-[#282c34] text-gray-900 dark:text-[#f6f6f4] font-semibold'
                           : 'text-gray-600 dark:text-[#c8c8b8] hover:text-gray-900 dark:hover:text-[#f6f6f4] hover:bg-[#f5f5f5] dark:hover:bg-[#2c2a22]'

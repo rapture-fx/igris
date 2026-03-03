@@ -78,7 +78,7 @@ export default function ProofViolationsPage() {
     <DashboardLayout>
       <div className="space-y-5">
         <div>
-          <h1 className="text-xl font-semibold text-gray-900">Violations</h1>
+          <h1 className="text-base font-semibold text-gray-900">Violations</h1>
           <p className="text-xs text-gray-500 mt-0.5">Policy enforcement events.</p>
         </div>
 
@@ -97,7 +97,7 @@ export default function ProofViolationsPage() {
                   (c as any).text ? (
                     <span className="text-sm font-medium text-gray-800 font-mono">{c.value}</span>
                   ) : (
-                    <span className="text-xl font-semibold text-gray-900 tabular-nums">{c.value}</span>
+                    <span className="text-base font-semibold text-gray-900 tabular-nums">{c.value}</span>
                   )
                 )}
                 <p className="text-[11px] text-gray-400 mt-0.5">{c.sub}</p>
