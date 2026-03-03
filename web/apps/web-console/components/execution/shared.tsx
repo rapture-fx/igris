@@ -78,7 +78,7 @@ export function KeyValueGrid({ rows }: { rows: KVRow[] }) {
           <dd
             className={cn(
               'text-xs text-gray-900 flex items-start gap-1',
-              row.mono && 'font-mono break-all',
+              row.mono && 'break-all',
             )}
           >
             <span>
@@ -122,7 +122,7 @@ export function JSONViewer({
         {open ? 'Collapse' : 'Show'} raw JSON
       </button>
       {open && (
-        <pre className="mt-2 text-[11px] text-gray-700 bg-gray-50 border border-gray-200 rounded-md p-3 overflow-auto max-h-80 font-mono leading-relaxed">
+        <pre className="mt-2 text-xs text-gray-700 bg-gray-50 border border-gray-200 rounded-md p-3 overflow-auto max-h-80 leading-normal">
           {JSON.stringify(data, null, 2)}
         </pre>
       )}
@@ -153,28 +153,32 @@ export function LifecycleTimeline({ events }: { events: TimelineEvent[] }) {
   };
 
   return (
-    <div className="relative pl-5">
-      <div className="absolute left-[7px] top-2 bottom-0 w-px bg-gray-200" />
-      <div className="space-y-4">
-        {events.map((event, i) => (
-          <div key={i} className="relative flex items-start gap-3">
+    <div className="space-y-0">
+      {events.map((event, i) => (
+        <div key={i} className="flex gap-3">
+          {/* Left column: dot + connector line, perfectly centered */}
+          <div className="flex flex-col items-center flex-shrink-0 w-4">
             <div
               className={cn(
-                'absolute -left-[5px] top-[5px] h-2.5 w-2.5 rounded-full border-2 border-white ring-1',
+                'h-2.5 w-2.5 rounded-full border-2 border-white ring-1 flex-shrink-0 mt-[3px]',
                 dotColor(event.state),
               )}
             />
-            <div className="ml-2 flex flex-col gap-0.5">
-              <div className="flex items-center gap-2">
-                <StatusBadge status={event.state} />
-                <span className="text-xs text-gray-400">{getRelativeTime(event.timestamp)}</span>
-              </div>
-              <span className="text-[10px] text-gray-400 font-mono">{event.timestamp}</span>
-              {event.note && <p className="text-[11px] text-gray-500 mt-0.5">{event.note}</p>}
-            </div>
+            {i < events.length - 1 && (
+              <div className="w-px bg-gray-200 flex-1 mt-1" />
+            )}
           </div>
-        ))}
-      </div>
+          {/* Right column: content */}
+          <div className={cn('flex flex-col gap-0.5', i < events.length - 1 ? 'pb-4' : '')}>
+            <div className="flex items-center gap-2 flex-wrap">
+              <StatusBadge status={event.state} />
+              <span className="text-xs text-gray-400">{getRelativeTime(event.timestamp)}</span>
+            </div>
+            <span className="text-xs text-gray-400">{event.timestamp}</span>
+            {event.note && <p className="text-xs text-gray-500 mt-0.5">{event.note}</p>}
+          </div>
+        </div>
+      ))}
     </div>
   );
 }
@@ -241,7 +245,7 @@ export function ReceiptVerificationPanel({
               </button>
             )}
           </div>
-          <p className="text-[11px] font-mono text-gray-600 break-all bg-gray-50 border border-gray-100 rounded px-2.5 py-2 leading-relaxed">
+          <p className="text-xs text-gray-600 break-all bg-gray-50 border border-gray-100 rounded px-2.5 py-2 leading-normal">
             {value ?? <span className="text-gray-300">Not available</span>}
           </p>
         </div>
