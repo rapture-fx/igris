@@ -16,9 +16,9 @@ export function StepChain({ steps }: StepChainProps) {
         <div key={i} className="flex gap-4">
           {/* Track */}
           <div className="flex flex-col items-center flex-shrink-0 w-2">
-            <div className="mt-[0.3rem] w-2 h-2 rounded-full flex-shrink-0 bg-gray-700 dark:bg-[#c8c8b8]" />
+            <div className="mt-[0.3rem] w-1.5 h-1.5 rounded-full flex-shrink-0 bg-gray-700 dark:bg-[#c8c8b8]" />
             {i < steps.length - 1 && (
-              <div className="w-px flex-1 min-h-6 bg-gray-200 dark:bg-[#f6f6f4]/20 mt-1" />
+              <div className="w-px flex-1 min-h-6 bg-gray-200 dark:bg-[#f6f6f4]/20 mt-1" style={{ width: '1px' }} />
             )}
           </div>
 
