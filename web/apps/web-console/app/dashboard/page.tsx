@@ -184,7 +184,7 @@ export default function DashboardPage() {
                     ) : (
                       (executions ?? []).map((ex) => (
                         <tr key={ex.id} className="border-b border-gray-50 hover:bg-gray-50/50 transition-colors">
-                          <td className="px-4 py-2.5 font-mono text-black">{truncateText(ex.id, 12)}</td>
+                          <td className="px-4 py-2.5 text-black">{truncateText(ex.id, 12)}</td>
                           <td className="px-4 py-2.5 text-gray-700">{truncateText(ex.agent_id, 14)}</td>
                           <td className="px-4 py-2.5 text-black">{ex.model ?? '—'}</td>
                           <td className="px-4 py-2.5 text-black">{getRelativeTime(ex.started_at)}</td>
