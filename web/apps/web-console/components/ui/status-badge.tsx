@@ -32,6 +32,7 @@ interface StatusBadgeProps {
 export function StatusBadge({ status, className, showDot = true }: StatusBadgeProps) {
   const key = status?.toUpperCase() ?? '';
   const config = statusConfig[key] ?? fallback;
+  const displayStatus = status ? status.charAt(0).toUpperCase() + status.slice(1).toLowerCase() : '';
 
   return (
     <span
@@ -44,7 +45,7 @@ export function StatusBadge({ status, className, showDot = true }: StatusBadgePr
       )}
     >
       {showDot && <span className={cn('h-1.5 w-1.5 rounded-full flex-shrink-0', config.dot)} />}
-      {status}
+      {displayStatus}
     </span>
   );
 }
