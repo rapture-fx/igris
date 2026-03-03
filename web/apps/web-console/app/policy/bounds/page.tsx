@@ -130,11 +130,11 @@ export default function PolicyBoundsPage() {
                               [field.key]: Number(e.target.value),
                             }))
                           }
-                          className="h-9 text-sm font-mono"
+                          className="h-9 text-sm"
                         />
                         <span className="text-xs text-gray-400 w-16 flex-shrink-0">{field.unit}</span>
                       </div>
-                      <div className="flex items-center justify-between text-[11px] text-gray-400">
+                      <div className="flex items-center justify-between text-xs text-gray-400">
                         <span>min: {field.min}</span>
                         <span>max: {field.max.toLocaleString()}</span>
                       </div>
