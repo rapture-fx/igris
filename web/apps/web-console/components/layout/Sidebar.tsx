@@ -110,31 +110,28 @@ export function Sidebar({ open = true, onClose }: SidebarProps) {
   const [selectedIndex, setSelectedIndex] = useState(0);
   const modalInputRef = useRef<HTMLInputElement>(null);
 
-  const [expandedSections, setExpandedSections] = useState<Record<string, boolean>>(DEFAULT_EXPANDED);
+  // Read localStorage synchronously on first render so there's no flash of DEFAULT_EXPANDED
+  const [expandedSections, setExpandedSections] = useState<Record<string, boolean>>(() => {
+    if (typeof window === 'undefined') return DEFAULT_EXPANDED;
+    try {
+      const saved = localStorage.getItem('sidebar_expanded');
+      if (saved) return { ...DEFAULT_EXPANDED, ...JSON.parse(saved) };
+    } catch {}
+    return DEFAULT_EXPANDED;
+  });
 
-  // Load from localStorage, merging with defaults (new keys keep default value)
+  // Always expand the section containing the active route (never collapses others)
   useEffect(() => {
-    const saved = localStorage.getItem('sidebar_expanded');
-    if (saved) {
-      try {
-        const parsed = JSON.parse(saved);
-        setExpandedSections((prev) => ({ ...prev, ...parsed }));
-      } catch (e) {}
-    }
-  }, []);
-
-  // Auto-expand section containing active route (only when no saved state)
-  useEffect(() => {
-    const saved = localStorage.getItem('sidebar_expanded');
-    if (!saved) {
-      const activeSection = navigation.find((item) =>
-        item.children?.some(
-          (child) => pathname === child.href || pathname?.startsWith(child.href + '/')
-        )
-      );
-      if (activeSection) {
-        setExpandedSections((prev) => ({ ...prev, [activeSection.name]: true }));
-      }
+    const activeSection = navigation.find((item) =>
+      item.children?.some(
+        (child) => pathname === child.href || pathname?.startsWith(child.href + '/')
+      )
+    );
+    if (activeSection) {
+      setExpandedSections((prev) => {
+        if (prev[activeSection.name]) return prev; // already expanded, no update
+        return { ...prev, [activeSection.name]: true };
+      });
     }
   }, [pathname]);
 
