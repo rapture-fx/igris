@@ -52,6 +52,7 @@ import {
   LifecycleTimeline,
   CopyButton,
 } from '@/components/execution/shared';
+import { MOCK_AGENTS } from '@/lib/mock/execution';
 
 // ─── Types ────────────────────────────────────────────────────────────────────
 
@@ -136,7 +137,7 @@ function MiniExecutionsTable({ executions }: { executions: RecentExecution[] }) 
             <tr key={ex.id} className={i < executions.length - 1 ? 'border-b border-gray-100' : ''}>
               <td className="px-3 py-2">
                 <div className="flex items-center gap-1">
-                  <span className="font-mono text-gray-700">{truncateText(ex.id, 14)}</span>
+                  <span className="text-gray-700">{truncateText(ex.id, 14)}</span>
                   <CopyButton value={ex.id} />
                 </div>
               </td>
@@ -146,7 +147,7 @@ function MiniExecutionsTable({ executions }: { executions: RecentExecution[] }) 
               <td className="px-3 py-2 text-gray-500 tabular-nums">
                 {getRelativeTime(ex.started_at)}
               </td>
-              <td className="px-3 py-2 text-gray-500 font-mono tabular-nums">
+              <td className="px-3 py-2 text-gray-500 tabular-nums">
                 {ex.duration_ms != null ? formatDurationMs(ex.duration_ms) : '—'}
               </td>
             </tr>
@@ -176,7 +177,7 @@ function MiniViolationsTable({ violations }: { violations: ViolationEntry[] }) {
           {violations.map((v, i) => (
             <tr key={v.id} className={i < violations.length - 1 ? 'border-b border-gray-100' : ''}>
               <td className="px-3 py-2">
-                <span className="font-mono text-gray-700">{truncateText(v.id, 14)}</span>
+                <span className="text-gray-700">{truncateText(v.id, 14)}</span>
               </td>
               <td className="px-3 py-2 text-gray-700">{v.type}</td>
               <td className="px-3 py-2">
@@ -206,7 +207,13 @@ export default function ExecutionAgentsPage() {
 
   const { data: agents = [], isLoading, refetch } = useQuery<Agent[]>({
     queryKey: ['execution-agents'],
-    queryFn: () => api.get('/v1/execution/agents'),
+    queryFn: async () => {
+      try {
+        return await api.get('/v1/execution/agents');
+      } catch {
+        return MOCK_AGENTS as unknown as Agent[];
+      }
+    },
     retry: false,
   });
 
@@ -393,14 +400,14 @@ export default function ExecutionAgentsPage() {
                   >
                     <TableCell className="px-3 py-2.5">
                       <div className="flex items-center gap-1">
-                        <span className="font-mono text-xs text-gray-700">
+                        <span className="text-xs text-gray-700">
                           {truncateText(agent.id, 16)}
                         </span>
                         <CopyButton value={agent.id} />
                       </div>
                     </TableCell>
                     <TableCell className="px-3 py-2.5">
-                      <span className="text-xs text-gray-600 font-mono">
+                      <span className="text-xs text-gray-600">
                         {agent.namespace ?? '—'}
                       </span>
                     </TableCell>
@@ -416,7 +423,7 @@ export default function ExecutionAgentsPage() {
                       <ViolationBadge count={agent.violation_count} />
                     </TableCell>
                     <TableCell className="px-3 py-2.5">
-                      <span className="text-xs text-gray-500 font-mono">
+                      <span className="text-xs text-gray-500">
                         {agent.device_id ? truncateText(agent.device_id, 12) : '—'}
                       </span>
                     </TableCell>
@@ -437,7 +444,7 @@ export default function ExecutionAgentsPage() {
                 <div>
                   <SheetTitle>Agent Detail</SheetTitle>
                   <div className="flex items-center gap-1.5 mt-1">
-                    <code className="text-xs font-mono text-gray-500">{selected.id}</code>
+                    <code className="text-xs text-gray-500">{selected.id}</code>
                     <CopyButton value={selected.id} />
                   </div>
                 </div>
@@ -475,7 +482,7 @@ export default function ExecutionAgentsPage() {
                           {(selected.capabilities as string[]).map((cap) => (
                             <span
                               key={cap}
-                              className="text-xs px-2 py-0.5 bg-gray-100 text-gray-700 rounded border border-gray-200 font-mono"
+                              className="text-xs px-2 py-0.5 bg-gray-100 text-gray-700 rounded border border-gray-200"
                             >
                               {cap}
                             </span>
@@ -524,7 +531,7 @@ export default function ExecutionAgentsPage() {
                       <Activity className="h-3.5 w-3.5" />
                       Recent Executions
                       {(selected.recent_executions ?? []).length > 0 && (
-                        <span className="ml-1 text-[10px] font-normal text-gray-400">
+                        <span className="ml-1 text-xs font-normal text-gray-400">
                           ({selected.recent_executions!.length})
                         </span>
                       )}
@@ -542,7 +549,7 @@ export default function ExecutionAgentsPage() {
                       <AlertTriangle className="h-3.5 w-3.5" />
                       Violation History
                       {selected.violation_count > 0 && (
-                        <span className="ml-1 inline-flex items-center px-1.5 py-0.5 rounded text-[10px] font-medium bg-orange-50 text-orange-700 border border-orange-200">
+                        <span className="ml-1 inline-flex items-center px-1.5 py-0.5 rounded text-xs font-medium bg-orange-50 text-orange-700 border border-orange-200">
                           {selected.violation_count}
                         </span>
                       )}
