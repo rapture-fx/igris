@@ -139,7 +139,7 @@ export default function ModelsCostPage() {
                 {isLoading ? <Skeleton className="h-6 w-20" /> : (
                   <span className="text-lg font-semibold text-gray-900 tabular-nums">{c.value}</span>
                 )}
-                <p className="text-[11px] text-gray-400 mt-0.5">{c.sub}</p>
+                <p className="text-xs text-gray-400 mt-0.5">{c.sub}</p>
               </CardContent>
             </Card>
           ))}
