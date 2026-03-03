@@ -15,9 +15,6 @@ import {
 import {
   Table, TableBody, TableCell, TableHead, TableHeader, TableRow,
 } from '@/components/ui/table';
-import {
-  Sheet, SheetContent, SheetHeader, SheetTitle, SheetClose, SheetBody,
-} from '@/components/ui/sheet';
 import { api } from '@/lib/apiClient';
 import { downloadJSON, getRelativeTime } from '@/utils/helpers';
 import {
@@ -27,6 +24,10 @@ import {
 import { ViolationSeverityBadge } from '@/components/proof/ViolationSeverityBadge';
 import { KeyValueGrid } from '@/components/proof/KeyValueGrid';
 import { JSONViewer } from '@/components/proof/JSONViewer';
+import { RightSideDrawer, DrawerSection } from '@/components/proof/RightSideDrawer';
+import { TimeRangePicker, filterByTimeRange, type TimeRange } from '@/components/proof/TimeRangePicker';
+
+// ─── Types ────────────────────────────────────────────────────────────────────
 
 interface Violation {
   id: string;
@@ -38,7 +39,6 @@ interface Violation {
   limit_value: number | string;
   observed_value: number | string;
   unit?: string;
-  policy?: Record<string, unknown>;
   metadata?: Record<string, unknown>;
 }
 
@@ -53,63 +53,42 @@ interface Execution {
   [key: string]: unknown;
 }
 
-const KIND_OPTIONS = [
-  'all',
-  'CPU_LIMIT',
-  'MEMORY_LIMIT',
-  'QUOTA_EXCEEDED',
-  'TICK_TIMEOUT',
-  'CAPABILITY_DENIED',
-];
+// ─── Constants ────────────────────────────────────────────────────────────────
 
-function truncateId(id: string, len = 12): string {
-  if (!id) return '—';
-  return id.length > len ? `${id.slice(0, len)}…` : id;
+const KIND_OPTIONS = ['all', 'CPU_LIMIT', 'MEMORY_LIMIT', 'QUOTA_EXCEEDED', 'TICK_TIMEOUT', 'CAPABILITY_DENIED'];
+
+// ─── Micro-components ─────────────────────────────────────────────────────────
+
+function trunc(s: string, n: number): string {
+  if (!s) return '—';
+  return s.length > n ? `${s.slice(0, n)}…` : s;
 }
 
-function CopyButton({ text }: { text: string }) {
-  const [copied, setCopied] = useState(false);
-  const copy = () => {
-    navigator.clipboard.writeText(text);
-    setCopied(true);
-    setTimeout(() => setCopied(false), 1500);
-  };
+function CopyBtn({ text }: { text: string }) {
+  const [ok, setOk] = useState(false);
   return (
-    <button onClick={copy} className="text-gray-300 hover:text-gray-600 transition-colors flex-shrink-0" title="Copy">
-      {copied ? <Check className="h-3 w-3 text-green-500" /> : <Copy className="h-3 w-3" />}
+    <button
+      onClick={() => { navigator.clipboard.writeText(text); setOk(true); setTimeout(() => setOk(false), 1500); }}
+      className="flex-shrink-0 text-gray-300 hover:text-gray-600 transition-colors"
+      title="Copy"
+    >
+      {ok ? <Check className="h-3 w-3 text-green-500" /> : <Copy className="h-3 w-3" />}
     </button>
   );
 }
 
-function DrawerSection({ title, children }: { title: string; children: React.ReactNode }) {
-  return (
-    <div className="space-y-3">
-      <div className="text-[10px] font-mono font-medium text-gray-400 uppercase tracking-wider">{title}</div>
-      {children}
-    </div>
-  );
-}
-
 function ExecutionMiniTable({ executionId }: { executionId: string }) {
-  const { data: execution, isLoading } = useQuery<Execution>({
+  const { data: exec, isLoading } = useQuery<Execution>({
     queryKey: ['execution', executionId],
     queryFn: () => api.get(`/v1/executions/${executionId}`),
     retry: false,
     enabled: !!executionId,
   });
 
-  if (isLoading) {
-    return <Skeleton className="h-16 w-full" />;
-  }
-  if (!execution) {
-    return (
-      <div className="text-xs font-mono text-gray-400 py-2">
-        execution not found
-      </div>
-    );
-  }
+  if (isLoading) return <Skeleton className="h-20 w-full" />;
+  if (!exec) return <p className="text-xs text-gray-400 py-2">execution not found</p>;
 
-  const fields: Array<{ label: string; key: string }> = [
+  const FIELDS = [
     { label: 'status', key: 'status' },
     { label: 'model', key: 'model' },
     { label: 'agent_id', key: 'agent_id' },
@@ -120,10 +99,10 @@ function ExecutionMiniTable({ executionId }: { executionId: string }) {
 
   return (
     <div className="rounded-md border border-gray-200 overflow-hidden">
-      <table className="w-full text-[10px] font-mono">
+      <table className="w-full text-[10px]">
         <tbody>
-          {fields.map(({ label, key }) => {
-            const val = execution[key];
+          {FIELDS.map(({ label, key }) => {
+            const val = exec[key];
             if (val == null) return null;
             return (
               <tr key={key} className="border-b border-gray-100 last:border-0">
@@ -148,19 +127,21 @@ function PolicySnapshot({ executionId }: { executionId: string }) {
     enabled: !!executionId,
   });
 
-  if (isLoading) return <Skeleton className="h-20 w-full" />;
-  if (!policy) return (
-    <div className="text-xs font-mono text-gray-400 py-2">no policy found</div>
+  if (isLoading) return <Skeleton className="h-16 w-full" />;
+  if (!policy) return <p className="text-xs text-gray-400 py-2">no policy snapshot</p>;
+
+  return (
+    <KeyValueGrid
+      items={Object.entries(policy).map(([k, v]) => ({
+        label: k,
+        value: typeof v === 'object' ? JSON.stringify(v) : String(v),
+        mono: true,
+      }))}
+    />
   );
-
-  const items = Object.entries(policy).map(([k, v]) => ({
-    label: k,
-    value: typeof v === 'object' ? JSON.stringify(v) : String(v),
-    mono: true,
-  }));
-
-  return <KeyValueGrid items={items} />;
 }
+
+// ─── Page ─────────────────────────────────────────────────────────────────────
 
 function ViolationsContent() {
   const router = useRouter();
@@ -168,85 +149,69 @@ function ViolationsContent() {
 
   const [search, setSearch] = useState('');
   const [kindFilter, setKindFilter] = useState('all');
-  const [selectedId, setSelectedId] = useState<string | null>(
-    searchParams.get('violation')
-  );
+  const [timeRange, setTimeRange] = useState<TimeRange>('24h');
+  const [selectedId, setSelectedId] = useState<string | null>(searchParams.get('violation'));
 
-  const { data: violations = [], isLoading, refetch } = useQuery<Violation[]>({
+  const { data: allViolations = [], isLoading, refetch } = useQuery<Violation[]>({
     queryKey: ['proof-violations'],
-    queryFn: () => api.get('/v1/proof/violations?limit=200&sort=timestamp:desc'),
+    queryFn: () => api.get('/v1/proof/violations?limit=500&sort=timestamp:desc'),
     retry: false,
   });
 
-  // Sync selected to URL
+  // Sync drawer state to URL
   useEffect(() => {
-    const params = new URLSearchParams(searchParams.toString());
-    if (selectedId) {
-      params.set('violation', selectedId);
-    } else {
-      params.delete('violation');
-    }
-    router.replace(`?${params.toString()}`, { scroll: false });
+    const p = new URLSearchParams(searchParams.toString());
+    selectedId ? p.set('violation', selectedId) : p.delete('violation');
+    router.replace(`?${p.toString()}`, { scroll: false });
   }, [selectedId]); // eslint-disable-line react-hooks/exhaustive-deps
 
-  // Esc closes drawer
-  useEffect(() => {
-    const handler = (e: KeyboardEvent) => {
-      if (e.key === 'Escape') setSelectedId(null);
-    };
-    window.addEventListener('keydown', handler);
-    return () => window.removeEventListener('keydown', handler);
-  }, []);
-
-  const now = Date.now();
-  const last24h = useMemo(
-    () => violations.filter((v) => now - new Date(v.timestamp).getTime() < 86_400_000),
-    [violations]
+  // Time-range slice
+  const violations = useMemo(
+    () => filterByTimeRange(allViolations, timeRange),
+    [allViolations, timeRange],
   );
 
+  // Summary aggregations
   const uniqueDevices = useMemo(
     () => new Set(violations.map((v) => v.device_id)).size,
-    [violations]
+    [violations],
   );
-
   const uniqueAgents = useMemo(
     () => new Set(violations.map((v) => v.agent_id)).size,
-    [violations]
+    [violations],
   );
-
   const mostCommonKind = useMemo(() => {
     const counts: Record<string, number> = {};
     violations.forEach((v) => { counts[v.kind] = (counts[v.kind] ?? 0) + 1; });
-    const sorted = Object.entries(counts).sort((a, b) => b[1] - a[1]);
-    return sorted[0] ?? null;
+    return Object.entries(counts).sort((a, b) => b[1] - a[1])[0] ?? null;
   }, [violations]);
 
+  // Search + kind filter
   const filtered = useMemo(() =>
     violations.filter((v) => {
       const q = search.toLowerCase();
-      const matchSearch =
-        !q ||
-        v.agent_id.toLowerCase().includes(q) ||
-        (v.device_id ?? '').toLowerCase().includes(q) ||
-        v.kind.toLowerCase().includes(q) ||
-        (v.execution_id ?? '').toLowerCase().includes(q);
-      const matchKind = kindFilter === 'all' || v.kind === kindFilter;
-      return matchSearch && matchKind;
+      const hit = !q
+        || v.agent_id.toLowerCase().includes(q)
+        || (v.device_id ?? '').toLowerCase().includes(q)
+        || v.kind.toLowerCase().includes(q)
+        || (v.execution_id ?? '').toLowerCase().includes(q);
+      return hit && (kindFilter === 'all' || v.kind === kindFilter);
     }),
-    [violations, search, kindFilter]
+    [violations, search, kindFilter],
   );
 
   const selected = useMemo(
     () => violations.find((v) => v.id === selectedId) ?? null,
-    [violations, selectedId]
+    [violations, selectedId],
   );
 
   const STAT_CARDS = [
     {
-      label: 'Total (24h)',
-      value: isLoading ? null : last24h.length,
+      label: `Total (${timeRange})`,
+      value: isLoading ? null : violations.length,
       icon: Clock,
-      iconClass: last24h.length > 0 ? 'text-red-500' : 'text-gray-400',
+      iconClass: violations.length > 0 ? 'text-red-500' : 'text-gray-400',
+      num: true,
     },
     {
       label: 'By Device',
@@ -254,6 +219,7 @@ function ViolationsContent() {
       icon: Server,
       iconClass: 'text-gray-500',
       sub: 'unique devices',
+      num: true,
     },
     {
       label: 'By Agent',
@@ -261,14 +227,15 @@ function ViolationsContent() {
       icon: Brain,
       iconClass: 'text-violet-500',
       sub: 'unique agents',
+      num: true,
     },
     {
       label: 'Most Common',
-      value: isLoading ? null : mostCommonKind ? mostCommonKind[0] : '—',
+      value: isLoading ? null : mostCommonKind?.[0] ?? '—',
       icon: AlertTriangle,
       iconClass: 'text-orange-500',
-      text: true,
       sub: mostCommonKind ? `${mostCommonKind[1]}×` : '',
+      num: false,
     },
   ];
 
@@ -276,25 +243,21 @@ function ViolationsContent() {
     <DashboardLayout>
       <div className="space-y-5">
         {/* Header */}
-        <div className="flex items-start justify-between">
+        <div className="flex items-start justify-between gap-4">
           <div>
             <h1 className="text-base font-semibold text-gray-900">Violations</h1>
             <p className="text-xs text-gray-500 mt-0.5">Policy enforcement events.</p>
           </div>
-          <div className="flex items-center gap-2">
-            <Button
-              variant="outline"
-              size="sm"
-              className="h-8 text-xs gap-1.5"
-              onClick={() => refetch()}
-            >
+          <div className="flex items-center gap-2 flex-shrink-0">
+            <TimeRangePicker value={timeRange} onChange={setTimeRange} />
+            <Button variant="outline" size="sm" className="h-8 text-xs gap-1.5" onClick={() => refetch()}>
               <RefreshCw className="h-3.5 w-3.5" /> Refresh
             </Button>
             <Button
               variant="outline"
               size="sm"
               className="h-8 text-xs gap-1.5"
-              onClick={() => downloadJSON(violations, 'violations')}
+              onClick={() => downloadJSON(violations, `violations-${timeRange}`)}
             >
               <Download className="h-3.5 w-3.5" /> Export
             </Button>
@@ -314,13 +277,13 @@ function ViolationsContent() {
               <CardContent className="px-4 pb-3 pt-1">
                 {c.value === null ? (
                   <Skeleton className="h-6 w-10" />
-                ) : (c as any).text ? (
-                  <span className="text-sm font-mono font-semibold text-gray-900 break-all">{c.value}</span>
-                ) : (
+                ) : c.num ? (
                   <span className="text-base font-semibold text-gray-900 tabular-nums">{c.value}</span>
+                ) : (
+                  <span className="text-sm font-semibold text-gray-900 break-all">{c.value}</span>
                 )}
                 {(c as any).sub && (
-                  <p className="text-[10px] text-gray-400 font-mono mt-0.5">{(c as any).sub}</p>
+                  <p className="text-[10px] text-gray-400 mt-0.5">{(c as any).sub}</p>
                 )}
               </CardContent>
             </Card>
@@ -329,22 +292,22 @@ function ViolationsContent() {
 
         {/* Action Bar */}
         <div className="flex items-center gap-2">
-          <div className="relative max-w-72 flex-1">
+          <div className="relative flex-1 max-w-80">
             <Search className="absolute left-2.5 top-1/2 -translate-y-1/2 h-3.5 w-3.5 text-gray-400" />
             <Input
               placeholder="agent_id / device_id / execution_id"
-              className="pl-8 h-8 text-xs font-mono"
+              className="pl-8 h-8 text-xs"
               value={search}
               onChange={(e) => setSearch(e.target.value)}
             />
           </div>
           <Select value={kindFilter} onValueChange={setKindFilter}>
-            <SelectTrigger className="h-8 w-44 text-xs font-mono">
+            <SelectTrigger className="h-8 w-44 text-xs">
               <SelectValue placeholder="violation type" />
             </SelectTrigger>
             <SelectContent>
               {KIND_OPTIONS.map((k) => (
-                <SelectItem key={k} value={k} className="text-xs font-mono">
+                <SelectItem key={k} value={k} className="text-xs">
                   {k === 'all' ? 'all types' : k}
                 </SelectItem>
               ))}
@@ -357,13 +320,14 @@ function ViolationsContent() {
           <Table>
             <TableHeader>
               <TableRow className="bg-gray-50/60">
-                <TableHead className="text-[10px] font-mono font-medium text-gray-500 uppercase tracking-wide">Timestamp</TableHead>
-                <TableHead className="text-[10px] font-mono font-medium text-gray-500 uppercase tracking-wide">Agent</TableHead>
-                <TableHead className="text-[10px] font-mono font-medium text-gray-500 uppercase tracking-wide">Device</TableHead>
-                <TableHead className="text-[10px] font-mono font-medium text-gray-500 uppercase tracking-wide">Type</TableHead>
-                <TableHead className="text-[10px] font-mono font-medium text-gray-500 uppercase tracking-wide">Limit</TableHead>
-                <TableHead className="text-[10px] font-mono font-medium text-gray-500 uppercase tracking-wide">Observed</TableHead>
-                <TableHead className="text-[10px] font-mono font-medium text-gray-500 uppercase tracking-wide">Execution ID</TableHead>
+                {[
+                  'Timestamp', 'Agent', 'Device', 'Violation Type',
+                  'Limit', 'Observed', 'Execution ID',
+                ].map((h) => (
+                  <TableHead key={h} className="text-[10px] font-medium text-gray-500 uppercase tracking-wide">
+                    {h}
+                  </TableHead>
+                ))}
               </TableRow>
             </TableHeader>
             <TableBody>
@@ -377,158 +341,123 @@ function ViolationsContent() {
                 ))
               ) : filtered.length === 0 ? (
                 <TableRow>
-                  <TableCell colSpan={7} className="text-center text-gray-400 text-xs py-14 font-mono">
+                  <TableCell colSpan={7} className="text-center text-xs text-gray-400 py-14">
                     no violations found
                   </TableCell>
                 </TableRow>
-              ) : (
-                filtered.map((v) => (
-                  <TableRow
-                    key={v.id}
-                    className={`cursor-pointer hover:bg-gray-50 transition-colors ${selectedId === v.id ? 'bg-blue-50/50' : ''}`}
-                    onClick={() => setSelectedId(v.id)}
+              ) : filtered.map((v) => (
+                <TableRow
+                  key={v.id}
+                  className={`cursor-pointer hover:bg-gray-50 transition-colors ${selectedId === v.id ? 'bg-blue-50/40' : ''}`}
+                  onClick={() => setSelectedId(v.id)}
+                >
+                  <TableCell
+                    className="text-xs text-gray-500 whitespace-nowrap"
+                    title={new Date(v.timestamp).toISOString()}
                   >
-                    <TableCell
-                      className="text-xs text-gray-500 whitespace-nowrap"
-                      title={new Date(v.timestamp).toISOString()}
-                    >
-                      {getRelativeTime(v.timestamp)}
-                    </TableCell>
-                    <TableCell className="text-xs font-mono text-gray-600" title={v.agent_id}>
-                      {truncateId(v.agent_id, 12)}
-                    </TableCell>
-                    <TableCell className="text-xs font-mono text-gray-600" title={v.device_id}>
-                      {truncateId(v.device_id, 12)}
-                    </TableCell>
-                    <TableCell>
-                      <ViolationSeverityBadge kind={v.kind} />
-                    </TableCell>
-                    <TableCell className="text-xs tabular-nums font-mono text-gray-500">
-                      {v.limit_value}{v.unit ? ` ${v.unit}` : ''}
-                    </TableCell>
-                    <TableCell className="text-xs tabular-nums font-mono text-red-600 font-medium">
-                      {v.observed_value}{v.unit ? ` ${v.unit}` : ''}
-                    </TableCell>
-                    <TableCell>
-                      {v.execution_id ? (
-                        <div className="flex items-center gap-1 group">
-                          <span
-                            className="text-xs font-mono text-blue-600 hover:text-blue-700 underline underline-offset-2"
-                            title={v.execution_id}
-                            onClick={(e) => {
-                              e.stopPropagation();
-                              router.push(`/execution/runs/${v.execution_id}`);
-                            }}
-                          >
-                            {truncateId(v.execution_id, 10)}
-                          </span>
-                          <span className="opacity-0 group-hover:opacity-100 transition-opacity" onClick={(e) => e.stopPropagation()}>
-                            <CopyButton text={v.execution_id} />
-                          </span>
-                        </div>
-                      ) : (
-                        <span className="text-gray-200 font-mono text-xs">—</span>
-                      )}
-                    </TableCell>
-                  </TableRow>
-                ))
-              )}
+                    {getRelativeTime(v.timestamp)}
+                  </TableCell>
+                  <TableCell className="text-xs text-gray-600" title={v.agent_id}>
+                    {trunc(v.agent_id, 12)}
+                  </TableCell>
+                  <TableCell className="text-xs text-gray-600" title={v.device_id}>
+                    {trunc(v.device_id, 12)}
+                  </TableCell>
+                  <TableCell>
+                    <ViolationSeverityBadge kind={v.kind} />
+                  </TableCell>
+                  <TableCell className="text-xs tabular-nums text-gray-500">
+                    {v.limit_value}{v.unit ? ` ${v.unit}` : ''}
+                  </TableCell>
+                  <TableCell className="text-xs tabular-nums text-red-600 font-medium">
+                    {v.observed_value}{v.unit ? ` ${v.unit}` : ''}
+                  </TableCell>
+                  <TableCell>
+                    {v.execution_id ? (
+                      <div className="flex items-center gap-1 group">
+                        <span
+                          className="text-xs text-blue-600 hover:text-blue-700 underline underline-offset-2"
+                          title={v.execution_id}
+                          onClick={(e) => { e.stopPropagation(); router.push(`/execution/runs/${v.execution_id}`); }}
+                        >
+                          {trunc(v.execution_id, 10)}
+                        </span>
+                        <span className="opacity-0 group-hover:opacity-100 transition-opacity" onClick={(e) => e.stopPropagation()}>
+                          <CopyBtn text={v.execution_id} />
+                        </span>
+                      </div>
+                    ) : (
+                      <span className="text-gray-200 text-xs">—</span>
+                    )}
+                  </TableCell>
+                </TableRow>
+              ))}
             </TableBody>
           </Table>
         </Card>
       </div>
 
       {/* Right-side Drawer */}
-      <Sheet open={!!selected} onOpenChange={(open) => !open && setSelectedId(null)}>
-        <SheetContent>
-          <SheetHeader>
-            <SheetTitle className="flex items-center gap-2 text-sm">
-              <ShieldAlert className="h-4 w-4 text-orange-400" />
-              Violation
-              {selected && (
-                <ViolationSeverityBadge kind={selected.kind} />
-              )}
-            </SheetTitle>
-            <SheetClose onClick={() => setSelectedId(null)} />
-          </SheetHeader>
+      <RightSideDrawer
+        open={!!selected}
+        onClose={() => setSelectedId(null)}
+        title={
+          <>
+            <ShieldAlert className="h-4 w-4 text-orange-400" />
+            Violation
+            {selected && <ViolationSeverityBadge kind={selected.kind} />}
+          </>
+        }
+        subtitle={selected ? new Date(selected.timestamp).toISOString() : undefined}
+      >
+        {selected && (
+          <>
+            {/* Violation Detail */}
+            <DrawerSection title="Violation Detail">
+              <KeyValueGrid items={[
+                { label: 'timestamp', value: new Date(selected.timestamp).toISOString(), mono: true },
+                { label: 'violation_type', value: <ViolationSeverityBadge kind={selected.kind} /> },
+                { label: 'limit', value: `${selected.limit_value}${selected.unit ? ` ${selected.unit}` : ''}`, mono: true },
+                { label: 'observed', value: `${selected.observed_value}${selected.unit ? ` ${selected.unit}` : ''}`, mono: true },
+                ...(selected.execution_id ? [{
+                  label: 'execution_id',
+                  value: selected.execution_id,
+                  mono: true,
+                  copyable: true,
+                  copyValue: selected.execution_id,
+                  href: `/execution/runs/${selected.execution_id}`,
+                }] : []),
+                { label: 'agent_id', value: selected.agent_id, mono: true, copyable: true, copyValue: selected.agent_id },
+                { label: 'device_id', value: selected.device_id, mono: true, copyable: true, copyValue: selected.device_id },
+              ]} />
+            </DrawerSection>
 
-          {selected && (
-            <SheetBody className="space-y-6 py-5">
-              {/* Violation Detail */}
-              <DrawerSection title="Violation Detail">
-                <KeyValueGrid items={[
-                  {
-                    label: 'timestamp',
-                    value: new Date(selected.timestamp).toISOString(),
-                    mono: true,
-                  },
-                  {
-                    label: 'violation_type',
-                    value: <ViolationSeverityBadge kind={selected.kind} />,
-                  },
-                  {
-                    label: 'limit',
-                    value: `${selected.limit_value}${selected.unit ? ` ${selected.unit}` : ''}`,
-                    mono: true,
-                  },
-                  {
-                    label: 'observed',
-                    value: `${selected.observed_value}${selected.unit ? ` ${selected.unit}` : ''}`,
-                    mono: true,
-                  },
-                  ...(selected.execution_id ? [{
-                    label: 'execution_id',
-                    value: selected.execution_id,
-                    mono: true,
-                    copyable: true,
-                    copyValue: selected.execution_id,
-                    href: `/execution/runs/${selected.execution_id}`,
-                  }] : []),
-                  {
-                    label: 'agent_id',
-                    value: selected.agent_id,
-                    mono: true,
-                    copyable: true,
-                    copyValue: selected.agent_id,
-                  },
-                  {
-                    label: 'device_id',
-                    value: selected.device_id,
-                    mono: true,
-                    copyable: true,
-                    copyValue: selected.device_id,
-                  },
-                ]} />
-              </DrawerSection>
+            <Separator />
 
-              <Separator />
+            {/* Associated Execution + Policy (only when execution_id exists) */}
+            {selected.execution_id ? (
+              <>
+                <DrawerSection title="Associated Execution">
+                  <ExecutionMiniTable executionId={selected.execution_id} />
+                </DrawerSection>
 
-              {/* Associated Execution */}
-              {selected.execution_id && (
-                <>
-                  <DrawerSection title="Associated Execution">
-                    <ExecutionMiniTable executionId={selected.execution_id} />
-                  </DrawerSection>
+                <Separator />
 
-                  <Separator />
+                <DrawerSection title="Policy Snapshot">
+                  <PolicySnapshot executionId={selected.execution_id} />
+                </DrawerSection>
 
-                  {/* Policy Snapshot */}
-                  <DrawerSection title="Policy Snapshot">
-                    <PolicySnapshot executionId={selected.execution_id} />
-                  </DrawerSection>
+                <Separator />
+              </>
+            ) : null}
 
-                  <Separator />
-                </>
-              )}
-
-              {/* Raw JSON */}
-              <DrawerSection title="Raw">
-                <JSONViewer data={selected} filename={`violation-${selected.id}`} />
-              </DrawerSection>
-            </SheetBody>
-          )}
-        </SheetContent>
-      </Sheet>
+            {/* Raw JSON */}
+            <DrawerSection title="Raw">
+              <JSONViewer data={selected} filename={`violation-${selected.id}`} />
+            </DrawerSection>
+          </>
+        )}
+      </RightSideDrawer>
     </DashboardLayout>
   );
 }
