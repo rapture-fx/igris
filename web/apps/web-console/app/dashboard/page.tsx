@@ -258,7 +258,7 @@ export default function DashboardPage() {
                     <stop offset="95%" stopColor="#3b82f6" stopOpacity={0} />
                   </linearGradient>
                 </defs>
-                <CartesianGrid strokeDasharray="3 3" stroke="#f1f5f9" vertical={false} />
+                <CartesianGrid strokeDasharray="2 4" stroke="#efefef" vertical={false} />
                 <XAxis dataKey="hour" tick={{ fontSize: 10, fill: '#9ca3af' }} axisLine={false} tickLine={false} />
                 <YAxis tick={{ fontSize: 10, fill: '#9ca3af' }} axisLine={false} tickLine={false} />
                 <Tooltip
@@ -269,7 +269,7 @@ export default function DashboardPage() {
                   type="monotone"
                   dataKey="requests"
                   stroke="#3b82f6"
-                  strokeWidth={1.5}
+                  strokeWidth={1}
                   fill="url(#requestsFill)"
                   dot={false}
                 />
