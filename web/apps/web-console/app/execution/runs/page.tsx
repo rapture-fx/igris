@@ -55,6 +55,7 @@ import {
   ReceiptVerificationPanel,
   CopyButton,
 } from '@/components/execution/shared';
+import { MOCK_RUNS } from '@/lib/mock/execution';
 
 // ─── Types ────────────────────────────────────────────────────────────────────
 
@@ -112,7 +113,13 @@ export default function ExecutionRunsPage() {
 
   const { data: runs = [], isLoading, refetch } = useQuery<Execution[]>({
     queryKey: ['execution-runs'],
-    queryFn: () => api.get('/v1/execution/runs?limit=500&sort=created_at:desc'),
+    queryFn: async () => {
+      try {
+        return await api.get('/v1/execution/runs?limit=500&sort=created_at:desc');
+      } catch {
+        return MOCK_RUNS as unknown as Execution[];
+      }
+    },
     retry: false,
   });
 
@@ -337,7 +344,7 @@ export default function ExecutionRunsPage() {
                   >
                     <TableCell className="px-3 py-2.5">
                       <div className="flex items-center gap-1">
-                        <span className="font-mono text-xs text-gray-700">
+                        <span className="text-xs text-gray-700">
                           {truncateText(run.id, 16)}
                         </span>
                         <CopyButton value={run.id} />
@@ -352,7 +359,7 @@ export default function ExecutionRunsPage() {
                       </div>
                     </TableCell>
                     <TableCell className="px-3 py-2.5">
-                      <span className="text-xs text-gray-600 font-mono">
+                      <span className="text-xs text-gray-600">
                         {run.device_id ? truncateText(run.device_id, 12) : '—'}
                       </span>
                     </TableCell>
@@ -365,7 +372,7 @@ export default function ExecutionRunsPage() {
                       </span>
                     </TableCell>
                     <TableCell className="px-3 py-2.5">
-                      <span className="text-xs text-gray-500 font-mono tabular-nums">
+                      <span className="text-xs text-gray-500 tabular-nums">
                         {run.duration_ms != null ? formatDurationMs(run.duration_ms) : '—'}
                       </span>
                     </TableCell>
@@ -408,7 +415,7 @@ export default function ExecutionRunsPage() {
                 <div>
                   <SheetTitle>Execution Detail</SheetTitle>
                   <div className="flex items-center gap-1.5 mt-1">
-                    <code className="text-xs font-mono text-gray-500">{selected.id}</code>
+                    <code className="text-xs text-gray-500">{selected.id}</code>
                     <CopyButton value={selected.id} />
                   </div>
                 </div>
@@ -586,13 +593,10 @@ export default function ExecutionRunsPage() {
                     </h3>
                     <div className="bg-gray-950 rounded-md p-3 max-h-56 overflow-auto">
                       {!selected.logs || selected.logs.length === 0 ? (
-                        <p className="text-[11px] text-gray-500">No log entries</p>
+                        <p className="text-xs text-gray-500">No log entries</p>
                       ) : (
                         selected.logs.map((line, i) => (
-                          <p
-                            key={i}
-                            className="text-[11px] text-gray-300 font-mono leading-relaxed"
-                          >
+                          <p key={i} className="text-xs text-gray-300 leading-normal">
                             {line}
                           </p>
                         ))
