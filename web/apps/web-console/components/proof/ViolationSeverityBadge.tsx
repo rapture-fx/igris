@@ -13,7 +13,7 @@ interface ViolationSeverityBadgeProps {
 export function ViolationSeverityBadge({ kind }: ViolationSeverityBadgeProps) {
   const style = KIND_STYLES[kind] ?? 'text-gray-600 bg-gray-50 border-gray-200';
   return (
-    <span className={`inline-flex items-center px-1.5 py-0.5 text-[10px] font-mono font-medium border rounded ${style}`}>
+    <span className={`inline-flex items-center px-1.5 py-0.5 text-[10px] font-medium border rounded ${style}`}>
       {kind}
     </span>
   );
