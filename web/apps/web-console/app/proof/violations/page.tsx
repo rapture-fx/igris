@@ -95,12 +95,12 @@ export default function ProofViolationsPage() {
               <CardContent className="px-4 pb-3 pt-1">
                 {isLoading ? <Skeleton className="h-6 w-12" /> : (
                   (c as any).text ? (
-                    <span className="text-sm font-medium text-gray-800 font-mono">{c.value}</span>
+                    <span className="text-sm font-medium text-gray-800">{c.value}</span>
                   ) : (
                     <span className="text-base font-semibold text-gray-900 tabular-nums">{c.value}</span>
                   )
                 )}
-                <p className="text-[11px] text-gray-400 mt-0.5">{c.sub}</p>
+                <p className="text-xs text-gray-400 mt-0.5">{c.sub}</p>
               </CardContent>
             </Card>
           ))}
@@ -170,8 +170,8 @@ export default function ProofViolationsPage() {
                         {v.kind}
                       </span>
                     </TableCell>
-                    <TableCell className="text-xs font-mono text-gray-600">{truncateText(v.agent_id, 14)}</TableCell>
-                    <TableCell className="text-xs font-mono text-gray-600">{truncateText(v.device_id, 12)}</TableCell>
+                    <TableCell className="text-xs text-gray-600">{truncateText(v.agent_id, 14)}</TableCell>
+                    <TableCell className="text-xs text-gray-600">{truncateText(v.device_id, 12)}</TableCell>
                     <TableCell className="text-xs tabular-nums text-gray-500">
                       {v.limit_value}{v.unit ? ` ${v.unit}` : ''}
                     </TableCell>
