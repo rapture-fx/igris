@@ -271,7 +271,7 @@ export function Sidebar({ open = true, onClose }: SidebarProps) {
                       </button>
 
                       {isExpanded && (
-                        <ul className="mt-0.5 ml-4 space-y-0.5 border-l border-gray-200 dark:border-[#f6f6f4]/10 pl-4">
+                        <ul className="mt-0.5 ml-5 space-y-0.5 border-l border-gray-200 dark:border-[#f6f6f4]/10 pl-2">
                           {item.children.map((child) => {
                             const isActive =
                               pathname === child.href ||
@@ -282,7 +282,7 @@ export function Sidebar({ open = true, onClose }: SidebarProps) {
                                   href={child.href}
                                   onClick={onClose}
                                   className={cn(
-                                    'flex items-center rounded-lg px-2.5 py-1.5 text-xs font-medium transition-colors',
+                                    'flex items-center rounded-lg px-2 py-1.5 text-xs font-medium transition-colors',
                                     isActive
                                       ? 'bg-[#f5f5f5] dark:bg-[#282c34] text-gray-900 dark:text-[#f6f6f4] font-semibold'
                                       : 'text-gray-600 dark:text-[#c8c8b8] hover:text-gray-900 dark:hover:text-[#f6f6f4] hover:bg-[#f5f5f5] dark:hover:bg-[#2c2a22]'
