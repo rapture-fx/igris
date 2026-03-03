@@ -29,11 +29,16 @@ interface LicenseInfo {
   features: string[];
 }
 
+const PLAN_DISPLAY_NAMES: Record<string, string> = {
+  Seed: 'The Seed',
+  Horizon: 'The Horizon',
+  Infinite: 'The Infinite',
+};
+
 const PLAN_FEATURES: Record<string, string[]> = {
-  Seed: ['Device-based auth', 'Up to 2 devices', '1K req/day', 'Community support'],
-  Horizon: ['Up to 10 devices', '100K req/day', 'Policy enforcement', 'Email support'],
-  Infinite: ['Unlimited devices', '1M req/day', 'Full governance suite', 'Priority support'],
-  Enterprise: ['Unlimited everything', 'Custom SLA', 'Dedicated support', 'On-premise option'],
+  'The Seed': ['Core deterministic runtime', 'Local + cloud routing', 'Offline survival', 'Cryptographic signing', '7-day retention', 'Community support'],
+  'The Horizon': ['Up to 50 instances', 'Fleet dashboard', 'OTA verified updates', '30-day retention', 'Email support (24h)'],
+  'The Infinite': ['Up to 500 instances', 'On-premise deployment', 'SLO enforcement', '90-day retention', 'Priority support (8h)'],
 };
 
 export default function SettingsLicensePage() {
@@ -61,7 +66,8 @@ export default function SettingsLicensePage() {
   });
 
   const isLoading = tenantLoading || licenseLoading;
-  const plan = tenant?.plan ?? license?.plan ?? 'Seed';
+  const planKey = tenant?.plan ?? license?.plan ?? 'Seed';
+  const plan = PLAN_DISPLAY_NAMES[planKey] ?? planKey;
   const quotaPercent = license
     ? Math.round((license.quota_used / Math.max(license.quota_requests, 1)) * 100)
     : 0;
@@ -106,7 +112,7 @@ export default function SettingsLicensePage() {
 
                 {/* Features list */}
                 <div className="grid grid-cols-2 gap-1.5">
-                  {(PLAN_FEATURES[plan] ?? PLAN_FEATURES.Seed).map((feat) => (
+                  {(PLAN_FEATURES[plan] ?? PLAN_FEATURES['The Seed']).map((feat) => (
                     <div key={feat} className="flex items-center gap-1.5 text-xs text-gray-600">
                       <CheckCircle className="h-3 w-3 text-green-500 flex-shrink-0" />
                       {feat}
