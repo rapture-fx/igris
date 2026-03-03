@@ -4,11 +4,10 @@ import { useState, useEffect, useRef } from 'react';
 import Link from 'next/link';
 import { usePathname, useRouter } from 'next/navigation';
 import {
-  KeyRound, Settings, FileText, ChevronDown, DollarSign, Shield, CloudCog,
-  Cpu, Sliders, Zap, Brain, Search, ExternalLink, Mail,
+  KeyRound, Settings, FileText, ChevronDown, Shield, Scale, ShieldCheck,
+  Cpu, Zap, Search, ExternalLink, Mail,
   FileText as ChangeLogIcon, Activity as StatusIcon, BookOpen,
-  AlertTriangle, Play, Bell, LayoutDashboard, Boxes, MonitorSmartphone,
-  Settings as ConfigIcon, Route, History,
+  Bell, LayoutDashboard, Boxes, History,
 } from 'lucide-react';
 import { cn } from '@/utils/helpers';
 
@@ -56,7 +55,7 @@ const navigation: NavigationItem[] = [
   },
   {
     name: 'Policy',
-    icon: Shield,
+    icon: Scale,
     children: [
       { name: 'Bounds', href: '/policy/bounds' },
       { name: 'Capabilities', href: '/policy/capabilities' },
@@ -64,7 +63,7 @@ const navigation: NavigationItem[] = [
   },
   {
     name: 'Proof',
-    icon: Shield,
+    icon: ShieldCheck,
     children: [
       { name: 'Receipts', href: '/proof/receipts' },
       { name: 'Violations', href: '/proof/violations' },
