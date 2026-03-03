@@ -152,7 +152,7 @@ export default function ModelsRoutingPage() {
                     (config?.rules ?? []).map((rule) => (
                       <TableRow key={rule.id}>
                         <TableCell className="text-xs font-medium">{rule.name}</TableCell>
-                        <TableCell className="text-xs text-gray-500 font-mono">{rule.condition}</TableCell>
+                        <TableCell className="text-xs text-gray-500">{rule.condition}</TableCell>
                         <TableCell>
                           <span className="text-xs px-2 py-0.5 bg-blue-50 text-blue-700 rounded border border-blue-200">
                             {rule.target_provider}
@@ -184,7 +184,7 @@ export default function ModelsRoutingPage() {
                 <div className="flex items-center justify-between">
                   <div>
                     <Label className="text-xs font-medium text-gray-700">Enable Shadow Mode</Label>
-                    <p className="text-[11px] text-gray-400 mt-0.5">
+                    <p className="text-xs text-gray-400 mt-0.5">
                       Mirror requests to fallback without affecting traffic
                     </p>
                   </div>
@@ -222,7 +222,7 @@ export default function ModelsRoutingPage() {
                           </div>
                         )}
                         <div className="flex items-center gap-2 p-2 rounded-md border border-gray-100 bg-gray-50 flex-1">
-                          <span className="text-[11px] font-mono text-gray-400 w-4">{step.order}.</span>
+                          <span className="text-xs text-gray-400 w-4">{step.order}.</span>
                           <span className="text-xs font-medium text-gray-700">{step.provider}</span>
                           <StatusBadge status={step.status} className="ml-auto" />
                         </div>
