@@ -29,16 +29,26 @@ interface LicenseInfo {
   features: string[];
 }
 
+// Maps every API-returned plan key (current + legacy) to a display name.
 const PLAN_DISPLAY_NAMES: Record<string, string> = {
-  Seed: 'The Seed',
-  Horizon: 'The Horizon',
-  Infinite: 'The Infinite',
+  // Current keys
+  free: 'Seed', Free: 'Seed',
+  seed: 'Seed', Seed: 'Seed',
+  horizon: 'Horizon', Horizon: 'Horizon',
+  infinite: 'Infinite', Infinite: 'Infinite',
+  enterprise: 'Enterprise', Enterprise: 'Enterprise',
+  // Legacy keys (Trial → Seed, Develop/Growth → Horizon, Scale → Infinite)
+  trial: 'Seed', Trial: 'Seed',
+  develop: 'Horizon', Develop: 'Horizon',
+  growth: 'Horizon', Growth: 'Horizon',
+  scale: 'Infinite', Scale: 'Infinite',
 };
 
 const PLAN_FEATURES: Record<string, string[]> = {
-  'The Seed': ['Core deterministic runtime', 'Local + cloud routing', 'Offline survival', 'Cryptographic signing', '7-day retention', 'Community support'],
-  'The Horizon': ['Up to 50 instances', 'Fleet dashboard', 'OTA verified updates', '30-day retention', 'Email support (24h)'],
-  'The Infinite': ['Up to 500 instances', 'On-premise deployment', 'SLO enforcement', '90-day retention', 'Priority support (8h)'],
+  Seed:       ['Core deterministic runtime', 'Local + cloud routing', 'Offline survival', 'Cryptographic signing', '7-day retention', 'Community support'],
+  Horizon:    ['Up to 50 instances', 'Fleet dashboard', 'OTA verified updates', '30-day retention', 'Email support (24h)'],
+  Infinite:   ['Up to 500 instances', 'On-premise deployment', 'SLO enforcement', '90-day retention', 'Priority support (8h)'],
+  Enterprise: ['Unlimited instances', 'Dedicated infrastructure', 'Custom SLOs', 'Unlimited retention', 'Dedicated support'],
 };
 
 export default function SettingsLicensePage() {
@@ -66,8 +76,8 @@ export default function SettingsLicensePage() {
   });
 
   const isLoading = tenantLoading || licenseLoading;
-  const planKey = tenant?.plan ?? license?.plan ?? 'Seed';
-  const plan = PLAN_DISPLAY_NAMES[planKey] ?? planKey;
+  const planKey = tenant?.plan ?? license?.plan ?? 'seed';
+  const plan = PLAN_DISPLAY_NAMES[planKey] ?? PLAN_DISPLAY_NAMES[planKey?.toLowerCase()] ?? planKey;
   const quotaPercent = license
     ? Math.round((license.quota_used / Math.max(license.quota_requests, 1)) * 100)
     : 0;
@@ -112,7 +122,7 @@ export default function SettingsLicensePage() {
 
                 {/* Features list */}
                 <div className="grid grid-cols-2 gap-1.5">
-                  {(PLAN_FEATURES[plan] ?? PLAN_FEATURES['The Seed']).map((feat) => (
+                  {(PLAN_FEATURES[plan] ?? PLAN_FEATURES['Seed']).map((feat) => (
                     <div key={feat} className="flex items-center gap-1.5 text-xs text-gray-600">
                       <CheckCircle className="h-3 w-3 text-green-500 flex-shrink-0" />
                       {feat}
