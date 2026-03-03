@@ -145,7 +145,7 @@ export default function FleetDevicesPage() {
               ) : (
                 filtered.map((device) => (
                   <TableRow key={device.id} className="cursor-pointer" onClick={() => setSelected(device)}>
-                    <TableCell className="font-mono text-xs text-gray-600">{truncateText(device.id, 14)}</TableCell>
+                    <TableCell className="text-xs text-gray-600">{truncateText(device.id, 14)}</TableCell>
                     <TableCell><StatusBadge status={device.status} /></TableCell>
                     <TableCell className="text-xs text-gray-600">{device.version ?? '—'}</TableCell>
                     <TableCell className="text-xs text-gray-500">
@@ -173,7 +173,7 @@ export default function FleetDevicesPage() {
             <>
               <SheetHeader className="pb-4">
                 <SheetTitle className="text-sm font-semibold">Device Detail</SheetTitle>
-                <p className="text-xs font-mono text-gray-500 mt-0.5">{selected.id}</p>
+                <p className="text-xs text-gray-500 mt-0.5">{selected.id}</p>
               </SheetHeader>
               <Separator />
 
@@ -226,7 +226,7 @@ export default function FleetDevicesPage() {
                     <div className="space-y-1.5">
                       {(selected.recent_executions ?? []).map((ex) => (
                         <div key={ex.id} className="flex items-center justify-between text-xs">
-                          <span className="font-mono text-gray-600">{truncateText(ex.id, 14)}</span>
+                          <span className="text-gray-600">{truncateText(ex.id, 14)}</span>
                           <div className="flex items-center gap-2">
                             <StatusBadge status={ex.status} />
                             <span className="text-gray-400">{getRelativeTime(ex.started_at)}</span>
@@ -244,7 +244,7 @@ export default function FleetDevicesPage() {
                   <h3 className="text-xs font-semibold text-gray-500 uppercase tracking-wider mb-3 flex items-center gap-1.5">
                     <Shield className="h-3.5 w-3.5" /> Policy Snapshot
                   </h3>
-                  <pre className="text-[11px] text-gray-600 bg-gray-50 border border-gray-100 rounded-md p-3 overflow-auto max-h-32">
+                  <pre className="text-xs text-gray-600 bg-gray-50 border border-gray-100 rounded-md p-3 overflow-auto max-h-32">
                     {selected.policy_snapshot ? JSON.stringify(selected.policy_snapshot, null, 2) : 'No snapshot available'}
                   </pre>
                 </section>
