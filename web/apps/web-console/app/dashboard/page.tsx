@@ -9,8 +9,7 @@ import { Separator } from '@/components/ui/separator';
 import { api } from '@/lib/apiClient';
 import { getRelativeTime, formatDuration, truncateText } from '@/utils/helpers';
 import {
-  Activity, AlertTriangle, Server, Cpu, FileCheck, Bell,
-  TrendingUp, ArrowRight,
+  Terminal, AlertTriangle, Server, Cpu, Gauge, Bell, ArrowRight,
 } from 'lucide-react';
 import {
   AreaChart, Area, XAxis, YAxis, CartesianGrid, Tooltip, ResponsiveContainer,
@@ -51,18 +50,18 @@ interface ModelUsagePoint {
 }
 
 const SUMMARY_CARDS = [
-  { key: 'active_executions', label: 'Active Executions', icon: Activity, sub: 'Currently running', color: 'text-blue-600', link: '/execution/runs' },
-  { key: 'violations_24h', label: 'Violations', icon: AlertTriangle, sub: 'Last 24 hours', color: 'text-orange-600', link: '/proof/violations' },
-  { key: 'online_devices', label: 'Online Devices', icon: Server, sub: 'Fleet status', color: 'text-green-600', link: '/fleet/devices' },
-  { key: 'model_requests_24h', label: 'Model Requests', icon: Cpu, sub: 'Last 24 hours', color: 'text-violet-600', link: '/models/routing' },
-  { key: 'quota_usage_percent', label: 'Quota Usage', icon: TrendingUp, sub: '% of limit used', color: 'text-gray-600', link: '/settings/general', suffix: '%' },
-  { key: 'active_alerts', label: 'Active Alerts', icon: Bell, sub: 'Requiring attention', color: 'text-red-600', link: '/history/alerts' },
+  { key: 'active_executions', label: 'Active Executions', icon: Terminal, sub: 'Currently running', link: '/execution/runs' },
+  { key: 'violations_24h', label: 'Violations', icon: AlertTriangle, sub: 'Last 24 hours', link: '/proof/violations' },
+  { key: 'online_devices', label: 'Online Devices', icon: Server, sub: 'Fleet status', link: '/fleet/devices' },
+  { key: 'model_requests_24h', label: 'Model Requests', icon: Cpu, sub: 'Last 24 hours', link: '/models/routing' },
+  { key: 'quota_usage_percent', label: 'Quota Usage', icon: Gauge, sub: '% of limit used', link: '/settings/license', suffix: '%' },
+  { key: 'active_alerts', label: 'Active Alerts', icon: Bell, sub: 'Requiring attention', link: '/history/alerts' },
 ];
 
 function StatCard({
-  label, icon: Icon, sub, color, link, value, suffix = '', loading,
+  label, icon: Icon, sub, link, value, suffix = '', loading,
 }: {
-  label: string; icon: any; sub: string; color: string; link: string;
+  label: string; icon: any; sub: string; link: string;
   value?: number; suffix?: string; loading: boolean;
 }) {
   return (
@@ -70,7 +69,7 @@ function StatCard({
       <Card className="border border-gray-200 hover:border-gray-300 transition-colors cursor-pointer group">
         <CardHeader className="pb-1 pt-4 px-4">
           <CardTitle className="text-xs font-medium text-gray-500 flex items-center gap-1.5">
-            <Icon className={`h-3.5 w-3.5 ${color}`} />
+            <Icon className="h-3.5 w-3.5 text-black" />
             {label}
           </CardTitle>
         </CardHeader>
@@ -136,7 +135,6 @@ export default function DashboardPage() {
               label={card.label}
               icon={card.icon}
               sub={card.sub}
-              color={card.color}
               link={card.link}
               value={(stats as any)?.[card.key]}
               suffix={card.suffix}
