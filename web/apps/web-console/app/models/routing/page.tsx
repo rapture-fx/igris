@@ -93,7 +93,7 @@ export default function ModelsRoutingPage() {
     <DashboardLayout>
       <div className="space-y-5">
         <div>
-          <h1 className="text-xl font-semibold text-gray-900">Routing</h1>
+          <h1 className="text-base font-semibold text-gray-900">Routing</h1>
           <p className="text-xs text-gray-500 mt-0.5">Model selection and fallback behavior.</p>
         </div>
 

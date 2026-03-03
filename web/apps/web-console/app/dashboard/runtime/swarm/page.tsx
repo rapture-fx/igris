@@ -29,7 +29,7 @@ export default function RuntimeSwarmPage() {
       <div className="max-w-7xl mx-auto space-y-6">
         <div className="pb-4 border-b border-border-light dark:border-[#2d2a24]">
           <h1 className="text-base font-medium text-gray-900 dark:text-[#f6f6f4] font-inter">Swarm Status</h1>
-          <p className="text-gray-600 dark:text-gray-400 mt-1 font-inter text-xs">
+          <p className="text-gray-600 dark:text-black mt-1 font-inter text-xs">
             Monitor distributed consensus and node coordination
           </p>
         </div>
@@ -37,37 +37,37 @@ export default function RuntimeSwarmPage() {
         <div className="grid gap-4 md:grid-cols-3">
           <Card className="border-border-light dark:border-[#2d2a24] shadow-sm">
             <CardHeader className="flex flex-row items-center justify-between pb-2">
-              <CardTitle className="text-xs font-medium text-gray-600 dark:text-gray-400">Total Nodes</CardTitle>
+              <CardTitle className="text-xs font-medium text-gray-600 dark:text-black">Total Nodes</CardTitle>
               <Radio className="h-4 w-4 text-gray-900 dark:text-[#f6f6f4]" />
             </CardHeader>
             <CardContent>
               <div className="text-lg font-bold text-gray-900 dark:text-[#f6f6f4]">{swarmMetrics.total_nodes}</div>
-              <p className="text-xs text-gray-600 dark:text-gray-400 mt-1">{swarmMetrics.active_connections} active connections</p>
+              <p className="text-xs text-gray-600 dark:text-black mt-1">{swarmMetrics.active_connections} active connections</p>
             </CardContent>
           </Card>
 
           <Card className="border-border-light dark:border-[#2d2a24] shadow-sm">
             <CardHeader className="flex flex-row items-center justify-between pb-2">
-              <CardTitle className="text-xs font-medium text-gray-600 dark:text-gray-400">Consensus Health</CardTitle>
+              <CardTitle className="text-xs font-medium text-gray-600 dark:text-black">Consensus Health</CardTitle>
               <Activity className="h-4 w-4 text-gray-900 dark:text-[#f6f6f4]" />
             </CardHeader>
             <CardContent>
               <div className="text-lg font-bold text-gray-900 dark:text-[#f6f6f4]">{swarmMetrics.consensus_health}%</div>
               <div className="flex items-center gap-1 mt-1">
-                <TrendingUp className="h-3 w-3 text-gray-600 dark:text-gray-400" />
-                <span className="text-xs text-gray-600 dark:text-gray-400">Excellent</span>
+                <TrendingUp className="h-3 w-3 text-gray-600 dark:text-black" />
+                <span className="text-xs text-gray-600 dark:text-black">Excellent</span>
               </div>
             </CardContent>
           </Card>
 
           <Card className="border-border-light dark:border-[#2d2a24] shadow-sm">
             <CardHeader className="flex flex-row items-center justify-between pb-2">
-              <CardTitle className="text-xs font-medium text-gray-600 dark:text-gray-400">Sync Latency</CardTitle>
+              <CardTitle className="text-xs font-medium text-gray-600 dark:text-black">Sync Latency</CardTitle>
               <Zap className="h-4 w-4 text-gray-900 dark:text-[#f6f6f4]" />
             </CardHeader>
             <CardContent>
               <div className="text-lg font-bold text-gray-900 dark:text-[#f6f6f4]">{swarmMetrics.avg_sync_latency}ms</div>
-              <p className="text-xs text-gray-600 dark:text-gray-400 mt-1">Average across swarm</p>
+              <p className="text-xs text-gray-600 dark:text-black mt-1">Average across swarm</p>
             </CardContent>
           </Card>
         </div>
@@ -87,7 +87,7 @@ export default function RuntimeSwarmPage() {
                   <div className="flex items-center justify-between mb-3">
                     <div className="flex items-center gap-3">
                       <div className="font-medium text-gray-900 dark:text-[#f6f6f4] text-xs">{node.id}</div>
-                      <Badge className={`${node.status === 'leader' ? 'bg-blue-50 dark:bg-blue-950 text-blue-700 dark:text-blue-400 border-blue-200 dark:border-blue-900' : 'bg-gray-50 dark:bg-gray-800 text-gray-700 dark:text-gray-400 border-gray-200 dark:border-gray-700'} text-xs`}>
+                      <Badge className={`${node.status === 'leader' ? 'bg-blue-50 dark:bg-blue-950 text-blue-700 dark:text-blue-400 border-blue-200 dark:border-blue-900' : 'bg-gray-50 dark:bg-gray-800 text-gray-700 dark:text-black border-gray-200 dark:border-gray-700'} text-xs`}>
                         {node.status}
                       </Badge>
                     </div>
@@ -96,11 +96,11 @@ export default function RuntimeSwarmPage() {
 
                   <div className="grid grid-cols-2 gap-4 text-xs">
                     <div>
-                      <span className="text-gray-600 dark:text-gray-400">Region: </span>
+                      <span className="text-gray-600 dark:text-black">Region: </span>
                       <span className="text-gray-900 dark:text-[#f6f6f4]">{node.region.toUpperCase()}</span>
                     </div>
                     <div>
-                      <span className="text-gray-600 dark:text-gray-400">Connections: </span>
+                      <span className="text-gray-600 dark:text-black">Connections: </span>
                       <span className="text-gray-900 dark:text-[#f6f6f4]">{node.connections}</span>
                     </div>
                   </div>
@@ -118,7 +118,7 @@ export default function RuntimeSwarmPage() {
           <CardContent>
             <div className="bg-gray-50 dark:bg-gray-800 border border-gray-200 dark:border-gray-700 rounded-lg p-4">
               <div className="flex items-center gap-3 mb-2">
-                <Activity className="h-4 w-4 text-gray-600 dark:text-gray-400" />
+                <Activity className="h-4 w-4 text-gray-600 dark:text-black" />
                 <h4 className="text-xs font-medium text-gray-900 dark:text-[#f6f6f4]">Healthy State</h4>
               </div>
               <ul className="text-xs text-gray-800 dark:text-gray-300 space-y-1 list-disc list-inside">

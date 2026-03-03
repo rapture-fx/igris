@@ -77,7 +77,7 @@ export default function ModelsProvidersPage() {
       <div className="space-y-5">
         <div className="flex items-center justify-between">
           <div>
-            <h1 className="text-xl font-semibold text-gray-900">Providers</h1>
+            <h1 className="text-base font-semibold text-gray-900">Providers</h1>
             <p className="text-xs text-gray-500 mt-0.5">Model inference providers and health status.</p>
           </div>
           <Button variant="outline" size="sm" className="h-8 text-xs gap-1.5" onClick={() => refetch()}>
@@ -97,7 +97,7 @@ export default function ModelsProvidersPage() {
               </CardHeader>
               <CardContent className="px-4 pb-3 pt-1">
                 {isLoading ? <Skeleton className="h-6 w-10" /> : (
-                  <span className="text-xl font-semibold text-gray-900 tabular-nums">{c.value}</span>
+                  <span className="text-base font-semibold text-gray-900 tabular-nums">{c.value}</span>
                 )}
               </CardContent>
             </Card>

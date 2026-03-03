@@ -89,7 +89,7 @@ export default function ExecutionRunsPage() {
       <div className="space-y-5">
         {/* Header */}
         <div>
-          <h1 className="text-xl font-semibold text-gray-900">Executions</h1>
+          <h1 className="text-base font-semibold text-gray-900">Executions</h1>
           <p className="text-xs text-gray-500 mt-0.5">All governed execution runs.</p>
         </div>
 
@@ -107,7 +107,7 @@ export default function ExecutionRunsPage() {
                 {isLoading ? (
                   <Skeleton className="h-6 w-10" />
                 ) : (
-                  <span className="text-xl font-semibold text-gray-900 tabular-nums">{c.value}</span>
+                  <span className="text-base font-semibold text-gray-900 tabular-nums">{c.value}</span>
                 )}
               </CardContent>
             </Card>

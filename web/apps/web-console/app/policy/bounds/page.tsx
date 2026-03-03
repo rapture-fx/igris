@@ -81,7 +81,7 @@ export default function PolicyBoundsPage() {
     <DashboardLayout>
       <div className="space-y-5">
         <div>
-          <h1 className="text-xl font-semibold text-gray-900">Execution Bounds</h1>
+          <h1 className="text-base font-semibold text-gray-900">Execution Bounds</h1>
           <p className="text-xs text-gray-500 mt-0.5">System-wide execution constraints.</p>
         </div>
 

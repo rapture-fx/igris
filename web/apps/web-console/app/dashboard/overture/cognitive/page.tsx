@@ -236,11 +236,11 @@ export default function CognitiveAdvisorPage() {
                     <p className="text-xs text-foreground font-medium">{obs.description}</p>
                     <div className="flex items-center gap-2 mt-1">
                       {obs.trend === 'up' ? (
-                        <TrendingUp className="h-3 w-3 text-red-600" />
+                        <TrendingUp className="h-3 w-3 text-black" />
                       ) : (
-                        <TrendingDown className="h-3 w-3 text-green-600" />
+                        <TrendingDown className="h-3 w-3 text-black" />
                       )}
-                      <span className={`text-xs font-medium ${obs.trend === 'up' ? 'text-red-600' : 'text-green-600'}`}>
+                      <span className={`text-xs font-medium ${obs.trend === 'up' ? 'text-black' : 'text-black'}`}>
                         {obs.metric_change}% {obs.metric_unit}
                       </span>
                       <span className="text-xs text-muted-foreground">
@@ -304,19 +304,19 @@ export default function CognitiveAdvisorPage() {
                   <div className="grid grid-cols-3 gap-3 text-xs">
                     <div>
                       <span className="text-muted-foreground">Quality:</span>
-                      <span className={`ml-1 font-medium ${rec.predicted_impact.quality_change >= 0 ? 'text-green-600 dark:text-green-400' : 'text-red-600 dark:text-red-400'}`}>
+                      <span className={`ml-1 font-medium ${rec.predicted_impact.quality_change >= 0 ? 'text-black dark:text-green-400' : 'text-black dark:text-red-400'}`}>
                         {rec.predicted_impact.quality_change >= 0 ? '+' : ''}{rec.predicted_impact.quality_change.toFixed(1)}%
                       </span>
                     </div>
                     <div>
                       <span className="text-muted-foreground">Cost:</span>
-                      <span className={`ml-1 font-medium ${rec.predicted_impact.cost_change <= 0 ? 'text-green-600 dark:text-green-400' : 'text-red-600 dark:text-red-400'}`}>
+                      <span className={`ml-1 font-medium ${rec.predicted_impact.cost_change <= 0 ? 'text-black dark:text-green-400' : 'text-black dark:text-red-400'}`}>
                         {rec.predicted_impact.cost_change >= 0 ? '+' : ''}{rec.predicted_impact.cost_change.toFixed(1)}%
                       </span>
                     </div>
                     <div>
                       <span className="text-muted-foreground">Latency:</span>
-                      <span className={`ml-1 font-medium ${rec.predicted_impact.latency_change <= 0 ? 'text-green-600 dark:text-green-400' : 'text-red-600 dark:text-red-400'}`}>
+                      <span className={`ml-1 font-medium ${rec.predicted_impact.latency_change <= 0 ? 'text-black dark:text-green-400' : 'text-black dark:text-red-400'}`}>
                         {rec.predicted_impact.latency_change >= 0 ? '+' : ''}{rec.predicted_impact.latency_change.toFixed(1)}%
                       </span>
                     </div>
@@ -383,7 +383,7 @@ export default function CognitiveAdvisorPage() {
                       </td>
                       <td className="py-2 px-3">
                         {entry.variance !== undefined ? (
-                          <span className={`font-medium ${Math.abs(entry.variance) < 10 ? 'text-green-600 dark:text-green-400' : 'text-yellow-600 dark:text-yellow-400'}`}>
+                          <span className={`font-medium ${Math.abs(entry.variance) < 10 ? 'text-black dark:text-green-400' : 'text-yellow-600 dark:text-yellow-400'}`}>
                             ±{entry.variance.toFixed(1)}%
                           </span>
                         ) : (

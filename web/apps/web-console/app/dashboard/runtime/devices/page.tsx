@@ -69,7 +69,7 @@ export default function RuntimeDevicesPage() {
         <div className="flex items-center justify-between">
           <div className="pb-4 border-b border-border-light dark:border-[#2d2a24]">
             <h1 className="text-base font-medium text-gray-900 dark:text-[#f6f6f4] font-inter">Device Details</h1>
-            <p className="text-gray-600 dark:text-gray-400 mt-1 font-inter text-xs">
+            <p className="text-gray-600 dark:text-black mt-1 font-inter text-xs">
               Deep dive into individual runtime instance metrics and logs
             </p>
           </div>
@@ -91,7 +91,7 @@ export default function RuntimeDevicesPage() {
                       <CardDescription className="text-xs mt-1">{device.id}</CardDescription>
                     </div>
                   </div>
-                  <Badge className="bg-gray-50 dark:bg-gray-800 text-gray-700 dark:text-gray-400 border dark:border-gray-700">
+                  <Badge className="bg-gray-50 dark:bg-gray-800 text-gray-700 dark:text-black border dark:border-gray-700">
                     {device.status}
                   </Badge>
                 </div>
@@ -100,19 +100,19 @@ export default function RuntimeDevicesPage() {
                 <div className="space-y-4">
                   <div className="grid grid-cols-2 gap-3 text-xs">
                     <div>
-                      <span className="text-gray-600 dark:text-gray-400">Model:</span>
+                      <span className="text-gray-600 dark:text-black">Model:</span>
                       <div className="font-medium text-gray-900 dark:text-[#f6f6f4]">{device.model}</div>
                     </div>
                     <div>
-                      <span className="text-gray-600 dark:text-gray-400">Version:</span>
+                      <span className="text-gray-600 dark:text-black">Version:</span>
                       <div className="font-medium text-gray-900 dark:text-[#f6f6f4]">{device.version}</div>
                     </div>
                     <div>
-                      <span className="text-gray-600 dark:text-gray-400">Region:</span>
+                      <span className="text-gray-600 dark:text-black">Region:</span>
                       <div className="font-medium text-gray-900 dark:text-[#f6f6f4]">{device.region.toUpperCase()}</div>
                     </div>
                     <div>
-                      <span className="text-gray-600 dark:text-gray-400">Uptime:</span>
+                      <span className="text-gray-600 dark:text-black">Uptime:</span>
                       <div className="font-medium text-gray-900 dark:text-[#f6f6f4]">
                         {Math.floor(device.uptime / 86400)}d {Math.floor((device.uptime % 86400) / 3600)}h
                       </div>
@@ -122,7 +122,7 @@ export default function RuntimeDevicesPage() {
                   <div className="space-y-2">
                     <div>
                       <div className="flex justify-between text-xs mb-1">
-                        <span className="text-gray-600 dark:text-gray-400">CPU</span>
+                        <span className="text-gray-600 dark:text-black">CPU</span>
                         <span className="font-medium text-gray-900 dark:text-[#f6f6f4]">
                           {device.cpu_usage.toFixed(1)}%
                         </span>
@@ -150,7 +150,7 @@ export default function RuntimeDevicesPage() {
 
                     <div>
                       <div className="flex justify-between text-xs mb-1">
-                        <span className="text-gray-600 dark:text-gray-400">Memory</span>
+                        <span className="text-gray-600 dark:text-black">Memory</span>
                         <span className="font-medium text-gray-900 dark:text-[#f6f6f4]">
                           {device.memory_usage.toFixed(1)}%
                         </span>
@@ -178,7 +178,7 @@ export default function RuntimeDevicesPage() {
 
                     <div>
                       <div className="flex justify-between text-xs mb-1">
-                        <span className="text-gray-600 dark:text-gray-400">Disk</span>
+                        <span className="text-gray-600 dark:text-black">Disk</span>
                         <span className="font-medium text-gray-900 dark:text-[#f6f6f4]">{device.disk_usage.toFixed(1)}%</span>
                       </div>
                       <div className="w-full bg-gray-200 dark:bg-gray-800 rounded-full h-2">
@@ -204,7 +204,7 @@ export default function RuntimeDevicesPage() {
                   </div>
 
                   <div className="bg-beige-primary dark:bg-[#1b1912] border border-border-light dark:border-[#2d2a24] rounded-lg p-3">
-                    <div className="text-xs text-gray-600 dark:text-gray-400 mb-1">Network I/O</div>
+                    <div className="text-xs text-gray-600 dark:text-black mb-1">Network I/O</div>
                     <div className="flex justify-between text-xs">
                       <span className="text-gray-900 dark:text-[#f6f6f4]">In: {device.network_in.toFixed(1)} MB/s</span>
                       <span className="text-gray-900 dark:text-[#f6f6f4]">Out: {device.network_out.toFixed(1)} MB/s</span>
@@ -260,24 +260,24 @@ export default function RuntimeDevicesPage() {
             <CardContent>
               <div className="grid grid-cols-2 md:grid-cols-4 gap-4">
                 <div className="p-3 bg-beige-primary dark:bg-[#1b1912] rounded-lg border border-border-light dark:border-[#2d2a24]">
-                  <div className="text-xs text-gray-600 dark:text-gray-400 mb-1">Last Sync</div>
+                  <div className="text-xs text-gray-600 dark:text-black mb-1">Last Sync</div>
                   <div className="text-sm font-semibold text-gray-900 dark:text-[#f6f6f4]">45 secs ago</div>
-                  <div className="text-xs text-gray-600 dark:text-gray-400 mt-1">Sync active</div>
+                  <div className="text-xs text-gray-600 dark:text-black mt-1">Sync active</div>
                 </div>
                 <div className="p-3 bg-beige-primary dark:bg-[#1b1912] rounded-lg border border-border-light dark:border-[#2d2a24]">
-                  <div className="text-xs text-gray-600 dark:text-gray-400 mb-1">TTL Remaining</div>
+                  <div className="text-xs text-gray-600 dark:text-black mb-1">TTL Remaining</div>
                   <div className="text-sm font-semibold text-gray-900 dark:text-[#f6f6f4]">5h 12m</div>
-                  <div className="text-xs text-gray-600 dark:text-gray-400 mt-1">Auto-refresh enabled</div>
+                  <div className="text-xs text-gray-600 dark:text-black mt-1">Auto-refresh enabled</div>
                 </div>
                 <div className="p-3 bg-beige-primary dark:bg-[#1b1912] rounded-lg border border-border-light dark:border-[#2d2a24]">
-                  <div className="text-xs text-gray-600 dark:text-gray-400 mb-1">Local Hit Rate</div>
+                  <div className="text-xs text-gray-600 dark:text-black mb-1">Local Hit Rate</div>
                   <div className="text-sm font-semibold text-gray-900 dark:text-[#f6f6f4]">91.2%</div>
-                  <div className="text-xs text-gray-600 dark:text-gray-400 mt-1">This device only</div>
+                  <div className="text-xs text-gray-600 dark:text-black mt-1">This device only</div>
                 </div>
                 <div className="p-3 bg-beige-primary dark:bg-[#1b1912] rounded-lg border border-border-light dark:border-[#2d2a24]">
-                  <div className="text-xs text-gray-600 dark:text-gray-400 mb-1">Fallback Events</div>
+                  <div className="text-xs text-gray-600 dark:text-black mb-1">Fallback Events</div>
                   <div className="text-sm font-semibold text-gray-900 dark:text-[#f6f6f4]">23</div>
-                  <div className="text-xs text-gray-600 dark:text-gray-400 mt-1">Using cache (24h)</div>
+                  <div className="text-xs text-gray-600 dark:text-black mt-1">Using cache (24h)</div>
                 </div>
               </div>
               <div className="mt-3 p-3 bg-blue-50 dark:bg-blue-950 border border-blue-200 dark:border-blue-900 rounded-lg">
@@ -317,23 +317,23 @@ export default function RuntimeDevicesPage() {
                   <div key={device.id} className="p-4 bg-beige-primary dark:bg-[#1b1912] rounded-lg border border-border-light dark:border-[#2d2a24]">
                     <div className="flex items-center justify-between mb-3">
                       <div className="font-medium text-gray-900 dark:text-[#f6f6f4] text-xs">{device.name}</div>
-                      <Badge className="bg-gray-50 dark:bg-gray-800 text-gray-700 dark:text-gray-400 border dark:border-gray-700 text-xs">Synced</Badge>
+                      <Badge className="bg-gray-50 dark:bg-gray-800 text-gray-700 dark:text-black border dark:border-gray-700 text-xs">Synced</Badge>
                     </div>
                     <div className="grid grid-cols-4 gap-3">
                       <div>
-                        <div className="text-xs text-gray-600 dark:text-gray-400">Last Sync</div>
+                        <div className="text-xs text-gray-600 dark:text-black">Last Sync</div>
                         <div className="text-xs font-semibold text-gray-900 dark:text-[#f6f6f4] mt-1">2 mins ago</div>
                       </div>
                       <div>
-                        <div className="text-xs text-gray-600 dark:text-gray-400">TTL Remaining</div>
+                        <div className="text-xs text-gray-600 dark:text-black">TTL Remaining</div>
                         <div className="text-xs font-semibold text-gray-900 dark:text-[#f6f6f4] mt-1">4h 45m</div>
                       </div>
                       <div>
-                        <div className="text-xs text-gray-600 dark:text-gray-400">Hit Rate</div>
+                        <div className="text-xs text-gray-600 dark:text-black">Hit Rate</div>
                         <div className="text-xs font-semibold text-gray-900 dark:text-[#f6f6f4] mt-1">89.5%</div>
                       </div>
                       <div>
-                        <div className="text-xs text-gray-600 dark:text-gray-400">Fallbacks</div>
+                        <div className="text-xs text-gray-600 dark:text-black">Fallbacks</div>
                         <div className="text-xs font-semibold text-gray-900 dark:text-[#f6f6f4] mt-1">12</div>
                       </div>
                     </div>

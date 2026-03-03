@@ -105,7 +105,7 @@ export default function ModelsCostPage() {
       <div className="space-y-5">
         <div className="flex items-center justify-between">
           <div>
-            <h1 className="text-xl font-semibold text-gray-900">Cost</h1>
+            <h1 className="text-base font-semibold text-gray-900">Cost</h1>
             <p className="text-xs text-gray-500 mt-0.5">Model inference spend and token usage.</p>
           </div>
           <div className="flex items-center gap-2">

@@ -68,7 +68,7 @@ function StatCard({
     <Link href={link}>
       <Card className="border border-gray-200 hover:border-gray-300 transition-colors cursor-pointer group">
         <CardHeader className="pb-1 pt-4 px-4">
-          <CardTitle className="text-xs font-medium text-gray-500 flex items-center gap-1.5">
+          <CardTitle className="text-xs font-medium text-black flex items-center gap-1.5">
             <Icon className="h-3.5 w-3.5 text-black" />
             {label}
           </CardTitle>
@@ -77,11 +77,11 @@ function StatCard({
           {loading ? (
             <Skeleton className="h-7 w-16 mt-1" />
           ) : (
-            <div className={`text-2xl font-semibold text-gray-900 tabular-nums`}>
+            <div className={`text-base font-semibold text-gray-900 tabular-nums`}>
               {value ?? '—'}{suffix}
             </div>
           )}
-          <p className="text-xs text-gray-400 mt-0.5">{sub}</p>
+          <p className="text-xs text-black mt-0.5">{sub}</p>
         </CardContent>
       </Card>
     </Link>
@@ -123,8 +123,8 @@ export default function DashboardPage() {
       <div className="space-y-6">
         {/* Page Header */}
         <div>
-          <h1 className="text-xl font-semibold text-gray-900">System Overview</h1>
-          <p className="text-xs text-gray-500 mt-0.5">Live state of governed execution across fleet.</p>
+          <h1 className="text-base font-semibold text-gray-900">System Overview</h1>
+          <p className="text-xs text-black mt-0.5">Live state of governed execution across fleet.</p>
         </div>
 
         {/* Summary Cards */}
@@ -159,11 +159,11 @@ export default function DashboardPage() {
                 <table className="w-full text-xs">
                   <thead>
                     <tr className="border-b border-gray-100">
-                      <th className="px-4 py-2.5 text-left font-medium text-gray-500">ID</th>
-                      <th className="px-4 py-2.5 text-left font-medium text-gray-500">Agent</th>
-                      <th className="px-4 py-2.5 text-left font-medium text-gray-500">Model</th>
-                      <th className="px-4 py-2.5 text-left font-medium text-gray-500">Started</th>
-                      <th className="px-4 py-2.5 text-left font-medium text-gray-500">Status</th>
+                      <th className="px-4 py-2.5 text-left font-medium text-black">ID</th>
+                      <th className="px-4 py-2.5 text-left font-medium text-black">Agent</th>
+                      <th className="px-4 py-2.5 text-left font-medium text-black">Model</th>
+                      <th className="px-4 py-2.5 text-left font-medium text-black">Started</th>
+                      <th className="px-4 py-2.5 text-left font-medium text-black">Status</th>
                     </tr>
                   </thead>
                   <tbody>
@@ -179,15 +179,15 @@ export default function DashboardPage() {
                       ))
                     ) : (executions ?? []).length === 0 ? (
                       <tr>
-                        <td colSpan={5} className="px-4 py-8 text-center text-gray-400">No executions found</td>
+                        <td colSpan={5} className="px-4 py-8 text-center text-black">No executions found</td>
                       </tr>
                     ) : (
                       (executions ?? []).map((ex) => (
                         <tr key={ex.id} className="border-b border-gray-50 hover:bg-gray-50/50 transition-colors">
-                          <td className="px-4 py-2.5 font-mono text-gray-600">{truncateText(ex.id, 12)}</td>
+                          <td className="px-4 py-2.5 font-mono text-black">{truncateText(ex.id, 12)}</td>
                           <td className="px-4 py-2.5 text-gray-700">{truncateText(ex.agent_id, 14)}</td>
-                          <td className="px-4 py-2.5 text-gray-600">{ex.model ?? '—'}</td>
-                          <td className="px-4 py-2.5 text-gray-500">{getRelativeTime(ex.started_at)}</td>
+                          <td className="px-4 py-2.5 text-black">{ex.model ?? '—'}</td>
+                          <td className="px-4 py-2.5 text-black">{getRelativeTime(ex.started_at)}</td>
                           <td className="px-4 py-2.5">
                             <StatusBadge status={ex.has_violation ? 'VIOLATION' : ex.status} />
                           </td>
@@ -219,15 +219,15 @@ export default function DashboardPage() {
                     </div>
                   ))
                 ) : (violations ?? []).length === 0 ? (
-                  <div className="px-4 py-8 text-center text-xs text-gray-400">No violations</div>
+                  <div className="px-4 py-8 text-center text-xs text-black">No violations</div>
                 ) : (
                   (violations ?? []).map((v) => (
                     <div key={v.id} className="px-4 py-3">
                       <div className="flex items-center justify-between">
                         <span className="text-xs font-medium text-gray-700">{v.kind}</span>
-                        <span className="text-[11px] text-gray-400">{getRelativeTime(v.created_at)}</span>
+                        <span className="text-[11px] text-black">{getRelativeTime(v.created_at)}</span>
                       </div>
-                      <p className="text-[11px] text-gray-500 mt-0.5">
+                      <p className="text-[11px] text-black mt-0.5">
                         {truncateText(v.agent_id, 16)} · {truncateText(v.device_id, 12)}
                       </p>
                     </div>

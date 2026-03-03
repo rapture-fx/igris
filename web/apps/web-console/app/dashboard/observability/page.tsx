@@ -838,7 +838,7 @@ export default function ObservabilityPage() {
       bug: { bg: 'bg-red-50 dark:bg-red-950', text: 'text-red-700 dark:text-red-400', border: 'border-red-200 dark:border-red-900', label: 'Bug' },
       reviewed: { bg: 'bg-green-50 dark:bg-green-950', text: 'text-green-700 dark:text-green-400', border: 'border-green-200 dark:border-green-900', label: 'Reviewed' },
       golden: { bg: 'bg-yellow-50 dark:bg-yellow-950', text: 'text-yellow-700 dark:text-yellow-400', border: 'border-yellow-200 dark:border-yellow-900', label: 'Golden' },
-      spam: { bg: 'bg-gray-50 dark:bg-gray-800', text: 'text-gray-700 dark:text-gray-400', border: 'border-gray-200 dark:border-gray-700', label: 'Spam' },
+      spam: { bg: 'bg-gray-50 dark:bg-gray-800', text: 'text-gray-700 dark:text-black', border: 'border-gray-200 dark:border-gray-700', label: 'Spam' },
     };
     const { bg, text, border, label } = config[tag];
     return <Badge className={cn(bg, text, border, 'text-[8px] px-1 py-0 rounded-none')}>{label}</Badge>;
@@ -1371,10 +1371,10 @@ export default function ObservabilityPage() {
             {filteredTraces.length === 0 ? (
               <div className="py-16">
                 <div className="max-w-md mx-auto">
-                  <p className="text-sm font-normal text-gray-500 mb-3">
+                  <p className="text-sm font-normal text-black mb-3">
                     No requests yet, make your first one to unlock:
                   </p>
-                  <ul className="list-disc list-inside space-y-1.5 text-xs text-gray-500">
+                  <ul className="list-disc list-inside space-y-1.5 text-xs text-black">
                     <li>Token-by-token timeline</li>
                     <li>Speculative execution waterfall</li>
                     <li>Retry + cache savings</li>
@@ -1772,7 +1772,7 @@ export default function ObservabilityPage() {
             {/* Loading state */}
             {isLoadingOvertureUsage || isLoadingRuntimeFleet ? (
               <div className="flex items-center justify-center py-12">
-                <Loader2 className="h-8 w-8 animate-spin text-gray-400 dark:text-[#a8a898]" />
+                <Loader2 className="h-8 w-8 animate-spin text-black dark:text-[#a8a898]" />
                 <span className="ml-3 text-sm text-muted-foreground">Loading cost insights...</span>
               </div>
             ) : (
@@ -2008,8 +2008,8 @@ export default function ObservabilityPage() {
                   </div>
                   {overtureHistory.history.some(h => h.breached) && (
                     <div className="flex items-center gap-2 ml-auto">
-                      <AlertTriangle className="h-4 w-4 text-orange-600" />
-                      <span className="text-orange-600 font-medium">Budget exceeded in {overtureHistory.history.filter(h => h.breached).length} month(s)</span>
+                      <AlertTriangle className="h-4 w-4 text-black" />
+                      <span className="text-black font-medium">Budget exceeded in {overtureHistory.history.filter(h => h.breached).length} month(s)</span>
                     </div>
                   )}
                 </div>
@@ -2261,7 +2261,7 @@ export default function ObservabilityPage() {
                                 <span className="text-sm font-semibold">Budget Exceeded</span>
                       </div>
                     ) : overtureUsage.percentage_used >= 80 ? (
-                      <div className="flex items-center gap-2 text-orange-600">
+                      <div className="flex items-center gap-2 text-black">
                         <AlertTriangle className="h-5 w-5" />
                         <span className="text-sm font-semibold">Approaching Limit (80%+)</span>
                       </div>
@@ -2657,7 +2657,7 @@ export default function ObservabilityPage() {
                         <p className="text-xs text-muted-foreground mt-1">{selectedTrace.model_version}</p>
                       )}
                       {selectedTrace.model_fingerprint && (
-                        <p className="text-xs font-mono text-gray-500">{selectedTrace.model_fingerprint}</p>
+                        <p className="text-xs font-mono text-black">{selectedTrace.model_fingerprint}</p>
                       )}
                     </div>
                     <div>

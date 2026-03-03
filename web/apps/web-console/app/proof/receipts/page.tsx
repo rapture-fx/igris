@@ -71,7 +71,7 @@ export default function ProofReceiptsPage() {
     <DashboardLayout>
       <div className="space-y-5">
         <div>
-          <h1 className="text-xl font-semibold text-gray-900">Execution Receipts</h1>
+          <h1 className="text-base font-semibold text-gray-900">Execution Receipts</h1>
           <p className="text-xs text-gray-500 mt-0.5">Signed proof of execution.</p>
         </div>
 
@@ -87,7 +87,7 @@ export default function ProofReceiptsPage() {
               </CardHeader>
               <CardContent className="px-4 pb-3 pt-1">
                 {isLoading ? <Skeleton className="h-6 w-10" /> : (
-                  <span className="text-xl font-semibold text-gray-900 tabular-nums">{c.value}</span>
+                  <span className="text-base font-semibold text-gray-900 tabular-nums">{c.value}</span>
                 )}
               </CardContent>
             </Card>
