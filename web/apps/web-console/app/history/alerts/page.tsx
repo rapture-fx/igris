@@ -184,7 +184,7 @@ export default function HistoryAlertsPage() {
                       <TableCell className="text-xs text-gray-700 max-w-xs">
                         <span title={alert.message}>{truncateText(alert.message, 80)}</span>
                       </TableCell>
-                      <TableCell className="text-xs text-gray-500 font-mono">
+                      <TableCell className="text-xs text-gray-500">
                         {alert.source ?? '—'}
                       </TableCell>
                       <TableCell>
