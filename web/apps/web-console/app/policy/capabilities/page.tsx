@@ -193,7 +193,7 @@ export default function PolicyCapabilitiesPage() {
                 ) : (
                   caps.allowed_domains.map((domain) => (
                     <TableRow key={domain}>
-                      <TableCell className="text-xs font-mono text-gray-700">{domain}</TableCell>
+                      <TableCell className="text-xs text-gray-700">{domain}</TableCell>
                       <TableCell>
                         <button
                           onClick={() => removeDomain(domain)}
@@ -264,7 +264,7 @@ export default function PolicyCapabilitiesPage() {
                 ) : (
                   caps.filesystem_write_limits.map((limit) => (
                     <TableRow key={limit.path}>
-                      <TableCell className="text-xs font-mono text-gray-700">{limit.path}</TableCell>
+                      <TableCell className="text-xs text-gray-700">{limit.path}</TableCell>
                       <TableCell className="text-xs text-gray-500 tabular-nums">{limit.max_size_mb} MB</TableCell>
                       <TableCell>
                         <button
