@@ -1411,20 +1411,20 @@ export default function ObservabilityPage() {
               <div className="overflow-x-auto">
                 <div className="max-h-[600px] overflow-y-auto scrollbar-hide">
                   <table className="w-full text-[9px]">
-                    <thead className="sticky top-0 z-10 bg-[#f2f1ed] dark:bg-[#1b1912]">
+                    <thead className="sticky top-0 z-10 bg-white dark:bg-[#1b1912]">
                       <tr className="border-b border-border">
-                        <th className="text-left py-1.5 px-2 font-medium text-[8px] text-muted-foreground bg-[#f2f1ed] dark:bg-[#1b1912]">Time</th>
-                        <th className="text-left py-1.5 px-2 font-medium text-[8px] text-muted-foreground bg-[#f2f1ed] dark:bg-[#1b1912]">Model</th>
-                        <th className="text-left py-1.5 px-2 font-medium text-[8px] text-muted-foreground bg-[#f2f1ed] dark:bg-[#1b1912]">Provider</th>
-                        <th className="text-left py-1.5 px-2 font-medium text-[8px] text-muted-foreground bg-[#f2f1ed] dark:bg-[#1b1912]">Status</th>
-                        <th className="text-right py-1.5 px-2 font-medium text-[8px] text-muted-foreground bg-[#f2f1ed] dark:bg-[#1b1912]">Latency</th>
-                        <th className="text-right py-1.5 px-2 font-medium text-[8px] text-muted-foreground bg-[#f2f1ed] dark:bg-[#1b1912]">Cost</th>
-                        <th className="text-right py-1.5 px-2 font-medium text-[8px] text-muted-foreground bg-[#f2f1ed] dark:bg-[#1b1912]">Tokens</th>
-                        <th className="text-left py-1.5 px-2 font-medium text-[8px] text-muted-foreground bg-[#f2f1ed] dark:bg-[#1b1912]">Cache</th>
-                        <th className="text-left py-1.5 px-2 font-medium text-[8px] text-muted-foreground bg-[#f2f1ed] dark:bg-[#1b1912]">User</th>
-                        <th className="text-left py-1.5 px-2 font-medium text-[8px] text-muted-foreground bg-[#f2f1ed] dark:bg-[#1b1912]">Chain</th>
-                        <th className="text-left py-1.5 px-2 font-medium text-[8px] text-muted-foreground bg-[#f2f1ed] dark:bg-[#1b1912]">Tags</th>
-                        <th className="text-right py-1.5 px-2 font-medium text-[8px] text-muted-foreground bg-[#f2f1ed] dark:bg-[#1b1912]">Actions</th>
+                        <th className="text-left py-1.5 px-2 font-medium text-[8px] text-muted-foreground bg-white dark:bg-[#1b1912]">Time</th>
+                        <th className="text-left py-1.5 px-2 font-medium text-[8px] text-muted-foreground bg-white dark:bg-[#1b1912]">Model</th>
+                        <th className="text-left py-1.5 px-2 font-medium text-[8px] text-muted-foreground bg-white dark:bg-[#1b1912]">Provider</th>
+                        <th className="text-left py-1.5 px-2 font-medium text-[8px] text-muted-foreground bg-white dark:bg-[#1b1912]">Status</th>
+                        <th className="text-right py-1.5 px-2 font-medium text-[8px] text-muted-foreground bg-white dark:bg-[#1b1912]">Latency</th>
+                        <th className="text-right py-1.5 px-2 font-medium text-[8px] text-muted-foreground bg-white dark:bg-[#1b1912]">Cost</th>
+                        <th className="text-right py-1.5 px-2 font-medium text-[8px] text-muted-foreground bg-white dark:bg-[#1b1912]">Tokens</th>
+                        <th className="text-left py-1.5 px-2 font-medium text-[8px] text-muted-foreground bg-white dark:bg-[#1b1912]">Cache</th>
+                        <th className="text-left py-1.5 px-2 font-medium text-[8px] text-muted-foreground bg-white dark:bg-[#1b1912]">User</th>
+                        <th className="text-left py-1.5 px-2 font-medium text-[8px] text-muted-foreground bg-white dark:bg-[#1b1912]">Chain</th>
+                        <th className="text-left py-1.5 px-2 font-medium text-[8px] text-muted-foreground bg-white dark:bg-[#1b1912]">Tags</th>
+                        <th className="text-right py-1.5 px-2 font-medium text-[8px] text-muted-foreground bg-white dark:bg-[#1b1912]">Actions</th>
                       </tr>
                     </thead>
                     <tbody>
