@@ -34,12 +34,12 @@ export function KeyValueGrid({ items }: KeyValueGridProps) {
             {href ? (
               <a
                 href={href}
-                className="text-xs text-blue-600 hover:text-blue-700 underline underline-offset-2 font-mono break-all"
+                className="text-xs text-blue-600 hover:text-blue-700 underline underline-offset-2 break-all"
               >
                 {value}
               </a>
             ) : (
-              <span className={`text-xs text-gray-800 break-all leading-4 ${mono ? 'font-mono' : ''}`}>
+              <span className={`text-xs text-gray-800 break-all leading-4 ${mono ? '' : ''}`}>
                 {value ?? <span className="text-gray-300">—</span>}
               </span>
             )}
