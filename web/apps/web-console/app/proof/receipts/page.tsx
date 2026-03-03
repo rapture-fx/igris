@@ -144,11 +144,11 @@ export default function ProofReceiptsPage() {
                     className="cursor-pointer"
                     onClick={() => setSelected(receipt)}
                   >
-                    <TableCell className="font-mono text-xs text-gray-600">{truncateText(receipt.execution_id, 12)}</TableCell>
+                    <TableCell className="text-xs text-gray-600">{truncateText(receipt.execution_id, 12)}</TableCell>
                     <TableCell className="text-xs text-gray-500">{getRelativeTime(receipt.timestamp)}</TableCell>
-                    <TableCell className="font-mono text-xs text-gray-500">{truncateText(receipt.signature, 12)}</TableCell>
-                    <TableCell className="font-mono text-xs text-gray-500">{truncateText(receipt.hash, 10)}</TableCell>
-                    <TableCell className="font-mono text-xs text-gray-400">{truncateText(receipt.prev_hash, 10)}</TableCell>
+                    <TableCell className="text-xs text-gray-500">{truncateText(receipt.signature, 12)}</TableCell>
+                    <TableCell className="text-xs text-gray-500">{truncateText(receipt.hash, 10)}</TableCell>
+                    <TableCell className="text-xs text-gray-400">{truncateText(receipt.prev_hash, 10)}</TableCell>
                     <TableCell>
                       <StatusBadge status={receipt.signed ? 'ACTIVE' : 'INACTIVE'} showDot />
                     </TableCell>
@@ -184,7 +184,7 @@ export default function ProofReceiptsPage() {
                 ].map(({ label, value, mono }) => (
                   <div key={label} className="flex items-start gap-4">
                     <span className="text-xs text-gray-500 w-28 flex-shrink-0">{label}</span>
-                    <span className={`text-xs text-gray-800 break-all ${mono ? 'font-mono' : ''}`}>{value}</span>
+                    <span className={`text-xs text-gray-800 break-all ${mono ? '' : ''}`}>{value}</span>
                   </div>
                 ))}
 
@@ -206,7 +206,7 @@ export default function ProofReceiptsPage() {
                       </button>
                     </div>
                     <div className="bg-gray-50 border border-gray-100 rounded-md px-3 py-2">
-                      <p className="text-[11px] font-mono text-gray-600 break-all">{value ?? '—'}</p>
+                      <p className="text-xs text-gray-600 break-all">{value ?? '—'}</p>
                     </div>
                   </div>
                 ))}
@@ -215,7 +215,7 @@ export default function ProofReceiptsPage() {
                 {selected.metadata && (
                   <div className="space-y-1">
                     <span className="text-xs text-gray-500">Metadata</span>
-                    <pre className="text-[11px] text-gray-600 bg-gray-50 border border-gray-100 rounded-md p-3 overflow-auto max-h-32">
+                    <pre className="text-xs text-gray-600 bg-gray-50 border border-gray-100 rounded-md p-3 overflow-auto max-h-32">
                       {JSON.stringify(selected.metadata, null, 2)}
                     </pre>
                   </div>
