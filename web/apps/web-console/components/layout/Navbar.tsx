@@ -89,9 +89,6 @@ export function Navbar({ onMenuClick }: NavbarProps) {
 
             {/* Right side - Notifications and Profile */}
             <div className="flex items-center gap-2">
-              {/* Theme Switcher */}
-              <ThemeSwitcher />
-
               {/* Notifications */}
               <div className="relative">
                 <Button
