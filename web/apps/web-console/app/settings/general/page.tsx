@@ -106,7 +106,7 @@ export default function SettingsGeneralPage() {
                 <div className="grid grid-cols-2 gap-4 text-xs text-gray-500">
                   <div>
                     <span className="block text-gray-400 mb-0.5">Tenant ID</span>
-                    <span className="font-mono text-gray-600">{tenant?.id ?? '—'}</span>
+                    <span className="text-gray-600">{tenant?.id ?? '—'}</span>
                   </div>
                   <div>
                     <span className="block text-gray-400 mb-0.5">Status</span>
@@ -158,7 +158,7 @@ export default function SettingsGeneralPage() {
                     disabled
                     className="h-8 text-sm opacity-60"
                   />
-                  <p className="text-[11px] text-gray-400">Contact support to change the account email.</p>
+                  <p className="text-xs text-gray-400">Contact support to change the account email.</p>
                 </div>
               </>
             )}
@@ -178,7 +178,7 @@ export default function SettingsGeneralPage() {
               <div key={ctrl.key} className="flex items-center justify-between py-3.5">
                 <div>
                   <p className="text-xs font-medium text-gray-800">{ctrl.label}</p>
-                  <p className="text-[11px] text-gray-400 mt-0.5">{ctrl.sub}</p>
+                  <p className="text-xs text-gray-400 mt-0.5">{ctrl.sub}</p>
                 </div>
                 <Switch
                   checked={notifPrefs[ctrl.key]}
@@ -202,7 +202,7 @@ export default function SettingsGeneralPage() {
             <div className="flex items-center justify-between">
               <div>
                 <p className="text-xs font-medium text-gray-800">Delete organization</p>
-                <p className="text-[11px] text-gray-400 mt-0.5">
+                <p className="text-xs text-gray-400 mt-0.5">
                   Permanently remove this organization and all associated data.
                 </p>
               </div>
