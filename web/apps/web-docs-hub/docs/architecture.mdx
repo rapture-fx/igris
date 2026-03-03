@@ -6,28 +6,30 @@ Igris is one execution system. Internally it has two components: a coordination 
 
 ## System Overview
 
-<DiagramTabs chart={`graph TD
-    App["Your Application\\n(OpenAI-compatible API)"]
+```text
+graph TD
+    App["Your Application\n(OpenAI-compatible API)"]
     App -->|"POST /v1/chat/completions"| CL
 
     subgraph CL["Coordination Layer (cloud-hosted)"]
         RE[Routing Engine]
         PH[Provider Health]
         CT[Cost Tracking & Budgets]
-        PS["Provider Selection\\n(Thompson Sampling + Rules)"]
+        PS["Provider Selection\n(Thompson Sampling + Rules)"]
         RE --> PS
         PH --> PS
     end
 
-    PS --> CP["Cloud Providers\\n(OpenAI, etc.)"]
+    PS --> CP["Cloud Providers\n(OpenAI, etc.)"]
     PS -->|"hybrid routing"| EE
 
     subgraph EE["Execution Engine (your infrastructure)"]
         EV[Execution Envelope]
         CG[Capability Gates]
         SR[Signed Receipts]
-        LI["Local Inference Engine\\n(Phi-3, Mistral, Llama, LoRA)"]
-    end`} />
+        LI["Local Inference Engine\n(Phi-3, Mistral, Llama, LoRA)"]
+    end
+```
 
 ---
 
