@@ -165,7 +165,7 @@ export default function SettingsLicensePage() {
               <div className="space-y-1.5">
                 <Label className="text-xs text-gray-500">Active Key</Label>
                 <div className="bg-gray-50 border border-gray-200 rounded-md px-3 py-2">
-                  <p className="text-xs font-mono text-gray-600">{license.masked_key}</p>
+                  <p className="text-xs text-gray-600">{license.masked_key}</p>
                 </div>
               </div>
             )}
@@ -178,7 +178,7 @@ export default function SettingsLicensePage() {
                   placeholder="igris-lic-xxxxxxxx..."
                   value={licenseInput}
                   onChange={(e) => setLicenseInput(e.target.value)}
-                  className="h-8 text-xs font-mono flex-1"
+                  className="h-8 text-xs flex-1"
                   onKeyDown={(e) => e.key === 'Enter' && licenseInput.trim() && activateMutation.mutate(licenseInput.trim())}
                 />
                 <Button
@@ -207,7 +207,7 @@ export default function SettingsLicensePage() {
               )}
             </div>
 
-            <p className="text-[11px] text-gray-400">
+            <p className="text-xs text-gray-400">
               License keys are issued through your billing account.{' '}
               <a
                 href="https://igrisinertial.com/pricing"
