@@ -2,7 +2,7 @@ import { clerkMiddleware, createRouteMatcher } from '@clerk/nextjs/server';
 import { NextResponse } from 'next/server';
 
 // DEVELOPMENT MODE: Set to true to bypass all authentication
-const DEV_MODE = false;
+const DEV_MODE = true;
 
 const isPublicRoute = createRouteMatcher([
   '/auth(.*)',
