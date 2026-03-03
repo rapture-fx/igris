@@ -187,7 +187,7 @@ export default function ModelsProvidersPage() {
             <>
               <SheetHeader className="pb-4">
                 <SheetTitle className="text-sm font-semibold">Provider Detail</SheetTitle>
-                <p className="text-xs text-gray-500 mt-0.5 font-mono">{selected.id}</p>
+                <p className="text-xs text-gray-500 mt-0.5">{selected.id}</p>
               </SheetHeader>
               <Separator />
 
@@ -211,7 +211,7 @@ export default function ModelsProvidersPage() {
                           {label === 'Status' ? (
                             <StatusBadge status={selected.status} />
                           ) : label === 'Endpoint' || label === 'API Key' ? (
-                            <span className="font-mono">{value as string}</span>
+                            <span className="">{value as string}</span>
                           ) : (
                             value as string
                           )}
