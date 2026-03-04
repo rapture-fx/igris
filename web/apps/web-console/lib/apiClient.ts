@@ -1,5 +1,7 @@
 import Cookies from 'js-cookie';
 import { API_BASE_URL, COOKIE_KEYS, ROUTES } from '@/utils/constants';
+import { FEATURE_FLAGS } from './config';
+import { getMockForPath } from './mock/data';
 
 export class ApiError extends Error {
   constructor(public status: number, public message: string, public data?: any) {
@@ -119,9 +121,18 @@ export async function apiRequest<T = any>(
     return await response.json();
   } catch (error) {
     if (error instanceof ApiError) {
+      // In development, fall back to mock data for non-auth errors
+      if (FEATURE_FLAGS.enableMockData && error.status !== 401) {
+        const mock = getMockForPath(path);
+        if (mock !== undefined) return mock as T;
+      }
       throw error;
     }
-    // Silently handle network errors - they're expected when API is unavailable
+    // Network error - fall back to mock data in development
+    if (FEATURE_FLAGS.enableMockData) {
+      const mock = getMockForPath(path);
+      if (mock !== undefined) return mock as T;
+    }
     throw new ApiError(500, 'Network error or server is unavailable');
   }
 }
