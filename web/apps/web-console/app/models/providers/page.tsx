@@ -15,7 +15,7 @@ import {
   Table, TableBody, TableCell, TableHead, TableHeader, TableRow,
 } from '@/components/ui/table';
 import {
-  Sheet, SheetContent, SheetHeader, SheetTitle,
+  Sheet, SheetContent, SheetHeader, SheetTitle, SheetBody, SheetClose,
 } from '@/components/ui/sheet';
 import { api } from '@/lib/apiClient';
 import { getRelativeTime, truncateText } from '@/utils/helpers';
@@ -182,16 +182,19 @@ export default function ModelsProvidersPage() {
 
       {/* Provider Detail Drawer */}
       <Sheet open={!!selected} onOpenChange={(open) => !open && setSelected(null)}>
-        <SheetContent className="w-full sm:max-w-lg overflow-y-auto">
+        <SheetContent>
           {selected && (
             <>
-              <SheetHeader className="pb-4">
-                <SheetTitle className="text-sm font-semibold">Provider Detail</SheetTitle>
-                <p className="text-xs text-gray-500 mt-0.5">{selected.id}</p>
+              <SheetHeader>
+                <div>
+                  <SheetTitle className="text-sm font-semibold">Provider Detail</SheetTitle>
+                  <p className="text-xs text-gray-500 mt-0.5">{selected.id}</p>
+                </div>
+                <SheetClose onClick={() => setSelected(null)} />
               </SheetHeader>
-              <Separator />
 
-              <div className="space-y-5 mt-4">
+              <SheetBody>
+              <div className="space-y-5">
                 {/* Basic Info */}
                 <section>
                   <h3 className="text-xs font-semibold text-gray-500 uppercase tracking-wider mb-3 flex items-center gap-1.5">
@@ -205,9 +208,9 @@ export default function ModelsProvidersPage() {
                       ['Endpoint', selected.endpoint ?? '—'],
                       ['API Key', selected.api_key_masked ?? '—'],
                     ].map(([label, value]) => (
-                      <div key={label as string} className="flex items-start justify-between gap-4">
+                      <div key={label as string} className="flex items-start gap-4">
                         <dt className="text-xs text-gray-500 flex-shrink-0 w-20">{label}</dt>
-                        <dd className="text-xs text-gray-800 text-right break-all">
+                        <dd className="text-xs text-gray-800 break-all min-w-0">
                           {label === 'Status' ? (
                             <StatusBadge status={selected.status} />
                           ) : label === 'Endpoint' || label === 'API Key' ? (
@@ -268,6 +271,7 @@ export default function ModelsProvidersPage() {
                   )}
                 </section>
               </div>
+              </SheetBody>
             </>
           )}
         </SheetContent>
