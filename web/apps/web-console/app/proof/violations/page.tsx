@@ -89,33 +89,31 @@ function ExecutionMiniTable({ executionId }: { executionId: string }) {
   if (!exec) return <p className="text-xs text-gray-400 py-2">execution not found</p>;
 
   const FIELDS = [
-    { label: 'status', key: 'status' },
-    { label: 'model', key: 'model' },
-    { label: 'agent_id', key: 'agent_id' },
-    { label: 'device_id', key: 'device_id' },
-    { label: 'started_at', key: 'started_at' },
-    { label: 'duration', key: 'duration' },
+    { label: 'Status',     key: 'status' },
+    { label: 'Model',      key: 'model' },
+    { label: 'Agent',      key: 'agent_id' },
+    { label: 'Device',     key: 'device_id' },
+    { label: 'Started',    key: 'started_at' },
+    { label: 'Duration',   key: 'duration' },
   ];
 
   return (
-    <div className="rounded-md border border-gray-200 overflow-hidden">
-      <table className="w-full text-[10px]">
-        <tbody>
-          {FIELDS.map(({ label, key }) => {
-            const val = exec[key];
-            if (val == null) return null;
-            return (
-              <tr key={key} className="border-b border-gray-100 last:border-0">
-                <td className="px-3 py-1.5 text-gray-400 w-28 whitespace-nowrap">{label}</td>
-                <td className="px-3 py-1.5 text-gray-700 break-all">
-                  {key === 'started_at' ? new Date(String(val)).toISOString() : String(val)}
-                </td>
-              </tr>
-            );
-          })}
-        </tbody>
-      </table>
-    </div>
+    <Table>
+      <TableBody>
+        {FIELDS.map(({ label, key }) => {
+          const val = exec[key];
+          if (val == null) return null;
+          return (
+            <TableRow key={key} className="border-gray-100">
+              <TableCell className="text-xs text-gray-400 w-24 py-2 pl-0">{label}</TableCell>
+              <TableCell className="text-xs text-gray-700 break-all py-2 pr-0">
+                {key === 'started_at' ? new Date(String(val)).toISOString() : String(val)}
+              </TableCell>
+            </TableRow>
+          );
+        })}
+      </TableBody>
+    </Table>
   );
 }
 
@@ -135,7 +133,6 @@ function PolicySnapshot({ executionId }: { executionId: string }) {
       items={Object.entries(policy).map(([k, v]) => ({
         label: k,
         value: typeof v === 'object' ? JSON.stringify(v) : String(v),
-        mono: true,
       }))}
     />
   );
@@ -415,20 +412,19 @@ function ViolationsContent() {
             {/* Violation Detail */}
             <DrawerSection title="Violation Detail">
               <KeyValueGrid items={[
-                { label: 'timestamp', value: new Date(selected.timestamp).toISOString(), mono: true },
-                { label: 'violation_type', value: <ViolationSeverityBadge kind={selected.kind} /> },
-                { label: 'limit', value: `${selected.limit_value}${selected.unit ? ` ${selected.unit}` : ''}`, mono: true },
-                { label: 'observed', value: `${selected.observed_value}${selected.unit ? ` ${selected.unit}` : ''}`, mono: true },
+                { label: 'Timestamp', value: new Date(selected.timestamp).toISOString() },
+                { label: 'Type', value: <ViolationSeverityBadge kind={selected.kind} /> },
+                { label: 'Limit', value: `${selected.limit_value}${selected.unit ? ` ${selected.unit}` : ''}` },
+                { label: 'Observed', value: `${selected.observed_value}${selected.unit ? ` ${selected.unit}` : ''}` },
                 ...(selected.execution_id ? [{
-                  label: 'execution_id',
+                  label: 'Execution',
                   value: selected.execution_id,
-                  mono: true,
                   copyable: true,
                   copyValue: selected.execution_id,
                   href: `/execution/runs/${selected.execution_id}`,
                 }] : []),
-                { label: 'agent_id', value: selected.agent_id, mono: true, copyable: true, copyValue: selected.agent_id },
-                { label: 'device_id', value: selected.device_id, mono: true, copyable: true, copyValue: selected.device_id },
+                { label: 'Agent', value: selected.agent_id, copyable: true, copyValue: selected.agent_id },
+                { label: 'Device', value: selected.device_id, copyable: true, copyValue: selected.device_id },
               ]} />
             </DrawerSection>
 
