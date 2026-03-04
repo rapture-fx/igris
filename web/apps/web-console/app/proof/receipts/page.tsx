@@ -90,20 +90,6 @@ function CopyBtn({ text }: { text: string }) {
   );
 }
 
-function HashField({ label, value }: { label: string; value: string }) {
-  return (
-    <div className="flex items-start gap-2">
-      <span className="text-[10px] text-gray-400 w-16 flex-shrink-0 pt-px">{label}</span>
-      <div className="flex items-center gap-1.5 min-w-0 flex-1">
-        <span className="text-[10px] text-gray-600 break-all" title={value}>
-          {value || <span className="text-gray-300 italic">none</span>}
-        </span>
-        {value && <CopyBtn text={value} />}
-      </div>
-    </div>
-  );
-}
-
 // ─── Page ─────────────────────────────────────────────────────────────────────
 
 function ReceiptsContent() {
@@ -391,28 +377,25 @@ function ReceiptsContent() {
                 {
                   label: 'execution_id',
                   value: selected.execution_id,
-                  mono: true,
                   copyable: true,
                   copyValue: selected.execution_id,
                   href: `/execution/runs/${selected.execution_id}`,
                 },
-                { label: 'timestamp', value: new Date(selected.timestamp).toISOString(), mono: true },
+                { label: 'timestamp', value: new Date(selected.timestamp).toISOString() },
                 {
                   label: 'agent_id',
                   value: selected.agent_id || '—',
-                  mono: true,
                   copyable: !!selected.agent_id,
                   copyValue: selected.agent_id,
                 },
                 {
                   label: 'device_id',
                   value: selected.device_id || '—',
-                  mono: true,
                   copyable: !!selected.device_id,
                   copyValue: selected.device_id,
                 },
-                ...(selected.model ? [{ label: 'model', value: selected.model, mono: true }] : []),
-                ...(selected.duration != null ? [{ label: 'duration', value: `${selected.duration}ms`, mono: true }] : []),
+                ...(selected.model ? [{ label: 'model', value: selected.model }] : []),
+                ...(selected.duration != null ? [{ label: 'duration', value: `${selected.duration}ms` }] : []),
               ]} />
             </DrawerSection>
 
@@ -425,10 +408,6 @@ function ReceiptsContent() {
                 prevHash={selected.prev_hash}
                 status={selectedChainStatus}
               />
-              <div className="mt-3 space-y-2">
-                <HashField label="hash" value={selected.hash} />
-                <HashField label="prev_hash" value={selected.prev_hash} />
-              </div>
             </DrawerSection>
 
             <Separator />
@@ -436,63 +415,89 @@ function ReceiptsContent() {
             {/* Signature Verification */}
             <DrawerSection title="Signature Verification">
               <div className="space-y-3">
-                {/* Status row */}
-                <div className="flex items-center justify-between p-3 rounded-md border border-gray-100 bg-gray-50">
-                  <span className="text-[10px] text-gray-400">status</span>
+                {/* Status + verified row */}
+                <div className="flex items-center justify-between py-2 border-b border-gray-100">
+                  <span className="text-xs text-gray-500">Signature status</span>
                   <ReceiptStatusBadge signed={selected.signed} />
                 </div>
                 {selected.verification_status && (
                   <div className="flex items-center justify-between">
-                    <span className="text-[10px] text-gray-400">verified</span>
-                    <span className="text-[10px] text-gray-600">{selected.verification_status}</span>
+                    <span className="text-xs text-gray-500">Verified</span>
+                    <span className="text-xs text-gray-700">{selected.verification_status}</span>
                   </div>
                 )}
 
-                {/* Signature blob */}
+                {/* Signature */}
                 {selected.signature && (
-                  <div className="space-y-1">
+                  <div className="space-y-1.5">
                     <div className="flex items-center justify-between">
-                      <span className="text-[10px] text-gray-400">signature</span>
+                      <span className="text-xs text-gray-500">Signature</span>
                       <CopyBtn text={selected.signature} />
                     </div>
-                    <div className="px-2.5 py-2 rounded border border-gray-200 bg-gray-50">
-                      <p className="text-[10px] text-gray-600 break-all leading-relaxed">
+                    <div className="px-3 py-2.5 rounded-md border border-gray-200 bg-gray-50">
+                      <p className="text-xs text-gray-600 break-all leading-5">
                         {selected.signature}
                       </p>
                     </div>
                   </div>
                 )}
 
-                {/* Public key blob */}
+                {/* Public key */}
                 {selected.public_key && (
-                  <div className="space-y-1">
+                  <div className="space-y-1.5">
                     <div className="flex items-center justify-between">
-                      <span className="text-[10px] text-gray-400">public_key</span>
+                      <span className="text-xs text-gray-500">Public key</span>
                       <CopyBtn text={selected.public_key} />
                     </div>
-                    <div className="px-2.5 py-2 rounded border border-gray-200 bg-gray-50">
-                      <p className="text-[10px] text-gray-600 break-all leading-relaxed">
+                    <div className="px-3 py-2.5 rounded-md border border-gray-200 bg-gray-50">
+                      <p className="text-xs text-gray-600 break-all leading-5">
                         {selected.public_key}
                       </p>
                     </div>
                   </div>
                 )}
 
-                {/* Action buttons */}
+                {/* Hash */}
+                <div className="space-y-1.5">
+                  <div className="flex items-center justify-between">
+                    <span className="text-xs text-gray-500">Hash</span>
+                    {selected.hash && <CopyBtn text={selected.hash} />}
+                  </div>
+                  <div className="px-3 py-2.5 rounded-md border border-gray-200 bg-gray-50">
+                    <p className="text-xs text-gray-600 break-all leading-5">
+                      {selected.hash || <span className="text-gray-300">—</span>}
+                    </p>
+                  </div>
+                </div>
+
+                {/* Previous Hash */}
+                <div className="space-y-1.5">
+                  <div className="flex items-center justify-between">
+                    <span className="text-xs text-gray-500">Previous Hash</span>
+                    {selected.prev_hash && <CopyBtn text={selected.prev_hash} />}
+                  </div>
+                  <div className="px-3 py-2.5 rounded-md border border-gray-200 bg-gray-50">
+                    <p className="text-xs text-gray-600 break-all leading-5">
+                      {selected.prev_hash || <span className="text-gray-300">none</span>}
+                    </p>
+                  </div>
+                </div>
+
+                {/* Actions */}
                 <div className="flex gap-2 pt-1">
                   {selected.signature && (
                     <button
                       onClick={() => navigator.clipboard.writeText(selected.signature)}
-                      className="text-xs text-gray-500 hover:text-gray-800 border border-gray-200 rounded px-2 py-1 flex items-center gap-1.5 transition-colors"
+                      className="text-xs text-gray-500 hover:text-gray-800 border border-gray-200 rounded px-2.5 py-1.5 flex items-center gap-1.5 transition-colors"
                     >
                       <Copy className="h-3 w-3" /> Copy Signature
                     </button>
                   )}
                   <button
                     onClick={() => downloadJSON(selected, `receipt-${selected.execution_id}`)}
-                    className="text-xs text-gray-500 hover:text-gray-800 border border-gray-200 rounded px-2 py-1 flex items-center gap-1.5 transition-colors"
+                    className="text-xs text-gray-500 hover:text-gray-800 border border-gray-200 rounded px-2.5 py-1.5 flex items-center gap-1.5 transition-colors"
                   >
-                    <Download className="h-3 w-3" /> Download Receipt JSON
+                    <Download className="h-3 w-3" /> Download JSON
                   </button>
                 </div>
               </div>
@@ -504,11 +509,11 @@ function ReceiptsContent() {
                 <Separator />
                 <DrawerSection title="Violation Snapshot">
                   <KeyValueGrid items={[
-                    ...(selected.violation_type ? [{ label: 'violation_type', value: <ViolationSeverityBadge kind={selected.violation_type} /> }] : []),
-                    ...(selected.limit_value != null ? [{ label: 'limit', value: String(selected.limit_value), mono: true }] : []),
-                    ...(selected.observed_value != null ? [{ label: 'observed', value: String(selected.observed_value), mono: true }] : []),
-                    ...(selected.device_context ? [{ label: 'device_context', value: JSON.stringify(selected.device_context), mono: true }] : []),
-                    ...(selected.agent_context ? [{ label: 'agent_context', value: JSON.stringify(selected.agent_context), mono: true }] : []),
+                    ...(selected.violation_type ? [{ label: 'Violation type', value: <ViolationSeverityBadge kind={selected.violation_type} /> }] : []),
+                    ...(selected.limit_value != null ? [{ label: 'Limit', value: String(selected.limit_value) }] : []),
+                    ...(selected.observed_value != null ? [{ label: 'Observed', value: String(selected.observed_value) }] : []),
+                    ...(selected.device_context ? [{ label: 'Device context', value: JSON.stringify(selected.device_context) }] : []),
+                    ...(selected.agent_context ? [{ label: 'Agent context', value: JSON.stringify(selected.agent_context) }] : []),
                   ]} />
                 </DrawerSection>
               </>
