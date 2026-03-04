@@ -52,6 +52,8 @@ module.exports = {
         'border-light': 'rgb(229, 231, 235)',
         'border-dark': '#1a1e21',
         primary: {
+          DEFAULT: 'rgb(var(--primary) / <alpha-value>)',
+          foreground: 'rgb(var(--primary-foreground) / <alpha-value>)',
           50: '#eff6ff',
           100: '#dbeafe',
           200: '#bfdbfe',
