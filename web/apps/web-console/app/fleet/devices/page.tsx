@@ -11,7 +11,7 @@ import { Separator } from '@/components/ui/separator';
 import { StatusBadge } from '@/components/ui/status-badge';
 import { Progress } from '@/components/ui/progress';
 import {
-  Sheet, SheetContent, SheetHeader, SheetTitle,
+  Sheet, SheetContent, SheetHeader, SheetTitle, SheetBody, SheetClose,
 } from '@/components/ui/sheet';
 import {
   Table, TableBody, TableCell, TableHead, TableHeader, TableRow,
@@ -168,16 +168,19 @@ export default function FleetDevicesPage() {
 
       {/* Device Detail Drawer */}
       <Sheet open={!!selected} onOpenChange={(open) => !open && setSelected(null)}>
-        <SheetContent className="w-full sm:max-w-lg overflow-y-auto">
+        <SheetContent>
           {selected && (
             <>
-              <SheetHeader className="pb-4">
-                <SheetTitle className="text-sm font-semibold">Device Detail</SheetTitle>
-                <p className="text-xs text-gray-500 mt-0.5">{selected.id}</p>
+              <SheetHeader>
+                <div>
+                  <SheetTitle className="text-sm font-semibold">Device Detail</SheetTitle>
+                  <p className="text-xs text-gray-500 mt-0.5">{selected.id}</p>
+                </div>
+                <SheetClose onClick={() => setSelected(null)} />
               </SheetHeader>
-              <Separator />
 
-              <div className="space-y-5 mt-4">
+              <SheetBody>
+              <div className="space-y-5">
                 {/* Health Metrics */}
                 <section>
                   <h3 className="text-xs font-semibold text-gray-500 uppercase tracking-wider mb-3 flex items-center gap-1.5">
@@ -270,6 +273,7 @@ export default function FleetDevicesPage() {
                   )}
                 </section>
               </div>
+              </SheetBody>
             </>
           )}
         </SheetContent>
