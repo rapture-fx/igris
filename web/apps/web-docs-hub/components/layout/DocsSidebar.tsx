@@ -367,7 +367,7 @@ export function DocsSidebar({ open = true, onClose }: DocsSidebarProps) {
           open ? 'translate-x-0' : '-translate-x-full'
         )}
       >
-        <div className="flex h-full flex-col border-r border-gray-200 dark:border-[#f6f6f4]/10 bg-white dark:bg-[#25231e]">
+        <div className="flex h-full flex-col border-r-[0.5px] border-gray-200 dark:border-[#f6f6f4]/10 bg-white dark:bg-[#25231e]">
 
           {/* Logo */}
           <div className="h-12 flex items-center px-7">
