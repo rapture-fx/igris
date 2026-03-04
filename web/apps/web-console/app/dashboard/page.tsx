@@ -155,7 +155,7 @@ export default function DashboardPage() {
                 </Link>
               </CardHeader>
               <Separator />
-              <div className="overflow-auto">
+              <div className="overflow-auto max-h-72">
                 <table className="w-full text-xs">
                   <thead>
                     <tr className="border-b border-gray-100">
@@ -210,7 +210,7 @@ export default function DashboardPage() {
                 </Link>
               </CardHeader>
               <Separator />
-              <div className="divide-y divide-gray-50">
+              <div className="divide-y divide-gray-50 max-h-72 overflow-y-auto">
                 {violLoading ? (
                   Array.from({ length: 5 }).map((_, i) => (
                     <div key={i} className="px-4 py-3">
