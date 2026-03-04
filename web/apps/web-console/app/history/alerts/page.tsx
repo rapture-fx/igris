@@ -178,7 +178,7 @@ export default function HistoryAlertsPage() {
                       <TableCell>
                         <span className={`inline-flex items-center gap-1.5 px-2 py-0.5 rounded-md text-xs font-medium border ${style}`}>
                           <Icon className="h-3 w-3" />
-                          {alert.severity}
+                          {alert.severity.charAt(0) + alert.severity.slice(1).toLowerCase()}
                         </span>
                       </TableCell>
                       <TableCell className="text-xs text-gray-700 max-w-xs">
