@@ -6,7 +6,6 @@ import { Copy, Check } from 'lucide-react';
 export interface KVItem {
   label: string;
   value: React.ReactNode;
-  mono?: boolean;
   copyable?: boolean;
   copyValue?: string;
   href?: string;
@@ -27,7 +26,7 @@ export function KeyValueGrid({ items }: KeyValueGridProps) {
 
   return (
     <dl className="grid grid-cols-[auto_1fr] gap-x-8 gap-y-3">
-      {items.map(({ label, value, mono, copyable, copyValue, href }) => (
+      {items.map(({ label, value, copyable, copyValue, href }) => (
         <>
           <dt key={`dt-${label}`} className="text-xs text-gray-400 whitespace-nowrap pt-px leading-4">{label}</dt>
           <dd key={`dd-${label}`} className="flex items-start gap-1.5 min-w-0">
@@ -39,7 +38,7 @@ export function KeyValueGrid({ items }: KeyValueGridProps) {
                 {value}
               </a>
             ) : (
-              <span className={`text-xs text-gray-800 break-all leading-4 ${mono ? '' : ''}`}>
+              <span className="text-xs text-gray-800 break-all leading-4">
                 {value ?? <span className="text-gray-300">—</span>}
               </span>
             )}
