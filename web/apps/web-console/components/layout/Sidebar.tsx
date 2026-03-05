@@ -3,12 +3,23 @@
 import { useState, useEffect, useRef } from 'react';
 import Link from 'next/link';
 import { usePathname, useRouter } from 'next/navigation';
+import { useClerk } from '@clerk/nextjs';
 import {
-  Settings, FileText, ChevronDown, Shield, Scale, ShieldCheck,
-  Cpu, Zap, Search, ExternalLink, Mail,
-  FileText as ChangeLogIcon, Activity as StatusIcon, BookOpen,
-  Bell, LayoutDashboard, Boxes, History,
+  ChevronDown, Search, FileText,
+  LayoutDashboard, PlayCircle, Network, Sparkles,
+  ScrollText, BadgeCheck, CalendarClock, SlidersHorizontal,
+  CreditCard, KeyRound, Settings, LogOut,
 } from 'lucide-react';
+import {
+  DropdownMenu, DropdownMenuContent, DropdownMenuItem, DropdownMenuTrigger,
+} from '@/components/ui/dropdown-menu';
+import {
+  Dialog, DialogContent, DialogDescription, DialogFooter, DialogHeader, DialogTitle,
+} from '@/components/ui/dialog';
+import { Button } from '@/components/ui/button';
+import { Separator } from '@/components/ui/separator';
+import { useTenant } from '@/hooks/useTenant';
+import { getInitials } from '@/utils/helpers';
 import { cn } from '@/utils/helpers';
 
 interface SidebarProps {
@@ -31,7 +42,7 @@ const navigation: NavigationItem[] = [
   },
   {
     name: 'Execution',
-    icon: Zap,
+    icon: PlayCircle,
     children: [
       { name: 'Runs', href: '/execution/runs' },
       { name: 'Agents', href: '/execution/agents' },
@@ -39,14 +50,14 @@ const navigation: NavigationItem[] = [
   },
   {
     name: 'Fleet',
-    icon: Boxes,
+    icon: Network,
     children: [
       { name: 'Devices', href: '/fleet/devices' },
     ],
   },
   {
     name: 'Models',
-    icon: Cpu,
+    icon: Sparkles,
     children: [
       { name: 'Routing', href: '/models/routing' },
       { name: 'Providers', href: '/models/providers' },
@@ -55,7 +66,7 @@ const navigation: NavigationItem[] = [
   },
   {
     name: 'Policy',
-    icon: Scale,
+    icon: ScrollText,
     children: [
       { name: 'Bounds', href: '/policy/bounds' },
       { name: 'Capabilities', href: '/policy/capabilities' },
@@ -63,7 +74,7 @@ const navigation: NavigationItem[] = [
   },
   {
     name: 'Proof',
-    icon: ShieldCheck,
+    icon: BadgeCheck,
     children: [
       { name: 'Receipts', href: '/proof/receipts' },
       { name: 'Violations', href: '/proof/violations' },
@@ -71,7 +82,7 @@ const navigation: NavigationItem[] = [
   },
   {
     name: 'History',
-    icon: History,
+    icon: CalendarClock,
     children: [
       { name: 'Logs', href: '/history/logs' },
       { name: 'Metrics', href: '/history/metrics' },
@@ -80,7 +91,7 @@ const navigation: NavigationItem[] = [
   },
   {
     name: 'Settings',
-    icon: Settings,
+    icon: SlidersHorizontal,
     children: [
       { name: 'General', href: '/settings/general' },
       { name: 'License', href: '/settings/license' },
@@ -91,7 +102,7 @@ const navigation: NavigationItem[] = [
 const DEFAULT_EXPANDED: Record<string, boolean> = {
   Execution: false,
   Fleet: false,
-  Models: true,
+  Models: false,
   Policy: false,
   Proof: false,
   History: false,
@@ -101,7 +112,17 @@ const DEFAULT_EXPANDED: Record<string, boolean> = {
 export function Sidebar({ open = true, onClose }: SidebarProps) {
   const pathname = usePathname();
   const router = useRouter();
-  const [showHelpMenu, setShowHelpMenu] = useState(false);
+  const { signOut } = useClerk();
+  const { data: tenant } = useTenant();
+  const [showLogoutDialog, setShowLogoutDialog] = useState(false);
+
+  const initials = tenant ? getInitials(tenant.name) : 'U';
+  const displayName = tenant?.name ?? 'Account';
+  const email = tenant?.email ?? '';
+
+  const handleLogout = async () => {
+    await signOut({ redirectUrl: '/auth' });
+  };
   const [isSearchModalOpen, setIsSearchModalOpen] = useState(false);
   const [searchQuery, setSearchQuery] = useState('');
   const [showSearchResults, setShowSearchResults] = useState(false);
@@ -232,7 +253,7 @@ export function Sidebar({ open = true, onClose }: SidebarProps) {
           {/* Search */}
           <div className="px-6 pt-5 pb-3">
             <div className="relative">
-              <Search className="absolute left-3 top-1/2 -translate-y-1/2 h-4 w-4 text-gray-400 pointer-events-none" />
+              <Search className="absolute left-3 top-1/2 -translate-y-1/2 h-[15px] w-[15px] text-gray-400 pointer-events-none" strokeWidth={1.5} />
               <input
                 type="text"
                 readOnly
@@ -258,7 +279,7 @@ export function Sidebar({ open = true, onClose }: SidebarProps) {
                         className="w-full flex items-center justify-between gap-3 rounded-lg px-3 py-2 text-xs font-medium transition-colors text-gray-600 dark:text-[#c8c8b8] hover:text-gray-900 dark:hover:text-[#f6f6f4] hover:bg-[#f5f5f5] dark:hover:bg-[#2c2a22]"
                       >
                         <div className="flex items-center gap-2">
-                          <item.icon className="h-4 w-4 text-gray-400 dark:text-[#c8c8b8]" />
+                          <item.icon className="h-[15px] w-[15px] flex-shrink-0 text-gray-400 dark:text-[#c8c8b8]" strokeWidth={1.5} />
                           {item.name}
                         </div>
                         <ChevronDown
@@ -312,7 +333,7 @@ export function Sidebar({ open = true, onClose }: SidebarProps) {
                           : 'text-gray-600 dark:text-[#c8c8b8] hover:text-gray-900 dark:hover:text-[#f6f6f4] hover:bg-[#f5f5f5] dark:hover:bg-[#2c2a22]'
                       )}
                     >
-                      <item.icon className="h-4 w-4 text-gray-400 dark:text-[#c8c8b8]" />
+                      <item.icon className="h-[15px] w-[15px] flex-shrink-0 text-gray-400 dark:text-[#c8c8b8]" strokeWidth={1.5} />
                       {item.name}
                     </Link>
                   </li>
@@ -321,75 +342,116 @@ export function Sidebar({ open = true, onClose }: SidebarProps) {
             </ul>
           </nav>
 
-          {/* Help */}
-          <div className="p-4 flex-shrink-0">
-            <div className="relative">
-              {showHelpMenu && (
-                <>
-                  <div className="fixed inset-0 z-30" onClick={() => setShowHelpMenu(false)} />
-                  <div className="absolute bottom-full left-0 right-0 mb-2 z-40 bg-white dark:bg-[#1b1912] border border-gray-200 dark:border-[#f6f6f4]/10 rounded-lg shadow-sm p-2">
-                    <p className="text-xs font-medium text-gray-500 dark:text-gray-400 mb-1.5 px-2">Documentation</p>
-                    <a
-                      href="https://docs.igrisinertial.com"
-                      target="_blank"
-                      rel="noopener noreferrer"
-                      className="flex items-center justify-between gap-2 w-full px-2 py-1.5 rounded-lg hover:bg-gray-50 dark:hover:bg-[#2c2a22] transition-colors"
-                      onClick={() => setShowHelpMenu(false)}
-                    >
-                      <div className="flex items-center gap-2">
-                        <BookOpen className="h-4 w-4 text-gray-400" />
-                        <span className="text-xs font-inter text-gray-900 dark:text-[#f6f6f4]">Igris Docs</span>
-                      </div>
-                      <ExternalLink className="h-4 w-4 text-gray-400" />
-                    </a>
-                    <div className="border-t border-gray-200 dark:border-[#f6f6f4]/10 my-1" />
-                    <a
-                      href="mailto:support@igrisinertial.com"
-                      className="flex items-center gap-2 w-full px-2 py-1.5 rounded-lg hover:bg-gray-50 dark:hover:bg-[#2c2a22] transition-colors"
-                      onClick={() => setShowHelpMenu(false)}
-                    >
-                      <Mail className="h-4 w-4 text-gray-400" />
-                      <span className="text-xs font-inter text-gray-900 dark:text-[#f6f6f4]">Contact Support</span>
-                    </a>
-                    <a
-                      href="https://changelog.igrisinertial.com"
-                      target="_blank"
-                      rel="noopener noreferrer"
-                      className="flex items-center justify-between gap-2 w-full px-2 py-1.5 rounded-lg hover:bg-gray-50 dark:hover:bg-[#2c2a22] transition-colors"
-                      onClick={() => setShowHelpMenu(false)}
-                    >
-                      <div className="flex items-center gap-2">
-                        <ChangeLogIcon className="h-4 w-4 text-gray-400" />
-                        <span className="text-xs font-inter text-gray-900 dark:text-[#f6f6f4]">Change Log</span>
-                      </div>
-                      <ExternalLink className="h-4 w-4 text-gray-400" />
-                    </a>
-                    <a
-                      href="https://status.igrisinertial.com"
-                      target="_blank"
-                      rel="noopener noreferrer"
-                      className="flex items-center justify-between gap-2 w-full px-2 py-1.5 rounded-lg hover:bg-gray-50 dark:hover:bg-[#2c2a22] transition-colors"
-                      onClick={() => setShowHelpMenu(false)}
-                    >
-                      <div className="flex items-center gap-2">
-                        <StatusIcon className="h-4 w-4 text-gray-400" />
-                        <span className="text-xs font-inter text-gray-900 dark:text-[#f6f6f4]">System Status</span>
-                      </div>
-                      <ExternalLink className="h-4 w-4 text-gray-400" />
-                    </a>
+          {/* Footer — profile */}
+          <div className="px-4 py-3 flex-shrink-0 flex items-center gap-2">
+
+            {/* Profile dropdown */}
+            <DropdownMenu>
+              <DropdownMenuTrigger asChild>
+                <button className="flex items-center gap-2 rounded-lg px-1.5 py-1 hover:bg-gray-100 dark:hover:bg-[#2c2a22] transition-colors outline-none min-w-0 flex-1">
+                  <div className="relative flex-shrink-0 flex h-7 w-7 items-center justify-center rounded-full bg-gray-900 dark:bg-gray-100 text-white dark:text-gray-900 text-[0.6rem] font-semibold tracking-wide select-none">
+                    {initials}
+                    <span className="absolute bottom-0 right-0 h-1.5 w-1.5 rounded-full bg-green-500 border border-white dark:border-[#25231e]" />
                   </div>
-                </>
-              )}
-              <button
-                onClick={() => setShowHelpMenu(!showHelpMenu)}
-                className="flex items-center justify-center w-7 h-7 rounded-full border border-gray-200 dark:border-[#f6f6f4]/10 hover:bg-gray-50 dark:hover:bg-[#2c2a22] transition-colors"
+                  <div className="min-w-0 flex-1 text-left">
+                    <p className="text-xs font-medium text-gray-900 dark:text-[#f6f6f4] truncate leading-tight">{displayName}</p>
+                    {email && <p className="text-[10px] text-gray-400 truncate leading-tight">{email}</p>}
+                  </div>
+                </button>
+              </DropdownMenuTrigger>
+
+              <DropdownMenuContent
+                side="top"
+                align="start"
+                sideOffset={8}
+                className="w-56 p-0 rounded-xl border border-border shadow-lg overflow-hidden"
               >
-                <span className="text-gray-500 dark:text-[#c8c8b8] text-xs font-semibold">?</span>
-              </button>
-            </div>
+                {/* User info header */}
+                <div className="px-3 py-3 bg-gray-50 dark:bg-muted/40">
+                  <div className="flex items-center gap-2.5">
+                    <div className="flex h-8 w-8 items-center justify-center rounded-full bg-gray-900 text-white text-[0.65rem] font-semibold flex-shrink-0">
+                      {initials}
+                    </div>
+                    <div className="min-w-0">
+                      <p className="text-xs font-semibold text-foreground truncate">{displayName}</p>
+                      {email && <p className="text-[10px] text-muted-foreground truncate">{email}</p>}
+                    </div>
+                  </div>
+                </div>
+
+                <div className="p-1">
+                  <DropdownMenuItem
+                    className="flex items-center gap-2.5 px-2.5 py-2 rounded-lg text-xs cursor-pointer"
+                    onSelect={() => { router.push('/settings/license'); onClose?.(); }}
+                  >
+                    <CreditCard className="h-3.5 w-3.5 text-muted-foreground flex-shrink-0" />
+                    <div>
+                      <p className="font-medium text-foreground">Billing</p>
+                      <p className="text-[10px] text-muted-foreground">Plan and usage</p>
+                    </div>
+                  </DropdownMenuItem>
+
+                  <DropdownMenuItem
+                    className="flex items-center gap-2.5 px-2.5 py-2 rounded-lg text-xs cursor-pointer"
+                    onSelect={() => { router.push('/settings/general'); onClose?.(); }}
+                  >
+                    <KeyRound className="h-3.5 w-3.5 text-muted-foreground flex-shrink-0" />
+                    <div>
+                      <p className="font-medium text-foreground">API Keys</p>
+                      <p className="text-[10px] text-muted-foreground">Manage access keys</p>
+                    </div>
+                  </DropdownMenuItem>
+
+                  <DropdownMenuItem
+                    className="flex items-center gap-2.5 px-2.5 py-2 rounded-lg text-xs cursor-pointer"
+                    onSelect={() => { router.push('/settings/general'); onClose?.(); }}
+                  >
+                    <Settings className="h-3.5 w-3.5 text-muted-foreground flex-shrink-0" />
+                    <div>
+                      <p className="font-medium text-foreground">Settings</p>
+                      <p className="text-[10px] text-muted-foreground">System configuration</p>
+                    </div>
+                  </DropdownMenuItem>
+                </div>
+
+                <Separator />
+
+                <div className="p-1">
+                  <DropdownMenuItem
+                    className="flex items-center gap-2.5 px-2.5 py-2 rounded-lg text-xs cursor-pointer text-red-600 focus:text-red-600 focus:bg-red-50 dark:focus:bg-red-950/30"
+                    onSelect={() => setShowLogoutDialog(true)}
+                  >
+                    <LogOut className="h-3.5 w-3.5 flex-shrink-0" />
+                    <span className="font-medium">Log out</span>
+                  </DropdownMenuItem>
+                </div>
+              </DropdownMenuContent>
+            </DropdownMenu>
+
           </div>
         </div>
       </aside>
+
+      {/* Logout confirmation */}
+      <Dialog open={showLogoutDialog} onOpenChange={setShowLogoutDialog}>
+        <DialogContent className="max-w-sm">
+          <DialogHeader>
+            <DialogTitle className="text-sm font-semibold">Log out?</DialogTitle>
+            <DialogDescription className="text-xs text-muted-foreground">
+              You will be signed out and redirected to the login page.
+            </DialogDescription>
+          </DialogHeader>
+          <DialogFooter className="gap-2">
+            <Button variant="outline" size="sm" className="h-8 text-xs" onClick={() => setShowLogoutDialog(false)}>
+              Cancel
+            </Button>
+            <Button size="sm" className="h-8 text-xs bg-gray-900 hover:bg-gray-800 text-white" onClick={handleLogout}>
+              <LogOut className="h-3.5 w-3.5 mr-1.5" />
+              Log out
+            </Button>
+          </DialogFooter>
+        </DialogContent>
+      </Dialog>
 
       {/* Search Modal */}
       {isSearchModalOpen && (
