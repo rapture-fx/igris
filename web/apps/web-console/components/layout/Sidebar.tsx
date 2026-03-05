@@ -4,7 +4,7 @@ import { useState, useEffect, useRef } from 'react';
 import Link from 'next/link';
 import { usePathname, useRouter } from 'next/navigation';
 import {
-  KeyRound, Settings, FileText, ChevronDown, Shield, Scale, ShieldCheck,
+  Settings, FileText, ChevronDown, Shield, Scale, ShieldCheck,
   Cpu, Zap, Search, ExternalLink, Mail,
   FileText as ChangeLogIcon, Activity as StatusIcon, BookOpen,
   Bell, LayoutDashboard, Boxes, History,
@@ -83,7 +83,6 @@ const navigation: NavigationItem[] = [
     icon: Settings,
     children: [
       { name: 'General', href: '/settings/general' },
-      { name: 'Keys', href: '/settings/keys' },
       { name: 'License', href: '/settings/license' },
     ],
   },
