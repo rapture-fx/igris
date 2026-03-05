@@ -547,7 +547,7 @@ export default function FleetDevicesPage() {
 
       {/* ── Device Detail Drawer ──────────────────────────────────────────────── */}
       <Sheet open={!!selectedDevice} onOpenChange={(open) => !open && closeDrawer()}>
-        <SheetContent className="sm:max-w-[720px] overflow-y-auto">
+        <SheetContent>
           {selectedDevice && (
             <>
               <SheetHeader>
