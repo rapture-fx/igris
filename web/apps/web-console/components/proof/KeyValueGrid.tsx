@@ -1,6 +1,6 @@
 'use client';
 
-import { useState } from 'react';
+import React, { useState } from 'react';
 import { Copy, Check } from 'lucide-react';
 
 export interface KVItem {
@@ -27,9 +27,9 @@ export function KeyValueGrid({ items }: KeyValueGridProps) {
   return (
     <dl className="grid grid-cols-[auto_1fr] gap-x-8 gap-y-3">
       {items.map(({ label, value, copyable, copyValue, href }) => (
-        <>
-          <dt key={`dt-${label}`} className="text-xs text-gray-400 whitespace-nowrap pt-px leading-4">{label}</dt>
-          <dd key={`dd-${label}`} className="flex items-start gap-1.5 min-w-0">
+        <React.Fragment key={label}>
+          <dt className="text-xs text-gray-400 whitespace-nowrap pt-px leading-4">{label}</dt>
+          <dd className="flex items-start gap-1.5 min-w-0">
             {href ? (
               <a
                 href={href}
@@ -54,7 +54,7 @@ export function KeyValueGrid({ items }: KeyValueGridProps) {
               </button>
             )}
           </dd>
-        </>
+        </React.Fragment>
       ))}
     </dl>
   );
