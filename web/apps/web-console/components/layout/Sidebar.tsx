@@ -110,15 +110,15 @@ export function Sidebar({ open = true, onClose }: SidebarProps) {
   const [selectedIndex, setSelectedIndex] = useState(0);
   const modalInputRef = useRef<HTMLInputElement>(null);
 
-  // Read localStorage synchronously on first render so there's no flash of DEFAULT_EXPANDED
-  const [expandedSections, setExpandedSections] = useState<Record<string, boolean>>(() => {
-    if (typeof window === 'undefined') return DEFAULT_EXPANDED;
+  const [expandedSections, setExpandedSections] = useState<Record<string, boolean>>(DEFAULT_EXPANDED);
+
+  // Hydrate expanded state from localStorage after mount (avoids SSR/client mismatch)
+  useEffect(() => {
     try {
       const saved = localStorage.getItem('sidebar_expanded');
-      if (saved) return { ...DEFAULT_EXPANDED, ...JSON.parse(saved) };
+      if (saved) setExpandedSections((prev) => ({ ...prev, ...JSON.parse(saved) }));
     } catch {}
-    return DEFAULT_EXPANDED;
-  });
+  }, []);
 
   // Always expand the section containing the active route (never collapses others)
   useEffect(() => {
