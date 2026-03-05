@@ -28,11 +28,11 @@ const Sheet = ({ open, onOpenChange, children }: SheetProps) => {
     <>
       {/* Backdrop */}
       <div
-        className="fixed inset-0 z-50 bg-black/30 backdrop-blur-[2px]"
+        className="fixed inset-0 z-50 bg-black/15"
         onClick={() => onOpenChange?.(false)}
       />
       {/* Sheet Container */}
-      <div className="fixed top-2 bottom-2 right-2 z-50 w-full sm:max-w-5xl">
+      <div className="fixed top-2 bottom-2 right-2 z-50">
         {children}
       </div>
     </>
@@ -46,7 +46,7 @@ const SheetContent = React.forwardRef<
   <div
     ref={ref}
     className={cn(
-      "h-full w-full border border-gray-200 dark:border-[#f6f6f4]/5 bg-card shadow-xl sm:max-w-5xl rounded-2xl",
+      "h-full w-[520px] max-w-[calc(100vw-1rem)] border border-gray-200 dark:border-[#f6f6f4]/5 bg-card shadow-xl rounded-2xl",
       "flex flex-col overflow-hidden",
       className
     )}
@@ -63,13 +63,13 @@ const SheetHeader = ({
 }: React.HTMLAttributes<HTMLDivElement>) => (
   <div
     className={cn(
-      "flex items-center justify-between px-6 py-4 relative",
+      "flex items-center justify-between px-4 py-4 relative",
       className
     )}
     {...props}
   >
     {props.children}
-    <div className="absolute left-6 right-6 bottom-0 border-b border-gray-200 dark:border-[#f6f6f4]/5" />
+    <div className="absolute left-4 right-4 bottom-0 border-b border-gray-200 dark:border-[#f6f6f4]/5" />
   </div>
 )
 SheetHeader.displayName = "SheetHeader"
@@ -108,7 +108,7 @@ const SheetBody = ({
   ...props
 }: React.HTMLAttributes<HTMLDivElement>) => (
   <div
-    className={cn("flex-1 overflow-y-auto px-6 py-4 scrollbar-hide", className)}
+    className={cn("flex-1 overflow-y-auto px-4 py-4 scrollbar-hide", className)}
     style={{
       scrollbarWidth: 'none',
       msOverflowStyle: 'none',
