@@ -139,8 +139,8 @@ func (h *TierHandler) GetCapabilities(c *fiber.Ctx) error {
 	// Get tier from context (set by TierEnforcer middleware)
 	tier, ok := c.Locals("tier").(string)
 	if !ok || tier == "" {
-		// Default to hacker tier if not set
-		tier = "hacker"
+		// Default to Seed tier if not set
+		tier = "seed"
 	}
 
 	// Get tier policy from context
@@ -251,69 +251,78 @@ func (h *TierHandler) GetCapabilities(c *fiber.Ctx) error {
 	return c.JSON(response)
 }
 
-// getDefaultFeatures returns default feature flags for a tier when policy is not available
-func getDefaultFeatures(tier string) TierFeaturesResponse {
-	// Unkillable Resilience Suite is always FREE
-	features := TierFeaturesResponse{
+// getDefaultFeatures returns feature flags for a tier.
+// Per the Igris Inertial pricing model, all tiers have identical feature access.
+// Only runtime scale (number of registered instances) differs between tiers.
+func getDefaultFeatures(_ string) TierFeaturesResponse {
+	return TierFeaturesResponse{
+		// Routing & Optimization
+		ThompsonSampling:     true,
+		SemanticRouting:      true,
+		CostAwareRouting:     true,
+		AutomaticFailover:    true,
+		CircuitBreaker:       true,
+		SpeculativeExecution: true,
+		CouncilMode:          true,
+
+		// Cognitive Advisor
+		CognitiveAdvisor:   true,
+		CognitiveAutoApply: true,
+
+		// Analytics & Observability
+		ObservabilityMetrics: true,
+		CostForecasting:      true,
+		RealTimeAnalytics:    true,
+
+		// Caching
+		RedisCaching: true,
+		L2Caching:    true,
+
+		// Authentication & Authorization
+		JWTAuth:    true,
+		APIKeyAuth: true,
+		RBAC:       true,
+		SSO:        true,
+
+		// Governance & Compliance
+		SLAEnforcement:    true,
+		PolicyVersioning:  true,
+		AuditLogs:         true,
+		HotReloadPolicies: true,
+
+		// Cryptographic Features
+		CryptographicSigning:     true,
+		SignedExecutionEnvelopes: true,
+		TamperEvidentLogs:        true,
+
+		// Core Features
+		MultiTenancy: true,
+		BYOK:         true,
+
+		// Advanced Features
+		CustomSLATargets:    true,
+		AdvancedGovernance:  true,
+		OnPremiseDeployment: true,
+		MultiRegion:         true,
+
+		// Unkillable Resilience Suite — always available
 		EscapeVectorMode: true,
 		EmergencyHotfix:  true,
 		GoldCodeOverride: true,
 		RustWASMFallback: true,
 	}
-
-	switch tier {
-	case "scale":
-		features.CryptographicSigning = true
-		features.SignedExecutionEnvelopes = true
-		features.TamperEvidentLogs = true
-		features.AdvancedGovernance = true
-		features.OnPremiseDeployment = true
-		features.MultiRegion = true
-		features.SSO = true
-		fallthrough
-	case "growth":
-		features.ThompsonSampling = true
-		features.SpeculativeExecution = true
-		features.CouncilMode = true
-		features.CognitiveAutoApply = true
-		features.RealTimeAnalytics = true
-		features.L2Caching = true
-		features.RBAC = true
-		features.SLAEnforcement = true
-		features.PolicyVersioning = true
-		features.HotReloadPolicies = true
-		features.CustomSLATargets = true
-		features.MultiTenancy = true
-		fallthrough
-	case "startup":
-		features.SemanticRouting = true
-		features.CostForecasting = true
-		features.CognitiveAdvisor = true
-		fallthrough
-	case "hacker":
-		features.CostAwareRouting = true
-		features.AutomaticFailover = true
-		features.CircuitBreaker = true
-		features.ObservabilityMetrics = true
-		features.RedisCaching = true
-		features.JWTAuth = true
-		features.APIKeyAuth = true
-		features.AuditLogs = true
-		features.BYOK = true
-	}
-
-	return features
 }
 
-// getDefaultLimits returns default limits for a tier when policy is not available
+// getDefaultLimits returns default limits for a tier when policy is not available.
+// Limits are now based on runtime instance count only — there are no per-request limits.
 func getDefaultLimits(tier string) TierLimitsResponse {
 	switch tier {
-	case "scale":
+	case "infinite":
 		return TierLimitsResponse{
 			MaxRequestsPerMonth:      -1, // Unlimited
-			MaxRequestsPerSecond:     1000,
-			MaxRequestsPerMinute:     60000,
-			MaxConcurrentRequests:    1000,
+			MaxRequestsPerSecond:     -1,
+			MaxRequestsPerMinute:     -1,
+			MaxConcurrentRequests:    -1,
 			MaxProviders:             -1,
 			MaxModelsPerProvider:     -1,
 			MaxCustomProviders:       -1,
@@ -323,50 +332,35 @@ func getDefaultLimits(tier string) TierLimitsResponse {
 			MaxCachedClassifications: -1,
 			AuditLogRetentionDays:    90,
 		}
-	case "growth":
+	case "horizon":
 		return TierLimitsResponse{
-			MaxRequestsPerMonth:      2000000,
-			MaxRequestsPerSecond:     50,
-			MaxRequestsPerMinute:     1500,
-			MaxConcurrentRequests:    50,
-			MaxProviders:             10,
-			MaxModelsPerProvider:     20,
-			MaxCustomProviders:       5,
-			MaxTenants:               10,
-			MaxAPIKeys:               20,
+			MaxRequestsPerMonth:      -1, // Unlimited
+			MaxRequestsPerSecond:     -1,
+			MaxRequestsPerMinute:     -1,
+			MaxConcurrentRequests:    -1,
+			MaxProviders:             -1,
+			MaxModelsPerProvider:     -1,
+			MaxCustomProviders:       -1,
+			MaxTenants:               -1,
+			MaxAPIKeys:               -1,
 			CacheTTLSeconds:          600,
-			MaxCachedClassifications: 10000,
+			MaxCachedClassifications: -1,
 			AuditLogRetentionDays:    30,
 		}
-	case "startup":
+	default: // seed
 		return TierLimitsResponse{
-			MaxRequestsPerMonth:      500000,
-			MaxRequestsPerSecond:     10,
-			MaxRequestsPerMinute:     300,
-			MaxConcurrentRequests:    5,
-			MaxProviders:             3,
-			MaxModelsPerProvider:     5,
-			MaxCustomProviders:       1,
+			MaxRequestsPerMonth:      -1, // Unlimited
+			MaxRequestsPerSecond:     -1,
+			MaxRequestsPerMinute:     -1,
+			MaxConcurrentRequests:    -1,
+			MaxProviders:             -1,
+			MaxModelsPerProvider:     -1,
+			MaxCustomProviders:       -1,
 			MaxTenants:               1,
 			MaxAPIKeys:               5,
 			CacheTTLSeconds:          300,
 			MaxCachedClassifications: 1000,
 			AuditLogRetentionDays:    14,
-		}
-	default: // hacker
-		return TierLimitsResponse{
-			MaxRequestsPerMonth:      50000,
-			MaxRequestsPerSecond:     5,
-			MaxRequestsPerMinute:     150,
-			MaxConcurrentRequests:    2,
-			MaxProviders:             2,
-			MaxModelsPerProvider:     3,
-			MaxCustomProviders:       0,
-			MaxTenants:               1,
-			MaxAPIKeys:               2,
-			CacheTTLSeconds:          300,
-			MaxCachedClassifications: 500,
-			AuditLogRetentionDays:    7,
 		}
 	}
 }
