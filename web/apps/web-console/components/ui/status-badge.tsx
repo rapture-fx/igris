@@ -37,7 +37,7 @@ export function StatusBadge({ status, className, showDot = true }: StatusBadgePr
   return (
     <span
       className={cn(
-        'inline-flex items-center gap-1.5 px-2 py-0.5 rounded-md text-xs font-medium border',
+        'inline-flex items-center gap-1 px-1.5 py-0.5 rounded text-[10px] font-medium border',
         config.bg,
         config.text,
         config.border,
