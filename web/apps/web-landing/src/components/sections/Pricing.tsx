@@ -2,7 +2,6 @@
 
 import React, { useEffect, useState } from 'react';
 import { Check, ChevronRight } from 'lucide-react';
-import { useModal } from '../../contexts/ModalContext';
 import { useTheme } from 'next-themes';
 import PricingComparison from './PricingComparison';
 
@@ -13,71 +12,68 @@ interface PricingTier {
   limits: string;
   features: string[];
   cta: string;
+  checkoutKey: string;
   isContactUs?: boolean;
   recommended?: boolean;
 }
 
+// Polar checkout URLs — update price IDs once set in the Polar dashboard
+const POLAR_CHECKOUT: Record<string, string> = {
+  seed:     "https://polar.sh/igris-inertial/checkout?price=price_seed_monthly",
+  horizon:  "https://polar.sh/igris-inertial/checkout?price=price_horizon_monthly",
+  infinite: "https://polar.sh/igris-inertial/checkout?price=price_infinite_monthly",
+};
+
 const pricingTiers: PricingTier[] = [
   {
-    name: "The Seed",
+    name: "Seed",
     tagline: "Core runtime for one instance.",
-    price: "Free",
-    limits: "1 instance",
+    price: "$29 / month",
+    limits: "1 runtime instance",
     features: [
-      "Core deterministic runtime.",
-      "Local + cloud routing.",
-      "Offline survival.",
-      "Cryptographic signing.",
-      "7-day execution retention.",
-      "Community support.",
-      "Runs anywhere. Server, edge, robot."
+      "1 runtime instance.",
+      "Edge or server deployment.",
+      "Execution receipts.",
+      "Policy enforcement.",
+      "Basic routing.",
     ],
-    cta: "Get Started"
+    cta: "Get Seed",
+    checkoutKey: "seed",
   },
   {
-    name: "The Horizon",
+    name: "Horizon",
     tagline: "Fleet management with dashboard and updates.",
     price: "$149 / month",
-    limits: "Up to 50 instances",
+    limits: "Up to 50 runtime instances",
     features: [
+      "50 runtime instances.",
       "Fleet dashboard.",
-      "Over-the-air verified updates.",
-      "30-day signed execution retention.",
-      "Role-based access control.",
-      "Email support (24h).",
-      "$3 per instance beyond 50."
+      "Speculative execution.",
+      "Council routing.",
+      "Shadow mode.",
     ],
-    cta: "Get Started",
-    recommended: true
+    cta: "Get Horizon",
+    checkoutKey: "horizon",
+    recommended: true,
   },
   {
-    name: "The Infinite",
-    tagline: "Enterprise scale with on-premise and SLO enforcement.",
+    name: "Infinite",
+    tagline: "Enterprise scale with advanced policy and OTA updates.",
     price: "$699 / month",
-    limits: "Up to 500 instances",
+    limits: "Up to 500 runtime instances",
     features: [
-      "On-premise deployment option.",
-      "90-day retention.",
-      "SLO enforcement with auto-remediation.",
-      "Priority support (8h).",
-      "Security review assistance.",
-      "Volume pricing beyond 500."
+      "500 runtime instances.",
+      "Enterprise fleet management.",
+      "Advanced policy engine.",
+      "OTA runtime updates.",
+      "Priority support.",
     ],
-    cta: "Get Started"
-  }
-];
-
-const pricingPrinciples = [
-  "One price. Unlimited execution.",
-  "No token counting. No request metering.",
-  "Pay for devices. Execute without limits.",
-  "This is infrastructure, not API rental.",
-  "Scale freely. No surprise bills.",
-  "The layer holds intelligence. It doesn't meter it."
+    cta: "Get Infinite",
+    checkoutKey: "infinite",
+  },
 ];
 
 export default function Pricing() {
-  const { openEarlyAccessModal } = useModal();
   const { theme } = useTheme();
   const [mounted, setMounted] = useState(false);
 
@@ -152,14 +148,16 @@ export default function Pricing() {
                         ))}
                       </ul>
                     </div>
-                    <button
-                      onClick={openEarlyAccessModal}
+                    <a
+                      href={POLAR_CHECKOUT[tier.checkoutKey]}
+                      target="_blank"
+                      rel="noopener noreferrer"
                       className="inline-flex items-center justify-center px-4 py-2 hover:opacity-80 transition-all duration-200 text-sm font-medium shadow-sm rounded-md mt-8 opacity-100 md:opacity-0 md:group-hover:opacity-100 self-start"
                       style={{ fontFamily: '-apple-system, BlinkMacSystemFont, "Segoe UI", Roboto, Helvetica, Arial, sans-serif', backgroundColor: '#1b1912', color: '#f6f6f4' }}
                     >
-                      Select
+                      {tier.cta}
                       <ChevronRight className="ml-1 h-4 w-4" />
-                    </button>
+                    </a>
                   </div>
                 </div>
               ))}
