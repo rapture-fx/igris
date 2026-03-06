@@ -326,12 +326,6 @@ func (h *WebhookHandler) handleSubscriptionTrialEnd(event *WebhookEvent) error {
 func (h *WebhookHandler) convertToSubscription(data *SubscriptionEventData) *Subscription {
 	periodEnd, _ := time.Parse(time.RFC3339, data.CurrentPeriodEnd)
 
-	var trialEnd *time.Time
-	if data.TrialEnd != nil {
-		t, _ := time.Parse(time.RFC3339, *data.TrialEnd)
-		trialEnd = &t
-	}
-
 	var canceledAt *time.Time
 	if data.CanceledAt != nil {
 		t, _ := time.Parse(time.RFC3339, *data.CanceledAt)
@@ -357,7 +351,6 @@ func (h *WebhookHandler) convertToSubscription(data *SubscriptionEventData) *Sub
 		PriceID:          data.PriceID,
 		Status:           SubscriptionStatus(data.Status),
 		CurrentPeriodEnd: periodEnd,
-		TrialEnd:         trialEnd,
 		CanceledAt:       canceledAt,
 		CreatedAt:        time.Now(),
 		Metadata:         metadata,
