@@ -3,7 +3,6 @@
 import React, { useEffect, useState } from 'react';
 import { Check, ChevronRight } from 'lucide-react';
 import { useTheme } from 'next-themes';
-import PricingComparison from './PricingComparison';
 
 interface PricingTier {
   name: string;
@@ -106,13 +105,11 @@ export default function Pricing() {
                 >
                   <div className="p-6 flex flex-col h-full">
                     <div className="flex-grow">
-                      <div className="mb-2">
+                      <div className="mb-3">
                         <h3 className="text-lg text-[#000000] dark:text-[#f6f6f4]" style={{ fontFamily: '-apple-system, BlinkMacSystemFont, "Segoe UI", Roboto, Helvetica, Arial, sans-serif' }}>
                           {tier.name}
                         </h3>
                       </div>
-
-
 
                       <div className="mb-6">
                         {tier.isContactUs ? (
@@ -131,12 +128,6 @@ export default function Pricing() {
                             </span>
                           </div>
                         )}
-                      </div>
-
-                      <div className="mb-4">
-                        <p className="text-sm font-medium text-[#000000] dark:text-[#f6f6f4]" style={{ fontFamily: '-apple-system, BlinkMacSystemFont, "Segoe UI", Roboto, Helvetica, Arial, sans-serif' }}>
-                          {tier.limits}
-                        </p>
                       </div>
 
                       <ul className="space-y-2">
