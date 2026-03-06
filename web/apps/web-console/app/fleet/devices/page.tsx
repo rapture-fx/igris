@@ -218,14 +218,14 @@ function ViolationCountBadge({ count }: { count: number }) {
   if (count === 0) return <span className="text-xs text-gray-300">—</span>;
   if (count <= 5) {
     return (
-      <span className="inline-flex items-center gap-1 px-2 py-0.5 rounded-md text-xs font-medium bg-yellow-50 text-yellow-700 border border-yellow-200">
+      <span className="inline-flex items-center gap-1 px-1.5 py-0.5 rounded text-[10px] font-medium bg-yellow-50 text-yellow-700 border border-yellow-200">
         <span className="h-1.5 w-1.5 rounded-full bg-yellow-500 flex-shrink-0" />
         {count}
       </span>
     );
   }
   return (
-    <span className="inline-flex items-center gap-1 px-2 py-0.5 rounded-md text-xs font-medium bg-red-50 text-red-700 border border-red-200">
+    <span className="inline-flex items-center gap-1 px-1.5 py-0.5 rounded text-[10px] font-medium bg-red-50 text-red-700 border border-red-200">
       <span className="h-1.5 w-1.5 rounded-full bg-red-500 flex-shrink-0" />
       {count}
     </span>
