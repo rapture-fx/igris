@@ -56,14 +56,14 @@ func setupTestEnforcer(t *testing.T) (*BudgetEnforcer, *redis.Client, ed25519.Pu
 // HARD BUDGET CAP TESTS
 // ============================================================================
 
-func TestHardBudgetCap_ScaleTier_Returns429(t *testing.T) {
+func TestHardBudgetCap_InfiniteTier_Returns429(t *testing.T) {
 	enforcer, redisClient, _, _ := setupTestEnforcer(t)
 	ctx := context.Background()
 
-	tenantID := "tenant_scale_budget_test"
+	tenantID := "tenant_infinite_budget_test"
 
-	// Set tenant tier to Scale
-	err := redisClient.Set(ctx, fmt.Sprintf("igris:billing:%s:tier", tenantID), "scale", 0).Err()
+	// Set tenant tier to Infinite
+	err := redisClient.Set(ctx, fmt.Sprintf("igris:billing:%s:tier", tenantID), string(TierInfinite), 0).Err()
 	require.NoError(t, err)
 
 	// Set budget to $100
@@ -95,14 +95,14 @@ func TestHardBudgetCap_ScaleTier_Returns429(t *testing.T) {
 	assert.Equal(t, "true", resp.Header.Get("X-Budget-Exhausted"))
 }
 
-func TestHardBudgetCap_GrowthTier_StillAllows(t *testing.T) {
+func TestHardBudgetCap_HorizonTier_StillAllows(t *testing.T) {
 	enforcer, redisClient, _, _ := setupTestEnforcer(t)
 	ctx := context.Background()
 
-	tenantID := "tenant_growth_budget_test"
+	tenantID := "tenant_horizon_budget_test"
 
-	// Set tenant tier to Growth (not Scale)
-	err := redisClient.Set(ctx, fmt.Sprintf("igris:billing:%s:tier", tenantID), "growth", 0).Err()
+	// Set tenant tier to Horizon (not Infinite)
+	err := redisClient.Set(ctx, fmt.Sprintf("igris:billing:%s:tier", tenantID), string(TierHorizon), 0).Err()
 	require.NoError(t, err)
 
 	// Set budget to $100
@@ -124,12 +124,12 @@ func TestHardBudgetCap_GrowthTier_StillAllows(t *testing.T) {
 		return c.JSON(fiber.Map{"status": "ok"})
 	})
 
-	// Test request - should succeed (Growth tier has no hard enforcement)
+	// Test request - should succeed (Horizon tier has no hard enforcement)
 	req := httptest.NewRequest("GET", "/test", nil)
 	resp, err := app.Test(req, -1)
 	require.NoError(t, err)
 
-	// Verify 200 response (Growth tier doesn't enforce hard caps)
+	// Verify 200 response (Horizon tier doesn't enforce hard caps)
 	assert.Equal(t, fiber.StatusOK, resp.StatusCode)
 }
 
@@ -137,10 +137,10 @@ func TestHardBudgetCap_UnderBudget_Allows(t *testing.T) {
 	enforcer, redisClient, _, _ := setupTestEnforcer(t)
 	ctx := context.Background()
 
-	tenantID := "tenant_scale_under_budget"
+	tenantID := "tenant_infinite_under_budget"
 
-	// Set tenant tier to Scale
-	err := redisClient.Set(ctx, fmt.Sprintf("igris:billing:%s:tier", tenantID), "scale", 0).Err()
+	// Set tenant tier to Infinite
+	err := redisClient.Set(ctx, fmt.Sprintf("igris:billing:%s:tier", tenantID), string(TierInfinite), 0).Err()
 	require.NoError(t, err)
 
 	// Set budget to $100
@@ -181,8 +181,8 @@ func TestEmergencyOverride_ValidToken_BypassesCap(t *testing.T) {
 
 	tenantID := "tenant_override_test"
 
-	// Set tenant tier to Scale
-	err := redisClient.Set(ctx, fmt.Sprintf("igris:billing:%s:tier", tenantID), "scale", 0).Err()
+	// Set tenant tier to Infinite
+	err := redisClient.Set(ctx, fmt.Sprintf("igris:billing:%s:tier", tenantID), string(TierInfinite), 0).Err()
 	require.NoError(t, err)
 
 	// Set budget to $100
@@ -224,8 +224,8 @@ func TestEmergencyOverride_UsedToken_Denied(t *testing.T) {
 
 	tenantID := "tenant_used_token_test"
 
-	// Set tenant tier to Scale
-	err := redisClient.Set(ctx, fmt.Sprintf("igris:billing:%s:tier", tenantID), "scale", 0).Err()
+	// Set tenant tier to Infinite
+	err := redisClient.Set(ctx, fmt.Sprintf("igris:billing:%s:tier", tenantID), string(TierInfinite), 0).Err()
 	require.NoError(t, err)
 
 	// Set budget to $100
@@ -274,8 +274,8 @@ func TestEmergencyOverride_ExpiredToken_Denied(t *testing.T) {
 
 	tenantID := "tenant_expired_token_test"
 
-	// Set tenant tier to Scale
-	err := redisClient.Set(ctx, fmt.Sprintf("igris:billing:%s:tier", tenantID), "scale", 0).Err()
+	// Set tenant tier to Infinite
+	err := redisClient.Set(ctx, fmt.Sprintf("igris:billing:%s:tier", tenantID), string(TierInfinite), 0).Err()
 	require.NoError(t, err)
 
 	// Set budget to $100
@@ -300,8 +300,8 @@ func TestEmergencyOverride_RequestLimitExceeded_Denied(t *testing.T) {
 
 	tenantID := "tenant_limit_test"
 
-	// Set tenant tier to Scale
-	err := redisClient.Set(ctx, fmt.Sprintf("igris:billing:%s:tier", tenantID), "scale", 0).Err()
+	// Set tenant tier to Infinite
+	err := redisClient.Set(ctx, fmt.Sprintf("igris:billing:%s:tier", tenantID), string(TierInfinite), 0).Err()
 	require.NoError(t, err)
 
 	// Set budget to $100
