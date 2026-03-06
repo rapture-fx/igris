@@ -374,6 +374,18 @@ func main() {
 		log.Println("[Licensing] ⚠️  Database not available — license endpoints disabled")
 	}
 
+	// Register runtime registration endpoints (requires database + Redis for limit enforcement)
+	if dbInstance != nil {
+		var runtimeEnforcer *billing.RuntimeEnforcer
+		if redisClient != nil {
+			runtimeEnforcer = billing.NewRuntimeEnforcer(redisClient)
+		}
+		api.RegisterRuntimeRoutes(app, dbInstance, runtimeEnforcer)
+		log.Println("[Runtime] ✅ Runtime registration endpoints registered (/api/v1/runtime)")
+	} else {
+		log.Println("[Runtime] ⚠️  Database not available — runtime registration disabled")
+	}
+
 	// Initialize Polar billing webhook handler (if configured)
 	enableBilling := os.Getenv("POLAR_API_KEY") != ""
 	if enableBilling && redisClient != nil && dbInstance != nil {
@@ -407,10 +419,13 @@ func main() {
 			"metrics":   "/metrics",
 		}
 
-		// Add license endpoints if database is available
+		// Add license and runtime endpoints if database is available
 		if dbInstance != nil {
 			endpoints["license_validate"] = "/api/v1/license/validate"
 			endpoints["usage_log"] = "/api/v1/usage/log"
+			endpoints["runtime_register"] = "/api/v1/runtime/register"
+			endpoints["runtime_heartbeat"] = "/api/v1/runtime/heartbeat"
+			endpoints["runtime_download"] = "/api/v1/runtime/download"
 		}
 
 		// Add billing webhook if configured
