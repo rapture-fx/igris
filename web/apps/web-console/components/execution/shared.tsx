@@ -51,7 +51,7 @@ export function ViolationBadge({
   if (!show) return <span className="text-xs text-gray-300">—</span>;
 
   return (
-    <span className="inline-flex items-center gap-1 px-2 py-0.5 rounded-md text-xs font-medium bg-orange-50 text-orange-700 border border-orange-200">
+    <span className="inline-flex items-center gap-1 px-1.5 py-0.5 rounded text-[10px] font-medium bg-orange-50 text-orange-700 border border-orange-200">
       <span className="h-1.5 w-1.5 rounded-full bg-orange-500 flex-shrink-0" />
       {count !== undefined ? count : 'Violation'}
     </span>
