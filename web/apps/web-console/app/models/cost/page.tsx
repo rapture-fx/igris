@@ -301,7 +301,6 @@ export default function ModelsCostPage() {
                     <TableRow key={p.id} className="border-b border-gray-100 hover:bg-gray-50">
                       <TableCell className="px-4 py-3">
                         <div className="flex items-center gap-2">
-                          <ProviderAvatar kind={p.kind} />
                           <span className="text-xs font-medium text-gray-900">{p.provider}</span>
                         </div>
                       </TableCell>
@@ -394,7 +393,6 @@ export default function ModelsCostPage() {
                     </TableCell>
                     <TableCell className="px-4 py-3">
                       <div className="flex items-center gap-1.5">
-                        <ProviderAvatar kind={m.kind} />
                         <span className="text-xs text-gray-600">{m.provider}</span>
                       </div>
                     </TableCell>
