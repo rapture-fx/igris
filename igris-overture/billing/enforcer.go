@@ -1,4 +1,4 @@
-// Package billing provides hard budget enforcement for Scale tier
+// Package billing provides hard budget enforcement and runtime limit enforcement.
 package billing
 
 import (
@@ -11,6 +11,105 @@ import (
 	"github.com/gofiber/fiber/v2"
 	"github.com/redis/go-redis/v9"
 )
+
+// ============================================================================
+// RUNTIME LIMIT ENFORCER
+// ============================================================================
+
+// ErrTierLimitExceeded is returned when a tenant tries to register more runtimes
+// than their tier allows.
+var ErrTierLimitExceeded = errors.New("runtime limit exceeded for current tier")
+
+// RuntimeEnforcer enforces per-tier runtime registration limits.
+type RuntimeEnforcer struct {
+	redis  *redis.Client
+	logger *log.Logger
+}
+
+// NewRuntimeEnforcer creates a new runtime limit enforcer.
+func NewRuntimeEnforcer(r *redis.Client) *RuntimeEnforcer {
+	return &RuntimeEnforcer{redis: r, logger: log.Default()}
+}
+
+// CheckRuntimeLimit returns an error if the tenant has reached their tier's
+// runtime limit. Call this before registering a new runtime instance.
+func (re *RuntimeEnforcer) CheckRuntimeLimit(ctx context.Context, tenantID string) error {
+	tier, err := re.getTenantTier(ctx, tenantID)
+	if err != nil {
+		return fmt.Errorf("could not determine tenant tier: %w", err)
+	}
+
+	limit, ok := TierRuntimeLimit[tier]
+	if !ok {
+		limit = TierRuntimeLimit[TierSeed]
+	}
+
+	count, err := re.getRuntimeCount(ctx, tenantID)
+	if err != nil {
+		return fmt.Errorf("could not read runtime count: %w", err)
+	}
+
+	if count >= limit {
+		re.logger.Printf("[RuntimeEnforcer] Limit reached: tenant=%s tier=%s count=%d limit=%d",
+			tenantID, tier, count, limit)
+		return fmt.Errorf("%w: %d/%d runtimes registered (tier: %s)", ErrTierLimitExceeded, count, limit, tier)
+	}
+
+	return nil
+}
+
+// IncrementRuntimeCount records a new registered runtime for a tenant.
+func (re *RuntimeEnforcer) IncrementRuntimeCount(ctx context.Context, tenantID string) error {
+	key := fmt.Sprintf("igris:runtimes:%s:count", tenantID)
+	return re.redis.Incr(ctx, key).Err()
+}
+
+// DecrementRuntimeCount records a deregistered runtime for a tenant.
+func (re *RuntimeEnforcer) DecrementRuntimeCount(ctx context.Context, tenantID string) error {
+	key := fmt.Sprintf("igris:runtimes:%s:count", tenantID)
+	return re.redis.Decr(ctx, key).Err()
+}
+
+// GetRuntimeUsage returns (current, limit) for the tenant's tier.
+func (re *RuntimeEnforcer) GetRuntimeUsage(ctx context.Context, tenantID string) (int, int, error) {
+	tier, err := re.getTenantTier(ctx, tenantID)
+	if err != nil {
+		return 0, 0, err
+	}
+
+	limit, ok := TierRuntimeLimit[tier]
+	if !ok {
+		limit = TierRuntimeLimit[TierSeed]
+	}
+
+	count, err := re.getRuntimeCount(ctx, tenantID)
+	if err != nil {
+		return 0, limit, err
+	}
+
+	return count, limit, nil
+}
+
+func (re *RuntimeEnforcer) getRuntimeCount(ctx context.Context, tenantID string) (int, error) {
+	key := fmt.Sprintf("igris:runtimes:%s:count", tenantID)
+	n, err := re.redis.Get(ctx, key).Int()
+	if err == redis.Nil {
+		return 0, nil
+	}
+	return n, err
+}
+
+func (re *RuntimeEnforcer) getTenantTier(ctx context.Context, tenantID string) (Tier, error) {
+	tierKey := fmt.Sprintf("igris:billing:%s:tier", tenantID)
+	t, err := re.redis.Get(ctx, tierKey).Result()
+	if err == redis.Nil {
+		return TierSeed, nil // Default to Seed
+	}
+	if err != nil {
+		return "", err
+	}
+	return Tier(t), nil
+}
 
 // ============================================================================
 // BUDGET ENFORCER
@@ -72,8 +171,8 @@ func (be *BudgetEnforcer) EnforceMiddleware() fiber.Handler {
 			return c.Next()
 		}
 
-		// Only enforce for Scale tier
-		if tier != "scale" {
+		// Only enforce for Infinite tier (top tier with hard budget caps)
+		if Tier(tier) != TierInfinite {
 			return c.Next()
 		}
 
@@ -182,7 +281,7 @@ func (be *BudgetEnforcer) getTenantTier(ctx context.Context, tenantID string) (s
 	tierKey := fmt.Sprintf("igris:billing:%s:tier", tenantID)
 	tier, err := be.redis.Get(ctx, tierKey).Result()
 	if err == redis.Nil {
-		return "developer", nil // Default to developer
+		return string(TierSeed), nil // Default to Seed
 	}
 	if err != nil {
 		return "", err
