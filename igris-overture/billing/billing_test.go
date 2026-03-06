@@ -56,11 +56,14 @@ func TestGetTierByID(t *testing.T) {
 		tierID  string
 		wantErr bool
 	}{
-		{"Trial tier", "trial", false},
-		{"Develop tier", "develop", false},
-		{"Growth tier", "growth", false},
-		{"Scale tier", "scale", false},
+		{"Seed tier", string(TierSeed), false},
+		{"Horizon tier", string(TierHorizon), false},
+		{"Infinite tier", string(TierInfinite), false},
 		{"Invalid tier", "invalid", true},
+		{"Legacy trial rejected", "trial", true},
+		{"Legacy develop rejected", "develop", true},
+		{"Legacy growth rejected", "growth", true},
+		{"Legacy scale rejected", "scale", true},
 	}
 
 	for _, tt := range tests {
@@ -72,7 +75,7 @@ func TestGetTierByID(t *testing.T) {
 			} else {
 				assert.NoError(t, err)
 				assert.NotNil(t, tier)
-				assert.Equal(t, tt.tierID, tier.ID)
+				assert.Equal(t, tt.tierID, string(tier.ID))
 			}
 		})
 	}
@@ -80,13 +83,14 @@ func TestGetTierByID(t *testing.T) {
 
 func TestGetTierByPriceID(t *testing.T) {
 	tests := []struct {
-		name    string
-		priceID string
+		name       string
+		priceID    string
 		wantTierID string
-		wantErr bool
+		wantErr    bool
 	}{
-		{"Develop monthly", "price_develop_monthly", "develop", false},
-		{"Growth annual", "price_growth_annual", "growth", false},
+		{"Seed monthly", "price_seed_monthly", string(TierSeed), false},
+		{"Horizon monthly", "price_horizon_monthly", string(TierHorizon), false},
+		{"Infinite monthly", "price_infinite_monthly", string(TierInfinite), false},
 		{"Invalid price ID", "price_invalid", "", true},
 	}
 
@@ -97,81 +101,49 @@ func TestGetTierByPriceID(t *testing.T) {
 				assert.Error(t, err)
 			} else {
 				assert.NoError(t, err)
-				assert.Equal(t, tt.wantTierID, tier.ID)
+				assert.Equal(t, tt.wantTierID, string(tier.ID))
 			}
 		})
 	}
 }
 
-func TestTierFeatures(t *testing.T) {
-	// Test trial has full features
-	trial, _ := GetTierByID("trial")
-	assert.True(t, trial.Features.ThompsonSampling)
-	assert.True(t, trial.Features.SpeculativeExecution)
-	assert.Equal(t, 50000, trial.MaxRequestsPerMonth)
+func TestTierRuntimeLimits(t *testing.T) {
+	seed, err := GetTierByID(string(TierSeed))
+	require.NoError(t, err)
+	assert.Equal(t, 1, seed.RuntimeLimit)
+	assert.Equal(t, 2900, seed.MonthlyPriceCents)
 
-	// Test develop has limited features
-	develop, _ := GetTierByID("develop")
-	assert.True(t, develop.Features.ThompsonSampling)
-	assert.False(t, develop.Features.SpeculativeExecution)
-	assert.Equal(t, 500000, develop.MaxRequestsPerMonth)
+	horizon, err := GetTierByID(string(TierHorizon))
+	require.NoError(t, err)
+	assert.Equal(t, 50, horizon.RuntimeLimit)
+	assert.Equal(t, 14900, horizon.MonthlyPriceCents)
 
-	// Test growth has advanced features
-	growth, _ := GetTierByID("growth")
-	assert.True(t, growth.Features.SpeculativeExecution)
-	assert.True(t, growth.Features.CouncilMode)
-	assert.Equal(t, "basic", growth.Features.SLOEnforcer)
+	infinite, err := GetTierByID(string(TierInfinite))
+	require.NoError(t, err)
+	assert.Equal(t, 500, infinite.RuntimeLimit)
+	assert.Equal(t, 69900, infinite.MonthlyPriceCents)
+}
 
-	// Test scale has unlimited requests
-	scale, _ := GetTierByID("scale")
-	assert.Equal(t, -1, scale.MaxRequestsPerMonth)
-	assert.True(t, scale.Features.SelfHost)
+func TestValidTier(t *testing.T) {
+	assert.True(t, ValidTier("seed"))
+	assert.True(t, ValidTier("horizon"))
+	assert.True(t, ValidTier("infinite"))
+	assert.False(t, ValidTier("trial"))
+	assert.False(t, ValidTier("develop"))
+	assert.False(t, ValidTier("growth"))
+	assert.False(t, ValidTier("scale"))
+	assert.False(t, ValidTier(""))
+}
+
+func TestTierRuntimeLimitMap(t *testing.T) {
+	assert.Equal(t, 1, TierRuntimeLimit[TierSeed])
+	assert.Equal(t, 50, TierRuntimeLimit[TierHorizon])
+	assert.Equal(t, 500, TierRuntimeLimit[TierInfinite])
 }
 
 // ============================================================================
 // SUBSCRIPTION TESTS
 // ============================================================================
-
-func TestCreateTrialSubscription(t *testing.T) {
-	client := setupTestPolarClient(t)
-	ctx := context.Background()
-
-	tenantID := "tenant_test"
-	email := "test@example.com"
-
-	sub, err := client.CreateTrialSubscription(ctx, tenantID, email)
-	require.NoError(t, err)
-	assert.NotNil(t, sub)
-	assert.Equal(t, tenantID, sub.CustomerID)
-	assert.Equal(t, StatusTrialing, sub.Status)
-	assert.NotNil(t, sub.TrialEnd)
-
-	// Trial should be 14 days
-	trialDuration := sub.TrialEnd.Sub(time.Now())
-	assert.True(t, trialDuration > 13*24*time.Hour)
-	assert.True(t, trialDuration < 15*24*time.Hour)
-
-	// Request counter should be initialized
-	count, err := client.GetRequestCount(ctx, tenantID)
-	assert.NoError(t, err)
-	assert.Equal(t, int64(0), count)
-}
-
-func TestGetSubscription_Trial(t *testing.T) {
-	client := setupTestPolarClient(t)
-	ctx := context.Background()
-
-	tenantID := "tenant_test2"
-	_, err := client.CreateTrialSubscription(ctx, tenantID, "test2@example.com")
-	require.NoError(t, err)
-
-	// Get subscription
-	sub, err := client.GetSubscription(ctx, tenantID)
-	require.NoError(t, err)
-	assert.NotNil(t, sub)
-	assert.Equal(t, StatusTrialing, sub.Status)
-	assert.Equal(t, "trial", sub.Metadata["tier"])
-}
 
 func TestUpdateSubscription(t *testing.T) {
 	client := setupTestPolarClient(t)
@@ -179,132 +151,112 @@ func TestUpdateSubscription(t *testing.T) {
 
 	sub := &Subscription{
 		ID:               "sub_test_123",
-		CustomerID:       "tenant_test3",
-		ProductID:        "prod_develop",
-		PriceID:          "price_develop_monthly",
+		CustomerID:       "tenant_test_seed",
+		ProductID:        "prod_seed",
+		PriceID:          "price_seed_monthly",
 		Status:           StatusActive,
 		CurrentPeriodEnd: time.Now().Add(30 * 24 * time.Hour),
 		CreatedAt:        time.Now(),
 		Metadata: map[string]string{
-			"tier": "develop",
+			"tier": string(TierSeed),
 		},
 	}
 
 	err := client.UpdateSubscription(ctx, sub)
 	require.NoError(t, err)
 
-	// Verify subscription was stored
-	retrieved, err := client.GetSubscription(ctx, "tenant_test3")
+	retrieved, err := client.GetSubscription(ctx, "tenant_test_seed")
 	require.NoError(t, err)
-	assert.Equal(t, "develop", retrieved.Metadata["tier"])
+	assert.Equal(t, string(TierSeed), retrieved.Metadata["tier"])
 	assert.Equal(t, StatusActive, retrieved.Status)
 }
 
-// ============================================================================
-// REQUEST LIMIT TESTS
-// ============================================================================
-
-func TestRequestCounterIncrement(t *testing.T) {
+func TestUpdateSubscription_PriceIDResolution(t *testing.T) {
 	client := setupTestPolarClient(t)
 	ctx := context.Background()
 
-	tenantID := "tenant_counter_test"
+	// Subscription without explicit tier — should resolve from price ID
+	sub := &Subscription{
+		ID:               "sub_horizon_456",
+		CustomerID:       "tenant_horizon",
+		ProductID:        "prod_horizon",
+		PriceID:          "price_horizon_monthly",
+		Status:           StatusActive,
+		CurrentPeriodEnd: time.Now().Add(30 * 24 * time.Hour),
+		CreatedAt:        time.Now(),
+	}
 
-	// First increment
-	count1, err := client.IncrementRequestCount(ctx, tenantID)
-	assert.NoError(t, err)
-	assert.Equal(t, int64(1), count1)
+	err := client.UpdateSubscription(ctx, sub)
+	require.NoError(t, err)
 
-	// Second increment
-	count2, err := client.IncrementRequestCount(ctx, tenantID)
-	assert.NoError(t, err)
-	assert.Equal(t, int64(2), count2)
-
-	// Get count
-	count, err := client.GetRequestCount(ctx, tenantID)
-	assert.NoError(t, err)
-	assert.Equal(t, int64(2), count)
+	retrieved, err := client.GetSubscription(ctx, "tenant_horizon")
+	require.NoError(t, err)
+	assert.Equal(t, string(TierHorizon), retrieved.Metadata["tier"])
 }
 
-func TestRequestLimitEnforcement(t *testing.T) {
-	client := setupTestPolarClient(t)
+// ============================================================================
+// RUNTIME ENFORCER TESTS
+// ============================================================================
+
+func TestRuntimeEnforcer_SeedLimit(t *testing.T) {
+	r := setupTestRedis(t)
 	ctx := context.Background()
+	enforcer := NewRuntimeEnforcer(r)
 
-	tenantID := "tenant_limit_test"
+	tenantID := "tenant_seed_limit"
+	// Set tier to Seed (limit=1)
+	r.Set(ctx, "igris:billing:"+tenantID+":tier", string(TierSeed), 0)
 
-	// Create trial (50k limit)
-	_, err := client.CreateTrialSubscription(ctx, tenantID, "limit@example.com")
-	require.NoError(t, err)
+	// First runtime: should be allowed
+	assert.NoError(t, enforcer.CheckRuntimeLimit(ctx, tenantID))
+	require.NoError(t, enforcer.IncrementRuntimeCount(ctx, tenantID))
 
-	tier, _ := GetTierByID("trial")
-
-	// Simulate hitting limit
-	for i := 0; i < tier.MaxRequestsPerMonth+1; i++ {
-		client.IncrementRequestCount(ctx, tenantID)
-	}
-
-	// Should be over limit
-	count, _ := client.GetRequestCount(ctx, tenantID)
-	assert.Greater(t, count, int64(tier.MaxRequestsPerMonth))
+	// Second runtime: should be rejected
+	assert.ErrorIs(t, enforcer.CheckRuntimeLimit(ctx, tenantID), ErrTierLimitExceeded)
 }
 
-// ============================================================================
-// MIGRATION TESTS
-// ============================================================================
-
-func TestMigrateLegacyTier(t *testing.T) {
-	tests := []struct {
-		name          string
-		oldTier       string
-		oldPriceCents int
-		wantNewTier   string
-	}{
-		{"Old Develop $99 -> New Develop $129", "develop", 9900, "develop"},
-		{"Old Growth $499 -> New Growth $749", "growth", 49900, "growth"},
-		{"Old Scale $1,499 -> New Scale $2,499", "scale", 149900, "scale"},
-		{"Unknown price -> Default to develop", "unknown", 12345, "develop"},
-	}
-
-	for _, tt := range tests {
-		t.Run(tt.name, func(t *testing.T) {
-			newTier := MigrateLegacyTier(tt.oldTier, tt.oldPriceCents)
-			assert.Equal(t, tt.wantNewTier, newTier)
-		})
-	}
-}
-
-// ============================================================================
-// GATING MIDDLEWARE TESTS
-// ============================================================================
-
-func TestGatingMiddleware_TrialAccess(t *testing.T) {
-	client := setupTestPolarClient(t)
-	gating := NewGatingMiddleware(client)
+func TestRuntimeEnforcer_HorizonLimit(t *testing.T) {
+	r := setupTestRedis(t)
 	ctx := context.Background()
+	enforcer := NewRuntimeEnforcer(r)
 
-	// Create trial
-	tenantID := "tenant_gating_trial"
-	_, err := client.CreateTrialSubscription(ctx, tenantID, "gating@example.com")
-	require.NoError(t, err)
+	tenantID := "tenant_horizon_limit"
+	r.Set(ctx, "igris:billing:"+tenantID+":tier", string(TierHorizon), 0)
+	r.Set(ctx, "igris:runtimes:"+tenantID+":count", 49, 0)
 
-	// Get tier usage
-	usage, err := gating.GetTierUsage(ctx, tenantID)
-	require.NoError(t, err)
+	// 49 registered, limit is 50 — should still allow
+	assert.NoError(t, enforcer.CheckRuntimeLimit(ctx, tenantID))
+	require.NoError(t, enforcer.IncrementRuntimeCount(ctx, tenantID))
 
-	assert.Equal(t, "trial", usage["tier"])
-	assert.Equal(t, StatusTrialing, usage["subscription_status"])
+	// 50 registered — should reject
+	assert.ErrorIs(t, enforcer.CheckRuntimeLimit(ctx, tenantID), ErrTierLimitExceeded)
 }
 
-func TestGatingMiddleware_DevelopNoSpeculative(t *testing.T) {
-	tier, _ := GetTierByID("develop")
-	assert.False(t, tier.Features.SpeculativeExecution, "Develop tier should not have speculative execution")
+func TestRuntimeEnforcer_GetRuntimeUsage(t *testing.T) {
+	r := setupTestRedis(t)
+	ctx := context.Background()
+	enforcer := NewRuntimeEnforcer(r)
+
+	tenantID := "tenant_usage"
+	r.Set(ctx, "igris:billing:"+tenantID+":tier", string(TierHorizon), 0)
+	r.Set(ctx, "igris:runtimes:"+tenantID+":count", 12, 0)
+
+	used, limit, err := enforcer.GetRuntimeUsage(ctx, tenantID)
+	assert.NoError(t, err)
+	assert.Equal(t, 12, used)
+	assert.Equal(t, 50, limit)
 }
 
-func TestGatingMiddleware_GrowthHasSpeculative(t *testing.T) {
-	tier, _ := GetTierByID("growth")
-	assert.True(t, tier.Features.SpeculativeExecution, "Growth tier should have speculative execution")
-	assert.True(t, tier.Features.CouncilMode, "Growth tier should have council mode")
-	assert.True(t, tier.Features.CognitiveAdvisor, "Growth tier should have cognitive advisor")
+func TestRuntimeEnforcer_DefaultsToSeed(t *testing.T) {
+	r := setupTestRedis(t)
+	ctx := context.Background()
+	enforcer := NewRuntimeEnforcer(r)
+
+	// No tier set — should default to Seed (limit=1)
+	tenantID := "tenant_no_tier"
+	assert.NoError(t, enforcer.CheckRuntimeLimit(ctx, tenantID))
+	require.NoError(t, enforcer.IncrementRuntimeCount(ctx, tenantID))
+	assert.ErrorIs(t, enforcer.CheckRuntimeLimit(ctx, tenantID), ErrTierLimitExceeded)
 }
 
 // ============================================================================
@@ -316,45 +268,19 @@ func TestWebhookSignatureVerification(t *testing.T) {
 	handler := NewWebhookHandler(client)
 
 	payload := []byte(`{"type":"subscription.created","data":{}}`)
-
-	// Test with correct signature (SHA256 HMAC)
-	// Note: In production, use proper HMAC calculation
 	signature := "valid_signature"
 
-	// With webhook secret, should verify
 	result := handler.verifySignature(payload, signature)
-	assert.False(t, result) // Will fail without proper HMAC, but test structure is correct
+	assert.False(t, result) // Will fail without proper HMAC — test structure is correct
 }
 
 // ============================================================================
 // BENCHMARKS
 // ============================================================================
 
-func BenchmarkRequestCounterIncrement(b *testing.B) {
-	mr, _ := miniredis.Run()
-	defer mr.Close()
-
-	client := redis.NewClient(&redis.Options{Addr: mr.Addr()})
-	defer client.Close()
-
-	polarClient, _ := NewPolarClient(PolarConfig{
-		APIKey:  "test",
-		BaseURL: "https://test",
-		Redis:   client,
-	})
-
-	ctx := context.Background()
-	tenantID := "bench_tenant"
-
-	b.ResetTimer()
-	for i := 0; i < b.N; i++ {
-		polarClient.IncrementRequestCount(ctx, tenantID)
-	}
-}
-
 func BenchmarkGetTierByID(b *testing.B) {
 	b.ResetTimer()
 	for i := 0; i < b.N; i++ {
-		GetTierByID("develop")
+		GetTierByID(string(TierHorizon))
 	}
 }
