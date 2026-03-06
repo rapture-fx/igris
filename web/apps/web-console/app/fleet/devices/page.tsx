@@ -22,10 +22,11 @@ import {
 } from '@/components/ui/select';
 import { api } from '@/lib/apiClient';
 import { getRelativeTime, formatDateTime, truncateText } from '@/utils/helpers';
+import Link from 'next/link';
 import { CopyButton, KeyValueGrid, JSONViewer } from '@/components/execution/shared';
 import {
   Wifi, WifiOff, Activity, AlertTriangle, Search, RefreshCw,
-  Shield, History, Cpu, CheckCircle2, AlertCircle, Server, Box,
+  Shield, History, Cpu, CheckCircle2, AlertCircle, Server, Box, Zap,
 } from 'lucide-react';
 
 // ─── Types ────────────────────────────────────────────────────────────────────
@@ -300,6 +301,27 @@ export default function FleetDevicesPage() {
     refetchOnWindowFocus: false,
   });
 
+  // ── Runtime quota from subscription ──
+  const { data: runtimeQuota } = useQuery<{
+    tier_name: string;
+    runtimes: { used: number; limit: number; percent: number };
+    upgrade_tier: string;
+  }>({
+    queryKey: ['subscription-status'],
+    queryFn: async () => {
+      try {
+        return await api.get('/api/subscription/status');
+      } catch {
+        return null;
+      }
+    },
+    staleTime: 60_000,
+    retry: false,
+    refetchOnWindowFocus: false,
+  });
+
+  const runtimeLimitReached = (runtimeQuota?.runtimes.percent ?? 0) >= 100;
+
   // ── URL-synced drawer ──
   const deviceFromUrl = searchParams.get('device');
 
@@ -391,11 +413,36 @@ export default function FleetDevicesPage() {
       <div className="space-y-5">
 
         {/* Header */}
-        <div>
-          <h1 className="text-base font-semibold text-gray-900">Devices</h1>
-          <p className="text-xs text-gray-500 mt-0.5">
-            Distributed runtime nodes participating in governed execution.
-          </p>
+        <div className="flex items-start justify-between gap-4">
+          <div>
+            <h1 className="text-base font-semibold text-gray-900">Devices</h1>
+            <p className="text-xs text-gray-500 mt-0.5">
+              Distributed runtime nodes participating in governed execution.
+            </p>
+          </div>
+
+          {runtimeQuota && (
+            <div className="flex-shrink-0 min-w-[200px]">
+              <div className="flex items-center justify-between mb-1.5">
+                <span className="text-xs text-gray-500 flex items-center gap-1">
+                  <Zap className="h-3 w-3" />
+                  Runtime quota · {runtimeQuota.tier_name}
+                </span>
+                <span className="text-xs tabular-nums font-medium text-gray-900">
+                  {runtimeQuota.runtimes.used} / {runtimeQuota.runtimes.limit}
+                </span>
+              </div>
+              <Progress value={runtimeQuota.runtimes.percent} className="h-1.5" />
+              {runtimeLimitReached && (
+                <p className="text-[11px] text-red-600 mt-1.5">
+                  Limit reached.{' '}
+                  <Link href="/settings/billing" className="underline">
+                    Upgrade to add more runtimes.
+                  </Link>
+                </p>
+              )}
+            </div>
+          )}
         </div>
 
         {/* Summary Cards */}
@@ -495,9 +542,20 @@ export default function FleetDevicesPage() {
                     <div className="flex flex-col items-center gap-2.5 text-center">
                       <Server className="h-9 w-9 text-gray-200" />
                       <p className="text-xs text-gray-400">No runtime nodes registered yet.</p>
-                      <Button variant="outline" size="sm" className="h-7 text-xs mt-0.5">
-                        Register Runtime Node
-                      </Button>
+                      {runtimeLimitReached ? (
+                        <div className="flex flex-col items-center gap-1">
+                          <Button variant="outline" size="sm" className="h-7 text-xs mt-0.5" disabled>
+                            Runtime limit reached
+                          </Button>
+                          <Link href="/settings/billing" className="text-[11px] text-blue-600 hover:text-blue-700">
+                            Upgrade to add more runtimes
+                          </Link>
+                        </div>
+                      ) : (
+                        <Button variant="outline" size="sm" className="h-7 text-xs mt-0.5">
+                          Register Runtime Node
+                        </Button>
+                      )}
                     </div>
                   </TableCell>
                 </TableRow>
