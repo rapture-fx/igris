@@ -370,14 +370,14 @@ export function DocsSidebar({ open = true, onClose }: DocsSidebarProps) {
         <div className="flex h-full flex-col border-r-[0.5px] border-gray-200 dark:border-[#f6f6f4]/10 bg-white dark:bg-[#25231e]">
 
           {/* Logo */}
-          <div className="h-12 flex items-center px-7">
+          <div className="h-12 flex items-center px-4">
             <a href="https://igrisinertial.com" className="flex items-center">
               <img src="/foot.png" alt="Igris Inertial" style={{ width: '25px', height: 'auto' }} />
             </a>
           </div>
 
           {/* Search */}
-          <div className="px-6 pt-5 pb-3">
+          <div className="px-4 pt-5 pb-3">
             <div className="relative">
               <Search className="absolute left-3 top-1/2 transform -translate-y-1/2 h-4 w-4 text-gray-400 pointer-events-none" />
               <input
@@ -394,7 +394,7 @@ export function DocsSidebar({ open = true, onClose }: DocsSidebarProps) {
           </div>
 
           {/* Section switcher */}
-          <div className="px-6 pb-4" ref={sectionRef}>
+          <div className="px-4 pb-4" ref={sectionRef}>
             <div className="relative">
               <button
                 onClick={() => setSectionOpen((v) => !v)}
