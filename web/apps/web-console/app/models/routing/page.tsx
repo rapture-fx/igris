@@ -21,17 +21,37 @@ import {
 } from '@/components/ui/table';
 import { api } from '@/lib/apiClient';
 import { getRelativeTime } from '@/utils/helpers';
-import { RefreshCw, Settings2, Eye, ArrowDown } from 'lucide-react';
+import {
+  RefreshCw, SlidersHorizontal, Eye, ArrowDown, Zap, Users, ShieldCheck, Activity,
+} from 'lucide-react';
 
 // ─── Types ────────────────────────────────────────────────────────────────────
+
+type ShadowMode = 'disabled' | 'shadow' | 'go' | 'rust';
+type SpeculativeMode = 'disabled' | 'conservative' | 'aggressive';
 
 interface RoutingPolicy {
   strategy: string;
   fallback_enabled: boolean;
   max_retry_attempts: number;
   active_providers: number;
-  shadow_mode: boolean;
-  shadow_provider: string;
+  // Runtime optimizer
+  shadow_mode: ShadowMode;
+  shadow_sample_rate: number;
+  // Thompson Sampling
+  exploration_rate: number;
+  quality_routing_enabled: boolean;
+  // Council mode
+  council_mode_enabled: boolean;
+  council_max_providers: number;
+  // Speculative execution
+  speculative_mode: SpeculativeMode;
+  // SLO Breaker
+  slo_breaker_enabled: boolean;
+  slo_p95_latency_delta: number;
+  slo_cost_delta: number;
+  slo_error_rate_delta: number;
+  // Fallback
   primary_provider: string;
   fallback_providers: string[];
 }
@@ -44,7 +64,7 @@ interface ProviderMetric {
   latency_ms: number | null;
   success_rate: number | null;
   cost_per_1k: number | null;
-  routing_weight: number; // 0–100 (percent, normalized across active providers)
+  routing_weight: number;
   status: 'healthy' | 'degraded' | 'offline';
 }
 
@@ -55,17 +75,27 @@ interface RoutingDecision {
   selected_provider: string;
   latency_ms: number | null;
   fallback_used: boolean;
+  mode: 'standard' | 'optimized' | 'council' | 'speculative';
 }
 
 // ─── Mock Data ────────────────────────────────────────────────────────────────
 
 const MOCK_POLICY: RoutingPolicy = {
-  strategy: 'Thompson Sampling',
+  strategy: 'thompson_sampling',
   fallback_enabled: true,
   max_retry_attempts: 2,
   active_providers: 3,
-  shadow_mode: false,
-  shadow_provider: '',
+  shadow_mode: 'shadow',
+  shadow_sample_rate: 1.0,
+  exploration_rate: 0.10,
+  quality_routing_enabled: true,
+  council_mode_enabled: false,
+  council_max_providers: 3,
+  speculative_mode: 'disabled',
+  slo_breaker_enabled: true,
+  slo_p95_latency_delta: 0.10,
+  slo_cost_delta: 0.05,
+  slo_error_rate_delta: 0.005,
   primary_provider: 'openai',
   fallback_providers: ['anthropic', 'deepseek'],
 };
@@ -89,31 +119,59 @@ const MOCK_METRICS: ProviderMetric[] = [
   },
 ];
 
-const _now = Date.now();
 const MOCK_DECISIONS: RoutingDecision[] = [
-  { id: 'd1', timestamp: new Date(_now - 45_000).toISOString(),    request_id: 'req_7f3a1c', selected_provider: 'OpenAI',    latency_ms: 312, fallback_used: false },
-  { id: 'd2', timestamp: new Date(_now - 91_000).toISOString(),    request_id: 'req_2b8e4d', selected_provider: 'Anthropic', latency_ms: 281, fallback_used: false },
-  { id: 'd3', timestamp: new Date(_now - 134_000).toISOString(),   request_id: 'req_9c5f7a', selected_provider: 'Anthropic', latency_ms: 295, fallback_used: true  },
-  { id: 'd4', timestamp: new Date(_now - 187_000).toISOString(),   request_id: 'req_4d1b2e', selected_provider: 'DeepSeek',  latency_ms: 408, fallback_used: false },
-  { id: 'd5', timestamp: new Date(_now - 241_000).toISOString(),   request_id: 'req_8a6c3f', selected_provider: 'OpenAI',    latency_ms: 324, fallback_used: false },
-  { id: 'd6', timestamp: new Date(_now - 315_000).toISOString(),   request_id: 'req_5e9d7b', selected_provider: 'OpenAI',    latency_ms: null, fallback_used: true },
+  { id: 'd1', timestamp: '2026-03-05T10:00:45Z', request_id: 'req_7f3a1c', selected_provider: 'Anthropic', latency_ms: 268, fallback_used: false, mode: 'optimized'  },
+  { id: 'd2', timestamp: '2026-03-05T09:59:59Z', request_id: 'req_2b8e4d', selected_provider: 'OpenAI',    latency_ms: 312, fallback_used: false, mode: 'standard'   },
+  { id: 'd3', timestamp: '2026-03-05T09:58:46Z', request_id: 'req_9c5f7a', selected_provider: 'Anthropic', latency_ms: 295, fallback_used: true,  mode: 'standard'   },
+  { id: 'd4', timestamp: '2026-03-05T09:57:53Z', request_id: 'req_4d1b2e', selected_provider: 'DeepSeek',  latency_ms: 408, fallback_used: false, mode: 'optimized'  },
+  { id: 'd5', timestamp: '2026-03-05T09:56:59Z', request_id: 'req_8a6c3f', selected_provider: 'OpenAI',    latency_ms: 324, fallback_used: false, mode: 'council'    },
+  { id: 'd6', timestamp: '2026-03-05T09:55:45Z', request_id: 'req_5e9d7b', selected_provider: 'OpenAI',    latency_ms: null, fallback_used: true, mode: 'standard'   },
 ];
 
 // ─── Static Config ────────────────────────────────────────────────────────────
 
 const STRATEGY_OPTIONS = [
-  { value: 'thompson_sampling',   label: 'Thompson Sampling' },
-  { value: 'latency_based',       label: 'Latency Based' },
-  { value: 'cost_based',          label: 'Cost Based' },
+  { value: 'thompson_sampling',    label: 'Thompson Sampling' },
+  { value: 'latency_based',        label: 'Latency Based' },
+  { value: 'cost_based',           label: 'Cost Based' },
   { value: 'weighted_round_robin', label: 'Weighted Round Robin' },
 ];
 
 const PROVIDER_OPTIONS = [
-  { value: 'openai',     label: 'OpenAI' },
-  { value: 'anthropic',  label: 'Anthropic' },
-  { value: 'deepseek',   label: 'DeepSeek' },
-  { value: 'google',     label: 'Google Gemini' },
-  { value: 'xai',        label: 'xAI' },
+  { value: 'openai',    label: 'OpenAI' },
+  { value: 'anthropic', label: 'Anthropic' },
+  { value: 'deepseek',  label: 'DeepSeek' },
+  { value: 'google',    label: 'Google Gemini' },
+  { value: 'xai',       label: 'xAI' },
+];
+
+const SHADOW_MODE_OPTIONS: { value: ShadowMode; label: string; description: string }[] = [
+  {
+    value: 'disabled',
+    label: 'Off',
+    description: 'Standard routing engine only. No parallel evaluation.',
+  },
+  {
+    value: 'shadow',
+    label: 'Shadow Test',
+    description: 'Optimized engine runs in parallel for evaluation. Standard engine remains authoritative — no effect on live traffic.',
+  },
+  {
+    value: 'go',
+    label: 'Standard',
+    description: 'Default routing engine handles all decisions.',
+  },
+  {
+    value: 'rust',
+    label: 'Optimized',
+    description: 'High-performance routing engine is fully active. Standard engine acts as fallback only.',
+  },
+];
+
+const SPECULATIVE_MODE_OPTIONS: { value: SpeculativeMode; label: string }[] = [
+  { value: 'disabled',    label: 'Disabled' },
+  { value: 'conservative', label: 'Conservative (2 providers)' },
+  { value: 'aggressive',   label: 'Aggressive (3–4 providers)' },
 ];
 
 const PROVIDER_AVATAR: Record<string, { bg: string; text: string; initial: string }> = {
@@ -123,16 +181,6 @@ const PROVIDER_AVATAR: Record<string, { bg: string; text: string; initial: strin
   google:    { bg: 'bg-red-100',    text: 'text-red-700',    initial: 'G' },
   xai:       { bg: 'bg-gray-900',   text: 'text-white',      initial: 'X' },
 };
-
-function strategyToValue(strategy: string): string {
-  const map: Record<string, string> = {
-    'Thompson Sampling':   'thompson_sampling',
-    'Latency Based':       'latency_based',
-    'Cost Based':          'cost_based',
-    'Weighted Round Robin': 'weighted_round_robin',
-  };
-  return map[strategy] ?? 'thompson_sampling';
-}
 
 // ─── Sub-components ───────────────────────────────────────────────────────────
 
@@ -182,6 +230,37 @@ function SuccessRateCell({ rate }: { rate: number | null }) {
   return <span className={`text-xs font-mono tabular-nums ${cls}`}>{rate.toFixed(1)}%</span>;
 }
 
+function ShadowModeBadge({ mode }: { mode: ShadowMode }) {
+  const map: Record<ShadowMode, { cls: string; label: string }> = {
+    disabled: { cls: 'bg-gray-50 text-gray-500 border-gray-200',      label: 'Off'         },
+    shadow:   { cls: 'bg-blue-50 text-blue-700 border-blue-200',      label: 'Shadow Test'  },
+    go:       { cls: 'bg-green-50 text-green-700 border-green-200',   label: 'Standard'    },
+    rust:     { cls: 'bg-orange-50 text-orange-700 border-orange-200', label: 'Optimized'  },
+  };
+  const { cls, label } = map[mode] ?? { cls: 'bg-gray-50 text-gray-500 border-gray-200', label: mode };
+  return (
+    <span className={`inline-flex items-center px-1.5 py-0.5 rounded text-[10px] font-medium border ${cls}`}>
+      {label}
+    </span>
+  );
+}
+
+
+function DecisionModeBadge({ mode }: { mode: string }) {
+  const map: Record<string, { cls: string; label: string }> = {
+    standard:    { cls: 'bg-gray-50 text-gray-600 border-gray-200',     label: 'Standard'    },
+    optimized:   { cls: 'bg-orange-50 text-orange-700 border-orange-200', label: 'Optimized' },
+    council:     { cls: 'bg-purple-50 text-purple-700 border-purple-200', label: 'Council'   },
+    speculative: { cls: 'bg-blue-50 text-blue-700 border-blue-200',      label: 'Speculative'},
+  };
+  const { cls, label } = map[mode] ?? { cls: 'bg-gray-50 text-gray-600 border-gray-200', label: mode };
+  return (
+    <span className={`inline-flex items-center px-1.5 py-0.5 rounded text-[10px] font-medium border ${cls}`}>
+      {label}
+    </span>
+  );
+}
+
 // ─── Page ─────────────────────────────────────────────────────────────────────
 
 export default function ModelsRoutingPage() {
@@ -193,6 +272,7 @@ export default function ModelsRoutingPage() {
     strategy: 'thompson_sampling',
     fallback_enabled: true,
     max_retry_attempts: '2',
+    exploration_rate: '0.10',
   });
 
   // Fallback chain
@@ -203,9 +283,15 @@ export default function ModelsRoutingPage() {
   });
   const [fallbackDirty, setFallbackDirty] = useState(false);
 
-  // Shadow mode (local until server responds)
-  const [shadowEnabled, setShadowEnabled] = useState(false);
-  const [shadowProvider, setShadowProvider] = useState('');
+  // Local optimistic state
+  const [localShadowMode, setLocalShadowMode] = useState<ShadowMode | null>(null);
+  const [localSampleRate, setLocalSampleRate] = useState<number | null>(null);
+  const [localExplorationRate, setLocalExplorationRate] = useState<number | null>(null);
+  const [localQualityRouting, setLocalQualityRouting] = useState<boolean | null>(null);
+  const [localCouncilEnabled, setLocalCouncilEnabled] = useState<boolean | null>(null);
+  const [localCouncilProviders, setLocalCouncilProviders] = useState<number | null>(null);
+  const [localSpeculativeMode, setLocalSpeculativeMode] = useState<SpeculativeMode | null>(null);
+  const [localSloEnabled, setLocalSloEnabled] = useState<boolean | null>(null);
 
   const { data: policy, isLoading: policyLoading } = useQuery<RoutingPolicy>({
     queryKey: ['routing-policy'],
@@ -249,23 +335,24 @@ export default function ModelsRoutingPage() {
   });
 
   const fallbackMutation = useMutation({
-    mutationFn: (data: object) => api.post('/models/routing', data),
+    mutationFn: (data: object) => api.post('/models/routing/fallback', data),
     onSuccess: () => {
       qc.invalidateQueries({ queryKey: ['routing-policy'] });
       setFallbackDirty(false);
     },
   });
 
-  const shadowMutation = useMutation({
-    mutationFn: (data: object) => api.patch('/models/routing', data),
+  const optimizerMutation = useMutation({
+    mutationFn: (data: object) => api.patch('/models/routing/optimizer', data),
     onSuccess: () => qc.invalidateQueries({ queryKey: ['routing-policy'] }),
   });
 
   const openDialog = () => {
     setPolicyForm({
-      strategy: strategyToValue(policy?.strategy ?? 'Thompson Sampling'),
+      strategy: policy?.strategy ?? 'thompson_sampling',
       fallback_enabled: policy?.fallback_enabled ?? true,
       max_retry_attempts: String(policy?.max_retry_attempts ?? 2),
+      exploration_rate: String(policy?.exploration_rate ?? 0.10),
     });
     setDialogOpen(true);
   };
@@ -275,6 +362,7 @@ export default function ModelsRoutingPage() {
       strategy: policyForm.strategy,
       fallback_enabled: policyForm.fallback_enabled,
       max_retry_attempts: parseInt(policyForm.max_retry_attempts, 10),
+      exploration_rate: parseFloat(policyForm.exploration_rate),
     });
   };
 
@@ -285,19 +373,22 @@ export default function ModelsRoutingPage() {
     });
   };
 
-  const handleShadowToggle = (enabled: boolean) => {
-    setShadowEnabled(enabled);
-    shadowMutation.mutate({ shadow_mode: enabled, shadow_provider: policy?.shadow_provider ?? shadowProvider });
-  };
-
-  const handleShadowProviderChange = (provider: string) => {
-    setShadowProvider(provider);
-    shadowMutation.mutate({ shadow_mode: policy?.shadow_mode ?? shadowEnabled, shadow_provider: provider });
-  };
-
-  const activeShadow = policy?.shadow_mode ?? shadowEnabled;
-  const currentShadowProvider = (policy?.shadow_provider || shadowProvider) || '';
+  // Effective values (local overrides API until next refetch)
+  const shadowMode: ShadowMode = localShadowMode ?? policy?.shadow_mode ?? 'disabled';
+  const sampleRate: number = localSampleRate ?? policy?.shadow_sample_rate ?? 1.0;
+  const explorationRate: number = localExplorationRate ?? policy?.exploration_rate ?? 0.10;
+  const qualityRouting: boolean = localQualityRouting ?? policy?.quality_routing_enabled ?? true;
+  const councilEnabled: boolean = localCouncilEnabled ?? policy?.council_mode_enabled ?? false;
+  const councilProviders: number = localCouncilProviders ?? policy?.council_max_providers ?? 3;
+  const speculativeMode: SpeculativeMode = localSpeculativeMode ?? policy?.speculative_mode ?? 'disabled';
+  const sloEnabled: boolean = localSloEnabled ?? policy?.slo_breaker_enabled ?? true;
   const activeProviderCount = policy?.active_providers ?? metrics.filter((m) => m.status !== 'offline').length;
+
+  const shadowModeInfo = SHADOW_MODE_OPTIONS.find((o) => o.value === shadowMode);
+
+  const patchOptimizer = (patch: object) => {
+    optimizerMutation.mutate(patch);
+  };
 
   return (
     <DashboardLayout>
@@ -314,12 +405,12 @@ export default function ModelsRoutingPage() {
               <RefreshCw className="h-3.5 w-3.5" /> Refresh
             </Button>
             <Button size="sm" className="h-8 text-xs gap-1.5" onClick={openDialog}>
-              <Settings2 className="h-3.5 w-3.5" /> Edit Routing Policy
+              <SlidersHorizontal className="h-3.5 w-3.5" /> Edit Routing Policy
             </Button>
           </div>
         </div>
 
-        {/* ── Routing Policy Summary ─────────────────────────────────────────── */}
+        {/* ── Policy Summary ─────────────────────────────────────────────────── */}
         <Card className="border border-gray-200 shadow-none">
           <CardHeader className="px-4 pt-4 pb-3">
             <CardTitle className="text-sm font-medium text-gray-900">Routing Policy</CardTitle>
@@ -329,27 +420,32 @@ export default function ModelsRoutingPage() {
             <div className="grid grid-cols-2 sm:grid-cols-4 gap-6">
               {[
                 {
-                  label: 'Policy Type',
-                  value: policyLoading ? null : (policy?.strategy ?? 'Thompson Sampling'),
+                  label: 'Strategy',
+                  value: policyLoading ? null : (
+                    STRATEGY_OPTIONS.find((o) => o.value === policy?.strategy)?.label ?? policy?.strategy ?? 'Thompson Sampling'
+                  ),
                 },
                 {
-                  label: 'Fallback Enabled',
-                  value: policyLoading ? null : (policy?.fallback_enabled ? 'Yes' : 'No'),
+                  label: 'Shadow Optimizer',
+                  value: policyLoading ? null : shadowMode,
+                  render: (v: string) => <ShadowModeBadge mode={v as ShadowMode} />,
                 },
                 {
                   label: 'Active Providers',
                   value: policyLoading ? null : String(activeProviderCount),
                 },
                 {
-                  label: 'Shadow Mode',
-                  value: policyLoading ? null : (activeShadow ? 'Enabled' : 'Disabled'),
+                  label: 'Quality Routing',
+                  value: policyLoading ? null : (qualityRouting ? 'Enabled' : 'Disabled'),
                 },
-              ].map(({ label, value }) => (
+              ].map(({ label, value, render }) => (
                 <div key={label}>
                   <p className="text-[11px] text-gray-400 mb-1">{label}</p>
                   {value === null
                     ? <Skeleton className="h-4 w-20" />
-                    : <p className="text-xs font-medium text-gray-900">{value}</p>
+                    : render
+                      ? render(value)
+                      : <p className="text-xs font-medium text-gray-900">{value}</p>
                   }
                 </div>
               ))}
@@ -367,10 +463,7 @@ export default function ModelsRoutingPage() {
             <TableHeader>
               <TableRow className="hover:bg-transparent">
                 {['Provider', 'Model', 'Avg Latency', 'Success Rate', 'Cost / 1K', 'Routing Weight', 'Status'].map((col) => (
-                  <TableHead
-                    key={col}
-                    className="text-xs font-medium text-gray-500 h-9 px-4 bg-gray-50 hover:bg-gray-50"
-                  >
+                  <TableHead key={col} className="text-xs font-medium text-gray-500 h-9 px-4 bg-gray-50 hover:bg-gray-50">
                     {col}
                   </TableHead>
                 ))}
@@ -381,9 +474,7 @@ export default function ModelsRoutingPage() {
                 Array.from({ length: 4 }).map((_, i) => (
                   <TableRow key={i}>
                     {Array.from({ length: 7 }).map((_, j) => (
-                      <TableCell key={j} className="px-4 py-3">
-                        <Skeleton className="h-3.5 w-16" />
-                      </TableCell>
+                      <TableCell key={j} className="px-4 py-3"><Skeleton className="h-3.5 w-16" /></TableCell>
                     ))}
                   </TableRow>
                 ))
@@ -399,24 +490,16 @@ export default function ModelsRoutingPage() {
                     <TableCell className="px-4 py-3">
                       <span className="text-xs font-mono text-gray-500">{m.model}</span>
                     </TableCell>
-                    <TableCell className="px-4 py-3">
-                      <LatencyCell ms={m.latency_ms} />
-                    </TableCell>
-                    <TableCell className="px-4 py-3">
-                      <SuccessRateCell rate={m.success_rate} />
-                    </TableCell>
+                    <TableCell className="px-4 py-3"><LatencyCell ms={m.latency_ms} /></TableCell>
+                    <TableCell className="px-4 py-3"><SuccessRateCell rate={m.success_rate} /></TableCell>
                     <TableCell className="px-4 py-3">
                       {m.cost_per_1k === null
                         ? <span className="text-xs text-gray-300">—</span>
                         : <span className="text-xs font-mono tabular-nums text-gray-700">${m.cost_per_1k.toFixed(3)}</span>
                       }
                     </TableCell>
-                    <TableCell className="px-4 py-3">
-                      <WeightBar weight={m.routing_weight} />
-                    </TableCell>
-                    <TableCell className="px-4 py-3">
-                      <HealthBadge status={m.status} />
-                    </TableCell>
+                    <TableCell className="px-4 py-3"><WeightBar weight={m.routing_weight} /></TableCell>
+                    <TableCell className="px-4 py-3"><HealthBadge status={m.status} /></TableCell>
                   </TableRow>
                 ))
               )}
@@ -424,11 +507,327 @@ export default function ModelsRoutingPage() {
           </Table>
         </Card>
 
-        {/* ── Fallback + Shadow 2-col ────────────────────────────────────────── */}
+        {/* ── Runtime Optimizer + Thompson Sampling 2-col ───────────────────── */}
         <div className="grid grid-cols-1 xl:grid-cols-5 gap-4">
 
-          {/* Fallback Configuration (3/5) */}
+          {/* Runtime Optimizer — Shadow Mode (3/5) */}
           <Card className="xl:col-span-3 border border-gray-200 shadow-none">
+            <CardHeader className="px-4 pt-4 pb-3">
+              <CardTitle className="text-sm font-medium text-gray-900 flex items-center gap-1.5">
+                <Eye className="h-3.5 w-3.5 text-gray-400" strokeWidth={1.5} />
+                Runtime Optimizer
+              </CardTitle>
+            </CardHeader>
+            <Separator />
+            <CardContent className="px-4 py-4 space-y-4">
+              <p className="text-xs text-gray-500">
+                Control the Rust Thompson Sampling optimizer rollout. In shadow mode the Rust
+                optimizer runs in parallel with Go — decisions are compared and logged without
+                affecting live traffic.
+              </p>
+
+              {/* Shadow mode select */}
+              <div className="space-y-1.5">
+                <Label className="text-xs font-medium text-gray-700">Optimizer Mode</Label>
+                <Select
+                  value={shadowMode}
+                  onValueChange={(v) => {
+                    const m = v as ShadowMode;
+                    setLocalShadowMode(m);
+                    patchOptimizer({ shadow_mode: m });
+                  }}
+                  disabled={optimizerMutation.isPending}
+                >
+                  <SelectTrigger className="h-8 text-xs">
+                    <SelectValue />
+                  </SelectTrigger>
+                  <SelectContent>
+                    {SHADOW_MODE_OPTIONS.map((o) => (
+                      <SelectItem key={o.value} value={o.value} className="text-xs">
+                        {o.label}
+                      </SelectItem>
+                    ))}
+                  </SelectContent>
+                </Select>
+                {shadowModeInfo && (
+                  <p className="text-[11px] text-gray-400">{shadowModeInfo.description}</p>
+                )}
+              </div>
+
+              {/* Sample rate — visible when shadow mode is active */}
+              {shadowMode === 'shadow' && (
+                <div className="space-y-1.5">
+                  <Label className="text-xs font-medium text-gray-700">
+                    Shadow Sample Rate
+                    <span className="ml-2 text-[11px] text-gray-400 font-normal">
+                      {(sampleRate * 100).toFixed(0)}% of requests
+                    </span>
+                  </Label>
+                  <Input
+                    type="number"
+                    min={0}
+                    max={1}
+                    step={0.1}
+                    className="h-8 text-xs font-mono w-28"
+                    value={sampleRate}
+                    onChange={(e) => {
+                      const v = parseFloat(e.target.value);
+                      if (!isNaN(v)) {
+                        setLocalSampleRate(v);
+                        patchOptimizer({ shadow_sample_rate: v });
+                      }
+                    }}
+                    disabled={optimizerMutation.isPending}
+                  />
+                </div>
+              )}
+
+              {/* SLO Breaker status notice when in rust mode */}
+              {shadowMode === 'rust' && (
+                <div className="flex items-start gap-2 rounded-lg border border-orange-200 bg-orange-50 px-3 py-2.5">
+                  <Activity className="h-3.5 w-3.5 text-orange-600 mt-0.5 flex-shrink-0" strokeWidth={1.5} />
+                  <p className="text-xs text-orange-700">
+                    SLO Breaker is active. If p95 latency, cost, or error rate exceeds configured thresholds, the system will auto-revert to Standard mode.
+                  </p>
+                </div>
+              )}
+            </CardContent>
+          </Card>
+
+          {/* Thompson Sampling (2/5) */}
+          <Card className="xl:col-span-2 border border-gray-200 shadow-none">
+            <CardHeader className="px-4 pt-4 pb-3">
+              <CardTitle className="text-sm font-medium text-gray-900 flex items-center gap-1.5">
+                <SlidersHorizontal className="h-3.5 w-3.5 text-gray-400" strokeWidth={1.5} />
+                Thompson Sampling
+              </CardTitle>
+            </CardHeader>
+            <Separator />
+            <CardContent className="px-4 py-4 space-y-4">
+              <p className="text-xs text-gray-500">
+                Bayesian multi-arm bandit using Beta distribution. Balances exploration of new
+                providers vs exploitation of top performers.
+              </p>
+
+              {/* Exploration rate */}
+              <div className="space-y-1.5">
+                <Label className="text-xs font-medium text-gray-700">
+                  Exploration Rate
+                  <span className="ml-2 text-[11px] text-gray-400 font-normal">
+                    {(explorationRate * 100).toFixed(0)}%
+                  </span>
+                </Label>
+                <Input
+                  type="number"
+                  min={0}
+                  max={1}
+                  step={0.01}
+                  className="h-8 text-xs font-mono w-28"
+                  value={explorationRate}
+                  onChange={(e) => {
+                    const v = parseFloat(e.target.value);
+                    if (!isNaN(v)) {
+                      setLocalExplorationRate(v);
+                      patchOptimizer({ exploration_rate: v });
+                    }
+                  }}
+                  disabled={optimizerMutation.isPending}
+                />
+                <p className="text-[11px] text-gray-400">
+                  Probability of routing to a non-optimal provider for exploration.
+                </p>
+              </div>
+
+              <Separator />
+
+              {/* Quality routing toggle */}
+              <div className="flex items-center justify-between">
+                <div>
+                  <Label className="text-xs font-medium text-gray-700">Quality Routing</Label>
+                  <p className="text-[11px] text-gray-400 mt-0.5">Score response quality via domain heuristics.</p>
+                </div>
+                <Switch
+                  checked={qualityRouting}
+                  onCheckedChange={(v) => {
+                    setLocalQualityRouting(v);
+                    patchOptimizer({ quality_routing_enabled: v });
+                  }}
+                  disabled={optimizerMutation.isPending}
+                />
+              </div>
+            </CardContent>
+          </Card>
+        </div>
+
+        {/* ── Advanced Execution Modes ───────────────────────────────────────── */}
+        <div className="grid grid-cols-1 xl:grid-cols-2 gap-4">
+
+          {/* Council Mode */}
+          <Card className="border border-gray-200 shadow-none">
+            <CardHeader className="px-4 pt-4 pb-3">
+              <CardTitle className="text-sm font-medium text-gray-900 flex items-center gap-1.5">
+                <Users className="h-3.5 w-3.5 text-gray-400" strokeWidth={1.5} />
+                Council Mode
+              </CardTitle>
+            </CardHeader>
+            <Separator />
+            <CardContent className="px-4 py-4 space-y-4">
+              <p className="text-xs text-gray-500">
+                Run inference in parallel across 2–4 providers. Providers rank each other&apos;s
+                responses, and a chairman provider synthesizes the final answer.
+              </p>
+
+              <div className="flex items-center justify-between">
+                <Label className="text-xs font-medium text-gray-700">Enable Council Mode</Label>
+                <Switch
+                  checked={councilEnabled}
+                  onCheckedChange={(v) => {
+                    setLocalCouncilEnabled(v);
+                    patchOptimizer({ council_mode_enabled: v });
+                  }}
+                  disabled={optimizerMutation.isPending}
+                />
+              </div>
+
+              <div className="space-y-1.5">
+                <Label className="text-xs font-medium text-gray-700">Max Council Providers</Label>
+                <Select
+                  value={String(councilProviders)}
+                  onValueChange={(v) => {
+                    const n = parseInt(v, 10);
+                    setLocalCouncilProviders(n);
+                    patchOptimizer({ council_max_providers: n });
+                  }}
+                  disabled={!councilEnabled || optimizerMutation.isPending}
+                >
+                  <SelectTrigger className="h-8 text-xs w-28">
+                    <SelectValue />
+                  </SelectTrigger>
+                  <SelectContent>
+                    <SelectItem value="2" className="text-xs">2 providers</SelectItem>
+                    <SelectItem value="3" className="text-xs">3 providers</SelectItem>
+                    <SelectItem value="4" className="text-xs">4 providers</SelectItem>
+                  </SelectContent>
+                </Select>
+                <p className="text-[11px] text-gray-400">
+                  More providers improve quality but increase latency and cost.
+                </p>
+              </div>
+            </CardContent>
+          </Card>
+
+          {/* Speculative Execution */}
+          <Card className="border border-gray-200 shadow-none">
+            <CardHeader className="px-4 pt-4 pb-3">
+              <CardTitle className="text-sm font-medium text-gray-900 flex items-center gap-1.5">
+                <Zap className="h-3.5 w-3.5 text-gray-400" strokeWidth={1.5} />
+                Speculative Execution
+              </CardTitle>
+            </CardHeader>
+            <Separator />
+            <CardContent className="px-4 py-4 space-y-4">
+              <p className="text-xs text-gray-500">
+                Race multiple providers in parallel and stream from the fastest first-token winner.
+                Losing provider streams are cancelled; wasted tokens are tracked and accounted.
+              </p>
+
+              <div className="space-y-1.5">
+                <Label className="text-xs font-medium text-gray-700">Execution Mode</Label>
+                <Select
+                  value={speculativeMode}
+                  onValueChange={(v) => {
+                    const m = v as SpeculativeMode;
+                    setLocalSpeculativeMode(m);
+                    patchOptimizer({ speculative_mode: m });
+                  }}
+                  disabled={optimizerMutation.isPending}
+                >
+                  <SelectTrigger className="h-8 text-xs">
+                    <SelectValue />
+                  </SelectTrigger>
+                  <SelectContent>
+                    {SPECULATIVE_MODE_OPTIONS.map((o) => (
+                      <SelectItem key={o.value} value={o.value} className="text-xs">
+                        {o.label}
+                      </SelectItem>
+                    ))}
+                  </SelectContent>
+                </Select>
+              </div>
+
+              {speculativeMode !== 'disabled' && (
+                <div className="flex items-start gap-2 rounded-lg border border-yellow-200 bg-yellow-50 px-3 py-2.5">
+                  <Zap className="h-3.5 w-3.5 text-yellow-600 mt-0.5 flex-shrink-0" strokeWidth={1.5} />
+                  <p className="text-xs text-yellow-700">
+                    Speculative mode increases token usage. Cost accounting is active and will auto-disable this feature if waste exceeds your plan threshold.
+                  </p>
+                </div>
+              )}
+            </CardContent>
+          </Card>
+        </div>
+
+        {/* ── SLO Guardrails + Fallback 2-col ───────────────────────────────── */}
+        <div className="grid grid-cols-1 xl:grid-cols-5 gap-4">
+
+          {/* SLO Guardrails (3/5) */}
+          <Card className="xl:col-span-3 border border-gray-200 shadow-none">
+            <CardHeader className="px-4 pt-4 pb-3 flex flex-row items-center justify-between">
+              <CardTitle className="text-sm font-medium text-gray-900 flex items-center gap-1.5">
+                <ShieldCheck className="h-3.5 w-3.5 text-gray-400" strokeWidth={1.5} />
+                SLO Guardrails
+              </CardTitle>
+              <Switch
+                checked={sloEnabled}
+                onCheckedChange={(v) => {
+                  setLocalSloEnabled(v);
+                  patchOptimizer({ slo_breaker_enabled: v });
+                }}
+                disabled={optimizerMutation.isPending}
+              />
+            </CardHeader>
+            <Separator />
+            <CardContent className="px-4 py-4 space-y-3">
+              <p className="text-xs text-gray-500">
+                When Rust optimizer is in full rollout mode, the SLO Breaker monitors these
+                deltas against Go router baselines. A breach triggers automatic reversion to Go mode.
+              </p>
+
+              <div className="grid grid-cols-3 gap-4 pt-1">
+                <div className="space-y-1">
+                  <p className="text-[11px] text-gray-400">P95 Latency Delta</p>
+                  <p className="text-sm font-mono font-medium text-gray-900">
+                    {((policy?.slo_p95_latency_delta ?? 0.10) * 100).toFixed(0)}%
+                  </p>
+                  <p className="text-[10px] text-gray-400">max increase allowed</p>
+                </div>
+                <div className="space-y-1">
+                  <p className="text-[11px] text-gray-400">Cost Delta</p>
+                  <p className="text-sm font-mono font-medium text-gray-900">
+                    {((policy?.slo_cost_delta ?? 0.05) * 100).toFixed(0)}%
+                  </p>
+                  <p className="text-[10px] text-gray-400">max increase allowed</p>
+                </div>
+                <div className="space-y-1">
+                  <p className="text-[11px] text-gray-400">Error Rate Delta</p>
+                  <p className="text-sm font-mono font-medium text-gray-900">
+                    {((policy?.slo_error_rate_delta ?? 0.005) * 100).toFixed(2)}%
+                  </p>
+                  <p className="text-[10px] text-gray-400">max increase allowed</p>
+                </div>
+              </div>
+
+              <Separator />
+
+              <div className="flex items-center gap-4 text-[11px] text-gray-400">
+                <span>Window: 5 min</span>
+                <span>Min samples: 100</span>
+              </div>
+            </CardContent>
+          </Card>
+
+          {/* Fallback Chain (2/5) */}
+          <Card className="xl:col-span-2 border border-gray-200 shadow-none">
             <CardHeader className="px-4 pt-4 pb-3 flex flex-row items-center justify-between">
               <CardTitle className="text-sm font-medium text-gray-900">Fallback Chain</CardTitle>
               {fallbackDirty && (
@@ -444,109 +843,57 @@ export default function ModelsRoutingPage() {
               )}
             </CardHeader>
             <Separator />
-            <CardContent className="px-4 py-4">
-              <p className="text-xs text-gray-500 mb-4">
-                Define fallback providers used when the primary provider fails.
-              </p>
-              <div className="space-y-3">
-                {/* Primary */}
-                <div className="space-y-1.5">
-                  <Label className="text-xs font-medium text-gray-700">Primary Provider</Label>
-                  <Select
-                    value={fallbackForm.primary}
-                    onValueChange={(v) => { setFallbackForm((f) => ({ ...f, primary: v })); setFallbackDirty(true); }}
-                  >
-                    <SelectTrigger className="h-8 text-xs">
-                      <SelectValue />
-                    </SelectTrigger>
-                    <SelectContent>
-                      {PROVIDER_OPTIONS.map((o) => (
-                        <SelectItem key={o.value} value={o.value} className="text-xs">{o.label}</SelectItem>
-                      ))}
-                    </SelectContent>
-                  </Select>
-                </div>
-
-                <div className="flex items-center gap-2 text-gray-300 pl-1">
-                  <ArrowDown className="h-3.5 w-3.5" />
-                  <span className="text-[10px] text-gray-400">on failure</span>
-                </div>
-
-                {/* Fallback 1 */}
-                <div className="space-y-1.5">
-                  <Label className="text-xs font-medium text-gray-700">Fallback Provider</Label>
-                  <Select
-                    value={fallbackForm.fallback1}
-                    onValueChange={(v) => { setFallbackForm((f) => ({ ...f, fallback1: v })); setFallbackDirty(true); }}
-                  >
-                    <SelectTrigger className="h-8 text-xs">
-                      <SelectValue />
-                    </SelectTrigger>
-                    <SelectContent>
-                      {PROVIDER_OPTIONS.map((o) => (
-                        <SelectItem key={o.value} value={o.value} className="text-xs">{o.label}</SelectItem>
-                      ))}
-                    </SelectContent>
-                  </Select>
-                </div>
-
-                <div className="flex items-center gap-2 text-gray-300 pl-1">
-                  <ArrowDown className="h-3.5 w-3.5" />
-                  <span className="text-[10px] text-gray-400">on failure</span>
-                </div>
-
-                {/* Fallback 2 */}
-                <div className="space-y-1.5">
-                  <Label className="text-xs font-medium text-gray-700">Fallback Provider 2</Label>
-                  <Select
-                    value={fallbackForm.fallback2}
-                    onValueChange={(v) => { setFallbackForm((f) => ({ ...f, fallback2: v })); setFallbackDirty(true); }}
-                  >
-                    <SelectTrigger className="h-8 text-xs">
-                      <SelectValue placeholder="None" />
-                    </SelectTrigger>
-                    <SelectContent>
-                      {PROVIDER_OPTIONS.map((o) => (
-                        <SelectItem key={o.value} value={o.value} className="text-xs">{o.label}</SelectItem>
-                      ))}
-                    </SelectContent>
-                  </Select>
-                </div>
-              </div>
-            </CardContent>
-          </Card>
-
-          {/* Shadow Mode (2/5) */}
-          <Card className="xl:col-span-2 border border-gray-200 shadow-none">
-            <CardHeader className="px-4 pt-4 pb-3">
-              <CardTitle className="text-sm font-medium text-gray-900 flex items-center gap-1.5">
-                <Eye className="h-3.5 w-3.5 text-gray-400" />
-                Shadow Mode
-              </CardTitle>
-            </CardHeader>
-            <Separator />
-            <CardContent className="px-4 py-4 space-y-4">
-              <p className="text-xs text-gray-500">
-                Run requests against an alternative provider without affecting live responses.
-              </p>
-              <div className="flex items-center justify-between">
-                <Label className="text-xs font-medium text-gray-700">Enable Shadow Mode</Label>
-                <Switch
-                  checked={activeShadow}
-                  onCheckedChange={handleShadowToggle}
-                  disabled={shadowMutation.isPending}
-                />
-              </div>
+            <CardContent className="px-4 py-4 space-y-3">
+              {/* Primary */}
               <div className="space-y-1.5">
-                <Label className="text-xs font-medium text-gray-700">Shadow Provider</Label>
+                <Label className="text-xs font-medium text-gray-700">Primary Provider</Label>
                 <Select
-                  value={currentShadowProvider}
-                  onValueChange={handleShadowProviderChange}
-                  disabled={!activeShadow || shadowMutation.isPending}
+                  value={fallbackForm.primary}
+                  onValueChange={(v) => { setFallbackForm((f) => ({ ...f, primary: v })); setFallbackDirty(true); }}
                 >
-                  <SelectTrigger className="h-8 text-xs">
-                    <SelectValue placeholder="Select provider…" />
-                  </SelectTrigger>
+                  <SelectTrigger className="h-8 text-xs"><SelectValue /></SelectTrigger>
+                  <SelectContent>
+                    {PROVIDER_OPTIONS.map((o) => (
+                      <SelectItem key={o.value} value={o.value} className="text-xs">{o.label}</SelectItem>
+                    ))}
+                  </SelectContent>
+                </Select>
+              </div>
+
+              <div className="flex items-center gap-2 text-gray-300 pl-1">
+                <ArrowDown className="h-3.5 w-3.5" />
+                <span className="text-[10px] text-gray-400">on failure</span>
+              </div>
+
+              {/* Fallback 1 */}
+              <div className="space-y-1.5">
+                <Label className="text-xs font-medium text-gray-700">Fallback 1</Label>
+                <Select
+                  value={fallbackForm.fallback1}
+                  onValueChange={(v) => { setFallbackForm((f) => ({ ...f, fallback1: v })); setFallbackDirty(true); }}
+                >
+                  <SelectTrigger className="h-8 text-xs"><SelectValue /></SelectTrigger>
+                  <SelectContent>
+                    {PROVIDER_OPTIONS.map((o) => (
+                      <SelectItem key={o.value} value={o.value} className="text-xs">{o.label}</SelectItem>
+                    ))}
+                  </SelectContent>
+                </Select>
+              </div>
+
+              <div className="flex items-center gap-2 text-gray-300 pl-1">
+                <ArrowDown className="h-3.5 w-3.5" />
+                <span className="text-[10px] text-gray-400">on failure</span>
+              </div>
+
+              {/* Fallback 2 */}
+              <div className="space-y-1.5">
+                <Label className="text-xs font-medium text-gray-700">Fallback 2</Label>
+                <Select
+                  value={fallbackForm.fallback2}
+                  onValueChange={(v) => { setFallbackForm((f) => ({ ...f, fallback2: v })); setFallbackDirty(true); }}
+                >
+                  <SelectTrigger className="h-8 text-xs"><SelectValue placeholder="None" /></SelectTrigger>
                   <SelectContent>
                     {PROVIDER_OPTIONS.map((o) => (
                       <SelectItem key={o.value} value={o.value} className="text-xs">{o.label}</SelectItem>
@@ -567,11 +914,8 @@ export default function ModelsRoutingPage() {
           <Table>
             <TableHeader>
               <TableRow className="hover:bg-transparent">
-                {['Timestamp', 'Request', 'Selected Provider', 'Latency', 'Fallback'].map((col) => (
-                  <TableHead
-                    key={col}
-                    className="text-xs font-medium text-gray-500 h-9 px-4 bg-gray-50 hover:bg-gray-50"
-                  >
+                {['Timestamp', 'Request', 'Provider', 'Latency', 'Mode', 'Fallback'].map((col) => (
+                  <TableHead key={col} className="text-xs font-medium text-gray-500 h-9 px-4 bg-gray-50 hover:bg-gray-50">
                     {col}
                   </TableHead>
                 ))}
@@ -581,16 +925,14 @@ export default function ModelsRoutingPage() {
               {decisionsLoading ? (
                 Array.from({ length: 5 }).map((_, i) => (
                   <TableRow key={i}>
-                    {Array.from({ length: 5 }).map((_, j) => (
-                      <TableCell key={j} className="px-4 py-3">
-                        <Skeleton className="h-3.5 w-16" />
-                      </TableCell>
+                    {Array.from({ length: 6 }).map((_, j) => (
+                      <TableCell key={j} className="px-4 py-3"><Skeleton className="h-3.5 w-16" /></TableCell>
                     ))}
                   </TableRow>
                 ))
               ) : decisions.length === 0 ? (
                 <TableRow>
-                  <TableCell colSpan={5} className="py-10 text-center text-xs text-gray-400">
+                  <TableCell colSpan={6} className="py-10 text-center text-xs text-gray-400">
                     No routing decisions recorded.
                   </TableCell>
                 </TableRow>
@@ -610,6 +952,9 @@ export default function ModelsRoutingPage() {
                       <LatencyCell ms={d.latency_ms} />
                     </TableCell>
                     <TableCell className="px-4 py-3">
+                      <DecisionModeBadge mode={d.mode} />
+                    </TableCell>
+                    <TableCell className="px-4 py-3">
                       {d.fallback_used ? (
                         <span className="inline-flex items-center px-1.5 py-0.5 rounded text-[10px] font-medium bg-yellow-50 text-yellow-700 border border-yellow-200">
                           Yes
@@ -626,13 +971,13 @@ export default function ModelsRoutingPage() {
         </Card>
       </div>
 
-      {/* ── Edit Routing Policy Dialog ─────────────────────────────────────────── */}
+      {/* ── Edit Routing Policy Dialog ────────────────────────────────────────── */}
       <Dialog open={dialogOpen} onOpenChange={(open) => !open && setDialogOpen(false)}>
         <DialogContent className="max-w-md">
           <DialogHeader>
             <DialogTitle className="text-sm font-semibold">Edit Routing Policy</DialogTitle>
             <DialogDescription className="text-xs text-gray-500">
-              Configure the global routing strategy and retry behavior.
+              Configure the global routing strategy, retry behavior, and Thompson Sampling parameters.
             </DialogDescription>
           </DialogHeader>
 
@@ -644,9 +989,7 @@ export default function ModelsRoutingPage() {
                 value={policyForm.strategy}
                 onValueChange={(v) => setPolicyForm((f) => ({ ...f, strategy: v }))}
               >
-                <SelectTrigger className="h-8 text-xs">
-                  <SelectValue />
-                </SelectTrigger>
+                <SelectTrigger className="h-8 text-xs"><SelectValue /></SelectTrigger>
                 <SelectContent>
                   {STRATEGY_OPTIONS.map((o) => (
                     <SelectItem key={o.value} value={o.value} className="text-xs">{o.label}</SelectItem>
@@ -654,6 +997,23 @@ export default function ModelsRoutingPage() {
                 </SelectContent>
               </Select>
             </div>
+
+            {/* Thompson Sampling exploration rate */}
+            {policyForm.strategy === 'thompson_sampling' && (
+              <div className="space-y-1.5">
+                <Label className="text-xs font-medium text-gray-700">Exploration Rate</Label>
+                <Input
+                  type="number"
+                  min={0}
+                  max={1}
+                  step={0.01}
+                  className="h-8 text-xs font-mono"
+                  value={policyForm.exploration_rate}
+                  onChange={(e) => setPolicyForm((f) => ({ ...f, exploration_rate: e.target.value }))}
+                />
+                <p className="text-[11px] text-gray-400">Probability of routing to a sub-optimal provider for exploration (default: 0.10).</p>
+              </div>
+            )}
 
             {/* Enable Fallback */}
             <div className="flex items-center justify-between py-1">
