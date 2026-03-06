@@ -9,12 +9,13 @@ import { Separator } from '@/components/ui/separator';
 import { api } from '@/lib/apiClient';
 import { getRelativeTime, formatDuration, truncateText } from '@/utils/helpers';
 import {
-  Terminal, AlertTriangle, Server, Cpu, Gauge, Bell, ArrowRight,
+  Terminal, AlertTriangle, Server, Cpu, Gauge, Bell, ArrowRight, Zap,
 } from 'lucide-react';
 import {
   AreaChart, Area, XAxis, YAxis, CartesianGrid, Tooltip, ResponsiveContainer,
 } from 'recharts';
 import Link from 'next/link';
+import { Progress } from '@/components/ui/progress';
 
 interface OverviewStats {
   active_executions: number;
@@ -47,6 +48,18 @@ interface Violation {
 interface ModelUsagePoint {
   hour: string;
   requests: number;
+}
+
+interface RuntimeUsage {
+  tier: string;
+  tier_name: string;
+  monthly_price_cents: number;
+  runtimes: {
+    used: number;
+    limit: number;
+    percent: number;
+  };
+  upgrade_tier: string;
 }
 
 const SUMMARY_CARDS = [
@@ -113,6 +126,12 @@ export default function DashboardPage() {
     retry: false,
   });
 
+  const { data: runtimeUsage } = useQuery<RuntimeUsage>({
+    queryKey: ['subscription-status'],
+    queryFn: () => api.get('/api/subscription/status'),
+    retry: false,
+  });
+
   const chartData = modelUsage ?? Array.from({ length: 12 }, (_, i) => ({
     hour: `${i * 2}h`,
     requests: 0,
@@ -142,6 +161,46 @@ export default function DashboardPage() {
             />
           ))}
         </div>
+
+        {/* Runtime Usage Card */}
+        {runtimeUsage && (
+          <Card className="border border-gray-200">
+            <CardHeader className="px-4 pt-4 pb-2 flex flex-row items-center justify-between">
+              <CardTitle className="text-xs font-medium text-gray-900 flex items-center gap-1.5">
+                <Zap className="h-3.5 w-3.5 text-gray-700" />
+                Runtime Usage
+              </CardTitle>
+              <div className="flex items-center gap-2">
+                <span className="text-[11px] text-gray-500 capitalize">
+                  {runtimeUsage.tier_name} · ${Math.round(runtimeUsage.monthly_price_cents / 100)}/mo
+                </span>
+                {runtimeUsage.runtimes.percent >= 80 && (
+                  <Link
+                    href="/settings/billing"
+                    className="text-[11px] text-blue-600 hover:text-blue-700 font-medium"
+                  >
+                    Upgrade
+                  </Link>
+                )}
+              </div>
+            </CardHeader>
+            <CardContent className="px-4 pb-4">
+              <div className="flex justify-between text-xs mb-2">
+                <span className="text-gray-500">Runtimes registered</span>
+                <span className="tabular-nums font-medium text-gray-900">
+                  {runtimeUsage.runtimes.used} / {runtimeUsage.runtimes.limit}
+                </span>
+              </div>
+              <Progress value={runtimeUsage.runtimes.percent} className="h-1.5" />
+              {runtimeUsage.runtimes.percent >= 100 && (
+                <p className="text-[11px] text-red-600 mt-2">
+                  Runtime limit reached.{' '}
+                  <Link href="/settings/billing" className="underline">Upgrade to add more.</Link>
+                </p>
+              )}
+            </CardContent>
+          </Card>
+        )}
 
         {/* Main + Side */}
         <div className="grid grid-cols-1 xl:grid-cols-3 gap-4">
