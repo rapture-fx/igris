@@ -265,7 +265,7 @@ func TestRuntimeEnforcer_DefaultsToSeed(t *testing.T) {
 
 func TestWebhookSignatureVerification(t *testing.T) {
 	client := setupTestPolarClient(t)
-	handler := NewWebhookHandler(client)
+	handler := NewWebhookHandler(client, nil)
 
 	payload := []byte(`{"type":"subscription.created","data":{}}`)
 	signature := "valid_signature"
