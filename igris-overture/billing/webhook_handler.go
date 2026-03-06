@@ -339,9 +339,9 @@ func (h *WebhookHandler) convertToSubscription(data *SubscriptionEventData) *Sub
 	}
 
 	// Determine tier from price ID
-	tier := "develop" // default
+	tier := string(TierSeed) // default
 	if tierPlan, err := GetTierByPriceID(data.PriceID); err == nil {
-		tier = tierPlan.ID
+		tier = string(tierPlan.ID)
 	}
 
 	metadata := data.Metadata
@@ -413,22 +413,24 @@ func (h *WebhookHandler) sendTrialEndEmail(tenantID, email string) {
 
 // mapPriceIDToTier maps Polar price ID to tier name
 func (h *WebhookHandler) mapPriceIDToTier(priceID string) string {
-	// TODO: Configure price ID mapping in environment or config
-	// This is a placeholder mapping - actual price IDs come from Polar dashboard
+	// TODO: Replace placeholder IDs with actual Polar price IDs from dashboard
 	tierMapping := map[string]string{
-		// TODO: Replace with actual Polar price IDs from dashboard
-		"price_develop_monthly": "develop",
-		"price_growth_monthly":  "growth",
-		"price_scale_monthly":   "scale",
+		"price_seed_monthly":     string(TierSeed),
+		"price_horizon_monthly":  string(TierHorizon),
+		"price_infinite_monthly": string(TierInfinite),
 	}
 
 	if tier, ok := tierMapping[priceID]; ok {
 		return tier
 	}
 
-	// Default to trial for unknown price IDs
-	h.logger.Printf("[Webhook] WARNING: Unknown price ID %s, defaulting to trial tier", priceID)
-	return "trial"
+	// Fall back to plan lookup by price ID
+	if plan, err := GetTierByPriceID(priceID); err == nil {
+		return string(plan.ID)
+	}
+
+	h.logger.Printf("[Webhook] WARNING: Unknown price ID %s, defaulting to seed tier", priceID)
+	return string(TierSeed)
 }
 
 // storeLicense creates a new license in the database
