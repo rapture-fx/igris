@@ -337,7 +337,6 @@ export default function ModelsProvidersPage() {
                     {/* Provider */}
                     <TableCell className="px-4 py-3">
                       <div className="flex items-center gap-2.5">
-                        <ProviderAvatar kind={p.kind} />
                         <div>
                           <p className="text-xs font-medium text-gray-900">{p.name}</p>
                           <p className="text-[10px] text-gray-400 font-mono mt-0.5">
