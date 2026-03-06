@@ -252,7 +252,7 @@ pub async fn validate_license_on_startup(license_key: &str) -> Result<Validation
     Ok(validation)
 }
 
-/// Start a background heartbeat loop
+/// Start a background heartbeat loop (license device heartbeat — every 5 minutes)
 pub async fn start_heartbeat_loop(license_key: String, device_id: String) {
     let client = LicenseClient::new(None);
     let mut interval = tokio::time::interval(Duration::from_secs(300)); // Every 5 minutes
@@ -269,6 +269,190 @@ pub async fn start_heartbeat_loop(license_key: String, device_id: String) {
             }
         }
     }
+}
+
+// ============================================================================
+// Runtime registration client
+// ============================================================================
+
+/// Client for registering this runtime instance with the Overture control plane.
+/// Uses the tenant API key (IGRIS_API_KEY env var) to authenticate and records
+/// the runtime in the fleet registry, subject to the tenant's tier runtime limit.
+#[derive(Clone)]
+pub struct RuntimeRegistrationClient {
+    base_url: String,
+    api_key: String,
+    machine_id: String,
+    hostname: String,
+    platform: String,
+    client: reqwest::Client,
+}
+
+/// Response from POST /api/v1/runtime/register
+#[derive(Debug, Serialize, Deserialize)]
+pub struct RuntimeRegisterResponse {
+    pub runtime_id: String,
+    pub tier: String,
+    pub runtime_limit: i32,
+    pub registered_at: String,
+}
+
+impl RuntimeRegistrationClient {
+    /// Create a new registration client.
+    ///
+    /// `overture_url` defaults to `https://overture.igrisinertial.com` if `None`.
+    pub fn new(overture_url: Option<&str>, api_key: String) -> Self {
+        let base_url = overture_url
+            .unwrap_or("https://overture.igrisinertial.com")
+            .to_string();
+
+        let machine_id = LicenseClient::generate_device_id();
+        let hostname = gethostname::gethostname().to_string_lossy().to_string();
+        let platform = format!("{}-{}", std::env::consts::OS, std::env::consts::ARCH);
+
+        let client = reqwest::Client::builder()
+            .timeout(Duration::from_secs(10))
+            .build()
+            .unwrap();
+
+        Self {
+            base_url,
+            api_key,
+            machine_id,
+            hostname,
+            platform,
+            client,
+        }
+    }
+
+    /// Register (or re-register) this runtime with Overture.
+    /// Returns Ok(response) on success, Err if the tier limit is exceeded or
+    /// the API key is invalid.
+    pub async fn register(&self, runtime_version: &str) -> Result<RuntimeRegisterResponse> {
+        let url = format!("{}/api/v1/runtime/register", self.base_url);
+
+        let payload = serde_json::json!({
+            "machine_id":       self.machine_id,
+            "hostname":         self.hostname,
+            "platform":         self.platform,
+            "runtime_version":  runtime_version,
+        });
+
+        let resp = self
+            .client
+            .post(&url)
+            .header("X-API-Key", &self.api_key)
+            .json(&payload)
+            .send()
+            .await
+            .map_err(|e| anyhow!("Failed to reach Overture: {}", e))?;
+
+        let status = resp.status();
+        let body: serde_json::Value = resp
+            .json()
+            .await
+            .map_err(|e| anyhow!("Invalid response body: {}", e))?;
+
+        if status == 402 {
+            let limit = body["limit"].as_i64().unwrap_or(0);
+            let tier = body["tier"].as_str().unwrap_or("unknown");
+            return Err(anyhow!(
+                "Runtime limit reached: your {} subscription allows {} runtime instance(s). \
+                 Upgrade at https://igrisinertial.com/pricing",
+                tier, limit
+            ));
+        }
+
+        if !status.is_success() {
+            let msg = body["message"]
+                .as_str()
+                .unwrap_or("Registration failed")
+                .to_string();
+            return Err(anyhow!("Registration error ({}): {}", status, msg));
+        }
+
+        let response: RuntimeRegisterResponse = serde_json::from_value(body)
+            .map_err(|e| anyhow!("Failed to parse registration response: {}", e))?;
+
+        info!(
+            "Runtime registered: id={} tier={} limit={}",
+            response.runtime_id, response.tier, response.runtime_limit
+        );
+
+        Ok(response)
+    }
+
+    /// Send a heartbeat to keep this runtime marked as active.
+    pub async fn heartbeat(&self) -> Result<()> {
+        let url = format!("{}/api/v1/runtime/heartbeat", self.base_url);
+
+        let payload = serde_json::json!({ "machine_id": self.machine_id });
+
+        let resp = self
+            .client
+            .post(&url)
+            .header("X-API-Key", &self.api_key)
+            .json(&payload)
+            .send()
+            .await
+            .map_err(|e| anyhow!("Heartbeat request failed: {}", e))?;
+
+        if !resp.status().is_success() {
+            warn!("Runtime heartbeat returned non-success status: {}", resp.status());
+        }
+
+        Ok(())
+    }
+
+    /// Deregister this runtime on clean shutdown.
+    pub async fn deregister(&self) -> Result<()> {
+        let url = format!("{}/api/v1/runtime/deregister", self.base_url);
+
+        let payload = serde_json::json!({ "machine_id": self.machine_id });
+
+        let _ = self
+            .client
+            .delete(&url)
+            .header("X-API-Key", &self.api_key)
+            .json(&payload)
+            .send()
+            .await;
+
+        Ok(())
+    }
+
+    /// Return the machine ID used by this client (for logging).
+    pub fn machine_id(&self) -> &str {
+        &self.machine_id
+    }
+}
+
+/// Register with Overture on startup and start a background heartbeat loop (every 30s).
+///
+/// Call this after license validation if `IGRIS_API_KEY` is set.
+/// The returned `RuntimeRegistrationClient` can be used to deregister on shutdown.
+pub async fn register_runtime_with_overture(
+    api_key: String,
+    overture_url: Option<&str>,
+    runtime_version: &str,
+) -> Result<RuntimeRegistrationClient> {
+    let client = RuntimeRegistrationClient::new(overture_url, api_key);
+
+    client.register(runtime_version).await?;
+
+    // Start a 30-second heartbeat loop in the background
+    let heartbeat_client = client.clone();
+    tokio::spawn(async move {
+        let mut interval = tokio::time::interval(Duration::from_secs(30));
+        loop {
+            interval.tick().await;
+            if let Err(e) = heartbeat_client.heartbeat().await {
+                warn!("Runtime heartbeat failed: {}", e);
+            }
+        }
+    });
+
+    Ok(client)
 }
 
 #[cfg(test)]
