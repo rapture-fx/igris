@@ -18,10 +18,10 @@ import (
 
 // PolarClient wraps Polar.sh API interactions
 type PolarClient struct {
-	apiKey      string
-	baseURL     string
-	redis       *redis.Client
-	logger      *log.Logger
+	apiKey        string
+	baseURL       string
+	redis         *redis.Client
+	logger        *log.Logger
 	webhookSecret string
 }
 
@@ -68,10 +68,9 @@ func NewPolarClient(cfg PolarConfig) (*PolarClient, error) {
 type SubscriptionStatus string
 
 const (
-	StatusActive    SubscriptionStatus = "active"
-	StatusTrialing  SubscriptionStatus = "trialing"
-	StatusPastDue   SubscriptionStatus = "past_due"
-	StatusCanceled  SubscriptionStatus = "canceled"
+	StatusActive     SubscriptionStatus = "active"
+	StatusPastDue    SubscriptionStatus = "past_due"
+	StatusCanceled   SubscriptionStatus = "canceled"
 	StatusIncomplete SubscriptionStatus = "incomplete"
 )
 
@@ -83,7 +82,6 @@ type Subscription struct {
 	PriceID          string             `json:"price_id"`
 	Status           SubscriptionStatus `json:"status"`
 	CurrentPeriodEnd time.Time          `json:"current_period_end"`
-	TrialEnd         *time.Time         `json:"trial_end,omitempty"`
 	CanceledAt       *time.Time         `json:"canceled_at,omitempty"`
 	CreatedAt        time.Time          `json:"created_at"`
 	Metadata         map[string]string  `json:"metadata,omitempty"`
@@ -91,33 +89,11 @@ type Subscription struct {
 
 // TierPlan represents a pricing tier
 type TierPlan struct {
-	ID                     string
-	Name                   string
-	MonthlyPriceID         string
-	AnnualPriceID          string
-	MonthlyPriceCents      int
-	AnnualPriceCents       int
-	MaxRequestsPerMonth    int
-	MaxProviders           int
-	MaxTenants             int
-	Features               TierFeatures
-}
-
-// TierFeatures holds feature flags per tier
-type TierFeatures struct {
-	ThompsonSampling     bool
-	QualityRouting       bool
-	CircuitBreaker       bool
-	CostTracking         bool
-	BYOK                 bool
-	SpeculativeExecution bool
-	CouncilMode          bool
-	CognitiveAdvisor     bool
-	SLOEnforcer          string // "none", "basic", "advanced"
-	AuditLogs            bool
-	PolicyEngine         bool
-	SelfHost             bool
-	MultiTenancy         int // number of tenants
+	ID                Tier
+	Name              string
+	MonthlyPriceID    string
+	MonthlyPriceCents int
+	RuntimeLimit      int
 }
 
 // ============================================================================
@@ -125,131 +101,43 @@ type TierFeatures struct {
 // ============================================================================
 
 var (
-	// TierTrial - 14-day free trial
-	TierTrial = TierPlan{
-		ID:                  "trial",
-		Name:                "Trial",
-		MonthlyPriceID:      "", // No price ID for trial
-		AnnualPriceID:       "",
-		MonthlyPriceCents:   0,
-		AnnualPriceCents:    0,
-		MaxRequestsPerMonth: 50000,
-		MaxProviders:        3,
-		MaxTenants:          1,
-		Features: TierFeatures{
-			ThompsonSampling:     true,
-			QualityRouting:       true,
-			CircuitBreaker:       true,
-			CostTracking:         true,
-			BYOK:                 true,
-			SpeculativeExecution: true, // Full features for trial
-			CouncilMode:          true,
-			CognitiveAdvisor:     true,
-			SLOEnforcer:          "none",
-			AuditLogs:            false,
-			PolicyEngine:         false,
-			SelfHost:             false,
-			MultiTenancy:         1,
-		},
+	// PlanSeed - $29/mo, 1 runtime instance
+	PlanSeed = TierPlan{
+		ID:                TierSeed,
+		Name:              "Seed",
+		MonthlyPriceID:    "price_seed_monthly", // Set in Polar dashboard
+		MonthlyPriceCents: 2900,
+		RuntimeLimit:      1,
 	}
 
-	// TierDevelop - $149/mo entry tier (FINAL LAUNCH PRICING)
-	TierDevelop = TierPlan{
-		ID:                  "develop",
-		Name:                "Develop",
-		MonthlyPriceID:      "price_develop_monthly", // Set in Polar dashboard
-		AnnualPriceID:       "",                      // NO YEARLY PRICING
-		MonthlyPriceCents:   14900,                   // $149.00
-		AnnualPriceCents:    0,                       // NO YEARLY PRICING
-		MaxRequestsPerMonth: 500000,
-		MaxProviders:        5,
-		MaxTenants:          1,
-		Features: TierFeatures{
-			ThompsonSampling:     true,
-			QualityRouting:       true,
-			CircuitBreaker:       true,
-			CostTracking:         true,
-			BYOK:                 true,
-			SpeculativeExecution: false, // Growth+ only
-			CouncilMode:          false, // Growth+ only
-			CognitiveAdvisor:     false, // Growth+ only
-			SLOEnforcer:          "none",
-			AuditLogs:            false,
-			PolicyEngine:         false,
-			SelfHost:             false,
-			MultiTenancy:         1,
-		},
+	// PlanHorizon - $149/mo, 50 runtime instances
+	PlanHorizon = TierPlan{
+		ID:                TierHorizon,
+		Name:              "Horizon",
+		MonthlyPriceID:    "price_horizon_monthly", // Set in Polar dashboard
+		MonthlyPriceCents: 14900,
+		RuntimeLimit:      50,
 	}
 
-	// TierGrowth - $899/mo mid-tier (FINAL LAUNCH PRICING)
-	TierGrowth = TierPlan{
-		ID:                  "growth",
-		Name:                "Growth",
-		MonthlyPriceID:      "price_growth_monthly",
-		AnnualPriceID:       "",      // NO YEARLY PRICING
-		MonthlyPriceCents:   89900,   // $899.00
-		AnnualPriceCents:    0,       // NO YEARLY PRICING
-		MaxRequestsPerMonth: 2000000,
-		MaxProviders:        10,
-		MaxTenants:          5,
-		Features: TierFeatures{
-			ThompsonSampling:     true,
-			QualityRouting:       true,
-			CircuitBreaker:       true,
-			CostTracking:         true,
-			BYOK:                 true,
-			SpeculativeExecution: true, // ✅ Growth gets speculative
-			CouncilMode:          true, // ✅ Growth gets council
-			CognitiveAdvisor:     true, // ✅ Growth gets cognitive
-			SLOEnforcer:          "basic",
-			AuditLogs:            true,
-			PolicyEngine:         true,
-			SelfHost:             false,
-			MultiTenancy:         5,
-		},
-	}
-
-	// TierScale - $2,999/mo high-tier (FINAL LAUNCH PRICING - PUBLIC, NO CUSTOM)
-	TierScale = TierPlan{
-		ID:                  "scale",
-		Name:                "Scale",
-		MonthlyPriceID:      "price_scale_monthly",
-		AnnualPriceID:       "",      // NO YEARLY PRICING
-		MonthlyPriceCents:   299900,  // $2,999.00
-		AnnualPriceCents:    0,       // NO YEARLY PRICING
-		MaxRequestsPerMonth: -1,      // Unlimited
-		MaxProviders:        20,
-		MaxTenants:          -1, // Unlimited
-		Features: TierFeatures{
-			ThompsonSampling:     true,
-			QualityRouting:       true,
-			CircuitBreaker:       true,
-			CostTracking:         true,
-			BYOK:                 true,
-			SpeculativeExecution: true, // ✅ Inherited from Growth
-			CouncilMode:          true, // ✅ Inherited from Growth
-			CognitiveAdvisor:     true, // ✅ Inherited from Growth
-			SLOEnforcer:          "advanced",
-			AuditLogs:            true,
-			PolicyEngine:         true,
-			SelfHost:             true,
-			MultiTenancy:         -1, // Unlimited
-		},
+	// PlanInfinite - $699/mo, 500 runtime instances
+	PlanInfinite = TierPlan{
+		ID:                TierInfinite,
+		Name:              "Infinite",
+		MonthlyPriceID:    "price_infinite_monthly", // Set in Polar dashboard
+		MonthlyPriceCents: 69900,
+		RuntimeLimit:      500,
 	}
 )
 
 // GetTierByID returns tier plan by ID
-// NOTE: NO ENTERPRISE TIER - SCALE IS THE HIGHEST PUBLIC TIER
 func GetTierByID(tierID string) (*TierPlan, error) {
-	switch tierID {
-	case "trial":
-		return &TierTrial, nil
-	case "develop":
-		return &TierDevelop, nil
-	case "growth":
-		return &TierGrowth, nil
-	case "scale":
-		return &TierScale, nil
+	switch Tier(tierID) {
+	case TierSeed:
+		return &PlanSeed, nil
+	case TierHorizon:
+		return &PlanHorizon, nil
+	case TierInfinite:
+		return &PlanInfinite, nil
 	default:
 		return nil, fmt.Errorf("unknown tier: %s", tierID)
 	}
@@ -257,15 +145,18 @@ func GetTierByID(tierID string) (*TierPlan, error) {
 
 // GetTierByPriceID returns tier plan by Polar price ID
 func GetTierByPriceID(priceID string) (*TierPlan, error) {
-	tiers := []*TierPlan{&TierDevelop, &TierGrowth, &TierScale}
-
+	tiers := []*TierPlan{&PlanSeed, &PlanHorizon, &PlanInfinite}
 	for _, tier := range tiers {
 		if tier.MonthlyPriceID == priceID {
 			return tier, nil
 		}
 	}
-
 	return nil, fmt.Errorf("unknown price ID: %s", priceID)
+}
+
+// AllPlans returns all available tier plans in order.
+func AllPlans() []TierPlan {
+	return []TierPlan{PlanSeed, PlanHorizon, PlanInfinite}
 }
 
 // ============================================================================
@@ -274,52 +165,24 @@ func GetTierByPriceID(priceID string) (*TierPlan, error) {
 
 // GetSubscription retrieves subscription from Redis cache or Polar API
 func (c *PolarClient) GetSubscription(ctx context.Context, tenantID string) (*Subscription, error) {
-	// Try Redis cache first
 	cacheKey := fmt.Sprintf("polar:subscription:%s", tenantID)
 	cached, err := c.redis.Get(ctx, cacheKey).Result()
 	if err == nil && cached != "" {
-		// Parse cached subscription (simplified - in production use JSON)
 		return c.getSubscriptionFromPolar(ctx, cached)
 	}
 
-	// Fallback to Polar API (mock for now)
 	sub, err := c.getSubscriptionFromPolar(ctx, tenantID)
 	if err != nil {
 		return nil, err
 	}
 
-	// Cache for 5 minutes
 	c.cacheSubscription(ctx, tenantID, sub)
-
 	return sub, nil
 }
 
 // getSubscriptionFromPolar fetches subscription from Polar API
 // TODO: Replace with actual Polar Go SDK calls once available
 func (c *PolarClient) getSubscriptionFromPolar(ctx context.Context, tenantID string) (*Subscription, error) {
-	// Placeholder: In production, use Polar Go SDK
-	// For now, return mock data or read from database
-
-	// Check if trial subscription exists
-	trialKey := fmt.Sprintf("polar:trial:%s", tenantID)
-	trialEnd, err := c.redis.Get(ctx, trialKey).Result()
-	if err == nil && trialEnd != "" {
-		endTime, _ := time.Parse(time.RFC3339, trialEnd)
-		return &Subscription{
-			ID:               fmt.Sprintf("sub_trial_%s", tenantID),
-			CustomerID:       tenantID,
-			ProductID:        "prod_trial",
-			PriceID:          "",
-			Status:           StatusTrialing,
-			CurrentPeriodEnd: endTime,
-			TrialEnd:         &endTime,
-			CreatedAt:        time.Now().Add(-7 * 24 * time.Hour),
-			Metadata: map[string]string{
-				"tier": "trial",
-			},
-		}, nil
-	}
-
 	// Check if paid subscription exists in Redis
 	subKey := fmt.Sprintf("polar:sub:%s", tenantID)
 	subData, err := c.redis.HGetAll(ctx, subKey).Result()
@@ -350,39 +213,6 @@ func (c *PolarClient) cacheSubscription(ctx context.Context, tenantID string, su
 	c.redis.Set(ctx, cacheKey, sub.ID, 5*time.Minute)
 }
 
-// CreateTrialSubscription creates a 14-day trial subscription
-func (c *PolarClient) CreateTrialSubscription(ctx context.Context, tenantID, email string) (*Subscription, error) {
-	trialEnd := time.Now().Add(14 * 24 * time.Hour)
-
-	// Store trial in Redis
-	trialKey := fmt.Sprintf("polar:trial:%s", tenantID)
-	err := c.redis.Set(ctx, trialKey, trialEnd.Format(time.RFC3339), 15*24*time.Hour).Err()
-	if err != nil {
-		return nil, fmt.Errorf("failed to create trial: %w", err)
-	}
-
-	// Initialize request counter
-	reqKey := fmt.Sprintf("polar:requests:%s", tenantID)
-	c.redis.Set(ctx, reqKey, 0, 15*24*time.Hour)
-
-	c.logger.Printf("[Polar] Trial created: tenant=%s ends=%s", tenantID, trialEnd.Format(time.RFC3339))
-
-	return &Subscription{
-		ID:               fmt.Sprintf("sub_trial_%s", tenantID),
-		CustomerID:       tenantID,
-		ProductID:        "prod_trial",
-		PriceID:          "",
-		Status:           StatusTrialing,
-		CurrentPeriodEnd: trialEnd,
-		TrialEnd:         &trialEnd,
-		CreatedAt:        time.Now(),
-		Metadata: map[string]string{
-			"tier":  "trial",
-			"email": email,
-		},
-	}, nil
-}
-
 // UpdateSubscription updates subscription in cache (from webhook)
 func (c *PolarClient) UpdateSubscription(ctx context.Context, sub *Subscription) error {
 	tenantID := sub.CustomerID
@@ -392,11 +222,10 @@ func (c *PolarClient) UpdateSubscription(ctx context.Context, sub *Subscription)
 	if tier == "" {
 		tierPlan, err := GetTierByPriceID(sub.PriceID)
 		if err == nil {
-			tier = tierPlan.ID
+			tier = string(tierPlan.ID)
 		}
 	}
 
-	// Store in Redis
 	subKey := fmt.Sprintf("polar:sub:%s", tenantID)
 	err := c.redis.HSet(ctx, subKey,
 		"id", sub.ID,
@@ -419,70 +248,6 @@ func (c *PolarClient) UpdateSubscription(ctx context.Context, sub *Subscription)
 		tenantID, sub.Status, tier)
 
 	return nil
-}
-
-// ============================================================================
-// REQUEST LIMIT TRACKING
-// ============================================================================
-
-// IncrementRequestCount increments request counter for tenant
-func (c *PolarClient) IncrementRequestCount(ctx context.Context, tenantID string) (int64, error) {
-	reqKey := fmt.Sprintf("polar:requests:%s", tenantID)
-	count, err := c.redis.Incr(ctx, reqKey).Result()
-	if err != nil {
-		return 0, err
-	}
-
-	// Set TTL if first request (monthly reset)
-	if count == 1 {
-		now := time.Now()
-		nextMonth := time.Date(now.Year(), now.Month()+1, 1, 0, 0, 0, 0, now.Location())
-		ttl := nextMonth.Sub(now)
-		c.redis.Expire(ctx, reqKey, ttl)
-	}
-
-	return count, nil
-}
-
-// GetRequestCount returns current request count
-func (c *PolarClient) GetRequestCount(ctx context.Context, tenantID string) (int64, error) {
-	reqKey := fmt.Sprintf("polar:requests:%s", tenantID)
-	count, err := c.redis.Get(ctx, reqKey).Int64()
-	if err == redis.Nil {
-		return 0, nil
-	}
-	return count, err
-}
-
-// ============================================================================
-// MIGRATION HELPERS
-// ============================================================================
-
-// MigrateLegacyTier maps old tier pricing to new tiers
-func MigrateLegacyTier(oldTier string, oldPriceCents int) string {
-	// Map old pricing to new tiers
-	switch {
-	case oldPriceCents == 24900: // Old Develop $249 -> New Develop $99
-		return "develop"
-	case oldPriceCents == 79900: // Old Growth $799 -> New Growth $499
-		return "growth"
-	case oldPriceCents == 189900: // Old Scale $1,899 -> New Scale $1,499
-		return "scale"
-	default:
-		// Fallback to tier name mapping
-		switch oldTier {
-		case "developer", "develop":
-			return "develop"
-		case "growth":
-			return "growth"
-		case "scale":
-			return "scale"
-		case "enterprise":
-			return "enterprise"
-		default:
-			return "develop" // Default to develop
-		}
-	}
 }
 
 // ============================================================================
