@@ -549,7 +549,7 @@ export default function ExecutionAgentsPage() {
                       <AlertTriangle className="h-3.5 w-3.5" />
                       Violation History
                       {selected.violation_count > 0 && (
-                        <span className="ml-1 inline-flex items-center px-1.5 py-0.5 rounded text-xs font-medium bg-orange-50 text-orange-700 border border-orange-200">
+                        <span className="ml-1 inline-flex items-center px-1.5 py-0.5 rounded text-[10px] font-medium bg-orange-50 text-orange-700 border border-orange-200">
                           {selected.violation_count}
                         </span>
                       )}
