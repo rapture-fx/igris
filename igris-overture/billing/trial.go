@@ -15,8 +15,7 @@ import (
 
 const (
 	TrialDurationDays     = 14
-	DefaultTrialTier      = "develop"
-	DowngradeTierOnExpiry = "develop"
+	DowngradeTierOnExpiry = string(TierSeed)
 )
 
 // ============================================================================
@@ -41,17 +40,9 @@ func NewTrialManager(db *sql.DB) *TrialManager {
 // TRIAL ACTIVATION
 // ============================================================================
 
-// StartTrial activates a trial for a new tenant
-// User can select tier (Develop, Growth, Scale) and gets full access for 14 days
+// StartTrial activates a trial for a new tenant on the Seed tier.
 func (tm *TrialManager) StartTrial(ctx context.Context, tenantID, selectedTier string) error {
-	// Validate tier
-	validTiers := map[string]bool{
-		"develop": true,
-		"growth":  true,
-		"scale":   true,
-	}
-
-	if !validTiers[selectedTier] {
+	if !ValidTier(selectedTier) {
 		return fmt.Errorf("invalid tier: %s", selectedTier)
 	}
 
@@ -194,22 +185,22 @@ func (tm *TrialManager) ExpireTrials(ctx context.Context) (int, error) {
 			// TODO: Send conversion email
 			// Subject: "Your trial has been converted to {tier} plan"
 		} else {
-			// Downgrade to free Develop tier
+			// Downgrade to Seed tier
 			if err := tm.downgradeTrial(ctx, tenantID); err != nil {
 				tm.logger.Printf("[Trial] Failed to downgrade trial: tenant=%s error=%v", tenantID, err)
 				continue
 			}
 
-			tm.logger.Printf("[Trial] Downgraded to Develop: tenant=%s (trial expired, no payment)", tenantID)
+			tm.logger.Printf("[Trial] Downgraded to Seed: tenant=%s (trial expired, no payment)", tenantID)
 			expiredCount++
 
 			// TODO: Send downgrade email
-			// Subject: "Your trial has ended - now on Develop tier"
+			// Subject: "Your trial has ended - now on Seed tier"
 			// Body:
-			//   Your 14-day {trial_tier} trial has ended.
+			//   Your 14-day trial has ended.
 			//
-			//   You've been downgraded to our Develop tier ($149/month).
-			//   To regain access to {trial_tier} features, upgrade your plan.
+			//   You've been moved to our Seed tier ($29/month).
+			//   Upgrade to Horizon or Infinite to scale your runtime fleet.
 			//
 			//   Upgrade now: {upgrade_url}
 		}
