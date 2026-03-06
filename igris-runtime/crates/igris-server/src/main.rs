@@ -2104,12 +2104,42 @@ async fn main() -> anyhow::Result<()> {
                     validation.cloud_requests_limit.unwrap_or(0)
                 );
 
-                // Start heartbeat loop in background
+                // Start license device heartbeat loop in background (every 5 minutes)
                 let key_clone = key.clone();
                 let device_id = igris_license_client::LicenseClient::generate_device_id();
                 tokio::spawn(async move {
                     igris_license_client::start_heartbeat_loop(key_clone, device_id).await;
                 });
+
+                // Register this runtime instance with Overture (fleet registry).
+                // Uses IGRIS_API_KEY env var; if not set, registration is skipped.
+                if let Ok(api_key) = std::env::var("IGRIS_API_KEY") {
+                    let overture_url = std::env::var("IGRIS_OVERTURE_URL").ok();
+                    let overture_url_ref = overture_url.as_deref();
+                    let version = env!("CARGO_PKG_VERSION");
+                    match igris_license_client::register_runtime_with_overture(
+                        api_key,
+                        overture_url_ref,
+                        version,
+                    ).await {
+                        Ok(reg_client) => {
+                            info!(
+                                "Runtime registered with Overture (machine_id={})",
+                                reg_client.machine_id()
+                            );
+                            // Deregister cleanly on process shutdown (best-effort)
+                            let _reg = reg_client; // kept alive; drop triggers nothing — heartbeat runs in spawned task
+                        }
+                        Err(e) => {
+                            // Registration failure is non-fatal: log and continue.
+                            // The runtime still works; it just won't appear in the fleet dashboard
+                            // and won't count against the tenant's runtime limit.
+                            warn!("Fleet registration failed (non-fatal): {}", e);
+                        }
+                    }
+                } else {
+                    info!("IGRIS_API_KEY not set — skipping fleet registration (runtime won't appear in dashboard)");
+                }
             }
             Err(e) => {
                 error!("────────────────────────────────────────────────");
