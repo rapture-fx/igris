@@ -382,7 +382,7 @@ export function Sidebar({ open = true, onClose }: SidebarProps) {
                 <div className="p-1">
                   <DropdownMenuItem
                     className="flex items-center gap-2.5 px-2.5 py-2 rounded-lg text-xs cursor-pointer"
-                    onSelect={() => { router.push('/settings/license'); onClose?.(); }}
+                    onSelect={() => { router.push('/settings/billing'); onClose?.(); }}
                   >
                     <CreditCard className="h-3.5 w-3.5 text-muted-foreground flex-shrink-0" />
                     <div>
