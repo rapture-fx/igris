@@ -33,7 +33,7 @@ export default function InstallSection() {
           className="flex flex-col justify-center items-center px-8 md:px-12 lg:px-16 pb-8"
         >
           <p
-            className="text-sm mb-4 font-medium"
+            className="text-sm mb-4 font-medium text-left w-full"
             style={{ color: isDark ? '#f6f6f4' : '#1b1912', fontFamily: 'Inter, -apple-system, BlinkMacSystemFont, "Segoe UI", Roboto, Helvetica, Arial, sans-serif' }}
           >
             Quick Install
@@ -69,11 +69,10 @@ export default function InstallSection() {
           </div>
 
           {/* Manual download link */}
-          <div className="mt-3">
+          <div className="mt-6 w-full text-left">
             <a
               href="https://admin.igris-inertial.com/downloads/runtime"
-              className="text-xs underline underline-offset-2 transition-opacity hover:opacity-70"
-              style={{ color: isDark ? '#6b6b5e' : '#9ca3af', fontFamily: '-apple-system, BlinkMacSystemFont, "Segoe UI", Roboto, Helvetica, Arial, sans-serif' }}
+              className="inline-flex items-center gap-2 px-4 py-2 text-xs font-medium text-white bg-black dark:bg-white dark:text-black rounded-lg hover:bg-gray-800 transition-colors"
             >
               Download →
             </a>
