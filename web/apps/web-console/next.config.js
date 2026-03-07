@@ -1,20 +1,9 @@
-const path = require('path');
-
-// Workspace root: web/ (where pnpm-workspace.yaml and node_modules live)
-const workspaceRoot = path.join(__dirname, '../../');
-
 /** @type {import('next').NextConfig} */
 const nextConfig = {
   reactStrictMode: true,
 
   typescript: {
     ignoreBuildErrors: true,
-  },
-
-  // Both must point to the same directory for Next.js 16
-  outputFileTracingRoot: workspaceRoot,
-  turbopack: {
-    root: workspaceRoot,
   },
 
   // Inline workspace packages into the bundle
