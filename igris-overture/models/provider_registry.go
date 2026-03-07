@@ -57,8 +57,9 @@ type ProviderRegistry struct {
 	Name     string `json:"name" db:"name"`
 
 	// Connection Configuration
-	BaseURL            string `json:"base_url" db:"base_url"`
-	AuthHeaderTemplate string `json:"auth_header_template" db:"auth_header_template"` // Encrypted
+	BaseURL            string  `json:"base_url" db:"base_url"`
+	AuthHeaderTemplate string  `json:"auth_header_template" db:"auth_header_template"` // Static template e.g. "Authorization: Bearer {key}"
+	KeyID              *string `json:"key_id,omitempty" db:"key_id"`                    // Reference to tenant_keys.id
 
 	// Provider Metadata
 	Models             []string           `json:"models" db:"models"`
@@ -141,6 +142,7 @@ func (p *ProviderRegistry) ToPublicResponse() map[string]interface{} {
 		"tenant_id":           p.TenantID,
 		"name":                p.Name,
 		"base_url":            p.BaseURL,
+		"key_id":              p.KeyID,
 		"models":              p.Models,
 		"pricing":             p.Pricing,
 		"compatibility_class": p.CompatibilityClass,
@@ -151,6 +153,6 @@ func (p *ProviderRegistry) ToPublicResponse() map[string]interface{} {
 		"created_at":          p.CreatedAt,
 		"updated_at":          p.UpdatedAt,
 		"last_validated_at":   p.LastValidatedAt,
-		// Note: auth_header_template is intentionally excluded for security
+		// Note: auth_header_template excluded — contains sensitive template structure
 	}
 }
