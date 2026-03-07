@@ -28,13 +28,13 @@ export default function InstallSection() {
           style={{
             borderLeft: '0.5px solid rgba(209, 213, 219, 0.35)',
             borderRight: '0.5px solid rgba(209, 213, 219, 0.35)',
-            minHeight: '400px',
+            minHeight: '500px',
           }}
           className="flex flex-col justify-center items-center px-8 md:px-12 lg:px-16 pb-8"
         >
           {/* Command block */}
           <div
-            className="inline-flex items-center gap-4 rounded-md px-5 py-3 text-sm border self-center shadow-sm"
+            className="inline-flex items-center gap-4 rounded-md px-6 py-4 text-lg border self-center shadow-sm"
             style={{
               backgroundColor: isDark ? '#1a1a1a' : '#f9fafb',
               borderColor: isDark ? 'rgba(246,246,244,0.08)' : 'rgba(0,0,0,0.08)',
@@ -49,11 +49,11 @@ export default function InstallSection() {
               style={{ color: isDark ? '#a8a898' : '#6b7280' }}
             >
               {copied ? (
-                <svg width="12" height="12" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2.5" strokeLinecap="round" strokeLinejoin="round">
+                <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2.5" strokeLinecap="round" strokeLinejoin="round">
                   <polyline points="20 6 9 17 4 12" />
                 </svg>
               ) : (
-                <svg width="12" height="12" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round">
+                <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round">
                   <rect x="9" y="9" width="13" height="13" rx="2" ry="2" />
                   <path d="M5 15H4a2 2 0 0 1-2-2V4a2 2 0 0 1 2-2h9a2 2 0 0 1 2 2v1" />
                 </svg>
@@ -62,10 +62,10 @@ export default function InstallSection() {
           </div>
 
           {/* Manual download link */}
-          <div className="mt-6 w-full text-left">
+          <div className="mt-6">
             <a
               href="https://admin.igris-inertial.com/downloads/runtime"
-              className="inline-flex items-center justify-center px-4 py-2 hover:opacity-80 transition-all duration-200 text-xs font-medium shadow-sm rounded-md border"
+              className="inline-flex items-center justify-center px-6 py-3 hover:opacity-80 transition-all duration-200 text-sm font-medium shadow-sm rounded-md border"
               style={{ fontFamily: '-apple-system, BlinkMacSystemFont, "Segoe UI", Roboto, Helvetica, Arial, sans-serif', backgroundColor: isDark ? '#1b1912' : '#f9f9fa', color: isDark ? '#f6f6f4' : '#1b1912', borderColor: 'rgba(20, 18, 10, 0.1)' }}
             >
               Download →
