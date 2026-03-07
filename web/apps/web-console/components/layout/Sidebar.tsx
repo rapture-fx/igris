@@ -459,11 +459,11 @@ export function Sidebar({ open = true, onClose }: SidebarProps) {
       {isSearchModalOpen && (
         <div className="fixed inset-0 z-50 flex items-start justify-center pt-20">
           <div
-            className="absolute inset-0 bg-black/20 dark:bg-black/60 backdrop-blur-sm"
+            className="absolute inset-0 bg-black/10 dark:bg-black/40"
             onClick={() => { setIsSearchModalOpen(false); setSearchQuery(''); setShowSearchResults(false); }}
           />
           <div className="relative w-full max-w-2xl mx-4">
-            <div className="bg-white dark:bg-[#1b1912] rounded-xl shadow-2xl border border-gray-200 dark:border-[#f6f6f4]/10 overflow-hidden p-2">
+            <div className="bg-white dark:bg-[#1b1912] rounded-xl shadow-2xl border border-gray-200 dark:border-[#f6f6f4]/10 overflow-hidden p-1">
               <div className="relative">
                 <Search className="absolute left-3 top-1/2 -translate-y-1/2 h-4 w-4 text-gray-400" />
                 <input
@@ -473,7 +473,7 @@ export function Sidebar({ open = true, onClose }: SidebarProps) {
                   value={searchQuery}
                   onChange={(e) => setSearchQuery(e.target.value)}
                   onKeyDown={handleSearchKeyDown}
-                  className="w-full pl-10 pr-4 py-2 text-sm outline-none rounded-lg border border-gray-200 dark:border-[#f6f6f4]/10 focus:border-gray-300 dark:focus:border-[#f6f6f4]/20 bg-white dark:bg-[#25231e] text-gray-900 dark:text-[#f6f6f4]"
+                  className="w-full pl-10 pr-4 py-1.5 text-sm outline-none rounded-lg border border-gray-200 dark:border-[#f6f6f4]/10 focus:border-gray-300 dark:focus:border-[#f6f6f4]/20 bg-white dark:bg-[#25231e] text-gray-900 dark:text-[#f6f6f4]"
                 />
               </div>
               {showSearchResults && filteredResults.length > 0 && (
