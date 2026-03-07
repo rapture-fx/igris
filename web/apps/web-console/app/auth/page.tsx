@@ -261,7 +261,7 @@ function AuthContent() {
   };
 
   return (
-    <div className="min-h-screen flex relative bg-[#f6f6f4] dark:bg-[#1b1912] text-gray-900 dark:text-[#f6f6f4] transition-colors duration-200">
+    <div className="min-h-screen flex relative bg-background text-gray-900 dark:text-[#f6f6f4] transition-colors duration-200">
       {/* Logo */}
       <div className="absolute top-6 left-8 z-10">
          <img
@@ -290,7 +290,7 @@ function AuthContent() {
               <button
                 onClick={() => handleOAuthSignIn('oauth_google')}
                 disabled={loadingProvider !== null}
-                className="w-80 flex items-center justify-center gap-3 px-4 py-3.5 border border-gray-300 dark:border-[#f6f6f4]/5 rounded-lg text-sm font-medium text-[#000000] dark:text-[#f6f6f4] font-inter outline-none focus:outline-none focus:ring-0 shadow-sm hover:shadow-md transition-all disabled:opacity-50 disabled:cursor-not-allowed bg-[#f6f6f4] dark:bg-[#1b1912]"
+                className="w-80 flex items-center justify-center gap-3 px-4 py-3.5 border border-gray-300 dark:border-[#f6f6f4]/5 rounded-lg text-sm font-medium text-[#000000] dark:text-[#f6f6f4] font-inter outline-none focus:outline-none focus:ring-0 shadow-sm hover:shadow-md transition-all disabled:opacity-50 disabled:cursor-not-allowed bg-background dark:bg-[#1b1912]"
               >
                 {loadingProvider === 'oauth_google' ? (
                   <Loader2 className="h-5 w-5 flex-shrink-0 animate-spin" />
