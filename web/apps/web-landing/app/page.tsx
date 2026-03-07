@@ -2,6 +2,7 @@
 
 import Header from '../src/components/sections/Header'
 import Hero from '../src/components/sections/Hero-Simple'
+import InstallSection from '../src/components/sections/InstallSection'
 import ClosingPosition from '../src/components/sections/ClosingPosition'
 import WhyItExists from '../src/components/sections/WhyItExists'
 import Footer from '../src/components/sections/Footer'
@@ -34,12 +35,7 @@ export default function HomePage() {
           <Header />
           <main>
             <Hero />
-            <section className="bg-white dark:bg-dark-bg">
-              <div style={{ borderTop: '0.5px solid rgba(209, 213, 219, 0.35)' }} />
-              <div className="mx-auto max-w-[1100px] px-4 sm:px-6 lg:px-8">
-                <div style={{ borderLeft: '0.5px solid rgba(209, 213, 219, 0.35)', borderRight: '0.5px solid rgba(209, 213, 219, 0.35)', height: '400px' }} />
-              </div>
-            </section>
+            <InstallSection />
             <Products />
             <CoreCapabilities />
             <AutonomousSystems />
