@@ -357,7 +357,7 @@ export function Sidebar({ open = true, onClose }: SidebarProps) {
                   </div>
                   <div className="min-w-0 flex-1 text-left">
                     <p className="text-xs font-medium text-gray-900 dark:text-[#f6f6f4] truncate leading-tight">{displayName}</p>
-                    {tenant?.plan && <p className="text-[10px] text-gray-400 truncate leading-tight">{tenant.plan}</p>}
+                    {tenant?.plan && <p className="text-[9px] text-gray-400 truncate leading-tight">{tenant.plan}</p>}
                   </div>
                 </button>
               </DropdownMenuTrigger>
@@ -376,7 +376,7 @@ export function Sidebar({ open = true, onClose }: SidebarProps) {
                     </div>
                     <div className="min-w-0">
                       <p className="text-xs font-semibold text-foreground truncate">{displayName}</p>
-                      {tenant?.plan && <p className="text-[10px] text-muted-foreground truncate">{tenant.plan}</p>}
+                      {tenant?.plan && <p className="text-[9px] text-muted-foreground truncate">{tenant.plan}</p>}
                     </div>
                   </div>
                 </div>
