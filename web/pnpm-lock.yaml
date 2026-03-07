@@ -320,9 +320,6 @@ importers:
       tailwind-merge:
         specifier: ^1.14.0
         version: 1.14.0
-      three:
-        specifier: ^0.182.0
-        version: 0.182.0
       zod:
         specifier: ^3.22.4
         version: 3.25.76
