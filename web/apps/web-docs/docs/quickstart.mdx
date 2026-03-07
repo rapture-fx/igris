@@ -1,12 +1,44 @@
 # Quick Start
 
-**TL;DR:** Point your OpenAI SDK to Igris Overture. Get automatic routing, failover, and cost optimization in 5 minutes.
+**TL;DR:** Install the Igris runtime with one command, then point your OpenAI SDK to Igris for automatic routing, failover, and cost optimization.
 
 ---
 
-## Get Started in 5 Minutes
+## Install Igris Runtime
 
-### Step 1: Start Free Trial
+```bash
+curl -sSL https://igris.sh/install | bash
+```
+
+The installer detects your platform (Linux x86-64, ARM64, macOS Apple Silicon, macOS Intel, Windows), downloads the correct binary, verifies the checksum, and installs to `/usr/local/bin/igris-runtime`.
+
+### Authenticate
+
+```bash
+igris-runtime serve
+```
+
+Set your credentials before starting:
+
+```bash
+export IGRIS_LICENSE_KEY=lic_…
+export IGRIS_API_KEY=igris_…
+igris-runtime serve
+```
+
+Get your keys from **Settings → License** and **Settings → Keys** in the console.
+
+### Verify
+
+Once running, the runtime registers itself with your fleet. It appears in **Fleet → Devices** within a minute.
+
+> **Manual download:** If scripts are restricted in your environment, download the binary directly from your console at **Fleet → Downloads**.
+
+---
+
+## Connect via SDK
+
+### Step 1: Sign Up
 
 No credit card required. All features unlocked for 14 days.
 
