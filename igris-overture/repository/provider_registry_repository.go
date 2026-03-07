@@ -91,9 +91,9 @@ func (r *providerRegistryRepository) Create(ctx context.Context, provider *model
 	query := `
 		INSERT INTO provider_registry (
 			id, tenant_id, name, base_url, auth_header_template,
-			models, pricing, compatibility_class, status, health,
+			key_id, models, pricing, compatibility_class, status, health,
 			is_verified, is_official
-		) VALUES ($1, $2, $3, $4, $5, $6, $7, $8, $9, $10, $11, $12)
+		) VALUES ($1, $2, $3, $4, $5, $6, $7, $8, $9, $10, $11, $12, $13)
 		RETURNING created_at, updated_at
 	`
 
@@ -103,6 +103,7 @@ func (r *providerRegistryRepository) Create(ctx context.Context, provider *model
 		provider.Name,
 		provider.BaseURL,
 		provider.AuthHeaderTemplate,
+		provider.KeyID,
 		modelsJSON,
 		pricingJSON,
 		provider.CompatibilityClass,
@@ -123,7 +124,7 @@ func (r *providerRegistryRepository) Create(ctx context.Context, provider *model
 // GetByID retrieves a provider by ID
 func (r *providerRegistryRepository) GetByID(ctx context.Context, id string) (*models.ProviderRegistry, error) {
 	query := `
-		SELECT id, tenant_id, name, base_url, auth_header_template,
+		SELECT id, tenant_id, name, base_url, auth_header_template, key_id,
 		       models, pricing, compatibility_class, status, health,
 		       is_verified, is_official, created_at, updated_at, last_validated_at
 		FROM provider_registry
@@ -132,6 +133,7 @@ func (r *providerRegistryRepository) GetByID(ctx context.Context, id string) (*m
 
 	provider := &models.ProviderRegistry{}
 	var modelsJSON, pricingJSON, healthJSON []byte
+	var keyID sql.NullString
 
 	err := r.db.QueryRowContext(ctx, query, id).Scan(
 		&provider.ID,
@@ -139,6 +141,7 @@ func (r *providerRegistryRepository) GetByID(ctx context.Context, id string) (*m
 		&provider.Name,
 		&provider.BaseURL,
 		&provider.AuthHeaderTemplate,
+		&keyID,
 		&modelsJSON,
 		&pricingJSON,
 		&provider.CompatibilityClass,
@@ -150,6 +153,9 @@ func (r *providerRegistryRepository) GetByID(ctx context.Context, id string) (*m
 		&provider.UpdatedAt,
 		&provider.LastValidatedAt,
 	)
+	if keyID.Valid {
+		provider.KeyID = &keyID.String
+	}
 
 	if err == sql.ErrNoRows {
 		return nil, fmt.Errorf("provider not found")
@@ -180,7 +186,7 @@ func (r *providerRegistryRepository) GetByID(ctx context.Context, id string) (*m
 // GetByTenantAndName retrieves a provider by tenant ID and name
 func (r *providerRegistryRepository) GetByTenantAndName(ctx context.Context, tenantID, name string) (*models.ProviderRegistry, error) {
 	query := `
-		SELECT id, tenant_id, name, base_url, auth_header_template,
+		SELECT id, tenant_id, name, base_url, auth_header_template, key_id,
 		       models, pricing, compatibility_class, status, health,
 		       is_verified, is_official, created_at, updated_at, last_validated_at
 		FROM provider_registry
@@ -189,6 +195,7 @@ func (r *providerRegistryRepository) GetByTenantAndName(ctx context.Context, ten
 
 	provider := &models.ProviderRegistry{}
 	var modelsJSON, pricingJSON, healthJSON []byte
+	var keyID sql.NullString
 
 	err := r.db.QueryRowContext(ctx, query, tenantID, name).Scan(
 		&provider.ID,
@@ -196,6 +203,7 @@ func (r *providerRegistryRepository) GetByTenantAndName(ctx context.Context, ten
 		&provider.Name,
 		&provider.BaseURL,
 		&provider.AuthHeaderTemplate,
+		&keyID,
 		&modelsJSON,
 		&pricingJSON,
 		&provider.CompatibilityClass,
@@ -207,6 +215,9 @@ func (r *providerRegistryRepository) GetByTenantAndName(ctx context.Context, ten
 		&provider.UpdatedAt,
 		&provider.LastValidatedAt,
 	)
+	if keyID.Valid {
+		provider.KeyID = &keyID.String
+	}
 
 	if err == sql.ErrNoRows {
 		return nil, fmt.Errorf("provider not found")
@@ -237,7 +248,7 @@ func (r *providerRegistryRepository) GetByTenantAndName(ctx context.Context, ten
 // ListByTenant lists all providers for a tenant
 func (r *providerRegistryRepository) ListByTenant(ctx context.Context, tenantID string, status *models.ProviderStatus) ([]*models.ProviderRegistry, error) {
 	query := `
-		SELECT id, tenant_id, name, base_url, auth_header_template,
+		SELECT id, tenant_id, name, base_url, auth_header_template, key_id,
 		       models, pricing, compatibility_class, status, health,
 		       is_verified, is_official, created_at, updated_at, last_validated_at
 		FROM provider_registry
@@ -263,7 +274,7 @@ func (r *providerRegistryRepository) ListActive(ctx context.Context, tenantID st
 // ListAll lists all providers (admin use)
 func (r *providerRegistryRepository) ListAll(ctx context.Context, limit, offset int) ([]*models.ProviderRegistry, error) {
 	query := `
-		SELECT id, tenant_id, name, base_url, auth_header_template,
+		SELECT id, tenant_id, name, base_url, auth_header_template, key_id,
 		       models, pricing, compatibility_class, status, health,
 		       is_verified, is_official, created_at, updated_at, last_validated_at
 		FROM provider_registry
@@ -300,14 +311,15 @@ func (r *providerRegistryRepository) Update(ctx context.Context, provider *model
 
 	query := `
 		UPDATE provider_registry
-		SET base_url = $1, auth_header_template = $2, models = $3,
-		    pricing = $4, compatibility_class = $5, status = $6, health = $7
-		WHERE id = $8
+		SET base_url = $1, auth_header_template = $2, key_id = $3, models = $4,
+		    pricing = $5, compatibility_class = $6, status = $7, health = $8
+		WHERE id = $9
 	`
 
 	result, err := r.db.ExecContext(ctx, query,
 		provider.BaseURL,
 		provider.AuthHeaderTemplate,
+		provider.KeyID,
 		modelsJSON,
 		pricingJSON,
 		provider.CompatibilityClass,
@@ -508,6 +520,7 @@ func (r *providerRegistryRepository) scanProviders(rows *sql.Rows) ([]*models.Pr
 	for rows.Next() {
 		provider := &models.ProviderRegistry{}
 		var modelsJSON, pricingJSON, healthJSON []byte
+		var keyID sql.NullString
 
 		err := rows.Scan(
 			&provider.ID,
@@ -515,6 +528,7 @@ func (r *providerRegistryRepository) scanProviders(rows *sql.Rows) ([]*models.Pr
 			&provider.Name,
 			&provider.BaseURL,
 			&provider.AuthHeaderTemplate,
+			&keyID,
 			&modelsJSON,
 			&pricingJSON,
 			&provider.CompatibilityClass,
@@ -526,6 +540,9 @@ func (r *providerRegistryRepository) scanProviders(rows *sql.Rows) ([]*models.Pr
 			&provider.UpdatedAt,
 			&provider.LastValidatedAt,
 		)
+		if keyID.Valid {
+			provider.KeyID = &keyID.String
+		}
 		if err != nil {
 			r.logger.Printf("[ProviderRegistry] Error scanning provider: %v", err)
 			continue

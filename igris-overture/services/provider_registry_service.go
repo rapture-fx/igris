@@ -40,11 +40,11 @@ func NewProviderRegistryService(repo repository.ProviderRegistryRepository, keyV
 
 // RegisterProviderRequest represents the request to register a new provider
 type RegisterProviderRequest struct {
-	Name       string                     `json:"name" validate:"required,min=1,max=255"`
-	BaseURL    string                     `json:"base_url" validate:"required,url"`
-	AuthHeader string                     `json:"auth_header" validate:"required"`
-	Models     []string                   `json:"models"`
-	Pricing    *models.ProviderPricing    `json:"pricing"`
+	Name               string                     `json:"name" validate:"required,min=1,max=255"`
+	BaseURL            string                     `json:"base_url" validate:"required,url"`
+	KeyID              string                     `json:"key_id" validate:"required"` // Vault key reference
+	Models             []string                   `json:"models"`
+	Pricing            *models.ProviderPricing    `json:"pricing"`
 	CompatibilityClass *models.CompatibilityClass `json:"compatibility_class,omitempty"`
 }
 
@@ -92,8 +92,12 @@ func (s *ProviderRegistryService) RegisterProvider(ctx context.Context, tenantID
 		compatibilityClass = verified.CompatibilityClass
 	}
 
-	// 5. Sanitize and encrypt auth header
-	authHeaderTemplate := s.sanitizeAuthHeader(req.AuthHeader)
+	// 5. Derive static auth header template from verified provider list.
+	// The template contains only the header name and the {key} placeholder — never a raw key.
+	authHeaderTemplate := "Authorization: Bearer {key}" // default
+	if verified, ok := VerifiedProviders[strings.ToLower(req.Name)]; ok {
+		authHeaderTemplate = verified.AuthHeaderTemplate
+	}
 
 	// 6. Initialize health metrics
 	health := models.ProviderHealth{
@@ -115,6 +119,7 @@ func (s *ProviderRegistryService) RegisterProvider(ctx context.Context, tenantID
 		Name:               req.Name,
 		BaseURL:            req.BaseURL,
 		AuthHeaderTemplate: authHeaderTemplate,
+		KeyID:              &req.KeyID,
 		Models:             req.Models,
 		Pricing:            pricing,
 		CompatibilityClass: compatibilityClass,
@@ -147,10 +152,13 @@ func (s *ProviderRegistryService) ValidateProvider(ctx context.Context, provider
 		return nil, fmt.Errorf("provider not found: %w", err)
 	}
 
-	// 2. Retrieve API key from vault
-	decryptedKey, err := s.keyVault.GetKey(provider.TenantID, provider.Name)
+	// 2. Retrieve API key from vault via key_id reference
+	if provider.KeyID == nil || *provider.KeyID == "" {
+		return nil, fmt.Errorf("provider '%s' has no vault key reference (key_id is missing)", provider.Name)
+	}
+	decryptedKey, err := s.keyVault.GetKeyByID(*provider.KeyID)
 	if err != nil {
-		return nil, fmt.Errorf("API key not found in vault for provider '%s': %w", provider.Name, err)
+		return nil, fmt.Errorf("vault key not found for provider '%s' (key_id=%s): %w", provider.Name, *provider.KeyID, err)
 	}
 
 	apiKey := decryptedKey.PlainKey
