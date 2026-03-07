@@ -37,12 +37,12 @@ func NewProviderRegistryHandler(db *sql.DB, keyVault *security.KeyVault) *Provid
 
 // RegisterProviderRequest represents the request to register a new provider
 type RegisterProviderRequest struct {
-	Name               string                      `json:"name" validate:"required"`
-	BaseURL            string                      `json:"base_url" validate:"required"`
-	AuthHeader         string                      `json:"auth_header" validate:"required"`
-	Models             []string                    `json:"models"`
-	Pricing            *models.ProviderPricing     `json:"pricing,omitempty"`
-	CompatibilityClass *models.CompatibilityClass  `json:"compatibility_class,omitempty"`
+	Name               string                     `json:"name" validate:"required"`
+	BaseURL            string                     `json:"base_url" validate:"required"`
+	KeyID              string                     `json:"key_id" validate:"required"` // Vault key reference; no raw keys accepted
+	Models             []string                   `json:"models"`
+	Pricing            *models.ProviderPricing    `json:"pricing,omitempty"`
+	CompatibilityClass *models.CompatibilityClass `json:"compatibility_class,omitempty"`
 }
 
 // RegisterProviderResponse represents the response after registering a provider
@@ -87,9 +87,9 @@ func (h *ProviderRegistryHandler) RegisterProvider(c *fiber.Ctx) error {
 	}
 
 	// Validate required fields
-	if req.Name == "" || req.BaseURL == "" || req.AuthHeader == "" {
+	if req.Name == "" || req.BaseURL == "" || req.KeyID == "" {
 		return c.Status(fiber.StatusBadRequest).JSON(fiber.Map{
-			"error": "Missing required fields: name, base_url, auth_header",
+			"error": "Missing required fields: name, base_url, key_id",
 			"code":  "MISSING_FIELDS",
 		})
 	}
@@ -98,7 +98,7 @@ func (h *ProviderRegistryHandler) RegisterProvider(c *fiber.Ctx) error {
 	serviceReq := &services.RegisterProviderRequest{
 		Name:               req.Name,
 		BaseURL:            req.BaseURL,
-		AuthHeader:         req.AuthHeader,
+		KeyID:              req.KeyID,
 		Models:             req.Models,
 		Pricing:            req.Pricing,
 		CompatibilityClass: req.CompatibilityClass,
@@ -410,8 +410,8 @@ func (h *ProviderRegistryHandler) UpdateProvider(c *fiber.Ctx) error {
 	if req.BaseURL != "" {
 		provider.BaseURL = req.BaseURL
 	}
-	if req.AuthHeader != "" {
-		provider.AuthHeaderTemplate = req.AuthHeader
+	if req.KeyID != "" {
+		provider.KeyID = &req.KeyID
 	}
 	if req.Models != nil {
 		provider.Models = req.Models
