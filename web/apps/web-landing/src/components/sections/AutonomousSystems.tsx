@@ -69,7 +69,7 @@ export default function AutonomousSystems() {
               </div>
               <div className="absolute top-4 right-4 z-10">
                 <Link
-                  href="/ai-agents"
+                  href="https://docs.igrisinertial.com/docs/agents/"
                   className="inline-flex items-center justify-center px-4 py-2 hover:opacity-80 transition-all duration-200 text-sm font-medium shadow-sm rounded-md border m-4"
                   style={{ backgroundColor: mounted && theme === 'dark' ? '#1b1912' : '#f9f9fa', color: mounted && theme === 'dark' ? '#f6f6f4' : '#1b1912', borderColor: 'rgba(20, 18, 10, 0.1)', fontFamily }}
                 >
@@ -115,7 +115,7 @@ export default function AutonomousSystems() {
                 />
               </div>
               <Link
-                href="/robotics"
+                href="https://docs.igrisinertial.com/docs/robotics/"
                 className="relative z-10 inline-flex items-center justify-center px-4 py-2 hover:opacity-80 transition-all duration-200 text-sm font-medium shadow-sm rounded-md border m-4"
                 style={{ backgroundColor: mounted && theme === 'dark' ? '#1b1912' : '#f9f9fa', color: mounted && theme === 'dark' ? '#f6f6f4' : '#1b1912', borderColor: 'rgba(20, 18, 10, 0.1)', fontFamily }}
               >
