@@ -242,6 +242,33 @@ func (kv *KeyVault) GetKey(tenantID, provider string) (*DecryptedKey, error) {
 	}, nil
 }
 
+// GetKeyByID retrieves and decrypts a key by its vault ID.
+// Used when a provider references a specific key_id instead of looking up by provider name.
+func (kv *KeyVault) GetKeyByID(id string) (*DecryptedKey, error) {
+	kv.mu.RLock()
+	defer kv.mu.RUnlock()
+
+	encKey, err := kv.getKeyByIDDB(id)
+	if err != nil {
+		return nil, fmt.Errorf("key not found: %w", err)
+	}
+
+	plainKey, err := kv.decryptKey(encKey)
+	if err != nil {
+		return nil, fmt.Errorf("decryption failed: %w", err)
+	}
+
+	go kv.trackKeyUsage(encKey.ID, encKey.TenantID, encKey.Provider)
+
+	return &DecryptedKey{
+		TenantID: encKey.TenantID,
+		Provider: encKey.Provider,
+		KeyName:  encKey.KeyName,
+		PlainKey: plainKey,
+		IsActive: encKey.IsActive,
+	}, nil
+}
+
 // getActiveKeyDB retrieves the active key from database
 func (kv *KeyVault) getActiveKeyDB(tenantID, provider string) (*EncryptedKey, error) {
 	var key EncryptedKey
