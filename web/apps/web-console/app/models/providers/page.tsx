@@ -438,9 +438,9 @@ export default function ModelsProvidersPage() {
                   )}
                 </SelectContent>
               </Select>
-              <p className="text-[10px] text-gray-400">
+              <p className="text-[9px] text-gray-400">
                 Keys are managed in{' '}
-                <Link href="/settings/keys" className="underline">Settings → Keys</Link>.
+                <Link href="/settings/keys" className="underline underline-offset-1">Settings → Keys</Link>.
                 Raw API keys are never stored here.
               </p>
             </div>
