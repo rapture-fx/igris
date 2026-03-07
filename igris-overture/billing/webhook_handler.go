@@ -222,19 +222,17 @@ func (h *WebhookHandler) handleSubscriptionUpdated(event *WebhookEvent) error {
 		return fmt.Errorf("failed to update subscription: %w", err)
 	}
 
-	// TODO: Update database tier
-	// This should be done when auto-upgrade is triggered from tier_enforcer.go
-	// Example:
-	// if h.db != nil {
-	//     _, err := h.db.ExecContext(ctx, `
-	//         UPDATE tenants
-	//         SET tier = $1, tier_upgraded_at = CURRENT_TIMESTAMP
-	//         WHERE id = $2
-	//     `, sub.Metadata["tier"], data.CustomerID)
-	//     if err != nil {
-	//         h.logger.Printf("[Webhook] Failed to update tenant tier: %v", err)
-	//     }
-	// }
+	// Update tenant tier in database
+	if h.db != nil {
+		_, err := h.db.ExecContext(ctx, `
+			UPDATE tenants
+			SET tier = $1, tier_upgraded_at = CURRENT_TIMESTAMP
+			WHERE id = $2
+		`, sub.Metadata["tier"], data.CustomerID)
+		if err != nil {
+			h.logger.Printf("[Webhook] Failed to update tenant tier: %v", err)
+		}
+	}
 
 	// If upgraded tier, send congratulations email
 	if sub.Status == StatusActive {
