@@ -28,7 +28,7 @@ export function useTenant() {
             id: 'demo-tenant-001',
             name: 'Demo Organization',
             email: 'demo@igrisinertial.com',
-            plan: 'Growth',
+            plan: 'Seed',
             created_at: new Date(Date.now() - 90 * 24 * 60 * 60 * 1000).toISOString(),
             updated_at: new Date().toISOString(),
             status: 'active' as 'active' | 'disabled' | 'suspended',
