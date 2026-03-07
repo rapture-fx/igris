@@ -385,7 +385,7 @@ export function DocsSidebar({ open = true, onClose }: DocsSidebarProps) {
                 placeholder=""
                 readOnly
                 onClick={() => setIsSearchModalOpen(true)}
-                className="w-full pl-9 pr-16 py-2 text-[0.75rem] border border-gray-200 dark:border-[#f6f6f4]/10 rounded-lg outline-none bg-white dark:bg-[#25231e] focus:border-gray-300 dark:focus:border-[#f6f6f4]/20 transition-colors cursor-pointer text-gray-900 dark:text-[#f6f6f4]"
+                className="w-full pl-9 pr-16 py-2 text-[0.75rem] border border-gray-200 dark:border-[#f6f6f4]/10 rounded-lg outline-none bg-white dark:bg-[#25231e] focus:border-gray-300 dark:focus:border-[#f6f6f4]/20 transition-colors cursor-pointer text-gray-900 dark:text-[#f6f6f4] shadow-sm"
               />
               <div className="absolute right-3 top-1/2 transform -translate-y-1/2 flex items-center gap-1 pointer-events-none">
                 <span className="text-xs font-medium text-gray-400">⌘ F</span>
@@ -398,7 +398,7 @@ export function DocsSidebar({ open = true, onClose }: DocsSidebarProps) {
             <div className="relative">
               <button
                 onClick={() => setSectionOpen((v) => !v)}
-                className="w-full flex items-center justify-between px-3 py-2 text-[0.75rem] font-medium rounded-lg border border-gray-200 dark:border-[#f6f6f4]/10 bg-white dark:bg-[#25231e] text-gray-700 dark:text-[#c8c8b8] hover:bg-gray-50 dark:hover:bg-[#2c2a22] transition-colors"
+                className="w-full flex items-center justify-between px-3 py-2 text-[0.75rem] font-medium rounded-lg border border-gray-200 dark:border-[#f6f6f4]/10 bg-white dark:bg-[#25231e] text-gray-700 dark:text-[#c8c8b8] hover:bg-gray-50 dark:hover:bg-[#2c2a22] transition-colors shadow-sm"
               >
                 <span>{sectionLabels[activeSection]}</span>
                 <ChevronDown className={cn('h-3.5 w-3.5 text-gray-400 transition-transform duration-150', sectionOpen && 'rotate-180')} />
