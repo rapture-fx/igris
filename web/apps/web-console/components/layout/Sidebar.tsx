@@ -248,9 +248,9 @@ export function Sidebar({ open = true, onClose }: SidebarProps) {
         <div className="flex h-full flex-col bg-[#f3f3f6] dark:bg-[#25231e]">
 
           {/* Logo */}
-          <div className="h-12 flex items-center px-4 pt-2">
+          <div className="h-12 flex items-center px-4 pt-4">
             <Link href="/dashboard" className="flex items-center">
-              <img src="/dmfoot.png" alt="Igris" style={{ width: '25px', height: 'auto' }} />
+              <img src="/dmfoot.png" alt="Igris" style={{ width: '30px', height: 'auto' }} />
             </Link>
           </div>
 
