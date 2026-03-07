@@ -1,6 +1,6 @@
 'use client';
 
-import { useState, useMemo, useEffect } from 'react';
+import { useState, useMemo, useEffect, Suspense } from 'react';
 import { useRouter, useSearchParams } from 'next/navigation';
 import { useQuery } from '@tanstack/react-query';
 import { DashboardLayout } from '@/components/layout/DashboardLayout';
@@ -264,6 +264,14 @@ function formatDuration(ms: number): string {
 // ─── Page ─────────────────────────────────────────────────────────────────────
 
 export default function FleetDevicesPage() {
+  return (
+    <Suspense fallback={null}>
+      <FleetDevicesContent />
+    </Suspense>
+  );
+}
+
+function FleetDevicesContent() {
   const router = useRouter();
   const searchParams = useSearchParams();
 
