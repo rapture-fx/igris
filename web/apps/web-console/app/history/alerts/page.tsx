@@ -227,7 +227,7 @@ function SeverityBadge({ severity }: { severity: AlertSeverity }) {
   const key = (severity ?? '').toLowerCase() as AlertSeverity;
   const Icon = SEV_ICON[key];
   return (
-    <span className={`inline-flex items-center gap-1 px-1.5 py-0.5 text-[10px] font-semibold uppercase border rounded ${SEV_STYLE[key] ?? SEV_STYLE.info}`}>
+    <span className={`inline-flex items-center gap-1 px-1.5 py-0.5 text-[10px] font-medium border rounded ${SEV_STYLE[key] ?? SEV_STYLE.info}`}>
       {Icon && <Icon className="h-2.5 w-2.5" />}
       {key}
     </span>
@@ -237,7 +237,7 @@ function SeverityBadge({ severity }: { severity: AlertSeverity }) {
 function StatusBadge({ status }: { status: AlertStatus }) {
   const key = (status ?? '').toLowerCase() as AlertStatus;
   return (
-    <span className={`inline-flex items-center px-1.5 py-0.5 text-[10px] font-semibold uppercase border rounded ${STATUS_STYLE[key] ?? STATUS_STYLE.open}`}>
+    <span className={`inline-flex items-center px-1.5 py-0.5 text-[10px] font-medium border rounded ${STATUS_STYLE[key] ?? STATUS_STYLE.open}`}>
       {key}
     </span>
   );
