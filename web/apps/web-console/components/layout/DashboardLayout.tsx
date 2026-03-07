@@ -34,7 +34,7 @@ export function DashboardLayout({ children }: DashboardLayoutProps) {
           <div className="flex m-0 p-0 pt-2 pb-2">
             <Sidebar open={sidebarOpen} onClose={() => setSidebarOpen(false)} />
 
-            <main className="flex-1 md:ml-56 md:pl-12 md:pr-2 px-4 sm:px-6 lg:px-8 overflow-x-hidden rounded-2xl bg-background h-[calc(100vh-8px)] shadow-lg border border-gray-200 dark:border-[#f6f6f4]/10">
+            <main className="flex-1 md:ml-56 md:pl-12 md:pr-2 px-4 sm:px-6 lg:px-8 overflow-x-hidden rounded-2xl bg-background h-[calc(100vh-16px)] border border-gray-200 dark:border-[#f6f6f4]/10">
               {/* Trial Banner */}
               {showTrialBanner && (
                 <div className="bg-blue-600 dark:bg-blue-700 text-white px-4 sm:px-6 lg:px-8 py-3 border-b border-border">
