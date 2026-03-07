@@ -243,7 +243,7 @@ export function Sidebar({ open = true, onClose }: SidebarProps) {
           open ? 'translate-x-0' : '-translate-x-full'
         )}
       >
-        <div className="flex h-full flex-col border-r-[0.5px] border-gray-200 dark:border-[#f6f6f4]/10 bg-white dark:bg-[#25231e]">
+        <div className="flex h-full flex-col border-r-[0.5px] border-gray-200 dark:border-[#f6f6f4]/10 bg-[#f3f3f6] dark:bg-[#25231e]">
 
           {/* Logo */}
           <div className="h-12 flex items-center px-4">
@@ -306,7 +306,7 @@ export function Sidebar({ open = true, onClose }: SidebarProps) {
                                   className={cn(
                                     'flex items-center rounded-lg px-2 py-1.5 text-xs font-medium transition-colors',
                                     isActive
-                                      ? 'bg-[#f5f5f5] dark:bg-[#282c34] text-gray-900 dark:text-[#f6f6f4] font-semibold'
+                                      ? 'bg-white dark:bg-[#282c34] text-gray-900 dark:text-[#f6f6f4] font-semibold shadow-sm'
                                       : 'text-gray-600 dark:text-[#c8c8b8] hover:text-gray-900 dark:hover:text-[#f6f6f4] hover:bg-[#f5f5f5] dark:hover:bg-[#2c2a22]'
                                   )}
                                 >
@@ -331,11 +331,11 @@ export function Sidebar({ open = true, onClose }: SidebarProps) {
                       className={cn(
                         'flex items-center gap-2 rounded-lg px-3 py-1.5 text-xs font-medium transition-colors',
                         isActive
-                          ? 'bg-[#f5f5f5] dark:bg-[#282c34] text-gray-900 dark:text-[#f6f6f4] font-semibold'
+                          ? 'bg-white dark:bg-[#282c34] text-gray-900 dark:text-[#f6f6f4] font-semibold shadow-sm'
                           : 'text-gray-600 dark:text-[#c8c8b8] hover:text-gray-900 dark:hover:text-[#f6f6f4] hover:bg-[#f5f5f5] dark:hover:bg-[#2c2a22]'
                       )}
                     >
-                      <item.icon className="h-[15px] w-[15px] flex-shrink-0 text-gray-400 dark:text-[#c8c8b8]" strokeWidth={1.5} />
+                      <item.icon className={cn('h-[15px] w-[15px] flex-shrink-0', isActive ? 'text-gray-900 dark:text-[#f6f6f4]' : 'text-gray-400 dark:text-[#c8c8b8]')} strokeWidth={1.5} />
                       {item.name}
                     </Link>
                   </li>
