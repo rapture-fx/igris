@@ -9,9 +9,7 @@ const nextConfig = {
     ignoreBuildErrors: true,
   },
 
-  turbopack: {
-    root: workspaceRoot,
-  },
+  outputFileTracingRoot: workspaceRoot,
 
   // Inline workspace packages into the bundle
   transpilePackages: [
