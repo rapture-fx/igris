@@ -288,7 +288,7 @@ export function Sidebar({ open = true, onClose }: SidebarProps) {
                         </div>
                         <ChevronDown
                           className={cn(
-                            'h-3.5 w-3.5 text-gray-400 transition-transform duration-150',
+                            'h-3.5 w-3.5 text-[#f3f3f6] dark:text-[#25231e] transition-transform duration-150',
                             isExpanded && 'rotate-180'
                           )}
                         />
@@ -337,7 +337,7 @@ export function Sidebar({ open = true, onClose }: SidebarProps) {
                           : 'text-gray-600 dark:text-[#c8c8b8] hover:text-gray-900 dark:hover:text-[#f6f6f4] hover:bg-[#f5f5f5] dark:hover:bg-[#2c2a22]'
                       )}
                     >
-                      <item.icon className={cn('h-[15px] w-[15px] flex-shrink-0', isActive ? 'text-gray-900 dark:text-[#f6f6f4]' : 'text-gray-400 dark:text-[#c8c8b8]')} strokeWidth={1.5} />
+                      <item.icon className={cn('h-[15px] w-[15px] flex-shrink-0', isActive ? 'text-gray-900 dark:text-gray-900' : 'text-gray-400 dark:text-[#c8c8b8]')} strokeWidth={1.5} />
                       {item.name}
                     </Link>
                   </li>
