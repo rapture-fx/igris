@@ -250,7 +250,7 @@ export function Sidebar({ open = true, onClose }: SidebarProps) {
           {/* Logo */}
           <div className="h-12 flex items-center px-4 pt-4">
             <Link href="/dashboard" className="flex items-center">
-              <img src="/dmfoot.png" alt="Igris" style={{ width: '30px', height: 'auto' }} />
+              <img src="/dmfoot.png" alt="Igris" style={{ width: '25px', height: 'auto' }} />
             </Link>
           </div>
 
@@ -308,7 +308,7 @@ export function Sidebar({ open = true, onClose }: SidebarProps) {
                                   className={cn(
                                     'flex items-center rounded-lg px-2 py-1.5 text-xs font-medium transition-colors',
                                     isActive
-                                      ? 'bg-white dark:bg-[#282c34] text-gray-900 dark:text-[#f6f6f4] font-semibold shadow-sm'
+                                      ? 'bg-white dark:bg-[#282c34] text-gray-900 dark:text-[#f6f6f4] font-semibold shadow-sm border border-gray-200 dark:border-[#f6f6f4]/10'
                                       : 'text-gray-600 dark:text-[#c8c8b8] hover:text-gray-900 dark:hover:text-[#f6f6f4] hover:bg-[#f5f5f5] dark:hover:bg-[#2c2a22]'
                                   )}
                                 >
@@ -333,7 +333,7 @@ export function Sidebar({ open = true, onClose }: SidebarProps) {
                       className={cn(
                         'flex items-center gap-2 rounded-lg px-3 py-1.5 text-xs font-medium transition-colors',
                         isActive
-                          ? 'bg-white dark:bg-[#282c34] text-gray-900 dark:text-[#f6f6f4] font-semibold shadow-sm'
+                          ? 'bg-white dark:bg-[#282c34] text-gray-900 dark:text-[#f6f6f4] font-semibold shadow-sm border border-gray-200 dark:border-[#f6f6f4]/10'
                           : 'text-gray-600 dark:text-[#c8c8b8] hover:text-gray-900 dark:hover:text-[#f6f6f4] hover:bg-[#f5f5f5] dark:hover:bg-[#2c2a22]'
                       )}
                     >
