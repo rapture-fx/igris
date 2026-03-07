@@ -8,7 +8,8 @@ import {
   ChevronDown, Search, FileText,
   LayoutDashboard, PlayCircle, Network, Sparkles,
   ScrollText, BadgeCheck, CalendarClock, SlidersHorizontal,
-  CreditCard, KeyRound, Settings, LogOut,
+  CreditCard, KeyRound, Settings, LogOut, HelpCircle,
+  BookOpen, ExternalLink, Mail, Activity,
 } from 'lucide-react';
 import {
   DropdownMenu, DropdownMenuContent, DropdownMenuItem, DropdownMenuTrigger,
@@ -117,6 +118,7 @@ export function Sidebar({ open = true, onClose }: SidebarProps) {
   const { signOut } = useClerk();
   const { data: tenant } = useTenant();
   const [showLogoutDialog, setShowLogoutDialog] = useState(false);
+  const [showHelp, setShowHelp] = useState(false);
 
   const initials = tenant ? getInitials(tenant.name) : 'U';
   const displayName = tenant?.name ?? 'Account';
@@ -239,7 +241,7 @@ export function Sidebar({ open = true, onClose }: SidebarProps) {
 
       <aside
         className={cn(
-          'fixed top-0 left-0 z-50 h-screen w-64 transform transition-transform duration-200 ease-in-out md:translate-x-0',
+          'fixed top-0 left-0 z-50 h-screen w-56 transform transition-transform duration-200 ease-in-out md:translate-x-0',
           open ? 'translate-x-0' : '-translate-x-full'
         )}
       >
@@ -343,6 +345,74 @@ export function Sidebar({ open = true, onClose }: SidebarProps) {
               })}
             </ul>
           </nav>
+
+          {/* Help button */}
+          <div className="px-4 pb-2">
+            <div className="relative">
+              <button
+                onClick={() => setShowHelp(!showHelp)}
+                className="flex items-center justify-center w-8 h-8 rounded-lg text-gray-600 dark:text-[#c8c8b8] hover:text-gray-900 dark:hover:text-[#f6f6f4] hover:bg-[#f5f5f5] dark:hover:bg-[#2c2a22] transition-colors"
+              >
+                <HelpCircle className="h-[15px] w-[15px]" strokeWidth={1.5} />
+              </button>
+              {showHelp && (
+                <>
+                  <div className="fixed inset-0 z-30" onClick={() => setShowHelp(false)} />
+                  <div className="absolute bottom-full left-0 mb-2 w-52 z-40 bg-white dark:bg-[#1b1912] border border-gray-200 dark:border-[#f6f6f4]/10 rounded-lg shadow-md p-2">
+                    <p className="text-[10px] font-medium text-gray-400 uppercase tracking-wide mb-1.5 px-2">Help</p>
+                    <a
+                      href="https://docs.igrisinertial.com"
+                      target="_blank"
+                      rel="noopener noreferrer"
+                      className="flex items-center justify-between gap-2 w-full px-2 py-1.5 rounded-lg hover:bg-gray-50 dark:hover:bg-[#2c2a22] transition-colors"
+                      onClick={() => setShowHelp(false)}
+                    >
+                      <div className="flex items-center gap-2">
+                        <BookOpen className="h-3.5 w-3.5 text-gray-400" strokeWidth={1.5} />
+                        <span className="text-xs text-gray-900 dark:text-[#f6f6f4]">Igris Docs</span>
+                      </div>
+                      <ExternalLink className="h-3 w-3 text-gray-400" strokeWidth={1.5} />
+                    </a>
+                    <div className="border-t border-gray-100 dark:border-[#f6f6f4]/10 my-1" />
+                    <a
+                      href="mailto:support@igrisinertial.com"
+                      className="flex items-center gap-2 w-full px-2 py-1.5 rounded-lg hover:bg-gray-50 dark:hover:bg-[#2c2a22] transition-colors"
+                      onClick={() => setShowHelp(false)}
+                    >
+                      <Mail className="h-3.5 w-3.5 text-gray-400" strokeWidth={1.5} />
+                      <span className="text-xs text-gray-900 dark:text-[#f6f6f4]">Contact Support</span>
+                    </a>
+                    <a
+                      href="https://changelog.igrisinertial.com"
+                      target="_blank"
+                      rel="noopener noreferrer"
+                      className="flex items-center justify-between gap-2 w-full px-2 py-1.5 rounded-lg hover:bg-gray-50 dark:hover:bg-[#2c2a22] transition-colors"
+                      onClick={() => setShowHelp(false)}
+                    >
+                      <div className="flex items-center gap-2">
+                        <FileText className="h-3.5 w-3.5 text-gray-400" strokeWidth={1.5} />
+                        <span className="text-xs text-gray-900 dark:text-[#f6f6f4]">Change Log</span>
+                      </div>
+                      <ExternalLink className="h-3 w-3 text-gray-400" strokeWidth={1.5} />
+                    </a>
+                    <a
+                      href="https://status.igrisinertial.com"
+                      target="_blank"
+                      rel="noopener noreferrer"
+                      className="flex items-center justify-between gap-2 w-full px-2 py-1.5 rounded-lg hover:bg-gray-50 dark:hover:bg-[#2c2a22] transition-colors"
+                      onClick={() => setShowHelp(false)}
+                    >
+                      <div className="flex items-center gap-2">
+                        <Activity className="h-3.5 w-3.5 text-gray-400" strokeWidth={1.5} />
+                        <span className="text-xs text-gray-900 dark:text-[#f6f6f4]">System Status</span>
+                      </div>
+                      <ExternalLink className="h-3 w-3 text-gray-400" strokeWidth={1.5} />
+                    </a>
+                  </div>
+                </>
+              )}
+            </div>
+          </div>
 
           {/* Footer — profile */}
           <div className="px-4 py-3 flex-shrink-0 flex items-center gap-2">
