@@ -382,8 +382,12 @@ func main() {
 		}
 		api.RegisterRuntimeRoutes(app, dbInstance, runtimeEnforcer)
 		log.Println("[Runtime] ✅ Runtime registration endpoints registered (/api/v1/runtime)")
+
+		// Authenticated runtime binary download (JWT auth, rate-limited, audit-logged)
+		api.RegisterDownloadRoutes(app, dbInstance, redisClient, tenantAuth)
+		log.Println("[Runtime] ✅ Authenticated download endpoint registered (GET /v1/runtime/download)")
 	} else {
-		log.Println("[Runtime] ⚠️  Database not available — runtime registration disabled")
+		log.Println("[Runtime] ⚠️  Database not available — runtime endpoints disabled")
 	}
 
 	// Initialize Polar billing webhook handler (if configured)
@@ -425,7 +429,7 @@ func main() {
 			endpoints["usage_log"] = "/api/v1/usage/log"
 			endpoints["runtime_register"] = "/api/v1/runtime/register"
 			endpoints["runtime_heartbeat"] = "/api/v1/runtime/heartbeat"
-			endpoints["runtime_download"] = "/api/v1/runtime/download"
+			endpoints["runtime_download"] = "/v1/runtime/download"
 		}
 
 		// Add billing webhook if configured
