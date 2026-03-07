@@ -30,11 +30,18 @@ export default function InstallSection() {
             borderRight: '0.5px solid rgba(209, 213, 219, 0.35)',
             minHeight: '400px',
           }}
-          className="flex flex-col justify-center items-center px-8 md:px-12 lg:px-16 py-16"
+          className="flex flex-col justify-center items-center px-8 md:px-12 lg:px-16 pb-8"
         >
+          <p
+            className="text-sm mb-4 font-medium"
+            style={{ color: isDark ? '#f6f6f4' : '#1b1912', fontFamily: 'Inter, -apple-system, BlinkMacSystemFont, "Segoe UI", Roboto, Helvetica, Arial, sans-serif' }}
+          >
+            Quick Install
+          </p>
+
           {/* Command block */}
           <div
-            className="inline-flex items-center gap-4 rounded-md px-5 py-3 font-mono text-sm border self-center"
+            className="inline-flex items-center gap-4 rounded-md px-5 py-3 font-mono text-sm border self-center shadow-sm"
             style={{
               backgroundColor: isDark ? '#1a1a1a' : '#f9fafb',
               borderColor: isDark ? 'rgba(246,246,244,0.08)' : 'rgba(0,0,0,0.08)',
@@ -49,11 +56,11 @@ export default function InstallSection() {
               style={{ color: isDark ? '#a8a898' : '#6b7280' }}
             >
               {copied ? (
-                <svg width="15" height="15" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2.5" strokeLinecap="round" strokeLinejoin="round">
+                <svg width="12" height="12" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2.5" strokeLinecap="round" strokeLinejoin="round">
                   <polyline points="20 6 9 17 4 12" />
                 </svg>
               ) : (
-                <svg width="15" height="15" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round">
+                <svg width="12" height="12" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round">
                   <rect x="9" y="9" width="13" height="13" rx="2" ry="2" />
                   <path d="M5 15H4a2 2 0 0 1-2-2V4a2 2 0 0 1 2-2h9a2 2 0 0 1 2 2v1" />
                 </svg>
@@ -68,7 +75,7 @@ export default function InstallSection() {
               className="text-xs underline underline-offset-2 transition-opacity hover:opacity-70"
               style={{ color: isDark ? '#6b6b5e' : '#9ca3af', fontFamily: '-apple-system, BlinkMacSystemFont, "Segoe UI", Roboto, Helvetica, Arial, sans-serif' }}
             >
-              Manual download →
+              Download →
             </a>
           </div>
         </div>
