@@ -401,7 +401,7 @@ export default function SDKs() {
                 </p>
                 <div>
                   <a
-                    href="https://docs.igrisinertial.com/"
+                    href="https://docs.igrisinertial.com/docs/sdk/"
                     className="text-sm text-gray-900 dark:text-[#f6f6f4] underline decoration-dotted underline-offset-2 hover:text-gray-600 dark:hover:text-gray-300 transition-colors"
                     style={{ fontFamily }}
                   >
@@ -439,11 +439,11 @@ export default function SDKs() {
                 </p>
                 <div>
                   <a
-                    href="https://runtime.igrisinertial.com/"
+                    href="https://docs.igrisinertial.com/docs/behavior-trees/"
                     className="text-sm text-gray-900 dark:text-[#f6f6f4] underline decoration-dotted underline-offset-2 hover:text-gray-600 dark:hover:text-gray-300 transition-colors"
                     style={{ fontFamily }}
                   >
-                    View Runtime Docs
+                    BTree
                   </a>
                 </div>
               </div>
