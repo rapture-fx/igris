@@ -103,4 +103,25 @@
   .scrollbar-hide::-webkit-scrollbar {
     display: none;
   }
+
+  /* Overscroll background */
+  html {
+    scrollbar-gutter: stable;
+    background-color: #f3f3f6;
+  }
+  .dark html {
+    background-color: #25231e;
+  }
+  ::-webkit-scrollbar-corner {
+    background-color: #f3f3f6;
+  }
+  .dark ::-webkit-scrollbar-corner {
+    background-color: #25231e;
+  }
+  body {
+    background-color: #f3f3f6;
+  }
+  .dark body {
+    background-color: #25231e;
+  }
 }
