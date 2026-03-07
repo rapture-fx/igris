@@ -53,6 +53,7 @@ const navigation: NavigationItem[] = [
     icon: Network,
     children: [
       { name: 'Devices', href: '/fleet/devices' },
+      { name: 'Downloads', href: '/downloads/runtime' },
     ],
   },
   {
@@ -94,6 +95,7 @@ const navigation: NavigationItem[] = [
     icon: SlidersHorizontal,
     children: [
       { name: 'General', href: '/settings/general' },
+      { name: 'Keys', href: '/settings/keys' },
       { name: 'License', href: '/settings/license' },
     ],
   },
@@ -258,7 +260,7 @@ export function Sidebar({ open = true, onClose }: SidebarProps) {
                 type="text"
                 readOnly
                 onClick={() => setIsSearchModalOpen(true)}
-                className="w-full pl-9 pr-16 py-2 text-[0.75rem] border border-gray-200 dark:border-[#f6f6f4]/10 rounded-lg outline-none bg-white dark:bg-[#25231e] cursor-pointer text-gray-900 dark:text-[#f6f6f4] focus:border-gray-300 dark:focus:border-[#f6f6f4]/20 transition-colors"
+                className="w-full pl-9 pr-16 py-2 text-[0.75rem] border border-gray-200 dark:border-[#f6f6f4]/10 rounded-lg outline-none bg-white dark:bg-[#25231e] cursor-pointer text-gray-900 dark:text-[#f6f6f4] focus:border-gray-300 dark:focus:border-[#f6f6f4]/20 transition-colors shadow-sm"
               />
               <div className="absolute right-3 top-1/2 -translate-y-1/2 pointer-events-none">
                 <span className="text-xs font-medium text-gray-400">⌘ F</span>
