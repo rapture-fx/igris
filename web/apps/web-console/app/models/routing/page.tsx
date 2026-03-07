@@ -20,7 +20,7 @@ import { api } from '@/lib/apiClient';
 import { Slider } from '@/components/ui/slider';
 import {
   RefreshCw, SlidersHorizontal, Zap, Users, Eye, ShieldCheck,
-  Play, ChevronRight, CheckCircle2, X,
+  CheckCircle2,
 } from 'lucide-react';
 
 // ─── Types ─────────────────────────────────────────────────────────────────────
@@ -63,14 +63,6 @@ interface ProviderRow {
   cost_per_token: number | null;
   routing_weight: number;
   priority: number;
-}
-
-interface SimulateResult {
-  selected_provider: string;
-  selected_model: string;
-  fallback_providers: string[];
-  estimated_latency: number;
-  estimated_cost: number;
 }
 
 // ─── Mock Data ─────────────────────────────────────────────────────────────────
@@ -131,14 +123,6 @@ const MOCK_PROVIDERS: ProviderRow[] = [
   },
 ];
 
-const MOCK_SIMULATE: SimulateResult = {
-  selected_provider: 'Anthropic',
-  selected_model: 'claude-sonnet-4-6',
-  fallback_providers: ['OpenAI', 'DeepSeek'],
-  estimated_latency: 274,
-  estimated_cost: 0.0032,
-};
-
 // ─── Static Options ─────────────────────────────────────────────────────────────
 
 const STRATEGY_OPTIONS = [
@@ -155,13 +139,13 @@ const AGGREGATION_OPTIONS = [
 ];
 
 const AVAILABLE_MODELS = [
-  { value: 'claude-sonnet-4-6',    label: 'Claude Sonnet 4.6' },
-  { value: 'claude-opus-4-6',      label: 'Claude Opus 4.6' },
-  { value: 'gpt-4o',               label: 'GPT-4o' },
-  { value: 'gpt-4o-mini',          label: 'GPT-4o Mini' },
-  { value: 'deepseek-chat',        label: 'DeepSeek Chat' },
-  { value: 'gemini-1.5-pro',       label: 'Gemini 1.5 Pro' },
-  { value: 'grok-2',               label: 'Grok 2' },
+  { value: 'claude-sonnet-4-6', label: 'Claude Sonnet 4.6' },
+  { value: 'claude-opus-4-6',   label: 'Claude Opus 4.6' },
+  { value: 'gpt-4o',            label: 'GPT-4o' },
+  { value: 'gpt-4o-mini',       label: 'GPT-4o Mini' },
+  { value: 'deepseek-chat',     label: 'DeepSeek Chat' },
+  { value: 'gemini-1.5-pro',    label: 'Gemini 1.5 Pro' },
+  { value: 'grok-2',            label: 'Grok 2' },
 ];
 
 const AVAILABLE_PROVIDERS = [
@@ -225,7 +209,7 @@ function SaveBar({
   if (!dirty) return null;
   return (
     <div className="flex items-center justify-end gap-2 pt-2 border-t border-gray-100 mt-2">
-      <Button variant="ghost" size="sm" className="h-7 text-xs text-gray-500" onClick={onReset} disabled={pending}>
+      <Button variant="ghost" size="sm" className="h-7 text-[11px] text-gray-500" onClick={onReset} disabled={pending}>
         Reset
       </Button>
       <Button size="sm" className="h-7 text-xs gap-1.5" onClick={onSave} disabled={pending}>
@@ -306,15 +290,6 @@ export default function ModelsRoutingPage() {
   const [providerRows, setProviderRows] = useState<ProviderRow[]>(MOCK_PROVIDERS);
   const [providerDirty, setProviderDirty] = useState(false);
 
-  // ── Routing Simulator state ──────────────────────────────────────────────────
-  const [simForm, setSimForm] = useState({
-    test_prompt: '',
-    preferred_model: 'claude-sonnet-4-6',
-    latency_target_ms: '',
-    budget_limit: '',
-  });
-  const [simResult, setSimResult] = useState<SimulateResult | null>(null);
-
   // ── Queries ──────────────────────────────────────────────────────────────────
 
   const { isLoading: providersLoading, refetch } = useQuery<ProviderRow[]>({
@@ -360,12 +335,6 @@ export default function ModelsRoutingPage() {
     onSuccess: () => setProviderDirty(false),
   });
 
-  const simulateMutation = useMutation({
-    mutationFn: (data: typeof simForm) => api.post<SimulateResult>('/routing/simulate', data),
-    onSuccess: (result) => setSimResult(result ?? MOCK_SIMULATE),
-    onError: () => setSimResult(MOCK_SIMULATE),
-  });
-
   // ── Helpers ──────────────────────────────────────────────────────────────────
 
   const updateProvider = (id: string, field: 'routing_weight' | 'priority', value: number) => {
@@ -383,7 +352,7 @@ export default function ModelsRoutingPage() {
         <div className="flex items-start justify-between gap-4">
           <div>
             <h1 className="text-base font-semibold text-gray-900">Routing Engine</h1>
-            <p className="text-xs text-gray-500 mt-0.5">
+            <p className="text-[11px] text-gray-500 mt-0.5">
               Control how Igris selects providers and models for inference.
             </p>
           </div>
@@ -405,7 +374,7 @@ export default function ModelsRoutingPage() {
               <SlidersHorizontal className="h-3.5 w-3.5 text-gray-400" strokeWidth={1.5} />
               <p className="text-xs font-medium text-gray-900">Routing Strategy</p>
             </div>
-            <p className="text-xs text-gray-500 mt-0.5">
+            <p className="text-[11px] text-gray-500 mt-0.5">
               Configure the core routing algorithm used by igris-overture.
             </p>
           </CardHeader>
@@ -494,7 +463,7 @@ export default function ModelsRoutingPage() {
               <Zap className="h-3.5 w-3.5 text-gray-400" strokeWidth={1.5} />
               <p className="text-xs font-medium text-gray-900">Speculative Execution</p>
             </div>
-            <p className="text-xs text-gray-500 mt-0.5">
+            <p className="text-[11px] text-gray-500 mt-0.5">
               Send requests to multiple providers simultaneously and return the fastest valid response.
             </p>
           </CardHeader>
@@ -586,7 +555,7 @@ export default function ModelsRoutingPage() {
               <Users className="h-3.5 w-3.5 text-gray-400" strokeWidth={1.5} />
               <p className="text-xs font-medium text-gray-900">Council Mode</p>
             </div>
-            <p className="text-xs text-gray-500 mt-0.5">
+            <p className="text-[11px] text-gray-500 mt-0.5">
               Send requests to multiple models and aggregate the responses into a single answer.
             </p>
           </CardHeader>
@@ -690,7 +659,7 @@ export default function ModelsRoutingPage() {
               <Eye className="h-3.5 w-3.5 text-gray-400" strokeWidth={1.5} />
               <p className="text-xs font-medium text-gray-900">Shadow Mode</p>
             </div>
-            <p className="text-xs text-gray-500 mt-0.5">
+            <p className="text-[11px] text-gray-500 mt-0.5">
               Evaluate alternative providers silently without affecting production responses.
             </p>
           </CardHeader>
@@ -809,7 +778,7 @@ export default function ModelsRoutingPage() {
           <CardHeader className="px-4 pt-4 pb-3 flex flex-row items-center justify-between">
             <div>
               <p className="text-xs font-medium text-gray-900">Provider Selection Logic</p>
-              <p className="text-xs text-gray-500 mt-0.5">
+              <p className="text-[11px] text-gray-500 mt-0.5">
                 Edit routing weights and priority order. Changes take effect after saving.
               </p>
             </div>
@@ -906,171 +875,6 @@ export default function ModelsRoutingPage() {
               <p className="text-xs text-red-600">Failed to save provider weights.</p>
             </div>
           )}
-        </Card>
-
-        {/* ── 6. Routing Simulator ─────────────────────────────────────────────── */}
-        <Card className="border border-gray-200 shadow-none">
-          <CardHeader className="px-4 pt-4 pb-3">
-            <div className="flex items-center gap-1.5">
-              <Play className="h-3.5 w-3.5 text-gray-400" strokeWidth={1.5} />
-              <p className="text-xs font-medium text-gray-900">Routing Simulator</p>
-            </div>
-            <p className="text-xs text-gray-500 mt-0.5">
-              Preview how the routing engine would handle a given request under current settings.
-            </p>
-          </CardHeader>
-          <Separator />
-          <CardContent className="px-4 py-4">
-            <div className="grid grid-cols-1 xl:grid-cols-2 gap-6">
-
-              {/* Input form */}
-              <div className="space-y-4">
-                <div className="space-y-1.5">
-                  <Label className="text-xs font-medium text-gray-700">Test Prompt</Label>
-                  <textarea
-                    rows={4}
-                    className="w-full rounded-md border border-gray-200 px-3 py-2 text-xs text-gray-900 placeholder:text-gray-400 focus:outline-none focus:ring-1 focus:ring-gray-400 resize-none font-mono"
-                    placeholder="Enter a sample prompt to simulate routing..."
-                    value={simForm.test_prompt}
-                    onChange={(e) => setSimForm((f) => ({ ...f, test_prompt: e.target.value }))}
-                  />
-                </div>
-
-                <div className="space-y-1.5">
-                  <Label className="text-xs font-medium text-gray-700">Preferred Model</Label>
-                  <Select
-                    value={simForm.preferred_model}
-                    onValueChange={(v) => setSimForm((f) => ({ ...f, preferred_model: v }))}
-                  >
-                    <SelectTrigger className="h-8 text-xs">
-                      <SelectValue />
-                    </SelectTrigger>
-                    <SelectContent>
-                      {AVAILABLE_MODELS.map((o) => (
-                        <SelectItem key={o.value} value={o.value} className="text-xs">
-                          {o.label}
-                        </SelectItem>
-                      ))}
-                    </SelectContent>
-                  </Select>
-                </div>
-
-                <div className="grid grid-cols-2 gap-3">
-                  <div className="space-y-1.5">
-                    <Label className="text-xs font-medium text-gray-700">Latency Target (ms)</Label>
-                    <Input
-                      type="number"
-                      placeholder="e.g. 500"
-                      className="h-8 text-xs font-mono"
-                      value={simForm.latency_target_ms}
-                      onChange={(e) => setSimForm((f) => ({ ...f, latency_target_ms: e.target.value }))}
-                    />
-                  </div>
-                  <div className="space-y-1.5">
-                    <Label className="text-xs font-medium text-gray-700">Budget Limit ($)</Label>
-                    <Input
-                      type="number"
-                      placeholder="e.g. 0.01"
-                      className="h-8 text-xs font-mono"
-                      value={simForm.budget_limit}
-                      onChange={(e) => setSimForm((f) => ({ ...f, budget_limit: e.target.value }))}
-                    />
-                  </div>
-                </div>
-
-                <Button
-                  size="sm"
-                  className="h-8 text-xs gap-1.5"
-                  onClick={() => simulateMutation.mutate(simForm)}
-                  disabled={simulateMutation.isPending || !simForm.test_prompt.trim()}
-                >
-                  {simulateMutation.isPending
-                    ? <><RefreshCw className="h-3.5 w-3.5 animate-spin" /> Simulating…</>
-                    : <><Play className="h-3.5 w-3.5" /> Run Simulation</>
-                  }
-                </Button>
-              </div>
-
-              {/* Result panel */}
-              <div>
-                {simResult ? (
-                  <div className="space-y-3">
-                    <div className="flex items-center justify-between">
-                      <p className="text-xs font-medium text-gray-700">Simulation Result</p>
-                      <button
-                        className="text-[11px] text-gray-400 hover:text-gray-600 flex items-center gap-1"
-                        onClick={() => setSimResult(null)}
-                      >
-                        <X className="h-3 w-3" /> Clear
-                      </button>
-                    </div>
-
-                    <div className="rounded-lg border border-gray-200 divide-y divide-gray-100 overflow-hidden">
-                      {[
-                        {
-                          label: 'Selected Provider',
-                          value: (
-                            <span className="text-xs font-medium text-gray-900">
-                              {simResult.selected_provider}
-                            </span>
-                          ),
-                        },
-                        {
-                          label: 'Selected Model',
-                          value: (
-                            <span className="text-xs font-mono text-gray-700">
-                              {simResult.selected_model}
-                            </span>
-                          ),
-                        },
-                        {
-                          label: 'Fallback Providers',
-                          value: (
-                            <div className="flex flex-wrap gap-1">
-                              {simResult.fallback_providers.map((p) => (
-                                <span key={p} className="inline-flex items-center px-1.5 py-0.5 rounded text-[10px] font-medium bg-gray-50 text-gray-600 border border-gray-200">
-                                  {p}
-                                </span>
-                              ))}
-                            </div>
-                          ),
-                        },
-                        {
-                          label: 'Estimated Latency',
-                          value: <LatencyCell ms={simResult.estimated_latency} />,
-                        },
-                        {
-                          label: 'Estimated Cost',
-                          value: (
-                            <span className="text-xs font-mono tabular-nums text-gray-700">
-                              ${simResult.estimated_cost.toFixed(4)}
-                            </span>
-                          ),
-                        },
-                      ].map(({ label, value }) => (
-                        <div key={label} className="flex items-center justify-between px-3 py-2.5">
-                          <p className="text-[11px] text-gray-500">{label}</p>
-                          <div className="flex items-center">{value}</div>
-                        </div>
-                      ))}
-                    </div>
-
-                    <div className="flex items-center gap-1.5 text-[11px] text-green-700">
-                      <CheckCircle2 className="h-3.5 w-3.5" />
-                      Routing decision resolved in &lt;1ms
-                    </div>
-                  </div>
-                ) : (
-                  <div className="flex flex-col items-center justify-center h-full min-h-[200px] rounded-lg border border-dashed border-gray-200 text-center px-4 py-8">
-                    <ChevronRight className="h-6 w-6 text-gray-200 mb-2" />
-                    <p className="text-xs text-gray-400">
-                      Enter a prompt and run the simulation to see which provider would be selected.
-                    </p>
-                  </div>
-                )}
-              </div>
-            </div>
-          </CardContent>
         </Card>
 
       </div>
