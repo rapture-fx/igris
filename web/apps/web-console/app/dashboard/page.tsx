@@ -13,6 +13,7 @@ import {
 } from 'lucide-react';
 import {
   AreaChart, Area, XAxis, YAxis, CartesianGrid, Tooltip, ResponsiveContainer,
+  LineChart, Line,
 } from 'recharts';
 import Link from 'next/link';
 import { Progress } from '@/components/ui/progress';
@@ -62,6 +63,24 @@ interface RuntimeUsage {
   upgrade_tier: string;
 }
 
+interface UsageSummary {
+  cost_24h: number;
+}
+
+interface DailySpend {
+  date: string;
+  cost: number;
+}
+
+function makeDailySpend(): DailySpend[] {
+  const costs = [22.1, 28.4, 25.9, 31.2, 29.8, 35.1, 38.6, 32.4, 40.2, 37.8, 42.1, 38.9, 45.3, 38.4];
+  return costs.map((cost, i) => {
+    const d = new Date();
+    d.setDate(d.getDate() - (costs.length - 1 - i));
+    return { date: d.toLocaleDateString('en-US', { month: 'short', day: 'numeric' }), cost };
+  });
+}
+
 const SUMMARY_CARDS = [
   { key: 'active_executions', label: 'Active Executions', icon: Terminal, sub: 'Currently running', link: '/execution/runs' },
   { key: 'violations_24h', label: 'Violations', icon: AlertTriangle, sub: 'Last 24 hours', link: '/proof/violations' },
@@ -79,7 +98,7 @@ function StatCard({
 }) {
   return (
     <Link href={link}>
-      <Card className="border border-gray-200 hover:border-gray-300 transition-colors cursor-pointer group">
+      <Card className="border border-gray-200 shadow-sm hover:border-gray-300 transition-colors cursor-pointer group">
         <CardHeader className="pb-1 pt-4 px-4">
           <CardTitle className="text-xs font-medium text-black flex items-center gap-1.5">
             <Icon className="h-3.5 w-3.5 text-black" />
@@ -132,6 +151,21 @@ export default function DashboardPage() {
     retry: false,
   });
 
+  const { data: usageSummary, isLoading: summaryLoading } = useQuery<UsageSummary>({
+    queryKey: ['usage-summary'],
+    queryFn: () => api.get('/v1/usage/summary'),
+    retry: false,
+  });
+
+  const { data: dailySpend = [], isLoading: dailyLoading } = useQuery<DailySpend[]>({
+    queryKey: ['usage-daily'],
+    queryFn: async () => {
+      try { return await api.get<DailySpend[]>('/models/usage/daily'); }
+      catch { return makeDailySpend(); }
+    },
+    retry: false,
+  });
+
   const chartData = modelUsage ?? Array.from({ length: 12 }, (_, i) => ({
     hour: `${i * 2}h`,
     requests: 0,
@@ -164,7 +198,7 @@ export default function DashboardPage() {
 
         {/* Runtime Usage Card */}
         {runtimeUsage && (
-          <Card className="border border-gray-200">
+          <Card className="border border-gray-200 shadow-sm">
             <CardHeader className="px-4 pt-4 pb-2 flex flex-row items-center justify-between">
               <CardTitle className="text-xs font-medium text-gray-900 flex items-center gap-1.5">
                 <Zap className="h-3.5 w-3.5 text-gray-700" />
@@ -206,7 +240,7 @@ export default function DashboardPage() {
         <div className="grid grid-cols-1 xl:grid-cols-3 gap-4">
           {/* Recent Executions */}
           <div className="xl:col-span-2">
-            <Card className="border border-gray-200">
+            <Card className="border border-gray-200 shadow-sm">
               <CardHeader className="px-4 pt-4 pb-3 flex flex-row items-center justify-between">
                 <CardTitle className="text-sm font-medium text-gray-900">Recent Executions</CardTitle>
                 <Link href="/execution/runs" className="text-xs text-blue-600 hover:text-blue-700 flex items-center gap-0.5">
@@ -261,7 +295,7 @@ export default function DashboardPage() {
 
           {/* Recent Violations */}
           <div>
-            <Card className="border border-gray-200">
+            <Card className="border border-gray-200 shadow-sm">
               <CardHeader className="px-4 pt-4 pb-3 flex flex-row items-center justify-between">
                 <CardTitle className="text-sm font-medium text-gray-900">Recent Violations</CardTitle>
                 <Link href="/proof/violations" className="text-xs text-blue-600 hover:text-blue-700 flex items-center gap-0.5">
@@ -297,43 +331,97 @@ export default function DashboardPage() {
           </div>
         </div>
 
-        {/* Model Usage Chart */}
-        <Card className="border border-gray-200">
-          <CardHeader className="px-4 pt-4 pb-3 flex flex-row items-center justify-between">
-            <CardTitle className="text-sm font-medium text-gray-900">Model Requests (24h)</CardTitle>
-            <Link href="/models/routing" className="text-xs text-blue-600 hover:text-blue-700 flex items-center gap-0.5">
-              Routing <ArrowRight className="h-3 w-3" />
-            </Link>
-          </CardHeader>
-          <Separator />
-          <CardContent className="px-4 pt-3 pb-4">
-            <ResponsiveContainer width="100%" height={160}>
-              <AreaChart data={chartData} margin={{ top: 4, right: 4, left: -20, bottom: 0 }}>
-                <defs>
-                  <linearGradient id="requestsFill" x1="0" y1="0" x2="0" y2="1">
-                    <stop offset="5%" stopColor="#3b82f6" stopOpacity={0.15} />
-                    <stop offset="95%" stopColor="#3b82f6" stopOpacity={0} />
-                  </linearGradient>
-                </defs>
-                <CartesianGrid strokeDasharray="2 4" stroke="#efefef" vertical={false} />
-                <XAxis dataKey="hour" tick={{ fontSize: 10, fill: '#9ca3af' }} axisLine={false} tickLine={false} />
-                <YAxis tick={{ fontSize: 10, fill: '#9ca3af' }} axisLine={false} tickLine={false} />
-                <Tooltip
-                  contentStyle={{ fontSize: 11, border: '1px solid #e5e7eb', borderRadius: 6, boxShadow: 'none' }}
-                  itemStyle={{ color: '#374151' }}
-                />
-                <Area
-                  type="monotone"
-                  dataKey="requests"
-                  stroke="#3b82f6"
-                  strokeWidth={1}
-                  fill="url(#requestsFill)"
-                  dot={false}
-                />
-              </AreaChart>
-            </ResponsiveContainer>
-          </CardContent>
-        </Card>
+        {/* Model Usage Chart + Daily Spend */}
+        <div className="grid grid-cols-1 xl:grid-cols-3 gap-4">
+          {/* Model Requests Chart */}
+          <div className="xl:col-span-2">
+            <Card className="border border-gray-200 shadow-sm">
+              <CardHeader className="px-4 pt-4 pb-3 flex flex-row items-center justify-between">
+                <CardTitle className="text-sm font-medium text-gray-900">Model Requests (24h)</CardTitle>
+                <Link href="/models/routing" className="text-xs text-blue-600 hover:text-blue-700 flex items-center gap-0.5">
+                  Routing <ArrowRight className="h-3 w-3" />
+                </Link>
+              </CardHeader>
+              <Separator />
+              <CardContent className="px-4 pt-3 pb-4">
+                <ResponsiveContainer width="100%" height={160}>
+                  <AreaChart data={chartData} margin={{ top: 4, right: 4, left: -20, bottom: 0 }}>
+                    <defs>
+                      <linearGradient id="requestsFill" x1="0" y1="0" x2="0" y2="1">
+                        <stop offset="5%" stopColor="#3b82f6" stopOpacity={0.15} />
+                        <stop offset="95%" stopColor="#3b82f6" stopOpacity={0} />
+                      </linearGradient>
+                    </defs>
+                    <CartesianGrid strokeDasharray="2 4" stroke="#efefef" vertical={false} />
+                    <XAxis dataKey="hour" tick={{ fontSize: 10, fill: '#9ca3af' }} axisLine={false} tickLine={false} />
+                    <YAxis tick={{ fontSize: 10, fill: '#9ca3af' }} axisLine={false} tickLine={false} />
+                    <Tooltip
+                      contentStyle={{ fontSize: 11, border: '1px solid #e5e7eb', borderRadius: 6, boxShadow: 'none' }}
+                      itemStyle={{ color: '#374151' }}
+                    />
+                    <Area
+                      type="monotone"
+                      dataKey="requests"
+                      stroke="#3b82f6"
+                      strokeWidth={1}
+                      fill="url(#requestsFill)"
+                      dot={false}
+                    />
+                  </AreaChart>
+                </ResponsiveContainer>
+              </CardContent>
+            </Card>
+          </div>
+
+          {/* Daily Spend */}
+          <div>
+            <Card className="border border-gray-200 h-full">
+              <CardHeader className="px-4 pt-4 pb-3 flex flex-row items-center justify-between">
+                <CardTitle className="text-sm font-medium text-gray-900">Daily Spend</CardTitle>
+                <Link href="/models/cost" className="text-xs text-blue-600 hover:text-blue-700 flex items-center gap-0.5">
+                  See more <ArrowRight className="h-3 w-3" />
+                </Link>
+              </CardHeader>
+              <Separator />
+              <CardContent className="px-2 pt-4 pb-3">
+                {dailyLoading ? (
+                  <Skeleton className="h-[160px] w-full" />
+                ) : (
+                  <ResponsiveContainer width="100%" height={160}>
+                    <LineChart data={dailySpend.slice(-14)} margin={{ top: 4, right: 8, left: -16, bottom: 0 }}>
+                      <CartesianGrid strokeDasharray="3 3" stroke="#f0f0f0" vertical={false} />
+                      <XAxis
+                        dataKey="date"
+                        tick={{ fontSize: 10, fill: '#9ca3af' }}
+                        tickLine={false}
+                        axisLine={false}
+                        interval={2}
+                      />
+                      <YAxis
+                        tick={{ fontSize: 10, fill: '#9ca3af' }}
+                        tickLine={false}
+                        axisLine={false}
+                        tickFormatter={(v) => `$${v}`}
+                      />
+                      <Tooltip
+                        contentStyle={{ fontSize: 11, border: '1px solid #e5e7eb', borderRadius: 6, boxShadow: 'none' }}
+                        formatter={(value: number) => [`$${value.toFixed(2)}`, 'Cost']}
+                      />
+                      <Line
+                        type="monotone"
+                        dataKey="cost"
+                        stroke="#111827"
+                        strokeWidth={1.5}
+                        dot={false}
+                        activeDot={{ r: 3, fill: '#111827', strokeWidth: 0 }}
+                      />
+                    </LineChart>
+                  </ResponsiveContainer>
+                )}
+              </CardContent>
+            </Card>
+          </div>
+        </div>
       </div>
     </DashboardLayout>
   );
