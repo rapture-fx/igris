@@ -32,16 +32,9 @@ export default function InstallSection() {
           }}
           className="flex flex-col justify-center items-center px-8 md:px-12 lg:px-16 pb-8"
         >
-          <p
-            className="text-sm mb-4 font-medium text-left w-full"
-            style={{ color: isDark ? '#f6f6f4' : '#1b1912', fontFamily: 'Inter, -apple-system, BlinkMacSystemFont, "Segoe UI", Roboto, Helvetica, Arial, sans-serif' }}
-          >
-            Quick Install
-          </p>
-
           {/* Command block */}
           <div
-            className="inline-flex items-center gap-4 rounded-md px-5 py-3 font-mono text-sm border self-center shadow-sm"
+            className="inline-flex items-center gap-4 rounded-md px-5 py-3 text-sm border self-center shadow-sm"
             style={{
               backgroundColor: isDark ? '#1a1a1a' : '#f9fafb',
               borderColor: isDark ? 'rgba(246,246,244,0.08)' : 'rgba(0,0,0,0.08)',
@@ -72,7 +65,8 @@ export default function InstallSection() {
           <div className="mt-6 w-full text-left">
             <a
               href="https://admin.igris-inertial.com/downloads/runtime"
-              className="inline-flex items-center gap-2 px-4 py-2 text-xs font-medium text-white bg-black dark:bg-white dark:text-black rounded-lg hover:bg-gray-800 transition-colors"
+              className="inline-flex items-center justify-center px-4 py-2 hover:opacity-80 transition-all duration-200 text-xs font-medium shadow-sm rounded-md border"
+              style={{ fontFamily: '-apple-system, BlinkMacSystemFont, "Segoe UI", Roboto, Helvetica, Arial, sans-serif', backgroundColor: isDark ? '#1b1912' : '#f9f9fa', color: isDark ? '#f6f6f4' : '#1b1912', borderColor: 'rgba(20, 18, 10, 0.1)' }}
             >
               Download →
             </a>
