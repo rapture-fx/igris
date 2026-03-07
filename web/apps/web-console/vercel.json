@@ -2,5 +2,6 @@
   "version": 2,
   "framework": "nextjs",
   "installCommand": "echo 'Dependencies already installed'",
-  "buildCommand": "next build"
+  "buildCommand": "next build",
+  "rootDirectory": "."
 }
