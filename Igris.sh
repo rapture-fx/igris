@@ -1,139 +1,185 @@
 #!/usr/bin/env bash
 # Igris Runtime installer
 # Usage: curl -fsSL https://igrisinertial.com/install | bash
-# Or:    curl -fsSL https://igrisinertial.com/install | IGRIS_API_KEY=your_key bash
+# Or with API key: IGRIS_API_KEY=igris_xxx curl -fsSL https://igrisinertial.com/install | bash
+#
+# The binary is served from the authenticated Overture API.
+# You must have an active Igris subscription to download.
 
 set -euo pipefail
 
-RELEASES_URL="https://releases.igrisinertial.com/runtime/latest"
+OVERTURE_URL="${IGRIS_OVERTURE_URL:-https://overture.igrisinertial.com}"
 INSTALL_DIR="${IGRIS_INSTALL_DIR:-/usr/local/bin}"
 BINARY_NAME="igris-runtime"
 
 # ── Detect platform ──────────────────────────────────────────────────────────
 
-detect_os() {
+detect_platform() {
+    local os arch
     case "$(uname -s)" in
-        Linux)  echo "linux"   ;;
-        Darwin) echo "darwin"  ;;
+        Linux)  os="linux"  ;;
+        Darwin) os="macos"  ;;
         *)
-            echo "Unsupported OS: $(uname -s)" >&2
-            exit 1
+            die "Unsupported OS: $(uname -s). Supported: Linux, macOS."
             ;;
     esac
-}
-
-detect_arch() {
     case "$(uname -m)" in
-        x86_64|amd64) echo "amd64" ;;
-        arm64|aarch64) echo "arm64" ;;
+        x86_64|amd64) arch="amd64" ;;
+        arm64|aarch64) arch="arm64" ;;
         *)
-            echo "Unsupported architecture: $(uname -m)" >&2
-            exit 1
+            die "Unsupported architecture: $(uname -m). Supported: x86-64, ARM64."
             ;;
     esac
+    echo "${os}-${arch}"
 }
 
-OS=$(detect_os)
-ARCH=$(detect_arch)
-PLATFORM="${OS}-${ARCH}"
-BINARY_FILE="${BINARY_NAME}-${PLATFORM}"
+# ── Helpers ───────────────────────────────────────────────────────────────────
 
-# ── Helpers ──────────────────────────────────────────────────────────────────
-
-info()    { printf '\033[1;32m[igris]\033[0m %s\n' "$*"; }
-warn()    { printf '\033[1;33m[igris]\033[0m %s\n' "$*" >&2; }
-die()     { printf '\033[1;31m[igris] error:\033[0m %s\n' "$*" >&2; exit 1; }
+info()  { printf '\033[1;32m[igris]\033[0m %s\n' "$*"; }
+warn()  { printf '\033[1;33m[igris]\033[0m %s\n' "$*" >&2; }
+die()   { printf '\033[1;31m[igris] error:\033[0m %s\n' "$*" >&2; exit 1; }
+step()  { printf '\033[1;37m[igris]\033[0m %s\n' "$*"; }
 
 require_cmd() {
     command -v "$1" >/dev/null 2>&1 || die "Required command not found: $1"
 }
 
-# ── Pre-flight ───────────────────────────────────────────────────────────────
+sha256_file() {
+    if command -v shasum >/dev/null 2>&1; then
+        shasum -a 256 "$1" | awk '{print $1}'
+    elif command -v sha256sum >/dev/null 2>&1; then
+        sha256sum "$1" | awk '{print $1}'
+    else
+        warn "No SHA-256 tool found (shasum / sha256sum) — skipping checksum verification."
+        echo "SKIP"
+    fi
+}
+
+# ── Pre-flight ────────────────────────────────────────────────────────────────
 
 require_cmd curl
-require_cmd shasum || require_cmd sha256sum
+
+PLATFORM="${IGRIS_PLATFORM:-$(detect_platform)}"
+BINARY_FILE="${BINARY_NAME}-${PLATFORM}"
+if [[ "$PLATFORM" == windows* ]]; then
+    BINARY_FILE="${BINARY_FILE}.exe"
+fi
 
 if [ ! -d "$INSTALL_DIR" ]; then
     info "Creating install directory: $INSTALL_DIR"
-    mkdir -p "$INSTALL_DIR" || die "Cannot create $INSTALL_DIR (try running with sudo or set IGRIS_INSTALL_DIR)"
+    mkdir -p "$INSTALL_DIR" \
+        || die "Cannot create $INSTALL_DIR — try: sudo IGRIS_INSTALL_DIR=$INSTALL_DIR bash <(curl -fsSL https://igrisinertial.com/install)"
 fi
+[ -w "$INSTALL_DIR" ] \
+    || die "$INSTALL_DIR is not writable — try: sudo bash <(curl -fsSL https://igrisinertial.com/install)"
 
-if [ ! -w "$INSTALL_DIR" ]; then
-    die "$INSTALL_DIR is not writable. Try: sudo bash <(curl -fsSL https://igrisinertial.com/install)"
-fi
-
-# ── Download ─────────────────────────────────────────────────────────────────
-
-DOWNLOAD_URL="${RELEASES_URL}/${BINARY_FILE}"
-CHECKSUM_URL="${DOWNLOAD_URL}.sha256"
 TMP_DIR=$(mktemp -d)
 trap 'rm -rf "$TMP_DIR"' EXIT
 
-info "Detected platform: $PLATFORM"
-info "Downloading igris-runtime..."
+# ── Authenticate ──────────────────────────────────────────────────────────────
 
-curl -fsSL --progress-bar -o "${TMP_DIR}/${BINARY_FILE}" "$DOWNLOAD_URL" \
-    || die "Download failed from $DOWNLOAD_URL"
+step "Detected platform: $PLATFORM"
 
-# ── Verify checksum ──────────────────────────────────────────────────────────
-
-info "Verifying checksum..."
-curl -fsSL -o "${TMP_DIR}/${BINARY_FILE}.sha256" "$CHECKSUM_URL" \
-    || { warn "Could not fetch checksum — skipping verification"; }
-
-if [ -f "${TMP_DIR}/${BINARY_FILE}.sha256" ]; then
-    expected=$(cat "${TMP_DIR}/${BINARY_FILE}.sha256" | awk '{print $1}')
-    if command -v shasum >/dev/null 2>&1; then
-        actual=$(shasum -a 256 "${TMP_DIR}/${BINARY_FILE}" | awk '{print $1}')
-    else
-        actual=$(sha256sum "${TMP_DIR}/${BINARY_FILE}" | awk '{print $1}')
+AUTH_HEADER=""
+if [ -n "${IGRIS_API_KEY:-}" ]; then
+    AUTH_HEADER="X-API-Key: ${IGRIS_API_KEY}"
+    info "Using API key from IGRIS_API_KEY"
+else
+    echo ""
+    echo "  An active Igris subscription is required to download the runtime."
+    echo "  Get your API key at: https://console.igrisinertial.com/settings/keys"
+    echo ""
+    printf "  Enter your Igris API key: "
+    read -r IGRIS_API_KEY_INPUT
+    IGRIS_API_KEY_INPUT="$(echo "$IGRIS_API_KEY_INPUT" | tr -d '[:space:]')"
+    if [ -z "$IGRIS_API_KEY_INPUT" ]; then
+        die "No API key provided. Aborting."
     fi
-
-    if [ "$expected" != "$actual" ]; then
-        die "Checksum mismatch! Expected: $expected  Got: $actual"
-    fi
-    info "Checksum verified."
+    AUTH_HEADER="X-API-Key: ${IGRIS_API_KEY_INPUT}"
+    IGRIS_API_KEY="${IGRIS_API_KEY_INPUT}"
 fi
 
-# ── Install ──────────────────────────────────────────────────────────────────
+# ── Download binary ───────────────────────────────────────────────────────────
+
+DOWNLOAD_URL="${OVERTURE_URL}/v1/runtime/download?platform=${PLATFORM}"
+CHECKSUM_URL="${OVERTURE_URL}/v1/runtime/download?platform=${PLATFORM}&checksum=1"
+
+step "Downloading igris-runtime (${PLATFORM})..."
+
+HTTP_STATUS=$(curl -fsSL \
+    --progress-bar \
+    -H "$AUTH_HEADER" \
+    -H "User-Agent: igris-installer/1.0" \
+    -w "%{http_code}" \
+    -o "${TMP_DIR}/${BINARY_FILE}" \
+    "$DOWNLOAD_URL" 2>&1 | tail -1)
+
+case "$HTTP_STATUS" in
+    200) ;;
+    403) die "Access denied — check your API key and subscription status at https://console.igrisinertial.com/settings/billing" ;;
+    429) die "Download rate limit reached. Try again in an hour." ;;
+    401) die "Invalid API key." ;;
+    404) die "Runtime binary not available for platform: $PLATFORM. Please contact support." ;;
+    *)   die "Download failed (HTTP ${HTTP_STATUS}). Check $DOWNLOAD_URL" ;;
+esac
+
+# ── Verify checksum ───────────────────────────────────────────────────────────
+
+step "Verifying binary integrity..."
+
+CHECKSUM_RESP=$(curl -fsSL \
+    -H "$AUTH_HEADER" \
+    -H "User-Agent: igris-installer/1.0" \
+    "${OVERTURE_URL}/api/v1/runtime/checksum?platform=${PLATFORM}" 2>/dev/null || true)
+
+if [ -n "$CHECKSUM_RESP" ]; then
+    EXPECTED=$(echo "$CHECKSUM_RESP" | grep -oE '[a-f0-9]{64}' | head -1)
+    if [ -n "$EXPECTED" ]; then
+        ACTUAL=$(sha256_file "${TMP_DIR}/${BINARY_FILE}")
+        if [ "$ACTUAL" = "SKIP" ]; then
+            warn "Skipping checksum verification."
+        elif [ "$EXPECTED" != "$ACTUAL" ]; then
+            die "Checksum mismatch — binary may be corrupt.\n  expected: $EXPECTED\n  got:      $ACTUAL"
+        else
+            info "Checksum verified."
+        fi
+    fi
+else
+    warn "Checksum not available — skipping verification."
+fi
+
+# ── Install ───────────────────────────────────────────────────────────────────
 
 chmod +x "${TMP_DIR}/${BINARY_FILE}"
 mv "${TMP_DIR}/${BINARY_FILE}" "${INSTALL_DIR}/${BINARY_NAME}"
-info "Installed to ${INSTALL_DIR}/${BINARY_NAME}"
+info "Installed: ${INSTALL_DIR}/${BINARY_NAME}"
 
-# ── Verify install ───────────────────────────────────────────────────────────
+# ── Verify install ────────────────────────────────────────────────────────────
 
 if command -v igris-runtime >/dev/null 2>&1; then
-    VERSION=$(igris-runtime --version 2>/dev/null || echo "unknown")
+    VERSION=$(igris-runtime --version 2>/dev/null | head -1 || echo "unknown")
     info "igris-runtime $VERSION is ready."
 else
-    warn "igris-runtime was installed to ${INSTALL_DIR} but is not in your PATH."
+    warn "igris-runtime installed but not in PATH."
     warn "Add it: export PATH=\"\$PATH:${INSTALL_DIR}\""
 fi
 
-# ── Next steps ───────────────────────────────────────────────────────────────
+# ── Next steps ────────────────────────────────────────────────────────────────
 
 echo ""
-echo "  Next steps:"
+echo "  ────────────────────────────────────────────────"
+echo "  Next steps"
+echo "  ────────────────────────────────────────────────"
 echo ""
-
-if [ -z "${IGRIS_API_KEY:-}" ]; then
-    echo "  1. Get your API key from the Igris dashboard:"
-    echo "     https://console.igrisinertial.com/settings/billing"
-    echo ""
-    echo "  2. Export your credentials:"
-    echo "     export IGRIS_LICENSE_KEY=lic_xxxxx"
-    echo "     export IGRIS_API_KEY=igris_xxxxx"
-    echo ""
-    echo "  3. Start the runtime:"
-    echo "     igris-runtime serve"
-else
-    echo "  IGRIS_API_KEY detected — your runtime will register with the fleet on start."
-    echo ""
-    echo "  Start the runtime:"
-    echo "    igris-runtime serve"
-fi
-
+echo "  1. Export your credentials:"
+echo "     export IGRIS_LICENSE_KEY=lic_…    # from Settings → Keys"
+echo "     export IGRIS_API_KEY=${IGRIS_API_KEY}"
+echo ""
+echo "  2. Start the runtime:"
+echo "     igris-runtime serve"
+echo ""
+echo "  Your runtime will appear in Fleet → Devices within 30 seconds."
 echo ""
 echo "  Documentation: https://docs.igrisinertial.com/runtime"
+echo "  ────────────────────────────────────────────────"
 echo ""
