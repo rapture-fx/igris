@@ -115,14 +115,14 @@ export default function Pricing() {
                       <div className="mb-6">
                         {tier.isContactUs ? (
                           <div className="flex flex-col">
-                            <span className="text-4xl md:text-5xl text-[#000000] dark:text-[#f6f6f4]" style={{ fontFamily: '-apple-system, BlinkMacSystemFont, "Segoe UI", Roboto, Helvetica, Arial, sans-serif' }}>
+                            <span className="text-4xl md:text-5xl text-[#000000] dark:text-[#f6f6f4]" style={{ fontFamily: 'var(--font-geist-pixel-square, Geist Pixel Square, monospace)' }}>
                               Custom
                             </span>
                           </div>
                         ) : (
                           <div className="flex flex-col">
                             <span className="text-[#000000] dark:text-[#f6f6f4] transition-all duration-300">
-                              <span className="text-4xl md:text-5xl" style={{ fontFamily: '-apple-system, BlinkMacSystemFont, "Segoe UI", Roboto, Helvetica, Arial, sans-serif' }}>{tier.price.split(' / ')[0]}</span>
+                              <span className="text-4xl md:text-5xl" style={{ fontFamily: 'var(--font-geist-pixel-square, Geist Pixel Square, monospace)' }}>{tier.price.split(' / ')[0]}</span>
                               {tier.price.includes(' / ') && (
                                 <span className="text-sm md:text-base text-gray-600 dark:text-[#a8a898]"> / {tier.price.split(' / ')[1]}</span>
                               )}
