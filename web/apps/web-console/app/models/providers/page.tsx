@@ -2,10 +2,9 @@
 
 import { useState, useMemo } from 'react';
 import { useQuery, useMutation, useQueryClient } from '@tanstack/react-query';
+import Link from 'next/link';
 import { DashboardLayout } from '@/components/layout/DashboardLayout';
-import { Card, CardContent, CardHeader, CardTitle } from '@/components/ui/card';
 import { Button } from '@/components/ui/button';
-import { Badge } from '@/components/ui/badge';
 import { Input } from '@/components/ui/input';
 import { Label } from '@/components/ui/label';
 import { Skeleton } from '@/components/ui/skeleton';
@@ -24,6 +23,7 @@ import {
   Table, TableBody, TableCell, TableHead, TableHeader, TableRow,
 } from '@/components/ui/table';
 import { api } from '@/lib/apiClient';
+import { useVaultKeys } from '@/hooks/useVault';
 import { getRelativeTime } from '@/utils/helpers';
 import {
   CloudCog, CheckCircle, XCircle, Plus, MoreHorizontal, Pencil,
@@ -39,7 +39,7 @@ interface Provider {
   status: 'active' | 'disabled' | 'error';
   endpoint: string;
   default_model: string;
-  api_key_masked: string;
+  key_id: string | null;
   models_available: number;
   latency_ms: number | null;
   success_rate: number | null;
@@ -48,7 +48,7 @@ interface Provider {
 
 interface ProviderForm {
   kind: string;
-  api_key: string;
+  key_id: string;
   endpoint: string;
   default_model: string;
 }
@@ -63,7 +63,7 @@ const MOCK_PROVIDERS: Provider[] = [
     status: 'active',
     endpoint: 'https://api.openai.com/v1',
     default_model: 'gpt-4o',
-    api_key_masked: 'sk-...f3a9',
+    key_id: 'key-1',
     models_available: 12,
     latency_ms: 318,
     success_rate: 99.1,
@@ -76,7 +76,7 @@ const MOCK_PROVIDERS: Provider[] = [
     status: 'active',
     endpoint: 'https://api.anthropic.com',
     default_model: 'claude-sonnet-4-6',
-    api_key_masked: 'sk-ant-...e7c2',
+    key_id: 'key-2',
     models_available: 6,
     latency_ms: 274,
     success_rate: 99.8,
@@ -89,7 +89,7 @@ const MOCK_PROVIDERS: Provider[] = [
     status: 'active',
     endpoint: 'https://api.deepseek.com/v1',
     default_model: 'deepseek-chat',
-    api_key_masked: 'sk-...8b41',
+    key_id: null,
     models_available: 3,
     latency_ms: 412,
     success_rate: 97.2,
@@ -102,7 +102,7 @@ const MOCK_PROVIDERS: Provider[] = [
     status: 'error',
     endpoint: 'https://generativelanguage.googleapis.com/v1beta',
     default_model: 'gemini-1.5-pro',
-    api_key_masked: 'AIza...c291',
+    key_id: 'key-3',
     models_available: 5,
     latency_ms: null,
     success_rate: 84.3,
@@ -115,7 +115,7 @@ const MOCK_PROVIDERS: Provider[] = [
     status: 'disabled',
     endpoint: 'https://api.x.ai/v1',
     default_model: 'grok-2',
-    api_key_masked: 'xai-...d04f',
+    key_id: null,
     models_available: 2,
     latency_ms: null,
     success_rate: null,
@@ -131,30 +131,13 @@ const PROVIDER_OPTIONS = [
   { value: 'deepseek', label: 'DeepSeek' },
   { value: 'google', label: 'Google Gemini' },
   { value: 'xai', label: 'xAI' },
+  { value: 'mistral', label: 'Mistral' },
   { value: 'local', label: 'Local (GGUF)' },
 ];
 
-const PROVIDER_AVATAR: Record<string, { bg: string; text: string; initial: string }> = {
-  openai:    { bg: 'bg-[#10a37f]',  text: 'text-white',       initial: 'O' },
-  anthropic: { bg: 'bg-orange-100', text: 'text-orange-700',  initial: 'A' },
-  deepseek:  { bg: 'bg-blue-100',   text: 'text-blue-700',    initial: 'D' },
-  google:    { bg: 'bg-red-100',    text: 'text-red-700',     initial: 'G' },
-  xai:       { bg: 'bg-gray-900',   text: 'text-white',       initial: 'X' },
-  local:     { bg: 'bg-violet-100', text: 'text-violet-700',  initial: 'L' },
-};
-
-const EMPTY_FORM: ProviderForm = { kind: '', api_key: '', endpoint: '', default_model: '' };
+const EMPTY_FORM: ProviderForm = { kind: '', key_id: '', endpoint: '', default_model: '' };
 
 // ─── Sub-components ───────────────────────────────────────────────────────────
-
-function ProviderAvatar({ kind }: { kind: string }) {
-  const meta = PROVIDER_AVATAR[kind] ?? { bg: 'bg-gray-100', text: 'text-gray-600', initial: kind[0]?.toUpperCase() ?? '?' };
-  return (
-    <span className={`inline-flex h-6 w-6 items-center justify-center rounded-md text-[10px] font-bold flex-shrink-0 ${meta.bg} ${meta.text}`}>
-      {meta.initial}
-    </span>
-  );
-}
 
 function LatencyCell({ ms }: { ms: number | null }) {
   if (ms === null) return <span className="text-xs text-gray-300">—</span>;
@@ -172,8 +155,8 @@ function SuccessRateCell({ rate }: { rate: number | null }) {
 
 export default function ModelsProvidersPage() {
   const qc = useQueryClient();
+  const { data: vaultKeys = [] } = useVaultKeys();
 
-  // Dialog state
   const [dialogOpen, setDialogOpen] = useState(false);
   const [editTarget, setEditTarget] = useState<Provider | null>(null);
   const [deleteTarget, setDeleteTarget] = useState<Provider | null>(null);
@@ -213,19 +196,18 @@ export default function ModelsProvidersPage() {
     onSuccess: () => { qc.invalidateQueries({ queryKey: ['model-providers-v2'] }); setDeleteTarget(null); },
   });
 
-  // Helpers
   const openAdd = () => { setEditTarget(null); setForm(EMPTY_FORM); setFormError(''); setDialogOpen(true); };
   const openEdit = (p: Provider) => {
     setEditTarget(p);
-    setForm({ kind: p.kind, api_key: '', endpoint: p.endpoint, default_model: p.default_model });
+    setForm({ kind: p.kind, key_id: p.key_id ?? '', endpoint: p.endpoint, default_model: p.default_model });
     setFormError('');
     setDialogOpen(true);
   };
   const closeDialog = () => { setDialogOpen(false); setEditTarget(null); };
 
   const handleSubmit = () => {
-    if (!form.kind) { setFormError('Select a provider.'); return; }
-    if (!form.api_key && !editTarget) { setFormError('API key is required.'); return; }
+    if (!form.kind) { setFormError('Select a provider type.'); return; }
+    if (!form.key_id) { setFormError('Select a key reference from the vault.'); return; }
     setFormError('');
     if (editTarget) {
       editMutation.mutate({ id: editTarget.id, data: form });
@@ -254,6 +236,11 @@ export default function ModelsProvidersPage() {
 
   const isPending = addMutation.isPending || editMutation.isPending;
 
+  // Keys filtered to match the selected provider kind for the form dropdown
+  const relevantKeys = form.kind
+    ? vaultKeys.filter((k) => k.provider === form.kind)
+    : vaultKeys;
+
   return (
     <DashboardLayout>
       <div className="space-y-5">
@@ -274,35 +261,28 @@ export default function ModelsProvidersPage() {
           </div>
         </div>
 
-        {/* Summary Cards */}
+        {/* Stats */}
         <div className="grid grid-cols-2 lg:grid-cols-4 gap-3">
           {STAT_CARDS.map((c) => (
-            <Card key={c.label} className="border border-gray-200 shadow-none">
-              <CardHeader className="px-4 pt-3 pb-0">
-                <CardTitle className="text-xs font-medium text-gray-500 flex items-center gap-1.5">
-                  <c.icon className={`h-3.5 w-3.5 ${c.color}`} />
-                  {c.label}
-                </CardTitle>
-              </CardHeader>
-              <CardContent className="px-4 pb-3 pt-1">
-                {isLoading
-                  ? <Skeleton className="h-6 w-10" />
-                  : <span className="text-base font-semibold text-gray-900 tabular-nums">{c.value}</span>}
-              </CardContent>
-            </Card>
+            <div key={c.label} className="rounded-lg border border-gray-200 dark:border-gray-700 px-4 pt-3 pb-3">
+              <p className="text-xs font-medium text-gray-500 flex items-center gap-1.5">
+                <c.icon className={`h-3.5 w-3.5 ${c.color}`} />
+                {c.label}
+              </p>
+              {isLoading
+                ? <Skeleton className="h-6 w-10 mt-1" />
+                : <span className="text-base font-semibold text-gray-900 tabular-nums">{c.value}</span>}
+            </div>
           ))}
         </div>
 
         {/* Providers Table */}
-        <Card className="border border-gray-200 shadow-none">
+        <div className="rounded-lg border border-gray-200 dark:border-gray-700 overflow-hidden">
           <Table>
             <TableHeader>
               <TableRow className="hover:bg-transparent">
-                {['Provider', 'Status', 'Models', 'Latency', 'Success Rate', 'Last Checked', ''].map((col) => (
-                  <TableHead
-                    key={col}
-                    className="text-xs font-medium text-gray-500 h-9 px-4 bg-gray-50 hover:bg-gray-50"
-                  >
+                {['Provider', 'Status', 'Key Reference', 'Models', 'Latency', 'Success Rate', 'Last Checked', ''].map((col) => (
+                  <TableHead key={col} className="text-xs font-medium text-gray-500 h-9 px-4 bg-gray-50 hover:bg-gray-50">
                     {col}
                   </TableHead>
                 ))}
@@ -312,7 +292,7 @@ export default function ModelsProvidersPage() {
               {isLoading ? (
                 Array.from({ length: 5 }).map((_, i) => (
                   <TableRow key={i}>
-                    {Array.from({ length: 7 }).map((_, j) => (
+                    {Array.from({ length: 8 }).map((_, j) => (
                       <TableCell key={j} className="px-4 py-3">
                         <Skeleton className="h-3.5 w-16" />
                       </TableCell>
@@ -321,7 +301,7 @@ export default function ModelsProvidersPage() {
                 ))
               ) : providers.length === 0 ? (
                 <TableRow>
-                  <TableCell colSpan={7} className="py-14">
+                  <TableCell colSpan={8} className="py-14">
                     <div className="flex flex-col items-center gap-2.5">
                       <CloudCog className="h-8 w-8 text-gray-200" />
                       <p className="text-xs text-gray-400">No providers configured.</p>
@@ -332,88 +312,69 @@ export default function ModelsProvidersPage() {
                   </TableCell>
                 </TableRow>
               ) : (
-                providers.map((p) => (
-                  <TableRow key={p.id} className="border-b border-gray-100 hover:bg-gray-50">
-                    {/* Provider */}
-                    <TableCell className="px-4 py-3">
-                      <div className="flex items-center gap-2.5">
-                        <div>
-                          <p className="text-xs font-medium text-gray-900">{p.name}</p>
-                          <p className="text-[10px] text-gray-400 font-mono mt-0.5">
-                            {p.api_key_masked}
-                          </p>
-                        </div>
-                      </div>
-                    </TableCell>
-                    {/* Status */}
-                    <TableCell className="px-4 py-3">
-                      <StatusBadge status={p.status === 'active' ? 'ACTIVE' : p.status === 'error' ? 'ERROR' : 'INACTIVE'} />
-                    </TableCell>
-                    {/* Models */}
-                    <TableCell className="px-4 py-3 text-xs tabular-nums text-gray-700">
-                      {p.models_available}
-                    </TableCell>
-                    {/* Latency */}
-                    <TableCell className="px-4 py-3">
-                      <LatencyCell ms={p.latency_ms} />
-                    </TableCell>
-                    {/* Success Rate */}
-                    <TableCell className="px-4 py-3">
-                      <SuccessRateCell rate={p.success_rate} />
-                    </TableCell>
-                    {/* Last Checked */}
-                    <TableCell className="px-4 py-3 text-xs text-gray-400">
-                      {getRelativeTime(p.last_checked_at)}
-                    </TableCell>
-                    {/* Actions */}
-                    <TableCell className="px-4 py-3 text-right">
-                      <DropdownMenu>
-                        <DropdownMenuTrigger asChild>
-                          <Button
-                            variant="ghost"
-                            size="sm"
-                            className="h-7 w-7 p-0 text-gray-400 hover:text-gray-700"
-                            onClick={(e) => e.stopPropagation()}
-                          >
-                            <MoreHorizontal className="h-4 w-4" />
-                          </Button>
-                        </DropdownMenuTrigger>
-                        <DropdownMenuContent align="end" className="w-36">
-                          <DropdownMenuItem
-                            className="text-xs gap-2 cursor-pointer"
-                            onClick={() => openEdit(p)}
-                          >
-                            <Pencil className="h-3.5 w-3.5 text-gray-400" />
-                            Edit
-                          </DropdownMenuItem>
-                          <DropdownMenuItem
-                            className="text-xs gap-2 cursor-pointer"
-                            onClick={() => toggleMutation.mutate({
-                              id: p.id,
-                              status: p.status === 'disabled' ? 'active' : 'disabled',
-                            })}
-                          >
-                            {p.status === 'disabled'
-                              ? <><Power className="h-3.5 w-3.5 text-gray-400" /> Enable</>
-                              : <><PowerOff className="h-3.5 w-3.5 text-gray-400" /> Disable</>
-                            }
-                          </DropdownMenuItem>
-                          <DropdownMenuItem
-                            className="text-xs gap-2 cursor-pointer text-red-600 focus:text-red-600 focus:bg-red-50"
-                            onClick={() => setDeleteTarget(p)}
-                          >
-                            <Trash2 className="h-3.5 w-3.5" />
-                            Delete
-                          </DropdownMenuItem>
-                        </DropdownMenuContent>
-                      </DropdownMenu>
-                    </TableCell>
-                  </TableRow>
-                ))
+                providers.map((p) => {
+                  const linkedKey = vaultKeys.find((k) => k.id === p.key_id);
+                  return (
+                    <TableRow key={p.id} className="border-b border-gray-100 hover:bg-gray-50">
+                      <TableCell className="px-4 py-3">
+                        <p className="text-xs font-medium text-gray-900">{p.name}</p>
+                      </TableCell>
+                      <TableCell className="px-4 py-3">
+                        <StatusBadge status={p.status === 'active' ? 'ACTIVE' : p.status === 'error' ? 'ERROR' : 'INACTIVE'} />
+                      </TableCell>
+                      <TableCell className="px-4 py-3">
+                        {linkedKey ? (
+                          <span className="text-xs text-gray-700 font-mono">
+                            {linkedKey.key_name} · <span className="text-gray-400">{linkedKey.masked_key}</span>
+                          </span>
+                        ) : (
+                          <span className="text-xs text-amber-600">No key linked</span>
+                        )}
+                      </TableCell>
+                      <TableCell className="px-4 py-3 text-xs tabular-nums text-gray-700">
+                        {p.models_available}
+                      </TableCell>
+                      <TableCell className="px-4 py-3"><LatencyCell ms={p.latency_ms} /></TableCell>
+                      <TableCell className="px-4 py-3"><SuccessRateCell rate={p.success_rate} /></TableCell>
+                      <TableCell className="px-4 py-3 text-xs text-gray-400">{getRelativeTime(p.last_checked_at)}</TableCell>
+                      <TableCell className="px-4 py-3 text-right">
+                        <DropdownMenu>
+                          <DropdownMenuTrigger asChild>
+                            <Button variant="ghost" size="sm" className="h-7 w-7 p-0 text-gray-400 hover:text-gray-700">
+                              <MoreHorizontal className="h-4 w-4" />
+                            </Button>
+                          </DropdownMenuTrigger>
+                          <DropdownMenuContent align="end" className="w-36">
+                            <DropdownMenuItem className="text-xs gap-2 cursor-pointer" onClick={() => openEdit(p)}>
+                              <Pencil className="h-3.5 w-3.5 text-gray-400" /> Edit
+                            </DropdownMenuItem>
+                            <DropdownMenuItem
+                              className="text-xs gap-2 cursor-pointer"
+                              onClick={() => toggleMutation.mutate({
+                                id: p.id,
+                                status: p.status === 'disabled' ? 'active' : 'disabled',
+                              })}
+                            >
+                              {p.status === 'disabled'
+                                ? <><Power className="h-3.5 w-3.5 text-gray-400" /> Enable</>
+                                : <><PowerOff className="h-3.5 w-3.5 text-gray-400" /> Disable</>}
+                            </DropdownMenuItem>
+                            <DropdownMenuItem
+                              className="text-xs gap-2 cursor-pointer text-red-600 focus:text-red-600 focus:bg-red-50"
+                              onClick={() => setDeleteTarget(p)}
+                            >
+                              <Trash2 className="h-3.5 w-3.5" /> Delete
+                            </DropdownMenuItem>
+                          </DropdownMenuContent>
+                        </DropdownMenu>
+                      </TableCell>
+                    </TableRow>
+                  );
+                })
               )}
             </TableBody>
           </Table>
-        </Card>
+        </div>
       </div>
 
       {/* ── Add / Edit Dialog ─────────────────────────────────────────────────── */}
@@ -431,12 +392,12 @@ export default function ModelsProvidersPage() {
           </DialogHeader>
 
           <div className="space-y-4 py-1">
-            {/* Provider select */}
+            {/* Provider type */}
             <div className="space-y-1.5">
               <Label className="text-xs font-medium text-gray-700">Provider</Label>
               <Select
                 value={form.kind}
-                onValueChange={(v) => setForm((f) => ({ ...f, kind: v }))}
+                onValueChange={(v) => setForm((f) => ({ ...f, kind: v, key_id: '' }))}
                 disabled={!!editTarget}
               >
                 <SelectTrigger className="h-8 text-xs">
@@ -452,26 +413,42 @@ export default function ModelsProvidersPage() {
               </Select>
             </div>
 
-            {/* API Key */}
+            {/* Key reference — vault dropdown */}
             <div className="space-y-1.5">
-              <Label className="text-xs font-medium text-gray-700">
-                API Key
-                {editTarget && <span className="text-gray-400 font-normal ml-1">(leave blank to keep existing)</span>}
-              </Label>
-              <Input
-                type="password"
-                placeholder={editTarget ? '••••••••' : 'sk-...'}
-                className="h-8 text-xs font-mono"
-                value={form.api_key}
-                onChange={(e) => setForm((f) => ({ ...f, api_key: e.target.value }))}
-              />
+              <Label className="text-xs font-medium text-gray-700">Key Reference</Label>
+              <Select
+                value={form.key_id}
+                onValueChange={(v) => setForm((f) => ({ ...f, key_id: v }))}
+              >
+                <SelectTrigger className="h-8 text-xs">
+                  <SelectValue placeholder="Select vault key…" />
+                </SelectTrigger>
+                <SelectContent>
+                  {relevantKeys.length === 0 ? (
+                    <div className="px-2 py-3 text-xs text-gray-400 text-center">
+                      No keys for this provider.{' '}
+                      <Link href="/settings/keys" className="underline">Add one in Settings → Keys</Link>
+                    </div>
+                  ) : (
+                    relevantKeys.map((k) => (
+                      <SelectItem key={k.id} value={k.id} className="text-xs">
+                        {k.key_name} · <span className="text-gray-400">{k.masked_key}</span>
+                      </SelectItem>
+                    ))
+                  )}
+                </SelectContent>
+              </Select>
+              <p className="text-[10px] text-gray-400">
+                Keys are managed in{' '}
+                <Link href="/settings/keys" className="underline">Settings → Keys</Link>.
+                Raw API keys are never stored here.
+              </p>
             </div>
 
             {/* Endpoint */}
             <div className="space-y-1.5">
               <Label className="text-xs font-medium text-gray-700">
-                Endpoint
-                <span className="text-gray-400 font-normal ml-1">(optional)</span>
+                Endpoint <span className="text-gray-400 font-normal">(optional)</span>
               </Label>
               <Input
                 placeholder="https://api.example.com/v1"
@@ -484,8 +461,7 @@ export default function ModelsProvidersPage() {
             {/* Default Model */}
             <div className="space-y-1.5">
               <Label className="text-xs font-medium text-gray-700">
-                Default Model
-                <span className="text-gray-400 font-normal ml-1">(optional)</span>
+                Default Model <span className="text-gray-400 font-normal">(optional)</span>
               </Label>
               <Input
                 placeholder="gpt-4o"
@@ -495,24 +471,15 @@ export default function ModelsProvidersPage() {
               />
             </div>
 
-            {formError && (
-              <p className="text-xs text-red-600">{formError}</p>
-            )}
+            {formError && <p className="text-xs text-red-600">{formError}</p>}
             {(addMutation.isError || editMutation.isError) && (
               <p className="text-xs text-red-600">Failed to save. Try again.</p>
             )}
           </div>
 
           <DialogFooter>
-            <Button variant="outline" size="sm" className="h-8 text-xs" onClick={closeDialog}>
-              Cancel
-            </Button>
-            <Button
-              size="sm"
-              className="h-8 text-xs gap-1.5"
-              onClick={handleSubmit}
-              disabled={isPending}
-            >
+            <Button variant="outline" size="sm" className="h-8 text-xs" onClick={closeDialog}>Cancel</Button>
+            <Button size="sm" className="h-8 text-xs gap-1.5" onClick={handleSubmit} disabled={isPending}>
               {isPending && <RefreshCw className="h-3.5 w-3.5 animate-spin" />}
               {editTarget ? 'Save Changes' : 'Add Provider'}
             </Button>
@@ -520,7 +487,7 @@ export default function ModelsProvidersPage() {
         </DialogContent>
       </Dialog>
 
-      {/* ── Delete Confirm Dialog ─────────────────────────────────────────────── */}
+      {/* ── Delete Confirm ─────────────────────────────────────────────────────── */}
       <Dialog open={!!deleteTarget} onOpenChange={(open) => !open && setDeleteTarget(null)}>
         <DialogContent className="max-w-sm">
           <DialogHeader>
@@ -534,10 +501,7 @@ export default function ModelsProvidersPage() {
             <p className="text-xs text-red-600 -mt-2">Failed to delete. Try again.</p>
           )}
           <DialogFooter>
-            <Button
-              variant="outline" size="sm" className="h-8 text-xs"
-              onClick={() => setDeleteTarget(null)}
-            >
+            <Button variant="outline" size="sm" className="h-8 text-xs" onClick={() => setDeleteTarget(null)}>
               Cancel
             </Button>
             <Button
@@ -552,7 +516,6 @@ export default function ModelsProvidersPage() {
           </DialogFooter>
         </DialogContent>
       </Dialog>
-
     </DashboardLayout>
   );
 }
