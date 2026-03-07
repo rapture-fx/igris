@@ -89,14 +89,14 @@ export default function Hero() {
               <div>
                 <div className="flex flex-col md:flex-row md:items-start md:justify-between gap-4 md:gap-8">
                   <div>
-                    <h1 className="text-xl md:text-2xl lg:text-3xl mb-6" style={{ color: mounted && theme === 'dark' ? '#f6f6f4' : '#1b1912', fontFamily: '-apple-system, BlinkMacSystemFont, "Segoe UI", Roboto, Helvetica, Arial, sans-serif', fontWeight: 400 }}>
+                    <h1 className="text-2xl md:text-4xl lg:text-5xl mb-6 leading-tight" style={{ color: mounted && theme === 'dark' ? '#f6f6f4' : '#1b1912', fontFamily: 'var(--font-geist-pixel-square, Geist Pixel Square, monospace)', fontWeight: 700 }}>
                       Run AI that survives failure<br />
-                      and proves what it did.
+                      <span className="mt-4 block">and proves what it did.</span>
                     </h1>
                     <a
                       href="https://admin.igris-inertial.com/auth?mode=signup"
-                      className="inline-flex items-center justify-center px-6 py-3 hover:opacity-80 transition-all duration-200 text-sm font-medium shadow-sm rounded-md border"
-                      style={{ fontFamily: '-apple-system, BlinkMacSystemFont, "Segoe UI", Roboto, Helvetica, Arial, sans-serif', backgroundColor: mounted && theme === 'dark' ? '#1b1912' : '#f9f9fa', color: mounted && theme === 'dark' ? '#f6f6f4' : '#1b1912', borderColor: 'rgba(20, 18, 10, 0.1)' }}
+                      className="inline-flex items-center justify-center px-6 py-3 hover:opacity-80 transition-all duration-200 text-sm font-medium shadow-sm rounded-md"
+                      style={{ fontFamily: '-apple-system, BlinkMacSystemFont, "Segoe UI", Roboto, Helvetica, Arial, sans-serif', backgroundColor: '#000000', color: '#ffffff' }}
                     >
                       Get Started
                     </a>
