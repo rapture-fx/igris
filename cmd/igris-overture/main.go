@@ -175,17 +175,41 @@ func main() {
 		log.Println("[Phase 2] Multi-tenancy enabled - initializing...")
 
 		if db != nil && db.IsEnabled() {
-			// Get configuration from environment
+			// Get configuration from environment.
+			// Hard-fail on known-insecure defaults unless ALLOW_INSECURE_DEFAULTS=true
+			// (local dev / CI only — never set this in production).
+			allowInsecure := os.Getenv("ALLOW_INSECURE_DEFAULTS") == "true"
+
 			jwtSecret := os.Getenv("JWT_SECRET")
-			if jwtSecret == "" {
-				log.Println("[Warning] JWT_SECRET not set - using default (INSECURE for production!)")
-				jwtSecret = "default-jwt-secret-change-in-production"
+			const defaultJWTSecret = "default-jwt-secret-change-in-production"
+			if jwtSecret == "" || jwtSecret == defaultJWTSecret {
+				if allowInsecure {
+					log.Println("[SECURITY WARNING] JWT_SECRET is unset or uses the insecure default. " +
+						"ALLOW_INSECURE_DEFAULTS=true — continuing for local dev only. " +
+						"Generate a secure value with: openssl rand -hex 32")
+					jwtSecret = defaultJWTSecret
+				} else {
+					log.Fatal("[FATAL] JWT_SECRET must be set to a secure value. " +
+						"Do not use the default value in production. " +
+						"Generate one with: openssl rand -hex 32. " +
+						"For local dev only, set ALLOW_INSECURE_DEFAULTS=true.")
+				}
 			}
 
 			vaultMasterKey := os.Getenv("VAULT_MASTER_KEY")
-			if vaultMasterKey == "" {
-				log.Println("[Warning] VAULT_MASTER_KEY not set - using default (INSECURE for production!)")
-				vaultMasterKey = "default-vault-key-change-in-production"
+			const defaultVaultKey = "default-vault-key-change-in-production"
+			if vaultMasterKey == "" || vaultMasterKey == defaultVaultKey {
+				if allowInsecure {
+					log.Println("[SECURITY WARNING] VAULT_MASTER_KEY is unset or uses the insecure default. " +
+						"ALLOW_INSECURE_DEFAULTS=true — continuing for local dev only. " +
+						"Generate a secure value with: openssl rand -hex 32")
+					vaultMasterKey = defaultVaultKey
+				} else {
+					log.Fatal("[FATAL] VAULT_MASTER_KEY must be set to a secure value. " +
+						"Do not use the default value in production. " +
+						"Generate one with: openssl rand -hex 32. " +
+						"For local dev only, set ALLOW_INSECURE_DEFAULTS=true.")
+				}
 			}
 
 			// Initialize JWT manager for tenant auth
@@ -381,6 +405,18 @@ func main() {
 		log.Println("[Licensing] ✅ License and usage endpoints registered")
 	} else {
 		log.Println("[Licensing] ⚠️  Database not available — license endpoints disabled")
+	}
+
+	// Register stats, execution, proof, speculative, and model-provider routes (requires database)
+	if dbInstance != nil {
+		api.RegisterStatsRoutes(app, dbInstance, redisClient, tenantAuth)
+		api.RegisterExecutionRoutes(app, dbInstance, tenantAuth)
+		api.RegisterProofRoutes(app, dbInstance, tenantAuth)
+		api.RegisterSpeculativeRoutes(app, dbInstance)
+		api.RegisterModelProviderRoutes(app, dbInstance, tenantAuth)
+		log.Println("[Routes] ✅ Dashboard routes registered (stats, execution, proof, speculative, model-providers)")
+	} else {
+		log.Println("[Routes] ⚠️  Database not available — dashboard routes disabled")
 	}
 
 	// Register runtime registration endpoints (requires database + Redis for limit enforcement)
