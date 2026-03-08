@@ -4,9 +4,12 @@ package api
 import (
 	"database/sql"
 	"log"
+	"os"
 
 	"github.com/gofiber/fiber/v2"
 	"github.com/Igris-inertial/system/cmd/igris-overture/handlers"
+	apihandlers "github.com/Igris-inertial/system/igris-overture/api/handlers"
+	"github.com/Igris-inertial/system/igris-overture/billing"
 	"github.com/Igris-inertial/system/igris-overture/middleware"
 	"github.com/Igris-inertial/system/igris-overture/security"
 )
@@ -259,6 +262,28 @@ func SetupMultiTenancy(app *fiber.App, db *sql.DB, jwtSecret, vaultMasterKey str
 		TenantAuth: tenantAuth,
 	}
 	RegisterRoutingRoutes(app, routingConfig)
+
+	// Register subscription status and plans endpoints (used by web-console billing page)
+	polarAPIKey := os.Getenv("POLAR_API_KEY")
+	if polarAPIKey != "" {
+		// GatingMiddleware only needs polar client for GetTierUsage
+		polarCfg := &billing.PolarConfig{APIKey: polarAPIKey, Redis: nil}
+		polarClient, _ := billing.NewPolarClient(*polarCfg)
+		if polarClient != nil {
+			gating := billing.NewGatingMiddleware(polarClient)
+			subHandler := apihandlers.NewSubscriptionHandler(polarClient, gating)
+
+			sub := app.Group("/api/subscription")
+			sub.Use(middleware.ClerkAuth())
+			sub.Get("/status", subHandler.GetSubscriptionStatus)
+			sub.Get("/plans", subHandler.GetAvailablePlans)
+			sub.Get("/upgrade-options", subHandler.GetUpgradeOptions)
+
+			log.Println("[Setup] ✓ Registered subscription endpoints (/api/subscription)")
+		}
+	} else {
+		log.Println("[Setup] ⚠ POLAR_API_KEY not set — subscription status endpoints disabled")
+	}
 
 	log.Println("[Setup] ✓ Phase 14 multi-tenancy initialization complete")
 	return nil

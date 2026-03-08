@@ -5,6 +5,5 @@ packages:
   # Shared packages from labs (direct reference)
   - '../labs/packages/types'
   - '../labs/packages/ui'
-  - '../labs/packages/pricing-config'
   - '../labs/packages/config'
   - '../labs/packages/javascript-sdk'

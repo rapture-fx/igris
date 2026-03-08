@@ -291,6 +291,10 @@ docker-compose.override.yml
 prometheus_data/
 grafana_data/
 logs/
+prompt_cache/
+web/apps/combined-docs-output/
+reports/
+benchmarks/results/
 
 # Backup files
 *.bak
