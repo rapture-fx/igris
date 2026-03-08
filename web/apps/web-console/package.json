@@ -5,7 +5,7 @@
   "scripts": {
     "dev": "next dev -p 3005",
     "build": "next build",
-    "pages:build": "npx @cloudflare/next-on-pages",
+    "pages:build": "env -u npm_config_workspace_dir -u npm_config_user_agent npx @cloudflare/next-on-pages",
     "start": "next start -p 3005",
     "lint": "next lint"
   },
