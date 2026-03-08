@@ -26,30 +26,35 @@ const POLAR_CHECKOUT: Record<string, string> = {
 const pricingTiers: PricingTier[] = [
   {
     name: "Seed",
-    tagline: "Core runtime for one instance.",
+    tagline: "For developers running a single autonomous system.",
     price: "$29 / month",
-    limits: "1 runtime instance",
+    limits: "5 runtime instances",
     features: [
-      "1 runtime instance.",
-      "Edge or server deployment.",
-      "Execution receipts.",
-      "Policy enforcement.",
-      "Basic routing.",
+      "5 runtime instances",
+      "Edge or server deployment",
+      "Execution receipts",
+      "Policy enforcement",
+      "Basic routing",
+      "Local model support",
+      "Community support",
     ],
     cta: "Get Seed",
     checkoutKey: "seed",
   },
   {
     name: "Horizon",
-    tagline: "Fleet management with dashboard and updates.",
+    tagline: "For teams operating multiple autonomous agents or edge systems.",
     price: "$149 / month",
     limits: "Up to 50 runtime instances",
     features: [
-      "50 runtime instances.",
-      "Fleet dashboard.",
-      "Speculative execution.",
-      "Council routing.",
-      "Shadow mode.",
+      "Up to 50 runtime instances",
+      "Fleet dashboard",
+      "Speculative execution",
+      "Council routing",
+      "Shadow mode",
+      "Execution analytics",
+      "Device health monitoring",
+      "Email support",
     ],
     cta: "Get Horizon",
     checkoutKey: "horizon",
@@ -57,15 +62,17 @@ const pricingTiers: PricingTier[] = [
   },
   {
     name: "Infinite",
-    tagline: "Enterprise scale with advanced policy and OTA updates.",
+    tagline: "For large-scale autonomous system fleets.",
     price: "$699 / month",
     limits: "Up to 500 runtime instances",
     features: [
-      "500 runtime instances.",
-      "Enterprise fleet management.",
-      "Advanced policy engine.",
-      "OTA runtime updates.",
-      "Priority support.",
+      "Up to 500 runtime instances",
+      "Enterprise fleet management",
+      "Advanced policy engine",
+      "OTA runtime updates",
+      "High availability routing",
+      "Custom deployment support",
+      "Priority support",
     ],
     cta: "Get Infinite",
     checkoutKey: "infinite",
@@ -110,6 +117,9 @@ export default function Pricing() {
                         <h3 className="text-lg text-[#000000] dark:text-[#f6f6f4]" style={{ fontFamily: '-apple-system, BlinkMacSystemFont, "Segoe UI", Roboto, Helvetica, Arial, sans-serif' }}>
                           {tier.name}
                         </h3>
+                        <p className="text-sm text-gray-600 dark:text-[#a8a898] mt-1" style={{ fontFamily: '-apple-system, BlinkMacSystemFont, "Segoe UI", Roboto, Helvetica, Arial, sans-serif' }}>
+                          {tier.tagline}
+                        </p>
                       </div>
 
                       <div className="mb-6">
@@ -144,7 +154,7 @@ export default function Pricing() {
                       href={POLAR_CHECKOUT[tier.checkoutKey]}
                       target="_blank"
                       rel="noopener noreferrer"
-                      className="inline-flex items-center justify-center px-4 py-2 hover:opacity-80 transition-all duration-200 text-sm font-medium shadow-sm rounded-md mt-8 opacity-100 md:opacity-0 md:group-hover:opacity-100 self-start"
+                      className="inline-flex items-center justify-center px-4 py-2 hover:opacity-80 transition-all duration-200 text-sm font-medium shadow-sm rounded-md mt-8 opacity-100 self-start"
                       style={{ fontFamily: '-apple-system, BlinkMacSystemFont, "Segoe UI", Roboto, Helvetica, Arial, sans-serif', backgroundColor: '#1b1912', color: '#f6f6f4' }}
                     >
                       {tier.cta}

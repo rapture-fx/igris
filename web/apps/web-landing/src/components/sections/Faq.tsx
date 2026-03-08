@@ -59,18 +59,23 @@ const faqSections: FaqSection[] = [
     title: "Pricing & Billing",
     entries: [
       {
-        question: "How does pricing work?",
-        answer: "Per-device pricing with no request limits. The Seed: 1 device, $0 forever. The Horizon: up to 50 devices at $99/month ($2/device over 50). The Infinite: up to 500 devices at $499/month ($1.50/device over 500). Enterprise: custom pricing for unlimited devices.",
+        question: "What is a runtime instance?",
+        answer: "A runtime instance is a deployed Igris runtime executing autonomous workloads on a server, edge device, robot, or agent host.",
         type: "text"
       },
       {
-        question: "Are there any hidden fees or request metering?",
-        answer: "No. You pay per device, not per request. Unlimited execution on every plan. No token counting, no overage charges, no surprise bills. If you use cloud AI providers through our routing, you pay them directly — we don't mark up provider costs.",
+        question: "Do I pay for inference?",
+        answer: "No. Igris does not host AI models. You provide your own model providers such as OpenAI, Anthropic, DeepSeek, Gemini, or local models.",
         type: "text"
       },
       {
-        question: "What's included in The Horizon vs The Infinite?",
-        answer: "The Horizon adds fleet management, Speculative Execution, Council Mode, Planning/Reflection/Swarm agents, QLoRA training, OTA updates, and 7-day audit trails. The Infinite adds Cognitive Advisor, Shadow Mode, SLO Enforcer, federated learning, 90-day audit retention, and on-premise deployment.",
+        question: "Can I scale beyond 500 instances?",
+        answer: "Yes. Enterprise deployments can scale beyond 500 instances with volume pricing.",
+        type: "text"
+      },
+      {
+        question: "What happens if I exceed my instance limit?",
+        answer: "Overage pricing applies at $2/device/month for Horizon and $1.50/device/month for Infinite. You'll only pay for the additional instances you use.",
         type: "text"
       },
       {
