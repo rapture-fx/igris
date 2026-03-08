@@ -34,7 +34,7 @@ func RegisterProviderRegistryRoutes(app *fiber.App, config *ProviderRegistryRout
 	// ========================================================================
 
 	providers := v1.Group("/providers")
-	providers.Use(config.TenantAuth.Authenticate())
+	providers.Use(middleware.ClerkAuth())
 
 	// Provider Registration & Management
 	providers.Post("/register", providerHandler.RegisterProvider)      // POST /v1/providers/register

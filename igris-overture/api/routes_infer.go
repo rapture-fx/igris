@@ -50,13 +50,13 @@ func RegisterInferRoutes(app *fiber.App, tenantAuth *middleware.TenantAuth, db *
 
 	// Main inference endpoint with optional authentication
 	// Compatible with OpenAI and Anthropic chat completion APIs
-	if enableMultiTenancy && requireAuth && tenantAuth != nil {
-		// Protected mode: Require JWT authentication
-		v1.Post("/infer", tenantAuth.Authenticate(), inferHandler.HandleInfer)
-		log.Println("[Routes] ✓ POST /v1/infer (JWT AUTH REQUIRED)")
+	if enableMultiTenancy && requireAuth {
+		// Protected mode: Require Clerk authentication
+		v1.Post("/infer", middleware.ClerkAuth(), inferHandler.HandleInfer)
+		log.Println("[Routes] ✓ POST /v1/infer (CLERK AUTH REQUIRED)")
 
-		v1.Post("/chat/completions", tenantAuth.Authenticate(), inferHandler.HandleInfer)
-		log.Println("[Routes] ✓ POST /v1/chat/completions (JWT AUTH REQUIRED, OpenAI-compatible)")
+		v1.Post("/chat/completions", middleware.ClerkAuth(), inferHandler.HandleInfer)
+		log.Println("[Routes] ✓ POST /v1/chat/completions (CLERK AUTH REQUIRED, OpenAI-compatible)")
 	} else if enableMultiTenancy && tenantAuth != nil {
 		// Optional auth mode: Extract tenant if token provided, allow anonymous otherwise
 		v1.Post("/infer", tenantAuth.OptionalAuth(), inferHandler.HandleInfer)
