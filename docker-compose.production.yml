@@ -80,6 +80,10 @@ services:
       JWT_SECRET: ${JWT_SECRET:-please-change-this-secret}
       VAULT_MASTER_KEY: ${VAULT_MASTER_KEY:-please-change-this-vault-key}
 
+      # Clerk Authentication
+      CLERK_JWKS_URL: ${CLERK_JWKS_URL:-}
+      CLERK_FRONTEND_API: ${CLERK_FRONTEND_API:-}
+
       # Provider Configuration
       PROVIDER_MODE: ${PROVIDER_MODE:-benchmark}
       OPENAI_API_KEY: ${OPENAI_API_KEY:-}
