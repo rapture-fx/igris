@@ -11,6 +11,10 @@ import (
 	"github.com/Igris-inertial/system/igris-overture/security"
 )
 
+// clerkAuth is a package-level alias so every route group uses the same
+// Clerk JWT middleware without having to repeat the call site.
+var clerkAuth = middleware.ClerkAuth
+
 // TenancyRouteConfig holds configuration for tenancy routes
 type TenancyRouteConfig struct {
 	DB          *sql.DB
@@ -47,7 +51,7 @@ func RegisterTenancyRoutes(app *fiber.App, config *TenancyRouteConfig) {
 	// ========================================================================
 
 	admin := v1.Group("/tenants")
-	admin.Use(config.TenantAuth.Authenticate())
+	admin.Use(clerkAuth())
 	admin.Use(config.TenantAuth.RequireAdmin())
 
 	// Tenant Management (Admin only)
@@ -64,7 +68,7 @@ func RegisterTenancyRoutes(app *fiber.App, config *TenancyRouteConfig) {
 	// ========================================================================
 
 	tenants := v1.Group("/tenants")
-	tenants.Use(config.TenantAuth.Authenticate())
+	tenants.Use(clerkAuth())
 
 	// Tenant self-service
 	tenants.Get("/:tenant_id", tenantHandler.GetTenant)    // GET /v1/tenants/:id
@@ -77,7 +81,7 @@ func RegisterTenancyRoutes(app *fiber.App, config *TenancyRouteConfig) {
 	// ========================================================================
 
 	vault := v1.Group("/vault")
-	vault.Use(config.TenantAuth.Authenticate())
+	vault.Use(clerkAuth())
 
 	// Vault key management
 	vault.Post("/keys", vaultHandler.StoreKey)                          // POST /v1/vault/keys
@@ -94,7 +98,7 @@ func RegisterTenancyRoutes(app *fiber.App, config *TenancyRouteConfig) {
 	// ========================================================================
 
 	policy := v1.Group("/policy")
-	policy.Use(config.TenantAuth.Authenticate())
+	policy.Use(clerkAuth())
 
 	// Policy management
 	policy.Get("/", policyHandler.GetPolicy)           // GET /v1/policy
@@ -109,7 +113,7 @@ func RegisterTenancyRoutes(app *fiber.App, config *TenancyRouteConfig) {
 	// ========================================================================
 
 	usage := v1.Group("/usage")
-	usage.Use(config.TenantAuth.Authenticate())
+	usage.Use(clerkAuth())
 
 	// Usage reporting
 	usage.Get("/", usageHandler.GetCurrentUsage)       // GET /v1/usage
@@ -118,7 +122,7 @@ func RegisterTenancyRoutes(app *fiber.App, config *TenancyRouteConfig) {
 	log.Println("[Routes] ✓ Registered 2 usage reporting endpoints")
 
 	audit := v1.Group("/audit")
-	audit.Use(config.TenantAuth.Authenticate())
+	audit.Use(clerkAuth())
 
 	// Audit log access
 	audit.Get("/", usageHandler.GetAuditLogs)          // GET /v1/audit
@@ -131,7 +135,7 @@ func RegisterTenancyRoutes(app *fiber.App, config *TenancyRouteConfig) {
 	// ========================================================================
 
 	traces := v1.Group("/traces")
-	traces.Use(config.TenantAuth.Authenticate())
+	traces.Use(clerkAuth())
 
 	// Trace access
 	traces.Get("/", tracesHandler.ListTraces)           // GET /v1/traces
@@ -155,139 +159,48 @@ func RegisterTenancyRoutes(app *fiber.App, config *TenancyRouteConfig) {
 	log.Println("[Routes] ═══════════════════════════════════════════════════════")
 }
 
-// RegisterAuthRoutes registers authentication endpoints (optional)
-func RegisterAuthRoutes(app *fiber.App, jwtManager *security.JWTManager, db *sql.DB) {
+// RegisterAuthRoutes registers authentication endpoints.
+// The legacy login/refresh/logout endpoints now return 410 Gone — authentication
+// is handled entirely by Clerk on the frontend. The 2FA sub-group remains active
+// and is protected by Clerk JWT verification.
+func RegisterAuthRoutes(app *fiber.App, db *sql.DB) {
 	// Import auth package for TOTP
 	authManager := handlers.NewAuthHandler(db)
 
 	auth := app.Group("/v1/auth")
 
-	// Login endpoint (generates JWT from API key)
+	// Login endpoint — retired. Authentication is now handled by Clerk on the frontend.
+	// The frontend sends Clerk session tokens directly; there is no server-side login flow.
 	auth.Post("/login", func(c *fiber.Ctx) error {
-		var req struct {
-			APIKey string `json:"api_key"`
-		}
-
-		if err := c.BodyParser(&req); err != nil {
-			return c.Status(fiber.StatusBadRequest).JSON(fiber.Map{
-				"error": "Invalid request body",
-			})
-		}
-
-		// Hash API key
-		apiKeyHash := security.HashAPIKey(req.APIKey)
-
-		// Lookup tenant
-		var tenantID, tenantName, status string
-		err := db.QueryRow(`
-			SELECT tenant_id, tenant_name, status
-			FROM tenants
-			WHERE api_key_hash = $1
-		`, apiKeyHash).Scan(&tenantID, &tenantName, &status)
-
-		if err == sql.ErrNoRows {
-			return c.Status(fiber.StatusUnauthorized).JSON(fiber.Map{
-				"error": "Invalid API key",
-			})
-		}
-		if err != nil {
-			return c.Status(fiber.StatusInternalServerError).JSON(fiber.Map{
-				"error": "Authentication failed",
-			})
-		}
-
-		if status != "active" {
-			return c.Status(fiber.StatusForbidden).JSON(fiber.Map{
-				"error": "Tenant account is not active",
-				"status": status,
-			})
-		}
-
-		// Generate JWT
-		tokenInfo, err := jwtManager.GenerateToken(
-			tenantID,
-			tenantName,
-			[]string{"user"},
-			c.IP(),
-			c.Get("User-Agent"),
-		)
-
-		if err != nil {
-			return c.Status(fiber.StatusInternalServerError).JSON(fiber.Map{
-				"error": "Failed to generate token",
-			})
-		}
-
-		return c.JSON(fiber.Map{
-			"token":      tokenInfo.Token,
-			"tenant_id":  tenantID,
-			"expires_at": tokenInfo.ExpiresAt,
+		return c.Status(fiber.StatusGone).JSON(fiber.Map{
+			"error":   "This endpoint has been retired. Authentication is now handled by Clerk.",
+			"code":    "ENDPOINT_RETIRED",
+			"docs":    "https://docs.igrisinertial.com/auth",
 		})
 	})
 
-	// Refresh token endpoint
+	// Refresh token endpoint — retired. Clerk manages session token refresh automatically.
 	auth.Post("/refresh", func(c *fiber.Ctx) error {
-		var req struct {
-			Token string `json:"token"`
-		}
-
-		if err := c.BodyParser(&req); err != nil {
-			return c.Status(fiber.StatusBadRequest).JSON(fiber.Map{
-				"error": "Invalid request body",
-			})
-		}
-
-		// Refresh token
-		newToken, err := jwtManager.RefreshToken(
-			req.Token,
-			c.IP(),
-			c.Get("User-Agent"),
-		)
-
-		if err != nil {
-			return c.Status(fiber.StatusUnauthorized).JSON(fiber.Map{
-				"error": "Invalid or expired token",
-			})
-		}
-
-		return c.JSON(fiber.Map{
-			"token":      newToken.Token,
-			"expires_at": newToken.ExpiresAt,
+		return c.Status(fiber.StatusGone).JSON(fiber.Map{
+			"error":   "This endpoint has been retired. Token refresh is managed by Clerk.",
+			"code":    "ENDPOINT_RETIRED",
+			"docs":    "https://docs.igrisinertial.com/auth",
 		})
 	})
 
-	// Logout endpoint (revoke token)
+	// Logout endpoint — Clerk manages session termination on the client side.
+	// Sign-out must be performed via Clerk's frontend SDK (clerk.signOut()).
 	auth.Post("/logout", func(c *fiber.Ctx) error {
-		authHeader := c.Get("Authorization")
-		if authHeader == "" {
-			return c.Status(fiber.StatusBadRequest).JSON(fiber.Map{
-				"error": "Missing authorization header",
-			})
-		}
-
-		// Extract token
-		token := ""
-		if len(authHeader) > 7 && authHeader[:7] == "Bearer " {
-			token = authHeader[7:]
-		} else {
-			return c.Status(fiber.StatusBadRequest).JSON(fiber.Map{
-				"error": "Invalid authorization format",
-			})
-		}
-
-		// Revoke token
-		if err := jwtManager.RevokeToken(token, "logout"); err != nil {
-			log.Printf("[Auth] Failed to revoke token: %v", err)
-		}
-
-		return c.JSON(fiber.Map{
-			"message": "Logged out successfully",
+		return c.Status(fiber.StatusGone).JSON(fiber.Map{
+			"error": "This endpoint has been retired. Use Clerk's signOut() to end the session.",
+			"code":  "ENDPOINT_RETIRED",
+			"docs":  "https://docs.igrisinertial.com/auth",
 		})
 	})
 
-	// 2FA endpoints (require authentication)
+	// 2FA endpoints (require Clerk authentication)
 	twoFA := auth.Group("/2fa")
-	twoFA.Use(middleware.NewTenantAuth(jwtManager, db).Authenticate())
+	twoFA.Use(clerkAuth())
 
 	twoFA.Get("/status", authManager.Get2FAStatus)         // GET /v1/auth/2fa/status
 	twoFA.Post("/generate", authManager.Generate2FASecret) // POST /v1/auth/2fa/generate
@@ -328,7 +241,7 @@ func SetupMultiTenancy(app *fiber.App, db *sql.DB, jwtSecret, vaultMasterKey str
 	}
 
 	RegisterTenancyRoutes(app, config)
-	RegisterAuthRoutes(app, jwtManager, db)
+	RegisterAuthRoutes(app, db)
 
 	// Register provider registry routes
 	providerConfig := &ProviderRegistryRouteConfig{

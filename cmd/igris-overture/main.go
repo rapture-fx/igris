@@ -37,6 +37,15 @@ func main() {
 
 	log.Println("🚀 Starting Igris Overture API...")
 
+	// Initialize Clerk JWKS for JWT verification.
+	// The web-console sends Clerk session tokens on every authenticated request.
+	// Fail fast if Clerk is not configured — the backend cannot authenticate users without it.
+	if err := middleware.InitClerkJWKS(); err != nil {
+		log.Fatalf("[Clerk] Failed to initialise Clerk JWKS: %v\n"+
+			"        Set CLERK_JWKS_URL or CLERK_FRONTEND_API and ensure the endpoint is reachable.", err)
+	}
+	log.Println("[Clerk] JWKS initialised — Clerk JWT verification active")
+
 	// Initialize OpenTelemetry tracing (if enabled)
 	tracingEnabled := os.Getenv("TRACING_ENABLED") == "true"
 	var shutdownTracer func()

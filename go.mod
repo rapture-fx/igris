@@ -7,7 +7,7 @@ require (
 	github.com/gofiber/adaptor/v2 v2.2.1
 	github.com/gofiber/fiber/v2 v2.52.0
 	github.com/gofiber/websocket/v2 v2.2.1
-	github.com/golang-jwt/jwt/v5 v5.2.0
+	github.com/golang-jwt/jwt/v5 v5.2.2
 	github.com/google/uuid v1.6.0
 	github.com/hashicorp/vault/api v1.22.0
 	github.com/lib/pq v1.10.9
@@ -32,6 +32,8 @@ require (
 )
 
 require (
+	github.com/MicahParks/jwkset v0.11.0 // indirect
+	github.com/MicahParks/keyfunc/v3 v3.8.0 // indirect
 	github.com/andybalholm/brotli v1.0.5 // indirect
 	github.com/beorn7/perks v1.0.1 // indirect
 	github.com/boombuler/barcode v1.0.1-0.20190219062509-6c824513bacc // indirect

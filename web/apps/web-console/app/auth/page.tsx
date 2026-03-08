@@ -18,7 +18,9 @@ function AuthContent() {
   const router = useRouter();
   const searchParams = useSearchParams();
   const mode = searchParams.get('mode') === 'signin' ? 'signin' : 'signup';
-  const { theme, mounted } = useTheme();
+  const { theme } = useTheme();
+  const [mounted, setMounted] = useState(false);
+  useEffect(() => { setMounted(true); }, []);
 
   const { signUp, setActive: setActiveSignUp, isLoaded: signUpLoaded } = useSignUp();
   const { signIn, setActive: setActiveSignIn, isLoaded: signInLoaded } = useSignIn();

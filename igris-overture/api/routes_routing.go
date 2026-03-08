@@ -47,7 +47,7 @@ func RegisterRoutingRoutes(app *fiber.App, config *RoutingRouteConfig) {
 
 	// Main routing endpoint (OpenAI-compatible) with rate limiting
 	v1.Post("/chat/completions",
-		config.TenantAuth.Authenticate(),
+		middleware.ClerkAuth(),
 		rateLimiter.RateLimitMiddleware(),
 		chatRouter.ChatCompletions,
 	)
@@ -60,7 +60,7 @@ func RegisterRoutingRoutes(app *fiber.App, config *RoutingRouteConfig) {
 	// ========================================================================
 
 	routing := v1.Group("/routing")
-	routing.Use(config.TenantAuth.Authenticate())
+	routing.Use(middleware.ClerkAuth())
 
 	routing.Get("/stats", chatRouter.GetRoutingStats)           // GET /v1/routing/stats
 	routing.Get("/recent", chatRouter.GetRecentRequests)        // GET /v1/routing/recent

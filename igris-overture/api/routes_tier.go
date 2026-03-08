@@ -17,12 +17,12 @@ func NewTierHandler() *TierHandler {
 }
 
 // RegisterTierRoutes registers tier-related API routes
-func RegisterTierRoutes(app *fiber.App, tenantAuth *middleware.TenantAuth) {
+func RegisterTierRoutes(app *fiber.App, _ *middleware.TenantAuth) {
 	handler := NewTierHandler()
 
-	// v1 API routes (tenant-scoped via authentication)
+	// v1 API routes (tenant-scoped via Clerk authentication)
 	v1 := app.Group("/api/v1/tier")
-	v1.Use(tenantAuth.Authenticate())
+	v1.Use(middleware.ClerkAuth())
 
 	// Tier capabilities endpoint - returns what features/limits are available for the tenant's tier
 	v1.Get("/capabilities", handler.GetCapabilities)

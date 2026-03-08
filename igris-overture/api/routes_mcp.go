@@ -15,7 +15,7 @@ import (
 // RegisterMcpRoutes registers MCP proxy routes that forward JSON-RPC requests
 // to the Igris Runtime's MCP server. Authentication is required when
 // multi-tenancy is enabled.
-func RegisterMcpRoutes(app *fiber.App, tenantAuth *middleware.TenantAuth) {
+func RegisterMcpRoutes(app *fiber.App, _ *middleware.TenantAuth) {
 	log.Println("[Routes] Registering MCP proxy endpoints...")
 
 	runtimeURL := os.Getenv("RUNTIME_URL")
@@ -30,11 +30,11 @@ func RegisterMcpRoutes(app *fiber.App, tenantAuth *middleware.TenantAuth) {
 
 	enableMultiTenancy := os.Getenv("ENABLE_MULTI_TENANCY") == "true"
 
-	if enableMultiTenancy && tenantAuth != nil {
-		app.Post("/v1/mcp", tenantAuth.Authenticate(), mcpHandler.handleMcp)
-		app.Post("/v1/mcp/stream", tenantAuth.Authenticate(), mcpHandler.handleMcpStream)
-		log.Println("[Routes] ✓ POST /v1/mcp (JWT AUTH REQUIRED)")
-		log.Println("[Routes] ✓ POST /v1/mcp/stream (JWT AUTH REQUIRED)")
+	if enableMultiTenancy {
+		app.Post("/v1/mcp", middleware.ClerkAuth(), mcpHandler.handleMcp)
+		app.Post("/v1/mcp/stream", middleware.ClerkAuth(), mcpHandler.handleMcpStream)
+		log.Println("[Routes] ✓ POST /v1/mcp (CLERK AUTH REQUIRED)")
+		log.Println("[Routes] ✓ POST /v1/mcp/stream (CLERK AUTH REQUIRED)")
 	} else {
 		app.Post("/v1/mcp", mcpHandler.handleMcp)
 		app.Post("/v1/mcp/stream", mcpHandler.handleMcpStream)

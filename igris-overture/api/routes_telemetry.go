@@ -51,7 +51,7 @@ func NewTelemetryHandler(db *sql.DB, routingIntegration *security.RoutingIntegra
 // RegisterTelemetryRoutes registers telemetry and execution feedback endpoints
 func RegisterTelemetryRoutes(
 	app *fiber.App,
-	tenantAuth *middleware.TenantAuth,
+	_ *middleware.TenantAuth,
 	db *sql.DB,
 	routingIntegration *security.RoutingIntegration,
 ) {
@@ -68,14 +68,9 @@ func RegisterTelemetryRoutes(
 	// Execution feedback (cryptographic verification)
 	v1.Post("/telemetry/execution", handler.HandleExecutionFeedback)
 
-	// Audit and statistics
-	if tenantAuth != nil {
-		v1.Get("/telemetry/audit", tenantAuth.Authenticate(), handler.HandleGetAuditLog)
-		v1.Get("/telemetry/stats", tenantAuth.Authenticate(), handler.HandleGetStats)
-	} else {
-		v1.Get("/telemetry/audit", handler.HandleGetAuditLog)
-		v1.Get("/telemetry/stats", handler.HandleGetStats)
-	}
+	// Audit and statistics (always require Clerk authentication)
+	v1.Get("/telemetry/audit", middleware.ClerkAuth(), handler.HandleGetAuditLog)
+	v1.Get("/telemetry/stats", middleware.ClerkAuth(), handler.HandleGetStats)
 
 	log.Info().Msg("Telemetry routes registered")
 }

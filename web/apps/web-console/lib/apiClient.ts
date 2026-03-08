@@ -1,5 +1,4 @@
-import Cookies from 'js-cookie';
-import { API_BASE_URL, COOKIE_KEYS, ROUTES } from '@/utils/constants';
+import { API_BASE_URL, ROUTES } from '@/utils/constants';
 import { FEATURE_FLAGS } from './config';
 import { getMockForPath } from './mock/data';
 
@@ -14,45 +13,11 @@ interface ApiRequestOptions extends RequestInit {
   skipAuth?: boolean;
 }
 
-async function refreshToken(): Promise<string | null> {
-  try {
-    const refreshToken = Cookies.get(COOKIE_KEYS.REFRESH_TOKEN);
-    if (!refreshToken) return null;
-
-    const response = await fetch(`${API_BASE_URL}/v1/auth/refresh`, {
-      method: 'POST',
-      headers: {
-        'Content-Type': 'application/json',
-      },
-      body: JSON.stringify({ refresh_token: refreshToken }),
-      credentials: 'include',
-    });
-
-    if (!response.ok) return null;
-
-    const data = await response.json();
-    if (data.access_token) {
-      Cookies.set(COOKIE_KEYS.JWT, data.access_token, {
-        secure: process.env.NODE_ENV === 'production',
-        sameSite: 'strict',
-      });
-      return data.access_token;
-    }
-
-    return null;
-  } catch (error) {
-    console.error('Token refresh failed:', error);
-    return null;
-  }
-}
-
 export async function apiRequest<T = any>(
   path: string,
   options: ApiRequestOptions = {}
 ): Promise<T> {
   const { skipAuth = false, ...fetchOptions } = options;
-
-  let token = Cookies.get(COOKIE_KEYS.JWT);
 
   const headers: Record<string, string> = {
     'Content-Type': 'application/json',
@@ -62,8 +27,11 @@ export async function apiRequest<T = any>(
     Object.assign(headers, fetchOptions.headers);
   }
 
-  if (!skipAuth && token) {
-    headers['Authorization'] = `Bearer ${token}`;
+  if (!skipAuth) {
+    const token = await window.Clerk?.session?.getToken();
+    if (token) {
+      headers['Authorization'] = `Bearer ${token}`;
+    }
   }
 
   try {
@@ -75,29 +43,7 @@ export async function apiRequest<T = any>(
 
     // Handle 401 - Unauthorized
     if (response.status === 401 && !skipAuth) {
-      // Try to refresh token
-      const newToken = await refreshToken();
-      if (newToken) {
-        // Retry with new token
-        const retryHeaders: Record<string, string> = {
-          ...headers,
-          'Authorization': `Bearer ${newToken}`,
-        };
-        const retryResponse = await fetch(`${API_BASE_URL}${path}`, {
-          ...fetchOptions,
-          headers: retryHeaders,
-          credentials: 'include',
-        });
-
-        if (retryResponse.ok) {
-          return await retryResponse.json();
-        }
-      }
-
-      // If refresh failed or retry failed, redirect to login
       if (typeof window !== 'undefined') {
-        Cookies.remove(COOKIE_KEYS.JWT);
-        Cookies.remove(COOKIE_KEYS.REFRESH_TOKEN);
         window.location.href = ROUTES.LOGIN;
       }
       throw new ApiError(401, 'Unauthorized');

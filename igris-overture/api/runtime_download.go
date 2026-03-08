@@ -53,9 +53,8 @@ func NewDownloadHandler(db *sql.DB, redis *redis.Client) *DownloadHandler {
 }
 
 // RegisterDownloadRoutes registers the authenticated binary download endpoint.
-// Uses JWT tenant auth (Authorization: Bearer <token>) — the same auth the
-// web console uses for all other API calls.
-func RegisterDownloadRoutes(app *fiber.App, db *sql.DB, redisClient *redis.Client, tenantAuth *middleware.TenantAuth) {
+// Uses Clerk JWT auth (Authorization: Bearer <clerk_session_token>) via ClerkAuth middleware.
+func RegisterDownloadRoutes(app *fiber.App, db *sql.DB, redisClient *redis.Client, _ *middleware.TenantAuth) {
 	if db == nil {
 		log.Warn().Msg("[Routes] Runtime download disabled — database not available")
 		return
@@ -65,13 +64,8 @@ func RegisterDownloadRoutes(app *fiber.App, db *sql.DB, redisClient *redis.Clien
 
 	v1 := app.Group("/v1/runtime")
 
-	// Authenticated download endpoint (JWT)
-	if tenantAuth != nil {
-		v1.Get("/download", tenantAuth.Authenticate(), h.Download)
-	} else {
-		// Multi-tenancy disabled — still register the route but require API key
-		v1.Get("/download", h.Download)
-	}
+	// Authenticated download endpoint (Clerk JWT)
+	v1.Get("/download", middleware.ClerkAuth(), h.Download)
 
 	// Public checksum endpoint (no auth) — used by the installer for verification
 	v1.Get("/checksum", h.Checksum)
@@ -85,18 +79,17 @@ func RegisterDownloadRoutes(app *fiber.App, db *sql.DB, redisClient *redis.Clien
 //   - platform: linux-amd64 | linux-arm64 | macos-arm64 | darwin-arm64 | windows-amd64
 //               (auto-detected from User-Agent if omitted)
 //
-// Auth: Authorization: Bearer <tenant_jwt>
+// Auth: Authorization: Bearer <clerk_session_token>
 // Response: binary stream, or 302 redirect if RUNTIME_BINARIES_URL is set.
 func (h *DownloadHandler) Download(c *fiber.Ctx) error {
-	// Extract tenant from context (set by TenantAuth middleware)
-	tenantCtx := middleware.GetTenantContext(c)
-	if tenantCtx == nil {
+	// Extract tenant from context (set by ClerkAuth middleware via clerk_user_id local)
+	tenantID := middleware.GetClerkUserID(c)
+	if tenantID == "" {
 		return c.Status(fiber.StatusUnauthorized).JSON(fiber.Map{
 			"error":   "unauthorized",
-			"message": "Valid tenant session required to download runtime binary",
+			"message": "Valid Clerk session required to download runtime binary",
 		})
 	}
-	tenantID := tenantCtx.TenantID
 
 	// Verify subscription is active
 	if err := h.verifySubscription(tenantID); err != nil {
