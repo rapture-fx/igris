@@ -72,14 +72,6 @@ interface DailySpend {
   cost: number;
 }
 
-function makeDailySpend(): DailySpend[] {
-  const costs = [22.1, 28.4, 25.9, 31.2, 29.8, 35.1, 38.6, 32.4, 40.2, 37.8, 42.1, 38.9, 45.3, 38.4];
-  return costs.map((cost, i) => {
-    const d = new Date();
-    d.setDate(d.getDate() - (costs.length - 1 - i));
-    return { date: d.toLocaleDateString('en-US', { month: 'short', day: 'numeric' }), cost };
-  });
-}
 
 const SUMMARY_CARDS = [
   { key: 'active_executions', label: 'Active Executions', icon: Terminal, sub: 'Currently running', link: '/execution/runs' },
@@ -161,7 +153,7 @@ export default function DashboardPage() {
     queryKey: ['usage-daily'],
     queryFn: async () => {
       try { return await api.get<DailySpend[]>('/models/usage/daily'); }
-      catch { return makeDailySpend(); }
+      catch { return []; }
     },
     retry: false,
   });

@@ -33,7 +33,22 @@ type PolarConfig struct {
 	WebhookSecret string
 }
 
-// NewPolarClient creates a new Polar.sh API client
+// getEnvOrDefault returns the value of the environment variable key, or
+// fallback if the variable is not set or is empty.
+func getEnvOrDefault(key, fallback string) string {
+	if v := os.Getenv(key); v != "" {
+		return v
+	}
+	return fallback
+}
+
+// NewPolarClient creates a new Polar.sh API client.
+// Price IDs are resolved from environment variables at construction time so that
+// operators can set them without recompiling:
+//
+//	POLAR_PRICE_SEED      — monthly price ID for the Seed plan
+//	POLAR_PRICE_HORIZON   — monthly price ID for the Horizon plan
+//	POLAR_PRICE_INFINITE  — monthly price ID for the Infinite plan
 func NewPolarClient(cfg PolarConfig) (*PolarClient, error) {
 	if cfg.APIKey == "" {
 		return nil, errors.New("POLAR_API_KEY required")
@@ -47,6 +62,12 @@ func NewPolarClient(cfg PolarConfig) (*PolarClient, error) {
 		return nil, errors.New("Redis client required")
 	}
 
+	// Override price IDs from environment variables at runtime.
+	// This lets operators set the real Polar price IDs without touching source.
+	PlanSeed.MonthlyPriceID = getEnvOrDefault("POLAR_PRICE_SEED", PlanSeed.MonthlyPriceID)
+	PlanHorizon.MonthlyPriceID = getEnvOrDefault("POLAR_PRICE_HORIZON", PlanHorizon.MonthlyPriceID)
+	PlanInfinite.MonthlyPriceID = getEnvOrDefault("POLAR_PRICE_INFINITE", PlanInfinite.MonthlyPriceID)
+
 	client := &PolarClient{
 		apiKey:        cfg.APIKey,
 		baseURL:       cfg.BaseURL,
@@ -56,6 +77,8 @@ func NewPolarClient(cfg PolarConfig) (*PolarClient, error) {
 	}
 
 	client.logger.Printf("[Polar] Client initialized (baseURL: %s)", cfg.BaseURL)
+	client.logger.Printf("[Polar] Price IDs: seed=%s horizon=%s infinite=%s",
+		PlanSeed.MonthlyPriceID, PlanHorizon.MonthlyPriceID, PlanInfinite.MonthlyPriceID)
 
 	return client, nil
 }

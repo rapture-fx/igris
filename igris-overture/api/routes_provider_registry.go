@@ -52,3 +52,20 @@ func RegisterProviderRegistryRoutes(app *fiber.App, config *ProviderRegistryRout
 	log.Println("[Routes]   - DELETE /v1/providers/:id            (Delete provider)")
 	log.Println("[Routes]   - PUT    /v1/providers/:id            (Update provider)")
 }
+
+// RegisterModelProviderRoutes adds GET /models/providers as an alias for
+// the existing provider-list endpoint. The web-console calls this path.
+func RegisterModelProviderRoutes(app *fiber.App, db *sql.DB, _ *middleware.TenantAuth) {
+	if db == nil {
+		log.Println("[Routes] /models/providers alias disabled — database not available")
+		return
+	}
+
+	providerHandler := handlers.NewProviderRegistryHandler(db, nil)
+
+	models := app.Group("/models")
+	models.Use(middleware.ClerkAuth())
+	models.Get("/providers", providerHandler.ListProviders)
+
+	log.Println("[Routes] ✓ Registered GET /models/providers (alias for /v1/providers)")
+}

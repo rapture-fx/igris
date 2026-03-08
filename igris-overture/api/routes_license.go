@@ -9,6 +9,7 @@ import (
 	"github.com/gofiber/fiber/v2"
 	"github.com/rs/zerolog/log"
 
+	"github.com/Igris-inertial/system/igris-overture/middleware"
 	"github.com/Igris-inertial/system/igris-overture/models"
 )
 
@@ -38,6 +39,179 @@ func RegisterLicenseRoutes(app *fiber.App, db *sql.DB) {
 	v1.Post("/device/deregister", handler.DeregisterDevice)
 
 	log.Info().Msg("[Routes] ✓ Registered license API endpoints (/api/v1/license)")
+
+	// Alias group at /v1/license — web-console calls GET /v1/license and POST /v1/license/activate.
+	// These use Clerk auth so the console can read the tenant's current plan.
+	consoleV1 := app.Group("/v1/license")
+	consoleV1.Use(middleware.ClerkAuth())
+	consoleV1.Get("/", handler.GetLicenseInfo)
+	consoleV1.Post("/activate", handler.ActivateLicense)
+
+	log.Info().Msg("[Routes] ✓ Registered console license endpoints (/v1/license)")
+}
+
+// GetLicenseInfo handles GET /v1/license — returns the current tenant's license info.
+func (h *LicenseHandler) GetLicenseInfo(c *fiber.Ctx) error {
+	tenantID := middleware.GetClerkUserID(c)
+	if tenantID == "" {
+		return c.Status(fiber.StatusUnauthorized).JSON(fiber.Map{"error": "unauthorized"})
+	}
+
+	// Look up the license associated with this tenant's customer_id
+	var (
+		licenseKey    string
+		tier          string
+		status        string
+		devicesLimit  int
+		expiresAt     *time.Time
+	)
+
+	err := h.db.QueryRow(`
+		SELECT license_key, tier, status, devices_limit, expires_at
+		FROM licenses
+		WHERE customer_id = $1
+		ORDER BY created_at DESC
+		LIMIT 1
+	`, tenantID).Scan(&licenseKey, &tier, &status, &devicesLimit, &expiresAt)
+
+	if err == sql.ErrNoRows {
+		// Return a zero-state license rather than 404 so the console renders cleanly
+		return c.JSON(fiber.Map{
+			"license_key":        "",
+			"masked_key":         "",
+			"plan":               "seed",
+			"status":             "inactive",
+			"quota_requests":     50000,
+			"quota_used":         0,
+			"quota_devices":      5,
+			"quota_devices_used": 0,
+			"features":           []string{},
+		})
+	}
+	if err != nil {
+		log.Error().Err(err).Str("tenant_id", tenantID).Msg("[License] GetLicenseInfo DB error")
+		return c.Status(fiber.StatusInternalServerError).JSON(fiber.Map{
+			"error":   "internal_error",
+			"message": "Failed to retrieve license information",
+		})
+	}
+
+	// Get active device count
+	var activeDevices int
+	h.db.QueryRow(`
+		SELECT COUNT(*)
+		FROM devices d
+		JOIN licenses l ON d.license_id = l.id
+		WHERE l.customer_id = $1
+		  AND d.status = 'active'
+		  AND d.last_seen > NOW() - INTERVAL '1 hour'
+	`, tenantID).Scan(&activeDevices)
+
+	// Get usage this month
+	var quotaUsed int
+	h.db.QueryRow(`
+		SELECT COALESCE(COUNT(*), 0)
+		FROM usage_log ul
+		JOIN licenses l ON ul.license_id = l.id
+		WHERE l.customer_id = $1
+		  AND ul.timestamp >= DATE_TRUNC('month', NOW())
+	`, tenantID).Scan(&quotaUsed)
+
+	// Derive quota limit from tier
+	quotaRequests := 50000
+	switch tier {
+	case "horizon":
+		quotaRequests = 500000
+	case "infinite":
+		quotaRequests = 2000000
+	}
+
+	var validUntil *string
+	if expiresAt != nil {
+		s := expiresAt.Format(time.RFC3339)
+		validUntil = &s
+	}
+
+	return c.JSON(fiber.Map{
+		"license_key":        licenseKey,
+		"masked_key":         maskLicenseKey(licenseKey),
+		"plan":               tier,
+		"status":             status,
+		"valid_until":        validUntil,
+		"quota_requests":     quotaRequests,
+		"quota_used":         quotaUsed,
+		"quota_devices":      devicesLimit,
+		"quota_devices_used": activeDevices,
+		"features":           models.GetFeaturesForTier(tier),
+	})
+}
+
+// ActivateLicense handles POST /v1/license/activate — associates a license key with the tenant.
+func (h *LicenseHandler) ActivateLicense(c *fiber.Ctx) error {
+	tenantID := middleware.GetClerkUserID(c)
+	if tenantID == "" {
+		return c.Status(fiber.StatusUnauthorized).JSON(fiber.Map{"error": "unauthorized"})
+	}
+
+	var req struct {
+		LicenseKey string `json:"license_key"`
+	}
+	if err := c.BodyParser(&req); err != nil || req.LicenseKey == "" {
+		return c.Status(fiber.StatusBadRequest).JSON(fiber.Map{
+			"error":   "invalid_request",
+			"message": "license_key is required",
+		})
+	}
+
+	// Verify the key exists and is active
+	var licenseID string
+	var licStatus string
+	err := h.db.QueryRow(`
+		SELECT id, status FROM licenses WHERE license_key = $1
+	`, req.LicenseKey).Scan(&licenseID, &licStatus)
+
+	if err == sql.ErrNoRows {
+		return c.Status(fiber.StatusNotFound).JSON(fiber.Map{
+			"error":   "invalid_license",
+			"message": "License key not found",
+		})
+	}
+	if err != nil {
+		log.Error().Err(err).Msg("[License] ActivateLicense DB error")
+		return c.Status(fiber.StatusInternalServerError).JSON(fiber.Map{
+			"error":   "internal_error",
+			"message": "Failed to activate license",
+		})
+	}
+
+	if licStatus != "active" {
+		return c.Status(fiber.StatusForbidden).JSON(fiber.Map{
+			"error":   "license_" + licStatus,
+			"message": "License is " + licStatus,
+		})
+	}
+
+	// Associate the license with this tenant
+	_, err = h.db.Exec(`
+		UPDATE licenses SET customer_id = $1 WHERE id = $2
+	`, tenantID, licenseID)
+	if err != nil {
+		log.Error().Err(err).Str("license_id", licenseID).Msg("[License] ActivateLicense update error")
+		return c.Status(fiber.StatusInternalServerError).JSON(fiber.Map{
+			"error":   "internal_error",
+			"message": "Failed to activate license",
+		})
+	}
+
+	log.Info().
+		Str("tenant_id", tenantID).
+		Str("license_key", maskLicenseKey(req.LicenseKey)).
+		Msg("[License] License activated for tenant")
+
+	return c.JSON(fiber.Map{
+		"activated":   true,
+		"license_key": maskLicenseKey(req.LicenseKey),
+	})
 }
 
 // ValidateLicense handles POST /api/v1/license/validate

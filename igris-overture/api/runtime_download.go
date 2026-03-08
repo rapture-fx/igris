@@ -40,16 +40,44 @@ type DownloadHandler struct {
 
 // NewDownloadHandler creates a handler.
 //
-//   - binariesDir: path to /runtime-binaries directory (from RUNTIME_BINARIES_DIR env).
-//     If empty the handler redirects to binariesURL instead of streaming.
-//   - binariesURL: base URL for binary redirects (from RUNTIME_BINARIES_URL env).
-func NewDownloadHandler(db *sql.DB, redis *redis.Client) *DownloadHandler {
-	return &DownloadHandler{
-		db:          db,
-		redis:       redis,
-		binariesDir: os.Getenv("RUNTIME_BINARIES_DIR"),
-		binariesURL: os.Getenv("RUNTIME_BINARIES_URL"),
+//   - RUNTIME_BINARIES_DIR env: path to local directory containing runtime binaries.
+//     If empty the handler falls back to RUNTIME_BINARIES_URL (redirect mode).
+//   - RUNTIME_BINARIES_URL env: base URL for redirect mode (e.g. private R2 bucket).
+//     If neither is set, the handler returns metadata only.
+//
+// At construction time a startup log is emitted so operators know which mode is active.
+// If neither env var is set but a ./binaries directory exists on the filesystem,
+// it is used automatically as the binaries directory.
+func NewDownloadHandler(db *sql.DB, redisClient *redis.Client) *DownloadHandler {
+	binariesDir := os.Getenv("RUNTIME_BINARIES_DIR")
+	binariesURL := os.Getenv("RUNTIME_BINARIES_URL")
+
+	// Auto-detect a local ./binaries directory when no env vars are configured.
+	if binariesDir == "" && binariesURL == "" {
+		if info, err := os.Stat("./binaries"); err == nil && info.IsDir() {
+			binariesDir = "./binaries"
+			log.Info().Str("dir", binariesDir).Msg("[Download] Auto-detected ./binaries directory")
+		}
 	}
+
+	h := &DownloadHandler{
+		db:          db,
+		redis:       redisClient,
+		binariesDir: binariesDir,
+		binariesURL: binariesURL,
+	}
+
+	// Emit a clear startup log so operators know which serving mode is active.
+	switch {
+	case h.binariesDir != "":
+		log.Info().Str("dir", h.binariesDir).Msg("[Download] Serving binaries from local filesystem")
+	case h.binariesURL != "":
+		log.Info().Str("url", h.binariesURL).Msg("[Download] Redirecting downloads to remote URL")
+	default:
+		log.Warn().Msg("[Download] Neither RUNTIME_BINARIES_DIR nor RUNTIME_BINARIES_URL set — download returns metadata only")
+	}
+
+	return h
 }
 
 // RegisterDownloadRoutes registers the authenticated binary download endpoint.

@@ -3,10 +3,13 @@
 export const dynamic = 'force-dynamic';
 
 import { useState } from 'react';
+import { useQuery } from '@tanstack/react-query';
 import { DashboardLayout } from '@/components/layout/DashboardLayout';
 import { Card, CardContent, CardDescription, CardHeader, CardTitle } from '@/components/ui/card';
 import { Button } from '@/components/ui/button';
 import { Badge } from '@/components/ui/badge';
+import { Skeleton } from '@/components/ui/skeleton';
+import { api } from '@/lib/apiClient';
 import { Lightbulb, CheckCircle, XCircle, Clock, TrendingUp, AlertTriangle } from 'lucide-react';
 
 interface CognitiveProposal {
@@ -26,53 +29,11 @@ interface CognitiveProposal {
 }
 
 export default function CognitiveAdvisorPage() {
-  const [proposals] = useState<CognitiveProposal[]>([
-    {
-      id: '1',
-      title: 'Switch primary provider to Anthropic',
-      description: 'Based on last 7 days, Anthropic has 23% better P95 latency and 15% lower error rate than current primary (OpenAI)',
-      confidence: 0.89,
-      status: 'pending',
-      created_at: '2024-01-15T10:30:00Z',
-      impact: 'high',
-      category: 'performance',
-      details: {
-        current_value: 'OpenAI (P95: 1.2s, errors: 3.4%)',
-        proposed_value: 'Anthropic (P95: 0.9s, errors: 2.1%)',
-        estimated_improvement: '+23% latency, +15% reliability',
-      },
-    },
-    {
-      id: '2',
-      title: 'Increase rate limit for tenant acme-corp',
-      description: 'Tenant hitting rate limits 47 times in past 24h. Usage pattern suggests legitimate traffic spike.',
-      confidence: 0.76,
-      status: 'pending',
-      created_at: '2024-01-15T08:15:00Z',
-      impact: 'medium',
-      category: 'reliability',
-      details: {
-        current_value: '100 req/min',
-        proposed_value: '250 req/min',
-        estimated_improvement: 'Reduce throttling by 85%',
-      },
-    },
-    {
-      id: '3',
-      title: 'Reduce context window for routine queries',
-      description: 'Analysis shows 78% of queries use <2k tokens but context is set to 8k. Reducing default saves ~$340/month.',
-      confidence: 0.82,
-      status: 'applied',
-      created_at: '2024-01-14T14:20:00Z',
-      impact: 'medium',
-      category: 'cost',
-      details: {
-        current_value: '8k tokens default',
-        proposed_value: '4k tokens default',
-        estimated_improvement: '$340/month savings',
-      },
-    },
-  ]);
+  const { data: proposals = [], isLoading } = useQuery<CognitiveProposal[]>({
+    queryKey: ['cognitive-proposals'],
+    queryFn: () => api.get('/admin/cognitive/proposals'),
+    retry: false,
+  });
 
   const [selectedCategory, setSelectedCategory] = useState<string>('all');
 
@@ -123,7 +84,9 @@ export default function CognitiveAdvisorPage() {
               <Clock className="h-4 w-4 text-gray-900" />
             </CardHeader>
             <CardContent>
-              <div className="text-lg font-bold text-gray-900">{pendingCount}</div>
+              {isLoading ? <Skeleton className="h-7 w-12" /> : (
+                <div className="text-lg font-bold text-gray-900">{pendingCount}</div>
+              )}
               <p className="text-xs text-gray-600 mt-1">
                 Awaiting approval
               </p>
@@ -136,7 +99,9 @@ export default function CognitiveAdvisorPage() {
               <CheckCircle className="h-4 w-4 text-gray-900" />
             </CardHeader>
             <CardContent>
-              <div className="text-lg font-bold text-gray-900">{appliedCount}</div>
+              {isLoading ? <Skeleton className="h-7 w-12" /> : (
+                <div className="text-lg font-bold text-gray-900">{appliedCount}</div>
+              )}
               <p className="text-xs text-gray-600 mt-1">
                 Successfully implemented
               </p>
@@ -149,9 +114,13 @@ export default function CognitiveAdvisorPage() {
               <Lightbulb className="h-4 w-4 text-gray-900" />
             </CardHeader>
             <CardContent>
-              <div className="text-lg font-bold text-gray-900">
-                {(proposals.reduce((acc, p) => acc + p.confidence, 0) / proposals.length * 100).toFixed(0)}%
-              </div>
+              {isLoading ? <Skeleton className="h-7 w-12" /> : (
+                <div className="text-lg font-bold text-gray-900">
+                  {proposals.length > 0
+                    ? (proposals.reduce((acc, p) => acc + p.confidence, 0) / proposals.length * 100).toFixed(0) + '%'
+                    : '—'}
+                </div>
+              )}
               <p className="text-xs text-gray-600 mt-1">
                 Model certainty
               </p>
@@ -176,7 +145,25 @@ export default function CognitiveAdvisorPage() {
 
         {/* Proposals List */}
         <div className="space-y-4">
-          {filteredProposals.map((proposal) => (
+          {isLoading && (
+            <div className="space-y-4">
+              {Array.from({ length: 3 }).map((_, i) => (
+                <Card key={i} className="border-border-light shadow-sm">
+                  <CardHeader>
+                    <Skeleton className="h-4 w-48" />
+                    <Skeleton className="h-3 w-64 mt-2" />
+                  </CardHeader>
+                  <CardContent>
+                    <Skeleton className="h-20 w-full" />
+                  </CardContent>
+                </Card>
+              ))}
+            </div>
+          )}
+          {!isLoading && filteredProposals.length === 0 && (
+            <div className="text-center text-xs text-gray-500 py-8">No proposals found.</div>
+          )}
+          {!isLoading && filteredProposals.map((proposal) => (
             <Card key={proposal.id} className="border-border-light shadow-sm">
               <CardHeader>
                 <div className="flex items-start justify-between">
