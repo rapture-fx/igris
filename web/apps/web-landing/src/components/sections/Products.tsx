@@ -37,7 +37,7 @@ export default function Products() {
         <div className="px-4 md:px-8 lg:px-12" style={{ borderLeft: '0.5px solid rgba(209, 213, 219, 0.35)', borderRight: '0.5px solid rgba(209, 213, 219, 0.35)', paddingBottom: 0 }}>
           <div style={{ borderTop: '0.5px solid rgba(209, 213, 219, 0.35)', width: '100vw', marginLeft: '50%', transform: 'translateX(-50%)' }} />
 
-          <div style={{ paddingTop: '3rem', paddingBottom: '3rem', position: 'relative' }}>
+          <div style={{ paddingTop: '3rem', paddingBottom: '3rem', position: 'relative', backgroundImage: 'url(/pri.png)', backgroundRepeat: 'no-repeat', backgroundPosition: 'right center', backgroundSize: '400px' }}>
             <div style={{ maxWidth: '360px' }}>
               <p className="text-base md:text-lg mb-3 text-[#000000] dark:text-[#f6f6f4]" style={{ fontFamily: '-apple-system, BlinkMacSystemFont, "Segoe UI", Roboto, Helvetica, Arial, sans-serif', fontWeight: 400 }}>
                 Hybrid behavior trees meet LLM reasoning.
@@ -62,9 +62,9 @@ export default function Products() {
             </div>
           </div>
         </div>
-      </div>
 
-      <div style={{ borderTop: '0.5px solid rgba(209, 213, 219, 0.35)' }} />
+        <div style={{ borderTop: '0.5px solid rgba(209, 213, 219, 0.35)' }} />
+      </div>
     </section>
   )
 }

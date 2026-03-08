@@ -80,30 +80,29 @@ export default function Hero() {
   return (
     <section className="pb-0 bg-white dark:bg-dark-bg text-gray-900 dark:text-[#f6f6f4] relative overflow-visible transition-colors duration-200" style={{ marginTop: '52px' }}>
       <div className="mx-auto max-w-[1100px] px-4 sm:px-6 lg:px-8">
-        <div className="relative overflow-hidden flex flex-col justify-end" style={{
+        <div className="relative overflow-hidden flex flex-col justify-center" style={{
           height: 'calc(100vh - 52px)',
           marginBottom: '2rem'
         }}>
             <div className="max-w-[1100px] mx-auto w-full relative z-10 pb-10 px-4 md:px-8 lg:px-12">
             <div className="mb-1">
-              <div>
-                <div className="flex flex-col md:flex-row md:items-start md:justify-between gap-4 md:gap-8">
-                  <div>
-                    <h1 className="text-2xl md:text-4xl lg:text-5xl mb-6 leading-tight" style={{ color: mounted && theme === 'dark' ? '#f6f6f4' : '#1b1912', fontFamily: 'var(--font-geist-pixel-square, Geist Pixel Square, monospace)', fontWeight: 700 }}>
-                      Run AI that survives failure<br />
-                      <span className="mt-4 block">and proves what it did.</span>
-                    </h1>
-                    <a
-                      href="https://admin.igris-inertial.com/auth?mode=signup"
-                      className="inline-flex items-center justify-center px-6 py-3 hover:opacity-80 transition-all duration-200 text-sm font-medium shadow-sm rounded-md"
-                      style={{ fontFamily: '-apple-system, BlinkMacSystemFont, "Segoe UI", Roboto, Helvetica, Arial, sans-serif', backgroundColor: '#000000', color: '#ffffff' }}
-                    >
-                      Get Started
-                    </a>
-                  </div>
-                  <div className="text-sm md:text-base lg:text-lg max-w-xs font-normal" style={{ color: mounted && theme === 'dark' ? '#a8a898' : '#6b7280', fontFamily: '-apple-system, BlinkMacSystemFont, "Segoe UI", Roboto, Helvetica, Arial, sans-serif', fontWeight: 400 }}>
-                    <span className="block">Deterministic runtime. Cloud + local fallback. OS-level containment with signed violation logs. Deploy anywhere.</span>
-                  </div>
+              <div className="flex flex-col items-center gap-8">
+                <img src="/jk.png" alt="Hero" className="max-w-full h-auto" style={{ maxWidth: '500px' }} />
+                <div className="text-center">
+                  <h1 className="text-2xl md:text-4xl lg:text-5xl mb-4 leading-tight" style={{ color: mounted && theme === 'dark' ? '#f6f6f4' : '#1b1912', fontFamily: 'var(--font-geist-pixel-square, Geist Pixel Square, monospace)', fontWeight: 700 }}>
+                    Run AI that survives failure<br />
+                    <span className="mt-4 block">and proves what it did.</span>
+                  </h1>
+                  <p className="text-sm md:text-base lg:text-lg mb-6" style={{ color: mounted && theme === 'dark' ? '#a8a898' : '#6b7280', fontFamily: '-apple-system, BlinkMacSystemFont, "Segoe UI", Roboto, Helvetica, Arial, sans-serif', fontWeight: 400 }}>
+                    Deterministic runtime. Cloud + local fallback. OS-level containment with signed violation logs. Deploy anywhere.
+                  </p>
+                  <a
+                    href="https://admin.igris-inertial.com/auth?mode=signup"
+                    className="inline-flex items-center justify-center px-6 py-3 hover:opacity-80 transition-all duration-200 text-sm font-medium shadow-sm rounded-md"
+                    style={{ fontFamily: '-apple-system, BlinkMacSystemFont, "Segoe UI", Roboto, Helvetica, Arial, sans-serif', backgroundColor: '#000000', color: '#ffffff' }}
+                  >
+                    Get Started
+                  </a>
                 </div>
               </div>
             </div>

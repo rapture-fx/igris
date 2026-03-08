@@ -33,7 +33,6 @@ RUN go mod download
 # Copy source code
 COPY cmd/ ./cmd/
 COPY igris-overture/ ./igris-overture/
-COPY adapters/ ./adapters/
 COPY config/ ./config/
 
 # Copy Rust static libraries from rust-builder
