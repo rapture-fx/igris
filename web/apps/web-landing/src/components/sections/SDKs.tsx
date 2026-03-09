@@ -367,10 +367,10 @@ export default function SDKs() {
           </div>
 
           {/* Full-width border below title */}
-          <div style={{ borderTop: borderStyle, width: '100vw', marginLeft: '50%', transform: 'translateX(-50%)' }} />
+          <div style={{ borderTop: borderStyle }} />
 
           {/* Row 1 - Cloud + Runtime SDK */}
-          <div className="grid grid-cols-1 md:grid-cols-2" style={{ minHeight: '280px' }}>
+          <div className="grid grid-cols-1 md:grid-cols-2 md:[min-height:280px]">
             {/* Col 1 - Text */}
             <div className="flex flex-col justify-start pt-6 pb-8 pr-4" style={{ borderRight: borderStyle }}>
               <div className="max-w-md">
@@ -411,7 +411,7 @@ export default function SDKs() {
               </div>
             </div>
             {/* Col 2 - Code */}
-            <div className="relative" style={{ minHeight: '280px' }}>
+            <div className="relative min-h-[240px] md:min-h-0">
               <div className="absolute top-2 bottom-2 left-2 right-0 rounded-2xl border border-gray-200 dark:border-[#f6f6f4]/8 bg-[#f9f9fa] dark:bg-[#1b1912]/60 p-4 overflow-hidden">
                 <div className="h-full overflow-y-auto scrollbar-hide" style={{ scrollbarWidth: 'none', msOverflowStyle: 'none' }}>
                   <CodeBlock code={codeExamples[selectedLang]} language={selectedLang} />
@@ -421,10 +421,10 @@ export default function SDKs() {
           </div>
 
           {/* Full-width border between rows */}
-          <div style={{ borderTop: borderStyle, width: '100vw', marginLeft: '50%', transform: 'translateX(-50%)' }} />
+          <div style={{ borderTop: borderStyle }} />
 
           {/* Row 2 - Behavior Trees */}
-          <div className="grid grid-cols-1 md:grid-cols-2" style={{ minHeight: '280px' }}>
+          <div className="grid grid-cols-1 md:grid-cols-2 md:[min-height:280px]">
             {/* Col 1 - Text */}
             <div className="flex flex-col justify-start pt-6 pb-8 pr-4" style={{ borderRight: borderStyle }}>
               <div className="max-w-md">
@@ -449,7 +449,7 @@ export default function SDKs() {
               </div>
             </div>
             {/* Col 2 - Code */}
-            <div className="relative" style={{ minHeight: '280px' }}>
+            <div className="relative min-h-[240px] md:min-h-0">
               <div className="absolute top-2 bottom-2 left-2 right-0 rounded-2xl border border-gray-200 dark:border-[#f6f6f4]/8 bg-[#f9f9fa] dark:bg-[#1b1912]/60 p-4 overflow-hidden">
                 <div className="h-full overflow-y-auto scrollbar-hide" style={{ scrollbarWidth: 'none', msOverflowStyle: 'none' }}>
                   <CodeBlock code={btreeExamples[selectedLang]} language={selectedLang} />
