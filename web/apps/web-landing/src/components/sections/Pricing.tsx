@@ -92,14 +92,14 @@ export default function Pricing() {
   return (
     <section id="pricing" className="pt-0 pb-0 bg-white dark:bg-[#1b1912] text-gray-900 dark:text-[#f6f6f4] relative transition-colors duration-200">
       <div className="mx-auto max-w-[1100px] px-4 sm:px-6 lg:px-8">
-        <div className="relative px-4 md:px-8 lg:px-12 pb-0 pt-[70px] bg-white dark:bg-[#1b1912] z-10">
-          <div className="max-w-[1400px] mx-auto pt-12 px-0 md:px-8 lg:px-0 pb-24">
+        <div className="relative px-4 md:px-8 lg:px-12 pb-0 pt-4 bg-white dark:bg-[#1b1912] z-10">
+          <div className="max-w-[1400px] mx-auto pt-4 px-0 md:px-8 lg:px-0 pb-8">
 
-            <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-4 max-w-[900px] mx-auto mb-16">
+            <div className="grid grid-cols-1 lg:grid-cols-3 gap-4 max-w-[900px] mx-auto mb-8 md:mb-16">
               {pricingTiers.map((tier, index) => (
                 <div
                   key={index}
-                  className={`group relative transition-all duration-500 w-full border rounded-xl shadow-sm hover:shadow-md md:min-h-[450px] ${
+                  className={`group relative transition-all duration-500 w-full border rounded-xl shadow-sm hover:shadow-md lg:min-h-[450px] ${
                     tier.recommended
                       ? 'border-gray-300 dark:border-[#f6f6f4]/10'
                       : 'border-gray-300 dark:border-[#f6f6f4]/10'
@@ -126,7 +126,7 @@ export default function Pricing() {
                         ) : (
                           <div className="flex flex-col">
                             <span className="text-[#000000] dark:text-[#f6f6f4] transition-all duration-300">
-                              <span className="text-4xl md:text-5xl" style={{ fontFamily: 'var(--font-geist-pixel-square, Geist Pixel Square, monospace)' }}>{tier.price.split(' / ')[0]}</span>
+                              <span className="text-3xl md:text-5xl" style={{ fontFamily: 'var(--font-geist-pixel-square, Geist Pixel Square, monospace)' }}>{tier.price.split(' / ')[0]}</span>
                               {tier.price.includes(' / ') && (
                                 <span className="text-sm md:text-base text-gray-600 dark:text-[#a8a898]"> / {tier.price.split(' / ')[1]}</span>
                               )}
@@ -148,7 +148,7 @@ export default function Pricing() {
                       href={POLAR_CHECKOUT[tier.checkoutKey]}
                       target="_blank"
                       rel="noopener noreferrer"
-                      className="inline-flex items-center justify-center px-4 py-2 hover:opacity-80 transition-all duration-200 text-sm font-medium shadow-sm rounded-md mt-8 opacity-100 self-start"
+                      className="inline-flex items-center justify-center px-4 py-2 hover:opacity-80 transition-all duration-200 text-xs md:text-sm font-medium shadow-sm rounded-md mt-5 md:mt-8 opacity-100 self-start"
                       style={{ fontFamily: '-apple-system, BlinkMacSystemFont, "Segoe UI", Roboto, Helvetica, Arial, sans-serif', backgroundColor: '#1b1912', color: '#f6f6f4' }}
                     >
                       {tier.cta}
