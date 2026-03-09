@@ -21,7 +21,7 @@ export default function PricingPage() {
               </p>
               <div className="mt-8 p-4 bg-gray-50 dark:bg-[#1b1912] rounded-lg max-w-2xl mx-auto">
                 <p className="text-sm text-gray-700 dark:text-[#c8c8b8]" style={{ fontFamily: '-apple-system, BlinkMacSystemFont, "Segoe UI", Roboto, Helvetica, Arial, sans-serif' }}>
-                  <strong>A runtime instance</strong> is a deployed Igris runtime running on a server, edge device, robot, or agent host.
+                  A runtime instance is a deployed Igris runtime running on a server, edge device, robot, or agent host.
                 </p>
               </div>
             </div>
