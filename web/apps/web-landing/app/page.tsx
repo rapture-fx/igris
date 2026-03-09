@@ -35,7 +35,6 @@ export default function HomePage() {
           <Header />
           <main>
             <Hero />
-            <InstallSection />
             <Products />
             <CoreCapabilities />
             <AutonomousSystems />
