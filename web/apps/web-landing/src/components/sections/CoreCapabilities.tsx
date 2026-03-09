@@ -41,7 +41,7 @@ export default function CoreCapabilities() {
               style={{ backgroundColor: mounted && theme === 'dark' ? '#1b1912' : '#f9f9fa', color: mounted && theme === 'dark' ? '#f6f6f4' : '#1b1912', borderColor: 'rgba(20, 18, 10, 0.1)', fontFamily: '-apple-system, BlinkMacSystemFont, "Segoe UI", Roboto, Helvetica, Arial, sans-serif' }}
             >
               Learn More
-              <ChevronRight className="ml-1 h-4 w-4" />
+              <ChevronRight className="ml-1 h-3 w-3 md:h-4 md:w-4" />
             </Link>
           </div>
 
