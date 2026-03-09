@@ -106,7 +106,7 @@ export default function Hero() {
 
               {/* Image centered */}
               <div className="flex justify-center" style={{ marginBottom: '2rem' }}>
-                <img src="/jk.png" alt="Hero" className="max-w-full h-auto" style={{ maxWidth: '500px' }} />
+                <img src="/hjk.png" alt="Hero" className="max-w-full h-auto" style={{ maxWidth: '500px' }} />
               </div>
 
               {/* Buttons below */}
