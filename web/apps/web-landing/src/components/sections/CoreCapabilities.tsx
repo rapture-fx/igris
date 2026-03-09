@@ -37,7 +37,7 @@ export default function CoreCapabilities() {
             </h3>
             <Link
               href="/core"
-              className="inline-flex items-center justify-center px-4 py-2 md:px-6 md:py-3 hover:opacity-80 transition-all duration-200 text-sm font-medium shadow-sm rounded-md border shrink-0 ml-4"
+              className="inline-flex items-center justify-center px-3 py-1.5 md:px-6 md:py-3 hover:opacity-80 transition-all duration-200 text-xs md:text-sm font-medium shadow-sm rounded-md border shrink-0 ml-3 md:ml-4"
               style={{ backgroundColor: mounted && theme === 'dark' ? '#1b1912' : '#f9f9fa', color: mounted && theme === 'dark' ? '#f6f6f4' : '#1b1912', borderColor: 'rgba(20, 18, 10, 0.1)', fontFamily: '-apple-system, BlinkMacSystemFont, "Segoe UI", Roboto, Helvetica, Arial, sans-serif' }}
             >
               Learn More
