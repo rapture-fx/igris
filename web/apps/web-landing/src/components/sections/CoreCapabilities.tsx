@@ -46,10 +46,10 @@ export default function CoreCapabilities() {
           </div>
 
           {/* Full-width border below title */}
-          <div style={{ borderTop: '0.5px solid rgba(209, 213, 219, 0.35)', width: '100vw', marginLeft: '50%', transform: 'translateX(-50%)' }} />
+          <div style={{ borderTop: '0.5px solid rgba(209, 213, 219, 0.35)' }} />
 
-          {/* Table layout */}
-          <table className="w-full" style={{ borderCollapse: 'collapse', marginTop: 0 }}>
+          {/* Table layout — block on mobile, table on md+ */}
+          <table className="w-full hidden md:table" style={{ borderCollapse: 'collapse', marginTop: 0 }}>
             <tbody>
               <tr>
                 {capabilities.map((capability, index) => (
@@ -106,6 +106,43 @@ export default function CoreCapabilities() {
               </tr>
             </tbody>
           </table>
+
+          {/* Mobile stacked layout — visible only below md */}
+          <div className="flex flex-col md:hidden divide-y divide-[rgba(209,213,219,0.35)]">
+            {capabilities.map((capability, index) => (
+              <div key={capability.name} className="py-8">
+                <div className="w-full h-32 flex items-center justify-center mb-6">
+                  {index === 0 && (
+                    <img
+                      src={mounted && theme === 'dark' ? '/cr.png?v=2' : '/exc.png?v=2'}
+                      alt={capability.name}
+                      style={{ width: '100%', height: '100%', objectFit: 'contain', opacity: 0.45 }}
+                    />
+                  )}
+                  {index === 1 && (
+                    <img
+                      src={mounted && theme === 'dark' ? '/cs.png' : '/tre.png'}
+                      alt={capability.name}
+                      style={{ width: '100%', height: '100%', objectFit: 'contain', opacity: 0.45 }}
+                    />
+                  )}
+                  {index === 2 && (
+                    <img
+                      src={mounted && theme === 'dark' ? '/cc.png' : '/one.png'}
+                      alt={capability.name}
+                      style={{ width: '100%', height: '100%', objectFit: 'contain', opacity: 0.45 }}
+                    />
+                  )}
+                </div>
+                <h4 className="text-base mb-2 text-[#000000] dark:text-[#f6f6f4]" style={{ fontFamily: '-apple-system, BlinkMacSystemFont, "Segoe UI", Roboto, Helvetica, Arial, sans-serif' }}>
+                  {capability.name}
+                </h4>
+                <p className="text-sm text-gray-600 dark:text-[#a8a898] leading-relaxed" style={{ fontWeight: 400, fontFamily: '-apple-system, BlinkMacSystemFont, "Segoe UI", Roboto, Helvetica, Arial, sans-serif' }}>
+                  {capability.description}
+                </p>
+              </div>
+            ))}
+          </div>
         </div>
       </div>
 
