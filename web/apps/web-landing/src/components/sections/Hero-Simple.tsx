@@ -86,8 +86,8 @@ export default function Hero() {
         <div className="relative overflow-hidden flex flex-col justify-center min-h-[auto] md:min-h-[calc(100vh-52px)]" style={{
           marginBottom: '2rem'
         }}>
-          <div className="max-w-[1100px] mx-auto w-full relative z-10 pb-10 px-4 md:px-8 lg:px-12">
-            <div className="flex flex-col gap-8">
+          <div className="max-w-[1100px] mx-auto w-full relative z-10 pb-6 md:pb-10 pt-6 md:pt-0 px-4 md:px-8 lg:px-12">
+            <div className="flex flex-col gap-5 md:gap-8">
               {/* Top row: Title left, Subtext right */}
               <div className="flex flex-col md:flex-row md:items-start md:justify-between gap-4">
                 <div className="text-left">
@@ -104,28 +104,28 @@ export default function Hero() {
               </div>
 
               {/* Image centered */}
-              <div className="flex justify-center" style={{ marginBottom: '2rem' }}>
-                <img src="/hjk.png" alt="Hero" className="max-w-full h-auto w-full md:w-auto" style={{ maxWidth: '500px' }} />
+              <div className="flex justify-center" style={{ marginBottom: '1rem' }}>
+                <img src="/hjk.png" alt="Hero" className="h-auto max-w-[220px] md:max-w-[500px] w-auto" />
               </div>
 
               {/* Buttons below */}
-              <div className="flex flex-col md:flex-row items-center gap-4 justify-center">
+              <div className="flex flex-col md:flex-row items-center gap-3 md:gap-4 justify-center">
 <a
                     href="https://admin.igris-inertial.com/auth?mode=signup"
-                    className="inline-flex items-center justify-center px-6 py-3 hover:opacity-80 transition-all duration-200 text-sm shadow-[0_4px_14px_rgba(0,0,0,0.3)] rounded-md"
+                    className="inline-flex items-center justify-center px-4 py-2 md:px-6 md:py-3 hover:opacity-80 transition-all duration-200 text-xs md:text-sm shadow-[0_4px_14px_rgba(0,0,0,0.3)] rounded-md"
                     style={{ fontFamily: '-apple-system, BlinkMacSystemFont, "Segoe UI", Roboto, Helvetica, Arial, sans-serif', backgroundColor: '#000000', color: '#ffffff' }}
                   >
                     Get Started
                   </a>
 <div
-                    className="inline-flex items-center gap-4 rounded-md px-6 py-3 text-sm border shadow-[0_4px_14px_rgba(0,0,0,0.15)]"
+                    className="inline-flex items-center gap-2 md:gap-4 rounded-md px-3 py-2 md:px-6 md:py-3 text-xs md:text-sm border shadow-[0_4px_14px_rgba(0,0,0,0.15)]"
                     style={{
                       backgroundColor: mounted && theme === 'dark' ? '#1b1912' : '#ffffff',
                       borderColor: mounted && theme === 'dark' ? 'rgba(246,246,244,0.08)' : 'rgba(0,0,0,0.1)',
                       color: mounted && theme === 'dark' ? '#c8c8b8' : '#374151',
                     }}
                   >
-                    <span className="select-all">{INSTALL_CMD}</span>
+                    <span className="select-all truncate max-w-[180px] md:max-w-none">{INSTALL_CMD}</span>
                     <button
                       onClick={copy}
                       className="shrink-0 transition-opacity hover:opacity-60"
