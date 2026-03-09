@@ -34,10 +34,10 @@ export default function AutonomousSystems() {
           </div>
 
           {/* Full-width border below title */}
-          <div style={{ borderTop: borderStyle, width: '100vw', marginLeft: '50%', transform: 'translateX(-50%)' }} />
+          <div style={{ borderTop: borderStyle }} />
 
           {/* Row 1 - AI Agents */}
-          <div className="grid grid-cols-1 md:grid-cols-2" style={{ minHeight: '280px' }}>
+          <div className="grid grid-cols-1 md:grid-cols-2 md:[min-height:280px]">
             {/* Col 1 - Text */}
             <div className="flex flex-col pt-6 pb-8 pr-4" style={{ borderRight: borderStyle }}>
               <div className="max-w-md">
@@ -53,7 +53,7 @@ export default function AutonomousSystems() {
               </div>
             </div>
             {/* Col 2 - Image + Button */}
-            <div className="relative rounded-r-2xl overflow-hidden" style={{ minHeight: '280px' }}>
+            <div className="relative rounded-r-2xl overflow-hidden min-h-[200px] md:min-h-0">
               <div 
                 className="absolute top-2 bottom-2 left-2 right-0 bg-cover bg-center rounded-xl"
                 style={{ 
@@ -88,7 +88,7 @@ export default function AutonomousSystems() {
       {/* Row 2 - Robots */}
       <div className="mx-auto max-w-[1100px] px-4 sm:px-6 lg:px-8">
         <div className="px-4 md:px-8 lg:px-12" style={{ borderLeft: borderStyle, borderRight: borderStyle }}>
-          <div className="grid grid-cols-1 md:grid-cols-2" style={{ minHeight: '280px' }}>
+          <div className="grid grid-cols-1 md:grid-cols-2 md:[min-height:280px]">
             {/* Col 1 - Text */}
             <div className="flex flex-col pt-6 pb-8 pr-4" style={{ borderRight: borderStyle }}>
               <div className="max-w-md">
@@ -104,7 +104,7 @@ export default function AutonomousSystems() {
               </div>
             </div>
             {/* Col 2 - Full Background Image */}
-            <div className="relative flex flex-col justify-end items-end rounded-r-2xl overflow-hidden" style={{ minHeight: '280px' }}>
+            <div className="relative flex flex-col justify-end items-end rounded-r-2xl overflow-hidden min-h-[200px] md:min-h-0">
               <div className="absolute top-2 bottom-2 left-2 right-0 rounded-xl overflow-hidden">
                 <Image
                   src="/roz.png"
