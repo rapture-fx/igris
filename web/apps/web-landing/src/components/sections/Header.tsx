@@ -402,7 +402,7 @@ export default function Header() {
 
           {/* Mobile Menu Overlay */}
           {mobileMenuOpen && (
-            <div className="md:hidden fixed inset-0 top-0 z-50 bg-white dark:bg-[#1b1912] overflow-y-auto">
+            <div className="md:hidden fixed inset-0 top-0 z-50 bg-white dark:bg-[#1b1912] overflow-y-auto overscroll-contain">
               {/* Mobile menu header */}
               <div className="flex items-center justify-between px-4 sm:px-6" style={{ paddingTop: '1.5rem', paddingBottom: '1.5rem' }}>
                 <Link href="/" prefetch={false} onClick={() => setMobileMenuOpen(false)}>
