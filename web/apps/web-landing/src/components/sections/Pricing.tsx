@@ -92,10 +92,10 @@ export default function Pricing() {
   return (
     <section id="pricing" className="pt-0 pb-0 bg-white dark:bg-[#1b1912] text-gray-900 dark:text-[#f6f6f4] relative transition-colors duration-200">
       <div className="mx-auto max-w-[1100px] px-4 sm:px-6 lg:px-8">
-        <div className="relative px-4 md:px-8 lg:px-12 pb-0 pt-4 bg-white dark:bg-[#1b1912] z-10">
-          <div className="max-w-[1400px] mx-auto pt-4 px-0 md:px-8 lg:px-0 pb-8">
+        <div className="relative px-4 md:px-8 lg:px-12 py-8 bg-white dark:bg-[#1b1912] z-10">
+          <div className="max-w-[1400px] mx-auto px-0 md:px-8 lg:px-0">
 
-            <div className="grid grid-cols-1 lg:grid-cols-3 gap-4 max-w-[900px] mx-auto mb-8 md:mb-16">
+            <div className="grid grid-cols-1 lg:grid-cols-3 gap-4 max-w-[900px] mx-auto">
               {pricingTiers.map((tier, index) => (
                 <div
                   key={index}
