@@ -34,14 +34,14 @@ export default function InstallSection() {
         >
           {/* Command block */}
           <div
-            className="inline-flex items-center gap-4 rounded-md px-6 py-4 text-lg border self-center shadow-sm"
+            className="inline-flex items-center gap-2 md:gap-4 rounded-md px-3 py-2 md:px-6 md:py-4 text-xs md:text-lg border self-center shadow-sm w-full md:w-auto overflow-hidden"
             style={{
               backgroundColor: isDark ? '#1a1a1a' : '#f9fafb',
               borderColor: isDark ? 'rgba(246,246,244,0.08)' : 'rgba(0,0,0,0.08)',
               color: isDark ? '#c8c8b8' : '#374151',
             }}
           >
-            <span className="select-all">{INSTALL_CMD}</span>
+            <span className="select-all truncate">{INSTALL_CMD}</span>
             <button
               onClick={copy}
               className="shrink-0 transition-opacity hover:opacity-60"
@@ -65,7 +65,7 @@ export default function InstallSection() {
           <div className="mt-6">
             <a
               href="https://admin.igris-inertial.com/downloads/runtime"
-              className="inline-flex items-center justify-center px-6 py-3 hover:opacity-80 transition-all duration-200 text-sm font-medium shadow-sm rounded-md border"
+              className="inline-flex items-center justify-center px-4 py-2 md:px-6 md:py-3 hover:opacity-80 transition-all duration-200 text-xs md:text-sm font-medium shadow-sm rounded-md border"
               style={{ fontFamily: '-apple-system, BlinkMacSystemFont, "Segoe UI", Roboto, Helvetica, Arial, sans-serif', backgroundColor: isDark ? '#1b1912' : '#f9f9fa', color: isDark ? '#f6f6f4' : '#1b1912', borderColor: 'rgba(20, 18, 10, 0.1)' }}
             >
               Download →
