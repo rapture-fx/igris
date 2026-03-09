@@ -231,9 +231,14 @@ func (h *DownloadHandler) streamBinary(c *fiber.Ctx, platform, binaryName, versi
 	return err
 }
 
-// redirectToBinary redirects to a private download URL (e.g. signed R2/S3 URL).
+// redirectToBinary redirects to the binary archive.
+// When RUNTIME_BINARIES_URL is a GitHub Releases base URL, the format is:
+//   https://github.com/org/repo/releases/download/<tag>/<file>
+// RUNTIME_BINARY_VERSION should be set to the release tag, e.g. "runtime-v1.6.0".
+// If set to "latest" the redirect will not work with GitHub Releases — use the exact tag.
 func (h *DownloadHandler) redirectToBinary(c *fiber.Ctx, binaryName, version string) error {
 	url := fmt.Sprintf("%s/%s/%s", h.binariesURL, version, binaryName)
+	log.Info().Str("url", url).Str("platform", binaryName).Msg("[Download] Redirecting to binary")
 	return c.Redirect(url, fiber.StatusFound)
 }
 
@@ -302,14 +307,18 @@ func (h *DownloadHandler) logDownload(tenantID, ip, version, platform, userAgent
 	}
 }
 
-// platformBinaries maps canonical platform keys to binary filenames.
+// platformBinaries maps canonical platform keys to tar.gz archive names.
+// These names MUST match what the GitHub Actions release workflow produces:
+//   igris-runtime-linux-x64.tar.gz
+//   igris-runtime-linux-arm64.tar.gz
+//   igris-runtime-macos-arm64.tar.gz
+// The redirect URL becomes: RUNTIME_BINARIES_URL/<version>/<archive>
 var platformBinaries = map[string]string{
-	"linux-amd64":   "igris-runtime-linux-amd64",
-	"linux-arm64":   "igris-runtime-linux-arm64",
-	"macos-arm64":   "igris-runtime-macos-arm64",
-	"darwin-arm64":  "igris-runtime-macos-arm64",
-	"darwin-amd64":  "igris-runtime-macos-amd64",
-	"windows-amd64": "igris-runtime-windows-amd64.exe",
+	"linux-amd64":   "igris-runtime-linux-x64.tar.gz",
+	"linux-x64":     "igris-runtime-linux-x64.tar.gz",
+	"linux-arm64":   "igris-runtime-linux-arm64.tar.gz",
+	"macos-arm64":   "igris-runtime-macos-arm64.tar.gz",
+	"darwin-arm64":  "igris-runtime-macos-arm64.tar.gz",
 }
 
 // normalizePlatform maps aliases to canonical keys.
@@ -387,5 +396,5 @@ func (h *DownloadHandler) Checksum(c *fiber.Ctx) error {
 }
 
 func supportedPlatforms() []string {
-	return []string{"linux-amd64", "linux-arm64", "macos-arm64", "darwin-amd64", "windows-amd64"}
+	return []string{"linux-amd64", "linux-arm64", "macos-arm64"}
 }
