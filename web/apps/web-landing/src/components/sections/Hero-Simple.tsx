@@ -1,9 +1,10 @@
 'use client'
 
-import React, { useState, useEffect } from 'react'
+import React, { useState, useEffect, useCallback } from 'react'
 import Link from 'next/link'
 import { useTheme } from 'next-themes'
 
+const INSTALL_CMD = 'curl -sSL https://igrisinertial.com/install | bash'
 
 const AnimatedText = () => {
   const words = ['Machines', 'AI Agents']
@@ -27,11 +28,9 @@ const AnimatedText = () => {
 
     const timer = setTimeout(() => {
       if (!isDeleting) {
-        // Typing phase
         if (displayText.length < currentWord.length) {
           setDisplayText(currentWord.slice(0, displayText.length + 1))
         } else {
-          // Finished typing, pause before deleting
           setIsPaused(true)
           setTimeout(() => {
             setIsPaused(false)
@@ -39,11 +38,9 @@ const AnimatedText = () => {
           }, pauseDuration)
         }
       } else {
-        // Deleting phase
         if (displayText.length > 0) {
           setDisplayText(displayText.slice(0, -1))
         } else {
-          // Finished deleting, move to next word
           setIsDeleting(false)
           setWordIndex((prev) => (prev + 1) % words.length)
         }
@@ -53,7 +50,6 @@ const AnimatedText = () => {
     return () => clearTimeout(timer)
   }, [displayText, isDeleting, isPaused, wordIndex, isMounted, theme])
 
-  // Start the animation on mount
   useEffect(() => {
     if (isMounted && displayText === '' && !isDeleting && !isPaused) {
       const currentWord = words[wordIndex]
@@ -72,9 +68,16 @@ const AnimatedText = () => {
 export default function Hero() {
   const { theme } = useTheme()
   const [mounted, setMounted] = useState(false)
+  const [copied, setCopied] = useState(false)
 
   useEffect(() => {
     setMounted(true)
+  }, [])
+
+  const copy = useCallback(() => {
+    navigator.clipboard.writeText(INSTALL_CMD)
+    setCopied(true)
+    setTimeout(() => setCopied(false), 2000)
   }, [])
 
   return (
@@ -84,28 +87,66 @@ export default function Hero() {
           height: 'calc(100vh - 52px)',
           marginBottom: '2rem'
         }}>
-            <div className="max-w-[1100px] mx-auto w-full relative z-10 pb-10 px-4 md:px-8 lg:px-12">
-            <div className="mb-1">
-              <div className="flex flex-col items-center gap-8">
-                <img src="/jk.png" alt="Hero" className="max-w-full h-auto" style={{ maxWidth: '500px' }} />
-                <div className="text-center">
-                  <h1 className="text-2xl md:text-4xl lg:text-5xl mb-4 leading-tight" style={{ color: mounted && theme === 'dark' ? '#f6f6f4' : '#1b1912', fontFamily: 'var(--font-geist-pixel-square, Geist Pixel Square, monospace)', fontWeight: 700 }}>
+          <div className="max-w-[1100px] mx-auto w-full relative z-10 pb-10 px-4 md:px-8 lg:px-12">
+            <div className="flex flex-col gap-8">
+              {/* Top row: Title left, Subtext right */}
+              <div className="flex flex-col md:flex-row md:items-start md:justify-between gap-4">
+                <div className="text-left">
+                  <h1 className="text-xl md:text-3xl lg:text-4xl mb-2 leading-tight" style={{ color: mounted && theme === 'dark' ? '#f6f6f4' : '#1b1912', fontFamily: 'var(--font-geist-pixel-square, Geist Pixel Square, monospace)', fontWeight: 700 }}>
                     Run AI that survives failure<br />
-                    <span className="mt-4 block">and proves what it did.</span>
+                    <span className="mt-2 block">and proves what it did.</span>
                   </h1>
-                  <p className="text-sm md:text-base lg:text-lg mb-6" style={{ color: mounted && theme === 'dark' ? '#a8a898' : '#6b7280', fontFamily: '-apple-system, BlinkMacSystemFont, "Segoe UI", Roboto, Helvetica, Arial, sans-serif', fontWeight: 400 }}>
+                </div>
+                <div className="text-left md:text-right" style={{ maxWidth: '300px' }}>
+                  <p className="text-sm md:text-base" style={{ color: mounted && theme === 'dark' ? '#a8a898' : '#6b7280', fontFamily: '-apple-system, BlinkMacSystemFont, "Segoe UI", Roboto, Helvetica, Arial, sans-serif', fontWeight: 400 }}>
                     Deterministic runtime. Cloud + local fallback. OS-level containment with signed violation logs. Deploy anywhere.
                   </p>
-                  <a
+                </div>
+              </div>
+
+              {/* Image centered */}
+              <div className="flex justify-center" style={{ marginBottom: '2rem' }}>
+                <img src="/jk.png" alt="Hero" className="max-w-full h-auto" style={{ maxWidth: '500px' }} />
+              </div>
+
+              {/* Buttons below */}
+              <div className="flex flex-col md:flex-row items-center gap-4 justify-center">
+<a
                     href="https://admin.igris-inertial.com/auth?mode=signup"
-                    className="inline-flex items-center justify-center px-6 py-3 hover:opacity-80 transition-all duration-200 text-sm font-medium shadow-sm rounded-md"
+                    className="inline-flex items-center justify-center px-6 py-3 hover:opacity-80 transition-all duration-200 text-sm shadow-[0_4px_14px_rgba(0,0,0,0.3)] rounded-md"
                     style={{ fontFamily: '-apple-system, BlinkMacSystemFont, "Segoe UI", Roboto, Helvetica, Arial, sans-serif', backgroundColor: '#000000', color: '#ffffff' }}
                   >
                     Get Started
                   </a>
+<div
+                    className="inline-flex items-center gap-4 rounded-md px-6 py-3 text-sm border shadow-[0_4px_14px_rgba(0,0,0,0.15)]"
+                    style={{
+                      backgroundColor: mounted && theme === 'dark' ? '#1b1912' : '#ffffff',
+                      borderColor: mounted && theme === 'dark' ? 'rgba(246,246,244,0.08)' : 'rgba(0,0,0,0.1)',
+                      color: mounted && theme === 'dark' ? '#c8c8b8' : '#374151',
+                    }}
+                  >
+                    <span className="select-all">{INSTALL_CMD}</span>
+                    <button
+                      onClick={copy}
+                      className="shrink-0 transition-opacity hover:opacity-60"
+                      title={copied ? 'Copied' : 'Copy'}
+                      style={{ color: mounted && theme === 'dark' ? '#a8a898' : '#6b7280' }}
+                    >
+                      {copied ? (
+                        <svg width="12" height="12" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2.5" strokeLinecap="round" strokeLinejoin="round">
+                          <polyline points="20 6 9 17 4 12" />
+                        </svg>
+                      ) : (
+                        <svg width="12" height="12" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round">
+                          <rect x="9" y="9" width="13" height="13" rx="2" ry="2" />
+                          <path d="M5 15H4a2 2 0 0 1-2-2V4a2 2 0 0 1 2-2h9a2 2 0 0 1 2 2v1" />
+                        </svg>
+                      )}
+                    </button>
+                  </div>
                 </div>
               </div>
-            </div>
             </div>
         </div>
       </div>
