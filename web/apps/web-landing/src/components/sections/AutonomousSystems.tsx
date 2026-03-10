@@ -32,9 +32,14 @@ export default function AutonomousSystems() {
               The same nervous system governs AI execution—whether your system thinks in code or moves in space.
             </p>
           </div>
+        </div>
+      </div>
 
-          {/* Full-width border below title */}
-          <div style={{ borderTop: borderStyle }} />
+      {/* Full-width border below title */}
+      <div style={{ borderTop: borderStyle }} />
+
+      <div className="mx-auto max-w-[1100px] px-4 sm:px-6 lg:px-8">
+        <div className="px-4 md:px-8 lg:px-12" style={{ borderLeft: borderStyle, borderRight: borderStyle }}>
 
           {/* Row 1 - AI Agents */}
           <div className="grid grid-cols-1 md:grid-cols-2 md:[min-height:280px]">
