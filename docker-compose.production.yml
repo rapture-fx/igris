@@ -72,7 +72,7 @@ services:
 
       # Dragonfly Cache Configuration (Redis-compatible)
       USE_REDIS: "true"
-      REDIS_URL: redis://:${REDIS_PASSWORD:-changeme}@cache:6379/0
+      REDIS_URL: ${REDIS_URL:-redis://:changeme@cache:6379/0}
 
       # Multi-Tenancy
       ENABLE_MULTI_TENANCY: ${ENABLE_MULTI_TENANCY:-true}
@@ -126,6 +126,23 @@ services:
       options:
         max-size: "10m"
         max-file: "3"
+
+  # Caddy Reverse Proxy
+  caddy:
+    image: caddy:2-alpine
+    container_name: igris-caddy
+    restart: unless-stopped
+    ports:
+      - "80:80"
+      - "443:443"
+    volumes:
+      - ./Caddyfile:/etc/caddy/Caddyfile
+      - caddy_data:/data
+      - caddy_config:/config
+    networks:
+      - igris-network
+    depends_on:
+      - api
 
   # Prometheus (Optional - for metrics)
   prometheus:
@@ -209,3 +226,5 @@ volumes:
   dragonfly_data:
   prometheus_data:
   grafana_data:
+  caddy_data:
+  caddy_config:
