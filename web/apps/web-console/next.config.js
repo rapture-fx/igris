@@ -1,6 +1,3 @@
-const path = require('path');
-const workspaceRoot = path.join(__dirname, '../../');
-
 /** @type {import('next').NextConfig} */
 const nextConfig = {
   reactStrictMode: true,
@@ -8,8 +5,6 @@ const nextConfig = {
   typescript: {
     ignoreBuildErrors: true,
   },
-
-  outputFileTracingRoot: workspaceRoot,
 
   // Inline workspace packages into the bundle
   transpilePackages: [
