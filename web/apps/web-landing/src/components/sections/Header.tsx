@@ -14,7 +14,7 @@ export default function Header() {
   const [mobileResourcesOpen, setMobileResourcesOpen] = useState(false);
   const [mobileFeaturesOpen, setMobileFeaturesOpen] = useState(false);
   const [docsHubUrl, setDocsHubUrl] = useState('https://docs.igrisinertial.com/');
-  const [consoleUrl, setConsoleUrl] = useState('https://admin.igris-inertial.com');
+  const [consoleUrl, setConsoleUrl] = useState('https://console.igrisinertial.com');
   const [isScrolled, setIsScrolled] = useState(false);
   const [mounted, setMounted] = useState(false);
   const [activeDropdown, setActiveDropdown] = useState<DropdownKey>(null);
