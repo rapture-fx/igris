@@ -17,7 +17,7 @@ export default function ClosingPosition() {
             <h3 className="text-xl md:text-2xl lg:text-3xl text-[#000000] dark:text-[#f6f6f4]" style={{ fontFamily: '-apple-system, BlinkMacSystemFont, "Segoe UI", Roboto, Helvetica, Arial, sans-serif' }}>
               Complete control from edge to cloud.
             </h3>
-            <Link href="https://docs.igrisinertial.com/runtime/quickstart">
+            <Link href="https://console.igrisinertial.com/auth?mode=signup">
               <button
                 className="inline-flex items-center justify-center px-4 py-2 md:px-6 md:py-3 hover:opacity-80 transition-all duration-200 text-xs md:text-sm font-medium shadow-sm rounded-md shrink-0 ml-3 md:ml-4"
                 style={{ backgroundColor: '#1b1912', color: '#f6f6f4', fontFamily: '-apple-system, BlinkMacSystemFont, "Segoe UI", Roboto, Helvetica, Arial, sans-serif' }}
