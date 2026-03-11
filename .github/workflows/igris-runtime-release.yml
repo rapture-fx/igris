@@ -17,12 +17,23 @@ jobs:
           - target: x86_64-unknown-linux-musl
             os: ubuntu-latest
             name: linux-x64
+            use_cross: true
           - target: aarch64-unknown-linux-musl
             os: ubuntu-latest
             name: linux-arm64
+            use_cross: true
+          - target: armv7-unknown-linux-musleabihf
+            os: ubuntu-latest
+            name: linux-armv7
+            use_cross: true
           - target: aarch64-apple-darwin
-            os: macos-latest  # Apple Silicon Mac (free runner)
+            os: macos-latest
             name: macos-arm64
+            use_cross: false
+          - target: x86_64-apple-darwin
+            os: macos-13
+            name: macos-x64
+            use_cross: false
 
     steps:
       - uses: actions/checkout@v4
@@ -34,20 +45,19 @@ jobs:
         with:
           targets: ${{ matrix.target }}
 
-      - name: Install cross (Linux only)
-        if: matrix.os == 'ubuntu-latest'
+      - name: Install cross (Linux targets only)
+        if: matrix.use_cross == true
         run: cargo install cross --git https://github.com/cross-rs/cross
 
       - name: Build (Linux with cross)
-        if: matrix.os == 'ubuntu-latest'
+        if: matrix.use_cross == true
         working-directory: igris-runtime
         run: cross build --release --target ${{ matrix.target }} --bin igris-runtime
 
       - name: Build (macOS native)
-        if: startsWith(matrix.os, 'macos-')
+        if: matrix.use_cross == false
         working-directory: igris-runtime
-        run: |
-          cargo build --release --target ${{ matrix.target }} --bin igris-runtime
+        run: cargo build --release --target ${{ matrix.target }} --bin igris-runtime
 
       - name: Package binary
         shell: bash

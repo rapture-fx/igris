@@ -17,20 +17,24 @@ detect_platform() {
     case "$OS" in
         linux)
             case "$ARCH" in
-                x86_64)  echo "linux-x64" ;;
-                aarch64|arm64) echo "linux-arm64" ;;
-                *) echo "Unsupported architecture: $ARCH" >&2; exit 1 ;;
+                x86_64)          echo "linux-x64" ;;
+                aarch64|arm64)   echo "linux-arm64" ;;
+                armv7l|armv7)    echo "linux-armv7" ;;
+                armv6l)          echo "linux-armv7" ;;  # Raspberry Pi Zero/1 — use armv7 build
+                *)
+                    echo "Unsupported Linux architecture: $ARCH" >&2
+                    exit 1
+                    ;;
             esac
             ;;
         darwin)
-            # sysctl works even when running under Rosetta (uname -m returns x86_64)
+            # Check for Apple Silicon (works even under Rosetta where uname -m returns x86_64)
             if sysctl -n hw.optional.arm64 2>/dev/null | grep -q 1; then
                 echo "macos-arm64"
             elif [ "$ARCH" = "arm64" ]; then
                 echo "macos-arm64"
             else
-                echo "Error: Intel Mac is not supported. This runtime requires Apple Silicon (M1/M2/M3/M4)." >&2
-                exit 1
+                echo "macos-x64"
             fi
             ;;
         *)
@@ -66,7 +70,7 @@ download_and_verify() {
     # Download binary
     if ! curl -fsSL "$URL" -o "$TMP_DIR/$FILENAME"; then
         echo "Error: Failed to download $URL" >&2
-        echo "Supported platforms: linux-x64, linux-arm64, macos-arm64" >&2
+        echo "Supported platforms: linux-x64, linux-arm64, linux-armv7, macos-arm64, macos-x64" >&2
         rm -rf "$TMP_DIR"
         exit 1
     fi
