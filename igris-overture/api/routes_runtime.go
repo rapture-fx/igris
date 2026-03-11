@@ -7,7 +7,12 @@ import (
 	"context"
 	"database/sql"
 	"errors"
+	"fmt"
+	"io"
+	"net/http"
 	"os"
+	"path/filepath"
+	"strconv"
 	"time"
 
 	"github.com/gofiber/fiber/v2"
@@ -297,38 +302,103 @@ func (h *RuntimeHandler) Deregister(c *fiber.Ctx) error {
 	return c.JSON(fiber.Map{"status": "ok"})
 }
 
-// Download handles GET /api/v1/runtime/download?platform=linux-x64
+// Download handles GET /api/v1/runtime/download?platform=linux-amd64
+// This endpoint uses X-API-Key auth (set by apiKeyAuth middleware).
+// It delegates to the same DownloadHandler used by the Clerk-authed endpoint.
 func (h *RuntimeHandler) Download(c *fiber.Ctx) error {
-	platform := c.Query("platform", "linux-x64")
+	// tenant_id is injected by apiKeyAuth middleware
+	tenantID, ok := c.Locals("tenant_id").(string)
+	if !ok || tenantID == "" {
+		return c.Status(fiber.StatusUnauthorized).JSON(fiber.Map{
+			"error": "unauthorized",
+		})
+	}
+
+	platform := c.Query("platform", "")
+	if platform == "" {
+		platform = "linux-amd64"
+	}
+
+	// Normalize platform
+	switch platform {
+	case "linux-x64":
+		platform = "linux-amd64"
+	case "darwin-arm64":
+		platform = "macos-arm64"
+	}
 
 	binaries := map[string]string{
-		"linux-x64":    "igris-runtime-linux-x64.tar.gz",
-		"linux-amd64":  "igris-runtime-linux-x64.tar.gz",
-		"linux-arm64":  "igris-runtime-linux-arm64.tar.gz",
-		"macos-arm64":  "igris-runtime-macos-arm64.tar.gz",
-		"darwin-arm64": "igris-runtime-macos-arm64.tar.gz",
+		"linux-amd64": "igris-runtime-linux-x64.tar.gz",
+		"linux-arm64": "igris-runtime-linux-arm64.tar.gz",
+		"linux-armv7": "igris-runtime-linux-armv7.tar.gz",
+		"macos-arm64": "igris-runtime-macos-arm64.tar.gz",
+		"macos-x64":   "igris-runtime-macos-x64.tar.gz",
 	}
 
 	binaryName, ok := binaries[platform]
 	if !ok {
 		return c.Status(fiber.StatusBadRequest).JSON(fiber.Map{
 			"error":     "unsupported_platform",
-			"message":   "Supported: linux-x64, linux-arm64, macos-arm64",
-			"supported": []string{"linux-x64", "linux-arm64", "macos-arm64"},
+			"message":   "Supported: linux-amd64, linux-arm64, linux-armv7, macos-arm64, macos-x64",
+			"supported": []string{"linux-amd64", "linux-arm64", "linux-armv7", "macos-arm64", "macos-x64"},
 		})
 	}
 
-	baseURL := os.Getenv("RUNTIME_BINARIES_URL")
 	version := os.Getenv("RUNTIME_BINARY_VERSION")
-	if baseURL == "" {
-		baseURL = "https://github.com/Igris-inertial/system/releases/download"
-	}
 	if version == "" {
-		version = "runtime-v1.6.0"
+		version = "latest"
 	}
 
-	url := baseURL + "/" + version + "/" + binaryName
-	return c.Redirect(url, fiber.StatusFound)
+	binariesDir := os.Getenv("RUNTIME_BINARIES_DIR")
+	binariesURL := os.Getenv("RUNTIME_BINARIES_URL")
+
+	// Audit log (non-blocking)
+	go func() {
+		_, _ = h.db.ExecContext(context.Background(), `
+			INSERT INTO runtime_downloads (tenant_id, ip_address, runtime_version, platform, user_agent)
+			VALUES ($1::uuid, $2, $3, $4, $5)
+		`, tenantID, c.IP(), version, platform, c.Get("User-Agent"))
+	}()
+
+	// Serve from local filesystem
+	if binariesDir != "" {
+		binaryPath := filepath.Join(binariesDir, platform, binaryName)
+		f, err := os.Open(binaryPath)
+		if os.IsNotExist(err) {
+			return c.Status(fiber.StatusNotFound).JSON(fiber.Map{
+				"error":    "binary_not_found",
+				"message":  "Runtime binary not available for this platform yet",
+				"platform": platform,
+			})
+		}
+		if err != nil {
+			return c.Status(fiber.StatusInternalServerError).JSON(fiber.Map{"error": "read_failed"})
+		}
+		defer f.Close()
+
+		stat, _ := f.Stat()
+		c.Set("Content-Disposition", fmt.Sprintf(`attachment; filename="%s"`, binaryName))
+		c.Set("Content-Type", "application/octet-stream")
+		if stat != nil {
+			c.Set("Content-Length", strconv.FormatInt(stat.Size(), 10))
+		}
+		c.Set("X-Runtime-Version", version)
+		c.Set("X-Runtime-Platform", platform)
+		c.Status(http.StatusOK)
+		_, err = io.Copy(c.Response().BodyWriter(), f)
+		return err
+	}
+
+	// Redirect to private URL
+	if binariesURL != "" {
+		url := fmt.Sprintf("%s/%s/%s", binariesURL, version, binaryName)
+		return c.Redirect(url, fiber.StatusFound)
+	}
+
+	return c.Status(fiber.StatusServiceUnavailable).JSON(fiber.Map{
+		"error":   "not_configured",
+		"message": "Binary hosting not yet configured on this server. Contact support.",
+	})
 }
 
 // apiKeyAuth validates X-API-Key and injects tenant_id / tenant_tier into locals.
