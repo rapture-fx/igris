@@ -16,11 +16,11 @@ export default function RootLayout({
 }) {
   return (
     <ClerkProvider
+      publishableKey={process.env.NEXT_PUBLIC_CLERK_PUBLISHABLE_KEY}
       signInUrl="/auth?mode=signin"
       signUpUrl="/auth?mode=signup"
-      afterSignInUrl="/dashboard"
-      afterSignUpUrl="/onboarding"
-      afterSignOutUrl="/auth?mode=signup"
+      signInFallbackRedirectUrl="/dashboard"
+      signUpFallbackRedirectUrl="/onboarding"
       appearance={{
         baseTheme: undefined,
         variables: {
