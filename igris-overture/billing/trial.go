@@ -1,4 +1,7 @@
-// Package billing provides trial management for new signups
+// Package billing provides trial management for new signups.
+// Every new tenant gets a 7-day free trial of their chosen tier (Seed, Horizon, or Infinite).
+// On expiry without an active paid subscription the tenant is downgraded to Seed tier.
+// A trial can only be started once per tenant.
 package billing
 
 import (
@@ -14,7 +17,11 @@ import (
 // ============================================================================
 
 const (
-	TrialDurationDays     = 14
+	// TrialDurationDays is the length of the free trial period.
+	TrialDurationDays = 7
+
+	// DowngradeTierOnExpiry is the tier tenants fall back to when their trial
+	// expires without a paid subscription.
 	DowngradeTierOnExpiry = string(TierSeed)
 )
 
@@ -22,16 +29,19 @@ const (
 // TRIAL MANAGER
 // ============================================================================
 
-// TrialManager handles trial lifecycle for new users
+// TrialManager handles trial lifecycle for new users.
 type TrialManager struct {
 	db     *sql.DB
+	email  *ResendClient
 	logger *log.Logger
 }
 
-// NewTrialManager creates a new trial manager
-func NewTrialManager(db *sql.DB) *TrialManager {
+// NewTrialManager creates a new trial manager.
+// Pass a ResendClient to enable lifecycle emails; pass nil to skip emails.
+func NewTrialManager(db *sql.DB, email *ResendClient) *TrialManager {
 	return &TrialManager{
 		db:     db,
+		email:  email,
 		logger: log.Default(),
 	}
 }
@@ -40,57 +50,83 @@ func NewTrialManager(db *sql.DB) *TrialManager {
 // TRIAL ACTIVATION
 // ============================================================================
 
-// StartTrial activates a trial for a new tenant on the Seed tier.
+// StartTrial activates a 7-day free trial for a new tenant on their chosen tier.
+// Returns ErrTrialAlreadyUsed if the tenant has already had a trial.
 func (tm *TrialManager) StartTrial(ctx context.Context, tenantID, selectedTier string) error {
 	if !ValidTier(selectedTier) {
 		return fmt.Errorf("invalid tier: %s", selectedTier)
 	}
 
-	// Calculate trial end date (14 days from now)
+	// Enforce one-trial-per-tenant: reject if trial_started_at is already set.
+	var alreadyStarted bool
+	err := tm.db.QueryRowContext(ctx,
+		`SELECT trial_started_at IS NOT NULL FROM tenants WHERE id = $1`,
+		tenantID,
+	).Scan(&alreadyStarted)
+	if err != nil {
+		return fmt.Errorf("failed to check existing trial: %w", err)
+	}
+	if alreadyStarted {
+		return ErrTrialAlreadyUsed
+	}
+
 	trialEndsAt := time.Now().Add(time.Hour * 24 * TrialDurationDays)
 
-	// Update tenant with trial info
-	_, err := tm.db.ExecContext(ctx, `
+	_, err = tm.db.ExecContext(ctx, `
 		UPDATE tenants
 		SET
-			tier = $1,
-			trial_active = true,
-			trial_tier = $1,
-			trial_started_at = CURRENT_TIMESTAMP,
-			trial_ends_at = $2,
-			status = 'active',
-			updated_at = CURRENT_TIMESTAMP
+			tier                 = $1,
+			trial_active         = true,
+			trial_tier           = $1,
+			trial_started_at     = CURRENT_TIMESTAMP,
+			trial_ends_at        = $2,
+			subscription_status  = 'trial',
+			status               = 'active',
+			updated_at           = CURRENT_TIMESTAMP
 		WHERE id = $3
 	`, selectedTier, trialEndsAt, tenantID)
-
 	if err != nil {
 		return fmt.Errorf("failed to start trial: %w", err)
 	}
 
-	tm.logger.Printf("[Trial] Started 14-day trial: tenant=%s tier=%s ends_at=%s",
+	tm.logger.Printf("[Trial] Started 7-day trial: tenant=%s tier=%s ends_at=%s",
 		tenantID, selectedTier, trialEndsAt.Format(time.RFC3339))
 
-	// TODO: Send welcome email
-	// Subject: "Welcome to Igris Overture! Your 14-day {tier} trial has started"
-	// Body:
-	//   Hi there!
-	//
-	//   Your 14-day {tier} trial is now active. You have full access to:
-	//   - [List of tier features]
-	//
-	//   Trial ends: {trial_ends_at}
-	//   After your trial, you'll be downgraded to Develop tier unless you add payment.
-	//
-	//   Get started: {dashboard_url}
+	// Send welcome email (non-fatal if Resend is not configured)
+	if tm.email != nil {
+		var tenantEmail string
+		_ = tm.db.QueryRowContext(ctx,
+			`SELECT email FROM tenants WHERE id = $1`, tenantID,
+		).Scan(&tenantEmail)
+
+		if tenantEmail != "" {
+			if err := tm.email.SendTrialStartEmail(tenantEmail, selectedTier, trialEndsAt); err != nil {
+				tm.logger.Printf("[Trial] Failed to send welcome email: tenant=%s error=%v", tenantID, err)
+			}
+		}
+	}
 
 	return nil
 }
+
+// ErrTrialAlreadyUsed is returned when a tenant tries to start a second trial.
+var ErrTrialAlreadyUsed = fmt.Errorf("trial already used: each account is eligible for one 7-day trial")
 
 // ============================================================================
 // TRIAL STATUS CHECKS
 // ============================================================================
 
-// GetTrialStatus returns current trial status for a tenant
+// TrialStatus holds current trial information for a tenant.
+type TrialStatus struct {
+	Active      bool
+	TrialTier   string
+	CurrentTier string
+	StartedAt   *time.Time
+	EndsAt      *time.Time
+	DaysLeft    int
+}
+
+// GetTrialStatus returns the current trial status for a tenant.
 func (tm *TrialManager) GetTrialStatus(ctx context.Context, tenantID string) (*TrialStatus, error) {
 	var status TrialStatus
 
@@ -110,12 +146,10 @@ func (tm *TrialManager) GetTrialStatus(ctx context.Context, tenantID string) (*T
 		&status.EndsAt,
 		&status.CurrentTier,
 	)
-
 	if err != nil {
 		return nil, fmt.Errorf("failed to get trial status: %w", err)
 	}
 
-	// Calculate days left
 	if status.Active && status.EndsAt != nil {
 		daysLeft := int(time.Until(*status.EndsAt).Hours() / 24)
 		if daysLeft < 0 {
@@ -127,24 +161,14 @@ func (tm *TrialManager) GetTrialStatus(ctx context.Context, tenantID string) (*T
 	return &status, nil
 }
 
-// TrialStatus represents trial information
-type TrialStatus struct {
-	Active      bool
-	TrialTier   string
-	CurrentTier string
-	StartedAt   *time.Time
-	EndsAt      *time.Time
-	DaysLeft    int
-}
-
 // ============================================================================
-// TRIAL EXPIRATION
+// TRIAL EXPIRATION (run daily via cron)
 // ============================================================================
 
-// ExpireTrials checks for expired trials and downgrades tenants
-// This should run daily via cron job
+// ExpireTrials finds all expired trials and either converts them to paid
+// subscriptions (if the tenant has a Polar subscription) or downgrades them
+// to the Seed tier. Returns the number of trials processed.
 func (tm *TrialManager) ExpireTrials(ctx context.Context) (int, error) {
-	// Find all expired trials
 	rows, err := tm.db.QueryContext(ctx, `
 		SELECT id, trial_tier, email, name
 		FROM tenants
@@ -156,7 +180,7 @@ func (tm *TrialManager) ExpireTrials(ctx context.Context) (int, error) {
 	}
 	defer rows.Close()
 
-	expiredCount := 0
+	processed := 0
 
 	for rows.Next() {
 		var tenantID, trialTier, email, name string
@@ -165,132 +189,116 @@ func (tm *TrialManager) ExpireTrials(ctx context.Context) (int, error) {
 			continue
 		}
 
-		// Check if tenant has active payment method
-		hasPayment, err := tm.hasPaymentMethod(ctx, tenantID)
+		hasPayment, err := tm.hasActiveSubscription(ctx, tenantID)
 		if err != nil {
 			tm.logger.Printf("[Trial] Failed to check payment for tenant %s: %v", tenantID, err)
 			continue
 		}
 
 		if hasPayment {
-			// Convert trial to paid subscription
 			if err := tm.convertTrialToPaid(ctx, tenantID, trialTier); err != nil {
 				tm.logger.Printf("[Trial] Failed to convert trial to paid: tenant=%s error=%v", tenantID, err)
 				continue
 			}
-
 			tm.logger.Printf("[Trial] Converted to paid: tenant=%s tier=%s", tenantID, trialTier)
-			expiredCount++
 
-			// TODO: Send conversion email
-			// Subject: "Your trial has been converted to {tier} plan"
+			if tm.email != nil && email != "" {
+				if err := tm.email.SendUpgradeEmail(email, trialTier); err != nil {
+					tm.logger.Printf("[Trial] Failed to send conversion email: %v", err)
+				}
+			}
 		} else {
-			// Downgrade to Seed tier
 			if err := tm.downgradeTrial(ctx, tenantID); err != nil {
 				tm.logger.Printf("[Trial] Failed to downgrade trial: tenant=%s error=%v", tenantID, err)
 				continue
 			}
-
 			tm.logger.Printf("[Trial] Downgraded to Seed: tenant=%s (trial expired, no payment)", tenantID)
-			expiredCount++
 
-			// TODO: Send downgrade email
-			// Subject: "Your trial has ended - now on Seed tier"
-			// Body:
-			//   Your 14-day trial has ended.
-			//
-			//   You've been moved to our Seed tier ($29/month).
-			//   Upgrade to Horizon or Infinite to scale your runtime fleet.
-			//
-			//   Upgrade now: {upgrade_url}
+			if tm.email != nil && email != "" {
+				if err := tm.email.SendTrialExpiredEmail(email, trialTier); err != nil {
+					tm.logger.Printf("[Trial] Failed to send expiry email: %v", err)
+				}
+			}
 		}
+
+		processed++
 	}
 
 	if err := rows.Err(); err != nil {
-		return expiredCount, fmt.Errorf("error iterating expired trials: %w", err)
+		return processed, fmt.Errorf("error iterating expired trials: %w", err)
 	}
 
-	tm.logger.Printf("[Trial] Processed %d expired trials", expiredCount)
-
-	return expiredCount, nil
+	tm.logger.Printf("[Trial] Processed %d expired trials", processed)
+	return processed, nil
 }
 
-// hasPaymentMethod checks if tenant has valid payment method
-func (tm *TrialManager) hasPaymentMethod(ctx context.Context, tenantID string) (bool, error) {
-	var hasPayment bool
-
+// hasActiveSubscription checks whether the tenant has an active paid Polar subscription.
+// We check polar_subscription_id IS NOT NULL + subscription_status = 'active',
+// which is set by the Polar webhook handler when payment is confirmed.
+func (tm *TrialManager) hasActiveSubscription(ctx context.Context, tenantID string) (bool, error) {
+	var has bool
 	err := tm.db.QueryRowContext(ctx, `
 		SELECT EXISTS(
-			SELECT 1 FROM payment_methods
-			WHERE tenant_id = $1
-			  AND status = 'active'
-			  AND expires_at > CURRENT_TIMESTAMP
+			SELECT 1 FROM tenants
+			WHERE id = $1
+			  AND polar_subscription_id IS NOT NULL
+			  AND subscription_status = 'active'
 		)
-	`, tenantID).Scan(&hasPayment)
-
+	`, tenantID).Scan(&has)
 	if err == sql.ErrNoRows {
 		return false, nil
 	}
-
-	return hasPayment, err
+	return has, err
 }
 
-// convertTrialToPaid converts trial to paid subscription
+// convertTrialToPaid transitions a trial tenant to a paid subscription.
 func (tm *TrialManager) convertTrialToPaid(ctx context.Context, tenantID, tier string) error {
 	_, err := tm.db.ExecContext(ctx, `
 		UPDATE tenants
 		SET
-			trial_active = false,
-			tier = $1,
-			subscription_status = 'active',
-			subscription_started_at = CURRENT_TIMESTAMP,
-			trial_converted_at = CURRENT_TIMESTAMP,
-			updated_at = CURRENT_TIMESTAMP
+			trial_active             = false,
+			tier                     = $1,
+			subscription_status      = 'active',
+			subscription_started_at  = CURRENT_TIMESTAMP,
+			trial_converted_at       = CURRENT_TIMESTAMP,
+			updated_at               = CURRENT_TIMESTAMP
 		WHERE id = $2
 	`, tier, tenantID)
-
 	return err
 }
 
-// downgradeTrial downgrades expired trial to Develop tier
+// downgradeTrial expires the trial and falls back to the Seed tier.
 func (tm *TrialManager) downgradeTrial(ctx context.Context, tenantID string) error {
 	_, err := tm.db.ExecContext(ctx, `
 		UPDATE tenants
 		SET
-			trial_active = false,
-			tier = $1,
-			trial_expired_at = CURRENT_TIMESTAMP,
-			updated_at = CURRENT_TIMESTAMP
+			trial_active        = false,
+			tier                = $1,
+			subscription_status = 'expired',
+			trial_expired_at    = CURRENT_TIMESTAMP,
+			updated_at          = CURRENT_TIMESTAMP
 		WHERE id = $2
 	`, DowngradeTierOnExpiry, tenantID)
-
 	return err
 }
 
 // ============================================================================
-// TRIAL REMINDER EMAILS
+// TRIAL REMINDER EMAILS (run daily via cron)
 // ============================================================================
 
-// SendTrialReminders sends reminder emails at key milestones
-// This should run daily via cron job
+// SendTrialReminders sends reminder emails at 3 days and 1 day before expiry.
+// Each tenant only receives one reminder per milestone (tracked by trial_reminder_sent_at).
 func (tm *TrialManager) SendTrialReminders(ctx context.Context) error {
-	// Send reminders at 7 days, 3 days, 1 day before expiry
-
-	milestones := []struct {
-		daysLeft int
-		message  string
-	}{
-		{7, "7 days left in your trial"},
-		{3, "3 days left - upgrade now"},
-		{1, "Last day of your trial"},
+	if tm.email == nil {
+		return nil
 	}
 
-	for _, milestone := range milestones {
-		targetDate := time.Now().Add(time.Hour * 24 * time.Duration(milestone.daysLeft))
-		startOfDay := time.Date(targetDate.Year(), targetDate.Month(), targetDate.Day(), 0, 0, 0, 0, targetDate.Location())
-		endOfDay := startOfDay.Add(time.Hour * 24)
+	milestones := []int{3, 1}
 
-		// Find trials expiring at this milestone
+	for _, daysLeft := range milestones {
+		windowStart := time.Now().Add(time.Hour * 24 * time.Duration(daysLeft))
+		windowEnd := windowStart.Add(time.Hour * 24)
+
 		rows, err := tm.db.QueryContext(ctx, `
 			SELECT id, email, name, trial_tier
 			FROM tenants
@@ -298,10 +306,9 @@ func (tm *TrialManager) SendTrialReminders(ctx context.Context) error {
 			  AND trial_ends_at >= $1
 			  AND trial_ends_at < $2
 			  AND trial_reminder_sent_at IS NULL
-		`, startOfDay, endOfDay)
-
+		`, windowStart, windowEnd)
 		if err != nil {
-			tm.logger.Printf("[Trial] Failed to query reminders for %d days: %v", milestone.daysLeft, err)
+			tm.logger.Printf("[Trial] Failed to query reminders (%d days): %v", daysLeft, err)
 			continue
 		}
 
@@ -312,11 +319,11 @@ func (tm *TrialManager) SendTrialReminders(ctx context.Context) error {
 				continue
 			}
 
-			// TODO: Send reminder email via AlertQueue
-			// Subject: "{milestone.message}"
-			// Body template based on days left
+			if err := tm.email.SendTrialReminderEmail(email, trialTier, daysLeft); err != nil {
+				tm.logger.Printf("[Trial] Failed to send reminder email: tenant=%s error=%v", tenantID, err)
+				continue
+			}
 
-			// Mark reminder as sent
 			tm.db.ExecContext(ctx, `
 				UPDATE tenants
 				SET trial_reminder_sent_at = CURRENT_TIMESTAMP
@@ -328,7 +335,7 @@ func (tm *TrialManager) SendTrialReminders(ctx context.Context) error {
 		rows.Close()
 
 		if count > 0 {
-			tm.logger.Printf("[Trial] Sent %d reminders for %d-day milestone", count, milestone.daysLeft)
+			tm.logger.Printf("[Trial] Sent %d reminder emails (%d days left)", count, daysLeft)
 		}
 	}
 
@@ -339,26 +346,23 @@ func (tm *TrialManager) SendTrialReminders(ctx context.Context) error {
 // ADMIN FUNCTIONS
 // ============================================================================
 
-// ExtendTrial extends trial period by N days
+// ExtendTrial extends the trial period by N additional days.
 func (tm *TrialManager) ExtendTrial(ctx context.Context, tenantID string, additionalDays int) error {
 	_, err := tm.db.ExecContext(ctx, `
 		UPDATE tenants
 		SET
-			trial_ends_at = trial_ends_at + INTERVAL '1 day' * $1,
-			updated_at = CURRENT_TIMESTAMP
+			trial_ends_at = trial_ends_at + ($1 * INTERVAL '1 day'),
+			updated_at    = CURRENT_TIMESTAMP
 		WHERE id = $2 AND trial_active = true
 	`, additionalDays, tenantID)
-
 	if err != nil {
 		return fmt.Errorf("failed to extend trial: %w", err)
 	}
-
 	tm.logger.Printf("[Trial] Extended trial: tenant=%s additional_days=%d", tenantID, additionalDays)
-
 	return nil
 }
 
-// CancelTrial immediately cancels trial and downgrades to Develop
+// CancelTrial immediately ends the trial and downgrades to Seed tier.
 func (tm *TrialManager) CancelTrial(ctx context.Context, tenantID string) error {
 	return tm.downgradeTrial(ctx, tenantID)
 }
