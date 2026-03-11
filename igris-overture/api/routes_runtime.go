@@ -7,6 +7,7 @@ import (
 	"context"
 	"database/sql"
 	"errors"
+	"os"
 	"time"
 
 	"github.com/gofiber/fiber/v2"
@@ -296,38 +297,38 @@ func (h *RuntimeHandler) Deregister(c *fiber.Ctx) error {
 	return c.JSON(fiber.Map{"status": "ok"})
 }
 
-// Download handles GET /api/v1/runtime/download?platform=linux-amd64
+// Download handles GET /api/v1/runtime/download?platform=linux-x64
 func (h *RuntimeHandler) Download(c *fiber.Ctx) error {
-	platform := c.Query("platform", "linux-amd64")
+	platform := c.Query("platform", "linux-x64")
 
-	const baseURL = "https://releases.igrisinertial.com/runtime"
-	const version = "latest"
-
-	platforms := map[string]string{
-		"linux-amd64":   "igris-runtime-linux-amd64",
-		"linux-arm64":   "igris-runtime-linux-arm64",
-		"darwin-amd64":  "igris-runtime-darwin-amd64",
-		"darwin-arm64":  "igris-runtime-darwin-arm64",
-		"windows-amd64": "igris-runtime-windows-amd64.exe",
+	binaries := map[string]string{
+		"linux-x64":    "igris-runtime-linux-x64.tar.gz",
+		"linux-amd64":  "igris-runtime-linux-x64.tar.gz",
+		"linux-arm64":  "igris-runtime-linux-arm64.tar.gz",
+		"macos-arm64":  "igris-runtime-macos-arm64.tar.gz",
+		"darwin-arm64": "igris-runtime-macos-arm64.tar.gz",
 	}
 
-	binary, ok := platforms[platform]
+	binaryName, ok := binaries[platform]
 	if !ok {
 		return c.Status(fiber.StatusBadRequest).JSON(fiber.Map{
 			"error":     "unsupported_platform",
-			"message":   "Supported: linux-amd64, linux-arm64, darwin-amd64, darwin-arm64, windows-amd64",
-			"supported": []string{"linux-amd64", "linux-arm64", "darwin-amd64", "darwin-arm64", "windows-amd64"},
+			"message":   "Supported: linux-x64, linux-arm64, macos-arm64",
+			"supported": []string{"linux-x64", "linux-arm64", "macos-arm64"},
 		})
 	}
 
-	url := baseURL + "/" + version + "/" + binary
-	return c.JSON(fiber.Map{
-		"url":          url,
-		"checksum_url": url + ".sha256",
-		"platform":     platform,
-		"version":      version,
-		"install_hint": "curl -fsSL https://igrisinertial.com/install | bash",
-	})
+	baseURL := os.Getenv("RUNTIME_BINARIES_URL")
+	version := os.Getenv("RUNTIME_BINARY_VERSION")
+	if baseURL == "" {
+		baseURL = "https://github.com/Igris-inertial/system/releases/download"
+	}
+	if version == "" {
+		version = "runtime-v1.6.0"
+	}
+
+	url := baseURL + "/" + version + "/" + binaryName
+	return c.Redirect(url, fiber.StatusFound)
 }
 
 // apiKeyAuth validates X-API-Key and injects tenant_id / tenant_tier into locals.
