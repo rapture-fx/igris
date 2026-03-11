@@ -52,6 +52,9 @@ jobs:
       - name: Build (Linux with cross)
         if: matrix.use_cross == true
         working-directory: igris-runtime
+        env:
+          OPENSSL_STATIC: "1"
+          OPENSSL_VENDORED: "1"
         run: cross build --release --target ${{ matrix.target }} --bin igris-runtime
 
       - name: Build (macOS native)
