@@ -36,9 +36,8 @@ tower-http = { version = "0.5", features = ["trace", "cors", "compression-gzip"]
 utoipa = { version = "4.2", features = ["axum_extras"] }
 utoipa-swagger-ui = { version = "6.0", features = ["axum"] }
 
-# TLS with post-quantum crypto
-rustls = { version = "0.22", features = ["aws_lc_rs"] }
-aws-lc-rs = "1.6"
+# TLS — ring backend is pure Rust, cross-compiles cleanly to musl/ARM
+rustls = { version = "0.22", features = ["ring"] }
 
 # Embedded database
 redb = "2.0"
