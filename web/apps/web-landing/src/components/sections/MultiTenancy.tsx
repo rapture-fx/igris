@@ -72,7 +72,7 @@ export default function MultiTenancy() {
             </div>
             
             {/* Tall card spanning 2 rows */}
-            <div className={cardClass + " md:row-span-2"} style={{ minHeight: '200px', fontFamily, backgroundImage: 'url(/o.png)', backgroundSize: 'cover', backgroundPosition: 'center' }}>
+            <div className={cardClass + " md:row-span-2"} style={{ minHeight: '200px', fontFamily }}>
               <div className="mt-auto">
                 <h4 className={titleClass} style={{ fontFamily }}>
                   {features[1].title}
