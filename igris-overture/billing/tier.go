@@ -11,9 +11,8 @@ const (
 )
 
 // TierRuntimeLimit maps each tier to its maximum allowed runtime registrations.
-// Seed allows 5 instances to match the marketing copy on igrisinertial.com/pricing.
 var TierRuntimeLimit = map[Tier]int{
-	TierSeed:     5,
+	TierSeed:     1,
 	TierHorizon:  50,
 	TierInfinite: 500,
 }
