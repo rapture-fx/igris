@@ -431,6 +431,33 @@ func main() {
 		// Authenticated runtime binary download (JWT auth, rate-limited, audit-logged)
 		api.RegisterDownloadRoutes(app, dbInstance, redisClient, tenantAuth)
 		log.Println("[Runtime] ✅ Authenticated download endpoint registered (GET /v1/runtime/download)")
+
+		// Trial system (7-day free trial for all tiers)
+		var resendClient *billing.ResendClient
+		if os.Getenv("RESEND_API_KEY") != "" {
+			resendClient = billing.NewResendClient()
+		}
+		trialManager := billing.NewTrialManager(dbInstance, resendClient)
+		api.RegisterTrialRoutes(app, dbInstance, trialManager)
+		log.Println("[Trial] ✅ Trial endpoints registered (/v1/trial/start, /v1/trial/status)")
+
+		// Daily cron: expire trials and send reminders
+		go func() {
+			ticker := time.NewTicker(24 * time.Hour)
+			defer ticker.Stop()
+			ctx := context.Background()
+			for range ticker.C {
+				if n, err := trialManager.ExpireTrials(ctx); err != nil {
+					log.Printf("[Trial] Expiry cron error: %v", err)
+				} else if n > 0 {
+					log.Printf("[Trial] Expiry cron: processed %d expired trials", n)
+				}
+				if err := trialManager.SendTrialReminders(ctx); err != nil {
+					log.Printf("[Trial] Reminder cron error: %v", err)
+				}
+			}
+		}()
+		log.Println("[Trial] ✅ Daily trial expiry + reminder cron started")
 	} else {
 		log.Println("[Runtime] ⚠️  Database not available — runtime endpoints disabled")
 	}
