@@ -75,11 +75,11 @@ export default function AutonomousSystems() {
               <div className="absolute top-4 right-4 z-10">
                 <Link
                   href="https://docs.igrisinertial.com/docs/agents/"
-                  className="inline-flex items-center justify-center px-3 py-1.5 hover:opacity-80 transition-all duration-200 text-xs font-medium shadow-sm rounded-md border m-2 md:m-4"
+                  className="inline-flex items-center justify-center px-3 py-1.5 md:px-6 md:py-3 hover:opacity-80 transition-all duration-200 text-xs md:text-sm font-medium shadow-sm rounded-md border ml-2 md:ml-4"
                   style={{ backgroundColor: mounted && theme === 'dark' ? '#1b1912' : '#f9f9fa', color: mounted && theme === 'dark' ? '#f6f6f4' : '#1b1912', borderColor: 'rgba(20, 18, 10, 0.1)', fontFamily }}
                 >
                   AI Agents
-                  <ChevronRight className="ml-1 h-3 w-3" />
+                  <ChevronRight className="ml-1 h-3 w-3 md:h-4 md:w-4" />
                 </Link>
               </div>
             </div>
@@ -121,11 +121,11 @@ export default function AutonomousSystems() {
               </div>
               <Link
                 href="https://docs.igrisinertial.com/docs/robotics/"
-                className="relative z-10 inline-flex items-center justify-center px-3 py-1.5 hover:opacity-80 transition-all duration-200 text-xs font-medium shadow-sm rounded-md border m-2 md:m-4"
+                className="relative z-10 inline-flex items-center justify-center px-3 py-1.5 md:px-6 md:py-3 hover:opacity-80 transition-all duration-200 text-xs md:text-sm font-medium shadow-sm rounded-md border ml-2 md:ml-4"
                 style={{ backgroundColor: mounted && theme === 'dark' ? '#1b1912' : '#f9f9fa', color: mounted && theme === 'dark' ? '#f6f6f4' : '#1b1912', borderColor: 'rgba(20, 18, 10, 0.1)', fontFamily }}
               >
                 Robotics
-                <ChevronRight className="ml-1 h-3 w-3" />
+                <ChevronRight className="ml-1 h-3 w-3 md:h-4 md:w-4" />
               </Link>
             </div>
           </div>
