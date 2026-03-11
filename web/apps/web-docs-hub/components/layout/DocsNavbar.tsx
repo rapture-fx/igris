@@ -84,13 +84,13 @@ export function DocsNavbar() {
 
           <div className="hidden xl:flex items-center gap-3 w-64">
             <a
-              href="https://app.igrisinertial.com"
+              href="https://console.igrisinertial.com/dashboard"
               className="px-3 py-1.5 text-xs font-medium text-gray-900 dark:text-[#f6f6f4] bg-[#f6f6f4] dark:bg-[#25231e] hover:bg-beige-secondary dark:hover:bg-[#2a2820] rounded-lg transition-colors whitespace-nowrap shadow-sm border border-gray-200 dark:border-[#f6f6f4]/10"
             >
               Dashboard
             </a>
             <a
-              href="https://app.igrisinertial.com/signup"
+              href="https://console.igrisinertial.com/auth?mode=signup"
               className="px-3 py-1.5 text-xs font-medium text-white bg-black hover:bg-gray-800 rounded-lg transition-colors whitespace-nowrap shadow-sm border border-black"
             >
               Get Started
