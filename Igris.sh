@@ -101,8 +101,8 @@ fi
 
 # ── Download binary ───────────────────────────────────────────────────────────
 
-DOWNLOAD_URL="${OVERTURE_URL}/v1/runtime/download?platform=${PLATFORM}"
-CHECKSUM_URL="${OVERTURE_URL}/v1/runtime/download?platform=${PLATFORM}&checksum=1"
+DOWNLOAD_URL="${OVERTURE_URL}/api/v1/runtime/download?platform=${PLATFORM}"
+CHECKSUM_URL="${OVERTURE_URL}/v1/runtime/checksum?platform=${PLATFORM}"
 
 step "Downloading igris-runtime (${PLATFORM})..."
 
@@ -130,7 +130,7 @@ step "Verifying binary integrity..."
 CHECKSUM_RESP=$(curl -fsSL \
     -H "$AUTH_HEADER" \
     -H "User-Agent: igris-installer/1.0" \
-    "${OVERTURE_URL}/api/v1/runtime/checksum?platform=${PLATFORM}" 2>/dev/null || true)
+    "${CHECKSUM_URL}" 2>/dev/null || true)
 
 if [ -n "$CHECKSUM_RESP" ]; then
     EXPECTED=$(echo "$CHECKSUM_RESP" | grep -oE '[a-f0-9]{64}' | head -1)
