@@ -23,11 +23,15 @@ detect_platform() {
             esac
             ;;
         darwin)
-            case "$ARCH" in
-                x86_64) echo "macos-x64" ;;
-                arm64) echo "macos-arm64" ;;
-                *) echo "Unsupported architecture: $ARCH" >&2; exit 1 ;;
-            esac
+            # Check for Apple Silicon (works even under Rosetta where uname -m returns x86_64)
+            if sysctl -n hw.optional.arm64 2>/dev/null | grep -q 1; then
+                echo "macos-arm64"
+            elif [ "$ARCH" = "arm64" ]; then
+                echo "macos-arm64"
+            else
+                echo "Unsupported: Intel Mac binaries are not available. This runtime requires Apple Silicon (M1/M2/M3/M4)." >&2
+                exit 1
+            fi
             ;;
         *)
             echo "Unsupported OS: $OS" >&2
