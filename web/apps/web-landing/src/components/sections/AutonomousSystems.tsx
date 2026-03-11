@@ -109,7 +109,7 @@ export default function AutonomousSystems() {
               </div>
             </div>
             {/* Col 2 - Full Background Image */}
-            <div className="relative flex flex-col justify-end items-end rounded-r-2xl overflow-hidden min-h-[200px] md:min-h-0">
+            <div className="relative flex flex-col justify-end items-end rounded-r-2xl overflow-visible min-h-[200px] md:min-h-0">
               <div className="absolute top-2 bottom-2 left-2 right-0 rounded-xl overflow-hidden">
                 <Image
                   src="/roz.png"
@@ -121,7 +121,7 @@ export default function AutonomousSystems() {
               </div>
               <Link
                 href="https://docs.igrisinertial.com/docs/robotics/"
-                className="relative z-10 inline-flex items-center justify-center px-3 py-1.5 md:px-6 md:py-3 hover:opacity-80 transition-all duration-200 text-xs md:text-sm font-medium shadow-sm rounded-md border ml-2 md:ml-4"
+                className="relative z-10 inline-flex items-center justify-center px-3 py-1.5 md:px-6 md:py-3 hover:opacity-80 transition-all duration-200 text-xs md:text-sm font-medium shadow-sm rounded-md border ml-2 mr-2 mb-3 md:ml-4 md:mr-4"
                 style={{ backgroundColor: mounted && theme === 'dark' ? '#1b1912' : '#f9f9fa', color: mounted && theme === 'dark' ? '#f6f6f4' : '#1b1912', borderColor: 'rgba(20, 18, 10, 0.1)', fontFamily }}
               >
                 Robotics
