@@ -37,7 +37,7 @@ export default function Header() {
       setConsoleUrl('http://localhost:3005');
     } else {
       setDocsHubUrl('https://docs.igrisinertial.com/');
-      setConsoleUrl('https://admin.igris-inertial.com');
+      setConsoleUrl('https://console.igrisinertial.com');
     }
   }, []);
 
