@@ -16,11 +16,10 @@ interface PricingTier {
   recommended?: boolean;
 }
 
-// Polar checkout URLs — update price IDs once set in the Polar dashboard
 const POLAR_CHECKOUT: Record<string, string> = {
-  seed:     "https://polar.sh/igris-inertial/checkout?price=price_seed_monthly",
-  horizon:  "https://polar.sh/igris-inertial/checkout?price=price_horizon_monthly",
-  infinite: "https://polar.sh/igris-inertial/checkout?price=price_infinite_monthly",
+  seed:     "https://polar.sh/igris-inertial/checkout?price=46f30e81-59f5-4dd5-989f-de25783dab65",
+  horizon:  "https://polar.sh/igris-inertial/checkout?price=59de0489-ae74-45a6-baf9-8a7b3834baae",
+  infinite: "https://polar.sh/igris-inertial/checkout?price=8e0d7668-1607-40e0-90a4-d11d8ff10b82",
 };
 
 const pricingTiers: PricingTier[] = [
