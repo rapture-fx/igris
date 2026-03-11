@@ -38,19 +38,25 @@ export default function Products() {
       <div className="mx-auto max-w-[1100px] px-4 sm:px-6 lg:px-8">
         <div className="px-4 md:px-8 lg:px-12" style={{ borderLeft: '0.5px solid rgba(209, 213, 219, 0.35)', borderRight: '0.5px solid rgba(209, 213, 219, 0.35)', paddingBottom: 0 }}>
           <div style={{ paddingTop: '3rem', paddingBottom: '3rem', position: 'relative' }}>
-            <div className="hidden sm:block" style={{ position: 'absolute', top: '3rem', right: '2rem', bottom: '3rem', display: 'flex', alignItems: 'center' }}>
-              <img 
-                src="/pri.png" 
-                alt="Product"
-                style={{ 
-                  height: '100%', 
-                  width: 'auto', 
-                  maxWidth: '400px',
-                  borderRadius: '12px', 
-                  border: '1px solid rgba(209, 213, 219, 0.35)',
-                  objectFit: 'contain'
-                }} 
-              />
+            <div className="hidden sm:block" style={{ position: 'absolute', top: '3rem', right: '2rem', bottom: '3rem', display: 'flex', alignItems: 'center', justifyContent: 'center' }}>
+              <div style={{ 
+                width: '100%', 
+                height: '100%', 
+                maxWidth: '420px',
+                borderRadius: '12px', 
+                border: '1px solid rgba(209, 213, 219, 0.35)',
+                overflow: 'hidden'
+              }}>
+                <img 
+                  src="/pri.png" 
+                  alt="Product"
+                  style={{ 
+                    width: '100%', 
+                    height: '100%', 
+                    objectFit: 'cover'
+                  }} 
+                />
+              </div>
             </div>
             <div style={{ maxWidth: '320px', position: 'relative', zIndex: 1 }}>
               <p className="text-base md:text-lg mb-3 text-[#000000] dark:text-[#f6f6f4]" style={{ fontFamily: '-apple-system, BlinkMacSystemFont, "Segoe UI", Roboto, Helvetica, Arial, sans-serif', fontWeight: 400 }}>
