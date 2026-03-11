@@ -145,7 +145,7 @@ function AuthContent() {
 
       if (result.status === 'complete') {
         await setActiveSignIn({ session: result.createdSessionId });
-        router.push('/dashboard');
+        window.location.href = '/dashboard';
       }
     } catch (err: any) {
       setError(err.errors?.[0]?.message || 'Invalid email or password');
@@ -222,13 +222,8 @@ function AuthContent() {
       console.log('Verification result status:', result.status);
 
       if (result.status === 'complete') {
-        // Set the session as active
         await setActiveSignUp({ session: result.createdSessionId });
-
-        console.log('✓ Email verified successfully');
-        console.log('✓ Session activated, redirecting to onboarding');
-
-        router.push('/onboarding');
+        window.location.href = '/onboarding';
       } else {
         console.error('Verification incomplete:', result.status);
         setError('Verification incomplete. Please try again.');
@@ -289,7 +284,7 @@ function AuthContent() {
 
               <button
                 onClick={() => handleOAuthSignIn('oauth_google')}
-                disabled={loadingProvider !== null}
+                disabled={loadingProvider !== null || !signInLoaded}
                 className="w-80 flex items-center justify-center gap-3 px-4 py-3.5 border border-gray-300 dark:border-[#f6f6f4]/5 rounded-lg text-sm font-medium text-[#000000] dark:text-[#f6f6f4] font-inter outline-none focus:outline-none focus:ring-0 shadow-sm hover:shadow-md transition-all disabled:opacity-50 disabled:cursor-not-allowed bg-background dark:bg-[#1b1912]"
               >
                 {loadingProvider === 'oauth_google' ? (
