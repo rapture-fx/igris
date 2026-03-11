@@ -264,20 +264,18 @@ function AuthContent() {
 
   return (
     <div className="min-h-screen flex relative bg-background text-gray-900 dark:text-[#f6f6f4] transition-colors duration-200">
-      {/* Logo */}
-      <div className="absolute top-6 left-8 z-10">
-         <img
-           src="/dmfoot.png"
-           alt="Igris Logo"
-           style={{ width: '30px', height: 'auto' }}
-         />
-      </div>
-
-
-
       {/* Center the Auth Options */}
       <div className="w-full flex items-center justify-center px-8 py-6 relative z-10">
         <div className="w-full max-w-sm px-8">
+          
+          {/* Logo - Centered above sign in/up */}
+          <div className="flex justify-center mb-20">
+            <img
+              src="/dmfoot.png"
+              alt="Igris Logo"
+              style={{ width: '40px', height: 'auto' }}
+            />
+          </div>
           
 
           {/* Vertical Auth Buttons */}
@@ -447,7 +445,7 @@ function AuthContent() {
               <button
                 type="submit"
                 disabled={loading}
-                className="w-80 bg-black text-white py-3 rounded-lg text-sm font-medium font-inter hover:bg-gray-800 transition-colors disabled:opacity-50 disabled:cursor-not-allowed flex items-center justify-center gap-2 shadow-md hover:shadow-lg"
+                className="w-full bg-black text-white py-3 rounded-lg text-sm font-medium font-inter hover:bg-gray-800 transition-colors disabled:opacity-50 disabled:cursor-not-allowed flex items-center justify-center gap-2 shadow-md hover:shadow-lg"
               >
                 {loading && <Loader2 className="h-4 w-4 animate-spin flex-shrink-0" />}
                 Continue
@@ -495,7 +493,7 @@ function AuthContent() {
               <button
                 type="submit"
                 disabled={loading || code.length !== 6}
-                className="w-80 bg-primary text-primary-foreground py-3 rounded-lg text-sm font-medium font-inter hover:bg-primary/90 transition-colors disabled:opacity-50 disabled:cursor-not-allowed flex items-center justify-center gap-2 shadow-md hover:shadow-lg"
+                className="w-full bg-primary text-primary-foreground py-3 rounded-lg text-sm font-medium font-inter hover:bg-primary/90 transition-colors disabled:opacity-50 disabled:cursor-not-allowed flex items-center justify-center gap-2 shadow-md hover:shadow-lg"
               >
                 {loading && <Loader2 className="h-4 w-4 animate-spin flex-shrink-0" />}
                 Verify email
