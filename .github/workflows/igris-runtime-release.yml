@@ -55,12 +55,16 @@ jobs:
           cd igris-runtime/target/${{ matrix.target }}/release
           tar czf ../../../../igris-runtime-${{ matrix.name }}.tar.gz igris-runtime
           cd -
+          sha256sum igris-runtime-${{ matrix.name }}.tar.gz | awk '{print $1}' > igris-runtime-${{ matrix.name }}.tar.gz.sha256
           ls -lh igris-runtime-${{ matrix.name }}.tar.gz
+          cat igris-runtime-${{ matrix.name }}.tar.gz.sha256
 
       - name: Upload Release Asset
         uses: softprops/action-gh-release@v2
         with:
-          files: igris-runtime-${{ matrix.name }}.tar.gz
+          files: |
+            igris-runtime-${{ matrix.name }}.tar.gz
+            igris-runtime-${{ matrix.name }}.tar.gz.sha256
           name: Igris Runtime ${{ github.ref_name }}
           body: |
             # Igris Runtime ${{ github.ref_name }}
