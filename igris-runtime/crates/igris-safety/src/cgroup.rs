@@ -18,13 +18,13 @@ impl CGroup {
             let period: u64 = 100_000; // 100 ms in µs
             let quota = (bounds.max_cpu_percent as i64 * period as i64) / 100;
 
-            let mut builder = CgroupBuilder::new("igris_containment");
-            builder
+            let cg = CgroupBuilder::new("igris_containment")
                 .cpu()
                 .quota(quota)
                 .period(period)
-                .done();
-            let cg = builder.build(hier).map_err(|e| e.to_string())?;
+                .done()
+                .build(hier)
+                .map_err(|e| e.to_string())?;
             Ok(Self { cgroup: cg })
         }
 
