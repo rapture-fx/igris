@@ -118,9 +118,9 @@ impl Supervisor {
         let period: i64 = 100_000; // 100 ms in µs
         let quota = (self.config.bounds.max_cpu_percent as i64 * period) / 100;
         let mut builder = CgroupBuilder::new("igris_worker");
-        builder.cpu().cpu_quota(quota).cpu_period(period).done();
-        let cg = builder.build(hier);
-        cg.add_task(CgroupPid::from(pid as u64)).map_err(|e: cgroups_rs::error::LibcontainerError| e.to_string())
+        builder.cpu().quota(quota).period(period).done();
+        let cg = builder.build(hier).map_err(|e| e.to_string())?;
+        cg.add_task(CgroupPid::from(pid as u64)).map_err(|e| e.to_string())
     }
 
     #[cfg(not(target_os = "linux"))]
