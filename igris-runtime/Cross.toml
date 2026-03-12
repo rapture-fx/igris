@@ -1,0 +1,12 @@
+# Cross.toml — configuration for the `cross` cross-compilation tool.
+# See: https://github.com/cross-rs/cross
+
+# Linux musl targets: static binary, no system deps at runtime
+[target.x86_64-unknown-linux-musl]
+image = "ghcr.io/cross-rs/x86_64-unknown-linux-musl:main"
+
+[target.aarch64-unknown-linux-musl]
+image = "ghcr.io/cross-rs/aarch64-unknown-linux-musl:main"
+
+[target.armv7-unknown-linux-musleabihf]
+image = "ghcr.io/cross-rs/armv7-unknown-linux-musleabihf:main"
