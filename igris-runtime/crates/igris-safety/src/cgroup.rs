@@ -21,10 +21,10 @@ impl CGroup {
             let mut builder = CgroupBuilder::new("igris_containment");
             builder
                 .cpu()
-                .cpu_quota(quota)
-                .cpu_period(period)
+                .quota(quota)
+                .period(period)
                 .done();
-            let cg = builder.build(hier);
+            let cg = builder.build(hier).map_err(|e| e.to_string())?;
             Ok(Self { cgroup: cg })
         }
 
@@ -43,7 +43,7 @@ impl CGroup {
             let pid = std::process::id() as u64;
             self.cgroup
                 .add_task(CgroupPid::from(pid))
-                .map_err(|e: cgroups_rs::error::LibcontainerError| e.to_string())
+                .map_err(|e| e.to_string())
         }
 
         #[cfg(not(target_os = "linux"))]
@@ -59,7 +59,7 @@ impl CGroup {
             use cgroups_rs::CgroupPid;
             self.cgroup
                 .add_task(CgroupPid::from(pid as u64))
-                .map_err(|e: cgroups_rs::error::LibcontainerError| e.to_string())
+                .map_err(|e| e.to_string())
         }
 
         #[cfg(not(target_os = "linux"))]
@@ -73,7 +73,7 @@ impl CGroup {
     pub fn destroy(self) -> Result<(), String> {
         #[cfg(target_os = "linux")]
         {
-            self.cgroup.delete().map_err(|e: cgroups_rs::error::LibcontainerError| e.to_string())
+            self.cgroup.delete().map_err(|e| e.to_string())
         }
 
         #[cfg(not(target_os = "linux"))]
