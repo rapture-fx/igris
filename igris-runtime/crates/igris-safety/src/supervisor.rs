@@ -115,8 +115,8 @@ impl Supervisor {
         use cgroups_rs::fs::{cgroup_builder::CgroupBuilder, hierarchies};
         use cgroups_rs::CgroupPid;
         let hier = hierarchies::auto();
-        let period: i64 = 100_000; // 100 ms in µs
-        let quota = (self.config.bounds.max_cpu_percent as i64 * period) / 100;
+        let period: u64 = 100_000; // 100 ms in µs
+        let quota = (self.config.bounds.max_cpu_percent as i64 * period as i64) / 100;
         let mut builder = CgroupBuilder::new("igris_worker");
         builder.cpu().quota(quota).period(period).done();
         let cg = builder.build(hier).map_err(|e| e.to_string())?;

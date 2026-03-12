@@ -15,8 +15,8 @@ impl CGroup {
             use cgroups_rs::fs::{cgroup_builder::CgroupBuilder, hierarchies};
 
             let hier = hierarchies::auto();
-            let period: i64 = 100_000; // 100 ms in µs
-            let quota = (bounds.max_cpu_percent as i64 * period) / 100;
+            let period: u64 = 100_000; // 100 ms in µs
+            let quota = (bounds.max_cpu_percent as i64 * period as i64) / 100;
 
             let mut builder = CgroupBuilder::new("igris_containment");
             builder
