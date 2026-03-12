@@ -112,14 +112,15 @@ impl Supervisor {
     /// Add the worker PID to a CPU-quota cgroup (Linux only; no-op on other platforms).
     #[cfg(target_os = "linux")]
     fn attach_cgroup(&self, pid: u32) -> Result<(), String> {
-        use cgroups_rs::{hierarchies, CgroupBuilder, CgroupPid};
+        use cgroups_rs::fs::{cgroup_builder::CgroupBuilder, hierarchies};
+        use cgroups_rs::CgroupPid;
         let hier = hierarchies::auto();
         let period: i64 = 100_000; // 100 ms in µs
         let quota = (self.config.bounds.max_cpu_percent as i64 * period) / 100;
         let mut builder = CgroupBuilder::new("igris_worker");
         builder.cpu().cpu_quota(quota).cpu_period(period).done();
         let cg = builder.build(hier);
-        cg.add_task(CgroupPid::from(pid as u64)).map_err(|e| e.to_string())
+        cg.add_task(CgroupPid::from(pid as u64)).map_err(|e: cgroups_rs::error::LibcontainerError| e.to_string())
     }
 
     #[cfg(not(target_os = "linux"))]
