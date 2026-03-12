@@ -4,7 +4,7 @@ use crate::bounds::Bounds;
 /// On non-Linux targets this is a no-op stub so the crate compiles everywhere.
 pub struct CGroup {
     #[cfg(target_os = "linux")]
-    cgroup: cgroups_rs::Cgroup,
+    cgroup: cgroups_rs::fs::Cgroup,
 }
 
 impl CGroup {
@@ -12,7 +12,7 @@ impl CGroup {
     pub fn new(bounds: &Bounds) -> Result<Self, String> {
         #[cfg(target_os = "linux")]
         {
-            use cgroups_rs::{CgroupBuilder, hierarchies};
+            use cgroups_rs::fs::{cgroup_builder::CgroupBuilder, hierarchies};
 
             let hier = hierarchies::auto();
             let period: i64 = 100_000; // 100 ms in µs
@@ -43,7 +43,7 @@ impl CGroup {
             let pid = std::process::id() as u64;
             self.cgroup
                 .add_task(CgroupPid::from(pid))
-                .map_err(|e| e.to_string())
+                .map_err(|e: cgroups_rs::error::LibcontainerError| e.to_string())
         }
 
         #[cfg(not(target_os = "linux"))]
@@ -59,7 +59,7 @@ impl CGroup {
             use cgroups_rs::CgroupPid;
             self.cgroup
                 .add_task(CgroupPid::from(pid as u64))
-                .map_err(|e| e.to_string())
+                .map_err(|e: cgroups_rs::error::LibcontainerError| e.to_string())
         }
 
         #[cfg(not(target_os = "linux"))]
@@ -73,7 +73,7 @@ impl CGroup {
     pub fn destroy(self) -> Result<(), String> {
         #[cfg(target_os = "linux")]
         {
-            self.cgroup.delete().map_err(|e| e.to_string())
+            self.cgroup.delete().map_err(|e: cgroups_rs::error::LibcontainerError| e.to_string())
         }
 
         #[cfg(not(target_os = "linux"))]
