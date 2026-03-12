@@ -45,6 +45,24 @@ jobs:
         with:
           targets: ${{ matrix.target }}
 
+      - name: Install system dependencies (Linux host)
+        if: matrix.use_cross == true
+        run: sudo apt-get update && sudo apt-get install -y libssl-dev pkg-config
+
+      - name: Diagnose OpenSSL dependency chain (Linux only)
+        if: matrix.use_cross == true
+        working-directory: igris-runtime
+        continue-on-error: true
+        run: |
+          echo "=== Checking for openssl-sys in dependency tree ==="
+          cargo tree -e features --target ${{ matrix.target }} -i openssl-sys 2>&1 || echo "openssl-sys not found in tree (good)"
+          echo ""
+          echo "=== Checking for native-tls in dependency tree ==="
+          cargo tree -e features --target ${{ matrix.target }} -i native-tls 2>&1 || echo "native-tls not found in tree (good)"
+          echo ""
+          echo "=== All TLS-related deps ==="
+          cargo tree --target ${{ matrix.target }} 2>&1 | grep -E "openssl|native-tls|rustls|ring|aws-lc" || echo "none found"
+
       - name: Install cross (Linux targets only)
         if: matrix.use_cross == true
         run: cargo install cross --git https://github.com/cross-rs/cross
@@ -52,9 +70,6 @@ jobs:
       - name: Build (Linux with cross)
         if: matrix.use_cross == true
         working-directory: igris-runtime
-        env:
-          OPENSSL_STATIC: "1"
-          OPENSSL_VENDORED: "1"
         run: cross build --release --target ${{ matrix.target }} --bin igris-runtime
 
       - name: Build (macOS native)
