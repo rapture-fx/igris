@@ -1,5 +1,8 @@
 import { clerkMiddleware, createRouteMatcher } from '@clerk/nextjs/server';
-import { NextResponse } from 'next/server';
+import { NextMiddleware, NextResponse } from 'next/server';
+
+// DEV MODE: bypasses Clerk entirely. Set NEXT_PUBLIC_DEV_MODE=true in .env.local.
+const DEV_MODE = process.env.NEXT_PUBLIC_DEV_MODE === 'true';
 
 const isPublicRoute = createRouteMatcher([
   '/auth(.*)',
@@ -12,12 +15,9 @@ const isPublicRoute = createRouteMatcher([
   '/clear-session(.*)',
 ]);
 
-const requiresOnboarding = createRouteMatcher([
-  '/dashboard(.*)',
-  '/settings(.*)',
-]);
+const devMiddleware: NextMiddleware = () => NextResponse.next();
 
-export default clerkMiddleware(async (auth, req) => {
+const prodMiddleware = clerkMiddleware(async (auth, req) => {
   const { userId } = await auth();
 
   if (!isPublicRoute(req) && !userId) {
@@ -26,22 +26,10 @@ export default clerkMiddleware(async (auth, req) => {
     return NextResponse.redirect(authUrl);
   }
 
-  if (requiresOnboarding(req) && userId) {
-    const { user } = await auth();
-    const userMetadata = user?.unsafeMetadata as { onboardingCompleted?: boolean } | undefined;
-    const onboardingCompleted = userMetadata?.onboardingCompleted || false;
-
-    console.log('[ONBOARDING] User:', userId, 'Completed:', onboardingCompleted, 'Path:', req.nextUrl.pathname);
-
-    if (!onboardingCompleted && req.nextUrl.pathname !== '/onboarding') {
-      console.log('[ONBOARDING] Redirecting to /onboarding');
-      const onboardingUrl = new URL('/onboarding', req.url);
-      return NextResponse.redirect(onboardingUrl);
-    }
-  }
-
   return NextResponse.next();
 });
+
+export default DEV_MODE ? devMiddleware : prodMiddleware;
 
 export const config = {
   matcher: [
