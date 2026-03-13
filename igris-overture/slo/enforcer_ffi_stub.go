@@ -1,0 +1,41 @@
+//go:build !cgo
+
+// Stub for builds without CGo (CGO_ENABLED=0).
+// The Rust SLO enforcer is unavailable; EvaluateAndAct returns a no-breach response.
+package slo
+
+// MetricsInput represents Prometheus metrics to be evaluated
+type MetricsInput struct {
+	P99LatencyMs  *float64 `json:"p99_latency_ms,omitempty"`
+	P95LatencyMs  *float64 `json:"p95_latency_ms,omitempty"`
+	ErrorRate     *float64 `json:"error_rate,omitempty"`
+	Availability  *float64 `json:"availability,omitempty"`
+	ThroughputRPS *float64 `json:"throughput_rps,omitempty"`
+}
+
+// RemediationAction represents an action to take
+type RemediationAction struct {
+	ActionType     string  `json:"action_type"`
+	Target         string  `json:"target"`
+	Reason         string  `json:"reason"`
+	SLOType        string  `json:"slo_type"`
+	CurrentValue   float64 `json:"current_value"`
+	ThresholdValue float64 `json:"threshold_value"`
+}
+
+// EvaluationResponse is the response from the FFI library
+type EvaluationResponse struct {
+	Breached  bool                `json:"breached"`
+	Actions   []RemediationAction `json:"actions"`
+	Timestamp uint64              `json:"timestamp"`
+}
+
+// EvaluateAndAct returns a no-op response when Rust FFI is unavailable.
+func EvaluateAndAct(_ MetricsInput) (*EvaluationResponse, error) {
+	return &EvaluationResponse{Breached: false, Actions: nil}, nil
+}
+
+// GetVersion returns a stub version string.
+func GetVersion() string {
+	return "stub (no-cgo build)"
+}
