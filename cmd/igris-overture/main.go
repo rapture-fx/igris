@@ -271,6 +271,10 @@ func main() {
 				// Register cognitive admin routes (use worker's applier)
 				api.RegisterCognitiveRoutes(app, worker.GetApplier())
 
+				// Register /v1/cognitive/* aliases for the web-console
+				// (the v1 group uses Clerk auth and is consumed by useCognitive* hooks)
+				api.RegisterCognitiveV1Aliases(app, worker.GetApplier(), db)
+
 				log.Println("[CognitiveAdvisor] ✅ Cognitive Layer initialized successfully")
 				log.Println("[CognitiveAdvisor] 🧠 AI-powered optimization running every 15 minutes")
 				log.Println("[CognitiveAdvisor] 📊 Admin API available at /admin/cognitive/*")
@@ -417,6 +421,11 @@ func main() {
 		api.RegisterSpeculativeRoutes(app, dbInstance)
 		api.RegisterModelProviderRoutes(app, dbInstance, tenantAuth)
 		log.Println("[Routes] ✅ Dashboard routes registered (stats, execution, proof, speculative, model-providers)")
+
+		// Register all web-console frontend endpoints (tenant/current, usage/summary,
+		// cognitive/status, speculative/races, shadow/*, council/*, escapevector/*)
+		api.RegisterFrontendRoutes(app, dbInstance)
+		log.Println("[Routes] ✅ Frontend routes registered (web-console endpoints)")
 	} else {
 		log.Println("[Routes] ⚠️  Database not available — dashboard routes disabled")
 	}
