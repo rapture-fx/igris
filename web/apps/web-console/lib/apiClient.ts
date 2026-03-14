@@ -27,13 +27,6 @@ export async function apiRequest<T = any>(
     Object.assign(headers, fetchOptions.headers);
   }
 
-  if (!skipAuth) {
-    const token = await window.Clerk?.session?.getToken();
-    if (token) {
-      headers['Authorization'] = `Bearer ${token}`;
-    }
-  }
-
   try {
     const response = await fetch(`${API_BASE_URL}${path}`, {
       ...fetchOptions,
