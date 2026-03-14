@@ -34,7 +34,7 @@ func RegisterProviderRegistryRoutes(app *fiber.App, config *ProviderRegistryRout
 	// ========================================================================
 
 	providers := v1.Group("/providers")
-	providers.Use(middleware.ClerkAuth())
+	providers.Use(middleware.BetterAuth(config.DB))
 
 	// Provider Registration & Management
 	providers.Post("/register", providerHandler.RegisterProvider)      // POST /v1/providers/register
@@ -64,7 +64,7 @@ func RegisterModelProviderRoutes(app *fiber.App, db *sql.DB, _ *middleware.Tenan
 	providerHandler := handlers.NewProviderRegistryHandler(db, nil)
 
 	models := app.Group("/models")
-	models.Use(middleware.ClerkAuth())
+	models.Use(middleware.BetterAuth(db))
 	models.Get("/providers", providerHandler.ListProviders)
 	models.Post("/providers", providerHandler.RegisterProvider)
 	models.Put("/providers/:id", providerHandler.UpdateProvider)
