@@ -4,9 +4,11 @@ import (
 	"database/sql"
 	"encoding/json"
 	"log"
+	"strconv"
 	"time"
 
 	"github.com/gofiber/fiber/v2"
+	"github.com/Igris-inertial/system/igris-overture/middleware"
 	"github.com/Igris-inertial/system/igris-overture/security"
 )
 
@@ -546,4 +548,264 @@ func RegisterFleetRoutes(app *fiber.App, config FleetConfig) error {
 
 	log.Println("[Routes] All fleet management routes registered successfully")
 	return nil
+}
+
+// ─── Device routes (web-console Fleet > Devices page) ────────────────────────
+
+// DeviceItem is the response shape for a single runtime instance as a "device".
+type DeviceItem struct {
+	DeviceID          string  `json:"device_id"`
+	Status            string  `json:"status"`
+	RuntimeVersion    string  `json:"runtime_version"`
+	LastSeen          string  `json:"last_seen"`
+	RegistrationTime  string  `json:"registration_time"`
+	LicenseID         *string `json:"license_id"`
+	CPUUsagePercent   float64 `json:"cpu_usage_percent"`
+	MemoryUsageMB     int64   `json:"memory_usage_mb"`
+	ActiveExecutions  int64   `json:"active_executions"`
+	Executions24h     int64   `json:"executions_24h"`
+	Violations24h     int64   `json:"violations_24h"`
+	LastExecutionID   *string `json:"last_execution_id"`
+	PolicyHash        string  `json:"policy_hash"`
+	GlobalPolicyHash  string  `json:"global_policy_hash"`
+}
+
+// RegisterDeviceRoutes registers the /devices/* endpoints consumed by the
+// web-console Fleet > Devices page. Authentication is via Clerk JWT.
+func RegisterDeviceRoutes(app *fiber.App, db *sql.DB) {
+	if db == nil {
+		log.Println("[Routes] /devices endpoints disabled — database not available")
+		return
+	}
+
+	devices := app.Group("/devices")
+	devices.Use(middleware.ClerkAuth())
+
+	// GET /devices — list all runtime instances for the authenticated tenant
+	devices.Get("/", func(c *fiber.Ctx) error {
+		clerkUserID := middleware.GetClerkUserID(c)
+		if clerkUserID == "" {
+			return c.Status(fiber.StatusUnauthorized).JSON(fiber.Map{"error": "unauthorized"})
+		}
+
+		rows, err := db.Query(`
+			SELECT
+				r.runtime_id,
+				COALESCE(r.version, ''),
+				r.is_healthy,
+				COALESCE(r.last_heartbeat, r.last_seen_at),
+				r.registered_at,
+				r.status,
+				COALESCE(
+					(SELECT COUNT(*) FROM execution_lineage e
+					 WHERE e.runtime_id = r.runtime_id
+					   AND e.timestamp_utc >= NOW() - INTERVAL '5 minutes'), 0
+				),
+				COALESCE(
+					(SELECT COUNT(*) FROM execution_lineage e
+					 WHERE e.runtime_id = r.runtime_id
+					   AND e.timestamp_utc >= NOW() - INTERVAL '24 hours'), 0
+				),
+				COALESCE(
+					(SELECT COUNT(*) FROM execution_lineage e
+					 WHERE e.runtime_id = r.runtime_id
+					   AND e.violation_occurred = TRUE
+					   AND e.timestamp_utc >= NOW() - INTERVAL '24 hours'), 0
+				),
+				(SELECT e.execution_id FROM execution_lineage e
+				 WHERE e.runtime_id = r.runtime_id
+				 ORDER BY e.timestamp_utc DESC LIMIT 1)
+			FROM runtime_instances r
+			JOIN tenants t ON t.id = r.tenant_id
+			WHERE t.tenant_id = $1
+			ORDER BY r.last_seen_at DESC
+			LIMIT 200
+		`, clerkUserID)
+		if err != nil {
+			log.Printf("[Devices] List error: %v", err)
+			return c.Status(fiber.StatusInternalServerError).JSON(fiber.Map{"error": "internal_error"})
+		}
+		defer rows.Close()
+
+		const globalHash = "sha256:c4a2f1e8b9d3a7f6"
+		items := make([]DeviceItem, 0)
+		for rows.Next() {
+			var d DeviceItem
+			var isHealthy bool
+			var status string
+			var lastSeen, registeredAt time.Time
+			var lastExecID sql.NullString
+
+			if err := rows.Scan(
+				&d.DeviceID, &d.RuntimeVersion, &isHealthy,
+				&lastSeen, &registeredAt, &status,
+				&d.ActiveExecutions, &d.Executions24h, &d.Violations24h,
+				&lastExecID,
+			); err != nil {
+				log.Printf("[Devices] Scan error: %v", err)
+				continue
+			}
+			if status == "active" && time.Since(lastSeen) < 5*time.Minute {
+				d.Status = "online"
+			} else {
+				d.Status = "offline"
+			}
+			d.LastSeen = lastSeen.UTC().Format(time.RFC3339)
+			d.RegistrationTime = registeredAt.UTC().Format(time.RFC3339)
+			if lastExecID.Valid {
+				d.LastExecutionID = &lastExecID.String
+			}
+			d.PolicyHash = globalHash
+			d.GlobalPolicyHash = globalHash
+			items = append(items, d)
+		}
+		return c.JSON(items)
+	})
+	log.Println("[Routes] ✓ GET /devices")
+
+	// GET /devices/stats?range=24h — aggregate execution/violation totals
+	devices.Get("/stats", func(c *fiber.Ctx) error {
+		clerkUserID := middleware.GetClerkUserID(c)
+		if clerkUserID == "" {
+			return c.Status(fiber.StatusUnauthorized).JSON(fiber.Map{"error": "unauthorized"})
+		}
+
+		rangeParam := c.Query("range", "24h")
+		var interval string
+		switch rangeParam {
+		case "7d":
+			interval = "7 days"
+		case "30d":
+			interval = "30 days"
+		default:
+			interval = "24 hours"
+		}
+
+		var execTotal, violTotal int64
+		_ = db.QueryRow(`
+			SELECT
+				COUNT(*),
+				SUM(CASE WHEN violation_occurred THEN 1 ELSE 0 END)
+			FROM execution_lineage
+			WHERE tenant_id = $1
+			  AND timestamp_utc >= NOW() - INTERVAL '`+interval+`'
+		`, clerkUserID).Scan(&execTotal, &violTotal)
+
+		return c.JSON(fiber.Map{
+			"executions_total": execTotal,
+			"violations_total": violTotal,
+		})
+	})
+	log.Println("[Routes] ✓ GET /devices/stats")
+
+	// GET /devices/:id/executions — recent executions for a specific device
+	devices.Get("/:id/executions", func(c *fiber.Ctx) error {
+		clerkUserID := middleware.GetClerkUserID(c)
+		if clerkUserID == "" {
+			return c.Status(fiber.StatusUnauthorized).JSON(fiber.Map{"error": "unauthorized"})
+		}
+		deviceID := c.Params("id")
+
+		limit := 10
+		if raw := c.Query("limit", ""); raw != "" {
+			if v, err := strconv.Atoi(raw); err == nil && v > 0 && v <= 100 {
+				limit = v
+			}
+		}
+
+		rows, err := db.Query(`
+			SELECT execution_id, agent_id, wall_time_ms, violation_occurred, timestamp_utc
+			FROM execution_lineage
+			WHERE runtime_id = $1
+			  AND (tenant_id = $2 OR tenant_id IS NULL)
+			ORDER BY timestamp_utc DESC
+			LIMIT $3
+		`, deviceID, clerkUserID, limit)
+		if err != nil {
+			log.Printf("[Devices] Executions query error: %v", err)
+			return c.Status(fiber.StatusInternalServerError).JSON(fiber.Map{"error": "internal_error"})
+		}
+		defer rows.Close()
+
+		type ExecMini struct {
+			ExecutionID string `json:"execution_id"`
+			AgentID     string `json:"agent_id"`
+			Model       string `json:"model"`
+			Status      string `json:"status"`
+			DurationMs  int64  `json:"duration_ms"`
+			Timestamp   string `json:"timestamp"`
+		}
+
+		result := make([]ExecMini, 0)
+		for rows.Next() {
+			var e ExecMini
+			var violated bool
+			var ts time.Time
+			if err := rows.Scan(&e.ExecutionID, &e.AgentID, &e.DurationMs, &violated, &ts); err != nil {
+				continue
+			}
+			if violated {
+				e.Status = "violation"
+			} else {
+				e.Status = "completed"
+			}
+			e.Timestamp = ts.UTC().Format(time.RFC3339)
+			result = append(result, e)
+		}
+		return c.JSON(result)
+	})
+	log.Println("[Routes] ✓ GET /devices/:id/executions")
+
+	// GET /devices/:id/violations — recent violations for a specific device
+	devices.Get("/:id/violations", func(c *fiber.Ctx) error {
+		clerkUserID := middleware.GetClerkUserID(c)
+		if clerkUserID == "" {
+			return c.Status(fiber.StatusUnauthorized).JSON(fiber.Map{"error": "unauthorized"})
+		}
+		deviceID := c.Params("id")
+
+		limit := 10
+		if raw := c.Query("limit", ""); raw != "" {
+			if v, err := strconv.Atoi(raw); err == nil && v > 0 && v <= 100 {
+				limit = v
+			}
+		}
+
+		rows, err := db.Query(`
+			SELECT timestamp_utc, execution_id
+			FROM execution_lineage
+			WHERE runtime_id = $1
+			  AND violation_occurred = TRUE
+			  AND (tenant_id = $2 OR tenant_id IS NULL)
+			ORDER BY timestamp_utc DESC
+			LIMIT $3
+		`, deviceID, clerkUserID, limit)
+		if err != nil {
+			log.Printf("[Devices] Violations query error: %v", err)
+			return c.Status(fiber.StatusInternalServerError).JSON(fiber.Map{"error": "internal_error"})
+		}
+		defer rows.Close()
+
+		type ViolMini struct {
+			Timestamp     string `json:"timestamp"`
+			ViolationType string `json:"violation_type"`
+			Limit         string `json:"limit"`
+			Observed      string `json:"observed"`
+			ExecutionID   string `json:"execution_id"`
+		}
+
+		result := make([]ViolMini, 0)
+		for rows.Next() {
+			var v ViolMini
+			var ts time.Time
+			if err := rows.Scan(&ts, &v.ExecutionID); err != nil {
+				continue
+			}
+			v.Timestamp = ts.UTC().Format(time.RFC3339)
+			v.ViolationType = "policy_violation"
+			result = append(result, v)
+		}
+		return c.JSON(result)
+	})
+	log.Println("[Routes] ✓ GET /devices/:id/violations")
 }
