@@ -43,7 +43,7 @@ func RegisterLicenseRoutes(app *fiber.App, db *sql.DB) {
 	// Alias group at /v1/license — web-console calls GET /v1/license and POST /v1/license/activate.
 	// These use Clerk auth so the console can read the tenant's current plan.
 	consoleV1 := app.Group("/v1/license")
-	consoleV1.Use(middleware.ClerkAuth())
+	consoleV1.Use(middleware.BetterAuth(db))
 	consoleV1.Get("/", handler.GetLicenseInfo)
 	consoleV1.Post("/activate", handler.ActivateLicense)
 
