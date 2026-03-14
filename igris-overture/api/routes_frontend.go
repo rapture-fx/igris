@@ -40,7 +40,7 @@ func RegisterFrontendRoutes(app *fiber.App, db *sql.DB) {
 
 	// ── Priority 1: GET /v1/tenants/current ──────────────────────────────────
 	tenants := app.Group("/v1/tenants")
-	tenants.Use(middleware.ClerkAuth())
+	tenants.Use(middleware.BetterAuth(db))
 	tenants.Get("/current", makeGetCurrentTenant(db))
 
 	// Priority 2: GET /v1/usage/summary is already registered by RegisterStatsRoutes.
@@ -55,17 +55,17 @@ func RegisterFrontendRoutes(app *fiber.App, db *sql.DB) {
 	// the /v1/cognitive/status endpoint since the console polls it for feature
 	// availability regardless of whether the full advisor is wired up.
 	cogGroup := app.Group("/v1/cognitive")
-	cogGroup.Use(middleware.ClerkAuth())
+	cogGroup.Use(middleware.BetterAuth(db))
 	cogGroup.Get("/status", makeGetCognitiveStatus(db))
 
 	// ── Priority 5: GET /v1/routing/speculative/races ─────────────────────────
 	specGroup := app.Group("/v1/routing")
-	specGroup.Use(middleware.ClerkAuth())
+	specGroup.Use(middleware.BetterAuth(db))
 	specGroup.Get("/speculative/races", makeGetSpeculativeRaces(db))
 
 	// ── Priority 6a: Shadow endpoints ────────────────────────────────────────
 	shadowGroup := app.Group("/v1/shadow")
-	shadowGroup.Use(middleware.ClerkAuth())
+	shadowGroup.Use(middleware.BetterAuth(db))
 	shadowGroup.Get("/status", makeGetShadowStatus(db))
 	shadowGroup.Get("/config", makeGetShadowConfig(db))
 	shadowGroup.Patch("/config", makePatchShadowConfig(db))
@@ -77,7 +77,7 @@ func RegisterFrontendRoutes(app *fiber.App, db *sql.DB) {
 
 	// ── Priority 6b: Council endpoints ────────────────────────────────────────
 	councilGroup := app.Group("/v1/council")
-	councilGroup.Use(middleware.ClerkAuth())
+	councilGroup.Use(middleware.BetterAuth(db))
 	councilGroup.Get("/status", makeGetCouncilStatus(db))
 	councilGroup.Get("/config", makeGetCouncilConfig(db))
 	councilGroup.Patch("/config", makePatchCouncilConfig(db))
@@ -89,14 +89,14 @@ func RegisterFrontendRoutes(app *fiber.App, db *sql.DB) {
 	// The CostAnalyticsHandler.RegisterRoutes() registers at /v1/analytics/*
 	// but is never called from main.go. Wire the DB-backed version here.
 	analyticsGroup := app.Group("/v1/analytics")
-	analyticsGroup.Use(middleware.ClerkAuth())
+	analyticsGroup.Use(middleware.BetterAuth(db))
 	analyticsGroup.Get("/cost", makeGetCostAnalytics(db))
 	analyticsGroup.Get("/cost/providers", makeGetCostProviders(db))
 	analyticsGroup.Get("/cost/trend", makeGetCostTrend(db))
 
 	// ── Priority 6c: EscapeVector endpoints ───────────────────────────────────
 	evGroup := app.Group("/v1/escapevector")
-	evGroup.Use(middleware.ClerkAuth())
+	evGroup.Use(middleware.BetterAuth(db))
 	evGroup.Get("/status", makeGetEscapeVectorStatus(db))
 	evGroup.Get("/config", makeGetEscapeVectorConfig(db))
 	evGroup.Patch("/config", makePatchEscapeVectorConfig(db))
@@ -122,7 +122,7 @@ func RegisterCognitiveV1Aliases(app *fiber.App, applier *cognitive.Applier, db *
 	handler := NewCognitiveHandlerWithDB(applier, db)
 
 	v1 := app.Group("/v1/cognitive")
-	v1.Use(middleware.ClerkAuth())
+	v1.Use(middleware.BetterAuth(db.DB))
 
 	v1.Get("/proposals", handler.V1ListProposals)
 	v1.Get("/proposals/:id", handler.V1GetProposal)
