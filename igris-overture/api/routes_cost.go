@@ -24,7 +24,7 @@ func RegisterCostRoutes(app *fiber.App, db *sql.DB) {
 	h := &costHandler{db: db}
 
 	models := app.Group("/models/usage")
-	models.Use(middleware.ClerkAuth())
+	models.Use(middleware.BetterAuth(db))
 
 	models.Get("/summary", h.summary)
 	models.Get("/providers", h.byProvider)
