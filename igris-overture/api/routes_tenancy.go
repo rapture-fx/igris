@@ -14,9 +14,6 @@ import (
 	"github.com/Igris-inertial/system/igris-overture/security"
 )
 
-// clerkAuth is a package-level alias so every route group uses the same
-// Clerk JWT middleware without having to repeat the call site.
-var clerkAuth = middleware.ClerkAuth
 
 // TenancyRouteConfig holds configuration for tenancy routes
 type TenancyRouteConfig struct {
@@ -54,7 +51,7 @@ func RegisterTenancyRoutes(app *fiber.App, config *TenancyRouteConfig) {
 	// ========================================================================
 
 	admin := v1.Group("/tenants")
-	admin.Use(clerkAuth())
+	admin.Use(middleware.BetterAuth(config.DB))
 	admin.Use(config.TenantAuth.RequireAdmin())
 
 	// Tenant Management (Admin only)
@@ -71,7 +68,7 @@ func RegisterTenancyRoutes(app *fiber.App, config *TenancyRouteConfig) {
 	// ========================================================================
 
 	tenants := v1.Group("/tenants")
-	tenants.Use(clerkAuth())
+	tenants.Use(middleware.BetterAuth(config.DB))
 
 	// Tenant self-service
 	tenants.Get("/:tenant_id", tenantHandler.GetTenant)    // GET /v1/tenants/:id
@@ -84,7 +81,7 @@ func RegisterTenancyRoutes(app *fiber.App, config *TenancyRouteConfig) {
 	// ========================================================================
 
 	vault := v1.Group("/vault")
-	vault.Use(clerkAuth())
+	vault.Use(middleware.BetterAuth(config.DB))
 
 	// Vault key management
 	vault.Post("/keys", vaultHandler.StoreKey)                          // POST /v1/vault/keys
@@ -101,7 +98,7 @@ func RegisterTenancyRoutes(app *fiber.App, config *TenancyRouteConfig) {
 	// ========================================================================
 
 	policy := v1.Group("/policy")
-	policy.Use(clerkAuth())
+	policy.Use(middleware.BetterAuth(config.DB))
 
 	// Policy management
 	policy.Get("/", policyHandler.GetPolicy)           // GET /v1/policy
@@ -116,7 +113,7 @@ func RegisterTenancyRoutes(app *fiber.App, config *TenancyRouteConfig) {
 	// ========================================================================
 
 	usage := v1.Group("/usage")
-	usage.Use(clerkAuth())
+	usage.Use(middleware.BetterAuth(config.DB))
 
 	// Usage reporting
 	usage.Get("/", usageHandler.GetCurrentUsage)       // GET /v1/usage
@@ -125,7 +122,7 @@ func RegisterTenancyRoutes(app *fiber.App, config *TenancyRouteConfig) {
 	log.Println("[Routes] ✓ Registered 2 usage reporting endpoints")
 
 	audit := v1.Group("/audit")
-	audit.Use(clerkAuth())
+	audit.Use(middleware.BetterAuth(config.DB))
 
 	// Audit log access
 	audit.Get("/", usageHandler.GetAuditLogs)          // GET /v1/audit
@@ -138,7 +135,7 @@ func RegisterTenancyRoutes(app *fiber.App, config *TenancyRouteConfig) {
 	// ========================================================================
 
 	traces := v1.Group("/traces")
-	traces.Use(clerkAuth())
+	traces.Use(middleware.BetterAuth(config.DB))
 
 	// Trace access
 	traces.Get("/", tracesHandler.ListTraces)           // GET /v1/traces
@@ -203,7 +200,7 @@ func RegisterAuthRoutes(app *fiber.App, db *sql.DB) {
 
 	// 2FA endpoints (require Clerk authentication)
 	twoFA := auth.Group("/2fa")
-	twoFA.Use(clerkAuth())
+	twoFA.Use(middleware.BetterAuth(db))
 
 	twoFA.Get("/status", authManager.Get2FAStatus)         // GET /v1/auth/2fa/status
 	twoFA.Post("/generate", authManager.Generate2FASecret) // POST /v1/auth/2fa/generate
@@ -274,7 +271,7 @@ func SetupMultiTenancy(app *fiber.App, db *sql.DB, jwtSecret, vaultMasterKey str
 			subHandler := apihandlers.NewSubscriptionHandler(polarClient, gating)
 
 			sub := app.Group("/api/subscription")
-			sub.Use(middleware.ClerkAuth())
+			sub.Use(middleware.BetterAuth(db))
 			sub.Get("/status", subHandler.GetSubscriptionStatus)
 			sub.Get("/plans", subHandler.GetAvailablePlans)
 			sub.Get("/upgrade-options", subHandler.GetUpgradeOptions)
