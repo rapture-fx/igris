@@ -68,12 +68,13 @@ func (h *costHandler) summary(c *fiber.Ctx) error {
 	err := h.db.QueryRow(`
 		SELECT
 			COUNT(ul.id),
-			SUM(ul.input_tokens),
-			SUM(ul.output_tokens),
+			SUM(ul.tokens_input),
+			SUM(ul.tokens_output),
 			SUM(ul.cost_usd)
 		FROM usage_log ul
 		JOIN licenses l ON ul.license_id = l.id
-		WHERE l.customer_id::text = $1
+		JOIN tenants t ON t.id = l.customer_id
+		WHERE t.tenant_id = $1
 		  AND ul.timestamp >= NOW() - INTERVAL '`+interval+`'
 	`, tenantID).Scan(&totalRequests, &totalTokensIn, &totalTokensOut, &totalCostUSD)
 	if err != nil && err != sql.ErrNoRows {
@@ -105,12 +106,13 @@ func (h *costHandler) byProvider(c *fiber.Ctx) error {
 		SELECT
 			COALESCE(ul.provider, 'unknown')   AS provider,
 			COUNT(ul.id)                        AS requests,
-			COALESCE(SUM(ul.input_tokens), 0)  AS tokens_in,
-			COALESCE(SUM(ul.output_tokens), 0) AS tokens_out,
+			COALESCE(SUM(ul.tokens_input), 0)  AS tokens_in,
+			COALESCE(SUM(ul.tokens_output), 0) AS tokens_out,
 			COALESCE(SUM(ul.cost_usd), 0)      AS cost_usd
 		FROM usage_log ul
 		JOIN licenses l ON ul.license_id = l.id
-		WHERE l.customer_id::text = $1
+		JOIN tenants t ON t.id = l.customer_id
+		WHERE t.tenant_id = $1
 		  AND ul.timestamp >= NOW() - INTERVAL '`+interval+`'
 		GROUP BY provider
 		ORDER BY cost_usd DESC
@@ -156,12 +158,13 @@ func (h *costHandler) byModel(c *fiber.Ctx) error {
 			COALESCE(ul.model, 'unknown')       AS model,
 			COALESCE(ul.provider, 'unknown')    AS provider,
 			COUNT(ul.id)                         AS requests,
-			COALESCE(SUM(ul.input_tokens), 0)   AS tokens_in,
-			COALESCE(SUM(ul.output_tokens), 0)  AS tokens_out,
+			COALESCE(SUM(ul.tokens_input), 0)   AS tokens_in,
+			COALESCE(SUM(ul.tokens_output), 0)  AS tokens_out,
 			COALESCE(SUM(ul.cost_usd), 0)       AS cost_usd
 		FROM usage_log ul
 		JOIN licenses l ON ul.license_id = l.id
-		WHERE l.customer_id::text = $1
+		JOIN tenants t ON t.id = l.customer_id
+		WHERE t.tenant_id = $1
 		  AND ul.timestamp >= NOW() - INTERVAL '`+interval+`'
 		GROUP BY ul.model, ul.provider
 		ORDER BY cost_usd DESC
@@ -207,12 +210,13 @@ func (h *costHandler) daily(c *fiber.Ctx) error {
 		SELECT
 			DATE_TRUNC('day', ul.timestamp)     AS day,
 			COUNT(ul.id)                         AS requests,
-			COALESCE(SUM(ul.input_tokens), 0)   AS tokens_in,
-			COALESCE(SUM(ul.output_tokens), 0)  AS tokens_out,
+			COALESCE(SUM(ul.tokens_input), 0)   AS tokens_in,
+			COALESCE(SUM(ul.tokens_output), 0)  AS tokens_out,
 			COALESCE(SUM(ul.cost_usd), 0)       AS cost_usd
 		FROM usage_log ul
 		JOIN licenses l ON ul.license_id = l.id
-		WHERE l.customer_id::text = $1
+		JOIN tenants t ON t.id = l.customer_id
+		WHERE t.tenant_id = $1
 		  AND ul.timestamp >= NOW() - INTERVAL '`+interval+`'
 		GROUP BY day
 		ORDER BY day ASC
@@ -266,15 +270,16 @@ func (h *costHandler) events(c *fiber.Ctx) error {
 		SELECT
 			ul.id,
 			ul.timestamp,
-			COALESCE(ul.model, 'unknown')     AS model,
-			COALESCE(ul.provider, 'unknown')  AS provider,
-			COALESCE(ul.input_tokens, 0)      AS tokens_in,
-			COALESCE(ul.output_tokens, 0)     AS tokens_out,
-			COALESCE(ul.cost_usd, 0)          AS cost_usd,
+			COALESCE(ul.model, 'unknown')       AS model,
+			COALESCE(ul.provider, 'unknown')    AS provider,
+			COALESCE(ul.tokens_input, 0)        AS tokens_in,
+			COALESCE(ul.tokens_output, 0)       AS tokens_out,
+			COALESCE(ul.cost_usd, 0)            AS cost_usd,
 			l.license_key
 		FROM usage_log ul
 		JOIN licenses l ON ul.license_id = l.id
-		WHERE l.customer_id::text = $1
+		JOIN tenants t ON t.id = l.customer_id
+		WHERE t.tenant_id = $1
 		  AND ul.timestamp >= NOW() - INTERVAL '`+interval+`'
 		ORDER BY ul.timestamp DESC
 		LIMIT $2
