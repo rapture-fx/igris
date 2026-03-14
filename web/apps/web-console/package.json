@@ -10,6 +10,7 @@
     "lint": "next lint"
   },
   "dependencies": {
+    "@better-auth/infra": "^0.1.12",
     "@igris-inertial/javascript-sdk": "workspace:*",
     "@igris-inertial/types": "workspace:*",
     "@igris-inertial/ui": "workspace:*",
