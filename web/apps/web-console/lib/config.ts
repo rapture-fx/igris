@@ -138,8 +138,8 @@ export function validateEnvironment(): {
       errors.push('Production API URL is not configured or points to localhost');
     }
 
-    if (!process.env.NEXT_PUBLIC_CLERK_PUBLISHABLE_KEY) {
-      errors.push('Clerk publishable key is not configured');
+    if (!process.env.BETTER_AUTH_SECRET) {
+      errors.push('BETTER_AUTH_SECRET is not configured');
     }
   }
 
