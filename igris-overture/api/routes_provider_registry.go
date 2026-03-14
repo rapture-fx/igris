@@ -66,6 +66,9 @@ func RegisterModelProviderRoutes(app *fiber.App, db *sql.DB, _ *middleware.Tenan
 	models := app.Group("/models")
 	models.Use(middleware.ClerkAuth())
 	models.Get("/providers", providerHandler.ListProviders)
+	models.Post("/providers", providerHandler.RegisterProvider)
+	models.Put("/providers/:id", providerHandler.UpdateProvider)
+	models.Delete("/providers/:id", providerHandler.DeleteProvider)
 
-	log.Println("[Routes] ✓ Registered GET /models/providers (alias for /v1/providers)")
+	log.Println("[Routes] ✓ Registered /models/providers (GET list, POST create, PUT update, DELETE remove)")
 }
