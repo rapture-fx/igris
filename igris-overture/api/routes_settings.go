@@ -26,7 +26,7 @@ func RegisterSettingsRoutes(app *fiber.App, db *sql.DB) {
 	s := &settingsHandler{db: db}
 
 	v1 := app.Group("/v1/settings")
-	v1.Use(middleware.ClerkAuth())
+	v1.Use(middleware.BetterAuth(db))
 
 	v1.Post("/general", s.updateGeneral)
 	v1.Post("/security", s.updateSecurity)
