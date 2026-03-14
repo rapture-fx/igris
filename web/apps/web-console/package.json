@@ -10,7 +10,6 @@
     "lint": "next lint"
   },
   "dependencies": {
-    "@clerk/nextjs": "^6.36.5",
     "@igris-inertial/javascript-sdk": "workspace:*",
     "@igris-inertial/types": "workspace:*",
     "@igris-inertial/ui": "workspace:*",
@@ -27,6 +26,8 @@
     "@tanstack/react-query-devtools": "^5.90.9",
     "@tanstack/react-table": "^8.21.3",
     "@tanstack/react-virtual": "^3.1.2",
+    "@types/pg": "^8.18.0",
+    "better-auth": "^1.5.5",
     "class-variance-authority": "^0.7.0",
     "clsx": "^2.0.0",
     "framer-motion": "^10.16.4",
@@ -34,6 +35,7 @@
     "lucide-react": "^0.294.0",
     "next": "15.3.0",
     "next-themes": "^0.2.1",
+    "pg": "^8.20.0",
     "react": "19.2.1",
     "react-dom": "19.2.1",
     "recharts": "^2.8.0",
