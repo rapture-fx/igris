@@ -35,7 +35,7 @@ func RegisterTrialRoutes(app *fiber.App, db *sql.DB, manager *billing.TrialManag
 	h := NewTrialHandler(manager)
 
 	v1 := app.Group("/v1/trial")
-	v1.Use(middleware.ClerkAuth())
+	v1.Use(middleware.BetterAuth(db))
 
 	v1.Post("/start", h.StartTrial)
 	v1.Get("/status", h.GetStatus)
