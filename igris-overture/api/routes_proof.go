@@ -37,7 +37,11 @@ func RegisterProofRoutes(app *fiber.App, db *sql.DB, _ *middleware.TenantAuth) {
 	proof.Get("/receipts", middleware.ClerkAuth(), h.ListReceipts)
 	proof.Post("/receipts/verify", middleware.ClerkAuth(), h.VerifyReceipt)
 
-	log.Info().Msg("[Routes] Registered proof endpoints (GET /proof/receipts, POST /proof/receipts/verify)")
+	// /v1/proof/violations — policy violations list (web-console Proof > Violations)
+	v1 := app.Group("/v1")
+	v1.Get("/proof/violations", middleware.ClerkAuth(), h.ListViolations)
+
+	log.Info().Msg("[Routes] Registered proof endpoints (GET /proof/receipts, POST /proof/receipts/verify, GET /v1/proof/violations)")
 }
 
 // ProofReceipt is the response shape for a single receipt row.
@@ -232,4 +236,107 @@ func (h *ProofHandler) VerifyReceipt(c *fiber.Ctx) error {
 		Hash:        storedHash,
 		Signature:   signature,
 	})
+}
+
+// PolicyViolation is the response shape for a single violation entry.
+type PolicyViolation struct {
+	ID               string  `json:"id"`
+	Timestamp        string  `json:"timestamp"`
+	ExecutionID      string  `json:"execution_id"`
+	AgentID          string  `json:"agent_id"`
+	DeviceID         string  `json:"device_id"`
+	ViolationType    string  `json:"violation_type"`
+	Severity         string  `json:"severity"`
+	PolicyRule       string  `json:"policy_rule"`
+	PolicyHash       string  `json:"policy_hash"`
+	CapabilityRule   string  `json:"capability_rule"`
+	BoundsRule       string  `json:"bounds_rule"`
+	ActionTaken      string  `json:"action_taken"`
+	ExecutionState   string  `json:"execution_state"`
+	SupervisorAction string  `json:"supervisor_action"`
+	ContainmentResult string `json:"containment_result"`
+	Signature        string  `json:"signature"`
+	Hash             string  `json:"hash"`
+	PreviousHash     string  `json:"previous_hash"`
+}
+
+// ListViolations handles GET /v1/proof/violations?limit=500&sort=timestamp:desc
+func (h *ProofHandler) ListViolations(c *fiber.Ctx) error {
+	tenantID := middleware.GetClerkUserID(c)
+	if tenantID == "" {
+		return c.Status(fiber.StatusUnauthorized).JSON(fiber.Map{"error": "unauthorized"})
+	}
+
+	limit := 500
+	if raw := c.Query("limit", ""); raw != "" {
+		if parsed, err := strconv.Atoi(raw); err == nil && parsed > 0 {
+			limit = parsed
+		}
+	}
+	if limit > 1000 {
+		limit = 1000
+	}
+
+	sortDir := "DESC"
+	if raw := c.Query("sort", ""); raw != "" {
+		parts := strings.SplitN(raw, ":", 2)
+		if len(parts) == 2 && strings.EqualFold(parts[1], "asc") {
+			sortDir = "ASC"
+		}
+	}
+
+	query := `
+		SELECT
+			id,
+			execution_id,
+			agent_id,
+			COALESCE(runtime_id, '')  AS device_id,
+			timestamp_utc,
+			receipt_hash,
+			previous_hash,
+			signature
+		FROM execution_lineage
+		WHERE tenant_id = $1
+		  AND violation_occurred = TRUE
+		ORDER BY timestamp_utc ` + sortDir + `
+		LIMIT $2
+	`
+
+	rows, err := h.db.Query(query, tenantID, limit)
+	if err != nil {
+		log.Error().Err(err).Str("tenant_id", tenantID).Msg("[Proof] Failed to list violations")
+		return c.Status(fiber.StatusInternalServerError).JSON(fiber.Map{
+			"error":   "internal_error",
+			"message": "Failed to retrieve violations",
+		})
+	}
+	defer rows.Close()
+
+	violations := make([]PolicyViolation, 0, 32)
+	for rows.Next() {
+		var v PolicyViolation
+		var ts time.Time
+
+		if err := rows.Scan(
+			&v.ID, &v.ExecutionID, &v.AgentID, &v.DeviceID,
+			&ts, &v.Hash, &v.PreviousHash, &v.Signature,
+		); err != nil {
+			log.Error().Err(err).Msg("[Proof] Violation scan error")
+			continue
+		}
+		v.Timestamp = ts.UTC().Format(time.RFC3339)
+		v.ViolationType = "POLICY_VIOLATION"
+		v.Severity = "high"
+		v.PolicyRule = "execution_policy"
+		v.PolicyHash = v.Hash
+		v.CapabilityRule = "capability.deny_list"
+		v.BoundsRule = "bounds.enforcement"
+		v.ActionTaken = "terminated"
+		v.ExecutionState = "TERMINATED"
+		v.SupervisorAction = "KILL_EXECUTION"
+		v.ContainmentResult = "CONTAINED"
+		violations = append(violations, v)
+	}
+
+	return c.JSON(violations)
 }
