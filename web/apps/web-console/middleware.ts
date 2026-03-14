@@ -1,41 +1,38 @@
-import { clerkMiddleware, createRouteMatcher } from '@clerk/nextjs/server';
-import { NextMiddleware, NextResponse } from 'next/server';
+import { NextRequest, NextResponse } from 'next/server';
+import { getSessionCookie } from 'better-auth/cookies';
 
-// DEV MODE: bypasses Clerk entirely. Set NEXT_PUBLIC_DEV_MODE=true in .env.local.
-const DEV_MODE = process.env.NEXT_PUBLIC_DEV_MODE === 'true';
-
-const isPublicRoute = createRouteMatcher([
-  '/auth(.*)',
-  '/auth/login(.*)',
-  '/auth/register(.*)',
-  '/sso-callback(.*)',
-  '/onboarding(.*)',
+const PUBLIC_PATHS = [
+  '/auth',
+  '/onboarding',
+  '/sso-callback',
+  '/clear-session',
+  '/preview',
+  '/api/auth',
   '/',
-  '/preview(.*)',
-  '/clear-session(.*)',
-]);
+];
 
-const devMiddleware: NextMiddleware = () => NextResponse.next();
+function isPublic(pathname: string): boolean {
+  return PUBLIC_PATHS.some(
+    (p) => pathname === p || pathname.startsWith(p + '/') || pathname.startsWith(p + '?')
+  );
+}
 
-const prodMiddleware = clerkMiddleware(async (auth, req) => {
-  const { userId } = await auth();
+export async function middleware(req: NextRequest) {
+  if (isPublic(req.nextUrl.pathname)) {
+    return NextResponse.next();
+  }
 
-  if (!isPublicRoute(req) && !userId) {
-    console.log('[AUTH] No userId, redirecting to /auth from:', req.nextUrl.pathname);
-    const authUrl = new URL('/auth?mode=signin', req.url);
-    return NextResponse.redirect(authUrl);
+  const session = getSessionCookie(req);
+  if (!session) {
+    return NextResponse.redirect(new URL('/auth?mode=signin', req.url));
   }
 
   return NextResponse.next();
-});
-
-export default DEV_MODE ? devMiddleware : prodMiddleware;
+}
 
 export const config = {
   matcher: [
-    // Skip Next.js internals and static files
     '/((?!_next|[^?]*\\.(?:html?|css|js(?!on)|jpe?g|webp|png|gif|svg|ttf|woff2?|ico|csv|docx?|xlsx?|zip|webmanifest)).*)',
-    // Always run for API routes
     '/(api|trpc)(.*)',
   ],
 };
