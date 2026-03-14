@@ -69,8 +69,8 @@ func RegisterTelemetryRoutes(
 	v1.Post("/telemetry/execution", handler.HandleExecutionFeedback)
 
 	// Audit and statistics (always require Clerk authentication)
-	v1.Get("/telemetry/audit", middleware.ClerkAuth(), handler.HandleGetAuditLog)
-	v1.Get("/telemetry/stats", middleware.ClerkAuth(), handler.HandleGetStats)
+	v1.Get("/telemetry/audit", middleware.BetterAuth(db), handler.HandleGetAuditLog)
+	v1.Get("/telemetry/stats", middleware.BetterAuth(db), handler.HandleGetStats)
 
 	log.Info().Msg("Telemetry routes registered")
 }
