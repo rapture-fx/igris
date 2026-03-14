@@ -40,7 +40,7 @@ func RegisterAPIKeyRoutes(app *fiber.App, db *sql.DB) {
 	h := NewAPIKeyHandler(db)
 
 	account := app.Group("/v1/account")
-	account.Use(middleware.ClerkAuth())
+	account.Use(middleware.BetterAuth(db))
 
 	account.Get("/api-key", h.GetAPIKey)
 	account.Post("/api-key", h.GenerateAPIKey)
