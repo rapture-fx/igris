@@ -93,7 +93,7 @@ func RegisterDownloadRoutes(app *fiber.App, db *sql.DB, redisClient *redis.Clien
 	v1 := app.Group("/v1/runtime")
 
 	// Authenticated download endpoint (Clerk JWT)
-	v1.Get("/download", middleware.ClerkAuth(), h.Download)
+	v1.Get("/download", middleware.BetterAuth(db), h.Download)
 
 	// Public checksum endpoint (no auth) — used by the installer for verification
 	v1.Get("/checksum", h.Checksum)
