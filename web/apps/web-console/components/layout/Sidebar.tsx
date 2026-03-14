@@ -3,7 +3,7 @@
 import { useState, useEffect, useRef } from 'react';
 import Link from 'next/link';
 import { usePathname, useRouter } from 'next/navigation';
-import { useClerk } from '@clerk/nextjs';
+import { signOut } from '@/lib/auth-client';
 import {
   ChevronDown, Search, FileText,
   LayoutDashboard, PlayCircle, Network, Sparkles,
@@ -115,7 +115,6 @@ const DEFAULT_EXPANDED: Record<string, boolean> = {
 export function Sidebar({ open = true, onClose }: SidebarProps) {
   const pathname = usePathname();
   const router = useRouter();
-  const { signOut } = useClerk();
   const { data: tenant } = useTenant();
   const [showLogoutDialog, setShowLogoutDialog] = useState(false);
   const [showHelp, setShowHelp] = useState(false);
@@ -125,7 +124,7 @@ export function Sidebar({ open = true, onClose }: SidebarProps) {
   const email = tenant?.email ?? '';
 
   const handleLogout = async () => {
-    await signOut({ redirectUrl: '/auth' });
+    await signOut({ fetchOptions: { onSuccess: () => { window.location.href = '/auth'; } } });
   };
   const [isSearchModalOpen, setIsSearchModalOpen] = useState(false);
   const [searchQuery, setSearchQuery] = useState('');
@@ -250,7 +249,7 @@ export function Sidebar({ open = true, onClose }: SidebarProps) {
           {/* Logo */}
           <div className="h-12 flex items-center px-4 pt-4">
             <Link href="/dashboard" className="flex items-center">
-              <img src="/dmfoot.png" alt="Igris" style={{ width: '25px', height: 'auto' }} />
+              <img src="/dmfoot.png" alt="Igris" className="h-10 w-auto rounded-lg" />
             </Link>
           </div>
 
