@@ -24,7 +24,7 @@ func RegisterSpeculativeRoutes(app *fiber.App, db *sql.DB) {
 
 	v1 := app.Group("/v1")
 	routing := v1.Group("/routing")
-	routing.Use(middleware.ClerkAuth())
+	routing.Use(middleware.BetterAuth(db))
 
 	routing.Get("/speculative/status", handleSpeculativeStatus)
 	routing.Get("/speculative/config", handleSpeculativeConfig)
@@ -151,7 +151,7 @@ func RegisterRoutingRoutes(app *fiber.App, config *RoutingRouteConfig) {
 
 	// Main routing endpoint (OpenAI-compatible) with rate limiting
 	v1.Post("/chat/completions",
-		middleware.ClerkAuth(),
+		middleware.BetterAuth(config.DB),
 		rateLimiter.RateLimitMiddleware(),
 		chatRouter.ChatCompletions,
 	)
@@ -164,7 +164,7 @@ func RegisterRoutingRoutes(app *fiber.App, config *RoutingRouteConfig) {
 	// ========================================================================
 
 	routing := v1.Group("/routing")
-	routing.Use(middleware.ClerkAuth())
+	routing.Use(middleware.BetterAuth(config.DB))
 
 	routing.Get("/stats", chatRouter.GetRoutingStats)           // GET /v1/routing/stats
 	routing.Get("/recent", chatRouter.GetRecentRequests)        // GET /v1/routing/recent
