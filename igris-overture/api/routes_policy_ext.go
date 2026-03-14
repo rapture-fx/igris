@@ -28,7 +28,7 @@ func RegisterPolicyExtRoutes(app *fiber.App, db *sql.DB) {
 	h := &policyExtHandler{db: db}
 
 	policy := app.Group("/policy")
-	policy.Use(middleware.ClerkAuth())
+	policy.Use(middleware.BetterAuth(db))
 
 	policy.Get("/bounds", h.getBounds)
 	policy.Post("/bounds", h.updateBounds)
