@@ -1,12 +1,14 @@
 import { betterAuth } from 'better-auth';
-import { admin } from 'better-auth/plugins';
+import { admin, organization } from 'better-auth/plugins';
 import { nextCookies } from 'better-auth/next-js';
+import { dash } from '@better-auth/infra';
 import { Pool } from 'pg';
 
 export const auth = betterAuth({
   appName: 'Igris Inertial',
   baseURL: process.env.BETTER_AUTH_URL || 'http://localhost:3005',
   secret: process.env.BETTER_AUTH_SECRET!,
+  apiKey: process.env.BETTER_AUTH_API_KEY,
   database: new Pool({
     connectionString: process.env.DATABASE_URL,
   }),
@@ -27,6 +29,8 @@ export const auth = betterAuth({
   },
   plugins: [
     admin(),
+    organization(),
+    dash(),
     nextCookies(),
   ],
   session: {
