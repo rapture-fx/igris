@@ -1,10 +1,48 @@
-// Authentication helpers — Clerk is the single source of truth.
-// The legacy cookie-based login/register/logout flows have been removed.
+import { betterAuth } from 'better-auth';
+import { admin } from 'better-auth/plugins';
+import { nextCookies } from 'better-auth/next-js';
+import { Pool } from 'pg';
 
-export async function getToken(): Promise<string | null | undefined> {
-  return await window.Clerk?.session?.getToken();
-}
-
-export function isAuthenticated(): boolean {
-  return !!window.Clerk?.session;
-}
+export const auth = betterAuth({
+  appName: 'Igris Inertial',
+  baseURL: process.env.BETTER_AUTH_URL || 'http://localhost:3005',
+  secret: process.env.BETTER_AUTH_SECRET!,
+  database: new Pool({
+    connectionString: process.env.DATABASE_URL,
+  }),
+  emailAndPassword: {
+    enabled: true,
+    requireEmailVerification: false,
+    minPasswordLength: 8,
+  },
+  socialProviders: {
+    google: {
+      clientId: process.env.GOOGLE_CLIENT_ID!,
+      clientSecret: process.env.GOOGLE_CLIENT_SECRET!,
+    },
+    github: {
+      clientId: process.env.GITHUB_CLIENT_ID!,
+      clientSecret: process.env.GITHUB_CLIENT_SECRET!,
+    },
+  },
+  plugins: [
+    admin(),
+    nextCookies(),
+  ],
+  session: {
+    expiresIn: 60 * 60 * 24 * 7,
+    updateAge: 60 * 60 * 24,
+  },
+  advanced: {
+    crossSubDomainCookies: {
+      enabled: process.env.NODE_ENV === 'production',
+      domain: process.env.COOKIE_DOMAIN || 'igrisinertial.com',
+    },
+  },
+  trustedOrigins: [
+    process.env.NEXT_PUBLIC_APP_URL || 'http://localhost:3005',
+    process.env.NEXT_PUBLIC_API_URL || 'https://overture.igrisinertial.com',
+    'https://console.igrisinertial.com',
+    'http://localhost:8081',
+  ],
+});
