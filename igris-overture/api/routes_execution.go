@@ -34,8 +34,9 @@ func RegisterExecutionRoutes(app *fiber.App, db *sql.DB, _ *middleware.TenantAut
 
 	v1 := app.Group("/v1")
 	v1.Get("/execution/runs", middleware.ClerkAuth(), h.ListRuns)
+	v1.Get("/execution/agents", middleware.ClerkAuth(), h.ListAgents)
 
-	log.Info().Msg("[Routes] Registered execution endpoints (GET /v1/execution/runs)")
+	log.Info().Msg("[Routes] Registered execution endpoints (GET /v1/execution/runs, GET /v1/execution/agents)")
 }
 
 // ExecutionRun is the response shape for a single execution row.
@@ -132,4 +133,80 @@ func (h *ExecutionHandler) ListRuns(c *fiber.Ctx) error {
 	}
 
 	return c.JSON(runs)
+}
+
+// Agent is the response shape for a single agent derived from execution history.
+type Agent struct {
+	ID               string        `json:"id"`
+	Namespace        string        `json:"namespace"`
+	State            string        `json:"state"`
+	LastRunAt        *string       `json:"last_run_at,omitempty"`
+	DeviceID         *string       `json:"device_id,omitempty"`
+	ViolationCount   int64         `json:"violation_count"`
+	Capabilities     []string      `json:"capabilities"`
+}
+
+// ListAgents handles GET /v1/execution/agents
+// Derives the agent list from execution_lineage grouped by agent_id.
+func (h *ExecutionHandler) ListAgents(c *fiber.Ctx) error {
+	tenantID := middleware.GetClerkUserID(c)
+	if tenantID == "" {
+		return c.Status(fiber.StatusUnauthorized).JSON(fiber.Map{"error": "unauthorized"})
+	}
+
+	rows, err := h.db.Query(`
+		SELECT
+			agent_id,
+			MAX(timestamp_utc)                                      AS last_run_at,
+			COALESCE(
+				(SELECT runtime_id FROM execution_lineage e2
+				 WHERE e2.agent_id = el.agent_id AND e2.tenant_id = $1
+				 ORDER BY e2.timestamp_utc DESC LIMIT 1),
+				''
+			)                                                       AS device_id,
+			SUM(CASE WHEN violation_occurred THEN 1 ELSE 0 END)    AS violation_count,
+			BOOL_OR(violation_occurred)                             AS had_violation
+		FROM execution_lineage el
+		WHERE tenant_id = $1
+		GROUP BY agent_id
+		ORDER BY last_run_at DESC
+		LIMIT 200
+	`, tenantID)
+	if err != nil {
+		log.Error().Err(err).Str("tenant_id", tenantID).Msg("[Execution] Failed to list agents")
+		return c.Status(fiber.StatusInternalServerError).JSON(fiber.Map{
+			"error":   "internal_error",
+			"message": "Failed to retrieve agents",
+		})
+	}
+	defer rows.Close()
+
+	agents := make([]Agent, 0)
+	for rows.Next() {
+		var a Agent
+		var lastRunAt time.Time
+		var deviceID string
+		var hadViolation bool
+
+		if err := rows.Scan(&a.ID, &lastRunAt, &deviceID, &a.ViolationCount, &hadViolation); err != nil {
+			log.Error().Err(err).Msg("[Execution] Agent scan error")
+			continue
+		}
+
+		ts := lastRunAt.UTC().Format(time.RFC3339)
+		a.LastRunAt = &ts
+		if deviceID != "" {
+			a.DeviceID = &deviceID
+		}
+		if hadViolation {
+			a.State = "ERROR"
+		} else {
+			a.State = "IDLE"
+		}
+		a.Namespace = "default"
+		a.Capabilities = []string{}
+		agents = append(agents, a)
+	}
+
+	return c.JSON(agents)
 }
