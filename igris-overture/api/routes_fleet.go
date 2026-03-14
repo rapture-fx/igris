@@ -579,7 +579,7 @@ func RegisterDeviceRoutes(app *fiber.App, db *sql.DB) {
 	}
 
 	devices := app.Group("/devices")
-	devices.Use(middleware.ClerkAuth())
+	devices.Use(middleware.BetterAuth(db))
 
 	// GET /devices — list all runtime instances for the authenticated tenant
 	devices.Get("/", func(c *fiber.Ctx) error {
