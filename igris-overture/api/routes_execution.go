@@ -33,8 +33,8 @@ func RegisterExecutionRoutes(app *fiber.App, db *sql.DB, _ *middleware.TenantAut
 	h := NewExecutionHandler(db)
 
 	v1 := app.Group("/v1")
-	v1.Get("/execution/runs", middleware.ClerkAuth(), h.ListRuns)
-	v1.Get("/execution/agents", middleware.ClerkAuth(), h.ListAgents)
+	v1.Get("/execution/runs", middleware.BetterAuth(db), h.ListRuns)
+	v1.Get("/execution/agents", middleware.BetterAuth(db), h.ListAgents)
 
 	log.Info().Msg("[Routes] Registered execution endpoints (GET /v1/execution/runs, GET /v1/execution/agents)")
 }
