@@ -22,7 +22,6 @@ func RegisterTierRoutes(app *fiber.App, _ *middleware.TenantAuth) {
 
 	// v1 API routes (tenant-scoped via Clerk authentication)
 	v1 := app.Group("/api/v1/tier")
-	v1.Use(middleware.ClerkAuth())
 
 	// Tier capabilities endpoint - returns what features/limits are available for the tenant's tier
 	v1.Get("/capabilities", handler.GetCapabilities)
