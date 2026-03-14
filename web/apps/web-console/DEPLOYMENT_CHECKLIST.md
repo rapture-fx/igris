@@ -10,8 +10,9 @@ Use this checklist to verify the Igris Inertial Dashboard is production-ready be
 - [ ] `NEXT_PUBLIC_ENABLE_MOCK_DATA=false` is set (or variable is removed)
 - [ ] `NEXT_PUBLIC_API_URL` points to production backend (NOT localhost)
 - [ ] `NEXT_PUBLIC_API_HEALTH_CHECK_URL=/health` is configured
-- [ ] `NEXT_PUBLIC_CLERK_PUBLISHABLE_KEY` is production key (pk_live_...)
-- [ ] `CLERK_SECRET_KEY` is production key (sk_live_...)
+- [ ] `BETTER_AUTH_SECRET` is set (strong random value)
+- [ ] `BETTER_AUTH_URL` points to production app URL
+- [ ] `DATABASE_URL` points to production database
 - [ ] All environment variables are in CI/CD or hosting platform
 
 ### Backend Verification
