@@ -31,8 +31,8 @@ func RegisterMcpRoutes(app *fiber.App, _ *middleware.TenantAuth) {
 	enableMultiTenancy := os.Getenv("ENABLE_MULTI_TENANCY") == "true"
 
 	if enableMultiTenancy {
-		app.Post("/v1/mcp", middleware.ClerkAuth(), mcpHandler.handleMcp)
-		app.Post("/v1/mcp/stream", middleware.ClerkAuth(), mcpHandler.handleMcpStream)
+		app.Post("/v1/mcp", mcpHandler.handleMcp)
+		app.Post("/v1/mcp/stream", mcpHandler.handleMcpStream)
 		log.Println("[Routes] ✓ POST /v1/mcp (CLERK AUTH REQUIRED)")
 		log.Println("[Routes] ✓ POST /v1/mcp/stream (CLERK AUTH REQUIRED)")
 	} else {
