@@ -34,12 +34,12 @@ func RegisterProofRoutes(app *fiber.App, db *sql.DB, _ *middleware.TenantAuth) {
 
 	// Use unprefixed /proof group to match web-console calls
 	proof := app.Group("/proof")
-	proof.Get("/receipts", middleware.ClerkAuth(), h.ListReceipts)
-	proof.Post("/receipts/verify", middleware.ClerkAuth(), h.VerifyReceipt)
+	proof.Get("/receipts", middleware.BetterAuth(db), h.ListReceipts)
+	proof.Post("/receipts/verify", middleware.BetterAuth(db), h.VerifyReceipt)
 
 	// /v1/proof/violations — policy violations list (web-console Proof > Violations)
 	v1 := app.Group("/v1")
-	v1.Get("/proof/violations", middleware.ClerkAuth(), h.ListViolations)
+	v1.Get("/proof/violations", middleware.BetterAuth(db), h.ListViolations)
 
 	log.Info().Msg("[Routes] Registered proof endpoints (GET /proof/receipts, POST /proof/receipts/verify, GET /v1/proof/violations)")
 }
