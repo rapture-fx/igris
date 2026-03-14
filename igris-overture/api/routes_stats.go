@@ -32,9 +32,9 @@ func RegisterStatsRoutes(app *fiber.App, db *sql.DB, redisClient *redis.Client, 
 	h := NewStatsHandler(db, redisClient)
 
 	v1 := app.Group("/v1")
-	v1.Get("/stats/overview", middleware.ClerkAuth(), h.Overview)
-	v1.Get("/stats/model-usage", middleware.ClerkAuth(), h.ModelUsage)
-	v1.Get("/usage/summary", middleware.ClerkAuth(), h.UsageSummary)
+	v1.Get("/stats/overview", middleware.BetterAuth(db), h.Overview)
+	v1.Get("/stats/model-usage", middleware.BetterAuth(db), h.ModelUsage)
+	v1.Get("/usage/summary", middleware.BetterAuth(db), h.UsageSummary)
 
 	log.Info().Msg("[Routes] Registered stats endpoints (GET /v1/stats/overview, /v1/stats/model-usage, /v1/usage/summary)")
 }
