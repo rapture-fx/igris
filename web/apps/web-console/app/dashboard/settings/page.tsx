@@ -18,7 +18,7 @@ import {
   DialogTitle,
 } from '@/components/ui/dialog';
 import { useTenant } from '@/hooks/useTenant';
-import { logout } from '@/lib/auth';
+import { signOut } from '@/lib/auth-client';
 import { useRouter } from 'next/navigation';
 import { formatDate, getInitials, formatCurrency } from '@/utils/helpers';
 import {
@@ -208,7 +208,7 @@ export default function SettingsPage() {
   };
 
   const handleLogout = async () => {
-    await logout();
+    await signOut();
     router.push('/auth/login');
   };
 
