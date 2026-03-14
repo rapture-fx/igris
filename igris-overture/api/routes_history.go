@@ -24,7 +24,7 @@ func RegisterHistoryRoutes(app *fiber.App, db *sql.DB) {
 	h := &historyHandler{db: db}
 
 	v1 := app.Group("/v1/history")
-	v1.Use(middleware.ClerkAuth())
+	v1.Use(middleware.BetterAuth(db))
 
 	v1.Get("/events", h.listEvents)
 	v1.Get("/metrics", h.getMetrics)
