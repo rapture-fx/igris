@@ -426,6 +426,14 @@ func main() {
 		// cognitive/status, speculative/races, shadow/*, council/*, escapevector/*)
 		api.RegisterFrontendRoutes(app, dbInstance)
 		log.Println("[Routes] ✅ Frontend routes registered (web-console endpoints)")
+
+		// Register gap-fill endpoints: fleet devices, history, settings, cost, policy-ext
+		api.RegisterDeviceRoutes(app, dbInstance)
+		api.RegisterHistoryRoutes(app, dbInstance)
+		api.RegisterSettingsRoutes(app, dbInstance)
+		api.RegisterCostRoutes(app, dbInstance)
+		api.RegisterPolicyExtRoutes(app, dbInstance)
+		log.Println("[Routes] ✅ Gap-fill routes registered (devices, history, settings, cost, policy-ext)")
 	} else {
 		log.Println("[Routes] ⚠️  Database not available — dashboard routes disabled")
 	}
