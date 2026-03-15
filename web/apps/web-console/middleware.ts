@@ -1,5 +1,4 @@
 import { NextRequest, NextResponse } from 'next/server';
-import { getSessionCookie } from 'better-auth/cookies';
 
 const PUBLIC_PATHS = [
   '/auth',
@@ -18,13 +17,21 @@ function isPublic(pathname: string): boolean {
   );
 }
 
+// Better Auth uses __Secure- prefix on HTTPS (production).
+// Check both names so the middleware works locally and in prod.
+function hasSession(req: NextRequest): boolean {
+  return !!(
+    req.cookies.get('__Secure-better-auth.session_token')?.value ||
+    req.cookies.get('better-auth.session_token')?.value
+  );
+}
+
 export async function middleware(req: NextRequest) {
   if (isPublic(req.nextUrl.pathname)) {
     return NextResponse.next();
   }
 
-  const session = getSessionCookie(req);
-  if (!session) {
+  if (!hasSession(req)) {
     return NextResponse.redirect(new URL('/auth?mode=signin', req.url));
   }
 
