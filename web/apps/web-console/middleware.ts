@@ -17,13 +17,13 @@ function isPublic(pathname: string): boolean {
   );
 }
 
-// Better Auth uses __Secure- prefix on HTTPS (production).
-// Check both names so the middleware works locally and in prod.
+// Read the raw Cookie header to avoid any cookie-name parsing issues with
+// dots and __Secure- prefix. Matches both:
+//   better-auth.session_token  (HTTP / local dev)
+//   __Secure-better-auth.session_token  (HTTPS / production)
 function hasSession(req: NextRequest): boolean {
-  return !!(
-    req.cookies.get('__Secure-better-auth.session_token')?.value ||
-    req.cookies.get('better-auth.session_token')?.value
-  );
+  const cookieHeader = req.headers.get('cookie') ?? '';
+  return cookieHeader.includes('better-auth.session_token=');
 }
 
 export async function middleware(req: NextRequest) {
