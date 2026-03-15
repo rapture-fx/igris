@@ -132,6 +132,16 @@ services:
     build:
       context: .
       dockerfile: web/Dockerfile.console
+      args:
+        NEXT_PUBLIC_API_URL: ${NEXT_PUBLIC_API_URL:-https://overture.igrisinertial.com}
+        NEXT_PUBLIC_APP_URL: ${NEXT_PUBLIC_APP_URL:-https://console.igrisinertial.com}
+        NEXT_PUBLIC_LANDING_URL: ${NEXT_PUBLIC_LANDING_URL:-https://igrisinertial.com}
+        NEXT_PUBLIC_API_HEALTH_CHECK_URL: /healthz
+        NEXT_PUBLIC_ENV: production
+        NEXT_PUBLIC_ENABLE_ANALYTICS: "true"
+        NEXT_PUBLIC_ENABLE_MONITORING: "true"
+        NEXT_PUBLIC_ENABLE_MOCK_DATA: "false"
+        NEXT_PUBLIC_DEV_MODE: "false"
     container_name: igris-console
     restart: unless-stopped
     expose:
