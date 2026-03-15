@@ -606,7 +606,7 @@ func getAllowedOrigins() string {
 		return origins
 	}
 	// Default: production domains + localhost for development
-	return "https://igrisinertial.com,https://www.igrisinertial.com,https://admin.igris-inertial.com,https://docs.igrisinertial.com,http://localhost:3000,http://localhost:3001,http://localhost:3005"
+	return "https://igrisinertial.com,https://www.igrisinertial.com,https://console.igrisinertial.com,https://admin.igris-inertial.com,https://docs.igrisinertial.com,http://localhost:3000,http://localhost:3001,http://localhost:3005"
 }
 
 func customErrorHandler(c *fiber.Ctx, err error) error {
