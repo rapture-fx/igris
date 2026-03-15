@@ -62,8 +62,8 @@ export function ServiceUnavailable({
           <div className="pt-4 border-t border-border-light dark:border-border">
             <p className="text-xs text-muted-foreground text-center">
               If this problem persists, please contact support at{' '}
-              <a href="mailto:support@igris.com" className="text-blue-600 hover:underline">
-                support@igris.com
+              <a href="mailto:support@igrisinertial.com" className="text-blue-600 hover:underline">
+                support@igrisinertial.com
               </a>
             </p>
           </div>
