@@ -20,7 +20,7 @@ export const metadata = {
     description: 'Secure AI execution for edge devices. 16MB binary, works offline, fleet dashboard included.',
     url: 'https://igris.inertial',
     siteName: 'Igris Inertial',
-    images: [{ url: '/foot.png', width: 1200, height: 630, alt: 'Igris Inertial logo' }],
+    images: [{ url: '/foot2.png', width: 1200, height: 630, alt: 'Igris Inertial logo' }],
     locale: 'en_US',
     type: 'website'
   },
@@ -28,7 +28,7 @@ export const metadata = {
     card: 'summary_large_image',
     title: 'Run AI that survives failure',
     description: 'Secure AI execution for edge devices. 16MB binary, works offline, fleet dashboard included.',
-    images: ['/foot.png']
+    images: ['/foot2.png']
   },
   icons: {
     icon: [
