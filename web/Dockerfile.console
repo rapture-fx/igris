@@ -1,0 +1,59 @@
+FROM node:20-alpine AS base
+RUN corepack enable && corepack prepare pnpm@8.15.0 --activate
+
+# ── Install deps ──────────────────────────────────────────────────────────────
+FROM base AS deps
+WORKDIR /monorepo
+
+# Copy workspace manifests
+COPY web/package.json web/pnpm-lock.yaml web/pnpm-workspace.yaml ./web/
+
+# Copy workspace package manifests (needed by pnpm to resolve the workspace)
+COPY labs/packages/types/package.json ./labs/packages/types/
+COPY labs/packages/ui/package.json ./labs/packages/ui/
+COPY labs/packages/config/package.json ./labs/packages/config/
+COPY labs/packages/javascript-sdk/package.json ./labs/packages/javascript-sdk/
+COPY web/apps/web-console/package.json ./web/apps/web-console/
+
+WORKDIR /monorepo/web
+RUN pnpm install --frozen-lockfile --ignore-scripts
+
+# ── Build ─────────────────────────────────────────────────────────────────────
+FROM base AS builder
+WORKDIR /monorepo
+
+# Copy node_modules from deps stage
+COPY --from=deps /monorepo/web/node_modules ./web/node_modules
+
+# Copy full source
+COPY web/ ./web/
+COPY labs/packages/ ./labs/packages/
+
+WORKDIR /monorepo/web
+ENV NEXT_TELEMETRY_DISABLED=1
+
+RUN pnpm --filter @igris-inertial/web-console build
+
+# ── Production image ──────────────────────────────────────────────────────────
+FROM node:20-alpine AS runner
+WORKDIR /app
+
+ENV NODE_ENV=production
+ENV NEXT_TELEMETRY_DISABLED=1
+
+RUN addgroup --system --gid 1001 nodejs && \
+    adduser --system --uid 1001 nextjs
+
+COPY --from=builder /monorepo/web/apps/web-console/public ./public
+
+# Standalone output
+COPY --from=builder --chown=nextjs:nodejs /monorepo/web/apps/web-console/.next/standalone ./
+COPY --from=builder --chown=nextjs:nodejs /monorepo/web/apps/web-console/.next/static ./.next/static
+
+USER nextjs
+
+EXPOSE 3005
+ENV PORT=3005
+ENV HOSTNAME="0.0.0.0"
+
+CMD ["node", "server.js"]

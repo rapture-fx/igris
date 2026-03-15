@@ -1,3 +1,7 @@
 overture.igrisinertial.com {
     reverse_proxy api:8080
 }
+
+console.igrisinertial.com {
+    reverse_proxy console:3005
+}

@@ -5,7 +5,6 @@
   "scripts": {
     "dev": "next dev -p 3005",
     "build": "next build",
-    "pages:build": "env -u npm_config_workspace_dir -u npm_config_user_agent npx @cloudflare/next-on-pages",
     "start": "next start -p 3005",
     "lint": "next lint"
   },
@@ -45,7 +44,6 @@
     "zod": "^3.22.4"
   },
   "devDependencies": {
-    "@cloudflare/next-on-pages": "^1.13.5",
     "@igris-inertial/config": "workspace:*",
     "@types/js-cookie": "^3.0.6",
     "@types/node": "^20.14.0",
@@ -56,7 +54,6 @@
     "eslint-config-next": "15.3.0",
     "postcss": "^8.4.49",
     "tailwindcss": "^3.4.15",
-    "typescript": "^5.6.3",
-    "wrangler": "^4.48.0"
+    "typescript": "^5.6.3"
   }
 }
