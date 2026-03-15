@@ -97,7 +97,7 @@ function AuthContent() {
       <div className="w-full max-w-sm">
 
         {/* Logo */}
-        <div className="flex justify-center mb-8">
+        <div className="flex justify-center mb-12">
           <img src="/dmfoot.png" alt="Igris" className="h-12 w-auto rounded-lg" />
         </div>
 
