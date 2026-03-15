@@ -40,6 +40,7 @@
     "react": "19.2.1",
     "react-dom": "19.2.1",
     "recharts": "^2.8.0",
+    "resend": "^6.9.3",
     "tailwind-merge": "^1.14.0",
     "zod": "^3.22.4"
   },
