@@ -13,7 +13,7 @@ export default function LoginPage() {
   }, [router]);
 
   return (
-    <div className="min-h-screen flex items-center justify-center bg-beige-primary">
+    <div className="min-h-screen flex items-center justify-center bg-white dark:bg-[#0A0A0A]">
       <div className="text-center">
         <div className="animate-spin rounded-full h-12 w-12 border-b-2 border-gray-900 mx-auto"></div>
         <p className="mt-4 text-sm text-gray-600 font-inter">Redirecting to sign in...</p>
