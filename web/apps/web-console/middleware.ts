@@ -3,6 +3,7 @@ import { getSessionCookie } from 'better-auth/cookies';
 
 const PUBLIC_PATHS = [
   '/auth',
+  '/reset-password',
   '/onboarding',
   '/sso-callback',
   '/clear-session',
