@@ -96,6 +96,11 @@ function AuthContent() {
     <div className="min-h-screen bg-white dark:bg-[#0A0A0A] flex items-center justify-center p-4">
       <div className="w-full max-w-sm">
 
+        {/* Logo */}
+        <div className="flex justify-center mb-8">
+          <img src="/dmfoot.png" alt="Igris" className="h-12 w-auto rounded-lg" />
+        </div>
+
         <div className="rounded-xl border border-gray-200 dark:border-gray-800 shadow-sm overflow-hidden bg-white dark:bg-[#111110]">
 
           {/* Folder tabs — Sign in first */}
