@@ -14,7 +14,12 @@ import (
 // record for new users on their first authenticated request.
 func BetterAuth(db *sql.DB) fiber.Handler {
 	return func(c *fiber.Ctx) error {
-		sessionToken := c.Cookies("better-auth.session_token")
+		// Better Auth uses __Secure- prefix on HTTPS (production).
+		// Try both names so the same binary works locally and in prod.
+		sessionToken := c.Cookies("__Secure-better-auth.session_token")
+		if sessionToken == "" {
+			sessionToken = c.Cookies("better-auth.session_token")
+		}
 		if sessionToken == "" {
 			return c.Status(fiber.StatusUnauthorized).JSON(fiber.Map{
 				"error": "unauthorized",
