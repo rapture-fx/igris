@@ -3,6 +3,7 @@
 
 name = "igris-console"
 compatibility_date = "2024-01-10"
+compatibility_flags = ["nodejs_compat"]
 
 # Build output directory for Cloudflare Pages
 # Using @cloudflare/next-on-pages adapter
