@@ -5,8 +5,6 @@ import { dash } from '@better-auth/infra';
 import { Pool } from 'pg';
 import { Resend } from 'resend';
 
-const resend = new Resend(process.env.RESEND_API_KEY);
-
 export const auth = betterAuth({
   appName: 'Igris Inertial',
   baseURL: process.env.BETTER_AUTH_URL || 'http://localhost:3005',
@@ -20,6 +18,7 @@ export const auth = betterAuth({
     requireEmailVerification: false,
     minPasswordLength: 8,
     sendResetPassword: async ({ user, url }) => {
+      const resend = new Resend(process.env.RESEND_API_KEY);
       await resend.emails.send({
         from: 'Igris Inertial <noreply@igrisinertial.com>',
         to: user.email,
