@@ -2,8 +2,8 @@
 
 import { useState, Suspense } from 'react';
 import { useRouter, useSearchParams } from 'next/navigation';
-import { Loader2, Mail, ChevronDown } from 'lucide-react';
-import { signIn, signUp } from '@/lib/auth-client';
+import { Loader2, Mail, ChevronDown, Eye, EyeOff } from 'lucide-react';
+import { signIn, signUp, authClient } from '@/lib/auth-client';
 import { Button } from '@/components/ui/button';
 import { Input } from '@/components/ui/input';
 import { Label } from '@/components/ui/label';
@@ -26,12 +26,15 @@ function AuthContent() {
   const router = useRouter();
   const searchParams = useSearchParams();
   const [mode, setMode] = useState<'signin' | 'signup'>(
-    searchParams.get('mode') === 'signin' ? 'signin' : 'signup'
+    searchParams.get('mode') === 'signup' ? 'signup' : 'signin'
   );
 
   const [emailOpen, setEmailOpen] = useState(false);
+  const [forgotSent, setForgotSent] = useState(false);
+  const [forgotLoading, setForgotLoading] = useState(false);
   const [email, setEmail] = useState('');
   const [password, setPassword] = useState('');
+  const [showPassword, setShowPassword] = useState(false);
   const [name, setName] = useState('');
   const [loading, setLoading] = useState(false);
   const [loadingProvider, setLoadingProvider] = useState<string | null>(null);
@@ -43,7 +46,18 @@ function AuthContent() {
     setEmail('');
     setPassword('');
     setName('');
+    setShowPassword(false);
     setEmailOpen(false);
+    setForgotSent(false);
+  };
+
+  const handleForgotPassword = async () => {
+    if (!email) { setError('Enter your email above first'); return; }
+    setForgotLoading(true);
+    setError('');
+    await authClient.forgetPassword({ email, redirectTo: '/reset-password' });
+    setForgotSent(true);
+    setForgotLoading(false);
   };
 
   const handleSubmit = async (e: React.FormEvent) => {
@@ -82,27 +96,25 @@ function AuthContent() {
     <div className="min-h-screen bg-white dark:bg-[#0A0A0A] flex items-center justify-center p-4">
       <div className="w-full max-w-sm">
 
-        {/* Card with integrated folder tabs */}
         <div className="rounded-xl border border-gray-200 dark:border-gray-800 shadow-sm overflow-hidden bg-white dark:bg-[#111110]">
 
-          {/* Tab row */}
+          {/* Folder tabs — Sign in first */}
           <div className="flex">
-            {(['signup', 'signin'] as const).map((tab) => {
+            {(['signin', 'signup'] as const).map((tab) => {
               const active = mode === tab;
               return (
-                <div key={tab} className="relative flex-1">
-                  <button
-                    type="button"
-                    onClick={() => switchMode(tab)}
-                    className={`w-full py-3.5 text-sm font-medium transition-colors ${
-                      active
-                        ? 'text-gray-900 dark:text-white bg-white dark:bg-[#111110]'
-                        : 'text-gray-400 dark:text-gray-500 bg-gray-50 dark:bg-[#191918] hover:text-gray-600 dark:hover:text-gray-400'
-                    }`}
-                  >
-                    {tab === 'signup' ? 'Sign up' : 'Sign in'}
-                  </button>
-                </div>
+                <button
+                  key={tab}
+                  type="button"
+                  onClick={() => switchMode(tab)}
+                  className={`flex-1 py-3.5 text-sm font-medium transition-colors ${
+                    active
+                      ? 'text-gray-900 dark:text-white bg-white dark:bg-[#111110]'
+                      : 'text-gray-400 dark:text-gray-500 bg-gray-50 dark:bg-[#191918] hover:text-gray-600 dark:hover:text-gray-400'
+                  }`}
+                >
+                  {tab === 'signin' ? 'Sign in' : 'Sign up'}
+                </button>
               );
             })}
           </div>
@@ -161,11 +173,14 @@ function AuthContent() {
             >
               <Mail className="h-5 w-5 shrink-0" />
               <span className="flex-1 text-center">Continue with Email</span>
-              <ChevronDown className="h-5 w-5 shrink-0 transition-transform duration-200 text-white dark:text-[#111110]" />
+              <ChevronDown className="h-5 w-5 shrink-0 text-white dark:text-[#111110]" />
             </button>
 
             {/* Email form slide */}
-            <div className={`overflow-hidden transition-all duration-300 ease-in-out ${emailOpen ? 'max-h-[500px] opacity-100' : 'max-h-0 opacity-0'}`} style={{ padding: '0 2px 2px' }}>
+            <div
+              className={`overflow-hidden transition-all duration-300 ease-in-out ${emailOpen ? 'max-h-[520px] opacity-100' : 'max-h-0 opacity-0'}`}
+              style={{ padding: '0 2px 2px' }}
+            >
               <form onSubmit={handleSubmit} className="pt-3 space-y-3">
                 {mode === 'signup' && (
                   <div className="space-y-1.5">
@@ -198,18 +213,47 @@ function AuthContent() {
                 </div>
 
                 <div className="space-y-1.5">
-                  <Label htmlFor="password" className="text-xs text-gray-500 dark:text-gray-400">Password</Label>
-                  <Input
-                    id="password"
-                    type="password"
-                    value={password}
-                    onChange={(e) => setPassword(e.target.value)}
-                    required
-                    minLength={8}
-                    placeholder="Min. 8 characters"
-                    autoComplete={mode === 'signup' ? 'new-password' : 'current-password'}
-                    className="h-9"
-                  />
+                  <div className="flex items-center justify-between">
+                    <Label htmlFor="password" className="text-xs text-gray-500 dark:text-gray-400">Password</Label>
+                    {mode === 'signin' && (
+                      forgotSent ? (
+                        <span className="text-[9px] text-gray-400">Check your email</span>
+                      ) : (
+                        <button
+                          type="button"
+                          onClick={handleForgotPassword}
+                          disabled={forgotLoading}
+                          className="text-[9px] text-gray-400 hover:text-gray-700 dark:hover:text-gray-200 underline-offset-2 hover:underline disabled:opacity-50"
+                        >
+                          {forgotLoading ? 'Sending…' : 'Forgot password?'}
+                        </button>
+                      )
+                    )}
+                  </div>
+                  <div className="relative">
+                    <Input
+                      id="password"
+                      type={showPassword ? 'text' : 'password'}
+                      value={password}
+                      onChange={(e) => setPassword(e.target.value)}
+                      required
+                      minLength={8}
+                      placeholder="Min. 8 characters"
+                      autoComplete={mode === 'signup' ? 'new-password' : 'current-password'}
+                      className="h-9 pr-9"
+                    />
+                    <button
+                      type="button"
+                      onClick={() => setShowPassword((v) => !v)}
+                      className="absolute right-2.5 top-1/2 -translate-y-1/2 text-gray-400 hover:text-gray-600 dark:hover:text-gray-300 transition-colors"
+                      tabIndex={-1}
+                    >
+                      {showPassword
+                        ? <EyeOff className="h-3.5 w-3.5" />
+                        : <Eye className="h-3.5 w-3.5" />
+                      }
+                    </button>
+                  </div>
                 </div>
 
                 {error && (
@@ -219,7 +263,7 @@ function AuthContent() {
                 )}
 
                 <Button type="submit" disabled={loading} className="h-8 text-xs px-5">
-                  {loading && <Loader2 className="h-4 w-4 animate-spin mr-1.5" />}
+                  {loading && <Loader2 className="h-3.5 w-3.5 animate-spin mr-1.5" />}
                   {mode === 'signup' ? 'Create account' : 'Sign in'}
                 </Button>
               </form>
@@ -228,7 +272,7 @@ function AuthContent() {
           </div>
 
           <div className="px-5 pb-4 pt-1">
-            <p className="text-center text-[10px] text-gray-400">
+            <p className="text-center text-[9px] text-gray-400">
               By continuing, you agree to our{' '}
               <a href="#" className="underline underline-offset-2 hover:text-gray-600 dark:hover:text-gray-300">Terms</a>
               {' '}and{' '}
