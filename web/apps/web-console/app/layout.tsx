@@ -12,7 +12,7 @@ export default function RootLayout({ children }: { children: React.ReactNode }) 
   return (
     <html lang="en" suppressHydrationWarning>
       <body
-        className="font-inter antialiased m-0 p-0 bg-[#f3f3f6] dark:bg-[#25231e]"
+        className="font-inter antialiased m-0 p-0 bg-white dark:bg-[#0A0A0A]"
         suppressHydrationWarning
       >
         <Providers>
