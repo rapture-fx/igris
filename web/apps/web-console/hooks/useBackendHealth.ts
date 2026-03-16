@@ -24,11 +24,7 @@ export function useBackendHealth() {
       try {
         const response = await fetch(healthUrl, {
           method: 'GET',
-          headers: {
-            'Content-Type': 'application/json',
-          },
-          // Short timeout for health checks
-          signal: AbortSignal.timeout(5000), // 5 second timeout
+          signal: AbortSignal.timeout(5000),
         });
 
         if (response.ok) {

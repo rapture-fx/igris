@@ -32,6 +32,12 @@ func InitHealthChecker(version string, db *sql.DB, dbEnabled bool, redis *redis.
 func RegisterHealthRoutes(app *fiber.App) error {
 	log.Println("[Routes] Registering health check endpoints...")
 
+	// Bare /health alias — required by web console health check gate
+	app.Get("/health", func(c *fiber.Ctx) error {
+		return c.JSON(fiber.Map{"status": "ok"})
+	})
+	log.Println("[Routes] ✓ GET /health (console health gate alias)")
+
 	// Kubernetes liveness probe
 	// Returns 200 if the application is running (even if degraded)
 	// Kubernetes will restart the pod if this fails
