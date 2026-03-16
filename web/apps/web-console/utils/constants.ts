@@ -113,8 +113,8 @@ export const QUERY_KEYS = {
 
 export const ROUTES = {
   HOME: '/',
-  LOGIN: '/auth/login',
-  REGISTER: '/auth/register',
+  LOGIN: '/auth?mode=signin',
+  REGISTER: '/auth?mode=signup',
   DASHBOARD: '/dashboard',
 
   // Overture (Cloud Gateway)
