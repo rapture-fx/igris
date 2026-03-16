@@ -9,7 +9,7 @@ import {
   LayoutDashboard, PlayCircle, Network, Sparkles,
   ScrollText, BadgeCheck, CalendarClock, SlidersHorizontal,
   CreditCard, KeyRound, Settings, LogOut, HelpCircle,
-  BookOpen, ExternalLink, Mail, Activity,
+  BookOpen, ExternalLink, Mail, Activity, BrainCircuit,
 } from 'lucide-react';
 import {
   DropdownMenu, DropdownMenuContent, DropdownMenuItem, DropdownMenuTrigger,
@@ -47,6 +47,15 @@ const navigation: NavigationItem[] = [
     children: [
       { name: 'Runs', href: '/execution/runs' },
       { name: 'Agents', href: '/execution/agents' },
+    ],
+  },
+  {
+    name: 'Agents',
+    icon: BrainCircuit,
+    children: [
+      { name: 'Federated', href: '/dashboard/agents/federated' },
+      { name: 'Multimodal', href: '/dashboard/agents/multimodal' },
+      { name: 'QLoRA', href: '/dashboard/agents/qlora' },
     ],
   },
   {
@@ -103,6 +112,7 @@ const navigation: NavigationItem[] = [
 ];
 
 const DEFAULT_EXPANDED: Record<string, boolean> = {
+  Agents: false,
   Execution: false,
   Fleet: false,
   Models: false,
