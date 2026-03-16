@@ -56,10 +56,17 @@ export const auth = betterAuth({
     expiresIn: 60 * 60 * 24 * 7,
     updateAge: 60 * 60 * 24,
   },
+  experimental: {
+    joins: true,
+  },
   advanced: {
     crossSubDomainCookies: {
       enabled: process.env.NODE_ENV === 'production',
       domain: process.env.COOKIE_DOMAIN || 'igrisinertial.com',
+    },
+    ipAddress: {
+      // Caddy reverse proxy sets x-real-ip; x-forwarded-for as fallback
+      ipAddressHeaders: ['x-real-ip', 'x-forwarded-for'],
     },
   },
   trustedOrigins: [
