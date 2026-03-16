@@ -372,7 +372,7 @@ export function DocsSidebar({ open = true, onClose }: DocsSidebarProps) {
           {/* Logo */}
           <div className="h-12 flex items-center px-4">
             <a href="https://igrisinertial.com" className="flex items-center">
-              <img src="/foot.png" alt="Igris Inertial" className="h-10 w-auto rounded-lg" />
+              <img src="/foot.png" alt="Igris Inertial" className="h-8 w-auto rounded-lg" />
             </a>
           </div>
 
