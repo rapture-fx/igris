@@ -56,9 +56,6 @@ export const auth = betterAuth({
     expiresIn: 60 * 60 * 24 * 7,
     updateAge: 60 * 60 * 24,
   },
-  experimental: {
-    joins: true,
-  },
   advanced: {
     crossSubDomainCookies: {
       enabled: process.env.NODE_ENV === 'production',

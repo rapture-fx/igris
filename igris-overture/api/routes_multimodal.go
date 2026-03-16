@@ -59,11 +59,11 @@ func RegisterMultimodalRoutes(app *fiber.App, db *sql.DB) {
 	v1 := app.Group("/v1")
 
 	// Inference endpoint: authenticated
-	v1.Post("/infer/multimodal", middleware.BetterAuth(nil), handleMultimodalInfer(db))
+	v1.Post("/infer/multimodal", middleware.BetterAuth(db), handleMultimodalInfer(db))
 	log.Println("[Routes] ✓ POST /v1/infer/multimodal")
 
 	// Stats endpoint: authenticated
-	v1.Get("/infer/multimodal/stats", middleware.BetterAuth(nil), handleMultimodalStats(db))
+	v1.Get("/infer/multimodal/stats", middleware.BetterAuth(db), handleMultimodalStats(db))
 	log.Println("[Routes] ✓ GET  /v1/infer/multimodal/stats")
 }
 

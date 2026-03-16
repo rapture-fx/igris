@@ -5,6 +5,7 @@ package middleware
 
 import (
 	"database/sql"
+	"strings"
 
 	"github.com/gofiber/fiber/v2"
 	"github.com/rs/zerolog/log"
@@ -27,16 +28,23 @@ func BetterAuth(db *sql.DB) fiber.Handler {
 			})
 		}
 
-		var userID, email, name string
-		err := db.QueryRow(`
-			SELECT u.id, COALESCE(u.email, ''), COALESCE(u.name, '')
-			FROM session s
-			JOIN "user" u ON u.id = s."userId"
-			WHERE s.token = $1 AND s."expiresAt" > NOW()
-		`, sessionToken).Scan(&userID, &email, &name)
+		userID, email, name, err := lookupSession(db, sessionToken)
+		if err == sql.ErrNoRows {
+			// Better Auth may store only the session ID portion (before the ".")
+			// in the DB while setting the full "id.signature" value in the cookie.
+			if dotIdx := strings.Index(sessionToken, "."); dotIdx > 0 {
+				userID, email, name, err = lookupSession(db, sessionToken[:dotIdx])
+			}
+		}
 		if err != nil {
 			if err != sql.ErrNoRows {
 				log.Error().Err(err).Msg("[Auth] Session lookup failed")
+			} else {
+				prefix := sessionToken
+				if len(prefix) > 8 {
+					prefix = prefix[:8]
+				}
+				log.Warn().Str("token_prefix", prefix).Msg("[Auth] Session not found or expired")
 			}
 			return c.Status(fiber.StatusUnauthorized).JSON(fiber.Map{
 				"error": "unauthorized",
@@ -56,6 +64,16 @@ func BetterAuth(db *sql.DB) fiber.Handler {
 		c.Locals("clerk_email", email)
 		return c.Next()
 	}
+}
+
+func lookupSession(db *sql.DB, token string) (userID, email, name string, err error) {
+	err = db.QueryRow(`
+		SELECT u.id, COALESCE(u.email, ''), COALESCE(u.name, '')
+		FROM session s
+		JOIN "user" u ON u.id = s."userId"
+		WHERE s.token = $1 AND s."expiresAt" > NOW()
+	`, token).Scan(&userID, &email, &name)
+	return
 }
 
 // GetClerkUserID returns the authenticated user ID from request locals.

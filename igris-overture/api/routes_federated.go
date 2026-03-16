@@ -59,7 +59,7 @@ type FederatedConfig struct {
 func RegisterFederatedRoutes(app *fiber.App, db *sql.DB) {
 	log.Println("[Routes] Registering /v1/federated endpoints...")
 
-	v1 := app.Group("/v1/federated", middleware.BetterAuth(nil))
+	v1 := app.Group("/v1/federated", middleware.BetterAuth(db))
 
 	v1.Get("/status", handleFederatedStatus(db))
 	v1.Get("/participants", handleFederatedParticipants(db))
