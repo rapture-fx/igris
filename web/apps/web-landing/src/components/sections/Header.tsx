@@ -176,7 +176,7 @@ export default function Header() {
                 <div className="flex">
                   <Link href="/" prefetch={false}>
                     <img
-                      src={isDark ? '/dmfoot.png' : '/foot2.png'}
+                      src={isDark ? '/dmfoot.png' : '/foot.png'}
                       alt="Igris Inertial"
                       className="h-10 w-auto rounded-lg"
                     />
@@ -407,7 +407,7 @@ export default function Header() {
               <div className="flex items-center justify-between px-4 sm:px-6" style={{ paddingTop: '1.5rem', paddingBottom: '1.5rem' }}>
                 <Link href="/" prefetch={false} onClick={() => setMobileMenuOpen(false)}>
                   <img
-                    src={isDark ? '/dmfoot.png' : '/foot2.png'}
+                    src={isDark ? '/dmfoot.png' : '/foot.png'}
                     alt="Igris Inertial"
                     className="h-10 w-auto rounded-lg"
                   />
