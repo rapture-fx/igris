@@ -40,7 +40,7 @@ jobs:
         with:
           host: ${{ secrets.PROD_HOST }}
           username: ${{ secrets.PROD_USER }}
-          key: ${{ secrets.PROD_SSH_KEY }}
+          key: ${{ secrets.VPS_SSH_KEY }}
           script: |
             cd /home/wira/igris
             git pull origin main
@@ -54,7 +54,7 @@ jobs:
         with:
           host: ${{ secrets.PROD_HOST }}
           username: ${{ secrets.PROD_USER }}
-          key: ${{ secrets.PROD_SSH_KEY }}
+          key: ${{ secrets.VPS_SSH_KEY }}
           script: |
             cd /home/wira/igris
             git pull origin main
