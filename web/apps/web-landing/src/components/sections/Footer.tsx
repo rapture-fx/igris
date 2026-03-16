@@ -181,7 +181,7 @@ export default function Footer() {
               {/* Logo - on right top for desktop, centered for mobile */}
               <div className="flex justify-start md:justify-end">
                 <img
-                  src={mounted && theme === 'dark' ? '/dmfoot.png' : '/foot2.png'}
+                  src={mounted && theme === 'dark' ? '/dmfoot.png' : '/foot.png'}
                   alt="Igris Inertial"
                   className="h-10 w-auto rounded-lg"
                 />
