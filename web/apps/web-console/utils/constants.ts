@@ -68,6 +68,17 @@ export const API_ENDPOINTS = {
   COUNCIL_ANALYTICS: '/v1/council/analytics',
   COUNCIL_HISTORY: '/v1/council/history',
   COUNCIL_TEST: '/v1/council/test',
+
+  // Federated Learning
+  FEDERATED_STATUS: '/v1/federated/status',
+  FEDERATED_PARTICIPANTS: '/v1/federated/participants',
+  FEDERATED_ROUNDS: '/v1/federated/rounds',
+  FEDERATED_ROUNDS_START: '/v1/federated/rounds/start',
+  FEDERATED_CONFIG: '/v1/federated/config',
+
+  // Multimodal
+  MULTIMODAL_INFER: '/v1/infer/multimodal',
+  MULTIMODAL_STATS: '/v1/infer/multimodal/stats',
 };
 
 export const COOKIE_KEYS = {
@@ -109,6 +120,11 @@ export const QUERY_KEYS = {
   COUNCIL_CONFIG: 'council_config',
   COUNCIL_ANALYTICS: 'council_analytics',
   COUNCIL_HISTORY: 'council_history',
+  FEDERATED_STATUS: 'federated_status',
+  FEDERATED_PARTICIPANTS: 'federated_participants',
+  FEDERATED_ROUNDS: 'federated_rounds',
+  FEDERATED_CONFIG: 'federated_config',
+  MULTIMODAL_STATS: 'multimodal_stats',
 };
 
 export const ROUTES = {
@@ -134,6 +150,8 @@ export const ROUTES = {
   AGENTS_PLANNING: '/dashboard/agents/planning',
   AGENTS_TOOLS: '/dashboard/agents/tools',
   AGENTS_QLORA: '/dashboard/agents/qlora',
+  AGENTS_FEDERATED: '/dashboard/agents/federated',
+  AGENTS_MULTIMODAL: '/dashboard/agents/multimodal',
 
   // Legacy routes (kept for backwards compatibility)
   USAGE: '/dashboard/usage',

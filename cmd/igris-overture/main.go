@@ -453,6 +453,14 @@ func main() {
 		api.RegisterTrialRoutes(app, dbInstance, trialManager)
 		log.Println("[Trial] ✅ Trial endpoints registered (/v1/trial/start, /v1/trial/status)")
 
+		// Federated learning coordinator
+		api.RegisterFederatedRoutes(app, dbInstance)
+		log.Println("[Federated] ✅ Federated learning endpoints registered (/v1/federated/*)")
+
+		// Multimodal inference (vision + audio)
+		api.RegisterMultimodalRoutes(app, dbInstance)
+		log.Println("[Multimodal] ✅ Multimodal endpoints registered (/v1/infer/multimodal)")
+
 		// Daily cron: expire trials and send reminders
 		go func() {
 			ticker := time.NewTicker(24 * time.Hour)
