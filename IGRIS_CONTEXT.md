@@ -345,14 +345,48 @@ RESEND_API_KEY          — for password reset emails
 
 ---
 
-## Product Positioning (Marketing Angles)
+## Product Positioning (from live landing page)
 
-1. **"AI governance for enterprises"** — policy enforcement, execution receipts, violation tracking
-2. **"Deploy AI agents without losing control"** — SLO enforcement, budget limits, capability bounds
-3. **"Multi-provider intelligence"** — Thompson Sampling routing, shadow mode, council mode
-4. **"Edge-native AI runtime"** — runs on devices, phones home to Overture, fleet management
-5. **"Federated learning without a PhD"** — (aspirational, crate 80% done)
-6. **"Swarm intelligence at scale"** — (aspirational, crate 85% done)
+### Hero
+> "Run AI that survives failure and proves what it did."
+> "Deterministic runtime. Cloud + local fallback. OS-level containment with signed violation logs. Deploy anywhere."
+
+### The Three Guarantees
+1. **Execute with Bounds** — Every execution runs in an isolated worker. Memory, CPU, and time enforced at OS level. Exceed a limit and the worker is killed. Every violation is signed and hash-chained.
+2. **Decide with Structure** — Language models generate reasoning. The runtime governs execution through bounded control paths. Isolated, time-limited, and supervised.
+3. **Remember with Proof** — Every execution produces a signed envelope. Violations are hash-chained and tamper-evident. Verify independently — without our control plane.
+
+### Deploy. Verify. Optimize.
+- **Deploy** — Single binary, any device. Execution, routing, memory, proof included.
+- **Verify** — Cryptographically signed decisions. Behavior trees execute predictably. Works offline.
+- **Optimize** — Fleet dashboard, provider routing intelligence, execution health at scale.
+
+### Key Differentiators (FAQ copy)
+- "Thompson Sampling learns which provider performs best for your workload — starting with cautious exploration, converging to optimal routing after ~500 requests."
+- "Speculative Execution races 2-3 providers in parallel. Council Mode has providers evaluate each other's answers. Speed vs. quality — you choose per request."
+- "The runtime operates fully offline with local LLM inference via llama.cpp. When connectivity is available, it routes to cloud providers."
+- "EscapeVector: a 72-hour encrypted response cache (AES-256-GCM) that activates when all providers fail."
+- "Gold Code: Ed25519-signed emergency override protocol. Only patches signed by your authorized keys are accepted."
+- "We never train models on your data. Federated learning shares only encrypted model weight updates — raw data never leaves the device."
+
+### Security Claims (must be true)
+- Ed25519 signed routing decisions
+- AES-256-GCM encrypted API keys at rest
+- Post-quantum TLS (Rustls + AWS-LC-RS)
+- Sandboxed tool execution with resource limits
+- Air-gapped operation
+
+### Use Cases Marketed
+1. Enterprise AI Operations — multi-tenant cost control, policy routing
+2. Hybrid Cloud–Edge Reliability — cryptographic decision binding, automatic failover
+3. Edge-First AI Systems — deterministic execution, local LLM, robotics
+4. Air-Gapped & Restricted Environments — isolated operation, encrypted storage
+5. AI Reliability Engineering — decision traces, replayable execution paths
+
+### ⚠️ Copy vs. Reality Discrepancies to Fix
+- Landing FAQ says "Seed plan gives you 1 device... free forever" — **actual Seed is $29/mo, no free tier**
+- Pricing section shows "5 runtime instances" for Seed — **actual limit is 1**
+- These must be corrected in the landing page copy
 
 ---
 
