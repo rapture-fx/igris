@@ -80,7 +80,7 @@ export const API_CONFIG = {
   /**
    * Health check endpoint
    */
-  healthCheckUrl: process.env.NEXT_PUBLIC_API_HEALTH_CHECK_URL || '/health',
+  healthCheckUrl: process.env.NEXT_PUBLIC_API_HEALTH_CHECK_URL || '/v1/health',
 
   /**
    * Request timeout in milliseconds
