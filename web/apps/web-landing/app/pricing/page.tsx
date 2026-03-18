@@ -13,7 +13,7 @@ export default function PricingPage() {
           {/* Hero Section */}
           <section className="pt-40 pb-6 px-4 sm:px-6 lg:px-8">
             <div className="max-w-[1100px] mx-auto text-center">
-              <h1 className="text-xl md:text-3xl lg:text-4xl mb-4 text-[#000000] dark:text-[#f6f6f4] max-w-lg mx-auto" style={{ fontFamily: '-apple-system, BlinkMacSystemFont, "Segoe UI", Roboto, Helvetica, Arial, sans-serif' }}>
+              <h1 className="text-xl md:text-3xl lg:text-4xl mb-4 text-[#000000] dark:text-[#f6f6f4] max-w-lg mx-auto font-mono">
                 Deploy autonomous systems with verifiable execution.
               </h1>
               
