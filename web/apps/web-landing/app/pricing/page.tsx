@@ -16,9 +16,7 @@ export default function PricingPage() {
               <h1 className="text-xl md:text-3xl lg:text-4xl mb-4 text-[#000000] dark:text-[#f6f6f4] max-w-lg mx-auto" style={{ fontFamily: '-apple-system, BlinkMacSystemFont, "Segoe UI", Roboto, Helvetica, Arial, sans-serif' }}>
                 Deploy autonomous systems with verifiable execution.
               </h1>
-              <p className="text-lg text-gray-600 dark:text-[#a8a898] max-w-lg mx-auto" style={{ fontFamily: '-apple-system, BlinkMacSystemFont, "Segoe UI", Roboto, Helvetica, Arial, sans-serif' }}>
-                Igris provides the runtime layer for AI agents, edge systems, and robotics workloads.
-              </p>
+              
             </div>
           </section>
 
