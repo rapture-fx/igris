@@ -89,6 +89,9 @@ else
     echo "  An active Igris subscription is required to download the runtime."
     echo "  Get your API key at: https://console.igrisinertial.com/settings/keys"
     echo ""
+    if [ ! -t 0 ]; then
+        die "No API key set. Run: IGRIS_API_KEY=igris_xxx curl -fsSL https://igrisinertial.com/install | bash"
+    fi
     printf "  Enter your Igris API key: "
     read -r IGRIS_API_KEY_INPUT
     IGRIS_API_KEY_INPUT="$(echo "$IGRIS_API_KEY_INPUT" | tr -d '[:space:]')"
@@ -106,13 +109,12 @@ CHECKSUM_URL="${OVERTURE_URL}/v1/runtime/checksum?platform=${PLATFORM}"
 
 step "Downloading igris-runtime (${PLATFORM})..."
 
-HTTP_STATUS=$(curl -fsSL \
-    --progress-bar \
+HTTP_STATUS=$(curl -fsSL -s \
     -H "$AUTH_HEADER" \
     -H "User-Agent: igris-installer/1.0" \
     -w "%{http_code}" \
     -o "${TMP_DIR}/${BINARY_FILE}" \
-    "$DOWNLOAD_URL" 2>&1 | tail -1)
+    "$DOWNLOAD_URL")
 
 case "$HTTP_STATUS" in
     200) ;;
@@ -127,25 +129,24 @@ esac
 
 step "Verifying binary integrity..."
 
-CHECKSUM_RESP=$(curl -fsSL \
-    -H "$AUTH_HEADER" \
+CHECKSUM_RESP=$(curl -fsSL -s \
     -H "User-Agent: igris-installer/1.0" \
     "${CHECKSUM_URL}" 2>/dev/null || true)
 
-if [ -n "$CHECKSUM_RESP" ]; then
-    EXPECTED=$(echo "$CHECKSUM_RESP" | grep -oE '[a-f0-9]{64}' | head -1)
-    if [ -n "$EXPECTED" ]; then
-        ACTUAL=$(sha256_file "${TMP_DIR}/${BINARY_FILE}")
-        if [ "$ACTUAL" = "SKIP" ]; then
-            warn "Skipping checksum verification."
-        elif [ "$EXPECTED" != "$ACTUAL" ]; then
-            die "Checksum mismatch — binary may be corrupt.\n  expected: $EXPECTED\n  got:      $ACTUAL"
-        else
-            info "Checksum verified."
-        fi
-    fi
+if [ -z "$CHECKSUM_RESP" ]; then
+    die "Checksum endpoint unavailable — cannot verify binary integrity. Aborting."
+fi
+EXPECTED=$(echo "$CHECKSUM_RESP" | grep -oE '^[a-f0-9]{64}')
+if [ -z "$EXPECTED" ]; then
+    die "Checksum format invalid — expected 64-char hex string. Aborting."
+fi
+ACTUAL=$(sha256_file "${TMP_DIR}/${BINARY_FILE}")
+if [ "$ACTUAL" = "SKIP" ]; then
+    warn "Skipping checksum verification."
+elif [ "$EXPECTED" != "$ACTUAL" ]; then
+    die "Checksum mismatch — binary may be corrupt.\n  expected: $EXPECTED\n  got:      $ACTUAL"
 else
-    warn "Checksum not available — skipping verification."
+    info "Checksum verified."
 fi
 
 # ── Install ───────────────────────────────────────────────────────────────────
@@ -173,7 +174,7 @@ echo "  ────────────────────────
 echo ""
 echo "  1. Export your credentials:"
 echo "     export IGRIS_LICENSE_KEY=lic_…    # from Settings → Keys"
-echo "     export IGRIS_API_KEY=${IGRIS_API_KEY}"
+echo "     export IGRIS_API_KEY=<your-key>    # from https://console.igrisinertial.com/settings/keys"
 echo ""
 echo "  2. Start the runtime:"
 echo "     igris-runtime serve"
