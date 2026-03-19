@@ -22,15 +22,6 @@ export default function PricingPage() {
 
           <Pricing />
           
-          {/* Runtime Definition */}
-          <section className="py-12 px-4 sm:px-6 lg:px-8">
-            <div className="max-w-[1100px] mx-auto text-center">
-              <p className="text-sm text-gray-600 dark:text-[#a8a898] max-w-xl mx-auto" style={{ fontFamily: '-apple-system, BlinkMacSystemFont, "Segoe UI", Roboto, Helvetica, Arial, sans-serif' }}>
-                Runtime instances represent independently deployed Igris runtimes. Each instance enforces execution safety, policy constraints, and verifiable receipts.
-              </p>
-            </div>
-          </section>
-
           <Faq />
           <ClosingPosition />
         </main>

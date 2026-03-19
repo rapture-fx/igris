@@ -69,7 +69,7 @@ igris-runtime serve
 
 Install via shell script:
 ```bash
-curl -sSL runtime.igrisinertial.com/install.sh | bash
+curl -fsSL https://igrisinertial.com/install | bash
 ```
 
 ## License

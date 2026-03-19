@@ -4,7 +4,7 @@ import React, { useState, useEffect, useCallback } from 'react'
 import Link from 'next/link'
 import { useTheme } from 'next-themes'
 
-const INSTALL_CMD = 'curl -sSL https://igrisinertial.com/install | bash'
+const INSTALL_CMD = 'curl -fsSL https://igrisinertial.com/install | bash'
 
 export default function Hero() {
   const { theme } = useTheme()
