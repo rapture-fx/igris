@@ -56,10 +56,10 @@ export const auth = betterAuth({
     expiresIn: 60 * 60 * 24 * 7,
     updateAge: 60 * 60 * 24,
   },
+  experimental: {
+    joins: true,
+  },
   advanced: {
-    database: {
-      experimentalJoins: true,
-    },
     crossSubDomainCookies: {
       enabled: process.env.NODE_ENV === 'production',
       domain: process.env.COOKIE_DOMAIN || 'igrisinertial.com',
