@@ -2,7 +2,7 @@
 # Igris Runtime Installer
 # Downloads, verifies, and installs the igris-runtime binary
 
-set -e
+set -euo pipefail
 
 VERSION="${VERSION:-runtime-v1.6.0}"
 BASE_URL="https://github.com/Igris-inertial/system/releases/download"
@@ -63,7 +63,9 @@ download_and_verify() {
     local CHECKSUM_FILE="${FILENAME}.sha256"
     local URL="${BASE_URL}/${VERSION}/${FILENAME}"
     local CHECKSUM_URL="${BASE_URL}/${VERSION}/${CHECKSUM_FILE}"
-    local TMP_DIR=$(mktemp -d)
+    local TMP_DIR
+    TMP_DIR=$(mktemp -d)
+    trap 'rm -rf "$TMP_DIR"' EXIT
 
     echo "Downloading igris-runtime ${VERSION} for ${PLATFORM}..."
 
@@ -83,7 +85,9 @@ download_and_verify() {
     fi
 
     # Verify checksum
-    local EXPECTED=$(cat "$TMP_DIR/$CHECKSUM_FILE" | tr -d '[:space:]')
+    local EXPECTED
+    EXPECTED=$(grep -oE '^[a-f0-9]{64}' "$TMP_DIR/$CHECKSUM_FILE")
+    [ -z "$EXPECTED" ] && { echo "Invalid checksum file format" >&2; exit 1; }
     local ACTUAL=$(sha256_check "$TMP_DIR/$FILENAME")
 
     if [ "$EXPECTED" != "$ACTUAL" ]; then
@@ -102,23 +106,22 @@ download_and_verify() {
 # Install from archive
 install_from_archive() {
     local ARCHIVE_PATH=$1
-    local TMP_DIR=$(mktemp -d)
+    local TMP_DIR
+    TMP_DIR=$(mktemp -d)
 
-    cd "$TMP_DIR"
-    tar xzf "$ARCHIVE_PATH"
+    tar -C "$TMP_DIR" -xzf "$ARCHIVE_PATH"
 
     mkdir -p "$INSTALL_DIR"
 
     if [ -w "$INSTALL_DIR" ]; then
-        mv igris-runtime "$INSTALL_DIR/"
+        mv "$TMP_DIR/igris-runtime" "$INSTALL_DIR/"
         chmod +x "$INSTALL_DIR/igris-runtime"
     else
         echo "Installing to $INSTALL_DIR (requires sudo)..."
-        sudo mv igris-runtime "$INSTALL_DIR/"
+        sudo mv "$TMP_DIR/igris-runtime" "$INSTALL_DIR/"
         sudo chmod +x "$INSTALL_DIR/igris-runtime"
     fi
 
-    cd - > /dev/null
     rm -rf "$TMP_DIR"
 
     echo "✓ Igris Runtime installed to ${INSTALL_DIR}/igris-runtime"
@@ -132,8 +135,7 @@ bundle_local_binary() {
 
     echo "[TEST MODE] Bundling local binary..." >&2
     cp "$BINARY_PATH" "$TMP_DIR/igris-runtime"
-    cd "$TMP_DIR"
-    tar czf "igris-runtime-${PLATFORM}.tar.gz" igris-runtime
+    tar -C "$TMP_DIR" -czf "$TMP_DIR/igris-runtime-${PLATFORM}.tar.gz" igris-runtime
     echo "$TMP_DIR/igris-runtime-${PLATFORM}.tar.gz"
 }
 
