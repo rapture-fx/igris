@@ -56,10 +56,9 @@ export enum LemonSqueezyEventType {
 }
 
 export enum SubscriptionTier {
-  FREE = "free",
-  STARTER = "starter",
-  PRO = "pro", 
-  ENTERPRISE = "enterprise"
+  SEED = "seed",
+  HORIZON = "horizon",
+  INFINITE = "infinite",
 }
 
 // Core billing interfaces
