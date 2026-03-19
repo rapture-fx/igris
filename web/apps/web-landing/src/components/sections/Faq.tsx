@@ -29,8 +29,8 @@ const faqSections: FaqSection[] = [
     title: "Getting Started",
     entries: [
       {
-        question: "Is there a free tier?",
-        answer: "Yes. The Seed plan gives you 1 device with the full runtime — local LLM inference, Thompson Sampling routing, cryptographic signing, and offline operation. No time limit. Free forever.",
+        question: "Can I try Igris before paying?",
+        answer: "Yes. Every plan includes a 7-day free trial — no credit card required to start. You get full access to your chosen tier during the trial. If you don't subscribe, your account downgrades to Seed at the end of the trial.",
         type: "text"
       },
       {

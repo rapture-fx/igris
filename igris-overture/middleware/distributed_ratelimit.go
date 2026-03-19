@@ -76,16 +76,6 @@ var (
 			BurstSize:          1000,
 			ConcurrentRequests: 1000,    // Max 1000 concurrent requests
 		},
-		// Legacy tiers (for backward compatibility)
-		"free": {
-			Name:               "free",
-			RequestsPerSecond:  5,
-			RequestsPerMinute:  60,
-			RequestsPerHour:    1000,
-			RequestsPerDay:     10000,
-			BurstSize:          5,
-			ConcurrentRequests: 2,
-		},
 		"trial": {
 			Name:               "trial",
 			RequestsPerSecond:  10,      // Same as developer during trial

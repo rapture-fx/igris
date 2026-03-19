@@ -24,31 +24,16 @@ const POLAR_CHECKOUT: Record<string, string> = {
 
 const pricingTiers: PricingTier[] = [
   {
-    name: "Free",
-    tagline: "For developers exploring autonomous systems.",
-    price: "Free",
-    limits: "1 runtime instance",
-    features: [
-      "1 runtime instance",
-      "Edge or server deployment",
-      "Cryptographic execution receipts",
-      "Basic policy enforcement",
-      "Local + cloud routing",
-      "Offline survival mode",
-      "Community support",
-      "7-day log retention",
-    ],
-    cta: "Get Started",
-    checkoutKey: "",
-  },
-  {
     name: "Seed",
     tagline: "For developers shipping to production.",
     price: "$29 / month",
     limits: "3 runtime instances",
     features: [
       "3 runtime instances",
-      "Everything in Free",
+      "Edge or server deployment",
+      "Cryptographic execution receipts",
+      "Offline survival mode",
+      "Local + cloud routing",
       "Fleet dashboard",
       "OTA verified updates",
       "Council routing",
@@ -56,7 +41,7 @@ const pricingTiers: PricingTier[] = [
       "30-day log retention",
       "Email support (48h)",
     ],
-    cta: "Get Seed",
+    cta: "Start free trial",
     checkoutKey: "seed",
   },
   {
