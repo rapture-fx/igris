@@ -24,36 +24,56 @@ const POLAR_CHECKOUT: Record<string, string> = {
 
 const pricingTiers: PricingTier[] = [
   {
-    name: "Seed",
-    tagline: "For developers running a single autonomous system.",
-    price: "$29 / month",
-    limits: "5 runtime instances",
+    name: "Free",
+    tagline: "For developers exploring autonomous systems.",
+    price: "Free",
+    limits: "1 runtime instance",
     features: [
-      "5 runtime instances",
+      "1 runtime instance",
       "Edge or server deployment",
-      "Execution receipts",
-      "Policy enforcement",
-      "Basic routing",
-      "Local model support",
+      "Cryptographic execution receipts",
+      "Basic policy enforcement",
+      "Local + cloud routing",
+      "Offline survival mode",
       "Community support",
+      "7-day log retention",
+    ],
+    cta: "Get Started",
+    checkoutKey: "",
+  },
+  {
+    name: "Seed",
+    tagline: "For developers shipping to production.",
+    price: "$29 / month",
+    limits: "3 runtime instances",
+    features: [
+      "3 runtime instances",
+      "Everything in Free",
+      "Fleet dashboard",
+      "OTA verified updates",
+      "Council routing",
+      "Audit logs",
+      "30-day log retention",
+      "Email support (48h)",
     ],
     cta: "Get Seed",
     checkoutKey: "seed",
   },
   {
     name: "Horizon",
-    tagline: "For teams operating multiple autonomous agents or edge systems.",
+    tagline: "For teams scaling autonomous agent fleets.",
     price: "$149 / month",
     limits: "Up to 50 runtime instances",
     features: [
-      "Up to 50 runtime instances",
-      "Fleet dashboard",
-      "Speculative execution",
-      "Council routing",
+      "50 runtime instances",
+      "Everything in Seed",
       "Shadow mode",
-      "Execution analytics",
-      "Device health monitoring",
-      "Email support",
+      "Speculative execution",
+      "SLO enforcement",
+      "Prometheus metrics",
+      "Advanced policy engine",
+      "90-day log retention",
+      "Email support (24h)",
     ],
     cta: "Get Horizon",
     checkoutKey: "horizon",
@@ -65,13 +85,14 @@ const pricingTiers: PricingTier[] = [
     price: "$699 / month",
     limits: "Up to 500 runtime instances",
     features: [
-      "Up to 500 runtime instances",
-      "Enterprise fleet management",
-      "Advanced policy engine",
-      "OTA runtime updates",
-      "High availability routing",
-      "Custom deployment support",
-      "Priority support",
+      "500 runtime instances",
+      "Everything in Horizon",
+      "On-premise deployment",
+      "Federated learning",
+      "Multimodal inference",
+      "Custom retention policy",
+      "Dedicated onboarding",
+      "Priority support (8h)",
     ],
     cta: "Get Infinite",
     checkoutKey: "infinite",
@@ -94,11 +115,11 @@ export default function Pricing() {
         <div className="relative px-4 md:px-8 lg:px-12 py-8 bg-white dark:bg-[#1b1912] z-10">
           <div className="max-w-[1400px] mx-auto px-0 md:px-8 lg:px-0">
 
-            <div className="grid grid-cols-1 lg:grid-cols-3 gap-4 max-w-[900px] mx-auto">
+            <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-4 gap-4 max-w-[1100px] mx-auto">
               {pricingTiers.map((tier, index) => (
                 <div
                   key={index}
-                  className={`group relative transition-all duration-500 w-full border rounded-xl shadow-sm hover:shadow-md lg:min-h-[450px] ${
+                  className={`group relative transition-all duration-500 w-full border rounded-xl shadow-sm hover:shadow-md lg:min-h-[480px] ${
                     tier.recommended
                       ? 'border-gray-300 dark:border-[#f6f6f4]/10'
                       : 'border-gray-300 dark:border-[#f6f6f4]/10'
@@ -144,7 +165,7 @@ export default function Pricing() {
                       </ul>
                     </div>
                     <a
-                      href={POLAR_CHECKOUT[tier.checkoutKey]}
+                      href={tier.checkoutKey ? POLAR_CHECKOUT[tier.checkoutKey] : '/auth?mode=signup'}
                       target="_blank"
                       rel="noopener noreferrer"
                       className="inline-flex items-center justify-center px-4 py-2 hover:opacity-80 transition-all duration-200 text-xs md:text-sm font-medium shadow-sm rounded-md mt-5 md:mt-8 opacity-100 self-start"
