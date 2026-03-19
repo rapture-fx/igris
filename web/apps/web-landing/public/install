@@ -175,14 +175,17 @@ fi
 
 echo ""
 echo "  ────────────────────────────────────────────────"
-echo "  Next steps"
-echo "  ────────────────────────────────────────────────"
 echo ""
-echo "  1. Start the runtime:"
-echo "     igris-runtime serve"
+printf "  %-18s  %s\n"  '     \ \ \ \   '  ''
+printf "  %-18s  %s\n"  '   \ \ \ \ \ \ '  'Next steps'
+printf "  %-18s  %s\n"  '  \ \ \ \ \ \ \'  ''
+printf "  %-18s  %s\n"  ' \ \ \ \ \ \ \ '  '1. Start the runtime:'
+printf "  %-18s  %s\n"  '  \ \ \ \ \ \ \'  '   igris-runtime serve'
+printf "  %-18s  %s\n"  '   \ \ \ \ \ \ '  ''
+printf "  %-18s  %s\n"  '     \ \ \ \   '  'Your runtime will appear in Fleet'
+printf "  %-18s  %s\n"  ''                 '→ Devices within 30 seconds.'
+printf "  %-18s  %s\n"  ''                 ''
+printf "  %-18s  %s\n"  ''                 'Docs: https://docs.igrisinertial.com/runtime'
 echo ""
-echo "  Your runtime will appear in Fleet → Devices within 30 seconds."
-echo ""
-echo "  Docs: https://docs.igrisinertial.com/runtime"
 echo "  ────────────────────────────────────────────────"
 echo ""
