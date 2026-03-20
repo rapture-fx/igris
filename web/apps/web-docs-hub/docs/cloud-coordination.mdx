@@ -111,6 +111,25 @@ curl -X POST https://api.igrisinertial.com/api/v1/runtime/register \
 
 ---
 
+## Routing Statistics
+
+You can inspect how Igris is routing traffic and which providers are performing best:
+
+```bash
+# Routing statistics (success rates, latency, cost per provider)
+GET /v1/routing/stats
+
+# Provider leaderboard (ranked by performance)
+GET /v1/routing/leaderboard
+
+# Recent request log with routing decisions
+GET /v1/routing/recent
+```
+
+All three endpoints require your Igris bearer token. The leaderboard shows the current ranked order that Thompson Sampling has converged on, based on your traffic. A provider that is degrading will drop in rank as its statistics update in real time.
+
+---
+
 ## Routing Policies
 
 Routing behavior can be overridden with per-tenant policies:
