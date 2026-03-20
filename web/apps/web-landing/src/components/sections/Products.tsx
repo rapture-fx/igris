@@ -47,13 +47,16 @@ export default function Products() {
                 border: '1px solid rgba(209, 213, 219, 0.35)',
                 overflow: 'hidden'
               }}>
-<img 
+                <img 
                   src="/prio.png" 
                   alt="Product"
                   style={{ 
                     width: '100%', 
                     height: '100%', 
-                    objectFit: 'cover'
+                    objectFit: 'contain',
+                    padding: '2rem',
+                    paddingLeft: 0,
+                    opacity: 0.5
                   }} 
                 />
               </div>
