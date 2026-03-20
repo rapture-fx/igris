@@ -11,7 +11,47 @@ export interface Tenant {
   created_at: string;
   updated_at: string;
   status: 'active' | 'disabled' | 'suspended';
+  runtime_limit?: number;
+  trial_active?: boolean;
+  trial_tier?: string;
+  trial_ends_at?: string;
+  subscription_status?: string;
+  api_key_prefix?: string;
   metadata?: Record<string, any>;
+}
+
+// Raw shape returned by GET /v1/tenants/current
+interface TenantAPIResponse {
+  tenant_id: string;
+  tenant_name: string;
+  email: string;
+  tier: string;
+  status: string;
+  runtime_limit: number;
+  created_at: string;
+  trial_active: boolean;
+  trial_tier?: string;
+  trial_ends_at?: string;
+  subscription_status: string;
+  api_key_prefix?: string;
+}
+
+function normalizeTenant(raw: TenantAPIResponse): Tenant {
+  return {
+    id: raw.tenant_id,
+    name: raw.tenant_name || raw.email?.split('@')[0] || 'User',
+    email: raw.email,
+    plan: raw.tier ?? 'seed',
+    status: (raw.status as Tenant['status']) ?? 'active',
+    created_at: raw.created_at,
+    updated_at: raw.created_at,
+    runtime_limit: raw.runtime_limit,
+    trial_active: raw.trial_active,
+    trial_tier: raw.trial_tier,
+    trial_ends_at: raw.trial_ends_at,
+    subscription_status: raw.subscription_status,
+    api_key_prefix: raw.api_key_prefix,
+  };
 }
 
 export function useTenant() {
@@ -19,7 +59,8 @@ export function useTenant() {
     queryKey: [QUERY_KEYS.TENANT],
     queryFn: async () => {
       try {
-        return await api.get<Tenant>(API_ENDPOINTS.TENANT_CURRENT);
+        const raw = await api.get<TenantAPIResponse>(API_ENDPOINTS.TENANT_CURRENT);
+        return normalizeTenant(raw);
       } catch (error) {
         // Production-safe fallback: throws in production, returns mock in development
         return handleApiError<Tenant>(
