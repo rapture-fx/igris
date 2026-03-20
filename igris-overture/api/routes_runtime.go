@@ -419,10 +419,12 @@ func (h *RuntimeHandler) apiKeyAuth(c *fiber.Ctx) error {
 
 	keyHash := security.HashAPIKey(apiKey)
 
-	var tenantID, tenantTier, tenantStatus string
+	var tenantID, tenantTier string
+	var isActive bool
 	err := h.db.QueryRowContext(context.Background(), `
-		SELECT id, tier, status FROM tenants WHERE api_key_hash = $1
-	`, keyHash).Scan(&tenantID, &tenantTier, &tenantStatus)
+		SELECT tenant_id, COALESCE(tier, 'seed'), COALESCE(is_active, true)
+		FROM tenants WHERE api_key_hash = $1
+	`, keyHash).Scan(&tenantID, &tenantTier, &isActive)
 
 	if errors.Is(err, sql.ErrNoRows) {
 		return c.Status(fiber.StatusUnauthorized).JSON(fiber.Map{
@@ -434,10 +436,9 @@ func (h *RuntimeHandler) apiKeyAuth(c *fiber.Ctx) error {
 			"error": "auth_failed",
 		})
 	}
-	if tenantStatus != "active" {
+	if !isActive {
 		return c.Status(fiber.StatusForbidden).JSON(fiber.Map{
-			"error":  "tenant_not_active",
-			"status": tenantStatus,
+			"error": "tenant_not_active",
 		})
 	}
 
@@ -449,7 +450,7 @@ func (h *RuntimeHandler) apiKeyAuth(c *fiber.Ctx) error {
 // getTierAndLimit looks up tier string and runtime limit for a tenant.
 func (h *RuntimeHandler) getTierAndLimit(ctx context.Context, tenantID string) (string, int) {
 	var tier string
-	_ = h.db.QueryRowContext(ctx, `SELECT tier FROM tenants WHERE id = $1`, tenantID).Scan(&tier)
+	_ = h.db.QueryRowContext(ctx, `SELECT COALESCE(tier, 'seed') FROM tenants WHERE tenant_id = $1`, tenantID).Scan(&tier)
 
 	t := billing.Tier(tier)
 	limit, ok := billing.TierRuntimeLimit[t]
