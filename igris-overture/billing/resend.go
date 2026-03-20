@@ -280,7 +280,7 @@ func (r *ResendClient) SendTrialExpiredEmail(email, previousTier string) error {
   <p style="font-size: 16px; line-height: 1.6;">Your <strong>%s</strong> trial has ended.</p>
 
   <p style="font-size: 14px; color: #444; line-height: 1.6;">
-    Your account has been moved to the <strong>Seed</strong> tier (1 runtime instance).
+    Your account has been moved to the <strong>Seed</strong> tier (3 runtime instances).
     Subscribe to restore your previous limits.
   </p>
 

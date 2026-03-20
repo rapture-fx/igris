@@ -182,7 +182,7 @@ func makeGetCurrentTenant(db *sql.DB) fiber.Handler {
 				status,
 				COALESCE(tier::text, 'seed'),
 				api_key_prefix,
-				COALESCE(runtime_limit, 1),
+				COALESCE(runtime_limit, 3),
 				created_at,
 				COALESCE(trial_active, false),
 				trial_tier,
@@ -215,7 +215,7 @@ func makeGetCurrentTenant(db *sql.DB) fiber.Handler {
 				Email:              middleware.GetClerkEmail(c),
 				Status:             "active",
 				Tier:               "seed",
-				RuntimeLimit:       1,
+				RuntimeLimit:       3,
 				SubscriptionStatus: "none",
 			})
 		}
@@ -242,7 +242,7 @@ func makeGetCurrentTenant(db *sql.DB) fiber.Handler {
 		if runtimeLimit.Valid {
 			resp.RuntimeLimit = int(runtimeLimit.Int64)
 		} else {
-			resp.RuntimeLimit = 1
+			resp.RuntimeLimit = 3
 		}
 		if trialActive.Valid {
 			resp.TrialActive = trialActive.Bool
