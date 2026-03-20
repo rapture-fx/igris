@@ -54,7 +54,7 @@ export default function Hero() {
                     color: mounted && theme === 'dark' ? '#c8c8b8' : '#374151',
                   }}
                 >
-                  <img src="/foot.png" alt="Igris" className="h-8 w-8 shrink-0 opacity-80" />
+                  <img src="/foot.png" alt="Igris" className="h-6 w-6 shrink-0 opacity-80" />
                   <span className="select-all truncate max-w-[180px] md:max-w-none">{INSTALL_CMD}</span>
                   <button
                     onClick={copy}
