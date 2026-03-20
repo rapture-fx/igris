@@ -183,7 +183,7 @@ export default function Footer() {
                 <img
                   src={mounted && theme === 'dark' ? '/dmfoot.png' : '/foot.png'}
                   alt="Igris Inertial"
-                  className="h-10 w-auto rounded-lg"
+                  className="h-9 w-auto rounded-lg"
                 />
               </div>
             </div>
