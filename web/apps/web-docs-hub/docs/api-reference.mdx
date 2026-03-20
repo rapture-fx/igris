@@ -1,12 +1,12 @@
 # API Reference
 
-Igris exposes two API surfaces: the inference API (OpenAI-compatible) and the management API (Igris-native). Both are available at `api.igrisinertial.com`. For local execution engine APIs, replace the base URL with your engine's address (default `http://localhost:8080`).
+Igris exposes two API surfaces: the **cloud API** at `api.igrisinertial.com`, and the **local engine API** on each runtime instance (default `http://localhost:8080`). They are separate services with different endpoints.
 
 ---
 
 ## Authentication
 
-All API requests require a Bearer token:
+All cloud API requests require a Bearer token:
 
 ```bash
 curl https://api.igrisinertial.com/v1/chat/completions \
@@ -17,13 +17,11 @@ curl https://api.igrisinertial.com/v1/chat/completions \
 
 ---
 
-## Inference API
-
-The inference API is OpenAI-compatible. Any existing code using the OpenAI SDK works by changing only the base URL.
+## Inference
 
 ### POST /v1/chat/completions
 
-Run a chat completion.
+OpenAI-compatible chat completion with automatic multi-provider routing.
 
 **Request:**
 ```json
@@ -33,117 +31,88 @@ Run a chat completion.
     {"role": "system", "content": "You are a helpful assistant."},
     {"role": "user", "content": "Hello"}
   ],
-  "provider": "anthropic",
-  "optimize_for": "cost"
+  "provider_preference": ["anthropic", "openai"]
 }
 ```
-
-**Additional fields (Igris-native):**
 
 | Field | Type | Description |
 |---|---|---|
-| `provider` | string | Pin to a specific provider (optional) |
-| `optimize_for` | string | `"cost"`, `"latency"`, or `"quality"` |
-| `tenant_id` | string | Override tenant for this request |
+| `model` | string | Model name (passed to the selected provider) |
+| `messages` | array | Standard OpenAI messages array |
+| `provider_preference` | string[] | Optional ordered list of providers to try |
 
-**Response:**
-```json
-{
-  "id": "chatcmpl-abc123",
-  "object": "chat.completion",
-  "model": "gpt-4",
-  "choices": [{"message": {"role": "assistant", "content": "Hello!"}}],
-  "metadata": {
-    "provider": "anthropic",
-    "model_used": "claude-3-haiku",
-    "cost_usd": 0.00021,
-    "routing_decision": "thompson-sampling",
-    "fallback": false
-  }
-}
-```
+**Response:** Standard OpenAI `chat.completion` object. Fallback information is returned in the `X-Igris-Fallback-Count` response header.
 
-### POST /v1/completions
+### GET /v1/models
 
-Legacy text completion endpoint. Same authentication and metadata fields.
+List available models across your configured providers.
+
+### GET /v1/providers/stats
+
+Current health and performance statistics for your configured providers.
 
 ---
 
-## Management API
+## Routing Analytics
 
-### Providers & Keys
+All routing endpoints require authentication.
 
-| Endpoint | Method | Description |
-|---|---|---|
-| `/v1/vault/keys` | GET | List configured provider keys |
-| `/v1/vault/keys` | POST | Add a provider key |
-| `/v1/vault/keys/{provider}` | DELETE | Remove a provider key |
+| Endpoint | Description |
+|---|---|
+| `GET /v1/routing/stats` | Success rates, latency, and cost per provider |
+| `GET /v1/routing/leaderboard` | Providers ranked by current Thompson Sampling score |
+| `GET /v1/routing/recent` | Recent requests with routing decisions |
+| `GET /v1/routing/speculative/status` | Speculative execution stats (24h window) |
+| `GET /v1/routing/speculative/config` | Speculative execution configuration |
+| `GET /v1/routing/speculative/analytics` | Speculative execution analytics |
+| `POST /v1/routing/speculative/simulate` | Trigger a speculative simulation |
 
-```bash
-# Add an OpenAI key
-curl -X POST https://api.igrisinertial.com/v1/vault/keys \
-  -H "Authorization: Bearer YOUR_API_KEY" \
-  -d '{"provider": "openai", "key": "sk-..."}'
-```
+---
 
-### Policies
+## Fleet (Runtime Instances)
 
-| Endpoint | Method | Description |
-|---|---|---|
-| `/v1/policies` | GET | List policies |
-| `/v1/policies` | POST | Create a policy |
-| `/v1/policies/{name}` | GET | Get a policy |
-| `/v1/policies/{name}` | PATCH | Update a policy |
-| `/v1/policies/{name}/versions` | GET | List policy versions |
-| `/v1/policies/{name}/rollback` | POST | Roll back to a version |
-
-### Fleet (Execution Engine Instances)
+These endpoints use API key authentication (not Bearer token) and are called by the runtime binary, not your application.
 
 | Endpoint | Method | Description |
 |---|---|---|
-| `/api/v1/runtime/register` | POST | Register an instance |
-| `/api/v1/runtime/instances` | GET | List all instances |
-| `/api/v1/runtime/instances/{id}` | GET | Get instance details |
-| `/api/v1/runtime/config/push` | POST | Push config to instances |
-| `/api/v1/runtime/update` | POST | Trigger OTA update |
+| `/api/v1/runtime/register` | POST | Register a runtime instance |
+| `/api/v1/runtime/heartbeat` | POST | Send instance heartbeat |
+| `/api/v1/runtime/deregister` | DELETE | Deregister an instance |
+| `/api/v1/runtime/download` | GET | Download the runtime binary (authenticated) |
 
-### Receipts (Local Engine)
+---
 
-| Endpoint | Method | Description |
-|---|---|---|
-| `/v1/receipts` | GET | List execution receipts |
-| `/v1/receipts/{request_id}` | GET | Get a specific receipt |
-| `/v1/receipts/export` | GET | Export receipts (JSONL/CSV/Parquet) |
+## Provider Keys
+
+Provider API keys are managed through the console at [console.igrisinertial.com/settings/keys](https://console.igrisinertial.com/settings/keys). Keys are encrypted at rest and scoped to your account.
+
+[Key Management →](/docs/key-management)
 
 ---
 
 ## Local Engine API
 
-The execution engine runs an OpenAI-compatible API at `http://localhost:8080` by default.
+The runtime instance exposes a separate API at `http://localhost:8080` by default. This is distinct from the cloud API.
 
 | Endpoint | Description |
 |---|---|
 | `GET /health` | Health check |
 | `GET /metrics` | Prometheus metrics |
-| `POST /v1/chat/completions` | Chat completion |
-| `GET /v1/receipts` | List receipts |
-| `GET /v1/receipts/{id}` | Get receipt |
-| `POST /v1/btree/deploy` | Deploy a behavior tree |
-| `POST /v1/btree/run` | Run a behavior tree |
+| `POST /v1/chat/completions` | Local chat completion |
+| `GET /v1/receipts` | List execution receipts |
+| `GET /v1/receipts/{id}` | Get a specific receipt |
 
 ---
 
 ## Rate Limits
 
-| Tier | Requests/minute | Tokens/minute |
-|---|---|---|
-| Seed | 60 | 100,000 |
-| Horizon | 600 | 1,000,000 |
-| Infinite | 6,000 | 10,000,000 |
+Requests to `/v1/chat/completions` are rate-limited per account. The limit is shown in response headers:
 
-Rate limit headers are included in every response:
-- `X-RateLimit-Limit`: requests per minute
-- `X-RateLimit-Remaining`: remaining requests in current window
-- `X-RateLimit-Reset`: UTC timestamp when the window resets
+- `X-RateLimit-Limit` — requests allowed per window
+- `X-RateLimit-Remaining` — requests remaining in current window
 
-[SDK →](/docs/sdk) · [Cloud Coordination →](/docs/cloud-coordination) · [Execution Receipts →](/docs/execution-receipts)
+When the limit is exceeded, Igris returns HTTP 429.
+
+---
+
+[SDK →](/docs/sdk) · [Cloud Coordination →](/docs/cloud-coordination) · [Key Management →](/docs/key-management)
