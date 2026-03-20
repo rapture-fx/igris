@@ -1,6 +1,6 @@
 # API Reference
 
-Igris exposes two API surfaces: the **cloud API** at `api.igrisinertial.com`, and the **local engine API** on each runtime instance (default `http://localhost:8080`). They are separate services with different endpoints.
+Igris exposes two API surfaces: the **cloud API** at `overture.igrisinertial.com`, and the **local engine API** on each runtime instance (default `http://localhost:8080`). They are separate services with different endpoints.
 
 ---
 
@@ -9,7 +9,7 @@ Igris exposes two API surfaces: the **cloud API** at `api.igrisinertial.com`, an
 All cloud API requests require a Bearer token:
 
 ```bash
-curl https://api.igrisinertial.com/v1/chat/completions \
+curl https://overture.igrisinertial.com/v1/chat/completions \
   -H "Authorization: Bearer YOUR_API_KEY" \
   -H "Content-Type: application/json" \
   -d '{"model": "gpt-4", "messages": [{"role": "user", "content": "Hello"}]}'
@@ -82,9 +82,26 @@ These endpoints use API key authentication (not Bearer token) and are called by 
 
 ---
 
-## Provider Keys
+## Provider Keys (Vault)
 
-Provider API keys are managed through the console at [console.igrisinertial.com/settings/keys](https://console.igrisinertial.com/settings/keys). Keys are encrypted at rest and scoped to your account.
+Manage your cloud provider API keys. All vault endpoints require authentication.
+
+| Endpoint | Method | Description |
+|---|---|---|
+| `/v1/vault/keys` | GET | List all configured provider keys |
+| `/v1/vault/keys` | POST | Add a provider key |
+| `/v1/vault/keys/:provider` | GET | Get key details for a provider |
+| `/v1/vault/keys/:provider` | DELETE | Remove a provider key |
+| `/v1/vault/keys/:provider/rotate` | POST | Replace a key with a new one |
+| `/v1/vault/keys/:provider/validate` | POST | Re-validate a key against the provider's API |
+
+```bash
+# Add a key
+curl -X POST https://overture.igrisinertial.com/v1/vault/keys \
+  -H "Authorization: Bearer YOUR_API_KEY" \
+  -H "Content-Type: application/json" \
+  -d '{"provider": "anthropic", "key": "sk-ant-..."}'
+```
 
 [Key Management →](/docs/key-management)
 
