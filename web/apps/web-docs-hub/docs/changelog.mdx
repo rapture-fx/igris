@@ -4,6 +4,49 @@ Release notes for Igris Inertial. Breaking changes are marked explicitly.
 
 ---
 
+## runtime-v1.8.0 — cgroups stability — March 2026
+
+### Fixed
+
+- **CPU quota enforcement** — corrected cgroups_rs builder chain; `cpu()` now consumes `self` as required by cgroups_rs 0.4, resolving a compile error that blocked CPU quota enforcement on Linux
+- **cgroup period type** — `period` field cast to `u64` to match cgroups_rs 0.4 API (was `u32`, caused silent truncation on long periods)
+
+---
+
+## runtime-v1.7.x — Cross-compilation and release pipeline — March 2026
+
+### Added
+
+- **ARM64 cross-compilation** — added `Cross.toml` for reproducible cross-compilation from x86_64 hosts; runtime binaries for `linux-arm64` now built in CI without hardware runners
+- **VPS binary organization** — `vps-organize-binaries.sh` script to structure release artifacts on the distribution server
+- **Runtime distribution API** — `routes_runtime.go` updated to serve binaries through authenticated endpoints; download and checksum routes wired to binary storage
+
+### Changed
+
+- **Release pipeline** — GitHub Actions workflow updated to build and publish runtime binaries for all supported platforms (linux-amd64, linux-arm64, macos-amd64, macos-arm64) on tag push
+- **Installer** — install command updated to use `igrisinertial.com` short domain; `Igris.sh` hardened with piped-stdin detection, checksum hard-fail, and API key prompt improvements
+
+---
+
+## runtime-v1.6.0 — macOS runner update — February 2026
+
+### Changed
+
+- **macOS CI runners** — removed Intel macOS build targets; switched to `macos-15` (ARM64) runners, which are available on the free tier; Intel macOS builds are no longer published
+- **Install command** — updated to use short domain across all documentation and install script references
+
+---
+
+## v1.2.1-speculative — Speculative execution — November 2025
+
+### Added
+
+- **Speculative execution** — merged 6 PRs implementing speculative decoding; produces a **60% reduction in time-to-first-token (TTFT)** for streaming requests
+- **Handler integration** — speculative execution wired into the inference handler pipeline; enabled by default for streaming requests
+- **Production deployment** — speculative execution validated and deployed to production; rollback flag available via feature config
+
+---
+
 ## 0.4.0 — Runtime Hardening Phase 4
 
 ### Added
