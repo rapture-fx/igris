@@ -47,14 +47,14 @@ export default function Hero() {
               <img src="/hjk.png" alt="Hero" className="h-full w-full object-cover rounded-lg border border-gray-200 dark:border-gray-700" />
               <div className="absolute inset-0 flex items-center justify-center">
                 <div
-                  className="inline-flex items-center gap-2 md:gap-3 rounded-md px-4 py-3 md:px-6 md:py-4 text-sm md:text-base border shadow-lg"
+                  className="inline-flex items-center gap-2 md:gap-3 rounded-md px-3 py-1.5 md:px-5 md:py-2.5 text-sm md:text-base border shadow-lg"
                   style={{
                     backgroundColor: mounted && theme === 'dark' ? '#1b1912' : '#ffffff',
                     borderColor: mounted && theme === 'dark' ? 'rgba(246,246,244,0.08)' : 'rgba(0,0,0,0.1)',
                     color: mounted && theme === 'dark' ? '#c8c8b8' : '#374151',
                   }}
                 >
-                  <img src="/foot.png" alt="Igris" className="h-4 w-4 shrink-0 opacity-80" />
+                  <img src="/foot.png" alt="Igris" className="h-8 w-8 shrink-0 opacity-80" />
                   <span className="select-all truncate max-w-[180px] md:max-w-none">{INSTALL_CMD}</span>
                   <button
                     onClick={copy}
