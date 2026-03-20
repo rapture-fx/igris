@@ -244,18 +244,19 @@ func (h *DownloadHandler) redirectToBinary(c *fiber.Ctx, binaryName, version str
 
 // verifySubscription checks that the tenant has an active subscription of any paid tier.
 func (h *DownloadHandler) verifySubscription(tenantID string) error {
-	var tier, status string
+	var tier string
+	var isActive bool
 	err := h.db.QueryRowContext(context.Background(),
-		`SELECT tier, status FROM tenants WHERE id = $1`, tenantID,
-	).Scan(&tier, &status)
+		`SELECT COALESCE(tier, 'seed'), COALESCE(is_active, true) FROM tenants WHERE tenant_id = $1`, tenantID,
+	).Scan(&tier, &isActive)
 	if errors.Is(err, sql.ErrNoRows) {
 		return fmt.Errorf("tenant not found")
 	}
 	if err != nil {
 		return fmt.Errorf("db error: %w", err)
 	}
-	if status != "active" {
-		return fmt.Errorf("tenant status is %q (must be active)", status)
+	if !isActive {
+		return fmt.Errorf("tenant account is not active")
 	}
 	if !billing.ValidTier(tier) {
 		return fmt.Errorf("tenant has no valid subscription tier")
