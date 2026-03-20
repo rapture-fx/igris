@@ -124,13 +124,13 @@ type TierPlan struct {
 // ============================================================================
 
 var (
-	// PlanSeed - $29/mo, 1 runtime instance
+	// PlanSeed - $29/mo, 3 runtime instances
 	PlanSeed = TierPlan{
 		ID:                TierSeed,
 		Name:              "Seed",
 		MonthlyPriceID:    "price_seed_monthly", // Set in Polar dashboard
 		MonthlyPriceCents: 2900,
-		RuntimeLimit:      1,
+		RuntimeLimit:      3,
 	}
 
 	// PlanHorizon - $149/mo, 50 runtime instances
