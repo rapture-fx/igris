@@ -55,7 +55,7 @@ export default function Products() {
                     height: '100%', 
                     objectFit: 'contain',
                     objectPosition: 'left',
-                    opacity: 0.5
+                    opacity: 1
                   }} 
                 />
               </div>
