@@ -48,7 +48,7 @@ export default function Products() {
                 paddingRight: '1rem'
               }}>
                 <img 
-                  src="/prioo.png" 
+                  src="/prikoo.png" 
                   alt="Product"
                   style={{ 
                     width: '100%', 
