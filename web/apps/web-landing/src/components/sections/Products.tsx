@@ -38,14 +38,14 @@ export default function Products() {
       <div className="mx-auto max-w-[1100px] px-4 sm:px-6 lg:px-8">
         <div className="px-4 md:px-8 lg:px-12" style={{ borderLeft: '0.5px solid rgba(209, 213, 219, 0.35)', borderRight: '0.5px solid rgba(209, 213, 219, 0.35)', paddingBottom: 0 }}>
           <div style={{ paddingTop: '3rem', paddingBottom: '3rem', position: 'relative' }}>
-            <div className="hidden sm:block" style={{ position: 'absolute', top: '3rem', right: '2rem', bottom: '3rem', display: 'flex', alignItems: 'center', justifyContent: 'center' }}>
+            <div className="hidden sm:block" style={{ position: 'absolute', top: '3rem', right: 0, bottom: '3rem', display: 'flex', alignItems: 'center', justifyContent: 'center' }}>
               <div style={{ 
-                width: '100%', 
+                width: '600px', 
                 height: '100%', 
-                maxWidth: '420px',
                 borderRadius: '12px', 
                 border: '1px solid rgba(209, 213, 219, 0.35)',
-                overflow: 'hidden'
+                overflow: 'hidden',
+                paddingRight: '1rem'
               }}>
                 <img 
                   src="/prio.png" 
@@ -53,9 +53,7 @@ export default function Products() {
                   style={{ 
                     width: '100%', 
                     height: '100%', 
-                    objectFit: 'contain',
-                    padding: '2rem',
-                    paddingLeft: 0,
+                    objectFit: 'cover',
                     opacity: 0.5
                   }} 
                 />
