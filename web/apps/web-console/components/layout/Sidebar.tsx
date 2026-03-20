@@ -50,20 +50,10 @@ const navigation: NavigationItem[] = [
     ],
   },
   {
-    name: 'Agents',
-    icon: BrainCircuit,
-    children: [
-      { name: 'Federated', href: '/dashboard/agents/federated' },
-      { name: 'Multimodal', href: '/dashboard/agents/multimodal' },
-      { name: 'QLoRA', href: '/dashboard/agents/qlora' },
-    ],
-  },
-  {
     name: 'Fleet',
     icon: Network,
     children: [
       { name: 'Devices', href: '/fleet/devices' },
-      { name: 'Downloads', href: '/downloads/runtime' },
     ],
   },
   {
@@ -112,7 +102,6 @@ const navigation: NavigationItem[] = [
 ];
 
 const DEFAULT_EXPANDED: Record<string, boolean> = {
-  Agents: false,
   Execution: false,
   Fleet: false,
   Models: false,
