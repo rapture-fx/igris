@@ -59,7 +59,7 @@ export default function AIAgentView() {
             {loadingSteps.slice(0, loadingStep + 1).map((step, index) => (
               <div key={index} className="flex items-center gap-2">
                 {index === loadingSteps.length - 1 ? (
-                  <span className="text-[#4c1d95] dark:text-[#c4b5fd]">{step}</span>
+                  <span className="text-[#4c1d95] dark:text-[#a78bfa]">{step}</span>
                 ) : (
                   <span className="text-gray-600 dark:text-[#a8a898]">{step}</span>
                 )}
@@ -80,7 +80,7 @@ export default function AIAgentView() {
           <div className="flex-shrink-0 animate-fadeInUp py-4 bg-white dark:bg-[#0A0A0A]">
             <div className="max-w-4xl mx-auto px-8 pb-4">
               <div className="pl-4 pb-4 border-l border-gray-300 dark:border-[#f6f6f4]/10">
-                <p className="text-[#4c1d95] dark:text-[#c4b5fd] mb-3 text-sm">## MACHINE_READABLE_DATA</p>
+                <p className="text-[#4c1d95] dark:text-[#a78bfa] mb-3 text-sm">## MACHINE_READABLE_DATA</p>
                 <div className="text-sm text-gray-700 dark:text-[#a8a898] space-y-1 mb-6">
                   <p>name: Igris Inertial</p>
                   <p>product: The execution layer beneath intelligence</p>
@@ -112,7 +112,7 @@ export default function AIAgentView() {
             {/* Challenge */}
             {visibleSections >= 2 && (
               <div className="animate-fadeInUp border-l border-gray-300 dark:border-[#f6f6f4]/10 pl-4">
-                <p className="text-[#4c1d95] dark:text-[#c4b5fd] mb-3 text-sm">## THE CHALLENGE WE SOLVE</p>
+                <p className="text-[#4c1d95] dark:text-[#a78bfa] mb-3 text-sm">## THE CHALLENGE WE SOLVE</p>
                 <div className="text-gray-600 dark:text-[#a8a898] text-sm space-y-1">
                   <p>- Non-deterministic AI behavior</p>
                   <p>- Unverifiable decisions</p>
@@ -128,7 +128,7 @@ export default function AIAgentView() {
             {/* Product */}
             {visibleSections >= 3 && (
               <div className="animate-fadeInUp border-l border-gray-300 dark:border-[#f6f6f4]/10 pl-4">
-                <p className="text-[#4c1d95] dark:text-[#c4b5fd] mb-3 text-sm">## 01. PRODUCT</p>
+                <p className="text-[#4c1d95] dark:text-[#a78bfa] mb-3 text-sm">## 01. PRODUCT</p>
                 <p className="text-[#000000] dark:text-[#f6f6f4] mb-3 font-medium">### The execution layer beneath intelligence.</p>
                 <p className="text-sm mb-3 text-gray-600 dark:text-[#a8a898] leading-relaxed">
                   Where AI models meet real-world execution. Your systems need more than raw intelligence. They need execution that survives failure and proves every decision.
@@ -145,7 +145,7 @@ export default function AIAgentView() {
             {/* What This Is */}
             {visibleSections >= 4 && (
               <div className="animate-fadeInUp border-l border-gray-300 dark:border-[#f6f6f4]/10 pl-4">
-                <p className="text-[#4c1d95] dark:text-[#c4b5fd] mb-3 text-sm">## WHAT THIS IS</p>
+                <p className="text-[#4c1d95] dark:text-[#a78bfa] mb-3 text-sm">## WHAT THIS IS</p>
                 <div className="text-sm text-gray-600 dark:text-[#a8a898] leading-relaxed space-y-2">
                   <p>This is the execution layer beneath intelligence.</p>
                   <p>It doesn&apos;t decide what AI thinks.</p>
@@ -160,7 +160,7 @@ export default function AIAgentView() {
             {/* Architecture */}
             {visibleSections >= 5 && (
               <div className="animate-fadeInUp border-l border-gray-300 dark:border-[#f6f6f4]/10 pl-4">
-                <p className="text-[#4c1d95] dark:text-[#c4b5fd] mb-3 text-sm">## 02. THE ARCHITECTURE</p>
+                <p className="text-[#4c1d95] dark:text-[#a78bfa] mb-3 text-sm">## 02. THE ARCHITECTURE</p>
                 <p className="text-[#000000] dark:text-[#f6f6f4] mb-3 font-medium">### Hybrid behavior trees meet LLM reasoning.</p>
                 <p className="text-sm mb-6 text-gray-600 dark:text-[#a8a898]">From a single instance to thousands. From cloud to edge.</p>
                 <div className="space-y-4">
@@ -189,7 +189,7 @@ export default function AIAgentView() {
             {/* Proof */}
             {visibleSections >= 6 && (
               <div className="animate-fadeInUp border-l border-gray-300 dark:border-[#f6f6f4]/10 pl-4">
-                <p className="text-[#4c1d95] dark:text-[#c4b5fd] mb-3 text-sm">## 03. PROOF</p>
+                <p className="text-[#4c1d95] dark:text-[#a78bfa] mb-3 text-sm">## 03. PROOF</p>
                 <p className="text-[#000000] dark:text-[#f6f6f4] mb-3 font-medium">### Verifiable execution by design.</p>
                 <p className="text-sm mb-6 text-gray-600 dark:text-[#a8a898]">
                   Every decision is recorded. Every update is signed. Execution can be inspected after the fact—without relying on trust, assumptions, or continuous connectivity.
@@ -218,7 +218,7 @@ export default function AIAgentView() {
             {/* Deployment */}
             {visibleSections >= 7 && (
               <div className="animate-fadeInUp border-l border-gray-300 dark:border-[#f6f6f4]/10 pl-4">
-                <p className="text-[#4c1d95] dark:text-[#c4b5fd] mb-3 text-sm">## 04. DEPLOYMENT</p>
+                <p className="text-[#4c1d95] dark:text-[#a78bfa] mb-3 text-sm">## 04. DEPLOYMENT</p>
                 <p className="text-[#000000] dark:text-[#f6f6f4] mb-3 font-medium">### Deploy. Verify. Optimize.</p>
                 <p className="text-sm mb-6 text-gray-600 dark:text-[#a8a898]">
                   From initial installation to fleet-level operation without changing how execution works.
@@ -243,7 +243,7 @@ export default function AIAgentView() {
             {/* Why It Exists */}
             {visibleSections >= 8 && (
               <div className="animate-fadeInUp border-l border-gray-300 dark:border-[#f6f6f4]/10 pl-4">
-                <p className="text-[#4c1d95] dark:text-[#c4b5fd] mb-3 text-sm">## WHY IT EXISTS</p>
+                <p className="text-[#4c1d95] dark:text-[#a78bfa] mb-3 text-sm">## WHY IT EXISTS</p>
                 <p className="text-[#000000] dark:text-[#f6f6f4] mb-3 font-medium">### Infrastructure for the autonomous era.</p>
                 <div className="text-sm text-gray-600 dark:text-[#a8a898] leading-relaxed space-y-2">
                   <p>AI is becoming autonomous. The systems that run it must be trustworthy.</p>
