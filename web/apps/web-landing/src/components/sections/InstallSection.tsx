@@ -32,6 +32,15 @@ export default function InstallSection() {
           }}
           className="flex flex-col justify-center items-center px-8 md:px-12 lg:px-16 pb-8"
         >
+          {/* Logo */}
+          <div className="mb-6">
+            <img
+              src="/foot.png"
+              alt="Igris"
+              className="h-10 w-auto rounded-lg"
+            />
+          </div>
+
           {/* Command block */}
           <div
             className="inline-flex items-center gap-2 md:gap-4 rounded-md px-3 py-2 md:px-6 md:py-4 text-xs md:text-lg border self-center shadow-sm w-full md:w-auto overflow-hidden"
