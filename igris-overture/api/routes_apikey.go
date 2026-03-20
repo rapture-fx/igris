@@ -72,7 +72,7 @@ func (h *APIKeyHandler) GetAPIKey(c *fiber.Ctx) error {
 	err := h.db.QueryRowContext(c.Context(),
 		`SELECT api_key_hash, api_key_prefix, api_key_created_at
 		   FROM tenants
-		  WHERE id = $1`,
+		  WHERE tenant_id = $1`,
 		tenantID,
 	).Scan(&row.Hash, &row.Prefix, &row.CreatedAt)
 
@@ -139,7 +139,7 @@ func (h *APIKeyHandler) GenerateAPIKey(c *fiber.Ctx) error {
 		        api_key_prefix     = $2,
 		        api_key_created_at = $3,
 		        updated_at         = $3
-		  WHERE id = $4`,
+		  WHERE tenant_id = $4`,
 		keyHash, prefix, now, tenantID,
 	)
 	if err != nil {
@@ -179,7 +179,7 @@ func (h *APIKeyHandler) RevokeAPIKey(c *fiber.Ctx) error {
 		        api_key_prefix     = NULL,
 		        api_key_created_at = NULL,
 		        updated_at         = NOW()
-		  WHERE id = $1`,
+		  WHERE tenant_id = $1`,
 		tenantID,
 	)
 	if err != nil {
