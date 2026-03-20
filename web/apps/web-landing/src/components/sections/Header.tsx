@@ -258,7 +258,7 @@ export default function Header() {
                 onMouseEnter={cancelClose}
               >
                 <div
-                  className={`bg-white dark:bg-[#1b1912] shadow-[0_4px_24px_rgba(0,0,0,0.08)] rounded-b-2xl border-t border-gray-200 dark:border-[#f6f6f4]/5 transition-all duration-300 ease-out ${
+                  className={`bg-white dark:bg-[#1b1912] shadow-[0_4px_24px_rgba(0,0,0,0.08)] rounded-b-2xl transition-all duration-300 ease-out ${
                     isDropdownVisible
                       ? 'opacity-100 max-h-[400px]'
                       : 'opacity-0 max-h-0'
@@ -284,7 +284,7 @@ export default function Header() {
                     >
                       <div className="grid grid-cols-4">
                         {/* Col 1 - Routing & Optimization */}
-                        <div className="p-6 border-r border-gray-200 dark:border-[#f6f6f4]/5">
+                        <div className="p-6 ">
                           <span className="text-xs font-medium uppercase tracking-wider mb-3 block" style={{ fontFamily: '-apple-system, BlinkMacSystemFont, "Segoe UI", Roboto, Helvetica, Arial, sans-serif', color: '#1b1912' }}>Routing & Optimization</span>
                           <div className="flex flex-col gap-1.5">
                             <span onClick={() => setActiveDropdown(null)} className="text-xs text-gray-500 dark:text-[#a8a898] hover:text-gray-900 dark:hover:text-[#f6f6f4] transition-colors cursor-default" style={{ fontFamily: '-apple-system, BlinkMacSystemFont, "Segoe UI", Roboto, Helvetica, Arial, sans-serif' }}>Thompson Sampling</span>
@@ -297,7 +297,7 @@ export default function Header() {
                         </div>
 
                         {/* Col 2 - Agents */}
-                        <div className="p-6 border-r border-gray-200 dark:border-[#f6f6f4]/5">
+                        <div className="p-6 ">
                           <span className="text-xs font-medium uppercase tracking-wider mb-3 block" style={{ fontFamily: '-apple-system, BlinkMacSystemFont, "Segoe UI", Roboto, Helvetica, Arial, sans-serif', color: '#1b1912' }}>Agents</span>
                           <div className="flex flex-col gap-1.5">
                             <span className="text-xs text-gray-500 dark:text-[#a8a898] cursor-default" style={{ fontFamily: '-apple-system, BlinkMacSystemFont, "Segoe UI", Roboto, Helvetica, Arial, sans-serif' }}>Planning Agents</span>
@@ -311,7 +311,7 @@ export default function Header() {
                         </div>
 
                         {/* Col 3 - Infrastructure */}
-                        <div className="p-6 border-r border-gray-200 dark:border-[#f6f6f4]/5">
+                        <div className="p-6 ">
                           <span className="text-xs font-medium uppercase tracking-wider mb-3 block" style={{ fontFamily: '-apple-system, BlinkMacSystemFont, "Segoe UI", Roboto, Helvetica, Arial, sans-serif', color: '#1b1912' }}>Infrastructure</span>
                           <div className="flex flex-col gap-1.5">
                             <span className="text-xs text-gray-500 dark:text-[#a8a898] cursor-default" style={{ fontFamily: '-apple-system, BlinkMacSystemFont, "Segoe UI", Roboto, Helvetica, Arial, sans-serif' }}>Local LLM Fallback</span>
@@ -357,7 +357,7 @@ export default function Header() {
                     >
                       <div className="grid grid-cols-3">
                         {/* Col 1 - Documentation */}
-                        <div className="p-6 border-r border-gray-200 dark:border-[#f6f6f4]/5">
+                        <div className="p-6 ">
                           <span className="text-xs font-medium uppercase tracking-wider mb-3 block" style={{ fontFamily: '-apple-system, BlinkMacSystemFont, "Segoe UI", Roboto, Helvetica, Arial, sans-serif', color: '#1b1912' }}>Documentation</span>
                           <div className="flex flex-col gap-1.5">
                             <span className="text-xs text-gray-500 dark:text-[#a8a898] hover:text-gray-900 dark:hover:text-[#f6f6f4] transition-colors cursor-pointer" style={{ fontFamily: '-apple-system, BlinkMacSystemFont, "Segoe UI", Roboto, Helvetica, Arial, sans-serif' }}>Getting Started</span>
@@ -367,7 +367,7 @@ export default function Header() {
                         </div>
 
                         {/* Col 2 - Use Cases */}
-                        <div className="p-6 border-r border-gray-200 dark:border-[#f6f6f4]/5">
+                        <div className="p-6 ">
                           <span className="text-xs font-medium uppercase tracking-wider mb-3 block" style={{ fontFamily: '-apple-system, BlinkMacSystemFont, "Segoe UI", Roboto, Helvetica, Arial, sans-serif', color: '#1b1912' }}>Use Cases</span>
                           <div className="flex flex-col gap-1.5">
                             <span onClick={() => { setActiveDropdown(null); openUseCases(); }} className="text-xs text-gray-500 dark:text-[#a8a898] hover:text-gray-900 dark:hover:text-[#f6f6f4] transition-colors cursor-pointer" style={{ fontFamily: '-apple-system, BlinkMacSystemFont, "Segoe UI", Roboto, Helvetica, Arial, sans-serif' }}>Enterprise AI</span>
