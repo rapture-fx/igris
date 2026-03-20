@@ -104,12 +104,27 @@ services:
       USE_PG_OPTIMIZER_STATE: "true"
       USE_DISTRIBUTED_LOCK: "true"
 
+      # Runtime Binary Distribution
+      RUNTIME_BINARIES_DIR: /opt/igris-binaries
+      RUNTIME_BINARY_VERSION: ${RUNTIME_BINARY_VERSION:-latest}
+
+      # Polar.sh Billing
+      POLAR_ACCESS_TOKEN: ${POLAR_ACCESS_TOKEN:-}
+      POLAR_WEBHOOK_SECRET: ${POLAR_WEBHOOK_SECRET:-}
+
+      # Resend Email
+      RESEND_API_KEY: ${RESEND_API_KEY:-}
+      RESEND_FROM_EMAIL: ${RESEND_FROM_EMAIL:-noreply@igrisinertial.com}
+
       # Observability
       METRICS_ENABLED: "true"
       TRACING_ENABLED: ${TRACING_ENABLED:-false}
       JAEGER_ENDPOINT: ${JAEGER_ENDPOINT:-http://jaeger:14268/api/traces}
       LOG_LEVEL: ${LOG_LEVEL:-info}
       LOG_FORMAT: json
+
+    volumes:
+      - /opt/igris-binaries:/opt/igris-binaries:ro
 
     depends_on:
       postgres:
