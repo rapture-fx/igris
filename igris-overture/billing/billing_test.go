@@ -136,7 +136,7 @@ func TestValidTier(t *testing.T) {
 }
 
 func TestTierRuntimeLimitMap(t *testing.T) {
-	assert.Equal(t, 1, TierRuntimeLimit[TierSeed])
+	assert.Equal(t, 3, TierRuntimeLimit[TierSeed])
 	assert.Equal(t, 50, TierRuntimeLimit[TierHorizon])
 	assert.Equal(t, 500, TierRuntimeLimit[TierInfinite])
 }
