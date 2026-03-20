@@ -616,8 +616,7 @@ func RegisterDeviceRoutes(app *fiber.App, db *sql.DB) {
 				 WHERE e.runtime_id = r.runtime_id
 				 ORDER BY e.timestamp_utc DESC LIMIT 1)
 			FROM runtime_instances r
-			JOIN tenants t ON t.id = r.tenant_id
-			WHERE t.tenant_id = $1
+			WHERE r.tenant_id = $1
 			ORDER BY r.last_seen_at DESC
 			LIMIT 200
 		`, clerkUserID)
