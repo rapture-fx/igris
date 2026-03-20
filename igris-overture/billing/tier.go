@@ -12,7 +12,7 @@ const (
 
 // TierRuntimeLimit maps each tier to its maximum allowed runtime registrations.
 var TierRuntimeLimit = map[Tier]int{
-	TierSeed:     3,
+	TierSeed:     1,
 	TierHorizon:  50,
 	TierInfinite: 500,
 }
