@@ -54,16 +54,23 @@ func BetterAuth(db *sql.DB) fiber.Handler {
 			})
 		}
 
-		// Auto-provision tenant on first authenticated request
+		// Auto-provision tenant on first authenticated request.
+		// Only inserts columns that exist in the base tenants table.
 		_, _ = db.Exec(`
-			INSERT INTO tenants (tenant_id, tenant_name, email, api_key_hash, api_key_prefix)
-			VALUES ($1, $2, $3, 'placeholder', 'igk_')
+			INSERT INTO tenants (tenant_id, tenant_name, tenant_email)
+			VALUES ($1, $2, $3)
 			ON CONFLICT (tenant_id) DO NOTHING
 		`, userID, name, email)
 
-		// Keep same locals keys so all existing handlers work unchanged
+		// Keep same locals keys so all existing handlers work unchanged.
 		c.Locals("clerk_user_id", userID)
 		c.Locals("clerk_email", email)
+
+		// Also set tenant context so handlers using GetTenantContext work.
+		c.Locals("tenant", &TenantContext{
+			TenantID:   userID,
+			TenantName: name,
+		})
 		return c.Next()
 	}
 }
