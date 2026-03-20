@@ -17,14 +17,42 @@ import (
 	"os"
 	"strings"
 
+	"github.com/Igris-inertial/system/igris-overture/security"
 	"github.com/gofiber/fiber/v2"
 	"github.com/rs/zerolog/log"
 )
 
-// BetterAuth validates the Better Auth session cookie and auto-provisions a tenant
-// record for new users on their first authenticated request.
+// BetterAuth validates the Better Auth session cookie or a Bearer API key,
+// and auto-provisions a tenant record for new users on their first request.
 func BetterAuth(db *sql.DB) fiber.Handler {
 	return func(c *fiber.Ctx) error {
+		// --- API key path (Bearer token or X-API-Key header) ---
+		apiKey := c.Get("X-API-Key")
+		if apiKey == "" {
+			if auth := c.Get("Authorization"); len(auth) > 7 && auth[:7] == "Bearer " {
+				apiKey = auth[7:]
+			}
+		}
+		if apiKey != "" && len(apiKey) > 6 && apiKey[:6] == "igris_" {
+			keyHash := security.HashAPIKey(apiKey)
+			var tenantID, name, email string
+			err := db.QueryRowContext(c.Context(), `
+				SELECT tenant_id, COALESCE(tenant_name,''), COALESCE(tenant_email,'')
+				FROM tenants WHERE api_key_hash = $1 AND COALESCE(is_active, true) = true
+			`, keyHash).Scan(&tenantID, &name, &email)
+			if err != nil {
+				return c.Status(fiber.StatusUnauthorized).JSON(fiber.Map{
+					"error": "unauthorized",
+					"code":  "INVALID_API_KEY",
+				})
+			}
+			c.Locals("clerk_user_id", tenantID)
+			c.Locals("clerk_email", email)
+			c.Locals("tenant", &TenantContext{TenantID: tenantID, TenantName: name})
+			return c.Next()
+		}
+
+		// --- Session cookie path ---
 		// Better Auth uses __Secure- prefix on HTTPS (production).
 		// Try both names so the same binary works locally and in prod.
 		cookieValue := c.Cookies("__Secure-better-auth.session_token")
