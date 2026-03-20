@@ -60,10 +60,7 @@ sha256_file() {
 require_cmd curl
 
 PLATFORM="${IGRIS_PLATFORM:-$(detect_platform)}"
-BINARY_FILE="${BINARY_NAME}-${PLATFORM}"
-if [[ "$PLATFORM" == windows* ]]; then
-    BINARY_FILE="${BINARY_FILE}.exe"
-fi
+ARCHIVE_FILE="igris-runtime-${PLATFORM}.tar.gz"
 
 if [ ! -d "$INSTALL_DIR" ]; then
     info "Creating install directory: $INSTALL_DIR"
@@ -119,7 +116,7 @@ HTTP_STATUS=$(curl -fsSL -s \
     -H "$AUTH_HEADER" \
     -H "User-Agent: igris-installer/1.0" \
     -w "%{http_code}" \
-    -o "${TMP_DIR}/${BINARY_FILE}" \
+    -o "${TMP_DIR}/${ARCHIVE_FILE}" \
     "$DOWNLOAD_URL")
 
 case "$HTTP_STATUS" in
@@ -146,7 +143,7 @@ EXPECTED=$(echo "$CHECKSUM_RESP" | grep -oE '^[a-f0-9]{64}')
 if [ -z "$EXPECTED" ]; then
     die "Checksum format invalid — expected 64-char hex string. Aborting."
 fi
-ACTUAL=$(sha256_file "${TMP_DIR}/${BINARY_FILE}")
+ACTUAL=$(sha256_file "${TMP_DIR}/${ARCHIVE_FILE}")
 if [ "$ACTUAL" = "SKIP" ]; then
     warn "Skipping checksum verification."
 elif [ "$EXPECTED" != "$ACTUAL" ]; then
@@ -155,10 +152,17 @@ else
     info "Checksum verified."
 fi
 
-# ── Install ───────────────────────────────────────────────────────────────────
+# ── Extract and install ───────────────────────────────────────────────────────
 
-chmod +x "${TMP_DIR}/${BINARY_FILE}"
-mv "${TMP_DIR}/${BINARY_FILE}" "${INSTALL_DIR}/${BINARY_NAME}"
+step "Extracting archive..."
+tar -C "${TMP_DIR}" -xzf "${TMP_DIR}/${ARCHIVE_FILE}"
+
+if [ ! -f "${TMP_DIR}/${BINARY_NAME}" ]; then
+    die "Extraction failed — '${BINARY_NAME}' not found in archive."
+fi
+
+chmod +x "${TMP_DIR}/${BINARY_NAME}"
+mv "${TMP_DIR}/${BINARY_NAME}" "${INSTALL_DIR}/${BINARY_NAME}"
 info "Installed: ${INSTALL_DIR}/${BINARY_NAME}"
 
 # ── Verify install ────────────────────────────────────────────────────────────
