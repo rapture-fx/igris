@@ -48,13 +48,13 @@ export default function Products() {
                 paddingRight: '1rem'
               }}>
                 <img 
-                  src="/prio.png" 
+                  src="/prioo.png" 
                   alt="Product"
                   style={{ 
                     width: '100%', 
                     height: '100%', 
                     objectFit: 'cover',
-                    opacity: 0.5
+                    opacity: 1
                   }} 
                 />
               </div>
