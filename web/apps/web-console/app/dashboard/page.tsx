@@ -17,6 +17,7 @@ import {
 } from 'recharts';
 import Link from 'next/link';
 import { Progress } from '@/components/ui/progress';
+import { OnboardingModal } from '@/components/onboarding/OnboardingModal';
 
 interface OverviewStats {
   active_executions: number;
@@ -165,6 +166,7 @@ export default function DashboardPage() {
 
   return (
     <DashboardLayout>
+      <OnboardingModal />
       <div className="space-y-6">
         {/* Page Header */}
         <div>
