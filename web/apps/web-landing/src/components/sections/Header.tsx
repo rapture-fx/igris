@@ -178,7 +178,7 @@ export default function Header() {
                     <img
                       src={isDark ? '/dmfoot.png' : '/foot.png'}
                       alt="Igris Inertial"
-                      className="h-12 w-auto rounded-lg"
+                      className="h-10 w-auto rounded-lg"
                     />
                   </Link>
                 </div>
@@ -409,7 +409,7 @@ export default function Header() {
                   <img
                     src={isDark ? '/dmfoot.png' : '/foot.png'}
                     alt="Igris Inertial"
-                    className="h-12 w-auto rounded-lg"
+                    className="h-10 w-auto rounded-lg"
                   />
                 </Link>
                 <button
