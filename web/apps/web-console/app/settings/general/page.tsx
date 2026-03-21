@@ -169,21 +169,21 @@ export default function SettingsGeneralPage() {
       setGeneralSaved(true);
       setTimeout(() => setGeneralSaved(false), 2000);
     },
-    onError: () => { setGeneralSaved(true); setTimeout(() => setGeneralSaved(false), 2000); }, // optimistic for mock
+    onError: () => {},
   });
 
   // ── Security settings state ────────────────────────────────────────────────
   const [security, setSecurity] = useState<SecuritySettings>({
-    execution_signing: true,
-    verification_key: 'igv_pk_3a8f2c1e9b4d7a6f0e2c5d8b1f4a7e3c',
-    audit_logging: true,
+    execution_signing: false,
+    verification_key: '',
+    audit_logging: false,
   });
   const [securitySaved, setSecuritySaved] = useState(false);
 
   const securityMutation = useMutation({
     mutationFn: (s: SecuritySettings) => api.post('/v1/settings/security', s),
     onSuccess: () => { setSecuritySaved(true); setTimeout(() => setSecuritySaved(false), 2000); },
-    onError:   () => { setSecuritySaved(true); setTimeout(() => setSecuritySaved(false), 2000); },
+    onError:   () => {},
   });
 
   const [rotatePending, setRotatePending] = useState(false);
@@ -206,18 +206,16 @@ export default function SettingsGeneralPage() {
   const runtimeMutation = useMutation({
     mutationFn: (s: RuntimeSettings) => api.post('/v1/settings/runtime', s),
     onSuccess: () => { setRuntimeSaved(true); setTimeout(() => setRuntimeSaved(false), 2000); },
-    onError:   () => { setRuntimeSaved(true); setTimeout(() => setRuntimeSaved(false), 2000); },
+    onError:   () => {},
   });
 
   // ── API keys ───────────────────────────────────────────────────────────────
-  const { data: apiKeys = MOCK_API_KEYS, isLoading: keysLoading } = useQuery<ApiKeyRecord[]>({
+  const { data: apiKeys = [], isLoading: keysLoading } = useQuery<ApiKeyRecord[]>({
     queryKey: ['settings-api-keys'],
     queryFn: async () => {
       try {
-        const r = await api.get<ApiKeyRecord[]>('/v1/settings/api-keys');
-        if (!r?.length) return MOCK_API_KEYS;
-        return r;
-      } catch { return MOCK_API_KEYS; }
+        return await api.get<ApiKeyRecord[]>('/v1/settings/api-keys');
+      } catch { return [] as ApiKeyRecord[]; }
     },
     retry: false,
     staleTime: 60_000,
@@ -234,11 +232,7 @@ export default function SettingsGeneralPage() {
       setNewKeyName('');
       qc.invalidateQueries({ queryKey: ['settings-api-keys'] });
     },
-    onError: () => {
-      // mock: show a fake created key
-      setCreatedKey(`igk_live_${Array.from(crypto.getRandomValues(new Uint8Array(12))).map((b) => b.toString(16).padStart(2, '0')).join('')}`);
-      setNewKeyName('');
-    },
+    onError: () => {},
   });
 
   const revokeKeyMutation = useMutation({
@@ -248,7 +242,7 @@ export default function SettingsGeneralPage() {
   });
 
   // ── Roles ──────────────────────────────────────────────────────────────────
-  const [roles] = useState<RoleRecord[]>(MOCK_ROLES);
+  const [roles] = useState<RoleRecord[]>([]);
 
   // ── License (summary from tenant) ─────────────────────────────────────────
   const isLoading = tenantLoading;
