@@ -1,6 +1,6 @@
 'use client';
 
-import { useState } from 'react';
+import { useState, useMemo } from 'react';
 import { useQuery } from '@tanstack/react-query';
 import { DashboardLayout } from '@/components/layout/DashboardLayout';
 import { Card, CardContent, CardHeader, CardTitle } from '@/components/ui/card';
@@ -152,9 +152,11 @@ const TIME_OPTIONS: { label: string; value: TimeRange }[] = [
   { label: '7 days', value: '7d' },
 ];
 
-const AGENTS = ['All Agents', 'agent-alpha', 'agent-beta', 'agent-gamma', 'agent-delta'];
-const DEVICES = ['All Devices', 'dev-0a1b', 'dev-2c3d', 'dev-4e5f', 'dev-6g7h'];
-const PROVIDERS = ['All Providers', 'openai', 'anthropic', 'mistral'];
+const AGENTS = ['All Agents'];
+const DEVICES = ['All Devices'];
+const PROVIDERS = ['All Providers'];
+
+const PROVIDER_COLORS = ['#10b981', '#8b5cf6', '#f59e0b', '#3b82f6', '#ef4444', '#06b6d4'];
 
 const CHART_TOOLTIP_STYLE = {
   contentStyle: { fontSize: 11, border: '1px solid #e5e7eb', borderRadius: 6, boxShadow: 'none', padding: '6px 10px' },
@@ -268,6 +270,12 @@ export default function HistoryMetricsPage() {
     refetchInterval: 15_000,
     retry: false,
   });
+
+  const providerKeys = useMemo(() => {
+    const pts = metrics?.provider_latency ?? [];
+    if (!pts.length) return [];
+    return Object.keys(pts[0]).filter((k) => k !== 'time');
+  }, [metrics]);
 
   const s = metrics?.summary;
 
@@ -398,10 +406,10 @@ export default function HistoryMetricsPage() {
               <XAxis dataKey="time" tick={{ fontSize: 10, fill: '#9ca3af' }} axisLine={false} tickLine={false} interval="preserveStartEnd" />
               <YAxis tick={{ fontSize: 10, fill: '#9ca3af' }} axisLine={false} tickLine={false} />
               <Tooltip {...CHART_TOOLTIP_STYLE} />
-              <Legend iconType="circle" iconSize={7} wrapperStyle={{ fontSize: 10 }} />
-              <Line type="monotone" dataKey="openai" stroke="#10b981" strokeWidth={1.5} dot={false} name="OpenAI" />
-              <Line type="monotone" dataKey="anthropic" stroke="#8b5cf6" strokeWidth={1.5} dot={false} name="Anthropic" />
-              <Line type="monotone" dataKey="mistral" stroke="#f59e0b" strokeWidth={1.5} dot={false} name="Mistral" />
+              {providerKeys.length > 0 && <Legend iconType="circle" iconSize={7} wrapperStyle={{ fontSize: 10 }} />}
+              {providerKeys.map((key, i) => (
+                <Line key={key} type="monotone" dataKey={key} stroke={PROVIDER_COLORS[i % PROVIDER_COLORS.length]} strokeWidth={1.5} dot={false} name={key} />
+              ))}
             </LineChart>
           </MetricChart>
 
