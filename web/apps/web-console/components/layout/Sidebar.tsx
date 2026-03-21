@@ -248,7 +248,7 @@ export function Sidebar({ open = true, onClose }: SidebarProps) {
           {/* Logo */}
           <div className="h-12 flex items-center px-4 pt-4">
             <Link href="/dashboard" className="flex items-center">
-              <img src="/dmfoot.png" alt="Igris" className="h-8 w-auto rounded-lg" />
+              <img src="/iner.png" alt="Igris" className="h-8 w-auto rounded-lg" />
             </Link>
           </div>
 
