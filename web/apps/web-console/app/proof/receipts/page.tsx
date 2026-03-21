@@ -374,7 +374,7 @@ function ReceiptsContent() {
     queryKey: ['proof-receipts'],
     queryFn: async () => {
       try { return await api.get<Receipt[]>('/proof/receipts?limit=500&sort=timestamp:desc'); }
-      catch { return MOCK_RECEIPTS; }
+      catch { return [] as Receipt[]; }
     },
     retry: false,
     staleTime: 30_000,
