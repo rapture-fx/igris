@@ -96,7 +96,6 @@ const navigation: NavigationItem[] = [
     icon: SlidersHorizontal,
     children: [
       { name: 'General', href: '/settings/general' },
-      { name: 'Keys', href: '/settings/keys' },
       { name: 'License', href: '/settings/license' },
     ],
   },

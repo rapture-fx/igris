@@ -2,12 +2,13 @@
 
 import { useState } from 'react';
 import { useRouter } from 'next/navigation';
-import { Loader2, ArrowRight, Check, Building2, Zap, KeyRound } from 'lucide-react';
+import { Loader2, ArrowRight, Check, Building2, Zap, KeyRound, Copy, CheckCircle2 } from 'lucide-react';
 import { Button } from '@/components/ui/button';
 import { Input } from '@/components/ui/input';
 import { Label } from '@/components/ui/label';
+import { api } from '@/lib/apiClient';
 
-const STEPS = ['workspace', 'usecase', 'done'] as const;
+const STEPS = ['workspace', 'usecase', 'apikey', 'done'] as const;
 type Step = typeof STEPS[number];
 
 const USE_CASES = [
@@ -23,6 +24,9 @@ export default function OnboardingPage() {
   const [workspaceName, setWorkspaceName] = useState('');
   const [selectedUseCase, setSelectedUseCase] = useState<string | null>(null);
   const [loading, setLoading] = useState(false);
+  const [generatedKey, setGeneratedKey] = useState<string | null>(null);
+  const [copied, setCopied] = useState(false);
+  const [keyError, setKeyError] = useState('');
 
   const handleWorkspaceSubmit = async (e: React.FormEvent) => {
     e.preventDefault();
@@ -32,10 +36,29 @@ export default function OnboardingPage() {
 
   const handleUseCaseSubmit = async () => {
     setLoading(true);
-    // Tenant is auto-provisioned by the Go backend on first authenticated request.
-    await new Promise((r) => setTimeout(r, 600));
-    setStep('done');
+    await new Promise((r) => setTimeout(r, 400));
+    setStep('apikey');
     setLoading(false);
+  };
+
+  const handleGenerateKey = async () => {
+    setLoading(true);
+    setKeyError('');
+    try {
+      const data = await api.post<{ api_key: string }>('/v1/account/api-key');
+      setGeneratedKey(data.api_key);
+    } catch (err: any) {
+      setKeyError(err.message || 'Failed to generate API key. You can do this later in Settings.');
+    } finally {
+      setLoading(false);
+    }
+  };
+
+  const handleCopy = () => {
+    if (!generatedKey) return;
+    navigator.clipboard.writeText(generatedKey);
+    setCopied(true);
+    setTimeout(() => setCopied(false), 2000);
   };
 
   const stepIndex = STEPS.indexOf(step);
@@ -88,7 +111,6 @@ export default function OnboardingPage() {
                   autoFocus
                 />
               </div>
-
               <Button type="submit" className="w-full h-9 text-sm gap-1.5">
                 Continue
                 <ArrowRight className="h-3.5 w-3.5" />
@@ -140,12 +162,7 @@ export default function OnboardingPage() {
             </div>
 
             <div className="flex gap-2">
-              <Button
-                type="button"
-                variant="outline"
-                onClick={() => setStep('workspace')}
-                className="h-9 text-sm"
-              >
+              <Button type="button" variant="outline" onClick={() => setStep('workspace')} className="h-9 text-sm">
                 Back
               </Button>
               <Button
@@ -154,45 +171,92 @@ export default function OnboardingPage() {
                 disabled={loading}
                 className="flex-1 h-9 text-sm gap-1.5"
               >
-                {loading ? (
-                  <Loader2 className="h-3.5 w-3.5 animate-spin" />
-                ) : (
-                  <>
-                    Continue
-                    <ArrowRight className="h-3.5 w-3.5" />
-                  </>
-                )}
+                {loading ? <Loader2 className="h-3.5 w-3.5 animate-spin" /> : <>Continue <ArrowRight className="h-3.5 w-3.5" /></>}
               </Button>
             </div>
           </div>
         )}
 
-        {/* Step 3: Done */}
+        {/* Step 3: API Key */}
+        {step === 'apikey' && (
+          <div className="bg-white dark:bg-[#1c1c1b] rounded-xl border border-gray-200 dark:border-gray-800 p-8 shadow-sm">
+            <div className="mb-6">
+              <div className="inline-flex items-center justify-center w-10 h-10 bg-gray-100 dark:bg-gray-800 rounded-lg mb-4">
+                <KeyRound className="h-5 w-5 text-gray-700 dark:text-gray-300" />
+              </div>
+              <h1 className="text-xl font-semibold text-gray-900 dark:text-white tracking-tight">
+                Get your API key
+              </h1>
+              <p className="mt-1.5 text-sm text-gray-500 dark:text-gray-400">
+                Your runtime uses this key to authenticate with Igris. Copy it — it's shown only once.
+              </p>
+            </div>
+
+            {!generatedKey ? (
+              <div className="space-y-4">
+                {keyError && (
+                  <p className="text-xs text-red-600 bg-red-50 border border-red-100 rounded-lg px-3 py-2">
+                    {keyError}
+                  </p>
+                )}
+                <Button
+                  type="button"
+                  onClick={handleGenerateKey}
+                  disabled={loading}
+                  className="w-full h-9 text-sm gap-1.5"
+                >
+                  {loading ? <Loader2 className="h-3.5 w-3.5 animate-spin" /> : <>Generate API Key <KeyRound className="h-3.5 w-3.5" /></>}
+                </Button>
+                <button
+                  type="button"
+                  onClick={() => setStep('done')}
+                  className="w-full text-xs text-gray-400 hover:text-gray-600 dark:hover:text-gray-300 py-1"
+                >
+                  Skip for now
+                </button>
+              </div>
+            ) : (
+              <div className="space-y-4">
+                <div className="rounded-lg border border-green-200 bg-green-50 dark:bg-green-950/30 dark:border-green-900/40 p-4">
+                  <p className="text-xs font-medium text-green-800 dark:text-green-300 mb-2 flex items-center gap-1.5">
+                    <CheckCircle2 className="h-3.5 w-3.5" /> Key generated
+                  </p>
+                  <div className="flex items-center gap-2">
+                    <code className="text-xs font-mono text-gray-800 dark:text-gray-200 flex-1 break-all bg-white dark:bg-black/20 rounded px-2 py-1.5 border border-green-100 dark:border-green-900/30">
+                      {generatedKey}
+                    </code>
+                    <button
+                      onClick={handleCopy}
+                      className="flex-shrink-0 p-1.5 rounded hover:bg-green-100 dark:hover:bg-green-900/30 transition-colors"
+                      title="Copy"
+                    >
+                      {copied ? <Check className="h-4 w-4 text-green-600" /> : <Copy className="h-4 w-4 text-green-600" />}
+                    </button>
+                  </div>
+                  <p className="text-[10px] text-green-700 dark:text-green-400 mt-2">
+                    Save this key securely. You won't be able to see it again.
+                  </p>
+                </div>
+                <Button type="button" onClick={() => setStep('done')} className="w-full h-9 text-sm gap-1.5">
+                  {copied ? <><Check className="h-3.5 w-3.5" /> Copied — Continue</> : <>I've saved it — Continue <ArrowRight className="h-3.5 w-3.5" /></>}
+                </Button>
+              </div>
+            )}
+          </div>
+        )}
+
+        {/* Step 4: Done */}
         {step === 'done' && (
           <div className="bg-white dark:bg-[#1c1c1b] rounded-xl border border-gray-200 dark:border-gray-800 p-8 shadow-sm text-center">
             <div className="inline-flex items-center justify-center w-12 h-12 bg-black dark:bg-white rounded-full mb-5">
               <Check className="h-6 w-6 text-white dark:text-black" />
             </div>
-
             <h1 className="text-xl font-semibold text-gray-900 dark:text-white tracking-tight">
               You're all set{workspaceName ? `, ${workspaceName}` : ''}
             </h1>
             <p className="mt-2 text-sm text-gray-500 dark:text-gray-400 max-w-xs mx-auto">
-              Your workspace is ready. Head to the dashboard to get your API key and connect your first provider.
+              Your workspace is ready. Head to the dashboard to connect your first provider.
             </p>
-
-            <div className="mt-6 p-4 rounded-lg bg-gray-50 dark:bg-gray-900 border border-gray-100 dark:border-gray-800 text-left">
-              <div className="flex items-start gap-3">
-                <KeyRound className="h-4 w-4 text-gray-400 mt-0.5 shrink-0" />
-                <div>
-                  <p className="text-xs font-medium text-gray-700 dark:text-gray-300">Next: get your API key</p>
-                  <p className="text-xs text-gray-500 dark:text-gray-400 mt-0.5">
-                    Go to Settings → API Keys to generate your first key and start sending inference requests.
-                  </p>
-                </div>
-              </div>
-            </div>
-
             <Button
               onClick={() => router.replace('/dashboard')}
               className="mt-6 w-full h-9 text-sm gap-1.5"
