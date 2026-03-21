@@ -70,12 +70,11 @@ RUN addgroup --system --gid 1001 nodejs && \
 # Copy the entire standalone directory to preserve pnpm symlinks (relative paths
 # like node_modules/next → ../../../node_modules/.pnpm/... only resolve correctly
 # when the full standalone tree is rooted at /app/)
-COPY --from=builder /monorepo/web/apps/web-console/public ./public
-
 COPY --from=builder --chown=nextjs:nodejs \
   /monorepo/web/apps/web-console/.next/standalone/ ./
 COPY --from=builder --chown=nextjs:nodejs \
-  /monorepo/web/apps/web-console/.next/static ./.next/static
+  /monorepo/web/apps/web-console/.next/static ./apps/web-console/.next/static
+COPY --from=builder /monorepo/web/apps/web-console/public ./apps/web-console/public
 
 USER nextjs
 
