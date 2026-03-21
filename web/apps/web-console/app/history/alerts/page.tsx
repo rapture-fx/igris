@@ -305,14 +305,7 @@ export default function HistoryAlertsPage() {
   const { data: rawAlerts, isLoading, refetch } = useQuery<SystemAlert[]>({
     queryKey: ['history-alerts', timeRange],
     queryFn: async () => {
-      try {
-        const result = await api.get<SystemAlert[]>(`/v1/history/alerts?range=${timeRange}&limit=200`);
-        if (!result?.length) throw new Error('empty');
-        return result;
-      } catch {
-        const cutoff = _now - (TIME_RANGE_MS[timeRange] ?? TIME_RANGE_MS.last_1h);
-        return MOCK_ALERTS.filter((a) => new Date(a.timestamp).getTime() >= cutoff);
-      }
+      return await api.get<SystemAlert[]>(`/v1/history/alerts?range=${timeRange}&limit=200`);
     },
     refetchInterval: 10_000,
     retry: false,

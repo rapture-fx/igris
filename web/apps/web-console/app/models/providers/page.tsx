@@ -165,10 +165,7 @@ export default function ModelsProvidersPage() {
 
   const { data: providers = [], isLoading, refetch } = useQuery<Provider[]>({
     queryKey: ['model-providers-v2'],
-    queryFn: async () => {
-      try { return await api.get<Provider[]>('/models/providers'); }
-      catch { return MOCK_PROVIDERS; }
-    },
+    queryFn: async () => api.get<Provider[]>('/models/providers'),
     retry: false,
     staleTime: 30_000,
     refetchOnWindowFocus: false,

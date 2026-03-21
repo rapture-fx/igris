@@ -271,23 +271,43 @@ export default function ModelsRoutingPage() {
   const qc = useQueryClient();
 
   // ── Routing Strategy state ───────────────────────────────────────────────────
-  const [strategyForm, setStrategyForm] = useState<StrategyConfig>(MOCK_STRATEGY);
+  const [strategyForm, setStrategyForm] = useState<StrategyConfig>({
+    strategy: 'thompson_sampling',
+    circuit_breaker_enabled: false,
+    provider_health_monitor: false,
+  });
   const [strategyDirty, setStrategyDirty] = useState(false);
 
   // ── Speculative Execution state ──────────────────────────────────────────────
-  const [speculativeForm, setSpeculativeForm] = useState<SpeculativeConfig>(MOCK_SPECULATIVE);
+  const [speculativeForm, setSpeculativeForm] = useState<SpeculativeConfig>({
+    enable_speculative_execution: false,
+    max_parallel_requests: 2,
+    speculative_timeout_ms: 800,
+  });
   const [speculativeDirty, setSpeculativeDirty] = useState(false);
 
   // ── Council Mode state ───────────────────────────────────────────────────────
-  const [councilForm, setCouncilForm] = useState<CouncilConfig>(MOCK_COUNCIL);
+  const [councilForm, setCouncilForm] = useState<CouncilConfig>({
+    enable_council_mode: false,
+    council_models: [],
+    aggregation_strategy: 'majority_vote',
+    min_consensus: 2,
+  });
   const [councilDirty, setCouncilDirty] = useState(false);
 
   // ── Shadow Mode state ────────────────────────────────────────────────────────
-  const [shadowForm, setShadowForm] = useState<ShadowConfig>(MOCK_SHADOW);
+  const [shadowForm, setShadowForm] = useState<ShadowConfig>({
+    enable_shadow_mode: false,
+    shadow_providers: [],
+    shadow_sampling_rate: 10,
+    capture_latency_metrics: false,
+    capture_cost_metrics: false,
+    capture_quality_metrics: false,
+  });
   const [shadowDirty, setShadowDirty] = useState(false);
 
   // ── Provider weights state ───────────────────────────────────────────────────
-  const [providerRows, setProviderRows] = useState<ProviderRow[]>(MOCK_PROVIDERS);
+  const [providerRows, setProviderRows] = useState<ProviderRow[]>([]);
   const [providerDirty, setProviderDirty] = useState(false);
 
   // ── Queries ──────────────────────────────────────────────────────────────────
@@ -295,13 +315,9 @@ export default function ModelsRoutingPage() {
   const { isLoading: providersLoading, refetch } = useQuery<ProviderRow[]>({
     queryKey: ['routing-providers'],
     queryFn: async () => {
-      try {
-        const data = await api.get<ProviderRow[]>('/providers/stats');
-        setProviderRows(data);
-        return data;
-      } catch {
-        return MOCK_PROVIDERS;
-      }
+      const data = await api.get<ProviderRow[]>('/providers/stats');
+      setProviderRows(data);
+      return data;
     },
     retry: false,
     staleTime: 30_000,
@@ -448,7 +464,7 @@ export default function ModelsRoutingPage() {
               dirty={strategyDirty}
               pending={strategyMutation.isPending}
               onSave={() => strategyMutation.mutate(strategyForm)}
-              onReset={() => { setStrategyForm(MOCK_STRATEGY); setStrategyDirty(false); }}
+              onReset={() => { setStrategyForm({ strategy: 'thompson_sampling', circuit_breaker_enabled: false, provider_health_monitor: false }); setStrategyDirty(false); }}
             />
             {strategyMutation.isError && (
               <p className="text-xs text-red-600">Failed to save strategy settings.</p>
@@ -540,7 +556,7 @@ export default function ModelsRoutingPage() {
               dirty={speculativeDirty}
               pending={speculativeMutation.isPending}
               onSave={() => speculativeMutation.mutate(speculativeForm)}
-              onReset={() => { setSpeculativeForm(MOCK_SPECULATIVE); setSpeculativeDirty(false); }}
+              onReset={() => { setSpeculativeForm({ enable_speculative_execution: false, max_parallel_requests: 2, speculative_timeout_ms: 800 }); setSpeculativeDirty(false); }}
             />
             {speculativeMutation.isError && (
               <p className="text-xs text-red-600">Failed to save speculative execution settings.</p>
@@ -644,7 +660,7 @@ export default function ModelsRoutingPage() {
               dirty={councilDirty}
               pending={councilMutation.isPending}
               onSave={() => councilMutation.mutate(councilForm)}
-              onReset={() => { setCouncilForm(MOCK_COUNCIL); setCouncilDirty(false); }}
+              onReset={() => { setCouncilForm({ enable_council_mode: false, council_models: [], aggregation_strategy: 'majority_vote', min_consensus: 2 }); setCouncilDirty(false); }}
             />
             {councilMutation.isError && (
               <p className="text-xs text-red-600">Failed to save council mode settings.</p>
@@ -765,7 +781,7 @@ export default function ModelsRoutingPage() {
               dirty={shadowDirty}
               pending={shadowMutation.isPending}
               onSave={() => shadowMutation.mutate(shadowForm)}
-              onReset={() => { setShadowForm(MOCK_SHADOW); setShadowDirty(false); }}
+              onReset={() => { setShadowForm({ enable_shadow_mode: false, shadow_providers: [], shadow_sampling_rate: 10, capture_latency_metrics: false, capture_cost_metrics: false, capture_quality_metrics: false }); setShadowDirty(false); }}
             />
             {shadowMutation.isError && (
               <p className="text-xs text-red-600">Failed to save shadow mode settings.</p>
