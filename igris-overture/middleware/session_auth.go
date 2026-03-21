@@ -83,11 +83,14 @@ func BetterAuth(db *sql.DB) fiber.Handler {
 		}
 
 		// Auto-provision tenant on first authenticated request.
-		// Only inserts columns that exist in the base tenants table.
+		// On conflict, backfill name/email if they were previously empty
+		// (e.g. tenant row created before OAuth display name was available).
 		_, _ = db.Exec(`
 			INSERT INTO tenants (tenant_id, tenant_name, tenant_email)
 			VALUES ($1, $2, $3)
-			ON CONFLICT (tenant_id) DO NOTHING
+			ON CONFLICT (tenant_id) DO UPDATE SET
+				tenant_name  = CASE WHEN tenants.tenant_name  = '' OR tenants.tenant_name  IS NULL THEN EXCLUDED.tenant_name  ELSE tenants.tenant_name  END,
+				tenant_email = CASE WHEN tenants.tenant_email = '' OR tenants.tenant_email IS NULL THEN EXCLUDED.tenant_email ELSE tenants.tenant_email END
 		`, userID, name, email)
 
 		// Keep same locals keys so all existing handlers work unchanged.
