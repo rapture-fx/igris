@@ -259,17 +259,11 @@ export default function HistoryMetricsPage() {
   const { data: metrics, isLoading, refetch } = useQuery<MetricsData>({
     queryKey: ['history-metrics', timeRange, agent, device, provider],
     queryFn: async () => {
-      try {
-        const params = new URLSearchParams({ range: timeRange });
-        if (agent !== 'All Agents') params.set('agent_id', agent);
-        if (device !== 'All Devices') params.set('device_id', device);
-        if (provider !== 'All Providers') params.set('provider', provider);
-        const result = await api.get<MetricsData>(`/v1/history/metrics?${params}`);
-        if (!result?.summary) return makeMock(timeRange);
-        return result;
-      } catch {
-        return makeMock(timeRange);
-      }
+      const params = new URLSearchParams({ range: timeRange });
+      if (agent !== 'All Agents') params.set('agent_id', agent);
+      if (device !== 'All Devices') params.set('device_id', device);
+      if (provider !== 'All Providers') params.set('provider', provider);
+      return await api.get<MetricsData>(`/v1/history/metrics?${params}`);
     },
     refetchInterval: 15_000,
     retry: false,
