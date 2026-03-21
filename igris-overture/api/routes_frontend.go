@@ -227,6 +227,23 @@ func makeGetCurrentTenant(db *sql.DB) fiber.Handler {
 			})
 		}
 
+		// If tenant_name is empty in DB (e.g. OAuth user created before name backfill),
+		// fall back to the name stored in Better Auth's user table (set by middleware).
+		if resp.TenantName == "" {
+			if tc, ok := c.Locals("tenant").(*middleware.TenantContext); ok && tc != nil && tc.TenantName != "" {
+				resp.TenantName = tc.TenantName
+			} else if e := middleware.GetClerkEmail(c); e != "" {
+				// Last resort: use email prefix
+				if idx := len(e); idx > 0 {
+					for i, ch := range e {
+						if ch == '@' {
+							resp.TenantName = e[:i]
+							break
+						}
+					}
+				}
+			}
+		}
 		if company.Valid {
 			resp.Company = company.String
 		}
