@@ -170,6 +170,29 @@ export default function MachinePage() {
             </div>
           </div>
 
+          {/* Pricing */}
+          <div className="border-l border-gray-300 dark:border-[#f6f6f4]/10 pl-4">
+            <p className="text-[#4c1d95] dark:text-[#a78bfa] mb-3 text-sm">## 05. PRICING</p>
+            <p className="text-[#000000] dark:text-[#f6f6f4] mb-3 font-medium">### Three tiers. Same governed execution.</p>
+            <div className="space-y-4">
+              <div>
+                <p className="text-[#000000] dark:text-[#f6f6f4] mb-1 font-medium">Seed — $29/month</p>
+                <p className="text-sm text-gray-600 dark:text-[#a8a898]">For developers shipping to production. 3 runtime instances. Edge or server deployment. Cryptographic execution receipts. Offline survival mode. Local + cloud routing. Fleet dashboard. OTA verified updates. Audit logs. 30-day log retention.</p>
+              </div>
+              <div>
+                <p className="text-[#000000] dark:text-[#f6f6f4] mb-1 font-medium">Horizon — $149/month</p>
+                <p className="text-sm text-gray-600 dark:text-[#a8a898]">For teams scaling autonomous agent fleets. Up to 50 runtime instances. Everything in Seed. Shadow mode. Speculative execution. SLO enforcement. Prometheus metrics. Advanced policy engine. 90-day log retention. Priority support (12h).</p>
+              </div>
+              <div>
+                <p className="text-[#000000] dark:text-[#f6f6f4] mb-1 font-medium">Infinite — Custom</p>
+                <p className="text-sm text-gray-600 dark:text-[#a8a898]">For organizations running critical infrastructure at scale. Unlimited instances. Everything in Horizon. Self-hosted cloud router. Custom policy engine. Dedicated engineer. SLA with financial backing. Custom log retention.</p>
+              </div>
+            </div>
+            <p className="text-sm mt-3 text-gray-600 dark:text-[#a8a898]">
+              Full pricing: <a href="https://igrisinertial.com/pricing/" className="text-blue-600 dark:text-blue-400 hover:underline">igrisinertial.com/pricing/</a>
+            </p>
+          </div>
+
           {/* Why It Exists */}
           <div className="border-l border-gray-300 dark:border-[#f6f6f4]/10 pl-4">
             <p className="text-[#4c1d95] dark:text-[#a78bfa] mb-3 text-sm">## WHY IT EXISTS</p>
