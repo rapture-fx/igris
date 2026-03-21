@@ -211,7 +211,7 @@ export default function ExecutionAgentsPage() {
       try {
         return await api.get('/v1/execution/agents');
       } catch {
-        return MOCK_AGENTS as unknown as Agent[];
+        return [] as Agent[];
       }
     },
     retry: false,

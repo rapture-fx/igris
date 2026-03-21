@@ -286,7 +286,7 @@ function FleetDevicesContent() {
       try {
         return await api.get<Device[]>('/devices');
       } catch {
-        return MOCK_DEVICES;
+        return [] as Device[];
       }
     },
     staleTime: 30_000,
@@ -301,7 +301,7 @@ function FleetDevicesContent() {
       try {
         return await api.get<DeviceStats>(`/devices/stats?range=${timeRange}`);
       } catch {
-        return MOCK_STATS;
+        return null;
       }
     },
     staleTime: 60_000,

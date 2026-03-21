@@ -117,7 +117,7 @@ export default function ExecutionRunsPage() {
       try {
         return await api.get('/v1/execution/runs?limit=500&sort=created_at:desc');
       } catch {
-        return MOCK_RUNS as unknown as Execution[];
+        return [] as Execution[];
       }
     },
     retry: false,

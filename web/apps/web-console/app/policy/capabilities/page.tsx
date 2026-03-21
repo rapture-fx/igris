@@ -192,7 +192,20 @@ function PathList({
 
 export default function PolicyCapabilitiesPage() {
   const qc = useQueryClient();
-  const [form, setForm] = useState<Capabilities>(MOCK_CAPS);
+  const EMPTY_CAPS: Capabilities = {
+    allow_http: false,
+    allow_shell: false,
+    allow_fs_write: false,
+    allow_external_api: false,
+    domain_allowlist: [],
+    domain_denylist: [],
+    writable_paths: [],
+    readable_paths: [],
+    violation_behavior: 'terminate',
+    policy_hash: '',
+    updated_at: new Date().toISOString(),
+  };
+  const [form, setForm] = useState<Capabilities>(EMPTY_CAPS);
   const [savedIndicator, setSavedIndicator] = useState(false);
 
   // Add-form state for domain tables
@@ -205,7 +218,7 @@ export default function PolicyCapabilitiesPage() {
     queryKey: ['policy-capabilities-v2'],
     queryFn: async () => {
       try { return await api.get<Capabilities>('/policy/capabilities'); }
-      catch { return MOCK_CAPS; }
+      catch { return null as unknown as Capabilities; }
     },
     retry: false,
     staleTime: 60_000,
@@ -216,7 +229,7 @@ export default function PolicyCapabilitiesPage() {
     queryKey: ['capability-history'],
     queryFn: async () => {
       try { return await api.get<CapHistoryEntry[]>('/policy/capabilities/history'); }
-      catch { return MOCK_HISTORY; }
+      catch { return [] as CapHistoryEntry[]; }
     },
     retry: false,
     staleTime: 60_000,
@@ -265,7 +278,7 @@ export default function PolicyCapabilitiesPage() {
   const removeDenyDomain = (domain: string) =>
     set('domain_denylist', form.domain_denylist.filter((e) => e.domain !== domain));
 
-  const displayCaps = serverCaps ?? MOCK_CAPS;
+  const displayCaps = serverCaps ?? form;
 
   return (
     <DashboardLayout>

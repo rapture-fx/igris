@@ -324,7 +324,7 @@ function ViolationsContent() {
       try {
         return await api.get<PolicyViolation[]>('/v1/proof/violations?limit=500&sort=timestamp:desc');
       } catch {
-        return MOCK_VIOLATIONS;
+        return [] as PolicyViolation[];
       }
     },
     retry: false,
