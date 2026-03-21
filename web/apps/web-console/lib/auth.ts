@@ -1,6 +1,5 @@
 import { betterAuth } from 'better-auth';
 import { admin, organization } from 'better-auth/plugins';
-import { nextCookies } from 'better-auth/next-js';
 import { dash } from '@better-auth/infra';
 import { Pool } from 'pg';
 import { Resend } from 'resend';
@@ -50,7 +49,6 @@ export const auth = betterAuth({
     admin(),
     organization(),
     dash(),
-    nextCookies(),
   ],
   session: {
     expiresIn: 60 * 60 * 24 * 7,
