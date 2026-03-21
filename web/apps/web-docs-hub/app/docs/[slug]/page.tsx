@@ -1,10 +1,72 @@
 import { DocsLayout } from '@/components/layout/DocsLayout';
 import { MDXContent } from '@/components/MDXContent';
+import { JsonLd } from '@/components/JsonLd';
 import { notFound } from 'next/navigation';
 
 interface PageProps {
   params: Promise<{ slug: string }>;
 }
+
+const jsonLdBySlug: Record<string, Record<string, unknown>> = {
+  'execution-model': {
+    '@context': 'https://schema.org',
+    '@type': 'TechArticle',
+    headline: 'Execution Model — Bounded AI Execution with Verifiable Traces',
+    description: 'How Igris governs AI execution through envelopes, resource limits, signed violation logs, and deterministic paths. Covers cloud and local execution with cryptographic proof.',
+    url: 'https://docs.igrisinertial.com/docs/execution-model/',
+    author: { '@type': 'Organization', name: 'Igris Inertial' },
+    publisher: { '@type': 'Organization', name: 'Igris Inertial', url: 'https://igrisinertial.com' },
+    about: ['Bounded execution', 'Verifiable traces', 'Execution envelopes', 'Deterministic behavior'],
+    isPartOf: { '@type': 'WebSite', name: 'Igris Documentation', url: 'https://docs.igrisinertial.com' },
+  },
+  'quickstart': {
+    '@context': 'https://schema.org',
+    '@type': 'HowTo',
+    name: 'Get Started with Igris Runtime',
+    description: 'Install the 16MB Runtime binary, configure your model providers, and execute your first bounded task with verifiable traces.',
+    url: 'https://docs.igrisinertial.com/docs/quickstart/',
+    estimatedCost: { '@type': 'MonetaryAmount', currency: 'USD', value: '0' },
+    step: [
+      { '@type': 'HowToStep', name: 'Install Runtime', text: 'Download the 16MB binary for your platform (Linux, macOS, Windows, ARM).' },
+      { '@type': 'HowToStep', name: 'Configure Providers', text: 'Set up your model providers — local GGUF models or cloud APIs (OpenAI, Anthropic, etc.).' },
+      { '@type': 'HowToStep', name: 'Execute Your First Task', text: 'Run a bounded execution task with resource limits and receive a signed execution receipt.' },
+    ],
+    author: { '@type': 'Organization', name: 'Igris Inertial' },
+  },
+  'ros2-integration': {
+    '@context': 'https://schema.org',
+    '@type': 'TechArticle',
+    headline: 'ROS 2 Integration — Governed AI Execution for Robotics',
+    description: 'Run Igris Runtime on ROS 2 Humble and Iron systems. Topics, services, and behavior trees for autonomous robot execution with bounded safety limits.',
+    url: 'https://docs.igrisinertial.com/docs/ros2-integration/',
+    author: { '@type': 'Organization', name: 'Igris Inertial' },
+    publisher: { '@type': 'Organization', name: 'Igris Inertial', url: 'https://igrisinertial.com' },
+    about: ['ROS 2 integration', 'Autonomous systems', 'Robotics execution', 'Fleet management'],
+    isPartOf: { '@type': 'WebSite', name: 'Igris Documentation', url: 'https://docs.igrisinertial.com' },
+  },
+  'safety': {
+    '@context': 'https://schema.org',
+    '@type': 'TechArticle',
+    headline: 'Safety & Containment — Sandboxed AI Execution',
+    description: 'OS-level cgroup containment, sandboxed execution, and hard limits on runtime, memory, and network access for governed AI systems.',
+    url: 'https://docs.igrisinertial.com/docs/safety/',
+    author: { '@type': 'Organization', name: 'Igris Inertial' },
+    publisher: { '@type': 'Organization', name: 'Igris Inertial', url: 'https://igrisinertial.com' },
+    about: ['Sandboxed execution', 'Containment', 'Safety limits', 'Bounded execution'],
+    isPartOf: { '@type': 'WebSite', name: 'Igris Documentation', url: 'https://docs.igrisinertial.com' },
+  },
+  'fleet-management': {
+    '@context': 'https://schema.org',
+    '@type': 'TechArticle',
+    headline: 'Fleet Management — Device Registration, OTA Updates, and Config Push',
+    description: 'Manage Runtime devices across your fleet. Device registration with Ed25519 signatures, OTA model updates, configuration push, and health monitoring.',
+    url: 'https://docs.igrisinertial.com/docs/fleet-management/',
+    author: { '@type': 'Organization', name: 'Igris Inertial' },
+    publisher: { '@type': 'Organization', name: 'Igris Inertial', url: 'https://igrisinertial.com' },
+    about: ['Fleet management', 'OTA updates', 'Device registration', 'Health monitoring'],
+    isPartOf: { '@type': 'WebSite', name: 'Igris Documentation', url: 'https://docs.igrisinertial.com' },
+  },
+};
 
 const slugToFile: Record<string, string> = {
   architecture: 'architecture',
@@ -49,11 +111,16 @@ export default async function DocPage({ params }: PageProps) {
     notFound();
   }
 
+  const jsonLdData = slugToFile[slug] ? jsonLdBySlug[slug] : undefined;
+
   return (
-    <DocsLayout>
-      <MDXContent>
-        <MDXComponent />
-      </MDXContent>
-    </DocsLayout>
+    <>
+      {jsonLdData && <JsonLd data={jsonLdData} />}
+      <DocsLayout>
+        <MDXContent>
+          <MDXComponent />
+        </MDXContent>
+      </DocsLayout>
+    </>
   );
 }

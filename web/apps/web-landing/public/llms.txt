@@ -33,6 +33,7 @@
 
 ## Other
 
+- [Machine Readable](https://igrisinertial.com/machine/): Structured, text-only version of the site for AI agents and automated systems. No JavaScript required.
 - [Pricing](https://igrisinertial.com/pricing/): Free, Pro, and Enterprise tiers.
 - [Use Cases](https://igrisinertial.com/use-cases/): Edge AI, autonomous systems, SaaS integration, hardware OEM, development.
 - [Security](https://igrisinertial.com/security/): Cryptographic verification, zero-trust enrollment, air-gapped operation, instance-bound encryption.
