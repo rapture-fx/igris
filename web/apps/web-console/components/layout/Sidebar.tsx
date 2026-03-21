@@ -20,6 +20,7 @@ import {
 import { Button } from '@/components/ui/button';
 import { Separator } from '@/components/ui/separator';
 import { useTenant } from '@/hooks/useTenant';
+import { useSession } from '@/lib/auth-client';
 import { getInitials } from '@/utils/helpers';
 import { cn } from '@/utils/helpers';
 
@@ -115,12 +116,15 @@ export function Sidebar({ open = true, onClose }: SidebarProps) {
   const pathname = usePathname();
   const router = useRouter();
   const { data: tenant } = useTenant();
+  const { data: session } = useSession();
   const [showLogoutDialog, setShowLogoutDialog] = useState(false);
   const [showHelp, setShowHelp] = useState(false);
 
-  const initials = tenant ? getInitials(tenant.name) : 'U';
-  const displayName = tenant?.name ?? 'Account';
-  const email = tenant?.email ?? '';
+  // Prefer tenant name from API; fall back to Better Auth session name (always present for OAuth)
+  const resolvedName = tenant?.name || session?.user?.name || session?.user?.email?.split('@')[0] || 'User';
+  const initials = getInitials(resolvedName);
+  const displayName = resolvedName;
+  const email = tenant?.email || session?.user?.email || '';
 
   const handleLogout = async () => {
     await signOut({ fetchOptions: { onSuccess: () => { window.location.href = '/auth'; } } });
