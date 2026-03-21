@@ -43,8 +43,8 @@ export default function Hero() {
             </div>
 
             {/* Image with frame */}
-            <div className="rounded-lg mb-6 overflow-hidden relative" style={{ height: '500px' }}>
-              <img src="/hjk.png" alt="Hero" className="h-full w-full object-cover rounded-lg border border-gray-200 dark:border-gray-700" />
+            <div className="rounded-lg mb-6 overflow-hidden relative" style={{ height: '575px' }}>
+              <img src="/prkgol.png" alt="Hero" className="h-full w-full object-cover rounded-lg border border-gray-200 dark:border-gray-700" />
               <div className="absolute inset-0 flex items-center justify-center">
                 <div
                   className="inline-flex items-center gap-2 md:gap-3 rounded-md px-3 py-1.5 md:px-5 md:py-2.5 text-sm md:text-base border shadow-lg"
