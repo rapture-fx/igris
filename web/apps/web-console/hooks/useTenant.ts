@@ -1,7 +1,6 @@
 import { useQuery } from '@tanstack/react-query';
 import { api } from '@/lib/apiClient';
 import { API_ENDPOINTS, QUERY_KEYS } from '@/utils/constants';
-import { handleApiError } from '@/lib/mockDataGuard';
 
 export interface Tenant {
   id: string;
@@ -61,25 +60,8 @@ export function useTenant() {
       try {
         const raw = await api.get<TenantAPIResponse>(API_ENDPOINTS.TENANT_CURRENT);
         return normalizeTenant(raw);
-      } catch (error) {
-        // Production-safe fallback: throws in production, returns mock in development
-        return handleApiError<Tenant>(
-          error,
-          {
-            id: 'demo-tenant-001',
-            name: 'Demo Organization',
-            email: 'demo@igrisinertial.com',
-            plan: 'Seed',
-            created_at: new Date(Date.now() - 90 * 24 * 60 * 60 * 1000).toISOString(),
-            updated_at: new Date().toISOString(),
-            status: 'active' as 'active' | 'disabled' | 'suspended',
-            metadata: {
-              trial_active: false,
-              trial_days_left: 0,
-            },
-          },
-          'useTenant'
-        );
+      } catch {
+        return null as unknown as Tenant;
       }
     },
     staleTime: 5 * 60 * 1000, // 5 minutes
