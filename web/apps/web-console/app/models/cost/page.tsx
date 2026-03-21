@@ -177,7 +177,7 @@ export default function ModelsCostPage() {
     queryKey: ['usage-summary'],
     queryFn: async () => {
       try { return await api.get<UsageSummary>('/models/usage/summary'); }
-      catch { return MOCK_SUMMARY; }
+      catch { return null as unknown as UsageSummary; }
     },
     retry: false,
     staleTime: 30_000,
@@ -189,7 +189,7 @@ export default function ModelsCostPage() {
     queryKey: ['usage-providers'],
     queryFn: async () => {
       try { return await api.get<ProviderCost[]>('/models/usage/providers'); }
-      catch { return MOCK_PROVIDERS; }
+      catch { return [] as ProviderCost[]; }
     },
     retry: false,
     staleTime: 30_000,
@@ -201,7 +201,7 @@ export default function ModelsCostPage() {
     queryKey: ['usage-models'],
     queryFn: async () => {
       try { return await api.get<ModelUsage[]>('/models/usage/models'); }
-      catch { return MOCK_MODELS; }
+      catch { return [] as ModelUsage[]; }
     },
     retry: false,
     staleTime: 30_000,
@@ -212,7 +212,7 @@ export default function ModelsCostPage() {
     queryKey: ['usage-daily'],
     queryFn: async () => {
       try { return await api.get<DailySpend[]>('/models/usage/daily'); }
-      catch { return makeDailySpend(); }
+      catch { return [] as DailySpend[]; }
     },
     retry: false,
     staleTime: 30_000,
@@ -223,7 +223,7 @@ export default function ModelsCostPage() {
     queryKey: ['usage-events'],
     queryFn: async () => {
       try { return await api.get<CostEvent[]>('/models/usage/events'); }
-      catch { return MOCK_EVENTS; }
+      catch { return [] as CostEvent[]; }
     },
     retry: false,
     staleTime: 15_000,

@@ -96,14 +96,24 @@ const RESOURCE_NUMBER_FIELDS = [
 
 export default function PolicyBoundsPage() {
   const qc = useQueryClient();
-  const [form, setForm] = useState<PolicyBounds>(MOCK_BOUNDS);
+  const EMPTY_BOUNDS: PolicyBounds = {
+    max_execution_ms: 30_000,
+    max_tick_ms: 5_000,
+    max_steps: 100,
+    cpu_percent: 80,
+    memory_mb: 512,
+    disk_write_mb: 256,
+    policy_hash: '',
+    updated_at: new Date().toISOString(),
+  };
+  const [form, setForm] = useState<PolicyBounds>(EMPTY_BOUNDS);
   const [savedIndicator, setSavedIndicator] = useState(false);
 
   const { data: serverBounds, isLoading } = useQuery<PolicyBounds>({
     queryKey: ['policy-bounds-v2'],
     queryFn: async () => {
       try { return await api.get<PolicyBounds>('/policy/bounds'); }
-      catch { return MOCK_BOUNDS; }
+      catch { return null as unknown as PolicyBounds; }
     },
     retry: false,
     staleTime: 60_000,
@@ -114,7 +124,7 @@ export default function PolicyBoundsPage() {
     queryKey: ['policy-history'],
     queryFn: async () => {
       try { return await api.get<PolicyHistoryEntry[]>('/policy/history'); }
-      catch { return MOCK_HISTORY; }
+      catch { return [] as PolicyHistoryEntry[]; }
     },
     retry: false,
     staleTime: 60_000,
@@ -142,7 +152,7 @@ export default function PolicyBoundsPage() {
     return keys.some((k) => form[k] !== serverBounds[k]);
   }, [form, serverBounds]);
 
-  const displayBounds = serverBounds ?? MOCK_BOUNDS;
+  const displayBounds = serverBounds ?? EMPTY_BOUNDS;
 
   return (
     <DashboardLayout>
