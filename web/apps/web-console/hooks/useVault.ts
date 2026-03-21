@@ -2,7 +2,6 @@ import { useQuery, useMutation, useQueryClient } from '@tanstack/react-query';
 import { api } from '@/lib/apiClient';
 import { API_ENDPOINTS, QUERY_KEYS } from '@/utils/constants';
 import { toast } from '@/components/ui/use-toast';
-import { handleApiError } from '@/lib/mockDataGuard';
 
 export interface VaultKey {
   id: string;
@@ -74,8 +73,8 @@ export function useVaultKeys() {
     queryFn: async () => {
       try {
         return await api.get<VaultKey[]>(API_ENDPOINTS.VAULT_KEYS);
-      } catch (error) {
-        return handleApiError<VaultKey[]>(error, MOCK_KEYS, 'useVaultKeys');
+      } catch {
+        return [] as VaultKey[];
       }
     },
     staleTime: 2 * 60 * 1000,
