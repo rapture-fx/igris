@@ -72,7 +72,8 @@ export function useVaultKeys() {
     queryKey: [QUERY_KEYS.VAULT_KEYS],
     queryFn: async () => {
       try {
-        return await api.get<VaultKey[]>(API_ENDPOINTS.VAULT_KEYS);
+        const res = await api.get<{ keys: VaultKey[] } | VaultKey[]>(API_ENDPOINTS.VAULT_KEYS);
+        return Array.isArray(res) ? res : (res as { keys: VaultKey[] }).keys ?? [];
       } catch {
         return [] as VaultKey[];
       }
