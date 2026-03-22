@@ -209,8 +209,8 @@ export default function MachinePage() {
           <div className="border-l border-gray-300 dark:border-[#f6f6f4]/10 pl-4">
             <p className="text-[#000000] dark:text-[#f6f6f4] mb-3 font-medium text-base">### Complete control from edge to cloud.</p>
             <p className="text-sm mb-2 text-gray-600 dark:text-[#a8a898]">Documentation: <a href="https://docs.igrisinertial.com/" target="_blank" rel="noopener noreferrer" className="text-blue-600 dark:text-blue-400 hover:underline">docs.igrisinertial.com</a></p>
-            <p className="text-sm mb-2 text-gray-600 dark:text-[#a8a898]">GitHub: <a href="https://github.com/igrisinertial" target="_blank" rel="noopener noreferrer" className="text-blue-600 dark:text-blue-400 hover:underline">github.com/igrisinertial</a></p>
-            <p className="text-sm mb-2 text-gray-600 dark:text-[#a8a898]">Get started: <a href="https://igrisinertial.com/pricing/" className="text-blue-600 dark:text-blue-400 hover:underline">igrisinertial.com/pricing/</a></p>
+            <p className="text-sm mb-2 text-gray-600 dark:text-[#a8a898]">GitHub: <a href="https://github.com/Igris-inertial" target="_blank" rel="noopener noreferrer" className="text-blue-600 dark:text-blue-400 hover:underline">github.com/Igris-inertial</a></p>
+            <p className="text-sm mb-2 text-gray-600 dark:text-[#a8a898]">Get started: <a href="https://console.igrisinertial.com/auth?mode=signup" className="text-blue-600 dark:text-blue-400 hover:underline">console.igrisinertial.com/auth?mode=signup</a></p>
           </div>
 
           {/* Footer note */}
