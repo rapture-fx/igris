@@ -153,7 +153,7 @@ export default function Pricing() {
                       href={tier.checkoutKey ? POLAR_CHECKOUT[tier.checkoutKey] : '/auth?mode=signup'}
                       target="_blank"
                       rel="noopener noreferrer"
-                      className="inline-flex items-center justify-center px-4 py-2 hover:opacity-80 transition-all duration-200 text-xs md:text-sm font-medium shadow-sm rounded-md mt-5 md:mt-8 opacity-100 self-start"
+                      className="inline-flex items-center justify-center px-3 py-1.5 hover:opacity-80 transition-all duration-200 text-xs font-medium shadow-sm rounded-md mt-5 md:mt-8 opacity-100 self-start"
                       style={{ fontFamily: '-apple-system, BlinkMacSystemFont, "Segoe UI", Roboto, Helvetica, Arial, sans-serif', backgroundColor: '#1b1912', color: '#f6f6f4' }}
                     >
                       {tier.cta}
