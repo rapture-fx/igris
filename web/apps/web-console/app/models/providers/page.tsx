@@ -166,8 +166,10 @@ export default function ModelsProvidersPage() {
   const { data: providers = [], isLoading, refetch } = useQuery<Provider[]>({
     queryKey: ['model-providers-v2'],
     queryFn: async () => {
-      try { return await api.get<Provider[]>('/models/providers'); }
-      catch { return [] as Provider[]; }
+      try {
+        const res = await api.get<{ providers: Provider[] } | Provider[]>('/models/providers');
+        return Array.isArray(res) ? res : (res as { providers: Provider[] }).providers ?? [];
+      } catch { return [] as Provider[]; }
     },
     retry: false,
     staleTime: 30_000,
