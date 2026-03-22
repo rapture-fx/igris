@@ -12,6 +12,7 @@ export interface Tenant {
   status: 'active' | 'disabled' | 'suspended';
   runtime_limit?: number;
   trial_active?: boolean;
+  trial_days_left?: number;
   trial_tier?: string;
   trial_ends_at?: string;
   subscription_status?: string;
@@ -29,6 +30,7 @@ interface TenantAPIResponse {
   runtime_limit: number;
   created_at: string;
   trial_active: boolean;
+  trial_days_left?: number;
   trial_tier?: string;
   trial_ends_at?: string;
   subscription_status: string;
@@ -46,6 +48,7 @@ function normalizeTenant(raw: TenantAPIResponse): Tenant {
     updated_at: raw.created_at,
     runtime_limit: raw.runtime_limit,
     trial_active: raw.trial_active,
+    trial_days_left: raw.trial_days_left,
     trial_tier: raw.trial_tier,
     trial_ends_at: raw.trial_ends_at,
     subscription_status: raw.subscription_status,
@@ -60,8 +63,8 @@ export function useTenant() {
       try {
         const raw = await api.get<TenantAPIResponse>(API_ENDPOINTS.TENANT_CURRENT);
         return normalizeTenant(raw);
-      } catch {
-        return null as unknown as Tenant;
+      } catch (err) {
+        throw err;
       }
     },
     staleTime: 5 * 60 * 1000, // 5 minutes
