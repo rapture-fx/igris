@@ -426,7 +426,8 @@ func main() {
 		api.RegisterSettingsRoutes(app, dbInstance)
 		api.RegisterCostRoutes(app, dbInstance)
 		api.RegisterPolicyExtRoutes(app, dbInstance)
-		log.Println("[Routes] ✅ Gap-fill routes registered (devices, history, settings, cost, policy-ext)")
+		api.RegisterSubscriptionRoutes(app, dbInstance)
+		log.Println("[Routes] ✅ Gap-fill routes registered (devices, history, settings, cost, policy-ext, subscription)")
 	} else {
 		log.Println("[Routes] ⚠️  Database not available — dashboard routes disabled")
 	}
