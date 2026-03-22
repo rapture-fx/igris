@@ -24,11 +24,11 @@ export default function AutonomousSystems() {
         <div className="px-4 md:px-8 lg:px-12" style={{ borderLeft: borderStyle, borderRight: borderStyle }}>
           {/* Title */}
           <div className="flex flex-col md:flex-row md:items-start md:justify-between gap-4 md:gap-8" style={{ paddingTop: '3rem', paddingBottom: '2rem' }}>
-            <h2 className="text-xl md:text-2xl lg:text-3xl text-[#000000] dark:text-[#f6f6f4]" style={{ fontFamily }}>
+            <h2 className="text-lg md:text-xl lg:text-2xl text-[#000000] dark:text-[#f6f6f4]" style={{ fontFamily }}>
               One System.<br />
               Two Environments.
             </h2>
-            <p className="text-base md:text-lg text-[#000000] dark:text-[#f6f6f4] max-w-md text-right" style={{ fontFamily }}>
+            <p className="text-sm md:text-base text-[#000000] dark:text-[#f6f6f4] max-w-md text-right" style={{ fontFamily }}>
               The same nervous system governs AI execution—whether your system thinks in code or moves in space.
             </p>
           </div>
@@ -46,7 +46,7 @@ export default function AutonomousSystems() {
             {/* Col 1 - Text */}
             <div className="flex flex-col pt-6 pb-8 pr-4" style={{ borderRight: borderStyle }}>
               <div className="max-w-md">
-                <h3 className="text-base md:text-lg mb-2 text-[#000000] dark:text-[#f6f6f4]" style={{ fontFamily }}>
+                <h3 className="text-sm md:text-base mb-2 text-[#000000] dark:text-[#f6f6f4]" style={{ fontFamily }}>
                   For AI Agents
                 </h3>
                 <p className="text-sm md:text-base text-gray-600 dark:text-[#a8a898] leading-relaxed mb-3" style={{ fontFamily }}>
@@ -75,7 +75,7 @@ export default function AutonomousSystems() {
               <div className="absolute top-4 right-4 z-10">
                 <Link
                   href="https://docs.igrisinertial.com/docs/agents/"
-                  className="inline-flex items-center justify-center px-3 py-1.5 md:px-6 md:py-3 hover:opacity-80 transition-all duration-200 text-xs md:text-sm font-medium shadow-sm rounded-md border ml-2 md:ml-4"
+                  className="inline-flex items-center justify-center px-3 py-1.5 hover:opacity-80 transition-all duration-200 text-xs font-medium shadow-sm rounded-md border ml-2 md:ml-4"
                   style={{ backgroundColor: mounted && theme === 'dark' ? '#1b1912' : '#f9f9fa', color: mounted && theme === 'dark' ? '#f6f6f4' : '#1b1912', borderColor: 'rgba(20, 18, 10, 0.1)', fontFamily }}
                 >
                   AI Agents
@@ -97,7 +97,7 @@ export default function AutonomousSystems() {
             {/* Col 1 - Text */}
             <div className="flex flex-col pt-6 pb-8 pr-4" style={{ borderRight: borderStyle }}>
               <div className="max-w-md">
-                <h3 className="text-base md:text-lg mb-2 text-[#000000] dark:text-[#f6f6f4]" style={{ fontFamily }}>
+                <h3 className="text-sm md:text-base mb-2 text-[#000000] dark:text-[#f6f6f4]" style={{ fontFamily }}>
                   For Robots
                 </h3>
                 <p className="text-sm md:text-base text-gray-600 dark:text-[#a8a898] leading-relaxed mb-3" style={{ fontFamily }}>
@@ -121,7 +121,7 @@ export default function AutonomousSystems() {
               </div>
               <Link
                 href="https://docs.igrisinertial.com/docs/robotics/"
-                className="relative z-10 inline-flex items-center justify-center px-3 py-1.5 md:px-6 md:py-3 hover:opacity-80 transition-all duration-200 text-xs md:text-sm font-medium shadow-sm rounded-md border ml-2 mr-2 mb-3 md:ml-4 md:mr-4"
+                className="relative z-10 inline-flex items-center justify-center px-3 py-1.5 hover:opacity-80 transition-all duration-200 text-xs font-medium shadow-sm rounded-md border ml-2 mr-2 mb-3 md:ml-4 md:mr-4"
                 style={{ backgroundColor: mounted && theme === 'dark' ? '#1b1912' : '#f9f9fa', color: mounted && theme === 'dark' ? '#f6f6f4' : '#1b1912', borderColor: 'rgba(20, 18, 10, 0.1)', fontFamily }}
               >
                 Robotics
