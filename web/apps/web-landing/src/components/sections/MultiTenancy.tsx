@@ -32,7 +32,7 @@ export default function MultiTenancy() {
 
   const cardClass = "border border-gray-200 dark:border-[#f6f6f4]/8 rounded-2xl p-6 bg-[#f9f9fa] dark:bg-[#1b1912]/60 hover:border-gray-300 dark:hover:border-[#f6f6f4]/15 transition-colors duration-200 flex flex-col"
   const titleClass = "text-sm md:text-base text-[#000000] dark:text-[#f6f6f4]"
-  const descClass = "text-sm md:text-base text-gray-600 dark:text-[#a8a898] leading-relaxed max-w-[280px]"
+  const descClass = "text-xs md:text-sm text-gray-600 dark:text-[#a8a898] leading-relaxed max-w-[280px]"
   const fontFamily = '-apple-system, BlinkMacSystemFont, "Segoe UI", Roboto, Helvetica, Arial, sans-serif'
 
   return (
