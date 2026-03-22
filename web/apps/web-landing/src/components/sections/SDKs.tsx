@@ -361,7 +361,7 @@ export default function SDKs() {
         <div className="px-4 md:px-8 lg:px-12" style={{ borderLeft: borderStyle, borderRight: borderStyle }}>
           {/* Title */}
           <div className="text-left" style={{ paddingTop: '3rem', paddingBottom: '2rem' }}>
-            <h3 className="text-xl md:text-2xl lg:text-3xl text-[#000000] dark:text-[#f6f6f4]" style={{ fontFamily }}>
+            <h3 className="text-lg md:text-xl lg:text-2xl text-[#000000] dark:text-[#f6f6f4]" style={{ fontFamily }}>
               Connect your stack
             </h3>
           </div>
