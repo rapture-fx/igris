@@ -68,11 +68,7 @@ interface RealTimeMetrics {
   requestsSparkline?: Array<{ time: number; value: number }>;
 }
 
-const API_BASE_URL = typeof window !== 'undefined'
-  ? window.location.hostname === 'localhost'
-    ? 'http://localhost:8000'
-    : `https://api.${window.location.hostname}`
-  : 'http://localhost:8000';
+const API_BASE_URL = process.env.NEXT_PUBLIC_API_URL || 'http://localhost:8081';
 
 // Mock data generator for traces
 const generateMockTraces = (count: number): RequestTrace[] => {

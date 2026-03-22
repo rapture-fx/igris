@@ -9,9 +9,7 @@ export default function Home() {
   const router = useRouter();
 
   useEffect(() => {
-    console.log('Home page: Redirecting to /dashboard?dev=true');
-    // Always redirect with dev=true to bypass auth during development
-    router.push('/dashboard?dev=true');
+    router.replace('/dashboard');
   }, [router]);
 
   return (

@@ -20,8 +20,9 @@ import { api } from '@/lib/apiClient';
 import { Slider } from '@/components/ui/slider';
 import {
   RefreshCw, SlidersHorizontal, Zap, Users, Eye, ShieldCheck,
-  CheckCircle2,
+  CheckCircle2, Cpu, AlertTriangle,
 } from 'lucide-react';
+import { useWasmEngine } from '@/hooks/useWasmEngine';
 
 // ─── Types ─────────────────────────────────────────────────────────────────────
 
@@ -269,6 +270,7 @@ function MultiSelectChips({
 
 export default function ModelsRoutingPage() {
   const qc = useQueryClient();
+  const { status: wasmStatus, benchmark, runBenchmark } = useWasmEngine();
 
   // ── Routing Strategy state ───────────────────────────────────────────────────
   const [strategyForm, setStrategyForm] = useState<StrategyConfig>({
@@ -382,6 +384,88 @@ export default function ModelsRoutingPage() {
             Refresh
           </Button>
         </div>
+
+        {/* ── 0. EscapeVector WASM Engine ─────────────────────────────────────── */}
+        <Card className="border border-gray-200 shadow-none">
+          <CardHeader className="px-4 pt-4 pb-3">
+            <div className="flex items-center justify-between">
+              <div className="flex items-center gap-1.5">
+                <Cpu className="h-3.5 w-3.5 text-gray-400" strokeWidth={1.5} />
+                <p className="text-xs font-medium text-gray-900">EscapeVector WASM Engine</p>
+              </div>
+              <div className="flex items-center gap-2">
+                {wasmStatus.loaded && (
+                  <span className="inline-flex items-center gap-1 px-1.5 py-0.5 rounded text-[10px] font-medium bg-green-50 text-green-700 border border-green-200">
+                    <span className="h-1.5 w-1.5 rounded-full bg-green-500 inline-block" />
+                    Active
+                  </span>
+                )}
+                {wasmStatus.loading && (
+                  <span className="inline-flex items-center gap-1 px-1.5 py-0.5 rounded text-[10px] font-medium bg-gray-50 text-gray-500 border border-gray-200">
+                    <RefreshCw className="h-2.5 w-2.5 animate-spin" />
+                    Loading
+                  </span>
+                )}
+                {wasmStatus.error && (
+                  <span className="inline-flex items-center gap-1 px-1.5 py-0.5 rounded text-[10px] font-medium bg-red-50 text-red-600 border border-red-200">
+                    <AlertTriangle className="h-2.5 w-2.5" />
+                    Unavailable
+                  </span>
+                )}
+                {wasmStatus.loaded && !benchmark && (
+                  <Button
+                    variant="outline"
+                    size="sm"
+                    className="h-6 text-[10px] px-2"
+                    onClick={() => runBenchmark(500)}
+                  >
+                    Run Benchmark
+                  </Button>
+                )}
+              </div>
+            </div>
+            <p className="text-[11px] text-gray-500 mt-0.5">
+              Rust-compiled Thompson Sampling and circuit-breaker logic running natively in-browser via WebAssembly.
+            </p>
+          </CardHeader>
+          <Separator />
+          <CardContent className="px-4 py-3">
+            <div className="grid grid-cols-2 sm:grid-cols-4 gap-4">
+              <div>
+                <p className="text-[10px] text-gray-400 mb-0.5">Module size</p>
+                <p className="text-xs font-mono text-gray-900">
+                  {wasmStatus.moduleSize ? `${(wasmStatus.moduleSize / 1024).toFixed(1)} KB` : '—'}
+                </p>
+              </div>
+              <div>
+                <p className="text-[10px] text-gray-400 mb-0.5">Compile time</p>
+                <p className="text-xs font-mono text-gray-900">
+                  {wasmStatus.compileTimeMs != null ? `${wasmStatus.compileTimeMs}ms` : '—'}
+                </p>
+              </div>
+              <div>
+                <p className="text-[10px] text-gray-400 mb-0.5">Benchmark avg</p>
+                <p className="text-xs font-mono text-gray-900">
+                  {benchmark ? `${benchmark.avgPerIterationUs}µs` : '—'}
+                </p>
+              </div>
+              <div>
+                <p className="text-[10px] text-gray-400 mb-0.5">Exports</p>
+                <p className="text-xs font-mono text-gray-900">
+                  {wasmStatus.exports.length > 0 ? `${wasmStatus.exports.length} functions` : '—'}
+                </p>
+              </div>
+            </div>
+            {wasmStatus.error && (
+              <p className="mt-2 text-[11px] text-red-500">{wasmStatus.error}</p>
+            )}
+            {!wasmStatus.supported && (
+              <p className="mt-2 text-[11px] text-yellow-600">
+                WebAssembly is not supported in this browser. Routing falls back to server-side Thompson Sampling.
+              </p>
+            )}
+          </CardContent>
+        </Card>
 
         {/* ── 1. Routing Strategy ──────────────────────────────────────────────── */}
         <Card className="border border-gray-200 shadow-none">

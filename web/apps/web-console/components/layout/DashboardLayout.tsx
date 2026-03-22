@@ -1,12 +1,11 @@
 'use client';
 
 import { useState } from 'react';
-import { Navbar } from './Navbar';
+import { Menu } from 'lucide-react';
+import { Button } from '@/components/ui/button';
 import { Sidebar } from './Sidebar';
-import { Footer } from './Footer';
 import { useTenant } from '@/hooks/useTenant';
 import { AlertCircle, X } from 'lucide-react';
-import { Button } from '@/components/ui/button';
 import { HealthCheckGate } from '@/components/HealthCheckGate';
 import { ErrorBoundary } from '@/components/ErrorBoundary';
 
@@ -19,9 +18,9 @@ export function DashboardLayout({ children }: DashboardLayoutProps) {
   const [bannerDismissed, setBannerDismissed] = useState(false);
   const { data: tenant } = useTenant();
 
-  const isTrialActive = tenant?.metadata?.trial_active;
-  const trialDaysLeft = tenant?.metadata?.trial_days_left;
-  const trialTier = tenant?.plan || 'Develop';
+  const isTrialActive = tenant?.trial_active;
+  const trialDaysLeft = tenant?.trial_days_left;
+  const trialTier = tenant?.plan || 'Seed';
 
   const showTrialBanner = isTrialActive && !bannerDismissed;
 
@@ -29,7 +28,19 @@ export function DashboardLayout({ children }: DashboardLayoutProps) {
     <HealthCheckGate>
       <ErrorBoundary>
         <div className="min-h-screen bg-[#f3f3f6] dark:bg-[#25231e] m-0 p-0">
-          <Navbar onMenuClick={() => setSidebarOpen(true)} />
+          {/* Mobile top bar */}
+          <nav className="fixed top-0 left-0 md:left-56 right-0 z-40 h-2 bg-[#f3f3f6] dark:bg-[#25231e] md:pl-12 md:pr-2">
+            <div className="h-full px-4 flex items-center">
+              <Button
+                variant="ghost"
+                size="icon"
+                className="md:hidden h-8 w-8"
+                onClick={() => setSidebarOpen(true)}
+              >
+                <Menu className="h-4 w-4" />
+              </Button>
+            </div>
+          </nav>
 
           <div className="flex m-0 p-0 pt-2 pb-2">
             <Sidebar open={sidebarOpen} onClose={() => setSidebarOpen(false)} />
@@ -50,6 +61,7 @@ export function DashboardLayout({ children }: DashboardLayoutProps) {
                         variant="outline"
                         size="sm"
                         className="bg-white text-blue-600 hover:bg-blue-50 border-0 text-xs font-medium"
+                        onClick={() => window.location.href = '/settings/billing'}
                       >
                         Upgrade Now
                       </Button>
@@ -71,7 +83,9 @@ export function DashboardLayout({ children }: DashboardLayoutProps) {
 
             <div className="w-2 bg-[#f3f3f6] dark:bg-[#25231e] hidden md:block" />
           </div>
-          <Footer />
+
+          {/* Bottom spacer */}
+          <footer className="fixed bottom-0 left-0 md:left-56 right-0 z-40 h-2 bg-[#f3f3f6] dark:bg-[#25231e]" />
         </div>
       </ErrorBoundary>
     </HealthCheckGate>
