@@ -291,7 +291,7 @@ const btreeExamples: Record<Language, string[]> = {
 
 function CodeBlock({ code, language }: { code: string[]; language: Language }) {
   return (
-    <div className="font-mono leading-relaxed overflow-x-auto scrollbar-hide" style={{ fontSize: '0.8125rem', scrollbarWidth: 'none', msOverflowStyle: 'none' }}>
+    <div className="leading-relaxed overflow-x-auto scrollbar-hide" style={{ fontSize: '0.8125rem', scrollbarWidth: 'none', msOverflowStyle: 'none' }}>
       {code.map((line, i) => (
         <div key={i} className="whitespace-pre">
           {line === '' ? '\u00A0' : <SyntaxLine line={line} language={language} />}
@@ -361,7 +361,7 @@ export default function SDKs() {
         <div className="px-4 md:px-8 lg:px-12" style={{ borderLeft: borderStyle, borderRight: borderStyle }}>
           {/* Title */}
           <div className="text-left" style={{ paddingTop: '3rem', paddingBottom: '2rem' }}>
-            <h3 className="text-lg md:text-xl lg:text-2xl text-[#000000] dark:text-[#f6f6f4]" style={{ fontFamily }}>
+            <h3 className="text-base md:text-lg lg:text-2xl text-[#000000] dark:text-[#f6f6f4]" style={{ fontFamily }}>
               Connect your stack
             </h3>
           </div>
@@ -379,7 +379,7 @@ export default function SDKs() {
             {/* Col 1 - Text */}
             <div className="flex flex-col justify-start pt-6 pb-8 pr-4" style={{ borderRight: borderStyle }}>
               <div className="max-w-md">
-                <p className="text-sm md:text-base text-gray-600 dark:text-[#a8a898] leading-relaxed mb-4" style={{ fontFamily }}>
+                <p className="text-xs md:text-sm text-gray-600 dark:text-[#a8a898] leading-relaxed mb-4" style={{ fontFamily }}>
                   {languages.map((lang, i) => (
                     <React.Fragment key={lang}>
                       {i > 0 && i < languages.length - 1 && ', '}
@@ -398,10 +398,10 @@ export default function SDKs() {
                   ))}.
                 </p>
 
-                <p className="text-sm md:text-base text-gray-600 dark:text-[#a8a898] leading-relaxed mb-4" style={{ fontFamily }}>
+                <p className="text-xs md:text-sm text-gray-600 dark:text-[#a8a898] leading-relaxed mb-4" style={{ fontFamily }}>
                   One API. Drop the SDK into your existing codebase. Your app becomes deterministic, provable, survivable—without rewrite.
                 </p>
-                <p className="text-sm md:text-base text-gray-600 dark:text-[#a8a898] leading-relaxed mb-6" style={{ fontFamily }}>
+                <p className="text-xs md:text-sm text-gray-600 dark:text-[#a8a898] leading-relaxed mb-6" style={{ fontFamily }}>
                   Local runtime with automatic cloud fallback. Test on your laptop. Deploy to servers, robots, or edge devices.
                 </p>
                 <div>
@@ -437,13 +437,13 @@ export default function SDKs() {
             {/* Col 1 - Text */}
             <div className="flex flex-col justify-start pt-6 pb-8 pr-4" style={{ borderRight: borderStyle }}>
               <div className="max-w-md">
-                <h4 className="text-lg md:text-xl text-[#000000] dark:text-[#f6f6f4] mb-4" style={{ fontFamily }}>
+                <h4 className="text-base md:text-lg text-[#000000] dark:text-[#f6f6f4] mb-4" style={{ fontFamily }}>
                   Behavior Trees
                 </h4>
-                <p className="text-sm md:text-base text-gray-600 dark:text-[#a8a898] leading-relaxed mb-4" style={{ fontFamily }}>
+                <p className="text-xs md:text-sm text-gray-600 dark:text-[#a8a898] leading-relaxed mb-4" style={{ fontFamily }}>
                   Define, validate, and execute behavior trees programmatically. Compose sequences, selectors, and actions into autonomous workflows that run locally on the runtime.
                 </p>
-                <p className="text-sm md:text-base text-gray-600 dark:text-[#a8a898] leading-relaxed mb-6" style={{ fontFamily }}>
+                <p className="text-xs md:text-sm text-gray-600 dark:text-[#a8a898] leading-relaxed mb-6" style={{ fontFamily }}>
                   Deploy trees to devices. Validate client-side and server-side. Get signed execution traces for every run.
                 </p>
                 <div>
