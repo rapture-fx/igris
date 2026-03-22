@@ -14,6 +14,7 @@ import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from '@
 import { Table, TableBody, TableCell, TableHead, TableHeader, TableRow } from '@/components/ui/table';
 import { Dialog, DialogContent, DialogHeader, DialogTitle } from '@/components/ui/dialog';
 import { useTenant } from '@/hooks/useTenant';
+import { useApiKey, useGenerateApiKey, useRevokeApiKey } from '@/hooks/useApiKey';
 import { api } from '@/lib/apiClient';
 import { getRelativeTime } from '@/utils/helpers';
 import {
@@ -209,6 +210,12 @@ export default function SettingsGeneralPage() {
     onError:   () => {},
   });
 
+  // ── Runtime API key ────────────────────────────────────────────────────────
+  const { data: runtimeKeyInfo, isLoading: runtimeKeyLoading } = useApiKey();
+  const generateRuntimeKey = useGenerateApiKey();
+  const revokeRuntimeKey = useRevokeApiKey();
+  const [newRuntimeKey, setNewRuntimeKey] = useState<string | null>(null);
+
   // ── API keys ───────────────────────────────────────────────────────────────
   const { data: apiKeys = [], isLoading: keysLoading } = useQuery<ApiKeyRecord[]>({
     queryKey: ['settings-api-keys'],
@@ -311,6 +318,67 @@ export default function SettingsGeneralPage() {
               onClick={() => generalMutation.mutate(general)}
             />
           </div>
+        </SectionCard>
+
+        {/* ── Runtime API Key ───────────────────────────────────────────────── */}
+        <SectionCard icon={KeyRound} title="Runtime API Key">
+          <CardContent className="px-5 py-4">
+            <p className="text-xs text-gray-500 mb-4">
+              Used by the igris-runtime installer to authenticate with your account.
+              Generate once and pass to the install script as <code className="font-mono text-gray-700">IGRIS_API_KEY</code>.
+            </p>
+            {runtimeKeyLoading ? (
+              <Skeleton className="h-8 w-full" />
+            ) : runtimeKeyInfo?.has_key ? (
+              <div className="space-y-3">
+                <div className="flex items-center gap-3 bg-gray-50 border border-gray-200 rounded-md px-3 py-2">
+                  <code className="text-xs font-mono text-gray-600 flex-1">igris_{runtimeKeyInfo.prefix}••••••••••••</code>
+                  <span className="text-[10px] text-gray-400">{runtimeKeyInfo.created_at ? getRelativeTime(runtimeKeyInfo.created_at) : ''}</span>
+                </div>
+                <div className="flex gap-2">
+                  <Button
+                    variant="outline"
+                    size="sm"
+                    className="h-7 text-xs gap-1"
+                    onClick={() =>
+                      generateRuntimeKey.mutate(undefined, {
+                        onSuccess: (d) => setNewRuntimeKey(d.api_key),
+                      })
+                    }
+                    disabled={generateRuntimeKey.isPending}
+                  >
+                    {generateRuntimeKey.isPending ? <RefreshCw className="h-3 w-3 animate-spin" /> : <RotateCcw className="h-3 w-3" />}
+                    Regenerate
+                  </Button>
+                  <Button
+                    variant="outline"
+                    size="sm"
+                    className="h-7 text-xs gap-1 text-red-600 hover:text-red-700 border-red-200 hover:border-red-300"
+                    onClick={() => revokeRuntimeKey.mutate()}
+                    disabled={revokeRuntimeKey.isPending}
+                  >
+                    <Trash2 className="h-3 w-3" />
+                    Revoke
+                  </Button>
+                </div>
+              </div>
+            ) : (
+              <Button
+                size="sm"
+                className="h-8 text-xs gap-1.5"
+                onClick={() =>
+                  generateRuntimeKey.mutate(undefined, {
+                    onSuccess: (d) => setNewRuntimeKey(d.api_key),
+                  })
+                }
+                disabled={generateRuntimeKey.isPending}
+              >
+                {generateRuntimeKey.isPending
+                  ? <><RefreshCw className="h-3.5 w-3.5 animate-spin" /> Generating…</>
+                  : <><KeyRound className="h-3.5 w-3.5" /> Generate Runtime Key</>}
+              </Button>
+            )}
+          </CardContent>
         </SectionCard>
 
         {/* ── Access & API Keys ─────────────────────────────────────────────── */}
@@ -556,6 +624,28 @@ export default function SettingsGeneralPage() {
         </SectionCard>
 
       </div>
+
+      {/* ── New runtime key dialog ─────────────────────────────────────────── */}
+      <Dialog open={!!newRuntimeKey} onOpenChange={(o) => !o && setNewRuntimeKey(null)}>
+        <DialogContent className="max-w-sm">
+          <DialogHeader>
+            <DialogTitle className="text-sm font-semibold flex items-center gap-1.5">
+              <KeyRound className="h-4 w-4 text-green-500" /> Runtime API Key Generated
+            </DialogTitle>
+          </DialogHeader>
+          <Separator />
+          <div className="pt-2 space-y-3">
+            <p className="text-xs text-gray-500">Copy this key now — it will not be shown again.</p>
+            <div className="flex items-center gap-2 bg-gray-50 border border-gray-200 rounded-md px-3 py-2">
+              <span className="text-xs text-gray-700 font-mono flex-1 break-all">{newRuntimeKey}</span>
+              {newRuntimeKey && <CopyBtn text={newRuntimeKey} />}
+            </div>
+            <div className="flex justify-end">
+              <Button size="sm" className="h-8 text-xs" onClick={() => setNewRuntimeKey(null)}>Done</Button>
+            </div>
+          </div>
+        </DialogContent>
+      </Dialog>
 
       {/* ── Created key dialog ─────────────────────────────────────────────── */}
       <Dialog open={!!createdKey} onOpenChange={(o) => !o && setCreatedKey(null)}>

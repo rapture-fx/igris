@@ -189,6 +189,21 @@ func (h *WebhookHandler) handleSubscriptionCreated(event *WebhookEvent) error {
 		return fmt.Errorf("failed to store license: %w", err)
 	}
 
+	// Update tenant subscription status and tier in the tenants table
+	if h.db != nil {
+		if _, dbErr := h.db.ExecContext(ctx, `
+			UPDATE tenants
+			SET subscription_status = 'active',
+			    tier = $1,
+			    tier_upgraded_at = CURRENT_TIMESTAMP
+			WHERE tenant_email = $2
+		`, tier, data.CustomerEmail); dbErr != nil {
+			h.logger.Printf("[Webhook] Failed to update tenant status for %s: %v", data.CustomerEmail, dbErr)
+		} else {
+			h.logger.Printf("[Webhook] Tenant updated: email=%s tier=%s status=active", data.CustomerEmail, tier)
+		}
+	}
+
 	// Update cache
 	if err := h.client.UpdateSubscription(ctx, sub); err != nil {
 		return fmt.Errorf("failed to update subscription: %w", err)
@@ -222,15 +237,20 @@ func (h *WebhookHandler) handleSubscriptionUpdated(event *WebhookEvent) error {
 		return fmt.Errorf("failed to update subscription: %w", err)
 	}
 
-	// Update tenant tier in database
+	// Update tenant tier and subscription status in database (match by email)
 	if h.db != nil {
-		_, err := h.db.ExecContext(ctx, `
+		newStatus := string(sub.Status)
+		if newStatus == "" {
+			newStatus = "active"
+		}
+		if _, dbErr := h.db.ExecContext(ctx, `
 			UPDATE tenants
-			SET tier = $1, tier_upgraded_at = CURRENT_TIMESTAMP
-			WHERE id = $2
-		`, sub.Metadata["tier"], data.CustomerID)
-		if err != nil {
-			h.logger.Printf("[Webhook] Failed to update tenant tier: %v", err)
+			SET tier = $1,
+			    subscription_status = $2,
+			    tier_upgraded_at = CURRENT_TIMESTAMP
+			WHERE tenant_email = $3
+		`, sub.Metadata["tier"], newStatus, data.CustomerEmail); dbErr != nil {
+			h.logger.Printf("[Webhook] Failed to update tenant tier/status for %s: %v", data.CustomerEmail, dbErr)
 		}
 	}
 
@@ -260,6 +280,15 @@ func (h *WebhookHandler) handleSubscriptionCanceled(event *WebhookEvent) error {
 	if err := h.updateLicenseStatus(ctx, data.CustomerID, "suspended"); err != nil {
 		h.logger.Printf("[Webhook] Failed to update license status: %v", err)
 		// Continue even if license update fails
+	}
+
+	// Reset tenant subscription status
+	if h.db != nil {
+		if _, dbErr := h.db.ExecContext(ctx, `
+			UPDATE tenants SET subscription_status = 'none' WHERE tenant_email = $1
+		`, data.CustomerEmail); dbErr != nil {
+			h.logger.Printf("[Webhook] Failed to reset tenant status for %s: %v", data.CustomerEmail, dbErr)
+		}
 	}
 
 	// Update cache

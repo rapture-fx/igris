@@ -258,7 +258,10 @@ export default function OnboardingPage() {
               Your workspace is ready. Head to the dashboard to connect your first provider.
             </p>
             <Button
-              onClick={() => router.replace('/dashboard')}
+              onClick={() => {
+                try { localStorage.setItem('igris_onboarding_complete', '1'); } catch {}
+                router.replace('/dashboard');
+              }}
               className="mt-6 w-full h-9 text-sm gap-1.5"
             >
               Open dashboard
