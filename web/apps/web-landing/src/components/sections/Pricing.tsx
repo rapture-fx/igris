@@ -133,7 +133,7 @@ export default function Pricing() {
                             <span className="text-[#000000] dark:text-[#f6f6f4] transition-all duration-300">
                               <span className="text-3xl md:text-5xl" style={{ fontFamily: 'var(--font-geist-pixel-square, Geist Pixel Square, monospace)' }}>{tier.price.split(' / ')[0]}</span>
                               {tier.price.includes(' / ') && (
-                                <span className="text-sm md:text-base text-gray-600 dark:text-[#a8a898]"> / {tier.price.split(' / ')[1]}</span>
+                                <span className="text-xs md:text-sm text-gray-600 dark:text-[#a8a898]"> / {tier.price.split(' / ')[1]}</span>
                               )}
                             </span>
                           </div>
