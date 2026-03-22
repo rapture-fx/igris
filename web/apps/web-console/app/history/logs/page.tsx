@@ -18,7 +18,7 @@ import {
   Table, TableBody, TableCell, TableHead, TableHeader, TableRow,
 } from '@/components/ui/table';
 import { api } from '@/lib/apiClient';
-import { downloadJSON, getRelativeTime } from '@/utils/helpers';
+import { downloadJSON, getRelativeTime, cn } from '@/utils/helpers';
 import { KeyValueGrid } from '@/components/proof/KeyValueGrid';
 import { JSONViewer } from '@/components/proof/JSONViewer';
 import { RightSideDrawer, DrawerSection } from '@/components/proof/RightSideDrawer';
@@ -26,7 +26,6 @@ import {
   Search, RefreshCw, Download, Copy, Check, X,
   Radio, Activity, Link2,
 } from 'lucide-react';
-import { cn } from '@/lib/utils';
 
 // ─── Types ──────────────────────────────────────────────────────────────────────
 
