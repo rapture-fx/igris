@@ -56,8 +56,18 @@ function AuthContent() {
     setForgotLoading(true);
     setError('');
     try {
-      await authClient.requestPasswordReset({ email, redirectTo: '/reset-password' });
-    } catch {}
+      const redirectTo = `${window.location.origin}/reset-password`;
+      const result = await authClient.requestPasswordReset({ email, redirectTo });
+      if (result?.error) {
+        setError(result.error.message || 'Failed to send reset email. Please try again.');
+        setForgotLoading(false);
+        return;
+      }
+    } catch (err: any) {
+      setError(err.message || 'Failed to send reset email. Please try again.');
+      setForgotLoading(false);
+      return;
+    }
     setForgotSent(true);
     setForgotLoading(false);
   };
@@ -231,6 +241,19 @@ function AuthContent() {
               <span className="flex-1 text-center">Continue with Email</span>
               <ChevronDown className="h-5 w-5 shrink-0 text-white dark:text-[#111110]" />
             </button>
+
+            {/* Forgot password — visible in signin mode even when email accordion is closed */}
+            {mode === 'signin' && !emailOpen && (
+              <div className="text-center">
+                <button
+                  type="button"
+                  onClick={() => switchMode('forgot')}
+                  className="text-xs text-gray-400 hover:text-gray-600 dark:hover:text-gray-300 underline-offset-2 hover:underline"
+                >
+                  Forgot your password?
+                </button>
+              </div>
+            )}
 
             {/* Email form slide */}
             <div
