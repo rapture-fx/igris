@@ -313,7 +313,7 @@ export default function PolicyBoundsPage() {
                 <Skeleton className="h-3 w-20" /><Skeleton className="h-5 w-56" />
                 <Skeleton className="h-3 w-20" /><Skeleton className="h-3 w-36" />
               </dl>
-            ) : (
+            ) : displayBounds.policy_hash ? (
               <dl className="grid grid-cols-[140px_1fr] gap-x-6 gap-y-3">
                 <dt className="text-xs text-gray-500 flex items-start pt-0.5">Policy Hash</dt>
                 <dd className="flex items-center gap-1.5">
@@ -325,6 +325,8 @@ export default function PolicyBoundsPage() {
                 <dt className="text-xs text-gray-500 flex items-start pt-0.5">Last Updated</dt>
                 <dd className="text-xs text-gray-700">{formatDateTime(displayBounds.updated_at)}</dd>
               </dl>
+            ) : (
+              <p className="text-xs text-gray-400">No policy saved yet. Configure bounds above and save.</p>
             )}
           </CardContent>
         </Card>

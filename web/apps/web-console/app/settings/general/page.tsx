@@ -518,10 +518,20 @@ export default function SettingsGeneralPage() {
             ) : (
               <div className="space-y-4">
                 <div className="flex items-center gap-3">
-                  <span className="text-sm font-semibold text-gray-900">{tenant?.plan ?? 'Seed'}</span>
-                  <span className="inline-flex items-center px-1.5 py-0.5 text-[10px] font-semibold uppercase border rounded bg-green-50 text-green-700 border-green-200">
-                    active
-                  </span>
+                  <span className="text-sm font-semibold text-gray-900 capitalize">{tenant?.plan ?? 'Seed'}</span>
+                  {tenant?.subscription_status === 'active' ? (
+                    <span className="inline-flex items-center px-1.5 py-0.5 text-[10px] font-semibold uppercase border rounded bg-green-50 text-green-700 border-green-200">
+                      active
+                    </span>
+                  ) : tenant?.trial_active ? (
+                    <span className="inline-flex items-center px-1.5 py-0.5 text-[10px] font-semibold uppercase border rounded bg-blue-50 text-blue-700 border-blue-200">
+                      trial
+                    </span>
+                  ) : (
+                    <span className="inline-flex items-center px-1.5 py-0.5 text-[10px] font-semibold uppercase border rounded bg-gray-100 text-gray-500 border-gray-200">
+                      no plan
+                    </span>
+                  )}
                 </div>
                 <div className="grid grid-cols-2 gap-3 text-xs">
                   <div>
