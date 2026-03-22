@@ -31,7 +31,7 @@ export default function MultiTenancy() {
   }, [])
 
   const cardClass = "border border-gray-200 dark:border-[#f6f6f4]/8 rounded-2xl p-6 bg-[#f9f9fa] dark:bg-[#1b1912]/60 hover:border-gray-300 dark:hover:border-[#f6f6f4]/15 transition-colors duration-200 flex flex-col"
-  const titleClass = "text-base md:text-lg text-[#000000] dark:text-[#f6f6f4]"
+  const titleClass = "text-sm md:text-base text-[#000000] dark:text-[#f6f6f4]"
   const descClass = "text-sm md:text-base text-gray-600 dark:text-[#a8a898] leading-relaxed max-w-[280px]"
   const fontFamily = '-apple-system, BlinkMacSystemFont, "Segoe UI", Roboto, Helvetica, Arial, sans-serif'
 
@@ -41,12 +41,12 @@ export default function MultiTenancy() {
         <div className="px-4 md:px-8 lg:px-12" style={{ borderLeft: '0.5px solid rgba(209, 213, 219, 0.35)', borderRight: '0.5px solid rgba(209, 213, 219, 0.35)' }}>
           {/* Title */}
           <div className="flex items-center justify-between" style={{ paddingTop: '3rem', paddingBottom: '2rem' }}>
-            <h3 className="text-xl md:text-2xl lg:text-3xl text-[#000000] dark:text-[#f6f6f4]" style={{ fontFamily }}>
+            <h3 className="text-lg md:text-xl lg:text-2xl text-[#000000] dark:text-[#f6f6f4]" style={{ fontFamily }}>
               Proof is built in
             </h3>
             <Link
               href="/security"
-              className="inline-flex items-center justify-center px-3 py-1.5 md:px-6 md:py-3 hover:opacity-80 transition-all duration-200 text-xs md:text-sm font-medium shadow-sm rounded-md border shrink-0 ml-3 md:ml-4"
+              className="inline-flex items-center justify-center px-3 py-1.5 hover:opacity-80 transition-all duration-200 text-xs font-medium shadow-sm rounded-md border shrink-0 ml-3 md:ml-4"
               style={{ backgroundColor: mounted && theme === 'dark' ? '#1b1912' : '#f9f9fa', color: mounted && theme === 'dark' ? '#f6f6f4' : '#1b1912', borderColor: 'rgba(20, 18, 10, 0.1)', fontFamily }}
             >
               Learn More
