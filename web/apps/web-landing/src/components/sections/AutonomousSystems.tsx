@@ -49,10 +49,10 @@ export default function AutonomousSystems() {
                 <h3 className="text-sm md:text-base mb-2 text-[#000000] dark:text-[#f6f6f4]" style={{ fontFamily }}>
                   For AI Agents
                 </h3>
-                <p className="text-sm md:text-base text-gray-600 dark:text-[#a8a898] leading-relaxed mb-3" style={{ fontFamily }}>
+                <p className="text-xs md:text-sm text-gray-600 dark:text-[#a8a898] leading-relaxed mb-3" style={{ fontFamily }}>
                   Run on servers or edge. Every execution is isolated and time-bounded. Exceed limits and the task terminates — not retried silently.
                 </p>
-                <p className="text-sm md:text-base text-gray-600 dark:text-[#a8a898] leading-relaxed" style={{ fontFamily }}>
+                <p className="text-xs md:text-sm text-gray-600 dark:text-[#a8a898] leading-relaxed" style={{ fontFamily }}>
                   Signed envelopes provide verifiable audit trails. Survive outages with local fallback. No runaway loops. No undefined state.
                 </p>
               </div>
@@ -100,10 +100,10 @@ export default function AutonomousSystems() {
                 <h3 className="text-sm md:text-base mb-2 text-[#000000] dark:text-[#f6f6f4]" style={{ fontFamily }}>
                   For Robots
                 </h3>
-                <p className="text-sm md:text-base text-gray-600 dark:text-[#a8a898] leading-relaxed mb-3" style={{ fontFamily }}>
+                <p className="text-xs md:text-sm text-gray-600 dark:text-[#a8a898] leading-relaxed mb-3" style={{ fontFamily }}>
                   ROS 2 binds reasoning to motor control. On violation, navigation cancels and zero velocity enforces within 50ms.
                 </p>
-                <p className="text-sm md:text-base text-gray-600 dark:text-[#a8a898] leading-relaxed" style={{ fontFamily }}>
+                <p className="text-xs md:text-sm text-gray-600 dark:text-[#a8a898] leading-relaxed" style={{ fontFamily }}>
                   Safety logic is deterministic and LLM-independent. Signed violations include pose context. Offline by default. Sync when available.
                 </p>
               </div>
