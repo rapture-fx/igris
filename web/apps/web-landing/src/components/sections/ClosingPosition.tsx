@@ -14,7 +14,7 @@ export default function ClosingPosition() {
           borderRight: '0.5px solid rgba(209, 213, 219, 0.35)'
         }}>
           <div className="flex items-center justify-between" style={{ paddingTop: '3rem', paddingBottom: '3rem' }}>
-            <h3 className="text-lg md:text-xl lg:text-2xl text-[#000000] dark:text-[#f6f6f4]" style={{ fontFamily: '-apple-system, BlinkMacSystemFont, "Segoe UI", Roboto, Helvetica, Arial, sans-serif' }}>
+            <h3 className="text-lg md:text-2xl lg:text-3xl text-[#000000] dark:text-[#f6f6f4]" style={{ fontFamily: 'var(--font-geist-pixel-square, Geist Pixel Square, monospace)' }}>
               Complete control from edge to cloud.
             </h3>
             <Link href="https://console.igrisinertial.com/auth?mode=signup">
