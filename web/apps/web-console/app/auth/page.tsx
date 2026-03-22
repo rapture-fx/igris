@@ -25,7 +25,7 @@ export default function AuthPage() {
 function AuthContent() {
   const router = useRouter();
   const searchParams = useSearchParams();
-  const [mode, setMode] = useState<'signin' | 'signup'>(
+  const [mode, setMode] = useState<'signin' | 'signup' | 'forgot'>(
     searchParams.get('mode') === 'signup' ? 'signup' : 'signin'
   );
 
@@ -40,10 +40,9 @@ function AuthContent() {
   const [loadingProvider, setLoadingProvider] = useState<string | null>(null);
   const [error, setError] = useState('');
 
-  const switchMode = (next: 'signin' | 'signup') => {
+  const switchMode = (next: 'signin' | 'signup' | 'forgot') => {
     setMode(next);
     setError('');
-    setEmail('');
     setPassword('');
     setName('');
     setShowPassword(false);
@@ -51,11 +50,14 @@ function AuthContent() {
     setForgotSent(false);
   };
 
-  const handleForgotPassword = async () => {
-    if (!email) { setError('Enter your email above first'); return; }
+  const handleForgotPassword = async (e: React.FormEvent) => {
+    e.preventDefault();
+    if (!email) { setError('Enter your email address'); return; }
     setForgotLoading(true);
     setError('');
-    await authClient.forgetPassword({ email, redirectTo: '/reset-password' });
+    try {
+      await authClient.requestPasswordReset({ email, redirectTo: '/reset-password' });
+    } catch {}
     setForgotSent(true);
     setForgotLoading(false);
   };
@@ -103,29 +105,78 @@ function AuthContent() {
 
         <div className="rounded-xl border border-gray-200 dark:border-gray-800 shadow-sm overflow-hidden bg-white dark:bg-[#111110]">
 
-          {/* Folder tabs — Sign in first */}
-          <div className="flex">
-            {(['signin', 'signup'] as const).map((tab) => {
-              const active = mode === tab;
-              return (
-                <button
-                  key={tab}
-                  type="button"
-                  onClick={() => switchMode(tab)}
-                  className={`flex-1 py-3.5 text-sm font-medium transition-colors ${
-                    active
-                      ? 'text-gray-900 dark:text-white bg-white dark:bg-[#111110]'
-                      : 'text-gray-400 dark:text-gray-500 bg-gray-50 dark:bg-[#191918] hover:text-gray-600 dark:hover:text-gray-400'
-                  }`}
-                >
-                  {tab === 'signin' ? 'Sign in' : 'Sign up'}
-                </button>
-              );
-            })}
-          </div>
+          {/* Folder tabs */}
+          {mode !== 'forgot' && (
+            <div className="flex">
+              {(['signin', 'signup'] as const).map((tab) => {
+                const active = mode === tab;
+                return (
+                  <button
+                    key={tab}
+                    type="button"
+                    onClick={() => switchMode(tab)}
+                    className={`flex-1 py-3.5 text-sm font-medium transition-colors ${
+                      active
+                        ? 'text-gray-900 dark:text-white bg-white dark:bg-[#111110]'
+                        : 'text-gray-400 dark:text-gray-500 bg-gray-50 dark:bg-[#191918] hover:text-gray-600 dark:hover:text-gray-400'
+                    }`}
+                  >
+                    {tab === 'signin' ? 'Sign in' : 'Sign up'}
+                  </button>
+                );
+              })}
+            </div>
+          )}
+
+          {/* Forgot password view */}
+          {mode === 'forgot' && (
+            <div className="p-6">
+              <button
+                type="button"
+                onClick={() => switchMode('signin')}
+                className="text-xs text-gray-400 hover:text-gray-600 dark:hover:text-gray-300 mb-5 flex items-center gap-1"
+              >
+                ← Back to sign in
+              </button>
+              <h2 className="text-sm font-semibold text-gray-900 dark:text-white mb-1">Reset your password</h2>
+              <p className="text-xs text-gray-400 dark:text-gray-500 mb-5">
+                Enter your email and we'll send a reset link.
+              </p>
+              {forgotSent ? (
+                <div className="rounded-lg border border-green-200 dark:border-green-800 bg-green-50 dark:bg-green-950/30 px-4 py-3 text-xs text-green-700 dark:text-green-400">
+                  Check your inbox — a reset link has been sent to <strong>{email}</strong>.
+                </div>
+              ) : (
+                <form onSubmit={handleForgotPassword} className="space-y-3">
+                  <div className="space-y-1.5">
+                    <Label htmlFor="forgot-email" className="text-xs text-gray-500 dark:text-gray-400">Email</Label>
+                    <Input
+                      id="forgot-email"
+                      type="email"
+                      value={email}
+                      onChange={(e) => setEmail(e.target.value)}
+                      required
+                      placeholder="you@example.com"
+                      autoFocus
+                      className="h-9"
+                    />
+                  </div>
+                  {error && (
+                    <p className="text-[11px] text-red-500 bg-red-50 dark:bg-red-950/30 border border-red-100 dark:border-red-900/40 rounded-lg px-3 py-2">
+                      {error}
+                    </p>
+                  )}
+                  <Button type="submit" disabled={forgotLoading} className="h-8 text-xs px-5">
+                    {forgotLoading && <Loader2 className="h-3.5 w-3.5 animate-spin mr-1.5" />}
+                    Send reset link
+                  </Button>
+                </form>
+              )}
+            </div>
+          )}
 
           {/* Body */}
-          <div className="p-6 space-y-3">
+          {mode !== 'forgot' && <div className="p-6 space-y-3">
 
             {/* Google */}
             <Button
@@ -221,18 +272,13 @@ function AuthContent() {
                   <div className="flex items-center justify-between">
                     <Label htmlFor="password" className="text-xs text-gray-500 dark:text-gray-400">Password</Label>
                     {mode === 'signin' && (
-                      forgotSent ? (
-                        <span className="text-[9px] text-gray-400">Check your email</span>
-                      ) : (
-                        <button
-                          type="button"
-                          onClick={handleForgotPassword}
-                          disabled={forgotLoading}
-                          className="text-[9px] text-gray-400 hover:text-gray-700 dark:hover:text-gray-200 underline-offset-2 hover:underline disabled:opacity-50"
-                        >
-                          {forgotLoading ? 'Sending…' : 'Forgot password?'}
-                        </button>
-                      )
+                      <button
+                        type="button"
+                        onClick={() => switchMode('forgot')}
+                        className="text-[9px] text-gray-400 hover:text-gray-700 dark:hover:text-gray-200 underline-offset-2 hover:underline"
+                      >
+                        Forgot password?
+                      </button>
                     )}
                   </div>
                   <div className="relative">
@@ -274,7 +320,7 @@ function AuthContent() {
               </form>
             </div>
 
-          </div>
+          </div>}
 
           <div className="px-5 pb-4 pt-1">
             <p className="text-center text-[9px] text-gray-400">
