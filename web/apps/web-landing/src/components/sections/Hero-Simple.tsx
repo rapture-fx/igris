@@ -30,13 +30,13 @@ export default function Hero() {
             {/* Top row: Title left, Subtext right - outside frame */}
             <div className="flex flex-col md:flex-row md:items-start md:justify-between gap-4 mb-6">
               <div className="text-left">
-                <h1 className="text-base md:text-xl lg:text-2xl mb-2 leading-tight" style={{ color: mounted && theme === 'dark' ? '#f6f6f4' : '#1b1912', fontFamily: 'Inter, sans-serif', fontWeight: 500 }}>
+                <h1 className="text-lg md:text-2xl lg:text-3xl mb-2 leading-tight" style={{ color: mounted && theme === 'dark' ? '#f6f6f4' : '#1b1912', fontFamily: 'Inter, sans-serif', fontWeight: 500 }}>
                   Run AI that survives failure<br />
                   <span className="mt-2 block">and proves what it did.</span>
                 </h1>
               </div>
               <div className="text-left md:text-right" style={{ maxWidth: '300px' }}>
-                <p className="text-sm md:text-base" style={{ color: mounted && theme === 'dark' ? '#a8a898' : '#6b7280', fontFamily: '-apple-system, BlinkMacSystemFont, "Segoe UI", Roboto, Helvetica, Arial, sans-serif', fontWeight: 400 }}>
+                <p className="text-xs md:text-sm" style={{ color: mounted && theme === 'dark' ? '#a8a898' : '#6b7280', fontFamily: '-apple-system, BlinkMacSystemFont, "Segoe UI", Roboto, Helvetica, Arial, sans-serif', fontWeight: 400 }}>
                   Deterministic runtime. Cloud + local fallback. OS-level containment with signed violation logs. Deploy anywhere.
                 </p>
               </div>
@@ -47,7 +47,7 @@ export default function Hero() {
               <img src="/prkgol.png" alt="Hero" className="h-full w-full object-cover rounded-lg border border-gray-200 dark:border-gray-700" />
               <div className="absolute inset-0 flex items-center justify-center">
                 <div
-                  className="inline-flex items-center gap-2 md:gap-3 rounded-md px-3 py-1.5 md:px-5 md:py-2.5 text-sm md:text-base border shadow-lg"
+                  className="inline-flex items-center gap-2 md:gap-3 rounded-md px-3 py-1.5 md:px-5 md:py-2.5 text-xs md:text-sm border shadow-lg"
                   style={{
                     backgroundColor: mounted && theme === 'dark' ? '#1b1912' : '#ffffff',
                     borderColor: mounted && theme === 'dark' ? 'rgba(246,246,244,0.08)' : 'rgba(0,0,0,0.1)',
