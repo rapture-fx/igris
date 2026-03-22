@@ -133,32 +133,35 @@ export const ROUTES = {
   REGISTER: '/auth?mode=signup',
   DASHBOARD: '/dashboard',
 
-  // Overture (Cloud Gateway)
-  OVERTURE_PROVIDERS: '/dashboard/overture/providers',
-  OVERTURE_ROUTING: '/dashboard/overture/routing',
-  OVERTURE_COST: '/dashboard/overture/cost',
-  OVERTURE_SHADOW: '/dashboard/overture/shadow',
-  OVERTURE_ESCAPE: '/dashboard/overture/escape',
+  // Execution
+  EXECUTION_RUNS: '/execution/runs',
+  EXECUTION_AGENTS: '/execution/agents',
 
-  // Runtime (Edge Execution)
-  RUNTIME_FLEET: '/dashboard/runtime/fleet',
-  RUNTIME_DEVICES: '/dashboard/runtime/devices',
-  RUNTIME_CONFIG: '/dashboard/runtime/config',
-  RUNTIME_SWARM: '/dashboard/runtime/swarm',
+  // Fleet
+  FLEET_DEVICES: '/fleet/devices',
 
-  // Agents
-  AGENTS_PLANNING: '/dashboard/agents/planning',
-  AGENTS_TOOLS: '/dashboard/agents/tools',
-  AGENTS_QLORA: '/dashboard/agents/qlora',
-  AGENTS_FEDERATED: '/dashboard/agents/federated',
-  AGENTS_MULTIMODAL: '/dashboard/agents/multimodal',
+  // Models
+  MODELS_ROUTING: '/models/routing',
+  MODELS_PROVIDERS: '/models/providers',
+  MODELS_COST: '/models/cost',
 
-  // Legacy routes (kept for backwards compatibility)
-  USAGE: '/dashboard/usage',
-  VAULT: '/dashboard/vault',
-  PROVIDERS: '/dashboard/providers',
-  POLICY: '/dashboard/policy',
-  SETTINGS: '/dashboard/settings',
+  // Policy
+  POLICY_BOUNDS: '/policy/bounds',
+  POLICY_CAPABILITIES: '/policy/capabilities',
+
+  // Proof
+  PROOF_RECEIPTS: '/proof/receipts',
+  PROOF_VIOLATIONS: '/proof/violations',
+
+  // History
+  HISTORY_LOGS: '/history/logs',
+  HISTORY_METRICS: '/history/metrics',
+  HISTORY_ALERTS: '/history/alerts',
+
+  // Settings
+  SETTINGS_GENERAL: '/settings/general',
+  SETTINGS_LICENSE: '/settings/license',
+  SETTINGS_BILLING: '/settings/billing',
 };
 
 export const PROVIDERS = [
