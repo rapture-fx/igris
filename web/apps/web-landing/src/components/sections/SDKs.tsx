@@ -160,7 +160,15 @@ const codeExamples: Record<Language, string[]> = {
     '    .auto_fallback(true)',
     '    .build()?;',
     '',
-    'let local = runtime.chat(&request).await?;',
+    'let local = runtime.chat(&InferRequest {',
+    '    model: "llama-3-8b".into(),',
+    '    messages: vec![Message {',
+    '        role: "user".into(),',
+    '        content: "Hello".into(),',
+    '        ..Default::default()',
+    '    }],',
+    '    ..Default::default()',
+    '}).await?;',
   ],
 }
 
@@ -406,7 +414,7 @@ export default function SDKs() {
                 </p>
                 <div>
                   <a
-                    href="https://docs.igrisinertial.com/docs/sdk/"
+                    href="https://docs.igris-inertial.com/docs/sdk/"
                     className="text-sm text-gray-900 dark:text-[#f6f6f4] underline decoration-dotted underline-offset-2 hover:text-gray-600 dark:hover:text-gray-300 transition-colors"
                     style={{ fontFamily }}
                   >
@@ -448,7 +456,7 @@ export default function SDKs() {
                 </p>
                 <div>
                   <a
-                    href="https://docs.igrisinertial.com/docs/behavior-trees/"
+                    href="https://docs.igris-inertial.com/docs/behavior-trees/"
                     className="text-sm text-gray-900 dark:text-[#f6f6f4] underline decoration-dotted underline-offset-2 hover:text-gray-600 dark:hover:text-gray-300 transition-colors"
                     style={{ fontFamily }}
                   >
