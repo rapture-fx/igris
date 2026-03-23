@@ -65,7 +65,7 @@ export default function Hero() {
             {/* Title and subtext - below image */}
             <div className="flex flex-col md:flex-row md:items-start md:justify-between gap-4">
               <div className="text-left">
-                <h1 className="text-lg md:text-2xl lg:text-3xl mb-2 leading-tight" style={{ color: mounted && theme === 'dark' ? '#f6f6f4' : '#1b1912', fontFamily: 'var(--font-geist-pixel-square, Geist Pixel Square, monospace)', fontWeight: 500 }}>
+                <h1 className="text-lg md:text-2xl lg:text-3xl mb-2 leading-tight" style={{ color: mounted && theme === 'dark' ? '#f6f6f4' : '#1b1912', fontFamily: 'Inter, sans-serif', fontWeight: 500 }}>
                   Run AI that survives failure<br />
                   <span className="mt-2 block">and proves what it did.</span>
                 </h1>
