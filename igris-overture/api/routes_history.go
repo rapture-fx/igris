@@ -32,6 +32,7 @@ func RegisterHistoryRoutes(app *fiber.App, db *sql.DB) {
 	v1.Get("/alerts", h.listAlerts)
 	v1.Post("/alerts/:id/acknowledge", h.acknowledgeAlert)
 	v1.Post("/alerts/:id/resolve", h.resolveAlert)
+	v1.Post("/alerts/:id/escalate", h.escalateAlert)
 
 	log.Info().Msg("[Routes] Registered history endpoints (/v1/history/events|metrics|alerts)")
 }
@@ -433,6 +434,31 @@ func (h *historyHandler) resolveAlert(c *fiber.Ctx) error {
 		return c.Status(fiber.StatusNotFound).JSON(fiber.Map{"error": "alert not found or already resolved"})
 	}
 	return c.JSON(fiber.Map{"status": "resolved"})
+}
+
+func (h *historyHandler) escalateAlert(c *fiber.Ctx) error {
+	tenantID := middleware.GetClerkUserID(c)
+	if tenantID == "" {
+		return c.Status(fiber.StatusUnauthorized).JSON(fiber.Map{"error": "unauthorized"})
+	}
+	alertID := c.Params("id")
+
+	result, err := h.db.Exec(`
+		UPDATE execution_lineage
+		SET alert_escalated_at = NOW()
+		WHERE id = $1
+		  AND tenant_id = $2
+		  AND violation_occurred = TRUE
+	`, alertID, tenantID)
+	if err != nil {
+		log.Error().Err(err).Str("alert_id", alertID).Msg("[History] Escalate alert failed")
+		return c.Status(fiber.StatusInternalServerError).JSON(fiber.Map{"error": "internal_error"})
+	}
+	n, _ := result.RowsAffected()
+	if n == 0 {
+		return c.Status(fiber.StatusNotFound).JSON(fiber.Map{"error": "alert not found"})
+	}
+	return c.JSON(fiber.Map{"status": "escalated"})
 }
 
 // ── helpers ─────────────────────────────────────────────────────────────────
