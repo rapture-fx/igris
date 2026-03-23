@@ -22,28 +22,13 @@ export default function Hero() {
   }, [])
 
   return (
-    <section className="pb-0 bg-white dark:bg-dark-bg text-gray-900 dark:text-[#f6f6f4] relative overflow-visible transition-colors duration-200" style={{ marginTop: '52px' }}>
-      <div className="mx-auto max-w-[1100px] px-4 sm:px-6 lg:px-8">
+    <section className="pb-0 bg-white dark:bg-dark-bg text-gray-900 dark:text-[#f6f6f4] relative overflow-visible transition-colors duration-200" style={{ marginTop: '40px' }}>
+      <div className="mx-auto max-w-[1600px] px-4 sm:px-6 lg:px-8">
         <div className="relative overflow-hidden flex flex-col justify-center min-h-[auto] md:min-h-[calc(100vh-52px)]" style={{ marginBottom: '2rem' }}>
-          <div className="max-w-[1100px] mx-auto w-full relative z-10 pb-6 md:pb-10 pt-6 md:pt-0 px-4 md:px-8 lg:px-12">
+          <div className="max-w-[1600px] mx-auto w-full relative z-10 pb-6 md:pb-10 pt-0 px-4 md:px-8 lg:px-12">
             
-            {/* Top row: Title left, Subtext right - outside frame */}
-            <div className="flex flex-col md:flex-row md:items-start md:justify-between gap-4 mb-6">
-              <div className="text-left">
-                <h1 className="text-lg md:text-2xl lg:text-3xl mb-2 leading-tight" style={{ color: mounted && theme === 'dark' ? '#f6f6f4' : '#1b1912', fontFamily: 'var(--font-geist-pixel-square, Geist Pixel Square, monospace)', fontWeight: 500 }}>
-                  Run AI that survives failure<br />
-                  <span className="mt-2 block">and proves what it did.</span>
-                </h1>
-              </div>
-              <div className="text-left md:text-right" style={{ maxWidth: '300px' }}>
-                <p className="text-sm md:text-base" style={{ color: mounted && theme === 'dark' ? '#a8a898' : '#6b7280', fontFamily: '-apple-system, BlinkMacSystemFont, "Segoe UI", Roboto, Helvetica, Arial, sans-serif', fontWeight: 400 }}>
-                  Deterministic runtime. Cloud + local fallback. OS-level containment with signed violation logs. Deploy anywhere.
-                </p>
-              </div>
-            </div>
-
             {/* Image with frame */}
-            <div className="rounded-lg mb-6 overflow-hidden relative" style={{ height: '575px' }}>
+            <div className="rounded-lg mb-6 overflow-hidden relative" style={{ height: '800px' }}>
               <img src="/prkgol.png" alt="Hero" className="h-full w-full object-cover rounded-lg border border-gray-200 dark:border-gray-700" />
               <div className="absolute inset-0 flex items-center justify-center">
                 <div
@@ -74,6 +59,21 @@ export default function Hero() {
                     )}
                   </button>
                 </div>
+              </div>
+            </div>
+
+            {/* Title and subtext - below image */}
+            <div className="flex flex-col md:flex-row md:items-start md:justify-between gap-4">
+              <div className="text-left">
+                <h1 className="text-lg md:text-2xl lg:text-3xl mb-2 leading-tight" style={{ color: mounted && theme === 'dark' ? '#f6f6f4' : '#1b1912', fontFamily: 'var(--font-geist-pixel-square, Geist Pixel Square, monospace)', fontWeight: 500 }}>
+                  Run AI that survives failure<br />
+                  <span className="mt-2 block">and proves what it did.</span>
+                </h1>
+              </div>
+              <div className="text-left md:text-right" style={{ maxWidth: '300px' }}>
+                <p className="text-sm md:text-base" style={{ color: mounted && theme === 'dark' ? '#a8a898' : '#6b7280', fontFamily: '-apple-system, BlinkMacSystemFont, "Segoe UI", Roboto, Helvetica, Arial, sans-serif', fontWeight: 400 }}>
+                  Deterministic runtime. Cloud + local fallback. OS-level containment with signed violation logs. Deploy anywhere.
+                </p>
               </div>
             </div>
 
