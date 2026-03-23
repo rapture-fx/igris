@@ -47,6 +47,8 @@ import {
   AlertTriangle,
   BarChart3,
   CheckCircle2,
+  GitBranch,
+  Loader2,
 } from 'lucide-react';
 import {
   ExecutionStatusBadge,
@@ -116,6 +118,121 @@ function resolveCapabilities(caps: string[] | Record<string, unknown>): Record<s
   }
   return Object.fromEntries(
     Object.entries(caps).map(([k, v]) => [k, String(v)]),
+  );
+}
+
+// ─── BT Types ─────────────────────────────────────────────────────────────────
+
+interface BTNode {
+  id: string;
+  name: string;
+  type: 'selector' | 'sequence' | 'action' | 'condition';
+  status: 'pending' | 'running' | 'completed' | 'failed' | 'violation';
+  depth: number;
+  duration_ms?: number;
+  execution_id?: string;
+  timestamp?: string;
+  llm_proposal?: string;
+}
+
+interface BTState {
+  agent_id: string;
+  nodes: BTNode[];
+  last_updated: string;
+}
+
+// ─── BT Execution View ────────────────────────────────────────────────────────
+
+const BT_STATUS_STYLES: Record<string, string> = {
+  completed: 'bg-green-50 text-green-700 border-green-200',
+  running:   'bg-blue-50 text-blue-700 border-blue-200 animate-pulse',
+  failed:    'bg-red-50 text-red-700 border-red-200',
+  violation: 'bg-orange-50 text-orange-700 border-orange-200',
+  pending:   'bg-gray-50 text-gray-500 border-gray-200',
+};
+
+const BT_TYPE_ICON: Record<string, string> = {
+  selector: '◇',
+  sequence: '→',
+  action:   '▶',
+  condition: '?',
+};
+
+function BTExecutionView({ agentId }: { agentId: string }) {
+  const { data, isLoading } = useQuery<BTState>({
+    queryKey: ['bt-state', agentId],
+    queryFn: async () => {
+      try {
+        return await api.get<BTState>(`/v1/agents/${agentId}/bt-state`);
+      } catch {
+        return { agent_id: agentId, nodes: [], last_updated: '' };
+      }
+    },
+    refetchInterval: 10_000,
+    retry: false,
+  });
+
+  if (isLoading) {
+    return (
+      <div className="flex items-center gap-2 text-xs text-gray-400 py-2">
+        <Loader2 className="h-3.5 w-3.5 animate-spin" />
+        Loading execution tree...
+      </div>
+    );
+  }
+
+  const nodes = data?.nodes ?? [];
+  if (nodes.length === 0) {
+    return <p className="text-xs text-gray-400">No execution data available.</p>;
+  }
+
+  return (
+    <div className="space-y-0.5">
+      {nodes.map((node) => (
+        <div
+          key={node.id}
+          className="flex items-start gap-2"
+          style={{ paddingLeft: `${node.depth * 16}px` }}
+        >
+          {/* Connector line for children */}
+          {node.depth > 0 && (
+            <span className="mt-1 flex-shrink-0 text-gray-300 text-[10px] font-mono">└</span>
+          )}
+          <div className="flex-1 flex items-center justify-between gap-2 py-1 px-2 rounded-md hover:bg-gray-50 group">
+            <div className="flex items-center gap-1.5 min-w-0">
+              <span className="text-[10px] text-gray-400 font-mono flex-shrink-0">
+                {BT_TYPE_ICON[node.type] ?? '•'}
+              </span>
+              <span className="text-xs text-gray-700 font-medium truncate">{node.name}</span>
+              {node.execution_id && (
+                <span className="text-[10px] text-gray-400 font-mono truncate hidden group-hover:inline">
+                  {node.execution_id.slice(0, 8)}
+                </span>
+              )}
+            </div>
+            <div className="flex items-center gap-2 flex-shrink-0">
+              {node.duration_ms != null && node.duration_ms > 0 && (
+                <span className="text-[10px] text-gray-400 tabular-nums">
+                  {node.duration_ms < 1000 ? `${node.duration_ms}ms` : `${(node.duration_ms / 1000).toFixed(1)}s`}
+                </span>
+              )}
+              <span
+                className={`inline-flex items-center px-1.5 py-0.5 rounded border text-[10px] font-medium ${
+                  BT_STATUS_STYLES[node.status] ?? BT_STATUS_STYLES.pending
+                }`}
+              >
+                {node.status}
+              </span>
+            </div>
+          </div>
+        </div>
+      ))}
+      {data?.last_updated && (
+        <p className="text-[10px] text-gray-400 pt-1 pl-1">
+          Last updated {getRelativeTime(data.last_updated)}
+        </p>
+      )}
+    </div>
   );
 }
 
@@ -708,6 +825,20 @@ export default function ExecutionAgentsPage() {
                         </table>
                       </div>
                     )}
+                  </section>
+
+                  <Separator />
+
+                  {/* §6.5 BT Execution View */}
+                  <section>
+                    <h3 className="text-[11px] font-semibold text-gray-400 uppercase tracking-wider mb-3 flex items-center gap-1.5">
+                      <GitBranch className="h-3.5 w-3.5" />
+                      BT Execution View
+                      <span className="ml-1 text-[10px] font-normal text-gray-400 normal-case tracking-normal">
+                        last 10 runs
+                      </span>
+                    </h3>
+                    <BTExecutionView agentId={selected.id} />
                   </section>
 
                   <Separator />
