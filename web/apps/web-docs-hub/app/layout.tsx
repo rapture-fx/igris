@@ -8,10 +8,10 @@ export const metadata: Metadata = {
   description: 'Documentation for Igris products - Overture and Runtime',
   icons: {
     icon: [
-      { url: '/fofot.png', type: 'image/png', sizes: '32x32' }
+      { url: '/inertia.png', type: 'image/png', sizes: '32x32' }
     ],
-    shortcut: '/fofot.png',
-    apple: { url: '/fofot.png', sizes: '32x32' },
+    shortcut: '/inertia.png',
+    apple: { url: '/inertia.png', sizes: '32x32' },
   },
 };
 
