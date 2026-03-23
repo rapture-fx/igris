@@ -50,14 +50,14 @@ export default function Hero() {
             {/* Install command - below image */}
             <div className="flex justify-center">
               <div
-                className="inline-flex items-center gap-2 md:gap-3 rounded-md px-3 py-1.5 md:px-5 md:py-2.5 text-xs md:text-sm border shadow-lg"
+                className="inline-flex items-center gap-3 md:gap-4 rounded-lg px-4 py-2.5 md:px-6 md:py-3.5 text-sm md:text-base border shadow-lg"
                 style={{
                   backgroundColor: mounted && theme === 'dark' ? '#1b1912' : '#ffffff',
                   borderColor: mounted && theme === 'dark' ? 'rgba(246,246,244,0.08)' : 'rgba(0,0,0,0.1)',
                   color: mounted && theme === 'dark' ? '#c8c8b8' : '#374151',
                 }}
               >
-                <img src="/inertia.png" alt="Igris" className="h-6 w-6 shrink-0 opacity-80" />
+                <img src="/inertia.png" alt="Igris" className="h-8 w-8 shrink-0 opacity-80" />
                 <span className="select-all truncate max-w-[180px] md:max-w-none">{INSTALL_CMD}</span>
                 <button
                   onClick={copy}
@@ -66,11 +66,11 @@ export default function Hero() {
                   style={{ color: mounted && theme === 'dark' ? '#a8a898' : '#6b7280' }}
                 >
                   {copied ? (
-                    <svg width="12" height="12" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2.5" strokeLinecap="round" strokeLinejoin="round">
+                    <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2.5" strokeLinecap="round" strokeLinejoin="round">
                       <polyline points="20 6 9 17 4 12" />
                     </svg>
                   ) : (
-                    <svg width="12" height="12" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round">
+                    <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round">
                       <rect x="9" y="9" width="13" height="13" rx="2" ry="2" />
                       <path d="M5 15H4a2 2 0 0 1-2-2V4a2 2 0 0 1 2-2h9a2 2 0 0 1 2 2v1" />
                     </svg>
