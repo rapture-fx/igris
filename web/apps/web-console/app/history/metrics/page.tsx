@@ -380,6 +380,14 @@ export default function HistoryMetricsPage() {
                         <TableCell className="py-2 px-3"><Skeleton className="h-3.5 w-16" /></TableCell>
                       </TableRow>
                     ))
+                  : (metrics?.events ?? []).length === 0
+                  ? (
+                      <TableRow>
+                        <TableCell colSpan={6} className="py-10 text-center text-xs text-gray-400">
+                          No metric events in this time range.
+                        </TableCell>
+                      </TableRow>
+                    )
                   : (metrics?.events ?? []).map((ev) => (
                       <TableRow key={ev.id} className="border-b border-gray-100 hover:bg-gray-50/60">
                         <TableCell className="py-2 px-4 text-xs text-gray-500 font-mono whitespace-nowrap">
