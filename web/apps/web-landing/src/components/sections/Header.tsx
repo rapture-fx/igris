@@ -121,58 +121,35 @@ export default function Header() {
 
   return (
     <>
-      {/* Backdrop */}
-      <div
-        className={`fixed inset-0 z-40 transition-all duration-300 ${
-          isFloating
-            ? 'bg-black/20 backdrop-blur-sm pointer-events-auto'
-            : 'bg-transparent backdrop-blur-none pointer-events-none'
-        }`}
-        onClick={() => setActiveDropdown(null)}
-      />
-
       <header
         className="fixed top-0 left-0 w-full z-50"
       >
-        {/* Full-width background + border - fades out when floating */}
+        {/* Full-width background + border */}
         <div
           className={`absolute inset-0 transition-all duration-300 ${
-            isFloating
-              ? 'opacity-0'
-              : isScrolled
-                ? 'opacity-100 backdrop-blur-md bg-[rgba(255,255,255,0.85)] dark:bg-[rgba(27,25,18,0.85)]'
-                : 'opacity-100 bg-white dark:bg-[#1b1912]'
+            isScrolled
+              ? 'backdrop-blur-md bg-[rgba(255,255,255,0.85)] dark:bg-[rgba(27,25,18,0.85)]'
+              : 'bg-white dark:bg-[#1b1912]'
           }`}
           style={{ borderBottom: 'none' }}
         />
 
         <div className="relative mx-auto max-w-[1600px] px-4 sm:px-6 lg:px-8">
-          {/* Nav bar + dropdown wrapper — negative margin extends floating card beyond content */}
+          {/* Nav bar + dropdown wrapper */}
           <div
             onMouseLeave={scheduleClose}
             className="-mx-5"
           >
-            {/* Top spacing when floating */}
-            <div
-              className={`transition-all duration-300 ${
-                isFloating ? 'h-3' : 'h-0'
-              }`}
-            />
-
             {/* Nav bar inner content — px-5 always keeps content aligned */}
             <div
-              className={`w-full px-5 transition-all duration-300 ${
-                isFloating
-                  ? 'bg-white dark:bg-[#1b1912] shadow-[0_4px_24px_rgba(0,0,0,0.08)] rounded-t-2xl'
-                  : 'bg-transparent'
-              }`}
+              className="w-full px-5 bg-transparent"
               style={{
                 paddingTop: '0.5rem',
                 paddingBottom: '0.5rem',
               }}
             >
               {/* Inner padding matches hero content: px-4 md:px-8 lg:px-12 */}
-              <div className="flex items-center justify-between w-full px-4 md:px-8 lg:px-12">
+              <div className="flex items-center justify-between w-full px-4 md:px-8 lg:px-12 relative">
                 <div className="flex">
                   <Link href="/" prefetch={false}>
                     <img
@@ -183,7 +160,7 @@ export default function Header() {
                   </Link>
                 </div>
 
-                <div className="hidden md:flex items-center space-x-1">
+                <div className="hidden md:flex items-center space-x-1 absolute left-1/2 -translate-x-1/2">
                   <button
                     onMouseEnter={() => openDropdown('features')}
                     className={`px-3 py-1.5 text-sm font-medium flex items-center gap-1 transition-all duration-200 rounded-md ${
@@ -219,12 +196,14 @@ export default function Header() {
                   >
                     Pricing
                   </Link>
+                </div>
 
+                <div className="hidden md:flex items-center space-x-3">
                   <a
                     href={consoleUrl ? `${consoleUrl}/auth?mode=signin` : '#'}
                     onMouseEnter={scheduleClose}
-                    className="px-3 py-1.5 text-gray-600 dark:text-[#c8c8b8] hover:text-gray-900 dark:hover:text-[#f6f6f4] hover:bg-black/[0.05] dark:hover:bg-white/[0.08] transition-all duration-200 font-medium text-sm rounded-md"
-                    style={{ fontFamily: '-apple-system, BlinkMacSystemFont, "Segoe UI", Roboto, Helvetica, Arial, sans-serif' }}
+                    className="inline-flex items-center justify-center px-3 py-1.5 hover:opacity-80 transition-all duration-200 text-xs font-medium shadow-lg rounded-md border"
+                    style={{ fontFamily: '-apple-system, BlinkMacSystemFont, "Segoe UI", Roboto, Helvetica, Arial, sans-serif', backgroundColor: '#ffffff', color: '#1b1912', borderColor: 'rgba(20, 18, 10, 0.1)' }}
                   >
                     Sign In
                   </a>
@@ -232,7 +211,7 @@ export default function Header() {
                   <a
                     href={consoleUrl ? `${consoleUrl}/auth?mode=signup` : '#'}
                     onMouseEnter={scheduleClose}
-                    className="inline-flex items-center justify-center px-3 py-1.5 hover:opacity-80 transition-all duration-200 text-xs font-medium shadow-sm rounded-md"
+                    className="inline-flex items-center justify-center px-3 py-1.5 hover:opacity-80 transition-all duration-200 text-xs font-medium shadow-lg rounded-md"
                     style={{ fontFamily: '-apple-system, BlinkMacSystemFont, "Segoe UI", Roboto, Helvetica, Arial, sans-serif', backgroundColor: '#1b1912', color: '#f6f6f4' }}
                   >
                     Get Started
@@ -254,11 +233,12 @@ export default function Header() {
             {/* Dropdown container */}
             {renderedDropdown && (
               <div
-                className="hidden md:block overflow-hidden"
+                className="hidden md:block overflow-hidden absolute left-1/2 -translate-x-1/2"
+                style={{ maxWidth: '600px', width: '100%', zIndex: 50 }}
                 onMouseEnter={cancelClose}
               >
                 <div
-                  className={`bg-white dark:bg-[#1b1912] shadow-[0_4px_24px_rgba(0,0,0,0.08)] rounded-b-2xl transition-all duration-300 ease-out ${
+                  className={`bg-white dark:bg-[#1b1912] border border-gray-200 dark:border-gray-700 shadow-[0_4px_24px_rgba(0,0,0,0.08)] rounded-xl transition-all duration-300 ease-out ${
                     isDropdownVisible
                       ? 'opacity-100 max-h-[400px]'
                       : 'opacity-0 max-h-0'
