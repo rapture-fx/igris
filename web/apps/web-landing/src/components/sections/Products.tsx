@@ -45,8 +45,7 @@ export default function Products() {
                 borderRadius: '12px', 
                 border: '1px solid rgba(209, 213, 219, 0.35)',
                 overflow: 'hidden',
-                paddingRight: '1rem',
-                paddingLeft: '1rem'
+                padding: '1rem'
               }}>
                 <img 
                   src="/prikoo.png" 
