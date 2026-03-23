@@ -83,170 +83,6 @@ interface DeviceStats {
   violations_total: number;
 }
 
-// ─── Mock Data ────────────────────────────────────────────────────────────────
-
-const GLOBAL_POLICY_HASH = 'sha256:c4a2f1e8b9d3a7f6';
-
-const MOCK_DEVICES: Device[] = [
-  {
-    device_id: 'dev_9f3a2c1b8e4d7f6a',
-    status: 'online',
-    runtime_version: 'igris-runtime/0.12.4',
-    last_seen: new Date(Date.now() - 45_000).toISOString(),
-    registration_time: new Date(Date.now() - 30 * 86_400_000).toISOString(),
-    license_id: 'lic_h7f3a2c1b8e',
-    cpu_usage_percent: 23.4,
-    memory_usage_mb: 512,
-    active_executions: 3,
-    executions_24h: 147,
-    violations_24h: 0,
-    last_execution_id: 'exec_4a7b8c9d0e1f2a3b',
-    policy_hash: GLOBAL_POLICY_HASH,
-    global_policy_hash: GLOBAL_POLICY_HASH,
-    ros_node: {
-      node_name: 'igris_agent_node',
-      namespace: '/robot/arm',
-      lifecycle_state: 'Active',
-      air_gapped: false,
-      last_trace_at: new Date(Date.now() - 90_000).toISOString(),
-    },
-  },
-  {
-    device_id: 'dev_a1b2c3d4e5f67890',
-    status: 'online',
-    runtime_version: 'igris-runtime/0.12.4',
-    last_seen: new Date(Date.now() - 120_000).toISOString(),
-    registration_time: new Date(Date.now() - 14 * 86_400_000).toISOString(),
-    license_id: 'lic_j9k2l3m4n5',
-    cpu_usage_percent: 67.8,
-    memory_usage_mb: 1024,
-    active_executions: 7,
-    executions_24h: 312,
-    violations_24h: 3,
-    last_execution_id: 'exec_b1c2d3e4f5a60001',
-    policy_hash: 'sha256:stale_old_9xz1y2',
-    global_policy_hash: GLOBAL_POLICY_HASH,
-  },
-  {
-    device_id: 'dev_f7e8d9c0b1a2e3f4',
-    status: 'online',
-    runtime_version: 'igris-runtime/0.11.9',
-    last_seen: new Date(Date.now() - 300_000).toISOString(),
-    registration_time: new Date(Date.now() - 60 * 86_400_000).toISOString(),
-    license_id: null,
-    cpu_usage_percent: 5.1,
-    memory_usage_mb: 256,
-    active_executions: 0,
-    executions_24h: 22,
-    violations_24h: 8,
-    last_execution_id: 'exec_c3d4e5f6a7b80002',
-    policy_hash: 'sha256:legacy_hash_a4b5',
-    global_policy_hash: GLOBAL_POLICY_HASH,
-    ros_node: {
-      node_name: 'vision_pipeline_node',
-      namespace: '/robot/vision',
-      lifecycle_state: 'Inactive',
-      air_gapped: true,
-      last_trace_at: new Date(Date.now() - 7 * 3_600_000).toISOString(),
-    },
-  },
-  {
-    device_id: 'dev_3b4c5d6e7f8a9b0c',
-    status: 'offline',
-    runtime_version: 'igris-runtime/0.12.3',
-    last_seen: new Date(Date.now() - 2 * 3_600_000).toISOString(),
-    registration_time: new Date(Date.now() - 7 * 86_400_000).toISOString(),
-    license_id: 'lic_n5o6p7q8r9',
-    cpu_usage_percent: 0,
-    memory_usage_mb: 0,
-    active_executions: 0,
-    executions_24h: 89,
-    violations_24h: 1,
-    last_execution_id: 'exec_d5e6f7a8b9c00003',
-    policy_hash: GLOBAL_POLICY_HASH,
-    global_policy_hash: GLOBAL_POLICY_HASH,
-    ros_node: {
-      node_name: 'nav2_controller_node',
-      namespace: '/robot/navigation',
-      lifecycle_state: 'ErrorProcessing',
-      air_gapped: false,
-      last_trace_at: new Date(Date.now() - 2.5 * 3_600_000).toISOString(),
-    },
-  },
-  {
-    device_id: 'dev_5e6f7a8b9c0d1e2f',
-    status: 'offline',
-    runtime_version: 'igris-runtime/0.12.1',
-    last_seen: new Date(Date.now() - 18 * 3_600_000).toISOString(),
-    registration_time: new Date(Date.now() - 90 * 86_400_000).toISOString(),
-    license_id: 'lic_s0t1u2v3w4',
-    cpu_usage_percent: 0,
-    memory_usage_mb: 0,
-    active_executions: 0,
-    executions_24h: 0,
-    violations_24h: 0,
-    last_execution_id: null,
-    policy_hash: 'sha256:stale_old_e4f5g6h7',
-    global_policy_hash: GLOBAL_POLICY_HASH,
-  },
-  {
-    device_id: 'dev_c8d9e0f1a2b3c4d5',
-    status: 'online',
-    runtime_version: 'igris-runtime/0.12.4',
-    last_seen: new Date(Date.now() - 15_000).toISOString(),
-    registration_time: new Date(Date.now() - 3 * 86_400_000).toISOString(),
-    license_id: 'lic_x5y6z7a8b9',
-    cpu_usage_percent: 41.2,
-    memory_usage_mb: 768,
-    active_executions: 2,
-    executions_24h: 58,
-    violations_24h: 2,
-    last_execution_id: 'exec_e7f8a9b0c1d20004',
-    policy_hash: GLOBAL_POLICY_HASH,
-    global_policy_hash: GLOBAL_POLICY_HASH,
-  },
-];
-
-const MOCK_STATS: DeviceStats = { executions_total: 628, violations_total: 14 };
-
-const EXECUTION_MODELS = [
-  'claude-sonnet-4-6', 'claude-haiku-4-5', 'claude-opus-4-6', 'gpt-4o', 'gemini-1.5-pro',
-];
-const EXECUTION_STATUSES: ExecutionMini['status'][] = [
-  'completed', 'completed', 'running', 'failed', 'completed', 'terminated',
-];
-
-function getMockExecutions(deviceId: string): ExecutionMini[] {
-  return Array.from({ length: 8 }).map((_, i) => ({
-    execution_id: `exec_${deviceId.slice(-6)}${i.toString().padStart(4, '0')}`,
-    agent_id: `agent_${(i + 1).toString(16).padStart(6, '0')}`,
-    model: EXECUTION_MODELS[i % EXECUTION_MODELS.length],
-    status: EXECUTION_STATUSES[i % EXECUTION_STATUSES.length],
-    duration_ms: 400 + Math.abs(Math.sin(i + 1) * 1600 | 0),
-    timestamp: new Date(Date.now() - (i + 1) * 22 * 60_000).toISOString(),
-  }));
-}
-
-const VIOLATION_TYPES = [
-  'rate_limit_exceeded',
-  'token_budget_exceeded',
-  'model_not_allowed',
-  'capability_violation',
-  'context_length_exceeded',
-];
-const VIOLATION_LIMITS = ['100/min', '50k tokens', 'claude-opus-*', 'web_search', '128k tokens'];
-const VIOLATION_OBSERVED = ['143/min', '72k tokens', 'claude-opus-4-6', 'web_search_active', '201k tokens'];
-
-function getMockViolations(deviceId: string): ViolationMini[] {
-  return Array.from({ length: 5 }).map((_, i) => ({
-    timestamp: new Date(Date.now() - (i + 1) * 3 * 3_600_000).toISOString(),
-    violation_type: VIOLATION_TYPES[i % VIOLATION_TYPES.length],
-    limit: VIOLATION_LIMITS[i % VIOLATION_LIMITS.length],
-    observed: VIOLATION_OBSERVED[i % VIOLATION_OBSERVED.length],
-    execution_id: `exec_${deviceId.slice(-6)}vio${i}`,
-  }));
-}
-
 // ─── Sub-components ───────────────────────────────────────────────────────────
 
 function ViolationCountBadge({ count }: { count: number }) {
@@ -409,7 +245,7 @@ function FleetDevicesContent() {
       try {
         return await api.get<ExecutionMini[]>(`/devices/${deviceFromUrl}/executions?limit=10`);
       } catch {
-        return getMockExecutions(deviceFromUrl!);
+        return [] as ExecutionMini[];
       }
     },
     staleTime: 30_000,
@@ -423,7 +259,7 @@ function FleetDevicesContent() {
       try {
         return await api.get<ViolationMini[]>(`/devices/${deviceFromUrl}/violations?limit=10`);
       } catch {
-        return getMockViolations(deviceFromUrl!);
+        return [] as ViolationMini[];
       }
     },
     staleTime: 30_000,
