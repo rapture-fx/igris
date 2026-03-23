@@ -49,6 +49,7 @@ const navigation: NavigationItem[] = [
     children: [
       { name: 'Runs', href: '/execution/runs' },
       { name: 'Agents', href: '/execution/agents' },
+      { name: 'BT Editor', href: '/execution/bt-editor' },
     ],
   },
   {
@@ -56,6 +57,8 @@ const navigation: NavigationItem[] = [
     icon: Network,
     children: [
       { name: 'Devices', href: '/fleet/devices' },
+      { name: 'ROS 2', href: '/fleet/ros' },
+      { name: 'Swarm', href: '/fleet/swarm' },
     ],
   },
   {
