@@ -1,7 +1,8 @@
 'use client';
 
 import { useState, useMemo, useEffect } from 'react';
-import { useQuery } from '@tanstack/react-query';
+import { useQuery, useMutation, useQueryClient } from '@tanstack/react-query';
+import { useToast } from '@/components/ui/use-toast';
 import { DashboardLayout } from '@/components/layout/DashboardLayout';
 import { Card, CardContent, CardHeader, CardTitle } from '@/components/ui/card';
 import { Button } from '@/components/ui/button';
@@ -46,6 +47,9 @@ import {
   Terminal,
   Hash,
   Eye,
+  Pause,
+  XCircle,
+  RotateCcw,
 } from 'lucide-react';
 import {
   ExecutionStatusBadge,
@@ -109,6 +113,8 @@ export default function ExecutionRunsPage() {
   const [statusFilter, setStatusFilter] = useState('all');
   const [timeRange, setTimeRange] = useState('24h');
   const [selected, setSelected] = useState<Execution | null>(null);
+  const qc = useQueryClient();
+  const { toast } = useToast();
 
   const { data: runs = [], isLoading, refetch } = useQuery<Execution[]>({
     queryKey: ['execution-runs'],
@@ -120,6 +126,39 @@ export default function ExecutionRunsPage() {
       }
     },
     retry: false,
+  });
+
+  const pauseMutation = useMutation({
+    mutationFn: (id: string) => api.post(`/v1/execution/runs/${id}/pause`, {}),
+    onSuccess: (_, id) => {
+      qc.setQueryData<Execution[]>(['execution-runs'], (old) =>
+        old?.map((r) => r.id === id ? { ...r, status: 'PAUSED' } : r) ?? []
+      );
+      setSelected((s) => s?.id === id ? { ...s, status: 'PAUSED' } : s);
+      toast({ title: 'Execution paused' });
+    },
+    onError: () => toast({ variant: 'destructive', title: 'Failed to pause execution' }),
+  });
+
+  const cancelMutation = useMutation({
+    mutationFn: (id: string) => api.post(`/v1/execution/runs/${id}/cancel`, {}),
+    onSuccess: (_, id) => {
+      qc.setQueryData<Execution[]>(['execution-runs'], (old) =>
+        old?.map((r) => r.id === id ? { ...r, status: 'CANCELLED' } : r) ?? []
+      );
+      setSelected((s) => s?.id === id ? { ...s, status: 'CANCELLED' } : s);
+      toast({ title: 'Execution cancelled' });
+    },
+    onError: () => toast({ variant: 'destructive', title: 'Failed to cancel execution' }),
+  });
+
+  const replayMutation = useMutation({
+    mutationFn: (id: string) => api.post(`/v1/execution/runs/${id}/replay`, {}),
+    onSuccess: () => {
+      refetch();
+      toast({ title: 'Execution replayed', description: 'New run started' });
+    },
+    onError: () => toast({ variant: 'destructive', title: 'Failed to replay execution' }),
   });
 
   // Keyboard: Escape closes drawer
@@ -423,6 +462,59 @@ export default function ExecutionRunsPage() {
 
               <SheetBody>
                 <div className="space-y-6 py-2">
+
+                  {/* §0 Run Controls */}
+                  {(selected.status === 'RUNNING' || selected.status === 'PAUSED' ||
+                    selected.status === 'COMPLETED' || selected.status === 'ERROR' ||
+                    selected.status === 'VIOLATION') && (
+                    <section>
+                      <h3 className="text-[11px] font-semibold text-gray-400 uppercase tracking-wider mb-3 flex items-center gap-1.5">
+                        <Activity className="h-3.5 w-3.5" />
+                        Run Controls
+                      </h3>
+                      <div className="flex items-center gap-2 flex-wrap">
+                        {selected.status === 'RUNNING' && (
+                          <>
+                            <Button
+                              size="sm"
+                              variant="outline"
+                              className="h-7 text-xs gap-1.5"
+                              disabled={pauseMutation.isPending}
+                              onClick={() => pauseMutation.mutate(selected.id)}
+                            >
+                              <Pause className="h-3 w-3" />
+                              Pause
+                            </Button>
+                            <Button
+                              size="sm"
+                              variant="outline"
+                              className="h-7 text-xs gap-1.5 text-red-600 border-red-200 hover:bg-red-50"
+                              disabled={cancelMutation.isPending}
+                              onClick={() => cancelMutation.mutate(selected.id)}
+                            >
+                              <XCircle className="h-3 w-3" />
+                              Cancel
+                            </Button>
+                          </>
+                        )}
+                        {(selected.status === 'COMPLETED' || selected.status === 'ERROR' ||
+                          selected.status === 'VIOLATION' || selected.status === 'CANCELLED') && (
+                          <Button
+                            size="sm"
+                            variant="outline"
+                            className="h-7 text-xs gap-1.5"
+                            disabled={replayMutation.isPending}
+                            onClick={() => replayMutation.mutate(selected.id)}
+                          >
+                            <RotateCcw className="h-3 w-3" />
+                            Replay
+                          </Button>
+                        )}
+                      </div>
+                    </section>
+                  )}
+
+                  <Separator />
 
                   {/* §1 Execution Metadata */}
                   <section>
