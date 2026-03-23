@@ -39,13 +39,14 @@ export default function Products() {
         <div className="px-4 md:px-8 lg:px-12" style={{ borderLeft: '0.5px solid rgba(209, 213, 219, 0.35)', borderRight: '0.5px solid rgba(209, 213, 219, 0.35)', paddingBottom: 0 }}>
           <div style={{ paddingTop: '3rem', paddingBottom: '3rem', position: 'relative' }}>
             <div className="hidden sm:block" style={{ position: 'absolute', top: '3rem', right: 0, bottom: '3rem', display: 'flex', alignItems: 'center', justifyContent: 'center' }}>
-              <div style={{ 
+              <div className="bg-[#f9f9fa] dark:bg-[#1b1912]/60" style={{ 
                 width: '600px', 
                 height: '100%', 
                 borderRadius: '12px', 
                 border: '1px solid rgba(209, 213, 219, 0.35)',
                 overflow: 'hidden',
-                paddingRight: '1rem'
+                paddingRight: '1rem',
+                paddingLeft: '1rem'
               }}>
                 <img 
                   src="/prikoo.png" 
