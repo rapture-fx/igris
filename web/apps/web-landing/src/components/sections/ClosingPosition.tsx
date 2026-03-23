@@ -13,13 +13,13 @@ export default function ClosingPosition() {
           borderLeft: '0.5px solid rgba(209, 213, 219, 0.35)',
           borderRight: '0.5px solid rgba(209, 213, 219, 0.35)'
         }}>
-          <div className="flex items-center justify-between" style={{ paddingTop: '3rem', paddingBottom: '3rem' }}>
+            <div className="flex flex-col md:flex-row md:items-center md:justify-between gap-3" style={{ paddingTop: '3rem', paddingBottom: '3rem' }}>
             <h3 className="text-lg md:text-2xl lg:text-3xl text-[#000000] dark:text-[#f6f6f4]" style={{ fontFamily: 'var(--font-geist-pixel-square, Geist Pixel Square, monospace)' }}>
               Complete control from edge to cloud.
             </h3>
             <Link href="https://console.igrisinertial.com/auth?mode=signup">
               <button
-                className="inline-flex items-center justify-center px-3 py-1.5 hover:opacity-80 transition-all duration-200 text-xs font-medium shadow-sm rounded-md shrink-0 ml-3 md:ml-4"
+                className="inline-flex items-center justify-center px-3 py-1.5 hover:opacity-80 transition-all duration-200 text-xs font-medium shadow-sm rounded-md shrink-0 md:ml-4"
                 style={{ backgroundColor: '#1b1912', color: '#f6f6f4', fontFamily: '-apple-system, BlinkMacSystemFont, "Segoe UI", Roboto, Helvetica, Arial, sans-serif' }}
               >
                 Get Started
