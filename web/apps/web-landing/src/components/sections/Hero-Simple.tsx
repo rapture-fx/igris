@@ -36,7 +36,7 @@ export default function Hero() {
                 </h1>
               </div>
               <div className="text-left md:text-right" style={{ maxWidth: '300px' }}>
-                <p className="text-xs md:text-sm" style={{ color: mounted && theme === 'dark' ? '#a8a898' : '#6b7280', fontFamily: '-apple-system, BlinkMacSystemFont, "Segoe UI", Roboto, Helvetica, Arial, sans-serif', fontWeight: 400 }}>
+                <p className="text-sm md:text-base" style={{ color: mounted && theme === 'dark' ? '#a8a898' : '#6b7280', fontFamily: '-apple-system, BlinkMacSystemFont, "Segoe UI", Roboto, Helvetica, Arial, sans-serif', fontWeight: 400 }}>
                   Deterministic runtime. Cloud + local fallback. OS-level containment with signed violation logs. Deploy anywhere.
                 </p>
               </div>
