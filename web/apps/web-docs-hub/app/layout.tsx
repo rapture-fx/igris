@@ -6,6 +6,13 @@ import { ThemeProvider } from '../src/components/providers/ThemeProvider';
 export const metadata: Metadata = {
   title: 'Igris Inertial Documentation',
   description: 'Documentation for Igris products - Overture and Runtime',
+  icons: {
+    icon: [
+      { url: '/fofot.png', type: 'image/png', sizes: '32x32' }
+    ],
+    shortcut: '/fofot.png',
+    apple: { url: '/fofot.png', sizes: '32x32' },
+  },
 };
 
 export default function RootLayout({
