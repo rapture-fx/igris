@@ -2,7 +2,7 @@
 
 import { useState, useMemo, useEffect, Suspense } from 'react';
 import { useRouter, useSearchParams } from 'next/navigation';
-import { useQuery } from '@tanstack/react-query';
+import { useQuery, useMutation } from '@tanstack/react-query';
 import { DashboardLayout } from '@/components/layout/DashboardLayout';
 import { Card, CardContent, CardHeader, CardTitle } from '@/components/ui/card';
 import { Button } from '@/components/ui/button';
@@ -23,6 +23,7 @@ import {
   Select, SelectContent, SelectItem, SelectTrigger, SelectValue,
 } from '@/components/ui/select';
 import { api } from '@/lib/apiClient';
+import { toast } from '@/components/ui/use-toast';
 import { getRelativeTime, formatDateTime, truncateText } from '@/utils/helpers';
 import Link from 'next/link';
 import { CopyButton, KeyValueGrid, JSONViewer } from '@/components/execution/shared';
@@ -278,6 +279,21 @@ function FleetDevicesContent() {
     document.addEventListener('keydown', handler);
     return () => document.removeEventListener('keydown', handler);
   }, [router, searchParams]);
+
+  // ── ROS 2 Lifecycle ──
+  type RosAction = 'configure' | 'activate' | 'deactivate' | 'reset';
+
+  const rosLifecycleMutation = useMutation({
+    mutationFn: ({ deviceId, action }: { deviceId: string; action: RosAction }) =>
+      api.post('/v1/ros/lifecycle', { device_id: deviceId, action }),
+    onSuccess: (_, { action }) => {
+      toast({ title: 'Lifecycle command sent', description: `Action '${action}' dispatched to node.` });
+      refetch();
+    },
+    onError: () => {
+      toast({ title: 'Command failed', description: 'Could not send lifecycle command.', variant: 'destructive' });
+    },
+  });
 
   // ── Filtered devices ──
   const filtered = useMemo(() => {
@@ -858,6 +874,42 @@ function FleetDevicesContent() {
                             }] : []),
                           ]}
                         />
+                        <div className="mt-4">
+                          <p className="text-[11px] font-medium text-gray-500 mb-2">Lifecycle Actions</p>
+                          {selectedDevice.status === 'offline' || selectedDevice.ros_node.air_gapped ? (
+                            <p className="text-xs text-gray-400">
+                              {selectedDevice.status === 'offline'
+                                ? 'Device is offline — lifecycle commands unavailable.'
+                                : 'Air-gapped node — lifecycle commands not available remotely.'}
+                            </p>
+                          ) : (
+                            <div className="flex flex-wrap gap-2">
+                              {(['configure', 'activate', 'deactivate', 'reset'] as RosAction[]).map((action) => {
+                                const isPending = rosLifecycleMutation.isPending && rosLifecycleMutation.variables?.action === action;
+                                const disabled = rosLifecycleMutation.isPending;
+                                const styles: Record<RosAction, string> = {
+                                  configure:  'border-gray-200 text-gray-700 hover:bg-gray-50',
+                                  activate:   'border-green-200 text-green-700 hover:bg-green-50',
+                                  deactivate: 'border-yellow-200 text-yellow-700 hover:bg-yellow-50',
+                                  reset:      'border-red-200 text-red-700 hover:bg-red-50',
+                                };
+                                return (
+                                  <Button
+                                    key={action}
+                                    variant="outline"
+                                    size="sm"
+                                    className={`h-7 text-xs capitalize gap-1 ${styles[action]}`}
+                                    disabled={disabled}
+                                    onClick={() => rosLifecycleMutation.mutate({ deviceId: selectedDevice.device_id, action })}
+                                  >
+                                    {isPending && <RefreshCw className="h-3 w-3 animate-spin" />}
+                                    {action}
+                                  </Button>
+                                );
+                              })}
+                            </div>
+                          )}
+                        </div>
                       </section>
                     </>
                   )}
