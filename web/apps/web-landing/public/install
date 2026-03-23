@@ -78,7 +78,7 @@ CHECKSUM_URL="${OVERTURE_URL}/v1/runtime/checksum?platform=${PLATFORM}"
 
 step "Downloading igris-runtime (${PLATFORM})..."
 
-HTTP_STATUS=$(curl -fsSL -s \
+HTTP_STATUS=$(curl -sSL \
     -H "User-Agent: igris-installer/1.0" \
     -w "%{http_code}" \
     -o "${TMP_DIR}/${ARCHIVE_FILE}" \
@@ -86,6 +86,7 @@ HTTP_STATUS=$(curl -fsSL -s \
 
 case "$HTTP_STATUS" in
     200) ;;
+    400) die "Platform '$PLATFORM' is not supported. Supported: linux-amd64, linux-arm64, macos-arm64." ;;
     404) die "Runtime binary not available for platform: $PLATFORM. Please contact support." ;;
     503) die "Binary hosting not yet configured. Please contact support." ;;
     *)   die "Download failed (HTTP ${HTTP_STATUS})." ;;
