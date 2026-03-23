@@ -1,7 +1,7 @@
 'use client';
 
 import { useState, useMemo, useEffect } from 'react';
-import { useQuery } from '@tanstack/react-query';
+import { useQuery, useMutation, useQueryClient } from '@tanstack/react-query';
 import { DashboardLayout } from '@/components/layout/DashboardLayout';
 import { Card, CardContent, CardHeader, CardTitle } from '@/components/ui/card';
 import { Button } from '@/components/ui/button';
@@ -32,6 +32,8 @@ import {
   SelectValue,
 } from '@/components/ui/select';
 import { api } from '@/lib/apiClient';
+import { toast } from '@/components/ui/use-toast';
+import { Switch } from '@/components/ui/switch';
 import { getRelativeTime, truncateText } from '@/utils/helpers';
 import {
   Brain,
@@ -94,6 +96,7 @@ interface Agent {
   current_goal?: string;
   envelope_summary?: string;
   last_trace_at?: string;
+  shadow_mode?: boolean;
 }
 
 // ─── Helpers ──────────────────────────────────────────────────────────────────
@@ -206,6 +209,7 @@ function MiniViolationsTable({ violations }: { violations: ViolationEntry[] }) {
 // ─── Page ─────────────────────────────────────────────────────────────────────
 
 export default function ExecutionAgentsPage() {
+  const qc = useQueryClient();
   const [search, setSearch] = useState('');
   const [stateFilter, setStateFilter] = useState('all');
   const [selected, setSelected] = useState<Agent | null>(null);
@@ -223,6 +227,23 @@ export default function ExecutionAgentsPage() {
   });
 
   const { data: traces = [] } = useTraces();
+
+  const shadowMutation = useMutation({
+    mutationFn: ({ agentId, enabled }: { agentId: string; enabled: boolean }) =>
+      api.patch(`/v1/agents/${agentId}`, { shadow_mode: enabled }),
+    onSuccess: (_, { enabled }) => {
+      qc.invalidateQueries({ queryKey: ['execution-agents'] });
+      toast({
+        title: enabled ? 'Shadow mode enabled' : 'Shadow mode disabled',
+        description: enabled
+          ? 'Agent will observe without enforcement.'
+          : 'Agent will enforce policy normally.',
+      });
+    },
+    onError: () => {
+      toast({ title: 'Update failed', description: 'Could not update shadow mode.', variant: 'destructive' });
+    },
+  });
 
   // Keyboard: Escape closes drawer
   useEffect(() => {
@@ -391,13 +412,16 @@ export default function ExecutionAgentsPage() {
                 <TableHead className="text-xs font-medium text-gray-500 h-9 px-3 whitespace-nowrap">
                   Device
                 </TableHead>
+                <TableHead className="text-xs font-medium text-gray-500 h-9 px-3 whitespace-nowrap">
+                  Mode
+                </TableHead>
               </TableRow>
             </TableHeader>
             <TableBody>
               {isLoading ? (
                 Array.from({ length: 6 }).map((_, i) => (
                   <TableRow key={i} className="border-b border-gray-100">
-                    {Array.from({ length: 7 }).map((_, j) => (
+                    {Array.from({ length: 8 }).map((_, j) => (
                       <TableCell key={j} className="px-3 py-2.5">
                         <Skeleton className="h-3.5 w-16" />
                       </TableCell>
@@ -407,7 +431,7 @@ export default function ExecutionAgentsPage() {
               ) : filtered.length === 0 ? (
                 <TableRow>
                   <TableCell
-                    colSpan={7}
+                    colSpan={8}
                     className="text-center text-gray-400 text-xs py-16"
                   >
                     No agents found
@@ -456,6 +480,16 @@ export default function ExecutionAgentsPage() {
                         {agent.device_id ? truncateText(agent.device_id, 12) : '—'}
                       </span>
                     </TableCell>
+                    <TableCell className="px-3 py-2.5">
+                      {agent.shadow_mode ? (
+                        <span className="inline-flex items-center gap-1 px-1.5 py-0.5 rounded text-[10px] font-medium bg-purple-50 text-purple-700 border border-purple-200">
+                          <Moon className="h-2.5 w-2.5" />
+                          Shadow
+                        </span>
+                      ) : (
+                        <span className="text-xs text-gray-300">—</span>
+                      )}
+                    </TableCell>
                   </TableRow>
                 ))
               )}
@@ -482,6 +516,37 @@ export default function ExecutionAgentsPage() {
 
               <SheetBody>
                 <div className="space-y-6 py-2">
+
+                  {/* §0 Shadow Mode */}
+                  <section>
+                    <div className="flex items-center justify-between py-3 px-1 rounded-md">
+                      <div className="flex items-center gap-2">
+                        <Moon className="h-4 w-4 text-purple-500" />
+                        <div>
+                          <p className="text-xs font-medium text-gray-700">Shadow Mode</p>
+                          <p className="text-[11px] text-gray-400 leading-relaxed">
+                            Observe all activity without enforcing policy rules.
+                          </p>
+                        </div>
+                      </div>
+                      <Switch
+                        checked={selected.shadow_mode ?? false}
+                        disabled={shadowMutation.isPending}
+                        onCheckedChange={(checked) =>
+                          shadowMutation.mutate({ agentId: selected.id, enabled: checked })
+                        }
+                        className="ml-4"
+                      />
+                    </div>
+                    {selected.shadow_mode && (
+                      <div className="flex items-center gap-1.5 px-3 py-2 rounded-md bg-purple-50 border border-purple-200 text-xs text-purple-700">
+                        <Moon className="h-3.5 w-3.5 shrink-0" />
+                        This agent is in shadow mode — violations are logged but not enforced.
+                      </div>
+                    )}
+                  </section>
+
+                  <Separator />
 
                   {/* §1 Lifecycle Timeline */}
                   <section>
