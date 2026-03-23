@@ -1,12 +1,10 @@
 'use client';
 
-import { useState, useMemo, useEffect, Suspense } from 'react';
-import { useQuery } from '@tanstack/react-query';
-import { useRouter, useSearchParams } from 'next/navigation';
+import { useState, useMemo, useEffect, useRef, Suspense } from 'react';
+import { useQuery, useMutation, useQueryClient } from '@tanstack/react-query';
 import { DashboardLayout } from '@/components/layout/DashboardLayout';
 import { Card, CardContent, CardHeader, CardTitle } from '@/components/ui/card';
 import { Button } from '@/components/ui/button';
-import { Input } from '@/components/ui/input';
 import { Skeleton } from '@/components/ui/skeleton';
 import { Separator } from '@/components/ui/separator';
 import {
@@ -15,239 +13,263 @@ import {
 import {
   Table, TableBody, TableCell, TableHead, TableHeader, TableRow,
 } from '@/components/ui/table';
-import { api } from '@/lib/apiClient';
-import { downloadJSON, getRelativeTime } from '@/utils/helpers';
-import {
-  Search, RefreshCw, AlertTriangle, Clock, ShieldOff, Eye,
-  Download, Copy, Check, Ban, ShieldAlert,
-} from 'lucide-react';
-import { KeyValueGrid } from '@/components/proof/KeyValueGrid';
-import { JSONViewer } from '@/components/proof/JSONViewer';
 import { RightSideDrawer, DrawerSection } from '@/components/proof/RightSideDrawer';
-import { TimeRangePicker, filterByTimeRange, type TimeRange } from '@/components/proof/TimeRangePicker';
+import { KeyValueGrid } from '@/components/proof/KeyValueGrid';
+import { api } from '@/lib/apiClient';
+import { API_BASE_URL } from '@/utils/constants';
+import { toast } from '@/components/ui/use-toast';
+import { getRelativeTime } from '@/utils/helpers';
+import {
+  BarChart, Bar, XAxis, YAxis, CartesianGrid, Tooltip, ResponsiveContainer,
+} from 'recharts';
+import {
+  ShieldAlert, AlertCircle, AlertTriangle, CheckCircle2, RefreshCw,
+  Download, Radio, TrendingUp, ShieldOff, Check, ChevronUp,
+} from 'lucide-react';
 
-// ─── Types ─────────────────────────────────────────────────────────────────────
+// ─── Types ────────────────────────────────────────────────────────────────────
 
-type Severity = 'low' | 'medium' | 'high' | 'critical';
+type AlertSeverity = 'info' | 'warning' | 'critical';
+type AlertStatus = 'open' | 'acknowledged' | 'resolved' | 'escalated';
 
-interface PolicyViolation {
+interface PolicyAlert {
   id: string;
   timestamp: string;
-  execution_id: string;
-  agent_id: string;
-  device_id: string;
-  // classification
-  violation_type: string;
-  severity: Severity;
-  // policy context
-  policy_rule: string;
-  policy_hash: string;
-  capability_rule: string;
-  bounds_rule: string;
-  // runtime action
-  action_taken: string;
-  execution_state: string;
-  supervisor_action: string;
-  containment_result: string;
-  // signature record
-  signature: string;
-  hash: string;
-  previous_hash: string;
+  alert_type: string;
+  severity: AlertSeverity;
+  category: string;
+  source: string;
+  message: string;
+  status: AlertStatus;
+  agent_id?: string;
+  policy_rule?: string;
+  violation_details?: {
+    bound_violated?: string;
+    expected?: string | number;
+    actual?: string | number;
+    [key: string]: unknown;
+  } | null;
+  acknowledged_by?: string;
+  acknowledged_at?: string;
+  resolved_by?: string;
+  resolved_at?: string;
 }
 
+// ─── Badge helpers ─────────────────────────────────────────────────────────────
 
-// ─── Utilities ─────────────────────────────────────────────────────────────────
-
-function trunc(s: string, n: number): string {
-  if (!s) return '—';
-  return s.length > n ? `${s.slice(0, n)}…` : s;
-}
-
-function truncMiddle(s: string, keep = 12): string {
-  if (!s || s.length <= keep * 2 + 3) return s;
-  return `${s.slice(0, keep)}…${s.slice(-keep)}`;
-}
-
-// ─── Severity Badge ────────────────────────────────────────────────────────────
-
-const SEVERITY_STYLES: Record<Severity, string> = {
-  low:      'bg-gray-50 text-gray-600 border-gray-200',
-  medium:   'bg-yellow-50 text-yellow-700 border-yellow-200',
-  high:     'bg-orange-50 text-orange-700 border-orange-200',
+const SEV_STYLE: Record<AlertSeverity, string> = {
+  info:     'bg-gray-50 text-gray-600 border-gray-200',
+  warning:  'bg-yellow-50 text-yellow-700 border-yellow-200',
   critical: 'bg-red-50 text-red-700 border-red-200',
 };
 
-function SeverityBadge({ severity }: { severity: Severity }) {
+const STATUS_STYLE: Record<AlertStatus, string> = {
+  open:         'bg-red-50 text-red-700 border-red-200',
+  acknowledged: 'bg-orange-50 text-orange-700 border-orange-200',
+  resolved:     'bg-green-50 text-green-700 border-green-200',
+  escalated:    'bg-purple-50 text-purple-700 border-purple-200',
+};
+
+function SeverityBadge({ severity }: { severity: AlertSeverity }) {
   return (
-    <span className={`inline-flex items-center px-1.5 py-0.5 text-[10px] font-semibold uppercase border rounded ${SEVERITY_STYLES[severity]}`}>
+    <span className={`inline-flex items-center px-1.5 py-0.5 text-[10px] font-medium border rounded ${SEV_STYLE[severity] ?? SEV_STYLE.info}`}>
       {severity}
     </span>
   );
 }
 
-// ─── Action Badge ──────────────────────────────────────────────────────────────
-
-function ActionBadge({ action }: { action: string }) {
-  const cls =
-    action === 'terminated' ? 'bg-red-50 text-red-700 border-red-200' :
-    action === 'throttled'  ? 'bg-orange-50 text-orange-700 border-orange-200' :
-    'bg-gray-50 text-gray-600 border-gray-200';
+function StatusBadge({ status }: { status: AlertStatus }) {
   return (
-    <span className={`inline-flex items-center px-1.5 py-0.5 text-[10px] font-medium border rounded ${cls}`}>
-      {action}
+    <span className={`inline-flex items-center px-1.5 py-0.5 text-[10px] font-medium border rounded ${STATUS_STYLE[status] ?? STATUS_STYLE.open}`}>
+      {status}
     </span>
   );
 }
 
-// ─── Copy Button ───────────────────────────────────────────────────────────────
+// ─── Stat card ────────────────────────────────────────────────────────────────
 
-function CopyBtn({ text }: { text: string }) {
-  const [ok, setOk] = useState(false);
+function StatCard({
+  icon: Icon, label, value, loading, iconClass,
+}: {
+  icon: React.ElementType; label: string; value: number | string;
+  loading: boolean; iconClass: string;
+}) {
   return (
-    <button
-      onClick={(e) => {
-        e.stopPropagation();
-        navigator.clipboard.writeText(text);
-        setOk(true);
-        setTimeout(() => setOk(false), 1500);
-      }}
-      className="flex-shrink-0 text-gray-300 hover:text-gray-600 transition-colors"
-      title="Copy"
-    >
-      {ok ? <Check className="h-3 w-3 text-green-500" /> : <Copy className="h-3 w-3" />}
-    </button>
+    <Card className="border border-gray-200 shadow-none">
+      <CardContent className="px-4 py-4">
+        <div className="flex items-start justify-between">
+          <div>
+            <p className="text-xs text-gray-500 mb-1">{label}</p>
+            {loading
+              ? <Skeleton className="h-6 w-10" />
+              : <p className="text-xl font-semibold text-gray-900 tabular-nums">{value}</p>
+            }
+          </div>
+          <div className={`p-1.5 rounded-md ${iconClass}`}>
+            <Icon className="h-4 w-4" />
+          </div>
+        </div>
+      </CardContent>
+    </Card>
   );
 }
 
-// ─── Hash Row ──────────────────────────────────────────────────────────────────
+// ─── Export CSV ───────────────────────────────────────────────────────────────
 
-function HashRow({ label, value }: { label: string; value: string }) {
-  return (
-    <div className="space-y-1">
-      <div className="flex items-center justify-between">
-        <span className="text-xs text-gray-400">{label}</span>
-        {value && <CopyBtn text={value} />}
-      </div>
-      <div className="px-3 py-2 rounded border border-gray-200 bg-gray-50">
-        <p className="text-[11px] font-mono text-gray-600 break-all leading-5">
-          {value || <span className="text-gray-300">none</span>}
-        </p>
-      </div>
-    </div>
-  );
+function exportCSV(rows: PolicyAlert[]) {
+  const headers = ['id', 'timestamp', 'agent_id', 'policy_rule', 'severity', 'bound_violated', 'expected', 'actual', 'status'];
+  const lines = rows.map((r) => [
+    r.id,
+    r.timestamp,
+    r.agent_id ?? '',
+    r.policy_rule ?? '',
+    r.severity,
+    r.violation_details?.bound_violated ?? '',
+    r.violation_details?.expected ?? '',
+    r.violation_details?.actual ?? '',
+    r.status,
+  ].map((v) => `"${String(v).replace(/"/g, '""')}"`).join(','));
+  const csv = [headers.join(','), ...lines].join('\n');
+  const blob = new Blob([csv], { type: 'text/csv' });
+  const url = URL.createObjectURL(blob);
+  const a = document.createElement('a');
+  a.href = url;
+  a.download = `policy-violations-${Date.now()}.csv`;
+  a.click();
+  URL.revokeObjectURL(url);
 }
 
-// ─── Page ──────────────────────────────────────────────────────────────────────
-
-const VIOLATION_TYPES = ['all', 'CAPABILITY_DENIED', 'CPU_LIMIT', 'MEMORY_LIMIT', 'QUOTA_EXCEEDED', 'TICK_TIMEOUT'];
-const SEVERITIES: Array<'all' | Severity> = ['all', 'critical', 'high', 'medium', 'low'];
+// ─── Page content ─────────────────────────────────────────────────────────────
 
 function ViolationsContent() {
-  const router = useRouter();
-  const searchParams = useSearchParams();
+  const qc = useQueryClient();
 
-  const [search, setSearch] = useState('');
-  const [typeFilter, setTypeFilter] = useState('all');
-  const [severityFilter, setSeverityFilter] = useState<'all' | Severity>('all');
-  const [timeRange, setTimeRange] = useState<TimeRange>('24h');
-  const [selectedId, setSelectedId] = useState<string | null>(searchParams.get('violation'));
+  const [timeRange, setTimeRange] = useState('last_24h');
+  const [severityFilter, setSeverityFilter] = useState('all');
+  const [selectedId, setSelectedId] = useState<string | null>(null);
+  const [chartCollapsed, setChartCollapsed] = useState(false);
 
-  const { data: allViolations = [], isLoading, refetch } = useQuery<PolicyViolation[]>({
-    queryKey: ['proof-policy-violations'],
+  // SSE live feed
+  const [sseConnected, setSseConnected] = useState(false);
+  const sseRef = useRef<EventSource | null>(null);
+
+  useEffect(() => {
+    let es: EventSource;
+    try {
+      es = new EventSource(`${API_BASE_URL}/v1/alerts/stream`, { withCredentials: true });
+      es.onopen = () => setSseConnected(true);
+      es.onmessage = (event) => {
+        try {
+          const a: PolicyAlert = JSON.parse(event.data);
+          if (a.category !== 'policy') return;
+          qc.setQueryData(['violations-policy', timeRange], (old: PolicyAlert[] | undefined) => {
+            if (!old) return [a];
+            if (old.some((x) => x.id === a.id)) return old;
+            return [a, ...old];
+          });
+        } catch { /* ignore */ }
+      };
+      es.onerror = () => { setSseConnected(false); es.close(); };
+      sseRef.current = es;
+    } catch { /* EventSource unavailable */ }
+    return () => { sseRef.current?.close(); setSseConnected(false); };
+  // eslint-disable-next-line react-hooks/exhaustive-deps
+  }, [timeRange]);
+
+  // Local optimistic status
+  const [localStatus, setLocalStatus] = useState<Record<string, AlertStatus>>({});
+
+  const { data: rawAlerts, isLoading, refetch } = useQuery<PolicyAlert[]>({
+    queryKey: ['violations-policy', timeRange],
     queryFn: async () => {
       try {
-        return await api.get<PolicyViolation[]>('/v1/proof/violations?limit=500&sort=timestamp:desc');
+        const all = await api.get<PolicyAlert[]>(`/v1/history/alerts?range=${timeRange}&limit=500`);
+        return all.filter((a) => a.category === 'policy');
       } catch {
-        return [] as PolicyViolation[];
+        return [] as PolicyAlert[];
       }
     },
+    refetchInterval: 15_000,
     retry: false,
-    staleTime: 30_000,
-    refetchInterval: 30_000,
-    refetchOnWindowFocus: false,
+    staleTime: 5_000,
   });
 
-  // Sync drawer state to URL
-  useEffect(() => {
-    const p = new URLSearchParams(searchParams.toString());
-    selectedId ? p.set('violation', selectedId) : p.delete('violation');
-    router.replace(`?${p.toString()}`, { scroll: false });
-  }, [selectedId]); // eslint-disable-line react-hooks/exhaustive-deps
+  const acknowledgeMutation = useMutation({
+    mutationFn: (id: string) => api.post(`/v1/history/alerts/${id}/acknowledge`, {}),
+    onMutate: (id) => setLocalStatus((s) => ({ ...s, [id]: 'acknowledged' })),
+    onError: (_e, id) => setLocalStatus((s) => { const n = { ...s }; delete n[id]; return n; }),
+    onSuccess: () => qc.invalidateQueries({ queryKey: ['violations-policy'] }),
+  });
 
-  const violations = useMemo(
-    () => filterByTimeRange(allViolations, timeRange),
-    [allViolations, timeRange],
+  const resolveMutation = useMutation({
+    mutationFn: (id: string) => api.post(`/v1/history/alerts/${id}/resolve`, {}),
+    onMutate: (id) => setLocalStatus((s) => ({ ...s, [id]: 'resolved' })),
+    onError: (_e, id) => setLocalStatus((s) => { const n = { ...s }; delete n[id]; return n; }),
+    onSuccess: () => qc.invalidateQueries({ queryKey: ['violations-policy'] }),
+  });
+
+  const escalateMutation = useMutation({
+    mutationFn: (id: string) => api.post(`/v1/history/alerts/${id}/escalate`, {}),
+    onMutate: (id) => setLocalStatus((s) => ({ ...s, [id]: 'escalated' })),
+    onError: (_e, id) => {
+      setLocalStatus((s) => { const n = { ...s }; delete n[id]; return n; });
+      toast({ title: 'Escalation failed', variant: 'destructive' });
+    },
+    onSuccess: () => {
+      toast({ title: 'Violation escalated' });
+      qc.invalidateQueries({ queryKey: ['violations-policy'] });
+    },
+  });
+
+  const alerts = useMemo(() =>
+    (rawAlerts ?? []).map((a) => localStatus[a.id] ? { ...a, status: localStatus[a.id] } : a),
+    [rawAlerts, localStatus],
   );
 
-  const counts = useMemo(() => ({
-    total:       violations.length,
-    critical:    violations.filter((v) => v.severity === 'critical').length,
-    terminated:  violations.filter((v) => v.action_taken === 'terminated').length,
-    last:        violations[0]?.timestamp ?? null,
-  }), [violations]);
+  const filtered = useMemo(() => alerts.filter((a) => {
+    return severityFilter === 'all' || a.severity === severityFilter;
+  }), [alerts, severityFilter]);
 
-  const filtered = useMemo(() =>
-    violations.filter((v) => {
-      const q = search.toLowerCase();
-      const hit = !q
-        || v.agent_id.toLowerCase().includes(q)
-        || v.device_id.toLowerCase().includes(q)
-        || v.execution_id.toLowerCase().includes(q)
-        || v.violation_type.toLowerCase().includes(q)
-        || v.policy_rule.toLowerCase().includes(q);
-      return (
-        hit &&
-        (typeFilter === 'all' || v.violation_type === typeFilter) &&
-        (severityFilter === 'all' || v.severity === severityFilter)
-      );
-    }),
-    [violations, search, typeFilter, severityFilter],
-  );
+  const selected = useMemo(() => alerts.find((a) => a.id === selectedId) ?? null, [alerts, selectedId]);
 
-  const selected = useMemo(
-    () => violations.find((v) => v.id === selectedId) ?? null,
-    [violations, selectedId],
-  );
+  // Summary counts
+  const totalCount    = alerts.length;
+  const criticalCount = alerts.filter((a) => a.severity === 'critical').length;
+  const ackCount      = alerts.filter((a) => a.status === 'acknowledged').length;
+  const escalatedCount = alerts.filter((a) => a.status === 'escalated').length;
 
-  const STAT_CARDS = [
-    {
-      label: `Violations (${timeRange})`,
-      value: isLoading ? null : counts.total,
-      icon: AlertTriangle,
-      iconCls: counts.total > 0 ? 'text-red-500' : 'text-gray-300',
-    },
-    {
-      label: 'Critical Violations',
-      value: isLoading ? null : counts.critical,
-      icon: ShieldOff,
-      iconCls: counts.critical > 0 ? 'text-red-600' : 'text-gray-300',
-    },
-    {
-      label: 'Terminated Executions',
-      value: isLoading ? null : counts.terminated,
-      icon: Ban,
-      iconCls: counts.terminated > 0 ? 'text-orange-600' : 'text-gray-300',
-    },
-    {
-      label: 'Last Violation',
-      value: isLoading ? null : (counts.last ? getRelativeTime(counts.last) : '—'),
-      icon: Clock,
-      iconCls: 'text-gray-400',
-    },
-  ];
+  // Hourly chart data — 24 bars
+  const chartData = useMemo(() => {
+    const buckets = Array.from({ length: 24 }, (_, h) => ({ hour: `${h}:00`, count: 0 }));
+    alerts.forEach((a) => {
+      const h = new Date(a.timestamp).getHours();
+      if (h >= 0 && h < 24) buckets[h].count += 1;
+    });
+    return buckets;
+  }, [alerts]);
 
   return (
     <DashboardLayout>
       <div className="space-y-5">
 
         {/* Header */}
-        <div className="flex items-start justify-between gap-4">
+        <div className="flex items-start justify-between">
           <div>
             <h1 className="text-base font-semibold text-gray-900">Policy Violations</h1>
-            <p className="text-xs text-gray-500 mt-0.5">Containment events and enforcement actions recorded by the runtime.</p>
+            <p className="text-xs text-gray-500 mt-0.5">Dedicated policy envelope violations dashboard.</p>
           </div>
-          <div className="flex items-center gap-2 flex-shrink-0">
-            <TimeRangePicker value={timeRange} onChange={setTimeRange} />
+          <div className="flex items-center gap-2">
+            {sseConnected ? (
+              <span className="inline-flex items-center gap-1.5 text-[11px] text-green-700 bg-green-50 border border-green-200 px-2 py-1 rounded-md">
+                <Radio className="h-3 w-3 animate-pulse" />
+                Live
+              </span>
+            ) : (
+              <span className="inline-flex items-center gap-1.5 text-[11px] text-gray-400 bg-gray-50 border border-gray-200 px-2 py-1 rounded-md">
+                <Radio className="h-3 w-3" />
+                Polling
+              </span>
+            )}
             <Button variant="outline" size="sm" className="h-8 text-xs gap-1.5" onClick={() => refetch()}>
               <RefreshCw className="h-3.5 w-3.5" /> Refresh
             </Button>
@@ -255,352 +277,305 @@ function ViolationsContent() {
               variant="outline"
               size="sm"
               className="h-8 text-xs gap-1.5"
-              onClick={() => downloadJSON(violations, `violations-${timeRange}`)}
+              onClick={() => exportCSV(filtered)}
             >
-              <Download className="h-3.5 w-3.5" /> Export
+              <Download className="h-3.5 w-3.5" /> Export CSV
             </Button>
           </div>
         </div>
 
-        {/* Summary Cards */}
-        <div className="grid grid-cols-2 lg:grid-cols-4 gap-3">
-          {STAT_CARDS.map((c) => (
-            <Card key={c.label} className="border border-gray-200 shadow-none">
-              <CardHeader className="px-4 pt-3 pb-0">
-                <CardTitle className="text-xs font-medium text-gray-500 flex items-center gap-1.5">
-                  <c.icon className={`h-3.5 w-3.5 ${c.iconCls}`} />
-                  {c.label}
-                </CardTitle>
-              </CardHeader>
-              <CardContent className="px-4 pb-3 pt-1">
-                {c.value === null
-                  ? <Skeleton className="h-6 w-10" />
-                  : <span className="text-base font-semibold text-gray-900 tabular-nums">{c.value}</span>
-                }
-              </CardContent>
-            </Card>
-          ))}
+        {/* Summary cards */}
+        <div className="grid grid-cols-2 xl:grid-cols-4 gap-3">
+          <StatCard icon={ShieldAlert}   label="Total Violations (24h)" value={totalCount}    loading={isLoading} iconClass="bg-red-50 text-red-600" />
+          <StatCard icon={AlertCircle}   label="Critical Violations"     value={criticalCount} loading={isLoading} iconClass="bg-red-50 text-red-700" />
+          <StatCard icon={CheckCircle2}  label="Acknowledged"            value={ackCount}      loading={isLoading} iconClass="bg-orange-50 text-orange-600" />
+          <StatCard icon={TrendingUp}    label="Escalated"               value={escalatedCount} loading={isLoading} iconClass="bg-purple-50 text-purple-600" />
         </div>
 
-        {/* Action Bar */}
-        <div className="flex items-center gap-2 flex-wrap">
-          <div className="relative flex-1 min-w-48 max-w-80">
-            <Search className="absolute left-2.5 top-1/2 -translate-y-1/2 h-3.5 w-3.5 text-gray-400" />
-            <Input
-              placeholder="execution / agent / device / policy"
-              className="pl-8 h-8 text-xs"
-              value={search}
-              onChange={(e) => setSearch(e.target.value)}
-            />
-          </div>
-          <Select value={typeFilter} onValueChange={setTypeFilter}>
-            <SelectTrigger className="h-8 w-44 text-xs">
-              <SelectValue placeholder="violation type" />
-            </SelectTrigger>
-            <SelectContent>
-              {VIOLATION_TYPES.map((t) => (
-                <SelectItem key={t} value={t} className="text-xs">
-                  {t === 'all' ? 'all types' : t}
-                </SelectItem>
-              ))}
-            </SelectContent>
-          </Select>
-          <Select value={severityFilter} onValueChange={(v) => setSeverityFilter(v as 'all' | Severity)}>
-            <SelectTrigger className="h-8 w-32 text-xs">
-              <SelectValue placeholder="severity" />
-            </SelectTrigger>
-            <SelectContent>
-              {SEVERITIES.map((s) => (
-                <SelectItem key={s} value={s} className="text-xs">
-                  {s === 'all' ? 'all severities' : s}
-                </SelectItem>
-              ))}
-            </SelectContent>
-          </Select>
-        </div>
+        {/* Filter bar */}
+        <Card className="border border-gray-200 shadow-none">
+          <CardContent className="px-4 py-3">
+            <div className="flex flex-wrap items-center gap-2">
+              <Select value={timeRange} onValueChange={setTimeRange}>
+                <SelectTrigger className="h-8 w-36 text-xs"><SelectValue /></SelectTrigger>
+                <SelectContent>
+                  <SelectItem value="last_1h"  className="text-xs">Last 1 hour</SelectItem>
+                  <SelectItem value="last_6h"  className="text-xs">Last 6 hours</SelectItem>
+                  <SelectItem value="last_24h" className="text-xs">Last 24 hours</SelectItem>
+                </SelectContent>
+              </Select>
+              <Select value={severityFilter} onValueChange={setSeverityFilter}>
+                <SelectTrigger className="h-8 w-32 text-xs"><SelectValue /></SelectTrigger>
+                <SelectContent>
+                  <SelectItem value="all"      className="text-xs">All severities</SelectItem>
+                  <SelectItem value="info"     className="text-xs">Info</SelectItem>
+                  <SelectItem value="warning"  className="text-xs">Warning</SelectItem>
+                  <SelectItem value="critical" className="text-xs">Critical</SelectItem>
+                </SelectContent>
+              </Select>
+            </div>
+          </CardContent>
+        </Card>
 
-        {/* Violations Table */}
+        {/* Violations table */}
         <Card className="border border-gray-200 shadow-none overflow-hidden">
-          <CardHeader className="px-4 py-3 border-b border-gray-100">
-            <CardTitle className="text-xs font-medium text-gray-700 flex items-center gap-1.5">
-              <ShieldAlert className="h-3.5 w-3.5 text-orange-400" />
-              Violation Events
+          <CardHeader className="px-4 pt-4 pb-3">
+            <CardTitle className="text-sm font-medium text-gray-900 flex items-center gap-1.5">
+              <ShieldOff className="h-3.5 w-3.5 text-orange-400" />
+              Violations
               {!isLoading && (
-                <span className="ml-1 text-[10px] text-gray-400 font-normal">
-                  {filtered.length} of {violations.length}
+                <span className="ml-1 text-xs font-normal text-gray-400">
+                  {filtered.length} of {alerts.length}
                 </span>
               )}
             </CardTitle>
           </CardHeader>
-          <Table>
-            <TableHeader>
-              <TableRow className="hover:bg-transparent">
-                {['Timestamp', 'Execution ID', 'Agent', 'Device', 'Type', 'Policy Rule', 'Severity', 'Action', ''].map((h) => (
-                  <TableHead key={h} className="text-[10px] font-medium text-gray-500 uppercase tracking-wide h-9 px-4 bg-gray-50/60 hover:bg-gray-50/60">
-                    {h}
-                  </TableHead>
-                ))}
-              </TableRow>
-            </TableHeader>
-            <TableBody>
-              {isLoading ? (
-                Array.from({ length: 6 }).map((_, i) => (
-                  <TableRow key={i}>
-                    {Array.from({ length: 9 }).map((_, j) => (
-                      <TableCell key={j} className="px-4 py-3"><Skeleton className="h-3.5 w-14" /></TableCell>
-                    ))}
-                  </TableRow>
-                ))
-              ) : filtered.length === 0 ? (
-                <TableRow>
-                  <TableCell colSpan={9} className="py-14 text-center text-xs text-gray-400">
-                    No violations found.
-                  </TableCell>
+          <Separator />
+          <div
+            className="overflow-y-auto"
+            style={{ maxHeight: 400, scrollbarWidth: 'none', msOverflowStyle: 'none' } as React.CSSProperties}
+          >
+            <Table className="w-full">
+              <TableHeader className="sticky top-0 z-10">
+                <TableRow className="bg-gray-50 border-b border-gray-200 hover:bg-gray-50">
+                  <TableHead className="w-[120px] text-xs font-medium text-gray-500 py-2 px-4">Timestamp</TableHead>
+                  <TableHead className="w-[120px] text-xs font-medium text-gray-500 py-2 px-3">Agent</TableHead>
+                  <TableHead className="w-[140px] text-xs font-medium text-gray-500 py-2 px-3">Policy Rule</TableHead>
+                  <TableHead className="w-[80px]  text-xs font-medium text-gray-500 py-2 px-3">Severity</TableHead>
+                  <TableHead className="w-[120px] text-xs font-medium text-gray-500 py-2 px-3">Bound Violated</TableHead>
+                  <TableHead className="w-[90px]  text-xs font-medium text-gray-500 py-2 px-3">Expected</TableHead>
+                  <TableHead className="w-[90px]  text-xs font-medium text-gray-500 py-2 px-3">Actual</TableHead>
+                  <TableHead className="w-[90px]  text-xs font-medium text-gray-500 py-2 px-3">Status</TableHead>
+                  <TableHead className="           text-xs font-medium text-gray-500 py-2 px-3">Actions</TableHead>
                 </TableRow>
-              ) : (
-                filtered.map((v) => (
-                  <TableRow
-                    key={v.id}
-                    className={`cursor-pointer border-b border-gray-100 hover:bg-gray-50 transition-colors ${selectedId === v.id ? 'bg-blue-50/50' : ''}`}
-                    onClick={() => setSelectedId(v.id === selectedId ? null : v.id)}
-                  >
-                    {/* Timestamp */}
-                    <TableCell
-                      className="px-4 py-3 text-xs text-gray-500 whitespace-nowrap tabular-nums"
-                      title={new Date(v.timestamp).toISOString()}
-                    >
-                      {getRelativeTime(v.timestamp)}
-                    </TableCell>
-
-                    {/* Execution ID */}
-                    <TableCell className="px-4 py-3">
-                      <div className="flex items-center gap-1.5 group">
-                        <span
-                          className="text-xs text-blue-600 hover:text-blue-700 underline underline-offset-2 font-mono"
-                          title={v.execution_id}
-                          onClick={(e) => { e.stopPropagation(); router.push(`/execution/runs/${v.execution_id}`); }}
+              </TableHeader>
+              <TableBody>
+                {isLoading
+                  ? Array.from({ length: 6 }).map((_, i) => (
+                      <TableRow key={i} className="border-b border-gray-100">
+                        {Array.from({ length: 9 }).map((_, j) => (
+                          <TableCell key={j} className="py-2.5 px-3"><Skeleton className="h-3.5 w-full" /></TableCell>
+                        ))}
+                      </TableRow>
+                    ))
+                  : filtered.length === 0
+                    ? (
+                      <TableRow>
+                        <TableCell colSpan={9} className="text-center text-xs text-gray-400 py-14">
+                          No policy violations found for the selected filters.
+                        </TableCell>
+                      </TableRow>
+                    )
+                    : filtered.map((alert) => (
+                        <TableRow
+                          key={alert.id}
+                          className={`border-b border-gray-100 hover:bg-gray-50/60 cursor-pointer ${selectedId === alert.id ? 'bg-blue-50/40' : ''}`}
+                          onClick={() => setSelectedId(alert.id === selectedId ? null : alert.id)}
                         >
-                          {trunc(v.execution_id, 14)}
-                        </span>
-                        <span className="opacity-0 group-hover:opacity-100 transition-opacity">
-                          <CopyBtn text={v.execution_id} />
-                        </span>
-                      </div>
-                    </TableCell>
-
-                    {/* Agent */}
-                    <TableCell className="px-4 py-3 text-xs text-gray-600 font-mono" title={v.agent_id}>
-                      {trunc(v.agent_id, 12)}
-                    </TableCell>
-
-                    {/* Device */}
-                    <TableCell className="px-4 py-3 text-xs text-gray-600 font-mono" title={v.device_id}>
-                      {trunc(v.device_id, 12)}
-                    </TableCell>
-
-                    {/* Type */}
-                    <TableCell className="px-4 py-3">
-                      <span className="text-[10px] font-mono text-gray-700 bg-gray-100 px-1.5 py-0.5 rounded">
-                        {v.violation_type}
-                      </span>
-                    </TableCell>
-
-                    {/* Policy Rule */}
-                    <TableCell className="px-4 py-3 text-xs font-mono text-gray-600" title={v.policy_rule}>
-                      {trunc(v.policy_rule, 22)}
-                    </TableCell>
-
-                    {/* Severity */}
-                    <TableCell className="px-4 py-3">
-                      <SeverityBadge severity={v.severity} />
-                    </TableCell>
-
-                    {/* Action */}
-                    <TableCell className="px-4 py-3">
-                      <ActionBadge action={v.action_taken} />
-                    </TableCell>
-
-                    {/* Actions */}
-                    <TableCell className="px-4 py-3" onClick={(e) => e.stopPropagation()}>
-                      <Button
-                        variant="ghost"
-                        size="sm"
-                        className="h-6 px-2 text-[10px] text-gray-500 hover:text-gray-900 gap-1"
-                        onClick={() => setSelectedId(v.id === selectedId ? null : v.id)}
-                      >
-                        <Eye className="h-3 w-3" /> View
-                      </Button>
-                    </TableCell>
-                  </TableRow>
-                ))
-              )}
-            </TableBody>
-          </Table>
+                          <TableCell className="py-2.5 px-4 text-xs text-gray-500 font-mono whitespace-nowrap">
+                            {getRelativeTime(alert.timestamp)}
+                          </TableCell>
+                          <TableCell className="py-2.5 px-3 text-xs text-gray-600 font-mono truncate">
+                            {alert.agent_id ?? <span className="text-gray-300">—</span>}
+                          </TableCell>
+                          <TableCell className="py-2.5 px-3 text-xs text-gray-600 font-mono truncate">
+                            {alert.policy_rule ?? <span className="text-gray-300">—</span>}
+                          </TableCell>
+                          <TableCell className="py-2.5 px-3">
+                            <SeverityBadge severity={alert.severity} />
+                          </TableCell>
+                          <TableCell className="py-2.5 px-3 text-xs text-gray-600 font-mono truncate">
+                            {alert.violation_details?.bound_violated ?? <span className="text-gray-300">—</span>}
+                          </TableCell>
+                          <TableCell className="py-2.5 px-3 text-xs text-gray-600 tabular-nums">
+                            {alert.violation_details?.expected !== undefined
+                              ? String(alert.violation_details.expected)
+                              : <span className="text-gray-300">—</span>}
+                          </TableCell>
+                          <TableCell className="py-2.5 px-3 text-xs text-gray-600 tabular-nums">
+                            {alert.violation_details?.actual !== undefined
+                              ? String(alert.violation_details.actual)
+                              : <span className="text-gray-300">—</span>}
+                          </TableCell>
+                          <TableCell className="py-2.5 px-3">
+                            <StatusBadge status={alert.status} />
+                          </TableCell>
+                          <TableCell className="py-2.5 px-3" onClick={(e) => e.stopPropagation()}>
+                            <div className="flex items-center gap-1">
+                              {alert.status === 'open' && (
+                                <Button
+                                  variant="outline" size="sm"
+                                  className="h-6 text-[10px] px-2 font-medium"
+                                  onClick={() => acknowledgeMutation.mutate(alert.id)}
+                                  disabled={acknowledgeMutation.isPending}
+                                >
+                                  Ack
+                                </Button>
+                              )}
+                              {alert.status !== 'escalated' && alert.status !== 'resolved' && (
+                                <Button
+                                  variant="outline" size="sm"
+                                  className="h-6 text-[10px] px-2 font-medium text-purple-700 border-purple-200 hover:bg-purple-50"
+                                  onClick={() => escalateMutation.mutate(alert.id)}
+                                  disabled={escalateMutation.isPending}
+                                >
+                                  Escalate
+                                </Button>
+                              )}
+                              {alert.status !== 'resolved' && (
+                                <Button
+                                  variant="outline" size="sm"
+                                  className="h-6 text-[10px] px-2 font-medium text-green-700 border-green-200 hover:bg-green-50"
+                                  onClick={() => resolveMutation.mutate(alert.id)}
+                                  disabled={resolveMutation.isPending}
+                                >
+                                  <Check className="h-2.5 w-2.5 mr-0.5" />
+                                  Resolve
+                                </Button>
+                              )}
+                            </div>
+                          </TableCell>
+                        </TableRow>
+                      ))}
+              </TableBody>
+            </Table>
+          </div>
         </Card>
 
-        {/* Recent Violation Timeline */}
-        <Card className="border border-gray-200 shadow-none overflow-hidden">
-          <CardHeader className="px-4 py-3 border-b border-gray-100">
-            <CardTitle className="text-xs font-medium text-gray-700 flex items-center gap-1.5">
-              <Clock className="h-3.5 w-3.5 text-gray-400" />
-              Recent Violation Timeline
-            </CardTitle>
+        {/* Analytics: violations by hour */}
+        <Card className="border border-gray-200 shadow-none">
+          <CardHeader className="px-4 pt-4 pb-3">
+            <div className="flex items-center justify-between">
+              <CardTitle className="text-sm font-medium text-gray-900">Violations by Hour (Last 24h)</CardTitle>
+              <button
+                onClick={() => setChartCollapsed((v) => !v)}
+                className="text-gray-400 hover:text-gray-700 transition-colors"
+              >
+                <ChevronUp className={`h-4 w-4 transition-transform ${chartCollapsed ? 'rotate-180' : ''}`} />
+              </button>
+            </div>
           </CardHeader>
-          <Table>
-            <TableHeader>
-              <TableRow className="hover:bg-transparent">
-                {['Timestamp', 'Execution ID', 'Type', 'Severity', 'Action'].map((h) => (
-                  <TableHead key={h} className="text-[10px] font-medium text-gray-500 uppercase tracking-wide h-9 px-4 bg-gray-50/60 hover:bg-gray-50/60">
-                    {h}
-                  </TableHead>
-                ))}
-              </TableRow>
-            </TableHeader>
-            <TableBody>
-              {isLoading ? (
-                Array.from({ length: 5 }).map((_, i) => (
-                  <TableRow key={i}>
-                    {Array.from({ length: 5 }).map((_, j) => (
-                      <TableCell key={j} className="px-4 py-2.5"><Skeleton className="h-3 w-14" /></TableCell>
-                    ))}
-                  </TableRow>
-                ))
-              ) : violations.slice(0, 10).length === 0 ? (
-                <TableRow>
-                  <TableCell colSpan={5} className="py-8 text-center text-xs text-gray-400">
-                    No recent violations.
-                  </TableCell>
-                </TableRow>
-              ) : (
-                violations.slice(0, 10).map((v) => (
-                  <TableRow
-                    key={v.id}
-                    className="cursor-pointer border-b border-gray-100 hover:bg-gray-50 transition-colors"
-                    onClick={() => setSelectedId(v.id)}
-                  >
-                    <TableCell className="px-4 py-2.5 text-xs text-gray-500 tabular-nums whitespace-nowrap">
-                      {new Date(v.timestamp).toISOString()}
-                    </TableCell>
-                    <TableCell className="px-4 py-2.5 text-xs text-blue-600 font-mono">
-                      {trunc(v.execution_id, 14)}
-                    </TableCell>
-                    <TableCell className="px-4 py-2.5">
-                      <span className="text-[10px] font-mono text-gray-700 bg-gray-100 px-1.5 py-0.5 rounded">
-                        {v.violation_type}
-                      </span>
-                    </TableCell>
-                    <TableCell className="px-4 py-2.5">
-                      <SeverityBadge severity={v.severity} />
-                    </TableCell>
-                    <TableCell className="px-4 py-2.5">
-                      <ActionBadge action={v.action_taken} />
-                    </TableCell>
-                  </TableRow>
-                ))
-              )}
-            </TableBody>
-          </Table>
+          {!chartCollapsed && (
+            <>
+              <Separator />
+              <CardContent className="px-4 py-4">
+                {isLoading ? (
+                  <Skeleton className="h-40 w-full" />
+                ) : (
+                  <ResponsiveContainer width="100%" height={160}>
+                    <BarChart data={chartData} margin={{ top: 4, right: 4, left: -20, bottom: 0 }}>
+                      <CartesianGrid strokeDasharray="3 3" vertical={false} stroke="#f0f0f0" />
+                      <XAxis
+                        dataKey="hour"
+                        tick={{ fontSize: 9, fill: '#9ca3af' }}
+                        tickLine={false}
+                        axisLine={false}
+                        interval={3}
+                      />
+                      <YAxis
+                        tick={{ fontSize: 9, fill: '#9ca3af' }}
+                        tickLine={false}
+                        axisLine={false}
+                        allowDecimals={false}
+                      />
+                      <Tooltip
+                        contentStyle={{ fontSize: 11, padding: '4px 8px', border: '1px solid #e5e7eb', borderRadius: 6 }}
+                        cursor={{ fill: '#f9fafb' }}
+                      />
+                      <Bar dataKey="count" fill="#ef4444" radius={[2, 2, 0, 0]} maxBarSize={20} />
+                    </BarChart>
+                  </ResponsiveContainer>
+                )}
+              </CardContent>
+            </>
+          )}
         </Card>
 
       </div>
 
-      {/* Violation Details Drawer */}
+      {/* Detail drawer */}
       <RightSideDrawer
         open={!!selected}
         onClose={() => setSelectedId(null)}
         title={
           <>
             <ShieldAlert className="h-4 w-4 text-orange-400" />
-            Violation
+            <span className="font-mono text-sm">{selected?.alert_type ?? 'Policy Violation'}</span>
             {selected && <SeverityBadge severity={selected.severity} />}
           </>
         }
-        subtitle={selected ? new Date(selected.timestamp).toISOString() : undefined}
+        subtitle={selected?.id}
       >
         {selected && (
-          <div className="space-y-0">
+          <>
+            <DrawerSection title="Alert Metadata">
+              <KeyValueGrid items={[
+                { label: 'Alert ID',   value: selected.id,        copyable: true, copyValue: selected.id },
+                { label: 'Timestamp', value: new Date(selected.timestamp).toISOString().replace('T', ' ').slice(0, 19) },
+                { label: 'Severity',  value: <SeverityBadge severity={selected.severity} /> },
+                { label: 'Status',    value: <StatusBadge status={selected.status} /> },
+                { label: 'Source',    value: selected.source },
+              ]} />
+            </DrawerSection>
 
-              {/* Violation Metadata */}
-              <DrawerSection title="Violation Metadata">
-                <KeyValueGrid items={[
-                  { label: 'violation_id',   value: selected.id,             copyable: true, copyValue: selected.id },
-                  { label: 'timestamp',      value: new Date(selected.timestamp).toISOString() },
-                  { label: 'execution_id',   value: selected.execution_id,   copyable: true, copyValue: selected.execution_id, href: `/execution/runs/${selected.execution_id}` },
-                  { label: 'agent_id',       value: selected.agent_id,       copyable: true, copyValue: selected.agent_id },
-                  { label: 'device_id',      value: selected.device_id,      copyable: true, copyValue: selected.device_id },
-                  { label: 'severity',       value: <SeverityBadge severity={selected.severity} /> },
-                  { label: 'violation_type', value: selected.violation_type },
-                ]} />
-              </DrawerSection>
+            <DrawerSection title="Policy Context">
+              <KeyValueGrid items={[
+                { label: 'Policy Rule',     value: selected.policy_rule     ?? '—' },
+                { label: 'Bound Violated',  value: selected.violation_details?.bound_violated ?? '—' },
+                { label: 'Expected Value',  value: selected.violation_details?.expected !== undefined ? String(selected.violation_details.expected) : '—' },
+                { label: 'Actual Value',    value: selected.violation_details?.actual   !== undefined ? String(selected.violation_details.actual)   : '—' },
+                { label: 'Agent ID',        value: selected.agent_id ?? '—', copyable: !!selected.agent_id, copyValue: selected.agent_id },
+              ]} />
+            </DrawerSection>
 
-              <Separator />
-
-              {/* Policy Context */}
-              <DrawerSection title="Policy Context">
-                <div className="space-y-3">
-                  <KeyValueGrid items={[
-                    { label: 'policy_rule',     value: selected.policy_rule },
-                    ...(selected.capability_rule ? [{ label: 'capability_rule', value: selected.capability_rule }] : []),
-                    ...(selected.bounds_rule ? [{ label: 'bounds_rule', value: selected.bounds_rule }] : []),
-                  ]} />
-                  <div className="space-y-1 pt-1">
-                    <span className="text-xs text-gray-400">policy_hash</span>
-                    <div className="px-3 py-2 rounded border border-gray-200 bg-gray-50">
-                      <p className="text-[11px] font-mono text-gray-600 break-all leading-5">
-                        {truncMiddle(selected.policy_hash, 20)}
-                      </p>
-                    </div>
-                  </div>
-                </div>
-              </DrawerSection>
-
-              <Separator />
-
-              {/* Runtime Action */}
-              <DrawerSection title="Runtime Action">
-                <KeyValueGrid items={[
-                  { label: 'action_taken',       value: <ActionBadge action={selected.action_taken} /> },
-                  { label: 'execution_state',    value: selected.execution_state },
-                  { label: 'supervisor_action',  value: selected.supervisor_action },
-                  { label: 'containment_result', value: selected.containment_result },
-                ]} />
-              </DrawerSection>
-
-              <Separator />
-
-              {/* Signature Record */}
-              <DrawerSection title="Signature Record">
-                <div className="space-y-3">
-                  <HashRow label="Signature" value={selected.signature} />
-                  <HashRow label="Hash" value={selected.hash} />
-                  <HashRow label="Previous Hash" value={selected.previous_hash} />
-                  <div className="flex gap-2 pt-1">
-                    {selected.signature && (
-                      <button
-                        onClick={() => navigator.clipboard.writeText(selected.signature)}
-                        className="text-xs text-gray-500 hover:text-gray-800 border border-gray-200 rounded px-2.5 py-1.5 flex items-center gap-1.5 transition-colors"
-                      >
-                        <Copy className="h-3 w-3" /> Copy Signature
-                      </button>
-                    )}
-                    <button
-                      onClick={() => downloadJSON(selected, `violation-${selected.id}`)}
-                      className="text-xs text-gray-500 hover:text-gray-800 border border-gray-200 rounded px-2.5 py-1.5 flex items-center gap-1.5 transition-colors"
-                    >
-                      <Download className="h-3 w-3" /> Download JSON
-                    </button>
-                  </div>
-                </div>
-              </DrawerSection>
-
-              <Separator />
-
-              {/* Raw JSON */}
-              <DrawerSection title="Raw">
-                <JSONViewer data={selected} filename={`violation-${selected.id}`} />
-              </DrawerSection>
-
-          </div>
+            <DrawerSection title="Actions">
+              <div className="flex items-center gap-2 flex-wrap">
+                {selected.status === 'open' && (
+                  <Button
+                    variant="outline" size="sm"
+                    className="h-7 text-xs gap-1.5"
+                    onClick={() => { acknowledgeMutation.mutate(selected.id); setSelectedId(null); }}
+                    disabled={acknowledgeMutation.isPending}
+                  >
+                    <AlertTriangle className="h-3 w-3" />
+                    Acknowledge
+                  </Button>
+                )}
+                {selected.status !== 'escalated' && selected.status !== 'resolved' && (
+                  <Button
+                    variant="outline" size="sm"
+                    className="h-7 text-xs gap-1.5 text-purple-700 border-purple-200 hover:bg-purple-50"
+                    onClick={() => { escalateMutation.mutate(selected.id); setSelectedId(null); }}
+                    disabled={escalateMutation.isPending}
+                  >
+                    <TrendingUp className="h-3 w-3" />
+                    Escalate
+                  </Button>
+                )}
+                {selected.status !== 'resolved' && (
+                  <Button
+                    variant="outline" size="sm"
+                    className="h-7 text-xs gap-1.5 text-green-700 border-green-200 hover:bg-green-50"
+                    onClick={() => { resolveMutation.mutate(selected.id); setSelectedId(null); }}
+                    disabled={resolveMutation.isPending}
+                  >
+                    <Check className="h-3 w-3" />
+                    Resolve
+                  </Button>
+                )}
+              </div>
+              {selected.acknowledged_at && (
+                <p className="text-[10px] text-gray-400 mt-2">
+                  Acknowledged by <span className="font-mono">{selected.acknowledged_by}</span> at {new Date(selected.acknowledged_at).toISOString().replace('T', ' ').slice(0, 19)}
+                </p>
+              )}
+              {selected.resolved_at && (
+                <p className="text-[10px] text-gray-400 mt-1">
+                  Resolved by <span className="font-mono">{selected.resolved_by}</span> at {new Date(selected.resolved_at).toISOString().replace('T', ' ').slice(0, 19)}
+                </p>
+              )}
+            </DrawerSection>
+          </>
         )}
       </RightSideDrawer>
     </DashboardLayout>
