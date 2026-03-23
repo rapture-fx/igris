@@ -808,3 +808,63 @@ func RegisterDeviceRoutes(app *fiber.App, db *sql.DB) {
 	})
 	log.Println("[Routes] ✓ GET /devices/:id/violations")
 }
+
+// ── ROS 2 Lifecycle ──────────────────────────────────────────────────────────
+
+// RegisterROSRoutes registers POST /v1/ros/lifecycle under BetterAuth.
+func RegisterROSRoutes(app *fiber.App, db *sql.DB) {
+	if db == nil {
+		log.Println("[Routes] ROS lifecycle endpoint disabled — database not available")
+		return
+	}
+
+	v1 := app.Group("/v1")
+	v1.Post("/ros/lifecycle", middleware.BetterAuth(db), func(c *fiber.Ctx) error {
+		tenantID := middleware.GetClerkUserID(c)
+		if tenantID == "" {
+			return c.Status(fiber.StatusUnauthorized).JSON(fiber.Map{"error": "unauthorized"})
+		}
+
+		var body struct {
+			DeviceID string `json:"device_id"`
+			Action   string `json:"action"`
+		}
+		if err := c.BodyParser(&body); err != nil {
+			return c.Status(fiber.StatusBadRequest).JSON(fiber.Map{"error": "invalid body"})
+		}
+		if body.DeviceID == "" || body.Action == "" {
+			return c.Status(fiber.StatusBadRequest).JSON(fiber.Map{"error": "device_id and action are required"})
+		}
+
+		validActions := map[string]bool{
+			"configure":   true,
+			"activate":    true,
+			"deactivate":  true,
+			"reset":       true,
+			"shutdown":    true,
+		}
+		if !validActions[body.Action] {
+			return c.Status(fiber.StatusBadRequest).JSON(fiber.Map{
+				"error": "invalid action — must be one of: configure, activate, deactivate, reset, shutdown",
+			})
+		}
+
+		// Record lifecycle command — the runtime picks it up on next heartbeat.
+		// We upsert into a pending_commands JSONB on runtime_instances.
+		_, err := db.ExecContext(c.Context(), `
+			UPDATE runtime_instances
+			SET pending_commands = COALESCE(pending_commands, '[]'::jsonb) || $1::jsonb,
+			    updated_at = NOW()
+			WHERE runtime_id = $2
+			  AND tenant_id = $3
+		`, `[{"type":"ros_lifecycle","action":"`+body.Action+`"}]`, body.DeviceID, tenantID)
+		if err != nil {
+			log.Printf("[ROS] Lifecycle command failed: device=%s action=%s err=%v", body.DeviceID, body.Action, err)
+			return c.Status(fiber.StatusInternalServerError).JSON(fiber.Map{"error": "internal_error"})
+		}
+
+		log.Printf("[ROS] Lifecycle command queued: device=%s action=%s tenant=%s", body.DeviceID, body.Action, tenantID)
+		return c.JSON(fiber.Map{"status": "queued", "device_id": body.DeviceID, "action": body.Action})
+	})
+	log.Println("[Routes] ✓ POST /v1/ros/lifecycle")
+}
