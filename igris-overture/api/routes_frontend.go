@@ -38,10 +38,10 @@ func RegisterFrontendRoutes(app *fiber.App, db *sql.DB) {
 		return
 	}
 
-	// ── Priority 1: GET /v1/tenants/current ──────────────────────────────────
-	tenants := app.Group("/v1/tenants")
-	tenants.Use(middleware.BetterAuth(db))
-	tenants.Get("/current", makeGetCurrentTenant(db))
+	// Priority 1: GET /v1/tenants/current is now registered inside
+	// RegisterTenancyRoutes (routes_tenancy.go) BEFORE the /:tenant_id
+	// parameterized route so Fiber matches the literal path correctly.
+	// No additional registration needed here.
 
 	// Priority 2: GET /v1/usage/summary is already registered by RegisterStatsRoutes.
 	// No additional registration needed here.

@@ -70,11 +70,15 @@ func RegisterTenancyRoutes(app *fiber.App, config *TenancyRouteConfig) {
 	tenants := v1.Group("/tenants")
 	tenants.Use(middleware.BetterAuth(config.DB))
 
+	// Literal /current must be registered before /:tenant_id so Fiber matches
+	// it as an exact route rather than treating "current" as a tenant_id param.
+	tenants.Get("/current", makeGetCurrentTenant(config.DB)) // GET /v1/tenants/current
+
 	// Tenant self-service
 	tenants.Get("/:tenant_id", tenantHandler.GetTenant)    // GET /v1/tenants/:id
 	tenants.Put("/:tenant_id", tenantHandler.UpdateTenant) // PUT /v1/tenants/:id
 
-	log.Println("[Routes] ✓ Registered 2 tenant self-service endpoints")
+	log.Println("[Routes] ✓ Registered 3 tenant self-service endpoints (current + :id GET/PUT)")
 
 	// ========================================================================
 	// BYOK VAULT ROUTES (Require tenant authentication)
