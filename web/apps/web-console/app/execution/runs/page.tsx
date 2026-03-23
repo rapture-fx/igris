@@ -55,7 +55,6 @@ import {
   ReceiptVerificationPanel,
   CopyButton,
 } from '@/components/execution/shared';
-import { MOCK_RUNS } from '@/lib/mock/execution';
 
 // ─── Types ────────────────────────────────────────────────────────────────────
 
