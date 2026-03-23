@@ -25,6 +25,7 @@ import {
   Save, RefreshCw, CheckCircle, RotateCcw, Globe, Terminal, HardDrive,
   Zap, History, Plus, Trash2, Shield, ShieldCheck,
 } from 'lucide-react';
+import { toast } from '@/components/ui/use-toast';
 
 // ─── Types ────────────────────────────────────────────────────────────────────
 
@@ -54,53 +55,6 @@ interface CapHistoryEntry {
   change_type: string;
   changed_by: string;
 }
-
-// ─── Mock Data ────────────────────────────────────────────────────────────────
-
-const MOCK_CAPS: Capabilities = {
-  allow_http: true,
-  allow_shell: false,
-  allow_fs_write: false,
-  allow_external_api: true,
-  domain_allowlist: [
-    { domain: 'api.openai.com', description: 'OpenAI API endpoint' },
-    { domain: 'api.anthropic.com', description: 'Anthropic API endpoint' },
-    { domain: 'hooks.slack.com', description: 'Slack webhooks' },
-  ],
-  domain_denylist: [
-    { domain: '*.torrent.com', description: 'P2P file sharing' },
-    { domain: 'raw.githubusercontent.com', description: 'Unreviewed code execution risk' },
-  ],
-  writable_paths: ['/tmp/agents', '/var/data/outputs'],
-  readable_paths: ['/etc/config', '/var/data/inputs', '/usr/share/models'],
-  violation_behavior: 'terminate',
-  policy_hash: 'sha256:d5b3e2a1f9c8e7d6b5a4c3f2e1d0c9b8',
-  updated_at: new Date(Date.now() - 86_400_000).toISOString(),
-};
-
-const MOCK_HISTORY: CapHistoryEntry[] = [
-  {
-    id: '3',
-    timestamp: new Date(Date.now() - 86_400_000).toISOString(),
-    policy_hash: 'sha256:d5b3e2a1f9c8e7d6b5a4c3f2e1d0c9b8',
-    change_type: 'domain_allowlist_updated',
-    changed_by: 'admin@acme.io',
-  },
-  {
-    id: '2',
-    timestamp: new Date(Date.now() - 5 * 86_400_000).toISOString(),
-    policy_hash: 'sha256:c4a2d1e0f8b7a6c5d4e3f2a1b0c9d8e7',
-    change_type: 'allow_shell: true → false',
-    changed_by: 'admin@acme.io',
-  },
-  {
-    id: '1',
-    timestamp: new Date(Date.now() - 14 * 86_400_000).toISOString(),
-    policy_hash: 'sha256:b3a1c0d9e8f7a6b5c4d3e2f1a0b9c8d7',
-    change_type: 'initial_policy',
-    changed_by: 'system',
-  },
-];
 
 // ─── Field Configs ────────────────────────────────────────────────────────────
 
@@ -245,6 +199,10 @@ export default function PolicyCapabilitiesPage() {
       qc.invalidateQueries({ queryKey: ['capability-history'] });
       setSavedIndicator(true);
       setTimeout(() => setSavedIndicator(false), 2000);
+      toast({ title: 'Capabilities saved', description: 'Policy hash updated and agents will receive the new rules.' });
+    },
+    onError: () => {
+      toast({ title: 'Save failed', description: 'Could not save capability changes. Try again.', variant: 'destructive' });
     },
   });
 
@@ -596,7 +554,7 @@ export default function PolicyCapabilitiesPage() {
                 <Skeleton className="h-3 w-20" /><Skeleton className="h-5 w-56" />
                 <Skeleton className="h-3 w-20" /><Skeleton className="h-3 w-36" />
               </dl>
-            ) : (
+            ) : displayCaps.policy_hash ? (
               <dl className="grid grid-cols-[140px_1fr] gap-x-6 gap-y-3">
                 <dt className="text-xs text-gray-500 flex items-start pt-0.5">Policy Hash</dt>
                 <dd className="flex items-center gap-1.5">
@@ -608,6 +566,8 @@ export default function PolicyCapabilitiesPage() {
                 <dt className="text-xs text-gray-500 flex items-start pt-0.5">Last Updated</dt>
                 <dd className="text-xs text-gray-700">{formatDateTime(displayCaps.updated_at)}</dd>
               </dl>
+            ) : (
+              <p className="text-xs text-gray-400">No policy saved yet. Configure capabilities above and save.</p>
             )}
           </CardContent>
         </Card>
@@ -662,9 +622,6 @@ export default function PolicyCapabilitiesPage() {
           </Table>
         </Card>
 
-        {mutation.isError && (
-          <p className="text-xs text-red-600">Failed to save capability changes. Try again.</p>
-        )}
       </div>
     </DashboardLayout>
   );
