@@ -90,16 +90,13 @@ func RegisterDownloadRoutes(app *fiber.App, db *sql.DB, redisClient *redis.Clien
 
 	h := NewDownloadHandler(db, redisClient)
 
-	v1 := app.Group("/v1/runtime")
+	// Public endpoints registered directly on app to avoid group-level BetterAuth bleeding
+	// from the /v1 execution group (Fiber Use middleware matches all /v1* prefixes).
+	app.Get("/v1/runtime/install", h.PublicDownload)
+	app.Get("/v1/runtime/checksum", h.Checksum)
 
-	// Authenticated download endpoint (Clerk JWT)
-	v1.Get("/download", middleware.BetterAuth(db), h.Download)
-
-	// Public installer download endpoint (no auth) — used by the install script
-	v1.Get("/install", h.PublicDownload)
-
-	// Public checksum endpoint (no auth) — used by the installer for verification
-	v1.Get("/checksum", h.Checksum)
+	// Authenticated download endpoint — per-route middleware only
+	app.Get("/v1/runtime/download", middleware.BetterAuth(db), h.Download)
 
 	log.Info().Msg("[Routes] Registered download endpoints (GET /v1/runtime/download, /v1/runtime/install)")
 }
