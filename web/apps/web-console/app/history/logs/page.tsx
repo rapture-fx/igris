@@ -18,7 +18,8 @@ import {
   Table, TableBody, TableCell, TableHead, TableHeader, TableRow,
 } from '@/components/ui/table';
 import { api } from '@/lib/apiClient';
-import { downloadJSON, getRelativeTime, cn } from '@/utils/helpers';
+import { downloadJSON, getRelativeTime, formatCurrency, cn } from '@/utils/helpers';
+import { useTraces, type RequestTrace } from '@/hooks/useTraces';
 import { KeyValueGrid } from '@/components/proof/KeyValueGrid';
 import { JSONViewer } from '@/components/proof/JSONViewer';
 import { RightSideDrawer, DrawerSection } from '@/components/proof/RightSideDrawer';
@@ -392,8 +393,15 @@ function LogsContent() {
 
   // Controls
   const [liveMode,   setLiveMode]   = useState(true);
-  const [viewMode,   setViewMode]   = useState<'event_stream' | 'execution_timeline'>('event_stream');
+  const [viewMode,   setViewMode]   = useState<'event_stream' | 'execution_timeline' | 'request_traces'>('event_stream');
   const [selectedId, setSelectedId] = useState<string | null>(searchParams.get('event'));
+
+  // Traces tab state
+  const [traceProviderFilter, setTraceProviderFilter] = useState('all');
+  const [traceStatusFilter,   setTraceStatusFilter]   = useState('all');
+  const [selectedTrace,       setSelectedTrace]       = useState<RequestTrace | null>(null);
+
+  const { data: allTraces = [], isLoading: tracesLoading } = useTraces();
 
   // Fetch
   const { data: allEvents = [], isLoading, refetch, dataUpdatedAt } = useQuery<RuntimeEvent[]>({
@@ -404,7 +412,11 @@ function LogsContent() {
       if (deviceFilter  !== 'all') p.set('device_id',  deviceFilter);
       if (typeFilter    !== 'all') p.set('event_type', typeFilter);
       if (severityFilter !== 'all') p.set('severity',  severityFilter);
-      return await api.get<RuntimeEvent[]>(`/v1/history/events?${p}`);
+      try {
+        return await api.get<RuntimeEvent[]>(`/v1/history/events?${p}`);
+      } catch {
+        return [] as RuntimeEvent[];
+      }
     },
     refetchInterval: liveMode ? 10_000 : false,
     retry: false,
@@ -597,6 +609,9 @@ function LogsContent() {
               <TabsTrigger value="execution_timeline" className="h-7 px-3 text-xs data-[state=active]:bg-white data-[state=active]:shadow-none data-[state=active]:border-0 data-[state=active]:rounded-md">
                 Execution Timeline
               </TabsTrigger>
+              <TabsTrigger value="request_traces" className="h-7 px-3 text-xs data-[state=active]:bg-white data-[state=active]:shadow-none data-[state=active]:border-0 data-[state=active]:rounded-md">
+                Request Traces
+              </TabsTrigger>
             </TabsList>
           </Tabs>
           <div className="flex items-center gap-3 text-xs">
@@ -610,6 +625,229 @@ function LogsContent() {
             {dataUpdatedAt > 0 && <span className="text-gray-400">{new Date(dataUpdatedAt).toLocaleTimeString()}</span>}
           </div>
         </div>
+
+        {/* ── Request Traces ────────────────────────────────────────────────── */}
+        {viewMode === 'request_traces' ? (() => {
+          const traceProviders = Array.from(new Set(allTraces.map((t) => t.provider))).sort();
+          const filteredTraces = allTraces.filter((t) => {
+            if (traceProviderFilter !== 'all' && t.provider !== traceProviderFilter) return false;
+            if (traceStatusFilter === '200' && t.status !== 200) return false;
+            if (traceStatusFilter === 'error' && t.status === 200) return false;
+            return true;
+          });
+          return (
+            <>
+              {/* Trace filter bar */}
+              <div className="flex items-center gap-2 flex-wrap mb-3">
+                <Select value={traceProviderFilter} onValueChange={setTraceProviderFilter}>
+                  <SelectTrigger className="h-7 w-36 text-xs"><SelectValue placeholder="All providers" /></SelectTrigger>
+                  <SelectContent>
+                    <SelectItem value="all" className="text-xs">All providers</SelectItem>
+                    {traceProviders.map((p) => (
+                      <SelectItem key={p} value={p} className="text-xs">{p}</SelectItem>
+                    ))}
+                  </SelectContent>
+                </Select>
+                <Select value={traceStatusFilter} onValueChange={setTraceStatusFilter}>
+                  <SelectTrigger className="h-7 w-28 text-xs"><SelectValue /></SelectTrigger>
+                  <SelectContent>
+                    <SelectItem value="all"   className="text-xs">All statuses</SelectItem>
+                    <SelectItem value="200"   className="text-xs">Success (200)</SelectItem>
+                    <SelectItem value="error" className="text-xs">Errors</SelectItem>
+                  </SelectContent>
+                </Select>
+                <span className="text-xs text-gray-400 ml-auto tabular-nums">
+                  {tracesLoading ? '…' : filteredTraces.length} traces
+                  {liveMode && <span className="ml-2 text-green-600 flex items-center gap-1 inline-flex"><Radio className="h-2.5 w-2.5" /> live</span>}
+                </span>
+              </div>
+
+              {/* Traces table */}
+              <Card className="border border-gray-200 shadow-none overflow-hidden">
+                <div
+                  className="overflow-y-auto"
+                  style={{ height: 'calc(100vh - 320px)', scrollbarWidth: 'none', msOverflowStyle: 'none' } as React.CSSProperties}
+                >
+                  <Table className="w-full table-fixed">
+                    <TableHeader className="sticky top-0 z-10">
+                      <TableRow className="hover:bg-transparent">
+                        <TableHead className="w-[90px]  text-[10px] font-medium text-gray-500 uppercase tracking-wide h-9 px-3 bg-gray-50 border-b border-gray-200">Time</TableHead>
+                        <TableHead className="w-[110px] text-[10px] font-medium text-gray-500 uppercase tracking-wide h-9 px-3 bg-gray-50 border-b border-gray-200">Provider</TableHead>
+                        <TableHead className="w-[140px] text-[10px] font-medium text-gray-500 uppercase tracking-wide h-9 px-3 bg-gray-50 border-b border-gray-200">Model</TableHead>
+                        <TableHead className="w-[64px]  text-[10px] font-medium text-gray-500 uppercase tracking-wide h-9 px-3 bg-gray-50 border-b border-gray-200">Status</TableHead>
+                        <TableHead className="w-[80px]  text-[10px] font-medium text-gray-500 uppercase tracking-wide h-9 px-3 bg-gray-50 border-b border-gray-200">Latency</TableHead>
+                        <TableHead className="w-[80px]  text-[10px] font-medium text-gray-500 uppercase tracking-wide h-9 px-3 bg-gray-50 border-b border-gray-200">Tokens</TableHead>
+                        <TableHead className="w-[70px]  text-[10px] font-medium text-gray-500 uppercase tracking-wide h-9 px-3 bg-gray-50 border-b border-gray-200">Cost</TableHead>
+                        <TableHead className="           text-[10px] font-medium text-gray-500 uppercase tracking-wide h-9 px-3 bg-gray-50 border-b border-gray-200">Tags</TableHead>
+                      </TableRow>
+                    </TableHeader>
+                    <TableBody>
+                      {tracesLoading ? (
+                        Array.from({ length: 10 }).map((_, i) => (
+                          <TableRow key={i}>
+                            {Array.from({ length: 8 }).map((_, j) => (
+                              <TableCell key={j} className="px-3 py-2">
+                                <div className="h-3 rounded bg-gray-100 animate-pulse" style={{ width: `${(i * 37 + j * 19) % 80 + 32}px` }} />
+                              </TableCell>
+                            ))}
+                          </TableRow>
+                        ))
+                      ) : filteredTraces.length === 0 ? (
+                        <TableRow>
+                          <TableCell colSpan={8} className="py-16 text-center text-xs text-gray-400">
+                            No traces for the selected filters.
+                          </TableCell>
+                        </TableRow>
+                      ) : (
+                        filteredTraces.map((trace) => (
+                          <TableRow
+                            key={trace.id}
+                            className={cn(
+                              'cursor-pointer border-b border-gray-100 hover:bg-gray-50 transition-colors',
+                              selectedTrace?.id === trace.id ? 'bg-blue-50/50' : '',
+                            )}
+                            onClick={() => setSelectedTrace(selectedTrace?.id === trace.id ? null : trace)}
+                          >
+                            <TableCell className="px-3 py-2 text-[10px] text-gray-400 tabular-nums font-mono whitespace-nowrap">
+                              {new Date(trace.timestamp).toLocaleTimeString([], { hour: '2-digit', minute: '2-digit', second: '2-digit' })}
+                            </TableCell>
+                            <TableCell className="px-3 py-2 text-xs text-gray-700 font-medium truncate">
+                              {trace.provider}
+                            </TableCell>
+                            <TableCell className="px-3 py-2 text-xs text-gray-500 font-mono truncate" title={trace.model}>
+                              {trace.model}
+                            </TableCell>
+                            <TableCell className="px-3 py-2">
+                              <span className={`inline-flex px-1.5 py-0.5 rounded text-[10px] font-medium border ${
+                                trace.status === 200
+                                  ? 'bg-green-50 text-green-700 border-green-200'
+                                  : trace.status === 429
+                                  ? 'bg-yellow-50 text-yellow-700 border-yellow-200'
+                                  : 'bg-red-50 text-red-700 border-red-200'
+                              }`}>
+                                {trace.status}
+                              </span>
+                            </TableCell>
+                            <TableCell className="px-3 py-2 text-xs tabular-nums text-gray-600">
+                              {trace.latency < 1000
+                                ? `${Math.round(trace.latency)}ms`
+                                : `${(trace.latency / 1000).toFixed(1)}s`}
+                            </TableCell>
+                            <TableCell className="px-3 py-2 text-xs tabular-nums text-gray-600">
+                              {trace.tokens?.total?.toLocaleString() ?? '—'}
+                            </TableCell>
+                            <TableCell className="px-3 py-2 text-xs tabular-nums text-gray-600">
+                              {formatCurrency(trace.cost, 'USD')}
+                            </TableCell>
+                            <TableCell className="px-3 py-2">
+                              <div className="flex items-center gap-1 flex-wrap">
+                                {trace.cache_hit && (
+                                  <span className="inline-flex px-1 py-0.5 rounded text-[10px] bg-sky-50 text-sky-600 border border-sky-200">cache</span>
+                                )}
+                                {trace.used_speculative && (
+                                  <span className="inline-flex px-1 py-0.5 rounded text-[10px] bg-violet-50 text-violet-600 border border-violet-200">spec</span>
+                                )}
+                                {trace.tag && (
+                                  <span className="inline-flex px-1 py-0.5 rounded text-[10px] bg-amber-50 text-amber-600 border border-amber-200">{trace.tag}</span>
+                                )}
+                              </div>
+                            </TableCell>
+                          </TableRow>
+                        ))
+                      )}
+                    </TableBody>
+                  </Table>
+                </div>
+              </Card>
+
+              {/* Trace detail drawer */}
+              <RightSideDrawer
+                open={!!selectedTrace}
+                onClose={() => setSelectedTrace(null)}
+                title={
+                  <>
+                    <Activity className="h-4 w-4 text-gray-400" />
+                    <span className="font-mono text-sm">{selectedTrace?.provider ?? ''}</span>
+                    {selectedTrace && (
+                      <span className={`inline-flex px-1.5 py-0.5 rounded text-[10px] font-medium border ${
+                        selectedTrace.status === 200 ? 'bg-green-50 text-green-700 border-green-200' : 'bg-red-50 text-red-700 border-red-200'
+                      }`}>
+                        {selectedTrace.status}
+                      </span>
+                    )}
+                  </>
+                }
+                subtitle={selectedTrace?.request_id}
+              >
+                {selectedTrace && (
+                  <>
+                    <DrawerSection title="Request Metadata">
+                      <KeyValueGrid items={[
+                        { label: 'Request ID',  value: selectedTrace.request_id, copyable: true, copyValue: selectedTrace.request_id },
+                        { label: 'Provider',    value: selectedTrace.provider },
+                        { label: 'Model',       value: selectedTrace.model },
+                        { label: 'Timestamp',   value: new Date(selectedTrace.timestamp).toISOString().replace('T', ' ').slice(0, 19) },
+                        { label: 'Latency',     value: selectedTrace.latency < 1000 ? `${Math.round(selectedTrace.latency)}ms` : `${(selectedTrace.latency / 1000).toFixed(2)}s` },
+                        { label: 'Status',      value: String(selectedTrace.status) },
+                        { label: 'Streamed',    value: selectedTrace.was_streamed ? 'Yes' : 'No' },
+                        { label: 'Speculative', value: selectedTrace.used_speculative ? 'Yes' : 'No' },
+                        { label: 'Cache Hit',   value: selectedTrace.cache_hit ? `Yes (saved ${formatCurrency(selectedTrace.cache_savings ?? 0)})` : 'No' },
+                      ]} />
+                    </DrawerSection>
+
+                    <DrawerSection title="Token Usage">
+                      <KeyValueGrid items={[
+                        { label: 'Input Tokens',  value: selectedTrace.tokens?.input?.toLocaleString() ?? '—' },
+                        { label: 'Output Tokens', value: selectedTrace.tokens?.output?.toLocaleString() ?? '—' },
+                        { label: 'Total Tokens',  value: selectedTrace.tokens?.total?.toLocaleString() ?? '—' },
+                      ]} />
+                    </DrawerSection>
+
+                    <DrawerSection title="Cost Breakdown">
+                      <KeyValueGrid items={[
+                        { label: 'Input Cost',    value: formatCurrency(selectedTrace.cost_breakdown?.input ?? 0) },
+                        { label: 'Output Cost',   value: formatCurrency(selectedTrace.cost_breakdown?.output ?? 0) },
+                        { label: 'Overhead',      value: formatCurrency(selectedTrace.cost_breakdown?.overhead ?? 0) },
+                        { label: 'Total Cost',    value: formatCurrency(selectedTrace.cost) },
+                      ]} />
+                    </DrawerSection>
+
+                    {selectedTrace.prompt && (
+                      <DrawerSection title="Prompt">
+                        <pre className="text-xs text-gray-700 whitespace-pre-wrap break-words bg-gray-50 rounded p-2.5 max-h-40 overflow-y-auto font-mono">
+                          {selectedTrace.prompt}
+                        </pre>
+                      </DrawerSection>
+                    )}
+
+                    {selectedTrace.completion && (
+                      <DrawerSection title="Completion">
+                        <pre className="text-xs text-gray-700 whitespace-pre-wrap break-words bg-gray-50 rounded p-2.5 max-h-40 overflow-y-auto font-mono">
+                          {selectedTrace.completion}
+                        </pre>
+                      </DrawerSection>
+                    )}
+
+                    {selectedTrace.error && (
+                      <DrawerSection title="Error">
+                        <div className="bg-red-50 border border-red-200 rounded p-2.5">
+                          <p className="text-xs text-red-700 font-medium">{selectedTrace.error.message}</p>
+                          {selectedTrace.error.provider_error && (
+                            <p className="text-[10px] text-red-500 mt-1 font-mono">{selectedTrace.error.provider_error}</p>
+                          )}
+                        </div>
+                      </DrawerSection>
+                    )}
+
+                    <DrawerSection title="Raw Trace JSON">
+                      <JSONViewer data={selectedTrace} filename={`trace-${selectedTrace.request_id}`} />
+                    </DrawerSection>
+                  </>
+                )}
+              </RightSideDrawer>
+            </>
+          );
+        })() : null}
 
         {/* ── Execution Timeline ────────────────────────────────────────────── */}
         {viewMode === 'execution_timeline' ? (
