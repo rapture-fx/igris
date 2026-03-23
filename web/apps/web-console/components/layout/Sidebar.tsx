@@ -21,6 +21,7 @@ import { Button } from '@/components/ui/button';
 import { Separator } from '@/components/ui/separator';
 import { useTenant } from '@/hooks/useTenant';
 import { useSession } from '@/lib/auth-client';
+import { useAlertBadge } from '@/hooks/useAlertBadge';
 import { getInitials } from '@/utils/helpers';
 import { cn } from '@/utils/helpers';
 
@@ -116,6 +117,7 @@ export function Sidebar({ open = true, onClose }: SidebarProps) {
   const router = useRouter();
   const { data: tenant } = useTenant();
   const { data: session } = useSession();
+  const alertCount = useAlertBadge();
   const [showLogoutDialog, setShowLogoutDialog] = useState(false);
   const [showHelp, setShowHelp] = useState(false);
 
@@ -301,19 +303,26 @@ export function Sidebar({ open = true, onClose }: SidebarProps) {
                             const isActive =
                               pathname === child.href ||
                               pathname?.startsWith(child.href + '/');
+                            const isAlerts = child.href === '/history/alerts';
+                            const showBadge = isAlerts && alertCount > 0;
                             return (
                               <li key={child.name}>
                                 <Link
                                   href={child.href}
                                   onClick={onClose}
                                   className={cn(
-                                    'flex items-center rounded-lg px-2 py-1.5 text-xs font-medium transition-colors',
+                                    'flex items-center justify-between rounded-lg px-2 py-1.5 text-xs font-medium transition-colors',
                                     isActive
                                       ? 'bg-white dark:bg-[#282c34] text-gray-900 dark:text-[#f6f6f4] font-semibold shadow-sm border border-gray-200 dark:border-[#f6f6f4]/10'
                                       : 'text-gray-600 dark:text-[#c8c8b8] hover:text-gray-900 dark:hover:text-[#f6f6f4] hover:bg-[#f5f5f5] dark:hover:bg-[#2c2a22]'
                                   )}
                                 >
                                   {child.name}
+                                  {showBadge && (
+                                    <span className="ml-auto flex-shrink-0 inline-flex items-center justify-center min-w-[18px] h-[18px] px-1 rounded-full bg-red-500 text-white text-[10px] font-semibold leading-none animate-pulse">
+                                      {alertCount > 99 ? '99+' : alertCount}
+                                    </span>
+                                  )}
                                 </Link>
                               </li>
                             );
