@@ -73,8 +73,7 @@ func (h *costHandler) summary(c *fiber.Ctx) error {
 			SUM(ul.cost_usd)
 		FROM usage_log ul
 		JOIN licenses l ON ul.license_id = l.id
-		JOIN tenants t ON t.id = l.customer_id
-		WHERE t.tenant_id = $1
+		WHERE l.tenant_id = $1
 		  AND ul.timestamp >= NOW() - INTERVAL '`+interval+`'
 	`, tenantID).Scan(&totalRequests, &totalTokensIn, &totalTokensOut, &totalCostUSD)
 	if err != nil && err != sql.ErrNoRows {
@@ -111,8 +110,7 @@ func (h *costHandler) byProvider(c *fiber.Ctx) error {
 			COALESCE(SUM(ul.cost_usd), 0)      AS cost_usd
 		FROM usage_log ul
 		JOIN licenses l ON ul.license_id = l.id
-		JOIN tenants t ON t.id = l.customer_id
-		WHERE t.tenant_id = $1
+		WHERE l.tenant_id = $1
 		  AND ul.timestamp >= NOW() - INTERVAL '`+interval+`'
 		GROUP BY provider
 		ORDER BY cost_usd DESC
@@ -163,8 +161,7 @@ func (h *costHandler) byModel(c *fiber.Ctx) error {
 			COALESCE(SUM(ul.cost_usd), 0)       AS cost_usd
 		FROM usage_log ul
 		JOIN licenses l ON ul.license_id = l.id
-		JOIN tenants t ON t.id = l.customer_id
-		WHERE t.tenant_id = $1
+		WHERE l.tenant_id = $1
 		  AND ul.timestamp >= NOW() - INTERVAL '`+interval+`'
 		GROUP BY ul.model, ul.provider
 		ORDER BY cost_usd DESC
@@ -215,8 +212,7 @@ func (h *costHandler) daily(c *fiber.Ctx) error {
 			COALESCE(SUM(ul.cost_usd), 0)       AS cost_usd
 		FROM usage_log ul
 		JOIN licenses l ON ul.license_id = l.id
-		JOIN tenants t ON t.id = l.customer_id
-		WHERE t.tenant_id = $1
+		WHERE l.tenant_id = $1
 		  AND ul.timestamp >= NOW() - INTERVAL '`+interval+`'
 		GROUP BY day
 		ORDER BY day ASC
@@ -278,8 +274,7 @@ func (h *costHandler) events(c *fiber.Ctx) error {
 			l.license_key
 		FROM usage_log ul
 		JOIN licenses l ON ul.license_id = l.id
-		JOIN tenants t ON t.id = l.customer_id
-		WHERE t.tenant_id = $1
+		WHERE l.tenant_id = $1
 		  AND ul.timestamp >= NOW() - INTERVAL '`+interval+`'
 		ORDER BY ul.timestamp DESC
 		LIMIT $2
