@@ -42,6 +42,7 @@ func RegisterExecutionRoutes(app *fiber.App, db *sql.DB, _ *middleware.TenantAut
 	v1.Post("/execution/runs/:id/replay", h.ReplayRun)
 	v1.Get("/execution/agents", h.ListAgents)
 	v1.Patch("/agents/:id", h.PatchAgent)
+	v1.Get("/agents/:id/bt-state", h.GetAgentBTState)
 	v1.Post("/policies/assign", h.AssignPolicy)
 	v1.Get("/alerts/stream", h.StreamAlerts)
 
@@ -228,6 +229,99 @@ func (h *ExecutionHandler) ListAgents(c *fiber.Ctx) error {
 	}
 
 	return c.JSON(agents)
+}
+
+// ── GET /v1/agents/:id/bt-state ──────────────────────────────────────────────
+
+// BTNode is a single node in the behaviour-tree execution view.
+type BTNode struct {
+	ID          string  `json:"id"`
+	Name        string  `json:"name"`
+	Type        string  `json:"type"`
+	Status      string  `json:"status"`
+	Depth       int     `json:"depth"`
+	DurationMs  int64   `json:"duration_ms,omitempty"`
+	ExecutionID string  `json:"execution_id,omitempty"`
+	Timestamp   string  `json:"timestamp,omitempty"`
+	LLMProposal *string `json:"llm_proposal,omitempty"`
+}
+
+// GetAgentBTState handles GET /v1/agents/:id/bt-state.
+// Returns the last N executions for the agent as a flat BT-like node list:
+// a synthetic "Root Selector" at depth 0 with one "Action" leaf per execution.
+func (h *ExecutionHandler) GetAgentBTState(c *fiber.Ctx) error {
+	tenantID := middleware.GetClerkUserID(c)
+	if tenantID == "" {
+		return c.Status(fiber.StatusUnauthorized).JSON(fiber.Map{"error": "unauthorized"})
+	}
+	agentID := c.Params("id")
+
+	rows, err := h.db.QueryContext(c.Context(), `
+		SELECT execution_id, timestamp_utc, wall_time_ms, violation_occurred,
+		       COALESCE(status, CASE WHEN violation_occurred THEN 'violation' ELSE 'completed' END)
+		FROM execution_lineage
+		WHERE agent_id = $1 AND tenant_id = $2
+		ORDER BY timestamp_utc DESC
+		LIMIT 10
+	`, agentID, tenantID)
+	if err != nil {
+		log.Error().Err(err).Str("agent_id", agentID).Msg("[BT] Query failed")
+		return c.Status(fiber.StatusInternalServerError).JSON(fiber.Map{"error": "internal_error"})
+	}
+	defer rows.Close()
+
+	nodes := []BTNode{
+		{
+			ID:    "root",
+			Name:  "Root Selector",
+			Type:  "selector",
+			Status: "completed",
+			Depth: 0,
+		},
+	}
+
+	var lastUpdated string
+	for rows.Next() {
+		var execID, status string
+		var ts time.Time
+		var wallMs int64
+		var violated bool
+		if err := rows.Scan(&execID, &ts, &wallMs, &violated, &status); err != nil {
+			continue
+		}
+		tsStr := ts.UTC().Format(time.RFC3339)
+		if lastUpdated == "" {
+			lastUpdated = tsStr
+		}
+		displayStatus := status
+		if violated && displayStatus == "completed" {
+			displayStatus = "violation"
+		}
+		nodes = append(nodes, BTNode{
+			ID:          execID,
+			Name:        "Execute Task",
+			Type:        "action",
+			Status:      displayStatus,
+			Depth:       1,
+			DurationMs:  wallMs,
+			ExecutionID: execID,
+			Timestamp:   tsStr,
+		})
+	}
+
+	// Mark root status from children
+	for _, n := range nodes[1:] {
+		if n.Status == "violation" {
+			nodes[0].Status = "violation"
+			break
+		}
+	}
+
+	return c.JSON(fiber.Map{
+		"agent_id":     agentID,
+		"nodes":        nodes,
+		"last_updated": lastUpdated,
+	})
 }
 
 // ── Run control mutations ────────────────────────────────────────────────────
