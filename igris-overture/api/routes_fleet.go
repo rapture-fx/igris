@@ -811,7 +811,8 @@ func RegisterDeviceRoutes(app *fiber.App, db *sql.DB) {
 
 // ── ROS 2 Lifecycle ──────────────────────────────────────────────────────────
 
-// RegisterROSRoutes registers POST /v1/ros/lifecycle under BetterAuth.
+// RegisterROSRoutes registers POST /v1/ros/lifecycle and ROS topic mapping
+// endpoints, plus GET /v1/fleet/swarm, all under BetterAuth.
 func RegisterROSRoutes(app *fiber.App, db *sql.DB) {
 	if db == nil {
 		log.Println("[Routes] ROS lifecycle endpoint disabled — database not available")
@@ -819,6 +820,17 @@ func RegisterROSRoutes(app *fiber.App, db *sql.DB) {
 	}
 
 	v1 := app.Group("/v1")
+
+	// Swarm status (Fleet > Swarm page)
+	v1.Get("/fleet/swarm", middleware.BetterAuth(db), getSwarmStatus(db))
+	log.Println("[Routes] ✓ GET /v1/fleet/swarm")
+
+	// ROS topic mappings
+	v1.Get("/ros/topics", middleware.BetterAuth(db), listROSTopics(db))
+	v1.Post("/ros/topics/map", middleware.BetterAuth(db), mapROSTopic(db))
+	v1.Delete("/ros/topics/map/:id", middleware.BetterAuth(db), unmapROSTopic(db))
+	log.Println("[Routes] ✓ GET/POST/DELETE /v1/ros/topics/map")
+
 	v1.Post("/ros/lifecycle", middleware.BetterAuth(db), func(c *fiber.Ctx) error {
 		tenantID := middleware.GetClerkUserID(c)
 		if tenantID == "" {
@@ -867,4 +879,178 @@ func RegisterROSRoutes(app *fiber.App, db *sql.DB) {
 		return c.JSON(fiber.Map{"status": "queued", "device_id": body.DeviceID, "action": body.Action})
 	})
 	log.Println("[Routes] ✓ POST /v1/ros/lifecycle")
+}
+
+// ── GET /v1/fleet/swarm ──────────────────────────────────────────────────────
+
+func getSwarmStatus(db *sql.DB) fiber.Handler {
+	return func(c *fiber.Ctx) error {
+		tenantID := middleware.GetClerkUserID(c)
+		if tenantID == "" {
+			return c.Status(fiber.StatusUnauthorized).JSON(fiber.Map{"error": "unauthorized"})
+		}
+
+		rows, err := db.Query(`
+			SELECT
+				runtime_id,
+				COALESCE(status, 'unknown') AS status,
+				COALESCE(last_heartbeat, last_seen_at) AS last_heartbeat,
+				jsonb_array_length(COALESCE(pending_commands, '[]'::jsonb)) AS pending_commands_count
+			FROM runtime_instances
+			WHERE tenant_id = $1
+			ORDER BY last_seen_at DESC
+		`, tenantID)
+		if err != nil {
+			log.Println("[Swarm] Query failed:", err)
+			return c.Status(fiber.StatusInternalServerError).JSON(fiber.Map{"error": "internal_error"})
+		}
+		defer rows.Close()
+
+		type SwarmAgent struct {
+			ID                  string `json:"id"`
+			Name                string `json:"name"`
+			Status              string `json:"status"`
+			LastHeartbeat       string `json:"last_heartbeat"`
+			PendingCommandsCount int    `json:"pending_commands_count"`
+		}
+
+		agents := make([]SwarmAgent, 0)
+		for rows.Next() {
+			var a SwarmAgent
+			var lastHeartbeat time.Time
+			if err := rows.Scan(&a.ID, &a.Status, &lastHeartbeat, &a.PendingCommandsCount); err != nil {
+				continue
+			}
+			a.Name = a.ID
+			a.LastHeartbeat = lastHeartbeat.UTC().Format(time.RFC3339)
+			agents = append(agents, a)
+		}
+
+		total := len(agents)
+		active := 0
+		for _, a := range agents {
+			if a.Status == "active" {
+				active++
+			}
+		}
+
+		return c.JSON(fiber.Map{
+			"total_agents":  total,
+			"active_agents": active,
+			"agents":        agents,
+		})
+	}
+}
+
+// ── ROS Topic Mappings ───────────────────────────────────────────────────────
+
+// ROSTopicMapping is the response shape for a single ROS topic mapping.
+type ROSTopicMapping struct {
+	ID          string `json:"id"`
+	BTAction    string `json:"bt_action"`
+	TopicName   string `json:"topic_name"`
+	MessageType string `json:"message_type"`
+	Direction   string `json:"direction"`
+	CreatedAt   string `json:"created_at"`
+}
+
+func listROSTopics(db *sql.DB) fiber.Handler {
+	return func(c *fiber.Ctx) error {
+		tenantID := middleware.GetClerkUserID(c)
+		if tenantID == "" {
+			return c.Status(fiber.StatusUnauthorized).JSON(fiber.Map{"error": "unauthorized"})
+		}
+
+		rows, err := db.Query(`
+			SELECT id, bt_action, topic_name, message_type, direction, created_at
+			FROM ros_topic_mappings
+			WHERE tenant_id = $1
+			ORDER BY created_at DESC
+		`, tenantID)
+		if err != nil {
+			log.Println("[ROS] List topics failed:", err)
+			return c.Status(fiber.StatusInternalServerError).JSON(fiber.Map{"error": "internal_error"})
+		}
+		defer rows.Close()
+
+		mappings := make([]ROSTopicMapping, 0)
+		for rows.Next() {
+			var m ROSTopicMapping
+			var createdAt time.Time
+			if err := rows.Scan(&m.ID, &m.BTAction, &m.TopicName, &m.MessageType, &m.Direction, &createdAt); err != nil {
+				continue
+			}
+			m.CreatedAt = createdAt.UTC().Format(time.RFC3339)
+			mappings = append(mappings, m)
+		}
+		return c.JSON(mappings)
+	}
+}
+
+func mapROSTopic(db *sql.DB) fiber.Handler {
+	return func(c *fiber.Ctx) error {
+		tenantID := middleware.GetClerkUserID(c)
+		if tenantID == "" {
+			return c.Status(fiber.StatusUnauthorized).JSON(fiber.Map{"error": "unauthorized"})
+		}
+
+		var body struct {
+			BTAction    string `json:"bt_action"`
+			TopicName   string `json:"topic_name"`
+			MessageType string `json:"message_type"`
+			Direction   string `json:"direction"`
+		}
+		if err := c.BodyParser(&body); err != nil {
+			return c.Status(fiber.StatusBadRequest).JSON(fiber.Map{"error": "invalid body"})
+		}
+		if body.BTAction == "" || body.TopicName == "" {
+			return c.Status(fiber.StatusBadRequest).JSON(fiber.Map{"error": "bt_action and topic_name are required"})
+		}
+		if body.Direction != "publish" && body.Direction != "subscribe" {
+			return c.Status(fiber.StatusBadRequest).JSON(fiber.Map{"error": "direction must be publish or subscribe"})
+		}
+		if body.MessageType == "" {
+			body.MessageType = "std_msgs/String"
+		}
+
+		var m ROSTopicMapping
+		var createdAt time.Time
+		err := db.QueryRow(`
+			INSERT INTO ros_topic_mappings (tenant_id, bt_action, topic_name, message_type, direction)
+			VALUES ($1, $2, $3, $4, $5)
+			RETURNING id, bt_action, topic_name, message_type, direction, created_at
+		`, tenantID, body.BTAction, body.TopicName, body.MessageType, body.Direction).Scan(
+			&m.ID, &m.BTAction, &m.TopicName, &m.MessageType, &m.Direction, &createdAt,
+		)
+		if err != nil {
+			log.Println("[ROS] Map topic failed:", err)
+			return c.Status(fiber.StatusInternalServerError).JSON(fiber.Map{"error": "internal_error"})
+		}
+		m.CreatedAt = createdAt.UTC().Format(time.RFC3339)
+		return c.Status(fiber.StatusCreated).JSON(m)
+	}
+}
+
+func unmapROSTopic(db *sql.DB) fiber.Handler {
+	return func(c *fiber.Ctx) error {
+		tenantID := middleware.GetClerkUserID(c)
+		if tenantID == "" {
+			return c.Status(fiber.StatusUnauthorized).JSON(fiber.Map{"error": "unauthorized"})
+		}
+		id := c.Params("id")
+
+		result, err := db.Exec(`
+			DELETE FROM ros_topic_mappings
+			WHERE id = $1 AND tenant_id = $2
+		`, id, tenantID)
+		if err != nil {
+			log.Println("[ROS] Unmap topic failed:", err)
+			return c.Status(fiber.StatusInternalServerError).JSON(fiber.Map{"error": "internal_error"})
+		}
+		n, _ := result.RowsAffected()
+		if n == 0 {
+			return c.Status(fiber.StatusNotFound).JSON(fiber.Map{"error": "mapping not found"})
+		}
+		return c.SendStatus(fiber.StatusNoContent)
+	}
 }
