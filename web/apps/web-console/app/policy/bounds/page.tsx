@@ -17,8 +17,10 @@ import {
 import { api } from '@/lib/apiClient';
 import { getRelativeTime, formatDateTime, truncateText } from '@/utils/helpers';
 import { CopyButton } from '@/components/execution/shared';
+import { toast } from '@/components/ui/use-toast';
+import { Checkbox } from '@/components/ui/checkbox';
 import {
-  Save, RefreshCw, CheckCircle, History, Cpu, RotateCcw, Zap, Shield,
+  Save, RefreshCw, CheckCircle, History, Cpu, RotateCcw, Zap, Shield, Brain,
 } from 'lucide-react';
 
 // ─── Types ────────────────────────────────────────────────────────────────────
@@ -42,42 +44,7 @@ interface PolicyHistoryEntry {
   change_summary: string;
 }
 
-// ─── Mock Data ────────────────────────────────────────────────────────────────
-
-const MOCK_BOUNDS: PolicyBounds = {
-  max_execution_ms: 30_000,
-  max_tick_ms: 5_000,
-  max_steps: 100,
-  cpu_percent: 80,
-  memory_mb: 512,
-  disk_write_mb: 256,
-  policy_hash: 'sha256:c4a2f1e8b9d3a7f6e2c5d8b1a0f3e4d7',
-  updated_at: new Date(Date.now() - 2 * 86_400_000).toISOString(),
-};
-
-const MOCK_HISTORY: PolicyHistoryEntry[] = [
-  {
-    id: '3',
-    timestamp: new Date(Date.now() - 2 * 86_400_000).toISOString(),
-    policy_hash: 'sha256:c4a2f1e8b9d3a7f6e2c5d8b1a0f3e4d7',
-    changed_by: 'admin@acme.io',
-    change_summary: 'max_execution_ms 20000 → 30000',
-  },
-  {
-    id: '2',
-    timestamp: new Date(Date.now() - 7 * 86_400_000).toISOString(),
-    policy_hash: 'sha256:b3e1d9c8a7f6e5d4c3b2a1f0e9d8c7b6',
-    changed_by: 'admin@acme.io',
-    change_summary: 'cpu_percent 70 → 80, memory_mb 256 → 512',
-  },
-  {
-    id: '1',
-    timestamp: new Date(Date.now() - 21 * 86_400_000).toISOString(),
-    policy_hash: 'sha256:a2d0c8b7f6e5d4c3b2a1f0e9d8c7b6a5',
-    changed_by: 'system',
-    change_summary: 'Initial policy created',
-  },
-];
+interface AgentSummary { id: string; namespace: string; state: string; }
 
 // ─── Field Configs ────────────────────────────────────────────────────────────
 
@@ -96,6 +63,18 @@ const RESOURCE_NUMBER_FIELDS = [
 
 export default function PolicyBoundsPage() {
   const qc = useQueryClient();
+  const [selectedAgentIds, setSelectedAgentIds] = useState<Set<string>>(new Set());
+
+  const { data: agents = [] } = useQuery<AgentSummary[]>({
+    queryKey: ['agents-for-policy'],
+    queryFn: async () => {
+      try { return await api.get<AgentSummary[]>('/v1/execution/agents'); }
+      catch { return []; }
+    },
+    staleTime: 60_000,
+    retry: false,
+  });
+
   const EMPTY_BOUNDS: PolicyBounds = {
     max_execution_ms: 30_000,
     max_tick_ms: 5_000,
@@ -142,6 +121,25 @@ export default function PolicyBoundsPage() {
       setTimeout(() => setSavedIndicator(false), 2000);
     },
   });
+
+  const assignMutation = useMutation({
+    mutationFn: (agentIds: string[]) =>
+      api.post('/v1/policies/assign', { agent_ids: agentIds, policy_hash: form.policy_hash }),
+    onSuccess: () => {
+      toast({ title: 'Policy applied', description: `Applied to ${selectedAgentIds.size} agent(s).` });
+      setSelectedAgentIds(new Set());
+    },
+    onError: () => {
+      toast({ title: 'Failed to apply', description: 'Could not assign policy to agents.', variant: 'destructive' });
+    },
+  });
+
+  const toggleAgent = (id: string) =>
+    setSelectedAgentIds((prev) => {
+      const next = new Set(prev);
+      next.has(id) ? next.delete(id) : next.add(id);
+      return next;
+    });
 
   const set = <K extends keyof PolicyBounds>(key: K, value: PolicyBounds[K]) =>
     setForm((p) => ({ ...p, [key]: value }));
@@ -327,6 +325,62 @@ export default function PolicyBoundsPage() {
               </dl>
             ) : (
               <p className="text-xs text-gray-400">No policy saved yet. Configure bounds above and save.</p>
+            )}
+          </CardContent>
+        </Card>
+
+        {/* Apply to Agents */}
+        <Card className="border border-gray-200 shadow-none">
+          <CardHeader className="px-5 pt-4 pb-2">
+            <CardTitle className="text-sm font-medium text-gray-900 flex items-center gap-1.5">
+              <Brain className="h-4 w-4 text-gray-400" /> Apply to Agents
+            </CardTitle>
+            <p className="text-xs text-gray-400 mt-1">
+              Push the current saved policy to selected agents immediately.
+            </p>
+          </CardHeader>
+          <Separator />
+          <CardContent className="px-5 py-4">
+            {agents.length === 0 ? (
+              <p className="text-xs text-gray-400">No agents registered. Deploy a runtime to get started.</p>
+            ) : (
+              <div className="space-y-3">
+                <div className="space-y-2 max-h-48 overflow-y-auto pr-1">
+                  {agents.map((agent) => (
+                    <div key={agent.id} className="flex items-center gap-2.5">
+                      <Checkbox
+                        id={`agent-${agent.id}`}
+                        checked={selectedAgentIds.has(agent.id)}
+                        onCheckedChange={() => toggleAgent(agent.id)}
+                      />
+                      <label htmlFor={`agent-${agent.id}`} className="flex items-center gap-2 cursor-pointer flex-1 min-w-0">
+                        <span className="text-xs font-mono text-gray-700 truncate">{agent.id}</span>
+                        <span className="text-[10px] text-gray-400 shrink-0">{agent.namespace}</span>
+                        <span className={`ml-auto shrink-0 text-[10px] px-1.5 py-0.5 rounded border ${
+                          agent.state === 'RUNNING' || agent.state === 'ACTIVE'
+                            ? 'bg-green-50 text-green-700 border-green-200'
+                            : 'bg-gray-100 text-gray-500 border-gray-200'
+                        }`}>{agent.state}</span>
+                      </label>
+                    </div>
+                  ))}
+                </div>
+                <div className="flex items-center justify-between pt-1">
+                  <span className="text-xs text-gray-400">
+                    {selectedAgentIds.size > 0 ? `${selectedAgentIds.size} selected` : 'Select agents above'}
+                  </span>
+                  <Button
+                    size="sm"
+                    className="h-7 text-xs gap-1.5"
+                    disabled={selectedAgentIds.size === 0 || !displayBounds.policy_hash || assignMutation.isPending}
+                    onClick={() => assignMutation.mutate(Array.from(selectedAgentIds))}
+                  >
+                    {assignMutation.isPending
+                      ? <><RefreshCw className="h-3 w-3 animate-spin" /> Applying…</>
+                      : <><CheckCircle className="h-3 w-3" /> Apply to Selected</>}
+                  </Button>
+                </div>
+              </div>
             )}
           </CardContent>
         </Card>
