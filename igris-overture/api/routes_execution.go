@@ -34,17 +34,16 @@ func RegisterExecutionRoutes(app *fiber.App, db *sql.DB, _ *middleware.TenantAut
 
 	h := NewExecutionHandler(db)
 
-	v1 := app.Group("/v1")
-	v1.Use(middleware.BetterAuth(db))
-	v1.Get("/execution/runs", h.ListRuns)
-	v1.Post("/execution/runs/:id/pause", h.PauseRun)
-	v1.Post("/execution/runs/:id/cancel", h.CancelRun)
-	v1.Post("/execution/runs/:id/replay", h.ReplayRun)
-	v1.Get("/execution/agents", h.ListAgents)
-	v1.Patch("/agents/:id", h.PatchAgent)
-	v1.Get("/agents/:id/bt-state", h.GetAgentBTState)
-	v1.Post("/policies/assign", h.AssignPolicy)
-	v1.Get("/alerts/stream", h.StreamAlerts)
+	auth := middleware.BetterAuth(db)
+	app.Get("/v1/execution/runs", auth, h.ListRuns)
+	app.Post("/v1/execution/runs/:id/pause", auth, h.PauseRun)
+	app.Post("/v1/execution/runs/:id/cancel", auth, h.CancelRun)
+	app.Post("/v1/execution/runs/:id/replay", auth, h.ReplayRun)
+	app.Get("/v1/execution/agents", auth, h.ListAgents)
+	app.Patch("/v1/agents/:id", auth, h.PatchAgent)
+	app.Get("/v1/agents/:id/bt-state", auth, h.GetAgentBTState)
+	app.Post("/v1/policies/assign", auth, h.AssignPolicy)
+	app.Get("/v1/alerts/stream", auth, h.StreamAlerts)
 
 	log.Info().Msg("[Routes] Registered execution endpoints (/v1/execution/runs, /v1/execution/agents, /v1/agents/:id, /v1/policies/assign, /v1/alerts/stream)")
 }
