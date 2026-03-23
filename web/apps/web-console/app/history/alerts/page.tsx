@@ -305,7 +305,11 @@ export default function HistoryAlertsPage() {
   const { data: rawAlerts, isLoading, refetch } = useQuery<SystemAlert[]>({
     queryKey: ['history-alerts', timeRange],
     queryFn: async () => {
-      return await api.get<SystemAlert[]>(`/v1/history/alerts?range=${timeRange}&limit=200`);
+      try {
+        return await api.get<SystemAlert[]>(`/v1/history/alerts?range=${timeRange}&limit=200`);
+      } catch {
+        return [] as SystemAlert[];
+      }
     },
     refetchInterval: 10_000,
     retry: false,
