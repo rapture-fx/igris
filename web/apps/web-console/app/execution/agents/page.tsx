@@ -54,7 +54,6 @@ import {
   LifecycleTimeline,
   CopyButton,
 } from '@/components/execution/shared';
-import { MOCK_AGENTS } from '@/lib/mock/execution';
 import { useTraces } from '@/hooks/useTraces';
 
 // ─── Types ────────────────────────────────────────────────────────────────────
