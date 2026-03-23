@@ -66,64 +66,6 @@ interface ProviderRow {
   priority: number;
 }
 
-// ─── Mock Data ─────────────────────────────────────────────────────────────────
-
-const MOCK_STRATEGY: StrategyConfig = {
-  strategy: 'thompson_sampling',
-  circuit_breaker_enabled: true,
-  provider_health_monitor: true,
-};
-
-const MOCK_SPECULATIVE: SpeculativeConfig = {
-  enable_speculative_execution: false,
-  max_parallel_requests: 2,
-  speculative_timeout_ms: 800,
-};
-
-const MOCK_COUNCIL: CouncilConfig = {
-  enable_council_mode: false,
-  council_models: ['claude-sonnet-4-6', 'gpt-4o'],
-  aggregation_strategy: 'majority_vote',
-  min_consensus: 2,
-};
-
-const MOCK_SHADOW: ShadowConfig = {
-  enable_shadow_mode: true,
-  shadow_providers: ['deepseek', 'google'],
-  shadow_sampling_rate: 20,
-  capture_latency_metrics: true,
-  capture_cost_metrics: true,
-  capture_quality_metrics: false,
-};
-
-const MOCK_PROVIDERS: ProviderRow[] = [
-  {
-    id: 'p1', provider: 'Anthropic', kind: 'anthropic', status: 'healthy',
-    average_latency_ms: 274, success_rate_percent: 99.8, cost_per_token: 0.000012,
-    routing_weight: 45, priority: 1,
-  },
-  {
-    id: 'p2', provider: 'OpenAI', kind: 'openai', status: 'healthy',
-    average_latency_ms: 318, success_rate_percent: 99.1, cost_per_token: 0.000015,
-    routing_weight: 38, priority: 2,
-  },
-  {
-    id: 'p3', provider: 'DeepSeek', kind: 'deepseek', status: 'healthy',
-    average_latency_ms: 412, success_rate_percent: 97.2, cost_per_token: 0.0000020,
-    routing_weight: 17, priority: 3,
-  },
-  {
-    id: 'p4', provider: 'Google Gemini', kind: 'google', status: 'degraded',
-    average_latency_ms: 580, success_rate_percent: 91.4, cost_per_token: 0.0000070,
-    routing_weight: 0, priority: 4,
-  },
-  {
-    id: 'p5', provider: 'xAI Grok', kind: 'xai', status: 'offline',
-    average_latency_ms: null, success_rate_percent: null, cost_per_token: null,
-    routing_weight: 0, priority: 5,
-  },
-];
-
 // ─── Static Options ─────────────────────────────────────────────────────────────
 
 const STRATEGY_OPTIONS = [

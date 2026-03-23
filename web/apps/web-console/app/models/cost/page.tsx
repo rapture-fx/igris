@@ -62,50 +62,6 @@ interface CostEvent {
   cost: number;
 }
 
-// ─── Mock Data ────────────────────────────────────────────────────────────────
-
-const MOCK_SUMMARY: UsageSummary = {
-  tokens_24h:        2_847_320,
-  cost_24h:          38.42,
-  tokens_30d:        68_241_890,
-  estimated_monthly: 892.10,
-};
-
-const MOCK_PROVIDERS: ProviderCost[] = [
-  { id: 'p1', provider: 'OpenAI',    kind: 'openai',    requests: 520_412, tokens: 45_318_200, avg_latency_ms: 312, cost: 612.40, usage_percent: 68 },
-  { id: 'p2', provider: 'Anthropic', kind: 'anthropic', requests: 180_293, tokens: 18_041_600, avg_latency_ms: 278, cost: 216.80, usage_percent: 24 },
-  { id: 'p3', provider: 'DeepSeek',  kind: 'deepseek',  requests:  94_117, tokens:  4_882_090, avg_latency_ms: 408, cost:  62.90, usage_percent:  8 },
-];
-
-const MOCK_MODELS: ModelUsage[] = [
-  { id: 'm1', model: 'gpt-4o',            provider: 'OpenAI',    kind: 'openai',    requests: 380_210, tokens: 38_021_000, avg_latency_ms: 298, cost: 570.40 },
-  { id: 'm2', model: 'gpt-4o-mini',       provider: 'OpenAI',    kind: 'openai',    requests: 140_202, tokens:  7_297_200, avg_latency_ms: 212, cost:  42.00 },
-  { id: 'm3', model: 'claude-sonnet-4-6', provider: 'Anthropic', kind: 'anthropic', requests: 150_180, tokens: 15_018_000, avg_latency_ms: 275, cost: 180.00 },
-  { id: 'm4', model: 'claude-haiku-4-5',  provider: 'Anthropic', kind: 'anthropic', requests:  30_113, tokens:  3_023_600, avg_latency_ms: 195, cost:  36.80 },
-  { id: 'm5', model: 'deepseek-chat',     provider: 'DeepSeek',  kind: 'deepseek',  requests:  94_117, tokens:  4_882_090, avg_latency_ms: 408, cost:  62.90 },
-];
-
-function makeDailySpend(): DailySpend[] {
-  const costs = [22.1, 28.4, 25.9, 31.2, 29.8, 35.1, 38.6, 32.4, 40.2, 37.8, 42.1, 38.9, 45.3, 38.4];
-  return costs.map((cost, i) => {
-    const d = new Date();
-    d.setDate(d.getDate() - (costs.length - 1 - i));
-    return { date: d.toLocaleDateString('en-US', { month: 'short', day: 'numeric' }), cost };
-  });
-}
-
-const _now = Date.now();
-const MOCK_EVENTS: CostEvent[] = [
-  { id: 'e1', timestamp: new Date(_now -  32_000).toISOString(), request_id: 'req_7f3a1c', provider: 'OpenAI',    model: 'gpt-4o',            tokens: 4_218, cost: 0.063 },
-  { id: 'e2', timestamp: new Date(_now -  78_000).toISOString(), request_id: 'req_2b8e4d', provider: 'Anthropic', model: 'claude-sonnet-4-6', tokens: 3_104, cost: 0.037 },
-  { id: 'e3', timestamp: new Date(_now - 124_000).toISOString(), request_id: 'req_9c5f7a', provider: 'Anthropic', model: 'claude-haiku-4-5',  tokens: 1_892, cost: 0.011 },
-  { id: 'e4', timestamp: new Date(_now - 198_000).toISOString(), request_id: 'req_4d1b2e', provider: 'OpenAI',    model: 'gpt-4o-mini',       tokens: 2_411, cost: 0.014 },
-  { id: 'e5', timestamp: new Date(_now - 251_000).toISOString(), request_id: 'req_8a6c3f', provider: 'DeepSeek',  model: 'deepseek-chat',     tokens: 6_830, cost: 0.014 },
-  { id: 'e6', timestamp: new Date(_now - 318_000).toISOString(), request_id: 'req_5e9d7b', provider: 'OpenAI',    model: 'gpt-4o',            tokens: 5_940, cost: 0.089 },
-  { id: 'e7', timestamp: new Date(_now - 401_000).toISOString(), request_id: 'req_1c3d8e', provider: 'Anthropic', model: 'claude-sonnet-4-6', tokens: 2_718, cost: 0.033 },
-  { id: 'e8', timestamp: new Date(_now - 487_000).toISOString(), request_id: 'req_6f2a9b', provider: 'OpenAI',    model: 'gpt-4o',            tokens: 3_560, cost: 0.053 },
-];
-
 // ─── Static Config ────────────────────────────────────────────────────────────
 
 const PROVIDER_AVATAR: Record<string, { bg: string; text: string; initial: string }> = {

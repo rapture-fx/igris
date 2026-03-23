@@ -59,23 +59,6 @@ interface RoleRecord {
   created_at: string;
 }
 
-// ─── Mock data ────────────────────────────────────────────────────────────────
-
-const _now = Date.now();
-
-const MOCK_API_KEYS: ApiKeyRecord[] = [
-  { id: 'key_0001', name: 'CI / Deploy', masked_key: 'igk_live_••••••••••••a3f2', created_at: new Date(_now - 30 * 86400_000).toISOString(), last_used: new Date(_now - 2 * 3600_000).toISOString(), status: 'active' },
-  { id: 'key_0002', name: 'Dashboard SDK', masked_key: 'igk_live_••••••••••••b8e1', created_at: new Date(_now - 14 * 86400_000).toISOString(), last_used: new Date(_now - 15 * 60_000).toISOString(), status: 'active' },
-  { id: 'key_0003', name: 'Staging Agent', masked_key: 'igk_test_••••••••••••c5d9', created_at: new Date(_now - 60 * 86400_000).toISOString(), last_used: new Date(_now - 7 * 86400_000).toISOString(), status: 'active' },
-  { id: 'key_0004', name: 'Old Integration', masked_key: 'igk_live_••••••••••••d2c0', created_at: new Date(_now - 120 * 86400_000).toISOString(), last_used: new Date(_now - 45 * 86400_000).toISOString(), status: 'revoked' },
-];
-
-const MOCK_ROLES: RoleRecord[] = [
-  { user_id: 'usr_0x1a2b', email: 'ops@example.com',     role: 'admin',    created_at: new Date(_now - 90 * 86400_000).toISOString() },
-  { user_id: 'usr_0x3c4d', email: 'dev@example.com',     role: 'operator', created_at: new Date(_now - 45 * 86400_000).toISOString() },
-  { user_id: 'usr_0x5e6f', email: 'analyst@example.com', role: 'viewer',   created_at: new Date(_now - 20 * 86400_000).toISOString() },
-];
-
 const TIMEZONES = [
   'UTC', 'America/New_York', 'America/Chicago', 'America/Denver',
   'America/Los_Angeles', 'Europe/London', 'Europe/Paris', 'Asia/Tokyo',
