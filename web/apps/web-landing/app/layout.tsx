@@ -32,10 +32,10 @@ export const metadata = {
   },
   icons: {
     icon: [
-      { url: '/foot.png', type: 'image/png', sizes: '32x32' }
+      { url: '/inertia.png', type: 'image/png', sizes: '32x32' }
     ],
-    shortcut: '/foot.png',
-    apple: { url: '/foot.png', sizes: '32x32' },
+    shortcut: '/inertia.png',
+    apple: { url: '/inertia.png', sizes: '32x32' },
   }
 }
 
