@@ -8,7 +8,7 @@ import {
   ChevronDown, Search, FileText,
   LayoutDashboard, PlayCircle, Network, Sparkles,
   ScrollText, BadgeCheck, CalendarClock, SlidersHorizontal,
-  CreditCard, KeyRound, Settings, LogOut, HelpCircle,
+  CreditCard, KeyRound, Settings, LogOut,
   BookOpen, ExternalLink, Mail, Activity, BrainCircuit,
 } from 'lucide-react';
 import {
@@ -122,7 +122,6 @@ export function Sidebar({ open = true, onClose }: SidebarProps) {
   const { data: session } = useSession();
   const alertCount = useAlertBadge();
   const [showLogoutDialog, setShowLogoutDialog] = useState(false);
-  const [showHelp, setShowHelp] = useState(false);
 
   // Prefer tenant name from API; fall back to Better Auth session name (always present for OAuth)
   const resolvedName = tenant?.name || session?.user?.name || session?.user?.email?.split('@')[0] || 'User';
@@ -359,74 +358,6 @@ export function Sidebar({ open = true, onClose }: SidebarProps) {
             </ul>
           </nav>
 
-          {/* Help button */}
-          <div className="px-4 pb-2">
-            <div className="relative">
-              <button
-                onClick={() => setShowHelp(!showHelp)}
-                className="flex items-center justify-center w-8 h-8 rounded-lg text-gray-600 dark:text-[#c8c8b8] hover:text-gray-900 dark:hover:text-[#f6f6f4] hover:bg-[#f5f5f5] dark:hover:bg-[#2c2a22] transition-colors"
-              >
-                <HelpCircle className="h-[15px] w-[15px]" strokeWidth={1.5} />
-              </button>
-              {showHelp && (
-                <>
-                  <div className="fixed inset-0 z-30" onClick={() => setShowHelp(false)} />
-                  <div className="absolute bottom-full left-0 mb-2 w-52 z-40 bg-white dark:bg-[#1b1912] border border-gray-200 dark:border-[#f6f6f4]/10 rounded-lg shadow-md p-2">
-                    <p className="text-[10px] font-medium text-gray-400 uppercase tracking-wide mb-1.5 px-2">Help</p>
-                    <a
-                      href="https://docs.igrisinertial.com"
-                      target="_blank"
-                      rel="noopener noreferrer"
-                      className="flex items-center justify-between gap-2 w-full px-2 py-1.5 rounded-lg hover:bg-gray-50 dark:hover:bg-[#2c2a22] transition-colors"
-                      onClick={() => setShowHelp(false)}
-                    >
-                      <div className="flex items-center gap-2">
-                        <BookOpen className="h-3.5 w-3.5 text-gray-400" strokeWidth={1.5} />
-                        <span className="text-xs text-gray-900 dark:text-[#f6f6f4]">Igris Docs</span>
-                      </div>
-                      <ExternalLink className="h-3 w-3 text-gray-400" strokeWidth={1.5} />
-                    </a>
-                    <div className="border-t border-gray-100 dark:border-[#f6f6f4]/10 my-1" />
-                    <a
-                      href="mailto:support@igrisinertial.com"
-                      className="flex items-center gap-2 w-full px-2 py-1.5 rounded-lg hover:bg-gray-50 dark:hover:bg-[#2c2a22] transition-colors"
-                      onClick={() => setShowHelp(false)}
-                    >
-                      <Mail className="h-3.5 w-3.5 text-gray-400" strokeWidth={1.5} />
-                      <span className="text-xs text-gray-900 dark:text-[#f6f6f4]">Contact Support</span>
-                    </a>
-                    <a
-                      href="https://changelog.igrisinertial.com"
-                      target="_blank"
-                      rel="noopener noreferrer"
-                      className="flex items-center justify-between gap-2 w-full px-2 py-1.5 rounded-lg hover:bg-gray-50 dark:hover:bg-[#2c2a22] transition-colors"
-                      onClick={() => setShowHelp(false)}
-                    >
-                      <div className="flex items-center gap-2">
-                        <FileText className="h-3.5 w-3.5 text-gray-400" strokeWidth={1.5} />
-                        <span className="text-xs text-gray-900 dark:text-[#f6f6f4]">Change Log</span>
-                      </div>
-                      <ExternalLink className="h-3 w-3 text-gray-400" strokeWidth={1.5} />
-                    </a>
-                    <a
-                      href="https://status.igrisinertial.com"
-                      target="_blank"
-                      rel="noopener noreferrer"
-                      className="flex items-center justify-between gap-2 w-full px-2 py-1.5 rounded-lg hover:bg-gray-50 dark:hover:bg-[#2c2a22] transition-colors"
-                      onClick={() => setShowHelp(false)}
-                    >
-                      <div className="flex items-center gap-2">
-                        <Activity className="h-3.5 w-3.5 text-gray-400" strokeWidth={1.5} />
-                        <span className="text-xs text-gray-900 dark:text-[#f6f6f4]">System Status</span>
-                      </div>
-                      <ExternalLink className="h-3 w-3 text-gray-400" strokeWidth={1.5} />
-                    </a>
-                  </div>
-                </>
-              )}
-            </div>
-          </div>
-
           {/* Footer — profile */}
           <div className="px-4 py-3 flex-shrink-0 flex items-center gap-2">
 
@@ -496,6 +427,42 @@ export function Sidebar({ open = true, onClose }: SidebarProps) {
                       <p className="font-medium text-foreground">Settings</p>
                       <p className="text-[10px] text-muted-foreground">System configuration</p>
                     </div>
+                  </DropdownMenuItem>
+                </div>
+
+                <Separator />
+
+                <div className="p-1">
+                  <DropdownMenuItem className="flex items-center gap-2.5 px-2.5 py-2 rounded-lg text-xs cursor-pointer" asChild>
+                    <a href="https://docs.igrisinertial.com" target="_blank" rel="noopener noreferrer">
+                      <BookOpen className="h-3.5 w-3.5 text-muted-foreground flex-shrink-0" />
+                      <div className="flex-1">
+                        <p className="font-medium text-foreground">Documentation</p>
+                        <p className="text-[10px] text-muted-foreground">Guides and API reference</p>
+                      </div>
+                      <ExternalLink className="h-3 w-3 text-muted-foreground flex-shrink-0" />
+                    </a>
+                  </DropdownMenuItem>
+
+                  <DropdownMenuItem className="flex items-center gap-2.5 px-2.5 py-2 rounded-lg text-xs cursor-pointer" asChild>
+                    <a href="mailto:support@igrisinertial.com">
+                      <Mail className="h-3.5 w-3.5 text-muted-foreground flex-shrink-0" />
+                      <div>
+                        <p className="font-medium text-foreground">Contact Support</p>
+                        <p className="text-[10px] text-muted-foreground">support@igrisinertial.com</p>
+                      </div>
+                    </a>
+                  </DropdownMenuItem>
+
+                  <DropdownMenuItem className="flex items-center gap-2.5 px-2.5 py-2 rounded-lg text-xs cursor-pointer" asChild>
+                    <a href="https://status.igrisinertial.com" target="_blank" rel="noopener noreferrer">
+                      <Activity className="h-3.5 w-3.5 text-muted-foreground flex-shrink-0" />
+                      <div className="flex-1">
+                        <p className="font-medium text-foreground">System Status</p>
+                        <p className="text-[10px] text-muted-foreground">Uptime and incidents</p>
+                      </div>
+                      <ExternalLink className="h-3 w-3 text-muted-foreground flex-shrink-0" />
+                    </a>
                   </DropdownMenuItem>
                 </div>
 
