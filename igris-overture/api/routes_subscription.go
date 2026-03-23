@@ -34,17 +34,20 @@ type subscriptionHandler struct{ db *sql.DB }
 
 // tierMeta holds static info about each tier.
 type tierMeta struct {
-	Name            string
+	Name              string
 	MonthlyPriceCents int
-	RuntimeLimit    int
-	UpgradeTier     string
-	CheckoutEnvVar  string
+	RuntimeLimit      int
+	UpgradeTier       string
+	// CheckoutEnvVar is checked first (direct checkout URL).
+	// PriceIDEnvVar is used as fallback to construct a Polar checkout URL.
+	CheckoutEnvVar string
+	PriceIDEnvVar  string
 }
 
 var tierMetaMap = map[string]tierMeta{
-	"seed":     {Name: "Seed",     MonthlyPriceCents: 2900,  RuntimeLimit: 3,   UpgradeTier: "horizon",  CheckoutEnvVar: "POLAR_CHECKOUT_SEED"},
-	"horizon":  {Name: "Horizon",  MonthlyPriceCents: 14900, RuntimeLimit: 50,  UpgradeTier: "infinite", CheckoutEnvVar: "POLAR_CHECKOUT_HORIZON"},
-	"infinite": {Name: "Infinite", MonthlyPriceCents: 69900, RuntimeLimit: 500, UpgradeTier: "",         CheckoutEnvVar: "POLAR_CHECKOUT_INFINITE"},
+	"seed":     {Name: "Seed",     MonthlyPriceCents: 2900,  RuntimeLimit: 3,   UpgradeTier: "horizon",  CheckoutEnvVar: "POLAR_CHECKOUT_SEED",     PriceIDEnvVar: "POLAR_PRICE_SEED"},
+	"horizon":  {Name: "Horizon",  MonthlyPriceCents: 14900, RuntimeLimit: 50,  UpgradeTier: "infinite", CheckoutEnvVar: "POLAR_CHECKOUT_HORIZON",  PriceIDEnvVar: "POLAR_PRICE_HORIZON"},
+	"infinite": {Name: "Infinite", MonthlyPriceCents: 69900, RuntimeLimit: 500, UpgradeTier: "",         CheckoutEnvVar: "POLAR_CHECKOUT_INFINITE", PriceIDEnvVar: "POLAR_PRICE_INFINITE"},
 }
 
 // GET /api/subscription/status
@@ -116,7 +119,12 @@ func (h *subscriptionHandler) getPlans(c *fiber.Ctx) error {
 		meta := tierMetaMap[id]
 		checkoutURL := os.Getenv(meta.CheckoutEnvVar)
 		if checkoutURL == "" {
-			checkoutURL = "https://polar.sh/igris-inertial"
+			// Fall back to constructing a Polar checkout URL from the price ID.
+			if priceID := os.Getenv(meta.PriceIDEnvVar); priceID != "" {
+				checkoutURL = "https://polar.sh/checkout?productPriceId=" + priceID
+			} else {
+				checkoutURL = "https://polar.sh/igris-inertial"
+			}
 		}
 		plans = append(plans, fiber.Map{
 			"tier_id":           id,
