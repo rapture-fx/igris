@@ -6,6 +6,7 @@ import '@/styles/globals.css';
 export const metadata: Metadata = {
   title: 'Igris Inertial Developer Console',
   description: 'Manage your AI inference infrastructure with Overture and Runtime',
+  icons: { icon: '/inertia.png' },
 };
 
 export default function RootLayout({ children }: { children: React.ReactNode }) {

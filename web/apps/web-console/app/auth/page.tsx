@@ -110,7 +110,7 @@ function AuthContent() {
 
         {/* Logo */}
         <div className="flex justify-center mb-12">
-          <img src="/iner.png" alt="Igris" className="h-10 w-auto rounded-lg" />
+          <img src="/inertia.png" alt="Igris" className="h-10 w-auto rounded-lg" />
         </div>
 
         <div className="rounded-xl border border-gray-200 dark:border-gray-800 shadow-sm overflow-hidden bg-white dark:bg-[#111110]">
