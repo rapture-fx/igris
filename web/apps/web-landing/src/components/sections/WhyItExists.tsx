@@ -24,15 +24,22 @@ export default function WhyItExists() {
             <div className="w-1/3 flex flex-col gap-8">
               {/* Latest Updates - Card Style per item */}
               <div>
-                <span className="text-xs font-medium uppercase tracking-wider mb-4 block" style={{ fontFamily: '-apple-system, BlinkMacSystemFont, "Segoe UI", Roboto, Helvetica, Arial, sans-serif', color: '#1b1912' }}>Latest Updates</span>
+                <div className="flex items-center justify-between mb-4">
+                  <span className="text-xs font-medium uppercase tracking-wider" style={{ fontFamily: '-apple-system, BlinkMacSystemFont, "Segoe UI", Roboto, Helvetica, Arial, sans-serif', color: '#1b1912' }}>Latest Updates</span>
+                  <a href="/blog" className="text-xs text-gray-500 dark:text-[#a8a898] hover:text-gray-900 dark:hover:text-[#f6f6f4] transition-colors" style={{ fontFamily: '-apple-system, BlinkMacSystemFont, "Segoe UI", Roboto, Helvetica, Arial, sans-serif' }}>More Articles</a>
+                </div>
                 <div className="flex flex-col gap-3">
                   <div className="border border-gray-200 dark:border-[#f6f6f4]/8 rounded-2xl p-4 bg-[#f9f9fa] dark:bg-[#1b1912]/60">
-                    <span className="text-sm text-[#000000] dark:text-[#f6f6f4] block" style={{ fontFamily: '-apple-system, BlinkMacSystemFont, "Segoe UI", Roboto, Helvetica, Arial, sans-serif' }}>Runtime v2.1</span>
-                    <span className="text-xs text-gray-500 dark:text-[#a8a898] block mt-1" style={{ fontFamily: '-apple-system, BlinkMacSystemFont, "Segoe UI", Roboto, Helvetica, Arial, sans-serif' }}>Enhanced model hot-swapping and improved containment bounds.</span>
+                    <span className="text-sm text-[#000000] dark:text-[#f6f6f4] block" style={{ fontFamily: '-apple-system, BlinkMacSystemFont, "Segoe UI", Roboto, Helvetica, Arial, sans-serif' }}>Runtime v2.1: Model Hot-Swapping</span>
+                    <span className="text-xs text-gray-500 dark:text-[#a8a898] block mt-1" style={{ fontFamily: '-apple-system, BlinkMacSystemFont, "Segoe UI", Roboto, Helvetica, Arial, sans-serif' }}>Swap models at runtime without downtime. Improved containment bounds for edge deployments.</span>
                   </div>
                   <div className="border border-gray-200 dark:border-[#f6f6f4]/8 rounded-2xl p-4 bg-[#f9f9fa] dark:bg-[#1b1912]/60">
-                    <span className="text-sm text-[#000000] dark:text-[#f6f6f4] block" style={{ fontFamily: '-apple-system, BlinkMacSystemFont, "Segoe UI", Roboto, Helvetica, Arial, sans-serif' }}>Overture v2.0</span>
-                    <span className="text-xs text-gray-500 dark:text-[#a8a898] block mt-1" style={{ fontFamily: '-apple-system, BlinkMacSystemFont, "Segoe UI", Roboto, Helvetica, Arial, sans-serif' }}>Thompson Sampling routing and provider health monitoring.</span>
+                    <span className="text-sm text-[#000000] dark:text-[#f6f6f4] block" style={{ fontFamily: '-apple-system, BlinkMacSystemFont, "Segoe UI", Roboto, Helvetica, Arial, sans-serif' }}>Overture v2.0: Thompson Sampling</span>
+                    <span className="text-xs text-gray-500 dark:text-[#a8a898] block mt-1" style={{ fontFamily: '-apple-system, BlinkMacSystemFont, "Segoe UI", Roboto, Helvetica, Arial, sans-serif' }}>Adaptive routing that learns from provider performance. Real-time health monitoring.</span>
+                  </div>
+                  <div className="border border-gray-200 dark:border-[#f6f6f4]/8 rounded-2xl p-4 bg-[#f9f9fa] dark:bg-[#1b1912]/60">
+                    <span className="text-sm text-[#000000] dark:text-[#f6f6f4] block" style={{ fontFamily: '-apple-system, BlinkMacSystemFont, "Segoe UI", Roboto, Helvetica, Arial, sans-serif' }}>Behavior Trees: Visual Editor</span>
+                    <span className="text-xs text-gray-500 dark:text-[#a8a898] block mt-1" style={{ fontFamily: '-apple-system, BlinkMacSystemFont, "Segoe UI", Roboto, Helvetica, Arial, sans-serif' }}>Define agent workflows with sequence, selector, and action nodes. YAML support included.</span>
                   </div>
                 </div>
               </div>
