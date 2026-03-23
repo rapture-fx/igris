@@ -12,7 +12,7 @@ export default function WhyItExists() {
             <div className="flex justify-end">
               <div className="w-1/2">
                 <div className="flex items-center justify-between mb-4">
-                  <span className="text-xs font-medium uppercase tracking-wider" style={{ fontFamily: '-apple-system, BlinkMacSystemFont, "Segoe UI", Roboto, Helvetica, Arial, sans-serif', color: '#1b1912' }}>Changelog</span>
+                  <span className="text-lg md:text-xl font-medium" style={{ fontFamily: '-apple-system, BlinkMacSystemFont, "Segoe UI", Roboto, Helvetica, Arial, sans-serif', color: '#1b1912' }}>Changelog</span>
                   <a href="/changelog" className="text-xs text-gray-500 dark:text-[#a8a898] hover:text-gray-900 dark:hover:text-[#f6f6f4] transition-colors" style={{ fontFamily: '-apple-system, BlinkMacSystemFont, "Segoe UI", Roboto, Helvetica, Arial, sans-serif' }}>More Details</a>
                 </div>
                 <div className="overflow-y-auto scrollbar-hide" style={{ maxHeight: '200px' }}>
