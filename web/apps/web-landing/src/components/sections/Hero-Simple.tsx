@@ -22,7 +22,7 @@ export default function Hero() {
   }, [])
 
   return (
-    <section className="pb-0 bg-white dark:bg-dark-bg text-gray-900 dark:text-[#f6f6f4] relative overflow-visible transition-colors duration-200" style={{ marginTop: '40px' }}>
+    <section className="pb-0 bg-white dark:bg-dark-bg text-gray-900 dark:text-[#f6f6f4] relative overflow-visible transition-colors duration-200" style={{ marginTop: '20px' }}>
       <div className="mx-auto max-w-[1600px] px-4 sm:px-6 lg:px-8">
         <div className="relative overflow-hidden flex flex-col justify-center min-h-[auto] md:min-h-[calc(100vh-52px)]" style={{ marginBottom: '2rem' }}>
           <div className="max-w-[1600px] mx-auto w-full relative z-10 pb-6 md:pb-10 pt-0 px-4 md:px-8 lg:px-12">
@@ -41,7 +41,7 @@ export default function Hero() {
                     color: mounted && theme === 'dark' ? '#c8c8b8' : '#374151',
                   }}
                 >
-                  <img src="/foot.png" alt="Igris" className="h-6 w-6 shrink-0 opacity-80" />
+                  <img src="/inertia.png" alt="Igris" className="h-6 w-6 shrink-0 opacity-80" />
                   <span className="select-all truncate max-w-[180px] md:max-w-none">{INSTALL_CMD}</span>
                   <button
                     onClick={copy}
