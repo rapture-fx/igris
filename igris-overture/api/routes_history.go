@@ -5,6 +5,7 @@ package api
 
 import (
 	"database/sql"
+	"math"
 	"strconv"
 	"time"
 
@@ -137,6 +138,24 @@ func (h *historyHandler) listEvents(c *fiber.Ctx) error {
 
 // ── /v1/history/metrics ─────────────────────────────────────────────────────
 
+// rangeToMinutes returns the window size in minutes for exec/min computation.
+func rangeToMinutes(r string) float64 {
+	switch r {
+	case "1h", "last_1h":
+		return 60
+	case "6h", "last_6h":
+		return 360
+	case "24h", "last_24h":
+		return 1440
+	case "7d", "last_7d":
+		return 10080
+	case "30d", "last_30d":
+		return 43200
+	default:
+		return 1440
+	}
+}
+
 func (h *historyHandler) getMetrics(c *fiber.Ctx) error {
 	tenantID := middleware.GetClerkUserID(c)
 	if tenantID == "" {
@@ -145,78 +164,132 @@ func (h *historyHandler) getMetrics(c *fiber.Ctx) error {
 
 	rangeParam := c.Query("range", "last_24h")
 	interval := rangeToInterval(rangeParam)
+	windowMinutes := rangeToMinutes(rangeParam)
 
-	type Summary struct {
-		TotalExecutions  int64   `json:"total_executions"`
-		TotalViolations  int64   `json:"total_violations"`
-		AvgDurationMs    float64 `json:"avg_duration_ms"`
-		P95DurationMs    float64 `json:"p95_duration_ms"`
-		SuccessRate      float64 `json:"success_rate"`
-	}
+	// ── Aggregate summary ────────────────────────────────────────────────────
+	var totalExecutions, totalViolations int64
+	var avgDurationMs float64
 
-	type TimePoint struct {
-		Time    string `json:"time"`
-		Count   int64  `json:"count"`
-		Violations int64 `json:"violations"`
-	}
-
-	var summary Summary
 	err := h.db.QueryRow(`
 		SELECT
 			COUNT(*),
 			SUM(CASE WHEN violation_occurred THEN 1 ELSE 0 END),
-			COALESCE(AVG(wall_time_ms), 0),
-			COALESCE(PERCENTILE_CONT(0.95) WITHIN GROUP (ORDER BY wall_time_ms), 0)
+			COALESCE(AVG(wall_time_ms), 0)
 		FROM execution_lineage
 		WHERE tenant_id = $1
 		  AND timestamp_utc >= NOW() - INTERVAL '`+interval+`'
-	`, tenantID).Scan(
-		&summary.TotalExecutions, &summary.TotalViolations,
-		&summary.AvgDurationMs, &summary.P95DurationMs,
-	)
+	`, tenantID).Scan(&totalExecutions, &totalViolations, &avgDurationMs)
 	if err != nil && err != sql.ErrNoRows {
 		log.Error().Err(err).Str("tenant_id", tenantID).Msg("[History] Failed to aggregate metrics")
 		return c.Status(fiber.StatusInternalServerError).JSON(fiber.Map{"error": "internal_error"})
 	}
-	if summary.TotalExecutions > 0 {
-		summary.SuccessRate = float64(summary.TotalExecutions-summary.TotalViolations) /
-			float64(summary.TotalExecutions) * 100
+
+	successRate := 0.0
+	if totalExecutions > 0 {
+		successRate = float64(totalExecutions-totalViolations) / float64(totalExecutions) * 100
+	}
+	execsPerMin := 0.0
+	if windowMinutes > 0 {
+		execsPerMin = math.Round(float64(totalExecutions)/windowMinutes*100) / 100
 	}
 
-	// Hourly time series
-	rows, err := h.db.Query(`
+	summary := fiber.Map{
+		"executions_per_minute": execsPerMin,
+		"avg_latency_ms":        math.Round(avgDurationMs),
+		"success_rate_percent":  math.Round(successRate*10) / 10,
+		"policy_violations":     totalViolations,
+	}
+
+	// ── Throughput time series (mapped to { time, executions }) ──────────────
+	truncUnit := "hour"
+	timeFmt := time.RFC3339
+	if rangeParam == "7d" || rangeParam == "last_7d" || rangeParam == "30d" || rangeParam == "last_30d" {
+		truncUnit = "day"
+		timeFmt = "2006-01-02"
+	}
+
+	tpRows, err := h.db.Query(`
 		SELECT
-			DATE_TRUNC('hour', timestamp_utc)                        AS hour,
-			COUNT(*)                                                  AS total,
-			SUM(CASE WHEN violation_occurred THEN 1 ELSE 0 END)      AS violations
+			DATE_TRUNC('`+truncUnit+`', timestamp_utc) AS bucket,
+			COUNT(*)                                    AS executions
 		FROM execution_lineage
 		WHERE tenant_id = $1
 		  AND timestamp_utc >= NOW() - INTERVAL '`+interval+`'
-		GROUP BY hour
-		ORDER BY hour ASC
+		GROUP BY bucket
+		ORDER BY bucket ASC
 	`, tenantID)
-	if err != nil {
-		log.Error().Err(err).Msg("[History] Failed to query time series")
-		rows = nil
-	}
 
-	timeSeries := make([]TimePoint, 0)
-	if rows != nil {
-		defer rows.Close()
-		for rows.Next() {
-			var tp TimePoint
+	type ThroughputPoint struct {
+		Time       string `json:"time"`
+		Executions int64  `json:"executions"`
+	}
+	throughput := make([]ThroughputPoint, 0)
+	if err == nil {
+		defer tpRows.Close()
+		for tpRows.Next() {
 			var ts time.Time
-			if err := rows.Scan(&ts, &tp.Count, &tp.Violations); err != nil {
+			var count int64
+			if err := tpRows.Scan(&ts, &count); err != nil {
 				continue
 			}
-			tp.Time = ts.UTC().Format(time.RFC3339)
-			timeSeries = append(timeSeries, tp)
+			throughput = append(throughput, ThroughputPoint{
+				Time:       ts.UTC().Format(timeFmt),
+				Executions: count,
+			})
+		}
+	}
+
+	// ── Metric events (recent executions as latency_ms events) ───────────────
+	evRows, err := h.db.Query(`
+		SELECT
+			id,
+			timestamp_utc,
+			wall_time_ms,
+			agent_id,
+			COALESCE(runtime_id, '') AS device_id
+		FROM execution_lineage
+		WHERE tenant_id = $1
+		  AND timestamp_utc >= NOW() - INTERVAL '`+interval+`'
+		ORDER BY timestamp_utc DESC
+		LIMIT 200
+	`, tenantID)
+
+	type MetricEvent struct {
+		ID          string  `json:"id"`
+		Timestamp   string  `json:"timestamp"`
+		MetricName  string  `json:"metric_name"`
+		MetricValue float64 `json:"metric_value"`
+		Unit        string  `json:"unit"`
+		AgentID     string  `json:"agent_id"`
+		DeviceID    string  `json:"device_id"`
+		Provider    string  `json:"provider"`
+	}
+	events := make([]MetricEvent, 0)
+	if err == nil {
+		defer evRows.Close()
+		for evRows.Next() {
+			var ev MetricEvent
+			var ts time.Time
+			var wallMs int64
+			if err := evRows.Scan(&ev.ID, &ts, &wallMs, &ev.AgentID, &ev.DeviceID); err != nil {
+				continue
+			}
+			ev.Timestamp = ts.UTC().Format(time.RFC3339)
+			ev.MetricName = "latency_ms"
+			ev.MetricValue = float64(wallMs)
+			ev.Unit = "ms"
+			ev.Provider = ""
+			events = append(events, ev)
 		}
 	}
 
 	return c.JSON(fiber.Map{
-		"summary":     summary,
-		"time_series": timeSeries,
+		"summary":          summary,
+		"throughput":       throughput,
+		"provider_latency": []fiber.Map{},
+		"resource_usage":   []fiber.Map{},
+		"fleet_activity":   []fiber.Map{},
+		"events":           events,
 	})
 }
 
