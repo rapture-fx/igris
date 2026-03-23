@@ -8,31 +8,8 @@ export default function WhyItExists() {
       <div className="mx-auto max-w-[1100px] px-4 sm:px-6 lg:px-8">
         <div className="relative px-4 md:px-8 lg:px-12 mobile-auto-height" style={{ borderLeft: '0.5px solid rgba(209, 213, 219, 0.35)', borderRight: '0.5px solid rgba(209, 213, 219, 0.35)', paddingTop: '2rem', paddingBottom: '2rem' }}>
           <div className="flex flex-col gap-8">
-            {/* Top row - Latest Updates and Changelog, both above image */}
-            <div className="flex gap-8">
-              {/* Latest Updates */}
-              <div className="w-1/2">
-                <div className="flex items-center justify-between mb-3">
-                  <span className="text-xs font-medium uppercase tracking-wider" style={{ fontFamily: '-apple-system, BlinkMacSystemFont, "Segoe UI", Roboto, Helvetica, Arial, sans-serif', color: '#1b1912' }}>Latest Updates</span>
-                  <a href="/blog" className="text-xs text-gray-500 dark:text-[#a8a898] hover:text-gray-900 dark:hover:text-[#f6f6f4] transition-colors" style={{ fontFamily: '-apple-system, BlinkMacSystemFont, "Segoe UI", Roboto, Helvetica, Arial, sans-serif' }}>More Articles</a>
-                </div>
-                <div className="flex gap-3">
-                  <div className="border border-gray-200 dark:border-[#f6f6f4]/8 rounded-2xl p-4 bg-[#f9f9fa] dark:bg-[#1b1912]/60 flex-1">
-                    <span className="text-sm text-[#000000] dark:text-[#f6f6f4] block" style={{ fontFamily: '-apple-system, BlinkMacSystemFont, "Segoe UI", Roboto, Helvetica, Arial, sans-serif' }}>Runtime v2.1</span>
-                    <span className="text-xs text-gray-500 dark:text-[#a8a898] block mt-1" style={{ fontFamily: '-apple-system, BlinkMacSystemFont, "Segoe UI", Roboto, Helvetica, Arial, sans-serif' }}>Model hot-swapping.</span>
-                  </div>
-                  <div className="border border-gray-200 dark:border-[#f6f6f4]/8 rounded-2xl p-4 bg-[#f9f9fa] dark:bg-[#1b1912]/60 flex-1">
-                    <span className="text-sm text-[#000000] dark:text-[#f6f6f4] block" style={{ fontFamily: '-apple-system, BlinkMacSystemFont, "Segoe UI", Roboto, Helvetica, Arial, sans-serif' }}>Overture v2.0</span>
-                    <span className="text-xs text-gray-500 dark:text-[#a8a898] block mt-1" style={{ fontFamily: '-apple-system, BlinkMacSystemFont, "Segoe UI", Roboto, Helvetica, Arial, sans-serif' }}>Thompson Sampling.</span>
-                  </div>
-                  <div className="border border-gray-200 dark:border-[#f6f6f4]/8 rounded-2xl p-4 bg-[#f9f9fa] dark:bg-[#1b1912]/60 flex-1">
-                    <span className="text-sm text-[#000000] dark:text-[#f6f6f4] block" style={{ fontFamily: '-apple-system, BlinkMacSystemFont, "Segoe UI", Roboto, Helvetica, Arial, sans-serif' }}>Behavior Trees</span>
-                    <span className="text-xs text-gray-500 dark:text-[#a8a898] block mt-1" style={{ fontFamily: '-apple-system, BlinkMacSystemFont, "Segoe UI", Roboto, Helvetica, Arial, sans-serif' }}>Visual editor.</span>
-                  </div>
-                </div>
-              </div>
-
-              {/* Changelog */}
+            {/* Changelog on the right side, above image */}
+            <div className="flex justify-end">
               <div className="w-1/2">
                 <div className="flex items-center justify-between mb-4">
                   <span className="text-xs font-medium uppercase tracking-wider" style={{ fontFamily: '-apple-system, BlinkMacSystemFont, "Segoe UI", Roboto, Helvetica, Arial, sans-serif', color: '#1b1912' }}>Changelog</span>
@@ -60,7 +37,7 @@ export default function WhyItExists() {
               </div>
             </div>
 
-            {/* Bottom - Image full width */}
+            {/* Image below */}
             <div>
               <div className="rounded-2xl overflow-hidden relative p-4" style={{ height: 'clamp(280px, 40vw, 500px)' }}>
                 <img
