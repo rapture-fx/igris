@@ -39,11 +39,11 @@ export default function WhyItExists() {
 
             {/* Image below */}
             <div>
-              <div className="rounded-2xl overflow-hidden relative p-4" style={{ height: 'clamp(280px, 40vw, 500px)' }}>
+              <div className="rounded-lg overflow-hidden relative p-4" style={{ height: 'clamp(280px, 40vw, 500px)' }}>
                 <img
                   src="/rockz.png"
                   alt=""
-                  className="absolute inset-0 w-full h-full object-cover rounded-2xl"
+                  className="absolute inset-0 w-full h-full object-cover rounded-lg"
                   style={{ opacity: 1 }}
                 />
               </div>
