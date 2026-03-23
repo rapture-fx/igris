@@ -72,6 +72,14 @@ function genId(prefix: string) {
   return `${prefix}_${Date.now()}_${++_idCounter}`;
 }
 
+const TYPE_MAP: Record<string, NodeType> = {
+  sequence: 'Sequence', selector: 'Selector', parallel: 'Parallel',
+  decorator: 'Decorator', action: 'Action', condition: 'Condition',
+};
+function normalizeType(t: string): NodeType {
+  return TYPE_MAP[t?.toLowerCase()] ?? 'Action';
+}
+
 // ─── Validation ───────────────────────────────────────────────────────────────
 
 function validateGraph(nodes: BTNode[], edges: BTEdge[]) {
@@ -122,7 +130,7 @@ function NodeBox({
   onSelect: () => void;
   onDragStart: (e: React.MouseEvent) => void;
 }) {
-  const colors = NODE_COLORS[node.type];
+  const colors = NODE_COLORS[node.type] ?? NODE_COLORS['Action'];
   return (
     <div
       onMouseDown={(e) => { e.stopPropagation(); onDragStart(e); onSelect(); }}
@@ -411,7 +419,7 @@ export default function BTEditorPage() {
                   {templates.slice(0, 4).map((t) => (
                     <button
                       key={t.id}
-                      onClick={() => { setNodes(t.nodes ?? []); setEdges(t.edges ?? []); setBtName(t.name); setSelectedId(null); }}
+                      onClick={() => { setNodes((t.nodes ?? []).map((n) => ({ ...n, type: normalizeType(n.type) }))); setEdges(t.edges ?? []); setBtName(t.name); setSelectedId(null); }}
                       className="w-full px-2 py-2 text-left text-xs rounded-md hover:bg-white border border-transparent hover:border-gray-200 transition-colors"
                     >
                       <p className="font-medium text-gray-700">{t.name}</p>
@@ -430,16 +438,16 @@ export default function BTEditorPage() {
               style={{ transform: `scale(${zoom})`, transformOrigin: 'top left', position: 'relative', width: '100%', height: '100%', minHeight: 600 }}
               onDoubleClick={handleCanvasDblClick}
             >
-              {/* Grid background */}
+              {/* Dot grid background */}
               <svg
                 style={{ position: 'absolute', inset: 0, width: '100%', height: '100%', pointerEvents: 'none' }}
               >
                 <defs>
-                  <pattern id="grid" width="24" height="24" patternUnits="userSpaceOnUse">
-                    <path d="M 24 0 L 0 0 0 24" fill="none" stroke="#e5e7eb" strokeWidth="0.5" />
+                  <pattern id="dotgrid" width="24" height="24" patternUnits="userSpaceOnUse">
+                    <circle cx="0.5" cy="0.5" r="1" fill="#d1d5db" />
                   </pattern>
                 </defs>
-                <rect width="100%" height="100%" fill="url(#grid)" />
+                <rect width="100%" height="100%" fill="url(#dotgrid)" />
               </svg>
 
               <EdgeLayer nodes={nodes} edges={edges} />
