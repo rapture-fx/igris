@@ -50,7 +50,10 @@ export default function WhyItExists() {
 
               {/* Changelog - Dash Style Dividers */}
               <div>
-                <span className="text-xs font-medium uppercase tracking-wider mb-4 block" style={{ fontFamily: '-apple-system, BlinkMacSystemFont, "Segoe UI", Roboto, Helvetica, Arial, sans-serif', color: '#1b1912' }}>Changelog</span>
+                <div className="flex items-center justify-between mb-4">
+                  <span className="text-xs font-medium uppercase tracking-wider" style={{ fontFamily: '-apple-system, BlinkMacSystemFont, "Segoe UI", Roboto, Helvetica, Arial, sans-serif', color: '#1b1912' }}>Changelog</span>
+                  <a href="/changelog" className="text-xs text-gray-500 dark:text-[#a8a898] hover:text-gray-900 dark:hover:text-[#f6f6f4] transition-colors" style={{ fontFamily: '-apple-system, BlinkMacSystemFont, "Segoe UI", Roboto, Helvetica, Arial, sans-serif' }}>More Details</a>
+                </div>
                 <div className="overflow-y-auto scrollbar-hide" style={{ maxHeight: '200px' }}>
                   <div className="flex flex-col pr-1">
                     <div className="py-3 border-b border-dashed border-gray-300 dark:border-gray-600">
