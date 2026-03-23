@@ -1,10 +1,6 @@
 #!/usr/bin/env bash
 # Igris Runtime installer
 # Usage: curl -fsSL https://igrisinertial.com/install | bash
-# Or with API key: IGRIS_API_KEY=igris_xxx curl -fsSL https://igrisinertial.com/install | bash
-#
-# The binary is served from the authenticated Overture API.
-# You must have an active Igris subscription to download.
 
 set -euo pipefail
 
@@ -73,47 +69,16 @@ fi
 TMP_DIR=$(mktemp -d)
 trap 'rm -rf "$TMP_DIR"' EXIT
 
-# ── Authenticate ──────────────────────────────────────────────────────────────
+# ── Download binary ───────────────────────────────────────────────────────────
 
 step "Detected platform: $PLATFORM"
 
-AUTH_HEADER=""
-if [ -n "${IGRIS_API_KEY:-}" ]; then
-    AUTH_HEADER="X-API-Key: ${IGRIS_API_KEY}"
-    info "Using API key from IGRIS_API_KEY"
-else
-    if [ ! -t 0 ]; then
-        echo ""
-        echo "  No API key found. Get yours at:"
-        echo "  https://console.igrisinertial.com/settings/keys"
-        echo ""
-        echo "  Then run:"
-        echo "  IGRIS_API_KEY=igris_... curl -fsSL https://igrisinertial.com/install | bash"
-        echo ""
-        exit 1
-    fi
-    echo ""
-    echo "  API key required → https://console.igrisinertial.com/settings/keys"
-    echo ""
-    printf "  Paste your key: "
-    read -r IGRIS_API_KEY_INPUT
-    IGRIS_API_KEY_INPUT="$(echo "$IGRIS_API_KEY_INPUT" | tr -d '[:space:]')"
-    if [ -z "$IGRIS_API_KEY_INPUT" ]; then
-        die "No API key provided."
-    fi
-    AUTH_HEADER="X-API-Key: ${IGRIS_API_KEY_INPUT}"
-    IGRIS_API_KEY="${IGRIS_API_KEY_INPUT}"
-fi
-
-# ── Download binary ───────────────────────────────────────────────────────────
-
-DOWNLOAD_URL="${OVERTURE_URL}/api/v1/runtime/download?platform=${PLATFORM}"
+DOWNLOAD_URL="${OVERTURE_URL}/v1/runtime/install?platform=${PLATFORM}"
 CHECKSUM_URL="${OVERTURE_URL}/v1/runtime/checksum?platform=${PLATFORM}"
 
 step "Downloading igris-runtime (${PLATFORM})..."
 
 HTTP_STATUS=$(curl -fsSL -s \
-    -H "$AUTH_HEADER" \
     -H "User-Agent: igris-installer/1.0" \
     -w "%{http_code}" \
     -o "${TMP_DIR}/${ARCHIVE_FILE}" \
@@ -121,11 +86,9 @@ HTTP_STATUS=$(curl -fsSL -s \
 
 case "$HTTP_STATUS" in
     200) ;;
-    403) die "Access denied — check your API key and subscription status at https://console.igrisinertial.com/settings/billing" ;;
-    429) die "Download rate limit reached. Try again in an hour." ;;
-    401) die "Invalid API key." ;;
     404) die "Runtime binary not available for platform: $PLATFORM. Please contact support." ;;
-    *)   die "Download failed (HTTP ${HTTP_STATUS}). Check $DOWNLOAD_URL" ;;
+    503) die "Binary hosting not yet configured. Please contact support." ;;
+    *)   die "Download failed (HTTP ${HTTP_STATUS})." ;;
 esac
 
 # ── Verify checksum ───────────────────────────────────────────────────────────
@@ -183,11 +146,14 @@ echo ""
 printf "  %-18s  %s\n"  '     \ \ \ \   '  ''
 printf "  %-18s  %s\n"  '   \ \ \ \ \ \ '  'Next steps'
 printf "  %-18s  %s\n"  '  \ \ \ \ \ \ \'  ''
-printf "  %-18s  %s\n"  ' \ \ \ \ \ \ \ '  '1. Start the runtime:'
-printf "  %-18s  %s\n"  '  \ \ \ \ \ \ \'  '   igris-runtime serve'
+printf "  %-18s  %s\n"  ' \ \ \ \ \ \ \ '  '1. Authenticate with your API key:'
+printf "  %-18s  %s\n"  '  \ \ \ \ \ \ \'  '   igris-runtime auth igris_...'
 printf "  %-18s  %s\n"  '   \ \ \ \ \ \ '  ''
-printf "  %-18s  %s\n"  '     \ \ \ \   '  'Your runtime will appear in Fleet'
-printf "  %-18s  %s\n"  ''                 '→ Devices within 30 seconds.'
+printf "  %-18s  %s\n"  '     \ \ \ \   '  '2. Start the runtime:'
+printf "  %-18s  %s\n"  ''                 '   igris-runtime serve'
+printf "  %-18s  %s\n"  ''                 ''
+printf "  %-18s  %s\n"  ''                 'Get your API key:'
+printf "  %-18s  %s\n"  ''                 '→ https://console.igrisinertial.com/settings/keys'
 printf "  %-18s  %s\n"  ''                 ''
 printf "  %-18s  %s\n"  ''                 'Docs: https://docs.igrisinertial.com/runtime'
 echo ""

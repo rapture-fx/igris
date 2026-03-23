@@ -95,10 +95,13 @@ func RegisterDownloadRoutes(app *fiber.App, db *sql.DB, redisClient *redis.Clien
 	// Authenticated download endpoint (Clerk JWT)
 	v1.Get("/download", middleware.BetterAuth(db), h.Download)
 
+	// Public installer download endpoint (no auth) — used by the install script
+	v1.Get("/install", h.PublicDownload)
+
 	// Public checksum endpoint (no auth) — used by the installer for verification
 	v1.Get("/checksum", h.Checksum)
 
-	log.Info().Msg("[Routes] Registered authenticated download endpoint (GET /v1/runtime/download)")
+	log.Info().Msg("[Routes] Registered download endpoints (GET /v1/runtime/download, /v1/runtime/install)")
 }
 
 // Download handles GET /v1/runtime/download?platform=linux-amd64
@@ -240,6 +243,43 @@ func (h *DownloadHandler) redirectToBinary(c *fiber.Ctx, binaryName, version str
 	url := fmt.Sprintf("%s/%s/%s", h.binariesURL, version, binaryName)
 	log.Info().Str("url", url).Str("platform", binaryName).Msg("[Download] Redirecting to binary")
 	return c.Redirect(url, fiber.StatusFound)
+}
+
+// PublicDownload handles GET /v1/runtime/install?platform=linux-amd64
+//
+// No authentication required. The binary is useless without a valid API key
+// to register with Overture — auth is enforced at runtime startup, not download time.
+func (h *DownloadHandler) PublicDownload(c *fiber.Ctx) error {
+	platform := c.Query("platform", "")
+	if platform == "" {
+		platform = detectPlatform(c.Get("User-Agent"))
+	}
+	platform = normalizePlatform(platform)
+	binaryName, ok := platformBinaries[platform]
+	if !ok {
+		return c.Status(fiber.StatusBadRequest).JSON(fiber.Map{
+			"error":     "unsupported_platform",
+			"message":   "Specify ?platform=linux-amd64 | linux-arm64 | macos-arm64",
+			"supported": supportedPlatforms(),
+		})
+	}
+
+	version := os.Getenv("RUNTIME_BINARY_VERSION")
+	if version == "" {
+		version = binaryVersion
+	}
+
+	if h.binariesDir != "" {
+		return h.streamBinary(c, platform, binaryName, version)
+	}
+	if h.binariesURL != "" {
+		return h.redirectToBinary(c, binaryName, version)
+	}
+
+	return c.Status(fiber.StatusServiceUnavailable).JSON(fiber.Map{
+		"error":   "binaries_not_configured",
+		"message": "Binary hosting not configured on this server",
+	})
 }
 
 // verifySubscription checks that the tenant has an active subscription of any paid tier.
