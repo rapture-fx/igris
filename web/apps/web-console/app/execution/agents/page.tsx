@@ -43,6 +43,8 @@ import {
   History,
   Cpu,
   AlertTriangle,
+  BarChart3,
+  CheckCircle2,
 } from 'lucide-react';
 import {
   ExecutionStatusBadge,
@@ -53,6 +55,7 @@ import {
   CopyButton,
 } from '@/components/execution/shared';
 import { MOCK_AGENTS } from '@/lib/mock/execution';
+import { useTraces } from '@/hooks/useTraces';
 
 // ─── Types ────────────────────────────────────────────────────────────────────
 
@@ -89,6 +92,9 @@ interface Agent {
   violations?: ViolationEntry[];
   policy_bounds?: Record<string, unknown>;
   execution_bounds?: Record<string, unknown>;
+  current_goal?: string;
+  envelope_summary?: string;
+  last_trace_at?: string;
 }
 
 // ─── Helpers ──────────────────────────────────────────────────────────────────
@@ -217,6 +223,8 @@ export default function ExecutionAgentsPage() {
     retry: false,
   });
 
+  const { data: traces = [] } = useTraces();
+
   // Keyboard: Escape closes drawer
   useEffect(() => {
     const handler = (e: KeyboardEvent) => {
@@ -239,12 +247,16 @@ export default function ExecutionAgentsPage() {
     });
   }, [agents, search, stateFilter]);
 
-  const counts = useMemo(() => ({
-    active: agents.filter((a) => a.state === 'RUNNING' || a.state === 'ACTIVE').length,
-    idle: agents.filter((a) => a.state === 'IDLE').length,
-    safeIdle: agents.filter((a) => a.state === 'SAFE_IDLE').length,
-    recovering: agents.filter((a) => a.state === 'RECOVERING').length,
-  }), [agents]);
+  const counts = useMemo(() => {
+    const active = agents.filter((a) => a.state === 'RUNNING' || a.state === 'ACTIVE').length;
+    const recovering = agents.filter((a) => a.state === 'RECOVERING').length;
+    const violationsToday = agents.reduce((sum, a) => sum + (a.violation_count || 0), 0);
+    const allExecs = agents.flatMap((a) => a.recent_executions ?? []);
+    const traceSuccessPct = allExecs.length > 0
+      ? Math.round((allExecs.filter((e) => e.status === 'COMPLETED').length / allExecs.length) * 100)
+      : null;
+    return { active, recovering, violationsToday, traceSuccessPct };
+  }, [agents]);
 
   const STAT_CARDS = [
     {
@@ -253,20 +265,23 @@ export default function ExecutionAgentsPage() {
       icon: Brain,
       iconColor: 'text-green-500',
       valueColor: counts.active > 0 ? 'text-green-700' : 'text-gray-900',
+      isString: false,
     },
     {
-      label: 'Idle',
-      value: counts.idle,
-      icon: Moon,
-      iconColor: 'text-gray-400',
-      valueColor: 'text-gray-900',
+      label: 'Violations Today',
+      value: counts.violationsToday,
+      icon: AlertTriangle,
+      iconColor: counts.violationsToday > 0 ? 'text-orange-500' : 'text-gray-400',
+      valueColor: counts.violationsToday > 0 ? 'text-orange-700' : 'text-gray-900',
+      isString: false,
     },
     {
-      label: 'Safe Idle',
-      value: counts.safeIdle,
-      icon: Shield,
+      label: 'Trace Success',
+      value: counts.traceSuccessPct !== null ? `${counts.traceSuccessPct}%` : '—',
+      icon: CheckCircle2,
       iconColor: 'text-blue-500',
       valueColor: 'text-gray-900',
+      isString: true,
     },
     {
       label: 'Recovering',
@@ -274,6 +289,7 @@ export default function ExecutionAgentsPage() {
       icon: Activity,
       iconColor: counts.recovering > 0 ? 'text-yellow-500' : 'text-gray-400',
       valueColor: counts.recovering > 0 ? 'text-yellow-700' : 'text-gray-900',
+      isString: false,
     },
   ];
 
@@ -336,6 +352,10 @@ export default function ExecutionAgentsPage() {
               <CardContent className="px-4 pb-3 pt-0">
                 {isLoading ? (
                   <Skeleton className="h-5 w-10 mt-0.5" />
+                ) : c.isString ? (
+                  <span className={`text-sm font-semibold tabular-nums ${c.valueColor}`}>
+                    {c.value}
+                  </span>
                 ) : (
                   <span className={`text-xl font-semibold tabular-nums ${c.valueColor}`}>
                     {c.value}
@@ -355,13 +375,16 @@ export default function ExecutionAgentsPage() {
                   Agent ID
                 </TableHead>
                 <TableHead className="text-xs font-medium text-gray-500 h-9 px-3 whitespace-nowrap">
-                  Namespace Path
+                  Namespace
+                </TableHead>
+                <TableHead className="text-xs font-medium text-gray-500 h-9 px-3 whitespace-nowrap">
+                  Goal / Envelope
                 </TableHead>
                 <TableHead className="text-xs font-medium text-gray-500 h-9 px-3 whitespace-nowrap">
                   State
                 </TableHead>
                 <TableHead className="text-xs font-medium text-gray-500 h-9 px-3 whitespace-nowrap">
-                  Last Run
+                  Last Trace
                 </TableHead>
                 <TableHead className="text-xs font-medium text-gray-500 h-9 px-3 whitespace-nowrap">
                   Violations
@@ -375,7 +398,7 @@ export default function ExecutionAgentsPage() {
               {isLoading ? (
                 Array.from({ length: 6 }).map((_, i) => (
                   <TableRow key={i} className="border-b border-gray-100">
-                    {Array.from({ length: 6 }).map((_, j) => (
+                    {Array.from({ length: 7 }).map((_, j) => (
                       <TableCell key={j} className="px-3 py-2.5">
                         <Skeleton className="h-3.5 w-16" />
                       </TableCell>
@@ -385,7 +408,7 @@ export default function ExecutionAgentsPage() {
               ) : filtered.length === 0 ? (
                 <TableRow>
                   <TableCell
-                    colSpan={6}
+                    colSpan={7}
                     className="text-center text-gray-400 text-xs py-16"
                   >
                     No agents found
@@ -411,12 +434,19 @@ export default function ExecutionAgentsPage() {
                         {agent.namespace ?? '—'}
                       </span>
                     </TableCell>
+                    <TableCell className="px-3 py-2.5 max-w-[160px]">
+                      <span className="text-xs text-gray-500 truncate block">
+                        {agent.current_goal ?? agent.envelope_summary ?? '—'}
+                      </span>
+                    </TableCell>
                     <TableCell className="px-3 py-2.5">
                       <ExecutionStatusBadge status={agent.state} />
                     </TableCell>
                     <TableCell className="px-3 py-2.5">
                       <span className="text-xs text-gray-500 tabular-nums">
-                        {agent.last_run_at ? getRelativeTime(agent.last_run_at) : '—'}
+                        {(agent.last_trace_at ?? agent.last_run_at)
+                          ? getRelativeTime((agent.last_trace_at ?? agent.last_run_at)!)
+                          : '—'}
                       </span>
                     </TableCell>
                     <TableCell className="px-3 py-2.5">
@@ -561,7 +591,64 @@ export default function ExecutionAgentsPage() {
 
                   <Separator />
 
-                  {/* §6 Raw JSON */}
+                  {/* §6 Latest Inference Traces */}
+                  <section>
+                    <h3 className="text-[11px] font-semibold text-gray-400 uppercase tracking-wider mb-3 flex items-center gap-1.5">
+                      <BarChart3 className="h-3.5 w-3.5" />
+                      Latest Inference Traces
+                      <span className="ml-1 text-[10px] font-normal text-gray-400 normal-case tracking-normal">
+                        fleet-wide
+                      </span>
+                    </h3>
+                    {traces.length === 0 ? (
+                      <p className="text-xs text-gray-400">No traces available.</p>
+                    ) : (
+                      <div className="border border-gray-200 rounded-md overflow-hidden">
+                        <table className="w-full text-xs">
+                          <thead>
+                            <tr className="bg-gray-50 border-b border-gray-200">
+                              <th className="text-left px-3 py-2 font-medium text-gray-500">Provider / Model</th>
+                              <th className="text-left px-3 py-2 font-medium text-gray-500">Status</th>
+                              <th className="text-right px-3 py-2 font-medium text-gray-500">Latency</th>
+                              <th className="text-right px-3 py-2 font-medium text-gray-500">When</th>
+                            </tr>
+                          </thead>
+                          <tbody>
+                            {traces.slice(0, 3).map((trace) => (
+                              <tr key={trace.id} className="border-b border-gray-100 last:border-0">
+                                <td className="px-3 py-2">
+                                  <span className="text-gray-700">{trace.provider}</span>
+                                  <span className="text-gray-400 mx-1">/</span>
+                                  <span className="text-gray-500">{truncateText(trace.model, 16)}</span>
+                                </td>
+                                <td className="px-3 py-2">
+                                  <span className={`inline-flex px-1.5 py-0.5 rounded text-[10px] font-medium ${
+                                    trace.status === 200
+                                      ? 'bg-green-50 text-green-700 border border-green-200'
+                                      : 'bg-red-50 text-red-700 border border-red-200'
+                                  }`}>
+                                    {trace.status}
+                                  </span>
+                                </td>
+                                <td className="px-3 py-2 text-right tabular-nums text-gray-500">
+                                  {trace.latency < 1000
+                                    ? `${Math.round(trace.latency)}ms`
+                                    : `${(trace.latency / 1000).toFixed(1)}s`}
+                                </td>
+                                <td className="px-3 py-2 text-right text-gray-400">
+                                  {getRelativeTime(trace.timestamp)}
+                                </td>
+                              </tr>
+                            ))}
+                          </tbody>
+                        </table>
+                      </div>
+                    )}
+                  </section>
+
+                  <Separator />
+
+                  {/* §7 Raw JSON */}
                   <section>
                     <JSONViewer data={selected} />
                   </section>

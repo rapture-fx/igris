@@ -11,6 +11,8 @@ import { Skeleton } from '@/components/ui/skeleton';
 import { Separator } from '@/components/ui/separator';
 import { StatusBadge } from '@/components/ui/status-badge';
 import { Progress } from '@/components/ui/progress';
+import { Switch } from '@/components/ui/switch';
+import { Label } from '@/components/ui/label';
 import {
   Sheet, SheetContent, SheetHeader, SheetTitle, SheetBody, SheetClose,
 } from '@/components/ui/sheet';
@@ -31,6 +33,16 @@ import {
 
 // ─── Types ────────────────────────────────────────────────────────────────────
 
+type RosLifecycleState = 'Unconfigured' | 'Inactive' | 'Active' | 'Finalized' | 'ErrorProcessing';
+
+interface RosNode {
+  node_name: string;
+  namespace: string;
+  lifecycle_state: RosLifecycleState;
+  air_gapped: boolean;
+  last_trace_at?: string;
+}
+
 interface Device {
   device_id: string;
   status: 'online' | 'offline';
@@ -46,6 +58,7 @@ interface Device {
   last_execution_id: string | null;
   policy_hash: string;
   global_policy_hash: string;
+  ros_node?: RosNode;
 }
 
 interface ExecutionMini {
@@ -90,6 +103,13 @@ const MOCK_DEVICES: Device[] = [
     last_execution_id: 'exec_4a7b8c9d0e1f2a3b',
     policy_hash: GLOBAL_POLICY_HASH,
     global_policy_hash: GLOBAL_POLICY_HASH,
+    ros_node: {
+      node_name: 'igris_agent_node',
+      namespace: '/robot/arm',
+      lifecycle_state: 'Active',
+      air_gapped: false,
+      last_trace_at: new Date(Date.now() - 90_000).toISOString(),
+    },
   },
   {
     device_id: 'dev_a1b2c3d4e5f67890',
@@ -122,6 +142,13 @@ const MOCK_DEVICES: Device[] = [
     last_execution_id: 'exec_c3d4e5f6a7b80002',
     policy_hash: 'sha256:legacy_hash_a4b5',
     global_policy_hash: GLOBAL_POLICY_HASH,
+    ros_node: {
+      node_name: 'vision_pipeline_node',
+      namespace: '/robot/vision',
+      lifecycle_state: 'Inactive',
+      air_gapped: true,
+      last_trace_at: new Date(Date.now() - 7 * 3_600_000).toISOString(),
+    },
   },
   {
     device_id: 'dev_3b4c5d6e7f8a9b0c',
@@ -138,6 +165,13 @@ const MOCK_DEVICES: Device[] = [
     last_execution_id: 'exec_d5e6f7a8b9c00003',
     policy_hash: GLOBAL_POLICY_HASH,
     global_policy_hash: GLOBAL_POLICY_HASH,
+    ros_node: {
+      node_name: 'nav2_controller_node',
+      namespace: '/robot/navigation',
+      lifecycle_state: 'ErrorProcessing',
+      air_gapped: false,
+      last_trace_at: new Date(Date.now() - 2.5 * 3_600_000).toISOString(),
+    },
   },
   {
     device_id: 'dev_5e6f7a8b9c0d1e2f',
@@ -256,6 +290,22 @@ function PolicySyncIndicator({
   );
 }
 
+function RosLifecycleBadge({ state, airGapped }: { state: RosLifecycleState; airGapped: boolean }) {
+  const styles: Record<RosLifecycleState, string> = {
+    Active:           'bg-green-50 text-green-700 border-green-200',
+    Inactive:         'bg-gray-100 text-gray-600 border-gray-200',
+    Unconfigured:     'bg-yellow-50 text-yellow-700 border-yellow-200',
+    Finalized:        'bg-blue-50 text-blue-600 border-blue-200',
+    ErrorProcessing:  'bg-red-50 text-red-700 border-red-200',
+  };
+  return (
+    <span className={`inline-flex items-center gap-1 px-1.5 py-0.5 rounded text-[10px] font-medium border ${styles[state]}`}>
+      {airGapped && <span title="Air-gapped">⊘ </span>}
+      {state}
+    </span>
+  );
+}
+
 function formatDuration(ms: number): string {
   if (ms < 1000) return `${ms}ms`;
   return `${(ms / 1000).toFixed(2)}s`;
@@ -278,6 +328,7 @@ function FleetDevicesContent() {
   const [search, setSearch] = useState('');
   const [statusFilter, setStatusFilter] = useState<'all' | 'online' | 'offline'>('all');
   const [timeRange, setTimeRange] = useState<'24h' | '7d' | '30d'>('24h');
+  const [rosOnly, setRosOnly] = useState(false);
 
   // ── Devices list ──
   const { data: devices = [], isLoading: devicesLoading, refetch } = useQuery<Device[]>({
@@ -397,9 +448,10 @@ function FleetDevicesContent() {
     return devices.filter((d) => {
       if (search && !d.device_id.toLowerCase().includes(search.toLowerCase())) return false;
       if (statusFilter !== 'all' && d.status !== statusFilter) return false;
+      if (rosOnly && !d.ros_node) return false;
       return true;
     });
-  }, [devices, search, statusFilter]);
+  }, [devices, search, statusFilter, rosOnly]);
 
   const counts = useMemo(
     () => ({
@@ -516,6 +568,17 @@ function FleetDevicesContent() {
             <RefreshCw className="h-3.5 w-3.5" />
             Refresh
           </Button>
+          <div className="flex items-center gap-1.5 border border-gray-200 rounded-md px-2.5 h-8">
+            <Switch
+              id="ros-filter"
+              checked={rosOnly}
+              onCheckedChange={setRosOnly}
+              className="scale-75"
+            />
+            <Label htmlFor="ros-filter" className="text-xs text-gray-600 cursor-pointer whitespace-nowrap">
+              ROS 2 only
+            </Label>
+          </div>
         </div>
 
         {/* Devices Table */}
@@ -523,7 +586,7 @@ function FleetDevicesContent() {
           <Table>
             <TableHeader>
               <TableRow className="hover:bg-transparent">
-                {['Device ID', 'Status', 'Runtime', 'Last Seen', 'Exec (24h)', 'Violations', 'Policy Sync'].map((col) => (
+                {['Device ID', 'Status', 'Runtime', 'Last Seen', 'Exec (24h)', 'Violations', 'Policy Sync', 'ROS 2 State'].map((col) => (
                   <TableHead
                     key={col}
                     className="text-xs font-medium text-gray-500 h-9 px-3 bg-gray-50 hover:bg-gray-50"
@@ -537,7 +600,7 @@ function FleetDevicesContent() {
               {devicesLoading ? (
                 Array.from({ length: 6 }).map((_, i) => (
                   <TableRow key={i}>
-                    {Array.from({ length: 7 }).map((_, j) => (
+                    {Array.from({ length: 8 }).map((_, j) => (
                       <TableCell key={j} className="px-3 py-2.5">
                         <Skeleton className="h-3.5 w-16" />
                       </TableCell>
@@ -546,7 +609,7 @@ function FleetDevicesContent() {
                 ))
               ) : filtered.length === 0 ? (
                 <TableRow>
-                  <TableCell colSpan={7} className="py-14">
+                  <TableCell colSpan={8} className="py-14">
                     <div className="flex flex-col items-center gap-2.5 text-center">
                       <Server className="h-9 w-9 text-gray-200" />
                       <p className="text-xs text-gray-400">No runtime nodes registered yet.</p>
@@ -602,6 +665,16 @@ function FleetDevicesContent() {
                         policyHash={device.policy_hash}
                         globalPolicyHash={device.global_policy_hash}
                       />
+                    </TableCell>
+                    <TableCell className="px-3 py-2.5">
+                      {device.ros_node ? (
+                        <RosLifecycleBadge
+                          state={device.ros_node.lifecycle_state}
+                          airGapped={device.ros_node.air_gapped}
+                        />
+                      ) : (
+                        <span className="text-xs text-gray-300">—</span>
+                      )}
                     </TableCell>
                   </TableRow>
                 ))
@@ -898,6 +971,60 @@ function FleetDevicesContent() {
                       </div>
                     )}
                   </section>
+
+                  {selectedDevice.ros_node && (
+                    <>
+                      <Separator />
+
+                      {/* ROS 2 Node */}
+                      <section>
+                        <h3 className="text-[11px] font-semibold text-gray-400 uppercase tracking-wider mb-3 flex items-center gap-1.5">
+                          <Cpu className="h-3.5 w-3.5" />
+                          ROS 2 Node
+                        </h3>
+                        <div className="mb-3">
+                          <RosLifecycleBadge
+                            state={selectedDevice.ros_node.lifecycle_state}
+                            airGapped={selectedDevice.ros_node.air_gapped}
+                          />
+                        </div>
+                        <KeyValueGrid
+                          rows={[
+                            {
+                              label: 'Node Name',
+                              value: (
+                                <span className="font-mono">{selectedDevice.ros_node.node_name}</span>
+                              ),
+                              copyable: selectedDevice.ros_node.node_name,
+                            },
+                            {
+                              label: 'Namespace',
+                              value: (
+                                <span className="font-mono">{selectedDevice.ros_node.namespace}</span>
+                              ),
+                            },
+                            {
+                              label: 'Lifecycle State',
+                              value: (
+                                <RosLifecycleBadge
+                                  state={selectedDevice.ros_node.lifecycle_state}
+                                  airGapped={false}
+                                />
+                              ),
+                            },
+                            {
+                              label: 'Air-gapped',
+                              value: selectedDevice.ros_node.air_gapped ? 'Yes' : 'No',
+                            },
+                            ...(selectedDevice.ros_node.last_trace_at ? [{
+                              label: 'Last Trace',
+                              value: getRelativeTime(selectedDevice.ros_node.last_trace_at),
+                            }] : []),
+                          ]}
+                        />
+                      </section>
+                    </>
+                  )}
 
                   <Separator />
 
