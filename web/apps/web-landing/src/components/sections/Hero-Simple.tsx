@@ -66,13 +66,13 @@ export default function Hero() {
               {/* Title and subtext - bottom of image */}
               <div className="absolute bottom-0 left-0 right-0 p-6 md:p-8 flex flex-col md:flex-row md:items-end md:justify-between gap-4" style={{ background: 'linear-gradient(transparent, rgba(0,0,0,0.5))' }}>
                 <div className="text-left">
-                  <h1 className="text-lg md:text-2xl lg:text-3xl mb-2 leading-tight" style={{ color: '#ffffff', fontFamily: 'Inter, sans-serif', fontWeight: 500 }}>
+                  <h1 className="text-xl md:text-3xl lg:text-4xl mb-2 leading-tight" style={{ color: '#ffffff', fontFamily: 'Inter, sans-serif', fontWeight: 500 }}>
                     Run AI that survives failure<br />
                     <span className="mt-2 block">and proves what it did.</span>
                   </h1>
                 </div>
                 <div className="text-left md:text-right" style={{ maxWidth: '300px' }}>
-                  <p className="text-sm md:text-base" style={{ color: '#e5e5e5', fontFamily: '-apple-system, BlinkMacSystemFont, "Segoe UI", Roboto, Helvetica, Arial, sans-serif', fontWeight: 400 }}>
+                  <p className="text-base md:text-lg" style={{ color: '#e5e5e5', fontFamily: '-apple-system, BlinkMacSystemFont, "Segoe UI", Roboto, Helvetica, Arial, sans-serif', fontWeight: 400 }}>
                     Deterministic runtime. Cloud + local fallback. OS-level containment with signed violation logs. Deploy anywhere.
                   </p>
                 </div>
