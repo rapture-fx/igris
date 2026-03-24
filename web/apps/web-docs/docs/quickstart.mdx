@@ -7,26 +7,26 @@
 ## Install Igris Runtime
 
 ```bash
-curl -sSL https://igris.sh/install | bash
+curl -fsSL https://igrisinertial.com/install | bash
 ```
 
 The installer detects your platform (Linux x86-64, ARM64, macOS Apple Silicon, macOS Intel, Windows), downloads the correct binary, verifies the checksum, and installs to `/usr/local/bin/igris-runtime`.
 
 ### Authenticate
 
+Once installed, authenticate with your API key:
+
+```bash
+igris-runtime auth igris_...
+```
+
+Then start the runtime:
+
 ```bash
 igris-runtime serve
 ```
 
-Set your credentials before starting:
-
-```bash
-export IGRIS_LICENSE_KEY=lic_…
-export IGRIS_API_KEY=igris_…
-igris-runtime serve
-```
-
-Get your keys from **Settings → License** and **Settings → Keys** in the console.
+Get your API key from **Settings → Keys** in the [console](https://console.igrisinertial.com/settings/keys).
 
 ### Verify
 
@@ -42,7 +42,7 @@ Once running, the runtime registers itself with your fleet. It appears in **Flee
 
 No credit card required. All features unlocked for 14 days.
 
-[Start Free Trial →](https://app.igrisinertial.com/signup)
+[Start Free Trial →](https://console.igrisinertial.com)
 
 ### Step 2: Get Your API Key
 
@@ -52,7 +52,7 @@ After signup, copy your API key from the dashboard:
 Dashboard → Settings → API Keys → Copy
 ```
 
-Your API key looks like: `sk-igris-abc123...`
+Your API key looks like: `igris_abc123...`
 
 ### Step 3: Make Your First Request
 
@@ -62,8 +62,8 @@ Your API key looks like: `sk-igris-abc123...`
 from openai import OpenAI
 
 client = OpenAI(
-    base_url="https://api.igrisinertial.com/v1",
-    api_key="sk-igris-YOUR_KEY"
+    base_url="https://overture.igrisinertial.com/v1",
+    api_key=os.environ['IGRIS_API_KEY']
 )
 
 response = client.chat.completions.create(
@@ -82,8 +82,8 @@ print(f"Provider: {response.metadata['provider']}")
 import OpenAI from 'openai';
 
 const client = new OpenAI({
-  baseURL: 'https://api.igrisinertial.com/v1',
-  apiKey: 'sk-igris-YOUR_KEY'
+  baseURL: 'https://overture.igrisinertial.com/v1',
+  apiKey: process.env.IGRIS_API_KEY
 });
 
 const response = await client.chat.completions.create({
@@ -99,8 +99,8 @@ console.log(`Provider: ${response.metadata.provider}`);
 **Using cURL:**
 
 ```bash
-curl -X POST https://api.igrisinertial.com/v1/infer \
-  -H "Authorization: Bearer sk-igris-YOUR_KEY" \
+curl -X POST https://overture.igrisinertial.com/v1/infer \
+  -H "Authorization: Bearer $IGRIS_API_KEY" \
   -H "Content-Type: application/json" \
   -d '{
     "model": "gpt-4",
@@ -118,7 +118,7 @@ Check your dashboard to see:
 - Latency metrics
 - Token usage
 
-[View Dashboard →](https://app.igrisinertial.com/dashboard)
+[View Dashboard →](https://console.igrisinertial.com/dashboard)
 
 ---
 
@@ -166,8 +166,8 @@ Every request includes metadata about routing:
 Request the cheapest provider that meets quality standards:
 
 ```bash
-curl -X POST https://api.igrisinertial.com/v1/infer \
-  -H "Authorization: Bearer sk-igris-YOUR_KEY" \
+curl -X POST https://overture.igrisinertial.com/v1/infer \
+  -H "Authorization: Bearer $IGRIS_API_KEY" \
   -H "Content-Type: application/json" \
   -d '{
     "model": "gpt-3.5-turbo",
@@ -184,8 +184,8 @@ curl -X POST https://api.igrisinertial.com/v1/infer \
 Request the fastest provider:
 
 ```bash
-curl -X POST https://api.igrisinertial.com/v1/infer \
-  -H "Authorization: Bearer sk-igris-YOUR_KEY" \
+curl -X POST https://overture.igrisinertial.com/v1/infer \
+  -H "Authorization: Bearer $IGRIS_API_KEY" \
   -H "Content-Type: application/json" \
   -d '{
     "model": "gpt-4",
@@ -197,13 +197,13 @@ curl -X POST https://api.igrisinertial.com/v1/infer \
 </details>
 
 <details>
-<summary><strong>Speculative Execution (Growth+ Tier)</strong></summary>
+<summary><strong>Speculative Execution (Horizon+ Tier)</strong></summary>
 
 Race multiple providers for 60% faster time-to-first-token:
 
 ```bash
-curl -X POST https://api.igrisinertial.com/v1/infer \
-  -H "Authorization: Bearer sk-igris-YOUR_KEY" \
+curl -X POST https://overture.igrisinertial.com/v1/infer \
+  -H "Authorization: Bearer $IGRIS_API_KEY" \
   -H "Content-Type: application/json" \
   -d '{
     "model": "gpt-4",
@@ -223,8 +223,8 @@ Get tokens as they're generated:
 from openai import OpenAI
 
 client = OpenAI(
-    base_url="https://api.igrisinertial.com/v1",
-    api_key="sk-igris-YOUR_KEY"
+    base_url="https://overture.igrisinertial.com/v1",
+    api_key="$IGRIS_API_KEY"
 )
 
 response = client.chat.completions.create(
