@@ -98,7 +98,7 @@ export default function Pricing() {
     <section id="pricing" className="pt-0 pb-0 bg-white dark:bg-[#1b1912] text-gray-900 dark:text-[#f6f6f4] relative transition-colors duration-200">
       <div className="mx-auto max-w-[1300px] px-4 sm:px-6 lg:px-8">
         <div className="relative px-4 md:px-8 lg:px-12 py-8 bg-white dark:bg-[#1b1912] z-10">
-          <div className="max-w-[1400px] mx-auto px-0 md:px-8 lg:px-0">
+          <div className="max-w-[1000px] mx-auto px-0 md:px-8 lg:px-0">
 
             <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-4 max-w-[1300px] mx-auto">
               {pricingTiers.map((tier, index) => (
@@ -113,12 +113,16 @@ export default function Pricing() {
                   <div className="p-6 flex flex-col h-full">
                     <div className="flex-grow">
                       <div className="mb-3">
-                        <h3 className="text-lg text-[#000000] dark:text-[#f6f6f4]" style={{ fontFamily: '-apple-system, BlinkMacSystemFont, "Segoe UI", Roboto, Helvetica, Arial, sans-serif' }}>
+                        <h3 className="text-lg font-bold text-[#000000] dark:text-[#f6f6f4]" style={{ fontFamily: '-apple-system, BlinkMacSystemFont, "Segoe UI", Roboto, Helvetica, Arial, sans-serif' }}>
                           {tier.name}
                         </h3>
-                        <p className="text-sm text-gray-600 dark:text-[#a8a898] mt-1 max-w-[200px]" style={{ fontFamily: '-apple-system, BlinkMacSystemFont, "Segoe UI", Roboto, Helvetica, Arial, sans-serif' }}>
+                        <p className="text-sm text-gray-600 dark:text-[#a8a898] mt-1 truncate" style={{ fontFamily: '-apple-system, BlinkMacSystemFont, "Segoe UI", Roboto, Helvetica, Arial, sans-serif' }}>
                           {tier.tagline}
                         </p>
+                      </div>
+
+                      {/* Image frame placeholder */}
+                      <div className="mb-4 rounded-lg border border-gray-200 dark:border-gray-700 bg-gray-50 dark:bg-[#1b1912]/40 overflow-hidden" style={{ height: '140px' }}>
                       </div>
 
                       <div className="mb-6">
