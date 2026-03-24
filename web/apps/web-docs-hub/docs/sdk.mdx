@@ -1,123 +1,29 @@
 # SDKs
 
+> **Private Beta** — The Igris SDKs are not yet published to public registries (PyPI, npm, crates.io, pkg.go.dev). To deploy an agent today, use the [install script](/docs/quickstart) — it is the only working installation path.
+>
+> SDK access is available via GitHub. Contact [support@igrisinertial.com](mailto:support@igrisinertial.com) or join the beta at [console.igrisinertial.com](https://console.igrisinertial.com).
+
+---
+
 Igris exposes an OpenAI-compatible API. Any existing OpenAI SDK works without modification — just change the base URL. For richer access to routing metadata, provider management, fleet, and audit, official Igris SDKs are available in four languages.
 
----
-
-## Quick Setup
-
-All SDKs connect to the same endpoint:
-
-```
-https://api.igrisinertial.com/v1
-```
-
-For local execution, point to your engine's address (default `http://localhost:8080`).
+> **Note:** Code examples below show the planned SDK API. Subject to change before public release.
 
 ---
 
-## JavaScript / TypeScript
+## OpenAI-Compatible (Works Today)
 
-**Install:**
+Any OpenAI SDK works against the Igris endpoint with zero code changes:
 
-```bash
-npm install @igris-inertial/sdk
-```
-
-**Basic inference:**
-
-```typescript
-import { IgrisClient } from '@igris-inertial/sdk';
-
-const client = new IgrisClient({
-  baseUrl: 'https://api.igrisinertial.com',
-  apiKey: process.env.IGRIS_API_KEY,
-});
-
-const response = await client.chatCompletion({
-  model: 'gpt-4',
-  messages: [{ role: 'user', content: 'Hello' }],
-});
-
-console.log(response.choices[0].message.content);
-console.log(response.metadata?.provider);   // 'anthropic'
-console.log(response.metadata?.cost_usd);   // 0.00021
-```
-
-**Cost-optimized routing:**
-
-```typescript
-const response = await client.infer({
-  model: 'gpt-4',
-  messages: [{ role: 'user', content: 'Summarize this document.' }],
-  optimize_for: 'cost',
-});
-```
-
-**OpenAI SDK (zero code changes):**
-
-```typescript
-import OpenAI from 'openai';
-
-const client = new OpenAI({
-  baseURL: 'https://api.igrisinertial.com/v1',
-  apiKey: process.env.IGRIS_API_KEY,
-});
-
-const response = await client.chat.completions.create({
-  model: 'gpt-4',
-  messages: [{ role: 'user', content: 'Hello' }],
-});
-```
-
----
-
-## Python
-
-**Install:**
-
-```bash
-pip install igris-inertial
-```
-
-**Basic inference:**
+**Python:**
 
 ```python
-from igris import IgrisClient
-
-client = IgrisClient(
-    base_url="https://api.igrisinertial.com",
-    api_key=os.environ["IGRIS_API_KEY"],
-)
-
-response = client.chat_completion({
-    "model": "gpt-4",
-    "messages": [{"role": "user", "content": "Hello"}],
-})
-
-print(response.choices[0].message.content)
-print(response.metadata.provider)   # 'openai'
-print(response.metadata.cost_usd)   # 0.00034
-```
-
-**With optimize_for and provider pin:**
-
-```python
-response = client.infer({
-    "model": "gpt-4",
-    "messages": [{"role": "user", "content": "Translate to French."}],
-    "optimize_for": "latency",
-    "provider": "anthropic",
-})
-```
-
-**OpenAI SDK (zero code changes):**
-
-```python
+import os
 from openai import OpenAI
 
 client = OpenAI(
-    base_url="https://api.igrisinertial.com/v1",
+    base_url="https://overture.igrisinertial.com/v1",
     api_key=os.environ["IGRIS_API_KEY"],
 )
 
@@ -125,31 +31,95 @@ response = client.chat.completions.create(
     model="gpt-4",
     messages=[{"role": "user", "content": "Hello"}],
 )
+print(response.choices[0].message.content)
+```
+
+**JavaScript / TypeScript:**
+
+```typescript
+import OpenAI from 'openai';
+
+const client = new OpenAI({
+  baseURL: 'https://overture.igrisinertial.com/v1',
+  apiKey: process.env.IGRIS_API_KEY,
+});
+
+const response = await client.chat.completions.create({
+  model: 'gpt-4',
+  messages: [{ role: 'user', content: 'Hello' }],
+});
+console.log(response.choices[0].message.content);
+```
+
+**Install OpenAI SDK:**
+
+```bash
+pip install openai          # Python
+npm install openai          # Node.js
 ```
 
 ---
 
-## Go
+## Igris Native SDKs (Private Beta)
 
-**Install:**
+> These packages are **not yet published**. Request access at [support@igrisinertial.com](mailto:support@igrisinertial.com).
 
-```bash
-go get github.com/igris-inertial/go-sdk
+### JavaScript / TypeScript
+
+```typescript
+import { IgrisClient } from '@igris-inertial/sdk';
+
+const client = new IgrisClient({
+  baseUrl: 'https://overture.igrisinertial.com',
+  apiKey: process.env.IGRIS_API_KEY,
+});
+
+const response = await client.infer({
+  model: 'gpt-4',
+  messages: [{ role: 'user', content: 'Hello' }],
+  optimize_for: 'cost',
+});
+
+console.log(response.choices[0].message.content);
+console.log(response.metadata?.provider);   // 'anthropic'
+console.log(response.metadata?.cost_usd);   // 0.00021
 ```
 
-**Basic inference:**
+### Python
+
+```python
+import os
+from igris import IgrisClient
+
+client = IgrisClient(
+    base_url="https://overture.igrisinertial.com",
+    api_key=os.environ["IGRIS_API_KEY"],
+)
+
+response = client.infer({
+    "model": "gpt-4",
+    "messages": [{"role": "user", "content": "Hello"}],
+    "optimize_for": "latency",
+})
+
+print(response.choices[0].message.content)
+print(response.metadata.provider)   # 'openai'
+```
+
+### Go
 
 ```go
 import (
+    "context"
     igris "github.com/igris-inertial/go-sdk"
 )
 
 client := igris.NewClient(
-    "https://api.igrisinertial.com",
+    "https://overture.igrisinertial.com",
     os.Getenv("IGRIS_API_KEY"),
 )
 
-resp, err := client.ChatCompletion(ctx, &igris.InferRequest{
+resp, err := client.Infer(context.Background(), &igris.InferRequest{
     Model: "gpt-4",
     Messages: []igris.Message{
         {Role: "user", Content: "Hello"},
@@ -162,71 +132,30 @@ if err != nil {
 fmt.Println(resp.Choices[0].Message.Content)
 ```
 
-**With options:**
-
-```go
-client := igris.NewClient(
-    "https://api.igrisinertial.com",
-    os.Getenv("IGRIS_API_KEY"),
-    igris.WithTimeout(10*time.Second),
-    igris.WithTenantID("tenant-abc"),
-)
-
-resp, err := client.Infer(ctx, &igris.InferRequest{
-    Model:       "gpt-4",
-    Messages:    []igris.Message{{Role: "user", Content: "Hello"}},
-    OptimizeFor: "cost",
-})
-```
-
----
-
-## Rust
-
-**Add to `Cargo.toml`:**
-
-```toml
-[dependencies]
-igris-inertial = "2.2"
-tokio = { version = "1", features = ["rt-multi-thread", "macros"] }
-```
-
-**Basic inference:**
+### Rust
 
 ```rust
-use igris_inertial::{IgrisClient, types::{InferRequest, Message}};
+use igris_inertial::{IgrisClient, InferRequest, Message};
 
 #[tokio::main]
 async fn main() -> Result<(), Box<dyn std::error::Error>> {
-    let client = IgrisClient::new(
-        "https://api.igrisinertial.com",
-        std::env::var("IGRIS_API_KEY")?,
-    )?;
+    let client = IgrisClient::builder("https://overture.igrisinertial.com")
+        .api_key(std::env::var("IGRIS_API_KEY")?)
+        .build()?;
 
-    let request = InferRequest {
+    let response = client.infer(&InferRequest {
         model: "gpt-4".to_string(),
         messages: vec![Message {
             role: "user".to_string(),
             content: "Hello".to_string(),
+            ..Default::default()
         }],
         ..Default::default()
-    };
+    }).await?;
 
-    let response = client.chat_completion(&request).await?;
     println!("{}", response.choices[0].message.content);
-
     Ok(())
 }
-```
-
-**Builder pattern:**
-
-```rust
-let client = IgrisClient::builder("https://api.igrisinertial.com")
-    .api_key(std::env::var("IGRIS_API_KEY")?)
-    .timeout(std::time::Duration::from_secs(10))
-    .tenant_id("tenant-abc")
-    .build()?;
 ```
 
 ---
@@ -246,9 +175,11 @@ All SDKs support the same core request fields:
 
 ## SDK Source
 
+Source is available on GitHub (private during beta):
+
 - [igris-javascript-sdk](https://github.com/igris-inertial/igris-javascript-sdk)
 - [igris-python-sdk](https://github.com/igris-inertial/igris-python-sdk)
 - [igris-go-sdk](https://github.com/igris-inertial/igris-go-sdk)
 - [igris-rust-sdk](https://github.com/igris-inertial/igris-rust-sdk)
 
-[API Reference →](/docs/api-reference)
+[API Reference →](/docs/api-reference) · [Quickstart →](/docs/quickstart)
