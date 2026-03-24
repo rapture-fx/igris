@@ -12,7 +12,7 @@ Use the cloud API endpoint with zero infrastructure to manage. Point your SDK at
 from openai import OpenAI
 
 client = OpenAI(
-    base_url="https://api.igrisinertial.com/v1",
+    base_url="https://overture.igrisinertial.com/v1",
     api_key="your-api-key"
 )
 ```
@@ -130,7 +130,7 @@ Configure in `config.json`:
 To register a local execution engine instance with the cloud coordination layer:
 
 ```bash
-curl -X POST https://api.igrisinertial.com/api/v1/runtime/register \
+curl -X POST https://overture.igrisinertial.com/api/v1/runtime/register \
   -H "Authorization: Bearer YOUR_API_KEY" \
   -d '{
     "name": "edge-device-01",
