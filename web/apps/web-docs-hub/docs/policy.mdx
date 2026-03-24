@@ -20,7 +20,7 @@ Policies configure four areas:
 ## Creating a Policy
 
 ```bash
-curl -X POST https://api.igrisinertial.com/v1/policies \
+curl -X POST https://overture.igrisinertial.com/v1/policies \
   -H "Authorization: Bearer YOUR_API_KEY" \
   -H "Content-Type: application/json" \
   -d '{
@@ -112,15 +112,15 @@ Define the order in which providers are tried when the primary fails:
 
 ```bash
 # List all policies
-curl https://api.igrisinertial.com/v1/policies \
+curl https://overture.igrisinertial.com/v1/policies \
   -H "Authorization: Bearer YOUR_API_KEY"
 
 # Get a specific policy
-curl https://api.igrisinertial.com/v1/policies/production-policy \
+curl https://overture.igrisinertial.com/v1/policies/production-policy \
   -H "Authorization: Bearer YOUR_API_KEY"
 
 # Update a policy (hot reload — takes effect immediately)
-curl -X PATCH https://api.igrisinertial.com/v1/policies/production-policy \
+curl -X PATCH https://overture.igrisinertial.com/v1/policies/production-policy \
   -H "Authorization: Bearer YOUR_API_KEY" \
   -H "Content-Type: application/json" \
   -d '{"budget": {"monthly_limit_usd": 750}}'
@@ -136,11 +136,11 @@ Every update creates a new policy version. You can view the history and roll bac
 
 ```bash
 # List versions
-curl https://api.igrisinertial.com/v1/policies/production-policy/versions \
+curl https://overture.igrisinertial.com/v1/policies/production-policy/versions \
   -H "Authorization: Bearer YOUR_API_KEY"
 
 # Roll back to a previous version
-curl -X POST https://api.igrisinertial.com/v1/policies/production-policy/rollback \
+curl -X POST https://overture.igrisinertial.com/v1/policies/production-policy/rollback \
   -H "Authorization: Bearer YOUR_API_KEY" \
   -d '{"version": 3}'
 ```
