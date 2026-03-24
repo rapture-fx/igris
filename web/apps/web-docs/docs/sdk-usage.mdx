@@ -20,8 +20,8 @@ npm install @igris-inertial/sdk
 import { IgrisClient } from '@igris-inertial/sdk';
 
 const client = new IgrisClient({
-  baseUrl: 'https://api.igris-inertial.com',
-  apiKey: 'your-api-key',
+  baseUrl: 'https://overture.igrisinertial.com',
+  apiKey: process.env.IGRIS_API_KEY,
 });
 
 // Simple inference
@@ -69,8 +69,8 @@ pip install igris-inertial
 from igris import IgrisClient, InferRequest, Message
 
 client = IgrisClient(
-    base_url="https://api.igris-inertial.com",
-    api_key="your-api-key",
+    base_url="https://overture.igrisinertial.com",
+    api_key=os.environ['IGRIS_API_KEY'],
 )
 
 # Simple inference
@@ -131,8 +131,8 @@ import (
 
 func main() {
     client := igris.NewClient(
-        "https://api.igris-inertial.com",
-        "your-api-key",
+        "https://overture.igrisinertial.com",
+        os.Getenv("IGRIS_API_KEY"),
     )
 
     ctx := context.Background()
@@ -190,8 +190,8 @@ use igris_inertial::{IgrisClient, InferRequest, Message};
 
 #[tokio::main]
 async fn main() -> Result<(), Box<dyn std::error::Error>> {
-    let client = IgrisClient::builder("https://api.igris-inertial.com")
-        .api_key("your-api-key")
+    let client = IgrisClient::builder("https://overture.igrisinertial.com")
+        .api_key(std::env::var("IGRIS_API_KEY").unwrap())
         .build()?;
 
     let request = InferRequest {
@@ -247,7 +247,7 @@ from openai import OpenAI
 # Point to Igris Overture instead of OpenAI
 client = OpenAI(
     base_url="http://localhost:8081/v1",
-    api_key="your-api-key"  # optional
+    api_key=os.environ['IGRIS_API_KEY']  # optional
 )
 
 # Standard OpenAI API calls
@@ -268,7 +268,7 @@ import OpenAI from 'openai';
 
 const client = new OpenAI({
   baseURL: 'http://localhost:8081/v1',
-  apiKey: 'your-api-key' // optional
+  apiKey: process.env.IGRIS_API_KEY // optional
 });
 
 const response = await client.chat.completions.create({
@@ -284,7 +284,7 @@ console.log(response.choices[0].message.content);
 ```bash
 curl -X POST http://localhost:8081/v1/infer \
   -H "Content-Type: application/json" \
-  -H "Authorization: Bearer your-api-key" \
+  -H "Authorization: Bearer $IGRIS_API_KEY" \
   -d '{
     "model": "gpt-4",
     "messages": [
