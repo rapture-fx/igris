@@ -21,6 +21,7 @@ import (
 	"github.com/rs/zerolog/log"
 
 	"github.com/Igris-inertial/system/igris-overture/billing"
+	"github.com/Igris-inertial/system/igris-overture/metrics"
 	"github.com/Igris-inertial/system/igris-overture/middleware"
 )
 
@@ -247,6 +248,9 @@ func (h *DownloadHandler) redirectToBinary(c *fiber.Ctx, binaryName, version str
 // No authentication required. The binary is useless without a valid API key
 // to register with Overture — auth is enforced at runtime startup, not download time.
 func (h *DownloadHandler) PublicDownload(c *fiber.Ctx) error {
+	// Count every attempt regardless of outcome
+	metrics.RuntimeInstallAttemptsTotal.Inc()
+
 	platform := c.Query("platform", "")
 	if platform == "" {
 		platform = detectPlatform(c.Get("User-Agent"))
@@ -267,10 +271,19 @@ func (h *DownloadHandler) PublicDownload(c *fiber.Ctx) error {
 	}
 
 	if h.binariesDir != "" {
-		return h.streamBinary(c, platform, binaryName, version)
+		err := h.streamBinary(c, platform, binaryName, version)
+		if err == nil && c.Response().StatusCode() == fiber.StatusOK {
+			metrics.RuntimeInstallCompletionsTotal.Inc()
+		}
+		return err
 	}
 	if h.binariesURL != "" {
-		return h.redirectToBinary(c, binaryName, version)
+		// A redirect (302) counts as a successful hand-off
+		err := h.redirectToBinary(c, binaryName, version)
+		if err == nil {
+			metrics.RuntimeInstallCompletionsTotal.Inc()
+		}
+		return err
 	}
 
 	return c.Status(fiber.StatusServiceUnavailable).JSON(fiber.Map{
