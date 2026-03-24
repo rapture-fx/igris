@@ -28,8 +28,8 @@ Each Runtime instance calls the registration endpoint when it starts:
 
 ```bash
 # From your Runtime instance (or via setup script):
-curl -X POST https://api.igrisinertial.com/api/v1/runtime/register \
-  -H "Authorization: Bearer YOUR_IGRIS_KEY" \
+curl -X POST https://overture.igrisinertial.com/api/v1/runtime/register \
+  -H "Authorization: Bearer $IGRIS_API_KEY" \
   -H "Content-Type: application/json" \
   -d '{
     "name": "edge-device-01",
@@ -57,8 +57,8 @@ Save the `runtime_id` — it's used for configuration and monitoring calls.
 Registered instances send heartbeats to signal they are alive. Runtime handles this automatically when configured with your API key. Instances that miss heartbeats are marked offline in the fleet dashboard.
 
 ```bash
-curl -X POST https://api.igrisinertial.com/api/v1/runtime/heartbeat \
-  -H "Authorization: Bearer YOUR_IGRIS_KEY" \
+curl -X POST https://overture.igrisinertial.com/api/v1/runtime/heartbeat \
+  -H "Authorization: Bearer $IGRIS_API_KEY" \
   -H "Content-Type: application/json" \
   -d '{
     "runtime_id": "rt_abc123",
@@ -78,8 +78,8 @@ curl -X POST https://api.igrisinertial.com/api/v1/runtime/heartbeat \
 View all registered instances:
 
 ```bash
-curl https://api.igrisinertial.com/api/v1/runtime/list \
-  -H "Authorization: Bearer YOUR_IGRIS_KEY"
+curl https://overture.igrisinertial.com/api/v1/runtime/list \
+  -H "Authorization: Bearer $IGRIS_API_KEY"
 ```
 
 ```json
@@ -110,8 +110,8 @@ curl https://api.igrisinertial.com/api/v1/runtime/list \
 Get an aggregated health view across all instances:
 
 ```bash
-curl https://api.igrisinertial.com/api/fleet/health \
-  -H "Authorization: Bearer YOUR_IGRIS_KEY"
+curl https://overture.igrisinertial.com/api/fleet/health \
+  -H "Authorization: Bearer $IGRIS_API_KEY"
 ```
 
 ```json
@@ -131,8 +131,8 @@ curl https://api.igrisinertial.com/api/fleet/health \
 Push configuration to a specific instance:
 
 ```bash
-curl -X PUT https://api.igrisinertial.com/api/fleet/agents/rt_abc123/config \
-  -H "Authorization: Bearer YOUR_IGRIS_KEY" \
+curl -X PUT https://overture.igrisinertial.com/api/fleet/agents/rt_abc123/config \
+  -H "Authorization: Bearer $IGRIS_API_KEY" \
   -H "Content-Type: application/json" \
   -d '{
     "local_fallback": {
@@ -156,8 +156,8 @@ Fleet instances send execution telemetry back to Overture. This includes per-req
 View telemetry for a specific instance:
 
 ```bash
-curl https://api.igrisinertial.com/api/fleet/agents/rt_abc123 \
-  -H "Authorization: Bearer YOUR_IGRIS_KEY"
+curl https://overture.igrisinertial.com/api/fleet/agents/rt_abc123 \
+  -H "Authorization: Bearer $IGRIS_API_KEY"
 ```
 
 Telemetry feeds into the Overture observability dashboard. Fleet-wide metrics are available at `/api/fleet/health`.
