@@ -28,9 +28,9 @@ export default function HomePage() {
         <main>
           <Hero />
           <Products />
-          <CoreCapabilities />
           <AutonomousSystems />
           <SDKs />
+          <CoreCapabilities />
           <MultiTenancy />
           <WhyItExists />
           <ClosingPosition />
