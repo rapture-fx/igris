@@ -20,10 +20,19 @@ detect_platform() {
             ;;
     esac
     case "$(uname -m)" in
-        x86_64|amd64) arch="amd64" ;;
+        x86_64|amd64)
+            # On macOS, check if running under Rosetta on Apple Silicon
+            if [ "$os" = "macos" ] && [ "$(sysctl -n sysctl.proc_translated 2>/dev/null)" = "1" ]; then
+                arch="arm64"
+            else
+                arch="amd64"
+            fi
+            ;;
         arm64|aarch64) arch="arm64" ;;
+        armv7l|armv7)  arch="armv7" ;;
+        armv6l|armv6)  arch="armv7" ;;  # Pi Zero — use armv7 build
         *)
-            die "Unsupported architecture: $(uname -m). Supported: x86-64, ARM64."
+            die "Unsupported architecture: $(uname -m). Supported: x86-64, ARM64, ARMv7."
             ;;
     esac
     echo "${os}-${arch}"
@@ -86,7 +95,7 @@ HTTP_STATUS=$(curl -sSL \
 
 case "$HTTP_STATUS" in
     200) ;;
-    400) die "Platform '$PLATFORM' is not supported. Supported: linux-amd64, linux-arm64, macos-arm64." ;;
+    400) die "Platform '$PLATFORM' is not supported. Supported: linux-amd64, linux-arm64, linux-armv7, macos-arm64, macos-amd64." ;;
     404) die "Runtime binary not available for platform: $PLATFORM. Please contact support." ;;
     503) die "Binary hosting not yet configured. Please contact support." ;;
     *)   die "Download failed (HTTP ${HTTP_STATUS})." ;;
