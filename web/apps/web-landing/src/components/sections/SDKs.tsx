@@ -16,8 +16,8 @@ const languageLabels: Record<Language, string> = {
 const codeExamples: Record<Language, string[]> = {
   curl: [
     '# Cloud inference',
-    'curl -X POST https://api.igris-inertial.com/v1/infer \\',
-    '  -H "Authorization: Bearer your-api-key" \\',
+    'curl -X POST https://overture.igrisinertial.com/v1/infer \\',
+    '  -H "Authorization: Bearer $IGRIS_API_KEY" \\',
     '  -H "Content-Type: application/json" \\',
     '  -d \'{',
     '    "model": "gpt-4",',
@@ -46,8 +46,8 @@ const codeExamples: Record<Language, string[]> = {
     "import { IgrisClient } from '@igris-inertial/sdk';",
     '',
     'const client = new IgrisClient({',
-    "  baseUrl: 'https://api.igris-inertial.com',",
-    "  apiKey: 'your-api-key',",
+    "  baseUrl: 'https://overture.igrisinertial.com',",
+    "  apiKey: process.env.IGRIS_API_KEY,",
     '});',
     '',
     'const response = await client.infer({',
@@ -63,7 +63,7 @@ const codeExamples: Record<Language, string[]> = {
     '',
     'const runtime = new Runtime({',
     "  localUrl: 'http://localhost:8080',",
-    "  cloudUrl: 'https://api.igris-inertial.com',",
+    "  cloudUrl: 'https://overture.igrisinertial.com',",
     '  autoFallback: true,',
     '});',
     '',
@@ -73,11 +73,12 @@ const codeExamples: Record<Language, string[]> = {
     '});',
   ],
   python: [
+    'import os',
     'from igris import IgrisClient, InferRequest, Message',
     '',
     'client = IgrisClient(',
-    '    base_url="https://api.igris-inertial.com",',
-    '    api_key="your-api-key",',
+    '    base_url="https://overture.igrisinertial.com",',
+    '    api_key=os.environ["IGRIS_API_KEY"],',
     ')',
     '',
     'response = client.infer(InferRequest(',
@@ -93,7 +94,7 @@ const codeExamples: Record<Language, string[]> = {
     '',
     'runtime = Runtime(RuntimeConfig(',
     '    local_url="http://localhost:8080",',
-    '    cloud_url="https://api.igris-inertial.com",',
+    '    cloud_url="https://overture.igrisinertial.com",',
     '    auto_fallback=True,',
     '))',
     '',
@@ -109,8 +110,8 @@ const codeExamples: Record<Language, string[]> = {
     ')',
     '',
     'client := igris.NewClient(',
-    '    "https://api.igris-inertial.com",',
-    '    "your-api-key",',
+    '    "https://overture.igrisinertial.com",',
+    '    os.Getenv("IGRIS_API_KEY"),',
     ')',
     '',
     'resp, err := client.Infer(ctx, &igris.InferRequest{',
@@ -123,7 +124,7 @@ const codeExamples: Record<Language, string[]> = {
     '// Local runtime with cloud fallback',
     'runtime := igris.NewRuntime(',
     '    "http://localhost:8080",',
-    '    igris.WithCloudURL("https://api.igris-inertial.com"),',
+    '    igris.WithCloudURL("https://overture.igrisinertial.com"),',
     '    igris.WithAutoFallback(true),',
     ')',
     '',
@@ -137,8 +138,8 @@ const codeExamples: Record<Language, string[]> = {
   rust: [
     'use igris_inertial::{IgrisClient, InferRequest, Message};',
     '',
-    'let client = IgrisClient::builder("https://api.igris-inertial.com")',
-    '    .api_key("your-api-key")',
+    'let client = IgrisClient::builder("https://overture.igrisinertial.com")',
+    '    .api_key(std::env::var("IGRIS_API_KEY")?)',
     '    .build()?;',
     '',
     'let response = client.infer(&InferRequest {',
@@ -156,7 +157,7 @@ const codeExamples: Record<Language, string[]> = {
     'use igris_inertial::Runtime;',
     '',
     'let runtime = Runtime::builder("http://localhost:8080")',
-    '    .cloud_url("https://api.igris-inertial.com")',
+    '    .cloud_url("https://overture.igrisinertial.com")',
     '    .auto_fallback(true)',
     '    .build()?;',
     '',
@@ -414,7 +415,7 @@ export default function SDKs() {
                 </p>
                 <div>
                   <a
-                    href="https://docs.igris-inertial.com/docs/sdk/"
+                    href="https://docs.igrisinertial.com/docs/sdk/"
                     className="text-sm text-gray-900 dark:text-[#f6f6f4] underline decoration-dotted underline-offset-2 hover:text-gray-600 dark:hover:text-gray-300 transition-colors"
                     style={{ fontFamily }}
                   >
@@ -456,7 +457,7 @@ export default function SDKs() {
                 </p>
                 <div>
                   <a
-                    href="https://docs.igris-inertial.com/docs/behavior-trees/"
+                    href="https://docs.igrisinertial.com/docs/behavior-trees/"
                     className="text-sm text-gray-900 dark:text-[#f6f6f4] underline decoration-dotted underline-offset-2 hover:text-gray-600 dark:hover:text-gray-300 transition-colors"
                     style={{ fontFamily }}
                   >
