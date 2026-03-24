@@ -153,19 +153,18 @@ fi
 echo ""
 echo "  ────────────────────────────────────────────────"
 echo ""
-printf "  %-18s  %s\n"  '     \ \ \ \   '  ''
-printf "  %-18s  %s\n"  '   \ \ \ \ \ \ '  'Next steps'
-printf "  %-18s  %s\n"  '  \ \ \ \ \ \ \'  ''
-printf "  %-18s  %s\n"  ' \ \ \ \ \ \ \ '  '1. Authenticate with your API key:'
-printf "  %-18s  %s\n"  '  \ \ \ \ \ \ \'  '   igris-runtime auth igris_...'
-printf "  %-18s  %s\n"  '   \ \ \ \ \ \ '  ''
-printf "  %-18s  %s\n"  '     \ \ \ \   '  '2. Start the runtime:'
-printf "  %-18s  %s\n"  ''                 '   igris-runtime serve'
-printf "  %-18s  %s\n"  ''                 ''
-printf "  %-18s  %s\n"  ''                 'Get your API key:'
-printf "  %-18s  %s\n"  ''                 '→ https://console.igrisinertial.com/settings/keys'
-printf "  %-18s  %s\n"  ''                 ''
-printf "  %-18s  %s\n"  ''                 'Docs: https://docs.igrisinertial.com/runtime'
+echo "  Next steps"
+echo ""
+echo "  1. Authenticate with your API key:"
+echo "        igris-runtime auth igris_..."
+echo ""
+echo "  2. Start the runtime:"
+echo "        igris-runtime serve"
+echo ""
+echo "  Get your API key:"
+echo "  → https://console.igrisinertial.com/settings/keys"
+echo ""
+echo "  Docs: https://docs.igrisinertial.com/runtime"
 echo ""
 echo "  ────────────────────────────────────────────────"
 echo ""
