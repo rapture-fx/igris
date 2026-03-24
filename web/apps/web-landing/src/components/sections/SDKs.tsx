@@ -386,7 +386,7 @@ export default function SDKs() {
           {/* Row 1 - Cloud + Runtime SDK */}
           <div className="grid grid-cols-1 md:grid-cols-2 md:[min-height:280px]">
             {/* Col 1 - Text */}
-            <div className="flex flex-col justify-start pt-6 pb-8 pr-4 border-b md:border-b-0 md:border-r border-[rgba(209,213,219,0.35)]">
+            <div className="flex flex-col justify-start pt-6 pb-8 pr-4 border-b md:border-b-0 md:border-r border-[rgba(209,213,219,0.2)]">
               <div className="max-w-md">
                 <p className="text-xs md:text-sm text-gray-600 dark:text-[#a8a898] leading-relaxed mb-4" style={{ fontFamily }}>
                   {languages.map((lang, i) => (
@@ -444,7 +444,7 @@ export default function SDKs() {
           {/* Row 2 - Behavior Trees */}
           <div className="grid grid-cols-1 md:grid-cols-2 md:[min-height:280px]">
             {/* Col 1 - Text */}
-            <div className="flex flex-col justify-start pt-6 pb-8 pr-4 border-b md:border-b-0 md:border-r border-[rgba(209,213,219,0.35)]">
+            <div className="flex flex-col justify-start pt-6 pb-8 pr-4 border-b md:border-b-0 md:border-r border-[rgba(209,213,219,0.2)]">
               <div className="max-w-md">
                 <h4 className="text-base md:text-lg text-[#000000] dark:text-[#f6f6f4] mb-4" style={{ fontFamily }}>
                   Behavior Trees
