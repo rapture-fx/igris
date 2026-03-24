@@ -14,6 +14,7 @@ import (
 	"net/http"
 	"time"
 
+	"github.com/Igris-inertial/system/igris-overture/metrics"
 	"github.com/Igris-inertial/system/igris-overture/models"
 	"github.com/google/uuid"
 )
@@ -85,6 +86,7 @@ func (h *WebhookHandler) HandleWebhook(w http.ResponseWriter, r *http.Request) {
 	body, err := io.ReadAll(r.Body)
 	if err != nil {
 		h.logger.Printf("[Webhook] Failed to read body: %v", err)
+		metrics.BillingWebhookFailuresTotal.Inc()
 		http.Error(w, "Failed to read body", http.StatusBadRequest)
 		return
 	}
@@ -94,6 +96,7 @@ func (h *WebhookHandler) HandleWebhook(w http.ResponseWriter, r *http.Request) {
 	signature := r.Header.Get("X-Polar-Signature")
 	if !h.verifySignature(body, signature) {
 		h.logger.Printf("[Webhook] Invalid signature")
+		metrics.BillingWebhookFailuresTotal.Inc()
 		http.Error(w, "Invalid signature", http.StatusUnauthorized)
 		return
 	}
@@ -102,6 +105,7 @@ func (h *WebhookHandler) HandleWebhook(w http.ResponseWriter, r *http.Request) {
 	var event WebhookEvent
 	if err := json.Unmarshal(body, &event); err != nil {
 		h.logger.Printf("[Webhook] Failed to parse event: %v", err)
+		metrics.BillingWebhookFailuresTotal.Inc()
 		http.Error(w, "Invalid JSON", http.StatusBadRequest)
 		return
 	}
@@ -112,6 +116,7 @@ func (h *WebhookHandler) HandleWebhook(w http.ResponseWriter, r *http.Request) {
 	// Route to handler
 	if err := h.routeEvent(&event); err != nil {
 		h.logger.Printf("[Webhook] Handler failed: %v", err)
+		metrics.BillingWebhookFailuresTotal.Inc()
 		http.Error(w, "Handler failed", http.StatusInternalServerError)
 		return
 	}
