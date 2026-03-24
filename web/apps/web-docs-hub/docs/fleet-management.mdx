@@ -9,7 +9,7 @@ Igris can manage large numbers of execution engine instances from a central coor
 Each execution engine instance registers with the coordination layer on startup. Registration requires an endpoint, a name, and optional tags for routing.
 
 ```bash
-curl -X POST https://api.igrisinertial.com/api/v1/runtime/register \
+curl -X POST https://overture.igrisinertial.com/api/v1/runtime/register \
   -H "Authorization: Bearer YOUR_API_KEY" \
   -H "Content-Type: application/json" \
   -d '{
@@ -44,7 +44,7 @@ If an instance misses three consecutive heartbeats, it is marked `offline`. Requ
 
 List all instances:
 ```bash
-curl https://api.igrisinertial.com/api/v1/runtime/instances \
+curl https://overture.igrisinertial.com/api/v1/runtime/instances \
   -H "Authorization: Bearer YOUR_API_KEY"
 ```
 
@@ -71,7 +71,7 @@ Configuration updates can be pushed to the entire fleet or to specific instances
 
 ```bash
 # Push config to all instances tagged "site-a"
-curl -X POST https://api.igrisinertial.com/api/v1/runtime/config/push \
+curl -X POST https://overture.igrisinertial.com/api/v1/runtime/config/push \
   -H "Authorization: Bearer YOUR_API_KEY" \
   -H "Content-Type: application/json" \
   -d '{
@@ -92,7 +92,7 @@ The push is acknowledged by each instance. If an instance is offline at push tim
 On Horizon and Infinite tiers, execution engine instances can be updated over the air. The coordination layer distributes the new binary and triggers a rolling restart.
 
 ```bash
-curl -X POST https://api.igrisinertial.com/api/v1/runtime/update \
+curl -X POST https://overture.igrisinertial.com/api/v1/runtime/update \
   -H "Authorization: Bearer YOUR_API_KEY" \
   -d '{
     "selector": {"tags": ["robotics"]},
