@@ -16,7 +16,7 @@ export default function Products() {
       <div style={{ borderTop: '0.5px solid rgba(209, 213, 219, 0.35)' }} />
 
       <div className="mx-auto max-w-[1300px] px-4 sm:px-6 lg:px-8">
-        <div className="px-3 md:px-8 lg:px-12 rounded-t-2xl" style={{ borderLeft: '0.5px solid rgba(209, 213, 219, 0.35)', borderRight: '0.5px solid rgba(209, 213, 219, 0.35)', borderTop: '0.5px solid rgba(209, 213, 219, 0.35)' }}>
+        <div className="px-3 md:px-8 lg:px-12" style={{ borderLeft: '0.5px solid rgba(209, 213, 219, 0.35)', borderRight: '0.5px solid rgba(209, 213, 219, 0.35)' }}>
           <div className="flex flex-col md:flex-row md:items-center md:justify-between gap-3" style={{ paddingTop: '1.5rem', paddingBottom: '1.5rem' }}>
             <h2 className="text-lg md:text-xl lg:text-2xl text-[#000000] dark:text-[#f6f6f4]" style={{ fontFamily: '-apple-system, BlinkMacSystemFont, "Segoe UI", Roboto, Helvetica, Arial, sans-serif' }}>
               The execution layer beneath intelligence.
@@ -36,8 +36,8 @@ export default function Products() {
       <div style={{ borderTop: '0.5px solid rgba(209, 213, 219, 0.35)' }} />
 
       <div className="mx-auto max-w-[1300px] px-4 sm:px-6 lg:px-8">
-        <div className="px-4 md:px-8 lg:px-12 py-6 md:py-10 bg-[#f9f9fa] dark:bg-[#1b1912]/60 rounded-b-2xl" style={{ borderLeft: '0.5px solid rgba(209, 213, 219, 0.35)', borderRight: '0.5px solid rgba(209, 213, 219, 0.35)', borderBottom: '0.5px solid rgba(209, 213, 219, 0.35)', paddingBottom: 0 }}>
-          <div style={{ paddingTop: '2rem', paddingBottom: '2rem', position: 'relative' }} className="md:!pt-16 md:!pb-16">
+        <div className="px-3 md:px-8 lg:px-12" style={{ borderLeft: '0.5px solid rgba(209, 213, 219, 0.35)', borderRight: '0.5px solid rgba(209, 213, 219, 0.35)', paddingBottom: 0 }}>
+          <div style={{ paddingTop: '2rem', paddingBottom: '2rem', position: 'relative' }} className="md:!pt-20 md:!pb-20">
             <div className="hidden sm:block" style={{ position: 'absolute', top: '3rem', right: 0, bottom: '3rem', display: 'flex', alignItems: 'center', justifyContent: 'center' }}>
               <div className="bg-[#f9f9fa] dark:bg-[#1b1912]/60" style={{ 
                 width: '600px', 
