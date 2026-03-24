@@ -361,6 +361,7 @@ var platformBinaries = map[string]string{
 	"macos-arm64":   "igris-runtime-macos-arm64.tar.gz",
 	"darwin-arm64":  "igris-runtime-macos-arm64.tar.gz",
 	"macos-amd64":   "igris-runtime-macos-x64.tar.gz",
+	"macos-x64":     "igris-runtime-macos-x64.tar.gz",
 	"darwin-amd64":  "igris-runtime-macos-x64.tar.gz",
 }
 
@@ -370,7 +371,7 @@ func normalizePlatform(p string) string {
 	case "darwin-arm64", "macos-arm64":
 		return "macos-arm64"
 	case "darwin-amd64", "macos-amd64":
-		return "macos-amd64"
+		return "macos-x64"
 	default:
 		return p
 	}
