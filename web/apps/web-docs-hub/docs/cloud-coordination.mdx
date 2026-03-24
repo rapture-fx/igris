@@ -63,7 +63,7 @@ Igris monitors provider health continuously:
 - **Error rate tracking**: consecutive errors trigger circuit-breaker behavior
 - **Recovery detection**: providers that return to health are re-admitted to the routing pool automatically
 
-The provider health dashboard is available at [app.igrisinertial.com](https://app.igrisinertial.com).
+The provider health dashboard is available at [console.igrisinertial.com](https://console.igrisinertial.com).
 
 ---
 
@@ -74,7 +74,7 @@ Each tenant provides their own cloud provider API keys. Keys are encrypted at re
 Add a provider key:
 
 ```bash
-curl -X POST https://api.igrisinertial.com/v1/vault/keys \
+curl -X POST https://overture.igrisinertial.com/v1/vault/keys \
   -H "Authorization: Bearer YOUR_IGRIS_KEY" \
   -H "Content-Type: application/json" \
   -d '{"provider": "openai", "key": "sk-..."}'
@@ -98,7 +98,7 @@ The coordination layer manages registered execution engine instances:
 
 ```bash
 # Register an execution engine instance
-curl -X POST https://api.igrisinertial.com/api/v1/runtime/register \
+curl -X POST https://overture.igrisinertial.com/api/v1/runtime/register \
   -H "Authorization: Bearer YOUR_API_KEY" \
   -d '{
     "name": "robot-arm-01",
