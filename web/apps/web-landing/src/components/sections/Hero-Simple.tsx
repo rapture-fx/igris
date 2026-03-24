@@ -50,7 +50,7 @@ export default function Hero() {
             {/* Install command - below image */}
             <div className="flex justify-center px-2 md:px-0">
               <div
-                className="inline-flex items-center gap-2 md:gap-4 rounded-lg px-3 py-2 md:px-6 md:py-3.5 text-xs md:text-base border shadow-lg w-full md:w-auto justify-center"
+                className="inline-flex items-center gap-2 md:gap-4 rounded-lg px-3 py-2 md:px-6 md:py-3.5 text-xs md:text-base border shadow w-full md:w-auto justify-center"
                 style={{
                   backgroundColor: mounted && theme === 'dark' ? '#1b1912' : '#ffffff',
                   borderColor: mounted && theme === 'dark' ? 'rgba(246,246,244,0.08)' : 'rgba(0,0,0,0.1)',
