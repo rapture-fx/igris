@@ -498,6 +498,44 @@ func UpdateGoroutineCount(count int) {
 }
 
 // ==========================================
+// Operations Metrics (P3-4 Monitoring)
+// ==========================================
+
+var (
+	// BillingWebhookFailuresTotal counts Polar webhook processing errors
+	BillingWebhookFailuresTotal = promauto.NewCounter(
+		prometheus.CounterOpts{
+			Name: "billing_webhook_failures_total",
+			Help: "Total number of Polar billing webhook processing failures",
+		},
+	)
+
+	// RuntimeInstallAttemptsTotal counts all requests to the public runtime install endpoint
+	RuntimeInstallAttemptsTotal = promauto.NewCounter(
+		prometheus.CounterOpts{
+			Name: "runtime_install_attempts_total",
+			Help: "Total number of runtime binary install download attempts",
+		},
+	)
+
+	// RuntimeInstallCompletionsTotal counts successfully completed runtime binary downloads
+	RuntimeInstallCompletionsTotal = promauto.NewCounter(
+		prometheus.CounterOpts{
+			Name: "runtime_install_completions_total",
+			Help: "Total number of runtime binary install downloads that completed successfully (HTTP 200)",
+		},
+	)
+
+	// ActiveRuntimeAgents tracks the current number of registered runtime agents
+	ActiveRuntimeAgents = promauto.NewGauge(
+		prometheus.GaugeOpts{
+			Name: "igris_active_runtime_agents",
+			Help: "Number of currently registered and active runtime agents",
+		},
+	)
+)
+
+// ==========================================
 // Cognitive Layer Metrics (v1.2.0)
 // ==========================================
 
