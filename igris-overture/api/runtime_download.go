@@ -349,14 +349,19 @@ func (h *DownloadHandler) logDownload(tenantID, ip, version, platform, userAgent
 // These names MUST match what the GitHub Actions release workflow produces:
 //   igris-runtime-linux-x64.tar.gz
 //   igris-runtime-linux-arm64.tar.gz
+//   igris-runtime-linux-armv7.tar.gz
 //   igris-runtime-macos-arm64.tar.gz
+//   igris-runtime-macos-x64.tar.gz
 // The redirect URL becomes: RUNTIME_BINARIES_URL/<version>/<archive>
 var platformBinaries = map[string]string{
 	"linux-amd64":   "igris-runtime-linux-x64.tar.gz",
 	"linux-x64":     "igris-runtime-linux-x64.tar.gz",
 	"linux-arm64":   "igris-runtime-linux-arm64.tar.gz",
+	"linux-armv7":   "igris-runtime-linux-armv7.tar.gz",
 	"macos-arm64":   "igris-runtime-macos-arm64.tar.gz",
 	"darwin-arm64":  "igris-runtime-macos-arm64.tar.gz",
+	"macos-amd64":   "igris-runtime-macos-x64.tar.gz",
+	"darwin-amd64":  "igris-runtime-macos-x64.tar.gz",
 }
 
 // normalizePlatform maps aliases to canonical keys.
@@ -365,7 +370,7 @@ func normalizePlatform(p string) string {
 	case "darwin-arm64", "macos-arm64":
 		return "macos-arm64"
 	case "darwin-amd64", "macos-amd64":
-		return "darwin-amd64"
+		return "macos-amd64"
 	default:
 		return p
 	}
