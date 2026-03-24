@@ -116,9 +116,6 @@ export default function Pricing() {
                         <h3 className="text-lg font-bold text-[#000000] dark:text-[#f6f6f4]" style={{ fontFamily: '-apple-system, BlinkMacSystemFont, "Segoe UI", Roboto, Helvetica, Arial, sans-serif' }}>
                           {tier.name}
                         </h3>
-                        <p className="text-sm text-gray-600 dark:text-[#a8a898] mt-1 truncate" style={{ fontFamily: '-apple-system, BlinkMacSystemFont, "Segoe UI", Roboto, Helvetica, Arial, sans-serif' }}>
-                          {tier.tagline}
-                        </p>
                       </div>
 
                       {/* Image frame placeholder */}
