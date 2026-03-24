@@ -43,7 +43,7 @@ export default function AutonomousSystems() {
         <div className="px-4 md:px-8 lg:px-12" style={{ borderLeft: borderStyle, borderRight: borderStyle }}>
 
           {/* Row 1 - AI Agents */}
-          <div className="grid grid-cols-1 md:grid-cols-2 md:[min-height:280px]">
+          <div className="grid grid-cols-1 md:grid-cols-2 md:[min-height:400px]">
             {/* Col 1 - Text */}
             <div className="flex flex-col pt-6 pb-8 pr-4 border-b md:border-b-0 md:border-r border-[rgba(209,213,219,0.2)]">
               <div className="max-w-md">
@@ -94,7 +94,7 @@ export default function AutonomousSystems() {
       {/* Row 2 - Robots */}
       <div className="mx-auto max-w-[1300px] px-4 sm:px-6 lg:px-8">
         <div className="px-4 md:px-8 lg:px-12" style={{ borderLeft: borderStyle, borderRight: borderStyle }}>
-          <div className="grid grid-cols-1 md:grid-cols-2 md:[min-height:280px]">
+          <div className="grid grid-cols-1 md:grid-cols-2 md:[min-height:400px]">
             {/* Col 1 - Text */}
             <div className="flex flex-col pt-6 pb-8 pr-4 border-b md:border-b-0 md:border-r border-[rgba(209,213,219,0.2)]">
               <div className="max-w-md">
