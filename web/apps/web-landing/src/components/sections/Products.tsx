@@ -37,7 +37,7 @@ export default function Products() {
 
       <div className="mx-auto max-w-[1300px] px-4 sm:px-6 lg:px-8">
         <div className="px-3 md:px-8 lg:px-12" style={{ borderLeft: '0.5px solid rgba(209, 213, 219, 0.35)', borderRight: '0.5px solid rgba(209, 213, 219, 0.35)', paddingBottom: 0 }}>
-          <div style={{ paddingTop: '2rem', paddingBottom: '2rem', position: 'relative' }} className="md:!pt-32 md:!pb-32">
+          <div style={{ paddingTop: '2rem', paddingBottom: '2rem', position: 'relative' }} className="md:!pt-16 md:!pb-80">
             <div className="hidden sm:block" style={{ position: 'absolute', top: '3rem', right: 0, bottom: '3rem', display: 'flex', alignItems: 'center', justifyContent: 'center' }}>
               <div className="bg-[#f9f9fa] dark:bg-[#1b1912]/60" style={{ 
                 width: '600px', 
