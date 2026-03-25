@@ -3,53 +3,47 @@ Igris Inertial — Behavior Tree construction and execution example
 Requires: pip install igris-inertial
 
 Usage:
-  export IGRIS_API_KEY=igris_...
+  export IGRIS_RUNTIME_URL=http://localhost:8080   # or wherever your runtime is
   python bt_basic.py
 """
 
+import json
 import os
-from igris import IgrisClient
-from igris.btree import Sequence, Selector, Action, Condition
+from igris import Runtime, RuntimeConfig
+from igris.btree import BehaviorTree, Selector, Sequence, Action, Condition
 
-api_key = os.environ.get("IGRIS_API_KEY")
-if not api_key:
-    raise SystemExit("Set IGRIS_API_KEY first: export IGRIS_API_KEY=igris_...")
-
-client = IgrisClient(
-    base_url="https://overture.igrisinertial.com",
-    api_key=api_key,
-)
+runtime = Runtime(RuntimeConfig(
+    local_url=os.environ.get("IGRIS_RUNTIME_URL", "http://localhost:8080"),
+))
 
 # Build a navigation BT:
 # Selector[
 #   Sequence[CheckBattery, MoveToGoal],
 #   Sequence[AlertLowBattery, ReturnHome]
 # ]
-tree = Selector([
-    Sequence([
-        Condition("check_battery", key="battery_level", expected=20),
-        Action("move_to_goal", params={"target": "waypoint_A", "speed": 0.5}),
+tree = BehaviorTree.from_nodes(
+    Selector("nav-root", [
+        Sequence("primary-path", [
+            Condition("check_battery", key="battery_level", expected=20),
+            Action("move_to_goal", tool="move_to", args={"target": "waypoint_A", "speed": 0.5}),
+        ]),
+        Sequence("fallback-path", [
+            Action("alert_low_battery", tool="send_alert", args={"level": "warning"}),
+            Action("return_home", tool="move_to", args={"target": "home", "speed": 0.3}),
+        ]),
     ]),
-    Sequence([
-        Action("alert_low_battery"),
-        Action("return_home", params={"speed": 0.3}),
-    ]),
-])
-
-# Validate the tree locally
-errors = tree.validate()
-if errors:
-    raise SystemExit(f"BT validation errors: {errors}")
+    runtime,
+)
 
 print("BT JSON:")
-import json
-print(json.dumps(tree.to_dict(), indent=2))
+print(json.dumps(tree.tree, indent=2))
 
-# Submit for execution (requires a registered runtime agent)
-agent_id = os.environ.get("IGRIS_AGENT_ID")
-if agent_id:
-    result = client.execute_bt(agent_id=agent_id, tree=tree)
-    print(f"\nExecution ID : {result.execution_id}")
-    print(f"Status       : {result.status}")
-else:
-    print("\n(Set IGRIS_AGENT_ID to submit for execution)")
+# Validate against the running runtime
+result = tree.validate()
+print(f"\nValid      : {result['valid']}")
+print(f"Root type  : {result.get('root_type', '—')}")
+
+# Execute (runtime must be running and reachable)
+execution = tree.run(context={"battery_level": 15})
+print(f"\nStatus     : {execution['status']}")
+print(f"Tick count : {execution['tick_count']}")
