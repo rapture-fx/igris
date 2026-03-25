@@ -18,13 +18,13 @@ The result: agents that are auditable and safe by default, with AI where it adds
 
 ## Node Types
 
-| Type | Behavior |
-|---|---|
-| `Sequence` | Runs children left to right; stops on first failure |
-| `Selector` | Runs children left to right; stops on first success |
-| `Condition` | Returns success/failure based on a test |
-| `Action` | Executes a task (HTTP call, shell command, etc.) |
-| `LLM` | Calls a model; returns success if response meets criteria |
+| Type | JSON `type` value | Behavior |
+|---|---|---|
+| `Sequence` | `"sequence"` | Runs children left to right; stops on first failure |
+| `Selector` | `"selector"` | Runs children left to right; stops on first success |
+| `Condition` | `"condition"` | Returns success/failure based on a blackboard key check |
+| `Action` | `"action"` | Executes a named tool with optional args |
+| `LLM` | `"llm_node"` | Calls a model; succeeds when the model returns a result |
 
 ---
 
@@ -32,21 +32,26 @@ The result: agents that are auditable and safe by default, with AI where it adds
 
 ```json
 {
-  "type": "Sequence",
+  "type": "sequence",
+  "name": "shutdown-guard",
   "children": [
     {
-      "type": "Condition",
-      "check": "sensor.temperature > 80"
+      "type": "condition",
+      "name": "check_temp",
+      "key": "sensor.temperature",
+      "expected": 80
     },
     {
-      "type": "LLM",
-      "prompt": "The temperature is {{sensor.temperature}}. Should we shut down the process?",
-      "model": "phi3",
-      "success_if": "response contains 'yes'"
+      "type": "llm_node",
+      "name": "ask_model",
+      "prompt": "The temperature is high. Should we shut down the process? Reply yes or no.",
+      "model": "phi3"
     },
     {
-      "type": "Action",
-      "call": "http://localhost:9000/shutdown"
+      "type": "action",
+      "name": "shutdown",
+      "tool": "http_post",
+      "args": { "url": "http://localhost:9000/shutdown" }
     }
   ]
 }
@@ -79,31 +84,42 @@ curl -X POST http://localhost:8080/v1/btree/run \
 ## Using the SDK
 
 ```typescript
-import { BehaviorTree, SequenceNode, ConditionNode, ActionNode } from '@igris-inertial/sdk';
+import { Runtime, BehaviorTree, SequenceNode, ConditionNode, ActionNode } from '@igris-inertial/sdk';
 
-const tree = new BehaviorTree({
-  root: new SequenceNode([
-    new ConditionNode({ check: 'sensor.temperature > 80' }),
-    new ActionNode({ call: 'http://localhost:9000/shutdown' }),
-  ]),
-});
+const runtime = new Runtime({ localUrl: 'http://localhost:8080' });
 
-const result = await tree.run({ sensor: { temperature: 92 } });
-console.log(result.status); // 'success' | 'failure' | 'running'
+const tree = BehaviorTree.fromJson(
+  new SequenceNode('shutdown-guard', [
+    new ConditionNode('check_temp', 'sensor.temperature', '80'),
+    new ActionNode('shutdown', 'http_post', { url: 'http://localhost:9000/shutdown' }),
+  ]).toJSON(),
+  runtime,
+);
+
+const result = await tree.validate();
+// { valid: true, root_type: 'sequence' }
+
+const execution = await tree.run({ context: { 'sensor.temperature': 92 } });
+console.log(execution.status); // 'success' | 'failure'
 ```
 
 ```python
-from igris.btree import BehaviorTree, sequence, condition, action
+from igris import Runtime, RuntimeConfig
+from igris.btree import BehaviorTree, Sequence, Condition, Action
 
-tree = BehaviorTree(
-    root=sequence([
-        condition("sensor.temperature > 80"),
-        action("http://localhost:9000/shutdown"),
-    ])
+runtime = Runtime(RuntimeConfig(local_url="http://localhost:8080"))
+
+tree = BehaviorTree.from_nodes(
+    Sequence("shutdown-guard", [
+        Condition("check_temp", key="sensor.temperature", expected=80),
+        Action("shutdown", tool="http_post", args={"url": "http://localhost:9000/shutdown"}),
+    ]),
+    runtime,
 )
 
-result = tree.run({"sensor": {"temperature": 92}})
-print(result.status)
+result = tree.validate()
+execution = tree.run(context={"sensor.temperature": 92})
+print(execution["status"])  # 'success' | 'failure'
 ```
 
 ---
