@@ -126,6 +126,16 @@ pub(crate) struct AppState {
     // ── Phase 4 ─────────────────────────────────────────────────────────────
     /// Registry of per-agent lifecycle state machines.
     pub(crate) lifecycle_registry: Option<LifecycleRegistry>,
+    // ── BT Live Streaming ─────────────────────────────────────────────────────
+    /// Watch sender for per-tick BT state. The `btree_run` handler wires its
+    /// executor tick observer to this sender; the `/v1/btree/events` SSE
+    /// endpoint subscribes to the receiver side.
+    pub(crate) bt_state_tx: Arc<tokio::sync::watch::Sender<serde_json::Value>>,
+    // ── ROS2 ─────────────────────────────────────────────────────────────────
+    /// ROS2 manager — holds the Ros2Node and ContainmentBridge.
+    /// Available when the `ros2` feature is enabled and ENABLE_ROS2=true.
+    #[cfg(feature = "ros2")]
+    pub(crate) ros2_manager: Option<Arc<crate::ros2_integration::Ros2Manager>>,
 }
 
 /// Reflection LLM provider backed by the local provider (real llama.cpp execution).
@@ -953,6 +963,14 @@ async fn btree_run(
         context = context.with_tools(tr.clone());
     }
 
+    // Wire ROS2 node into context when available
+    #[cfg(feature = "ros2")]
+    if let Some(ref mgr) = state.ros2_manager {
+        if !mgr.is_safe_idle() {
+            context = context.with_ros2(mgr.node());
+        }
+    }
+
     // Set blackboard values from context payload
     if let Some(ctx_val) = &req.context {
         if let Some(obj) = ctx_val.as_object() {
@@ -968,7 +986,8 @@ async fn btree_run(
 
     let executor = BTreeExecutor::new()
         .with_max_ticks(req.max_ticks)
-        .with_deadline(std::time::Duration::from_millis(req.timeout_ms));
+        .with_deadline(std::time::Duration::from_millis(req.timeout_ms))
+        .with_tick_observer((*state.bt_state_tx).clone());
 
     let result = executor
         .execute(tree.as_mut(), &mut context)
@@ -985,6 +1004,40 @@ async fn btree_run(
         "deadline_exceeded": result.deadline_exceeded,
         "error": result.error,
     }))).into_response())
+}
+
+/// GET /v1/btree/events — SSE stream of per-tick BT state snapshots.
+///
+/// Each event has type `bt_tick` and data `{"tick":N,"status":"Running"|...,"tree":{...}}`.
+/// Keepalive comments are sent every 15 s. Clients reconnect on close.
+async fn btree_events(
+    State(state): State<AppState>,
+) -> Response {
+    let mut rx = state.bt_state_tx.subscribe();
+
+    let stream = async_stream::stream! {
+        // Initial keepalive so the browser knows the stream is open.
+        yield Ok::<Event, Infallible>(Event::default().comment("keepalive"));
+
+        loop {
+            match tokio::time::timeout(
+                std::time::Duration::from_secs(15),
+                rx.changed(),
+            ).await {
+                Ok(Ok(())) => {
+                    let snapshot = rx.borrow_and_update().clone();
+                    yield Ok(Event::default().event("bt_tick").data(snapshot.to_string()));
+                }
+                Ok(Err(_)) => break, // sender dropped
+                Err(_) => {
+                    // 15 s keepalive
+                    yield Ok(Event::default().comment("keepalive"));
+                }
+            }
+        }
+    };
+
+    Sse::new(stream).keep_alive(KeepAlive::default()).into_response()
 }
 
 /// MCP SSE streaming endpoint - accepts JSON-RPC requests and streams responses
@@ -2661,7 +2714,7 @@ async fn main() -> anyhow::Result<()> {
     // ── Phase 4: Lifecycle registry ─────────────────────────────────────────
     let lifecycle_registry = Some(new_lifecycle_registry());
 
-    let state = AppState {
+    let mut state = AppState {
         config: Arc::new(config),
         storage: Arc::new(storage),
         speculative_router: Arc::new(speculative_router),
@@ -2691,7 +2744,60 @@ async fn main() -> anyhow::Result<()> {
         overture_public_key,
         receipt_log,
         lifecycle_registry,
+        bt_state_tx: Arc::new(tokio::sync::watch::channel(serde_json::Value::Null).0),
+        #[cfg(feature = "ros2")]
+        ros2_manager: None, // Populated below if ENABLE_ROS2=true
     };
+
+    // ── ROS2 startup (feature-gated) ─────────────────────────────────────────
+    #[cfg(feature = "ros2")]
+    {
+        if std::env::var("ENABLE_ROS2").as_deref() == Ok("true") {
+            use igris_ros2::Ros2Config;
+            use igris_safety::ViolationEventBus;
+
+            let ros2_config = Ros2Config {
+                enabled: true,
+                enable_nav2: std::env::var("ENABLE_NAV2").as_deref() == Ok("true"),
+                node_name: std::env::var("ROS2_NODE_NAME")
+                    .unwrap_or_else(|_| "igris_runtime".to_string()),
+                ..Default::default()
+            };
+
+            let ros2_bus = ViolationEventBus::new();
+
+            // Clone the signing key from AppState for the ContainmentBridge.
+            let ros2_signing_key = state
+                .signing_key
+                .as_ref()
+                .map(|k| (**k).clone())
+                .unwrap_or_else(|| {
+                    use rand::rngs::OsRng;
+                    ed25519_dalek::SigningKey::generate(&mut OsRng)
+                });
+
+            let ros2_log_path = std::env::var("ROS2_VIOLATION_LOG")
+                .unwrap_or_else(|_| "/tmp/igris_ros2_violations.jsonl".to_string());
+
+            match crate::ros2_integration::Ros2Manager::start(
+                ros2_config,
+                &ros2_bus,
+                ros2_signing_key,
+                ros2_log_path,
+                String::new(),
+            )
+            .await
+            {
+                Ok(mgr) => {
+                    info!("[ROS2] Ros2Manager started — ContainmentBridge active");
+                    state.ros2_manager = Some(Arc::new(mgr));
+                }
+                Err(e) => {
+                    warn!("[ROS2] Ros2Manager failed to start, ROS2 BT nodes disabled: {}", e);
+                }
+            }
+        }
+    }
 
     // Build router
     let mut app = Router::new()
@@ -2722,6 +2828,7 @@ async fn main() -> anyhow::Result<()> {
         .route("/v1/btree/validate", post(btree_validate))
         .route("/v1/btree/run", post(btree_run))
         .route("/v1/btree/deploy", post(btree_deploy))
+        .route("/v1/btree/events", get(btree_events))
         // MCP SSE streaming endpoint
         .route("/mcp/stream", post(mcp_stream))
         // Runtime execution API (Overture → Runtime boundary)

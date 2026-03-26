@@ -76,6 +76,8 @@ pub mod prelude {
         condition::{CheckBlackboard},
         llm::{LLMPlannerNode, SubtreeLoader},
     };
+    #[cfg(feature = "ros2")]
+    pub use crate::nodes::action::{RosTopicPublish, RosTopicSubscribe, RosServiceCall};
     pub use crate::runtime::{BTreeExecutor, ExecutorConfig, ExecutionResult};
     pub use crate::safety::Watchdog;
     pub use crate::parser::{JsonTreeParser, LlmTreeParser};

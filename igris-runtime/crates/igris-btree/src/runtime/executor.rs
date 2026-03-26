@@ -66,6 +66,11 @@ impl Default for ExecutorConfig {
 pub struct BTreeExecutor {
     config: ExecutorConfig,
     visualizer: Option<Arc<TreeVisualizer>>,
+    /// Optional per-tick state observer. After each tick the executor sends a
+    /// JSON snapshot `{"tick": N, "status": "Running"|"Success"|..., "tree": {...}}`
+    /// to this channel. The send is best-effort — a lagged receiver does not
+    /// stall execution.
+    tick_observer: Option<tokio::sync::watch::Sender<serde_json::Value>>,
 }
 
 impl BTreeExecutor {
@@ -74,6 +79,7 @@ impl BTreeExecutor {
         Self {
             config: ExecutorConfig::default(),
             visualizer: None,
+            tick_observer: None,
         }
     }
 
@@ -82,12 +88,26 @@ impl BTreeExecutor {
         Self {
             config,
             visualizer: None,
+            tick_observer: None,
         }
     }
 
     /// Attach a visualizer for monitoring and debugging
     pub fn with_visualizer(mut self, visualizer: Arc<TreeVisualizer>) -> Self {
         self.visualizer = Some(visualizer);
+        self
+    }
+
+    /// Attach a tick observer channel for live streaming.
+    ///
+    /// After every tick the executor sends:
+    /// `{"tick": N, "status": "Running"|"Success"|"Failure", "tree": <tree_json>}`
+    /// Sends are best-effort — a stalled receiver does not block execution.
+    pub fn with_tick_observer(
+        mut self,
+        tx: tokio::sync::watch::Sender<serde_json::Value>,
+    ) -> Self {
+        self.tick_observer = Some(tx);
         self
     }
 
@@ -262,6 +282,16 @@ impl BTreeExecutor {
                 if export_duration.as_millis() > 5 {
                     warn!("Visualization export took {:?} (>5ms threshold)", export_duration);
                 }
+            }
+
+            // Emit live tick snapshot to any connected SSE observer.
+            if let Some(ref tx) = self.tick_observer {
+                let tree_json = tree.to_json().unwrap_or_else(|_| serde_json::Value::Null);
+                let _ = tx.send(serde_json::json!({
+                    "tick": tick_count,
+                    "status": format!("{:?}", status),
+                    "tree": tree_json,
+                }));
             }
 
             // Check if execution is complete

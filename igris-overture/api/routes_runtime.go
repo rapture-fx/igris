@@ -76,7 +76,10 @@ type runtimeRegisterResponse struct {
 
 // runtimeInstanceHeartbeatRequest is the minimal payload for heartbeat/deregister calls.
 type runtimeInstanceHeartbeatRequest struct {
-	MachineID string `json:"machine_id"`
+	MachineID string          `json:"machine_id"`
+	// BtState is the latest BT tick snapshot from the executor
+	// ({"tick":N,"status":"...","tree":{...}}). Optional — omitted when idle.
+	BtState   json.RawMessage `json:"bt_state,omitempty"`
 }
 
 // Register handles POST /api/v1/runtime/register
@@ -234,12 +237,25 @@ func (h *RuntimeHandler) Heartbeat(c *fiber.Ctx) error {
 	}
 
 	now := time.Now().UTC()
-	result, err := h.db.ExecContext(ctx, `
-		UPDATE runtime_instances
-		SET last_heartbeat = $1, last_seen_at = $1, is_healthy = true,
-		    status = 'active', ip_address = $2
-		WHERE tenant_id = $3 AND machine_id = $4
-	`, now, c.IP(), tenantID, req.MachineID)
+
+	var result sql.Result
+	var err error
+	if len(req.BtState) > 0 && string(req.BtState) != "null" {
+		result, err = h.db.ExecContext(ctx, `
+			UPDATE runtime_instances
+			SET last_heartbeat = $1, last_seen_at = $1, is_healthy = true,
+			    status = 'active', ip_address = $2,
+			    bt_state = $5::jsonb, bt_state_updated_at = $1
+			WHERE tenant_id = $3 AND machine_id = $4
+		`, now, c.IP(), tenantID, req.MachineID, req.BtState)
+	} else {
+		result, err = h.db.ExecContext(ctx, `
+			UPDATE runtime_instances
+			SET last_heartbeat = $1, last_seen_at = $1, is_healthy = true,
+			    status = 'active', ip_address = $2
+			WHERE tenant_id = $3 AND machine_id = $4
+		`, now, c.IP(), tenantID, req.MachineID)
+	}
 	if err != nil {
 		log.Error().Err(err).Str("tenant_id", tenantID).Msg("[Runtime] Heartbeat DB error")
 		return c.Status(fiber.StatusInternalServerError).JSON(fiber.Map{

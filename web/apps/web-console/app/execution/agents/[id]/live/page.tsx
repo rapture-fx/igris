@@ -1,13 +1,12 @@
 'use client';
 
 import { useParams, useRouter } from 'next/navigation';
-import { useQuery } from '@tanstack/react-query';
+import { useEffect, useRef, useState } from 'react';
 import { DashboardLayout } from '@/components/layout/DashboardLayout';
 import { Button } from '@/components/ui/button';
 import { Skeleton } from '@/components/ui/skeleton';
-import { api } from '@/lib/apiClient';
 import { getRelativeTime } from '@/utils/helpers';
-import { ArrowLeft, GitBranch, Loader2 } from 'lucide-react';
+import { ArrowLeft, GitBranch, Loader2, Wifi, WifiOff } from 'lucide-react';
 
 // ─── Types ────────────────────────────────────────────────────────────────────
 
@@ -28,6 +27,16 @@ interface BTState {
   last_updated: string;
 }
 
+/** Shape emitted by the runtime per-tick and stored in bt_state. */
+interface BtTickSnapshot {
+  tick: number;
+  status: string;
+  tree?: unknown;
+  // Overture may also wrap the full BTState shape here.
+  nodes?: BTNode[];
+  last_updated?: string;
+}
+
 // ─── Constants ────────────────────────────────────────────────────────────────
 
 const BT_STATUS_STYLES: Record<string, string> = {
@@ -36,6 +45,9 @@ const BT_STATUS_STYLES: Record<string, string> = {
   failed:    'bg-red-50 text-red-700 border-red-200',
   violation: 'bg-orange-50 text-orange-700 border-orange-200',
   pending:   'bg-gray-50 text-gray-500 border-gray-200',
+  Success:   'bg-green-50 text-green-700 border-green-200',
+  Failure:   'bg-red-50 text-red-700 border-red-200',
+  Running:   'bg-yellow-50 text-yellow-700 border-yellow-200 animate-pulse',
 };
 
 const BT_TYPE_ICON: Record<string, string> = {
@@ -45,33 +57,80 @@ const BT_TYPE_ICON: Record<string, string> = {
   condition: '?',
 };
 
+type ConnectionStatus = 'connecting' | 'live' | 'stale' | 'error';
+
 // ─── Page ─────────────────────────────────────────────────────────────────────
 
 export default function AgentLivePage() {
   const { id } = useParams<{ id: string }>();
   const router = useRouter();
 
-  const { data, isLoading, dataUpdatedAt } = useQuery<BTState>({
-    queryKey: ['bt-state-live', id],
-    queryFn: async () => {
-      try {
-        return await api.get<BTState>(`/v1/agents/${id}/bt-state`);
-      } catch {
-        return { agent_id: id, nodes: [], last_updated: '' };
-      }
-    },
-    refetchInterval: 2_000,
-    retry: false,
-    enabled: !!id,
-  });
+  const [data, setData] = useState<BTState | null>(null);
+  const [tickCount, setTickCount] = useState<number>(0);
+  const [connStatus, setConnStatus] = useState<ConnectionStatus>('connecting');
+  const [lastEventAt, setLastEventAt] = useState<number>(0);
+  const esRef = useRef<EventSource | null>(null);
+  const staleTimerRef = useRef<ReturnType<typeof setTimeout> | null>(null);
 
-  const isStale = dataUpdatedAt > 0 && Date.now() - dataUpdatedAt > 10_000;
+  useEffect(() => {
+    if (!id) return;
+
+    const url = `/api/v1/agents/${id}/bt-state/stream`;
+    const es = new EventSource(url);
+    esRef.current = es;
+
+    es.addEventListener('bt_tick', (e) => {
+      try {
+        const snap: BtTickSnapshot = JSON.parse(e.data);
+        setTickCount(snap.tick ?? 0);
+        setLastEventAt(Date.now());
+        setConnStatus('live');
+
+        // If overture forwards the full BTState shape, use it directly.
+        if (snap.nodes) {
+          setData({
+            agent_id: id,
+            nodes: snap.nodes,
+            last_updated: snap.last_updated ?? new Date().toISOString(),
+          });
+        } else {
+          // Minimal update: show tick count + top-level status as a synthetic node.
+          setData(prev => ({
+            agent_id: id,
+            nodes: prev?.nodes ?? [],
+            last_updated: new Date().toISOString(),
+          }));
+        }
+
+        // Reset stale timer.
+        if (staleTimerRef.current) clearTimeout(staleTimerRef.current);
+        staleTimerRef.current = setTimeout(() => setConnStatus('stale'), 30_000);
+      } catch {
+        // ignore malformed events
+      }
+    });
+
+    es.addEventListener('error', () => {
+      setConnStatus('error');
+    });
+
+    es.onopen = () => setConnStatus('live');
+
+    return () => {
+      es.close();
+      esRef.current = null;
+      if (staleTimerRef.current) clearTimeout(staleTimerRef.current);
+    };
+  }, [id]);
+
   const nodes = data?.nodes ?? [];
 
   const statusCounts = nodes.reduce<Record<string, number>>((acc, n) => {
     acc[n.status] = (acc[n.status] ?? 0) + 1;
     return acc;
   }, {});
+
+  const isLoading = connStatus === 'connecting' && nodes.length === 0;
 
   return (
     <DashboardLayout>
@@ -95,14 +154,27 @@ export default function AgentLivePage() {
             </h1>
             <p className="text-xs text-gray-500 font-mono truncate mt-0.5">{id}</p>
           </div>
-          {isStale ? (
+          {connStatus === 'live' && (
+            <span className="inline-flex items-center gap-1.5 px-2 py-1 rounded text-xs font-medium bg-green-50 text-green-700 border border-green-200">
+              <Wifi className="h-3 w-3" />
+              Live {tickCount > 0 && <span className="font-mono">tick {tickCount}</span>}
+            </span>
+          )}
+          {connStatus === 'stale' && (
             <span className="inline-flex items-center gap-1 px-2 py-1 rounded text-xs font-medium bg-yellow-50 text-yellow-700 border border-yellow-200">
               Stale
             </span>
-          ) : (
-            <span className="inline-flex items-center gap-1.5 px-2 py-1 rounded text-xs font-medium bg-green-50 text-green-700 border border-green-200">
-              <span className="h-1.5 w-1.5 rounded-full bg-green-500 animate-pulse inline-block" />
-              Live
+          )}
+          {connStatus === 'connecting' && (
+            <span className="inline-flex items-center gap-1.5 px-2 py-1 rounded text-xs font-medium bg-gray-50 text-gray-500 border border-gray-200">
+              <Loader2 className="h-3 w-3 animate-spin" />
+              Connecting
+            </span>
+          )}
+          {connStatus === 'error' && (
+            <span className="inline-flex items-center gap-1 px-2 py-1 rounded text-xs font-medium bg-red-50 text-red-600 border border-red-200">
+              <WifiOff className="h-3 w-3" />
+              Disconnected
             </span>
           )}
         </div>
@@ -119,9 +191,9 @@ export default function AgentLivePage() {
               {count} {status}
             </span>
           ))}
-          {data?.last_updated && (
+          {lastEventAt > 0 && (
             <span className="ml-auto text-gray-400">
-              Updated {getRelativeTime(data.last_updated)}
+              Updated {getRelativeTime(new Date(lastEventAt).toISOString())}
             </span>
           )}
         </div>
@@ -137,7 +209,11 @@ export default function AgentLivePage() {
           ) : nodes.length === 0 ? (
             <div className="flex flex-col items-center justify-center py-12 gap-2 text-gray-400">
               <GitBranch className="h-8 w-8 opacity-30" />
-              <p className="text-sm">No execution data available for this agent.</p>
+              <p className="text-sm">
+                {connStatus === 'error'
+                  ? 'Stream disconnected — no execution data available.'
+                  : 'Waiting for BT execution on this agent…'}
+              </p>
             </div>
           ) : (
             <div className="space-y-0.5">
@@ -190,13 +266,6 @@ export default function AgentLivePage() {
           )}
         </div>
 
-        {/* Loading spinner overlay */}
-        {isLoading && (
-          <div className="flex items-center gap-1.5 text-xs text-gray-400">
-            <Loader2 className="h-3.5 w-3.5 animate-spin" />
-            Connecting to live stream...
-          </div>
-        )}
       </div>
     </DashboardLayout>
   );
