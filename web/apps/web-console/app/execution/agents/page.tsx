@@ -35,6 +35,7 @@ import { api } from '@/lib/apiClient';
 import { toast } from '@/components/ui/use-toast';
 import { Switch } from '@/components/ui/switch';
 import { getRelativeTime, truncateText } from '@/utils/helpers';
+import { useRouter } from 'next/navigation';
 import {
   Brain,
   Moon,
@@ -49,6 +50,7 @@ import {
   CheckCircle2,
   GitBranch,
   Loader2,
+  Radio,
 } from 'lucide-react';
 import {
   ExecutionStatusBadge,
@@ -159,7 +161,7 @@ const BT_TYPE_ICON: Record<string, string> = {
 };
 
 function BTExecutionView({ agentId }: { agentId: string }) {
-  const { data, isLoading } = useQuery<BTState>({
+  const { data, isLoading, dataUpdatedAt } = useQuery<BTState>({
     queryKey: ['bt-state', agentId],
     queryFn: async () => {
       try {
@@ -168,9 +170,11 @@ function BTExecutionView({ agentId }: { agentId: string }) {
         return { agent_id: agentId, nodes: [], last_updated: '' };
       }
     },
-    refetchInterval: 10_000,
+    refetchInterval: 2_000,
     retry: false,
   });
+
+  const isStale = dataUpdatedAt > 0 && Date.now() - dataUpdatedAt > 10_000;
 
   if (isLoading) {
     return (
@@ -187,7 +191,20 @@ function BTExecutionView({ agentId }: { agentId: string }) {
   }
 
   return (
-    <div className="space-y-0.5">
+    <div className="space-y-1.5">
+      <div className="flex items-center gap-1.5">
+        {isStale ? (
+          <span className="inline-flex items-center gap-1 px-1.5 py-0.5 rounded text-[10px] font-medium bg-yellow-50 text-yellow-700 border border-yellow-200">
+            Stale
+          </span>
+        ) : (
+          <span className="inline-flex items-center gap-1 px-1.5 py-0.5 rounded text-[10px] font-medium bg-green-50 text-green-700 border border-green-200">
+            <span className="h-1.5 w-1.5 rounded-full bg-green-500 animate-pulse inline-block" />
+            Live
+          </span>
+        )}
+      </div>
+      <div className="space-y-0.5">
       {nodes.map((node) => (
         <div
           key={node.id}
@@ -227,11 +244,12 @@ function BTExecutionView({ agentId }: { agentId: string }) {
           </div>
         </div>
       ))}
-      {data?.last_updated && (
-        <p className="text-[10px] text-gray-400 pt-1 pl-1">
-          Last updated {getRelativeTime(data.last_updated)}
-        </p>
-      )}
+        {data?.last_updated && (
+          <p className="text-[10px] text-gray-400 pt-1 pl-1">
+            Last updated {getRelativeTime(data.last_updated)}
+          </p>
+        )}
+      </div>
     </div>
   );
 }
@@ -327,6 +345,7 @@ function MiniViolationsTable({ violations }: { violations: ViolationEntry[] }) {
 
 export default function ExecutionAgentsPage() {
   const qc = useQueryClient();
+  const router = useRouter();
   const [search, setSearch] = useState('');
   const [stateFilter, setStateFilter] = useState('all');
   const [selected, setSelected] = useState<Agent | null>(null);
@@ -532,13 +551,16 @@ export default function ExecutionAgentsPage() {
                 <TableHead className="text-xs font-medium text-gray-500 h-9 px-3 whitespace-nowrap">
                   Mode
                 </TableHead>
+                <TableHead className="text-xs font-medium text-gray-500 h-9 px-3 whitespace-nowrap">
+                  BT Live
+                </TableHead>
               </TableRow>
             </TableHeader>
             <TableBody>
               {isLoading ? (
                 Array.from({ length: 6 }).map((_, i) => (
                   <TableRow key={i} className="border-b border-gray-100">
-                    {Array.from({ length: 8 }).map((_, j) => (
+                    {Array.from({ length: 9 }).map((_, j) => (
                       <TableCell key={j} className="px-3 py-2.5">
                         <Skeleton className="h-3.5 w-16" />
                       </TableCell>
@@ -548,7 +570,7 @@ export default function ExecutionAgentsPage() {
               ) : filtered.length === 0 ? (
                 <TableRow>
                   <TableCell
-                    colSpan={8}
+                    colSpan={9}
                     className="text-center text-gray-400 text-xs py-16"
                   >
                     No agents found
@@ -606,6 +628,15 @@ export default function ExecutionAgentsPage() {
                       ) : (
                         <span className="text-xs text-gray-300">—</span>
                       )}
+                    </TableCell>
+                    <TableCell className="px-3 py-2.5" onClick={(e) => e.stopPropagation()}>
+                      <button
+                        onClick={() => router.push(`/execution/agents/${agent.id}/live`)}
+                        className="inline-flex items-center gap-1 px-1.5 py-0.5 rounded text-[10px] font-medium text-gray-500 hover:text-gray-900 hover:bg-gray-100 border border-transparent hover:border-gray-200 transition-colors"
+                      >
+                        <Radio className="h-2.5 w-2.5" />
+                        Live
+                      </button>
                     </TableCell>
                   </TableRow>
                 ))
@@ -835,7 +866,7 @@ export default function ExecutionAgentsPage() {
                       <GitBranch className="h-3.5 w-3.5" />
                       BT Execution View
                       <span className="ml-1 text-[10px] font-normal text-gray-400 normal-case tracking-normal">
-                        last 10 runs
+                        live · 2s
                       </span>
                     </h3>
                     <BTExecutionView agentId={selected.id} />
