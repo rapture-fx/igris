@@ -466,7 +466,7 @@ export default function ExecutionRunsPage() {
                   {/* §0 Run Controls */}
                   {(selected.status === 'RUNNING' || selected.status === 'PAUSED' ||
                     selected.status === 'COMPLETED' || selected.status === 'ERROR' ||
-                    selected.status === 'VIOLATION') && (
+                    selected.status === 'VIOLATION' || selected.status === 'CANCELLED') && (
                     <section>
                       <h3 className="text-[11px] font-semibold text-gray-400 uppercase tracking-wider mb-3 flex items-center gap-1.5">
                         <Activity className="h-3.5 w-3.5" />
