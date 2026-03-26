@@ -37,6 +37,7 @@ func RegisterExecutionRoutes(app *fiber.App, db *sql.DB, _ *middleware.TenantAut
 	auth := middleware.BetterAuth(db)
 	app.Get("/v1/execution/runs", auth, h.ListRuns)
 	app.Post("/v1/execution/runs/:id/pause", auth, h.PauseRun)
+	app.Post("/v1/execution/runs/:id/resume", auth, h.ResumeRun)
 	app.Post("/v1/execution/runs/:id/cancel", auth, h.CancelRun)
 	app.Post("/v1/execution/runs/:id/replay", auth, h.ReplayRun)
 	app.Get("/v1/execution/agents", auth, h.ListAgents)
@@ -345,6 +346,28 @@ func (h *ExecutionHandler) PauseRun(c *fiber.Ctx) error {
 		return c.Status(fiber.StatusNotFound).JSON(fiber.Map{"error": "run not found or not pausable"})
 	}
 	return c.JSON(fiber.Map{"status": "PAUSED"})
+}
+
+// ResumeRun handles POST /v1/execution/runs/:id/resume — transitions a PAUSED run back to active.
+func (h *ExecutionHandler) ResumeRun(c *fiber.Ctx) error {
+	tenantID := middleware.GetClerkUserID(c)
+	if tenantID == "" {
+		return c.Status(fiber.StatusUnauthorized).JSON(fiber.Map{"error": "unauthorized"})
+	}
+	runID := c.Params("id")
+	res, err := h.db.ExecContext(c.Context(), `
+		UPDATE execution_lineage SET status = 'RUNNING'
+		WHERE execution_id = $1 AND tenant_id = $2 AND COALESCE(status,'') = 'PAUSED'
+	`, runID, tenantID)
+	if err != nil {
+		log.Error().Err(err).Str("run_id", runID).Msg("[Execution] ResumeRun failed")
+		return c.Status(fiber.StatusInternalServerError).JSON(fiber.Map{"error": "internal_error"})
+	}
+	n, _ := res.RowsAffected()
+	if n == 0 {
+		return c.Status(fiber.StatusNotFound).JSON(fiber.Map{"error": "run not found or not in PAUSED state"})
+	}
+	return c.JSON(fiber.Map{"status": "RUNNING"})
 }
 
 // CancelRun handles POST /v1/execution/runs/:id/cancel
