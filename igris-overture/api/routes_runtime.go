@@ -6,6 +6,7 @@ package api
 import (
 	"context"
 	"database/sql"
+	"encoding/json"
 	"errors"
 	"fmt"
 	"io"
@@ -51,6 +52,7 @@ func RegisterRuntimeRoutes(app *fiber.App, db *sql.DB, enforcer *billing.Runtime
 	v1.Post("/heartbeat", h.Heartbeat)
 	v1.Delete("/deregister", h.Deregister)
 	v1.Get("/download", h.Download)
+	v1.Get("/commands", h.GetPendingCommands)
 
 	log.Info().Msg("[Routes] Registered runtime endpoints (/api/v1/runtime)")
 }
@@ -253,9 +255,60 @@ func (h *RuntimeHandler) Heartbeat(c *fiber.Ctx) error {
 		})
 	}
 
+	// Check whether there are pending commands waiting for this runtime.
+	var pendingCount int
+	_ = h.db.QueryRowContext(ctx, `
+		SELECT jsonb_array_length(COALESCE(pending_commands, '[]'::jsonb))
+		FROM runtime_instances
+		WHERE tenant_id = $1 AND machine_id = $2
+	`, tenantID, req.MachineID).Scan(&pendingCount)
+
 	return c.JSON(fiber.Map{
-		"status":    "ok",
-		"timestamp": now.Format(time.RFC3339),
+		"status":               "ok",
+		"timestamp":            now.Format(time.RFC3339),
+		"has_pending_commands": pendingCount > 0,
+	})
+}
+
+// GetPendingCommands handles GET /api/v1/runtime/commands
+// Returns all queued commands for the calling runtime and atomically clears them.
+func (h *RuntimeHandler) GetPendingCommands(c *fiber.Ctx) error {
+	tenantID := c.Locals("tenant_id").(string)
+	ctx := context.Background()
+
+	machineID := c.Query("machine_id")
+	if machineID == "" {
+		return c.Status(fiber.StatusBadRequest).JSON(fiber.Map{
+			"error":   "missing_machine_id",
+			"message": "machine_id query parameter is required",
+		})
+	}
+
+	// Atomically fetch and clear pending_commands in one statement.
+	var rawCommands []byte
+	err := h.db.QueryRowContext(ctx, `
+		UPDATE runtime_instances
+		SET pending_commands = '[]'::jsonb,
+		    updated_at = NOW()
+		WHERE tenant_id = $1 AND machine_id = $2
+		RETURNING COALESCE(pending_commands, '[]'::jsonb)
+	`, tenantID, machineID).Scan(&rawCommands)
+
+	if errors.Is(err, sql.ErrNoRows) {
+		return c.Status(fiber.StatusNotFound).JSON(fiber.Map{
+			"error":   "not_registered",
+			"message": "Runtime not found — call /api/v1/runtime/register first",
+		})
+	}
+	if err != nil {
+		log.Error().Err(err).Str("tenant_id", tenantID).Msg("[Runtime] GetPendingCommands failed")
+		return c.Status(fiber.StatusInternalServerError).JSON(fiber.Map{
+			"error": "internal_error",
+		})
+	}
+
+	return c.JSON(fiber.Map{
+		"commands": json.RawMessage(rawCommands),
 	})
 }
 
