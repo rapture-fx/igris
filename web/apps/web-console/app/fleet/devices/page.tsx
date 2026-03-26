@@ -183,7 +183,7 @@ function FleetDevicesContent() {
   });
 
   // ── 24h stats ──
-  const { data: stats } = useQuery<DeviceStats>({
+  const { data: stats } = useQuery<DeviceStats | null>({
     queryKey: ['fleet-devices-stats', timeRange],
     queryFn: async () => {
       try {
@@ -202,11 +202,15 @@ function FleetDevicesContent() {
     tier_name: string;
     runtimes: { used: number; limit: number; percent: number };
     upgrade_tier: string;
-  }>({
+  } | null>({
     queryKey: ['subscription-status'],
     queryFn: async () => {
       try {
-        return await api.get('/api/subscription/status');
+        return await api.get<{
+          tier_name: string;
+          runtimes: { used: number; limit: number; percent: number };
+          upgrade_tier: string;
+        }>('/api/subscription/status');
       } catch {
         return null;
       }
