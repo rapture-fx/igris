@@ -37,6 +37,12 @@
     "security:scan:python": "python3 scripts/check-python-dependencies.py",
     "security:scan:all": "pnpm security:scan && pnpm security:scan:python"
   },
+  "pnpm": {
+    "overrides": {
+      "@types/react": "^19.0.7",
+      "@types/react-dom": "^19.0.5"
+    }
+  },
   "devDependencies": {
     "concurrently": "^8.2.2",
     "@pnpm/find-workspace-packages": "^6.0.9",
