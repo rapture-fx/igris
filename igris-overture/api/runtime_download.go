@@ -21,7 +21,6 @@ import (
 	"github.com/rs/zerolog/log"
 
 	"github.com/Igris-inertial/system/igris-overture/billing"
-	"github.com/Igris-inertial/system/igris-overture/metrics"
 	"github.com/Igris-inertial/system/igris-overture/middleware"
 )
 
@@ -248,9 +247,6 @@ func (h *DownloadHandler) redirectToBinary(c *fiber.Ctx, binaryName, version str
 // No authentication required. The binary is useless without a valid API key
 // to register with Overture — auth is enforced at runtime startup, not download time.
 func (h *DownloadHandler) PublicDownload(c *fiber.Ctx) error {
-	// Count every attempt regardless of outcome
-	metrics.RuntimeInstallAttemptsTotal.Inc()
-
 	platform := c.Query("platform", "")
 	if platform == "" {
 		platform = detectPlatform(c.Get("User-Agent"))
@@ -260,7 +256,7 @@ func (h *DownloadHandler) PublicDownload(c *fiber.Ctx) error {
 	if !ok {
 		return c.Status(fiber.StatusBadRequest).JSON(fiber.Map{
 			"error":     "unsupported_platform",
-			"message":   "Specify ?platform=linux-amd64 | linux-arm64 | macos-arm64",
+			"message":   "Specify ?platform=linux-amd64 | linux-arm64 | linux-armv7 | macos-arm64 | macos-x64",
 			"supported": supportedPlatforms(),
 		})
 	}
@@ -271,19 +267,10 @@ func (h *DownloadHandler) PublicDownload(c *fiber.Ctx) error {
 	}
 
 	if h.binariesDir != "" {
-		err := h.streamBinary(c, platform, binaryName, version)
-		if err == nil && c.Response().StatusCode() == fiber.StatusOK {
-			metrics.RuntimeInstallCompletionsTotal.Inc()
-		}
-		return err
+		return h.streamBinary(c, platform, binaryName, version)
 	}
 	if h.binariesURL != "" {
-		// A redirect (302) counts as a successful hand-off
-		err := h.redirectToBinary(c, binaryName, version)
-		if err == nil {
-			metrics.RuntimeInstallCompletionsTotal.Inc()
-		}
-		return err
+		return h.redirectToBinary(c, binaryName, version)
 	}
 
 	return c.Status(fiber.StatusServiceUnavailable).JSON(fiber.Map{
@@ -373,9 +360,7 @@ var platformBinaries = map[string]string{
 	"linux-armv7":   "igris-runtime-linux-armv7.tar.gz",
 	"macos-arm64":   "igris-runtime-macos-arm64.tar.gz",
 	"darwin-arm64":  "igris-runtime-macos-arm64.tar.gz",
-	"macos-amd64":   "igris-runtime-macos-x64.tar.gz",
 	"macos-x64":     "igris-runtime-macos-x64.tar.gz",
-	"darwin-amd64":  "igris-runtime-macos-x64.tar.gz",
 }
 
 // normalizePlatform maps aliases to canonical keys.
@@ -383,7 +368,7 @@ func normalizePlatform(p string) string {
 	switch p {
 	case "darwin-arm64", "macos-arm64":
 		return "macos-arm64"
-	case "darwin-amd64", "macos-amd64":
+	case "darwin-amd64", "macos-amd64", "macos-x64":
 		return "macos-x64"
 	default:
 		return p
@@ -453,5 +438,5 @@ func (h *DownloadHandler) Checksum(c *fiber.Ctx) error {
 }
 
 func supportedPlatforms() []string {
-	return []string{"linux-amd64", "linux-arm64", "macos-arm64"}
+	return []string{"linux-amd64", "linux-arm64", "linux-armv7", "macos-arm64", "macos-x64"}
 }

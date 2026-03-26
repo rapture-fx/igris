@@ -68,5 +68,11 @@
 mod set_blackboard;
 mod tool_action;
 
+#[cfg(feature = "ros2")]
+mod ros_nodes;
+
 pub use set_blackboard::SetBlackboard;
 pub use tool_action::ToolAction;
+
+#[cfg(feature = "ros2")]
+pub use ros_nodes::{RosServiceCall, RosTopicPublish, RosTopicSubscribe};

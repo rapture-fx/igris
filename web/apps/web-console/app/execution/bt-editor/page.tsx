@@ -15,7 +15,7 @@ import {
 
 // ─── Types ────────────────────────────────────────────────────────────────────
 
-type NodeType = 'Sequence' | 'Selector' | 'Parallel' | 'Decorator' | 'Action' | 'Condition';
+type NodeType = 'Sequence' | 'Selector' | 'Parallel' | 'Decorator' | 'Action' | 'Condition' | 'RosTopicPublish' | 'RosTopicSubscribe' | 'RosServiceCall';
 
 interface BTNode {
   id: string;
@@ -50,21 +50,29 @@ const NODE_WIDTH  = 120;
 const NODE_HEIGHT = 40;
 
 const NODE_COLORS: Record<NodeType, { bg: string; border: string; text: string }> = {
-  Sequence:  { bg: '#dbeafe', border: '#3b82f6', text: '#1d4ed8' },
-  Selector:  { bg: '#ffedd5', border: '#f97316', text: '#c2410c' },
-  Parallel:  { bg: '#ede9fe', border: '#8b5cf6', text: '#6d28d9' },
-  Decorator: { bg: '#f3f4f6', border: '#6b7280', text: '#374151' },
-  Action:    { bg: '#dcfce7', border: '#22c55e', text: '#15803d' },
-  Condition: { bg: '#fef9c3', border: '#eab308', text: '#854d0e' },
+  Sequence:         { bg: '#dbeafe', border: '#3b82f6', text: '#1d4ed8' },
+  Selector:         { bg: '#ffedd5', border: '#f97316', text: '#c2410c' },
+  Parallel:         { bg: '#ede9fe', border: '#8b5cf6', text: '#6d28d9' },
+  Decorator:        { bg: '#f3f4f6', border: '#6b7280', text: '#374151' },
+  Action:           { bg: '#dcfce7', border: '#22c55e', text: '#15803d' },
+  Condition:        { bg: '#fef9c3', border: '#eab308', text: '#854d0e' },
+  // ROS2 nodes — teal palette for easy visual identification
+  RosTopicPublish:  { bg: '#ccfbf1', border: '#0d9488', text: '#0f766e' },
+  RosTopicSubscribe:{ bg: '#cffafe', border: '#0891b2', text: '#0e7490' },
+  RosServiceCall:   { bg: '#e0f2fe', border: '#0284c7', text: '#0369a1' },
 };
 
-const PALETTE_NODES: { type: NodeType; desc: string }[] = [
-  { type: 'Sequence',  desc: 'Children run in order until one fails' },
-  { type: 'Selector',  desc: 'Tries children until one succeeds' },
-  { type: 'Parallel',  desc: 'Runs all children simultaneously' },
-  { type: 'Decorator', desc: 'Wraps a single child with logic' },
-  { type: 'Action',    desc: 'Leaf node that performs an action' },
-  { type: 'Condition', desc: 'Leaf node that checks a condition' },
+const PALETTE_NODES: { type: NodeType; desc: string; group?: string }[] = [
+  { type: 'Sequence',          desc: 'Children run in order until one fails' },
+  { type: 'Selector',          desc: 'Tries children until one succeeds' },
+  { type: 'Parallel',          desc: 'Runs all children simultaneously' },
+  { type: 'Decorator',         desc: 'Wraps a single child with logic' },
+  { type: 'Action',            desc: 'Leaf node that performs an action' },
+  { type: 'Condition',         desc: 'Leaf node that checks a condition' },
+  // ROS2 nodes
+  { type: 'RosTopicPublish',   desc: 'Publish JSON payload to a ROS2 topic',       group: 'ros2' },
+  { type: 'RosTopicSubscribe', desc: 'Wait for a message on a ROS2 topic',         group: 'ros2' },
+  { type: 'RosServiceCall',    desc: 'Call a ROS2 service and store response',     group: 'ros2' },
 ];
 
 let _idCounter = 0;
@@ -75,10 +83,15 @@ function genId(prefix: string) {
 const TYPE_MAP: Record<string, NodeType> = {
   sequence: 'Sequence', selector: 'Selector', parallel: 'Parallel',
   decorator: 'Decorator', action: 'Action', condition: 'Condition',
+  rostopicpublish: 'RosTopicPublish', rostopicsubscribe: 'RosTopicSubscribe',
+  rosservicecall: 'RosServiceCall',
 };
 function normalizeType(t: string): NodeType {
   return TYPE_MAP[t?.toLowerCase()] ?? 'Action';
 }
+
+// ROS2 node types for visual indicator
+const ROS_NODE_TYPES = new Set<NodeType>(['RosTopicPublish', 'RosTopicSubscribe', 'RosServiceCall']);
 
 // ─── Validation ───────────────────────────────────────────────────────────────
 
@@ -153,7 +166,10 @@ function NodeBox({
       }}
     >
       <div style={{ textAlign: 'center' }}>
-        <div style={{ fontSize: 9, fontWeight: 600, color: colors.text, letterSpacing: '0.04em', textTransform: 'uppercase' }}>
+        <div style={{ fontSize: 9, fontWeight: 600, color: colors.text, letterSpacing: '0.04em', textTransform: 'uppercase', display: 'flex', alignItems: 'center', justifyContent: 'center', gap: 3 }}>
+          {ROS_NODE_TYPES.has(node.type) && (
+            <span style={{ background: '#0d9488', color: '#fff', fontSize: 7, fontWeight: 700, padding: '0 3px', borderRadius: 3 }}>ROS</span>
+          )}
           {node.type}
         </div>
         <div style={{ fontSize: 10, color: '#374151', maxWidth: 100, overflow: 'hidden', textOverflow: 'ellipsis', whiteSpace: 'nowrap' }}>
@@ -388,7 +404,8 @@ export default function BTEditorPage() {
             <div className="px-3 py-3 border-b border-gray-200">
               <p className="text-[10px] font-semibold text-gray-400 uppercase tracking-wide mb-2">Node Palette</p>
               <div className="space-y-1">
-                {PALETTE_NODES.map(({ type, desc }) => {
+                {/* Standard nodes */}
+                {PALETTE_NODES.filter((p) => !p.group).map(({ type, desc }) => {
                   const colors = NODE_COLORS[type];
                   return (
                     <button
@@ -401,6 +418,34 @@ export default function BTEditorPage() {
                         className="text-[9px] font-semibold px-1.5 py-0.5 rounded flex-shrink-0 mt-0.5"
                       >
                         {type.slice(0, 3).toUpperCase()}
+                      </span>
+                      <div>
+                        <p className="text-xs font-medium text-gray-700">{type}</p>
+                        <p className="text-[9px] text-gray-400 leading-tight">{desc}</p>
+                      </div>
+                    </button>
+                  );
+                })}
+                {/* ROS2 nodes */}
+                <div className="pt-2 pb-1">
+                  <p className="text-[9px] font-semibold text-teal-600 uppercase tracking-wide flex items-center gap-1">
+                    <span className="inline-block w-1.5 h-1.5 rounded-full bg-teal-500" />
+                    ROS2
+                  </p>
+                </div>
+                {PALETTE_NODES.filter((p) => p.group === 'ros2').map(({ type, desc }) => {
+                  const colors = NODE_COLORS[type];
+                  return (
+                    <button
+                      key={type}
+                      onClick={() => addFromPalette(type)}
+                      className="w-full flex items-start gap-2 px-2 py-2 rounded-md hover:bg-white border border-transparent hover:border-teal-200 transition-colors text-left"
+                    >
+                      <span
+                        style={{ background: colors.bg, border: `1px solid ${colors.border}`, color: colors.text }}
+                        className="text-[9px] font-semibold px-1.5 py-0.5 rounded flex-shrink-0 mt-0.5"
+                      >
+                        ROS
                       </span>
                       <div>
                         <p className="text-xs font-medium text-gray-700">{type}</p>

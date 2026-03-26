@@ -9,6 +9,9 @@ use crate::LlmProvider;
 use igris_tools::ToolRegistry;
 use std::sync::Arc;
 
+#[cfg(feature = "ros2")]
+use igris_ros2::Ros2Node;
+
 /// Execution context passed to all nodes during ticking.
 ///
 /// The context is passed to every node's `tick()` method and provides:
@@ -96,6 +99,13 @@ pub struct BTreeContext {
     /// When provided, LLM operations and other long-running tasks can be
     /// executed with real-time guarantees and deadline monitoring.
     pub rt_executor: Option<Arc<igris_rt::RtExecutor>>,
+
+    /// Optional ROS2 node for topic publish/subscribe and service calls.
+    ///
+    /// Required for `RosTopicPublish`, `RosTopicSubscribe`, and `RosServiceCall` nodes.
+    /// Enable the `ros2` feature flag to use ROS2 BT nodes.
+    #[cfg(feature = "ros2")]
+    pub ros2_node: Option<Arc<Ros2Node>>,
 }
 
 impl BTreeContext {
@@ -119,6 +129,8 @@ impl BTreeContext {
             llm_provider: None,
             tool_registry: None,
             rt_executor: None,
+            #[cfg(feature = "ros2")]
+            ros2_node: None,
         }
     }
 
@@ -193,6 +205,28 @@ impl BTreeContext {
     pub fn with_rt_executor(mut self, executor: Arc<igris_rt::RtExecutor>) -> Self {
         self.rt_executor = Some(executor);
         self
+    }
+
+    /// Set the ROS2 node for robotics action nodes (requires `ros2` feature).
+    ///
+    /// Required for `RosTopicPublish`, `RosTopicSubscribe`, and `RosServiceCall` nodes.
+    #[cfg(feature = "ros2")]
+    pub fn with_ros2(mut self, node: Arc<Ros2Node>) -> Self {
+        self.ros2_node = Some(node);
+        self
+    }
+
+    /// Returns true if a ROS2 node is available (requires `ros2` feature).
+    #[cfg(feature = "ros2")]
+    pub fn has_ros2(&self) -> bool {
+        self.ros2_node.is_some()
+    }
+
+    /// Get the ROS2 node or return an error if not configured (requires `ros2` feature).
+    #[cfg(feature = "ros2")]
+    pub fn require_ros2(&self) -> anyhow::Result<Arc<Ros2Node>> {
+        self.ros2_node.clone()
+            .ok_or_else(|| anyhow::anyhow!("ROS2 node not configured in context — call with_ros2()"))
     }
 
     /// Check if an LLM provider is available.

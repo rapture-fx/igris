@@ -29,7 +29,7 @@ import Link from 'next/link';
 import { CopyButton, KeyValueGrid, JSONViewer } from '@/components/execution/shared';
 import {
   Wifi, WifiOff, Activity, AlertTriangle, Search, RefreshCw,
-  Shield, History, Cpu, CheckCircle2, AlertCircle, Server, Box, Zap,
+  Shield, History, Cpu, CheckCircle2, AlertCircle, Server, Box, Zap, Radio,
 } from 'lucide-react';
 
 // ─── Types ────────────────────────────────────────────────────────────────────
@@ -917,6 +917,26 @@ function FleetDevicesContent() {
                       </section>
                     </>
                   )}
+
+                  <Separator />
+
+                  {/* ROS Monitor link */}
+                  <section>
+                    <h3 className="text-[11px] font-semibold text-gray-400 uppercase tracking-wider mb-3 flex items-center gap-1.5">
+                      <Radio className="h-3.5 w-3.5 text-teal-600" />
+                      ROS2 Monitor
+                    </h3>
+                    <Link
+                      href={`/fleet/devices/${selectedDevice.device_id}/ros-monitor`}
+                      className="inline-flex items-center gap-1.5 text-xs text-teal-700 bg-teal-50 hover:bg-teal-100 border border-teal-200 rounded-md px-3 py-1.5 transition-colors font-medium"
+                    >
+                      <Radio className="h-3.5 w-3.5" />
+                      Open ROS Monitor
+                    </Link>
+                    <p className="text-[10px] text-gray-400 mt-1.5">
+                      View discovered topics, publish test messages, and call services.
+                    </p>
+                  </section>
 
                   <Separator />
 

@@ -1,5 +1,5 @@
 # Multi-stage build for Igris Runtime v1.1
-FROM rust:1.75 as builder
+FROM rust:latest as builder
 
 WORKDIR /build
 

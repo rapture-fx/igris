@@ -43,10 +43,11 @@ func RegisterExecutionRoutes(app *fiber.App, db *sql.DB, _ *middleware.TenantAut
 	app.Get("/v1/execution/agents", auth, h.ListAgents)
 	app.Patch("/v1/agents/:id", auth, h.PatchAgent)
 	app.Get("/v1/agents/:id/bt-state", auth, h.GetAgentBTState)
+	app.Get("/v1/agents/:id/bt-state/stream", auth, h.StreamBTState)
 	app.Post("/v1/policies/assign", auth, h.AssignPolicy)
 	app.Get("/v1/alerts/stream", auth, h.StreamAlerts)
 
-	log.Info().Msg("[Routes] Registered execution endpoints (/v1/execution/runs, /v1/execution/agents, /v1/agents/:id, /v1/policies/assign, /v1/alerts/stream)")
+	log.Info().Msg("[Routes] Registered execution endpoints (/v1/execution/runs, /v1/execution/agents, /v1/agents/:id, /v1/policies/assign, /v1/alerts/stream, /v1/agents/:id/bt-state/stream)")
 }
 
 // ExecutionRun is the response shape for a single execution row.
@@ -567,6 +568,75 @@ func (h *ExecutionHandler) StreamAlerts(c *fiber.Ctx) error {
 			}
 			rows.Close()
 			w.Flush() //nolint:errcheck
+		}
+	})
+
+	return nil
+}
+
+// ── GET /v1/agents/:id/bt-state/stream (SSE) ────────────────────────────────
+
+// StreamBTState handles GET /v1/agents/:id/bt-state/stream — emits live BT tick
+// snapshots as server-sent events. Polls runtime_instances.bt_state every 500 ms
+// and emits a `bt_tick` event whenever the state changes. Keepalive every 15 s.
+func (h *ExecutionHandler) StreamBTState(c *fiber.Ctx) error {
+	tenantID := middleware.GetClerkUserID(c)
+	if tenantID == "" {
+		return c.Status(fiber.StatusUnauthorized).JSON(fiber.Map{"error": "unauthorized"})
+	}
+	machineID := c.Params("id")
+
+	c.Set("Content-Type", "text/event-stream")
+	c.Set("Cache-Control", "no-cache")
+	c.Set("Connection", "keep-alive")
+	c.Set("X-Accel-Buffering", "no")
+
+	c.Context().SetBodyStreamWriter(func(w *bufio.Writer) {
+		ticker := time.NewTicker(500 * time.Millisecond)
+		defer ticker.Stop()
+
+		keepalive := time.NewTicker(15 * time.Second)
+		defer keepalive.Stop()
+
+		var lastSeen string
+
+		// Initial keepalive.
+		fmt.Fprintf(w, ": keepalive\n\n")
+		w.Flush() //nolint:errcheck
+
+		for {
+			select {
+			case <-ticker.C:
+				var rawState []byte
+				var updatedAt time.Time
+				err := h.db.QueryRow(`
+					SELECT COALESCE(bt_state, 'null'::jsonb)::text,
+					       COALESCE(bt_state_updated_at, '1970-01-01'::timestamptz)
+					FROM runtime_instances
+					WHERE tenant_id = $1 AND machine_id = $2
+					LIMIT 1
+				`, tenantID, machineID).Scan(&rawState, &updatedAt)
+				if err != nil {
+					log.Error().Err(err).Str("machine_id", machineID).Msg("[SSE] bt-state query failed")
+					fmt.Fprintf(w, "event: error\ndata: {\"error\":\"query_failed\"}\n\n")
+					w.Flush() //nolint:errcheck
+					return
+				}
+
+				// Only emit if the state actually changed (avoid duplicate events).
+				ts := updatedAt.UTC().Format(time.RFC3339Nano)
+				if ts == lastSeen || string(rawState) == "null" {
+					continue
+				}
+				lastSeen = ts
+
+				fmt.Fprintf(w, "event: bt_tick\ndata: %s\n\n", rawState)
+				w.Flush() //nolint:errcheck
+
+			case <-keepalive.C:
+				fmt.Fprintf(w, ": keepalive\n\n")
+				w.Flush() //nolint:errcheck
+			}
 		}
 	})
 

@@ -887,6 +887,14 @@ func RegisterROSRoutes(app *fiber.App, db *sql.DB) {
 		return c.JSON(fiber.Map{"status": "queued", "device_id": body.DeviceID, "action": body.Action})
 	})
 	log.Println("[Routes] ✓ POST /v1/ros/lifecycle")
+
+	// ROS discovery — list topics/services reported by a runtime instance
+	v1.Get("/ros/discovery", middleware.BetterAuth(db), rosDiscovery(db))
+	log.Println("[Routes] ✓ GET /v1/ros/discovery")
+
+	// ROS publish — send a test message to a topic on a specific runtime
+	v1.Post("/ros/publish", middleware.BetterAuth(db), rosPublish(db))
+	log.Println("[Routes] ✓ POST /v1/ros/publish")
 }
 
 // ── GET /v1/fleet/swarm ──────────────────────────────────────────────────────
@@ -1060,6 +1068,161 @@ func unmapROSTopic(db *sql.DB) fiber.Handler {
 			return c.Status(fiber.StatusNotFound).JSON(fiber.Map{"error": "mapping not found"})
 		}
 		return c.SendStatus(fiber.StatusNoContent)
+	}
+}
+
+// ── ROS Discovery / Publish ───────────────────────────────────────────────────
+
+// ROSDiscoveryEntry represents a single discovered ROS topic or service.
+type ROSDiscoveryEntry struct {
+	Name       string `json:"name"`
+	Kind       string `json:"kind"`       // "topic" | "service"
+	MsgType    string `json:"msg_type"`
+	Direction  string `json:"direction"`  // "pub" | "sub" | "srv" | "unknown"
+	LastSeenAt string `json:"last_seen_at,omitempty"`
+}
+
+// rosDiscovery handles GET /v1/ros/discovery?machine_id=...
+// Returns topics and services reported by the runtime instance. The runtime
+// populates ros_discovered_topics via its heartbeat or a dedicated report call.
+// Falls back to the tenant's static topic mappings when no dynamic data exists.
+func rosDiscovery(db *sql.DB) fiber.Handler {
+	return func(c *fiber.Ctx) error {
+		tenantID := middleware.GetClerkUserID(c)
+		if tenantID == "" {
+			return c.Status(fiber.StatusUnauthorized).JSON(fiber.Map{"error": "unauthorized"})
+		}
+		machineID := c.Query("machine_id")
+
+		entries := make([]ROSDiscoveryEntry, 0)
+
+		// Try dynamic discovery from runtime_instances.ros_topics JSONB column (if exists).
+		if machineID != "" {
+			var rawTopics []byte
+			_ = db.QueryRowContext(c.Context(), `
+				SELECT COALESCE(ros_topics, '[]'::jsonb)
+				FROM runtime_instances
+				WHERE machine_id = $1 AND tenant_id = $2
+			`, machineID, tenantID).Scan(&rawTopics)
+
+			if len(rawTopics) > 2 { // non-empty array
+				var dynamic []ROSDiscoveryEntry
+				if err := json.Unmarshal(rawTopics, &dynamic); err == nil {
+					entries = append(entries, dynamic...)
+				}
+			}
+		}
+
+		// Supplement with static topic mappings (always included).
+		rows, err := db.QueryContext(c.Context(), `
+			SELECT topic_name, message_type, direction
+			FROM ros_topic_mappings
+			WHERE tenant_id = $1
+			ORDER BY created_at DESC
+		`, tenantID)
+		if err == nil {
+			defer rows.Close()
+			for rows.Next() {
+				var topicName, msgType, dir string
+				if rows.Scan(&topicName, &msgType, &dir) == nil {
+					d := "pub"
+					if dir == "subscribe" {
+						d = "sub"
+					}
+					entries = append(entries, ROSDiscoveryEntry{
+						Name:      topicName,
+						Kind:      "topic",
+						MsgType:   msgType,
+						Direction: d,
+					})
+				}
+			}
+		}
+
+		// Deduplicate by topic name.
+		seen := make(map[string]struct{})
+		deduped := make([]ROSDiscoveryEntry, 0, len(entries))
+		for _, e := range entries {
+			if _, ok := seen[e.Name]; !ok {
+				seen[e.Name] = struct{}{}
+				deduped = append(deduped, e)
+			}
+		}
+
+		return c.JSON(fiber.Map{
+			"machine_id": machineID,
+			"topics":     deduped,
+			"count":      len(deduped),
+		})
+	}
+}
+
+// rosPublish handles POST /v1/ros/publish — queues a topic publish command
+// to the target runtime instance via its pending_commands channel.
+func rosPublish(db *sql.DB) fiber.Handler {
+	return func(c *fiber.Ctx) error {
+		tenantID := middleware.GetClerkUserID(c)
+		if tenantID == "" {
+			return c.Status(fiber.StatusUnauthorized).JSON(fiber.Map{"error": "unauthorized"})
+		}
+
+		var body struct {
+			DeviceID    string          `json:"device_id"`
+			Topic       string          `json:"topic"`
+			MessageType string          `json:"message_type"`
+			Payload     json.RawMessage `json:"payload"`
+		}
+		if err := c.BodyParser(&body); err != nil {
+			return c.Status(fiber.StatusBadRequest).JSON(fiber.Map{"error": "invalid body"})
+		}
+		if body.DeviceID == "" || body.Topic == "" {
+			return c.Status(fiber.StatusBadRequest).JSON(fiber.Map{
+				"error": "device_id and topic are required",
+			})
+		}
+		if len(body.Payload) == 0 {
+			body.Payload = json.RawMessage("{}")
+		}
+		// Envelope: max 64 KiB payload
+		if len(body.Payload) > 65536 {
+			return c.Status(fiber.StatusRequestEntityTooLarge).JSON(fiber.Map{
+				"error": "payload exceeds 64 KiB limit",
+			})
+		}
+		if body.MessageType == "" {
+			body.MessageType = "std_msgs/String"
+		}
+
+		cmd, err := json.Marshal(map[string]interface{}{
+			"type":         "ros_publish",
+			"topic":        body.Topic,
+			"message_type": body.MessageType,
+			"payload":      body.Payload,
+		})
+		if err != nil {
+			return c.Status(fiber.StatusInternalServerError).JSON(fiber.Map{"error": "internal_error"})
+		}
+
+		result, err := db.ExecContext(c.Context(), `
+			UPDATE runtime_instances
+			SET pending_commands = COALESCE(pending_commands, '[]'::jsonb) || $1::jsonb,
+			    updated_at = NOW()
+			WHERE runtime_id = $2 AND tenant_id = $3
+		`, "["+string(cmd)+"]", body.DeviceID, tenantID)
+		if err != nil {
+			log.Println("[ROS] Publish queue failed:", err)
+			return c.Status(fiber.StatusInternalServerError).JSON(fiber.Map{"error": "internal_error"})
+		}
+		n, _ := result.RowsAffected()
+		if n == 0 {
+			return c.Status(fiber.StatusNotFound).JSON(fiber.Map{"error": "device not found"})
+		}
+
+		return c.JSON(fiber.Map{
+			"status":    "queued",
+			"device_id": body.DeviceID,
+			"topic":     body.Topic,
+		})
 	}
 }
 

@@ -33,6 +33,12 @@ igris-rt = { path = "../igris-rt" }
 igris-tools = { path = "../igris-tools" }
 igris-core = { path = "../igris-core" }
 
+# Optional ROS2 integration
+igris-ros2 = { path = "../igris-ros2", optional = true }
+
+[features]
+ros2 = ["dep:igris-ros2"]
+
 [dev-dependencies]
 tokio-test = "0.4"
 tracing-subscriber = "0.3"
