@@ -825,6 +825,14 @@ func RegisterROSRoutes(app *fiber.App, db *sql.DB) {
 	v1.Get("/fleet/swarm", middleware.BetterAuth(db), getSwarmStatus(db))
 	log.Println("[Routes] ✓ GET /v1/fleet/swarm")
 
+	// Swarm broadcast — push a command to all runtime instances for the tenant
+	v1.Post("/fleet/swarm/broadcast", middleware.BetterAuth(db), swarmBroadcast(db))
+	log.Println("[Routes] ✓ POST /v1/fleet/swarm/broadcast")
+
+	// Swarm clear — reset pending_commands for a single agent
+	v1.Delete("/fleet/swarm/agents/:id/clear", middleware.BetterAuth(db), swarmClearAgent(db))
+	log.Println("[Routes] ✓ DELETE /v1/fleet/swarm/agents/:id/clear")
+
 	// ROS topic mappings
 	v1.Get("/ros/topics", middleware.BetterAuth(db), listROSTopics(db))
 	v1.Post("/ros/topics/map", middleware.BetterAuth(db), mapROSTopic(db))
@@ -1052,5 +1060,85 @@ func unmapROSTopic(db *sql.DB) fiber.Handler {
 			return c.Status(fiber.StatusNotFound).JSON(fiber.Map{"error": "mapping not found"})
 		}
 		return c.SendStatus(fiber.StatusNoContent)
+	}
+}
+
+// ── Swarm Broadcast / Clear ───────────────────────────────────────────────────
+
+// swarmBroadcast handles POST /v1/fleet/swarm/broadcast.
+// Appends a command to pending_commands for every runtime instance in the tenant fleet.
+func swarmBroadcast(db *sql.DB) fiber.Handler {
+	return func(c *fiber.Ctx) error {
+		tenantID := middleware.GetClerkUserID(c)
+		if tenantID == "" {
+			return c.Status(fiber.StatusUnauthorized).JSON(fiber.Map{"error": "unauthorized"})
+		}
+
+		var body struct {
+			Command string          `json:"command"`
+			Payload json.RawMessage `json:"payload"`
+		}
+		if err := c.BodyParser(&body); err != nil || body.Command == "" {
+			return c.Status(fiber.StatusBadRequest).JSON(fiber.Map{
+				"error": "command field is required",
+			})
+		}
+
+		payload := body.Payload
+		if len(payload) == 0 {
+			payload = json.RawMessage("{}")
+		}
+
+		// Build the command JSON to append
+		cmdJSON, err := json.Marshal(map[string]interface{}{
+			"type":    body.Command,
+			"payload": payload,
+		})
+		if err != nil {
+			return c.Status(fiber.StatusInternalServerError).JSON(fiber.Map{"error": "internal_error"})
+		}
+
+		result, err := db.ExecContext(c.Context(), `
+			UPDATE runtime_instances
+			SET pending_commands = COALESCE(pending_commands, '[]'::jsonb) || $1::jsonb,
+			    updated_at = NOW()
+			WHERE tenant_id = $2
+		`, "["+string(cmdJSON)+"]", tenantID)
+		if err != nil {
+			log.Println("[Swarm] Broadcast failed:", err)
+			return c.Status(fiber.StatusInternalServerError).JSON(fiber.Map{"error": "internal_error"})
+		}
+
+		n, _ := result.RowsAffected()
+		return c.JSON(fiber.Map{"dispatched_to": n})
+	}
+}
+
+// swarmClearAgent handles DELETE /v1/fleet/swarm/agents/:id/clear.
+// Resets pending_commands to an empty array for a single runtime instance.
+func swarmClearAgent(db *sql.DB) fiber.Handler {
+	return func(c *fiber.Ctx) error {
+		tenantID := middleware.GetClerkUserID(c)
+		if tenantID == "" {
+			return c.Status(fiber.StatusUnauthorized).JSON(fiber.Map{"error": "unauthorized"})
+		}
+		runtimeID := c.Params("id")
+
+		result, err := db.ExecContext(c.Context(), `
+			UPDATE runtime_instances
+			SET pending_commands = '[]'::jsonb,
+			    updated_at = NOW()
+			WHERE runtime_id = $1 AND tenant_id = $2
+		`, runtimeID, tenantID)
+		if err != nil {
+			log.Println("[Swarm] Clear agent failed:", err)
+			return c.Status(fiber.StatusInternalServerError).JSON(fiber.Map{"error": "internal_error"})
+		}
+
+		n, _ := result.RowsAffected()
+		if n == 0 {
+			return c.Status(fiber.StatusNotFound).JSON(fiber.Map{"error": "agent not found"})
+		}
+		return c.JSON(fiber.Map{"cleared": true})
 	}
 }
