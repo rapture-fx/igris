@@ -66,6 +66,7 @@ const navigation: NavigationItem[] = [
     icon: Sparkles,
     children: [
       { name: 'Routing', href: '/models/routing' },
+      { name: 'Training', href: '/models/training' },
       { name: 'Providers', href: '/models/providers' },
       { name: 'Cost', href: '/models/cost' },
     ],
