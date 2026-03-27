@@ -75,6 +75,7 @@ const slugToFile: Record<string, string> = {
   deployment: 'deployment',
   quickstart: 'quickstart',
   'execution-model': 'execution-model',
+  'execution-flow': 'execution-flow',
   safety: 'safety',
   agents: 'agents',
   tools: 'tools',
@@ -88,10 +89,12 @@ const slugToFile: Record<string, string> = {
   'behavior-trees': 'behavior-trees',
   'fleet-management': 'fleet-management',
   'ros2-integration': 'ros2-integration',
+  'key-management': 'key-management',
   policy: 'policy',
   'api-reference': 'api-reference',
   changelog: 'changelog',
   articles: 'articles/index',
+  'pricing-tiers': 'pricing-tiers',
 };
 
 export async function generateStaticParams() {
