@@ -461,6 +461,10 @@ func main() {
 		api.RegisterFederatedRoutes(app, dbInstance)
 		log.Println("[Federated] ✅ Federated learning endpoints registered (/v1/federated/*)")
 
+		// LoRA training proxy (forwards to runtime /v1/lora/*)
+		api.RegisterLoRARoutes(app, dbInstance)
+		log.Println("[LoRA] ✅ LoRA training proxy endpoints registered (/v1/lora/*)")
+
 		// Multimodal inference (vision + audio)
 		api.RegisterMultimodalRoutes(app, dbInstance)
 		log.Println("[Multimodal] ✅ Multimodal endpoints registered (/v1/infer/multimodal)")
