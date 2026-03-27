@@ -23,6 +23,7 @@ interface BTNode {
   label: string;
   x: number;
   y: number;
+  rosConfig?: { topic: string; msgType: string; serviceType?: string };
 }
 
 interface BTEdge {
@@ -152,7 +153,8 @@ function NodeBox({
         left: node.x,
         top: node.y,
         width: NODE_WIDTH,
-        height: NODE_HEIGHT,
+        minHeight: NODE_HEIGHT,
+        height: node.rosConfig?.topic ? NODE_HEIGHT + 14 : NODE_HEIGHT,
         background: colors.bg,
         border: `2px solid ${selected ? '#111' : colors.border}`,
         borderRadius: 8,
@@ -175,6 +177,11 @@ function NodeBox({
         <div style={{ fontSize: 10, color: '#374151', maxWidth: 100, overflow: 'hidden', textOverflow: 'ellipsis', whiteSpace: 'nowrap' }}>
           {node.label}
         </div>
+        {node.rosConfig?.topic && (
+          <div style={{ fontSize: 8, color: '#0f766e', maxWidth: 108, overflow: 'hidden', textOverflow: 'ellipsis', whiteSpace: 'nowrap', fontFamily: 'monospace', marginTop: 1, opacity: 0.85 }}>
+            {node.rosConfig.topic}
+          </div>
+        )}
       </div>
     </div>
   );
@@ -544,6 +551,30 @@ export default function BTEditorPage() {
                     {selectedNode.type}
                   </div>
                 </div>
+
+                {ROS_NODE_TYPES.has(selectedNode.type) && (
+                  <div className="space-y-2 p-2 rounded-md bg-teal-50 border border-teal-100">
+                    <p className="text-[10px] font-semibold text-teal-700 uppercase tracking-wide">ROS Config</p>
+                    <div>
+                      <label className="text-xs text-gray-500 mb-1 block">Topic / Service Name</label>
+                      <input
+                        value={selectedNode.rosConfig?.topic ?? ''}
+                        onChange={(e) => updateSelected({ rosConfig: { ...selectedNode.rosConfig, topic: e.target.value, msgType: selectedNode.rosConfig?.msgType ?? '' } })}
+                        placeholder="/cmd_vel or /robot/navigate"
+                        className="w-full h-8 text-xs border border-teal-200 rounded-md px-2 outline-none focus:border-teal-400 font-mono"
+                      />
+                    </div>
+                    <div>
+                      <label className="text-xs text-gray-500 mb-1 block">Message Type</label>
+                      <input
+                        value={selectedNode.rosConfig?.msgType ?? ''}
+                        onChange={(e) => updateSelected({ rosConfig: { ...selectedNode.rosConfig, topic: selectedNode.rosConfig?.topic ?? '', msgType: e.target.value } })}
+                        placeholder="geometry_msgs/Twist"
+                        className="w-full h-8 text-xs border border-teal-200 rounded-md px-2 outline-none focus:border-teal-400 font-mono"
+                      />
+                    </div>
+                  </div>
+                )}
 
                 <div className="grid grid-cols-2 gap-2">
                   <div>
