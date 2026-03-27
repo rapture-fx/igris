@@ -5,8 +5,16 @@ import { useEffect, useRef, useState } from 'react';
 import { DashboardLayout } from '@/components/layout/DashboardLayout';
 import { Button } from '@/components/ui/button';
 import { Skeleton } from '@/components/ui/skeleton';
+import { Separator } from '@/components/ui/separator';
+import {
+  Sheet,
+  SheetContent,
+  SheetHeader,
+  SheetTitle,
+} from '@/components/ui/sheet';
 import { getRelativeTime } from '@/utils/helpers';
-import { ArrowLeft, GitBranch, Loader2, Wifi, WifiOff } from 'lucide-react';
+import { ArrowLeft, Edit2, GitBranch, Loader2, Wifi, WifiOff } from 'lucide-react';
+import { CopyButton } from '@/components/execution/shared';
 
 // ─── Types ────────────────────────────────────────────────────────────────────
 
@@ -19,6 +27,8 @@ interface BTNode {
   duration_ms?: number;
   execution_id?: string;
   timestamp?: string;
+  llm_proposal?: string;
+  envelope_status?: 'passed' | 'violated' | 'partial';
 }
 
 interface BTState {
@@ -57,6 +67,119 @@ const BT_TYPE_ICON: Record<string, string> = {
   condition: '?',
 };
 
+const ENVELOPE_DOT: Record<'passed' | 'violated' | 'partial', string> = {
+  passed:   'bg-green-500',
+  violated: 'bg-red-500',
+  partial:  'bg-yellow-400',
+};
+
+const NODE_TYPE_COLORS: Record<string, string> = {
+  selector:  'bg-purple-50 border-purple-200 text-purple-700',
+  sequence:  'bg-blue-50 border-blue-200 text-blue-700',
+  action:    'bg-gray-50 border-gray-200 text-gray-700',
+  condition: 'bg-teal-50 border-teal-200 text-teal-700',
+};
+
+interface BTTreeItem extends BTNode {
+  children: BTTreeItem[];
+}
+
+function buildTree(nodes: BTNode[]): BTTreeItem[] {
+  const roots: BTTreeItem[] = [];
+  const stack: BTTreeItem[] = [];
+  for (const node of nodes) {
+    const item: BTTreeItem = { ...node, children: [] };
+    while (stack.length > 0 && stack[stack.length - 1].depth >= node.depth) {
+      stack.pop();
+    }
+    if (stack.length === 0) {
+      roots.push(item);
+    } else {
+      stack[stack.length - 1].children.push(item);
+    }
+    stack.push(item);
+  }
+  return roots;
+}
+
+function BTTreeNode({
+  node,
+  isLast,
+  prefix,
+  onSelect,
+}: {
+  node: BTTreeItem;
+  isLast: boolean;
+  prefix: string;
+  onSelect: (n: BTNode) => void;
+}) {
+  const connector = isLast ? '└─' : '├─';
+  const childPrefix = prefix + (isLast ? '  ' : '│ ');
+
+  return (
+    <div>
+      {/* Node row */}
+      <div className="flex items-start">
+        {/* Tree connector */}
+        {prefix.length > 0 && (
+          <span className="flex-shrink-0 font-mono text-[11px] text-gray-300 leading-[26px] select-none whitespace-pre">
+            {prefix}{connector}{' '}
+          </span>
+        )}
+        {/* Clickable node card */}
+        <button
+          type="button"
+          className="flex-1 flex items-center justify-between gap-2 py-1 px-2 rounded-md hover:bg-gray-50 group transition-colors text-left min-w-0 mb-0.5"
+          onClick={() => onSelect(node)}
+        >
+          <div className="flex flex-col min-w-0">
+            <div className="flex items-center gap-1.5 flex-wrap">
+              {/* Type chip */}
+              <span className={`inline-flex items-center px-1 py-0 rounded border text-[9px] font-semibold uppercase tracking-wide ${NODE_TYPE_COLORS[node.type] ?? NODE_TYPE_COLORS.action}`}>
+                {BT_TYPE_ICON[node.type] ?? '•'} {node.type}
+              </span>
+              <span className="text-xs font-medium text-gray-800 truncate">{node.name}</span>
+              {node.execution_id && (
+                <span className="text-[10px] text-gray-400 font-mono hidden group-hover:inline">
+                  {node.execution_id.slice(0, 8)}
+                </span>
+              )}
+            </div>
+            {node.llm_proposal && (
+              <p className="text-[10px] text-indigo-400 italic truncate mt-0.5 pl-0.5">
+                ↳ {node.llm_proposal}
+              </p>
+            )}
+          </div>
+          <div className="flex items-center gap-1.5 flex-shrink-0">
+            {node.duration_ms != null && node.duration_ms > 0 && (
+              <span className="text-[10px] text-gray-400 tabular-nums hidden group-hover:inline">
+                {node.duration_ms < 1000 ? `${node.duration_ms}ms` : `${(node.duration_ms / 1000).toFixed(1)}s`}
+              </span>
+            )}
+            {node.envelope_status && (
+              <span className={`h-2 w-2 rounded-full flex-shrink-0 ${ENVELOPE_DOT[node.envelope_status]}`} title={`Envelope: ${node.envelope_status}`} />
+            )}
+            <span className={`inline-flex items-center px-1.5 py-0.5 rounded border text-[10px] font-medium ${BT_STATUS_STYLES[node.status] ?? BT_STATUS_STYLES.pending}`}>
+              {node.status}
+            </span>
+          </div>
+        </button>
+      </div>
+      {/* Children */}
+      {node.children.map((child, i) => (
+        <BTTreeNode
+          key={child.id}
+          node={child}
+          isLast={i === node.children.length - 1}
+          prefix={childPrefix}
+          onSelect={onSelect}
+        />
+      ))}
+    </div>
+  );
+}
+
 type ConnectionStatus = 'connecting' | 'live' | 'stale' | 'error';
 
 // ─── Page ─────────────────────────────────────────────────────────────────────
@@ -69,6 +192,10 @@ export default function AgentLivePage() {
   const [tickCount, setTickCount] = useState<number>(0);
   const [connStatus, setConnStatus] = useState<ConnectionStatus>('connecting');
   const [lastEventAt, setLastEventAt] = useState<number>(0);
+
+  // Drawer state
+  const [drawerNode, setDrawerNode] = useState<BTNode | null>(null);
+
   const esRef = useRef<EventSource | null>(null);
   const staleTimerRef = useRef<ReturnType<typeof setTimeout> | null>(null);
 
@@ -124,6 +251,7 @@ export default function AgentLivePage() {
   }, [id]);
 
   const nodes = data?.nodes ?? [];
+  const treeRoots = buildTree(nodes);
 
   const statusCounts = nodes.reduce<Record<string, number>>((acc, n) => {
     acc[n.status] = (acc[n.status] ?? 0) + 1;
@@ -154,6 +282,18 @@ export default function AgentLivePage() {
             </h1>
             <p className="text-xs text-gray-500 font-mono truncate mt-0.5">{id}</p>
           </div>
+
+          {/* Edit BT button */}
+          <Button
+            variant="outline"
+            size="sm"
+            className="h-8 text-xs gap-1.5"
+            onClick={() => router.push('/execution/bt-editor')}
+          >
+            <Edit2 className="h-3.5 w-3.5" />
+            Edit BT
+          </Button>
+
           {connStatus === 'live' && (
             <span className="inline-flex items-center gap-1.5 px-2 py-1 rounded text-xs font-medium bg-green-50 text-green-700 border border-green-200">
               <Wifi className="h-3 w-3" />
@@ -216,57 +356,113 @@ export default function AgentLivePage() {
               </p>
             </div>
           ) : (
-            <div className="space-y-0.5">
-              {nodes.map((node) => (
-                <div
-                  key={node.id}
-                  className="flex items-start gap-2"
-                  style={{ paddingLeft: `${node.depth * 20}px` }}
-                >
-                  {node.depth > 0 && (
-                    <span className="mt-1 flex-shrink-0 text-gray-300 text-[10px] font-mono">└</span>
-                  )}
-                  <div className="flex-1 flex items-center justify-between gap-3 py-1.5 px-2.5 rounded-md hover:bg-gray-50 group transition-colors">
-                    <div className="flex items-center gap-2 min-w-0">
-                      <span className="text-xs text-gray-400 font-mono flex-shrink-0 w-3 text-center">
-                        {BT_TYPE_ICON[node.type] ?? '•'}
-                      </span>
-                      <span className="text-xs font-medium text-gray-800 truncate">{node.name}</span>
-                      {node.execution_id && (
-                        <span className="text-[10px] text-gray-400 font-mono hidden group-hover:inline">
-                          {node.execution_id.slice(0, 8)}
-                        </span>
-                      )}
-                      {node.timestamp && (
-                        <span className="text-[10px] text-gray-400 hidden group-hover:inline">
-                          {getRelativeTime(node.timestamp)}
-                        </span>
-                      )}
-                    </div>
-                    <div className="flex items-center gap-2 flex-shrink-0">
-                      {node.duration_ms != null && node.duration_ms > 0 && (
-                        <span className="text-[10px] text-gray-400 tabular-nums">
-                          {node.duration_ms < 1000
-                            ? `${node.duration_ms}ms`
-                            : `${(node.duration_ms / 1000).toFixed(1)}s`}
-                        </span>
-                      )}
-                      <span
-                        className={`inline-flex items-center px-1.5 py-0.5 rounded border text-[10px] font-medium ${
-                          BT_STATUS_STYLES[node.status] ?? BT_STATUS_STYLES.pending
-                        }`}
-                      >
-                        {node.status}
-                      </span>
-                    </div>
-                  </div>
-                </div>
+            <div className="font-mono text-[11px]">
+              {treeRoots.map((root, i) => (
+                <BTTreeNode
+                  key={root.id}
+                  node={root}
+                  isLast={i === treeRoots.length - 1}
+                  prefix=""
+                  onSelect={setDrawerNode}
+                />
               ))}
             </div>
           )}
         </div>
 
       </div>
+
+      {/* Node Detail Drawer */}
+      <Sheet open={!!drawerNode} onOpenChange={(open) => !open && setDrawerNode(null)}>
+        <SheetContent className="w-[360px] sm:w-[400px]">
+          {drawerNode && (
+            <>
+              <SheetHeader>
+                <SheetTitle className="text-sm font-semibold text-gray-900 truncate">
+                  {drawerNode.name}
+                </SheetTitle>
+              </SheetHeader>
+              <div className="mt-4 space-y-4 text-xs">
+
+                <div className="grid grid-cols-2 gap-3">
+                  <div>
+                    <p className="text-[10px] font-semibold text-gray-400 uppercase tracking-wide mb-1">Type</p>
+                    <span className="font-mono text-gray-700">{drawerNode.type}</span>
+                  </div>
+                  <div>
+                    <p className="text-[10px] font-semibold text-gray-400 uppercase tracking-wide mb-1">Status</p>
+                    <div className="flex items-center gap-1.5">
+                      {drawerNode.envelope_status && (
+                        <span
+                          className={`h-2 w-2 rounded-full flex-shrink-0 ${ENVELOPE_DOT[drawerNode.envelope_status]}`}
+                          title={`Envelope: ${drawerNode.envelope_status}`}
+                        />
+                      )}
+                      <span
+                        className={`inline-flex items-center px-1.5 py-0.5 rounded border text-[10px] font-medium ${
+                          BT_STATUS_STYLES[drawerNode.status] ?? BT_STATUS_STYLES.pending
+                        }`}
+                      >
+                        {drawerNode.status}
+                      </span>
+                    </div>
+                  </div>
+                </div>
+
+                {drawerNode.execution_id && (
+                  <>
+                    <Separator />
+                    <div>
+                      <p className="text-[10px] font-semibold text-gray-400 uppercase tracking-wide mb-1">Execution ID</p>
+                      <div className="flex items-center gap-1.5">
+                        <code className="font-mono text-gray-700 break-all text-[11px]">{drawerNode.execution_id}</code>
+                        <CopyButton value={drawerNode.execution_id} />
+                      </div>
+                    </div>
+                  </>
+                )}
+
+                {drawerNode.timestamp && (
+                  <>
+                    <Separator />
+                    <div>
+                      <p className="text-[10px] font-semibold text-gray-400 uppercase tracking-wide mb-1">Timestamp</p>
+                      <span className="text-gray-700">{getRelativeTime(drawerNode.timestamp)}</span>
+                      <span className="text-gray-400 ml-2 font-mono text-[10px]">{drawerNode.timestamp}</span>
+                    </div>
+                  </>
+                )}
+
+                {drawerNode.duration_ms != null && drawerNode.duration_ms > 0 && (
+                  <>
+                    <Separator />
+                    <div>
+                      <p className="text-[10px] font-semibold text-gray-400 uppercase tracking-wide mb-1">Duration</p>
+                      <span className="font-mono text-gray-700">
+                        {drawerNode.duration_ms < 1000
+                          ? `${drawerNode.duration_ms}ms`
+                          : `${(drawerNode.duration_ms / 1000).toFixed(1)}s`}
+                      </span>
+                    </div>
+                  </>
+                )}
+
+                {drawerNode.llm_proposal && (
+                  <>
+                    <Separator />
+                    <div>
+                      <p className="text-[10px] font-semibold text-gray-400 uppercase tracking-wide mb-1">LLM Proposal</p>
+                      <p className="text-gray-600 leading-relaxed italic">{drawerNode.llm_proposal}</p>
+                    </div>
+                  </>
+                )}
+
+              </div>
+            </>
+          )}
+        </SheetContent>
+      </Sheet>
+
     </DashboardLayout>
   );
 }
