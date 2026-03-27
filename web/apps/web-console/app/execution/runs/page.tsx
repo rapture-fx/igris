@@ -79,6 +79,8 @@ interface Execution {
   policy_snapshot?: Record<string, unknown>;
   capability_snapshot?: Record<string, unknown>;
   logs?: string[];
+  llm_proposal?: string;
+  enforced_output?: string;
 }
 
 // ─── Helpers ──────────────────────────────────────────────────────────────────
@@ -617,6 +619,50 @@ export default function ExecutionRunsPage() {
                   </section>
 
                   <Separator />
+
+                  {/* §2.5 LLM Proposal vs Runtime Enforced */}
+                  {(selected.llm_proposal || selected.enforced_output) && (
+                    <section>
+                      <h3 className="text-[11px] font-semibold text-gray-400 uppercase tracking-wider mb-3 flex items-center gap-1.5">
+                        <Eye className="h-3.5 w-3.5" />
+                        LLM Proposal vs Runtime Enforced
+                      </h3>
+                      <div className="grid grid-cols-2 gap-2">
+                        <div>
+                          <p className="text-[10px] font-medium text-gray-400 mb-1 uppercase tracking-wider">LLM Proposed</p>
+                          <div className="bg-blue-50 border border-blue-100 rounded p-2 min-h-[60px] max-h-40 overflow-auto">
+                            {selected.llm_proposal ? (
+                              <pre className="text-[11px] text-blue-900 whitespace-pre-wrap break-words leading-relaxed">
+                                {selected.llm_proposal}
+                              </pre>
+                            ) : (
+                              <span className="text-xs text-gray-300">—</span>
+                            )}
+                          </div>
+                        </div>
+                        <div>
+                          <p className="text-[10px] font-medium text-gray-400 mb-1 uppercase tracking-wider">Runtime Enforced</p>
+                          <div className={`border rounded p-2 min-h-[60px] max-h-40 overflow-auto ${selected.has_violation ? 'bg-red-50 border-red-100' : 'bg-green-50 border-green-100'}`}>
+                            {selected.enforced_output ? (
+                              <pre className={`text-[11px] whitespace-pre-wrap break-words leading-relaxed ${selected.has_violation ? 'text-red-900' : 'text-green-900'}`}>
+                                {selected.enforced_output}
+                              </pre>
+                            ) : (
+                              <span className="text-xs text-gray-300">—</span>
+                            )}
+                          </div>
+                        </div>
+                      </div>
+                      {selected.has_violation && (
+                        <p className="mt-2 text-[11px] text-red-600 flex items-center gap-1">
+                          <AlertTriangle className="h-3 w-3" />
+                          Runtime overrode or rejected the LLM proposal due to policy violation.
+                        </p>
+                      )}
+                    </section>
+                  )}
+
+                  {(selected.llm_proposal || selected.enforced_output) && <Separator />}
 
                   {/* §3 Capability Snapshot */}
                   <section>
