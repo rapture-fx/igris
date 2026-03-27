@@ -21,6 +21,9 @@ import {
   ChevronDown,
   Clock,
   BookOpen,
+  Key,
+  ArrowRight,
+  DollarSign,
 } from 'lucide-react';
 import { cn } from '@/lib/utils';
 
@@ -83,6 +86,7 @@ const searchIndex = [
   { title: 'Execution Model', path: '/docs/execution-model', keywords: 'execution model envelope bounds signing cloud local path' },
   { title: 'Safety & Containment', path: '/docs/safety', keywords: 'safety containment cgroup bounds violation handling secure defaults' },
   { title: 'Capabilities & Limits', path: '/docs/capability-model', keywords: 'capabilities limits capability model grants tool http shell filesystem max tokens steps' },
+  { title: 'Execution Flow', path: '/docs/execution-flow', keywords: 'execution flow request lifecycle sdk overture runtime provider receipt' },
   { title: 'Execution Receipts', path: '/docs/execution-receipts', keywords: 'execution receipts signed audit record query export' },
   { title: 'Agent Lifecycle', path: '/docs/agent-lifecycle', keywords: 'agent lifecycle states init running idle degraded terminated' },
   { title: 'Agents', path: '/docs/agents', keywords: 'agents reflection planning swarm tool-use' },
@@ -98,6 +102,8 @@ const searchIndex = [
   { title: 'Audit', path: '/docs/audit', keywords: 'audit lineage compliance receipt export' },
   { title: 'SDK', path: '/docs/sdk', keywords: 'sdk client libraries javascript python go rust' },
   { title: 'Deployment', path: '/docs/deployment', keywords: 'deployment cloud edge self-hosted fly kubernetes' },
+  { title: 'Key Management', path: '/docs/key-management', keywords: 'key management provider api keys vault rotation byok encrypt' },
+  { title: 'Pricing', path: '/docs/pricing-tiers', keywords: 'pricing tiers seed horizon infinite trial billing instances cost' },
   { title: 'API Reference', path: '/docs/api-reference', keywords: 'api reference endpoints inference management receipts fleet policy' },
   { title: 'Changelog', path: '/docs/changelog', keywords: 'changelog release notes version history changes updates fixes' },
   { title: 'Articles', path: '/docs/articles', keywords: 'articles engineering notes architecture deep dive' },
@@ -116,6 +122,7 @@ const docsNavSections: NavSection[] = [
     section: 'Execution',
     items: [
       { name: 'Execution Model', href: '/docs/execution-model', icon: Cpu },
+      { name: 'Execution Flow', href: '/docs/execution-flow', icon: ArrowRight },
       { name: 'Safety & Containment', href: '/docs/safety', icon: Shield },
       { name: 'Capabilities & Limits', href: '/docs/capability-model', icon: Box },
       { name: 'Execution Receipts', href: '/docs/execution-receipts', icon: FileText },
@@ -152,6 +159,8 @@ const docsNavSections: NavSection[] = [
     items: [
       { name: 'SDK', href: '/docs/sdk', icon: Package },
       { name: 'Deployment', href: '/docs/deployment', icon: Globe },
+      { name: 'Key Management', href: '/docs/key-management', icon: Key },
+      { name: 'Pricing', href: '/docs/pricing-tiers', icon: DollarSign },
     ],
   },
 ];
