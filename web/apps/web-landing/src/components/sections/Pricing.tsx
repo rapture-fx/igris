@@ -31,13 +31,17 @@ const pricingTiers: PricingTier[] = [
     features: [
       "3 runtime instances",
       "Edge or server deployment",
+      "Behavior Trees + hybrid LLM execution",
+      "Agent Memory (shared blackboard)",
+      "Safety Containment + EscapeVector",
       "Cryptographic execution receipts",
+      "Tamper-evident audit logs",
       "Offline survival mode",
       "Local + cloud routing",
       "Fleet dashboard",
       "OTA verified updates",
+      "MCP Integration",
       "Council routing",
-      "Audit logs",
       "30-day log retention",
       "Email support (48h)",
     ],
@@ -54,6 +58,9 @@ const pricingTiers: PricingTier[] = [
       "Everything in Seed",
       "Shadow mode",
       "Speculative execution",
+      "Human-in-the-Loop approvals",
+      "Multi-Agent Swarms",
+      "Reflection Mode",
       "SLO enforcement",
       "Prometheus metrics",
       "Advanced policy engine",
@@ -73,7 +80,7 @@ const pricingTiers: PricingTier[] = [
       "500 runtime instances",
       "Everything in Horizon",
       "On-premise deployment",
-      "Federated learning",
+      "Federated model aggregation",
       "Multimodal inference",
       "Custom retention policy",
       "Dedicated onboarding",
@@ -116,10 +123,6 @@ export default function Pricing() {
                         <h3 className="text-lg font-bold text-[#000000] dark:text-[#f6f6f4]" style={{ fontFamily: '-apple-system, BlinkMacSystemFont, "Segoe UI", Roboto, Helvetica, Arial, sans-serif' }}>
                           {tier.name}
                         </h3>
-                      </div>
-
-                      {/* Image frame placeholder */}
-                      <div className="mb-4 rounded-lg border border-gray-200 dark:border-gray-700 bg-gray-50 dark:bg-[#1b1912]/40 overflow-hidden" style={{ height: '140px' }}>
                       </div>
 
                       <div className="mb-6">
