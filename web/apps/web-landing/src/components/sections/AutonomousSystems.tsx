@@ -102,10 +102,10 @@ export default function AutonomousSystems() {
                   For Robots
                 </h3>
                 <p className="text-xs md:text-sm text-gray-600 dark:text-[#a8a898] leading-relaxed mb-3" style={{ fontFamily }}>
-                  ROS 2 binds reasoning to motor control. On violation, navigation cancels and zero velocity enforces within 50ms.
+                  Behavior Trees govern motion. Safety logic is deterministic and LLM-independent — violations trigger immediate halt regardless of network state.
                 </p>
                 <p className="text-xs md:text-sm text-gray-600 dark:text-[#a8a898] leading-relaxed" style={{ fontFamily }}>
-                  Safety logic is deterministic and LLM-independent. Signed violations include pose context. Offline by default. Sync when available.
+                  ROS 2 integration bridges reasoning to actuation. Signed violations include execution context. Offline by default. Sync when available.
                 </p>
               </div>
             </div>
