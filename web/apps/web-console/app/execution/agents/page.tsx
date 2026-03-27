@@ -51,6 +51,8 @@ import {
   GitBranch,
   Loader2,
   Radio,
+  UserCheck,
+  Database,
 } from 'lucide-react';
 import {
   ExecutionStatusBadge,
@@ -84,6 +86,13 @@ interface ViolationEntry {
   severity?: string;
 }
 
+interface BlackboardEntry {
+  key: string;
+  value: unknown;
+  ttl_seconds?: number;
+  updated_at: string;
+}
+
 interface Agent {
   id: string;
   namespace: string;
@@ -101,6 +110,8 @@ interface Agent {
   envelope_summary?: string;
   last_trace_at?: string;
   shadow_mode?: boolean;
+  reflection_mode?: boolean;
+  council_mode?: boolean;
 }
 
 // ─── Helpers ──────────────────────────────────────────────────────────────────
@@ -254,6 +265,77 @@ function BTExecutionView({ agentId }: { agentId: string }) {
   );
 }
 
+// ─── Agent Memory Section ─────────────────────────────────────────────────────
+
+function AgentMemorySection({ agentId }: { agentId: string }) {
+  const { data: entries = [], isLoading } = useQuery<BlackboardEntry[]>({
+    queryKey: ['agent-memory', agentId],
+    queryFn: async () => {
+      try {
+        return await api.get<BlackboardEntry[]>('/v1/agents/memory');
+      } catch {
+        return [];
+      }
+    },
+    staleTime: 10_000,
+    retry: false,
+  });
+
+  return (
+    <section>
+      <h3 className="text-[11px] font-semibold text-gray-400 uppercase tracking-wider mb-3 flex items-center gap-1.5">
+        <Database className="h-3.5 w-3.5" />
+        Agent Memory
+        <span className="ml-1 text-[10px] font-normal text-gray-400 normal-case tracking-normal">
+          blackboard
+        </span>
+      </h3>
+      {isLoading ? (
+        <div className="space-y-1.5">
+          {Array.from({ length: 3 }).map((_, i) => (
+            <Skeleton key={i} className="h-6 w-full" />
+          ))}
+        </div>
+      ) : entries.length === 0 ? (
+        <p className="text-xs text-gray-400">No blackboard entries.</p>
+      ) : (
+        <div className="border border-gray-200 rounded-md overflow-hidden">
+          <table className="w-full text-xs">
+            <thead>
+              <tr className="bg-gray-50 border-b border-gray-200">
+                <th className="text-left px-3 py-2 font-medium text-gray-500">Key</th>
+                <th className="text-left px-3 py-2 font-medium text-gray-500">Value</th>
+                <th className="text-left px-3 py-2 font-medium text-gray-500">TTL</th>
+                <th className="text-left px-3 py-2 font-medium text-gray-500">Updated</th>
+              </tr>
+            </thead>
+            <tbody>
+              {entries.slice(0, 10).map((entry, i) => {
+                const valueStr = typeof entry.value === 'string'
+                  ? entry.value
+                  : JSON.stringify(entry.value);
+                const truncated = valueStr.length > 40 ? `${valueStr.slice(0, 40)}…` : valueStr;
+                return (
+                  <tr key={entry.key} className={i < Math.min(entries.length, 10) - 1 ? 'border-b border-gray-100' : ''}>
+                    <td className="px-3 py-2 font-mono text-gray-700">{entry.key}</td>
+                    <td className="px-3 py-2 text-gray-500 font-mono" title={valueStr}>{truncated}</td>
+                    <td className="px-3 py-2 text-gray-400 tabular-nums">
+                      {entry.ttl_seconds != null ? `${entry.ttl_seconds}s` : '—'}
+                    </td>
+                    <td className="px-3 py-2 text-gray-400 tabular-nums">
+                      {getRelativeTime(entry.updated_at)}
+                    </td>
+                  </tr>
+                );
+              })}
+            </tbody>
+          </table>
+        </div>
+      )}
+    </section>
+  );
+}
+
 // ─── Constants ────────────────────────────────────────────────────────────────
 
 const STATE_OPTIONS = ['all', 'RUNNING', 'IDLE', 'SAFE_IDLE', 'RECOVERING', 'ERROR'];
@@ -378,6 +460,41 @@ export default function ExecutionAgentsPage() {
     },
     onError: () => {
       toast({ title: 'Update failed', description: 'Could not update shadow mode.', variant: 'destructive' });
+    },
+  });
+
+  const reflectionMutation = useMutation({
+    mutationFn: ({ agentId, enabled }: { agentId: string; enabled: boolean }) =>
+      api.patch(`/v1/agents/${agentId}`, { reflection_mode: enabled }),
+    onSuccess: (_, { enabled }) => {
+      qc.invalidateQueries({ queryKey: ['execution-agents'] });
+      toast({ title: enabled ? 'Reflection mode enabled' : 'Reflection mode disabled' });
+    },
+    onError: () => {
+      toast({ title: 'Update failed', description: 'Could not update reflection mode.', variant: 'destructive' });
+    },
+  });
+
+  const councilMutation = useMutation({
+    mutationFn: ({ agentId, enabled }: { agentId: string; enabled: boolean }) =>
+      api.patch(`/v1/agents/${agentId}`, { council_mode: enabled }),
+    onSuccess: (_, { enabled }) => {
+      qc.invalidateQueries({ queryKey: ['execution-agents'] });
+      toast({ title: enabled ? 'Council mode enabled' : 'Council mode disabled' });
+    },
+    onError: () => {
+      toast({ title: 'Update failed', description: 'Could not update council mode.', variant: 'destructive' });
+    },
+  });
+
+  const hitlMutation = useMutation({
+    mutationFn: ({ runId }: { runId: string }) =>
+      api.post(`/v1/execution/runs/${runId}/pause`, { reason: 'hitl' }),
+    onSuccess: () => {
+      toast({ title: 'Paused for approval', description: 'Execution is awaiting human review.' });
+    },
+    onError: () => {
+      toast({ title: 'Pause failed', description: 'Could not pause execution.', variant: 'destructive' });
     },
   });
 
@@ -696,6 +813,80 @@ export default function ExecutionAgentsPage() {
 
                   <Separator />
 
+                  {/* §0.5 Agent Mode Controls */}
+                  <section>
+                    <h3 className="text-[11px] font-semibold text-gray-400 uppercase tracking-wider mb-3 flex items-center gap-1.5">
+                      <Brain className="h-3.5 w-3.5" />
+                      Agent Mode Controls
+                    </h3>
+                    <div className="space-y-3">
+
+                      {/* Reflection Mode */}
+                      <div className="flex items-center justify-between py-2 px-1 rounded-md">
+                        <div>
+                          <p className="text-xs font-medium text-gray-700">Reflection Mode</p>
+                          <p className="text-[11px] text-gray-400 leading-relaxed max-w-[220px]">
+                            Agent reflects on each action before executing. Adds self-audit to every step.
+                          </p>
+                        </div>
+                        <Switch
+                          checked={selected.reflection_mode ?? false}
+                          disabled={reflectionMutation.isPending}
+                          onCheckedChange={(checked) =>
+                            reflectionMutation.mutate({ agentId: selected.id, enabled: checked })
+                          }
+                          className="ml-4"
+                        />
+                      </div>
+
+                      {/* Council Mode */}
+                      <div className="flex items-center justify-between py-2 px-1 rounded-md">
+                        <div>
+                          <p className="text-xs font-medium text-gray-700">Council Mode</p>
+                          <p className="text-[11px] text-gray-400 leading-relaxed max-w-[220px]">
+                            Multiple LLM evaluators vote on each action. Higher safety, higher latency.
+                          </p>
+                        </div>
+                        <Switch
+                          checked={selected.council_mode ?? false}
+                          disabled={councilMutation.isPending}
+                          onCheckedChange={(checked) =>
+                            councilMutation.mutate({ agentId: selected.id, enabled: checked })
+                          }
+                          className="ml-4"
+                        />
+                      </div>
+
+                      {/* Human-in-the-Loop */}
+                      {(() => {
+                        const latestRunId = selected.recent_executions?.[0]?.id;
+                        return (
+                          <div className="pt-1">
+                            <Button
+                              variant="outline"
+                              size="sm"
+                              className="h-8 text-xs gap-1.5 border-amber-200 text-amber-700 hover:bg-amber-50 w-full"
+                              disabled={!latestRunId || hitlMutation.isPending}
+                              onClick={() => latestRunId && hitlMutation.mutate({ runId: latestRunId })}
+                            >
+                              {hitlMutation.isPending ? (
+                                <Loader2 className="h-3.5 w-3.5 animate-spin" />
+                              ) : (
+                                <UserCheck className="h-3.5 w-3.5" />
+                              )}
+                              {hitlMutation.isPending ? 'Pausing…' : 'Pause for Approval'}
+                            </Button>
+                            {!latestRunId && (
+                              <p className="text-[10px] text-gray-400 mt-1 text-center">No active execution to pause.</p>
+                            )}
+                          </div>
+                        );
+                      })()}
+                    </div>
+                  </section>
+
+                  <Separator />
+
                   {/* §1 Lifecycle Timeline */}
                   <section>
                     <h3 className="text-[11px] font-semibold text-gray-400 uppercase tracking-wider mb-3 flex items-center gap-1.5">
@@ -871,6 +1062,11 @@ export default function ExecutionAgentsPage() {
                     </h3>
                     <BTExecutionView agentId={selected.id} />
                   </section>
+
+                  <Separator />
+
+                  {/* §6.7 Agent Memory */}
+                  <AgentMemorySection agentId={selected.id} />
 
                   <Separator />
 
