@@ -148,15 +148,17 @@ func (h *ExecutionHandler) ListRuns(c *fiber.Ctx) error {
 
 // Agent is the response shape for a single agent derived from execution history.
 type Agent struct {
-	ID               string        `json:"id"`
-	Namespace        string        `json:"namespace"`
-	State            string        `json:"state"`
-	LastRunAt        *string       `json:"last_run_at,omitempty"`
-	DeviceID         *string       `json:"device_id,omitempty"`
-	ViolationCount   int64         `json:"violation_count"`
-	Capabilities     []string      `json:"capabilities"`
-	ShadowMode       bool          `json:"shadow_mode"`
-	PolicyHash       *string       `json:"policy_hash,omitempty"`
+	ID             string   `json:"id"`
+	Namespace      string   `json:"namespace"`
+	State          string   `json:"state"`
+	LastRunAt      *string  `json:"last_run_at,omitempty"`
+	DeviceID       *string  `json:"device_id,omitempty"`
+	ViolationCount int64    `json:"violation_count"`
+	Capabilities   []string `json:"capabilities"`
+	ShadowMode     bool     `json:"shadow_mode"`
+	ReflectionMode bool     `json:"reflection_mode"`
+	CouncilMode    bool     `json:"council_mode"`
+	PolicyHash     *string  `json:"policy_hash,omitempty"`
 }
 
 // ListAgents handles GET /v1/execution/agents
@@ -180,12 +182,14 @@ func (h *ExecutionHandler) ListAgents(c *fiber.Ctx) error {
 			SUM(CASE WHEN el.violation_occurred THEN 1 ELSE 0 END)    AS violation_count,
 			BOOL_OR(el.violation_occurred)                             AS had_violation,
 			COALESCE(ags.shadow_mode, false)                           AS shadow_mode,
+			COALESCE(ags.reflection_mode, false)                       AS reflection_mode,
+			COALESCE(ags.council_mode, false)                          AS council_mode,
 			ags.policy_hash
 		FROM execution_lineage el
 		LEFT JOIN agent_settings ags
 		       ON ags.agent_id = el.agent_id AND ags.tenant_id = el.tenant_id
 		WHERE el.tenant_id = $1
-		GROUP BY el.agent_id, ags.shadow_mode, ags.policy_hash
+		GROUP BY el.agent_id, ags.shadow_mode, ags.reflection_mode, ags.council_mode, ags.policy_hash
 		ORDER BY last_run_at DESC
 		LIMIT 200
 	`, tenantID)
@@ -206,7 +210,7 @@ func (h *ExecutionHandler) ListAgents(c *fiber.Ctx) error {
 		var hadViolation bool
 		var policyHash sql.NullString
 
-		if err := rows.Scan(&a.ID, &lastRunAt, &deviceID, &a.ViolationCount, &hadViolation, &a.ShadowMode, &policyHash); err != nil {
+		if err := rows.Scan(&a.ID, &lastRunAt, &deviceID, &a.ViolationCount, &hadViolation, &a.ShadowMode, &a.ReflectionMode, &a.CouncilMode, &policyHash); err != nil {
 			log.Error().Err(err).Msg("[Execution] Agent scan error")
 			continue
 		}
@@ -428,10 +432,10 @@ func (h *ExecutionHandler) ReplayRun(c *fiber.Ctx) error {
 
 // ── PATCH /v1/agents/:id ─────────────────────────────────────────────────────
 
-// PatchAgent handles PATCH /v1/agents/:id — currently supports { shadow_mode: bool }.
-// Shadow mode is stored per-agent on execution_lineage rows going forward; for now
-// we upsert into a lightweight agent_shadow_mode table and fall back to a JSONB
-// column on tenants if the dedicated table doesn't exist yet.
+// PatchAgent handles PATCH /v1/agents/:id.
+// Accepts any subset of: { shadow_mode, reflection_mode, council_mode }.
+// At least one field must be provided. All flags are stored in agent_settings
+// (migration 017 + 023).
 func (h *ExecutionHandler) PatchAgent(c *fiber.Ctx) error {
 	tenantID := middleware.GetClerkUserID(c)
 	if tenantID == "" {
@@ -440,29 +444,69 @@ func (h *ExecutionHandler) PatchAgent(c *fiber.Ctx) error {
 	agentID := c.Params("id")
 
 	var body struct {
-		ShadowMode *bool `json:"shadow_mode"`
+		ShadowMode     *bool `json:"shadow_mode"`
+		ReflectionMode *bool `json:"reflection_mode"`
+		CouncilMode    *bool `json:"council_mode"`
 	}
 	if err := c.BodyParser(&body); err != nil {
 		return c.Status(fiber.StatusBadRequest).JSON(fiber.Map{"error": "invalid body"})
 	}
-	if body.ShadowMode == nil {
-		return c.Status(fiber.StatusBadRequest).JSON(fiber.Map{"error": "shadow_mode is required"})
+	if body.ShadowMode == nil && body.ReflectionMode == nil && body.CouncilMode == nil {
+		return c.Status(fiber.StatusBadRequest).JSON(fiber.Map{
+			"error": "at least one of shadow_mode, reflection_mode, council_mode is required",
+		})
 	}
 
-	// Upsert into agent_settings table (created by migration 017 or lazily here)
+	// Ensure a row exists first, then apply only the provided fields.
 	_, err := h.db.ExecContext(c.Context(), `
-		INSERT INTO agent_settings (agent_id, tenant_id, shadow_mode, updated_at)
-		VALUES ($1, $2, $3, NOW())
-		ON CONFLICT (agent_id, tenant_id) DO UPDATE
-		  SET shadow_mode = EXCLUDED.shadow_mode,
-		      updated_at  = NOW()
-	`, agentID, tenantID, *body.ShadowMode)
+		INSERT INTO agent_settings (agent_id, tenant_id, updated_at)
+		VALUES ($1, $2, NOW())
+		ON CONFLICT (agent_id, tenant_id) DO UPDATE SET updated_at = NOW()
+	`, agentID, tenantID)
 	if err != nil {
-		log.Error().Err(err).Str("agent_id", agentID).Msg("[Execution] PatchAgent failed")
+		log.Error().Err(err).Str("agent_id", agentID).Msg("[Execution] PatchAgent upsert failed")
 		return c.Status(fiber.StatusInternalServerError).JSON(fiber.Map{"error": "internal_error"})
 	}
 
-	return c.JSON(fiber.Map{"agent_id": agentID, "shadow_mode": *body.ShadowMode})
+	if body.ShadowMode != nil {
+		if _, err := h.db.ExecContext(c.Context(),
+			`UPDATE agent_settings SET shadow_mode = $1, updated_at = NOW() WHERE agent_id = $2 AND tenant_id = $3`,
+			*body.ShadowMode, agentID, tenantID,
+		); err != nil {
+			log.Error().Err(err).Str("agent_id", agentID).Msg("[Execution] PatchAgent shadow_mode failed")
+			return c.Status(fiber.StatusInternalServerError).JSON(fiber.Map{"error": "internal_error"})
+		}
+	}
+	if body.ReflectionMode != nil {
+		if _, err := h.db.ExecContext(c.Context(),
+			`UPDATE agent_settings SET reflection_mode = $1, updated_at = NOW() WHERE agent_id = $2 AND tenant_id = $3`,
+			*body.ReflectionMode, agentID, tenantID,
+		); err != nil {
+			log.Error().Err(err).Str("agent_id", agentID).Msg("[Execution] PatchAgent reflection_mode failed")
+			return c.Status(fiber.StatusInternalServerError).JSON(fiber.Map{"error": "internal_error"})
+		}
+	}
+	if body.CouncilMode != nil {
+		if _, err := h.db.ExecContext(c.Context(),
+			`UPDATE agent_settings SET council_mode = $1, updated_at = NOW() WHERE agent_id = $2 AND tenant_id = $3`,
+			*body.CouncilMode, agentID, tenantID,
+		); err != nil {
+			log.Error().Err(err).Str("agent_id", agentID).Msg("[Execution] PatchAgent council_mode failed")
+			return c.Status(fiber.StatusInternalServerError).JSON(fiber.Map{"error": "internal_error"})
+		}
+	}
+
+	resp := fiber.Map{"agent_id": agentID}
+	if body.ShadowMode != nil {
+		resp["shadow_mode"] = *body.ShadowMode
+	}
+	if body.ReflectionMode != nil {
+		resp["reflection_mode"] = *body.ReflectionMode
+	}
+	if body.CouncilMode != nil {
+		resp["council_mode"] = *body.CouncilMode
+	}
+	return c.JSON(resp)
 }
 
 // ── POST /v1/policies/assign ─────────────────────────────────────────────────
