@@ -32,6 +32,13 @@ interface StrategyConfig {
   provider_health_monitor: boolean;
 }
 
+interface CircuitBreakerStatus {
+  state: 'closed' | 'open' | 'half_open';
+  trip_count: number;
+  last_tripped_at: string | null;
+  providers: Array<{ provider: string; state: 'closed' | 'open' | 'half_open'; failures: number }>;
+}
+
 interface SpeculativeConfig {
   enable_speculative_execution: boolean;
   max_parallel_requests: number;
@@ -268,6 +275,14 @@ export default function ModelsRoutingPage() {
     refetchOnWindowFocus: false,
   });
 
+  const { data: cbStatus } = useQuery<CircuitBreakerStatus>({
+    queryKey: ['circuit-breaker-status'],
+    queryFn: () => api.get('/v1/routing/circuit-breaker/status'),
+    enabled: strategyForm.circuit_breaker_enabled,
+    retry: false,
+    refetchInterval: strategyForm.circuit_breaker_enabled ? 10_000 : false,
+  });
+
   // ── Mutations ────────────────────────────────────────────────────────────────
 
   const strategyMutation = useMutation({
@@ -468,6 +483,47 @@ export default function ModelsRoutingPage() {
                   }}
                 />
               </div>
+
+              {/* Circuit Breaker live status */}
+              {strategyForm.circuit_breaker_enabled && cbStatus && (
+                <div className="ml-0 mt-1 rounded-md border border-gray-100 bg-gray-50 px-3 py-2.5 space-y-2">
+                  <div className="flex items-center gap-3">
+                    <span className={`inline-flex items-center gap-1 px-1.5 py-0.5 rounded text-[10px] font-medium border ${
+                      cbStatus.state === 'closed'
+                        ? 'bg-green-50 text-green-700 border-green-200'
+                        : cbStatus.state === 'open'
+                        ? 'bg-red-50 text-red-600 border-red-200'
+                        : 'bg-yellow-50 text-yellow-700 border-yellow-200'
+                    }`}>
+                      <span className={`h-1.5 w-1.5 rounded-full inline-block ${
+                        cbStatus.state === 'closed' ? 'bg-green-500' : cbStatus.state === 'open' ? 'bg-red-500' : 'bg-yellow-400'
+                      }`} />
+                      {cbStatus.state === 'closed' ? 'Closed' : cbStatus.state === 'open' ? 'Open' : 'Half-Open'}
+                    </span>
+                    <span className="text-[10px] text-gray-400">
+                      {cbStatus.trip_count} trip{cbStatus.trip_count !== 1 ? 's' : ''}
+                      {cbStatus.last_tripped_at && ` · last ${new Date(cbStatus.last_tripped_at).toLocaleTimeString()}`}
+                    </span>
+                  </div>
+                  {cbStatus.providers.length > 0 && (
+                    <div className="space-y-1">
+                      {cbStatus.providers.map((p) => (
+                        <div key={p.provider} className="flex items-center justify-between">
+                          <span className="text-[10px] text-gray-600 font-mono">{p.provider}</span>
+                          <div className="flex items-center gap-2">
+                            <span className="text-[10px] text-gray-400">{p.failures} failures</span>
+                            <span className={`text-[10px] font-medium ${
+                              p.state === 'closed' ? 'text-green-600' : p.state === 'open' ? 'text-red-500' : 'text-yellow-600'
+                            }`}>
+                              {p.state === 'closed' ? 'Closed' : p.state === 'open' ? 'Open' : 'Half-Open'}
+                            </span>
+                          </div>
+                        </div>
+                      ))}
+                    </div>
+                  )}
+                </div>
+              )}
 
               <div className="flex items-center justify-between">
                 <div>
