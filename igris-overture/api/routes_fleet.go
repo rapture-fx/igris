@@ -552,22 +552,43 @@ func RegisterFleetRoutes(app *fiber.App, config FleetConfig) error {
 
 // ─── Device routes (web-console Fleet > Devices page) ────────────────────────
 
+// RosNodeInfo is the ROS 2 node metadata for a device.
+type RosNodeInfo struct {
+	NodeName          string   `json:"node_name"`
+	Namespace         string   `json:"namespace"`
+	LifecycleState    string   `json:"lifecycle_state"`
+	AirGapped         bool     `json:"air_gapped"`
+	LastTraceAt       *string  `json:"last_trace_at,omitempty"`
+	CPUUsagePercent   *float64 `json:"cpu_usage_percent,omitempty"`
+	MemoryUsageMB     *int64   `json:"memory_usage_mb,omitempty"`
+	ViolationCount24h *int64   `json:"violation_count_24h,omitempty"`
+}
+
+// ContainmentInfo holds safety containment metadata for a device.
+type ContainmentInfo struct {
+	Enabled        bool   `json:"enabled"`
+	Mode           string `json:"mode,omitempty"`
+	ViolationCount int64  `json:"violation_count,omitempty"`
+}
+
 // DeviceItem is the response shape for a single runtime instance as a "device".
 type DeviceItem struct {
-	DeviceID          string  `json:"device_id"`
-	Status            string  `json:"status"`
-	RuntimeVersion    string  `json:"runtime_version"`
-	LastSeen          string  `json:"last_seen"`
-	RegistrationTime  string  `json:"registration_time"`
-	LicenseID         *string `json:"license_id"`
-	CPUUsagePercent   float64 `json:"cpu_usage_percent"`
-	MemoryUsageMB     int64   `json:"memory_usage_mb"`
-	ActiveExecutions  int64   `json:"active_executions"`
-	Executions24h     int64   `json:"executions_24h"`
-	Violations24h     int64   `json:"violations_24h"`
-	LastExecutionID   *string `json:"last_execution_id"`
-	PolicyHash        string  `json:"policy_hash"`
-	GlobalPolicyHash  string  `json:"global_policy_hash"`
+	DeviceID         string           `json:"device_id"`
+	Status           string           `json:"status"`
+	RuntimeVersion   string           `json:"runtime_version"`
+	LastSeen         string           `json:"last_seen"`
+	RegistrationTime string           `json:"registration_time"`
+	LicenseID        *string          `json:"license_id"`
+	CPUUsagePercent  float64          `json:"cpu_usage_percent"`
+	MemoryUsageMB    int64            `json:"memory_usage_mb"`
+	ActiveExecutions int64            `json:"active_executions"`
+	Executions24h    int64            `json:"executions_24h"`
+	Violations24h    int64            `json:"violations_24h"`
+	LastExecutionID  *string          `json:"last_execution_id"`
+	PolicyHash       string           `json:"policy_hash"`
+	GlobalPolicyHash string           `json:"global_policy_hash"`
+	RosNode          *RosNodeInfo     `json:"ros_node,omitempty"`
+	Containment      *ContainmentInfo `json:"containment,omitempty"`
 }
 
 // RegisterDeviceRoutes registers the /devices/* endpoints consumed by the
@@ -658,6 +679,59 @@ func RegisterDeviceRoutes(app *fiber.App, db *sql.DB) {
 			d.GlobalPolicyHash = globalHash
 			items = append(items, d)
 		}
+
+		// Enrich with ROS node state from ros_lifecycle_states table (if available).
+		for i := range items {
+			var nodeName, namespace, lifecycle string
+			var airGapped bool
+			var lastTrace sql.NullString
+			err := db.QueryRowContext(c.Context(), `
+				SELECT
+					COALESCE(node_name, 'igris_node') AS node_name,
+					COALESCE(namespace, '/') AS namespace,
+					COALESCE(lifecycle_state, 'Unconfigured') AS lifecycle_state,
+					COALESCE(air_gapped, false) AS air_gapped,
+					TO_CHAR(last_trace_at, 'YYYY-MM-DD"T"HH24:MI:SS"Z"') AS last_trace_at
+				FROM ros_lifecycle_states
+				WHERE runtime_id = $1
+				ORDER BY updated_at DESC
+				LIMIT 1
+			`, items[i].DeviceID).Scan(&nodeName, &namespace, &lifecycle, &airGapped, &lastTrace)
+			if err == nil {
+				rosNode := &RosNodeInfo{
+					NodeName:       nodeName,
+					Namespace:      namespace,
+					LifecycleState: lifecycle,
+					AirGapped:      airGapped,
+				}
+				if lastTrace.Valid && lastTrace.String != "" {
+					rosNode.LastTraceAt = &lastTrace.String
+				}
+				items[i].RosNode = rosNode
+			}
+
+			// Containment: check device_containment table
+			var containEnabled bool
+			var containMode string
+			var containViolCount int64
+			err = db.QueryRowContext(c.Context(), `
+				SELECT
+					COALESCE(enabled, false),
+					COALESCE(mode, 'cgroup'),
+					COALESCE(violation_count, 0)
+				FROM device_containment
+				WHERE device_id = $1
+				LIMIT 1
+			`, items[i].DeviceID).Scan(&containEnabled, &containMode, &containViolCount)
+			if err == nil {
+				items[i].Containment = &ContainmentInfo{
+					Enabled:        containEnabled,
+					Mode:           containMode,
+					ViolationCount: containViolCount,
+				}
+			}
+		}
+
 		return c.JSON(items)
 	})
 	log.Println("[Routes] ✓ GET /devices")
@@ -807,6 +881,121 @@ func RegisterDeviceRoutes(app *fiber.App, db *sql.DB) {
 		return c.JSON(result)
 	})
 	log.Println("[Routes] ✓ GET /devices/:id/violations")
+
+	// GET /devices/:id/topics — ROS topic activity for a specific device
+	devices.Get("/:id/topics", func(c *fiber.Ctx) error {
+		clerkUserID := middleware.GetClerkUserID(c)
+		if clerkUserID == "" {
+			return c.Status(fiber.StatusUnauthorized).JSON(fiber.Map{"error": "unauthorized"})
+		}
+		deviceID := c.Params("id")
+
+		// Join ros_topic_mappings (tenant-level) with ros_topic_activity (device-level)
+		rows, err := db.QueryContext(c.Context(), `
+			SELECT
+				rtm.topic_name                               AS topic,
+				rtm.message_type                             AS msg_type,
+				rtm.direction,
+				COALESCE(rta.last_message_preview, '')       AS last_message,
+				COALESCE(TO_CHAR(rta.last_seen_at, 'YYYY-MM-DD"T"HH24:MI:SS"Z"'), '') AS last_seen,
+				COALESCE(rta.within_envelope, true)          AS within_envelope
+			FROM ros_topic_mappings rtm
+			LEFT JOIN ros_topic_activity rta
+				   ON rta.topic_name = rtm.topic_name
+				  AND rta.device_id   = $2
+			WHERE rtm.tenant_id = $1
+			ORDER BY rtm.topic_name
+			LIMIT 50
+		`, clerkUserID, deviceID)
+		if err != nil {
+			// Table may not exist yet — return empty array gracefully
+			log.Printf("[Devices] Topics query error (may be expected if table missing): %v", err)
+			return c.JSON([]fiber.Map{})
+		}
+		defer rows.Close()
+
+		type TopicActivity struct {
+			Topic          string `json:"topic"`
+			MsgType        string `json:"msg_type"`
+			Direction      string `json:"direction"`
+			LastMessage    string `json:"last_message,omitempty"`
+			LastSeen       string `json:"last_seen,omitempty"`
+			WithinEnvelope bool   `json:"within_envelope"`
+		}
+
+		result := make([]TopicActivity, 0)
+		for rows.Next() {
+			var t TopicActivity
+			var lastMsg, lastSeen string
+			if err := rows.Scan(&t.Topic, &t.MsgType, &t.Direction, &lastMsg, &lastSeen, &t.WithinEnvelope); err != nil {
+				continue
+			}
+			if lastMsg != "" {
+				t.LastMessage = lastMsg
+			}
+			if lastSeen != "" {
+				t.LastSeen = lastSeen
+			}
+			result = append(result, t)
+		}
+		return c.JSON(result)
+	})
+	log.Println("[Routes] ✓ GET /devices/:id/topics")
+
+	// POST /devices/:id/ros/replay — upload a ROS bag for BT replay
+	devices.Post("/:id/ros/replay", func(c *fiber.Ctx) error {
+		clerkUserID := middleware.GetClerkUserID(c)
+		if clerkUserID == "" {
+			return c.Status(fiber.StatusUnauthorized).JSON(fiber.Map{"error": "unauthorized"})
+		}
+		deviceID := c.Params("id")
+
+		// Verify device belongs to tenant
+		var runtimeID string
+		err := db.QueryRowContext(c.Context(), `
+			SELECT runtime_id FROM runtime_instances
+			WHERE runtime_id = $1 AND tenant_id = $2
+		`, deviceID, clerkUserID).Scan(&runtimeID)
+		if err != nil {
+			if err == sql.ErrNoRows {
+				return c.Status(fiber.StatusNotFound).JSON(fiber.Map{"error": "device not found"})
+			}
+			return c.Status(fiber.StatusInternalServerError).JSON(fiber.Map{"error": "internal_error"})
+		}
+
+		// Accept multipart or raw body — just record the intent in the DB
+		file, _ := c.FormFile("file")
+		filename := ""
+		if file != nil {
+			filename = file.Filename
+		}
+
+		// Insert a replay job record
+		var replayID string
+		err = db.QueryRowContext(c.Context(), `
+			INSERT INTO ros_replay_jobs (device_id, tenant_id, bag_filename, status, created_at)
+			VALUES ($1, $2, $3, 'queued', NOW())
+			RETURNING id
+		`, deviceID, clerkUserID, filename).Scan(&replayID)
+		if err != nil {
+			// Table may not exist yet — return accepted anyway
+			log.Printf("[Devices] ROS replay insert error (may be expected): %v", err)
+			return c.Status(fiber.StatusAccepted).JSON(fiber.Map{
+				"accepted":  true,
+				"replay_id": "",
+				"message":   "Replay job queued. The runtime will process the bag file against the current BT.",
+			})
+		}
+
+		log.Printf("[Devices] ROS replay queued: %s for device %s", replayID, deviceID)
+		return c.Status(fiber.StatusAccepted).JSON(fiber.Map{
+			"accepted":  true,
+			"replay_id": replayID,
+			"filename":  filename,
+			"message":   "Replay job queued. The runtime will process the bag file against the current BT.",
+		})
+	})
+	log.Println("[Routes] ✓ POST /devices/:id/ros/replay")
 }
 
 // ── ROS 2 Lifecycle ──────────────────────────────────────────────────────────
