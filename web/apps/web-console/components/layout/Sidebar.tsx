@@ -49,6 +49,8 @@ const navigation: NavigationItem[] = [
     children: [
       { name: 'Runs', href: '/execution/runs' },
       { name: 'Agents', href: '/execution/agents' },
+      { name: 'Approvals', href: '/execution/approvals' },
+      { name: 'Shadow Mode', href: '/execution/shadow' },
       { name: 'BT Editor', href: '/execution/bt-editor' },
     ],
   },
