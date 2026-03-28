@@ -11,6 +11,7 @@ import { toast } from '@/components/ui/use-toast';
 import {
   Save, Trash2, Download, ZoomIn, ZoomOut, GitBranch,
   CheckCircle2, XCircle, ChevronDown, ChevronRight, Plus,
+  LayoutGrid, Shield, AlertOctagon,
 } from 'lucide-react';
 
 // ─── Types ────────────────────────────────────────────────────────────────────
@@ -43,6 +44,12 @@ interface BTTemplate {
 interface BTDefinition {
   id: string;
   name: string;
+}
+
+interface TopicMapping {
+  topic: string;
+  msg_type: string;
+  direction: 'publish' | 'subscribe';
 }
 
 // ─── Constants ────────────────────────────────────────────────────────────────
@@ -94,6 +101,79 @@ function normalizeType(t: string): NodeType {
 // ROS2 node types for visual indicator
 const ROS_NODE_TYPES = new Set<NodeType>(['RosTopicPublish', 'RosTopicSubscribe', 'RosServiceCall']);
 
+// ─── Predefined Templates ─────────────────────────────────────────────────────
+
+const PREDEFINED_TEMPLATES: BTTemplate[] = [
+  {
+    id: 'builtin-patrol',
+    name: 'Patrol Route',
+    description: 'Sequentially patrol waypoints, check obstacles, return to base',
+    nodes: [
+      { id: 'p_root', type: 'Sequence', label: 'Patrol Root', x: 180, y: 30 },
+      { id: 'p_wp1', type: 'Action', label: 'Goto WP1', x: 40, y: 130 },
+      { id: 'p_obs', type: 'Condition', label: 'Clear Path?', x: 180, y: 130 },
+      { id: 'p_wp2', type: 'Action', label: 'Goto WP2', x: 320, y: 130 },
+      { id: 'p_base', type: 'Action', label: 'Return Base', x: 460, y: 130 },
+    ],
+    edges: [
+      { id: 'pe1', source: 'p_root', target: 'p_wp1' },
+      { id: 'pe2', source: 'p_root', target: 'p_obs' },
+      { id: 'pe3', source: 'p_root', target: 'p_wp2' },
+      { id: 'pe4', source: 'p_root', target: 'p_base' },
+    ],
+  },
+  {
+    id: 'builtin-grasp',
+    name: 'Grasp Object',
+    description: 'Detect object, approach, verify grasp conditions, execute grasp',
+    nodes: [
+      { id: 'g_sel', type: 'Selector', label: 'Grasp Plan', x: 200, y: 30 },
+      { id: 'g_seq', type: 'Sequence', label: 'Grasp Seq', x: 120, y: 130 },
+      { id: 'g_fail', type: 'Action', label: 'Fallback', x: 320, y: 130 },
+      { id: 'g_det', type: 'Condition', label: 'Obj Detected?', x: 30, y: 230 },
+      { id: 'g_app', type: 'Action', label: 'Approach', x: 160, y: 230 },
+      { id: 'g_gsp', type: 'Action', label: 'Execute Grasp', x: 290, y: 230 },
+    ],
+    edges: [
+      { id: 'ge1', source: 'g_sel', target: 'g_seq' },
+      { id: 'ge2', source: 'g_sel', target: 'g_fail' },
+      { id: 'ge3', source: 'g_seq', target: 'g_det' },
+      { id: 'ge4', source: 'g_seq', target: 'g_app' },
+      { id: 'ge5', source: 'g_seq', target: 'g_gsp' },
+    ],
+  },
+  {
+    id: 'builtin-estop',
+    name: 'Emergency Stop',
+    description: 'Monitor safety conditions, trigger immediate halt on violation',
+    nodes: [
+      { id: 'es_sel', type: 'Selector', label: 'Safety Monitor', x: 200, y: 30 },
+      { id: 'es_ok', type: 'Condition', label: 'All Clear?', x: 80, y: 130 },
+      { id: 'es_stop', type: 'Action', label: 'EMERGENCY STOP', x: 290, y: 130 },
+    ],
+    edges: [
+      { id: 'ese1', source: 'es_sel', target: 'es_ok' },
+      { id: 'ese2', source: 'es_sel', target: 'es_stop' },
+    ],
+  },
+  {
+    id: 'builtin-ros-nav',
+    name: 'ROS2 Navigation',
+    description: 'Publish goal pose via ROS2 topic, wait for nav completion',
+    nodes: [
+      { id: 'rn_seq', type: 'Sequence', label: 'Nav Sequence', x: 180, y: 30 },
+      { id: 'rn_pub', type: 'RosTopicPublish', label: 'Publish Goal', x: 60, y: 130, rosConfig: { topic: '/goal_pose', msgType: 'geometry_msgs/PoseStamped' } },
+      { id: 'rn_sub', type: 'RosTopicSubscribe', label: 'Wait Result', x: 220, y: 130, rosConfig: { topic: '/nav/result', msgType: 'nav2_msgs/NavigateToPoseAction' } },
+      { id: 'rn_ok', type: 'Condition', label: 'Nav Success?', x: 380, y: 130 },
+    ],
+    edges: [
+      { id: 'rne1', source: 'rn_seq', target: 'rn_pub' },
+      { id: 'rne2', source: 'rn_seq', target: 'rn_sub' },
+      { id: 'rne3', source: 'rn_seq', target: 'rn_ok' },
+    ],
+  },
+];
+
 // ─── Validation ───────────────────────────────────────────────────────────────
 
 function validateGraph(nodes: BTNode[], edges: BTEdge[]) {
@@ -129,6 +209,23 @@ function validateGraph(nodes: BTNode[], edges: BTEdge[]) {
     { label: 'No cycles detected', ok: !hasCycle },
     { label: 'Graph is connected', ok: isConnected },
   ];
+}
+
+function validateEnvelope(
+  nodes: BTNode[],
+  policies: { max_action_nodes?: number; max_depth?: number; allowed_node_types?: string[] } | null | undefined,
+) {
+  if (!policies) return [];
+  const results: { label: string; ok: boolean }[] = [];
+  if (policies.max_action_nodes != null) {
+    const count = nodes.filter((n) => n.type === 'Action').length;
+    results.push({ label: `Action nodes \u2264 ${policies.max_action_nodes} (current: ${count})`, ok: count <= policies.max_action_nodes });
+  }
+  if (policies.allowed_node_types?.length) {
+    const forbidden = nodes.filter((n) => !policies.allowed_node_types!.includes(n.type));
+    results.push({ label: 'Only allowed node types used', ok: forbidden.length === 0 });
+  }
+  return results;
 }
 
 // ─── Node Box ─────────────────────────────────────────────────────────────────
@@ -316,6 +413,15 @@ export default function BTEditorPage() {
     retry: false,
   });
 
+  const allTemplates = [...PREDEFINED_TEMPLATES, ...templates];
+
+  const loadTemplate = (t: BTTemplate) => {
+    setNodes((t.nodes ?? []).map((n) => ({ ...n, type: normalizeType(n.type) })));
+    setEdges(t.edges ?? []);
+    setBtName(t.name);
+    setSelectedId(null);
+  };
+
   // ── Saved definitions ──
   const { data: definitions = [] } = useQuery<BTDefinition[]>({
     queryKey: ['bt-definitions'],
@@ -327,10 +433,39 @@ export default function BTEditorPage() {
     retry: false,
   });
 
+  // ── Policies (envelope validation) ──
+  const { data: policies } = useQuery({
+    queryKey: ['bt-policies'],
+    queryFn: async () => {
+      try { return await api.get<{ max_action_nodes?: number; max_depth?: number; allowed_node_types?: string[] }>('/v1/policies'); }
+      catch { return null; }
+    },
+    staleTime: 60_000,
+    retry: false,
+  });
+
+  // ── ROS topics ──
+  const { data: rosTopics = [] } = useQuery<TopicMapping[]>({
+    queryKey: ['ros-topics'],
+    queryFn: async () => {
+      try { return await api.get<TopicMapping[]>('/v1/ros/topics'); }
+      catch { return []; }
+    },
+    staleTime: 30_000,
+    retry: false,
+  });
+
   const saveMutation = useMutation({
-    mutationFn: () => api.post('/v1/bt/definitions', { name: btName, description: '', nodes, edges }),
+    mutationFn: () => {
+      const envelopeRules = validateEnvelope(nodes, policies);
+      const failing = envelopeRules.filter((r) => !r.ok);
+      if (failing.length > 0) {
+        throw new Error(`Policy violation: ${failing.map((r) => r.label).join('; ')}`);
+      }
+      return api.post('/v1/bt/definitions', { name: btName, description: '', nodes, edges });
+    },
     onSuccess: () => toast({ title: 'BT saved successfully' }),
-    onError: () => toast({ title: 'Save failed', variant: 'destructive' }),
+    onError: (err: Error) => toast({ title: err.message ?? 'Save failed', variant: 'destructive' }),
   });
 
   const loadDefinition = async (id: string) => {
@@ -354,6 +489,14 @@ export default function BTEditorPage() {
   };
 
   const validationRules = validateGraph(nodes, edges);
+  const envelopeRules = validateEnvelope(nodes, policies);
+  const hasEnvelopeViolation = envelopeRules.some((r) => !r.ok);
+
+  // ── ROS topic dropdown helpers ──
+  const currentTopicIsKnown = rosTopics.some((t) => t.topic === (selectedNode?.rosConfig?.topic ?? ''));
+  const rosTopicSelectValue = rosTopics.length > 0
+    ? (currentTopicIsKnown ? (selectedNode?.rosConfig?.topic ?? '') : (selectedNode?.rosConfig?.topic ? 'custom' : ''))
+    : 'custom';
 
   return (
     <DashboardLayout>
@@ -379,10 +522,20 @@ export default function BTEditorPage() {
               ))}
             </select>
           )}
-          <Button size="sm" className="h-8 text-xs gap-1.5 bg-gray-900 hover:bg-gray-800 text-white"
-            onClick={() => saveMutation.mutate()} disabled={saveMutation.isPending}>
-            <Save className="h-3.5 w-3.5" /> Save
-          </Button>
+          <div className="relative">
+            <Button
+              size="sm"
+              className={`h-8 text-xs gap-1.5 ${hasEnvelopeViolation ? 'bg-red-600 hover:bg-red-700 text-white' : 'bg-gray-900 hover:bg-gray-800 text-white'}`}
+              onClick={() => saveMutation.mutate()}
+              disabled={saveMutation.isPending}
+              title={hasEnvelopeViolation ? `Policy violation: ${envelopeRules.filter((r) => !r.ok).map((r) => r.label).join('; ')}` : undefined}
+            >
+              {hasEnvelopeViolation
+                ? <AlertOctagon className="h-3.5 w-3.5" />
+                : <Save className="h-3.5 w-3.5" />}
+              {hasEnvelopeViolation ? 'Policy violation' : 'Save'}
+            </Button>
+          </div>
           <Button variant="outline" size="sm" className="h-8 text-xs gap-1.5" onClick={exportJSON}>
             <Download className="h-3.5 w-3.5" /> Export JSON
           </Button>
@@ -464,23 +617,37 @@ export default function BTEditorPage() {
               </div>
             </div>
 
-            {templates.length > 0 && (
-              <div className="px-3 py-3">
-                <p className="text-[10px] font-semibold text-gray-400 uppercase tracking-wide mb-2">Templates</p>
-                <div className="space-y-1">
-                  {templates.slice(0, 4).map((t) => (
+            {/* Templates section — always visible */}
+            <div className="px-3 py-3">
+              <p className="text-[10px] font-semibold text-gray-400 uppercase tracking-wide mb-2 flex items-center gap-1">
+                <LayoutGrid className="h-3 w-3" />
+                Templates
+              </p>
+              <div className="space-y-1">
+                {allTemplates.map((t) => {
+                  const isBuiltin = PREDEFINED_TEMPLATES.some((p) => p.id === t.id);
+                  return (
                     <button
                       key={t.id}
-                      onClick={() => { setNodes((t.nodes ?? []).map((n) => ({ ...n, type: normalizeType(n.type) }))); setEdges(t.edges ?? []); setBtName(t.name); setSelectedId(null); }}
-                      className="w-full px-2 py-2 text-left text-xs rounded-md hover:bg-white border border-transparent hover:border-gray-200 transition-colors"
+                      onClick={() => loadTemplate(t)}
+                      className="w-full px-2 py-2 text-left rounded-md hover:bg-white border border-transparent hover:border-gray-200 transition-colors"
                     >
-                      <p className="font-medium text-gray-700">{t.name}</p>
-                      {t.description && <p className="text-[9px] text-gray-400 mt-0.5">{t.description}</p>}
+                      <div className="flex items-center gap-1.5">
+                        <p className="text-xs font-medium text-gray-700 flex-1 truncate">{t.name}</p>
+                        {isBuiltin && (
+                          <span className="text-[8px] font-semibold px-1 py-0.5 rounded bg-gray-100 text-gray-500 border border-gray-200 flex-shrink-0">
+                            Built-in
+                          </span>
+                        )}
+                      </div>
+                      {t.description && (
+                        <p className="text-[9px] text-gray-400 mt-0.5 leading-tight line-clamp-2">{t.description}</p>
+                      )}
                     </button>
-                  ))}
-                </div>
+                  );
+                })}
               </div>
-            )}
+            </div>
           </div>
 
           {/* Canvas */}
@@ -557,12 +724,59 @@ export default function BTEditorPage() {
                     <p className="text-[10px] font-semibold text-teal-700 uppercase tracking-wide">ROS Config</p>
                     <div>
                       <label className="text-xs text-gray-500 mb-1 block">Topic / Service Name</label>
-                      <input
-                        value={selectedNode.rosConfig?.topic ?? ''}
-                        onChange={(e) => updateSelected({ rosConfig: { ...selectedNode.rosConfig, topic: e.target.value, msgType: selectedNode.rosConfig?.msgType ?? '' } })}
-                        placeholder="/cmd_vel or /robot/navigate"
-                        className="w-full h-8 text-xs border border-teal-200 rounded-md px-2 outline-none focus:border-teal-400 font-mono"
-                      />
+                      {rosTopics.length > 0 ? (
+                        <div className="space-y-1.5">
+                          <select
+                            value={rosTopicSelectValue}
+                            onChange={(e) => {
+                              const val = e.target.value;
+                              if (val === '' || val === 'custom') {
+                                // keep existing topic text, don't overwrite
+                                updateSelected({
+                                  rosConfig: {
+                                    ...selectedNode.rosConfig,
+                                    topic: val === 'custom' ? (selectedNode.rosConfig?.topic ?? '') : '',
+                                    msgType: selectedNode.rosConfig?.msgType ?? '',
+                                  },
+                                });
+                              } else {
+                                const match = rosTopics.find((t) => t.topic === val);
+                                updateSelected({
+                                  rosConfig: {
+                                    ...selectedNode.rosConfig,
+                                    topic: val,
+                                    msgType: match?.msg_type ?? selectedNode.rosConfig?.msgType ?? '',
+                                  },
+                                });
+                              }
+                            }}
+                            className="w-full h-8 text-xs border border-teal-200 rounded-md px-2 outline-none focus:border-teal-400 bg-white font-mono"
+                          >
+                            <option value="">Select topic…</option>
+                            {rosTopics.map((t) => (
+                              <option key={t.topic} value={t.topic}>
+                                {t.topic} ({t.direction})
+                              </option>
+                            ))}
+                            <option value="custom">Custom…</option>
+                          </select>
+                          {(rosTopicSelectValue === 'custom' || (!currentTopicIsKnown && (selectedNode.rosConfig?.topic ?? '') !== '')) && (
+                            <input
+                              value={selectedNode.rosConfig?.topic ?? ''}
+                              onChange={(e) => updateSelected({ rosConfig: { ...selectedNode.rosConfig, topic: e.target.value, msgType: selectedNode.rosConfig?.msgType ?? '' } })}
+                              placeholder="/cmd_vel or /robot/navigate"
+                              className="w-full h-8 text-xs border border-teal-200 rounded-md px-2 outline-none focus:border-teal-400 font-mono"
+                            />
+                          )}
+                        </div>
+                      ) : (
+                        <input
+                          value={selectedNode.rosConfig?.topic ?? ''}
+                          onChange={(e) => updateSelected({ rosConfig: { ...selectedNode.rosConfig, topic: e.target.value, msgType: selectedNode.rosConfig?.msgType ?? '' } })}
+                          placeholder="/cmd_vel or /robot/navigate"
+                          className="w-full h-8 text-xs border border-teal-200 rounded-md px-2 outline-none focus:border-teal-400 font-mono"
+                        />
+                      )}
                     </div>
                     <div>
                       <label className="text-xs text-gray-500 mb-1 block">Message Type</label>
@@ -637,19 +851,52 @@ export default function BTEditorPage() {
             onClick={() => setValidationOpen((v) => !v)}
             className="w-full flex items-center justify-between px-4 py-2 text-xs text-gray-600 hover:bg-gray-50 transition-colors"
           >
-            <span className="font-medium">Validation</span>
+            <span className="font-medium flex items-center gap-1.5">
+              Validation
+              {hasEnvelopeViolation && (
+                <span className="inline-flex items-center gap-0.5 text-[9px] font-semibold px-1.5 py-0.5 rounded bg-red-100 text-red-600 border border-red-200">
+                  <Shield className="h-2.5 w-2.5" /> Policy
+                </span>
+              )}
+            </span>
             {validationOpen ? <ChevronDown className="h-3.5 w-3.5" /> : <ChevronRight className="h-3.5 w-3.5" />}
           </button>
           {validationOpen && (
-            <div className="px-4 py-2 flex items-center gap-4 flex-wrap border-t border-gray-100">
-              {validationRules.map((rule) => (
-                <div key={rule.label} className="flex items-center gap-1.5">
-                  {rule.ok
-                    ? <CheckCircle2 className="h-3.5 w-3.5 text-green-500 flex-shrink-0" />
-                    : <XCircle className="h-3.5 w-3.5 text-red-500 flex-shrink-0" />}
-                  <span className={`text-xs ${rule.ok ? 'text-gray-600' : 'text-red-600'}`}>{rule.label}</span>
+            <div className="px-4 py-2 border-t border-gray-100 space-y-2">
+              {/* Graph Rules */}
+              <div>
+                <p className="text-[9px] font-semibold text-gray-400 uppercase tracking-wide mb-1.5">Graph Rules</p>
+                <div className="flex items-center gap-4 flex-wrap">
+                  {validationRules.map((rule) => (
+                    <div key={rule.label} className="flex items-center gap-1.5">
+                      {rule.ok
+                        ? <CheckCircle2 className="h-3.5 w-3.5 text-green-500 flex-shrink-0" />
+                        : <XCircle className="h-3.5 w-3.5 text-red-500 flex-shrink-0" />}
+                      <span className={`text-xs ${rule.ok ? 'text-gray-600' : 'text-red-600'}`}>{rule.label}</span>
+                    </div>
+                  ))}
                 </div>
-              ))}
+              </div>
+              {envelopeRules.length > 0 && (
+                <>
+                  <Separator />
+                  <div>
+                    <p className="text-[9px] font-semibold text-gray-400 uppercase tracking-wide mb-1.5 flex items-center gap-1">
+                      <Shield className="h-2.5 w-2.5" /> Policy Envelope
+                    </p>
+                    <div className="flex items-center gap-4 flex-wrap">
+                      {envelopeRules.map((rule) => (
+                        <div key={rule.label} className="flex items-center gap-1.5">
+                          {rule.ok
+                            ? <CheckCircle2 className="h-3.5 w-3.5 text-green-500 flex-shrink-0" />
+                            : <XCircle className="h-3.5 w-3.5 text-red-500 flex-shrink-0" />}
+                          <span className={`text-xs ${rule.ok ? 'text-gray-600' : 'text-red-600'}`}>{rule.label}</span>
+                        </div>
+                      ))}
+                    </div>
+                  </div>
+                </>
+              )}
             </div>
           )}
         </div>
