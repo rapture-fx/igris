@@ -56,16 +56,17 @@ func RegisterExecutionRoutes(app *fiber.App, db *sql.DB, _ *middleware.TenantAut
 
 // ExecutionRun is the response shape for a single execution row.
 type ExecutionRun struct {
-	ID           string    `json:"id"`
-	AgentID      string    `json:"agent_id"`
-	Model        string    `json:"model"`
-	DeviceID     string    `json:"device_id"`
-	StartedAt    time.Time `json:"started_at"`
-	DurationMs   int64     `json:"duration_ms"`
-	Status       string    `json:"status"`
-	HasViolation bool      `json:"has_violation"`
-	PauseReason  string    `json:"pause_reason,omitempty"`
-	Namespace    string    `json:"namespace,omitempty"`
+	ID            string    `json:"id"`
+	AgentID       string    `json:"agent_id"`
+	Model         string    `json:"model"`
+	DeviceID      string    `json:"device_id"`
+	StartedAt     time.Time `json:"started_at"`
+	DurationMs    int64     `json:"duration_ms"`
+	Status        string    `json:"status"`
+	HasViolation  bool      `json:"has_violation"`
+	PauseReason   string    `json:"pause_reason,omitempty"`
+	Namespace     string    `json:"namespace,omitempty"`
+	PromptPreview string    `json:"prompt_preview,omitempty"`
 }
 
 // ListRuns handles GET /v1/execution/runs?limit=20&sort=created_at:desc&status=PAUSED
@@ -117,7 +118,8 @@ func (h *ExecutionHandler) ListRuns(c *fiber.Ctx) error {
 			wall_time_ms,
 			violation_occurred,
 			COALESCE(status, CASE WHEN violation_occurred THEN 'violation' ELSE 'completed' END) AS status,
-			COALESCE(pause_reason, '') AS pause_reason
+			COALESCE(pause_reason, '') AS pause_reason,
+			COALESCE(prompt_preview, '') AS prompt_preview
 		FROM execution_lineage
 		` + whereClause + `
 		ORDER BY timestamp_utc ` + sortDir + `
@@ -147,6 +149,7 @@ func (h *ExecutionHandler) ListRuns(c *fiber.Ctx) error {
 			&violOccurred,
 			&r.Status,
 			&r.PauseReason,
+			&r.PromptPreview,
 		); err != nil {
 			log.Error().Err(err).Msg("[Execution] Scan error")
 			continue
@@ -260,29 +263,50 @@ func (h *ExecutionHandler) ListAgents(c *fiber.Ctx) error {
 	}
 	rows.Close()
 
-	// For each agent, fetch last 3 executions
-	for i := range agents {
+	// Fetch last 3 executions for all agents in a single query using LATERAL.
+	if len(agents) > 0 {
+		// Build a VALUES list of agent IDs for the LATERAL join filter.
+		agentIDs := make([]string, len(agents))
+		for i, a := range agents {
+			agentIDs[i] = a.ID
+		}
+		// Use a single LATERAL query: for each agent_id, get up to 3 most-recent rows.
 		exRows, err := h.db.QueryContext(c.Context(), `
-			SELECT execution_id, timestamp_utc, wall_time_ms, violation_occurred,
-			       COALESCE(status, CASE WHEN violation_occurred THEN 'violation' ELSE 'completed' END)
-			FROM execution_lineage
-			WHERE agent_id = $1 AND tenant_id = $2
-			ORDER BY timestamp_utc DESC LIMIT 3
-		`, agents[i].ID, tenantID)
-		if err != nil {
-			continue
-		}
-		for exRows.Next() {
-			var ex RecentExec
-			var ts time.Time
-			var violated bool
-			if err := exRows.Scan(&ex.ID, &ts, &ex.DurationMs, &violated, &ex.Status); err != nil {
-				continue
+			SELECT el.execution_id, el.agent_id, el.timestamp_utc, el.wall_time_ms,
+			       COALESCE(el.status, CASE WHEN el.violation_occurred THEN 'violation' ELSE 'completed' END)
+			FROM (
+				SELECT DISTINCT agent_id FROM execution_lineage
+				WHERE tenant_id = $1 AND agent_id = ANY($2)
+			) AS ag
+			CROSS JOIN LATERAL (
+				SELECT execution_id, agent_id, timestamp_utc, wall_time_ms, violation_occurred, status
+				FROM execution_lineage
+				WHERE tenant_id = $1 AND agent_id = ag.agent_id
+				ORDER BY timestamp_utc DESC
+				LIMIT 3
+			) el
+			ORDER BY el.agent_id, el.timestamp_utc DESC
+		`, tenantID, agentIDs)
+		if err == nil {
+			// Build a map from agent_id → index for O(1) lookup.
+			idx := make(map[string]int, len(agents))
+			for i, a := range agents {
+				idx[a.ID] = i
 			}
-			ex.StartedAt = ts.UTC().Format(time.RFC3339)
-			agents[i].RecentExecutions = append(agents[i].RecentExecutions, ex)
+			for exRows.Next() {
+				var ex RecentExec
+				var agentID string
+				var ts time.Time
+				if err := exRows.Scan(&ex.ID, &agentID, &ts, &ex.DurationMs, &ex.Status); err != nil {
+					continue
+				}
+				ex.StartedAt = ts.UTC().Format(time.RFC3339)
+				if i, ok := idx[agentID]; ok {
+					agents[i].RecentExecutions = append(agents[i].RecentExecutions, ex)
+				}
+			}
+			exRows.Close()
 		}
-		exRows.Close()
 	}
 
 	return c.JSON(agents)
@@ -574,52 +598,32 @@ func (h *ExecutionHandler) PatchAgent(c *fiber.Ctx) error {
 		})
 	}
 
-	// Ensure a row exists first, then apply only the provided fields.
+	// Single UPSERT: insert or update only the provided fields using COALESCE
+	// so un-provided fields retain their existing DB values.
+	shadowMode := body.ShadowMode
+	reflectionMode := body.ReflectionMode
+	councilMode := body.CouncilMode
+	cogAdvisor := body.CognitiveAdvisorEnabled
+
 	_, err := h.db.ExecContext(c.Context(), `
-		INSERT INTO agent_settings (agent_id, tenant_id, updated_at)
-		VALUES ($1, $2, NOW())
-		ON CONFLICT (agent_id, tenant_id) DO UPDATE SET updated_at = NOW()
-	`, agentID, tenantID)
+		INSERT INTO agent_settings (agent_id, tenant_id, shadow_mode, reflection_mode, council_mode, cognitive_advisor_enabled, updated_at)
+		VALUES ($1, $2,
+			COALESCE($3, false),
+			COALESCE($4, false),
+			COALESCE($5, false),
+			COALESCE($6, false),
+			NOW()
+		)
+		ON CONFLICT (agent_id, tenant_id) DO UPDATE SET
+			shadow_mode              = COALESCE($3, agent_settings.shadow_mode),
+			reflection_mode          = COALESCE($4, agent_settings.reflection_mode),
+			council_mode             = COALESCE($5, agent_settings.council_mode),
+			cognitive_advisor_enabled = COALESCE($6, agent_settings.cognitive_advisor_enabled),
+			updated_at               = NOW()
+	`, agentID, tenantID, shadowMode, reflectionMode, councilMode, cogAdvisor)
 	if err != nil {
 		log.Error().Err(err).Str("agent_id", agentID).Msg("[Execution] PatchAgent upsert failed")
 		return c.Status(fiber.StatusInternalServerError).JSON(fiber.Map{"error": "internal_error"})
-	}
-
-	if body.ShadowMode != nil {
-		if _, err := h.db.ExecContext(c.Context(),
-			`UPDATE agent_settings SET shadow_mode = $1, updated_at = NOW() WHERE agent_id = $2 AND tenant_id = $3`,
-			*body.ShadowMode, agentID, tenantID,
-		); err != nil {
-			log.Error().Err(err).Str("agent_id", agentID).Msg("[Execution] PatchAgent shadow_mode failed")
-			return c.Status(fiber.StatusInternalServerError).JSON(fiber.Map{"error": "internal_error"})
-		}
-	}
-	if body.ReflectionMode != nil {
-		if _, err := h.db.ExecContext(c.Context(),
-			`UPDATE agent_settings SET reflection_mode = $1, updated_at = NOW() WHERE agent_id = $2 AND tenant_id = $3`,
-			*body.ReflectionMode, agentID, tenantID,
-		); err != nil {
-			log.Error().Err(err).Str("agent_id", agentID).Msg("[Execution] PatchAgent reflection_mode failed")
-			return c.Status(fiber.StatusInternalServerError).JSON(fiber.Map{"error": "internal_error"})
-		}
-	}
-	if body.CouncilMode != nil {
-		if _, err := h.db.ExecContext(c.Context(),
-			`UPDATE agent_settings SET council_mode = $1, updated_at = NOW() WHERE agent_id = $2 AND tenant_id = $3`,
-			*body.CouncilMode, agentID, tenantID,
-		); err != nil {
-			log.Error().Err(err).Str("agent_id", agentID).Msg("[Execution] PatchAgent council_mode failed")
-			return c.Status(fiber.StatusInternalServerError).JSON(fiber.Map{"error": "internal_error"})
-		}
-	}
-	if body.CognitiveAdvisorEnabled != nil {
-		if _, err := h.db.ExecContext(c.Context(),
-			`UPDATE agent_settings SET cognitive_advisor_enabled = $1, updated_at = NOW() WHERE agent_id = $2 AND tenant_id = $3`,
-			*body.CognitiveAdvisorEnabled, agentID, tenantID,
-		); err != nil {
-			log.Error().Err(err).Str("agent_id", agentID).Msg("[Execution] PatchAgent cognitive_advisor_enabled failed")
-			return c.Status(fiber.StatusInternalServerError).JSON(fiber.Map{"error": "internal_error"})
-		}
 	}
 
 	resp := fiber.Map{"agent_id": agentID}
@@ -863,12 +867,43 @@ func (h *ExecutionHandler) ListShadowTraces(c *fiber.Ctx) error {
 			shadowExecID = execID + "_shadow"
 		}
 
+		// Compute divergence score: combination of status mismatch, violation diff,
+		// and relative duration delta. Range [0, 1].
+		var divergenceScore *float64
+		if shadowRunID != "" {
+			var score float64
+			// Status divergence: +0.5 if statuses differ
+			if real.Status != shadow.Status {
+				score += 0.5
+			}
+			// Violation divergence: +0.3 if violation status differs
+			if real.Violations != shadow.Violations {
+				score += 0.3
+			}
+			// Duration divergence: scaled by relative delta, up to +0.2
+			if real.DurationMs > 0 {
+				delta := float64(shadow.DurationMs-real.DurationMs) / float64(real.DurationMs)
+				if delta < 0 {
+					delta = -delta
+				}
+				if delta > 1 {
+					delta = 1
+				}
+				score += delta * 0.2
+			}
+			if score > 1 {
+				score = 1
+			}
+			divergenceScore = &score
+		}
+
 		trace := ShadowTrace{
 			ID:                execID + "_pair",
 			AgentID:           agentID,
 			Timestamp:         ts.UTC().Format(time.RFC3339),
 			RealExecutionID:   execID,
 			ShadowExecutionID: shadowExecID,
+			DivergenceScore:   divergenceScore,
 			Real:              real,
 			Shadow:            shadow,
 		}
