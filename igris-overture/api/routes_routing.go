@@ -118,6 +118,125 @@ func handleSpeculativeSimulate(c *fiber.Ctx) error {
 	})
 }
 
+// circuitBreakerDB is the DB used for circuit breaker endpoints; may be nil.
+var circuitBreakerDB *sql.DB
+
+// CBProviderStatus holds per-provider circuit breaker state.
+type CBProviderStatus struct {
+	Provider      string  `json:"provider"`
+	State         string  `json:"state"`
+	FailureCount  int     `json:"failure_count"`
+	TripCount     int     `json:"trip_count"`
+	LastTrippedAt *string `json:"last_tripped_at,omitempty"`
+}
+
+// CircuitBreakerStatusResponse is the response body for GET /v1/routing/circuit-breaker/status.
+type CircuitBreakerStatusResponse struct {
+	Enabled       bool               `json:"enabled"`
+	State         string             `json:"state"`
+	TripCount     int                `json:"trip_count"`
+	LastTrippedAt *string            `json:"last_tripped_at,omitempty"`
+	Providers     []CBProviderStatus `json:"providers"`
+}
+
+// RegisterCircuitBreakerRoutes adds the circuit-breaker status endpoint to an existing v1 group.
+// This is called after RegisterRoutingRoutes so we extend the same /v1/routing group.
+func RegisterCircuitBreakerRoutes(app *fiber.App, db *sql.DB) {
+	circuitBreakerDB = db
+
+	v1 := app.Group("/v1")
+	routing := v1.Group("/routing")
+	routing.Use(middleware.BetterAuth(db))
+
+	routing.Get("/circuit-breaker/status", handleCircuitBreakerStatus)
+
+	log.Println("[Routes] ✓ Registered 1 circuit breaker endpoint")
+	log.Println("[Routes]   - GET  /v1/routing/circuit-breaker/status")
+}
+
+// handleCircuitBreakerStatus handles GET /v1/routing/circuit-breaker/status.
+// It queries circuit_breaker_states for the authenticated tenant and returns
+// an aggregate view plus per-provider breakdown. If the table does not exist
+// or the tenant has no rows yet, it returns a default "closed" response so
+// the console never breaks during initial deployment.
+func handleCircuitBreakerStatus(c *fiber.Ctx) error {
+	tenantID := middleware.GetClerkUserID(c)
+
+	defaultResp := CircuitBreakerStatusResponse{
+		Enabled:   true,
+		State:     "closed",
+		TripCount: 0,
+		Providers: []CBProviderStatus{},
+	}
+
+	if circuitBreakerDB == nil {
+		return c.JSON(defaultResp)
+	}
+
+	rows, err := circuitBreakerDB.QueryContext(c.Context(), `
+		SELECT provider, state, failure_count, trip_count, last_tripped_at
+		FROM circuit_breaker_states
+		WHERE tenant_id = $1
+		ORDER BY provider
+	`, tenantID)
+	if err != nil {
+		// Table may not exist yet — graceful degradation.
+		log.Printf("[CircuitBreaker] query error (non-fatal): %v", err)
+		return c.JSON(defaultResp)
+	}
+	defer rows.Close()
+
+	var providers []CBProviderStatus
+	for rows.Next() {
+		var p CBProviderStatus
+		var lastTrippedAt sql.NullTime
+		if scanErr := rows.Scan(&p.Provider, &p.State, &p.FailureCount, &p.TripCount, &lastTrippedAt); scanErr != nil {
+			log.Printf("[CircuitBreaker] row scan error: %v", scanErr)
+			continue
+		}
+		if lastTrippedAt.Valid {
+			ts := lastTrippedAt.Time.UTC().Format(time.RFC3339)
+			p.LastTrippedAt = &ts
+		}
+		providers = append(providers, p)
+	}
+	if err = rows.Err(); err != nil {
+		log.Printf("[CircuitBreaker] rows iteration error: %v", err)
+		return c.JSON(defaultResp)
+	}
+
+	if len(providers) == 0 {
+		return c.JSON(defaultResp)
+	}
+
+	// Derive aggregate state: open > half-open > closed.
+	overallState := "closed"
+	totalTrips := 0
+	var latestTrip *string
+	for _, p := range providers {
+		totalTrips += p.TripCount
+		if p.State == "open" {
+			overallState = "open"
+		} else if p.State == "half-open" && overallState != "open" {
+			overallState = "half-open"
+		}
+		if p.LastTrippedAt != nil {
+			if latestTrip == nil || *p.LastTrippedAt > *latestTrip {
+				latestTrip = p.LastTrippedAt
+			}
+		}
+	}
+
+	resp := CircuitBreakerStatusResponse{
+		Enabled:       true,
+		State:         overallState,
+		TripCount:     totalTrips,
+		LastTrippedAt: latestTrip,
+		Providers:     providers,
+	}
+	return c.JSON(resp)
+}
+
 // RoutingRouteConfig holds configuration for routing routes
 type RoutingRouteConfig struct {
 	DB         *sql.DB
