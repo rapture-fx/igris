@@ -53,6 +53,8 @@ import {
   Radio,
   UserCheck,
   Database,
+  Lightbulb,
+  Lock,
 } from 'lucide-react';
 import {
   ExecutionStatusBadge,
@@ -112,6 +114,32 @@ interface Agent {
   shadow_mode?: boolean;
   reflection_mode?: boolean;
   council_mode?: boolean;
+  cognitive_advisor?: {
+    enabled: boolean;
+    confidence_score?: number;
+    last_recommendation?: string;
+    degradation_detected?: boolean;
+    proposal?: { provider: string; alpha: number; beta: number };
+  };
+  local_llm?: {
+    active: boolean;
+    model_name?: string;
+    model_path?: string;
+    gpu_layers?: number;
+    gpu_type?: string;
+    fallback_reason?: string;
+  };
+  containment?: {
+    enabled: boolean;
+    mode?: string;
+    cgroup_limits?: { cpu_quota?: string; memory_limit?: string };
+    violation_count?: number;
+  };
+  receipt_signature?: {
+    verified: boolean;
+    algorithm?: string;
+    last_verified_at?: string;
+  };
 }
 
 // ─── Helpers ──────────────────────────────────────────────────────────────────
@@ -487,6 +515,18 @@ export default function ExecutionAgentsPage() {
     },
   });
 
+  const cognitiveAdvisorMutation = useMutation({
+    mutationFn: ({ agentId, enabled }: { agentId: string; enabled: boolean }) =>
+      api.patch(`/v1/agents/${agentId}`, { cognitive_advisor_enabled: enabled }),
+    onSuccess: (_, { enabled }) => {
+      qc.invalidateQueries({ queryKey: ['execution-agents'] });
+      toast({ title: enabled ? 'Cognitive Advisor enabled' : 'Cognitive Advisor disabled' });
+    },
+    onError: () => {
+      toast({ title: 'Update failed', description: 'Could not update cognitive advisor.', variant: 'destructive' });
+    },
+  });
+
   const hitlMutation = useMutation({
     mutationFn: ({ runId }: { runId: string }) =>
       api.post(`/v1/execution/runs/${runId}/pause`, { reason: 'hitl' }),
@@ -669,6 +709,9 @@ export default function ExecutionAgentsPage() {
                   Mode
                 </TableHead>
                 <TableHead className="text-xs font-medium text-gray-500 h-9 px-3 whitespace-nowrap">
+                  Containment
+                </TableHead>
+                <TableHead className="text-xs font-medium text-gray-500 h-9 px-3 whitespace-nowrap">
                   BT Live
                 </TableHead>
               </TableRow>
@@ -677,7 +720,7 @@ export default function ExecutionAgentsPage() {
               {isLoading ? (
                 Array.from({ length: 6 }).map((_, i) => (
                   <TableRow key={i} className="border-b border-gray-100">
-                    {Array.from({ length: 9 }).map((_, j) => (
+                    {Array.from({ length: 10 }).map((_, j) => (
                       <TableCell key={j} className="px-3 py-2.5">
                         <Skeleton className="h-3.5 w-16" />
                       </TableCell>
@@ -687,7 +730,7 @@ export default function ExecutionAgentsPage() {
               ) : filtered.length === 0 ? (
                 <TableRow>
                   <TableCell
-                    colSpan={9}
+                    colSpan={10}
                     className="text-center text-gray-400 text-xs py-16"
                   >
                     No agents found
@@ -741,6 +784,16 @@ export default function ExecutionAgentsPage() {
                         <span className="inline-flex items-center gap-1 px-1.5 py-0.5 rounded text-[10px] font-medium bg-purple-50 text-purple-700 border border-purple-200">
                           <Moon className="h-2.5 w-2.5" />
                           Shadow
+                        </span>
+                      ) : (
+                        <span className="text-xs text-gray-300">—</span>
+                      )}
+                    </TableCell>
+                    <TableCell className="px-3 py-2.5">
+                      {agent.containment?.enabled ? (
+                        <span className="inline-flex items-center gap-1 px-1.5 py-0.5 rounded text-[10px] font-medium bg-green-50 text-green-700 border border-green-200">
+                          <Shield className="h-2.5 w-2.5" />
+                          Contained
                         </span>
                       ) : (
                         <span className="text-xs text-gray-300">—</span>
@@ -1067,6 +1120,188 @@ export default function ExecutionAgentsPage() {
 
                   {/* §6.7 Agent Memory */}
                   <AgentMemorySection agentId={selected.id} />
+
+                  <Separator />
+
+                  {/* §6.8 Cognitive Advisor */}
+                  <section>
+                    <h3 className="text-[11px] font-semibold text-gray-400 uppercase tracking-wider mb-3 flex items-center gap-1.5">
+                      <Lightbulb className="h-3.5 w-3.5" />
+                      Cognitive Advisor
+                    </h3>
+                    <div className="flex items-center justify-between py-2 px-1 rounded-md mb-3">
+                      <div>
+                        <p className="text-xs font-medium text-gray-700">Enabled</p>
+                        <p className="text-[11px] text-gray-400 leading-relaxed max-w-[220px]">
+                          Statistical degradation detection with Thompson Sampling proposals.
+                        </p>
+                      </div>
+                      <Switch
+                        checked={selected.cognitive_advisor?.enabled ?? false}
+                        disabled={cognitiveAdvisorMutation.isPending}
+                        onCheckedChange={(checked) =>
+                          cognitiveAdvisorMutation.mutate({ agentId: selected.id, enabled: checked })
+                        }
+                        className="ml-4"
+                      />
+                    </div>
+                    {selected.cognitive_advisor && (
+                      <div className="space-y-2">
+                        {selected.cognitive_advisor.confidence_score != null && (
+                          <div className="flex items-center justify-between text-xs py-1 border-b border-gray-50">
+                            <span className="text-gray-500">Confidence Score</span>
+                            <span className={`font-mono font-medium ${selected.cognitive_advisor.confidence_score >= 0.75 ? 'text-green-700' : 'text-amber-600'}`}>
+                              {(selected.cognitive_advisor.confidence_score * 100).toFixed(1)}%
+                            </span>
+                          </div>
+                        )}
+                        {selected.cognitive_advisor.degradation_detected && (
+                          <div className="flex items-center gap-1.5 px-2 py-1.5 bg-amber-50 border border-amber-100 rounded text-[11px] text-amber-700">
+                            <AlertTriangle className="h-3 w-3 flex-shrink-0" />
+                            Degradation detected — routing proposal active
+                          </div>
+                        )}
+                        {selected.cognitive_advisor.proposal && (
+                          <div className="flex items-center justify-between text-xs py-1 border-b border-gray-50">
+                            <span className="text-gray-500">Proposal</span>
+                            <span className="font-mono text-[10px] text-indigo-700">
+                              {selected.cognitive_advisor.proposal.provider} α={selected.cognitive_advisor.proposal.alpha.toFixed(2)} β={selected.cognitive_advisor.proposal.beta.toFixed(2)}
+                            </span>
+                          </div>
+                        )}
+                        {selected.cognitive_advisor.last_recommendation && (
+                          <div className="text-[11px] text-gray-500 italic px-1">{selected.cognitive_advisor.last_recommendation}</div>
+                        )}
+                      </div>
+                    )}
+                  </section>
+
+                  <Separator />
+
+                  {/* §6.9 Local LLM Fallback */}
+                  <section>
+                    <h3 className="text-[11px] font-semibold text-gray-400 uppercase tracking-wider mb-3 flex items-center gap-1.5">
+                      <Cpu className="h-3.5 w-3.5" />
+                      Local LLM Fallback
+                    </h3>
+                    {selected.local_llm ? (
+                      <div className="space-y-1">
+                        <div className="flex items-center gap-2 mb-2">
+                          <span className={`inline-flex items-center gap-1 px-1.5 py-0.5 rounded text-[10px] font-medium border ${
+                            selected.local_llm.active
+                              ? 'bg-green-50 text-green-700 border-green-200'
+                              : 'bg-gray-50 text-gray-500 border-gray-200'
+                          }`}>
+                            <span className={`h-1.5 w-1.5 rounded-full ${selected.local_llm.active ? 'bg-green-500' : 'bg-gray-400'} inline-block`} />
+                            {selected.local_llm.active ? 'Active' : 'Standby'}
+                          </span>
+                        </div>
+                        {[
+                          { label: 'Model', value: selected.local_llm.model_name },
+                          { label: 'GPU Layers', value: selected.local_llm.gpu_layers != null ? String(selected.local_llm.gpu_layers) : null },
+                          { label: 'GPU Type', value: selected.local_llm.gpu_type },
+                          { label: 'Fallback Reason', value: selected.local_llm.fallback_reason },
+                        ].filter(r => r.value).map(r => (
+                          <div key={r.label} className="flex items-center justify-between py-1 border-b border-gray-50 last:border-0">
+                            <span className="text-xs text-gray-500">{r.label}</span>
+                            <span className="text-xs font-mono text-gray-700">{r.value}</span>
+                          </div>
+                        ))}
+                      </div>
+                    ) : (
+                      <p className="text-xs text-gray-400">No local LLM configured. Set <code className="font-mono text-[10px] bg-gray-100 px-1 rounded">local_llm.enabled = true</code> in runtime config.</p>
+                    )}
+                  </section>
+
+                  <Separator />
+
+                  {/* §7.0 Safety Containment */}
+                  <section>
+                    <h3 className="text-[11px] font-semibold text-gray-400 uppercase tracking-wider mb-3 flex items-center gap-1.5">
+                      <Shield className="h-3.5 w-3.5" />
+                      Safety Containment
+                    </h3>
+                    {selected.containment ? (
+                      <div className="space-y-2">
+                        <div className="flex items-center gap-2 mb-2">
+                          <span className={`inline-flex items-center gap-1 px-1.5 py-0.5 rounded text-[10px] font-medium border ${
+                            selected.containment.enabled
+                              ? 'bg-green-50 text-green-700 border-green-200'
+                              : 'bg-gray-50 text-gray-500 border-gray-200'
+                          }`}>
+                            {selected.containment.enabled ? 'Contained' : 'Uncontained'}
+                          </span>
+                          {selected.containment.mode && (
+                            <span className="text-[10px] text-gray-400 font-mono">{selected.containment.mode}</span>
+                          )}
+                        </div>
+                        {selected.containment.cgroup_limits && (
+                          <div className="space-y-1">
+                            {selected.containment.cgroup_limits.cpu_quota && (
+                              <div className="flex justify-between text-xs py-1 border-b border-gray-50">
+                                <span className="text-gray-500">CPU Quota</span>
+                                <span className="font-mono text-gray-700">{selected.containment.cgroup_limits.cpu_quota}</span>
+                              </div>
+                            )}
+                            {selected.containment.cgroup_limits.memory_limit && (
+                              <div className="flex justify-between text-xs py-1 border-b border-gray-50">
+                                <span className="text-gray-500">Memory Limit</span>
+                                <span className="font-mono text-gray-700">{selected.containment.cgroup_limits.memory_limit}</span>
+                              </div>
+                            )}
+                          </div>
+                        )}
+                        {(selected.containment.violation_count ?? 0) > 0 && (
+                          <div className="flex items-center gap-1.5 px-2 py-1.5 bg-red-50 border border-red-100 rounded text-[11px] text-red-700">
+                            <AlertTriangle className="h-3 w-3 flex-shrink-0" />
+                            {selected.containment.violation_count} containment violation{selected.containment.violation_count !== 1 ? 's' : ''} recorded
+                          </div>
+                        )}
+                      </div>
+                    ) : (
+                      <p className="text-xs text-gray-400">Containment data unavailable for this agent.</p>
+                    )}
+                  </section>
+
+                  <Separator />
+
+                  {/* §7.1 Receipt Signature */}
+                  <section>
+                    <h3 className="text-[11px] font-semibold text-gray-400 uppercase tracking-wider mb-3 flex items-center gap-1.5">
+                      <Lock className="h-3.5 w-3.5" />
+                      Receipt Signature
+                    </h3>
+                    {selected.receipt_signature ? (
+                      <div className="space-y-2">
+                        <div className={`flex items-center gap-2 px-3 py-2.5 rounded-md border ${
+                          selected.receipt_signature.verified
+                            ? 'bg-green-50 border-green-200'
+                            : 'bg-red-50 border-red-200'
+                        }`}>
+                          {selected.receipt_signature.verified ? (
+                            <CheckCircle2 className="h-3.5 w-3.5 text-green-600 flex-shrink-0" />
+                          ) : (
+                            <AlertTriangle className="h-3.5 w-3.5 text-red-600 flex-shrink-0" />
+                          )}
+                          <div>
+                            <p className={`text-xs font-medium ${selected.receipt_signature.verified ? 'text-green-700' : 'text-red-700'}`}>
+                              {selected.receipt_signature.verified ? 'Signature Verified' : 'Verification Failed'}
+                            </p>
+                            {selected.receipt_signature.algorithm && (
+                              <p className="text-[10px] text-gray-500 font-mono">{selected.receipt_signature.algorithm}</p>
+                            )}
+                          </div>
+                        </div>
+                        {selected.receipt_signature.last_verified_at && (
+                          <p className="text-[10px] text-gray-400">
+                            Last verified {getRelativeTime(selected.receipt_signature.last_verified_at)}
+                          </p>
+                        )}
+                      </div>
+                    ) : (
+                      <p className="text-xs text-gray-400">No receipt signatures found for this agent.</p>
+                    )}
+                  </section>
 
                   <Separator />
 
