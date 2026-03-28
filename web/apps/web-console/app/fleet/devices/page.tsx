@@ -29,7 +29,7 @@ import Link from 'next/link';
 import { CopyButton, KeyValueGrid, JSONViewer } from '@/components/execution/shared';
 import {
   Wifi, WifiOff, Activity, AlertTriangle, Search, RefreshCw,
-  Shield, History, Cpu, CheckCircle2, AlertCircle, Server, Box, Zap, Radio,
+  Shield, History, Cpu, CheckCircle2, AlertCircle, Server, Box, Zap, Radio, Upload,
 } from 'lucide-react';
 
 // ─── Types ────────────────────────────────────────────────────────────────────
@@ -42,6 +42,9 @@ interface RosNode {
   lifecycle_state: RosLifecycleState;
   air_gapped: boolean;
   last_trace_at?: string;
+  cpu_usage_percent?: number;
+  memory_usage_mb?: number;
+  violation_count_24h?: number;
 }
 
 interface Device {
@@ -60,6 +63,11 @@ interface Device {
   policy_hash: string;
   global_policy_hash: string;
   ros_node?: RosNode;
+  containment?: {
+    enabled: boolean;
+    mode?: string;
+    violation_count?: number;
+  };
 }
 
 interface ExecutionMini {
@@ -146,6 +154,91 @@ function RosLifecycleBadge({ state, airGapped }: { state: RosLifecycleState; air
 function formatDuration(ms: number): string {
   if (ms < 1000) return `${ms}ms`;
   return `${(ms / 1000).toFixed(2)}s`;
+}
+
+function ContainmentBadge({ containment }: { containment?: { enabled: boolean; mode?: string; violation_count?: number } }) {
+  if (!containment?.enabled) return <span className="text-xs text-gray-300">—</span>;
+  return (
+    <span className="inline-flex items-center gap-1 px-1.5 py-0.5 rounded text-[10px] font-medium bg-green-50 text-green-700 border border-green-200">
+      <Shield className="h-2.5 w-2.5" />
+      {containment.mode ?? 'Contained'}
+    </span>
+  );
+}
+
+interface TopicActivity {
+  topic: string;
+  msg_type: string;
+  last_message?: string;
+  last_seen?: string;
+  within_envelope: boolean;
+}
+
+function BoundedTopicMonitor({ deviceId }: { deviceId: string }) {
+  const { data: topics = [], isLoading } = useQuery<TopicActivity[]>({
+    queryKey: ['device-topics', deviceId],
+    queryFn: async () => {
+      try {
+        return await api.get<TopicActivity[]>(`/devices/${deviceId}/topics`);
+      } catch {
+        return [];
+      }
+    },
+    staleTime: 10_000,
+    retry: false,
+    refetchInterval: 5_000,
+  });
+
+  if (isLoading) {
+    return (
+      <div className="space-y-1.5">
+        {Array.from({ length: 3 }).map((_, i) => (
+          <Skeleton key={i} className="h-8 w-full" />
+        ))}
+      </div>
+    );
+  }
+
+  if (topics.length === 0) {
+    return <p className="text-xs text-gray-400">No topic activity. Connect ROS bridge to see live topic data.</p>;
+  }
+
+  return (
+    <div className="border border-gray-100 rounded-md overflow-hidden">
+      <table className="w-full text-xs">
+        <thead>
+          <tr className="bg-gray-50 border-b border-gray-100">
+            <th className="text-left px-3 py-2 font-medium text-gray-500">Topic</th>
+            <th className="text-left px-3 py-2 font-medium text-gray-500">Last Message</th>
+            <th className="text-left px-3 py-2 font-medium text-gray-500">Envelope</th>
+          </tr>
+        </thead>
+        <tbody>
+          {topics.map((t) => (
+            <tr key={t.topic} className="border-b border-gray-50 last:border-0">
+              <td className="px-3 py-2 font-mono text-teal-700 whitespace-nowrap">{t.topic}</td>
+              <td className="px-3 py-2 text-gray-500 max-w-[140px] truncate" title={t.last_message}>
+                {t.last_message ? (
+                  <span className="font-mono text-[10px]">{t.last_message.slice(0, 30)}{t.last_message.length > 30 ? '…' : ''}</span>
+                ) : (
+                  <span className="text-gray-300">—</span>
+                )}
+              </td>
+              <td className="px-3 py-2">
+                <span className={`inline-flex items-center gap-1 px-1.5 py-0.5 rounded text-[10px] font-medium border ${
+                  t.within_envelope
+                    ? 'bg-green-50 text-green-700 border-green-200'
+                    : 'bg-red-50 text-red-700 border-red-200'
+                }`}>
+                  {t.within_envelope ? 'Within' : 'Violated'}
+                </span>
+              </td>
+            </tr>
+          ))}
+        </tbody>
+      </table>
+    </div>
+  );
 }
 
 // ─── Page ─────────────────────────────────────────────────────────────────────
@@ -442,7 +535,7 @@ function FleetDevicesContent() {
           <Table>
             <TableHeader>
               <TableRow className="hover:bg-transparent">
-                {['Device ID', 'Status', 'Runtime', 'Last Seen', 'Exec (24h)', 'Violations', 'Policy Sync', 'ROS 2 State'].map((col) => (
+                {['Device ID', 'Status', 'Runtime', 'Last Seen', 'Exec (24h)', 'Violations', 'Policy Sync', 'ROS 2 State', 'Containment', 'ROS CPU', 'ROS Violations'].map((col) => (
                   <TableHead
                     key={col}
                     className="text-xs font-medium text-gray-500 h-9 px-3 bg-gray-50 hover:bg-gray-50"
@@ -456,7 +549,7 @@ function FleetDevicesContent() {
               {devicesLoading ? (
                 Array.from({ length: 6 }).map((_, i) => (
                   <TableRow key={i}>
-                    {Array.from({ length: 8 }).map((_, j) => (
+                    {Array.from({ length: 11 }).map((_, j) => (
                       <TableCell key={j} className="px-3 py-2.5">
                         <Skeleton className="h-3.5 w-16" />
                       </TableCell>
@@ -465,7 +558,7 @@ function FleetDevicesContent() {
                 ))
               ) : filtered.length === 0 ? (
                 <TableRow>
-                  <TableCell colSpan={8} className="py-14">
+                  <TableCell colSpan={11} className="py-14">
                     <div className="flex flex-col items-center gap-2.5 text-center">
                       <Server className="h-9 w-9 text-gray-200" />
                       <p className="text-xs text-gray-400">No runtime nodes registered yet.</p>
@@ -531,6 +624,17 @@ function FleetDevicesContent() {
                       ) : (
                         <span className="text-xs text-gray-300">—</span>
                       )}
+                    </TableCell>
+                    <TableCell className="px-3 py-2.5">
+                      <ContainmentBadge containment={device.containment} />
+                    </TableCell>
+                    <TableCell className="px-3 py-2.5 text-xs tabular-nums text-gray-600">
+                      {device.ros_node?.cpu_usage_percent != null
+                        ? `${device.ros_node.cpu_usage_percent.toFixed(1)}%`
+                        : <span className="text-gray-300">—</span>}
+                    </TableCell>
+                    <TableCell className="px-3 py-2.5">
+                      <ViolationCountBadge count={device.ros_node?.violation_count_24h ?? 0} />
                     </TableCell>
                   </TableRow>
                 ))
@@ -914,6 +1018,60 @@ function FleetDevicesContent() {
                             </div>
                           )}
                         </div>
+
+                        {/* Trace Replay */}
+                        <div className="mt-4">
+                          <p className="text-[11px] font-medium text-gray-500 mb-2">ROS Trace Replay</p>
+                          <div className="flex items-center gap-2">
+                            <label className="flex-1">
+                              <input
+                                type="file"
+                                accept=".bag,.db3"
+                                className="hidden"
+                                id={`rosbag-${selectedDevice.device_id}`}
+                                onChange={(e) => {
+                                  const file = e.target.files?.[0];
+                                  if (!file) return;
+                                  const form = new FormData();
+                                  form.append('file', file);
+                                  api.post(`/devices/${selectedDevice.device_id}/ros/replay`, form)
+                                    .then(() => toast({ title: 'Replay started', description: `Replaying ${file.name} against current BT.` }))
+                                    .catch(() => toast({ title: 'Replay failed', variant: 'destructive' }));
+                                }}
+                              />
+                              <Button
+                                variant="outline"
+                                size="sm"
+                                className="h-7 text-xs gap-1 border-teal-200 text-teal-700 hover:bg-teal-50 w-full"
+                                onClick={() => document.getElementById(`rosbag-${selectedDevice.device_id}`)?.click()}
+                                disabled={selectedDevice.status === 'offline'}
+                              >
+                                <Upload className="h-3 w-3" />
+                                Upload .bag for Replay
+                              </Button>
+                            </label>
+                          </div>
+                          <p className="text-[10px] text-gray-400 mt-1.5">
+                            Upload a ROS bag file to replay against the current Behavior Tree.
+                          </p>
+                        </div>
+                      </section>
+                    </>
+                  )}
+
+                  {/* Bounded Topic Monitor */}
+                  {selectedDevice.ros_node && (
+                    <>
+                      <Separator />
+                      <section>
+                        <h3 className="text-[11px] font-semibold text-gray-400 uppercase tracking-wider mb-3 flex items-center gap-1.5">
+                          <Radio className="h-3.5 w-3.5 text-teal-600" />
+                          Bounded Topic Monitor
+                          <span className="ml-1 text-[10px] font-normal text-gray-400 normal-case tracking-normal">
+                            allowed topics
+                          </span>
+                        </h3>
+                        <BoundedTopicMonitor deviceId={selectedDevice.device_id} />
                       </section>
                     </>
                   )}
