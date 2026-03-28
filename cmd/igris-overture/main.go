@@ -465,6 +465,10 @@ func main() {
 		api.RegisterLoRARoutes(app, dbInstance)
 		log.Println("[LoRA] ✅ LoRA training proxy endpoints registered (/v1/lora/*)")
 
+		// Circuit breaker status endpoint
+		api.RegisterCircuitBreakerRoutes(app, dbInstance)
+		log.Println("[CircuitBreaker] ✅ Circuit breaker status endpoint registered (/v1/routing/circuit-breaker/status)")
+
 		// Multimodal inference (vision + audio)
 		api.RegisterMultimodalRoutes(app, dbInstance)
 		log.Println("[Multimodal] ✅ Multimodal endpoints registered (/v1/infer/multimodal)")
