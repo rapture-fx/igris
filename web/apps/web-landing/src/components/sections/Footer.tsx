@@ -81,9 +81,6 @@ export default function Footer() {
                   <Link href="/features#escapevector" prefetch={false} className="text-sm text-gray-500 dark:text-[#a8a898] hover:text-gray-900 dark:hover:text-[#f6f6f4] transition-colors" style={{ fontFamily: '-apple-system, BlinkMacSystemFont, "Segoe UI", Roboto, Helvetica, Arial, sans-serif' }}>
                     EscapeVector
                   </Link>
-                  <Link href="/features#gold-code" prefetch={false} className="text-sm text-gray-500 dark:text-[#a8a898] hover:text-gray-900 dark:hover:text-[#f6f6f4] transition-colors" style={{ fontFamily: '-apple-system, BlinkMacSystemFont, "Segoe UI", Roboto, Helvetica, Arial, sans-serif' }}>
-                    Gold Code
-                  </Link>
                   <Link href="/features#safety-containment" prefetch={false} className="text-sm text-gray-500 dark:text-[#a8a898] hover:text-gray-900 dark:hover:text-[#f6f6f4] transition-colors" style={{ fontFamily: '-apple-system, BlinkMacSystemFont, "Segoe UI", Roboto, Helvetica, Arial, sans-serif' }}>
                     Safety Containment
                   </Link>
