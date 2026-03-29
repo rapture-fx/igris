@@ -4,6 +4,7 @@ package api
 import (
 	"bufio"
 	"database/sql"
+	"encoding/json"
 	"fmt"
 	"strconv"
 	"strings"
@@ -14,6 +15,97 @@ import (
 
 	"github.com/Igris-inertial/system/igris-overture/middleware"
 )
+
+// ── BT tick-snapshot transform ────────────────────────────────────────────────
+
+// btRawSnapshot is the shape the Rust runtime emits per tick:
+// {"tick": N, "status": "Success|Failure|Running", "tree": {nested tree}}.
+type btRawSnapshot struct {
+	Tick   int64           `json:"tick"`
+	Status string          `json:"status"`
+	Tree   json.RawMessage `json:"tree"`
+}
+
+// flattenBTTree walks the runtime's nested tree JSON and produces a flat
+// []BTNode with sequential depth values suitable for the live-view frontend.
+// The runtime sends {"name":"…","type":"…","children":[…]}.
+func flattenBTTree(raw json.RawMessage, depth int, out *[]BTNode) {
+	if len(raw) == 0 || string(raw) == "null" {
+		return
+	}
+	var node struct {
+		Name           string            `json:"name"`
+		Type           string            `json:"type"`
+		Status         string            `json:"status"`
+		DurationMs     int64             `json:"duration_ms"`
+		ExecutionID    string            `json:"execution_id"`
+		Timestamp      string            `json:"timestamp"`
+		LLMProposal    *string           `json:"llm_proposal"`
+		EnvelopeStatus string            `json:"envelope_status"`
+		Children       []json.RawMessage `json:"children"`
+	}
+	if err := json.Unmarshal(raw, &node); err != nil {
+		return
+	}
+	if node.Name == "" {
+		return
+	}
+	id := fmt.Sprintf("%s_%s_%d", strings.ToLower(node.Type), strings.ReplaceAll(node.Name, " ", "_"), depth)
+	status := node.Status
+	if status == "" {
+		status = "pending"
+	}
+	envelopeStatus := node.EnvelopeStatus
+	if envelopeStatus == "" && status == "violation" {
+		envelopeStatus = "violated"
+	} else if envelopeStatus == "" && (status == "completed" || status == "Success") {
+		envelopeStatus = "passed"
+	}
+	n := BTNode{
+		ID:             id,
+		Name:           node.Name,
+		Type:           strings.ToLower(node.Type),
+		Status:         status,
+		Depth:          depth,
+		DurationMs:     node.DurationMs,
+		ExecutionID:    node.ExecutionID,
+		Timestamp:      node.Timestamp,
+		LLMProposal:    node.LLMProposal,
+		EnvelopeStatus: envelopeStatus,
+	}
+	*out = append(*out, n)
+	for _, child := range node.Children {
+		flattenBTTree(child, depth+1, out)
+	}
+}
+
+// enrichBTSnapshot converts a raw runtime bt_state JSON blob into the
+// {tick, nodes[], last_updated} shape expected by the web console.
+// Falls through to the raw blob if it cannot be parsed (safe degradation).
+func enrichBTSnapshot(rawState []byte, updatedAt time.Time) []byte {
+	var snap btRawSnapshot
+	if err := json.Unmarshal(rawState, &snap); err != nil {
+		return rawState
+	}
+	nodes := make([]BTNode, 0, 8)
+	flattenBTTree(snap.Tree, 0, &nodes)
+
+	// If flatten yielded nothing (runtime sent minimal tree), pass through raw.
+	if len(nodes) == 0 {
+		return rawState
+	}
+
+	out, err := json.Marshal(map[string]interface{}{
+		"tick":         snap.Tick,
+		"status":       snap.Status,
+		"nodes":        nodes,
+		"last_updated": updatedAt.UTC().Format(time.RFC3339),
+	})
+	if err != nil {
+		return rawState
+	}
+	return out
+}
 
 // ExecutionHandler handles execution-related API requests.
 type ExecutionHandler struct {
@@ -316,15 +408,16 @@ func (h *ExecutionHandler) ListAgents(c *fiber.Ctx) error {
 
 // BTNode is a single node in the behaviour-tree execution view.
 type BTNode struct {
-	ID          string  `json:"id"`
-	Name        string  `json:"name"`
-	Type        string  `json:"type"`
-	Status      string  `json:"status"`
-	Depth       int     `json:"depth"`
-	DurationMs  int64   `json:"duration_ms,omitempty"`
-	ExecutionID string  `json:"execution_id,omitempty"`
-	Timestamp   string  `json:"timestamp,omitempty"`
-	LLMProposal *string `json:"llm_proposal,omitempty"`
+	ID             string  `json:"id"`
+	Name           string  `json:"name"`
+	Type           string  `json:"type"`
+	Status         string  `json:"status"`
+	Depth          int     `json:"depth"`
+	DurationMs     int64   `json:"duration_ms,omitempty"`
+	ExecutionID    string  `json:"execution_id,omitempty"`
+	Timestamp      string  `json:"timestamp,omitempty"`
+	LLMProposal    *string `json:"llm_proposal,omitempty"`
+	EnvelopeStatus string  `json:"envelope_status,omitempty"` // "passed" | "violated" | "partial"
 }
 
 // GetAgentBTState handles GET /v1/agents/:id/bt-state.
@@ -378,22 +471,29 @@ func (h *ExecutionHandler) GetAgentBTState(c *fiber.Ctx) error {
 		if violated && displayStatus == "completed" {
 			displayStatus = "violation"
 		}
+		envelopeStatus := "passed"
+		if violated {
+			envelopeStatus = "violated"
+		}
 		nodes = append(nodes, BTNode{
-			ID:          execID,
-			Name:        "Execute Task",
-			Type:        "action",
-			Status:      displayStatus,
-			Depth:       1,
-			DurationMs:  wallMs,
-			ExecutionID: execID,
-			Timestamp:   tsStr,
+			ID:             execID,
+			Name:           "Execute Task",
+			Type:           "action",
+			Status:         displayStatus,
+			Depth:          1,
+			DurationMs:     wallMs,
+			ExecutionID:    execID,
+			Timestamp:      tsStr,
+			EnvelopeStatus: envelopeStatus,
 		})
 	}
 
-	// Mark root status from children
+	// Mark root status and envelope_status from children
+	nodes[0].EnvelopeStatus = "passed"
 	for _, n := range nodes[1:] {
 		if n.Status == "violation" {
 			nodes[0].Status = "violation"
+			nodes[0].EnvelopeStatus = "violated"
 			break
 		}
 	}
@@ -1039,7 +1139,10 @@ func (h *ExecutionHandler) StreamBTState(c *fiber.Ctx) error {
 				}
 				lastSeen = ts
 
-				fmt.Fprintf(w, "event: bt_tick\ndata: %s\n\n", rawState)
+				// Transform nested runtime tree into flat nodes[] shape for
+				// the live-view frontend — safe fallback if parse fails.
+				enriched := enrichBTSnapshot(rawState, updatedAt)
+				fmt.Fprintf(w, "event: bt_tick\ndata: %s\n\n", enriched)
 				w.Flush() //nolint:errcheck
 
 			case <-keepalive.C:
