@@ -2,6 +2,7 @@ package internal
 
 import (
 	"context"
+	"database/sql"
 	"fmt"
 	"log"
 	"sync"
@@ -33,6 +34,7 @@ type RuntimeSelector struct {
 	repo     RuntimeRepositoryI
 	breakers *circuitbreaker.ProviderCircuitBreakers
 	clients  sync.Map // endpoint string → *RuntimeClient
+	db       *sql.DB  // optional; when set, CB state changes are persisted
 }
 
 // NewRuntimeSelector creates a selector backed by the given repository.
@@ -46,6 +48,61 @@ func NewRuntimeSelector(repo RuntimeRepositoryI) *RuntimeSelector {
 			RecoveryTimeout:  30 * time.Second,
 		}),
 	}
+}
+
+// WithDB attaches a database handle so circuit breaker state changes are
+// persisted to circuit_breaker_states (tenant_id="system", provider=runtimeID).
+func (s *RuntimeSelector) WithDB(db *sql.DB) *RuntimeSelector {
+	s.db = db
+	return s
+}
+
+// persistCBState upserts the current in-memory circuit breaker state for the
+// given runtimeID to the circuit_breaker_states table.  Runs asynchronously so
+// it never blocks the request path.
+func (s *RuntimeSelector) persistCBState(runtimeID string) {
+	if s.db == nil {
+		return
+	}
+	state := s.breakers.GetState(runtimeID).String()
+	go func() {
+		ctx, cancel := context.WithTimeout(context.Background(), 3*time.Second)
+		defer cancel()
+		_, err := s.db.ExecContext(ctx, `
+			INSERT INTO circuit_breaker_states (tenant_id, provider, state, failure_count, updated_at)
+			VALUES ('system', $1, $2, 0, NOW())
+			ON CONFLICT (tenant_id, provider) DO UPDATE
+			  SET state      = EXCLUDED.state,
+			      updated_at = NOW()
+		`, runtimeID, state)
+		if err != nil {
+			log.Printf("[RuntimeSelector] persist CB state for %s: %v", runtimeID, err)
+		}
+	}()
+}
+
+// persistCBTrip upserts a tripped (opened) circuit breaker, incrementing trip_count.
+func (s *RuntimeSelector) persistCBTrip(runtimeID string) {
+	if s.db == nil {
+		return
+	}
+	go func() {
+		ctx, cancel := context.WithTimeout(context.Background(), 3*time.Second)
+		defer cancel()
+		_, err := s.db.ExecContext(ctx, `
+			INSERT INTO circuit_breaker_states (tenant_id, provider, state, failure_count, trip_count, last_tripped_at, updated_at)
+			VALUES ('system', $1, 'open', 1, 1, NOW(), NOW())
+			ON CONFLICT (tenant_id, provider) DO UPDATE
+			  SET state          = 'open',
+			      failure_count  = circuit_breaker_states.failure_count + 1,
+			      trip_count     = circuit_breaker_states.trip_count + 1,
+			      last_tripped_at = NOW(),
+			      updated_at     = NOW()
+		`, runtimeID)
+		if err != nil {
+			log.Printf("[RuntimeSelector] persist CB trip for %s: %v", runtimeID, err)
+		}
+	}()
 }
 
 // ForwardExecution selects a healthy runtime and delegates the request to it.
@@ -72,9 +129,16 @@ func (s *RuntimeSelector) ForwardExecution(
 		if ferr != nil {
 			log.Printf("[RuntimeSelector] runtime %s failed: %v — trying next", inst.RuntimeID, ferr)
 			s.breakers.RecordFailure(inst.RuntimeID)
+			// Persist state: check if the breaker just tripped open.
+			if !s.breakers.IsProviderAvailable(inst.RuntimeID) {
+				s.persistCBTrip(inst.RuntimeID)
+			} else {
+				s.persistCBState(inst.RuntimeID)
+			}
 			continue
 		}
 		s.breakers.RecordSuccess(inst.RuntimeID)
+		s.persistCBState(inst.RuntimeID)
 		return resp, nil
 	}
 
