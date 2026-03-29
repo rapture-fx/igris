@@ -13,7 +13,7 @@ import {
   SheetTitle,
 } from '@/components/ui/sheet';
 import { getRelativeTime } from '@/utils/helpers';
-import { ArrowLeft, Edit2, ExternalLink, GitBranch, Loader2, Sparkles, Wifi, WifiOff } from 'lucide-react';
+import { AlertTriangle, ArrowLeft, ChevronDown, ChevronRight, Edit2, ExternalLink, GitBranch, Loader2, Sparkles, Wifi, WifiOff } from 'lucide-react';
 import { CopyButton } from '@/components/execution/shared';
 
 // ─── Types ────────────────────────────────────────────────────────────────────
@@ -29,6 +29,8 @@ interface BTNode {
   timestamp?: string;
   llm_proposal?: string;
   envelope_status?: 'passed' | 'violated' | 'partial';
+  enforced_action?: string;
+  runtime_override?: boolean;
 }
 
 interface BTState {
@@ -113,14 +115,20 @@ function BTTreeNode({
   isLast,
   prefix,
   onSelect,
+  collapsedIds,
+  onToggleCollapse,
 }: {
   node: BTTreeItem;
   isLast: boolean;
   prefix: string;
   onSelect: (n: BTNode) => void;
+  collapsedIds: Set<string>;
+  onToggleCollapse: (id: string) => void;
 }) {
   const connector = isLast ? '└─' : '├─';
   const childPrefix = prefix + (isLast ? '  ' : '│ ');
+  const hasChildren = node.children.length > 0;
+  const isCollapsed = collapsedIds.has(node.id);
 
   return (
     <div>
@@ -132,6 +140,20 @@ function BTTreeNode({
             {prefix}{connector}{' '}
           </span>
         )}
+        {/* Collapse toggle */}
+        {hasChildren && (
+          <button
+            type="button"
+            className="flex-shrink-0 h-[26px] w-5 flex items-center justify-center text-gray-400 hover:text-gray-700 transition-colors"
+            onClick={(e) => { e.stopPropagation(); onToggleCollapse(node.id); }}
+            title={isCollapsed ? 'Expand' : 'Collapse'}
+          >
+            {isCollapsed
+              ? <ChevronRight className="h-3 w-3" />
+              : <ChevronDown className="h-3 w-3" />}
+          </button>
+        )}
+        {!hasChildren && <span className="flex-shrink-0 w-5" />}
         {/* Clickable node card — pulse ring when actively running */}
         <button
           type="button"
@@ -183,14 +205,16 @@ function BTTreeNode({
           </div>
         </button>
       </div>
-      {/* Children */}
-      {node.children.map((child, i) => (
+      {/* Children — skip when collapsed */}
+      {!isCollapsed && node.children.map((child, i) => (
         <BTTreeNode
           key={child.id}
           node={child}
           isLast={i === node.children.length - 1}
           prefix={childPrefix}
           onSelect={onSelect}
+          collapsedIds={collapsedIds}
+          onToggleCollapse={onToggleCollapse}
         />
       ))}
     </div>
@@ -212,6 +236,16 @@ export default function AgentLivePage() {
 
   // Drawer state
   const [drawerNode, setDrawerNode] = useState<BTNode | null>(null);
+
+  // Collapse/expand state
+  const [collapsedIds, setCollapsedIds] = useState<Set<string>>(new Set());
+  const onToggleCollapse = (id: string) => {
+    setCollapsedIds((prev) => {
+      const next = new Set(prev);
+      if (next.has(id)) { next.delete(id); } else { next.add(id); }
+      return next;
+    });
+  };
 
   const esRef = useRef<EventSource | null>(null);
   const staleTimerRef = useRef<ReturnType<typeof setTimeout> | null>(null);
@@ -348,6 +382,25 @@ export default function AgentLivePage() {
               {count} {status}
             </span>
           ))}
+          {nodes.length > 0 && (
+            <Button
+              variant="ghost"
+              size="sm"
+              className="h-6 text-[11px] px-2 text-gray-500 hover:text-gray-800"
+              onClick={() => {
+                const allInternalIds = treeRoots.flatMap(function collect(n: BTTreeItem): string[] {
+                  return n.children.length > 0 ? [n.id, ...n.children.flatMap(collect)] : [];
+                });
+                if (collapsedIds.size > 0) {
+                  setCollapsedIds(new Set());
+                } else {
+                  setCollapsedIds(new Set(allInternalIds));
+                }
+              }}
+            >
+              {collapsedIds.size > 0 ? 'Expand All' : 'Collapse All'}
+            </Button>
+          )}
           {lastEventAt > 0 && (
             <span className="ml-auto text-gray-400">
               Updated {getRelativeTime(new Date(lastEventAt).toISOString())}
@@ -381,6 +434,8 @@ export default function AgentLivePage() {
                   isLast={i === treeRoots.length - 1}
                   prefix=""
                   onSelect={setDrawerNode}
+                  collapsedIds={collapsedIds}
+                  onToggleCollapse={onToggleCollapse}
                 />
               ))}
             </div>
@@ -478,6 +533,37 @@ export default function AgentLivePage() {
                       <p className="text-indigo-700 leading-relaxed italic text-xs bg-indigo-50 border border-indigo-100 rounded-md px-3 py-2">
                         {drawerNode.llm_proposal}
                       </p>
+                    </div>
+                  </>
+                )}
+
+                {(drawerNode.llm_proposal || drawerNode.enforced_action) && (
+                  <>
+                    <Separator />
+                    <div>
+                      <p className="text-[10px] font-semibold text-gray-400 uppercase tracking-wide mb-2">LLM → Runtime Diff</p>
+                      <div className="grid grid-cols-2 gap-2">
+                        <div className={`rounded-md border p-2.5 ${drawerNode.runtime_override ? 'bg-blue-50 border-blue-200' : 'bg-gray-50 border-gray-200'}`}>
+                          <p className="text-[9px] font-bold uppercase tracking-wide text-blue-600 mb-1">LLM Proposed</p>
+                          <p className="text-[11px] text-blue-800 leading-relaxed">
+                            {drawerNode.llm_proposal ?? <span className="text-gray-400 italic">none</span>}
+                          </p>
+                        </div>
+                        <div className={`rounded-md border p-2.5 ${drawerNode.runtime_override ? 'bg-red-50 border-red-300' : 'bg-gray-50 border-gray-200'}`}>
+                          <p className={`text-[9px] font-bold uppercase tracking-wide mb-1 ${drawerNode.runtime_override ? 'text-red-600' : 'text-gray-500'}`}>
+                            {drawerNode.runtime_override ? 'Runtime Override' : 'Runtime Enforced'}
+                          </p>
+                          <p className={`text-[11px] leading-relaxed ${drawerNode.runtime_override ? 'text-red-800' : 'text-gray-700'}`}>
+                            {drawerNode.enforced_action ?? <span className="text-gray-400 italic">same as proposed</span>}
+                          </p>
+                        </div>
+                      </div>
+                      {drawerNode.runtime_override && (
+                        <p className="text-[10px] text-red-600 mt-1.5 flex items-center gap-1">
+                          <AlertTriangle className="h-3 w-3 flex-shrink-0" />
+                          Runtime enforcer rejected or modified the LLM proposal to satisfy policy bounds.
+                        </p>
+                      )}
                     </div>
                   </>
                 )}
