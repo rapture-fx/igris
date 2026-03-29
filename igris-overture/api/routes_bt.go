@@ -34,10 +34,11 @@ func RegisterBTRoutes(app *fiber.App, db *sql.DB) {
 	v1 := app.Group("/v1/bt")
 	v1.Get("/templates", getBTTemplates)
 	v1.Get("/definitions", middleware.BetterAuth(db), listBTDefinitions(db))
+	v1.Get("/definitions/:id", middleware.BetterAuth(db), getBTDefinition(db))
 	v1.Post("/definitions", middleware.BetterAuth(db), saveBTDefinition(db))
 	v1.Delete("/definitions/:id", middleware.BetterAuth(db), deleteBTDefinition(db))
 
-	log.Info().Msg("[Routes] Registered BT endpoints (/v1/bt/templates, /v1/bt/definitions)")
+	log.Info().Msg("[Routes] Registered BT endpoints (/v1/bt/templates, /v1/bt/definitions, /v1/bt/definitions/:id)")
 }
 
 // ── GET /v1/bt/templates ────────────────────────────────────────────────────
@@ -114,6 +115,39 @@ func getBTTemplates(c *fiber.Ctx) error {
 		},
 	}
 	return c.JSON(templates)
+}
+
+// ── GET /v1/bt/definitions/:id ──────────────────────────────────────────────
+
+func getBTDefinition(db *sql.DB) fiber.Handler {
+	return func(c *fiber.Ctx) error {
+		tenantID := middleware.GetClerkUserID(c)
+		if tenantID == "" {
+			return c.Status(fiber.StatusUnauthorized).JSON(fiber.Map{"error": "unauthorized"})
+		}
+		id := c.Params("id")
+
+		var def BTDefinition
+		var createdAt, updatedAt time.Time
+		err := db.QueryRow(`
+			SELECT id, name, description, nodes, edges, created_at, updated_at
+			FROM bt_definitions
+			WHERE id = $1 AND tenant_id = $2
+		`, id, tenantID).Scan(
+			&def.ID, &def.Name, &def.Description, &def.Nodes, &def.Edges,
+			&createdAt, &updatedAt,
+		)
+		if err == sql.ErrNoRows {
+			return c.Status(fiber.StatusNotFound).JSON(fiber.Map{"error": "definition not found"})
+		}
+		if err != nil {
+			log.Error().Err(err).Str("id", id).Msg("[BT] Failed to get definition")
+			return c.Status(fiber.StatusInternalServerError).JSON(fiber.Map{"error": "internal_error"})
+		}
+		def.CreatedAt = createdAt.UTC().Format(time.RFC3339)
+		def.UpdatedAt = updatedAt.UTC().Format(time.RFC3339)
+		return c.JSON(def)
+	}
 }
 
 // ── GET /v1/bt/definitions ───────────────────────────────────────────────────
