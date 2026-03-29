@@ -13,7 +13,7 @@ import {
   SheetTitle,
 } from '@/components/ui/sheet';
 import { getRelativeTime } from '@/utils/helpers';
-import { ArrowLeft, Edit2, GitBranch, Loader2, Wifi, WifiOff } from 'lucide-react';
+import { ArrowLeft, Edit2, ExternalLink, GitBranch, Loader2, Sparkles, Wifi, WifiOff } from 'lucide-react';
 import { CopyButton } from '@/components/execution/shared';
 
 // ─── Types ────────────────────────────────────────────────────────────────────
@@ -73,6 +73,12 @@ const ENVELOPE_DOT: Record<'passed' | 'violated' | 'partial', string> = {
   partial:  'bg-yellow-400',
 };
 
+const ENVELOPE_LABEL: Record<'passed' | 'violated' | 'partial', string> = {
+  passed:   'Envelope: all resource limits satisfied',
+  violated: 'Envelope VIOLATED: action exceeded policy bounds',
+  partial:  'Envelope partial: one or more limits approaching threshold',
+};
+
 const NODE_TYPE_COLORS: Record<string, string> = {
   selector:  'bg-purple-50 border-purple-200 text-purple-700',
   sequence:  'bg-blue-50 border-blue-200 text-blue-700',
@@ -126,10 +132,12 @@ function BTTreeNode({
             {prefix}{connector}{' '}
           </span>
         )}
-        {/* Clickable node card */}
+        {/* Clickable node card — pulse ring when actively running */}
         <button
           type="button"
-          className="flex-1 flex items-center justify-between gap-2 py-1 px-2 rounded-md hover:bg-gray-50 group transition-colors text-left min-w-0 mb-0.5"
+          className={`flex-1 flex items-center justify-between gap-2 py-1 px-2 rounded-md hover:bg-gray-50 group transition-colors text-left min-w-0 mb-0.5 ${
+            node.status === 'running' ? 'ring-1 ring-blue-300 ring-offset-1 animate-pulse' : ''
+          }`}
           onClick={() => onSelect(node)}
         >
           <div className="flex flex-col min-w-0">
@@ -146,9 +154,15 @@ function BTTreeNode({
               )}
             </div>
             {node.llm_proposal && (
-              <p className="text-[10px] text-indigo-400 italic truncate mt-0.5 pl-0.5">
-                ↳ {node.llm_proposal}
-              </p>
+              <div className="flex items-center gap-1 mt-0.5 pl-0.5">
+                <span className="inline-flex items-center gap-0.5 px-1 py-0 rounded bg-indigo-50 border border-indigo-200 text-[9px] font-semibold text-indigo-600 flex-shrink-0">
+                  <Sparkles className="h-2 w-2" />
+                  LLM Suggested
+                </span>
+                <p className="text-[10px] text-indigo-400 italic truncate">
+                  {node.llm_proposal}
+                </p>
+              </div>
             )}
           </div>
           <div className="flex items-center gap-1.5 flex-shrink-0">
@@ -158,7 +172,10 @@ function BTTreeNode({
               </span>
             )}
             {node.envelope_status && (
-              <span className={`h-2 w-2 rounded-full flex-shrink-0 ${ENVELOPE_DOT[node.envelope_status]}`} title={`Envelope: ${node.envelope_status}`} />
+              <span
+                className={`h-2 w-2 rounded-full flex-shrink-0 ${ENVELOPE_DOT[node.envelope_status]}`}
+                title={ENVELOPE_LABEL[node.envelope_status]}
+              />
             )}
             <span className={`inline-flex items-center px-1.5 py-0.5 rounded border text-[10px] font-medium ${BT_STATUS_STYLES[node.status] ?? BT_STATUS_STYLES.pending}`}>
               {node.status}
@@ -451,8 +468,53 @@ export default function AgentLivePage() {
                   <>
                     <Separator />
                     <div>
-                      <p className="text-[10px] font-semibold text-gray-400 uppercase tracking-wide mb-1">LLM Proposal</p>
-                      <p className="text-gray-600 leading-relaxed italic">{drawerNode.llm_proposal}</p>
+                      <div className="flex items-center gap-2 mb-2">
+                        <p className="text-[10px] font-semibold text-gray-400 uppercase tracking-wide">LLM Proposal</p>
+                        <span className="inline-flex items-center gap-0.5 px-1.5 py-0.5 rounded bg-indigo-50 border border-indigo-200 text-[9px] font-semibold text-indigo-600">
+                          <Sparkles className="h-2.5 w-2.5" />
+                          LLM Suggested
+                        </span>
+                      </div>
+                      <p className="text-indigo-700 leading-relaxed italic text-xs bg-indigo-50 border border-indigo-100 rounded-md px-3 py-2">
+                        {drawerNode.llm_proposal}
+                      </p>
+                    </div>
+                  </>
+                )}
+
+                {/* Envelope verdict detail */}
+                {drawerNode.envelope_status && (
+                  <>
+                    <Separator />
+                    <div>
+                      <p className="text-[10px] font-semibold text-gray-400 uppercase tracking-wide mb-2">Envelope Verdict</p>
+                      <div className={`flex items-center gap-2 px-3 py-2 rounded-md border text-xs font-medium ${
+                        drawerNode.envelope_status === 'passed'
+                          ? 'bg-green-50 border-green-200 text-green-700'
+                          : drawerNode.envelope_status === 'violated'
+                          ? 'bg-red-50 border-red-200 text-red-700'
+                          : 'bg-yellow-50 border-yellow-200 text-yellow-700'
+                      }`}>
+                        <span className={`h-2 w-2 rounded-full flex-shrink-0 ${ENVELOPE_DOT[drawerNode.envelope_status]}`} />
+                        {ENVELOPE_LABEL[drawerNode.envelope_status]}
+                      </div>
+                    </div>
+                  </>
+                )}
+
+                {/* View signed receipts for this node */}
+                {drawerNode.execution_id && (
+                  <>
+                    <Separator />
+                    <div>
+                      <p className="text-[10px] font-semibold text-gray-400 uppercase tracking-wide mb-2">Signed Receipt</p>
+                      <a
+                        href={`/proof/traces?execution_id=${drawerNode.execution_id}`}
+                        className="inline-flex items-center gap-1.5 px-2.5 py-1.5 rounded-md border border-gray-200 text-xs text-gray-600 hover:text-gray-900 hover:bg-gray-50 transition-colors"
+                      >
+                        <ExternalLink className="h-3 w-3" />
+                        View signed traces for this node
+                      </a>
                     </div>
                   </>
                 )}
