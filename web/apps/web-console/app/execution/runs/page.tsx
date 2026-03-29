@@ -620,17 +620,34 @@ export default function ExecutionRunsPage() {
 
                   <Separator />
 
-                  {/* §2.5 LLM Proposal vs Runtime Enforced */}
+                  {/* §2.5 LLM Proposal vs Runtime Enforced diff */}
                   {(selected.llm_proposal || selected.enforced_output) && (
                     <section>
                       <h3 className="text-[11px] font-semibold text-gray-400 uppercase tracking-wider mb-3 flex items-center gap-1.5">
                         <Eye className="h-3.5 w-3.5" />
                         LLM Proposal vs Runtime Enforced
                       </h3>
+
+                      {/* Governance override alert banner — shown prominently when violation occurred */}
+                      {selected.has_violation && (
+                        <div className="flex items-start gap-2 mb-3 px-3 py-2.5 rounded-md bg-red-50 border border-red-300">
+                          <AlertTriangle className="h-4 w-4 text-red-600 flex-shrink-0 mt-0.5" />
+                          <div>
+                            <p className="text-xs font-semibold text-red-700">Governance Override</p>
+                            <p className="text-[11px] text-red-600 leading-relaxed mt-0.5">
+                              The runtime enforcer rejected or modified the LLM&apos;s proposed output because it violated active policy bounds. The enforced output below is what was actually executed.
+                            </p>
+                          </div>
+                        </div>
+                      )}
+
                       <div className="grid grid-cols-2 gap-2">
                         <div>
-                          <p className="text-[10px] font-medium text-gray-400 mb-1 uppercase tracking-wider">LLM Proposed</p>
-                          <div className="bg-blue-50 border border-blue-100 rounded p-2 min-h-[60px] max-h-40 overflow-auto">
+                          <div className="flex items-center gap-1.5 mb-1">
+                            <span className="h-2 w-2 rounded-full bg-blue-400 flex-shrink-0" />
+                            <p className="text-[10px] font-semibold text-blue-700 uppercase tracking-wider">LLM Proposed</p>
+                          </div>
+                          <div className="bg-blue-50 border border-blue-200 rounded p-2 min-h-[60px] max-h-40 overflow-auto">
                             {selected.llm_proposal ? (
                               <pre className="text-[11px] text-blue-900 whitespace-pre-wrap break-words leading-relaxed">
                                 {selected.llm_proposal}
@@ -641,8 +658,13 @@ export default function ExecutionRunsPage() {
                           </div>
                         </div>
                         <div>
-                          <p className="text-[10px] font-medium text-gray-400 mb-1 uppercase tracking-wider">Runtime Enforced</p>
-                          <div className={`border rounded p-2 min-h-[60px] max-h-40 overflow-auto ${selected.has_violation ? 'bg-red-50 border-red-100' : 'bg-green-50 border-green-100'}`}>
+                          <div className="flex items-center gap-1.5 mb-1">
+                            <span className={`h-2 w-2 rounded-full flex-shrink-0 ${selected.has_violation ? 'bg-red-500' : 'bg-green-500'}`} />
+                            <p className={`text-[10px] font-semibold uppercase tracking-wider ${selected.has_violation ? 'text-red-700' : 'text-green-700'}`}>
+                              Runtime Enforced {selected.has_violation ? '— VIOLATION' : '— PASSED'}
+                            </p>
+                          </div>
+                          <div className={`border rounded p-2 min-h-[60px] max-h-40 overflow-auto ${selected.has_violation ? 'bg-red-50 border-red-300' : 'bg-green-50 border-green-200'}`}>
                             {selected.enforced_output ? (
                               <pre className={`text-[11px] whitespace-pre-wrap break-words leading-relaxed ${selected.has_violation ? 'text-red-900' : 'text-green-900'}`}>
                                 {selected.enforced_output}
@@ -653,12 +675,6 @@ export default function ExecutionRunsPage() {
                           </div>
                         </div>
                       </div>
-                      {selected.has_violation && (
-                        <p className="mt-2 text-[11px] text-red-600 flex items-center gap-1">
-                          <AlertTriangle className="h-3 w-3" />
-                          Runtime overrode or rejected the LLM proposal due to policy violation.
-                        </p>
-                      )}
                     </section>
                   )}
 
