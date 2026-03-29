@@ -35,6 +35,7 @@ import {
 // ─── Types ────────────────────────────────────────────────────────────────────
 
 type RosLifecycleState = 'Unconfigured' | 'Inactive' | 'Active' | 'Finalized' | 'ErrorProcessing';
+type RosAction = 'configure' | 'activate' | 'deactivate' | 'reset';
 
 interface RosNode {
   node_name: string;
@@ -259,6 +260,7 @@ function FleetDevicesContent() {
   const [statusFilter, setStatusFilter] = useState<'all' | 'online' | 'offline'>('all');
   const [timeRange, setTimeRange] = useState<'24h' | '7d' | '30d'>('24h');
   const [rosOnly, setRosOnly] = useState(false);
+  const [lifecycleConfirm, setLifecycleConfirm] = useState<{ deviceId: string; action: RosAction } | null>(null);
 
   // ── Devices list ──
   const { data: devices = [], isLoading: devicesLoading, refetch } = useQuery<Device[]>({
@@ -378,8 +380,6 @@ function FleetDevicesContent() {
   }, [router, searchParams]);
 
   // ── ROS 2 Lifecycle ──
-  type RosAction = 'configure' | 'activate' | 'deactivate' | 'reset';
-
   const rosLifecycleMutation = useMutation({
     mutationFn: ({ deviceId, action }: { deviceId: string; action: RosAction }) =>
       api.post('/v1/ros/lifecycle', { device_id: deviceId, action }),
@@ -535,7 +535,7 @@ function FleetDevicesContent() {
           <Table>
             <TableHeader>
               <TableRow className="hover:bg-transparent">
-                {['Device ID', 'Status', 'Runtime', 'Last Seen', 'Exec (24h)', 'Violations', 'Policy Sync', 'ROS 2 State', 'Containment', 'ROS CPU', 'ROS Violations'].map((col) => (
+                {['Device ID', 'Status', 'Runtime', 'Last Seen', 'Exec (24h)', 'Violations', 'Policy Sync', 'ROS 2 State', 'Containment', 'ROS CPU', 'ROS Memory', 'ROS Violations'].map((col) => (
                   <TableHead
                     key={col}
                     className="text-xs font-medium text-gray-500 h-9 px-3 bg-gray-50 hover:bg-gray-50"
@@ -549,7 +549,7 @@ function FleetDevicesContent() {
               {devicesLoading ? (
                 Array.from({ length: 6 }).map((_, i) => (
                   <TableRow key={i}>
-                    {Array.from({ length: 11 }).map((_, j) => (
+                    {Array.from({ length: 12 }).map((_, j) => (
                       <TableCell key={j} className="px-3 py-2.5">
                         <Skeleton className="h-3.5 w-16" />
                       </TableCell>
@@ -558,7 +558,7 @@ function FleetDevicesContent() {
                 ))
               ) : filtered.length === 0 ? (
                 <TableRow>
-                  <TableCell colSpan={11} className="py-14">
+                  <TableCell colSpan={12} className="py-14">
                     <div className="flex flex-col items-center gap-2.5 text-center">
                       <Server className="h-9 w-9 text-gray-200" />
                       <p className="text-xs text-gray-400">No runtime nodes registered yet.</p>
@@ -631,6 +631,11 @@ function FleetDevicesContent() {
                     <TableCell className="px-3 py-2.5 text-xs tabular-nums text-gray-600">
                       {device.ros_node?.cpu_usage_percent != null
                         ? `${device.ros_node.cpu_usage_percent.toFixed(1)}%`
+                        : <span className="text-gray-300">—</span>}
+                    </TableCell>
+                    <TableCell className="px-3 py-2.5 text-xs tabular-nums text-gray-600">
+                      {device.ros_node?.memory_usage_mb != null
+                        ? `${device.ros_node.memory_usage_mb} MB`
                         : <span className="text-gray-300">—</span>}
                     </TableCell>
                     <TableCell className="px-3 py-2.5">
@@ -991,6 +996,7 @@ function FleetDevicesContent() {
                                 : 'Air-gapped node — lifecycle commands not available remotely.'}
                             </p>
                           ) : (
+                            <>
                             <div className="flex flex-wrap gap-2">
                               {(['configure', 'activate', 'deactivate', 'reset'] as RosAction[]).map((action) => {
                                 const isPending = rosLifecycleMutation.isPending && rosLifecycleMutation.variables?.action === action;
@@ -1008,7 +1014,7 @@ function FleetDevicesContent() {
                                     size="sm"
                                     className={`h-7 text-xs capitalize gap-1 ${styles[action]}`}
                                     disabled={disabled}
-                                    onClick={() => rosLifecycleMutation.mutate({ deviceId: selectedDevice.device_id, action })}
+                                    onClick={() => setLifecycleConfirm({ deviceId: selectedDevice.device_id, action })}
                                   >
                                     {isPending && <RefreshCw className="h-3 w-3 animate-spin" />}
                                     {action}
@@ -1016,6 +1022,33 @@ function FleetDevicesContent() {
                                 );
                               })}
                             </div>
+                            {lifecycleConfirm && lifecycleConfirm.deviceId === selectedDevice.device_id && (
+                              <div className="mt-2 flex items-center gap-2 px-3 py-2 rounded-md bg-amber-50 border border-amber-200">
+                                <AlertTriangle className="h-3.5 w-3.5 text-amber-600 flex-shrink-0" />
+                                <p className="text-xs text-amber-700 flex-1">
+                                  Send <strong className="capitalize">{lifecycleConfirm.action}</strong> to <span className="font-mono">{selectedDevice.ros_node.node_name}</span>?
+                                </p>
+                                <Button
+                                  size="sm"
+                                  className="h-6 text-[11px] bg-amber-600 hover:bg-amber-700 text-white px-2"
+                                  onClick={() => {
+                                    rosLifecycleMutation.mutate(lifecycleConfirm);
+                                    setLifecycleConfirm(null);
+                                  }}
+                                >
+                                  Confirm
+                                </Button>
+                                <Button
+                                  size="sm"
+                                  variant="outline"
+                                  className="h-6 text-[11px] px-2"
+                                  onClick={() => setLifecycleConfirm(null)}
+                                >
+                                  Cancel
+                                </Button>
+                              </div>
+                            )}
+                            </>
                           )}
                         </div>
 
