@@ -27,7 +27,7 @@ func RegisterInferRoutes(app *fiber.App, tenantAuth *middleware.TenantAuth, db *
 	// Priority 3: Direct provider routing (no runtime configured).
 	if db != nil && db.IsEnabled() {
 		repo := internal.NewRuntimeRepository(db.DB)
-		sel := internal.NewRuntimeSelector(repo)
+		sel := internal.NewRuntimeSelector(repo).WithDB(db.DB)
 		sel.StartHealthPoller(context.Background())
 		inferHandler.SetRuntimeExecutor(sel)
 		log.Printf("[Routes] Runtime selector active (DB-backed registry with health polling)")
