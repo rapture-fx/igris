@@ -52,6 +52,21 @@ interface CouncilConfig {
   min_consensus: number;
 }
 
+interface CouncilAnalytics {
+  total_invocations: number;
+  last_24h: number;
+  avg_latency_ms: number;
+  avg_cost_usd: number;
+  by_chairman: Array<{
+    chairman_provider: string;
+    winner_provider: string;
+    avg_total_latency_ms: number;
+    avg_ranking_latency_ms: number;
+    avg_cost_usd: number;
+    invocation_count: number;
+  }>;
+}
+
 interface ShadowConfig {
   enable_shadow_mode: boolean;
   shadow_providers: string[];
@@ -281,6 +296,14 @@ export default function ModelsRoutingPage() {
     enabled: strategyForm.circuit_breaker_enabled,
     retry: false,
     refetchInterval: strategyForm.circuit_breaker_enabled ? 10_000 : false,
+  });
+
+  const { data: councilAnalytics } = useQuery<CouncilAnalytics>({
+    queryKey: ['council-analytics'],
+    queryFn: () => api.get('/v1/routing/council/analytics'),
+    retry: false,
+    staleTime: 60_000,
+    refetchOnWindowFocus: false,
   });
 
   // ── Mutations ────────────────────────────────────────────────────────────────
@@ -879,6 +902,63 @@ export default function ModelsRoutingPage() {
             />
             {shadowMutation.isError && (
               <p className="text-xs text-red-600">Failed to save shadow mode settings.</p>
+            )}
+          </CardContent>
+        </Card>
+
+        {/* ── 4b. Council Mode Analytics ─────────────────────────────────────── */}
+        <Card className="border border-gray-200 shadow-none">
+          <CardHeader className="px-4 pt-4 pb-3">
+            <div className="flex items-center gap-1.5">
+              <Users className="h-3.5 w-3.5 text-gray-400" strokeWidth={1.5} />
+              <p className="text-xs font-medium text-gray-900">Council Mode Analytics</p>
+            </div>
+            <p className="text-[11px] text-gray-500 mt-0.5">
+              Live telemetry from council inference invocations.
+            </p>
+          </CardHeader>
+          <Separator />
+          <CardContent className="px-4 py-4 space-y-4">
+            <div className="grid grid-cols-4 gap-3">
+              {[
+                { label: 'Total Invocations', value: councilAnalytics?.total_invocations ?? 0 },
+                { label: 'Last 24h', value: councilAnalytics?.last_24h ?? 0 },
+                { label: 'Avg Latency', value: councilAnalytics ? `${Math.round(councilAnalytics.avg_latency_ms)}ms` : '—' },
+                { label: 'Avg Cost', value: councilAnalytics ? `$${councilAnalytics.avg_cost_usd.toFixed(4)}` : '—' },
+              ].map(({ label, value }) => (
+                <div key={label} className="rounded border border-gray-100 bg-gray-50 px-3 py-2.5">
+                  <p className="text-[10px] text-gray-400 uppercase tracking-wide">{label}</p>
+                  <p className="text-sm font-semibold text-gray-900 mt-0.5 tabular-nums">{value}</p>
+                </div>
+              ))}
+            </div>
+
+            {councilAnalytics && councilAnalytics.by_chairman.length > 0 ? (
+              <Table>
+                <TableHeader>
+                  <TableRow className="hover:bg-transparent">
+                    {['Chairman', 'Winner', 'Avg Latency', 'Ranking Latency', 'Avg Cost', 'Invocations'].map((col) => (
+                      <TableHead key={col} className="text-xs font-medium text-gray-500 h-8 px-4 bg-gray-50">
+                        {col}
+                      </TableHead>
+                    ))}
+                  </TableRow>
+                </TableHeader>
+                <TableBody>
+                  {councilAnalytics.by_chairman.map((row, i) => (
+                    <TableRow key={i} className="border-b border-gray-100">
+                      <TableCell className="px-4 py-2 text-xs font-mono text-gray-700">{row.chairman_provider}</TableCell>
+                      <TableCell className="px-4 py-2 text-xs font-mono text-gray-700">{row.winner_provider}</TableCell>
+                      <TableCell className="px-4 py-2"><LatencyCell ms={Math.round(row.avg_total_latency_ms)} /></TableCell>
+                      <TableCell className="px-4 py-2"><LatencyCell ms={Math.round(row.avg_ranking_latency_ms)} /></TableCell>
+                      <TableCell className="px-4 py-2 text-xs font-mono tabular-nums text-gray-700">${row.avg_cost_usd.toFixed(5)}</TableCell>
+                      <TableCell className="px-4 py-2 text-xs tabular-nums text-gray-700">{row.invocation_count}</TableCell>
+                    </TableRow>
+                  ))}
+                </TableBody>
+              </Table>
+            ) : (
+              <p className="text-xs text-gray-400">No council invocations yet. Enable Council Mode above and send requests to see analytics.</p>
             )}
           </CardContent>
         </Card>
