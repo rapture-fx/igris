@@ -206,6 +206,30 @@ func handleCircuitBreakerStatus(c *fiber.Ctx) error {
 	}
 
 	if len(providers) == 0 {
+		// Fall back to system-level circuit breaker entries written by RuntimeSelector.
+		sysRows, sysErr := circuitBreakerDB.QueryContext(c.Context(), `
+			SELECT provider, state, failure_count, trip_count, last_tripped_at
+			FROM circuit_breaker_states
+			WHERE tenant_id = 'system'
+			ORDER BY provider
+		`)
+		if sysErr == nil {
+			defer sysRows.Close()
+			for sysRows.Next() {
+				var p CBProviderStatus
+				var lastTrippedAt sql.NullTime
+				if scanErr := sysRows.Scan(&p.Provider, &p.State, &p.FailureCount, &p.TripCount, &lastTrippedAt); scanErr == nil {
+					if lastTrippedAt.Valid {
+						ts := lastTrippedAt.Time.UTC().Format(time.RFC3339)
+						p.LastTrippedAt = &ts
+					}
+					providers = append(providers, p)
+				}
+			}
+		}
+	}
+
+	if len(providers) == 0 {
 		return c.JSON(defaultResp)
 	}
 
