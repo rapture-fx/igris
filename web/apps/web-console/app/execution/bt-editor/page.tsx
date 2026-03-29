@@ -213,10 +213,29 @@ function validateGraph(nodes: BTNode[], edges: BTEdge[]) {
 
 function validateEnvelope(
   nodes: BTNode[],
+  edges: BTEdge[],
   policies: { max_action_nodes?: number; max_depth?: number; allowed_node_types?: string[] } | null | undefined,
 ) {
   if (!policies) return [];
   const results: { label: string; ok: boolean }[] = [];
+  if (policies.max_depth != null) {
+    // compute actual max depth via BFS from root nodes
+    const childMap: Record<string, string[]> = {};
+    nodes.forEach((n) => { childMap[n.id] = []; });
+    edges.forEach((e) => { childMap[e.source]?.push(e.target); });
+    const roots = nodes.filter((n) => !edges.some((e) => e.target === n.id));
+    let maxObservedDepth = 0;
+    const queue: { id: string; depth: number }[] = roots.map((r) => ({ id: r.id, depth: 0 }));
+    while (queue.length) {
+      const { id, depth } = queue.shift()!;
+      if (depth > maxObservedDepth) maxObservedDepth = depth;
+      (childMap[id] ?? []).forEach((cid) => queue.push({ id: cid, depth: depth + 1 }));
+    }
+    results.push({
+      label: `Tree depth \u2264 ${policies.max_depth} (current: ${maxObservedDepth})`,
+      ok: maxObservedDepth <= policies.max_depth,
+    });
+  }
   if (policies.max_action_nodes != null) {
     const count = nodes.filter((n) => n.type === 'Action').length;
     results.push({ label: `Action nodes \u2264 ${policies.max_action_nodes} (current: ${count})`, ok: count <= policies.max_action_nodes });
@@ -457,7 +476,7 @@ export default function BTEditorPage() {
 
   const saveMutation = useMutation({
     mutationFn: () => {
-      const envelopeRules = validateEnvelope(nodes, policies);
+      const envelopeRules = validateEnvelope(nodes, edges, policies);
       const failing = envelopeRules.filter((r) => !r.ok);
       if (failing.length > 0) {
         throw new Error(`Policy violation: ${failing.map((r) => r.label).join('; ')}`);
@@ -489,7 +508,7 @@ export default function BTEditorPage() {
   };
 
   const validationRules = validateGraph(nodes, edges);
-  const envelopeRules = validateEnvelope(nodes, policies);
+  const envelopeRules = validateEnvelope(nodes, edges, policies);
   const hasEnvelopeViolation = envelopeRules.some((r) => !r.ok);
 
   // ── ROS topic dropdown helpers ──
@@ -717,6 +736,12 @@ export default function BTEditorPage() {
                   >
                     {selectedNode.type}
                   </div>
+                  {policies?.allowed_node_types && !policies.allowed_node_types.includes(selectedNode.type) && (
+                    <div className="flex items-center gap-1.5 px-2 py-1.5 rounded-md bg-red-50 border border-red-200 text-[10px] text-red-700 mt-1">
+                      <AlertOctagon className="h-3 w-3 flex-shrink-0" />
+                      This node type is forbidden by current policy
+                    </div>
+                  )}
                 </div>
 
                 {ROS_NODE_TYPES.has(selectedNode.type) && (
