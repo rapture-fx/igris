@@ -114,8 +114,11 @@ interface Agent {
   shadow_mode?: boolean;
   reflection_mode?: boolean;
   council_mode?: boolean;
+  // Flat field returned by ListAgents from the DB
+  cognitive_advisor_enabled?: boolean;
+  // Rich nested field — populated only when runtime returns advisor telemetry
   cognitive_advisor?: {
-    enabled: boolean;
+    enabled?: boolean;
     confidence_score?: number;
     last_recommendation?: string;
     degradation_detected?: boolean;
@@ -300,7 +303,12 @@ function AgentMemorySection({ agentId }: { agentId: string }) {
     queryKey: ['agent-memory', agentId],
     queryFn: async () => {
       try {
-        return await api.get<BlackboardEntry[]>('/v1/agents/memory');
+        const all = await api.get<BlackboardEntry[]>('/v1/agents/memory');
+        // Filter to entries that belong to this agent where possible
+        const filtered = all.filter((e) =>
+          !e.key.includes('/') || e.key.startsWith(`${agentId}/`),
+        );
+        return filtered.length > 0 ? filtered : all;
       } catch {
         return [];
       }
@@ -1137,7 +1145,7 @@ export default function ExecutionAgentsPage() {
                         </p>
                       </div>
                       <Switch
-                        checked={selected.cognitive_advisor?.enabled ?? false}
+                        checked={selected.cognitive_advisor_enabled ?? selected.cognitive_advisor?.enabled ?? false}
                         disabled={cognitiveAdvisorMutation.isPending}
                         onCheckedChange={(checked) =>
                           cognitiveAdvisorMutation.mutate({ agentId: selected.id, enabled: checked })
