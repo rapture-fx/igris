@@ -261,6 +261,131 @@ func handleCircuitBreakerStatus(c *fiber.Ctx) error {
 	return c.JSON(resp)
 }
 
+// councilDB is the DB used for council analytics endpoints; may be nil.
+var councilDB *sql.DB
+
+// RegisterCouncilRoutes adds the council analytics endpoint to the /v1/routing group.
+func RegisterCouncilRoutes(app *fiber.App, db *sql.DB) {
+	councilDB = db
+
+	v1 := app.Group("/v1")
+	routing := v1.Group("/routing")
+	routing.Use(middleware.BetterAuth(db))
+
+	routing.Get("/council/analytics", handleCouncilAnalytics)
+
+	log.Println("[Routes] ✓ Registered 1 council analytics endpoint")
+	log.Println("[Routes]   - GET  /v1/routing/council/analytics")
+}
+
+// CouncilAnalyticsRow holds per-chairman/winner aggregate stats.
+type CouncilAnalyticsRow struct {
+	ChairmanProvider    string  `json:"chairman_provider"`
+	WinnerProvider      string  `json:"winner_provider"`
+	AvgTotalLatencyMs   float64 `json:"avg_total_latency_ms"`
+	AvgRankingLatencyMs float64 `json:"avg_ranking_latency_ms"`
+	AvgCostUSD          float64 `json:"avg_cost_usd"`
+	InvocationCount     int     `json:"invocation_count"`
+}
+
+// CouncilAnalyticsResponse is the response body for GET /v1/routing/council/analytics.
+type CouncilAnalyticsResponse struct {
+	TotalInvocations int                   `json:"total_invocations"`
+	Last24h          int                   `json:"last_24h"`
+	AvgLatencyMs     float64               `json:"avg_latency_ms"`
+	AvgCostUSD       float64               `json:"avg_cost_usd"`
+	ByChairman       []CouncilAnalyticsRow `json:"by_chairman"`
+}
+
+// handleCouncilAnalytics handles GET /v1/routing/council/analytics.
+// It queries council_results for the authenticated tenant and returns aggregate
+// stats plus a per-chairman/winner breakdown. If the table does not exist or
+// no rows are found, it returns a default empty response so the console never
+// breaks during initial deployment.
+func handleCouncilAnalytics(c *fiber.Ctx) error {
+	defaultResp := CouncilAnalyticsResponse{
+		TotalInvocations: 0,
+		Last24h:          0,
+		AvgLatencyMs:     0,
+		AvgCostUSD:       0,
+		ByChairman:       []CouncilAnalyticsRow{},
+	}
+
+	if councilDB == nil {
+		return c.JSON(defaultResp)
+	}
+
+	tenantID := middleware.GetClerkUserID(c)
+
+	// Aggregate totals query.
+	var totalInvocations, last24h int
+	var avgLatencyMs, avgCostUSD float64
+	err := councilDB.QueryRowContext(c.Context(), `
+		SELECT
+			COUNT(*),
+			COUNT(*) FILTER (WHERE created_at >= NOW() - INTERVAL '24 hours'),
+			COALESCE(AVG(total_latency_ms), 0),
+			COALESCE(AVG(council_cost_usd), 0)
+		FROM council_results
+		WHERE tenant_id = $1
+	`, tenantID).Scan(&totalInvocations, &last24h, &avgLatencyMs, &avgCostUSD)
+	if err != nil {
+		// Table may not exist yet — graceful degradation.
+		log.Printf("[Council] aggregate query error (non-fatal): %v", err)
+		return c.JSON(defaultResp)
+	}
+
+	// Per-chairman breakdown query.
+	rows, err := councilDB.QueryContext(c.Context(), `
+		SELECT
+			chairman_provider,
+			winner_provider,
+			COALESCE(AVG(total_latency_ms), 0),
+			COALESCE(AVG(ranking_latency_ms), 0),
+			COALESCE(AVG(council_cost_usd), 0),
+			COUNT(*)
+		FROM council_results
+		WHERE tenant_id = $1
+		GROUP BY chairman_provider, winner_provider
+		ORDER BY COUNT(*) DESC
+		LIMIT 10
+	`, tenantID)
+	if err != nil {
+		log.Printf("[Council] breakdown query error (non-fatal): %v", err)
+		return c.JSON(defaultResp)
+	}
+	defer rows.Close()
+
+	byChairman := make([]CouncilAnalyticsRow, 0)
+	for rows.Next() {
+		var row CouncilAnalyticsRow
+		if scanErr := rows.Scan(
+			&row.ChairmanProvider,
+			&row.WinnerProvider,
+			&row.AvgTotalLatencyMs,
+			&row.AvgRankingLatencyMs,
+			&row.AvgCostUSD,
+			&row.InvocationCount,
+		); scanErr != nil {
+			log.Printf("[Council] row scan error: %v", scanErr)
+			continue
+		}
+		byChairman = append(byChairman, row)
+	}
+	if err = rows.Err(); err != nil {
+		log.Printf("[Council] rows iteration error: %v", err)
+		return c.JSON(defaultResp)
+	}
+
+	return c.JSON(CouncilAnalyticsResponse{
+		TotalInvocations: totalInvocations,
+		Last24h:          last24h,
+		AvgLatencyMs:     avgLatencyMs,
+		AvgCostUSD:       avgCostUSD,
+		ByChairman:       byChairman,
+	})
+}
+
 // RoutingRouteConfig holds configuration for routing routes
 type RoutingRouteConfig struct {
 	DB         *sql.DB
