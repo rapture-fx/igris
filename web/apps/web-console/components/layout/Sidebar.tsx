@@ -69,6 +69,7 @@ const navigation: NavigationItem[] = [
     children: [
       { name: 'Routing', href: '/models/routing' },
       { name: 'Training', href: '/models/training' },
+      { name: 'Federated', href: '/models/federated' },
       { name: 'Providers', href: '/models/providers' },
       { name: 'Cost', href: '/models/cost' },
     ],
