@@ -351,7 +351,13 @@ export default function ModelsRoutingPage() {
                 <p className="text-xs font-medium text-gray-900">EscapeVector WASM Engine</p>
               </div>
               <div className="flex items-center gap-2">
-                {wasmStatus.loaded && (
+                {wasmStatus.bindingReady && (
+                  <span className="inline-flex items-center gap-1 px-1.5 py-0.5 rounded text-[10px] font-medium bg-purple-50 text-purple-700 border border-purple-200">
+                    <span className="h-1.5 w-1.5 rounded-full bg-purple-500 inline-block" />
+                    Live
+                  </span>
+                )}
+                {wasmStatus.loaded && !wasmStatus.bindingReady && (
                   <span className="inline-flex items-center gap-1 px-1.5 py-0.5 rounded text-[10px] font-medium bg-green-50 text-green-700 border border-green-200">
                     <span className="h-1.5 w-1.5 rounded-full bg-green-500 inline-block" />
                     Active
@@ -387,7 +393,7 @@ export default function ModelsRoutingPage() {
           </CardHeader>
           <Separator />
           <CardContent className="px-4 py-3">
-            <div className="grid grid-cols-2 sm:grid-cols-4 gap-4">
+            <div className="grid grid-cols-2 sm:grid-cols-5 gap-4">
               <div>
                 <p className="text-[10px] text-gray-400 mb-0.5">Module size</p>
                 <p className="text-xs font-mono text-gray-900">
@@ -410,6 +416,12 @@ export default function ModelsRoutingPage() {
                 <p className="text-[10px] text-gray-400 mb-0.5">Exports</p>
                 <p className="text-xs font-mono text-gray-900">
                   {wasmStatus.exports.length > 0 ? `${wasmStatus.exports.length} functions` : '—'}
+                </p>
+              </div>
+              <div>
+                <p className="text-[10px] text-gray-400 mb-0.5">Binding</p>
+                <p className={`text-xs font-mono ${wasmStatus.bindingReady ? 'text-purple-700' : 'text-gray-400'}`}>
+                  {wasmStatus.bindingReady ? 'wired' : wasmStatus.loaded ? 'pending' : '—'}
                 </p>
               </div>
             </div>
