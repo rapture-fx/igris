@@ -177,6 +177,7 @@ interface BTNode {
   execution_id?: string;
   timestamp?: string;
   llm_proposal?: string;
+  envelope_status?: 'passed' | 'violated' | 'partial';
 }
 
 interface BTState {
@@ -200,6 +201,18 @@ const BT_TYPE_ICON: Record<string, string> = {
   sequence: '→',
   action:   '▶',
   condition: '?',
+};
+
+const BT_ENVELOPE_DOT: Record<'passed' | 'violated' | 'partial', string> = {
+  passed:   'bg-green-500',
+  violated: 'bg-red-500',
+  partial:  'bg-yellow-400',
+};
+
+const BT_ENVELOPE_LABEL: Record<'passed' | 'violated' | 'partial', string> = {
+  passed:   'Envelope passed',
+  violated: 'Envelope VIOLATED — policy bounds exceeded',
+  partial:  'Envelope partial — approaching threshold',
 };
 
 function BTExecutionView({ agentId }: { agentId: string }) {
@@ -229,8 +242,21 @@ function BTExecutionView({ agentId }: { agentId: string }) {
 
   const nodes = data?.nodes ?? [];
   if (nodes.length === 0) {
-    return <p className="text-xs text-gray-400">No execution data available.</p>;
+    return (
+      <div className="space-y-2">
+        <p className="text-xs text-gray-400">No execution data available.</p>
+        <a
+          href={`/execution/agents/${agentId}/live`}
+          className="inline-flex items-center gap-1 text-[11px] text-blue-600 hover:text-blue-800 underline underline-offset-2"
+        >
+          <Radio className="h-3 w-3" />
+          Open BT Live View
+        </a>
+      </div>
+    );
   }
+
+  const violationCount = nodes.filter((n) => n.envelope_status === 'violated').length;
 
   return (
     <div className="space-y-1.5">
@@ -245,45 +271,77 @@ function BTExecutionView({ agentId }: { agentId: string }) {
             Live
           </span>
         )}
+        {violationCount > 0 && (
+          <span className="inline-flex items-center gap-0.5 px-1.5 py-0.5 rounded text-[10px] font-medium bg-red-50 text-red-700 border border-red-200">
+            {violationCount} envelope violation{violationCount !== 1 ? 's' : ''}
+          </span>
+        )}
+        <a
+          href={`/execution/agents/${agentId}/live`}
+          className="ml-auto inline-flex items-center gap-0.5 text-[10px] text-gray-400 hover:text-gray-700"
+          title="Open full live view"
+        >
+          <Radio className="h-2.5 w-2.5" />
+          Full view
+        </a>
       </div>
       <div className="space-y-0.5">
       {nodes.map((node) => (
         <div
           key={node.id}
-          className="flex items-start gap-2"
+          className="flex flex-col"
           style={{ paddingLeft: `${node.depth * 16}px` }}
         >
-          {/* Connector line for children */}
-          {node.depth > 0 && (
-            <span className="mt-1 flex-shrink-0 text-gray-300 text-[10px] font-mono">└</span>
-          )}
-          <div className="flex-1 flex items-center justify-between gap-2 py-1 px-2 rounded-md hover:bg-gray-50 group">
-            <div className="flex items-center gap-1.5 min-w-0">
-              <span className="text-[10px] text-gray-400 font-mono flex-shrink-0">
-                {BT_TYPE_ICON[node.type] ?? '•'}
-              </span>
-              <span className="text-xs text-gray-700 font-medium truncate">{node.name}</span>
-              {node.execution_id && (
-                <span className="text-[10px] text-gray-400 font-mono truncate hidden group-hover:inline">
-                  {node.execution_id.slice(0, 8)}
+          {/* Node row */}
+          <div className="flex items-start gap-2">
+            {node.depth > 0 && (
+              <span className="mt-1 flex-shrink-0 text-gray-300 text-[10px] font-mono">└</span>
+            )}
+            <div className={`flex-1 flex items-center justify-between gap-2 py-1 px-2 rounded-md hover:bg-gray-50 group ${
+              node.status === 'running' ? 'ring-1 ring-blue-200 ring-offset-1' : ''
+            }`}>
+              <div className="flex items-center gap-1.5 min-w-0">
+                <span className="text-[10px] text-gray-400 font-mono flex-shrink-0">
+                  {BT_TYPE_ICON[node.type] ?? '•'}
                 </span>
-              )}
-            </div>
-            <div className="flex items-center gap-2 flex-shrink-0">
-              {node.duration_ms != null && node.duration_ms > 0 && (
-                <span className="text-[10px] text-gray-400 tabular-nums">
-                  {node.duration_ms < 1000 ? `${node.duration_ms}ms` : `${(node.duration_ms / 1000).toFixed(1)}s`}
+                <span className="text-xs text-gray-700 font-medium truncate">{node.name}</span>
+                {node.execution_id && (
+                  <span className="text-[10px] text-gray-400 font-mono truncate hidden group-hover:inline">
+                    {node.execution_id.slice(0, 8)}
+                  </span>
+                )}
+              </div>
+              <div className="flex items-center gap-1.5 flex-shrink-0">
+                {node.duration_ms != null && node.duration_ms > 0 && (
+                  <span className="text-[10px] text-gray-400 tabular-nums">
+                    {node.duration_ms < 1000 ? `${node.duration_ms}ms` : `${(node.duration_ms / 1000).toFixed(1)}s`}
+                  </span>
+                )}
+                {node.envelope_status && (
+                  <span
+                    className={`h-2 w-2 rounded-full flex-shrink-0 ${BT_ENVELOPE_DOT[node.envelope_status]}`}
+                    title={BT_ENVELOPE_LABEL[node.envelope_status]}
+                  />
+                )}
+                <span
+                  className={`inline-flex items-center px-1.5 py-0.5 rounded border text-[10px] font-medium ${
+                    BT_STATUS_STYLES[node.status] ?? BT_STATUS_STYLES.pending
+                  }`}
+                >
+                  {node.status}
                 </span>
-              )}
-              <span
-                className={`inline-flex items-center px-1.5 py-0.5 rounded border text-[10px] font-medium ${
-                  BT_STATUS_STYLES[node.status] ?? BT_STATUS_STYLES.pending
-                }`}
-              >
-                {node.status}
-              </span>
+              </div>
             </div>
           </div>
+          {/* LLM proposal */}
+          {node.llm_proposal && (
+            <div className="flex items-center gap-1 ml-4 mt-0.5 mb-0.5" style={{ paddingLeft: node.depth > 0 ? '12px' : '0' }}>
+              <span className="inline-flex items-center gap-0.5 px-1 py-0 rounded bg-indigo-50 border border-indigo-100 text-[8px] font-semibold text-indigo-500 flex-shrink-0">
+                ✦ LLM
+              </span>
+              <p className="text-[9px] text-indigo-400 italic truncate">{node.llm_proposal}</p>
+            </div>
+          )}
         </div>
       ))}
         {data?.last_updated && (
