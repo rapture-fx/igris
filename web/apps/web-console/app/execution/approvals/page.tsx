@@ -3,17 +3,16 @@
 import { useState } from 'react';
 import { useQuery, useMutation, useQueryClient } from '@tanstack/react-query';
 import { DashboardLayout } from '@/components/layout/DashboardLayout';
-import { Card, CardContent, CardHeader } from '@/components/ui/card';
+import { Card } from '@/components/ui/card';
 import { Button } from '@/components/ui/button';
 import { Skeleton } from '@/components/ui/skeleton';
-import { Separator } from '@/components/ui/separator';
 import { api } from '@/lib/apiClient';
 import { toast } from '@/components/ui/use-toast';
 import { getRelativeTime, truncateText } from '@/utils/helpers';
 import {
   Table, TableBody, TableCell, TableHead, TableHeader, TableRow,
 } from '@/components/ui/table';
-import { UserCheck, UserX, Clock, CheckCircle2, AlertTriangle, RefreshCw } from 'lucide-react';
+import { UserCheck, UserX, Clock, CheckCircle2, AlertTriangle, RefreshCw, ChevronDown, ChevronRight, GitBranch } from 'lucide-react';
 
 interface PausedRun {
   id: string;
@@ -23,10 +22,14 @@ interface PausedRun {
   pause_reason?: string;
   prompt_preview?: string;
   model?: string;
+  bt_node_name?: string;
+  bt_node_type?: string;
+  violation_type?: string;
 }
 
 export default function ApprovalsPage() {
   const qc = useQueryClient();
+  const [expandedPrompt, setExpandedPrompt] = useState<string | null>(null);
 
   const { data: runs = [], isLoading, refetch, isFetching } = useQuery<PausedRun[]>({
     queryKey: ['paused-runs'],
@@ -105,7 +108,7 @@ export default function ApprovalsPage() {
           <Table>
             <TableHeader>
               <TableRow className="hover:bg-transparent">
-                {['Run ID', 'Agent', 'Paused', 'Reason', 'Prompt Preview', 'Actions'].map((h) => (
+                {['Run ID', 'Agent', 'Paused', 'Reason / Model', 'BT Node', 'Prompt Preview', 'Actions'].map((h) => (
                   <TableHead key={h} className="text-xs font-medium text-gray-500 h-9 px-4 bg-gray-50">
                     {h}
                   </TableHead>
@@ -116,7 +119,7 @@ export default function ApprovalsPage() {
               {isLoading ? (
                 Array.from({ length: 4 }).map((_, i) => (
                   <TableRow key={i}>
-                    {Array.from({ length: 6 }).map((_, j) => (
+                    {Array.from({ length: 7 }).map((_, j) => (
                       <TableCell key={j} className="px-4 py-3">
                         <Skeleton className="h-3.5 w-20" />
                       </TableCell>
@@ -125,7 +128,7 @@ export default function ApprovalsPage() {
                 ))
               ) : runs.length === 0 ? (
                 <TableRow>
-                  <TableCell colSpan={6} className="py-16 text-center">
+                  <TableCell colSpan={7} className="py-16 text-center">
                     <CheckCircle2 className="h-8 w-8 text-green-300 mx-auto mb-2" />
                     <p className="text-xs text-gray-400">No runs pending approval.</p>
                     <p className="text-[11px] text-gray-400 mt-1">
@@ -151,19 +154,64 @@ export default function ApprovalsPage() {
                       {getRelativeTime(run.paused_at)}
                     </TableCell>
                     <TableCell className="px-4 py-3">
-                      {run.pause_reason ? (
-                        <span className="inline-flex items-center gap-1 px-1.5 py-0.5 rounded text-[10px] font-medium bg-amber-50 text-amber-700 border border-amber-200">
-                          {run.pause_reason === 'hitl' ? 'HitL' : run.pause_reason}
-                        </span>
+                      <div className="space-y-1">
+                        {run.pause_reason ? (
+                          <span className="inline-flex items-center gap-1 px-1.5 py-0.5 rounded text-[10px] font-medium bg-amber-50 text-amber-700 border border-amber-200">
+                            {run.pause_reason === 'hitl' ? 'HitL' : run.pause_reason}
+                          </span>
+                        ) : (
+                          <span className="text-gray-300 text-xs">—</span>
+                        )}
+                        {run.model && (
+                          <div>
+                            <span className="inline-flex items-center px-1.5 py-0.5 rounded text-[9px] font-mono bg-gray-50 text-gray-600 border border-gray-200">
+                              {run.model}
+                            </span>
+                          </div>
+                        )}
+                        {run.violation_type && (
+                          <div>
+                            <span className="inline-flex items-center gap-0.5 px-1.5 py-0.5 rounded text-[9px] font-medium bg-red-50 text-red-700 border border-red-200">
+                              <AlertTriangle className="h-2.5 w-2.5" />
+                              {run.violation_type}
+                            </span>
+                          </div>
+                        )}
+                      </div>
+                    </TableCell>
+                    <TableCell className="px-4 py-3">
+                      {run.bt_node_name ? (
+                        <div className="flex items-center gap-1">
+                          <GitBranch className="h-3 w-3 text-gray-400 flex-shrink-0" />
+                          <div>
+                            <p className="text-xs text-gray-700">{run.bt_node_name}</p>
+                            {run.bt_node_type && (
+                              <p className="text-[9px] text-gray-400 font-mono">{run.bt_node_type}</p>
+                            )}
+                          </div>
+                        </div>
                       ) : (
                         <span className="text-gray-300 text-xs">—</span>
                       )}
                     </TableCell>
-                    <TableCell className="px-4 py-3 max-w-[200px]">
+                    <TableCell className="px-4 py-3 max-w-[220px]">
                       {run.prompt_preview ? (
-                        <span className="text-xs text-gray-500 truncate block" title={run.prompt_preview}>
-                          {run.prompt_preview.slice(0, 60)}{run.prompt_preview.length > 60 ? '…' : ''}
-                        </span>
+                        <div>
+                          <button
+                            type="button"
+                            onClick={() => setExpandedPrompt(expandedPrompt === run.id ? null : run.id)}
+                            className="flex items-center gap-0.5 text-xs text-gray-500 hover:text-gray-800 text-left"
+                          >
+                            {expandedPrompt === run.id
+                              ? <ChevronDown className="h-3 w-3 flex-shrink-0" />
+                              : <ChevronRight className="h-3 w-3 flex-shrink-0" />}
+                            <span className={expandedPrompt === run.id ? '' : 'truncate'}>
+                              {expandedPrompt === run.id
+                                ? run.prompt_preview
+                                : `${run.prompt_preview.slice(0, 55)}${run.prompt_preview.length > 55 ? '…' : ''}`}
+                            </span>
+                          </button>
+                        </div>
                       ) : (
                         <span className="text-gray-300 text-xs">—</span>
                       )}
