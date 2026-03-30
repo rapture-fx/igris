@@ -2,6 +2,7 @@ package api
 
 import (
 	"database/sql"
+	"fmt"
 	"io"
 	"log"
 	"net/http"
@@ -19,7 +20,8 @@ import (
 func RegisterLoRARoutes(app *fiber.App, db *sql.DB) {
 	runtimeURL := os.Getenv("RUNTIME_URL")
 	if runtimeURL == "" {
-		runtimeURL = "http://localhost:8080"
+		log.Println("[LoRA] WARNING: RUNTIME_URL not set — lora proxy disabled, requests return degraded status")
+		runtimeURL = "http://localhost:8080" // kept for compat; non-200 responses now handled gracefully
 	}
 
 	h := &loraProxyHandler{
@@ -88,6 +90,12 @@ func (h *loraProxyHandler) proxyGET(c *fiber.Ctx, path string) error {
 		})
 	}
 
+	if resp.StatusCode < 200 || resp.StatusCode >= 300 {
+		return c.Status(fiber.StatusOK).JSON(fiber.Map{
+			"enabled":       false,
+			"runtime_error": fmt.Sprintf("runtime returned HTTP %d — check RUNTIME_URL configuration", resp.StatusCode),
+		})
+	}
 	c.Set("Content-Type", "application/json")
-	return c.Status(resp.StatusCode).Send(body)
+	return c.Status(fiber.StatusOK).Send(body)
 }
