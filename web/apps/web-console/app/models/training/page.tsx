@@ -120,11 +120,11 @@ export default function QLoRATrainingPage() {
     isFetching,
   } = useQuery<LoRAStatus>({
     queryKey: ['lora-status'],
-    queryFn: () => api.get('/v1/lora/status'),
+    queryFn: () => api.get('/v1/lora/status', { skipAuth: true }),
     retry: false,
-    // Poll every 5s — cheap GET proxy, stops when training finishes via staleTime
-    refetchInterval: 5_000,
-    // Only auto-refetch when the window is focused and training is active
+    // Poll every 5s while training is active; stop otherwise to avoid noise
+    refetchInterval: (query) =>
+      query.state.data?.status === 'Training' ? 5_000 : 30_000,
     refetchIntervalInBackground: false,
   });
 
