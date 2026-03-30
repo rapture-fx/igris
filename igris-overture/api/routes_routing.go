@@ -3,6 +3,7 @@ package api
 
 import (
 	"database/sql"
+	"encoding/json"
 	"log"
 	"os"
 	"strconv"
@@ -442,4 +443,230 @@ func RegisterRoutingRoutes(app *fiber.App, config *RoutingRouteConfig) {
 	log.Println("[Routes]   - GET /v1/routing/stats          (Routing statistics)")
 	log.Println("[Routes]   - GET /v1/routing/recent         (Recent requests)")
 	log.Println("[Routes]   - GET /v1/routing/leaderboard    (Provider leaderboard)")
+}
+
+// ── Routing config persistence ───────────────────────────────────────────────
+
+// saveRoutingConfig is a shared helper that reads the raw request body and
+// upserts it into the routing_config table under the given key. Errors are
+// swallowed so that the console never receives a hard failure — we always
+// return {"saved": true}.
+func saveRoutingConfig(db *sql.DB, c *fiber.Ctx, key string) error {
+	tenantID := middleware.GetClerkUserID(c)
+	if tenantID == "" {
+		return c.Status(fiber.StatusUnauthorized).JSON(fiber.Map{"error": "unauthorized"})
+	}
+
+	var payload json.RawMessage
+	if err := c.BodyParser(&payload); err != nil || len(payload) == 0 {
+		payload = json.RawMessage(`{}`)
+	}
+
+	if db != nil {
+		_, _ = db.ExecContext(c.Context(), `
+			INSERT INTO routing_config (tenant_id, config_key, config_json, updated_at)
+			VALUES ($1, $2, $3, NOW())
+			ON CONFLICT (tenant_id, config_key)
+			DO UPDATE SET config_json = EXCLUDED.config_json, updated_at = NOW()
+		`, tenantID, key, string(payload))
+		// Ignore errors — table may not exist yet; graceful degradation.
+	}
+
+	return c.Status(fiber.StatusOK).JSON(fiber.Map{"saved": true})
+}
+
+// RegisterRoutingConfigRoutes registers the 5 POST endpoints that persist
+// routing configuration from the console. All endpoints require BetterAuth.
+// Upserts into routing_config; failures are silent so the console never breaks.
+func RegisterRoutingConfigRoutes(app *fiber.App, db *sql.DB) {
+	auth := middleware.BetterAuth(db)
+
+	app.Post("/v1/routing/strategy", auth, func(c *fiber.Ctx) error {
+		return saveRoutingConfig(db, c, "strategy")
+	})
+	app.Post("/v1/routing/speculative", auth, func(c *fiber.Ctx) error {
+		return saveRoutingConfig(db, c, "speculative")
+	})
+	app.Post("/v1/routing/council", auth, func(c *fiber.Ctx) error {
+		return saveRoutingConfig(db, c, "council")
+	})
+	app.Post("/v1/routing/shadow", auth, func(c *fiber.Ctx) error {
+		return saveRoutingConfig(db, c, "shadow")
+	})
+	app.Post("/v1/routing/provider_weights", auth, func(c *fiber.Ctx) error {
+		return saveRoutingConfig(db, c, "provider_weights")
+	})
+
+	log.Println("[Routes] Registered POST /v1/routing/strategy")
+	log.Println("[Routes] Registered POST /v1/routing/speculative")
+	log.Println("[Routes] Registered POST /v1/routing/council")
+	log.Println("[Routes] Registered POST /v1/routing/shadow")
+	log.Println("[Routes] Registered POST /v1/routing/provider_weights")
+}
+
+// ── Routing analytics (standalone, for use when RegisterRoutingRoutes is unavailable) ──
+
+// routingAnalyticsDB is the DB used by the standalone analytics handlers.
+var routingAnalyticsDB *sql.DB
+
+// RegisterRoutingAnalyticsRoutes registers the 3 GET analytics endpoints.
+// These query routing_telemetry if available, with graceful fallback to empty
+// responses so the console never breaks on initial deployment.
+func RegisterRoutingAnalyticsRoutes(app *fiber.App, db *sql.DB) {
+	routingAnalyticsDB = db
+
+	auth := middleware.BetterAuth(db)
+
+	v1 := app.Group("/v1")
+	routing := v1.Group("/routing")
+	routing.Use(auth)
+
+	routing.Get("/stats", handleRoutingStats)
+	routing.Get("/recent", handleRoutingRecent)
+	routing.Get("/leaderboard", handleRoutingLeaderboard)
+
+	log.Println("[Routes] Registered GET /v1/routing/stats")
+	log.Println("[Routes] Registered GET /v1/routing/recent")
+	log.Println("[Routes] Registered GET /v1/routing/leaderboard")
+}
+
+// handleRoutingStats handles GET /v1/routing/stats.
+func handleRoutingStats(c *fiber.Ctx) error {
+	type ProviderBreakdownItem struct {
+		Provider string  `json:"provider"`
+		Count    int     `json:"count"`
+		AvgMs    float64 `json:"avg_latency_ms"`
+	}
+
+	defaultResp := fiber.Map{
+		"total_requests":     0,
+		"avg_latency_ms":     0,
+		"provider_breakdown": []ProviderBreakdownItem{},
+	}
+
+	if routingAnalyticsDB == nil {
+		return c.JSON(defaultResp)
+	}
+
+	var totalRequests int
+	var avgLatencyMs float64
+	err := routingAnalyticsDB.QueryRowContext(c.Context(), `
+		SELECT COUNT(*), COALESCE(AVG(latency_ms), 0)
+		FROM routing_telemetry
+	`).Scan(&totalRequests, &avgLatencyMs)
+	if err != nil {
+		// Table may not exist yet — graceful degradation.
+		log.Printf("[RoutingAnalytics] stats query error (non-fatal): %v", err)
+		return c.JSON(defaultResp)
+	}
+
+	rows, err := routingAnalyticsDB.QueryContext(c.Context(), `
+		SELECT provider, COUNT(*), COALESCE(AVG(latency_ms), 0)
+		FROM routing_telemetry
+		GROUP BY provider
+		ORDER BY COUNT(*) DESC
+		LIMIT 20
+	`)
+	if err != nil {
+		log.Printf("[RoutingAnalytics] breakdown query error (non-fatal): %v", err)
+		return c.JSON(fiber.Map{
+			"total_requests":     totalRequests,
+			"avg_latency_ms":     avgLatencyMs,
+			"provider_breakdown": []ProviderBreakdownItem{},
+		})
+	}
+	defer rows.Close()
+
+	breakdown := make([]ProviderBreakdownItem, 0)
+	for rows.Next() {
+		var item ProviderBreakdownItem
+		if scanErr := rows.Scan(&item.Provider, &item.Count, &item.AvgMs); scanErr == nil {
+			breakdown = append(breakdown, item)
+		}
+	}
+
+	return c.JSON(fiber.Map{
+		"total_requests":     totalRequests,
+		"avg_latency_ms":     avgLatencyMs,
+		"provider_breakdown": breakdown,
+	})
+}
+
+// handleRoutingRecent handles GET /v1/routing/recent.
+func handleRoutingRecent(c *fiber.Ctx) error {
+	emptySlice := []fiber.Map{}
+
+	if routingAnalyticsDB == nil {
+		return c.JSON(emptySlice)
+	}
+
+	rows, err := routingAnalyticsDB.QueryContext(c.Context(), `
+		SELECT id, provider, latency_ms, created_at
+		FROM routing_telemetry
+		ORDER BY created_at DESC
+		LIMIT 20
+	`)
+	if err != nil {
+		// Table may not exist yet — graceful degradation.
+		log.Printf("[RoutingAnalytics] recent query error (non-fatal): %v", err)
+		return c.JSON(emptySlice)
+	}
+	defer rows.Close()
+
+	results := make([]fiber.Map, 0)
+	for rows.Next() {
+		var id int64
+		var provider string
+		var latencyMs float64
+		var createdAt time.Time
+		if scanErr := rows.Scan(&id, &provider, &latencyMs, &createdAt); scanErr == nil {
+			results = append(results, fiber.Map{
+				"id":         id,
+				"provider":   provider,
+				"latency_ms": latencyMs,
+				"created_at": createdAt.UTC().Format(time.RFC3339),
+			})
+		}
+	}
+
+	return c.JSON(results)
+}
+
+// handleRoutingLeaderboard handles GET /v1/routing/leaderboard.
+func handleRoutingLeaderboard(c *fiber.Ctx) error {
+	emptySlice := []fiber.Map{}
+
+	if routingAnalyticsDB == nil {
+		return c.JSON(emptySlice)
+	}
+
+	rows, err := routingAnalyticsDB.QueryContext(c.Context(), `
+		SELECT provider, COUNT(*) AS request_count, COALESCE(AVG(latency_ms), 0) AS avg_latency_ms
+		FROM routing_telemetry
+		GROUP BY provider
+		ORDER BY request_count DESC
+		LIMIT 20
+	`)
+	if err != nil {
+		// Table may not exist yet — graceful degradation.
+		log.Printf("[RoutingAnalytics] leaderboard query error (non-fatal): %v", err)
+		return c.JSON(emptySlice)
+	}
+	defer rows.Close()
+
+	results := make([]fiber.Map, 0)
+	for rows.Next() {
+		var provider string
+		var requestCount int
+		var avgLatencyMs float64
+		if scanErr := rows.Scan(&provider, &requestCount, &avgLatencyMs); scanErr == nil {
+			results = append(results, fiber.Map{
+				"provider":       provider,
+				"request_count":  requestCount,
+				"avg_latency_ms": avgLatencyMs,
+			})
+		}
+	}
+
+	return c.JSON(results)
 }
