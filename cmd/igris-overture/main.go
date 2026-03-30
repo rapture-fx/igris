@@ -470,6 +470,12 @@ func main() {
 		api.RegisterCircuitBreakerRoutes(app, dbInstance)
 		log.Println("[CircuitBreaker] ✅ Circuit breaker status endpoint registered (/v1/routing/circuit-breaker/status)")
 
+		api.RegisterRoutingConfigRoutes(app, dbInstance)
+		log.Println("[Routing] ✅ Routing config endpoints registered (POST /v1/routing/strategy|speculative|council|shadow|provider_weights)")
+
+		api.RegisterRoutingAnalyticsRoutes(app, dbInstance)
+		log.Println("[Routing] ✅ Routing analytics endpoints registered (GET /v1/routing/stats|recent|leaderboard)")
+
 		// Multimodal inference (vision + audio)
 		api.RegisterMultimodalRoutes(app, dbInstance)
 		log.Println("[Multimodal] ✅ Multimodal endpoints registered (/v1/infer/multimodal)")
