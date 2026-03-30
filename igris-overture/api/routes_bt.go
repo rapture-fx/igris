@@ -38,11 +38,7 @@ func RegisterBTRoutes(app *fiber.App, db *sql.DB) {
 	v1.Post("/definitions", middleware.BetterAuth(db), saveBTDefinition(db))
 	v1.Delete("/definitions/:id", middleware.BetterAuth(db), deleteBTDefinition(db))
 
-	// Public policy bounds endpoint — no auth required.
-	app.Group("/v1").Get("/policies", handleGetPolicies)
-
 	log.Info().Msg("[Routes] Registered BT endpoints (/v1/bt/templates, /v1/bt/definitions, /v1/bt/definitions/:id)")
-	log.Info().Msg("[Routes] Registered GET /v1/policies (public — BT editor policy bounds)")
 }
 
 // ── GET /v1/bt/templates ────────────────────────────────────────────────────
@@ -252,19 +248,6 @@ func saveBTDefinition(db *sql.DB) fiber.Handler {
 
 		return c.Status(fiber.StatusOK).JSON(def)
 	}
-}
-
-// ── GET /v1/policies ────────────────────────────────────────────────────────
-
-// handleGetPolicies returns BT envelope policy bounds.
-// Returns max_action_nodes, max_depth, allowed_node_types based on defaults.
-// No auth required — the BT editor reads this on load.
-func handleGetPolicies(c *fiber.Ctx) error {
-	return c.JSON(fiber.Map{
-		"max_action_nodes":   20,
-		"max_depth":          10,
-		"allowed_node_types": []string{"Sequence", "Selector", "Parallel", "Action", "Condition", "Decorator", "RosTopicPublish", "RosTopicSubscribe", "RosServiceCall"},
-	})
 }
 
 // ── DELETE /v1/bt/definitions/:id ───────────────────────────────────────────
