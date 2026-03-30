@@ -281,7 +281,7 @@ export default function ModelsRoutingPage() {
   const { isLoading: providersLoading, refetch } = useQuery<ProviderRow[]>({
     queryKey: ['routing-providers'],
     queryFn: async () => {
-      const data = await api.get<ProviderRow[]>('/providers/stats');
+      const data = await api.get<ProviderRow[]>('/v1/providers/stats');
       setProviderRows(data);
       return data;
     },
@@ -309,27 +309,27 @@ export default function ModelsRoutingPage() {
   // ── Mutations ────────────────────────────────────────────────────────────────
 
   const strategyMutation = useMutation({
-    mutationFn: (data: StrategyConfig) => api.post('/routing/strategy', data),
+    mutationFn: (data: StrategyConfig) => api.post('/v1/routing/strategy', data),
     onSuccess: () => { setStrategyDirty(false); qc.invalidateQueries({ queryKey: ['routing-providers'] }); },
   });
 
   const speculativeMutation = useMutation({
-    mutationFn: (data: SpeculativeConfig) => api.post('/routing/speculative', data),
+    mutationFn: (data: SpeculativeConfig) => api.post('/v1/routing/speculative', data),
     onSuccess: () => setSpeculativeDirty(false),
   });
 
   const councilMutation = useMutation({
-    mutationFn: (data: CouncilConfig) => api.post('/routing/council', data),
+    mutationFn: (data: CouncilConfig) => api.post('/v1/routing/council', data),
     onSuccess: () => setCouncilDirty(false),
   });
 
   const shadowMutation = useMutation({
-    mutationFn: (data: ShadowConfig) => api.post('/routing/shadow', data),
+    mutationFn: (data: ShadowConfig) => api.post('/v1/routing/shadow', data),
     onSuccess: () => setShadowDirty(false),
   });
 
   const providerWeightsMutation = useMutation({
-    mutationFn: (data: { providers: ProviderRow[] }) => api.post('/routing/provider_weights', data),
+    mutationFn: (data: { providers: ProviderRow[] }) => api.post('/v1/routing/provider_weights', data),
     onSuccess: () => setProviderDirty(false),
   });
 
