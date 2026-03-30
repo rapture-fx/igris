@@ -13,6 +13,7 @@ import {
   SheetTitle,
 } from '@/components/ui/sheet';
 import { getRelativeTime } from '@/utils/helpers';
+import { API_BASE_URL } from '@/utils/constants';
 import { AlertTriangle, ArrowLeft, ChevronDown, ChevronRight, Edit2, ExternalLink, GitBranch, Loader2, Sparkles, Wifi, WifiOff } from 'lucide-react';
 import { CopyButton } from '@/components/execution/shared';
 
@@ -253,8 +254,8 @@ export default function AgentLivePage() {
   useEffect(() => {
     if (!id) return;
 
-    const url = `/api/v1/agents/${id}/bt-state/stream`;
-    const es = new EventSource(url);
+    const url = `${API_BASE_URL}/v1/agents/${id}/bt-state/stream`;
+    const es = new EventSource(url, { withCredentials: true });
     esRef.current = es;
 
     es.addEventListener('bt_tick', (e) => {
