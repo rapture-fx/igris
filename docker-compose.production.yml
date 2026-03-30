@@ -107,6 +107,7 @@ services:
       # Runtime Binary Distribution
       RUNTIME_BINARIES_DIR: /opt/igris-binaries
       RUNTIME_BINARY_VERSION: ${RUNTIME_BINARY_VERSION:-latest}
+      RUNTIME_URL: ${RUNTIME_URL:-}
 
       # Polar.sh Billing
       POLAR_API_KEY: ${POLAR_API_KEY:-}
