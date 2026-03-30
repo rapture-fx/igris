@@ -263,7 +263,7 @@ func handleGetPolicies(c *fiber.Ctx) error {
 	return c.JSON(fiber.Map{
 		"max_action_nodes":   20,
 		"max_depth":          10,
-		"allowed_node_types": []string{"Sequence", "Selector", "Parallel", "Action", "Condition", "Decorator", "Subtree"},
+		"allowed_node_types": []string{"Sequence", "Selector", "Parallel", "Action", "Condition", "Decorator", "RosTopicPublish", "RosTopicSubscribe", "RosServiceCall"},
 	})
 }
 
