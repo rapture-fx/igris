@@ -173,8 +173,8 @@ func handleFederatedParticipants(db *sql.DB) fiber.Handler {
 				participants = append(participants, p)
 			}
 		}
-		if len(participants) == 0 {
-			return c.JSON(demoFederatedParticipants())
+		if participants == nil {
+			participants = []FederatedParticipant{}
 		}
 		return c.JSON(participants)
 	}
@@ -215,8 +215,8 @@ func handleFederatedRounds(db *sql.DB) fiber.Handler {
 				rounds = append(rounds, r)
 			}
 		}
-		if len(rounds) == 0 {
-			return c.JSON(demoFederatedRounds())
+		if rounds == nil {
+			rounds = []FederatedRound{}
 		}
 		return c.JSON(rounds)
 	}
