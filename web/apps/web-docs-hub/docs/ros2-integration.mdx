@@ -45,7 +45,7 @@ colcon build --packages-select igris
 ```bash
 ros2 launch igris igris.launch.py \
   engine_url:=http://localhost:8080 \
-  api_key:=$(cat ~/.igris/api_key)
+  api_key:=YOUR_API_KEY
 ```
 
 The node publishes on `/igris/status` when it is connected and ready.
@@ -137,5 +137,123 @@ igris:
 | `igris_msgs/DeployTree` | Action | Deploy a behavior tree |
 | `igris_msgs/RunTree` | Action | Run a behavior tree tick |
 | `igris_msgs/ExecutionReceipt` | Topic | Signed execution receipt |
+
+---
+
+## ROS Topic Management API
+
+Igris exposes a REST API for managing ROS topic mappings, queuing publish commands, and reading live topic activity. All endpoints require authentication.
+
+### GET /v1/ros/topics
+
+List all registered ROS topic mappings for your tenant.
+
+```bash
+curl https://overture.igrisinertial.com/v1/ros/topics \
+  -H "Authorization: Bearer YOUR_API_KEY"
+```
+
+Response:
+```json
+[
+  {
+    "id": "tmap-01HXYZ",
+    "device_id": "runtime-01",
+    "bt_action": "move_forward",
+    "topic_name": "/robot/cmd_vel",
+    "direction": "publish",
+    "created_at": "2026-03-01T12:00:00Z"
+  }
+]
+```
+
+### POST /v1/ros/topics/map
+
+Create a new topic mapping — link a BT action name to a ROS topic.
+
+```bash
+curl -X POST https://overture.igrisinertial.com/v1/ros/topics/map \
+  -H "Authorization: Bearer YOUR_API_KEY" \
+  -H "Content-Type: application/json" \
+  -d '{
+    "device_id": "runtime-01",
+    "bt_action": "move_forward",
+    "topic_name": "/robot/cmd_vel",
+    "direction": "publish"
+  }'
+```
+
+| Field | Description |
+|---|---|
+| `device_id` | Runtime instance this mapping applies to |
+| `bt_action` | BT `Action` node name that triggers this topic |
+| `topic_name` | ROS 2 topic name |
+| `direction` | `publish` or `subscribe` |
+
+### DELETE /v1/ros/topics/map/:id
+
+Remove a topic mapping.
+
+```bash
+curl -X DELETE https://overture.igrisinertial.com/v1/ros/topics/map/tmap-01HXYZ \
+  -H "Authorization: Bearer YOUR_API_KEY"
+# → 204 No Content
+```
+
+### POST /v1/ros/publish
+
+Queue a one-shot publish command to a ROS topic on a specific device. The command is delivered on the device's next heartbeat.
+
+```bash
+curl -X POST https://overture.igrisinertial.com/v1/ros/publish \
+  -H "Authorization: Bearer YOUR_API_KEY" \
+  -H "Content-Type: application/json" \
+  -d '{
+    "device_id": "runtime-01",
+    "topic": "/robot/cmd_vel",
+    "message": {"linear": {"x": 0.5}, "angular": {"z": 0.0}}
+  }'
+```
+
+### GET /v1/ros/discovery
+
+Live ROS topic and service discovery data reported by fleet devices.
+
+```bash
+curl https://overture.igrisinertial.com/v1/ros/discovery \
+  -H "Authorization: Bearer YOUR_API_KEY"
+```
+
+Response:
+```json
+[
+  {
+    "device_id": "runtime-01",
+    "topic_name": "/robot/scan",
+    "message_type": "sensor_msgs/LaserScan",
+    "last_seen_at": "2026-03-01T12:00:01Z",
+    "within_envelope": true
+  }
+]
+```
+
+### POST /v1/ros/lifecycle
+
+Queue a ROS 2 lifecycle state transition command.
+
+```bash
+curl -X POST https://overture.igrisinertial.com/v1/ros/lifecycle \
+  -H "Authorization: Bearer YOUR_API_KEY" \
+  -H "Content-Type: application/json" \
+  -d '{
+    "device_id": "runtime-01",
+    "node_name": "/igris_bridge",
+    "transition": "activate"
+  }'
+```
+
+Valid transitions: `configure`, `activate`, `deactivate`, `cleanup`, `shutdown`.
+
+---
 
 [Robotics →](/docs/robotics) · [Behavior Trees →](/docs/behavior-trees) · [Fleet Management →](/docs/fleet-management)
