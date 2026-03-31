@@ -39,9 +39,9 @@ Capabilities include:
 
 | Capability | What it controls |
 |---|---|
-| `tool_http` | Whether the agent can make HTTP calls |
-| `tool_shell` | Whether the agent can execute shell commands |
-| `tool_filesystem` | Whether the agent can read or write files |
+| `allow_http` | Whether the agent can make HTTP calls |
+| `allow_shell` | Whether the agent can execute shell commands |
+| `allow_filesystem` | Whether the agent can read or write files |
 | `max_tokens` | Maximum output tokens |
 | `max_steps` | Maximum planning steps |
 | `max_duration_ms` | Maximum execution wall time |
@@ -118,3 +118,34 @@ A request's full lineage — from the application call to the signed execution �
 **Audit trails.** Every execution has a signed, tamper-evident record. Receipts can be retained for configurable periods (7 days on Seed, 30 days on Horizon, 90 days on Infinite).
 
 **Policy enforcement.** Capability gates, budget limits, and routing policies are all enforced at the engine level — not at the application layer, where they could be bypassed.
+
+---
+
+## Setting Up Governance for Your Fleet
+
+### Step 1 — Define your capability policy
+
+Decide what tools each agent class needs. Start restrictive and expand as needed:
+
+| Agent type | Recommended capabilities |
+|---|---|
+| Read-only analyst | No tools |
+| API integration agent | `allow_http: true`, restricted domain list |
+| Automation agent | `allow_http: true`, `allow_filesystem: true` (scoped path) |
+| DevOps agent | All tools, reviewed regularly |
+
+### Step 2 — Assign policies to agents
+
+`POST /v1/policies/assign` with the policy hash and agent IDs. Policies are versioned — reassigning a policy creates an audit entry.
+
+### Step 3 — Monitor violations
+
+Check the **Proof → Violations** page in the console daily. A spike in violations indicates an agent is attempting operations outside its declared scope.
+
+### Step 4 — Review receipts for compliance
+
+Export receipts on a schedule using `GET /v1/receipts/export`. Feed into your SIEM or compliance toolchain.
+
+### Step 5 — Adjust and iterate
+
+Use violation data to tighten or expand policies. Every policy change is recorded.
