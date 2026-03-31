@@ -27,7 +27,7 @@ The cloud API handles:
 
 Deploy the coordination layer in your own infrastructure for data residency, compliance, or custom integration requirements.
 
-The coordination layer ships as a single Go binary with a PostgreSQL backend and optional Redis cache.
+The coordination layer ships as a single binary with low infrastructure requirements.
 
 Deployment targets:
 - **AWS / GCP / Azure** — Standard containerized deployment
@@ -100,16 +100,7 @@ sudo systemctl start igris-runtime
 
 The execution engine includes a local inference runtime. To enable offline fallback, download a compatible model:
 
-```bash
-# Phi-3 Mini (recommended starting point, ~2.3GB)
-./download-model.sh phi3-mini
-
-# Mistral 7B (higher quality, ~4.1GB)
-./download-model.sh mistral-7b
-
-# Llama 3 8B (best open-source quality, ~4.7GB)
-./download-model.sh llama3-8b
-```
+Download a compatible GGUF model for your hardware. Recommended starting points: Phi-3 Mini (~2.3 GB), Mistral 7B (~4.1 GB), Llama 3 8B (~4.7 GB).
 
 Configure in `config.json`:
 ```json
@@ -122,6 +113,78 @@ Configure in `config.json`:
 ```
 
 [Execution Model →](/docs/execution-model) · [Architecture →](/docs/architecture)
+
+---
+
+## Verifying Your Deployment
+
+After starting the runtime, verify it is working:
+
+### Health check
+
+```bash
+curl http://localhost:8080/health
+# → {"status": "ok", "version": "..."}
+```
+
+### Check fleet registration
+
+After a minute, your instance should appear in the console under **Fleet → Devices**.
+
+### Run a test inference
+
+```python
+from openai import OpenAI
+
+client = OpenAI(
+    base_url="http://localhost:8080/v1",
+    api_key="not-required"
+)
+
+response = client.chat.completions.create(
+    model="phi3",
+    messages=[{"role": "user", "content": "Hello"}]
+)
+
+print(response.choices[0].message.content)
+```
+
+---
+
+## Networking Requirements
+
+The runtime needs outbound access to:
+- `overture.igrisinertial.com` — fleet registration and telemetry
+- Your configured cloud provider APIs (openai.com, anthropic.com, etc.) — for cloud routing
+
+No inbound ports are required for basic operation. The coordination layer connects outbound to the runtime when delivering commands.
+
+---
+
+## Resource Requirements
+
+| Deployment | CPU | RAM | Disk |
+|---|---|---|---|
+| Cloud routing only (no local model) | 1 core | 512 MB | 200 MB |
+| Local inference (Phi-3 Mini) | 4 cores | 4 GB | 4 GB |
+| Local inference (Mistral 7B) | 8 cores | 8 GB | 6 GB |
+| GPU inference (any model) | GPU required | 8 GB+ | varies |
+
+---
+
+## Common Deployment Issues
+
+**Runtime won't start**
+Check that port 8080 is not in use: `lsof -i :8080`
+
+**Fleet registration not appearing in console**
+Verify your API key is set correctly and the runtime has outbound internet access to overture.igrisinertial.com.
+
+**Local model not loading**
+Ensure the model file path in config.json is correct and the file is a valid GGUF format.
+
+**High memory usage**
+Local inference loads the full model into RAM. Use a quantized model (Q4 suffix) for lower memory use.
 
 ---
 
@@ -149,14 +212,22 @@ Once registered, the coordination layer can route requests to the local engine a
 
 | | Seed | Horizon | Infinite |
 |---|---|---|---|
-| Price | Free | $99/mo | $499/mo |
+| Price | $29/mo | $149/mo | $699/mo |
 | Engine instances | 1 | Up to 50 | Up to 500 |
 | Execution retention | 7 days | 30 days | 90 days |
 | Fleet dashboard | — | ✓ | ✓ |
 | OTA updates | — | ✓ | ✓ |
 | Self-hosted coordination layer | — | — | ✓ |
-| SLO enforcement | — | — | ✓ |
+| SLO enforcement | — | ✓ | ✓ |
 | Support | Community | Email (24h) | Priority (8h) |
 | Additional instances | — | $3/instance | Included |
 
 [Pricing details →](https://igrisinertial.com/pricing)
+
+---
+
+## What's Next
+
+- [Fleet Management →](/docs/fleet-management) — Monitor and manage your registered devices
+- [Quickstart →](/docs/quickstart) — Make your first SDK request in under 10 minutes
+- [Architecture →](/docs/architecture) — How the runtime, coordination layer, and SDK fit together
