@@ -67,10 +67,11 @@ Response:
 
 ## Configuration Push
 
-Configuration updates can be pushed to the entire fleet or to specific instances by tag, without restarting the engine process.
+### POST /api/v1/runtime/config/push
+
+Push configuration to all runtime instances for your tenant. The config is queued as a pending command and delivered on each instance's next heartbeat (default: 30s).
 
 ```bash
-# Push config to all instances tagged "site-a"
 curl -X POST https://overture.igrisinertial.com/api/v1/runtime/config/push \
   -H "Authorization: Bearer YOUR_API_KEY" \
   -H "Content-Type: application/json" \
@@ -83,29 +84,56 @@ curl -X POST https://overture.igrisinertial.com/api/v1/runtime/config/push \
   }'
 ```
 
-The push is acknowledged by each instance. If an instance is offline at push time, the config is delivered when it reconnects.
+Response:
+```json
+{
+  "queued": true,
+  "instances": 3,
+  "queued_at": "2026-03-01T12:00:00Z"
+}
+```
+
+If an instance is offline when the push is queued, the command remains in the queue until the instance reconnects.
 
 ---
 
 ## OTA Updates
 
-On Horizon and Infinite tiers, execution engine instances can be updated over the air. The coordination layer distributes the new binary and triggers a rolling restart.
+### POST /api/v1/runtime/update
+
+Queue an OTA update for runtime instances. Available on **Horizon** and **Infinite** tiers.
 
 ```bash
 curl -X POST https://overture.igrisinertial.com/api/v1/runtime/update \
   -H "Authorization: Bearer YOUR_API_KEY" \
+  -H "Content-Type: application/json" \
   -d '{
-    "selector": {"tags": ["robotics"]},
     "version": "2.3.1",
     "strategy": "rolling",
     "max_unavailable": 1
   }'
 ```
 
-Update strategies:
-- `rolling`: update instances one at a time
-- `all-at-once`: update all selected instances simultaneously
-- `canary`: update one instance first, verify health, then proceed
+Response:
+```json
+{
+  "queued": true,
+  "version": "2.3.1",
+  "strategy": "rolling",
+  "instances": 8,
+  "queued_at": "2026-03-01T12:00:00Z"
+}
+```
+
+**Update strategies:**
+
+| Strategy | Behavior |
+|---|---|
+| `rolling` | Update instances one at a time (default) |
+| `all-at-once` | Update all instances simultaneously |
+| `canary` | Update one instance first, verify health, then proceed |
+
+`max_unavailable` controls how many instances can be updating at once during a `rolling` update.
 
 ---
 
