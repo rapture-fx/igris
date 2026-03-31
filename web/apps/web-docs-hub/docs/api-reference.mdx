@@ -419,7 +419,7 @@ Response:
     "training_time_secs": 312.4,
     "final_loss": 0.0821,
     "adapter_size_bytes": 4194304,
-    "encrypted_adapter_path": "/lora_adapters/adapter_v3.bin.enc"
+    "encrypted_adapter_path": "[encrypted-adapter-path]"
   }
 }
 ```
@@ -428,7 +428,7 @@ If the runtime is unreachable, returns:
 ```json
 {
   "enabled": false,
-  "runtime_error": "runtime returned HTTP 503 — check RUNTIME_URL configuration"
+  "runtime_error": "runtime unreachable — check your runtime connection settings"
 }
 ```
 
@@ -466,7 +466,7 @@ Manage your cloud provider API keys. All vault endpoints require authentication.
 curl -X POST https://overture.igrisinertial.com/v1/vault/keys \
   -H "Authorization: Bearer YOUR_API_KEY" \
   -H "Content-Type: application/json" \
-  -d '{"provider": "anthropic", "key": "sk-ant-..."}'
+  -d '{"provider": "anthropic", "key": "YOUR_ANTHROPIC_KEY"}'
 ```
 
 [Key Management →](/docs/key-management)
