@@ -35,18 +35,19 @@ Receipts are stored locally on the execution engine. They can be queried via API
 
 Igris enforces a capability model: every execution declares what it is permitted to do, and the engine rejects operations outside that scope before they complete.
 
-Capabilities include:
+Capability grants control what an execution is permitted to do:
 
 | Capability | What it controls |
 |---|---|
-| `allow_http` | Whether the agent can make HTTP calls |
+| `allow_http` | Whether the agent can make outbound HTTP calls |
+| `allowed_http_domains` | Allowlist of domains for HTTP calls |
 | `allow_shell` | Whether the agent can execute shell commands |
 | `allow_filesystem` | Whether the agent can read or write files |
-| `max_tokens` | Maximum output tokens |
-| `max_steps` | Maximum planning steps |
-| `max_duration_ms` | Maximum execution wall time |
+| `max_file_write_bytes` | Maximum bytes the execution may write |
 
-A request that exceeds its capability grant is rejected with an error. The rejection is recorded in the execution receipt.
+Execution resource limits (max tokens, max steps, max wall time) are set separately in your containment policy and apply regardless of capability grants.
+
+A request that exceeds its capability grant is rejected before the operation executes. The rejection is recorded in the execution receipt.
 
 [Capability Model →](/docs/capability-model)
 
