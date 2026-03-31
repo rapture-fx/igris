@@ -1,6 +1,8 @@
 import { DocsLayout } from '@/components/layout/DocsLayout';
 import { MDXContent } from '@/components/MDXContent';
 import { JsonLd } from '@/components/JsonLd';
+import { DocFooter } from '@/components/layout/DocFooter';
+import { FeedbackWidget } from '@/components/layout/FeedbackWidget';
 import Overview from '@/docs/overview.mdx';
 
 export default function DocsPage() {
@@ -29,6 +31,8 @@ export default function DocsPage() {
         <MDXContent>
           <Overview />
         </MDXContent>
+        <FeedbackWidget />
+        <DocFooter slug="overview" />
       </DocsLayout>
     </>
   );
