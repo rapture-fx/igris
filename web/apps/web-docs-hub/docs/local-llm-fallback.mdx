@@ -1,0 +1,146 @@
+# Local LLM Fallback
+
+When cloud providers are unavailable, rate-limited, or policy requires it, Igris automatically falls back to local on-device inference using GGUF-format models. The application sees the same response format either way.
+
+---
+
+## How It Works
+
+The fallback sequence:
+
+```
+Request → Cloud provider available? ──Yes──► Cloud inference
+                │
+               No
+                │
+                ▼
+        Local model loaded? ──Yes──► Local inference
+                │
+               No
+                │
+                ▼
+           Return error
+```
+
+1. The routing engine attempts the configured cloud provider(s)
+2. If all cloud providers fail (timeout, error, rate limit, circuit breaker open), the engine switches to local inference
+3. The local GGUF model runs inference on-device
+4. The response format is identical to cloud responses
+5. The signed receipt records which backend was used
+
+---
+
+## Supported Models
+
+Igris supports any GGUF-format model:
+
+| Model | Size | Use Case |
+|---|---|---|
+| **Phi-3 Mini** | 2.3 GB | Fast, lightweight tasks |
+| **Phi-3 Medium** | 7.8 GB | General purpose |
+| **Mistral 7B** | 4.1 GB | Balanced quality/speed |
+| **Llama 3 8B** | 4.9 GB | High quality, moderate resources |
+| **Llama 3 70B** | 39 GB | Maximum quality (requires GPU) |
+| **Custom LoRA** | +64 MB | Domain-specific fine-tuning |
+
+Models are loaded at startup. You can configure multiple models and the engine selects based on resource availability.
+
+---
+
+## Configuration
+
+```json
+{
+  "local_inference": {
+    "enabled": true,
+    "model_path": "/models/mistral-7b.Q4_K_M.gguf",
+    "max_context_length": 4096,
+    "gpu_layers": 35,
+    "threads": 4,
+    "fallback_only": false
+  }
+}
+```
+
+| Field | Type | Default | Description |
+|---|---|---|---|
+| `enabled` | bool | `true` | Enable local inference |
+| `model_path` | string | — | Path to GGUF model file |
+| `max_context_length` | int | 4096 | Maximum context window |
+| `gpu_layers` | int | 0 | Number of layers to offload to GPU (0 = CPU only) |
+| `threads` | int | 4 | CPU threads for inference |
+| `fallback_only` | bool | `false` | If true, only use local when cloud fails |
+
+---
+
+## Fallback Triggers
+
+Local inference is triggered when:
+
+- **All cloud providers fail** — every configured provider returned an error
+- **Circuit breaker open** — all providers' circuit breakers are open
+- **Policy requires local** — tenant policy mandates local-only execution
+- **No internet** — network connectivity is lost
+- **Rate limited** — all providers have returned 429 responses
+
+---
+
+## Performance Expectations
+
+Local inference performance depends on hardware:
+
+| Hardware | Model | Tokens/sec |
+|---|---|---|
+| Raspberry Pi 4 (4 GB) | Phi-3 Mini | 2–4 t/s |
+| Jetson Orin Nano | Mistral 7B | 8–12 t/s |
+| MacBook M2 | Llama 3 8B | 15–25 t/s |
+| Desktop GPU (RTX 4090) | Llama 3 70B | 30–50 t/s |
+
+Local inference is typically slower than cloud but provides:
+- **Zero latency to provider** — no network round-trip
+- **Complete privacy** — data never leaves the device
+- **Guaranteed availability** — works offline
+
+---
+
+## Air-Gapped Deployment
+
+Local LLM fallback enables fully air-gapped deployments:
+
+1. Configure `fallback_only: true` to use local exclusively
+2. Load GGUF models onto the device
+3. Disconnect from the internet
+4. The engine continues to serve inference requests
+
+All governance features (bounded execution, capability enforcement, signed receipts) work identically in air-gapped mode.
+
+---
+
+## Monitoring
+
+### Console
+
+View local inference status at `/fleet/devices` in the device detail drawer:
+- Current model loaded
+- GPU/CPU utilization
+- Inference latency
+- Fallback trigger history
+
+### API
+
+The `metadata.provider` field in every response indicates which backend handled the request:
+
+```json
+{
+  "metadata": {
+    "provider": "local",
+    "model": "mistral-7b.Q4_K_M.gguf",
+    "fallback_from": "anthropic",
+    "fallback_reason": "circuit_breaker_open"
+  }
+}
+```
+
+---
+
+[Execution Model →](/docs/execution-model) · [Deployment →](/docs/deployment) · [Robotics →](/docs/robotics)
