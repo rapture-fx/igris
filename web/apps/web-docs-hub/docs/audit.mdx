@@ -113,6 +113,100 @@ After the retention period, receipts are deleted from local storage. If you requ
 
 ---
 
+## Proof API
+
+The Proof API lets you list, verify, and query execution receipts and policy violations. All endpoints require authentication.
+
+### GET /proof/receipts
+
+List execution receipts for your tenant, ordered by timestamp.
+
+```bash
+curl "https://overture.igrisinertial.com/proof/receipts?limit=100&sort=timestamp:desc" \
+  -H "Authorization: Bearer YOUR_API_KEY"
+```
+
+| Query param | Description |
+|---|---|
+| `limit` | Max results (default 500, max 1000) |
+| `sort` | `timestamp:asc` or `timestamp:desc` (default: desc) |
+
+Response:
+```json
+[
+  {
+    "id": "exec-01HXYZ",
+    "execution_id": "exec-01HXYZ",
+    "agent_id": "agent-abc",
+    "device_id": "runtime-01",
+    "timestamp": "2026-03-01T12:00:00Z",
+    "status": "completed",
+    "signature": "base64:...",
+    "hash": "sha256:a3f9...",
+    "prev_hash": "sha256:b2e8...",
+    "has_violation": false,
+    "signed": true,
+    "cpu_ms": 287,
+    "memory_mb": 48,
+    "tokens_used": 312,
+    "tool_calls": 1,
+    "duration_ms": 312,
+    "violations": []
+  }
+]
+```
+
+---
+
+### POST /proof/receipts/verify
+
+Verify the cryptographic signature on a receipt. Returns whether the signature is valid and the receipt is unaltered.
+
+```bash
+curl -X POST https://overture.igrisinertial.com/proof/receipts/verify \
+  -H "Authorization: Bearer YOUR_API_KEY" \
+  -H "Content-Type: application/json" \
+  -d '{"execution_id": "exec-01HXYZ"}'
+# → {"valid": true, "execution_id": "exec-01HXYZ"}
+```
+
+If the receipt has been altered or the signature is invalid:
+```json
+{"valid": false, "execution_id": "exec-01HXYZ", "reason": "signature_mismatch"}
+```
+
+---
+
+### GET /v1/proof/violations
+
+List all policy violation events for your tenant.
+
+```bash
+curl "https://overture.igrisinertial.com/v1/proof/violations?limit=50" \
+  -H "Authorization: Bearer YOUR_API_KEY"
+```
+
+| Query param | Description |
+|---|---|
+| `limit` | Max results |
+| `from` | ISO 8601 start time |
+| `agent_id` | Filter by agent |
+
+Response:
+```json
+[
+  {
+    "execution_id": "exec-01HABC",
+    "agent_id": "agent-abc",
+    "timestamp": "2026-03-01T11:45:00Z",
+    "violation_type": "capability_exceeded",
+    "detail": "tool_shell not in capability grant"
+  }
+]
+```
+
+---
+
 ## Compliance Use Cases
 
 **Data residency.** Local executions do not send data off-device. Receipts are stored locally unless explicitly exported.
