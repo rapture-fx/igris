@@ -20,11 +20,15 @@ The result: agents that are auditable and safe by default, with AI where it adds
 
 | Type | JSON `type` value | Behavior |
 |---|---|---|
-| `Sequence` | `"sequence"` | Runs children left to right; stops on first failure |
-| `Selector` | `"selector"` | Runs children left to right; stops on first success |
-| `Condition` | `"condition"` | Returns success/failure based on a blackboard key check |
-| `Action` | `"action"` | Executes a named tool with optional args |
-| `LLM` | `"llm_node"` | Calls a model; succeeds when the model returns a result |
+| `Sequence` | `"Sequence"` | Runs children left to right; stops on first failure |
+| `Selector` | `"Selector"` | Runs children left to right; stops on first success |
+| `Parallel` | `"Parallel"` | Runs all children concurrently |
+| `Condition` | `"Condition"` | Returns success/failure based on a blackboard key check |
+| `Action` | `"Action"` | Executes a named tool with optional args |
+| `Decorator` | `"Decorator"` | Wraps a child node, modifying its return value |
+| `RosTopicPublish` | `"RosTopicPublish"` | Publishes a message to a ROS2 topic |
+| `RosTopicSubscribe` | `"RosTopicSubscribe"` | Reads from a ROS2 topic |
+| `RosServiceCall` | `"RosServiceCall"` | Calls a ROS2 service |
 
 ---
 
@@ -32,52 +36,126 @@ The result: agents that are auditable and safe by default, with AI where it adds
 
 ```json
 {
-  "type": "sequence",
-  "name": "shutdown-guard",
-  "children": [
-    {
-      "type": "condition",
-      "name": "check_temp",
-      "key": "sensor.temperature",
-      "expected": 80
-    },
-    {
-      "type": "llm_node",
-      "name": "ask_model",
-      "prompt": "The temperature is high. Should we shut down the process? Reply yes or no.",
-      "model": "phi3"
-    },
-    {
-      "type": "action",
-      "name": "shutdown",
-      "tool": "http_post",
-      "args": { "url": "http://localhost:9000/shutdown" }
-    }
+  "nodes": [
+    { "id": "n1", "type": "Sequence", "label": "Shutdown Guard", "x": 300, "y": 50 },
+    { "id": "n2", "type": "Condition", "label": "Check Temp", "x": 150, "y": 150 },
+    { "id": "n3", "type": "Action",    "label": "Shutdown",    "x": 450, "y": 150 }
+  ],
+  "edges": [
+    { "id": "e1", "source": "n1", "target": "n2" },
+    { "id": "e2", "source": "n1", "target": "n3" }
   ]
 }
 ```
 
-This tree: checks a sensor value, asks the LLM whether to act, and only shuts down the process if both the condition and the model agree.
+---
+
+## Behavior Tree Definitions API
+
+Definitions are tenant-scoped and persisted in the coordination layer. Saving by the same name upserts the existing definition.
+
+### GET /v1/bt/templates
+
+Returns a list of built-in starter templates — no authentication required.
+
+```bash
+curl https://overture.igrisinertial.com/v1/bt/templates
+```
+
+Response:
+```json
+[
+  {
+    "id": "tpl-patrol",
+    "name": "Patrol Loop",
+    "description": "Repeating patrol with obstacle avoidance",
+    "nodes": [...],
+    "edges": [...]
+  }
+]
+```
 
 ---
 
-## Deploying a Tree
+### GET /v1/bt/definitions
+
+List all saved definitions for your tenant.
 
 ```bash
-# Deploy a behavior tree to a running engine
-curl -X POST http://localhost:8080/v1/btree/deploy \
-  -H "Content-Type: application/json" \
-  -d @my-tree.json
-
-# Run the tree once
-curl -X POST http://localhost:8080/v1/btree/run \
-  -H "Content-Type: application/json" \
-  -d '{"tree_id": "shutdown-guard", "context": {"sensor": {"temperature": 92}}}'
-
-# Run on a tick loop (e.g. every 100ms)
-curl -X POST http://localhost:8080/v1/btree/run \
-  -d '{"tree_id": "shutdown-guard", "tick_interval_ms": 100}'
+curl https://overture.igrisinertial.com/v1/bt/definitions \
+  -H "Authorization: Bearer YOUR_API_KEY"
 ```
+
+Response:
+```json
+[
+  {
+    "id": "def-01HXYZ",
+    "name": "shutdown-guard",
+    "description": "Temperature-triggered shutdown sequence",
+    "created_at": "2026-03-01T12:00:00Z",
+    "updated_at": "2026-03-01T12:00:00Z"
+  }
+]
+```
+
+---
+
+### GET /v1/bt/definitions/:id
+
+Fetch a single definition including full nodes and edges.
+
+```bash
+curl https://overture.igrisinertial.com/v1/bt/definitions/def-01HXYZ \
+  -H "Authorization: Bearer YOUR_API_KEY"
+```
+
+---
+
+### POST /v1/bt/definitions
+
+Save or update a definition. Name is unique per tenant — posting the same name overwrites the existing definition.
+
+```bash
+curl -X POST https://overture.igrisinertial.com/v1/bt/definitions \
+  -H "Authorization: Bearer YOUR_API_KEY" \
+  -H "Content-Type: application/json" \
+  -d '{
+    "name": "shutdown-guard",
+    "description": "Temperature-triggered shutdown sequence",
+    "nodes": [
+      { "id": "n1", "type": "Sequence", "label": "Root", "x": 300, "y": 50 },
+      { "id": "n2", "type": "Condition", "label": "Check Temp", "x": 150, "y": 150 },
+      { "id": "n3", "type": "Action", "label": "Shutdown", "x": 450, "y": 150 }
+    ],
+    "edges": [
+      { "id": "e1", "source": "n1", "target": "n2" },
+      { "id": "e2", "source": "n1", "target": "n3" }
+    ]
+  }'
+```
+
+| Field | Required | Description |
+|---|---|---|
+| `name` | Yes | Unique definition name within your tenant |
+| `description` | No | Human-readable description |
+| `nodes` | No | Array of node objects (defaults to `[]`) |
+| `edges` | No | Array of edge objects (defaults to `[]`) |
+
+Response: the saved definition with `id`, `created_at`, `updated_at`.
+
+---
+
+### DELETE /v1/bt/definitions/:id
+
+Remove a definition permanently.
+
+```bash
+curl -X DELETE https://overture.igrisinertial.com/v1/bt/definitions/def-01HXYZ \
+  -H "Authorization: Bearer YOUR_API_KEY"
+```
+
+Returns `204 No Content` on success. Returns `404` if the definition does not exist or belongs to a different tenant.
 
 ---
 
@@ -97,10 +175,7 @@ const tree = BehaviorTree.fromJson(
 );
 
 const result = await tree.validate();
-// { valid: true, root_type: 'sequence' }
-
-const execution = await tree.run({ context: { 'sensor.temperature': 92 } });
-console.log(execution.status); // 'success' | 'failure'
+// { valid: true, root_type: 'Sequence' }
 ```
 
 ```python
