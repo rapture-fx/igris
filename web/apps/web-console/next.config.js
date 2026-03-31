@@ -3,10 +3,6 @@ const nextConfig = {
   reactStrictMode: true,
   output: 'standalone',
 
-  experimental: {
-    instrumentationHook: true,
-  },
-
   typescript: {
     ignoreBuildErrors: true,
   },
