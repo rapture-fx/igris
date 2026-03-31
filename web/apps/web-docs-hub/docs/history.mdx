@@ -1,0 +1,165 @@
+# History & Alerts
+
+Igris records every execution, metric, and policy violation. The history API lets you query that record, monitor alert state, and acknowledge or resolve incidents.
+
+---
+
+## Execution Events
+
+### GET /v1/history/events
+
+List execution events from the history log. Supports filtering by date range, agent, and violation status.
+
+```bash
+curl "https://overture.igrisinertial.com/v1/history/events?limit=50&from=2026-03-01T00:00:00Z" \
+  -H "Authorization: Bearer YOUR_API_KEY"
+```
+
+**Query parameters:**
+
+| Parameter | Description |
+|---|---|
+| `limit` | Max results (default 50, max 500) |
+| `from` | ISO 8601 start time |
+| `to` | ISO 8601 end time |
+| `agent_id` | Filter by agent |
+| `violations_only` | `true` to return only policy violations |
+
+Response:
+```json
+[
+  {
+    "execution_id": "exec-01HXYZ",
+    "agent_id": "agent-abc",
+    "runtime_id": "runtime-01",
+    "timestamp_utc": "2026-03-01T12:00:00Z",
+    "wall_time_ms": 312,
+    "status": "completed",
+    "violation_occurred": false,
+    "prompt_preview": "Evaluate whether to initiate..."
+  }
+]
+```
+
+---
+
+## Metrics
+
+### GET /v1/history/metrics
+
+Summary statistics and throughput time series for your tenant.
+
+```bash
+curl https://overture.igrisinertial.com/v1/history/metrics \
+  -H "Authorization: Bearer YOUR_API_KEY"
+```
+
+Response:
+```json
+{
+  "summary": {
+    "total_executions": 14823,
+    "violation_count": 47,
+    "avg_wall_time_ms": 287.4,
+    "total_tool_calls": 3291
+  },
+  "throughput": [
+    { "hour": "2026-03-01T11:00:00Z", "count": 142 },
+    { "hour": "2026-03-01T12:00:00Z", "count": 189 }
+  ]
+}
+```
+
+---
+
+## Alerts
+
+Alerts are raised when a policy violation occurs. Each alert maps to a specific execution run.
+
+### GET /v1/history/alerts
+
+List all alerts (violations) for your tenant.
+
+```bash
+curl "https://overture.igrisinertial.com/v1/history/alerts?limit=20" \
+  -H "Authorization: Bearer YOUR_API_KEY"
+```
+
+**Query parameters:**
+
+| Parameter | Description |
+|---|---|
+| `limit` | Max results (default 20) |
+| `from` | ISO 8601 start time |
+| `agent_id` | Filter by agent |
+| `unacknowledged` | `true` to return only unacknowledged alerts |
+
+Response:
+```json
+[
+  {
+    "execution_id": "exec-01HABC",
+    "agent_id": "agent-abc",
+    "timestamp_utc": "2026-03-01T11:45:00Z",
+    "status": "violation",
+    "acknowledged_at": null,
+    "resolved_at": null,
+    "escalated_at": null
+  }
+]
+```
+
+---
+
+### POST /v1/history/alerts/:id/acknowledge
+
+Mark an alert as acknowledged. Records the timestamp of acknowledgment.
+
+```bash
+curl -X POST https://overture.igrisinertial.com/v1/history/alerts/exec-01HABC/acknowledge \
+  -H "Authorization: Bearer YOUR_API_KEY"
+# → {"status": "acknowledged"}
+```
+
+---
+
+### POST /v1/history/alerts/:id/resolve
+
+Mark an alert as resolved.
+
+```bash
+curl -X POST https://overture.igrisinertial.com/v1/history/alerts/exec-01HABC/resolve \
+  -H "Authorization: Bearer YOUR_API_KEY"
+# → {"status": "resolved"}
+```
+
+---
+
+### POST /v1/history/alerts/:id/escalate
+
+Escalate an alert for external notification or human review.
+
+```bash
+curl -X POST https://overture.igrisinertial.com/v1/history/alerts/exec-01HABC/escalate \
+  -H "Authorization: Bearer YOUR_API_KEY"
+# → {"status": "escalated"}
+```
+
+---
+
+## Alert Lifecycle
+
+```
+violation occurs
+       │
+       ▼
+   unacknowledged  ──acknowledge──▶  acknowledged
+       │                                  │
+       └─────────escalate──────▶  escalated
+                                          │
+                               resolve ───▶  resolved
+```
+
+---
+
+[Execution Model →](/docs/execution-model) · [Audit →](/docs/audit) · [Governance →](/docs/governance)
