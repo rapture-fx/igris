@@ -1,96 +1,168 @@
 # Architecture
 
-Igris is one execution system. Internally it has two components: a coordination layer that handles cloud routing and policy, and an execution engine that runs on your infrastructure. Both share the same governance model and trust chain.
+Igris is a governed execution system built from two production binaries: **Overture** (Go API gateway) and **Runtime** (Rust edge engine). Both share the same governance model, trust chain, and OpenAI-compatible API surface.
 
 ---
 
 ## System Overview
 
-```text
+```mermaid
 graph TD
-    App["Your Application\n(OpenAI-compatible API)"]
-    App -->|"POST /v1/chat/completions"| CL
+    App["Your Application\n(OpenAI-compatible SDK)"]
+    App -->|"POST /v1/chat/completions"| Overture
 
-    subgraph CL["Coordination Layer (cloud-hosted)"]
-        RE[Routing Engine]
-        PH[Provider Health]
-        CT[Cost Tracking & Budgets]
-        PS["Provider Selection\n(Thompson Sampling + Rules)"]
-        RE --> PS
-        PH --> PS
+    subgraph Overture["Overture (Go — Cloud Gateway)"]
+        Router["Adaptive Router\n(Thompson Sampling)"]
+        CB["Circuit Breaker"]
+        PS["Provider Selection"]
+        CA["Cognitive Advisor"]
+        SLO["SLO Enforcer"]
+        Vault["Key Vault\n(AES-256-GCM)"]
+        Router --> PS
+        CB --> PS
+        CA -.->|"recommendations"| Router
+        SLO -.->|"enforcement"| Router
     end
 
-    PS --> CP["Cloud Providers\n(OpenAI, etc.)"]
-    PS -->|"hybrid routing"| EE
+    PS -->|"cloud providers"| OpenAI["OpenAI / Anthropic / Google"]
+    PS -->|"hybrid fallback"| Runtime
 
-    subgraph EE["Execution Engine (your infrastructure)"]
-        EV[Execution Envelope]
-        CG[Capability Gates]
-        SR[Signed Receipts]
-        LI["Local Inference Engine\n(Phi-3, Mistral, Llama, LoRA)"]
+    subgraph Runtime["Igris Runtime (Rust — Edge)"]
+        Server["igris-server\n(Axum HTTP)"]
+        LLM["Local LLM\n(llama.cpp / GGUF)"]
+        BT["Behavior Tree Engine"]
+        Tools["Tool Sandbox\n(HTTP, Shell, FS)"]
+        Receipts["Signed Receipts\n(Ed25519, hash-chained)"]
+        MCP["MCP Server/Client"]
+        Server --> LLM
+        Server --> BT
+        Server --> Tools
+        Server --> Receipts
+        Server --> MCP
     end
+
+    Overture <-->|"HTTP REST\nregister / heartbeat / config"| Runtime
+    Overture <-->|"PostgreSQL 15"| DB[(PostgreSQL)]
+    Overture <-->|"Dragonfly/Redis"| Cache[(Redis)]
 ```
 
 ---
 
-## Coordination Layer
+## Overture (Go — Cloud Gateway)
 
-The coordination layer is a cloud-hosted service that receives API requests from your application, applies routing and policy, selects where to execute, and returns the response.
+Overture is a Go binary built on the Fiber web framework. It runs on your cloud infrastructure (default: Hetzner VPS) and serves as the central API gateway, routing engine, and control plane.
 
-### Responsibilities
+### Core Components
 
-**Provider selection.** The coordination layer maintains performance statistics for each configured cloud provider. It selects the best provider for each request using Thompson Sampling: a Bayesian algorithm that balances exploration (trying providers to keep statistics current) with exploitation (using the known-best provider).
+| Component | Package | Purpose |
+|---|---|---|
+| **Adaptive Router** | `router/` | Thompson Sampling, speculative execution, council mode, cost-aware routing, quality scoring, stream merging |
+| **Circuit Breaker** | `router/` | Per-provider failure detection with open/closed/half-open states |
+| **Cognitive Advisor** | `cognitive/` | Periodic worker (every 15 min) that analyzes routing performance and proposes optimizations |
+| **SLO Enforcer** | `slo/` | Prometheus scraper, audit logger, action executor for latency/cost/quality SLOs |
+| **Key Vault** | `security/` | AES-256-GCM encrypted API key storage |
+| **Billing** | `billing/` | Polar.sh integration, trial management (7-day), tier enforcement via Redis |
+| **Provider Interface** | `providers/` | Pluggable provider implementations (OpenAI, Anthropic, mock, benchmark) |
+| **Bandit Algorithm** | `bandit/` | Reward engine for Thompson Sampling |
 
-**Failover.** When a provider returns an error or times out, the coordination layer automatically retries with the next-best provider. This is transparent to your application.
+### Data Layer
 
-**Cost accounting.** Every request is attributed to a tenant, tracked against monthly budget limits, and returned with cost metadata. Hard limits reject requests before they exceed budget.
+- **PostgreSQL 15** — Multi-tenancy, sessions (Better Auth), tenants, API keys, runtime instances, executions, violations, SLO records, billing events, subscriptions
+- **Dragonfly/Redis** — Rate limiting, billing state, provider stats cache, semantic classification cache, trial state
 
-**Fleet coordination.** For deployments with multiple execution engine instances, the coordination layer manages configuration distribution, health monitoring, and lifecycle events.
+### API Surface
+
+Overture exposes:
+- **Inference API** — OpenAI-compatible `/v1/chat/completions` with automatic multi-provider routing
+- **Management API** — Fleet, policies, receipts, vault keys, routing config
+- **Webhooks** — Polar.sh subscription events, alert notifications
 
 ---
 
-## Execution Engine
+## Igris Runtime (Rust — Edge Engine)
 
-The execution engine runs on your infrastructure — a server, an edge device, a Kubernetes pod, or a single-board computer. It provides a local OpenAI-compatible API endpoint and governs every execution that passes through it.
+The Runtime is a Rust workspace of 27 crates compiled into two binaries:
 
-### Responsibilities
+### `igris-server` (Primary Edge Binary)
 
-**Execution envelopes.** Every request processed by the engine is wrapped in a deterministic execution envelope: a structured record of inputs, outputs, timing, resource consumption, and applied capability grants. The envelope is signed cryptographically when execution completes.
+The main edge runtime — an Axum HTTP server that provides a local OpenAI-compatible API with full governance.
 
-**Capability gates.** The engine enforces declared capability limits before and during execution. If an execution attempts to call a tool outside its allowed list, or exceed its resource budget, the engine rejects the operation before it runs.
+| Crate | Purpose |
+|---|---|
+| `igris-routing` | Thompson Sampling, speculative execution, council routing |
+| `igris-local-llm` | llama.cpp GGUF model inference (local fallback) |
+| `igris-btree` | Behavior Tree parser, executor, SSE live streaming |
+| `igris-tools` | Tool sandbox: HTTP, shell, filesystem with resource limits |
+| `igris-reflection` | Self-critique/reflection agent loops |
+| `igris-planning` | Multi-step task planning with tool usage |
+| `igris-memory` | Vector store, KV cache, cross-instance context |
+| `igris-swarm` | Raft-style leader election, task proposals, consensus |
+| `igris-fleet` | Fleet management, config sync, OTA updates |
+| `igris-federated` | Federated learning (FedAvg, differential privacy, QLoRA) |
+| `igris-lora-trainer` | On-device LoRA fine-tuning |
+| `igris-hitl` | Human-in-the-loop approval gates |
+| `igris-safety` | Safety checks and capability enforcement |
+| `igris-emergency` | EscapeVector encrypted fallback cache |
+| `igris-ros2` | ROS2 integration (feature-gated) |
+| `igris-sensors` | Sensor integration for robotics |
+| `mcp-server` / `mcp-client` | Model Context Protocol with SSE streaming |
+| `igris-multimodal` | Vision + audio input (scaffolding) |
 
-**Local inference.** The engine embeds a local inference runtime (GGUF-format models). When configured, it falls back to local inference if cloud providers are unavailable. The API and response format remain identical.
+**Key capabilities:**
+- Ed25519-signed, hash-chained execution receipts
+- Cloud provider routing with automatic fallback to local GGUF models
+- Behavior Tree execution with live SSE streaming
+- Swarm coordination across multiple runtime instances
+- Federated learning with privacy-preserving aggregation
+- ROS2 topic/service integration for robotics
 
-**Governance output.** The engine writes signed execution receipts that are queryable via API and exportable for audit workflows.
+### `overture-server` (Fleet Control Plane)
+
+A separate, lightweight Axum-based server for fleet management with an embedded Redb database. Handles agent registration, config sync, telemetry collection, and BTree visualization.
 
 ---
 
 ## Trust Chain
 
-The coordination layer and execution engine share a trust model. A request's full lineage — from API call to signed execution — is traceable by a single request ID.
+Every execution in Igris is traceable from API call to signed receipt:
 
 <StepChain steps={[
-  { label: "Application Request", description: "Initiates with a unique request ID (e.g. abc123)" },
-  { label: "Coordination Layer", description: "Produces routing decision, tenant context, and selected provider" },
-  { label: "Execution Engine", description: "Applies capability grants and wraps execution in a signed envelope" },
-  { label: "Signed Receipt", description: "Canonical hash over inputs, outputs, timing, and resource usage" },
-  { label: "Audit Log", description: "Queryable, exportable, tamper-evident — linked by request ID" }
+  { label: "Application Request", description: "Initiates with a unique request ID and tenant context" },
+  { label: "Overture Gateway", description: "Adaptive Router selects provider via Thompson Sampling, applies SLO and circuit breaker checks" },
+  { label: "Execution (Cloud or Edge)", description: "Provider returns response; Runtime applies capability gates and tool sandbox if local" },
+  { label: "Signed Receipt", description: "Ed25519 signature over canonical envelope — inputs, outputs, timing, resource usage, violations" },
+  { label: "Audit Trail", description: "Hash-chained receipts queryable via API, exportable for compliance, tamper-evident" }
 ]} />
 
-Each step is linked to the next by the shared request ID. Receipt signatures chain across sessions, making the log tamper-evident.
+Each receipt links to the previous via hash chain. Signatures use device-bound keys that cannot be regenerated without the signing key.
 
-[Execution Receipts →](/docs/execution-receipts)
+[Execution Receipts →](/docs/execution-receipts) · [Governance →](/docs/governance)
 
 ---
 
 ## Deployment Topologies
 
-**Cloud-only.** Application routes to the coordination layer, which routes to cloud providers. No execution engine deployed. Use when you want intelligent routing without on-premise infrastructure.
+**Cloud-only.** Application routes to Overture, which routes to cloud providers. No Runtime deployed. Use for intelligent routing without on-premise infrastructure.
 
-**Hybrid.** The coordination layer handles most requests via cloud providers. When providers fail, or when policy requires it, traffic routes to a registered execution engine instance instead.
+**Hybrid.** Overture handles most requests via cloud providers. When providers fail or policy requires it, traffic routes to a registered Runtime instance. The Runtime registers via HTTP (`POST /api/v1/runtime/register`) and sends heartbeats.
 
-**Edge / offline.** The execution engine runs directly on device. No coordination layer required. The engine handles routing, inference, and governance locally.
+**Edge / offline.** `igris-server` runs directly on device with local GGUF models. No Overture connection required. Full governance (bounded execution, signed receipts, tool sandbox) works offline.
 
-**Fleet.** Multiple execution engine instances coordinated from the cloud layer. Used for robotics, edge deployments, and multi-site production.
+**Fleet.** Multiple Runtime instances coordinated from Overture. Used for robotics, edge deployments, and multi-site production. Config distribution, OTA updates, and health monitoring are managed centrally.
+
+---
+
+## What's Not Production-Ready
+
+The following components exist in the codebase but are not yet wired into the running system:
+
+| Component | Status |
+|---|---|
+| **gRPC Simatic Layer** | Proto defined, server starts on port 50051, but all 13 RPC methods are stub implementations |
+| **NATS InferenceMesh** | Package fully implemented but never initialized in `main.go` |
+| **Python ML Service** | `adapters/python/` contains only `pyproject.toml` — zero Python source files |
+| **Real provider mode** | OpenAI/Anthropic providers work in benchmark/mock mode; real API call mode is in development |
+| **Multi-region routing** | Roadmap item (v1.1.0), not implemented |
+| **SAML 2.0 SSO** | Documented but not implemented; only Better Auth with Google/GitHub OAuth |
 
 [Cloud Coordination →](/docs/cloud-coordination) · [Deployment →](/docs/deployment)
