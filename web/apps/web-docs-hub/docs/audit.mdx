@@ -44,15 +44,18 @@ Full lineage is queryable end-to-end by request ID.
 
 ## Querying Receipts
 
-Receipts are stored **locally on the runtime device** and queryable via the local engine API at `http://localhost:8080`. They are not accessible through the cloud API — nothing leaves your infrastructure unless explicitly exported.
+Receipts are queryable through two surfaces:
+
+- **Cloud API** (`overture.igrisinertial.com`) — the central execution ledger, accessible via the Proof API below
+- **Local engine API** (`http://localhost:8080`) — device-local storage; nothing leaves your infrastructure unless explicitly exported
 
 ```bash
-# List recent receipts
+# List receipts via local engine
 curl http://localhost:8080/v1/receipts \
   -H "Authorization: Bearer YOUR_API_KEY"
 
-# Get a specific receipt by request ID
-curl http://localhost:8080/v1/receipts/abc123 \
+# Get a specific receipt by execution ID
+curl http://localhost:8080/v1/receipts/exec-01HXYZ \
   -H "Authorization: Bearer YOUR_API_KEY"
 
 # Filter by time range
@@ -60,42 +63,25 @@ curl "http://localhost:8080/v1/receipts?from=2026-03-01T00:00:00Z&to=2026-03-02T
   -H "Authorization: Bearer YOUR_API_KEY"
 ```
 
-Response format:
-```json
-{
-  "receipt": {
-    "request_id": "abc123",
-    "tenant_id": "tenant-456",
-    "timestamp": "2026-03-01T12:00:00Z",
-    "inputs": { "..." : "..." },
-    "outputs": { "..." : "..." },
-    "resource_usage": {
-      "prompt_tokens": 42,
-      "completion_tokens": 187,
-      "wall_time_ms": 312,
-      "tool_calls": 1
-    },
-    "capability_grants": ["tool_http"],
-    "capability_violations": [],
-    "signature": "sha256:..."
-  }
-}
-```
-
 ---
 
 ## Export
 
-Receipts can be exported in bulk for external audit workflows:
+Export receipts in bulk for external audit workflows:
 
 ```bash
-# Export receipts as JSONL
-curl "http://localhost:8080/v1/receipts/export?format=jsonl&from=2026-03-01T00:00:00Z" \
+# Export as JSONL
+curl "https://overture.igrisinertial.com/v1/receipts/export?format=jsonl&from=2026-03-01T00:00:00Z" \
   -H "Authorization: Bearer YOUR_API_KEY" \
   -o receipts-2026-03-01.jsonl
+
+# Export as CSV
+curl "https://overture.igrisinertial.com/v1/receipts/export?format=csv&from=2026-03-01T00:00:00Z" \
+  -H "Authorization: Bearer YOUR_API_KEY" \
+  -o receipts-2026-03-01.csv
 ```
 
-Supported export formats: `jsonl`, `csv`, `parquet`
+Supported export formats: `jsonl` (default), `csv`
 
 ---
 
