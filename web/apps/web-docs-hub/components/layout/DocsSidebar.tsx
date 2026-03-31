@@ -29,6 +29,17 @@ import {
   Lock,
   Server,
   Network,
+  Rocket,
+  GitMerge,
+  ShieldCheck,
+  TreePine,
+  FileText,
+  Radio,
+  Cloud,
+  Blocks,
+  ShieldAlert,
+  BarChart3,
+  Monitor,
 } from 'lucide-react';
 import { cn } from '@/lib/utils';
 
@@ -135,25 +146,25 @@ const docsNavSections: NavSection[] = [
     items: [
       { name: 'Overview', href: '/docs', icon: Home },
       { name: 'Architecture', href: '/docs/architecture', icon: Layers },
-      { name: 'Quick Start', href: '/docs/quickstart', icon: Zap },
+      { name: 'Quick Start', href: '/docs/quickstart', icon: Rocket },
     ],
   },
   {
     section: 'Execution',
     items: [
-      { name: 'Execution Model', href: '/docs/execution-model', icon: Cpu },
+      { name: 'Execution Model', href: '/docs/execution-model', icon: Box },
       { name: 'Execution Flow', href: '/docs/execution-flow', icon: ArrowRight },
       { name: 'Safety & Containment', href: '/docs/safety', icon: Shield },
-      { name: 'Capabilities & Limits', href: '/docs/capability-model', icon: Box },
-      { name: 'Execution Receipts', href: '/docs/execution-receipts', icon: FileText },
-      { name: 'Agent Lifecycle', href: '/docs/agent-lifecycle', icon: GitBranch },
+      { name: 'Capabilities & Limits', href: '/docs/capability-model', icon: ShieldCheck },
+      { name: 'Execution Receipts', href: '/docs/execution-receipts', icon: ReceiptText },
+      { name: 'Agent Lifecycle', href: '/docs/agent-lifecycle', icon: GitMerge },
     ],
   },
   {
     section: 'Agents',
     items: [
       { name: 'Agents', href: '/docs/agents', icon: Bot },
-      { name: 'Behavior Trees', href: '/docs/behavior-trees', icon: GitBranch },
+      { name: 'Behavior Trees', href: '/docs/behavior-trees', icon: TreePine },
       { name: 'Tools', href: '/docs/tools', icon: Wrench },
       { name: 'Memory', href: '/docs/memory', icon: Database },
     ],
@@ -162,15 +173,15 @@ const docsNavSections: NavSection[] = [
     section: 'Robotics',
     items: [
       { name: 'Robotics', href: '/docs/robotics', icon: Cpu },
-      { name: 'ROS2 Integration', href: '/docs/ros2-integration', icon: Globe },
+      { name: 'ROS2 Integration', href: '/docs/ros2-integration', icon: Radio },
     ],
   },
   {
     section: 'Cloud & Fleet',
     items: [
-      { name: 'Cloud Coordination', href: '/docs/cloud-coordination', icon: Globe },
-      { name: 'Fleet Management', href: '/docs/fleet-management', icon: Layers },
-      { name: 'Policy', href: '/docs/policy', icon: Shield },
+      { name: 'Cloud Coordination', href: '/docs/cloud-coordination', icon: Cloud },
+      { name: 'Fleet Management', href: '/docs/fleet-management', icon: Server },
+      { name: 'Policy', href: '/docs/policy', icon: ShieldAlert },
       { name: 'Audit', href: '/docs/audit', icon: FileText },
     ],
   },
@@ -179,17 +190,17 @@ const docsNavSections: NavSection[] = [
     items: [
       { name: 'EscapeVector', href: '/docs/escapevector', icon: Zap },
       { name: 'SLO Enforcer', href: '/docs/slo-enforcer', icon: Activity },
-      { name: 'Circuit Breaker', href: '/docs/circuit-breaker', icon: Shield },
-      { name: 'Provider Health', href: '/docs/provider-health', icon: Activity },
+      { name: 'Circuit Breaker', href: '/docs/circuit-breaker', icon: ShieldCheck },
+      { name: 'Provider Health', href: '/docs/provider-health', icon: BarChart3 },
       { name: 'Shadow Mode', href: '/docs/shadow-mode', icon: Eye },
-      { name: 'Local LLM Fallback', href: '/docs/local-llm-fallback', icon: Server },
+      { name: 'Local LLM Fallback', href: '/docs/local-llm-fallback', icon: Monitor },
     ],
   },
   {
     section: 'Privacy & Scale',
     items: [
       { name: 'Multi-Tenancy', href: '/docs/multi-tenancy', icon: Network },
-      { name: 'Model Aggregation', href: '/docs/model-aggregation', icon: Database },
+      { name: 'Model Aggregation', href: '/docs/model-aggregation', icon: Blocks },
       { name: 'Tamper-Evident Logs', href: '/docs/tamper-evident-logs', icon: Lock },
     ],
   },
