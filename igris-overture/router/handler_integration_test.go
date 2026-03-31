@@ -17,19 +17,15 @@ func TestHandlerIntegration_SpeculativeFlow(t *testing.T) {
 
 	// Register fast provider
 	fastProvider := &MockProvider{
-		name:            "fast-provider",
-		firstTokenDelay: 100 * time.Millisecond,
-		tokenInterval:   10 * time.Millisecond,
-		totalTokens:     10,
+		id:    "fast-provider",
+		delay: 100 * time.Millisecond,
 	}
 	registry.Register(fastProvider)
 
 	// Register slow provider
 	slowProvider := &MockProvider{
-		name:            "slow-provider",
-		firstTokenDelay: 300 * time.Millisecond,
-		tokenInterval:   10 * time.Millisecond,
-		totalTokens:     10,
+		id:    "slow-provider",
+		delay: 300 * time.Millisecond,
 	}
 	registry.Register(slowProvider)
 
@@ -136,16 +132,12 @@ func TestHandlerIntegration_ModeParsing(t *testing.T) {
 	// Create provider registry with 2 providers (minimum for speculative execution)
 	registry := providers.NewProviderRegistry()
 	mockProvider1 := &MockProvider{
-		name:            "test-provider-1",
-		firstTokenDelay: 100 * time.Millisecond,
-		tokenInterval:   10 * time.Millisecond,
-		totalTokens:     5,
+		id:    "test-provider-1",
+		delay: 100 * time.Millisecond,
 	}
 	mockProvider2 := &MockProvider{
-		name:            "test-provider-2",
-		firstTokenDelay: 150 * time.Millisecond,
-		tokenInterval:   10 * time.Millisecond,
-		totalTokens:     5,
+		id:    "test-provider-2",
+		delay: 150 * time.Millisecond,
 	}
 	registry.Register(mockProvider1)
 	registry.Register(mockProvider2)
@@ -223,16 +215,12 @@ func TestHandlerIntegration_CostRecording(t *testing.T) {
 	// Create provider registry
 	registry := providers.NewProviderRegistry()
 	provider1 := &MockProvider{
-		name:            "provider1",
-		firstTokenDelay: 100 * time.Millisecond,
-		tokenInterval:   10 * time.Millisecond,
-		totalTokens:     10,
+		id:    "provider1",
+		delay: 100 * time.Millisecond,
 	}
 	provider2 := &MockProvider{
-		name:            "provider2",
-		firstTokenDelay: 200 * time.Millisecond,
-		tokenInterval:   10 * time.Millisecond,
-		totalTokens:     10,
+		id:    "provider2",
+		delay: 200 * time.Millisecond,
 	}
 	registry.Register(provider1)
 	registry.Register(provider2)
