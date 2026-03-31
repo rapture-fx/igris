@@ -1,6 +1,8 @@
 import { DocsLayout } from '@/components/layout/DocsLayout';
 import { MDXContent } from '@/components/MDXContent';
 import { JsonLd } from '@/components/JsonLd';
+import { DocFooter } from '@/components/layout/DocFooter';
+import { FeedbackWidget } from '@/components/layout/FeedbackWidget';
 import { notFound } from 'next/navigation';
 
 interface PageProps {
@@ -105,6 +107,15 @@ const slugToFile: Record<string, string> = {
   troubleshooting: 'troubleshooting',
   'speculative-execution': 'speculative-execution',
   'approval-workflows': 'approval-workflows',
+  'slo-enforcer': 'slo-enforcer',
+  'multi-tenancy': 'multi-tenancy',
+  escapevector: 'escapevector',
+  'circuit-breaker': 'circuit-breaker',
+  'provider-health': 'provider-health',
+  'shadow-mode': 'shadow-mode',
+  'tamper-evident-logs': 'tamper-evident-logs',
+  'model-aggregation': 'model-aggregation',
+  'local-llm-fallback': 'local-llm-fallback',
 };
 
 export async function generateStaticParams() {
@@ -133,6 +144,8 @@ export default async function DocPage({ params }: PageProps) {
         <MDXContent>
           <MDXComponent />
         </MDXContent>
+        <FeedbackWidget />
+        <DocFooter slug={slug} />
       </DocsLayout>
     </>
   );
