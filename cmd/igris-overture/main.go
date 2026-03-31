@@ -476,6 +476,14 @@ func main() {
 		api.RegisterRoutingAnalyticsRoutes(app, dbInstance)
 		log.Println("[Routing] ✅ Routing analytics endpoints registered (GET /v1/routing/stats|recent|leaderboard)")
 
+		// Execution receipts (tamper-evident signed records)
+		api.RegisterReceiptRoutes(app, dbInstance)
+		log.Println("[Receipts] ✅ Receipt endpoints registered (/v1/receipts, /v1/receipts/:id, /v1/receipts/export)")
+
+		// Fleet config push and OTA updates
+		api.RegisterFleetPushRoutes(app, dbInstance)
+		log.Println("[Fleet] ✅ Fleet push endpoints registered (/api/v1/runtime/config/push, /api/v1/runtime/update)")
+
 		// Multimodal inference (vision + audio)
 		api.RegisterMultimodalRoutes(app, dbInstance)
 		log.Println("[Multimodal] ✅ Multimodal endpoints registered (/v1/infer/multimodal)")
