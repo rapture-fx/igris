@@ -1,0 +1,153 @@
+# EscapeVector
+
+EscapeVector is Igris's WebAssembly-compiled routing engine. It implements Thompson Sampling, circuit-breaker logic, and provider health monitoring in a portable, deterministic binary that runs identically in the cloud, on edge devices, and in-browser.
+
+---
+
+## What It Is
+
+EscapeVector is a Rust library compiled to WebAssembly (WASM). It powers the intelligent routing decisions that determine which provider handles each inference request.
+
+```
+Request → EscapeVector WASM → Provider Selection → Inference
+```
+
+Because it's compiled to WASM, EscapeVector runs:
+- **In the cloud** — as part of the Overture routing layer
+- **On edge devices** — embedded in the Runtime binary
+- **In the browser** — in the Console UI for live routing simulation
+
+---
+
+## Why WASM?
+
+| Benefit | Explanation |
+|---|---|
+| **Deterministic** | Same input → same output, regardless of platform |
+| **Portable** | Runs on any platform with a WASM runtime |
+| **Fast** | Near-native performance for routing decisions (< 1ms) |
+| **Auditable** | The WASM bytecode can be verified independently |
+| **Sandboxed** | WASM provides memory safety and isolation |
+
+---
+
+## Exported Functions
+
+EscapeVector exposes these functions to the host environment:
+
+### `select_provider(providers, history, strategy) → provider_id`
+
+Selects the best provider using the configured strategy (Thompson Sampling, cost-optimized, latency-optimized, or quality-optimized).
+
+```rust
+// Pseudocode
+let provider = escapevector::select_provider(
+    &providers,      // Available providers with latency/cost stats
+    &history,        // Recent request history
+    "thompson-sampling"
+);
+```
+
+### `record_result(provider_id, latency_ms, success, cost_usd) → ()`
+
+Records the result of an inference request to update the provider's statistical model.
+
+### `circuit_breaker_status(provider_id) → { state, failures, last_failure }`
+
+Returns the current circuit-breaker state for a provider:
+- **closed** — provider is healthy, requests flow normally
+- **open** — provider is unhealthy, requests are diverted
+- **half-open** — testing if provider has recovered
+
+### `update_circuit_breaker(provider_id, success) → new_state`
+
+Updates the circuit-breaker state based on request success/failure.
+
+---
+
+## Thompson Sampling
+
+Thompson Sampling is EscapeVector's default routing strategy. It models each provider's latency as a probability distribution and samples from these distributions to select the provider most likely to be fastest.
+
+**How it works:**
+1. Each provider has a gamma distribution modeling its latency
+2. On each request, EscapeVector samples from each provider's distribution
+3. The provider with the lowest sampled value is selected
+4. After the request completes, the provider's distribution is updated with the observed latency
+
+This naturally balances exploration (trying less-used providers) with exploitation (using the best-known provider).
+
+### Configuration
+
+```json
+{
+  "routing": {
+    "strategy": "thompson-sampling",
+    "fallback_chain": ["anthropic", "openai", "local"],
+    "exploration_bonus": 0.1
+  }
+}
+```
+
+---
+
+## Circuit Breaker
+
+The circuit breaker protects against cascading failures when a provider degrades:
+
+```
+                    ┌──────────┐
+     Success ──────►│  CLOSED  │────── Requests flow
+                    └────┬─────┘
+                         │ failures >= threshold
+                    ┌────▼─────┐
+                    │   OPEN   │────── Requests diverted
+                    └────┬─────┘
+                         │ timeout elapsed
+                    ┌────▼─────┐
+     Success ──────►│ HALF-OPEN│────── Test request
+                    └──────────┘
+```
+
+**Configuration:**
+```json
+{
+  "circuit_breaker": {
+    "failure_threshold": 5,
+    "success_threshold": 3,
+    "timeout_seconds": 30,
+    "half_open_max_requests": 1
+  }
+}
+```
+
+---
+
+## Console Integration
+
+The Console at `/models/routing` displays the live EscapeVector engine status:
+
+- **WASM module status** — loaded, compile time, exported functions
+- **Benchmark results** — routing decision latency across providers
+- **Provider weights** — visual weight bars showing routing probability
+- **Circuit breaker states** — per-provider open/closed/half-open status
+
+---
+
+## Building EscapeVector
+
+EscapeVector is written in Rust and compiled to WASM:
+
+```bash
+cd rust-core/escapevector
+cargo build --target wasm32-unknown-unknown --release
+```
+
+The resulting `.wasm` file is embedded in:
+- The Overture cloud service
+- The Runtime binary
+- The Console frontend (for in-browser simulation)
+
+---
+
+[Routing Engine →](/docs/cloud-coordination) · [Provider Health →](/docs/provider-health) · [SDK →](/docs/sdk)
