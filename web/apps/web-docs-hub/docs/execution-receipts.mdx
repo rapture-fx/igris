@@ -49,6 +49,8 @@ The signature is computed over a deterministic serialization of all fields. Rece
 
 ## Querying Receipts
 
+> Receipts are stored **locally on the runtime device** and exposed via the local engine API (`http://localhost:8080`). They are not available through the cloud API at `overture.igrisinertial.com`. Nothing leaves your infrastructure unless you explicitly export them.
+
 ```bash
 # List recent receipts
 curl http://localhost:8080/v1/receipts \
