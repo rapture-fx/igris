@@ -63,9 +63,9 @@ Available tools (each requires an explicit capability grant):
 
 | Tool | Capability | What it does |
 |---|---|---|
-| HTTP | `tool_http` | GET/POST to external APIs |
-| Shell | `tool_shell` | Execute shell commands (sandboxed) |
-| Filesystem | `tool_filesystem` | Read, write, list files |
+| HTTP | `allow_http` | GET/POST to external APIs |
+| Shell | `allow_shell` | Execute shell commands (sandboxed) |
+| Filesystem | `allow_filesystem` | Read, write, list files |
 
 Tool calls are recorded in the execution receipt including the call parameters, response, and latency.
 
@@ -74,9 +74,9 @@ Tool calls are recorded in the execution receipt including the call parameters, 
 {
   "mode": "tools",
   "capabilities": {
-    "tool_http": true,
-    "tool_shell": false,
-    "tool_filesystem": true
+    "allow_http": true,
+    "allow_shell": false,
+    "allow_filesystem": true
   }
 }
 ```
@@ -139,3 +139,52 @@ Created → Active → Completing → Completed
 Lifecycle events are recorded in the execution envelope and queryable via the observability API.
 
 [Agent Lifecycle →](/docs/agent-lifecycle)
+
+---
+
+## Choosing the Right Agent Pattern
+
+| If your task is... | Use |
+|---|---|
+| Needs consistent quality (code gen, structured output) | Reflection |
+| Multi-step with unknown intermediate results | Planning |
+| Requires external data or actions | Tool-Use |
+| Benefits from multiple perspectives | Swarm |
+| Needs cross-instance state sharing | MCP Swarm Mode |
+
+**Combining patterns** — patterns can be combined. A planning agent can use tools at each step. A swarm can use reflection to score each agent's contribution before synthesis.
+
+---
+
+## Mode Flags
+
+Agent mode flags are set per-agent via the API and persist across executions:
+
+```bash
+curl -X PATCH https://overture.igrisinertial.com/v1/agents/agent-abc \
+  -H "Authorization: Bearer YOUR_API_KEY" \
+  -H "Content-Type: application/json" \
+  -d '{
+    "shadow_mode": false,
+    "reflection_mode": true,
+    "council_mode": false,
+    "cognitive_advisor_enabled": true
+  }'
+```
+
+| Flag | Effect |
+|---|---|
+| `shadow_mode` | Runs a shadow copy of every execution for comparison without affecting real results |
+| `reflection_mode` | Enables self-critique and quality scoring after each execution |
+| `council_mode` | Uses multi-provider consensus for this agent's requests |
+| `cognitive_advisor_enabled` | Allows the cognitive advisor to propose routing changes for this agent |
+
+---
+
+## Monitoring Agent State
+
+```
+GET https://overture.igrisinertial.com/v1/execution/agents
+```
+
+Returns all agents with their current state, last execution, and mode flags. Use the console **Agents** page for a live view with violation counts and execution history.
