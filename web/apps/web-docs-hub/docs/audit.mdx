@@ -44,7 +44,7 @@ Full lineage is queryable end-to-end by request ID.
 
 ## Querying Receipts
 
-Receipts are stored locally on the execution engine and queryable via API:
+Receipts are stored **locally on the runtime device** and queryable via the local engine API at `http://localhost:8080`. They are not accessible through the cloud API — nothing leaves your infrastructure unless explicitly exported.
 
 ```bash
 # List recent receipts
