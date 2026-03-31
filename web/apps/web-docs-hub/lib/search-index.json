@@ -162,7 +162,7 @@
   {
     "title": "Quick Start",
     "path": "/docs/quickstart",
-    "keywords": "quick start install the runtime option a — cloud api (no local setup) step 1: sign up and get an api key step 2: add your provider keys step 3: point your sdk at igris response.metadata → {\"provider\": \"anthropic\", \"cost_usd\": 0.00021, ...} option b — local / edge (no internet required) step 1: install the runtime step 2: authenticate step 3: start the runtime step 4: point your application at the runtime option c — hybrid (cloud + local fallback) step 1: deploy the runtime step 2: register the r"
+    "keywords": "quick start install the runtime verify installation → igris-runtime v0.1.0 (linux/amd64) option a — cloud api (no local setup) step 1: sign up and get an api key step 2: add your provider keys step 3: point your sdk at igris response.metadata → {\"provider\": \"anthropic\", \"cost_usd\": 0.00021, ...} option b — local / edge (no internet required) step 1: install the runtime step 2: authenticate step 3: start the runtime step 4: point your application at the runtime option c — hybrid (cloud + local fa"
   },
   {
     "title": "Robotics",
