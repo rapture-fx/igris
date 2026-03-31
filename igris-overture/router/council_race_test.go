@@ -4,6 +4,7 @@ import (
 	"context"
 	"encoding/json"
 	"errors"
+	"fmt"
 	"sync"
 	"testing"
 	"time"
@@ -17,39 +18,33 @@ import (
 
 // MockProvider implements the Provider interface for testing
 type MockProvider struct {
-	id           string
-	inferFunc    func(context.Context, *models.InferRequest) (*models.InferResponse, error)
-	streamFunc   func(context.Context, *models.InferRequest) (<-chan *models.StreamChunk, <-chan error)
-	delay        time.Duration
-	shouldFail   bool
+	id              string
+	inferFunc       func(context.Context, *models.InferRequest) (*models.InferResponse, error)
+	streamFunc      func(context.Context, *models.InferRequest) (<-chan *models.StreamChunk, <-chan error)
+	delay           time.Duration
+	shouldFail      bool
+	firstTokenDelay time.Duration
+	tokenInterval   time.Duration
+	totalTokens     int
 }
+
+func (m *MockProvider) Name() string { return m.id }
 
 func (m *MockProvider) Infer(ctx context.Context, req *models.InferRequest) (*models.InferResponse, error) {
 	if m.inferFunc != nil {
 		return m.inferFunc(ctx, req)
 	}
-
 	if m.delay > 0 {
 		time.Sleep(m.delay)
 	}
-
 	if m.shouldFail {
 		return nil, errors.New("mock provider error")
 	}
-
 	return &models.InferResponse{
 		Choices: []models.Choice{
-			{
-				Index: 0,
-				Message: &models.Message{
-					Role:    "assistant",
-					Content: "Response from " + m.id,
-				},
-			},
+			{Index: 0, Message: &models.Message{Role: "assistant", Content: "Response from " + m.id}},
 		},
-		Usage: &models.UsageStats{
-			TotalTokens: 50,
-		},
+		Usage: &models.UsageStats{TotalTokens: 50},
 	}, nil
 }
 
@@ -57,35 +52,52 @@ func (m *MockProvider) InferStream(ctx context.Context, req *models.InferRequest
 	if m.streamFunc != nil {
 		return m.streamFunc(ctx, req)
 	}
-
 	tokenChan := make(chan *models.StreamChunk, 10)
 	errChan := make(chan error, 1)
-
 	go func() {
 		defer close(tokenChan)
 		defer close(errChan)
-
-		for i := 0; i < 5; i++ {
+		delay := m.firstTokenDelay
+		if delay == 0 {
+			delay = m.delay
+		}
+		if delay > 0 {
+			select {
+			case <-time.After(delay):
+			case <-ctx.Done():
+				return
+			}
+		}
+		total := m.totalTokens
+		if total == 0 {
+			total = 5
+		}
+		interval := m.tokenInterval
+		if interval == 0 {
+			interval = 10 * time.Millisecond
+		}
+		for i := 0; i < total; i++ {
 			select {
 			case <-ctx.Done():
 				return
 			case tokenChan <- &models.StreamChunk{
-				Choices: []models.Choice{
-					{
-						Index: 0,
-						Delta: &models.Message{
-							Content: "token",
-						},
-					},
-				},
+				Choices: []models.Choice{{Index: 0, Delta: &models.Message{Content: fmt.Sprintf("token_%d_%s", i, m.id)}}},
 			}:
-				time.Sleep(10 * time.Millisecond)
+				if i < total-1 {
+					time.Sleep(interval)
+				}
 			}
 		}
 	}()
-
 	return tokenChan, errChan
 }
+
+func (m *MockProvider) HealthCheck(ctx context.Context) error { return nil }
+func (m *MockProvider) GetCapabilities() *providers.ProviderCapabilities {
+	return &providers.ProviderCapabilities{SupportsStreaming: true}
+}
+func (m *MockProvider) EstimateCost(req *models.InferRequest) (float64, error) { return 0.001, nil }
+func (m *MockProvider) Close() error                                           { return nil }
 
 // Test P0-2: Council Mode Deadlock Prevention
 // Ensures that buffered channel prevents deadlock when timeout occurs
