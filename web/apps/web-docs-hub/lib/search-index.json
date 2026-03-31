@@ -1,0 +1,232 @@
+[
+  {
+    "title": "Agent Lifecycle",
+    "path": "/docs/agent-lifecycle",
+    "keywords": "agent lifecycle states state transitions querying agent state get current state of all agents get a specific agent lifecycle records force termination safe idle (human-in-the-loop) bash json json bash agent lifecycle agent-lifecycle"
+  },
+  {
+    "title": "Agents",
+    "path": "/docs/agents",
+    "keywords": "agents reflection agents planning agents tool-use agents multi-agent swarms mcp swarm mode agent lifecycle choosing the right agent pattern mode flags monitoring agent state json json json json bash agents agents"
+  },
+  {
+    "title": "API Reference",
+    "path": "/docs/api-reference",
+    "keywords": "api reference authentication inference post /v1/chat/completions get /v1/models get /v1/providers/stats routing analytics read-only analytics speculative execution routing configuration (post) execution runs get /v1/execution/runs post /v1/execution/runs/:id/pause → {\"status\": \"paused\"} post /v1/execution/runs/:id/resume → {\"status\": \"running\"} post /v1/execution/runs/:id/cancel post /v1/execution/runs/:id/replay → {\"status\": \"replayed\", \"new_execution_id\": \"exec-01habc\"} post /v1/execution/runs"
+  },
+  {
+    "title": "Approval Workflows",
+    "path": "/docs/approval-workflows",
+    "keywords": "human-in-the-loop approvals how executions get paused for review finding runs waiting for approval reviewing in the console approving a run → {\"status\": \"running\", \"approved\": true} rejecting a run → {\"status\": \"rejected\", \"reason\": \"action_out_of_scope\"} what gets recorded in the receipt replaying a rejected run → {\"status\": \"replayed\", \"new_execution_id\": \"exec-01habc\"} monitoring the approval queue best practices bash json bash bash json json bash bash human-in-the-loop approvals approval-wor"
+  },
+  {
+    "title": "Architecture",
+    "path": "/docs/architecture",
+    "keywords": "architecture system overview coordination layer responsibilities execution engine responsibilities trust chain deployment topologies text architecture architecture"
+  },
+  {
+    "title": "Audit",
+    "path": "/docs/audit",
+    "keywords": "audit execution receipts lineage querying receipts list receipts via local engine get a specific receipt by execution id filter by time range export export as jsonl export as csv retention proof api get /proof/receipts post /proof/receipts/verify → {\"valid\": true, \"execution_id\": \"exec-01hxyz\"} get /v1/proof/violations compliance use cases bash bash bash json bash json bash json audit audit"
+  },
+  {
+    "title": "Behavior Trees",
+    "path": "/docs/behavior-trees",
+    "keywords": "behavior trees why behavior trees node types quick example behavior tree definitions api get /v1/bt/templates get /v1/bt/definitions get /v1/bt/definitions/:id post /v1/bt/definitions delete /v1/bt/definitions/:id using the sdk production characteristics json bash json bash json bash bash bash typescript python behavior trees behavior-trees"
+  },
+  {
+    "title": "Capabilities & Limits",
+    "path": "/docs/capability-model",
+    "keywords": "capabilities & limits capability fields configuration enforcement points violation records violation types json5 json capabilities & limits capability-model"
+  },
+  {
+    "title": "Changelog",
+    "path": "/docs/changelog",
+    "keywords": "changelog runtime-v1.8.0 — cgroups stability — march 2026 fixed runtime-v1.7.x — arm64 support and distribution — march 2026 added changed runtime-v1.6.0 — macos arm64 builds — february 2026 changed v1.2.1-speculative — speculative execution — november 2025 added 0.4.0 — runtime hardening phase 4 added changed docs  changelog changelog"
+  },
+  {
+    "title": "Circuit Breaker",
+    "path": "/docs/circuit-breaker",
+    "keywords": "circuit breaker how it works closed (healthy) open (unhealthy) half-open (testing) state machine configuration what counts as a failure? integration with escapevector monitoring console api best practices json bash json circuit breaker circuit-breaker"
+  },
+  {
+    "title": "Cloud Coordination",
+    "path": "/docs/cloud-coordination",
+    "keywords": "cloud coordination provider routing failover cost tracking provider health monitoring byok (bring your own keys) fleet integration register an execution engine instance routing statistics routing statistics (success rates, latency, cost per provider) provider leaderboard (ranked by performance) recent request log with routing decisions routing policies json bash bash bash json cloud coordination cloud-coordination"
+  },
+  {
+    "title": "Cognitive Advisor",
+    "path": "/docs/cognitive-advisor",
+    "keywords": "cognitive advisor how it works proposals get /api/v1/cognitive/proposals get /api/v1/cognitive/proposals/:id post /api/v1/cognitive/proposals/:id/apply → {\"status\": \"applied\", \"applied_at\": \"2026-03-01t12:05:00z\"} auto-apply configuration get /api/v1/cognitive/config put /api/v1/cognitive/config tier availability bash json bash bash json bash cognitive advisor cognitive-advisor"
+  },
+  {
+    "title": "Console",
+    "path": "/docs/console",
+    "keywords": "console user guide dashboard fleet → devices agents execution runs execution runs → approve / reject proof → violations history behavior tree editor settings → keys settings → billing related pages  console user guide console"
+  },
+  {
+    "title": "Deployment",
+    "path": "/docs/deployment",
+    "keywords": "deployment cloud api self-hosted coordination (infinite tier) local / edge execution engine supported platforms deployment methods local models verifying your deployment health check → {\"status\": \"ok\", \"version\": \"...\"} check fleet registration run a test inference networking requirements resource requirements common deployment issues connecting edge to cloud tier comparison what's next python bash bash yaml bash json bash python bash deployment deployment"
+  },
+  {
+    "title": "EscapeVector",
+    "path": "/docs/escapevector",
+    "keywords": "escapevector what it is why wasm? exported functions `select_provider(providers, history, strategy) → provider_id` `record_result(provider_id, latency_ms, success, cost_usd) → ()` `circuit_breaker_status(provider_id) → { state, failures, last_failure }` `update_circuit_breaker(provider_id, success) → new_state` thompson sampling configuration circuit breaker console integration building escapevector rust json json bash escapevector escapevector"
+  },
+  {
+    "title": "Execution Flow",
+    "path": "/docs/execution-flow",
+    "keywords": "execution flow request lifecycle step by step 1. sdk call 2. overture routes the request 3. execution (cloud or local) 4. response returns to application offline path execution receipts sdk references python json execution flow execution-flow"
+  },
+  {
+    "title": "Execution Model",
+    "path": "/docs/execution-model",
+    "keywords": "execution model execution envelope capability bounds execution path cloud path local path hybrid path signing receipt storage  execution model execution-model"
+  },
+  {
+    "title": "Execution Receipts",
+    "path": "/docs/execution-receipts",
+    "keywords": "execution receipts what a receipt contains tamper evidence querying receipts cloud api — query from overture.igrisinertial.com get a specific receipt by execution_id filter by time range and agent violations only exporting export as jsonl for external audit workflows export as csv retention compliance json bash json bash execution receipts execution-receipts"
+  },
+  {
+    "title": "Fleet Management",
+    "path": "/docs/fleet-management",
+    "keywords": "fleet management registering an instance health monitoring configuration push post /api/v1/runtime/config/push ota updates post /api/v1/runtime/update tag-based routing tier limits bash json bash json bash json bash json json fleet management fleet-management"
+  },
+  {
+    "title": "Governance",
+    "path": "/docs/governance",
+    "keywords": "governance what governance covers execution receipts capability model agent lifecycle transaction boundary routing policy trust chain compliance use cases setting up governance for your fleet step 1 — define your capability policy step 2 — assign policies to agents step 3 — monitor violations step 4 — review receipts for compliance step 5 — adjust and iterate  governance governance"
+  },
+  {
+    "title": "History",
+    "path": "/docs/history",
+    "keywords": "history & alerts execution events get /v1/history/events metrics get /v1/history/metrics alerts get /v1/history/alerts post /v1/history/alerts/:id/acknowledge → {\"status\": \"acknowledged\"} post /v1/history/alerts/:id/resolve → {\"status\": \"resolved\"} post /v1/history/alerts/:id/escalate → {\"status\": \"escalated\"} alert lifecycle bash json bash json bash json bash bash bash history & alerts history"
+  },
+  {
+    "title": "Key Management",
+    "path": "/docs/key-management",
+    "keywords": "key management adding provider keys key validation rotating a provider key removing a key security properties  key management key-management"
+  },
+  {
+    "title": "Local LLM Fallback",
+    "path": "/docs/local-llm-fallback",
+    "keywords": "local llm fallback how it works supported models configuration fallback triggers performance expectations air-gapped deployment monitoring console api json json local llm fallback local-llm-fallback"
+  },
+  {
+    "title": "MCP Integration",
+    "path": "/docs/mcp",
+    "keywords": "mcp (model context protocol) what mcp does post /v1/mcp post /v1/mcp/stream mcp swarm mode bash javascript toml mcp model context protocol mcp"
+  },
+  {
+    "title": "Memory",
+    "path": "/docs/memory",
+    "keywords": "memory vector store kv cache cross-instance context (mcp swarm mode) agent blackboard api get /v1/agents/memory/ get /v1/agents/memory/:key put /v1/agents/memory/:key delete /v1/agents/memory/:key → 204 no content on-device training json json json bash json bash bash bash json memory memory"
+  },
+  {
+    "title": "Model Aggregation",
+    "path": "/docs/model-aggregation",
+    "keywords": "model aggregation what it is architecture aggregation rounds round configuration privacy api get /v1/federated/status get /v1/federated/participants get /v1/federated/rounds post /v1/federated/rounds/start get /v1/federated/config put /v1/federated/config console json bash json json model aggregation model-aggregation"
+  },
+  {
+    "title": "Multi-Tenancy",
+    "path": "/docs/multi-tenancy",
+    "keywords": "multi-tenancy architecture isolation guarantees tenant identification tenant configuration resource quotas cross-tenant isolation data isolation network isolation key isolation admin operations creating a tenant listing tenants updating tenant tier billing json bash json bash bash multi-tenancy multi-tenancy"
+  },
+  {
+    "title": "Multimodal",
+    "path": "/docs/multimodal",
+    "keywords": "multimodal inference post /v1/infer/multimodal get /v1/infer/multimodal/stats supported providers bash json bash json multimodal inference multimodal"
+  },
+  {
+    "title": "Overview",
+    "path": "/docs/",
+    "keywords": "igris one system, three surfaces cloud edge robots what igris guarantees where to start platform guarantees  igris overview"
+  },
+  {
+    "title": "Policy",
+    "path": "/docs/policy",
+    "keywords": "policy what policies control routing strategy → {\"saved\": true} fallback chains execution envelope limits get /v1/policies assigning a policy to agents post /v1/policies/assign → {\"status\": \"assigned\", \"agent_count\": 2} council & shadow mode bash json bash bash json bash bash policy policy"
+  },
+  {
+    "title": "Pricing",
+    "path": "/docs/pricing-tiers",
+    "keywords": "pricing & tiers pricing overview seed — $29/month included features horizon — $149/month everything in seed, plus infinite — $699/month everything in horizon, plus feature comparison trial system billing upgrading and downgrading frequently asked questions what counts as a runtime instance? can i run multiple instances per machine? what happens to my data if i do not subscribe after the trial? can i start on seed and upgrade later? is there a setup fee or onboarding cost? how does on-premise dep"
+  },
+  {
+    "title": "Provider Health",
+    "path": "/docs/provider-health",
+    "keywords": "provider health health metrics health status levels active degraded unavailable health monitoring pipeline provider health dashboard health api get /v1/providers/stats get /v1/providers/health automatic actions health checks bash json bash json json provider health provider-health"
+  },
+  {
+    "title": "Quick Start",
+    "path": "/docs/quickstart",
+    "keywords": "quick start install the runtime option a — cloud api (no local setup) step 1: sign up and get an api key step 2: add your provider keys step 3: point your sdk at igris response.metadata → {\"provider\": \"anthropic\", \"cost_usd\": 0.00021, ...} option b — local / edge (no internet required) step 1: install the runtime step 2: authenticate step 3: start the runtime step 4: point your application at the runtime option c — hybrid (cloud + local fallback) step 1: deploy the runtime step 2: register the r"
+  },
+  {
+    "title": "Robotics",
+    "path": "/docs/robotics",
+    "keywords": "robotics deployment on robotics hardware ros2 integration mission execution safety in robotics fleet management yaml robotics robotics"
+  },
+  {
+    "title": "ROS2 Integration",
+    "path": "/docs/ros2-integration",
+    "keywords": "ros2 integration overview installation add the igris apt repository starting the node sending an inference request ros2 service interface behavior tree integration deploy a behavior tree run a behavior tree tick configuration igris_ros2.yaml message types ros topic management api get /v1/ros/topics post /v1/ros/topics/map delete /v1/ros/topics/map/:id → 204 no content post /v1/ros/publish get /v1/ros/discovery post /v1/ros/lifecycle bash bash bash bash bash yaml bash bash yaml bash json bash bas"
+  },
+  {
+    "title": "Safety & Containment",
+    "path": "/docs/safety",
+    "keywords": "safety & containment containment model resource limits cgroup bounds (linux) capability enforcement secure defaults violation handling human-in-the-loop  safety & containment safety"
+  },
+  {
+    "title": "SDK",
+    "path": "/docs/sdk",
+    "keywords": "sdks openai-compatible (works today) igris native sdks (private beta) javascript / typescript python go rust request options sdk source python typescript bash typescript python go rust sdks sdk"
+  },
+  {
+    "title": "Shadow Mode",
+    "path": "/docs/shadow-mode",
+    "keywords": "shadow mode how it works use cases provider comparison configuration testing quality monitoring configuration shadow comparison api get /v1/execution/shadow divergence score console cost considerations bash json bash json shadow mode shadow-mode"
+  },
+  {
+    "title": "SLO Enforcer",
+    "path": "/docs/slo-enforcer",
+    "keywords": "slo enforcer what it does slo configuration violation actions `fallback` `terminate` `log_only` how latency enforcement works cost enforcement quality enforcement slo dashboard api get /v1/slo/config post /v1/slo/config get /v1/slo/compliance json bash bash bash json slo enforcer slo-enforcer"
+  },
+  {
+    "title": "Speculative Execution",
+    "path": "/docs/speculative-execution",
+    "keywords": "speculative execution how it works when it helps when it does not help tier availability enabling speculative execution enable for your tenant → {\"enabled\": true, \"updated_at\": \"2026-03-31t09:00:00z\"} check current configuration check live status reading analytics simulating before enabling interaction with other features bash bash bash json bash json bash json bash json json speculative execution speculative-execution"
+  },
+  {
+    "title": "Swarm",
+    "path": "/docs/swarm",
+    "keywords": "swarm & council mode council mode enabling council mode per agent configuring council mode → {\"saved\": true} council analytics cost considerations swarm mode get /v1/fleet/swarm post /v1/fleet/swarm/broadcast delete /v1/fleet/swarm/agents/:id/clear → {\"cleared\": true} command delivery bash bash bash bash json bash json bash swarm & council mode swarm"
+  },
+  {
+    "title": "Tamper-Evident Logs",
+    "path": "/docs/tamper-evident-logs",
+    "keywords": "tamper-evident logs how it works chain verification what's recorded export get /v1/receipts/export console retention audit workflow bash json bash tamper-evident logs tamper-evident-logs"
+  },
+  {
+    "title": "Tools",
+    "path": "/docs/tools",
+    "keywords": "tools tool overview http tool shell tool filesystem tool tool audit trail json json json json tools tools"
+  },
+  {
+    "title": "Trial & Billing",
+    "path": "/docs/trial-billing",
+    "keywords": "trial & billing free trial post /v1/trial/start → {\"status\": \"started\", \"tier\": \"horizon\", \"ends_at\": \"2026-04-07t12:00:00z\"} get /v1/trial/status subscription get /api/subscription/status get /api/subscription/plans pricing tiers api key management get /v1/account/api-key post /v1/account/api-key delete /v1/account/api-key → 204 no content bash bash json json bash json bash json bash json bash json bash trial & billing trial-billing"
+  },
+  {
+    "title": "Troubleshooting",
+    "path": "/docs/troubleshooting",
+    "keywords": "troubleshooting runtime not starting port already in use missing api key config file not found runtime not appearing in fleet → devices network or firewall blocking outbound registration api key wrong or expired registration call failing silently provider key validation failing key copied incorrectly key revoked or quota exhausted network issue during validation re-validating an existing key via api → {\"valid\": true, \"provider\": \"openai\"} execution runs stuck in paused human review required high"
+  },
+  {
+    "title": "Articles",
+    "path": "/docs/articles",
+    "keywords": "articles engineering notes architecture deep dive blog posts"
+  }
+]
