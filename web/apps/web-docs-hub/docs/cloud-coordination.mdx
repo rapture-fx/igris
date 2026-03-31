@@ -77,7 +77,7 @@ Add a provider key:
 curl -X POST https://overture.igrisinertial.com/v1/vault/keys \
   -H "Authorization: Bearer YOUR_IGRIS_KEY" \
   -H "Content-Type: application/json" \
-  -d '{"provider": "openai", "key": "sk-..."}'
+  -d '{"provider": "openai", "key": "YOUR_OPENAI_KEY"}'
 ```
 
 Supported providers: OpenAI, Anthropic, Google (Gemini), Mistral, Cohere, and any OpenAI-compatible endpoint.
