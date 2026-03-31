@@ -19,19 +19,19 @@ func TestQualityScorer_LatencyMode(t *testing.T) {
 	// Create candidates with different latencies
 	candidates := []*ProviderCandidate{
 		{
-			ProviderID:     "fast",
-			FirstTokenAt:   time.Now().Add(-100 * time.Millisecond),
-			TokenCount:     5,
+			ProviderID:   "fast",
+			FirstTokenAt: time.Now().Add(-100 * time.Millisecond),
+			TokenCount:   5,
 		},
 		{
-			ProviderID:     "medium",
-			FirstTokenAt:   time.Now().Add(-300 * time.Millisecond),
-			TokenCount:     5,
+			ProviderID:   "medium",
+			FirstTokenAt: time.Now().Add(-300 * time.Millisecond),
+			TokenCount:   5,
 		},
 		{
-			ProviderID:     "slow",
-			FirstTokenAt:   time.Now().Add(-500 * time.Millisecond),
-			TokenCount:     5,
+			ProviderID:   "slow",
+			FirstTokenAt: time.Now().Add(-500 * time.Millisecond),
+			TokenCount:   5,
 		},
 	}
 
@@ -64,14 +64,14 @@ func TestQualityScorer_QualityMode(t *testing.T) {
 	// Create candidates
 	candidates := []*ProviderCandidate{
 		{
-			ProviderID:     "high-quality",
-			FirstTokenAt:   time.Now().Add(-200 * time.Millisecond),
-			TokenCount:     5,
+			ProviderID:   "high-quality",
+			FirstTokenAt: time.Now().Add(-200 * time.Millisecond),
+			TokenCount:   5,
 		},
 		{
-			ProviderID:     "low-quality",
-			FirstTokenAt:   time.Now().Add(-100 * time.Millisecond),
-			TokenCount:     2,
+			ProviderID:   "low-quality",
+			FirstTokenAt: time.Now().Add(-100 * time.Millisecond),
+			TokenCount:   2,
 		},
 	}
 
@@ -100,14 +100,14 @@ func TestQualityScorer_CostMode(t *testing.T) {
 
 	candidates := []*ProviderCandidate{
 		{
-			ProviderID:     "openai",  // Expensive
-			FirstTokenAt:   time.Now().Add(-100 * time.Millisecond),
-			TokenCount:     5,
+			ProviderID:   "openai", // Expensive
+			FirstTokenAt: time.Now().Add(-100 * time.Millisecond),
+			TokenCount:   5,
 		},
 		{
-			ProviderID:     "deepseek", // Cheap
-			FirstTokenAt:   time.Now().Add(-300 * time.Millisecond),
-			TokenCount:     5,
+			ProviderID:   "deepseek", // Cheap
+			FirstTokenAt: time.Now().Add(-300 * time.Millisecond),
+			TokenCount:   5,
 		},
 	}
 
@@ -177,9 +177,9 @@ func TestQualityScorer_CompositeScoring(t *testing.T) {
 
 	candidates := []*ProviderCandidate{
 		{
-			ProviderID:     "provider1",
-			FirstTokenAt:   time.Now().Add(-100 * time.Millisecond),
-			TokenCount:     5,
+			ProviderID:   "provider1",
+			FirstTokenAt: time.Now().Add(-100 * time.Millisecond),
+			TokenCount:   5,
 		},
 	}
 
@@ -210,14 +210,14 @@ func TestQualityScorer_NormalizationWorks(t *testing.T) {
 
 	candidates := []*ProviderCandidate{
 		{
-			ProviderID:     "fastest",
-			FirstTokenAt:   time.Now().Add(-50 * time.Millisecond),
-			TokenCount:     5,
+			ProviderID:   "fastest",
+			FirstTokenAt: time.Now().Add(-50 * time.Millisecond),
+			TokenCount:   5,
 		},
 		{
-			ProviderID:     "slowest",
-			FirstTokenAt:   time.Now().Add(-500 * time.Millisecond),
-			TokenCount:     5,
+			ProviderID:   "slowest",
+			FirstTokenAt: time.Now().Add(-500 * time.Millisecond),
+			TokenCount:   5,
 		},
 	}
 
@@ -256,11 +256,11 @@ func TestQualityScorer_CoherenceEvaluation(t *testing.T) {
 
 	// Good coherence: varied, valid words
 	goodTokens := createTestTokens(5, "good", false)
-	goodScore := scorer.evaluateCoherence(goodTokens)
+	goodScore := scorer.evaluateCoherenceHeuristic(goodTokens)
 
 	// Bad coherence: repetitive
 	badTokens := createTestTokens(5, "bad", true)
-	badScore := scorer.evaluateCoherence(badTokens)
+	badScore := scorer.evaluateCoherenceHeuristic(badTokens)
 
 	if goodScore <= badScore {
 		t.Errorf("Expected good coherence (%.3f) > bad coherence (%.3f)", goodScore, badScore)
