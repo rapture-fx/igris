@@ -22,7 +22,7 @@
   {
     "title": "Architecture",
     "path": "/docs/architecture",
-    "keywords": "architecture system overview coordination layer responsibilities execution engine responsibilities trust chain deployment topologies text architecture architecture"
+    "keywords": "architecture system overview overture (go — cloud gateway) core components data layer api surface igris runtime (rust — edge engine) `igris-server` (primary edge binary) `overture-server` (fleet control plane) trust chain deployment topologies what's not production-ready mermaid architecture architecture"
   },
   {
     "title": "Audit",
