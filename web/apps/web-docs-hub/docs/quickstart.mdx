@@ -39,7 +39,7 @@ curl -X POST https://overture.igrisinertial.com/v1/vault/keys \
   -d '{
     "provider": "openai",
     "key_name": "Production",
-    "api_key": "sk-..."
+    "api_key": "YOUR_OPENAI_KEY"
   }'
 ```
 
@@ -155,3 +155,32 @@ curl -X POST https://overture.igrisinertial.com/api/v1/runtime/register \
 Cloud providers handle most requests. When unavailable, the local runtime takes over automatically.
 
 [Architecture →](/docs/architecture) · [Cloud Coordination →](/docs/cloud-coordination)
+
+---
+
+## What's Next
+
+You've made your first request. Here's the recommended path forward:
+
+### Understand what just happened
+- [Execution Flow →](/docs/execution-flow) — Trace the path from your SDK call to signed receipt
+- [Execution Model →](/docs/execution-model) — How envelopes, capability gates, and receipts work
+
+### Set up your fleet
+- [Fleet Management →](/docs/fleet-management) — Register devices, push config, monitor health
+- [Deployment →](/docs/deployment) — Platform requirements, Docker/Kubernetes/systemd setup
+
+### Configure governance
+- [Capability Model →](/docs/capability-model) — Declare what each agent can and cannot do
+- [Policy →](/docs/policy) — Set execution envelope limits per tenant
+- [Audit →](/docs/audit) — Query and export execution receipts
+
+### Build agents
+- [Agents →](/docs/agents) — Reflection, planning, tool-use, and swarm patterns
+- [Behavior Trees →](/docs/behavior-trees) — Structured agent execution flows
+- [Tools →](/docs/tools) — HTTP, shell, and filesystem tool configuration
+
+### Monitor and optimize
+- [History & Alerts →](/docs/history) — Execution events, metrics, and violation alerts
+- [Cloud Coordination →](/docs/cloud-coordination) — Routing strategies, provider health, cost optimization
+- [Cognitive Advisor →](/docs/cognitive-advisor) — Automated routing optimization proposals
