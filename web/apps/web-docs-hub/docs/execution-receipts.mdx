@@ -49,20 +49,57 @@ The signature is computed over a deterministic serialization of all fields. Rece
 
 ## Querying Receipts
 
-> Receipts are stored **locally on the runtime device** and exposed via the local engine API (`http://localhost:8080`). They are not available through the cloud API at `overture.igrisinertial.com`. Nothing leaves your infrastructure unless you explicitly export them.
+Receipts are queryable via the **cloud API** at `overture.igrisinertial.com` (reads from the central execution ledger) and also via the **local engine API** at `http://localhost:8080` (reads from device-local storage).
 
 ```bash
-# List recent receipts
-curl http://localhost:8080/v1/receipts \
+# Cloud API — query from overture.igrisinertial.com
+curl https://overture.igrisinertial.com/v1/receipts \
   -H "Authorization: Bearer YOUR_API_KEY"
 
-# Get a specific receipt
-curl http://localhost:8080/v1/receipts/abc123 \
+# Get a specific receipt by execution_id
+curl https://overture.igrisinertial.com/v1/receipts/exec-01HXYZ \
   -H "Authorization: Bearer YOUR_API_KEY"
 
-# Filter by time range
-curl "http://localhost:8080/v1/receipts?from=2026-03-01T00:00:00Z&to=2026-03-02T00:00:00Z" \
+# Filter by time range and agent
+curl "https://overture.igrisinertial.com/v1/receipts?from=2026-03-01T00:00:00Z&to=2026-03-02T00:00:00Z&agent_id=agent-abc" \
   -H "Authorization: Bearer YOUR_API_KEY"
+
+# Violations only
+curl "https://overture.igrisinertial.com/v1/receipts?violations_only=true&limit=100" \
+  -H "Authorization: Bearer YOUR_API_KEY"
+```
+
+**Query parameters:**
+
+| Parameter | Description |
+|---|---|
+| `limit` | Max results (default 50, max 500) |
+| `from` | ISO 8601 start time |
+| `to` | ISO 8601 end time |
+| `agent_id` | Filter by agent |
+| `violations_only` | `true` to return only policy violations |
+
+Response:
+```json
+[
+  {
+    "execution_id": "exec-01HXYZ",
+    "agent_id": "agent-abc",
+    "runtime_id": "runtime-01",
+    "tenant_id": "tenant-456",
+    "timestamp_utc": "2026-03-01T12:00:00Z",
+    "wall_time_ms": 312,
+    "cpu_time_ms": 287,
+    "memory_peak_mb": 48,
+    "tool_calls": 1,
+    "violation_occurred": false,
+    "status": "completed",
+    "receipt_hash": "sha256:a3f9...",
+    "previous_hash": "sha256:b2e8...",
+    "signature": "base64:...",
+    "transaction_id": "txn-01HXYZ"
+  }
+]
 ```
 
 ---
@@ -71,12 +108,17 @@ curl "http://localhost:8080/v1/receipts?from=2026-03-01T00:00:00Z&to=2026-03-02T
 
 ```bash
 # Export as JSONL for external audit workflows
-curl "http://localhost:8080/v1/receipts/export?format=jsonl&from=2026-03-01T00:00:00Z" \
+curl "https://overture.igrisinertial.com/v1/receipts/export?format=jsonl&from=2026-03-01T00:00:00Z" \
   -H "Authorization: Bearer YOUR_API_KEY" \
   -o receipts-2026-03-01.jsonl
+
+# Export as CSV
+curl "https://overture.igrisinertial.com/v1/receipts/export?format=csv&from=2026-03-01T00:00:00Z" \
+  -H "Authorization: Bearer YOUR_API_KEY" \
+  -o receipts-2026-03-01.csv
 ```
 
-Supported formats: `jsonl`, `csv`, `parquet`
+Supported formats: `jsonl` (default), `csv`
 
 ---
 
