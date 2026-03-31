@@ -8,23 +8,22 @@ Release notes for Igris Inertial. Breaking changes are marked explicitly.
 
 ### Fixed
 
-- **CPU quota enforcement** — corrected cgroups_rs builder chain; `cpu()` now consumes `self` as required by cgroups_rs 0.4, resolving a compile error that blocked CPU quota enforcement on Linux
-- **cgroup period type** — `period` field cast to `u64` to match cgroups_rs 0.4 API (was `u32`, caused silent truncation on long periods)
+- **CPU quota enforcement** — resolved a bug that prevented CPU quota limits from being applied on Linux deployments; CPU-bounded execution now enforces limits as expected
+- **cgroup period precision** — corrected an integer precision issue in cgroup period configuration that could cause silent truncation for long-period CPU quotas
 
 ---
 
-## runtime-v1.7.x — Cross-compilation and release pipeline — March 2026
+## runtime-v1.7.x — ARM64 support and distribution — March 2026
 
 ### Added
 
-- **ARM64 cross-compilation** — added `Cross.toml` for reproducible cross-compilation from x86_64 hosts; runtime binaries for `linux-arm64` now built in CI without hardware runners
-- **VPS binary organization** — `vps-organize-binaries.sh` script to structure release artifacts on the distribution server
-- **Runtime distribution API** — `routes_runtime.go` updated to serve binaries through authenticated endpoints; download and checksum routes wired to binary storage
+- **ARM64 support** — runtime binaries for `linux-arm64` are now built and published; CI cross-compilation is fully automated without hardware ARM runners
+- **Authenticated binary distribution** — runtime binaries are served through authenticated download endpoints with checksum verification
 
 ### Changed
 
-- **Release pipeline** — GitHub Actions workflow updated to build and publish runtime binaries for all supported platforms (linux-amd64, linux-arm64, macos-amd64, macos-arm64) on tag push
-- **Installer** — install command updated to use `igrisinertial.com` short domain; `Igris.sh` hardened with piped-stdin detection, checksum hard-fail, and API key prompt improvements
+- **Release pipeline** — all supported platforms (linux-amd64, linux-arm64, macos-arm64) are now built and published on each release
+- **Installer** — install command updated to use `igrisinertial.com`; installer hardened with piped-stdin detection, checksum hard-fail, and API key prompt improvements
 
 ---
 
