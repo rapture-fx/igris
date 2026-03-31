@@ -30,7 +30,7 @@ func TestCircuitBreaker_AtomicStateTransitions(t *testing.T) {
 				time.Sleep(1 * time.Millisecond)
 				return errors.New("failure")
 			})
-		}(i)
+		}()
 	}
 
 	wg.Wait()
