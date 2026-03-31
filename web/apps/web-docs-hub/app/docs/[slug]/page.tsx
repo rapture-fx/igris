@@ -95,6 +95,12 @@ const slugToFile: Record<string, string> = {
   changelog: 'changelog',
   articles: 'articles/index',
   'pricing-tiers': 'pricing-tiers',
+  multimodal: 'multimodal',
+  mcp: 'mcp',
+  history: 'history',
+  'cognitive-advisor': 'cognitive-advisor',
+  swarm: 'swarm',
+  'trial-billing': 'trial-billing',
 };
 
 export async function generateStaticParams() {
