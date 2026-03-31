@@ -599,6 +599,231 @@ curl -X POST https://overture.igrisinertial.com/v1/vault/keys \
 
 ---
 
+## Shadow Mode
+
+Control and monitor shadow execution for agents.
+
+| Endpoint | Method | Description |
+|---|---|---|
+| `/v1/shadow/status` | GET | Current shadow mode status |
+| `/v1/shadow/config` | GET | Get shadow mode configuration |
+| `/v1/shadow/config` | PATCH | Update shadow mode configuration |
+| `/v1/shadow/analytics` | GET | Shadow mode analytics and metrics |
+| `/v1/shadow/logs` | GET | Shadow execution logs |
+| `/v1/shadow/start` | POST | Start shadow mode |
+| `/v1/shadow/stop` | POST | Stop shadow mode |
+| `/v1/shadow/promote` | POST | Promote shadow provider to primary |
+
+[Shadow Mode →](/docs/shadow-mode)
+
+---
+
+## Cognitive Advisor
+
+Statistical routing advisor using Thompson Sampling for provider selection.
+
+| Endpoint | Method | Description |
+|---|---|---|
+| `/v1/cognitive/status` | GET | Current cognitive advisor status |
+| `/v1/cognitive/observations` | GET | Provider observation history |
+| `/v1/cognitive/recommendations` | GET | Current routing recommendations |
+| `/v1/cognitive/recommendations/:id/apply` | POST | Apply a recommendation |
+| `/v1/cognitive/recommendations/:id/dismiss` | POST | Dismiss a recommendation |
+| `/v1/cognitive/history` | GET | Recommendation history |
+| `/v1/cognitive/config` | GET | Get cognitive advisor configuration |
+| `/v1/cognitive/config` | PATCH | Update cognitive advisor configuration |
+
+[Cognitive Advisor →](/docs/cognitive-advisor)
+
+---
+
+## Council Mode
+
+Multi-model response aggregation with consensus voting.
+
+| Endpoint | Method | Description |
+|---|---|---|
+| `/v1/council/status` | GET | Current council mode status |
+| `/v1/council/config` | GET | Get council configuration |
+| `/v1/council/config` | PATCH | Update council configuration |
+| `/v1/council/analytics` | GET | Council analytics and voting history |
+| `/v1/council/history` | GET | Council decision history |
+| `/v1/council/test` | POST | Test council with a sample prompt |
+
+---
+
+## EscapeVector
+
+WASM routing engine cache and configuration.
+
+| Endpoint | Method | Description |
+|---|---|---|
+| `/v1/escapevector/status` | GET | Engine cache status |
+| `/v1/escapevector/config` | GET | Get engine configuration |
+| `/v1/escapevector/config` | PATCH | Update engine configuration |
+| `/v1/escapevector/history` | GET | Routing decision history |
+| `/v1/escapevector/analytics` | GET | Routing analytics |
+| `/v1/escapevector/refresh` | POST | Refresh provider cache |
+| `/v1/escapevector/cache` | DELETE | Clear engine cache |
+
+[EscapeVector →](/docs/escapevector)
+
+---
+
+## Circuit Breaker
+
+| Endpoint | Method | Description |
+|---|---|---|
+| `/v1/routing/circuit-breaker/status` | GET | Per-provider circuit breaker status |
+
+[Circuit Breaker →](/docs/circuit-breaker)
+
+---
+
+## Multimodal Inference
+
+| Endpoint | Method | Description |
+|---|---|---|
+| `/v1/infer/multimodal` | POST | Multimodal inference (image + text) |
+| `/v1/infer/multimodal/stats` | GET | Multimodal inference statistics |
+
+---
+
+## Agent Memory (Blackboard)
+
+Shared key-value store across agents in a tenant.
+
+### GET /v1/agents/memory
+
+List all key-value entries for your tenant.
+
+```bash
+curl https://overture.igrisinertial.com/v1/agents/memory \
+  -H "Authorization: Bearer YOUR_API_KEY"
+```
+
+### GET /v1/agents/memory/:key
+
+Read a single entry.
+
+### PUT /v1/agents/memory/:key
+
+Write or update an entry.
+
+### DELETE /v1/agents/memory/:key
+
+Remove an entry.
+
+[Memory →](/docs/memory)
+
+---
+
+## Fleet & Swarm
+
+### GET /v1/fleet/swarm
+
+Multi-agent swarm coordination status.
+
+### POST /v1/fleet/swarm/broadcast
+
+Send a command to all active agents.
+
+### POST /v1/fleet/swarm/agents/:id/clear
+
+Clear pending commands for a specific agent.
+
+[Swarm →](/docs/swarm)
+
+---
+
+## ROS 2 Integration
+
+| Endpoint | Method | Description |
+|---|---|---|
+| `/v1/ros/topics` | GET | List ROS topic mappings |
+| `/v1/ros/topics/map` | POST | Create a topic mapping |
+| `/v1/ros/topics/map/:id` | DELETE | Delete a topic mapping |
+| `/v1/ros/lifecycle` | POST | ROS lifecycle state command |
+| `/v1/ros/publish` | POST | Publish to a ROS topic |
+| `/v1/ros/discovery` | GET | Discover available ROS topics/services |
+
+[ROS2 Integration →](/docs/ros2-integration)
+
+---
+
+## Device Management
+
+| Endpoint | Method | Description |
+|---|---|---|
+| `/devices` | GET | List all registered devices |
+| `/devices/stats` | GET | Aggregate device statistics |
+| `/devices/:id/topics` | GET | Device ROS topic activity |
+| `/devices/:id/executions` | GET | Device execution history |
+| `/devices/:id/violations` | GET | Device violation history |
+| `/devices/:id/ros/replay` | POST | Replay ROS bag file |
+
+---
+
+## Dashboard Stats
+
+| Endpoint | Method | Description |
+|---|---|---|
+| `/v1/stats/overview` | GET | Dashboard summary statistics |
+| `/v1/stats/model-usage` | GET | Model usage for dashboard charts |
+| `/v1/proof/violations` | GET | Recent violations for dashboard |
+
+---
+
+## Usage & Cost Analytics
+
+| Endpoint | Method | Description |
+|---|---|---|
+| `/v1/usage` | GET | Raw usage metrics |
+| `/v1/usage/summary` | GET | Aggregated usage summary |
+| `/v1/usage/history` | GET | Historical usage time series |
+| `/v1/analytics/cost` | GET | Cost analytics |
+| `/v1/analytics/cost/providers` | GET | Per-provider cost breakdown |
+| `/v1/analytics/cost/trend` | GET | Cost trend over time |
+
+---
+
+## Traces & Real-time Metrics
+
+| Endpoint | Method | Description |
+|---|---|---|
+| `/v1/traces` | GET | Request traces for debugging |
+| `/v1/metrics/realtime` | GET | Real-time metrics stream |
+
+---
+
+## Routing Analytics (Additional)
+
+| Endpoint | Method | Description |
+|---|---|---|
+| `/v1/routing/recent` | GET | Last 20 requests with provider and latency |
+| `/v1/routing/speculative/races` | GET | Speculative execution race history |
+
+---
+
+## Account & API Keys
+
+| Endpoint | Method | Description |
+|---|---|---|
+| `/v1/account/api-key` | GET | Get current runtime API key |
+| `/v1/account/api-key` | POST | Generate a new API key |
+| `/v1/account/api-key` | DELETE | Revoke current API key |
+
+---
+
+## License
+
+| Endpoint | Method | Description |
+|---|---|---|
+| `/v1/license` | GET | Current license information |
+| `/v1/license/activate` | POST | Activate a license key |
+
+---
+
 ## Local Engine API
 
 The runtime instance exposes a separate API at `http://localhost:8080` by default. This is distinct from the cloud API.
