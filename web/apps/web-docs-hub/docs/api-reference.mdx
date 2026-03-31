@@ -57,28 +57,394 @@ Current health and performance statistics for your configured providers.
 
 All routing endpoints require authentication.
 
+### Read-only analytics
+
 | Endpoint | Description |
 |---|---|
-| `GET /v1/routing/stats` | Success rates, latency, and cost per provider |
-| `GET /v1/routing/leaderboard` | Providers ranked by current Thompson Sampling score |
-| `GET /v1/routing/recent` | Recent requests with routing decisions |
-| `GET /v1/routing/speculative/status` | Speculative execution stats (24h window) |
-| `GET /v1/routing/speculative/config` | Speculative execution configuration |
-| `GET /v1/routing/speculative/analytics` | Speculative execution analytics |
-| `POST /v1/routing/speculative/simulate` | Trigger a speculative simulation |
+| `GET /v1/routing/stats` | Total requests, avg latency, per-provider breakdown |
+| `GET /v1/routing/leaderboard` | Providers ranked by request volume and avg latency |
+| `GET /v1/routing/recent` | Last 20 requests with provider and latency |
+
+Response for `GET /v1/routing/stats`:
+```json
+{
+  "total_requests": 1842,
+  "avg_latency_ms": 312.5,
+  "provider_breakdown": [
+    { "provider": "anthropic", "count": 1204, "avg_latency_ms": 287.1 },
+    { "provider": "openai",    "count": 638,  "avg_latency_ms": 361.4 }
+  ]
+}
+```
+
+### Routing configuration (POST)
+
+These endpoints persist routing settings per tenant. All return `{"saved": true}`.
+
+| Endpoint | What it saves |
+|---|---|
+| `POST /v1/routing/strategy` | Active routing strategy (thompson-sampling, cost-optimized, etc.) |
+| `POST /v1/routing/speculative` | Speculative execution settings |
+| `POST /v1/routing/council` | Council mode settings (providers, chairman model) |
+| `POST /v1/routing/shadow` | Shadow mode settings |
+| `POST /v1/routing/provider_weights` | Manual provider weight overrides |
+
+Example — set routing strategy:
+```bash
+curl -X POST https://overture.igrisinertial.com/v1/routing/strategy \
+  -H "Authorization: Bearer YOUR_API_KEY" \
+  -H "Content-Type: application/json" \
+  -d '{"strategy": "thompson-sampling", "fallback_chain": ["anthropic", "openai", "local"]}'
+```
+
+---
+
+## Execution Runs
+
+These endpoints manage the lifecycle of execution runs. All require authentication.
+
+### GET /v1/execution/runs
+
+List execution runs for your tenant.
+
+| Query param | Description |
+|---|---|
+| `limit` | Max results (default 20, max 200) |
+| `sort` | `created_at:asc` or `created_at:desc` (default: desc) |
+| `status` | Filter by status: `PAUSED`, `RUNNING`, `CANCELLED`, `COMPLETED`, `REJECTED` |
+
+```bash
+curl "https://overture.igrisinertial.com/v1/execution/runs?status=PAUSED&limit=50" \
+  -H "Authorization: Bearer YOUR_API_KEY"
+```
+
+Response:
+```json
+[
+  {
+    "id": "exec-01HXYZ",
+    "agent_id": "agent-abc",
+    "device_id": "runtime-01",
+    "started_at": "2026-03-01T12:00:00Z",
+    "duration_ms": 1240,
+    "status": "PAUSED",
+    "has_violation": false,
+    "pause_reason": "human_review_required",
+    "prompt_preview": "Evaluate whether to initiate..."
+  }
+]
+```
+
+### POST /v1/execution/runs/:id/pause
+
+Pause a running execution. Returns 404 if the run is already in a terminal state (CANCELLED, COMPLETED, violation).
+
+```bash
+curl -X POST https://overture.igrisinertial.com/v1/execution/runs/exec-01HXYZ/pause \
+  -H "Authorization: Bearer YOUR_API_KEY"
+# → {"status": "PAUSED"}
+```
+
+### POST /v1/execution/runs/:id/resume
+
+Resume a paused execution. Only transitions runs in `PAUSED` state.
+
+```bash
+curl -X POST https://overture.igrisinertial.com/v1/execution/runs/exec-01HXYZ/resume \
+  -H "Authorization: Bearer YOUR_API_KEY"
+# → {"status": "RUNNING"}
+```
+
+### POST /v1/execution/runs/:id/cancel
+
+Cancel a run. Irreversible — transitions to `CANCELLED`. Returns 404 if already cancelled or completed.
+
+### POST /v1/execution/runs/:id/replay
+
+Clone a completed run and start a new execution from the same agent and device.
+
+```bash
+curl -X POST https://overture.igrisinertial.com/v1/execution/runs/exec-01HXYZ/replay \
+  -H "Authorization: Bearer YOUR_API_KEY"
+# → {"status": "replayed", "new_execution_id": "exec-01HABC"}
+```
+
+### POST /v1/execution/runs/:id/approve
+
+Human-in-the-loop approval. Transitions a `PAUSED` run to `RUNNING`. Records approver identity and timestamp.
+
+```bash
+curl -X POST https://overture.igrisinertial.com/v1/execution/runs/exec-01HXYZ/approve \
+  -H "Authorization: Bearer YOUR_API_KEY"
+# → {"status": "RUNNING", "approved": true}
+```
+
+### POST /v1/execution/runs/:id/reject
+
+Human-in-the-loop rejection. Terminates the run with `REJECTED` status.
+
+```bash
+curl -X POST https://overture.igrisinertial.com/v1/execution/runs/exec-01HXYZ/reject \
+  -H "Authorization: Bearer YOUR_API_KEY" \
+  -H "Content-Type: application/json" \
+  -d '{"reason": "unsafe_action_detected"}'
+# → {"status": "REJECTED", "reason": "unsafe_action_detected"}
+```
+
+---
+
+## Agents
+
+### GET /v1/execution/agents
+
+List agents derived from execution history. Includes recent executions and current mode flags.
+
+```bash
+curl https://overture.igrisinertial.com/v1/execution/agents \
+  -H "Authorization: Bearer YOUR_API_KEY"
+```
+
+Response:
+```json
+[
+  {
+    "id": "agent-abc",
+    "namespace": "default",
+    "state": "IDLE",
+    "last_run_at": "2026-03-01T12:00:00Z",
+    "device_id": "runtime-01",
+    "violation_count": 0,
+    "shadow_mode": false,
+    "reflection_mode": true,
+    "council_mode": false,
+    "cognitive_advisor_enabled": false,
+    "recent_executions": [...]
+  }
+]
+```
+
+### PATCH /v1/agents/:id
+
+Update mode flags for an agent. At least one field required.
+
+```bash
+curl -X PATCH https://overture.igrisinertial.com/v1/agents/agent-abc \
+  -H "Authorization: Bearer YOUR_API_KEY" \
+  -H "Content-Type: application/json" \
+  -d '{"shadow_mode": true, "council_mode": true}'
+```
+
+| Field | Type | Description |
+|---|---|---|
+| `shadow_mode` | bool | Run a shadow copy alongside every real execution |
+| `reflection_mode` | bool | Enable self-critiquing reflection after each execution |
+| `council_mode` | bool | Use multi-provider consensus for this agent |
+| `cognitive_advisor_enabled` | bool | Enable the cognitive routing advisor |
+
+### GET /v1/agents/:id/bt-state
+
+Returns the last 10 executions for an agent as a flat node list, suitable for tree visualization.
+
+### GET /v1/agents/:id/bt-state/stream
+
+Server-Sent Events stream of live BT tick snapshots from the connected runtime. Each event is a JSON object:
+
+```
+data: {"tick": 42, "status": "Running", "nodes": [...], "last_updated": "2026-03-01T12:00:01Z"}
+```
+
+Connect with `EventSource` and `withCredentials: true` (requires an active session cookie).
+
+---
+
+## Policies
+
+### GET /v1/policies
+
+Returns the active BT execution envelope limits for your tenant.
+
+```bash
+curl https://overture.igrisinertial.com/v1/policies \
+  -H "Authorization: Bearer YOUR_API_KEY"
+```
+
+Response:
+```json
+{
+  "allowed_node_types": ["Sequence", "Selector", "Parallel", "Decorator", "Action", "Condition", "RosTopicPublish", "RosTopicSubscribe", "RosServiceCall"],
+  "max_action_nodes": 50,
+  "max_depth": 10,
+  "max_tool_calls": 20,
+  "max_duration_secs": 300
+}
+```
+
+Fields are omitted when no custom limit is set for your tenant (defaults apply).
+
+### POST /v1/policies/assign
+
+Assign a policy (by hash) to one or more agents.
+
+```bash
+curl -X POST https://overture.igrisinertial.com/v1/policies/assign \
+  -H "Authorization: Bearer YOUR_API_KEY" \
+  -H "Content-Type: application/json" \
+  -d '{
+    "agent_ids": ["agent-abc", "agent-def"],
+    "policy_hash": "sha256:a3f9..."
+  }'
+# → {"status": "assigned", "agent_count": 2}
+```
+
+---
+
+## Behavior Tree Definitions
+
+| Endpoint | Method | Description |
+|---|---|---|
+| `/v1/bt/templates` | GET | Built-in starter templates (no auth) |
+| `/v1/bt/definitions` | GET | List tenant definitions |
+| `/v1/bt/definitions/:id` | GET | Get a definition with nodes and edges |
+| `/v1/bt/definitions` | POST | Save or upsert a definition (unique by name) |
+| `/v1/bt/definitions/:id` | DELETE | Delete a definition |
+
+[Full documentation →](/docs/behavior-trees)
+
+---
+
+## Federated Learning
+
+### GET /v1/federated/status
+
+Current status of the federated learning coordinator.
+
+```bash
+curl https://overture.igrisinertial.com/v1/federated/status \
+  -H "Authorization: Bearer YOUR_API_KEY"
+```
+
+Response:
+```json
+{
+  "enabled": true,
+  "active_round": 12,
+  "total_rounds": 47,
+  "participants": 8,
+  "last_aggregated": "2026-03-01T10:00:00Z",
+  "privacy_budget": 1.0,
+  "noise_scale": 0.1,
+  "updated_at": "2026-03-01T12:00:00Z"
+}
+```
+
+### GET /v1/federated/participants
+
+List active fleet participants (devices seen in the last 10 minutes).
+
+### GET /v1/federated/rounds
+
+List recent aggregation rounds (last 20).
+
+```json
+[
+  {
+    "id": 12,
+    "started_at": "2026-03-01T11:30:00Z",
+    "status": "running",
+    "participant_count": 8,
+    "updates_received": 5,
+    "model_version": "v1.4"
+  }
+]
+```
+
+### POST /v1/federated/rounds/start
+
+Manually trigger a new aggregation round.
+
+```bash
+curl -X POST https://overture.igrisinertial.com/v1/federated/rounds/start \
+  -H "Authorization: Bearer YOUR_API_KEY"
+# → {"success": true, "round_id": 13}
+```
+
+### GET /v1/federated/config
+
+Returns current federated learning configuration.
+
+### PUT /v1/federated/config
+
+Update federated learning configuration.
+
+```bash
+curl -X PUT https://overture.igrisinertial.com/v1/federated/config \
+  -H "Authorization: Bearer YOUR_API_KEY" \
+  -H "Content-Type: application/json" \
+  -d '{
+    "enabled": true,
+    "min_participants": 3,
+    "privacy_budget": 1.0,
+    "noise_scale": 0.1,
+    "round_interval_mins": 60,
+    "max_rounds_per_day": 12
+  }'
+```
+
+---
+
+## On-Device Training (LoRA)
+
+### GET /v1/lora/status
+
+Proxied from the connected runtime. Returns current training status.
+
+```bash
+curl https://overture.igrisinertial.com/v1/lora/status \
+  -H "Authorization: Bearer YOUR_API_KEY"
+```
+
+Response:
+```json
+{
+  "enabled": true,
+  "status": "Idle",
+  "total_examples": 87,
+  "request_counter": 87,
+  "should_trigger": false,
+  "last_started_at": 1743480000,
+  "last_finished_at": 1743481800,
+  "last_result": {
+    "status": "Completed",
+    "training_samples": 85,
+    "training_time_secs": 312.4,
+    "final_loss": 0.0821,
+    "adapter_size_bytes": 4194304,
+    "encrypted_adapter_path": "/lora_adapters/adapter_v3.bin.enc"
+  }
+}
+```
+
+If the runtime is unreachable, returns:
+```json
+{
+  "enabled": false,
+  "runtime_error": "runtime returned HTTP 503 — check RUNTIME_URL configuration"
+}
+```
 
 ---
 
 ## Fleet (Runtime Instances)
 
-These endpoints use API key authentication (not Bearer token) and are called by the runtime binary, not your application.
+These endpoints use API key authentication and are called by the runtime binary.
 
 | Endpoint | Method | Description |
 |---|---|---|
 | `/api/v1/runtime/register` | POST | Register a runtime instance |
 | `/api/v1/runtime/heartbeat` | POST | Send instance heartbeat |
 | `/api/v1/runtime/deregister` | DELETE | Deregister an instance |
-| `/api/v1/runtime/download` | GET | Download the runtime binary (authenticated) |
+| `/api/v1/runtime/download` | GET | Download the runtime binary (authenticated, rate-limited 10/hr) |
+| `/v1/runtime/checksum` | GET | Fetch `.sha256` sidecar (public) |
 
 ---
 
@@ -116,8 +482,11 @@ The runtime instance exposes a separate API at `http://localhost:8080` by defaul
 | `GET /health` | Health check |
 | `GET /metrics` | Prometheus metrics |
 | `POST /v1/chat/completions` | Local chat completion |
-| `GET /v1/receipts` | List execution receipts |
+| `GET /v1/lora/status` | On-device training status |
+| `GET /v1/receipts` | List execution receipts (runtime-local storage) |
 | `GET /v1/receipts/{id}` | Get a specific receipt |
+
+> Execution receipts are stored locally on the runtime device. Nothing leaves your infrastructure unless you explicitly export them.
 
 ---
 
@@ -129,6 +498,32 @@ Requests to `/v1/chat/completions` are rate-limited per account. The limit is sh
 - `X-RateLimit-Remaining` — requests remaining in current window
 
 When the limit is exceeded, Igris returns HTTP 429.
+
+---
+
+## Shadow Traces
+
+### GET /v1/execution/shadow
+
+Returns paired real vs shadow execution comparisons for agents with `shadow_mode` enabled.
+
+| Query param | Description |
+|---|---|
+| `range` | Time window: `1h`, `24h` (default), `7d` |
+| `agent_id` | Filter by agent |
+
+```json
+[
+  {
+    "id": "shadow-01HXYZ",
+    "agent_id": "agent-abc",
+    "timestamp": "2026-03-01T12:00:00Z",
+    "divergence_score": 0.12,
+    "real":   { "status": "completed", "duration_ms": 312, "violations": 0, "model": "anthropic/claude-3-haiku" },
+    "shadow": { "status": "completed", "duration_ms": 287, "violations": 0, "model": "openai/gpt-4o-mini" }
+  }
+]
+```
 
 ---
 
