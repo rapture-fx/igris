@@ -17,7 +17,7 @@ Release notes for Igris Inertial. Breaking changes are marked explicitly.
 
 ### Added
 
-- **ARM64 support** — runtime binaries for `linux-arm64` are now built and published; CI cross-compilation is fully automated without hardware ARM runners
+- **ARM64 support** — runtime binaries for `linux-arm64` are now built and published for all supported Linux ARM64 devices
 - **Authenticated binary distribution** — runtime binaries are served through authenticated download endpoints with checksum verification
 
 ### Changed
@@ -27,11 +27,11 @@ Release notes for Igris Inertial. Breaking changes are marked explicitly.
 
 ---
 
-## runtime-v1.6.0 — macOS runner update — February 2026
+## runtime-v1.6.0 — macOS ARM64 builds — February 2026
 
 ### Changed
 
-- **macOS CI runners** — removed Intel macOS build targets; switched to `macos-15` (ARM64) runners, which are available on the free tier; Intel macOS builds are no longer published
+- **macOS builds** — Intel macOS build targets removed; only ARM64 (Apple Silicon) binaries are now published for macOS
 - **Install command** — updated to use short domain across all documentation and install script references
 
 ---
@@ -40,9 +40,8 @@ Release notes for Igris Inertial. Breaking changes are marked explicitly.
 
 ### Added
 
-- **Speculative execution** — merged 6 PRs implementing speculative decoding; produces a **60% reduction in time-to-first-token (TTFT)** for streaming requests
-- **Handler integration** — speculative execution wired into the inference handler pipeline; enabled by default for streaming requests
-- **Production deployment** — speculative execution validated and deployed to production; rollback flag available via feature config
+- **Speculative execution** — produces a **60% reduction in time-to-first-token (TTFT)** for streaming requests; enabled by default for all streaming inference
+- **Production deployment** — speculative execution is live across all regions
 
 ---
 
