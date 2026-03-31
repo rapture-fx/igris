@@ -8,9 +8,9 @@ Igris agents can call external tools: HTTP APIs, shell commands, and filesystem 
 
 | Tool | Capability required | Use |
 |---|---|---|
-| HTTP | `tool_http` | Call external APIs, webhooks, web services |
-| Shell | `tool_shell` | Execute shell commands in a sandboxed context |
-| Filesystem | `tool_filesystem` | Read, write, and list files |
+| HTTP | `allow_http` | Call external APIs, webhooks, web services |
+| Shell | `allow_shell` | Execute shell commands in a sandboxed context |
+| Filesystem | `allow_filesystem` | Read, write, and list files |
 
 Tools are disabled by default. Each must be explicitly granted in the request's capability grant or in the tenant's policy.
 
@@ -24,7 +24,7 @@ The HTTP tool allows agents to make GET and POST requests to external endpoints.
 ```json
 {
   "capabilities": {
-    "tool_http": true
+    "allow_http": true
   },
   "tool_config": {
     "http": {
@@ -53,7 +53,7 @@ The shell tool allows agents to execute shell commands. Shell access is the most
 ```json
 {
   "capabilities": {
-    "tool_shell": true
+    "allow_shell": true
   },
   "tool_config": {
     "shell": {
@@ -84,7 +84,7 @@ The filesystem tool allows agents to read, write, and list files.
 ```json
 {
   "capabilities": {
-    "tool_filesystem": true
+    "allow_filesystem": true
   },
   "tool_config": {
     "filesystem": {
