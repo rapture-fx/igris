@@ -12,28 +12,28 @@ func TestAdaptiveRouter_ThompsonSampling_ColdStartProtection(t *testing.T) {
 	// Register three backends
 	backends := []*Backend{
 		{
-			ID:          "backend-1",
-			URL:         "http://backend1.local",
-			Type:        BackendTypeMLPython,
+			ID:           "backend-1",
+			URL:          "http://backend1.local",
+			Type:         BackendTypeMLPython,
 			Capabilities: []string{"inference"},
-			MaxCapacity: 100,
-			Healthy:     true,
+			MaxCapacity:  100,
+			Healthy:      true,
 		},
 		{
-			ID:          "backend-2",
-			URL:         "http://backend2.local",
-			Type:        BackendTypeMLGPU,
+			ID:           "backend-2",
+			URL:          "http://backend2.local",
+			Type:         BackendTypeMLGPU,
 			Capabilities: []string{"inference"},
-			MaxCapacity: 100,
-			Healthy:     true,
+			MaxCapacity:  100,
+			Healthy:      true,
 		},
 		{
-			ID:          "backend-3",
-			URL:         "http://backend3.local",
-			Type:        BackendTypeMLCPU,
+			ID:           "backend-3",
+			URL:          "http://backend3.local",
+			Type:         BackendTypeMLCPU,
 			Capabilities: []string{"inference"},
-			MaxCapacity: 100,
-			Healthy:     true,
+			MaxCapacity:  100,
+			Healthy:      true,
 		},
 	}
 
@@ -89,12 +89,12 @@ func TestAdaptiveRouter_ThompsonSampling_PhaseProgression(t *testing.T) {
 	router := NewAdaptiveRouter(PolicyThompsonSampling, 5*time.Minute)
 
 	backend := &Backend{
-		ID:          "backend-phases",
-		URL:         "http://backend-phases.local",
-		Type:        BackendTypeMLPython,
+		ID:           "backend-phases",
+		URL:          "http://backend-phases.local",
+		Type:         BackendTypeMLPython,
 		Capabilities: []string{"inference"},
-		MaxCapacity: 100,
-		Healthy:     true,
+		MaxCapacity:  100,
+		Healthy:      true,
 	}
 	router.RegisterBackend(backend)
 	router.SetReportedMetrics(backend.ID, 100.0, 0.01, 0.01)
@@ -123,7 +123,6 @@ func TestAdaptiveRouter_ThompsonSampling_PhaseProgression(t *testing.T) {
 
 	// Route and record 100 more requests
 	for i := 0; i < 100; i++ {
-		backends := []*Backend{backend}
 		decision, err := router.Route(context.Background(), req)
 		if err != nil {
 			t.Fatalf("Unexpected routing error: %v", err)
@@ -149,21 +148,21 @@ func TestAdaptiveRouter_ThompsonSampling_ExplorationVsExploitation(t *testing.T)
 
 	// Register two backends with different performance
 	goodBackend := &Backend{
-		ID:          "backend-good",
-		URL:         "http://backend-good.local",
-		Type:        BackendTypeMLGPU,
+		ID:           "backend-good",
+		URL:          "http://backend-good.local",
+		Type:         BackendTypeMLGPU,
 		Capabilities: []string{"inference"},
-		MaxCapacity: 100,
-		Healthy:     true,
+		MaxCapacity:  100,
+		Healthy:      true,
 	}
 
 	badBackend := &Backend{
-		ID:          "backend-bad",
-		URL:         "http://backend-bad.local",
-		Type:        BackendTypeMLCPU,
+		ID:           "backend-bad",
+		URL:          "http://backend-bad.local",
+		Type:         BackendTypeMLCPU,
 		Capabilities: []string{"inference"},
-		MaxCapacity: 100,
-		Healthy:     true,
+		MaxCapacity:  100,
+		Healthy:      true,
 	}
 
 	router.RegisterBackend(goodBackend)
@@ -278,12 +277,12 @@ func TestAdaptiveRouter_ThompsonSampling_StateReset(t *testing.T) {
 	router := NewAdaptiveRouter(PolicyThompsonSampling, 5*time.Minute)
 
 	backend := &Backend{
-		ID:          "backend-reset",
-		URL:         "http://backend-reset.local",
-		Type:        BackendTypeMLPython,
+		ID:           "backend-reset",
+		URL:          "http://backend-reset.local",
+		Type:         BackendTypeMLPython,
 		Capabilities: []string{"inference"},
-		MaxCapacity: 100,
-		Healthy:     true,
+		MaxCapacity:  100,
+		Healthy:      true,
 	}
 	router.RegisterBackend(backend)
 	router.SetReportedMetrics(backend.ID, 100.0, 0.01, 0.01)
@@ -318,21 +317,21 @@ func TestAdaptiveRouter_ThompsonSampling_WithTrustFiltering(t *testing.T) {
 
 	// Register three backends
 	trustedBackend := &Backend{
-		ID:          "backend-trusted",
-		URL:         "http://backend-trusted.local",
-		Type:        BackendTypeMLGPU,
+		ID:           "backend-trusted",
+		URL:          "http://backend-trusted.local",
+		Type:         BackendTypeMLGPU,
 		Capabilities: []string{"inference"},
-		MaxCapacity: 100,
-		Healthy:     true,
+		MaxCapacity:  100,
+		Healthy:      true,
 	}
 
 	untrustedBackend := &Backend{
-		ID:          "backend-untrusted",
-		URL:         "http://backend-untrusted.local",
-		Type:        BackendTypeMLCPU,
+		ID:           "backend-untrusted",
+		URL:          "http://backend-untrusted.local",
+		Type:         BackendTypeMLCPU,
 		Capabilities: []string{"inference"},
-		MaxCapacity: 100,
-		Healthy:     true,
+		MaxCapacity:  100,
+		Healthy:      true,
 	}
 
 	router.RegisterBackend(trustedBackend)
