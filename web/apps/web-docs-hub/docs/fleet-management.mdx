@@ -33,14 +33,14 @@ Response:
 
 ## Health Monitoring
 
-Registered instances send heartbeat signals every 30 seconds (configurable). The coordination layer tracks:
+Registered instances send periodic heartbeat signals to the coordination layer. The coordination layer tracks:
 
 - **Last seen**: timestamp of most recent heartbeat
 - **Status**: `healthy`, `degraded`, `offline`
 - **Error rate**: fraction of recent requests that returned errors
 - **Latency**: p50 and p95 response times
 
-If an instance misses three consecutive heartbeats, it is marked `offline`. Requests are no longer routed to offline instances.
+Instances that stop responding are automatically marked `offline`. Requests are no longer routed to offline instances.
 
 List all instances:
 ```bash
@@ -69,7 +69,7 @@ Response:
 
 ### POST /api/v1/runtime/config/push
 
-Push configuration to all runtime instances for your tenant. The config is queued as a pending command and delivered on each instance's next heartbeat (default: 30s).
+Push configuration to all runtime instances for your tenant. The config is delivered to each instance on its next check-in.
 
 ```bash
 curl -X POST https://overture.igrisinertial.com/api/v1/runtime/config/push \
@@ -93,7 +93,7 @@ Response:
 }
 ```
 
-If an instance is offline when the push is queued, the command remains in the queue until the instance reconnects.
+If an instance is offline when the push is queued, the configuration is delivered when the instance reconnects.
 
 ---
 
