@@ -24,6 +24,11 @@ import {
   Key,
   ArrowRight,
   DollarSign,
+  Activity,
+  Eye,
+  Lock,
+  Server,
+  Network,
 } from 'lucide-react';
 import { cn } from '@/lib/utils';
 
@@ -79,7 +84,7 @@ const methodColors: Record<string, string> = {
   PUT:    'bg-purple-50 text-purple-700 dark:bg-purple-900/20 dark:text-purple-400',
 };
 
-const searchIndex = [
+const searchIndexStatic = [
   { title: 'Overview', path: '/docs', keywords: 'overview introduction what is igris execution system' },
   { title: 'Architecture', path: '/docs/architecture', keywords: 'architecture system design execution engine coordination layer' },
   { title: 'Quick Start', path: '/docs/quickstart', keywords: 'quick start getting started setup api key' },
@@ -107,7 +112,22 @@ const searchIndex = [
   { title: 'API Reference', path: '/docs/api-reference', keywords: 'api reference endpoints inference management receipts fleet policy' },
   { title: 'Changelog', path: '/docs/changelog', keywords: 'changelog release notes version history changes updates fixes' },
   { title: 'Articles', path: '/docs/articles', keywords: 'articles engineering notes architecture deep dive' },
+  { title: 'SLO Enforcer', path: '/docs/slo-enforcer', keywords: 'slo service level objective latency cost quality enforcement compliance target budget' },
+  { title: 'Multi-Tenancy', path: '/docs/multi-tenancy', keywords: 'multi-tenant tenant isolation quota resource admin billing' },
+  { title: 'EscapeVector', path: '/docs/escapevector', keywords: 'escapevector wasm webassembly thompson sampling routing engine wasm rust' },
+  { title: 'Circuit Breaker', path: '/docs/circuit-breaker', keywords: 'circuit breaker failure recovery open closed half-open provider health' },
+  { title: 'Provider Health', path: '/docs/provider-health', keywords: 'provider health monitoring metrics latency success rate degraded unavailable' },
+  { title: 'Shadow Mode', path: '/docs/shadow-mode', keywords: 'shadow mode parallel comparison divergence testing quality monitoring' },
+  { title: 'Tamper-Evident Logs', path: '/docs/tamper-evident-logs', keywords: 'tamper evident logs immutable audit trail hash chain signature receipt verify export' },
+  { title: 'Model Aggregation', path: '/docs/model-aggregation', keywords: 'model aggregation federated learning privacy differential noise round participant' },
+  { title: 'Local LLM Fallback', path: '/docs/local-llm-fallback', keywords: 'local llm fallback gguf offline air-gapped on-device inference phi mistral llama' },
 ];
+
+// Merge static curated index with generated content index for best results
+import searchIndexGenerated from '@/lib/search-index.json';
+const searchIndex = [...searchIndexStatic, ...searchIndexGenerated.filter(
+  gen => !searchIndexStatic.some(staticItem => staticItem.path === gen.path)
+)];
 
 const docsNavSections: NavSection[] = [
   {
@@ -152,6 +172,25 @@ const docsNavSections: NavSection[] = [
       { name: 'Fleet Management', href: '/docs/fleet-management', icon: Layers },
       { name: 'Policy', href: '/docs/policy', icon: Shield },
       { name: 'Audit', href: '/docs/audit', icon: FileText },
+    ],
+  },
+  {
+    section: 'Routing & Reliability',
+    items: [
+      { name: 'EscapeVector', href: '/docs/escapevector', icon: Zap },
+      { name: 'SLO Enforcer', href: '/docs/slo-enforcer', icon: Activity },
+      { name: 'Circuit Breaker', href: '/docs/circuit-breaker', icon: Shield },
+      { name: 'Provider Health', href: '/docs/provider-health', icon: Activity },
+      { name: 'Shadow Mode', href: '/docs/shadow-mode', icon: Eye },
+      { name: 'Local LLM Fallback', href: '/docs/local-llm-fallback', icon: Server },
+    ],
+  },
+  {
+    section: 'Privacy & Scale',
+    items: [
+      { name: 'Multi-Tenancy', href: '/docs/multi-tenancy', icon: Network },
+      { name: 'Model Aggregation', href: '/docs/model-aggregation', icon: Database },
+      { name: 'Tamper-Evident Logs', href: '/docs/tamper-evident-logs', icon: Lock },
     ],
   },
   {
