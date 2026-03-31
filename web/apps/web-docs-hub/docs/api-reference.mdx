@@ -77,6 +77,40 @@ Response for `GET /v1/routing/stats`:
 }
 ```
 
+### Speculative execution
+
+Speculative execution runs parallel inference paths and returns the fastest result. Available on **Horizon** and **Infinite** tiers.
+
+| Endpoint | Description |
+|---|---|
+| `GET /v1/routing/speculative/config` | Current speculative execution configuration |
+| `GET /v1/routing/speculative/status` | Whether speculative execution is active for your tenant |
+| `GET /v1/routing/speculative/analytics` | Win rates, latency savings, and cost breakdown per provider |
+| `POST /v1/routing/speculative/simulate` | Simulate a speculative run without consuming credits |
+
+Response for `GET /v1/routing/speculative/analytics`:
+```json
+{
+  "total_speculative_runs": 412,
+  "wins_by_provider": {
+    "anthropic": 218,
+    "openai": 194
+  },
+  "avg_latency_saving_ms": 87.3,
+  "cost_overhead_pct": 12.1
+}
+```
+
+Example — simulate a speculative run:
+```bash
+curl -X POST https://overture.igrisinertial.com/v1/routing/speculative/simulate \
+  -H "Authorization: Bearer YOUR_API_KEY" \
+  -H "Content-Type: application/json" \
+  -d '{"prompt": "Summarize this document.", "providers": ["anthropic", "openai"]}'
+```
+
+[Speculative Execution →](/docs/speculative-execution)
+
 ### Routing configuration (POST)
 
 These endpoints persist routing settings per tenant. All return `{"saved": true}`.
