@@ -80,7 +80,7 @@ MCP Swarm Mode enables execution context to be shared across multiple engine ins
   "mcp_swarm": {
     "enabled": true,
     "discovery": "mdns",
-    "encryption_key_path": "/etc/igris/swarm.key"
+    "encryption_key_path": "/path/to/swarm.key"
   }
 }
 ```
@@ -88,6 +88,70 @@ MCP Swarm Mode enables execution context to be shared across multiple engine ins
 The encryption key is device-specific and must be distributed to all instances in the swarm. Context encrypted with one key cannot be read by an instance with a different key.
 
 [Agents →](/docs/agents)
+
+---
+
+## Agent Blackboard API
+
+The agent blackboard is a shared key-value store for all agents in your tenant. It persists across executions and supports TTL-based expiry. Use it to store shared mission state, inter-agent signals, or cached context.
+
+All blackboard endpoints require authentication.
+
+### GET /v1/agents/memory/
+
+List all key-value entries for your tenant.
+
+```bash
+curl https://overture.igrisinertial.com/v1/agents/memory/ \
+  -H "Authorization: Bearer YOUR_API_KEY"
+```
+
+Response:
+```json
+[
+  {
+    "key": "mission_state",
+    "value": {"step": 3, "status": "navigating"},
+    "updated_at": "2026-03-01T12:00:00Z",
+    "ttl_seconds": 3600
+  }
+]
+```
+
+### GET /v1/agents/memory/:key
+
+Read a single entry.
+
+```bash
+curl https://overture.igrisinertial.com/v1/agents/memory/mission_state \
+  -H "Authorization: Bearer YOUR_API_KEY"
+```
+
+### PUT /v1/agents/memory/:key
+
+Write or update an entry. Optionally set a TTL in seconds.
+
+```bash
+curl -X PUT https://overture.igrisinertial.com/v1/agents/memory/mission_state \
+  -H "Authorization: Bearer YOUR_API_KEY" \
+  -H "Content-Type: application/json" \
+  -d '{
+    "value": {"step": 4, "status": "arrived"},
+    "ttl_seconds": 3600
+  }'
+```
+
+`ttl_seconds` is optional. Omit it for an entry that never expires.
+
+### DELETE /v1/agents/memory/:key
+
+Remove an entry.
+
+```bash
+curl -X DELETE https://overture.igrisinertial.com/v1/agents/memory/mission_state \
+  -H "Authorization: Bearer YOUR_API_KEY"
+# → 204 No Content
+```
 
 ---
 
