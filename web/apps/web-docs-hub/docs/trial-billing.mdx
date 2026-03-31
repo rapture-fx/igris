@@ -1,0 +1,186 @@
+# Trial & Billing
+
+---
+
+## Free Trial
+
+Every new account gets a 7-day free trial on any tier — no credit card required. The trial gives full access to the features of the selected tier.
+
+**Rules:**
+- One trial per account, ever
+- Trial tier is selected at start time and cannot be changed mid-trial
+- On expiry without a paid subscription: account is moved to Seed tier (not locked out)
+
+### POST /v1/trial/start
+
+Start a 7-day trial on the selected tier.
+
+```bash
+curl -X POST https://overture.igrisinertial.com/v1/trial/start \
+  -H "Authorization: Bearer YOUR_API_KEY" \
+  -H "Content-Type: application/json" \
+  -d '{"tier": "horizon"}'
+# → {"status": "started", "tier": "horizon", "ends_at": "2026-04-07T12:00:00Z"}
+```
+
+| Field | Values |
+|---|---|
+| `tier` | `seed`, `horizon`, `infinite` |
+
+Returns `409 Conflict` if a trial has already been used on this account.
+
+### GET /v1/trial/status
+
+Check current trial status.
+
+```bash
+curl https://overture.igrisinertial.com/v1/trial/status \
+  -H "Authorization: Bearer YOUR_API_KEY"
+```
+
+Response:
+```json
+{
+  "trial_active": true,
+  "tier": "horizon",
+  "days_left": 5,
+  "ends_at": "2026-04-07T12:00:00Z"
+}
+```
+
+If no trial is active:
+```json
+{
+  "trial_active": false,
+  "trial_used": true
+}
+```
+
+---
+
+## Subscription
+
+### GET /api/subscription/status
+
+Current subscription status, active tier, and runtime instance limit.
+
+```bash
+curl https://overture.igrisinertial.com/api/subscription/status \
+  -H "Authorization: Bearer YOUR_API_KEY"
+```
+
+Response:
+```json
+{
+  "tier": "horizon",
+  "status": "active",
+  "runtime_limit": 50,
+  "trial_active": false
+}
+```
+
+### GET /api/subscription/plans
+
+Available plans with pricing and limits.
+
+```bash
+curl https://overture.igrisinertial.com/api/subscription/plans \
+  -H "Authorization: Bearer YOUR_API_KEY"
+```
+
+Response:
+```json
+[
+  {
+    "id": "seed",
+    "name": "Seed",
+    "price_usd_monthly": 29,
+    "runtime_limit": 3,
+    "features": ["thompson-sampling", "fleet-registration", "basic-analytics"]
+  },
+  {
+    "id": "horizon",
+    "name": "Horizon",
+    "price_usd_monthly": 149,
+    "runtime_limit": 50,
+    "features": ["all-seed", "speculative-execution", "council-mode", "cognitive-advisor", "fleet-management", "ota-updates"]
+  },
+  {
+    "id": "infinite",
+    "name": "Infinite",
+    "price_usd_monthly": 699,
+    "runtime_limit": 500,
+    "features": ["all-horizon", "federated-learning", "auto-apply-advisor", "priority-support"]
+  }
+]
+```
+
+---
+
+## Pricing Tiers
+
+| | Seed | Horizon | Infinite |
+|---|---|---|---|
+| **Price** | $29/mo | $149/mo | $699/mo |
+| **Runtime instances** | 3 | 50 | 500 |
+| **Routing** | Thompson Sampling | + Speculative, Council | + Federated |
+| **Fleet management** | Basic | Full (OTA, config push) | Full |
+| **Cognitive Advisor** | View only | Manual apply | Auto-apply |
+| **Trial** | 7 days free | 7 days free | 7 days free |
+
+[Pricing details →](/docs/pricing-tiers)
+
+---
+
+## API Key Management
+
+### GET /v1/account/api-key
+
+Get current API key info (prefix only — the raw key is never returned after creation).
+
+```bash
+curl https://overture.igrisinertial.com/v1/account/api-key \
+  -H "Authorization: Bearer YOUR_SESSION_TOKEN"
+```
+
+Response:
+```json
+{
+  "prefix": "igris_abc12",
+  "created_at": "2026-03-01T12:00:00Z"
+}
+```
+
+### POST /v1/account/api-key
+
+Generate a new API key. This immediately revokes the existing key — update all integrations before rotating.
+
+```bash
+curl -X POST https://overture.igrisinertial.com/v1/account/api-key \
+  -H "Authorization: Bearer YOUR_SESSION_TOKEN"
+```
+
+Response:
+```json
+{
+  "api_key": "igris_abc12...",
+  "prefix": "igris_abc12",
+  "created_at": "2026-03-01T12:05:00Z"
+}
+```
+
+> The full `api_key` is only returned once at creation. Store it securely — it cannot be retrieved again.
+
+### DELETE /v1/account/api-key
+
+Revoke the current API key permanently.
+
+```bash
+curl -X DELETE https://overture.igrisinertial.com/v1/account/api-key \
+  -H "Authorization: Bearer YOUR_SESSION_TOKEN"
+# → 204 No Content
+```
+
+---
+
+[Pricing Tiers →](/docs/pricing-tiers) · [Quick Start →](/docs/quickstart)
