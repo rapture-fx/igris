@@ -101,6 +101,10 @@ const slugToFile: Record<string, string> = {
   'cognitive-advisor': 'cognitive-advisor',
   swarm: 'swarm',
   'trial-billing': 'trial-billing',
+  console: 'console',
+  troubleshooting: 'troubleshooting',
+  'speculative-execution': 'speculative-execution',
+  'approval-workflows': 'approval-workflows',
 };
 
 export async function generateStaticParams() {
