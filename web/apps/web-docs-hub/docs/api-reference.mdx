@@ -432,6 +432,98 @@ If the runtime is unreachable, returns:
 }
 ```
 
+### POST /v1/lora/trigger
+
+Manually trigger an on-device training run. Only valid when `enabled: true` and status is `Idle`.
+
+```bash
+curl -X POST https://overture.igrisinertial.com/v1/lora/trigger \
+  -H "Authorization: Bearer YOUR_API_KEY"
+# → {"triggered": true, "status": "Training"}
+```
+
+If training is already in progress: `{"triggered": false, "status": "Training"}`.
+
+---
+
+## Usage Analytics
+
+### GET /models/usage/summary
+
+Aggregated request and cost summary for your tenant.
+
+```bash
+curl "https://overture.igrisinertial.com/models/usage/summary?range=30d" \
+  -H "Authorization: Bearer YOUR_API_KEY"
+```
+
+| Query param | Values |
+|---|---|
+| `range` | `7d`, `30d` (default), `90d` |
+
+Response:
+```json
+{
+  "total_requests": 4821,
+  "total_tokens_in": 1204800,
+  "total_tokens_out": 384200,
+  "total_cost_usd": 18.42
+}
+```
+
+### GET /models/usage/providers
+
+Breakdown by provider for the selected range.
+
+```bash
+curl "https://overture.igrisinertial.com/models/usage/providers?range=7d" \
+  -H "Authorization: Bearer YOUR_API_KEY"
+```
+
+Response:
+```json
+[
+  {"provider": "anthropic", "requests": 2104, "tokens_in": 601200, "tokens_out": 190400, "cost_usd": 10.21},
+  {"provider": "openai",    "requests": 1382, "tokens_in": 402100, "tokens_out": 121800, "cost_usd": 6.14}
+]
+```
+
+### GET /models/usage/models
+
+Breakdown by model name.
+
+### GET /models/usage/daily
+
+Daily request and cost time series for the selected range.
+
+```bash
+curl "https://overture.igrisinertial.com/models/usage/daily?range=30d" \
+  -H "Authorization: Bearer YOUR_API_KEY"
+```
+
+Response:
+```json
+[
+  {"date": "2026-03-01", "requests": 142, "cost_usd": 0.61},
+  {"date": "2026-03-02", "requests": 189, "cost_usd": 0.84}
+]
+```
+
+### GET /models/usage/events
+
+Individual usage events (paginated). Use for per-request cost inspection.
+
+```bash
+curl "https://overture.igrisinertial.com/models/usage/events?limit=50" \
+  -H "Authorization: Bearer YOUR_API_KEY"
+```
+
+| Query param | Description |
+|---|---|
+| `limit` | Max results (default 50) |
+| `range` | `7d`, `30d`, `90d` |
+| `provider` | Filter by provider name |
+
 ---
 
 ## Fleet (Runtime Instances)
