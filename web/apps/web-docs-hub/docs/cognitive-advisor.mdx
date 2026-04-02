@@ -15,12 +15,12 @@ The Cognitive Advisor analyzes your routing history and proposes configuration c
 
 ## Proposals
 
-### GET /api/v1/cognitive/proposals
+### GET /v1/cognitive/proposals
 
 List pending and recent proposals.
 
 ```bash
-curl https://overture.igrisinertial.com/api/v1/cognitive/proposals \
+curl https://overture.igrisinertial.com/v1/cognitive/proposals \
   -H "Authorization: Bearer YOUR_API_KEY"
 ```
 
@@ -48,18 +48,18 @@ Response:
 
 ---
 
-### GET /api/v1/cognitive/proposals/:id
+### GET /v1/cognitive/proposals/:id
 
 Get a single proposal with full detail.
 
 ---
 
-### POST /api/v1/cognitive/proposals/:id/apply
+### POST /v1/cognitive/proposals/:id/apply
 
 Apply a proposal immediately.
 
 ```bash
-curl -X POST https://overture.igrisinertial.com/api/v1/cognitive/proposals/prop-01HXYZ/apply \
+curl -X POST https://overture.igrisinertial.com/v1/cognitive/proposals/prop-01HXYZ/apply \
   -H "Authorization: Bearer YOUR_API_KEY"
 # → {"status": "applied", "applied_at": "2026-03-01T12:05:00Z"}
 ```
@@ -72,12 +72,12 @@ The change takes effect on the next request. If performance degrades within the 
 
 On **Horizon** and **Infinite** tiers, the advisor can apply proposals automatically when they meet configured thresholds.
 
-### GET /api/v1/cognitive/config
+### GET /v1/cognitive/config
 
 Returns the current auto-apply configuration.
 
 ```bash
-curl https://overture.igrisinertial.com/api/v1/cognitive/config \
+curl https://overture.igrisinertial.com/v1/cognitive/config \
   -H "Authorization: Bearer YOUR_API_KEY"
 ```
 
@@ -97,12 +97,12 @@ Response:
 }
 ```
 
-### PUT /api/v1/cognitive/config
+### PUT /v1/cognitive/config
 
 Update the auto-apply configuration.
 
 ```bash
-curl -X PUT https://overture.igrisinertial.com/api/v1/cognitive/config \
+curl -X PUT https://overture.igrisinertial.com/v1/cognitive/config \
   -H "Authorization: Bearer YOUR_API_KEY" \
   -H "Content-Type: application/json" \
   -d '{
