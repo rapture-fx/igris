@@ -93,23 +93,11 @@ Successful responses (2xx with valid content) reset the consecutive failure coun
 
 ---
 
-## Integration with EscapeVector
-
-The circuit breaker is implemented in the EscapeVector WASM engine and runs identically across all deployment surfaces:
-
-- **Cloud** — protects Overture's provider routing
-- **Edge** — protects local provider configurations
-- **Console** — displays real-time circuit breaker state per provider
-
-Because it's in WASM, the circuit breaker behavior is deterministic — the same sequence of failures produces the same state transitions regardless of where it runs.
-
----
-
 ## Monitoring
 
 ### Console
 
-View circuit breaker status at `/models/routing`:
+View circuit breaker status at the routing dashboard in the console:
 
 - Per-provider state indicator (closed/open/half-open)
 - Failure count and last failure timestamp
