@@ -451,6 +451,24 @@ export default function ExecutionRunsPage() {
               )}
             </TableBody>
           </Table>
+          {/* Pagination */}
+          <div className="flex items-center justify-between px-4 py-3 border-t border-gray-100 bg-gray-50">
+            <span className="text-xs text-gray-500">
+              Page {page + 1} · {filtered.length} results
+            </span>
+            <div className="flex items-center gap-2">
+              <Button variant="outline" size="sm" className="h-7 text-xs"
+                disabled={page === 0}
+                onClick={() => setPage((p) => Math.max(0, p - 1))}>
+                Previous
+              </Button>
+              <Button variant="outline" size="sm" className="h-7 text-xs"
+                disabled={filtered.length < PAGE_SIZE}
+                onClick={() => setPage((p) => p + 1)}>
+                Next
+              </Button>
+            </div>
+          </div>
         </Card>
       </div>
 
