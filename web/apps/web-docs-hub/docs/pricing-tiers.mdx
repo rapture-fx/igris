@@ -9,7 +9,7 @@
 | | **Seed** | **Horizon** | **Infinite** |
 |---|---|---|---|
 | **Price** | $29/month | $149/month | $699/month |
-| **Runtime Instances** | 1 | 50 | 500 |
+| **Runtime Instances** | 3 | 50 | 500 |
 | **Deployment** | Edge or server | Edge or server | Edge, server, or on-premise |
 | **Support** | Email (48h) | Email (24h) | Priority (8h) |
 | **Log Retention** | 7 days | 30 days | 90 days |
@@ -23,27 +23,40 @@ All tiers include a 7-day free trial. One trial per account. No credit card requ
 
 The right starting point for developers shipping agents or robots to production. Includes the full Igris runtime with every core execution capability.
 
-**Runtime capacity:** 1 instance
+**Runtime capacity:** 3 instances
 
 ### Included Features
 
-**Core Execution (unified runtime)**
+**Core Execution**
 - Behavior Trees + hybrid LLM execution
 - Agent Memory (shared blackboard)
-- Safety Containment + EscapeVector
+- Safety Containment
 - Cryptographic execution receipts
 - Tamper-evident audit logs
 
-**Deployment**
-- Edge or server deployment
-- Verified binary install (checksum-verified download)
+**Routing & Inference**
+- Adaptive multi-provider routing with automatic failover
+- Shadow mode
+- Speculative execution
+- Council mode (multi-model consensus)
 - Offline survival mode
 - Local and cloud routing
-- MCP Integration
 
-**Fleet Management**
-- Council routing
-- 7-day log retention
+**Governance**
+- Capability gates
+- SLO enforcement
+- Prometheus metrics
+- Advanced policy engine
+- Human-in-the-Loop approvals
+- Routing advisor
+
+**Deployment & Integration**
+- Edge or server deployment
+- Verified binary install (checksum-verified download)
+- MCP Integration
+- ROS2 Integration
+- On-device training (LoRA)
+- Multi-Agent Swarms
 
 **Support**
 - Email support (48-hour response)
@@ -54,27 +67,15 @@ The right starting point for developers shipping agents or robots to production.
 
 ## Horizon — $149/month
 
-Recommended for growing teams that need advanced execution guarantees, observability, and autonomous coordination.
+Recommended for growing teams that need fleet management, remote operations, and longer audit retention.
 
 **Runtime capacity:** 50 instances
 
 ### Everything in Seed, plus
 
-**Advanced Agent Capabilities**
-- Shadow mode
-- Speculative execution
-- Human-in-the-Loop approvals
-- Multi-Agent Swarms
-- Reflection Mode
-
-**Observability**
-- SLO enforcement
-- Prometheus metrics
-- Advanced policy engine
-
 **Fleet Management**
-- Remote OTA fleet updates
 - Fleet dashboard
+- Remote OTA fleet updates
 - Configuration push to devices
 
 **Retention and Support**
@@ -87,7 +88,7 @@ Recommended for growing teams that need advanced execution guarantees, observabi
 
 ## Infinite — $699/month
 
-For organizations running large-scale fleets with on-premise requirements, federated workloads, or multimodal inference.
+For organizations running large-scale fleets with on-premise requirements or federated workloads.
 
 **Runtime capacity:** 500 instances
 
@@ -99,8 +100,7 @@ For organizations running large-scale fleets with on-premise requirements, feder
 
 **Capabilities**
 - Federated model aggregation
-- Multimodal inference
-- Cognitive Advisor auto-apply
+- Multimodal inference *(Early Access)*
 
 **Retention and Support**
 - Custom retention policy
@@ -115,35 +115,38 @@ For organizations running large-scale fleets with on-premise requirements, feder
 
 | Feature | Seed | Horizon | Infinite |
 |---------|------|---------|----------|
-| **Runtime instances** | 1 | 50 | 500 |
+| **Runtime instances** | 3 | 50 | 500 |
 | **Behavior Trees + hybrid LLM execution** | Yes | Yes | Yes |
 | **Agent Memory (blackboard)** | Yes | Yes | Yes |
-| **Safety Containment + EscapeVector** | Yes | Yes | Yes |
+| **Safety Containment** | Yes | Yes | Yes |
 | **Cryptographic execution receipts** | Yes | Yes | Yes |
 | **Tamper-evident audit logs** | Yes | Yes | Yes |
+| **Adaptive multi-provider routing** | Yes | Yes | Yes |
+| **Shadow mode** | Yes | Yes | Yes |
+| **Speculative execution** | Yes | Yes | Yes |
+| **Council mode** | Yes | Yes | Yes |
+| **SLO enforcement** | Yes | Yes | Yes |
+| **Prometheus metrics** | Yes | Yes | Yes |
+| **Advanced policy engine** | Yes | Yes | Yes |
+| **Human-in-the-Loop approvals** | Yes | Yes | Yes |
+| **Routing advisor** | Yes | Yes | Yes |
+| **Multi-Agent Swarms** | Yes | Yes | Yes |
+| **Reflection Mode** | Yes | Yes | Yes |
+| **On-device training (LoRA)** | Yes | Yes | Yes |
 | **MCP Integration** | Yes | Yes | Yes |
+| **ROS2 Integration** | Yes | Yes | Yes |
+| **Verified binary install** | Yes | Yes | Yes |
+| **Offline survival mode** | Yes | Yes | Yes |
+| **Local + cloud routing** | Yes | Yes | Yes |
 | **Edge or server deployment** | Yes | Yes | Yes |
 | **On-premise deployment** | No | No | Yes |
 | **Self-hosted coordination layer** | No | No | Yes |
-| **Verified binary install** | Yes | Yes | Yes |
 | **Remote OTA fleet updates** | No | Yes | Yes |
-| **Offline survival mode** | Yes | Yes | Yes |
-| **Local + cloud routing** | Yes | Yes | Yes |
 | **Fleet dashboard** | No | Yes | Yes |
 | **Configuration push** | No | Yes | Yes |
-| **Council routing** | Yes | Yes | Yes |
-| **Log retention** | 7 days | 30 days | 90 days |
-| **Shadow mode** | No | Yes | Yes |
-| **Speculative execution** | No | Yes | Yes |
-| **Human-in-the-Loop approvals** | No | Yes | Yes |
-| **Multi-Agent Swarms** | No | Yes | Yes |
-| **Reflection Mode** | No | Yes | Yes |
-| **SLO enforcement** | No | Yes | Yes |
-| **Prometheus metrics** | No | Yes | Yes |
-| **Advanced policy engine** | No | Yes | Yes |
-| **Cognitive Advisor** | View only | Manual apply | Auto-apply |
 | **Federated model aggregation** | No | No | Yes |
-| **Multimodal inference** | No | No | Yes |
+| **Multimodal inference** | No | No | Early Access |
+| **Log retention** | 7 days | 30 days | 90 days |
 | **Dedicated onboarding** | No | No | Yes |
 | **Support response time** | 48 hours | 24 hours | 8 hours |
 
@@ -205,7 +208,7 @@ Your account moves to the Seed tier. Audit logs, fleet configuration, and runtim
 
 ### Can I start on Seed and upgrade later?
 
-Yes. Upgrades are self-service and take effect immediately. If you start on Seed and later need shadow mode, speculative execution, or a larger fleet, upgrade to Horizon or Infinite from the billing settings in the console.
+Yes. Upgrades are self-service and take effect immediately. If you start on Seed and later need a larger fleet with remote OTA and fleet dashboard, upgrade to Horizon or Infinite from the billing settings in the console.
 
 ### Is there a setup fee or onboarding cost?
 
@@ -214,6 +217,10 @@ No setup fee on any tier. Infinite includes dedicated onboarding as part of the 
 ### How does on-premise deployment work on Infinite?
 
 On Infinite, you can deploy the Igris runtime within your own infrastructure — including air-gapped or private cloud environments. The runtime binary is distributed through your authenticated account and can be installed on any supported Linux or macOS target. The fleet dashboard and telemetry still communicate with the Igris cloud control plane unless you configure a self-hosted endpoint.
+
+### What are the API rate limits per tier?
+
+Each tier has different rate limits for inference and management API calls. See [Rate Limiting →](/docs/rate-limiting) for the full breakdown.
 
 ---
 
