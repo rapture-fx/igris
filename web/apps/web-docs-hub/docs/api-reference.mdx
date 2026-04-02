@@ -23,13 +23,11 @@ curl https://overture.igrisinertial.com/v1/chat/completions \
 | **API Key** | `/api/v1/runtime/register`, `/api/v1/runtime/heartbeat`, `/api/v1/runtime/deregister`, `/api/v1/runtime/download` | Used by runtime instances to communicate with the coordination layer |
 | **Session** | All other endpoints | Requires a valid session token from the console or SDK |
 
-**Inference endpoint auth:** The `/v1/chat/completions` and `/v1/infer` endpoints can be configured as public, optional, or required depending on your deployment settings. By default, they require authentication.
+**Inference endpoint auth:** The cloud API `/v1/chat/completions` endpoint requires authentication. The local engine API (`http://localhost:8080/v1/chat/completions`) can optionally run without auth depending on your runtime configuration.
 
 ---
 
 ## Inference
-
-> **Note:** The `/v1/infer/*` direct inference endpoints are not yet generally available. Use `/v1/chat/completions` for all inference workloads.
 
 ### POST /v1/chat/completions
 
@@ -55,15 +53,11 @@ OpenAI-compatible chat completion with automatic multi-provider routing.
 
 **Response:** Standard OpenAI `chat.completion` object. Fallback information is returned in the `X-Igris-Fallback-Count` response header.
 
-### POST /v1/infer
+### POST /v1/infer/multimodal *(Early Access)*
 
-Alternative inference endpoint with the same behavior as `/v1/chat/completions`.
+Multimodal inference supporting image and text inputs. Contact [support@igrisinertial.com](mailto:support@igrisinertial.com) to enable.
 
-### POST /v1/infer/multimodal
-
-Multimodal inference supporting image and text inputs.
-
-### GET /v1/infer/multimodal/stats
+### GET /v1/infer/multimodal/stats *(Early Access)*
 
 Multimodal inference statistics for your tenant.
 
@@ -107,7 +101,18 @@ Speculative execution runs parallel inference paths and returns the fastest resu
 
 | Endpoint | Description |
 |---|---|
+| `GET /v1/routing/speculative/config` | Current speculative execution configuration |
 | `GET /v1/routing/speculative/status` | Whether speculative execution is active for your tenant |
+| `GET /v1/routing/speculative/analytics` | Win rates, latency savings, and cost breakdown per provider |
+| `POST /v1/routing/speculative/simulate` | Simulate a speculative run without making real inference requests |
+
+Example — simulate a speculative run:
+```bash
+curl -X POST https://overture.igrisinertial.com/v1/routing/speculative/simulate \
+  -H "Authorization: Bearer YOUR_API_KEY" \
+  -H "Content-Type: application/json" \
+  -d '{"prompt": "Summarize this document.", "providers": ["anthropic", "openai"]}'
+```
 
 [Speculative Execution →](/docs/speculative-execution)
 
@@ -496,19 +501,9 @@ If the runtime is unreachable, returns:
 
 ## Usage Analytics
 
-### GET /v1/usage
-
-Raw usage metrics for your tenant.
+> The `/v1/usage/*` endpoints return raw tenant metrics. The `/models/usage/*` endpoints return enriched cost and token analytics — use these for billing dashboards and cost tracking.
 
 ### GET /v1/usage/summary
-
-Aggregated usage summary.
-
-### GET /v1/usage/history
-
-Historical usage time series.
-
-### GET /models/usage/summary
 
 Aggregated request and cost summary for your tenant.
 
@@ -672,6 +667,9 @@ Control and monitor shadow execution for agents.
 | `/v1/shadow/start` | POST | Start shadow mode |
 | `/v1/shadow/stop` | POST | Stop shadow mode |
 | `/v1/shadow/promote` | POST | Promote shadow provider to primary |
+| `/v1/execution/shadow` | GET | Paired real vs. shadow execution comparisons |
+
+`GET /v1/execution/shadow` accepts `range` (`1h`, `24h`, `7d`) and `agent_id` query params.
 
 [Shadow Mode →](/docs/shadow-mode)
 
@@ -683,14 +681,14 @@ Automated analysis of routing performance with optimization proposals.
 
 | Endpoint | Method | Description |
 |---|---|---|
-| `/v1/cognitive/status` | GET | Current cognitive advisor status |
-| `/v1/cognitive/observations` | GET | Provider observation history |
-| `/v1/cognitive/recommendations` | GET | Current routing recommendations |
-| `/v1/cognitive/recommendations/:id/apply` | POST | Apply a recommendation |
-| `/v1/cognitive/recommendations/:id/dismiss` | POST | Dismiss a recommendation |
-| `/v1/cognitive/history` | GET | Recommendation history |
-| `/v1/cognitive/config` | GET | Get cognitive advisor configuration |
-| `/v1/cognitive/config` | PATCH | Update cognitive advisor configuration |
+| `/v1/cognitive/status` | GET | Current routing advisor status |
+| `/v1/cognitive/proposals` | GET | Current optimization proposals |
+| `/v1/cognitive/proposals/:id` | GET | Get a single proposal with full detail |
+| `/v1/cognitive/proposals/:id/apply` | POST | Apply a proposal immediately |
+| `/v1/cognitive/proposals/:id/dismiss` | POST | Dismiss a proposal |
+| `/v1/cognitive/history` | GET | Proposal history |
+| `/v1/cognitive/config` | GET | Get routing advisor configuration |
+| `/v1/cognitive/config` | PATCH | Update routing advisor configuration |
 
 [Routing Advisor →](/docs/cognitive-advisor)
 
@@ -708,7 +706,7 @@ Multi-model response aggregation with consensus voting.
 | `/v1/council/analytics` | GET | Council analytics and voting history |
 | `/v1/council/history` | GET | Council decision history |
 
-[Council Mode →](/docs/council-mode)
+[Council Mode →](/docs/swarm)
 
 ---
 
@@ -806,12 +804,12 @@ Clear pending commands for a specific agent.
 
 | Endpoint | Method | Description |
 |---|---|---|
-| `/devices` | GET | List all registered devices |
-| `/devices/stats` | GET | Aggregate device statistics |
-| `/devices/:id/topics` | GET | Device ROS topic activity |
-| `/devices/:id/executions` | GET | Device execution history |
-| `/devices/:id/violations` | GET | Device violation history |
-| `/devices/:id/ros/replay` | POST | Replay ROS bag file |
+| `/v1/devices` | GET | List all registered devices |
+| `/v1/devices/stats` | GET | Aggregate device statistics |
+| `/v1/devices/:id/topics` | GET | Device ROS topic activity |
+| `/v1/devices/:id/executions` | GET | Device execution history |
+| `/v1/devices/:id/violations` | GET | Device violation history |
+| `/v1/devices/:id/ros/replay` | POST | Replay ROS bag file |
 
 ---
 
@@ -829,11 +827,11 @@ Get a specific receipt by ID.
 
 Export receipts for external audit workflows.
 
-### GET /proof/receipts
+### GET /v1/proof/receipts
 
 List receipts via the proof API.
 
-### POST /proof/receipts/verify
+### POST /v1/proof/receipts/verify
 
 Verify the integrity of a signed receipt.
 
@@ -881,29 +879,21 @@ Server-Sent Events stream of real-time alerts.
 
 ## Settings
 
-### POST /v1/settings/general
+These endpoints back the console settings UI.
 
-Update general account settings.
+| Endpoint | Method | Description |
+|---|---|---|
+| `/v1/settings/general` | POST | Update general account settings |
+| `/v1/settings/security` | POST | Update security settings |
+| `/v1/settings/runtime` | POST | Update runtime settings |
 
-### POST /v1/settings/security
+> **API key management:** Use `/v1/account/api-key` for programmatic key rotation. The `/v1/settings/api-keys` endpoints below are used by the console UI only.
 
-Update security settings.
-
-### POST /v1/settings/runtime
-
-Update runtime settings.
-
-### GET /v1/settings/api-keys
-
-List API keys for your account.
-
-### POST /v1/settings/api-keys
-
-Generate a new API key.
-
-### POST /v1/settings/api-keys/revoke
-
-Revoke an API key.
+| Endpoint | Method | Description |
+|---|---|---|
+| `/v1/settings/api-keys` | GET | List API keys |
+| `/v1/settings/api-keys` | POST | Generate a new API key |
+| `/v1/settings/api-keys/revoke` | POST | Revoke an API key |
 
 ---
 
@@ -1027,40 +1017,23 @@ The runtime instance exposes a separate API at `http://localhost:8080` by defaul
 
 ## Rate Limits
 
-Requests to `/v1/chat/completions` are rate-limited per account. The limit is shown in response headers:
+All endpoints are rate-limited per account. Limits vary by tier:
+
+| Tier | Inference (`/v1/chat/completions`) | Management API |
+|---|---|---|
+| Seed | 100 req/min | 200 req/min |
+| Horizon | 500 req/min | 1,000 req/min |
+| Infinite | 2,000 req/min | 5,000 req/min |
+
+Current limits are reflected in response headers on every request:
 
 - `X-RateLimit-Limit` — requests allowed per window
 - `X-RateLimit-Remaining` — requests remaining in current window
+- `X-RateLimit-Reset` — Unix timestamp when the window resets
 
-When the limit is exceeded, Igris returns HTTP 429.
+When the limit is exceeded, Igris returns HTTP 429 with a `retry_after` field indicating how many seconds to wait.
 
 [Rate Limiting →](/docs/rate-limiting)
-
----
-
-## Shadow Traces
-
-### GET /v1/execution/shadow
-
-Returns paired real vs shadow execution comparisons for agents with `shadow_mode` enabled.
-
-| Query param | Description |
-|---|---|
-| `range` | Time window: `1h`, `24h` (default), `7d` |
-| `agent_id` | Filter by agent |
-
-```json
-[
-  {
-    "id": "shadow-01HXYZ",
-    "agent_id": "agent-abc",
-    "timestamp": "2026-03-01T12:00:00Z",
-    "divergence_score": 0.12,
-    "real":   { "status": "completed", "duration_ms": 312, "violations": 0, "model": "anthropic/claude-3-haiku" },
-    "shadow": { "status": "completed", "duration_ms": 287, "violations": 0, "model": "openai/gpt-4o-mini" }
-  }
-]
-```
 
 ---
 
@@ -1084,6 +1057,7 @@ All API errors follow a consistent format:
 | 401 | `unauthorized` | Invalid or missing authentication |
 | 403 | `forbidden` | Insufficient permissions or tier |
 | 402 | `budget_exceeded` | Monthly budget exhausted |
+| 402 | `payment_required` | Subscription inactive or payment failed |
 | 404 | `not_found` | Resource does not exist |
 | 409 | `conflict` | State conflict (e.g., duplicate trial) |
 | 422 | `unprocessable` | Validation failure |
