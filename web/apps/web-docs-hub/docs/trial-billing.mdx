@@ -95,8 +95,8 @@ Response:
     "id": "seed",
     "name": "Seed",
     "price_usd_monthly": 29,
-    "runtime_limit": 1,
-    "features": ["thompson-sampling", "fleet-registration", "basic-analytics"]
+    "runtime_limit": 3,
+    "features": ["fleet-registration", "routing", "governance", "analytics"]
   },
   {
     "id": "horizon",
@@ -122,10 +122,10 @@ Response:
 | | Seed | Horizon | Infinite |
 |---|---|---|---|
 | **Price** | $29/mo | $149/mo | $699/mo |
-| **Runtime instances** | 1 | 50 | 500 |
-| **Routing** | Thompson Sampling | + Speculative, Council | + Federated |
+| **Runtime instances** | 3 | 50 | 500 |
+| **Routing** | Adaptive (all strategies) | Adaptive (all strategies) | Adaptive (all strategies) |
 | **Fleet management** | — | Full (OTA, config push) | Full |
-| **Cognitive Advisor** | View only | Manual apply | Auto-apply |
+| **Routing advisor** | Yes | Yes | Yes |
 | **Trial** | 7 days free | 7 days free | 7 days free |
 
 [Pricing details →](/docs/pricing-tiers)
