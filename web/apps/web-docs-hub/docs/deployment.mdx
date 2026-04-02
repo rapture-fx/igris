@@ -66,7 +66,7 @@ The execution engine runs on your infrastructure — a server, an edge device, o
 docker run -p 8080:8080 \
   -v ./models:/models \
   -v ./config.json:/config.json \
-  ghcr.io/igris-inertial/igris-runtime:latest
+  igris-runtime:latest
 ```
 
 **Kubernetes**
@@ -81,7 +81,7 @@ spec:
     spec:
       containers:
         - name: runtime
-          image: ghcr.io/igris-inertial/igris-runtime:latest
+          image: igris-runtime:latest
           ports:
             - containerPort: 8080
 ```
