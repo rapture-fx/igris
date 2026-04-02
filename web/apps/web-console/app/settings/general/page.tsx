@@ -231,8 +231,17 @@ export default function SettingsGeneralPage() {
     onError:   () => { setRevokeTarget(null); },
   });
 
-  // ── Roles ──────────────────────────────────────────────────────────────────
-  const [roles] = useState<RoleRecord[]>([]);
+  // ── Roles from Better Auth admin API ───────────────────────────────────────
+  const { data: roles = [], isLoading: rolesLoading } = useQuery<RoleRecord[]>({
+    queryKey: ['settings-roles'],
+    queryFn: async () => {
+      try {
+        return await api.get<RoleRecord[]>('/api/admin/users');
+      } catch { return [] as RoleRecord[]; }
+    },
+    retry: false,
+    staleTime: 30_000,
+  });
 
   // ── License (summary from tenant) ─────────────────────────────────────────
   const isLoading = tenantLoading;
@@ -594,8 +603,8 @@ export default function SettingsGeneralPage() {
                   </div>
                 </div>
                 <div className="flex items-center gap-2 pt-1">
-                  <Button size="sm" className="h-8 text-xs gap-1.5">
-                    Upgrade Plan
+                  <Button size="sm" className="h-8 text-xs gap-1.5" asChild>
+                    <a href="/settings/billing">Go to Billing</a>
                   </Button>
                   <Button variant="outline" size="sm" className="h-8 text-xs" asChild>
                     <a href="/settings/license">View Full License →</a>
