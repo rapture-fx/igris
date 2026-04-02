@@ -12,7 +12,7 @@ Igris maintains real-time performance statistics for each configured cloud provi
 - **Latency**: p50 and p95 response times, tracked with exponential decay
 - **Cost**: per-token cost at the provider's current pricing
 
-At request time, Igris selects a provider using Thompson Sampling: a Bayesian multi-armed bandit algorithm that balances exploration (trying providers to keep statistics fresh) and exploitation (using the provider known to perform best for this workload).
+At request time, Igris selects a provider using an adaptive algorithm that automatically balances exploring providers with new data and exploiting the best-known provider for your workload.
 
 Selection is re-evaluated on every request. A provider that degrades will see its traffic share drop as statistics update in real time.
 
@@ -126,7 +126,7 @@ GET /v1/routing/leaderboard
 GET /v1/routing/recent
 ```
 
-All three endpoints require your Igris bearer token. The leaderboard shows the current ranked order that Thompson Sampling has converged on, based on your traffic. A provider that is degrading will drop in rank as its statistics update in real time.
+All three endpoints require your Igris bearer token. The leaderboard shows the current ranked order based on your traffic. A provider that is degrading will drop in rank as its statistics update in real time.
 
 ---
 
@@ -149,7 +149,7 @@ Routing behavior can be overridden with per-tenant policies:
 Policy options:
 - `cost-optimized`: minimize cost per token
 - `latency-optimized`: minimize p50 latency
-- `thompson-sampling`: adaptive multi-armed bandit (default)
+- `thompson-sampling`: adaptive routing (default)
 - Manual provider pins for specific models
 
 [Policy →](/docs/policy)
