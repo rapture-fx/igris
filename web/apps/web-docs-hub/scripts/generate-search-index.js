@@ -37,7 +37,7 @@ function extractSearchIndex() {
     'multimodal.mdx': 'Multimodal',
     'mcp.mdx': 'MCP Integration',
     'history.mdx': 'History',
-    'cognitive-advisor.mdx': 'Cognitive Advisor',
+    'cognitive-advisor.mdx': 'Routing Advisor',
     'swarm.mdx': 'Swarm',
     'trial-billing.mdx': 'Trial & Billing',
     'console.mdx': 'Console',
@@ -46,18 +46,26 @@ function extractSearchIndex() {
     'approval-workflows.mdx': 'Approval Workflows',
     'slo-enforcer.mdx': 'SLO Enforcer',
     'multi-tenancy.mdx': 'Multi-Tenancy',
-    'escapevector.mdx': 'EscapeVector',
+    'escapevector.mdx': 'Routing Engine',
     'circuit-breaker.mdx': 'Circuit Breaker',
     'provider-health.mdx': 'Provider Health',
     'shadow-mode.mdx': 'Shadow Mode',
     'tamper-evident-logs.mdx': 'Tamper-Evident Logs',
     'model-aggregation.mdx': 'Model Aggregation',
     'local-llm-fallback.mdx': 'Local LLM Fallback',
+    'data-privacy.mdx': 'Data Privacy',
+    'error-codes.mdx': 'Error Codes',
+    'rate-limiting.mdx': 'Rate Limiting',
+    'security.mdx': 'Security',
+    'sla.mdx': 'SLA',
+    'upgrade-migration.mdx': 'Upgrade & Migration',
+    'webhooks.mdx': 'Webhooks',
   };
 
-  files.forEach(file => {
+  function processFile(file, subdir) {
+    const filePath = subdir ? path.join(docsDir, subdir, file) : path.join(docsDir, file);
     const slug = file.replace('.mdx', '');
-    const content = fs.readFileSync(path.join(docsDir, file), 'utf-8');
+    const content = fs.readFileSync(filePath, 'utf-8');
     const title = slugToTitle[file] || slug
       .split('-')
       .map(w => w.charAt(0).toUpperCase() + w.slice(1))
@@ -85,20 +93,39 @@ function extractSearchIndex() {
       ?.slice(0, 200) || '';
 
     const keywords = `${headings} ${codeLangs} ${firstPara} ${slug}`.toLowerCase();
+    const docPath = subdir
+      ? `/docs/${subdir}/${slug}`
+      : `/docs/${slug === 'overview' ? '' : slug}`;
 
     index.push({
       title,
-      path: `/docs/${slug === 'overview' ? '' : slug}`,
+      path: docPath,
       keywords: keywords.slice(0, 500),
     });
-  });
+  }
 
-  // Add articles entry
-  index.push({
-    title: 'Articles',
-    path: '/docs/articles',
-    keywords: 'articles engineering notes architecture deep dive blog posts',
-  });
+  files.forEach(file => processFile(file, null));
+
+  // Index articles subdirectory
+  const articleTitles = {
+    'index.mdx': null, // skipped — served at /docs/articles already in static index
+    'edge-deployment-guide.mdx': 'Deploying Igris on Edge Devices',
+    'safe-agents-capability-gates.mdx': 'Building Safe Agents with Capability Gates',
+    'thompson-sampling-routing.mdx': 'How Adaptive Routing Works',
+  };
+
+  const articlesDir = path.join(docsDir, 'articles');
+  if (fs.existsSync(articlesDir)) {
+    const articleFiles = fs.readdirSync(articlesDir).filter(f => f.endsWith('.mdx') && f !== 'index.mdx');
+    articleFiles.forEach(file => {
+      const slug = file.replace('.mdx', '');
+      const content = fs.readFileSync(path.join(articlesDir, file), 'utf-8');
+      const title = articleTitles[file] || slug.split('-').map(w => w.charAt(0).toUpperCase() + w.slice(1)).join(' ');
+      const headings = content.split('\n').filter(line => /^#{1,3}\s/.test(line)).map(line => line.replace(/^#+\s/, '').trim()).join(' ');
+      const keywords = `${headings} ${slug}`.toLowerCase();
+      index.push({ title, path: `/docs/articles/${slug}`, keywords: keywords.slice(0, 500) });
+    });
+  }
 
   fs.writeFileSync(outputFile, JSON.stringify(index, null, 2));
   console.log(`Search index generated: ${index.length} entries → ${outputFile}`);
