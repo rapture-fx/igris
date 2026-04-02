@@ -12,20 +12,7 @@ Each execution receipt contains:
 2. **Previous hash** — SHA-256 hash of the previous receipt (forming a chain)
 3. **Signature** — Ed25519 signature of the envelope using a device-bound key
 
-```
-Receipt 1: hash_1 = SHA256(envelope_1), sig_1 = SIGN(hash_1, key)
-Receipt 2: hash_2 = SHA256(envelope_2), prev_2 = hash_1, sig_2 = SIGN(hash_2, key)
-Receipt 3: hash_3 = SHA256(envelope_3), prev_3 = hash_2, sig_3 = SIGN(hash_3, key)
-```
-
-To tamper with any receipt, an attacker would need to:
-1. Modify the envelope content
-2. Recompute the hash
-3. Re-sign with the device-bound key
-4. Recompute all subsequent hashes in the chain
-5. Re-sign all subsequent receipts
-
-Without the signing key, this is computationally infeasible.
+Each receipt links to the previous receipt via hash, forming a chain. Each receipt is signed with a device-bound key that exists only on the originating runtime. Tampering with any receipt invalidates its signature and breaks the chain — both of which are detected by the verification API.
 
 ---
 
