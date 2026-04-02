@@ -30,6 +30,7 @@ interface PausedRun {
 export default function ApprovalsPage() {
   const qc = useQueryClient();
   const [expandedPrompt, setExpandedPrompt] = useState<string | null>(null);
+  const [selectedIds, setSelectedIds] = useState<Set<string>>(new Set());
 
   const { data: runs = [], isLoading, refetch, isFetching } = useQuery<PausedRun[]>({
     queryKey: ['paused-runs'],
@@ -64,7 +65,44 @@ export default function ApprovalsPage() {
     onError: () => toast({ title: 'Reject failed', variant: 'destructive' }),
   });
 
-  const isPending = approveMutation.isPending || rejectMutation.isPending;
+  const bulkApproveMutation = useMutation({
+    mutationFn: async (ids: string[]) => {
+      await Promise.all(ids.map((id) => api.post(`/v1/execution/runs/${id}/approve`, {})));
+    },
+    onSuccess: (_, ids) => {
+      qc.invalidateQueries({ queryKey: ['paused-runs'] });
+      setSelectedIds(new Set());
+      toast({ title: `${ids.length} runs approved`, description: 'Executions will resume.' });
+    },
+    onError: () => toast({ title: 'Bulk approve failed', variant: 'destructive' }),
+  });
+
+  const bulkRejectMutation = useMutation({
+    mutationFn: async (ids: string[]) => {
+      await Promise.all(ids.map((id) => api.post(`/v1/execution/runs/${id}/reject`, { reason: 'human_rejected' })));
+    },
+    onSuccess: (_, ids) => {
+      qc.invalidateQueries({ queryKey: ['paused-runs'] });
+      setSelectedIds(new Set());
+      toast({ title: `${ids.length} runs rejected`, description: 'Executions have been terminated.' });
+    },
+    onError: () => toast({ title: 'Bulk reject failed', variant: 'destructive' }),
+  });
+
+  const isPending = approveMutation.isPending || rejectMutation.isPending ||
+    bulkApproveMutation.isPending || bulkRejectMutation.isPending;
+
+  const toggleSelect = (id: string) => {
+    setSelectedIds((prev) => {
+      const next = new Set(prev);
+      next.has(id) ? next.delete(id) : next.add(id);
+      return next;
+    });
+  };
+
+  const selectAll = () => {
+    setSelectedIds(selectedIds.size === runs.length ? new Set() : new Set(runs.map((r) => r.id)));
+  };
 
   return (
     <DashboardLayout>
@@ -93,13 +131,30 @@ export default function ApprovalsPage() {
           </Button>
         </div>
 
-        {/* Pending count badge */}
+        {/* Pending count badge + bulk actions */}
         {!isLoading && runs.length > 0 && (
-          <div className="flex items-center gap-2 px-3 py-2.5 bg-amber-50 border border-amber-200 rounded-md">
-            <Clock className="h-3.5 w-3.5 text-amber-600 flex-shrink-0" />
-            <span className="text-xs text-amber-700 font-medium">
-              {runs.length} run{runs.length !== 1 ? 's' : ''} awaiting approval
-            </span>
+          <div className="flex items-center justify-between gap-3">
+            <div className="flex items-center gap-2 px-3 py-2.5 bg-amber-50 border border-amber-200 rounded-md">
+              <Clock className="h-3.5 w-3.5 text-amber-600 flex-shrink-0" />
+              <span className="text-xs text-amber-700 font-medium">
+                {runs.length} run{runs.length !== 1 ? 's' : ''} awaiting approval
+              </span>
+            </div>
+            {selectedIds.size > 0 && (
+              <div className="flex items-center gap-2">
+                <span className="text-xs text-gray-600">{selectedIds.size} selected</span>
+                <Button size="sm" className="h-7 text-xs gap-1 bg-green-600 hover:bg-green-700 text-white"
+                  onClick={() => bulkApproveMutation.mutate(Array.from(selectedIds))}
+                  disabled={bulkApproveMutation.isPending}>
+                  <UserCheck className="h-3 w-3" /> Approve All
+                </Button>
+                <Button size="sm" variant="outline" className="h-7 text-xs gap-1 border-red-200 text-red-700 hover:bg-red-50"
+                  onClick={() => bulkRejectMutation.mutate(Array.from(selectedIds))}
+                  disabled={bulkRejectMutation.isPending}>
+                  <UserX className="h-3 w-3" /> Reject All
+                </Button>
+              </div>
+            )}
           </div>
         )}
 
@@ -108,6 +163,10 @@ export default function ApprovalsPage() {
           <Table>
             <TableHeader>
               <TableRow className="hover:bg-transparent">
+                <TableHead className="w-10 h-9 px-4 bg-gray-50">
+                  <input type="checkbox" checked={selectedIds.size === runs.length && runs.length > 0}
+                    onChange={selectAll} className="rounded border-gray-300" />
+                </TableHead>
                 {['Run ID', 'Agent', 'Paused', 'Reason / Model', 'BT Node', 'Prompt Preview', 'Actions'].map((h) => (
                   <TableHead key={h} className="text-xs font-medium text-gray-500 h-9 px-4 bg-gray-50">
                     {h}
@@ -119,7 +178,7 @@ export default function ApprovalsPage() {
               {isLoading ? (
                 Array.from({ length: 4 }).map((_, i) => (
                   <TableRow key={i}>
-                    {Array.from({ length: 7 }).map((_, j) => (
+                    {Array.from({ length: 8 }).map((_, j) => (
                       <TableCell key={j} className="px-4 py-3">
                         <Skeleton className="h-3.5 w-20" />
                       </TableCell>
@@ -128,7 +187,7 @@ export default function ApprovalsPage() {
                 ))
               ) : runs.length === 0 ? (
                 <TableRow>
-                  <TableCell colSpan={7} className="py-16 text-center">
+                  <TableCell colSpan={8} className="py-16 text-center">
                     <CheckCircle2 className="h-8 w-8 text-green-300 mx-auto mb-2" />
                     <p className="text-xs text-gray-400">No runs pending approval.</p>
                     <p className="text-[11px] text-gray-400 mt-1">
@@ -139,6 +198,10 @@ export default function ApprovalsPage() {
               ) : (
                 runs.map((run) => (
                   <TableRow key={run.id} className="border-b border-gray-100">
+                    <TableCell className="px-4 py-3">
+                      <input type="checkbox" checked={selectedIds.has(run.id)}
+                        onChange={() => toggleSelect(run.id)} className="rounded border-gray-300" />
+                    </TableCell>
                     <TableCell className="px-4 py-3 text-xs font-mono text-gray-700">
                       {truncateText(run.id, 16)}
                     </TableCell>
