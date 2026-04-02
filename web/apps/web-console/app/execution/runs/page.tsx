@@ -121,10 +121,16 @@ export default function ExecutionRunsPage() {
   const { toast } = useToast();
 
   const { data: runs = [], isLoading, refetch } = useQuery<Execution[]>({
-    queryKey: ['execution-runs'],
+    queryKey: ['execution-runs', page, statusFilter],
     queryFn: async () => {
       try {
-        return await api.get('/v1/execution/runs?limit=500&sort=created_at:desc');
+        const params = new URLSearchParams({
+          limit: String(PAGE_SIZE),
+          offset: String(page * PAGE_SIZE),
+          sort: 'created_at:desc',
+        });
+        if (statusFilter !== 'all') params.set('status', statusFilter);
+        return await api.get(`/v1/execution/runs?${params}`);
       } catch {
         return [] as Execution[];
       }
