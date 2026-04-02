@@ -6,7 +6,7 @@ Igris exposes two API surfaces: the **cloud API** at `overture.igrisinertial.com
 
 ## Authentication
 
-All cloud API requests require a Bearer token:
+Most cloud API endpoints require authentication via a Bearer token in the `Authorization` header:
 
 ```bash
 curl https://overture.igrisinertial.com/v1/chat/completions \
@@ -15,9 +15,21 @@ curl https://overture.igrisinertial.com/v1/chat/completions \
   -d '{"model": "gpt-4", "messages": [{"role": "user", "content": "Hello"}]}'
 ```
 
+**Authentication types:**
+
+| Type | Endpoints | Description |
+|---|---|---|
+| **Public** | `/v1/models`, `/v1/health`, `/v1/runtime/install`, `/v1/runtime/checksum` | No authentication required |
+| **API Key** | `/api/v1/runtime/register`, `/api/v1/runtime/heartbeat`, `/api/v1/runtime/deregister`, `/api/v1/runtime/download` | Used by runtime instances to communicate with the coordination layer |
+| **Session** | All other endpoints | Requires a valid session token from the console or SDK |
+
+**Inference endpoint auth:** The `/v1/chat/completions` and `/v1/infer` endpoints can be configured as public, optional, or required depending on your deployment settings. By default, they require authentication.
+
 ---
 
 ## Inference
+
+> **Note:** The `/v1/infer/*` direct inference endpoints are not yet generally available. Use `/v1/chat/completions` for all inference workloads.
 
 ### POST /v1/chat/completions
 
@@ -42,6 +54,18 @@ OpenAI-compatible chat completion with automatic multi-provider routing.
 | `provider_preference` | string[] | Optional ordered list of providers to try |
 
 **Response:** Standard OpenAI `chat.completion` object. Fallback information is returned in the `X-Igris-Fallback-Count` response header.
+
+### POST /v1/infer
+
+Alternative inference endpoint with the same behavior as `/v1/chat/completions`.
+
+### POST /v1/infer/multimodal
+
+Multimodal inference supporting image and text inputs.
+
+### GET /v1/infer/multimodal/stats
+
+Multimodal inference statistics for your tenant.
 
 ### GET /v1/models
 
@@ -79,35 +103,11 @@ Response for `GET /v1/routing/stats`:
 
 ### Speculative execution
 
-Speculative execution runs parallel inference paths and returns the fastest result. Available on **Horizon** and **Infinite** tiers.
+Speculative execution runs parallel inference paths and returns the fastest result.
 
 | Endpoint | Description |
 |---|---|
-| `GET /v1/routing/speculative/config` | Current speculative execution configuration |
 | `GET /v1/routing/speculative/status` | Whether speculative execution is active for your tenant |
-| `GET /v1/routing/speculative/analytics` | Win rates, latency savings, and cost breakdown per provider |
-| `POST /v1/routing/speculative/simulate` | Simulate a speculative run without consuming credits |
-
-Response for `GET /v1/routing/speculative/analytics`:
-```json
-{
-  "total_speculative_runs": 412,
-  "wins_by_provider": {
-    "anthropic": 218,
-    "openai": 194
-  },
-  "avg_latency_saving_ms": 87.3,
-  "cost_overhead_pct": 12.1
-}
-```
-
-Example — simulate a speculative run:
-```bash
-curl -X POST https://overture.igrisinertial.com/v1/routing/speculative/simulate \
-  -H "Authorization: Bearer YOUR_API_KEY" \
-  -H "Content-Type: application/json" \
-  -d '{"prompt": "Summarize this document.", "providers": ["anthropic", "openai"]}'
-```
 
 [Speculative Execution →](/docs/speculative-execution)
 
@@ -330,6 +330,32 @@ curl -X POST https://overture.igrisinertial.com/v1/policies/assign \
 # → {"status": "assigned", "agent_count": 2}
 ```
 
+### GET /policy/bounds
+
+Get execution resource bounds (max tokens, max steps, max duration).
+
+### POST /policy/bounds
+
+Update execution resource bounds.
+
+### GET /policy/capabilities
+
+Get capability grant configuration.
+
+### POST /policy/capabilities
+
+Update capability grants.
+
+### GET /policy/capabilities/history
+
+View capability grant change history.
+
+### GET /policy/history
+
+View policy change history.
+
+[Policy →](/docs/policy)
+
 ---
 
 ## Behavior Tree Definitions
@@ -466,21 +492,21 @@ If the runtime is unreachable, returns:
 }
 ```
 
-### POST /v1/lora/trigger
-
-Manually trigger an on-device training run. Only valid when `enabled: true` and status is `Idle`.
-
-```bash
-curl -X POST https://overture.igrisinertial.com/v1/lora/trigger \
-  -H "Authorization: Bearer YOUR_API_KEY"
-# → {"triggered": true, "status": "Training"}
-```
-
-If training is already in progress: `{"triggered": false, "status": "Training"}`.
-
 ---
 
 ## Usage Analytics
+
+### GET /v1/usage
+
+Raw usage metrics for your tenant.
+
+### GET /v1/usage/summary
+
+Aggregated usage summary.
+
+### GET /v1/usage/history
+
+Historical usage time series.
 
 ### GET /models/usage/summary
 
@@ -558,11 +584,27 @@ curl "https://overture.igrisinertial.com/models/usage/events?limit=50" \
 | `range` | `7d`, `30d`, `90d` |
 | `provider` | Filter by provider name |
 
+### GET /v1/analytics/cost
+
+Cost analytics for your tenant.
+
+### GET /v1/analytics/cost/providers
+
+Per-provider cost breakdown.
+
+### GET /v1/analytics/cost/trend
+
+Cost trend over time.
+
 ---
 
 ## Fleet (Runtime Instances)
 
 These endpoints manage your registered runtime instances.
+
+### Runtime registration (API key auth)
+
+These endpoints are used by runtime instances to communicate with the coordination layer. They authenticate using an API key in the `Authorization` header.
 
 | Endpoint | Method | Description |
 |---|---|---|
@@ -570,9 +612,21 @@ These endpoints manage your registered runtime instances.
 | `/api/v1/runtime/heartbeat` | POST | Send instance heartbeat |
 | `/api/v1/runtime/deregister` | DELETE | Deregister an instance |
 | `/api/v1/runtime/download` | GET | Download the runtime binary (authenticated, rate-limited 10/hr) |
+| `/api/v1/runtime/commands` | GET | Check for queued commands |
+
+### Fleet management (session auth)
+
+| Endpoint | Method | Description |
+|---|---|---|
 | `/api/v1/runtime/instances` | GET | List all registered instances |
 | `/api/v1/runtime/config/push` | POST | Push configuration to instances |
 | `/api/v1/runtime/update` | POST | Queue an OTA update |
+
+### Public endpoints
+
+| Endpoint | Method | Description |
+|---|---|---|
+| `/v1/runtime/install` | GET | Install script (public) |
 | `/v1/runtime/checksum` | GET | Fetch binary checksum (public) |
 
 [Fleet Management →](/docs/fleet-management)
@@ -623,9 +677,9 @@ Control and monitor shadow execution for agents.
 
 ---
 
-## Cognitive Advisor
+## Routing Advisor
 
-Statistical routing advisor using Thompson Sampling for provider selection.
+Automated analysis of routing performance with optimization proposals.
 
 | Endpoint | Method | Description |
 |---|---|---|
@@ -638,7 +692,7 @@ Statistical routing advisor using Thompson Sampling for provider selection.
 | `/v1/cognitive/config` | GET | Get cognitive advisor configuration |
 | `/v1/cognitive/config` | PATCH | Update cognitive advisor configuration |
 
-[Cognitive Advisor →](/docs/cognitive-advisor)
+[Routing Advisor →](/docs/cognitive-advisor)
 
 ---
 
@@ -653,13 +707,14 @@ Multi-model response aggregation with consensus voting.
 | `/v1/council/config` | PATCH | Update council configuration |
 | `/v1/council/analytics` | GET | Council analytics and voting history |
 | `/v1/council/history` | GET | Council decision history |
-| `/v1/council/test` | POST | Test council with a sample prompt |
+
+[Council Mode →](/docs/council-mode)
 
 ---
 
-## EscapeVector
+## Routing Engine
 
-WASM routing engine cache and configuration.
+Routing engine cache and configuration. API paths use `/v1/escapevector/`.
 
 | Endpoint | Method | Description |
 |---|---|---|
@@ -671,7 +726,7 @@ WASM routing engine cache and configuration.
 | `/v1/escapevector/refresh` | POST | Refresh provider cache |
 | `/v1/escapevector/cache` | DELETE | Clear engine cache |
 
-[EscapeVector →](/docs/escapevector)
+[Routing Engine →](/docs/escapevector)
 
 ---
 
@@ -682,15 +737,6 @@ WASM routing engine cache and configuration.
 | `/v1/routing/circuit-breaker/status` | GET | Per-provider circuit breaker status |
 
 [Circuit Breaker →](/docs/circuit-breaker)
-
----
-
-## Multimodal Inference
-
-| Endpoint | Method | Description |
-|---|---|---|
-| `/v1/infer/multimodal` | POST | Multimodal inference (image + text) |
-| `/v1/infer/multimodal/stats` | GET | Multimodal inference statistics |
 
 ---
 
@@ -733,7 +779,7 @@ Multi-agent swarm coordination status.
 
 Send a command to all active agents.
 
-### POST /v1/fleet/swarm/agents/:id/clear
+### DELETE /v1/fleet/swarm/agents/:id/clear
 
 Clear pending commands for a specific agent.
 
@@ -769,35 +815,129 @@ Clear pending commands for a specific agent.
 
 ---
 
-## Dashboard Stats
+## Execution Receipts & Proof
 
-| Endpoint | Method | Description |
-|---|---|---|
-| `/v1/stats/overview` | GET | Dashboard summary statistics |
-| `/v1/stats/model-usage` | GET | Model usage for dashboard charts |
-| `/v1/proof/violations` | GET | Recent violations for dashboard |
+### GET /v1/receipts
+
+List execution receipts for your tenant.
+
+### GET /v1/receipts/:id
+
+Get a specific receipt by ID.
+
+### GET /v1/receipts/export
+
+Export receipts for external audit workflows.
+
+### GET /proof/receipts
+
+List receipts via the proof API.
+
+### POST /proof/receipts/verify
+
+Verify the integrity of a signed receipt.
+
+### GET /v1/proof/violations
+
+List capability violations.
+
+[Execution Receipts →](/docs/execution-receipts) · [Audit →](/docs/audit)
 
 ---
 
-## Usage & Cost Analytics
+## History & Alerts
 
-| Endpoint | Method | Description |
-|---|---|---|
-| `/v1/usage` | GET | Raw usage metrics |
-| `/v1/usage/summary` | GET | Aggregated usage summary |
-| `/v1/usage/history` | GET | Historical usage time series |
-| `/v1/analytics/cost` | GET | Cost analytics |
-| `/v1/analytics/cost/providers` | GET | Per-provider cost breakdown |
-| `/v1/analytics/cost/trend` | GET | Cost trend over time |
+### GET /v1/history/events
+
+Searchable, paginated execution event log.
+
+### GET /v1/history/metrics
+
+Aggregate statistics (total executions, violation count, avg wall time, throughput).
+
+### GET /v1/history/alerts
+
+List alerts for your tenant.
+
+### POST /v1/history/alerts/:id/acknowledge
+
+Acknowledge an alert.
+
+### POST /v1/history/alerts/:id/resolve
+
+Resolve an alert.
+
+### POST /v1/history/alerts/:id/escalate
+
+Escalate an alert.
+
+### GET /v1/alerts/stream
+
+Server-Sent Events stream of real-time alerts.
+
+[History & Alerts →](/docs/history)
 
 ---
 
-## Traces & Real-time Metrics
+## Settings
 
-| Endpoint | Method | Description |
-|---|---|---|
-| `/v1/traces` | GET | Request traces for debugging |
-| `/v1/metrics/realtime` | GET | Real-time metrics stream |
+### POST /v1/settings/general
+
+Update general account settings.
+
+### POST /v1/settings/security
+
+Update security settings.
+
+### POST /v1/settings/runtime
+
+Update runtime settings.
+
+### GET /v1/settings/api-keys
+
+List API keys for your account.
+
+### POST /v1/settings/api-keys
+
+Generate a new API key.
+
+### POST /v1/settings/api-keys/revoke
+
+Revoke an API key.
+
+---
+
+## Traces & Debugging
+
+### GET /v1/traces
+
+Request traces for debugging.
+
+### GET /v1/traces/summary
+
+Summary of recent traces.
+
+### GET /v1/stats/overview
+
+Dashboard summary statistics.
+
+### GET /v1/stats/model-usage
+
+Model usage for dashboard charts.
+
+---
+
+## Audit Log
+
+### GET /v1/audit
+
+Query the audit log for your tenant.
+
+### GET /v1/audit/export
+
+Export the audit log.
+
+[Audit →](/docs/audit)
 
 ---
 
@@ -820,18 +960,66 @@ Clear pending commands for a specific agent.
 
 ---
 
+## Trial & Subscription
+
+### POST /v1/trial/start
+
+Start a 7-day free trial on the selected tier.
+
+### GET /v1/trial/status
+
+Check current trial status.
+
+### GET /api/subscription/status
+
+Current subscription status, active tier, and runtime instance limit.
+
+### GET /api/subscription/plans
+
+Available plans with pricing and limits.
+
+### GET /api/v1/tier/capabilities
+
+Get capabilities available for your current tier.
+
+[Trial & Billing →](/docs/trial-billing)
+
+---
+
 ## Local Engine API
 
 The runtime instance exposes a separate API at `http://localhost:8080` by default. This is distinct from the cloud API.
 
-| Endpoint | Description |
-|---|---|
-| `GET /health` | Health check |
-| `GET /metrics` | Prometheus metrics |
-| `POST /v1/chat/completions` | Local chat completion |
-| `GET /v1/lora/status` | On-device training status |
-| `GET /v1/receipts` | List execution receipts (runtime-local storage) |
-| `GET /v1/receipts/{id}` | Get a specific receipt |
+| Endpoint | Method | Description |
+|---|---|---|
+| `/v1/health` | GET | Health check |
+| `/metrics` | GET | Prometheus metrics |
+| `/v1/chat/completions` | POST | Local chat completion |
+| `/v1/plan` | POST | Planning agent execution |
+| `/v1/reflect` | POST | Reflection mode execution |
+| `/v1/lora/status` | GET | On-device training status |
+| `/v1/fleet/instances` | GET | List fleet instances (local view) |
+| `/v1/fleet/metrics` | GET | Local fleet metrics |
+| `/v1/federated/status` | GET | Federated learning status |
+| `/v1/federated/update` | POST | Submit model update for aggregation |
+| `/v1/federated/model/latest` | GET | Get latest aggregated model |
+| `/v1/federated/participants` | GET | List local federation participants |
+| `/v1/swarm/status` | GET | Swarm status |
+| `/v1/swarm/agents` | GET | List swarm agents |
+| `/v1/swarm/join` | POST | Join a swarm |
+| `/v1/swarm/propose` | POST | Propose a swarm action |
+| `/v1/swarm/vote` | POST | Vote on a swarm proposal |
+| `/v1/btree/validate` | POST | Validate a behavior tree |
+| `/v1/btree/run` | POST | Run a behavior tree |
+| `/v1/btree/deploy` | POST | Deploy a behavior tree |
+| `/v1/btree/events` | GET | Stream behavior tree events |
+| `/mcp/stream` | POST | MCP stream endpoint |
+| `/v1/runtime/execute` | POST | Execute a runtime command |
+| `/v1/runtime/violations` | GET | List local violations |
+| `/v1/runtime/register` | POST | Register with coordination layer |
+| `/v1/runtime/agent/:id/state` | GET | Get agent state |
+| `/v1/receipts` | GET | List execution receipts (local storage) |
+| `/v1/receipts/:id` | GET | Get a specific receipt |
 
 > Execution receipts are stored locally on the runtime device. Nothing leaves your infrastructure unless you explicitly export them.
 
