@@ -4,26 +4,11 @@ Get Igris executing AI workloads in a few minutes.
 
 ---
 
-## Install the Runtime
+## Prerequisites
 
-The fastest way to get started on any platform:
-
-```bash
-curl -fsSL https://igrisinertial.com/install | bash
-```
-
-Detects your platform (Linux x86-64/ARM64, macOS Apple Silicon), downloads the correct binary, verifies the checksum, and installs to `/usr/local/bin/igris-runtime`.
-
-> **Manual download:** If scripts are restricted, download the binary directly from **Fleet → Downloads** in the console.
-
-### Verify Installation
-
-```bash
-igris-runtime --version
-# → igris-runtime v0.1.0 (linux/amd64)
-```
-
-If the command is not found, ensure `/usr/local/bin` is on your `PATH`.
+- Linux (x86_64 or ARM64), macOS (Apple Silicon), or Windows with WSL2
+- An Igris account at [console.igrisinertial.com](https://console.igrisinertial.com)
+- API keys for at least one cloud provider (OpenAI, Anthropic, Google, etc.) — or a local GGUF model for offline use
 
 ---
 
@@ -91,15 +76,43 @@ Run the runtime on your own hardware for offline inference, signed receipts, and
 curl -fsSL https://igrisinertial.com/install | bash
 ```
 
-### Step 2: Authenticate
+Detects your platform (Linux x86-64/ARM64, macOS Apple Silicon), downloads the correct binary, verifies the checksum, and installs to `/usr/local/bin/igris-runtime`.
 
-Get your API key from **Settings → Keys** in the console:
+> **Manual download:** If scripts are restricted, download the binary directly from **Fleet → Downloads** in the console.
+
+### Step 2: Verify installation
 
 ```bash
-igris-runtime auth igris_…
+igris-runtime --version
+# → igris-runtime v1.8.0 (linux/amd64)
 ```
 
-### Step 3: Start the runtime
+If the command is not found, ensure `/usr/local/bin` is on your `PATH`.
+
+### Step 3: Configure the runtime
+
+Create a configuration file at `~/.config/igris/config.json5`:
+
+```json5
+{
+  server: {
+    host: "0.0.0.0",
+    port: 8080
+  },
+  auth: {
+    enabled: true,
+    api_key: "your-igris-api-key"
+  },
+  local_fallback: {
+    enabled: true,
+    model_path: "/models/phi-3-mini-4k-instruct-q4.gguf"
+  }
+}
+```
+
+Get your API key from **Settings → Keys** in the console.
+
+### Step 4: Start the runtime
 
 ```bash
 igris-runtime serve
@@ -107,14 +120,14 @@ igris-runtime serve
 
 The runtime registers itself with your fleet and appears in **Fleet → Devices** within a minute.
 
-### Step 4: Point your application at the runtime
+### Step 5: Point your application at the runtime
 
 ```python
 from openai import OpenAI
 
 client = OpenAI(
     base_url="http://localhost:8080/v1",
-    api_key="your-igris-api-key"  # Same key from Settings → Keys
+    api_key="your-igris-api-key"
 )
 
 response = client.chat.completions.create(
@@ -135,15 +148,16 @@ Run the runtime locally and register it with the cloud layer. Cloud providers ha
 
 ### Step 1: Deploy the runtime
 
-Follow Option B steps 1–3 to install and start the runtime.
+Follow Option B steps 1–4 to install and start the runtime.
 
 ### Step 2: Register the runtime
 
-The runtime registers itself automatically on startup using your `IGRIS_API_KEY`. To register manually:
+The runtime registers itself automatically on startup. To register manually:
 
 ```bash
 curl -X POST https://overture.igrisinertial.com/api/v1/runtime/register \
   -H "Authorization: Bearer YOUR_IGRIS_API_KEY" \
+  -H "Content-Type: application/json" \
   -d '{
     "name": "local-runtime",
     "endpoint": "http://your-server-ip:8080"
@@ -201,10 +215,10 @@ You've made your first request. Here's the recommended path forward:
 | Problem | Solution |
 |---|---|
 | `command not found: igris-runtime` | Ensure `/usr/local/bin` is on your `PATH`. Restart your terminal after installation. |
-| Port 8080 already in use | Run `igris-runtime serve --port 8081` to use a different port. |
-| Authentication failed | Verify your API key at **Settings → Keys** in the console. The key must start with `igris_sk_`. |
-| No model loaded (local inference) | Download a GGUF model and set `--model-path` when starting: `igris-runtime serve --model-path /path/to/model.gguf` |
+| Port 8080 already in use | Set a different port in your config file: `server.port: 8081`, then restart. |
+| Authentication failed | Verify your API key at **Settings → Keys** in the console. Ensure the key in your config file matches. |
+| No model loaded (local inference) | Download a GGUF model and set `local_fallback.model_path` in your config file. |
 | Runtime not appearing in Fleet | Check that the runtime can reach `overture.igrisinertial.com`. Run `igris-runtime status` to verify registration. |
-| Provider returns 401 | Re-add your provider API key via **Models → Providers** in the console. Keys may have expired or been revoked. |
+| Provider returns 401 | Re-add your provider API key via **Settings → Keys** in the console. Keys may have expired or been revoked. |
 
 [Troubleshooting →](/docs/troubleshooting)
