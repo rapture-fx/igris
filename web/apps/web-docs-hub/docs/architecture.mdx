@@ -32,7 +32,7 @@ graph TD
         LLM["Local LLM\n(GGUF models)"]
         BT["Behavior Tree Engine"]
         Tools["Tool Sandbox\n(HTTP, Shell, FS)"]
-        Receipts["Signed Receipts\n(Ed25519, hash-chained)"]
+        Receipts["Signed Receipts\n(cryptographic chain)"]
         MCP["MCP Server/Client"]
         Server --> LLM
         Server --> BT
