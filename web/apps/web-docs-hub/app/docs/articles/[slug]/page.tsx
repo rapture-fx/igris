@@ -7,7 +7,9 @@ interface PageProps {
 }
 
 const articleSlugs: Record<string, string> = {
-  'first-article': 'articles/first-article',
+  'edge-deployment-guide': 'articles/edge-deployment-guide',
+  'safe-agents-capability-gates': 'articles/safe-agents-capability-gates',
+  'thompson-sampling-routing': 'articles/thompson-sampling-routing',
 };
 
 export async function generateStaticParams() {
