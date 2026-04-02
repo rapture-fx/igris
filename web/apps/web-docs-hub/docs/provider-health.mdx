@@ -53,7 +53,7 @@ Provider Response → Metrics Collector → Health Evaluator → Routing Decisio
 
 1. **Metrics Collector** — records latency, success/failure, and cost for every request
 2. **Health Evaluator** — computes rolling averages and determines health status
-3. **Routing Decision** — EscapeVector uses health data to select the best provider
+3. **Routing Decision** — The routing engine uses health data to select the best provider
 
 The health evaluation runs on a sliding window (default 5 minutes). Older data decays exponentially.
 
@@ -170,4 +170,4 @@ Health checks are useful when traffic volume is low and there isn't enough real 
 
 ---
 
-[Circuit Breaker →](/docs/circuit-breaker) · [EscapeVector →](/docs/escapevector) · [Cloud Coordination →](/docs/cloud-coordination)
+[Circuit Breaker →](/docs/circuit-breaker) · [Routing Engine →](/docs/escapevector) · [Cloud Coordination →](/docs/cloud-coordination)
