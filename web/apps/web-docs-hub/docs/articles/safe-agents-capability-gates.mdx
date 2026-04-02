@@ -1,0 +1,207 @@
+---
+title: Building Safe Agents with Capability Gates
+date: 2026-03-18
+summary: A practical guide to configuring capability grants, monitoring violations, and iterating on your agent policies.
+author: Igris Team
+---
+
+# Building Safe Agents with Capability Gates
+
+When agents can make HTTP requests, execute shell commands, or access the filesystem, the risk surface grows significantly. Igris's capability gates ensure that agents can only perform operations you explicitly authorize.
+
+---
+
+## The Capability Model
+
+Every execution in Igris runs with a **capability grant** — a declarative list of what the agent is permitted to do. The engine enforces these grants before any operation executes.
+
+### Available Capabilities
+
+| Capability | Controls |
+|---|---|
+| `allow_http` | Outbound HTTP requests |
+| `allowed_http_domains` | Specific domains the agent can call |
+| `allow_shell` | Shell command execution |
+| `allowed_shell_commands` | Specific commands the agent can run |
+| `allow_filesystem` | File read/write operations |
+| `allowed_filesystem_paths` | Specific paths the agent can access |
+| `max_file_write_bytes` | Maximum bytes the agent can write |
+
+---
+
+## Start Restrictive, Expand as Needed
+
+The safest approach is to start with no capabilities granted and add them incrementally:
+
+```json
+{
+  "capabilities": {
+    "allow_http": false,
+    "allow_shell": false,
+    "allow_filesystem": false
+  }
+}
+```
+
+### Step 1: Deploy with No Capabilities
+
+Deploy your agent with all capabilities disabled. Run it against real traffic in **shadow mode** to observe what it would do without actually executing.
+
+### Step 2: Review Violations
+
+Check the **Proof → Violations** page in the console. Each violation shows:
+- Which capability was attempted
+- Which agent attempted it
+- When it happened
+
+### Step 3: Grant Legitimate Capabilities
+
+For violations that represent legitimate agent behavior, grant the specific capability:
+
+```json
+{
+  "capabilities": {
+    "allow_http": true,
+    "allowed_http_domains": ["api.example.com", "cdn.example.com"],
+    "allow_shell": false,
+    "allow_filesystem": false
+  }
+}
+```
+
+### Step 4: Iterate
+
+Repeat steps 2–3 until your agent operates without violations. This process typically takes 1–3 iterations for well-designed agents.
+
+---
+
+## Capability Patterns by Agent Type
+
+### Read-Only Analyst
+
+An agent that analyzes data and produces reports:
+
+```json
+{
+  "capabilities": {
+    "allow_http": false,
+    "allow_shell": false,
+    "allow_filesystem": false
+  }
+}
+```
+
+No tools needed. The agent works purely with its training knowledge and the provided context.
+
+### API Integration Agent
+
+An agent that calls external APIs:
+
+```json
+{
+  "capabilities": {
+    "allow_http": true,
+    "allowed_http_domains": ["api.stripe.com", "api.github.com"],
+    "allow_shell": false,
+    "allow_filesystem": false
+  }
+}
+```
+
+HTTP is restricted to specific domains. The agent cannot call arbitrary endpoints.
+
+### Automation Agent
+
+An agent that processes files and calls APIs:
+
+```json
+{
+  "capabilities": {
+    "allow_http": true,
+    "allowed_http_domains": ["api.example.com"],
+    "allow_shell": false,
+    "allow_filesystem": true,
+    "allowed_filesystem_paths": ["/tmp/agent-workspace"],
+    "max_file_write_bytes": 1048576
+  }
+}
+```
+
+Filesystem access is scoped to a specific directory with a write limit.
+
+### DevOps Agent
+
+An agent that manages infrastructure:
+
+```json
+{
+  "capabilities": {
+    "allow_http": true,
+    "allowed_http_domains": ["api.kubernetes.example.com"],
+    "allow_shell": true,
+    "allowed_shell_commands": ["kubectl", "helm"],
+    "allow_filesystem": true,
+    "allowed_filesystem_paths": ["/etc/igris/configs"],
+    "max_file_write_bytes": 5242880
+  }
+}
+```
+
+Shell access is restricted to specific commands. Filesystem access is scoped.
+
+---
+
+## Monitoring and Alerting
+
+### Console Monitoring
+
+The **Proof → Violations** page is your primary tool for capability monitoring:
+
+- Filter by agent to see which agents are producing violations
+- Filter by violation type to identify patterns
+- Click individual violations to see the full context
+
+### API Monitoring
+
+Query violations programmatically:
+
+```bash
+curl "https://overture.igrisinertial.com/v1/proof/violations?agent_id=agent-abc" \
+  -H "Authorization: Bearer YOUR_API_KEY"
+```
+
+### Setting Up Alerts
+
+Configure webhooks to receive real-time notifications when violations occur:
+
+```bash
+curl -X POST https://overture.igrisinertial.com/v1/webhooks \
+  -H "Authorization: Bearer YOUR_API_KEY" \
+  -H "Content-Type: application/json" \
+  -d '{
+    "url": "https://your-server.com/webhooks/igris",
+    "events": ["execution.violation"]
+  }'
+```
+
+---
+
+## Common Pitfalls
+
+### Over-Granting Capabilities
+
+Granting `allow_http: true` without domain restrictions is the most common mistake. Always use `allowed_http_domains` to limit which endpoints the agent can reach.
+
+### Ignoring Violations
+
+A small number of violations during agent development is normal. But persistent violations on a production agent indicate either:
+- The agent needs additional capabilities (update the policy)
+- The agent is behaving unexpectedly (investigate the agent)
+
+### Not Using Shadow Mode
+
+Shadow mode lets you observe what an agent would do without executing. Use it for every new agent before promoting it to production.
+
+---
+
+[Safety & Containment →](/docs/safety) · [All Articles →](/docs/articles)
