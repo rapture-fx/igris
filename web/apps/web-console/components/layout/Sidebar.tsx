@@ -104,6 +104,8 @@ const navigation: NavigationItem[] = [
     icon: SlidersHorizontal,
     children: [
       { name: 'General', href: '/settings/general' },
+      { name: 'API Keys', href: '/settings/keys' },
+      { name: 'Billing', href: '/settings/billing' },
       { name: 'License', href: '/settings/license' },
     ],
   },
@@ -177,17 +179,34 @@ export function Sidebar({ open = true, onClose }: SidebarProps) {
     setExpandedSections((prev) => ({ ...prev, [name]: !prev[name] }));
   };
 
-  // Build flat search index
-  const searchIndex = navigation.flatMap((item) => {
-    if (item.href) {
-      return [{ title: item.name, path: item.href, keywords: item.name.toLowerCase() }];
-    }
-    return (item.children ?? []).map((child) => ({
-      title: `${item.name} › ${child.name}`,
-      path: child.href,
-      keywords: `${item.name} ${child.name}`.toLowerCase(),
-    }));
-  });
+  // Build flat search index with rich keywords
+  const searchIndex = [
+    { title: 'Dashboard', path: '/dashboard', keywords: 'dashboard overview system stats home' },
+    { title: 'Execution › Runs', path: '/execution/runs', keywords: 'execution runs history tasks jobs' },
+    { title: 'Execution › Agents', path: '/execution/agents', keywords: 'execution agents lifecycle bt behavior tree' },
+    { title: 'Execution › Approvals', path: '/execution/approvals', keywords: 'execution approvals hitl human loop review pause' },
+    { title: 'Execution › Shadow Mode', path: '/execution/shadow', keywords: 'execution shadow comparison divergence test' },
+    { title: 'Execution › BT Editor', path: '/execution/bt-editor', keywords: 'execution bt editor behavior tree visual builder ros' },
+    { title: 'Fleet › Devices', path: '/fleet/devices', keywords: 'fleet devices nodes runtime ros online offline' },
+    { title: 'Fleet › ROS 2', path: '/fleet/ros', keywords: 'fleet ros ros2 topics lifecycle mappings bridge' },
+    { title: 'Fleet › Swarm', path: '/fleet/swarm', keywords: 'fleet swarm coordination multi-agent broadcast' },
+    { title: 'Models › Routing', path: '/models/routing', keywords: 'models routing thompson sampling circuit breaker speculative council shadow' },
+    { title: 'Models › Training', path: '/models/training', keywords: 'models training qlora fine-tune adapter lora' },
+    { title: 'Models › Federated', path: '/models/federated', keywords: 'models federated learning aggregation privacy differential' },
+    { title: 'Models › Providers', path: '/models/providers', keywords: 'models providers openai anthropic google gemini deepseek' },
+    { title: 'Models › Cost', path: '/models/cost', keywords: 'models cost usage tokens spend billing analytics' },
+    { title: 'Policy › Bounds', path: '/policy/bounds', keywords: 'policy bounds limits cpu memory execution steps' },
+    { title: 'Policy › Capabilities', path: '/policy/capabilities', keywords: 'policy capabilities permissions http shell filesystem domains' },
+    { title: 'Proof › Receipts', path: '/proof/receipts', keywords: 'proof receipts cryptographic hash chain verification signature' },
+    { title: 'Proof › Violations', path: '/proof/violations', keywords: 'proof violations policy alerts critical warning' },
+    { title: 'History › Logs', path: '/history/logs', keywords: 'history logs events runtime stream traces' },
+    { title: 'History › Metrics', path: '/history/metrics', keywords: 'history metrics performance charts throughput latency' },
+    { title: 'History › Alerts', path: '/history/alerts', keywords: 'history alerts notifications incidents critical warning' },
+    { title: 'Settings › General', path: '/settings/general', keywords: 'settings general configuration security api keys roles' },
+    { title: 'Settings › License', path: '/settings/license', keywords: 'settings license plan quota activation key' },
+    { title: 'Settings › Billing', path: '/settings/billing', keywords: 'settings billing subscription plan upgrade payment' },
+    { title: 'Settings › API Keys', path: '/settings/keys', keywords: 'settings keys vault api provider authentication' },
+  ];
 
   useEffect(() => {
     const q = searchQuery.trim().toLowerCase();
