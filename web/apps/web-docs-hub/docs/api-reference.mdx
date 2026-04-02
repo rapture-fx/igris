@@ -562,7 +562,7 @@ curl "https://overture.igrisinertial.com/models/usage/events?limit=50" \
 
 ## Fleet (Runtime Instances)
 
-These endpoints use API key authentication and are called by the runtime binary.
+These endpoints manage your registered runtime instances.
 
 | Endpoint | Method | Description |
 |---|---|---|
@@ -570,7 +570,12 @@ These endpoints use API key authentication and are called by the runtime binary.
 | `/api/v1/runtime/heartbeat` | POST | Send instance heartbeat |
 | `/api/v1/runtime/deregister` | DELETE | Deregister an instance |
 | `/api/v1/runtime/download` | GET | Download the runtime binary (authenticated, rate-limited 10/hr) |
-| `/v1/runtime/checksum` | GET | Fetch `.sha256` sidecar (public) |
+| `/api/v1/runtime/instances` | GET | List all registered instances |
+| `/api/v1/runtime/config/push` | POST | Push configuration to instances |
+| `/api/v1/runtime/update` | POST | Queue an OTA update |
+| `/v1/runtime/checksum` | GET | Fetch binary checksum (public) |
+
+[Fleet Management →](/docs/fleet-management)
 
 ---
 
@@ -796,15 +801,6 @@ Clear pending commands for a specific agent.
 
 ---
 
-## Routing Analytics (Additional)
-
-| Endpoint | Method | Description |
-|---|---|---|
-| `/v1/routing/recent` | GET | Last 20 requests with provider and latency |
-| `/v1/routing/speculative/races` | GET | Speculative execution race history |
-
----
-
 ## Account & API Keys
 
 | Endpoint | Method | Description |
@@ -850,6 +846,8 @@ Requests to `/v1/chat/completions` are rate-limited per account. The limit is sh
 
 When the limit is exceeded, Igris returns HTTP 429.
 
+[Rate Limiting →](/docs/rate-limiting)
+
 ---
 
 ## Shadow Traces
@@ -875,6 +873,38 @@ Returns paired real vs shadow execution comparisons for agents with `shadow_mode
   }
 ]
 ```
+
+---
+
+## Error Responses
+
+All API errors follow a consistent format:
+
+```json
+{
+  "error": {
+    "code": "error_code",
+    "message": "Human-readable description",
+    "details": {}
+  }
+}
+```
+
+| HTTP Status | Error Code | Description |
+|---|---|---|
+| 400 | `bad_request` | Malformed request |
+| 401 | `unauthorized` | Invalid or missing authentication |
+| 403 | `forbidden` | Insufficient permissions or tier |
+| 402 | `budget_exceeded` | Monthly budget exhausted |
+| 404 | `not_found` | Resource does not exist |
+| 409 | `conflict` | State conflict (e.g., duplicate trial) |
+| 422 | `unprocessable` | Validation failure |
+| 429 | `rate_limit_exceeded` | Rate limit exceeded |
+| 500 | `internal_error` | Unexpected server error |
+| 502 | `provider_unavailable` | All providers down |
+| 504 | `execution_timeout` | Execution time exceeded |
+
+[Error Codes →](/docs/error-codes) · [Troubleshooting →](/docs/troubleshooting)
 
 ---
 
