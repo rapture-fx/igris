@@ -206,7 +206,7 @@ The agent is requesting capabilities it should not need. Investigate the agent's
 
 ### How provider selection works
 
-By default, Igris uses Thompson Sampling: a Bayesian algorithm that routes requests to providers based on their recent performance (latency, success rate, cost). Over time it converges on the best provider for your workload. This means routing is dynamic — a provider that is currently performing well receives more traffic, and one that degrades receives less.
+By default, Igris uses adaptive routing: requests are sent to providers based on their recent performance (latency, success rate, cost). Over time the router converges on the best provider for your workload. Routing is dynamic — a provider that is currently performing well receives more traffic, and one that degrades receives less.
 
 ### Checking current routing behavior
 
