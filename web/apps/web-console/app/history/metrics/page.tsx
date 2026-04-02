@@ -165,6 +165,28 @@ export default function HistoryMetricsPage() {
   const [device, setDevice] = useState('All Devices');
   const [provider, setProvider] = useState('All Providers');
 
+  // Fetch filter options from API
+  const { data: filterOptions } = useQuery<{
+    agents: string[];
+    devices: string[];
+    providers: string[];
+  }>({
+    queryKey: ['metrics-filter-options'],
+    queryFn: async () => {
+      try {
+        return await api.get('/v1/history/metrics/filters');
+      } catch {
+        return { agents: [], devices: [], providers: [] };
+      }
+    },
+    staleTime: 60_000,
+    retry: false,
+  });
+
+  const agents = ['All Agents', ...(filterOptions?.agents ?? [])];
+  const devices = ['All Devices', ...(filterOptions?.devices ?? [])];
+  const providers = ['All Providers', ...(filterOptions?.providers ?? [])];
+
   const { data: metrics, isLoading, refetch } = useQuery<MetricsData>({
     queryKey: ['history-metrics', timeRange, agent, device, provider],
     queryFn: async () => {
@@ -220,7 +242,7 @@ export default function HistoryMetricsPage() {
                   <SelectValue />
                 </SelectTrigger>
                 <SelectContent>
-                  {AGENTS.map((a) => (
+                  {agents.map((a) => (
                     <SelectItem key={a} value={a} className="text-xs">{a}</SelectItem>
                   ))}
                 </SelectContent>
@@ -231,7 +253,7 @@ export default function HistoryMetricsPage() {
                   <SelectValue />
                 </SelectTrigger>
                 <SelectContent>
-                  {DEVICES.map((d) => (
+                  {devices.map((d) => (
                     <SelectItem key={d} value={d} className="text-xs">{d}</SelectItem>
                   ))}
                 </SelectContent>
@@ -242,7 +264,7 @@ export default function HistoryMetricsPage() {
                   <SelectValue />
                 </SelectTrigger>
                 <SelectContent>
-                  {PROVIDERS.map((p) => (
+                  {providers.map((p) => (
                     <SelectItem key={p} value={p} className="text-xs">{p}</SelectItem>
                   ))}
                 </SelectContent>
