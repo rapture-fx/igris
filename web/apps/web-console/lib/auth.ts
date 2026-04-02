@@ -14,7 +14,7 @@ export const auth = betterAuth({
   }),
   emailAndPassword: {
     enabled: true,
-    requireEmailVerification: false,
+    requireEmailVerification: true,
     minPasswordLength: 8,
     sendResetPassword: async ({ user, url }) => {
       const resend = new Resend(process.env.RESEND_API_KEY);
@@ -71,6 +71,5 @@ export const auth = betterAuth({
     process.env.NEXT_PUBLIC_APP_URL || 'http://localhost:3005',
     process.env.NEXT_PUBLIC_API_URL || 'https://overture.igrisinertial.com',
     'https://console.igrisinertial.com',
-    'http://localhost:8081',
   ],
 });
