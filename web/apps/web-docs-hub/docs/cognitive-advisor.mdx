@@ -123,14 +123,12 @@ curl -X PUT https://overture.igrisinertial.com/v1/cognitive/config \
 
 | Field | Description |
 |---|---|
-| `enabled` | Enable auto-apply (Horizon/Infinite only) |
+| `enabled` | Enable auto-apply |
 | `confidence_threshold` | Minimum confidence score for auto-apply (0–1) |
 | `max_risk_score` | Maximum allowed risk score (0–1) |
 | `eval_interval_mins` | How often to evaluate proposals |
 | `rollback_window_mins` | How long to monitor after applying before confirming success |
 | `degradation_thresholds` | Auto-rollback triggers: latency, error rate, cost increases |
-
----
 
 ---
 
