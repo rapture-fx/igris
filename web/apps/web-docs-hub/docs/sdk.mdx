@@ -1,14 +1,6 @@
 # SDKs
 
-> **Private Beta** — The Igris SDKs are not yet published to public registries (PyPI, npm, crates.io, pkg.go.dev). To deploy an agent today, use the [install script](/docs/quickstart) — it is the only working installation path.
->
-> SDK access is available via GitHub. Contact [support@igrisinertial.com](mailto:support@igrisinertial.com) or join the beta at [console.igrisinertial.com](https://console.igrisinertial.com).
-
----
-
-Igris exposes an OpenAI-compatible API. Any existing OpenAI SDK works without modification — just change the base URL. For richer access to routing metadata, provider management, fleet, and audit, official Igris SDKs are available in four languages.
-
-> **Note:** Code examples below show the planned SDK API. Subject to change before public release.
+Igris exposes an OpenAI-compatible API. Any existing OpenAI SDK works without modification — just change the base URL. For richer access to routing metadata, fleet management, and audit, official Igris SDKs are available in four languages.
 
 ---
 
@@ -62,7 +54,14 @@ npm install openai          # Node.js
 
 ## Igris Native SDKs (Private Beta)
 
-> These packages are **not yet published**. Request access at [support@igrisinertial.com](mailto:support@igrisinertial.com).
+> These packages are **not yet published to public registries**. Request access at [support@igrisinertial.com](mailto:support@igrisinertial.com) or join the beta at [console.igrisinertial.com](https://console.igrisinertial.com).
+
+The native SDKs provide additional capabilities beyond the OpenAI-compatible API:
+- Routing metadata (provider used, cost, latency)
+- Provider key management
+- Fleet management
+- Execution receipt queries
+- Policy configuration
 
 ### JavaScript / TypeScript
 
@@ -170,6 +169,19 @@ All SDKs support the same core request fields:
 | `messages` | array | Conversation messages with `role` and `content` |
 | `provider` | string | Pin to a specific provider (optional) |
 | `optimize_for` | string | `"latency"`, `"cost"`, or `"quality"` (optional) |
+
+---
+
+## Compatibility Matrix
+
+| Runtime Version | OpenAI SDK | Native SDKs | API Version |
+|---|---|---|---|
+| v1.8.x | Supported | Private Beta | v1 |
+| v1.7.x | Supported | Private Beta | v1 |
+| v1.6.x | Supported | Private Beta | v1 |
+| v1.2.x | Supported | Not available | v1 |
+
+The OpenAI-compatible API is stable and backward compatible. Native SDKs are in private beta and may have breaking changes before public release.
 
 ---
 
