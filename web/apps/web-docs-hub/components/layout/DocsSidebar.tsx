@@ -123,13 +123,20 @@ const searchIndexStatic = [
   { title: 'Articles', path: '/docs/articles', keywords: 'articles engineering notes architecture deep dive' },
   { title: 'SLO Enforcer', path: '/docs/slo-enforcer', keywords: 'slo service level objective latency cost quality enforcement compliance target budget' },
   { title: 'Multi-Tenancy', path: '/docs/multi-tenancy', keywords: 'multi-tenant tenant isolation quota resource admin billing' },
-  { title: 'EscapeVector', path: '/docs/escapevector', keywords: 'escapevector wasm webassembly thompson sampling routing engine wasm rust' },
+  { title: 'Routing Engine', path: '/docs/escapevector', keywords: 'routing engine adaptive provider selection failover routing strategy' },
   { title: 'Circuit Breaker', path: '/docs/circuit-breaker', keywords: 'circuit breaker failure recovery open closed half-open provider health' },
   { title: 'Provider Health', path: '/docs/provider-health', keywords: 'provider health monitoring metrics latency success rate degraded unavailable' },
   { title: 'Shadow Mode', path: '/docs/shadow-mode', keywords: 'shadow mode parallel comparison divergence testing quality monitoring' },
   { title: 'Tamper-Evident Logs', path: '/docs/tamper-evident-logs', keywords: 'tamper evident logs immutable audit trail hash chain signature receipt verify export' },
   { title: 'Model Aggregation', path: '/docs/model-aggregation', keywords: 'model aggregation federated learning privacy differential noise round participant' },
   { title: 'Local LLM Fallback', path: '/docs/local-llm-fallback', keywords: 'local llm fallback gguf offline air-gapped on-device inference phi mistral llama' },
+  { title: 'Data Privacy', path: '/docs/data-privacy', keywords: 'data privacy pii retention encryption gdpr compliance data handling' },
+  { title: 'Error Codes', path: '/docs/error-codes', keywords: 'error codes http status errors troubleshooting api response codes' },
+  { title: 'Rate Limiting', path: '/docs/rate-limiting', keywords: 'rate limiting throttle quota requests per minute headers retry' },
+  { title: 'Security', path: '/docs/security', keywords: 'security authentication authorization tls encryption key signing' },
+  { title: 'SLA', path: '/docs/sla', keywords: 'sla service level agreement uptime availability support response time' },
+  { title: 'Upgrade & Migration', path: '/docs/upgrade-migration', keywords: 'upgrade migration version breaking changes schema compatibility guide' },
+  { title: 'Webhooks', path: '/docs/webhooks', keywords: 'webhooks events notifications http callbacks subscription payload signing' },
 ];
 
 // Merge static curated index with generated content index for best results
@@ -186,7 +193,7 @@ const docsNavSections: NavSection[] = [
   {
     section: 'Routing & Reliability',
     items: [
-      { name: 'EscapeVector', href: '/docs/escapevector', icon: Zap },
+      { name: 'Routing Engine', href: '/docs/escapevector', icon: Zap },
       { name: 'SLO Enforcer', href: '/docs/slo-enforcer', icon: Activity },
       { name: 'Circuit Breaker', href: '/docs/circuit-breaker', icon: ShieldCheck },
       { name: 'Provider Health', href: '/docs/provider-health', icon: BarChart3 },
@@ -280,8 +287,10 @@ const articlesNavSections: NavSection[] = [
   {
     section: 'Articles',
     items: [
-      { name: 'All Articles',  href: '/docs/articles',              icon: BookOpen },
-      { name: 'Draft Article', href: '/docs/articles/first-article', icon: FileText },
+      { name: 'All Articles',            href: '/docs/articles',                                  icon: BookOpen },
+      { name: 'Edge Deployment',         href: '/docs/articles/edge-deployment-guide',            icon: FileText },
+      { name: 'Safe Agents',             href: '/docs/articles/safe-agents-capability-gates',     icon: FileText },
+      { name: 'Adaptive Routing',        href: '/docs/articles/thompson-sampling-routing',        icon: FileText },
     ],
   },
 ];
