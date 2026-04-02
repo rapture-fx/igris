@@ -10,7 +10,7 @@ Multi-tenancy in Igris is enforced at every layer:
 
 ```
                     ┌─────────────────────────┐
-                    │    Overture (Cloud)     │
+                    │   Coordination Layer    │
                     │                         │
                     │  Tenant A  │  Tenant B  │
                     │  Tenant C  │  Tenant D  │
@@ -82,12 +82,11 @@ Tenants are allocated resource quotas based on their tier:
 
 | Resource | Seed | Horizon | Infinite |
 |---|---|---|---|
-| Runtime instances | 1 | 5 | Unlimited |
-| Requests/day | 1,000 | 50,000 | Unlimited |
-| Providers | 2 | 5 | Unlimited |
+| Runtime instances | 1 | 50 | 500 |
 | Receipt retention | 7 days | 30 days | 90 days |
-| Federated learning | — | ✓ | ✓ |
+| Federated learning | — | — | ✓ |
 | SLO enforcement | — | ✓ | ✓ |
+| Cognitive Advisor | View only | Manual apply | Auto-apply |
 
 When a tenant exceeds its quota, requests are rejected with HTTP 429. The `X-RateLimit-Remaining` header indicates remaining capacity.
 
@@ -113,50 +112,6 @@ When a tenant exceeds its quota, requests are rejected with HTTP 429. The `X-Rat
 - Vault keys belong to exactly one tenant
 - Provider configurations are tenant-scoped
 - There is no mechanism to share keys between tenants
-
----
-
-## Admin Operations
-
-### Creating a tenant
-
-Tenants are created through the Console or admin API:
-
-```bash
-curl -X POST https://overture.igrisinertial.com/admin/tenants \
-  -H "Authorization: Bearer ADMIN_KEY" \
-  -H "Content-Type: application/json" \
-  -d '{
-    "name": "Acme Corp",
-    "tier": "horizon",
-    "admin_email": "admin@acme.com"
-  }'
-```
-
-Response:
-```json
-{
-  "tenant_id": "tenant-abc123",
-  "api_key": "igris_sk_...",
-  "status": "active"
-}
-```
-
-### Listing tenants
-
-```bash
-curl https://overture.igrisinertial.com/admin/tenants \
-  -H "Authorization: Bearer ADMIN_KEY"
-```
-
-### Updating tenant tier
-
-```bash
-curl -X PATCH https://overture.igrisinertial.com/admin/tenants/tenant-abc123 \
-  -H "Authorization: Bearer ADMIN_KEY" \
-  -H "Content-Type: application/json" \
-  -d '{"tier": "infinite"}'
-```
 
 ---
 
