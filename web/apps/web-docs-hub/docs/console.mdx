@@ -89,7 +89,7 @@ Each agent can have one or more behavioral modes active simultaneously.
 | `shadow_mode` | The agent runs but its output is not used. Execution still produces a receipt. Useful for validating new agents against live traffic before promoting them. |
 | `reflection_mode` | The agent evaluates its own response and may regenerate before returning. Improves output quality at the cost of additional inference time. |
 | `council_mode` | Multiple model providers are consulted and their responses are synthesized before returning. Increases reliability for high-stakes decisions. |
-| `cognitive_advisor_enabled` | The Cognitive Advisor monitors this agent's routing telemetry and may propose or apply configuration changes. |
+| `cognitive_advisor_enabled` | The routing advisor monitors this agent's routing telemetry and may propose or apply configuration changes. |
 
 **Toggling modes**
 
