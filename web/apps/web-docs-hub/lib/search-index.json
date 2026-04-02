@@ -12,7 +12,7 @@
   {
     "title": "API Reference",
     "path": "/docs/api-reference",
-    "keywords": "api reference authentication inference post /v1/chat/completions get /v1/models get /v1/providers/stats routing analytics read-only analytics speculative execution routing configuration (post) execution runs get /v1/execution/runs post /v1/execution/runs/:id/pause → {\"status\": \"paused\"} post /v1/execution/runs/:id/resume → {\"status\": \"running\"} post /v1/execution/runs/:id/cancel post /v1/execution/runs/:id/replay → {\"status\": \"replayed\", \"new_execution_id\": \"exec-01habc\"} post /v1/execution/runs"
+    "keywords": "api reference authentication inference post /v1/chat/completions post /v1/infer/multimodal *(early access)* get /v1/infer/multimodal/stats *(early access)* get /v1/models get /v1/providers/stats routing analytics read-only analytics speculative execution routing configuration (post) execution runs get /v1/execution/runs post /v1/execution/runs/:id/pause → {\"status\": \"paused\"} post /v1/execution/runs/:id/resume → {\"status\": \"running\"} post /v1/execution/runs/:id/cancel post /v1/execution/runs/:id"
   },
   {
     "title": "Approval Workflows",
@@ -22,7 +22,7 @@
   {
     "title": "Architecture",
     "path": "/docs/architecture",
-    "keywords": "architecture system overview overture (go — cloud gateway) core components data layer api surface igris runtime (rust — edge engine) `igris-server` (primary edge binary) `overture-server` (fleet control plane) trust chain deployment topologies what's not production-ready mermaid architecture architecture"
+    "keywords": "architecture system overview coordination layer (cloud gateway) core capabilities data layer api surface igris runtime (edge engine) core capabilities trust chain deployment topologies mermaid architecture architecture"
   },
   {
     "title": "Audit",
@@ -42,12 +42,12 @@
   {
     "title": "Changelog",
     "path": "/docs/changelog",
-    "keywords": "changelog runtime-v1.8.0 — cgroups stability — march 2026 fixed runtime-v1.7.x — arm64 support and distribution — march 2026 added changed runtime-v1.6.0 — macos arm64 builds — february 2026 changed v1.2.1-speculative — speculative execution — november 2025 added 0.4.0 — runtime hardening phase 4 added changed docs  changelog changelog"
+    "keywords": "changelog runtime-v1.8.0 — stability & cgroup enforcement — march 2026 fixed changed migration runtime-v1.7.x — arm64 support and distribution — march 2026 added changed migration runtime-v1.6.0 — macos arm64 builds — february 2026 changed migration v1.2.1-speculative — speculative execution — november 2025 added changed v0.4.0 — runtime hardening phase 4 — october 2025 added changed migration docs  changelog changelog"
   },
   {
     "title": "Circuit Breaker",
     "path": "/docs/circuit-breaker",
-    "keywords": "circuit breaker how it works closed (healthy) open (unhealthy) half-open (testing) state machine configuration what counts as a failure? integration with escapevector monitoring console api best practices json bash json circuit breaker circuit-breaker"
+    "keywords": "circuit breaker how it works closed (healthy) open (unhealthy) half-open (testing) state machine configuration what counts as a failure? monitoring console api best practices json bash json circuit breaker circuit-breaker"
   },
   {
     "title": "Cloud Coordination",
@@ -55,9 +55,9 @@
     "keywords": "cloud coordination provider routing failover cost tracking provider health monitoring byok (bring your own keys) fleet integration register an execution engine instance routing statistics routing statistics (success rates, latency, cost per provider) provider leaderboard (ranked by performance) recent request log with routing decisions routing policies json bash bash bash json cloud coordination cloud-coordination"
   },
   {
-    "title": "Cognitive Advisor",
+    "title": "Routing Advisor",
     "path": "/docs/cognitive-advisor",
-    "keywords": "cognitive advisor how it works proposals get /api/v1/cognitive/proposals get /api/v1/cognitive/proposals/:id post /api/v1/cognitive/proposals/:id/apply → {\"status\": \"applied\", \"applied_at\": \"2026-03-01t12:05:00z\"} auto-apply configuration get /api/v1/cognitive/config put /api/v1/cognitive/config tier availability bash json bash bash json bash cognitive advisor cognitive-advisor"
+    "keywords": "routing advisor how it works proposals get /v1/cognitive/proposals get /v1/cognitive/proposals/:id post /v1/cognitive/proposals/:id/apply → {\"status\": \"applied\", \"applied_at\": \"2026-03-01t12:05:00z\"} auto-apply configuration get /v1/cognitive/config put /v1/cognitive/config bash json bash bash json bash routing advisor cognitive-advisor"
   },
   {
     "title": "Console",
@@ -65,19 +65,29 @@
     "keywords": "console user guide dashboard fleet → devices agents execution runs execution runs → approve / reject proof → violations history behavior tree editor settings → keys settings → billing related pages  console user guide console"
   },
   {
+    "title": "Data Privacy",
+    "path": "/docs/data-privacy",
+    "keywords": "data privacy data we collect account data execution data fleet data provider keys how we handle your data data storage data retention data isolation your rights data access data deletion data portability privacy by deployment mode cloud api mode edge / offline mode hybrid mode third-party data sharing cloud providers billing analytics compliance gdpr data processing agreement security measures contact bash data privacy data-privacy"
+  },
+  {
     "title": "Deployment",
     "path": "/docs/deployment",
     "keywords": "deployment cloud api self-hosted coordination (infinite tier) local / edge execution engine supported platforms deployment methods local models verifying your deployment health check → {\"status\": \"ok\", \"version\": \"...\"} check fleet registration run a test inference networking requirements resource requirements common deployment issues connecting edge to cloud tier comparison what's next python bash bash yaml bash json bash python bash deployment deployment"
   },
   {
-    "title": "EscapeVector",
+    "title": "Error Codes",
+    "path": "/docs/error-codes",
+    "keywords": "error codes error response format authentication errors `unauthorized` (http 401) `forbidden` (http 403) rate limiting errors `rate_limit_exceeded` (http 429) billing errors `budget_exceeded` (http 402) `payment_required` (http 402) resource errors `not_found` (http 404) `conflict` (http 409) `unprocessable` (http 422) execution errors `provider_unavailable` (http 502) `execution_timeout` (http 504) `capability_violation` (http 403) fleet errors `instance_limit_exceeded` (http 429) `instance_not"
+  },
+  {
+    "title": "Routing Engine",
     "path": "/docs/escapevector",
-    "keywords": "escapevector what it is why wasm? exported functions `select_provider(providers, history, strategy) → provider_id` `record_result(provider_id, latency_ms, success, cost_usd) → ()` `circuit_breaker_status(provider_id) → { state, failures, last_failure }` `update_circuit_breaker(provider_id, success) → new_state` thompson sampling configuration circuit breaker console integration building escapevector rust json json bash escapevector escapevector"
+    "keywords": "routing engine what it is how it works routing strategies adaptive (default) cost-optimized latency-optimized strategy configuration circuit breaker console integration json json routing engine escapevector"
   },
   {
     "title": "Execution Flow",
     "path": "/docs/execution-flow",
-    "keywords": "execution flow request lifecycle step by step 1. sdk call 2. overture routes the request 3. execution (cloud or local) 4. response returns to application offline path execution receipts sdk references python json execution flow execution-flow"
+    "keywords": "execution flow request lifecycle step by step 1. sdk call 2. the coordination layer routes the request 3. execution (cloud or local) 4. response returns to application offline path execution receipts sdk references python json execution flow execution-flow"
   },
   {
     "title": "Execution Model",
@@ -132,7 +142,7 @@
   {
     "title": "Multi-Tenancy",
     "path": "/docs/multi-tenancy",
-    "keywords": "multi-tenancy architecture isolation guarantees tenant identification tenant configuration resource quotas cross-tenant isolation data isolation network isolation key isolation admin operations creating a tenant listing tenants updating tenant tier billing json bash json bash bash multi-tenancy multi-tenancy"
+    "keywords": "multi-tenancy architecture isolation guarantees tenant identification tenant configuration resource quotas cross-tenant isolation data isolation network isolation key isolation billing json multi-tenancy multi-tenancy"
   },
   {
     "title": "Multimodal",
@@ -162,7 +172,12 @@
   {
     "title": "Quick Start",
     "path": "/docs/quickstart",
-    "keywords": "quick start install the runtime verify installation → igris-runtime v0.1.0 (linux/amd64) option a — cloud api (no local setup) step 1: sign up and get an api key step 2: add your provider keys step 3: point your sdk at igris response.metadata → {\"provider\": \"anthropic\", \"cost_usd\": 0.00021, ...} option b — local / edge (no internet required) step 1: install the runtime step 2: authenticate step 3: start the runtime step 4: point your application at the runtime option c — hybrid (cloud + local fa"
+    "keywords": "quick start prerequisites option a — cloud api (no local setup) step 1: sign up and get an api key step 2: add your provider keys step 3: point your sdk at igris response.metadata → {\"provider\": \"anthropic\", \"cost_usd\": 0.00021, ...} option b — local / edge (no internet required) step 1: install the runtime step 2: verify installation → igris-runtime v1.8.0 (linux/amd64) step 3: configure the runtime step 4: start the runtime step 5: point your application at the runtime option c — hybrid (cloud"
+  },
+  {
+    "title": "Rate Limiting",
+    "path": "/docs/rate-limiting",
+    "keywords": "rate limiting how rate limits work rate limit headers example response headers default rate limits handling rate limit errors best practices exponential backoff example custom rate limits runtime configuration requesting higher limits rate limiting and tiers provider rate limits json python json5 rate limiting rate-limiting"
   },
   {
     "title": "Robotics",
@@ -172,7 +187,7 @@
   {
     "title": "ROS2 Integration",
     "path": "/docs/ros2-integration",
-    "keywords": "ros2 integration overview installation add the igris apt repository starting the node sending an inference request ros2 service interface behavior tree integration deploy a behavior tree run a behavior tree tick configuration igris_ros2.yaml message types ros topic management api get /v1/ros/topics post /v1/ros/topics/map delete /v1/ros/topics/map/:id → 204 no content post /v1/ros/publish get /v1/ros/discovery post /v1/ros/lifecycle bash bash bash bash bash yaml bash bash yaml bash json bash bas"
+    "keywords": "ros2 integration prerequisites ros2 distribution system requirements dds configuration dependencies install ros2 development tools installing the package overview installation starting the node sending an inference request ros2 service interface behavior tree integration deploy a behavior tree run a behavior tree tick configuration igris_ros2.yaml message types ros topic management api get /v1/ros/topics post /v1/ros/topics/map delete /v1/ros/topics/map/:id → 204 no content post /v1/ros/publish "
   },
   {
     "title": "Safety & Containment",
@@ -182,12 +197,22 @@
   {
     "title": "SDK",
     "path": "/docs/sdk",
-    "keywords": "sdks openai-compatible (works today) igris native sdks (private beta) javascript / typescript python go rust request options sdk source python typescript bash typescript python go rust sdks sdk"
+    "keywords": "sdks openai-compatible (works today) igris native sdks (private beta) javascript / typescript python go rust request options compatibility matrix sdk source python typescript bash typescript python go rust sdks sdk"
+  },
+  {
+    "title": "Security",
+    "path": "/docs/security",
+    "keywords": "security authentication api key authentication session authentication provider key security authorization tenant isolation tier-based feature access role-based access (infinite tier) data protection encryption at rest encryption in transit data residency security best practices 1. secure your api key good: use environment variables bad: never hardcode in source client = igrisclient(api_key=\"igris_sk_...\") 2. use capability gates 3. rotate provider keys regularly 4. monitor violations 5. use huma"
   },
   {
     "title": "Shadow Mode",
     "path": "/docs/shadow-mode",
     "keywords": "shadow mode how it works use cases provider comparison configuration testing quality monitoring configuration shadow comparison api get /v1/execution/shadow divergence score console cost considerations bash json bash json shadow mode shadow-mode"
+  },
+  {
+    "title": "SLA",
+    "path": "/docs/sla",
+    "keywords": "service level agreement availability cloud api scheduled maintenance performance api response times fleet communication support response times support scope incident management incident severity levels communication during incidents post-incident reports data retention exclusions sla credits  service level agreement sla"
   },
   {
     "title": "SLO Enforcer",
@@ -225,8 +250,28 @@
     "keywords": "troubleshooting runtime not starting port already in use missing api key config file not found runtime not appearing in fleet → devices network or firewall blocking outbound registration api key wrong or expired registration call failing silently provider key validation failing key copied incorrectly key revoked or quota exhausted network issue during validation re-validating an existing key via api → {\"valid\": true, \"provider\": \"openai\"} execution runs stuck in paused human review required high"
   },
   {
-    "title": "Articles",
-    "path": "/docs/articles",
-    "keywords": "articles engineering notes architecture deep dive blog posts"
+    "title": "Upgrade & Migration",
+    "path": "/docs/upgrade-migration",
+    "keywords": "upgrade & migration versioning upgrading the runtime automatic ota updates (horizon+) manual upgrade compare with the checksum shown in the console or if running directly: pkill igris-runtime && igris-runtime serve configuration migration config file format changes backing up configuration migrating config fields data migration execution receipts fleet configuration provider keys behavior tree definitions breaking changes by version runtime v1.8.0 (march 2026) runtime v1.7.x (march 2026) runtime"
+  },
+  {
+    "title": "Webhooks",
+    "path": "/docs/webhooks",
+    "keywords": "webhooks overview supported events execution events fleet events alert events billing events configuring webhooks via console via api webhook payload common fields webhook security signature verification best practices delivery and retries delivery behavior retry policy monitoring deliveries managing webhooks list webhooks update a webhook delete a webhook test a webhook bash json python bash bash bash bash webhooks webhooks"
+  },
+  {
+    "title": "Deploying Igris on Edge Devices",
+    "path": "/docs/articles/edge-deployment-guide",
+    "keywords": "deploying igris on edge devices supported edge platforms installation step 1: install the runtime step 2: verify installation → igris-runtime v1.8.0 (linux/arm64) step 3: download a model download phi-3 mini (2.3 gb, q4 quantized) step 4: configure the runtime step 5: start the runtime step 6: register with fleet (optional) running as a service systemd (recommended for production) performance tuning memory optimization gpu offloading (jetson) thermal management raspberry pi jetson monitoring hea"
+  },
+  {
+    "title": "Building Safe Agents with Capability Gates",
+    "path": "/docs/articles/safe-agents-capability-gates",
+    "keywords": "building safe agents with capability gates the capability model available capabilities start restrictive, expand as needed step 1: deploy with no capabilities step 2: review violations step 3: grant legitimate capabilities step 4: iterate capability patterns by agent type read-only analyst api integration agent automation agent devops agent monitoring and alerting console monitoring api monitoring setting up alerts common pitfalls over-granting capabilities ignoring violations not using shadow m"
+  },
+  {
+    "title": "How Adaptive Routing Works",
+    "path": "/docs/articles/thompson-sampling-routing",
+    "keywords": "how adaptive routing works the problem how it works why this matters for your workload automatic adaptation handles new providers gracefully balances cost and performance configuration monitoring thompson-sampling-routing"
   }
 ]
