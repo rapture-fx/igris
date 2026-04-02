@@ -1,6 +1,6 @@
 # Execution Flow
 
-This page traces the path of a request through the Igris Inertial platform from SDK call to signed receipt.
+This page traces the path of a request through the Igris platform from SDK call to signed receipt.
 
 ---
 
@@ -13,7 +13,7 @@ This page traces the path of a request through the Igris Inertial platform from 
 2. SDK serializes to OpenAI format
         │
         ▼
-3. Overture receives request
+3. Coordination layer receives request
    ├── Authenticates tenant
    ├── Checks budget limit
    ├── Applies routing policy
@@ -70,25 +70,25 @@ The request is standard OpenAI format. No Igris-specific fields are required for
 
 ---
 
-### 2. Overture Routes the Request
+### 2. The Coordination Layer Routes the Request
 
-Overture receives the request and applies routing logic before forwarding:
+The coordination layer receives the request and applies routing logic before forwarding:
 
 **Authentication.** The API key is validated and associated with a tenant. All downstream cost, quota, and policy enforcement uses this tenant context.
 
-**Budget check.** If the tenant has a monthly budget configured and the current spend has reached the hard limit, Overture returns HTTP 402 before forwarding the request.
+**Budget check.** If the tenant has a monthly budget configured and the current spend has reached the hard limit, the coordination layer returns HTTP 402 before forwarding the request.
 
-**Provider selection.** Overture selects a provider from the tenant's configured provider pool. The selection uses current performance statistics, the tenant's routing policy, and real-time provider health.
+**Provider selection.** The coordination layer selects a provider from the tenant's configured provider pool. The selection uses current performance statistics, the tenant's routing policy, and real-time provider health.
 
-**Forwarding.** The request is forwarded to the selected provider in the provider's native format. If the provider fails, Overture selects the next provider and retries.
+**Forwarding.** The request is forwarded to the selected provider in the provider's native format. If the provider fails, the coordination layer selects the next provider and retries.
 
 ---
 
 ### 3. Execution (Cloud or Local)
 
-**Cloud path:** The provider runs inference and returns a response. Overture records latency, token count, and error status.
+**Cloud path:** The provider runs inference and returns a response. The coordination layer records latency, token count, and error status.
 
-**Runtime path (hybrid mode):** If Overture's routing selects Runtime as the provider, the request goes to a registered Runtime instance. Runtime opens an execution envelope, enforces capability gates, runs inference (local or cloud), signs the completed envelope, and returns the response.
+**Runtime path (hybrid mode):** If the coordination layer's routing selects the Runtime as the provider, the request goes to a registered Runtime instance. The Runtime opens an execution envelope, enforces capability gates, runs inference (local or cloud), signs the completed envelope, and returns the response.
 
 ---
 
@@ -121,16 +121,16 @@ The response follows OpenAI's response format with additional metadata:
 
 ## Offline Path
 
-When all cloud providers are unreachable and Runtime is configured as a local fallback:
+When all cloud providers are unreachable and the Runtime is configured as a local fallback:
 
 ```
-Application → Overture (cloud providers unreachable)
-                  │
-                  └──► Runtime (local inference)
-                            │
-                            ├── Phi-3 / Mistral / Llama
-                            ├── Signs execution receipt
-                            └── Returns response
+Application → Coordination Layer (cloud providers unreachable)
+                   │
+                   └──► Runtime (local inference)
+                             │
+                             ├── Phi-3 / Mistral / Llama
+                             ├── Signs execution receipt
+                             └── Returns response
 ```
 
 From the application's perspective, the response is identical. The `metadata.provider` field reflects which backend was used.
