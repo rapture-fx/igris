@@ -66,7 +66,7 @@ The native SDKs provide additional capabilities beyond the OpenAI-compatible API
 ### JavaScript / TypeScript
 
 ```typescript
-import { IgrisClient } from '@igris-inertial/sdk';
+import { IgrisClient } from '@igris/sdk';
 
 const client = new IgrisClient({
   baseUrl: 'https://overture.igrisinertial.com',
@@ -110,7 +110,7 @@ print(response.metadata.provider)   # 'openai'
 ```go
 import (
     "context"
-    igris "github.com/igris-inertial/go-sdk"
+    igris "github.com/igris/go-sdk"
 )
 
 client := igris.NewClient(
@@ -134,7 +134,7 @@ fmt.Println(resp.Choices[0].Message.Content)
 ### Rust
 
 ```rust
-use igris_inertial::{IgrisClient, InferRequest, Message};
+use igris::{IgrisClient, InferRequest, Message};
 
 #[tokio::main]
 async fn main() -> Result<(), Box<dyn std::error::Error>> {
@@ -187,11 +187,6 @@ The OpenAI-compatible API is stable and backward compatible. Native SDKs are in 
 
 ## SDK Source
 
-Source is available on GitHub (private during beta):
-
-- [igris-javascript-sdk](https://github.com/igris-inertial/igris-javascript-sdk)
-- [igris-python-sdk](https://github.com/igris-inertial/igris-python-sdk)
-- [igris-go-sdk](https://github.com/igris-inertial/igris-go-sdk)
-- [igris-rust-sdk](https://github.com/igris-inertial/igris-rust-sdk)
+Source is available on GitHub (private during beta). Request access at [support@igrisinertial.com](mailto:support@igrisinertial.com).
 
 [API Reference →](/docs/api-reference) · [Quickstart →](/docs/quickstart)
