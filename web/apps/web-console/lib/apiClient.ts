@@ -13,6 +13,26 @@ interface ApiRequestOptions extends RequestInit {
   skipAuth?: boolean;
 }
 
+// CSRF token management
+let csrfToken: string | null = null;
+
+async function fetchCsrfToken(): Promise<string | null> {
+  if (csrfToken) return csrfToken;
+  try {
+    const res = await fetch(`${API_BASE_URL}/v1/csrf-token`, {
+      credentials: 'include',
+    });
+    if (res.ok) {
+      const data = await res.json();
+      csrfToken = data.token;
+      return csrfToken;
+    }
+  } catch {
+    // CSRF endpoint may not exist yet — fall back to cookie-based
+  }
+  return null;
+}
+
 export async function apiRequest<T = any>(
   path: string,
   options: ApiRequestOptions = {}
@@ -25,6 +45,14 @@ export async function apiRequest<T = any>(
 
   if (fetchOptions.headers) {
     Object.assign(headers, fetchOptions.headers);
+  }
+
+  // Attach CSRF token for state-changing requests
+  if (['POST', 'PUT', 'PATCH', 'DELETE'].includes(fetchOptions.method?.toUpperCase() ?? '')) {
+    const token = await fetchCsrfToken();
+    if (token) {
+      headers['X-CSRF-Token'] = token;
+    }
   }
 
   try {
