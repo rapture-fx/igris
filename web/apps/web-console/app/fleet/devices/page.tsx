@@ -572,8 +572,10 @@ function FleetDevicesContent() {
                           </Link>
                         </div>
                       ) : (
-                        <Button variant="outline" size="sm" className="h-7 text-xs mt-0.5">
-                          Register Runtime Node
+                        <Button variant="outline" size="sm" className="h-7 text-xs mt-0.5" asChild>
+                          <Link href="/downloads/runtime">
+                            Register Runtime Node
+                          </Link>
                         </Button>
                       )}
                     </div>
