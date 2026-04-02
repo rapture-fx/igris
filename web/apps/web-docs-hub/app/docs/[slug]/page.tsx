@@ -116,6 +116,13 @@ const slugToFile: Record<string, string> = {
   'tamper-evident-logs': 'tamper-evident-logs',
   'model-aggregation': 'model-aggregation',
   'local-llm-fallback': 'local-llm-fallback',
+  'data-privacy': 'data-privacy',
+  'error-codes': 'error-codes',
+  'rate-limiting': 'rate-limiting',
+  'security': 'security',
+  'sla': 'sla',
+  'upgrade-migration': 'upgrade-migration',
+  'webhooks': 'webhooks',
 };
 
 export async function generateStaticParams() {
