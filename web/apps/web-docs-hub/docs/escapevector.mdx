@@ -1,18 +1,18 @@
-# EscapeVector
+# Routing Engine
 
-EscapeVector is Igris's intelligent routing engine. It implements Thompson Sampling, circuit-breaker logic, and provider health monitoring to make optimal routing decisions for every inference request.
+The routing engine is Igris's provider selection system. It combines circuit-breaker logic and real-time provider health monitoring to make optimal routing decisions for every inference request.
 
 ---
 
 ## What It Is
 
-EscapeVector is the core routing decision engine that powers Igris's multi-provider inference coordination. It evaluates available providers, their current health and performance characteristics, and selects the optimal provider for each request.
+The routing engine is the core decision layer that powers Igris's multi-provider inference coordination. It evaluates available providers, their current health and performance characteristics, and selects the optimal provider for each request.
 
 ```
-Request → EscapeVector Engine → Provider Selection → Inference
+Request → Routing Engine → Provider Selection → Inference
 ```
 
-EscapeVector runs:
+The routing engine runs:
 - **In the cloud** — as part of the coordination layer, routing requests across your provider pool
 - **On edge devices** — embedded in the Runtime binary, making local routing decisions when multiple models or providers are available
 
@@ -20,7 +20,7 @@ EscapeVector runs:
 
 ## How It Works
 
-EscapeVector continuously tracks performance metrics for each configured provider:
+The routing engine continuously tracks performance metrics for each configured provider:
 
 | Metric | Description |
 |---|---|
@@ -29,23 +29,15 @@ EscapeVector continuously tracks performance metrics for each configured provide
 | **Cost** | Per-token cost based on provider pricing |
 | **Availability** | Current health status from continuous monitoring |
 
-On each request, EscapeVector evaluates these metrics against your routing strategy to select the best provider.
+On each request, the engine evaluates these metrics against your routing strategy to select the best provider.
 
 ---
 
 ## Routing Strategies
 
-### Thompson Sampling (Default)
+### Adaptive (Default)
 
-Thompson Sampling is a Bayesian multi-armed bandit algorithm that naturally balances exploration (trying providers to keep statistics fresh) with exploitation (using the best-known provider).
-
-**How it works:**
-1. Each provider has a probability distribution modeling its expected performance
-2. On each request, EscapeVector samples from each provider's distribution
-3. The provider with the best sampled value is selected
-4. After the request completes, the provider's distribution is updated with the observed result
-
-This means routing adapts in real time — a provider that degrades will see its traffic share drop automatically.
+The default routing strategy automatically balances exploration (trying providers to keep statistics fresh) with exploitation (using the best-known provider). Traffic adapts in real time — a provider that degrades sees its traffic share drop automatically. When it recovers, traffic gradually returns.
 
 ### Cost-Optimized
 
@@ -61,8 +53,7 @@ Routes requests to minimize response time. Useful for interactive applications w
 {
   "routing": {
     "strategy": "thompson-sampling",
-    "fallback_chain": ["anthropic", "openai", "local"],
-    "exploration_bonus": 0.1
+    "fallback_chain": ["anthropic", "openai", "local"]
   }
 }
 ```
@@ -115,7 +106,7 @@ The circuit breaker protects against cascading failures when a provider degrades
 
 ## Console Integration
 
-The Console at `/models/routing` displays the live EscapeVector engine status:
+The Console at `/models/routing` displays the live routing engine status:
 
 - **Engine status** — loaded and operational
 - **Benchmark results** — routing decision latency across providers
