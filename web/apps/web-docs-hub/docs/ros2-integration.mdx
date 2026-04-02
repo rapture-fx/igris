@@ -4,6 +4,45 @@ Igris integrates natively with ROS2, exposing AI inference and agent execution a
 
 ---
 
+## Prerequisites
+
+Before installing the Igris ROS2 package, ensure your environment meets these requirements:
+
+### ROS2 Distribution
+
+| Distribution | Support Status | Platform |
+|---|---|---|
+| **Humble Hawksbill** | Supported | Ubuntu 22.04 |
+| **Iron Irwini** | Supported | Ubuntu 22.04 |
+| **Jazzy Jalisco** | Supported | Ubuntu 24.04 |
+
+### System Requirements
+
+- **OS**: Ubuntu 22.04 or 24.04 (LTS recommended)
+- **Architecture**: x86_64 or ARM64
+- **RAM**: 4 GB minimum (8 GB recommended for local inference)
+- **Network**: Outbound access to `overture.igrisinertial.com` for fleet coordination
+
+### DDS Configuration
+
+ROS2 uses DDS for inter-node communication. Igris works with the default Fast DDS or Cyclone DDS. For multi-robot deployments:
+
+- Set `ROS_DOMAIN_ID` to isolate robot networks (default: 0)
+- Ensure DDS discovery traffic (UDP multicast) is allowed on your network
+- For wireless deployments, consider increasing `ROS_DISCOVERY_SERVER` timeout
+
+### Dependencies
+
+```bash
+# Install ROS2 development tools
+sudo apt update && sudo apt install -y \
+  ros-dev-tools \
+  python3-colcon-common-extensions \
+  python3-rosdep
+```
+
+---
+
 ## Overview
 
 The Igris ROS2 node acts as a bridge between your robot's ROS2 graph and the execution engine. It subscribes to command topics, forwards requests to the local engine, and publishes results back onto the graph.
