@@ -115,6 +115,8 @@ export default function ExecutionRunsPage() {
   const [statusFilter, setStatusFilter] = useState('all');
   const [timeRange, setTimeRange] = useState('24h');
   const [selected, setSelected] = useState<Execution | null>(null);
+  const [page, setPage] = useState(0);
+  const PAGE_SIZE = 50;
   const qc = useQueryClient();
   const { toast } = useToast();
 
