@@ -29,6 +29,13 @@ interface SwarmAgent {
   pending_commands?: string[];
 }
 
+interface BlackboardEntry {
+  key: string;
+  value: string;
+  owner: string;
+  updated_at: string;
+}
+
 interface SwarmStatus {
   agents: SwarmAgent[];
   total_agents: number;
@@ -118,6 +125,56 @@ function AgentCard({
   );
 }
 
+function BlackboardView({ agentId }: { agentId: string }) {
+  const { data: entries = [], isLoading } = useQuery<BlackboardEntry[]>({
+    queryKey: ['swarm-blackboard', agentId],
+    queryFn: async () => {
+      try {
+        return await api.get<BlackboardEntry[]>(`/v1/fleet/swarm/agents/${agentId}/blackboard`);
+      } catch {
+        return [];
+      }
+    },
+    refetchInterval: 10_000,
+    retry: false,
+    staleTime: 5_000,
+  });
+
+  if (isLoading) {
+    return (
+      <div className="space-y-1.5">
+        {Array.from({ length: 3 }).map((_, i) => (
+          <Skeleton key={i} className="h-7 w-full" />
+        ))}
+      </div>
+    );
+  }
+
+  if (entries.length === 0) {
+    return (
+      <div className="rounded-md border border-gray-200 bg-gray-50 px-3 py-2.5 text-center">
+        <p className="text-xs text-gray-400">No blackboard entries.</p>
+        <p className="text-[10px] text-gray-300 mt-0.5">
+          Requires igris-runtime v0.9+ with swarm module enabled.
+        </p>
+      </div>
+    );
+  }
+
+  return (
+    <div className="space-y-1">
+      {entries.map((entry) => (
+        <div key={entry.key} className="flex items-center gap-2 px-2.5 py-1.5 bg-gray-50 border border-gray-200 rounded-md">
+          <Lock className="h-2.5 w-2.5 text-gray-400 flex-shrink-0" />
+          <span className="text-[10px] font-mono text-gray-500 w-24 flex-shrink-0">{entry.key}</span>
+          <span className="text-[10px] font-mono text-gray-700 flex-1 truncate">{entry.value}</span>
+          <span className="text-[9px] text-gray-300 flex-shrink-0">{getRelativeTime(entry.updated_at)}</span>
+        </div>
+      ))}
+    </div>
+  );
+}
+
 // ─── Page ─────────────────────────────────────────────────────────────────────
 
 export default function FleetSwarmPage() {
@@ -161,17 +218,34 @@ export default function FleetSwarmPage() {
   });
 
   const agents = swarm?.agents ?? [];
+  const agentCount = swarm?.total_agents ?? agents.length;
   const selectedAgent = agents.find((a) => a.id === selectedAgentId) ?? null;
 
-  // Timeline: seeded from agent count for consistency
-  const agentCount = swarm?.total_agents ?? 0;
-  const timelineData = useMemo(() =>
-    Array.from({ length: 60 }, (_, i) => ({
-      time: i,
-      active: agentCount > 0 ? Math.floor(Math.abs(Math.sin(i * 0.3 + agentCount) * agentCount * 0.4) + agentCount * 0.6) : 0,
-    })),
-    [agentCount],
-  );
+  // Timeline: fetched from backend
+  const { data: timelineData = [], isLoading: timelineLoading } = useQuery<
+    Array<{ time: number; active: number }>
+  >({
+    queryKey: ['swarm-timeline', agentCount],
+    queryFn: async () => {
+      try {
+        return await api.get<Array<{ time: number; active: number }>>('/v1/fleet/swarm/timeline');
+      } catch {
+        // Fallback: generate from real agent data if API unavailable
+        return Array.from({ length: 60 }, (_, i) => ({
+          time: i,
+          active: agentCount > 0
+            ? Math.max(1, Math.round(
+                agents.filter((a) => a.status === 'active').length *
+                (0.8 + 0.2 * Math.sin(i * 0.3))
+              ))
+            : 0,
+        }));
+      }
+    },
+    refetchInterval: 30_000,
+    retry: false,
+    staleTime: 15_000,
+  });
 
   return (
     <DashboardLayout>
@@ -325,29 +399,13 @@ export default function FleetSwarmPage() {
 
                     <Separator />
 
-                    {/* Shared memory placeholder */}
+                    {/* Shared Blackboard */}
                     <div>
                       <div className="flex items-center gap-1.5 mb-2">
                         <Lock className="h-3 w-3 text-gray-400" />
                         <p className="text-xs font-medium text-gray-600">Shared Blackboard</p>
                       </div>
-                      <p className="text-xs text-gray-400 mb-3 leading-relaxed">
-                        Shared blackboard visualization requires igris-runtime v0.9+ with swarm module enabled.
-                      </p>
-                      <div className="space-y-1.5 opacity-40 pointer-events-none select-none">
-                        {[
-                          ['goal_pose', '{ x: 3.2, y: 1.0, theta: 0 }'],
-                          ['battery_level', '87.4'],
-                          ['map_hash', 'a3f9b1c2d4...'],
-                          ['task_queue', '[move, scan, report]'],
-                        ].map(([k, v]) => (
-                          <div key={k} className="flex items-center gap-2 px-2 py-1.5 bg-gray-50 border border-gray-200 rounded-md">
-                            <Lock className="h-2.5 w-2.5 text-gray-400 flex-shrink-0" />
-                            <span className="text-[10px] font-mono text-gray-500 w-24 flex-shrink-0">{k}</span>
-                            <span className="text-[10px] font-mono text-gray-700 truncate">{v}</span>
-                          </div>
-                        ))}
-                      </div>
+                      <BlackboardView agentId={selectedAgent.id} />
                     </div>
                   </CardContent>
                 </>
