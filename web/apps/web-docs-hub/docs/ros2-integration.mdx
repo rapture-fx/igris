@@ -37,9 +37,12 @@ ROS2 uses DDS for inter-node communication. Igris works with the default Fast DD
 # Install ROS2 development tools
 sudo apt update && sudo apt install -y \
   ros-dev-tools \
-  python3-colcon-common-extensions \
-  python3-rosdep
+  python3-colcon-common-extensions
 ```
+
+### Installing the Package
+
+The Igris ROS2 package is available through your authenticated console. Navigate to **Fleet → Downloads → ROS2 Package** for the latest installation instructions and package downloads.
 
 ---
 
@@ -72,10 +75,12 @@ sudo apt install ros-humble-igris
 Or build from source:
 ```bash
 cd ~/ros2_ws/src
-git clone https://github.com/igris-inertial/ros2-igris
+git clone <ros2-igris-repo-url>
 cd ~/ros2_ws
 colcon build --packages-select igris
 ```
+
+> The ROS2 package repository URL and build instructions are available in your console under **Fleet → Downloads → ROS2 Package**.
 
 ---
 
