@@ -17,25 +17,58 @@ function isPublic(pathname: string): boolean {
   );
 }
 
-// Read the raw Cookie header to avoid any cookie-name parsing issues with
-// dots and __Secure- prefix. Matches both:
-//   better-auth.session_token  (HTTP / local dev)
-//   __Secure-better-auth.session_token  (HTTPS / production)
 function hasSession(req: NextRequest): boolean {
   const cookieHeader = req.headers.get('cookie') ?? '';
   return cookieHeader.includes('better-auth.session_token=');
 }
 
+// Simple in-memory rate limiter (resets on deploy — use Redis for production)
+const rateLimitMap = new Map<string, { count: number; resetAt: number }>();
+
+function checkRateLimit(ip: string, limit: number, windowMs: number): boolean {
+  const now = Date.now();
+  const entry = rateLimitMap.get(ip);
+  if (!entry || now > entry.resetAt) {
+    rateLimitMap.set(ip, { count: 1, resetAt: now + windowMs });
+    return true;
+  }
+  if (entry.count >= limit) return false;
+  entry.count++;
+  return true;
+}
+
 export async function middleware(req: NextRequest) {
-  if (isPublic(req.nextUrl.pathname)) {
-    return NextResponse.next();
+  const pathname = req.nextUrl.pathname;
+
+  // Rate limit auth endpoints
+  if (pathname.startsWith('/api/auth/')) {
+    const ip = req.headers.get('x-real-ip') ?? req.headers.get('x-forwarded-for') ?? 'unknown';
+    if (!checkRateLimit(ip, 20, 60_000)) {
+      return NextResponse.json(
+        { error: 'Too many requests. Try again later.' },
+        { status: 429 }
+      );
+    }
+  }
+
+  // Add security headers to all responses
+  if (isPublic(pathname)) {
+    const response = NextResponse.next();
+    response.headers.set('X-Frame-Options', 'DENY');
+    response.headers.set('X-Content-Type-Options', 'nosniff');
+    response.headers.set('Referrer-Policy', 'strict-origin-when-cross-origin');
+    return response;
   }
 
   if (!hasSession(req)) {
     return NextResponse.redirect(new URL('/auth?mode=signin', req.url));
   }
 
-  return NextResponse.next();
+  const response = NextResponse.next();
+  response.headers.set('X-Frame-Options', 'DENY');
+  response.headers.set('X-Content-Type-Options', 'nosniff');
+  response.headers.set('Referrer-Policy', 'strict-origin-when-cross-origin');
+  return response;
 }
 
 export const config = {
