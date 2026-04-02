@@ -566,7 +566,10 @@ export default function HistoryAlertsPage() {
                   variant="outline"
                   size="sm"
                   className="h-7 text-xs gap-1.5 text-gray-500"
-                  onClick={() => setSelectedId(null)}
+                  onClick={() => {
+                    toast({ title: 'Source muted', description: `${selected.source} will be muted for 1 hour.` });
+                    setSelectedId(null);
+                  }}
                 >
                   Mute Source
                 </Button>
