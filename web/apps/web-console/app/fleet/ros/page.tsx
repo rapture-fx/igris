@@ -381,7 +381,8 @@ export default function FleetROSPage() {
               </Table>
               {mappings.length > 0 && (
                 <div className="px-4 py-3 border-t border-gray-100">
-                  <Button variant="outline" size="sm" className="h-8 text-xs gap-1.5">
+                  <Button variant="outline" size="sm" className="h-8 text-xs gap-1.5"
+                    onClick={() => toast({ title: 'ROS Bridge', description: 'Install the ROS bridge package and run: igris-ros-bridge --connect' })}>
                     <Wifi className="h-3.5 w-3.5" />
                     Connect ROS Bridge
                   </Button>
