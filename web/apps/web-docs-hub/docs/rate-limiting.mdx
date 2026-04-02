@@ -1,0 +1,150 @@
+# Rate Limiting
+
+Igris enforces rate limits to protect the platform from abuse and ensure fair resource allocation across all tenants. This guide explains how rate limits work and how to manage them.
+
+---
+
+## How Rate Limits Work
+
+Rate limits are applied per tenant using a sliding window algorithm. Each request to rate-limited endpoints consumes one token from your allowance. When the allowance is exhausted, further requests receive HTTP 429 (Too Many Requests).
+
+### Rate Limit Headers
+
+Every response to a rate-limited endpoint includes headers with your current limit status:
+
+| Header | Description |
+|---|---|
+| `X-RateLimit-Limit` | Maximum requests allowed in the current window |
+| `X-RateLimit-Remaining` | Requests remaining in the current window |
+| `X-RateLimit-Reset` | Unix timestamp when the current window resets |
+
+### Example Response Headers
+
+```
+HTTP/1.1 200 OK
+X-RateLimit-Limit: 100
+X-RateLimit-Remaining: 42
+X-RateLimit-Reset: 1711900800
+```
+
+---
+
+## Default Rate Limits
+
+| Endpoint Category | Limit | Window | Notes |
+|---|---|---|---|
+| Inference (`/v1/chat/completions`) | 100 req/min | Sliding 60s | Per tenant |
+| Management API | 200 req/min | Sliding 60s | Per tenant |
+| Runtime binary download | 10 req/hr | Fixed 1h | Per tenant |
+| Receipt export | 5 req/hr | Fixed 1h | Per tenant |
+
+Rate limits are enforced at the coordination layer. For local runtime instances, you can configure custom rate limits in your runtime configuration.
+
+---
+
+## Handling Rate Limit Errors
+
+When you exceed the rate limit, Igris returns:
+
+```json
+{
+  "error": {
+    "code": "rate_limit_exceeded",
+    "message": "Rate limit exceeded. Please retry after the window resets.",
+    "retry_after": 23
+  }
+}
+```
+
+The `retry_after` field indicates the number of seconds to wait before retrying.
+
+### Best Practices
+
+1. **Read the headers**: Check `X-RateLimit-Remaining` before making requests
+2. **Implement backoff**: When you receive a 429, wait for the `retry_after` duration before retrying
+3. **Batch operations**: For bulk operations (receipt export, history queries), add delays between requests
+4. **Monitor usage**: Use the routing analytics endpoints to track your request patterns
+
+### Exponential Backoff Example
+
+```python
+import time
+import random
+
+def make_request_with_backoff(client, max_retries=3):
+    for attempt in range(max_retries):
+        try:
+            response = client.chat.completions.create(
+                model="gpt-4",
+                messages=[{"role": "user", "content": "Hello"}]
+            )
+            return response
+        except Exception as e:
+            if "rate_limit" in str(e).lower():
+                wait = (2 ** attempt) + random.uniform(0, 1)
+                time.sleep(wait)
+            else:
+                raise
+    raise Exception("Max retries exceeded")
+```
+
+---
+
+## Custom Rate Limits
+
+### Runtime Configuration
+
+For local runtime instances, you can configure custom rate limits:
+
+```json5
+{
+  auth: {
+    enabled: true,
+    api_key: "your-api-key",
+    rate_limit_per_minute: 60,
+    rate_limit_burst: 10
+  }
+}
+```
+
+| Field | Description |
+|---|---|
+| `rate_limit_per_minute` | Maximum requests per minute (0 = unlimited) |
+| `rate_limit_burst` | Additional burst capacity above the per-minute limit |
+
+### Requesting Higher Limits
+
+If your workload legitimately requires a higher rate limit, contact [support@igrisinertial.com](mailto:support@igrisinertial.com) with:
+- Your tenant ID
+- Your use case description
+- The rate limit you need
+- Expected request volume
+
+Limit increases are evaluated per account and may require a tier upgrade.
+
+---
+
+## Rate Limiting and Tiers
+
+Higher tiers receive more generous rate limits:
+
+| Tier | Inference Limit | Management Limit |
+|---|---|---|
+| Seed | 100 req/min | 200 req/min |
+| Horizon | 500 req/min | 1000 req/min |
+| Infinite | 2000 req/min | 5000 req/min |
+
+---
+
+## Provider Rate Limits
+
+In addition to Igris rate limits, individual cloud providers (OpenAI, Anthropic, etc.) enforce their own rate limits. Igris respects these limits and will:
+- Track provider-specific rate limit headers
+- Automatically back off when a provider signals rate limiting
+- Route to alternative providers when one is rate limited
+
+Provider rate limiting does not count against your Igris rate limit — the request is retried with a different provider transparently.
+
+---
+
+[Troubleshooting →](/docs/troubleshooting) · [Cloud Coordination →](/docs/cloud-coordination)
