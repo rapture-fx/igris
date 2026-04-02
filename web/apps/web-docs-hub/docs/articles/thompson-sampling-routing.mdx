@@ -1,0 +1,106 @@
+---
+title: Understanding Thompson Sampling for Provider Routing
+date: 2026-03-20
+summary: How Igris uses Bayesian multi-armed bandit algorithms to automatically route requests to the best provider for your workload.
+author: Igris Team
+---
+
+# Understanding Thompson Sampling for Provider Routing
+
+When you configure multiple AI providers with Igris, you face a fundamental question: which provider should handle each request? The answer depends on constantly changing factors — provider latency, error rates, cost, and your specific workload patterns.
+
+Igris uses **Thompson Sampling**, a Bayesian multi-armed bandit algorithm, to solve this problem automatically.
+
+---
+
+## The Problem
+
+Imagine you have three providers configured:
+
+| Provider | Avg Latency | Cost per 1K tokens |
+|---|---|---|
+| Anthropic Claude | 280ms | $0.015 |
+| OpenAI GPT-4 | 350ms | $0.030 |
+| Google Gemini | 200ms | $0.010 |
+
+A naive approach might always pick the fastest (Gemini) or the cheapest (Gemini). But what if:
+- Gemini occasionally times out under load?
+- Claude produces higher-quality responses for your specific prompts?
+- OpenAI is faster for certain model types?
+
+Static rules can't adapt to these dynamics. Thompson Sampling can.
+
+---
+
+## How Thompson Sampling Works
+
+### Step 1: Model Each Provider as a Distribution
+
+For each provider, Igris maintains a probability distribution that models its expected performance. This distribution captures both the **average** performance and the **uncertainty** around that average.
+
+New providers start with high uncertainty (wide distribution). As more requests are processed, the distribution narrows around the true performance.
+
+### Step 2: Sample and Select
+
+On each request, Igris:
+1. Draws a random sample from each provider's distribution
+2. Selects the provider with the best sampled value
+3. Routes the request to that provider
+
+Because the samples are random, providers with high uncertainty occasionally get selected — this is **exploration**. Providers with proven good performance are selected more often — this is **exploitation**.
+
+### Step 3: Update
+
+After the request completes, Igris updates the provider's distribution with the observed result. Good performance narrows the distribution around a favorable value. Poor performance shifts it unfavorably.
+
+---
+
+## Why This Matters for Your Workload
+
+### Automatic Adaptation
+
+If a provider's latency degrades, Thompson Sampling automatically reduces its traffic share. No manual intervention needed. When the provider recovers, traffic gradually returns.
+
+### Handles New Providers Gracefully
+
+When you add a new provider, Thompson Sampling explores it aggressively at first (high uncertainty), then settles into a steady pattern as it learns the provider's true performance.
+
+### Balances Cost and Performance
+
+The algorithm naturally finds the sweet spot between cost and performance for your specific workload. If a cheaper provider is "good enough," it will receive more traffic. If quality matters most, higher-performing providers dominate.
+
+---
+
+## Configuration
+
+Thompson Sampling is the default routing strategy. You can tune its behavior:
+
+```json
+{
+  "routing": {
+    "strategy": "thompson-sampling",
+    "fallback_chain": ["anthropic", "openai", "local"],
+    "exploration_bonus": 0.1
+  }
+}
+```
+
+| Field | Description |
+|---|---|
+| `strategy` | Set to `"thompson-sampling"` for adaptive routing |
+| `fallback_chain` | Ordered list of providers to try if the selected one fails |
+| `exploration_bonus` | Controls how aggressively new or uncertain providers are tried (0.0–1.0) |
+
+---
+
+## Monitoring
+
+View Thompson Sampling's decisions in real time:
+
+- **Console**: `/models/routing` shows provider weights and selection history
+- **API**: `GET /v1/routing/stats` returns per-provider request counts and latency
+- **API**: `GET /v1/routing/leaderboard` shows the current provider ranking
+
+---
+
+[Cloud Coordination →](/docs/cloud-coordination) · [All Articles →](/docs/articles)
