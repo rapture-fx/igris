@@ -12,10 +12,10 @@ graph TD
     App -->|"POST /v1/chat/completions"| Coordination
 
     subgraph Coordination["Coordination Layer (Cloud Gateway)"]
-        Router["Adaptive Router\n(Thompson Sampling)"]
+        Router["Adaptive Router"]
         CB["Circuit Breaker"]
         PS["Provider Selection"]
-        CA["Cognitive Advisor"]
+        CA["Routing Advisor"]
         SLO["SLO Enforcer"]
         Vault["Key Vault\n(Encrypted Storage)"]
         Router --> PS
@@ -54,9 +54,9 @@ The coordination layer runs as a managed cloud service or can be self-hosted in 
 
 | Capability | Purpose |
 |---|---|
-| **Adaptive Router** | Thompson Sampling, speculative execution, council mode, cost-aware routing, quality scoring, stream merging |
+| **Adaptive Router** | Adaptive provider selection, speculative execution, council mode, cost-aware routing, quality scoring, stream merging |
 | **Circuit Breaker** | Per-provider failure detection with open/closed/half-open states |
-| **Cognitive Advisor** | Periodic analysis of routing performance with optimization proposals |
+| **Routing Advisor** | Periodic analysis of routing performance with optimization proposals |
 | **SLO Enforcer** | Automated monitoring and enforcement for latency, cost, and quality targets |
 | **Key Vault** | Encrypted API key storage with rotation support |
 | **Billing Integration** | Subscription management, trial handling, tier enforcement |
@@ -85,7 +85,7 @@ The Runtime is a single binary that provides a local OpenAI-compatible API with 
 | Capability | Purpose |
 |---|---|
 | **Local Inference** | GGUF model inference with GPU offloading (Metal/CUDA) |
-| **Routing Engine** | Thompson Sampling, speculative execution, council mode |
+| **Routing Engine** | Adaptive provider selection, speculative execution, council mode |
 | **Behavior Trees** | Structured agent execution with live SSE streaming |
 | **Tool Sandbox** | HTTP, shell, filesystem tools with resource limits and whitelists |
 | **Agent Patterns** | Reflection, planning, tool-use, and swarm coordination |
@@ -114,7 +114,7 @@ Every execution in Igris is traceable from API call to signed receipt:
 
 <StepChain steps={[
   { label: "Application Request", description: "Initiates with a unique request ID and tenant context" },
-  { label: "Coordination Layer", description: "Adaptive Router selects provider via Thompson Sampling, applies SLO and circuit breaker checks" },
+  { label: "Coordination Layer", description: "Adaptive Router selects provider, applies SLO and circuit breaker checks" },
   { label: "Execution (Cloud or Edge)", description: "Provider returns response; Runtime applies capability gates and tool sandbox if local" },
   { label: "Signed Receipt", description: "Ed25519 signature over canonical envelope — inputs, outputs, timing, resource usage, violations" },
   { label: "Audit Trail", description: "Hash-chained receipts queryable via API, exportable for compliance, tamper-evident" }
