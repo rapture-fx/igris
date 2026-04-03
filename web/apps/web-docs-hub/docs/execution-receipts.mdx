@@ -1,85 +1,42 @@
 # Execution Receipts
 
-Every inference request handled by the execution engine produces a signed **execution receipt** — a tamper-evident record of exactly what happened: inputs, outputs, resources consumed, and any policy violations.
+Execution receipts are the customer-facing audit record for what ran, where it ran, and whether policy violations occurred.
 
 ---
 
-## What a Receipt Contains
+## Current Query Surface
 
-```json
-{
-  "execution_id": "01HXYZ...",
-  "request_id": "abc123",
-  "tenant_id": "tenant-456",
-  "timestamp": "2026-03-01T12:00:00Z",
-  "model": "phi-3-mini",
-  "inputs": {
-    "messages": [{ "role": "user", "content": "Hello" }]
-  },
-  "outputs": {
-    "content": "Hi! How can I help?"
-  },
-  "resource_usage": {
-    "prompt_tokens": 12,
-    "completion_tokens": 8,
-    "wall_time_ms": 243,
-    "tool_calls": 0
-  },
-  "capability_grants": ["tool_http"],
-  "capability_violations": [],
-  "signature": "sha256:a3f9..."
-}
-```
+The current customer query surface for receipts lives in Overture:
 
-| Field | Description |
-|---|---|
-| `execution_id` | Unique ID for this execution |
-| `request_id` | Links to the originating API call and routing decision |
-| `capability_grants` | Permissions the execution was allowed to use |
-| `capability_violations` | Operations that were blocked by policy |
-| `signature` | Cryptographic seal over the full canonical envelope |
+- `GET /v1/receipts`
+- `GET /v1/receipts/:id`
+- `GET /v1/receipts/export`
+- `GET /proof/receipts`
+- `POST /proof/receipts/verify`
+
+The current runtime build does **not** expose a public local `GET /v1/receipts` listing endpoint. If you are running fully local, consume the signed `execution_receipt` data returned in responses and store it in your own workflow if you need local retention.
 
 ---
 
-## Tamper Evidence
-
-The signature is computed over a deterministic serialization of all fields. Receipts are hash-chained: each receipt includes the hash of the previous receipt. An altered receipt has an invalid signature. A gap in the chain is detectable.
-
----
-
-## Querying Receipts
-
-Receipts are queryable via the **cloud API** at `overture.igrisinertial.com` (reads from the central execution ledger) and also via the **local engine API** at `http://localhost:8080` (reads from device-local storage).
+## List Receipts
 
 ```bash
-# Cloud API — query from overture.igrisinertial.com
-curl https://overture.igrisinertial.com/v1/receipts \
-  -H "Authorization: Bearer YOUR_API_KEY"
-
-# Get a specific receipt by execution_id
-curl https://overture.igrisinertial.com/v1/receipts/exec-01HXYZ \
-  -H "Authorization: Bearer YOUR_API_KEY"
-
-# Filter by time range and agent
-curl "https://overture.igrisinertial.com/v1/receipts?from=2026-03-01T00:00:00Z&to=2026-03-02T00:00:00Z&agent_id=agent-abc" \
-  -H "Authorization: Bearer YOUR_API_KEY"
-
-# Violations only
-curl "https://overture.igrisinertial.com/v1/receipts?violations_only=true&limit=100" \
+curl "https://overture.igrisinertial.com/v1/receipts?limit=50&violations_only=true" \
   -H "Authorization: Bearer YOUR_API_KEY"
 ```
 
-**Query parameters:**
+Supported query parameters:
 
 | Parameter | Description |
 |---|---|
-| `limit` | Max results (default 50, max 500) |
-| `from` | ISO 8601 start time |
-| `to` | ISO 8601 end time |
-| `agent_id` | Filter by agent |
-| `violations_only` | `true` to return only policy violations |
+| `limit` | Max results, default `50`, max `500` |
+| `from` | Inclusive lower timestamp bound |
+| `to` | Inclusive upper timestamp bound |
+| `agent_id` | Filter by agent ID |
+| `violations_only` | Restrict to violating executions |
 
-Response:
+Current response shape:
+
 ```json
 [
   {
@@ -97,48 +54,45 @@ Response:
     "receipt_hash": "sha256:a3f9...",
     "previous_hash": "sha256:b2e8...",
     "signature": "base64:...",
-    "transaction_id": "txn-01HXYZ"
+    "transaction_id": "txn-01HXYZ",
+    "prompt_preview": "Evaluate whether to initiate..."
   }
 ]
 ```
 
 ---
 
-## Exporting
+## Export Receipts
 
 ```bash
-# Export as JSONL for external audit workflows
 curl "https://overture.igrisinertial.com/v1/receipts/export?format=jsonl&from=2026-03-01T00:00:00Z" \
   -H "Authorization: Bearer YOUR_API_KEY" \
-  -o receipts-2026-03-01.jsonl
-
-# Export as CSV
-curl "https://overture.igrisinertial.com/v1/receipts/export?format=csv&from=2026-03-01T00:00:00Z" \
-  -H "Authorization: Bearer YOUR_API_KEY" \
-  -o receipts-2026-03-01.csv
+  -o receipts.jsonl
 ```
 
-Supported formats: `jsonl` (default), `csv`
+The current export formats are:
+
+- `jsonl` (default)
+- `csv`
+
+Current export filtering supports:
+
+- `from`
+- `to`
 
 ---
 
-## Retention
+## Proof Verification
 
-| Tier | Retention |
-|---|---|
-| Seed | 7 days |
-| Horizon | 30 days |
-| Infinite | 90 days |
+Use the proof endpoints when you want receipt-oriented verification views:
 
-Export receipts before the retention window closes if you need longer-term storage.
+```bash
+curl -X POST https://overture.igrisinertial.com/proof/receipts/verify \
+  -H "Authorization: Bearer YOUR_API_KEY" \
+  -H "Content-Type: application/json" \
+  -d '{"execution_id": "exec-01HXYZ"}'
+```
 
 ---
 
-## Compliance
-
-- **Data residency** — receipts are stored locally on the engine; nothing leaves your infrastructure unless explicitly exported
-- **Tamper evidence** — a valid signature proves the receipt was produced by the engine and has not been modified
-- **Violation tracking** — capability violations are recorded and cannot be suppressed
-- **Human-in-the-loop** — approval gate events (what was held, who approved, when) are included in the receipt
-
-[Audit →](/docs/audit) · [Capability Model →](/docs/capability-model) · [Execution Model →](/docs/execution-model)
+[Audit →](/docs/audit) · [Security →](/docs/security) · [API Reference →](/docs/api-reference)
