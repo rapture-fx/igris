@@ -1,0 +1,63 @@
+{
+  "generated_by": "scripts/generate-docs-artifacts.js",
+  "native_sdk_note": "First-class native SDKs are JavaScript/TypeScript, Go, and Rust. Python remains preview. Java, C#, and Ruby should use the OpenAI-compatible API until native SDKs are production-ready.",
+  "rows": [
+    {
+      "language": "JavaScript / TypeScript",
+      "status": "production-ready",
+      "package": "@igris-inertial/sdk",
+      "install": "npm install @igris-inertial/sdk",
+      "import": "import { IgrisClient } from '@igris-inertial/sdk';",
+      "notes": "Preferred native SDK for browser and Node.js integrations."
+    },
+    {
+      "language": "Go",
+      "status": "production-ready",
+      "package": "github.com/igris-inertial/go-sdk",
+      "install": "go get github.com/igris-inertial/go-sdk",
+      "import": "import igris \"github.com/igris-inertial/go-sdk\"",
+      "notes": "Preferred native SDK for backend services and CLI tooling."
+    },
+    {
+      "language": "Rust",
+      "status": "production-ready",
+      "package": "igris-inertial",
+      "install": "cargo add igris-inertial",
+      "import": "use igris_inertial::IgrisClient;",
+      "notes": "Preferred native SDK for systems and embedded integrations."
+    },
+    {
+      "language": "Python",
+      "status": "preview",
+      "package": "igris-inertial",
+      "install": "pip install igris-inertial",
+      "import": "from igris import IgrisClient",
+      "notes": "Available in-repo, but not yet positioned as a first-class customer SDK."
+    },
+    {
+      "language": "Java",
+      "status": "planned",
+      "package": "n/a",
+      "install": "Use an OpenAI-compatible client today",
+      "import": "Use the OpenAI-compatible base URL",
+      "notes": "Do not treat a native Java SDK as production-ready yet."
+    },
+    {
+      "language": "C#",
+      "status": "planned",
+      "package": "n/a",
+      "install": "Use an OpenAI-compatible client today",
+      "import": "Use the OpenAI-compatible base URL",
+      "notes": "Do not treat a native C# SDK as production-ready yet."
+    },
+    {
+      "language": "Ruby",
+      "status": "planned",
+      "package": "n/a",
+      "install": "Use an OpenAI-compatible client today",
+      "import": "Use the OpenAI-compatible base URL",
+      "notes": "Do not treat a native Ruby SDK as production-ready yet."
+    }
+  ],
+  "generated_at": "2026-04-03T17:27:15.351Z"
+}
