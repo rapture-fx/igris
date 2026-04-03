@@ -29,7 +29,10 @@ function main() {
   for (const filePath of walk(docsDir)) {
     const content = fs.readFileSync(filePath, 'utf8');
     for (const rule of bannedPatterns) {
-      if (content.includes(rule.pattern)) {
+      const matched = rule.pattern instanceof RegExp
+        ? rule.pattern.test(content)
+        : content.includes(rule.pattern);
+      if (matched) {
         failures.push(`${filePath}: ${rule.message}`);
       }
     }
