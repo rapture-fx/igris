@@ -12,9 +12,7 @@ const withMDX = require('@next/mdx')({
 const nextConfig = {
   output: 'export',
   trailingSlash: true,
-  typescript: {
-    ignoreBuildErrors: true,
-  },
+  outputFileTracingRoot: path.resolve(__dirname, '../..'),
   eslint: {
     ignoreDuringBuilds: true,
   },
