@@ -3,9 +3,12 @@
   "version": "0.1.0",
   "private": true,
   "scripts": {
-    "dev": "next dev --port 3001",
-    "build": "node scripts/generate-search-index.js && next build",
-    "start": "next start --port 3001"
+    "dev": "node scripts/generate-docs-artifacts.js && node scripts/generate-search-index.js && next dev --port 3001",
+    "build": "node scripts/generate-docs-artifacts.js && node scripts/validate-docs.js && node scripts/generate-search-index.js && next build",
+    "start": "next start --port 3001",
+    "typecheck": "tsc --noEmit",
+    "validate": "node scripts/validate-docs.js",
+    "docs:generate": "node scripts/generate-docs-artifacts.js"
   },
   "dependencies": {
     "@mdx-js/loader": "^3.0.0",
