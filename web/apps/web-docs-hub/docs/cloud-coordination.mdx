@@ -1,155 +1,92 @@
 # Cloud Coordination
 
-Igris coordinates AI inference across multiple cloud providers from a central coordination layer. It selects providers, handles failover, tracks cost, and manages fleet instances — without exposing these mechanics to your application.
+Overture is the cloud control plane for routing, fleet registration, receipts, and account-scoped policy.
 
 ---
 
-## Provider Routing
+## Routing
 
-Igris maintains real-time performance statistics for each configured cloud provider:
+At request time, Overture can route inference across the configured providers and maintain provider statistics such as latency and recent request outcomes.
 
-- **Success rate**: fraction of requests that returned a valid response
-- **Latency**: p50 and p95 response times, tracked with exponential decay
-- **Cost**: per-token cost at the provider's current pricing
+Customer-visible routing endpoints in the current build include:
 
-At request time, Igris selects a provider using an adaptive algorithm that automatically balances exploring providers with new data and exploiting the best-known provider for your workload.
+- `GET /v1/routing/stats`
+- `GET /v1/routing/recent`
+- `GET /v1/routing/leaderboard`
+- `POST /v1/routing/strategy`
 
-Selection is re-evaluated on every request. A provider that degrades will see its traffic share drop as statistics update in real time.
-
----
-
-## Failover
-
-When a selected provider returns an error or times out, Igris automatically selects the next-best provider from the pool and retries. This happens within the same API call, before returning a response to your application.
-
-Failover behavior:
-- The first provider failure triggers an immediate retry with the next provider
-- If the retry also fails, Igris continues down the provider ranking
-- If all cloud providers fail and a local execution engine is registered, the request routes there
-- If no path succeeds, Igris returns an error after exhausting all options
-
-Your application sees one request and one response. The `metadata.fallback` field indicates whether failover occurred.
+Preview routing endpoints also exist for speculative routing and advisor configuration. See [API Reference](/docs/api-reference) for the exact current contract.
 
 ---
 
-## Cost Tracking
+## BYOK Vault
 
-Every request is attributed to a tenant and tracked against a monthly budget:
+The current public vault handler accepts these provider identifiers:
 
-```json
-{
-  "metadata": {
-    "provider": "anthropic",
-    "model_used": "claude-3-haiku",
-    "cost_usd": 0.00021,
-    "routing_decision": "thompson-sampling"
-  }
-}
-```
+- `openai`
+- `anthropic`
+- `benchmark`
 
-**Budget enforcement:**
-- At 90% of monthly budget: a warning header is added to responses
-- At 100%: Igris returns HTTP 402 before forwarding the request
-
-Budget limits are configurable per tenant and can be updated without redeployment.
-
----
-
-## Provider Health Monitoring
-
-Igris monitors provider health continuously:
-
-- **Synthetic probes**: periodic requests to verify provider availability and latency
-- **Error rate tracking**: consecutive errors trigger circuit-breaker behavior
-- **Recovery detection**: providers that return to health are re-admitted to the routing pool automatically
-
-The provider health dashboard is available at [console.igrisinertial.com](https://console.igrisinertial.com).
-
----
-
-## BYOK (Bring Your Own Keys)
-
-Each tenant provides their own cloud provider API keys. Keys are encrypted at rest and never exposed in logs or responses.
-
-Add a provider key:
+For customer traffic, use `openai` or `anthropic`.
 
 ```bash
 curl -X POST https://overture.igrisinertial.com/v1/vault/keys \
-  -H "Authorization: Bearer YOUR_IGRIS_KEY" \
+  -H "Authorization: Bearer YOUR_IGRIS_API_KEY" \
   -H "Content-Type: application/json" \
-  -d '{"provider": "openai", "key": "YOUR_OPENAI_KEY"}'
-```
-
-Supported providers: OpenAI, Anthropic, Google (Gemini), xAI (Grok), Azure OpenAI, Mistral, Cohere, and any OpenAI-compatible endpoint.
-
-[API Reference →](/docs/api-reference)
-
----
-
-## Fleet Integration
-
-The coordination layer manages registered execution engine instances:
-
-- **Registration**: instances register with an endpoint and a unique name
-- **Heartbeat**: instances send periodic health signals; missing instances trigger alerts
-- **Configuration push**: configuration updates are distributed to the fleet without instance restarts
-- **Telemetry collection**: execution receipts from fleet instances are aggregated centrally
-- **Routing**: specific requests can be routed to specific instances by name or tag
-
-```bash
-# Register an execution engine instance
-curl -X POST https://overture.igrisinertial.com/api/v1/runtime/register \
-  -H "Authorization: Bearer YOUR_API_KEY" \
   -d '{
-    "name": "robot-arm-01",
-    "endpoint": "http://192.168.1.100:8080",
-    "tags": ["robotics", "arm"]
+    "provider": "openai",
+    "key_name": "production",
+    "api_key": "YOUR_OPENAI_KEY"
   }'
 ```
 
-[Fleet Management →](/docs/fleet-management)
-
 ---
 
-## Routing Statistics
+## Fleet Registration
 
-You can inspect how Igris is routing traffic and which providers are performing best:
+Runtime instances coordinate with Overture through the `/api/v1/runtime/*` contract.
+
+The stock runtime attempts registration on startup only when:
+
+- `IGRIS_LICENSE_KEY` is present and validates
+- `IGRIS_API_KEY` is present
+
+If you are implementing your own runtime launcher, the registration payload must match the current API:
 
 ```bash
-# Routing statistics (success rates, latency, cost per provider)
-GET /v1/routing/stats
-
-# Provider leaderboard (ranked by performance)
-GET /v1/routing/leaderboard
-
-# Recent request log with routing decisions
-GET /v1/routing/recent
+curl -X POST https://overture.igrisinertial.com/api/v1/runtime/register \
+  -H "Authorization: Bearer YOUR_IGRIS_API_KEY" \
+  -H "Content-Type: application/json" \
+  -d '{
+    "machine_id": "edge-gateway-01",
+    "hostname": "edge-gateway-01",
+    "platform": "linux-amd64",
+    "runtime_version": "1.6.0",
+    "endpoint": "http://192.168.1.100:8080"
+  }'
 ```
 
-All three endpoints require your Igris bearer token. The leaderboard shows the current ranked order based on your traffic. A provider that is degrading will drop in rank as its statistics update in real time.
+Related endpoints:
+
+- `POST /api/v1/runtime/heartbeat`
+- `DELETE /api/v1/runtime/deregister`
+- `GET /api/v1/runtime/commands`
+- `GET /api/v1/runtime/list`
 
 ---
 
-## Routing Policies
+## Receipts And Audit
 
-Routing behavior can be overridden with per-tenant policies:
+The coordination layer is where customer-facing receipt queries currently live:
 
-```json
-{
-  "routing": {
-    "strategy": "cost-optimized",
-    "provider_pins": {
-      "model:gpt-4": "openai"
-    },
-    "fallback_chain": ["anthropic", "google", "runtime:robot-arm-01"]
-  }
-}
-```
+- `GET /v1/receipts`
+- `GET /v1/receipts/:id`
+- `GET /v1/receipts/export`
+- `GET /proof/receipts`
+- `POST /proof/receipts/verify`
 
-Policy options:
-- `cost-optimized`: minimize cost per token
-- `latency-optimized`: minimize p50 latency
-- `thompson-sampling`: adaptive routing (default)
-- Manual provider pins for specific models
+Use these endpoints for customer audit workflows rather than assuming a separate local receipts listing API exists on the runtime.
 
-[Policy →](/docs/policy)
+---
+
+[Fleet Management →](/docs/fleet-management) · [Execution Receipts →](/docs/execution-receipts) · [API Reference →](/docs/api-reference)
