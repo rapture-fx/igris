@@ -1105,15 +1105,15 @@ const apiSections = [
 ];
 
 const bannedPatterns = [
-  { pattern: '@igris/sdk', message: 'Use @igris-inertial/sdk for the JavaScript SDK.' },
-  { pattern: 'github.com/igris/go-sdk', message: 'Use github.com/igris-inertial/go-sdk for the Go SDK.' },
-  { pattern: 'Authorization: Bearer YOUR_SESSION_TOKEN', message: 'Console session auth is cookie-based; do not document Bearer session tokens.' },
-  { pattern: 'igris_sk_', message: 'Generated tenant API keys use the igris_ prefix, not igris_sk_.' },
-  { pattern: '/api/v1/runtime/instances', message: 'Use /api/v1/runtime/list.' },
-  { pattern: 'local_inference', message: 'Use local_fallback in runtime configuration docs.' },
-  { pattern: 'max_context_length', message: 'Use context_size in runtime configuration docs.' },
-  { pattern: 'gpu_layers', message: 'Use n_gpu_layers in runtime configuration docs.' },
-  { pattern: 'fallback_only', message: 'Do not document unsupported fallback_only config.' },
+  { pattern: /@igris\/sdk/, message: 'Use @igris-inertial/sdk for the JavaScript SDK.' },
+  { pattern: /github\.com\/igris\/go-sdk/, message: 'Use github.com/igris-inertial/go-sdk for the Go SDK.' },
+  { pattern: /Authorization:\s+Bearer\s+YOUR_SESSION_TOKEN/, message: 'Console session auth is cookie-based; do not document Bearer session tokens.' },
+  { pattern: /igris_sk_/, message: 'Generated tenant API keys use the igris_ prefix, not igris_sk_.' },
+  { pattern: /\/api\/v1\/runtime\/instances/, message: 'Use /api/v1/runtime/list.' },
+  { pattern: /\blocal_inference\b/, message: 'Use local_fallback in runtime configuration docs.' },
+  { pattern: /\bmax_context_length\b/, message: 'Use context_size in runtime configuration docs.' },
+  { pattern: /\bgpu_layers\b/, message: 'Use n_gpu_layers in runtime configuration docs.' },
+  { pattern: /\bfallback_only\b/, message: 'Do not document unsupported fallback_only config.' },
 ];
 
 module.exports = {
