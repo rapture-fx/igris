@@ -224,52 +224,52 @@ const apiNavSections: NavSection[] = [
   {
     section: 'Inference',
     items: [
-      { name: '/chat/completions', href: '/docs/api-reference', badge: 'POST', noActive: true },
-      { name: '/completions',      href: '/docs/api-reference', badge: 'POST', noActive: true },
+      { name: '/v1/chat/completions', href: '/docs/api-reference', badge: 'POST', noActive: true },
+      { name: '/v1/models', href: '/docs/api-reference', badge: 'GET', noActive: true },
+      { name: '/v1/providers/stats', href: '/docs/api-reference', badge: 'GET', noActive: true },
     ],
   },
   {
-    section: 'Providers',
+    section: 'Vault',
     items: [
-      { name: '/vault/keys',        href: '/docs/api-reference', badge: 'GET',  noActive: true },
-      { name: '/vault/keys',        href: '/docs/api-reference', badge: 'POST', noActive: true },
-      { name: '/vault/keys/{id}',   href: '/docs/api-reference', badge: 'DEL',  noActive: true },
-    ],
-  },
-  {
-    section: 'Policies',
-    items: [
-      { name: '/policies',          href: '/docs/api-reference', badge: 'GET',   noActive: true },
-      { name: '/policies',          href: '/docs/api-reference', badge: 'POST',  noActive: true },
-      { name: '/policies/{name}',   href: '/docs/api-reference', badge: 'GET',   noActive: true },
-      { name: '/policies/{name}',   href: '/docs/api-reference', badge: 'PATCH', noActive: true },
-      { name: '/policies/rollback', href: '/docs/api-reference', badge: 'POST',  noActive: true },
+      { name: '/v1/vault/keys', href: '/docs/api-reference', badge: 'GET', noActive: true },
+      { name: '/v1/vault/keys', href: '/docs/api-reference', badge: 'POST', noActive: true },
+      { name: '/v1/account/api-key', href: '/docs/api-reference', badge: 'GET', noActive: true },
     ],
   },
   {
     section: 'Fleet',
     items: [
-      { name: '/runtime/register',  href: '/docs/api-reference', badge: 'POST', noActive: true },
-      { name: '/runtime/instances', href: '/docs/api-reference', badge: 'GET',  noActive: true },
-      { name: '/runtime/config',    href: '/docs/api-reference', badge: 'POST', noActive: true },
-      { name: '/runtime/update',    href: '/docs/api-reference', badge: 'POST', noActive: true },
+      { name: '/api/v1/runtime/register', href: '/docs/api-reference', badge: 'POST', noActive: true },
+      { name: '/api/v1/runtime/list', href: '/docs/api-reference', badge: 'GET', noActive: true },
+      { name: '/api/v1/runtime/config/push', href: '/docs/api-reference', badge: 'POST', noActive: true },
+      { name: '/api/v1/runtime/update', href: '/docs/api-reference', badge: 'POST', noActive: true },
     ],
   },
   {
-    section: 'Receipts',
+    section: 'Governance',
     items: [
-      { name: '/receipts',          href: '/docs/api-reference', badge: 'GET', noActive: true },
-      { name: '/receipts/{id}',     href: '/docs/api-reference', badge: 'GET', noActive: true },
-      { name: '/receipts/export',   href: '/docs/api-reference', badge: 'GET', noActive: true },
+      { name: '/policy/bounds', href: '/docs/api-reference', badge: 'GET', noActive: true },
+      { name: '/policy/capabilities', href: '/docs/api-reference', badge: 'GET', noActive: true },
+      { name: '/v1/policy', href: '/docs/api-reference', badge: 'GET', noActive: true },
+      { name: '/proof/receipts/verify', href: '/docs/api-reference', badge: 'POST', noActive: true },
+    ],
+  },
+  {
+    section: 'History & Receipts',
+    items: [
+      { name: '/v1/history/events', href: '/docs/api-reference', badge: 'GET', noActive: true },
+      { name: '/v1/receipts', href: '/docs/api-reference', badge: 'GET', noActive: true },
+      { name: '/v1/receipts/export', href: '/docs/api-reference', badge: 'GET', noActive: true },
     ],
   },
   {
     section: 'Local Engine',
     items: [
-      { name: '/health',            href: '/docs/api-reference', badge: 'GET',  noActive: true },
-      { name: '/metrics',           href: '/docs/api-reference', badge: 'GET',  noActive: true },
-      { name: '/btree/deploy',      href: '/docs/api-reference', badge: 'POST', noActive: true },
-      { name: '/btree/run',         href: '/docs/api-reference', badge: 'POST', noActive: true },
+      { name: '/v1/health', href: '/docs/api-reference', badge: 'GET', noActive: true },
+      { name: '/metrics', href: '/docs/api-reference', badge: 'GET', noActive: true },
+      { name: '/v1/btree/deploy', href: '/docs/api-reference', badge: 'POST', noActive: true },
+      { name: '/v1/runtime/execute', href: '/docs/api-reference', badge: 'POST', noActive: true },
     ],
   },
 ];
