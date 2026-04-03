@@ -1,215 +1,102 @@
 # Security
 
-Igris takes security seriously. This guide covers authentication, authorization, data protection, and security best practices for deploying and operating Igris.
+Igris security has two distinct planes:
+
+- **Tenant API keys** for automation and programmatic access
+- **Console session cookies** for browser access to the web app
+
+Treat those as different contracts.
 
 ---
 
 ## Authentication
 
-Igris supports multiple authentication methods depending on your deployment model.
+### Tenant API Keys
 
-### API Key Authentication
+Tenant API keys use the `igris_` prefix and are accepted in:
 
-The primary authentication method for both the cloud API and runtime instances.
+- `Authorization: Bearer YOUR_IGRIS_API_KEY`
+- `X-API-Key: YOUR_IGRIS_API_KEY`
 
-**How it works:**
-- Each account has a single API key, available in **Settings → Keys** in the console
-- All API requests include the key in the `Authorization: Bearer` header
-- API keys are scoped to your tenant — they can only access your own data
-- The full key is shown only once at creation. After that, only a prefix is visible
+Best practices:
 
-**Best practices:**
-- Store your API key in environment variables, never in source code
-- Rotate your key immediately if you suspect it has been compromised
-- Use separate keys for development and production environments
-- Monitor your audit log for unexpected API key usage
-
-### Session Authentication
-
-The console uses session-based authentication with secure cookies. Session tokens are short-lived and automatically refreshed.
-
-### Provider Key Security
-
-Cloud provider API keys (OpenAI, Anthropic, etc.) that you add to Igris are:
-- Encrypted at rest using AES-256-GCM
-- Never exposed in API responses (only masked last-4-characters shown)
-- Never written to logs
-- Scoped to your tenant — no other account can access them
-- Recorded in your audit log for all operations (add, rotate, remove, validate)
-
----
-
-## Authorization
-
-### Tenant Isolation
-
-All data is strictly scoped by tenant. Requests from one tenant cannot access another tenant's:
-- Execution records and receipts
-- Provider keys
-- Fleet instances
-- Policies and configurations
-- Billing information
-
-### Tier-Based Feature Access
-
-Features are gated by your subscription tier. Attempting to access a feature above your tier returns a clear error response. See [Pricing & Tiers](/docs/pricing-tiers) for the feature matrix.
-
-### Role-Based Access (Infinite Tier)
-
-On the Infinite tier, you can configure role-based access control to limit which team members can:
-- View execution records
-- Modify policies
-- Manage provider keys
-- Approve/reject human-in-the-loop requests
-- Access billing settings
-
----
-
-## Data Protection
-
-### Encryption at Rest
-
-- Provider API keys: AES-256-GCM encrypted
-- Execution receipts: Stored with integrity protection via hash chaining
-- Configuration data: Encrypted in the persistence layer
-
-### Encryption in Transit
-
-- All cloud API communication uses HTTPS (TLS 1.2+)
-- Fleet communication between the coordination layer and runtime instances uses TLS
-- Runtime-to-runtime communication (swarm, federated learning) supports TLS
-
-### Data Residency
-
-When running in edge/offline mode, all data stays on your device. Nothing leaves your infrastructure unless you explicitly export receipts or connect to the cloud coordination layer.
-
-On the Infinite tier, you can self-host the coordination layer in your own infrastructure for complete data residency control.
-
----
-
-## Security Best Practices
-
-### 1. Secure Your API Key
+- Store tenant API keys in environment variables
+- Rotate them if exposed
+- Scope usage to the tenant that owns the key
 
 ```bash
-# Good: Use environment variables
-export IGRIS_API_KEY="igris_sk_..."
-
-# Bad: Never hardcode in source
-# client = IgrisClient(api_key="igris_sk_...")
+export IGRIS_API_KEY="igris_abc123..."
 ```
 
-### 2. Use Capability Gates
+### Console Sessions
 
-Always start with restrictive capability grants and expand only as needed:
+The web console uses Better Auth session cookies. Those cookies are not a published bearer-token contract. Do not script console session access as `Authorization: Bearer YOUR_SESSION_TOKEN`.
+
+### Provider Keys
+
+Provider keys stored through the current public vault API are encrypted before storage and returned only as masked values.
+
+---
+
+## Policy And Capability Controls
+
+A restrictive starting point in the current control-plane policy model looks like this:
 
 ```json
 {
-  "capabilities": {
-    "allow_http": false,
-    "allow_shell": false,
-    "allow_filesystem": false
-  }
+  "allow_http": false,
+  "allow_shell": false,
+  "allow_fs_write": false,
+  "allow_external_api": false,
+  "domain_allowlist": [],
+  "domain_denylist": [],
+  "writable_paths": [],
+  "readable_paths": [],
+  "violation_behavior": "terminate"
 }
 ```
 
-Grant capabilities incrementally based on actual agent requirements. Monitor the **Proof → Violations** page to identify when agents need additional capabilities.
-
-### 3. Rotate Provider Keys Regularly
-
-Rotate your cloud provider API keys on a regular schedule. Igris supports atomic key rotation — the new key is validated before the old one is replaced, so there is no downtime.
-
-### 4. Monitor Violations
-
-A sudden increase in capability violations can indicate:
-- An agent behaving unexpectedly
-- A prompt injection attempt
-- A misconfigured policy
-
-Review violations daily and investigate spikes immediately.
-
-### 5. Use Human-in-the-Loop for Sensitive Operations
-
-For high-stakes decisions, configure approval gates:
-
-```json
-{
-  "hitl": {
-    "enabled": true,
-    "auto_approve_threshold": 0.9,
-    "escalation_endpoint": "https://your-webhook-url/hitl"
-  }
-}
-```
-
-### 6. Network Hardening
-
-For self-hosted deployments:
-- Place the runtime behind a reverse proxy with TLS termination
-- Restrict inbound access to only the ports you need (default: 8080)
-- Use firewall rules to limit which IPs can reach the runtime
-- Enable authentication on all runtime instances
-
-### 7. Keep the Runtime Updated
-
-Subscribe to release notifications and update your runtime instances promptly. Use OTA updates (Horizon+) to roll out security patches across your fleet.
-
-### 8. Audit Regularly
-
-Export execution receipts on a schedule and review them:
-
-```bash
-curl "https://overture.igrisinertial.com/v1/receipts/export?range=30d" \
-  -H "Authorization: Bearer YOUR_API_KEY"
-```
-
-Feed receipts into your SIEM or compliance toolchain for automated analysis.
+Start tight, then expand based on observed violations and actual agent requirements.
 
 ---
 
-## Incident Response
+## Receipts And Verification
 
-### If Your API Key Is Compromised
+Customer-facing verification routes currently live on the proof API:
 
-1. Immediately revoke the key in **Settings → Keys**
-2. Generate a new API key
-3. Update all integrations with the new key
-4. Review your audit log for unauthorized access during the exposure window
-5. Contact [support@igrisinertial.com](mailto:support@igrisinertial.com) if you suspect data was accessed
+- `GET /proof/receipts`
+- `POST /proof/receipts/verify`
+- `GET /v1/proof/violations`
 
-### If a Provider Key Is Compromised
-
-1. Revoke the key at the provider's dashboard
-2. Generate a new provider key
-3. Update it in Igris via **Settings → Keys → Replace**
-4. Review execution receipts for any unauthorized usage
-
-### If You Suspect Tampering
-
-1. Verify receipt integrity using the verification API:
+Example:
 
 ```bash
-curl -X POST https://overture.igrisinertial.com/v1/proof/receipts/verify \
+curl -X POST https://overture.igrisinertial.com/proof/receipts/verify \
   -H "Authorization: Bearer YOUR_API_KEY" \
   -H "Content-Type: application/json" \
   -d '{"execution_id": "exec-01HXYZ"}'
 ```
 
-2. Check for chain breaks or signature mismatches
-3. Contact [support@igrisinertial.com](mailto:support@igrisinertial.com) with the affected execution IDs
+---
+
+## Deployment Notes
+
+- The local runtime can enforce its own API key with the local `auth` config
+- Fleet registration is gated by a valid `IGRIS_LICENSE_KEY` plus `IGRIS_API_KEY`
+- For local-only deployments, point clients directly at the runtime and keep your own storage if you need offline receipt retention
 
 ---
 
 ## Compliance
 
-Igris is designed to support compliance workflows:
+Igris is positioned to support compliance workflows, but the exact operational model depends on where you run the control plane and runtime.
 
-- **GDPR**: Data residency controls, data deletion on request, audit trails
-- **SOC 2**: Tamper-evident logs, access controls, encryption at rest and in transit
-- **HIPAA**: Air-gapped deployment support, data never leaves your infrastructure in edge mode
+- **Data residency** depends on whether you call Overture, the local runtime, or both
+- **Auditability** comes from receipts, proof endpoints, and export workflows
+- **Least privilege** comes from capability policy and local runtime auth
 
-For compliance-specific guidance, contact [support@igrisinertial.com](mailto:support@igrisinertial.com).
+For higher-assurance deployment reviews, use the exact route and config contracts documented in the current code-backed docs, not generic platform assumptions.
 
 ---
 
-[Key Management →](/docs/key-management) · [Governance →](/docs/governance) · [Audit →](/docs/audit)
+[Key Management →](/docs/key-management) · [Execution Receipts →](/docs/execution-receipts) · [API Reference →](/docs/api-reference)
