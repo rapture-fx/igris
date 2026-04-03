@@ -1,45 +1,26 @@
 # Behavior Trees
 
-Igris includes a production-grade behavior tree engine that combines deterministic control flow with LLM-powered adaptive reasoning. Use it to build agents that follow structured logic but can invoke an LLM when the situation requires judgment.
+Igris currently exposes **two** behavior-tree schemas. Treat them as different layers of the product:
+
+- The **definition schema** used by the cloud control plane and console editor
+- The **runtime execution schema** used by the runtime API and native SDKs
+
+If you mix them up, validation will fail.
 
 ---
 
-## Why Behavior Trees
+## 1. Cloud Definition Schema
 
-Traditional behavior trees are deterministic: the same inputs always produce the same outputs. This is ideal for safety-critical systems but breaks down when the task requires language understanding or contextual reasoning.
-
-Igris behavior trees let you mix both:
-- **Deterministic nodes** — sequence, selector, condition, action — execute reliably and predictably
-- **LLM nodes** — call a local or cloud model when the situation requires judgment
-
-The result: agents that are auditable and safe by default, with AI where it adds value.
-
----
-
-## Node Types
-
-| Type | JSON `type` value | Behavior |
-|---|---|---|
-| `Sequence` | `"Sequence"` | Runs children left to right; stops on first failure |
-| `Selector` | `"Selector"` | Runs children left to right; stops on first success |
-| `Parallel` | `"Parallel"` | Runs all children concurrently |
-| `Condition` | `"Condition"` | Returns success/failure based on a blackboard key check |
-| `Action` | `"Action"` | Executes a named tool with optional args |
-| `Decorator` | `"Decorator"` | Wraps a child node, modifying its return value |
-| `RosTopicPublish` | `"RosTopicPublish"` | Publishes a message to a ROS2 topic |
-| `RosTopicSubscribe` | `"RosTopicSubscribe"` | Reads from a ROS2 topic |
-| `RosServiceCall` | `"RosServiceCall"` | Calls a ROS2 service |
-
----
-
-## Quick Example
+The coordination layer stores graph-style definitions using `nodes` and `edges`.
 
 ```json
 {
+  "name": "shutdown-guard",
+  "description": "Temperature-triggered shutdown sequence",
   "nodes": [
-    { "id": "n1", "type": "Sequence", "label": "Shutdown Guard", "x": 300, "y": 50 },
+    { "id": "n1", "type": "Sequence", "label": "Root", "x": 300, "y": 50 },
     { "id": "n2", "type": "Condition", "label": "Check Temp", "x": 150, "y": 150 },
-    { "id": "n3", "type": "Action",    "label": "Shutdown",    "x": 450, "y": 150 }
+    { "id": "n3", "type": "Action", "label": "Shutdown", "x": 450, "y": 150 }
   ],
   "edges": [
     { "id": "e1", "source": "n1", "target": "n2" },
@@ -48,121 +29,61 @@ The result: agents that are auditable and safe by default, with AI where it adds
 }
 ```
 
+This is the schema used by:
+
+- `GET /v1/bt/templates`
+- `GET /v1/bt/definitions`
+- `GET /v1/bt/definitions/:id`
+- `POST /v1/bt/definitions`
+- `DELETE /v1/bt/definitions/:id`
+
 ---
 
-## Behavior Tree Definitions API
+## 2. Runtime Execution Schema
 
-Definitions are tenant-scoped and persisted in the coordination layer. Saving by the same name upserts the existing definition.
+The runtime and native SDKs use a nested tree representation with lowercase node types.
 
-### GET /v1/bt/templates
-
-Returns a list of built-in starter templates — no authentication required.
-
-```bash
-curl https://overture.igrisinertial.com/v1/bt/templates
-```
-
-Response:
 ```json
-[
-  {
-    "id": "tpl-patrol",
-    "name": "Patrol Loop",
-    "description": "Repeating patrol with obstacle avoidance",
-    "nodes": [...],
-    "edges": [...]
-  }
-]
+{
+  "type": "sequence",
+  "name": "shutdown-guard",
+  "children": [
+    {
+      "type": "condition",
+      "name": "check_temp",
+      "key": "sensor.temperature",
+      "expected": "80"
+    },
+    {
+      "type": "action",
+      "name": "shutdown",
+      "tool": "http_post",
+      "args": {
+        "url": "http://localhost:9000/shutdown"
+      }
+    }
+  ]
+}
 ```
+
+This is the schema accepted by the local runtime endpoints:
+
+- `POST /v1/btree/validate`
+- `POST /v1/btree/run`
+- `POST /v1/btree/deploy`
 
 ---
 
-### GET /v1/bt/definitions
-
-List all saved definitions for your tenant.
-
-```bash
-curl https://overture.igrisinertial.com/v1/bt/definitions \
-  -H "Authorization: Bearer YOUR_API_KEY"
-```
-
-Response:
-```json
-[
-  {
-    "id": "def-01HXYZ",
-    "name": "shutdown-guard",
-    "description": "Temperature-triggered shutdown sequence",
-    "created_at": "2026-03-01T12:00:00Z",
-    "updated_at": "2026-03-01T12:00:00Z"
-  }
-]
-```
-
----
-
-### GET /v1/bt/definitions/:id
-
-Fetch a single definition including full nodes and edges.
-
-```bash
-curl https://overture.igrisinertial.com/v1/bt/definitions/def-01HXYZ \
-  -H "Authorization: Bearer YOUR_API_KEY"
-```
-
----
-
-### POST /v1/bt/definitions
-
-Save or update a definition. Name is unique per tenant — posting the same name overwrites the existing definition.
-
-```bash
-curl -X POST https://overture.igrisinertial.com/v1/bt/definitions \
-  -H "Authorization: Bearer YOUR_API_KEY" \
-  -H "Content-Type: application/json" \
-  -d '{
-    "name": "shutdown-guard",
-    "description": "Temperature-triggered shutdown sequence",
-    "nodes": [
-      { "id": "n1", "type": "Sequence", "label": "Root", "x": 300, "y": 50 },
-      { "id": "n2", "type": "Condition", "label": "Check Temp", "x": 150, "y": 150 },
-      { "id": "n3", "type": "Action", "label": "Shutdown", "x": 450, "y": 150 }
-    ],
-    "edges": [
-      { "id": "e1", "source": "n1", "target": "n2" },
-      { "id": "e2", "source": "n1", "target": "n3" }
-    ]
-  }'
-```
-
-| Field | Required | Description |
-|---|---|---|
-| `name` | Yes | Unique definition name within your tenant |
-| `description` | No | Human-readable description |
-| `nodes` | No | Array of node objects (defaults to `[]`) |
-| `edges` | No | Array of edge objects (defaults to `[]`) |
-
-Response: the saved definition with `id`, `created_at`, `updated_at`.
-
----
-
-### DELETE /v1/bt/definitions/:id
-
-Remove a definition permanently.
-
-```bash
-curl -X DELETE https://overture.igrisinertial.com/v1/bt/definitions/def-01HXYZ \
-  -H "Authorization: Bearer YOUR_API_KEY"
-```
-
-Returns `204 No Content` on success. Returns `404` if the definition does not exist or belongs to a different tenant.
-
----
-
-## Using the SDK
+## Using the JavaScript SDK
 
 ```typescript
-import { Runtime, BehaviorTree, SequenceNode, ConditionNode, ActionNode } from '@igris/sdk';
+import {
+  Runtime,
+  BehaviorTree,
+  SequenceNode,
+  ConditionNode,
+  ActionNode,
+} from '@igris-inertial/sdk';
 
 const runtime = new Runtime({ localUrl: 'http://localhost:8080' });
 
@@ -175,35 +96,46 @@ const tree = BehaviorTree.fromJson(
 );
 
 const result = await tree.validate();
-// { valid: true, root_type: 'Sequence' }
-```
-
-```python
-from igris import Runtime, RuntimeConfig
-from igris.btree import BehaviorTree, Sequence, Condition, Action
-
-runtime = Runtime(RuntimeConfig(local_url="http://localhost:8080"))
-
-tree = BehaviorTree.from_nodes(
-    Sequence("shutdown-guard", [
-        Condition("check_temp", key="sensor.temperature", expected=80),
-        Action("shutdown", tool="http_post", args={"url": "http://localhost:9000/shutdown"}),
-    ]),
-    runtime,
-)
-
-result = tree.validate()
-execution = tree.run(context={"sensor.temperature": 92})
-print(execution["status"])  # 'success' | 'failure'
+console.log(result.valid);
 ```
 
 ---
 
-## Production Characteristics
+## Using the Go SDK
 
-- Trees are validated at deploy time — malformed trees are rejected before execution
-- Each tick produces an execution receipt with the node path taken and outcome
-- LLM node calls are subject to the same capability gates as any other tool call
-- Trees can be hot-reloaded without restarting the engine
+```go
+package main
 
-[Agents →](/docs/agents) · [Tools →](/docs/tools) · [Robotics →](/docs/robotics)
+import (
+    "context"
+    "log"
+
+    igris "github.com/igris-inertial/go-sdk"
+)
+
+func main() {
+    runtime := igris.NewRuntime("http://localhost:8080")
+    treeDef := igris.NewSequenceNode("shutdown-guard",
+        igris.NewConditionNode("check_temp", "sensor.temperature", "80"),
+        igris.NewActionNode("shutdown", "http_post", map[string]interface{}{
+            "url": "http://localhost:9000/shutdown",
+        }),
+    )
+
+    tree := igris.NewBehaviorTree(treeDef, runtime)
+
+    if _, err := tree.Validate(context.Background()); err != nil {
+        log.Fatal(err)
+    }
+}
+```
+
+---
+
+## Practical Rule
+
+Use `nodes` / `edges` only when you are talking to the cloud definition API. Use lowercase nested nodes when you are talking to the runtime or a native SDK.
+
+---
+
+[Agents →](/docs/agents) · [API Reference →](/docs/api-reference) · [Robotics →](/docs/robotics)
