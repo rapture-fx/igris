@@ -12,7 +12,7 @@
   {
     "title": "API Reference",
     "path": "/docs/api-reference",
-    "keywords": "api reference authentication inference post /v1/chat/completions post /v1/infer/multimodal *(early access)* get /v1/infer/multimodal/stats *(early access)* get /v1/models get /v1/providers/stats routing analytics read-only analytics speculative execution routing configuration (post) execution runs get /v1/execution/runs post /v1/execution/runs/:id/pause → {\"status\": \"paused\"} post /v1/execution/runs/:id/resume → {\"status\": \"running\"} post /v1/execution/runs/:id/cancel post /v1/execution/runs/:id"
+    "keywords": "api reference  import { apireferencepage } from '@/components/docs/apireferencepage'; api-reference"
   },
   {
     "title": "Approval Workflows",
@@ -32,7 +32,7 @@
   {
     "title": "Behavior Trees",
     "path": "/docs/behavior-trees",
-    "keywords": "behavior trees why behavior trees node types quick example behavior tree definitions api get /v1/bt/templates get /v1/bt/definitions get /v1/bt/definitions/:id post /v1/bt/definitions delete /v1/bt/definitions/:id using the sdk production characteristics json bash json bash json bash bash bash typescript python behavior trees behavior-trees"
+    "keywords": "behavior trees 1. cloud definition schema 2. runtime execution schema using the javascript sdk using the go sdk practical rule json json typescript go behavior trees behavior-trees"
   },
   {
     "title": "Capabilities & Limits",
@@ -52,7 +52,7 @@
   {
     "title": "Cloud Coordination",
     "path": "/docs/cloud-coordination",
-    "keywords": "cloud coordination provider routing failover cost tracking provider health monitoring byok (bring your own keys) fleet integration register an execution engine instance routing statistics routing statistics (success rates, latency, cost per provider) provider leaderboard (ranked by performance) recent request log with routing decisions routing policies json bash bash bash json cloud coordination cloud-coordination"
+    "keywords": "cloud coordination routing byok vault fleet registration receipts and audit bash bash cloud coordination cloud-coordination"
   },
   {
     "title": "Routing Advisor",
@@ -97,7 +97,7 @@
   {
     "title": "Execution Receipts",
     "path": "/docs/execution-receipts",
-    "keywords": "execution receipts what a receipt contains tamper evidence querying receipts cloud api — query from overture.igrisinertial.com get a specific receipt by execution_id filter by time range and agent violations only exporting export as jsonl for external audit workflows export as csv retention compliance json bash json bash execution receipts execution-receipts"
+    "keywords": "execution receipts current query surface list receipts export receipts proof verification bash json bash bash execution receipts execution-receipts"
   },
   {
     "title": "Fleet Management",
@@ -112,17 +112,17 @@
   {
     "title": "History",
     "path": "/docs/history",
-    "keywords": "history & alerts execution events get /v1/history/events metrics get /v1/history/metrics alerts get /v1/history/alerts post /v1/history/alerts/:id/acknowledge → {\"status\": \"acknowledged\"} post /v1/history/alerts/:id/resolve → {\"status\": \"resolved\"} post /v1/history/alerts/:id/escalate → {\"status\": \"escalated\"} alert lifecycle bash json bash json bash json bash bash bash history & alerts history"
+    "keywords": "history & alerts execution events get /v1/history/events metrics get /v1/history/metrics alerts get /v1/history/alerts alert actions bash json bash json bash json history & alerts history"
   },
   {
     "title": "Key Management",
     "path": "/docs/key-management",
-    "keywords": "key management adding provider keys key validation rotating a provider key removing a key security properties  key management key-management"
+    "keywords": "key management what the current public api supports add a provider key rotate, validate, remove security properties bash key management key-management"
   },
   {
     "title": "Local LLM Fallback",
     "path": "/docs/local-llm-fallback",
-    "keywords": "local llm fallback how it works supported models configuration fallback triggers performance expectations air-gapped deployment monitoring console api json json local llm fallback local-llm-fallback"
+    "keywords": "local llm fallback what exists today configuration fields hybrid behavior supported model format operational notes json5 local llm fallback local-llm-fallback"
   },
   {
     "title": "MCP Integration",
@@ -172,12 +172,12 @@
   {
     "title": "Quick Start",
     "path": "/docs/quickstart",
-    "keywords": "quick start prerequisites option a — cloud api (no local setup) step 1: sign up and get an api key step 2: add your provider keys step 3: point your sdk at igris response.metadata → {\"provider\": \"anthropic\", \"cost_usd\": 0.00021, ...} option b — local / edge (no internet required) step 1: install the runtime step 2: verify installation → igris-runtime v1.8.0 (linux/amd64) step 3: configure the runtime step 4: start the runtime step 5: point your application at the runtime option c — hybrid (cloud"
+    "keywords": "quick start prerequisites option a: cloud api 1. add a provider key 2. point your client at igris option b: local runtime 1. download the runtime archive 2. extract and install 3. verify the binary 4. configure the runtime 5. start the runtime 6. point your application at the local runtime option c: hybrid cloud + local runtime 1. start the runtime with registration credentials 2. use the cloud api from your application what to do next troubleshooting bash python bash bash bash json5 bash python"
   },
   {
     "title": "Rate Limiting",
     "path": "/docs/rate-limiting",
-    "keywords": "rate limiting how rate limits work rate limit headers example response headers default rate limits handling rate limit errors best practices exponential backoff example custom rate limits runtime configuration requesting higher limits rate limiting and tiers provider rate limits json python json5 rate limiting rate-limiting"
+    "keywords": "rate limiting what the current server enforces 429 response shape runtime download limit local runtime rate limits client guidance json json5 rate limiting rate-limiting"
   },
   {
     "title": "Robotics",
@@ -197,12 +197,12 @@
   {
     "title": "SDK",
     "path": "/docs/sdk",
-    "keywords": "sdks openai-compatible (works today) igris native sdks (private beta) javascript / typescript python go rust request options compatibility matrix sdk source python typescript bash typescript python go rust sdks sdk"
+    "keywords": "sdks openai-compatible clients native sdks javascript / typescript go rust python preview request contract python typescript typescript go rust python import { sdksupportmatrix } from '@/components/docs/sdksupportmatrix'; sdk"
   },
   {
     "title": "Security",
     "path": "/docs/security",
-    "keywords": "security authentication api key authentication session authentication provider key security authorization tenant isolation tier-based feature access role-based access (infinite tier) data protection encryption at rest encryption in transit data residency security best practices 1. secure your api key good: use environment variables bad: never hardcode in source client = igrisclient(api_key=\"igris_sk_...\") 2. use capability gates 3. rotate provider keys regularly 4. monitor violations 5. use huma"
+    "keywords": "security authentication tenant api keys console sessions provider keys policy and capability controls receipts and verification deployment notes compliance bash json bash security security"
   },
   {
     "title": "Shadow Mode",
@@ -242,7 +242,7 @@
   {
     "title": "Trial & Billing",
     "path": "/docs/trial-billing",
-    "keywords": "trial & billing free trial post /v1/trial/start → {\"status\": \"started\", \"tier\": \"horizon\", \"ends_at\": \"2026-04-07t12:00:00z\"} get /v1/trial/status subscription get /api/subscription/status get /api/subscription/plans pricing tiers api key management get /v1/account/api-key post /v1/account/api-key delete /v1/account/api-key → 204 no content bash bash json json bash json bash json bash json bash json bash trial & billing trial-billing"
+    "keywords": "trial & billing free trial post /v1/trial/start get /v1/trial/status subscription get /api/subscription/status get /api/subscription/plans api key management get /v1/account/api-key post /v1/account/api-key delete /v1/account/api-key bash json bash json bash json bash json bash json bash json bash json trial & billing trial-billing"
   },
   {
     "title": "Troubleshooting",
