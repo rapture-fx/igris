@@ -7,52 +7,55 @@ author: Igris Team
 
 # Deploying Igris on Edge Devices
 
-Running Igris on edge hardware enables offline inference, data residency, and low-latency responses. This guide covers deployment on the most common edge platforms.
+Running `igris-runtime` on edge hardware gives you local inference, local policy enforcement, and a clean path to hybrid cloud coordination.
 
 ---
 
 ## Supported Edge Platforms
 
-| Platform | Architecture | Minimum RAM | Recommended Model |
+| Platform | Architecture | Minimum RAM | Recommended starting model |
 |---|---|---|---|
 | Raspberry Pi 4/5 | ARM64 | 4 GB | Phi-3 Mini (Q4) |
-| Raspberry Pi 4/5 | ARM64 | 8 GB | Mistral 7B (Q4) |
 | NVIDIA Jetson Orin Nano | ARM64 | 8 GB | Mistral 7B (Q4) |
-| NVIDIA Jetson Orin NX | ARM64 | 16 GB | Llama 3 8B (Q4) |
-| Generic x86_64 Server | x86_64 | 4 GB | Phi-3 Mini (Q4) |
-| Generic x86_64 Server | x86_64 | 16 GB | Llama 3 8B (Q4) |
+| Generic x86_64 host | x86_64 | 4 GB | Phi-3 Mini (Q4) |
+| GPU-backed x86_64 host | x86_64 | 16 GB | 7B to 8B GGUF |
 
 ---
 
-## Installation
+## Install The Runtime
 
-### Step 1: Install the Runtime
+### 1. Download the archive
 
 ```bash
-curl -fsSL https://igrisinertial.com/install | bash
+export IGRIS_PLATFORM="linux-arm64"
+
+curl -fL "https://overture.igrisinertial.com/v1/runtime/install?platform=${IGRIS_PLATFORM}" \
+  -o /tmp/igris-runtime.tar.gz
+
+curl -fL "https://overture.igrisinertial.com/v1/runtime/checksum?platform=${IGRIS_PLATFORM}"
 ```
 
-The installer detects your platform and downloads the correct binary.
+Verify the checksum output before extracting.
 
-### Step 2: Verify Installation
+### 2. Extract and install
 
 ```bash
-igris-runtime --version
-# → igris-runtime v1.8.0 (linux/arm64)
+tar -xzf /tmp/igris-runtime.tar.gz -C /tmp
+mkdir -p "$HOME/.local/bin"
+mv /tmp/igris-runtime "$HOME/.local/bin/igris-runtime"
+chmod +x "$HOME/.local/bin/igris-runtime"
+export PATH="$HOME/.local/bin:$PATH"
 ```
 
-### Step 3: Download a Model
-
-For Raspberry Pi or Jetson devices, start with a quantized model:
+### 3. Download a model
 
 ```bash
-# Download Phi-3 Mini (2.3 GB, Q4 quantized)
 mkdir -p /opt/igris/models
 wget -O /opt/igris/models/phi-3-mini-q4.gguf \
   "https://huggingface.co/microsoft/Phi-3-mini-4k-instruct-gguf/resolve/main/Phi-3-mini-4k-instruct-q4.gguf"
 ```
 
-### Step 4: Configure the Runtime
+### 4. Configure the runtime
 
 Create `/etc/igris/config.json5`:
 
@@ -64,7 +67,7 @@ Create `/etc/igris/config.json5`:
   },
   auth: {
     enabled: true,
-    api_key: "your-igris-api-key"
+    api_key: "YOUR_IGRIS_API_KEY"
   },
   local_fallback: {
     enabled: true,
@@ -72,38 +75,29 @@ Create `/etc/igris/config.json5`:
     n_gpu_layers: 0,
     threads: 4,
     context_size: 4096
-  },
-  safety: {
-    mode: "normal",
-    enable_watchdog: true,
-    watchdog_timeout_secs: 30
   }
 }
 ```
 
-**Platform-specific notes:**
+Platform tuning:
 
-- **Raspberry Pi**: Set `threads` to 4 (Pi 4) or 6 (Pi 5). Set `n_gpu_layers` to 0 (no GPU).
-- **Jetson Orin**: Set `n_gpu_layers` to 35 for GPU offloading. Set `threads` to 4.
-- **x86_64 with NVIDIA GPU**: Set `n_gpu_layers` to match your VRAM (typically 35–50 for 7B models).
+- **Raspberry Pi**: keep `n_gpu_layers` at `0`; tune `threads` to the available CPU cores
+- **Jetson**: raise `n_gpu_layers` for GPU offload and keep `threads` conservative
+- **GPU-backed x86_64**: increase `n_gpu_layers` based on VRAM capacity
 
-### Step 5: Start the Runtime
+### 5. Start the runtime
 
 ```bash
-igris-runtime serve --config /etc/igris/config.json5
+igris-runtime serve
 ```
 
-### Step 6: Register with Fleet (Optional)
-
-If you want cloud coordination, the runtime registers automatically on startup using your API key. Verify registration in **Fleet → Devices** in the console.
+If you want the device to appear in Fleet, also set `IGRIS_LICENSE_KEY` and `IGRIS_API_KEY` before startup.
 
 ---
 
-## Running as a Service
+## Run As A Service
 
-### systemd (Recommended for Production)
-
-Create `/etc/systemd/system/igris-runtime.service`:
+Example `systemd` unit:
 
 ```ini
 [Unit]
@@ -112,7 +106,7 @@ After=network.target
 
 [Service]
 Type=simple
-ExecStart=/usr/local/bin/igris-runtime serve --config /etc/igris/config.json5
+ExecStart=/home/igris/.local/bin/igris-runtime serve
 Restart=on-failure
 RestartSec=5
 User=igris
@@ -122,93 +116,17 @@ Group=igris
 WantedBy=multi-user.target
 ```
 
-Enable and start:
-
-```bash
-sudo systemctl daemon-reload
-sudo systemctl enable igris-runtime
-sudo systemctl start igris-runtime
-```
-
 ---
 
-## Performance Tuning
-
-### Memory Optimization
-
-Edge devices have limited RAM. Optimize with:
-
-- **Use Q4 quantized models** — 4x smaller than full precision with minimal quality loss
-- **Reduce context size** — Set `context_size` to 2048 instead of 4096 if your prompts are short
-- **Limit concurrent requests** — Set `max_concurrent_requests` to 1–2 on devices with 4 GB RAM
-
-### GPU Offloading (Jetson)
-
-On Jetson devices with CUDA support:
-
-```json5
-{
-  local_fallback: {
-    n_gpu_layers: 35,
-    main_gpu: 0
-  }
-}
-```
-
-This offloads 35 of the model's layers to the GPU, significantly improving inference speed.
-
-### Thermal Management
-
-Edge devices can throttle under sustained load. Monitor temperature:
+## Health And Monitoring
 
 ```bash
-# Raspberry Pi
-vcgencmd measure_temp
-
-# Jetson
-cat /sys/devices/virtual/thermal/thermal_zone0/temp
-```
-
-If temperature exceeds 80°C, consider:
-- Adding a heatsink or fan
-- Reducing `threads` to lower CPU usage
-- Adding cooldown periods between batch operations
-
----
-
-## Monitoring
-
-### Health Check
-
-```bash
-curl http://localhost:8080/health
-```
-
-### Prometheus Metrics
-
-```bash
+curl http://localhost:8080/v1/health
 curl http://localhost:8080/metrics
 ```
 
-### Console Dashboard
-
-View your edge device's status in **Fleet → Devices** in the console. The device detail panel shows:
-- Current health status
-- Recent execution history
-- Resource utilization
-- Loaded model information
+If the runtime is registered with Overture, you can also use the fleet control-plane routes documented in [Fleet Management](/docs/fleet-management).
 
 ---
 
-## Troubleshooting
-
-| Problem | Solution |
-|---|---|
-| Model fails to load | Check that the model file exists and is a valid GGUF format. Verify sufficient free RAM. |
-| Inference is very slow | Use a smaller or more quantized model. Reduce context size. |
-| Runtime crashes under load | Reduce `max_concurrent_requests`. Add swap space if available. |
-| Device not appearing in Fleet | Verify outbound HTTPS access to `overture.igrisinertial.com`. Check API key. |
-
----
-
-[Deployment →](/docs/deployment) · [All Articles →](/docs/articles)
+[Deployment →](/docs/deployment) · [Quick Start →](/docs/quickstart) · [All Articles →](/docs/articles)
