@@ -4,8 +4,9 @@
   "private": true,
   "scripts": {
     "dev": "node scripts/generate-docs-artifacts.js && node scripts/generate-search-index.js && next dev --port 3001",
-    "build": "node scripts/generate-docs-artifacts.js && node scripts/validate-docs.js && node scripts/generate-search-index.js && next build",
+    "build": "node scripts/generate-docs-artifacts.js && node scripts/validate-docs.js && node scripts/generate-search-index.js && eslint . --ext .js,.jsx,.ts,.tsx && next build",
     "start": "next start --port 3001",
+    "lint": "eslint . --ext .js,.jsx,.ts,.tsx",
     "typecheck": "tsc --noEmit",
     "validate": "node scripts/validate-docs.js",
     "docs:generate": "node scripts/generate-docs-artifacts.js"
