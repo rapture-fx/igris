@@ -1,75 +1,84 @@
 # Fleet Management
 
-Igris can manage large numbers of execution engine instances from a central coordination layer. Fleet management covers registration, health monitoring, configuration distribution, and lifecycle control.
+Fleet management in the current product is the control-plane contract for runtime registration, heartbeat, queued commands, config push, and OTA updates.
 
 ---
 
-## Registering an Instance
+## Registration
 
-Each execution engine instance registers with the coordination layer on startup. Registration requires an endpoint, a name, and optional tags for routing.
+The stock runtime attempts registration automatically when both `IGRIS_LICENSE_KEY` and `IGRIS_API_KEY` are present at startup. If you need to integrate a custom launcher, use the current registration contract:
 
 ```bash
 curl -X POST https://overture.igrisinertial.com/api/v1/runtime/register \
   -H "Authorization: Bearer YOUR_API_KEY" \
   -H "Content-Type: application/json" \
   -d '{
-    "name": "robot-arm-01",
-    "endpoint": "http://192.168.1.100:8080",
-    "tags": ["robotics", "arm", "site-a"]
+    "machine_id": "edge-gateway-01",
+    "hostname": "edge-gateway-01",
+    "platform": "linux-amd64",
+    "runtime_version": "1.6.0",
+    "endpoint": "http://192.168.1.100:8080"
   }'
 ```
 
-Response:
+Current response shape:
+
 ```json
 {
-  "instance_id": "inst_abc123",
-  "name": "robot-arm-01",
-  "status": "registered",
+  "runtime_id": "runtime-01HXYZ",
+  "tier": "horizon",
+  "runtime_limit": 50,
   "registered_at": "2026-03-01T12:00:00Z"
 }
 ```
 
 ---
 
-## Health Monitoring
+## Heartbeats And Commands
 
-Registered instances send periodic heartbeat signals to the coordination layer. The coordination layer tracks:
+Runtime coordination routes:
 
-- **Last seen**: timestamp of most recent heartbeat
-- **Status**: `healthy`, `degraded`, `offline`
-- **Error rate**: fraction of recent requests that returned errors
-- **Latency**: p50 and p95 response times
+- `POST /api/v1/runtime/heartbeat`
+- `DELETE /api/v1/runtime/deregister`
+- `GET /api/v1/runtime/commands`
 
-Instances that stop responding are automatically marked `offline`. Requests are no longer routed to offline instances.
+Use these as runtime-to-control-plane endpoints rather than customer UI endpoints.
 
-List all instances:
+---
+
+## Listing Registered Runtimes
+
+Use the current fleet listing route:
+
 ```bash
-curl https://overture.igrisinertial.com/api/v1/runtime/instances \
+curl "https://overture.igrisinertial.com/api/v1/runtime/list?tenant_id=YOUR_TENANT_ID" \
   -H "Authorization: Bearer YOUR_API_KEY"
 ```
 
-Response:
+Current response shape:
+
 ```json
 {
-  "instances": [
+  "runtimes": [
     {
-      "instance_id": "inst_abc123",
-      "name": "robot-arm-01",
-      "status": "healthy",
-      "last_seen": "2026-03-01T12:00:28Z",
-      "tags": ["robotics", "arm", "site-a"]
+      "runtime_id": "runtime-01HXYZ",
+      "tenant_id": "tenant-123",
+      "registered_at": 1711900800,
+      "last_heartbeat": 1711900860,
+      "stats": {}
     }
-  ]
+  ],
+  "count": 1
 }
 ```
+
+When a tenant-authenticated console context exists, the tenant ID can be derived from auth instead of a query parameter.
 
 ---
 
 ## Configuration Push
 
 ### POST /api/v1/runtime/config/push
-
-Push configuration to all runtime instances for your tenant. The config is delivered to each instance on its next check-in.
 
 ```bash
 curl -X POST https://overture.igrisinertial.com/api/v1/runtime/config/push \
@@ -78,22 +87,15 @@ curl -X POST https://overture.igrisinertial.com/api/v1/runtime/config/push \
   -d '{
     "selector": {"tags": ["site-a"]},
     "config": {
-      "local_fallback": {"enabled": true, "model_path": "models/phi-3-mini-4k-instruct-q4.gguf"},
-      "max_concurrent_requests": 4
+      "local_fallback": {
+        "enabled": true,
+        "model_path": "/models/phi-3-mini-q4.gguf"
+      }
     }
   }'
 ```
 
-Response:
-```json
-{
-  "queued": true,
-  "instances": 3,
-  "queued_at": "2026-03-01T12:00:00Z"
-}
-```
-
-If an instance is offline when the push is queued, the configuration is delivered when the instance reconnects.
+This queues a `config_push` command into runtime pending-command state.
 
 ---
 
@@ -101,68 +103,24 @@ If an instance is offline when the push is queued, the configuration is delivere
 
 ### POST /api/v1/runtime/update
 
-Queue an OTA update for runtime instances. Available on **Horizon** and **Infinite** tiers.
-
 ```bash
 curl -X POST https://overture.igrisinertial.com/api/v1/runtime/update \
   -H "Authorization: Bearer YOUR_API_KEY" \
   -H "Content-Type: application/json" \
   -d '{
-    "version": "1.8.0",
+    "version": "runtime-v1.6.0",
     "strategy": "rolling",
     "max_unavailable": 1
   }'
 ```
 
-Response:
-```json
-{
-  "queued": true,
-  "version": "1.8.0",
-  "strategy": "rolling",
-  "instances": 8,
-  "queued_at": "2026-03-01T12:00:00Z"
-}
-```
+The current API accepts:
 
-**Update strategies:**
-
-| Strategy | Behavior |
-|---|---|
-| `rolling` | Update instances one at a time (default) |
-| `all-at-once` | Update all instances simultaneously |
-| `canary` | Update one instance first, verify health, then proceed |
-
-`max_unavailable` controls how many instances can be updating at once during a `rolling` update.
+- `version`
+- `strategy`
+- `max_unavailable`
+- optional `selector`
 
 ---
 
-## Tag-Based Routing
-
-Requests can be routed to a specific instance or group of instances by tag:
-
-```json
-{
-  "model": "gpt-4",
-  "messages": [{"role": "user", "content": "Hello"}],
-  "routing": {
-    "require_tags": ["robotics", "arm"]
-  }
-}
-```
-
-If no matching instance is available, the request falls back to cloud providers (unless `require_local` is set).
-
----
-
-## Tier Limits
-
-| | Seed | Horizon | Infinite |
-|---|---|---|---|
-| Registered instances | Up to 3 | Up to 50 | Up to 500 |
-| OTA updates | — | ✓ | ✓ |
-| Config push | — | ✓ | ✓ |
-| Fleet dashboard | — | ✓ | ✓ |
-| Additional instances | — | Contact sales | Included |
-
-[Cloud Coordination →](/docs/cloud-coordination) · [Deployment →](/docs/deployment)
+[Cloud Coordination →](/docs/cloud-coordination) · [API Reference →](/docs/api-reference) · [Quick Start →](/docs/quickstart)
