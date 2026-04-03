@@ -2,6 +2,7 @@
 
 import React, { useState, useEffect, useRef } from 'react';
 import Link from 'next/link';
+import Image from 'next/image';
 import { usePathname } from 'next/navigation';
 import {
   Home,
@@ -438,7 +439,7 @@ export function DocsSidebar({ open = true, onClose }: DocsSidebarProps) {
           {/* Logo */}
           <div className="h-12 flex items-center px-4">
             <a href="https://igrisinertial.com" className="flex items-center">
-              <img src="/inertia.png" alt="Igris Inertial" className="h-8 w-auto rounded-lg" />
+              <Image src="/inertia.png" alt="Igris Inertial" width={32} height={32} className="h-8 w-auto rounded-lg" />
             </a>
           </div>
 
