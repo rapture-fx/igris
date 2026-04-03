@@ -20,7 +20,10 @@ function walk(dir, extension, files = []) {
 
 function joinRoute(base, routePath) {
   const normalized = `${base}${routePath}`.replace(/\/+/g, '/');
-  return normalized === '' ? '/' : normalized;
+  if (normalized === '') {
+    return '/';
+  }
+  return normalized !== '/' && normalized.endsWith('/') ? normalized.slice(0, -1) : normalized;
 }
 
 function extractGoRoutes(filePath) {
