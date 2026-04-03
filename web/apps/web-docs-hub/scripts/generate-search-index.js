@@ -3,6 +3,8 @@ const path = require('path');
 
 const docsDir = path.join(__dirname, '../docs');
 const outputFile = path.join(__dirname, '../lib/search-index.json');
+const generatedApiFile = path.join(__dirname, '../lib/generated/api-reference.json');
+const generatedSdkFile = path.join(__dirname, '../lib/generated/sdk-support.json');
 
 function extractSearchIndex() {
   const files = fs.readdirSync(docsDir).filter(f => f.endsWith('.mdx'));
@@ -125,6 +127,30 @@ function extractSearchIndex() {
       const keywords = `${headings} ${slug}`.toLowerCase();
       index.push({ title, path: `/docs/articles/${slug}`, keywords: keywords.slice(0, 500) });
     });
+  }
+
+  if (fs.existsSync(generatedApiFile)) {
+    const apiReference = JSON.parse(fs.readFileSync(generatedApiFile, 'utf-8'));
+    for (const section of apiReference.sections || []) {
+      for (const endpoint of section.endpoints || []) {
+        index.push({
+          title: `${endpoint.method} ${endpoint.path}`,
+          path: '/docs/api-reference',
+          keywords: `${section.title} ${endpoint.method} ${endpoint.path} ${endpoint.description} ${endpoint.auth} ${endpoint.surface}`.toLowerCase().slice(0, 500),
+        });
+      }
+    }
+  }
+
+  if (fs.existsSync(generatedSdkFile)) {
+    const sdkSupport = JSON.parse(fs.readFileSync(generatedSdkFile, 'utf-8'));
+    for (const row of sdkSupport.rows || []) {
+      index.push({
+        title: `${row.language} SDK`,
+        path: '/docs/sdk',
+        keywords: `${row.language} ${row.status} ${row.package} ${row.install} ${row.notes}`.toLowerCase().slice(0, 500),
+      });
+    }
   }
 
   fs.writeFileSync(outputFile, JSON.stringify(index, null, 2));
