@@ -103,7 +103,7 @@ function StatRow({ label, value, mono = false }: { label: string; value: React.R
   return (
     <div className="flex items-center justify-between py-1.5 border-b border-gray-50 last:border-0">
       <span className="text-xs text-gray-500">{label}</span>
-      <span className={`text-xs font-medium text-gray-900 ${mono ? 'font-mono' : ''}`}>
+      <span className={`text-sm font-medium text-gray-900 ${mono ? 'font-inter' : ''}`}>
         {value}
       </span>
     </div>
