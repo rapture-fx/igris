@@ -57,7 +57,6 @@ export default function Hero() {
                   color: mounted && theme === 'dark' ? '#c8c8b8' : '#374151',
                 }}
               >
-                <img src="/inertia.png" alt="Igris" className="h-6 w-6 md:h-8 md:w-8 shrink-0 opacity-80" />
                 <span className="select-all truncate">{INSTALL_CMD}</span>
                 <button
                   onClick={copy}
