@@ -1,5 +1,5 @@
 import React from 'react';
-import { AlertCircle, AlertTriangle, Lightbulb, Info, CheckCircle } from 'lucide-react';
+import { AlertCircle, AlertTriangle, Lightbulb, Info as InfoIcon, CheckCircle } from 'lucide-react';
 
 interface CalloutProps {
   children: React.ReactNode;
@@ -8,7 +8,7 @@ interface CalloutProps {
 
 const variants = {
   info: {
-    icon: Info,
+    icon: InfoIcon,
     classes: 'border-blue-200 dark:border-blue-800/50 bg-blue-50/50 dark:bg-blue-950/20',
     titleClasses: 'text-blue-800 dark:text-blue-300',
     iconClasses: 'text-blue-500 dark:text-blue-400',
