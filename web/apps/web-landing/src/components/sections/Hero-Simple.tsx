@@ -50,7 +50,7 @@ export default function Hero() {
             {/* Install command - below image */}
             <div className="flex justify-center px-2 md:px-0">
               <div
-                className="inline-flex items-center gap-2 md:gap-4 rounded-lg px-3 py-2 md:px-6 md:py-3.5 text-xs md:text-base border shadow w-full md:w-auto justify-center"
+                className="inline-flex items-center gap-2 md:gap-3 rounded-lg px-4 py-2.5 md:px-8 md:py-4 text-sm md:text-lg border shadow w-full md:w-auto justify-center"
                 style={{
                   backgroundColor: mounted && theme === 'dark' ? '#1b1912' : '#ffffff',
                   borderColor: mounted && theme === 'dark' ? 'rgba(246,246,244,0.08)' : 'rgba(0,0,0,0.1)',
@@ -65,11 +65,11 @@ export default function Hero() {
                   style={{ color: mounted && theme === 'dark' ? '#a8a898' : '#6b7280' }}
                 >
                   {copied ? (
-                    <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2.5" strokeLinecap="round" strokeLinejoin="round">
+                    <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2.5" strokeLinecap="round" strokeLinejoin="round">
                       <polyline points="20 6 9 17 4 12" />
                     </svg>
                   ) : (
-                    <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round">
+                    <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round">
                       <rect x="9" y="9" width="13" height="13" rx="2" ry="2" />
                       <path d="M5 15H4a2 2 0 0 1-2-2V4a2 2 0 0 1 2-2h9a2 2 0 0 1 2 2v1" />
                     </svg>
