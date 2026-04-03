@@ -1,97 +1,105 @@
 # Quick Start
 
-Get Igris executing AI workloads in a few minutes.
+Get Igris working in the mode you actually plan to ship: cloud-only, local runtime, or hybrid.
 
 ---
 
 ## Prerequisites
 
-- Linux (x86_64 or ARM64), macOS (Apple Silicon), or Windows with WSL2
 - An Igris account at [console.igrisinertial.com](https://console.igrisinertial.com)
-- API keys for at least one cloud provider (OpenAI, Anthropic, Google, etc.) — or a local GGUF model for offline use
+- One tenant API key (`igris_...`) from **Settings → API Keys**
+- For cloud routing today, provider keys for the currently supported public vault identifiers: `openai` or `anthropic`
+- For local runtime, a GGUF model file if you want on-device inference
 
 ---
 
-## Option A — Cloud API (No local setup)
+## Option A: Cloud API
 
-Use the cloud API directly. No runtime to deploy — just change one URL in your existing code.
+Use Overture directly when you want the fastest integration path.
 
-**Time to first request: ~2 minutes**
+### 1. Add a provider key
 
-### Step 1: Sign up and get an API key
-
-Sign up at [console.igrisinertial.com](https://console.igrisinertial.com) and create an API key from the dashboard.
-
-### Step 2: Add your provider keys
-
-Add the API keys for the AI providers you want to route across:
+The current public vault API accepts `openai`, `anthropic`, and the synthetic `benchmark` provider. For customer traffic, use `openai` or `anthropic`.
 
 ```bash
 curl -X POST https://overture.igrisinertial.com/v1/vault/keys \
-  -H "Authorization: Bearer YOUR_IGRIS_KEY" \
+  -H "Authorization: Bearer YOUR_IGRIS_API_KEY" \
   -H "Content-Type: application/json" \
   -d '{
     "provider": "openai",
-    "key_name": "Production",
+    "key_name": "production",
     "api_key": "YOUR_OPENAI_KEY"
   }'
 ```
 
-Repeat for each provider (anthropic, google, deepseek, etc.).
-
-### Step 3: Point your SDK at Igris
+### 2. Point your client at Igris
 
 ```python
 from openai import OpenAI
 
 client = OpenAI(
     base_url="https://overture.igrisinertial.com/v1",
-    api_key="your-igris-api-key"
+    api_key="YOUR_IGRIS_API_KEY",
 )
 
 response = client.chat.completions.create(
     model="gpt-4",
-    messages=[{"role": "user", "content": "Hello"}]
+    messages=[{"role": "user", "content": "Hello"}],
 )
 
 print(response.choices[0].message.content)
-# response.metadata → {"provider": "anthropic", "cost_usd": 0.00021, ...}
 ```
 
-Igris routes requests across your configured providers automatically — with failover, cost optimization, and signed execution metadata on every response.
-
-[Cloud Coordination →](/docs/cloud-coordination) · [SDK Reference →](/docs/sdk)
+That is enough for the OpenAI-compatible path. Native SDKs add receipt helpers, fleet APIs, and routing metadata.
 
 ---
 
-## Option B — Local / Edge (No internet required)
+## Option B: Local Runtime
 
-Run the runtime on your own hardware for offline inference, signed receipts, and governed execution.
+Use `igris-runtime` when you want local inference, local policy enforcement, or offline execution.
 
-**Time to first request: ~10 minutes**
+### 1. Download the runtime archive
 
-### Step 1: Install the runtime
+Pick your platform:
+
+- `linux-amd64`
+- `linux-arm64`
+- `linux-armv7`
+- `macos-arm64`
+- `macos-x64`
+
+Example:
 
 ```bash
-curl -fsSL https://igrisinertial.com/install | bash
+export IGRIS_PLATFORM="linux-amd64"
+
+curl -fL "https://overture.igrisinertial.com/v1/runtime/install?platform=${IGRIS_PLATFORM}" \
+  -o /tmp/igris-runtime.tar.gz
+
+curl -fL "https://overture.igrisinertial.com/v1/runtime/checksum?platform=${IGRIS_PLATFORM}"
 ```
 
-Detects your platform (Linux x86-64/ARM64, macOS Apple Silicon), downloads the correct binary, verifies the checksum, and installs to `/usr/local/bin/igris-runtime`.
+The checksum endpoint returns the expected SHA-256 value for the archive. Verify it before installation using your platform checksum tool.
 
-> **Manual download:** If scripts are restricted, download the binary directly from **Fleet → Downloads** in the console.
+### 2. Extract and install
 
-### Step 2: Verify installation
+```bash
+tar -xzf /tmp/igris-runtime.tar.gz -C /tmp
+mkdir -p "$HOME/.local/bin"
+mv /tmp/igris-runtime "$HOME/.local/bin/igris-runtime"
+chmod +x "$HOME/.local/bin/igris-runtime"
+export PATH="$HOME/.local/bin:$PATH"
+```
+
+### 3. Verify the binary
 
 ```bash
 igris-runtime --version
-# → igris-runtime v1.8.0 (linux/amd64)
 ```
 
-If the command is not found, ensure `/usr/local/bin` is on your `PATH`.
+### 4. Configure the runtime
 
-### Step 3: Configure the runtime
-
-Create a configuration file at `~/.config/igris/config.json5`:
+Create `~/.config/igris/config.json5`:
 
 ```json5
 {
@@ -101,124 +109,100 @@ Create a configuration file at `~/.config/igris/config.json5`:
   },
   auth: {
     enabled: true,
-    api_key: "your-igris-api-key"
+    api_key: "YOUR_IGRIS_API_KEY"
   },
   local_fallback: {
     enabled: true,
-    model_path: "/models/phi-3-mini-4k-instruct-q4.gguf"
+    model_path: "/models/phi-3-mini-4k-instruct-q4.gguf",
+    context_size: 4096,
+    threads: 4,
+    n_gpu_layers: 0
   }
 }
 ```
 
-Get your API key from **Settings → Keys** in the console.
-
-### Step 4: Start the runtime
+### 5. Start the runtime
 
 ```bash
 igris-runtime serve
 ```
 
-The runtime registers itself with your fleet and appears in **Fleet → Devices** within a minute.
+At this point the runtime serves a local API on `http://localhost:8080`. That alone does **not** guarantee Fleet visibility in the cloud console.
 
-### Step 5: Point your application at the runtime
+### 6. Point your application at the local runtime
 
 ```python
 from openai import OpenAI
 
 client = OpenAI(
     base_url="http://localhost:8080/v1",
-    api_key="your-igris-api-key"
+    api_key="YOUR_IGRIS_API_KEY",
 )
 
 response = client.chat.completions.create(
     model="phi3",
-    messages=[{"role": "user", "content": "Hello"}]
+    messages=[{"role": "user", "content": "Hello"}],
 )
 ```
 
-Every execution produces a signed receipt. Your application gets a response whether or not the internet is available.
-
-[Deployment →](/docs/deployment) · [Execution Model →](/docs/execution-model)
-
 ---
 
-## Option C — Hybrid (Cloud + Local Fallback)
+## Option C: Hybrid Cloud + Local Runtime
 
-Run the runtime locally and register it with the cloud layer. Cloud providers handle most requests; the local runtime takes over when cloud is unavailable.
+Use Overture for routing and failover, but keep a local runtime available.
 
-### Step 1: Deploy the runtime
+### 1. Start the runtime with registration credentials
 
-Follow Option B steps 1–4 to install and start the runtime.
+`igris-runtime` only attempts fleet registration when both of these are present:
 
-### Step 2: Register the runtime
+- `IGRIS_LICENSE_KEY`
+- `IGRIS_API_KEY`
 
-The runtime registers itself automatically on startup. To register manually:
+Example:
 
 ```bash
-curl -X POST https://overture.igrisinertial.com/api/v1/runtime/register \
-  -H "Authorization: Bearer YOUR_IGRIS_API_KEY" \
-  -H "Content-Type: application/json" \
-  -d '{
-    "name": "local-runtime",
-    "endpoint": "http://your-server-ip:8080"
-  }'
+export IGRIS_LICENSE_KEY="YOUR_LICENSE_KEY"
+export IGRIS_API_KEY="YOUR_IGRIS_API_KEY"
+igris-runtime serve
 ```
 
-### Step 3: Configure routing policy
+If license validation succeeds and the control plane is reachable, the runtime will attempt registration on startup.
 
-```json
-{
-  "routing": {
-    "primary": ["openai", "anthropic"],
-    "fallback": ["runtime:local-runtime"]
-  }
-}
+### 2. Use the cloud API from your application
+
+Your app continues to call Overture:
+
+```python
+from openai import OpenAI
+
+client = OpenAI(
+    base_url="https://overture.igrisinertial.com/v1",
+    api_key="YOUR_IGRIS_API_KEY",
+)
 ```
 
-Cloud providers handle most requests. When unavailable, the local runtime takes over automatically.
-
-[Architecture →](/docs/architecture) · [Cloud Coordination →](/docs/cloud-coordination)
+Keep the runtime healthy and reachable if you expect it to participate in fleet workflows or failover paths.
 
 ---
 
-## What's Next
+## What To Do Next
 
-You've made your first request. Here's the recommended path forward:
-
-### Understand what just happened
-- [Execution Flow →](/docs/execution-flow) — Trace the path from your SDK call to signed receipt
-- [Execution Model →](/docs/execution-model) — How envelopes, capability gates, and receipts work
-
-### Set up your fleet
-- [Fleet Management →](/docs/fleet-management) — Register devices, push config, monitor health
-- [Deployment →](/docs/deployment) — Platform requirements, Docker/Kubernetes/systemd setup
-
-### Configure governance
-- [Capability Model →](/docs/capability-model) — Declare what each agent can and cannot do
-- [Policy →](/docs/policy) — Set execution envelope limits per tenant
-- [Audit →](/docs/audit) — Query and export execution receipts
-
-### Build agents
-- [Agents →](/docs/agents) — Reflection, planning, tool-use, and swarm patterns
-- [Behavior Trees →](/docs/behavior-trees) — Structured agent execution flows
-- [Tools →](/docs/tools) — HTTP, shell, and filesystem tool configuration
-
-### Monitor and optimize
-- [History & Alerts →](/docs/history) — Execution events, metrics, and violation alerts
-- [Cloud Coordination →](/docs/cloud-coordination) — Routing strategies, provider health, cost optimization
-- [Routing Advisor →](/docs/cognitive-advisor) — Automated routing optimization proposals
+- [SDKs →](/docs/sdk) for first-class native packages and support status
+- [API Reference →](/docs/api-reference) for the current shipped contract
+- [Fleet Management →](/docs/fleet-management) for registration, config push, and OTA updates
+- [Execution Receipts →](/docs/execution-receipts) for audit and export workflows
+- [Local LLM Fallback →](/docs/local-llm-fallback) for local model tuning
 
 ---
 
 ## Troubleshooting
 
-| Problem | Solution |
+| Problem | What to check |
 |---|---|
-| `command not found: igris-runtime` | Ensure `/usr/local/bin` is on your `PATH`. Restart your terminal after installation. |
-| Port 8080 already in use | Set a different port in your config file: `server.port: 8081`, then restart. |
-| Authentication failed | Verify your API key at **Settings → Keys** in the console. Ensure the key in your config file matches. |
-| No model loaded (local inference) | Download a GGUF model and set `local_fallback.model_path` in your config file. |
-| Runtime not appearing in Fleet | Check that the runtime can reach `overture.igrisinertial.com`. Run `igris-runtime status` to verify registration. |
-| Provider returns 401 | Re-add your provider API key via **Settings → Keys** in the console. Keys may have expired or been revoked. |
+| `igris-runtime: command not found` | Ensure `$HOME/.local/bin` is on `PATH` or install to a directory already on `PATH`. |
+| Local runtime does not answer | Check `http://localhost:8080/v1/health` after `igris-runtime serve`. |
+| Fleet device never appears | Confirm `IGRIS_LICENSE_KEY` and `IGRIS_API_KEY` are both set before startup, and that the runtime can reach Overture. |
+| Cloud routing returns auth errors | Verify you are using a current tenant API key with the `igris_` prefix. |
+| Provider key creation fails | Use the currently supported provider identifiers in the public vault API: `openai` or `anthropic`. |
 
 [Troubleshooting →](/docs/troubleshooting)
