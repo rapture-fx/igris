@@ -1,59 +1,67 @@
 # Key Management
 
-Igris stores and manages cloud provider API keys on your behalf. Keys are encrypted at rest, scoped to your account, and never exposed in logs or API responses.
+Igris stores provider keys in the vault used by the cloud coordination layer.
 
 ---
 
-## Adding Provider Keys
+## What The Current Public API Supports
 
-Add your provider API keys through the console at [console.igrisinertial.com/settings/keys](https://console.igrisinertial.com/settings/keys).
+The current public vault handler accepts these provider identifiers:
 
-Supported providers:
-
-| Provider | Notes |
+| Provider | Intended use |
 |---|---|
-| OpenAI | API key from platform.openai.com |
-| Anthropic | API key from console.anthropic.com |
-| xAI (Grok) | API key from console.x.ai |
-| Google (Gemini) | API key from Google AI Studio |
-| Cohere | API key from dashboard.cohere.com |
-| Azure OpenAI | Endpoint + API key |
+| `openai` | Customer cloud traffic |
+| `anthropic` | Customer cloud traffic |
+| `benchmark` | Synthetic or test traffic |
+
+Do not assume broader provider coverage on the public vault API unless it is explicitly documented in the current contract.
 
 ---
 
-## Key Validation
+## Add A Provider Key
 
-When you save a key, Igris immediately tests it against the provider's live API before storing it. If validation fails, the key is rejected and you'll see the provider's error message.
+```bash
+curl -X POST https://overture.igrisinertial.com/v1/vault/keys \
+  -H "Authorization: Bearer YOUR_IGRIS_API_KEY" \
+  -H "Content-Type: application/json" \
+  -d '{
+    "provider": "openai",
+    "key_name": "production",
+    "api_key": "YOUR_OPENAI_KEY"
+  }'
+```
 
-Keys are re-validated periodically in the background. A key that becomes invalid (revoked, quota exhausted) is flagged in the console and excluded from routing until you replace it.
+Current request fields:
+
+| Field | Description |
+|---|---|
+| `provider` | Provider identifier such as `openai` |
+| `key_name` | Human-readable name for the key |
+| `api_key` | Provider secret to encrypt and store |
 
 ---
 
-## Rotating a Provider Key
+## Rotate, Validate, Remove
 
-To replace a key — for example, after a rotation on the provider side:
+Current routes:
 
-1. Go to **Settings → Keys** in the console
-2. Click **Replace** next to the provider
-3. Paste the new key
-4. Igris validates the new key before replacing the old one
+- `GET /v1/vault/keys`
+- `GET /v1/vault/keys/:provider`
+- `POST /v1/vault/keys/:provider/rotate`
+- `POST /v1/vault/keys/:provider/validate`
+- `DELETE /v1/vault/keys/:provider`
 
-The old key stays active until the new one passes validation. Rotation is atomic — there is no window where neither key is active.
-
----
-
-## Removing a Key
-
-Removing a key from the vault immediately stops Igris from routing requests to that provider. If you remove your only key for a provider, requests targeting that provider will fail until a new key is added.
+The current response contract returns masked values only. Raw provider secrets are never returned after creation.
 
 ---
 
 ## Security Properties
 
-- Keys are encrypted before storage — they are never stored in plaintext
-- Keys are scoped to your account; no other tenant can access them
-- The masked key (last 4 characters visible) is the only form ever returned by the API
-- All key operations (add, rotate, remove, validate) are recorded in your audit log
+- Provider keys are encrypted before storage
+- Key operations are tenant-scoped
+- API responses expose masked key material only
+- Vault operations are available through authenticated control-plane APIs
 
-[Cloud Coordination →](/docs/cloud-coordination)
-[Audit →](/docs/audit)
+---
+
+[Cloud Coordination →](/docs/cloud-coordination) · [Security →](/docs/security) · [API Reference →](/docs/api-reference)
