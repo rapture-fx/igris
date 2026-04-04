@@ -360,6 +360,8 @@ pub struct Ros2Node {
     // Publishers
     prompt_pub: Arc<RwLock<r2r::Publisher<r2r::std_msgs::msg::String>>>,
     response_pub: Arc<RwLock<r2r::Publisher<r2r::std_msgs::msg::String>>>,
+    /// Safety-critical: zero-velocity publisher on `/cmd_vel`.
+    cmd_vel_pub: Arc<RwLock<r2r::Publisher<r2r::geometry_msgs::msg::Twist>>>,
 
     // Subscribers (stored as channels for async access)
     prompt_rx: Arc<RwLock<mpsc::UnboundedReceiver<PromptMessage>>>,
@@ -431,6 +433,16 @@ impl Ros2Node {
             .context("Failed to create response publisher")?;
         let response_pub = Arc::new(RwLock::new(response_pub));
 
+        // Zero-velocity publisher on /cmd_vel — used by the containment bridge for
+        // emergency stops. QoS: reliable, depth 1 to ensure delivery.
+        let cmd_vel_pub = node
+            .create_publisher::<r2r::geometry_msgs::msg::Twist>(
+                "/cmd_vel",
+                r2r::QosProfile::default().reliable().keep_last(1),
+            )
+            .context("Failed to create /cmd_vel publisher")?;
+        let cmd_vel_pub = Arc::new(RwLock::new(cmd_vel_pub));
+
         // Create subscribers with channels
         let (prompt_tx, prompt_rx) = mpsc::unbounded_channel();
         let (response_tx, response_rx) = mpsc::unbounded_channel();
@@ -466,6 +478,7 @@ impl Ros2Node {
             node,
             prompt_pub,
             response_pub,
+            cmd_vel_pub,
             prompt_rx: Arc::new(RwLock::new(prompt_rx)),
             response_rx: Arc::new(RwLock::new(response_rx)),
             nav_status: Arc::new(RwLock::new(None)),
@@ -555,7 +568,17 @@ impl Ros2Node {
         Ok(rx.try_recv().ok())
     }
 
-    /// Send navigation goal to Nav2, returning a handle to monitor and control the action
+    /// Send navigation goal to Nav2 via the NavigateToPose action server.
+    ///
+    /// Returns a [`NavigationHandle`] immediately. A background task drives the
+    /// action client, updating handle state as feedback arrives and resolving to
+    /// Succeeded / Failed / Canceled when the goal reaches a terminal state.
+    ///
+    /// The WAL records a `NavigateToPose` intent before this call and a
+    /// `Committed` entry when the handle transitions to `Succeeded`. If the
+    /// runtime crashes mid-navigation, Nav2 keeps moving; on recovery the new
+    /// runtime can query the existing Nav2 goal through the action server or
+    /// simply re-issue the goal (Nav2 is idempotent for repeated poses).
     pub async fn navigate_to_pose(&self, goal: NavigationGoal) -> Result<NavigationHandle> {
         if !self.config.enable_nav2 {
             return Err(anyhow::anyhow!("Nav2 is disabled in config"));
@@ -563,23 +586,67 @@ impl Ros2Node {
 
         let goal_id = Uuid::now_v7().to_string();
         info!(
-            "Sending navigation goal {} to ({}, {}, {}) in frame '{}'",
+            "Sending Nav2 goal {} to ({:.3}, {:.3}, {:.3}) frame='{}'",
             goal_id, goal.x, goal.y, goal.z, goal.frame_id
         );
 
         let distance = (goal.x * goal.x + goal.y * goal.y).sqrt();
 
-        // Update legacy navigation status
-        let mut status = self.nav_status.write().await;
-        *status = Some(NavigationStatus {
-            status: "navigating".to_string(),
-            distance_remaining: distance,
-            estimated_time_remaining: 10.0,
-            state: NavigationState::Accepted,
-        });
+        // Create an action client for this goal. Clients are lightweight and
+        // can be created per-call; the node spinner is already running.
+        let action_client = self.node
+            .create_action_client::<r2r::nav2_msgs::action::NavigateToPose>(
+                &self.config.nav2_action_server,
+            )
+            .context("Failed to create Nav2 action client")?;
 
-        // TODO: Implement Nav2 action client when nav2_msgs bindings are available in r2r
-        warn!("Nav2 action client not yet implemented - using simulated state progression");
+        // Wait up to 5 s for the Nav2 action server to be available.
+        let server_ready = tokio::time::timeout(
+            Duration::from_secs(5),
+            async {
+                loop {
+                    match action_client.is_ready() {
+                        Ok(true) => return Ok(()),
+                        Ok(false) => tokio::time::sleep(Duration::from_millis(100)).await,
+                        Err(e) => return Err(e),
+                    }
+                }
+            },
+        )
+        .await
+        .map_err(|_| anyhow::anyhow!("Nav2 action server '{}' not available after 5s — is nav2 running?", self.config.nav2_action_server))?;
+        server_ready.context("Nav2 readiness check failed")?;
+
+        // Build the Nav2 goal message.
+        let nav_goal = r2r::nav2_msgs::action::NavigateToPose::Goal {
+            pose: r2r::geometry_msgs::msg::PoseStamped {
+                header: r2r::std_msgs::msg::Header {
+                    frame_id: goal.frame_id.clone(),
+                    stamp: r2r::builtin_interfaces::msg::Time { sec: 0, nanosec: 0 },
+                },
+                pose: r2r::geometry_msgs::msg::Pose {
+                    position: r2r::geometry_msgs::msg::Point {
+                        x: goal.x,
+                        y: goal.y,
+                        z: goal.z,
+                    },
+                    orientation: r2r::geometry_msgs::msg::Quaternion {
+                        x: 0.0,
+                        y: 0.0,
+                        z: 0.0,
+                        w: goal.orientation_w,
+                    },
+                },
+            },
+            behavior_tree: String::new(),
+        };
+
+        // Send the goal. The action server accepts or rejects it synchronously.
+        let mut goal_response = action_client
+            .send_goal_request(nav_goal)
+            .await
+            .context("Failed to send Nav2 goal request")?
+            .context("Nav2 goal was rejected by the action server")?;
 
         let inner = Arc::new(Mutex::new(NavigationHandleInner {
             goal_id: goal_id.clone(),
@@ -587,14 +654,85 @@ impl Ros2Node {
             feedback: NavigationFeedback {
                 current_pose: (0.0, 0.0, 0.0),
                 distance_remaining: distance,
-                estimated_time_remaining: 10.0,
+                estimated_time_remaining: distance / 0.5_f64.max(0.1), // rough 0.5 m/s estimate
             },
             goal,
         }));
-
         let done_notify = Arc::new(Notify::new());
         let velocity_tracker = self.last_velocity.clone();
-        spawn_navigation_task(inner.clone(), done_notify.clone(), velocity_tracker);
+
+        // Update legacy status
+        *self.nav_status.write().await = Some(NavigationStatus {
+            status: "navigating".to_string(),
+            distance_remaining: distance,
+            estimated_time_remaining: 10.0,
+            state: NavigationState::Accepted,
+        });
+
+        // Background task: drive the action goal to completion.
+        let inner_bg = inner.clone();
+        let done_bg = done_notify.clone();
+        let nav_status_bg = self.nav_status.clone();
+        tokio::spawn(async move {
+            // Transition to Planning immediately after acceptance.
+            {
+                let mut lock = inner_bg.lock().await;
+                if !lock.state.is_terminal() {
+                    lock.state = NavigationState::Planning;
+                }
+                done_bg.notify_waiters();
+            }
+
+            // Await the final result from Nav2.
+            match goal_response.get_result().await {
+                Ok((_status, result)) => {
+                    // result.result contains the outcome; a non-empty error_code
+                    // signals failure in Nav2's NavigateToPose action.
+                    let terminal = if result.error_code == 0 {
+                        NavigationState::Succeeded
+                    } else {
+                        NavigationState::Failed(format!(
+                            "Nav2 error_code={} ({})",
+                            result.error_code, result.error_msg
+                        ))
+                    };
+
+                    *velocity_tracker.write().await = [0.0, 0.0];
+
+                    let mut lock = inner_bg.lock().await;
+                    if !lock.state.is_terminal() {
+                        lock.state = terminal;
+                        lock.feedback.distance_remaining = 0.0;
+                        lock.feedback.estimated_time_remaining = 0.0;
+                        if let NavigationState::Succeeded = lock.state {
+                            lock.feedback.current_pose = (lock.goal.x, lock.goal.y, lock.goal.z);
+                        }
+                    }
+
+                    let state_str = match &lock.state {
+                        NavigationState::Succeeded => "succeeded",
+                        NavigationState::Failed(_) => "failed",
+                        NavigationState::Canceled => "canceled",
+                        _ => "terminal",
+                    };
+                    *nav_status_bg.write().await = Some(NavigationStatus {
+                        status: state_str.to_string(),
+                        distance_remaining: lock.feedback.distance_remaining,
+                        estimated_time_remaining: lock.feedback.estimated_time_remaining,
+                        state: lock.state.clone(),
+                    });
+                }
+                Err(e) => {
+                    warn!("Nav2 get_result error: {}", e);
+                    *velocity_tracker.write().await = [0.0, 0.0];
+                    let mut lock = inner_bg.lock().await;
+                    if !lock.state.is_terminal() {
+                        lock.state = NavigationState::Failed(format!("action result error: {}", e));
+                    }
+                }
+            }
+            done_bg.notify_waiters();
+        });
 
         let handle = NavigationHandle { inner, done_notify };
         *self.active_nav_handle.write().await = Some(handle.clone());
@@ -634,22 +772,19 @@ impl Ros2Node {
         *self.last_velocity.read().await
     }
 
-    /// Publish a zero-velocity Twist command to `/cmd_vel`.
-    ///
-    /// In the real ROS2 path this would publish `geometry_msgs/msg/Twist` with all
-    /// fields set to zero. Until nav2_msgs bindings are available this logs the
-    /// command as a string on the response topic.
+    /// Publish a zero-velocity `geometry_msgs/msg/Twist` to `/cmd_vel`.
     ///
     /// The containment bridge calls this in a tight loop (every 100 ms for 3 s) from
-    /// a dedicated tokio task. This method is intentionally non-blocking.
+    /// a dedicated tokio task to bring the robot to a safe stop. Sends are best-effort
+    /// — the containment guarantee does not depend on any single delivery.
     pub async fn publish_zero_velocity(&self) -> Result<()> {
         debug!("Publishing zero velocity to /cmd_vel");
-        // TODO: publish geometry_msgs/msg/Twist{} when nav2_msgs bindings land
-        let msg = r2r::std_msgs::msg::String {
-            data: r#"{"linear":{"x":0,"y":0,"z":0},"angular":{"x":0,"y":0,"z":0}}"#.to_string(),
+        let zero_twist = r2r::geometry_msgs::msg::Twist {
+            linear: r2r::geometry_msgs::msg::Vector3 { x: 0.0, y: 0.0, z: 0.0 },
+            angular: r2r::geometry_msgs::msg::Vector3 { x: 0.0, y: 0.0, z: 0.0 },
         };
-        let mut pub_lock = self.response_pub.write().await;
-        let _ = pub_lock.publish(&msg); // best-effort; containment does not depend on delivery
+        let mut pub_lock = self.cmd_vel_pub.write().await;
+        let _ = pub_lock.publish(&zero_twist);
         Ok(())
     }
 
