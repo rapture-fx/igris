@@ -110,7 +110,7 @@ func TestGetTierByPriceID(t *testing.T) {
 func TestTierRuntimeLimits(t *testing.T) {
 	seed, err := GetTierByID(string(TierSeed))
 	require.NoError(t, err)
-	assert.Equal(t, 1, seed.RuntimeLimit)
+	assert.Equal(t, 3, seed.RuntimeLimit)
 	assert.Equal(t, 2900, seed.MonthlyPriceCents)
 
 	horizon, err := GetTierByID(string(TierHorizon))
@@ -194,6 +194,25 @@ func TestUpdateSubscription_PriceIDResolution(t *testing.T) {
 	assert.Equal(t, string(TierHorizon), retrieved.Metadata["tier"])
 }
 
+func TestUpdateSubscription_RejectsUnknownPriceID(t *testing.T) {
+	client := setupTestPolarClient(t)
+	ctx := context.Background()
+
+	sub := &Subscription{
+		ID:               "sub_unknown_789",
+		CustomerID:       "tenant_unknown",
+		ProductID:        "prod_unknown",
+		PriceID:          "price_unknown",
+		Status:           StatusActive,
+		CurrentPeriodEnd: time.Now().Add(30 * 24 * time.Hour),
+		CreatedAt:        time.Now(),
+	}
+
+	err := client.UpdateSubscription(ctx, sub)
+	require.Error(t, err)
+	assert.Contains(t, err.Error(), "failed to resolve subscription tier")
+}
+
 // ============================================================================
 // RUNTIME ENFORCER TESTS
 // ============================================================================
@@ -204,14 +223,18 @@ func TestRuntimeEnforcer_SeedLimit(t *testing.T) {
 	enforcer := NewRuntimeEnforcer(r)
 
 	tenantID := "tenant_seed_limit"
-	// Set tier to Seed (limit=1)
+	// Set tier to Seed (limit=3)
 	r.Set(ctx, "igris:billing:"+tenantID+":tier", string(TierSeed), 0)
 
-	// First runtime: should be allowed
+	// First three runtimes: should be allowed
+	assert.NoError(t, enforcer.CheckRuntimeLimit(ctx, tenantID))
+	require.NoError(t, enforcer.IncrementRuntimeCount(ctx, tenantID))
+	assert.NoError(t, enforcer.CheckRuntimeLimit(ctx, tenantID))
+	require.NoError(t, enforcer.IncrementRuntimeCount(ctx, tenantID))
 	assert.NoError(t, enforcer.CheckRuntimeLimit(ctx, tenantID))
 	require.NoError(t, enforcer.IncrementRuntimeCount(ctx, tenantID))
 
-	// Second runtime: should be rejected
+	// Fourth runtime: should be rejected
 	assert.ErrorIs(t, enforcer.CheckRuntimeLimit(ctx, tenantID), ErrTierLimitExceeded)
 }
 
@@ -252,8 +275,12 @@ func TestRuntimeEnforcer_DefaultsToSeed(t *testing.T) {
 	ctx := context.Background()
 	enforcer := NewRuntimeEnforcer(r)
 
-	// No tier set — should default to Seed (limit=1)
+	// No tier set — should default to Seed (limit=3)
 	tenantID := "tenant_no_tier"
+	assert.NoError(t, enforcer.CheckRuntimeLimit(ctx, tenantID))
+	require.NoError(t, enforcer.IncrementRuntimeCount(ctx, tenantID))
+	assert.NoError(t, enforcer.CheckRuntimeLimit(ctx, tenantID))
+	require.NoError(t, enforcer.IncrementRuntimeCount(ctx, tenantID))
 	assert.NoError(t, enforcer.CheckRuntimeLimit(ctx, tenantID))
 	require.NoError(t, enforcer.IncrementRuntimeCount(ctx, tenantID))
 	assert.ErrorIs(t, enforcer.CheckRuntimeLimit(ctx, tenantID), ErrTierLimitExceeded)
