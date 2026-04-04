@@ -1,0 +1,186 @@
+# Context Engineering
+
+Context engineering is the discipline of deciding what the model should see, what the runtime should remember, and what the product should preserve across steps, failures, and deployments.
+
+In Igris, that choice matters because context can live in several different places:
+
+- the request itself
+- memory systems
+- MCP and shared context
+- durable-task checkpoints
+- receipts and audit records
+
+If you put the wrong information in the wrong layer, the system still works, but it becomes harder to reason about, more expensive to operate, and more fragile across retries, restarts, and handoffs.
+
+---
+
+## Start With The Smallest Useful Context
+
+The default rule is simple: give the model only the context required to succeed at the current step.
+
+That means:
+
+- put request-specific instructions and inputs in the request
+- put reusable knowledge in retrieval or memory
+- put shared operational state in an explicit shared context layer
+- put recovery-critical workflow state in durable tasks
+
+What you want to avoid is using the prompt as a dumping ground for everything the product knows.
+
+## The Context Layers In Igris
+
+### 1. Request-local context
+
+Request-local context belongs in the request payload itself: messages, task inputs, or tool-call inputs. This is the right place for information that matters only to the current call.
+
+Use this for:
+
+- the current user instruction
+- short-lived execution constraints
+- immediate tool-call inputs
+- one-off routing intent
+
+Do not use request-local context as a substitute for shared memory or durable state.
+
+### 2. Retrieval and memory
+
+Use memory systems when context should survive beyond one request but does not need to become part of the durable workflow protocol.
+
+This includes:
+
+- semantic retrieval from vector memory
+- short-lived working state in KV-style memory
+- shared blackboard-style state when multiple agents need the same view
+
+Use this when the question is: "what should the next step be able to recall?"
+
+Use durable tasks instead when the question is: "what must survive an interruption and resume safely?"
+
+### 3. MCP and shared context
+
+Use MCP when context should be shared across tools, sessions, or runtime instances in a structured way.
+
+MCP is the right layer for:
+
+- shared mission state
+- tool-oriented context
+- cross-instance context in swarm or multi-device operation
+
+Use MCP when context is part of the operating environment, not just part of one inference call.
+
+### 4. Durable task state
+
+Use durable tasks when progress itself is part of the contract.
+
+This is where you put:
+
+- multi-step workflows
+- robotics missions
+- any work that must resume from a checkpoint instead of starting over
+
+Durable task state is not just "memory." It is recovery state with execution semantics.
+
+### 5. Receipts and audit context
+
+Receipts are not a place to store working context for the next step. They are the place where execution evidence is preserved for audit, export, and verification.
+
+Use receipts when the question is:
+
+- what ran
+- where did it run
+- what happened
+- what proof exists
+
+Use them for evidence, not for control flow.
+
+---
+
+## Choosing The Right Layer
+
+| If the context is... | Put it in... |
+|---|---|
+| Only needed for this request | Request payload |
+| Reusable across requests | Memory or retrieval |
+| Shared across tools or instances | MCP / shared context |
+| Required for safe resume after interruption | Durable task checkpoints |
+| Needed for audit and proof | Execution receipts |
+
+## Implementation Checklist
+
+Before you ship a workflow, answer these questions explicitly:
+
+1. What must the model see on this step, and what should stay out of the prompt?
+2. What should be recalled later, but does not need durable recovery semantics?
+3. What state must be shared across tools, runtimes, or agents?
+4. What progress must survive interruption and resume safely?
+5. What evidence must be preserved for audit without affecting the next step?
+
+If a team cannot answer those five questions clearly, it usually means the context model is still accidental instead of designed.
+
+## Common Patterns
+
+### Hosted inference with light context
+
+Keep the context in the request and use the OpenAI-compatible API or native inference routes. This is the best path when the work is synchronous and the context is short-lived.
+
+### Agent workflows with reusable state
+
+Keep the active instruction in the request, but move reusable state into memory. This prevents every step from carrying the entire history in the prompt.
+
+### Hybrid deployments with shared device state
+
+Use the hosted API for the application contract, but keep operational state in MCP or runtime-shared context when multiple devices or runtimes need to coordinate.
+
+### Long-running workflows
+
+Use durable tasks when the workflow must survive crashes, restarts, or runtime reassignment. Recovery state belongs in the durable-task protocol, not in prompt text.
+
+## A Practical Product Pattern
+
+For many customer workflows, a clean context plan looks like this:
+
+- the request carries the immediate user instruction
+- memory or retrieval supplies reusable background knowledge
+- MCP carries shared operational state across tools or agents
+- durable tasks preserve progress for long-running work
+- receipts preserve evidence after execution completes
+
+That pattern keeps each layer narrow. It also keeps the product understandable when the same workflow spans cloud coordination and one or more runtimes.
+
+## Common Mistakes
+
+- Putting long-lived operational state into the prompt instead of an explicit memory or MCP layer
+- Using memory as if it were durable recovery state
+- Treating receipts as if they were a working state store
+- Repeating the full world state on every request because no explicit context model was chosen
+- Mixing cloud application context and local runtime context without a clear boundary
+
+## What Good Context Engineering Looks Like
+
+Good context engineering in Igris has a few visible properties:
+
+- request payloads stay focused
+- memory is intentional rather than accidental
+- shared state is explicit
+- recovery state is durable
+- audit state is separate from execution state
+
+That separation is what keeps the product understandable as it grows.
+
+## Code And Workflow Quality Signals
+
+You are usually on the right path when:
+
+- prompt size stays bounded instead of growing with every product feature
+- retries do not duplicate progress because checkpoint state is durable
+- operators can explain which layer owns a piece of context without reading code
+- audit export can happen without depending on prompt history
+- local runtime and hosted coordination use the same conceptual workflow, even when they store different kinds of state
+
+## Related Guides
+
+- [Memory →](/docs/memory)
+- [MCP →](/docs/mcp)
+- [Durable Tasks →](/docs/durable-tasks)
+- [Execution Receipts →](/docs/execution-receipts)
+- [Hybrid Deployment Workflow →](/docs/hybrid-deployment-workflow)
