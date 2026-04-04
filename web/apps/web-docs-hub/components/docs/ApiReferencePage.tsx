@@ -81,14 +81,9 @@ export function ApiReferencePage() {
         return (
           <section id={`group-${slugify(section.title)}`} key={section.title} className="rounded-2xl border border-gray-200 bg-white">
             <div className="border-b border-gray-200 px-6 py-4">
-              <div className="flex items-center justify-between gap-4">
-                <div>
-                  <h2 className="m-0 text-base font-semibold text-slate-900">{section.title}</h2>
-                  <p className="mb-0 mt-2 text-sm leading-7 text-slate-700">{section.summary}</p>
-                </div>
-                <div className="rounded-full bg-gray-100 px-3 py-1 text-xs font-medium text-gray-700">
-                  {section.endpoints.length} endpoints
-                </div>
+              <div>
+                <h2 className="m-0 text-base font-semibold text-slate-900">{section.title}</h2>
+                <p className="mb-0 mt-2 text-sm leading-7 text-slate-700">{section.summary}</p>
               </div>
             </div>
 
@@ -184,12 +179,9 @@ export function ApiReferenceRightRail() {
               <li key={section.title}>
                 <a
                   href={`#group-${slugify(section.title)}`}
-                  className="flex items-center justify-between gap-3 rounded-lg px-3 py-2 text-sm text-slate-700 transition-colors hover:bg-gray-50 hover:text-slate-900"
+                  className="block rounded-lg px-3 py-2 text-sm text-slate-700 transition-colors hover:bg-gray-50 hover:text-slate-900"
                 >
-                  <span>{section.title}</span>
-                  <span className="rounded-full bg-gray-100 px-2 py-0.5 text-[0.7rem] font-medium text-gray-600">
-                    {section.endpoints.length}
-                  </span>
+                  {section.title}
                 </a>
               </li>
             ))}
