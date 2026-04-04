@@ -137,29 +137,33 @@ export default function CoreCapabilities() {
           <div className="flex flex-col md:hidden divide-y divide-[rgba(209,213,219,0.35)]">
             {capabilities.map((capability, index) => (
               <div key={capability.name} className="py-8">
-                <div className="w-32 h-32 flex items-start justify-start mb-24">
-                  {index === 0 && (
+                {index === 0 && (
+                  <div className="w-24 h-24 flex items-start justify-start mb-24">
                     <img
                       src={mounted && theme === 'dark' ? '/cr.png?v=2' : '/exc.png?v=2'}
                       alt={capability.name}
                       style={{ width: '100%', height: '100%', objectFit: 'contain', opacity: 1 }}
                     />
-                  )}
-                  {index === 1 && (
+                  </div>
+                )}
+                {index === 1 && (
+                  <div className="w-32 h-32 flex items-start justify-start mb-24">
                     <img
                       src={mounted && theme === 'dark' ? '/cs.png' : '/tre.png'}
                       alt={capability.name}
                       style={{ width: '100%', height: '100%', objectFit: 'contain', opacity: 1 }}
                     />
-                  )}
-                  {index === 2 && (
+                  </div>
+                )}
+                {index === 2 && (
+                  <div className="w-32 h-32 flex items-start justify-start mb-24">
                     <img
                       src={mounted && theme === 'dark' ? '/cc.png' : '/one.png'}
                       alt={capability.name}
                       style={{ width: '100%', height: '100%', objectFit: 'contain', opacity: 1 }}
                     />
-                  )}
-                </div>
+                  </div>
+                )}
                 <div className="max-w-xs">
                   <h4 className="text-base mb-2 text-[#000000] dark:text-[#f6f6f4]" style={{ fontFamily: '-apple-system, BlinkMacSystemFont, "Segoe UI", Roboto, Helvetica, Arial, sans-serif' }}>
                     {capability.name}
