@@ -1,14 +1,14 @@
 # API Verification Report
 
-Generated: 2026-04-04T07:20:52.767Z
+Generated: 2026-04-04T08:02:04.873Z
 
 This report is evidence-based. It does not claim endpoint health beyond what is present in route registration, tests, and client references in this repository.
 
 ## Summary
 
-- Total documented endpoints: 54
+- Total documented endpoints: 51
 - Test-covered: 5
-- Client-referenced: 10
+- Client-referenced: 7
 - Implemented but unverified: 39
 
 ## Endpoints
@@ -25,9 +25,6 @@ This report is evidence-based. It does not claim endpoint health beyond what is 
 | implemented-unverified | GET | `/v1/runtime/install` | Runtime Distribution & Fleet Coordination | none |
 | implemented-unverified | GET | `/v1/runtime/checksum` | Runtime Distribution & Fleet Coordination | none |
 | implemented-unverified | GET | `/v1/runtime/download` | Runtime Distribution & Fleet Coordination | none |
-| client-referenced | POST | `/api/v1/runtime/register` | Runtime Distribution & Fleet Coordination | clients: 1 |
-| client-referenced | POST | `/api/v1/runtime/heartbeat` | Runtime Distribution & Fleet Coordination | clients: 1 |
-| client-referenced | DELETE | `/api/v1/runtime/deregister` | Runtime Distribution & Fleet Coordination | clients: 1 |
 | implemented-unverified | GET | `/api/v1/runtime/list` | Runtime Distribution & Fleet Coordination | none |
 | implemented-unverified | POST | `/api/v1/runtime/config/push` | Runtime Distribution & Fleet Coordination | none |
 | implemented-unverified | POST | `/api/v1/runtime/update` | Runtime Distribution & Fleet Coordination | none |
