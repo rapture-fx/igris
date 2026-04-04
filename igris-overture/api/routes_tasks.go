@@ -15,12 +15,12 @@ import (
 
 // RegisterTaskRoutes wires the durable task execution endpoints.
 //
-//   POST   /v1/tasks/submit           — submit a new task (agent workflow, robotics workflow, single inference, or behavior tree)
-//   GET    /v1/tasks/:id              — poll task status
-//   GET    /v1/tasks                  — list recent tasks for the tenant
-//   POST   /v1/tasks/:id/checkpoint   — runtime pushes a checkpoint back to Overture
-//   POST   /v1/tasks/:id/complete     — runtime signals task completion
-//   POST   /v1/tasks/:id/failed       — runtime signals task failure
+//	POST   /v1/tasks/submit           — submit a new task (agent workflow, robotics workflow, single inference, or behavior tree)
+//	GET    /v1/tasks/:id              — poll task status
+//	GET    /v1/tasks                  — list recent tasks for the tenant
+//	POST   /v1/tasks/:id/checkpoint   — runtime pushes a checkpoint back to Overture
+//	POST   /v1/tasks/:id/complete     — runtime signals task completion
+//	POST   /v1/tasks/:id/failed       — runtime signals task failure
 func RegisterTaskRoutes(app *fiber.App, db *sql.DB, tc *coordinator.TaskCoordinator) {
 	v1 := app.Group("/v1/tasks")
 	v1.Use(middleware.BetterAuth(db))
