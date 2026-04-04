@@ -71,36 +71,54 @@ export default function CoreCapabilities() {
                       borderRight: index < capabilities.length - 1 ? '0.5px solid rgba(209, 213, 219, 0.35)' : 'none',
                     }}
                   >
-                    <div style={{
-                      width: '160px',
-                      height: '160px',
-                      display: 'flex',
-                      alignItems: 'flex-start',
-                      justifyContent: 'flex-start',
-                      marginBottom: '16rem',
-                    }}>
-                      {index === 0 && (
+                    {index === 0 && (
+                      <div style={{
+                        width: '120px',
+                        height: '120px',
+                        display: 'flex',
+                        alignItems: 'flex-start',
+                        justifyContent: 'flex-start',
+                        marginBottom: '16rem',
+                      }}>
                         <img
                           src={mounted && theme === 'dark' ? '/cr.png?v=2' : '/exc.png?v=2'}
                           alt={capability.name}
                           style={{ width: '100%', height: '100%', objectFit: 'contain', opacity: 1 }}
                         />
-                      )}
-                      {index === 1 && (
+                      </div>
+                    )}
+                    {index === 1 && (
+                      <div style={{
+                        width: '160px',
+                        height: '160px',
+                        display: 'flex',
+                        alignItems: 'flex-start',
+                        justifyContent: 'flex-start',
+                        marginBottom: '16rem',
+                      }}>
                         <img
                           src={mounted && theme === 'dark' ? '/cs.png' : '/tre.png'}
                           alt={capability.name}
                           style={{ width: '100%', height: '100%', objectFit: 'contain', opacity: 1 }}
                         />
-                      )}
-                      {index === 2 && (
+                      </div>
+                    )}
+                    {index === 2 && (
+                      <div style={{
+                        width: '160px',
+                        height: '160px',
+                        display: 'flex',
+                        alignItems: 'flex-start',
+                        justifyContent: 'flex-start',
+                        marginBottom: '16rem',
+                      }}>
                         <img
                           src={mounted && theme === 'dark' ? '/cc.png' : '/one.png'}
                           alt={capability.name}
                           style={{ width: '100%', height: '100%', objectFit: 'contain', opacity: 1 }}
                         />
-                      )}
-                    </div>
+                      </div>
+                    )}
                     <div className="max-w-xs">
                       <h4 className="text-sm md:text-base mb-2 text-[#000000] dark:text-[#f6f6f4]" style={{ fontFamily: '-apple-system, BlinkMacSystemFont, "Segoe UI", Roboto, Helvetica, Arial, sans-serif' }}>
                         {capability.name}
