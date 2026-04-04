@@ -28,6 +28,11 @@ pub struct CheckpointPayload {
     pub resume_token: ResumeToken,
     /// WAL entries written since the last checkpoint was sent.
     pub wal_entries: Vec<WalEntry>,
+    /// Task-type-specific metadata stored opaquely by the coordinator and
+    /// forwarded verbatim to the new runtime on recovery. Behavior tree tasks
+    /// use this to carry `blackboard_state` and `tick_count` across failover.
+    #[serde(skip_serializing_if = "Option::is_none")]
+    pub metadata: Option<serde_json::Value>,
 }
 
 /// BT-specific checkpoint that includes serialized blackboard state.
