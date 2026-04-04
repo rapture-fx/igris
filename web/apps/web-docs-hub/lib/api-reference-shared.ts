@@ -7,6 +7,8 @@ export type ApiEndpoint = {
   auth: string;
   surface: string;
   stability: string;
+  support: ApiSupportLevel;
+  deployment: ApiDeploymentMode;
   description: string;
   coverageStatus?: ApiCoverageStatus;
   coverageLabel?: string;
@@ -58,6 +60,8 @@ export type ApiCodeSample = {
 };
 
 export type ApiCoverageStatus = 'verified' | 'referenced' | 'documented';
+export type ApiSupportLevel = 'core' | 'supported' | 'preview';
+export type ApiDeploymentMode = 'cloud' | 'local' | 'hybrid';
 
 export type ApiEndpointPageData = {
   section: ApiSection;
@@ -76,6 +80,10 @@ export type ApiEndpointPageData = {
   statusCodes: ApiStatusCode[];
   codeSamples: ApiCodeSample[];
   notes: string[];
+  whenToUse: string;
+  retryGuidance: string;
+  commonMistakes: string[];
+  relatedEndpoints: Array<{ label: string; href: string }>;
 };
 
 export const apiGuides: ApiGuide[] = [
