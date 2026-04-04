@@ -72,12 +72,12 @@ export default function CoreCapabilities() {
                     }}
                   >
                     <div style={{
-                      width: '100%',
-                      height: '160px',
+                      width: '100px',
+                      height: '100px',
                       display: 'flex',
-                      alignItems: 'center',
-                      justifyContent: 'center',
-                      marginBottom: '7rem',
+                      alignItems: 'flex-start',
+                      justifyContent: 'flex-start',
+                      marginBottom: '16rem',
                     }}>
                       {index === 0 && (
                         <img
@@ -101,12 +101,14 @@ export default function CoreCapabilities() {
                         />
                       )}
                     </div>
-                    <h4 className="text-sm md:text-base mb-2 text-[#000000] dark:text-[#f6f6f4]" style={{ fontFamily: '-apple-system, BlinkMacSystemFont, "Segoe UI", Roboto, Helvetica, Arial, sans-serif' }}>
-                      {capability.name}
-                    </h4>
-                    <p className="text-xs md:text-sm text-gray-600 dark:text-[#a8a898] leading-relaxed" style={{ fontWeight: 400, fontFamily: '-apple-system, BlinkMacSystemFont, "Segoe UI", Roboto, Helvetica, Arial, sans-serif' }}>
-                      {capability.description}
-                    </p>
+                    <div className="max-w-xs">
+                      <h4 className="text-sm md:text-base mb-2 text-[#000000] dark:text-[#f6f6f4]" style={{ fontFamily: '-apple-system, BlinkMacSystemFont, "Segoe UI", Roboto, Helvetica, Arial, sans-serif' }}>
+                        {capability.name}
+                      </h4>
+                      <p className="text-xs md:text-sm text-gray-600 dark:text-[#a8a898] leading-relaxed" style={{ fontWeight: 400, fontFamily: '-apple-system, BlinkMacSystemFont, "Segoe UI", Roboto, Helvetica, Arial, sans-serif' }}>
+                        {capability.description}
+                      </p>
+                    </div>
                   </td>
                 ))}
               </tr>
@@ -117,7 +119,7 @@ export default function CoreCapabilities() {
           <div className="flex flex-col md:hidden divide-y divide-[rgba(209,213,219,0.35)]">
             {capabilities.map((capability, index) => (
               <div key={capability.name} className="py-8">
-                <div className="w-full h-32 flex items-center justify-center mb-6">
+                <div className="w-24 h-24 flex items-start justify-start mb-24">
                   {index === 0 && (
                     <img
                       src={mounted && theme === 'dark' ? '/cr.png?v=2' : '/exc.png?v=2'}
@@ -140,12 +142,14 @@ export default function CoreCapabilities() {
                     />
                   )}
                 </div>
-                <h4 className="text-base mb-2 text-[#000000] dark:text-[#f6f6f4]" style={{ fontFamily: '-apple-system, BlinkMacSystemFont, "Segoe UI", Roboto, Helvetica, Arial, sans-serif' }}>
-                  {capability.name}
-                </h4>
-                <p className="text-sm text-gray-600 dark:text-[#a8a898] leading-relaxed" style={{ fontWeight: 400, fontFamily: '-apple-system, BlinkMacSystemFont, "Segoe UI", Roboto, Helvetica, Arial, sans-serif' }}>
-                  {capability.description}
-                </p>
+                <div className="max-w-xs">
+                  <h4 className="text-base mb-2 text-[#000000] dark:text-[#f6f6f4]" style={{ fontFamily: '-apple-system, BlinkMacSystemFont, "Segoe UI", Roboto, Helvetica, Arial, sans-serif' }}>
+                    {capability.name}
+                  </h4>
+                  <p className="text-sm text-gray-600 dark:text-[#a8a898] leading-relaxed" style={{ fontWeight: 400, fontFamily: '-apple-system, BlinkMacSystemFont, "Segoe UI", Roboto, Helvetica, Arial, sans-serif' }}>
+                    {capability.description}
+                  </p>
+                </div>
               </div>
             ))}
           </div>
