@@ -16,8 +16,15 @@ use std::time::{Duration, Instant};
 use tracing::{error, info, warn};
 use uuid::Uuid;
 
-use igris_wal::{CheckpointPayload, ResumeToken, StepType, WalEntry, WalLog};
+use igris_wal::{BtCheckpointPayload, CheckpointPayload, ResumeToken, StepType, WalEntry, WalLog};
 use igris_core::storage::TASK_SUBMISSIONS;
+use igris_btree::{
+    core::{BTreeContext, BtWalSession},
+    parser::JsonTreeParser,
+    runtime::{BTreeExecutor, ExecutorConfig},
+    prelude::NodeStatus,
+};
+use std::sync::Arc;
 
 use crate::receipt::ExecutionReceipt;
 use crate::runtime_execute::{
@@ -92,6 +99,21 @@ pub enum TaskType {
         #[serde(default)]
         mode: Option<String>,
     },
+    /// WAL-backed behavior tree execution. The tree is parsed and run through
+    /// BTreeExecutor with a BtWalSession for per-tick durability.
+    BehaviorTree {
+        /// Runtime behavior tree definition in Igris nested JSON format.
+        tree: serde_json::Value,
+        /// Maximum ticks before stopping (default: 1000).
+        #[serde(default)]
+        max_ticks: Option<u64>,
+        /// Tick deadline in ms (default: uses task deadline_ms).
+        #[serde(default)]
+        timeout_ms: Option<u64>,
+        /// Checkpoint blackboard every N ticks (default: 10).
+        #[serde(default)]
+        checkpoint_every: Option<u64>,
+    },
 }
 
 #[derive(Debug, Clone, Serialize, Deserialize)]
@@ -102,6 +124,11 @@ pub struct TaskSubmitRequest {
     pub containment: Option<Bounds>,
     #[serde(default)]
     pub resume_from: Option<ResumeToken>,
+    /// Full prior checkpoint forwarded by the coordinator on recovery.
+    /// Behavior tree tasks use this to restore blackboard state before
+    /// resuming execution. Ignored for agent/robotics task types.
+    #[serde(default)]
+    pub resume_checkpoint: Option<serde_json::Value>,
     pub idempotency_key: String,
     pub tenant_id: String,
     #[serde(default)]
@@ -253,7 +280,7 @@ pub async fn handle_task_submit(
     }
 
     let runtime_id = state.swarm_peer_id.clone();
-    let wal = WalLog::new(state.storage.clone(), req.task_id, runtime_id.clone());
+    let wal = Arc::new(WalLog::new(state.storage.clone(), req.task_id, runtime_id.clone()));
 
     let start_step = if let Some(ref token) = req.resume_from {
         match wal.compute_checkpoint_digest() {
@@ -291,6 +318,152 @@ pub async fn handle_task_submit(
     let max_tick_ms = req.containment.as_ref().and_then(|b| b.max_tick_ms).unwrap_or(30_000);
     let wall_start = Instant::now();
 
+    // ── Behavior tree path (early return before the step loop) ────────────────
+    if let TaskType::BehaviorTree { ref tree, max_ticks, timeout_ms, checkpoint_every } = req.task_type {
+        let signing_key = match state.signing_key.as_ref() {
+            Some(k) => k.clone(),
+            None => {
+                return (
+                    StatusCode::BAD_REQUEST,
+                    Json(serde_json::json!({
+                        "error": {
+                            "message": "Behavior tree tasks require a runtime configured with an Ed25519 signing key",
+                            "type": "missing_signing_key"
+                        }
+                    })),
+                ).into_response();
+            }
+        };
+
+        let parser = JsonTreeParser::new();
+        let mut context = BTreeContext::new();
+
+        if let Some(ref tr) = state.tool_registry {
+            context = context.with_tools(tr.clone());
+        }
+
+        #[cfg(feature = "ros2")]
+        if let Some(ref mgr) = state.ros2_manager {
+            if !mgr.is_safe_idle() {
+                context = context.with_ros2(mgr.node());
+            }
+        }
+
+        // On recovery, restore blackboard from the prior checkpoint metadata.
+        if let Some(ref resume_cp) = req.resume_checkpoint {
+            if let Some(blackboard_state) = resume_cp.get("blackboard_state") {
+                context.blackboard.restore(blackboard_state).await;
+            }
+        }
+
+        let mut tree_node = match parser.parse_node(tree, &context) {
+            Ok(node) => node,
+            Err(e) => {
+                return (
+                    StatusCode::BAD_REQUEST,
+                    Json(serde_json::json!({
+                        "error": {
+                            "message": format!("Invalid behavior tree: {}", e),
+                            "type": "invalid_tree"
+                        }
+                    })),
+                ).into_response();
+            }
+        };
+
+        context = context.with_wal(BtWalSession {
+            wal: wal.clone(),
+            signing_key,
+            task_id: req.task_id,
+            checkpoint_every: checkpoint_every.unwrap_or(10),
+        });
+
+        let mut exec_config = ExecutorConfig::default();
+        if let Some(mt) = max_ticks {
+            exec_config.max_ticks = Some(mt);
+        }
+        exec_config.deadline = Some(Duration::from_millis(timeout_ms.unwrap_or(deadline)));
+
+        let executor = BTreeExecutor::with_config(exec_config)
+            .with_tick_observer((*state.bt_state_tx).clone());
+
+        let result = match executor.execute(tree_node.as_mut(), &mut context).await {
+            Ok(r) => r,
+            Err(e) => {
+                error!(task_id = %req.task_id, "BT execution error: {}", e);
+                let response = TaskSubmitResponse {
+                    task_id: req.task_id,
+                    steps_completed: 0,
+                    steps_total: 1,
+                    status: TaskStatus::Failed {
+                        reason: format!("Execution error: {}", e),
+                    },
+                    checkpoint: None,
+                    final_output: None,
+                    usage: None,
+                    execution_envelope: None,
+                    execution_receipt: None,
+                };
+                let _ = persist_task_record(&state, &submission_key, &request_hash, &response);
+                return (StatusCode::OK, Json(response)).into_response();
+            }
+        };
+
+        // Convert BtCheckpointPayload → CheckpointPayload, carrying blackboard state
+        // opaquely in the `metadata` field so the coordinator can forward it on recovery.
+        let response_checkpoint = result.checkpoint.map(|bt_cp| CheckpointPayload {
+            task_id: bt_cp.task_id,
+            resume_token: bt_cp.resume_token,
+            wal_entries: bt_cp.wal_entries,
+            metadata: Some(serde_json::json!({
+                "blackboard_state": bt_cp.blackboard_state,
+                "tick_count": bt_cp.tick_count,
+            })),
+        });
+
+        let tick_count = context.tick_count;
+        let (status, steps_completed) = match result.status {
+            NodeStatus::Success => (TaskStatus::Completed, 1u32),
+            NodeStatus::Failure | NodeStatus::Skipped => (
+                TaskStatus::Failed {
+                    reason: result.error.unwrap_or_else(|| "behavior tree returned Failure".into()),
+                },
+                0u32,
+            ),
+            NodeStatus::Running => {
+                if let Some(ref cp) = response_checkpoint {
+                    (
+                        TaskStatus::Checkpointed {
+                            resume_token: cp.resume_token.clone(),
+                        },
+                        tick_count as u32,
+                    )
+                } else {
+                    (
+                        TaskStatus::Failed {
+                            reason: "execution interrupted without checkpoint".into(),
+                        },
+                        0u32,
+                    )
+                }
+            }
+        };
+
+        let response = TaskSubmitResponse {
+            task_id: req.task_id,
+            steps_completed,
+            steps_total: 1,
+            status,
+            checkpoint: response_checkpoint,
+            final_output: None,
+            usage: None,
+            execution_envelope: None,
+            execution_receipt: None,
+        };
+        let _ = persist_task_record(&state, &submission_key, &request_hash, &response);
+        return (StatusCode::OK, Json(response)).into_response();
+    }
+
     let steps: Vec<RuntimeTaskStep> = match &req.task_type {
         TaskType::AgentWorkflow { steps } => steps.iter().cloned().map(RuntimeTaskStep::Agent).collect(),
         TaskType::RoboticsWorkflow { steps } => steps.iter().cloned().map(RuntimeTaskStep::Robotics).collect(),
@@ -311,6 +484,7 @@ pub async fn handle_task_submit(
                 mode: mode.clone(),
             })]
         }
+        TaskType::BehaviorTree { .. } => unreachable!("BT exits early above"),
     };
 
     let steps_total = steps.len() as u32;
@@ -580,6 +754,7 @@ fn build_checkpoint(
             runtime_id,
         },
         wal_entries,
+        metadata: None,
     })
 }
 
