@@ -76,7 +76,7 @@ services:
 
       # Multi-Tenancy
       ENABLE_MULTI_TENANCY: ${ENABLE_MULTI_TENANCY:-true}
-      REQUIRE_AUTH_FOR_INFERENCE: ${REQUIRE_AUTH_FOR_INFERENCE:-false}
+      REQUIRE_AUTH_FOR_INFERENCE: ${REQUIRE_AUTH_FOR_INFERENCE:-true}
       JWT_SECRET: ${JWT_SECRET:-please-change-this-secret}
       VAULT_MASTER_KEY: ${VAULT_MASTER_KEY:-please-change-this-vault-key}
 
@@ -88,7 +88,7 @@ services:
       CLERK_FRONTEND_API: ${CLERK_FRONTEND_API:-}
 
       # Provider Configuration
-      PROVIDER_MODE: ${PROVIDER_MODE:-benchmark}
+      PROVIDER_MODE: ${PROVIDER_MODE:-real}
       OPENAI_API_KEY: ${OPENAI_API_KEY:-}
       ANTHROPIC_API_KEY: ${ANTHROPIC_API_KEY:-}
 
@@ -98,7 +98,7 @@ services:
       ENABLE_BUDGET_LIMIT: "true"
       ENABLE_TOKEN_LIMIT: "true"
       FALLBACK_ON_BUDGET_BREACH: "true"
-      ENABLE_BENCHMARK_FALLBACK: "true"
+      ENABLE_BENCHMARK_FALLBACK: "false"
 
       # State Persistence
       USE_PG_OPTIMIZER_STATE: "true"
