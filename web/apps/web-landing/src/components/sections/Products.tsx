@@ -38,12 +38,13 @@ export default function Products() {
       <div className="mx-auto max-w-[1300px] px-4 sm:px-6 lg:px-8">
         <div className="px-3 md:px-8 lg:px-12" style={{ borderLeft: '0.5px solid rgba(209, 213, 219, 0.35)', borderRight: '0.5px solid rgba(209, 213, 219, 0.35)', paddingBottom: 0 }}>
           <div style={{ paddingTop: '12rem', paddingBottom: '12rem', position: 'relative' }}>
-            <div className="hidden sm:block" style={{ position: 'absolute', top: 0, left: '50%', bottom: 0, transform: 'translateX(-100%)', width: '500px', display: 'flex', alignItems: 'center', justifyContent: 'flex-end' }}>
+            <div className="hidden sm:block" style={{ position: 'absolute', top: 0, left: 0, bottom: 0, right: '50%', display: 'flex', alignItems: 'center', justifyContent: 'flex-end' }}>
               <img 
                 src="/salt.png" 
                 alt="Product"
                 style={{ 
-                  width: '100%', 
+                  maxWidth: '500px',
+                  width: '100%',
                   height: '100%', 
                   objectFit: 'contain',
                   objectPosition: 'right',
@@ -51,7 +52,7 @@ export default function Products() {
                 }} 
               />
             </div>
-            <div className="hidden sm:flex flex-col justify-center" style={{ position: 'relative', zIndex: 1, top: 0, bottom: 0, marginLeft: '400px', paddingLeft: '2rem' }}>
+            <div className="hidden sm:flex flex-col justify-center" style={{ position: 'relative', zIndex: 1, top: 0, bottom: 0, marginLeft: '50%', paddingLeft: '2rem' }}>
               <div style={{ maxWidth: '320px' }}>
                 <p className="text-sm md:text-base mb-3 text-[#000000] dark:text-[#f6f6f4]" style={{ fontFamily: '-apple-system, BlinkMacSystemFont, "Segoe UI", Roboto, Helvetica, Arial, sans-serif', fontWeight: 400 }}>
                   Hybrid behavior trees meet LLM reasoning.
