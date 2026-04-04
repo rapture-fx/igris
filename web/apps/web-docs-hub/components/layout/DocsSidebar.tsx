@@ -41,6 +41,7 @@ import {
   Monitor,
   RotateCcw,
   Waypoints,
+  Workflow,
 } from 'lucide-react';
 import { cn } from '@/lib/utils';
 import { getApiNavigationSections } from '@/lib/api-reference';
@@ -64,19 +65,21 @@ interface NavSection {
   items: NavItem[];
 }
 
-type Section = 'docs' | 'api' | 'changelog' | 'articles';
+type Section = 'docs' | 'api' | 'mcp' | 'changelog' | 'articles';
 
 function detectSection(pathname: string): Section {
   const p = pathname.replace(/\/$/, '');
   if (p.startsWith('/docs/articles')) return 'articles';
   if (p === '/docs/changelog') return 'changelog';
   if (p.startsWith('/docs/api-reference')) return 'api';
+  if (p === '/docs/mcp' || p.startsWith('/docs/mcp-')) return 'mcp';
   return 'docs';
 }
 
 const sectionLabels: Record<Section, string> = {
   docs: 'Documentation',
   api: 'API Reference',
+  mcp: 'MCP',
   changelog: 'Changelog',
   articles: 'Articles',
 };
@@ -84,6 +87,7 @@ const sectionLabels: Record<Section, string> = {
 const sectionHrefs: Record<Section, string> = {
   docs: '/docs',
   api: '/docs/api-reference',
+  mcp: '/docs/mcp',
   changelog: '/docs/changelog',
   articles: '/docs/articles',
 };
@@ -113,6 +117,7 @@ const searchIndexStatic = [
   { title: 'Execution Receipts', path: '/docs/execution-receipts', keywords: 'execution receipts signed audit record query export' },
   { title: 'Agent Lifecycle', path: '/docs/agent-lifecycle', keywords: 'agent lifecycle states init running idle degraded terminated' },
   { title: 'Durable Tasks', path: '/docs/durable-tasks', keywords: 'durable tasks wal write-ahead log crash recovery checkpoint resume token failover multi-step workflow robotics' },
+  { title: 'Context Engineering', path: '/docs/context-engineering', keywords: 'context engineering prompt memory mcp durable tasks receipts retrieval shared context' },
   { title: 'Agents', path: '/docs/agents', keywords: 'agents reflection planning swarm tool-use' },
   { title: 'Behavior Trees', path: '/docs/behavior-trees', keywords: 'behavior trees deterministic llm nodes sequence selector condition action' },
   { title: 'Tools', path: '/docs/tools', keywords: 'tools http shell filesystem config security' },
@@ -125,6 +130,8 @@ const searchIndexStatic = [
   { title: 'Governance', path: '/docs/governance', keywords: 'governance receipts capability policy trust chain audit' },
   { title: 'Audit', path: '/docs/audit', keywords: 'audit lineage compliance receipt export' },
   { title: 'SDK', path: '/docs/sdk', keywords: 'sdk client libraries javascript python go rust' },
+  { title: 'SDK Integration Patterns', path: '/docs/sdk-integration-patterns', keywords: 'sdk integration patterns base url env vars javascript go rust client construction production examples' },
+  { title: 'Documentation Roadmap', path: '/docs/documentation-roadmap', keywords: 'documentation roadmap backlog todo first class docs verification mcp examples sdk' },
   { title: 'Deployment', path: '/docs/deployment', keywords: 'deployment cloud edge self-hosted fly kubernetes' },
   { title: 'Key Management', path: '/docs/key-management', keywords: 'key management provider api keys vault rotation byok encrypt' },
   { title: 'Pricing', path: '/docs/pricing-tiers', keywords: 'pricing tiers seed horizon infinite trial billing instances cost' },
@@ -133,6 +140,10 @@ const searchIndexStatic = [
   { title: 'API Authentication', path: '/docs/api-reference/authentication', keywords: 'api authentication api key session cookie runtime auth authorization bearer' },
   { title: 'API Errors', path: '/docs/api-reference/errors', keywords: 'api errors error envelope unauthorized invalid request internal error' },
   { title: 'API Rate Limits', path: '/docs/api-reference/rate-limits', keywords: 'api rate limits throttle retry-after 429 requests per minute' },
+  { title: 'MCP', path: '/docs/mcp', keywords: 'mcp model context protocol shared context json-rpc tools context store swarm' },
+  { title: 'MCP Server', path: '/docs/mcp-server', keywords: 'mcp server contract json-rpc context tools hosted runtime integration' },
+  { title: 'MCP Swarm Mode', path: '/docs/mcp-swarm', keywords: 'mcp swarm mode replication shared state runtimes mdns context' },
+  { title: 'MCP Integration Patterns', path: '/docs/mcp-integration-patterns', keywords: 'mcp integration patterns shared context durable tasks receipts context engineering' },
   { title: 'Changelog', path: '/docs/changelog', keywords: 'changelog release notes version history changes updates fixes' },
   { title: 'Articles', path: '/docs/articles', keywords: 'articles engineering notes architecture deep dive' },
   { title: 'SLO Enforcer', path: '/docs/slo-enforcer', keywords: 'slo service level objective latency cost quality enforcement compliance target budget' },
@@ -194,6 +205,7 @@ const docsNavSections: NavSection[] = [
     section: 'Agents',
     items: [
       { name: 'Agents', href: '/docs/agents', icon: Bot },
+      { name: 'Context Engineering', href: '/docs/context-engineering', icon: Database },
       { name: 'Behavior Trees', href: '/docs/behavior-trees', icon: TreePine },
       { name: 'Tools', href: '/docs/tools', icon: Wrench },
       { name: 'Memory', href: '/docs/memory', icon: Database },
@@ -238,6 +250,8 @@ const docsNavSections: NavSection[] = [
     section: 'Reference',
     items: [
       { name: 'SDK', href: '/docs/sdk', icon: Package },
+      { name: 'SDK Integration Patterns', href: '/docs/sdk-integration-patterns', icon: Package },
+      { name: 'Documentation Roadmap', href: '/docs/documentation-roadmap', icon: Workflow },
       { name: 'Deployment', href: '/docs/deployment', icon: Globe },
       { name: 'Key Management', href: '/docs/key-management', icon: Key },
       { name: 'Pricing', href: '/docs/pricing-tiers', icon: DollarSign },
@@ -259,6 +273,18 @@ const changelogNavSections: NavSection[] = [
   },
 ];
 
+const mcpNavSections: NavSection[] = [
+  {
+    section: 'Overview',
+    items: [
+      { name: 'MCP', href: '/docs/mcp', icon: Database },
+      { name: 'MCP Server', href: '/docs/mcp-server', icon: Server },
+      { name: 'MCP Swarm Mode', href: '/docs/mcp-swarm', icon: Network },
+      { name: 'MCP Integration Patterns', href: '/docs/mcp-integration-patterns', icon: Wrench },
+    ],
+  },
+];
+
 const articlesNavSections: NavSection[] = [
   {
     section: 'Articles',
@@ -274,6 +300,7 @@ const articlesNavSections: NavSection[] = [
 const navBySections: Record<Section, NavSection[]> = {
   docs:      docsNavSections,
   api:       apiNavSections,
+  mcp:       mcpNavSections,
   changelog: changelogNavSections,
   articles:  articlesNavSections,
 };
