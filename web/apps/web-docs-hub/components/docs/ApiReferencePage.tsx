@@ -25,6 +25,36 @@ export function ApiReferencePage() {
     return 'bg-amber-50 text-amber-800';
   }
 
+  function supportClass(support: string) {
+    if (support === 'core') {
+      return 'bg-emerald-50 text-emerald-700';
+    }
+    if (support === 'preview') {
+      return 'bg-amber-50 text-amber-800';
+    }
+    return 'bg-blue-50 text-blue-700';
+  }
+
+  function supportLabel(support: string) {
+    if (support === 'core') {
+      return 'Core';
+    }
+    if (support === 'preview') {
+      return 'Preview';
+    }
+    return 'Supported';
+  }
+
+  function deploymentLabel(deployment: string) {
+    if (deployment === 'cloud') {
+      return 'Cloud';
+    }
+    if (deployment === 'local') {
+      return 'Local';
+    }
+    return 'Hybrid';
+  }
+
   return (
     <div className="not-prose max-w-[52rem] space-y-10 [&_a]:no-underline">
       <section id="overview" className="space-y-5">
@@ -103,10 +133,13 @@ export function ApiReferencePage() {
                     <div className="flex flex-wrap items-center gap-3">
                       <code className="text-sm text-slate-900">{endpoint.path}</code>
                       <span className="rounded-full bg-gray-50 px-2.5 py-1 text-[0.7rem] font-medium text-gray-600">
-                        {endpoint.surface}
+                        {deploymentLabel(endpoint.deployment)}
+                      </span>
+                      <span className={`rounded-full px-2.5 py-1 text-[0.7rem] font-medium ${supportClass(endpoint.support)}`}>
+                        {supportLabel(endpoint.support)}
                       </span>
                       <span className="rounded-full bg-gray-50 px-2.5 py-1 text-[0.7rem] font-medium text-gray-600">
-                        {endpoint.stability}
+                        {endpoint.surface}
                       </span>
                       <span className={`rounded-full px-2.5 py-1 text-[0.7rem] font-medium ${coverageClass(endpoint.coverageStatus)}`}>
                         {endpoint.coverageLabel ?? 'Documented'}
