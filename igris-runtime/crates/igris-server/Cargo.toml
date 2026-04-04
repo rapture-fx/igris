@@ -49,12 +49,21 @@ igris-lora-trainer = { path = "../igris-lora-trainer" }
 igris-fleet = { path = "../igris-fleet" }
 igris-federated = { path = "../igris-federated" }
 igris-swarm = { path = "../igris-swarm" }
-igris-btree = { path = "../igris-btree" }
-igris-ros2 = { path = "../igris-ros2" }
+igris-btree = { path = "../igris-btree", features = ["wal"] }
+igris-memory = { path = "../igris-memory", optional = true }
+igris-hitl = { path = "../igris-hitl", optional = true }
+igris-ros2 = { path = "../igris-ros2", optional = true }
 igris-safety = { path = "../igris-safety" }
+igris-wal = { path = "../igris-wal" }
 
 [features]
-ros2 = ["igris-btree/ros2", "igris-ros2"]
+default = ["agent-platform"]
+memory = ["dep:igris-memory"]
+hitl = ["dep:igris-hitl"]
+agent-platform = ["memory", "hitl"]
+robotics-platform = ["igris-btree/ros2", "dep:igris-ros2"]
+full-platform = ["agent-platform", "robotics-platform"]
+ros2 = ["robotics-platform"]
 
 [target.'cfg(target_os = "linux")'.dependencies]
 libc = "0.2"
