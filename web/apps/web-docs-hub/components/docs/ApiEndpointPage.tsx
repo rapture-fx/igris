@@ -115,7 +115,7 @@ export function ApiEndpointPage({ data }: ApiEndpointPageProps) {
       : 'bg-amber-50 text-amber-800';
 
   return (
-    <div className="not-prose space-y-8">
+    <div className="not-prose max-w-[60rem] space-y-8">
       <AnchorSection id="overview" className="space-y-4">
         <div className="flex flex-wrap items-center gap-2">
           <span className="rounded-md bg-gray-100 px-2.5 py-1 text-xs font-semibold text-gray-700">
