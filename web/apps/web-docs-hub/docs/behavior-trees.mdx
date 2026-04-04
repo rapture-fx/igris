@@ -166,7 +166,7 @@ let result = executor.execute(tree.as_mut(), &mut context).await?;
 
 A WAL session requires the runtime to be configured with an Ed25519 signing key. Runtimes without a signing key reject WAL-backed task submissions.
 
-The `/v1/btree/run` HTTP endpoint does not yet accept a WAL session parameter. Durable BT execution over HTTP is planned. For durable execution today, use `agent_workflow` or `robotics_workflow` task types via `/v1/tasks/submit`.
+For durable BT execution without embedding the Rust library, submit a `behavior_tree` task via `POST /v1/tasks/submit`. The coordinator dispatches to a healthy runtime, checkpoints the blackboard every N ticks, and automatically recovers to a new runtime if the executing one goes dark. The `/v1/btree/run` endpoint runs trees without WAL — use it for quick stateless execution only.
 
 [Durable Tasks →](/docs/durable-tasks)
 
