@@ -104,7 +104,7 @@ pub struct ExecuteRequest {
     pub bounds: Option<Bounds>,
 }
 
-#[derive(Debug, Serialize)]
+#[derive(Debug, Clone, Serialize, Deserialize)]
 pub struct ExecuteUsage {
     pub prompt_tokens: u32,
     pub completion_tokens: u32,
@@ -504,7 +504,7 @@ fn parse_bounds_header(headers: &HeaderMap) -> Option<Bounds> {
     serde_json::from_str(raw).ok()
 }
 
-fn token_estimate(text: &str) -> u32 {
+pub(crate) fn token_estimate(text: &str) -> u32 {
     (text.len() as u32).saturating_div(4)
 }
 
@@ -608,7 +608,7 @@ async fn do_route(state: AppState, prompt: String) -> anyhow::Result<(String, St
 /// this matches Go's `json.Marshal(map[string]interface{})` behaviour, which
 /// also sorts map keys lexicographically, ensuring both sides compute identical
 /// bytes from the same logical envelope.
-fn canonical_envelope_bytes(
+pub(crate) fn canonical_envelope_bytes(
     execution_id: &str,
     timestamp: &str,
     tenant_id: Option<&str>,
