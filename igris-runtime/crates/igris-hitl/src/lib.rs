@@ -74,30 +74,10 @@ impl HitlCoordinator {
         context: HashMap<String, serde_json::Value>,
         confidence: f32,
     ) -> Result<ApprovalStatus> {
-        // Auto-approve if confidence is high
-        if confidence >= self.config.auto_approve_threshold {
-            info!("Auto-approving task (confidence: {:.2})", confidence);
-            return Ok(ApprovalStatus::Approved);
+        let (request, status) = self.submit_request(task, context, confidence).await?;
+        if !matches!(status, ApprovalStatus::Pending) {
+            return Ok(status);
         }
-
-        let request = EscalationRequest {
-            id: Uuid::new_v4().to_string(),
-            task,
-            context,
-            confidence,
-            timestamp: SystemTime::now()
-                .duration_since(SystemTime::UNIX_EPOCH)?
-                .as_secs(),
-        };
-
-        warn!(
-            "Escalating task '{}' for human approval (confidence: {:.2})",
-            request.task, request.confidence
-        );
-
-        let mut pending = self.pending_requests.write().await;
-        pending.insert(request.id.clone(), (request.clone(), ApprovalStatus::Pending));
-        drop(pending);
 
         // Wait for approval
         let timeout = tokio::time::Duration::from_secs(self.config.timeout_secs);
@@ -111,6 +91,43 @@ impl HitlCoordinator {
                 Ok(ApprovalStatus::Timeout)
             }
         }
+    }
+
+    pub async fn submit_request(
+        &self,
+        task: String,
+        context: HashMap<String, serde_json::Value>,
+        confidence: f32,
+    ) -> Result<(EscalationRequest, ApprovalStatus)> {
+        let status = if confidence >= self.config.auto_approve_threshold {
+            info!("Auto-approving task (confidence: {:.2})", confidence);
+            ApprovalStatus::Approved
+        } else {
+            ApprovalStatus::Pending
+        };
+
+        let request = EscalationRequest {
+            id: Uuid::new_v4().to_string(),
+            task,
+            context,
+            confidence,
+            timestamp: SystemTime::now()
+                .duration_since(SystemTime::UNIX_EPOCH)?
+                .as_secs(),
+        };
+
+        if matches!(status, ApprovalStatus::Pending) {
+            warn!(
+                "Escalating task '{}' for human approval (confidence: {:.2})",
+                request.task, request.confidence
+            );
+        }
+
+        let mut pending = self.pending_requests.write().await;
+        pending.insert(request.id.clone(), (request.clone(), status.clone()));
+        drop(pending);
+
+        Ok((request, status))
     }
 
     async fn wait_for_approval(&self, request_id: &str) -> Result<ApprovalStatus> {
@@ -156,6 +173,18 @@ impl HitlCoordinator {
             .filter(|(_, status)| matches!(status, ApprovalStatus::Pending))
             .map(|(req, _)| req.clone())
             .collect()
+    }
+
+    pub async fn get_status(&self, request_id: &str) -> Option<ApprovalStatus> {
+        self.pending_requests
+            .read()
+            .await
+            .get(request_id)
+            .map(|(_, status)| status.clone())
+    }
+
+    pub fn config(&self) -> HitlConfig {
+        self.config.clone()
     }
 }
 
