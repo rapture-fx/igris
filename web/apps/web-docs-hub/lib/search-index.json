@@ -67,7 +67,7 @@
   {
     "title": "Context Engineering",
     "path": "/docs/context-engineering",
-    "keywords": "context engineering start with the smallest useful context the context layers in igris 1. request-local context 2. retrieval and memory 3. mcp and shared context 4. durable task state 5. receipts and audit context choosing the right layer common patterns hosted inference with light context agent workflows with reusable state hybrid deployments with shared device state long-running workflows common mistakes what good context engineering looks like related guides  context engineering is the discip"
+    "keywords": "context engineering start with the smallest useful context the context layers in igris 1. request-local context 2. retrieval and memory 3. mcp and shared context 4. durable task state 5. receipts and audit context choosing the right layer implementation checklist common patterns hosted inference with light context agent workflows with reusable state hybrid deployments with shared device state long-running workflows a practical product pattern common mistakes what good context engineering looks l"
   },
   {
     "title": "Data Privacy",
@@ -83,6 +83,11 @@
     "title": "Deployment",
     "path": "/docs/deployment",
     "keywords": "deployment cloud api self-hosted coordination (infinite tier) local / edge execution engine supported platforms deployment methods local models verifying your deployment health check → check fleet registration run a test inference networking requirements resource requirements common deployment issues connecting edge to cloud tier comparison what's next python bash bash yaml bash json bash python bash igris can be deployed as a cloud-hosted api, as a local execution engine on your own hardware, o"
+  },
+  {
+    "title": "Documentation Roadmap",
+    "path": "/docs/documentation-roadmap",
+    "keywords": "documentation roadmap must fix 1. raise api contract confidence 2. make examples executable 3. tighten public support signals next 4. deepen workflow documentation 5. deepen context engineering 6. improve sdk documentation depth later 7. make the docs machine-consumable 8. add docs release discipline 9. improve search and discovery first-class bar  this page tracks the work required to move the igris docs from strong product documentation to first-class product documentation. documentation-roadm"
   },
   {
     "title": "Durable Tasks",
@@ -155,9 +160,24 @@
     "keywords": "local llm fallback what exists today configuration fields hybrid behavior supported model format operational notes json5 igris-runtime can serve gguf models locally and participate in hybrid deployments where cloud routing falls back to on-device inference. local-llm-fallback"
   },
   {
+    "title": "Mcp Integration Patterns",
+    "path": "/docs/mcp-integration-patterns",
+    "keywords": "mcp integration patterns pattern: separate working context from audit data pattern: give shared context a schema pattern: pair mcp with durable tasks deliberately pattern: keep the product boundary clean related guides  this guide shows how to use mcp as part of a production integration rather than as an isolated protocol feature. mcp-integration-patterns"
+  },
+  {
+    "title": "Mcp Server",
+    "path": "/docs/mcp-server",
+    "keywords": "mcp server what the mcp server is for customer contract request shape core method families integration guidance related guides json this page documents the mcp server surface that igris exposes through the product. mcp-server"
+  },
+  {
+    "title": "Mcp Swarm",
+    "path": "/docs/mcp-swarm",
+    "keywords": "mcp swarm mode what it solves operational model configuration design boundaries common mistakes related guides toml mcp swarm mode extends structured context across multiple runtimes on the same network. mcp-swarm"
+  },
+  {
     "title": "MCP Integration",
     "path": "/docs/mcp",
-    "keywords": "mcp (model context protocol) what mcp does post /v1/mcp post /v1/mcp/stream mcp swarm mode bash javascript toml igris supports the model context protocol mcp, enabling agents to share structured context across tool calls, sessions, and — with mcp swarm mode — across multiple runtime instances. mcp"
+    "keywords": "mcp  context engineering →/docs/context-engineering · mcp server →/docs/mcp-server · api reference →/docs/api-reference mcp"
   },
   {
     "title": "Memory",
@@ -232,12 +252,12 @@
   {
     "title": "Sdk Integration Patterns",
     "path": "/docs/sdk-integration-patterns",
-    "keywords": "sdk integration patterns choose the right client surface first standard environment variables pattern: centralize client construction javascript / typescript go rust pattern: separate hosted and local modes cleanly pattern: handle product errors explicitly pattern: start portable, then go deeper production checklist related guides typescript go rust this guide shows how to use the sdk surface in a way that is maintainable in production. sdk-integration-patterns"
+    "keywords": "sdk integration patterns choose the right client surface first standard environment variables pattern: choose a mode once pattern: centralize client construction javascript / typescript go rust pattern: separate hosted and local modes cleanly javascript / typescript mode switch pattern: handle product errors explicitly pattern: keep receipt and audit handling out of the hot path pattern: start portable, then go deeper production checklist related guides typescript go rust typescript this guide s"
   },
   {
     "title": "SDK",
     "path": "/docs/sdk",
-    "keywords": "sdks openai-compatible clients native sdks javascript / typescript go rust python preview request contract python typescript typescript go rust python igris supports two integration paths: sdk"
+    "keywords": "sdks support policy openai-compatible clients native sdks javascript / typescript go rust python preview deployment mode guidance request contract code quality expectations python typescript typescript go rust python igris supports two integration paths: sdk"
   },
   {
     "title": "Security",
