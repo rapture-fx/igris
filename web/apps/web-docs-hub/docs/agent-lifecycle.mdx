@@ -102,4 +102,16 @@ When an agent enters `SAFE_IDLE`, it pauses execution and waits for an explicit 
 
 The waiting period, approval identity, and decision are all recorded in the receipt.
 
-[Execution Receipts →](/docs/execution-receipts) · [Safety & Containment →](/docs/safety) · [Agents →](/docs/agents)
+---
+
+## Recovery
+
+The `RECOVERING` state is entered when a runtime goes dark mid-execution. The coordination layer detects stale heartbeats (> 90 seconds) and reassigns all in-flight tasks from that runtime to a healthy one.
+
+Recovery is exact, not approximate. When durable task execution is in use, the coordination layer forwards a `ResumeToken` containing the last committed step index and a rolling checkpoint digest to the new runtime. The new runtime verifies the digest against its local WAL before skipping any steps. Execution resumes from exactly where it stopped.
+
+For agents and workflows without a WAL session, recovery restarts the task from the beginning. Enabling durable task execution on long-running workflows is recommended whenever precise resume matters.
+
+The recovery loop runs every 15 seconds. There is no manual trigger — recovery is fully automatic.
+
+[Durable Tasks →](/docs/durable-tasks) · [Execution Receipts →](/docs/execution-receipts) · [Safety & Containment →](/docs/safety) · [Agents →](/docs/agents)
