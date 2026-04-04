@@ -82,25 +82,25 @@ export const apiGuides: ApiGuide[] = [
   {
     slug: 'introduction',
     title: 'Introduction',
-    summary: 'Base URLs, API surfaces, and how this reference is organized.',
+    summary: 'How the API reference is organized, how to choose the right access point, and what to expect on each endpoint page.',
     href: '/docs/api-reference/introduction',
   },
   {
     slug: 'authentication',
     title: 'Authentication',
-    summary: 'API key, session cookie, and runtime-local auth expectations.',
+    summary: 'Which credentials to use for automation, console workflows, and local runtime access.',
     href: '/docs/api-reference/authentication',
   },
   {
     slug: 'errors',
     title: 'Errors',
-    summary: 'Common error envelopes and how to interpret status codes.',
+    summary: 'How Igris reports validation, authentication, throttling, and server-side failures.',
     href: '/docs/api-reference/errors',
   },
   {
     slug: 'rate-limits',
     title: 'Rate Limits',
-    summary: 'Global and endpoint-specific throttling behavior.',
+    summary: 'What request throttling exists today and how clients should back off and retry safely.',
     href: '/docs/api-reference/rate-limits',
   },
 ];
