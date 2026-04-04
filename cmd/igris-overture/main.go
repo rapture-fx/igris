@@ -6,18 +6,15 @@ import (
 	"log"
 	"os"
 	"strconv"
+	"strings"
 	"time"
 
-	"github.com/gofiber/adaptor/v2"
-	"github.com/gofiber/fiber/v2"
-	"github.com/gofiber/fiber/v2/middleware/cors"
-	"github.com/gofiber/fiber/v2/middleware/recover"
-	"github.com/redis/go-redis/v9"
 	"github.com/Igris-inertial/system/igris-overture/api"
 	"github.com/Igris-inertial/system/igris-overture/bandit"
 	"github.com/Igris-inertial/system/igris-overture/billing"
 	"github.com/Igris-inertial/system/igris-overture/cache"
 	"github.com/Igris-inertial/system/igris-overture/cognitive"
+	"github.com/Igris-inertial/system/igris-overture/coordinator"
 	"github.com/Igris-inertial/system/igris-overture/database"
 	"github.com/Igris-inertial/system/igris-overture/logging"
 	"github.com/Igris-inertial/system/igris-overture/middleware"
@@ -28,7 +25,28 @@ import (
 	"github.com/Igris-inertial/system/igris-overture/security"
 	"github.com/Igris-inertial/system/igris-overture/semantic"
 	"github.com/Igris-inertial/system/igris-overture/slo"
+	"github.com/gofiber/adaptor/v2"
+	"github.com/gofiber/fiber/v2"
+	"github.com/gofiber/fiber/v2/middleware/cors"
+	"github.com/gofiber/fiber/v2/middleware/recover"
+	"github.com/redis/go-redis/v9"
 )
+
+func enforceProductionInferenceGuardrails() {
+	if !strings.EqualFold(os.Getenv("ENV"), "production") {
+		return
+	}
+
+	enableMultiTenancy := os.Getenv("ENABLE_MULTI_TENANCY") == "true"
+	requireAuth := os.Getenv("REQUIRE_AUTH_FOR_INFERENCE") == "true"
+	allowPublicInference := os.Getenv("ALLOW_PUBLIC_INFERENCE_IN_PRODUCTION") == "true"
+
+	if enableMultiTenancy && !requireAuth && !allowPublicInference {
+		log.Fatal("[FATAL] Production multi-tenant deployments must set REQUIRE_AUTH_FOR_INFERENCE=true. " +
+			"Anonymous or optional-auth inference is disabled by default. " +
+			"For emergency exceptions only, set ALLOW_PUBLIC_INFERENCE_IN_PRODUCTION=true.")
+	}
+}
 
 func main() {
 	// Initialize structured logging
@@ -50,6 +68,8 @@ func main() {
 	} else {
 		log.Println("[Tracing] OpenTelemetry tracing disabled (set TRACING_ENABLED=true to enable)")
 	}
+
+	enforceProductionInferenceGuardrails()
 
 	// Configure request limits from environment or use secure defaults
 	bodyLimitMB := 1 // Default: 1MB
@@ -79,7 +99,7 @@ func main() {
 		ServerHeader: "Igris-Inertial",
 		ErrorHandler: customErrorHandler,
 		// Security limits
-		BodyLimit:    bodyLimitMB * 1024 * 1024,         // Convert MB to bytes
+		BodyLimit:    bodyLimitMB * 1024 * 1024, // Convert MB to bytes
 		ReadTimeout:  time.Second * time.Duration(readTimeoutSec),
 		WriteTimeout: time.Second * time.Duration(writeTimeoutSec),
 	})
@@ -105,8 +125,8 @@ func main() {
 		app.Use(middleware.OpenTelemetry())
 	}
 
-	app.Use(middleware.TraceID())           // Add trace IDs to all requests
-	app.Use(middleware.RequestLogger())      // Structured request logging
+	app.Use(middleware.TraceID())       // Add trace IDs to all requests
+	app.Use(middleware.RequestLogger()) // Structured request logging
 
 	// Global rate limiting (per-IP, per-tenant when authenticated)
 	globalRateLimit := 100 // requests per minute default
@@ -488,6 +508,12 @@ func main() {
 		api.RegisterMultimodalRoutes(app, dbInstance)
 		log.Println("[Multimodal] ✅ Multimodal endpoints registered (/v1/infer/multimodal)")
 
+		// Durable task execution with fault-tolerant recovery
+		taskCoordinator := coordinator.NewTaskCoordinator(dbInstance)
+		taskCoordinator.StartRecoveryLoop(context.Background())
+		api.RegisterTaskRoutes(app, dbInstance, taskCoordinator)
+		log.Println("[Tasks] ✅ Durable task endpoints registered (/v1/tasks)")
+
 		// Daily cron: expire trials and send reminders
 		go func() {
 			ticker := time.NewTicker(24 * time.Hour)
@@ -590,14 +616,14 @@ func main() {
 			"version": version,
 			"status":  "running",
 			"features": fiber.Map{
-				"multi_tenancy":      enableMultiTenancy,
-				"redis":              useRedis,
-				"persistence":        dbEnabled,
-				"licensing":          dbInstance != nil,
-				"billing":            enableBilling,
-				"cognitive_advisor":  enableCognitiveAdvisor,
-				"slo_enforcer":       enableSLOEnforcer,
-				"simatic_layer":      enableOrchestration,
+				"multi_tenancy":     enableMultiTenancy,
+				"redis":             useRedis,
+				"persistence":       dbEnabled,
+				"licensing":         dbInstance != nil,
+				"billing":           enableBilling,
+				"cognitive_advisor": enableCognitiveAdvisor,
+				"slo_enforcer":      enableSLOEnforcer,
+				"simatic_layer":     enableOrchestration,
 			},
 			"endpoints": endpoints,
 		})
