@@ -529,15 +529,15 @@ func buildRoboticsExecutionGraphDefinition(mission *publicRoboticsMission) (json
 			goal["frame_id"] = waypoint.FrameID
 		}
 
-			node := map[string]interface{}{
-				"kind":           "robotics",
-				"node_id":        fmt.Sprintf("%s-%d", defaultTaskName(mission.Name, "robotics"), nodeIndex),
-				"step_index":     nodeIndex,
-				"checkpoint_key": fmt.Sprintf("%s-checkpoint-%d", defaultTaskName(mission.Name, "robotics"), nodeIndex),
-				"write_slot":     defaultGraphWriteSlot("robotics", nodeIndex, fmt.Sprintf("%s-%d", defaultTaskName(mission.Name, "robotics"), nodeIndex)),
-				"action":         "navigate_to_pose",
-				"goal":           goal,
-			}
+		node := map[string]interface{}{
+			"kind":           "robotics",
+			"node_id":        fmt.Sprintf("%s-%d", defaultTaskName(mission.Name, "robotics"), nodeIndex),
+			"step_index":     nodeIndex,
+			"checkpoint_key": fmt.Sprintf("%s-checkpoint-%d", defaultTaskName(mission.Name, "robotics"), nodeIndex),
+			"write_slot":     defaultGraphWriteSlot("robotics", nodeIndex, fmt.Sprintf("%s-%d", defaultTaskName(mission.Name, "robotics"), nodeIndex)),
+			"action":         "navigate_to_pose",
+			"goal":           goal,
+		}
 		if mission.WaitTimeoutMs != nil {
 			node["wait_timeout_ms"] = *mission.WaitTimeoutMs
 		}
@@ -549,15 +549,15 @@ func buildRoboticsExecutionGraphDefinition(mission *publicRoboticsMission) (json
 	}
 
 	if mission.Prompt != "" {
-			node := map[string]interface{}{
-				"kind":           "robotics",
-				"node_id":        fmt.Sprintf("%s-%d", defaultTaskName(mission.Name, "robotics"), nodeIndex),
-				"step_index":     nodeIndex,
-				"checkpoint_key": fmt.Sprintf("%s-checkpoint-%d", defaultTaskName(mission.Name, "robotics"), nodeIndex),
-				"write_slot":     defaultGraphWriteSlot("robotics", nodeIndex, fmt.Sprintf("%s-%d", defaultTaskName(mission.Name, "robotics"), nodeIndex)),
-				"action":         "publish_prompt",
-				"prompt":         mission.Prompt,
-			}
+		node := map[string]interface{}{
+			"kind":           "robotics",
+			"node_id":        fmt.Sprintf("%s-%d", defaultTaskName(mission.Name, "robotics"), nodeIndex),
+			"step_index":     nodeIndex,
+			"checkpoint_key": fmt.Sprintf("%s-checkpoint-%d", defaultTaskName(mission.Name, "robotics"), nodeIndex),
+			"write_slot":     defaultGraphWriteSlot("robotics", nodeIndex, fmt.Sprintf("%s-%d", defaultTaskName(mission.Name, "robotics"), nodeIndex)),
+			"action":         "publish_prompt",
+			"prompt":         mission.Prompt,
+		}
 		if approval := buildTaskApproval(mission.Approval, mission.Name, "publish_prompt", 0); approval != nil {
 			node["approval"] = approval
 		}
@@ -566,15 +566,15 @@ func buildRoboticsExecutionGraphDefinition(mission *publicRoboticsMission) (json
 	}
 
 	if mission.PublishVelocity != nil {
-			node := map[string]interface{}{
-				"kind":           "robotics",
-				"node_id":        fmt.Sprintf("%s-%d", defaultTaskName(mission.Name, "robotics"), nodeIndex),
-				"step_index":     nodeIndex,
-				"checkpoint_key": fmt.Sprintf("%s-checkpoint-%d", defaultTaskName(mission.Name, "robotics"), nodeIndex),
-				"write_slot":     defaultGraphWriteSlot("robotics", nodeIndex, fmt.Sprintf("%s-%d", defaultTaskName(mission.Name, "robotics"), nodeIndex)),
-				"action":         "publish_velocity",
-				"linear_x":       mission.PublishVelocity.LinearX,
-				"angular_z":      mission.PublishVelocity.AngularZ,
+		node := map[string]interface{}{
+			"kind":           "robotics",
+			"node_id":        fmt.Sprintf("%s-%d", defaultTaskName(mission.Name, "robotics"), nodeIndex),
+			"step_index":     nodeIndex,
+			"checkpoint_key": fmt.Sprintf("%s-checkpoint-%d", defaultTaskName(mission.Name, "robotics"), nodeIndex),
+			"write_slot":     defaultGraphWriteSlot("robotics", nodeIndex, fmt.Sprintf("%s-%d", defaultTaskName(mission.Name, "robotics"), nodeIndex)),
+			"action":         "publish_velocity",
+			"linear_x":       mission.PublishVelocity.LinearX,
+			"angular_z":      mission.PublishVelocity.AngularZ,
 		}
 		if approval := buildTaskApproval(mission.Approval, mission.Name, "publish_velocity", 0); approval != nil {
 			node["approval"] = approval
@@ -584,14 +584,14 @@ func buildRoboticsExecutionGraphDefinition(mission *publicRoboticsMission) (json
 	}
 
 	if mission.EmitZeroVelocityOnFinish {
-			node := map[string]interface{}{
-				"kind":           "robotics",
-				"node_id":        fmt.Sprintf("%s-%d", defaultTaskName(mission.Name, "robotics"), nodeIndex),
-				"step_index":     nodeIndex,
-				"checkpoint_key": fmt.Sprintf("%s-checkpoint-%d", defaultTaskName(mission.Name, "robotics"), nodeIndex),
-				"write_slot":     defaultGraphWriteSlot("robotics", nodeIndex, fmt.Sprintf("%s-%d", defaultTaskName(mission.Name, "robotics"), nodeIndex)),
-				"action":         "publish_zero_velocity",
-			}
+		node := map[string]interface{}{
+			"kind":           "robotics",
+			"node_id":        fmt.Sprintf("%s-%d", defaultTaskName(mission.Name, "robotics"), nodeIndex),
+			"step_index":     nodeIndex,
+			"checkpoint_key": fmt.Sprintf("%s-checkpoint-%d", defaultTaskName(mission.Name, "robotics"), nodeIndex),
+			"write_slot":     defaultGraphWriteSlot("robotics", nodeIndex, fmt.Sprintf("%s-%d", defaultTaskName(mission.Name, "robotics"), nodeIndex)),
+			"action":         "publish_zero_velocity",
+		}
 		if approval := buildTaskApproval(mission.Approval, mission.Name, "publish_zero_velocity", 0); approval != nil {
 			node["approval"] = approval
 		}
