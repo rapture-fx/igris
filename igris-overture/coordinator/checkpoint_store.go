@@ -62,11 +62,14 @@ type ResumeToken struct {
 //	{ "task_id": "...", "resume_token": { "last_committed_step": N, ... }, "wal_entries": [...] }
 //
 // Overture persists it so any runtime can resume the task after failure.
+// The Metadata field is task-type-specific opaque JSON stored and forwarded
+// verbatim — e.g. behavior tree tasks carry blackboard_state and tick_count here.
 type CheckpointPayload struct {
-	TaskID      uuid.UUID   `json:"task_id"`
-	ResumeToken ResumeToken `json:"resume_token"`
-	WalEntries  []WalEntry  `json:"wal_entries"`
-	CapturedAt  time.Time   `json:"captured_at,omitempty"`
+	TaskID      uuid.UUID       `json:"task_id"`
+	ResumeToken ResumeToken     `json:"resume_token"`
+	WalEntries  []WalEntry      `json:"wal_entries"`
+	Metadata    json.RawMessage `json:"metadata,omitempty"`
+	CapturedAt  time.Time       `json:"captured_at,omitempty"`
 }
 
 // WalEntry mirrors the Rust WalEntry for cross-language JSON compatibility.
