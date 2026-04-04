@@ -1,0 +1,101 @@
+{
+  "overview": {
+    "title": "MCP",
+    "summary": "The MCP surface in Igris for structured shared context, tool-oriented state exchange, and cross-runtime coordination."
+  },
+  "guides": [
+    {
+      "slug": "mcp",
+      "title": "Overview",
+      "href": "/docs/mcp",
+      "summary": "What MCP does in Igris, where it fits in the product, and which transport surfaces expose it."
+    },
+    {
+      "slug": "mcp-server",
+      "title": "MCP Server",
+      "href": "/docs/mcp-server",
+      "summary": "The product-facing MCP server contract, JSON-RPC request shape, and core method families."
+    },
+    {
+      "slug": "mcp-swarm",
+      "title": "MCP Swarm Mode",
+      "href": "/docs/mcp-swarm",
+      "summary": "How shared context replication works across multiple runtimes and where its design boundaries are."
+    },
+    {
+      "slug": "mcp-integration-patterns",
+      "title": "MCP Integration Patterns",
+      "href": "/docs/mcp-integration-patterns",
+      "summary": "How to use MCP in production without confusing shared context, durable progress, and audit evidence."
+    }
+  ],
+  "methodGroups": [
+    {
+      "title": "Transport Surfaces",
+      "summary": "Customer-facing routes that carry MCP traffic through the product.",
+      "methods": [
+        {
+          "name": "POST /v1/mcp",
+          "kind": "transport",
+          "page": "/docs/mcp#transport-surfaces",
+          "summary": "Request/response JSON-RPC transport for MCP calls."
+        },
+        {
+          "name": "POST /v1/mcp/stream",
+          "kind": "transport",
+          "page": "/docs/mcp#transport-surfaces",
+          "summary": "Streaming transport for MCP interactions that return incremental events."
+        }
+      ]
+    },
+    {
+      "title": "Context Methods",
+      "summary": "Methods for structured shared context rather than one-off prompt state.",
+      "methods": [
+        {
+          "name": "context/write",
+          "kind": "method",
+          "page": "/docs/mcp-server#core-method-families",
+          "summary": "Write a structured value into shared MCP context."
+        },
+        {
+          "name": "context/read",
+          "kind": "method",
+          "page": "/docs/mcp-server#core-method-families",
+          "summary": "Read a context value by key."
+        },
+        {
+          "name": "context/list",
+          "kind": "method",
+          "page": "/docs/mcp-server#core-method-families",
+          "summary": "List available shared-context keys."
+        },
+        {
+          "name": "context/delete",
+          "kind": "method",
+          "page": "/docs/mcp-server#core-method-families",
+          "summary": "Delete a context value by key."
+        }
+      ]
+    },
+    {
+      "title": "Tool Methods",
+      "summary": "Methods for discovery and invocation of MCP-exposed tools.",
+      "methods": [
+        {
+          "name": "tools/list",
+          "kind": "method",
+          "page": "/docs/mcp-server#core-method-families",
+          "summary": "List tools exposed through the MCP server."
+        },
+        {
+          "name": "tools/call",
+          "kind": "method",
+          "page": "/docs/mcp-server#core-method-families",
+          "summary": "Call a tool through the MCP server contract."
+        }
+      ]
+    }
+  ],
+  "generated_at": "2026-04-04T16:45:23.057Z"
+}
