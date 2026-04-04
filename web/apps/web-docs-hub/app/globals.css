@@ -76,7 +76,7 @@
 
 /* Prose styling for MDX content */
 .prose {
-  max-width: 75ch;
+  max-width: 48rem;
   color: var(--foreground);
   font-size: 0.8125rem;
 }
