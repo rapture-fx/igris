@@ -1507,6 +1507,12 @@ fn render_graph_string(template: &str, graph_blackboard: &serde_json::Value) -> 
 }
 
 fn graph_lookup<'a>(graph_blackboard: &'a serde_json::Value, path: &str) -> Option<&'a serde_json::Value> {
+    if let Some(slot_name) = path.strip_prefix("slots.") {
+        if let Some(value) = graph_lookup_slot(graph_blackboard, slot_name) {
+            return Some(value);
+        }
+    }
+
     let mut current = graph_blackboard;
     for segment in path.split('.') {
         current = match current {
@@ -1567,7 +1573,27 @@ fn collect_slot_inputs(
 }
 
 fn graph_lookup_slot<'a>(graph_blackboard: &'a serde_json::Value, slot: &str) -> Option<&'a serde_json::Value> {
-    graph_lookup(graph_blackboard, &format!("slots.{}", slot))
+    let slots = graph_blackboard
+        .as_object()
+        .and_then(|root| root.get("slots"))
+        .and_then(|slots| slots.as_object())?;
+
+    if let Some(value) = slots.get(slot) {
+        return Some(value);
+    }
+
+    let mut current = slots;
+    let mut value: Option<&serde_json::Value> = None;
+    for segment in slot.split('.') {
+        let next = current.get(segment)?;
+        value = Some(next);
+        current = match next.as_object() {
+            Some(map) => map,
+            None => break,
+        };
+    }
+
+    value
 }
 
 fn update_graph_blackboard(
