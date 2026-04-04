@@ -37,50 +37,67 @@ export default function Products() {
 
       <div className="mx-auto max-w-[1300px] px-4 sm:px-6 lg:px-8">
         <div className="px-3 md:px-8 lg:px-12" style={{ borderLeft: '0.5px solid rgba(209, 213, 219, 0.35)', borderRight: '0.5px solid rgba(209, 213, 219, 0.35)', paddingBottom: 0 }}>
-          <div style={{ paddingTop: '2rem', paddingBottom: '2rem', position: 'relative' }} className="md:!pt-16 md:!pb-80">
-            <div className="hidden sm:block" style={{ position: 'absolute', top: '3rem', right: 0, bottom: '3rem', display: 'flex', alignItems: 'center', justifyContent: 'center' }}>
-              <div className="bg-[#f9f9fa] dark:bg-[#1b1912]/60" style={{ 
-                width: '600px', 
-                height: '100%', 
-                borderRadius: '12px', 
-                border: '1px solid rgba(209, 213, 219, 0.35)',
-                overflow: 'hidden',
-                padding: '1rem'
-              }}>
-                <img 
-                  src="/prikoo.png" 
-                  alt="Product"
-                  style={{ 
-                    width: '100%', 
-                    height: '100%', 
-                    objectFit: 'contain',
-                    objectPosition: 'left',
-                    opacity: 1
-                  }} 
-                />
+          <div style={{ paddingTop: '12rem', paddingBottom: '12rem', position: 'relative' }}>
+            <div className="hidden sm:block" style={{ position: 'absolute', top: 0, left: '50%', bottom: 0, transform: 'translateX(-100%)', width: '500px', display: 'flex', alignItems: 'center', justifyContent: 'flex-end' }}>
+              <img 
+                src="/salt.png" 
+                alt="Product"
+                style={{ 
+                  width: '100%', 
+                  height: '100%', 
+                  objectFit: 'contain',
+                  objectPosition: 'right',
+                  opacity: 1
+                }} 
+              />
+            </div>
+            <div className="hidden sm:flex flex-col justify-center" style={{ position: 'relative', zIndex: 1, top: 0, bottom: 0, marginLeft: '400px', paddingLeft: '2rem' }}>
+              <div style={{ maxWidth: '320px' }}>
+                <p className="text-sm md:text-base mb-3 text-[#000000] dark:text-[#f6f6f4]" style={{ fontFamily: '-apple-system, BlinkMacSystemFont, "Segoe UI", Roboto, Helvetica, Arial, sans-serif', fontWeight: 400 }}>
+                  Hybrid behavior trees meet LLM reasoning.
+                </p>
+                <p className="text-xs md:text-sm text-gray-600 dark:text-[#a8a898] leading-relaxed mb-3" style={{ fontFamily: '-apple-system, BlinkMacSystemFont, "Segoe UI", Roboto, Helvetica, Arial, sans-serif' }}>
+                  Where AI models meet real-world execution. Your systems need more than raw intelligence. They need execution that survives failure and proves every decision.
+                </p>
+                <p className="text-xs md:text-sm text-gray-600 dark:text-[#a8a898] leading-relaxed" style={{ fontFamily: '-apple-system, BlinkMacSystemFont, "Segoe UI", Roboto, Helvetica, Arial, sans-serif' }}>
+                  The Nervous System governs how language model reasoning becomes action. Structured paths keep behavior bounded. Hard limits prevent runaway processes. Cryptographic signatures prove what happened.
+                </p>
+              </div>
+              <div className="mt-6" style={{ maxWidth: '320px' }}>
+                <p className="text-sm md:text-base mb-3 text-[#000000] dark:text-[#f6f6f4]" style={{ fontFamily: '-apple-system, BlinkMacSystemFont, "Segoe UI", Roboto, Helvetica, Arial, sans-serif', fontWeight: 400 }}>
+                  One system, everywhere
+                </p>
+                <p className="text-xs md:text-sm text-gray-600 dark:text-[#a8a898] leading-relaxed mb-3" style={{ fontFamily: '-apple-system, BlinkMacSystemFont, "Segoe UI", Roboto, Helvetica, Arial, sans-serif' }}>
+                  One binary runs on servers, robots, and edge devices. Same guarantees anywhere.
+                </p>
+                <p className="text-xs md:text-sm text-gray-600 dark:text-[#a8a898] leading-relaxed" style={{ fontFamily: '-apple-system, BlinkMacSystemFont, "Segoe UI", Roboto, Helvetica, Arial, sans-serif' }}>
+                  Observe decisions in real time. Inspect actions. Verify outcomes. Trust what happened.
+                </p>
               </div>
             </div>
-            <div style={{ maxWidth: '320px', position: 'relative', zIndex: 1 }} className="max-w-full md:max-w-[320px]">
-              <p className="text-sm md:text-base mb-3 text-[#000000] dark:text-[#f6f6f4]" style={{ fontFamily: '-apple-system, BlinkMacSystemFont, "Segoe UI", Roboto, Helvetica, Arial, sans-serif', fontWeight: 400 }}>
-                Hybrid behavior trees meet LLM reasoning.
-              </p>
-              <p className="text-xs md:text-sm text-gray-600 dark:text-[#a8a898] leading-relaxed mb-3" style={{ fontFamily: '-apple-system, BlinkMacSystemFont, "Segoe UI", Roboto, Helvetica, Arial, sans-serif' }}>
-                Where AI models meet real-world execution. Your systems need more than raw intelligence. They need execution that survives failure and proves every decision.
-              </p>
-              <p className="text-xs md:text-sm text-gray-600 dark:text-[#a8a898] leading-relaxed" style={{ fontFamily: '-apple-system, BlinkMacSystemFont, "Segoe UI", Roboto, Helvetica, Arial, sans-serif' }}>
-                The Nervous System governs how language model reasoning becomes action. Structured paths keep behavior bounded. Hard limits prevent runaway processes. Cryptographic signatures prove what happened.
-              </p>
-            </div>
-            <div className="mt-4 md:mt-6 max-w-full md:max-w-[320px]">
-              <p className="text-sm md:text-base mb-3 text-[#000000] dark:text-[#f6f6f4]" style={{ fontFamily: '-apple-system, BlinkMacSystemFont, "Segoe UI", Roboto, Helvetica, Arial, sans-serif', fontWeight: 400 }}>
-                One system, everywhere
-              </p>
-              <p className="text-xs md:text-sm text-gray-600 dark:text-[#a8a898] leading-relaxed mb-3" style={{ fontFamily: '-apple-system, BlinkMacSystemFont, "Segoe UI", Roboto, Helvetica, Arial, sans-serif' }}>
-                One binary runs on servers, robots, and edge devices. Same guarantees anywhere.
-              </p>
-              <p className="text-xs md:text-sm text-gray-600 dark:text-[#a8a898] leading-relaxed" style={{ fontFamily: '-apple-system, BlinkMacSystemFont, "Segoe UI", Roboto, Helvetica, Arial, sans-serif' }}>
-                Observe decisions in real time. Inspect actions. Verify outcomes. Trust what happened.
-              </p>
+            <div className="sm:hidden">
+              <div style={{ maxWidth: '320px' }} className="max-w-full md:max-w-[320px]">
+                <p className="text-sm md:text-base mb-3 text-[#000000] dark:text-[#f6f6f4]" style={{ fontFamily: '-apple-system, BlinkMacSystemFont, "Segoe UI", Roboto, Helvetica, Arial, sans-serif', fontWeight: 400 }}>
+                  Hybrid behavior trees meet LLM reasoning.
+                </p>
+                <p className="text-xs md:text-sm text-gray-600 dark:text-[#a8a898] leading-relaxed mb-3" style={{ fontFamily: '-apple-system, BlinkMacSystemFont, "Segoe UI", Roboto, Helvetica, Arial, sans-serif' }}>
+                  Where AI models meet real-world execution. Your systems need more than raw intelligence. They need execution that survives failure and proves every decision.
+                </p>
+                <p className="text-xs md:text-sm text-gray-600 dark:text-[#a8a898] leading-relaxed" style={{ fontFamily: '-apple-system, BlinkMacSystemFont, "Segoe UI", Roboto, Helvetica, Arial, sans-serif' }}>
+                  The Nervous System governs how language model reasoning becomes action. Structured paths keep behavior bounded. Hard limits prevent runaway processes. Cryptographic signatures prove what happened.
+                </p>
+              </div>
+              <div className="mt-4 max-w-full md:max-w-[320px]">
+                <p className="text-sm md:text-base mb-3 text-[#000000] dark:text-[#f6f6f4]" style={{ fontFamily: '-apple-system, BlinkMacSystemFont, "Segoe UI", Roboto, Helvetica, Arial, sans-serif', fontWeight: 400 }}>
+                  One system, everywhere
+                </p>
+                <p className="text-xs md:text-sm text-gray-600 dark:text-[#a8a898] leading-relaxed mb-3" style={{ fontFamily: '-apple-system, BlinkMacSystemFont, "Segoe UI", Roboto, Helvetica, Arial, sans-serif' }}>
+                  One binary runs on servers, robots, and edge devices. Same guarantees anywhere.
+                </p>
+                <p className="text-xs md:text-sm text-gray-600 dark:text-[#a8a898] leading-relaxed" style={{ fontFamily: '-apple-system, BlinkMacSystemFont, "Segoe UI", Roboto, Helvetica, Arial, sans-serif' }}>
+                  Observe decisions in real time. Inspect actions. Verify outcomes. Trust what happened.
+                </p>
+              </div>
             </div>
           </div>
         </div>
