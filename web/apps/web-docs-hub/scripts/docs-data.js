@@ -433,6 +433,37 @@ const apiSections = [
     ],
   },
   {
+    title: 'Durable Tasks',
+    summary:
+      'Submit durable workflows and long-running tasks that preserve progress automatically across runtime interruptions.',
+    endpoints: [
+      {
+        method: 'POST',
+        path: '/v1/tasks/submit',
+        auth: 'Session cookie or igris_ API key',
+        surface: 'Cloud API',
+        stability: 'stable',
+        description: 'Submit a durable task using `agent_workflow`, `robotics_workflow`, `single_inference`, or `behavior_tree`.',
+      },
+      {
+        method: 'GET',
+        path: '/v1/tasks/:id',
+        auth: 'Session cookie or igris_ API key',
+        surface: 'Cloud API',
+        stability: 'stable',
+        description: 'Poll the current status and latest checkpoint metadata for a durable task.',
+      },
+      {
+        method: 'GET',
+        path: '/v1/tasks',
+        auth: 'Session cookie or igris_ API key',
+        surface: 'Cloud API',
+        stability: 'stable',
+        description: 'List recent durable tasks for the authenticated tenant.',
+      },
+    ],
+  },
+  {
     title: 'Local Runtime API',
     summary:
       'Supported endpoints served by `igris-runtime` on the local runtime instance.',
