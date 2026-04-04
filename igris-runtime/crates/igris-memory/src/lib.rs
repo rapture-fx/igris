@@ -92,6 +92,12 @@ impl AgentMemory {
             cache_hit_rate: cache.hit_rate(),
         }
     }
+
+    /// Return the configured embedding dimension for callers that need to
+    /// construct compatible query vectors.
+    pub fn embedding_dim(&self) -> usize {
+        self.config.embedding_dim
+    }
 }
 
 /// Memory statistics
