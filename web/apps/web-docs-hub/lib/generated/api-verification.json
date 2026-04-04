@@ -1,15 +1,15 @@
 {
-  "generated_at": "2026-04-04T07:20:52.765Z",
+  "generated_at": "2026-04-04T08:02:04.865Z",
   "summary": {
-    "total": 54,
+    "total": 51,
     "by_status": {
       "test-covered": 5,
-      "client-referenced": 10,
+      "client-referenced": 7,
       "implemented-unverified": 39
     },
     "by_section": {
       "Inference & Integration": 7,
-      "Runtime Distribution & Fleet Coordination": 9,
+      "Runtime Distribution & Fleet Coordination": 6,
       "Account, Trial, and Billing": 5,
       "Vault, Policy, and Governance": 9,
       "Execution, History, and Receipts": 5,
@@ -217,60 +217,6 @@
       "evidence": {
         "test_files": [],
         "client_files": []
-      }
-    },
-    {
-      "section": "Runtime Distribution & Fleet Coordination",
-      "method": "POST",
-      "path": "/api/v1/runtime/register",
-      "auth": "igris_ API key",
-      "surface": "Runtime coordination API",
-      "stability": "stable",
-      "description": "Registers a runtime instance against a tenant.",
-      "status": "client-referenced",
-      "confidence": "medium",
-      "note": "A client or transport layer references this route, but no direct automated test was found.",
-      "evidence": {
-        "test_files": [],
-        "client_files": [
-          "igris-runtime/crates/igris-license-client/src/lib.rs"
-        ]
-      }
-    },
-    {
-      "section": "Runtime Distribution & Fleet Coordination",
-      "method": "POST",
-      "path": "/api/v1/runtime/heartbeat",
-      "auth": "igris_ API key",
-      "surface": "Runtime coordination API",
-      "stability": "stable",
-      "description": "Heartbeat and liveness updates from runtime instances.",
-      "status": "client-referenced",
-      "confidence": "medium",
-      "note": "A client or transport layer references this route, but no direct automated test was found.",
-      "evidence": {
-        "test_files": [],
-        "client_files": [
-          "igris-runtime/crates/igris-license-client/src/lib.rs"
-        ]
-      }
-    },
-    {
-      "section": "Runtime Distribution & Fleet Coordination",
-      "method": "DELETE",
-      "path": "/api/v1/runtime/deregister",
-      "auth": "igris_ API key",
-      "surface": "Runtime coordination API",
-      "stability": "stable",
-      "description": "Removes a runtime instance from active fleet state.",
-      "status": "client-referenced",
-      "confidence": "medium",
-      "note": "A client or transport layer references this route, but no direct automated test was found.",
-      "evidence": {
-        "test_files": [],
-        "client_files": [
-          "igris-runtime/crates/igris-license-client/src/lib.rs"
-        ]
       }
     },
     {
