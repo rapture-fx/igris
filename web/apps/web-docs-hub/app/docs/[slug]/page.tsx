@@ -5,6 +5,7 @@ import { DocFooter } from '@/components/layout/DocFooter';
 import { FeedbackWidget } from '@/components/layout/FeedbackWidget';
 import { ApiReferenceRightRail } from '@/components/docs/ApiReferencePage';
 import { notFound } from 'next/navigation';
+import type { ComponentType } from 'react';
 
 interface PageProps {
   params: Promise<{ slug: string }>;
@@ -71,87 +72,93 @@ const jsonLdBySlug: Record<string, Record<string, unknown>> = {
   },
 };
 
-const slugToFile: Record<string, string> = {
-  architecture: 'architecture',
-  governance: 'governance',
-  sdk: 'sdk',
-  deployment: 'deployment',
-  quickstart: 'quickstart',
-  'execution-model': 'execution-model',
-  'execution-flow': 'execution-flow',
-  safety: 'safety',
-  agents: 'agents',
-  tools: 'tools',
-  memory: 'memory',
-  robotics: 'robotics',
-  'cloud-coordination': 'cloud-coordination',
-  audit: 'audit',
-  'execution-receipts': 'execution-receipts',
-  'capability-model': 'capability-model',
-  'agent-lifecycle': 'agent-lifecycle',
-  'behavior-trees': 'behavior-trees',
-  'durable-tasks': 'durable-tasks',
-  'fleet-management': 'fleet-management',
-  'first-cloud-integration': 'first-cloud-integration',
-  'deploy-local-runtime': 'deploy-local-runtime',
-  'hybrid-deployment-workflow': 'hybrid-deployment-workflow',
-  'receipts-audit-workflow': 'receipts-audit-workflow',
-  'fleet-rollout-workflow': 'fleet-rollout-workflow',
-  'ros2-integration': 'ros2-integration',
-  'key-management': 'key-management',
-  policy: 'policy',
-  'api-reference': 'api-reference',
-  changelog: 'changelog',
-  articles: 'articles/index',
-  'pricing-tiers': 'pricing-tiers',
-  multimodal: 'multimodal',
-  mcp: 'mcp',
-  history: 'history',
-  'cognitive-advisor': 'cognitive-advisor',
-  swarm: 'swarm',
-  'trial-billing': 'trial-billing',
-  console: 'console',
-  troubleshooting: 'troubleshooting',
-  'speculative-execution': 'speculative-execution',
-  'approval-workflows': 'approval-workflows',
-  'slo-enforcer': 'slo-enforcer',
-  'multi-tenancy': 'multi-tenancy',
-  escapevector: 'escapevector',
-  'circuit-breaker': 'circuit-breaker',
-  'provider-health': 'provider-health',
-  'shadow-mode': 'shadow-mode',
-  'tamper-evident-logs': 'tamper-evident-logs',
-  'model-aggregation': 'model-aggregation',
-  'local-llm-fallback': 'local-llm-fallback',
-  'data-privacy': 'data-privacy',
-  'error-codes': 'error-codes',
-  'rate-limiting': 'rate-limiting',
-  'security': 'security',
-  'sla': 'sla',
-  'upgrade-migration': 'upgrade-migration',
-  'webhooks': 'webhooks',
-};
+const docModules = {
+  architecture: () => import('@/docs/architecture.mdx'),
+  governance: () => import('@/docs/governance.mdx'),
+  sdk: () => import('@/docs/sdk.mdx'),
+  deployment: () => import('@/docs/deployment.mdx'),
+  quickstart: () => import('@/docs/quickstart.mdx'),
+  'execution-model': () => import('@/docs/execution-model.mdx'),
+  'execution-flow': () => import('@/docs/execution-flow.mdx'),
+  safety: () => import('@/docs/safety.mdx'),
+  agents: () => import('@/docs/agents.mdx'),
+  tools: () => import('@/docs/tools.mdx'),
+  memory: () => import('@/docs/memory.mdx'),
+  robotics: () => import('@/docs/robotics.mdx'),
+  'cloud-coordination': () => import('@/docs/cloud-coordination.mdx'),
+  audit: () => import('@/docs/audit.mdx'),
+  'execution-receipts': () => import('@/docs/execution-receipts.mdx'),
+  'capability-model': () => import('@/docs/capability-model.mdx'),
+  'agent-lifecycle': () => import('@/docs/agent-lifecycle.mdx'),
+  'behavior-trees': () => import('@/docs/behavior-trees.mdx'),
+  'durable-tasks': () => import('@/docs/durable-tasks.mdx'),
+  'context-engineering': () => import('@/docs/context-engineering.mdx'),
+  'fleet-management': () => import('@/docs/fleet-management.mdx'),
+  'first-cloud-integration': () => import('@/docs/first-cloud-integration.mdx'),
+  'deploy-local-runtime': () => import('@/docs/deploy-local-runtime.mdx'),
+  'hybrid-deployment-workflow': () => import('@/docs/hybrid-deployment-workflow.mdx'),
+  'receipts-audit-workflow': () => import('@/docs/receipts-audit-workflow.mdx'),
+  'fleet-rollout-workflow': () => import('@/docs/fleet-rollout-workflow.mdx'),
+  'ros2-integration': () => import('@/docs/ros2-integration.mdx'),
+  'key-management': () => import('@/docs/key-management.mdx'),
+  'sdk-integration-patterns': () => import('@/docs/sdk-integration-patterns.mdx'),
+  'documentation-roadmap': () => import('@/docs/documentation-roadmap.mdx'),
+  policy: () => import('@/docs/policy.mdx'),
+  'api-reference': () => import('@/docs/api-reference.mdx'),
+  changelog: () => import('@/docs/changelog.mdx'),
+  articles: () => import('@/docs/articles/index.mdx'),
+  'pricing-tiers': () => import('@/docs/pricing-tiers.mdx'),
+  multimodal: () => import('@/docs/multimodal.mdx'),
+  mcp: () => import('@/docs/mcp.mdx'),
+  'mcp-server': () => import('@/docs/mcp-server.mdx'),
+  'mcp-swarm': () => import('@/docs/mcp-swarm.mdx'),
+  'mcp-integration-patterns': () => import('@/docs/mcp-integration-patterns.mdx'),
+  history: () => import('@/docs/history.mdx'),
+  'cognitive-advisor': () => import('@/docs/cognitive-advisor.mdx'),
+  swarm: () => import('@/docs/swarm.mdx'),
+  'trial-billing': () => import('@/docs/trial-billing.mdx'),
+  console: () => import('@/docs/console.mdx'),
+  troubleshooting: () => import('@/docs/troubleshooting.mdx'),
+  'speculative-execution': () => import('@/docs/speculative-execution.mdx'),
+  'approval-workflows': () => import('@/docs/approval-workflows.mdx'),
+  'slo-enforcer': () => import('@/docs/slo-enforcer.mdx'),
+  'multi-tenancy': () => import('@/docs/multi-tenancy.mdx'),
+  escapevector: () => import('@/docs/escapevector.mdx'),
+  'circuit-breaker': () => import('@/docs/circuit-breaker.mdx'),
+  'provider-health': () => import('@/docs/provider-health.mdx'),
+  'shadow-mode': () => import('@/docs/shadow-mode.mdx'),
+  'tamper-evident-logs': () => import('@/docs/tamper-evident-logs.mdx'),
+  'model-aggregation': () => import('@/docs/model-aggregation.mdx'),
+  'local-llm-fallback': () => import('@/docs/local-llm-fallback.mdx'),
+  'data-privacy': () => import('@/docs/data-privacy.mdx'),
+  'error-codes': () => import('@/docs/error-codes.mdx'),
+  'rate-limiting': () => import('@/docs/rate-limiting.mdx'),
+  'security': () => import('@/docs/security.mdx'),
+  'sla': () => import('@/docs/sla.mdx'),
+  'upgrade-migration': () => import('@/docs/upgrade-migration.mdx'),
+  'webhooks': () => import('@/docs/webhooks.mdx'),
+} satisfies Record<string, () => Promise<{ default: ComponentType }>>;
 
 export async function generateStaticParams() {
-  return Object.keys(slugToFile).map((slug) => ({ slug }));
+  return Object.keys(docModules).map((slug) => ({ slug }));
 }
 
 export default async function DocPage({ params }: PageProps) {
   const { slug } = await params;
-  const fileName = slugToFile[slug];
+  const loadDoc = docModules[slug as keyof typeof docModules];
   const fullWidth = slug === 'api-reference';
   const isApiReference = slug === 'api-reference';
 
-  if (!fileName) notFound();
+  if (!loadDoc) notFound();
 
   let MDXComponent;
   try {
-    MDXComponent = (await import(`@/docs/${fileName}.mdx`)).default;
+    MDXComponent = (await loadDoc()).default;
   } catch {
     notFound();
   }
 
-  const jsonLdData = slugToFile[slug] ? jsonLdBySlug[slug] : undefined;
+  const jsonLdData = jsonLdBySlug[slug];
 
   return (
     <>
