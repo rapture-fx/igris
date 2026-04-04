@@ -101,12 +101,30 @@ const guideContent: Record<string, GuideContent> = {
             </p>
           </div>
         </section>
+        <section id="support-labels" className="space-y-3 border-t border-gray-200 pt-8">
+          <h2 className="mt-0 text-lg font-semibold text-slate-900">Support Labels and Deployment Modes</h2>
+          <div className="space-y-3 text-sm leading-7 text-slate-700">
+            <p className="mb-0">
+              Each endpoint page carries both a support label and a deployment mode. <strong>Core</strong>
+              routes are the primary customer contract. <strong>Supported</strong> routes are part of the
+              shipped product surface but may not be the first endpoint a new customer should start with.
+              <strong>Preview</strong> routes are available, but they should be adopted deliberately.
+            </p>
+            <p className="mb-0">
+              Deployment mode tells you where the route belongs operationally. <strong>Cloud</strong>
+              routes are served by the hosted API, <strong>Local</strong> routes are served by
+              <code> igris-runtime</code>, and <strong>Hybrid</strong> routes are used when the hosted
+              product and one or more runtimes are working together.
+            </p>
+          </div>
+        </section>
       </div>
     ),
     sections: [
       { id: 'surfaces', label: 'Two Product Surfaces' },
       { id: 'endpoint-pages', label: 'How Endpoint Pages Work' },
       { id: 'sdk-guidance', label: 'SDK Guidance' },
+      { id: 'support-labels', label: 'Support Labels and Deployment Modes' },
     ],
     railTitle: 'Base URLs',
     railCode: `Cloud API
