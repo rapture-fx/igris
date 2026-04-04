@@ -44,7 +44,16 @@ function endpointKey(endpoint: ApiEndpoint) {
 const endpointOverrides: Record<string, EndpointOverride> = {
   'POST /v1/chat/completions': {
     functionality:
-      'OpenAI-compatible chat completion entrypoint. Use this when you want portable client compatibility while still routing through Igris policy, receipts, and provider selection.',
+      'Primary hosted inference route for customers who want the shortest path to production. It preserves the OpenAI chat-completions contract while still running through Igris routing, policy, and receipt generation.',
+    whenToUse:
+      'Use this endpoint when you want the default customer integration path: hosted inference with the broadest client compatibility. It is the right choice when you want to keep the client portable and do not need the native Igris request contract.',
+    retryGuidance:
+      'Retry transient 5xx or 429 responses with backoff. Do not automatically retry 4xx responses until you have corrected the request, credentials, or provider configuration.',
+    commonMistakes: [
+      'Treating this route like the native Igris inference contract and expecting extra request fields that belong on `/v1/infer`.',
+      'Skipping provider-key setup and assuming hosted routing will work before any upstream credential is stored.',
+      'Using a browser session flow for backend automation instead of a tenant API key.',
+    ],
     requestBodyFields: [
       { name: 'model', type: 'string', required: true, description: 'Upstream model identifier or routed model name.' },
       { name: 'messages', type: 'array', required: true, description: 'Conversation turns in OpenAI chat format.' },
@@ -80,7 +89,16 @@ const endpointOverrides: Record<string, EndpointOverride> = {
   },
   'POST /v1/infer': {
     functionality:
-      'Native inference contract for integrations that want routing hints, provider pinning, or request metadata beyond the OpenAI-compatible surface.',
+      'Native hosted inference route for customers who want more control than the OpenAI-compatible surface exposes. It is the endpoint to use when routing intent, provider pinning, or Igris-specific request metadata should be part of the contract.',
+    whenToUse:
+      'Use this endpoint when the OpenAI-compatible path is too narrow for the integration you are building. It is the right choice when your application needs routing hints, provider selection, or Igris-native response metadata.',
+    retryGuidance:
+      'Retry transient 5xx or 429 responses with backoff. For write-once or audit-sensitive workflows, make sure your application can tolerate replay before retrying automatically.',
+    commonMistakes: [
+      'Reusing an OpenAI-only request shape and forgetting to adopt the native Igris fields that make this route valuable.',
+      'Using `/v1/infer` for broad portability when `/v1/chat/completions` would have been the simpler contract.',
+      'Assuming provider pinning will work without a matching provider key already configured for the tenant.',
+    ],
     requestBodyFields: [
       { name: 'model', type: 'string', required: true, description: 'Requested model or routing target.' },
       { name: 'messages', type: 'array', required: true, description: 'Conversation turns in Igris message format.' },
@@ -110,7 +128,15 @@ const endpointOverrides: Record<string, EndpointOverride> = {
   },
   'GET /v1/models': {
     functionality:
-      'Returns the model names currently exposed by the inference layer. Use it to populate model pickers or to verify what a deployment has enabled.',
+      'Returns the model identifiers currently visible to the inference layer. Use it to confirm what a deployment can actually serve before you hardcode model selection into a client.',
+    whenToUse:
+      'Use this endpoint when you need a model picker, startup validation, or an operational check that confirms what the current deployment exposes.',
+    retryGuidance:
+      'Safe to retry on transient 5xx or 429 responses. If the list looks unexpectedly empty or incomplete, investigate provider configuration before treating it as a temporary server failure.',
+    commonMistakes: [
+      'Assuming every upstream provider model is available without checking what the deployment currently exposes.',
+      'Using this route as a substitute for tenant provider configuration or entitlement checks.',
+    ],
     responseExample: {
       object: 'list',
       data: [
@@ -132,7 +158,16 @@ const endpointOverrides: Record<string, EndpointOverride> = {
   },
   'POST /v1/vault/keys': {
     functionality:
-      'Stores a provider credential for tenant-scoped routing. The raw upstream key is encrypted server-side; list and get calls only return masked values.',
+      'Stores a tenant-scoped provider credential for hosted routing. The raw upstream key is encrypted on write, and later reads only return masked metadata so the secret does not become part of the ordinary control-plane surface.',
+    whenToUse:
+      'Use this endpoint when you are setting up or rotating hosted routing credentials for a tenant. It is usually one of the first administrative calls you make before sending production inference traffic.',
+    retryGuidance:
+      'Do not replay this request casually. Retry only on clearly transient 5xx or 429 responses, and make sure your client can tolerate the possibility that the first write may already have succeeded.',
+    commonMistakes: [
+      'Sending a raw provider name that is not part of the currently supported public identifiers.',
+      'Assuming a successful write means the key will ever be returned again in plaintext.',
+      'Using ad hoc key labels that make later rotation and operational ownership harder to understand.',
+    ],
     requestBodyFields: [
       { name: 'provider', type: 'string', required: true, description: 'Public provider identifier such as `openai` or `anthropic`.' },
       { name: 'key_name', type: 'string', required: true, description: 'Human-readable label for the key record.' },
@@ -179,7 +214,15 @@ const endpointOverrides: Record<string, EndpointOverride> = {
   },
   'GET /v1/vault/keys': {
     functionality:
-      'Lists stored provider keys for the current tenant. Returned keys are masked and include usage metadata when available.',
+      'Lists the provider keys currently stored for the tenant. Returned entries are masked and operationally useful, but they are not a secret-retrieval mechanism.',
+    whenToUse:
+      'Use this endpoint when you need to confirm which provider credentials exist, which key names are active, or whether a tenant is ready for hosted routing.',
+    retryGuidance:
+      'Safe to retry on transient 5xx or 429 responses. If the list is unexpectedly empty, verify tenant context and recent key-management activity before treating it as a server fault.',
+    commonMistakes: [
+      'Expecting this route to reveal the full upstream key rather than masked metadata.',
+      'Treating an empty list as proof that the vault is broken without first checking the tenant context or provider filter.',
+    ],
     queryParams: [{ name: 'provider', type: 'string', description: 'Optional provider filter.' }],
     queryExample: { provider: 'openai' },
     responseExample: {
@@ -199,7 +242,15 @@ const endpointOverrides: Record<string, EndpointOverride> = {
   },
   'GET /v1/account/api-key': {
     functionality:
-      'Returns metadata for the tenant API key without exposing the raw secret again. Use this to check whether a key exists and when it was last rotated.',
+      'Returns metadata about the current tenant API key without exposing the secret itself. Use it to confirm whether a key exists, what prefix it has, and when it was last rotated.',
+    whenToUse:
+      'Use this endpoint when you are auditing tenant access state, confirming whether an environment already has a key, or checking whether key rotation happened when expected.',
+    retryGuidance:
+      'Safe to retry on transient 5xx or 429 responses. A missing key is a product state question, not a retry condition.',
+    commonMistakes: [
+      'Expecting the raw API key to be returned again after creation.',
+      'Using this route as if it creates or rotates credentials; it only reports metadata.',
+    ],
     responseExample: {
       has_key: true,
       prefix: 'igris_a1b2c3',
@@ -208,7 +259,16 @@ const endpointOverrides: Record<string, EndpointOverride> = {
   },
   'POST /v1/account/api-key': {
     functionality:
-      'Creates a new tenant API key and returns the raw secret once. The previous key is revoked immediately when the new one is issued.',
+      'Creates a new tenant API key and returns the raw secret exactly once. The previous key is revoked when the new key is issued, so treat this route as a credential-rotation operation rather than a harmless read/write call.',
+    whenToUse:
+      'Use this endpoint when you are creating the first tenant API key or intentionally rotating the current one. Plan the rollout so dependent systems can adopt the new credential immediately.',
+    retryGuidance:
+      'Do not automatically replay this request. If the response is ambiguous, verify the current key state before attempting another rotation.',
+    commonMistakes: [
+      'Calling the route without a rollout plan and breaking existing integrations when the old key is revoked.',
+      'Assuming the raw secret can be recovered later if it is not stored at creation time.',
+      'Using this route as part of routine request flow instead of as a deliberate credential-management action.',
+    ],
     responseExample: {
       api_key: 'igris_0123456789abcdef0123456789abcdef0123456789abcdef0123456789abcdef',
       prefix: 'igris_012345',
@@ -280,7 +340,16 @@ const endpointOverrides: Record<string, EndpointOverride> = {
   },
   'GET /api/v1/runtime/list': {
     functionality:
-      'Lists runtime instances already registered to a tenant. This fleet read model accepts either authenticated tenant context or an explicit `tenant_id` query parameter.',
+      'Lists the runtimes currently registered for a tenant. This is the fleet inventory view customers use to confirm that runtimes are visible, healthy enough to appear in management flows, and correctly associated with the expected tenant.',
+    whenToUse:
+      'Use this endpoint when you need an inventory view before a rollout, during fleet troubleshooting, or when validating that runtime registration is working as expected.',
+    retryGuidance:
+      'Safe to retry on transient 5xx or 429 responses. If the result is empty, verify tenant context and registration health before assuming a server-side problem.',
+    commonMistakes: [
+      'Calling the route without tenant context and forgetting to supply the `tenant_id` query parameter.',
+      'Treating this inventory view as if it were a command surface rather than a read model.',
+      'Assuming an absent runtime means rollout should continue before registration health has been checked.',
+    ],
     queryParams: [
       { name: 'tenant_id', type: 'string', description: 'Optional explicit tenant identifier when no authenticated tenant context is present.' },
     ],
@@ -361,7 +430,15 @@ const endpointOverrides: Record<string, EndpointOverride> = {
   },
   'GET /v1/history/events': {
     functionality:
-      'Returns recent execution history events for the tenant. Use filters to scope by time range, agent, or device.',
+      'Returns recent execution history for the tenant in a timeline-friendly format. Use it to understand what happened across agents and runtimes before you move into receipt-level proof review.',
+    whenToUse:
+      'Use this endpoint for dashboards, operational investigations, and recent-activity views. It is the right first stop when you need a timeline, not a cryptographic artifact.',
+    retryGuidance:
+      'Safe to retry on transient 5xx or 429 responses. Adjust your time window or filters if the dataset is larger than you expected rather than hammering the same request repeatedly.',
+    commonMistakes: [
+      'Treating history events as the signed audit artifact instead of as an operational timeline.',
+      'Pulling an unnecessarily large range without filters when you already know the agent or runtime you want to inspect.',
+    ],
     queryParams: [
       { name: 'range', type: 'string', description: 'Time window such as `last_1h`, `last_24h`, or `last_7d`.' },
       { name: 'limit', type: 'integer', description: 'Maximum number of events to return.' },
@@ -388,7 +465,15 @@ const endpointOverrides: Record<string, EndpointOverride> = {
   },
   'GET /v1/receipts': {
     functionality:
-      'Lists execution receipts for the tenant from the coordination layer. Use time and agent filters to build audit views or exports.',
+      'Lists execution receipts for the tenant from the coordination layer. This is the read surface for audit-oriented views where you care about the execution record itself rather than only the timeline around it.',
+    whenToUse:
+      'Use this endpoint when you need to review receipt records, prepare export jobs, or feed an audit-oriented UI that is centered on execution artifacts.',
+    retryGuidance:
+      'Safe to retry on transient 5xx or 429 responses. Prefer narrower filters over repeated broad scans if the query is being used interactively.',
+    commonMistakes: [
+      'Using receipt listing when a history timeline would be easier to interpret for the question at hand.',
+      'Treating the list response like a bulk export instead of using the dedicated export route.',
+    ],
     queryParams: [
       { name: 'limit', type: 'integer', description: 'Maximum number of receipts to return.' },
       { name: 'from', type: 'string', description: 'RFC3339 lower time bound.' },
@@ -421,7 +506,16 @@ const endpointOverrides: Record<string, EndpointOverride> = {
   },
   'GET /v1/receipts/export': {
     functionality:
-      'Streams an execution receipt export as an attachment. Use `format=jsonl` for NDJSON or `format=csv` for spreadsheet-compatible output.',
+      'Streams execution receipts as a downloadable attachment. It is designed for export and downstream processing, not for interactive paging or ordinary list views.',
+    whenToUse:
+      'Use this endpoint when receipt data needs to leave the product boundary for BI, compliance, archive, or offline analysis. Choose NDJSON for machine pipelines and CSV for spreadsheet-oriented workflows.',
+    retryGuidance:
+      'Retry transient 5xx or 429 responses with backoff, but treat export like a batch operation rather than a request you fire repeatedly from an interactive client.',
+    commonMistakes: [
+      'Expecting a JSON metadata payload instead of a streamed attachment response.',
+      'Using export for ordinary UI pagination when the list and detail routes are the correct interactive surfaces.',
+      'Starting repeated large exports without narrowing the time range or planning downstream retention.',
+    ],
     queryParams: [
       { name: 'format', type: 'string', description: 'Export format. `jsonl` is the default; `csv` streams comma-separated rows.' },
       { name: 'from', type: 'string', description: 'RFC3339 lower time bound.' },
@@ -484,7 +578,16 @@ const endpointOverrides: Record<string, EndpointOverride> = {
   },
   'POST /v1/tasks/submit': {
     functionality:
-      'Submits a durable task to the product coordination layer. The platform creates a task record, chooses an available executor, and returns immediately with a task ID so the caller can poll for progress.\n\nDurable tasks preserve progress automatically. Multi-step workflows checkpoint periodically, and recovery continues from the last durable checkpoint instead of starting the whole task over.',
+      'Submits a durable task to the coordination layer and returns immediately with a task ID. The product records the workflow, dispatches it to an available runtime, and preserves progress with checkpoints so interruptions do not force the whole task back to the beginning.',
+    whenToUse:
+      'Use this endpoint when the unit of work is too long-lived, multi-step, or failure-sensitive for an ordinary synchronous inference call. It is the right contract for workflows that must survive runtime interruption and resume from durable state.',
+    retryGuidance:
+      'Prefer an idempotency key and treat retries as deliberate. If submission fails ambiguously, check for the existing task record before replaying the same workload.',
+    commonMistakes: [
+      'Submitting a workflow without an idempotency key even though the caller may retry on timeout or network failure.',
+      'Using durable tasks for simple synchronous inference that would have been clearer on the standard inference routes.',
+      'Nesting another `task_type` object inside `task_definition` instead of using the public request shape.',
+    ],
     requestBodyFields: [
       { name: 'task_type', type: 'string', required: true, description: 'Task category. One of `agent_workflow`, `robotics_workflow`, `single_inference`, or `behavior_tree`.' },
       { name: 'task_definition', type: 'object', required: true, description: 'Task payload for the selected `task_type`. Do not nest another `task_type` object inside this field.' },
@@ -520,7 +623,15 @@ const endpointOverrides: Record<string, EndpointOverride> = {
   },
   'GET /v1/tasks/:id': {
     functionality:
-      'Returns the current status, runtime assignment, and latest checkpoint metadata for a durable task. Use it to poll for completion or monitor recovery progress.',
+      'Returns the current state of one durable task, including runtime assignment and the latest checkpoint metadata when available. This is the status route you poll while a durable workflow is still in progress.',
+    whenToUse:
+      'Use this endpoint after submission when you need to monitor progress, completion, failure, or recovery state for a specific task.',
+    retryGuidance:
+      'Safe to retry on transient 5xx or 429 responses. Poll at a reasonable interval rather than continuously, especially for long-running tasks.',
+    commonMistakes: [
+      'Polling too aggressively and turning task status checks into avoidable background load.',
+      'Treating checkpoint metadata as if it will exist before the runtime has actually produced a checkpoint.',
+    ],
     pathParams: [
       { name: 'id', type: 'string', required: true, description: 'Task ID returned by POST /v1/tasks/submit.' },
     ],
@@ -546,7 +657,15 @@ const endpointOverrides: Record<string, EndpointOverride> = {
   },
   'GET /v1/tasks': {
     functionality:
-      'Lists recent durable tasks for the authenticated tenant, newest first. Useful for building status dashboards and monitoring long-running workflows.',
+      'Lists recent durable tasks for the authenticated tenant, newest first. Use it to build operational views of long-running work rather than polling every task individually from scratch.',
+    whenToUse:
+      'Use this endpoint for dashboards, recent-work views, and operator workflows that need to see multiple durable tasks at once.',
+    retryGuidance:
+      'Safe to retry on transient 5xx or 429 responses. Keep the query narrow and the refresh interval reasonable if the list is backing an active dashboard.',
+    commonMistakes: [
+      'Using the list route when the client already has a single task ID and should call the detail route instead.',
+      'Refreshing the task list too aggressively for long-running workloads that do not change every second.',
+    ],
     queryParams: [
       { name: 'limit', type: 'integer', description: 'Maximum number of tasks to return. Defaults to 20, maximum 100.' },
     ],
@@ -724,6 +843,62 @@ function buildRelatedEndpoints(section: ApiSection, endpoint: ApiEndpoint) {
       label: `${candidate.method} ${candidate.path}`,
       href: getApiEndpointHref(section, candidate),
     }));
+}
+
+function buildRelatedGuides(endpoint: ApiEndpoint) {
+  const path = endpoint.path;
+  const guides: Array<{ label: string; href: string }> = [];
+
+  const pushGuide = (label: string, href: string) => {
+    if (!guides.some((guide) => guide.href === href)) {
+      guides.push({ label, href });
+    }
+  };
+
+  pushGuide('API Authentication', '/docs/api-reference/authentication');
+  pushGuide('API Errors', '/docs/api-reference/errors');
+
+  if (endpoint.deployment === 'local') {
+    pushGuide('Deploy Local Runtime', '/docs/deploy-local-runtime');
+
+    if (path.startsWith('/v1/tasks') || path.startsWith('/v1/btree')) {
+      pushGuide('Context Engineering', '/docs/context-engineering');
+      pushGuide('Behavior Trees', '/docs/behavior-trees');
+    } else {
+      pushGuide('SDK Integration Patterns', '/docs/sdk-integration-patterns');
+      pushGuide('Local LLM Fallback', '/docs/local-llm-fallback');
+    }
+  } else if (endpoint.deployment === 'hybrid') {
+    pushGuide('Hybrid Deployment Workflow', '/docs/hybrid-deployment-workflow');
+    pushGuide('Fleet Rollout Workflow', '/docs/fleet-rollout-workflow');
+
+    if (path.startsWith('/v1/tasks')) {
+      pushGuide('Context Engineering', '/docs/context-engineering');
+    }
+  } else if (path.startsWith('/v1/chat/completions') || path.startsWith('/v1/infer') || path === '/v1/models' || path === '/v1/providers/stats') {
+    pushGuide('First Cloud Integration', '/docs/first-cloud-integration');
+    pushGuide('SDK Integration Patterns', '/docs/sdk-integration-patterns');
+  } else if (path.startsWith('/v1/receipts') || path.startsWith('/v1/history') || path.startsWith('/proof/receipts')) {
+    pushGuide('Receipts and Audit Workflow', '/docs/receipts-audit-workflow');
+    pushGuide('Execution Receipts', '/docs/execution-receipts');
+    pushGuide('Audit', '/docs/audit');
+  } else if (path.startsWith('/v1/tasks') || path.startsWith('/v1/btree')) {
+    pushGuide('Context Engineering', '/docs/context-engineering');
+    pushGuide('Durable Tasks', '/docs/durable-tasks');
+    pushGuide('Behavior Trees', '/docs/behavior-trees');
+  } else if (path.startsWith('/v1/vault') || path.startsWith('/v1/account') || path.startsWith('/api/subscription')) {
+    pushGuide('Key Management', '/docs/key-management');
+    pushGuide('SDKs', '/docs/sdk');
+    pushGuide('First Cloud Integration', '/docs/first-cloud-integration');
+  } else {
+    pushGuide('API Rate Limits', '/docs/api-reference/rate-limits');
+  }
+
+  if (guides.length < 3) {
+    pushGuide('API Rate Limits', '/docs/api-reference/rate-limits');
+  }
+
+  return guides.slice(0, 3);
 }
 
 function fallbackPathParams(endpoint: ApiEndpoint): ApiField[] {
@@ -931,5 +1106,6 @@ export function buildApiEndpointPageData(section: ApiSection, endpoint: ApiEndpo
     retryGuidance: override.retryGuidance ?? fallbackRetryGuidance(endpoint),
     commonMistakes: override.commonMistakes ?? fallbackCommonMistakes(endpoint),
     relatedEndpoints: buildRelatedEndpoints(section, endpoint),
+    relatedGuides: buildRelatedGuides(endpoint),
   };
 }
