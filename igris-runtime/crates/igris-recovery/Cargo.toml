@@ -12,3 +12,12 @@ tracing = { workspace = true }
 anyhow = { workspace = true }
 thiserror = { workspace = true }
 serde = { workspace = true }
+serde_json = { workspace = true }
+
+[dependencies.igris-ros2]
+path = "../igris-ros2"
+optional = true
+
+[features]
+default = []
+ros2 = ["dep:igris-ros2", "igris-ros2/ros2"]
