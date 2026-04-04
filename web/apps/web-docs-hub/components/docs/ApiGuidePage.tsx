@@ -18,31 +18,56 @@ type GuideContent = {
 const guideContent: Record<string, GuideContent> = {
   introduction: {
     title: 'Introduction',
-    summary: 'How to read the Igris API reference and choose the right API surface.',
+    summary: 'How the Igris API reference is organized, when to use each access point, and how to move from guides into endpoint-level integration work.',
     body: (
       <div className="space-y-6">
         <section id="surfaces" className="rounded-xl border border-gray-200 bg-white p-5">
           <h2 className="mt-0 text-lg font-semibold text-slate-900">Two Product Surfaces</h2>
-          <p className="mb-0 text-sm leading-7 text-slate-700">
-            Igris ships both a cloud control plane and a local runtime API. The cloud base URL is
-            <code> https://overture.igrisinertial.com</code>. The local runtime base URL is
-            <code> http://localhost:8080</code> by default.
-          </p>
+          <div className="space-y-3 text-sm leading-7 text-slate-700">
+            <p className="mb-0">
+              Igris is documented here as one product with two access points. Use the hosted API at
+              <code> https://overture.igrisinertial.com</code> when your integration needs account,
+              fleet, billing, receipt, or policy capabilities. Use the local runtime API at
+              <code> http://localhost:8080</code> by default when the request belongs on the machine
+              where Igris is running.
+            </p>
+            <p className="mb-0">
+              This split is about where the request executes, not about two different products. The
+              API reference groups endpoints by capability so you can navigate by task first and only
+              think about the base URL when you are ready to make the call.
+            </p>
+          </div>
         </section>
         <section id="endpoint-pages" className="rounded-xl border border-gray-200 bg-white p-5">
           <h2 className="mt-0 text-lg font-semibold text-slate-900">How Endpoint Pages Work</h2>
-          <p className="mb-0 text-sm leading-7 text-slate-700">
-            Every endpoint has a dedicated page with request context, path and query parameters,
-            request and response examples, and runnable HTTP snippets for JavaScript, Go, and Rust.
-            The pinned right rail replaces the generic table of contents for API pages.
-          </p>
+          <div className="space-y-3 text-sm leading-7 text-slate-700">
+            <p className="mb-0">
+              Every endpoint has its own page. That page tells you what the route is for, which
+              authentication model it expects, the path and query parameters it accepts, the request
+              body fields that matter, and the status codes you should plan for in a real client.
+            </p>
+            <p className="mb-0">
+              The code panel on the right is there to keep the request example visible while you read
+              the surrounding contract. Use the overview page to browse by capability, then switch to
+              endpoint pages when you are implementing or debugging a specific call.
+            </p>
+          </div>
         </section>
         <section id="sdk-guidance" className="rounded-xl border border-gray-200 bg-white p-5">
           <h2 className="mt-0 text-lg font-semibold text-slate-900">SDK Guidance</h2>
-          <p className="mb-0 text-sm leading-7 text-slate-700">
-            JavaScript, Go, and Rust are the first-class native SDKs today. For management and
-            control-plane endpoints that are not wrapped by those SDKs yet, use direct HTTP calls.
-          </p>
+          <div className="space-y-3 text-sm leading-7 text-slate-700">
+            <p className="mb-0">
+              JavaScript, Go, and Rust are the first-class SDK languages today. When an endpoint is
+              covered by a native SDK, prefer that SDK for application code because it gives you a
+              cleaner call surface and reduces request-shape drift over time.
+            </p>
+            <p className="mb-0">
+              Some management routes are still best treated as direct HTTP integrations. In those
+              cases, the endpoint page is the primary contract: use the request and response examples,
+              confirm the authentication model, and wire your own client behavior around the listed
+              status codes.
+            </p>
+          </div>
         </section>
       </div>
     ),
@@ -69,29 +94,54 @@ http://localhost:8080`,
   },
   authentication: {
     title: 'Authentication',
-    summary: 'Which credential type each API surface expects.',
+    summary: 'Which credentials belong to automation, browser sessions, and runtime-local deployments, and how to choose the right one for each route.',
     body: (
       <div className="space-y-6">
         <section id="tenant-api-keys" className="rounded-xl border border-gray-200 bg-white p-5">
           <h2 className="mt-0 text-lg font-semibold text-slate-900">Tenant API Keys</h2>
-          <p className="mb-0 text-sm leading-7 text-slate-700">
-            Customer automation should use tenant API keys with the <code>igris_</code> prefix.
-            Supply them as <code>Authorization: Bearer ...</code> or <code>X-API-Key</code>.
-          </p>
+          <div className="space-y-3 text-sm leading-7 text-slate-700">
+            <p className="mb-0">
+              Customer automation should use tenant API keys with the <code>igris_</code> prefix.
+              These keys are the default credential for server-side integrations, CI jobs, backend
+              workers, and any script that is calling the hosted API outside the browser.
+            </p>
+            <p className="mb-0">
+              Supply the key as <code>Authorization: Bearer ...</code> or <code>X-API-Key</code> if
+              the endpoint allows it. Endpoint pages call out the expected model explicitly, so you
+              should treat the endpoint page as authoritative over any generic assumption.
+            </p>
+          </div>
         </section>
         <section id="session-cookies" className="rounded-xl border border-gray-200 bg-white p-5">
           <h2 className="mt-0 text-lg font-semibold text-slate-900">Session Cookies</h2>
-          <p className="mb-0 text-sm leading-7 text-slate-700">
-            Console routes use Better Auth session cookies. They are not interchangeable with bearer
-            tokens unless the endpoint explicitly accepts an API key as an alternative.
-          </p>
+          <div className="space-y-3 text-sm leading-7 text-slate-700">
+            <p className="mb-0">
+              Browser-driven console workflows use session cookies. These routes are designed for an
+              authenticated user session rather than headless automation, so they should not be
+              treated as generic bearer-token endpoints unless the endpoint page says an API key is
+              also accepted.
+            </p>
+            <p className="mb-0">
+              If you are building automation, prefer routes that are documented with API-key access.
+              Mixing browser session assumptions into automation usually creates fragile clients and
+              unclear operational ownership.
+            </p>
+          </div>
         </section>
         <section id="runtime-local-auth" className="rounded-xl border border-gray-200 bg-white p-5">
           <h2 className="mt-0 text-lg font-semibold text-slate-900">Runtime-local Auth</h2>
-          <p className="mb-0 text-sm leading-7 text-slate-700">
-            The local runtime API follows your runtime <code>auth</code> configuration. Some local
-            deployments intentionally run unauthenticated inside a trusted network boundary.
-          </p>
+          <div className="space-y-3 text-sm leading-7 text-slate-700">
+            <p className="mb-0">
+              The local runtime API follows the runtime&apos;s own <code>auth</code> configuration.
+              Some deployments intentionally keep that surface inside a trusted network boundary with
+              minimal local auth, while others front it with stricter controls.
+            </p>
+            <p className="mb-0">
+              Because that access model depends on deployment, do not assume that a local runtime
+              route behaves like the hosted API. Check the endpoint page, then confirm the runtime
+              configuration in the environment where you will run the integration.
+            </p>
+          </div>
         </section>
       </div>
     ),
@@ -110,31 +160,56 @@ http://localhost:8080`,
   },
   errors: {
     title: 'Errors',
-    summary: 'Common response envelopes for validation, auth, and server failures.',
+    summary: 'How to read error responses across the API reference and what to expect from validation, authentication, throttling, and server failures.',
     body: (
       <div className="space-y-6">
         <section id="validation-errors" className="rounded-xl border border-gray-200 bg-white p-5">
           <h2 className="mt-0 text-lg font-semibold text-slate-900">Validation Errors</h2>
-          <p className="mb-0 text-sm leading-7 text-slate-700">
-            Many handlers return a small JSON envelope with <code>error</code> and sometimes
-            <code>message</code> or <code>code</code>. The exact body can vary by route family, so
-            endpoint pages call out the most relevant examples.
-          </p>
+          <div className="space-y-3 text-sm leading-7 text-slate-700">
+            <p className="mb-0">
+              Validation failures usually mean the request shape was wrong for the route you called.
+              Many handlers return a compact JSON envelope with <code>error</code> and sometimes a
+              more specific <code>message</code> or <code>code</code> value that tells you what part
+              of the request could not be accepted.
+            </p>
+            <p className="mb-0">
+              The exact envelope can vary by route family, which is why endpoint pages include the
+              examples that matter most for that route. Treat those page-level examples as the best
+              guide to what your client should log and surface to operators.
+            </p>
+          </div>
         </section>
         <section id="authentication-failures" className="rounded-xl border border-gray-200 bg-white p-5">
           <h2 className="mt-0 text-lg font-semibold text-slate-900">Authentication Failures</h2>
-          <p className="mb-0 text-sm leading-7 text-slate-700">
-            Auth failures typically return HTTP 401. Session-based handlers often return
-            <code>MISSING_SESSION</code> or <code>INVALID_SESSION</code>. API-key handlers often
-            return <code>INVALID_API_KEY</code>.
-          </p>
+          <div className="space-y-3 text-sm leading-7 text-slate-700">
+            <p className="mb-0">
+              Authentication failures typically return HTTP 401. Session-based handlers often use
+              codes such as <code>MISSING_SESSION</code> or <code>INVALID_SESSION</code>, while
+              API-key handlers more commonly return <code>INVALID_API_KEY</code> or a similarly
+              direct credential error.
+            </p>
+            <p className="mb-0">
+              When you see a 401, first confirm that the route is using the credential model you
+              expect. A large share of integration mistakes come from calling a session-oriented route
+              with an API key, or treating a runtime-local route like a hosted control-plane route.
+            </p>
+          </div>
         </section>
         <section id="server-errors" className="rounded-xl border border-gray-200 bg-white p-5">
           <h2 className="mt-0 text-lg font-semibold text-slate-900">Server Errors</h2>
-          <p className="mb-0 text-sm leading-7 text-slate-700">
-            Internal failures commonly return <code>internal_error</code> or a route-specific code
-            such as <code>registration_failed</code> or <code>STORAGE_FAILED</code>.
-          </p>
+          <div className="space-y-3 text-sm leading-7 text-slate-700">
+            <p className="mb-0">
+              Server-side failures commonly return a generic error such as <code>internal_error</code>
+              or a route-specific code such as <code>registration_failed</code> or
+              <code> STORAGE_FAILED</code>. These responses indicate that the server accepted the
+              route contract but could not complete the operation.
+            </p>
+            <p className="mb-0">
+              Clients should log the status code, the error code when present, and the request
+              context needed for retry or investigation. If the endpoint page lists retry-safe status
+              codes, follow that guidance rather than assuming every 5xx should be replayed.
+            </p>
+          </div>
         </section>
       </div>
     ),
@@ -159,22 +234,39 @@ http://localhost:8080`,
   },
   'rate-limits': {
     title: 'Rate Limits',
-    summary: 'Current throttle behavior for the shipped control plane.',
+    summary: 'What throttling exists today, where it applies, and how clients should behave when they receive a 429 response.',
     body: (
       <div className="space-y-6">
         <section id="global-control-plane-limit" className="rounded-xl border border-gray-200 bg-white p-5">
           <h2 className="mt-0 text-lg font-semibold text-slate-900">Global Control-plane Limit</h2>
-          <p className="mb-0 text-sm leading-7 text-slate-700">
-            The current default limiter is 100 requests per minute. The response headers are only
-            guaranteed on the 429 path today.
-          </p>
+          <div className="space-y-3 text-sm leading-7 text-slate-700">
+            <p className="mb-0">
+              The hosted API currently applies a default limiter of 100 requests per minute. That is
+              the baseline throttle behavior documented for the shipped product today, and endpoint
+              pages call out the exceptions that matter more than the global default.
+            </p>
+            <p className="mb-0">
+              Response headers are only guaranteed on the 429 path right now. Clients should not
+              assume that every successful response carries full rate-limit metadata, so your retry
+              logic should be driven by the actual error response rather than by optimistic header
+              parsing on every request.
+            </p>
+          </div>
         </section>
         <section id="runtime-download-limit" className="rounded-xl border border-gray-200 bg-white p-5">
           <h2 className="mt-0 text-lg font-semibold text-slate-900">Runtime Download Limit</h2>
-          <p className="mb-0 text-sm leading-7 text-slate-700">
-            Runtime download endpoints have their own tighter subscription-aware throttle. Treat
-            binary download as a provisioning action, not as a hot-path request.
-          </p>
+          <div className="space-y-3 text-sm leading-7 text-slate-700">
+            <p className="mb-0">
+              Runtime download endpoints use a tighter subscription-aware throttle. Treat binary
+              download as a provisioning or rollout action, not as a hot-path request that your
+              application makes repeatedly during normal traffic.
+            </p>
+            <p className="mb-0">
+              When you receive a 429, respect the advertised cooldown window and retry after that
+              delay. If you are orchestrating downloads across many machines, stagger those requests
+              so the retry path does not turn into another burst immediately after the cooldown ends.
+            </p>
+          </div>
         </section>
       </div>
     ),
