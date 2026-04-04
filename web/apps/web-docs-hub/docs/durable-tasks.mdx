@@ -1,0 +1,216 @@
+# Durable Task Execution
+
+Long-running agent workflows and robotics missions need to survive the infrastructure they run on. Durable task execution gives every multi-step task a tamper-evident Write-Ahead Log (WAL), periodic checkpoints, and automatic failover to a healthy runtime if the executing one goes dark.
+
+A task that was 40 steps into a 100-step workflow when its runtime crashed resumes at step 41 on a new runtime — with the same blackboard state, verified by digest, and a signed audit trail that covers the gap.
+
+---
+
+## How it works
+
+Every durable task follows the same three-layer protocol:
+
+**1. Write-Ahead Log** — Before each step executes, the runtime writes an `Intent` entry to the WAL recording the step index, type, and a SHA-256 digest of the input. After successful execution, the entry is updated to `Committed` with the output digest and an Ed25519 signature over the full entry. If the step fails, the entry is marked `Failed` with a reason.
+
+**2. Periodic checkpoints** — Every five committed steps, the runtime sends a `CheckpointPayload` back to the coordination layer. The payload contains a `ResumeToken` with the last committed step index and a rolling SHA-256 digest over all committed output digests in step order.
+
+**3. Automatic recovery** — The coordination layer scans for runtimes with stale heartbeats every 15 seconds. Any runtime silent for more than 90 seconds is marked unhealthy. Its in-flight tasks are immediately reassigned to a healthy runtime with a `ResumeToken` derived from the last persisted checkpoint.
+
+---
+
+## Submitting a task
+
+```bash
+POST /v1/tasks/submit
+Authorization: Bearer YOUR_API_KEY
+Content-Type: application/json
+```
+
+```json
+{
+  "task_type": "agent_workflow",
+  "task_definition": {
+    "task_type": {
+      "type": "agent_workflow",
+      "steps": [
+        {
+          "step_index": 0,
+          "model": "gpt-4o",
+          "messages": [
+            { "role": "user", "content": "Summarize the Q3 report" }
+          ]
+        },
+        {
+          "step_index": 1,
+          "model": "gpt-4o",
+          "messages": [
+            { "role": "user", "content": "Extract action items from the summary" }
+          ]
+        }
+      ]
+    }
+  },
+  "idempotency_key": "report-q3-2026-run-1",
+  "deadline_at": "2026-04-04T18:00:00Z"
+}
+```
+
+The coordination layer creates a task record, selects the healthiest available runtime (lowest active task count), and dispatches asynchronously. The response returns immediately with the task ID and initial status.
+
+```json
+{
+  "task_id": "018f4a2b-3c1e-7a2d-9b8f-4d5e6f7a8b9c",
+  "status": "dispatched",
+  "created_at": "2026-04-04T14:30:00Z"
+}
+```
+
+The `idempotency_key` is deduplicated — submitting the same key twice returns the original response without re-executing.
+
+---
+
+## Polling task status
+
+```bash
+GET /v1/tasks/018f4a2b-3c1e-7a2d-9b8f-4d5e6f7a8b9c
+Authorization: Bearer YOUR_API_KEY
+```
+
+```json
+{
+  "task_id": "018f4a2b-3c1e-7a2d-9b8f-4d5e6f7a8b9c",
+  "status": "checkpointed",
+  "runtime_id": "runtime-edge-03",
+  "last_step": 9,
+  "checkpoint_digest": "a3f8e2b1...",
+  "dispatched_at": "2026-04-04T14:30:01Z",
+  "completed_at": null
+}
+```
+
+| Status | Meaning |
+|---|---|
+| `pending` | Awaiting runtime assignment |
+| `dispatched` | Assigned and executing on a runtime |
+| `checkpointed` | Mid-execution; last checkpoint persisted |
+| `completed` | All steps finished successfully |
+| `failed` | Execution ended with a non-recoverable error |
+| `recovering` | Runtime went dark; being reassigned |
+
+---
+
+## Listing tasks
+
+```bash
+GET /v1/tasks?limit=20
+Authorization: Bearer YOUR_API_KEY
+```
+
+Returns recent tasks for your tenant, newest first. Maximum 100 per request.
+
+---
+
+## Checkpoints and resume tokens
+
+When a runtime sends a checkpoint, the coordination layer persists a `ResumeToken`:
+
+```json
+{
+  "last_committed_step": 9,
+  "checkpoint_digest": "a3f8e2b1c4d5e6f7a8b9c0d1e2f3a4b5c6d7e8f9a0b1c2d3e4f5a6b7c8d9e0f1",
+  "runtime_id": "runtime-edge-03"
+}
+```
+
+On recovery, this token is forwarded to the new runtime with the task definition. The new runtime:
+
+1. Computes its own rolling digest over the WAL entries it holds for this task
+2. Compares it to `checkpoint_digest` in the token
+3. If they match, skips all steps with `step_index < last_committed_step + 1` and resumes from there
+4. If they diverge, rejects the resume with a `checkpoint_mismatch` error — this prevents silently re-executing from a stale state
+
+The digest is a rolling SHA-256 over committed output digests in step order. It cannot be forged without access to the runtime's signing key.
+
+---
+
+## Deadlines
+
+Setting `deadline_at` on a task instructs the runtime to checkpoint and stop if execution reaches the deadline rather than continuing. The task enters `checkpointed` state with a resume token, allowing you to continue it later or on a different runtime.
+
+Tasks without a deadline run until all steps complete, the runtime fails, or you explicitly mark them failed.
+
+---
+
+## Robotics workflows
+
+For robotics, the `task_type` is `robotics_workflow`. Steps are physical actions dispatched over ROS2.
+
+```json
+{
+  "task_type": "robotics_workflow",
+  "steps": [
+    {
+      "step_index": 0,
+      "action": "navigate_to_pose",
+      "goal": { "x": 12.5, "y": -3.0, "z": 0.0, "frame_id": "map" },
+      "wait_timeout_ms": 30000
+    },
+    {
+      "step_index": 1,
+      "action": "publish_prompt",
+      "prompt": "Inspect shelf A3 and report anomalies"
+    }
+  ]
+}
+```
+
+Each navigation goal is WAL-logged before the robot moves. If the runtime crashes mid-mission, recovery dispatches to a healthy runtime which skips completed navigation steps and resumes from the last committed waypoint.
+
+[ROS2 Integration →](/docs/ros2-integration)
+
+---
+
+## Behavior tree execution
+
+The behavior tree engine has full WAL support at the library level. When a WAL session is attached to the execution context, each tick is logged as a `BtNode` step and the blackboard is checkpointed every N ticks (configured via `checkpoint_every` on the session). Any interruption — cancellation, deadline exceeded, or tick error — attaches the last checkpoint to the result immediately.
+
+On recovery, the new runtime:
+1. Restores the blackboard from the checkpoint's `blackboard_state`
+2. Re-creates the behavior tree from the original definition
+3. Resumes ticking from the last committed step, verified by digest
+
+**Current status:** WAL-backed BT execution is available to self-hosted runtime integrations that construct a `BtWalSession` directly via the Rust SDK. The `/v1/btree/run` HTTP endpoint does not yet accept a WAL session — durable BT execution over HTTP is planned. For durable execution today, use `agent_workflow` or `robotics_workflow` via `/v1/tasks/submit`.
+
+[Behavior Trees →](/docs/behavior-trees)
+
+---
+
+## Integrity guarantees
+
+Every committed WAL entry is signed with the runtime's Ed25519 key. The signature covers a deterministic canonical JSON representation of the entry (BTreeMap-sorted field order, output digest, step index, timestamp). Signatures are stored in the WAL and included in checkpoint payloads.
+
+The coordination layer can verify any checkpoint against the WAL entries it received:
+- Step ordering is enforced by `step_index`
+- The rolling checkpoint digest links every committed step in sequence
+- An entry cannot be inserted, removed, or reordered without breaking the digest
+
+[Tamper-Evident Logs →](/docs/tamper-evident-logs) · [Key Management →](/docs/key-management)
+
+---
+
+## API endpoints
+
+| Method | Path | Description |
+|---|---|---|
+| `POST` | `/v1/tasks/submit` | Submit a new task |
+| `GET` | `/v1/tasks/:id` | Get task status and last checkpoint |
+| `GET` | `/v1/tasks` | List tasks for your tenant |
+| `POST` | `/v1/tasks/:id/checkpoint` | Push a checkpoint (called by runtime) |
+| `POST` | `/v1/tasks/:id/complete` | Mark a task completed (called by runtime) |
+| `POST` | `/v1/tasks/:id/failed` | Mark a task failed (called by runtime) |
+
+The `/checkpoint`, `/complete`, and `/failed` endpoints are called by the runtime itself and are authenticated via the same API key mechanism. External callers typically only use `submit`, `GET :id`, and `GET /`.
+
+---
+
+[Agent Lifecycle →](/docs/agent-lifecycle) · [Behavior Trees →](/docs/behavior-trees) · [Execution Receipts →](/docs/execution-receipts)
