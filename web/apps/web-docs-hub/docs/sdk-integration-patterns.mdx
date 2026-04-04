@@ -1,0 +1,205 @@
+# SDK Integration Patterns
+
+This guide shows how to use the SDK surface in a way that is maintainable in production.
+
+It is not a language feature catalog. It is the set of patterns that keep integrations clean when the same product may be called in cloud, local-runtime, or hybrid deployments.
+
+---
+
+## Choose The Right Client Surface First
+
+Start with this decision:
+
+- Use an OpenAI-compatible client when you want the shortest path to a working integration
+- Use a native Igris SDK when you need product-specific features such as receipts, vault operations, fleet controls, or richer routing metadata
+
+The first-class native SDKs today are:
+
+- JavaScript / TypeScript
+- Go
+- Rust
+
+If you are in Python, Java, C#, Ruby, or another language, the safest default is still the OpenAI-compatible API unless you are deliberately evaluating a preview package.
+
+## Standard Environment Variables
+
+Use the same environment-variable model across languages:
+
+- `IGRIS_API_KEY` for hosted API access
+- `IGRIS_BASE_URL` when you need to override the default base URL
+
+Recommended defaults:
+
+- hosted API: `https://overture.igrisinertial.com`
+- local runtime: `http://localhost:8080`
+
+Keeping this consistent is one of the easiest ways to make cloud, local, and hybrid deployments feel like one product to your own application teams.
+
+## Pattern: Choose A Mode Once
+
+Do not let every handler decide whether it is in cloud, local, or hybrid mode.
+
+Make that a startup concern:
+
+- cloud mode points to `https://overture.igrisinertial.com`
+- local mode points to `http://localhost:8080`
+- hybrid mode usually still keeps application traffic on the hosted API, while Igris coordinates work with runtimes behind that surface
+
+The goal is to keep your business logic unaware of deployment details whenever possible.
+
+## Pattern: Centralize Client Construction
+
+Do not scatter client creation across handlers and jobs. Create one small constructor per service and keep the auth/base-URL decision there.
+
+### JavaScript / TypeScript
+
+```typescript
+import { IgrisClient } from '@igris-inertial/sdk';
+
+export function createIgrisClient() {
+  const apiKey = process.env.IGRIS_API_KEY;
+  if (!apiKey) {
+    throw new Error('IGRIS_API_KEY is required');
+  }
+
+  return new IgrisClient({
+    baseUrl: process.env.IGRIS_BASE_URL ?? 'https://overture.igrisinertial.com',
+    apiKey,
+  });
+}
+```
+
+### Go
+
+```go
+package igrisclient
+
+import (
+    "os"
+
+    igris "github.com/igris-inertial/go-sdk"
+)
+
+func New() *igris.Client {
+    baseURL := os.Getenv("IGRIS_BASE_URL")
+    if baseURL == "" {
+        baseURL = "https://overture.igrisinertial.com"
+    }
+
+    apiKey := os.Getenv("IGRIS_API_KEY")
+    if apiKey == "" {
+        panic("IGRIS_API_KEY is required")
+    }
+
+    return igris.NewClient(baseURL, apiKey)
+}
+```
+
+### Rust
+
+```rust
+use igris_inertial::IgrisClient;
+
+pub fn create_igris_client() -> Result<IgrisClient, Box<dyn std::error::Error>> {
+    let base_url = std::env::var("IGRIS_BASE_URL")
+        .unwrap_or_else(|_| "https://overture.igrisinertial.com".to_string());
+
+    let api_key = std::env::var("IGRIS_API_KEY")?;
+
+    Ok(
+        IgrisClient::builder(&base_url)
+            .api_key(api_key)
+            .build()?
+    )
+}
+```
+
+## Pattern: Separate Hosted And Local Modes Cleanly
+
+Do not mix hosted and local URLs ad hoc inside business logic. Decide at startup which mode the process is using.
+
+For example:
+
+- cloud mode: `IGRIS_BASE_URL=https://overture.igrisinertial.com`
+- local mode: `IGRIS_BASE_URL=http://localhost:8080`
+
+That keeps the application code stable even when the deployment model changes.
+
+### JavaScript / TypeScript mode switch
+
+```typescript
+import { IgrisClient } from '@igris-inertial/sdk';
+
+type IgrisMode = 'cloud' | 'local' | 'hybrid';
+
+export function createIgrisClientForMode(mode: IgrisMode) {
+  const baseUrlByMode = {
+    cloud: 'https://overture.igrisinertial.com',
+    local: 'http://localhost:8080',
+    hybrid: 'https://overture.igrisinertial.com',
+  } as const;
+
+  return new IgrisClient({
+    baseUrl: process.env.IGRIS_BASE_URL ?? baseUrlByMode[mode],
+    apiKey: process.env.IGRIS_API_KEY,
+  });
+}
+```
+
+## Pattern: Handle Product Errors Explicitly
+
+Even when you use a native SDK, the integration still needs a product-level error model.
+
+At minimum, treat these classes differently:
+
+- `401` and auth failures: credential or session problem
+- `429`: backoff and retry later
+- `5xx`: transient server-side failure
+- validation failures: fix the request, do not retry blindly
+
+The SDK should make calling the API easier; it does not remove the need for an application-level retry and logging policy.
+
+Related guides:
+
+- [API Authentication →](/docs/api-reference/authentication)
+- [API Errors →](/docs/api-reference/errors)
+- [API Rate Limits →](/docs/api-reference/rate-limits)
+
+## Pattern: Keep Receipt And Audit Handling Out Of The Hot Path
+
+Inference and task submission should stay simple. Receipt export, audit review, and historical analysis should usually happen in a separate workflow or operator path.
+
+That means:
+
+- do not block a user-facing request on a large receipt export
+- do not mix audit export logic into the same function that handles ordinary inference
+- do record the request or execution identifiers you need so a later audit workflow can fetch the right records
+
+This separation keeps your application code smaller and makes the product feel more predictable under load.
+
+## Pattern: Start Portable, Then Go Deeper
+
+The cleanest adoption path usually looks like this:
+
+1. Start with the OpenAI-compatible API
+2. Prove the product path
+3. Move to a native SDK only where product-specific features matter
+
+This keeps the integration surface simple at first and avoids premature coupling to features you do not need yet.
+
+## Production Checklist
+
+- One place in the codebase constructs the client
+- Base URL is environment-driven, not hardcoded per handler
+- `IGRIS_API_KEY` comes from your secret manager, not from source control
+- Hosted and local modes are explicit
+- Retry logic distinguishes `429`, auth errors, validation errors, and `5xx`
+- The team knows whether it is on the OpenAI-compatible path or the native SDK path
+- Receipt, audit, and fleet features are integrated through explicit workflows, not scattered one-off calls
+
+## Related Guides
+
+- [SDKs →](/docs/sdk)
+- [Quick Start →](/docs/quickstart)
+- [First Cloud Integration →](/docs/first-cloud-integration)
+- [Deploy Local Runtime →](/docs/deploy-local-runtime)
