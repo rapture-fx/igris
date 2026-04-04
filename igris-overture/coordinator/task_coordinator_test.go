@@ -73,6 +73,100 @@ func TestNormalizePublicTaskDefinitionValidatesRoboticsWorkflow(t *testing.T) {
 	require.Equal(t, "robotics_workflow", definition["type"])
 }
 
+func TestNormalizePublicTaskDefinitionValidatesExecutionGraph(t *testing.T) {
+	t.Parallel()
+
+	raw := json.RawMessage(`{
+		"graph": {
+			"graph_id": "agent-graph",
+			"nodes": [
+				{
+					"kind": "reason",
+					"node_id": "reason-0",
+					"model": "gpt-4.1-mini",
+					"messages": [{"role":"user","content":"hello"}]
+				},
+				{
+					"kind": "robotics",
+					"node_id": "robotics-1",
+					"action": "publish_zero_velocity"
+				}
+			]
+		}
+	}`)
+
+	normalized, err := normalizePublicTaskDefinition("execution_graph", raw)
+	require.NoError(t, err)
+
+	var definition map[string]any
+	require.NoError(t, json.Unmarshal(normalized, &definition))
+	require.Equal(t, "execution_graph", definition["type"])
+}
+
+func TestNormalizePublicTaskDefinitionRejectsInvalidExecutionGraph(t *testing.T) {
+	t.Parallel()
+
+	raw := json.RawMessage(`{
+		"graph": {
+			"nodes": [
+				{
+					"kind": "reason",
+					"node_id": "reason-0"
+				}
+			]
+		}
+	}`)
+
+	_, err := normalizePublicTaskDefinition("execution_graph", raw)
+	require.ErrorIs(t, err, ErrInvalidTaskDefinition)
+	require.Contains(t, err.Error(), "execution_graph.graph.nodes[0]: model is required")
+}
+
+func TestNormalizePublicTaskDefinitionAcceptsToolExecutionGraphNode(t *testing.T) {
+	t.Parallel()
+
+	raw := json.RawMessage(`{
+		"graph": {
+			"nodes": [
+				{
+					"kind": "tool",
+					"node_id": "tool-0",
+					"tool_name": "web.search"
+				}
+			]
+		}
+	}`)
+
+	normalized, err := normalizePublicTaskDefinition("execution_graph", raw)
+	require.NoError(t, err)
+
+	var definition map[string]any
+	require.NoError(t, json.Unmarshal(normalized, &definition))
+	require.Equal(t, "execution_graph", definition["type"])
+}
+
+func TestNormalizePublicTaskDefinitionRejectsInvalidExecutionGraphSlotFields(t *testing.T) {
+	t.Parallel()
+
+	raw := json.RawMessage(`{
+		"graph": {
+			"nodes": [
+				{
+					"kind": "tool",
+					"node_id": "tool-0",
+					"tool_name": "web.search",
+					"write_slot": "",
+					"read_slots": ["reason.plan"]
+				}
+			]
+		}
+	}`)
+
+	_, err := normalizePublicTaskDefinition("execution_graph", raw)
+	require.ErrorIs(t, err, ErrInvalidTaskDefinition)
+	require.Contains(t, err.Error(), `execution_graph.graph.nodes[0]: write_slot must be a non-empty string`)
+}
+
 func TestNormalizePublicTaskDefinitionRejectsUnsupportedRoboticsAction(t *testing.T) {
 	t.Parallel()
 
