@@ -4,6 +4,7 @@ import { JsonLd } from '@/components/JsonLd';
 import { DocFooter } from '@/components/layout/DocFooter';
 import { FeedbackWidget } from '@/components/layout/FeedbackWidget';
 import { ApiReferenceRightRail } from '@/components/docs/ApiReferencePage';
+import { McpPageRightRail, McpReferenceRightRail } from '@/components/docs/McpReferencePage';
 import { notFound } from 'next/navigation';
 import type { ComponentType } from 'react';
 
@@ -148,6 +149,8 @@ export default async function DocPage({ params }: PageProps) {
   const loadDoc = docModules[slug as keyof typeof docModules];
   const fullWidth = slug === 'api-reference';
   const isApiReference = slug === 'api-reference';
+  const mcpSlugs = new Set(['mcp', 'mcp-server', 'mcp-swarm', 'mcp-integration-patterns']);
+  const isMcpSection = mcpSlugs.has(slug);
 
   if (!loadDoc) notFound();
 
@@ -164,8 +167,14 @@ export default async function DocPage({ params }: PageProps) {
     <>
       {jsonLdData && <JsonLd data={jsonLdData} />}
       <DocsLayout
-        hideTableOfContents={isApiReference}
-        rightRail={isApiReference ? <ApiReferenceRightRail /> : undefined}
+        hideTableOfContents={isApiReference || isMcpSection}
+        rightRail={
+          isApiReference
+            ? <ApiReferenceRightRail />
+            : isMcpSection
+              ? (slug === 'mcp' ? <McpReferenceRightRail /> : <McpPageRightRail slug={slug} />)
+              : undefined
+        }
         maxWidthClass={isApiReference ? 'max-w-[96rem]' : 'max-w-[90rem]'}
       >
         <MDXContent fullWidth={fullWidth}>
