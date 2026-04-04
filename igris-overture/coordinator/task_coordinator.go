@@ -11,6 +11,7 @@ import (
 	"errors"
 	"fmt"
 	"net/http"
+	"strings"
 	"time"
 
 	"github.com/google/uuid"
@@ -391,6 +392,9 @@ func normalizePublicTaskDefinition(taskType string, raw json.RawMessage) (json.R
 	if err := json.Unmarshal(raw, &definition); err != nil {
 		return nil, fmt.Errorf("%w: task_definition must be a JSON object", ErrInvalidTaskDefinition)
 	}
+	if err := validateTaskDefinition(taskType, definition); err != nil {
+		return nil, err
+	}
 	typeBytes, err := json.Marshal(taskType)
 	if err != nil {
 		return nil, fmt.Errorf("%w: could not encode task_type", ErrInvalidTaskDefinition)
@@ -401,4 +405,167 @@ func normalizePublicTaskDefinition(taskType string, raw json.RawMessage) (json.R
 		return nil, fmt.Errorf("%w: could not normalize task_definition", ErrInvalidTaskDefinition)
 	}
 	return normalized, nil
+}
+
+func validateTaskDefinition(taskType string, definition map[string]json.RawMessage) error {
+	switch taskType {
+	case "single_inference":
+		if err := requireStringField(definition, "model"); err != nil {
+			return err
+		}
+		if _, err := requireArrayField(definition, "messages"); err != nil {
+			return err
+		}
+	case "agent_workflow":
+		steps, err := requireArrayField(definition, "steps")
+		if err != nil {
+			return err
+		}
+		if len(steps) == 0 {
+			return invalidTaskDefinition("agent_workflow.steps must contain at least one step")
+		}
+		for idx, rawStep := range steps {
+			var step map[string]json.RawMessage
+			if err := json.Unmarshal(rawStep, &step); err != nil {
+				return invalidTaskDefinition("agent_workflow.steps[%d] must be an object", idx)
+			}
+			if err := requireNumericField(step, "step_index"); err != nil {
+				return invalidTaskDefinition("agent_workflow.steps[%d]: %s", idx, unwrapInvalidTaskDefinition(err))
+			}
+			if err := requireStringField(step, "model"); err != nil {
+				return invalidTaskDefinition("agent_workflow.steps[%d]: %s", idx, unwrapInvalidTaskDefinition(err))
+			}
+			if _, err := requireArrayField(step, "messages"); err != nil {
+				return invalidTaskDefinition("agent_workflow.steps[%d]: %s", idx, unwrapInvalidTaskDefinition(err))
+			}
+		}
+	case "robotics_workflow":
+		steps, err := requireArrayField(definition, "steps")
+		if err != nil {
+			return err
+		}
+		if len(steps) == 0 {
+			return invalidTaskDefinition("robotics_workflow.steps must contain at least one step")
+		}
+		for idx, rawStep := range steps {
+			var step map[string]json.RawMessage
+			if err := json.Unmarshal(rawStep, &step); err != nil {
+				return invalidTaskDefinition("robotics_workflow.steps[%d] must be an object", idx)
+			}
+			if err := requireNumericField(step, "step_index"); err != nil {
+				return invalidTaskDefinition("robotics_workflow.steps[%d]: %s", idx, unwrapInvalidTaskDefinition(err))
+			}
+			if err := validateRoboticsStep(step); err != nil {
+				return invalidTaskDefinition("robotics_workflow.steps[%d]: %s", idx, unwrapInvalidTaskDefinition(err))
+			}
+		}
+	case "behavior_tree":
+		if _, ok := definition["tree"]; !ok {
+			return invalidTaskDefinition("behavior_tree.tree is required")
+		}
+	default:
+		return invalidTaskDefinition("unsupported task_type %q", taskType)
+	}
+	return nil
+}
+
+func validateRoboticsStep(step map[string]json.RawMessage) error {
+	action, err := readStringField(step, "action")
+	if err != nil {
+		return err
+	}
+
+	switch action {
+	case "navigate_to_pose":
+		rawGoal, ok := step["goal"]
+		if !ok {
+			return invalidTaskDefinition("goal is required")
+		}
+		var goal map[string]json.RawMessage
+		if err := json.Unmarshal(rawGoal, &goal); err != nil {
+			return invalidTaskDefinition("goal must be an object")
+		}
+		if err := requireNumericField(goal, "x"); err != nil {
+			return err
+		}
+		if err := requireNumericField(goal, "y"); err != nil {
+			return err
+		}
+	case "publish_prompt":
+		if err := requireStringField(step, "prompt"); err != nil {
+			return err
+		}
+	case "publish_velocity":
+		if err := requireNumericField(step, "linear_x"); err != nil {
+			return err
+		}
+		if err := requireNumericField(step, "angular_z"); err != nil {
+			return err
+		}
+	case "get_navigation_status", "cancel_navigation", "publish_zero_velocity":
+	default:
+		return invalidTaskDefinition("unsupported robotics action %q", action)
+	}
+
+	return nil
+}
+
+func requireStringField(definition map[string]json.RawMessage, field string) error {
+	value, err := readStringField(definition, field)
+	if err != nil {
+		return err
+	}
+	if value == "" {
+		return invalidTaskDefinition("%s must be a non-empty string", field)
+	}
+	return nil
+}
+
+func readStringField(definition map[string]json.RawMessage, field string) (string, error) {
+	raw, ok := definition[field]
+	if !ok {
+		return "", invalidTaskDefinition("%s is required", field)
+	}
+	var value string
+	if err := json.Unmarshal(raw, &value); err != nil {
+		return "", invalidTaskDefinition("%s must be a string", field)
+	}
+	return value, nil
+}
+
+func requireArrayField(definition map[string]json.RawMessage, field string) ([]json.RawMessage, error) {
+	raw, ok := definition[field]
+	if !ok {
+		return nil, invalidTaskDefinition("%s is required", field)
+	}
+	var values []json.RawMessage
+	if err := json.Unmarshal(raw, &values); err != nil {
+		return nil, invalidTaskDefinition("%s must be an array", field)
+	}
+	return values, nil
+}
+
+func requireNumericField(definition map[string]json.RawMessage, field string) error {
+	raw, ok := definition[field]
+	if !ok {
+		return invalidTaskDefinition("%s is required", field)
+	}
+	var value json.Number
+	if err := json.Unmarshal(raw, &value); err != nil {
+		return invalidTaskDefinition("%s must be a number", field)
+	}
+	if _, err := value.Float64(); err != nil {
+		return invalidTaskDefinition("%s must be a number", field)
+	}
+	return nil
+}
+
+func invalidTaskDefinition(format string, args ...any) error {
+	return fmt.Errorf("%w: %s", ErrInvalidTaskDefinition, fmt.Sprintf(format, args...))
+}
+
+func unwrapInvalidTaskDefinition(err error) string {
+	msg := err.Error()
+	prefix := ErrInvalidTaskDefinition.Error() + ": "
+	return strings.TrimPrefix(msg, prefix)
 }
