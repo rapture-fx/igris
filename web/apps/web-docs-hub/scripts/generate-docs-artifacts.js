@@ -102,6 +102,7 @@ function buildRouteInventory() {
 function validateConfiguredRoutes(inventory) {
   const routeKeys = new Set(inventory.map((route) => `${route.method} ${route.path}`));
   const missing = [];
+  const metadataFailures = [];
 
   for (const section of apiSections) {
     for (const endpoint of section.endpoints) {
@@ -109,11 +110,21 @@ function validateConfiguredRoutes(inventory) {
       if (!routeKeys.has(key)) {
         missing.push(key);
       }
+      if (!endpoint.support) {
+        metadataFailures.push(`${key}: missing support level`);
+      }
+      if (!endpoint.deployment) {
+        metadataFailures.push(`${key}: missing deployment mode`);
+      }
     }
   }
 
   if (missing.length > 0) {
     throw new Error(`Docs route catalog references routes not found in code:\n${missing.join('\n')}`);
+  }
+
+  if (metadataFailures.length > 0) {
+    throw new Error(`Docs route catalog is missing endpoint metadata:\n${metadataFailures.join('\n')}`);
   }
 }
 
