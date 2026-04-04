@@ -5,6 +5,7 @@ import (
 	"encoding/hex"
 	"encoding/json"
 	"fmt"
+	"sort"
 	"time"
 
 	"github.com/google/uuid"
@@ -280,6 +281,49 @@ func (s *CheckpointStore) GetLastCheckpoint(taskID uuid.UUID) (*CheckpointPayloa
 		return nil, err
 	}
 	return &cp, nil
+}
+
+// GetAllTaskSteps aggregates WAL entries across all checkpoint rows for a task,
+// deduplicates by entry_id, and returns them sorted by step_index ascending.
+// This is necessary because checkpoints are delta-based (each row contains only
+// the entries written since the prior checkpoint), not cumulative.
+func (s *CheckpointStore) GetAllTaskSteps(taskID uuid.UUID) ([]WalEntry, error) {
+	rows, err := s.db.Query(`
+		SELECT wal_entries FROM wal_checkpoints
+		WHERE task_id = $1
+		ORDER BY step_index ASC`,
+		taskID,
+	)
+	if err != nil {
+		return nil, err
+	}
+	defer rows.Close()
+
+	seen := make(map[uuid.UUID]struct{})
+	var all []WalEntry
+	for rows.Next() {
+		var cpBytes []byte
+		if err := rows.Scan(&cpBytes); err != nil {
+			return nil, err
+		}
+		var cp CheckpointPayload
+		if err := json.Unmarshal(cpBytes, &cp); err != nil {
+			return nil, err
+		}
+		for _, entry := range cp.WalEntries {
+			if _, dup := seen[entry.EntryID]; !dup {
+				seen[entry.EntryID] = struct{}{}
+				all = append(all, entry)
+			}
+		}
+	}
+	if err := rows.Err(); err != nil {
+		return nil, err
+	}
+	sort.Slice(all, func(i, j int) bool {
+		return all[i].StepIndex < all[j].StepIndex
+	})
+	return all, nil
 }
 
 // GetRecoveringTasks returns tasks in RECOVERING state with their last checkpoints.
