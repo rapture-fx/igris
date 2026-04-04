@@ -788,6 +788,41 @@ impl Ros2Node {
         Ok(())
     }
 
+    /// Publish a velocity command to `/cmd_vel`.
+    ///
+    /// Used by robot recovery behaviors (backup, custom maneuvers). Cap linear
+    /// velocity at ±2 m/s and angular at ±π rad/s for safety.
+    pub async fn publish_velocity(&self, linear_x: f64, angular_z: f64) -> Result<()> {
+        debug!("Publishing velocity linear_x={:.3} angular_z={:.3}", linear_x, angular_z);
+        let twist = r2r::geometry_msgs::msg::Twist {
+            linear: r2r::geometry_msgs::msg::Vector3 {
+                x: linear_x.clamp(-2.0, 2.0),
+                y: 0.0,
+                z: 0.0,
+            },
+            angular: r2r::geometry_msgs::msg::Vector3 {
+                x: 0.0,
+                y: 0.0,
+                z: angular_z.clamp(-std::f64::consts::PI, std::f64::consts::PI),
+            },
+        };
+        let mut pub_lock = self.cmd_vel_pub.write().await;
+        let _ = pub_lock.publish(&twist);
+        Ok(())
+    }
+
+    /// Publish a pure spin velocity to `/cmd_vel` (linear=0, angular=angular_z).
+    pub async fn publish_spin_velocity(&self, angular_z: f64) -> Result<()> {
+        self.publish_velocity(0.0, angular_z).await
+    }
+
+    /// Returns the underlying r2r::Node for callers that need to create
+    /// additional publishers, subscribers, or service clients (e.g. the
+    /// robot recovery module for costmap service calls).
+    pub fn ros2_node(&self) -> Arc<r2r::Node> {
+        self.node.clone()
+    }
+
     /// Shutdown the ROS2 node
     pub async fn shutdown(&self) -> Result<()> {
         info!("Shutting down real ROS2 node");
@@ -1013,6 +1048,23 @@ impl Ros2Node {
             log.drain(..excess);
         }
         Ok(())
+    }
+
+    /// Publish an arbitrary velocity command (stub — logs [linear_x, angular_z]).
+    pub async fn publish_velocity(&self, linear_x: f64, angular_z: f64) -> Result<()> {
+        debug!("Publishing velocity (stub) linear_x={:.3} angular_z={:.3}", linear_x, angular_z);
+        let mut log = self.cmd_vel_log.write().await;
+        log.push([linear_x, angular_z]);
+        if log.len() > 100 {
+            let excess = log.len() - 100;
+            log.drain(..excess);
+        }
+        Ok(())
+    }
+
+    /// Publish a pure spin velocity (stub).
+    pub async fn publish_spin_velocity(&self, angular_z: f64) -> Result<()> {
+        self.publish_velocity(0.0, angular_z).await
     }
 
     /// Number of zero-velocity commands recorded (test helper).
