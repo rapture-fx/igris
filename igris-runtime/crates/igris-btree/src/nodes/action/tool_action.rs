@@ -121,17 +121,46 @@ impl BTreeNode for ToolAction {
         "ToolAction"
     }
 
-    async fn tick(&mut self, _context: &mut BTreeContext) -> Result<NodeStatus> {
+    async fn tick(&mut self, context: &mut BTreeContext) -> Result<NodeStatus> {
         debug!("ToolAction '{}': Executing tool '{}'", self.name, self.tool_name);
 
-        match self.registry.execute(&self.tool_name, self.args.clone()).await {
+        // When a WAL session is active, derive a deterministic idempotency key so
+        // that re-executing this tick (e.g. after a crash before WAL commit) returns
+        // the cached result rather than re-firing the tool's side effect.
+        #[cfg(feature = "wal")]
+        let tool_result = {
+            if let Some(ref session) = context.wal_session {
+                use sha2::{Digest, Sha256};
+                let args_hash = format!(
+                    "{:x}",
+                    Sha256::digest(serde_json::to_vec(&self.args).unwrap_or_default())
+                );
+                let key = format!(
+                    "{}:{}:{}:{}",
+                    session.task_id, context.tick_count, self.tool_name, args_hash
+                );
+                self.registry
+                    .execute_idempotent(&key, &self.tool_name, self.args.clone())
+                    .await
+            } else {
+                self.registry.execute(&self.tool_name, self.args.clone()).await
+            }
+        };
+
+        #[cfg(not(feature = "wal"))]
+        let tool_result = self.registry.execute(&self.tool_name, self.args.clone()).await;
+
+        match tool_result {
             Ok(result) => {
                 if result.success {
                     debug!("ToolAction '{}': Tool succeeded ({}ms)", self.name, result.execution_time_ms);
                     Ok(NodeStatus::Success)
                 } else {
-                    warn!("ToolAction '{}': Tool failed: {}", self.name,
-                        result.error.unwrap_or_else(|| "unknown error".to_string()));
+                    warn!(
+                        "ToolAction '{}': Tool failed: {}",
+                        self.name,
+                        result.error.unwrap_or_else(|| "unknown error".to_string())
+                    );
                     Ok(NodeStatus::Failure)
                 }
             }
