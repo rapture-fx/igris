@@ -4,7 +4,7 @@ import { JsonLd } from '@/components/JsonLd';
 import { DocFooter } from '@/components/layout/DocFooter';
 import { FeedbackWidget } from '@/components/layout/FeedbackWidget';
 import { ApiReferenceRightRail } from '@/components/docs/ApiReferencePage';
-import { McpPageRightRail, McpReferenceRightRail } from '@/components/docs/McpReferencePage';
+import { McpPageRightRail, McpReferenceRightRail } from '@/components/docs/McpRightRails';
 import { notFound } from 'next/navigation';
 import type { ComponentType } from 'react';
 
