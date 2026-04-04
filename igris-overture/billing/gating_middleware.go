@@ -82,10 +82,15 @@ func (gm *GatingMiddleware) Enforce() fiber.Handler {
 			})
 		}
 
-		// Resolve tier plan and inject into context for downstream handlers
-		tierID := sub.Metadata["tier"]
-		if tierID == "" {
-			tierID = string(TierSeed)
+		// Resolve tier plan and inject into context for downstream handlers.
+		// Billing state must be explicit; do not silently downgrade unknown plans.
+		tierID, err := ResolveTierID(sub.Metadata, sub.PriceID)
+		if err != nil {
+			gm.logger.Printf("[Gating] Invalid tier resolution: tenant=%s error=%v", tenantIDStr, err)
+			return c.Status(fiber.StatusServiceUnavailable).JSON(fiber.Map{
+				"error": "Billing tier unavailable",
+				"code":  "BILLING_TIER_UNAVAILABLE",
+			})
 		}
 
 		tier, err := GetTierByID(tierID)
@@ -161,9 +166,9 @@ func (gm *GatingMiddleware) GetTierUsage(ctx context.Context, tenantID string) (
 		return nil, fmt.Errorf("no subscription found: %w", err)
 	}
 
-	tierID := sub.Metadata["tier"]
-	if tierID == "" {
-		tierID = string(TierSeed)
+	tierID, err := ResolveTierID(sub.Metadata, sub.PriceID)
+	if err != nil {
+		return nil, fmt.Errorf("could not resolve tier: %w", err)
 	}
 
 	tier, err := GetTierByID(tierID)
