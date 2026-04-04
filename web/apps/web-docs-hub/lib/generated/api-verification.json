@@ -1,0 +1,900 @@
+{
+  "generated_at": "2026-04-04T01:56:39.317Z",
+  "summary": {
+    "total": 51,
+    "by_status": {
+      "test-covered": 5,
+      "client-referenced": 10,
+      "implemented-unverified": 36
+    },
+    "by_section": {
+      "Inference & Integration": 7,
+      "Runtime Distribution & Fleet Coordination": 9,
+      "Account, Trial, and Billing": 5,
+      "Vault, Policy, and Governance": 9,
+      "Execution, History, and Receipts": 5,
+      "Behavior Trees": 5,
+      "Local Runtime API": 11
+    }
+  },
+  "endpoints": [
+    {
+      "section": "Inference & Integration",
+      "method": "POST",
+      "path": "/v1/infer",
+      "auth": "Deployment-dependent",
+      "surface": "Cloud API",
+      "stability": "stable",
+      "description": "Native inference endpoint handled by Overture.",
+      "status": "test-covered",
+      "confidence": "high",
+      "note": "At least one automated test references this route path and method.",
+      "evidence": {
+        "test_files": [
+          "igris-go-sdk/igris_test.go",
+          "igris-overture/api/routes_multimodal_test.go",
+          "stability-tests/tests/load/extended_load_test.go",
+          "stability-tests/tests/load/soak_test.go",
+          "stability-tests/tests/tier_gating_validation_test.go"
+        ],
+        "client_files": [
+          "igris-javascript-sdk/src/client.ts",
+          "igris-rust-sdk/src/client.rs"
+        ]
+      }
+    },
+    {
+      "section": "Inference & Integration",
+      "method": "POST",
+      "path": "/v1/chat/completions",
+      "auth": "Deployment-dependent",
+      "surface": "Cloud API",
+      "stability": "stable",
+      "description": "OpenAI-compatible chat completions endpoint.",
+      "status": "test-covered",
+      "confidence": "high",
+      "note": "At least one automated test references this route path and method.",
+      "evidence": {
+        "test_files": [
+          "igris-go-sdk/runtime_test.go",
+          "igris-javascript-sdk/tests/runtime.test.ts",
+          "igris-rust-sdk/tests/runtime_test.rs"
+        ],
+        "client_files": [
+          "igris-javascript-sdk/src/client.ts",
+          "igris-javascript-sdk/src/runtime.ts",
+          "igris-rust-sdk/src/client.rs",
+          "igris-rust-sdk/src/runtime.rs"
+        ]
+      }
+    },
+    {
+      "section": "Inference & Integration",
+      "method": "GET",
+      "path": "/v1/health",
+      "auth": "Public",
+      "surface": "Cloud API",
+      "stability": "stable",
+      "description": "Health check for inference availability.",
+      "status": "test-covered",
+      "confidence": "high",
+      "note": "At least one automated test references this route path and method.",
+      "evidence": {
+        "test_files": [
+          "igris-go-sdk/runtime_test.go",
+          "igris-overture/internal/runtime_selector_test.go",
+          "igris-rust-sdk/tests/runtime_test.rs",
+          "stability-tests/tests/load/extended_load_test.go",
+          "stability-tests/tests/load/soak_test.go"
+        ],
+        "client_files": [
+          "igris-go-sdk/runtime.go",
+          "igris-javascript-sdk/src/client.ts",
+          "igris-javascript-sdk/src/runtime.ts",
+          "igris-rust-sdk/src/client.rs",
+          "igris-rust-sdk/src/runtime.rs"
+        ]
+      }
+    },
+    {
+      "section": "Inference & Integration",
+      "method": "GET",
+      "path": "/v1/models",
+      "auth": "Public",
+      "surface": "Cloud API",
+      "stability": "stable",
+      "description": "Lists models visible to the inference layer.",
+      "status": "client-referenced",
+      "confidence": "medium",
+      "note": "A client or transport layer references this route, but no direct automated test was found.",
+      "evidence": {
+        "test_files": [],
+        "client_files": [
+          "igris-javascript-sdk/src/client.ts",
+          "igris-rust-sdk/src/client.rs"
+        ]
+      }
+    },
+    {
+      "section": "Inference & Integration",
+      "method": "GET",
+      "path": "/v1/providers/stats",
+      "auth": "Public",
+      "surface": "Cloud API",
+      "stability": "stable",
+      "description": "Provider latency, health, and routing statistics.",
+      "status": "client-referenced",
+      "confidence": "medium",
+      "note": "A client or transport layer references this route, but no direct automated test was found.",
+      "evidence": {
+        "test_files": [],
+        "client_files": [
+          "igris-javascript-sdk/src/client.ts",
+          "igris-rust-sdk/src/client.rs"
+        ]
+      }
+    },
+    {
+      "section": "Inference & Integration",
+      "method": "POST",
+      "path": "/v1/infer/multimodal",
+      "auth": "Session or API key",
+      "surface": "Cloud API",
+      "stability": "preview",
+      "description": "Multimodal inference endpoint.",
+      "status": "test-covered",
+      "confidence": "high",
+      "note": "At least one automated test references this route path and method.",
+      "evidence": {
+        "test_files": [
+          "igris-overture/api/routes_multimodal_test.go"
+        ],
+        "client_files": []
+      }
+    },
+    {
+      "section": "Inference & Integration",
+      "method": "GET",
+      "path": "/v1/infer/multimodal/stats",
+      "auth": "Session or API key",
+      "surface": "Cloud API",
+      "stability": "preview",
+      "description": "Multimodal request statistics.",
+      "status": "test-covered",
+      "confidence": "high",
+      "note": "At least one automated test references this route path and method.",
+      "evidence": {
+        "test_files": [
+          "igris-overture/api/routes_multimodal_test.go"
+        ],
+        "client_files": []
+      }
+    },
+    {
+      "section": "Runtime Distribution & Fleet Coordination",
+      "method": "GET",
+      "path": "/v1/runtime/install",
+      "auth": "Public",
+      "surface": "Cloud API",
+      "stability": "stable",
+      "description": "Returns or redirects to the platform-specific runtime archive.",
+      "status": "implemented-unverified",
+      "confidence": "low",
+      "note": "Route is documented and registered in code, but no direct test or client exercise was found in this repository scan.",
+      "evidence": {
+        "test_files": [],
+        "client_files": []
+      }
+    },
+    {
+      "section": "Runtime Distribution & Fleet Coordination",
+      "method": "GET",
+      "path": "/v1/runtime/checksum",
+      "auth": "Public",
+      "surface": "Cloud API",
+      "stability": "stable",
+      "description": "Returns the SHA-256 checksum for a runtime archive.",
+      "status": "implemented-unverified",
+      "confidence": "low",
+      "note": "Route is documented and registered in code, but no direct test or client exercise was found in this repository scan.",
+      "evidence": {
+        "test_files": [],
+        "client_files": []
+      }
+    },
+    {
+      "section": "Runtime Distribution & Fleet Coordination",
+      "method": "GET",
+      "path": "/v1/runtime/download",
+      "auth": "Session or API key",
+      "surface": "Cloud API",
+      "stability": "stable",
+      "description": "Subscribed runtime binary download endpoint.",
+      "status": "implemented-unverified",
+      "confidence": "low",
+      "note": "Route is documented and registered in code, but no direct test or client exercise was found in this repository scan.",
+      "evidence": {
+        "test_files": [],
+        "client_files": []
+      }
+    },
+    {
+      "section": "Runtime Distribution & Fleet Coordination",
+      "method": "POST",
+      "path": "/api/v1/runtime/register",
+      "auth": "igris_ API key",
+      "surface": "Runtime coordination API",
+      "stability": "stable",
+      "description": "Registers a runtime instance against a tenant.",
+      "status": "client-referenced",
+      "confidence": "medium",
+      "note": "A client or transport layer references this route, but no direct automated test was found.",
+      "evidence": {
+        "test_files": [],
+        "client_files": [
+          "igris-runtime/crates/igris-license-client/src/lib.rs"
+        ]
+      }
+    },
+    {
+      "section": "Runtime Distribution & Fleet Coordination",
+      "method": "POST",
+      "path": "/api/v1/runtime/heartbeat",
+      "auth": "igris_ API key",
+      "surface": "Runtime coordination API",
+      "stability": "stable",
+      "description": "Heartbeat and liveness updates from runtime instances.",
+      "status": "client-referenced",
+      "confidence": "medium",
+      "note": "A client or transport layer references this route, but no direct automated test was found.",
+      "evidence": {
+        "test_files": [],
+        "client_files": [
+          "igris-runtime/crates/igris-license-client/src/lib.rs"
+        ]
+      }
+    },
+    {
+      "section": "Runtime Distribution & Fleet Coordination",
+      "method": "DELETE",
+      "path": "/api/v1/runtime/deregister",
+      "auth": "igris_ API key",
+      "surface": "Runtime coordination API",
+      "stability": "stable",
+      "description": "Removes a runtime instance from active fleet state.",
+      "status": "client-referenced",
+      "confidence": "medium",
+      "note": "A client or transport layer references this route, but no direct automated test was found.",
+      "evidence": {
+        "test_files": [],
+        "client_files": [
+          "igris-runtime/crates/igris-license-client/src/lib.rs"
+        ]
+      }
+    },
+    {
+      "section": "Runtime Distribution & Fleet Coordination",
+      "method": "GET",
+      "path": "/api/v1/runtime/list",
+      "auth": "tenant_id query or authenticated tenant context",
+      "surface": "Fleet management",
+      "stability": "stable",
+      "description": "Lists registered runtime instances for a tenant.",
+      "status": "implemented-unverified",
+      "confidence": "low",
+      "note": "Route is documented and registered in code, but no direct test or client exercise was found in this repository scan.",
+      "evidence": {
+        "test_files": [],
+        "client_files": []
+      }
+    },
+    {
+      "section": "Runtime Distribution & Fleet Coordination",
+      "method": "POST",
+      "path": "/api/v1/runtime/config/push",
+      "auth": "Session cookie",
+      "surface": "Fleet management",
+      "stability": "stable",
+      "description": "Queues configuration push commands for the fleet.",
+      "status": "implemented-unverified",
+      "confidence": "low",
+      "note": "Route is documented and registered in code, but no direct test or client exercise was found in this repository scan.",
+      "evidence": {
+        "test_files": [],
+        "client_files": []
+      }
+    },
+    {
+      "section": "Runtime Distribution & Fleet Coordination",
+      "method": "POST",
+      "path": "/api/v1/runtime/update",
+      "auth": "Session cookie",
+      "surface": "Fleet management",
+      "stability": "stable",
+      "description": "Queues OTA update commands for the fleet.",
+      "status": "implemented-unverified",
+      "confidence": "low",
+      "note": "Route is documented and registered in code, but no direct test or client exercise was found in this repository scan.",
+      "evidence": {
+        "test_files": [],
+        "client_files": []
+      }
+    },
+    {
+      "section": "Account, Trial, and Billing",
+      "method": "GET",
+      "path": "/api/subscription/status",
+      "auth": "Session cookie or igris_ API key",
+      "surface": "Cloud API",
+      "stability": "stable",
+      "description": "Returns subscription tier, status, and runtime usage.",
+      "status": "implemented-unverified",
+      "confidence": "low",
+      "note": "Route is documented and registered in code, but no direct test or client exercise was found in this repository scan.",
+      "evidence": {
+        "test_files": [],
+        "client_files": []
+      }
+    },
+    {
+      "section": "Account, Trial, and Billing",
+      "method": "GET",
+      "path": "/api/subscription/plans",
+      "auth": "Session cookie or igris_ API key",
+      "surface": "Cloud API",
+      "stability": "stable",
+      "description": "Lists available plans and checkout URLs.",
+      "status": "implemented-unverified",
+      "confidence": "low",
+      "note": "Route is documented and registered in code, but no direct test or client exercise was found in this repository scan.",
+      "evidence": {
+        "test_files": [],
+        "client_files": []
+      }
+    },
+    {
+      "section": "Account, Trial, and Billing",
+      "method": "GET",
+      "path": "/v1/account/api-key",
+      "auth": "Session cookie or igris_ API key",
+      "surface": "Cloud API",
+      "stability": "stable",
+      "description": "Returns current API key metadata without revealing the secret.",
+      "status": "implemented-unverified",
+      "confidence": "low",
+      "note": "Route is documented and registered in code, but no direct test or client exercise was found in this repository scan.",
+      "evidence": {
+        "test_files": [],
+        "client_files": []
+      }
+    },
+    {
+      "section": "Account, Trial, and Billing",
+      "method": "POST",
+      "path": "/v1/account/api-key",
+      "auth": "Session cookie or igris_ API key",
+      "surface": "Cloud API",
+      "stability": "stable",
+      "description": "Creates a new tenant API key and revokes the old one.",
+      "status": "implemented-unverified",
+      "confidence": "low",
+      "note": "Route is documented and registered in code, but no direct test or client exercise was found in this repository scan.",
+      "evidence": {
+        "test_files": [],
+        "client_files": []
+      }
+    },
+    {
+      "section": "Account, Trial, and Billing",
+      "method": "DELETE",
+      "path": "/v1/account/api-key",
+      "auth": "Session cookie or igris_ API key",
+      "surface": "Cloud API",
+      "stability": "stable",
+      "description": "Revokes the current tenant API key.",
+      "status": "implemented-unverified",
+      "confidence": "low",
+      "note": "Route is documented and registered in code, but no direct test or client exercise was found in this repository scan.",
+      "evidence": {
+        "test_files": [],
+        "client_files": []
+      }
+    },
+    {
+      "section": "Vault, Policy, and Governance",
+      "method": "GET",
+      "path": "/v1/vault/keys",
+      "auth": "Session cookie or igris_ API key",
+      "surface": "Cloud API",
+      "stability": "stable",
+      "description": "Lists configured provider keys with masked values.",
+      "status": "client-referenced",
+      "confidence": "medium",
+      "note": "A client or transport layer references this route, but no direct automated test was found.",
+      "evidence": {
+        "test_files": [],
+        "client_files": [
+          "igris-javascript-sdk/src/vault.ts",
+          "igris-rust-sdk/src/vault.rs"
+        ]
+      }
+    },
+    {
+      "section": "Vault, Policy, and Governance",
+      "method": "POST",
+      "path": "/v1/vault/keys",
+      "auth": "Session cookie or igris_ API key",
+      "surface": "Cloud API",
+      "stability": "stable",
+      "description": "Stores a provider key using `{ provider, key_name, api_key }`.",
+      "status": "client-referenced",
+      "confidence": "medium",
+      "note": "A client or transport layer references this route, but no direct automated test was found.",
+      "evidence": {
+        "test_files": [],
+        "client_files": [
+          "igris-javascript-sdk/src/vault.ts",
+          "igris-rust-sdk/src/vault.rs"
+        ]
+      }
+    },
+    {
+      "section": "Vault, Policy, and Governance",
+      "method": "GET",
+      "path": "/v1/vault/keys/:provider",
+      "auth": "Session cookie or igris_ API key",
+      "surface": "Cloud API",
+      "stability": "stable",
+      "description": "Gets a single provider key record.",
+      "status": "client-referenced",
+      "confidence": "medium",
+      "note": "A client or transport layer references this route, but no direct automated test was found.",
+      "evidence": {
+        "test_files": [],
+        "client_files": [
+          "igris-javascript-sdk/src/vault.ts",
+          "igris-rust-sdk/src/vault.rs"
+        ]
+      }
+    },
+    {
+      "section": "Vault, Policy, and Governance",
+      "method": "DELETE",
+      "path": "/v1/vault/keys/:provider",
+      "auth": "Session cookie or igris_ API key",
+      "surface": "Cloud API",
+      "stability": "stable",
+      "description": "Deletes a provider key.",
+      "status": "client-referenced",
+      "confidence": "medium",
+      "note": "A client or transport layer references this route, but no direct automated test was found.",
+      "evidence": {
+        "test_files": [],
+        "client_files": [
+          "igris-go-sdk/vault.go",
+          "igris-javascript-sdk/src/vault.ts",
+          "igris-rust-sdk/src/vault.rs"
+        ]
+      }
+    },
+    {
+      "section": "Vault, Policy, and Governance",
+      "method": "POST",
+      "path": "/v1/vault/keys/:provider/rotate",
+      "auth": "Session cookie or igris_ API key",
+      "surface": "Cloud API",
+      "stability": "stable",
+      "description": "Rotates a provider key.",
+      "status": "client-referenced",
+      "confidence": "medium",
+      "note": "A client or transport layer references this route, but no direct automated test was found.",
+      "evidence": {
+        "test_files": [],
+        "client_files": [
+          "igris-javascript-sdk/src/vault.ts",
+          "igris-rust-sdk/src/vault.rs"
+        ]
+      }
+    },
+    {
+      "section": "Vault, Policy, and Governance",
+      "method": "POST",
+      "path": "/v1/vault/keys/:provider/validate",
+      "auth": "Session cookie or igris_ API key",
+      "surface": "Cloud API",
+      "stability": "stable",
+      "description": "Validates a provider key with the current backend implementation.",
+      "status": "implemented-unverified",
+      "confidence": "low",
+      "note": "Route is documented and registered in code, but no direct test or client exercise was found in this repository scan.",
+      "evidence": {
+        "test_files": [],
+        "client_files": []
+      }
+    },
+    {
+      "section": "Vault, Policy, and Governance",
+      "method": "GET",
+      "path": "/v1/policy",
+      "auth": "Session cookie or igris_ API key",
+      "surface": "Cloud API",
+      "stability": "stable",
+      "description": "Returns tenant policy document.",
+      "status": "implemented-unverified",
+      "confidence": "low",
+      "note": "Route is documented and registered in code, but no direct test or client exercise was found in this repository scan.",
+      "evidence": {
+        "test_files": [],
+        "client_files": []
+      }
+    },
+    {
+      "section": "Vault, Policy, and Governance",
+      "method": "PUT",
+      "path": "/v1/policy",
+      "auth": "Session cookie or igris_ API key",
+      "surface": "Cloud API",
+      "stability": "stable",
+      "description": "Replaces tenant policy document.",
+      "status": "implemented-unverified",
+      "confidence": "low",
+      "note": "Route is documented and registered in code, but no direct test or client exercise was found in this repository scan.",
+      "evidence": {
+        "test_files": [],
+        "client_files": []
+      }
+    },
+    {
+      "section": "Vault, Policy, and Governance",
+      "method": "GET",
+      "path": "/v1/policy/history",
+      "auth": "Session cookie or igris_ API key",
+      "surface": "Cloud API",
+      "stability": "stable",
+      "description": "Returns tenant policy history.",
+      "status": "implemented-unverified",
+      "confidence": "low",
+      "note": "Route is documented and registered in code, but no direct test or client exercise was found in this repository scan.",
+      "evidence": {
+        "test_files": [],
+        "client_files": []
+      }
+    },
+    {
+      "section": "Execution, History, and Receipts",
+      "method": "GET",
+      "path": "/v1/history/events",
+      "auth": "Session cookie or igris_ API key",
+      "surface": "Cloud API",
+      "stability": "stable",
+      "description": "Lists execution history events. Supports `range`, `limit`, `agent_id`, and `device_id`.",
+      "status": "implemented-unverified",
+      "confidence": "low",
+      "note": "Route is documented and registered in code, but no direct test or client exercise was found in this repository scan.",
+      "evidence": {
+        "test_files": [],
+        "client_files": []
+      }
+    },
+    {
+      "section": "Execution, History, and Receipts",
+      "method": "GET",
+      "path": "/v1/receipts",
+      "auth": "Session cookie or igris_ API key",
+      "surface": "Cloud API",
+      "stability": "stable",
+      "description": "Lists execution receipts from the coordination layer.",
+      "status": "implemented-unverified",
+      "confidence": "low",
+      "note": "Route is documented and registered in code, but no direct test or client exercise was found in this repository scan.",
+      "evidence": {
+        "test_files": [],
+        "client_files": []
+      }
+    },
+    {
+      "section": "Execution, History, and Receipts",
+      "method": "GET",
+      "path": "/v1/receipts/:id",
+      "auth": "Session cookie or igris_ API key",
+      "surface": "Cloud API",
+      "stability": "stable",
+      "description": "Gets a single execution receipt by execution ID.",
+      "status": "implemented-unverified",
+      "confidence": "low",
+      "note": "Route is documented and registered in code, but no direct test or client exercise was found in this repository scan.",
+      "evidence": {
+        "test_files": [],
+        "client_files": []
+      }
+    },
+    {
+      "section": "Execution, History, and Receipts",
+      "method": "GET",
+      "path": "/v1/receipts/export",
+      "auth": "Session cookie or igris_ API key",
+      "surface": "Cloud API",
+      "stability": "stable",
+      "description": "Exports receipts as JSONL or CSV.",
+      "status": "implemented-unverified",
+      "confidence": "low",
+      "note": "Route is documented and registered in code, but no direct test or client exercise was found in this repository scan.",
+      "evidence": {
+        "test_files": [],
+        "client_files": []
+      }
+    },
+    {
+      "section": "Execution, History, and Receipts",
+      "method": "POST",
+      "path": "/proof/receipts/verify",
+      "auth": "Session cookie or igris_ API key",
+      "surface": "Proof API",
+      "stability": "stable",
+      "description": "Verifies a receipt signature and chain integrity.",
+      "status": "implemented-unverified",
+      "confidence": "low",
+      "note": "Route is documented and registered in code, but no direct test or client exercise was found in this repository scan.",
+      "evidence": {
+        "test_files": [],
+        "client_files": []
+      }
+    },
+    {
+      "section": "Behavior Trees",
+      "method": "GET",
+      "path": "/v1/bt/templates",
+      "auth": "Public",
+      "surface": "Cloud API",
+      "stability": "stable",
+      "description": "Lists built-in behavior-tree templates.",
+      "status": "implemented-unverified",
+      "confidence": "low",
+      "note": "Route is documented and registered in code, but no direct test or client exercise was found in this repository scan.",
+      "evidence": {
+        "test_files": [],
+        "client_files": []
+      }
+    },
+    {
+      "section": "Behavior Trees",
+      "method": "GET",
+      "path": "/v1/bt/definitions",
+      "auth": "Session cookie or igris_ API key",
+      "surface": "Cloud API",
+      "stability": "stable",
+      "description": "Lists tenant behavior-tree definitions.",
+      "status": "implemented-unverified",
+      "confidence": "low",
+      "note": "Route is documented and registered in code, but no direct test or client exercise was found in this repository scan.",
+      "evidence": {
+        "test_files": [],
+        "client_files": []
+      }
+    },
+    {
+      "section": "Behavior Trees",
+      "method": "GET",
+      "path": "/v1/bt/definitions/:id",
+      "auth": "Session cookie or igris_ API key",
+      "surface": "Cloud API",
+      "stability": "stable",
+      "description": "Gets a single behavior-tree definition.",
+      "status": "implemented-unverified",
+      "confidence": "low",
+      "note": "Route is documented and registered in code, but no direct test or client exercise was found in this repository scan.",
+      "evidence": {
+        "test_files": [],
+        "client_files": []
+      }
+    },
+    {
+      "section": "Behavior Trees",
+      "method": "POST",
+      "path": "/v1/bt/definitions",
+      "auth": "Session cookie or igris_ API key",
+      "surface": "Cloud API",
+      "stability": "stable",
+      "description": "Creates or upserts a behavior-tree definition.",
+      "status": "implemented-unverified",
+      "confidence": "low",
+      "note": "Route is documented and registered in code, but no direct test or client exercise was found in this repository scan.",
+      "evidence": {
+        "test_files": [],
+        "client_files": []
+      }
+    },
+    {
+      "section": "Behavior Trees",
+      "method": "DELETE",
+      "path": "/v1/bt/definitions/:id",
+      "auth": "Session cookie or igris_ API key",
+      "surface": "Cloud API",
+      "stability": "stable",
+      "description": "Deletes a behavior-tree definition.",
+      "status": "implemented-unverified",
+      "confidence": "low",
+      "note": "Route is documented and registered in code, but no direct test or client exercise was found in this repository scan.",
+      "evidence": {
+        "test_files": [],
+        "client_files": []
+      }
+    },
+    {
+      "section": "Local Runtime API",
+      "method": "GET",
+      "path": "/v1/health",
+      "auth": "Runtime-config dependent",
+      "surface": "Local runtime",
+      "stability": "stable",
+      "description": "Health check for the local runtime.",
+      "status": "implemented-unverified",
+      "confidence": "low",
+      "note": "Route is documented and registered in code, but no direct test or client exercise was found in this repository scan.",
+      "evidence": {
+        "test_files": [],
+        "client_files": []
+      }
+    },
+    {
+      "section": "Local Runtime API",
+      "method": "POST",
+      "path": "/v1/chat/completions",
+      "auth": "Runtime-config dependent",
+      "surface": "Local runtime",
+      "stability": "stable",
+      "description": "OpenAI-compatible local inference endpoint.",
+      "status": "implemented-unverified",
+      "confidence": "low",
+      "note": "Route is documented and registered in code, but no direct test or client exercise was found in this repository scan.",
+      "evidence": {
+        "test_files": [],
+        "client_files": []
+      }
+    },
+    {
+      "section": "Local Runtime API",
+      "method": "POST",
+      "path": "/v1/plan",
+      "auth": "Runtime-config dependent",
+      "surface": "Local runtime",
+      "stability": "stable",
+      "description": "Planning endpoint.",
+      "status": "implemented-unverified",
+      "confidence": "low",
+      "note": "Route is documented and registered in code, but no direct test or client exercise was found in this repository scan.",
+      "evidence": {
+        "test_files": [],
+        "client_files": []
+      }
+    },
+    {
+      "section": "Local Runtime API",
+      "method": "POST",
+      "path": "/v1/reflect",
+      "auth": "Runtime-config dependent",
+      "surface": "Local runtime",
+      "stability": "stable",
+      "description": "Reflection endpoint.",
+      "status": "implemented-unverified",
+      "confidence": "low",
+      "note": "Route is documented and registered in code, but no direct test or client exercise was found in this repository scan.",
+      "evidence": {
+        "test_files": [],
+        "client_files": []
+      }
+    },
+    {
+      "section": "Local Runtime API",
+      "method": "GET",
+      "path": "/v1/admin/models",
+      "auth": "Runtime-config dependent",
+      "surface": "Local runtime",
+      "stability": "preview",
+      "description": "Lists loaded local models.",
+      "status": "implemented-unverified",
+      "confidence": "low",
+      "note": "Route is documented and registered in code, but no direct test or client exercise was found in this repository scan.",
+      "evidence": {
+        "test_files": [],
+        "client_files": []
+      }
+    },
+    {
+      "section": "Local Runtime API",
+      "method": "POST",
+      "path": "/v1/admin/models/load",
+      "auth": "Runtime-config dependent",
+      "surface": "Local runtime",
+      "stability": "preview",
+      "description": "Loads a local model.",
+      "status": "implemented-unverified",
+      "confidence": "low",
+      "note": "Route is documented and registered in code, but no direct test or client exercise was found in this repository scan.",
+      "evidence": {
+        "test_files": [],
+        "client_files": []
+      }
+    },
+    {
+      "section": "Local Runtime API",
+      "method": "POST",
+      "path": "/v1/admin/models/swap",
+      "auth": "Runtime-config dependent",
+      "surface": "Local runtime",
+      "stability": "preview",
+      "description": "Swaps the active local model.",
+      "status": "implemented-unverified",
+      "confidence": "low",
+      "note": "Route is documented and registered in code, but no direct test or client exercise was found in this repository scan.",
+      "evidence": {
+        "test_files": [],
+        "client_files": []
+      }
+    },
+    {
+      "section": "Local Runtime API",
+      "method": "POST",
+      "path": "/v1/btree/validate",
+      "auth": "Runtime-config dependent",
+      "surface": "Local runtime",
+      "stability": "stable",
+      "description": "Validates a runtime behavior tree definition.",
+      "status": "implemented-unverified",
+      "confidence": "low",
+      "note": "Route is documented and registered in code, but no direct test or client exercise was found in this repository scan.",
+      "evidence": {
+        "test_files": [],
+        "client_files": []
+      }
+    },
+    {
+      "section": "Local Runtime API",
+      "method": "POST",
+      "path": "/v1/btree/run",
+      "auth": "Runtime-config dependent",
+      "surface": "Local runtime",
+      "stability": "stable",
+      "description": "Executes a runtime behavior tree.",
+      "status": "implemented-unverified",
+      "confidence": "low",
+      "note": "Route is documented and registered in code, but no direct test or client exercise was found in this repository scan.",
+      "evidence": {
+        "test_files": [],
+        "client_files": []
+      }
+    },
+    {
+      "section": "Local Runtime API",
+      "method": "POST",
+      "path": "/v1/btree/deploy",
+      "auth": "Runtime-config dependent",
+      "surface": "Local runtime",
+      "stability": "stable",
+      "description": "Deploys a runtime behavior tree.",
+      "status": "implemented-unverified",
+      "confidence": "low",
+      "note": "Route is documented and registered in code, but no direct test or client exercise was found in this repository scan.",
+      "evidence": {
+        "test_files": [],
+        "client_files": []
+      }
+    },
+    {
+      "section": "Local Runtime API",
+      "method": "GET",
+      "path": "/v1/btree/events",
+      "auth": "Runtime-config dependent",
+      "surface": "Local runtime",
+      "stability": "stable",
+      "description": "Streams behavior-tree events.",
+      "status": "implemented-unverified",
+      "confidence": "low",
+      "note": "Route is documented and registered in code, but no direct test or client exercise was found in this repository scan.",
+      "evidence": {
+        "test_files": [],
+        "client_files": []
+      }
+    }
+  ]
+}
