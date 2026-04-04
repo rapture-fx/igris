@@ -1,0 +1,56 @@
+# MCP Swarm Mode
+
+MCP Swarm Mode extends structured context across multiple runtimes on the same network.
+
+Use it when context must move between devices or runtime instances without turning every exchange into an application-managed synchronization problem.
+
+---
+
+## What It Solves
+
+Swarm Mode is useful when:
+
+- multiple runtimes need the same operational context
+- one runtime should be able to continue after another runtime wrote the latest shared state
+- distributed planning or robotics coordination needs a shared context layer
+
+## Operational Model
+
+In Swarm Mode:
+
+- runtimes discover peers
+- shared context is replicated across the swarm
+- reads can be served from a peer that did not originate the write
+
+That makes Swarm Mode a context-sharing mechanism, not a replacement for durable workflow recovery or audit evidence.
+
+## Configuration
+
+```toml
+[mcp_swarm]
+enabled = true
+discovery = "mdns"
+encryption_key_path = "/path/to/swarm.key"
+```
+
+## Design Boundaries
+
+Use Swarm Mode for shared operational state.
+
+Do not use it for:
+
+- signed audit records
+- long-term business data retention
+- progress recovery that should be modeled as a durable task
+
+## Common Mistakes
+
+- treating swarm replication as if it were a durable checkpoint protocol
+- storing too much request-local prompt state in the shared swarm context
+- using swarm state where one runtime-local value would be simpler
+
+## Related Guides
+
+- [MCP →](/docs/mcp)
+- [MCP Server →](/docs/mcp-server)
+- [Context Engineering →](/docs/context-engineering)
