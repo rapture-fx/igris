@@ -31,6 +31,7 @@ type TaskRecord struct {
 	TaskDefinition  json.RawMessage    `json:"task_definition"`
 	LastCheckpoint  *CheckpointPayload `json:"last_checkpoint,omitempty"`
 	IdempotencyKey  string             `json:"idempotency_key"`
+	FailureReason   *string            `json:"failure_reason,omitempty"`
 	DeadlineAt      *time.Time         `json:"deadline_at,omitempty"`
 	DispatchedAt    *time.Time         `json:"dispatched_at,omitempty"`
 	CompletedAt     *time.Time         `json:"completed_at,omitempty"`
@@ -208,7 +209,7 @@ func (s *CheckpointStore) MarkRecovering(runtimeID string) ([]uuid.UUID, error) 
 func (s *CheckpointStore) GetTask(taskID uuid.UUID, tenantID string) (*TaskRecord, error) {
 	row := s.db.QueryRow(`
 		SELECT task_id, tenant_id, status, runtime_id, runtime_endpoint,
-		       task_definition, last_checkpoint, idempotency_key,
+		       task_definition, last_checkpoint, idempotency_key, failure_reason,
 		       deadline_at, dispatched_at, completed_at, created_at
 		FROM task_records
 		WHERE task_id = $1 AND tenant_id = $2`,
@@ -221,7 +222,7 @@ func (s *CheckpointStore) GetTask(taskID uuid.UUID, tenantID string) (*TaskRecor
 func (s *CheckpointStore) GetTaskByIdempotencyKey(tenantID, idempotencyKey string) (*TaskRecord, error) {
 	row := s.db.QueryRow(`
 		SELECT task_id, tenant_id, status, runtime_id, runtime_endpoint,
-		       task_definition, last_checkpoint, idempotency_key,
+		       task_definition, last_checkpoint, idempotency_key, failure_reason,
 		       deadline_at, dispatched_at, completed_at, created_at
 		FROM task_records
 		WHERE tenant_id = $1 AND idempotency_key = $2`,
@@ -234,7 +235,7 @@ func (s *CheckpointStore) GetTaskByIdempotencyKey(tenantID, idempotencyKey strin
 func (s *CheckpointStore) GetTasksByTenant(tenantID string, limit int) ([]*TaskRecord, error) {
 	rows, err := s.db.Query(`
 		SELECT task_id, tenant_id, status, runtime_id, runtime_endpoint,
-		       task_definition, last_checkpoint, idempotency_key,
+		       task_definition, last_checkpoint, idempotency_key, failure_reason,
 		       deadline_at, dispatched_at, completed_at, created_at
 		FROM task_records
 		WHERE tenant_id = $1
@@ -285,7 +286,7 @@ func (s *CheckpointStore) GetLastCheckpoint(taskID uuid.UUID) (*CheckpointPayloa
 func (s *CheckpointStore) GetRecoveringTasks() ([]*TaskRecord, error) {
 	rows, err := s.db.Query(`
 		SELECT task_id, tenant_id, status, runtime_id, runtime_endpoint,
-		       task_definition, last_checkpoint, idempotency_key,
+		       task_definition, last_checkpoint, idempotency_key, failure_reason,
 		       deadline_at, dispatched_at, completed_at, created_at
 		FROM task_records
 		WHERE status = 'recovering'
@@ -318,7 +319,7 @@ func scanTaskRecord(row scanner) (*TaskRecord, error) {
 	var cpBytes []byte
 	err := row.Scan(
 		&t.TaskID, &t.TenantID, &t.Status, &t.RuntimeID, &t.RuntimeEndpoint,
-		&defBytes, &cpBytes, &t.IdempotencyKey,
+		&defBytes, &cpBytes, &t.IdempotencyKey, &t.FailureReason,
 		&t.DeadlineAt, &t.DispatchedAt, &t.CompletedAt, &t.CreatedAt,
 	)
 	if err != nil {
