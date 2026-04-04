@@ -7,7 +7,7 @@
   {
     "title": "Agents",
     "path": "/docs/agents",
-    "keywords": "agents reflection agents planning agents tool-use agents multi-agent swarms mcp swarm mode agent lifecycle choosing the right agent pattern mode flags monitoring agent state json json json json bash igris supports four agent patterns: reflection, planning, tool use, and swarms. all run inside the execution envelope with full governance applied. agents"
+    "keywords": "agents reflection agents planning agents tool-use agents multi-agent swarms mcp swarm mode agent lifecycle choosing the right agent pattern mode flags monitoring agent state context engineering json json json json bash igris supports four agent patterns: reflection, planning, tool use, and swarms. all run inside the execution envelope with full governance applied. agents"
   },
   {
     "title": "API Reference",
@@ -63,6 +63,11 @@
     "title": "Console",
     "path": "/docs/console",
     "keywords": "console user guide dashboard fleet → devices agents execution runs execution runs → approve / reject proof → violations history behavior tree editor settings → keys settings → billing related pages  the igris console at console.igrisinertial.comhttps://console.igrisinertial.com is the primary web interface for monitoring your fleet, reviewing execution runs, managing agents, tuning policy, and ha console"
+  },
+  {
+    "title": "Context Engineering",
+    "path": "/docs/context-engineering",
+    "keywords": "context engineering start with the smallest useful context the context layers in igris 1. request-local context 2. retrieval and memory 3. mcp and shared context 4. durable task state 5. receipts and audit context choosing the right layer common patterns hosted inference with light context agent workflows with reusable state hybrid deployments with shared device state long-running workflows common mistakes what good context engineering looks like related guides  context engineering is the discip"
   },
   {
     "title": "Data Privacy",
@@ -223,6 +228,11 @@
     "title": "Safety & Containment",
     "path": "/docs/safety",
     "keywords": "safety & containment containment model resource limits cgroup bounds (linux) capability enforcement secure defaults violation handling human-in-the-loop  igris enforces safety limits at the execution engine level — not at the application layer, where they could be bypassed. safety"
+  },
+  {
+    "title": "Sdk Integration Patterns",
+    "path": "/docs/sdk-integration-patterns",
+    "keywords": "sdk integration patterns choose the right client surface first standard environment variables pattern: centralize client construction javascript / typescript go rust pattern: separate hosted and local modes cleanly pattern: handle product errors explicitly pattern: start portable, then go deeper production checklist related guides typescript go rust this guide shows how to use the sdk surface in a way that is maintainable in production. sdk-integration-patterns"
   },
   {
     "title": "SDK",
