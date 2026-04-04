@@ -2,6 +2,7 @@ package api
 
 import (
 	"database/sql"
+	"errors"
 	"net/http"
 
 	"github.com/gofiber/fiber/v2"
@@ -14,7 +15,7 @@ import (
 
 // RegisterTaskRoutes wires the durable task execution endpoints.
 //
-//   POST   /v1/tasks/submit           — submit a new task (agent workflow or single inference)
+//   POST   /v1/tasks/submit           — submit a new task (agent workflow, robotics workflow, single inference, or behavior tree)
 //   GET    /v1/tasks/:id              — poll task status
 //   GET    /v1/tasks                  — list recent tasks for the tenant
 //   POST   /v1/tasks/:id/checkpoint   — runtime pushes a checkpoint back to Overture
@@ -57,6 +58,12 @@ func handleTaskSubmit(tc *coordinator.TaskCoordinator) fiber.Handler {
 
 		task, err := tc.Submit(c.Context(), &req)
 		if err != nil {
+			if errors.Is(err, coordinator.ErrInvalidTaskDefinition) {
+				return c.Status(http.StatusBadRequest).JSON(fiber.Map{
+					"error":   "invalid_task_definition",
+					"message": err.Error(),
+				})
+			}
 			log.Error().Err(err).Str("tenant_id", tenantID).Msg("[Tasks] Submit failed")
 			return c.Status(http.StatusServiceUnavailable).JSON(fiber.Map{
 				"error":   "dispatch_failed",
