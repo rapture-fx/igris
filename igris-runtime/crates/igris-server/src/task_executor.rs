@@ -109,6 +109,8 @@ pub struct RoboticsStep {
     pub step_index: u32,
     #[serde(flatten)]
     pub action: RoboticsAction,
+    #[serde(default)]
+    pub approval: Option<AgentApprovalOptions>,
 }
 
 #[derive(Debug, Clone, Serialize, Deserialize)]
@@ -531,6 +533,7 @@ pub async fn handle_task_submit(
     let mut last_envelope: Option<serde_json::Value> = None;
     let mut last_receipt: Option<serde_json::Value> = None;
     let mut checkpoint: Option<CheckpointPayload> = None;
+    let mut checkpoint_metadata: Option<serde_json::Value> = None;
     let mut entries_since_checkpoint: Vec<WalEntry> = Vec::new();
 
     for step in steps.iter().filter(|step| step.step_index() >= start_step) {
@@ -541,6 +544,7 @@ pub async fn handle_task_submit(
                 steps_completed.saturating_sub(1),
                 runtime_id.clone(),
                 entries_since_checkpoint.clone(),
+                checkpoint_metadata.clone(),
             ) {
                 Ok(p) => p,
                 Err(e) => {
@@ -593,7 +597,14 @@ pub async fn handle_task_submit(
                 execute_agent_step(state.clone(), req.task_id, &req.tenant_id, agent_step, max_tick_ms).await
             }
             RuntimeTaskStep::Robotics(robotics_step) => {
-                execute_robotics_step(state.clone(), robotics_step, max_tick_ms).await
+                execute_robotics_step(
+                    state.clone(),
+                    req.task_id,
+                    &req.tenant_id,
+                    robotics_step,
+                    max_tick_ms,
+                )
+                .await
             }
         };
 
@@ -683,6 +694,7 @@ pub async fn handle_task_submit(
         last_usage = Some(step_result.usage);
         last_envelope = Some(execution_envelope);
         last_receipt = execution_receipt;
+        checkpoint_metadata = Some(build_step_checkpoint_metadata(step, steps_completed, &step_result));
 
         if steps_completed > 0 && steps_completed % 5 == 0 {
             match build_checkpoint(
@@ -691,6 +703,7 @@ pub async fn handle_task_submit(
                 step.step_index(),
                 runtime_id.clone(),
                 entries_since_checkpoint.clone(),
+                checkpoint_metadata.clone(),
             ) {
                 Ok(cp) => {
                     checkpoint = Some(cp);
@@ -712,6 +725,7 @@ pub async fn handle_task_submit(
             steps_completed.saturating_sub(1),
             runtime_id.clone(),
             entries_since_checkpoint,
+            checkpoint_metadata,
         ) {
             Ok(cp) => Some(cp),
             Err(e) => {
@@ -780,6 +794,7 @@ fn build_checkpoint(
     last_committed_step: u32,
     runtime_id: String,
     wal_entries: Vec<WalEntry>,
+    metadata: Option<serde_json::Value>,
 ) -> anyhow::Result<CheckpointPayload> {
     let checkpoint_digest = wal
         .compute_checkpoint_digest()
@@ -793,7 +808,7 @@ fn build_checkpoint(
             runtime_id,
         },
         wal_entries,
-        metadata: None,
+        metadata,
     })
 }
 
@@ -892,7 +907,17 @@ async fn execute_agent_step(
         .map(|message| format!("{}: {}", message.role, message.content))
         .collect::<Vec<_>>()
         .join("\n");
-    maybe_require_approval(&state, task_id, tenant_id, step, max_tick_ms).await?;
+    maybe_require_step_approval(
+        &state,
+        task_id,
+        tenant_id,
+        step.step_index,
+        &step.model,
+        "agent-step",
+        step.approval.as_ref(),
+        max_tick_ms,
+    )
+    .await?;
     let prompt = prepare_agent_prompt(&state, task_id, step, base_prompt.clone()).await?;
 
     match tokio::time::timeout(
@@ -929,9 +954,23 @@ async fn execute_agent_step(
 
 async fn execute_robotics_step(
     state: AppState,
+    task_id: Uuid,
+    tenant_id: &str,
     step: &RoboticsStep,
     max_tick_ms: u64,
 ) -> anyhow::Result<StepExecutionResult> {
+    maybe_require_step_approval(
+        &state,
+        task_id,
+        tenant_id,
+        step.step_index,
+        "robotics",
+        "robotics-action",
+        step.approval.as_ref(),
+        max_tick_ms,
+    )
+    .await?;
+
     #[cfg(feature = "ros2")]
     {
         let manager = state
@@ -1245,14 +1284,17 @@ async fn maybe_store_agent_memory(
     }
 }
 
-async fn maybe_require_approval(
+async fn maybe_require_step_approval(
     state: &AppState,
     task_id: Uuid,
     tenant_id: &str,
-    step: &AgentStep,
+    step_index: u32,
+    model: &str,
+    default_task: &str,
+    approval: Option<&AgentApprovalOptions>,
     max_tick_ms: u64,
 ) -> anyhow::Result<()> {
-    let Some(approval) = &step.approval else {
+    let Some(approval) = approval else {
         return Ok(());
     };
     if !approval.required && approval.confidence.is_none() {
@@ -1268,13 +1310,13 @@ async fn maybe_require_approval(
         let mut context = approval.context.clone().unwrap_or_default();
         context.insert("task_id".to_string(), serde_json::json!(task_id));
         context.insert("tenant_id".to_string(), serde_json::json!(tenant_id));
-        context.insert("model".to_string(), serde_json::json!(step.model));
-        context.insert("step_index".to_string(), serde_json::json!(step.step_index));
+        context.insert("model".to_string(), serde_json::json!(model));
+        context.insert("step_index".to_string(), serde_json::json!(step_index));
 
         let task_description = approval
             .task
             .clone()
-            .unwrap_or_else(|| format!("Approve agent step {} for model {}", step.step_index, step.model));
+            .unwrap_or_else(|| format!("Approve {} {} for model {}", default_task, step_index, model));
 
         let status = tokio::time::timeout(
             Duration::from_millis(max_tick_ms),
@@ -1302,9 +1344,50 @@ async fn maybe_require_approval(
     }
 }
 
+fn build_step_checkpoint_metadata(
+    step: &RuntimeTaskStep,
+    steps_completed: u32,
+    result: &StepExecutionResult,
+) -> serde_json::Value {
+    match step {
+        RuntimeTaskStep::Agent(agent_step) => serde_json::json!({
+            "domain": "agent",
+            "step_index": agent_step.step_index,
+            "steps_completed": steps_completed,
+            "model": agent_step.model,
+            "provider": result.provider_name,
+            "output_preview": truncate_preview(&result.output_text, 240),
+        }),
+        RuntimeTaskStep::Robotics(robotics_step) => serde_json::json!({
+            "domain": "robotics",
+            "step_index": robotics_step.step_index,
+            "steps_completed": steps_completed,
+            "action": robotics_action_name(&robotics_step.action),
+            "provider": result.provider_name,
+            "output_preview": truncate_preview(&result.output_text, 240),
+        }),
+    }
+}
+
+fn robotics_action_name(action: &RoboticsAction) -> &'static str {
+    match action {
+        RoboticsAction::NavigateToPose { .. } => "navigate_to_pose",
+        RoboticsAction::PublishPrompt { .. } => "publish_prompt",
+        RoboticsAction::PublishZeroVelocity => "publish_zero_velocity",
+    }
+}
+
+fn truncate_preview(text: &str, max_chars: usize) -> String {
+    text.chars().take(max_chars).collect()
+}
+
 #[cfg(test)]
 mod tests {
-    use super::{deterministic_embedding, normalize_agent_mode, AgentExecutionMode};
+    use super::{
+        build_step_checkpoint_metadata, deterministic_embedding, normalize_agent_mode,
+        AgentExecutionMode, RoboticsAction, RoboticsStep, RuntimeTaskStep, StepExecutionResult,
+    };
+    use crate::runtime_execute::ExecuteUsage;
 
     #[test]
     fn normalize_agent_mode_accepts_supported_values() {
@@ -1336,5 +1419,28 @@ mod tests {
         assert_eq!(a.len(), 8);
         assert_eq!(a, b);
         assert_ne!(a, c);
+    }
+
+    #[test]
+    fn robotics_checkpoint_metadata_contains_action_name() {
+        let step = RuntimeTaskStep::Robotics(RoboticsStep {
+            step_index: 2,
+            action: RoboticsAction::PublishZeroVelocity,
+            approval: None,
+        });
+        let result = StepExecutionResult {
+            output_text: "published zero velocity command".to_string(),
+            provider_name: "ros2:publish_zero_velocity".to_string(),
+            usage: ExecuteUsage {
+                prompt_tokens: 0,
+                completion_tokens: 0,
+                total_tokens: 0,
+            },
+        };
+
+        let metadata = build_step_checkpoint_metadata(&step, 3, &result);
+        assert_eq!(metadata["domain"], "robotics");
+        assert_eq!(metadata["action"], "publish_zero_velocity");
+        assert_eq!(metadata["steps_completed"], 3);
     }
 }
