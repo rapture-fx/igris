@@ -2,7 +2,7 @@
   {
     "title": "Agent Lifecycle",
     "path": "/docs/agent-lifecycle",
-    "keywords": "agent lifecycle states state transitions querying agent state get current state of all agents get a specific agent lifecycle records force termination safe idle (human-in-the-loop) bash json json bash agent lifecycle agent-lifecycle"
+    "keywords": "agent lifecycle states state transitions querying agent state get current state of all agents get a specific agent lifecycle records force termination safe idle (human-in-the-loop) recovery bash json json bash agent lifecycle agent-lifecycle"
   },
   {
     "title": "Agents",
@@ -32,7 +32,7 @@
   {
     "title": "Behavior Trees",
     "path": "/docs/behavior-trees",
-    "keywords": "behavior trees 1. cloud definition schema 2. runtime execution schema using the javascript sdk using the go sdk practical rule json json typescript go behavior trees behavior-trees"
+    "keywords": "behavior trees 1. cloud definition schema 2. runtime execution schema using the javascript sdk using the go sdk practical rule durable execution json json typescript go rust behavior trees behavior-trees"
   },
   {
     "title": "Capabilities & Limits",
@@ -73,6 +73,11 @@
     "title": "Deployment",
     "path": "/docs/deployment",
     "keywords": "deployment cloud api self-hosted coordination (infinite tier) local / edge execution engine supported platforms deployment methods local models verifying your deployment health check → {\"status\": \"ok\", \"version\": \"...\"} check fleet registration run a test inference networking requirements resource requirements common deployment issues connecting edge to cloud tier comparison what's next python bash bash yaml bash json bash python bash deployment deployment"
+  },
+  {
+    "title": "Durable Tasks",
+    "path": "/docs/durable-tasks",
+    "keywords": "durable task execution how it works submitting a task polling task status listing tasks checkpoints and resume tokens deadlines robotics workflows behavior tree execution integrity guarantees api endpoints bash json json bash json bash json json json durable task execution durable-tasks"
   },
   {
     "title": "Error Codes",
@@ -493,6 +498,21 @@
     "title": "DELETE /v1/bt/definitions/:id",
     "path": "/docs/api-reference/behavior-trees/delete-v1-bt-definitions-id",
     "keywords": "behavior trees delete /v1/bt/definitions/:id deletes a behavior-tree definition. session cookie or igris_ api key cloud api"
+  },
+  {
+    "title": "POST /v1/tasks/submit",
+    "path": "/docs/api-reference/durable-tasks/post-v1-tasks-submit",
+    "keywords": "durable tasks post /v1/tasks/submit submit a durable task using `agent_workflow`, `robotics_workflow`, `single_inference`, or `behavior_tree`. session cookie or igris_ api key cloud api"
+  },
+  {
+    "title": "GET /v1/tasks/:id",
+    "path": "/docs/api-reference/durable-tasks/get-v1-tasks-id",
+    "keywords": "durable tasks get /v1/tasks/:id poll the current status and latest checkpoint metadata for a durable task. session cookie or igris_ api key cloud api"
+  },
+  {
+    "title": "GET /v1/tasks",
+    "path": "/docs/api-reference/durable-tasks/get-v1-tasks",
+    "keywords": "durable tasks get /v1/tasks list recent durable tasks for the authenticated tenant. session cookie or igris_ api key cloud api"
   },
   {
     "title": "GET /v1/health",
