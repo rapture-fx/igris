@@ -83,21 +83,21 @@ export default function CoreCapabilities() {
                         <img
                           src={mounted && theme === 'dark' ? '/cr.png?v=2' : '/exc.png?v=2'}
                           alt={capability.name}
-                          style={{ width: '100%', height: '100%', objectFit: 'contain', opacity: 0.45 }}
+                          style={{ width: '100%', height: '100%', objectFit: 'contain', opacity: 1 }}
                         />
                       )}
                       {index === 1 && (
                         <img
                           src={mounted && theme === 'dark' ? '/cs.png' : '/tre.png'}
                           alt={capability.name}
-                          style={{ width: '100%', height: '100%', objectFit: 'contain', opacity: 0.45 }}
+                          style={{ width: '100%', height: '100%', objectFit: 'contain', opacity: 1 }}
                         />
                       )}
                       {index === 2 && (
                         <img
                           src={mounted && theme === 'dark' ? '/cc.png' : '/one.png'}
                           alt={capability.name}
-                          style={{ width: '100%', height: '100%', objectFit: 'contain', opacity: 0.45 }}
+                          style={{ width: '100%', height: '100%', objectFit: 'contain', opacity: 1 }}
                         />
                       )}
                     </div>
@@ -124,21 +124,21 @@ export default function CoreCapabilities() {
                     <img
                       src={mounted && theme === 'dark' ? '/cr.png?v=2' : '/exc.png?v=2'}
                       alt={capability.name}
-                      style={{ width: '100%', height: '100%', objectFit: 'contain', opacity: 0.45 }}
+                      style={{ width: '100%', height: '100%', objectFit: 'contain', opacity: 1 }}
                     />
                   )}
                   {index === 1 && (
                     <img
                       src={mounted && theme === 'dark' ? '/cs.png' : '/tre.png'}
                       alt={capability.name}
-                      style={{ width: '100%', height: '100%', objectFit: 'contain', opacity: 0.45 }}
+                      style={{ width: '100%', height: '100%', objectFit: 'contain', opacity: 1 }}
                     />
                   )}
                   {index === 2 && (
                     <img
                       src={mounted && theme === 'dark' ? '/cc.png' : '/one.png'}
                       alt={capability.name}
-                      style={{ width: '100%', height: '100%', objectFit: 'contain', opacity: 0.45 }}
+                      style={{ width: '100%', height: '100%', objectFit: 'contain', opacity: 1 }}
                     />
                   )}
                 </div>
