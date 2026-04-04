@@ -1,5 +1,5 @@
 use axum::{
-    extract::{Json, State},
+    extract::{Json, Path, State},
     http::StatusCode,
     response::{IntoResponse, Response},
     response::sse::{Event, KeepAlive, Sse},
@@ -38,6 +38,10 @@ mod transaction;
 use lifecycle::{LifecycleRegistry, new_lifecycle_registry};
 use receipt::ReceiptLog;
 use igris_local_llm::{LocalLLMConfig, LocalLLMProviderAdapter};
+#[cfg(feature = "hitl")]
+use igris_hitl::{HitlConfig, HitlCoordinator};
+#[cfg(feature = "memory")]
+use igris_memory::{AgentMemory, MemoryConfig as AgentMemoryConfig};
 use igris_routing::local_provider::LocalProvider;
 use igris_emergency::EscapeVectorCache;
 use igris_reflection::{ReflectionAgent, ReflectionConfig as ReflectionLoopConfig, LLMProvider as ReflectionLLMProvider};
@@ -65,6 +69,7 @@ use igris_tools::shell::ShellTool;
 use igris_tools::filesystem::FileSystemTool;
 mod lora_training;
 use lora_training::LoraTrainingManager;
+mod task_executor;
 use igris_lora_trainer::{LoRATrainingConfig, TrainingDataStore};
 mod federated_integration;
 use federated_integration::FederatedManager;
@@ -77,6 +82,7 @@ use axum::middleware::from_fn_with_state;
 use middleware::security::{security_middleware, RateLimiter};
 mod metrics;
 use metrics::Metrics;
+#[cfg(feature = "ros2")]
 pub mod ros2_integration;
 #[cfg(test)]
 mod server_flow_tests;
@@ -108,6 +114,10 @@ pub(crate) struct AppState {
     pub(crate) rate_limiter: Option<middleware::security::RateLimiter>,
     pub(crate) metrics: Arc<Metrics>,
     pub(crate) escapevector_cache: Option<Arc<EscapeVectorCache>>,
+    #[cfg(feature = "memory")]
+    pub(crate) agent_memory: Option<Arc<AgentMemory>>,
+    #[cfg(feature = "hitl")]
+    pub(crate) hitl_coordinator: Option<Arc<HitlCoordinator>>,
     /// In-memory violation log populated by `POST /v1/runtime/execute` timeouts.
     pub(crate) violation_log: Option<ViolationLog>,
     /// Registry of registered peer (edge) runtimes keyed by runtime_id.
@@ -280,6 +290,34 @@ struct LoraTrainingStatusResponse {
     request_counter: u64,
     should_trigger: bool,
     last_result: Option<serde_json::Value>,
+}
+
+#[derive(Debug, Clone, Serialize, Deserialize)]
+struct MemoryStoreRequest {
+    key: String,
+    content: String,
+    embedding: Vec<f32>,
+}
+
+#[derive(Debug, Clone, Serialize, Deserialize)]
+struct MemorySearchRequest {
+    embedding: Vec<f32>,
+    #[serde(default)]
+    top_k: Option<usize>,
+}
+
+#[derive(Debug, Clone, Serialize, Deserialize)]
+struct HitlRequestInput {
+    task: String,
+    #[serde(default)]
+    context: Option<std::collections::HashMap<String, serde_json::Value>>,
+    #[serde(default)]
+    confidence: Option<f32>,
+}
+
+#[derive(Debug, Clone, Serialize, Deserialize)]
+struct HitlDecisionRequest {
+    request_id: String,
 }
 
 // ============================================================================
@@ -591,6 +629,20 @@ impl From<anyhow::Error> for ApiError {
     }
 }
 
+fn compiled_runtime_profiles() -> Vec<&'static str> {
+    let mut profiles = Vec::new();
+    #[cfg(feature = "agent-platform")]
+    profiles.push("agent-platform");
+    #[cfg(feature = "robotics-platform")]
+    profiles.push("robotics-platform");
+    #[cfg(feature = "full-platform")]
+    profiles.push("full-platform");
+    if profiles.is_empty() {
+        profiles.push("minimal");
+    }
+    profiles
+}
+
 /// Health check endpoint
 #[utoipa::path(
     get,
@@ -602,6 +654,58 @@ impl From<anyhow::Error> for ApiError {
 )]
 async fn health() -> &'static str {
     "OK"
+}
+
+async fn runtime_profile(State(state): State<AppState>) -> Response {
+    let agent_memory_enabled = {
+        #[cfg(feature = "memory")]
+        {
+            state.agent_memory.is_some()
+        }
+        #[cfg(not(feature = "memory"))]
+        {
+            false
+        }
+    };
+
+    let hitl_enabled = {
+        #[cfg(feature = "hitl")]
+        {
+            state.hitl_coordinator.is_some()
+        }
+        #[cfg(not(feature = "hitl"))]
+        {
+            false
+        }
+    };
+
+    let ros2_enabled = {
+        #[cfg(feature = "ros2")]
+        {
+            state.ros2_manager.is_some()
+        }
+        #[cfg(not(feature = "ros2"))]
+        {
+            false
+        }
+    };
+
+    let response = serde_json::json!({
+        "compiled_profiles": compiled_runtime_profiles(),
+        "capabilities": {
+            "local_llm_fallback": state.local_provider.is_some(),
+            "mcp": state.mcp_context_store.is_some(),
+            "fleet": state.fleet_manager.is_some(),
+            "swarm": state.swarm_manager.is_some(),
+            "federated": state.federated_manager.is_some(),
+            "escapevector": state.escapevector_cache.is_some(),
+            "agent_memory": agent_memory_enabled,
+            "human_in_the_loop": hitl_enabled,
+            "ros2": ros2_enabled
+        }
+    });
+
+    (StatusCode::OK, Json(response)).into_response()
 }
 
 /// Prometheus metrics endpoint
@@ -748,6 +852,204 @@ async fn lora_status(State(state): State<AppState>) -> Result<Response, ApiError
         last_result,
     };
     Ok((StatusCode::OK, Json(resp)).into_response())
+}
+
+#[cfg(feature = "memory")]
+async fn memory_status(State(state): State<AppState>) -> Result<Response, ApiError> {
+    let Some(memory) = &state.agent_memory else {
+        return Ok((StatusCode::OK, Json(serde_json::json!({"enabled": false}))).into_response());
+    };
+
+    let stats = memory.stats().await;
+    Ok((StatusCode::OK, Json(serde_json::json!({
+        "enabled": true,
+        "stats": {
+            "vector_entries": stats.vector_entries,
+            "cache_entries": stats.cache_entries,
+            "cache_hit_rate": stats.cache_hit_rate,
+        }
+    }))).into_response())
+}
+
+#[cfg(not(feature = "memory"))]
+async fn memory_status() -> Result<Response, ApiError> {
+    Ok((StatusCode::OK, Json(serde_json::json!({"enabled": false, "compiled": false}))).into_response())
+}
+
+#[cfg(feature = "memory")]
+async fn memory_store(
+    State(state): State<AppState>,
+    Json(req): Json<MemoryStoreRequest>,
+) -> Result<Response, ApiError> {
+    let Some(memory) = &state.agent_memory else {
+        return Err(ApiError::ServiceUnavailable("agent memory is disabled".to_string()));
+    };
+
+    memory.store(&req.key, &req.content, req.embedding).await?;
+    Ok((StatusCode::OK, Json(serde_json::json!({
+        "stored": true,
+        "key": req.key,
+    }))).into_response())
+}
+
+#[cfg(not(feature = "memory"))]
+async fn memory_store() -> Result<Response, ApiError> {
+    Err(ApiError::NotImplemented("agent memory was not compiled into this runtime".to_string()))
+}
+
+#[cfg(feature = "memory")]
+async fn memory_get(
+    State(state): State<AppState>,
+    Path(key): Path<String>,
+) -> Result<Response, ApiError> {
+    let Some(memory) = &state.agent_memory else {
+        return Err(ApiError::ServiceUnavailable("agent memory is disabled".to_string()));
+    };
+
+    let entry = memory.get(&key).await?;
+    Ok((StatusCode::OK, Json(serde_json::json!({
+        "enabled": true,
+        "entry": entry,
+    }))).into_response())
+}
+
+#[cfg(not(feature = "memory"))]
+async fn memory_get() -> Result<Response, ApiError> {
+    Err(ApiError::NotImplemented("agent memory was not compiled into this runtime".to_string()))
+}
+
+#[cfg(feature = "memory")]
+async fn memory_search(
+    State(state): State<AppState>,
+    Json(req): Json<MemorySearchRequest>,
+) -> Result<Response, ApiError> {
+    let Some(memory) = &state.agent_memory else {
+        return Err(ApiError::ServiceUnavailable("agent memory is disabled".to_string()));
+    };
+
+    let results = memory.retrieve(req.embedding, req.top_k.unwrap_or(5)).await?;
+    let results = results
+        .into_iter()
+        .map(|result| serde_json::json!({
+            "key": result.entry.key,
+            "content": result.entry.content,
+            "timestamp": result.entry.timestamp,
+            "similarity": result.similarity,
+        }))
+        .collect::<Vec<_>>();
+
+    Ok((StatusCode::OK, Json(serde_json::json!({
+        "enabled": true,
+        "results": results,
+    }))).into_response())
+}
+
+#[cfg(not(feature = "memory"))]
+async fn memory_search() -> Result<Response, ApiError> {
+    Err(ApiError::NotImplemented("agent memory was not compiled into this runtime".to_string()))
+}
+
+#[cfg(feature = "hitl")]
+async fn hitl_status(State(state): State<AppState>) -> Result<Response, ApiError> {
+    let Some(coordinator) = &state.hitl_coordinator else {
+        return Ok((StatusCode::OK, Json(serde_json::json!({"enabled": false}))).into_response());
+    };
+
+    let pending = coordinator.get_pending_requests().await;
+    let config = coordinator.config();
+    Ok((StatusCode::OK, Json(serde_json::json!({
+        "enabled": true,
+        "pending_requests": pending.len(),
+        "auto_approve_threshold": config.auto_approve_threshold,
+        "timeout_secs": config.timeout_secs,
+    }))).into_response())
+}
+
+#[cfg(not(feature = "hitl"))]
+async fn hitl_status() -> Result<Response, ApiError> {
+    Ok((StatusCode::OK, Json(serde_json::json!({"enabled": false, "compiled": false}))).into_response())
+}
+
+#[cfg(feature = "hitl")]
+async fn hitl_requests(State(state): State<AppState>) -> Result<Response, ApiError> {
+    let Some(coordinator) = &state.hitl_coordinator else {
+        return Err(ApiError::ServiceUnavailable("HITL is disabled".to_string()));
+    };
+
+    let pending = coordinator.get_pending_requests().await;
+    Ok((StatusCode::OK, Json(serde_json::json!({
+        "enabled": true,
+        "requests": pending,
+    }))).into_response())
+}
+
+#[cfg(not(feature = "hitl"))]
+async fn hitl_requests() -> Result<Response, ApiError> {
+    Err(ApiError::NotImplemented("HITL was not compiled into this runtime".to_string()))
+}
+
+#[cfg(feature = "hitl")]
+async fn hitl_submit(
+    State(state): State<AppState>,
+    Json(req): Json<HitlRequestInput>,
+) -> Result<Response, ApiError> {
+    let Some(coordinator) = &state.hitl_coordinator else {
+        return Err(ApiError::ServiceUnavailable("HITL is disabled".to_string()));
+    };
+
+    let (request, status) = coordinator
+        .submit_request(
+            req.task,
+            req.context.unwrap_or_default(),
+            req.confidence.unwrap_or(0.0),
+        )
+        .await?;
+
+    Ok((StatusCode::ACCEPTED, Json(serde_json::json!({
+        "request": request,
+        "status": status,
+    }))).into_response())
+}
+
+#[cfg(not(feature = "hitl"))]
+async fn hitl_submit() -> Result<Response, ApiError> {
+    Err(ApiError::NotImplemented("HITL was not compiled into this runtime".to_string()))
+}
+
+#[cfg(feature = "hitl")]
+async fn hitl_approve(
+    State(state): State<AppState>,
+    Json(req): Json<HitlDecisionRequest>,
+) -> Result<Response, ApiError> {
+    let Some(coordinator) = &state.hitl_coordinator else {
+        return Err(ApiError::ServiceUnavailable("HITL is disabled".to_string()));
+    };
+
+    coordinator.approve(&req.request_id).await?;
+    Ok((StatusCode::OK, Json(serde_json::json!({"request_id": req.request_id, "status": "approved"}))).into_response())
+}
+
+#[cfg(not(feature = "hitl"))]
+async fn hitl_approve() -> Result<Response, ApiError> {
+    Err(ApiError::NotImplemented("HITL was not compiled into this runtime".to_string()))
+}
+
+#[cfg(feature = "hitl")]
+async fn hitl_reject(
+    State(state): State<AppState>,
+    Json(req): Json<HitlDecisionRequest>,
+) -> Result<Response, ApiError> {
+    let Some(coordinator) = &state.hitl_coordinator else {
+        return Err(ApiError::ServiceUnavailable("HITL is disabled".to_string()));
+    };
+
+    coordinator.reject(&req.request_id).await?;
+    Ok((StatusCode::OK, Json(serde_json::json!({"request_id": req.request_id, "status": "rejected"}))).into_response())
+}
+
+#[cfg(not(feature = "hitl"))]
+async fn hitl_reject() -> Result<Response, ApiError> {
+    Err(ApiError::NotImplemented("HITL was not compiled into this runtime".to_string()))
 }
 
 // ============================================================================
@@ -2714,6 +3016,93 @@ async fn main() -> anyhow::Result<()> {
     // ── Phase 4: Lifecycle registry ─────────────────────────────────────────
     let lifecycle_registry = Some(new_lifecycle_registry());
 
+    #[cfg(feature = "memory")]
+    let agent_memory: Option<Arc<AgentMemory>> = {
+        let enabled = std::env::var("ENABLE_AGENT_MEMORY")
+            .map(|value| value != "false")
+            .unwrap_or(true);
+
+        if enabled {
+            let db_path = std::env::var("IGRIS_MEMORY_DB")
+                .unwrap_or_else(|_| ".igris/agent_memory.db".to_string());
+            if let Some(parent) = std::path::Path::new(&db_path).parent() {
+                if !parent.as_os_str().is_empty() {
+                    if let Err(e) = std::fs::create_dir_all(parent) {
+                        warn!("[Memory] Failed to create memory directory {}: {}", parent.display(), e);
+                    }
+                }
+            }
+
+            let max_cache_entries = std::env::var("IGRIS_MEMORY_MAX_CACHE")
+                .ok()
+                .and_then(|value| value.parse::<usize>().ok())
+                .unwrap_or(1000);
+            let embedding_dim = std::env::var("IGRIS_MEMORY_EMBEDDING_DIM")
+                .ok()
+                .and_then(|value| value.parse::<usize>().ok())
+                .unwrap_or(384);
+
+            let cfg = AgentMemoryConfig {
+                enabled: true,
+                db_path: db_path.clone(),
+                max_cache_entries,
+                embedding_dim,
+            };
+
+            match AgentMemory::new(cfg).await {
+                Ok(memory) => {
+                    info!("[Memory] Agent memory initialized at {}", db_path);
+                    Some(Arc::new(memory))
+                }
+                Err(e) => {
+                    warn!("[Memory] Failed to initialize agent memory: {}", e);
+                    None
+                }
+            }
+        } else {
+            info!("[Memory] Agent memory disabled by environment");
+            None
+        }
+    };
+
+    #[cfg(feature = "hitl")]
+    let hitl_coordinator: Option<Arc<HitlCoordinator>> = {
+        let enabled = std::env::var("ENABLE_HITL")
+            .map(|value| value != "false")
+            .unwrap_or(true);
+
+        if enabled {
+            let auto_approve_threshold = std::env::var("HITL_AUTO_APPROVE_THRESHOLD")
+                .ok()
+                .and_then(|value| value.parse::<f32>().ok())
+                .unwrap_or(0.9);
+            let timeout_secs = std::env::var("HITL_TIMEOUT_SECS")
+                .ok()
+                .and_then(|value| value.parse::<u64>().ok())
+                .unwrap_or(300);
+            let config = HitlConfig {
+                enabled: true,
+                auto_approve_threshold,
+                escalation_endpoint: std::env::var("HITL_ESCALATION_ENDPOINT").ok(),
+                timeout_secs,
+            };
+
+            match HitlCoordinator::new(config).await {
+                Ok(coordinator) => {
+                    info!("[HITL] Human-in-the-loop coordinator initialized");
+                    Some(Arc::new(coordinator))
+                }
+                Err(e) => {
+                    warn!("[HITL] Failed to initialize coordinator: {}", e);
+                    None
+                }
+            }
+        } else {
+            info!("[HITL] Human-in-the-loop disabled by environment");
+            None
+        }
+    };
+
     let mut state = AppState {
         config: Arc::new(config),
         storage: Arc::new(storage),
@@ -2737,6 +3126,10 @@ async fn main() -> anyhow::Result<()> {
         rate_limiter,
         metrics,
         escapevector_cache,
+        #[cfg(feature = "memory")]
+        agent_memory,
+        #[cfg(feature = "hitl")]
+        hitl_coordinator,
         violation_log: Some(Arc::new(tokio::sync::Mutex::new(Vec::new()))),
         peer_registry: Some(Arc::new(tokio::sync::RwLock::new(std::collections::HashMap::new()))),
         runtime_public_key: Some(runtime_public_key),
@@ -2802,8 +3195,18 @@ async fn main() -> anyhow::Result<()> {
     // Build router
     let mut app = Router::new()
         .route("/v1/health", get(health))
+        .route("/v1/runtime/profile", get(runtime_profile))
         .route("/metrics", get(metrics_handler))
         .route("/v1/lora/status", get(lora_status))
+        .route("/v1/memory/status", get(memory_status))
+        .route("/v1/memory/store", post(memory_store))
+        .route("/v1/memory/search", post(memory_search))
+        .route("/v1/memory/:key", get(memory_get))
+        .route("/v1/hitl/status", get(hitl_status))
+        .route("/v1/hitl/requests", get(hitl_requests))
+        .route("/v1/hitl/request", post(hitl_submit))
+        .route("/v1/hitl/approve", post(hitl_approve))
+        .route("/v1/hitl/reject", post(hitl_reject))
         .route("/v1/chat/completions", post(chat_completions))
         .route("/v1/plan", post(plan_endpoint))
         .route("/v1/reflect", post(reflect_endpoint))
@@ -2835,6 +3238,8 @@ async fn main() -> anyhow::Result<()> {
         .route("/v1/runtime/execute", post(runtime_execute::handle_execute))
         .route("/v1/runtime/violations", get(runtime_execute::handle_violations))
         .route("/v1/runtime/register", post(runtime_execute::handle_register))
+        .route("/v1/runtime/task/submit", post(task_executor::handle_task_submit))
+        .route("/v1/runtime/task/{task_id}/wal", get(task_executor::handle_task_wal))
         // Phase 4: Agent lifecycle state endpoint
         .route("/v1/runtime/agent/:id/state", get(lifecycle::handle_agent_state))
         .merge(SwaggerUi::new("/swagger-ui").url("/api-docs/openapi.json", ApiDoc::openapi()))
@@ -2854,6 +3259,7 @@ async fn main() -> anyhow::Result<()> {
     info!("Server listening on {}", addr);
     info!("Swagger UI available at http://localhost:8080/swagger-ui");
     info!("Igris Runtime v1.1 started successfully");
+    info!("Compiled runtime profiles: {}", compiled_runtime_profiles().join(", "));
     info!("Local LLM fallback: {}", if has_local_fallback { "ENABLED" } else { "DISABLED" });
 
     let listener = tokio::net::TcpListener::bind(addr).await?;
