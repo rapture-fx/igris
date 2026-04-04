@@ -32,6 +32,14 @@ impl ToolDefinition {
 /// Registry of available tools
 pub struct ToolRegistry {
     tools: HashMap<String, Arc<dyn Tool>>,
+    /// In-process idempotency cache: idempotency_key → result.
+    ///
+    /// Prevents double-execution of side-effectful tools when a BT or agent
+    /// step is retried within the same runtime session (e.g. after a tick error
+    /// that left a WAL intent uncommitted). The cache is in-memory only — it
+    /// does not survive a full runtime restart, but combined with WAL step-skip
+    /// logic that is sufficient for the common crash-recovery case.
+    completed_calls: Arc<tokio::sync::RwLock<HashMap<String, ToolResult>>>,
 }
 
 impl ToolRegistry {
@@ -39,6 +47,7 @@ impl ToolRegistry {
     pub fn new() -> Self {
         Self {
             tools: HashMap::new(),
+            completed_calls: Arc::new(tokio::sync::RwLock::new(HashMap::new())),
         }
     }
 
@@ -88,6 +97,52 @@ impl ToolRegistry {
             }
         }
         res
+    }
+
+    /// Execute a tool with an idempotency key.
+    ///
+    /// Before executing, checks whether a result for `idempotency_key` is already
+    /// cached. If so, returns the cached result immediately — the tool is **not**
+    /// called again. On a fresh call, executes the tool, caches the result, then
+    /// returns it.
+    ///
+    /// # Idempotency key derivation
+    ///
+    /// The key should be deterministic and unique per logical tool invocation.
+    /// For WAL-backed BT tasks, derive it as:
+    ///
+    /// ```text
+    /// "{task_id}:{tick_count}:{tool_name}:{sha256_hex_of_args}"
+    /// ```
+    ///
+    /// This ensures that a re-executed tick (e.g. after a crash before WAL commit)
+    /// returns the same result without re-firing the side effect.
+    pub async fn execute_idempotent(
+        &self,
+        idempotency_key: &str,
+        tool_name: &str,
+        args: serde_json::Value,
+    ) -> Result<ToolResult> {
+        // Fast path: already executed.
+        {
+            let cache = self.completed_calls.read().await;
+            if let Some(cached) = cache.get(idempotency_key) {
+                tracing::debug!(
+                    tool = %tool_name,
+                    key = %idempotency_key,
+                    "tool_idempotent_cache_hit"
+                );
+                return Ok(cached.clone());
+            }
+        }
+
+        // Execute and cache.
+        let result = self.execute(tool_name, args).await?;
+        self.completed_calls
+            .write()
+            .await
+            .insert(idempotency_key.to_string(), result.clone());
+        Ok(result)
     }
 
     /// Check if a tool is registered
