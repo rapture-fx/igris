@@ -138,4 +138,37 @@ Use `nodes` / `edges` only when you are talking to the cloud definition API. Use
 
 ---
 
+## Durable Execution
+
+By default, behavior tree execution is stateless — a runtime crash loses all tick progress. Attaching a WAL session makes execution crash-recoverable.
+
+When a WAL session is active:
+- Each tick writes an `Intent` entry to the WAL before the tree ticks, and a `Committed` entry after
+- The blackboard is checkpointed to the coordination layer every N ticks (configurable, default 10)
+- Any interruption — deadline, cancellation, or tick error — attaches the last checkpoint to the result so recovery can begin immediately
+
+On failover to a new runtime, the coordination layer forwards the last `ResumeToken` and `blackboard_state`. The new runtime restores the blackboard and resumes ticking from the last committed step. The checkpoint digest is verified before any steps are skipped — a digest mismatch is a hard error, not a silent re-execution from scratch.
+
+```typescript
+// JavaScript SDK — attach a WAL session before running
+const result = await runtime.runBehaviorTree(treeDefinition, {
+  walSession: {
+    taskId: '018f4a2b-...',
+    checkpointEvery: 10,
+  },
+});
+
+// result.checkpoint is populated on interruption or completion
+// — forward it to the coordination layer for persistence
+if (result.checkpoint) {
+  await coordinator.saveCheckpoint(result.checkpoint);
+}
+```
+
+A WAL session requires the runtime to be configured with an Ed25519 signing key. Runtimes without a signing key reject WAL-backed task submissions.
+
+[Durable Tasks →](/docs/durable-tasks)
+
+---
+
 [Agents →](/docs/agents) · [API Reference →](/docs/api-reference) · [Robotics →](/docs/robotics)
