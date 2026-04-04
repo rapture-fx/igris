@@ -58,9 +58,9 @@ func TestBuildTaskResponseIncludesFailureReasonAndCheckpointMetadata(t *testing.
 	require.EqualValues(t, 3, resp["last_step"])
 	require.Equal(t, "abc123", resp["checkpoint_digest"])
 	require.NotNil(t, resp["checkpoint_metadata"])
-	require.Equal(t, json.RawMessage(`{"last_node_id":"robotics-1","nodes":{"robotics-1":{"status":"canceled"}},"slots":{"robotics.robotics_1":{"status":"canceled"}}}`), resp["graph_blackboard"])
-	require.Equal(t, json.RawMessage(`{"robotics-1":{"status":"canceled"}}`), resp["graph_nodes"])
-	require.Equal(t, json.RawMessage(`{"robotics.robotics_1":{"status":"canceled"}}`), resp["graph_slots"])
+	require.JSONEq(t, `{"last_node_id":"robotics-1","nodes":{"robotics-1":{"status":"canceled"}},"slots":{"robotics.robotics_1":{"status":"canceled"}}}`, string(resp["graph_blackboard"].(json.RawMessage)))
+	require.JSONEq(t, `{"robotics-1":{"status":"canceled"}}`, string(resp["graph_nodes"].(json.RawMessage)))
+	require.JSONEq(t, `{"robotics.robotics_1":{"status":"canceled"}}`, string(resp["graph_slots"].(json.RawMessage)))
 }
 
 func TestBuildTaskResponseOmitsEmptyOptionalFields(t *testing.T) {
