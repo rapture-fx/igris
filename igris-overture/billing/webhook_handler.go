@@ -180,7 +180,10 @@ func (h *WebhookHandler) handleSubscriptionCreated(event *WebhookEvent) error {
 	sub := h.convertToSubscription(&data)
 
 	// Map price ID to tier
-	tier := h.mapPriceIDToTier(data.PriceID)
+	tier, err := h.mapPriceIDToTier(data.PriceID)
+	if err != nil {
+		return fmt.Errorf("failed to resolve tier for price %s: %w", data.PriceID, err)
+	}
 
 	// Generate license key
 	licenseKey, err := models.GenerateLicenseKey(tier)
@@ -365,16 +368,17 @@ func (h *WebhookHandler) convertToSubscription(data *SubscriptionEventData) *Sub
 	}
 
 	// Determine tier from price ID
-	tier := string(TierSeed) // default
-	if tierPlan, err := GetTierByPriceID(data.PriceID); err == nil {
-		tier = string(tierPlan.ID)
-	}
-
 	metadata := data.Metadata
 	if metadata == nil {
 		metadata = make(map[string]string)
 	}
-	metadata["tier"] = tier
+
+	if tier, err := ResolveTierID(metadata, data.PriceID); err == nil {
+		metadata["tier"] = tier
+	} else {
+		h.logger.Printf("[Webhook] WARNING: leaving subscription tier unset for customer=%s price=%s: %v",
+			data.CustomerID, data.PriceID, err)
+	}
 
 	return &Subscription{
 		ID:               data.ID,
@@ -436,8 +440,8 @@ func (h *WebhookHandler) sendTrialEndEmail(tenantID, email string) {
 // LICENSE MANAGEMENT
 // ============================================================================
 
-// mapPriceIDToTier maps Polar price ID to tier name
-func (h *WebhookHandler) mapPriceIDToTier(priceID string) string {
+// mapPriceIDToTier maps a Polar price ID to a canonical tier name.
+func (h *WebhookHandler) mapPriceIDToTier(priceID string) (string, error) {
 	// TODO: Replace placeholder IDs with actual Polar price IDs from dashboard
 	tierMapping := map[string]string{
 		"price_seed_monthly":     string(TierSeed),
@@ -446,16 +450,16 @@ func (h *WebhookHandler) mapPriceIDToTier(priceID string) string {
 	}
 
 	if tier, ok := tierMapping[priceID]; ok {
-		return tier
+		return tier, nil
 	}
 
 	// Fall back to plan lookup by price ID
 	if plan, err := GetTierByPriceID(priceID); err == nil {
-		return string(plan.ID)
+		return string(plan.ID), nil
 	}
 
-	h.logger.Printf("[Webhook] WARNING: Unknown price ID %s, defaulting to seed tier", priceID)
-	return string(TierSeed)
+	h.logger.Printf("[Webhook] ERROR: Unknown price ID %s", priceID)
+	return "", fmt.Errorf("unknown price ID: %s", priceID)
 }
 
 // storeLicense creates a new license in the database
