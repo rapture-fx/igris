@@ -36,8 +36,15 @@ igris-core = { path = "../igris-core" }
 # Optional ROS2 integration
 igris-ros2 = { path = "../igris-ros2", optional = true }
 
+# Optional WAL integration for crash-recoverable BT execution
+igris-wal = { path = "../igris-wal", optional = true }
+ed25519-dalek = { workspace = true, optional = true }
+sha2 = { workspace = true, optional = true }
+uuid = { version = "1.7", features = ["v4", "serde"], optional = true }
+
 [features]
 ros2 = ["dep:igris-ros2"]
+wal = ["dep:igris-wal", "dep:ed25519-dalek", "dep:sha2", "dep:uuid"]
 
 [dev-dependencies]
 tokio-test = "0.4"
