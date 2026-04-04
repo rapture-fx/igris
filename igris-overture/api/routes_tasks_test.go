@@ -35,7 +35,15 @@ func TestBuildTaskResponseIncludesFailureReasonAndCheckpointMetadata(t *testing.
 				LastCommittedStep: 3,
 				CheckpointDigest:  "abc123",
 			},
-			Metadata: json.RawMessage(`{"domain":"robotics","action":"cancel_navigation"}`),
+			Metadata: json.RawMessage(`{
+				"domain":"robotics",
+				"action":"cancel_navigation",
+				"graph_blackboard":{
+					"last_node_id":"robotics-1",
+					"nodes":{"robotics-1":{"status":"canceled"}},
+					"slots":{"robotics.robotics_1":{"status":"canceled"}}
+				}
+			}`),
 		},
 	}
 
@@ -49,7 +57,10 @@ func TestBuildTaskResponseIncludesFailureReasonAndCheckpointMetadata(t *testing.
 	require.Equal(t, "robotics_workflow", resp["task_type"])
 	require.EqualValues(t, 3, resp["last_step"])
 	require.Equal(t, "abc123", resp["checkpoint_digest"])
-	require.Equal(t, json.RawMessage(`{"domain":"robotics","action":"cancel_navigation"}`), resp["checkpoint_metadata"])
+	require.NotNil(t, resp["checkpoint_metadata"])
+	require.Equal(t, json.RawMessage(`{"last_node_id":"robotics-1","nodes":{"robotics-1":{"status":"canceled"}},"slots":{"robotics.robotics_1":{"status":"canceled"}}}`), resp["graph_blackboard"])
+	require.Equal(t, json.RawMessage(`{"robotics-1":{"status":"canceled"}}`), resp["graph_nodes"])
+	require.Equal(t, json.RawMessage(`{"robotics.robotics_1":{"status":"canceled"}}`), resp["graph_slots"])
 }
 
 func TestBuildTaskResponseOmitsEmptyOptionalFields(t *testing.T) {
@@ -219,6 +230,7 @@ func TestBuildTaskSubmitRequestBuildsExecutionGraphAgentTask(t *testing.T) {
 	require.Len(t, definition.Graph.Nodes, 1)
 	require.Equal(t, "reason", definition.Graph.Nodes[0]["kind"])
 	require.Equal(t, "reasoning-graph-0", definition.Graph.Nodes[0]["node_id"])
+	require.Equal(t, "reason.reasoning_graph_0", definition.Graph.Nodes[0]["write_slot"])
 }
 
 func TestBuildTaskSubmitRequestBuildsAgentWorkflowFromSteps(t *testing.T) {
@@ -285,7 +297,9 @@ func TestBuildTaskSubmitRequestBuildsExecutionGraphRoboticsMission(t *testing.T)
 	require.Len(t, definition.Graph.Nodes, 2)
 	require.Equal(t, "robotics", definition.Graph.Nodes[0]["kind"])
 	require.Equal(t, "navigate_to_pose", definition.Graph.Nodes[0]["action"])
+	require.Equal(t, "robotics.robot_graph_0", definition.Graph.Nodes[0]["write_slot"])
 	require.Equal(t, "publish_prompt", definition.Graph.Nodes[1]["action"])
+	require.Equal(t, "robotics.robot_graph_1", definition.Graph.Nodes[1]["write_slot"])
 }
 
 func TestBuildTaskSubmitRequestRejectsAgentTaskOnWrongTaskType(t *testing.T) {
