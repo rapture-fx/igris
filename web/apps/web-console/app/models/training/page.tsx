@@ -1,11 +1,12 @@
 'use client';
 
-import { useQuery } from '@tanstack/react-query';
+import { useQuery, useMutation, useQueryClient } from '@tanstack/react-query';
 import { DashboardLayout } from '@/components/layout/DashboardLayout';
 import { Card, CardContent, CardHeader } from '@/components/ui/card';
 import { Skeleton } from '@/components/ui/skeleton';
 import { Separator } from '@/components/ui/separator';
 import { api } from '@/lib/apiClient';
+import { toast } from '@/components/ui/use-toast';
 import {
   Brain,
   CheckCircle2,
@@ -17,6 +18,7 @@ import {
   Zap,
   Activity,
   ChevronRight,
+  Play,
 } from 'lucide-react';
 import { Button } from '@/components/ui/button';
 
@@ -113,6 +115,8 @@ function StatRow({ label, value }: { label: string; value: React.ReactNode }) {
 // ─── Page ──────────────────────────────────────────────────────────────────────
 
 export default function QLoRATrainingPage() {
+  const qc = useQueryClient();
+
   const {
     data: loraStatus,
     isLoading,
@@ -125,6 +129,17 @@ export default function QLoRATrainingPage() {
     refetchInterval: (query) =>
       query.state.data?.status === 'Training' ? 5_000 : 30_000,
     refetchIntervalInBackground: false,
+  });
+
+  const triggerMutation = useMutation({
+    mutationFn: () => api.post('/v1/lora/trigger', {}),
+    onSuccess: () => {
+      qc.invalidateQueries({ queryKey: ['lora-status'] });
+      toast({ title: 'Training triggered', description: 'A training run has been queued.' });
+    },
+    onError: () => {
+      toast({ title: 'Trigger failed', description: 'Could not start training. Check the runtime is connected.', variant: 'destructive' });
+    },
   });
 
   const enabled = loraStatus?.enabled !== false && !loraStatus?.runtime_error;
@@ -152,16 +167,29 @@ export default function QLoRATrainingPage() {
               Adapters are AES-256-GCM encrypted at rest and hot-loaded without restart.
             </p>
           </div>
-          <Button
-            variant="outline"
-            size="sm"
-            className="h-9 text-sm font-inter gap-1.5 flex-shrink-0"
-            onClick={() => refetch()}
-            disabled={isFetching}
-          >
-            <RefreshCw className={`h-4 w-4 ${isFetching ? 'animate-spin' : ''}`} />
-            Refresh
-          </Button>
+          <div className="flex items-center gap-2 flex-shrink-0">
+            <Button
+              size="sm"
+              className="h-9 text-sm font-inter gap-1.5"
+              onClick={() => triggerMutation.mutate()}
+              disabled={!enabled || status === 'Training' || triggerMutation.isPending}
+              title={status === 'Training' ? 'Training already in progress' : 'Trigger a training run now'}
+            >
+              {triggerMutation.isPending
+                ? <><RefreshCw className="h-4 w-4 animate-spin" /> Starting…</>
+                : <><Play className="h-4 w-4" /> Trigger Training</>}
+            </Button>
+            <Button
+              variant="outline"
+              size="sm"
+              className="h-9 text-sm font-inter gap-1.5"
+              onClick={() => refetch()}
+              disabled={isFetching}
+            >
+              <RefreshCw className={`h-4 w-4 ${isFetching ? 'animate-spin' : ''}`} />
+              Refresh
+            </Button>
+          </div>
         </div>
 
         {/* ── Runtime unavailable banner ───────────────────────────────────── */}
