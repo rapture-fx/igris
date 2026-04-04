@@ -188,6 +188,39 @@ func TestBuildTaskSubmitRequestBuildsSingleInferenceAgentTask(t *testing.T) {
 	require.NotNil(t, definition["approval"])
 }
 
+func TestBuildTaskSubmitRequestBuildsExecutionGraphAgentTask(t *testing.T) {
+	t.Parallel()
+
+	body := []byte(`{
+		"task_type": "execution_graph",
+		"agent_task": {
+			"name": "reasoning-graph",
+			"steps": [
+				{
+					"model": "gpt-4.1-mini",
+					"messages": [{"role":"user","content":"plan route"}]
+				}
+			]
+		}
+	}`)
+
+	req, err := buildTaskSubmitRequest(body, "tenant-graph-agent")
+	require.NoError(t, err)
+	require.Equal(t, "execution_graph", req.TaskType)
+
+	var definition struct {
+		Graph struct {
+			GraphID string                   `json:"graph_id"`
+			Nodes   []map[string]interface{} `json:"nodes"`
+		} `json:"graph"`
+	}
+	require.NoError(t, json.Unmarshal(req.TaskDefinition, &definition))
+	require.Equal(t, "reasoning-graph", definition.Graph.GraphID)
+	require.Len(t, definition.Graph.Nodes, 1)
+	require.Equal(t, "reason", definition.Graph.Nodes[0]["kind"])
+	require.Equal(t, "reasoning-graph-0", definition.Graph.Nodes[0]["node_id"])
+}
+
 func TestBuildTaskSubmitRequestBuildsAgentWorkflowFromSteps(t *testing.T) {
 	t.Parallel()
 
@@ -225,6 +258,36 @@ func TestBuildTaskSubmitRequestBuildsAgentWorkflowFromSteps(t *testing.T) {
 	require.Equal(t, "triage-flow:agent_step", approval["task"])
 }
 
+func TestBuildTaskSubmitRequestBuildsExecutionGraphRoboticsMission(t *testing.T) {
+	t.Parallel()
+
+	body := []byte(`{
+		"task_type": "execution_graph",
+		"robotics_mission": {
+			"name": "robot-graph",
+			"waypoints": [
+				{"x": 2.0, "y": 3.0, "frame_id": "map"}
+			],
+			"prompt": "inspect station"
+		}
+	}`)
+
+	req, err := buildTaskSubmitRequest(body, "tenant-graph-robotics")
+	require.NoError(t, err)
+	require.Equal(t, "execution_graph", req.TaskType)
+
+	var definition struct {
+		Graph struct {
+			Nodes []map[string]interface{} `json:"nodes"`
+		} `json:"graph"`
+	}
+	require.NoError(t, json.Unmarshal(req.TaskDefinition, &definition))
+	require.Len(t, definition.Graph.Nodes, 2)
+	require.Equal(t, "robotics", definition.Graph.Nodes[0]["kind"])
+	require.Equal(t, "navigate_to_pose", definition.Graph.Nodes[0]["action"])
+	require.Equal(t, "publish_prompt", definition.Graph.Nodes[1]["action"])
+}
+
 func TestBuildTaskSubmitRequestRejectsAgentTaskOnWrongTaskType(t *testing.T) {
 	t.Parallel()
 
@@ -238,7 +301,7 @@ func TestBuildTaskSubmitRequestRejectsAgentTaskOnWrongTaskType(t *testing.T) {
 
 	_, err := buildTaskSubmitRequest(body, "tenant-4")
 	require.ErrorIs(t, err, coordinator.ErrInvalidTaskDefinition)
-	require.Contains(t, err.Error(), "agent_task is only valid with task_type=single_inference or task_type=agent_workflow")
+	require.Contains(t, err.Error(), "agent_task is only valid with task_type=single_inference, task_type=agent_workflow, or task_type=execution_graph")
 }
 
 func TestBuildTaskSubmitRequestRejectsAgentWorkflowStepsOnSingleInference(t *testing.T) {
