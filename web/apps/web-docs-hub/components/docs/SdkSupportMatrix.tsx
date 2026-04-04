@@ -10,9 +10,9 @@ type SdkRow = {
 };
 
 const statusClasses: Record<string, string> = {
-  'production-ready': 'bg-emerald-100 text-emerald-800',
+  'first-class': 'bg-emerald-100 text-emerald-800',
   preview: 'bg-amber-100 text-amber-800',
-  planned: 'bg-slate-100 text-slate-700',
+  'openai-compatible': 'bg-blue-100 text-blue-800',
 };
 
 export function SdkSupportMatrix() {
