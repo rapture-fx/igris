@@ -19,15 +19,15 @@ Before rollout, make sure each runtime can:
 - register successfully
 - report health consistently
 
-If registration is not healthy, rollout docs are not the place to start. Fix runtime readiness first.
+If registration is not healthy, rollout is the wrong next step. Fix runtime readiness first, then come back to rollout.
 
 ## 2. Inspect current fleet state
 
-Use the fleet inventory surface before making changes. That gives you the current target set and avoids rolling out blind.
+Use the fleet inventory surface before making changes. That gives you the real target set, not the target set you assume exists.
 
 ## 3. Push configuration deliberately
 
-Use config push for settings changes such as runtime behavior, local model paths, or fallback configuration. Roll configuration changes separately from binary upgrades whenever possible so failures are easier to isolate.
+Use config push for settings changes such as runtime behavior, local model paths, or fallback configuration. Roll configuration changes separately from binary upgrades whenever possible so failures are easier to isolate and rollback decisions are easier to make.
 
 ## 4. Roll runtime updates in stages
 
