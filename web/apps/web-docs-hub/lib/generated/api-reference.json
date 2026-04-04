@@ -1,5 +1,5 @@
 {
-  "generated_at": "2026-04-04T01:56:37.980Z",
+  "generated_at": "2026-04-04T03:05:51.020Z",
   "generated_from": [
     "igris-overture/api/*.go",
     "igris-runtime/crates/igris-server/src/main.rs"
@@ -364,7 +364,7 @@
     },
     {
       "title": "Durable Tasks",
-      "summary": "Submit multi-step agent and robotics workflows that survive runtime failures. The coordination layer tracks a Write-Ahead Log, periodic checkpoints, and automatic failover to a healthy runtime.",
+      "summary": "Submit durable workflows and long-running tasks that preserve progress automatically across runtime interruptions.",
       "endpoints": [
         {
           "method": "POST",
@@ -372,7 +372,7 @@
           "auth": "Session cookie or igris_ API key",
           "surface": "Cloud API",
           "stability": "stable",
-          "description": "Submit a new durable task (agent workflow, robotics workflow, or single inference)."
+          "description": "Submit a durable task using `agent_workflow`, `robotics_workflow`, `single_inference`, or `behavior_tree`."
         },
         {
           "method": "GET",
@@ -380,7 +380,7 @@
           "auth": "Session cookie or igris_ API key",
           "surface": "Cloud API",
           "stability": "stable",
-          "description": "Poll the status and last checkpoint of a durable task."
+          "description": "Poll the current status and latest checkpoint metadata for a durable task."
         },
         {
           "method": "GET",
@@ -389,30 +389,6 @@
           "surface": "Cloud API",
           "stability": "stable",
           "description": "List recent durable tasks for the authenticated tenant."
-        },
-        {
-          "method": "POST",
-          "path": "/v1/tasks/:id/checkpoint",
-          "auth": "Session cookie or igris_ API key",
-          "surface": "Cloud API",
-          "stability": "stable",
-          "description": "Push a WAL checkpoint to the coordination layer. Called by the runtime after each checkpoint interval."
-        },
-        {
-          "method": "POST",
-          "path": "/v1/tasks/:id/complete",
-          "auth": "Session cookie or igris_ API key",
-          "surface": "Cloud API",
-          "stability": "stable",
-          "description": "Mark a task as completed. Called by the runtime when all steps finish successfully."
-        },
-        {
-          "method": "POST",
-          "path": "/v1/tasks/:id/failed",
-          "auth": "Session cookie or igris_ API key",
-          "surface": "Cloud API",
-          "stability": "stable",
-          "description": "Mark a task as failed with a reason. Called by the runtime on non-recoverable errors."
         }
       ]
     },
