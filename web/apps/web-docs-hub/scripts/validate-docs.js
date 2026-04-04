@@ -18,7 +18,7 @@ function walk(dir, files = []) {
 function main() {
   const failures = [];
 
-  const requiredGeneratedFiles = ['api-reference.json', 'api-verification.json', 'sdk-support.json'];
+  const requiredGeneratedFiles = ['api-reference.json', 'api-verification.json', 'sdk-support.json', 'mcp-reference.json'];
   for (const fileName of requiredGeneratedFiles) {
     const fullPath = path.join(generatedDir, fileName);
     if (!fs.existsSync(fullPath)) {
@@ -62,6 +62,15 @@ function main() {
     if (!allowedSdkStatuses.has(row.status)) {
       failures.push(`SDK support row for ${row.language}: invalid status ${row.status}`);
     }
+  }
+
+  const mcpReferencePath = path.join(generatedDir, 'mcp-reference.json');
+  const mcpReference = JSON.parse(fs.readFileSync(mcpReferencePath, 'utf8'));
+  if (!Array.isArray(mcpReference.guides) || mcpReference.guides.length < 4) {
+    failures.push('mcp-reference.json must include the MCP guide set.');
+  }
+  if (!Array.isArray(mcpReference.methodGroups) || mcpReference.methodGroups.length < 2) {
+    failures.push('mcp-reference.json must include MCP method groups.');
   }
 
   const requiredWorkflowDocs = [
