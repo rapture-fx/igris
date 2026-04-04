@@ -11,7 +11,6 @@ import (
 	"strings"
 	"time"
 
-	"github.com/gofiber/fiber/v2"
 	"github.com/Igris-inertial/system/igris-overture/config"
 	"github.com/Igris-inertial/system/igris-overture/database"
 	"github.com/Igris-inertial/system/igris-overture/inference/optimizer"
@@ -22,12 +21,39 @@ import (
 	"github.com/Igris-inertial/system/igris-overture/middleware"
 	"github.com/Igris-inertial/system/igris-overture/models"
 	"github.com/Igris-inertial/system/igris-overture/providers"
-	specrouter "github.com/Igris-inertial/system/igris-overture/router"
 	"github.com/Igris-inertial/system/igris-overture/providers/anthropic"
 	"github.com/Igris-inertial/system/igris-overture/providers/openai"
+	specrouter "github.com/Igris-inertial/system/igris-overture/router"
 	"github.com/Igris-inertial/system/igris-overture/safety"
 	"github.com/Igris-inertial/system/igris-overture/tracing"
+	"github.com/gofiber/fiber/v2"
 )
+
+func resolveProviderMode() string {
+	providerMode := strings.ToLower(strings.TrimSpace(os.Getenv("PROVIDER_MODE")))
+	if providerMode != "" {
+		return providerMode
+	}
+	if strings.EqualFold(os.Getenv("ENV"), "production") {
+		return "real"
+	}
+	return "mock"
+}
+
+func validateProviderMode(providerMode string) {
+	switch providerMode {
+	case "mock", "benchmark", "hybrid", "real":
+	default:
+		log.Fatalf("[Handler] FATAL: Invalid PROVIDER_MODE=%q. Expected one of: mock, benchmark, hybrid, real.", providerMode)
+	}
+
+	if strings.EqualFold(os.Getenv("ENV"), "production") &&
+		providerMode != "real" &&
+		os.Getenv("ALLOW_NON_REAL_PROVIDER_MODE_IN_PRODUCTION") != "true" {
+		log.Fatal("[Handler] FATAL: Production requires PROVIDER_MODE=real. " +
+			"Simulated or hybrid providers are blocked unless ALLOW_NON_REAL_PROVIDER_MODE_IN_PRODUCTION=true.")
+	}
+}
 
 // RuntimeExecutor forwards inference to a remote Runtime instance.
 // Keeping this as an interface avoids a circular import between the
@@ -65,11 +91,9 @@ func NewInferHandler(db *database.DB) (*InferHandler, error) {
 	registry := providers.NewProviderRegistry()
 
 	// Check PROVIDER_MODE environment variable
-	// Options: "mock" (default), "real", "hybrid", "benchmark"
-	providerMode := os.Getenv("PROVIDER_MODE")
-	if providerMode == "" {
-		providerMode = "mock" // Default to mock mode for development
-	}
+	// Options: "mock" (dev), "real", "hybrid", "benchmark"
+	providerMode := resolveProviderMode()
+	validateProviderMode(providerMode)
 
 	log.Printf("[Handler] Provider mode: %s", providerMode)
 
@@ -153,11 +177,11 @@ func NewInferHandler(db *database.DB) (*InferHandler, error) {
 				log.Printf("ERROR: Invalid OPENAI_API_KEY format. Expected format: sk-...")
 			} else {
 				openaiConfig := &providers.ProviderConfig{
-					APIKey:     openaiAPIKey,
-					BaseURL:    "https://api.openai.com/v1",
-					Timeout:    30,
-					MaxRetries: 3,
-					RetryDelay: 500,
+					APIKey:        openaiAPIKey,
+					BaseURL:       "https://api.openai.com/v1",
+					Timeout:       30,
+					MaxRetries:    3,
+					RetryDelay:    500,
 					EnableMetrics: true,
 				}
 				openaiProvider, err := openai.NewOpenAIProvider(openaiConfig)
@@ -386,11 +410,11 @@ func (h *InferHandler) HandleInfer(c *fiber.Ctx) error {
 	var req models.InferRequest
 	if err := c.BodyParser(&req); err != nil {
 		log.Printf("[Infer] Failed to parse request: %v", err)
-		
+
 		// Record parsing error metrics
 		latencyMs := time.Since(startTime).Milliseconds()
 		metrics.RecordInferError(c, "error", "parsing_failed", latencyMs, err.Error())
-		
+
 		return c.Status(fiber.StatusBadRequest).JSON(fiber.Map{
 			"error": map[string]interface{}{
 				"message": "Invalid request body",
@@ -402,11 +426,11 @@ func (h *InferHandler) HandleInfer(c *fiber.Ctx) error {
 	// Validate request
 	if err := req.Validate(); err != nil {
 		log.Printf("[Infer] Request validation failed: %v", err)
-		
+
 		// Record validation error metrics
 		latencyMs := time.Since(startTime).Milliseconds()
 		metrics.RecordInferError(c, "error", "validation_failed", latencyMs, err.Error())
-		
+
 		return c.Status(fiber.StatusBadRequest).JSON(fiber.Map{
 			"error": map[string]interface{}{
 				"message": err.Error(),
@@ -463,9 +487,9 @@ func (h *InferHandler) HandleInfer(c *fiber.Ctx) error {
 	// Route and execute inference.
 	var resp *models.InferResponse
 
-	// P0 FIX: Runtime executor intercepts ALL paths (council, stream, non-stream) before
-	// the early-return branches below.  This ensures council and streaming requests are
-	// forwarded to the Runtime when IGRIS_RUNTIME_URL is configured.
+	// Runtime executor intercepts durable request paths first. Streaming requests still
+	// fall back to the local Overture handler until the Runtime task API can emit SSE
+	// without degrading semantics.
 	if h.runtimeExecutor != nil {
 		boundsHeader := string(c.Request().Header.Peek("X-Igris-Bounds"))
 		// Council mode disables streaming per existing policy.
@@ -567,11 +591,11 @@ func (h *InferHandler) HandleInfer(c *fiber.Ctx) error {
 		if provider == "" {
 			provider = "unknown"
 		}
-		
+
 		tracer := tracing.GetGlobalTracer()
 		tracer.AddError(ctx, err)
 		tracer.TraceInferenceResponse(ctx, latencyMs, 0, 0, 0, 0, false)
-		
+
 		metrics.RecordInferMetrics(c, provider, req.Model, latencyMs, 0, 0, 0, 0, false, err.Error())
 
 		return c.Status(fiber.StatusInternalServerError).JSON(fiber.Map{
@@ -933,11 +957,11 @@ func (h *InferHandler) handleStreamingInfer(c *fiber.Ctx, req *models.InferReque
 	// For now, return streaming as a single response (simplified for MVP)
 	// TODO: Implement proper Server-Sent Events streaming in a later phase
 	allChunks := []*models.StreamChunk{}
-	
+
 	for chunk := range chunkChan {
 		allChunks = append(allChunks, chunk)
 	}
-	
+
 	// Check for any errors
 	if err, ok := <-errChan; ok && err != nil {
 		// Record streaming error metrics
@@ -950,9 +974,9 @@ func (h *InferHandler) handleStreamingInfer(c *fiber.Ctx, req *models.InferReque
 		tracer := tracing.GetGlobalTracer()
 		tracer.AddError(traceContext, err)
 		tracer.TraceInferenceResponse(traceContext, latencyMs, 0, 0, totalTokens, totalCost, false)
-		
+
 		metrics.RecordInferMetrics(c, provider, req.Model, latencyMs, 0, 0, totalTokens, totalCost, false, err.Error())
-		
+
 		log.Printf("[Infer] Streaming error: %v", err)
 		return c.Status(fiber.StatusInternalServerError).JSON(fiber.Map{
 			"error": err.Error(),
@@ -984,13 +1008,13 @@ func (h *InferHandler) handleStreamingInfer(c *fiber.Ctx, req *models.InferReque
 			},
 		},
 		Usage: &models.UsageStats{
-			PromptTokens:     100, // Simplified for MVP
+			PromptTokens:     100,                      // Simplified for MVP
 			CompletionTokens: len(combinedContent) / 4, // Estimate
 			TotalTokens:      100 + (len(combinedContent) / 4),
 		},
 		Metadata: &models.ResponseMetadata{
-			Provider:    "mock-openai",
-			ModelUsed:   req.Model,
+			Provider:      "mock-openai",
+			ModelUsed:     req.Model,
 			RouteDecision: "simple_stream",
 		},
 	}
@@ -1027,7 +1051,7 @@ func (h *InferHandler) handleStreamingInfer(c *fiber.Ctx, req *models.InferReque
 	c.Set("Content-Type", "application/json")
 	c.Set("X-Trace-ID", tracing.GetTraceID(traceContext))
 	return c.JSON(response)
-		}
+}
 
 // HandleHealth handles GET /v1/health
 func (h *InferHandler) HandleHealth(c *fiber.Ctx) error {
@@ -1069,15 +1093,15 @@ func (h *InferHandler) HandleModels(c *fiber.Ctx) error {
 		"object": "list",
 		"data": []fiber.Map{
 			{
-				"id":      "gpt-4",
-				"object":  "model",
-				"created": 1687882411,
+				"id":       "gpt-4",
+				"object":   "model",
+				"created":  1687882411,
 				"owned_by": "openai",
 			},
 			{
-				"id":      "claude-3-opus-20240229",
-				"object":  "model",
-				"created": 1709251200,
+				"id":       "claude-3-opus-20240229",
+				"object":   "model",
+				"created":  1709251200,
 				"owned_by": "anthropic",
 			},
 		},
@@ -1094,7 +1118,7 @@ func (h *InferHandler) HandleProviderStats(c *fiber.Ctx) error {
 
 	// Get router stats
 	stats := h.router.GetStats()
-	
+
 	// Get aggregated metrics from collector
 	collector := metrics.GetMetricsCollector()
 	aggregatedMetrics := collector.GetProviderMetrics()
@@ -1103,14 +1127,12 @@ func (h *InferHandler) HandleProviderStats(c *fiber.Ctx) error {
 	c.Set("X-Trace-ID", traceCtx.TraceID)
 
 	return c.JSON(fiber.Map{
-		"router_stats":     stats,
-		"aggregated":       aggregatedMetrics,
-		"timestamp":        time.Now().Unix(),
-		"trace_id":         traceCtx.TraceID,
+		"router_stats": stats,
+		"aggregated":   aggregatedMetrics,
+		"timestamp":    time.Now().Unix(),
+		"trace_id":     traceCtx.TraceID,
 	})
 }
-
-
 
 // calculateCost calculates the cost of an inference request using the centralized cost model
 func calculateCost(provider, model string, promptTokens, completionTokens int) float64 {
