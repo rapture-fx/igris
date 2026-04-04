@@ -690,11 +690,12 @@ pub async fn handle_task_submit(
 
         entries_since_checkpoint.push(committed_entry);
         steps_completed = step.step_index() + 1;
+        // Build metadata before consuming step_result fields.
+        checkpoint_metadata = Some(build_step_checkpoint_metadata(step, steps_completed, &step_result));
         last_output = Some(step_result.output_text);
         last_usage = Some(step_result.usage);
         last_envelope = Some(execution_envelope);
         last_receipt = execution_receipt;
-        checkpoint_metadata = Some(build_step_checkpoint_metadata(step, steps_completed, &step_result));
 
         if steps_completed > 0 && steps_completed % 5 == 0 {
             match build_checkpoint(
