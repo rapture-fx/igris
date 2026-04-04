@@ -8,6 +8,7 @@ import (
 	"context"
 	"database/sql"
 	"encoding/json"
+	"errors"
 	"fmt"
 	"net/http"
 	"time"
@@ -24,6 +25,8 @@ const (
 	// checkpointInterval is how many steps between forced checkpoints.
 	checkpointInterval = 5
 )
+
+var ErrInvalidTaskDefinition = errors.New("invalid task_definition")
 
 // TaskCoordinator dispatches tasks to runtimes and handles failure recovery.
 type TaskCoordinator struct {
@@ -50,14 +53,14 @@ func (tc *TaskCoordinator) Store() *CheckpointStore {
 // Submit creates a task record and dispatches to a healthy runtime.
 // Returns the task_id immediately; the caller polls /v1/tasks/:id/status.
 func (tc *TaskCoordinator) Submit(ctx context.Context, req *TaskSubmitRequest) (*TaskRecord, error) {
+	normalizedDefinition, err := normalizePublicTaskDefinition(req.TaskType, req.TaskDefinition)
+	if err != nil {
+		return nil, err
+	}
+
 	taskID := uuid.New()
 	if req.TaskID != uuid.Nil {
 		taskID = req.TaskID // caller can supply for idempotency
-	}
-
-	defBytes, err := json.Marshal(req)
-	if err != nil {
-		return nil, fmt.Errorf("marshal task: %w", err)
 	}
 
 	idempotencyKey := req.IdempotencyKey
@@ -69,14 +72,25 @@ func (tc *TaskCoordinator) Submit(ctx context.Context, req *TaskSubmitRequest) (
 		TaskID:         taskID,
 		TenantID:       req.TenantID,
 		Status:         TaskStatusPending,
-		TaskDefinition: defBytes,
+		TaskDefinition: normalizedDefinition,
 		IdempotencyKey: idempotencyKey,
 		DeadlineAt:     req.DeadlineAt,
 		CreatedAt:      time.Now(),
 	}
 
-	if err := tc.store.CreateTask(task); err != nil {
+	inserted, err := tc.store.CreateTask(task)
+	if err != nil {
 		return nil, fmt.Errorf("create task record: %w", err)
+	}
+	if !inserted {
+		existing, err := tc.store.GetTaskByIdempotencyKey(req.TenantID, idempotencyKey)
+		if err == nil {
+			return existing, nil
+		}
+		if err == sql.ErrNoRows {
+			return nil, fmt.Errorf("idempotency key is already in use")
+		}
+		return nil, fmt.Errorf("lookup idempotent task: %w", err)
 	}
 
 	runtime, err := tc.selectRuntime(ctx, req.TenantID)
@@ -172,8 +186,7 @@ func (tc *TaskCoordinator) selectRuntime(ctx context.Context, tenantID string) (
 //
 // The runtime expects TaskSubmitRequest: { task_id, task_type, containment,
 // resume_from, resume_checkpoint, idempotency_key, tenant_id, deadline_ms }.
-// task.TaskDefinition holds the client-submitted JSON which already contains
-// task_type (and optionally containment). We merge in the control-plane fields.
+// task.TaskDefinition holds the normalized task_type object for the runtime.
 //
 // On recovery, checkpoint carries the full last CheckpointPayload including the
 // Metadata field. resume_from is derived from checkpoint.ResumeToken so that
@@ -186,13 +199,16 @@ func (tc *TaskCoordinator) dispatchToRuntime(ctx context.Context, task *TaskReco
 		return
 	}
 
-	// Unmarshal stored task definition into a mutable map so we can inject
-	// control-plane fields without losing the task_type / steps the client sent.
-	var runtimePayload map[string]json.RawMessage
-	if err := json.Unmarshal(task.TaskDefinition, &runtimePayload); err != nil {
+	// task.TaskDefinition stores the runtime-facing task_type object. Wrap it in
+	// the runtime submit payload and inject control-plane fields.
+	taskTypeBytes := json.RawMessage(task.TaskDefinition)
+	if err := json.Unmarshal(taskTypeBytes, &map[string]json.RawMessage{}); err != nil {
 		log.Error().Err(err).Str("task_id", task.TaskID.String()).Msg("[Coordinator] Unmarshal task definition")
 		_ = tc.store.MarkFailed(task.TaskID, "invalid task definition")
 		return
+	}
+	runtimePayload := map[string]json.RawMessage{
+		"task_type": taskTypeBytes,
 	}
 
 	// Inject / override control-plane fields.
@@ -364,8 +380,25 @@ func (tc *TaskCoordinator) markAndRecover(ctx context.Context, taskID uuid.UUID,
 type TaskSubmitRequest struct {
 	TaskID         uuid.UUID       `json:"task_id,omitempty"`
 	TenantID       string          `json:"tenant_id"`
-	TaskType       string          `json:"task_type"` // "agent_workflow" | "single_inference"
+	TaskType       string          `json:"task_type"` // "agent_workflow" | "robotics_workflow" | "single_inference" | "behavior_tree"
 	TaskDefinition json.RawMessage `json:"task_definition"`
 	IdempotencyKey string          `json:"idempotency_key,omitempty"`
 	DeadlineAt     *time.Time      `json:"deadline_at,omitempty"`
+}
+
+func normalizePublicTaskDefinition(taskType string, raw json.RawMessage) (json.RawMessage, error) {
+	var definition map[string]json.RawMessage
+	if err := json.Unmarshal(raw, &definition); err != nil {
+		return nil, fmt.Errorf("%w: task_definition must be a JSON object", ErrInvalidTaskDefinition)
+	}
+	typeBytes, err := json.Marshal(taskType)
+	if err != nil {
+		return nil, fmt.Errorf("%w: could not encode task_type", ErrInvalidTaskDefinition)
+	}
+	definition["type"] = typeBytes
+	normalized, err := json.Marshal(definition)
+	if err != nil {
+		return nil, fmt.Errorf("%w: could not normalize task_definition", ErrInvalidTaskDefinition)
+	}
+	return normalized, nil
 }
