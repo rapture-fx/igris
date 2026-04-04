@@ -20,6 +20,9 @@ type ApiExampleValue = string | ApiExampleObject | Array<ApiExampleObject>;
 
 type EndpointOverride = {
   functionality?: string;
+  whenToUse?: string;
+  retryGuidance?: string;
+  commonMistakes?: string[];
   notes?: string[];
   pathParams?: ApiField[];
   queryParams?: ApiField[];
@@ -651,6 +654,78 @@ function fallbackFunctionality(section: ApiSection, endpoint: ApiEndpoint) {
   return `${endpoint.description} This endpoint belongs to the ${section.title} group and is documented here so customers can understand the contract, auth model, and verified sample traffic without reading the server implementation.`;
 }
 
+function fallbackWhenToUse(section: ApiSection, endpoint: ApiEndpoint) {
+  if (endpoint.support === 'preview') {
+    return `Use this endpoint when you need ${endpoint.description.toLowerCase()} and you are comfortable integrating against a preview surface. Confirm the current shape and rollout expectations before depending on it in a hard production path.`;
+  }
+
+  if (endpoint.deployment === 'local') {
+    return `Use this endpoint when the operation belongs on the local runtime rather than the hosted API. It is part of the ${section.title} surface and should be called from the environment where the runtime is actually serving traffic.`;
+  }
+
+  if (endpoint.deployment === 'hybrid') {
+    return `Use this endpoint when the workflow spans both the hosted control plane and one or more runtimes. It belongs to the ${section.title} area of the product and is most useful when you are coordinating runtime distribution, fleet state, or device operations.`;
+  }
+
+  return `Use this endpoint when you need ${endpoint.description.toLowerCase()} from the hosted API. It is part of the ${section.title} surface and is intended to be the customer-facing contract for that capability.`;
+}
+
+function fallbackRetryGuidance(endpoint: ApiEndpoint) {
+  if (endpoint.path === '/v1/runtime/download' || endpoint.path === '/v1/runtime/install' || endpoint.path === '/v1/runtime/checksum') {
+    return 'Treat download and distribution requests as provisioning operations. Retry on transient 5xx or 429 responses with backoff, but do not put these routes on a hot request path.';
+  }
+
+  if (endpoint.method === 'GET') {
+    return 'Safe retries are usually reasonable for transient 5xx or 429 responses. Do not retry 4xx responses until you have fixed the request, credentials, or addressed resource.';
+  }
+
+  if (endpoint.support === 'preview') {
+    return 'Retry only on clearly transient 5xx or 429 responses, and prefer idempotent client behavior. For preview routes, avoid aggressive automatic replay until you have validated the behavior in your environment.';
+  }
+
+  return 'Do not blindly retry write operations. Retry only on transient 5xx or 429 responses, and make sure the client is idempotent or otherwise safe to replay.';
+}
+
+function fallbackCommonMistakes(endpoint: ApiEndpoint) {
+  const mistakes: string[] = [];
+
+  if (endpoint.auth.includes('Session cookie')) {
+    mistakes.push('Calling the route with an API key when the workflow actually expects an authenticated browser session.');
+  }
+
+  if (endpoint.auth.includes('igris_ API key') || endpoint.auth.includes('Deployment-dependent') || endpoint.auth.includes('Runtime-config dependent')) {
+    mistakes.push('Using the wrong credential type or forgetting to send the expected API key header.');
+  }
+
+  if (endpoint.deployment === 'local') {
+    mistakes.push('Pointing the client at the hosted base URL even though this route is served by the local runtime.');
+  }
+
+  if (endpoint.deployment === 'hybrid') {
+    mistakes.push('Treating a hybrid coordination route like a local-only runtime call without the required tenant context or fleet state.');
+  }
+
+  if (endpoint.path.includes(':id') || endpoint.path.includes(':provider')) {
+    mistakes.push('Passing a placeholder path segment without replacing it with a real resource identifier.');
+  }
+
+  if (endpoint.method !== 'GET') {
+    mistakes.push('Replaying a write request without thinking through idempotency, duplication, or partial success.');
+  }
+
+  return mistakes.slice(0, 3);
+}
+
+function buildRelatedEndpoints(section: ApiSection, endpoint: ApiEndpoint) {
+  return section.endpoints
+    .filter((candidate) => candidate.path !== endpoint.path || candidate.method !== endpoint.method)
+    .slice(0, 3)
+    .map((candidate) => ({
+      label: `${candidate.method} ${candidate.path}`,
+      href: getApiEndpointHref(section, candidate),
+    }));
+}
+
 function fallbackPathParams(endpoint: ApiEndpoint): ApiField[] {
   const matches = [...endpoint.path.matchAll(/:([a-zA-Z0-9_]+)/g)];
   return matches.map((match) => ({
@@ -852,5 +927,9 @@ export function buildApiEndpointPageData(section: ApiSection, endpoint: ApiEndpo
       { label: 'Rust', language: 'rust', code: buildRustSample(endpoint, override.requestExample, queryExample) },
     ],
     notes: override.notes ?? [],
+    whenToUse: override.whenToUse ?? fallbackWhenToUse(section, endpoint),
+    retryGuidance: override.retryGuidance ?? fallbackRetryGuidance(endpoint),
+    commonMistakes: override.commonMistakes ?? fallbackCommonMistakes(endpoint),
+    relatedEndpoints: buildRelatedEndpoints(section, endpoint),
   };
 }
