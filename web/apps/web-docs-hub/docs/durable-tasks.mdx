@@ -26,24 +26,41 @@ Authorization: Bearer YOUR_API_KEY
 Content-Type: application/json
 ```
 
+Durable tasks now support two submission styles:
+
+- Typed wrappers for common agent and robotics workloads
+- Raw `task_definition` payloads for advanced callers who want full control
+
+The coordinator normalizes either form into the same runtime durable-task contract.
+
+### Agent tasks
+
+Use `agent_task` when you want the coordinator to build either a `single_inference` task or an `agent_workflow` for you.
+
 ```json
 {
   "task_type": "agent_workflow",
-  "task_definition": {
+  "agent_task": {
+    "name": "report-q3-analysis",
     "steps": [
       {
-        "step_index": 0,
-        "model": "gpt-4o",
+        "model": "gpt-4.1-mini",
         "messages": [
           { "role": "user", "content": "Summarize the Q3 report" }
-        ]
+        ],
+        "memory": {
+          "recall_query": "Q3 report context",
+          "store_output": true
+        }
       },
       {
-        "step_index": 1,
-        "model": "gpt-4o",
+        "model": "gpt-4.1-mini",
         "messages": [
           { "role": "user", "content": "Extract action items from the summary" }
-        ]
+        ],
+        "approval": {
+          "required": true
+        }
       }
     ]
   },
@@ -51,6 +68,73 @@ Content-Type: application/json
   "deadline_at": "2026-04-04T18:00:00Z"
 }
 ```
+
+For single-step agent execution, set `task_type` to `single_inference` and provide a single `agent_task` with `model` and `messages` at the top level instead of `steps`.
+
+### Robotics missions
+
+Use `robotics_mission` when you want the coordinator to expand waypoints and mission actions into a durable `robotics_workflow`.
+
+```json
+{
+  "task_type": "robotics_workflow",
+  "robotics_mission": {
+    "name": "warehouse-patrol",
+    "waypoints": [
+      { "x": 12.5, "y": -3.0, "frame_id": "map" },
+      { "x": 18.0, "y": -1.0, "frame_id": "map" }
+    ],
+    "prompt": "Inspect shelf A3 and report anomalies",
+    "emit_zero_velocity_on_finish": true,
+    "approval": {
+      "required": true,
+      "context": {
+        "zone": "aisle-a3"
+      }
+    }
+  },
+  "idempotency_key": "warehouse-patrol-2026-04-04-01"
+}
+```
+
+This wrapper expands into the same durable robotics step model used by the runtime:
+- `navigate_to_pose`
+- `publish_prompt`
+- `publish_velocity`
+- `publish_zero_velocity`
+
+### Raw task definitions
+
+Advanced callers can still submit the runtime-facing durable task payload directly with `task_definition`.
+
+```json
+{
+  "task_type": "agent_workflow",
+  "task_definition": {
+    "steps": [
+      {
+        "step_index": 0,
+        "model": "gpt-4.1-mini",
+        "messages": [
+          { "role": "user", "content": "Summarize the Q3 report" }
+        ]
+      },
+      {
+        "step_index": 1,
+        "model": "gpt-4.1-mini",
+        "messages": [
+          { "role": "user", "content": "Extract action items from the summary" }
+        ]
+      }
+    ]
+  }
+}
+```
+
+Only one of these inputs may be provided per submission:
+- `task_definition`
+- `agent_task`
+- `robotics_mission`
 
 The coordination layer creates a task record, selects the healthiest available runtime (lowest active task count), and dispatches asynchronously. The response returns immediately with the task ID and initial status.
 
@@ -77,13 +161,27 @@ Authorization: Bearer YOUR_API_KEY
 {
   "task_id": "018f4a2b-3c1e-7a2d-9b8f-4d5e6f7a8b9c",
   "status": "checkpointed",
+  "task_type": "robotics_workflow",
   "runtime_id": "runtime-edge-03",
   "last_step": 9,
   "checkpoint_digest": "a3f8e2b1...",
+  "checkpoint_metadata": {
+    "domain": "robotics",
+    "action": "navigate_to_pose",
+    "steps_completed": 9,
+    "last_result_preview": "navigation goal accepted"
+  },
   "dispatched_at": "2026-04-04T14:30:01Z",
+  "deadline_at": "2026-04-04T18:00:00Z",
   "completed_at": null
 }
 ```
+
+When present:
+- `task_type` identifies the durable execution domain without requiring clients to reparse the stored definition
+- `checkpoint_metadata` carries task-specific recovery context such as the last robotics action or agent step preview
+- `failure_reason` is returned for terminal failures
+- `deadline_at` echoes the task deadline tracked by the coordinator
 
 | Status | Meaning |
 |---|---|
@@ -140,7 +238,7 @@ Tasks without a deadline run until all steps complete, the runtime fails, or you
 
 ## Robotics workflows
 
-For robotics, set `task_type` to `robotics_workflow`. The `task_definition` object carries the ROS2-oriented steps:
+For robotics, set `task_type` to `robotics_workflow`. You can submit either the higher-level `robotics_mission` wrapper or the raw runtime-facing `task_definition`. The raw step format is:
 
 ```json
 {
