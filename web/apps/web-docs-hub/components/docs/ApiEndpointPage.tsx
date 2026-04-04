@@ -256,7 +256,7 @@ export function ApiEndpointPage({ data }: ApiEndpointPageProps) {
           {data.commonMistakes.length > 0 && (
             <div>
               <h3 className="m-0 text-sm font-semibold text-slate-900">Common Mistakes</h3>
-              <ul className="mb-0 mt-3 space-y-2 pl-5">
+              <ul className="mb-0 mt-3 list-disc space-y-2 pl-5">
                 {data.commonMistakes.map((mistake) => (
                   <li key={mistake}>{mistake}</li>
                 ))}
@@ -266,7 +266,7 @@ export function ApiEndpointPage({ data }: ApiEndpointPageProps) {
           {data.relatedEndpoints.length > 0 && (
             <div>
               <h3 className="m-0 text-sm font-semibold text-slate-900">Related Endpoints</h3>
-              <ul className="mb-0 mt-3 space-y-2">
+              <ul className="mb-0 mt-3 list-disc space-y-2 pl-5">
                 {data.relatedEndpoints.map((related) => (
                   <li key={related.href}>
                     <Link href={related.href} className="text-sm text-primary no-underline hover:underline">
