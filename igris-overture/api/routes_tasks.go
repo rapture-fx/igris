@@ -4,7 +4,9 @@ import (
 	"database/sql"
 	"encoding/json"
 	"errors"
+	"fmt"
 	"net/http"
+	"time"
 
 	"github.com/gofiber/fiber/v2"
 	"github.com/google/uuid"
@@ -13,6 +15,45 @@ import (
 	"github.com/Igris-inertial/system/igris-overture/coordinator"
 	"github.com/Igris-inertial/system/igris-overture/middleware"
 )
+
+type publicTaskSubmitRequest struct {
+	TaskID          uuid.UUID              `json:"task_id,omitempty"`
+	TaskType        string                 `json:"task_type"`
+	TaskDefinition  json.RawMessage        `json:"task_definition"`
+	RoboticsMission *publicRoboticsMission `json:"robotics_mission,omitempty"`
+	IdempotencyKey  string                 `json:"idempotency_key,omitempty"`
+	DeadlineAt      *time.Time             `json:"deadline_at,omitempty"`
+}
+
+type publicRoboticsMission struct {
+	Name                     string              `json:"name,omitempty"`
+	Waypoints                []publicMissionGoal `json:"waypoints,omitempty"`
+	Prompt                   string              `json:"prompt,omitempty"`
+	PublishVelocity          *publicVelocityStep `json:"publish_velocity,omitempty"`
+	EmitZeroVelocityOnFinish bool                `json:"emit_zero_velocity_on_finish,omitempty"`
+	Approval                 *publicApproval     `json:"approval,omitempty"`
+	WaitTimeoutMs            *uint64             `json:"wait_timeout_ms,omitempty"`
+}
+
+type publicMissionGoal struct {
+	X            float64 `json:"x"`
+	Y            float64 `json:"y"`
+	Z            float64 `json:"z,omitempty"`
+	OrientationW float64 `json:"orientation_w,omitempty"`
+	FrameID      string  `json:"frame_id,omitempty"`
+}
+
+type publicVelocityStep struct {
+	LinearX  float64 `json:"linear_x"`
+	AngularZ float64 `json:"angular_z"`
+}
+
+type publicApproval struct {
+	Required   bool                   `json:"required,omitempty"`
+	Task       string                 `json:"task,omitempty"`
+	Confidence *float32               `json:"confidence,omitempty"`
+	Context    map[string]interface{} `json:"context,omitempty"`
+}
 
 // RegisterTaskRoutes wires the durable task execution endpoints.
 //
@@ -44,11 +85,16 @@ func handleTaskSubmit(tc *coordinator.TaskCoordinator) fiber.Handler {
 			return c.Status(http.StatusUnauthorized).JSON(fiber.Map{"error": "unauthenticated"})
 		}
 
-		var req coordinator.TaskSubmitRequest
-		if err := c.BodyParser(&req); err != nil {
+		req, err := buildTaskSubmitRequest(c.Body(), tenantID)
+		if err != nil {
+			if errors.Is(err, coordinator.ErrInvalidTaskDefinition) {
+				return c.Status(http.StatusBadRequest).JSON(fiber.Map{
+					"error":   "invalid_task_definition",
+					"message": err.Error(),
+				})
+			}
 			return c.Status(http.StatusBadRequest).JSON(fiber.Map{"error": "invalid_body"})
 		}
-		req.TenantID = tenantID // always enforce from auth, not body
 
 		if len(req.TaskDefinition) == 0 {
 			return c.Status(http.StatusBadRequest).JSON(fiber.Map{"error": "task_definition required"})
@@ -57,7 +103,7 @@ func handleTaskSubmit(tc *coordinator.TaskCoordinator) fiber.Handler {
 			return c.Status(http.StatusBadRequest).JSON(fiber.Map{"error": "task_type required"})
 		}
 
-		task, err := tc.Submit(c.Context(), &req)
+		task, err := tc.Submit(c.Context(), req)
 		if err != nil {
 			if errors.Is(err, coordinator.ErrInvalidTaskDefinition) {
 				return c.Status(http.StatusBadRequest).JSON(fiber.Map{
@@ -78,6 +124,164 @@ func handleTaskSubmit(tc *coordinator.TaskCoordinator) fiber.Handler {
 			"created_at": task.CreatedAt,
 		})
 	}
+}
+
+func buildTaskSubmitRequest(body []byte, tenantID string) (*coordinator.TaskSubmitRequest, error) {
+	var raw publicTaskSubmitRequest
+	if err := json.Unmarshal(body, &raw); err != nil {
+		return nil, err
+	}
+
+	if len(raw.TaskDefinition) > 0 && raw.RoboticsMission != nil {
+		return nil, fmt.Errorf("%w: provide either task_definition or robotics_mission, not both", coordinator.ErrInvalidTaskDefinition)
+	}
+
+	taskDefinition := raw.TaskDefinition
+	if len(taskDefinition) == 0 && raw.RoboticsMission != nil {
+		if raw.TaskType != "robotics_workflow" {
+			return nil, fmt.Errorf("%w: robotics_mission is only valid with task_type=robotics_workflow", coordinator.ErrInvalidTaskDefinition)
+		}
+		var err error
+		taskDefinition, err = buildRoboticsMissionTaskDefinition(raw.RoboticsMission)
+		if err != nil {
+			return nil, err
+		}
+	}
+
+	return &coordinator.TaskSubmitRequest{
+		TaskID:         raw.TaskID,
+		TenantID:       tenantID,
+		TaskType:       raw.TaskType,
+		TaskDefinition: taskDefinition,
+		IdempotencyKey: raw.IdempotencyKey,
+		DeadlineAt:     raw.DeadlineAt,
+	}, nil
+}
+
+func buildRoboticsMissionTaskDefinition(mission *publicRoboticsMission) (json.RawMessage, error) {
+	if mission == nil {
+		return nil, fmt.Errorf("%w: robotics_mission is required", coordinator.ErrInvalidTaskDefinition)
+	}
+
+	steps := make([]map[string]interface{}, 0, len(mission.Waypoints)+3)
+	stepIndex := 1
+	for idx, waypoint := range mission.Waypoints {
+		goal := map[string]interface{}{
+			"x": waypoint.X,
+			"y": waypoint.Y,
+		}
+		if waypoint.Z != 0 {
+			goal["z"] = waypoint.Z
+		}
+		if waypoint.OrientationW != 0 {
+			goal["orientation_w"] = waypoint.OrientationW
+		}
+		if waypoint.FrameID != "" {
+			goal["frame_id"] = waypoint.FrameID
+		}
+
+		step := map[string]interface{}{
+			"step_index": stepIndex,
+			"action":     "navigate_to_pose",
+			"goal":       goal,
+		}
+		if mission.WaitTimeoutMs != nil {
+			step["wait_timeout_ms"] = *mission.WaitTimeoutMs
+		}
+		if approval := buildMissionApproval(mission, "navigate_to_pose", idx+1); approval != nil {
+			step["approval"] = approval
+		}
+		steps = append(steps, step)
+		stepIndex++
+	}
+
+	if mission.Prompt != "" {
+		step := map[string]interface{}{
+			"step_index": stepIndex,
+			"action":     "publish_prompt",
+			"prompt":     mission.Prompt,
+		}
+		if approval := buildMissionApproval(mission, "publish_prompt", 0); approval != nil {
+			step["approval"] = approval
+		}
+		steps = append(steps, step)
+		stepIndex++
+	}
+
+	if mission.PublishVelocity != nil {
+		step := map[string]interface{}{
+			"step_index": stepIndex,
+			"action":     "publish_velocity",
+			"linear_x":   mission.PublishVelocity.LinearX,
+			"angular_z":  mission.PublishVelocity.AngularZ,
+		}
+		if approval := buildMissionApproval(mission, "publish_velocity", 0); approval != nil {
+			step["approval"] = approval
+		}
+		steps = append(steps, step)
+		stepIndex++
+	}
+
+	if mission.EmitZeroVelocityOnFinish {
+		step := map[string]interface{}{
+			"step_index": stepIndex,
+			"action":     "publish_zero_velocity",
+		}
+		if approval := buildMissionApproval(mission, "publish_zero_velocity", 0); approval != nil {
+			step["approval"] = approval
+		}
+		steps = append(steps, step)
+	}
+
+	if len(steps) == 0 {
+		return nil, fmt.Errorf("%w: robotics_mission must include at least one waypoint, prompt, or velocity action", coordinator.ErrInvalidTaskDefinition)
+	}
+
+	definition, err := json.Marshal(map[string]interface{}{
+		"steps": steps,
+	})
+	if err != nil {
+		return nil, fmt.Errorf("%w: could not encode robotics_mission", coordinator.ErrInvalidTaskDefinition)
+	}
+
+	return definition, nil
+}
+
+func buildMissionApproval(mission *publicRoboticsMission, action string, waypointIndex int) map[string]interface{} {
+	if mission == nil || mission.Approval == nil {
+		return nil
+	}
+
+	approval := map[string]interface{}{
+		"required": mission.Approval.Required,
+	}
+	if mission.Approval.Confidence != nil {
+		approval["confidence"] = *mission.Approval.Confidence
+	}
+	if len(mission.Approval.Context) > 0 {
+		context := make(map[string]interface{}, len(mission.Approval.Context)+2)
+		for key, value := range mission.Approval.Context {
+			context[key] = value
+		}
+		if mission.Name != "" {
+			context["mission_name"] = mission.Name
+		}
+		context["action"] = action
+		if waypointIndex > 0 {
+			context["waypoint_index"] = waypointIndex
+		}
+		approval["context"] = context
+	}
+	task := mission.Approval.Task
+	if task == "" {
+		if mission.Name != "" {
+			task = mission.Name + ":" + action
+		} else {
+			task = action
+		}
+	}
+	approval["task"] = task
+	return approval
 }
 
 func handleGetTask(tc *coordinator.TaskCoordinator) fiber.Handler {
@@ -139,6 +343,12 @@ func buildTaskResponse(task *coordinator.TaskRecord) fiber.Map {
 		"completed_at":  task.CompletedAt,
 		"created_at":    task.CreatedAt,
 	}
+	if task.DeadlineAt != nil {
+		resp["deadline_at"] = task.DeadlineAt
+	}
+	if taskType := extractTaskType(task.TaskDefinition); taskType != "" {
+		resp["task_type"] = taskType
+	}
 
 	if task.FailureReason != nil && *task.FailureReason != "" {
 		resp["failure_reason"] = *task.FailureReason
@@ -153,6 +363,19 @@ func buildTaskResponse(task *coordinator.TaskRecord) fiber.Map {
 	}
 
 	return resp
+}
+
+func extractTaskType(taskDefinition json.RawMessage) string {
+	if len(taskDefinition) == 0 {
+		return ""
+	}
+	var payload struct {
+		Type string `json:"type"`
+	}
+	if err := json.Unmarshal(taskDefinition, &payload); err != nil {
+		return ""
+	}
+	return payload.Type
 }
 
 func handleTaskCheckpoint(tc *coordinator.TaskCoordinator) fiber.Handler {
