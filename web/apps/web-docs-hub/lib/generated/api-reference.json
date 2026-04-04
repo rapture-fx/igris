@@ -1,5 +1,5 @@
 {
-  "generated_at": "2026-04-04T07:20:51.728Z",
+  "generated_at": "2026-04-04T08:02:01.907Z",
   "generated_from": [
     "igris-overture/api/*.go",
     "igris-runtime/crates/igris-server/src/main.rs"
@@ -16,7 +16,9 @@
           "auth": "Deployment-dependent",
           "surface": "Cloud API",
           "stability": "stable",
-          "description": "Native inference endpoint handled by Overture."
+          "description": "Native inference endpoint handled by Overture.",
+          "support": "core",
+          "deployment": "cloud"
         },
         {
           "method": "POST",
@@ -24,7 +26,9 @@
           "auth": "Deployment-dependent",
           "surface": "Cloud API",
           "stability": "stable",
-          "description": "OpenAI-compatible chat completions endpoint."
+          "description": "OpenAI-compatible chat completions endpoint.",
+          "support": "core",
+          "deployment": "cloud"
         },
         {
           "method": "GET",
@@ -32,7 +36,9 @@
           "auth": "Public",
           "surface": "Cloud API",
           "stability": "stable",
-          "description": "Health check for inference availability."
+          "description": "Health check for inference availability.",
+          "support": "core",
+          "deployment": "cloud"
         },
         {
           "method": "GET",
@@ -40,7 +46,9 @@
           "auth": "Public",
           "surface": "Cloud API",
           "stability": "stable",
-          "description": "Lists models visible to the inference layer."
+          "description": "Lists models visible to the inference layer.",
+          "support": "core",
+          "deployment": "cloud"
         },
         {
           "method": "GET",
@@ -48,7 +56,9 @@
           "auth": "Public",
           "surface": "Cloud API",
           "stability": "stable",
-          "description": "Provider latency, health, and routing statistics."
+          "description": "Provider latency, health, and routing statistics.",
+          "support": "supported",
+          "deployment": "cloud"
         },
         {
           "method": "POST",
@@ -56,7 +66,9 @@
           "auth": "Session or API key",
           "surface": "Cloud API",
           "stability": "preview",
-          "description": "Multimodal inference endpoint."
+          "description": "Multimodal inference endpoint.",
+          "support": "preview",
+          "deployment": "cloud"
         },
         {
           "method": "GET",
@@ -64,7 +76,9 @@
           "auth": "Session or API key",
           "surface": "Cloud API",
           "stability": "preview",
-          "description": "Multimodal request statistics."
+          "description": "Multimodal request statistics.",
+          "support": "preview",
+          "deployment": "cloud"
         }
       ]
     },
@@ -78,7 +92,9 @@
           "auth": "Public",
           "surface": "Cloud API",
           "stability": "stable",
-          "description": "Returns or redirects to the platform-specific runtime archive."
+          "description": "Returns or redirects to the platform-specific runtime archive.",
+          "support": "core",
+          "deployment": "hybrid"
         },
         {
           "method": "GET",
@@ -86,7 +102,9 @@
           "auth": "Public",
           "surface": "Cloud API",
           "stability": "stable",
-          "description": "Returns the SHA-256 checksum for a runtime archive."
+          "description": "Returns the SHA-256 checksum for a runtime archive.",
+          "support": "core",
+          "deployment": "hybrid"
         },
         {
           "method": "GET",
@@ -94,31 +112,9 @@
           "auth": "Session or API key",
           "surface": "Cloud API",
           "stability": "stable",
-          "description": "Subscribed runtime binary download endpoint."
-        },
-        {
-          "method": "POST",
-          "path": "/api/v1/runtime/register",
-          "auth": "igris_ API key",
-          "surface": "Runtime coordination API",
-          "stability": "stable",
-          "description": "Registers a runtime instance against a tenant."
-        },
-        {
-          "method": "POST",
-          "path": "/api/v1/runtime/heartbeat",
-          "auth": "igris_ API key",
-          "surface": "Runtime coordination API",
-          "stability": "stable",
-          "description": "Heartbeat and liveness updates from runtime instances."
-        },
-        {
-          "method": "DELETE",
-          "path": "/api/v1/runtime/deregister",
-          "auth": "igris_ API key",
-          "surface": "Runtime coordination API",
-          "stability": "stable",
-          "description": "Removes a runtime instance from active fleet state."
+          "description": "Subscribed runtime binary download endpoint.",
+          "support": "supported",
+          "deployment": "hybrid"
         },
         {
           "method": "GET",
@@ -126,7 +122,9 @@
           "auth": "tenant_id query or authenticated tenant context",
           "surface": "Fleet management",
           "stability": "stable",
-          "description": "Lists registered runtime instances for a tenant."
+          "description": "Lists registered runtime instances for a tenant.",
+          "support": "supported",
+          "deployment": "hybrid"
         },
         {
           "method": "POST",
@@ -134,7 +132,9 @@
           "auth": "Session cookie",
           "surface": "Fleet management",
           "stability": "stable",
-          "description": "Queues configuration push commands for the fleet."
+          "description": "Queues configuration push commands for the fleet.",
+          "support": "supported",
+          "deployment": "hybrid"
         },
         {
           "method": "POST",
@@ -142,7 +142,9 @@
           "auth": "Session cookie",
           "surface": "Fleet management",
           "stability": "stable",
-          "description": "Queues OTA update commands for the fleet."
+          "description": "Queues OTA update commands for the fleet.",
+          "support": "supported",
+          "deployment": "hybrid"
         }
       ]
     },
@@ -156,7 +158,9 @@
           "auth": "Session cookie or igris_ API key",
           "surface": "Cloud API",
           "stability": "stable",
-          "description": "Returns subscription tier, status, and runtime usage."
+          "description": "Returns subscription tier, status, and runtime usage.",
+          "support": "supported",
+          "deployment": "cloud"
         },
         {
           "method": "GET",
@@ -164,7 +168,9 @@
           "auth": "Session cookie or igris_ API key",
           "surface": "Cloud API",
           "stability": "stable",
-          "description": "Lists available plans and checkout URLs."
+          "description": "Lists available plans and checkout URLs.",
+          "support": "supported",
+          "deployment": "cloud"
         },
         {
           "method": "GET",
@@ -172,7 +178,9 @@
           "auth": "Session cookie or igris_ API key",
           "surface": "Cloud API",
           "stability": "stable",
-          "description": "Returns current API key metadata without revealing the secret."
+          "description": "Returns current API key metadata without revealing the secret.",
+          "support": "core",
+          "deployment": "cloud"
         },
         {
           "method": "POST",
@@ -180,7 +188,9 @@
           "auth": "Session cookie or igris_ API key",
           "surface": "Cloud API",
           "stability": "stable",
-          "description": "Creates a new tenant API key and revokes the old one."
+          "description": "Creates a new tenant API key and revokes the old one.",
+          "support": "core",
+          "deployment": "cloud"
         },
         {
           "method": "DELETE",
@@ -188,7 +198,9 @@
           "auth": "Session cookie or igris_ API key",
           "surface": "Cloud API",
           "stability": "stable",
-          "description": "Revokes the current tenant API key."
+          "description": "Revokes the current tenant API key.",
+          "support": "supported",
+          "deployment": "cloud"
         }
       ]
     },
@@ -202,7 +214,9 @@
           "auth": "Session cookie or igris_ API key",
           "surface": "Cloud API",
           "stability": "stable",
-          "description": "Lists configured provider keys with masked values."
+          "description": "Lists configured provider keys with masked values.",
+          "support": "core",
+          "deployment": "cloud"
         },
         {
           "method": "POST",
@@ -210,7 +224,9 @@
           "auth": "Session cookie or igris_ API key",
           "surface": "Cloud API",
           "stability": "stable",
-          "description": "Stores a provider key using `{ provider, key_name, api_key }`."
+          "description": "Stores a provider key using `{ provider, key_name, api_key }`.",
+          "support": "core",
+          "deployment": "cloud"
         },
         {
           "method": "GET",
@@ -218,7 +234,9 @@
           "auth": "Session cookie or igris_ API key",
           "surface": "Cloud API",
           "stability": "stable",
-          "description": "Gets a single provider key record."
+          "description": "Gets a single provider key record.",
+          "support": "supported",
+          "deployment": "cloud"
         },
         {
           "method": "DELETE",
@@ -226,7 +244,9 @@
           "auth": "Session cookie or igris_ API key",
           "surface": "Cloud API",
           "stability": "stable",
-          "description": "Deletes a provider key."
+          "description": "Deletes a provider key.",
+          "support": "supported",
+          "deployment": "cloud"
         },
         {
           "method": "POST",
@@ -234,7 +254,9 @@
           "auth": "Session cookie or igris_ API key",
           "surface": "Cloud API",
           "stability": "stable",
-          "description": "Rotates a provider key."
+          "description": "Rotates a provider key.",
+          "support": "supported",
+          "deployment": "cloud"
         },
         {
           "method": "POST",
@@ -242,7 +264,9 @@
           "auth": "Session cookie or igris_ API key",
           "surface": "Cloud API",
           "stability": "stable",
-          "description": "Validates a provider key with the current backend implementation."
+          "description": "Validates a provider key with the current backend implementation.",
+          "support": "supported",
+          "deployment": "cloud"
         },
         {
           "method": "GET",
@@ -250,7 +274,9 @@
           "auth": "Session cookie or igris_ API key",
           "surface": "Cloud API",
           "stability": "stable",
-          "description": "Returns tenant policy document."
+          "description": "Returns tenant policy document.",
+          "support": "supported",
+          "deployment": "cloud"
         },
         {
           "method": "PUT",
@@ -258,7 +284,9 @@
           "auth": "Session cookie or igris_ API key",
           "surface": "Cloud API",
           "stability": "stable",
-          "description": "Replaces tenant policy document."
+          "description": "Replaces tenant policy document.",
+          "support": "supported",
+          "deployment": "cloud"
         },
         {
           "method": "GET",
@@ -266,7 +294,9 @@
           "auth": "Session cookie or igris_ API key",
           "surface": "Cloud API",
           "stability": "stable",
-          "description": "Returns tenant policy history."
+          "description": "Returns tenant policy history.",
+          "support": "supported",
+          "deployment": "cloud"
         }
       ]
     },
@@ -280,7 +310,9 @@
           "auth": "Session cookie or igris_ API key",
           "surface": "Cloud API",
           "stability": "stable",
-          "description": "Lists execution history events. Supports `range`, `limit`, `agent_id`, and `device_id`."
+          "description": "Lists execution history events. Supports `range`, `limit`, `agent_id`, and `device_id`.",
+          "support": "supported",
+          "deployment": "cloud"
         },
         {
           "method": "GET",
@@ -288,7 +320,9 @@
           "auth": "Session cookie or igris_ API key",
           "surface": "Cloud API",
           "stability": "stable",
-          "description": "Lists execution receipts from the coordination layer."
+          "description": "Lists execution receipts from the coordination layer.",
+          "support": "core",
+          "deployment": "cloud"
         },
         {
           "method": "GET",
@@ -296,7 +330,9 @@
           "auth": "Session cookie or igris_ API key",
           "surface": "Cloud API",
           "stability": "stable",
-          "description": "Gets a single execution receipt by execution ID."
+          "description": "Gets a single execution receipt by execution ID.",
+          "support": "core",
+          "deployment": "cloud"
         },
         {
           "method": "GET",
@@ -304,7 +340,9 @@
           "auth": "Session cookie or igris_ API key",
           "surface": "Cloud API",
           "stability": "stable",
-          "description": "Exports receipts as JSONL or CSV."
+          "description": "Exports receipts as JSONL or CSV.",
+          "support": "supported",
+          "deployment": "cloud"
         },
         {
           "method": "POST",
@@ -312,7 +350,9 @@
           "auth": "Session cookie or igris_ API key",
           "surface": "Proof API",
           "stability": "stable",
-          "description": "Verifies a receipt signature and chain integrity."
+          "description": "Verifies a receipt signature and chain integrity.",
+          "support": "supported",
+          "deployment": "cloud"
         }
       ]
     },
@@ -326,7 +366,9 @@
           "auth": "Public",
           "surface": "Cloud API",
           "stability": "stable",
-          "description": "Lists built-in behavior-tree templates."
+          "description": "Lists built-in behavior-tree templates.",
+          "support": "supported",
+          "deployment": "cloud"
         },
         {
           "method": "GET",
@@ -334,7 +376,9 @@
           "auth": "Session cookie or igris_ API key",
           "surface": "Cloud API",
           "stability": "stable",
-          "description": "Lists tenant behavior-tree definitions."
+          "description": "Lists tenant behavior-tree definitions.",
+          "support": "supported",
+          "deployment": "cloud"
         },
         {
           "method": "GET",
@@ -342,7 +386,9 @@
           "auth": "Session cookie or igris_ API key",
           "surface": "Cloud API",
           "stability": "stable",
-          "description": "Gets a single behavior-tree definition."
+          "description": "Gets a single behavior-tree definition.",
+          "support": "supported",
+          "deployment": "cloud"
         },
         {
           "method": "POST",
@@ -350,7 +396,9 @@
           "auth": "Session cookie or igris_ API key",
           "surface": "Cloud API",
           "stability": "stable",
-          "description": "Creates or upserts a behavior-tree definition."
+          "description": "Creates or upserts a behavior-tree definition.",
+          "support": "supported",
+          "deployment": "cloud"
         },
         {
           "method": "DELETE",
@@ -358,7 +406,9 @@
           "auth": "Session cookie or igris_ API key",
           "surface": "Cloud API",
           "stability": "stable",
-          "description": "Deletes a behavior-tree definition."
+          "description": "Deletes a behavior-tree definition.",
+          "support": "supported",
+          "deployment": "cloud"
         }
       ]
     },
@@ -372,7 +422,9 @@
           "auth": "Session cookie or igris_ API key",
           "surface": "Cloud API",
           "stability": "stable",
-          "description": "Submit a durable task using `agent_workflow`, `robotics_workflow`, `single_inference`, or `behavior_tree`."
+          "description": "Submit a durable task using `agent_workflow`, `robotics_workflow`, `single_inference`, or `behavior_tree`.",
+          "support": "supported",
+          "deployment": "cloud"
         },
         {
           "method": "GET",
@@ -380,7 +432,9 @@
           "auth": "Session cookie or igris_ API key",
           "surface": "Cloud API",
           "stability": "stable",
-          "description": "Poll the current status and latest checkpoint metadata for a durable task."
+          "description": "Poll the current status and latest checkpoint metadata for a durable task.",
+          "support": "supported",
+          "deployment": "cloud"
         },
         {
           "method": "GET",
@@ -388,7 +442,9 @@
           "auth": "Session cookie or igris_ API key",
           "surface": "Cloud API",
           "stability": "stable",
-          "description": "List recent durable tasks for the authenticated tenant."
+          "description": "List recent durable tasks for the authenticated tenant.",
+          "support": "supported",
+          "deployment": "cloud"
         }
       ]
     },
@@ -402,7 +458,9 @@
           "auth": "Runtime-config dependent",
           "surface": "Local runtime",
           "stability": "stable",
-          "description": "Health check for the local runtime."
+          "description": "Health check for the local runtime.",
+          "support": "core",
+          "deployment": "local"
         },
         {
           "method": "POST",
@@ -410,7 +468,9 @@
           "auth": "Runtime-config dependent",
           "surface": "Local runtime",
           "stability": "stable",
-          "description": "OpenAI-compatible local inference endpoint."
+          "description": "OpenAI-compatible local inference endpoint.",
+          "support": "core",
+          "deployment": "local"
         },
         {
           "method": "POST",
@@ -418,7 +478,9 @@
           "auth": "Runtime-config dependent",
           "surface": "Local runtime",
           "stability": "stable",
-          "description": "Planning endpoint."
+          "description": "Planning endpoint.",
+          "support": "supported",
+          "deployment": "local"
         },
         {
           "method": "POST",
@@ -426,7 +488,9 @@
           "auth": "Runtime-config dependent",
           "surface": "Local runtime",
           "stability": "stable",
-          "description": "Reflection endpoint."
+          "description": "Reflection endpoint.",
+          "support": "supported",
+          "deployment": "local"
         },
         {
           "method": "GET",
@@ -434,7 +498,9 @@
           "auth": "Runtime-config dependent",
           "surface": "Local runtime",
           "stability": "preview",
-          "description": "Lists loaded local models."
+          "description": "Lists loaded local models.",
+          "support": "preview",
+          "deployment": "local"
         },
         {
           "method": "POST",
@@ -442,7 +508,9 @@
           "auth": "Runtime-config dependent",
           "surface": "Local runtime",
           "stability": "preview",
-          "description": "Loads a local model."
+          "description": "Loads a local model.",
+          "support": "preview",
+          "deployment": "local"
         },
         {
           "method": "POST",
@@ -450,7 +518,9 @@
           "auth": "Runtime-config dependent",
           "surface": "Local runtime",
           "stability": "preview",
-          "description": "Swaps the active local model."
+          "description": "Swaps the active local model.",
+          "support": "preview",
+          "deployment": "local"
         },
         {
           "method": "POST",
@@ -458,7 +528,9 @@
           "auth": "Runtime-config dependent",
           "surface": "Local runtime",
           "stability": "stable",
-          "description": "Validates a runtime behavior tree definition."
+          "description": "Validates a runtime behavior tree definition.",
+          "support": "core",
+          "deployment": "local"
         },
         {
           "method": "POST",
@@ -466,7 +538,9 @@
           "auth": "Runtime-config dependent",
           "surface": "Local runtime",
           "stability": "stable",
-          "description": "Executes a runtime behavior tree."
+          "description": "Executes a runtime behavior tree.",
+          "support": "core",
+          "deployment": "local"
         },
         {
           "method": "POST",
@@ -474,7 +548,9 @@
           "auth": "Runtime-config dependent",
           "surface": "Local runtime",
           "stability": "stable",
-          "description": "Deploys a runtime behavior tree."
+          "description": "Deploys a runtime behavior tree.",
+          "support": "supported",
+          "deployment": "local"
         },
         {
           "method": "GET",
@@ -482,7 +558,9 @@
           "auth": "Runtime-config dependent",
           "surface": "Local runtime",
           "stability": "stable",
-          "description": "Streams behavior-tree events."
+          "description": "Streams behavior-tree events.",
+          "support": "supported",
+          "deployment": "local"
         }
       ]
     }
