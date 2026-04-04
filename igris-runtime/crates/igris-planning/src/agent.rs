@@ -13,6 +13,7 @@ use serde_json::Value;
 use std::sync::Arc;
 use tracing::{debug, info, warn};
 
+
 #[derive(Debug, Clone, Serialize, Deserialize)]
 #[serde(rename_all = "snake_case")]
 enum DecisionType {
@@ -42,6 +43,11 @@ pub struct PlanningAgent {
     provider: Arc<dyn LLMProvider>,
     tools: Option<Arc<ToolRegistry>>,
     tool_defs: Vec<ToolDefinition>,
+    /// WAL log and signing key for durable execution (optional).
+    /// Each planning step is WAL-logged so a crashed planner can resume
+    /// from the last committed step rather than re-executing from scratch.
+    #[cfg(feature = "wal")]
+    wal: Option<(Arc<igris_wal::WalLog>, Arc<ed25519_dalek::SigningKey>)>,
 }
 
 impl PlanningAgent {
@@ -64,6 +70,8 @@ impl PlanningAgent {
             provider: Arc::new(MissingProvider),
             tools: None,
             tool_defs: vec![],
+            #[cfg(feature = "wal")]
+            wal: None,
         }
     }
 
@@ -81,17 +89,89 @@ impl PlanningAgent {
             provider,
             tools,
             tool_defs,
+            #[cfg(feature = "wal")]
+            wal: None,
         }
     }
 
+    /// Attach a WAL log and signing key for durable, crash-recoverable plan
+    /// execution. Each planning step is committed to the WAL; on recovery the
+    /// agent skips already-committed steps.
+    #[cfg(feature = "wal")]
+    pub fn with_wal(
+        mut self,
+        wal: Arc<igris_wal::WalLog>,
+        signing_key: Arc<ed25519_dalek::SigningKey>,
+    ) -> Self {
+        self.wal = Some((wal, signing_key));
+        self
+    }
+
     pub async fn execute_plan(&self, goal: &str) -> Result<PlanningResult> {
+        // Determine which step to resume from (WAL recovery).
+        #[cfg(feature = "wal")]
+        let start_step: u32 = if let Some((ref wal, _)) = self.wal {
+            match wal.last_committed_step() {
+                Ok(Some(last_step)) => {
+                    info!(
+                        "Resuming plan execution from step {} (last committed step: {})",
+                        last_step + 2,
+                        last_step
+                    );
+                    last_step + 1 // last_step is 0-based; step_num loop is 1-based
+                }
+                Ok(None) => 0,
+                Err(e) => {
+                    warn!("WAL state check failed, starting from step 1: {}", e);
+                    0
+                }
+            }
+        } else {
+            0
+        };
+        #[cfg(not(feature = "wal"))]
+        let start_step: u32 = 0;
+
         let mut steps: Vec<PlanStep> = Vec::new();
         let mut tool_calls_used: u32 = 0;
 
         for step_num in 1..=self.config.max_steps {
+            // Skip steps already committed to the WAL from a prior run.
+            // Note: on recovery, `steps` history is empty for skipped steps —
+            // the step_prompt context will be truncated but execution is correct.
+            if step_num <= start_step {
+                debug!("Skipping already-committed planning step {}", step_num);
+                continue;
+            }
+
             info!("Planning step {}/{}", step_num, self.config.max_steps);
 
             let prompt = self.step_prompt(goal, &steps);
+
+            // WAL: record intent before LLM call (step_index is 0-based).
+            #[cfg(feature = "wal")]
+            let wal_entry_id = if let Some((ref wal, _)) = self.wal {
+                use sha2::{Digest, Sha256};
+                use igris_wal::StepType;
+                let input_digest: [u8; 32] = Sha256::digest(prompt.as_bytes()).into();
+                match wal.write_intent(
+                    step_num - 1,
+                    StepType::Inference {
+                        provider: self.provider.name().to_string(),
+                        model: "planning".to_string(),
+                    },
+                    input_digest,
+                ) {
+                    Ok(entry) => Some(entry.entry_id),
+                    Err(e) => {
+                        warn!("WAL intent write failed for step {}: {}", step_num, e);
+                        None
+                    }
+                }
+            } else {
+                None
+            };
+
             let raw = self.provider.generate(&prompt).await?;
 
             let decision = parse_step_decision(&raw).ok_or_else(|| {
@@ -101,6 +181,7 @@ impl PlanningAgent {
             match decision.decision_type {
                 DecisionType::Final => {
                     let final_answer = decision.final_answer.unwrap_or_else(|| raw.clone());
+                    let thought = decision.thought.clone();
                     steps.push(PlanStep {
                         step_number: step_num,
                         thought: decision.thought,
@@ -108,6 +189,21 @@ impl PlanningAgent {
                         observation: "completed".to_string(),
                         reflection: None,
                     });
+
+                    // WAL: commit the final step.
+                    #[cfg(feature = "wal")]
+                    if let (Some((ref wal, ref signing_key)), Some(entry_id)) =
+                        (&self.wal, wal_entry_id)
+                    {
+                        use sha2::{Digest, Sha256};
+                        let output_payload = format!("{}{}", thought, &final_answer);
+                        let output_digest: [u8; 32] =
+                            Sha256::digest(output_payload.as_bytes()).into();
+                        if let Err(e) = wal.write_committed(entry_id, output_digest, signing_key) {
+                            warn!("WAL commit failed for final step {}: {}", step_num, e);
+                        }
+                    }
+
                     return Ok(PlanningResult {
                         goal: goal.to_string(),
                         steps,
@@ -141,6 +237,25 @@ impl PlanningAgent {
                     } else {
                         None
                     };
+
+                    // WAL: commit the tool step now that tool + optional reflection succeeded.
+                    #[cfg(feature = "wal")]
+                    if let (Some((ref wal, ref signing_key)), Some(entry_id)) =
+                        (&self.wal, wal_entry_id)
+                    {
+                        use sha2::{Digest, Sha256};
+                        let output_payload = format!(
+                            "{}{}{}",
+                            decision.thought,
+                            tool.name,
+                            observation
+                        );
+                        let output_digest: [u8; 32] =
+                            Sha256::digest(output_payload.as_bytes()).into();
+                        if let Err(e) = wal.write_committed(entry_id, output_digest, signing_key) {
+                            warn!("WAL commit failed for step {}: {}", step_num, e);
+                        }
+                    }
 
                     steps.push(PlanStep {
                         step_number: step_num,
