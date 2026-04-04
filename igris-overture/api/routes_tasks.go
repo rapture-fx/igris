@@ -814,6 +814,15 @@ func buildTaskResponse(task *coordinator.TaskRecord) fiber.Map {
 		resp["checkpoint_digest"] = task.LastCheckpoint.ResumeToken.CheckpointDigest
 		if len(task.LastCheckpoint.Metadata) > 0 {
 			resp["checkpoint_metadata"] = json.RawMessage(task.LastCheckpoint.Metadata)
+			if graphBlackboard, graphNodes, graphSlots := extractGraphCheckpointViews(task.LastCheckpoint.Metadata); graphBlackboard != nil {
+				resp["graph_blackboard"] = graphBlackboard
+				if graphNodes != nil {
+					resp["graph_nodes"] = graphNodes
+				}
+				if graphSlots != nil {
+					resp["graph_slots"] = graphSlots
+				}
+			}
 		}
 	}
 
@@ -831,6 +840,29 @@ func extractTaskType(taskDefinition json.RawMessage) string {
 		return ""
 	}
 	return payload.Type
+}
+
+func extractGraphCheckpointViews(metadata json.RawMessage) (graphBlackboard json.RawMessage, graphNodes json.RawMessage, graphSlots json.RawMessage) {
+	if len(metadata) == 0 {
+		return nil, nil, nil
+	}
+
+	var payload map[string]json.RawMessage
+	if err := json.Unmarshal(metadata, &payload); err != nil {
+		return nil, nil, nil
+	}
+
+	blackboard, ok := payload["graph_blackboard"]
+	if !ok || len(blackboard) == 0 {
+		return nil, nil, nil
+	}
+
+	var graph map[string]json.RawMessage
+	if err := json.Unmarshal(blackboard, &graph); err != nil {
+		return blackboard, nil, nil
+	}
+
+	return blackboard, graph["nodes"], graph["slots"]
 }
 
 func handleTaskCheckpoint(tc *coordinator.TaskCoordinator) fiber.Handler {
