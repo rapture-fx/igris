@@ -11,6 +11,8 @@ permissions:
 jobs:
   build-and-release:
     runs-on: ${{ matrix.os }}
+    env:
+      RUNTIME_FEATURES: agent-platform
     strategy:
       fail-fast: false
       matrix:
@@ -71,12 +73,12 @@ jobs:
       - name: Build (Linux with cross)
         if: matrix.use_cross == true
         working-directory: igris-runtime
-        run: cross build --release --target ${{ matrix.target }} --bin igris-runtime
+        run: cross build --release --target ${{ matrix.target }} --bin igris-runtime --features $RUNTIME_FEATURES
 
       - name: Build (macOS native)
         if: matrix.use_cross == false
         working-directory: igris-runtime
-        run: cargo build --release --target ${{ matrix.target }} --bin igris-runtime
+        run: cargo build --release --target ${{ matrix.target }} --bin igris-runtime --features $RUNTIME_FEATURES
 
       - name: Package binary
         shell: bash
@@ -134,6 +136,13 @@ jobs:
             ```bash
             igris-runtime --version
             ```
+
+            ## Compiled profile
+
+            These release binaries are built with the `agent-platform` feature set.
+            ROS2 and full robotics adapters require a dedicated Linux build with
+            `--features robotics-platform` or `--features full-platform` in an environment
+            that provides ROS2 dependencies.
           draft: false
           prerelease: false
         env:
