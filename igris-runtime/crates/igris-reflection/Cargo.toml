@@ -18,5 +18,15 @@ tokio = { workspace = true }
 # Additional dependencies
 async-trait = "0.1"
 
+# WAL support (optional)
+igris-wal = { path = "../igris-wal", optional = true }
+ed25519-dalek = { workspace = true, optional = true }
+sha2 = { workspace = true, optional = true }
+uuid = { workspace = true, optional = true }
+
+[features]
+default = []
+wal = ["dep:igris-wal", "dep:ed25519-dalek", "dep:sha2", "dep:uuid"]
+
 [dev-dependencies]
 tokio = { workspace = true, features = ["test-util"] }
