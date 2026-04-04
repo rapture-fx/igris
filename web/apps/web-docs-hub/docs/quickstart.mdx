@@ -1,8 +1,8 @@
 # Quick Start
 
-Start with the integration path you actually plan to ship.
+Choose the simplest path that matches how you plan to run Igris.
 
-For most teams, the fastest path to production is the OpenAI-compatible cloud API. When you need native Igris features beyond that surface, the first-class native SDKs today are JavaScript/TypeScript, Go, and Rust. Local runtime and hybrid deployment come next when you need on-device execution, fleet coordination, or offline operation.
+If you are unsure where to begin, start with the hosted OpenAI-compatible API. It is the shortest path to a working production integration and the easiest path to validate product fit. Move to a native SDK when you need Igris-specific product features, and move to local runtime or hybrid deployment only when the workload truly needs on-device execution, fleet participation, or offline behavior.
 
 ---
 
@@ -17,7 +17,7 @@ For most teams, the fastest path to production is the OpenAI-compatible cloud AP
 
 ## Option A: Cloud API
 
-This is the recommended starting path for most customers.
+This is the recommended starting path for most customers. It gives you the fastest route from account setup to a live integration, while still keeping the door open to native SDKs and hybrid deployment later.
 
 ### 1. Add a provider key
 
@@ -52,13 +52,13 @@ const response = await client.chat.completions.create({
 console.log(response.choices[0].message.content);
 ```
 
-That is enough for the fastest supported path. Move to the native SDKs when you need receipt helpers, fleet APIs, vault operations, or richer routing metadata.
+That is enough for a production-grade first integration. Stay on this path if your main goal is hosted inference with the least amount of integration overhead. Move to a native SDK when you need receipt helpers, fleet APIs, vault operations, or richer routing metadata.
 
 ---
 
 ## Option B: Local Runtime
 
-Use `igris-runtime` when the workload should execute on the machine itself: local inference, local policy enforcement, or offline execution.
+Use `igris-runtime` when the workload should execute on the machine itself: local inference, local policy enforcement, behavior-tree execution, or offline operation. If you do not need those properties, the hosted API is usually the better place to start.
 
 ### 1. Download the runtime archive
 
@@ -129,7 +129,7 @@ Create `~/.config/igris/config.json5`:
 igris-runtime serve
 ```
 
-At this point the runtime serves a local API on `http://localhost:8080`. That alone does **not** guarantee Fleet visibility in the cloud console.
+At this point the runtime serves a local API on `http://localhost:8080`. That alone does **not** make the runtime part of Fleet. Fleet visibility only happens when runtime registration succeeds.
 
 ### 6. Point your application at the local runtime
 
@@ -151,7 +151,7 @@ const response = await client.chat.completions.create({
 
 ## Option C: Hybrid Cloud + Local Runtime
 
-Use this when you want the hosted product as the main API surface, but still want a local runtime available for fleet participation, failover, or on-device execution.
+Use this when you want the hosted product to remain the main application-facing API, but you also want runtimes to participate in fleet operations, failover, or device-local execution. This is the right model when the customer should experience one product while the execution topology spans cloud and runtime.
 
 ### 1. Start the runtime with registration credentials
 
@@ -183,14 +183,16 @@ const client = new OpenAI({
 });
 ```
 
-Keep the runtime healthy and reachable if you expect it to participate in fleet workflows or failover paths.
+Keep the runtime healthy and reachable if you expect it to participate in fleet workflows, device-local execution, or failover behavior.
 
 ---
 
 ## What To Do Next
 
 - [SDKs →](/docs/sdk) for first-class native packages and support status
+- [SDK Integration Patterns →](/docs/sdk-integration-patterns) for production-grade client setup
 - [API Reference →](/docs/api-reference) for the current shipped contract
+- [Context Engineering →](/docs/context-engineering) for choosing where state and context should live
 - [Fleet Management →](/docs/fleet-management) for registration, config push, and OTA updates
 - [Execution Receipts →](/docs/execution-receipts) for audit and export workflows
 - [Local LLM Fallback →](/docs/local-llm-fallback) for local model tuning
