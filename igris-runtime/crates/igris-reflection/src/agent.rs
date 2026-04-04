@@ -10,16 +10,63 @@ use tracing::{debug, info, warn};
 pub struct ReflectionAgent {
     config: ReflectionConfig,
     provider: Arc<dyn LLMProvider>,
+    /// WAL log and signing key for durable execution (optional).
+    /// When set, each iteration is WAL-logged so that a crashed agent
+    /// can resume from the last committed iteration rather than starting over.
+    #[cfg(feature = "wal")]
+    wal: Option<(Arc<igris_wal::WalLog>, Arc<ed25519_dalek::SigningKey>)>,
 }
 
 impl ReflectionAgent {
     /// Create a new reflection agent
     pub fn new(config: ReflectionConfig, provider: Arc<dyn LLMProvider>) -> Self {
-        Self { config, provider }
+        Self {
+            config,
+            provider,
+            #[cfg(feature = "wal")]
+            wal: None,
+        }
+    }
+
+    /// Attach a WAL log and signing key for durable, crash-recoverable
+    /// reflection execution. Each iteration is written as a WAL entry; on
+    /// recovery the agent skips already-committed iterations.
+    #[cfg(feature = "wal")]
+    pub fn with_wal(
+        mut self,
+        wal: Arc<igris_wal::WalLog>,
+        signing_key: Arc<ed25519_dalek::SigningKey>,
+    ) -> Self {
+        self.wal = Some((wal, signing_key));
+        self
     }
 
     /// Run the reflection loop on a prompt
     pub async fn reflect(&self, prompt: &str) -> Result<ReflectionResult> {
+        // Determine which iteration to start from (WAL recovery).
+        #[cfg(feature = "wal")]
+        let start_iteration: u32 = if let Some((ref wal, _)) = self.wal {
+            match wal.last_committed_step() {
+                Ok(Some(last_step)) => {
+                    info!(
+                        "Resuming reflection from iteration {} (last committed step: {})",
+                        last_step + 2,
+                        last_step
+                    );
+                    last_step + 1 // last_step is 0-based; iteration loop is 1-based
+                }
+                Ok(None) => 0,
+                Err(e) => {
+                    warn!("WAL state check failed, starting from scratch: {}", e);
+                    0
+                }
+            }
+        } else {
+            0
+        };
+        #[cfg(not(feature = "wal"))]
+        let start_iteration: u32 = 0;
+
         info!(
             "Starting reflection loop with max_iterations={}, threshold={}",
             self.config.max_iterations, self.config.quality_threshold
@@ -32,9 +79,39 @@ impl ReflectionAgent {
         let mut total_tokens = 0u32;
 
         for iteration in 1..=self.config.max_iterations {
+            // Skip iterations already committed to the WAL from a prior run.
+            if iteration <= start_iteration {
+                debug!("Skipping already-committed reflection iteration {}", iteration);
+                continue;
+            }
+
             if self.config.verbose {
                 info!("Reflection iteration {}/{}", iteration, self.config.max_iterations);
             }
+
+            // WAL: record intent before generating (step_index is 0-based).
+            #[cfg(feature = "wal")]
+            let wal_entry_id = if let Some((ref wal, _)) = self.wal {
+                use sha2::{Digest, Sha256};
+                use igris_wal::StepType;
+                let input_digest: [u8; 32] = Sha256::digest(current_prompt.as_bytes()).into();
+                match wal.write_intent(
+                    iteration - 1,
+                    StepType::Inference {
+                        provider: self.provider.name().to_string(),
+                        model: "reflection".to_string(),
+                    },
+                    input_digest,
+                ) {
+                    Ok(entry) => Some(entry.entry_id),
+                    Err(e) => {
+                        warn!("WAL intent write failed for iteration {}: {}", iteration, e);
+                        None
+                    }
+                }
+            } else {
+                None
+            };
 
             // Generate response
             debug!("Generating response for iteration {}", iteration);
@@ -62,6 +139,17 @@ impl ReflectionAgent {
                     critique.weaknesses.len(),
                     critique.suggestions.len()
                 );
+            }
+
+            // WAL: commit this iteration now that generate + critique succeeded.
+            #[cfg(feature = "wal")]
+            if let (Some((ref wal, ref signing_key)), Some(entry_id)) = (&self.wal, wal_entry_id) {
+                use sha2::{Digest, Sha256};
+                let output_payload = format!("{}{}", response, critique_response);
+                let output_digest: [u8; 32] = Sha256::digest(output_payload.as_bytes()).into();
+                if let Err(e) = wal.write_committed(entry_id, output_digest, signing_key) {
+                    warn!("WAL commit failed for iteration {}: {}", iteration, e);
+                }
             }
 
             // Check acceptance criteria
