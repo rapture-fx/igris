@@ -84,6 +84,7 @@ export type ApiEndpointPageData = {
   retryGuidance: string;
   commonMistakes: string[];
   relatedEndpoints: Array<{ label: string; href: string }>;
+  relatedGuides: Array<{ label: string; href: string }>;
 };
 
 export const apiGuides: ApiGuide[] = [
