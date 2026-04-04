@@ -2,11 +2,18 @@
 
 Use this workflow when you need verifiable execution history, exportable receipts, or customer-visible audit evidence.
 
+This is the right path when you need to answer questions like:
+
+- what happened
+- what proof exists
+- what should be exported
+- what should be verified before it leaves the product boundary
+
 ---
 
 ## 1. Run requests through the documented product surface
 
-Receipts are most useful when your traffic is consistently going through the intended Igris contract. Keep integrations on the documented API paths so receipts, history, and exports line up with real product behavior.
+Receipts are most useful when traffic is consistently going through the intended Igris contract. Keep integrations on documented API paths so receipts, history, and exports line up with real product behavior instead of with ad hoc internal flows.
 
 ## 2. Query recent execution history
 
@@ -14,11 +21,11 @@ Use execution history when you want a timeline view of what happened:
 
 - [API Reference →](/docs/api-reference)
 
-History is useful for dashboards and investigations. It is not the same thing as a proof artifact.
+History is useful for dashboards and investigations. It tells you what happened over time. It is not the same thing as a proof artifact.
 
 ## 3. Retrieve receipts for audit evidence
 
-Use receipt listing and detail endpoints when you need the signed or hash-linked execution record itself.
+Use receipt listing and detail endpoints when you need the signed or hash-linked execution record itself. This is the surface you should treat as the audit artifact, not the history stream.
 
 - [Execution Receipts →](/docs/execution-receipts)
 - [API Reference →](/docs/api-reference)
@@ -29,7 +36,7 @@ Use `GET /v1/receipts/export` when you need to move receipt data into BI, compli
 
 ## 5. Verify before external use
 
-If a workflow depends on the integrity of a receipt, verify it before using it as an external audit artifact.
+If a workflow depends on the integrity of a receipt, verify it before using it as an external audit artifact. Verification should happen before the receipt is relied on by another system, reviewer, or compliance process.
 
 ## Common Mistakes
 
