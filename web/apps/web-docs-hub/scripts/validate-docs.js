@@ -18,7 +18,7 @@ function walk(dir, files = []) {
 function main() {
   const failures = [];
 
-  const requiredGeneratedFiles = ['api-reference.json', 'sdk-support.json'];
+  const requiredGeneratedFiles = ['api-reference.json', 'api-verification.json', 'sdk-support.json'];
   for (const fileName of requiredGeneratedFiles) {
     const fullPath = path.join(generatedDir, fileName);
     if (!fs.existsSync(fullPath)) {
