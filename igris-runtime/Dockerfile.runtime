@@ -13,8 +13,10 @@ RUN mkdir -p /build/models /build/prompt_cache
 # Provide an example config inside the image
 RUN cp /build/config.json5 /build/config.example.json5
 
+ARG RUNTIME_FEATURES=agent-platform
+
 # Build static binary
-RUN cargo build --release --target x86_64-unknown-linux-musl -p igris-server --bin igris-runtime
+RUN cargo build --release --target x86_64-unknown-linux-musl -p igris-server --bin igris-runtime --features "${RUNTIME_FEATURES}"
 
 # Compress with UPX (keeps image small; binary remains functional)
 RUN upx --best --lzma /build/target/x86_64-unknown-linux-musl/release/igris-runtime
