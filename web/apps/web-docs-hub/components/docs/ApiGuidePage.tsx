@@ -67,6 +67,12 @@ const guideContent: Record<string, GuideContent> = {
               confirm the authentication model, and wire your own client behavior around the listed
               status codes.
             </p>
+            <p className="mb-0">
+              The current customer SDK surface is JavaScript, Go, and Rust. Treat those as the
+              supported language targets in this reference. If you are working in another language,
+              build against the documented HTTP contract rather than assuming a maintained SDK exists
+              for that ecosystem yet.
+            </p>
           </div>
         </section>
       </div>
@@ -143,12 +149,28 @@ http://localhost:8080`,
             </p>
           </div>
         </section>
+        <section id="choosing-a-credential" className="rounded-xl border border-gray-200 bg-white p-5">
+          <h2 className="mt-0 text-lg font-semibold text-slate-900">Choosing a Credential</h2>
+          <div className="space-y-3 text-sm leading-7 text-slate-700">
+            <p className="mb-0">
+              Use tenant API keys for server-to-server automation. Use session cookies for browser
+              experiences that are already inside the Igris console. Use runtime-local authentication
+              only when the endpoint is explicitly local and you control the deployment boundary.
+            </p>
+            <p className="mb-0">
+              If an integration is meant to run unattended, default to API keys and avoid session
+              flows. That keeps the operational model clear and makes it easier to rotate credentials,
+              audit access, and recover from auth failures without a browser in the loop.
+            </p>
+          </div>
+        </section>
       </div>
     ),
     sections: [
       { id: 'tenant-api-keys', label: 'Tenant API Keys' },
       { id: 'session-cookies', label: 'Session Cookies' },
       { id: 'runtime-local-auth', label: 'Runtime-local Auth' },
+      { id: 'choosing-a-credential', label: 'Choosing a Credential' },
     ],
     railTitle: 'Bearer Example',
     railCode: `curl -H "Authorization: Bearer $IGRIS_API_KEY" \\
@@ -163,6 +185,23 @@ http://localhost:8080`,
     summary: 'How to read error responses across the API reference and what to expect from validation, authentication, throttling, and server failures.',
     body: (
       <div className="space-y-6">
+        <section id="status-codes" className="rounded-xl border border-gray-200 bg-white p-5">
+          <h2 className="mt-0 text-lg font-semibold text-slate-900">Status Codes</h2>
+          <div className="space-y-3 text-sm leading-7 text-slate-700">
+            <p className="mb-0">
+              The HTTP status code tells you what class of failure happened before you look at the
+              JSON body. In this reference, treat 4xx responses as request, authentication, or access
+              problems that your client should handle directly, and treat 5xx responses as server-side
+              failures that may require retry, fallback, or operator attention.
+            </p>
+            <p className="mb-0">
+              The most common patterns are 400 for invalid request shape, 401 for missing or invalid
+              credentials, 403 for an authenticated request that still is not allowed, 404 when the
+              addressed resource does not exist, 429 when throttling is applied, and 500-level codes
+              when the server cannot complete a valid request.
+            </p>
+          </div>
+        </section>
         <section id="validation-errors" className="rounded-xl border border-gray-200 bg-white p-5">
           <h2 className="mt-0 text-lg font-semibold text-slate-900">Validation Errors</h2>
           <div className="space-y-3 text-sm leading-7 text-slate-700">
@@ -211,12 +250,30 @@ http://localhost:8080`,
             </p>
           </div>
         </section>
+        <section id="handling-strategy" className="rounded-xl border border-gray-200 bg-white p-5">
+          <h2 className="mt-0 text-lg font-semibold text-slate-900">Handling Strategy</h2>
+          <div className="space-y-3 text-sm leading-7 text-slate-700">
+            <p className="mb-0">
+              Good clients do not handle every error the same way. Fix the request for 400-class
+              validation issues, refresh or replace credentials for 401 responses, stop and inspect
+              authorization assumptions on 403 responses, and apply controlled retry or fallback only
+              for the routes and statuses that are documented as retry-safe.
+            </p>
+            <p className="mb-0">
+              At minimum, log the method, path, status code, request correlation context, and error
+              code when one is present. That gives operators enough information to separate customer
+              input mistakes from credential problems and server instability.
+            </p>
+          </div>
+        </section>
       </div>
     ),
     sections: [
+      { id: 'status-codes', label: 'Status Codes' },
       { id: 'validation-errors', label: 'Validation Errors' },
       { id: 'authentication-failures', label: 'Authentication Failures' },
       { id: 'server-errors', label: 'Server Errors' },
+      { id: 'handling-strategy', label: 'Handling Strategy' },
     ],
     railTitle: 'Error Envelope',
     railCode: `{
@@ -231,6 +288,14 @@ http://localhost:8080`,
   },
   "retry_after_seconds": 60
 }`,
+    railStatus: [
+      { code: 400, title: 'Bad Request', description: 'The route was reached, but the request body, query, or path data did not match the endpoint contract.' },
+      { code: 401, title: 'Unauthorized', description: 'Credentials were missing, expired, malformed, or not accepted by this route.' },
+      { code: 403, title: 'Forbidden', description: 'The caller is authenticated, but the action or resource is not allowed for that identity.' },
+      { code: 404, title: 'Not Found', description: 'The addressed resource or route target does not exist in the current tenant or runtime context.' },
+      { code: 429, title: 'Too Many Requests', description: 'The caller exceeded the current throttle window and should wait before retrying.' },
+      { code: 500, title: 'Internal Server Error', description: 'The server accepted the request contract but failed while processing it.' },
+    ],
   },
   'rate-limits': {
     title: 'Rate Limits',
@@ -268,11 +333,29 @@ http://localhost:8080`,
             </p>
           </div>
         </section>
+        <section id="client-behavior" className="rounded-xl border border-gray-200 bg-white p-5">
+          <h2 className="mt-0 text-lg font-semibold text-slate-900">Client Behavior</h2>
+          <div className="space-y-3 text-sm leading-7 text-slate-700">
+            <p className="mb-0">
+              Build clients so that a 429 is expected and handled, not treated as an exceptional edge
+              case. Honor <code>Retry-After</code> when it is present, apply backoff with jitter for
+              repeated retries, and avoid running parallel request bursts that all wake up at the same
+              second.
+            </p>
+            <p className="mb-0">
+              If you control both the caller and the workload pattern, the best rate-limit strategy is
+              to smooth traffic before it reaches the API. Queue bursty work, coalesce repeated reads
+              when possible, and keep binary distribution and provisioning actions off your latency-
+              sensitive request path.
+            </p>
+          </div>
+        </section>
       </div>
     ),
     sections: [
       { id: 'global-control-plane-limit', label: 'Global Control-plane Limit' },
       { id: 'runtime-download-limit', label: 'Runtime Download Limit' },
+      { id: 'client-behavior', label: 'Client Behavior' },
     ],
     railTitle: '429 Example',
     railCode: `Retry-After: 60
