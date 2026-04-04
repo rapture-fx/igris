@@ -1,7 +1,7 @@
 const fs = require('fs');
 const path = require('path');
 
-const { apiSections, generatedDir, repoRoot, sdkSupport } = require('./docs-data');
+const { apiSections, generatedDir, mcpReference, repoRoot, sdkSupport } = require('./docs-data');
 
 function walk(dir, extension, files = []) {
   for (const entry of fs.readdirSync(dir, { withFileTypes: true })) {
@@ -148,6 +148,11 @@ function main() {
 
   writeJson('sdk-support.json', {
     ...sdkSupport,
+    generated_at: generatedAt,
+  });
+
+  writeJson('mcp-reference.json', {
+    ...mcpReference,
     generated_at: generatedAt,
   });
 
