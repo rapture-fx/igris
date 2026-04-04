@@ -3,6 +3,7 @@
 import { usePathname } from 'next/navigation';
 import Link from 'next/link';
 import { ChevronRight } from 'lucide-react';
+import { getApiBreadcrumbLabel } from '@/lib/api-reference';
 
 const labelMap: Record<string, string> = {
   docs: 'Docs',
@@ -30,11 +31,31 @@ const labelMap: Record<string, string> = {
   'api-reference': 'API Reference',
 };
 
-export function DocsNavbar() {
+export function DocsNavbar({
+  maxWidthClass = 'max-w-[90rem]',
+  rightColumnWidthClass = 'w-64',
+}: {
+  maxWidthClass?: string;
+  rightColumnWidthClass?: string;
+}) {
   const pathname = usePathname();
 
   const generateBreadcrumbs = () => {
     if (!pathname) return [];
+
+    const apiLabel = getApiBreadcrumbLabel(pathname);
+    if (apiLabel) {
+      const breadcrumbs = [
+        { label: 'Docs', href: '/docs' },
+        { label: 'API Reference', href: '/docs/api-reference' },
+      ];
+
+      if (pathname !== '/docs/api-reference' && pathname !== '/docs/api-reference/') {
+        breadcrumbs.push({ label: apiLabel, href: pathname });
+      }
+
+      return breadcrumbs;
+    }
 
     const segments = pathname.split('/').filter(Boolean);
     const breadcrumbs = [{ label: 'Docs', href: '/docs' }];
@@ -56,7 +77,7 @@ export function DocsNavbar() {
 
   return (
     <nav className="bg-transparent h-12">
-      <div className="h-full max-w-[90rem] mx-auto px-8 sm:px-12 lg:px-16">
+      <div className={`h-full ${maxWidthClass} mx-auto px-8 sm:px-12 lg:px-16`}>
         <div className="h-full flex gap-12">
           <div className="flex-1 min-w-0 flex items-center">
             <div className="flex items-center space-x-2 text-sm">
@@ -82,7 +103,7 @@ export function DocsNavbar() {
             </div>
           </div>
 
-          <div className="hidden xl:flex items-center gap-3 w-64">
+          <div className={`hidden xl:flex ${rightColumnWidthClass} flex-shrink-0 items-center justify-start gap-3`}>
             <a
               href="https://console.igrisinertial.com/dashboard"
               className="px-3 py-1.5 text-xs font-medium text-gray-900 dark:text-[#f6f6f4] bg-[#f6f6f4] dark:bg-[#25231e] hover:bg-beige-secondary dark:hover:bg-[#2a2820] rounded-lg transition-colors whitespace-nowrap shadow-sm border border-gray-200 dark:border-[#f6f6f4]/10"
