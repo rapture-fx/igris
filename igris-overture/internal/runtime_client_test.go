@@ -12,7 +12,6 @@ import (
 	"net/http"
 	"net/http/httptest"
 	"testing"
-	"time"
 
 	"github.com/Igris-inertial/system/igris-overture/models"
 )
@@ -98,28 +97,34 @@ func TestVerifyEnvelope_NoKey(t *testing.T) {
 	}
 }
 
-// minimalExecuteResponseJSON returns a JSON response body that ForwardExecution can decode.
-func minimalExecuteResponseJSON(t *testing.T) []byte {
+// minimalTaskSubmitResponseJSON returns a JSON response body that ForwardExecution can decode.
+func minimalTaskSubmitResponseJSON(t *testing.T) []byte {
 	t.Helper()
 	resp := map[string]interface{}{
-		"id":      "test-id",
-		"object":  "chat.completion",
-		"created": time.Now().Unix(),
-		"model":   "mock",
-		"choices": []interface{}{
-			map[string]interface{}{
-				"index":         0,
-				"message":       map[string]interface{}{"role": "assistant", "content": "hi"},
-				"finish_reason": "stop",
-			},
-		},
+		"task_id":         "test-id",
+		"steps_completed": 1,
+		"steps_total":     1,
+		"status":          "completed",
+		"final_output":    "hi",
 		"usage": map[string]interface{}{
-			"prompt_tokens": 1, "completion_tokens": 1, "total_tokens": 2,
+			"prompt_tokens":     1,
+			"completion_tokens": 1,
+			"total_tokens":      2,
+		},
+		"execution_envelope": map[string]interface{}{
+			"execution_id":     "exec-minimal",
+			"finish_reason":    "stop",
+			"model":            "mock",
+			"request_hash":     "aabb",
+			"response_hash":    "ccdd",
+			"routing_decision": "runtime",
+			"timestamp":        "2026-02-20T12:00:00Z",
+			"signature":        "placeholder",
 		},
 	}
 	b, err := json.Marshal(resp)
 	if err != nil {
-		t.Fatalf("minimalExecuteResponseJSON: %v", err)
+		t.Fatalf("minimalTaskSubmitResponseJSON: %v", err)
 	}
 	return b
 }
@@ -144,7 +149,7 @@ func TestRuntimeClient_BearerSent(t *testing.T) {
 		gotAuth = r.Header.Get("Authorization")
 		w.Header().Set("Content-Type", "application/json")
 		w.WriteHeader(http.StatusOK)
-		w.Write(minimalExecuteResponseJSON(t))
+		w.Write(minimalTaskSubmitResponseJSON(t))
 	}))
 	defer srv.Close()
 
@@ -170,7 +175,7 @@ func TestRuntimeClient_NoBearer(t *testing.T) {
 		gotAuth = r.Header.Get("Authorization")
 		w.Header().Set("Content-Type", "application/json")
 		w.WriteHeader(http.StatusOK)
-		w.Write(minimalExecuteResponseJSON(t))
+		w.Write(minimalTaskSubmitResponseJSON(t))
 	}))
 	defer srv.Close()
 
@@ -207,7 +212,7 @@ func TestDecisionSigHeader_Sent(t *testing.T) {
 		gotBody, _ = io.ReadAll(r.Body)
 		w.Header().Set("Content-Type", "application/json")
 		w.WriteHeader(http.StatusOK)
-		w.Write(minimalExecuteResponseJSON(t))
+		w.Write(minimalTaskSubmitResponseJSON(t))
 	}))
 	defer srv.Close()
 
@@ -234,6 +239,33 @@ func TestDecisionSigHeader_Sent(t *testing.T) {
 	}
 }
 
+func TestForwardExecution_StreamBypassesTaskEndpoint(t *testing.T) {
+	hitServer := false
+	srv := httptest.NewServer(http.HandlerFunc(func(w http.ResponseWriter, r *http.Request) {
+		hitServer = true
+		w.Header().Set("Content-Type", "application/json")
+		w.WriteHeader(http.StatusOK)
+		w.Write(minimalTaskSubmitResponseJSON(t))
+	}))
+	defer srv.Close()
+
+	c := &RuntimeClient{
+		baseURL:    srv.URL,
+		httpClient: srv.Client(),
+	}
+
+	req := minimalInferRequest()
+	req.Stream = true
+
+	_, err := c.ForwardExecution(context.Background(), "t1", req, "")
+	if err == nil {
+		t.Fatal("expected streaming request to be rejected by runtime task client")
+	}
+	if hitServer {
+		t.Fatal("expected streaming request to bypass runtime task endpoint")
+	}
+}
+
 // TestDecisionSigHeader_NotSent verifies that when no signing key is configured,
 // X-Igris-Decision-Sig is not sent.
 func TestDecisionSigHeader_NotSent(t *testing.T) {
@@ -242,7 +274,7 @@ func TestDecisionSigHeader_NotSent(t *testing.T) {
 		gotSig = r.Header.Get("X-Igris-Decision-Sig")
 		w.Header().Set("Content-Type", "application/json")
 		w.WriteHeader(http.StatusOK)
-		w.Write(minimalExecuteResponseJSON(t))
+		w.Write(minimalTaskSubmitResponseJSON(t))
 	}))
 	defer srv.Close()
 
@@ -284,20 +316,11 @@ func TestForwardExecution_EnvelopePassthrough(t *testing.T) {
 
 	// Build response JSON including the envelope.
 	respPayload := map[string]interface{}{
-		"id":      "test-id",
-		"object":  "chat.completion",
-		"created": time.Now().Unix(),
-		"model":   "mock",
-		"choices": []interface{}{
-			map[string]interface{}{
-				"index":         0,
-				"message":       map[string]interface{}{"role": "assistant", "content": "hi"},
-				"finish_reason": "stop",
-			},
-		},
-		"usage": map[string]interface{}{
-			"prompt_tokens": 1, "completion_tokens": 1, "total_tokens": 2,
-		},
+		"task_id":            "test-id",
+		"steps_completed":    1,
+		"steps_total":        1,
+		"status":             "completed",
+		"final_output":       "hi",
 		"execution_envelope": envelope,
 	}
 	respBytes, _ := json.Marshal(respPayload)
@@ -343,18 +366,11 @@ func TestForwardExecution_TamperedEnvelope_ReturnsSecurityError(t *testing.T) {
 	envelope["model"] = "evil-model"
 
 	respPayload := map[string]interface{}{
-		"id":      "test-id",
-		"object":  "chat.completion",
-		"created": time.Now().Unix(),
-		"model":   "mock",
-		"choices": []interface{}{
-			map[string]interface{}{
-				"index":         0,
-				"message":       map[string]interface{}{"role": "assistant", "content": "hi"},
-				"finish_reason": "stop",
-			},
-		},
-		"usage":              map[string]interface{}{"prompt_tokens": 1, "completion_tokens": 1, "total_tokens": 2},
+		"task_id":            "test-id",
+		"steps_completed":    1,
+		"steps_total":        1,
+		"status":             "completed",
+		"final_output":       "hi",
 		"execution_envelope": envelope,
 	}
 	respBytes, _ := json.Marshal(respPayload)
@@ -411,18 +427,18 @@ func TestVerifyReceipt_Valid(t *testing.T) {
 	}
 
 	receipt := buildAndSignReceipt(t, priv, map[string]interface{}{
-		"execution_id":      "exec-receipt-001",
-		"agent_id":          "tenant-a",
-		"transaction_id":    "tx-001",
-		"transaction_hash":  "abcdef01",
-		"cpu_time_ms":       "0",
-		"wall_time_ms":      "250",
-		"memory_peak_mb":    "0",
-		"fs_bytes_written":  "0",
-		"tool_calls":        "0",
+		"execution_id":       "exec-receipt-001",
+		"agent_id":           "tenant-a",
+		"transaction_id":     "tx-001",
+		"transaction_hash":   "abcdef01",
+		"cpu_time_ms":        "0",
+		"wall_time_ms":       "250",
+		"memory_peak_mb":     "0",
+		"fs_bytes_written":   "0",
+		"tool_calls":         "0",
 		"violation_occurred": "false",
-		"timestamp_utc":     "2026-02-26T10:00:00Z",
-		"previous_hash":     "",
+		"timestamp_utc":      "2026-02-26T10:00:00Z",
+		"previous_hash":      "",
 	})
 
 	c := &RuntimeClient{publicKey: pub}
@@ -439,16 +455,16 @@ func TestVerifyReceipt_Tampered(t *testing.T) {
 	}
 
 	receipt := buildAndSignReceipt(t, priv, map[string]interface{}{
-		"execution_id":      "exec-receipt-002",
-		"agent_id":          "tenant-b",
-		"cpu_time_ms":       "0",
-		"wall_time_ms":      "100",
-		"memory_peak_mb":    "0",
-		"fs_bytes_written":  "0",
-		"tool_calls":        "0",
+		"execution_id":       "exec-receipt-002",
+		"agent_id":           "tenant-b",
+		"cpu_time_ms":        "0",
+		"wall_time_ms":       "100",
+		"memory_peak_mb":     "0",
+		"fs_bytes_written":   "0",
+		"tool_calls":         "0",
 		"violation_occurred": "false",
-		"timestamp_utc":     "2026-02-26T10:00:00Z",
-		"previous_hash":     "",
+		"timestamp_utc":      "2026-02-26T10:00:00Z",
+		"previous_hash":      "",
 	})
 
 	// Tamper: claim a violation did not occur when it did.
@@ -503,34 +519,37 @@ func TestForwardExecution_ReceiptPassthrough(t *testing.T) {
 	}
 
 	receipt := buildAndSignReceipt(t, priv, map[string]interface{}{
-		"execution_id":      "exec-rcpt-pass",
-		"agent_id":          "t1",
-		"transaction_id":    "tx-pass-001",
-		"transaction_hash":  "deadbeef",
-		"cpu_time_ms":       "0",
-		"wall_time_ms":      "300",
-		"memory_peak_mb":    "0",
-		"fs_bytes_written":  "0",
-		"tool_calls":        "0",
+		"execution_id":       "exec-rcpt-pass",
+		"agent_id":           "t1",
+		"transaction_id":     "tx-pass-001",
+		"transaction_hash":   "deadbeef",
+		"cpu_time_ms":        "0",
+		"wall_time_ms":       "300",
+		"memory_peak_mb":     "0",
+		"fs_bytes_written":   "0",
+		"tool_calls":         "0",
 		"violation_occurred": "false",
-		"timestamp_utc":     "2026-02-26T10:00:00Z",
-		"previous_hash":     "",
+		"timestamp_utc":      "2026-02-26T10:00:00Z",
+		"previous_hash":      "",
+	})
+	envelope := buildAndSignEnvelope(t, priv, map[string]interface{}{
+		"execution_id":     "exec-rcpt-envelope-pass",
+		"finish_reason":    "stop",
+		"model":            "mock",
+		"request_hash":     "aabb",
+		"response_hash":    "ccdd",
+		"routing_decision": "openai",
+		"timestamp":        "2026-02-20T12:00:00Z",
 	})
 
 	respPayload := map[string]interface{}{
-		"id":      "test-id",
-		"object":  "chat.completion",
-		"created": time.Now().Unix(),
-		"model":   "mock",
-		"choices": []interface{}{
-			map[string]interface{}{
-				"index":         0,
-				"message":       map[string]interface{}{"role": "assistant", "content": "hi"},
-				"finish_reason": "stop",
-			},
-		},
-		"usage":             map[string]interface{}{"prompt_tokens": 1, "completion_tokens": 1, "total_tokens": 2},
-		"execution_receipt": receipt,
+		"task_id":            "test-id",
+		"steps_completed":    1,
+		"steps_total":        1,
+		"status":             "completed",
+		"final_output":       "hi",
+		"execution_envelope": envelope,
+		"execution_receipt":  receipt,
 	}
 	respBytes, _ := json.Marshal(respPayload)
 
@@ -570,29 +589,32 @@ func TestForwardExecution_TamperedReceipt_ReturnsSecurityError(t *testing.T) {
 	}
 
 	receipt := buildAndSignReceipt(t, priv, map[string]interface{}{
-		"execution_id":      "exec-rcpt-tamper",
-		"agent_id":          "t1",
+		"execution_id":       "exec-rcpt-tamper",
+		"agent_id":           "t1",
 		"violation_occurred": "false",
-		"timestamp_utc":     "2026-02-26T10:00:00Z",
-		"previous_hash":     "",
+		"timestamp_utc":      "2026-02-26T10:00:00Z",
+		"previous_hash":      "",
 	})
 	// Tamper: claim violation did not occur.
 	receipt["violation_occurred"] = "true"
+	envelope := buildAndSignEnvelope(t, priv, map[string]interface{}{
+		"execution_id":     "exec-rcpt-envelope-tamper",
+		"finish_reason":    "stop",
+		"model":            "mock",
+		"request_hash":     "aabb",
+		"response_hash":    "ccdd",
+		"routing_decision": "openai",
+		"timestamp":        "2026-02-20T12:00:00Z",
+	})
 
 	respPayload := map[string]interface{}{
-		"id":      "test-id",
-		"object":  "chat.completion",
-		"created": time.Now().Unix(),
-		"model":   "mock",
-		"choices": []interface{}{
-			map[string]interface{}{
-				"index":         0,
-				"message":       map[string]interface{}{"role": "assistant", "content": "hi"},
-				"finish_reason": "stop",
-			},
-		},
-		"usage":             map[string]interface{}{"prompt_tokens": 1, "completion_tokens": 1, "total_tokens": 2},
-		"execution_receipt": receipt,
+		"task_id":            "test-id",
+		"steps_completed":    1,
+		"steps_total":        1,
+		"status":             "completed",
+		"final_output":       "hi",
+		"execution_envelope": envelope,
+		"execution_receipt":  receipt,
 	}
 	respBytes, _ := json.Marshal(respPayload)
 
@@ -637,4 +659,3 @@ func TestForwardExecution_401_ReturnsSecurityError(t *testing.T) {
 		t.Errorf("expected ErrRuntimeSecurity for 401, got: %v", err)
 	}
 }
-
