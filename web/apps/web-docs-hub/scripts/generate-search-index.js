@@ -75,27 +75,32 @@ function extractSearchIndex() {
     const filePath = subdir ? path.join(docsDir, subdir, file) : path.join(docsDir, file);
     const slug = file.replace('.mdx', '');
     const content = fs.readFileSync(filePath, 'utf-8');
+    const sanitizedContent = content
+      .replace(/^import\s.+;$/gm, '')
+      .replace(/^export\s.+;$/gm, '')
+      .replace(/<[^>\n]+>/g, ' ')
+      .replace(/\{[^}\n]+\}/g, ' ');
     const title = slugToTitle[file] || slug
       .split('-')
       .map(w => w.charAt(0).toUpperCase() + w.slice(1))
       .join(' ');
 
     // Extract headings (lines starting with #)
-    const headings = content
+    const headings = sanitizedContent
       .split('\n')
       .filter(line => /^#{1,3}\s/.test(line))
       .map(line => line.replace(/^#+\s/, '').trim())
       .join(' ');
 
     // Extract code block languages
-    const codeLangs = [...content.matchAll(/```(\w+)/g)]
+    const codeLangs = [...sanitizedContent.matchAll(/```(\w+)/g)]
       .map(m => m[1])
       .join(' ');
 
     // Get first paragraph for description
-    const paragraphs = content.split('\n\n');
+    const paragraphs = sanitizedContent.split('\n\n');
     const firstPara = paragraphs
-      .find(p => p.startsWith('# ') || (!p.startsWith('#') && p.trim().length > 20))
+      .find(p => !p.startsWith('# ') && p.trim().length > 20)
       ?.replace(/^#\s.+\n\n?/, '')
       ?.replace(/[#*`_~\[\]()]/g, '')
       ?.trim()
