@@ -182,6 +182,29 @@ func AllPlans() []TierPlan {
 	return []TierPlan{PlanSeed, PlanHorizon, PlanInfinite}
 }
 
+// ResolveTierID determines the canonical tier for a subscription payload.
+// It first trusts an explicit tier in metadata, then falls back to a known price ID.
+func ResolveTierID(metadata map[string]string, priceID string) (string, error) {
+	if metadata != nil {
+		if tierID := metadata["tier"]; tierID != "" {
+			if _, err := GetTierByID(tierID); err != nil {
+				return "", err
+			}
+			return tierID, nil
+		}
+	}
+
+	if priceID == "" {
+		return "", errors.New("subscription tier and price ID are both missing")
+	}
+
+	tier, err := GetTierByPriceID(priceID)
+	if err != nil {
+		return "", err
+	}
+	return string(tier.ID), nil
+}
+
 // ============================================================================
 // SUBSCRIPTION MANAGEMENT
 // ============================================================================
@@ -241,16 +264,18 @@ func (c *PolarClient) UpdateSubscription(ctx context.Context, sub *Subscription)
 	tenantID := sub.CustomerID
 
 	// Determine tier from price ID
-	tier := sub.Metadata["tier"]
-	if tier == "" {
-		tierPlan, err := GetTierByPriceID(sub.PriceID)
-		if err == nil {
-			tier = string(tierPlan.ID)
-		}
+	tier, err := ResolveTierID(sub.Metadata, sub.PriceID)
+	if err != nil {
+		return fmt.Errorf("failed to resolve subscription tier for tenant %s: %w", tenantID, err)
 	}
 
+	if sub.Metadata == nil {
+		sub.Metadata = make(map[string]string)
+	}
+	sub.Metadata["tier"] = tier
+
 	subKey := fmt.Sprintf("polar:sub:%s", tenantID)
-	err := c.redis.HSet(ctx, subKey,
+	err = c.redis.HSet(ctx, subKey,
 		"id", sub.ID,
 		"product_id", sub.ProductID,
 		"price_id", sub.PriceID,
