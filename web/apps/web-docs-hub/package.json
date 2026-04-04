@@ -4,7 +4,7 @@
   "private": true,
   "scripts": {
     "clean": "rm -rf .next out tsconfig.tsbuildinfo",
-    "dev": "node scripts/generate-docs-artifacts.js && node scripts/generate-api-verification-report.js && node scripts/generate-search-index.js && pnpm exec next dev --port 3001",
+    "dev": "pnpm run clean && node scripts/generate-docs-artifacts.js && node scripts/generate-api-verification-report.js && node scripts/generate-search-index.js && pnpm exec next dev --port 3001",
     "build": "pnpm run clean && node scripts/generate-docs-artifacts.js && node scripts/generate-api-verification-report.js && node scripts/validate-docs.js && node scripts/generate-search-index.js && pnpm exec eslint . --ext .js,.jsx,.ts,.tsx && pnpm exec next build",
     "start": "pnpm exec next start --port 3001",
     "lint": "pnpm exec eslint . --ext .js,.jsx,.ts,.tsx",
