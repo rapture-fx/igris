@@ -23,18 +23,18 @@ func NewCheckpointStore(db *sql.DB) *CheckpointStore {
 
 // TaskRecord is the durable state of a task tracked by Overture.
 type TaskRecord struct {
-	TaskID          uuid.UUID       `json:"task_id"`
-	TenantID        string          `json:"tenant_id"`
-	Status          TaskRecordStatus `json:"status"`
-	RuntimeID       *string         `json:"runtime_id,omitempty"`
-	RuntimeEndpoint *string         `json:"runtime_endpoint,omitempty"`
-	TaskDefinition  json.RawMessage `json:"task_definition"`
+	TaskID          uuid.UUID          `json:"task_id"`
+	TenantID        string             `json:"tenant_id"`
+	Status          TaskRecordStatus   `json:"status"`
+	RuntimeID       *string            `json:"runtime_id,omitempty"`
+	RuntimeEndpoint *string            `json:"runtime_endpoint,omitempty"`
+	TaskDefinition  json.RawMessage    `json:"task_definition"`
 	LastCheckpoint  *CheckpointPayload `json:"last_checkpoint,omitempty"`
-	IdempotencyKey  string          `json:"idempotency_key"`
-	DeadlineAt      *time.Time      `json:"deadline_at,omitempty"`
-	DispatchedAt    *time.Time      `json:"dispatched_at,omitempty"`
-	CompletedAt     *time.Time      `json:"completed_at,omitempty"`
-	CreatedAt       time.Time       `json:"created_at"`
+	IdempotencyKey  string             `json:"idempotency_key"`
+	DeadlineAt      *time.Time         `json:"deadline_at,omitempty"`
+	DispatchedAt    *time.Time         `json:"dispatched_at,omitempty"`
+	CompletedAt     *time.Time         `json:"completed_at,omitempty"`
+	CreatedAt       time.Time          `json:"created_at"`
 }
 
 type TaskRecordStatus string
@@ -74,16 +74,16 @@ type CheckpointPayload struct {
 
 // WalEntry mirrors the Rust WalEntry for cross-language JSON compatibility.
 type WalEntry struct {
-	EntryID       uuid.UUID   `json:"entry_id"`
-	TaskID        uuid.UUID   `json:"task_id"`
-	StepIndex     uint32      `json:"step_index"`
-	StepType      interface{} `json:"step_type"`
-	Status        string      `json:"status"`
-	InputDigest   string      `json:"input_digest"`  // hex
-	OutputDigest  *string     `json:"output_digest,omitempty"` // hex, nil until committed
-	TimestampMs   uint64      `json:"timestamp_ms"`
-	RuntimeID     string      `json:"runtime_id"`
-	Signature     *string     `json:"signature,omitempty"` // base64
+	EntryID      uuid.UUID   `json:"entry_id"`
+	TaskID       uuid.UUID   `json:"task_id"`
+	StepIndex    uint32      `json:"step_index"`
+	StepType     interface{} `json:"step_type"`
+	Status       string      `json:"status"`
+	InputDigest  string      `json:"input_digest"`            // hex
+	OutputDigest *string     `json:"output_digest,omitempty"` // hex, nil until committed
+	TimestampMs  uint64      `json:"timestamp_ms"`
+	RuntimeID    string      `json:"runtime_id"`
+	Signature    *string     `json:"signature,omitempty"` // base64
 }
 
 // CreateTask inserts a new TaskRecord in PENDING state.
