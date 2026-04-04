@@ -67,7 +67,7 @@ pub mod visualizer;
 // Re-export commonly used types
 pub mod prelude {
     pub use crate::core::{
-        BTreeContext, BTreeNode, Blackboard, NodeStatus,
+        BTreeContext, BTreeNode, Blackboard, BlackboardEntry, ScopedBlackboard, NodeStatus,
     };
     pub use crate::nodes::{
         composite::{Parallel, Selector, Sequence},
