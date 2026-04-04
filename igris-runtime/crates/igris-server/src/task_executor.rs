@@ -98,8 +98,14 @@ pub enum RoboticsAction {
         #[serde(default)]
         wait_timeout_ms: Option<u64>,
     },
+    GetNavigationStatus,
+    CancelNavigation,
     PublishPrompt {
         prompt: String,
+    },
+    PublishVelocity {
+        linear_x: f64,
+        angular_z: f64,
     },
     PublishZeroVelocity,
 }
@@ -233,9 +239,21 @@ impl RuntimeTaskStep {
                     action: "navigate_to_pose".to_string(),
                     target: Some(format!("{},{},{}", goal.x, goal.y, goal.frame_id)),
                 },
+                RoboticsAction::GetNavigationStatus => StepType::RoboticsAction {
+                    action: "get_navigation_status".to_string(),
+                    target: None,
+                },
+                RoboticsAction::CancelNavigation => StepType::RoboticsAction {
+                    action: "cancel_navigation".to_string(),
+                    target: None,
+                },
                 RoboticsAction::PublishPrompt { .. } => StepType::RoboticsAction {
                     action: "publish_prompt".to_string(),
                     target: None,
+                },
+                RoboticsAction::PublishVelocity { linear_x, angular_z } => StepType::RoboticsAction {
+                    action: "publish_velocity".to_string(),
+                    target: Some(format!("{:.3},{:.3}", linear_x, angular_z)),
                 },
                 RoboticsAction::PublishZeroVelocity => StepType::RoboticsAction {
                     action: "publish_zero_velocity".to_string(),
@@ -1024,11 +1042,52 @@ async fn execute_robotics_step(
                     other => anyhow::bail!("navigation ended in unexpected state {:?}", other),
                 }
             }
+            RoboticsAction::GetNavigationStatus => {
+                let status = manager.node().get_navigation_status().await?;
+                Ok(StepExecutionResult {
+                    output_text: serde_json::to_string(&serde_json::json!({
+                        "navigation_status": status,
+                    }))?,
+                    provider_name: "ros2:get_navigation_status".to_string(),
+                    usage: ExecuteUsage {
+                        prompt_tokens: 0,
+                        completion_tokens: 0,
+                        total_tokens: 0,
+                    },
+                })
+            }
+            RoboticsAction::CancelNavigation => {
+                manager.node().cancel_navigation().await?;
+                Ok(StepExecutionResult {
+                    output_text: "requested navigation cancellation".to_string(),
+                    provider_name: "ros2:cancel_navigation".to_string(),
+                    usage: ExecuteUsage {
+                        prompt_tokens: 0,
+                        completion_tokens: 0,
+                        total_tokens: 0,
+                    },
+                })
+            }
             RoboticsAction::PublishPrompt { prompt } => {
                 manager.node().publish_prompt(prompt).await?;
                 Ok(StepExecutionResult {
                     output_text: format!("published robotics prompt: {}", prompt),
                     provider_name: "ros2:publish_prompt".to_string(),
+                    usage: ExecuteUsage {
+                        prompt_tokens: 0,
+                        completion_tokens: 0,
+                        total_tokens: 0,
+                    },
+                })
+            }
+            RoboticsAction::PublishVelocity { linear_x, angular_z } => {
+                manager.node().publish_velocity(*linear_x, *angular_z).await?;
+                Ok(StepExecutionResult {
+                    output_text: format!(
+                        "published velocity command linear_x={:.3} angular_z={:.3}",
+                        linear_x, angular_z
+                    ),
+                    provider_name: "ros2:publish_velocity".to_string(),
                     usage: ExecuteUsage {
                         prompt_tokens: 0,
                         completion_tokens: 0,
@@ -1373,7 +1432,10 @@ fn build_step_checkpoint_metadata(
 fn robotics_action_name(action: &RoboticsAction) -> &'static str {
     match action {
         RoboticsAction::NavigateToPose { .. } => "navigate_to_pose",
+        RoboticsAction::GetNavigationStatus => "get_navigation_status",
+        RoboticsAction::CancelNavigation => "cancel_navigation",
         RoboticsAction::PublishPrompt { .. } => "publish_prompt",
+        RoboticsAction::PublishVelocity { .. } => "publish_velocity",
         RoboticsAction::PublishZeroVelocity => "publish_zero_velocity",
     }
 }
@@ -1443,5 +1505,24 @@ mod tests {
         assert_eq!(metadata["domain"], "robotics");
         assert_eq!(metadata["action"], "publish_zero_velocity");
         assert_eq!(metadata["steps_completed"], 3);
+    }
+
+    #[test]
+    fn robotics_action_name_supports_mission_control_actions() {
+        assert_eq!(
+            robotics_action_name(&RoboticsAction::GetNavigationStatus),
+            "get_navigation_status"
+        );
+        assert_eq!(
+            robotics_action_name(&RoboticsAction::CancelNavigation),
+            "cancel_navigation"
+        );
+        assert_eq!(
+            robotics_action_name(&RoboticsAction::PublishVelocity {
+                linear_x: 0.5,
+                angular_z: 0.1,
+            }),
+            "publish_velocity"
+        );
     }
 }
