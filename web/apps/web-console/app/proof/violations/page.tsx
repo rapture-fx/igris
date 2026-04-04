@@ -158,7 +158,7 @@ function ViolationsContent() {
     try {
       es = new EventSource(`${API_BASE_URL}/v1/alerts/stream`, { withCredentials: true });
       es.onopen = () => setSseConnected(true);
-      es.onmessage = (event) => {
+      es.addEventListener('alert', (event) => {
         try {
           const a: PolicyAlert = JSON.parse(event.data);
           if (a.category !== 'policy') return;
@@ -168,7 +168,7 @@ function ViolationsContent() {
             return [a, ...old];
           });
         } catch { /* ignore */ }
-      };
+      });
       es.onerror = () => { setSseConnected(false); es.close(); };
       sseRef.current = es;
     } catch { /* EventSource unavailable */ }
