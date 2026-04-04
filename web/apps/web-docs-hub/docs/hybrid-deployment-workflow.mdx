@@ -19,7 +19,7 @@ The application-facing base URL stays the same:
 https://overture.igrisinertial.com/v1
 ```
 
-That keeps the customer contract unified even when runtimes are participating underneath.
+That keeps the customer contract unified even when runtimes are participating underneath. The application continues to see one product API, while Igris decides where execution and coordination should happen.
 
 ## 2. Start runtimes with registration credentials
 
@@ -47,7 +47,7 @@ Once runtimes are participating, use the documented fleet-management routes and 
 - config push
 - OTA updates
 
-Do not rebuild your own hidden coordination path when the product surface already supports it.
+Do not rebuild a parallel coordination system when the product surface already supports it. Hybrid works best when the application path stays simple and device operations stay explicit.
 
 ## 5. Separate hot-path traffic from provisioning traffic
 
@@ -56,7 +56,7 @@ Keep the hosted inference path and runtime management path conceptually separate
 - application traffic calls the hosted API
 - operators and rollout systems manage runtimes and fleet operations
 
-That keeps your architecture readable and avoids treating device management like ordinary inference traffic.
+That keeps the architecture readable, makes failure handling clearer, and avoids treating device management like ordinary inference traffic.
 
 ## Common Mistakes
 
