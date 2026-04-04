@@ -61,21 +61,21 @@ export function ApiReferencePage() {
         <div className="space-y-3">
           <h2 className="m-0 text-base font-semibold text-slate-900">Overview</h2>
           <p className="mb-0 text-sm leading-7 text-slate-700">
-            This reference documents the shipped Igris API as one product. Depending on your deployment,
-            you will call either the hosted API for account-level capabilities or the local runtime API
-            for execution, inference, and device-local operations. The guide pages explain shared behavior
-            first, and the endpoint pages document each route in detail.
+            This is the customer API contract for Igris. Read it as one product surface, even when the
+            request ultimately lands on the hosted API or on a local runtime. The guide pages explain
+            the rules that apply across the product, and the endpoint pages document the routes you
+            actually integrate against.
           </p>
           <p className="mb-0 text-sm leading-7 text-slate-700">
-            Start with Introduction if you are new to the API surface. Authentication explains which
-            credentials belong to automation, console sessions, and local runtime access. Errors and
-            Rate Limits describe the failure patterns you should handle before integrating against any
-            endpoint in production.
+            If you are new to the API, start with Introduction. Authentication tells you which
+            credentials belong to backend automation, browser sessions, and runtime-local access.
+            Errors and Rate Limits explain the failure patterns and retry behavior you should account
+            for before you put any route on a production path.
           </p>
           <p className="mb-0 text-sm leading-7 text-slate-700">
-            Each endpoint page is written as an operational reference: what the route is for, which
-            authentication model it expects, the request shape, example responses, status codes, and
-            runnable HTTP examples in JavaScript, Go, and Rust when that helps clarify usage.
+            Each endpoint page is written as an operational reference. It tells you what the route is
+            for, when to use it, how to authenticate, what request shape it expects, how to handle the
+            response, and what mistakes are most likely to cause problems during integration.
           </p>
         </div>
       </section>
@@ -84,8 +84,8 @@ export function ApiReferencePage() {
         <div className="border-b border-gray-200 px-6 py-4">
           <h2 className="m-0 text-base font-semibold text-slate-900">Reference guides</h2>
           <p className="mb-0 mt-2 text-sm leading-7 text-slate-700">
-            These guides cover the behavior that applies across the API reference, so you do not have
-            to relearn the same rules on every endpoint page.
+            Read these once before you go deep on individual routes. They cover the shared behavior
+            that makes the rest of the API reference easier to use correctly.
           </p>
         </div>
         <div className="divide-y divide-gray-200">
