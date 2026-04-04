@@ -79,6 +79,16 @@ export const API_ENDPOINTS = {
   // Multimodal
   MULTIMODAL_INFER: '/v1/infer/multimodal',
   MULTIMODAL_STATS: '/v1/infer/multimodal/stats',
+
+  // Durable Tasks (WAL-backed execution)
+  TASKS_SUBMIT: '/v1/tasks/submit',
+  TASKS_LIST: '/v1/tasks',
+  TASKS_GET: (id: string) => `/v1/tasks/${id}`,
+  TASKS_STEPS: (id: string) => `/v1/tasks/${id}/steps`,
+
+  // LoRA Training
+  LORA_STATUS: '/v1/lora/status',
+  LORA_TRIGGER: '/v1/lora/trigger',
 };
 
 export const COOKIE_KEYS = {
@@ -93,6 +103,9 @@ export const LOCAL_STORAGE_KEYS = {
 
 export const QUERY_KEYS = {
   TENANT: 'tenant',
+  TASKS_LIST: 'tasks_list',
+  TASKS_DETAIL: 'tasks_detail',
+  TASKS_STEPS: 'tasks_steps',
   VAULT_KEYS: 'vault_keys',
   USAGE: 'usage',
   USAGE_SUMMARY: 'usage_summary',
