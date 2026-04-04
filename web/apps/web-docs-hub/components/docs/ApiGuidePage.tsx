@@ -15,13 +15,39 @@ type GuideContent = {
   railStatus?: Array<{ code: number; title: string; description: string }>;
 };
 
+function statusBadgeClass(code: number) {
+  if (code >= 200 && code < 300) {
+    return 'bg-emerald-50 text-emerald-700';
+  }
+  if (code >= 300 && code < 400) {
+    return 'bg-sky-50 text-sky-700';
+  }
+  if (code === 400) {
+    return 'bg-amber-50 text-amber-800';
+  }
+  if (code === 401 || code === 403) {
+    return 'bg-orange-50 text-orange-700';
+  }
+  if (code === 404) {
+    return 'bg-yellow-50 text-yellow-800';
+  }
+  if (code === 429) {
+    return 'bg-rose-50 text-rose-700';
+  }
+  if (code >= 500) {
+    return 'bg-red-50 text-red-700';
+  }
+
+  return 'bg-gray-100 text-gray-700';
+}
+
 const guideContent: Record<string, GuideContent> = {
   introduction: {
     title: 'Introduction',
     summary: 'How the Igris API reference is organized, when to use each access point, and how to move from guides into endpoint-level integration work.',
     body: (
-      <div className="space-y-6">
-        <section id="surfaces" className="rounded-xl border border-gray-200 bg-white p-5">
+      <div className="space-y-10">
+        <section id="surfaces" className="space-y-3">
           <h2 className="mt-0 text-lg font-semibold text-slate-900">Two Product Surfaces</h2>
           <div className="space-y-3 text-sm leading-7 text-slate-700">
             <p className="mb-0">
@@ -38,7 +64,7 @@ const guideContent: Record<string, GuideContent> = {
             </p>
           </div>
         </section>
-        <section id="endpoint-pages" className="rounded-xl border border-gray-200 bg-white p-5">
+        <section id="endpoint-pages" className="space-y-3 border-t border-gray-200 pt-8">
           <h2 className="mt-0 text-lg font-semibold text-slate-900">How Endpoint Pages Work</h2>
           <div className="space-y-3 text-sm leading-7 text-slate-700">
             <p className="mb-0">
@@ -53,7 +79,7 @@ const guideContent: Record<string, GuideContent> = {
             </p>
           </div>
         </section>
-        <section id="sdk-guidance" className="rounded-xl border border-gray-200 bg-white p-5">
+        <section id="sdk-guidance" className="space-y-3 border-t border-gray-200 pt-8">
           <h2 className="mt-0 text-lg font-semibold text-slate-900">SDK Guidance</h2>
           <div className="space-y-3 text-sm leading-7 text-slate-700">
             <p className="mb-0">
@@ -102,8 +128,8 @@ http://localhost:8080`,
     title: 'Authentication',
     summary: 'Which credentials belong to automation, browser sessions, and runtime-local deployments, and how to choose the right one for each route.',
     body: (
-      <div className="space-y-6">
-        <section id="tenant-api-keys" className="rounded-xl border border-gray-200 bg-white p-5">
+      <div className="space-y-10">
+        <section id="tenant-api-keys" className="space-y-3">
           <h2 className="mt-0 text-lg font-semibold text-slate-900">Tenant API Keys</h2>
           <div className="space-y-3 text-sm leading-7 text-slate-700">
             <p className="mb-0">
@@ -118,7 +144,7 @@ http://localhost:8080`,
             </p>
           </div>
         </section>
-        <section id="session-cookies" className="rounded-xl border border-gray-200 bg-white p-5">
+        <section id="session-cookies" className="space-y-3 border-t border-gray-200 pt-8">
           <h2 className="mt-0 text-lg font-semibold text-slate-900">Session Cookies</h2>
           <div className="space-y-3 text-sm leading-7 text-slate-700">
             <p className="mb-0">
@@ -134,7 +160,7 @@ http://localhost:8080`,
             </p>
           </div>
         </section>
-        <section id="runtime-local-auth" className="rounded-xl border border-gray-200 bg-white p-5">
+        <section id="runtime-local-auth" className="space-y-3 border-t border-gray-200 pt-8">
           <h2 className="mt-0 text-lg font-semibold text-slate-900">Runtime-local Auth</h2>
           <div className="space-y-3 text-sm leading-7 text-slate-700">
             <p className="mb-0">
@@ -149,7 +175,7 @@ http://localhost:8080`,
             </p>
           </div>
         </section>
-        <section id="choosing-a-credential" className="rounded-xl border border-gray-200 bg-white p-5">
+        <section id="choosing-a-credential" className="space-y-3 border-t border-gray-200 pt-8">
           <h2 className="mt-0 text-lg font-semibold text-slate-900">Choosing a Credential</h2>
           <div className="space-y-3 text-sm leading-7 text-slate-700">
             <p className="mb-0">
@@ -184,8 +210,8 @@ http://localhost:8080`,
     title: 'Errors',
     summary: 'How to read error responses across the API reference and what to expect from validation, authentication, throttling, and server failures.',
     body: (
-      <div className="space-y-6">
-        <section id="status-codes" className="rounded-xl border border-gray-200 bg-white p-5">
+      <div className="space-y-10">
+        <section id="status-codes" className="space-y-3">
           <h2 className="mt-0 text-lg font-semibold text-slate-900">Status Codes</h2>
           <div className="space-y-3 text-sm leading-7 text-slate-700">
             <p className="mb-0">
@@ -202,7 +228,7 @@ http://localhost:8080`,
             </p>
           </div>
         </section>
-        <section id="validation-errors" className="rounded-xl border border-gray-200 bg-white p-5">
+        <section id="validation-errors" className="space-y-3 border-t border-gray-200 pt-8">
           <h2 className="mt-0 text-lg font-semibold text-slate-900">Validation Errors</h2>
           <div className="space-y-3 text-sm leading-7 text-slate-700">
             <p className="mb-0">
@@ -218,7 +244,7 @@ http://localhost:8080`,
             </p>
           </div>
         </section>
-        <section id="authentication-failures" className="rounded-xl border border-gray-200 bg-white p-5">
+        <section id="authentication-failures" className="space-y-3 border-t border-gray-200 pt-8">
           <h2 className="mt-0 text-lg font-semibold text-slate-900">Authentication Failures</h2>
           <div className="space-y-3 text-sm leading-7 text-slate-700">
             <p className="mb-0">
@@ -234,7 +260,7 @@ http://localhost:8080`,
             </p>
           </div>
         </section>
-        <section id="server-errors" className="rounded-xl border border-gray-200 bg-white p-5">
+        <section id="server-errors" className="space-y-3 border-t border-gray-200 pt-8">
           <h2 className="mt-0 text-lg font-semibold text-slate-900">Server Errors</h2>
           <div className="space-y-3 text-sm leading-7 text-slate-700">
             <p className="mb-0">
@@ -250,7 +276,7 @@ http://localhost:8080`,
             </p>
           </div>
         </section>
-        <section id="handling-strategy" className="rounded-xl border border-gray-200 bg-white p-5">
+        <section id="handling-strategy" className="space-y-3 border-t border-gray-200 pt-8">
           <h2 className="mt-0 text-lg font-semibold text-slate-900">Handling Strategy</h2>
           <div className="space-y-3 text-sm leading-7 text-slate-700">
             <p className="mb-0">
@@ -301,8 +327,8 @@ http://localhost:8080`,
     title: 'Rate Limits',
     summary: 'What throttling exists today, where it applies, and how clients should behave when they receive a 429 response.',
     body: (
-      <div className="space-y-6">
-        <section id="global-control-plane-limit" className="rounded-xl border border-gray-200 bg-white p-5">
+      <div className="space-y-10">
+        <section id="global-control-plane-limit" className="space-y-3">
           <h2 className="mt-0 text-lg font-semibold text-slate-900">Global Control-plane Limit</h2>
           <div className="space-y-3 text-sm leading-7 text-slate-700">
             <p className="mb-0">
@@ -318,7 +344,7 @@ http://localhost:8080`,
             </p>
           </div>
         </section>
-        <section id="runtime-download-limit" className="rounded-xl border border-gray-200 bg-white p-5">
+        <section id="runtime-download-limit" className="space-y-3 border-t border-gray-200 pt-8">
           <h2 className="mt-0 text-lg font-semibold text-slate-900">Runtime Download Limit</h2>
           <div className="space-y-3 text-sm leading-7 text-slate-700">
             <p className="mb-0">
@@ -333,7 +359,7 @@ http://localhost:8080`,
             </p>
           </div>
         </section>
-        <section id="client-behavior" className="rounded-xl border border-gray-200 bg-white p-5">
+        <section id="client-behavior" className="space-y-3 border-t border-gray-200 pt-8">
           <h2 className="mt-0 text-lg font-semibold text-slate-900">Client Behavior</h2>
           <div className="space-y-3 text-sm leading-7 text-slate-700">
             <p className="mb-0">
@@ -379,7 +405,7 @@ export function ApiGuidePage({ slug }: { slug: string }) {
   const guide = guideContent[slug];
 
   return (
-    <div className="not-prose space-y-8">
+    <div className="not-prose max-w-[48rem] space-y-8">
       <section>
         <h1 className="m-0 text-[1.125rem] font-bold text-slate-900">{guide.title}</h1>
         <p className="mb-0 mt-3 text-[0.8125rem] leading-7 text-slate-700">{guide.summary}</p>
@@ -481,7 +507,7 @@ export function ApiGuideRightRail({ slug }: { slug: string }) {
             {guide.railStatus.map((status) => (
               <div key={status.code} className="px-4 py-3">
                 <div className="flex items-center gap-2">
-                  <span className="rounded-md bg-gray-100 px-2 py-1 text-xs font-semibold text-gray-700">
+                  <span className={cn('rounded-md px-2 py-1 text-xs font-semibold', statusBadgeClass(status.code))}>
                     {status.code}
                   </span>
                   <span className="text-sm font-medium text-slate-900">{status.title}</span>
