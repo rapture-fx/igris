@@ -12,6 +12,23 @@ use std::sync::Arc;
 #[cfg(feature = "ros2")]
 use igris_ros2::Ros2Node;
 
+#[cfg(feature = "wal")]
+use {
+    ed25519_dalek::SigningKey,
+    igris_wal::{BtCheckpointPayload, WalLog},
+    uuid::Uuid,
+};
+
+/// WAL session for a BT execution. Attach to context via `with_wal()`.
+#[cfg(feature = "wal")]
+pub struct BtWalSession {
+    pub wal: Arc<WalLog>,
+    pub signing_key: Arc<SigningKey>,
+    pub task_id: Uuid,
+    /// Checkpoint every N ticks (default: 10).
+    pub checkpoint_every: u64,
+}
+
 /// Execution context passed to all nodes during ticking.
 ///
 /// The context is passed to every node's `tick()` method and provides:
@@ -106,6 +123,14 @@ pub struct BTreeContext {
     /// Enable the `ros2` feature flag to use ROS2 BT nodes.
     #[cfg(feature = "ros2")]
     pub ros2_node: Option<Arc<Ros2Node>>,
+
+    /// Optional WAL session for crash-recoverable execution.
+    #[cfg(feature = "wal")]
+    pub wal_session: Option<Arc<BtWalSession>>,
+
+    /// Last WAL checkpoint produced during execution.
+    #[cfg(feature = "wal")]
+    pub last_checkpoint: Option<BtCheckpointPayload>,
 }
 
 impl BTreeContext {
@@ -131,6 +156,10 @@ impl BTreeContext {
             rt_executor: None,
             #[cfg(feature = "ros2")]
             ros2_node: None,
+            #[cfg(feature = "wal")]
+            wal_session: None,
+            #[cfg(feature = "wal")]
+            last_checkpoint: None,
         }
     }
 
@@ -213,6 +242,24 @@ impl BTreeContext {
     #[cfg(feature = "ros2")]
     pub fn with_ros2(mut self, node: Arc<Ros2Node>) -> Self {
         self.ros2_node = Some(node);
+        self
+    }
+
+    /// Attach a WAL session for crash-recoverable BT execution.
+    /// When set, each tick is written to the WAL before execution and
+    /// committed after. The blackboard is checkpointed every N ticks.
+    ///
+    /// # Panics
+    ///
+    /// Panics if `session.checkpoint_every == 0` (would cause division by zero
+    /// in the tick loop).
+    #[cfg(feature = "wal")]
+    pub fn with_wal(mut self, session: BtWalSession) -> Self {
+        assert!(
+            session.checkpoint_every > 0,
+            "BtWalSession.checkpoint_every must be > 0"
+        );
+        self.wal_session = Some(Arc::new(session));
         self
     }
 
