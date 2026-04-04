@@ -8,11 +8,11 @@ const generatedDir = path.join(docsAppRoot, 'lib', 'generated');
 const sdkSupport = {
   generated_by: 'scripts/generate-docs-artifacts.js',
   native_sdk_note:
-    'First-class native SDKs are JavaScript/TypeScript, Go, and Rust. Python remains preview. Java, C#, and Ruby should use the OpenAI-compatible API until native SDKs are production-ready.',
+    'Recommended onboarding starts with the OpenAI-compatible API. When you need native Igris features, the first-class SDKs are JavaScript/TypeScript, Go, and Rust. Python remains preview. Java, C#, and Ruby should use an OpenAI-compatible client today.',
   rows: [
     {
       language: 'JavaScript / TypeScript',
-      status: 'production-ready',
+      status: 'first-class',
       package: '@igris-inertial/sdk',
       install: 'npm install @igris-inertial/sdk',
       import: "import { IgrisClient } from '@igris-inertial/sdk';",
@@ -20,7 +20,7 @@ const sdkSupport = {
     },
     {
       language: 'Go',
-      status: 'production-ready',
+      status: 'first-class',
       package: 'github.com/igris-inertial/go-sdk',
       install: 'go get github.com/igris-inertial/go-sdk',
       import: 'import igris "github.com/igris-inertial/go-sdk"',
@@ -28,7 +28,7 @@ const sdkSupport = {
     },
     {
       language: 'Rust',
-      status: 'production-ready',
+      status: 'first-class',
       package: 'igris-inertial',
       install: 'cargo add igris-inertial',
       import: 'use igris_inertial::IgrisClient;',
@@ -44,32 +44,32 @@ const sdkSupport = {
     },
     {
       language: 'Java',
-      status: 'planned',
+      status: 'openai-compatible',
       package: 'n/a',
       install: 'Use an OpenAI-compatible client today',
       import: 'Use the OpenAI-compatible base URL',
-      notes: 'Do not treat a native Java SDK as production-ready yet.',
+      notes: 'Use the OpenAI-compatible API until a native Java SDK is promoted explicitly.',
     },
     {
       language: 'C#',
-      status: 'planned',
+      status: 'openai-compatible',
       package: 'n/a',
       install: 'Use an OpenAI-compatible client today',
       import: 'Use the OpenAI-compatible base URL',
-      notes: 'Do not treat a native C# SDK as production-ready yet.',
+      notes: 'Use the OpenAI-compatible API until a native C# SDK is promoted explicitly.',
     },
     {
       language: 'Ruby',
-      status: 'planned',
+      status: 'openai-compatible',
       package: 'n/a',
       install: 'Use an OpenAI-compatible client today',
       import: 'Use the OpenAI-compatible base URL',
-      notes: 'Do not treat a native Ruby SDK as production-ready yet.',
+      notes: 'Use the OpenAI-compatible API until a native Ruby SDK is promoted explicitly.',
     },
   ],
 };
 
-const apiSections = [
+const rawApiSections = [
   {
     title: 'Inference & Integration',
     summary:
@@ -161,30 +161,6 @@ const apiSections = [
         surface: 'Cloud API',
         stability: 'stable',
         description: 'Subscribed runtime binary download endpoint.',
-      },
-      {
-        method: 'POST',
-        path: '/api/v1/runtime/register',
-        auth: 'igris_ API key',
-        surface: 'Runtime coordination API',
-        stability: 'stable',
-        description: 'Registers a runtime instance against a tenant.',
-      },
-      {
-        method: 'POST',
-        path: '/api/v1/runtime/heartbeat',
-        auth: 'igris_ API key',
-        surface: 'Runtime coordination API',
-        stability: 'stable',
-        description: 'Heartbeat and liveness updates from runtime instances.',
-      },
-      {
-        method: 'DELETE',
-        path: '/api/v1/runtime/deregister',
-        auth: 'igris_ API key',
-        surface: 'Runtime coordination API',
-        stability: 'stable',
-        description: 'Removes a runtime instance from active fleet state.',
       },
       {
         method: 'GET',
@@ -559,6 +535,60 @@ const apiSections = [
     ],
   },
 ];
+
+const coreEndpointKeys = new Set([
+  'POST /v1/infer',
+  'POST /v1/chat/completions',
+  'GET /v1/models',
+  'GET /v1/runtime/install',
+  'GET /v1/runtime/checksum',
+  'GET /v1/account/api-key',
+  'POST /v1/account/api-key',
+  'GET /v1/vault/keys',
+  'POST /v1/vault/keys',
+  'GET /v1/receipts',
+  'GET /v1/receipts/:id',
+  'GET /v1/health',
+  'POST /v1/btree/validate',
+  'POST /v1/btree/run',
+]);
+
+function endpointKey(endpoint) {
+  return `${endpoint.method} ${endpoint.path}`;
+}
+
+function inferDeployment(endpoint) {
+  if (endpoint.surface === 'Local runtime') {
+    return 'local';
+  }
+
+  if (endpoint.path.startsWith('/v1/runtime/') || endpoint.path.startsWith('/api/v1/runtime/')) {
+    return 'hybrid';
+  }
+
+  return 'cloud';
+}
+
+function inferSupport(endpoint) {
+  if (endpoint.stability === 'preview') {
+    return 'preview';
+  }
+
+  if (coreEndpointKeys.has(endpointKey(endpoint))) {
+    return 'core';
+  }
+
+  return 'supported';
+}
+
+const apiSections = rawApiSections.map((section) => ({
+  ...section,
+  endpoints: section.endpoints.map((endpoint) => ({
+    ...endpoint,
+    support: endpoint.support ?? inferSupport(endpoint),
+    deployment: endpoint.deployment ?? inferDeployment(endpoint),
+  })),
+}));
 
 const bannedPatterns = [
   { pattern: /@igris\/sdk/, message: 'Use @igris-inertial/sdk for the JavaScript SDK.' },
