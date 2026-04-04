@@ -100,26 +100,7 @@ func handleGetTask(tc *coordinator.TaskCoordinator) fiber.Handler {
 			return c.Status(http.StatusInternalServerError).JSON(fiber.Map{"error": "db_error"})
 		}
 
-		resp := fiber.Map{
-			"task_id":       task.TaskID,
-			"status":        task.Status,
-			"runtime_id":    task.RuntimeID,
-			"dispatched_at": task.DispatchedAt,
-			"completed_at":  task.CompletedAt,
-			"created_at":    task.CreatedAt,
-		}
-		if task.FailureReason != nil && *task.FailureReason != "" {
-			resp["failure_reason"] = *task.FailureReason
-		}
-		if task.LastCheckpoint != nil {
-			resp["last_step"] = task.LastCheckpoint.ResumeToken.LastCommittedStep
-			resp["checkpoint_digest"] = task.LastCheckpoint.ResumeToken.CheckpointDigest
-			if len(task.LastCheckpoint.Metadata) > 0 {
-				resp["checkpoint_metadata"] = json.RawMessage(task.LastCheckpoint.Metadata)
-			}
-		}
-
-		return c.JSON(resp)
+		return c.JSON(buildTaskResponse(task))
 	}
 }
 
@@ -142,28 +123,36 @@ func handleListTasks(tc *coordinator.TaskCoordinator) fiber.Handler {
 
 		items := make([]fiber.Map, 0, len(tasks))
 		for _, t := range tasks {
-			item := fiber.Map{
-				"task_id":       t.TaskID,
-				"status":        t.Status,
-				"runtime_id":    t.RuntimeID,
-				"dispatched_at": t.DispatchedAt,
-				"completed_at":  t.CompletedAt,
-				"created_at":    t.CreatedAt,
-			}
-			if t.FailureReason != nil && *t.FailureReason != "" {
-				item["failure_reason"] = *t.FailureReason
-			}
-			if t.LastCheckpoint != nil {
-				item["last_step"] = t.LastCheckpoint.ResumeToken.LastCommittedStep
-				if len(t.LastCheckpoint.Metadata) > 0 {
-					item["checkpoint_metadata"] = json.RawMessage(t.LastCheckpoint.Metadata)
-				}
-			}
-			items = append(items, item)
+			items = append(items, buildTaskResponse(t))
 		}
 
 		return c.JSON(fiber.Map{"tasks": items, "total": len(items)})
 	}
+}
+
+func buildTaskResponse(task *coordinator.TaskRecord) fiber.Map {
+	resp := fiber.Map{
+		"task_id":       task.TaskID,
+		"status":        task.Status,
+		"runtime_id":    task.RuntimeID,
+		"dispatched_at": task.DispatchedAt,
+		"completed_at":  task.CompletedAt,
+		"created_at":    task.CreatedAt,
+	}
+
+	if task.FailureReason != nil && *task.FailureReason != "" {
+		resp["failure_reason"] = *task.FailureReason
+	}
+
+	if task.LastCheckpoint != nil {
+		resp["last_step"] = task.LastCheckpoint.ResumeToken.LastCommittedStep
+		resp["checkpoint_digest"] = task.LastCheckpoint.ResumeToken.CheckpointDigest
+		if len(task.LastCheckpoint.Metadata) > 0 {
+			resp["checkpoint_metadata"] = json.RawMessage(task.LastCheckpoint.Metadata)
+		}
+	}
+
+	return resp
 }
 
 func handleTaskCheckpoint(tc *coordinator.TaskCoordinator) fiber.Handler {
