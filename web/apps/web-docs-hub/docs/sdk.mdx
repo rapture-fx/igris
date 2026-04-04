@@ -7,7 +7,12 @@ Igris supports two integration paths:
 - **OpenAI-compatible clients** for the fastest path to production
 - **Native Igris SDKs** when you need routing metadata, receipt helpers, vault operations, or fleet APIs
 
-The native SDK contract is first-class for JavaScript/TypeScript, Go, and Rust. Python exists in-repo but is still preview. Java, C#, and Ruby should use the OpenAI-compatible API today.
+The recommendation is straightforward:
+
+- Start with the OpenAI-compatible API if you want the shortest path to a working integration
+- Move to a native SDK when you need Igris-specific product features and a stronger typed client
+
+The native first-class SDKs today are JavaScript/TypeScript, Go, and Rust. Python exists in-repo but remains preview. Java, C#, and Ruby should use the OpenAI-compatible API today rather than being treated as native SDK targets.
 
 <SdkSupportMatrix />
 
@@ -54,7 +59,7 @@ const response = await client.chat.completions.create({
 console.log(response.choices[0].message.content);
 ```
 
-Use this path for Java, C#, Ruby, or any other language where you already have an OpenAI-compatible client.
+Use this path for Java, C#, Ruby, Python, or any other language where you already have an OpenAI-compatible client and do not need the native Igris SDK surface.
 
 ---
 
@@ -153,7 +158,7 @@ client = IgrisClient(
 )
 ```
 
-Treat the Python package as preview until it is explicitly promoted to first-class support.
+Treat the Python package as preview until it is explicitly promoted to first-class support. For production Python integrations today, the OpenAI-compatible API remains the safer default.
 
 ---
 
@@ -168,7 +173,7 @@ The core infer request fields are shared across native SDKs:
 | `provider` | string | Optional provider pin |
 | `optimize_for` | string | Optional routing hint such as `"latency"` or `"cost"` |
 
-When you need the most portable path across languages, default to the OpenAI-compatible client surface.
+When you need the most portable path across languages, default to the OpenAI-compatible client surface. When you need the strongest supported native contract, choose JavaScript/TypeScript, Go, or Rust.
 
 ---
 
