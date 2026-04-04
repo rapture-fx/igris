@@ -306,8 +306,8 @@ pub mod robot {
 
         // 1. Clear costmaps first — gives the planner fresh data.
         let clear = clear_costmap(node.clone()).await?;
-        if clear == RecoveryOutcome::Failed("".to_string()) {
-            warn!("Costmap clear failed; continuing with backup");
+        if let RecoveryOutcome::Failed(ref reason) = clear {
+            warn!("Costmap clear failed ({}); continuing with backup", reason);
         }
 
         // 2. Backup 0.3 m at 0.15 m/s.
