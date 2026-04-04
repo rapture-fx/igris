@@ -15,6 +15,7 @@ import (
 	"time"
 
 	"github.com/Igris-inertial/system/igris-overture/models"
+	"github.com/google/uuid"
 )
 
 // RuntimeClient forwards execution requests from Overture to an igris-runtime
@@ -22,8 +23,8 @@ import (
 // tenancy); the Runtime is the sole execution authority.
 type RuntimeClient struct {
 	baseURL    string
-	secret     string            // IGRIS_RUNTIME_SECRET — sent as Authorization: Bearer <secret>
-	publicKey  ed25519.PublicKey // IGRIS_RUNTIME_PUBLIC_KEY (hex) — used to verify execution envelopes
+	secret     string             // IGRIS_RUNTIME_SECRET — sent as Authorization: Bearer <secret>
+	publicKey  ed25519.PublicKey  // IGRIS_RUNTIME_PUBLIC_KEY (hex) — used to verify execution envelopes
 	signingKey ed25519.PrivateKey // IGRIS_OVERTURE_SIGNING_KEY (hex) — signs routing decisions
 	httpClient *http.Client
 }
@@ -154,23 +155,29 @@ func (c *RuntimeClient) verifyReceipt(receipt map[string]interface{}) error {
 	return c.verifySignedJSON(receipt, "execution_receipt")
 }
 
-// executeRequest is the JSON payload sent to POST /v1/runtime/execute.
-// Field types match igris-server's ExecuteRequest / Bounds exactly to avoid
-// silent truncation at the JSON boundary.
-type executeRequest struct {
-	Model       string         `json:"model"`
-	Messages    []executeMessage `json:"messages"`
-	MaxTokens   *uint32        `json:"max_tokens,omitempty"`
-	Temperature *float32       `json:"temperature,omitempty"`
-	Stream      bool           `json:"stream,omitempty"`
-	TenantID    string         `json:"tenant_id,omitempty"`
-	Mode        string         `json:"mode,omitempty"`
-	Bounds      *executeBounds `json:"bounds,omitempty"`
+// taskSubmitRequest is the durable task payload sent to POST /v1/runtime/task/submit.
+type taskSubmitRequest struct {
+	TaskID         string          `json:"task_id"`
+	TaskType       taskTypeRequest `json:"task_type"`
+	Containment    *executeBounds  `json:"containment,omitempty"`
+	IdempotencyKey string          `json:"idempotency_key"`
+	TenantID       string          `json:"tenant_id"`
+	DeadlineMs     *uint64         `json:"deadline_ms,omitempty"`
 }
 
 type executeMessage struct {
 	Role    string `json:"role"`
 	Content string `json:"content"`
+}
+
+type taskTypeRequest struct {
+	Type        string           `json:"type"`
+	Model       string           `json:"model,omitempty"`
+	Messages    []executeMessage `json:"messages,omitempty"`
+	MaxTokens   *uint32          `json:"max_tokens,omitempty"`
+	Temperature *float32         `json:"temperature,omitempty"`
+	Stream      bool             `json:"stream,omitempty"`
+	Mode        string           `json:"mode,omitempty"`
 }
 
 type executeBounds struct {
@@ -179,42 +186,76 @@ type executeBounds struct {
 	MaxTickMs  *uint64 `json:"max_tick_ms,omitempty"`
 }
 
-// executeResponse mirrors igris-server's ExecuteResponse.
-type executeResponse struct {
-	ID      string `json:"id"`
-	Object  string `json:"object"`
-	Created int64  `json:"created"`
-	Model   string `json:"model"`
-	Choices []struct {
-		Index   int `json:"index"`
-		Message struct {
-			Role    string `json:"role"`
-			Content string `json:"content"`
-		} `json:"message"`
-		FinishReason string `json:"finish_reason"`
-	} `json:"choices"`
-	Usage struct {
-		PromptTokens     int `json:"prompt_tokens"`
-		CompletionTokens int `json:"completion_tokens"`
-		TotalTokens      int `json:"total_tokens"`
-	} `json:"usage"`
-	Metadata *struct {
-		RuntimeID         string `json:"runtime_id"`
-		Provider          string `json:"provider"`
-		TenantID          string `json:"tenant_id"`
-		ContainmentActive bool   `json:"containment_active"`
-	} `json:"metadata,omitempty"`
-	// ExecutionEnvelope replaces the previous Signature field. Decoded as a
-	// raw map so we can remove "signature" and re-marshal for verification
-	// without a separate struct definition.
+type taskSubmitResponse struct {
+	TaskID            string                 `json:"task_id"`
+	StepsCompleted    uint32                 `json:"steps_completed"`
+	StepsTotal        uint32                 `json:"steps_total"`
+	Status            string                 `json:"status"`
+	Reason            string                 `json:"reason,omitempty"`
+	FinalOutput       string                 `json:"final_output,omitempty"`
+	Usage             *executeUsage          `json:"usage,omitempty"`
 	ExecutionEnvelope map[string]interface{} `json:"execution_envelope,omitempty"`
-	// ExecutionReceipt is the deterministic resource-accounting receipt emitted
-	// by the Runtime after each execution (Phase 3 of Execution Hardening).
-	// It is signed with the same Runtime Ed25519 key as ExecutionEnvelope.
-	ExecutionReceipt map[string]interface{} `json:"execution_receipt,omitempty"`
+	ExecutionReceipt  map[string]interface{} `json:"execution_receipt,omitempty"`
 }
 
-// ForwardExecution sends req to the Runtime's POST /v1/runtime/execute endpoint
+type executeUsage struct {
+	PromptTokens     int `json:"prompt_tokens"`
+	CompletionTokens int `json:"completion_tokens"`
+	TotalTokens      int `json:"total_tokens"`
+}
+
+func parseBoundsHeader(boundsHeader string) (*executeBounds, error) {
+	if boundsHeader == "" {
+		return nil, nil
+	}
+	var bounds executeBounds
+	if err := json.Unmarshal([]byte(boundsHeader), &bounds); err != nil {
+		return nil, fmt.Errorf("runtime_client: parse bounds header: %w", err)
+	}
+	return &bounds, nil
+}
+
+func hasSignature(record map[string]interface{}) bool {
+	if record == nil {
+		return false
+	}
+	sig, ok := record["signature"].(string)
+	return ok && sig != ""
+}
+
+func extractProvider(taskResp taskSubmitResponse) string {
+	if value, ok := taskResp.ExecutionEnvelope["provider"].(string); ok && value != "" {
+		return value
+	}
+	if value, ok := taskResp.ExecutionEnvelope["routing_decision"].(string); ok && value != "" {
+		return value
+	}
+	return "runtime"
+}
+
+func computeIdempotencyKey(
+	tenantID string,
+	taskType taskTypeRequest,
+	containment *executeBounds,
+	deadlineMs *uint64,
+) string {
+	payload := struct {
+		TenantID    string          `json:"tenant_id"`
+		TaskType    taskTypeRequest `json:"task_type"`
+		Containment *executeBounds  `json:"containment,omitempty"`
+		DeadlineMs  *uint64         `json:"deadline_ms,omitempty"`
+	}{
+		TenantID:    tenantID,
+		TaskType:    taskType,
+		Containment: containment,
+		DeadlineMs:  deadlineMs,
+	}
+	data, _ := json.Marshal(payload)
+	sum := sha256.Sum256(data)
+	return hex.EncodeToString(sum[:])
+}
+
+// ForwardExecution sends req to the Runtime's POST /v1/runtime/task/submit endpoint
 // and converts the response back to an *models.InferResponse.
 //
 // If the runtime is unreachable or returns a non-200 status, an error is
@@ -225,6 +266,10 @@ func (c *RuntimeClient) ForwardExecution(
 	req *models.InferRequest,
 	boundsHeader string,
 ) (*models.InferResponse, error) {
+	if req.Stream {
+		return nil, fmt.Errorf("runtime_client: streaming is not supported on the durable task endpoint")
+	}
+
 	// Build the execute payload.
 	msgs := make([]executeMessage, 0, len(req.Messages))
 	for _, m := range req.Messages {
@@ -234,22 +279,54 @@ func (c *RuntimeClient) ForwardExecution(
 		})
 	}
 
-	payload := executeRequest{
-		Model:    req.Model,
-		Messages: msgs,
-		TenantID: tenantID,
-		Stream:   req.Stream,
+	bounds, err := parseBoundsHeader(boundsHeader)
+	if err != nil {
+		return nil, err
 	}
+
+	var maxTokens *uint32
 	if req.MaxTokens > 0 {
-		v := uint32(req.MaxTokens)
-		payload.MaxTokens = &v
+		value := uint32(req.MaxTokens)
+		maxTokens = &value
 	}
+
+	var temperature *float32
 	if req.Temperature != 0 {
-		v := float32(req.Temperature)
-		payload.Temperature = &v
+		value := float32(req.Temperature)
+		temperature = &value
 	}
-	if req.SpeculativeMode != "" {
-		payload.Mode = req.SpeculativeMode
+
+	var deadlineMs *uint64
+	if bounds != nil && bounds.MaxTickMs != nil {
+		value := *bounds.MaxTickMs
+		deadlineMs = &value
+	} else if req.Policy != nil && req.Policy.TimeoutMs > 0 {
+		value := uint64(req.Policy.TimeoutMs)
+		deadlineMs = &value
+	}
+
+	mode := req.SpeculativeMode
+	if req.CouncilMode {
+		mode = "council"
+	}
+
+	taskType := taskTypeRequest{
+		Type:        "single_inference",
+		Model:       req.Model,
+		Messages:    msgs,
+		MaxTokens:   maxTokens,
+		Temperature: temperature,
+		Stream:      req.Stream,
+		Mode:        mode,
+	}
+
+	payload := taskSubmitRequest{
+		TaskID:         uuid.NewString(),
+		TaskType:       taskType,
+		Containment:    bounds,
+		IdempotencyKey: computeIdempotencyKey(tenantID, taskType, bounds, deadlineMs),
+		TenantID:       tenantID,
+		DeadlineMs:     deadlineMs,
 	}
 
 	data, err := json.Marshal(payload)
@@ -260,7 +337,7 @@ func (c *RuntimeClient) ForwardExecution(
 	httpReq, err := http.NewRequestWithContext(
 		ctx,
 		http.MethodPost,
-		c.baseURL+"/v1/runtime/execute",
+		c.baseURL+"/v1/runtime/task/submit",
 		bytes.NewReader(data),
 	)
 	if err != nil {
@@ -271,10 +348,6 @@ func (c *RuntimeClient) ForwardExecution(
 	c.setDecisionSigHeader(httpReq, data)
 	if tenantID != "" {
 		httpReq.Header.Set("X-Igris-Tenant", tenantID)
-	}
-	// Forward SDK containment bounds if provided.
-	if boundsHeader != "" {
-		httpReq.Header.Set("X-Igris-Bounds", boundsHeader)
 	}
 
 	httpResp, err := c.httpClient.Do(httpReq)
@@ -290,60 +363,59 @@ func (c *RuntimeClient) ForwardExecution(
 		return nil, fmt.Errorf("runtime_client: runtime returned status %d", httpResp.StatusCode)
 	}
 
-	var execResp executeResponse
-	if err := json.NewDecoder(httpResp.Body).Decode(&execResp); err != nil {
+	var taskResp taskSubmitResponse
+	if err := json.NewDecoder(httpResp.Body).Decode(&taskResp); err != nil {
 		return nil, fmt.Errorf("runtime_client: decode: %w", err)
+	}
+	if taskResp.Status != "completed" {
+		reason := taskResp.Reason
+		if reason == "" {
+			reason = fmt.Sprintf("runtime task ended with status %s", taskResp.Status)
+		}
+		return nil, fmt.Errorf("runtime_client: %s", reason)
+	}
+	if !hasSignature(taskResp.ExecutionEnvelope) {
+		return nil, fmt.Errorf("%w: task response missing signed execution envelope", models.ErrRuntimeSecurity)
 	}
 
 	// Verify execution envelope signature before accepting the response.
-	// When IGRIS_RUNTIME_PUBLIC_KEY is configured, a missing or invalid signature
-	// is a security rejection — callers must NOT fall back to direct routing.
-	if execResp.ExecutionEnvelope != nil {
-		if err := c.verifyEnvelope(execResp.ExecutionEnvelope); err != nil {
-			return nil, fmt.Errorf("%w: %v", models.ErrRuntimeSecurity, err)
-		}
+	if err := c.verifyEnvelope(taskResp.ExecutionEnvelope); err != nil {
+		return nil, fmt.Errorf("%w: %v", models.ErrRuntimeSecurity, err)
 	}
 
 	// Verify execution receipt signature when present.
-	// The receipt uses the same Ed25519 key and BTreeMap canonical-JSON algorithm
-	// as the envelope; failure is a hard security rejection (no fallback).
-	if execResp.ExecutionReceipt != nil {
-		if err := c.verifyReceipt(execResp.ExecutionReceipt); err != nil {
+	if hasSignature(taskResp.ExecutionReceipt) {
+		if err := c.verifyReceipt(taskResp.ExecutionReceipt); err != nil {
 			return nil, fmt.Errorf("%w: %v", models.ErrRuntimeSecurity, err)
 		}
 	}
 
 	// Convert to the Overture InferResponse type.
-	inferResp := models.NewInferResponse(execResp.ID, execResp.Model)
-	inferResp.Created = execResp.Created
-
-	for _, ch := range execResp.Choices {
-		inferResp.AddChoice(ch.Index, &models.Message{
-			Role:    ch.Message.Role,
-			Content: ch.Message.Content,
-		}, ch.FinishReason)
+	inferResp := models.NewInferResponse(taskResp.TaskID, req.Model)
+	inferResp.Created = time.Now().Unix()
+	inferResp.AddChoice(0, &models.Message{
+		Role:    "assistant",
+		Content: taskResp.FinalOutput,
+	}, "stop")
+	if taskResp.Usage != nil {
+		inferResp.SetUsage(taskResp.Usage.PromptTokens, taskResp.Usage.CompletionTokens)
+	} else {
+		inferResp.SetUsage(0, 0)
 	}
 
-	inferResp.SetUsage(execResp.Usage.PromptTokens, execResp.Usage.CompletionTokens)
-
-	provider := "runtime"
-	if execResp.Metadata != nil && execResp.Metadata.Provider != "" {
-		provider = execResp.Metadata.Provider
-	}
+	provider := extractProvider(taskResp)
 	inferResp.Metadata = &models.ResponseMetadata{
 		Provider:      provider,
-		RouteDecision: "forwarded_to_runtime",
+		RouteDecision: "forwarded_to_runtime_task",
 		Timestamp:     time.Now(),
 	}
 
 	// Attach verified execution envelope for SDK passthrough.
-	if execResp.ExecutionEnvelope != nil {
-		inferResp.ExecutionEnvelope = execResp.ExecutionEnvelope
-	}
+	inferResp.ExecutionEnvelope = taskResp.ExecutionEnvelope
 
 	// Attach verified execution receipt for SDK passthrough.
-	if execResp.ExecutionReceipt != nil {
-		inferResp.ExecutionReceipt = execResp.ExecutionReceipt
+	if hasSignature(taskResp.ExecutionReceipt) {
+		inferResp.ExecutionReceipt = taskResp.ExecutionReceipt
 	}
 
 	return inferResp, nil
