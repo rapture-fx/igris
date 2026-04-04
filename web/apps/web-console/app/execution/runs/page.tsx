@@ -121,13 +121,14 @@ export default function ExecutionRunsPage() {
   const { toast } = useToast();
 
   const { data: runs = [], isLoading, refetch } = useQuery<Execution[]>({
-    queryKey: ['execution-runs', page, statusFilter],
+    queryKey: ['execution-runs', page, statusFilter, timeRange],
     queryFn: async () => {
       try {
         const params = new URLSearchParams({
           limit: String(PAGE_SIZE),
           offset: String(page * PAGE_SIZE),
           sort: 'created_at:desc',
+          range: timeRange,
         });
         if (statusFilter !== 'all') params.set('status', statusFilter);
         return await api.get(`/v1/execution/runs?${params}`);
@@ -141,7 +142,7 @@ export default function ExecutionRunsPage() {
   const pauseMutation = useMutation({
     mutationFn: (id: string) => api.post(`/v1/execution/runs/${id}/pause`, {}),
     onSuccess: (_, id) => {
-      qc.setQueryData<Execution[]>(['execution-runs'], (old) =>
+      qc.setQueryData<Execution[]>(['execution-runs', page, statusFilter, timeRange], (old) =>
         old?.map((r) => r.id === id ? { ...r, status: 'PAUSED' } : r) ?? []
       );
       setSelected((s) => s?.id === id ? { ...s, status: 'PAUSED' } : s);
@@ -153,7 +154,7 @@ export default function ExecutionRunsPage() {
   const cancelMutation = useMutation({
     mutationFn: (id: string) => api.post(`/v1/execution/runs/${id}/cancel`, {}),
     onSuccess: (_, id) => {
-      qc.setQueryData<Execution[]>(['execution-runs'], (old) =>
+      qc.setQueryData<Execution[]>(['execution-runs', page, statusFilter, timeRange], (old) =>
         old?.map((r) => r.id === id ? { ...r, status: 'CANCELLED' } : r) ?? []
       );
       setSelected((s) => s?.id === id ? { ...s, status: 'CANCELLED' } : s);
