@@ -11,6 +11,8 @@ const BANDIT_ARMS: TableDefinition<&str, &[u8]> = TableDefinition::new("bandit_a
 const RATE_LIMITS: TableDefinition<&str, &[u8]> = TableDefinition::new("rate_limits");
 const PROVIDER_REGISTRY: TableDefinition<&str, &[u8]> = TableDefinition::new("providers");
 pub const BTREE_STORE: TableDefinition<&str, &[u8]> = TableDefinition::new("btree_store");
+pub const WAL_ENTRIES: TableDefinition<&str, &[u8]> = TableDefinition::new("wal_entries");
+pub const TASK_SUBMISSIONS: TableDefinition<&str, &[u8]> = TableDefinition::new("task_submissions");
 
 pub struct RedbStorage {
     db: Database,
@@ -31,6 +33,8 @@ impl RedbStorage {
             write_txn.open_table(RATE_LIMITS)?;
             write_txn.open_table(PROVIDER_REGISTRY)?;
             write_txn.open_table(BTREE_STORE)?;
+            write_txn.open_table(WAL_ENTRIES)?;
+            write_txn.open_table(TASK_SUBMISSIONS)?;
         }
         write_txn.commit()?;
 
@@ -81,6 +85,40 @@ impl RedbStorage {
         let table = read_txn.open_table(table)?;
         let mut results = Vec::new();
         for entry in table.iter()? {
+            let (key, value) = entry?;
+            let deserialized: T = serde_json::from_slice(value.value())?;
+            results.push((key.value().to_string(), deserialized));
+        }
+        Ok(results)
+    }
+
+    /// List all entries whose key begins with `prefix` (O(matching entries),
+    /// not O(all entries)).  Uses redb's lexicographic range scan.
+    ///
+    /// Key format convention: `"{prefix}:{suffix}"`.  The end bound is
+    /// constructed by replacing the trailing `:` with `;` (ASCII 59 = `:` + 1)
+    /// so every key of the form `"{prefix}:*"` falls inside the range.
+    pub fn list_by_prefix<T: for<'de> Deserialize<'de>>(
+        &self,
+        table: TableDefinition<&str, &[u8]>,
+        prefix: &str,
+    ) -> anyhow::Result<Vec<(String, T)>> {
+        let read_txn = self.db.begin_read()?;
+        let tbl = read_txn.open_table(table)?;
+
+        // Build the exclusive upper bound: increment the last byte of prefix.
+        // prefix is always "{uuid}:" so the last char ':' (0x3a) → ';' (0x3b).
+        let end = {
+            let mut b = prefix.as_bytes().to_vec();
+            match b.last_mut() {
+                Some(last) => *last += 1,
+                None => return Ok(Vec::new()),
+            }
+            String::from_utf8(b).unwrap_or_default()
+        };
+
+        let mut results = Vec::new();
+        for entry in tbl.range(prefix..end.as_str())? {
             let (key, value) = entry?;
             let deserialized: T = serde_json::from_slice(value.value())?;
             results.push((key.value().to_string(), deserialized));
