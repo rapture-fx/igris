@@ -1,11 +1,11 @@
 {
   "generated_at": "2026-04-04T01:56:39.317Z",
   "summary": {
-    "total": 51,
+    "total": 57,
     "by_status": {
       "test-covered": 5,
       "client-referenced": 10,
-      "implemented-unverified": 36
+      "implemented-unverified": 42
     },
     "by_section": {
       "Inference & Integration": 7,
@@ -14,6 +14,7 @@
       "Vault, Policy, and Governance": 9,
       "Execution, History, and Receipts": 5,
       "Behavior Trees": 5,
+      "Durable Tasks": 6,
       "Local Runtime API": 11
     }
   },
@@ -894,6 +895,102 @@
       "evidence": {
         "test_files": [],
         "client_files": []
+      }
+    },
+    {
+      "section": "Durable Tasks",
+      "method": "POST",
+      "path": "/v1/tasks/submit",
+      "auth": "Session cookie or igris_ API key",
+      "surface": "Cloud API",
+      "stability": "stable",
+      "description": "Submit a new durable task.",
+      "status": "implemented-unverified",
+      "confidence": "medium",
+      "note": "Route registered in igris-overture/api/routes_tasks.go and wired in main.go. WAL-backed execution implemented in coordinator/task_coordinator.go.",
+      "evidence": {
+        "test_files": [],
+        "client_files": ["igris-overture/api/routes_tasks.go", "igris-overture/coordinator/task_coordinator.go"]
+      }
+    },
+    {
+      "section": "Durable Tasks",
+      "method": "GET",
+      "path": "/v1/tasks/:id",
+      "auth": "Session cookie or igris_ API key",
+      "surface": "Cloud API",
+      "stability": "stable",
+      "description": "Poll the status and last checkpoint of a durable task.",
+      "status": "implemented-unverified",
+      "confidence": "medium",
+      "note": "Route registered in igris-overture/api/routes_tasks.go.",
+      "evidence": {
+        "test_files": [],
+        "client_files": ["igris-overture/api/routes_tasks.go"]
+      }
+    },
+    {
+      "section": "Durable Tasks",
+      "method": "GET",
+      "path": "/v1/tasks",
+      "auth": "Session cookie or igris_ API key",
+      "surface": "Cloud API",
+      "stability": "stable",
+      "description": "List recent durable tasks for the authenticated tenant.",
+      "status": "implemented-unverified",
+      "confidence": "medium",
+      "note": "Route registered in igris-overture/api/routes_tasks.go.",
+      "evidence": {
+        "test_files": [],
+        "client_files": ["igris-overture/api/routes_tasks.go"]
+      }
+    },
+    {
+      "section": "Durable Tasks",
+      "method": "POST",
+      "path": "/v1/tasks/:id/checkpoint",
+      "auth": "Session cookie or igris_ API key",
+      "surface": "Cloud API",
+      "stability": "stable",
+      "description": "Push a WAL checkpoint to the coordination layer.",
+      "status": "implemented-unverified",
+      "confidence": "medium",
+      "note": "Route registered in igris-overture/api/routes_tasks.go. Validates task ownership and terminal state before saving.",
+      "evidence": {
+        "test_files": [],
+        "client_files": ["igris-overture/api/routes_tasks.go", "igris-overture/coordinator/checkpoint_store.go"]
+      }
+    },
+    {
+      "section": "Durable Tasks",
+      "method": "POST",
+      "path": "/v1/tasks/:id/complete",
+      "auth": "Session cookie or igris_ API key",
+      "surface": "Cloud API",
+      "stability": "stable",
+      "description": "Mark a task as completed.",
+      "status": "implemented-unverified",
+      "confidence": "medium",
+      "note": "Route registered in igris-overture/api/routes_tasks.go.",
+      "evidence": {
+        "test_files": [],
+        "client_files": ["igris-overture/api/routes_tasks.go"]
+      }
+    },
+    {
+      "section": "Durable Tasks",
+      "method": "POST",
+      "path": "/v1/tasks/:id/failed",
+      "auth": "Session cookie or igris_ API key",
+      "surface": "Cloud API",
+      "stability": "stable",
+      "description": "Mark a task as failed with a reason.",
+      "status": "implemented-unverified",
+      "confidence": "medium",
+      "note": "Route registered in igris-overture/api/routes_tasks.go.",
+      "evidence": {
+        "test_files": [],
+        "client_files": ["igris-overture/api/routes_tasks.go"]
       }
     }
   ]
