@@ -1,5 +1,3 @@
-'use client';
-
 import Link from 'next/link';
 import { ArrowRight } from 'lucide-react';
 import { mcpGuides, mcpMethodGroups, getMcpPageSections } from '@/lib/mcp-reference';
