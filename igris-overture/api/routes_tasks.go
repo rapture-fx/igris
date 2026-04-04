@@ -106,6 +106,7 @@ func RegisterTaskRoutes(app *fiber.App, db *sql.DB, tc *coordinator.TaskCoordina
 	v1.Post("/submit", handleTaskSubmit(tc))
 	v1.Get("", handleListTasks(tc))
 	v1.Get("/:id", handleGetTask(tc))
+	v1.Get("/:id/steps", handleGetTaskSteps(tc))
 
 	// These three are called by the runtime itself (internal).
 	// They use the same Clerk auth — the runtime forwards the tenant context.
@@ -182,11 +183,8 @@ func buildTaskSubmitRequest(body []byte, tenantID string) (*coordinator.TaskSubm
 				return nil, err
 			}
 		case raw.RoboticsMission != nil:
-			if raw.TaskType != "robotics_workflow" {
-				return nil, fmt.Errorf("%w: robotics_mission is only valid with task_type=robotics_workflow", coordinator.ErrInvalidTaskDefinition)
-			}
 			var err error
-			taskDefinition, err = buildRoboticsMissionTaskDefinition(raw.RoboticsMission)
+			taskDefinition, err = buildRoboticsMissionTaskDefinition(raw.RoboticsMission, raw.TaskType)
 			if err != nil {
 				return nil, err
 			}
@@ -223,6 +221,8 @@ func buildAgentTaskDefinition(taskType string, task *publicAgentTask) (json.RawM
 	}
 
 	switch taskType {
+	case "execution_graph":
+		return buildAgentExecutionGraphDefinition(task)
 	case "single_inference":
 		if len(task.Steps) > 0 {
 			return nil, fmt.Errorf("%w: agent_task.steps is only valid with task_type=agent_workflow", coordinator.ErrInvalidTaskDefinition)
@@ -248,7 +248,7 @@ func buildAgentTaskDefinition(taskType string, task *publicAgentTask) (json.RawM
 			"steps": steps,
 		})
 	default:
-		return nil, fmt.Errorf("%w: agent_task is only valid with task_type=single_inference or task_type=agent_workflow", coordinator.ErrInvalidTaskDefinition)
+		return nil, fmt.Errorf("%w: agent_task is only valid with task_type=single_inference, task_type=agent_workflow, or task_type=execution_graph", coordinator.ErrInvalidTaskDefinition)
 	}
 }
 
@@ -279,6 +279,33 @@ func buildAgentWorkflowSteps(task *publicAgentTask) ([]map[string]interface{}, e
 	return steps, nil
 }
 
+func buildAgentExecutionGraphDefinition(task *publicAgentTask) (json.RawMessage, error) {
+	nodes := make([]map[string]interface{}, 0, max(1, len(task.Steps)))
+	if len(task.Steps) == 0 {
+		if err := requirePublicAgentMessages(task.Model, task.Messages); err != nil {
+			return nil, err
+		}
+		nodes = append(nodes, buildAgentReasonNode(0, task.Name, publicAgentStep{
+			Model:       task.Model,
+			Messages:    task.Messages,
+			MaxTokens:   task.MaxTokens,
+			Temperature: task.Temperature,
+			Mode:        task.Mode,
+			Memory:      task.Memory,
+			Approval:    task.Approval,
+		}))
+	} else {
+		for idx, step := range task.Steps {
+			if err := requirePublicAgentMessages(step.Model, step.Messages); err != nil {
+				return nil, fmt.Errorf("%w: agent_task.steps[%d]: %s", coordinator.ErrInvalidTaskDefinition, idx, unwrapTaskDefinitionError(err))
+			}
+			nodes = append(nodes, buildAgentReasonNode(idx, task.Name, step))
+		}
+	}
+
+	return buildExecutionGraphDefinition(task.Name, nodes)
+}
+
 func buildAgentStepDefinition(stepIndex int, taskName string, step publicAgentStep) map[string]interface{} {
 	definition := map[string]interface{}{
 		"step_index": stepIndex,
@@ -301,6 +328,35 @@ func buildAgentStepDefinition(stepIndex int, taskName string, step publicAgentSt
 		definition["approval"] = approval
 	}
 	return definition
+}
+
+func buildAgentReasonNode(stepIndex int, taskName string, step publicAgentStep) map[string]interface{} {
+	nodeID := fmt.Sprintf("%s-%d", defaultTaskName(taskName, "reason"), stepIndex)
+	node := map[string]interface{}{
+		"kind":       "reason",
+		"node_id":    nodeID,
+		"step_index": stepIndex,
+		"write_slot": defaultGraphWriteSlot("reason", stepIndex, nodeID),
+		"model":      step.Model,
+		"messages":   buildAgentMessages(step.Messages),
+	}
+	if step.MaxTokens != nil {
+		node["max_tokens"] = *step.MaxTokens
+	}
+	if step.Temperature != nil {
+		node["temperature"] = *step.Temperature
+	}
+	if step.Mode != "" {
+		node["mode"] = step.Mode
+	}
+	if memory := buildAgentMemory(step.Memory); memory != nil {
+		node["memory"] = memory
+	}
+	if approval := buildTaskApproval(step.Approval, taskName, "reason", stepIndex); approval != nil {
+		node["approval"] = approval
+	}
+	node["checkpoint_key"] = fmt.Sprintf("%s-checkpoint-%d", defaultTaskName(taskName, "reason"), stepIndex)
+	return node
 }
 
 func buildAgentMessages(messages []publicAgentMessage) []map[string]interface{} {
@@ -355,9 +411,20 @@ func requirePublicAgentMessages(model string, messages []publicAgentMessage) err
 	return nil
 }
 
-func buildRoboticsMissionTaskDefinition(mission *publicRoboticsMission) (json.RawMessage, error) {
+func buildRoboticsMissionTaskDefinition(mission *publicRoboticsMission, taskType ...string) (json.RawMessage, error) {
 	if mission == nil {
 		return nil, fmt.Errorf("%w: robotics_mission is required", coordinator.ErrInvalidTaskDefinition)
+	}
+	targetTaskType := "robotics_workflow"
+	if len(taskType) > 0 && taskType[0] != "" {
+		targetTaskType = taskType[0]
+	}
+	if targetTaskType != "robotics_workflow" && targetTaskType != "execution_graph" {
+		return nil, fmt.Errorf("%w: robotics_mission is only valid with task_type=robotics_workflow or task_type=execution_graph", coordinator.ErrInvalidTaskDefinition)
+	}
+
+	if targetTaskType == "execution_graph" {
+		return buildRoboticsExecutionGraphDefinition(mission)
 	}
 
 	steps := make([]map[string]interface{}, 0, len(mission.Waypoints)+3)
@@ -444,6 +511,100 @@ func buildRoboticsMissionTaskDefinition(mission *publicRoboticsMission) (json.Ra
 	return definition, nil
 }
 
+func buildRoboticsExecutionGraphDefinition(mission *publicRoboticsMission) (json.RawMessage, error) {
+	nodes := make([]map[string]interface{}, 0, len(mission.Waypoints)+3)
+	nodeIndex := 0
+	for idx, waypoint := range mission.Waypoints {
+		goal := map[string]interface{}{
+			"x": waypoint.X,
+			"y": waypoint.Y,
+		}
+		if waypoint.Z != 0 {
+			goal["z"] = waypoint.Z
+		}
+		if waypoint.OrientationW != 0 {
+			goal["orientation_w"] = waypoint.OrientationW
+		}
+		if waypoint.FrameID != "" {
+			goal["frame_id"] = waypoint.FrameID
+		}
+
+			node := map[string]interface{}{
+				"kind":           "robotics",
+				"node_id":        fmt.Sprintf("%s-%d", defaultTaskName(mission.Name, "robotics"), nodeIndex),
+				"step_index":     nodeIndex,
+				"checkpoint_key": fmt.Sprintf("%s-checkpoint-%d", defaultTaskName(mission.Name, "robotics"), nodeIndex),
+				"write_slot":     defaultGraphWriteSlot("robotics", nodeIndex, fmt.Sprintf("%s-%d", defaultTaskName(mission.Name, "robotics"), nodeIndex)),
+				"action":         "navigate_to_pose",
+				"goal":           goal,
+			}
+		if mission.WaitTimeoutMs != nil {
+			node["wait_timeout_ms"] = *mission.WaitTimeoutMs
+		}
+		if approval := buildTaskApproval(mission.Approval, mission.Name, "navigate_to_pose", idx+1); approval != nil {
+			node["approval"] = approval
+		}
+		nodes = append(nodes, node)
+		nodeIndex++
+	}
+
+	if mission.Prompt != "" {
+			node := map[string]interface{}{
+				"kind":           "robotics",
+				"node_id":        fmt.Sprintf("%s-%d", defaultTaskName(mission.Name, "robotics"), nodeIndex),
+				"step_index":     nodeIndex,
+				"checkpoint_key": fmt.Sprintf("%s-checkpoint-%d", defaultTaskName(mission.Name, "robotics"), nodeIndex),
+				"write_slot":     defaultGraphWriteSlot("robotics", nodeIndex, fmt.Sprintf("%s-%d", defaultTaskName(mission.Name, "robotics"), nodeIndex)),
+				"action":         "publish_prompt",
+				"prompt":         mission.Prompt,
+			}
+		if approval := buildTaskApproval(mission.Approval, mission.Name, "publish_prompt", 0); approval != nil {
+			node["approval"] = approval
+		}
+		nodes = append(nodes, node)
+		nodeIndex++
+	}
+
+	if mission.PublishVelocity != nil {
+			node := map[string]interface{}{
+				"kind":           "robotics",
+				"node_id":        fmt.Sprintf("%s-%d", defaultTaskName(mission.Name, "robotics"), nodeIndex),
+				"step_index":     nodeIndex,
+				"checkpoint_key": fmt.Sprintf("%s-checkpoint-%d", defaultTaskName(mission.Name, "robotics"), nodeIndex),
+				"write_slot":     defaultGraphWriteSlot("robotics", nodeIndex, fmt.Sprintf("%s-%d", defaultTaskName(mission.Name, "robotics"), nodeIndex)),
+				"action":         "publish_velocity",
+				"linear_x":       mission.PublishVelocity.LinearX,
+				"angular_z":      mission.PublishVelocity.AngularZ,
+		}
+		if approval := buildTaskApproval(mission.Approval, mission.Name, "publish_velocity", 0); approval != nil {
+			node["approval"] = approval
+		}
+		nodes = append(nodes, node)
+		nodeIndex++
+	}
+
+	if mission.EmitZeroVelocityOnFinish {
+			node := map[string]interface{}{
+				"kind":           "robotics",
+				"node_id":        fmt.Sprintf("%s-%d", defaultTaskName(mission.Name, "robotics"), nodeIndex),
+				"step_index":     nodeIndex,
+				"checkpoint_key": fmt.Sprintf("%s-checkpoint-%d", defaultTaskName(mission.Name, "robotics"), nodeIndex),
+				"write_slot":     defaultGraphWriteSlot("robotics", nodeIndex, fmt.Sprintf("%s-%d", defaultTaskName(mission.Name, "robotics"), nodeIndex)),
+				"action":         "publish_zero_velocity",
+			}
+		if approval := buildTaskApproval(mission.Approval, mission.Name, "publish_zero_velocity", 0); approval != nil {
+			node["approval"] = approval
+		}
+		nodes = append(nodes, node)
+	}
+
+	if len(nodes) == 0 {
+		return nil, fmt.Errorf("%w: robotics_mission must include at least one waypoint, prompt, or velocity action", coordinator.ErrInvalidTaskDefinition)
+	}
+
+	return buildExecutionGraphDefinition(mission.Name, nodes)
+}
+
 func buildTaskApproval(approvalConfig *publicApproval, taskName, action string, waypointIndex int) map[string]interface{} {
 	if approvalConfig == nil {
 		return nil
@@ -507,6 +668,37 @@ func unwrapTaskDefinitionError(err error) string {
 	return strings.TrimPrefix(err.Error(), prefix)
 }
 
+func buildExecutionGraphDefinition(name string, nodes []map[string]interface{}) (json.RawMessage, error) {
+	graph := map[string]interface{}{
+		"nodes": nodes,
+	}
+	if name != "" {
+		graph["graph_id"] = name
+	}
+	definition, err := json.Marshal(map[string]interface{}{
+		"graph": graph,
+	})
+	if err != nil {
+		return nil, fmt.Errorf("%w: could not encode execution_graph", coordinator.ErrInvalidTaskDefinition)
+	}
+	return definition, nil
+}
+
+func defaultTaskName(name, fallback string) string {
+	if name != "" {
+		return name
+	}
+	return fallback
+}
+
+func defaultGraphWriteSlot(domain string, stepIndex int, nodeID string) string {
+	base := strings.ReplaceAll(nodeID, "-", "_")
+	if base != "" {
+		return fmt.Sprintf("%s.%s", domain, base)
+	}
+	return fmt.Sprintf("%s.step_%d", domain, stepIndex)
+}
+
 func handleGetTask(tc *coordinator.TaskCoordinator) fiber.Handler {
 	return func(c *fiber.Ctx) error {
 		tenantID := middleware.GetClerkUserID(c)
@@ -528,6 +720,46 @@ func handleGetTask(tc *coordinator.TaskCoordinator) fiber.Handler {
 		}
 
 		return c.JSON(buildTaskResponse(task))
+	}
+}
+
+// handleGetTaskSteps returns all WAL entries for a task, aggregated across
+// every checkpoint row. Each entry represents one committed step — its type,
+// status, input digest, output digest, Ed25519 signature, and timestamp.
+// Entries are deduplicated by entry_id and sorted by step_index ascending.
+//
+// Returns an empty array (not 404) when the task has not yet produced any
+// checkpoints (e.g. still in 'dispatched' state).
+func handleGetTaskSteps(tc *coordinator.TaskCoordinator) fiber.Handler {
+	return func(c *fiber.Ctx) error {
+		tenantID := middleware.GetClerkUserID(c)
+		if tenantID == "" {
+			return c.Status(http.StatusUnauthorized).JSON(fiber.Map{"error": "unauthenticated"})
+		}
+
+		taskID, err := uuid.Parse(c.Params("id"))
+		if err != nil {
+			return c.Status(http.StatusBadRequest).JSON(fiber.Map{"error": "invalid task_id"})
+		}
+
+		// Verify the task belongs to this tenant before exposing its WAL entries.
+		if _, err := tc.Store().GetTask(taskID, tenantID); err != nil {
+			if errors.Is(err, sql.ErrNoRows) {
+				return c.Status(http.StatusNotFound).JSON(fiber.Map{"error": "task not found"})
+			}
+			return c.Status(http.StatusInternalServerError).JSON(fiber.Map{"error": "db_error"})
+		}
+
+		steps, err := tc.Store().GetAllTaskSteps(taskID)
+		if err != nil {
+			return c.Status(http.StatusInternalServerError).JSON(fiber.Map{"error": "db_error"})
+		}
+
+		if len(steps) == 0 {
+			return c.JSON(fiber.Map{"steps": []interface{}{}, "total": 0})
+		}
+
+		return c.JSON(fiber.Map{"steps": steps, "total": len(steps)})
 	}
 }
 
