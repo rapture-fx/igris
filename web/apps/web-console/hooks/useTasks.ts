@@ -1,0 +1,109 @@
+import { useQuery } from '@tanstack/react-query';
+import { api } from '@/lib/apiClient';
+import { API_ENDPOINTS, QUERY_KEYS } from '@/utils/constants';
+
+// ── Types ──────────────────────────────────────────────────────────────────────
+
+export type TaskStatus =
+  | 'pending'
+  | 'dispatched'
+  | 'checkpointed'
+  | 'completed'
+  | 'failed'
+  | 'recovering';
+
+export interface Task {
+  task_id: string;
+  status: TaskStatus;
+  task_type?: string;
+  runtime_id?: string;
+  dispatched_at?: string;
+  completed_at?: string;
+  created_at: string;
+  deadline_at?: string;
+  last_step?: number;
+  checkpoint_digest?: string;
+  checkpoint_metadata?: unknown;
+  failure_reason?: string;
+}
+
+export interface TaskListResponse {
+  tasks: Task[];
+  total: number;
+}
+
+export interface WalEntry {
+  entry_id: string;
+  task_id: string;
+  step_index: number;
+  step_type: unknown;
+  status: string;
+  input_digest: string;
+  output_digest?: string;
+  timestamp_ms: number;
+  runtime_id: string;
+  signature?: string;
+}
+
+export interface TaskStepsResponse {
+  steps: WalEntry[];
+  total: number;
+}
+
+// ── Hooks ──────────────────────────────────────────────────────────────────────
+
+/** List recent durable tasks for the current tenant, newest first. */
+export function useTasks(opts?: { limit?: number; status?: string }) {
+  const params = new URLSearchParams();
+  if (opts?.limit !== undefined) params.set('limit', String(opts.limit));
+  if (opts?.status) params.set('status', opts.status);
+  const qs = params.toString();
+
+  return useQuery<TaskListResponse>({
+    queryKey: [QUERY_KEYS.TASKS_LIST, opts?.status, opts?.limit],
+    queryFn: async () => {
+      try {
+        return await api.get<TaskListResponse>(
+          `${API_ENDPOINTS.TASKS_LIST}${qs ? '?' + qs : ''}`,
+        );
+      } catch {
+        return { tasks: [], total: 0 };
+      }
+    },
+    refetchInterval: 15_000,
+    staleTime: 10_000,
+    retry: false,
+  });
+}
+
+/** Poll a single durable task by ID. */
+export function useTask(taskId: string | null) {
+  return useQuery<Task>({
+    queryKey: [QUERY_KEYS.TASKS_DETAIL, taskId],
+    queryFn: () => api.get<Task>(API_ENDPOINTS.TASKS_GET(taskId!)),
+    enabled: !!taskId,
+    refetchInterval: (query) => {
+      const status = query.state.data?.status;
+      if (!status || status === 'completed' || status === 'failed') return false;
+      return 5_000;
+    },
+    retry: false,
+  });
+}
+
+/** Fetch the signed WAL step entries from the latest checkpoint for a task. */
+export function useTaskSteps(taskId: string | null) {
+  return useQuery<TaskStepsResponse>({
+    queryKey: [QUERY_KEYS.TASKS_STEPS, taskId],
+    queryFn: async () => {
+      try {
+        return await api.get<TaskStepsResponse>(API_ENDPOINTS.TASKS_STEPS(taskId!));
+      } catch {
+        return { steps: [], total: 0 };
+      }
+    },
+    enabled: !!taskId,
+    staleTime: 30_000,
+    retry: false,
+  });
+}
