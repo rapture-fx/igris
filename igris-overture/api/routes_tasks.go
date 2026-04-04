@@ -2,6 +2,7 @@ package api
 
 import (
 	"database/sql"
+	"encoding/json"
 	"errors"
 	"net/http"
 
@@ -107,9 +108,15 @@ func handleGetTask(tc *coordinator.TaskCoordinator) fiber.Handler {
 			"completed_at":  task.CompletedAt,
 			"created_at":    task.CreatedAt,
 		}
+		if task.FailureReason != nil && *task.FailureReason != "" {
+			resp["failure_reason"] = *task.FailureReason
+		}
 		if task.LastCheckpoint != nil {
 			resp["last_step"] = task.LastCheckpoint.ResumeToken.LastCommittedStep
 			resp["checkpoint_digest"] = task.LastCheckpoint.ResumeToken.CheckpointDigest
+			if len(task.LastCheckpoint.Metadata) > 0 {
+				resp["checkpoint_metadata"] = json.RawMessage(task.LastCheckpoint.Metadata)
+			}
 		}
 
 		return c.JSON(resp)
@@ -143,8 +150,14 @@ func handleListTasks(tc *coordinator.TaskCoordinator) fiber.Handler {
 				"completed_at":  t.CompletedAt,
 				"created_at":    t.CreatedAt,
 			}
+			if t.FailureReason != nil && *t.FailureReason != "" {
+				item["failure_reason"] = *t.FailureReason
+			}
 			if t.LastCheckpoint != nil {
 				item["last_step"] = t.LastCheckpoint.ResumeToken.LastCommittedStep
+				if len(t.LastCheckpoint.Metadata) > 0 {
+					item["checkpoint_metadata"] = json.RawMessage(t.LastCheckpoint.Metadata)
+				}
 			}
 			items = append(items, item)
 		}
