@@ -40,6 +40,7 @@ import {
   BarChart3,
   Monitor,
   RotateCcw,
+  Waypoints,
 } from 'lucide-react';
 import { cn } from '@/lib/utils';
 import { getApiNavigationSections } from '@/lib/api-reference';
@@ -100,6 +101,11 @@ const searchIndexStatic = [
   { title: 'Overview', path: '/docs', keywords: 'overview introduction what is igris execution system' },
   { title: 'Architecture', path: '/docs/architecture', keywords: 'architecture system design execution engine coordination layer' },
   { title: 'Quick Start', path: '/docs/quickstart', keywords: 'quick start getting started setup api key' },
+  { title: 'First Cloud Integration', path: '/docs/first-cloud-integration', keywords: 'workflow cloud integration openai compatible provider key tenant api key onboarding' },
+  { title: 'Deploy Local Runtime', path: '/docs/deploy-local-runtime', keywords: 'workflow local runtime deployment igris-runtime install health local api' },
+  { title: 'Hybrid Deployment Workflow', path: '/docs/hybrid-deployment-workflow', keywords: 'workflow hybrid deployment cloud runtime fleet coordination failover' },
+  { title: 'Receipts and Audit Workflow', path: '/docs/receipts-audit-workflow', keywords: 'workflow receipts audit export verify history compliance' },
+  { title: 'Fleet Rollout Workflow', path: '/docs/fleet-rollout-workflow', keywords: 'workflow fleet rollout config push ota update canary runtime fleet' },
   { title: 'Execution Model', path: '/docs/execution-model', keywords: 'execution model envelope bounds signing cloud local path' },
   { title: 'Safety & Containment', path: '/docs/safety', keywords: 'safety containment cgroup bounds violation handling secure defaults' },
   { title: 'Capabilities & Limits', path: '/docs/capability-model', keywords: 'capabilities limits capability model grants tool http shell filesystem max tokens steps' },
@@ -160,6 +166,16 @@ const docsNavSections: NavSection[] = [
       { name: 'Overview', href: '/docs', icon: Home },
       { name: 'Architecture', href: '/docs/architecture', icon: Layers },
       { name: 'Quick Start', href: '/docs/quickstart', icon: Rocket },
+    ],
+  },
+  {
+    section: 'Workflows',
+    items: [
+      { name: 'First Cloud Integration', href: '/docs/first-cloud-integration', icon: ArrowRight },
+      { name: 'Deploy Local Runtime', href: '/docs/deploy-local-runtime', icon: Server },
+      { name: 'Hybrid Deployment Workflow', href: '/docs/hybrid-deployment-workflow', icon: GitMerge },
+      { name: 'Receipts and Audit Workflow', href: '/docs/receipts-audit-workflow', icon: FileText },
+      { name: 'Fleet Rollout Workflow', href: '/docs/fleet-rollout-workflow', icon: Waypoints },
     ],
   },
   {
