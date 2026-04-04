@@ -481,23 +481,20 @@ const endpointOverrides: Record<string, EndpointOverride> = {
   },
   'POST /v1/tasks/submit': {
     functionality:
-      'Submits a durable multi-step task to the coordination layer. The layer creates a task record, selects the healthiest available runtime (lowest active task count), and dispatches asynchronously. Returns immediately with a task_id — poll GET /v1/tasks/:id for status.\n\nEach step is backed by a Write-Ahead Log: the runtime writes an Intent entry before executing and a signed Committed entry after. Periodic checkpoints are pushed back to the coordination layer so a new runtime can resume exactly where the previous one stopped.',
+      'Submits a durable task to the product coordination layer. The platform creates a task record, chooses an available executor, and returns immediately with a task ID so the caller can poll for progress.\n\nDurable tasks preserve progress automatically. Multi-step workflows checkpoint periodically, and recovery continues from the last durable checkpoint instead of starting the whole task over.',
     requestBodyFields: [
-      { name: 'task_type', type: 'string', required: true, description: 'Workflow category. One of `agent_workflow`, `robotics_workflow`, or `single_inference`.' },
-      { name: 'task_definition', type: 'object', required: true, description: 'Task payload. Must include a nested `task_type` object with the steps or inference parameters.' },
-      { name: 'idempotency_key', type: 'string', description: 'Deduplicated on the coordination layer. Submitting the same key twice returns the original response.' },
+      { name: 'task_type', type: 'string', required: true, description: 'Task category. One of `agent_workflow`, `robotics_workflow`, `single_inference`, or `behavior_tree`.' },
+      { name: 'task_definition', type: 'object', required: true, description: 'Task payload for the selected `task_type`. Do not nest another `task_type` object inside this field.' },
+      { name: 'idempotency_key', type: 'string', description: 'Stable client-generated key for deduplicating repeat submissions of the same task request.' },
       { name: 'deadline_at', type: 'string', description: 'RFC3339 deadline. The runtime checkpoints and stops if execution reaches this time.' },
     ],
     requestExample: {
       task_type: 'agent_workflow',
       task_definition: {
-        task_type: {
-          type: 'agent_workflow',
-          steps: [
-            { step_index: 0, model: 'gpt-4o', messages: [{ role: 'user', content: 'Summarize the Q3 report' }] },
-            { step_index: 1, model: 'gpt-4o', messages: [{ role: 'user', content: 'Extract action items from the summary' }] },
-          ],
-        },
+        steps: [
+          { step_index: 0, model: 'gpt-4o', messages: [{ role: 'user', content: 'Summarize the Q3 report' }] },
+          { step_index: 1, model: 'gpt-4o', messages: [{ role: 'user', content: 'Extract action items from the summary' }] },
+        ],
       },
       idempotency_key: 'report-q3-2026-run-1',
       deadline_at: '2026-04-04T18:00:00Z',
@@ -509,18 +506,18 @@ const endpointOverrides: Record<string, EndpointOverride> = {
     },
     statusCodes: [
       { code: 202, title: 'Accepted', description: 'Task created and dispatched to a runtime. Poll GET /v1/tasks/:id for progress.' },
-      { code: 400, title: 'Bad request', description: 'Missing task_definition or task_type.', example: prettyJson({ error: 'task_definition required' }) },
+      { code: 400, title: 'Bad request', description: 'Missing task_type, missing task_definition, or malformed task_definition payload.', example: prettyJson({ error: 'task_definition required' }) },
       { code: 401, title: 'Unauthorized', description: 'Session or API key auth failed.', example: prettyJson({ error: 'unauthenticated' }) },
       { code: 503, title: 'No runtime available', description: 'No healthy runtime is registered for this tenant.', example: prettyJson({ error: 'dispatch_failed', message: 'no healthy runtime for tenant tenant_01HV' }) },
     ],
     notes: [
-      'The idempotency_key is deduplicated on the coordination layer. Submitting the same key with the same body returns the cached response without re-executing.',
-      'The coordination layer selects the runtime with the lowest active task count, not a round-robin assignment.',
+      'For `agent_workflow` and `robotics_workflow`, `task_definition` should contain a `steps` array. For `single_inference`, use inference fields such as `model` and `messages`. For `behavior_tree`, provide `tree` and any optional execution limits such as `max_ticks` or `checkpoint_every`.',
+      'Submitting the same `idempotency_key` for the same tenant returns the existing task record instead of creating a second task.',
     ],
   },
   'GET /v1/tasks/:id': {
     functionality:
-      'Returns the current status, runtime assignment, and last checkpoint metadata for a durable task. Use this to poll for completion or to retrieve a resume token after interruption.',
+      'Returns the current status, runtime assignment, and latest checkpoint metadata for a durable task. Use it to poll for completion or monitor recovery progress.',
     pathParams: [
       { name: 'id', type: 'string', required: true, description: 'Task ID returned by POST /v1/tasks/submit.' },
     ],
@@ -535,6 +532,7 @@ const endpointOverrides: Record<string, EndpointOverride> = {
     },
     statusCodes: [
       { code: 200, title: 'Success', description: 'Task record returned.' },
+      { code: 400, title: 'Bad request', description: 'Task ID is not a valid UUID.', example: prettyJson({ error: 'invalid task_id' }) },
       { code: 401, title: 'Unauthorized', description: 'Session or API key auth failed.' },
       { code: 404, title: 'Not found', description: 'No task with this ID exists for the authenticated tenant.', example: prettyJson({ error: 'task not found' }) },
     ],
@@ -572,83 +570,9 @@ const endpointOverrides: Record<string, EndpointOverride> = {
       ],
       total: 2,
     },
-  },
-  'POST /v1/tasks/:id/checkpoint': {
-    functionality:
-      'Persists a WAL checkpoint from the executing runtime to the coordination layer. The coordination layer stores both the checkpoint payload and a `ResumeToken` so any subsequent runtime can verify and resume from this step.\n\nThis endpoint is called by the runtime automatically at each checkpoint interval. You do not need to call it directly unless you are building a custom runtime integration.',
-    pathParams: [
-      { name: 'id', type: 'string', required: true, description: 'Task ID.' },
-    ],
-    requestBodyFields: [
-      { name: 'resume_token', type: 'object', required: true, description: 'Resume token with `last_committed_step`, `checkpoint_digest` (hex), and `runtime_id`.' },
-      { name: 'wal_entries', type: 'array', required: true, description: 'WAL entries since the last checkpoint. Each entry is an Ed25519-signed step record.' },
-    ],
-    requestExample: {
-      resume_token: {
-        last_committed_step: 9,
-        checkpoint_digest: 'a3f8e2b1c4d5e6f7a8b9c0d1e2f3a4b5c6d7e8f9a0b1c2d3e4f5a6b7c8d9e0f1',
-        runtime_id: 'runtime-edge-03',
-      },
-      wal_entries: [
-        {
-          entry_id: '01900000-0000-7000-8000-000000000001',
-          task_id: '018f4a2b-3c1e-7a2d-9b8f-4d5e6f7a8b9c',
-          step_index: 9,
-          step_type: { type: 'inference', model: 'gpt-4o' },
-          status: 'committed',
-          input_digest: 'e3b0c44298fc1c149afb',
-          output_digest: 'a3f8e2b1c4d5e6f7a8b9',
-          timestamp_ms: 1743778201000,
-          runtime_id: 'runtime-edge-03',
-          signature: 'MEUCIQDx...',
-        },
-      ],
-    },
-    responseExample: { ok: true, step: 9 },
     statusCodes: [
-      { code: 200, title: 'Saved', description: 'Checkpoint persisted and task record updated to `checkpointed`.' },
-      { code: 400, title: 'Bad request', description: 'Checkpoint body could not be parsed.' },
-      { code: 401, title: 'Unauthorized', description: 'Auth failed.' },
-      { code: 404, title: 'Not found', description: 'Task not found for this tenant.' },
-      { code: 409, title: 'Terminal state', description: 'Task is already completed or failed — checkpoints are rejected.', example: prettyJson({ error: 'task_terminal', status: 'completed' }) },
-    ],
-    notes: [
-      'The coordination layer validates task ownership (tenant_id) before saving. A runtime cannot push checkpoints to tasks it does not own.',
-      'Checkpoints are rejected if the task is already in a terminal state (`completed` or `failed`).',
-    ],
-  },
-  'POST /v1/tasks/:id/complete': {
-    functionality:
-      'Marks a durable task as completed. Called by the runtime when all steps have executed successfully and the final output has been produced.',
-    pathParams: [
-      { name: 'id', type: 'string', required: true, description: 'Task ID.' },
-    ],
-    responseExample: { ok: true },
-    statusCodes: [
-      { code: 200, title: 'Marked complete', description: 'Task transitioned to `completed` state.' },
-      { code: 401, title: 'Unauthorized', description: 'Auth failed.' },
-      { code: 404, title: 'Not found', description: 'Task not found for this tenant.' },
-    ],
-  },
-  'POST /v1/tasks/:id/failed': {
-    functionality:
-      'Marks a durable task as failed with a human-readable reason. Called by the runtime when a step encounters a non-recoverable error that should not trigger the automatic recovery path.',
-    pathParams: [
-      { name: 'id', type: 'string', required: true, description: 'Task ID.' },
-    ],
-    requestBodyFields: [
-      { name: 'reason', type: 'string', description: 'Human-readable failure description stored in the task record.' },
-    ],
-    requestExample: { reason: 'Step 3 failed: navigation goal rejected by ROS2 action server' },
-    responseExample: { ok: true },
-    statusCodes: [
-      { code: 200, title: 'Marked failed', description: 'Task transitioned to `failed` state.' },
-      { code: 401, title: 'Unauthorized', description: 'Auth failed.' },
-      { code: 404, title: 'Not found', description: 'Task not found for this tenant.' },
-    ],
-    notes: [
-      'A failed task is terminal — no further checkpoints or completions are accepted.',
-      'The automatic recovery loop does not reassign tasks in `failed` state. Only tasks in `dispatched` or `checkpointed` state on a dead runtime are reassigned.',
+      { code: 200, title: 'Success', description: 'Task list returned.' },
+      { code: 401, title: 'Unauthorized', description: 'Session or API key auth failed.' },
     ],
   },
   'POST /v1/btree/validate': {
