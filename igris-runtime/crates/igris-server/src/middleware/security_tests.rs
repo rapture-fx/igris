@@ -50,6 +50,10 @@ mod tests {
             rate_limiter: Some(RateLimiter::new(60, 1)),
             metrics: Arc::new(Metrics::new()),
             escapevector_cache: None,
+            #[cfg(feature = "memory")]
+            agent_memory: None,
+            #[cfg(feature = "hitl")]
+            hitl_coordinator: None,
             violation_log: None,
             peer_registry: None,
             runtime_public_key: None,
@@ -57,6 +61,7 @@ mod tests {
             overture_public_key: None,
             receipt_log: None,
             lifecycle_registry: None,
+            bt_state_tx: Arc::new(tokio::sync::watch::channel(serde_json::Value::Null).0),
         }
     }
 
@@ -109,6 +114,13 @@ mod tests {
         base64::engine::general_purpose::STANDARD.encode(sig.to_bytes())
     }
 
+    fn runtime_submission_app(path: &'static str, state: AppState) -> Router {
+        Router::new()
+            .route(path, post(ok))
+            .layer(from_fn_with_state(state.clone(), security_middleware))
+            .with_state(state)
+    }
+
     // P0-3: Valid decision signature → request passes through (200).
     #[tokio::test]
     async fn decision_sig_valid_passes() {
@@ -122,10 +134,7 @@ mod tests {
         let body = br#"{"model":"mock","messages":[]}"#;
         let sig = sign_body(&signing_key, body);
 
-        let app = Router::new()
-            .route("/v1/runtime/execute", post(ok))
-            .layer(from_fn_with_state(state.clone(), security_middleware))
-            .with_state(state);
+        let app = runtime_submission_app("/v1/runtime/execute", state);
 
         let req = Request::builder()
             .method("POST")
@@ -154,10 +163,7 @@ mod tests {
         let sig = sign_body(&signing_key, original_body);
         let tampered_body = br#"{"model":"evil","messages":[]}"#;
 
-        let app = Router::new()
-            .route("/v1/runtime/execute", post(ok))
-            .layer(from_fn_with_state(state.clone(), security_middleware))
-            .with_state(state);
+        let app = runtime_submission_app("/v1/runtime/execute", state);
 
         let req = Request::builder()
             .method("POST")
@@ -181,10 +187,7 @@ mod tests {
         let verifying_key = signing_key.verifying_key();
         let state = make_state_with_overture_key(verifying_key);
 
-        let app = Router::new()
-            .route("/v1/runtime/execute", post(ok))
-            .layer(from_fn_with_state(state.clone(), security_middleware))
-            .with_state(state);
+        let app = runtime_submission_app("/v1/runtime/execute", state);
 
         let req = Request::builder()
             .method("POST")
@@ -196,6 +199,53 @@ mod tests {
         let resp = app.oneshot(req).await.unwrap();
         assert_eq!(resp.status(), StatusCode::UNAUTHORIZED);
     }
+
+    #[tokio::test]
+    async fn task_submit_sig_valid_passes() {
+        use ed25519_dalek::SigningKey;
+        use rand::rngs::OsRng;
+
+        let signing_key = SigningKey::generate(&mut OsRng);
+        let verifying_key = signing_key.verifying_key();
+        let state = make_state_with_overture_key(verifying_key);
+
+        let body = br#"{"task_id":"task-1","task_type":{"type":"single_inference","model":"mock","messages":[]}}"#;
+        let sig = sign_body(&signing_key, body);
+        let app = runtime_submission_app("/v1/runtime/task/submit", state);
+
+        let req = Request::builder()
+            .method("POST")
+            .uri("/v1/runtime/task/submit")
+            .header("content-type", "application/json")
+            .header("x-igris-decision-sig", sig)
+            .body(Body::from(body.as_slice()))
+            .unwrap();
+
+        let resp = app.oneshot(req).await.unwrap();
+        assert_eq!(resp.status(), StatusCode::OK);
+    }
+
+    #[tokio::test]
+    async fn task_submit_sig_missing_rejected() {
+        use ed25519_dalek::SigningKey;
+        use rand::rngs::OsRng;
+
+        let signing_key = SigningKey::generate(&mut OsRng);
+        let verifying_key = signing_key.verifying_key();
+        let state = make_state_with_overture_key(verifying_key);
+        let app = runtime_submission_app("/v1/runtime/task/submit", state);
+
+        let req = Request::builder()
+            .method("POST")
+            .uri("/v1/runtime/task/submit")
+            .header("content-type", "application/json")
+            .body(Body::from(
+                br#"{"task_id":"task-1","task_type":{"type":"single_inference","model":"mock","messages":[]}}"#
+                    .as_slice(),
+            ))
+            .unwrap();
+
+        let resp = app.oneshot(req).await.unwrap();
+        assert_eq!(resp.status(), StatusCode::UNAUTHORIZED);
+    }
 }
-
-
