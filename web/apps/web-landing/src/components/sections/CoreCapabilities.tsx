@@ -72,8 +72,8 @@ export default function CoreCapabilities() {
                     }}
                   >
                     <div style={{
-                      width: '100px',
-                      height: '100px',
+                      width: '160px',
+                      height: '160px',
                       display: 'flex',
                       alignItems: 'flex-start',
                       justifyContent: 'flex-start',
@@ -119,7 +119,7 @@ export default function CoreCapabilities() {
           <div className="flex flex-col md:hidden divide-y divide-[rgba(209,213,219,0.35)]">
             {capabilities.map((capability, index) => (
               <div key={capability.name} className="py-8">
-                <div className="w-24 h-24 flex items-start justify-start mb-24">
+                <div className="w-32 h-32 flex items-start justify-start mb-24">
                   {index === 0 && (
                     <img
                       src={mounted && theme === 'dark' ? '/cr.png?v=2' : '/exc.png?v=2'}
