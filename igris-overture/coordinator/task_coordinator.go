@@ -381,7 +381,7 @@ func (tc *TaskCoordinator) markAndRecover(ctx context.Context, taskID uuid.UUID,
 type TaskSubmitRequest struct {
 	TaskID         uuid.UUID       `json:"task_id,omitempty"`
 	TenantID       string          `json:"tenant_id"`
-	TaskType       string          `json:"task_type"` // "agent_workflow" | "robotics_workflow" | "single_inference" | "behavior_tree"
+	TaskType       string          `json:"task_type"` // "agent_workflow" | "robotics_workflow" | "single_inference" | "behavior_tree" | "execution_graph"
 	TaskDefinition json.RawMessage `json:"task_definition"`
 	IdempotencyKey string          `json:"idempotency_key,omitempty"`
 	DeadlineAt     *time.Time      `json:"deadline_at,omitempty"`
@@ -463,13 +463,129 @@ func validateTaskDefinition(taskType string, definition map[string]json.RawMessa
 		if _, ok := definition["tree"]; !ok {
 			return invalidTaskDefinition("behavior_tree.tree is required")
 		}
+	case "execution_graph":
+		if err := validateExecutionGraph(definition); err != nil {
+			return err
+		}
 	default:
 		return invalidTaskDefinition("unsupported task_type %q", taskType)
 	}
 	return nil
 }
 
+func validateExecutionGraph(definition map[string]json.RawMessage) error {
+	rawGraph, ok := definition["graph"]
+	if !ok {
+		return invalidTaskDefinition("execution_graph.graph is required")
+	}
+	var graph map[string]json.RawMessage
+	if err := json.Unmarshal(rawGraph, &graph); err != nil {
+		return invalidTaskDefinition("execution_graph.graph must be an object")
+	}
+
+	nodes, err := requireArrayField(graph, "nodes")
+	if err != nil {
+		return invalidTaskDefinition("execution_graph.%s", unwrapInvalidTaskDefinition(err))
+	}
+	if len(nodes) == 0 {
+		return invalidTaskDefinition("execution_graph.graph.nodes must contain at least one node")
+	}
+
+	for idx, rawNode := range nodes {
+		var node map[string]json.RawMessage
+		if err := json.Unmarshal(rawNode, &node); err != nil {
+			return invalidTaskDefinition("execution_graph.graph.nodes[%d] must be an object", idx)
+		}
+		if err := validateExecutionGraphNode(node); err != nil {
+			return invalidTaskDefinition("execution_graph.graph.nodes[%d]: %s", idx, unwrapInvalidTaskDefinition(err))
+		}
+	}
+
+	return nil
+}
+
+func validateExecutionGraphNode(node map[string]json.RawMessage) error {
+	if err := requireStringField(node, "node_id"); err != nil {
+		return err
+	}
+	if err := validateExecutionGraphSlotFields(node); err != nil {
+		return err
+	}
+	kind, err := readStringField(node, "kind")
+	if err != nil {
+		return err
+	}
+
+	switch kind {
+	case "reason":
+		if err := requireStringField(node, "model"); err != nil {
+			return err
+		}
+		if _, err := requireArrayField(node, "messages"); err != nil {
+			return err
+		}
+	case "robotics":
+		if err := validateRoboticsActionPayload(node); err != nil {
+			return err
+		}
+	case "tool":
+		if err := requireStringField(node, "tool_name"); err != nil {
+			return err
+		}
+	case "behavior_tree":
+		if _, ok := node["tree"]; !ok {
+			return invalidTaskDefinition("tree is required")
+		}
+	case "human_approval":
+		if err := requireStringField(node, "task"); err != nil {
+			return err
+		}
+	case "memory_recall":
+		if err := requireStringField(node, "query"); err != nil {
+			return err
+		}
+	case "memory_store":
+		if err := requireStringField(node, "content"); err != nil {
+			return err
+		}
+	default:
+		return invalidTaskDefinition("unsupported execution graph node kind %q", kind)
+	}
+
+	return nil
+}
+
+func validateExecutionGraphSlotFields(node map[string]json.RawMessage) error {
+	if rawWriteSlot, ok := node["write_slot"]; ok {
+		var writeSlot string
+		if err := json.Unmarshal(rawWriteSlot, &writeSlot); err != nil || writeSlot == "" {
+			return invalidTaskDefinition("write_slot must be a non-empty string")
+		}
+	}
+
+	if rawReadSlots, ok := node["read_slots"]; ok {
+		var readSlots []string
+		if err := json.Unmarshal(rawReadSlots, &readSlots); err != nil {
+			return invalidTaskDefinition("read_slots must be an array of strings")
+		}
+		for _, slot := range readSlots {
+			if slot == "" {
+				return invalidTaskDefinition("read_slots must not contain empty values")
+			}
+		}
+	}
+
+	return nil
+}
+
 func validateRoboticsStep(step map[string]json.RawMessage) error {
+	if err := requireNumericField(step, "step_index"); err != nil {
+		return err
+	}
+	return validateRoboticsActionPayload(step)
+}
+
+func validateRoboticsActionPayload(step map[string]json.RawMessage) error {
 	action, err := readStringField(step, "action")
 	if err != nil {
 		return err
