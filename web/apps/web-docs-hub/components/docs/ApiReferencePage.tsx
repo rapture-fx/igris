@@ -26,7 +26,7 @@ export function ApiReferencePage() {
   }
 
   return (
-    <div className="not-prose space-y-10 [&_a]:no-underline">
+    <div className="not-prose max-w-[52rem] space-y-10 [&_a]:no-underline">
       <section id="overview" className="space-y-5">
         <div className="space-y-3">
           <h2 className="m-0 text-base font-semibold text-slate-900">Overview</h2>
