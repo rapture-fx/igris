@@ -42,7 +42,7 @@
   {
     "title": "Changelog",
     "path": "/docs/changelog",
-    "keywords": "changelog runtime-v1.8.0 — stability & cgroup enforcement — march 2026 fixed changed migration runtime-v1.7.x — arm64 support and distribution — march 2026 added changed migration runtime-v1.6.0 — macos arm64 builds — february 2026 changed migration v1.2.1-speculative — speculative execution — november 2025 added changed v0.4.0 — runtime hardening phase 4 — october 2025 added changed migration docs  release notes for igris. breaking changes are marked explicitly. changelog"
+    "keywords": "changelog docs — api contract and workflow documentation — april 2026 added changed migration runtime-v1.8.0 — stability & cgroup enforcement — march 2026 fixed changed migration runtime-v1.7.x — arm64 support and distribution — march 2026 added changed migration runtime-v1.6.0 — macos arm64 builds — february 2026 changed migration v1.2.1-speculative — speculative execution — november 2025 added changed v0.4.0 — runtime hardening phase 4 — october 2025 added changed migration docs  release notes"
   },
   {
     "title": "Circuit Breaker",
@@ -70,6 +70,11 @@
     "keywords": "data privacy data we collect account data execution data fleet data provider keys how we handle your data data storage data retention data isolation your rights data access data deletion data portability privacy by deployment mode cloud api mode edge / offline mode hybrid mode third-party data sharing cloud providers billing analytics compliance gdpr data processing agreement security measures contact bash igris is designed with privacy as a core principle. this guide explains how your data is h"
   },
   {
+    "title": "Deploy Local Runtime",
+    "path": "/docs/deploy-local-runtime",
+    "keywords": "deploy local runtime 1. download the runtime archive 2. install the binary 3. configure auth and local model behavior 4. start and verify the runtime 5. test a local call common mistakes related guides bash bash json5 bash typescript use this workflow when execution should happen on the machine itself instead of only through the hosted api. deploy-local-runtime"
+  },
+  {
     "title": "Deployment",
     "path": "/docs/deployment",
     "keywords": "deployment cloud api self-hosted coordination (infinite tier) local / edge execution engine supported platforms deployment methods local models verifying your deployment health check → check fleet registration run a test inference networking requirements resource requirements common deployment issues connecting edge to cloud tier comparison what's next python bash bash yaml bash json bash python bash igris can be deployed as a cloud-hosted api, as a local execution engine on your own hardware, o"
@@ -77,7 +82,7 @@
   {
     "title": "Durable Tasks",
     "path": "/docs/durable-tasks",
-    "keywords": "durable task execution how it works submitting a task polling task status listing tasks checkpoints and resume tokens deadlines robotics workflows behavior tree execution integrity guarantees api endpoints bash json json bash json bash json json json long-running agent workflows and robotics missions need to survive the infrastructure they run on. durable task execution gives every multi-step task a tamper-evident write-ahead log wal, periodic che durable-tasks"
+    "keywords": "durable task execution how it works submitting a task agent tasks robotics missions raw task definitions polling task status listing tasks checkpoints and resume tokens deadlines robotics workflows behavior tree execution integrity guarantees api endpoints bash json json json json bash json bash json json json long-running agent workflows and robotics missions need to survive the infrastructure they run on. durable task execution gives every multi-step task a tamper-evident write-ahead log wal, "
   },
   {
     "title": "Error Codes",
@@ -105,9 +110,19 @@
     "keywords": "execution receipts current query surface list receipts export receipts proof verification bash json bash bash execution receipts are the customer-facing audit record for what ran, where it ran, and whether policy violations occurred. execution-receipts"
   },
   {
+    "title": "First Cloud Integration",
+    "path": "/docs/first-cloud-integration",
+    "keywords": "first cloud integration 1. create a tenant api key 2. add a provider key 3. call the openai-compatible api 4. decide whether you need a native sdk common mistakes related guides bash typescript use this workflow when you want the shortest path from zero to a working igris integration. first-cloud-integration"
+  },
+  {
     "title": "Fleet Management",
     "path": "/docs/fleet-management",
     "keywords": "fleet management registration heartbeats and commands listing registered runtimes configuration push post /api/v1/runtime/config/push ota updates post /api/v1/runtime/update bash json bash json bash bash fleet management in the current product is the control-plane contract for runtime registration, heartbeat, queued commands, config push, and ota updates. fleet-management"
+  },
+  {
+    "title": "Fleet Rollout Workflow",
+    "path": "/docs/fleet-rollout-workflow",
+    "keywords": "fleet rollout workflow 1. confirm runtimes are eligible to participate 2. inspect current fleet state 3. push configuration deliberately 4. roll runtime updates in stages 5. verify post-rollout health common mistakes related guides  use this workflow when you need to manage many runtimes as one operational fleet. fleet-rollout-workflow"
   },
   {
     "title": "Governance",
@@ -118,6 +133,11 @@
     "title": "History",
     "path": "/docs/history",
     "keywords": "history & alerts execution events get /v1/history/events metrics get /v1/history/metrics alerts get /v1/history/alerts alert actions bash json bash json bash json igris records execution history, summary metrics, and alert state in the coordination layer. history"
+  },
+  {
+    "title": "Hybrid Deployment Workflow",
+    "path": "/docs/hybrid-deployment-workflow",
+    "keywords": "hybrid deployment workflow 1. keep the application pointed at the hosted api 2. start runtimes with registration credentials 3. verify cloud and runtime access separately 4. use fleet apis for coordination 5. separate hot-path traffic from provisioning traffic common mistakes related guides text bash use this workflow when you want one product experience for the customer while combining the hosted api with one or more local runtimes. hybrid-deployment-workflow"
   },
   {
     "title": "Key Management",
@@ -177,12 +197,17 @@
   {
     "title": "Quick Start",
     "path": "/docs/quickstart",
-    "keywords": "quick start prerequisites option a: cloud api 1. add a provider key 2. point your client at igris option b: local runtime 1. download the runtime archive 2. extract and install 3. verify the binary 4. configure the runtime 5. start the runtime 6. point your application at the local runtime option c: hybrid cloud + local runtime 1. start the runtime with registration credentials 2. use the cloud api from your application what to do next troubleshooting bash python bash bash bash json5 bash python"
+    "keywords": "quick start prerequisites option a: cloud api 1. add a provider key 2. point your client at igris option b: local runtime 1. download the runtime archive 2. extract and install 3. verify the binary 4. configure the runtime 5. start the runtime 6. point your application at the local runtime option c: hybrid cloud + local runtime 1. start the runtime with registration credentials 2. use the cloud api from your application what to do next troubleshooting bash typescript bash bash bash json5 bash ty"
   },
   {
     "title": "Rate Limiting",
     "path": "/docs/rate-limiting",
     "keywords": "rate limiting what the current server enforces 429 response shape runtime download limit local runtime rate limits client guidance json json5 the current shipped overture server applies a global rate limiter of 100 requests per minute by default. runtime binary downloads also have a dedicated 10 downloads per hour per tenant cap. rate-limiting"
+  },
+  {
+    "title": "Receipts Audit Workflow",
+    "path": "/docs/receipts-audit-workflow",
+    "keywords": "receipts and audit workflow 1. run requests through the documented product surface 2. query recent execution history 3. retrieve receipts for audit evidence 4. export receipts for downstream systems 5. verify before external use common mistakes related guides  use this workflow when you need verifiable execution history, exportable receipts, or customer-visible audit evidence. receipts-audit-workflow"
   },
   {
     "title": "Robotics",
@@ -348,21 +373,6 @@
     "title": "GET /v1/runtime/download",
     "path": "/docs/api-reference/runtime-distribution-fleet-coordination/get-v1-runtime-download",
     "keywords": "runtime distribution & fleet coordination get /v1/runtime/download subscribed runtime binary download endpoint. session or api key cloud api"
-  },
-  {
-    "title": "POST /api/v1/runtime/register",
-    "path": "/docs/api-reference/runtime-distribution-fleet-coordination/post-api-v1-runtime-register",
-    "keywords": "runtime distribution & fleet coordination post /api/v1/runtime/register registers a runtime instance against a tenant. igris_ api key runtime coordination api"
-  },
-  {
-    "title": "POST /api/v1/runtime/heartbeat",
-    "path": "/docs/api-reference/runtime-distribution-fleet-coordination/post-api-v1-runtime-heartbeat",
-    "keywords": "runtime distribution & fleet coordination post /api/v1/runtime/heartbeat heartbeat and liveness updates from runtime instances. igris_ api key runtime coordination api"
-  },
-  {
-    "title": "DELETE /api/v1/runtime/deregister",
-    "path": "/docs/api-reference/runtime-distribution-fleet-coordination/delete-api-v1-runtime-deregister",
-    "keywords": "runtime distribution & fleet coordination delete /api/v1/runtime/deregister removes a runtime instance from active fleet state. igris_ api key runtime coordination api"
   },
   {
     "title": "GET /api/v1/runtime/list",
@@ -572,17 +582,17 @@
   {
     "title": "JavaScript / TypeScript SDK",
     "path": "/docs/sdk",
-    "keywords": "javascript / typescript production-ready @igris-inertial/sdk npm install @igris-inertial/sdk preferred native sdk for browser and node.js integrations."
+    "keywords": "javascript / typescript first-class @igris-inertial/sdk npm install @igris-inertial/sdk preferred native sdk for browser and node.js integrations."
   },
   {
     "title": "Go SDK",
     "path": "/docs/sdk",
-    "keywords": "go production-ready github.com/igris-inertial/go-sdk go get github.com/igris-inertial/go-sdk preferred native sdk for backend services and cli tooling."
+    "keywords": "go first-class github.com/igris-inertial/go-sdk go get github.com/igris-inertial/go-sdk preferred native sdk for backend services and cli tooling."
   },
   {
     "title": "Rust SDK",
     "path": "/docs/sdk",
-    "keywords": "rust production-ready igris-inertial cargo add igris-inertial preferred native sdk for systems and embedded integrations."
+    "keywords": "rust first-class igris-inertial cargo add igris-inertial preferred native sdk for systems and embedded integrations."
   },
   {
     "title": "Python SDK",
@@ -592,16 +602,16 @@
   {
     "title": "Java SDK",
     "path": "/docs/sdk",
-    "keywords": "java planned n/a use an openai-compatible client today do not treat a native java sdk as production-ready yet."
+    "keywords": "java openai-compatible n/a use an openai-compatible client today use the openai-compatible api until a native java sdk is promoted explicitly."
   },
   {
     "title": "C# SDK",
     "path": "/docs/sdk",
-    "keywords": "c# planned n/a use an openai-compatible client today do not treat a native c# sdk as production-ready yet."
+    "keywords": "c# openai-compatible n/a use an openai-compatible client today use the openai-compatible api until a native c# sdk is promoted explicitly."
   },
   {
     "title": "Ruby SDK",
     "path": "/docs/sdk",
-    "keywords": "ruby planned n/a use an openai-compatible client today do not treat a native ruby sdk as production-ready yet."
+    "keywords": "ruby openai-compatible n/a use an openai-compatible client today use the openai-compatible api until a native ruby sdk is promoted explicitly."
   }
 ]
