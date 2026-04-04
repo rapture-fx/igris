@@ -76,13 +76,15 @@ Security verification failures (401, 403, invalid envelope signature) are always
 
 ## Containment Bounds
 
-Overture attaches containment limits to every request forwarded to a Runtime instance via the `X-Igris-Bounds` header:
+Overture attaches containment limits to every request forwarded to a Runtime instance inside the signed runtime task payload:
 
 ```json
 {
-  "cpu_percent": 40,
-  "memory_mb": 512,
-  "max_tick_ms": 5000
+  "containment": {
+    "cpu_percent": 40,
+    "memory_mb": 512,
+    "max_tick_ms": 5000
+  }
 }
 ```
 
