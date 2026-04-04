@@ -16,6 +16,7 @@ import AutonomousSystems from '../src/components/sections/AutonomousSystems'
 import UseCasesPopup from '../src/components/popups/UseCasesPopup'
 
 import { useProductPopup } from '../src/contexts/ProductPopupContext'
+import ScrollReveal from '../src/components/ui/ScrollReveal'
 
 export default function HomePage() {
 
@@ -26,14 +27,14 @@ export default function HomePage() {
       <div className="min-h-screen bg-white dark:bg-[#0A0A0A] transition-colors duration-200">
         <Header />
         <main>
-          <Hero />
-          <Products />
-          <AutonomousSystems />
-          <SDKs />
-          <CoreCapabilities />
-          <MultiTenancy />
-          <WhyItExists />
-          <ClosingPosition />
+          <ScrollReveal><Hero /></ScrollReveal>
+          <ScrollReveal delay={0.1}><Products /></ScrollReveal>
+          <ScrollReveal delay={0.1}><AutonomousSystems /></ScrollReveal>
+          <ScrollReveal delay={0.1}><SDKs /></ScrollReveal>
+          <ScrollReveal delay={0.1}><CoreCapabilities /></ScrollReveal>
+          <ScrollReveal delay={0.1}><MultiTenancy /></ScrollReveal>
+          <ScrollReveal delay={0.1}><WhyItExists /></ScrollReveal>
+          <ScrollReveal delay={0.1}><ClosingPosition /></ScrollReveal>
         </main>
         <Footer />
       </div>
