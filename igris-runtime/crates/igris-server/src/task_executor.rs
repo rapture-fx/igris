@@ -22,7 +22,7 @@ use igris_core::storage::TASK_SUBMISSIONS;
 use igris_btree::{
     core::{BTreeContext, BtWalSession},
     parser::JsonTreeParser,
-    runtime::{BTreeExecutor, ExecutorConfig},
+    runtime::{BTreeExecutor, ExecutionResult, ExecutorConfig},
     prelude::NodeStatus,
 };
 use std::sync::Arc;
@@ -61,6 +61,14 @@ pub struct AgentApprovalOptions {
 #[derive(Debug, Clone, Serialize, Deserialize)]
 pub struct AgentStep {
     pub step_index: u32,
+    #[serde(default)]
+    pub node_id: Option<String>,
+    #[serde(default)]
+    pub checkpoint_key: Option<String>,
+    #[serde(default)]
+    pub read_slots: Option<Vec<String>>,
+    #[serde(default)]
+    pub write_slot: Option<String>,
     pub model: String,
     pub messages: Vec<ExecuteMessage>,
     #[serde(default)]
@@ -113,6 +121,14 @@ pub enum RoboticsAction {
 #[derive(Debug, Clone, Serialize, Deserialize)]
 pub struct RoboticsStep {
     pub step_index: u32,
+    #[serde(default)]
+    pub node_id: Option<String>,
+    #[serde(default)]
+    pub checkpoint_key: Option<String>,
+    #[serde(default)]
+    pub read_slots: Option<Vec<String>>,
+    #[serde(default)]
+    pub write_slot: Option<String>,
     #[serde(flatten)]
     pub action: RoboticsAction,
     #[serde(default)]
@@ -120,10 +136,200 @@ pub struct RoboticsStep {
 }
 
 #[derive(Debug, Clone, Serialize, Deserialize)]
+pub struct HumanApprovalStep {
+    pub step_index: u32,
+    pub node_id: String,
+    #[serde(default)]
+    pub checkpoint_key: Option<String>,
+    #[serde(default)]
+    pub read_slots: Option<Vec<String>>,
+    #[serde(default)]
+    pub write_slot: Option<String>,
+    pub task: String,
+    #[serde(default)]
+    pub confidence: Option<f32>,
+    #[serde(default)]
+    pub context: Option<HashMap<String, serde_json::Value>>,
+}
+
+#[derive(Debug, Clone, Serialize, Deserialize)]
+pub struct MemoryRecallStep {
+    pub step_index: u32,
+    pub node_id: String,
+    #[serde(default)]
+    pub checkpoint_key: Option<String>,
+    #[serde(default)]
+    pub read_slots: Option<Vec<String>>,
+    #[serde(default)]
+    pub write_slot: Option<String>,
+    pub query: String,
+    #[serde(default)]
+    pub top_k: Option<usize>,
+}
+
+#[derive(Debug, Clone, Serialize, Deserialize)]
+pub struct MemoryStoreStep {
+    pub step_index: u32,
+    pub node_id: String,
+    #[serde(default)]
+    pub checkpoint_key: Option<String>,
+    #[serde(default)]
+    pub read_slots: Option<Vec<String>>,
+    #[serde(default)]
+    pub write_slot: Option<String>,
+    #[serde(default)]
+    pub key: Option<String>,
+    pub content: String,
+}
+
+#[derive(Debug, Clone, Serialize, Deserialize)]
+pub struct ToolStep {
+    pub step_index: u32,
+    pub node_id: String,
+    #[serde(default)]
+    pub checkpoint_key: Option<String>,
+    #[serde(default)]
+    pub read_slots: Option<Vec<String>>,
+    #[serde(default)]
+    pub write_slot: Option<String>,
+    pub tool_name: String,
+    #[serde(default)]
+    pub args: Option<serde_json::Value>,
+}
+
+#[derive(Debug, Clone, Serialize, Deserialize)]
+pub struct BehaviorTreeStep {
+    pub step_index: u32,
+    pub node_id: String,
+    #[serde(default)]
+    pub checkpoint_key: Option<String>,
+    #[serde(default)]
+    pub read_slots: Option<Vec<String>>,
+    #[serde(default)]
+    pub write_slot: Option<String>,
+    #[serde(default)]
+    pub blackboard: Option<serde_json::Value>,
+    pub tree: serde_json::Value,
+}
+
+#[derive(Debug, Clone, Serialize, Deserialize)]
+pub struct ExecutionGraph {
+    #[serde(default)]
+    pub graph_id: Option<String>,
+    #[serde(default)]
+    pub blackboard: Option<serde_json::Value>,
+    pub nodes: Vec<ExecutionNode>,
+}
+
+#[derive(Debug, Clone, Serialize, Deserialize)]
+#[serde(tag = "kind", rename_all = "snake_case")]
+pub enum ExecutionNode {
+    Reason {
+        node_id: String,
+        #[serde(default)]
+        step_index: Option<u32>,
+        #[serde(default)]
+        checkpoint_key: Option<String>,
+        #[serde(default)]
+        read_slots: Option<Vec<String>>,
+        #[serde(default)]
+        write_slot: Option<String>,
+        model: String,
+        messages: Vec<ExecuteMessage>,
+        #[serde(default)]
+        max_tokens: Option<u32>,
+        #[serde(default)]
+        temperature: Option<f32>,
+        #[serde(default)]
+        mode: Option<String>,
+        #[serde(default)]
+        memory: Option<AgentMemoryOptions>,
+        #[serde(default)]
+        approval: Option<AgentApprovalOptions>,
+    },
+    Tool {
+        node_id: String,
+        tool_name: String,
+        #[serde(default)]
+        args: Option<serde_json::Value>,
+        #[serde(default)]
+        checkpoint_key: Option<String>,
+        #[serde(default)]
+        read_slots: Option<Vec<String>>,
+        #[serde(default)]
+        write_slot: Option<String>,
+    },
+    BehaviorTree {
+        node_id: String,
+        tree: serde_json::Value,
+        #[serde(default)]
+        checkpoint_key: Option<String>,
+        #[serde(default)]
+        read_slots: Option<Vec<String>>,
+        #[serde(default)]
+        write_slot: Option<String>,
+    },
+    Robotics {
+        node_id: String,
+        #[serde(default)]
+        step_index: Option<u32>,
+        #[serde(default)]
+        checkpoint_key: Option<String>,
+        #[serde(default)]
+        read_slots: Option<Vec<String>>,
+        #[serde(default)]
+        write_slot: Option<String>,
+        #[serde(flatten)]
+        action: RoboticsAction,
+        #[serde(default)]
+        approval: Option<AgentApprovalOptions>,
+    },
+    HumanApproval {
+        node_id: String,
+        #[serde(default)]
+        checkpoint_key: Option<String>,
+        #[serde(default)]
+        read_slots: Option<Vec<String>>,
+        #[serde(default)]
+        write_slot: Option<String>,
+        task: String,
+        #[serde(default)]
+        confidence: Option<f32>,
+        #[serde(default)]
+        context: Option<HashMap<String, serde_json::Value>>,
+    },
+    MemoryRecall {
+        node_id: String,
+        #[serde(default)]
+        checkpoint_key: Option<String>,
+        #[serde(default)]
+        read_slots: Option<Vec<String>>,
+        #[serde(default)]
+        write_slot: Option<String>,
+        query: String,
+        #[serde(default)]
+        top_k: Option<usize>,
+    },
+    MemoryStore {
+        node_id: String,
+        #[serde(default)]
+        checkpoint_key: Option<String>,
+        #[serde(default)]
+        read_slots: Option<Vec<String>>,
+        #[serde(default)]
+        write_slot: Option<String>,
+        #[serde(default)]
+        key: Option<String>,
+        content: String,
+    },
+}
+
+#[derive(Debug, Clone, Serialize, Deserialize)]
 #[serde(tag = "type", rename_all = "snake_case")]
 pub enum TaskType {
     AgentWorkflow { steps: Vec<AgentStep> },
     RoboticsWorkflow { steps: Vec<RoboticsStep> },
+    ExecutionGraph { graph: ExecutionGraph },
     SingleInference {
         model: String,
         messages: Vec<ExecuteMessage>,
@@ -207,6 +413,11 @@ pub struct TaskSubmitResponse {
 enum RuntimeTaskStep {
     Agent(AgentStep),
     Robotics(RoboticsStep),
+    Tool(ToolStep),
+    HumanApproval(HumanApprovalStep),
+    MemoryRecall(MemoryRecallStep),
+    MemoryStore(MemoryStoreStep),
+    BehaviorTree(BehaviorTreeStep),
 }
 
 impl RuntimeTaskStep {
@@ -214,6 +425,11 @@ impl RuntimeTaskStep {
         match self {
             Self::Agent(step) => step.step_index,
             Self::Robotics(step) => step.step_index,
+            Self::Tool(step) => step.step_index,
+            Self::HumanApproval(step) => step.step_index,
+            Self::MemoryRecall(step) => step.step_index,
+            Self::MemoryStore(step) => step.step_index,
+            Self::BehaviorTree(step) => step.step_index,
         }
     }
 
@@ -225,6 +441,47 @@ impl RuntimeTaskStep {
         match self {
             Self::Agent(step) => step.model.as_str(),
             Self::Robotics(_) => "robotics",
+            Self::Tool(step) => step.tool_name.as_str(),
+            Self::HumanApproval(_) => "human_approval",
+            Self::MemoryRecall(_) => "memory_recall",
+            Self::MemoryStore(_) => "memory_store",
+            Self::BehaviorTree(_) => "behavior_tree",
+        }
+    }
+
+    fn node_id(&self) -> &str {
+        match self {
+            Self::Agent(step) => step.node_id.as_deref().unwrap_or("agent"),
+            Self::Robotics(step) => step.node_id.as_deref().unwrap_or("robotics"),
+            Self::Tool(step) => step.node_id.as_str(),
+            Self::HumanApproval(step) => step.node_id.as_str(),
+            Self::MemoryRecall(step) => step.node_id.as_str(),
+            Self::MemoryStore(step) => step.node_id.as_str(),
+            Self::BehaviorTree(step) => step.node_id.as_str(),
+        }
+    }
+
+    fn read_slots(&self) -> Option<&[String]> {
+        match self {
+            Self::Agent(step) => step.read_slots.as_deref(),
+            Self::Robotics(step) => step.read_slots.as_deref(),
+            Self::Tool(step) => step.read_slots.as_deref(),
+            Self::HumanApproval(step) => step.read_slots.as_deref(),
+            Self::MemoryRecall(step) => step.read_slots.as_deref(),
+            Self::MemoryStore(step) => step.read_slots.as_deref(),
+            Self::BehaviorTree(step) => step.read_slots.as_deref(),
+        }
+    }
+
+    fn write_slot(&self) -> Option<&str> {
+        match self {
+            Self::Agent(step) => step.write_slot.as_deref(),
+            Self::Robotics(step) => step.write_slot.as_deref(),
+            Self::Tool(step) => step.write_slot.as_deref(),
+            Self::HumanApproval(step) => step.write_slot.as_deref(),
+            Self::MemoryRecall(step) => step.write_slot.as_deref(),
+            Self::MemoryStore(step) => step.write_slot.as_deref(),
+            Self::BehaviorTree(step) => step.write_slot.as_deref(),
         }
     }
 
@@ -260,6 +517,22 @@ impl RuntimeTaskStep {
                     target: None,
                 },
             },
+            Self::Tool(step) => StepType::ToolCall {
+                tool_name: step.tool_name.clone(),
+            },
+            Self::HumanApproval(_) => StepType::ToolCall {
+                tool_name: "human_approval".to_string(),
+            },
+            Self::MemoryRecall(_) => StepType::ToolCall {
+                tool_name: "memory_recall".to_string(),
+            },
+            Self::MemoryStore(_) => StepType::ToolCall {
+                tool_name: "memory_store".to_string(),
+            },
+            Self::BehaviorTree(step) => StepType::BtNode {
+                node_id: step.node_id.clone(),
+                node_type: "execution_graph".to_string(),
+            },
         }
     }
 }
@@ -269,6 +542,14 @@ struct StepExecutionResult {
     output_text: String,
     provider_name: String,
     usage: ExecuteUsage,
+    graph_output: Option<serde_json::Value>,
+    checkpoint_metadata: Option<serde_json::Value>,
+    checkpoint_requested: bool,
+}
+
+struct BehaviorTreeRuntimeResult {
+    result: ExecutionResult,
+    checkpoint: Option<CheckpointPayload>,
 }
 
 #[derive(Debug, Clone, Serialize, Deserialize)]
@@ -373,76 +654,44 @@ pub async fn handle_task_submit(
 
     // ── Behavior tree path (early return before the step loop) ────────────────
     if let TaskType::BehaviorTree { ref tree, max_ticks, timeout_ms, checkpoint_every } = req.task_type {
-        let signing_key = match state.signing_key.as_ref() {
-            Some(k) => k.clone(),
-            None => {
-                return (
-                    StatusCode::BAD_REQUEST,
-                    Json(serde_json::json!({
-                        "error": {
-                            "message": "Behavior tree tasks require a runtime configured with an Ed25519 signing key",
-                            "type": "missing_signing_key"
-                        }
-                    })),
-                ).into_response();
-            }
-        };
-
-        let parser = JsonTreeParser::new();
-        let mut context = BTreeContext::new();
-
-        if let Some(ref tr) = state.tool_registry {
-            context = context.with_tools(tr.clone());
+        if state.signing_key.is_none() {
+            return (
+                StatusCode::BAD_REQUEST,
+                Json(serde_json::json!({
+                    "error": {
+                        "message": "Behavior tree tasks require a runtime configured with an Ed25519 signing key",
+                        "type": "missing_signing_key"
+                    }
+                })),
+            ).into_response();
         }
 
-        #[cfg(feature = "ros2")]
-        if let Some(ref mgr) = state.ros2_manager {
-            if !mgr.is_safe_idle() {
-                context = context.with_ros2(mgr.node());
-            }
-        }
-
-        // On recovery, restore blackboard from the prior checkpoint metadata.
-        if let Some(ref resume_cp) = req.resume_checkpoint {
-            if let Some(blackboard_state) = resume_cp.get("blackboard_state") {
-                context.blackboard.restore(blackboard_state).await;
-            }
-        }
-
-        let mut tree_node = match parser.parse_node(tree, &context) {
-            Ok(node) => node,
-            Err(e) => {
-                return (
-                    StatusCode::BAD_REQUEST,
-                    Json(serde_json::json!({
-                        "error": {
-                            "message": format!("Invalid behavior tree: {}", e),
-                            "type": "invalid_tree"
-                        }
-                    })),
-                ).into_response();
-            }
-        };
-
-        context = context.with_wal(BtWalSession {
-            wal: wal.clone(),
-            signing_key,
-            task_id: req.task_id,
-            checkpoint_every: checkpoint_every.unwrap_or(10),
-        });
-
-        let mut exec_config = ExecutorConfig::default();
-        if let Some(mt) = max_ticks {
-            exec_config.max_ticks = Some(mt);
-        }
-        exec_config.deadline = Some(Duration::from_millis(timeout_ms.unwrap_or(deadline)));
-
-        let executor = BTreeExecutor::with_config(exec_config)
-            .with_tick_observer((*state.bt_state_tx).clone());
-
-        let result = match executor.execute(tree_node.as_mut(), &mut context).await {
+        let bt = match execute_behavior_tree_runtime(
+            &state,
+            req.task_id,
+            tree,
+            req.resume_checkpoint.as_ref(),
+            None,
+            timeout_ms.unwrap_or(deadline),
+            max_ticks,
+            checkpoint_every.unwrap_or(10),
+            Some(wal.clone()),
+        )
+        .await
+        {
             Ok(r) => r,
             Err(e) => {
+                if e.to_string().starts_with("invalid behavior tree:") {
+                    return (
+                        StatusCode::BAD_REQUEST,
+                        Json(serde_json::json!({
+                            "error": {
+                                "message": e.to_string(),
+                                "type": "invalid_tree"
+                            }
+                        })),
+                    ).into_response();
+                }
                 error!(task_id = %req.task_id, "BT execution error: {}", e);
                 let response = TaskSubmitResponse {
                     task_id: req.task_id,
@@ -461,25 +710,15 @@ pub async fn handle_task_submit(
                 return (StatusCode::OK, Json(response)).into_response();
             }
         };
-
-        // Convert BtCheckpointPayload → CheckpointPayload, carrying blackboard state
-        // opaquely in the `metadata` field so the coordinator can forward it on recovery.
-        let response_checkpoint = result.checkpoint.map(|bt_cp| CheckpointPayload {
-            task_id: bt_cp.task_id,
-            resume_token: bt_cp.resume_token,
-            wal_entries: bt_cp.wal_entries,
-            metadata: Some(serde_json::json!({
-                "blackboard_state": bt_cp.blackboard_state,
-                "tick_count": bt_cp.tick_count,
-            })),
-        });
-
-        let tick_count = context.tick_count;
-        let (status, steps_completed) = match result.status {
+        let response_checkpoint = bt.checkpoint;
+        let (status, steps_completed) = match bt.result.status {
             NodeStatus::Success => (TaskStatus::Completed, 1u32),
             NodeStatus::Failure | NodeStatus::Skipped => (
                 TaskStatus::Failed {
-                    reason: result.error.unwrap_or_else(|| "behavior tree returned Failure".into()),
+                    reason: bt
+                        .result
+                        .error
+                        .unwrap_or_else(|| "behavior tree returned Failure".into()),
                 },
                 0u32,
             ),
@@ -489,7 +728,7 @@ pub async fn handle_task_submit(
                         TaskStatus::Checkpointed {
                             resume_token: cp.resume_token.clone(),
                         },
-                        tick_count as u32,
+                        bt.result.tick_count as u32,
                     )
                 } else {
                     (
@@ -517,31 +756,34 @@ pub async fn handle_task_submit(
         return (StatusCode::OK, Json(response)).into_response();
     }
 
-    let steps: Vec<RuntimeTaskStep> = match &req.task_type {
-        TaskType::AgentWorkflow { steps } => steps.iter().cloned().map(RuntimeTaskStep::Agent).collect(),
-        TaskType::RoboticsWorkflow { steps } => steps.iter().cloned().map(RuntimeTaskStep::Robotics).collect(),
-        TaskType::SingleInference {
-            model,
-            messages,
-            max_tokens,
-            temperature,
-            mode,
-            memory,
-            approval,
-            ..
-        } => {
-            vec![RuntimeTaskStep::Agent(AgentStep {
-                step_index: 0,
-                model: model.clone(),
-                messages: messages.clone(),
-                max_tokens: *max_tokens,
-                temperature: *temperature,
-                mode: mode.clone(),
-                memory: memory.clone(),
-                approval: approval.clone(),
-            })]
+    let execution_graph = match materialize_execution_graph(&req.task_type) {
+        Ok(graph) => graph,
+        Err(e) => {
+            return (
+                StatusCode::BAD_REQUEST,
+                Json(serde_json::json!({
+                    "error": {
+                        "message": e.to_string(),
+                        "type": "invalid_execution_graph"
+                    }
+                })),
+            ).into_response();
         }
-        TaskType::BehaviorTree { .. } => unreachable!("BT exits early above"),
+    };
+
+    let steps = match compile_execution_graph_to_steps(&execution_graph) {
+        Ok(steps) => steps,
+        Err(e) => {
+            return (
+                StatusCode::BAD_REQUEST,
+                Json(serde_json::json!({
+                    "error": {
+                        "message": e.to_string(),
+                        "type": "unsupported_execution_graph"
+                    }
+                })),
+            ).into_response();
+        }
     };
 
     let steps_total = steps.len() as u32;
@@ -553,6 +795,7 @@ pub async fn handle_task_submit(
     let mut checkpoint: Option<CheckpointPayload> = None;
     let mut checkpoint_metadata: Option<serde_json::Value> = None;
     let mut entries_since_checkpoint: Vec<WalEntry> = Vec::new();
+    let mut graph_blackboard = initialize_graph_blackboard(&execution_graph, req.resume_checkpoint.as_ref());
 
     for step in steps.iter().filter(|step| step.step_index() >= start_step) {
         if wall_start.elapsed().as_millis() as u64 > deadline {
@@ -612,7 +855,15 @@ pub async fn handle_task_submit(
 
         let execution = match step {
             RuntimeTaskStep::Agent(agent_step) => {
-                execute_agent_step(state.clone(), req.task_id, &req.tenant_id, agent_step, max_tick_ms).await
+                execute_agent_step(
+                    state.clone(),
+                    req.task_id,
+                    &req.tenant_id,
+                    agent_step,
+                    &graph_blackboard,
+                    max_tick_ms,
+                )
+                .await
             }
             RuntimeTaskStep::Robotics(robotics_step) => {
                 execute_robotics_step(
@@ -620,6 +871,39 @@ pub async fn handle_task_submit(
                     req.task_id,
                     &req.tenant_id,
                     robotics_step,
+                    &graph_blackboard,
+                    max_tick_ms,
+                )
+                .await
+            }
+            RuntimeTaskStep::Tool(tool_step) => {
+                execute_tool_step(state.clone(), req.task_id, tool_step, &graph_blackboard).await
+            }
+            RuntimeTaskStep::HumanApproval(approval_step) => {
+                execute_human_approval_step(
+                    state.clone(),
+                    req.task_id,
+                    &req.tenant_id,
+                    approval_step,
+                    &graph_blackboard,
+                    max_tick_ms,
+                )
+                .await
+            }
+            RuntimeTaskStep::MemoryRecall(recall_step) => {
+                execute_memory_recall_step(state.clone(), req.task_id, recall_step, &graph_blackboard).await
+            }
+            RuntimeTaskStep::MemoryStore(store_step) => {
+                execute_memory_store_step(state.clone(), req.task_id, store_step, &graph_blackboard).await
+            }
+            RuntimeTaskStep::BehaviorTree(bt_step) => {
+                execute_behavior_tree_graph_step(
+                    state.clone(),
+                    req.task_id,
+                    bt_step,
+                    req.resume_checkpoint.as_ref(),
+                    &wal,
+                    &graph_blackboard,
                     max_tick_ms,
                 )
                 .await
@@ -651,6 +935,48 @@ pub async fn handle_task_submit(
                 ).into_response();
             }
         };
+
+        update_graph_blackboard(&mut graph_blackboard, step, &step_result);
+
+        if step_result.checkpoint_requested {
+            checkpoint_metadata = Some(build_step_checkpoint_metadata(step, steps_completed, &step_result));
+            attach_graph_blackboard_metadata(&mut checkpoint_metadata, &graph_blackboard);
+            let payload = match build_checkpoint(
+                &wal,
+                req.task_id,
+                steps_completed.saturating_sub(1),
+                runtime_id.clone(),
+                entries_since_checkpoint.clone(),
+                checkpoint_metadata.clone(),
+            ) {
+                Ok(p) => p,
+                Err(e) => {
+                    error!(task_id = %req.task_id, "Step checkpoint build failed: {}", e);
+                    return (
+                        StatusCode::INTERNAL_SERVER_ERROR,
+                        Json(serde_json::json!({
+                            "error": { "message": "Failed to build checkpoint", "type": "wal_error" }
+                        })),
+                    ).into_response();
+                }
+            };
+
+            let response = TaskSubmitResponse {
+                task_id: req.task_id,
+                steps_completed,
+                steps_total,
+                status: TaskStatus::Checkpointed {
+                    resume_token: payload.resume_token.clone(),
+                },
+                checkpoint: Some(payload),
+                final_output: last_output,
+                usage: last_usage,
+                execution_envelope: last_envelope,
+                execution_receipt: last_receipt,
+            };
+            let _ = persist_task_record(&state, &submission_key, &request_hash, &response);
+            return (StatusCode::OK, Json(response)).into_response();
+        }
 
         let (execution_envelope, execution_receipt) = match build_execution_artifacts(
             &state,
@@ -710,6 +1036,7 @@ pub async fn handle_task_submit(
         steps_completed = step.step_index() + 1;
         // Build metadata before consuming step_result fields.
         checkpoint_metadata = Some(build_step_checkpoint_metadata(step, steps_completed, &step_result));
+        attach_graph_blackboard_metadata(&mut checkpoint_metadata, &graph_blackboard);
         last_output = Some(step_result.output_text);
         last_usage = Some(step_result.usage);
         last_envelope = Some(execution_envelope);
@@ -862,6 +1189,440 @@ fn normalize_agent_mode(mode: Option<&str>) -> anyhow::Result<AgentExecutionMode
     }
 }
 
+fn materialize_execution_graph(task_type: &TaskType) -> anyhow::Result<ExecutionGraph> {
+    match task_type {
+        TaskType::ExecutionGraph { graph } => Ok(graph.clone()),
+        TaskType::AgentWorkflow { steps } => Ok(ExecutionGraph {
+            graph_id: Some("agent_workflow".to_string()),
+            blackboard: None,
+            nodes: steps
+                .iter()
+                .map(|step| ExecutionNode::Reason {
+                    node_id: step
+                        .node_id
+                        .clone()
+                        .unwrap_or_else(|| format!("agent-step-{}", step.step_index)),
+                    step_index: Some(step.step_index),
+                    checkpoint_key: step.checkpoint_key.clone(),
+                    model: step.model.clone(),
+                    messages: step.messages.clone(),
+                    max_tokens: step.max_tokens,
+                    temperature: step.temperature,
+                    mode: step.mode.clone(),
+                    memory: step.memory.clone(),
+                    approval: step.approval.clone(),
+                })
+                .collect(),
+        }),
+        TaskType::RoboticsWorkflow { steps } => Ok(ExecutionGraph {
+            graph_id: Some("robotics_workflow".to_string()),
+            blackboard: None,
+            nodes: steps
+                .iter()
+                .map(|step| ExecutionNode::Robotics {
+                    node_id: step
+                        .node_id
+                        .clone()
+                        .unwrap_or_else(|| format!("robotics-step-{}", step.step_index)),
+                    step_index: Some(step.step_index),
+                    checkpoint_key: step.checkpoint_key.clone(),
+                    action: step.action.clone(),
+                    approval: step.approval.clone(),
+                })
+                .collect(),
+        }),
+        TaskType::SingleInference {
+            model,
+            messages,
+            max_tokens,
+            temperature,
+            mode,
+            memory,
+            approval,
+            ..
+        } => Ok(ExecutionGraph {
+            graph_id: Some("single_inference".to_string()),
+            blackboard: None,
+            nodes: vec![ExecutionNode::Reason {
+                node_id: "reason-0".to_string(),
+                step_index: Some(0),
+                checkpoint_key: Some("single_inference".to_string()),
+                model: model.clone(),
+                messages: messages.clone(),
+                max_tokens: *max_tokens,
+                temperature: *temperature,
+                mode: mode.clone(),
+                memory: memory.clone(),
+                approval: approval.clone(),
+            }],
+        }),
+        TaskType::BehaviorTree { .. } => anyhow::bail!("behavior_tree tasks are executed through the dedicated BT path"),
+    }
+}
+
+fn compile_execution_graph_to_steps(graph: &ExecutionGraph) -> anyhow::Result<Vec<RuntimeTaskStep>> {
+    let mut steps = Vec::with_capacity(graph.nodes.len());
+    for (idx, node) in graph.nodes.iter().enumerate() {
+        let fallback_step_index = idx as u32;
+        let step = match node {
+            ExecutionNode::Reason {
+                node_id,
+                step_index: graph_step_index,
+                checkpoint_key,
+                read_slots,
+                write_slot,
+                model,
+                messages,
+                max_tokens,
+                temperature,
+                mode,
+                memory,
+                approval,
+            } => RuntimeTaskStep::Agent(AgentStep {
+                step_index: graph_step_index.unwrap_or(fallback_step_index),
+                node_id: Some(node_id.clone()),
+                checkpoint_key: checkpoint_key.clone(),
+                read_slots: read_slots.clone(),
+                write_slot: write_slot.clone(),
+                model: model.clone(),
+                messages: messages.clone(),
+                max_tokens: *max_tokens,
+                temperature: *temperature,
+                mode: mode.clone(),
+                memory: memory.clone(),
+                approval: approval.clone(),
+            }),
+            ExecutionNode::Robotics {
+                node_id,
+                step_index: graph_step_index,
+                checkpoint_key,
+                read_slots,
+                write_slot,
+                action,
+                approval,
+            } => RuntimeTaskStep::Robotics(RoboticsStep {
+                step_index: graph_step_index.unwrap_or(fallback_step_index),
+                node_id: Some(node_id.clone()),
+                checkpoint_key: checkpoint_key.clone(),
+                read_slots: read_slots.clone(),
+                write_slot: write_slot.clone(),
+                action: action.clone(),
+                approval: approval.clone(),
+            }),
+            ExecutionNode::Tool { .. } => {
+                let (node_id, tool_name, args, checkpoint_key, read_slots, write_slot) = match node {
+                    ExecutionNode::Tool {
+                        node_id,
+                        tool_name,
+                        args,
+                        checkpoint_key,
+                        read_slots,
+                        write_slot,
+                    } => (node_id, tool_name, args, checkpoint_key, read_slots, write_slot),
+                    _ => unreachable!(),
+                };
+                RuntimeTaskStep::Tool(ToolStep {
+                    step_index: fallback_step_index,
+                    node_id: node_id.clone(),
+                    checkpoint_key: checkpoint_key.clone(),
+                    read_slots: read_slots.clone(),
+                    write_slot: write_slot.clone(),
+                    tool_name: tool_name.clone(),
+                    args: args.clone(),
+                })
+            }
+            ExecutionNode::BehaviorTree { .. } => {
+                let (node_id, checkpoint_key, read_slots, write_slot, tree) = match node {
+                    ExecutionNode::BehaviorTree {
+                        node_id,
+                        checkpoint_key,
+                        read_slots,
+                        write_slot,
+                        tree,
+                    } => (node_id, checkpoint_key, read_slots, write_slot, tree),
+                    _ => unreachable!(),
+                };
+                RuntimeTaskStep::BehaviorTree(BehaviorTreeStep {
+                    step_index: fallback_step_index,
+                    node_id: node_id.clone(),
+                    checkpoint_key: checkpoint_key.clone(),
+                    read_slots: read_slots.clone(),
+                    write_slot: write_slot.clone(),
+                    blackboard: graph.blackboard.clone(),
+                    tree: tree.clone(),
+                })
+            }
+            ExecutionNode::HumanApproval { .. } => {
+                let (node_id, checkpoint_key, read_slots, write_slot, task, confidence, context) = match node {
+                    ExecutionNode::HumanApproval {
+                        node_id,
+                        checkpoint_key,
+                        read_slots,
+                        write_slot,
+                        task,
+                        confidence,
+                        context,
+                    } => (node_id, checkpoint_key, read_slots, write_slot, task, confidence, context),
+                    _ => unreachable!(),
+                };
+                RuntimeTaskStep::HumanApproval(HumanApprovalStep {
+                    step_index: fallback_step_index,
+                    node_id: node_id.clone(),
+                    checkpoint_key: checkpoint_key.clone(),
+                    read_slots: read_slots.clone(),
+                    write_slot: write_slot.clone(),
+                    task: task.clone(),
+                    confidence: *confidence,
+                    context: context.clone(),
+                })
+            }
+            ExecutionNode::MemoryRecall { .. } => {
+                let (node_id, checkpoint_key, read_slots, write_slot, query, top_k) = match node {
+                    ExecutionNode::MemoryRecall {
+                        node_id,
+                        checkpoint_key,
+                        read_slots,
+                        write_slot,
+                        query,
+                        top_k,
+                    } => (node_id, checkpoint_key, read_slots, write_slot, query, top_k),
+                    _ => unreachable!(),
+                };
+                RuntimeTaskStep::MemoryRecall(MemoryRecallStep {
+                    step_index: fallback_step_index,
+                    node_id: node_id.clone(),
+                    checkpoint_key: checkpoint_key.clone(),
+                    read_slots: read_slots.clone(),
+                    write_slot: write_slot.clone(),
+                    query: query.clone(),
+                    top_k: *top_k,
+                })
+            }
+            ExecutionNode::MemoryStore { .. } => {
+                let (node_id, checkpoint_key, read_slots, write_slot, key, content) = match node {
+                    ExecutionNode::MemoryStore {
+                        node_id,
+                        checkpoint_key,
+                        read_slots,
+                        write_slot,
+                        key,
+                        content,
+                    } => (node_id, checkpoint_key, read_slots, write_slot, key, content),
+                    _ => unreachable!(),
+                };
+                RuntimeTaskStep::MemoryStore(MemoryStoreStep {
+                    step_index: fallback_step_index,
+                    node_id: node_id.clone(),
+                    checkpoint_key: checkpoint_key.clone(),
+                    read_slots: read_slots.clone(),
+                    write_slot: write_slot.clone(),
+                    key: key.clone(),
+                    content: content.clone(),
+                })
+            }
+        };
+        steps.push(step);
+    }
+    Ok(steps)
+}
+
+fn initialize_graph_blackboard(
+    execution_graph: &ExecutionGraph,
+    resume_checkpoint: Option<&serde_json::Value>,
+) -> serde_json::Value {
+    if let Some(graph_blackboard) = resume_checkpoint.and_then(|checkpoint| checkpoint.get("graph_blackboard")) {
+        return graph_blackboard.clone();
+    }
+
+    match execution_graph.blackboard.clone() {
+        Some(serde_json::Value::Object(_)) => execution_graph.blackboard.clone().unwrap(),
+        Some(value) => serde_json::json!({ "initial": value }),
+        None => serde_json::json!({}),
+    }
+}
+
+fn resolve_graph_value(value: serde_json::Value, graph_blackboard: &serde_json::Value) -> serde_json::Value {
+    match value {
+        serde_json::Value::String(template) => resolve_graph_string_value(&template, graph_blackboard),
+        serde_json::Value::Array(values) => serde_json::Value::Array(
+            values
+                .into_iter()
+                .map(|value| resolve_graph_value(value, graph_blackboard))
+                .collect(),
+        ),
+        serde_json::Value::Object(map) => serde_json::Value::Object(
+            map.into_iter()
+                .map(|(key, value)| (key, resolve_graph_value(value, graph_blackboard)))
+                .collect(),
+        ),
+        other => other,
+    }
+}
+
+fn resolve_graph_string_value(template: &str, graph_blackboard: &serde_json::Value) -> serde_json::Value {
+    if let Some(path) = extract_exact_placeholder(template) {
+        return graph_lookup(graph_blackboard, path)
+            .cloned()
+            .unwrap_or_else(|| serde_json::Value::String(template.to_string()));
+    }
+
+    serde_json::Value::String(render_graph_string(template, graph_blackboard))
+}
+
+fn extract_exact_placeholder(template: &str) -> Option<&str> {
+    template
+        .strip_prefix("${")
+        .and_then(|rest| rest.strip_suffix('}'))
+        .filter(|path| !path.is_empty())
+}
+
+fn render_graph_string(template: &str, graph_blackboard: &serde_json::Value) -> String {
+    let mut rendered = String::with_capacity(template.len());
+    let mut cursor = template;
+
+    while let Some(start) = cursor.find("${") {
+        rendered.push_str(&cursor[..start]);
+        let placeholder = &cursor[start + 2..];
+        if let Some(end) = placeholder.find('}') {
+            let path = &placeholder[..end];
+            if let Some(value) = graph_lookup(graph_blackboard, path) {
+                rendered.push_str(&graph_value_to_string(value));
+            }
+            cursor = &placeholder[end + 1..];
+        } else {
+            rendered.push_str(&cursor[start..]);
+            cursor = "";
+            break;
+        }
+    }
+
+    rendered.push_str(cursor);
+    rendered
+}
+
+fn graph_lookup<'a>(graph_blackboard: &'a serde_json::Value, path: &str) -> Option<&'a serde_json::Value> {
+    let mut current = graph_blackboard;
+    for segment in path.split('.') {
+        current = match current {
+            serde_json::Value::Object(map) => map.get(segment)?,
+            _ => return None,
+        };
+    }
+    Some(current)
+}
+
+fn graph_value_to_string(value: &serde_json::Value) -> String {
+    match value {
+        serde_json::Value::Null => "null".to_string(),
+        serde_json::Value::Bool(boolean) => boolean.to_string(),
+        serde_json::Value::Number(number) => number.to_string(),
+        serde_json::Value::String(text) => text.clone(),
+        other => serde_json::to_string(other).unwrap_or_default(),
+    }
+}
+
+fn resolve_execute_messages(
+    messages: &[ExecuteMessage],
+    graph_blackboard: &serde_json::Value,
+) -> Vec<ExecuteMessage> {
+    messages
+        .iter()
+        .map(|message| ExecuteMessage {
+            role: message.role.clone(),
+            content: match resolve_graph_string_value(&message.content, graph_blackboard) {
+                serde_json::Value::String(text) => text,
+                other => graph_value_to_string(&other),
+            },
+        })
+        .collect()
+}
+
+fn collect_slot_inputs(
+    graph_blackboard: &serde_json::Value,
+    read_slots: Option<&[String]>,
+) -> Option<serde_json::Value> {
+    let read_slots = read_slots?;
+    if read_slots.is_empty() {
+        return None;
+    }
+
+    let mut collected = serde_json::Map::new();
+    for slot in read_slots {
+        if let Some(value) = graph_lookup_slot(graph_blackboard, slot) {
+            collected.insert(slot.clone(), value.clone());
+        }
+    }
+
+    if collected.is_empty() {
+        None
+    } else {
+        Some(serde_json::Value::Object(collected))
+    }
+}
+
+fn graph_lookup_slot<'a>(graph_blackboard: &'a serde_json::Value, slot: &str) -> Option<&'a serde_json::Value> {
+    graph_lookup(graph_blackboard, &format!("slots.{}", slot))
+}
+
+fn update_graph_blackboard(
+    graph_blackboard: &mut serde_json::Value,
+    step: &RuntimeTaskStep,
+    result: &StepExecutionResult,
+) {
+    let output_value = result
+        .graph_output
+        .clone()
+        .or_else(|| serde_json::from_str::<serde_json::Value>(&result.output_text).ok())
+        .unwrap_or_else(|| serde_json::Value::String(result.output_text.clone()));
+    let slot_value = output_value.clone();
+    let node_id = step.node_id().to_string();
+    ensure_graph_blackboard_object(graph_blackboard);
+    let root = graph_blackboard.as_object_mut().expect("graph blackboard should be an object");
+    root.insert("last_node_id".to_string(), serde_json::Value::String(node_id.clone()));
+    root.insert(
+        "last_provider".to_string(),
+        serde_json::Value::String(result.provider_name.clone()),
+    );
+    root.insert("last_output".to_string(), output_value.clone());
+    let nodes = root
+        .entry("nodes".to_string())
+        .or_insert_with(|| serde_json::json!({}));
+    if let Some(nodes_object) = nodes.as_object_mut() {
+        nodes_object.insert(node_id, output_value);
+    }
+    if let Some(write_slot) = step.write_slot() {
+        let slots = root
+            .entry("slots".to_string())
+            .or_insert_with(|| serde_json::json!({}));
+        if let Some(slots_object) = slots.as_object_mut() {
+            slots_object.insert(write_slot.to_string(), slot_value);
+        }
+    }
+}
+
+fn ensure_graph_blackboard_object(graph_blackboard: &mut serde_json::Value) {
+    if !graph_blackboard.is_object() {
+        let initial = graph_blackboard.clone();
+        *graph_blackboard = serde_json::json!({ "initial": initial });
+    }
+}
+
+fn attach_graph_blackboard_metadata(
+    checkpoint_metadata: &mut Option<serde_json::Value>,
+    graph_blackboard: &serde_json::Value,
+) {
+    match checkpoint_metadata {
+        Some(metadata) => merge_checkpoint_metadata(metadata, &serde_json::json!({
+            "graph_blackboard": graph_blackboard
+        })),
+        None => {
+            *checkpoint_metadata = Some(serde_json::json!({
+                "graph_blackboard": graph_blackboard
+            }));
+        }
+    }
+}
+
 async fn do_route(
     state: AppState,
     prompt: String,
@@ -917,15 +1678,30 @@ async fn execute_agent_step(
     task_id: Uuid,
     tenant_id: &str,
     step: &AgentStep,
+    graph_blackboard: &serde_json::Value,
     max_tick_ms: u64,
 ) -> anyhow::Result<StepExecutionResult> {
     let _ = step.temperature;
-    let base_prompt = step
-        .messages
+    let resolved_messages = resolve_execute_messages(&step.messages, graph_blackboard);
+    let slot_inputs = collect_slot_inputs(graph_blackboard, step.read_slots.as_deref());
+    let mut base_prompt = resolved_messages
         .iter()
         .map(|message| format!("{}: {}", message.role, message.content))
         .collect::<Vec<_>>()
         .join("\n");
+    if let Some(slot_context) = slot_inputs.as_ref() {
+        base_prompt = format!(
+            "slot_inputs: {}\n\n{}",
+            serde_json::to_string(slot_context).unwrap_or_default(),
+            base_prompt
+        );
+    } else if let Some(blackboard_context) = graph_blackboard.as_object().filter(|state| !state.is_empty()) {
+        base_prompt = format!(
+            "graph_blackboard: {}\n\n{}",
+            serde_json::to_string(blackboard_context).unwrap_or_default(),
+            base_prompt
+        );
+    }
     maybe_require_step_approval(
         &state,
         task_id,
@@ -949,14 +1725,12 @@ async fn execute_agent_step(
             maybe_store_agent_memory(&state, task_id, step, &base_prompt, &content).await?;
             Ok(StepExecutionResult {
                 usage: ExecuteUsage {
-                    prompt_tokens: step
-                        .messages
+                    prompt_tokens: resolved_messages
                         .iter()
                         .map(|message| token_estimate(&message.content))
                         .sum(),
                     completion_tokens: token_estimate(&content),
-                    total_tokens: step
-                        .messages
+                    total_tokens: resolved_messages
                         .iter()
                         .map(|message| token_estimate(&message.content))
                         .sum::<u32>()
@@ -964,6 +1738,9 @@ async fn execute_agent_step(
                 },
                 output_text: content,
                 provider_name,
+                graph_output: None,
+                checkpoint_metadata: None,
+                checkpoint_requested: false,
             })
         }
         Ok(Err(e)) => Err(e),
@@ -976,6 +1753,7 @@ async fn execute_robotics_step(
     task_id: Uuid,
     tenant_id: &str,
     step: &RoboticsStep,
+    graph_blackboard: &serde_json::Value,
     max_tick_ms: u64,
 ) -> anyhow::Result<StepExecutionResult> {
     maybe_require_step_approval(
@@ -992,6 +1770,10 @@ async fn execute_robotics_step(
 
     #[cfg(feature = "ros2")]
     {
+        let resolved_action = serde_json::from_value(resolve_graph_value(
+            serde_json::to_value(&step.action)?,
+            graph_blackboard,
+        ))?;
         let manager = state
             .ros2_manager
             .clone()
@@ -1001,7 +1783,7 @@ async fn execute_robotics_step(
             anyhow::bail!("robotics execution blocked: runtime is in safe-idle containment mode");
         }
 
-        match &step.action {
+        match &resolved_action {
             RoboticsAction::NavigateToPose { goal, wait_timeout_ms } => {
                 let handle = manager
                     .node()
@@ -1036,6 +1818,15 @@ async fn execute_robotics_step(
                             completion_tokens: 0,
                             total_tokens: 0,
                         },
+                        graph_output: Some(serde_json::json!({
+                            "action": "navigate_to_pose",
+                            "goal_id": goal_id,
+                            "goal": goal,
+                            "feedback": feedback,
+                            "status": "succeeded"
+                        })),
+                        checkpoint_metadata: None,
+                        checkpoint_requested: false,
                     }),
                     igris_ros2::NavigationState::Failed(reason) => anyhow::bail!("navigation failed: {}", reason),
                     igris_ros2::NavigationState::Canceled => anyhow::bail!("navigation canceled"),
@@ -1044,16 +1835,20 @@ async fn execute_robotics_step(
             }
             RoboticsAction::GetNavigationStatus => {
                 let status = manager.node().get_navigation_status().await?;
+                let output_text = serde_json::to_string(&serde_json::json!({
+                    "navigation_status": status,
+                }))?;
                 Ok(StepExecutionResult {
-                    output_text: serde_json::to_string(&serde_json::json!({
-                        "navigation_status": status,
-                    }))?,
+                    output_text: output_text.clone(),
                     provider_name: "ros2:get_navigation_status".to_string(),
                     usage: ExecuteUsage {
                         prompt_tokens: 0,
                         completion_tokens: 0,
                         total_tokens: 0,
                     },
+                    graph_output: serde_json::from_str(&output_text).ok(),
+                    checkpoint_metadata: None,
+                    checkpoint_requested: false,
                 })
             }
             RoboticsAction::CancelNavigation => {
@@ -1066,6 +1861,12 @@ async fn execute_robotics_step(
                         completion_tokens: 0,
                         total_tokens: 0,
                     },
+                    graph_output: Some(serde_json::json!({
+                        "action": "cancel_navigation",
+                        "status": "requested"
+                    })),
+                    checkpoint_metadata: None,
+                    checkpoint_requested: false,
                 })
             }
             RoboticsAction::PublishPrompt { prompt } => {
@@ -1078,6 +1879,12 @@ async fn execute_robotics_step(
                         completion_tokens: 0,
                         total_tokens: 0,
                     },
+                    graph_output: Some(serde_json::json!({
+                        "action": "publish_prompt",
+                        "prompt": prompt
+                    })),
+                    checkpoint_metadata: None,
+                    checkpoint_requested: false,
                 })
             }
             RoboticsAction::PublishVelocity { linear_x, angular_z } => {
@@ -1093,6 +1900,13 @@ async fn execute_robotics_step(
                         completion_tokens: 0,
                         total_tokens: 0,
                     },
+                    graph_output: Some(serde_json::json!({
+                        "action": "publish_velocity",
+                        "linear_x": linear_x,
+                        "angular_z": angular_z
+                    })),
+                    checkpoint_metadata: None,
+                    checkpoint_requested: false,
                 })
             }
             RoboticsAction::PublishZeroVelocity => {
@@ -1105,6 +1919,12 @@ async fn execute_robotics_step(
                         completion_tokens: 0,
                         total_tokens: 0,
                     },
+                    graph_output: Some(serde_json::json!({
+                        "action": "publish_zero_velocity",
+                        "status": "published"
+                    })),
+                    checkpoint_metadata: None,
+                    checkpoint_requested: false,
                 })
             }
         }
@@ -1114,6 +1934,362 @@ async fn execute_robotics_step(
     {
         let _ = (state, step, max_tick_ms);
         anyhow::bail!("robotics task execution requires a runtime built with the robotics-platform feature")
+    }
+}
+
+async fn execute_human_approval_step(
+    state: AppState,
+    task_id: Uuid,
+    tenant_id: &str,
+    step: &HumanApprovalStep,
+    graph_blackboard: &serde_json::Value,
+    max_tick_ms: u64,
+) -> anyhow::Result<StepExecutionResult> {
+    let resolved_task = match resolve_graph_string_value(&step.task, graph_blackboard) {
+        serde_json::Value::String(text) => text,
+        other => graph_value_to_string(&other),
+    };
+    let slot_inputs = collect_slot_inputs(graph_blackboard, step.read_slots.as_deref());
+    let approval = AgentApprovalOptions {
+        required: true,
+        task: Some(resolved_task.clone()),
+        confidence: step.confidence,
+        context: {
+            let mut context = step.context.clone().map(|context| {
+                context
+                    .into_iter()
+                    .map(|(key, value)| (key, resolve_graph_value(value, graph_blackboard)))
+                    .collect::<HashMap<_, _>>()
+            }).unwrap_or_default();
+            if let Some(slot_context) = slot_inputs {
+                context.insert("slot_inputs".to_string(), slot_context);
+            }
+            if context.is_empty() { None } else { Some(context) }
+        },
+    };
+
+    maybe_require_step_approval(
+        &state,
+        task_id,
+        tenant_id,
+        step.step_index,
+        "human",
+        "human-approval",
+        Some(&approval),
+        max_tick_ms,
+    )
+    .await?;
+
+    Ok(StepExecutionResult {
+        output_text: format!("human approval granted for {}", resolved_task),
+        provider_name: "hitl:approval".to_string(),
+        usage: ExecuteUsage {
+            prompt_tokens: 0,
+            completion_tokens: 0,
+            total_tokens: 0,
+        },
+        graph_output: Some(serde_json::json!({
+            "task": resolved_task,
+            "status": "approved"
+        })),
+        checkpoint_metadata: None,
+        checkpoint_requested: false,
+    })
+}
+
+async fn execute_memory_recall_step(
+    state: AppState,
+    _task_id: Uuid,
+    step: &MemoryRecallStep,
+    graph_blackboard: &serde_json::Value,
+) -> anyhow::Result<StepExecutionResult> {
+    #[cfg(feature = "memory")]
+    {
+        let memory = state
+            .agent_memory
+            .as_ref()
+            .ok_or_else(|| anyhow::anyhow!("memory recall requested but the runtime has it disabled"))?;
+        let top_k = step.top_k.unwrap_or(5);
+        let query = match resolve_graph_string_value(&step.query, graph_blackboard) {
+            serde_json::Value::String(text) => text,
+            other => graph_value_to_string(&other),
+        };
+        let embedding = deterministic_embedding(&query, memory.embedding_dim());
+        let results = memory.retrieve(embedding, top_k).await?;
+        let output_text = serde_json::to_string(&serde_json::json!({
+            "query": query,
+            "results": results.into_iter().map(|result| serde_json::json!({
+                "key": result.entry.key,
+                "content": result.entry.content,
+                "similarity": result.similarity,
+            })).collect::<Vec<_>>()
+        }))?;
+
+        return Ok(StepExecutionResult {
+            output_text: output_text.clone(),
+            provider_name: "memory:recall".to_string(),
+            usage: ExecuteUsage {
+                prompt_tokens: 0,
+                completion_tokens: 0,
+                total_tokens: 0,
+            },
+            graph_output: serde_json::from_str(&output_text).ok(),
+            checkpoint_metadata: None,
+            checkpoint_requested: false,
+        });
+    }
+
+    #[cfg(not(feature = "memory"))]
+    {
+        let _ = state;
+        anyhow::bail!("memory recall requested but this runtime was not built with the memory feature");
+    }
+}
+
+async fn execute_memory_store_step(
+    state: AppState,
+    task_id: Uuid,
+    step: &MemoryStoreStep,
+    graph_blackboard: &serde_json::Value,
+) -> anyhow::Result<StepExecutionResult> {
+    #[cfg(feature = "memory")]
+    {
+        let memory = state
+            .agent_memory
+            .as_ref()
+            .ok_or_else(|| anyhow::anyhow!("memory store requested but the runtime has it disabled"))?;
+        let key = step
+            .key
+            .clone()
+            .map(|key| match resolve_graph_string_value(&key, graph_blackboard) {
+                serde_json::Value::String(text) => text,
+                other => graph_value_to_string(&other),
+            })
+            .unwrap_or_else(|| format!("task:{}:memory-store:{}", task_id, step.step_index));
+        let content = match resolve_graph_string_value(&step.content, graph_blackboard) {
+            serde_json::Value::String(text) => text,
+            other => graph_value_to_string(&other),
+        };
+        let embedding = deterministic_embedding(&content, memory.embedding_dim());
+        memory.store(&key, &content, embedding).await?;
+        return Ok(StepExecutionResult {
+            output_text: format!("stored memory entry {}", key),
+            provider_name: "memory:store".to_string(),
+            usage: ExecuteUsage {
+                prompt_tokens: 0,
+                completion_tokens: 0,
+                total_tokens: 0,
+            },
+            graph_output: Some(serde_json::json!({
+                "key": key,
+                "content": content
+            })),
+            checkpoint_metadata: None,
+            checkpoint_requested: false,
+        });
+    }
+
+    #[cfg(not(feature = "memory"))]
+    {
+        let _ = (state, task_id);
+        anyhow::bail!("memory store requested but this runtime was not built with the memory feature");
+    }
+}
+
+async fn execute_tool_step(
+    state: AppState,
+    task_id: Uuid,
+    step: &ToolStep,
+    graph_blackboard: &serde_json::Value,
+) -> anyhow::Result<StepExecutionResult> {
+    let registry = state
+        .tool_registry
+        .as_ref()
+        .ok_or_else(|| anyhow::anyhow!("tool execution requested but the runtime has no tool registry"))?;
+    let args = resolve_graph_value(
+        step.args.clone().unwrap_or_else(|| serde_json::json!({})),
+        graph_blackboard,
+    );
+    let idempotency_key = format!(
+        "{}:{}:{:x}",
+        task_id,
+        step.node_id,
+        Sha256::digest(serde_json::to_vec(&args)?)
+    );
+    let result = registry
+        .execute_idempotent(&idempotency_key, &step.tool_name, args.clone())
+        .await?;
+    if !result.success {
+        anyhow::bail!(
+            "tool {} failed: {}",
+            step.tool_name,
+            result.error.unwrap_or_else(|| "unknown tool error".to_string())
+        );
+    }
+
+    let graph_output = serde_json::json!({
+        "tool_name": result.tool_name,
+        "output": result.output,
+        "execution_time_ms": result.execution_time_ms,
+        "metadata": result.metadata,
+        "args": args,
+    });
+    let output_text = graph_output["output"]
+        .as_str()
+        .map(|text| text.to_string())
+        .unwrap_or_else(|| serde_json::to_string(&graph_output).unwrap_or_default());
+
+    Ok(StepExecutionResult {
+        output_text,
+        provider_name: format!("tool:{}", step.tool_name),
+        usage: ExecuteUsage {
+            prompt_tokens: 0,
+            completion_tokens: 0,
+            total_tokens: 0,
+        },
+        graph_output: Some(graph_output),
+        checkpoint_metadata: None,
+        checkpoint_requested: false,
+    })
+}
+
+async fn execute_behavior_tree_runtime(
+    state: &AppState,
+    task_id: Uuid,
+    tree: &serde_json::Value,
+    resume_checkpoint: Option<&serde_json::Value>,
+    initial_blackboard: Option<&serde_json::Value>,
+    deadline_ms: u64,
+    max_ticks: Option<u64>,
+    checkpoint_every: u64,
+    wal: Option<Arc<WalLog>>,
+) -> anyhow::Result<BehaviorTreeRuntimeResult> {
+    let parser = JsonTreeParser::new();
+    let mut context = BTreeContext::new();
+
+    if let Some(ref tr) = state.tool_registry {
+        context = context.with_tools(tr.clone());
+    }
+
+    #[cfg(feature = "ros2")]
+    if let Some(ref mgr) = state.ros2_manager {
+        if !mgr.is_safe_idle() {
+            context = context.with_ros2(mgr.node());
+        }
+    }
+
+    if let Some(resume_cp) = resume_checkpoint {
+        if let Some(blackboard_state) = resume_cp.get("blackboard_state") {
+            context.blackboard.restore(blackboard_state).await;
+        }
+    } else if let Some(blackboard_state) = initial_blackboard {
+        context.blackboard.restore(blackboard_state).await;
+    }
+
+    let mut tree_node = parser
+        .parse_node(tree, &context)
+        .map_err(|e| anyhow::anyhow!("invalid behavior tree: {}", e))?;
+
+    if let Some(wal) = wal {
+        let signing_key = state
+            .signing_key
+            .as_ref()
+            .cloned()
+            .ok_or_else(|| anyhow::anyhow!("behavior tree execution requires a runtime configured with an Ed25519 signing key"))?;
+        context = context.with_wal(BtWalSession {
+            wal,
+            signing_key,
+            task_id,
+            checkpoint_every,
+        });
+    }
+
+    let mut exec_config = ExecutorConfig::default();
+    exec_config.max_ticks = max_ticks;
+    exec_config.deadline = Some(Duration::from_millis(deadline_ms));
+
+    let executor = BTreeExecutor::with_config(exec_config)
+        .with_tick_observer((*state.bt_state_tx).clone());
+    let result = executor.execute(tree_node.as_mut(), &mut context).await?;
+    let checkpoint = result.checkpoint.clone().map(|bt_cp| CheckpointPayload {
+        task_id: bt_cp.task_id,
+        resume_token: bt_cp.resume_token,
+        wal_entries: bt_cp.wal_entries,
+        metadata: Some(serde_json::json!({
+            "blackboard_state": bt_cp.blackboard_state,
+            "tick_count": bt_cp.tick_count,
+        })),
+    });
+
+    Ok(BehaviorTreeRuntimeResult { result, checkpoint })
+}
+
+async fn execute_behavior_tree_graph_step(
+    state: AppState,
+    task_id: Uuid,
+    step: &BehaviorTreeStep,
+    resume_checkpoint: Option<&serde_json::Value>,
+    wal: &Arc<WalLog>,
+    graph_blackboard: &serde_json::Value,
+    max_tick_ms: u64,
+) -> anyhow::Result<StepExecutionResult> {
+    let bt = execute_behavior_tree_runtime(
+        &state,
+        task_id,
+        &step.tree,
+        resume_checkpoint,
+        Some(graph_blackboard),
+        max_tick_ms,
+        None,
+        10,
+        Some(wal.clone()),
+    )
+    .await
+    .map_err(|e| anyhow::anyhow!("behavior tree node {}: {}", step.node_id, e))?;
+
+    match bt.result.status {
+        NodeStatus::Success => Ok(StepExecutionResult {
+            output_text: format!(
+                "behavior tree node {} completed successfully in {} ticks",
+                step.node_id, bt.result.tick_count
+            ),
+            provider_name: format!("btree:{}", step.node_id),
+            usage: ExecuteUsage {
+                prompt_tokens: 0,
+                completion_tokens: 0,
+                total_tokens: 0,
+            },
+            graph_output: None,
+            checkpoint_metadata: bt.checkpoint.and_then(|checkpoint| checkpoint.metadata),
+            checkpoint_requested: false,
+        }),
+        NodeStatus::Failure | NodeStatus::Skipped => {
+            anyhow::bail!(
+                "behavior tree node {} failed: {}",
+                step.node_id,
+                bt.result.error.unwrap_or_else(|| "behavior tree returned Failure".to_string())
+            )
+        }
+        NodeStatus::Running => {
+            let checkpoint = bt
+                .checkpoint
+                .ok_or_else(|| anyhow::anyhow!("behavior tree node {} interrupted without checkpoint", step.node_id))?;
+            Ok(StepExecutionResult {
+                output_text: format!(
+                    "behavior tree node {} checkpointed after {} ticks",
+                    step.node_id, bt.result.tick_count
+                ),
+                provider_name: format!("btree:{}", step.node_id),
+                usage: ExecuteUsage {
+                    prompt_tokens: 0,
+                    completion_tokens: 0,
+                    total_tokens: 0,
+                },
+                graph_output: None,
+                checkpoint_metadata: checkpoint.metadata,
+                checkpoint_requested: true,
+            })
+        }
     }
 }
 
@@ -1409,9 +2585,13 @@ fn build_step_checkpoint_metadata(
     steps_completed: u32,
     result: &StepExecutionResult,
 ) -> serde_json::Value {
-    match step {
+    let mut metadata = match step {
         RuntimeTaskStep::Agent(agent_step) => serde_json::json!({
             "domain": "agent",
+            "node_id": agent_step.node_id,
+            "checkpoint_key": agent_step.checkpoint_key,
+            "read_slots": agent_step.read_slots,
+            "write_slot": agent_step.write_slot,
             "step_index": agent_step.step_index,
             "steps_completed": steps_completed,
             "model": agent_step.model,
@@ -1420,12 +2600,93 @@ fn build_step_checkpoint_metadata(
         }),
         RuntimeTaskStep::Robotics(robotics_step) => serde_json::json!({
             "domain": "robotics",
+            "node_id": robotics_step.node_id,
+            "checkpoint_key": robotics_step.checkpoint_key,
+            "read_slots": robotics_step.read_slots,
+            "write_slot": robotics_step.write_slot,
             "step_index": robotics_step.step_index,
             "steps_completed": steps_completed,
             "action": robotics_action_name(&robotics_step.action),
             "provider": result.provider_name,
             "output_preview": truncate_preview(&result.output_text, 240),
         }),
+        RuntimeTaskStep::Tool(tool_step) => serde_json::json!({
+            "domain": "tool",
+            "node_id": tool_step.node_id,
+            "checkpoint_key": tool_step.checkpoint_key,
+            "read_slots": tool_step.read_slots,
+            "write_slot": tool_step.write_slot,
+            "step_index": tool_step.step_index,
+            "steps_completed": steps_completed,
+            "tool_name": tool_step.tool_name,
+            "provider": result.provider_name,
+            "output_preview": truncate_preview(&result.output_text, 240),
+        }),
+        RuntimeTaskStep::HumanApproval(approval_step) => serde_json::json!({
+            "domain": "human_approval",
+            "node_id": approval_step.node_id,
+            "checkpoint_key": approval_step.checkpoint_key,
+            "read_slots": approval_step.read_slots,
+            "write_slot": approval_step.write_slot,
+            "step_index": approval_step.step_index,
+            "steps_completed": steps_completed,
+            "task": approval_step.task,
+            "provider": result.provider_name,
+            "output_preview": truncate_preview(&result.output_text, 240),
+        }),
+        RuntimeTaskStep::MemoryRecall(recall_step) => serde_json::json!({
+            "domain": "memory_recall",
+            "node_id": recall_step.node_id,
+            "checkpoint_key": recall_step.checkpoint_key,
+            "read_slots": recall_step.read_slots,
+            "write_slot": recall_step.write_slot,
+            "step_index": recall_step.step_index,
+            "steps_completed": steps_completed,
+            "query": recall_step.query,
+            "provider": result.provider_name,
+            "output_preview": truncate_preview(&result.output_text, 240),
+        }),
+        RuntimeTaskStep::MemoryStore(store_step) => serde_json::json!({
+            "domain": "memory_store",
+            "node_id": store_step.node_id,
+            "checkpoint_key": store_step.checkpoint_key,
+            "read_slots": store_step.read_slots,
+            "write_slot": store_step.write_slot,
+            "step_index": store_step.step_index,
+            "steps_completed": steps_completed,
+            "key": store_step.key,
+            "provider": result.provider_name,
+            "output_preview": truncate_preview(&result.output_text, 240),
+        }),
+        RuntimeTaskStep::BehaviorTree(bt_step) => serde_json::json!({
+            "domain": "behavior_tree",
+            "node_id": bt_step.node_id,
+            "checkpoint_key": bt_step.checkpoint_key,
+            "read_slots": bt_step.read_slots,
+            "write_slot": bt_step.write_slot,
+            "step_index": bt_step.step_index,
+            "steps_completed": steps_completed,
+            "provider": result.provider_name,
+            "output_preview": truncate_preview(&result.output_text, 240),
+        }),
+    };
+
+    if let Some(extra_metadata) = result.checkpoint_metadata.as_ref() {
+        merge_checkpoint_metadata(&mut metadata, extra_metadata);
+    }
+
+    metadata
+}
+
+fn merge_checkpoint_metadata(base: &mut serde_json::Value, extra: &serde_json::Value) {
+    let Some(base_object) = base.as_object_mut() else {
+        return;
+    };
+    let Some(extra_object) = extra.as_object() else {
+        return;
+    };
+    for (key, value) in extra_object {
+        base_object.insert(key.clone(), value.clone());
     }
 }
 
@@ -1447,10 +2708,14 @@ fn truncate_preview(text: &str, max_chars: usize) -> String {
 #[cfg(test)]
 mod tests {
     use super::{
-        build_step_checkpoint_metadata, deterministic_embedding, normalize_agent_mode,
-        AgentExecutionMode, RoboticsAction, RoboticsStep, RuntimeTaskStep, StepExecutionResult,
+        build_step_checkpoint_metadata, collect_slot_inputs, compile_execution_graph_to_steps,
+        deterministic_embedding, initialize_graph_blackboard, materialize_execution_graph,
+        normalize_agent_mode, resolve_graph_value, robotics_action_name, update_graph_blackboard,
+        AgentExecutionMode, BehaviorTreeStep, ExecutionGraph, ExecutionNode, HumanApprovalStep,
+        RoboticsAction, RoboticsStep, RuntimeTaskStep, StepExecutionResult, TaskType, ToolStep,
     };
     use crate::runtime_execute::ExecuteUsage;
+    use crate::runtime_execute::ExecuteMessage;
 
     #[test]
     fn normalize_agent_mode_accepts_supported_values() {
@@ -1488,6 +2753,10 @@ mod tests {
     fn robotics_checkpoint_metadata_contains_action_name() {
         let step = RuntimeTaskStep::Robotics(RoboticsStep {
             step_index: 2,
+            node_id: Some("robotics-node-2".to_string()),
+            checkpoint_key: Some("mission-waypoint".to_string()),
+            read_slots: Some(vec!["reason.plan".to_string()]),
+            write_slot: Some("robotics.pose".to_string()),
             action: RoboticsAction::PublishZeroVelocity,
             approval: None,
         });
@@ -1499,10 +2768,17 @@ mod tests {
                 completion_tokens: 0,
                 total_tokens: 0,
             },
+            graph_output: None,
+            checkpoint_metadata: None,
+            checkpoint_requested: false,
         };
 
         let metadata = build_step_checkpoint_metadata(&step, 3, &result);
         assert_eq!(metadata["domain"], "robotics");
+        assert_eq!(metadata["node_id"], "robotics-node-2");
+        assert_eq!(metadata["checkpoint_key"], "mission-waypoint");
+        assert_eq!(metadata["read_slots"][0], "reason.plan");
+        assert_eq!(metadata["write_slot"], "robotics.pose");
         assert_eq!(metadata["action"], "publish_zero_velocity");
         assert_eq!(metadata["steps_completed"], 3);
     }
@@ -1524,5 +2800,371 @@ mod tests {
             }),
             "publish_velocity"
         );
+    }
+
+    #[test]
+    fn materialize_execution_graph_from_single_inference_creates_reason_node() {
+        let graph = materialize_execution_graph(&TaskType::SingleInference {
+            model: "gpt-4.1-mini".to_string(),
+            messages: vec![ExecuteMessage {
+                role: "user".to_string(),
+                content: "hello".to_string(),
+            }],
+            max_tokens: Some(128),
+            temperature: Some(0.2),
+            stream: false,
+            mode: Some("council".to_string()),
+            memory: None,
+            approval: None,
+        })
+        .unwrap();
+
+        assert_eq!(graph.graph_id.as_deref(), Some("single_inference"));
+        assert_eq!(graph.nodes.len(), 1);
+        match &graph.nodes[0] {
+            ExecutionNode::Reason { node_id, step_index, model, mode, .. } => {
+                assert_eq!(node_id, "reason-0");
+                assert_eq!(*step_index, Some(0));
+                assert_eq!(model, "gpt-4.1-mini");
+                assert_eq!(mode.as_deref(), Some("council"));
+            }
+            other => panic!("unexpected node: {:?}", other),
+        }
+    }
+
+    #[test]
+    fn compile_execution_graph_to_steps_preserves_node_metadata() {
+        let graph = ExecutionGraph {
+            graph_id: Some("graph-1".to_string()),
+            blackboard: None,
+            nodes: vec![ExecutionNode::Reason {
+                node_id: "reason-node-1".to_string(),
+                step_index: Some(7),
+                checkpoint_key: Some("plan-1".to_string()),
+                read_slots: Some(vec!["mission.goal".to_string()]),
+                write_slot: Some("reason.plan".to_string()),
+                model: "gpt-4.1-mini".to_string(),
+                messages: vec![ExecuteMessage {
+                    role: "user".to_string(),
+                    content: "plan".to_string(),
+                }],
+                max_tokens: Some(64),
+                temperature: None,
+                mode: Some("speculative".to_string()),
+                memory: None,
+                approval: None,
+            }],
+        };
+
+        let steps = compile_execution_graph_to_steps(&graph).unwrap();
+        assert_eq!(steps.len(), 1);
+        match &steps[0] {
+            RuntimeTaskStep::Agent(step) => {
+                assert_eq!(step.step_index, 7);
+                assert_eq!(step.node_id.as_deref(), Some("reason-node-1"));
+                assert_eq!(step.checkpoint_key.as_deref(), Some("plan-1"));
+                assert_eq!(step.read_slots.as_ref().unwrap(), &vec!["mission.goal".to_string()]);
+                assert_eq!(step.write_slot.as_deref(), Some("reason.plan"));
+                assert_eq!(step.mode.as_deref(), Some("speculative"));
+            }
+            other => panic!("unexpected runtime step: {:?}", other),
+        }
+    }
+
+    #[test]
+    fn compile_execution_graph_supports_tool_nodes() {
+        let graph = ExecutionGraph {
+            graph_id: None,
+            blackboard: None,
+            nodes: vec![ExecutionNode::Tool {
+                node_id: "tool-1".to_string(),
+                tool_name: "web.search".to_string(),
+                args: None,
+                checkpoint_key: None,
+                read_slots: Some(vec!["reason.plan".to_string()]),
+                write_slot: Some("tool.search".to_string()),
+            }],
+        };
+
+        let steps = compile_execution_graph_to_steps(&graph).unwrap();
+        assert_eq!(steps.len(), 1);
+        match &steps[0] {
+            RuntimeTaskStep::Tool(ToolStep {
+                node_id,
+                tool_name,
+                args,
+                read_slots,
+                write_slot,
+                ..
+            }) => {
+                assert_eq!(node_id, "tool-1");
+                assert_eq!(tool_name, "web.search");
+                assert!(args.is_none());
+                assert_eq!(read_slots.as_ref().unwrap(), &vec!["reason.plan".to_string()]);
+                assert_eq!(write_slot.as_deref(), Some("tool.search"));
+            }
+            other => panic!("unexpected runtime step: {:?}", other),
+        }
+    }
+
+    #[test]
+    fn initialize_graph_blackboard_prefers_resume_state() {
+        let graph = ExecutionGraph {
+            graph_id: None,
+            blackboard: Some(serde_json::json!({ "goal": "dock" })),
+            nodes: vec![],
+        };
+        let resume_checkpoint = serde_json::json!({
+            "graph_blackboard": {
+                "goal": "resume",
+                "nodes": {
+                    "reason-1": "done"
+                }
+            }
+        });
+
+        let blackboard = initialize_graph_blackboard(&graph, Some(&resume_checkpoint));
+        assert_eq!(blackboard["goal"], "resume");
+        assert_eq!(blackboard["nodes"]["reason-1"], "done");
+    }
+
+    #[test]
+    fn resolve_graph_value_substitutes_blackboard_placeholders() {
+        let blackboard = serde_json::json!({
+            "goal": "dock",
+            "slots": {
+                "reason.plan": "navigate"
+            },
+            "nodes": {
+                "reason-1": {
+                    "next_action": "navigate"
+                }
+            }
+        });
+
+        let resolved = resolve_graph_value(
+            serde_json::json!({
+                "prompt": "Proceed to ${goal}",
+                "action": "${nodes.reason-1.next_action}"
+            }),
+            &blackboard,
+        );
+
+        assert_eq!(resolved["prompt"], "Proceed to dock");
+        assert_eq!(resolved["action"], "navigate");
+    }
+
+    #[test]
+    fn collect_slot_inputs_returns_requested_slot_values() {
+        let blackboard = serde_json::json!({
+            "slots": {
+                "reason.plan": {"step":"navigate"},
+                "robotics.pose": {"x": 1.0}
+            }
+        });
+
+        let slots = collect_slot_inputs(&blackboard, Some(&["reason.plan".to_string(), "missing".to_string()]));
+        assert_eq!(slots.unwrap()["reason.plan"]["step"], "navigate");
+    }
+
+    #[test]
+    fn compile_execution_graph_supports_human_approval_and_memory_nodes() {
+        let graph = ExecutionGraph {
+            graph_id: Some("ops-graph".to_string()),
+            blackboard: None,
+            nodes: vec![
+                ExecutionNode::HumanApproval {
+                    node_id: "approve-1".to_string(),
+                    checkpoint_key: Some("approval-gate".to_string()),
+                    read_slots: Some(vec!["reason.plan".to_string()]),
+                    write_slot: Some("approval.result".to_string()),
+                    task: "approve deployment".to_string(),
+                    confidence: Some(0.8),
+                    context: None,
+                },
+                ExecutionNode::MemoryRecall {
+                    node_id: "recall-1".to_string(),
+                    checkpoint_key: Some("memory-recall".to_string()),
+                    read_slots: Some(vec!["reason.plan".to_string()]),
+                    write_slot: Some("memory.recall".to_string()),
+                    query: "recent incidents".to_string(),
+                    top_k: Some(3),
+                },
+                ExecutionNode::MemoryStore {
+                    node_id: "store-1".to_string(),
+                    checkpoint_key: Some("memory-store".to_string()),
+                    read_slots: Some(vec!["reason.plan".to_string()]),
+                    write_slot: Some("memory.store".to_string()),
+                    key: Some("incident-42".to_string()),
+                    content: "resolved by restarting runtime".to_string(),
+                },
+            ],
+        };
+
+        let steps = compile_execution_graph_to_steps(&graph).unwrap();
+        assert_eq!(steps.len(), 3);
+        match &steps[0] {
+            RuntimeTaskStep::HumanApproval(step) => {
+                assert_eq!(step.node_id, "approve-1");
+                assert_eq!(step.checkpoint_key.as_deref(), Some("approval-gate"));
+                assert_eq!(step.write_slot.as_deref(), Some("approval.result"));
+            }
+            other => panic!("unexpected first step: {:?}", other),
+        }
+        match &steps[1] {
+            RuntimeTaskStep::MemoryRecall(step) => {
+                assert_eq!(step.node_id, "recall-1");
+                assert_eq!(step.read_slots.as_ref().unwrap(), &vec!["reason.plan".to_string()]);
+                assert_eq!(step.top_k, Some(3));
+            }
+            other => panic!("unexpected second step: {:?}", other),
+        }
+        match &steps[2] {
+            RuntimeTaskStep::MemoryStore(step) => {
+                assert_eq!(step.node_id, "store-1");
+                assert_eq!(step.write_slot.as_deref(), Some("memory.store"));
+                assert_eq!(step.key.as_deref(), Some("incident-42"));
+            }
+            other => panic!("unexpected third step: {:?}", other),
+        }
+    }
+
+    #[test]
+    fn approval_checkpoint_metadata_contains_task() {
+        let step = RuntimeTaskStep::HumanApproval(HumanApprovalStep {
+            step_index: 5,
+            node_id: "approval-5".to_string(),
+            checkpoint_key: Some("gate-5".to_string()),
+            read_slots: Some(vec!["reason.plan".to_string()]),
+            write_slot: Some("approval.result".to_string()),
+            task: "approve mission".to_string(),
+            confidence: Some(0.6),
+            context: None,
+        });
+        let result = StepExecutionResult {
+            output_text: "human approval granted for approve mission".to_string(),
+            provider_name: "hitl:approval".to_string(),
+            usage: ExecuteUsage {
+                prompt_tokens: 0,
+                completion_tokens: 0,
+                total_tokens: 0,
+            },
+            graph_output: None,
+            checkpoint_metadata: None,
+            checkpoint_requested: false,
+        };
+
+        let metadata = build_step_checkpoint_metadata(&step, 6, &result);
+        assert_eq!(metadata["domain"], "human_approval");
+        assert_eq!(metadata["task"], "approve mission");
+        assert_eq!(metadata["node_id"], "approval-5");
+        assert_eq!(metadata["write_slot"], "approval.result");
+    }
+
+    #[test]
+    fn compile_execution_graph_supports_behavior_tree_nodes() {
+        let graph = ExecutionGraph {
+            graph_id: Some("bt-graph".to_string()),
+            blackboard: Some(serde_json::json!({
+                "goal": "dock"
+            })),
+            nodes: vec![ExecutionNode::BehaviorTree {
+                node_id: "bt-node-1".to_string(),
+                checkpoint_key: Some("bt-checkpoint".to_string()),
+                read_slots: Some(vec!["reason.plan".to_string()]),
+                write_slot: Some("bt.result".to_string()),
+                tree: serde_json::json!({
+                    "type": "sequence",
+                    "children": [
+                        { "type": "condition", "name": "battery_ok" },
+                        { "type": "action", "name": "dispatch_task" }
+                    ]
+                }),
+            }],
+        };
+
+        let steps = compile_execution_graph_to_steps(&graph).unwrap();
+        assert_eq!(steps.len(), 1);
+        match &steps[0] {
+            RuntimeTaskStep::BehaviorTree(step) => {
+                assert_eq!(step.node_id, "bt-node-1");
+                assert_eq!(step.checkpoint_key.as_deref(), Some("bt-checkpoint"));
+                assert_eq!(step.read_slots.as_ref().unwrap(), &vec!["reason.plan".to_string()]);
+                assert_eq!(step.write_slot.as_deref(), Some("bt.result"));
+                assert_eq!(step.blackboard, Some(serde_json::json!({ "goal": "dock" })));
+            }
+            other => panic!("unexpected runtime step: {:?}", other),
+        }
+    }
+
+    #[test]
+    fn behavior_tree_checkpoint_metadata_contains_node_id() {
+        let step = RuntimeTaskStep::BehaviorTree(BehaviorTreeStep {
+            step_index: 4,
+            node_id: "bt-node-4".to_string(),
+            checkpoint_key: Some("bt-key".to_string()),
+            read_slots: Some(vec!["reason.plan".to_string()]),
+            write_slot: Some("bt.result".to_string()),
+            blackboard: None,
+            tree: serde_json::json!({
+                "type": "sequence",
+                "children": []
+            }),
+        });
+        let result = StepExecutionResult {
+            output_text: "behavior tree node bt-node-4 completed successfully in 2 ticks".to_string(),
+            provider_name: "btree:bt-node-4".to_string(),
+            usage: ExecuteUsage {
+                prompt_tokens: 0,
+                completion_tokens: 0,
+                total_tokens: 0,
+            },
+            graph_output: None,
+            checkpoint_metadata: Some(serde_json::json!({
+                "tick_count": 2,
+                "blackboard_state": {
+                    "goal": "dock"
+                }
+            })),
+            checkpoint_requested: false,
+        };
+
+        let metadata = build_step_checkpoint_metadata(&step, 5, &result);
+        assert_eq!(metadata["domain"], "behavior_tree");
+        assert_eq!(metadata["node_id"], "bt-node-4");
+        assert_eq!(metadata["checkpoint_key"], "bt-key");
+        assert_eq!(metadata["write_slot"], "bt.result");
+        assert_eq!(metadata["tick_count"], 2);
+        assert_eq!(metadata["blackboard_state"]["goal"], "dock");
+    }
+
+    #[test]
+    fn update_graph_blackboard_persists_named_write_slots() {
+        let mut blackboard = serde_json::json!({});
+        let step = RuntimeTaskStep::Tool(ToolStep {
+            step_index: 2,
+            node_id: "tool-2".to_string(),
+            checkpoint_key: Some("tool-key".to_string()),
+            read_slots: Some(vec!["reason.plan".to_string()]),
+            write_slot: Some("tool.fetch".to_string()),
+            tool_name: "web.fetch".to_string(),
+            args: None,
+        });
+        let result = StepExecutionResult {
+            output_text: "fetched".to_string(),
+            provider_name: "tool:web.fetch".to_string(),
+            usage: ExecuteUsage {
+                prompt_tokens: 0,
+                completion_tokens: 0,
+                total_tokens: 0,
+            },
+            graph_output: Some(serde_json::json!({"content":"fetched"})),
+            checkpoint_metadata: None,
+            checkpoint_requested: false,
+        };
+
+        update_graph_blackboard(&mut blackboard, &step, &result);
+        assert_eq!(blackboard["nodes"]["tool-2"]["content"], "fetched");
+        assert_eq!(blackboard["slots"]["tool.fetch"]["content"], "fetched");
     }
 }
