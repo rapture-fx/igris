@@ -9,11 +9,13 @@ Choose this path when you need:
 - offline or low-connectivity operation
 - runtime-local behavior tree execution
 
+If those requirements are not central to the workload, start with the hosted API first. Local runtime is a deployment choice, not the default onboarding path.
+
 ---
 
 ## 1. Download the runtime archive
 
-Use the authenticated runtime distribution endpoints for your platform.
+Use the runtime distribution endpoints for your platform and treat download as a provisioning step, not as application traffic.
 
 ```bash
 export IGRIS_PLATFORM="linux-amd64"
@@ -67,7 +69,7 @@ igris-runtime serve
 curl http://localhost:8080/v1/health
 ```
 
-Use the local runtime API only against the runtime base URL, not the hosted API.
+Use the local runtime API only against the runtime base URL, not the hosted API. That sounds obvious, but it is one of the most common integration mistakes once teams begin mixing hosted and local deployment models.
 
 ## 5. Test a local call
 
