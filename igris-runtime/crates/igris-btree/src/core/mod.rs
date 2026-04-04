@@ -60,7 +60,9 @@ mod context;
 mod node;
 mod status;
 
-pub use blackboard::Blackboard;
+pub use blackboard::{Blackboard, BlackboardEntry, ScopedBlackboard};
 pub use context::BTreeContext;
+#[cfg(feature = "wal")]
+pub use context::BtWalSession;
 pub use node::{BTreeNode, NodeMetadata};
 pub use status::NodeStatus;
