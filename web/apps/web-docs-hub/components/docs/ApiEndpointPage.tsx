@@ -277,6 +277,20 @@ export function ApiEndpointPage({ data }: ApiEndpointPageProps) {
               </ul>
             </div>
           )}
+          {data.relatedGuides.length > 0 && (
+            <div>
+              <h3 className="m-0 text-sm font-semibold text-slate-900">Related Guides</h3>
+              <ul className="mb-0 mt-3 list-disc space-y-2 pl-5">
+                {data.relatedGuides.map((guide) => (
+                  <li key={guide.href}>
+                    <Link href={guide.href} className="text-sm text-primary no-underline hover:underline">
+                      {guide.label}
+                    </Link>
+                  </li>
+                ))}
+              </ul>
+            </div>
+          )}
         </div>
       </AnchorSection>
 
