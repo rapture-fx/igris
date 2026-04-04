@@ -1,5 +1,6 @@
 'use client';
 
+import Link from 'next/link';
 import type { ReactNode } from 'react';
 import { useEffect, useMemo, useState } from 'react';
 import { ApiCodeTabs } from '@/components/docs/ApiCodeTabs';
@@ -63,6 +64,62 @@ function FieldList({ id, title, fields }: { id: string; title: string; fields: A
   );
 }
 
+function statusBadgeClass(code: number) {
+  if (code >= 200 && code < 300) {
+    return 'bg-emerald-50 text-emerald-700';
+  }
+  if (code >= 300 && code < 400) {
+    return 'bg-sky-50 text-sky-700';
+  }
+  if (code === 400) {
+    return 'bg-amber-50 text-amber-800';
+  }
+  if (code === 401 || code === 403) {
+    return 'bg-orange-50 text-orange-700';
+  }
+  if (code === 404) {
+    return 'bg-yellow-50 text-yellow-800';
+  }
+  if (code === 429) {
+    return 'bg-rose-50 text-rose-700';
+  }
+  if (code >= 500) {
+    return 'bg-red-50 text-red-700';
+  }
+
+  return 'bg-gray-100 text-gray-700';
+}
+
+function supportBadgeClass(support: ApiEndpointPageData['endpoint']['support']) {
+  if (support === 'core') {
+    return 'bg-emerald-50 text-emerald-700';
+  }
+  if (support === 'preview') {
+    return 'bg-amber-50 text-amber-800';
+  }
+  return 'bg-blue-50 text-blue-700';
+}
+
+function supportLabel(support: ApiEndpointPageData['endpoint']['support']) {
+  if (support === 'core') {
+    return 'Core';
+  }
+  if (support === 'preview') {
+    return 'Preview';
+  }
+  return 'Supported';
+}
+
+function deploymentLabel(mode: ApiEndpointPageData['endpoint']['deployment']) {
+  if (mode === 'cloud') {
+    return 'Cloud';
+  }
+  if (mode === 'local') {
+    return 'Local';
+  }
+  return 'Hybrid';
+}
+
 function StatusCodeList({ statusCodes }: { statusCodes: ApiStatusCode[] }) {
   if (statusCodes.length === 0) {
     return (
@@ -88,7 +145,7 @@ function StatusCodeList({ statusCodes }: { statusCodes: ApiStatusCode[] }) {
         {statusCodes.map((status) => (
           <div key={status.code} className="px-4 py-3">
             <div className="flex items-center gap-2">
-              <span className="rounded-md bg-gray-100 px-2 py-1 text-xs font-semibold text-gray-700">
+              <span className={cn('rounded-md px-2 py-1 text-xs font-semibold', statusBadgeClass(status.code))}>
                 {status.code}
               </span>
               <span className="text-sm font-medium text-slate-900">{status.title}</span>
@@ -121,11 +178,17 @@ export function ApiEndpointPage({ data }: ApiEndpointPageProps) {
           <span className="rounded-md bg-gray-100 px-2.5 py-1 text-xs font-semibold text-gray-700">
             {data.endpoint.method}
           </span>
+          <span className={`rounded-md px-2.5 py-1 text-xs font-semibold ${supportBadgeClass(data.endpoint.support)}`}>
+            {supportLabel(data.endpoint.support)}
+          </span>
           <span className="rounded-md bg-gray-100 px-2.5 py-1 text-xs font-semibold text-gray-700">
-            {data.endpoint.stability}
+            {deploymentLabel(data.endpoint.deployment)}
           </span>
           <span className="rounded-md bg-gray-100 px-2.5 py-1 text-xs font-semibold text-gray-700">
             {data.endpoint.surface}
+          </span>
+          <span className="rounded-md bg-gray-100 px-2.5 py-1 text-xs font-semibold text-gray-700">
+            {data.endpoint.stability}
           </span>
           <span className={`rounded-md px-2.5 py-1 text-xs font-semibold ${coverageClass}`}>
             {data.endpoint.coverageLabel ?? 'Documented'}
@@ -160,16 +223,60 @@ export function ApiEndpointPage({ data }: ApiEndpointPageProps) {
               </dd>
             </div>
             <div className="min-h-[7rem] px-5 py-4">
-              <dt className="text-[0.72rem] font-semibold uppercase tracking-wide text-gray-500">Coverage</dt>
+              <dt className="text-[0.72rem] font-semibold uppercase tracking-wide text-gray-500">Support</dt>
               <dd className="mt-3">
                 <div className="rounded-lg bg-gray-50 px-3 py-2">
-                  <span className={`inline-flex rounded-full px-2.5 py-1 text-xs font-semibold ${coverageClass}`}>
-                    {data.endpoint.coverageLabel ?? 'Documented'}
-                  </span>
+                  <div className="flex flex-wrap items-center gap-2">
+                    <span className={`inline-flex rounded-full px-2.5 py-1 text-xs font-semibold ${supportBadgeClass(data.endpoint.support)}`}>
+                      {supportLabel(data.endpoint.support)}
+                    </span>
+                    <span className="inline-flex rounded-full bg-gray-100 px-2.5 py-1 text-xs font-semibold text-gray-700">
+                      {deploymentLabel(data.endpoint.deployment)}
+                    </span>
+                    <span className={`inline-flex rounded-full px-2.5 py-1 text-xs font-semibold ${coverageClass}`}>
+                      {data.endpoint.coverageLabel ?? 'Documented'}
+                    </span>
+                  </div>
                 </div>
               </dd>
             </div>
           </dl>
+        </div>
+      </AnchorSection>
+
+      <AnchorSection id="when-to-use" className="space-y-3 border-t border-gray-200 pt-8">
+        <h2 className="m-0 text-lg font-semibold text-slate-900">When To Use</h2>
+        <p className="mb-0 text-sm leading-7 text-slate-700">{data.whenToUse}</p>
+      </AnchorSection>
+
+      <AnchorSection id="integration-guidance" className="space-y-3 border-t border-gray-200 pt-8">
+        <h2 className="m-0 text-lg font-semibold text-slate-900">Integration Guidance</h2>
+        <div className="space-y-3 text-sm leading-7 text-slate-700">
+          <p className="mb-0">{data.retryGuidance}</p>
+          {data.commonMistakes.length > 0 && (
+            <div>
+              <h3 className="m-0 text-sm font-semibold text-slate-900">Common Mistakes</h3>
+              <ul className="mb-0 mt-3 space-y-2 pl-5">
+                {data.commonMistakes.map((mistake) => (
+                  <li key={mistake}>{mistake}</li>
+                ))}
+              </ul>
+            </div>
+          )}
+          {data.relatedEndpoints.length > 0 && (
+            <div>
+              <h3 className="m-0 text-sm font-semibold text-slate-900">Related Endpoints</h3>
+              <ul className="mb-0 mt-3 space-y-2">
+                {data.relatedEndpoints.map((related) => (
+                  <li key={related.href}>
+                    <Link href={related.href} className="text-sm text-primary no-underline hover:underline">
+                      {related.label}
+                    </Link>
+                  </li>
+                ))}
+              </ul>
+            </div>
+          )}
         </div>
       </AnchorSection>
 
@@ -218,6 +325,9 @@ export function ApiEndpointPage({ data }: ApiEndpointPageProps) {
 export function ApiEndpointRightRail({ data }: ApiEndpointPageProps) {
   const anchors = useMemo<EndpointAnchor[]>(() => {
     const items: EndpointAnchor[] = [{ id: 'overview', label: 'Overview' }];
+
+    items.push({ id: 'when-to-use', label: 'When To Use' });
+    items.push({ id: 'integration-guidance', label: 'Integration Guidance' });
 
     if (data.pathParams.length > 0) {
       items.push({ id: 'path-parameters', label: 'Path Parameters' });
