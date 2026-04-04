@@ -1,6 +1,8 @@
 # Quick Start
 
-Get Igris working in the mode you actually plan to ship: cloud-only, local runtime, or hybrid.
+Start with the integration path you actually plan to ship.
+
+For most teams, the fastest path to production is the OpenAI-compatible cloud API. When you need native Igris features beyond that surface, the first-class native SDKs today are JavaScript/TypeScript, Go, and Rust. Local runtime and hybrid deployment come next when you need on-device execution, fleet coordination, or offline operation.
 
 ---
 
@@ -15,7 +17,7 @@ Get Igris working in the mode you actually plan to ship: cloud-only, local runti
 
 ## Option A: Cloud API
 
-Use Overture directly when you want the fastest integration path.
+This is the recommended starting path for most customers.
 
 ### 1. Add a provider key
 
@@ -34,29 +36,29 @@ curl -X POST https://overture.igrisinertial.com/v1/vault/keys \
 
 ### 2. Point your client at Igris
 
-```python
-from openai import OpenAI
+```typescript
+import OpenAI from 'openai';
 
-client = OpenAI(
-    base_url="https://overture.igrisinertial.com/v1",
-    api_key="YOUR_IGRIS_API_KEY",
-)
+const client = new OpenAI({
+  baseURL: 'https://overture.igrisinertial.com/v1',
+  apiKey: process.env.IGRIS_API_KEY,
+});
 
-response = client.chat.completions.create(
-    model="gpt-4",
-    messages=[{"role": "user", "content": "Hello"}],
-)
+const response = await client.chat.completions.create({
+  model: 'gpt-4o-mini',
+  messages: [{ role: 'user', content: 'Hello' }],
+});
 
-print(response.choices[0].message.content)
+console.log(response.choices[0].message.content);
 ```
 
-That is enough for the OpenAI-compatible path. Native SDKs add receipt helpers, fleet APIs, and routing metadata.
+That is enough for the fastest supported path. Move to the native SDKs when you need receipt helpers, fleet APIs, vault operations, or richer routing metadata.
 
 ---
 
 ## Option B: Local Runtime
 
-Use `igris-runtime` when you want local inference, local policy enforcement, or offline execution.
+Use `igris-runtime` when the workload should execute on the machine itself: local inference, local policy enforcement, or offline execution.
 
 ### 1. Download the runtime archive
 
@@ -131,25 +133,25 @@ At this point the runtime serves a local API on `http://localhost:8080`. That al
 
 ### 6. Point your application at the local runtime
 
-```python
-from openai import OpenAI
+```typescript
+import OpenAI from 'openai';
 
-client = OpenAI(
-    base_url="http://localhost:8080/v1",
-    api_key="YOUR_IGRIS_API_KEY",
-)
+const client = new OpenAI({
+  baseURL: 'http://localhost:8080/v1',
+  apiKey: process.env.IGRIS_API_KEY,
+});
 
-response = client.chat.completions.create(
-    model="phi3",
-    messages=[{"role": "user", "content": "Hello"}],
-)
+const response = await client.chat.completions.create({
+  model: 'phi3',
+  messages: [{ role: 'user', content: 'Hello' }],
+});
 ```
 
 ---
 
 ## Option C: Hybrid Cloud + Local Runtime
 
-Use Overture for routing and failover, but keep a local runtime available.
+Use this when you want the hosted product as the main API surface, but still want a local runtime available for fleet participation, failover, or on-device execution.
 
 ### 1. Start the runtime with registration credentials
 
@@ -172,13 +174,13 @@ If license validation succeeds and the control plane is reachable, the runtime w
 
 Your app continues to call Overture:
 
-```python
-from openai import OpenAI
+```typescript
+import OpenAI from 'openai';
 
-client = OpenAI(
-    base_url="https://overture.igrisinertial.com/v1",
-    api_key="YOUR_IGRIS_API_KEY",
-)
+const client = new OpenAI({
+  baseURL: 'https://overture.igrisinertial.com/v1',
+  apiKey: process.env.IGRIS_API_KEY,
+});
 ```
 
 Keep the runtime healthy and reachable if you expect it to participate in fleet workflows or failover paths.
