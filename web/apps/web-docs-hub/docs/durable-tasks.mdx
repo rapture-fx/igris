@@ -2,7 +2,7 @@
 
 Long-running agent workflows and robotics missions need to survive the infrastructure they run on. Durable task execution gives every multi-step task a tamper-evident Write-Ahead Log (WAL), periodic checkpoints, and automatic failover to a healthy runtime if the executing one goes dark.
 
-A task that was 40 steps into a 100-step workflow when its runtime crashed resumes at step 41 on a new runtime — with the same blackboard state, verified by digest, and a signed audit trail that covers the gap.
+A task that was 40 steps into a 100-step workflow when its runtime crashed resumes at step 41 instead of starting over, with durable progress metadata and a signed audit trail that covers the handoff.
 
 ---
 
@@ -30,25 +30,22 @@ Content-Type: application/json
 {
   "task_type": "agent_workflow",
   "task_definition": {
-    "task_type": {
-      "type": "agent_workflow",
-      "steps": [
-        {
-          "step_index": 0,
-          "model": "gpt-4o",
-          "messages": [
-            { "role": "user", "content": "Summarize the Q3 report" }
-          ]
-        },
-        {
-          "step_index": 1,
-          "model": "gpt-4o",
-          "messages": [
-            { "role": "user", "content": "Extract action items from the summary" }
-          ]
-        }
-      ]
-    }
+    "steps": [
+      {
+        "step_index": 0,
+        "model": "gpt-4o",
+        "messages": [
+          { "role": "user", "content": "Summarize the Q3 report" }
+        ]
+      },
+      {
+        "step_index": 1,
+        "model": "gpt-4o",
+        "messages": [
+          { "role": "user", "content": "Extract action items from the summary" }
+        ]
+      }
+    ]
   },
   "idempotency_key": "report-q3-2026-run-1",
   "deadline_at": "2026-04-04T18:00:00Z"
@@ -65,7 +62,7 @@ The coordination layer creates a task record, selects the healthiest available r
 }
 ```
 
-The `idempotency_key` is deduplicated — submitting the same key twice returns the original response without re-executing.
+The `idempotency_key` deduplicates repeat submissions for the same tenant. Reusing the same key returns the existing durable task instead of creating a second one.
 
 ---
 
@@ -143,11 +140,10 @@ Tasks without a deadline run until all steps complete, the runtime fails, or you
 
 ## Robotics workflows
 
-For robotics, the `task_type` is `robotics_workflow`. Steps are physical actions dispatched over ROS2.
+For robotics, set `task_type` to `robotics_workflow`. The `task_definition` object carries the ROS2-oriented steps:
 
 ```json
 {
-  "task_type": "robotics_workflow",
   "steps": [
     {
       "step_index": 0,
@@ -179,7 +175,24 @@ On recovery, the new runtime:
 2. Re-creates the behavior tree from the original definition
 3. Resumes ticking from the last committed step, verified by digest
 
-Submit a `behavior_tree` task via `/v1/tasks/submit` to get full WAL-backed, crash-recoverable BT execution. The coordinator handles dispatch, checkpointing, and recovery automatically — the same guarantees as agent and robotics workflows. The `/v1/btree/run` HTTP endpoint runs trees without WAL; use `behavior_tree` task type when durability is required.
+Submit a `behavior_tree` task via `/v1/tasks/submit` to get full WAL-backed, crash-recoverable BT execution. Use this `task_definition` shape:
+
+```json
+{
+  "tree": {
+    "type": "sequence",
+    "children": [
+      { "type": "condition", "name": "battery_ok" },
+      { "type": "action", "name": "dispatch_task" }
+    ]
+  },
+  "max_ticks": 1000,
+  "timeout_ms": 30000,
+  "checkpoint_every": 10
+}
+```
+
+The `/v1/btree/run` HTTP endpoint runs trees without durable checkpointing; use `behavior_tree` task type when recovery matters.
 
 [Behavior Trees →](/docs/behavior-trees)
 
@@ -189,7 +202,7 @@ Submit a `behavior_tree` task via `/v1/tasks/submit` to get full WAL-backed, cra
 
 Every committed WAL entry is signed with the runtime's Ed25519 key. The signature covers a deterministic canonical JSON representation of the entry (BTreeMap-sorted field order, output digest, step index, timestamp). Signatures are stored in the WAL and included in checkpoint payloads.
 
-The coordination layer can verify any checkpoint against the WAL entries it received:
+Checkpoint metadata and signed WAL entries make tampering detectable:
 - Step ordering is enforced by `step_index`
 - The rolling checkpoint digest links every committed step in sequence
 - An entry cannot be inserted, removed, or reordered without breaking the digest
@@ -202,14 +215,11 @@ The coordination layer can verify any checkpoint against the WAL entries it rece
 
 | Method | Path | Description |
 |---|---|---|
-| `POST` | `/v1/tasks/submit` | Submit a new task |
+| `POST` | `/v1/tasks/submit` | Submit a new durable task |
 | `GET` | `/v1/tasks/:id` | Get task status and last checkpoint |
 | `GET` | `/v1/tasks` | List tasks for your tenant |
-| `POST` | `/v1/tasks/:id/checkpoint` | Push a checkpoint (called by runtime) |
-| `POST` | `/v1/tasks/:id/complete` | Mark a task completed (called by runtime) |
-| `POST` | `/v1/tasks/:id/failed` | Mark a task failed (called by runtime) |
 
-The `/checkpoint`, `/complete`, and `/failed` endpoints are called by the runtime itself and are authenticated via the same API key mechanism. External callers typically only use `submit`, `GET :id`, and `GET /`.
+These three endpoints are the customer durable-task surface.
 
 ---
 
