@@ -174,6 +174,10 @@ fn is_public_path(path: &str) -> bool {
         || path.starts_with("/mcp")
 }
 
+fn requires_overture_decision_signature(path: &str) -> bool {
+    path == "/v1/runtime/execute" || path == "/v1/runtime/task/submit"
+}
+
 pub async fn security_middleware(
     State(state): State<AppState>,
     mut req: Request<Body>,
@@ -188,9 +192,9 @@ pub async fn security_middleware(
         return next.run(req).await;
     }
 
-    // P0-3: Verify Overture's decision signature for /v1/runtime/execute.
+    // Verify Overture's decision signature for Runtime execution submission paths.
     // Applied before auth.enabled check so it fires even in auth-disabled deployments.
-    if path == "/v1/runtime/execute" {
+    if requires_overture_decision_signature(&path) {
         if let Some(overture_key) = &state.overture_public_key {
             let sig_b64 = req
                 .headers()
@@ -346,5 +350,4 @@ mod tests {
         assert!(!rl.allow("k").await);
     }
 }
-
 
