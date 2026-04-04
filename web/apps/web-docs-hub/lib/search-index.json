@@ -275,614 +275,279 @@
     "keywords": "how adaptive routing works the problem how it works why this matters for your workload automatic adaptation handles new providers gracefully balances cost and performance configuration monitoring thompson-sampling-routing"
   },
   {
+    "title": "API Introduction",
+    "path": "/docs/api-reference/introduction",
+    "keywords": "api introduction base url surfaces overview contract"
+  },
+  {
+    "title": "API Authentication",
+    "path": "/docs/api-reference/authentication",
+    "keywords": "api authentication bearer api key session cookie runtime auth"
+  },
+  {
+    "title": "API Errors",
+    "path": "/docs/api-reference/errors",
+    "keywords": "api errors error codes invalid request unauthorized internal error"
+  },
+  {
+    "title": "API Rate Limits",
+    "path": "/docs/api-reference/rate-limits",
+    "keywords": "api rate limits retry-after 429 throttle"
+  },
+  {
     "title": "POST /v1/infer",
-    "path": "/docs/api-reference",
+    "path": "/docs/api-reference/inference-integration/post-v1-infer",
     "keywords": "inference & integration post /v1/infer native inference endpoint handled by overture. deployment-dependent cloud api"
   },
   {
     "title": "POST /v1/chat/completions",
-    "path": "/docs/api-reference",
+    "path": "/docs/api-reference/inference-integration/post-v1-chat-completions",
     "keywords": "inference & integration post /v1/chat/completions openai-compatible chat completions endpoint. deployment-dependent cloud api"
   },
   {
     "title": "GET /v1/health",
-    "path": "/docs/api-reference",
+    "path": "/docs/api-reference/inference-integration/get-v1-health",
     "keywords": "inference & integration get /v1/health health check for inference availability. public cloud api"
   },
   {
     "title": "GET /v1/models",
-    "path": "/docs/api-reference",
+    "path": "/docs/api-reference/inference-integration/get-v1-models",
     "keywords": "inference & integration get /v1/models lists models visible to the inference layer. public cloud api"
   },
   {
     "title": "GET /v1/providers/stats",
-    "path": "/docs/api-reference",
+    "path": "/docs/api-reference/inference-integration/get-v1-providers-stats",
     "keywords": "inference & integration get /v1/providers/stats provider latency, health, and routing statistics. public cloud api"
   },
   {
     "title": "POST /v1/infer/multimodal",
-    "path": "/docs/api-reference",
+    "path": "/docs/api-reference/inference-integration/post-v1-infer-multimodal",
     "keywords": "inference & integration post /v1/infer/multimodal multimodal inference endpoint. session or api key cloud api"
   },
   {
     "title": "GET /v1/infer/multimodal/stats",
-    "path": "/docs/api-reference",
+    "path": "/docs/api-reference/inference-integration/get-v1-infer-multimodal-stats",
     "keywords": "inference & integration get /v1/infer/multimodal/stats multimodal request statistics. session or api key cloud api"
   },
   {
-    "title": "POST /v1/mcp",
-    "path": "/docs/api-reference",
-    "keywords": "inference & integration post /v1/mcp mcp request endpoint. session or api key cloud api"
-  },
-  {
-    "title": "POST /v1/mcp/stream",
-    "path": "/docs/api-reference",
-    "keywords": "inference & integration post /v1/mcp/stream streaming mcp endpoint. session or api key cloud api"
-  },
-  {
     "title": "GET /v1/runtime/install",
-    "path": "/docs/api-reference",
+    "path": "/docs/api-reference/runtime-distribution-fleet-coordination/get-v1-runtime-install",
     "keywords": "runtime distribution & fleet coordination get /v1/runtime/install returns or redirects to the platform-specific runtime archive. public cloud api"
   },
   {
     "title": "GET /v1/runtime/checksum",
-    "path": "/docs/api-reference",
+    "path": "/docs/api-reference/runtime-distribution-fleet-coordination/get-v1-runtime-checksum",
     "keywords": "runtime distribution & fleet coordination get /v1/runtime/checksum returns the sha-256 checksum for a runtime archive. public cloud api"
   },
   {
     "title": "GET /v1/runtime/download",
-    "path": "/docs/api-reference",
+    "path": "/docs/api-reference/runtime-distribution-fleet-coordination/get-v1-runtime-download",
     "keywords": "runtime distribution & fleet coordination get /v1/runtime/download subscribed runtime binary download endpoint. session or api key cloud api"
   },
   {
     "title": "POST /api/v1/runtime/register",
-    "path": "/docs/api-reference",
+    "path": "/docs/api-reference/runtime-distribution-fleet-coordination/post-api-v1-runtime-register",
     "keywords": "runtime distribution & fleet coordination post /api/v1/runtime/register registers a runtime instance against a tenant. igris_ api key runtime coordination api"
   },
   {
     "title": "POST /api/v1/runtime/heartbeat",
-    "path": "/docs/api-reference",
+    "path": "/docs/api-reference/runtime-distribution-fleet-coordination/post-api-v1-runtime-heartbeat",
     "keywords": "runtime distribution & fleet coordination post /api/v1/runtime/heartbeat heartbeat and liveness updates from runtime instances. igris_ api key runtime coordination api"
   },
   {
     "title": "DELETE /api/v1/runtime/deregister",
-    "path": "/docs/api-reference",
+    "path": "/docs/api-reference/runtime-distribution-fleet-coordination/delete-api-v1-runtime-deregister",
     "keywords": "runtime distribution & fleet coordination delete /api/v1/runtime/deregister removes a runtime instance from active fleet state. igris_ api key runtime coordination api"
   },
   {
-    "title": "GET /api/v1/runtime/commands",
-    "path": "/docs/api-reference",
-    "keywords": "runtime distribution & fleet coordination get /api/v1/runtime/commands fetches queued commands for a runtime and clears them. igris_ api key runtime coordination api"
-  },
-  {
     "title": "GET /api/v1/runtime/list",
-    "path": "/docs/api-reference",
-    "keywords": "runtime distribution & fleet coordination get /api/v1/runtime/list lists registered runtime instances. session cookie fleet management"
+    "path": "/docs/api-reference/runtime-distribution-fleet-coordination/get-api-v1-runtime-list",
+    "keywords": "runtime distribution & fleet coordination get /api/v1/runtime/list lists registered runtime instances for a tenant. tenant_id query or authenticated tenant context fleet management"
   },
   {
     "title": "POST /api/v1/runtime/config/push",
-    "path": "/docs/api-reference",
+    "path": "/docs/api-reference/runtime-distribution-fleet-coordination/post-api-v1-runtime-config-push",
     "keywords": "runtime distribution & fleet coordination post /api/v1/runtime/config/push queues configuration push commands for the fleet. session cookie fleet management"
   },
   {
     "title": "POST /api/v1/runtime/update",
-    "path": "/docs/api-reference",
+    "path": "/docs/api-reference/runtime-distribution-fleet-coordination/post-api-v1-runtime-update",
     "keywords": "runtime distribution & fleet coordination post /api/v1/runtime/update queues ota update commands for the fleet. session cookie fleet management"
   },
   {
-    "title": "POST /v1/trial/start",
-    "path": "/docs/api-reference",
-    "keywords": "account, trial, and billing post /v1/trial/start starts a 7-day trial on a selected tier. session cookie or igris_ api key cloud api"
-  },
-  {
-    "title": "GET /v1/trial/status",
-    "path": "/docs/api-reference",
-    "keywords": "account, trial, and billing get /v1/trial/status returns current trial state for the tenant. session cookie or igris_ api key cloud api"
-  },
-  {
     "title": "GET /api/subscription/status",
-    "path": "/docs/api-reference",
+    "path": "/docs/api-reference/account-trial-and-billing/get-api-subscription-status",
     "keywords": "account, trial, and billing get /api/subscription/status returns subscription tier, status, and runtime usage. session cookie or igris_ api key cloud api"
   },
   {
     "title": "GET /api/subscription/plans",
-    "path": "/docs/api-reference",
+    "path": "/docs/api-reference/account-trial-and-billing/get-api-subscription-plans",
     "keywords": "account, trial, and billing get /api/subscription/plans lists available plans and checkout urls. session cookie or igris_ api key cloud api"
   },
   {
     "title": "GET /v1/account/api-key",
-    "path": "/docs/api-reference",
+    "path": "/docs/api-reference/account-trial-and-billing/get-v1-account-api-key",
     "keywords": "account, trial, and billing get /v1/account/api-key returns current api key metadata without revealing the secret. session cookie or igris_ api key cloud api"
   },
   {
     "title": "POST /v1/account/api-key",
-    "path": "/docs/api-reference",
+    "path": "/docs/api-reference/account-trial-and-billing/post-v1-account-api-key",
     "keywords": "account, trial, and billing post /v1/account/api-key creates a new tenant api key and revokes the old one. session cookie or igris_ api key cloud api"
   },
   {
     "title": "DELETE /v1/account/api-key",
-    "path": "/docs/api-reference",
+    "path": "/docs/api-reference/account-trial-and-billing/delete-v1-account-api-key",
     "keywords": "account, trial, and billing delete /v1/account/api-key revokes the current tenant api key. session cookie or igris_ api key cloud api"
   },
   {
     "title": "GET /v1/vault/keys",
-    "path": "/docs/api-reference",
+    "path": "/docs/api-reference/vault-policy-and-governance/get-v1-vault-keys",
     "keywords": "vault, policy, and governance get /v1/vault/keys lists configured provider keys with masked values. session cookie or igris_ api key cloud api"
   },
   {
     "title": "POST /v1/vault/keys",
-    "path": "/docs/api-reference",
+    "path": "/docs/api-reference/vault-policy-and-governance/post-v1-vault-keys",
     "keywords": "vault, policy, and governance post /v1/vault/keys stores a provider key using `{ provider, key_name, api_key }`. session cookie or igris_ api key cloud api"
   },
   {
     "title": "GET /v1/vault/keys/:provider",
-    "path": "/docs/api-reference",
+    "path": "/docs/api-reference/vault-policy-and-governance/get-v1-vault-keys-provider",
     "keywords": "vault, policy, and governance get /v1/vault/keys/:provider gets a single provider key record. session cookie or igris_ api key cloud api"
   },
   {
     "title": "DELETE /v1/vault/keys/:provider",
-    "path": "/docs/api-reference",
+    "path": "/docs/api-reference/vault-policy-and-governance/delete-v1-vault-keys-provider",
     "keywords": "vault, policy, and governance delete /v1/vault/keys/:provider deletes a provider key. session cookie or igris_ api key cloud api"
   },
   {
     "title": "POST /v1/vault/keys/:provider/rotate",
-    "path": "/docs/api-reference",
+    "path": "/docs/api-reference/vault-policy-and-governance/post-v1-vault-keys-provider-rotate",
     "keywords": "vault, policy, and governance post /v1/vault/keys/:provider/rotate rotates a provider key. session cookie or igris_ api key cloud api"
   },
   {
     "title": "POST /v1/vault/keys/:provider/validate",
-    "path": "/docs/api-reference",
+    "path": "/docs/api-reference/vault-policy-and-governance/post-v1-vault-keys-provider-validate",
     "keywords": "vault, policy, and governance post /v1/vault/keys/:provider/validate validates a provider key with the current backend implementation. session cookie or igris_ api key cloud api"
   },
   {
-    "title": "GET /policy/bounds",
-    "path": "/docs/api-reference",
-    "keywords": "vault, policy, and governance get /policy/bounds returns execution resource bounds for the tenant. session cookie or igris_ api key console policy api"
-  },
-  {
-    "title": "POST /policy/bounds",
-    "path": "/docs/api-reference",
-    "keywords": "vault, policy, and governance post /policy/bounds updates execution resource bounds. session cookie or igris_ api key console policy api"
-  },
-  {
-    "title": "GET /policy/capabilities",
-    "path": "/docs/api-reference",
-    "keywords": "vault, policy, and governance get /policy/capabilities returns capability policy configuration. session cookie or igris_ api key console policy api"
-  },
-  {
-    "title": "POST /policy/capabilities",
-    "path": "/docs/api-reference",
-    "keywords": "vault, policy, and governance post /policy/capabilities updates capability policy configuration. session cookie or igris_ api key console policy api"
-  },
-  {
-    "title": "GET /policy/capabilities/history",
-    "path": "/docs/api-reference",
-    "keywords": "vault, policy, and governance get /policy/capabilities/history returns capability policy change history. session cookie or igris_ api key console policy api"
-  },
-  {
-    "title": "GET /policy/history",
-    "path": "/docs/api-reference",
-    "keywords": "vault, policy, and governance get /policy/history returns bounds policy change history. session cookie or igris_ api key console policy api"
-  },
-  {
     "title": "GET /v1/policy",
-    "path": "/docs/api-reference",
+    "path": "/docs/api-reference/vault-policy-and-governance/get-v1-policy",
     "keywords": "vault, policy, and governance get /v1/policy returns tenant policy document. session cookie or igris_ api key cloud api"
   },
   {
     "title": "PUT /v1/policy",
-    "path": "/docs/api-reference",
+    "path": "/docs/api-reference/vault-policy-and-governance/put-v1-policy",
     "keywords": "vault, policy, and governance put /v1/policy replaces tenant policy document. session cookie or igris_ api key cloud api"
   },
   {
     "title": "GET /v1/policy/history",
-    "path": "/docs/api-reference",
+    "path": "/docs/api-reference/vault-policy-and-governance/get-v1-policy-history",
     "keywords": "vault, policy, and governance get /v1/policy/history returns tenant policy history. session cookie or igris_ api key cloud api"
   },
   {
-    "title": "GET /v1/execution/runs",
-    "path": "/docs/api-reference",
-    "keywords": "execution, history, and receipts get /v1/execution/runs lists execution runs. session cookie or igris_ api key cloud api"
-  },
-  {
-    "title": "POST /v1/execution/runs/:id/pause",
-    "path": "/docs/api-reference",
-    "keywords": "execution, history, and receipts post /v1/execution/runs/:id/pause pauses a running execution. session cookie or igris_ api key cloud api"
-  },
-  {
-    "title": "POST /v1/execution/runs/:id/resume",
-    "path": "/docs/api-reference",
-    "keywords": "execution, history, and receipts post /v1/execution/runs/:id/resume resumes a paused execution. session cookie or igris_ api key cloud api"
-  },
-  {
-    "title": "POST /v1/execution/runs/:id/cancel",
-    "path": "/docs/api-reference",
-    "keywords": "execution, history, and receipts post /v1/execution/runs/:id/cancel cancels an execution. session cookie or igris_ api key cloud api"
-  },
-  {
-    "title": "POST /v1/execution/runs/:id/replay",
-    "path": "/docs/api-reference",
-    "keywords": "execution, history, and receipts post /v1/execution/runs/:id/replay replays an execution with the same inputs. session cookie or igris_ api key cloud api"
-  },
-  {
-    "title": "POST /v1/execution/runs/:id/approve",
-    "path": "/docs/api-reference",
-    "keywords": "execution, history, and receipts post /v1/execution/runs/:id/approve approves a paused execution. session cookie or igris_ api key cloud api"
-  },
-  {
-    "title": "POST /v1/execution/runs/:id/reject",
-    "path": "/docs/api-reference",
-    "keywords": "execution, history, and receipts post /v1/execution/runs/:id/reject rejects a paused execution. session cookie or igris_ api key cloud api"
-  },
-  {
-    "title": "GET /v1/execution/agents",
-    "path": "/docs/api-reference",
-    "keywords": "execution, history, and receipts get /v1/execution/agents lists agents derived from execution history. session cookie or igris_ api key cloud api"
-  },
-  {
-    "title": "PATCH /v1/agents/:id",
-    "path": "/docs/api-reference",
-    "keywords": "execution, history, and receipts patch /v1/agents/:id updates agent metadata and mode flags. session cookie or igris_ api key cloud api"
-  },
-  {
-    "title": "GET /v1/agents/:id/bt-state",
-    "path": "/docs/api-reference",
-    "keywords": "execution, history, and receipts get /v1/agents/:id/bt-state gets the latest behavior-tree state snapshot. session cookie or igris_ api key cloud api"
-  },
-  {
-    "title": "GET /v1/agents/:id/bt-state/stream",
-    "path": "/docs/api-reference",
-    "keywords": "execution, history, and receipts get /v1/agents/:id/bt-state/stream streams behavior-tree state updates. session cookie or igris_ api key cloud api"
-  },
-  {
     "title": "GET /v1/history/events",
-    "path": "/docs/api-reference",
+    "path": "/docs/api-reference/execution-history-and-receipts/get-v1-history-events",
     "keywords": "execution, history, and receipts get /v1/history/events lists execution history events. supports `range`, `limit`, `agent_id`, and `device_id`. session cookie or igris_ api key cloud api"
   },
   {
-    "title": "GET /v1/history/metrics",
-    "path": "/docs/api-reference",
-    "keywords": "execution, history, and receipts get /v1/history/metrics returns summary metrics and throughput time series. session cookie or igris_ api key cloud api"
-  },
-  {
-    "title": "GET /v1/history/alerts",
-    "path": "/docs/api-reference",
-    "keywords": "execution, history, and receipts get /v1/history/alerts lists alert and policy-violation events. session cookie or igris_ api key cloud api"
-  },
-  {
-    "title": "POST /v1/history/alerts/:id/acknowledge",
-    "path": "/docs/api-reference",
-    "keywords": "execution, history, and receipts post /v1/history/alerts/:id/acknowledge acknowledges an alert. session cookie or igris_ api key cloud api"
-  },
-  {
-    "title": "POST /v1/history/alerts/:id/resolve",
-    "path": "/docs/api-reference",
-    "keywords": "execution, history, and receipts post /v1/history/alerts/:id/resolve resolves an alert. session cookie or igris_ api key cloud api"
-  },
-  {
-    "title": "POST /v1/history/alerts/:id/escalate",
-    "path": "/docs/api-reference",
-    "keywords": "execution, history, and receipts post /v1/history/alerts/:id/escalate escalates an alert. session cookie or igris_ api key cloud api"
-  },
-  {
     "title": "GET /v1/receipts",
-    "path": "/docs/api-reference",
+    "path": "/docs/api-reference/execution-history-and-receipts/get-v1-receipts",
     "keywords": "execution, history, and receipts get /v1/receipts lists execution receipts from the coordination layer. session cookie or igris_ api key cloud api"
   },
   {
     "title": "GET /v1/receipts/:id",
-    "path": "/docs/api-reference",
+    "path": "/docs/api-reference/execution-history-and-receipts/get-v1-receipts-id",
     "keywords": "execution, history, and receipts get /v1/receipts/:id gets a single execution receipt by execution id. session cookie or igris_ api key cloud api"
   },
   {
     "title": "GET /v1/receipts/export",
-    "path": "/docs/api-reference",
+    "path": "/docs/api-reference/execution-history-and-receipts/get-v1-receipts-export",
     "keywords": "execution, history, and receipts get /v1/receipts/export exports receipts as jsonl or csv. session cookie or igris_ api key cloud api"
   },
   {
-    "title": "GET /proof/receipts",
-    "path": "/docs/api-reference",
-    "keywords": "execution, history, and receipts get /proof/receipts lists proof receipts for the console proof view. session cookie or igris_ api key proof api"
-  },
-  {
     "title": "POST /proof/receipts/verify",
-    "path": "/docs/api-reference",
+    "path": "/docs/api-reference/execution-history-and-receipts/post-proof-receipts-verify",
     "keywords": "execution, history, and receipts post /proof/receipts/verify verifies a receipt signature and chain integrity. session cookie or igris_ api key proof api"
   },
   {
-    "title": "GET /v1/proof/violations",
-    "path": "/docs/api-reference",
-    "keywords": "execution, history, and receipts get /v1/proof/violations lists proof violations. session cookie or igris_ api key proof api"
-  },
-  {
     "title": "GET /v1/bt/templates",
-    "path": "/docs/api-reference",
-    "keywords": "behavior trees, routing, and advisor get /v1/bt/templates lists built-in behavior-tree templates. public cloud api"
+    "path": "/docs/api-reference/behavior-trees/get-v1-bt-templates",
+    "keywords": "behavior trees get /v1/bt/templates lists built-in behavior-tree templates. public cloud api"
   },
   {
     "title": "GET /v1/bt/definitions",
-    "path": "/docs/api-reference",
-    "keywords": "behavior trees, routing, and advisor get /v1/bt/definitions lists tenant behavior-tree definitions. session cookie or igris_ api key cloud api"
+    "path": "/docs/api-reference/behavior-trees/get-v1-bt-definitions",
+    "keywords": "behavior trees get /v1/bt/definitions lists tenant behavior-tree definitions. session cookie or igris_ api key cloud api"
   },
   {
     "title": "GET /v1/bt/definitions/:id",
-    "path": "/docs/api-reference",
-    "keywords": "behavior trees, routing, and advisor get /v1/bt/definitions/:id gets a single behavior-tree definition. session cookie or igris_ api key cloud api"
+    "path": "/docs/api-reference/behavior-trees/get-v1-bt-definitions-id",
+    "keywords": "behavior trees get /v1/bt/definitions/:id gets a single behavior-tree definition. session cookie or igris_ api key cloud api"
   },
   {
     "title": "POST /v1/bt/definitions",
-    "path": "/docs/api-reference",
-    "keywords": "behavior trees, routing, and advisor post /v1/bt/definitions creates or upserts a behavior-tree definition. session cookie or igris_ api key cloud api"
+    "path": "/docs/api-reference/behavior-trees/post-v1-bt-definitions",
+    "keywords": "behavior trees post /v1/bt/definitions creates or upserts a behavior-tree definition. session cookie or igris_ api key cloud api"
   },
   {
     "title": "DELETE /v1/bt/definitions/:id",
-    "path": "/docs/api-reference",
-    "keywords": "behavior trees, routing, and advisor delete /v1/bt/definitions/:id deletes a behavior-tree definition. session cookie or igris_ api key cloud api"
-  },
-  {
-    "title": "GET /v1/routing/stats",
-    "path": "/docs/api-reference",
-    "keywords": "behavior trees, routing, and advisor get /v1/routing/stats returns routing statistics. session cookie or igris_ api key cloud api"
-  },
-  {
-    "title": "GET /v1/routing/recent",
-    "path": "/docs/api-reference",
-    "keywords": "behavior trees, routing, and advisor get /v1/routing/recent returns recent routing decisions. session cookie or igris_ api key cloud api"
-  },
-  {
-    "title": "GET /v1/routing/leaderboard",
-    "path": "/docs/api-reference",
-    "keywords": "behavior trees, routing, and advisor get /v1/routing/leaderboard returns provider ranking data. session cookie or igris_ api key cloud api"
-  },
-  {
-    "title": "GET /v1/routing/speculative/status",
-    "path": "/docs/api-reference",
-    "keywords": "behavior trees, routing, and advisor get /v1/routing/speculative/status returns speculative-routing status. session cookie or igris_ api key cloud api"
-  },
-  {
-    "title": "GET /v1/routing/speculative/config",
-    "path": "/docs/api-reference",
-    "keywords": "behavior trees, routing, and advisor get /v1/routing/speculative/config returns speculative-routing configuration. session cookie or igris_ api key cloud api"
-  },
-  {
-    "title": "GET /v1/routing/speculative/analytics",
-    "path": "/docs/api-reference",
-    "keywords": "behavior trees, routing, and advisor get /v1/routing/speculative/analytics returns speculative-routing analytics. session cookie or igris_ api key cloud api"
-  },
-  {
-    "title": "POST /v1/routing/speculative/simulate",
-    "path": "/docs/api-reference",
-    "keywords": "behavior trees, routing, and advisor post /v1/routing/speculative/simulate simulates a speculative-routing run. session cookie or igris_ api key cloud api"
-  },
-  {
-    "title": "POST /v1/routing/strategy",
-    "path": "/docs/api-reference",
-    "keywords": "behavior trees, routing, and advisor post /v1/routing/strategy persists routing strategy configuration. session cookie or igris_ api key cloud api"
-  },
-  {
-    "title": "POST /v1/routing/speculative",
-    "path": "/docs/api-reference",
-    "keywords": "behavior trees, routing, and advisor post /v1/routing/speculative persists speculative-routing settings. session cookie or igris_ api key cloud api"
-  },
-  {
-    "title": "POST /v1/routing/council",
-    "path": "/docs/api-reference",
-    "keywords": "behavior trees, routing, and advisor post /v1/routing/council persists council-mode settings. session cookie or igris_ api key cloud api"
-  },
-  {
-    "title": "POST /v1/routing/shadow",
-    "path": "/docs/api-reference",
-    "keywords": "behavior trees, routing, and advisor post /v1/routing/shadow persists shadow-mode settings. session cookie or igris_ api key cloud api"
-  },
-  {
-    "title": "POST /v1/routing/provider_weights",
-    "path": "/docs/api-reference",
-    "keywords": "behavior trees, routing, and advisor post /v1/routing/provider_weights persists manual provider weights. session cookie or igris_ api key cloud api"
-  },
-  {
-    "title": "GET /api/v1/cognitive/proposals",
-    "path": "/docs/api-reference",
-    "keywords": "behavior trees, routing, and advisor get /api/v1/cognitive/proposals lists routing-advisor proposals. tenant auth cloud api"
-  },
-  {
-    "title": "GET /api/v1/cognitive/proposals/:id",
-    "path": "/docs/api-reference",
-    "keywords": "behavior trees, routing, and advisor get /api/v1/cognitive/proposals/:id gets a single routing-advisor proposal. tenant auth cloud api"
-  },
-  {
-    "title": "POST /api/v1/cognitive/proposals/:id/apply",
-    "path": "/docs/api-reference",
-    "keywords": "behavior trees, routing, and advisor post /api/v1/cognitive/proposals/:id/apply applies a routing-advisor proposal. tenant auth cloud api"
-  },
-  {
-    "title": "GET /api/v1/cognitive/config",
-    "path": "/docs/api-reference",
-    "keywords": "behavior trees, routing, and advisor get /api/v1/cognitive/config returns advisor auto-apply configuration. tenant auth cloud api"
-  },
-  {
-    "title": "PUT /api/v1/cognitive/config",
-    "path": "/docs/api-reference",
-    "keywords": "behavior trees, routing, and advisor put /api/v1/cognitive/config replaces advisor auto-apply configuration. tenant auth cloud api"
-  },
-  {
-    "title": "PATCH /api/v1/cognitive/config",
-    "path": "/docs/api-reference",
-    "keywords": "behavior trees, routing, and advisor patch /api/v1/cognitive/config partially updates advisor auto-apply configuration. tenant auth cloud api"
+    "path": "/docs/api-reference/behavior-trees/delete-v1-bt-definitions-id",
+    "keywords": "behavior trees delete /v1/bt/definitions/:id deletes a behavior-tree definition. session cookie or igris_ api key cloud api"
   },
   {
     "title": "GET /v1/health",
-    "path": "/docs/api-reference",
+    "path": "/docs/api-reference/local-runtime-api/get-v1-health",
     "keywords": "local runtime api get /v1/health health check for the local runtime. runtime-config dependent local runtime"
   },
   {
-    "title": "GET /metrics",
-    "path": "/docs/api-reference",
-    "keywords": "local runtime api get /metrics prometheus metrics endpoint. runtime-config dependent local runtime"
-  },
-  {
     "title": "POST /v1/chat/completions",
-    "path": "/docs/api-reference",
+    "path": "/docs/api-reference/local-runtime-api/post-v1-chat-completions",
     "keywords": "local runtime api post /v1/chat/completions openai-compatible local inference endpoint. runtime-config dependent local runtime"
   },
   {
     "title": "POST /v1/plan",
-    "path": "/docs/api-reference",
+    "path": "/docs/api-reference/local-runtime-api/post-v1-plan",
     "keywords": "local runtime api post /v1/plan planning endpoint. runtime-config dependent local runtime"
   },
   {
     "title": "POST /v1/reflect",
-    "path": "/docs/api-reference",
+    "path": "/docs/api-reference/local-runtime-api/post-v1-reflect",
     "keywords": "local runtime api post /v1/reflect reflection endpoint. runtime-config dependent local runtime"
   },
   {
-    "title": "GET /v1/lora/status",
-    "path": "/docs/api-reference",
-    "keywords": "local runtime api get /v1/lora/status lora training status. runtime-config dependent local runtime"
-  },
-  {
     "title": "GET /v1/admin/models",
-    "path": "/docs/api-reference",
+    "path": "/docs/api-reference/local-runtime-api/get-v1-admin-models",
     "keywords": "local runtime api get /v1/admin/models lists loaded local models. runtime-config dependent local runtime"
   },
   {
     "title": "POST /v1/admin/models/load",
-    "path": "/docs/api-reference",
+    "path": "/docs/api-reference/local-runtime-api/post-v1-admin-models-load",
     "keywords": "local runtime api post /v1/admin/models/load loads a local model. runtime-config dependent local runtime"
   },
   {
     "title": "POST /v1/admin/models/swap",
-    "path": "/docs/api-reference",
+    "path": "/docs/api-reference/local-runtime-api/post-v1-admin-models-swap",
     "keywords": "local runtime api post /v1/admin/models/swap swaps the active local model. runtime-config dependent local runtime"
   },
   {
-    "title": "GET /v1/fleet/instances",
-    "path": "/docs/api-reference",
-    "keywords": "local runtime api get /v1/fleet/instances returns local fleet-instance view. runtime-config dependent local runtime"
-  },
-  {
-    "title": "GET /v1/fleet/metrics",
-    "path": "/docs/api-reference",
-    "keywords": "local runtime api get /v1/fleet/metrics returns local fleet metrics. runtime-config dependent local runtime"
-  },
-  {
-    "title": "GET /v1/federated/status",
-    "path": "/docs/api-reference",
-    "keywords": "local runtime api get /v1/federated/status returns federated-learning status. runtime-config dependent local runtime"
-  },
-  {
-    "title": "POST /v1/federated/update",
-    "path": "/docs/api-reference",
-    "keywords": "local runtime api post /v1/federated/update submits a federated-learning update. runtime-config dependent local runtime"
-  },
-  {
-    "title": "GET /v1/federated/model/latest",
-    "path": "/docs/api-reference",
-    "keywords": "local runtime api get /v1/federated/model/latest returns latest aggregated model metadata. runtime-config dependent local runtime"
-  },
-  {
-    "title": "GET /v1/federated/participants",
-    "path": "/docs/api-reference",
-    "keywords": "local runtime api get /v1/federated/participants lists federated-learning participants. runtime-config dependent local runtime"
-  },
-  {
-    "title": "GET /v1/swarm/status",
-    "path": "/docs/api-reference",
-    "keywords": "local runtime api get /v1/swarm/status returns swarm status. runtime-config dependent local runtime"
-  },
-  {
-    "title": "GET /v1/swarm/agents",
-    "path": "/docs/api-reference",
-    "keywords": "local runtime api get /v1/swarm/agents lists swarm agents. runtime-config dependent local runtime"
-  },
-  {
-    "title": "POST /v1/swarm/join",
-    "path": "/docs/api-reference",
-    "keywords": "local runtime api post /v1/swarm/join joins a swarm. runtime-config dependent local runtime"
-  },
-  {
-    "title": "POST /v1/swarm/propose",
-    "path": "/docs/api-reference",
-    "keywords": "local runtime api post /v1/swarm/propose submits a swarm proposal. runtime-config dependent local runtime"
-  },
-  {
-    "title": "POST /v1/swarm/vote",
-    "path": "/docs/api-reference",
-    "keywords": "local runtime api post /v1/swarm/vote votes on a swarm proposal. runtime-config dependent local runtime"
-  },
-  {
     "title": "POST /v1/btree/validate",
-    "path": "/docs/api-reference",
+    "path": "/docs/api-reference/local-runtime-api/post-v1-btree-validate",
     "keywords": "local runtime api post /v1/btree/validate validates a runtime behavior tree definition. runtime-config dependent local runtime"
   },
   {
     "title": "POST /v1/btree/run",
-    "path": "/docs/api-reference",
+    "path": "/docs/api-reference/local-runtime-api/post-v1-btree-run",
     "keywords": "local runtime api post /v1/btree/run executes a runtime behavior tree. runtime-config dependent local runtime"
   },
   {
     "title": "POST /v1/btree/deploy",
-    "path": "/docs/api-reference",
+    "path": "/docs/api-reference/local-runtime-api/post-v1-btree-deploy",
     "keywords": "local runtime api post /v1/btree/deploy deploys a runtime behavior tree. runtime-config dependent local runtime"
   },
   {
     "title": "GET /v1/btree/events",
-    "path": "/docs/api-reference",
+    "path": "/docs/api-reference/local-runtime-api/get-v1-btree-events",
     "keywords": "local runtime api get /v1/btree/events streams behavior-tree events. runtime-config dependent local runtime"
-  },
-  {
-    "title": "POST /mcp/stream",
-    "path": "/docs/api-reference",
-    "keywords": "local runtime api post /mcp/stream streams mcp requests directly against the runtime. runtime-config dependent local runtime"
-  },
-  {
-    "title": "POST /v1/runtime/execute",
-    "path": "/docs/api-reference",
-    "keywords": "local runtime api post /v1/runtime/execute executes runtime commands from the control plane. runtime-config dependent local runtime"
-  },
-  {
-    "title": "GET /v1/runtime/violations",
-    "path": "/docs/api-reference",
-    "keywords": "local runtime api get /v1/runtime/violations lists runtime-side violations. runtime-config dependent local runtime"
-  },
-  {
-    "title": "POST /v1/runtime/register",
-    "path": "/docs/api-reference",
-    "keywords": "local runtime api post /v1/runtime/register registers local runtime execution state. runtime-config dependent local runtime"
-  },
-  {
-    "title": "GET /v1/runtime/agent/:id/state",
-    "path": "/docs/api-reference",
-    "keywords": "local runtime api get /v1/runtime/agent/:id/state returns local agent lifecycle state. runtime-config dependent local runtime"
-  },
-  {
-    "title": "GET /health",
-    "path": "/docs/api-reference",
-    "keywords": "operational endpoints get /health basic health endpoint. public operations"
-  },
-  {
-    "title": "GET /healthz",
-    "path": "/docs/api-reference",
-    "keywords": "operational endpoints get /healthz health probe endpoint. public operations"
-  },
-  {
-    "title": "GET /readyz",
-    "path": "/docs/api-reference",
-    "keywords": "operational endpoints get /readyz readiness probe endpoint. public operations"
-  },
-  {
-    "title": "GET /startupz",
-    "path": "/docs/api-reference",
-    "keywords": "operational endpoints get /startupz startup probe endpoint. public operations"
-  },
-  {
-    "title": "GET /v1/metrics",
-    "path": "/docs/api-reference",
-    "keywords": "operational endpoints get /v1/metrics cloud metrics endpoint. public operations"
-  },
-  {
-    "title": "GET /v1/metrics/health",
-    "path": "/docs/api-reference",
-    "keywords": "operational endpoints get /v1/metrics/health metrics subsystem health endpoint. public operations"
   },
   {
     "title": "JavaScript / TypeScript SDK",
