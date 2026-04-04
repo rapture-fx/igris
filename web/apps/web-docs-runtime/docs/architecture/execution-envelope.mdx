@@ -69,7 +69,7 @@ sequenceDiagram
     participant Runtime
 
     SDK->>Overture: POST /v1/infer
-    Overture->>Runtime: POST /v1/runtime/execute
+    Overture->>Runtime: POST /v1/runtime/task/submit
     Runtime->>Runtime: Execute under containment
     Runtime->>Runtime: Build and sign execution envelope
     Runtime->>Overture: 200 OK { execution_envelope }
