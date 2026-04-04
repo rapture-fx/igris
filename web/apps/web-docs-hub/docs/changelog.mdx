@@ -4,6 +4,25 @@ Release notes for Igris. Breaking changes are marked explicitly.
 
 ---
 
+## docs — API contract and workflow documentation — April 2026
+
+### Added
+
+- Explicit API support labels (`Core`, `Supported`, `Preview`) and deployment modes (`Cloud`, `Local`, `Hybrid`) across the API reference
+- Workflow documentation for first cloud integration, local runtime deployment, hybrid deployment, receipts and audit, and fleet rollout
+
+### Changed
+
+- Quick Start now presents the OpenAI-compatible API as the recommended onboarding path
+- SDK guidance now states clearly that JavaScript/TypeScript, Go, and Rust are the current first-class native SDKs
+- The public API reference no longer publishes runtime-to-control-plane callback routes as customer-facing endpoints
+
+### Migration
+
+No code migration is required. Recheck any bookmarked API pages or internal runbooks that depended on the removed runtime callback routes from the public reference.
+
+---
+
 ## runtime-v1.8.0 — Stability & cgroup enforcement — March 2026
 
 ### Fixed
