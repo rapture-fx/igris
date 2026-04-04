@@ -8,13 +8,13 @@ When a Runtime instance is configured and healthy, all request types route throu
 
 ### Standard Completions
 
-Standard (non-streaming) inference requests route through the Runtime's `/v1/runtime/execute` endpoint. The Runtime executes under containment bounds and returns a signed execution envelope with the complete response.
+Standard (non-streaming) inference requests route through the Runtime's `/v1/runtime/task/submit` endpoint as `single_inference` tasks. The Runtime executes under containment bounds and returns a signed execution envelope with the complete response.
 
 ### Streaming Completions
 
 When `stream: true` is set and a Runtime instance is available:
 
-1. Overture forwards the request to the Runtime at the same `/v1/runtime/execute` endpoint
+1. Overture forwards the request to the Runtime at the same `/v1/runtime/task/submit` endpoint
 2. The Runtime executes under containment bounds
 3. The Runtime returns a complete JSON response (not a chunked stream)
 4. Overture reconstructs the response as an SSE stream and returns it to the SDK
@@ -35,10 +35,12 @@ Council mode routes through the Runtime when configured. Council mode disables s
 
 ## Containment Bounds for Streaming
 
-The `X-Igris-Bounds` header applies to all execution paths, including streaming:
+Containment bounds apply to all execution paths, including streaming. Overture includes them in the signed runtime task body:
 
 ```
-X-Igris-Bounds: {"cpu_percent":40,"memory_mb":512,"max_tick_ms":5000}
+{
+  "containment": {"cpu_percent":40,"memory_mb":512,"max_tick_ms":5000}
+}
 ```
 
 For requests where the expected generation time is longer than the default deadline, set `max_tick_ms` to an appropriate value when registering the Runtime or when constructing the request. Requests that exceed the deadline are killed without a grace period, and the SDK receives an error — not a partial stream.
@@ -75,7 +77,7 @@ for chunk in client.chat.completions.stream(
     print(chunk.delta, end="", flush=True)
 ```
 
-The `bounds` parameter is forwarded as the `X-Igris-Bounds` header to the Runtime. If the request exceeds `max_tick_ms` (10 seconds in this example), the Runtime kills it and Overture returns an error to the SDK.
+The `bounds` parameter is forwarded inside the signed runtime task payload. If the request exceeds `max_tick_ms` (10 seconds in this example), the Runtime kills it and Overture returns an error to the SDK.
 
 ---
 
