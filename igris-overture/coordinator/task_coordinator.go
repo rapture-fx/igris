@@ -51,7 +51,7 @@ func (tc *TaskCoordinator) Store() *CheckpointStore {
 }
 
 // Submit creates a task record and dispatches to a healthy runtime.
-// Returns the task_id immediately; the caller polls /v1/tasks/:id/status.
+// Returns the task_id immediately; the caller polls /v1/tasks/:id.
 func (tc *TaskCoordinator) Submit(ctx context.Context, req *TaskSubmitRequest) (*TaskRecord, error) {
 	normalizedDefinition, err := normalizePublicTaskDefinition(req.TaskType, req.TaskDefinition)
 	if err != nil {
