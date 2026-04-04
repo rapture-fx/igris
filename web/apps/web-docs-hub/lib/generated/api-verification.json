@@ -1,11 +1,11 @@
 {
-  "generated_at": "2026-04-04T08:02:04.865Z",
+  "generated_at": "2026-04-04T14:50:11.036Z",
   "summary": {
     "total": 51,
     "by_status": {
       "test-covered": 5,
-      "client-referenced": 7,
-      "implemented-unverified": 39
+      "client-referenced": 10,
+      "implemented-unverified": 36
     },
     "by_section": {
       "Inference & Integration": 7,
@@ -675,12 +675,14 @@
       "surface": "Cloud API",
       "stability": "stable",
       "description": "Submit a durable task using `agent_workflow`, `robotics_workflow`, `single_inference`, or `behavior_tree`.",
-      "status": "implemented-unverified",
-      "confidence": "low",
-      "note": "Route is documented and registered in code, but no direct test or client exercise was found in this repository scan.",
+      "status": "client-referenced",
+      "confidence": "medium",
+      "note": "A client or transport layer references this route, but no direct automated test was found.",
       "evidence": {
         "test_files": [],
-        "client_files": []
+        "client_files": [
+          "igris-javascript-sdk/src/tasks.ts"
+        ]
       }
     },
     {
@@ -691,12 +693,14 @@
       "surface": "Cloud API",
       "stability": "stable",
       "description": "Poll the current status and latest checkpoint metadata for a durable task.",
-      "status": "implemented-unverified",
-      "confidence": "low",
-      "note": "Route is documented and registered in code, but no direct test or client exercise was found in this repository scan.",
+      "status": "client-referenced",
+      "confidence": "medium",
+      "note": "A client or transport layer references this route, but no direct automated test was found.",
       "evidence": {
         "test_files": [],
-        "client_files": []
+        "client_files": [
+          "igris-javascript-sdk/src/tasks.ts"
+        ]
       }
     },
     {
@@ -707,12 +711,14 @@
       "surface": "Cloud API",
       "stability": "stable",
       "description": "List recent durable tasks for the authenticated tenant.",
-      "status": "implemented-unverified",
-      "confidence": "low",
-      "note": "Route is documented and registered in code, but no direct test or client exercise was found in this repository scan.",
+      "status": "client-referenced",
+      "confidence": "medium",
+      "note": "A client or transport layer references this route, but no direct automated test was found.",
       "evidence": {
         "test_files": [],
-        "client_files": []
+        "client_files": [
+          "igris-javascript-sdk/src/tasks.ts"
+        ]
       }
     },
     {
