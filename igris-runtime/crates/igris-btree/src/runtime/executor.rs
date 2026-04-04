@@ -9,6 +9,12 @@ use std::time::{Duration, Instant};
 use tokio::sync::watch;
 use tracing::{debug, info, warn};
 
+#[cfg(feature = "wal")]
+use {
+    igris_wal::{BtCheckpointPayload, ResumeToken, StepType},
+    sha2::{Digest, Sha256},
+};
+
 /// Executor configuration
 #[derive(Debug, Clone)]
 pub struct ExecutorConfig {
@@ -211,12 +217,17 @@ impl BTreeExecutor {
             if *cancel_rx.borrow_and_update() {
                 warn!("Execution cancelled at tick {}", tick_count);
                 tree.halt().await;
-                return Ok(ExecutionResult::new(
+                let mut result = ExecutionResult::new(
                     NodeStatus::Running,
                     tick_count,
                     start_time.elapsed(),
                 )
-                .with_cancelled());
+                .with_cancelled();
+                #[cfg(feature = "wal")]
+                if let Some(cp) = context.last_checkpoint.take() {
+                    result = result.with_checkpoint(cp);
+                }
+                return Ok(result);
             }
 
             // Check max ticks
@@ -224,12 +235,17 @@ impl BTreeExecutor {
                 if tick_count >= max_ticks {
                     warn!("Max ticks ({}) reached", max_ticks);
                     tree.halt().await;
-                    return Ok(ExecutionResult::new(
+                    let mut result = ExecutionResult::new(
                         NodeStatus::Running,
                         tick_count,
                         start_time.elapsed(),
                     )
-                    .with_max_ticks_reached());
+                    .with_max_ticks_reached();
+                    #[cfg(feature = "wal")]
+                    if let Some(cp) = context.last_checkpoint.take() {
+                        result = result.with_checkpoint(cp);
+                    }
+                    return Ok(result);
                 }
             }
 
@@ -238,12 +254,17 @@ impl BTreeExecutor {
                 if start_time.elapsed() >= deadline {
                     warn!("Deadline ({:?}) exceeded", deadline);
                     tree.halt().await;
-                    return Ok(ExecutionResult::new(
+                    let mut result = ExecutionResult::new(
                         NodeStatus::Running,
                         tick_count,
                         start_time.elapsed(),
                     )
-                    .with_deadline_exceeded());
+                    .with_deadline_exceeded();
+                    #[cfg(feature = "wal")]
+                    if let Some(cp) = context.last_checkpoint.take() {
+                        result = result.with_checkpoint(cp);
+                    }
+                    return Ok(result);
                 }
             }
 
@@ -255,16 +276,47 @@ impl BTreeExecutor {
                 debug!("Tick {} starting", tick_count);
             }
 
+            // WAL: write intent before tick
+            #[cfg(feature = "wal")]
+            let wal_entry_id = if let Some(ref session) = context.wal_session {
+                let bb_snapshot = context.blackboard.snapshot().await;
+                let input_digest: [u8; 32] = Sha256::digest(
+                    serde_json::to_vec(&bb_snapshot).unwrap_or_default(),
+                )
+                .into();
+                match session.wal.write_intent(
+                    tick_count as u32,
+                    StepType::BtNode {
+                        node_id: tree.name().to_string(),
+                        node_type: tree.node_type().to_string(),
+                    },
+                    input_digest,
+                ) {
+                    Ok(entry) => Some(entry.entry_id),
+                    Err(e) => {
+                        warn!("WAL intent write failed at tick {}: {}", tick_count, e);
+                        None
+                    }
+                }
+            } else {
+                None
+            };
+
             let status = match tree.tick(context).await {
                 Ok(s) => s,
                 Err(e) => {
                     warn!("Tick {} failed: {}", tick_count, e);
-                    return Ok(ExecutionResult::new(
+                    let mut result = ExecutionResult::new(
                         NodeStatus::Failure,
                         tick_count,
                         start_time.elapsed(),
                     )
-                    .with_error(e.to_string()));
+                    .with_error(e.to_string());
+                    #[cfg(feature = "wal")]
+                    if let Some(cp) = context.last_checkpoint.take() {
+                        result = result.with_checkpoint(cp);
+                    }
+                    return Ok(result);
                 }
             };
 
@@ -294,6 +346,56 @@ impl BTreeExecutor {
                 }));
             }
 
+            // WAL: commit after successful tick
+            #[cfg(feature = "wal")]
+            if let (Some(entry_id), Some(ref session)) =
+                (wal_entry_id, context.wal_session.as_ref())
+            {
+                let bb_after = context.blackboard.snapshot().await;
+                let output_digest: [u8; 32] = Sha256::digest(
+                    serde_json::to_vec(&bb_after).unwrap_or_default(),
+                )
+                .into();
+                if let Err(e) =
+                    session
+                        .wal
+                        .write_committed(entry_id, output_digest, &session.signing_key)
+                {
+                    warn!("WAL commit failed at tick {}: {}", tick_count, e);
+                }
+            }
+
+            // WAL: periodic blackboard checkpoint
+            #[cfg(feature = "wal")]
+            if let Some(ref session) = context.wal_session.clone() {
+                if tick_count > 0 && tick_count % session.checkpoint_every == 0 {
+                    let bb_snapshot = context.blackboard.snapshot().await;
+                    let (last_step, digest) = session
+                        .wal
+                        .committed_state()
+                        .unwrap_or((None, [0u8; 32]));
+                    let cp = BtCheckpointPayload {
+                        task_id: session.task_id,
+                        tick_count,
+                        resume_token: ResumeToken {
+                            last_committed_step: last_step.unwrap_or(0),
+                            checkpoint_digest: digest,
+                            runtime_id: String::new(),
+                        },
+                        blackboard_state: bb_snapshot,
+                        wal_entries: session
+                            .wal
+                            .read_from_step(
+                                last_step
+                                    .map(|s| s.saturating_sub(session.checkpoint_every as u32))
+                                    .unwrap_or(0),
+                            )
+                            .unwrap_or_default(),
+                    };
+                    context.last_checkpoint = Some(cp);
+                }
+            }
+
             // Check if execution is complete
             match status {
                 NodeStatus::Success => {
@@ -304,11 +406,16 @@ impl BTreeExecutor {
                             start_time.elapsed()
                         );
                     }
-                    return Ok(ExecutionResult::new(
+                    let mut result = ExecutionResult::new(
                         NodeStatus::Success,
                         tick_count,
                         start_time.elapsed(),
-                    ));
+                    );
+                    #[cfg(feature = "wal")]
+                    if let Some(cp) = context.last_checkpoint.take() {
+                        result = result.with_checkpoint(cp);
+                    }
+                    return Ok(result);
                 }
                 NodeStatus::Failure => {
                     if self.config.enable_tracing {
@@ -318,21 +425,31 @@ impl BTreeExecutor {
                             start_time.elapsed()
                         );
                     }
-                    return Ok(ExecutionResult::new(
+                    let mut result = ExecutionResult::new(
                         NodeStatus::Failure,
                         tick_count,
                         start_time.elapsed(),
-                    ));
+                    );
+                    #[cfg(feature = "wal")]
+                    if let Some(cp) = context.last_checkpoint.take() {
+                        result = result.with_checkpoint(cp);
+                    }
+                    return Ok(result);
                 }
                 NodeStatus::Skipped => {
                     if self.config.enable_tracing {
                         info!("Execution skipped after {} ticks", tick_count);
                     }
-                    return Ok(ExecutionResult::new(
+                    let mut result = ExecutionResult::new(
                         NodeStatus::Skipped,
                         tick_count,
                         start_time.elapsed(),
-                    ));
+                    );
+                    #[cfg(feature = "wal")]
+                    if let Some(cp) = context.last_checkpoint.take() {
+                        result = result.with_checkpoint(cp);
+                    }
+                    return Ok(result);
                 }
                 NodeStatus::Running => {
                     // Continue to next tick
