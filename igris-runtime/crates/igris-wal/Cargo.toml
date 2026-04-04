@@ -1,0 +1,17 @@
+[package]
+name = "igris-wal"
+version = "1.6.0"
+edition = "2021"
+
+[dependencies]
+anyhow = { workspace = true }
+igris-core = { path = "../igris-core" }
+redb = { workspace = true }
+serde = { workspace = true, features = ["derive"] }
+serde_json = { workspace = true }
+sha2 = { workspace = true }
+ed25519-dalek = { workspace = true }
+uuid = { version = "1.7", features = ["v4", "serde"] }
+tokio = { workspace = true }
+tracing = "0.1"
+thiserror = "1.0"
