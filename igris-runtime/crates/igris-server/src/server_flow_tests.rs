@@ -91,6 +91,10 @@ mod tests {
             rate_limiter: None,
             metrics: Arc::new(Metrics::new()),
             escapevector_cache: None,
+            #[cfg(feature = "memory")]
+            agent_memory: None,
+            #[cfg(feature = "hitl")]
+            hitl_coordinator: None,
             violation_log: None,
             peer_registry: None,
             runtime_public_key: None,
@@ -98,6 +102,7 @@ mod tests {
             overture_public_key: None,
             receipt_log: None,
             lifecycle_registry: None,
+            bt_state_tx: Arc::new(tokio::sync::watch::channel(serde_json::Value::Null).0),
         }
     }
 
@@ -248,6 +253,10 @@ mod tests {
             rate_limiter: None,
             metrics: Arc::new(Metrics::new()),
             escapevector_cache: Some(cache.clone()),
+            #[cfg(feature = "memory")]
+            agent_memory: None,
+            #[cfg(feature = "hitl")]
+            hitl_coordinator: None,
             violation_log: None,
             peer_registry: None,
             runtime_public_key: None,
@@ -255,6 +264,7 @@ mod tests {
             overture_public_key: None,
             receipt_log: None,
             lifecycle_registry: None,
+            bt_state_tx: Arc::new(tokio::sync::watch::channel(serde_json::Value::Null).0),
         };
 
         let app = build_test_app(state);
@@ -341,6 +351,10 @@ mod tests {
             rate_limiter: None,
             metrics: Arc::new(Metrics::new()),
             escapevector_cache: Some(cache.clone()),
+            #[cfg(feature = "memory")]
+            agent_memory: None,
+            #[cfg(feature = "hitl")]
+            hitl_coordinator: None,
             violation_log: None,
             peer_registry: None,
             runtime_public_key: None,
@@ -348,6 +362,7 @@ mod tests {
             overture_public_key: None,
             receipt_log: None,
             lifecycle_registry: None,
+            bt_state_tx: Arc::new(tokio::sync::watch::channel(serde_json::Value::Null).0),
         };
 
         let app = build_test_app(state);
@@ -410,5 +425,4 @@ mod tests {
         assert!(v["metadata"].is_null(), "metadata should be null for normal responses");
     }
 }
-
 
