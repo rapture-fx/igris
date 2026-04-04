@@ -1,0 +1,51 @@
+# MCP Integration Patterns
+
+This guide shows how to use MCP as part of a production integration rather than as an isolated protocol feature.
+
+---
+
+## Pattern: Separate Working Context From Audit Data
+
+Use MCP for working state that tools, agents, or runtimes need to share.
+
+Do not use MCP as the place where audit evidence lives. Keep audit and receipt workflows separate so the system remains understandable.
+
+## Pattern: Give Shared Context A Schema
+
+Avoid dumping arbitrary JSON into a few generic keys. Define stable keys and value shapes for shared context that your application team can reason about.
+
+Good:
+
+- `mission_state`
+- `dispatch_plan`
+- `device_role`
+
+Weak:
+
+- `state`
+- `payload`
+- `latest_data`
+
+## Pattern: Pair MCP With Durable Tasks Deliberately
+
+MCP and durable tasks solve different problems:
+
+- MCP shares structured state
+- durable tasks preserve progress and resume semantics
+
+Use both when a long-running workflow needs shared context and safe recovery. Do not force one to replace the other.
+
+## Pattern: Keep The Product Boundary Clean
+
+Your application should still think in terms of one product:
+
+- hosted coordination when the application contract belongs in the cloud
+- runtime-local execution when work belongs on-device
+- MCP for shared operational state across those boundaries
+
+## Related Guides
+
+- [MCP →](/docs/mcp)
+- [MCP Server →](/docs/mcp-server)
+- [Durable Tasks →](/docs/durable-tasks)
+- [Context Engineering →](/docs/context-engineering)
