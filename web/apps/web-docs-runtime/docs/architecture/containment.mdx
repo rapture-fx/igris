@@ -61,7 +61,7 @@ The cgroup is destroyed after the worker exits, regardless of whether execution 
 
 ### Memory (reserved)
 
-`Bounds::memory_mb` is communicated to the runtime via the `X-Igris-Bounds` request header from SDK clients. Kernel-level `memory.max` enforcement is not yet wired in the current release. The field exists in the data model and is forwarded correctly.
+`Bounds::memory_mb` is communicated to the runtime inside the signed task payload forwarded by Overture. Kernel-level `memory.max` enforcement is not yet wired in the current release. The field exists in the data model and is forwarded correctly.
 
 ---
 
@@ -131,10 +131,12 @@ SDK v2.1 surfaces violation events through three methods on `Runtime`:
 | `on_violation(callback)` | Registers a callback; starts a background poller (1 s interval); fires once per unique violation ID |
 | `stream_violations()` | Generator / channel that yields new records, polling every second |
 
-Bounds are forwarded to the runtime on every request via the `X-Igris-Bounds` HTTP header:
+Bounds are forwarded to the runtime on every request inside the signed task payload:
 
 ```
-X-Igris-Bounds: {"cpu_percent":40,"memory_mb":512,"max_tick_ms":200}
+{
+  "containment": {"cpu_percent":40,"memory_mb":512,"max_tick_ms":200}
+}
 ```
 
 **Python example:**
