@@ -29,6 +29,12 @@ pub struct ExecutionResult {
 
     /// Whether deadline was exceeded
     pub deadline_exceeded: bool,
+
+    /// Last WAL checkpoint from this execution (when WAL session was active).
+    /// Overture persists this so execution can resume on a new runtime if this
+    /// one crashes before the next scheduled checkpoint.
+    #[cfg(feature = "wal")]
+    pub checkpoint: Option<igris_wal::BtCheckpointPayload>,
 }
 
 impl ExecutionResult {
@@ -42,6 +48,8 @@ impl ExecutionResult {
             cancelled: false,
             max_ticks_reached: false,
             deadline_exceeded: false,
+            #[cfg(feature = "wal")]
+            checkpoint: None,
         }
     }
 
@@ -60,6 +68,13 @@ impl ExecutionResult {
     /// Mark result as deadline exceeded
     pub fn with_deadline_exceeded(mut self) -> Self {
         self.deadline_exceeded = true;
+        self
+    }
+
+    /// Attach a WAL checkpoint to the result.
+    #[cfg(feature = "wal")]
+    pub fn with_checkpoint(mut self, cp: igris_wal::BtCheckpointPayload) -> Self {
+        self.checkpoint = Some(cp);
         self
     }
 
