@@ -6,6 +6,13 @@ const outputFile = path.join(__dirname, '../lib/search-index.json');
 const generatedApiFile = path.join(__dirname, '../lib/generated/api-reference.json');
 const generatedSdkFile = path.join(__dirname, '../lib/generated/sdk-support.json');
 
+function slugify(value) {
+  return value
+    .toLowerCase()
+    .replace(/[^a-z0-9]+/g, '-')
+    .replace(/^-+|-+$/g, '');
+}
+
 function extractSearchIndex() {
   const files = fs.readdirSync(docsDir).filter(f => f.endsWith('.mdx'));
   const index = [];
@@ -131,11 +138,19 @@ function extractSearchIndex() {
 
   if (fs.existsSync(generatedApiFile)) {
     const apiReference = JSON.parse(fs.readFileSync(generatedApiFile, 'utf-8'));
+    index.push(
+      { title: 'API Introduction', path: '/docs/api-reference/introduction', keywords: 'api introduction base url surfaces overview contract'.toLowerCase() },
+      { title: 'API Authentication', path: '/docs/api-reference/authentication', keywords: 'api authentication bearer api key session cookie runtime auth'.toLowerCase() },
+      { title: 'API Errors', path: '/docs/api-reference/errors', keywords: 'api errors error codes invalid request unauthorized internal error'.toLowerCase() },
+      { title: 'API Rate Limits', path: '/docs/api-reference/rate-limits', keywords: 'api rate limits retry-after 429 throttle'.toLowerCase() }
+    );
     for (const section of apiReference.sections || []) {
+      const sectionSlug = slugify(section.title);
       for (const endpoint of section.endpoints || []) {
+        const endpointSlug = slugify(`${endpoint.method.toLowerCase()}-${endpoint.path.replace(/:/g, '').replace(/\//g, '-')}`);
         index.push({
           title: `${endpoint.method} ${endpoint.path}`,
-          path: '/docs/api-reference',
+          path: `/docs/api-reference/${sectionSlug}/${endpointSlug}`,
           keywords: `${section.title} ${endpoint.method} ${endpoint.path} ${endpoint.description} ${endpoint.auth} ${endpoint.surface}`.toLowerCase().slice(0, 500),
         });
       }
