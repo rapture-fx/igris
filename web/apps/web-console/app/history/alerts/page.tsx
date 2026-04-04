@@ -169,7 +169,7 @@ export default function HistoryAlertsPage() {
     try {
       es = new EventSource(url, { withCredentials: true });
       es.onopen = () => setSseConnected(true);
-      es.onmessage = (event) => {
+      es.addEventListener('alert', (event) => {
         try {
           const newAlert: SystemAlert = JSON.parse(event.data);
           qc.setQueryData(['history-alerts', timeRange], (old: SystemAlert[] | undefined) => {
@@ -190,7 +190,7 @@ export default function HistoryAlertsPage() {
             });
           }
         } catch { /* ignore parse errors */ }
-      };
+      });
       es.onerror = () => {
         setSseConnected(false);
         es.close();
