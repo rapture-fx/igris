@@ -7,7 +7,6 @@ import (
 	"net/http/httptest"
 	"sync"
 	"testing"
-	"time"
 
 	"github.com/Igris-inertial/system/igris-overture/models"
 )
@@ -63,31 +62,34 @@ func (m *mockRepo) getUpdate(id string) (bool, bool) {
 
 // newHealthyRuntimeServer returns an httptest.Server that:
 //   - GET /v1/health → 200
-//   - POST /v1/runtime/execute → 200 with minimal OpenAI-shaped response
+//   - POST /v1/runtime/task/submit → 200 with minimal task response
 func newHealthyRuntimeServer(t *testing.T) *httptest.Server {
 	t.Helper()
 	mux := http.NewServeMux()
 	mux.HandleFunc("/v1/health", func(w http.ResponseWriter, r *http.Request) {
 		w.WriteHeader(http.StatusOK)
 	})
-	mux.HandleFunc("/v1/runtime/execute", func(w http.ResponseWriter, r *http.Request) {
+	mux.HandleFunc("/v1/runtime/task/submit", func(w http.ResponseWriter, r *http.Request) {
 		resp := map[string]interface{}{
-			"id":      "exec-test",
-			"object":  "chat.completion",
-			"created": time.Now().Unix(),
-			"model":   "mock",
-			"choices": []interface{}{
-				map[string]interface{}{
-					"index": 0,
-					"message": map[string]interface{}{
-						"role":    "assistant",
-						"content": "hello",
-					},
-					"finish_reason": "stop",
-				},
-			},
+			"task_id":         "exec-test",
+			"steps_completed": 1,
+			"steps_total":     1,
+			"status":          "completed",
+			"final_output":    "hello",
 			"usage": map[string]interface{}{
-				"prompt_tokens": 1, "completion_tokens": 1, "total_tokens": 2,
+				"prompt_tokens":     1,
+				"completion_tokens": 1,
+				"total_tokens":      2,
+			},
+			"execution_envelope": map[string]interface{}{
+				"execution_id":     "exec-selector",
+				"finish_reason":    "stop",
+				"model":            "mock",
+				"request_hash":     "aabb",
+				"response_hash":    "ccdd",
+				"routing_decision": "runtime",
+				"timestamp":        "2026-02-20T12:00:00Z",
+				"signature":        "placeholder",
 			},
 		}
 		w.Header().Set("Content-Type", "application/json")
