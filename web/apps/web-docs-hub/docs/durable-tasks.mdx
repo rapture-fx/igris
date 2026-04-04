@@ -179,7 +179,7 @@ On recovery, the new runtime:
 2. Re-creates the behavior tree from the original definition
 3. Resumes ticking from the last committed step, verified by digest
 
-**Current status:** WAL-backed BT execution is available to self-hosted runtime integrations that construct a `BtWalSession` directly via the Rust SDK. The `/v1/btree/run` HTTP endpoint does not yet accept a WAL session — durable BT execution over HTTP is planned. For durable execution today, use `agent_workflow` or `robotics_workflow` via `/v1/tasks/submit`.
+Submit a `behavior_tree` task via `/v1/tasks/submit` to get full WAL-backed, crash-recoverable BT execution. The coordinator handles dispatch, checkpointing, and recovery automatically — the same guarantees as agent and robotics workflows. The `/v1/btree/run` HTTP endpoint runs trees without WAL; use `behavior_tree` task type when durability is required.
 
 [Behavior Trees →](/docs/behavior-trees)
 
