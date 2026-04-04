@@ -39,8 +39,10 @@ import {
   ShieldAlert,
   BarChart3,
   Monitor,
+  RotateCcw,
 } from 'lucide-react';
 import { cn } from '@/lib/utils';
+import { getApiNavigationSections } from '@/lib/api-reference';
 
 interface DocsSidebarProps {
   open?: boolean;
@@ -67,7 +69,7 @@ function detectSection(pathname: string): Section {
   const p = pathname.replace(/\/$/, '');
   if (p.startsWith('/docs/articles')) return 'articles';
   if (p === '/docs/changelog') return 'changelog';
-  if (p === '/docs/api-reference') return 'api';
+  if (p.startsWith('/docs/api-reference')) return 'api';
   return 'docs';
 }
 
@@ -104,6 +106,7 @@ const searchIndexStatic = [
   { title: 'Execution Flow', path: '/docs/execution-flow', keywords: 'execution flow request lifecycle sdk overture runtime provider receipt' },
   { title: 'Execution Receipts', path: '/docs/execution-receipts', keywords: 'execution receipts signed audit record query export' },
   { title: 'Agent Lifecycle', path: '/docs/agent-lifecycle', keywords: 'agent lifecycle states init running idle degraded terminated' },
+  { title: 'Durable Tasks', path: '/docs/durable-tasks', keywords: 'durable tasks wal write-ahead log crash recovery checkpoint resume token failover multi-step workflow robotics' },
   { title: 'Agents', path: '/docs/agents', keywords: 'agents reflection planning swarm tool-use' },
   { title: 'Behavior Trees', path: '/docs/behavior-trees', keywords: 'behavior trees deterministic llm nodes sequence selector condition action' },
   { title: 'Tools', path: '/docs/tools', keywords: 'tools http shell filesystem config security' },
@@ -120,6 +123,10 @@ const searchIndexStatic = [
   { title: 'Key Management', path: '/docs/key-management', keywords: 'key management provider api keys vault rotation byok encrypt' },
   { title: 'Pricing', path: '/docs/pricing-tiers', keywords: 'pricing tiers seed horizon infinite trial billing instances cost' },
   { title: 'API Reference', path: '/docs/api-reference', keywords: 'api reference endpoints inference management receipts fleet policy' },
+  { title: 'API Introduction', path: '/docs/api-reference/introduction', keywords: 'api introduction base url surfaces endpoint pages reference guide' },
+  { title: 'API Authentication', path: '/docs/api-reference/authentication', keywords: 'api authentication api key session cookie runtime auth authorization bearer' },
+  { title: 'API Errors', path: '/docs/api-reference/errors', keywords: 'api errors error envelope unauthorized invalid request internal error' },
+  { title: 'API Rate Limits', path: '/docs/api-reference/rate-limits', keywords: 'api rate limits throttle retry-after 429 requests per minute' },
   { title: 'Changelog', path: '/docs/changelog', keywords: 'changelog release notes version history changes updates fixes' },
   { title: 'Articles', path: '/docs/articles', keywords: 'articles engineering notes architecture deep dive' },
   { title: 'SLO Enforcer', path: '/docs/slo-enforcer', keywords: 'slo service level objective latency cost quality enforcement compliance target budget' },
@@ -163,6 +170,7 @@ const docsNavSections: NavSection[] = [
       { name: 'Safety & Containment', href: '/docs/safety', icon: Shield },
       { name: 'Capabilities & Limits', href: '/docs/capability-model', icon: ShieldCheck },
       { name: 'Execution Receipts', href: '/docs/execution-receipts', icon: FileText },
+      { name: 'Durable Tasks', href: '/docs/durable-tasks', icon: RotateCcw },
       { name: 'Agent Lifecycle', href: '/docs/agent-lifecycle', icon: GitMerge },
     ],
   },
@@ -221,59 +229,10 @@ const docsNavSections: NavSection[] = [
   },
 ];
 
-const apiNavSections: NavSection[] = [
-  {
-    section: 'Inference',
-    items: [
-      { name: '/v1/chat/completions', href: '/docs/api-reference', badge: 'POST', noActive: true },
-      { name: '/v1/models', href: '/docs/api-reference', badge: 'GET', noActive: true },
-      { name: '/v1/providers/stats', href: '/docs/api-reference', badge: 'GET', noActive: true },
-    ],
-  },
-  {
-    section: 'Vault',
-    items: [
-      { name: '/v1/vault/keys', href: '/docs/api-reference', badge: 'GET', noActive: true },
-      { name: '/v1/vault/keys', href: '/docs/api-reference', badge: 'POST', noActive: true },
-      { name: '/v1/account/api-key', href: '/docs/api-reference', badge: 'GET', noActive: true },
-    ],
-  },
-  {
-    section: 'Fleet',
-    items: [
-      { name: '/api/v1/runtime/register', href: '/docs/api-reference', badge: 'POST', noActive: true },
-      { name: '/api/v1/runtime/list', href: '/docs/api-reference', badge: 'GET', noActive: true },
-      { name: '/api/v1/runtime/config/push', href: '/docs/api-reference', badge: 'POST', noActive: true },
-      { name: '/api/v1/runtime/update', href: '/docs/api-reference', badge: 'POST', noActive: true },
-    ],
-  },
-  {
-    section: 'Governance',
-    items: [
-      { name: '/policy/bounds', href: '/docs/api-reference', badge: 'GET', noActive: true },
-      { name: '/policy/capabilities', href: '/docs/api-reference', badge: 'GET', noActive: true },
-      { name: '/v1/policy', href: '/docs/api-reference', badge: 'GET', noActive: true },
-      { name: '/proof/receipts/verify', href: '/docs/api-reference', badge: 'POST', noActive: true },
-    ],
-  },
-  {
-    section: 'History & Receipts',
-    items: [
-      { name: '/v1/history/events', href: '/docs/api-reference', badge: 'GET', noActive: true },
-      { name: '/v1/receipts', href: '/docs/api-reference', badge: 'GET', noActive: true },
-      { name: '/v1/receipts/export', href: '/docs/api-reference', badge: 'GET', noActive: true },
-    ],
-  },
-  {
-    section: 'Local Engine',
-    items: [
-      { name: '/v1/health', href: '/docs/api-reference', badge: 'GET', noActive: true },
-      { name: '/metrics', href: '/docs/api-reference', badge: 'GET', noActive: true },
-      { name: '/v1/btree/deploy', href: '/docs/api-reference', badge: 'POST', noActive: true },
-      { name: '/v1/runtime/execute', href: '/docs/api-reference', badge: 'POST', noActive: true },
-    ],
-  },
-];
+const apiNavSections: NavSection[] = getApiNavigationSections().map((section) => ({
+  section: section.section,
+  items: section.items,
+}));
 
 const changelogNavSections: NavSection[] = [
   {
@@ -419,6 +378,55 @@ export function DocsSidebar({ open = true, onClose }: DocsSidebarProps) {
     );
   };
 
+  const renderSection = (section: NavSection) => {
+    if (activeSection !== 'api') {
+      return (
+        <div key={section.section}>
+          <h3 className="px-3 mb-2 text-[0.8rem] font-medium text-gray-500 dark:text-gray-400">
+            {section.section}
+          </h3>
+          <ul className="space-y-0.5">
+            {section.items.map((item, i) => renderNavItem(item, i))}
+          </ul>
+        </div>
+      );
+    }
+
+    const hasActiveItem = section.items.some((item) =>
+      item.href === '/docs/api-reference'
+        ? pathname === item.href || pathname === `${item.href}/`
+        : pathname === item.href || pathname === `${item.href}/`
+    );
+
+    if (section.section === 'Overview') {
+      return (
+        <div key={section.section} className="space-y-2">
+          <ul className="space-y-0.5">
+            {section.items.map((item, i) => renderNavItem(item, i))}
+          </ul>
+        </div>
+      );
+    }
+
+    return (
+      <div key={section.section}>
+        <div
+          className={cn(
+            'mb-2 px-3 text-[0.8rem] font-medium',
+            hasActiveItem
+              ? 'text-gray-900 dark:text-[#f6f6f4]'
+              : 'text-gray-500 dark:text-gray-400'
+          )}
+        >
+          <span>{section.section}</span>
+        </div>
+        <ul className="space-y-0.5">
+          {section.items.map((item, i) => renderNavItem(item, i))}
+        </ul>
+      </div>
+    );
+  };
+
   return (
     <>
       {open && (
@@ -496,16 +504,7 @@ export function DocsSidebar({ open = true, onClose }: DocsSidebarProps) {
           {/* Navigation */}
           <nav className="flex-1 overflow-y-auto px-4 pb-4 scrollbar-hide">
             <div className="space-y-6">
-              {navigationSections.map((section) => (
-                <div key={section.section}>
-                  <h3 className="px-3 mb-2 text-xs font-semibold text-gray-500 dark:text-gray-400 tracking-wider uppercase">
-                    {section.section}
-                  </h3>
-                  <ul className="space-y-0.5">
-                    {section.items.map((item, i) => renderNavItem(item, i))}
-                  </ul>
-                </div>
-              ))}
+              {navigationSections.map((section) => renderSection(section))}
             </div>
           </nav>
         </div>
