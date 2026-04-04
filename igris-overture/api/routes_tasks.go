@@ -6,6 +6,7 @@ import (
 	"errors"
 	"fmt"
 	"net/http"
+	"strings"
 	"time"
 
 	"github.com/gofiber/fiber/v2"
@@ -20,9 +21,44 @@ type publicTaskSubmitRequest struct {
 	TaskID          uuid.UUID              `json:"task_id,omitempty"`
 	TaskType        string                 `json:"task_type"`
 	TaskDefinition  json.RawMessage        `json:"task_definition"`
+	AgentTask       *publicAgentTask       `json:"agent_task,omitempty"`
 	RoboticsMission *publicRoboticsMission `json:"robotics_mission,omitempty"`
 	IdempotencyKey  string                 `json:"idempotency_key,omitempty"`
 	DeadlineAt      *time.Time             `json:"deadline_at,omitempty"`
+}
+
+type publicAgentTask struct {
+	Name        string               `json:"name,omitempty"`
+	Model       string               `json:"model,omitempty"`
+	Messages    []publicAgentMessage `json:"messages,omitempty"`
+	MaxTokens   *uint32              `json:"max_tokens,omitempty"`
+	Temperature *float32             `json:"temperature,omitempty"`
+	Mode        string               `json:"mode,omitempty"`
+	Memory      *publicAgentMemory   `json:"memory,omitempty"`
+	Approval    *publicApproval      `json:"approval,omitempty"`
+	Steps       []publicAgentStep    `json:"steps,omitempty"`
+}
+
+type publicAgentStep struct {
+	Model       string               `json:"model,omitempty"`
+	Messages    []publicAgentMessage `json:"messages,omitempty"`
+	MaxTokens   *uint32              `json:"max_tokens,omitempty"`
+	Temperature *float32             `json:"temperature,omitempty"`
+	Mode        string               `json:"mode,omitempty"`
+	Memory      *publicAgentMemory   `json:"memory,omitempty"`
+	Approval    *publicApproval      `json:"approval,omitempty"`
+}
+
+type publicAgentMessage struct {
+	Role    string `json:"role"`
+	Content string `json:"content"`
+}
+
+type publicAgentMemory struct {
+	RecallQuery string  `json:"recall_query,omitempty"`
+	RecallTopK  *uint32 `json:"recall_top_k,omitempty"`
+	StoreKey    string  `json:"store_key,omitempty"`
+	StoreOutput bool    `json:"store_output,omitempty"`
 }
 
 type publicRoboticsMission struct {
@@ -132,19 +168,28 @@ func buildTaskSubmitRequest(body []byte, tenantID string) (*coordinator.TaskSubm
 		return nil, err
 	}
 
-	if len(raw.TaskDefinition) > 0 && raw.RoboticsMission != nil {
-		return nil, fmt.Errorf("%w: provide either task_definition or robotics_mission, not both", coordinator.ErrInvalidTaskDefinition)
+	if conflictingTaskInputCount(raw) > 1 {
+		return nil, fmt.Errorf("%w: provide only one of task_definition, agent_task, or robotics_mission", coordinator.ErrInvalidTaskDefinition)
 	}
 
 	taskDefinition := raw.TaskDefinition
-	if len(taskDefinition) == 0 && raw.RoboticsMission != nil {
-		if raw.TaskType != "robotics_workflow" {
-			return nil, fmt.Errorf("%w: robotics_mission is only valid with task_type=robotics_workflow", coordinator.ErrInvalidTaskDefinition)
-		}
-		var err error
-		taskDefinition, err = buildRoboticsMissionTaskDefinition(raw.RoboticsMission)
-		if err != nil {
-			return nil, err
+	if len(taskDefinition) == 0 {
+		switch {
+		case raw.AgentTask != nil:
+			var err error
+			taskDefinition, err = buildAgentTaskDefinition(raw.TaskType, raw.AgentTask)
+			if err != nil {
+				return nil, err
+			}
+		case raw.RoboticsMission != nil:
+			if raw.TaskType != "robotics_workflow" {
+				return nil, fmt.Errorf("%w: robotics_mission is only valid with task_type=robotics_workflow", coordinator.ErrInvalidTaskDefinition)
+			}
+			var err error
+			taskDefinition, err = buildRoboticsMissionTaskDefinition(raw.RoboticsMission)
+			if err != nil {
+				return nil, err
+			}
 		}
 	}
 
@@ -156,6 +201,158 @@ func buildTaskSubmitRequest(body []byte, tenantID string) (*coordinator.TaskSubm
 		IdempotencyKey: raw.IdempotencyKey,
 		DeadlineAt:     raw.DeadlineAt,
 	}, nil
+}
+
+func conflictingTaskInputCount(raw publicTaskSubmitRequest) int {
+	count := 0
+	if len(raw.TaskDefinition) > 0 {
+		count++
+	}
+	if raw.AgentTask != nil {
+		count++
+	}
+	if raw.RoboticsMission != nil {
+		count++
+	}
+	return count
+}
+
+func buildAgentTaskDefinition(taskType string, task *publicAgentTask) (json.RawMessage, error) {
+	if task == nil {
+		return nil, fmt.Errorf("%w: agent_task is required", coordinator.ErrInvalidTaskDefinition)
+	}
+
+	switch taskType {
+	case "single_inference":
+		if len(task.Steps) > 0 {
+			return nil, fmt.Errorf("%w: agent_task.steps is only valid with task_type=agent_workflow", coordinator.ErrInvalidTaskDefinition)
+		}
+		if err := requirePublicAgentMessages(task.Model, task.Messages); err != nil {
+			return nil, err
+		}
+		return json.Marshal(map[string]interface{}{
+			"model":       task.Model,
+			"messages":    buildAgentMessages(task.Messages),
+			"max_tokens":  optionalUint32(task.MaxTokens),
+			"temperature": optionalFloat32(task.Temperature),
+			"mode":        optionalString(task.Mode),
+			"memory":      buildAgentMemory(task.Memory),
+			"approval":    buildTaskApproval(task.Approval, task.Name, "single_inference", 0),
+		})
+	case "agent_workflow":
+		steps, err := buildAgentWorkflowSteps(task)
+		if err != nil {
+			return nil, err
+		}
+		return json.Marshal(map[string]interface{}{
+			"steps": steps,
+		})
+	default:
+		return nil, fmt.Errorf("%w: agent_task is only valid with task_type=single_inference or task_type=agent_workflow", coordinator.ErrInvalidTaskDefinition)
+	}
+}
+
+func buildAgentWorkflowSteps(task *publicAgentTask) ([]map[string]interface{}, error) {
+	steps := make([]map[string]interface{}, 0, max(1, len(task.Steps)))
+	if len(task.Steps) == 0 {
+		if err := requirePublicAgentMessages(task.Model, task.Messages); err != nil {
+			return nil, err
+		}
+		steps = append(steps, buildAgentStepDefinition(1, task.Name, publicAgentStep{
+			Model:       task.Model,
+			Messages:    task.Messages,
+			MaxTokens:   task.MaxTokens,
+			Temperature: task.Temperature,
+			Mode:        task.Mode,
+			Memory:      task.Memory,
+			Approval:    task.Approval,
+		}))
+		return steps, nil
+	}
+
+	for idx, step := range task.Steps {
+		if err := requirePublicAgentMessages(step.Model, step.Messages); err != nil {
+			return nil, fmt.Errorf("%w: agent_task.steps[%d]: %s", coordinator.ErrInvalidTaskDefinition, idx, unwrapTaskDefinitionError(err))
+		}
+		steps = append(steps, buildAgentStepDefinition(idx+1, task.Name, step))
+	}
+	return steps, nil
+}
+
+func buildAgentStepDefinition(stepIndex int, taskName string, step publicAgentStep) map[string]interface{} {
+	definition := map[string]interface{}{
+		"step_index": stepIndex,
+		"model":      step.Model,
+		"messages":   buildAgentMessages(step.Messages),
+	}
+	if step.MaxTokens != nil {
+		definition["max_tokens"] = *step.MaxTokens
+	}
+	if step.Temperature != nil {
+		definition["temperature"] = *step.Temperature
+	}
+	if step.Mode != "" {
+		definition["mode"] = step.Mode
+	}
+	if memory := buildAgentMemory(step.Memory); memory != nil {
+		definition["memory"] = memory
+	}
+	if approval := buildTaskApproval(step.Approval, taskName, "agent_step", stepIndex); approval != nil {
+		definition["approval"] = approval
+	}
+	return definition
+}
+
+func buildAgentMessages(messages []publicAgentMessage) []map[string]interface{} {
+	built := make([]map[string]interface{}, 0, len(messages))
+	for _, message := range messages {
+		built = append(built, map[string]interface{}{
+			"role":    message.Role,
+			"content": message.Content,
+		})
+	}
+	return built
+}
+
+func buildAgentMemory(memory *publicAgentMemory) map[string]interface{} {
+	if memory == nil {
+		return nil
+	}
+	payload := map[string]interface{}{}
+	if memory.RecallQuery != "" {
+		payload["recall_query"] = memory.RecallQuery
+	}
+	if memory.RecallTopK != nil {
+		payload["recall_top_k"] = *memory.RecallTopK
+	}
+	if memory.StoreKey != "" {
+		payload["store_key"] = memory.StoreKey
+	}
+	if memory.StoreOutput {
+		payload["store_output"] = true
+	}
+	if len(payload) == 0 {
+		return nil
+	}
+	return payload
+}
+
+func requirePublicAgentMessages(model string, messages []publicAgentMessage) error {
+	if model == "" {
+		return fmt.Errorf("%w: model is required", coordinator.ErrInvalidTaskDefinition)
+	}
+	if len(messages) == 0 {
+		return fmt.Errorf("%w: messages must contain at least one message", coordinator.ErrInvalidTaskDefinition)
+	}
+	for idx, message := range messages {
+		if message.Role == "" {
+			return fmt.Errorf("%w: messages[%d].role is required", coordinator.ErrInvalidTaskDefinition, idx)
+		}
+		if message.Content == "" {
+			return fmt.Errorf("%w: messages[%d].content is required", coordinator.ErrInvalidTaskDefinition, idx)
+		}
+	}
+	return nil
 }
 
 func buildRoboticsMissionTaskDefinition(mission *publicRoboticsMission) (json.RawMessage, error) {
@@ -188,7 +385,7 @@ func buildRoboticsMissionTaskDefinition(mission *publicRoboticsMission) (json.Ra
 		if mission.WaitTimeoutMs != nil {
 			step["wait_timeout_ms"] = *mission.WaitTimeoutMs
 		}
-		if approval := buildMissionApproval(mission, "navigate_to_pose", idx+1); approval != nil {
+		if approval := buildTaskApproval(mission.Approval, mission.Name, "navigate_to_pose", idx+1); approval != nil {
 			step["approval"] = approval
 		}
 		steps = append(steps, step)
@@ -201,7 +398,7 @@ func buildRoboticsMissionTaskDefinition(mission *publicRoboticsMission) (json.Ra
 			"action":     "publish_prompt",
 			"prompt":     mission.Prompt,
 		}
-		if approval := buildMissionApproval(mission, "publish_prompt", 0); approval != nil {
+		if approval := buildTaskApproval(mission.Approval, mission.Name, "publish_prompt", 0); approval != nil {
 			step["approval"] = approval
 		}
 		steps = append(steps, step)
@@ -215,7 +412,7 @@ func buildRoboticsMissionTaskDefinition(mission *publicRoboticsMission) (json.Ra
 			"linear_x":   mission.PublishVelocity.LinearX,
 			"angular_z":  mission.PublishVelocity.AngularZ,
 		}
-		if approval := buildMissionApproval(mission, "publish_velocity", 0); approval != nil {
+		if approval := buildTaskApproval(mission.Approval, mission.Name, "publish_velocity", 0); approval != nil {
 			step["approval"] = approval
 		}
 		steps = append(steps, step)
@@ -227,7 +424,7 @@ func buildRoboticsMissionTaskDefinition(mission *publicRoboticsMission) (json.Ra
 			"step_index": stepIndex,
 			"action":     "publish_zero_velocity",
 		}
-		if approval := buildMissionApproval(mission, "publish_zero_velocity", 0); approval != nil {
+		if approval := buildTaskApproval(mission.Approval, mission.Name, "publish_zero_velocity", 0); approval != nil {
 			step["approval"] = approval
 		}
 		steps = append(steps, step)
@@ -247,24 +444,24 @@ func buildRoboticsMissionTaskDefinition(mission *publicRoboticsMission) (json.Ra
 	return definition, nil
 }
 
-func buildMissionApproval(mission *publicRoboticsMission, action string, waypointIndex int) map[string]interface{} {
-	if mission == nil || mission.Approval == nil {
+func buildTaskApproval(approvalConfig *publicApproval, taskName, action string, waypointIndex int) map[string]interface{} {
+	if approvalConfig == nil {
 		return nil
 	}
 
 	approval := map[string]interface{}{
-		"required": mission.Approval.Required,
+		"required": approvalConfig.Required,
 	}
-	if mission.Approval.Confidence != nil {
-		approval["confidence"] = *mission.Approval.Confidence
+	if approvalConfig.Confidence != nil {
+		approval["confidence"] = *approvalConfig.Confidence
 	}
-	if len(mission.Approval.Context) > 0 {
-		context := make(map[string]interface{}, len(mission.Approval.Context)+2)
-		for key, value := range mission.Approval.Context {
+	if len(approvalConfig.Context) > 0 {
+		context := make(map[string]interface{}, len(approvalConfig.Context)+2)
+		for key, value := range approvalConfig.Context {
 			context[key] = value
 		}
-		if mission.Name != "" {
-			context["mission_name"] = mission.Name
+		if taskName != "" {
+			context["task_name"] = taskName
 		}
 		context["action"] = action
 		if waypointIndex > 0 {
@@ -272,16 +469,42 @@ func buildMissionApproval(mission *publicRoboticsMission, action string, waypoin
 		}
 		approval["context"] = context
 	}
-	task := mission.Approval.Task
+	task := approvalConfig.Task
 	if task == "" {
-		if mission.Name != "" {
-			task = mission.Name + ":" + action
+		if taskName != "" {
+			task = taskName + ":" + action
 		} else {
 			task = action
 		}
 	}
 	approval["task"] = task
 	return approval
+}
+
+func optionalUint32(value *uint32) interface{} {
+	if value == nil {
+		return nil
+	}
+	return *value
+}
+
+func optionalFloat32(value *float32) interface{} {
+	if value == nil {
+		return nil
+	}
+	return *value
+}
+
+func optionalString(value string) interface{} {
+	if value == "" {
+		return nil
+	}
+	return value
+}
+
+func unwrapTaskDefinitionError(err error) string {
+	prefix := coordinator.ErrInvalidTaskDefinition.Error() + ": "
+	return strings.TrimPrefix(err.Error(), prefix)
 }
 
 func handleGetTask(tc *coordinator.TaskCoordinator) fiber.Handler {
