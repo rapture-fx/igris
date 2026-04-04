@@ -87,12 +87,14 @@ type WalEntry struct {
 }
 
 // CreateTask inserts a new TaskRecord in PENDING state.
-func (s *CheckpointStore) CreateTask(task *TaskRecord) error {
+// It returns true when a new row was inserted and false when the idempotency
+// key already existed.
+func (s *CheckpointStore) CreateTask(task *TaskRecord) (bool, error) {
 	defBytes, err := json.Marshal(task.TaskDefinition)
 	if err != nil {
-		return fmt.Errorf("marshal task definition: %w", err)
+		return false, fmt.Errorf("marshal task definition: %w", err)
 	}
-	_, err = s.db.Exec(`
+	result, err := s.db.Exec(`
 		INSERT INTO task_records
 			(task_id, tenant_id, status, task_definition, idempotency_key, deadline_at, created_at)
 		VALUES ($1, $2, $3, $4, $5, $6, NOW())
@@ -100,7 +102,14 @@ func (s *CheckpointStore) CreateTask(task *TaskRecord) error {
 		task.TaskID, task.TenantID, TaskStatusPending, defBytes,
 		task.IdempotencyKey, task.DeadlineAt,
 	)
-	return err
+	if err != nil {
+		return false, err
+	}
+	rowsAffected, err := result.RowsAffected()
+	if err != nil {
+		return false, err
+	}
+	return rowsAffected == 1, nil
 }
 
 // MarkDispatched transitions a task to DISPATCHED and records which runtime took it.
@@ -204,6 +213,19 @@ func (s *CheckpointStore) GetTask(taskID uuid.UUID, tenantID string) (*TaskRecor
 		FROM task_records
 		WHERE task_id = $1 AND tenant_id = $2`,
 		taskID, tenantID,
+	)
+	return scanTaskRecord(row)
+}
+
+// GetTaskByIdempotencyKey returns a task record by tenant and idempotency key.
+func (s *CheckpointStore) GetTaskByIdempotencyKey(tenantID, idempotencyKey string) (*TaskRecord, error) {
+	row := s.db.QueryRow(`
+		SELECT task_id, tenant_id, status, runtime_id, runtime_endpoint,
+		       task_definition, last_checkpoint, idempotency_key,
+		       deadline_at, dispatched_at, completed_at, created_at
+		FROM task_records
+		WHERE tenant_id = $1 AND idempotency_key = $2`,
+		tenantID, idempotencyKey,
 	)
 	return scanTaskRecord(row)
 }
