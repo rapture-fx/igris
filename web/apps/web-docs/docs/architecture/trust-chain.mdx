@@ -22,11 +22,10 @@ This signature binds the routing decision to its originating Overture instance. 
 
 ### Step 3 — Overture to Runtime
 
-Overture forwards the signed request to the Runtime's `/v1/runtime/execute` endpoint. Three headers are included:
+Overture forwards the signed request to the Runtime's `/v1/runtime/task/submit` endpoint. The signed task body contains the execution type plus containment and deadline metadata. Two headers are included:
 
 - `Authorization: Bearer <secret>` — the shared secret configured as `IGRIS_RUNTIME_SECRET`
-- `X-Igris-Decision-Sig: <base64-signature>` — Ed25519 signature over the request body
-- `X-Igris-Bounds: {...}` — containment limits for this execution (CPU, memory, tick deadline)
+- `X-Igris-Decision-Sig: <base64-signature>` — Ed25519 signature over the complete JSON task body
 
 ---
 
@@ -35,7 +34,7 @@ Overture forwards the signed request to the Runtime's `/v1/runtime/execute` endp
 The Runtime's security layer performs two checks before any inference work begins:
 
 1. Verifies that the Bearer token matches `IGRIS_RUNTIME_SECRET`
-2. If `IGRIS_OVERTURE_PUBLIC_KEY` is configured, verifies that `X-Igris-Decision-Sig` is a valid Ed25519 signature over the SHA-256 hash of the request body
+2. If `IGRIS_OVERTURE_PUBLIC_KEY` is configured, verifies that `X-Igris-Decision-Sig` is a valid Ed25519 signature over the SHA-256 hash of the task body
 
 Either failure returns 401. The request is rejected unconditionally.
 
@@ -49,7 +48,7 @@ Before inference begins, the Runtime creates a signed `ExecutionTransaction` rec
 
 ### Step 6 — Runtime executes, seals the transaction, and signs both artifacts
 
-The Runtime executes the request under the OS-level containment bounds specified in `X-Igris-Bounds`. On completion:
+The Runtime executes the request under the OS-level containment bounds encoded in the signed task body. On completion:
 
 1. The `ExecutionTransaction` is sealed: committed on success, aborted on timeout or error. The sealed record is re-signed with a `COMMITTED` or `ABORTED` status.
 2. The Runtime assembles a signed **execution envelope** containing the response and routing metadata.
@@ -88,7 +87,7 @@ sequenceDiagram
     SDK->>Overture: POST /v1/infer (HTTPS + API key)
     Overture->>Overture: Authenticate SDK caller
     Overture->>Overture: Sign request body (Ed25519)
-    Overture->>Runtime: POST /v1/runtime/execute<br/>Authorization: Bearer<br/>X-Igris-Decision-Sig<br/>X-Igris-Bounds
+    Overture->>Runtime: POST /v1/runtime/task/submit<br/>Authorization: Bearer<br/>X-Igris-Decision-Sig
     Runtime->>Runtime: Verify Bearer token
     Runtime->>Runtime: Verify decision signature (Ed25519)
     Runtime->>Runtime: Begin ExecutionTransaction (PENDING)
