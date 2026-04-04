@@ -171,10 +171,15 @@ func (tc *TaskCoordinator) selectRuntime(ctx context.Context, tenantID string) (
 // If the runtime is unreachable, marks the task as recovering.
 //
 // The runtime expects TaskSubmitRequest: { task_id, task_type, containment,
-// resume_from, idempotency_key, tenant_id, deadline_ms }.
+// resume_from, resume_checkpoint, idempotency_key, tenant_id, deadline_ms }.
 // task.TaskDefinition holds the client-submitted JSON which already contains
 // task_type (and optionally containment). We merge in the control-plane fields.
-func (tc *TaskCoordinator) dispatchToRuntime(ctx context.Context, task *TaskRecord, resume *ResumeToken) {
+//
+// On recovery, checkpoint carries the full last CheckpointPayload including the
+// Metadata field. resume_from is derived from checkpoint.ResumeToken so that
+// the runtime can verify WAL digest continuity. resume_checkpoint is forwarded
+// opaquely — behavior tree tasks use it to restore blackboard state.
+func (tc *TaskCoordinator) dispatchToRuntime(ctx context.Context, task *TaskRecord, checkpoint *CheckpointPayload) {
 	if task.RuntimeEndpoint == nil {
 		log.Error().Str("task_id", task.TaskID.String()).Msg("[Coordinator] No endpoint for dispatch")
 		_ = tc.store.MarkFailed(task.TaskID, "missing runtime endpoint")
@@ -198,9 +203,14 @@ func (tc *TaskCoordinator) dispatchToRuntime(ctx context.Context, task *TaskReco
 	runtimePayload["tenant_id"] = tenantIDBytes
 	runtimePayload["idempotency_key"] = idempotencyBytes
 
-	if resume != nil {
-		resumeBytes, _ := json.Marshal(resume)
+	if checkpoint != nil {
+		// resume_from carries the WAL watermark for digest verification.
+		resumeBytes, _ := json.Marshal(checkpoint.ResumeToken)
 		runtimePayload["resume_from"] = resumeBytes
+		// resume_checkpoint carries task-type-specific state (e.g. blackboard for BT).
+		// Forward the whole payload so the runtime can pick out what it needs.
+		cpBytes, _ := json.Marshal(checkpoint)
+		runtimePayload["resume_checkpoint"] = cpBytes
 	}
 	if task.DeadlineAt != nil {
 		deadlineBytes, _ := json.Marshal(task.DeadlineAt.UnixMilli())
@@ -335,17 +345,12 @@ func (tc *TaskCoordinator) recoverRuntime(ctx context.Context, runtimeID string)
 		}
 		task.RuntimeEndpoint = &newRuntime.Endpoint
 
-		var resume *ResumeToken
-		if cp != nil {
-			resume = &cp.ResumeToken
-		}
-
 		log.Info().
 			Str("task_id", taskID.String()).
 			Str("new_runtime", newRuntime.RuntimeID).
 			Msg("[Coordinator] Redispatching recovered task")
 
-		go tc.dispatchToRuntime(ctx, task, resume)
+		go tc.dispatchToRuntime(ctx, task, cp)
 	}
 }
 
