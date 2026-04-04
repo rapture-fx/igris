@@ -3,6 +3,7 @@ import { MDXContent } from '@/components/MDXContent';
 import { JsonLd } from '@/components/JsonLd';
 import { DocFooter } from '@/components/layout/DocFooter';
 import { FeedbackWidget } from '@/components/layout/FeedbackWidget';
+import { ApiReferenceRightRail } from '@/components/docs/ApiReferencePage';
 import { notFound } from 'next/navigation';
 
 interface PageProps {
@@ -89,6 +90,7 @@ const slugToFile: Record<string, string> = {
   'capability-model': 'capability-model',
   'agent-lifecycle': 'agent-lifecycle',
   'behavior-trees': 'behavior-trees',
+  'durable-tasks': 'durable-tasks',
   'fleet-management': 'fleet-management',
   'ros2-integration': 'ros2-integration',
   'key-management': 'key-management',
@@ -132,6 +134,8 @@ export async function generateStaticParams() {
 export default async function DocPage({ params }: PageProps) {
   const { slug } = await params;
   const fileName = slugToFile[slug];
+  const fullWidth = slug === 'api-reference';
+  const isApiReference = slug === 'api-reference';
 
   if (!fileName) notFound();
 
@@ -147,8 +151,12 @@ export default async function DocPage({ params }: PageProps) {
   return (
     <>
       {jsonLdData && <JsonLd data={jsonLdData} />}
-      <DocsLayout>
-        <MDXContent>
+      <DocsLayout
+        hideTableOfContents={isApiReference}
+        rightRail={isApiReference ? <ApiReferenceRightRail /> : undefined}
+        maxWidthClass={isApiReference ? 'max-w-[96rem]' : 'max-w-[90rem]'}
+      >
+        <MDXContent fullWidth={fullWidth}>
           <MDXComponent />
         </MDXContent>
         <FeedbackWidget />
