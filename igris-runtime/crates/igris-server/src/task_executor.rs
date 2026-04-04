@@ -12,11 +12,12 @@ use base64::Engine;
 use ed25519_dalek::Signer;
 use serde::{Deserialize, Serialize};
 use sha2::{Digest, Sha256};
+use std::collections::HashMap;
 use std::time::{Duration, Instant};
 use tracing::{error, info, warn};
 use uuid::Uuid;
 
-use igris_wal::{BtCheckpointPayload, CheckpointPayload, ResumeToken, StepType, WalEntry, WalLog};
+use igris_wal::{CheckpointPayload, ResumeToken, StepType, WalEntry, WalLog};
 use igris_core::storage::TASK_SUBMISSIONS;
 use igris_btree::{
     core::{BTreeContext, BtWalSession},
@@ -34,6 +35,30 @@ use crate::runtime_execute::{
 use crate::{AppState, CloudProviderWrapper};
 
 #[derive(Debug, Clone, Serialize, Deserialize)]
+pub struct AgentMemoryOptions {
+    #[serde(default)]
+    pub recall_query: Option<String>,
+    #[serde(default)]
+    pub recall_top_k: Option<usize>,
+    #[serde(default)]
+    pub store_key: Option<String>,
+    #[serde(default)]
+    pub store_output: bool,
+}
+
+#[derive(Debug, Clone, Serialize, Deserialize)]
+pub struct AgentApprovalOptions {
+    #[serde(default)]
+    pub required: bool,
+    #[serde(default)]
+    pub task: Option<String>,
+    #[serde(default)]
+    pub confidence: Option<f32>,
+    #[serde(default)]
+    pub context: Option<HashMap<String, serde_json::Value>>,
+}
+
+#[derive(Debug, Clone, Serialize, Deserialize)]
 pub struct AgentStep {
     pub step_index: u32,
     pub model: String,
@@ -44,6 +69,10 @@ pub struct AgentStep {
     pub temperature: Option<f32>,
     #[serde(default)]
     pub mode: Option<String>,
+    #[serde(default)]
+    pub memory: Option<AgentMemoryOptions>,
+    #[serde(default)]
+    pub approval: Option<AgentApprovalOptions>,
 }
 
 #[derive(Debug, Clone, Serialize, Deserialize)]
@@ -98,6 +127,10 @@ pub enum TaskType {
         stream: bool,
         #[serde(default)]
         mode: Option<String>,
+        #[serde(default)]
+        memory: Option<AgentMemoryOptions>,
+        #[serde(default)]
+        approval: Option<AgentApprovalOptions>,
     },
     /// WAL-backed behavior tree execution. The tree is parsed and run through
     /// BTreeExecutor with a BtWalSession for per-tick durability.
@@ -473,6 +506,8 @@ pub async fn handle_task_submit(
             max_tokens,
             temperature,
             mode,
+            memory,
+            approval,
             ..
         } => {
             vec![RuntimeTaskStep::Agent(AgentStep {
@@ -482,6 +517,8 @@ pub async fn handle_task_submit(
                 max_tokens: *max_tokens,
                 temperature: *temperature,
                 mode: mode.clone(),
+                memory: memory.clone(),
+                approval: approval.clone(),
             })]
         }
         TaskType::BehaviorTree { .. } => unreachable!("BT exits early above"),
@@ -552,7 +589,9 @@ pub async fn handle_task_submit(
         };
 
         let execution = match step {
-            RuntimeTaskStep::Agent(agent_step) => execute_agent_step(state.clone(), agent_step, max_tick_ms).await,
+            RuntimeTaskStep::Agent(agent_step) => {
+                execute_agent_step(state.clone(), req.task_id, &req.tenant_id, agent_step, max_tick_ms).await
+            }
             RuntimeTaskStep::Robotics(robotics_step) => {
                 execute_robotics_step(state.clone(), robotics_step, max_tick_ms).await
             }
@@ -841,41 +880,48 @@ async fn do_route(
 
 async fn execute_agent_step(
     state: AppState,
+    task_id: Uuid,
+    tenant_id: &str,
     step: &AgentStep,
     max_tick_ms: u64,
 ) -> anyhow::Result<StepExecutionResult> {
     let _ = step.temperature;
-    let prompt = step
+    let base_prompt = step
         .messages
         .iter()
         .map(|message| format!("{}: {}", message.role, message.content))
         .collect::<Vec<_>>()
         .join("\n");
+    maybe_require_approval(&state, task_id, tenant_id, step, max_tick_ms).await?;
+    let prompt = prepare_agent_prompt(&state, task_id, step, base_prompt.clone()).await?;
 
     match tokio::time::timeout(
         Duration::from_millis(max_tick_ms),
-        do_route(state, prompt, step.mode.as_deref()),
+        do_route(state.clone(), prompt, step.mode.as_deref()),
     )
     .await
     {
-        Ok(Ok((content, provider_name))) => Ok(StepExecutionResult {
-            usage: ExecuteUsage {
-                prompt_tokens: step
-                    .messages
-                    .iter()
-                    .map(|message| token_estimate(&message.content))
-                    .sum(),
-                completion_tokens: token_estimate(&content),
-                total_tokens: step
-                    .messages
-                    .iter()
-                    .map(|message| token_estimate(&message.content))
-                    .sum::<u32>()
-                    + token_estimate(&content),
-            },
-            output_text: content,
-            provider_name,
-        }),
+        Ok(Ok((content, provider_name))) => {
+            maybe_store_agent_memory(&state, task_id, step, &base_prompt, &content).await?;
+            Ok(StepExecutionResult {
+                usage: ExecuteUsage {
+                    prompt_tokens: step
+                        .messages
+                        .iter()
+                        .map(|message| token_estimate(&message.content))
+                        .sum(),
+                    completion_tokens: token_estimate(&content),
+                    total_tokens: step
+                        .messages
+                        .iter()
+                        .map(|message| token_estimate(&message.content))
+                        .sum::<u32>()
+                        + token_estimate(&content),
+                },
+                output_text: content,
+                provider_name,
+            })
+        }
         Ok(Err(e)) => Err(e),
         Err(_) => anyhow::bail!("timeout after {}ms", max_tick_ms),
     }
@@ -1070,9 +1116,195 @@ async fn build_execution_artifacts(
     ))
 }
 
+fn deterministic_embedding(input: &str, dim: usize) -> Vec<f32> {
+    if dim == 0 {
+        return Vec::new();
+    }
+
+    let mut values = Vec::with_capacity(dim);
+    let mut counter = 0u64;
+    while values.len() < dim {
+        let mut hasher = Sha256::new();
+        hasher.update(input.as_bytes());
+        hasher.update(counter.to_le_bytes());
+        let digest = hasher.finalize();
+        for chunk in digest.chunks(4) {
+            if values.len() == dim {
+                break;
+            }
+            let bytes = [chunk[0], chunk[1], chunk[2], chunk[3]];
+            let raw = u32::from_le_bytes(bytes);
+            let unit = (raw as f64 / u32::MAX as f64) * 2.0 - 1.0;
+            values.push(unit as f32);
+        }
+        counter = counter.saturating_add(1);
+    }
+
+    let norm = values.iter().map(|value| value * value).sum::<f32>().sqrt();
+    if norm > 0.0 {
+        for value in &mut values {
+            *value /= norm;
+        }
+    }
+
+    values
+}
+
+async fn prepare_agent_prompt(
+    state: &AppState,
+    task_id: Uuid,
+    step: &AgentStep,
+    base_prompt: String,
+) -> anyhow::Result<String> {
+    let mut prompt = base_prompt.clone();
+
+    #[cfg(feature = "memory")]
+    {
+        if let Some(memory_options) = &step.memory {
+            let recall_top_k = memory_options.recall_top_k.unwrap_or(0);
+            if recall_top_k > 0 {
+                let memory = state
+                    .agent_memory
+                    .as_ref()
+                    .ok_or_else(|| anyhow::anyhow!("agent memory requested but the runtime has it disabled"))?;
+                let query_text = memory_options
+                    .recall_query
+                    .clone()
+                    .unwrap_or_else(|| base_prompt.clone());
+                let embedding = deterministic_embedding(&query_text, memory.embedding_dim());
+                let recalled = memory.retrieve(embedding, recall_top_k).await?;
+                if !recalled.is_empty() {
+                    let memory_block = recalled
+                        .into_iter()
+                        .map(|result| format!("[{}] {}", result.entry.key, result.entry.content))
+                        .collect::<Vec<_>>()
+                        .join("\n");
+                    prompt.push_str(&format!(
+                        "\n\nRetrieved memory for task {}:\n{}",
+                        task_id, memory_block
+                    ));
+                }
+            }
+        }
+    }
+
+    #[cfg(not(feature = "memory"))]
+    {
+        let _ = (state, task_id);
+        if step.memory.is_some() {
+            anyhow::bail!("agent memory requested but this runtime was not built with the memory feature");
+        }
+    }
+
+    Ok(prompt)
+}
+
+async fn maybe_store_agent_memory(
+    state: &AppState,
+    task_id: Uuid,
+    step: &AgentStep,
+    base_prompt: &str,
+    output: &str,
+) -> anyhow::Result<()> {
+    #[cfg(feature = "memory")]
+    {
+        let Some(memory_options) = &step.memory else {
+            return Ok(());
+        };
+        if !memory_options.store_output {
+            return Ok(());
+        }
+
+        let memory = state
+            .agent_memory
+            .as_ref()
+            .ok_or_else(|| anyhow::anyhow!("agent memory storage requested but the runtime has it disabled"))?;
+        let key = memory_options.store_key.clone().unwrap_or_else(|| {
+            format!(
+                "task:{}:step:{}:{:x}",
+                task_id,
+                step.step_index,
+                Sha256::digest(base_prompt.as_bytes())
+            )
+        });
+        let content = format!("Prompt:\n{}\n\nResponse:\n{}", base_prompt, output);
+        let embedding = deterministic_embedding(base_prompt, memory.embedding_dim());
+        memory.store(&key, &content, embedding).await?;
+        return Ok(());
+    }
+
+    #[cfg(not(feature = "memory"))]
+    {
+        let _ = (state, task_id, base_prompt, output);
+        if let Some(memory_options) = &step.memory {
+            if memory_options.store_output || memory_options.store_key.is_some() {
+                anyhow::bail!("agent memory storage requested but this runtime was not built with the memory feature");
+            }
+        }
+        Ok(())
+    }
+}
+
+async fn maybe_require_approval(
+    state: &AppState,
+    task_id: Uuid,
+    tenant_id: &str,
+    step: &AgentStep,
+    max_tick_ms: u64,
+) -> anyhow::Result<()> {
+    let Some(approval) = &step.approval else {
+        return Ok(());
+    };
+    if !approval.required && approval.confidence.is_none() {
+        return Ok(());
+    }
+
+    #[cfg(feature = "hitl")]
+    {
+        let coordinator = state
+            .hitl_coordinator
+            .as_ref()
+            .ok_or_else(|| anyhow::anyhow!("human approval requested but the runtime has HITL disabled"))?;
+        let mut context = approval.context.clone().unwrap_or_default();
+        context.insert("task_id".to_string(), serde_json::json!(task_id));
+        context.insert("tenant_id".to_string(), serde_json::json!(tenant_id));
+        context.insert("model".to_string(), serde_json::json!(step.model));
+        context.insert("step_index".to_string(), serde_json::json!(step.step_index));
+
+        let task_description = approval
+            .task
+            .clone()
+            .unwrap_or_else(|| format!("Approve agent step {} for model {}", step.step_index, step.model));
+
+        let status = tokio::time::timeout(
+            Duration::from_millis(max_tick_ms),
+            coordinator.request_approval(
+                task_description,
+                context,
+                approval.confidence.unwrap_or(0.0),
+            ),
+        )
+        .await
+        .map_err(|_| anyhow::anyhow!("human approval timed out after {}ms", max_tick_ms))??;
+
+        match status {
+            igris_hitl::ApprovalStatus::Approved => Ok(()),
+            igris_hitl::ApprovalStatus::Rejected => anyhow::bail!("human approval rejected task {}", task_id),
+            igris_hitl::ApprovalStatus::Timeout => anyhow::bail!("human approval timed out for task {}", task_id),
+            igris_hitl::ApprovalStatus::Pending => anyhow::bail!("human approval is still pending for task {}", task_id),
+        }
+    }
+
+    #[cfg(not(feature = "hitl"))]
+    {
+        let _ = (state, task_id, tenant_id, max_tick_ms);
+        anyhow::bail!("human approval requested but this runtime was not built with the hitl feature");
+    }
+}
+
 #[cfg(test)]
 mod tests {
-    use super::{normalize_agent_mode, AgentExecutionMode};
+    use super::{deterministic_embedding, normalize_agent_mode, AgentExecutionMode};
 
     #[test]
     fn normalize_agent_mode_accepts_supported_values() {
@@ -1094,5 +1326,15 @@ mod tests {
     #[test]
     fn normalize_agent_mode_rejects_unknown_values() {
         assert!(normalize_agent_mode(Some("reflection")).is_err());
+    }
+
+    #[test]
+    fn deterministic_embedding_is_stable_and_sized() {
+        let a = deterministic_embedding("hello", 8);
+        let b = deterministic_embedding("hello", 8);
+        let c = deterministic_embedding("world", 8);
+        assert_eq!(a.len(), 8);
+        assert_eq!(a, b);
+        assert_ne!(a, c);
     }
 }
