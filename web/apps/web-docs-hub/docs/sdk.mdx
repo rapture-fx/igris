@@ -99,6 +99,28 @@ const response = await client.infer({
 console.log(response.choices[0].message.content);
 ```
 
+For durable streamed inference, the JavaScript SDK can surface both token chunks and the terminal durable-task result from one SSE session:
+
+```typescript
+for await (const event of client.streamInference({
+  model: 'gpt-4.1-mini',
+  messages: [{ role: 'user', content: 'Summarize the deployment risk.' }],
+})) {
+  if (event.type === 'chunk') {
+    process.stdout.write(
+      String(
+        ((event.data.choices as Array<{ delta?: { content?: string } }> | undefined)?.[0]?.delta?.content) ?? ''
+      )
+    );
+  }
+
+  if (event.type === 'task_result') {
+    console.log('\nTask ID:', event.data.task_id);
+    console.log('Status:', event.data.status);
+  }
+}
+```
+
 ### Go
 
 ```go
