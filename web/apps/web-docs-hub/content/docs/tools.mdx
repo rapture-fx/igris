@@ -1,0 +1,136 @@
+---
+title: "Tools"
+description: "Igris agents can call external tools: HTTP APIs, shell commands, and filesystem operations. All tool use is governed by the execution envelope's capability grants and recorded in t"
+---
+
+# Tools
+
+Igris agents can call external tools: HTTP APIs, shell commands, and filesystem operations. All tool use is governed by the execution envelope's capability grants and recorded in the execution receipt.
+
+---
+
+## Tool Overview
+
+| Tool | Capability required | Use |
+|---|---|---|
+| HTTP | `allow_http` | Call external APIs, webhooks, web services |
+| Shell | `allow_shell` | Execute shell commands in a sandboxed context |
+| Filesystem | `allow_filesystem` | Read, write, and list files |
+
+Tools are disabled by default. Each must be explicitly granted in the request's capability grant or in the tenant's policy.
+
+---
+
+## HTTP Tool
+
+The HTTP tool allows agents to make GET and POST requests to external endpoints.
+
+**Configuration:**
+```json
+{
+  "capabilities": {
+    "allow_http": true
+  },
+  "tool_config": {
+    "http": {
+      "allowed_domains": ["api.example.com", "*.example.internal"],
+      "timeout_ms": 5000,
+      "max_response_bytes": 65536
+    }
+  }
+}
+```
+
+**Security controls:**
+- **Domain allowlist**: agents can only reach configured domains. Wildcards are supported for subdomains.
+- **Timeout**: requests that exceed `timeout_ms` are aborted and the failure is recorded.
+- **Response size limit**: responses larger than `max_response_bytes` are truncated.
+
+If `allowed_domains` is empty, all domains are permitted. Leaving it empty is not recommended for production deployments.
+
+---
+
+## Shell Tool
+
+The shell tool allows agents to execute shell commands. Shell access is the most sensitive capability and should be granted only when necessary.
+
+**Configuration:**
+```json
+{
+  "capabilities": {
+    "allow_shell": true
+  },
+  "tool_config": {
+    "shell": {
+      "allowed_commands": ["ls", "cat", "grep", "python3"],
+      "working_directory": "/workspace",
+      "timeout_ms": 10000,
+      "env_allowlist": ["PATH", "HOME"]
+    }
+  }
+}
+```
+
+**Security controls:**
+- **Command allowlist**: only listed commands can be executed. Commands not on the list are rejected before execution.
+- **Working directory**: the shell is confined to the specified directory. Attempts to navigate outside it are blocked.
+- **Timeout**: commands that run longer than `timeout_ms` are killed.
+- **Environment**: only environment variables on the allowlist are passed to the child process.
+
+All shell executions — successful or rejected — are recorded in the execution receipt.
+
+---
+
+## Filesystem Tool
+
+The filesystem tool allows agents to read, write, and list files.
+
+**Configuration:**
+```json
+{
+  "capabilities": {
+    "allow_filesystem": true
+  },
+  "tool_config": {
+    "filesystem": {
+      "allowed_paths": ["/workspace", "/tmp/igris"],
+      "allow_write": true,
+      "max_file_size_bytes": 10485760
+    }
+  }
+}
+```
+
+**Security controls:**
+- **Path allowlist**: file operations are restricted to listed paths. Traversal attempts outside allowed paths are rejected.
+- **Write control**: set `allow_write: false` to make the tool read-only.
+- **File size limit**: write operations larger than `max_file_size_bytes` are rejected.
+
+---
+
+## Tool Audit Trail
+
+Every tool call is recorded in the execution receipt:
+
+```json
+{
+  "tool_calls": [
+    {
+      "tool": "http",
+      "timestamp": "2026-03-01T12:00:00Z",
+      "request": {
+        "method": "GET",
+        "url": "https://api.example.com/data"
+      },
+      "response": {
+        "status": 200,
+        "latency_ms": 142
+      }
+    }
+  ]
+}
+```
+
+Tool call records are part of the signed envelope. They cannot be altered after signing.
+
+[Execution Receipts →](/docs/execution-receipts) · [Safety & Containment →](/docs/safety)
