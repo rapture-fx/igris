@@ -11,6 +11,7 @@ mod tests {
     use std::{convert::Infallible, net::SocketAddr, sync::Arc};
     use tokio::net::TcpListener;
     use tower::ServiceExt;
+    use igris_routing::thompson::ThompsonSamplingRouter;
 
     async fn mock_openai_chat(Json(req): Json<serde_json::Value>) -> axum::response::Response {
         let stream = req.get("stream").and_then(|v| v.as_bool()).unwrap_or(false);
@@ -72,6 +73,7 @@ mod tests {
             config: Arc::new(cfg),
             storage: Arc::new(RedbStorage::new(db_path).unwrap()),
             speculative_router: Arc::new(SpeculativeRouter::new(3, std::time::Duration::from_secs(2))),
+            thompson_router: Arc::new(ThompsonSamplingRouter::new(vec!["mock".to_string()], 0.1)),
             council_router: Arc::new(CouncilRouter::new("mock".to_string())),
             cloud_providers: Arc::new(cloud_providers),
             local_provider: None,
@@ -234,6 +236,7 @@ mod tests {
             config: Arc::new(cfg),
             storage: Arc::new(RedbStorage::new(db_path).unwrap()),
             speculative_router: Arc::new(SpeculativeRouter::new(3, std::time::Duration::from_millis(100))),
+            thompson_router: Arc::new(ThompsonSamplingRouter::new(vec!["mock".to_string()], 0.1)),
             council_router: Arc::new(CouncilRouter::new("mock".to_string())),
             cloud_providers: Arc::new(cloud_providers),
             local_provider: None,
@@ -332,6 +335,7 @@ mod tests {
             config: Arc::new(cfg),
             storage: Arc::new(RedbStorage::new(db_path).unwrap()),
             speculative_router: Arc::new(SpeculativeRouter::new(3, std::time::Duration::from_millis(100))),
+            thompson_router: Arc::new(ThompsonSamplingRouter::new(vec!["mock".to_string()], 0.1)),
             council_router: Arc::new(CouncilRouter::new("mock".to_string())),
             cloud_providers: Arc::new(cloud_providers),
             local_provider: None,
@@ -425,4 +429,3 @@ mod tests {
         assert!(v["metadata"].is_null(), "metadata should be null for normal responses");
     }
 }
-
