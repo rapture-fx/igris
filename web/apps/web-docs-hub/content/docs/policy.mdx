@@ -1,0 +1,147 @@
+---
+title: "Policy"
+description: "Igris enforces routing and capability policies at the coordination layer. Policies are tenant-scoped and take effect on the next request — no redeployment required."
+---
+
+# Policy
+
+Igris enforces routing and capability policies at the coordination layer. Policies are tenant-scoped and take effect on the next request — no redeployment required.
+
+---
+
+## What Policies Control
+
+Policies configure two areas:
+
+| Area | What it covers |
+|---|---|
+| **Routing strategy** | Which providers to use, cost vs latency preference, fallback chains |
+| **Execution envelope** | BT node limits, depth limits, tool call caps, max duration |
+
+---
+
+## Routing Strategy
+
+Set the active routing strategy:
+
+```bash
+curl -X POST https://overture.igrisinertial.com/v1/routing/strategy \
+  -H "Authorization: Bearer YOUR_API_KEY" \
+  -H "Content-Type: application/json" \
+  -d '{
+    "strategy": "thompson-sampling",
+    "fallback_chain": ["anthropic", "openai", "local"]
+  }'
+# → {"saved": true}
+```
+
+**Available strategies:**
+
+**`thompson-sampling` (default)**
+
+Adaptive routing. Automatically balances load across configured providers based on latency and success rates in real time.
+
+**`cost-optimized`**
+
+Always selects the cheapest provider for the requested model.
+
+**`latency-optimized`**
+
+Always selects the provider with the lowest observed p50 latency.
+
+**Provider pinning**
+
+Override routing for specific models by posting to `/v1/routing/provider_weights`:
+
+```json
+{
+  "pins": {
+    "gpt-4": "openai",
+    "claude-3-haiku": "anthropic"
+  }
+}
+```
+
+---
+
+## Fallback Chains
+
+Configure the order in which providers are tried when the primary fails:
+
+```bash
+curl -X POST https://overture.igrisinertial.com/v1/routing/strategy \
+  -H "Authorization: Bearer YOUR_API_KEY" \
+  -H "Content-Type: application/json" \
+  -d '{"fallback_chain": ["anthropic", "openai", "google", "local"]}'
+```
+
+`local` in the fallback chain routes to a registered runtime instance. This enables full offline fallback with no code changes.
+
+---
+
+## Execution Envelope Limits
+
+### GET /v1/policies
+
+Returns the active BT execution limits for your tenant. These are enforced at runtime — trees that violate them are rejected before execution.
+
+```bash
+curl https://overture.igrisinertial.com/v1/policies \
+  -H "Authorization: Bearer YOUR_API_KEY"
+```
+
+Response:
+```json
+{
+  "allowed_node_types": [
+    "Sequence", "Selector", "Parallel", "Decorator",
+    "Action", "Condition",
+    "RosTopicPublish", "RosTopicSubscribe", "RosServiceCall"
+  ],
+  "max_action_nodes": 50,
+  "max_depth": 10,
+  "max_tool_calls": 20,
+  "max_duration_secs": 300
+}
+```
+
+Fields not present in the response have no custom limit set (defaults apply).
+
+---
+
+## Assigning a Policy to Agents
+
+### POST /v1/policies/assign
+
+Assign a policy (identified by its hash) to one or more agents. The policy hash links to a specific set of envelope limits stored in your tenant configuration.
+
+```bash
+curl -X POST https://overture.igrisinertial.com/v1/policies/assign \
+  -H "Authorization: Bearer YOUR_API_KEY" \
+  -H "Content-Type: application/json" \
+  -d '{
+    "agent_ids": ["agent-abc", "agent-def"],
+    "policy_hash": "sha256:a3f9..."
+  }'
+# → {"status": "assigned", "agent_count": 2}
+```
+
+The assigned `policy_hash` appears on the agent object returned by `GET /v1/execution/agents`.
+
+---
+
+## Council & Shadow Mode
+
+Council mode and shadow mode are per-agent routing policies set via `PATCH /v1/agents/:id`:
+
+```bash
+curl -X PATCH https://overture.igrisinertial.com/v1/agents/agent-abc \
+  -H "Authorization: Bearer YOUR_API_KEY" \
+  -H "Content-Type: application/json" \
+  -d '{"council_mode": true}'
+```
+
+- **Council mode** — multi-provider consensus; every inference goes to N providers and a chairman model synthesizes the result
+- **Shadow mode** — a shadow execution runs in parallel with every real execution for comparison; see `GET /v1/execution/shadow`
+
+[Cloud Coordination →](/docs/cloud-coordination) · [Audit →](/docs/audit) · [Governance →](/docs/governance)
