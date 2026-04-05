@@ -15,7 +15,7 @@ mod tests {
     use crate::{metrics::Metrics, AppState};
     use igris_core::config::IgrisConfig;
     use igris_core::storage::RedbStorage;
-    use igris_routing::{CouncilRouter, SpeculativeRouter};
+    use igris_routing::{CouncilRouter, SpeculativeRouter, ThompsonSamplingRouter};
 
     async fn ok() -> &'static str {
         "OK"
@@ -31,6 +31,7 @@ mod tests {
             config: Arc::new(cfg),
             storage: Arc::new(RedbStorage::new(db_path).unwrap()),
             speculative_router: Arc::new(SpeculativeRouter::new(1, std::time::Duration::from_secs(1))),
+            thompson_router: Arc::new(ThompsonSamplingRouter::new(vec![], 0.1)),
             council_router: Arc::new(CouncilRouter::new("x".to_string())),
             cloud_providers: Arc::new(vec![]),
             local_provider: None,
