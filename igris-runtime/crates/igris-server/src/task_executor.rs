@@ -5,14 +5,20 @@
 
 use axum::{
     extract::{Json, Path, State},
-    http::StatusCode,
-    response::IntoResponse,
+    http::{header::HeaderName, HeaderValue, StatusCode},
+    response::{
+        sse::{Event, KeepAlive, Sse},
+        IntoResponse, Response,
+    },
 };
 use base64::Engine;
 use ed25519_dalek::Signer;
+use futures::{stream, Stream, StreamExt};
 use serde::{Deserialize, Serialize};
 use sha2::{Digest, Sha256};
+use std::convert::Infallible;
 use std::collections::HashMap;
+use std::pin::Pin;
 use std::time::{Duration, Instant};
 use tracing::{error, info, warn};
 use uuid::Uuid;
@@ -1107,6 +1113,217 @@ pub async fn handle_task_submit(
     ).into_response()
 }
 
+pub async fn handle_task_stream(
+    State(state): State<AppState>,
+    Json(req): Json<TaskSubmitRequest>,
+) -> Response {
+    let submission_key = submission_key(&req.tenant_id, &req.idempotency_key);
+    let request_hash = format!(
+        "{:x}",
+        Sha256::digest(
+            serde_json::to_vec(&serde_json::json!({
+                "task_type": &req.task_type,
+                "containment": &req.containment,
+                "tenant_id": &req.tenant_id,
+                "deadline_ms": &req.deadline_ms,
+            }))
+            .unwrap_or_default(),
+        )
+    );
+
+    if let Ok(Some(existing)) = state.storage.get::<IdempotentTaskRecord>(TASK_SUBMISSIONS, &submission_key) {
+        if existing.request_hash != request_hash {
+            return (
+                StatusCode::CONFLICT,
+                Json(serde_json::json!({
+                    "error": {
+                        "message": "Idempotency key already used for a different task submission",
+                        "type": "idempotency_conflict"
+                    }
+                })),
+            )
+                .into_response();
+        }
+        if matches!(existing.response.status, TaskStatus::Completed) {
+            if let Some(final_output) = existing.response.final_output.clone() {
+                let existing_response = existing.response.clone();
+                let model_name = match &req.task_type {
+                    TaskType::SingleInference { model, .. } => model.clone(),
+                    _ => "stream".to_string(),
+                };
+                let stream = futures::stream::iter(vec![
+                    Ok::<Event, Infallible>(chat_chunk_event(&model_name, &final_output)),
+                    Ok::<Event, Infallible>(task_result_event(&existing_response)),
+                    Ok::<Event, Infallible>(Event::default().data("[DONE]")),
+                ]);
+                let mut response = Sse::new(stream).keep_alive(KeepAlive::default()).into_response();
+                attach_stream_task_headers(&mut response, req.task_id);
+                return response;
+            }
+        }
+        return (
+            StatusCode::CONFLICT,
+            Json(serde_json::json!({
+                "error": {
+                    "message": "Streaming replay is only available for completed task submissions with final output",
+                    "type": "stream_replay_unavailable"
+                }
+            })),
+        )
+            .into_response();
+    }
+
+    let TaskType::SingleInference {
+        model,
+        messages,
+        max_tokens,
+        temperature,
+        stream,
+        mode,
+        memory,
+        approval,
+    } = &req.task_type
+    else {
+        return (
+            StatusCode::BAD_REQUEST,
+            Json(serde_json::json!({
+                "error": {
+                    "message": "streaming durable tasks currently support only single_inference",
+                    "type": "unsupported_streaming_task_type"
+                }
+            })),
+        )
+            .into_response();
+    };
+
+    if !stream {
+        return (
+            StatusCode::BAD_REQUEST,
+            Json(serde_json::json!({
+                "error": {
+                    "message": "task stream endpoint requires task_type.stream=true",
+                    "type": "invalid_streaming_request"
+                }
+            })),
+        )
+            .into_response();
+    }
+
+    if let Err(e) = normalize_agent_mode(mode.as_deref()) {
+        return (
+            StatusCode::BAD_REQUEST,
+            Json(serde_json::json!({
+                "error": {
+                    "message": e.to_string(),
+                    "type": "unsupported_streaming_mode"
+                }
+            })),
+        )
+            .into_response();
+    }
+
+    if req.resume_from.is_some() || req.resume_checkpoint.is_some() {
+        return (
+            StatusCode::BAD_REQUEST,
+            Json(serde_json::json!({
+                "error": {
+                    "message": "streaming durable tasks do not support resume yet",
+                    "type": "unsupported_streaming_resume"
+                }
+            })),
+        )
+            .into_response();
+    }
+
+    let stream_task = TaskSubmitRequest {
+        task_id: req.task_id,
+        task_type: TaskType::SingleInference {
+            model: model.clone(),
+            messages: messages.clone(),
+            max_tokens: *max_tokens,
+            temperature: *temperature,
+            stream: false,
+            mode: mode.clone(),
+            memory: memory.clone(),
+            approval: approval.clone(),
+        },
+        containment: req.containment.clone(),
+        resume_from: None,
+        resume_checkpoint: None,
+        idempotency_key: req.idempotency_key.clone(),
+        tenant_id: req.tenant_id.clone(),
+        deadline_ms: req.deadline_ms,
+    };
+
+    let execution_graph = match materialize_execution_graph(&stream_task.task_type) {
+        Ok(graph) => graph,
+        Err(e) => {
+            return (
+                StatusCode::BAD_REQUEST,
+                Json(serde_json::json!({
+                    "error": {
+                        "message": e.to_string(),
+                        "type": "invalid_execution_graph"
+                    }
+                })),
+            )
+                .into_response();
+        }
+    };
+
+    let steps = match compile_execution_graph_to_steps(&execution_graph) {
+        Ok(steps) => steps,
+        Err(e) => {
+            return (
+                StatusCode::BAD_REQUEST,
+                Json(serde_json::json!({
+                    "error": {
+                        "message": e.to_string(),
+                        "type": "unsupported_execution_graph"
+                    }
+                })),
+            )
+                .into_response();
+        }
+    };
+
+    let [RuntimeTaskStep::Agent(step)] = steps.as_slice() else {
+        return (
+            StatusCode::BAD_REQUEST,
+            Json(serde_json::json!({
+                "error": {
+                    "message": "streaming durable tasks currently require a single agent execution step",
+                    "type": "unsupported_streaming_graph"
+                }
+            })),
+        )
+            .into_response();
+    };
+
+    let runtime_id = state.swarm_peer_id.clone();
+    let wal = Arc::new(WalLog::new(state.storage.clone(), req.task_id, runtime_id.clone()));
+    let max_tick_ms = req
+        .containment
+        .as_ref()
+        .and_then(|bounds| bounds.max_tick_ms)
+        .unwrap_or(30_000);
+    let deadline = req.deadline_ms.unwrap_or(300_000);
+    let stream = build_task_stream_sse(
+        state,
+        stream_task,
+        request_hash,
+        submission_key,
+        execution_graph,
+        wal,
+        step.clone(),
+        max_tick_ms,
+        deadline,
+    );
+    let mut response = Sse::new(stream).keep_alive(KeepAlive::default()).into_response();
+    attach_stream_task_headers(&mut response, req.task_id);
+    response
+}
+
 pub async fn handle_task_wal(
     State(state): State<AppState>,
     Path(task_id): Path<Uuid>,
@@ -1132,6 +1349,139 @@ pub async fn handle_task_wal(
             ).into_response()
         }
     }
+}
+
+fn attach_stream_task_headers(response: &mut Response, task_id: Uuid) {
+    response.headers_mut().insert(
+        HeaderName::from_static("x-igris-runtime-task-id"),
+        HeaderValue::from_str(&task_id.to_string()).unwrap_or_else(|_| HeaderValue::from_static("invalid-task-id")),
+    );
+    response.headers_mut().insert(
+        HeaderName::from_static("x-accel-buffering"),
+        HeaderValue::from_static("no"),
+    );
+}
+
+fn chat_chunk_event(model: &str, text: &str) -> Event {
+    let payload = serde_json::json!({
+        "id": "chatcmpl-stream",
+        "object": "chat.completion.chunk",
+        "model": model,
+        "choices": [{
+            "index": 0,
+            "delta": { "content": text },
+            "finish_reason": null
+        }]
+    });
+    Event::default().data(payload.to_string())
+}
+
+fn chat_error_event(message: impl Into<String>) -> Event {
+    let payload = serde_json::json!({
+        "id": "chatcmpl-stream",
+        "object": "error",
+        "error": { "message": message.into(), "type": "stream_error" }
+    });
+    Event::default().data(payload.to_string())
+}
+
+fn task_result_event(response: &TaskSubmitResponse) -> Event {
+    let payload = serde_json::json!({
+        "task_id": response.task_id,
+        "steps_completed": response.steps_completed,
+        "steps_total": response.steps_total,
+        "status": response.status,
+        "checkpoint": response.checkpoint,
+        "final_output": response.final_output,
+        "usage": response.usage,
+        "execution_envelope": response.execution_envelope,
+        "execution_receipt": response.execution_receipt,
+    });
+    Event::default().event("task_result").data(payload.to_string())
+}
+
+fn build_task_stream_sse(
+    state: AppState,
+    req: TaskSubmitRequest,
+    request_hash: String,
+    submission_key: String,
+    execution_graph: ExecutionGraph,
+    wal: Arc<WalLog>,
+    step: AgentStep,
+    max_tick_ms: u64,
+    deadline_ms: u64,
+) -> impl Stream<Item = Result<Event, Infallible>> {
+    async_stream::stream! {
+        let (tx, mut rx) = tokio::sync::mpsc::unbounded_channel::<Result<Event, Infallible>>();
+        tokio::spawn(async move {
+            let wall_start = Instant::now();
+            let mut graph_blackboard = initialize_graph_blackboard(&execution_graph, req.resume_checkpoint.as_ref());
+            let step_wrapper = RuntimeTaskStep::Agent(step.clone());
+            let input_digest: [u8; 32] = Sha256::digest(step_wrapper.input_bytes()).into();
+
+            let wal_entry = match wal.write_intent(step.step_index, step_wrapper.wal_step_type(), input_digest) {
+                Ok(entry) => entry,
+                Err(e) => {
+                    let _ = tx.send(Ok(chat_error_event(format!("WAL write failed: {}", e))));
+                    return;
+                }
+            };
+
+            match execute_agent_step_stream(
+                tx.clone(),
+                state.clone(),
+                &req,
+                &step,
+                &step_wrapper,
+                &wal,
+                wal_entry.entry_id,
+                &mut graph_blackboard,
+                max_tick_ms,
+                deadline_ms,
+                wall_start,
+            ).await {
+                Ok(result) => {
+                    let response = TaskSubmitResponse {
+                        task_id: req.task_id,
+                        steps_completed: 1,
+                        steps_total: 1,
+                        status: TaskStatus::Completed,
+                        checkpoint: result.checkpoint,
+                        final_output: Some(result.final_output),
+                        usage: Some(result.usage),
+                        execution_envelope: Some(result.execution_envelope),
+                        execution_receipt: result.execution_receipt,
+                    };
+                    let _ = persist_task_record(&state, &submission_key, &request_hash, &response);
+                    let _ = tx.send(Ok(task_result_event(&response)));
+                    let _ = tx.send(Ok(Event::default().data("[DONE]")));
+                }
+                Err(error_response) => {
+                    let _ = persist_task_record(&state, &submission_key, &request_hash, &error_response.response);
+                    let _ = tx.send(Ok(task_result_event(&error_response.response)));
+                    let _ = tx.send(Ok(chat_error_event(error_response.client_message)));
+                    let _ = tx.send(Ok(Event::default().data("[DONE]")));
+                }
+            }
+        });
+
+        while let Some(event) = rx.recv().await {
+            yield event;
+        }
+    }
+}
+
+struct StreamCompletionResult {
+    final_output: String,
+    usage: ExecuteUsage,
+    checkpoint: Option<CheckpointPayload>,
+    execution_envelope: serde_json::Value,
+    execution_receipt: Option<serde_json::Value>,
+}
+
+struct StreamFailureResult {
+    response: TaskSubmitResponse,
+    client_message: String,
 }
 
 fn build_checkpoint(
@@ -1703,6 +2053,357 @@ async fn do_route(
     }
 
     anyhow::bail!("No providers available")
+}
+
+async fn do_route_stream(
+    state: AppState,
+    prompt: String,
+    mode: Option<&str>,
+) -> anyhow::Result<(Pin<Box<dyn Stream<Item = Result<String, anyhow::Error>> + Send>>, String)> {
+    use igris_routing::Provider;
+
+    let execution_mode = normalize_agent_mode(mode)?;
+
+    if !state.cloud_providers.is_empty() {
+        let providers: Vec<CloudProviderWrapper> = state
+            .cloud_providers
+            .iter()
+            .take(3)
+            .map(|provider| CloudProviderWrapper(provider.clone()))
+            .collect();
+
+        match execution_mode {
+            AgentExecutionMode::Default | AgentExecutionMode::Speculative => {
+                if let Ok(result) = state.speculative_router.route_stream(&prompt, providers).await {
+                    return Ok((result.stream, result.winner_id));
+                }
+            }
+            AgentExecutionMode::Council => {
+                let (response, chairman_id) = do_route(state.clone(), prompt.clone(), Some("council")).await?;
+                let response_stream = stream::once(async move { Ok(response) });
+                let response_stream: Pin<Box<dyn Stream<Item = Result<String, anyhow::Error>> + Send>> =
+                    Box::pin(response_stream);
+                return Ok((response_stream, chairman_id));
+            }
+        }
+    }
+
+    if let Some(local) = &state.local_provider {
+        let stream = local.stream(&prompt).await?;
+        return Ok((stream, "local".to_string()));
+    }
+
+    anyhow::bail!("No providers available")
+}
+
+async fn execute_agent_step_stream(
+    tx: tokio::sync::mpsc::UnboundedSender<Result<Event, Infallible>>,
+    state: AppState,
+    req: &TaskSubmitRequest,
+    step: &AgentStep,
+    step_wrapper: &RuntimeTaskStep,
+    wal: &Arc<WalLog>,
+    wal_entry_id: Uuid,
+    graph_blackboard: &mut serde_json::Value,
+    max_tick_ms: u64,
+    deadline_ms: u64,
+    wall_start: Instant,
+) -> Result<StreamCompletionResult, StreamFailureResult> {
+    let resolved_messages = resolve_execute_messages(&step.messages, graph_blackboard);
+    let slot_inputs = collect_slot_inputs(graph_blackboard, step.read_slots.as_deref());
+    let mut base_prompt = resolved_messages
+        .iter()
+        .map(|message| format!("{}: {}", message.role, message.content))
+        .collect::<Vec<_>>()
+        .join("\n");
+    if let Some(slot_context) = slot_inputs.as_ref() {
+        base_prompt = format!(
+            "slot_inputs: {}\n\n{}",
+            serde_json::to_string(slot_context).unwrap_or_default(),
+            base_prompt
+        );
+    } else if let Some(blackboard_context) = graph_blackboard.as_object().filter(|state| !state.is_empty()) {
+        base_prompt = format!(
+            "graph_blackboard: {}\n\n{}",
+            serde_json::to_string(blackboard_context).unwrap_or_default(),
+            base_prompt
+        );
+    }
+
+    if let Err(e) = maybe_require_step_approval(
+        &state,
+        req.task_id,
+        &req.tenant_id,
+        step.step_index,
+        &step.model,
+        "agent-step",
+        step.approval.as_ref(),
+        max_tick_ms,
+    )
+    .await {
+        let _ = wal.write_failed(wal_entry_id, e.to_string());
+        return Err(StreamFailureResult {
+            response: TaskSubmitResponse {
+                task_id: req.task_id,
+                steps_completed: 0,
+                steps_total: 1,
+                status: TaskStatus::Failed { reason: format!("Step {} failed: {}", step.step_index, e) },
+                checkpoint: None,
+                final_output: None,
+                usage: None,
+                execution_envelope: None,
+                execution_receipt: None,
+            },
+            client_message: e.to_string(),
+        });
+    }
+
+    let prompt = match prepare_agent_prompt(&state, req.task_id, step, base_prompt.clone()).await {
+        Ok(prompt) => prompt,
+        Err(e) => {
+            let _ = wal.write_failed(wal_entry_id, e.to_string());
+            return Err(StreamFailureResult {
+                response: TaskSubmitResponse {
+                    task_id: req.task_id,
+                    steps_completed: 0,
+                    steps_total: 1,
+                    status: TaskStatus::Failed { reason: format!("Step {} failed: {}", step.step_index, e) },
+                    checkpoint: None,
+                    final_output: None,
+                    usage: None,
+                    execution_envelope: None,
+                    execution_receipt: None,
+                },
+                client_message: e.to_string(),
+            });
+        }
+    };
+
+    let (mut stream, provider_name) = match do_route_stream(state.clone(), prompt, step.mode.as_deref()).await {
+        Ok(result) => result,
+        Err(e) => {
+            let _ = wal.write_failed(wal_entry_id, e.to_string());
+            return Err(StreamFailureResult {
+                response: TaskSubmitResponse {
+                    task_id: req.task_id,
+                    steps_completed: 0,
+                    steps_total: 1,
+                    status: TaskStatus::Failed { reason: format!("Step {} failed: {}", step.step_index, e) },
+                    checkpoint: None,
+                    final_output: None,
+                    usage: None,
+                    execution_envelope: None,
+                    execution_receipt: None,
+                },
+                client_message: e.to_string(),
+            });
+        }
+    };
+
+    let mut timeout = tokio::time::sleep(Duration::from_millis(max_tick_ms));
+    tokio::pin!(timeout);
+    let mut content = String::new();
+
+    loop {
+        let next_chunk = tokio::select! {
+            _ = &mut timeout => {
+                let reason = format!("timeout after {}ms", max_tick_ms);
+                let _ = wal.write_failed(wal_entry_id, reason.clone());
+                return Err(StreamFailureResult {
+                    response: TaskSubmitResponse {
+                        task_id: req.task_id,
+                        steps_completed: 0,
+                        steps_total: 1,
+                        status: TaskStatus::Failed { reason: format!("Step {} failed: {}", step.step_index, reason) },
+                        checkpoint: None,
+                        final_output: None,
+                        usage: None,
+                        execution_envelope: None,
+                        execution_receipt: None,
+                    },
+                    client_message: reason,
+                });
+            }
+            next = stream.next() => next,
+        };
+
+        match next_chunk {
+            Some(Ok(chunk)) => {
+                content.push_str(&chunk);
+                let _ = tx.send(Ok(chat_chunk_event(&step.model, &chunk)));
+            }
+            Some(Err(e)) => {
+                let reason = e.to_string();
+                let _ = wal.write_failed(wal_entry_id, reason.clone());
+                return Err(StreamFailureResult {
+                    response: TaskSubmitResponse {
+                        task_id: req.task_id,
+                        steps_completed: 0,
+                        steps_total: 1,
+                        status: TaskStatus::Failed { reason: format!("Step {} failed: {}", step.step_index, reason) },
+                        checkpoint: None,
+                        final_output: None,
+                        usage: None,
+                        execution_envelope: None,
+                        execution_receipt: None,
+                    },
+                    client_message: reason,
+                });
+            }
+            None => break,
+        }
+    }
+
+    if wall_start.elapsed().as_millis() as u64 > deadline_ms {
+        let reason = format!("deadline exceeded after {}ms", deadline_ms);
+        let _ = wal.write_failed(wal_entry_id, reason.clone());
+        return Err(StreamFailureResult {
+            response: TaskSubmitResponse {
+                task_id: req.task_id,
+                steps_completed: 0,
+                steps_total: 1,
+                status: TaskStatus::Failed { reason: format!("Step {} failed: {}", step.step_index, reason) },
+                checkpoint: None,
+                final_output: None,
+                usage: None,
+                execution_envelope: None,
+                execution_receipt: None,
+            },
+            client_message: reason,
+        });
+    }
+
+    if let Err(e) = maybe_store_agent_memory(&state, req.task_id, step, &base_prompt, &content).await {
+        let _ = wal.write_failed(wal_entry_id, e.to_string());
+        return Err(StreamFailureResult {
+            response: TaskSubmitResponse {
+                task_id: req.task_id,
+                steps_completed: 0,
+                steps_total: 1,
+                status: TaskStatus::Failed { reason: format!("Step {} failed: {}", step.step_index, e) },
+                checkpoint: None,
+                final_output: None,
+                usage: None,
+                execution_envelope: None,
+                execution_receipt: None,
+            },
+            client_message: e.to_string(),
+        });
+    }
+
+    let usage = ExecuteUsage {
+        prompt_tokens: resolved_messages
+            .iter()
+            .map(|message| token_estimate(&message.content))
+            .sum(),
+        completion_tokens: token_estimate(&content),
+        total_tokens: resolved_messages
+            .iter()
+            .map(|message| token_estimate(&message.content))
+            .sum::<u32>()
+            + token_estimate(&content),
+    };
+    let step_result = StepExecutionResult {
+        output_text: content.clone(),
+        provider_name,
+        usage: usage.clone(),
+        graph_output: None,
+        checkpoint_metadata: None,
+        checkpoint_requested: false,
+    };
+    update_graph_blackboard(graph_blackboard, step_wrapper, &step_result);
+
+    let (execution_envelope, execution_receipt) = match build_execution_artifacts(
+        &state,
+        req,
+        step_wrapper,
+        &step_result,
+        wall_start.elapsed().as_millis() as u64,
+    )
+    .await {
+        Ok(artifacts) => artifacts,
+        Err(e) => {
+            let _ = wal.write_failed(wal_entry_id, format!("artifact build failed: {}", e));
+            return Err(StreamFailureResult {
+                response: TaskSubmitResponse {
+                    task_id: req.task_id,
+                    steps_completed: 0,
+                    steps_total: 1,
+                    status: TaskStatus::Failed { reason: format!("Step {} failed: {}", step.step_index, e) },
+                    checkpoint: None,
+                    final_output: None,
+                    usage: None,
+                    execution_envelope: None,
+                    execution_receipt: None,
+                },
+                client_message: e.to_string(),
+            });
+        }
+    };
+
+    let output_digest: [u8; 32] = Sha256::digest(content.as_bytes()).into();
+    let signing_key = match state.signing_key.as_ref() {
+        Some(key) => key,
+        None => {
+            let reason = "runtime has no signing key".to_string();
+            let _ = wal.write_failed(wal_entry_id, reason.clone());
+            return Err(StreamFailureResult {
+                response: TaskSubmitResponse {
+                    task_id: req.task_id,
+                    steps_completed: 0,
+                    steps_total: 1,
+                    status: TaskStatus::Failed { reason: format!("Step {} failed: {}", step.step_index, reason) },
+                    checkpoint: None,
+                    final_output: None,
+                    usage: None,
+                    execution_envelope: None,
+                    execution_receipt: None,
+                },
+                client_message: reason,
+            });
+        }
+    };
+    let committed_entry = match wal.write_committed(wal_entry_id, output_digest, signing_key.as_ref()) {
+        Ok(entry) => entry,
+        Err(e) => {
+            let reason = format!("WAL commit failed: {}", e);
+            let _ = wal.write_failed(wal_entry_id, reason.clone());
+            return Err(StreamFailureResult {
+                response: TaskSubmitResponse {
+                    task_id: req.task_id,
+                    steps_completed: 0,
+                    steps_total: 1,
+                    status: TaskStatus::Failed { reason: format!("Step {} failed: {}", step.step_index, reason) },
+                    checkpoint: None,
+                    final_output: None,
+                    usage: None,
+                    execution_envelope: None,
+                    execution_receipt: None,
+                },
+                client_message: reason,
+            });
+        }
+    };
+
+    let mut checkpoint_metadata = Some(build_step_checkpoint_metadata(step_wrapper, 1, &step_result));
+    attach_graph_blackboard_metadata(&mut checkpoint_metadata, graph_blackboard);
+    let checkpoint = build_checkpoint(
+        wal,
+        req.task_id,
+        step.step_index,
+        state.swarm_peer_id.clone(),
+        vec![committed_entry],
+        checkpoint_metadata,
+    )
+    .ok();
+
+    Ok(StreamCompletionResult {
+        final_output: content,
+        usage,
+        checkpoint,
+        execution_envelope,
+        execution_receipt,
+    })
 }
 
 async fn execute_agent_step(
