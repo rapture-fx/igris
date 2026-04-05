@@ -22,6 +22,31 @@ export interface StreamInferRequest {
   council_mode?: boolean;
 }
 
+export interface DurableTask {
+  task_id: string;
+  status: string;
+  task_type?: string;
+  runtime_id?: string;
+  created_at?: string;
+  dispatched_at?: string;
+  completed_at?: string;
+  deadline_at?: string;
+  last_step?: number;
+  checkpoint_digest?: string;
+  checkpoint_metadata?: unknown;
+  failure_reason?: string;
+  requested_mode?: string;
+  resolved_strategy?: string;
+  graph_blackboard?: unknown;
+  graph_nodes?: unknown;
+  graph_slots?: unknown;
+}
+
+export interface DurableTaskListResponse {
+  tasks: DurableTask[];
+  total: number;
+}
+
 export type DurableStreamEvent =
   | { type: 'chunk'; data: Record<string, unknown> }
   | {
@@ -68,6 +93,31 @@ export class IgrisClient {
   }
   async upload(_file: File): Promise<any> { return null; }
   async processData(_data: any): Promise<any> { return null; }
+  private async request<T>(path: string): Promise<T> {
+    const response = await fetch(`${this.baseUrl}${path}`, {
+      method: 'GET',
+      headers: {
+        Accept: 'application/json',
+        ...(this.apiKey ? { Authorization: `Bearer ${this.apiKey}` } : {}),
+      },
+    });
+
+    if (!response.ok) {
+      throw new Error(`request failed with status ${response.status}`);
+    }
+
+    return (await response.json()) as T;
+  }
+  async getTask(taskId: string): Promise<DurableTask> {
+    return this.request<DurableTask>(`/v1/tasks/${encodeURIComponent(taskId)}`);
+  }
+  async listTasks(options: { limit?: number; status?: string } = {}): Promise<DurableTaskListResponse> {
+    const params = new URLSearchParams();
+    if (options.limit !== undefined) params.set('limit', String(options.limit));
+    if (options.status) params.set('status', options.status);
+    const query = params.toString();
+    return this.request<DurableTaskListResponse>(`/v1/tasks${query ? `?${query}` : ''}`);
+  }
   async *streamInference(request: StreamInferRequest): AsyncGenerator<DurableStreamEvent> {
     const response = await fetch(`${this.baseUrl}/v1/infer`, {
       method: 'POST',
