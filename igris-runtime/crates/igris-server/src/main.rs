@@ -25,6 +25,7 @@ use igris_routing::{
     cloud_provider::CloudProvider,
     speculative::SpeculativeRouter,
     council::CouncilRouter,
+    thompson::ThompsonSamplingRouter,
     Provider,
 };
 mod runtime_execute;
@@ -94,6 +95,7 @@ pub(crate) struct AppState {
     #[allow(dead_code)]
     pub(crate) storage: Arc<RedbStorage>,
     pub(crate) speculative_router: Arc<SpeculativeRouter>,
+    pub(crate) thompson_router: Arc<ThompsonSamplingRouter>,
     #[allow(dead_code)]
     pub(crate) council_router: Arc<CouncilRouter>,
     pub(crate) cloud_providers: Arc<Vec<CloudProvider>>,
@@ -2612,6 +2614,10 @@ async fn main() -> anyhow::Result<()> {
         3,
         std::time::Duration::from_secs(5),
     );
+    let thompson_router = ThompsonSamplingRouter::new(
+        cloud_providers.iter().map(|provider| provider.id().to_string()).collect(),
+        config.routing.thompson_sampling.exploration_rate,
+    );
 
     let council_router = CouncilRouter::new("anthropic-sonnet".to_string());
 
@@ -3107,6 +3113,7 @@ async fn main() -> anyhow::Result<()> {
         config: Arc::new(config),
         storage: Arc::new(storage),
         speculative_router: Arc::new(speculative_router),
+        thompson_router: Arc::new(thompson_router),
         council_router: Arc::new(council_router),
         cloud_providers: Arc::new(cloud_providers),
         local_provider,
