@@ -92,7 +92,7 @@
   {
     "title": "Durable Tasks",
     "path": "/docs/durable-tasks",
-    "keywords": "durable task execution how it works submitting a task agent tasks robotics missions raw task definitions polling task status listing tasks checkpoints and resume tokens deadlines robotics workflows behavior tree execution integrity guarantees api endpoints bash json json json json bash json bash json json json long-running agent workflows and robotics missions need to survive the infrastructure they run on. durable task execution gives every multi-step task a tamper-evident write-ahead log wal, "
+    "keywords": "durable task execution how it works submitting a task agent tasks robotics missions raw task definitions polling task status listing tasks durable streaming checkpoints and resume tokens deadlines robotics workflows behavior tree execution integrity guarantees api endpoints bash json json json json bash json bash text json json json long-running agent workflows and robotics missions need to survive the infrastructure they run on. durable task execution gives every multi-step task a tamper-eviden"
   },
   {
     "title": "Error Codes",
@@ -257,7 +257,7 @@
   {
     "title": "SDK",
     "path": "/docs/sdk",
-    "keywords": "sdks support policy openai-compatible clients native sdks javascript / typescript go rust python preview deployment mode guidance request contract code quality expectations python typescript typescript go rust python igris supports two integration paths: sdk"
+    "keywords": "sdks support policy openai-compatible clients native sdks javascript / typescript go rust python preview deployment mode guidance request contract code quality expectations python typescript typescript typescript go rust python igris supports two integration paths: sdk"
   },
   {
     "title": "Security",
