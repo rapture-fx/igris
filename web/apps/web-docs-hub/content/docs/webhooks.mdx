@@ -1,0 +1,218 @@
+---
+title: "Webhooks"
+description: "Igris can send real-time notifications to your systems when important events occur. Webhooks enable you to integrate Igris with your existing monitoring, alerting, and automation w"
+---
+
+# Webhooks
+
+Igris can send real-time notifications to your systems when important events occur. Webhooks enable you to integrate Igris with your existing monitoring, alerting, and automation workflows.
+
+---
+
+## Overview
+
+Webhooks are HTTP POST requests sent from Igris to a URL you configure. Each webhook payload includes event type, timestamp, and relevant data for the event.
+
+---
+
+## Supported Events
+
+### Execution Events
+
+| Event | Trigger | Tier |
+|---|---|---|
+| `execution.completed` | An execution run finishes successfully | All |
+| `execution.paused` | An execution is paused (human review required) | Horizon+ |
+| `execution.violation` | A capability violation occurs | All |
+| `execution.timeout` | An execution exceeds its time limit | All |
+
+### Fleet Events
+
+| Event | Trigger | Tier |
+|---|---|---|
+| `fleet.instance.registered` | A new runtime instance registers | All |
+| `fleet.instance.offline` | A runtime instance stops sending heartbeats | All |
+| `fleet.instance.degraded` | A runtime instance enters degraded status | Horizon+ |
+
+### Alert Events
+
+| Event | Trigger | Tier |
+|---|---|---|
+| `alert.raised` | A new alert is created | All |
+| `alert.acknowledged` | An alert is acknowledged | All |
+| `alert.resolved` | An alert is resolved | All |
+| `alert.escalated` | An alert is escalated | Horizon+ |
+
+### Billing Events
+
+| Event | Trigger | Tier |
+|---|---|---|
+| `billing.subscription.updated` | Subscription tier changes | All |
+| `billing.budget.warning` | Budget reaches 90% threshold | All |
+| `billing.budget.exceeded` | Budget reaches 100% threshold | All |
+
+---
+
+## Configuring Webhooks
+
+### Via Console
+
+1. Navigate to **Settings → Webhooks**
+2. Click **Add Webhook**
+3. Enter your endpoint URL
+4. Select which event types to receive
+5. Click **Save**
+
+### Via API
+
+```bash
+curl -X POST https://overture.igrisinertial.com/v1/webhooks \
+  -H "Authorization: Bearer YOUR_API_KEY" \
+  -H "Content-Type: application/json" \
+  -d '{
+    "url": "https://your-server.com/webhooks/igris",
+    "events": ["execution.violation", "fleet.instance.offline", "alert.raised"],
+    "secret": "your-webhook-secret"
+  }'
+```
+
+---
+
+## Webhook Payload
+
+Every webhook delivery follows a consistent format:
+
+```json
+{
+  "id": "evt_abc123",
+  "type": "execution.violation",
+  "timestamp": "2026-03-15T14:30:00Z",
+  "tenant_id": "tenant_xyz",
+  "data": {
+    "execution_id": "exec-01HXYZ",
+    "agent_id": "agent-abc",
+    "violation_type": "http_blocked",
+    "device_id": "runtime-01"
+  }
+}
+```
+
+### Common Fields
+
+| Field | Type | Description |
+|---|---|---|
+| `id` | string | Unique event ID |
+| `type` | string | Event type identifier |
+| `timestamp` | string | ISO 8601 timestamp |
+| `tenant_id` | string | Your tenant identifier |
+| `data` | object | Event-specific payload |
+
+---
+
+## Webhook Security
+
+### Signature Verification
+
+Igris signs every webhook delivery using HMAC-SHA256. The signature is included in the `X-Igris-Signature` header:
+
+```
+X-Igris-Signature: sha256=<hex-encoded-signature>
+X-Igris-Timestamp: 1711900800
+```
+
+To verify the signature:
+
+```python
+import hmac
+import hashlib
+
+def verify_webhook(payload, signature, secret):
+    expected = hmac.new(
+        secret.encode(),
+        payload.encode(),
+        hashlib.sha256
+    ).hexdigest()
+    return hmac.compare_digest(f"sha256={expected}", signature)
+```
+
+### Best Practices
+
+- Always verify webhook signatures before processing
+- Use HTTPS endpoints only
+- Store your webhook secret securely (environment variable, secret manager)
+- Respond with HTTP 200 quickly — process the payload asynchronously
+
+---
+
+## Delivery and Retries
+
+### Delivery Behavior
+
+- Webhooks are delivered asynchronously after the triggering event
+- Igris waits up to 10 seconds for a response
+- A successful delivery returns HTTP 2xx
+
+### Retry Policy
+
+If your endpoint does not respond successfully, Igris retries with exponential backoff:
+
+| Attempt | Delay |
+|---|---|
+| 1 | Immediate |
+| 2 | 30 seconds |
+| 3 | 5 minutes |
+| 4 | 30 minutes |
+| 5 | 2 hours |
+| 6 | 6 hours |
+
+After 6 failed attempts, the webhook delivery is marked as failed and no further retries are attempted.
+
+### Monitoring Deliveries
+
+View webhook delivery status in **Settings → Webhooks**:
+- Last delivery attempt time
+- Last response status code
+- Consecutive failure count
+- Total deliveries (success/failure)
+
+---
+
+## Managing Webhooks
+
+### List Webhooks
+
+```bash
+curl https://overture.igrisinertial.com/v1/webhooks \
+  -H "Authorization: Bearer YOUR_API_KEY"
+```
+
+### Update a Webhook
+
+```bash
+curl -X PUT https://overture.igrisinertial.com/v1/webhooks/wh_abc123 \
+  -H "Authorization: Bearer YOUR_API_KEY" \
+  -H "Content-Type: application/json" \
+  -d '{
+    "events": ["execution.violation", "alert.raised"]
+  }'
+```
+
+### Delete a Webhook
+
+```bash
+curl -X DELETE https://overture.igrisinertial.com/v1/webhooks/wh_abc123 \
+  -H "Authorization: Bearer YOUR_API_KEY"
+```
+
+### Test a Webhook
+
+```bash
+curl -X POST https://overture.igrisinertial.com/v1/webhooks/wh_abc123/test \
+  -H "Authorization: Bearer YOUR_API_KEY"
+```
+
+Sends a test `webhook.test` event to verify your endpoint is receiving correctly.
+
+---
+
+[API Reference →](/docs/api-reference) · [History & Alerts →](/docs/history)
