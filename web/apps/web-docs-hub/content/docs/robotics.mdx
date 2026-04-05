@@ -1,0 +1,96 @@
+---
+title: "Robotics"
+description: "Igris runs on robotics hardware with native ROS2 integration, fleet coordination, and mission execution governance. The same execution model — bounded envelopes, signed receipts — "
+---
+
+# Robotics
+
+Igris runs on robotics hardware with native ROS2 integration, fleet coordination, and mission execution governance. The same execution model — bounded envelopes, signed receipts — applies to robotic agents.
+
+---
+
+## Deployment on Robotics Hardware
+
+The execution engine runs on embedded and robotics hardware:
+
+| Platform | Architecture | Notes |
+|---|---|---|
+| Raspberry Pi 4/5 | ARM64 | Edge inference |
+| NVIDIA Jetson | ARM64 | GPU-accelerated inference |
+| x86 industrial PC | x86_64 | Full-size deployment |
+
+On ARM64 hardware without a GPU, Phi-3 Mini runs comfortably at 2–4 tokens/second. For time-sensitive control loops, configure the engine to use local inference exclusively and eliminate network latency.
+
+---
+
+## ROS2 Integration
+
+Igris exposes a ROS2 bridge that publishes and subscribes to ROS topics. AI agents can read sensor data from ROS topics and publish decisions back to the ROS graph.
+
+**Supported ROS2 distributions:** Humble, Iron, Jazzy
+
+**Configuration:**
+```yaml
+ros2:
+  enabled: true
+  namespace: /igris
+  input_topics:
+    - /camera/image_raw
+    - /lidar/scan
+    - /odom
+  output_topics:
+    - /cmd_vel
+    - /mission_status
+```
+
+The ROS2 bridge is governed by the same capability model as other tool use. Publish operations require `tool_ros2_publish` capability grant. Subscribe operations are read-only and require no grant.
+
+[ROS2 Integration →](/docs/ros2-integration)
+
+---
+
+## Mission Execution
+
+Igris uses behavior trees to structure robotic missions. A behavior tree defines the mission as a hierarchy of conditions and actions. The execution engine traverses the tree, invoking AI agents at decision nodes.
+
+**Example mission structure:**
+```
+Navigate to waypoint
+    ├── [Condition: path clear?]
+    │       ├── [Success] → Move to waypoint
+    │       └── [Failure] → Replan path
+    │                 └── [AI agent: generate alternate route]
+    └── [Condition: obstacle detected?]
+            └── [Success] → Emergency stop
+```
+
+Behavior trees run inside the execution envelope. Each tick of the tree consumes from `max_steps`. If the tree exhausts its step budget, the mission is terminated gracefully and the receipt records the state at termination.
+
+[Behavior Trees →](/docs/behavior-trees)
+
+---
+
+## Safety in Robotics
+
+For physical safety in robotics deployments, Igris provides:
+
+**Execution time limits.** Missions are bounded by `max_duration_ms`. An execution that exceeds its time budget is terminated before it can issue further actuator commands.
+
+**Capability gates.** Actuator control (motor commands, gripper operations) requires explicit capability grants. An agent that attempts actuator control outside its grant is blocked by the engine.
+
+**Human-in-the-loop approval.** High-stakes operations can be configured to pause for human approval before the actuator command is issued.
+
+**Emergency stop hook.** Igris exposes a `/v1/emergency-stop` endpoint. Calling this endpoint terminates all active executions and prevents new ones from starting until the stop is cleared.
+
+---
+
+## Fleet Management
+
+Multiple engine instances on multiple robots can be coordinated from the cloud layer:
+
+- **OTA updates**: push configuration and model updates to the fleet without manual intervention
+- **Telemetry collection**: execution receipts from all robots flow to a central endpoint
+- **Fleet health**: heartbeats from each instance are monitored; missing instances trigger alerts
+- **Remote execution**: initiate missions on specific robots or groups from the cloud
+
+[Fleet Management →](/docs/fleet-management) · [Cloud Coordination →](/docs/cloud-coordination)
