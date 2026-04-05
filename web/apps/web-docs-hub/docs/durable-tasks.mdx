@@ -205,6 +205,41 @@ Returns recent tasks for your tenant, newest first. Maximum 100 per request.
 
 ---
 
+## Durable streaming
+
+Base-mode streamed agent runs now use the same durable Runtime task contract as non-streaming `single_inference` execution.
+
+That means a streamed run can emit tokens live and still finish with a durable task result containing:
+
+- `task_id`
+- `status`
+- `checkpoint`
+- `usage`
+- `execution_envelope`
+- `execution_receipt`
+
+The public stream remains SSE, but when durability is active the stream ends with an explicit `task_result` event before `[DONE]`.
+
+```text
+data: {"id":"chatcmpl-stream","object":"chat.completion.chunk","model":"gpt-4.1-mini","choices":[{"index":0,"delta":{"content":"Hello"},"finish_reason":null}]}
+
+event: task_result
+data: {"task_id":"018f4a2b-3c1e-7a2d-9b8f-4d5e6f7a8b9c","steps_completed":1,"steps_total":1,"status":"completed","checkpoint":{"resume_token":{"last_committed_step":0}},"usage":{"prompt_tokens":42,"completion_tokens":18,"total_tokens":60},"execution_envelope":{"execution_id":"exec-..."},"execution_receipt":{"transaction_id":"tx-..."}}
+
+data: [DONE]
+```
+
+Use this terminal event when you want the stream itself to tell you which durable task ran and what signed execution artifacts were produced, instead of relying on a follow-up poll to discover them.
+
+Current scope:
+
+- durable streaming currently applies to base, all named speculative modes, and council for streamed `single_inference`
+- council streaming emits the chairman's synthesized final answer as SSE output and still finishes with the durable `task_result` event
+- the stream remains receipt-bearing and idempotent even when council execution itself is internally buffered before the final answer is emitted
+- a completed durable stream can be replayed idempotently with the same task result metadata
+
+---
+
 ## Checkpoints and resume tokens
 
 When a runtime sends a checkpoint, the coordination layer persists a `ResumeToken`:
