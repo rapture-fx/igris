@@ -5,6 +5,7 @@ import (
 	"database/sql"
 	"fmt"
 	"log"
+	"net/http"
 	"sync"
 	"time"
 
@@ -143,6 +144,46 @@ func (s *RuntimeSelector) ForwardExecution(
 	}
 
 	return nil, fmt.Errorf("runtime_selector: no healthy runtime available")
+}
+
+// OpenStreamingExecution selects a healthy runtime and opens a base-mode SSE
+// stream against it. Streaming failures are recorded in the circuit breaker
+// just like durable task failures.
+func (s *RuntimeSelector) OpenStreamingExecution(
+	ctx context.Context,
+	tenantID string,
+	req *models.InferRequest,
+) (*http.Response, error) {
+	instances, err := s.repo.ListHealthy(ctx)
+	if err != nil {
+		return nil, fmt.Errorf("runtime_selector: list_healthy: %w", err)
+	}
+
+	for _, inst := range instances {
+		if !s.breakers.IsProviderAvailable(inst.RuntimeID) {
+			log.Printf("[RuntimeSelector] circuit open for %s — skipping stream", inst.RuntimeID)
+			continue
+		}
+
+		client := s.getOrCreateClient(inst.Endpoint)
+		resp, ferr := client.OpenStreamingExecution(ctx, tenantID, req)
+		if ferr != nil {
+			log.Printf("[RuntimeSelector] runtime %s stream failed: %v — trying next", inst.RuntimeID, ferr)
+			s.breakers.RecordFailure(inst.RuntimeID)
+			if !s.breakers.IsProviderAvailable(inst.RuntimeID) {
+				s.persistCBTrip(inst.RuntimeID)
+			} else {
+				s.persistCBState(inst.RuntimeID)
+			}
+			continue
+		}
+
+		s.breakers.RecordSuccess(inst.RuntimeID)
+		s.persistCBState(inst.RuntimeID)
+		return resp, nil
+	}
+
+	return nil, fmt.Errorf("runtime_selector: no healthy runtime available for streaming")
 }
 
 // Health satisfies handlers.RuntimeExecutor; the selector itself is always alive.
