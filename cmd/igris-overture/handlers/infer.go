@@ -63,7 +63,7 @@ func validateProviderMode(providerMode string) {
 // cmd/handlers package and igris-overture/internal.
 type RuntimeExecutor interface {
 	ForwardExecution(ctx context.Context, tenantID string, req *models.InferRequest, boundsHeader string) (*models.InferResponse, error)
-	OpenStreamingExecution(ctx context.Context, tenantID string, req *models.InferRequest) (*http.Response, error)
+	OpenStreamingExecution(ctx context.Context, tenantID string, req *models.InferRequest, boundsHeader string) (*http.Response, error)
 	Health(ctx context.Context) error
 	BaseURL() string
 }
@@ -491,16 +491,11 @@ func (h *InferHandler) HandleInfer(c *fiber.Ctx) error {
 	// Route and execute inference.
 	var resp *models.InferResponse
 
-	// Runtime executor intercepts durable request paths first. Streaming requests still
-	// fall back to the local Overture handler until the Runtime task API can emit SSE
-	// without degrading semantics.
+	// Runtime executor intercepts durable request paths first. Streaming requests use
+	// the Runtime durable stream endpoint when available; fallback paths stay in
+	// Overture only when Runtime is unreachable or the request mode is unsupported.
 	if h.runtimeExecutor != nil {
 		boundsHeader := string(c.Request().Header.Peek("X-Igris-Bounds"))
-		// Council mode disables streaming per existing policy.
-		if req.CouncilMode && req.Stream {
-			log.Printf("[Infer] Council mode does not support streaming, disabling stream")
-			req.Stream = false
-		}
 		resp, err = h.runtimeExecutor.ForwardExecution(ctx, tenantID, &req, boundsHeader)
 		if err != nil {
 			if errors.Is(err, models.ErrRuntimeSecurity) {
@@ -520,18 +515,15 @@ func (h *InferHandler) HandleInfer(c *fiber.Ctx) error {
 
 	// Fallback paths — only used when runtimeExecutor is not configured or forward failed.
 	if resp == nil {
-		// Handle council mode (non-streaming only)
-		if req.CouncilMode {
-			if req.Stream {
-				log.Printf("[Infer] Council mode does not support streaming, disabling stream")
-				req.Stream = false
-			}
-			return h.handleCouncilInfer(c, &req)
-		}
-
-		// Handle streaming requests
+		// Handle streaming requests first so council/speculative streaming can still
+		// try the Runtime durable stream path before any non-streaming fallback.
 		if req.Stream {
 			return h.handleStreamingInfer(c, &req)
+		}
+
+		// Handle council mode (non-streaming only)
+		if req.CouncilMode {
+			return h.handleCouncilInfer(c, &req)
 		}
 	}
 
@@ -906,10 +898,12 @@ func (h *InferHandler) handleStreamingInfer(c *fiber.Ctx, req *models.InferReque
 
 	log.Printf("[Infer] Starting streaming inference for model: %s", req.Model)
 
-	// Base-mode streamed requests should execute in Runtime so Overture acts as
-	// a relay rather than the execution owner.
-	if h.runtimeExecutor != nil && req.SpeculativeMode == "" && !req.CouncilMode {
-		runtimeResp, err := h.runtimeExecutor.OpenStreamingExecution(traceContext, tenantID, req)
+	// Prefer the Runtime durable stream path for all known streaming modes. If the
+	// Runtime rejects the request or is unavailable, Overture falls back to its
+	// legacy local streaming behavior.
+	if h.runtimeExecutor != nil {
+		boundsHeader := string(c.Request().Header.Peek("X-Igris-Bounds"))
+		runtimeResp, err := h.runtimeExecutor.OpenStreamingExecution(traceContext, tenantID, req, boundsHeader)
 		if err != nil {
 			if errors.Is(err, models.ErrRuntimeSecurity) {
 				log.Printf("[Infer] Runtime streaming security rejection — not falling back: %v", err)
@@ -925,6 +919,9 @@ func (h *InferHandler) handleStreamingInfer(c *fiber.Ctx, req *models.InferReque
 			c.Set("Transfer-Encoding", "chunked")
 			c.Set("X-Accel-Buffering", "no")
 			c.Set("X-Trace-ID", traceCtx.TraceID)
+			if taskID := runtimeResp.Header.Get("X-Igris-Runtime-Task-Id"); taskID != "" {
+				c.Set("X-Igris-Runtime-Task-Id", taskID)
+			}
 
 			c.Context().SetBodyStreamWriter(func(w *bufio.Writer) {
 				defer runtimeResp.Body.Close()
@@ -954,12 +951,17 @@ func (h *InferHandler) handleStreamingInfer(c *fiber.Ctx, req *models.InferReque
 	c.Set("Transfer-Encoding", "chunked")
 	c.Set("X-Trace-ID", traceCtx.TraceID)
 
-	// Check if speculative mode is enabled
+	// Check if speculative mode is enabled. Legacy Overture fallback still does not
+	// support council streaming; Runtime should own that mode when available.
 	var chunkChan <-chan *models.StreamChunk
 	var errChan <-chan error
 	var speculativeMetadata *specrouter.SpeculativeMetadata
 
-	if req.SpeculativeMode != "" && h.speculativeRouter != nil {
+	if req.CouncilMode {
+		log.Printf("[Infer] Council streaming unavailable on fallback path, degrading to non-streaming council execution")
+		req.Stream = false
+		return h.handleCouncilInfer(c, req)
+	} else if req.SpeculativeMode != "" && h.speculativeRouter != nil {
 		log.Printf("[Infer] Using speculative execution mode: %s", req.SpeculativeMode)
 
 		// Parse mode
