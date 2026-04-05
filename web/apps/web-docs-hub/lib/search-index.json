@@ -22,7 +22,7 @@
   {
     "title": "Architecture",
     "path": "/docs/architecture",
-    "keywords": "architecture system overview coordination layer (cloud gateway) core capabilities data layer api surface igris runtime (edge engine) core capabilities trust chain deployment topologies mermaid igris is a governed execution system built from two production components: the coordination layer cloud api gateway and the runtime edge engine. both share the same governance model, trust chain, and  architecture"
+    "keywords": "architecture system overview coordination layer (cloud gateway) core capabilities data layer api surface igris runtime (edge engine) core capabilities trust chain deployment topologies  igris is a governed execution system built from two production components: the coordination layer cloud api gateway and the runtime edge engine. both share the same governance model, trust chain, and  architecture"
   },
   {
     "title": "Audit",
@@ -150,6 +150,11 @@
     "keywords": "hybrid deployment workflow 1. keep the application pointed at the hosted api 2. start runtimes with registration credentials 3. verify cloud and runtime access separately 4. use fleet apis for coordination 5. separate hot-path traffic from provisioning traffic common mistakes related guides text bash use this workflow when you want one product experience for the customer while combining the hosted api with one or more local runtimes. hybrid-deployment-workflow"
   },
   {
+    "title": "Igris",
+    "path": "/docs/",
+    "keywords": "igris one system, three surfaces cloud edge robots what igris guarantees where to start platform guarantees  igris is a governed execution system for ai workloads. it runs across cloud, edge, and robotics hardware — every execution is bounded, verifiable, and resilient. index"
+  },
+  {
     "title": "Key Management",
     "path": "/docs/key-management",
     "keywords": "key management what the current public api supports add a provider key rotate, validate, remove security properties bash igris stores provider keys in the vault used by the cloud coordination layer. key-management"
@@ -198,11 +203,6 @@
     "title": "Multimodal",
     "path": "/docs/multimodal",
     "keywords": "multimodal inference post /v1/infer/multimodal get /v1/infer/multimodal/stats supported providers bash json bash json > early access — multimodal inference is currently in early access. the api is functional but subject to change. contact support@igrisinertial.commailto:support@igrisinertial.com to enable it for your multimodal"
-  },
-  {
-    "title": "Overview",
-    "path": "/docs/",
-    "keywords": "igris one system, three surfaces cloud edge robots what igris guarantees where to start platform guarantees  igris is a governed execution system for ai workloads. it runs across cloud, edge, and robotics hardware — every execution is bounded, verifiable, and resilient. overview"
   },
   {
     "title": "Policy",
