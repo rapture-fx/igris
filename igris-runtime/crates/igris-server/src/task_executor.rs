@@ -25,6 +25,7 @@ use uuid::Uuid;
 
 use igris_wal::{CheckpointPayload, ResumeToken, StepType, WalEntry, WalLog};
 use igris_core::storage::TASK_SUBMISSIONS;
+use igris_routing::Provider;
 use igris_btree::{
     core::{BTreeContext, BtWalSession},
     parser::JsonTreeParser,
@@ -567,7 +568,11 @@ struct IdempotentTaskRecord {
 #[derive(Debug, Clone, Copy, PartialEq, Eq)]
 enum AgentExecutionMode {
     Default,
-    Speculative,
+    Latency,
+    Balanced,
+    Quality,
+    Cost,
+    Thompson,
     Council,
 }
 
@@ -1386,12 +1391,20 @@ fn chat_error_event(message: impl Into<String>) -> Event {
 }
 
 fn task_result_event(response: &TaskSubmitResponse) -> Event {
+    let (requested_mode, resolved_strategy) = response
+        .checkpoint
+        .as_ref()
+        .and_then(|checkpoint| checkpoint.metadata.as_ref())
+        .map(extract_mode_metadata)
+        .unwrap_or((None, None));
     let payload = serde_json::json!({
         "task_id": response.task_id,
         "steps_completed": response.steps_completed,
         "steps_total": response.steps_total,
         "status": response.status,
         "checkpoint": response.checkpoint,
+        "requested_mode": requested_mode,
+        "resolved_strategy": resolved_strategy,
         "final_output": response.final_output,
         "usage": response.usage,
         "execution_envelope": response.execution_envelope,
@@ -1532,11 +1545,103 @@ fn normalize_agent_mode(mode: Option<&str>) -> anyhow::Result<AgentExecutionMode
     match mode.map(str::trim).filter(|value| !value.is_empty()) {
         None => Ok(AgentExecutionMode::Default),
         Some("council") => Ok(AgentExecutionMode::Council),
-        Some("speculative" | "thompson" | "latency" | "balanced" | "quality" | "cost") => {
-            Ok(AgentExecutionMode::Speculative)
-        }
+        Some("speculative" | "latency") => Ok(AgentExecutionMode::Latency),
+        Some("balanced") => Ok(AgentExecutionMode::Balanced),
+        Some("quality") => Ok(AgentExecutionMode::Quality),
+        Some("cost") => Ok(AgentExecutionMode::Cost),
+        Some("thompson") => Ok(AgentExecutionMode::Thompson),
         Some(other) => anyhow::bail!("unsupported task execution mode '{}'", other),
     }
+}
+
+fn provider_score_for_mode(provider: &CloudProviderWrapper, mode: AgentExecutionMode) -> f64 {
+    let average_cost = provider.0.average_cost_per_1k();
+    let fast = provider.0.has_capability("fast") as i32 as f64;
+    let reasoning = provider.0.has_capability("reasoning") as i32 as f64;
+    let coding = provider.0.has_capability("coding") as i32 as f64;
+    let long_context = provider.0.has_capability("long_context") as i32 as f64;
+    let cost_effective = provider.0.has_capability("cost_effective") as i32 as f64;
+    let realtime = provider.0.has_capability("realtime") as i32 as f64;
+    let premium_name = (provider.0.id().contains("opus")
+        || provider.0.id().contains("gpt4")
+        || provider.0.id().contains("sonnet")
+        || provider.0.id().contains("large")
+        || provider.0.id().contains("pro")) as i32 as f64;
+
+    match mode {
+        AgentExecutionMode::Default | AgentExecutionMode::Latency => {
+            fast * 12.0 + realtime * 8.0 + cost_effective * 4.0 - average_cost * 250.0
+        }
+        AgentExecutionMode::Balanced => {
+            fast * 6.0 + reasoning * 7.0 + coding * 3.0 + long_context * 2.0 + cost_effective * 4.0
+                - average_cost * 140.0
+        }
+        AgentExecutionMode::Quality => {
+            reasoning * 12.0 + coding * 6.0 + long_context * 5.0 + premium_name * 4.0
+                - average_cost * 45.0
+        }
+        AgentExecutionMode::Cost => {
+            cost_effective * 12.0 + fast * 3.0 + realtime * 2.0 - average_cost * 600.0
+        }
+        AgentExecutionMode::Thompson | AgentExecutionMode::Council => 0.0,
+    }
+}
+
+fn ranked_cloud_providers(state: &AppState, mode: AgentExecutionMode) -> Vec<CloudProviderWrapper> {
+    let mut providers: Vec<CloudProviderWrapper> = state
+        .cloud_providers
+        .iter()
+        .map(|provider| CloudProviderWrapper(provider.clone()))
+        .collect();
+
+    if matches!(
+        mode,
+        AgentExecutionMode::Default
+            | AgentExecutionMode::Latency
+            | AgentExecutionMode::Balanced
+            | AgentExecutionMode::Quality
+            | AgentExecutionMode::Cost
+    ) {
+        providers.sort_by(|left, right| {
+            provider_score_for_mode(right, mode)
+                .partial_cmp(&provider_score_for_mode(left, mode))
+                .unwrap_or(std::cmp::Ordering::Equal)
+        });
+    }
+
+    providers.truncate(3);
+    providers
+}
+
+async fn select_thompson_provider(state: &AppState) -> Option<CloudProviderWrapper> {
+    if state.cloud_providers.is_empty() {
+        return None;
+    }
+
+    let selected_id = state.thompson_router.select_provider().await.ok();
+    if let Some(selected_id) = selected_id {
+        if let Some(provider) = state
+            .cloud_providers
+            .iter()
+            .find(|provider| provider.id() == selected_id)
+        {
+            return Some(CloudProviderWrapper(provider.clone()));
+        }
+    }
+
+    state.cloud_providers.first().cloned().map(CloudProviderWrapper)
+}
+
+async fn update_thompson_reward(
+    state: &AppState,
+    provider_id: &str,
+    started_at: Instant,
+    success: bool,
+) {
+    let _ = state
+        .thompson_router
+        .update_reward(provider_id, started_at.elapsed().as_millis() as f64, success, 0.0)
+        .await;
 }
 
 fn materialize_execution_graph(task_type: &TaskType) -> anyhow::Result<ExecutionGraph> {
@@ -2015,20 +2120,35 @@ async fn do_route(
     let execution_mode = normalize_agent_mode(mode)?;
 
     if !state.cloud_providers.is_empty() {
-        let providers: Vec<CloudProviderWrapper> = state
-            .cloud_providers
-            .iter()
-            .take(3)
-            .map(|provider| CloudProviderWrapper(provider.clone()))
-            .collect();
-
         match execution_mode {
-            AgentExecutionMode::Default | AgentExecutionMode::Speculative => {
+            AgentExecutionMode::Default
+            | AgentExecutionMode::Latency
+            | AgentExecutionMode::Balanced
+            | AgentExecutionMode::Quality
+            | AgentExecutionMode::Cost => {
+                let providers = ranked_cloud_providers(&state, execution_mode);
                 if let Ok(result) = state.speculative_router.route(&prompt, providers).await {
                     return Ok((result.response, result.winner_id));
                 }
             }
+            AgentExecutionMode::Thompson => {
+                if let Some(provider) = select_thompson_provider(&state).await {
+                    let provider_id = provider.id().to_string();
+                    let started_at = Instant::now();
+                    match provider.complete(&prompt).await {
+                        Ok(response) => {
+                            update_thompson_reward(&state, &provider_id, started_at, true).await;
+                            return Ok((response, provider_id));
+                        }
+                        Err(err) => {
+                            update_thompson_reward(&state, &provider_id, started_at, false).await;
+                            warn!(provider_id = %provider_id, error = %err, "thompson-selected provider failed");
+                        }
+                    }
+                }
+            }
             AgentExecutionMode::Council => {
+                let providers = ranked_cloud_providers(&state, AgentExecutionMode::Quality);
                 if let Ok(result) = state.council_router.route(&prompt, providers.clone()).await {
                     return Ok((result.response, result.chairman_id));
                 }
@@ -2065,17 +2185,44 @@ async fn do_route_stream(
     let execution_mode = normalize_agent_mode(mode)?;
 
     if !state.cloud_providers.is_empty() {
-        let providers: Vec<CloudProviderWrapper> = state
-            .cloud_providers
-            .iter()
-            .take(3)
-            .map(|provider| CloudProviderWrapper(provider.clone()))
-            .collect();
-
         match execution_mode {
-            AgentExecutionMode::Default | AgentExecutionMode::Speculative => {
+            AgentExecutionMode::Default
+            | AgentExecutionMode::Latency
+            | AgentExecutionMode::Balanced
+            | AgentExecutionMode::Quality
+            | AgentExecutionMode::Cost => {
+                let providers = ranked_cloud_providers(&state, execution_mode);
                 if let Ok(result) = state.speculative_router.route_stream(&prompt, providers).await {
                     return Ok((result.stream, result.winner_id));
+                }
+            }
+            AgentExecutionMode::Thompson => {
+                if let Some(provider) = select_thompson_provider(&state).await {
+                    let provider_id = provider.id().to_string();
+                    let started_at = Instant::now();
+                    match provider.stream(&prompt).await {
+                        Ok(mut inner_stream) => {
+                            let state_for_reward = state.clone();
+                            let provider_id_for_stream = provider_id.clone();
+                            let wrapped = async_stream::try_stream! {
+                                while let Some(chunk) = inner_stream.next().await {
+                                    match chunk {
+                                        Ok(text) => yield text,
+                                        Err(err) => {
+                                            update_thompson_reward(&state_for_reward, &provider_id_for_stream, started_at, false).await;
+                                            Err(err)?;
+                                        }
+                                    }
+                                }
+                                update_thompson_reward(&state_for_reward, &provider_id_for_stream, started_at, true).await;
+                            };
+                            return Ok((Box::pin(wrapped), provider_id));
+                        }
+                        Err(err) => {
+                            update_thompson_reward(&state, &provider_id, started_at, false).await;
+                            warn!(provider_id = %provider_id, error = %err, "thompson-selected provider stream failed");
+                        }
+                    }
                 }
             }
             AgentExecutionMode::Council => {
@@ -3328,6 +3475,8 @@ fn build_step_checkpoint_metadata(
             "step_index": agent_step.step_index,
             "steps_completed": steps_completed,
             "model": agent_step.model,
+            "requested_mode": requested_mode_label(agent_step.mode.as_deref()),
+            "resolved_strategy": resolved_strategy_for_mode(agent_step.mode.as_deref()),
             "provider": result.provider_name,
             "output_preview": truncate_preview(&result.output_text, 240),
         }),
@@ -3423,6 +3572,36 @@ fn merge_checkpoint_metadata(base: &mut serde_json::Value, extra: &serde_json::V
     }
 }
 
+fn requested_mode_label(mode: Option<&str>) -> String {
+    mode.map(str::trim)
+        .filter(|value| !value.is_empty())
+        .unwrap_or("default")
+        .to_string()
+}
+
+fn resolved_strategy_for_mode(mode: Option<&str>) -> &'static str {
+    match normalize_agent_mode(mode).unwrap_or(AgentExecutionMode::Default) {
+        AgentExecutionMode::Default | AgentExecutionMode::Latency => "provider_race_latency",
+        AgentExecutionMode::Balanced => "provider_race_balanced",
+        AgentExecutionMode::Quality => "provider_race_quality",
+        AgentExecutionMode::Cost => "provider_race_cost",
+        AgentExecutionMode::Thompson => "single_provider_thompson",
+        AgentExecutionMode::Council => "council_synthesis",
+    }
+}
+
+fn extract_mode_metadata(metadata: &serde_json::Value) -> (Option<String>, Option<String>) {
+    let requested_mode = metadata
+        .get("requested_mode")
+        .and_then(|value| value.as_str())
+        .map(str::to_string);
+    let resolved_strategy = metadata
+        .get("resolved_strategy")
+        .and_then(|value| value.as_str())
+        .map(str::to_string);
+    (requested_mode, resolved_strategy)
+}
+
 fn robotics_action_name(action: &RoboticsAction) -> &'static str {
     match action {
         RoboticsAction::NavigateToPose { .. } => "navigate_to_pose",
@@ -3455,11 +3634,15 @@ mod tests {
         assert_eq!(normalize_agent_mode(None).unwrap(), AgentExecutionMode::Default);
         assert_eq!(
             normalize_agent_mode(Some("speculative")).unwrap(),
-            AgentExecutionMode::Speculative
+            AgentExecutionMode::Latency
         );
         assert_eq!(
             normalize_agent_mode(Some("latency")).unwrap(),
-            AgentExecutionMode::Speculative
+            AgentExecutionMode::Latency
+        );
+        assert_eq!(
+            normalize_agent_mode(Some("quality")).unwrap(),
+            AgentExecutionMode::Quality
         );
         assert_eq!(
             normalize_agent_mode(Some("council")).unwrap(),
@@ -3792,6 +3975,43 @@ mod tests {
         assert_eq!(metadata["task"], "approve mission");
         assert_eq!(metadata["node_id"], "approval-5");
         assert_eq!(metadata["write_slot"], "approval.result");
+    }
+
+    #[test]
+    fn agent_checkpoint_metadata_contains_mode_semantics() {
+        let step = RuntimeTaskStep::Agent(super::AgentStep {
+            step_index: 2,
+            node_id: Some("reason-2".to_string()),
+            checkpoint_key: Some("reason-key".to_string()),
+            read_slots: Some(vec!["memory.context".to_string()]),
+            write_slot: Some("reason.output".to_string()),
+            model: "gpt-4.1-mini".to_string(),
+            messages: vec![ExecuteMessage {
+                role: "user".to_string(),
+                content: "hello".to_string(),
+            }],
+            max_tokens: None,
+            temperature: None,
+            mode: Some("quality".to_string()),
+            memory: None,
+            approval: None,
+        });
+        let result = StepExecutionResult {
+            output_text: "ok".to_string(),
+            provider_name: "anthropic-sonnet".to_string(),
+            usage: ExecuteUsage {
+                prompt_tokens: 1,
+                completion_tokens: 1,
+                total_tokens: 2,
+            },
+            graph_output: None,
+            checkpoint_metadata: None,
+            checkpoint_requested: false,
+        };
+
+        let metadata = build_step_checkpoint_metadata(&step, 3, &result);
+        assert_eq!(metadata["requested_mode"], "quality");
+        assert_eq!(metadata["resolved_strategy"], "provider_race_quality");
     }
 
     #[test]
