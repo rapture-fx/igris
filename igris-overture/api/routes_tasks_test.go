@@ -38,6 +38,8 @@ func TestBuildTaskResponseIncludesFailureReasonAndCheckpointMetadata(t *testing.
 			Metadata: json.RawMessage(`{
 				"domain":"robotics",
 				"action":"cancel_navigation",
+				"requested_mode":"quality",
+				"resolved_strategy":"provider_race_quality",
 				"graph_blackboard":{
 					"last_node_id":"robotics-1",
 					"nodes":{"robotics-1":{"status":"canceled"}},
@@ -55,6 +57,8 @@ func TestBuildTaskResponseIncludesFailureReasonAndCheckpointMetadata(t *testing.
 	require.Equal(t, failureReason, resp["failure_reason"])
 	require.Equal(t, &completedAt, resp["deadline_at"])
 	require.Equal(t, "robotics_workflow", resp["task_type"])
+	require.Equal(t, "quality", resp["requested_mode"])
+	require.Equal(t, "provider_race_quality", resp["resolved_strategy"])
 	require.EqualValues(t, 3, resp["last_step"])
 	require.Equal(t, "abc123", resp["checkpoint_digest"])
 	require.NotNil(t, resp["checkpoint_metadata"])
@@ -77,6 +81,8 @@ func TestBuildTaskResponseOmitsEmptyOptionalFields(t *testing.T) {
 	require.NotContains(t, resp, "failure_reason")
 	require.NotContains(t, resp, "deadline_at")
 	require.NotContains(t, resp, "task_type")
+	require.NotContains(t, resp, "requested_mode")
+	require.NotContains(t, resp, "resolved_strategy")
 	require.NotContains(t, resp, "last_step")
 	require.NotContains(t, resp, "checkpoint_digest")
 	require.NotContains(t, resp, "checkpoint_metadata")
