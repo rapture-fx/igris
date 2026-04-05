@@ -181,15 +181,6 @@ type taskTypeRequest struct {
 	Mode        string           `json:"mode,omitempty"`
 }
 
-type chatCompletionRequest struct {
-	Model       string           `json:"model"`
-	Messages    []executeMessage `json:"messages"`
-	MaxTokens   *uint32          `json:"max_tokens,omitempty"`
-	Temperature *float32         `json:"temperature,omitempty"`
-	Mode        string           `json:"mode,omitempty"`
-	Stream      bool             `json:"stream,omitempty"`
-}
-
 type executeBounds struct {
 	CpuPercent *uint8  `json:"cpu_percent,omitempty"`
 	MemoryMb   *uint32 `json:"memory_mb,omitempty"`
@@ -450,27 +441,53 @@ func (c *RuntimeClient) ForwardExecution(
 }
 
 // OpenStreamingExecution opens an SSE stream against the Runtime's
-// POST /v1/chat/completions endpoint. The caller owns closing the response body.
+// POST /v1/runtime/task/stream endpoint. The caller owns closing the response body.
 func (c *RuntimeClient) OpenStreamingExecution(
 	ctx context.Context,
 	tenantID string,
 	req *models.InferRequest,
+	boundsHeader string,
 ) (*http.Response, error) {
 	mode := req.SpeculativeMode
 	if req.CouncilMode {
 		mode = "council"
 	}
-	if mode != "" {
-		return nil, fmt.Errorf("runtime_client: streaming runtime relay only supports base mode")
+	switch mode {
+	case "", "latency", "speculative", "thompson", "balanced", "quality", "cost", "council":
+	default:
+		return nil, fmt.Errorf("runtime_client: streaming runtime relay does not support speculative mode %q", mode)
 	}
 
-	payload := chatCompletionRequest{
+	bounds, err := parseBoundsHeader(boundsHeader)
+	if err != nil {
+		return nil, err
+	}
+
+	var deadlineMs *uint64
+	if bounds != nil && bounds.MaxTickMs != nil {
+		value := *bounds.MaxTickMs
+		deadlineMs = &value
+	} else if req.Policy != nil && req.Policy.TimeoutMs > 0 {
+		value := uint64(req.Policy.TimeoutMs)
+		deadlineMs = &value
+	}
+
+	taskType := taskTypeRequest{
+		Type:        "single_inference",
 		Model:       req.Model,
 		Messages:    buildExecuteMessages(req.Messages),
 		MaxTokens:   buildOptionalMaxTokens(req.MaxTokens),
 		Temperature: buildOptionalTemperature(req.Temperature),
-		Mode:        mode,
 		Stream:      true,
+		Mode:        mode,
+	}
+	payload := taskSubmitRequest{
+		TaskID:         uuid.NewString(),
+		TaskType:       taskType,
+		Containment:    bounds,
+		IdempotencyKey: computeIdempotencyKey(tenantID, taskType, bounds, deadlineMs),
+		TenantID:       tenantID,
+		DeadlineMs:     deadlineMs,
 	}
 	data, err := json.Marshal(payload)
 	if err != nil {
@@ -480,7 +497,7 @@ func (c *RuntimeClient) OpenStreamingExecution(
 	httpReq, err := http.NewRequestWithContext(
 		ctx,
 		http.MethodPost,
-		c.baseURL+"/v1/chat/completions",
+		c.baseURL+"/v1/runtime/task/stream",
 		bytes.NewReader(data),
 	)
 	if err != nil {
