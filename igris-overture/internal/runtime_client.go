@@ -10,6 +10,7 @@ import (
 	"encoding/hex"
 	"encoding/json"
 	"fmt"
+	"io"
 	"net/http"
 	"os"
 	"time"
@@ -180,6 +181,15 @@ type taskTypeRequest struct {
 	Mode        string           `json:"mode,omitempty"`
 }
 
+type chatCompletionRequest struct {
+	Model       string           `json:"model"`
+	Messages    []executeMessage `json:"messages"`
+	MaxTokens   *uint32          `json:"max_tokens,omitempty"`
+	Temperature *float32         `json:"temperature,omitempty"`
+	Mode        string           `json:"mode,omitempty"`
+	Stream      bool             `json:"stream,omitempty"`
+}
+
 type executeBounds struct {
 	CpuPercent *uint8  `json:"cpu_percent,omitempty"`
 	MemoryMb   *uint32 `json:"memory_mb,omitempty"`
@@ -255,6 +265,39 @@ func computeIdempotencyKey(
 	return hex.EncodeToString(sum[:])
 }
 
+func buildExecuteMessages(messages []models.Message) []executeMessage {
+	msgs := make([]executeMessage, 0, len(messages))
+	for _, m := range messages {
+		msgs = append(msgs, executeMessage{
+			Role:    m.Role,
+			Content: m.GetTextContent(),
+		})
+	}
+	return msgs
+}
+
+func buildOptionalMaxTokens(maxTokens int) *uint32 {
+	if maxTokens <= 0 {
+		return nil
+	}
+	value := uint32(maxTokens)
+	return &value
+}
+
+func buildOptionalTemperature(temperature float64) *float32 {
+	if temperature == 0 {
+		return nil
+	}
+	value := float32(temperature)
+	return &value
+}
+
+func (c *RuntimeClient) streamingHTTPClient() *http.Client {
+	streamClient := *c.httpClient
+	streamClient.Timeout = 0
+	return &streamClient
+}
+
 // ForwardExecution sends req to the Runtime's POST /v1/runtime/task/submit endpoint
 // and converts the response back to an *models.InferResponse.
 //
@@ -271,30 +314,15 @@ func (c *RuntimeClient) ForwardExecution(
 	}
 
 	// Build the execute payload.
-	msgs := make([]executeMessage, 0, len(req.Messages))
-	for _, m := range req.Messages {
-		msgs = append(msgs, executeMessage{
-			Role:    m.Role,
-			Content: m.GetTextContent(),
-		})
-	}
+	msgs := buildExecuteMessages(req.Messages)
 
 	bounds, err := parseBoundsHeader(boundsHeader)
 	if err != nil {
 		return nil, err
 	}
 
-	var maxTokens *uint32
-	if req.MaxTokens > 0 {
-		value := uint32(req.MaxTokens)
-		maxTokens = &value
-	}
-
-	var temperature *float32
-	if req.Temperature != 0 {
-		value := float32(req.Temperature)
-		temperature = &value
-	}
+	maxTokens := buildOptionalMaxTokens(req.MaxTokens)
+	temperature := buildOptionalTemperature(req.Temperature)
 
 	var deadlineMs *uint64
 	if bounds != nil && bounds.MaxTickMs != nil {
@@ -419,6 +447,67 @@ func (c *RuntimeClient) ForwardExecution(
 	}
 
 	return inferResp, nil
+}
+
+// OpenStreamingExecution opens an SSE stream against the Runtime's
+// POST /v1/chat/completions endpoint. The caller owns closing the response body.
+func (c *RuntimeClient) OpenStreamingExecution(
+	ctx context.Context,
+	tenantID string,
+	req *models.InferRequest,
+) (*http.Response, error) {
+	mode := req.SpeculativeMode
+	if req.CouncilMode {
+		mode = "council"
+	}
+	if mode != "" {
+		return nil, fmt.Errorf("runtime_client: streaming runtime relay only supports base mode")
+	}
+
+	payload := chatCompletionRequest{
+		Model:       req.Model,
+		Messages:    buildExecuteMessages(req.Messages),
+		MaxTokens:   buildOptionalMaxTokens(req.MaxTokens),
+		Temperature: buildOptionalTemperature(req.Temperature),
+		Mode:        mode,
+		Stream:      true,
+	}
+	data, err := json.Marshal(payload)
+	if err != nil {
+		return nil, fmt.Errorf("runtime_client: marshal streaming request: %w", err)
+	}
+
+	httpReq, err := http.NewRequestWithContext(
+		ctx,
+		http.MethodPost,
+		c.baseURL+"/v1/chat/completions",
+		bytes.NewReader(data),
+	)
+	if err != nil {
+		return nil, fmt.Errorf("runtime_client: build streaming request: %w", err)
+	}
+	httpReq.Header.Set("Content-Type", "application/json")
+	httpReq.Header.Set("Accept", "text/event-stream")
+	c.setAuthHeader(httpReq)
+	c.setDecisionSigHeader(httpReq, data)
+	if tenantID != "" {
+		httpReq.Header.Set("X-Igris-Tenant", tenantID)
+	}
+
+	httpResp, err := c.streamingHTTPClient().Do(httpReq)
+	if err != nil {
+		return nil, fmt.Errorf("runtime_client: streaming http: %w", err)
+	}
+	if httpResp.StatusCode == http.StatusUnauthorized || httpResp.StatusCode == http.StatusForbidden {
+		defer httpResp.Body.Close()
+		return nil, fmt.Errorf("%w: status %d", models.ErrRuntimeSecurity, httpResp.StatusCode)
+	}
+	if httpResp.StatusCode != http.StatusOK {
+		defer httpResp.Body.Close()
+		body, _ := io.ReadAll(io.LimitReader(httpResp.Body, 4096))
+		return nil, fmt.Errorf("runtime_client: streaming runtime returned status %d: %s", httpResp.StatusCode, string(body))
+	}
+	return httpResp, nil
 }
 
 // GetViolations fetches violation records from the Runtime's
