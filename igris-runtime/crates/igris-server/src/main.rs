@@ -3239,6 +3239,7 @@ async fn main() -> anyhow::Result<()> {
         .route("/v1/runtime/violations", get(runtime_execute::handle_violations))
         .route("/v1/runtime/register", post(runtime_execute::handle_register))
         .route("/v1/runtime/task/submit", post(task_executor::handle_task_submit))
+        .route("/v1/runtime/task/stream", post(task_executor::handle_task_stream))
         .route("/v1/runtime/task/{task_id}/wal", get(task_executor::handle_task_wal))
         // Phase 4: Agent lifecycle state endpoint
         .route("/v1/runtime/agent/:id/state", get(lifecycle::handle_agent_state))
