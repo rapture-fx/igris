@@ -1,0 +1,92 @@
+---
+title: "Multimodal Inference"
+description: "> Early Access — Multimodal inference is currently in early access. The API is functional but subject to change. Contact support@igrisinertial.com to enable it for your account."
+---
+
+# Multimodal Inference
+
+> **Early Access** — Multimodal inference is currently in early access. The API is functional but subject to change. Contact [support@igrisinertial.com](mailto:support@igrisinertial.com) to enable it for your account.
+
+Igris supports multimodal inference — requests that include text plus image or audio inputs. The coordination layer routes multimodal requests to providers that support the requested modalities.
+
+---
+
+## POST /v1/infer/multimodal
+
+Send a prompt alongside image or audio data. The request is routed to a provider with multimodal capability.
+
+```bash
+curl -X POST https://overture.igrisinertial.com/v1/infer/multimodal \
+  -H "Authorization: Bearer YOUR_API_KEY" \
+  -H "Content-Type: application/json" \
+  -d '{
+    "prompt": "Describe what you see in this image.",
+    "image_data": "<base64-encoded-image>"
+  }'
+```
+
+**Request fields:**
+
+| Field | Type | Required | Description |
+|---|---|---|---|
+| `prompt` | string | Yes | Text prompt |
+| `image_data` | string | No | Base64-encoded image (JPEG, PNG, WebP) |
+| `audio_data` | string | No | Base64-encoded audio (MP3, WAV, M4A) |
+
+At least one of `image_data` or `audio_data` must be provided alongside `prompt`.
+
+**Response:**
+```json
+{
+  "content": "The image shows a robotic arm in a warehouse environment...",
+  "input_tokens": 142,
+  "output_tokens": 87,
+  "latency_ms": 1240,
+  "modalities": ["text", "image"]
+}
+```
+
+| Field | Description |
+|---|---|
+| `content` | Model response text |
+| `input_tokens` | Tokens consumed (text + vision encoding) |
+| `output_tokens` | Tokens in the response |
+| `latency_ms` | End-to-end request latency |
+| `modalities` | Modalities used in this request |
+
+---
+
+## GET /v1/infer/multimodal/stats
+
+Usage analytics for multimodal inference.
+
+```bash
+curl https://overture.igrisinertial.com/v1/infer/multimodal/stats \
+  -H "Authorization: Bearer YOUR_API_KEY"
+```
+
+Response:
+```json
+{
+  "total_requests": 2841,
+  "image_requests": 2503,
+  "audio_requests": 338,
+  "avg_latency_ms": 1187.4
+}
+```
+
+---
+
+## Supported providers
+
+| Provider | Image | Audio |
+|---|---|---|
+| OpenAI (GPT-4V, GPT-4o) | ✓ | ✓ |
+| Anthropic (Claude 3+) | ✓ | — |
+| Google (Gemini Pro Vision) | ✓ | ✓ |
+
+Provider selection follows the same adaptive routing as text inference. If no cloud provider with the required modality is available, the request returns an error (multimodal requests cannot fall back to local text models).
+
+---
+
+[API Reference →](/docs/api-reference) · [Cloud Coordination →](/docs/cloud-coordination)
