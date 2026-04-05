@@ -67,6 +67,14 @@ impl CloudProvider {
         Self { config, client }
     }
 
+    pub fn average_cost_per_1k(&self) -> f64 {
+        (self.config.cost_per_1k_input + self.config.cost_per_1k_output) / 2.0
+    }
+
+    pub fn has_capability(&self, capability: &str) -> bool {
+        self.config.capabilities.iter().any(|value| value == capability)
+    }
+
     async fn call_api(&self, prompt: &str) -> anyhow::Result<String> {
         let api_key = self.config.api_key_env.as_ref()
             .and_then(|env_var| std::env::var(env_var).ok())
