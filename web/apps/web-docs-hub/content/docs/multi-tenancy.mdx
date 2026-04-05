@@ -1,0 +1,129 @@
+---
+title: "Multi-Tenancy"
+description: "Igris supports multi-tenant deployments where a single infrastructure serves multiple isolated tenants. Each tenant has its own execution space, policies, keys, and audit trail."
+---
+
+# Multi-Tenancy
+
+Igris supports multi-tenant deployments where a single infrastructure serves multiple isolated tenants. Each tenant has its own execution space, policies, keys, and audit trail.
+
+---
+
+## Architecture
+
+Multi-tenancy in Igris is enforced at every layer:
+
+```
+                    ┌─────────────────────────┐
+                    │   Coordination Layer    │
+                    │                         │
+                    │  Tenant A  │  Tenant B  │
+                    │  Tenant C  │  Tenant D  │
+                    └────────┬────────────────┘
+                             │
+              ┌──────────────┼──────────────┐
+              │              │              │
+        ┌─────┴─────┐ ┌─────┴─────┐ ┌─────┴─────┐
+        │ Runtime A  │ │ Runtime B  │ │ Runtime C  │
+        │ (Tenant A) │ │ (Tenant B) │ │ (Tenant C) │
+        └───────────┘ └───────────┘ └───────────┘
+```
+
+### Isolation guarantees
+
+| Layer | Isolation method |
+|---|---|
+| **Inference** | Separate API keys, separate provider configurations |
+| **Execution** | Separate execution envelopes with tenant-scoped IDs |
+| **Data** | Tenant-scoped storage — no cross-tenant data access |
+| **Policies** | Per-tenant policy envelopes |
+| **Audit** | Per-tenant receipt chains |
+| **Keys** | Per-tenant vault — keys are never shared |
+
+---
+
+## Tenant Identification
+
+Every request is associated with a tenant via the API key used for authentication. The API key maps to exactly one tenant. There is no cross-tenant key.
+
+```
+API Key → Tenant ID → Execution Context
+```
+
+The tenant ID is embedded in every execution receipt, ensuring full traceability from receipt back to tenant.
+
+---
+
+## Tenant Configuration
+
+Each tenant has an independent configuration:
+
+```json
+{
+  "tenant": {
+    "id": "tenant-abc123",
+    "name": "Acme Corp",
+    "tier": "horizon",
+    "providers": ["anthropic", "openai"],
+    "policy": {
+      "max_tokens": 4096,
+      "max_steps": 10,
+      "allow_http": true,
+      "allow_shell": false
+    },
+    "slo": {
+      "latency_p99_ms": 2000,
+      "max_cost_per_request_usd": 0.05
+    }
+  }
+}
+```
+
+---
+
+## Resource Quotas
+
+Tenants are allocated resource quotas based on their tier:
+
+| Resource | Seed | Horizon | Infinite |
+|---|---|---|---|
+| Runtime instances | 3 | 50 | 500 |
+| Receipt retention | 7 days | 30 days | 90 days |
+| Federated learning | — | — | ✓ |
+| SLO enforcement | ✓ | ✓ | ✓ |
+| Routing advisor | ✓ | ✓ | ✓ |
+
+When a tenant exceeds its quota, requests are rejected with HTTP 429. The `X-RateLimit-Remaining` header indicates remaining capacity.
+
+---
+
+## Cross-Tenant Isolation
+
+### Data isolation
+
+- Execution receipts are scoped to tenant — no tenant can query another tenant's receipts
+- Vector store indexes are tenant-scoped
+- KV cache entries are tenant-scoped
+- Agent blackboard is tenant-scoped
+
+### Network isolation
+
+- Runtime instances register to exactly one tenant
+- Fleet management operations are tenant-scoped
+- OTA updates are tenant-scoped
+
+### Key isolation
+
+- Vault keys belong to exactly one tenant
+- Provider configurations are tenant-scoped
+- There is no mechanism to share keys between tenants
+
+---
+
+## Billing
+
+Each tenant has its own billing profile and usage tracking. See [Pricing Tiers](/docs/pricing-tiers) for tier details and [Trial & Billing](/docs/trial-billing) for billing workflows.
+
+---
+
+[Key Management →](/docs/key-management) · [Governance →](/docs/governance) · [Pricing →](/docs/pricing-tiers)
