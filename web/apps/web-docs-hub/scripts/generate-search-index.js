@@ -1,7 +1,7 @@
 const fs = require('fs');
 const path = require('path');
 
-const docsDir = path.join(__dirname, '../docs');
+const docsDir = path.join(__dirname, '../content/docs');
 const outputFile = path.join(__dirname, '../lib/search-index.json');
 const generatedApiFile = path.join(__dirname, '../lib/generated/api-reference.json');
 const generatedSdkFile = path.join(__dirname, '../lib/generated/sdk-support.json');
@@ -18,7 +18,7 @@ function extractSearchIndex() {
   const index = [];
 
   const slugToTitle = {
-    'overview.mdx': 'Overview',
+    'index.mdx': 'Igris',
     'architecture.mdx': 'Architecture',
     'quickstart.mdx': 'Quick Start',
     'execution-model.mdx': 'Execution Model',
@@ -75,7 +75,8 @@ function extractSearchIndex() {
     const filePath = subdir ? path.join(docsDir, subdir, file) : path.join(docsDir, file);
     const slug = file.replace('.mdx', '');
     const content = fs.readFileSync(filePath, 'utf-8');
-    const sanitizedContent = content
+    const contentWithoutFrontmatter = content.replace(/^---[\s\S]*?---\n*/, '');
+    const sanitizedContent = contentWithoutFrontmatter
       .replace(/^import\s.+;$/gm, '')
       .replace(/^export\s.+;$/gm, '')
       .replace(/<[^>\n]+>/g, ' ')
@@ -109,7 +110,7 @@ function extractSearchIndex() {
     const keywords = `${headings} ${codeLangs} ${firstPara} ${slug}`.toLowerCase();
     const docPath = subdir
       ? `/docs/${subdir}/${slug}`
-      : `/docs/${slug === 'overview' ? '' : slug}`;
+      : `/docs/${slug === 'index' ? '' : slug}`;
 
     index.push({
       title,
