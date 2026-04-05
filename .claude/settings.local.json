@@ -80,7 +80,13 @@
       "Bash(pip3 install:*)",
       "Bash(grep:*)",
       "Bash(/Users/wira/Desktop/system/web/apps/web-docs-hub/docs/agent-lifecycle.mdx:*)",
-      "Bash(/Users/wira/Desktop/system/web/apps/web-docs-hub/docs/behavior-trees.mdx:*)"
+      "Bash(/Users/wira/Desktop/system/web/apps/web-docs-hub/docs/behavior-trees.mdx:*)",
+      "Bash(pnpm exec:*)",
+      "Bash(node:*)",
+      "Bash(pnpm info:*)",
+      "Bash(python3 -c ':*)",
+      "Bash(rm /Users/wira/Desktop/system/web/apps/web-docs-hub/app/docs/[slug]/page.tsx)",
+      "Bash(rmdir /Users/wira/Desktop/system/web/apps/web-docs-hub/app/docs/[slug])"
     ],
     "deny": [],
     "ask": []
