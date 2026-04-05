@@ -95,6 +95,12 @@ func newHealthyRuntimeServer(t *testing.T) *httptest.Server {
 		w.Header().Set("Content-Type", "application/json")
 		_ = json.NewEncoder(w).Encode(resp)
 	})
+	mux.HandleFunc("/v1/runtime/task/stream", func(w http.ResponseWriter, r *http.Request) {
+		w.Header().Set("Content-Type", "text/event-stream")
+		w.Header().Set("X-Igris-Runtime-Task-Id", "stream-task-test")
+		w.WriteHeader(http.StatusOK)
+		_, _ = w.Write([]byte("data: {\"id\":\"chunk-1\"}\n\n"))
+	})
 	return httptest.NewServer(mux)
 }
 
