@@ -1,0 +1,369 @@
+---
+title: "Troubleshooting"
+description: "This guide covers the most common issues encountered when running Igris. For each issue you will find the symptoms, the most likely cause, and the steps to fix it."
+---
+
+# Troubleshooting
+
+This guide covers the most common issues encountered when running Igris. For each issue you will find the symptoms, the most likely cause, and the steps to fix it.
+
+---
+
+## Runtime Not Starting
+
+### Port already in use
+
+**Symptoms:** The runtime process exits immediately with an address binding error. Nothing appears in **Fleet → Devices**.
+
+**Cause:** Another process is already listening on the port the runtime is configured to use (default: 8080).
+
+**Fix:** Identify the conflicting process and stop it, or configure the runtime to use a different port. On Linux and macOS you can check what is using a port with:
+
+```bash
+lsof -i :8080
+```
+
+After freeing the port or reconfiguring, restart the runtime.
+
+---
+
+### Missing API key
+
+**Symptoms:** The runtime starts but exits with an authentication error. No registration appears in the console.
+
+**Cause:** The runtime was started without a valid Igris API key in its configuration.
+
+**Fix:** Add your API key to the runtime's config file or pass it as the appropriate environment variable for your deployment method. Your API key is available in **Settings → Keys** in the console. If you do not see an API key, generate one from **Settings → Billing → Manage Account**.
+
+---
+
+### Config file not found
+
+**Symptoms:** The runtime exits with a message indicating it cannot find or parse the configuration file.
+
+**Cause:** The runtime is looking for its configuration file at the default path and it either does not exist or has a syntax error.
+
+**Fix:** Verify that the config file is present at the expected path. Check the file for YAML/TOML syntax errors — most runtimes print the line number of the first error. If you are using a custom path, confirm you are passing the correct path argument when starting the runtime.
+
+---
+
+## Runtime Not Appearing in Fleet → Devices
+
+### Network or firewall blocking outbound registration
+
+**Symptoms:** The runtime starts and appears to be running (the local health endpoint responds) but never appears in **Fleet → Devices** in the console.
+
+**Cause:** Outbound HTTPS traffic to `overture.igrisinertial.com` is being blocked by a firewall rule, proxy, or network policy.
+
+**Fix:** Verify connectivity from the runtime host:
+
+```bash
+curl -v https://overture.igrisinertial.com/health
+```
+
+If this fails, work with your network administrator to allow outbound HTTPS (port 443) to `overture.igrisinertial.com`. If your environment routes traffic through a proxy, configure the runtime's proxy settings accordingly.
+
+---
+
+### API key wrong or expired
+
+**Symptoms:** The runtime starts but registration fails. The runtime logs show an authentication error from the registration call.
+
+**Cause:** The API key in the runtime config is incorrect, was revoked, or belongs to a different account.
+
+**Fix:** Go to **Settings → Keys** in the console and verify the key that the runtime is using matches your account's current API key. If you have recently rotated your key, update the runtime config with the new key and restart. If the key was revoked, generate a new one from the console.
+
+---
+
+### Registration call failing silently
+
+**Symptoms:** No error in runtime logs, but the instance never appears in the console.
+
+**Cause:** The registration request may be succeeding but the instance is not sending subsequent heartbeats, causing it to be culled before you look.
+
+**Fix:** Check the local health endpoint on the runtime host to confirm the process is still running:
+
+```bash
+curl http://localhost:8080/health
+```
+
+A healthy response confirms the runtime is alive. If it is alive but not visible in the console, check the console's **Fleet → Devices** filter — you may be filtering by a tag or status that excludes the new instance. Clear all filters and look for the instance name.
+
+---
+
+## Provider Key Validation Failing
+
+### Key copied incorrectly
+
+**Symptoms:** After adding a key in **Settings → Keys**, the console shows a validation error. The provider's dashboard shows the key as active.
+
+**Cause:** The key was pasted with leading or trailing whitespace, or a newline character was included.
+
+**Fix:** Copy the key again directly from the provider's dashboard. Paste into a plain text editor first to verify there are no extra characters, then paste into the console key field. Most providers display keys in a monospaced box — use their copy button if available.
+
+---
+
+### Key revoked or quota exhausted
+
+**Symptoms:** A key that was previously working is now shown as invalid in the console. The provider's dashboard shows quota usage at or near the limit, or the key has been revoked.
+
+**Cause:** The provider revoked the key or the associated account has hit its usage quota.
+
+**Fix:** Generate a new key in the provider's dashboard and replace it in Igris via **Settings → Keys → Replace**. If quota exhaustion is the issue, increase the quota limit in the provider's account settings before adding the new key.
+
+---
+
+### Network issue during validation
+
+**Symptoms:** Validation fails intermittently. Retrying after a few seconds succeeds.
+
+**Cause:** A transient network hiccup between Igris and the provider's validation endpoint.
+
+**Fix:** Wait a moment and try saving the key again. If the issue persists, check whether the provider has an active service incident on their status page.
+
+---
+
+### Re-validating an existing key via API
+
+To trigger re-validation of a stored key outside the console:
+
+```bash
+curl -X POST https://overture.igrisinertial.com/v1/vault/keys/:provider/validate \
+  -H "Authorization: Bearer YOUR_API_KEY"
+# → {"valid": true, "provider": "openai"}
+```
+
+Replace `:provider` with the provider identifier (e.g., `openai`, `anthropic`, `xai`, `google`, `cohere`).
+
+---
+
+## Execution Runs Stuck in PAUSED
+
+### Human review required
+
+**Symptoms:** One or more runs show status PAUSED in the console and do not progress. The run detail shows `pause_reason: human_review_required`.
+
+**Cause:** The run reached a human-in-the-loop review trigger in your policy. It is waiting in the approval queue for a deliberate approve or reject decision.
+
+**Fix:** Go to **Execution Runs** in the console and open the paused run. Review the prompt preview and agent context, then click **Approve** to continue or **Reject** (with a reason) to terminate.
+
+To find all runs awaiting approval via the API:
+
+```bash
+curl "https://overture.igrisinertial.com/v1/execution/runs?status=PAUSED" \
+  -H "Authorization: Bearer YOUR_API_KEY"
+```
+
+To approve a specific run:
+
+```bash
+curl -X POST https://overture.igrisinertial.com/v1/execution/runs/exec-01HXYZ/approve \
+  -H "Authorization: Bearer YOUR_API_KEY"
+```
+
+Runs in the approval queue do not time out automatically — they remain PAUSED indefinitely until a decision is made. If you have an SLA on approval response time, monitor queue depth via `GET /v1/history/alerts` filtered by unacknowledged alerts.
+
+---
+
+## High Violation Rate
+
+### What violations mean
+
+A violation occurs when an execution attempts a capability — HTTP, shell, filesystem — that is not granted in the agent's policy. The execution is terminated at the point of violation and a receipt is issued. Violations are not system errors; they are the policy enforcement system working as designed.
+
+### Common patterns
+
+**HTTP blocked:** An agent is making outbound HTTP requests but the `allow_http` capability is not granted in its policy. This is the most common violation type. It often appears when a new agent is deployed with a tool-use mode and the capability grants in its assigned policy were not updated.
+
+**Shell blocked:** An agent is attempting to execute shell commands without `allow_shell` granted. This is a higher-risk capability; if your agents should not need shell access, this violation may indicate unexpected behavior worth investigating.
+
+**Diagnosis:**
+
+```bash
+curl "https://overture.igrisinertial.com/v1/proof/violations" \
+  -H "Authorization: Bearer YOUR_API_KEY"
+```
+
+Filter by `agent_id` to isolate which agents are producing violations, and by `violation_type` to see the pattern.
+
+**Fix — if the capability is legitimate:**
+
+Review the policy assigned to the agent and add the appropriate capability grant. Assign or update the policy:
+
+```bash
+curl https://overture.igrisinertial.com/v1/policies \
+  -H "Authorization: Bearer YOUR_API_KEY"
+# → list of your policies, find the one to update
+
+curl -X POST https://overture.igrisinertial.com/v1/policies/assign \
+  -H "Authorization: Bearer YOUR_API_KEY" \
+  -H "Content-Type: application/json" \
+  -d '{"agent_id": "agent-abc", "policy_id": "pol-01HXYZ"}'
+```
+
+**Fix — if the capability is not legitimate:**
+
+The agent is requesting capabilities it should not need. Investigate the agent's prompts, tool definitions, or behavior tree for unexpected branches. Do not grant the capability — fix the agent.
+
+---
+
+## Requests Going to Wrong Provider
+
+### How provider selection works
+
+By default, Igris uses adaptive routing: requests are sent to providers based on their recent performance (latency, success rate, cost). Over time the router converges on the best provider for your workload. Routing is dynamic — a provider that is currently performing well receives more traffic, and one that degrades receives less.
+
+### Checking current routing behavior
+
+```bash
+# Overall routing statistics per provider
+curl https://overture.igrisinertial.com/v1/routing/stats \
+  -H "Authorization: Bearer YOUR_API_KEY"
+
+# Provider ranking as the router currently sees it
+curl https://overture.igrisinertial.com/v1/routing/leaderboard \
+  -H "Authorization: Bearer YOUR_API_KEY"
+```
+
+### Overriding routing behavior
+
+To pin routing to a specific strategy:
+
+```bash
+curl -X POST https://overture.igrisinertial.com/v1/routing/strategy \
+  -H "Authorization: Bearer YOUR_API_KEY" \
+  -H "Content-Type: application/json" \
+  -d '{"strategy": "cost-optimized", "fallback_chain": ["anthropic", "openai"]}'
+```
+
+To adjust how much weight a specific provider receives:
+
+```bash
+curl -X POST https://overture.igrisinertial.com/v1/routing/provider_weights \
+  -H "Authorization: Bearer YOUR_API_KEY" \
+  -H "Content-Type: application/json" \
+  -d '{"openai": 0.7, "anthropic": 0.3}'
+```
+
+If you need deterministic routing to a single provider for testing or compliance reasons, set `strategy` to `fixed` and specify the provider in the fallback chain as the sole entry.
+
+---
+
+## Local Model Not Loading or Slow
+
+### Memory requirements
+
+Local models require sufficient RAM on the runtime host. Approximate requirements:
+
+| Model size | Minimum RAM (full precision) | Minimum RAM (Q4 quantized) |
+|---|---|---|
+| 3B parameters | ~6 GB | ~2 GB |
+| 7B parameters | ~14 GB | ~4 GB |
+| 13B parameters | ~26 GB | ~8 GB |
+
+If the runtime host does not have enough free memory, the model will either fail to load or cause significant page swapping, making inference extremely slow.
+
+### Using quantized models
+
+For environments with limited RAM, use Q4 quantized (`.gguf`) model files. These trade a small amount of output quality for a 4x reduction in memory usage. Most use cases see no meaningful quality difference with Q4 quantization.
+
+Point your runtime config at the quantized model file — the runtime loads whichever file path is specified.
+
+### Checking runtime health and load
+
+The local runtime exposes health and metrics endpoints directly:
+
+```bash
+# Basic health check
+curl http://localhost:8080/health
+
+# Detailed metrics including model load status and memory usage
+curl http://localhost:8080/metrics
+```
+
+If `/health` returns an error or the model load status shows `failed`, check the runtime process logs for the exact error (out of memory, file not found, unsupported format).
+
+---
+
+## Execution Runs Timing Out
+
+### max_duration_ms limit hit
+
+**Symptoms:** Runs end with status `violation` and `violation_type: duration_exceeded`, or they are terminated before completing.
+
+**Cause:** The execution exceeded the `max_duration_ms` configured in the agent's policy. This limit exists to prevent runaway executions from consuming resources indefinitely.
+
+**Fix — if the timeout is too short for this workload:**
+
+Review and update the `max_duration_ms` value in the agent's assigned policy:
+
+```bash
+# List your policies
+curl https://overture.igrisinertial.com/v1/policies \
+  -H "Authorization: Bearer YOUR_API_KEY"
+```
+
+Update the relevant policy with a higher `max_duration_ms` value, then reassign it to the agent.
+
+**Fix — if the timeout is intentional:**
+
+Some executions should time out — for example, an agent that is stuck in a loop or waiting indefinitely for an external resource. In these cases the timeout is the safety limit working correctly. Investigate why the execution is taking longer than expected, and address the root cause in the agent's logic or the external dependency it is waiting on.
+
+---
+
+## API Rate Limit (HTTP 429)
+
+**Symptoms:** API calls return HTTP 429. Response headers include rate limit information.
+
+**Understanding rate limit headers:**
+
+| Header | Meaning |
+|---|---|
+| `X-RateLimit-Limit` | Maximum requests allowed in the current window |
+| `X-RateLimit-Remaining` | Requests remaining in the current window |
+| `X-RateLimit-Reset` | Unix timestamp when the window resets |
+
+**Fix:**
+
+Adjust your request cadence to stay within the limit. If you are making bulk requests (exporting receipts, querying history), add a short delay between batches or spread requests across the window.
+
+For the runtime download endpoint specifically, a separate limit of 10 requests per hour applies. If you need to provision many instances simultaneously, stagger the downloads.
+
+If your workload legitimately requires a higher rate limit, contact [support@igrisinertial.com](mailto:support@igrisinertial.com) with your use case. Limit increases are evaluated per account.
+
+---
+
+## Receipt Verification Failing
+
+**Symptoms:** Calling the receipt verification endpoint returns `"valid": false`. You want to understand whether the receipt was tampered with or just malformed.
+
+```bash
+curl -X POST https://overture.igrisinertial.com/v1/proof/receipts/verify \
+  -H "Authorization: Bearer YOUR_API_KEY" \
+  -H "Content-Type: application/json" \
+  -d '{"execution_id": "exec-01HXYZ"}'
+# → {"valid": false, "reason": "signature_mismatch"}
+```
+
+**Tamper detection vs format issues**
+
+| Failure reason | Meaning |
+|---|---|
+| `signature_mismatch` | The receipt's content does not match its cryptographic signature. This is the tamper detection case — the receipt was modified after it was issued. |
+| `chain_break` | The `previous_hash` in this receipt does not match the hash of the preceding receipt. A receipt was removed from the chain. |
+| `malformed` | The receipt is missing required fields or has an invalid format. This indicates a storage or export issue rather than tampering. |
+
+**What to do**
+
+- `signature_mismatch` or `chain_break`: Do not replay or act on this execution result. Flag the execution ID for audit review. If you export receipts to external storage, verify the integrity of your export pipeline. Contact [support@igrisinertial.com](mailto:support@igrisinertial.com) with the execution ID if you believe tampering has occurred.
+- `malformed`: Check whether the receipt was truncated during export or transit. Re-query the receipt directly from the API rather than from your export copy.
+
+---
+
+## Getting More Help
+
+If the above steps do not resolve your issue, contact support with the relevant `execution_id`, your tenant ID, and a description of the symptoms.
+
+**Support:** [support@igrisinertial.com](mailto:support@igrisinertial.com)
+
+[API Reference →](/docs/api-reference) · [History & Alerts →](/docs/history)
