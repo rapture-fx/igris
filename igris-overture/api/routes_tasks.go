@@ -814,6 +814,14 @@ func buildTaskResponse(task *coordinator.TaskRecord) fiber.Map {
 		resp["checkpoint_digest"] = task.LastCheckpoint.ResumeToken.CheckpointDigest
 		if len(task.LastCheckpoint.Metadata) > 0 {
 			resp["checkpoint_metadata"] = json.RawMessage(task.LastCheckpoint.Metadata)
+			if requestedMode, resolvedStrategy := extractModeSemantics(task.LastCheckpoint.Metadata); requestedMode != "" || resolvedStrategy != "" {
+				if requestedMode != "" {
+					resp["requested_mode"] = requestedMode
+				}
+				if resolvedStrategy != "" {
+					resp["resolved_strategy"] = resolvedStrategy
+				}
+			}
 			if graphBlackboard, graphNodes, graphSlots := extractGraphCheckpointViews(task.LastCheckpoint.Metadata); graphBlackboard != nil {
 				resp["graph_blackboard"] = graphBlackboard
 				if graphNodes != nil {
@@ -863,6 +871,20 @@ func extractGraphCheckpointViews(metadata json.RawMessage) (graphBlackboard json
 	}
 
 	return blackboard, graph["nodes"], graph["slots"]
+}
+
+func extractModeSemantics(metadata json.RawMessage) (requestedMode string, resolvedStrategy string) {
+	if len(metadata) == 0 {
+		return "", ""
+	}
+	var payload struct {
+		RequestedMode    string `json:"requested_mode"`
+		ResolvedStrategy string `json:"resolved_strategy"`
+	}
+	if err := json.Unmarshal(metadata, &payload); err != nil {
+		return "", ""
+	}
+	return payload.RequestedMode, payload.ResolvedStrategy
 }
 
 func handleTaskCheckpoint(tc *coordinator.TaskCoordinator) fiber.Handler {
