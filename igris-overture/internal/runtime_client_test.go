@@ -296,7 +296,7 @@ func TestOpenStreamingExecution_SendsStreamingRequest(t *testing.T) {
 
 	req := minimalInferRequest()
 	req.Stream = true
-	resp, err := c.OpenStreamingExecution(context.Background(), "tenant-1", req)
+	resp, err := c.OpenStreamingExecution(context.Background(), "tenant-1", req, "")
 	if err != nil {
 		t.Fatalf("OpenStreamingExecution failed: %v", err)
 	}
@@ -322,7 +322,7 @@ func TestOpenStreamingExecution_SendsStreamingRequest(t *testing.T) {
 	}
 }
 
-func TestOpenStreamingExecution_RejectsNonBaseMode(t *testing.T) {
+func TestOpenStreamingExecution_RejectsUnsupportedMode(t *testing.T) {
 	hitServer := false
 	srv := httptest.NewServer(http.HandlerFunc(func(w http.ResponseWriter, r *http.Request) {
 		hitServer = true
@@ -337,14 +337,14 @@ func TestOpenStreamingExecution_RejectsNonBaseMode(t *testing.T) {
 
 	req := minimalInferRequest()
 	req.Stream = true
-	req.SpeculativeMode = "latency"
+	req.SpeculativeMode = "unknown-mode"
 
-	_, err := c.OpenStreamingExecution(context.Background(), "tenant-1", req)
+	_, err := c.OpenStreamingExecution(context.Background(), "tenant-1", req, "")
 	if err == nil {
-		t.Fatal("expected non-base streaming mode to be rejected")
+		t.Fatal("expected unsupported streaming mode to be rejected")
 	}
 	if hitServer {
-		t.Fatal("expected non-base streaming mode to bypass runtime stream endpoint")
+		t.Fatal("expected unsupported streaming mode to bypass runtime stream endpoint")
 	}
 }
 
