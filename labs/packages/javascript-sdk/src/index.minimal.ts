@@ -32,6 +32,8 @@ export type DurableStreamEvent =
         steps_total: number;
         status: unknown;
         checkpoint?: unknown;
+        requested_mode?: string;
+        resolved_strategy?: string;
         final_output?: string;
         usage?: unknown;
         execution_envelope?: unknown;
