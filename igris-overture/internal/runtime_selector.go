@@ -153,6 +153,7 @@ func (s *RuntimeSelector) OpenStreamingExecution(
 	ctx context.Context,
 	tenantID string,
 	req *models.InferRequest,
+	boundsHeader string,
 ) (*http.Response, error) {
 	instances, err := s.repo.ListHealthy(ctx)
 	if err != nil {
@@ -166,7 +167,7 @@ func (s *RuntimeSelector) OpenStreamingExecution(
 		}
 
 		client := s.getOrCreateClient(inst.Endpoint)
-		resp, ferr := client.OpenStreamingExecution(ctx, tenantID, req)
+		resp, ferr := client.OpenStreamingExecution(ctx, tenantID, req, boundsHeader)
 		if ferr != nil {
 			log.Printf("[RuntimeSelector] runtime %s stream failed: %v — trying next", inst.RuntimeID, ferr)
 			s.breakers.RecordFailure(inst.RuntimeID)
