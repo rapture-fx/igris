@@ -1,0 +1,178 @@
+---
+title: "Provider Health"
+description: "Igris continuously monitors the health of your configured AI providers and uses this data to make intelligent routing decisions."
+---
+
+# Provider Health
+
+Igris continuously monitors the health of your configured AI providers and uses this data to make intelligent routing decisions.
+
+---
+
+## Health Metrics
+
+For each provider, Igris tracks:
+
+| Metric | Description |
+|---|---|
+| **Status** | `active`, `degraded`, or `unavailable` |
+| **Latency (p50)** | Median response time over the last 5 minutes |
+| **Latency (p99)** | 99th percentile response time over the last 5 minutes |
+| **Success rate** | Percentage of successful requests in the last 5 minutes |
+| **Error rate** | Percentage of failed requests in the last 5 minutes |
+| **Requests/min** | Current throughput |
+| **Cost/request** | Average cost per request in USD |
+
+---
+
+## Health Status Levels
+
+### Active
+
+The provider is operating normally:
+- Success rate ≥ 95%
+- p99 latency within SLO target
+- Circuit breaker is closed
+
+### Degraded
+
+The provider is experiencing issues but still functional:
+- Success rate between 80% and 95%
+- p99 latency elevated but within 2× SLO target
+- Circuit breaker may be half-open
+
+### Unavailable
+
+The provider is not usable:
+- Success rate < 80%
+- p99 latency exceeds 2× SLO target
+- Circuit breaker is open
+
+---
+
+## Health Monitoring Pipeline
+
+```
+Provider Response → Metrics Collector → Health Evaluator → Routing Decision
+```
+
+1. **Metrics Collector** — records latency, success/failure, and cost for every request
+2. **Health Evaluator** — computes rolling averages and determines health status
+3. **Routing Decision** — The routing engine uses health data to select the best provider
+
+The health evaluation runs on a sliding window (default 5 minutes). Older data decays exponentially.
+
+---
+
+## Provider Health Dashboard
+
+View provider health in the Console at `/models/providers`:
+
+- **Provider cards** — status badge, latency, success rate, and last checked time
+- **Latency chart** — p50 and p99 latency over the last 24 hours
+- **Success rate chart** — rolling success rate over the last 24 hours
+- **Cost chart** — average cost per request over time
+
+---
+
+## Health API
+
+### GET /v1/providers/stats
+
+Returns health and performance statistics for all configured providers.
+
+```bash
+curl https://overture.igrisinertial.com/v1/providers/stats \
+  -H "Authorization: Bearer YOUR_API_KEY"
+```
+
+Response:
+```json
+{
+  "providers": [
+    {
+      "name": "anthropic",
+      "status": "active",
+      "latency_p50_ms": 287,
+      "latency_p99_ms": 512,
+      "success_rate": 0.994,
+      "error_rate": 0.006,
+      "requests_per_min": 42,
+      "cost_per_request_usd": 0.0034,
+      "circuit_breaker": {
+        "state": "closed",
+        "consecutive_failures": 0
+      }
+    },
+    {
+      "name": "openai",
+      "status": "degraded",
+      "latency_p50_ms": 892,
+      "latency_p99_ms": 2340,
+      "success_rate": 0.871,
+      "error_rate": 0.129,
+      "requests_per_min": 18,
+      "cost_per_request_usd": 0.0028,
+      "circuit_breaker": {
+        "state": "half-open",
+        "consecutive_failures": 3
+      }
+    }
+  ]
+}
+```
+
+### GET /v1/providers/health
+
+Returns a simplified health summary.
+
+```bash
+curl https://overture.igrisinertial.com/v1/providers/health \
+  -H "Authorization: Bearer YOUR_API_KEY"
+```
+
+Response:
+```json
+{
+  "healthy": ["anthropic", "google"],
+  "degraded": ["openai"],
+  "unavailable": ["mistral"]
+}
+```
+
+---
+
+## Automatic Actions
+
+Based on health status, Igris takes automatic actions:
+
+| Status | Action |
+|---|---|
+| **Active** | Normal routing — provider receives traffic proportional to its weight |
+| **Degraded** | Reduced routing weight — provider receives less traffic |
+| **Unavailable** | Zero routing weight — all traffic diverted to fallback providers |
+
+These adjustments happen automatically. You do not need to manually reconfigure routing when a provider degrades.
+
+---
+
+## Health Checks
+
+In addition to monitoring actual request traffic, Igris can perform periodic health check requests:
+
+```json
+{
+  "health_check": {
+    "enabled": true,
+    "interval_seconds": 60,
+    "prompt": "Say 'ok'",
+    "timeout_ms": 5000
+  }
+}
+```
+
+Health checks are useful when traffic volume is low and there isn't enough real request data to assess provider health.
+
+---
+
+[Circuit Breaker →](/docs/circuit-breaker) · [Routing Engine →](/docs/escapevector) · [Cloud Coordination →](/docs/cloud-coordination)
