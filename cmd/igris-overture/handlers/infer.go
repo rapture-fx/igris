@@ -1,12 +1,15 @@
 package handlers
 
 import (
+	"bufio"
 	"context"
 	"database/sql"
 	"errors"
 	"fmt"
+	"io"
 	"log"
 	"math/rand"
+	"net/http"
 	"os"
 	"strings"
 	"time"
@@ -60,6 +63,7 @@ func validateProviderMode(providerMode string) {
 // cmd/handlers package and igris-overture/internal.
 type RuntimeExecutor interface {
 	ForwardExecution(ctx context.Context, tenantID string, req *models.InferRequest, boundsHeader string) (*models.InferResponse, error)
+	OpenStreamingExecution(ctx context.Context, tenantID string, req *models.InferRequest) (*http.Response, error)
 	Health(ctx context.Context) error
 	BaseURL() string
 }
@@ -890,6 +894,7 @@ func (h *InferHandler) handleCouncilInfer(c *fiber.Ctx, req *models.InferRequest
 func (h *InferHandler) handleStreamingInfer(c *fiber.Ctx, req *models.InferRequest) error {
 	startTime := time.Now()
 	ctx := c.Context()
+	tenantID := middleware.GetTenantIDFromContext(c)
 
 	// Start trace for streaming inference
 	userCtx := c.UserContext()
@@ -900,6 +905,47 @@ func (h *InferHandler) handleStreamingInfer(c *fiber.Ctx, req *models.InferReque
 	tracing.TraceInferenceRequest(traceContext, "unknown", req.Model, len(req.Messages), true)
 
 	log.Printf("[Infer] Starting streaming inference for model: %s", req.Model)
+
+	// Base-mode streamed requests should execute in Runtime so Overture acts as
+	// a relay rather than the execution owner.
+	if h.runtimeExecutor != nil && req.SpeculativeMode == "" && !req.CouncilMode {
+		runtimeResp, err := h.runtimeExecutor.OpenStreamingExecution(traceContext, tenantID, req)
+		if err != nil {
+			if errors.Is(err, models.ErrRuntimeSecurity) {
+				log.Printf("[Infer] Runtime streaming security rejection — not falling back: %v", err)
+				return c.Status(fiber.StatusBadGateway).JSON(fiber.Map{
+					"error": "upstream security rejection",
+				})
+			}
+			log.Printf("[Infer] Runtime streaming unavailable, falling back to direct routing: %v", err)
+		} else {
+			c.Set("Content-Type", "text/event-stream")
+			c.Set("Cache-Control", "no-cache")
+			c.Set("Connection", "keep-alive")
+			c.Set("Transfer-Encoding", "chunked")
+			c.Set("X-Accel-Buffering", "no")
+			c.Set("X-Trace-ID", traceCtx.TraceID)
+
+			c.Context().SetBodyStreamWriter(func(w *bufio.Writer) {
+				defer runtimeResp.Body.Close()
+				reader := bufio.NewReader(runtimeResp.Body)
+				for {
+					line, err := reader.ReadBytes('\n')
+					if len(line) > 0 {
+						_, _ = w.Write(line)
+						_ = w.Flush()
+					}
+					if err != nil {
+						if !errors.Is(err, io.EOF) {
+							log.Printf("[Infer] Runtime streaming relay interrupted: %v", err)
+						}
+						return
+					}
+				}
+			})
+			return nil
+		}
+	}
 
 	// Set headers for Server-Sent Events
 	c.Set("Content-Type", "text/event-stream")
