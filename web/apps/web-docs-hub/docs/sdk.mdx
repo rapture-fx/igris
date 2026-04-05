@@ -117,6 +117,8 @@ for await (const event of client.streamInference({
   if (event.type === 'task_result') {
     console.log('\nTask ID:', event.data.task_id);
     console.log('Status:', event.data.status);
+    console.log('Requested mode:', event.data.requested_mode);
+    console.log('Resolved strategy:', event.data.resolved_strategy);
   }
 }
 ```
