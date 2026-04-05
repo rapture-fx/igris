@@ -266,6 +266,88 @@ func TestForwardExecution_StreamBypassesTaskEndpoint(t *testing.T) {
 	}
 }
 
+func TestOpenStreamingExecution_SendsStreamingRequest(t *testing.T) {
+	pub, priv, err := ed25519.GenerateKey(rand.Reader)
+	if err != nil {
+		t.Fatalf("GenerateKey: %v", err)
+	}
+
+	var gotAuth string
+	var gotAccept string
+	var gotSig string
+	var gotBody []byte
+	srv := httptest.NewServer(http.HandlerFunc(func(w http.ResponseWriter, r *http.Request) {
+		gotAuth = r.Header.Get("Authorization")
+		gotAccept = r.Header.Get("Accept")
+		gotSig = r.Header.Get("X-Igris-Decision-Sig")
+		gotBody, _ = io.ReadAll(r.Body)
+		w.Header().Set("Content-Type", "text/event-stream")
+		w.WriteHeader(http.StatusOK)
+		_, _ = w.Write([]byte("data: {\"id\":\"chunk-1\"}\n\n"))
+	}))
+	defer srv.Close()
+
+	c := &RuntimeClient{
+		baseURL:    srv.URL,
+		secret:     "stream-secret",
+		signingKey: priv,
+		httpClient: srv.Client(),
+	}
+
+	req := minimalInferRequest()
+	req.Stream = true
+	resp, err := c.OpenStreamingExecution(context.Background(), "tenant-1", req)
+	if err != nil {
+		t.Fatalf("OpenStreamingExecution failed: %v", err)
+	}
+	defer resp.Body.Close()
+
+	if gotAuth != "Bearer stream-secret" {
+		t.Fatalf("expected Authorization header, got %q", gotAuth)
+	}
+	if gotAccept != "text/event-stream" {
+		t.Fatalf("expected Accept text/event-stream, got %q", gotAccept)
+	}
+	if gotSig == "" {
+		t.Fatal("expected X-Igris-Decision-Sig header to be set")
+	}
+
+	sigBytes, err := base64.StdEncoding.DecodeString(gotSig)
+	if err != nil {
+		t.Fatalf("signature base64 decode: %v", err)
+	}
+	hash := sha256.Sum256(gotBody)
+	if !ed25519.Verify(pub, hash[:], sigBytes) {
+		t.Fatal("decision signature verification failed")
+	}
+}
+
+func TestOpenStreamingExecution_RejectsNonBaseMode(t *testing.T) {
+	hitServer := false
+	srv := httptest.NewServer(http.HandlerFunc(func(w http.ResponseWriter, r *http.Request) {
+		hitServer = true
+		w.WriteHeader(http.StatusOK)
+	}))
+	defer srv.Close()
+
+	c := &RuntimeClient{
+		baseURL:    srv.URL,
+		httpClient: srv.Client(),
+	}
+
+	req := minimalInferRequest()
+	req.Stream = true
+	req.SpeculativeMode = "latency"
+
+	_, err := c.OpenStreamingExecution(context.Background(), "tenant-1", req)
+	if err == nil {
+		t.Fatal("expected non-base streaming mode to be rejected")
+	}
+	if hitServer {
+		t.Fatal("expected non-base streaming mode to bypass runtime stream endpoint")
+	}
+}
+
 // TestDecisionSigHeader_NotSent verifies that when no signing key is configured,
 // X-Igris-Decision-Sig is not sent.
 func TestDecisionSigHeader_NotSent(t *testing.T) {
