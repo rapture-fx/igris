@@ -40,6 +40,23 @@ data: [DONE]
 
 Each chunk contains a partial `delta` with incremental content. The stream ends with `data: [DONE]`.
 
+When the request is being executed through the durable Runtime task path, the stream may also include a terminal `task_result` event before `[DONE]`:
+
+```text
+event: task_result
+data: {"task_id":"018f4a2b-3c1e-7a2d-9b8f-4d5e6f7a8b9c","steps_completed":1,"steps_total":1,"status":"completed","checkpoint":{"resume_token":{"last_committed_step":0}},"usage":{"prompt_tokens":42,"completion_tokens":18,"total_tokens":60},"execution_envelope":{"execution_id":"exec-..."},"execution_receipt":{"transaction_id":"tx-..."}}
+```
+
+Use that event when you need the final durable-task outcome, signed execution artifacts, or checkpoint metadata directly from the stream session.
+
+Current durable-streaming scope:
+
+- base streaming
+- all named speculative streaming modes
+- council mode streaming
+
+Council-mode streaming emits the synthesized final answer over SSE and still includes the terminal `task_result` event for the durable task outcome.
+
 ---
 
 ## SDK Examples
@@ -83,6 +100,35 @@ const stream = await client.chat.completions.create({
 
 for await (const chunk of stream) {
   process.stdout.write(chunk.choices[0]?.delta?.content ?? '');
+}
+```
+
+### Native JavaScript SDK
+
+```typescript
+import { IgrisClient } from '@igris-inertial/javascript-sdk';
+
+const client = new IgrisClient({
+  baseUrl: 'https://overture.igrisinertial.com',
+  apiKey: process.env.IGRIS_API_KEY,
+});
+
+for await (const event of client.streamInference({
+  model: 'gpt-4.1-mini',
+  messages: [{ role: 'user', content: 'Summarize today\\'s deployment risk.' }],
+})) {
+  if (event.type === 'chunk') {
+    process.stdout.write(
+      String(
+        ((event.data.choices as Array<{ delta?: { content?: string } }> | undefined)?.[0]?.delta?.content) ?? ''
+      )
+    );
+  }
+
+  if (event.type === 'task_result') {
+    console.log('\\nDurable task:', event.data.task_id);
+    console.log('Status:', event.data.status);
+  }
 }
 ```
 
@@ -137,7 +183,7 @@ In reflection mode, the stream may pause between the initial generation and the 
 
 ## Error Handling
 
-If a streaming request fails after the stream has started, the engine emits an error chunk before closing:
+If a streaming request fails after the stream has started, the engine emits an error chunk before closing. Durable streamed runs may also emit a `task_result` event describing the terminal failed task response before the error event:
 
 ```
 data: {"error": {"message": "Provider timed out", "type": "provider_error", "code": "timeout"}}
