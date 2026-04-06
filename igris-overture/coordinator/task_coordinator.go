@@ -276,6 +276,11 @@ func (tc *TaskCoordinator) dispatchToRuntime(ctx context.Context, task *TaskReco
 			log.Error().Err(err).Str("task_id", task.TaskID.String()).Msg("[Coordinator] Save checkpoint")
 		}
 	}
+	if len(result.ExecutionEnvelope) > 0 || len(result.ExecutionReceipt) > 0 {
+		if err := tc.store.SaveExecutionArtifacts(task.TaskID, result.ExecutionEnvelope, result.ExecutionReceipt); err != nil {
+			log.Error().Err(err).Str("task_id", task.TaskID.String()).Msg("[Coordinator] Save execution artifacts")
+		}
+	}
 
 	switch result.Status {
 	case "completed":
@@ -286,10 +291,12 @@ func (tc *TaskCoordinator) dispatchToRuntime(ctx context.Context, task *TaskReco
 }
 
 type taskSubmitResult struct {
-	TaskID        uuid.UUID          `json:"task_id"`
-	Status        string             `json:"status"` // completed | checkpointed | failed
-	Checkpoint    *CheckpointPayload `json:"checkpoint,omitempty"`
-	FailureReason string             `json:"reason,omitempty"` // matches Rust TaskStatus::Failed { reason }
+	TaskID            uuid.UUID          `json:"task_id"`
+	Status            string             `json:"status"` // completed | checkpointed | failed
+	Checkpoint        *CheckpointPayload `json:"checkpoint,omitempty"`
+	FailureReason     string             `json:"reason,omitempty"` // matches Rust TaskStatus::Failed { reason }
+	ExecutionEnvelope json.RawMessage    `json:"execution_envelope,omitempty"`
+	ExecutionReceipt  json.RawMessage    `json:"execution_receipt,omitempty"`
 }
 
 // recoverFailedRuntimes scans for runtimes with stale heartbeats, marks their
