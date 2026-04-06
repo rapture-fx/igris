@@ -40,6 +40,8 @@ export interface DurableTask {
   graph_blackboard?: unknown;
   graph_nodes?: unknown;
   graph_slots?: unknown;
+  execution_envelope?: unknown;
+  execution_receipt?: unknown;
 }
 
 export interface DurableTaskListResponse {
