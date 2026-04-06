@@ -22,12 +22,12 @@
   {
     "title": "API Reference",
     "path": "/docs/api-reference",
-    "description": "Quick Start →/docs/quickstart · SDKs →/docs/sdk · Execution Receipts →/docs/execution-receipts",
-    "content": "API Reference Quick Start →/docs/quickstart · SDKs →/docs/sdk · Execution Receipts →/docs/execution-receipts",
+    "description": "The API reference is served as a dedicated reference surface under /docs/api-reference. Use it\nfor the customer-facing endpoint contract, guide pages, and per-endpoint integration details.",
+    "content": "API Reference Start Here What The Reference Covers The API reference is served as a dedicated reference surface under /docs/api-reference. Use it\nfor the customer-facing endpoint contract, guide pages, and per-endpoint integration details.",
     "breadcrumbs": [
       "Reference"
     ],
-    "keywords": "api reference  quick start →/docs/quickstart · sdks →/docs/sdk · execution receipts →/docs/execution-receipts api-reference"
+    "keywords": "api reference start here what the reference covers  the api reference is served as a dedicated reference surface under /docs/api-reference. use it\nfor the customer-facing endpoint contract, guide pages, and per-endpoint integration details. api-reference"
   },
   {
     "title": "Approval Workflows",
@@ -47,7 +47,7 @@
     "breadcrumbs": [
       "Getting Started"
     ],
-    "keywords": "architecture system overview coordination layer (cloud gateway) core capabilities data layer api surface igris runtime (edge engine) core capabilities trust chain deployment topologies  igris is a governed execution system built from two production components: the coordination layer cloud api gateway and the runtime edge engine. both share the same governance model, trust chain, and  architecture"
+    "keywords": "architecture system overview coordination layer (cloud gateway) core capabilities data layer api surface igris runtime (edge engine) core capabilities trust chain deployment topologies mermaid igris is a governed execution system built from two production components: the coordination layer cloud api gateway and the runtime edge engine. both share the same governance model, trust chain, and  architecture"
   },
   {
     "title": "Audit",
@@ -360,12 +360,12 @@
   {
     "title": "MCP Integration",
     "path": "/docs/mcp",
-    "description": "Context Engineering →/docs/context-engineering · MCP Server →/docs/mcp-server · API Reference →/docs/api-reference",
-    "content": "MCP Context Engineering →/docs/context-engineering · MCP Server →/docs/mcp-server · API Reference →/docs/api-reference",
+    "description": "MCP is the structured context layer in Igris. Use it when context belongs to the operating\nenvironment and must move between tools, agents, sessions, or runtimes without becoming\naccidental prompt sta",
+    "content": "MCP Guide Pages Transport Surfaces Method Families Session and Transport Context and Resource Operations Tooling and Agent Workflows How MCP Fits In MCP is the structured context layer in Igris. Use it when context belongs to the operating\nenvironment and must move between tools, agents, sessions, or runtimes without becoming\naccidental prompt sta",
     "breadcrumbs": [
       "Agents & Context"
     ],
-    "keywords": "mcp  context engineering →/docs/context-engineering · mcp server →/docs/mcp-server · api reference →/docs/api-reference mcp"
+    "keywords": "mcp guide pages transport surfaces method families session and transport context and resource operations tooling and agent workflows how mcp fits in  mcp is the structured context layer in igris. use it when context belongs to the operating\nenvironment and must move between tools, agents, sessions, or runtimes without becoming\naccidental prompt sta mcp"
   },
   {
     "title": "Memory",
@@ -511,11 +511,11 @@
     "title": "SDK",
     "path": "/docs/sdk",
     "description": "Igris supports two integration paths:",
-    "content": "SDKs Support Policy OpenAI-Compatible Clients Native SDKs JavaScript / TypeScript Go Rust Python Preview Deployment Mode Guidance Request Contract Code Quality Expectations Igris supports two integration paths:",
+    "content": "SDKs Support Matrix Support Policy OpenAI-Compatible Clients Native SDKs JavaScript / TypeScript Go Rust Python Preview Deployment Mode Guidance Request Contract Code Quality Expectations Igris supports two integration paths:",
     "breadcrumbs": [
       "Getting Started"
     ],
-    "keywords": "sdks support policy openai-compatible clients native sdks javascript / typescript go rust python preview deployment mode guidance request contract code quality expectations python typescript typescript typescript go rust python igris supports two integration paths: sdk"
+    "keywords": "sdks support matrix support policy openai-compatible clients native sdks javascript / typescript go rust python preview deployment mode guidance request contract code quality expectations python typescript typescript typescript go rust python igris supports two integration paths: sdk"
   },
   {
     "title": "Security",
