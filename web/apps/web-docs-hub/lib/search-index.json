@@ -2,321 +2,639 @@
   {
     "title": "Agent Lifecycle",
     "path": "/docs/agent-lifecycle",
+    "description": "Every agent running on the execution engine has a tracked lifecycle. State transitions are deterministic, signed, and queryable — giving you a full audit trail of every agent's history from initializa",
+    "content": "Agent Lifecycle States State Transitions Querying Agent State Get current state of all agents Get a specific agent Lifecycle Records Force Termination Safe Idle (Human-in-the-Loop) Recovery Every agent running on the execution engine has a tracked lifecycle. State transitions are deterministic, signed, and queryable — giving you a full audit trail of every agent's history from initializa",
+    "breadcrumbs": [
+      "Execution"
+    ],
     "keywords": "agent lifecycle states state transitions querying agent state get current state of all agents get a specific agent lifecycle records force termination safe idle (human-in-the-loop) recovery bash json json bash every agent running on the execution engine has a tracked lifecycle. state transitions are deterministic, signed, and queryable — giving you a full audit trail of every agent's history from initializa agent-lifecycle"
   },
   {
     "title": "Agents",
     "path": "/docs/agents",
+    "description": "Igris supports four agent patterns: reflection, planning, tool use, and swarms. All run inside the execution envelope with full governance applied.",
+    "content": "Agents Reflection Agents Planning Agents Tool-Use Agents Multi-Agent Swarms MCP Swarm Mode Agent Lifecycle Choosing the Right Agent Pattern Mode Flags Monitoring Agent State Context Engineering Igris supports four agent patterns: reflection, planning, tool use, and swarms. All run inside the execution envelope with full governance applied.",
+    "breadcrumbs": [
+      "Agents & Context"
+    ],
     "keywords": "agents reflection agents planning agents tool-use agents multi-agent swarms mcp swarm mode agent lifecycle choosing the right agent pattern mode flags monitoring agent state context engineering json json json json bash igris supports four agent patterns: reflection, planning, tool use, and swarms. all run inside the execution envelope with full governance applied. agents"
   },
   {
     "title": "API Reference",
     "path": "/docs/api-reference",
+    "description": "Quick Start →/docs/quickstart · SDKs →/docs/sdk · Execution Receipts →/docs/execution-receipts",
+    "content": "API Reference Quick Start →/docs/quickstart · SDKs →/docs/sdk · Execution Receipts →/docs/execution-receipts",
+    "breadcrumbs": [
+      "Reference"
+    ],
     "keywords": "api reference  quick start →/docs/quickstart · sdks →/docs/sdk · execution receipts →/docs/execution-receipts api-reference"
   },
   {
     "title": "Approval Workflows",
     "path": "/docs/approval-workflows",
+    "description": "Human-in-the-loop HITL approval pauses an execution run before it completes a high-stakes action. A reviewer must explicitly approve or reject the run before execution continues. The full approval eve",
+    "content": "Human-in-the-Loop Approvals How Executions Get Paused for Review Finding Runs Waiting for Approval Reviewing in the Console Approving a Run → Rejecting a Run → What Gets Recorded in the Receipt Replaying a Rejected Run → Monitoring the Approval Queue Best Practices Human-in-the-loop HITL approval pauses an execution run before it completes a high-stakes action. A reviewer must explicitly approve or reject the run before execution continues. The full approval eve",
+    "breadcrumbs": [
+      "Execution"
+    ],
     "keywords": "human-in-the-loop approvals how executions get paused for review finding runs waiting for approval reviewing in the console approving a run → rejecting a run → what gets recorded in the receipt replaying a rejected run → monitoring the approval queue best practices bash json bash bash json json bash bash human-in-the-loop hitl approval pauses an execution run before it completes a high-stakes action. a reviewer must explicitly approve or reject the run before execution continues. the full approv"
   },
   {
     "title": "Architecture",
     "path": "/docs/architecture",
+    "description": "Igris is a governed execution system built from two production components: the Coordination Layer cloud API gateway and the Runtime edge engine. Both share the same governance model, trust chain, and ",
+    "content": "Architecture System Overview Coordination Layer (Cloud Gateway) Core Capabilities Data Layer API Surface Igris Runtime (Edge Engine) Core Capabilities Trust Chain Deployment Topologies Igris is a governed execution system built from two production components: the Coordination Layer cloud API gateway and the Runtime edge engine. Both share the same governance model, trust chain, and",
+    "breadcrumbs": [
+      "Getting Started"
+    ],
     "keywords": "architecture system overview coordination layer (cloud gateway) core capabilities data layer api surface igris runtime (edge engine) core capabilities trust chain deployment topologies  igris is a governed execution system built from two production components: the coordination layer cloud api gateway and the runtime edge engine. both share the same governance model, trust chain, and  architecture"
   },
   {
     "title": "Audit",
     "path": "/docs/audit",
+    "description": "Igris produces a tamper-evident audit record for every execution. This page covers how to access, query, and export audit data.",
+    "content": "Audit Execution Receipts Lineage Querying Receipts List receipts via local engine Get a specific receipt by execution ID Filter by time range Export Export as JSONL Export as CSV Retention Proof API GET /proof/receipts POST /proof/receipts/verify → GET /v1/proof/violations Compliance Use Cases Igris produces a tamper-evident audit record for every execution. This page covers how to access, query, and export audit data.",
+    "breadcrumbs": [
+      "Reliability & Governance"
+    ],
     "keywords": "audit execution receipts lineage querying receipts list receipts via local engine get a specific receipt by execution id filter by time range export export as jsonl export as csv retention proof api get /proof/receipts post /proof/receipts/verify → get /v1/proof/violations compliance use cases bash bash bash json bash json bash json igris produces a tamper-evident audit record for every execution. this page covers how to access, query, and export audit data. audit"
   },
   {
     "title": "Behavior Trees",
     "path": "/docs/behavior-trees",
+    "description": "Igris currently exposes two behavior-tree schemas. Treat them as different layers of the product:",
+    "content": "Behavior Trees 1. Cloud Definition Schema 2. Runtime Execution Schema Using the JavaScript SDK Using the Go SDK Practical Rule Durable Execution Igris currently exposes two behavior-tree schemas. Treat them as different layers of the product:",
+    "breadcrumbs": [
+      "Agents & Context"
+    ],
     "keywords": "behavior trees 1. cloud definition schema 2. runtime execution schema using the javascript sdk using the go sdk practical rule durable execution json json typescript go rust igris currently exposes two behavior-tree schemas. treat them as different layers of the product: behavior-trees"
   },
   {
     "title": "Capabilities & Limits",
     "path": "/docs/capability-model",
+    "description": "The execution engine enforces a capability model: every execution runs with an explicit set of permissions. If an agent tries to do something outside those permissions, the operation is blocked before",
+    "content": "Capabilities & Limits Capability Fields Configuration Enforcement Points Violation Records Violation Types The execution engine enforces a capability model: every execution runs with an explicit set of permissions. If an agent tries to do something outside those permissions, the operation is blocked before",
+    "breadcrumbs": [
+      "Execution"
+    ],
     "keywords": "capabilities & limits capability fields configuration enforcement points violation records violation types json5 json the execution engine enforces a capability model: every execution runs with an explicit set of permissions. if an agent tries to do something outside those permissions, the operation is blocked before capability-model"
   },
   {
     "title": "Changelog",
     "path": "/docs/changelog",
+    "description": "Release notes for Igris. Breaking changes are marked explicitly.",
+    "content": "Changelog docs — API contract and workflow documentation — April 2026 Added Changed Migration runtime-v1.8.0 — Stability & cgroup enforcement — March 2026 Fixed Changed Migration runtime-v1.7.x — ARM64 support and distribution — March 2026 Added Changed Migration runtime-v1.6.0 — macOS ARM64 builds — February 2026 Changed Migration v1.2.1-speculative — Speculative execution — November 2025 Added Changed v0.4.0 — Runtime Hardening Phase 4 — October 2025 Added Changed Migration Docs Release notes for Igris. Breaking changes are marked explicitly.",
+    "breadcrumbs": [
+      "Reference"
+    ],
     "keywords": "changelog docs — api contract and workflow documentation — april 2026 added changed migration runtime-v1.8.0 — stability & cgroup enforcement — march 2026 fixed changed migration runtime-v1.7.x — arm64 support and distribution — march 2026 added changed migration runtime-v1.6.0 — macos arm64 builds — february 2026 changed migration v1.2.1-speculative — speculative execution — november 2025 added changed v0.4.0 — runtime hardening phase 4 — october 2025 added changed migration docs  release notes"
   },
   {
     "title": "Circuit Breaker",
     "path": "/docs/circuit-breaker",
+    "description": "The circuit breaker protects your inference pipeline from cascading failures when a provider degrades or becomes unavailable.",
+    "content": "Circuit Breaker How It Works Closed (Healthy) Open (Unhealthy) Half-Open (Testing) State Machine Configuration What Counts as a Failure? Monitoring Console API Best Practices The circuit breaker protects your inference pipeline from cascading failures when a provider degrades or becomes unavailable.",
+    "breadcrumbs": [
+      "Reliability & Governance"
+    ],
     "keywords": "circuit breaker how it works closed (healthy) open (unhealthy) half-open (testing) state machine configuration what counts as a failure? monitoring console api best practices json bash json the circuit breaker protects your inference pipeline from cascading failures when a provider degrades or becomes unavailable. circuit-breaker"
   },
   {
     "title": "Cloud Coordination",
     "path": "/docs/cloud-coordination",
+    "description": "Overture is the cloud control plane for routing, fleet registration, receipts, and account-scoped policy.",
+    "content": "Cloud Coordination Routing BYOK Vault Fleet Registration Receipts And Audit Overture is the cloud control plane for routing, fleet registration, receipts, and account-scoped policy.",
+    "breadcrumbs": [
+      "Cloud, Fleet & Platform"
+    ],
     "keywords": "cloud coordination routing byok vault fleet registration receipts and audit bash bash overture is the cloud control plane for routing, fleet registration, receipts, and account-scoped policy. cloud-coordination"
   },
   {
     "title": "Routing Advisor",
     "path": "/docs/cognitive-advisor",
+    "description": "The Routing Advisor analyzes your routing history and proposes configuration changes — adjusting provider weights, enabling speculative execution, or switching routing strategy — based on observed per",
+    "content": "Routing Advisor How It Works Proposals GET /v1/cognitive/proposals GET /v1/cognitive/proposals/:id POST /v1/cognitive/proposals/:id/apply → Auto-Apply Configuration GET /v1/cognitive/config PUT /v1/cognitive/config The Routing Advisor analyzes your routing history and proposes configuration changes — adjusting provider weights, enabling speculative execution, or switching routing strategy — based on observed per",
+    "breadcrumbs": [
+      "Agents & Context"
+    ],
     "keywords": "routing advisor how it works proposals get /v1/cognitive/proposals get /v1/cognitive/proposals/:id post /v1/cognitive/proposals/:id/apply → auto-apply configuration get /v1/cognitive/config put /v1/cognitive/config bash json bash bash json bash the routing advisor analyzes your routing history and proposes configuration changes — adjusting provider weights, enabling speculative execution, or switching routing strategy — based on observed per cognitive-advisor"
   },
   {
     "title": "Console",
     "path": "/docs/console",
+    "description": "The Igris console at console.igrisinertial.comhttps://console.igrisinertial.com is the primary web interface for monitoring your fleet, reviewing execution runs, managing agents, tuning policy, and ha",
+    "content": "Console User Guide Dashboard Fleet → Devices Agents Execution Runs Execution Runs → Approve / Reject Proof → Violations History Behavior Tree Editor Settings → Keys Settings → Billing Related Pages The Igris console at console.igrisinertial.comhttps://console.igrisinertial.com is the primary web interface for monitoring your fleet, reviewing execution runs, managing agents, tuning policy, and ha",
+    "breadcrumbs": [
+      "Cloud, Fleet & Platform"
+    ],
     "keywords": "console user guide dashboard fleet → devices agents execution runs execution runs → approve / reject proof → violations history behavior tree editor settings → keys settings → billing related pages  the igris console at console.igrisinertial.comhttps://console.igrisinertial.com is the primary web interface for monitoring your fleet, reviewing execution runs, managing agents, tuning policy, and ha console"
   },
   {
     "title": "Context Engineering",
     "path": "/docs/context-engineering",
+    "description": "Context engineering is the discipline of deciding what the model should see, what the runtime should remember, and what the product should preserve across steps, failures, and deployments.",
+    "content": "Context Engineering Start With The Smallest Useful Context The Context Layers In Igris 1. Request-local context 2. Retrieval and memory 3. MCP and shared context 4. Durable task state 5. Receipts and audit context Choosing The Right Layer Implementation Checklist Common Patterns Hosted inference with light context Agent workflows with reusable state Hybrid deployments with shared device state Long-running workflows A Practical Product Pattern Common Mistakes What Good Context Engineering Looks Like Code And Workflow Quality Signals Related Guides Context engineering is the discipline of deciding what the model should see, what the runtime should remember, and what the product should preserve across steps, failures, and deployments.",
+    "breadcrumbs": [
+      "Agents & Context"
+    ],
     "keywords": "context engineering start with the smallest useful context the context layers in igris 1. request-local context 2. retrieval and memory 3. mcp and shared context 4. durable task state 5. receipts and audit context choosing the right layer implementation checklist common patterns hosted inference with light context agent workflows with reusable state hybrid deployments with shared device state long-running workflows a practical product pattern common mistakes what good context engineering looks l"
   },
   {
     "title": "Data Privacy",
     "path": "/docs/data-privacy",
+    "description": "Igris is designed with privacy as a core principle. This guide explains how your data is handled, stored, and protected across the platform.",
+    "content": "Data Privacy Data We Collect Account Data Execution Data Fleet Data Provider Keys How We Handle Your Data Data Storage Data Retention Data Isolation Your Rights Data Access Data Deletion Data Portability Privacy by Deployment Mode Cloud API Mode Edge / Offline Mode Hybrid Mode Third-Party Data Sharing Cloud Providers Billing Analytics Compliance GDPR Data Processing Agreement Security Measures Contact Igris is designed with privacy as a core principle. This guide explains how your data is handled, stored, and protected across the platform.",
+    "breadcrumbs": [
+      "Reliability & Governance"
+    ],
     "keywords": "data privacy data we collect account data execution data fleet data provider keys how we handle your data data storage data retention data isolation your rights data access data deletion data portability privacy by deployment mode cloud api mode edge / offline mode hybrid mode third-party data sharing cloud providers billing analytics compliance gdpr data processing agreement security measures contact bash igris is designed with privacy as a core principle. this guide explains how your data is h"
   },
   {
     "title": "Deploy Local Runtime",
     "path": "/docs/deploy-local-runtime",
+    "description": "Use this workflow when execution should happen on the machine itself instead of only through the hosted API.",
+    "content": "Deploy Local Runtime 1. Download the runtime archive 2. Install the binary 3. Configure auth and local model behavior 4. Start and verify the runtime 5. Test a local call Common Mistakes Related Guides Use this workflow when execution should happen on the machine itself instead of only through the hosted API.",
+    "breadcrumbs": [
+      "Workflows"
+    ],
     "keywords": "deploy local runtime 1. download the runtime archive 2. install the binary 3. configure auth and local model behavior 4. start and verify the runtime 5. test a local call common mistakes related guides bash bash json5 bash typescript use this workflow when execution should happen on the machine itself instead of only through the hosted api. deploy-local-runtime"
   },
   {
     "title": "Deployment",
     "path": "/docs/deployment",
+    "description": "Igris can be deployed as a cloud-hosted API, as a local execution engine on your own hardware, or in a hybrid configuration combining both.",
+    "content": "Deployment Cloud API Self-Hosted Coordination (Infinite Tier) Local / Edge Execution Engine Supported Platforms Deployment Methods Local Models Verifying Your Deployment Health check → Check fleet registration Run a test inference Networking Requirements Resource Requirements Common Deployment Issues Connecting Edge to Cloud Tier Comparison What's Next Igris can be deployed as a cloud-hosted API, as a local execution engine on your own hardware, or in a hybrid configuration combining both.",
+    "breadcrumbs": [
+      "Getting Started"
+    ],
     "keywords": "deployment cloud api self-hosted coordination (infinite tier) local / edge execution engine supported platforms deployment methods local models verifying your deployment health check → check fleet registration run a test inference networking requirements resource requirements common deployment issues connecting edge to cloud tier comparison what's next python bash bash yaml bash json bash python bash igris can be deployed as a cloud-hosted api, as a local execution engine on your own hardware, o"
   },
   {
     "title": "Documentation Roadmap",
     "path": "/docs/documentation-roadmap",
+    "description": "This page tracks the work required to move the Igris docs from strong product documentation to first-class product documentation.",
+    "content": "Documentation Roadmap Must Fix 1. Raise API contract confidence 2. Make examples executable 3. Tighten public support signals Next 4. Deepen workflow documentation 5. Deepen context engineering 6. Improve SDK documentation depth Later 7. Make the docs machine-consumable 8. Add docs release discipline 9. Improve search and discovery First-Class Bar This page tracks the work required to move the Igris docs from strong product documentation to first-class product documentation.",
+    "breadcrumbs": [
+      "Reference"
+    ],
     "keywords": "documentation roadmap must fix 1. raise api contract confidence 2. make examples executable 3. tighten public support signals next 4. deepen workflow documentation 5. deepen context engineering 6. improve sdk documentation depth later 7. make the docs machine-consumable 8. add docs release discipline 9. improve search and discovery first-class bar  this page tracks the work required to move the igris docs from strong product documentation to first-class product documentation. documentation-roadm"
   },
   {
     "title": "Durable Tasks",
     "path": "/docs/durable-tasks",
+    "description": "Long-running agent workflows and robotics missions need to survive the infrastructure they run on. Durable task execution gives every multi-step task a tamper-evident Write-Ahead Log WAL, periodic che",
+    "content": "Durable Task Execution How it works Submitting a task Agent tasks Robotics missions Raw task definitions Polling task status Listing tasks Durable streaming Checkpoints and resume tokens Deadlines Robotics workflows Behavior tree execution Integrity guarantees API endpoints Long-running agent workflows and robotics missions need to survive the infrastructure they run on. Durable task execution gives every multi-step task a tamper-evident Write-Ahead Log WAL, periodic che",
+    "breadcrumbs": [
+      "Execution"
+    ],
     "keywords": "durable task execution how it works submitting a task agent tasks robotics missions raw task definitions polling task status listing tasks durable streaming checkpoints and resume tokens deadlines robotics workflows behavior tree execution integrity guarantees api endpoints bash json json json json bash json bash text json json json long-running agent workflows and robotics missions need to survive the infrastructure they run on. durable task execution gives every multi-step task a tamper-eviden"
   },
   {
     "title": "Error Codes",
     "path": "/docs/error-codes",
+    "description": "Complete reference for all error responses returned by the Igris API.",
+    "content": "Error Codes Error Response Format Authentication Errors `unauthorized` (HTTP 401) `forbidden` (HTTP 403) Rate Limiting Errors `rate_limit_exceeded` (HTTP 429) Billing Errors `budget_exceeded` (HTTP 402) `payment_required` (HTTP 402) Resource Errors `not_found` (HTTP 404) `conflict` (HTTP 409) `unprocessable` (HTTP 422) Execution Errors `provider_unavailable` (HTTP 502) `execution_timeout` (HTTP 504) `capability_violation` (HTTP 403) Fleet Errors `instance_limit_exceeded` (HTTP 429) `instance_not_found` (HTTP 404) Server Errors `internal_error` (HTTP 500) `service_unavailable` (HTTP 503) Error Code Summary Complete reference for all error responses returned by the Igris API.",
+    "breadcrumbs": [
+      "Reliability & Governance"
+    ],
     "keywords": "error codes error response format authentication errors `unauthorized` (http 401) `forbidden` (http 403) rate limiting errors `rate_limit_exceeded` (http 429) billing errors `budget_exceeded` (http 402) `payment_required` (http 402) resource errors `not_found` (http 404) `conflict` (http 409) `unprocessable` (http 422) execution errors `provider_unavailable` (http 502) `execution_timeout` (http 504) `capability_violation` (http 403) fleet errors `instance_limit_exceeded` (http 429) `instance_not"
   },
   {
     "title": "Routing Engine",
     "path": "/docs/escapevector",
+    "description": "The routing engine is Igris's provider selection system. It combines circuit-breaker logic and real-time provider health monitoring to make optimal routing decisions for every inference request.",
+    "content": "Routing Engine What It Is How It Works Routing Strategies Adaptive (Default) Cost-Optimized Latency-Optimized Strategy Configuration Circuit Breaker Console Integration The routing engine is Igris's provider selection system. It combines circuit-breaker logic and real-time provider health monitoring to make optimal routing decisions for every inference request.",
+    "breadcrumbs": [
+      "Reliability & Governance"
+    ],
     "keywords": "routing engine what it is how it works routing strategies adaptive (default) cost-optimized latency-optimized strategy configuration circuit breaker console integration json json the routing engine is igris's provider selection system. it combines circuit-breaker logic and real-time provider health monitoring to make optimal routing decisions for every inference request. escapevector"
   },
   {
     "title": "Execution Flow",
     "path": "/docs/execution-flow",
+    "description": "This page traces the path of a request through the Igris platform from SDK call to signed receipt.",
+    "content": "Execution Flow Request Lifecycle Step by Step 1. SDK Call 2. The Coordination Layer Routes the Request 3. Execution (Cloud or Local) 4. Response Returns to Application Offline Path Execution Receipts SDK References This page traces the path of a request through the Igris platform from SDK call to signed receipt.",
+    "breadcrumbs": [
+      "Execution"
+    ],
     "keywords": "execution flow request lifecycle step by step 1. sdk call 2. the coordination layer routes the request 3. execution (cloud or local) 4. response returns to application offline path execution receipts sdk references python json this page traces the path of a request through the igris platform from sdk call to signed receipt. execution-flow"
   },
   {
     "title": "Execution Model",
     "path": "/docs/execution-model",
+    "description": "Every request that passes through Igris runs inside a bounded execution envelope. This page explains how execution works from request arrival to signed receipt.",
+    "content": "Execution Model Execution Envelope Capability Bounds Execution Path Cloud path Local path Hybrid path Signing Receipt Storage Every request that passes through Igris runs inside a bounded execution envelope. This page explains how execution works from request arrival to signed receipt.",
+    "breadcrumbs": [
+      "Execution"
+    ],
     "keywords": "execution model execution envelope capability bounds execution path cloud path local path hybrid path signing receipt storage  every request that passes through igris runs inside a bounded execution envelope. this page explains how execution works from request arrival to signed receipt. execution-model"
   },
   {
     "title": "Execution Receipts",
     "path": "/docs/execution-receipts",
+    "description": "Execution receipts are the customer-facing audit record for what ran, where it ran, and whether policy violations occurred.",
+    "content": "Execution Receipts Current Query Surface List Receipts Export Receipts Proof Verification Execution receipts are the customer-facing audit record for what ran, where it ran, and whether policy violations occurred.",
+    "breadcrumbs": [
+      "Execution"
+    ],
     "keywords": "execution receipts current query surface list receipts export receipts proof verification bash json bash bash execution receipts are the customer-facing audit record for what ran, where it ran, and whether policy violations occurred. execution-receipts"
   },
   {
     "title": "First Cloud Integration",
     "path": "/docs/first-cloud-integration",
+    "description": "Use this workflow when you want the shortest path from zero to a working Igris integration.",
+    "content": "First Cloud Integration 1. Create a tenant API key 2. Add a provider key 3. Call the OpenAI-compatible API 4. Decide whether you need a native SDK Common Mistakes Related Guides Use this workflow when you want the shortest path from zero to a working Igris integration.",
+    "breadcrumbs": [
+      "Workflows"
+    ],
     "keywords": "first cloud integration 1. create a tenant api key 2. add a provider key 3. call the openai-compatible api 4. decide whether you need a native sdk common mistakes related guides bash typescript use this workflow when you want the shortest path from zero to a working igris integration. first-cloud-integration"
   },
   {
     "title": "Fleet Management",
     "path": "/docs/fleet-management",
+    "description": "Fleet management in the current product is the control-plane contract for runtime registration, heartbeat, queued commands, config push, and OTA updates.",
+    "content": "Fleet Management Registration Heartbeats And Commands Listing Registered Runtimes Configuration Push POST /api/v1/runtime/config/push OTA Updates POST /api/v1/runtime/update Fleet management in the current product is the control-plane contract for runtime registration, heartbeat, queued commands, config push, and OTA updates.",
+    "breadcrumbs": [
+      "Cloud, Fleet & Platform"
+    ],
     "keywords": "fleet management registration heartbeats and commands listing registered runtimes configuration push post /api/v1/runtime/config/push ota updates post /api/v1/runtime/update bash json bash json bash bash fleet management in the current product is the control-plane contract for runtime registration, heartbeat, queued commands, config push, and ota updates. fleet-management"
   },
   {
     "title": "Fleet Rollout Workflow",
     "path": "/docs/fleet-rollout-workflow",
+    "description": "Use this workflow when you need to manage many runtimes as one operational fleet.",
+    "content": "Fleet Rollout Workflow 1. Confirm runtimes are eligible to participate 2. Inspect current fleet state 3. Push configuration deliberately 4. Roll runtime updates in stages 5. Verify post-rollout health Common Mistakes Related Guides Use this workflow when you need to manage many runtimes as one operational fleet.",
+    "breadcrumbs": [
+      "Workflows"
+    ],
     "keywords": "fleet rollout workflow 1. confirm runtimes are eligible to participate 2. inspect current fleet state 3. push configuration deliberately 4. roll runtime updates in stages 5. verify post-rollout health common mistakes related guides  use this workflow when you need to manage many runtimes as one operational fleet. fleet-rollout-workflow"
   },
   {
     "title": "Governance",
     "path": "/docs/governance",
+    "description": "Igris's governance model gives you verifiable, auditable records of every AI decision. Governance applies to every execution, whether running on cloud or local hardware.",
+    "content": "Governance What Governance Covers Execution Receipts Capability Model Agent Lifecycle Transaction Boundary Routing Policy Trust Chain Compliance Use Cases Setting Up Governance for Your Fleet Step 1 — Define your capability policy Step 2 — Assign policies to agents Step 3 — Monitor violations Step 4 — Review receipts for compliance Step 5 — Adjust and iterate Igris's governance model gives you verifiable, auditable records of every AI decision. Governance applies to every execution, whether running on cloud or local hardware.",
+    "breadcrumbs": [
+      "Reliability & Governance"
+    ],
     "keywords": "governance what governance covers execution receipts capability model agent lifecycle transaction boundary routing policy trust chain compliance use cases setting up governance for your fleet step 1 — define your capability policy step 2 — assign policies to agents step 3 — monitor violations step 4 — review receipts for compliance step 5 — adjust and iterate  igris's governance model gives you verifiable, auditable records of every ai decision. governance applies to every execution, whether run"
   },
   {
     "title": "History",
     "path": "/docs/history",
+    "description": "Igris records execution history, summary metrics, and alert state in the coordination layer.",
+    "content": "History & Alerts Execution Events GET /v1/history/events Metrics GET /v1/history/metrics Alerts GET /v1/history/alerts Alert Actions Igris records execution history, summary metrics, and alert state in the coordination layer.",
+    "breadcrumbs": [
+      "Execution"
+    ],
     "keywords": "history & alerts execution events get /v1/history/events metrics get /v1/history/metrics alerts get /v1/history/alerts alert actions bash json bash json bash json igris records execution history, summary metrics, and alert state in the coordination layer. history"
   },
   {
     "title": "Hybrid Deployment Workflow",
     "path": "/docs/hybrid-deployment-workflow",
+    "description": "Use this workflow when you want one product experience for the customer while combining the hosted API with one or more local runtimes.",
+    "content": "Hybrid Deployment Workflow 1. Keep the application pointed at the hosted API 2. Start runtimes with registration credentials 3. Verify cloud and runtime access separately 4. Use fleet APIs for coordination 5. Separate hot-path traffic from provisioning traffic Common Mistakes Related Guides Use this workflow when you want one product experience for the customer while combining the hosted API with one or more local runtimes.",
+    "breadcrumbs": [
+      "Workflows"
+    ],
     "keywords": "hybrid deployment workflow 1. keep the application pointed at the hosted api 2. start runtimes with registration credentials 3. verify cloud and runtime access separately 4. use fleet apis for coordination 5. separate hot-path traffic from provisioning traffic common mistakes related guides text bash use this workflow when you want one product experience for the customer while combining the hosted api with one or more local runtimes. hybrid-deployment-workflow"
   },
   {
     "title": "Igris",
     "path": "/docs/",
+    "description": "Igris is a governed execution system for AI workloads. It runs across cloud, edge, and robotics hardware — every execution is bounded, verifiable, and resilient.",
+    "content": "Igris One System, Three Surfaces Cloud Edge Robots What Igris Guarantees Where to Start Platform Guarantees Igris is a governed execution system for AI workloads. It runs across cloud, edge, and robotics hardware — every execution is bounded, verifiable, and resilient.",
+    "breadcrumbs": [],
     "keywords": "igris one system, three surfaces cloud edge robots what igris guarantees where to start platform guarantees  igris is a governed execution system for ai workloads. it runs across cloud, edge, and robotics hardware — every execution is bounded, verifiable, and resilient. index"
   },
   {
     "title": "Key Management",
     "path": "/docs/key-management",
+    "description": "Igris stores provider keys in the vault used by the cloud coordination layer.",
+    "content": "Key Management What The Current Public API Supports Add A Provider Key Rotate, Validate, Remove Security Properties Igris stores provider keys in the vault used by the cloud coordination layer.",
+    "breadcrumbs": [
+      "Cloud, Fleet & Platform"
+    ],
     "keywords": "key management what the current public api supports add a provider key rotate, validate, remove security properties bash igris stores provider keys in the vault used by the cloud coordination layer. key-management"
   },
   {
     "title": "Local LLM Fallback",
     "path": "/docs/local-llm-fallback",
+    "description": "igris-runtime can serve GGUF models locally and participate in hybrid deployments where cloud routing falls back to on-device inference.",
+    "content": "Local LLM Fallback What Exists Today Configuration Fields Hybrid Behavior Supported Model Format Operational Notes igris-runtime can serve GGUF models locally and participate in hybrid deployments where cloud routing falls back to on-device inference.",
+    "breadcrumbs": [
+      "Edge & Robotics"
+    ],
     "keywords": "local llm fallback what exists today configuration fields hybrid behavior supported model format operational notes json5 igris-runtime can serve gguf models locally and participate in hybrid deployments where cloud routing falls back to on-device inference. local-llm-fallback"
   },
   {
     "title": "Mcp Integration Patterns",
     "path": "/docs/mcp-integration-patterns",
+    "description": "This guide shows how to use MCP as part of a production integration rather than as an isolated protocol feature.",
+    "content": "MCP Integration Patterns Pattern: Separate Working Context From Audit Data Pattern: Give Shared Context A Schema Pattern: Pair MCP With Durable Tasks Deliberately Pattern: Keep The Product Boundary Clean Related Guides This guide shows how to use MCP as part of a production integration rather than as an isolated protocol feature.",
+    "breadcrumbs": [
+      "Agents & Context"
+    ],
     "keywords": "mcp integration patterns pattern: separate working context from audit data pattern: give shared context a schema pattern: pair mcp with durable tasks deliberately pattern: keep the product boundary clean related guides  this guide shows how to use mcp as part of a production integration rather than as an isolated protocol feature. mcp-integration-patterns"
   },
   {
     "title": "Mcp Server",
     "path": "/docs/mcp-server",
+    "description": "This page documents the MCP server surface that Igris exposes through the product.",
+    "content": "MCP Server What The MCP Server Is For Customer Contract Request Shape Core Method Families Integration Guidance Related Guides This page documents the MCP server surface that Igris exposes through the product.",
+    "breadcrumbs": [
+      "Agents & Context"
+    ],
     "keywords": "mcp server what the mcp server is for customer contract request shape core method families integration guidance related guides json this page documents the mcp server surface that igris exposes through the product. mcp-server"
   },
   {
     "title": "Mcp Swarm",
     "path": "/docs/mcp-swarm",
+    "description": "MCP Swarm Mode extends structured context across multiple runtimes on the same network.",
+    "content": "MCP Swarm Mode What It Solves Operational Model Configuration Design Boundaries Common Mistakes Related Guides MCP Swarm Mode extends structured context across multiple runtimes on the same network.",
+    "breadcrumbs": [
+      "Agents & Context"
+    ],
     "keywords": "mcp swarm mode what it solves operational model configuration design boundaries common mistakes related guides toml mcp swarm mode extends structured context across multiple runtimes on the same network. mcp-swarm"
   },
   {
     "title": "MCP Integration",
     "path": "/docs/mcp",
+    "description": "Context Engineering →/docs/context-engineering · MCP Server →/docs/mcp-server · API Reference →/docs/api-reference",
+    "content": "MCP Context Engineering →/docs/context-engineering · MCP Server →/docs/mcp-server · API Reference →/docs/api-reference",
+    "breadcrumbs": [
+      "Agents & Context"
+    ],
     "keywords": "mcp  context engineering →/docs/context-engineering · mcp server →/docs/mcp-server · api reference →/docs/api-reference mcp"
   },
   {
     "title": "Memory",
     "path": "/docs/memory",
+    "description": "Igris supports three memory systems: vector store for semantic retrieval, KV cache for fast key-value lookup, and cross-instance context via MCP Swarm Mode.",
+    "content": "Memory Vector Store KV Cache Cross-Instance Context (MCP Swarm Mode) Agent Blackboard API GET /v1/agents/memory/ GET /v1/agents/memory/:key PUT /v1/agents/memory/:key DELETE /v1/agents/memory/:key → 204 No Content On-Device Training Igris supports three memory systems: vector store for semantic retrieval, KV cache for fast key-value lookup, and cross-instance context via MCP Swarm Mode.",
+    "breadcrumbs": [
+      "Agents & Context"
+    ],
     "keywords": "memory vector store kv cache cross-instance context (mcp swarm mode) agent blackboard api get /v1/agents/memory/ get /v1/agents/memory/:key put /v1/agents/memory/:key delete /v1/agents/memory/:key → 204 no content on-device training json json json bash json bash bash bash json igris supports three memory systems: vector store for semantic retrieval, kv cache for fast key-value lookup, and cross-instance context via mcp swarm mode. memory"
   },
   {
     "title": "Model Aggregation",
     "path": "/docs/model-aggregation",
+    "description": "> Infinite Tier — Federated model aggregation is included with the Infinite plan.",
+    "content": "Model Aggregation What It Is Architecture Aggregation Rounds Round Configuration Privacy API GET /v1/federated/status GET /v1/federated/participants GET /v1/federated/rounds POST /v1/federated/rounds/start GET /v1/federated/config PUT /v1/federated/config Console > Infinite Tier — Federated model aggregation is included with the Infinite plan.",
+    "breadcrumbs": [
+      "Reliability & Governance"
+    ],
     "keywords": "model aggregation what it is architecture aggregation rounds round configuration privacy api get /v1/federated/status get /v1/federated/participants get /v1/federated/rounds post /v1/federated/rounds/start get /v1/federated/config put /v1/federated/config console json bash json json > infinite tier — federated model aggregation is included with the infinite plan. model-aggregation"
   },
   {
     "title": "Multi-Tenancy",
     "path": "/docs/multi-tenancy",
+    "description": "Igris supports multi-tenant deployments where a single infrastructure serves multiple isolated tenants. Each tenant has its own execution space, policies, keys, and audit trail.",
+    "content": "Multi-Tenancy Architecture Isolation guarantees Tenant Identification Tenant Configuration Resource Quotas Cross-Tenant Isolation Data isolation Network isolation Key isolation Billing Igris supports multi-tenant deployments where a single infrastructure serves multiple isolated tenants. Each tenant has its own execution space, policies, keys, and audit trail.",
+    "breadcrumbs": [
+      "Reliability & Governance"
+    ],
     "keywords": "multi-tenancy architecture isolation guarantees tenant identification tenant configuration resource quotas cross-tenant isolation data isolation network isolation key isolation billing json igris supports multi-tenant deployments where a single infrastructure serves multiple isolated tenants. each tenant has its own execution space, policies, keys, and audit trail. multi-tenancy"
   },
   {
     "title": "Multimodal",
     "path": "/docs/multimodal",
+    "description": "> Early Access — Multimodal inference is currently in early access. The API is functional but subject to change. Contact support@igrisinertial.commailto:support@igrisinertial.com to enable it for your",
+    "content": "Multimodal Inference POST /v1/infer/multimodal GET /v1/infer/multimodal/stats Supported providers > Early Access — Multimodal inference is currently in early access. The API is functional but subject to change. Contact support@igrisinertial.commailto:support@igrisinertial.com to enable it for your",
+    "breadcrumbs": [
+      "Edge & Robotics"
+    ],
     "keywords": "multimodal inference post /v1/infer/multimodal get /v1/infer/multimodal/stats supported providers bash json bash json > early access — multimodal inference is currently in early access. the api is functional but subject to change. contact support@igrisinertial.commailto:support@igrisinertial.com to enable it for your multimodal"
   },
   {
     "title": "Policy",
     "path": "/docs/policy",
+    "description": "Igris enforces routing and capability policies at the coordination layer. Policies are tenant-scoped and take effect on the next request — no redeployment required.",
+    "content": "Policy What Policies Control Routing Strategy → Fallback Chains Execution Envelope Limits GET /v1/policies Assigning a Policy to Agents POST /v1/policies/assign → Council & Shadow Mode Igris enforces routing and capability policies at the coordination layer. Policies are tenant-scoped and take effect on the next request — no redeployment required.",
+    "breadcrumbs": [
+      "Cloud, Fleet & Platform"
+    ],
     "keywords": "policy what policies control routing strategy → fallback chains execution envelope limits get /v1/policies assigning a policy to agents post /v1/policies/assign → council & shadow mode bash json bash bash json bash bash igris enforces routing and capability policies at the coordination layer. policies are tenant-scoped and take effect on the next request — no redeployment required. policy"
   },
   {
     "title": "Pricing",
     "path": "/docs/pricing-tiers",
+    "description": "Simple, transparent pricing for runtime fleet management. Start with a 7-day free trial on any tier — no credit card required.",
+    "content": "Pricing & Tiers Pricing Overview Seed — $29/month Included Features Horizon — $149/month Everything in Seed, plus Infinite — $699/month Everything in Horizon, plus Feature Comparison Trial System Billing Upgrading and Downgrading Frequently Asked Questions What counts as a runtime instance? Can I run multiple instances per machine? What happens to my data if I do not subscribe after the trial? Can I start on Seed and upgrade later? Is there a setup fee or onboarding cost? How does on-premise deployment work on Infinite? What are the API rate limits per tier? Getting Started Next Steps Simple, transparent pricing for runtime fleet management. Start with a 7-day free trial on any tier — no credit card required.",
+    "breadcrumbs": [
+      "Cloud, Fleet & Platform"
+    ],
     "keywords": "pricing & tiers pricing overview seed — $29/month included features horizon — $149/month everything in seed, plus infinite — $699/month everything in horizon, plus feature comparison trial system billing upgrading and downgrading frequently asked questions what counts as a runtime instance? can i run multiple instances per machine? what happens to my data if i do not subscribe after the trial? can i start on seed and upgrade later? is there a setup fee or onboarding cost? how does on-premise dep"
   },
   {
     "title": "Provider Health",
     "path": "/docs/provider-health",
+    "description": "Igris continuously monitors the health of your configured AI providers and uses this data to make intelligent routing decisions.",
+    "content": "Provider Health Health Metrics Health Status Levels Active Degraded Unavailable Health Monitoring Pipeline Provider Health Dashboard Health API GET /v1/providers/stats GET /v1/providers/health Automatic Actions Health Checks Igris continuously monitors the health of your configured AI providers and uses this data to make intelligent routing decisions.",
+    "breadcrumbs": [
+      "Reliability & Governance"
+    ],
     "keywords": "provider health health metrics health status levels active degraded unavailable health monitoring pipeline provider health dashboard health api get /v1/providers/stats get /v1/providers/health automatic actions health checks bash json bash json json igris continuously monitors the health of your configured ai providers and uses this data to make intelligent routing decisions. provider-health"
   },
   {
     "title": "Quick Start",
     "path": "/docs/quickstart",
+    "description": "Choose the simplest path that matches how you plan to run Igris.",
+    "content": "Quick Start Prerequisites Option A: Cloud API 1. Add a provider key 2. Point your client at Igris Option B: Local Runtime 1. Download the runtime archive 2. Extract and install 3. Verify the binary 4. Configure the runtime 5. Start the runtime 6. Point your application at the local runtime Option C: Hybrid Cloud + Local Runtime 1. Start the runtime with registration credentials 2. Use the cloud API from your application What To Do Next Troubleshooting Choose the simplest path that matches how you plan to run Igris.",
+    "breadcrumbs": [
+      "Getting Started"
+    ],
     "keywords": "quick start prerequisites option a: cloud api 1. add a provider key 2. point your client at igris option b: local runtime 1. download the runtime archive 2. extract and install 3. verify the binary 4. configure the runtime 5. start the runtime 6. point your application at the local runtime option c: hybrid cloud + local runtime 1. start the runtime with registration credentials 2. use the cloud api from your application what to do next troubleshooting bash typescript bash bash bash json5 bash ty"
   },
   {
     "title": "Rate Limiting",
     "path": "/docs/rate-limiting",
+    "description": "The current shipped Overture server applies a global rate limiter of 100 requests per minute by default. Runtime binary downloads also have a dedicated 10 downloads per hour per tenant cap.",
+    "content": "Rate Limiting What The Current Server Enforces 429 Response Shape Runtime Download Limit Local Runtime Rate Limits Client Guidance The current shipped Overture server applies a global rate limiter of 100 requests per minute by default. Runtime binary downloads also have a dedicated 10 downloads per hour per tenant cap.",
+    "breadcrumbs": [
+      "Reliability & Governance"
+    ],
     "keywords": "rate limiting what the current server enforces 429 response shape runtime download limit local runtime rate limits client guidance json json5 the current shipped overture server applies a global rate limiter of 100 requests per minute by default. runtime binary downloads also have a dedicated 10 downloads per hour per tenant cap. rate-limiting"
   },
   {
     "title": "Receipts Audit Workflow",
     "path": "/docs/receipts-audit-workflow",
+    "description": "Use this workflow when you need verifiable execution history, exportable receipts, or customer-visible audit evidence.",
+    "content": "Receipts and Audit Workflow 1. Run requests through the documented product surface 2. Query recent execution history 3. Retrieve receipts for audit evidence 4. Export receipts for downstream systems 5. Verify before external use Common Mistakes Related Guides Use this workflow when you need verifiable execution history, exportable receipts, or customer-visible audit evidence.",
+    "breadcrumbs": [
+      "Workflows"
+    ],
     "keywords": "receipts and audit workflow 1. run requests through the documented product surface 2. query recent execution history 3. retrieve receipts for audit evidence 4. export receipts for downstream systems 5. verify before external use common mistakes related guides  use this workflow when you need verifiable execution history, exportable receipts, or customer-visible audit evidence. receipts-audit-workflow"
   },
   {
     "title": "Robotics",
     "path": "/docs/robotics",
+    "description": "Igris runs on robotics hardware with native ROS2 integration, fleet coordination, and mission execution governance. The same execution model — bounded envelopes, signed receipts — applies to robotic a",
+    "content": "Robotics Deployment on Robotics Hardware ROS2 Integration Mission Execution Safety in Robotics Fleet Management Igris runs on robotics hardware with native ROS2 integration, fleet coordination, and mission execution governance. The same execution model — bounded envelopes, signed receipts — applies to robotic a",
+    "breadcrumbs": [
+      "Edge & Robotics"
+    ],
     "keywords": "robotics deployment on robotics hardware ros2 integration mission execution safety in robotics fleet management yaml igris runs on robotics hardware with native ros2 integration, fleet coordination, and mission execution governance. the same execution model — bounded envelopes, signed receipts — applies to robotic a robotics"
   },
   {
     "title": "ROS2 Integration",
     "path": "/docs/ros2-integration",
+    "description": "Igris integrates natively with ROS2, exposing AI inference and agent execution as standard ROS2 nodes, topics, and services. Robots using ROS2 can invoke Igris without any custom transport code.",
+    "content": "ROS2 Integration Prerequisites ROS2 Distribution System Requirements DDS Configuration Dependencies Install ROS2 development tools Installing the Package Overview Installation Starting the Node Sending an Inference Request ROS2 Service Interface Behavior Tree Integration Deploy a behavior tree Run a behavior tree tick Configuration igris_ros2.yaml Message Types ROS Topic Management API GET /v1/ros/topics POST /v1/ros/topics/map DELETE /v1/ros/topics/map/:id → 204 No Content POST /v1/ros/publish GET /v1/ros/discovery POST /v1/ros/lifecycle Igris integrates natively with ROS2, exposing AI inference and agent execution as standard ROS2 nodes, topics, and services. Robots using ROS2 can invoke Igris without any custom transport code.",
+    "breadcrumbs": [
+      "Edge & Robotics"
+    ],
     "keywords": "ros2 integration prerequisites ros2 distribution system requirements dds configuration dependencies install ros2 development tools installing the package overview installation starting the node sending an inference request ros2 service interface behavior tree integration deploy a behavior tree run a behavior tree tick configuration igris_ros2.yaml message types ros topic management api get /v1/ros/topics post /v1/ros/topics/map delete /v1/ros/topics/map/:id → 204 no content post /v1/ros/publish "
   },
   {
     "title": "Safety & Containment",
     "path": "/docs/safety",
+    "description": "Igris enforces safety limits at the execution engine level — not at the application layer, where they could be bypassed.",
+    "content": "Safety & Containment Containment Model Resource limits cgroup bounds (Linux) Capability Enforcement Secure Defaults Violation Handling Human-in-the-Loop Igris enforces safety limits at the execution engine level — not at the application layer, where they could be bypassed.",
+    "breadcrumbs": [
+      "Execution"
+    ],
     "keywords": "safety & containment containment model resource limits cgroup bounds (linux) capability enforcement secure defaults violation handling human-in-the-loop  igris enforces safety limits at the execution engine level — not at the application layer, where they could be bypassed. safety"
   },
   {
     "title": "Sdk Integration Patterns",
     "path": "/docs/sdk-integration-patterns",
+    "description": "This guide shows how to use the SDK surface in a way that is maintainable in production.",
+    "content": "SDK Integration Patterns Choose The Right Client Surface First Standard Environment Variables Pattern: Choose A Mode Once Pattern: Centralize Client Construction JavaScript / TypeScript Go Rust Pattern: Separate Hosted And Local Modes Cleanly JavaScript / TypeScript mode switch Pattern: Handle Product Errors Explicitly Pattern: Keep Receipt And Audit Handling Out Of The Hot Path Pattern: Start Portable, Then Go Deeper Production Checklist Related Guides This guide shows how to use the SDK surface in a way that is maintainable in production.",
+    "breadcrumbs": [
+      "Getting Started"
+    ],
     "keywords": "sdk integration patterns choose the right client surface first standard environment variables pattern: choose a mode once pattern: centralize client construction javascript / typescript go rust pattern: separate hosted and local modes cleanly javascript / typescript mode switch pattern: handle product errors explicitly pattern: keep receipt and audit handling out of the hot path pattern: start portable, then go deeper production checklist related guides typescript go rust typescript this guide s"
   },
   {
     "title": "SDK",
     "path": "/docs/sdk",
+    "description": "Igris supports two integration paths:",
+    "content": "SDKs Support Policy OpenAI-Compatible Clients Native SDKs JavaScript / TypeScript Go Rust Python Preview Deployment Mode Guidance Request Contract Code Quality Expectations Igris supports two integration paths:",
+    "breadcrumbs": [
+      "Getting Started"
+    ],
     "keywords": "sdks support policy openai-compatible clients native sdks javascript / typescript go rust python preview deployment mode guidance request contract code quality expectations python typescript typescript typescript go rust python igris supports two integration paths: sdk"
   },
   {
     "title": "Security",
     "path": "/docs/security",
+    "description": "Igris security has two distinct planes:",
+    "content": "Security Authentication Tenant API Keys Console Sessions Provider Keys Policy And Capability Controls Receipts And Verification Deployment Notes Compliance Igris security has two distinct planes:",
+    "breadcrumbs": [
+      "Getting Started"
+    ],
     "keywords": "security authentication tenant api keys console sessions provider keys policy and capability controls receipts and verification deployment notes compliance bash json bash igris security has two distinct planes: security"
   },
   {
     "title": "Shadow Mode",
     "path": "/docs/shadow-mode",
+    "description": "Shadow Mode runs a parallel execution alongside your real execution, using a different provider or configuration, without affecting the actual output. It lets you compare providers, test new configura",
+    "content": "Shadow Mode How It Works Use Cases Provider Comparison Configuration Testing Quality Monitoring Configuration Shadow Comparison API GET /v1/execution/shadow Divergence Score Console Cost Considerations Shadow Mode runs a parallel execution alongside your real execution, using a different provider or configuration, without affecting the actual output. It lets you compare providers, test new configura",
+    "breadcrumbs": [
+      "Reliability & Governance"
+    ],
     "keywords": "shadow mode how it works use cases provider comparison configuration testing quality monitoring configuration shadow comparison api get /v1/execution/shadow divergence score console cost considerations bash json bash json shadow mode runs a parallel execution alongside your real execution, using a different provider or configuration, without affecting the actual output. it lets you compare providers, test new configura shadow-mode"
   },
   {
     "title": "SLA",
     "path": "/docs/sla",
+    "description": "This document describes the service level commitments for each Igris tier.",
+    "content": "Service Level Agreement Availability Cloud API Scheduled Maintenance Performance API Response Times Fleet Communication Support Response Times Support Scope Incident Management Incident Severity Levels Communication During Incidents Post-Incident Reports Data Retention Exclusions SLA Credits This document describes the service level commitments for each Igris tier.",
+    "breadcrumbs": [
+      "Reliability & Governance"
+    ],
     "keywords": "service level agreement availability cloud api scheduled maintenance performance api response times fleet communication support response times support scope incident management incident severity levels communication during incidents post-incident reports data retention exclusions sla credits  this document describes the service level commitments for each igris tier. sla"
   },
   {
     "title": "SLO Enforcer",
     "path": "/docs/slo-enforcer",
+    "description": "Igris enforces Service Level Objectives SLOs at the routing layer to ensure every inference request meets your latency, cost, and quality targets.",
+    "content": "SLO Enforcer What It Does SLO Configuration Violation Actions `fallback` `terminate` `log_only` How Latency Enforcement Works Cost Enforcement Quality Enforcement SLO Dashboard API GET /v1/slo/config POST /v1/slo/config GET /v1/slo/compliance Igris enforces Service Level Objectives SLOs at the routing layer to ensure every inference request meets your latency, cost, and quality targets.",
+    "breadcrumbs": [
+      "Reliability & Governance"
+    ],
     "keywords": "slo enforcer what it does slo configuration violation actions `fallback` `terminate` `log_only` how latency enforcement works cost enforcement quality enforcement slo dashboard api get /v1/slo/config post /v1/slo/config get /v1/slo/compliance json bash bash bash json igris enforces service level objectives slos at the routing layer to ensure every inference request meets your latency, cost, and quality targets. slo-enforcer"
   },
   {
     "title": "Speculative Execution",
     "path": "/docs/speculative-execution",
+    "description": "Speculative execution runs a lightweight draft inference in parallel with the main inference. When the draft result meets a quality threshold, it is returned immediately — before the main inference co",
+    "content": "Speculative Execution How It Works When It Helps When It Does Not Help Tier Availability Enabling Speculative Execution Enable for your tenant → Check current configuration Check live status Reading Analytics Simulating Before Enabling Interaction with Other Features Speculative execution runs a lightweight draft inference in parallel with the main inference. When the draft result meets a quality threshold, it is returned immediately — before the main inference co",
+    "breadcrumbs": [
+      "Reliability & Governance"
+    ],
     "keywords": "speculative execution how it works when it helps when it does not help tier availability enabling speculative execution enable for your tenant → check current configuration check live status reading analytics simulating before enabling interaction with other features bash bash bash json bash json bash json bash json json speculative execution runs a lightweight draft inference in parallel with the main inference. when the draft result meets a quality threshold, it is returned immediately — befor"
   },
   {
     "title": "Swarm",
     "path": "/docs/swarm",
+    "description": "Igris supports two multi-agent coordination patterns: Council Mode for multi-provider consensus on a single request, and Swarm Mode for orchestrating commands across your entire fleet.",
+    "content": "Swarm & Council Mode Council Mode Enabling council mode per agent Configuring council mode → Council analytics Cost considerations Swarm Mode GET /v1/fleet/swarm POST /v1/fleet/swarm/broadcast DELETE /v1/fleet/swarm/agents/:id/clear → Command Delivery Igris supports two multi-agent coordination patterns: Council Mode for multi-provider consensus on a single request, and Swarm Mode for orchestrating commands across your entire fleet.",
+    "breadcrumbs": [
+      "Agents & Context"
+    ],
     "keywords": "swarm & council mode council mode enabling council mode per agent configuring council mode → council analytics cost considerations swarm mode get /v1/fleet/swarm post /v1/fleet/swarm/broadcast delete /v1/fleet/swarm/agents/:id/clear → command delivery bash bash bash bash json bash json bash igris supports two multi-agent coordination patterns: council mode for multi-provider consensus on a single request, and swarm mode for orchestrating commands across your entire fleet. swarm"
   },
   {
     "title": "Tamper-Evident Logs",
     "path": "/docs/tamper-evident-logs",
+    "description": "Every execution in Igris produces a cryptographically signed receipt that forms part of an immutable audit trail. The tamper-evident log system ensures that no execution record can be altered, deleted",
+    "content": "Tamper-Evident Logs How It Works Chain Verification What's Recorded Export GET /v1/receipts/export Console Retention Audit Workflow Every execution in Igris produces a cryptographically signed receipt that forms part of an immutable audit trail. The tamper-evident log system ensures that no execution record can be altered, deleted",
+    "breadcrumbs": [
+      "Reliability & Governance"
+    ],
     "keywords": "tamper-evident logs how it works chain verification what's recorded export get /v1/receipts/export console retention audit workflow bash json bash every execution in igris produces a cryptographically signed receipt that forms part of an immutable audit trail. the tamper-evident log system ensures that no execution record can be altered, deleted tamper-evident-logs"
   },
   {
     "title": "Tools",
     "path": "/docs/tools",
+    "description": "Igris agents can call external tools: HTTP APIs, shell commands, and filesystem operations. All tool use is governed by the execution envelope's capability grants and recorded in the execution receipt",
+    "content": "Tools Tool Overview HTTP Tool Shell Tool Filesystem Tool Tool Audit Trail Igris agents can call external tools: HTTP APIs, shell commands, and filesystem operations. All tool use is governed by the execution envelope's capability grants and recorded in the execution receipt",
+    "breadcrumbs": [
+      "Agents & Context"
+    ],
     "keywords": "tools tool overview http tool shell tool filesystem tool tool audit trail json json json json igris agents can call external tools: http apis, shell commands, and filesystem operations. all tool use is governed by the execution envelope's capability grants and recorded in the execution receipt tools"
   },
   {
     "title": "Trial & Billing",
     "path": "/docs/trial-billing",
+    "description": "Every new account gets a 7-day trial on one tier.",
+    "content": "Trial & Billing Free Trial POST /v1/trial/start GET /v1/trial/status Subscription GET /api/subscription/status GET /api/subscription/plans API Key Management GET /v1/account/api-key POST /v1/account/api-key DELETE /v1/account/api-key Every new account gets a 7-day trial on one tier.",
+    "breadcrumbs": [
+      "Cloud, Fleet & Platform"
+    ],
     "keywords": "trial & billing free trial post /v1/trial/start get /v1/trial/status subscription get /api/subscription/status get /api/subscription/plans api key management get /v1/account/api-key post /v1/account/api-key delete /v1/account/api-key bash json bash json bash json bash json bash json bash json bash json every new account gets a 7-day trial on one tier. trial-billing"
   },
   {
     "title": "Troubleshooting",
     "path": "/docs/troubleshooting",
+    "description": "This guide covers the most common issues encountered when running Igris. For each issue you will find the symptoms, the most likely cause, and the steps to fix it.",
+    "content": "Troubleshooting Runtime Not Starting Port already in use Missing API key Config file not found Runtime Not Appearing in Fleet → Devices Network or firewall blocking outbound registration API key wrong or expired Registration call failing silently Provider Key Validation Failing Key copied incorrectly Key revoked or quota exhausted Network issue during validation Re-validating an existing key via API → Execution Runs Stuck in PAUSED Human review required High Violation Rate What violations mean Common patterns → list of your policies, find the one to update Requests Going to Wrong Provider How provider selection works Checking current routing behavior Overall routing statistics per provider Provider ranking as the router currently sees it Overriding routing behavior Local Model Not Loading or Slow Memory requirements Using quantized models Checking runtime health and load Basic health check Detailed metrics including model load status and memory usage Execution Runs Timing Out max_duration_ms limit hit List your policies API Rate Limit (HTTP 429) Receipt Verification Failing → Getting More Help This guide covers the most common issues encountered when running Igris. For each issue you will find the symptoms, the most likely cause, and the steps to fix it.",
+    "breadcrumbs": [
+      "Reference"
+    ],
     "keywords": "troubleshooting runtime not starting port already in use missing api key config file not found runtime not appearing in fleet → devices network or firewall blocking outbound registration api key wrong or expired registration call failing silently provider key validation failing key copied incorrectly key revoked or quota exhausted network issue during validation re-validating an existing key via api → execution runs stuck in paused human review required high violation rate what violations mean c"
   },
   {
     "title": "Upgrade & Migration",
     "path": "/docs/upgrade-migration",
+    "description": "This guide covers how to upgrade between Igris versions, migrate data, and handle breaking changes.",
+    "content": "Upgrade & Migration Versioning Upgrading the Runtime Automatic OTA Updates (Horizon+) Manual Upgrade Compare with the checksum shown in the console Or if running directly: pkill igris-runtime && igris-runtime serve Configuration Migration Config File Format Changes Backing Up Configuration Migrating Config Fields Data Migration Execution Receipts Fleet Configuration Provider Keys Behavior Tree Definitions Breaking Changes by Version Runtime v1.8.0 (March 2026) Runtime v1.7.x (March 2026) Runtime v1.6.0 (February 2026) Runtime v0.4.0 (November 2025) Rollback Checking for Updates Via Console Via API Via CLI Support This guide covers how to upgrade between Igris versions, migrate data, and handle breaking changes.",
+    "breadcrumbs": [
+      "Reference"
+    ],
     "keywords": "upgrade & migration versioning upgrading the runtime automatic ota updates (horizon+) manual upgrade compare with the checksum shown in the console or if running directly: pkill igris-runtime && igris-runtime serve configuration migration config file format changes backing up configuration migrating config fields data migration execution receipts fleet configuration provider keys behavior tree definitions breaking changes by version runtime v1.8.0 (march 2026) runtime v1.7.x (march 2026) runtime"
   },
   {
     "title": "Webhooks",
     "path": "/docs/webhooks",
+    "description": "Igris can send real-time notifications to your systems when important events occur. Webhooks enable you to integrate Igris with your existing monitoring, alerting, and automation workflows.",
+    "content": "Webhooks Overview Supported Events Execution Events Fleet Events Alert Events Billing Events Configuring Webhooks Via Console Via API Webhook Payload Common Fields Webhook Security Signature Verification Best Practices Delivery and Retries Delivery Behavior Retry Policy Monitoring Deliveries Managing Webhooks List Webhooks Update a Webhook Delete a Webhook Test a Webhook Igris can send real-time notifications to your systems when important events occur. Webhooks enable you to integrate Igris with your existing monitoring, alerting, and automation workflows.",
+    "breadcrumbs": [
+      "Reliability & Governance"
+    ],
     "keywords": "webhooks overview supported events execution events fleet events alert events billing events configuring webhooks via console via api webhook payload common fields webhook security signature verification best practices delivery and retries delivery behavior retry policy monitoring deliveries managing webhooks list webhooks update a webhook delete a webhook test a webhook bash json python bash bash bash bash igris can send real-time notifications to your systems when important events occur. webho"
   },
   {
@@ -337,311 +655,672 @@
   {
     "title": "API Introduction",
     "path": "/docs/api-reference/introduction",
+    "description": "Overview of the customer API contract.",
+    "content": "API introduction base URL surfaces overview contract",
+    "breadcrumbs": [
+      "API Reference"
+    ],
     "keywords": "api introduction base url surfaces overview contract"
   },
   {
     "title": "API Authentication",
     "path": "/docs/api-reference/authentication",
+    "description": "Authentication models for cloud and local API use.",
+    "content": "API authentication bearer api key session cookie runtime auth",
+    "breadcrumbs": [
+      "API Reference"
+    ],
     "keywords": "api authentication bearer api key session cookie runtime auth"
   },
   {
     "title": "API Errors",
     "path": "/docs/api-reference/errors",
+    "description": "Error handling and common response codes.",
+    "content": "API errors error codes invalid request unauthorized internal error",
+    "breadcrumbs": [
+      "API Reference"
+    ],
     "keywords": "api errors error codes invalid request unauthorized internal error"
   },
   {
     "title": "API Rate Limits",
     "path": "/docs/api-reference/rate-limits",
+    "description": "Rate limit behavior and retry expectations.",
+    "content": "API rate limits retry-after 429 throttle",
+    "breadcrumbs": [
+      "API Reference"
+    ],
     "keywords": "api rate limits retry-after 429 throttle"
   },
   {
     "title": "POST /v1/infer",
     "path": "/docs/api-reference/inference-integration/post-v1-infer",
+    "description": "Native inference endpoint handled by Overture.",
+    "content": "POST /v1/infer Native inference endpoint handled by Overture.",
+    "breadcrumbs": [
+      "API Reference",
+      "Inference & Integration"
+    ],
     "keywords": "inference & integration post /v1/infer native inference endpoint handled by overture. deployment-dependent cloud api"
   },
   {
     "title": "POST /v1/chat/completions",
     "path": "/docs/api-reference/inference-integration/post-v1-chat-completions",
+    "description": "OpenAI-compatible chat completions endpoint.",
+    "content": "POST /v1/chat/completions OpenAI-compatible chat completions endpoint.",
+    "breadcrumbs": [
+      "API Reference",
+      "Inference & Integration"
+    ],
     "keywords": "inference & integration post /v1/chat/completions openai-compatible chat completions endpoint. deployment-dependent cloud api"
   },
   {
     "title": "GET /v1/health",
     "path": "/docs/api-reference/inference-integration/get-v1-health",
+    "description": "Health check for inference availability.",
+    "content": "GET /v1/health Health check for inference availability.",
+    "breadcrumbs": [
+      "API Reference",
+      "Inference & Integration"
+    ],
     "keywords": "inference & integration get /v1/health health check for inference availability. public cloud api"
   },
   {
     "title": "GET /v1/models",
     "path": "/docs/api-reference/inference-integration/get-v1-models",
+    "description": "Lists models visible to the inference layer.",
+    "content": "GET /v1/models Lists models visible to the inference layer.",
+    "breadcrumbs": [
+      "API Reference",
+      "Inference & Integration"
+    ],
     "keywords": "inference & integration get /v1/models lists models visible to the inference layer. public cloud api"
   },
   {
     "title": "GET /v1/providers/stats",
     "path": "/docs/api-reference/inference-integration/get-v1-providers-stats",
+    "description": "Provider latency, health, and routing statistics.",
+    "content": "GET /v1/providers/stats Provider latency, health, and routing statistics.",
+    "breadcrumbs": [
+      "API Reference",
+      "Inference & Integration"
+    ],
     "keywords": "inference & integration get /v1/providers/stats provider latency, health, and routing statistics. public cloud api"
   },
   {
     "title": "POST /v1/infer/multimodal",
     "path": "/docs/api-reference/inference-integration/post-v1-infer-multimodal",
+    "description": "Multimodal inference endpoint.",
+    "content": "POST /v1/infer/multimodal Multimodal inference endpoint.",
+    "breadcrumbs": [
+      "API Reference",
+      "Inference & Integration"
+    ],
     "keywords": "inference & integration post /v1/infer/multimodal multimodal inference endpoint. session or api key cloud api"
   },
   {
     "title": "GET /v1/infer/multimodal/stats",
     "path": "/docs/api-reference/inference-integration/get-v1-infer-multimodal-stats",
+    "description": "Multimodal request statistics.",
+    "content": "GET /v1/infer/multimodal/stats Multimodal request statistics.",
+    "breadcrumbs": [
+      "API Reference",
+      "Inference & Integration"
+    ],
     "keywords": "inference & integration get /v1/infer/multimodal/stats multimodal request statistics. session or api key cloud api"
   },
   {
     "title": "GET /v1/runtime/install",
     "path": "/docs/api-reference/runtime-distribution-fleet-coordination/get-v1-runtime-install",
+    "description": "Returns or redirects to the platform-specific runtime archive.",
+    "content": "GET /v1/runtime/install Returns or redirects to the platform-specific runtime archive.",
+    "breadcrumbs": [
+      "API Reference",
+      "Runtime Distribution & Fleet Coordination"
+    ],
     "keywords": "runtime distribution & fleet coordination get /v1/runtime/install returns or redirects to the platform-specific runtime archive. public cloud api"
   },
   {
     "title": "GET /v1/runtime/checksum",
     "path": "/docs/api-reference/runtime-distribution-fleet-coordination/get-v1-runtime-checksum",
+    "description": "Returns the SHA-256 checksum for a runtime archive.",
+    "content": "GET /v1/runtime/checksum Returns the SHA-256 checksum for a runtime archive.",
+    "breadcrumbs": [
+      "API Reference",
+      "Runtime Distribution & Fleet Coordination"
+    ],
     "keywords": "runtime distribution & fleet coordination get /v1/runtime/checksum returns the sha-256 checksum for a runtime archive. public cloud api"
   },
   {
     "title": "GET /v1/runtime/download",
     "path": "/docs/api-reference/runtime-distribution-fleet-coordination/get-v1-runtime-download",
+    "description": "Subscribed runtime binary download endpoint.",
+    "content": "GET /v1/runtime/download Subscribed runtime binary download endpoint.",
+    "breadcrumbs": [
+      "API Reference",
+      "Runtime Distribution & Fleet Coordination"
+    ],
     "keywords": "runtime distribution & fleet coordination get /v1/runtime/download subscribed runtime binary download endpoint. session or api key cloud api"
   },
   {
     "title": "GET /api/v1/runtime/list",
     "path": "/docs/api-reference/runtime-distribution-fleet-coordination/get-api-v1-runtime-list",
+    "description": "Lists registered runtime instances for a tenant.",
+    "content": "GET /api/v1/runtime/list Lists registered runtime instances for a tenant.",
+    "breadcrumbs": [
+      "API Reference",
+      "Runtime Distribution & Fleet Coordination"
+    ],
     "keywords": "runtime distribution & fleet coordination get /api/v1/runtime/list lists registered runtime instances for a tenant. tenant_id query or authenticated tenant context fleet management"
   },
   {
     "title": "POST /api/v1/runtime/config/push",
     "path": "/docs/api-reference/runtime-distribution-fleet-coordination/post-api-v1-runtime-config-push",
+    "description": "Queues configuration push commands for the fleet.",
+    "content": "POST /api/v1/runtime/config/push Queues configuration push commands for the fleet.",
+    "breadcrumbs": [
+      "API Reference",
+      "Runtime Distribution & Fleet Coordination"
+    ],
     "keywords": "runtime distribution & fleet coordination post /api/v1/runtime/config/push queues configuration push commands for the fleet. session cookie fleet management"
   },
   {
     "title": "POST /api/v1/runtime/update",
     "path": "/docs/api-reference/runtime-distribution-fleet-coordination/post-api-v1-runtime-update",
+    "description": "Queues OTA update commands for the fleet.",
+    "content": "POST /api/v1/runtime/update Queues OTA update commands for the fleet.",
+    "breadcrumbs": [
+      "API Reference",
+      "Runtime Distribution & Fleet Coordination"
+    ],
     "keywords": "runtime distribution & fleet coordination post /api/v1/runtime/update queues ota update commands for the fleet. session cookie fleet management"
   },
   {
     "title": "GET /api/subscription/status",
     "path": "/docs/api-reference/account-trial-and-billing/get-api-subscription-status",
+    "description": "Returns subscription tier, status, and runtime usage.",
+    "content": "GET /api/subscription/status Returns subscription tier, status, and runtime usage.",
+    "breadcrumbs": [
+      "API Reference",
+      "Account, Trial, and Billing"
+    ],
     "keywords": "account, trial, and billing get /api/subscription/status returns subscription tier, status, and runtime usage. session cookie or igris_ api key cloud api"
   },
   {
     "title": "GET /api/subscription/plans",
     "path": "/docs/api-reference/account-trial-and-billing/get-api-subscription-plans",
+    "description": "Lists available plans and checkout URLs.",
+    "content": "GET /api/subscription/plans Lists available plans and checkout URLs.",
+    "breadcrumbs": [
+      "API Reference",
+      "Account, Trial, and Billing"
+    ],
     "keywords": "account, trial, and billing get /api/subscription/plans lists available plans and checkout urls. session cookie or igris_ api key cloud api"
   },
   {
     "title": "GET /v1/account/api-key",
     "path": "/docs/api-reference/account-trial-and-billing/get-v1-account-api-key",
+    "description": "Returns current API key metadata without revealing the secret.",
+    "content": "GET /v1/account/api-key Returns current API key metadata without revealing the secret.",
+    "breadcrumbs": [
+      "API Reference",
+      "Account, Trial, and Billing"
+    ],
     "keywords": "account, trial, and billing get /v1/account/api-key returns current api key metadata without revealing the secret. session cookie or igris_ api key cloud api"
   },
   {
     "title": "POST /v1/account/api-key",
     "path": "/docs/api-reference/account-trial-and-billing/post-v1-account-api-key",
+    "description": "Creates a new tenant API key and revokes the old one.",
+    "content": "POST /v1/account/api-key Creates a new tenant API key and revokes the old one.",
+    "breadcrumbs": [
+      "API Reference",
+      "Account, Trial, and Billing"
+    ],
     "keywords": "account, trial, and billing post /v1/account/api-key creates a new tenant api key and revokes the old one. session cookie or igris_ api key cloud api"
   },
   {
     "title": "DELETE /v1/account/api-key",
     "path": "/docs/api-reference/account-trial-and-billing/delete-v1-account-api-key",
+    "description": "Revokes the current tenant API key.",
+    "content": "DELETE /v1/account/api-key Revokes the current tenant API key.",
+    "breadcrumbs": [
+      "API Reference",
+      "Account, Trial, and Billing"
+    ],
     "keywords": "account, trial, and billing delete /v1/account/api-key revokes the current tenant api key. session cookie or igris_ api key cloud api"
   },
   {
     "title": "GET /v1/vault/keys",
     "path": "/docs/api-reference/vault-policy-and-governance/get-v1-vault-keys",
+    "description": "Lists configured provider keys with masked values.",
+    "content": "GET /v1/vault/keys Lists configured provider keys with masked values.",
+    "breadcrumbs": [
+      "API Reference",
+      "Vault, Policy, and Governance"
+    ],
     "keywords": "vault, policy, and governance get /v1/vault/keys lists configured provider keys with masked values. session cookie or igris_ api key cloud api"
   },
   {
     "title": "POST /v1/vault/keys",
     "path": "/docs/api-reference/vault-policy-and-governance/post-v1-vault-keys",
+    "description": "Stores a provider key using `{ provider, key_name, api_key }`.",
+    "content": "POST /v1/vault/keys Stores a provider key using `{ provider, key_name, api_key }`.",
+    "breadcrumbs": [
+      "API Reference",
+      "Vault, Policy, and Governance"
+    ],
     "keywords": "vault, policy, and governance post /v1/vault/keys stores a provider key using `{ provider, key_name, api_key }`. session cookie or igris_ api key cloud api"
   },
   {
     "title": "GET /v1/vault/keys/:provider",
     "path": "/docs/api-reference/vault-policy-and-governance/get-v1-vault-keys-provider",
+    "description": "Gets a single provider key record.",
+    "content": "GET /v1/vault/keys/:provider Gets a single provider key record.",
+    "breadcrumbs": [
+      "API Reference",
+      "Vault, Policy, and Governance"
+    ],
     "keywords": "vault, policy, and governance get /v1/vault/keys/:provider gets a single provider key record. session cookie or igris_ api key cloud api"
   },
   {
     "title": "DELETE /v1/vault/keys/:provider",
     "path": "/docs/api-reference/vault-policy-and-governance/delete-v1-vault-keys-provider",
+    "description": "Deletes a provider key.",
+    "content": "DELETE /v1/vault/keys/:provider Deletes a provider key.",
+    "breadcrumbs": [
+      "API Reference",
+      "Vault, Policy, and Governance"
+    ],
     "keywords": "vault, policy, and governance delete /v1/vault/keys/:provider deletes a provider key. session cookie or igris_ api key cloud api"
   },
   {
     "title": "POST /v1/vault/keys/:provider/rotate",
     "path": "/docs/api-reference/vault-policy-and-governance/post-v1-vault-keys-provider-rotate",
+    "description": "Rotates a provider key.",
+    "content": "POST /v1/vault/keys/:provider/rotate Rotates a provider key.",
+    "breadcrumbs": [
+      "API Reference",
+      "Vault, Policy, and Governance"
+    ],
     "keywords": "vault, policy, and governance post /v1/vault/keys/:provider/rotate rotates a provider key. session cookie or igris_ api key cloud api"
   },
   {
     "title": "POST /v1/vault/keys/:provider/validate",
     "path": "/docs/api-reference/vault-policy-and-governance/post-v1-vault-keys-provider-validate",
+    "description": "Validates a provider key with the current backend implementation.",
+    "content": "POST /v1/vault/keys/:provider/validate Validates a provider key with the current backend implementation.",
+    "breadcrumbs": [
+      "API Reference",
+      "Vault, Policy, and Governance"
+    ],
     "keywords": "vault, policy, and governance post /v1/vault/keys/:provider/validate validates a provider key with the current backend implementation. session cookie or igris_ api key cloud api"
   },
   {
     "title": "GET /v1/policy",
     "path": "/docs/api-reference/vault-policy-and-governance/get-v1-policy",
+    "description": "Returns tenant policy document.",
+    "content": "GET /v1/policy Returns tenant policy document.",
+    "breadcrumbs": [
+      "API Reference",
+      "Vault, Policy, and Governance"
+    ],
     "keywords": "vault, policy, and governance get /v1/policy returns tenant policy document. session cookie or igris_ api key cloud api"
   },
   {
     "title": "PUT /v1/policy",
     "path": "/docs/api-reference/vault-policy-and-governance/put-v1-policy",
+    "description": "Replaces tenant policy document.",
+    "content": "PUT /v1/policy Replaces tenant policy document.",
+    "breadcrumbs": [
+      "API Reference",
+      "Vault, Policy, and Governance"
+    ],
     "keywords": "vault, policy, and governance put /v1/policy replaces tenant policy document. session cookie or igris_ api key cloud api"
   },
   {
     "title": "GET /v1/policy/history",
     "path": "/docs/api-reference/vault-policy-and-governance/get-v1-policy-history",
+    "description": "Returns tenant policy history.",
+    "content": "GET /v1/policy/history Returns tenant policy history.",
+    "breadcrumbs": [
+      "API Reference",
+      "Vault, Policy, and Governance"
+    ],
     "keywords": "vault, policy, and governance get /v1/policy/history returns tenant policy history. session cookie or igris_ api key cloud api"
   },
   {
     "title": "GET /v1/history/events",
     "path": "/docs/api-reference/execution-history-and-receipts/get-v1-history-events",
+    "description": "Lists execution history events. Supports `range`, `limit`, `agent_id`, and `device_id`.",
+    "content": "GET /v1/history/events Lists execution history events. Supports `range`, `limit`, `agent_id`, and `device_id`.",
+    "breadcrumbs": [
+      "API Reference",
+      "Execution, History, and Receipts"
+    ],
     "keywords": "execution, history, and receipts get /v1/history/events lists execution history events. supports `range`, `limit`, `agent_id`, and `device_id`. session cookie or igris_ api key cloud api"
   },
   {
     "title": "GET /v1/receipts",
     "path": "/docs/api-reference/execution-history-and-receipts/get-v1-receipts",
+    "description": "Lists execution receipts from the coordination layer.",
+    "content": "GET /v1/receipts Lists execution receipts from the coordination layer.",
+    "breadcrumbs": [
+      "API Reference",
+      "Execution, History, and Receipts"
+    ],
     "keywords": "execution, history, and receipts get /v1/receipts lists execution receipts from the coordination layer. session cookie or igris_ api key cloud api"
   },
   {
     "title": "GET /v1/receipts/:id",
     "path": "/docs/api-reference/execution-history-and-receipts/get-v1-receipts-id",
+    "description": "Gets a single execution receipt by execution ID.",
+    "content": "GET /v1/receipts/:id Gets a single execution receipt by execution ID.",
+    "breadcrumbs": [
+      "API Reference",
+      "Execution, History, and Receipts"
+    ],
     "keywords": "execution, history, and receipts get /v1/receipts/:id gets a single execution receipt by execution id. session cookie or igris_ api key cloud api"
   },
   {
     "title": "GET /v1/receipts/export",
     "path": "/docs/api-reference/execution-history-and-receipts/get-v1-receipts-export",
+    "description": "Exports receipts as JSONL or CSV.",
+    "content": "GET /v1/receipts/export Exports receipts as JSONL or CSV.",
+    "breadcrumbs": [
+      "API Reference",
+      "Execution, History, and Receipts"
+    ],
     "keywords": "execution, history, and receipts get /v1/receipts/export exports receipts as jsonl or csv. session cookie or igris_ api key cloud api"
   },
   {
     "title": "POST /proof/receipts/verify",
     "path": "/docs/api-reference/execution-history-and-receipts/post-proof-receipts-verify",
+    "description": "Verifies a receipt signature and chain integrity.",
+    "content": "POST /proof/receipts/verify Verifies a receipt signature and chain integrity.",
+    "breadcrumbs": [
+      "API Reference",
+      "Execution, History, and Receipts"
+    ],
     "keywords": "execution, history, and receipts post /proof/receipts/verify verifies a receipt signature and chain integrity. session cookie or igris_ api key proof api"
   },
   {
     "title": "GET /v1/bt/templates",
     "path": "/docs/api-reference/behavior-trees/get-v1-bt-templates",
+    "description": "Lists built-in behavior-tree templates.",
+    "content": "GET /v1/bt/templates Lists built-in behavior-tree templates.",
+    "breadcrumbs": [
+      "API Reference",
+      "Behavior Trees"
+    ],
     "keywords": "behavior trees get /v1/bt/templates lists built-in behavior-tree templates. public cloud api"
   },
   {
     "title": "GET /v1/bt/definitions",
     "path": "/docs/api-reference/behavior-trees/get-v1-bt-definitions",
+    "description": "Lists tenant behavior-tree definitions.",
+    "content": "GET /v1/bt/definitions Lists tenant behavior-tree definitions.",
+    "breadcrumbs": [
+      "API Reference",
+      "Behavior Trees"
+    ],
     "keywords": "behavior trees get /v1/bt/definitions lists tenant behavior-tree definitions. session cookie or igris_ api key cloud api"
   },
   {
     "title": "GET /v1/bt/definitions/:id",
     "path": "/docs/api-reference/behavior-trees/get-v1-bt-definitions-id",
+    "description": "Gets a single behavior-tree definition.",
+    "content": "GET /v1/bt/definitions/:id Gets a single behavior-tree definition.",
+    "breadcrumbs": [
+      "API Reference",
+      "Behavior Trees"
+    ],
     "keywords": "behavior trees get /v1/bt/definitions/:id gets a single behavior-tree definition. session cookie or igris_ api key cloud api"
   },
   {
     "title": "POST /v1/bt/definitions",
     "path": "/docs/api-reference/behavior-trees/post-v1-bt-definitions",
+    "description": "Creates or upserts a behavior-tree definition.",
+    "content": "POST /v1/bt/definitions Creates or upserts a behavior-tree definition.",
+    "breadcrumbs": [
+      "API Reference",
+      "Behavior Trees"
+    ],
     "keywords": "behavior trees post /v1/bt/definitions creates or upserts a behavior-tree definition. session cookie or igris_ api key cloud api"
   },
   {
     "title": "DELETE /v1/bt/definitions/:id",
     "path": "/docs/api-reference/behavior-trees/delete-v1-bt-definitions-id",
+    "description": "Deletes a behavior-tree definition.",
+    "content": "DELETE /v1/bt/definitions/:id Deletes a behavior-tree definition.",
+    "breadcrumbs": [
+      "API Reference",
+      "Behavior Trees"
+    ],
     "keywords": "behavior trees delete /v1/bt/definitions/:id deletes a behavior-tree definition. session cookie or igris_ api key cloud api"
   },
   {
     "title": "POST /v1/tasks/submit",
     "path": "/docs/api-reference/durable-tasks/post-v1-tasks-submit",
+    "description": "Submit a durable task using `agent_workflow`, `robotics_workflow`, `single_inference`, or `behavior_tree`.",
+    "content": "POST /v1/tasks/submit Submit a durable task using `agent_workflow`, `robotics_workflow`, `single_inference`, or `behavior_tree`.",
+    "breadcrumbs": [
+      "API Reference",
+      "Durable Tasks"
+    ],
     "keywords": "durable tasks post /v1/tasks/submit submit a durable task using `agent_workflow`, `robotics_workflow`, `single_inference`, or `behavior_tree`. session cookie or igris_ api key cloud api"
   },
   {
     "title": "GET /v1/tasks/:id",
     "path": "/docs/api-reference/durable-tasks/get-v1-tasks-id",
+    "description": "Poll the current status and latest checkpoint metadata for a durable task.",
+    "content": "GET /v1/tasks/:id Poll the current status and latest checkpoint metadata for a durable task.",
+    "breadcrumbs": [
+      "API Reference",
+      "Durable Tasks"
+    ],
     "keywords": "durable tasks get /v1/tasks/:id poll the current status and latest checkpoint metadata for a durable task. session cookie or igris_ api key cloud api"
   },
   {
     "title": "GET /v1/tasks",
     "path": "/docs/api-reference/durable-tasks/get-v1-tasks",
+    "description": "List recent durable tasks for the authenticated tenant.",
+    "content": "GET /v1/tasks List recent durable tasks for the authenticated tenant.",
+    "breadcrumbs": [
+      "API Reference",
+      "Durable Tasks"
+    ],
     "keywords": "durable tasks get /v1/tasks list recent durable tasks for the authenticated tenant. session cookie or igris_ api key cloud api"
   },
   {
     "title": "GET /v1/health",
     "path": "/docs/api-reference/local-runtime-api/get-v1-health",
+    "description": "Health check for the local runtime.",
+    "content": "GET /v1/health Health check for the local runtime.",
+    "breadcrumbs": [
+      "API Reference",
+      "Local Runtime API"
+    ],
     "keywords": "local runtime api get /v1/health health check for the local runtime. runtime-config dependent local runtime"
   },
   {
     "title": "POST /v1/chat/completions",
     "path": "/docs/api-reference/local-runtime-api/post-v1-chat-completions",
+    "description": "OpenAI-compatible local inference endpoint.",
+    "content": "POST /v1/chat/completions OpenAI-compatible local inference endpoint.",
+    "breadcrumbs": [
+      "API Reference",
+      "Local Runtime API"
+    ],
     "keywords": "local runtime api post /v1/chat/completions openai-compatible local inference endpoint. runtime-config dependent local runtime"
   },
   {
     "title": "POST /v1/plan",
     "path": "/docs/api-reference/local-runtime-api/post-v1-plan",
+    "description": "Planning endpoint.",
+    "content": "POST /v1/plan Planning endpoint.",
+    "breadcrumbs": [
+      "API Reference",
+      "Local Runtime API"
+    ],
     "keywords": "local runtime api post /v1/plan planning endpoint. runtime-config dependent local runtime"
   },
   {
     "title": "POST /v1/reflect",
     "path": "/docs/api-reference/local-runtime-api/post-v1-reflect",
+    "description": "Reflection endpoint.",
+    "content": "POST /v1/reflect Reflection endpoint.",
+    "breadcrumbs": [
+      "API Reference",
+      "Local Runtime API"
+    ],
     "keywords": "local runtime api post /v1/reflect reflection endpoint. runtime-config dependent local runtime"
   },
   {
     "title": "GET /v1/admin/models",
     "path": "/docs/api-reference/local-runtime-api/get-v1-admin-models",
+    "description": "Lists loaded local models.",
+    "content": "GET /v1/admin/models Lists loaded local models.",
+    "breadcrumbs": [
+      "API Reference",
+      "Local Runtime API"
+    ],
     "keywords": "local runtime api get /v1/admin/models lists loaded local models. runtime-config dependent local runtime"
   },
   {
     "title": "POST /v1/admin/models/load",
     "path": "/docs/api-reference/local-runtime-api/post-v1-admin-models-load",
+    "description": "Loads a local model.",
+    "content": "POST /v1/admin/models/load Loads a local model.",
+    "breadcrumbs": [
+      "API Reference",
+      "Local Runtime API"
+    ],
     "keywords": "local runtime api post /v1/admin/models/load loads a local model. runtime-config dependent local runtime"
   },
   {
     "title": "POST /v1/admin/models/swap",
     "path": "/docs/api-reference/local-runtime-api/post-v1-admin-models-swap",
+    "description": "Swaps the active local model.",
+    "content": "POST /v1/admin/models/swap Swaps the active local model.",
+    "breadcrumbs": [
+      "API Reference",
+      "Local Runtime API"
+    ],
     "keywords": "local runtime api post /v1/admin/models/swap swaps the active local model. runtime-config dependent local runtime"
   },
   {
     "title": "POST /v1/btree/validate",
     "path": "/docs/api-reference/local-runtime-api/post-v1-btree-validate",
+    "description": "Validates a runtime behavior tree definition.",
+    "content": "POST /v1/btree/validate Validates a runtime behavior tree definition.",
+    "breadcrumbs": [
+      "API Reference",
+      "Local Runtime API"
+    ],
     "keywords": "local runtime api post /v1/btree/validate validates a runtime behavior tree definition. runtime-config dependent local runtime"
   },
   {
     "title": "POST /v1/btree/run",
     "path": "/docs/api-reference/local-runtime-api/post-v1-btree-run",
+    "description": "Executes a runtime behavior tree.",
+    "content": "POST /v1/btree/run Executes a runtime behavior tree.",
+    "breadcrumbs": [
+      "API Reference",
+      "Local Runtime API"
+    ],
     "keywords": "local runtime api post /v1/btree/run executes a runtime behavior tree. runtime-config dependent local runtime"
   },
   {
     "title": "POST /v1/btree/deploy",
     "path": "/docs/api-reference/local-runtime-api/post-v1-btree-deploy",
+    "description": "Deploys a runtime behavior tree.",
+    "content": "POST /v1/btree/deploy Deploys a runtime behavior tree.",
+    "breadcrumbs": [
+      "API Reference",
+      "Local Runtime API"
+    ],
     "keywords": "local runtime api post /v1/btree/deploy deploys a runtime behavior tree. runtime-config dependent local runtime"
   },
   {
     "title": "GET /v1/btree/events",
     "path": "/docs/api-reference/local-runtime-api/get-v1-btree-events",
+    "description": "Streams behavior-tree events.",
+    "content": "GET /v1/btree/events Streams behavior-tree events.",
+    "breadcrumbs": [
+      "API Reference",
+      "Local Runtime API"
+    ],
     "keywords": "local runtime api get /v1/btree/events streams behavior-tree events. runtime-config dependent local runtime"
   },
   {
     "title": "JavaScript / TypeScript SDK",
     "path": "/docs/sdk",
+    "description": "Preferred native SDK for browser and Node.js integrations.",
+    "content": "JavaScript / TypeScript first-class Preferred native SDK for browser and Node.js integrations.",
+    "breadcrumbs": [
+      "Getting Started"
+    ],
     "keywords": "javascript / typescript first-class @igris-inertial/sdk npm install @igris-inertial/sdk preferred native sdk for browser and node.js integrations."
   },
   {
     "title": "Go SDK",
     "path": "/docs/sdk",
+    "description": "Preferred native SDK for backend services and CLI tooling.",
+    "content": "Go first-class Preferred native SDK for backend services and CLI tooling.",
+    "breadcrumbs": [
+      "Getting Started"
+    ],
     "keywords": "go first-class github.com/igris-inertial/go-sdk go get github.com/igris-inertial/go-sdk preferred native sdk for backend services and cli tooling."
   },
   {
     "title": "Rust SDK",
     "path": "/docs/sdk",
+    "description": "Preferred native SDK for systems and embedded integrations.",
+    "content": "Rust first-class Preferred native SDK for systems and embedded integrations.",
+    "breadcrumbs": [
+      "Getting Started"
+    ],
     "keywords": "rust first-class igris-inertial cargo add igris-inertial preferred native sdk for systems and embedded integrations."
   },
   {
     "title": "Python SDK",
     "path": "/docs/sdk",
+    "description": "Available in-repo, but not yet positioned as a first-class customer SDK.",
+    "content": "Python preview Available in-repo, but not yet positioned as a first-class customer SDK.",
+    "breadcrumbs": [
+      "Getting Started"
+    ],
     "keywords": "python preview igris-inertial pip install igris-inertial available in-repo, but not yet positioned as a first-class customer sdk."
   },
   {
     "title": "Java SDK",
     "path": "/docs/sdk",
+    "description": "Use the OpenAI-compatible API until a native Java SDK is promoted explicitly.",
+    "content": "Java openai-compatible Use the OpenAI-compatible API until a native Java SDK is promoted explicitly.",
+    "breadcrumbs": [
+      "Getting Started"
+    ],
     "keywords": "java openai-compatible n/a use an openai-compatible client today use the openai-compatible api until a native java sdk is promoted explicitly."
   },
   {
     "title": "C# SDK",
     "path": "/docs/sdk",
+    "description": "Use the OpenAI-compatible API until a native C# SDK is promoted explicitly.",
+    "content": "C# openai-compatible Use the OpenAI-compatible API until a native C# SDK is promoted explicitly.",
+    "breadcrumbs": [
+      "Getting Started"
+    ],
     "keywords": "c# openai-compatible n/a use an openai-compatible client today use the openai-compatible api until a native c# sdk is promoted explicitly."
   },
   {
     "title": "Ruby SDK",
     "path": "/docs/sdk",
+    "description": "Use the OpenAI-compatible API until a native Ruby SDK is promoted explicitly.",
+    "content": "Ruby openai-compatible Use the OpenAI-compatible API until a native Ruby SDK is promoted explicitly.",
+    "breadcrumbs": [
+      "Getting Started"
+    ],
     "keywords": "ruby openai-compatible n/a use an openai-compatible client today use the openai-compatible api until a native ruby sdk is promoted explicitly."
   }
 ]
