@@ -264,24 +264,24 @@ func (h *ProofHandler) syncTaskProofState(tenantID, executionID, expectedHash, s
 
 // PolicyViolation is the response shape for a single violation entry.
 type PolicyViolation struct {
-	ID               string  `json:"id"`
-	Timestamp        string  `json:"timestamp"`
-	ExecutionID      string  `json:"execution_id"`
-	AgentID          string  `json:"agent_id"`
-	DeviceID         string  `json:"device_id"`
-	ViolationType    string  `json:"violation_type"`
-	Severity         string  `json:"severity"`
-	PolicyRule       string  `json:"policy_rule"`
-	PolicyHash       string  `json:"policy_hash"`
-	CapabilityRule   string  `json:"capability_rule"`
-	BoundsRule       string  `json:"bounds_rule"`
-	ActionTaken      string  `json:"action_taken"`
-	ExecutionState   string  `json:"execution_state"`
-	SupervisorAction string  `json:"supervisor_action"`
+	ID                string `json:"id"`
+	Timestamp         string `json:"timestamp"`
+	ExecutionID       string `json:"execution_id"`
+	AgentID           string `json:"agent_id"`
+	DeviceID          string `json:"device_id"`
+	ViolationType     string `json:"violation_type"`
+	Severity          string `json:"severity"`
+	PolicyRule        string `json:"policy_rule"`
+	PolicyHash        string `json:"policy_hash"`
+	CapabilityRule    string `json:"capability_rule"`
+	BoundsRule        string `json:"bounds_rule"`
+	ActionTaken       string `json:"action_taken"`
+	ExecutionState    string `json:"execution_state"`
+	SupervisorAction  string `json:"supervisor_action"`
 	ContainmentResult string `json:"containment_result"`
-	Signature        string  `json:"signature"`
-	Hash             string  `json:"hash"`
-	PreviousHash     string  `json:"previous_hash"`
+	Signature         string `json:"signature"`
+	Hash              string `json:"hash"`
+	PreviousHash      string `json:"previous_hash"`
 }
 
 // ListViolations handles GET /v1/proof/violations?limit=500&sort=timestamp:desc
