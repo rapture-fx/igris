@@ -48,6 +48,7 @@ const navigation: NavigationItem[] = [
     icon: PlayCircle,
     children: [
       { name: 'Runs', href: '/execution/runs' },
+      { name: 'Tasks', href: '/execution/tasks' },
       { name: 'Agents', href: '/execution/agents' },
       { name: 'Approvals', href: '/execution/approvals' },
       { name: 'Shadow Mode', href: '/execution/shadow' },
@@ -182,7 +183,8 @@ export function Sidebar({ open = true, onClose }: SidebarProps) {
   // Build flat search index with rich keywords
   const searchIndex = [
     { title: 'Dashboard', path: '/dashboard', keywords: 'dashboard overview system stats home' },
-    { title: 'Execution › Runs', path: '/execution/runs', keywords: 'execution runs history tasks jobs' },
+    { title: 'Execution › Runs', path: '/execution/runs', keywords: 'execution runs history jobs receipts' },
+    { title: 'Execution › Tasks', path: '/execution/tasks', keywords: 'execution durable tasks runtime checkpoints wal receipts graph strategy' },
     { title: 'Execution › Agents', path: '/execution/agents', keywords: 'execution agents lifecycle bt behavior tree' },
     { title: 'Execution › Approvals', path: '/execution/approvals', keywords: 'execution approvals hitl human loop review pause' },
     { title: 'Execution › Shadow Mode', path: '/execution/shadow', keywords: 'execution shadow comparison divergence test' },
