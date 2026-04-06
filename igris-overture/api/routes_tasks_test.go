@@ -94,21 +94,28 @@ func TestBuildTaskResponseOmitsEmptyOptionalFields(t *testing.T) {
 	require.NotContains(t, resp, "execution_receipt")
 }
 
-func TestExtractProofRefs(t *testing.T) {
+func TestBuildTaskProofResponse(t *testing.T) {
 	t.Parallel()
 
-	executionID, expectedHash, ok := extractProofRefs(json.RawMessage(`{"execution_id":"exec-1","receipt_hash":"hash-1","signature":"sig"}`))
-	require.True(t, ok)
-	require.Equal(t, "exec-1", executionID)
-	require.Equal(t, "hash-1", expectedHash)
+	checkedAt := time.Unix(1_700_000_200, 0).UTC()
+	resp := buildTaskProofResponse(&coordinator.TaskProofState{
+		ExecutionID:  "exec-1",
+		ExpectedHash: "hash-expected",
+		StoredHash:   "hash-expected",
+		Signature:    "sig-proof",
+		Status:       "verified",
+		CheckedAt:    &checkedAt,
+	})
 
-	executionID, expectedHash, ok = extractProofRefs(json.RawMessage(`{"execution_id":"exec-2","hash":"hash-2"}`))
-	require.True(t, ok)
-	require.Equal(t, "exec-2", executionID)
-	require.Equal(t, "hash-2", expectedHash)
-
-	_, _, ok = extractProofRefs(json.RawMessage(`{"receipt_hash":"hash-only"}`))
-	require.False(t, ok)
+	require.Equal(t, "exec-1", resp["execution_id"])
+	require.Equal(t, "hash-expected", resp["expected_hash"])
+	require.Equal(t, "hash-expected", resp["stored_hash"])
+	require.Equal(t, "sig-proof", resp["signature"])
+	require.Equal(t, "verified", resp["status"])
+	require.Equal(t, true, resp["present"])
+	require.Equal(t, true, resp["matched"])
+	require.Equal(t, &checkedAt, resp["checked_at"])
+	require.Nil(t, buildTaskProofResponse(nil))
 }
 
 func TestBuildTaskResponseReturnsFiberMap(t *testing.T) {
