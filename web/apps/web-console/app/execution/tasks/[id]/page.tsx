@@ -1,8 +1,9 @@
 'use client';
 
-import { useMemo } from 'react';
+import { useMemo, useState } from 'react';
 import Link from 'next/link';
 import { useParams } from 'next/navigation';
+import { useMutation } from '@tanstack/react-query';
 import { DashboardLayout } from '@/components/layout/DashboardLayout';
 import { Button } from '@/components/ui/button';
 import { Card, CardContent, CardHeader, CardTitle } from '@/components/ui/card';
@@ -18,12 +19,16 @@ import {
 import {
   ArrowLeft,
   BrainCircuit,
+  CheckCircle2,
   Clock3,
   Network,
   ShieldCheck,
   Workflow,
+  XCircle,
 } from 'lucide-react';
 import { useTask, useTaskSteps } from '@/hooks/useTasks';
+import { api } from '@/lib/apiClient';
+import { useToast } from '@/components/ui/use-toast';
 import {
   CopyButton,
   ExecutionStatusBadge,
@@ -62,9 +67,53 @@ function InspectorStat({
 export default function ExecutionTaskInspectorPage() {
   const params = useParams<{ id: string }>();
   const taskId = decodeURIComponent(params?.id ?? '');
+  const { toast } = useToast();
+  const [verifyResult, setVerifyResult] = useState<null | boolean>(null);
 
   const { data: task, isLoading } = useTask(taskId || null);
   const { data: steps, isLoading: stepsLoading } = useTaskSteps(taskId || null);
+
+  const verifyMutation = useMutation({
+    mutationFn: async () => {
+      const receipt = task?.execution_receipt as Record<string, unknown> | undefined;
+      const executionId = typeof receipt?.execution_id === 'string' ? receipt.execution_id : '';
+      const expectedHash =
+        typeof receipt?.receipt_hash === 'string'
+          ? receipt.receipt_hash
+          : typeof receipt?.hash === 'string'
+            ? receipt.hash
+            : '';
+
+      if (!executionId) {
+        throw new Error('Task receipt is missing execution_id');
+      }
+
+      return api.post<{ valid: boolean; hash: string; signature: string }>(
+        '/proof/receipts/verify',
+        {
+          execution_id: executionId,
+          expected_hash: expectedHash,
+        },
+      );
+    },
+    onSuccess: (result) => {
+      setVerifyResult(result.valid);
+      toast({
+        title: result.valid ? 'Receipt verified' : 'Receipt mismatch',
+        description: result.valid
+          ? 'The stored proof receipt matches the task execution artifact.'
+          : 'The stored proof receipt did not match the expected hash.',
+      });
+    },
+    onError: (error: Error) => {
+      setVerifyResult(false);
+      toast({
+        variant: 'destructive',
+        title: 'Receipt verification failed',
+        description: error.message,
+      });
+    },
+  });
 
   const timelineEvents = useMemo(() => {
     if (!task) return [];
@@ -97,6 +146,24 @@ export default function ExecutionTaskInspectorPage() {
     }
 
     return events;
+  }, [task]);
+
+  const receiptSummary = useMemo(() => {
+    const receipt = task?.execution_receipt as Record<string, unknown> | undefined;
+    const envelope = task?.execution_envelope as Record<string, unknown> | undefined;
+    return {
+      executionId: typeof receipt?.execution_id === 'string' ? receipt.execution_id : '—',
+      receiptHash:
+        typeof receipt?.receipt_hash === 'string'
+          ? receipt.receipt_hash
+          : typeof receipt?.hash === 'string'
+            ? receipt.hash
+            : undefined,
+      receiptSignature:
+        typeof receipt?.signature === 'string' ? receipt.signature : undefined,
+      envelopeSignature:
+        typeof envelope?.signature === 'string' ? envelope.signature : undefined,
+    };
   }, [task]);
 
   return (
@@ -274,14 +341,88 @@ export default function ExecutionTaskInspectorPage() {
                         label: 'Receipt',
                         value: task.execution_receipt ? 'Available' : '—',
                       },
+                      {
+                        label: 'Proof Status',
+                        value: task.proof?.status ?? '—',
+                      },
+                      {
+                        label: 'Execution ID',
+                        value: task.proof?.execution_id ?? receiptSummary.executionId,
+                        mono: (task.proof?.execution_id ?? receiptSummary.executionId) !== '—',
+                        copyable:
+                          (task.proof?.execution_id ?? receiptSummary.executionId) !== '—'
+                            ? (task.proof?.execution_id ?? receiptSummary.executionId)
+                            : undefined,
+                      },
                     ]}
                   />
+                  <div className="flex items-center gap-3 flex-wrap">
+                    <Button
+                      variant="outline"
+                      size="sm"
+                      className="gap-1.5"
+                      disabled={!task.execution_receipt || verifyMutation.isPending}
+                      onClick={() => {
+                        setVerifyResult(null);
+                        verifyMutation.mutate();
+                      }}
+                    >
+                      <ShieldCheck className="h-3.5 w-3.5" />
+                      {verifyMutation.isPending ? 'Verifying…' : 'Verify receipt'}
+                    </Button>
+                    {verifyResult === true && (
+                      <span className="inline-flex items-center gap-1 text-xs text-green-700">
+                        <CheckCircle2 className="h-3.5 w-3.5 text-green-500" />
+                        Verified against proof store
+                      </span>
+                    )}
+                    {verifyResult === false && !verifyMutation.isPending && (
+                      <span className="inline-flex items-center gap-1 text-xs text-red-700">
+                        <XCircle className="h-3.5 w-3.5 text-red-500" />
+                        Verification failed
+                      </span>
+                    )}
+                  </div>
                   <div>
                     <p className="mb-2 text-xs font-medium uppercase tracking-[0.14em] text-gray-500">
                       Checkpoint Metadata
                     </p>
                     <JSONViewer data={task.checkpoint_metadata ?? {}} defaultOpen />
                   </div>
+                  <KeyValueGrid
+                    rows={[
+                      {
+                        label: 'Receipt Hash',
+                        value: receiptSummary.receiptHash ?? '—',
+                        mono: !!receiptSummary.receiptHash,
+                        copyable: receiptSummary.receiptHash,
+                      },
+                      {
+                        label: 'Proof Hash',
+                        value: task.proof?.stored_hash ?? '—',
+                        mono: !!task.proof?.stored_hash,
+                        copyable: task.proof?.stored_hash,
+                      },
+                      {
+                        label: 'Receipt Signature',
+                        value: receiptSummary.receiptSignature ?? '—',
+                        mono: !!receiptSummary.receiptSignature,
+                        copyable: receiptSummary.receiptSignature,
+                      },
+                      {
+                        label: 'Proof Signature',
+                        value: task.proof?.signature ?? '—',
+                        mono: !!task.proof?.signature,
+                        copyable: task.proof?.signature,
+                      },
+                      {
+                        label: 'Envelope Signature',
+                        value: receiptSummary.envelopeSignature ?? '—',
+                        mono: !!receiptSummary.envelopeSignature,
+                        copyable: receiptSummary.envelopeSignature,
+                      },
+                    ]}
+                  />
                   <div>
                     <p className="mb-2 text-xs font-medium uppercase tracking-[0.14em] text-gray-500">
                       Execution Envelope
