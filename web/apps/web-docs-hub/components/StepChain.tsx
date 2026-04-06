@@ -1,5 +1,3 @@
-'use client';
-
 interface Step {
   label: string;
   description?: string;
