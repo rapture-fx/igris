@@ -94,6 +94,23 @@ func TestBuildTaskResponseOmitsEmptyOptionalFields(t *testing.T) {
 	require.NotContains(t, resp, "execution_receipt")
 }
 
+func TestExtractProofRefs(t *testing.T) {
+	t.Parallel()
+
+	executionID, expectedHash, ok := extractProofRefs(json.RawMessage(`{"execution_id":"exec-1","receipt_hash":"hash-1","signature":"sig"}`))
+	require.True(t, ok)
+	require.Equal(t, "exec-1", executionID)
+	require.Equal(t, "hash-1", expectedHash)
+
+	executionID, expectedHash, ok = extractProofRefs(json.RawMessage(`{"execution_id":"exec-2","hash":"hash-2"}`))
+	require.True(t, ok)
+	require.Equal(t, "exec-2", executionID)
+	require.Equal(t, "hash-2", expectedHash)
+
+	_, _, ok = extractProofRefs(json.RawMessage(`{"receipt_hash":"hash-only"}`))
+	require.False(t, ok)
+}
+
 func TestBuildTaskResponseReturnsFiberMap(t *testing.T) {
 	t.Parallel()
 
