@@ -21,6 +21,33 @@ export interface StreamInferRequest {
   council_mode?: boolean;
 }
 
+export interface DurableTask {
+  task_id: string;
+  status: string;
+  task_type?: string;
+  runtime_id?: string;
+  created_at?: string;
+  dispatched_at?: string;
+  completed_at?: string;
+  deadline_at?: string;
+  last_step?: number;
+  checkpoint_digest?: string;
+  checkpoint_metadata?: unknown;
+  failure_reason?: string;
+  requested_mode?: string;
+  resolved_strategy?: string;
+  graph_blackboard?: unknown;
+  graph_nodes?: unknown;
+  graph_slots?: unknown;
+  execution_envelope?: unknown;
+  execution_receipt?: unknown;
+}
+
+export interface DurableTaskListResponse {
+  tasks: DurableTask[];
+  total: number;
+}
+
 export interface StreamChunkEvent {
   type: 'chunk';
   data: Record<string, unknown>;
@@ -103,6 +130,47 @@ class IgrisClient {
   
   async processData(_data: any) {
     return null;
+  }
+
+  private async request<T>(path: string): Promise<T> {
+    const response = await fetch(`${this.baseUrl}${path}`, {
+      method: 'GET',
+      headers: {
+        Accept: 'application/json',
+        ...(this.apiKey ? { Authorization: `Bearer ${this.apiKey}` } : {}),
+      },
+    });
+
+    if (!response.ok) {
+      let message = `request failed with status ${response.status}`;
+      try {
+        const payload = await response.json();
+        if (payload?.error?.message) {
+          message = payload.error.message;
+        } else if (payload?.message) {
+          message = payload.message;
+        }
+      } catch {}
+      throw new Error(message);
+    }
+
+    return (await response.json()) as T;
+  }
+
+  async getTask(taskId: string): Promise<DurableTask> {
+    return this.request<DurableTask>(`/v1/tasks/${encodeURIComponent(taskId)}`);
+  }
+
+  async listTasks(options: { limit?: number; status?: string } = {}): Promise<DurableTaskListResponse> {
+    const params = new URLSearchParams();
+    if (options.limit !== undefined) {
+      params.set('limit', String(options.limit));
+    }
+    if (options.status) {
+      params.set('status', options.status);
+    }
+    const query = params.toString();
+    return this.request<DurableTaskListResponse>(`/v1/tasks${query ? `?${query}` : ''}`);
   }
 
   async *streamInference(request: StreamInferRequest): AsyncGenerator<DurableStreamEvent> {
