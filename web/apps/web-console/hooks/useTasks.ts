@@ -25,6 +25,13 @@ export interface Task {
   checkpoint_digest?: string;
   checkpoint_metadata?: unknown;
   failure_reason?: string;
+  requested_mode?: string;
+  resolved_strategy?: string;
+  graph_blackboard?: unknown;
+  graph_nodes?: unknown;
+  graph_slots?: unknown;
+  execution_envelope?: unknown;
+  execution_receipt?: unknown;
 }
 
 export interface TaskListResponse {
