@@ -1,0 +1,179 @@
+---
+title: "Data Privacy"
+description: "Igris is designed with privacy as a core principle. This guide explains how your data is handled, stored, and protected across the platform."
+---
+
+# Data Privacy
+
+Igris is designed with privacy as a core principle. This guide explains how your data is handled, stored, and protected across the platform.
+
+---
+
+## Data We Collect
+
+### Account Data
+
+- Email address and account information
+- Subscription tier and billing history
+- API key metadata (prefix only — full keys are never stored after creation)
+
+### Execution Data
+
+- Request inputs (prompts, messages)
+- Model outputs and responses
+- Resource usage metrics (tokens, latency, cost)
+- Capability violations and enforcement actions
+- Signed execution receipts
+
+### Fleet Data
+
+- Runtime instance identifiers and registration details
+- Health metrics and telemetry
+- Configuration state
+- Topic mappings (for ROS2 integrations)
+
+### Provider Keys
+
+- Cloud provider API keys (encrypted at rest)
+- Key validation status and rotation history
+
+---
+
+## How We Handle Your Data
+
+### Data Storage
+
+- **Cloud API users**: Execution data is stored in our managed infrastructure with encryption at rest
+- **Edge/Offline users**: All data stays on your device. Nothing is transmitted to Igris servers unless you explicitly export it
+
+### Data Retention
+
+Execution records are retained according to your tier:
+
+| Tier | Retention Period |
+|---|---|
+| Seed | 7 days |
+| Horizon | 30 days |
+| Infinite | 90 days (customizable) |
+
+After the retention period expires, execution data is automatically purged.
+
+### Data Isolation
+
+All data is strictly scoped by tenant. Your data is never accessible to other tenants, and Igris staff cannot view your execution content without explicit authorization.
+
+---
+
+## Your Rights
+
+### Data Access
+
+You can access all data associated with your account at any time:
+- Export execution receipts via the API
+- Download your fleet configuration
+- View your complete audit log
+
+```bash
+curl "https://overture.igrisinertial.com/v1/receipts/export?range=30d" \
+  -H "Authorization: Bearer YOUR_API_KEY"
+```
+
+### Data Deletion
+
+You can request deletion of your account and all associated data:
+
+1. Navigate to **Settings → Account**
+2. Click **Delete Account**
+3. Confirm the deletion
+
+Account deletion is permanent and irreversible. All execution records, fleet data, and configuration will be removed within 30 days.
+
+### Data Portability
+
+You can export all your data in a structured format for migration to another system. Contact [support@igrisinertial.com](mailto:support@igrisinertial.com) for a full data export.
+
+---
+
+## Privacy by Deployment Mode
+
+### Cloud API Mode
+
+When using the cloud API:
+- Requests pass through the coordination layer for routing
+- Provider keys are encrypted at rest
+- Execution metadata is stored for the retention period
+- Prompt content is forwarded to the selected provider (OpenAI, Anthropic, etc.) and subject to their privacy policies
+
+### Edge / Offline Mode
+
+When running the runtime locally:
+- All data stays on your device
+- No data is transmitted to Igris servers
+- Provider keys (if any) are stored encrypted on the device
+- Execution receipts are stored locally
+- You control when and if data is exported
+
+### Hybrid Mode
+
+In hybrid mode:
+- Cloud requests follow the cloud API data handling described above
+- Local execution data stays on the device
+- Fleet telemetry (health metrics, not execution content) is sent to the coordination layer
+- You control what execution data is exported from edge devices
+
+---
+
+## Third-Party Data Sharing
+
+### Cloud Providers
+
+When Igris routes a request to a cloud provider (OpenAI, Anthropic, Google, etc.), your prompt content is sent to that provider for inference. This is subject to the provider's own privacy policy and terms of service. Igris does not share your data with providers beyond what is necessary for inference.
+
+### Billing
+
+Billing is processed by [Polar.sh](https://polar.sh). Payment information is handled directly by Polar and is not stored by Igris.
+
+### Analytics
+
+Igris collects anonymous usage analytics to improve the platform. This does not include prompt content, execution outputs, or any personally identifiable information.
+
+---
+
+## Compliance
+
+### GDPR
+
+Igris supports GDPR compliance requirements:
+- **Right to access**: Export all your data via the API or console
+- **Right to rectification**: Update your account information at any time
+- **Right to erasure**: Delete your account and all associated data
+- **Right to portability**: Export data in structured formats
+- **Data minimization**: We only collect data necessary for platform operation
+
+### Data Processing Agreement
+
+For enterprise customers, a Data Processing Agreement (DPA) is available. Contact [support@igrisinertial.com](mailto:support@igrisinertial.com) to request one.
+
+---
+
+## Security Measures
+
+See our [Security](/docs/security) guide for details on:
+- Encryption at rest and in transit
+- Access controls and tenant isolation
+- Audit logging and tamper evidence
+- Incident response procedures
+
+---
+
+## Contact
+
+For privacy-related questions or requests:
+- Email: [support@igrisinertial.com](mailto:support@igrisinertial.com)
+- Subject line: "Privacy Request — [your tenant ID]"
+
+We respond to privacy requests within 5 business days.
+
+---
+
+[Security →](/docs/security) · [Audit →](/docs/audit)
