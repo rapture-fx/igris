@@ -3,8 +3,10 @@ const path = require('path');
 
 const docsDir = path.join(__dirname, '../content/docs');
 const outputFile = path.join(__dirname, '../lib/search-index.json');
+const staticSearchFile = path.join(__dirname, '../public/search-static.json');
 const generatedApiFile = path.join(__dirname, '../lib/generated/api-reference.json');
 const generatedSdkFile = path.join(__dirname, '../lib/generated/sdk-support.json');
+const metaFile = path.join(__dirname, '../content/docs/meta.json');
 
 function slugify(value) {
   return value
@@ -13,9 +15,49 @@ function slugify(value) {
     .replace(/^-+|-+$/g, '');
 }
 
-function extractSearchIndex() {
+function buildBreadcrumbMap() {
+  if (!fs.existsSync(metaFile)) return {};
+
+  const meta = JSON.parse(fs.readFileSync(metaFile, 'utf-8'));
+  const breadcrumbs = {};
+  let currentSection = '';
+
+  for (const item of meta.pages || []) {
+    if (typeof item !== 'string') continue;
+
+    const separatorMatch = item.match(/^---(.+)---$/);
+    if (separatorMatch) {
+      currentSection = separatorMatch[1].trim();
+      continue;
+    }
+
+    breadcrumbs[item] = currentSection ? [currentSection] : [];
+  }
+
+  return breadcrumbs;
+}
+
+async function writeStaticSearchDatabase(index) {
+  const { createSearchAPI } = await import('fumadocs-core/search/server');
+  const searchApi = createSearchAPI('simple', {
+    indexes: index.map((entry) => ({
+      title: entry.title,
+      description: entry.description || '',
+      breadcrumbs: entry.breadcrumbs || [],
+      content: entry.content || entry.keywords || entry.title,
+      url: entry.path,
+      keywords: entry.keywords || '',
+    })),
+  });
+
+  const exported = await searchApi.export();
+  fs.writeFileSync(staticSearchFile, JSON.stringify(exported));
+}
+
+async function extractSearchIndex() {
   const files = fs.readdirSync(docsDir).filter(f => f.endsWith('.mdx'));
   const index = [];
+  const breadcrumbMap = buildBreadcrumbMap();
 
   const slugToTitle = {
     'index.mdx': 'Igris',
@@ -74,6 +116,7 @@ function extractSearchIndex() {
   function processFile(file, subdir) {
     const filePath = subdir ? path.join(docsDir, subdir, file) : path.join(docsDir, file);
     const slug = file.replace('.mdx', '');
+    const pageKey = subdir ? `${subdir}/${slug}` : slug;
     const content = fs.readFileSync(filePath, 'utf-8');
     const contentWithoutFrontmatter = content.replace(/^---[\s\S]*?---\n*/, '');
     const sanitizedContent = contentWithoutFrontmatter
@@ -115,6 +158,9 @@ function extractSearchIndex() {
     index.push({
       title,
       path: docPath,
+      description: firstPara,
+      content: `${headings} ${firstPara}`.trim(),
+      breadcrumbs: breadcrumbMap[pageKey] || [],
       keywords: keywords.slice(0, 500),
     });
   }
@@ -145,10 +191,38 @@ function extractSearchIndex() {
   if (fs.existsSync(generatedApiFile)) {
     const apiReference = JSON.parse(fs.readFileSync(generatedApiFile, 'utf-8'));
     index.push(
-      { title: 'API Introduction', path: '/docs/api-reference/introduction', keywords: 'api introduction base url surfaces overview contract'.toLowerCase() },
-      { title: 'API Authentication', path: '/docs/api-reference/authentication', keywords: 'api authentication bearer api key session cookie runtime auth'.toLowerCase() },
-      { title: 'API Errors', path: '/docs/api-reference/errors', keywords: 'api errors error codes invalid request unauthorized internal error'.toLowerCase() },
-      { title: 'API Rate Limits', path: '/docs/api-reference/rate-limits', keywords: 'api rate limits retry-after 429 throttle'.toLowerCase() }
+      {
+        title: 'API Introduction',
+        path: '/docs/api-reference/introduction',
+        description: 'Overview of the customer API contract.',
+        content: 'API introduction base URL surfaces overview contract',
+        breadcrumbs: ['API Reference'],
+        keywords: 'api introduction base url surfaces overview contract'.toLowerCase(),
+      },
+      {
+        title: 'API Authentication',
+        path: '/docs/api-reference/authentication',
+        description: 'Authentication models for cloud and local API use.',
+        content: 'API authentication bearer api key session cookie runtime auth',
+        breadcrumbs: ['API Reference'],
+        keywords: 'api authentication bearer api key session cookie runtime auth'.toLowerCase(),
+      },
+      {
+        title: 'API Errors',
+        path: '/docs/api-reference/errors',
+        description: 'Error handling and common response codes.',
+        content: 'API errors error codes invalid request unauthorized internal error',
+        breadcrumbs: ['API Reference'],
+        keywords: 'api errors error codes invalid request unauthorized internal error'.toLowerCase(),
+      },
+      {
+        title: 'API Rate Limits',
+        path: '/docs/api-reference/rate-limits',
+        description: 'Rate limit behavior and retry expectations.',
+        content: 'API rate limits retry-after 429 throttle',
+        breadcrumbs: ['API Reference'],
+        keywords: 'api rate limits retry-after 429 throttle'.toLowerCase(),
+      }
     );
     for (const section of apiReference.sections || []) {
       const sectionSlug = slugify(section.title);
@@ -157,6 +231,9 @@ function extractSearchIndex() {
         index.push({
           title: `${endpoint.method} ${endpoint.path}`,
           path: `/docs/api-reference/${sectionSlug}/${endpointSlug}`,
+          description: endpoint.description,
+          content: `${endpoint.method} ${endpoint.path} ${endpoint.description}`.trim(),
+          breadcrumbs: ['API Reference', section.title],
           keywords: `${section.title} ${endpoint.method} ${endpoint.path} ${endpoint.description} ${endpoint.auth} ${endpoint.surface}`.toLowerCase().slice(0, 500),
         });
       }
@@ -169,13 +246,21 @@ function extractSearchIndex() {
       index.push({
         title: `${row.language} SDK`,
         path: '/docs/sdk',
+        description: row.notes,
+        content: `${row.language} ${row.status} ${row.notes}`.trim(),
+        breadcrumbs: breadcrumbMap.sdk || ['Getting Started'],
         keywords: `${row.language} ${row.status} ${row.package} ${row.install} ${row.notes}`.toLowerCase().slice(0, 500),
       });
     }
   }
 
   fs.writeFileSync(outputFile, JSON.stringify(index, null, 2));
+  await writeStaticSearchDatabase(index);
   console.log(`Search index generated: ${index.length} entries → ${outputFile}`);
+  console.log(`Static search database generated → ${staticSearchFile}`);
 }
 
-extractSearchIndex();
+extractSearchIndex().catch((error) => {
+  console.error(error);
+  process.exit(1);
+});
