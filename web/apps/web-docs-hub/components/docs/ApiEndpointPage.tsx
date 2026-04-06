@@ -1,20 +1,15 @@
-'use client';
-
 import Link from 'next/link';
 import type { ReactNode } from 'react';
-import { useEffect, useMemo, useState } from 'react';
+import type { TOCItemType } from 'fumadocs-core/toc';
+import { Callout } from 'fumadocs-ui/components/callout';
+import { CodeBlock, Pre } from 'fumadocs-ui/components/codeblock';
+import { TypeTable } from 'fumadocs-ui/components/type-table';
 import { ApiCodeTabs } from '@/components/docs/ApiCodeTabs';
-import { cn } from '@/lib/utils';
 import type { ApiEndpointPageData, ApiField, ApiStatusCode } from '@/lib/api-reference';
 
 interface ApiEndpointPageProps {
   data: ApiEndpointPageData;
 }
-
-type EndpointAnchor = {
-  id: string;
-  label: string;
-};
 
 function AnchorSection({
   id,
@@ -37,29 +32,21 @@ function FieldList({ id, title, fields }: { id: string; title: string; fields: A
     return null;
   }
 
+  const typeMap = Object.fromEntries(
+    fields.map((field) => [
+      field.name,
+      {
+        type: field.type,
+        required: field.required,
+        description: field.description,
+      },
+    ])
+  );
+
   return (
-    <AnchorSection id={id} className="rounded-xl border border-gray-200 bg-white">
-      <div className="border-b border-gray-200 px-5 py-4">
+    <AnchorSection id={id} className="space-y-3 border-t border-gray-200 pt-8">
         <h2 className="m-0 text-lg font-semibold text-slate-900">{title}</h2>
-      </div>
-      <div className="divide-y divide-gray-200">
-        {fields.map((field) => (
-          <div key={field.name} className="grid gap-3 px-5 py-4 lg:grid-cols-[15rem_minmax(0,1fr)]">
-            <div>
-              <div className="flex flex-wrap items-center gap-2">
-                <code className="text-sm text-slate-900">{field.name}</code>
-                <span className="rounded-md bg-gray-100 px-2 py-1 text-xs text-gray-700">{field.type}</span>
-                {field.required && (
-                  <span className="rounded-md bg-amber-100 px-2 py-1 text-xs font-medium text-amber-800">
-                    Required
-                  </span>
-                )}
-              </div>
-            </div>
-            <p className="mb-0 text-sm leading-7 text-slate-700">{field.description}</p>
-          </div>
-        ))}
-      </div>
+      <TypeTable type={typeMap} />
     </AnchorSection>
   );
 }
@@ -123,42 +110,37 @@ function deploymentLabel(mode: ApiEndpointPageData['endpoint']['deployment']) {
 function StatusCodeList({ statusCodes }: { statusCodes: ApiStatusCode[] }) {
   if (statusCodes.length === 0) {
     return (
-      <div className="rounded-xl border border-gray-200 bg-white">
-        <div className="border-b border-gray-200 px-4 py-3">
-          <h3 className="m-0 text-sm font-semibold text-slate-900">Status Codes</h3>
-        </div>
-        <div className="px-4 py-4">
-          <p className="mb-0 text-sm leading-7 text-slate-700">
-            Status-code details for this endpoint are still being documented.
-          </p>
-        </div>
-      </div>
+      <Callout title="Status Codes" type="info">
+        <p>Status-code details for this endpoint are still being documented.</p>
+      </Callout>
     );
   }
 
   return (
-    <div className="rounded-xl border border-gray-200 bg-white">
-      <div className="border-b border-gray-200 px-4 py-3">
-        <h3 className="m-0 text-sm font-semibold text-slate-900">Status Codes</h3>
-      </div>
-      <div className="divide-y divide-gray-200">
+    <div className="space-y-3">
         {statusCodes.map((status) => (
-          <div key={status.code} className="px-4 py-3">
-            <div className="flex items-center gap-2">
-              <span className={cn('rounded-md px-2 py-1 text-xs font-semibold', statusBadgeClass(status.code))}>
-                {status.code}
+          <Callout
+            key={status.code}
+            title={
+              <span className="inline-flex items-center gap-2">
+                <span className={`inline-flex rounded-md px-2 py-0.5 text-xs font-semibold ${statusBadgeClass(status.code)}`}>
+                  {status.code}
+                </span>
+                <span>{status.title}</span>
               </span>
-              <span className="text-sm font-medium text-slate-900">{status.title}</span>
-            </div>
-            <p className="mb-0 mt-2 text-sm leading-7 text-slate-700">{status.description}</p>
-            {status.example && (
-              <pre className="mt-3 overflow-x-auto rounded-lg bg-[#f8f8f6] px-3 py-3 text-xs leading-6 text-slate-900">
-                <code>{status.example}</code>
-              </pre>
-            )}
-          </div>
+            }
+            type={status.code >= 500 ? 'error' : status.code === 429 ? 'warning' : 'info'}
+          >
+            <p>{status.description}</p>
+            {status.example ? (
+              <CodeBlock title="Example">
+                <Pre>
+                  <code>{status.example}</code>
+                </Pre>
+              </CodeBlock>
+            ) : null}
+          </Callout>
         ))}
-      </div>
     </div>
   );
 }
@@ -299,30 +281,28 @@ export function ApiEndpointPage({ data }: ApiEndpointPageProps) {
       <FieldList id="request-body" title="Request Body" fields={data.requestBodyFields} />
 
       {data.requestExample && (
-        <AnchorSection id="request-example" className="rounded-xl border border-gray-200 bg-white">
-          <div className="border-b border-gray-200 px-5 py-4">
+        <AnchorSection id="request-example" className="space-y-3 border-t border-gray-200 pt-8">
             <h2 className="m-0 text-lg font-semibold text-slate-900">Request Example</h2>
-          </div>
-          <pre className="m-0 overflow-x-auto bg-[#f8f8f6] px-5 py-4 text-xs leading-6 text-slate-900">
-            <code>{data.requestExample}</code>
-          </pre>
+          <CodeBlock title="JSON request">
+            <Pre>
+              <code>{data.requestExample}</code>
+            </Pre>
+          </CodeBlock>
         </AnchorSection>
       )}
 
       {requestExamplePending && (
-        <AnchorSection id="request-example" className="rounded-xl border border-dashed border-gray-300 bg-gray-50 px-5 py-4">
+        <AnchorSection id="request-example" className="space-y-3 border-t border-gray-200 pt-8">
           <h2 className="m-0 text-lg font-semibold text-slate-900">Request Example</h2>
-          <p className="mb-0 mt-2 text-sm leading-7 text-slate-700">
-            A runnable request body example is not available on this page yet.
-          </p>
+          <Callout title="Request example pending" type="info">
+            <p>A runnable request body example is not available on this page yet.</p>
+          </Callout>
         </AnchorSection>
       )}
 
       {data.notes.length > 0 && (
-        <AnchorSection id="notes" className="rounded-xl border border-gray-200 bg-white">
-          <div className="border-b border-gray-200 px-5 py-4">
+        <AnchorSection id="notes" className="space-y-3 border-t border-gray-200 pt-8">
             <h2 className="m-0 text-lg font-semibold text-slate-900">Notes</h2>
-          </div>
           <ul className="m-0 space-y-3 px-5 py-4">
             {data.notes.map((note) => (
               <li key={note} className="ml-5 text-sm leading-7 text-slate-700">
@@ -332,116 +312,62 @@ export function ApiEndpointPage({ data }: ApiEndpointPageProps) {
           </ul>
         </AnchorSection>
       )}
+
+      <AnchorSection id="code-examples" className="space-y-3 border-t border-gray-200 pt-8">
+        <h2 className="m-0 text-lg font-semibold text-slate-900">Code Examples</h2>
+        <ApiCodeTabs samples={data.codeSamples} />
+      </AnchorSection>
+
+      <AnchorSection id="sample-response" className="space-y-3 border-t border-gray-200 pt-8">
+        <h2 className="m-0 text-lg font-semibold text-slate-900">Sample Response</h2>
+        {data.responseExample ? (
+          <CodeBlock title="JSON response">
+            <Pre>
+              <code>{data.responseExample}</code>
+            </Pre>
+          </CodeBlock>
+        ) : (
+          <Callout title="Response example pending" type="info">
+            <p>A response example is not available on this page yet.</p>
+          </Callout>
+        )}
+      </AnchorSection>
+
+      <AnchorSection id="status-codes" className="space-y-3 border-t border-gray-200 pt-8">
+        <h2 className="m-0 text-lg font-semibold text-slate-900">Status Codes</h2>
+        <StatusCodeList statusCodes={data.statusCodes} />
+      </AnchorSection>
     </div>
   );
 }
 
-export function ApiEndpointRightRail({ data }: ApiEndpointPageProps) {
-  const anchors = useMemo<EndpointAnchor[]>(() => {
-    const items: EndpointAnchor[] = [{ id: 'overview', label: 'Overview' }];
+export function getApiEndpointToc(data: ApiEndpointPageData): TOCItemType[] {
+  const toc: TOCItemType[] = [
+    { title: 'Overview', url: '#overview', depth: 2 },
+    { title: 'When To Use', url: '#when-to-use', depth: 2 },
+    { title: 'Integration Guidance', url: '#integration-guidance', depth: 2 },
+  ];
 
-    items.push({ id: 'when-to-use', label: 'When To Use' });
-    items.push({ id: 'integration-guidance', label: 'Integration Guidance' });
-
-    if (data.pathParams.length > 0) {
-      items.push({ id: 'path-parameters', label: 'Path Parameters' });
-    }
-    if (data.queryParams.length > 0) {
-      items.push({ id: 'query-parameters', label: 'Query Parameters' });
-    }
-    if (data.requestBodyFields.length > 0) {
-      items.push({ id: 'request-body', label: 'Request Body' });
-    }
-    if (data.requestExample || data.requestBodyFields.length > 0) {
-      items.push({ id: 'request-example', label: 'Request Example' });
-    }
-    if (data.notes.length > 0) {
-      items.push({ id: 'notes', label: 'Notes' });
-    }
-
-    return items;
-  }, [data.notes.length, data.pathParams.length, data.queryParams.length, data.requestBodyFields.length, data.requestExample]);
-
-  const [activeAnchor, setActiveAnchor] = useState(anchors[0]?.id ?? 'overview');
-
-  useEffect(() => {
-    const elements = anchors
-      .map((anchor) => document.getElementById(anchor.id))
-      .filter((element): element is HTMLElement => Boolean(element));
-
-    if (elements.length === 0) {
-      return;
-    }
-
-    const observer = new IntersectionObserver(
-      (entries) => {
-        const visible = entries
-          .filter((entry) => entry.isIntersecting)
-          .sort((a, b) => a.boundingClientRect.top - b.boundingClientRect.top);
-
-        if (visible[0]?.target?.id) {
-          setActiveAnchor(visible[0].target.id);
-        }
-      },
-      { rootMargin: '-96px 0px -65%' }
-    );
-
-    elements.forEach((element) => observer.observe(element));
-    return () => observer.disconnect();
-  }, [anchors]);
-
-  return (
-    <div className="sticky top-6 space-y-4">
-      <div className="rounded-xl border border-gray-200 bg-white">
-        <div className="border-b border-gray-200 px-4 py-3">
-          <h3 className="m-0 text-sm font-semibold text-slate-900">On This Endpoint</h3>
-        </div>
-        <nav className="px-2 py-2">
-          <ul className="space-y-1">
-            {anchors.map((anchor) => (
-              <li key={anchor.id}>
-                <a
-                  href={`#${anchor.id}`}
-                  className={cn(
-                    'block rounded-lg px-3 py-2 text-sm transition-colors',
-                    activeAnchor === anchor.id
-                      ? 'bg-gray-100 font-medium text-slate-900'
-                      : 'text-slate-600 hover:bg-gray-50 hover:text-slate-900'
-                  )}
-                  onClick={(event) => {
-                    event.preventDefault();
-                    document.getElementById(anchor.id)?.scrollIntoView({ behavior: 'smooth', block: 'start' });
-                  }}
-                >
-                  {anchor.label}
-                </a>
-              </li>
-            ))}
-          </ul>
-        </nav>
-      </div>
-
-      <ApiCodeTabs samples={data.codeSamples} />
-
-      {data.responseExample ? (
-        <div className="rounded-xl border border-gray-200 bg-white overflow-hidden">
-          <div className="border-b border-gray-200 px-4 py-3">
-            <h3 className="m-0 text-sm font-semibold text-slate-900">Sample Response</h3>
-          </div>
-          <pre className="m-0 overflow-x-auto bg-[#f8f8f6] px-4 py-4 text-xs leading-6 text-slate-900">
-            <code>{data.responseExample}</code>
-          </pre>
-        </div>
-      ) : (
-        <div className="rounded-xl border border-dashed border-gray-300 bg-gray-50 px-4 py-4">
-          <h3 className="m-0 text-sm font-semibold text-slate-900">Sample Response</h3>
-          <p className="mb-0 mt-2 text-sm leading-7 text-slate-700">
-            A response example is not available on this page yet.
-          </p>
-        </div>
-      )}
-
-      <StatusCodeList statusCodes={data.statusCodes} />
-    </div>
+  if (data.pathParams.length > 0) {
+    toc.push({ title: 'Path Parameters', url: '#path-parameters', depth: 2 });
+  }
+  if (data.queryParams.length > 0) {
+    toc.push({ title: 'Query Parameters', url: '#query-parameters', depth: 2 });
+  }
+  if (data.requestBodyFields.length > 0) {
+    toc.push({ title: 'Request Body', url: '#request-body', depth: 2 });
+  }
+  if (data.requestExample || data.requestBodyFields.length > 0) {
+    toc.push({ title: 'Request Example', url: '#request-example', depth: 2 });
+  }
+  if (data.notes.length > 0) {
+    toc.push({ title: 'Notes', url: '#notes', depth: 2 });
+  }
+  toc.push(
+    { title: 'Code Examples', url: '#code-examples', depth: 2 },
+    { title: 'Sample Response', url: '#sample-response', depth: 2 },
+    { title: 'Status Codes', url: '#status-codes', depth: 2 }
   );
+
+  return toc;
 }
