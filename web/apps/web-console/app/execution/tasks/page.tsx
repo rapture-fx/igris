@@ -29,6 +29,7 @@ import {
   ExternalLink,
   Search,
   ShieldCheck,
+  Shield,
 } from 'lucide-react';
 import { useTask, useTasks, useTaskSteps } from '@/hooks/useTasks';
 import {
@@ -172,6 +173,7 @@ export default function ExecutionTasksPage() {
                       <TableHead>Type</TableHead>
                       <TableHead>Mode</TableHead>
                       <TableHead>Strategy</TableHead>
+                      <TableHead>Proof</TableHead>
                       <TableHead>Runtime</TableHead>
                       <TableHead>Updated</TableHead>
                       <TableHead className="text-right">Inspect</TableHead>
@@ -201,6 +203,36 @@ export default function ExecutionTasksPage() {
                         </TableCell>
                         <TableCell className="text-xs text-gray-700">
                           {task.resolved_strategy ?? '—'}
+                        </TableCell>
+                        <TableCell className="text-xs text-gray-700">
+                          {task.proof?.status === 'verified' ? (
+                            <span className="inline-flex items-center gap-1 rounded-full border border-green-200 bg-green-50 px-2 py-0.5 text-[10px] font-medium text-green-700">
+                              <Shield className="h-3 w-3" />
+                              Verified
+                            </span>
+                          ) : task.proof?.status === 'mismatch' ? (
+                            <span className="inline-flex items-center gap-1 rounded-full border border-red-200 bg-red-50 px-2 py-0.5 text-[10px] font-medium text-red-700">
+                              <Shield className="h-3 w-3" />
+                              Mismatch
+                            </span>
+                          ) : task.proof?.status === 'present' ? (
+                            <span className="inline-flex items-center gap-1 rounded-full border border-blue-200 bg-blue-50 px-2 py-0.5 text-[10px] font-medium text-blue-700">
+                              <Shield className="h-3 w-3" />
+                              Proof
+                            </span>
+                          ) : task.execution_receipt ? (
+                            <span className="inline-flex items-center gap-1 rounded-full border border-green-200 bg-green-50 px-2 py-0.5 text-[10px] font-medium text-green-700">
+                              <Shield className="h-3 w-3" />
+                              Signed
+                            </span>
+                          ) : task.execution_envelope ? (
+                            <span className="inline-flex items-center gap-1 rounded-full border border-blue-200 bg-blue-50 px-2 py-0.5 text-[10px] font-medium text-blue-700">
+                              <Shield className="h-3 w-3" />
+                              Envelope
+                            </span>
+                          ) : (
+                            '—'
+                          )}
                         </TableCell>
                         <TableCell className="font-mono text-xs text-gray-700">
                           {task.runtime_id ? truncateText(task.runtime_id, 18) : '—'}
