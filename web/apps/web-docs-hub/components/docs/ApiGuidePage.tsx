@@ -1,8 +1,7 @@
-'use client';
-
 import type { ReactNode } from 'react';
-import { useEffect, useState } from 'react';
-import { cn } from '@/lib/utils';
+import type { TOCItemType } from 'fumadocs-core/toc';
+import { Callout } from 'fumadocs-ui/components/callout';
+import { CodeBlock, Pre } from 'fumadocs-ui/components/codeblock';
 
 type GuideContent = {
   title: string;
@@ -429,113 +428,71 @@ export function ApiGuidePage({ slug }: { slug: string }) {
         <p className="mb-0 mt-3 text-[0.8125rem] leading-7 text-slate-700">{guide.summary}</p>
       </section>
       {guide.body}
+      {guide.railCode ? (
+        <section id="example-request" className="space-y-3 border-t border-gray-200 pt-8">
+          <h2 className="m-0 text-lg font-semibold text-slate-900">{guide.railTitle}</h2>
+          <CodeBlock title={guide.railTitle}>
+            <Pre>
+              <code>{guide.railCode}</code>
+            </Pre>
+          </CodeBlock>
+        </section>
+      ) : null}
+      {guide.railResponse ? (
+        <section id="example-response" className="space-y-3 border-t border-gray-200 pt-8">
+          <h2 className="m-0 text-lg font-semibold text-slate-900">Example JSON</h2>
+          <CodeBlock title="Response">
+            <Pre>
+              <code>{guide.railResponse}</code>
+            </Pre>
+          </CodeBlock>
+        </section>
+      ) : null}
+      {guide.railStatus ? (
+        <section id="common-status-codes" className="space-y-3 border-t border-gray-200 pt-8">
+          <h2 className="m-0 text-lg font-semibold text-slate-900">Common Status Codes</h2>
+          <div className="space-y-3">
+            {guide.railStatus.map((status) => (
+              <Callout
+                key={status.code}
+                title={
+                  <span className="inline-flex items-center gap-2">
+                    <span className={`inline-flex rounded-md px-2 py-0.5 text-xs font-semibold ${statusBadgeClass(status.code)}`}>
+                      {status.code}
+                    </span>
+                    <span>{status.title}</span>
+                  </span>
+                }
+                type={status.code >= 500 ? 'error' : status.code === 429 ? 'warning' : 'info'}
+              >
+                <p>{status.description}</p>
+              </Callout>
+            ))}
+          </div>
+        </section>
+      ) : null}
     </div>
   );
 }
 
-export function ApiGuideRightRail({ slug }: { slug: string }) {
+export function getApiGuideToc(slug: string): TOCItemType[] {
   const guide = guideContent[slug];
-  const [activeSection, setActiveSection] = useState(guide.sections[0]?.id ?? '');
 
-  useEffect(() => {
-    const elements = guide.sections
-      .map((section) => document.getElementById(section.id))
-      .filter((element): element is HTMLElement => Boolean(element));
+  const toc: TOCItemType[] = guide.sections.map((section) => ({
+    title: section.label,
+    url: `#${section.id}`,
+    depth: 2,
+  }));
 
-    if (elements.length === 0) {
-      return;
-    }
+  if (guide.railCode) {
+    toc.push({ title: guide.railTitle, url: '#example-request', depth: 2 });
+  }
+  if (guide.railResponse) {
+    toc.push({ title: 'Example JSON', url: '#example-response', depth: 2 });
+  }
+  if (guide.railStatus) {
+    toc.push({ title: 'Common Status Codes', url: '#common-status-codes', depth: 2 });
+  }
 
-    const observer = new IntersectionObserver(
-      (entries) => {
-        const visible = entries
-          .filter((entry) => entry.isIntersecting)
-          .sort((a, b) => a.boundingClientRect.top - b.boundingClientRect.top);
-
-        if (visible[0]?.target?.id) {
-          setActiveSection(visible[0].target.id);
-        }
-      },
-      { rootMargin: '-96px 0px -65%' }
-    );
-
-    elements.forEach((element) => observer.observe(element));
-    return () => observer.disconnect();
-  }, [guide.sections]);
-
-  return (
-    <div className="sticky top-6 space-y-4">
-      <div className="rounded-xl border border-gray-200 bg-white">
-        <div className="border-b border-gray-200 px-4 py-3">
-          <h3 className="m-0 text-sm font-semibold text-slate-900">On This Page</h3>
-        </div>
-        <nav className="px-2 py-2">
-          <ul className="space-y-1">
-            {guide.sections.map((section) => (
-              <li key={section.id}>
-                <a
-                  href={`#${section.id}`}
-                  className={cn(
-                    'block rounded-lg px-3 py-2 text-sm transition-colors',
-                    activeSection === section.id
-                      ? 'bg-gray-100 font-medium text-slate-900'
-                      : 'text-slate-600 hover:bg-gray-50 hover:text-slate-900'
-                  )}
-                  onClick={(event) => {
-                    event.preventDefault();
-                    document.getElementById(section.id)?.scrollIntoView({ behavior: 'smooth', block: 'start' });
-                  }}
-                >
-                  {section.label}
-                </a>
-              </li>
-            ))}
-          </ul>
-        </nav>
-      </div>
-
-      <div className="rounded-xl border border-gray-200 bg-white overflow-hidden">
-        <div className="border-b border-gray-200 px-4 py-3">
-          <h3 className="m-0 text-sm font-semibold text-slate-900">{guide.railTitle}</h3>
-        </div>
-        {guide.railCode && (
-          <pre className="m-0 overflow-x-auto bg-[#f8f8f6] px-4 py-4 text-xs leading-6 text-slate-900">
-            <code>{guide.railCode}</code>
-          </pre>
-        )}
-      </div>
-
-      {guide.railResponse && (
-        <div className="rounded-xl border border-gray-200 bg-white overflow-hidden">
-          <div className="border-b border-gray-200 px-4 py-3">
-            <h3 className="m-0 text-sm font-semibold text-slate-900">Example JSON</h3>
-          </div>
-          <pre className="m-0 overflow-x-auto bg-[#f8f8f6] px-4 py-4 text-xs leading-6 text-slate-900">
-            <code>{guide.railResponse}</code>
-          </pre>
-        </div>
-      )}
-
-      {guide.railStatus && (
-        <div className="rounded-xl border border-gray-200 bg-white">
-          <div className="border-b border-gray-200 px-4 py-3">
-            <h3 className="m-0 text-sm font-semibold text-slate-900">Status Codes</h3>
-          </div>
-          <div className="divide-y divide-gray-200">
-            {guide.railStatus.map((status) => (
-              <div key={status.code} className="px-4 py-3">
-                <div className="flex items-center gap-2">
-                  <span className={cn('rounded-md px-2 py-1 text-xs font-semibold', statusBadgeClass(status.code))}>
-                    {status.code}
-                  </span>
-                  <span className="text-sm font-medium text-slate-900">{status.title}</span>
-                </div>
-                <p className="mb-0 mt-2 text-sm leading-7 text-slate-700">{status.description}</p>
-              </div>
-            ))}
-          </div>
-        </div>
-      )}
-    </div>
-  );
+  return toc;
 }
