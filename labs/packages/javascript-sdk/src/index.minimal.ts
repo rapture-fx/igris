@@ -48,6 +48,7 @@ export interface DurableTask {
     stored_hash?: string;
     signature?: string;
     status?: 'missing' | 'present' | 'verified' | 'mismatch';
+    checked_at?: string;
     present?: boolean;
     matched?: boolean;
   };
