@@ -808,6 +808,12 @@ func buildTaskResponse(task *coordinator.TaskRecord) fiber.Map {
 	if task.FailureReason != nil && *task.FailureReason != "" {
 		resp["failure_reason"] = *task.FailureReason
 	}
+	if len(task.ExecutionEnvelope) > 0 {
+		resp["execution_envelope"] = task.ExecutionEnvelope
+	}
+	if len(task.ExecutionReceipt) > 0 {
+		resp["execution_receipt"] = task.ExecutionReceipt
+	}
 
 	if task.LastCheckpoint != nil {
 		resp["last_step"] = task.LastCheckpoint.ResumeToken.LastCommittedStep
