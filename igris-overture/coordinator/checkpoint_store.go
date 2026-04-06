@@ -33,6 +33,7 @@ type TaskRecord struct {
 	LastCheckpoint    *CheckpointPayload `json:"last_checkpoint,omitempty"`
 	ExecutionEnvelope json.RawMessage    `json:"execution_envelope,omitempty"`
 	ExecutionReceipt  json.RawMessage    `json:"execution_receipt,omitempty"`
+	Proof             *TaskProofState    `json:"proof,omitempty"`
 	IdempotencyKey    string             `json:"idempotency_key"`
 	FailureReason     *string            `json:"failure_reason,omitempty"`
 	DeadlineAt        *time.Time         `json:"deadline_at,omitempty"`
@@ -51,6 +52,15 @@ const (
 	TaskStatusFailed       TaskRecordStatus = "failed"
 	TaskStatusRecovering   TaskRecordStatus = "recovering"
 )
+
+type TaskProofState struct {
+	ExecutionID  string     `json:"execution_id,omitempty"`
+	ExpectedHash string     `json:"expected_hash,omitempty"`
+	StoredHash   string     `json:"stored_hash,omitempty"`
+	Signature    string     `json:"signature,omitempty"`
+	Status       string     `json:"status,omitempty"`
+	CheckedAt    *time.Time `json:"checked_at,omitempty"`
+}
 
 // ResumeToken mirrors igris_wal::ResumeToken exactly.
 // It is nested inside CheckpointPayload, matching the Rust JSON shape.
@@ -185,12 +195,101 @@ func (s *CheckpointStore) MarkFailed(taskID uuid.UUID, reason string) error {
 
 // SaveExecutionArtifacts persists signed runtime execution material on the task.
 func (s *CheckpointStore) SaveExecutionArtifacts(taskID uuid.UUID, executionEnvelope, executionReceipt json.RawMessage) error {
+	executionID, expectedHash, hasProofRefs := extractProofRefs(executionReceipt)
 	_, err := s.db.Exec(`
 		UPDATE task_records
 		SET execution_envelope = COALESCE($1, execution_envelope),
-		    execution_receipt = COALESCE($2, execution_receipt)
-		WHERE task_id = $3`,
-		nullRawJSON(executionEnvelope), nullRawJSON(executionReceipt), taskID,
+		    execution_receipt = COALESCE($2, execution_receipt),
+		    proof_execution_id = COALESCE($3, proof_execution_id),
+		    proof_expected_hash = COALESCE($4, proof_expected_hash),
+		    proof_stored_hash = CASE WHEN $5 THEN NULL ELSE proof_stored_hash END,
+		    proof_signature = CASE WHEN $5 THEN NULL ELSE proof_signature END,
+		    proof_status = CASE WHEN $5 THEN 'pending' ELSE proof_status END,
+		    proof_checked_at = CASE WHEN $5 THEN NULL ELSE proof_checked_at END
+		WHERE task_id = $6`,
+		nullRawJSON(executionEnvelope), nullRawJSON(executionReceipt), nullString(executionID), nullString(expectedHash), hasProofRefs, taskID,
+	)
+	return err
+}
+
+func (s *CheckpointStore) SyncTaskProofState(taskID uuid.UUID, tenantID string) (*TaskProofState, error) {
+	var executionID, expectedHash sql.NullString
+	if err := s.db.QueryRow(`
+		SELECT proof_execution_id, proof_expected_hash
+		FROM task_records
+		WHERE task_id = $1 AND tenant_id = $2`,
+		taskID, tenantID,
+	).Scan(&executionID, &expectedHash); err != nil {
+		return nil, err
+	}
+
+	if !executionID.Valid || executionID.String == "" {
+		return nil, nil
+	}
+
+	state := &TaskProofState{
+		ExecutionID:  executionID.String,
+		ExpectedHash: expectedHash.String,
+		Status:       "missing",
+	}
+	now := time.Now().UTC()
+	state.CheckedAt = &now
+
+	var storedHash, signature sql.NullString
+	err := s.db.QueryRow(`
+		SELECT receipt_hash, signature
+		FROM execution_lineage
+		WHERE execution_id = $1
+		  AND (tenant_id = $2 OR tenant_id IS NULL)`,
+		executionID.String, tenantID,
+	).Scan(&storedHash, &signature)
+	if err == sql.ErrNoRows {
+		if updateErr := s.updateTaskProofState(taskID, state); updateErr != nil {
+			return nil, updateErr
+		}
+		return state, nil
+	}
+	if err != nil {
+		return nil, err
+	}
+
+	state.StoredHash = storedHash.String
+	state.Signature = signature.String
+	switch {
+	case expectedHash.Valid && expectedHash.String != "" && storedHash.String == expectedHash.String:
+		state.Status = "verified"
+	case expectedHash.Valid && expectedHash.String != "":
+		state.Status = "mismatch"
+	default:
+		state.Status = "present"
+	}
+
+	if err := s.updateTaskProofState(taskID, state); err != nil {
+		return nil, err
+	}
+	return state, nil
+}
+
+func (s *CheckpointStore) updateTaskProofState(taskID uuid.UUID, proof *TaskProofState) error {
+	if proof == nil {
+		return nil
+	}
+	_, err := s.db.Exec(`
+		UPDATE task_records
+		SET proof_execution_id = $1,
+		    proof_expected_hash = $2,
+		    proof_stored_hash = $3,
+		    proof_signature = $4,
+		    proof_status = $5,
+		    proof_checked_at = $6
+		WHERE task_id = $7`,
+		nullString(proof.ExecutionID),
+		nullString(proof.ExpectedHash),
+		nullString(proof.StoredHash),
+		nullString(proof.Signature),
+		nullString(proof.Status),
+		proof.CheckedAt,
+		taskID,
 	)
 	return err
 }
@@ -224,7 +323,9 @@ func (s *CheckpointStore) MarkRecovering(runtimeID string) ([]uuid.UUID, error) 
 func (s *CheckpointStore) GetTask(taskID uuid.UUID, tenantID string) (*TaskRecord, error) {
 	row := s.db.QueryRow(`
 		SELECT task_id, tenant_id, status, runtime_id, runtime_endpoint,
-		       task_definition, last_checkpoint, execution_envelope, execution_receipt, idempotency_key, failure_reason,
+		       task_definition, last_checkpoint, execution_envelope, execution_receipt,
+		       proof_execution_id, proof_expected_hash, proof_stored_hash, proof_signature, proof_status, proof_checked_at,
+		       idempotency_key, failure_reason,
 		       deadline_at, dispatched_at, completed_at, created_at
 		FROM task_records
 		WHERE task_id = $1 AND tenant_id = $2`,
@@ -237,7 +338,9 @@ func (s *CheckpointStore) GetTask(taskID uuid.UUID, tenantID string) (*TaskRecor
 func (s *CheckpointStore) GetTaskByIdempotencyKey(tenantID, idempotencyKey string) (*TaskRecord, error) {
 	row := s.db.QueryRow(`
 		SELECT task_id, tenant_id, status, runtime_id, runtime_endpoint,
-		       task_definition, last_checkpoint, execution_envelope, execution_receipt, idempotency_key, failure_reason,
+		       task_definition, last_checkpoint, execution_envelope, execution_receipt,
+		       proof_execution_id, proof_expected_hash, proof_stored_hash, proof_signature, proof_status, proof_checked_at,
+		       idempotency_key, failure_reason,
 		       deadline_at, dispatched_at, completed_at, created_at
 		FROM task_records
 		WHERE tenant_id = $1 AND idempotency_key = $2`,
@@ -250,7 +353,9 @@ func (s *CheckpointStore) GetTaskByIdempotencyKey(tenantID, idempotencyKey strin
 func (s *CheckpointStore) GetTasksByTenant(tenantID string, limit int) ([]*TaskRecord, error) {
 	rows, err := s.db.Query(`
 		SELECT task_id, tenant_id, status, runtime_id, runtime_endpoint,
-		       task_definition, last_checkpoint, execution_envelope, execution_receipt, idempotency_key, failure_reason,
+		       task_definition, last_checkpoint, execution_envelope, execution_receipt,
+		       proof_execution_id, proof_expected_hash, proof_stored_hash, proof_signature, proof_status, proof_checked_at,
+		       idempotency_key, failure_reason,
 		       deadline_at, dispatched_at, completed_at, created_at
 		FROM task_records
 		WHERE tenant_id = $1
@@ -344,7 +449,9 @@ func (s *CheckpointStore) GetAllTaskSteps(taskID uuid.UUID) ([]WalEntry, error) 
 func (s *CheckpointStore) GetRecoveringTasks() ([]*TaskRecord, error) {
 	rows, err := s.db.Query(`
 		SELECT task_id, tenant_id, status, runtime_id, runtime_endpoint,
-		       task_definition, last_checkpoint, execution_envelope, execution_receipt, idempotency_key, failure_reason,
+		       task_definition, last_checkpoint, execution_envelope, execution_receipt,
+		       proof_execution_id, proof_expected_hash, proof_stored_hash, proof_signature, proof_status, proof_checked_at,
+		       idempotency_key, failure_reason,
 		       deadline_at, dispatched_at, completed_at, created_at
 		FROM task_records
 		WHERE status = 'recovering'
