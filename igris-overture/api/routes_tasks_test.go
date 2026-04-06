@@ -47,6 +47,8 @@ func TestBuildTaskResponseIncludesFailureReasonAndCheckpointMetadata(t *testing.
 				}
 			}`),
 		},
+		ExecutionEnvelope: json.RawMessage(`{"execution_id":"exec-1","provider":"openai","signature":"sig-env"}`),
+		ExecutionReceipt:  json.RawMessage(`{"execution_id":"exec-1","receipt_hash":"hash-1","signature":"sig-rcpt"}`),
 	}
 
 	resp := buildTaskResponse(task)
@@ -65,6 +67,8 @@ func TestBuildTaskResponseIncludesFailureReasonAndCheckpointMetadata(t *testing.
 	require.JSONEq(t, `{"last_node_id":"robotics-1","nodes":{"robotics-1":{"status":"canceled"}},"slots":{"robotics.robotics_1":{"status":"canceled"}}}`, string(resp["graph_blackboard"].(json.RawMessage)))
 	require.JSONEq(t, `{"robotics-1":{"status":"canceled"}}`, string(resp["graph_nodes"].(json.RawMessage)))
 	require.JSONEq(t, `{"robotics.robotics_1":{"status":"canceled"}}`, string(resp["graph_slots"].(json.RawMessage)))
+	require.JSONEq(t, `{"execution_id":"exec-1","provider":"openai","signature":"sig-env"}`, string(resp["execution_envelope"].(json.RawMessage)))
+	require.JSONEq(t, `{"execution_id":"exec-1","receipt_hash":"hash-1","signature":"sig-rcpt"}`, string(resp["execution_receipt"].(json.RawMessage)))
 }
 
 func TestBuildTaskResponseOmitsEmptyOptionalFields(t *testing.T) {
@@ -86,6 +90,8 @@ func TestBuildTaskResponseOmitsEmptyOptionalFields(t *testing.T) {
 	require.NotContains(t, resp, "last_step")
 	require.NotContains(t, resp, "checkpoint_digest")
 	require.NotContains(t, resp, "checkpoint_metadata")
+	require.NotContains(t, resp, "execution_envelope")
+	require.NotContains(t, resp, "execution_receipt")
 }
 
 func TestBuildTaskResponseReturnsFiberMap(t *testing.T) {
