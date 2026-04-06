@@ -484,9 +484,17 @@ func scanTaskRecord(row scanner) (*TaskRecord, error) {
 	var cpBytes []byte
 	var envelopeBytes []byte
 	var receiptBytes []byte
+	var proofExecutionID sql.NullString
+	var proofExpectedHash sql.NullString
+	var proofStoredHash sql.NullString
+	var proofSignature sql.NullString
+	var proofStatus sql.NullString
+	var proofCheckedAt sql.NullTime
 	err := row.Scan(
 		&t.TaskID, &t.TenantID, &t.Status, &t.RuntimeID, &t.RuntimeEndpoint,
-		&defBytes, &cpBytes, &envelopeBytes, &receiptBytes, &t.IdempotencyKey, &t.FailureReason,
+		&defBytes, &cpBytes, &envelopeBytes, &receiptBytes,
+		&proofExecutionID, &proofExpectedHash, &proofStoredHash, &proofSignature, &proofStatus, &proofCheckedAt,
+		&t.IdempotencyKey, &t.FailureReason,
 		&t.DeadlineAt, &t.DispatchedAt, &t.CompletedAt, &t.CreatedAt,
 	)
 	if err != nil {
@@ -505,6 +513,18 @@ func scanTaskRecord(row scanner) (*TaskRecord, error) {
 	if len(receiptBytes) > 0 {
 		t.ExecutionReceipt = receiptBytes
 	}
+	if proofExecutionID.Valid || proofExpectedHash.Valid || proofStoredHash.Valid || proofSignature.Valid || proofStatus.Valid || proofCheckedAt.Valid {
+		t.Proof = &TaskProofState{
+			ExecutionID:  proofExecutionID.String,
+			ExpectedHash: proofExpectedHash.String,
+			StoredHash:   proofStoredHash.String,
+			Signature:    proofSignature.String,
+			Status:       proofStatus.String,
+		}
+		if proofCheckedAt.Valid {
+			t.Proof.CheckedAt = &proofCheckedAt.Time
+		}
+	}
 	return &t, nil
 }
 
@@ -518,4 +538,33 @@ func nullRawJSON(raw json.RawMessage) any {
 		return nil
 	}
 	return raw
+}
+
+func nullString(value string) any {
+	if value == "" {
+		return nil
+	}
+	return value
+}
+
+func extractProofRefs(receipt json.RawMessage) (executionID, expectedHash string, ok bool) {
+	if len(receipt) == 0 {
+		return "", "", false
+	}
+
+	var payload struct {
+		ExecutionID string `json:"execution_id"`
+		ReceiptHash string `json:"receipt_hash"`
+		Hash        string `json:"hash"`
+	}
+	if err := json.Unmarshal(receipt, &payload); err != nil {
+		return "", "", false
+	}
+	if payload.ExecutionID == "" {
+		return "", "", false
+	}
+	if payload.ReceiptHash != "" {
+		return payload.ExecutionID, payload.ReceiptHash, true
+	}
+	return payload.ExecutionID, payload.Hash, true
 }
