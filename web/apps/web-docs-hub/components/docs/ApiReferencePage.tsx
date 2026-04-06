@@ -1,5 +1,7 @@
 import Link from 'next/link';
 import { ArrowRight } from 'lucide-react';
+import { Cards, Card } from 'fumadocs-ui/components/card';
+import type { TOCItemType } from 'fumadocs-core/toc';
 import { apiGuides, getApiNavigationSections, getApiSections, getApiEndpointHref, slugify } from '@/lib/api-reference';
 
 export function ApiReferencePage() {
@@ -86,21 +88,17 @@ export function ApiReferencePage() {
             that makes the rest of the API reference easier to use correctly.
           </p>
         </div>
-        <div className="divide-y divide-gray-200">
+        <Cards className="grid-cols-1 gap-0 p-0">
           {apiGuides.map((guide) => (
-            <Link
+            <Card
               key={guide.slug}
               href={guide.href}
-              className="flex items-start justify-between gap-4 px-6 py-4 no-underline transition-colors hover:bg-gray-50"
-            >
-              <div className="space-y-1">
-                <div className="text-sm font-semibold text-slate-900">{guide.title}</div>
-                <div className="text-sm leading-7 text-slate-700">{guide.summary}</div>
-              </div>
-              <ArrowRight className="mt-0.5 h-4 w-4 flex-shrink-0 text-gray-400" />
-            </Link>
+              title={guide.title}
+              description={guide.summary}
+              className="rounded-none border-0 border-t border-gray-200 first:border-t-0 shadow-none"
+            />
           ))}
-        </div>
+        </Cards>
       </section>
 
       {sections.map((section) => {
@@ -159,66 +157,16 @@ export function ApiReferencePage() {
   );
 }
 
-export function ApiReferenceRightRail() {
+export function getApiReferenceToc(): TOCItemType[] {
   const sections = getApiSections();
 
-  return (
-    <div className="sticky top-6 space-y-4">
-      <div className="rounded-xl border border-gray-200 bg-white">
-        <div className="border-b border-gray-200 px-4 py-3">
-          <h3 className="m-0 text-sm font-semibold text-slate-900">Guide Pages</h3>
-        </div>
-        <nav className="px-2 py-2">
-          <ul className="space-y-1">
-            <li>
-              <a
-                href="#overview"
-                className="block rounded-lg px-3 py-2 text-sm text-slate-700 transition-colors hover:bg-gray-50 hover:text-slate-900"
-              >
-                Overview
-              </a>
-            </li>
-            <li>
-              <a
-                href="#guides"
-                className="block rounded-lg px-3 py-2 text-sm text-slate-700 transition-colors hover:bg-gray-50 hover:text-slate-900"
-              >
-                Reference guides
-              </a>
-            </li>
-            {apiGuides.map((guide) => (
-              <li key={guide.slug}>
-                <Link
-                  href={guide.href}
-                  className="block rounded-lg px-3 py-2 text-sm text-slate-700 transition-colors hover:bg-gray-50 hover:text-slate-900"
-                >
-                  {guide.title}
-                </Link>
-              </li>
-            ))}
-          </ul>
-        </nav>
-      </div>
-
-      <div className="rounded-xl border border-gray-200 bg-white">
-        <div className="border-b border-gray-200 px-4 py-3">
-          <h3 className="m-0 text-sm font-semibold text-slate-900">Endpoint Groups</h3>
-        </div>
-        <nav className="max-h-[24rem] overflow-y-auto px-2 py-2">
-          <ul className="space-y-1">
-            {sections.map((section) => (
-              <li key={section.title}>
-                <a
-                  href={`#group-${slugify(section.title)}`}
-                  className="block rounded-lg px-3 py-2 text-sm text-slate-700 transition-colors hover:bg-gray-50 hover:text-slate-900"
-                >
-                  {section.title}
-                </a>
-              </li>
-            ))}
-          </ul>
-        </nav>
-      </div>
-    </div>
-  );
+  return [
+    { title: 'Overview', url: '#overview', depth: 2 },
+    { title: 'Reference guides', url: '#guides', depth: 2 },
+    ...sections.map((section) => ({
+      title: section.title,
+      url: `#group-${slugify(section.title)}`,
+      depth: 2,
+    })),
+  ];
 }
