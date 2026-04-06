@@ -104,9 +104,10 @@ func RegisterTaskRoutes(app *fiber.App, db *sql.DB, tc *coordinator.TaskCoordina
 	v1.Use(middleware.BetterAuth(db))
 
 	v1.Post("/submit", handleTaskSubmit(tc))
-	v1.Get("", handleListTasks(db, tc))
-	v1.Get("/:id", handleGetTask(db, tc))
+	v1.Get("", handleListTasks(tc))
+	v1.Get("/:id", handleGetTask(tc))
 	v1.Get("/:id/steps", handleGetTaskSteps(tc))
+	v1.Post("/:id/proof/verify", handleVerifyTaskProof(tc))
 
 	// These three are called by the runtime itself (internal).
 	// They use the same Clerk auth — the runtime forwards the tenant context.
@@ -699,7 +700,7 @@ func defaultGraphWriteSlot(domain string, stepIndex int, nodeID string) string {
 	return fmt.Sprintf("%s.step_%d", domain, stepIndex)
 }
 
-func handleGetTask(db *sql.DB, tc *coordinator.TaskCoordinator) fiber.Handler {
+func handleGetTask(tc *coordinator.TaskCoordinator) fiber.Handler {
 	return func(c *fiber.Ctx) error {
 		tenantID := middleware.GetClerkUserID(c)
 		if tenantID == "" {
@@ -719,11 +720,7 @@ func handleGetTask(db *sql.DB, tc *coordinator.TaskCoordinator) fiber.Handler {
 			return c.Status(http.StatusInternalServerError).JSON(fiber.Map{"error": "db_error"})
 		}
 
-		resp := buildTaskResponse(task)
-		if proof, err := resolveTaskProof(db, tenantID, task); err == nil && proof != nil {
-			resp["proof"] = proof
-		}
-		return c.JSON(resp)
+		return c.JSON(buildTaskResponse(task))
 	}
 }
 
@@ -767,7 +764,7 @@ func handleGetTaskSteps(tc *coordinator.TaskCoordinator) fiber.Handler {
 	}
 }
 
-func handleListTasks(db *sql.DB, tc *coordinator.TaskCoordinator) fiber.Handler {
+func handleListTasks(tc *coordinator.TaskCoordinator) fiber.Handler {
 	return func(c *fiber.Ctx) error {
 		tenantID := middleware.GetClerkUserID(c)
 		if tenantID == "" {
@@ -786,11 +783,7 @@ func handleListTasks(db *sql.DB, tc *coordinator.TaskCoordinator) fiber.Handler 
 
 		items := make([]fiber.Map, 0, len(tasks))
 		for _, t := range tasks {
-			resp := buildTaskResponse(t)
-			if proof, err := resolveTaskProof(db, tenantID, t); err == nil && proof != nil {
-				resp["proof"] = proof
-			}
-			items = append(items, resp)
+			items = append(items, buildTaskResponse(t))
 		}
 
 		return c.JSON(fiber.Map{"tasks": items, "total": len(items)})
@@ -822,6 +815,9 @@ func buildTaskResponse(task *coordinator.TaskRecord) fiber.Map {
 	if len(task.ExecutionReceipt) > 0 {
 		resp["execution_receipt"] = task.ExecutionReceipt
 	}
+	if proof := buildTaskProofResponse(task.Proof); proof != nil {
+		resp["proof"] = proof
+	}
 
 	if task.LastCheckpoint != nil {
 		resp["last_step"] = task.LastCheckpoint.ResumeToken.LastCommittedStep
@@ -851,67 +847,83 @@ func buildTaskResponse(task *coordinator.TaskRecord) fiber.Map {
 	return resp
 }
 
-func resolveTaskProof(db *sql.DB, tenantID string, task *coordinator.TaskRecord) (fiber.Map, error) {
-	executionID, expectedHash, ok := extractProofRefs(task.ExecutionReceipt)
-	if !ok {
-		return nil, nil
+func buildTaskProofResponse(proof *coordinator.TaskProofState) fiber.Map {
+	if proof == nil {
+		return nil
 	}
 
-	proof := fiber.Map{
-		"execution_id":  executionID,
-		"expected_hash": expectedHash,
-		"status":        "missing",
+	resp := fiber.Map{
+		"status": proof.Status,
 	}
-
-	var storedHash, signature string
-	err := db.QueryRow(`
-		SELECT receipt_hash, signature
-		FROM execution_lineage
-		WHERE execution_id = $1
-		  AND (tenant_id = $2 OR tenant_id IS NULL)
-	`, executionID, tenantID).Scan(&storedHash, &signature)
-	if err == sql.ErrNoRows {
-		return proof, nil
+	if proof.ExecutionID != "" {
+		resp["execution_id"] = proof.ExecutionID
 	}
-	if err != nil {
-		return nil, err
+	if proof.ExpectedHash != "" {
+		resp["expected_hash"] = proof.ExpectedHash
 	}
-
-	proof["stored_hash"] = storedHash
-	proof["signature"] = signature
-	proof["present"] = true
-	if expectedHash != "" && storedHash == expectedHash {
-		proof["status"] = "verified"
-		proof["matched"] = true
-	} else if expectedHash != "" {
-		proof["status"] = "mismatch"
-		proof["matched"] = false
-	} else {
-		proof["status"] = "present"
+	if proof.StoredHash != "" {
+		resp["stored_hash"] = proof.StoredHash
 	}
-	return proof, nil
+	if proof.Signature != "" {
+		resp["signature"] = proof.Signature
+	}
+	if proof.CheckedAt != nil {
+		resp["checked_at"] = proof.CheckedAt
+	}
+	if proof.Status == "verified" {
+		resp["present"] = true
+		resp["matched"] = true
+	} else if proof.Status == "mismatch" {
+		resp["present"] = true
+		resp["matched"] = false
+	} else if proof.Status == "present" {
+		resp["present"] = true
+	}
+	return resp
 }
 
-func extractProofRefs(receipt json.RawMessage) (executionID, expectedHash string, ok bool) {
-	if len(receipt) == 0 {
-		return "", "", false
-	}
+func handleVerifyTaskProof(tc *coordinator.TaskCoordinator) fiber.Handler {
+	return func(c *fiber.Ctx) error {
+		tenantID := middleware.GetClerkUserID(c)
+		if tenantID == "" {
+			return c.Status(http.StatusUnauthorized).JSON(fiber.Map{"error": "unauthenticated"})
+		}
 
-	var payload struct {
-		ExecutionID string `json:"execution_id"`
-		ReceiptHash string `json:"receipt_hash"`
-		Hash        string `json:"hash"`
+		taskID, err := uuid.Parse(c.Params("id"))
+		if err != nil {
+			return c.Status(http.StatusBadRequest).JSON(fiber.Map{"error": "invalid task_id"})
+		}
+
+		task, err := tc.Store().GetTask(taskID, tenantID)
+		if err == sql.ErrNoRows {
+			return c.Status(http.StatusNotFound).JSON(fiber.Map{"error": "task not found"})
+		}
+		if err != nil {
+			return c.Status(http.StatusInternalServerError).JSON(fiber.Map{"error": "db_error"})
+		}
+		if task.Proof == nil || task.Proof.ExecutionID == "" {
+			return c.Status(http.StatusBadRequest).JSON(fiber.Map{
+				"error":   "proof_unavailable",
+				"message": "task does not have a persisted proof reference",
+			})
+		}
+
+		proof, err := tc.Store().SyncTaskProofState(taskID, tenantID)
+		if err != nil {
+			return c.Status(http.StatusInternalServerError).JSON(fiber.Map{"error": "db_error"})
+		}
+		if proof == nil {
+			return c.Status(http.StatusBadRequest).JSON(fiber.Map{
+				"error":   "proof_unavailable",
+				"message": "task does not have a persisted proof reference",
+			})
+		}
+
+		return c.JSON(fiber.Map{
+			"task_id": taskID,
+			"proof":   buildTaskProofResponse(proof),
+		})
 	}
-	if err := json.Unmarshal(receipt, &payload); err != nil {
-		return "", "", false
-	}
-	if payload.ExecutionID == "" {
-		return "", "", false
-	}
-	if payload.ReceiptHash != "" {
-		return payload.ExecutionID, payload.ReceiptHash, true
-	}
-	return payload.ExecutionID, payload.Hash, true
 }
 
 func extractTaskType(taskDefinition json.RawMessage) string {
