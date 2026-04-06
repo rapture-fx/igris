@@ -1,7 +1,7 @@
 import React from 'react';
 import type { Metadata } from 'next';
+import { RootProvider } from 'fumadocs-ui/provider/next';
 import './globals.css';
-import { ThemeProvider } from '../src/components/providers/ThemeProvider';
 
 export const metadata: Metadata = {
   title: 'Igris Inertial Documentation',
@@ -21,17 +21,19 @@ export default function RootLayout({
   children: React.ReactNode;
 }) {
   return (
-    <html lang="en" className="m-0 p-0" suppressHydrationWarning>
-      <body className="font-inter antialiased m-0 p-0" suppressHydrationWarning>
-        <ThemeProvider
-          attribute="class"
-          defaultTheme="light"
-          enableSystem={false}
-          disableTransitionOnChange
-          storageKey="igris-theme"
+    <html lang="en" suppressHydrationWarning>
+      <body className="antialiased" suppressHydrationWarning>
+        <RootProvider
+          theme={{
+            enabled: true,
+            attribute: 'class',
+            defaultTheme: 'system',
+            enableSystem: true,
+            disableTransitionOnChange: true,
+          }}
         >
           {children}
-        </ThemeProvider>
+        </RootProvider>
       </body>
     </html>
   );
