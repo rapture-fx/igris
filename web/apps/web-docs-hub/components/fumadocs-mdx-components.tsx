@@ -1,17 +1,11 @@
-import { StepChain } from './StepChain';
-import { Info, Warning, Danger, Tip, Success } from './Callout';
-import { DiagramTabs } from './DiagramTabs';
+import { Callout } from 'fumadocs-ui/components/callout';
+import { Steps, Step } from 'fumadocs-ui/components/steps';
+import { Tabs, Tab } from 'fumadocs-ui/components/tabs';
 
-/**
- * MDX component map for Fumadocs-rendered pages.
- * Pass this to <MDX components={fumadocsMdxComponents} /> in docs pages.
- */
 export const fumadocsMdxComponents = {
-  StepChain,
-  DiagramTabs,
-  Info,
-  Warning,
-  Danger,
-  Tip,
-  Success,
+  Callout,
+  Steps,
+  Step,
+  Tabs,
+  Tab,
 };
