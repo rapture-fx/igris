@@ -75,32 +75,21 @@ export default function ExecutionTaskInspectorPage() {
 
   const verifyMutation = useMutation({
     mutationFn: async () => {
-      const receipt = task?.execution_receipt as Record<string, unknown> | undefined;
-      const executionId = typeof receipt?.execution_id === 'string' ? receipt.execution_id : '';
-      const expectedHash =
-        typeof receipt?.receipt_hash === 'string'
-          ? receipt.receipt_hash
-          : typeof receipt?.hash === 'string'
-            ? receipt.hash
-            : '';
-
-      if (!executionId) {
-        throw new Error('Task receipt is missing execution_id');
+      if (!taskId) {
+        throw new Error('Task id is required');
       }
-
-      return api.post<{ valid: boolean; hash: string; signature: string }>(
-        '/proof/receipts/verify',
-        {
-          execution_id: executionId,
-          expected_hash: expectedHash,
-        },
+      return api.post<{ proof?: { status?: string } }>(
+        `/v1/tasks/${encodeURIComponent(taskId)}/proof/verify`,
+        {},
       );
     },
     onSuccess: (result) => {
-      setVerifyResult(result.valid);
+      const status = result.proof?.status;
+      const valid = status === 'verified';
+      setVerifyResult(valid);
       toast({
-        title: result.valid ? 'Receipt verified' : 'Receipt mismatch',
-        description: result.valid
+        title: valid ? 'Receipt verified' : 'Receipt mismatch',
+        description: valid
           ? 'The stored proof receipt matches the task execution artifact.'
           : 'The stored proof receipt did not match the expected hash.',
       });
@@ -344,6 +333,10 @@ export default function ExecutionTaskInspectorPage() {
                       {
                         label: 'Proof Status',
                         value: task.proof?.status ?? '—',
+                      },
+                      {
+                        label: 'Proof Checked',
+                        value: task.proof?.checked_at ? formatDateTime(task.proof.checked_at) : '—',
                       },
                       {
                         label: 'Execution ID',
