@@ -1,0 +1,72 @@
+---
+title: "Key Management"
+description: "Igris stores provider keys in the vault used by the cloud coordination layer."
+---
+
+# Key Management
+
+Igris stores provider keys in the vault used by the cloud coordination layer.
+
+---
+
+## What The Current Public API Supports
+
+The current public vault handler accepts these provider identifiers:
+
+| Provider | Intended use |
+|---|---|
+| `openai` | Customer cloud traffic |
+| `anthropic` | Customer cloud traffic |
+| `benchmark` | Synthetic or test traffic |
+
+Do not assume broader provider coverage on the public vault API unless it is explicitly documented in the current contract.
+
+---
+
+## Add A Provider Key
+
+```bash
+curl -X POST https://overture.igrisinertial.com/v1/vault/keys \
+  -H "Authorization: Bearer YOUR_IGRIS_API_KEY" \
+  -H "Content-Type: application/json" \
+  -d '{
+    "provider": "openai",
+    "key_name": "production",
+    "api_key": "YOUR_OPENAI_KEY"
+  }'
+```
+
+Current request fields:
+
+| Field | Description |
+|---|---|
+| `provider` | Provider identifier such as `openai` |
+| `key_name` | Human-readable name for the key |
+| `api_key` | Provider secret to encrypt and store |
+
+---
+
+## Rotate, Validate, Remove
+
+Current routes:
+
+- `GET /v1/vault/keys`
+- `GET /v1/vault/keys/:provider`
+- `POST /v1/vault/keys/:provider/rotate`
+- `POST /v1/vault/keys/:provider/validate`
+- `DELETE /v1/vault/keys/:provider`
+
+The current response contract returns masked values only. Raw provider secrets are never returned after creation.
+
+---
+
+## Security Properties
+
+- Provider keys are encrypted before storage
+- Key operations are tenant-scoped
+- API responses expose masked key material only
+- Vault operations are available through authenticated control-plane APIs
+
+---
+
+[Cloud Coordination →](/docs/cloud-coordination) · [Security →](/docs/security) · [API Reference →](/docs/api-reference)
