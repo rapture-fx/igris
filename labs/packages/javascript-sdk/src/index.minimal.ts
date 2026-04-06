@@ -42,6 +42,15 @@ export interface DurableTask {
   graph_slots?: unknown;
   execution_envelope?: unknown;
   execution_receipt?: unknown;
+  proof?: {
+    execution_id?: string;
+    expected_hash?: string;
+    stored_hash?: string;
+    signature?: string;
+    status?: 'missing' | 'present' | 'verified' | 'mismatch';
+    present?: boolean;
+    matched?: boolean;
+  };
 }
 
 export interface DurableTaskListResponse {
