@@ -44,10 +44,12 @@ When the request is being executed through the durable Runtime task path, the st
 
 ```text
 event: task_result
-data: {"task_id":"018f4a2b-3c1e-7a2d-9b8f-4d5e6f7a8b9c","steps_completed":1,"steps_total":1,"status":"completed","checkpoint":{"resume_token":{"last_committed_step":0}},"usage":{"prompt_tokens":42,"completion_tokens":18,"total_tokens":60},"execution_envelope":{"execution_id":"exec-..."},"execution_receipt":{"transaction_id":"tx-..."}}
+data: {"task_id":"018f4a2b-3c1e-7a2d-9b8f-4d5e6f7a8b9c","steps_completed":1,"steps_total":1,"status":"completed","checkpoint":{"resume_token":{"last_committed_step":0}},"requested_mode":"quality","resolved_strategy":"provider_race_quality","usage":{"prompt_tokens":42,"completion_tokens":18,"total_tokens":60},"execution_envelope":{"execution_id":"exec-..."},"execution_receipt":{"transaction_id":"tx-..."}}
 ```
 
 Use that event when you need the final durable-task outcome, signed execution artifacts, or checkpoint metadata directly from the stream session.
+
+For agent durable runs, `task_result` also exposes the requested mode and the Runtime routing strategy that was actually applied.
 
 Current durable-streaming scope:
 
