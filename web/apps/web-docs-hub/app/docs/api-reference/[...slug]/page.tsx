@@ -3,8 +3,8 @@ import type { Metadata } from 'next';
 import { DocsLayout } from 'fumadocs-ui/layouts/docs';
 import { DocsBody, DocsPage } from 'fumadocs-ui/page';
 import { RootProvider } from 'fumadocs-ui/provider/next';
-import { ApiEndpointPage, ApiEndpointRightRail } from '@/components/docs/ApiEndpointPage';
-import { ApiGuidePage, ApiGuideRightRail } from '@/components/docs/ApiGuidePage';
+import { ApiEndpointPage, getApiEndpointToc } from '@/components/docs/ApiEndpointPage';
+import { ApiGuidePage, getApiGuideToc } from '@/components/docs/ApiGuidePage';
 import { ApiDocsSidebar } from '@/components/docs/ApiDocsSidebar';
 import { buildApiEndpointPageData } from '@/lib/api-reference-page-data';
 import { docsSearch } from '@/lib/docs-search';
@@ -73,9 +73,9 @@ export default async function ApiReferenceDetailPage({ params }: ApiReferenceDet
           sidebar={{ component: <ApiDocsSidebar />, enabled: true }}
         >
           <DocsPage
+            toc={getApiGuideToc(guide.slug)}
             breadcrumb={{ enabled: false }}
             footer={{ enabled: false }}
-            tableOfContent={{ enabled: true, component: <ApiGuideRightRail slug={guide.slug} /> }}
           >
             <DocsBody>
               <ApiGuidePage slug={guide.slug} />
@@ -102,10 +102,10 @@ export default async function ApiReferenceDetailPage({ params }: ApiReferenceDet
           sidebar={{ component: <ApiDocsSidebar />, enabled: true }}
         >
           <DocsPage
+            toc={getApiEndpointToc(data)}
             full
             breadcrumb={{ enabled: false }}
             footer={{ enabled: false }}
-            tableOfContent={{ enabled: true, component: <ApiEndpointRightRail data={data} /> }}
             article={{ className: 'max-w-none' }}
           >
             <DocsBody>
