@@ -3,7 +3,7 @@ import { DocsLayout } from 'fumadocs-ui/layouts/docs';
 import { DocsBody, DocsPage } from 'fumadocs-ui/page';
 import { RootProvider } from 'fumadocs-ui/provider/next';
 import { ApiDocsSidebar } from '@/components/docs/ApiDocsSidebar';
-import { ApiReferencePage, ApiReferenceRightRail } from '@/components/docs/ApiReferencePage';
+import { ApiReferencePage, getApiReferenceToc } from '@/components/docs/ApiReferencePage';
 import { docsSearch } from '@/lib/docs-search';
 import { source } from '@/lib/source';
 
@@ -21,9 +21,9 @@ export default function ApiReferenceIndexPage() {
         sidebar={{ component: <ApiDocsSidebar />, enabled: true }}
       >
         <DocsPage
+          toc={getApiReferenceToc()}
           breadcrumb={{ enabled: false }}
           footer={{ enabled: false }}
-          tableOfContent={{ enabled: true, component: <ApiReferenceRightRail /> }}
         >
           <DocsBody>
             <ApiReferencePage />
