@@ -104,8 +104,8 @@ func RegisterTaskRoutes(app *fiber.App, db *sql.DB, tc *coordinator.TaskCoordina
 	v1.Use(middleware.BetterAuth(db))
 
 	v1.Post("/submit", handleTaskSubmit(tc))
-	v1.Get("", handleListTasks(tc))
-	v1.Get("/:id", handleGetTask(tc))
+	v1.Get("", handleListTasks(db, tc))
+	v1.Get("/:id", handleGetTask(db, tc))
 	v1.Get("/:id/steps", handleGetTaskSteps(tc))
 
 	// These three are called by the runtime itself (internal).
@@ -699,7 +699,7 @@ func defaultGraphWriteSlot(domain string, stepIndex int, nodeID string) string {
 	return fmt.Sprintf("%s.step_%d", domain, stepIndex)
 }
 
-func handleGetTask(tc *coordinator.TaskCoordinator) fiber.Handler {
+func handleGetTask(db *sql.DB, tc *coordinator.TaskCoordinator) fiber.Handler {
 	return func(c *fiber.Ctx) error {
 		tenantID := middleware.GetClerkUserID(c)
 		if tenantID == "" {
@@ -719,7 +719,11 @@ func handleGetTask(tc *coordinator.TaskCoordinator) fiber.Handler {
 			return c.Status(http.StatusInternalServerError).JSON(fiber.Map{"error": "db_error"})
 		}
 
-		return c.JSON(buildTaskResponse(task))
+		resp := buildTaskResponse(task)
+		if proof, err := resolveTaskProof(db, tenantID, task); err == nil && proof != nil {
+			resp["proof"] = proof
+		}
+		return c.JSON(resp)
 	}
 }
 
@@ -763,7 +767,7 @@ func handleGetTaskSteps(tc *coordinator.TaskCoordinator) fiber.Handler {
 	}
 }
 
-func handleListTasks(tc *coordinator.TaskCoordinator) fiber.Handler {
+func handleListTasks(db *sql.DB, tc *coordinator.TaskCoordinator) fiber.Handler {
 	return func(c *fiber.Ctx) error {
 		tenantID := middleware.GetClerkUserID(c)
 		if tenantID == "" {
@@ -782,7 +786,11 @@ func handleListTasks(tc *coordinator.TaskCoordinator) fiber.Handler {
 
 		items := make([]fiber.Map, 0, len(tasks))
 		for _, t := range tasks {
-			items = append(items, buildTaskResponse(t))
+			resp := buildTaskResponse(t)
+			if proof, err := resolveTaskProof(db, tenantID, t); err == nil && proof != nil {
+				resp["proof"] = proof
+			}
+			items = append(items, resp)
 		}
 
 		return c.JSON(fiber.Map{"tasks": items, "total": len(items)})
@@ -841,6 +849,69 @@ func buildTaskResponse(task *coordinator.TaskRecord) fiber.Map {
 	}
 
 	return resp
+}
+
+func resolveTaskProof(db *sql.DB, tenantID string, task *coordinator.TaskRecord) (fiber.Map, error) {
+	executionID, expectedHash, ok := extractProofRefs(task.ExecutionReceipt)
+	if !ok {
+		return nil, nil
+	}
+
+	proof := fiber.Map{
+		"execution_id":  executionID,
+		"expected_hash": expectedHash,
+		"status":        "missing",
+	}
+
+	var storedHash, signature string
+	err := db.QueryRow(`
+		SELECT receipt_hash, signature
+		FROM execution_lineage
+		WHERE execution_id = $1
+		  AND (tenant_id = $2 OR tenant_id IS NULL)
+	`, executionID, tenantID).Scan(&storedHash, &signature)
+	if err == sql.ErrNoRows {
+		return proof, nil
+	}
+	if err != nil {
+		return nil, err
+	}
+
+	proof["stored_hash"] = storedHash
+	proof["signature"] = signature
+	proof["present"] = true
+	if expectedHash != "" && storedHash == expectedHash {
+		proof["status"] = "verified"
+		proof["matched"] = true
+	} else if expectedHash != "" {
+		proof["status"] = "mismatch"
+		proof["matched"] = false
+	} else {
+		proof["status"] = "present"
+	}
+	return proof, nil
+}
+
+func extractProofRefs(receipt json.RawMessage) (executionID, expectedHash string, ok bool) {
+	if len(receipt) == 0 {
+		return "", "", false
+	}
+
+	var payload struct {
+		ExecutionID string `json:"execution_id"`
+		ReceiptHash string `json:"receipt_hash"`
+		Hash        string `json:"hash"`
+	}
+	if err := json.Unmarshal(receipt, &payload); err != nil {
+		return "", "", false
+	}
+	if payload.ExecutionID == "" {
+		return "", "", false
+	}
+	if payload.ReceiptHash != "" {
+		return payload.ExecutionID, payload.ReceiptHash, true
+	}
+	return payload.ExecutionID, payload.Hash, true
 }
 
 func extractTaskType(taskDefinition json.RawMessage) string {
