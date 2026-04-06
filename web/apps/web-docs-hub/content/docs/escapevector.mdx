@@ -1,0 +1,123 @@
+---
+title: "Routing Engine"
+description: "The routing engine is Igris's provider selection system. It combines circuit-breaker logic and real-time provider health monitoring to make optimal routing decisions for every infe"
+---
+
+# Routing Engine
+
+The routing engine is Igris's provider selection system. It combines circuit-breaker logic and real-time provider health monitoring to make optimal routing decisions for every inference request.
+
+---
+
+## What It Is
+
+The routing engine is the core decision layer that powers Igris's multi-provider inference coordination. It evaluates available providers, their current health and performance characteristics, and selects the optimal provider for each request.
+
+```
+Request → Routing Engine → Provider Selection → Inference
+```
+
+The routing engine runs:
+- **In the cloud** — as part of the coordination layer, routing requests across your provider pool
+- **On edge devices** — embedded in the Runtime binary, making local routing decisions when multiple models or providers are available
+
+---
+
+## How It Works
+
+The routing engine continuously tracks performance metrics for each configured provider:
+
+| Metric | Description |
+|---|---|
+| **Latency** | p50 and p95 response times with exponential decay weighting |
+| **Success rate** | Fraction of requests returning valid responses |
+| **Cost** | Per-token cost based on provider pricing |
+| **Availability** | Current health status from continuous monitoring |
+
+On each request, the engine evaluates these metrics against your routing strategy to select the best provider.
+
+---
+
+## Routing Strategies
+
+### Adaptive (Default)
+
+The default routing strategy automatically balances exploration (trying providers to keep statistics fresh) with exploitation (using the best-known provider). Traffic adapts in real time — a provider that degrades sees its traffic share drop automatically. When it recovers, traffic gradually returns.
+
+### Cost-Optimized
+
+Routes requests to minimize cost per token while maintaining acceptable quality. Useful for high-volume, cost-sensitive workloads.
+
+### Latency-Optimized
+
+Routes requests to minimize response time. Useful for interactive applications where speed is the primary concern.
+
+### Strategy Configuration
+
+```json
+{
+  "routing": {
+    "strategy": "thompson-sampling",
+    "fallback_chain": ["anthropic", "openai", "local"]
+  }
+}
+```
+
+[Cloud Coordination →](/docs/cloud-coordination)
+
+---
+
+## Circuit Breaker
+
+The circuit breaker protects against cascading failures when a provider degrades:
+
+```
+                    ┌──────────┐
+     Success ──────►│  CLOSED  │────── Requests flow normally
+                    └────┬─────┘
+                         │ consecutive failures >= threshold
+                    ┌────▼─────┐
+                    │   OPEN   │────── Requests diverted to next provider
+                    └────┬─────┘
+                         │ recovery timeout elapsed
+                    ┌────▼─────┐
+     Success ──────►│ HALF-OPEN│────── Test request to verify recovery
+                    └──────────┘
+```
+
+**Circuit breaker states:**
+
+| State | Behavior |
+|---|---|
+| **Closed** | Provider is healthy. Requests flow normally. |
+| **Open** | Provider has exceeded the failure threshold. Requests are diverted to the next provider in the fallback chain. |
+| **Half-Open** | Testing whether the provider has recovered. A single test request is sent; success closes the circuit, failure reopens it. |
+
+**Configuration:**
+```json
+{
+  "circuit_breaker": {
+    "failure_threshold": 5,
+    "success_threshold": 3,
+    "timeout_seconds": 30,
+    "half_open_max_requests": 1
+  }
+}
+```
+
+[Circuit Breaker →](/docs/circuit-breaker)
+
+---
+
+## Console Integration
+
+The Console at `/models/routing` displays the live routing engine status:
+
+- **Engine status** — loaded and operational
+- **Benchmark results** — routing decision latency across providers
+- **Provider weights** — visual weight bars showing routing probability
+- **Circuit breaker states** — per-provider open/closed/half-open status
+
+---
+
+[Cloud Coordination →](/docs/cloud-coordination) · [Provider Health →](/docs/provider-health) · [SDK →](/docs/sdk)
