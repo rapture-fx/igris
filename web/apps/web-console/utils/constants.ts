@@ -148,6 +148,7 @@ export const ROUTES = {
 
   // Execution
   EXECUTION_RUNS: '/execution/runs',
+  EXECUTION_TASKS: '/execution/tasks',
   EXECUTION_AGENTS: '/execution/agents',
 
   // Fleet
