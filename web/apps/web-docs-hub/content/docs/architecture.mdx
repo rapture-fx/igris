@@ -3,6 +3,10 @@ title: "Architecture"
 description: "Igris is a governed execution system built from two production components: the Coordination Layer (cloud API gateway) and the Runtime (edge engine). Both share the same governance "
 ---
 
+import { Callout } from 'fumadocs-ui/components/callout';
+import { Steps, Step } from 'fumadocs-ui/components/steps';
+import { Tabs, Tab } from 'fumadocs-ui/components/tabs';
+
 # Architecture
 
 Igris is a governed execution system built from two production components: the **Coordination Layer** (cloud API gateway) and the **Runtime** (edge engine). Both share the same governance model, trust chain, and OpenAI-compatible API surface.
@@ -11,9 +15,29 @@ Igris is a governed execution system built from two production components: the *
 
 ## System Overview
 
-<DiagramTabs chart={`
+<Tabs items={['Operational view', 'Mermaid source']}>
+  <Tab>
+    <Callout title="How to read this system" type="info">
+      Igris is one product with two execution surfaces. Applications usually call the hosted control
+      plane first. That layer decides whether work stays on cloud providers or is handed off to a
+      local runtime.
+    </Callout>
+
+    | Layer | Responsibility |
+    |---|---|
+    | **Application** | Calls the OpenAI-compatible API exposed by Igris |
+    | **Coordination Layer** | Handles routing, provider policy, circuit breaking, SLO enforcement, billing, and fleet control |
+    | **Cloud Providers** | Execute hosted inference when the policy chooses a cloud path |
+    | **Runtime** | Executes local inference, tools, behavior trees, receipts, and MCP-aware work on edge or robotics hardware |
+
+    The coordination layer and the runtime stay connected through registration, heartbeat, config
+    distribution, and hybrid fallback paths. That gives you one operational contract even when work
+    moves between cloud and local execution.
+  </Tab>
+  <Tab>
+```mermaid
 graph TD
-    App["Your Application\\n(OpenAI-compatible SDK)"]
+    App["Your Application\n(OpenAI-compatible SDK)"]
     App -->|"POST /v1/chat/completions"| Coordination
 
     subgraph Coordination["Coordination Layer (Cloud Gateway)"]
@@ -22,7 +46,7 @@ graph TD
         PS["Provider Selection"]
         CA["Routing Advisor"]
         SLO["SLO Enforcer"]
-        Vault["Key Vault\\n(Encrypted Storage)"]
+        Vault["Key Vault\n(Encrypted Storage)"]
         Router --> PS
         CB --> PS
         CA -.->|"recommendations"| Router
@@ -33,11 +57,11 @@ graph TD
     PS -->|"hybrid fallback"| Runtime
 
     subgraph Runtime["Igris Runtime (Edge)"]
-        Server["HTTP Server\\n(OpenAI-compatible API)"]
-        LLM["Local LLM\\n(GGUF models)"]
+        Server["HTTP Server\n(OpenAI-compatible API)"]
+        LLM["Local LLM\n(GGUF models)"]
         BT["Behavior Tree Engine"]
-        Tools["Tool Sandbox\\n(HTTP, Shell, FS)"]
-        Receipts["Signed Receipts\\n(cryptographic chain)"]
+        Tools["Tool Sandbox\n(HTTP, Shell, FS)"]
+        Receipts["Signed Receipts\n(cryptographic chain)"]
         MCP["MCP Server/Client"]
         Server --> LLM
         Server --> BT
@@ -46,8 +70,10 @@ graph TD
         Server --> MCP
     end
 
-    Coordination <-->|"HTTPS REST\\nregister / heartbeat / config"| Runtime
-`} />
+    Coordination <-->|"HTTPS REST\nregister / heartbeat / config"| Runtime
+```
+  </Tab>
+</Tabs>
 
 ---
 
@@ -117,13 +143,23 @@ The Runtime is a single binary that provides a local OpenAI-compatible API with 
 
 Every execution in Igris is traceable from API call to signed receipt:
 
-<StepChain steps={[
-  { label: "Application Request", description: "Initiates with a unique request ID and tenant context" },
-  { label: "Coordination Layer", description: "Adaptive Router selects provider, applies SLO and circuit breaker checks" },
-  { label: "Execution (Cloud or Edge)", description: "Provider returns response; Runtime applies capability gates and tool sandbox if local" },
-  { label: "Signed Receipt", description: "Ed25519 signature over canonical envelope — inputs, outputs, timing, resource usage, violations" },
-  { label: "Audit Trail", description: "Hash-chained receipts queryable via API, exportable for compliance, tamper-evident" }
-]} />
+<Steps>
+  <Step>
+    **Application Request.** The request starts with a unique request ID and tenant context.
+  </Step>
+  <Step>
+    **Coordination Layer.** The router selects a provider path and applies SLO and circuit-breaker checks.
+  </Step>
+  <Step>
+    **Execution.** The selected cloud provider or local runtime executes the request under the applicable capability and safety rules.
+  </Step>
+  <Step>
+    **Signed Receipt.** Igris records the canonical envelope: inputs, outputs, timing, resource use, and any violations.
+  </Step>
+  <Step>
+    **Audit Trail.** Receipts are hash-chained, queryable, exportable, and tamper-evident.
+  </Step>
+</Steps>
 
 Each receipt links to the previous via hash chain. Signatures use device-bound keys that cannot be regenerated without the signing key.
 
