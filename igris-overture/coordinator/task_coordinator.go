@@ -279,6 +279,8 @@ func (tc *TaskCoordinator) dispatchToRuntime(ctx context.Context, task *TaskReco
 	if len(result.ExecutionEnvelope) > 0 || len(result.ExecutionReceipt) > 0 {
 		if err := tc.store.SaveExecutionArtifacts(task.TaskID, result.ExecutionEnvelope, result.ExecutionReceipt); err != nil {
 			log.Error().Err(err).Str("task_id", task.TaskID.String()).Msg("[Coordinator] Save execution artifacts")
+		} else if _, err := tc.store.SyncTaskProofState(task.TaskID, task.TenantID); err != nil && err != sql.ErrNoRows {
+			log.Warn().Err(err).Str("task_id", task.TaskID.String()).Msg("[Coordinator] Initial proof sync")
 		}
 	}
 
