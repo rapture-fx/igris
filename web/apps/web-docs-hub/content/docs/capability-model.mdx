@@ -1,0 +1,84 @@
+---
+title: "Capabilities & Limits"
+description: "The execution engine enforces a capability model: every execution runs with an explicit set of permissions. If an agent tries to do something outside those permissions, the operati"
+---
+
+# Capabilities & Limits
+
+The execution engine enforces a capability model: every execution runs with an explicit set of permissions. If an agent tries to do something outside those permissions, the operation is blocked before it executes and the violation is recorded in the signed receipt.
+
+---
+
+## Capability Fields
+
+| Capability | Type | Description |
+|---|---|---|
+| `allow_http` | bool | Allow outbound HTTP requests |
+| `allowed_http_domains` | string[] | Allowlist of domains for HTTP calls |
+| `allow_shell` | bool | Allow shell command execution |
+| `allow_filesystem` | bool | Allow filesystem read/write |
+| `max_file_write_bytes` | int | Maximum bytes the execution may write |
+
+---
+
+## Configuration
+
+Set capability limits in your `config.json5`:
+
+```json5
+{
+  capabilities: {
+    allow_http: true,
+    allowed_http_domains: ["api.openweathermap.org", "api.github.com"],
+    allow_shell: false,
+    allow_filesystem: true,
+    max_file_write_bytes: 1048576  // 1 MB
+  }
+}
+```
+
+Capabilities can also be set per-request via the `X-Igris-Capabilities` header for tenants with override permission.
+
+---
+
+## Enforcement Points
+
+**HTTP tool calls** — before each outbound request, the engine checks `allow_http` and that the target domain is in `allowed_http_domains`. Blocked calls produce a `HttpDomainNotAllowed` violation.
+
+**Shell commands** — if `allow_shell` is false and an agent attempts a shell invocation, the call is rejected with a `ShellNotAllowed` violation before the command is spawned.
+
+**Filesystem operations** — write operations are counted against `max_file_write_bytes`. Reads beyond the allowed path prefix produce a `FilesystemNotAllowed` violation.
+
+---
+
+## Violation Records
+
+Every blocked operation is recorded as a violation in the execution receipt:
+
+```json
+{
+  "capability_violations": [
+    {
+      "kind": "HttpDomainNotAllowed",
+      "detail": "Domain 'evil.com' not in allowed_http_domains",
+      "timestamp": "2026-03-01T12:00:01Z"
+    }
+  ]
+}
+```
+
+Violation records are included in the signed receipt and cannot be removed or suppressed. Compliance auditors can verify that policy enforcement was applied to every execution.
+
+---
+
+## Violation Types
+
+| Kind | Trigger |
+|---|---|
+| `HttpNotAllowed` | HTTP tool called but `allow_http` is false |
+| `HttpDomainNotAllowed` | Domain not in `allowed_http_domains` |
+| `ShellNotAllowed` | Shell command attempted but `allow_shell` is false |
+| `FilesystemNotAllowed` | Path outside allowed prefix |
+| `FilesystemWriteLimitExceeded` | Write exceeded `max_file_write_bytes` |
+
+[Execution Receipts →](/docs/execution-receipts) · [Safety & Containment →](/docs/safety) · [Tools →](/docs/tools)
