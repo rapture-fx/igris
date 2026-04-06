@@ -24,19 +24,21 @@ func NewCheckpointStore(db *sql.DB) *CheckpointStore {
 
 // TaskRecord is the durable state of a task tracked by Overture.
 type TaskRecord struct {
-	TaskID          uuid.UUID          `json:"task_id"`
-	TenantID        string             `json:"tenant_id"`
-	Status          TaskRecordStatus   `json:"status"`
-	RuntimeID       *string            `json:"runtime_id,omitempty"`
-	RuntimeEndpoint *string            `json:"runtime_endpoint,omitempty"`
-	TaskDefinition  json.RawMessage    `json:"task_definition"`
-	LastCheckpoint  *CheckpointPayload `json:"last_checkpoint,omitempty"`
-	IdempotencyKey  string             `json:"idempotency_key"`
-	FailureReason   *string            `json:"failure_reason,omitempty"`
-	DeadlineAt      *time.Time         `json:"deadline_at,omitempty"`
-	DispatchedAt    *time.Time         `json:"dispatched_at,omitempty"`
-	CompletedAt     *time.Time         `json:"completed_at,omitempty"`
-	CreatedAt       time.Time          `json:"created_at"`
+	TaskID            uuid.UUID          `json:"task_id"`
+	TenantID          string             `json:"tenant_id"`
+	Status            TaskRecordStatus   `json:"status"`
+	RuntimeID         *string            `json:"runtime_id,omitempty"`
+	RuntimeEndpoint   *string            `json:"runtime_endpoint,omitempty"`
+	TaskDefinition    json.RawMessage    `json:"task_definition"`
+	LastCheckpoint    *CheckpointPayload `json:"last_checkpoint,omitempty"`
+	ExecutionEnvelope json.RawMessage    `json:"execution_envelope,omitempty"`
+	ExecutionReceipt  json.RawMessage    `json:"execution_receipt,omitempty"`
+	IdempotencyKey    string             `json:"idempotency_key"`
+	FailureReason     *string            `json:"failure_reason,omitempty"`
+	DeadlineAt        *time.Time         `json:"deadline_at,omitempty"`
+	DispatchedAt      *time.Time         `json:"dispatched_at,omitempty"`
+	CompletedAt       *time.Time         `json:"completed_at,omitempty"`
+	CreatedAt         time.Time          `json:"created_at"`
 }
 
 type TaskRecordStatus string
@@ -181,6 +183,18 @@ func (s *CheckpointStore) MarkFailed(taskID uuid.UUID, reason string) error {
 	return err
 }
 
+// SaveExecutionArtifacts persists signed runtime execution material on the task.
+func (s *CheckpointStore) SaveExecutionArtifacts(taskID uuid.UUID, executionEnvelope, executionReceipt json.RawMessage) error {
+	_, err := s.db.Exec(`
+		UPDATE task_records
+		SET execution_envelope = COALESCE($1, execution_envelope),
+		    execution_receipt = COALESCE($2, execution_receipt)
+		WHERE task_id = $3`,
+		nullRawJSON(executionEnvelope), nullRawJSON(executionReceipt), taskID,
+	)
+	return err
+}
+
 // MarkRecovering transitions all DISPATCHED tasks on a failed runtime to RECOVERING.
 func (s *CheckpointStore) MarkRecovering(runtimeID string) ([]uuid.UUID, error) {
 	rows, err := s.db.Query(`
@@ -210,7 +224,7 @@ func (s *CheckpointStore) MarkRecovering(runtimeID string) ([]uuid.UUID, error) 
 func (s *CheckpointStore) GetTask(taskID uuid.UUID, tenantID string) (*TaskRecord, error) {
 	row := s.db.QueryRow(`
 		SELECT task_id, tenant_id, status, runtime_id, runtime_endpoint,
-		       task_definition, last_checkpoint, idempotency_key, failure_reason,
+		       task_definition, last_checkpoint, execution_envelope, execution_receipt, idempotency_key, failure_reason,
 		       deadline_at, dispatched_at, completed_at, created_at
 		FROM task_records
 		WHERE task_id = $1 AND tenant_id = $2`,
@@ -223,7 +237,7 @@ func (s *CheckpointStore) GetTask(taskID uuid.UUID, tenantID string) (*TaskRecor
 func (s *CheckpointStore) GetTaskByIdempotencyKey(tenantID, idempotencyKey string) (*TaskRecord, error) {
 	row := s.db.QueryRow(`
 		SELECT task_id, tenant_id, status, runtime_id, runtime_endpoint,
-		       task_definition, last_checkpoint, idempotency_key, failure_reason,
+		       task_definition, last_checkpoint, execution_envelope, execution_receipt, idempotency_key, failure_reason,
 		       deadline_at, dispatched_at, completed_at, created_at
 		FROM task_records
 		WHERE tenant_id = $1 AND idempotency_key = $2`,
@@ -236,7 +250,7 @@ func (s *CheckpointStore) GetTaskByIdempotencyKey(tenantID, idempotencyKey strin
 func (s *CheckpointStore) GetTasksByTenant(tenantID string, limit int) ([]*TaskRecord, error) {
 	rows, err := s.db.Query(`
 		SELECT task_id, tenant_id, status, runtime_id, runtime_endpoint,
-		       task_definition, last_checkpoint, idempotency_key, failure_reason,
+		       task_definition, last_checkpoint, execution_envelope, execution_receipt, idempotency_key, failure_reason,
 		       deadline_at, dispatched_at, completed_at, created_at
 		FROM task_records
 		WHERE tenant_id = $1
@@ -330,7 +344,7 @@ func (s *CheckpointStore) GetAllTaskSteps(taskID uuid.UUID) ([]WalEntry, error) 
 func (s *CheckpointStore) GetRecoveringTasks() ([]*TaskRecord, error) {
 	rows, err := s.db.Query(`
 		SELECT task_id, tenant_id, status, runtime_id, runtime_endpoint,
-		       task_definition, last_checkpoint, idempotency_key, failure_reason,
+		       task_definition, last_checkpoint, execution_envelope, execution_receipt, idempotency_key, failure_reason,
 		       deadline_at, dispatched_at, completed_at, created_at
 		FROM task_records
 		WHERE status = 'recovering'
@@ -361,9 +375,11 @@ func scanTaskRecord(row scanner) (*TaskRecord, error) {
 	var t TaskRecord
 	var defBytes []byte
 	var cpBytes []byte
+	var envelopeBytes []byte
+	var receiptBytes []byte
 	err := row.Scan(
 		&t.TaskID, &t.TenantID, &t.Status, &t.RuntimeID, &t.RuntimeEndpoint,
-		&defBytes, &cpBytes, &t.IdempotencyKey, &t.FailureReason,
+		&defBytes, &cpBytes, &envelopeBytes, &receiptBytes, &t.IdempotencyKey, &t.FailureReason,
 		&t.DeadlineAt, &t.DispatchedAt, &t.CompletedAt, &t.CreatedAt,
 	)
 	if err != nil {
@@ -376,10 +392,23 @@ func scanTaskRecord(row scanner) (*TaskRecord, error) {
 			t.LastCheckpoint = &cp
 		}
 	}
+	if len(envelopeBytes) > 0 {
+		t.ExecutionEnvelope = envelopeBytes
+	}
+	if len(receiptBytes) > 0 {
+		t.ExecutionReceipt = receiptBytes
+	}
 	return &t, nil
 }
 
 func decodeHexToBytes(h string) []byte {
 	b, _ := hex.DecodeString(h)
 	return b
+}
+
+func nullRawJSON(raw json.RawMessage) any {
+	if len(raw) == 0 {
+		return nil
+	}
+	return raw
 }
