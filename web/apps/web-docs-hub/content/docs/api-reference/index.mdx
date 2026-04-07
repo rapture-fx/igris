@@ -1,0 +1,107 @@
+---
+title: "API Reference"
+description: "Customer-facing API guides and endpoint reference for Igris."
+---
+
+# API Reference
+
+This is the customer-facing API contract for Igris. Use the guide pages first, then move into the grouped endpoint reference when you are implementing or debugging a specific route.
+
+## Start Here
+
+- [Introduction](/docs/api-reference/introduction) — How the Igris API reference is organized, when to use each access point, and how to move from guides into endpoint-level integration work.
+- [Authentication](/docs/api-reference/authentication) — Which credentials belong to automation, browser sessions, and runtime-local deployments, and how to choose the right one for each route.
+- [Errors](/docs/api-reference/errors) — How to read error responses across the API reference and what to expect from validation, authentication, throttling, and server failures.
+- [Rate Limits](/docs/api-reference/rate-limits) — What throttling exists today, where it applies, and how clients should behave when they receive a 429 response.
+
+## Inference & Integration
+
+Supported cloud inference endpoints. `/v1/chat/completions` is OpenAI-compatible, while `/v1/infer` exposes the native Igris request contract.
+
+- [`POST /v1/infer`](/docs/api-reference/inference-integration/post-v1-infer) — Native inference endpoint handled by Overture.
+- [`POST /v1/chat/completions`](/docs/api-reference/inference-integration/post-v1-chat-completions) — OpenAI-compatible chat completions endpoint.
+- [`GET /v1/health`](/docs/api-reference/inference-integration/get-v1-health) — Health check for inference availability.
+- [`GET /v1/models`](/docs/api-reference/inference-integration/get-v1-models) — Lists models visible to the inference layer.
+- [`GET /v1/providers/stats`](/docs/api-reference/inference-integration/get-v1-providers-stats) — Provider latency, health, and routing statistics.
+- [`POST /v1/infer/multimodal`](/docs/api-reference/inference-integration/post-v1-infer-multimodal) — Multimodal inference endpoint.
+- [`GET /v1/infer/multimodal/stats`](/docs/api-reference/inference-integration/get-v1-infer-multimodal-stats) — Multimodal request statistics.
+
+## Runtime Distribution & Fleet Coordination
+
+Supported endpoints for downloading `igris-runtime`, registering runtime instances, and managing fleet operations from the control plane.
+
+- [`GET /v1/runtime/install`](/docs/api-reference/runtime-distribution-fleet-coordination/get-v1-runtime-install) — Returns or redirects to the platform-specific runtime archive.
+- [`GET /v1/runtime/checksum`](/docs/api-reference/runtime-distribution-fleet-coordination/get-v1-runtime-checksum) — Returns the SHA-256 checksum for a runtime archive.
+- [`GET /v1/runtime/download`](/docs/api-reference/runtime-distribution-fleet-coordination/get-v1-runtime-download) — Subscribed runtime binary download endpoint.
+- [`GET /api/v1/runtime/list`](/docs/api-reference/runtime-distribution-fleet-coordination/get-api-v1-runtime-list) — Lists registered runtime instances for a tenant.
+- [`POST /api/v1/runtime/config/push`](/docs/api-reference/runtime-distribution-fleet-coordination/post-api-v1-runtime-config-push) — Queues configuration push commands for the fleet.
+- [`POST /api/v1/runtime/update`](/docs/api-reference/runtime-distribution-fleet-coordination/post-api-v1-runtime-update) — Queues OTA update commands for the fleet.
+
+## Account, Trial, and Billing
+
+Supported account and billing endpoints for subscription state and tenant API key lifecycle management.
+
+- [`GET /api/subscription/status`](/docs/api-reference/account-trial-and-billing/get-api-subscription-status) — Returns subscription tier, status, and runtime usage.
+- [`GET /api/subscription/plans`](/docs/api-reference/account-trial-and-billing/get-api-subscription-plans) — Lists available plans and checkout URLs.
+- [`GET /v1/account/api-key`](/docs/api-reference/account-trial-and-billing/get-v1-account-api-key) — Returns current API key metadata without revealing the secret.
+- [`POST /v1/account/api-key`](/docs/api-reference/account-trial-and-billing/post-v1-account-api-key) — Creates a new tenant API key and revokes the old one.
+- [`DELETE /v1/account/api-key`](/docs/api-reference/account-trial-and-billing/delete-v1-account-api-key) — Revokes the current tenant API key.
+
+## Vault, Policy, and Governance
+
+Supported BYOK and tenant policy routes.
+
+- [`GET /v1/vault/keys`](/docs/api-reference/vault-policy-and-governance/get-v1-vault-keys) — Lists configured provider keys with masked values.
+- [`POST /v1/vault/keys`](/docs/api-reference/vault-policy-and-governance/post-v1-vault-keys) — Stores a provider key using `{ provider, key_name, api_key }`.
+- [`GET /v1/vault/keys/:provider`](/docs/api-reference/vault-policy-and-governance/get-v1-vault-keys-provider) — Gets a single provider key record.
+- [`DELETE /v1/vault/keys/:provider`](/docs/api-reference/vault-policy-and-governance/delete-v1-vault-keys-provider) — Deletes a provider key.
+- [`POST /v1/vault/keys/:provider/rotate`](/docs/api-reference/vault-policy-and-governance/post-v1-vault-keys-provider-rotate) — Rotates a provider key.
+- [`POST /v1/vault/keys/:provider/validate`](/docs/api-reference/vault-policy-and-governance/post-v1-vault-keys-provider-validate) — Validates a provider key with the current backend implementation.
+- [`GET /v1/policy`](/docs/api-reference/vault-policy-and-governance/get-v1-policy) — Returns tenant policy document.
+- [`PUT /v1/policy`](/docs/api-reference/vault-policy-and-governance/put-v1-policy) — Replaces tenant policy document.
+- [`GET /v1/policy/history`](/docs/api-reference/vault-policy-and-governance/get-v1-policy-history) — Returns tenant policy history.
+
+## Execution, History, and Receipts
+
+Supported audit and receipt endpoints for customer-visible history and proof verification.
+
+- [`GET /v1/history/events`](/docs/api-reference/execution-history-and-receipts/get-v1-history-events) — Lists execution history events. Supports `range`, `limit`, `agent_id`, and `device_id`.
+- [`GET /v1/receipts`](/docs/api-reference/execution-history-and-receipts/get-v1-receipts) — Lists execution receipts from the coordination layer.
+- [`GET /v1/receipts/:id`](/docs/api-reference/execution-history-and-receipts/get-v1-receipts-id) — Gets a single execution receipt by execution ID.
+- [`GET /v1/receipts/export`](/docs/api-reference/execution-history-and-receipts/get-v1-receipts-export) — Exports receipts as JSONL or CSV.
+- [`POST /proof/receipts/verify`](/docs/api-reference/execution-history-and-receipts/post-proof-receipts-verify) — Verifies a receipt signature and chain integrity.
+
+## Behavior Trees
+
+Supported behavior-tree definition endpoints exposed by the coordination layer.
+
+- [`GET /v1/bt/templates`](/docs/api-reference/behavior-trees/get-v1-bt-templates) — Lists built-in behavior-tree templates.
+- [`GET /v1/bt/definitions`](/docs/api-reference/behavior-trees/get-v1-bt-definitions) — Lists tenant behavior-tree definitions.
+- [`GET /v1/bt/definitions/:id`](/docs/api-reference/behavior-trees/get-v1-bt-definitions-id) — Gets a single behavior-tree definition.
+- [`POST /v1/bt/definitions`](/docs/api-reference/behavior-trees/post-v1-bt-definitions) — Creates or upserts a behavior-tree definition.
+- [`DELETE /v1/bt/definitions/:id`](/docs/api-reference/behavior-trees/delete-v1-bt-definitions-id) — Deletes a behavior-tree definition.
+
+## Durable Tasks
+
+Submit durable workflows and long-running tasks that preserve progress automatically across runtime interruptions.
+
+- [`POST /v1/tasks/submit`](/docs/api-reference/durable-tasks/post-v1-tasks-submit) — Submit a durable task using `agent_workflow`, `robotics_workflow`, `single_inference`, or `behavior_tree`.
+- [`GET /v1/tasks/:id`](/docs/api-reference/durable-tasks/get-v1-tasks-id) — Poll the current status and latest checkpoint metadata for a durable task.
+- [`GET /v1/tasks`](/docs/api-reference/durable-tasks/get-v1-tasks) — List recent durable tasks for the authenticated tenant.
+
+## Local Runtime API
+
+Supported endpoints served by `igris-runtime` on the local runtime instance.
+
+- [`GET /v1/health`](/docs/api-reference/local-runtime-api/get-v1-health) — Health check for the local runtime.
+- [`POST /v1/chat/completions`](/docs/api-reference/local-runtime-api/post-v1-chat-completions) — OpenAI-compatible local inference endpoint.
+- [`POST /v1/plan`](/docs/api-reference/local-runtime-api/post-v1-plan) — Planning endpoint.
+- [`POST /v1/reflect`](/docs/api-reference/local-runtime-api/post-v1-reflect) — Reflection endpoint.
+- [`GET /v1/admin/models`](/docs/api-reference/local-runtime-api/get-v1-admin-models) — Lists loaded local models.
+- [`POST /v1/admin/models/load`](/docs/api-reference/local-runtime-api/post-v1-admin-models-load) — Loads a local model.
+- [`POST /v1/admin/models/swap`](/docs/api-reference/local-runtime-api/post-v1-admin-models-swap) — Swaps the active local model.
+- [`POST /v1/btree/validate`](/docs/api-reference/local-runtime-api/post-v1-btree-validate) — Validates a runtime behavior tree definition.
+- [`POST /v1/btree/run`](/docs/api-reference/local-runtime-api/post-v1-btree-run) — Executes a runtime behavior tree.
+- [`POST /v1/btree/deploy`](/docs/api-reference/local-runtime-api/post-v1-btree-deploy) — Deploys a runtime behavior tree.
+- [`GET /v1/btree/events`](/docs/api-reference/local-runtime-api/get-v1-btree-events) — Streams behavior-tree events.
+
