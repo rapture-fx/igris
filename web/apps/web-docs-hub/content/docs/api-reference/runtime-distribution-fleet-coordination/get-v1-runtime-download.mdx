@@ -1,0 +1,118 @@
+---
+title: "GET /v1/runtime/download"
+description: "Subscribed runtime binary download endpoint. This endpoint belongs to the Runtime Distribution & Fleet Coordination group and is documented here so customers can understand the contract, auth model, and verified sample traffic without reading the server implementation."
+---
+
+# GET /v1/runtime/download
+
+Subscribed runtime binary download endpoint. This endpoint belongs to the Runtime Distribution & Fleet Coordination group and is documented here so customers can understand the contract, auth model, and verified sample traffic without reading the server implementation.
+
+| Field | Value |
+|---|---|
+| Method | `GET` |
+| Path | `/v1/runtime/download` |
+| Base URL | `https://overture.igrisinertial.com` |
+| Authentication | Session or API key |
+| Surface | Cloud API |
+| Stability | stable |
+| Support | supported |
+| Deployment | hybrid |
+
+## When To Use
+
+Use this endpoint when the workflow spans both the hosted control plane and one or more runtimes. It belongs to the Runtime Distribution & Fleet Coordination area of the product and is most useful when you are coordinating runtime distribution, fleet state, or device operations.
+
+## Integration Guidance
+
+Treat download and distribution requests as provisioning operations. Retry on transient 5xx or 429 responses with backoff, but do not put these routes on a hot request path.
+
+### Common Mistakes
+
+- Treating a hybrid coordination route like a local-only runtime call without the required tenant context or fleet state.
+
+### Related Endpoints
+
+- [GET /v1/runtime/install](/docs/api-reference/runtime-distribution-fleet-coordination/get-v1-runtime-install)
+- [GET /v1/runtime/checksum](/docs/api-reference/runtime-distribution-fleet-coordination/get-v1-runtime-checksum)
+- [GET /api/v1/runtime/list](/docs/api-reference/runtime-distribution-fleet-coordination/get-api-v1-runtime-list)
+
+### Related Guides
+
+- [API Authentication](/docs/api-reference/authentication)
+- [API Errors](/docs/api-reference/errors)
+- [Hybrid Deployment Workflow](/docs/hybrid-deployment-workflow)
+
+## Query Parameters
+
+| Field | Type | Required | Description |
+|---|---|---|---|
+| `platform` | `string` | No | Target archive platform such as `linux-amd64` or `macos-arm64`. |
+
+## Code Examples
+
+### cURL
+
+```bash
+curl -X GET https://overture.igrisinertial.com/v1/runtime/download?platform=linux-amd64 \
+  -H "Authorization: Bearer $IGRIS_API_KEY"
+```
+
+### JavaScript
+
+```javascript
+const response = await fetch('https://overture.igrisinertial.com/v1/runtime/download?platform=linux-amd64', {
+  method: 'GET',
+  headers: {
+    'Authorization': `Bearer ${process.env.IGRIS_API_KEY}`,
+  },
+});
+
+const data = await response.text();
+console.log(data);
+```
+
+### Go
+
+```go
+client := &http.Client{}
+body := http.NoBody
+
+req, err := http.NewRequest("GET", "https://overture.igrisinertial.com/v1/runtime/download?platform=linux-amd64", body)
+if err != nil {
+	log.Fatal(err)
+}
+
+req.Header.Set("Authorization", "Bearer " + os.Getenv("IGRIS_API_KEY"))
+
+resp, err := client.Do(req)
+if err != nil {
+	log.Fatal(err)
+}
+defer resp.Body.Close()
+
+payload, _ := io.ReadAll(resp.Body)
+fmt.Println(string(payload))
+```
+
+### Rust
+
+```rust
+let client = reqwest::Client::new();
+let response = client
+        .request(reqwest::Method::GET, "https://overture.igrisinertial.com/v1/runtime/download?platform=linux-amd64")
+        .header("Authorization", format!("Bearer {}", std::env::var("IGRIS_API_KEY")?))
+        .send()
+        .await?;
+
+let payload = response.text().await?;
+println!("{}", payload);
+```
+
+## Sample Response
+
+A response example is not available on this page yet.
+
+## Status Codes
+
+Status-code details are still being documented for this endpoint.
+
