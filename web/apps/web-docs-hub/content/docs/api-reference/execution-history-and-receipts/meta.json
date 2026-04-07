@@ -1,0 +1,10 @@
+{
+  "title": "Execution, History, and Receipts",
+  "pages": [
+    "get-v1-history-events",
+    "get-v1-receipts",
+    "get-v1-receipts-id",
+    "get-v1-receipts-export",
+    "post-proof-receipts-verify"
+  ]
+}
