@@ -1,0 +1,16 @@
+{
+  "title": "Local Runtime API",
+  "pages": [
+    "get-v1-health",
+    "post-v1-chat-completions",
+    "post-v1-plan",
+    "post-v1-reflect",
+    "get-v1-admin-models",
+    "post-v1-admin-models-load",
+    "post-v1-admin-models-swap",
+    "post-v1-btree-validate",
+    "post-v1-btree-run",
+    "post-v1-btree-deploy",
+    "get-v1-btree-events"
+  ]
+}
