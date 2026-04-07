@@ -2,6 +2,7 @@ const fs = require('fs');
 const path = require('path');
 
 const { apiSections, generatedDir, mcpReference, repoRoot, sdkSupport } = require('./docs-data');
+const { generateApiReferenceContent } = require('./generate-api-reference-content');
 
 function walk(dir, extension, files = []) {
   for (const entry of fs.readdirSync(dir, { withFileTypes: true })) {
@@ -155,6 +156,8 @@ function main() {
     ...mcpReference,
     generated_at: generatedAt,
   });
+
+  generateApiReferenceContent();
 
   console.log(`Generated docs artifacts in ${generatedDir}`);
 }
