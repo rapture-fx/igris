@@ -1,0 +1,57 @@
+---
+title: "Introduction"
+description: "How the Igris API reference is organized, when to use each access point, and how to move from guides into endpoint-level integration work."
+---
+
+# Introduction
+
+How the Igris API reference is organized, when to use each access point, and how to move from guides into endpoint-level integration work.
+
+## Two Product Surfaces
+
+Igris is documented here as one product with two access points. Use the hosted API at `https://overture.igrisinertial.com` when your integration needs account, fleet, billing, receipt, or policy capabilities. Use the local runtime API at `http://localhost:8080` by default when the request belongs on the machine where Igris is running.
+
+This split is about where the request executes, not about two different products. The API reference groups endpoints by capability so you can navigate by task first and only think about the base URL when you are ready to make the call.
+
+## How Endpoint Pages Work
+
+Every endpoint has its own page. That page tells you what the route is for, which authentication model it expects, the path and query parameters it accepts, the request body fields that matter, and the status codes you should plan for in a real client.
+
+Use the overview page to browse by capability, then switch to endpoint pages when you are implementing or debugging a specific call.
+
+## SDK Guidance
+
+JavaScript, Go, and Rust are the first-class SDK languages today. When an endpoint is covered by a native SDK, prefer that SDK for application code because it gives you a cleaner call surface and reduces request-shape drift over time.
+
+Some management routes are still best treated as direct HTTP integrations. In those cases, the endpoint page is the primary contract: use the request and response examples, confirm the authentication model, and wire your own client behavior around the listed status codes.
+
+## Support Labels and Deployment Modes
+
+Each endpoint page carries both a support label and a deployment mode. **Core** routes are the primary customer contract. **Supported** routes are part of the shipped product surface but may not be the first endpoint a new customer should start with. **Preview** routes are available, but they should be adopted deliberately.
+
+Deployment mode tells you where the route belongs operationally. **Cloud** routes are served by the hosted API, **Local** routes are served by `igris-runtime`, and **Hybrid** routes are used when the hosted product and one or more runtimes are working together.
+
+## Base URLs
+
+```text
+Cloud API
+https://overture.igrisinertial.com
+
+Local runtime
+http://localhost:8080
+```
+
+## Example JSON
+
+```json
+{
+  "surface": "cloud",
+  "supports": [
+    "routing",
+    "billing",
+    "receipts",
+    "fleet coordination"
+  ]
+}
+```
+
