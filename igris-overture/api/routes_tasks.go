@@ -720,6 +720,12 @@ func handleGetTask(tc *coordinator.TaskCoordinator) fiber.Handler {
 			return c.Status(http.StatusInternalServerError).JSON(fiber.Map{"error": "db_error"})
 		}
 
+		if task.Proof != nil && (task.Proof.Status == "" || task.Proof.Status == "pending" || task.Proof.Status == "missing") {
+			if proof, err := tc.Store().SyncTaskProofState(taskID, tenantID); err == nil {
+				task.Proof = proof
+			}
+		}
+
 		return c.JSON(buildTaskResponse(task))
 	}
 }
@@ -775,6 +781,8 @@ func handleListTasks(tc *coordinator.TaskCoordinator) fiber.Handler {
 		if limit > 100 {
 			limit = 100
 		}
+
+		_ = tc.Store().RefreshPendingProofStates(tenantID, limit)
 
 		tasks, err := tc.Store().GetTasksByTenant(tenantID, limit)
 		if err != nil {
