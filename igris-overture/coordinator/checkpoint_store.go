@@ -270,6 +270,46 @@ func (s *CheckpointStore) SyncTaskProofState(taskID uuid.UUID, tenantID string) 
 	return state, nil
 }
 
+func (s *CheckpointStore) RefreshPendingProofStates(tenantID string, limit int) error {
+	if limit <= 0 {
+		limit = 20
+	}
+
+	rows, err := s.db.Query(`
+		SELECT task_id
+		FROM task_records
+		WHERE tenant_id = $1
+		  AND proof_execution_id IS NOT NULL
+		  AND COALESCE(proof_status, '') IN ('', 'pending', 'missing')
+		ORDER BY COALESCE(completed_at, created_at) DESC
+		LIMIT $2`,
+		tenantID, limit,
+	)
+	if err != nil {
+		return err
+	}
+	defer rows.Close()
+
+	var taskIDs []uuid.UUID
+	for rows.Next() {
+		var taskID uuid.UUID
+		if err := rows.Scan(&taskID); err != nil {
+			return err
+		}
+		taskIDs = append(taskIDs, taskID)
+	}
+	if err := rows.Err(); err != nil {
+		return err
+	}
+
+	for _, taskID := range taskIDs {
+		if _, err := s.SyncTaskProofState(taskID, tenantID); err != nil && err != sql.ErrNoRows {
+			return err
+		}
+	}
+	return nil
+}
+
 func (s *CheckpointStore) updateTaskProofState(taskID uuid.UUID, proof *TaskProofState) error {
 	if proof == nil {
 		return nil
