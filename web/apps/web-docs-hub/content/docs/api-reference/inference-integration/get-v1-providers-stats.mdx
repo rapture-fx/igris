@@ -1,0 +1,124 @@
+---
+title: "GET /v1/providers/stats"
+description: "Exposes high-level provider health and routing telemetry so you can understand latency, error rate, and current selection pressure."
+---
+
+# GET /v1/providers/stats
+
+Exposes high-level provider health and routing telemetry so you can understand latency, error rate, and current selection pressure.
+
+| Field | Value |
+|---|---|
+| Method | `GET` |
+| Path | `/v1/providers/stats` |
+| Base URL | `https://overture.igrisinertial.com` |
+| Authentication | Public |
+| Surface | Cloud API |
+| Stability | stable |
+| Support | supported |
+| Deployment | cloud |
+
+## When To Use
+
+Use this endpoint when you need provider latency, health, and routing statistics. from the hosted API. It is part of the Inference & Integration surface and is intended to be the customer-facing contract for that capability.
+
+## Integration Guidance
+
+Safe retries are usually reasonable for transient 5xx or 429 responses. Do not retry 4xx responses until you have fixed the request, credentials, or addressed resource.
+
+### Related Endpoints
+
+- [POST /v1/infer](/docs/api-reference/inference-integration/post-v1-infer)
+- [POST /v1/chat/completions](/docs/api-reference/inference-integration/post-v1-chat-completions)
+- [GET /v1/health](/docs/api-reference/inference-integration/get-v1-health)
+
+### Related Guides
+
+- [API Authentication](/docs/api-reference/authentication)
+- [API Errors](/docs/api-reference/errors)
+- [First Cloud Integration](/docs/first-cloud-integration)
+
+## Code Examples
+
+### cURL
+
+```bash
+curl -X GET https://overture.igrisinertial.com/v1/providers/stats
+```
+
+### JavaScript
+
+```javascript
+const response = await fetch('https://overture.igrisinertial.com/v1/providers/stats', {
+  method: 'GET',
+  headers: {
+
+  },
+});
+
+const data = await response.text();
+console.log(data);
+```
+
+### Go
+
+```go
+client := &http.Client{}
+body := http.NoBody
+
+req, err := http.NewRequest("GET", "https://overture.igrisinertial.com/v1/providers/stats", body)
+if err != nil {
+	log.Fatal(err)
+}
+
+
+resp, err := client.Do(req)
+if err != nil {
+	log.Fatal(err)
+}
+defer resp.Body.Close()
+
+payload, _ := io.ReadAll(resp.Body)
+fmt.Println(string(payload))
+```
+
+### Rust
+
+```rust
+let client = reqwest::Client::new();
+let response = client
+        .request(reqwest::Method::GET, "https://overture.igrisinertial.com/v1/providers/stats")
+
+        .send()
+        .await?;
+
+let payload = response.text().await?;
+println!("{}", payload);
+```
+
+## Sample Response
+
+```json
+{
+  "providers": [
+    {
+      "provider": "openai",
+      "latency_ms_p50": 410,
+      "success_rate_percent": 99.4,
+      "status": "healthy"
+    },
+    {
+      "provider": "anthropic",
+      "latency_ms_p50": 620,
+      "success_rate_percent": 98.9,
+      "status": "healthy"
+    }
+  ],
+  "generated_at": "2026-04-04T06:10:00Z"
+}
+```
+
+## Status Codes
+
+Status-code details are still being documented for this endpoint.
+
