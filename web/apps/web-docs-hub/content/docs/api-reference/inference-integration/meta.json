@@ -1,0 +1,12 @@
+{
+  "title": "Inference & Integration",
+  "pages": [
+    "post-v1-infer",
+    "post-v1-chat-completions",
+    "get-v1-health",
+    "get-v1-models",
+    "get-v1-providers-stats",
+    "post-v1-infer-multimodal",
+    "get-v1-infer-multimodal-stats"
+  ]
+}
