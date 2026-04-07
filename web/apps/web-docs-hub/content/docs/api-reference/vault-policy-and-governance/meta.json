@@ -1,0 +1,14 @@
+{
+  "title": "Vault, Policy, and Governance",
+  "pages": [
+    "get-v1-vault-keys",
+    "post-v1-vault-keys",
+    "get-v1-vault-keys-provider",
+    "delete-v1-vault-keys-provider",
+    "post-v1-vault-keys-provider-rotate",
+    "post-v1-vault-keys-provider-validate",
+    "get-v1-policy",
+    "put-v1-policy",
+    "get-v1-policy-history"
+  ]
+}
