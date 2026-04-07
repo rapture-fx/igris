@@ -1,0 +1,114 @@
+---
+title: "POST /v1/admin/models/load"
+description: "Loads a local model. This endpoint belongs to the Local Runtime API group and is documented here so customers can understand the contract, auth model, and verified sample traffic without reading the server implementation."
+---
+
+# POST /v1/admin/models/load
+
+Loads a local model. This endpoint belongs to the Local Runtime API group and is documented here so customers can understand the contract, auth model, and verified sample traffic without reading the server implementation.
+
+| Field | Value |
+|---|---|
+| Method | `POST` |
+| Path | `/v1/admin/models/load` |
+| Base URL | `http://localhost:8080` |
+| Authentication | Runtime-config dependent |
+| Surface | Local runtime |
+| Stability | preview |
+| Support | preview |
+| Deployment | local |
+
+## When To Use
+
+Use this endpoint when you need loads a local model. and you are comfortable integrating against a preview surface. Confirm the current shape and rollout expectations before depending on it in a hard production path.
+
+## Integration Guidance
+
+Retry only on clearly transient 5xx or 429 responses, and prefer idempotent client behavior. For preview routes, avoid aggressive automatic replay until you have validated the behavior in your environment.
+
+### Common Mistakes
+
+- Using the wrong credential type or forgetting to send the expected API key header.
+- Pointing the client at the hosted base URL even though this route is served by the local runtime.
+- Replaying a write request without thinking through idempotency, duplication, or partial success.
+
+### Related Endpoints
+
+- [GET /v1/health](/docs/api-reference/local-runtime-api/get-v1-health)
+- [POST /v1/chat/completions](/docs/api-reference/local-runtime-api/post-v1-chat-completions)
+- [POST /v1/plan](/docs/api-reference/local-runtime-api/post-v1-plan)
+
+### Related Guides
+
+- [API Authentication](/docs/api-reference/authentication)
+- [API Errors](/docs/api-reference/errors)
+- [Deploy Local Runtime](/docs/deploy-local-runtime)
+
+## Code Examples
+
+### cURL
+
+```bash
+curl -X POST http://localhost:8080/v1/admin/models/load \
+  -H "Authorization: Bearer $IGRIS_RUNTIME_API_KEY"
+```
+
+### JavaScript
+
+```javascript
+const response = await fetch('http://localhost:8080/v1/admin/models/load', {
+  method: 'POST',
+  headers: {
+    'Authorization': `Bearer ${process.env.IGRIS_RUNTIME_API_KEY}`,
+  },
+});
+
+const data = await response.text();
+console.log(data);
+```
+
+### Go
+
+```go
+client := &http.Client{}
+body := http.NoBody
+
+req, err := http.NewRequest("POST", "http://localhost:8080/v1/admin/models/load", body)
+if err != nil {
+	log.Fatal(err)
+}
+
+req.Header.Set("Authorization", "Bearer " + os.Getenv("IGRIS_RUNTIME_API_KEY"))
+
+resp, err := client.Do(req)
+if err != nil {
+	log.Fatal(err)
+}
+defer resp.Body.Close()
+
+payload, _ := io.ReadAll(resp.Body)
+fmt.Println(string(payload))
+```
+
+### Rust
+
+```rust
+let client = reqwest::Client::new();
+let response = client
+        .request(reqwest::Method::POST, "http://localhost:8080/v1/admin/models/load")
+        .header("Authorization", format!("Bearer {}", std::env::var("IGRIS_RUNTIME_API_KEY")?))
+        .send()
+        .await?;
+
+let payload = response.text().await?;
+println!("{}", payload);
+```
+
+## Sample Response
+
+A response example is not available on this page yet.
+
+## Status Codes
+
+Status-code details are still being documented for this endpoint.
+
