@@ -1,0 +1,208 @@
+---
+title: "POST /v1/chat/completions"
+description: "Primary hosted inference route for customers who want the shortest path to production. It preserves the OpenAI chat-completions contract while still running through Igris routing, policy, and receipt generation."
+---
+
+# POST /v1/chat/completions
+
+Primary hosted inference route for customers who want the shortest path to production. It preserves the OpenAI chat-completions contract while still running through Igris routing, policy, and receipt generation.
+
+| Field | Value |
+|---|---|
+| Method | `POST` |
+| Path | `/v1/chat/completions` |
+| Base URL | `https://overture.igrisinertial.com` |
+| Authentication | Deployment-dependent |
+| Surface | Cloud API |
+| Stability | stable |
+| Support | core |
+| Deployment | cloud |
+
+## When To Use
+
+Use this endpoint when you want the default customer integration path: hosted inference with the broadest client compatibility. It is the right choice when you want to keep the client portable and do not need the native Igris request contract.
+
+## Integration Guidance
+
+Retry transient 5xx or 429 responses with backoff. Do not automatically retry 4xx responses until you have corrected the request, credentials, or provider configuration.
+
+### Common Mistakes
+
+- Treating this route like the native Igris inference contract and expecting extra request fields that belong on `/v1/infer`.
+- Skipping provider-key setup and assuming hosted routing will work before any upstream credential is stored.
+- Using a browser session flow for backend automation instead of a tenant API key.
+
+### Related Endpoints
+
+- [POST /v1/infer](/docs/api-reference/inference-integration/post-v1-infer)
+- [GET /v1/health](/docs/api-reference/inference-integration/get-v1-health)
+- [GET /v1/models](/docs/api-reference/inference-integration/get-v1-models)
+
+### Related Guides
+
+- [API Authentication](/docs/api-reference/authentication)
+- [API Errors](/docs/api-reference/errors)
+- [First Cloud Integration](/docs/first-cloud-integration)
+
+## Request Body
+
+| Field | Type | Required | Description |
+|---|---|---|---|
+| `model` | `string` | Yes | Upstream model identifier or routed model name. |
+| `messages` | `array` | Yes | Conversation turns in OpenAI chat format. |
+| `temperature` | `number` | No | Optional sampling control. |
+| `stream` | `boolean` | No | Enable streamed responses when supported by the deployment. |
+
+## Request Example
+
+```json
+{
+  "model": "gpt-4o-mini",
+  "messages": [
+    {
+      "role": "system",
+      "content": "You answer concisely."
+    },
+    {
+      "role": "user",
+      "content": "Summarize the latest runtime health."
+    }
+  ],
+  "temperature": 0.2
+}
+```
+
+## Code Examples
+
+### cURL
+
+```bash
+curl -X POST https://overture.igrisinertial.com/v1/chat/completions \
+  -H "Authorization: Bearer $IGRIS_API_KEY" \
+  -H "Content-Type: application/json" \
+  -d '{
+  "model": "gpt-4o-mini",
+  "messages": [
+    {
+      "role": "system",
+      "content": "You answer concisely."
+    },
+    {
+      "role": "user",
+      "content": "Summarize the latest runtime health."
+    }
+  ],
+  "temperature": 0.2
+}'
+```
+
+### JavaScript
+
+```javascript
+const response = await fetch('https://overture.igrisinertial.com/v1/chat/completions', {
+  method: 'POST',
+  headers: {
+    'Authorization': `Bearer ${process.env.IGRIS_API_KEY}`,
+    'Content-Type': 'application/json',
+  },
+  body: JSON.stringify({
+  "model": "gpt-4o-mini",
+  "messages": [
+    {
+      "role": "system",
+      "content": "You answer concisely."
+    },
+    {
+      "role": "user",
+      "content": "Summarize the latest runtime health."
+    }
+  ],
+  "temperature": 0.2
+}),
+});
+
+const data = await response.text();
+console.log(data);
+```
+
+### Go
+
+```go
+client := &http.Client{}
+body := strings.NewReader("{\n  \"model\": \"gpt-4o-mini\",\n  \"messages\": [\n    {\n      \"role\": \"system\",\n      \"content\": \"You answer concisely.\"\n    },\n    {\n      \"role\": \"user\",\n      \"content\": \"Summarize the latest runtime health.\"\n    }\n  ],\n  \"temperature\": 0.2\n}")
+
+req, err := http.NewRequest("POST", "https://overture.igrisinertial.com/v1/chat/completions", body)
+if err != nil {
+	log.Fatal(err)
+}
+req.Header.Set("Content-Type", "application/json")
+req.Header.Set("Authorization", "Bearer " + os.Getenv("IGRIS_API_KEY"))
+
+resp, err := client.Do(req)
+if err != nil {
+	log.Fatal(err)
+}
+defer resp.Body.Close()
+
+payload, _ := io.ReadAll(resp.Body)
+fmt.Println(string(payload))
+```
+
+### Rust
+
+```rust
+let client = reqwest::Client::new();
+let response = client
+        .request(reqwest::Method::POST, "https://overture.igrisinertial.com/v1/chat/completions")
+        .header("Authorization", format!("Bearer {}", std::env::var("IGRIS_API_KEY")?))
+        .json(&serde_json::json!({
+  "model": "gpt-4o-mini",
+  "messages": [
+    {
+      "role": "system",
+      "content": "You answer concisely."
+    },
+    {
+      "role": "user",
+      "content": "Summarize the latest runtime health."
+    }
+  ],
+  "temperature": 0.2
+}))
+        .send()
+        .await?;
+
+let payload = response.text().await?;
+println!("{}", payload);
+```
+
+## Sample Response
+
+```json
+{
+  "id": "chatcmpl_01HV8YZB4B6MQQ1Q8",
+  "object": "chat.completion",
+  "created": 1712338123,
+  "model": "gpt-4o-mini",
+  "choices": [
+    {
+      "index": 0,
+      "message": {
+        "role": "assistant",
+        "content": "Runtime fleet is healthy and accepting traffic."
+      },
+      "finish_reason": "stop"
+    }
+  ],
+  "usage": {
+    "prompt_tokens": 28,
+    "completion_tokens": 12,
+    "total_tokens": 40
+  }
+}
+```
+
+## Status Codes
+
+Status-code details are still being documented for this endpoint.
+
