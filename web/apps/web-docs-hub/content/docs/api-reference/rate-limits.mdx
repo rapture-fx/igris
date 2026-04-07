@@ -1,0 +1,50 @@
+---
+title: "Rate Limits"
+description: "What throttling exists today, where it applies, and how clients should behave when they receive a 429 response."
+---
+
+# Rate Limits
+
+What throttling exists today, where it applies, and how clients should behave when they receive a 429 response.
+
+## Global Control-plane Limit
+
+The hosted API currently applies a default limiter of 100 requests per minute. Endpoint pages call out the exceptions that matter more than the global default.
+
+Response headers are only guaranteed on the 429 path right now. Clients should not assume that every successful response carries full rate-limit metadata.
+
+## Runtime Download Limit
+
+Runtime download endpoints use a tighter subscription-aware throttle. Treat binary download as a provisioning or rollout action, not as a hot-path request that your application makes repeatedly during normal traffic.
+
+## Client Behavior
+
+Build clients so that a 429 is expected and handled, not treated as an exceptional edge case. Honor `Retry-After` when it is present, apply backoff with jitter for repeated retries, and avoid running parallel request bursts that all wake up at the same second.
+
+## 429 Example
+
+```text
+Retry-After: 60
+X-RateLimit-Limit: 100
+X-RateLimit-Remaining: 0
+```
+
+## Example JSON
+
+```json
+{
+  "error": {
+    "message": "Rate limit exceeded. Please try again later.",
+    "type": "rate_limit_error",
+    "code": "RATE_LIMIT_EXCEEDED"
+  },
+  "retry_after_seconds": 60
+}
+```
+
+## Common Status Codes
+
+| Code | Title | Description |
+|---|---|---|
+| 429 | Too Many Requests | Retry after the advertised cooldown window. |
+
