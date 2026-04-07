@@ -1,0 +1,18 @@
+{
+  "title": "API Reference",
+  "pages": [
+    "index",
+    "introduction",
+    "authentication",
+    "errors",
+    "rate-limits",
+    "inference-integration",
+    "runtime-distribution-fleet-coordination",
+    "account-trial-and-billing",
+    "vault-policy-and-governance",
+    "execution-history-and-receipts",
+    "behavior-trees",
+    "durable-tasks",
+    "local-runtime-api"
+  ]
+}
