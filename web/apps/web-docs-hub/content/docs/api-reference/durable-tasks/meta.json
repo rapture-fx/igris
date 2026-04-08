@@ -1,0 +1,8 @@
+{
+  "title": "Durable Tasks",
+  "pages": [
+    "post-v1-tasks-submit",
+    "get-v1-tasks-id",
+    "get-v1-tasks"
+  ]
+}
