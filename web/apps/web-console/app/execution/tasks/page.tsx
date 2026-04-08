@@ -2,10 +2,12 @@
 
 import { useMemo, useState } from 'react';
 import Link from 'next/link';
+import { useRouter, useSearchParams } from 'next/navigation';
 import { DashboardLayout } from '@/components/layout/DashboardLayout';
 import { Card, CardContent, CardHeader, CardTitle } from '@/components/ui/card';
 import { Input } from '@/components/ui/input';
 import { Skeleton } from '@/components/ui/skeleton';
+import { Button } from '@/components/ui/button';
 import {
   Sheet,
   SheetBody,
@@ -23,15 +25,15 @@ import {
 } from '@/components/ui/table';
 import {
   Activity,
-  BrainCircuit,
   CheckCircle2,
   Clock3,
   ExternalLink,
+  Filter,
   Search,
   ShieldCheck,
   Shield,
 } from 'lucide-react';
-import { useTask, useTasks, useTaskSteps } from '@/hooks/useTasks';
+import { type Task, useTask, useTasks, useTaskSteps } from '@/hooks/useTasks';
 import {
   CopyButton,
   ExecutionStatusBadge,
@@ -66,9 +68,22 @@ function StatCard({
   );
 }
 
+function proofBucket(task: Task): string {
+  if (task.proof?.status) return task.proof.status;
+  if (task.execution_receipt) return 'signed';
+  if (task.execution_envelope) return 'envelope';
+  return 'none';
+}
+
 export default function ExecutionTasksPage() {
-  const [search, setSearch] = useState('');
+  const router = useRouter();
+  const searchParams = useSearchParams();
+  const [search, setSearch] = useState(searchParams.get('q') ?? '');
   const [selectedTaskId, setSelectedTaskId] = useState<string | null>(null);
+  const [proofFilter, setProofFilter] = useState<'all' | 'verified' | 'pending' | 'unresolved' | 'mismatch' | 'missing'>(
+    (searchParams.get('proof') as 'all' | 'verified' | 'pending' | 'unresolved' | 'mismatch' | 'missing') || 'all'
+  );
+  const [prioritizeUnresolved, setPrioritizeUnresolved] = useState(searchParams.get('triage') === 'unresolved');
 
   const { data, isLoading } = useTasks({ limit: 100 });
   const { data: selectedTask } = useTask(selectedTaskId);
@@ -78,8 +93,7 @@ export default function ExecutionTasksPage() {
 
   const filteredTasks = useMemo(() => {
     const query = search.trim().toLowerCase();
-    if (!query) return tasks;
-    return tasks.filter((task) =>
+    const searched = !query ? tasks : tasks.filter((task) =>
       [
         task.task_id,
         task.task_type,
@@ -87,11 +101,45 @@ export default function ExecutionTasksPage() {
         task.status,
         task.requested_mode,
         task.resolved_strategy,
+        task.proof?.status,
       ]
         .filter(Boolean)
         .some((value) => String(value).toLowerCase().includes(query))
     );
-  }, [search, tasks]);
+
+    const proofFiltered = searched.filter((task) => {
+      const bucket = proofBucket(task);
+      switch (proofFilter) {
+        case 'all':
+          return true;
+        case 'verified':
+          return bucket === 'verified';
+        case 'pending':
+          return bucket === 'pending' || bucket === 'signed' || bucket === 'envelope';
+        case 'unresolved':
+          return bucket === 'pending' || bucket === 'missing' || bucket === 'mismatch' || bucket === 'signed' || bucket === 'envelope';
+        case 'mismatch':
+          return bucket === 'mismatch';
+        case 'missing':
+          return bucket === 'missing' || bucket === 'none';
+        default:
+          return true;
+      }
+    });
+
+    if (!prioritizeUnresolved) {
+      return proofFiltered;
+    }
+
+    return [...proofFiltered].sort((left, right) => {
+      const leftBucket = proofBucket(left);
+      const rightBucket = proofBucket(right);
+      const leftPriority = leftBucket === 'mismatch' || leftBucket === 'missing' || leftBucket === 'pending' || leftBucket === 'signed' || leftBucket === 'envelope' ? 0 : 1;
+      const rightPriority = rightBucket === 'mismatch' || rightBucket === 'missing' || rightBucket === 'pending' || rightBucket === 'signed' || rightBucket === 'envelope' ? 0 : 1;
+      if (leftPriority !== rightPriority) return leftPriority - rightPriority;
+      return 0;
+    });
+  }, [search, tasks, proofFilter, prioritizeUnresolved]);
 
   const stats = useMemo(() => {
     const completed = tasks.filter((task) => task.status === 'completed').length;
@@ -101,10 +149,66 @@ export default function ExecutionTasksPage() {
       task.status === 'checkpointed' ||
       task.status === 'recovering'
     ).length;
-    const withReceipts = tasks.filter((task) => task.checkpoint_digest).length;
-    const modeAware = tasks.filter((task) => task.requested_mode || task.resolved_strategy).length;
-    return { completed, active, withReceipts, modeAware };
+    const verifiedProof = tasks.filter((task) => task.proof?.status === 'verified').length;
+    const pendingProof = tasks.filter((task) =>
+      task.proof?.status === 'pending' ||
+      ((task.proof?.status === undefined || task.proof?.status === '') && !!task.execution_receipt)
+    ).length;
+    const mismatchProof = tasks.filter((task) => task.proof?.status === 'mismatch').length;
+    const missingProof = tasks.filter((task) =>
+      task.proof?.status === 'missing' || proofBucket(task) === 'none'
+    ).length;
+    const unresolvedProof = tasks.filter((task) => {
+      const bucket = proofBucket(task);
+      return bucket === 'pending' || bucket === 'missing' || bucket === 'mismatch' || bucket === 'signed' || bucket === 'envelope';
+    }).length;
+    return { completed, active, verifiedProof, pendingProof, mismatchProof, missingProof, unresolvedProof };
   }, [tasks]);
+
+  const syncListState = (
+    nextProof: 'all' | 'verified' | 'pending' | 'unresolved' | 'mismatch' | 'missing',
+    nextPrioritize: boolean,
+    nextSearch: string,
+  ) => {
+    const params = new URLSearchParams(searchParams.toString());
+    if (nextProof === 'all') {
+      params.delete('proof');
+    } else {
+      params.set('proof', nextProof);
+    }
+    if (nextPrioritize) {
+      params.set('triage', 'unresolved');
+    } else {
+      params.delete('triage');
+    }
+    if (nextSearch.trim()) {
+      params.set('q', nextSearch.trim());
+    } else {
+      params.delete('q');
+    }
+    const query = params.toString();
+    router.replace(query ? `?${query}` : '/execution/tasks', { scroll: false });
+  };
+
+  const updateProofFilter = (
+    nextProof: 'all' | 'verified' | 'pending' | 'unresolved' | 'mismatch' | 'missing',
+    nextPrioritize = prioritizeUnresolved,
+  ) => {
+    setProofFilter(nextProof);
+    setPrioritizeUnresolved(nextPrioritize);
+    syncListState(nextProof, nextPrioritize, search);
+  };
+
+  const updateSearch = (nextSearch: string) => {
+    setSearch(nextSearch);
+    syncListState(proofFilter, prioritizeUnresolved, nextSearch);
+  };
+
+  const togglePrioritize = () => {
+    const next = !prioritizeUnresolved;
+    setPrioritizeUnresolved(next);
+    syncListState(proofFilter, next, search);
+  };
 
   return (
     <DashboardLayout>
@@ -127,14 +231,14 @@ export default function ExecutionTasksPage() {
             icon={CheckCircle2}
           />
           <StatCard
-            label="With Receipts"
-            value={isLoading ? '—' : stats.withReceipts}
+            label="Verified Proof"
+            value={isLoading ? '—' : stats.verifiedProof}
             icon={ShieldCheck}
           />
           <StatCard
-            label="Mode Aware"
-            value={isLoading ? '—' : stats.modeAware}
-            icon={BrainCircuit}
+            label="Pending Proof"
+            value={isLoading ? '—' : stats.pendingProof}
+            icon={Clock3}
           />
         </div>
 
@@ -143,14 +247,121 @@ export default function ExecutionTasksPage() {
             <CardTitle className="text-sm font-semibold text-gray-900">Task Activity</CardTitle>
           </CardHeader>
           <CardContent className="space-y-4">
-            <div className="relative max-w-md">
-              <Search className="pointer-events-none absolute left-3 top-1/2 h-4 w-4 -translate-y-1/2 text-gray-400" />
-              <Input
-                value={search}
-                onChange={(event) => setSearch(event.target.value)}
-                placeholder="Search task, runtime, mode, or strategy"
-                className="pl-9"
-              />
+            <div className="flex flex-wrap items-center gap-3">
+              <div className="relative max-w-md flex-1 min-w-[260px]">
+                <Search className="pointer-events-none absolute left-3 top-1/2 h-4 w-4 -translate-y-1/2 text-gray-400" />
+                <Input
+                  value={search}
+                  onChange={(event) => updateSearch(event.target.value)}
+                  placeholder="Search task, runtime, mode, or strategy"
+                  className="pl-9"
+                />
+              </div>
+              <div className="flex items-center gap-2">
+                <div className="inline-flex items-center gap-2 rounded-md border border-gray-200 bg-white px-3 py-2 text-xs text-gray-600">
+                  <Filter className="h-3.5 w-3.5 text-gray-400" />
+                  <select
+                    value={proofFilter}
+                    onChange={(event) =>
+                      updateProofFilter(
+                        event.target.value as 'all' | 'verified' | 'pending' | 'unresolved' | 'mismatch' | 'missing'
+                      )
+                    }
+                    className="bg-transparent outline-none"
+                  >
+                    <option value="all">All proof states</option>
+                    <option value="verified">Verified</option>
+                    <option value="pending">Pending</option>
+                    <option value="unresolved">Unresolved</option>
+                    <option value="mismatch">Mismatch</option>
+                    <option value="missing">Missing</option>
+                  </select>
+                </div>
+                <Button
+                  type="button"
+                  variant={prioritizeUnresolved ? 'default' : 'outline'}
+                  size="sm"
+                  onClick={togglePrioritize}
+                  className="h-9"
+                >
+                  Unresolved First
+                </Button>
+              </div>
+            </div>
+
+            <div className="flex flex-wrap items-center gap-2">
+              <Button
+                type="button"
+                size="sm"
+                variant={proofFilter === 'all' ? 'default' : 'outline'}
+                onClick={() => updateProofFilter('all', false)}
+                className="h-8"
+              >
+                All
+                <span className="ml-1 rounded-full bg-white/70 px-1.5 py-0.5 text-[10px] text-gray-700">
+                  {tasks.length}
+                </span>
+              </Button>
+              <Button
+                type="button"
+                size="sm"
+                variant={proofFilter === 'unresolved' ? 'default' : 'outline'}
+                onClick={() => updateProofFilter('unresolved', true)}
+                className="h-8"
+              >
+                Needs Review
+                <span className="ml-1 rounded-full bg-white/70 px-1.5 py-0.5 text-[10px] text-gray-700">
+                  {stats.unresolvedProof}
+                </span>
+              </Button>
+              <Button
+                type="button"
+                size="sm"
+                variant={proofFilter === 'verified' ? 'default' : 'outline'}
+                onClick={() => updateProofFilter('verified')}
+                className="h-8"
+              >
+                Verified
+                <span className="ml-1 rounded-full bg-white/70 px-1.5 py-0.5 text-[10px] text-gray-700">
+                  {stats.verifiedProof}
+                </span>
+              </Button>
+              <Button
+                type="button"
+                size="sm"
+                variant={proofFilter === 'mismatch' ? 'default' : 'outline'}
+                onClick={() => updateProofFilter('mismatch', true)}
+                className="h-8"
+              >
+                Mismatch
+                <span className="ml-1 rounded-full bg-white/70 px-1.5 py-0.5 text-[10px] text-gray-700">
+                  {stats.mismatchProof}
+                </span>
+              </Button>
+              <Button
+                type="button"
+                size="sm"
+                variant={proofFilter === 'missing' ? 'default' : 'outline'}
+                onClick={() => updateProofFilter('missing', true)}
+                className="h-8"
+              >
+                Missing
+                <span className="ml-1 rounded-full bg-white/70 px-1.5 py-0.5 text-[10px] text-gray-700">
+                  {stats.missingProof}
+                </span>
+              </Button>
+              <Button
+                type="button"
+                size="sm"
+                variant={proofFilter === 'pending' ? 'default' : 'outline'}
+                onClick={() => updateProofFilter('pending', true)}
+                className="h-8"
+              >
+                Pending
+                <span className="ml-1 rounded-full bg-white/70 px-1.5 py-0.5 text-[10px] text-gray-700">
+                  {stats.pendingProof}
+                </span>
+              </Button>
             </div>
 
             {isLoading ? (
@@ -206,30 +417,77 @@ export default function ExecutionTasksPage() {
                         </TableCell>
                         <TableCell className="text-xs text-gray-700">
                           {task.proof?.status === 'verified' ? (
-                            <span className="inline-flex items-center gap-1 rounded-full border border-green-200 bg-green-50 px-2 py-0.5 text-[10px] font-medium text-green-700">
-                              <Shield className="h-3 w-3" />
-                              Verified
-                            </span>
+                            <div className="space-y-1">
+                              <span className="inline-flex items-center gap-1 rounded-full border border-green-200 bg-green-50 px-2 py-0.5 text-[10px] font-medium text-green-700">
+                                <Shield className="h-3 w-3" />
+                                Verified
+                              </span>
+                              <div className="text-[10px] text-gray-400">
+                                {task.proof.checked_at
+                                  ? `checked ${getRelativeTime(task.proof.checked_at)}`
+                                  : 'proof cached'}
+                              </div>
+                            </div>
                           ) : task.proof?.status === 'mismatch' ? (
-                            <span className="inline-flex items-center gap-1 rounded-full border border-red-200 bg-red-50 px-2 py-0.5 text-[10px] font-medium text-red-700">
-                              <Shield className="h-3 w-3" />
-                              Mismatch
-                            </span>
+                            <div className="space-y-1">
+                              <span className="inline-flex items-center gap-1 rounded-full border border-red-200 bg-red-50 px-2 py-0.5 text-[10px] font-medium text-red-700">
+                                <Shield className="h-3 w-3" />
+                                Mismatch
+                              </span>
+                              <div className="text-[10px] text-gray-400">
+                                {task.proof.checked_at
+                                  ? `checked ${getRelativeTime(task.proof.checked_at)}`
+                                  : 'needs attention'}
+                              </div>
+                            </div>
+                          ) : task.proof?.status === 'pending' ? (
+                            <div className="space-y-1">
+                              <span className="inline-flex items-center gap-1 rounded-full border border-amber-200 bg-amber-50 px-2 py-0.5 text-[10px] font-medium text-amber-700">
+                                <Clock3 className="h-3 w-3" />
+                                Pending
+                              </span>
+                              <div className="text-[10px] text-gray-400">awaiting lineage sync</div>
+                            </div>
+                          ) : task.proof?.status === 'missing' ? (
+                            <div className="space-y-1">
+                              <span className="inline-flex items-center gap-1 rounded-full border border-gray-200 bg-gray-50 px-2 py-0.5 text-[10px] font-medium text-gray-600">
+                                <Shield className="h-3 w-3" />
+                                Missing
+                              </span>
+                              <div className="text-[10px] text-gray-400">
+                                {task.proof.checked_at
+                                  ? `checked ${getRelativeTime(task.proof.checked_at)}`
+                                  : 'not reconciled yet'}
+                              </div>
+                            </div>
                           ) : task.proof?.status === 'present' ? (
-                            <span className="inline-flex items-center gap-1 rounded-full border border-blue-200 bg-blue-50 px-2 py-0.5 text-[10px] font-medium text-blue-700">
-                              <Shield className="h-3 w-3" />
-                              Proof
-                            </span>
+                            <div className="space-y-1">
+                              <span className="inline-flex items-center gap-1 rounded-full border border-blue-200 bg-blue-50 px-2 py-0.5 text-[10px] font-medium text-blue-700">
+                                <Shield className="h-3 w-3" />
+                                Proof
+                              </span>
+                              <div className="text-[10px] text-gray-400">
+                                {task.proof.checked_at
+                                  ? `checked ${getRelativeTime(task.proof.checked_at)}`
+                                  : 'present in lineage'}
+                              </div>
+                            </div>
                           ) : task.execution_receipt ? (
-                            <span className="inline-flex items-center gap-1 rounded-full border border-green-200 bg-green-50 px-2 py-0.5 text-[10px] font-medium text-green-700">
-                              <Shield className="h-3 w-3" />
-                              Signed
-                            </span>
+                            <div className="space-y-1">
+                              <span className="inline-flex items-center gap-1 rounded-full border border-green-200 bg-green-50 px-2 py-0.5 text-[10px] font-medium text-green-700">
+                                <Shield className="h-3 w-3" />
+                                Signed
+                              </span>
+                              <div className="text-[10px] text-gray-400">proof not checked yet</div>
+                            </div>
                           ) : task.execution_envelope ? (
-                            <span className="inline-flex items-center gap-1 rounded-full border border-blue-200 bg-blue-50 px-2 py-0.5 text-[10px] font-medium text-blue-700">
-                              <Shield className="h-3 w-3" />
-                              Envelope
-                            </span>
+                            <div className="space-y-1">
+                              <span className="inline-flex items-center gap-1 rounded-full border border-blue-200 bg-blue-50 px-2 py-0.5 text-[10px] font-medium text-blue-700">
+                                <Shield className="h-3 w-3" />
+                                Envelope
+                              </span>
+                              <div className="text-[10px] text-gray-400">receipt pending</div>
+                            </div>
                           ) : (
                             '—'
                           )}
