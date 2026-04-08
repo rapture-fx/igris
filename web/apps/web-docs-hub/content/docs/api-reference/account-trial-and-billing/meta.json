@@ -1,0 +1,10 @@
+{
+  "title": "Account, Trial, and Billing",
+  "pages": [
+    "get-api-subscription-status",
+    "get-api-subscription-plans",
+    "get-v1-account-api-key",
+    "post-v1-account-api-key",
+    "delete-v1-account-api-key"
+  ]
+}
