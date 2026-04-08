@@ -2,23 +2,20 @@
 
 ## Summary
 
-The docs app has now been migrated to a working hybrid Fumadocs architecture.
+The docs app has now been migrated to a working Fumadocs-first architecture.
 
 Current verified state:
 
 - Fumadocs is installed and wired into the docs app
 - Tailwind 4 is in place for `web-docs-hub`
-- the primary docs content now ships from `content/docs`
+- the docs content ships from `content/docs`
 - the catch-all docs route is owned by Fumadocs at `app/docs/[[...slug]]/page.tsx`
 - legacy article route ownership has been removed
+- the API reference now ships as generated MDX content under `content/docs/api-reference`
+- the old custom API route tree and custom API page components have been removed
 - the docs app passes `lint`, `typecheck`, and `build`
 
-What remains intentionally custom:
-
-- API Reference route tree at `app/docs/api-reference/[...slug]/page.tsx`
-- React-backed reference components such as `ApiReferencePage` and `McpReferencePage`
-
-This is no longer a migration feasibility note. It is a migration status and follow-up note.
+This is now a migration status and follow-up note, not a feasibility note.
 
 ## Audit
 
@@ -28,11 +25,10 @@ This is no longer a migration feasibility note. It is a migration status and fol
 - Most pages are plain Markdown + tables + code fences
 - Only a small subset uses React components directly
 
-### Direct MDX component usage
+### Direct MDX component usage in the legacy source set
 
 - `docs/sdk.mdx` → `SdkSupportMatrix`
 - `docs/architecture.mdx` → `StepChain`
-- `docs/api-reference.mdx` → `ApiReferencePage`
 - `docs/mcp.mdx` → `McpReferencePage`
 
 ### Global MDX runtime behavior
@@ -72,11 +68,11 @@ Metadata fields seen:
 
 ### Current docs system
 
-The current docs platform is now hybrid:
+The current docs platform is now Fumadocs-owned:
 
-- Fumadocs owns the content docs route via `app/docs/[[...slug]]/page.tsx`
+- Fumadocs owns the docs route via `app/docs/[[...slug]]/page.tsx`
 - content is sourced from `content/docs`
-- API reference remains a custom route tree
+- API reference is generated into `content/docs/api-reference`
 - MDX component injection for Fumadocs lives in `components/fumadocs-mdx-components.tsx`
 - the legacy direct docs loader at `app/docs/[slug]/page.tsx` is gone
 
@@ -111,7 +107,6 @@ Examples:
 
 - current custom route loader
 - current handwritten sidebar/navigation/search ownership
-- current API Reference page architecture
 - current MCP reference page architecture
 
 These are not incompatible as content, but they are incompatible as a direct drop-in docs system model.
@@ -135,10 +130,9 @@ These are not incompatible as content, but they are incompatible as a direct dro
 
 ### Preserve initially as embedded custom pages
 
-- API Reference
 - MCP Reference
 
-These should remain custom React-backed pages inside the docs system for the first migration pass, because rewriting them into pure content is higher-risk and unnecessary for the initial cutover.
+The API reference no longer falls into this bucket. It is now generated into Fumadocs content as part of the docs build.
 
 ## Current Migration Status
 
@@ -157,14 +151,16 @@ These should remain custom React-backed pages inside the docs system for the fir
 5. Added the Fumadocs catch-all route at `app/docs/[[...slug]]/page.tsx`.
 6. Removed the legacy article route conflict at `app/docs/articles/[slug]/page.tsx`.
 7. Re-aligned the search index generator to the new Fumadocs content source.
-8. Verified the production build.
+8. Added generated API reference content under `content/docs/api-reference` via `scripts/generate-api-reference-content.js`.
+9. Removed the old custom API route tree and custom API page components.
+10. Verified the production build.
 
 ### Remaining work
 
-1. Decide whether API Reference should remain a custom route tree or be partially folded into Fumadocs navigation/layout.
+1. Decide whether MCP should remain an embedded custom page or also move to generated/content-backed Fumadocs pages.
 2. Audit the remaining MDX runtime behavior and reintroduce richer code-block handling only if it can be done without destabilizing prerender.
-3. Add static search for the Fumadocs docs surface if richer in-site search is required under `output: 'export'`.
-4. Review page weight on `/docs/[[...slug]]` and reduce client-side cost where practical.
+3. Review page weight on `/docs/[[...slug]]` and reduce client-side cost where practical.
+4. Do a browser QA pass on representative docs, API reference, article, and MCP pages.
 
 ## Files That Will Need Direct Changes
 
@@ -175,6 +171,7 @@ These should remain custom React-backed pages inside the docs system for the fir
 - `web/apps/web-docs-hub/app/globals.css`
 - `web/apps/web-docs-hub/app/docs/[[...slug]]/page.tsx`
 - `web/apps/web-docs-hub/components/fumadocs-mdx-components.tsx`
+- `web/apps/web-docs-hub/scripts/generate-api-reference-content.js`
 - `web/apps/web-docs-hub/scripts/generate-search-index.js`
 
 ### Kept and rewired
@@ -183,7 +180,6 @@ These should remain custom React-backed pages inside the docs system for the fir
 - `web/apps/web-docs-hub/components/StepChain.tsx`
 - `web/apps/web-docs-hub/components/Callout.tsx`
 - `web/apps/web-docs-hub/components/docs/SdkSupportMatrix.tsx`
-- `web/apps/web-docs-hub/components/docs/ApiReferencePage.tsx`
 - `web/apps/web-docs-hub/components/docs/McpReferencePage.tsx`
 
 ### New files now present
@@ -193,6 +189,7 @@ These should remain custom React-backed pages inside the docs system for the fir
 - `web/apps/web-docs-hub/app/docs/[[...slug]]/page.tsx`
 - `web/apps/web-docs-hub/content/docs/meta.json`
 - `web/apps/web-docs-hub/content/docs/*`
+- `web/apps/web-docs-hub/content/docs/api-reference/*`
 
 ## Tailwind / Styling Note
 
@@ -212,13 +209,13 @@ pnpm --filter @igris/web-docs-hub build
 
 Overall remaining effort: `Medium`
 
-The platform migration itself is largely done. The remaining work is productization and cleanup, not baseline adoption.
+The platform migration itself is largely done. The remaining work is cleanup, UX polish, and deciding whether MCP should follow the same generated-content path as the API reference.
 
 Why:
 
 - content migration is relatively straightforward
 - architecture migration is the real work
-- API and MCP pages are special cases
+- MCP remains the main special case
 - Tailwind 4 requirement increases migration risk
 
 Main risks:
@@ -234,15 +231,16 @@ If doing the real migration next, the safest first release should:
 
 1. move plain docs into Fumadocs
 2. port only the components actually used in content
-3. keep API Reference and MCP as embedded custom React pages
-4. remove custom route loading and sidebar ownership
-5. defer deeper reference-system rewrites until after parity is restored
+3. remove custom route loading and sidebar ownership
+4. generate the API reference into Fumadocs content
+5. decide whether MCP should follow the same pattern
 
 ## What Was Done In This Environment
 
 - completed a full audit of MDX compatibility and current docs architecture
-- verified the dependency blocker precisely
-- confirmed the required Fumadocs packages are not already present
-- attempted installation and captured the exact network error
-
-No live Fumadocs migration code was wired into the running app because doing so without the actual dependencies would leave the repo in a broken or unverifiable state.
+- installed and pinned a Fumadocs-compatible dependency set
+- migrated the docs route ownership to Fumadocs
+- migrated the primary docs corpus into `content/docs`
+- generated the API reference into Fumadocs content
+- removed the old custom API route tree
+- verified `lint`, `typecheck`, and `build`
