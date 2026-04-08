@@ -18,6 +18,24 @@ const nextConfig = {
   },
   webpack: (config) => {
     config.resolve.alias['@'] = path.resolve(__dirname);
+    config.infrastructureLogging = {
+      ...(config.infrastructureLogging ?? {}),
+      level: 'error',
+    };
+    config.ignoreWarnings = [
+      ...(config.ignoreWarnings ?? []),
+      (warning) => {
+        const message = warning?.message ?? '';
+        const details = warning?.details ?? '';
+
+        return (
+          message.includes('webpack.cache.PackFileCacheStrategy') &&
+          message.includes('fumadocs-mdx') &&
+          details.includes("import(url.href)")
+        );
+      },
+    ];
+
     return config;
   },
 };
