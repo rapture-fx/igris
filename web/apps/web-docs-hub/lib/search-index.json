@@ -20,16 +20,6 @@
     "keywords": "agents reflection agents planning agents tool-use agents multi-agent swarms mcp swarm mode agent lifecycle choosing the right agent pattern mode flags monitoring agent state context engineering json json json json bash igris supports four agent patterns: reflection, planning, tool use, and swarms. all run inside the execution envelope with full governance applied. agents"
   },
   {
-    "title": "API Reference",
-    "path": "/docs/api-reference",
-    "description": "The API reference is served as a dedicated reference surface under /docs/api-reference. Use it\nfor the customer-facing endpoint contract, guide pages, and per-endpoint integration details.",
-    "content": "API Reference Start Here What The Reference Covers The API reference is served as a dedicated reference surface under /docs/api-reference. Use it\nfor the customer-facing endpoint contract, guide pages, and per-endpoint integration details.",
-    "breadcrumbs": [
-      "Reference"
-    ],
-    "keywords": "api reference start here what the reference covers  the api reference is served as a dedicated reference surface under /docs/api-reference. use it\nfor the customer-facing endpoint contract, guide pages, and per-endpoint integration details. api-reference"
-  },
-  {
     "title": "Approval Workflows",
     "path": "/docs/approval-workflows",
     "description": "Human-in-the-loop HITL approval pauses an execution run before it completes a high-stakes action. A reviewer must explicitly approve or reject the run before execution continues. The full approval eve",
