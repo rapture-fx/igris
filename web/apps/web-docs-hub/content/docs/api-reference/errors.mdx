@@ -1,0 +1,64 @@
+---
+title: "Errors"
+description: "How to read error responses across the API reference and what to expect from validation, authentication, throttling, and server failures."
+---
+
+# Errors
+
+How to read error responses across the API reference and what to expect from validation, authentication, throttling, and server failures.
+
+## Status Codes
+
+The HTTP status code tells you what class of failure happened before you look at the JSON body. Treat 4xx responses as request, authentication, or access problems that your client should handle directly, and treat 5xx responses as server-side failures that may require retry, fallback, or operator attention.
+
+The most common patterns are 400 for invalid request shape, 401 for missing or invalid credentials, 403 for an authenticated request that still is not allowed, 404 when the addressed resource does not exist, 429 when throttling is applied, and 500-level codes when the server cannot complete a valid request.
+
+## Validation Errors
+
+Validation failures usually mean the request shape was wrong for the route you called. Many handlers return a compact JSON envelope with `error` and sometimes a more specific `message` or `code` value that tells you what part of the request could not be accepted.
+
+## Authentication Failures
+
+Authentication failures typically return HTTP 401. Session-based handlers often use codes such as `MISSING_SESSION` or `INVALID_SESSION`, while API-key handlers more commonly return `INVALID_API_KEY`.
+
+## Server Errors
+
+Server-side failures commonly return a generic error such as `internal_error` or a route-specific code such as `registration_failed` or `STORAGE_FAILED`. These responses indicate that the server accepted the route contract but could not complete the operation.
+
+## Handling Strategy
+
+Good clients do not handle every error the same way. Fix the request for 400-class validation issues, refresh or replace credentials for 401 responses, stop and inspect authorization assumptions on 403 responses, and apply controlled retry or fallback only for the routes and statuses that are documented as retry-safe.
+
+## Error Envelope
+
+```text
+{
+  "error": "invalid_request",
+  "message": "Failed to parse request body"
+}
+```
+
+## Example JSON
+
+```json
+{
+  "error": {
+    "message": "Rate limit exceeded. Please try again later.",
+    "type": "rate_limit_error",
+    "code": "RATE_LIMIT_EXCEEDED"
+  },
+  "retry_after_seconds": 60
+}
+```
+
+## Common Status Codes
+
+| Code | Title | Description |
+|---|---|---|
+| 400 | Bad Request | The route was reached, but the request body, query, or path data did not match the endpoint contract. |
+| 401 | Unauthorized | Credentials were missing, expired, malformed, or not accepted by this route. |
+| 403 | Forbidden | The caller is authenticated, but the action or resource is not allowed for that identity. |
+| 404 | Not Found | The addressed resource or route target does not exist in the current tenant or runtime context. |
+| 429 | Too Many Requests | The caller exceeded the current throttle window and should wait before retrying. |
+| 500 | Internal Server Error | The server accepted the request contract but failed while processing it. |
+
