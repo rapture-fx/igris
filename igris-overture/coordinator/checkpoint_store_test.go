@@ -198,6 +198,74 @@ func TestExtractProofRefs(t *testing.T) {
 	}
 }
 
+func TestBuildTaskProofState(t *testing.T) {
+	t.Parallel()
+
+	checkedAt := time.Unix(1_800_000_300, 0).UTC()
+
+	tests := []struct {
+		name         string
+		executionID  string
+		expectedHash string
+		storedHash   string
+		signature    string
+		proofFound   bool
+		wantStatus   string
+	}{
+		{
+			name:         "missing when proof is absent",
+			executionID:  "exec-missing",
+			expectedHash: "hash-a",
+			proofFound:   false,
+			wantStatus:   "missing",
+		},
+		{
+			name:        "present when no expected hash",
+			executionID: "exec-present",
+			storedHash:  "hash-b",
+			signature:   "sig-b",
+			proofFound:  true,
+			wantStatus:  "present",
+		},
+		{
+			name:         "verified when expected hash matches",
+			executionID:  "exec-verified",
+			expectedHash: "hash-c",
+			storedHash:   "hash-c",
+			signature:    "sig-c",
+			proofFound:   true,
+			wantStatus:   "verified",
+		},
+		{
+			name:         "mismatch when expected hash differs",
+			executionID:  "exec-mismatch",
+			expectedHash: "hash-d",
+			storedHash:   "hash-other",
+			signature:    "sig-d",
+			proofFound:   true,
+			wantStatus:   "mismatch",
+		},
+	}
+
+	for _, test := range tests {
+		test := test
+		t.Run(test.name, func(t *testing.T) {
+			t.Parallel()
+
+			state := buildTaskProofState(test.executionID, test.expectedHash, test.storedHash, test.signature, test.proofFound, checkedAt)
+			if state.Status != test.wantStatus {
+				t.Fatalf("buildTaskProofState() status = %q, want %q", state.Status, test.wantStatus)
+			}
+			if state.ExecutionID != test.executionID {
+				t.Fatalf("buildTaskProofState() execution_id = %q, want %q", state.ExecutionID, test.executionID)
+			}
+			if state.CheckedAt == nil || !state.CheckedAt.Equal(checkedAt) {
+				t.Fatalf("buildTaskProofState() checked_at = %v, want %v", state.CheckedAt, checkedAt)
+			}
+		})
+	}
+}
+
 func TestScanTaskRecordHydratesArtifactsAndProof(t *testing.T) {
 	t.Parallel()
 
