@@ -99,13 +99,27 @@ Every webhook delivery follows a consistent format:
 
 ### Common Fields
 
-| Field | Type | Description |
-|---|---|---|
-| `id` | string | Unique event ID |
-| `type` | string | Event type identifier |
-| `timestamp` | string | ISO 8601 timestamp |
-| `tenant_id` | string | Your tenant identifier |
-| `data` | object | Event-specific payload |
+<AutoTypeTable
+  name="WebhookEnvelope"
+  type={`
+export interface WebhookEnvelope {
+  /** Unique event ID. */
+  id: string;
+
+  /** Event type identifier. */
+  type: string;
+
+  /** ISO 8601 timestamp for the delivery payload. */
+  timestamp: string;
+
+  /** Your tenant identifier. */
+  tenant_id: string;
+
+  /** Event-specific payload. */
+  data: Record<string, unknown>;
+}
+`}
+/>
 
 ---
 
