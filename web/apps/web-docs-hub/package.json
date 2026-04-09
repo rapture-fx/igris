@@ -19,6 +19,7 @@
     "clsx": "^2.1.0",
     "fumadocs-core": "^15.8.5",
     "fumadocs-mdx": "^14.2.11",
+    "fumadocs-typescript": "^5.2.2",
     "fumadocs-ui": "^15.8.5",
     "gray-matter": "^4.0.3",
     "lucide-react": "^0.294.0",
