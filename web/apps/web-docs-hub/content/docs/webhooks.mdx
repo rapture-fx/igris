@@ -99,26 +99,34 @@ Every webhook delivery follows a consistent format:
 
 ### Common Fields
 
-<AutoTypeTable
-  name="WebhookEnvelope"
-  type={`
-export interface WebhookEnvelope {
-  /** Unique event ID. */
-  id: string;
-
-  /** Event type identifier. */
-  type: string;
-
-  /** ISO 8601 timestamp for the delivery payload. */
-  timestamp: string;
-
-  /** Your tenant identifier. */
-  tenant_id: string;
-
-  /** Event-specific payload. */
-  data: Record<string, unknown>;
-}
-`}
+<TypeTable
+  type={{
+    id: {
+      type: 'string',
+      description: 'Unique event ID.',
+      required: true,
+    },
+    type: {
+      type: 'string',
+      description: 'Event type identifier.',
+      required: true,
+    },
+    timestamp: {
+      type: 'string',
+      description: 'ISO 8601 timestamp for the delivery payload.',
+      required: true,
+    },
+    tenant_id: {
+      type: 'string',
+      description: 'Your tenant identifier.',
+      required: true,
+    },
+    data: {
+      type: 'Record<string, unknown>',
+      description: 'Event-specific payload.',
+      required: true,
+    },
+  }}
 />
 
 ---
