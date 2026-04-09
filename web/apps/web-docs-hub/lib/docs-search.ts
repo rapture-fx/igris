@@ -10,10 +10,10 @@ function createDocsSearch(): NonNullable<RootProviderProps['search']> {
 
   return {
     enabled: true,
+    links,
     options: {
       type: 'static',
       api: '/search-static.json',
-      links,
     },
   };
 }
