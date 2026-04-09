@@ -37,7 +37,7 @@ export interface Task {
     expected_hash?: string;
     stored_hash?: string;
     signature?: string;
-    status?: 'missing' | 'present' | 'verified' | 'mismatch';
+    status?: 'pending' | 'missing' | 'present' | 'verified' | 'mismatch';
     checked_at?: string;
     present?: boolean;
     matched?: boolean;
