@@ -160,6 +160,36 @@
     "keywords": "deployment cloud api self-hosted coordination (infinite tier) local / edge execution engine supported platforms deployment methods local models verifying your deployment health check → check fleet registration run a test inference networking requirements resource requirements common deployment issues connecting edge to cloud tier comparison what's next python bash bash yaml bash json bash python bash igris can be deployed as a cloud-hosted api, as a local execution engine on your own hardware, o"
   },
   {
+    "title": "Docs Authoring Components",
+    "path": "/docs/docs-authoring-components",
+    "description": "These examples show the component patterns the docs should prefer going forward: native Fumadocs tabs, files, and structured tables instead of custom UI or ad hoc Markdown layouts.",
+    "content": "Docs Authoring Components Tabs Files Type Table These examples show the component patterns the docs should prefer going forward: native Fumadocs tabs, files, and structured tables instead of custom UI or ad hoc Markdown layouts.",
+    "breadcrumbs": [
+      "Reference"
+    ],
+    "keywords": "docs authoring components tabs files type table  these examples show the component patterns the docs should prefer going forward: native fumadocs tabs, files, and structured tables instead of custom ui or ad hoc markdown layouts. docs-authoring-components"
+  },
+  {
+    "title": "Docs Authoring Schemas",
+    "path": "/docs/docs-authoring-schemas",
+    "description": "Use AutoTypeTable when the documentation is describing a real request or response shape. Use TypeTable when the content is editorial or conceptual and the shape is not worth maintaining as a TypeScrip",
+    "content": "Docs Authoring Schemas Auto Type Table Type Table Use AutoTypeTable when the documentation is describing a real request or response shape. Use TypeTable when the content is editorial or conceptual and the shape is not worth maintaining as a TypeScrip",
+    "breadcrumbs": [
+      "Reference"
+    ],
+    "keywords": "docs authoring schemas auto type table type table  use autotypetable when the documentation is describing a real request or response shape. use typetable when the content is editorial or conceptual and the shape is not worth maintaining as a typescrip docs-authoring-schemas"
+  },
+  {
+    "title": "Docs Authoring",
+    "path": "/docs/docs-authoring",
+    "description": "This docs site now uses the native Fumadocs layout and native Fumadocs MDX components.",
+    "content": "Docs Authoring Native Components Auto Type Table This docs site now uses the native Fumadocs layout and native Fumadocs MDX components.",
+    "breadcrumbs": [
+      "Reference"
+    ],
+    "keywords": "docs authoring native components auto type table  this docs site now uses the native fumadocs layout and native fumadocs mdx components. docs-authoring"
+  },
+  {
     "title": "Documentation Roadmap",
     "path": "/docs/documentation-roadmap",
     "description": "This page tracks the work required to move the Igris docs from strong product documentation to first-class product documentation.",
