@@ -29,6 +29,7 @@ import {
   ChevronRight,
   CheckCircle2,
   Clock3,
+  Copy,
   ExternalLink,
   Filter,
   Search,
@@ -82,11 +83,31 @@ function isUnresolvedTask(task: Task): boolean {
   return bucket === 'pending' || bucket === 'missing' || bucket === 'mismatch' || bucket === 'signed' || bucket === 'envelope';
 }
 
+function findRelativeTaskByBuckets(
+  tasks: Task[],
+  selectedIndex: number,
+  buckets: string[],
+  direction: -1 | 1,
+): string | null {
+  if (selectedIndex < 0) return null;
+  for (
+    let index = selectedIndex + direction;
+    index >= 0 && index < tasks.length;
+    index += direction
+  ) {
+    if (buckets.includes(proofBucket(tasks[index]))) {
+      return tasks[index].task_id;
+    }
+  }
+  return null;
+}
+
 export default function ExecutionTasksPage() {
   const router = useRouter();
   const searchParams = useSearchParams();
   const [search, setSearch] = useState(searchParams.get('q') ?? '');
   const [selectedTaskId, setSelectedTaskId] = useState<string | null>(searchParams.get('task'));
+  const [copiedLink, setCopiedLink] = useState(false);
   const [proofFilter, setProofFilter] = useState<'all' | 'verified' | 'pending' | 'unresolved' | 'mismatch' | 'missing'>(
     (searchParams.get('proof') as 'all' | 'verified' | 'pending' | 'unresolved' | 'mismatch' | 'missing') || 'all'
   );
@@ -159,7 +180,7 @@ export default function ExecutionTasksPage() {
     const verifiedProof = tasks.filter((task) => task.proof?.status === 'verified').length;
     const pendingProof = tasks.filter((task) =>
       task.proof?.status === 'pending' ||
-      ((task.proof?.status === undefined || task.proof?.status === '') && !!task.execution_receipt)
+      (task.proof?.status === undefined && !!task.execution_receipt)
     ).length;
     const mismatchProof = tasks.filter((task) => task.proof?.status === 'mismatch').length;
     const missingProof = tasks.filter((task) =>
@@ -201,6 +222,52 @@ export default function ExecutionTasksPage() {
     }
     return null;
   }, [filteredTasks, selectedFilteredIndex]);
+
+  const nextMismatchTaskId = useMemo(
+    () => findRelativeTaskByBuckets(filteredTasks, selectedFilteredIndex, ['mismatch'], 1),
+    [filteredTasks, selectedFilteredIndex],
+  );
+
+  const nextMissingTaskId = useMemo(
+    () => findRelativeTaskByBuckets(filteredTasks, selectedFilteredIndex, ['missing', 'none'], 1),
+    [filteredTasks, selectedFilteredIndex],
+  );
+
+  useEffect(() => {
+    if (!selectedTaskId) return;
+
+    const handleKeyDown = (event: KeyboardEvent) => {
+      const target = event.target as HTMLElement | null;
+      if (
+        target &&
+        (target.tagName === 'INPUT' ||
+          target.tagName === 'TEXTAREA' ||
+          target.tagName === 'SELECT' ||
+          target.isContentEditable)
+      ) {
+        return;
+      }
+
+      if ((event.key === 'j' || event.key === 'ArrowDown') && nextUnresolvedTaskId) {
+        event.preventDefault();
+        updateSelectedTask(nextUnresolvedTaskId);
+      }
+
+      if ((event.key === 'k' || event.key === 'ArrowUp') && previousUnresolvedTaskId) {
+        event.preventDefault();
+        updateSelectedTask(previousUnresolvedTaskId);
+      }
+    };
+
+    window.addEventListener('keydown', handleKeyDown);
+    return () => window.removeEventListener('keydown', handleKeyDown);
+  }, [nextUnresolvedTaskId, previousUnresolvedTaskId, selectedTaskId]);
+
+  useEffect(() => {
+    if (!copiedLink) return;
+    const timeout = window.setTimeout(() => setCopiedLink(false), 1500);
+    return () => window.clearTimeout(timeout);
+  }, [copiedLink]);
 
   useEffect(() => {
     const nextSearch = searchParams.get('q') ?? '';
@@ -269,6 +336,14 @@ export default function ExecutionTasksPage() {
   const updateSelectedTask = (nextTaskId: string | null) => {
     setSelectedTaskId(nextTaskId);
     syncListState(proofFilter, prioritizeUnresolved, search, nextTaskId);
+  };
+
+  const copyCurrentTriageLink = async () => {
+    if (typeof window === 'undefined') return;
+    try {
+      await navigator.clipboard.writeText(window.location.href);
+      setCopiedLink(true);
+    } catch {}
   };
 
   return (
@@ -586,12 +661,27 @@ export default function ExecutionTasksPage() {
               <div className="space-y-1">
                 <SheetTitle>Task Detail</SheetTitle>
                 {selectedUnresolvedIndex >= 0 && unresolvedTaskIds.length > 0 && (
-                  <p className="text-xs text-gray-500">
-                    Unresolved queue {selectedUnresolvedIndex + 1} of {unresolvedTaskIds.length}
-                  </p>
+                  <div className="space-y-0.5">
+                    <p className="text-xs text-gray-500">
+                      Unresolved queue {selectedUnresolvedIndex + 1} of {unresolvedTaskIds.length}
+                    </p>
+                    <p className="text-[11px] text-gray-400">
+                      Shortcuts: <span className="font-mono">j</span>/<span className="font-mono">k</span> or arrow keys
+                    </p>
+                  </div>
                 )}
               </div>
               <div className="flex items-center gap-2">
+                <Button
+                  type="button"
+                  variant="outline"
+                  size="sm"
+                  className="h-8 gap-1"
+                  onClick={copyCurrentTriageLink}
+                >
+                  <Copy className="h-3.5 w-3.5" />
+                  {copiedLink ? 'Copied' : 'Copy link'}
+                </Button>
                 <Button
                   type="button"
                   variant="outline"
@@ -613,6 +703,26 @@ export default function ExecutionTasksPage() {
                 >
                   Next unresolved
                   <ChevronRight className="h-3.5 w-3.5" />
+                </Button>
+                <Button
+                  type="button"
+                  variant="outline"
+                  size="sm"
+                  className="h-8 gap-1"
+                  disabled={!nextMismatchTaskId}
+                  onClick={() => nextMismatchTaskId && updateSelectedTask(nextMismatchTaskId)}
+                >
+                  Next mismatch
+                </Button>
+                <Button
+                  type="button"
+                  variant="outline"
+                  size="sm"
+                  className="h-8 gap-1"
+                  disabled={!nextMissingTaskId}
+                  onClick={() => nextMissingTaskId && updateSelectedTask(nextMissingTaskId)}
+                >
+                  Next missing
                 </Button>
                 {selectedTaskId && (
                   <Link
