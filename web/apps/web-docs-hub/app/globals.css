@@ -5,7 +5,7 @@
 @layer base {
   :root {
     --fd-layout-width: 88rem;
-    --fd-page-width: 46rem;
+    --fd-page-width: 72rem;
   }
 
   html {
