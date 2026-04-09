@@ -1,6 +1,7 @@
 package coordinator
 
 import (
+	"encoding/json"
 	"testing"
 	"time"
 )
@@ -130,4 +131,64 @@ func TestTaskProofNeedsRefresh(t *testing.T) {
 
 func ptrTime(value time.Time) *time.Time {
 	return &value
+}
+
+func TestExtractProofRefs(t *testing.T) {
+	t.Parallel()
+
+	tests := []struct {
+		name       string
+		receipt    json.RawMessage
+		wantExecID string
+		wantHash   string
+		wantOk     bool
+	}{
+		{
+			name:       "receipt_hash takes priority",
+			receipt:    json.RawMessage(`{"execution_id":"exec-1","receipt_hash":"hash-1","hash":"fallback"}`),
+			wantExecID: "exec-1",
+			wantHash:   "hash-1",
+			wantOk:     true,
+		},
+		{
+			name:       "falls back to hash",
+			receipt:    json.RawMessage(`{"execution_id":"exec-2","hash":"hash-2"}`),
+			wantExecID: "exec-2",
+			wantHash:   "hash-2",
+			wantOk:     true,
+		},
+		{
+			name:    "missing execution id is invalid",
+			receipt: json.RawMessage(`{"receipt_hash":"hash-only"}`),
+			wantOk:  false,
+		},
+		{
+			name:    "invalid json is rejected",
+			receipt: json.RawMessage(`{"execution_id":`),
+			wantOk:  false,
+		},
+		{
+			name:    "empty receipt is rejected",
+			receipt: nil,
+			wantOk:  false,
+		},
+	}
+
+	for _, test := range tests {
+		test := test
+		t.Run(test.name, func(t *testing.T) {
+			t.Parallel()
+
+			execID, hash, ok := extractProofRefs(test.receipt)
+			if ok != test.wantOk {
+				t.Fatalf("extractProofRefs() ok = %v, want %v", ok, test.wantOk)
+			}
+			if execID != test.wantExecID {
+				t.Fatalf("extractProofRefs() execution_id = %q, want %q", execID, test.wantExecID)
+			}
+			if hash != test.wantHash {
+				t.Fatalf("extractProofRefs() hash = %q, want %q", hash, test.wantHash)
+			}
+		})
+	}
 }
