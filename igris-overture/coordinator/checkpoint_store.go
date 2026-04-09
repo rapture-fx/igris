@@ -62,6 +62,14 @@ type TaskProofState struct {
 	CheckedAt    *time.Time `json:"checked_at,omitempty"`
 }
 
+const (
+	proofPendingRefreshInterval  = 30 * time.Second
+	proofMissingRefreshInterval  = 2 * time.Minute
+	proofPresentRefreshInterval  = 10 * time.Minute
+	proofVerifiedRefreshInterval = 30 * time.Minute
+	proofMismatchRefreshInterval = 5 * time.Minute
+)
+
 // ResumeToken mirrors igris_wal::ResumeToken exactly.
 // It is nested inside CheckpointPayload, matching the Rust JSON shape.
 type ResumeToken struct {
@@ -276,11 +284,11 @@ func (s *CheckpointStore) RefreshPendingProofStates(tenantID string, limit int) 
 	}
 
 	rows, err := s.db.Query(`
-		SELECT task_id
+		SELECT task_id, proof_status, proof_checked_at
 		FROM task_records
 		WHERE tenant_id = $1
 		  AND proof_execution_id IS NOT NULL
-		  AND COALESCE(proof_status, '') IN ('', 'pending', 'missing')
+		  AND COALESCE(proof_status, '') IN ('', 'pending', 'missing', 'present', 'verified', 'mismatch')
 		ORDER BY COALESCE(completed_at, created_at) DESC
 		LIMIT $2`,
 		tenantID, limit,
@@ -290,20 +298,35 @@ func (s *CheckpointStore) RefreshPendingProofStates(tenantID string, limit int) 
 	}
 	defer rows.Close()
 
-	var taskIDs []uuid.UUID
+	type proofRefreshCandidate struct {
+		taskID     uuid.UUID
+		proof      *TaskProofState
+	}
+	var candidates []proofRefreshCandidate
 	for rows.Next() {
 		var taskID uuid.UUID
-		if err := rows.Scan(&taskID); err != nil {
+		var status sql.NullString
+		var checkedAt sql.NullTime
+		if err := rows.Scan(&taskID, &status, &checkedAt); err != nil {
 			return err
 		}
-		taskIDs = append(taskIDs, taskID)
+		var proof *TaskProofState
+		if status.Valid || checkedAt.Valid {
+			proof = &TaskProofState{Status: status.String}
+			if checkedAt.Valid {
+				proof.CheckedAt = &checkedAt.Time
+			}
+		}
+		if taskProofNeedsRefresh(proof, time.Now().UTC()) {
+			candidates = append(candidates, proofRefreshCandidate{taskID: taskID, proof: proof})
+		}
 	}
 	if err := rows.Err(); err != nil {
 		return err
 	}
 
-	for _, taskID := range taskIDs {
-		if _, err := s.SyncTaskProofState(taskID, tenantID); err != nil && err != sql.ErrNoRows {
+	for _, candidate := range candidates {
+		if _, err := s.SyncTaskProofState(candidate.taskID, tenantID); err != nil && err != sql.ErrNoRows {
 			return err
 		}
 	}
@@ -571,6 +594,31 @@ func scanTaskRecord(row scanner) (*TaskRecord, error) {
 func decodeHexToBytes(h string) []byte {
 	b, _ := hex.DecodeString(h)
 	return b
+}
+
+func taskProofNeedsRefresh(proof *TaskProofState, now time.Time) bool {
+	if proof == nil {
+		return false
+	}
+	if proof.CheckedAt == nil {
+		return true
+	}
+
+	age := now.Sub(*proof.CheckedAt)
+	switch proof.Status {
+	case "", "pending":
+		return age >= proofPendingRefreshInterval
+	case "missing":
+		return age >= proofMissingRefreshInterval
+	case "present":
+		return age >= proofPresentRefreshInterval
+	case "mismatch":
+		return age >= proofMismatchRefreshInterval
+	case "verified":
+		return age >= proofVerifiedRefreshInterval
+	default:
+		return age >= proofMissingRefreshInterval
+	}
 }
 
 func nullRawJSON(raw json.RawMessage) any {
