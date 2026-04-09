@@ -1,6 +1,8 @@
 import defaultMdxComponents, { createRelativeLink } from 'fumadocs-ui/mdx';
 import { CodeBlock, Pre } from 'fumadocs-ui/components/codeblock';
 import { File, Files, Folder } from 'fumadocs-ui/components/files';
+import { ImageZoom } from 'fumadocs-ui/components/image-zoom';
+import { InlineTOC } from 'fumadocs-ui/components/inline-toc';
 import { Step, Steps } from 'fumadocs-ui/components/steps';
 import { Tab, Tabs, TabsContent, TabsList, TabsTrigger } from 'fumadocs-ui/components/tabs';
 import { TypeTable } from 'fumadocs-ui/components/type-table';
@@ -21,6 +23,7 @@ export function getMDXComponents(
       </CodeBlock>
     ),
     a: createRelativeLink(source, page),
+    img: (props) => <ImageZoom {...(props as React.ComponentProps<typeof ImageZoom>)} />,
     Tabs,
     Tab,
     TabsList,
@@ -29,6 +32,7 @@ export function getMDXComponents(
     Steps,
     Step,
     TypeTable,
+    InlineTOC,
     Files,
     File,
     Folder,
