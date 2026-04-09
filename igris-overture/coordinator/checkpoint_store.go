@@ -299,8 +299,8 @@ func (s *CheckpointStore) RefreshPendingProofStates(tenantID string, limit int) 
 	defer rows.Close()
 
 	type proofRefreshCandidate struct {
-		taskID     uuid.UUID
-		proof      *TaskProofState
+		taskID uuid.UUID
+		proof  *TaskProofState
 	}
 	var candidates []proofRefreshCandidate
 	for rows.Next() {
@@ -317,7 +317,7 @@ func (s *CheckpointStore) RefreshPendingProofStates(tenantID string, limit int) 
 				proof.CheckedAt = &checkedAt.Time
 			}
 		}
-		if taskProofNeedsRefresh(proof, time.Now().UTC()) {
+		if TaskProofNeedsRefresh(proof, time.Now().UTC()) {
 			candidates = append(candidates, proofRefreshCandidate{taskID: taskID, proof: proof})
 		}
 	}
@@ -596,7 +596,7 @@ func decodeHexToBytes(h string) []byte {
 	return b
 }
 
-func taskProofNeedsRefresh(proof *TaskProofState, now time.Time) bool {
+func TaskProofNeedsRefresh(proof *TaskProofState, now time.Time) bool {
 	if proof == nil {
 		return false
 	}
