@@ -1,9 +1,8 @@
 import { source } from '@/lib/source';
 import { DocsLayout } from 'fumadocs-ui/layouts/docs';
 import { DocsBody, DocsPage } from 'fumadocs-ui/page';
-import { RootProvider } from 'fumadocs-ui/provider/next';
+import defaultMdxComponents, { createRelativeLink } from 'fumadocs-ui/mdx';
 import { fumadocsMdxComponents } from '@/components/fumadocs-mdx-components';
-import { docsSearch } from '@/lib/docs-search';
 import { notFound } from 'next/navigation';
 import type { Metadata } from 'next';
 
@@ -31,24 +30,23 @@ export default async function Page({ params }: PageProps) {
   if (!page) notFound();
 
   const MDX = page.data.body;
+  const components = {
+    ...defaultMdxComponents,
+    ...fumadocsMdxComponents,
+    a: createRelativeLink(source, page, defaultMdxComponents.a),
+  };
 
   return (
-    <RootProvider
-      theme={{ enabled: false }}
-      search={docsSearch}
+    <DocsLayout
+      tree={source.pageTree}
+      nav={{ title: 'Igris Docs' }}
+      sidebar={{ defaultOpenLevel: 1 }}
     >
-      <DocsLayout
-        tree={source.pageTree}
-        nav={{ title: 'Igris Docs' }}
-        sidebar={{ defaultOpenLevel: 1 }}
-      >
-        <DocsPage toc={page.data.toc}>
-          <DocsBody>
-            <h1>{page.data.title}</h1>
-            <MDX components={fumadocsMdxComponents} />
-          </DocsBody>
-        </DocsPage>
-      </DocsLayout>
-    </RootProvider>
+      <DocsPage toc={page.data.toc}>
+        <DocsBody>
+          <MDX components={components} />
+        </DocsBody>
+      </DocsPage>
+    </DocsLayout>
   );
 }
