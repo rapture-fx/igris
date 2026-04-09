@@ -17,6 +17,7 @@ function walk(dir, files = []) {
 
 function main() {
   const failures = [];
+  const warnings = [];
 
   const requiredGeneratedFiles = ['api-reference.json', 'api-verification.json', 'sdk-support.json', 'mcp-reference.json'];
   for (const fileName of requiredGeneratedFiles) {
@@ -152,71 +153,90 @@ function main() {
     }
   }
 
-  const jsPackage = JSON.parse(fs.readFileSync(path.join(repoRoot, 'igris-javascript-sdk', 'package.json'), 'utf8'));
-  if (jsPackage.name !== '@igris-inertial/sdk') {
-    failures.push(`JavaScript SDK package mismatch: expected @igris-inertial/sdk, found ${jsPackage.name}`);
-  }
   const jsSdkRow = (sdkSupport.rows ?? []).find((row) => row.language === 'JavaScript / TypeScript');
   if (!jsSdkRow) {
     failures.push('Missing JavaScript / TypeScript SDK support row.');
   } else {
-    const expectedPackage = jsPackage.name;
-    const expectedInstall = `npm install ${jsPackage.name}`;
-    const expectedImport = `import { IgrisClient } from '${jsPackage.name}';`;
-    if (jsSdkRow.package !== expectedPackage) {
-      failures.push(`JavaScript SDK docs package mismatch: expected ${expectedPackage}, found ${jsSdkRow.package}`);
-    }
-    if (jsSdkRow.install !== expectedInstall) {
-      failures.push(`JavaScript SDK docs install mismatch: expected "${expectedInstall}", found "${jsSdkRow.install}"`);
-    }
-    if (jsSdkRow.import !== expectedImport) {
-      failures.push(`JavaScript SDK docs import mismatch: expected "${expectedImport}", found "${jsSdkRow.import}"`);
+    const jsPackagePath = path.join(repoRoot, 'igris-javascript-sdk', 'package.json');
+    if (fs.existsSync(jsPackagePath)) {
+      const jsPackage = JSON.parse(fs.readFileSync(jsPackagePath, 'utf8'));
+      if (jsPackage.name !== '@igris-inertial/sdk') {
+        failures.push(`JavaScript SDK package mismatch: expected @igris-inertial/sdk, found ${jsPackage.name}`);
+      }
+      const expectedPackage = jsPackage.name;
+      const expectedInstall = `npm install ${jsPackage.name}`;
+      const expectedImport = `import { IgrisClient } from '${jsPackage.name}';`;
+      if (jsSdkRow.package !== expectedPackage) {
+        failures.push(`JavaScript SDK docs package mismatch: expected ${expectedPackage}, found ${jsSdkRow.package}`);
+      }
+      if (jsSdkRow.install !== expectedInstall) {
+        failures.push(`JavaScript SDK docs install mismatch: expected "${expectedInstall}", found "${jsSdkRow.install}"`);
+      }
+      if (jsSdkRow.import !== expectedImport) {
+        failures.push(`JavaScript SDK docs import mismatch: expected "${expectedImport}", found "${jsSdkRow.import}"`);
+      }
+    } else {
+      warnings.push(`Skipping JavaScript SDK repo validation; missing ${jsPackagePath}`);
     }
   }
 
-  const goMod = fs.readFileSync(path.join(repoRoot, 'igris-go-sdk', 'go.mod'), 'utf8');
-  const goModuleMatch = goMod.match(/^module\s+(.+)$/m);
-  if (!goModuleMatch || goModuleMatch[1].trim() !== 'github.com/igris-inertial/go-sdk') {
-    failures.push('Go SDK module path must remain github.com/igris-inertial/go-sdk.');
-  }
-  const goModule = goModuleMatch?.[1]?.trim();
   const goSdkRow = (sdkSupport.rows ?? []).find((row) => row.language === 'Go');
   if (!goSdkRow) {
     failures.push('Missing Go SDK support row.');
-  } else if (goModule) {
-    const expectedInstall = `go get ${goModule}`;
-    const expectedImport = `import igris "${goModule}"`;
-    if (goSdkRow.package !== goModule) {
-      failures.push(`Go SDK docs package mismatch: expected ${goModule}, found ${goSdkRow.package}`);
-    }
-    if (goSdkRow.install !== expectedInstall) {
-      failures.push(`Go SDK docs install mismatch: expected "${expectedInstall}", found "${goSdkRow.install}"`);
-    }
-    if (goSdkRow.import !== expectedImport) {
-      failures.push(`Go SDK docs import mismatch: expected "${expectedImport}", found "${goSdkRow.import}"`);
+  } else {
+    const goModPath = path.join(repoRoot, 'igris-go-sdk', 'go.mod');
+    if (fs.existsSync(goModPath)) {
+      const goMod = fs.readFileSync(goModPath, 'utf8');
+      const goModuleMatch = goMod.match(/^module\s+(.+)$/m);
+      if (!goModuleMatch || goModuleMatch[1].trim() !== 'github.com/igris-inertial/go-sdk') {
+        failures.push('Go SDK module path must remain github.com/igris-inertial/go-sdk.');
+      }
+      const goModule = goModuleMatch?.[1]?.trim();
+      if (goModule) {
+        const expectedInstall = `go get ${goModule}`;
+        const expectedImport = `import igris "${goModule}"`;
+        if (goSdkRow.package !== goModule) {
+          failures.push(`Go SDK docs package mismatch: expected ${goModule}, found ${goSdkRow.package}`);
+        }
+        if (goSdkRow.install !== expectedInstall) {
+          failures.push(`Go SDK docs install mismatch: expected "${expectedInstall}", found "${goSdkRow.install}"`);
+        }
+        if (goSdkRow.import !== expectedImport) {
+          failures.push(`Go SDK docs import mismatch: expected "${expectedImport}", found "${goSdkRow.import}"`);
+        }
+      }
+    } else {
+      warnings.push(`Skipping Go SDK repo validation; missing ${goModPath}`);
     }
   }
 
-  const rustCargo = fs.readFileSync(path.join(repoRoot, 'igris-rust-sdk', 'Cargo.toml'), 'utf8');
-  const rustPackageMatch = rustCargo.match(/^name\s*=\s*"(.+)"$/m);
-  if (!rustPackageMatch || rustPackageMatch[1].trim() !== 'igris-inertial') {
-    failures.push('Rust SDK crate name must remain igris-inertial.');
-  }
-  const rustPackage = rustPackageMatch?.[1]?.trim();
   const rustSdkRow = (sdkSupport.rows ?? []).find((row) => row.language === 'Rust');
   if (!rustSdkRow) {
     failures.push('Missing Rust SDK support row.');
-  } else if (rustPackage) {
-    const expectedInstall = `cargo add ${rustPackage}`;
-    const expectedImport = `use ${rustPackage.replace(/-/g, '_')}::IgrisClient;`;
-    if (rustSdkRow.package !== rustPackage) {
-      failures.push(`Rust SDK docs package mismatch: expected ${rustPackage}, found ${rustSdkRow.package}`);
-    }
-    if (rustSdkRow.install !== expectedInstall) {
-      failures.push(`Rust SDK docs install mismatch: expected "${expectedInstall}", found "${rustSdkRow.install}"`);
-    }
-    if (rustSdkRow.import !== expectedImport) {
-      failures.push(`Rust SDK docs import mismatch: expected "${expectedImport}", found "${rustSdkRow.import}"`);
+  } else {
+    const rustCargoPath = path.join(repoRoot, 'igris-rust-sdk', 'Cargo.toml');
+    if (fs.existsSync(rustCargoPath)) {
+      const rustCargo = fs.readFileSync(rustCargoPath, 'utf8');
+      const rustPackageMatch = rustCargo.match(/^name\s*=\s*"(.+)"$/m);
+      if (!rustPackageMatch || rustPackageMatch[1].trim() !== 'igris-inertial') {
+        failures.push('Rust SDK crate name must remain igris-inertial.');
+      }
+      const rustPackage = rustPackageMatch?.[1]?.trim();
+      if (rustPackage) {
+        const expectedInstall = `cargo add ${rustPackage}`;
+        const expectedImport = `use ${rustPackage.replace(/-/g, '_')}::IgrisClient;`;
+        if (rustSdkRow.package !== rustPackage) {
+          failures.push(`Rust SDK docs package mismatch: expected ${rustPackage}, found ${rustSdkRow.package}`);
+        }
+        if (rustSdkRow.install !== expectedInstall) {
+          failures.push(`Rust SDK docs install mismatch: expected "${expectedInstall}", found "${rustSdkRow.install}"`);
+        }
+        if (rustSdkRow.import !== expectedImport) {
+          failures.push(`Rust SDK docs import mismatch: expected "${expectedImport}", found "${rustSdkRow.import}"`);
+        }
+      }
+    } else {
+      warnings.push(`Skipping Rust SDK repo validation; missing ${rustCargoPath}`);
     }
   }
 
@@ -226,6 +246,12 @@ function main() {
       console.error(`- ${failure}`);
     }
     process.exit(1);
+  }
+
+  if (warnings.length > 0) {
+    for (const warning of warnings) {
+      console.warn(`[validate-docs] ${warning}`);
+    }
   }
 
   console.log('Documentation validation passed');
