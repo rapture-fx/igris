@@ -1,9 +1,14 @@
 package coordinator
 
 import (
+	"database/sql"
 	"encoding/json"
+	"fmt"
+	"reflect"
 	"testing"
 	"time"
+
+	"github.com/google/uuid"
 )
 
 func TestTaskProofNeedsRefresh(t *testing.T) {
@@ -191,4 +196,171 @@ func TestExtractProofRefs(t *testing.T) {
 			}
 		})
 	}
+}
+
+func TestScanTaskRecordHydratesArtifactsAndProof(t *testing.T) {
+	t.Parallel()
+
+	taskID := uuid.New()
+	createdAt := time.Unix(1_800_000_100, 0).UTC()
+	deadlineAt := createdAt.Add(10 * time.Minute)
+	dispatchedAt := createdAt.Add(1 * time.Minute)
+	completedAt := createdAt.Add(2 * time.Minute)
+	checkedAt := createdAt.Add(3 * time.Minute)
+	runtimeID := "runtime-agent-1"
+	runtimeEndpoint := "http://runtime.local"
+	failureReason := "none"
+	defBytes := []byte(`{"task_type":"single_inference"}`)
+	cpBytes := []byte(`{"task_id":"` + taskID.String() + `","resume_token":{"last_committed_step":2,"checkpoint_digest":"abc123","runtime_id":"runtime-agent-1"},"wal_entries":[],"metadata":{"requested_mode":"balanced"}}`)
+	envelopeBytes := []byte(`{"provider":"openai","signature":"sig"}`)
+	receiptBytes := []byte(`{"execution_id":"exec-1","receipt_hash":"hash-1"}`)
+
+	record, err := scanTaskRecord(fakeTaskRecordScanner{values: []any{
+		taskID,
+		"tenant-a",
+		TaskStatusCompleted,
+		runtimeID,
+		runtimeEndpoint,
+		defBytes,
+		cpBytes,
+		envelopeBytes,
+		receiptBytes,
+		sql.NullString{String: "exec-1", Valid: true},
+		sql.NullString{String: "hash-1", Valid: true},
+		sql.NullString{String: "hash-1", Valid: true},
+		sql.NullString{String: "sig-proof", Valid: true},
+		sql.NullString{String: "verified", Valid: true},
+		sql.NullTime{Time: checkedAt, Valid: true},
+		"idem-1",
+		failureReason,
+		deadlineAt,
+		dispatchedAt,
+		completedAt,
+		createdAt,
+	}})
+	if err != nil {
+		t.Fatalf("scanTaskRecord() error = %v", err)
+	}
+
+	if record.TaskID != taskID {
+		t.Fatalf("TaskID = %v, want %v", record.TaskID, taskID)
+	}
+	if record.RuntimeID == nil || *record.RuntimeID != runtimeID {
+		t.Fatalf("RuntimeID = %v, want %q", record.RuntimeID, runtimeID)
+	}
+	if record.RuntimeEndpoint == nil || *record.RuntimeEndpoint != runtimeEndpoint {
+		t.Fatalf("RuntimeEndpoint = %v, want %q", record.RuntimeEndpoint, runtimeEndpoint)
+	}
+	if string(record.ExecutionEnvelope) != string(envelopeBytes) {
+		t.Fatalf("ExecutionEnvelope = %s, want %s", record.ExecutionEnvelope, envelopeBytes)
+	}
+	if string(record.ExecutionReceipt) != string(receiptBytes) {
+		t.Fatalf("ExecutionReceipt = %s, want %s", record.ExecutionReceipt, receiptBytes)
+	}
+	if record.LastCheckpoint == nil {
+		t.Fatal("LastCheckpoint is nil")
+	}
+	if record.LastCheckpoint.ResumeToken.LastCommittedStep != 2 {
+		t.Fatalf("LastCheckpoint.ResumeToken.LastCommittedStep = %d, want 2", record.LastCheckpoint.ResumeToken.LastCommittedStep)
+	}
+	if record.Proof == nil {
+		t.Fatal("Proof is nil")
+	}
+	if record.Proof.Status != "verified" {
+		t.Fatalf("Proof.Status = %q, want verified", record.Proof.Status)
+	}
+	if record.Proof.CheckedAt == nil || !record.Proof.CheckedAt.Equal(checkedAt) {
+		t.Fatalf("Proof.CheckedAt = %v, want %v", record.Proof.CheckedAt, checkedAt)
+	}
+}
+
+func TestScanTaskRecordOmitsEmptyProofAndInvalidCheckpoint(t *testing.T) {
+	t.Parallel()
+
+	taskID := uuid.New()
+	createdAt := time.Unix(1_800_000_200, 0).UTC()
+
+	record, err := scanTaskRecord(fakeTaskRecordScanner{values: []any{
+		taskID,
+		"tenant-b",
+		TaskStatusPending,
+		nil,
+		nil,
+		[]byte(`{"task_type":"execution_graph"}`),
+		[]byte(`{"not-valid-json"`),
+		nil,
+		nil,
+		sql.NullString{},
+		sql.NullString{},
+		sql.NullString{},
+		sql.NullString{},
+		sql.NullString{},
+		sql.NullTime{},
+		"idem-2",
+		nil,
+		nil,
+		nil,
+		nil,
+		createdAt,
+	}})
+	if err != nil {
+		t.Fatalf("scanTaskRecord() error = %v", err)
+	}
+
+	if record.LastCheckpoint != nil {
+		t.Fatalf("LastCheckpoint = %v, want nil for invalid checkpoint JSON", record.LastCheckpoint)
+	}
+	if record.Proof != nil {
+		t.Fatalf("Proof = %+v, want nil when proof fields are empty", record.Proof)
+	}
+	if record.ExecutionEnvelope != nil {
+		t.Fatalf("ExecutionEnvelope = %v, want nil", record.ExecutionEnvelope)
+	}
+	if record.ExecutionReceipt != nil {
+		t.Fatalf("ExecutionReceipt = %v, want nil", record.ExecutionReceipt)
+	}
+}
+
+type fakeTaskRecordScanner struct {
+	values []any
+}
+
+func (f fakeTaskRecordScanner) Scan(dest ...any) error {
+	if len(dest) != len(f.values) {
+		return fmt.Errorf("scan dest mismatch: got %d dests want %d values", len(dest), len(f.values))
+	}
+	for i, value := range f.values {
+		if err := assignScanValue(dest[i], value); err != nil {
+			return fmt.Errorf("assign value %d: %w", i, err)
+		}
+	}
+	return nil
+}
+
+func assignScanValue(dest any, value any) error {
+	dv := reflect.ValueOf(dest)
+	if dv.Kind() != reflect.Ptr {
+		return fmt.Errorf("destination is not a pointer: %T", dest)
+	}
+
+	target := dv.Elem()
+	if value == nil {
+		target.Set(reflect.Zero(target.Type()))
+		return nil
+	}
+
+	vv := reflect.ValueOf(value)
+	if vv.Type().AssignableTo(target.Type()) {
+		target.Set(vv)
+		return nil
+	}
+
+	if target.Kind() == reflect.Ptr && vv.Type().AssignableTo(target.Type().Elem()) {
+		ptr := reflect.New(target.Type().Elem())
+		ptr.Elem().Set(vv)
+		target.Set(ptr)
+		return nil
+	}
+
+	return fmt.Errorf("cannot assign %T to %T", value, dest)
 }

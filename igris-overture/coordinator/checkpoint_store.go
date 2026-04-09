@@ -235,13 +235,8 @@ func (s *CheckpointStore) SyncTaskProofState(taskID uuid.UUID, tenantID string) 
 		return nil, nil
 	}
 
-	state := &TaskProofState{
-		ExecutionID:  executionID.String,
-		ExpectedHash: expectedHash.String,
-		Status:       "missing",
-	}
 	now := time.Now().UTC()
-	state.CheckedAt = &now
+	state := buildTaskProofState(executionID.String, expectedHash.String, "", "", false, now)
 
 	var storedHash, signature sql.NullString
 	err := s.db.QueryRow(`
@@ -261,21 +256,31 @@ func (s *CheckpointStore) SyncTaskProofState(taskID uuid.UUID, tenantID string) 
 		return nil, err
 	}
 
-	state.StoredHash = storedHash.String
-	state.Signature = signature.String
-	switch {
-	case expectedHash.Valid && expectedHash.String != "" && storedHash.String == expectedHash.String:
-		state.Status = "verified"
-	case expectedHash.Valid && expectedHash.String != "":
-		state.Status = "mismatch"
-	default:
-		state.Status = "present"
-	}
+	state = buildTaskProofState(executionID.String, expectedHash.String, storedHash.String, signature.String, true, now)
 
 	if err := s.updateTaskProofState(taskID, state); err != nil {
 		return nil, err
 	}
 	return state, nil
+}
+
+func (s *CheckpointStore) UpdateTaskProofStateByExecutionID(tenantID, executionID, expectedHash, storedHash, signature string) error {
+	if executionID == "" {
+		return nil
+	}
+
+	state := buildTaskProofState(executionID, expectedHash, storedHash, signature, true, time.Now().UTC())
+	_, err := s.db.Exec(`
+		UPDATE task_records
+		SET proof_expected_hash = COALESCE(NULLIF($1, ''), proof_expected_hash),
+		    proof_stored_hash = $2,
+		    proof_signature = $3,
+		    proof_status = $4,
+		    proof_checked_at = $5
+		WHERE tenant_id = $6
+		  AND proof_execution_id = $7
+	`, expectedHash, storedHash, signature, state.Status, state.CheckedAt, tenantID, executionID)
+	return err
 }
 
 func (s *CheckpointStore) RefreshPendingProofStates(tenantID string, limit int) error {
@@ -619,6 +624,31 @@ func TaskProofNeedsRefresh(proof *TaskProofState, now time.Time) bool {
 	default:
 		return age >= proofMissingRefreshInterval
 	}
+}
+
+func buildTaskProofState(executionID, expectedHash, storedHash, signature string, proofFound bool, checkedAt time.Time) *TaskProofState {
+	state := &TaskProofState{
+		ExecutionID:  executionID,
+		ExpectedHash: expectedHash,
+		CheckedAt:    &checkedAt,
+	}
+
+	if !proofFound {
+		state.Status = "missing"
+		return state
+	}
+
+	state.StoredHash = storedHash
+	state.Signature = signature
+	switch {
+	case expectedHash != "" && storedHash == expectedHash:
+		state.Status = "verified"
+	case expectedHash != "":
+		state.Status = "mismatch"
+	default:
+		state.Status = "present"
+	}
+	return state
 }
 
 func nullRawJSON(raw json.RawMessage) any {
