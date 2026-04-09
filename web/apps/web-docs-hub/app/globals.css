@@ -16,3 +16,71 @@
     font-feature-settings: "rlig" 1, "calt" 1;
   }
 }
+
+@layer components {
+  .docs-prose {
+    font-size: 0.95rem;
+    line-height: 1.72;
+  }
+
+  .docs-prose :where(h1) {
+    line-height: 1.08;
+  }
+
+  .docs-prose :where(h2) {
+    line-height: 1.15;
+  }
+
+  .docs-prose :where(h3, h4, h5, h6) {
+    line-height: 1.25;
+  }
+
+  .docs-prose :where(table) {
+    font-size: 0.875rem;
+  }
+
+  .docs-prose :where(thead th) {
+    font-size: 0.75rem;
+    font-weight: 600;
+    letter-spacing: 0.02em;
+  }
+
+  .docs-prose :where(td, th) {
+    line-height: 1.45;
+  }
+
+  .docs-prose :where(:not(pre) > code) {
+    font-size: 0.85em;
+  }
+
+  .docs-prose .docs-inline-toc {
+    font-size: 0.875rem;
+  }
+
+  .docs-prose .docs-type-table > div {
+    font-size: 0.8125rem;
+  }
+
+  .docs-prose .docs-type-table code {
+    font-size: 0.8125rem;
+  }
+
+  .docs-prose .docs-type-table .prose {
+    font-size: 0.8125rem;
+    line-height: 1.55;
+  }
+
+  .docs-prose .docs-code-block {
+    font-size: 0.8125rem;
+  }
+
+  .docs-prose .docs-code-block figcaption,
+  .docs-prose .docs-code-block [role='tab'] {
+    font-size: 0.75rem;
+  }
+
+  .docs-prose .docs-code-block pre,
+  .docs-prose .docs-code-block code {
+    line-height: 1.6;
+  }
+}
