@@ -1,5 +1,6 @@
-@import "fumadocs-ui/style.css";
-@config "../tailwind.config.js";
+@import "tailwindcss";
+@import "fumadocs-ui/css/neutral.css";
+@import "fumadocs-ui/css/preset.css";
 
 @layer base {
   html {
