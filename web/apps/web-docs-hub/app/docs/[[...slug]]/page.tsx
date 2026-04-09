@@ -32,7 +32,7 @@ export default async function Page({ params }: PageProps) {
 
   return (
     <DocsPage full={page.data.full} toc={page.data.toc}>
-      <DocsBody className="prose-sm md:prose-base">
+      <DocsBody className="docs-prose prose-sm md:prose-base">
         {page.data.toc.length > 0 ? (
           <InlineTOC items={page.data.toc}>On this page</InlineTOC>
         ) : null}
