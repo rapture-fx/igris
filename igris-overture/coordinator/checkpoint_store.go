@@ -293,7 +293,7 @@ func (s *CheckpointStore) RefreshPendingProofStates(tenantID string, limit int) 
 		FROM task_records
 		WHERE tenant_id = $1
 		  AND proof_execution_id IS NOT NULL
-		  AND COALESCE(proof_status, '') IN ('', 'pending', 'missing', 'present', 'verified', 'mismatch')
+		  AND COALESCE(proof_status, '') IN ('', 'pending', 'missing')
 		ORDER BY COALESCE(completed_at, created_at) DESC
 		LIMIT $2`,
 		tenantID, limit,
@@ -322,7 +322,7 @@ func (s *CheckpointStore) RefreshPendingProofStates(tenantID string, limit int) 
 				proof.CheckedAt = &checkedAt.Time
 			}
 		}
-		if TaskProofNeedsRefresh(proof, time.Now().UTC()) {
+		if TaskProofNeedsReadReconciliation(proof, time.Now().UTC()) {
 			candidates = append(candidates, proofRefreshCandidate{taskID: taskID, proof: proof})
 		}
 	}
@@ -623,6 +623,19 @@ func TaskProofNeedsRefresh(proof *TaskProofState, now time.Time) bool {
 		return age >= proofVerifiedRefreshInterval
 	default:
 		return age >= proofMissingRefreshInterval
+	}
+}
+
+func TaskProofNeedsReadReconciliation(proof *TaskProofState, now time.Time) bool {
+	if proof == nil {
+		return false
+	}
+
+	switch proof.Status {
+	case "", "pending", "missing":
+		return TaskProofNeedsRefresh(proof, now)
+	default:
+		return false
 	}
 }
 
