@@ -1,6 +1,7 @@
 import React from 'react';
 import type { Metadata } from 'next';
 import { RootProvider } from 'fumadocs-ui/provider/next';
+import { docsSearch } from '@/lib/docs-search';
 import './globals.css';
 
 export const metadata: Metadata = {
@@ -31,6 +32,7 @@ export default function RootLayout({
             enableSystem: true,
             disableTransitionOnChange: true,
           }}
+          search={docsSearch}
         >
           {children}
         </RootProvider>
