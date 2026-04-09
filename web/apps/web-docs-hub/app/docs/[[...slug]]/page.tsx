@@ -1,7 +1,6 @@
 import { source } from '@/lib/source';
-import { DocsLayout } from 'fumadocs-ui/layouts/docs';
+import { getMDXComponents } from '@/components/mdx';
 import { DocsBody, DocsPage } from 'fumadocs-ui/page';
-import defaultMdxComponents, { createRelativeLink } from 'fumadocs-ui/mdx';
 import { notFound } from 'next/navigation';
 import type { Metadata } from 'next';
 
@@ -29,22 +28,12 @@ export default async function Page({ params }: PageProps) {
   if (!page) notFound();
 
   const MDX = page.data.body;
-  const components = {
-    ...defaultMdxComponents,
-    a: createRelativeLink(source, page, defaultMdxComponents.a),
-  };
 
   return (
-    <DocsLayout
-      tree={source.pageTree}
-      nav={{ title: 'Igris Docs' }}
-      sidebar={{ defaultOpenLevel: 1 }}
-    >
-      <DocsPage toc={page.data.toc}>
-        <DocsBody>
-          <MDX components={components} />
-        </DocsBody>
-      </DocsPage>
-    </DocsLayout>
+    <DocsPage full={page.data.full} toc={page.data.toc}>
+      <DocsBody>
+        <MDX components={getMDXComponents(source, page)} />
+      </DocsBody>
+    </DocsPage>
   );
 }
