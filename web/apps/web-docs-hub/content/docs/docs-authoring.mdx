@@ -13,10 +13,30 @@ This docs site now uses the native Fumadocs layout and native Fumadocs MDX compo
 - Tables render through the native Fumadocs MDX table wrapper.
 - Tabs, steps, files, inline TOC, image zoom, and type tables are all wired through the shared Fumadocs MDX registry.
 
-## Auto Type Table
+## Type Table
 
-`AutoTypeTable` is available in MDX through `fumadocs-typescript`.
+`TypeTable` is available in MDX for structured schemas and conceptual configuration.
 
-<AutoTypeTable
-  type="{ title: string; slug: string; description?: string; featured?: boolean }"
+<TypeTable
+  type={{
+    title: {
+      type: 'string',
+      description: 'Page title rendered in the docs tree and metadata.',
+      required: true,
+    },
+    slug: {
+      type: 'string',
+      description: 'URL-safe route segment for the page.',
+      required: true,
+    },
+    description: {
+      type: 'string',
+      description: 'Short summary used in metadata and index surfaces.',
+    },
+    featured: {
+      type: 'boolean',
+      description: 'Marks a page as promoted in overview surfaces.',
+      default: 'false',
+    },
+  }}
 />
