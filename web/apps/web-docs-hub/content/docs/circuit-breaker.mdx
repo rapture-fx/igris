@@ -74,29 +74,45 @@ Circuit breaker settings are configured per-tenant:
 }
 ```
 
-<AutoTypeTable
-  name="CircuitBreakerConfig"
-  type={`
-export interface CircuitBreakerConfig {
-  /** Enable circuit breaker. @default true */
-  enabled: boolean;
-
-  /** Consecutive failures required before the circuit opens. @default 5 */
-  failure_threshold: number;
-
-  /** Consecutive successes required to close the circuit from half-open. @default 3 */
-  success_threshold: number;
-
-  /** Seconds before an open circuit transitions to half-open. @default 30 */
-  timeout_seconds: number;
-
-  /** Maximum concurrent requests allowed during half-open probing. @default 1 */
-  half_open_max_requests: number;
-
-  /** Rolling window used for failure-rate calculations, in seconds. @default 300 */
-  monitoring_window_seconds: number;
-}
-`}
+<TypeTable
+  type={{
+    enabled: {
+      type: 'boolean',
+      description: 'Enable circuit breaker.',
+      default: 'true',
+      required: true,
+    },
+    failure_threshold: {
+      type: 'number',
+      description: 'Consecutive failures required before the circuit opens.',
+      default: '5',
+      required: true,
+    },
+    success_threshold: {
+      type: 'number',
+      description: 'Consecutive successes required to close the circuit from half-open.',
+      default: '3',
+      required: true,
+    },
+    timeout_seconds: {
+      type: 'number',
+      description: 'Seconds before an open circuit transitions to half-open.',
+      default: '30',
+      required: true,
+    },
+    half_open_max_requests: {
+      type: 'number',
+      description: 'Maximum concurrent requests allowed during half-open probing.',
+      default: '1',
+      required: true,
+    },
+    monitoring_window_seconds: {
+      type: 'number',
+      description: 'Rolling window used for failure-rate calculations, in seconds.',
+      default: '300',
+      required: true,
+    },
+  }}
 />
 
 ---
