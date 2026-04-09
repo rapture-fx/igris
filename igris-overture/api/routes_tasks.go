@@ -720,7 +720,7 @@ func handleGetTask(tc *coordinator.TaskCoordinator) fiber.Handler {
 			return c.Status(http.StatusInternalServerError).JSON(fiber.Map{"error": "db_error"})
 		}
 
-		if task.Proof != nil && (task.Proof.Status == "" || task.Proof.Status == "pending" || task.Proof.Status == "missing") {
+		if coordinator.TaskProofNeedsRefresh(task.Proof, time.Now().UTC()) {
 			if proof, err := tc.Store().SyncTaskProofState(taskID, tenantID); err == nil {
 				task.Proof = proof
 			}
