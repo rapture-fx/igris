@@ -1,6 +1,6 @@
 'use client';
 
-import { useMemo, useState } from 'react';
+import { useEffect, useMemo, useState } from 'react';
 import Link from 'next/link';
 import { useRouter, useSearchParams } from 'next/navigation';
 import { DashboardLayout } from '@/components/layout/DashboardLayout';
@@ -25,6 +25,8 @@ import {
 } from '@/components/ui/table';
 import {
   Activity,
+  ChevronLeft,
+  ChevronRight,
   CheckCircle2,
   Clock3,
   ExternalLink,
@@ -75,11 +77,16 @@ function proofBucket(task: Task): string {
   return 'none';
 }
 
+function isUnresolvedTask(task: Task): boolean {
+  const bucket = proofBucket(task);
+  return bucket === 'pending' || bucket === 'missing' || bucket === 'mismatch' || bucket === 'signed' || bucket === 'envelope';
+}
+
 export default function ExecutionTasksPage() {
   const router = useRouter();
   const searchParams = useSearchParams();
   const [search, setSearch] = useState(searchParams.get('q') ?? '');
-  const [selectedTaskId, setSelectedTaskId] = useState<string | null>(null);
+  const [selectedTaskId, setSelectedTaskId] = useState<string | null>(searchParams.get('task'));
   const [proofFilter, setProofFilter] = useState<'all' | 'verified' | 'pending' | 'unresolved' | 'mismatch' | 'missing'>(
     (searchParams.get('proof') as 'all' | 'verified' | 'pending' | 'unresolved' | 'mismatch' | 'missing') || 'all'
   );
@@ -159,16 +166,60 @@ export default function ExecutionTasksPage() {
       task.proof?.status === 'missing' || proofBucket(task) === 'none'
     ).length;
     const unresolvedProof = tasks.filter((task) => {
-      const bucket = proofBucket(task);
-      return bucket === 'pending' || bucket === 'missing' || bucket === 'mismatch' || bucket === 'signed' || bucket === 'envelope';
+      return isUnresolvedTask(task);
     }).length;
     return { completed, active, verifiedProof, pendingProof, mismatchProof, missingProof, unresolvedProof };
   }, [tasks]);
+
+  const selectedFilteredIndex = useMemo(
+    () => filteredTasks.findIndex((task) => task.task_id === selectedTaskId),
+    [filteredTasks, selectedTaskId],
+  );
+
+  const unresolvedTaskIds = useMemo(
+    () => filteredTasks.filter((task) => isUnresolvedTask(task)).map((task) => task.task_id),
+    [filteredTasks],
+  );
+
+  const selectedUnresolvedIndex = useMemo(
+    () => unresolvedTaskIds.findIndex((taskId) => taskId === selectedTaskId),
+    [unresolvedTaskIds, selectedTaskId],
+  );
+
+  const previousUnresolvedTaskId = useMemo(() => {
+    if (selectedFilteredIndex < 0) return null;
+    for (let index = selectedFilteredIndex - 1; index >= 0; index -= 1) {
+      if (isUnresolvedTask(filteredTasks[index])) return filteredTasks[index].task_id;
+    }
+    return null;
+  }, [filteredTasks, selectedFilteredIndex]);
+
+  const nextUnresolvedTaskId = useMemo(() => {
+    if (selectedFilteredIndex < 0) return null;
+    for (let index = selectedFilteredIndex + 1; index < filteredTasks.length; index += 1) {
+      if (isUnresolvedTask(filteredTasks[index])) return filteredTasks[index].task_id;
+    }
+    return null;
+  }, [filteredTasks, selectedFilteredIndex]);
+
+  useEffect(() => {
+    const nextSearch = searchParams.get('q') ?? '';
+    const nextProof =
+      (searchParams.get('proof') as 'all' | 'verified' | 'pending' | 'unresolved' | 'mismatch' | 'missing') || 'all';
+    const nextPrioritize = searchParams.get('triage') === 'unresolved';
+    const nextTask = searchParams.get('task');
+
+    setSearch((current) => (current === nextSearch ? current : nextSearch));
+    setProofFilter((current) => (current === nextProof ? current : nextProof));
+    setPrioritizeUnresolved((current) => (current === nextPrioritize ? current : nextPrioritize));
+    setSelectedTaskId((current) => (current === nextTask ? current : nextTask));
+  }, [searchParams]);
 
   const syncListState = (
     nextProof: 'all' | 'verified' | 'pending' | 'unresolved' | 'mismatch' | 'missing',
     nextPrioritize: boolean,
     nextSearch: string,
+    nextTaskId: string | null,
   ) => {
     const params = new URLSearchParams(searchParams.toString());
     if (nextProof === 'all') {
@@ -186,6 +237,11 @@ export default function ExecutionTasksPage() {
     } else {
       params.delete('q');
     }
+    if (nextTaskId) {
+      params.set('task', nextTaskId);
+    } else {
+      params.delete('task');
+    }
     const query = params.toString();
     router.replace(query ? `?${query}` : '/execution/tasks', { scroll: false });
   };
@@ -196,18 +252,23 @@ export default function ExecutionTasksPage() {
   ) => {
     setProofFilter(nextProof);
     setPrioritizeUnresolved(nextPrioritize);
-    syncListState(nextProof, nextPrioritize, search);
+    syncListState(nextProof, nextPrioritize, search, selectedTaskId);
   };
 
   const updateSearch = (nextSearch: string) => {
     setSearch(nextSearch);
-    syncListState(proofFilter, prioritizeUnresolved, nextSearch);
+    syncListState(proofFilter, prioritizeUnresolved, nextSearch, selectedTaskId);
   };
 
   const togglePrioritize = () => {
     const next = !prioritizeUnresolved;
     setPrioritizeUnresolved(next);
-    syncListState(proofFilter, next, search);
+    syncListState(proofFilter, next, search, selectedTaskId);
+  };
+
+  const updateSelectedTask = (nextTaskId: string | null) => {
+    setSelectedTaskId(nextTaskId);
+    syncListState(proofFilter, prioritizeUnresolved, search, nextTaskId);
   };
 
   return (
@@ -395,7 +456,7 @@ export default function ExecutionTasksPage() {
                       <TableRow
                         key={task.task_id}
                         className="cursor-pointer"
-                        onClick={() => setSelectedTaskId(task.task_id)}
+                        onClick={() => updateSelectedTask(task.task_id)}
                       >
                         <TableCell className="font-mono text-xs text-gray-900">
                           <div className="flex items-center gap-2">
@@ -518,20 +579,51 @@ export default function ExecutionTasksPage() {
         </Card>
       </div>
 
-      <Sheet open={!!selectedTaskId} onOpenChange={(open) => !open && setSelectedTaskId(null)}>
+      <Sheet open={!!selectedTaskId} onOpenChange={(open) => !open && updateSelectedTask(null)}>
         <SheetContent className="w-full sm:max-w-2xl">
           <SheetHeader>
             <div className="flex items-center justify-between gap-3">
-              <SheetTitle>Task Detail</SheetTitle>
-              {selectedTaskId && (
-                <Link
-                  href={`/execution/tasks/${encodeURIComponent(selectedTaskId)}`}
-                  className="inline-flex items-center gap-1 text-xs font-medium text-blue-700 hover:text-blue-900"
+              <div className="space-y-1">
+                <SheetTitle>Task Detail</SheetTitle>
+                {selectedUnresolvedIndex >= 0 && unresolvedTaskIds.length > 0 && (
+                  <p className="text-xs text-gray-500">
+                    Unresolved queue {selectedUnresolvedIndex + 1} of {unresolvedTaskIds.length}
+                  </p>
+                )}
+              </div>
+              <div className="flex items-center gap-2">
+                <Button
+                  type="button"
+                  variant="outline"
+                  size="sm"
+                  className="h-8 gap-1"
+                  disabled={!previousUnresolvedTaskId}
+                  onClick={() => previousUnresolvedTaskId && updateSelectedTask(previousUnresolvedTaskId)}
                 >
-                  Open inspector
-                  <ExternalLink className="h-3.5 w-3.5" />
-                </Link>
-              )}
+                  <ChevronLeft className="h-3.5 w-3.5" />
+                  Prev unresolved
+                </Button>
+                <Button
+                  type="button"
+                  variant="outline"
+                  size="sm"
+                  className="h-8 gap-1"
+                  disabled={!nextUnresolvedTaskId}
+                  onClick={() => nextUnresolvedTaskId && updateSelectedTask(nextUnresolvedTaskId)}
+                >
+                  Next unresolved
+                  <ChevronRight className="h-3.5 w-3.5" />
+                </Button>
+                {selectedTaskId && (
+                  <Link
+                    href={`/execution/tasks/${encodeURIComponent(selectedTaskId)}`}
+                    className="inline-flex items-center gap-1 text-xs font-medium text-blue-700 hover:text-blue-900"
+                  >
+                    Open inspector
+                    <ExternalLink className="h-3.5 w-3.5" />
+                  </Link>
+                )}
+              </div>
             </div>
           </SheetHeader>
           <SheetBody className="space-y-6">
