@@ -10,35 +10,3 @@
     font-feature-settings: "rlig" 1, "calt" 1;
   }
 }
-
-/* Scrollbar styling */
-.scrollbar-hide {
-  -ms-overflow-style: none;
-  scrollbar-width: none;
-}
-
-.scrollbar-hide::-webkit-scrollbar {
-  display: none;
-}
-
-/* Prose styling for MDX content */
-/* Mermaid diagram styling */
-.mermaid-wrapper {
-  margin: 1.5rem 0;
-  padding: 1rem;
-  background-color: var(--color-fd-card);
-  border-radius: 0.75rem;
-  border: 1px solid var(--color-fd-border);
-  overflow-x: auto;
-}
-
-.mermaid {
-  display: flex;
-  justify-content: center;
-  align-items: center;
-}
-
-.mermaid svg {
-  max-width: 100%;
-  height: auto;
-}
