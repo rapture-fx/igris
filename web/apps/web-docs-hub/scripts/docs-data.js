@@ -2,7 +2,7 @@ const path = require('path');
 
 const docsAppRoot = path.resolve(__dirname, '..');
 const repoRoot = path.resolve(docsAppRoot, '../../..');
-const docsDir = path.join(docsAppRoot, 'docs');
+const docsDir = path.join(docsAppRoot, 'content', 'docs');
 const generatedDir = path.join(docsAppRoot, 'lib', 'generated');
 
 const sdkSupport = {
