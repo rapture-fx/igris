@@ -5,31 +5,34 @@ description: "When to use AutoTypeTable versus TypeTable in native Fumadocs cont
 
 # Docs Authoring Schemas
 
-Use `AutoTypeTable` when the documentation is describing a real request or response shape. Use `TypeTable` when the content is editorial or conceptual and the shape is not worth maintaining as a TypeScript type.
+Use `TypeTable` when the documentation is describing payloads, controls, or conceptual schemas directly in MDX. In this repo, that is the stable native option for the current pinned Fumadocs stack.
 
-## Auto Type Table
+## Request Shape
 
-Prefer `AutoTypeTable` for payload contracts that would otherwise be hand-maintained as Markdown tables.
+Prefer `TypeTable` over ad hoc Markdown tables for payload contracts.
 
-<AutoTypeTable
-  name="WebhookConfig"
-  type={`
-export interface WebhookConfig {
-  /** HTTPS endpoint that receives deliveries. */
-  url: string;
-
-  /** Event names subscribed to by this webhook. */
-  events: string[];
-
-  /** Shared secret used for signature verification. */
-  secret?: string;
-}
-`}
+<TypeTable
+  type={{
+    url: {
+      type: 'string',
+      description: 'HTTPS endpoint that receives deliveries.',
+      required: true,
+    },
+    events: {
+      type: 'string[]',
+      description: 'Event names subscribed to by this webhook.',
+      required: true,
+    },
+    secret: {
+      type: 'string',
+      description: 'Shared secret used for signature verification.',
+    },
+  }}
 />
 
-## Type Table
+## Conceptual Schema
 
-Prefer `TypeTable` for conceptual configuration where prose matters more than compile-time type extraction.
+Use `TypeTable` for conceptual configuration where prose matters more than compile-time extraction.
 
 <TypeTable
   type={{
