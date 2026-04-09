@@ -4,7 +4,36 @@ export function baseOptions(): BaseLayoutProps {
   return {
     nav: {
       title: 'Igris Docs',
+      url: '/docs',
     },
+    links: [
+      {
+        text: 'Docs',
+        url: '/docs',
+        active: 'nested-url',
+      },
+      {
+        type: 'menu',
+        text: 'Reference',
+        items: [
+          {
+            text: 'API Reference',
+            description: 'HTTP API contract and endpoint reference',
+            url: '/docs/api-reference',
+          },
+          {
+            text: 'SDKs',
+            description: 'Supported SDKs and integration paths',
+            url: '/docs/sdk',
+          },
+          {
+            text: 'MCP',
+            description: 'Model Context Protocol guides and runtime patterns',
+            url: '/docs/mcp',
+          },
+        ],
+      },
+    ],
     githubUrl: 'https://github.com/wiramahendra/Schlep-engine',
   };
 }
