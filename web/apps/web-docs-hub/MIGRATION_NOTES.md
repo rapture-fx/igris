@@ -13,6 +13,7 @@ Current verified state:
 - legacy article route ownership has been removed
 - the API reference now ships as generated MDX content under `content/docs/api-reference`
 - the old custom API route tree and custom API page components have been removed
+- the legacy `docs/` source tree and old custom MDX runtime files have been removed
 - the docs app passes `lint`, `typecheck`, and `build`
 
 This is now a migration status and follow-up note, not a feasibility note.
@@ -21,43 +22,20 @@ This is now a migration status and follow-up note, not a feasibility note.
 
 ### Docs content
 
-- MDX files under `docs/`: `68`
-- Most pages are plain Markdown + tables + code fences
-- Only a small subset uses React components directly
+- the active docs source lives under `content/docs`
+- the shipped content is primarily plain Markdown + tables + code fences
+- a small number of pages use Fumadocs primitives such as `Callout`, `Tabs`, and `Steps`
 
-### Direct MDX component usage in the legacy source set
+### Active MDX runtime behavior
 
-- `docs/sdk.mdx` → `SdkSupportMatrix`
-- `docs/architecture.mdx` → `StepChain`
-- `docs/mcp.mdx` → `McpReferencePage`
+The live docs route renders through:
 
-### Global MDX runtime behavior
-
-Current global MDX mapping lives in `mdx-components.tsx`:
-
-- custom `pre` → `CodeBlock`
-- `DiagramTabs`
-- `StepChain`
-- `Info`
-- `Warning`
-- `Danger`
-- `Tip`
-- `Success`
-
-Important component files:
-
-- `components/CodeBlock.tsx`
-- `components/DiagramTabs.tsx`
-- `components/StepChain.tsx`
-- `components/Callout.tsx`
+- `fumadocs-ui/mdx` for default links, tables, headings, and code blocks
+- `components/fumadocs-mdx-components.tsx` for thin aliases of Fumadocs primitives used in content
 
 ### Frontmatter usage
 
-Frontmatter is currently used primarily in article files:
-
-- `docs/articles/edge-deployment-guide.mdx`
-- `docs/articles/safe-agents-capability-gates.mdx`
-- `docs/articles/thompson-sampling-routing.mdx`
+Frontmatter is currently used primarily in article files under `content/docs/articles`.
 
 Metadata fields seen:
 
@@ -98,9 +76,8 @@ Examples:
 ### Partially compatible
 
 - Pages with imported React components
-- Mermaid code fences, because rendering depends on custom `pre`
+- Mermaid code fences, because rendering still depends on custom wrapper styling
 - Pages with frontmatter, because Fumadocs source metadata/schema must be defined
-- `StepChain` usage in `docs/architecture.mdx`
 - `SdkSupportMatrix` in `docs/sdk.mdx`
 
 ### Incompatible without architectural refactor
@@ -116,11 +93,8 @@ These are not incompatible as content, but they are incompatible as a direct dro
 ### Keep
 
 - existing MDX content
-- existing custom content widgets that are genuinely useful
-  - `CodeBlock`
-  - `StepChain`
-  - `SdkSupportMatrix`
-  - callout components
+- `SdkSupportMatrix`
+- minimal product-specific Mermaid styling where needed
 
 ### Replace
 
@@ -130,9 +104,9 @@ These are not incompatible as content, but they are incompatible as a direct dro
 
 ### Preserve initially as embedded custom pages
 
-- MCP Reference
+- none on the active docs route
 
-The API reference no longer falls into this bucket. It is now generated into Fumadocs content as part of the docs build.
+The API reference is generated into Fumadocs content as part of the docs build. MCP is currently content-backed under `content/docs/mcp.mdx`.
 
 ## Current Migration Status
 
@@ -153,11 +127,12 @@ The API reference no longer falls into this bucket. It is now generated into Fum
 7. Re-aligned the search index generator to the new Fumadocs content source.
 8. Added generated API reference content under `content/docs/api-reference` via `scripts/generate-api-reference-content.js`.
 9. Removed the old custom API route tree and custom API page components.
-10. Verified the production build.
+10. Removed the legacy `docs/` source tree and unused custom MDX/runtime components.
+11. Verified the production build.
 
 ### Remaining work
 
-1. Decide whether MCP should remain an embedded custom page or also move to generated/content-backed Fumadocs pages.
+1. Decide whether MCP should remain a content page or also move to generated/content-backed reference pages.
 2. Audit the remaining MDX runtime behavior and reintroduce richer code-block handling only if it can be done without destabilizing prerender.
 3. Review page weight on `/docs/[[...slug]]` and reduce client-side cost where practical.
 4. Do a browser QA pass on representative docs, API reference, article, and MCP pages.
@@ -176,11 +151,8 @@ The API reference no longer falls into this bucket. It is now generated into Fum
 
 ### Kept and rewired
 
-- `web/apps/web-docs-hub/components/CodeBlock.tsx`
-- `web/apps/web-docs-hub/components/StepChain.tsx`
-- `web/apps/web-docs-hub/components/Callout.tsx`
+- `web/apps/web-docs-hub/components/fumadocs-mdx-components.tsx`
 - `web/apps/web-docs-hub/components/docs/SdkSupportMatrix.tsx`
-- `web/apps/web-docs-hub/components/docs/McpReferencePage.tsx`
 
 ### New files now present
 
@@ -223,7 +195,7 @@ Main risks:
 - code block/Mermaid regressions
 - metadata drift for articles
 - nav/search regressions
-- trying to rewrite API/MCP into pure content too early
+- over-customizing on top of Fumadocs after the migration is already structurally complete
 
 ## Recommended First Cut
 
@@ -243,4 +215,5 @@ If doing the real migration next, the safest first release should:
 - migrated the primary docs corpus into `content/docs`
 - generated the API reference into Fumadocs content
 - removed the old custom API route tree
+- removed the old `docs/` source tree and dead custom MDX/runtime files
 - verified `lint`, `typecheck`, and `build`
