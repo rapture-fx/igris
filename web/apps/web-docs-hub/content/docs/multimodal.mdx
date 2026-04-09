@@ -27,11 +27,21 @@ curl -X POST https://overture.igrisinertial.com/v1/infer/multimodal \
 
 **Request fields:**
 
-| Field | Type | Required | Description |
-|---|---|---|---|
-| `prompt` | string | Yes | Text prompt |
-| `image_data` | string | No | Base64-encoded image (JPEG, PNG, WebP) |
-| `audio_data` | string | No | Base64-encoded audio (MP3, WAV, M4A) |
+<AutoTypeTable
+  name="MultimodalInferRequest"
+  type={`
+export interface MultimodalInferRequest {
+  /** Text prompt sent alongside image or audio inputs. */
+  prompt: string;
+
+  /** Base64-encoded image payload. Supports JPEG, PNG, and WebP. */
+  image_data?: string;
+
+  /** Base64-encoded audio payload. Supports MP3, WAV, and M4A. */
+  audio_data?: string;
+}
+`}
+/>
 
 At least one of `image_data` or `audio_data` must be provided alongside `prompt`.
 
@@ -46,13 +56,27 @@ At least one of `image_data` or `audio_data` must be provided alongside `prompt`
 }
 ```
 
-| Field | Description |
-|---|---|
-| `content` | Model response text |
-| `input_tokens` | Tokens consumed (text + vision encoding) |
-| `output_tokens` | Tokens in the response |
-| `latency_ms` | End-to-end request latency |
-| `modalities` | Modalities used in this request |
+<AutoTypeTable
+  name="MultimodalInferResponse"
+  type={`
+export interface MultimodalInferResponse {
+  /** Model response text. */
+  content: string;
+
+  /** Tokens consumed by text and multimodal encoding. */
+  input_tokens: number;
+
+  /** Tokens emitted in the response. */
+  output_tokens: number;
+
+  /** End-to-end request latency in milliseconds. */
+  latency_ms: number;
+
+  /** Modalities used in this request. */
+  modalities: Array<"text" | "image" | "audio">;
+}
+`}
+/>
 
 ---
 
