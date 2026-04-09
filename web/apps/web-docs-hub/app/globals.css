@@ -3,6 +3,11 @@
 @import "fumadocs-ui/css/preset.css";
 
 @layer base {
+  :root {
+    --fd-layout-width: 88rem;
+    --fd-page-width: 46rem;
+  }
+
   html {
     scroll-behavior: smooth;
   }
