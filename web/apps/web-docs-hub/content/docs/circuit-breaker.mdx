@@ -74,14 +74,30 @@ Circuit breaker settings are configured per-tenant:
 }
 ```
 
-| Field | Type | Default | Description |
-|---|---|---|---|
-| `enabled` | bool | `true` | Enable circuit breaker |
-| `failure_threshold` | int | 5 | Consecutive failures to open circuit |
-| `success_threshold` | int | 3 | Consecutive successes to close circuit from half-open |
-| `timeout_seconds` | int | 30 | Seconds before open circuit transitions to half-open |
-| `half_open_max_requests` | int | 1 | Max concurrent requests in half-open state |
-| `monitoring_window_seconds` | int | 300 | Rolling window for failure rate calculation |
+<AutoTypeTable
+  name="CircuitBreakerConfig"
+  type={`
+export interface CircuitBreakerConfig {
+  /** Enable circuit breaker. @default true */
+  enabled: boolean;
+
+  /** Consecutive failures required before the circuit opens. @default 5 */
+  failure_threshold: number;
+
+  /** Consecutive successes required to close the circuit from half-open. @default 3 */
+  success_threshold: number;
+
+  /** Seconds before an open circuit transitions to half-open. @default 30 */
+  timeout_seconds: number;
+
+  /** Maximum concurrent requests allowed during half-open probing. @default 1 */
+  half_open_max_requests: number;
+
+  /** Rolling window used for failure-rate calculations, in seconds. @default 300 */
+  monitoring_window_seconds: number;
+}
+`}
+/>
 
 ---
 
