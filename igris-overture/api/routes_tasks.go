@@ -861,7 +861,8 @@ func buildTaskProofResponse(proof *coordinator.TaskProofState) fiber.Map {
 	}
 
 	resp := fiber.Map{
-		"status": proof.Status,
+		"status":        proof.Status,
+		"needs_refresh": coordinator.TaskProofNeedsRefresh(proof, time.Now().UTC()),
 	}
 	if proof.ExecutionID != "" {
 		resp["execution_id"] = proof.ExecutionID
