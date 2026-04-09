@@ -1,0 +1,51 @@
+---
+title: "Docs Authoring Schemas"
+description: "When to use AutoTypeTable versus TypeTable in native Fumadocs content."
+---
+
+# Docs Authoring Schemas
+
+Use `AutoTypeTable` when the documentation is describing a real request or response shape. Use `TypeTable` when the content is editorial or conceptual and the shape is not worth maintaining as a TypeScript type.
+
+## Auto Type Table
+
+Prefer `AutoTypeTable` for payload contracts that would otherwise be hand-maintained as Markdown tables.
+
+<AutoTypeTable
+  name="WebhookConfig"
+  type={`
+export interface WebhookConfig {
+  /** HTTPS endpoint that receives deliveries. */
+  url: string;
+
+  /** Event names subscribed to by this webhook. */
+  events: string[];
+
+  /** Shared secret used for signature verification. */
+  secret?: string;
+}
+`}
+/>
+
+## Type Table
+
+Prefer `TypeTable` for conceptual configuration where prose matters more than compile-time type extraction.
+
+<TypeTable
+  type={{
+    enforcement: {
+      type: '"strict" | "advisory"',
+      description: 'Whether a control blocks execution or only records guidance.',
+      required: true,
+    },
+    evidence: {
+      type: 'string[]',
+      description: 'Artifacts referenced by the control, such as receipts or policy evaluations.',
+    },
+    escalation: {
+      type: '"none" | "manual-review" | "stop-execution"',
+      description: 'What the system does when the control is violated.',
+      default: '"manual-review"',
+    },
+  }}
+/>
