@@ -1,5 +1,6 @@
 import { source } from '@/lib/source';
 import { getMDXComponents } from '@/components/mdx';
+import { InlineTOC } from 'fumadocs-ui/components/inline-toc';
 import { DocsBody, DocsPage } from 'fumadocs-ui/page';
 import { notFound } from 'next/navigation';
 import type { Metadata } from 'next';
@@ -32,6 +33,9 @@ export default async function Page({ params }: PageProps) {
   return (
     <DocsPage full={page.data.full} toc={page.data.toc}>
       <DocsBody>
+        {page.data.toc.length > 0 ? (
+          <InlineTOC items={page.data.toc}>On this page</InlineTOC>
+        ) : null}
         <MDX components={getMDXComponents(source, page)} />
       </DocsBody>
     </DocsPage>
