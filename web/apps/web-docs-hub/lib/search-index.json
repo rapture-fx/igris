@@ -172,22 +172,22 @@
   {
     "title": "Docs Authoring Schemas",
     "path": "/docs/docs-authoring-schemas",
-    "description": "Use AutoTypeTable when the documentation is describing a real request or response shape. Use TypeTable when the content is editorial or conceptual and the shape is not worth maintaining as a TypeScrip",
-    "content": "Docs Authoring Schemas Auto Type Table Type Table Use AutoTypeTable when the documentation is describing a real request or response shape. Use TypeTable when the content is editorial or conceptual and the shape is not worth maintaining as a TypeScrip",
+    "description": "Use TypeTable when the documentation is describing payloads, controls, or conceptual schemas directly in MDX. In this repo, that is the stable native option for the current pinned Fumadocs stack.",
+    "content": "Docs Authoring Schemas Request Shape Conceptual Schema Use TypeTable when the documentation is describing payloads, controls, or conceptual schemas directly in MDX. In this repo, that is the stable native option for the current pinned Fumadocs stack.",
     "breadcrumbs": [
       "Reference"
     ],
-    "keywords": "docs authoring schemas auto type table type table  use autotypetable when the documentation is describing a real request or response shape. use typetable when the content is editorial or conceptual and the shape is not worth maintaining as a typescrip docs-authoring-schemas"
+    "keywords": "docs authoring schemas request shape conceptual schema  use typetable when the documentation is describing payloads, controls, or conceptual schemas directly in mdx. in this repo, that is the stable native option for the current pinned fumadocs stack. docs-authoring-schemas"
   },
   {
     "title": "Docs Authoring",
     "path": "/docs/docs-authoring",
     "description": "This docs site now uses the native Fumadocs layout and native Fumadocs MDX components.",
-    "content": "Docs Authoring Native Components Auto Type Table This docs site now uses the native Fumadocs layout and native Fumadocs MDX components.",
+    "content": "Docs Authoring Native Components Type Table This docs site now uses the native Fumadocs layout and native Fumadocs MDX components.",
     "breadcrumbs": [
       "Reference"
     ],
-    "keywords": "docs authoring native components auto type table  this docs site now uses the native fumadocs layout and native fumadocs mdx components. docs-authoring"
+    "keywords": "docs authoring native components type table  this docs site now uses the native fumadocs layout and native fumadocs mdx components. docs-authoring"
   },
   {
     "title": "Documentation Roadmap",
