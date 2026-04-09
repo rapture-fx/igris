@@ -1,4 +1,6 @@
 import defaultMdxComponents, { createRelativeLink } from 'fumadocs-ui/mdx';
+import { createFileSystemGeneratorCache, createGenerator } from 'fumadocs-typescript';
+import { AutoTypeTable, type AutoTypeTableProps } from 'fumadocs-typescript/ui';
 import { CodeBlock, Pre } from 'fumadocs-ui/components/codeblock';
 import { File, Files, Folder } from 'fumadocs-ui/components/files';
 import { ImageZoom } from 'fumadocs-ui/components/image-zoom';
@@ -9,6 +11,10 @@ import { TypeTable } from 'fumadocs-ui/components/type-table';
 import type { Page } from 'fumadocs-core/source';
 import type { LoaderOutput, LoaderConfig } from 'fumadocs-core/source';
 import type { MDXComponents } from 'mdx/types';
+
+const typeGenerator = createGenerator({
+  cache: createFileSystemGeneratorCache('.next/fumadocs-typescript'),
+});
 
 export function getMDXComponents(
   source: LoaderOutput<LoaderConfig>,
@@ -32,6 +38,12 @@ export function getMDXComponents(
     Steps,
     Step,
     TypeTable,
+    AutoTypeTable: (props: Partial<AutoTypeTableProps>) => (
+      <AutoTypeTable
+        {...props}
+        generator={typeGenerator}
+      />
+    ),
     InlineTOC,
     Files,
     File,
