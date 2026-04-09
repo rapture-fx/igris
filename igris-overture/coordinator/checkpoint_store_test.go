@@ -134,6 +134,82 @@ func TestTaskProofNeedsRefresh(t *testing.T) {
 	}
 }
 
+func TestTaskProofNeedsReadReconciliation(t *testing.T) {
+	t.Parallel()
+
+	now := time.Unix(1_800_000_000, 0).UTC()
+
+	tests := []struct {
+		name     string
+		proof    *TaskProofState
+		expected bool
+	}{
+		{
+			name:     "nil proof does not reconcile",
+			proof:    nil,
+			expected: false,
+		},
+		{
+			name: "pending stale proof reconciles",
+			proof: &TaskProofState{
+				Status:    "pending",
+				CheckedAt: ptrTime(now.Add(-31 * time.Second)),
+			},
+			expected: true,
+		},
+		{
+			name: "missing stale proof reconciles",
+			proof: &TaskProofState{
+				Status:    "missing",
+				CheckedAt: ptrTime(now.Add(-3 * time.Minute)),
+			},
+			expected: true,
+		},
+		{
+			name: "fresh pending proof does not reconcile",
+			proof: &TaskProofState{
+				Status:    "pending",
+				CheckedAt: ptrTime(now.Add(-10 * time.Second)),
+			},
+			expected: false,
+		},
+		{
+			name: "verified proof does not reconcile on read",
+			proof: &TaskProofState{
+				Status:    "verified",
+				CheckedAt: ptrTime(now.Add(-45 * time.Minute)),
+			},
+			expected: false,
+		},
+		{
+			name: "mismatch proof does not reconcile on read",
+			proof: &TaskProofState{
+				Status:    "mismatch",
+				CheckedAt: ptrTime(now.Add(-10 * time.Minute)),
+			},
+			expected: false,
+		},
+		{
+			name: "present proof does not reconcile on read",
+			proof: &TaskProofState{
+				Status:    "present",
+				CheckedAt: ptrTime(now.Add(-20 * time.Minute)),
+			},
+			expected: false,
+		},
+	}
+
+	for _, test := range tests {
+		test := test
+		t.Run(test.name, func(t *testing.T) {
+			t.Parallel()
+			if got := TaskProofNeedsReadReconciliation(test.proof, now); got != test.expected {
+				t.Fatalf("TaskProofNeedsReadReconciliation() = %v, want %v", got, test.expected)
+			}
+		})
+	}
+}
+
 func ptrTime(value time.Time) *time.Time {
 	return &value
 }
