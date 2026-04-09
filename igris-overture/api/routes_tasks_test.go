@@ -112,10 +112,26 @@ func TestBuildTaskProofResponse(t *testing.T) {
 	require.Equal(t, "hash-expected", resp["stored_hash"])
 	require.Equal(t, "sig-proof", resp["signature"])
 	require.Equal(t, "verified", resp["status"])
+	require.Equal(t, true, resp["needs_refresh"])
 	require.Equal(t, true, resp["present"])
 	require.Equal(t, true, resp["matched"])
 	require.Equal(t, &checkedAt, resp["checked_at"])
 	require.Nil(t, buildTaskProofResponse(nil))
+}
+
+func TestBuildTaskProofResponseFreshPendingState(t *testing.T) {
+	t.Parallel()
+
+	checkedAt := time.Now().UTC().Add(-10 * time.Second)
+	resp := buildTaskProofResponse(&coordinator.TaskProofState{
+		ExecutionID: "exec-pending",
+		Status:      "pending",
+		CheckedAt:   &checkedAt,
+	})
+
+	require.Equal(t, "pending", resp["status"])
+	require.Equal(t, false, resp["needs_refresh"])
+	require.Equal(t, &checkedAt, resp["checked_at"])
 }
 
 func TestBuildTaskResponseReturnsFiberMap(t *testing.T) {
