@@ -27,20 +27,22 @@ curl -X POST https://overture.igrisinertial.com/v1/infer/multimodal \
 
 **Request fields:**
 
-<AutoTypeTable
-  name="MultimodalInferRequest"
-  type={`
-export interface MultimodalInferRequest {
-  /** Text prompt sent alongside image or audio inputs. */
-  prompt: string;
-
-  /** Base64-encoded image payload. Supports JPEG, PNG, and WebP. */
-  image_data?: string;
-
-  /** Base64-encoded audio payload. Supports MP3, WAV, and M4A. */
-  audio_data?: string;
-}
-`}
+<TypeTable
+  type={{
+    prompt: {
+      type: 'string',
+      description: 'Text prompt sent alongside image or audio inputs.',
+      required: true,
+    },
+    image_data: {
+      type: 'string',
+      description: 'Base64-encoded image payload. Supports JPEG, PNG, and WebP.',
+    },
+    audio_data: {
+      type: 'string',
+      description: 'Base64-encoded audio payload. Supports MP3, WAV, and M4A.',
+    },
+  }}
 />
 
 At least one of `image_data` or `audio_data` must be provided alongside `prompt`.
@@ -56,26 +58,34 @@ At least one of `image_data` or `audio_data` must be provided alongside `prompt`
 }
 ```
 
-<AutoTypeTable
-  name="MultimodalInferResponse"
-  type={`
-export interface MultimodalInferResponse {
-  /** Model response text. */
-  content: string;
-
-  /** Tokens consumed by text and multimodal encoding. */
-  input_tokens: number;
-
-  /** Tokens emitted in the response. */
-  output_tokens: number;
-
-  /** End-to-end request latency in milliseconds. */
-  latency_ms: number;
-
-  /** Modalities used in this request. */
-  modalities: Array<"text" | "image" | "audio">;
-}
-`}
+<TypeTable
+  type={{
+    content: {
+      type: 'string',
+      description: 'Model response text.',
+      required: true,
+    },
+    input_tokens: {
+      type: 'number',
+      description: 'Tokens consumed by text and multimodal encoding.',
+      required: true,
+    },
+    output_tokens: {
+      type: 'number',
+      description: 'Tokens emitted in the response.',
+      required: true,
+    },
+    latency_ms: {
+      type: 'number',
+      description: 'End-to-end request latency in milliseconds.',
+      required: true,
+    },
+    modalities: {
+      type: 'Array<"text" | "image" | "audio">',
+      description: 'Modalities used in this request.',
+      required: true,
+    },
+  }}
 />
 
 ---
