@@ -10,6 +10,7 @@ import (
 	"github.com/gofiber/fiber/v2"
 	"github.com/rs/zerolog/log"
 
+	"github.com/Igris-inertial/system/igris-overture/coordinator"
 	"github.com/Igris-inertial/system/igris-overture/middleware"
 )
 
@@ -226,17 +227,11 @@ func (h *ProofHandler) VerifyReceipt(c *fiber.Ctx) error {
 	}
 
 	valid := true
-	status := "present"
 	if req.ExpectedHash != "" {
 		valid = storedHash == req.ExpectedHash
-		if valid {
-			status = "verified"
-		} else {
-			status = "mismatch"
-		}
 	}
 
-	if err := h.syncTaskProofState(tenantID, req.ExecutionID, req.ExpectedHash, storedHash, signature, status); err != nil {
+	if err := coordinator.NewCheckpointStore(h.db).UpdateTaskProofStateByExecutionID(tenantID, req.ExecutionID, req.ExpectedHash, storedHash, signature); err != nil {
 		log.Warn().Err(err).Str("execution_id", req.ExecutionID).Msg("[Proof] Failed to sync task proof state")
 	}
 
@@ -246,20 +241,6 @@ func (h *ProofHandler) VerifyReceipt(c *fiber.Ctx) error {
 		Hash:        storedHash,
 		Signature:   signature,
 	})
-}
-
-func (h *ProofHandler) syncTaskProofState(tenantID, executionID, expectedHash, storedHash, signature, status string) error {
-	_, err := h.db.Exec(`
-		UPDATE task_records
-		SET proof_expected_hash = COALESCE(NULLIF($1, ''), proof_expected_hash),
-		    proof_stored_hash = $2,
-		    proof_signature = $3,
-		    proof_status = $4,
-		    proof_checked_at = NOW()
-		WHERE tenant_id = $5
-		  AND proof_execution_id = $6
-	`, expectedHash, storedHash, signature, status, tenantID, executionID)
-	return err
 }
 
 // PolicyViolation is the response shape for a single violation entry.
