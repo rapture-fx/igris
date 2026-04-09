@@ -134,6 +134,24 @@ func TestBuildTaskProofResponseFreshPendingState(t *testing.T) {
 	require.Equal(t, &checkedAt, resp["checked_at"])
 }
 
+func TestBuildTaskProofResponseResolvedStateCanBeStaleWithoutReadReconcile(t *testing.T) {
+	t.Parallel()
+
+	checkedAt := time.Unix(1_700_000_200, 0).UTC()
+	resp := buildTaskProofResponse(&coordinator.TaskProofState{
+		ExecutionID:  "exec-present",
+		ExpectedHash: "hash-present",
+		StoredHash:   "hash-present",
+		Signature:    "sig-present",
+		Status:       "present",
+		CheckedAt:    &checkedAt,
+	})
+
+	require.Equal(t, "present", resp["status"])
+	require.Equal(t, true, resp["needs_refresh"])
+	require.Equal(t, true, resp["present"])
+}
+
 func TestBuildTaskResponseReturnsFiberMap(t *testing.T) {
 	t.Parallel()
 
