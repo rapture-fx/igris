@@ -38,13 +38,27 @@ SLOs are configured per-tenant and apply to all inference requests unless overri
 }
 ```
 
-| Field | Type | Default | Description |
-|---|---|---|---|
-| `latency_p99_ms` | int | 5000 | 99th percentile latency target |
-| `latency_p50_ms` | int | 1000 | Median latency target |
-| `max_cost_per_request_usd` | float | unlimited | Maximum cost per request |
-| `min_quality_score` | float | 0 | Minimum acceptable quality score (0–1) |
-| `violation_action` | string | `"fallback"` | Action on SLO breach: `fallback`, `terminate`, `log_only` |
+<AutoTypeTable
+  name="SloConfig"
+  type={`
+export interface SloConfig {
+  /** 99th percentile latency target in milliseconds. @default 5000 */
+  latency_p99_ms: number;
+
+  /** Median latency target in milliseconds. @default 1000 */
+  latency_p50_ms: number;
+
+  /** Maximum cost per request in USD. Omit to leave uncapped. */
+  max_cost_per_request_usd?: number;
+
+  /** Minimum acceptable quality score from 0 to 1. @default 0 */
+  min_quality_score: number;
+
+  /** Action to take when an SLO is breached. @default "fallback" */
+  violation_action: "fallback" | "terminate" | "log_only";
+}
+`}
+/>
 
 ---
 
