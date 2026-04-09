@@ -2,7 +2,6 @@ import { source } from '@/lib/source';
 import { DocsLayout } from 'fumadocs-ui/layouts/docs';
 import { DocsBody, DocsPage } from 'fumadocs-ui/page';
 import defaultMdxComponents, { createRelativeLink } from 'fumadocs-ui/mdx';
-import { fumadocsMdxComponents } from '@/components/fumadocs-mdx-components';
 import { notFound } from 'next/navigation';
 import type { Metadata } from 'next';
 
@@ -32,7 +31,6 @@ export default async function Page({ params }: PageProps) {
   const MDX = page.data.body;
   const components = {
     ...defaultMdxComponents,
-    ...fumadocsMdxComponents,
     a: createRelativeLink(source, page, defaultMdxComponents.a),
   };
 
