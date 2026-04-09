@@ -113,6 +113,7 @@ func TestBuildTaskProofResponse(t *testing.T) {
 	require.Equal(t, "sig-proof", resp["signature"])
 	require.Equal(t, "verified", resp["status"])
 	require.Equal(t, true, resp["needs_refresh"])
+	require.Equal(t, false, resp["reconcile_on_read"])
 	require.Equal(t, true, resp["present"])
 	require.Equal(t, true, resp["matched"])
 	require.Equal(t, &checkedAt, resp["checked_at"])
@@ -131,6 +132,7 @@ func TestBuildTaskProofResponseFreshPendingState(t *testing.T) {
 
 	require.Equal(t, "pending", resp["status"])
 	require.Equal(t, false, resp["needs_refresh"])
+	require.Equal(t, false, resp["reconcile_on_read"])
 	require.Equal(t, &checkedAt, resp["checked_at"])
 }
 
@@ -149,7 +151,23 @@ func TestBuildTaskProofResponseResolvedStateCanBeStaleWithoutReadReconcile(t *te
 
 	require.Equal(t, "present", resp["status"])
 	require.Equal(t, true, resp["needs_refresh"])
+	require.Equal(t, false, resp["reconcile_on_read"])
 	require.Equal(t, true, resp["present"])
+}
+
+func TestBuildTaskProofResponseStaleMissingStateReconcilesOnRead(t *testing.T) {
+	t.Parallel()
+
+	checkedAt := time.Now().UTC().Add(-3 * time.Minute)
+	resp := buildTaskProofResponse(&coordinator.TaskProofState{
+		ExecutionID: "exec-missing",
+		Status:      "missing",
+		CheckedAt:   &checkedAt,
+	})
+
+	require.Equal(t, "missing", resp["status"])
+	require.Equal(t, true, resp["needs_refresh"])
+	require.Equal(t, true, resp["reconcile_on_read"])
 }
 
 func TestBuildTaskResponseReturnsFiberMap(t *testing.T) {
