@@ -96,6 +96,7 @@ type publicApproval struct {
 //	POST   /v1/tasks/submit           — submit a new task (agent workflow, robotics workflow, single inference, or behavior tree)
 //	GET    /v1/tasks/:id              — poll task status
 //	GET    /v1/tasks                  — list recent tasks for the tenant
+//	GET    /v1/tasks/proof/readiness  — report whether trigger-backed proof sync is active
 //	POST   /v1/tasks/:id/checkpoint   — runtime pushes a checkpoint back to Overture
 //	POST   /v1/tasks/:id/complete     — runtime signals task completion
 //	POST   /v1/tasks/:id/failed       — runtime signals task failure
@@ -105,6 +106,7 @@ func RegisterTaskRoutes(app *fiber.App, db *sql.DB, tc *coordinator.TaskCoordina
 
 	v1.Post("/submit", handleTaskSubmit(tc))
 	v1.Get("", handleListTasks(tc))
+	v1.Get("/proof/readiness", handleTaskProofReadiness(tc))
 	v1.Get("/:id", handleGetTask(tc))
 	v1.Get("/:id/steps", handleGetTaskSteps(tc))
 	v1.Post("/:id/proof/verify", handleVerifyTaskProof(tc))
@@ -798,6 +800,22 @@ func handleListTasks(tc *coordinator.TaskCoordinator) fiber.Handler {
 	}
 }
 
+func handleTaskProofReadiness(tc *coordinator.TaskCoordinator) fiber.Handler {
+	return func(c *fiber.Ctx) error {
+		tenantID := middleware.GetClerkUserID(c)
+		if tenantID == "" {
+			return c.Status(http.StatusUnauthorized).JSON(fiber.Map{"error": "unauthenticated"})
+		}
+
+		triggerAvailable, err := tc.Store().HasTaskProofSyncTrigger()
+		if err != nil {
+			return c.Status(http.StatusInternalServerError).JSON(fiber.Map{"error": "db_error"})
+		}
+
+		return c.JSON(buildTaskProofReadinessResponse(triggerAvailable))
+	}
+}
+
 func buildTaskResponse(task *coordinator.TaskRecord) fiber.Map {
 	resp := fiber.Map{
 		"task_id":       task.TaskID,
@@ -853,6 +871,19 @@ func buildTaskResponse(task *coordinator.TaskRecord) fiber.Map {
 	}
 
 	return resp
+}
+
+func buildTaskProofReadinessResponse(triggerAvailable bool) fiber.Map {
+	mode := "fallback"
+	if triggerAvailable {
+		mode = "trigger"
+	}
+
+	return fiber.Map{
+		"proof_sync_mode":              mode,
+		"trigger_available":            triggerAvailable,
+		"read_reconciliation_fallback": true,
+	}
 }
 
 func buildTaskProofResponse(proof *coordinator.TaskProofState) fiber.Map {
