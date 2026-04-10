@@ -279,8 +279,16 @@ func (tc *TaskCoordinator) dispatchToRuntime(ctx context.Context, task *TaskReco
 	if len(result.ExecutionEnvelope) > 0 || len(result.ExecutionReceipt) > 0 {
 		if err := tc.store.SaveExecutionArtifacts(task.TaskID, result.ExecutionEnvelope, result.ExecutionReceipt); err != nil {
 			log.Error().Err(err).Str("task_id", task.TaskID.String()).Msg("[Coordinator] Save execution artifacts")
-		} else if _, err := tc.store.SyncTaskProofState(task.TaskID, task.TenantID); err != nil && err != sql.ErrNoRows {
-			log.Warn().Err(err).Str("task_id", task.TaskID.String()).Msg("[Coordinator] Initial proof sync")
+		} else {
+			triggerAvailable, err := tc.store.HasTaskProofSyncTrigger()
+			if err != nil {
+				log.Warn().Err(err).Str("task_id", task.TaskID.String()).Msg("[Coordinator] Proof trigger readiness check failed; falling back to direct sync")
+			}
+			if err != nil || !triggerAvailable {
+				if _, syncErr := tc.store.SyncTaskProofState(task.TaskID, task.TenantID); syncErr != nil && syncErr != sql.ErrNoRows {
+					log.Warn().Err(syncErr).Str("task_id", task.TaskID.String()).Msg("[Coordinator] Initial proof sync")
+				}
+			}
 		}
 	}
 
