@@ -513,6 +513,13 @@ func main() {
 		taskCoordinator.StartRecoveryLoop(context.Background())
 		api.RegisterTaskRoutes(app, dbInstance, taskCoordinator)
 		log.Println("[Tasks] ✅ Durable task endpoints registered (/v1/tasks)")
+		if triggerAvailable, err := taskCoordinator.Store().HasTaskProofSyncTrigger(); err != nil {
+			log.Printf("[Tasks] ⚠️  Could not determine proof sync mode at startup: %v", err)
+		} else if triggerAvailable {
+			log.Println("[Tasks] ✅ Proof sync mode: trigger-backed lineage updates active")
+		} else {
+			log.Println("[Tasks] ⚠️  Proof sync mode: fallback read reconciliation (trigger unavailable)")
+		}
 
 		// Daily cron: expire trials and send reminders
 		go func() {
