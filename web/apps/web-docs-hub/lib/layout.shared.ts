@@ -1,9 +1,14 @@
+import { createElement } from 'react';
 import type { BaseLayoutProps } from 'fumadocs-ui/layouts/shared';
 
 export function baseOptions(): BaseLayoutProps {
   return {
     nav: {
-      title: 'Igris Docs',
+      title: createElement('img', {
+        src: '/img/igris-logo-34.png',
+        alt: 'Igris',
+        className: 'h-7 w-auto',
+      }),
       url: '/docs',
     },
     links: [
