@@ -239,6 +239,42 @@ function codeFence(language, content) {
   return `\n\`\`\`${language}\n${content}\n\`\`\`\n`;
 }
 
+function escapeHtml(value) {
+  return String(value)
+    .replace(/&/g, '&amp;')
+    .replace(/</g, '&lt;')
+    .replace(/>/g, '&gt;')
+    .replace(/"/g, '&quot;')
+    .replace(/'/g, '&#39;');
+}
+
+function classSlug(value) {
+  return String(value).toLowerCase().replace(/[^a-z0-9]+/g, '-');
+}
+
+function renderBadge(label, value, className) {
+  return `<div className="api-meta-group"><span className="api-meta-label">${escapeHtml(label)}</span><span className="api-badge ${className}">${escapeHtml(value)}</span></div>`;
+}
+
+function renderTextMeta(label, value) {
+  return `<div className="api-meta-group"><span className="api-meta-label">${escapeHtml(label)}</span><span className="api-meta-value">${escapeHtml(value)}</span></div>`;
+}
+
+function renderEndpointMeta(data, endpoint) {
+  const items = [
+    renderBadge('Method', endpoint.method, `api-method-${classSlug(endpoint.method)}`),
+    renderTextMeta('Path', endpoint.path),
+    renderTextMeta('Base URL', data.baseUrl),
+    renderTextMeta('Auth', endpoint.auth),
+    renderBadge('Surface', endpoint.surface, `api-surface-${classSlug(endpoint.surface)}`),
+    renderBadge('Stability', endpoint.stability, `api-stability-${classSlug(endpoint.stability)}`),
+    renderBadge('Support', endpoint.support, `api-support-${classSlug(endpoint.support)}`),
+    renderBadge('Deployment', endpoint.deployment, `api-deployment-${classSlug(endpoint.deployment)}`),
+  ];
+
+  return `<div className="api-meta not-prose">${items.join('')}</div>`;
+}
+
 function buildFieldTable(fields) {
   if (!fields || fields.length === 0) {
     return 'No fields are currently documented for this section.\n';
@@ -366,18 +402,7 @@ ${sections}
 }
 
 function renderEndpointMdx(section, endpoint, data) {
-  const metadataTable = [
-    '| Field | Value |',
-    '|---|---|',
-    `| Method | \`${endpoint.method}\` |`,
-    `| Path | \`${endpoint.path}\` |`,
-    `| Base URL | \`${data.baseUrl}\` |`,
-    `| Authentication | ${escapeTableCell(endpoint.auth)} |`,
-    `| Surface | ${escapeTableCell(endpoint.surface)} |`,
-    `| Stability | ${escapeTableCell(endpoint.stability)} |`,
-    `| Support | ${escapeTableCell(endpoint.support)} |`,
-    `| Deployment | ${escapeTableCell(endpoint.deployment)} |`,
-  ].join('\n');
+  const metadataBlock = renderEndpointMeta(data, endpoint);
 
   let content = `---
 title: "${escapeYaml(data.title)}"
@@ -388,7 +413,7 @@ description: "${escapeYaml(data.functionality)}"
 
 ${data.functionality}
 
-${metadataTable}
+${metadataBlock}
 
 ## When To Use
 
