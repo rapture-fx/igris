@@ -170,6 +170,20 @@ func TestBuildTaskProofResponseStaleMissingStateReconcilesOnRead(t *testing.T) {
 	require.Equal(t, true, resp["reconcile_on_read"])
 }
 
+func TestBuildTaskProofReadinessResponse(t *testing.T) {
+	t.Parallel()
+
+	triggerResp := buildTaskProofReadinessResponse(true)
+	require.Equal(t, "trigger", triggerResp["proof_sync_mode"])
+	require.Equal(t, true, triggerResp["trigger_available"])
+	require.Equal(t, true, triggerResp["read_reconciliation_fallback"])
+
+	fallbackResp := buildTaskProofReadinessResponse(false)
+	require.Equal(t, "fallback", fallbackResp["proof_sync_mode"])
+	require.Equal(t, false, fallbackResp["trigger_available"])
+	require.Equal(t, true, fallbackResp["read_reconciliation_fallback"])
+}
+
 func TestBuildTaskResponseReturnsFiberMap(t *testing.T) {
 	t.Parallel()
 
