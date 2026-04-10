@@ -68,6 +68,7 @@ const (
 	proofPresentRefreshInterval  = 10 * time.Minute
 	proofVerifiedRefreshInterval = 30 * time.Minute
 	proofMismatchRefreshInterval = 5 * time.Minute
+	taskProofSyncTriggerName     = "task_record_proof_state_from_lineage"
 )
 
 // ResumeToken mirrors igris_wal::ResumeToken exactly.
@@ -281,6 +282,24 @@ func (s *CheckpointStore) UpdateTaskProofStateByExecutionID(tenantID, executionI
 		  AND proof_execution_id = $7
 	`, expectedHash, storedHash, signature, state.Status, state.CheckedAt, tenantID, executionID)
 	return err
+}
+
+func (s *CheckpointStore) HasTaskProofSyncTrigger() (bool, error) {
+	var exists bool
+	err := s.db.QueryRow(`
+		SELECT EXISTS (
+			SELECT 1
+			FROM pg_trigger t
+			JOIN pg_class c ON c.oid = t.tgrelid
+			WHERE t.tgname = $1
+			  AND c.relname = 'execution_lineage'
+			  AND NOT t.tgisinternal
+		)
+	`, taskProofSyncTriggerName).Scan(&exists)
+	if err != nil {
+		return false, err
+	}
+	return exists, nil
 }
 
 func (s *CheckpointStore) RefreshPendingProofStates(tenantID string, limit int) error {
