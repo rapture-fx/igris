@@ -22,7 +22,7 @@ export function getMDXComponents(
       <CodeBlock
         {...props}
         className={['docs-code-block', className].filter(Boolean).join(' ')}
-        viewportProps={{ className: 'text-[11px] md:text-[12px]' }}
+        viewportProps={{ className: 'text-[10.5px] md:text-[11.5px]' }}
       >
         <Pre>{props.children}</Pre>
       </CodeBlock>
@@ -32,7 +32,7 @@ export function getMDXComponents(
       <Heading
         as="h1"
         {...props}
-        className={['text-[1.55rem] font-semibold tracking-tight md:text-[1.75rem]', className]
+        className={['text-[1.35rem] font-semibold tracking-tight md:text-[1.5rem]', className]
           .filter(Boolean)
           .join(' ')}
       />
@@ -41,7 +41,7 @@ export function getMDXComponents(
       <Heading
         as="h2"
         {...props}
-        className={['text-[1.25rem] font-semibold tracking-tight md:text-[1.4rem]', className]
+        className={['text-[1.1rem] font-semibold tracking-tight md:text-[1.2rem]', className]
           .filter(Boolean)
           .join(' ')}
       />
@@ -50,7 +50,7 @@ export function getMDXComponents(
       <Heading
         as="h3"
         {...props}
-        className={['text-[1.05rem] font-semibold tracking-tight md:text-[1.15rem]', className]
+        className={['text-[0.98rem] font-semibold tracking-tight md:text-[1.05rem]', className]
           .filter(Boolean)
           .join(' ')}
       />
@@ -59,21 +59,21 @@ export function getMDXComponents(
       <Heading
         as="h4"
         {...props}
-        className={['text-[0.95rem] font-semibold tracking-tight', className].filter(Boolean).join(' ')}
+        className={['text-[0.9rem] font-semibold tracking-tight', className].filter(Boolean).join(' ')}
       />
     ),
     h5: ({ className, ...props }) => (
       <Heading
         as="h5"
         {...props}
-        className={['text-[0.85rem] font-semibold tracking-tight', className].filter(Boolean).join(' ')}
+        className={['text-[0.82rem] font-semibold tracking-tight', className].filter(Boolean).join(' ')}
       />
     ),
     h6: ({ className, ...props }) => (
       <Heading
         as="h6"
         {...props}
-        className={['text-[0.8rem] font-medium tracking-tight text-fd-muted-foreground', className]
+        className={['text-[0.76rem] font-medium tracking-tight text-fd-muted-foreground', className]
           .filter(Boolean)
           .join(' ')}
       />
