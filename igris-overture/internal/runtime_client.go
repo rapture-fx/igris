@@ -84,6 +84,32 @@ func (c *RuntimeClient) setDecisionSigHeader(req *http.Request, body []byte) {
 	req.Header.Set("X-Igris-Decision-Sig", base64.StdEncoding.EncodeToString(sig))
 }
 
+// CancelTask sends a best-effort cancellation signal to an assigned runtime task.
+// It uses the same auth and decision-signature model as other Overture→Runtime calls.
+func (c *RuntimeClient) CancelTask(ctx context.Context, taskID uuid.UUID, tenantID string) error {
+	body := []byte(`{}`)
+	req, err := http.NewRequestWithContext(ctx, http.MethodPost, fmt.Sprintf("%s/v1/runtime/task/%s/cancel", c.baseURL, taskID), bytes.NewReader(body))
+	if err != nil {
+		return err
+	}
+	req.Header.Set("Content-Type", "application/json")
+	req.Header.Set("X-Igris-Tenant", tenantID)
+	c.setAuthHeader(req)
+	c.setDecisionSigHeader(req, body)
+
+	resp, err := c.httpClient.Do(req)
+	if err != nil {
+		return err
+	}
+	defer resp.Body.Close()
+
+	if resp.StatusCode != http.StatusAccepted && resp.StatusCode != http.StatusNotFound {
+		raw, _ := io.ReadAll(io.LimitReader(resp.Body, 4096))
+		return fmt.Errorf("runtime cancel failed: status=%d body=%s", resp.StatusCode, string(raw))
+	}
+	return nil
+}
+
 // verifyEnvelope verifies the Ed25519 signature embedded in an execution envelope.
 //
 // The canonical form is produced by removing "signature" from the envelope map,
