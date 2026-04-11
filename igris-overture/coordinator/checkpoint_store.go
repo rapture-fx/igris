@@ -167,6 +167,25 @@ func (s *CheckpointStore) SaveCheckpoint(cp *CheckpointPayload) error {
 	}
 	defer tx.Rollback()
 
+	var currentCheckpointBytes []byte
+	switch err := tx.QueryRow(`
+		SELECT last_checkpoint
+		FROM task_records
+		WHERE task_id = $1
+		FOR UPDATE`,
+		cp.TaskID,
+	).Scan(&currentCheckpointBytes); err {
+	case nil:
+	case sql.ErrNoRows:
+		return ErrTaskTransitionRejected
+	default:
+		return fmt.Errorf("load current checkpoint: %w", err)
+	}
+
+	if currentCheckpoint, ok := decodeCheckpointPayload(currentCheckpointBytes); ok && !TaskCheckpointAdvances(currentCheckpoint, cp) {
+		return ErrTaskTransitionRejected
+	}
+
 	result, err := tx.Exec(`
 		UPDATE task_records
 		SET status = $1, last_checkpoint = $2
@@ -194,6 +213,18 @@ func (s *CheckpointStore) SaveCheckpoint(cp *CheckpointPayload) error {
 	}
 
 	return tx.Commit()
+}
+
+func decodeCheckpointPayload(cpBytes []byte) (*CheckpointPayload, bool) {
+	if len(cpBytes) == 0 {
+		return nil, false
+	}
+
+	var cp CheckpointPayload
+	if err := json.Unmarshal(cpBytes, &cp); err != nil {
+		return nil, false
+	}
+	return &cp, true
 }
 
 // MarkCompleted transitions a task to COMPLETED.
@@ -682,6 +713,16 @@ func TaskAllowsCancellation(status TaskRecordStatus) bool {
 	default:
 		return false
 	}
+}
+
+func TaskCheckpointAdvances(current *CheckpointPayload, next *CheckpointPayload) bool {
+	if next == nil {
+		return false
+	}
+	if current == nil {
+		return true
+	}
+	return next.ResumeToken.LastCommittedStep > current.ResumeToken.LastCommittedStep
 }
 
 func TaskProofNeedsRefresh(proof *TaskProofState, now time.Time) bool {
