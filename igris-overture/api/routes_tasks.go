@@ -97,6 +97,7 @@ type publicApproval struct {
 //	GET    /v1/tasks/:id              — poll task status
 //	GET    /v1/tasks                  — list recent tasks for the tenant
 //	GET    /v1/tasks/proof/readiness  — report whether trigger-backed proof sync is active
+//	POST   /v1/tasks/:id/cancel       — cancel an in-flight durable task
 //	POST   /v1/tasks/:id/checkpoint   — runtime pushes a checkpoint back to Overture
 //	POST   /v1/tasks/:id/complete     — runtime signals task completion
 //	POST   /v1/tasks/:id/failed       — runtime signals task failure
@@ -109,6 +110,7 @@ func RegisterTaskRoutes(app *fiber.App, db *sql.DB, tc *coordinator.TaskCoordina
 	v1.Get("/proof/readiness", handleTaskProofReadiness(tc))
 	v1.Get("/:id", handleGetTask(tc))
 	v1.Get("/:id/steps", handleGetTaskSteps(tc))
+	v1.Post("/:id/cancel", handleTaskCancel(tc))
 	v1.Post("/:id/proof/verify", handleVerifyTaskProof(tc))
 
 	// These three are called by the runtime itself (internal).
@@ -825,6 +827,9 @@ func buildTaskResponse(task *coordinator.TaskRecord) fiber.Map {
 		"completed_at":  task.CompletedAt,
 		"created_at":    task.CreatedAt,
 	}
+	if task.CanceledAt != nil {
+		resp["canceled_at"] = task.CanceledAt
+	}
 	if task.DeadlineAt != nil {
 		resp["deadline_at"] = task.DeadlineAt
 	}
@@ -964,6 +969,43 @@ func handleVerifyTaskProof(tc *coordinator.TaskCoordinator) fiber.Handler {
 			"task_id": taskID,
 			"proof":   buildTaskProofResponse(proof),
 		})
+	}
+}
+
+func handleTaskCancel(tc *coordinator.TaskCoordinator) fiber.Handler {
+	return func(c *fiber.Ctx) error {
+		tenantID := middleware.GetClerkUserID(c)
+		if tenantID == "" {
+			return c.Status(http.StatusUnauthorized).JSON(fiber.Map{"error": "unauthenticated"})
+		}
+
+		taskID, err := uuid.Parse(c.Params("id"))
+		if err != nil {
+			return c.Status(http.StatusBadRequest).JSON(fiber.Map{"error": "invalid task_id"})
+		}
+
+		task, err := tc.Store().GetTask(taskID, tenantID)
+		if err == sql.ErrNoRows {
+			return c.Status(http.StatusNotFound).JSON(fiber.Map{"error": "task not found"})
+		}
+		if err != nil {
+			return c.Status(http.StatusInternalServerError).JSON(fiber.Map{"error": "db_error"})
+		}
+		if !coordinator.TaskAllowsCancellation(task.Status) {
+			return c.Status(http.StatusConflict).JSON(fiber.Map{
+				"error":  "task_transition_rejected",
+				"status": task.Status,
+			})
+		}
+
+		if err := tc.HandleCancel(taskID); err != nil {
+			if errors.Is(err, coordinator.ErrTaskTransitionRejected) {
+				return c.Status(http.StatusConflict).JSON(fiber.Map{"error": "task_transition_rejected"})
+			}
+			return c.Status(http.StatusInternalServerError).JSON(fiber.Map{"error": "db_error"})
+		}
+
+		return c.JSON(fiber.Map{"ok": true, "status": coordinator.TaskStatusCanceled})
 	}
 }
 
