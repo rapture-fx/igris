@@ -9,51 +9,127 @@ type SdkRow = {
   notes: string;
 };
 
-const statusClasses: Record<string, string> = {
-  'first-class': 'bg-emerald-100 text-emerald-800',
-  preview: 'bg-amber-100 text-amber-800',
-  'openai-compatible': 'bg-blue-100 text-blue-800',
+const STATUS_META: Record<string, { label: string; badgeClass: string }> = {
+  'first-class': {
+    label: 'First-class',
+    badgeClass:
+      'bg-emerald-500/10 text-emerald-700 dark:text-emerald-400 ring-1 ring-inset ring-emerald-500/25',
+  },
+  preview: {
+    label: 'Preview',
+    badgeClass:
+      'bg-amber-500/10 text-amber-700 dark:text-amber-400 ring-1 ring-inset ring-amber-500/25',
+  },
+  'openai-compatible': {
+    label: 'OpenAI-compatible',
+    badgeClass:
+      'bg-sky-500/10 text-sky-700 dark:text-sky-400 ring-1 ring-inset ring-sky-500/25',
+  },
 };
+
+function Badge({ status }: { status: string }) {
+  const meta = STATUS_META[status] ?? {
+    label: status,
+    badgeClass: 'bg-slate-100 text-slate-600 ring-1 ring-inset ring-slate-200',
+  };
+  return (
+    <span
+      className={`inline-flex items-center rounded-full px-2 py-0.5 text-[0.62rem] font-semibold leading-none tracking-wide ${meta.badgeClass}`}
+    >
+      {meta.label}
+    </span>
+  );
+}
+
+function SdkCard({ row }: { row: SdkRow }) {
+  return (
+    <div className="flex flex-col gap-3 rounded-xl border border-fd-border bg-fd-card p-4">
+      <div className="flex items-start justify-between gap-2">
+        <span className="text-[0.82rem] font-semibold text-fd-foreground leading-snug">
+          {row.language}
+        </span>
+        <Badge status={row.status} />
+      </div>
+
+      {row.package !== 'n/a' && (
+        <div className="space-y-1.5">
+          <div className="rounded-md bg-fd-muted px-2.5 py-1.5">
+            <code className="font-mono text-[0.68rem] text-fd-foreground break-all">
+              {row.install}
+            </code>
+          </div>
+          <div className="rounded-md bg-fd-muted px-2.5 py-1.5">
+            <code className="font-mono text-[0.68rem] text-fd-muted-foreground break-all">
+              {row.import}
+            </code>
+          </div>
+        </div>
+      )}
+
+      <p className="text-[0.72rem] leading-relaxed text-fd-muted-foreground m-0">{row.notes}</p>
+    </div>
+  );
+}
+
+function SectionLabel({ children }: { children: React.ReactNode }) {
+  return (
+    <p className="text-[0.65rem] font-semibold uppercase tracking-widest text-fd-muted-foreground m-0 mb-2.5">
+      {children}
+    </p>
+  );
+}
 
 export function SdkSupportMatrix() {
   const rows = sdkSupport.rows as SdkRow[];
 
+  const firstClass = rows.filter((r) => r.status === 'first-class');
+  const preview = rows.filter((r) => r.status === 'preview');
+  const compatible = rows.filter((r) => r.status === 'openai-compatible');
+
   return (
-    <div className="space-y-4">
-      <div className="rounded-xl border border-slate-200 bg-slate-50 p-5">
-        <h2 className="mt-0 text-lg font-semibold text-slate-900">Support Status</h2>
-        <p className="mb-0 text-sm text-slate-700">{sdkSupport.native_sdk_note}</p>
+    <div className="space-y-6 not-prose">
+      {/* First-class */}
+      <div>
+        <SectionLabel>First-class</SectionLabel>
+        <div className="grid grid-cols-1 gap-3 sm:grid-cols-3">
+          {firstClass.map((row) => (
+            <SdkCard key={row.language} row={row} />
+          ))}
+        </div>
       </div>
 
-      <div className="overflow-x-auto rounded-xl border border-slate-200">
-        <table className="min-w-full border-collapse text-sm">
-          <thead className="bg-slate-50">
-            <tr>
-              <th className="px-4 py-3 text-left font-semibold text-slate-900">Language</th>
-              <th className="px-4 py-3 text-left font-semibold text-slate-900">Status</th>
-              <th className="px-4 py-3 text-left font-semibold text-slate-900">Package</th>
-              <th className="px-4 py-3 text-left font-semibold text-slate-900">Install</th>
-              <th className="px-4 py-3 text-left font-semibold text-slate-900">Import</th>
-              <th className="px-4 py-3 text-left font-semibold text-slate-900">Notes</th>
-            </tr>
-          </thead>
-          <tbody>
-            {rows.map((row) => (
-              <tr key={row.language} className="border-t border-slate-200 align-top">
-                <td className="px-4 py-3 font-semibold text-slate-900">{row.language}</td>
-                <td className="px-4 py-3">
-                  <span className={`inline-flex rounded-full px-2 py-1 text-xs font-semibold ${statusClasses[row.status] || 'bg-slate-100 text-slate-700'}`}>
-                    {row.status}
-                  </span>
-                </td>
-                <td className="px-4 py-3 font-mono text-xs text-slate-800">{row.package}</td>
-                <td className="px-4 py-3 font-mono text-xs text-slate-800">{row.install}</td>
-                <td className="px-4 py-3 font-mono text-xs text-slate-800">{row.import}</td>
-                <td className="px-4 py-3 text-slate-700">{row.notes}</td>
-              </tr>
+      {/* Preview */}
+      <div>
+        <SectionLabel>Preview</SectionLabel>
+        <div className="grid grid-cols-1 gap-3 sm:grid-cols-2">
+          {preview.map((row) => (
+            <SdkCard key={row.language} row={row} />
+          ))}
+        </div>
+      </div>
+
+      {/* OpenAI-compatible */}
+      <div>
+        <SectionLabel>OpenAI-compatible only</SectionLabel>
+        <div className="rounded-xl border border-fd-border bg-fd-muted/40 p-4 space-y-3">
+          <div className="flex flex-wrap gap-2">
+            {compatible.map((row) => (
+              <span
+                key={row.language}
+                className="inline-flex items-center rounded-lg border border-fd-border bg-fd-card px-3 py-1.5 text-[0.75rem] font-medium text-fd-foreground"
+              >
+                {row.language}
+              </span>
             ))}
-          </tbody>
-        </table>
+          </div>
+          <p className="text-[0.72rem] leading-relaxed text-fd-muted-foreground m-0">
+            Point any OpenAI-compatible client at{' '}
+            <code className="font-mono text-[0.68rem] bg-fd-muted rounded px-1 py-0.5">
+              https://overture.igrisinertial.com/v1
+            </code>{' '}
+            as the base URL. Native SDKs for these languages are not yet available.
+          </p>
+        </div>
       </div>
     </div>
   );
