@@ -367,6 +367,19 @@ func (tc *TaskCoordinator) recoverRuntime(ctx context.Context, runtimeID string)
 			`SELECT tenant_id FROM task_records WHERE task_id = $1`, taskID,
 		).Scan(&tenantID)
 
+		task, err := tc.store.GetTask(taskID, tenantID)
+		if err != nil {
+			log.Warn().Err(err).Str("task_id", taskID.String()).Msg("[Coordinator] Could not load task state for recovery")
+			continue
+		}
+		if !TaskAllowsRecoveryRedispatch(task.Status) {
+			log.Info().
+				Str("task_id", taskID.String()).
+				Str("status", string(task.Status)).
+				Msg("[Coordinator] Skipping recovery redispatch for non-recovering task")
+			continue
+		}
+
 		newRuntime, err := tc.selectRuntime(ctx, tenantID)
 		if err != nil {
 			log.Error().Err(err).Str("task_id", taskID.String()).Msg("[Coordinator] No runtime for recovery")
@@ -375,10 +388,14 @@ func (tc *TaskCoordinator) recoverRuntime(ctx context.Context, runtimeID string)
 		}
 
 		if err := tc.store.MarkDispatched(taskID, newRuntime.RuntimeID, newRuntime.Endpoint); err != nil {
+			log.Info().
+				Str("task_id", taskID.String()).
+				Str("new_runtime", newRuntime.RuntimeID).
+				Msg("[Coordinator] Skipping recovery redispatch because task no longer allows dispatch")
 			continue
 		}
 
-		task, err := tc.store.GetTask(taskID, tenantID)
+		task, err = tc.store.GetTask(taskID, tenantID)
 		if err != nil {
 			continue
 		}
