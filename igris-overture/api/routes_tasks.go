@@ -1,6 +1,7 @@
 package api
 
 import (
+	"context"
 	"database/sql"
 	"encoding/json"
 	"errors"
@@ -14,6 +15,7 @@ import (
 	"github.com/rs/zerolog/log"
 
 	"github.com/Igris-inertial/system/igris-overture/coordinator"
+	"github.com/Igris-inertial/system/igris-overture/internal"
 	"github.com/Igris-inertial/system/igris-overture/middleware"
 )
 
@@ -1003,6 +1005,12 @@ func handleTaskCancel(tc *coordinator.TaskCoordinator) fiber.Handler {
 				return c.Status(http.StatusConflict).JSON(fiber.Map{"error": "task_transition_rejected"})
 			}
 			return c.Status(http.StatusInternalServerError).JSON(fiber.Map{"error": "db_error"})
+		}
+
+		if task.RuntimeEndpoint != nil && *task.RuntimeEndpoint != "" {
+			if err := internal.NewRuntimeClient(*task.RuntimeEndpoint).CancelTask(context.Background(), taskID, tenantID); err != nil {
+				log.Warn().Err(err).Str("task_id", taskID.String()).Msg("[Tasks] Runtime cancel propagation failed")
+			}
 		}
 
 		return c.JSON(fiber.Map{"ok": true, "status": coordinator.TaskStatusCanceled})
