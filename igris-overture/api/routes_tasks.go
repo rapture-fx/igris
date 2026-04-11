@@ -825,6 +825,7 @@ func buildTaskResponse(task *coordinator.TaskRecord) fiber.Map {
 		"task_id":       task.TaskID,
 		"status":        task.Status,
 		"lifecycle":     buildTaskLifecycleResponse(task.Status),
+		"recovery":      buildTaskRecoveryResponse(task),
 		"runtime_id":    task.RuntimeID,
 		"dispatched_at": task.DispatchedAt,
 		"completed_at":  task.CompletedAt,
@@ -894,6 +895,46 @@ func buildTaskLifecycleResponse(status coordinator.TaskRecordStatus) fiber.Map {
 		"recovery_redispatch_allowed": recoveryRedispatchAllowed,
 		"cancellation_allowed":        cancellationAllowed,
 	}
+}
+
+func buildTaskRecoveryResponse(task *coordinator.TaskRecord) fiber.Map {
+	if task == nil {
+		return fiber.Map{"redispatch_eligible": false}
+	}
+
+	resp := fiber.Map{
+		"redispatch_eligible": coordinator.TaskAllowsRecoveryRedispatch(task.Status),
+	}
+
+	switch task.Status {
+	case coordinator.TaskStatusCanceled:
+		resp["skip_reason"] = "task_canceled"
+	case coordinator.TaskStatusCompleted:
+		resp["skip_reason"] = "task_completed"
+	case coordinator.TaskStatusFailed:
+		resp["skip_reason"] = taskRecoverySkipReason(task)
+	}
+
+	return resp
+}
+
+func taskRecoverySkipReason(task *coordinator.TaskRecord) string {
+	if task == nil {
+		return ""
+	}
+	if task.Status == coordinator.TaskStatusCanceled {
+		return "task_canceled"
+	}
+	if task.Status == coordinator.TaskStatusCompleted {
+		return "task_completed"
+	}
+	if task.Status != coordinator.TaskStatusFailed {
+		return ""
+	}
+	if task.FailureReason != nil && *task.FailureReason == "no runtime available for recovery" {
+		return "no_runtime_available_for_recovery"
+	}
+	return "task_failed"
 }
 
 func buildTaskProofReadinessResponse(triggerAvailable bool) fiber.Map {
@@ -998,6 +1039,7 @@ func buildTaskTransitionRejectedPayload(task *coordinator.TaskRecord) fiber.Map 
 
 	resp["status"] = task.Status
 	resp["lifecycle"] = buildTaskLifecycleResponse(task.Status)
+	resp["recovery"] = buildTaskRecoveryResponse(task)
 	if task.CanceledAt != nil {
 		resp["canceled_at"] = task.CanceledAt
 	}
