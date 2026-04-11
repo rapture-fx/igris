@@ -40,6 +40,7 @@ type TaskRecord struct {
 	DeadlineAt        *time.Time         `json:"deadline_at,omitempty"`
 	DispatchedAt      *time.Time         `json:"dispatched_at,omitempty"`
 	CompletedAt       *time.Time         `json:"completed_at,omitempty"`
+	CanceledAt        *time.Time         `json:"canceled_at,omitempty"`
 	CreatedAt         time.Time          `json:"created_at"`
 }
 
@@ -52,6 +53,7 @@ const (
 	TaskStatusCompleted    TaskRecordStatus = "completed"
 	TaskStatusFailed       TaskRecordStatus = "failed"
 	TaskStatusRecovering   TaskRecordStatus = "recovering"
+	TaskStatusCanceled     TaskRecordStatus = "canceled"
 )
 
 var ErrTaskTransitionRejected = errors.New("task transition rejected")
@@ -216,6 +218,19 @@ func (s *CheckpointStore) MarkFailed(taskID uuid.UUID, reason string) error {
 		  AND status IN ($4, $5, $6)`,
 		TaskStatusFailed, reason, taskID,
 		TaskStatusDispatched, TaskStatusCheckpointed, TaskStatusRecovering,
+	)
+	return taskTransitionResult(result, err)
+}
+
+// MarkCanceled transitions a task to CANCELED.
+func (s *CheckpointStore) MarkCanceled(taskID uuid.UUID) error {
+	result, err := s.db.Exec(`
+		UPDATE task_records
+		SET status = $1, canceled_at = NOW()
+		WHERE task_id = $2
+		  AND status IN ($3, $4, $5, $6)`,
+		TaskStatusCanceled, taskID,
+		TaskStatusPending, TaskStatusDispatched, TaskStatusCheckpointed, TaskStatusRecovering,
 	)
 	return taskTransitionResult(result, err)
 }
@@ -431,7 +446,7 @@ func (s *CheckpointStore) GetTask(taskID uuid.UUID, tenantID string) (*TaskRecor
 		       task_definition, last_checkpoint, execution_envelope, execution_receipt,
 		       proof_execution_id, proof_expected_hash, proof_stored_hash, proof_signature, proof_status, proof_checked_at,
 		       idempotency_key, failure_reason,
-		       deadline_at, dispatched_at, completed_at, created_at
+		       deadline_at, dispatched_at, completed_at, canceled_at, created_at
 		FROM task_records
 		WHERE task_id = $1 AND tenant_id = $2`,
 		taskID, tenantID,
@@ -446,7 +461,7 @@ func (s *CheckpointStore) GetTaskByIdempotencyKey(tenantID, idempotencyKey strin
 		       task_definition, last_checkpoint, execution_envelope, execution_receipt,
 		       proof_execution_id, proof_expected_hash, proof_stored_hash, proof_signature, proof_status, proof_checked_at,
 		       idempotency_key, failure_reason,
-		       deadline_at, dispatched_at, completed_at, created_at
+		       deadline_at, dispatched_at, completed_at, canceled_at, created_at
 		FROM task_records
 		WHERE tenant_id = $1 AND idempotency_key = $2`,
 		tenantID, idempotencyKey,
@@ -461,7 +476,7 @@ func (s *CheckpointStore) GetTasksByTenant(tenantID string, limit int) ([]*TaskR
 		       task_definition, last_checkpoint, execution_envelope, execution_receipt,
 		       proof_execution_id, proof_expected_hash, proof_stored_hash, proof_signature, proof_status, proof_checked_at,
 		       idempotency_key, failure_reason,
-		       deadline_at, dispatched_at, completed_at, created_at
+		       deadline_at, dispatched_at, completed_at, canceled_at, created_at
 		FROM task_records
 		WHERE tenant_id = $1
 		ORDER BY created_at DESC
@@ -557,7 +572,7 @@ func (s *CheckpointStore) GetRecoveringTasks() ([]*TaskRecord, error) {
 		       task_definition, last_checkpoint, execution_envelope, execution_receipt,
 		       proof_execution_id, proof_expected_hash, proof_stored_hash, proof_signature, proof_status, proof_checked_at,
 		       idempotency_key, failure_reason,
-		       deadline_at, dispatched_at, completed_at, created_at
+		       deadline_at, dispatched_at, completed_at, canceled_at, created_at
 		FROM task_records
 		WHERE status = 'recovering'
 		ORDER BY created_at ASC`,
@@ -600,7 +615,7 @@ func scanTaskRecord(row scanner) (*TaskRecord, error) {
 		&defBytes, &cpBytes, &envelopeBytes, &receiptBytes,
 		&proofExecutionID, &proofExpectedHash, &proofStoredHash, &proofSignature, &proofStatus, &proofCheckedAt,
 		&t.IdempotencyKey, &t.FailureReason,
-		&t.DeadlineAt, &t.DispatchedAt, &t.CompletedAt, &t.CreatedAt,
+		&t.DeadlineAt, &t.DispatchedAt, &t.CompletedAt, &t.CanceledAt, &t.CreatedAt,
 	)
 	if err != nil {
 		return nil, err
@@ -650,6 +665,15 @@ func TaskAllowsRuntimeMutation(status TaskRecordStatus) bool {
 func TaskAllowsDispatch(status TaskRecordStatus) bool {
 	switch status {
 	case TaskStatusPending, TaskStatusRecovering:
+		return true
+	default:
+		return false
+	}
+}
+
+func TaskAllowsCancellation(status TaskRecordStatus) bool {
+	switch status {
+	case TaskStatusPending, TaskStatusDispatched, TaskStatusCheckpointed, TaskStatusRecovering:
 		return true
 	default:
 		return false
