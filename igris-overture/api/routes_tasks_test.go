@@ -59,6 +59,13 @@ func TestBuildTaskResponseIncludesFailureReasonAndCheckpointMetadata(t *testing.
 	require.Equal(t, failureReason, resp["failure_reason"])
 	require.Equal(t, &completedAt, resp["deadline_at"])
 	require.Equal(t, "robotics_workflow", resp["task_type"])
+	require.Equal(t, fiber.Map{
+		"terminal":                    true,
+		"runtime_mutation_allowed":    false,
+		"dispatch_allowed":            false,
+		"recovery_redispatch_allowed": false,
+		"cancellation_allowed":        false,
+	}, resp["lifecycle"])
 	require.Equal(t, "quality", resp["requested_mode"])
 	require.Equal(t, "provider_race_quality", resp["resolved_strategy"])
 	require.EqualValues(t, 3, resp["last_step"])
@@ -82,6 +89,13 @@ func TestBuildTaskResponseOmitsEmptyOptionalFields(t *testing.T) {
 
 	resp := buildTaskResponse(task)
 
+	require.Equal(t, fiber.Map{
+		"terminal":                    false,
+		"runtime_mutation_allowed":    false,
+		"dispatch_allowed":            true,
+		"recovery_redispatch_allowed": false,
+		"cancellation_allowed":        true,
+	}, resp["lifecycle"])
 	require.NotContains(t, resp, "failure_reason")
 	require.NotContains(t, resp, "deadline_at")
 	require.NotContains(t, resp, "task_type")
@@ -196,6 +210,13 @@ func TestBuildTaskResponseIncludesCanceledAtWhenPresent(t *testing.T) {
 	})
 
 	require.Equal(t, &canceledAt, resp["canceled_at"])
+	require.Equal(t, fiber.Map{
+		"terminal":                    true,
+		"runtime_mutation_allowed":    false,
+		"dispatch_allowed":            false,
+		"recovery_redispatch_allowed": false,
+		"cancellation_allowed":        false,
+	}, resp["lifecycle"])
 }
 
 func TestBuildTaskResponseReturnsFiberMap(t *testing.T) {
@@ -209,6 +230,91 @@ func TestBuildTaskResponseReturnsFiberMap(t *testing.T) {
 
 	_, ok := any(resp).(fiber.Map)
 	require.True(t, ok)
+}
+
+func TestBuildTaskLifecycleResponse(t *testing.T) {
+	t.Parallel()
+
+	tests := []struct {
+		name   string
+		status coordinator.TaskRecordStatus
+		want   fiber.Map
+	}{
+		{
+			name:   "pending",
+			status: coordinator.TaskStatusPending,
+			want: fiber.Map{
+				"terminal":                    false,
+				"runtime_mutation_allowed":    false,
+				"dispatch_allowed":            true,
+				"recovery_redispatch_allowed": false,
+				"cancellation_allowed":        true,
+			},
+		},
+		{
+			name:   "recovering",
+			status: coordinator.TaskStatusRecovering,
+			want: fiber.Map{
+				"terminal":                    false,
+				"runtime_mutation_allowed":    true,
+				"dispatch_allowed":            true,
+				"recovery_redispatch_allowed": true,
+				"cancellation_allowed":        true,
+			},
+		},
+		{
+			name:   "completed",
+			status: coordinator.TaskStatusCompleted,
+			want: fiber.Map{
+				"terminal":                    true,
+				"runtime_mutation_allowed":    false,
+				"dispatch_allowed":            false,
+				"recovery_redispatch_allowed": false,
+				"cancellation_allowed":        false,
+			},
+		},
+	}
+
+	for _, test := range tests {
+		test := test
+		t.Run(test.name, func(t *testing.T) {
+			t.Parallel()
+			require.Equal(t, test.want, buildTaskLifecycleResponse(test.status))
+		})
+	}
+}
+
+func TestBuildTaskTransitionRejectedPayloadIncludesLifecycle(t *testing.T) {
+	t.Parallel()
+
+	completedAt := time.Unix(1_700_000_500, 0).UTC()
+	failureReason := "runtime unavailable during recovery"
+	resp := buildTaskTransitionRejectedPayload(&coordinator.TaskRecord{
+		TaskID:        uuid.New(),
+		Status:        coordinator.TaskStatusFailed,
+		CompletedAt:   &completedAt,
+		FailureReason: &failureReason,
+	})
+
+	require.Equal(t, "task_transition_rejected", resp["error"])
+	require.Equal(t, coordinator.TaskStatusFailed, resp["status"])
+	require.Equal(t, &completedAt, resp["completed_at"])
+	require.Equal(t, failureReason, resp["failure_reason"])
+	require.Equal(t, fiber.Map{
+		"terminal":                    true,
+		"runtime_mutation_allowed":    false,
+		"dispatch_allowed":            false,
+		"recovery_redispatch_allowed": false,
+		"cancellation_allowed":        false,
+	}, resp["lifecycle"])
+}
+
+func TestBuildTaskTransitionRejectedPayloadWithoutTask(t *testing.T) {
+	t.Parallel()
+
+	resp := buildTaskTransitionRejectedPayload(nil)
+
+	require.Equal(t, fiber.Map{"error": "task_transition_rejected"}, resp)
 }
 
 func TestBuildTaskSubmitRequestBuildsRoboticsMissionDefinition(t *testing.T) {
