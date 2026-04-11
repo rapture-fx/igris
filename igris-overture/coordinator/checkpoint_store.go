@@ -4,6 +4,7 @@ import (
 	"database/sql"
 	"encoding/hex"
 	"encoding/json"
+	"errors"
 	"fmt"
 	"sort"
 	"time"
@@ -52,6 +53,8 @@ const (
 	TaskStatusFailed       TaskRecordStatus = "failed"
 	TaskStatusRecovering   TaskRecordStatus = "recovering"
 )
+
+var ErrTaskTransitionRejected = errors.New("task transition rejected")
 
 type TaskProofState struct {
 	ExecutionID  string     `json:"execution_id,omitempty"`
@@ -138,13 +141,15 @@ func (s *CheckpointStore) CreateTask(task *TaskRecord) (bool, error) {
 // MarkDispatched transitions a task to DISPATCHED and records which runtime took it.
 func (s *CheckpointStore) MarkDispatched(taskID uuid.UUID, runtimeID, runtimeEndpoint string) error {
 	now := time.Now()
-	_, err := s.db.Exec(`
+	result, err := s.db.Exec(`
 		UPDATE task_records
 		SET status = $1, runtime_id = $2, runtime_endpoint = $3, dispatched_at = $4
-		WHERE task_id = $5`,
+		WHERE task_id = $5
+		  AND status IN ($6, $7)`,
 		TaskStatusDispatched, runtimeID, runtimeEndpoint, now, taskID,
+		TaskStatusPending, TaskStatusRecovering,
 	)
-	return err
+	return taskTransitionResult(result, err)
 }
 
 // SaveCheckpoint persists a checkpoint from the runtime and updates the task record.
@@ -160,6 +165,21 @@ func (s *CheckpointStore) SaveCheckpoint(cp *CheckpointPayload) error {
 	}
 	defer tx.Rollback()
 
+	result, err := tx.Exec(`
+		UPDATE task_records
+		SET status = $1, last_checkpoint = $2
+		WHERE task_id = $3
+		  AND status IN ($4, $5, $6)`,
+		TaskStatusCheckpointed, cpBytes, cp.TaskID,
+		TaskStatusDispatched, TaskStatusCheckpointed, TaskStatusRecovering,
+	)
+	if err != nil {
+		return fmt.Errorf("update task record: %w", err)
+	}
+	if err := taskTransitionResult(result, nil); err != nil {
+		return err
+	}
+
 	_, err = tx.Exec(`
 		INSERT INTO wal_checkpoints
 			(checkpoint_id, task_id, step_index, checkpoint_digest, wal_entries, received_at)
@@ -171,35 +191,33 @@ func (s *CheckpointStore) SaveCheckpoint(cp *CheckpointPayload) error {
 		return fmt.Errorf("insert checkpoint: %w", err)
 	}
 
-	_, err = tx.Exec(`
-		UPDATE task_records
-		SET status = $1, last_checkpoint = $2
-		WHERE task_id = $3`,
-		TaskStatusCheckpointed, cpBytes, cp.TaskID,
-	)
-	if err != nil {
-		return fmt.Errorf("update task record: %w", err)
-	}
-
 	return tx.Commit()
 }
 
 // MarkCompleted transitions a task to COMPLETED.
 func (s *CheckpointStore) MarkCompleted(taskID uuid.UUID) error {
-	_, err := s.db.Exec(`
-		UPDATE task_records SET status = $1, completed_at = NOW() WHERE task_id = $2`,
+	result, err := s.db.Exec(`
+		UPDATE task_records
+		SET status = $1, completed_at = NOW()
+		WHERE task_id = $2
+		  AND status IN ($3, $4, $5)`,
 		TaskStatusCompleted, taskID,
+		TaskStatusDispatched, TaskStatusCheckpointed, TaskStatusRecovering,
 	)
-	return err
+	return taskTransitionResult(result, err)
 }
 
 // MarkFailed transitions a task to FAILED.
 func (s *CheckpointStore) MarkFailed(taskID uuid.UUID, reason string) error {
-	_, err := s.db.Exec(`
-		UPDATE task_records SET status = $1, failure_reason = $2 WHERE task_id = $3`,
+	result, err := s.db.Exec(`
+		UPDATE task_records
+		SET status = $1, failure_reason = $2
+		WHERE task_id = $3
+		  AND status IN ($4, $5, $6)`,
 		TaskStatusFailed, reason, taskID,
+		TaskStatusDispatched, TaskStatusCheckpointed, TaskStatusRecovering,
 	)
-	return err
+	return taskTransitionResult(result, err)
 }
 
 // SaveExecutionArtifacts persists signed runtime execution material on the task.
@@ -620,6 +638,24 @@ func decodeHexToBytes(h string) []byte {
 	return b
 }
 
+func TaskAllowsRuntimeMutation(status TaskRecordStatus) bool {
+	switch status {
+	case TaskStatusDispatched, TaskStatusCheckpointed, TaskStatusRecovering:
+		return true
+	default:
+		return false
+	}
+}
+
+func TaskAllowsDispatch(status TaskRecordStatus) bool {
+	switch status {
+	case TaskStatusPending, TaskStatusRecovering:
+		return true
+	default:
+		return false
+	}
+}
+
 func TaskProofNeedsRefresh(proof *TaskProofState, now time.Time) bool {
 	if proof == nil {
 		return false
@@ -681,6 +717,23 @@ func buildTaskProofState(executionID, expectedHash, storedHash, signature string
 		state.Status = "present"
 	}
 	return state
+}
+
+func taskTransitionResult(result sql.Result, err error) error {
+	if err != nil {
+		return err
+	}
+	if result == nil {
+		return ErrTaskTransitionRejected
+	}
+	rowsAffected, rowsErr := result.RowsAffected()
+	if rowsErr != nil {
+		return rowsErr
+	}
+	if rowsAffected == 0 {
+		return ErrTaskTransitionRejected
+	}
+	return nil
 }
 
 func nullRawJSON(raw json.RawMessage) any {
