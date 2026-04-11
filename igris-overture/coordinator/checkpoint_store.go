@@ -156,6 +156,10 @@ func (s *CheckpointStore) MarkDispatched(taskID uuid.UUID, runtimeID, runtimeEnd
 
 // SaveCheckpoint persists a checkpoint from the runtime and updates the task record.
 func (s *CheckpointStore) SaveCheckpoint(cp *CheckpointPayload) error {
+	if !TaskCheckpointWatermarkConsistent(cp) {
+		return ErrTaskTransitionRejected
+	}
+
 	cpBytes, err := json.Marshal(cp)
 	if err != nil {
 		return fmt.Errorf("marshal checkpoint: %w", err)
@@ -723,6 +727,18 @@ func TaskCheckpointAdvances(current *CheckpointPayload, next *CheckpointPayload)
 		return true
 	}
 	return next.ResumeToken.LastCommittedStep > current.ResumeToken.LastCommittedStep
+}
+
+func TaskCheckpointWatermarkConsistent(cp *CheckpointPayload) bool {
+	if cp == nil {
+		return false
+	}
+	for _, entry := range cp.WalEntries {
+		if entry.StepIndex > cp.ResumeToken.LastCommittedStep {
+			return false
+		}
+	}
+	return true
 }
 
 func TaskProofNeedsRefresh(proof *TaskProofState, now time.Time) bool {
