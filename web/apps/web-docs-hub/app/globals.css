@@ -54,7 +54,12 @@
   }
 
   .docs-prose :where(:not(pre) > code) {
-    font-size: 0.76em;
+    font-size: 0.62em;
+    line-height: 1;
+  }
+
+  .docs-prose :where(table code) {
+    font-size: 0.58rem;
   }
 
   .docs-prose :where(a) {
@@ -67,7 +72,7 @@
   }
 
   .docs-prose .docs-type-table code {
-    font-size: 0.72rem;
+    font-size: 0.58rem;
   }
 
   .docs-prose .docs-type-table .prose {
@@ -76,12 +81,12 @@
   }
 
   .docs-prose .docs-code-block {
-    font-size: 0.7rem;
+    font-size: 0.62rem;
   }
 
   .docs-prose .docs-code-block figcaption,
   .docs-prose .docs-code-block [role='tab'] {
-    font-size: 0.64rem;
+    font-size: 0.58rem;
   }
 
   .docs-prose .docs-code-block pre,
