@@ -70,8 +70,12 @@
   }
 
   .docs-prose .docs-tab-content {
+    font-size: 0.8rem !important;
+    line-height: 1.58 !important;
+  }
+
+  .docs-prose .docs-tab-content :where(p, li, blockquote) {
     font-size: inherit;
-    line-height: inherit;
   }
 
   .docs-prose .docs-type-table > div {
