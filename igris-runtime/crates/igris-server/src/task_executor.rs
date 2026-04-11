@@ -20,6 +20,7 @@ use std::convert::Infallible;
 use std::collections::HashMap;
 use std::pin::Pin;
 use std::time::{Duration, Instant};
+use tokio::sync::watch;
 use tracing::{error, info, warn};
 use uuid::Uuid;
 
@@ -576,6 +577,54 @@ enum AgentExecutionMode {
     Council,
 }
 
+struct TaskCancellationGuard {
+    registry: Arc<std::sync::RwLock<HashMap<Uuid, watch::Sender<bool>>>>,
+    task_id: Uuid,
+}
+
+impl Drop for TaskCancellationGuard {
+    fn drop(&mut self) {
+        if let Ok(mut guard) = self.registry.write() {
+            guard.remove(&self.task_id);
+        }
+    }
+}
+
+fn register_task_cancellation(
+    state: &AppState,
+    task_id: Uuid,
+) -> (TaskCancellationGuard, watch::Receiver<bool>) {
+    let (tx, rx) = watch::channel(false);
+    if let Ok(mut guard) = state.task_cancellation_registry.write() {
+        guard.insert(task_id, tx);
+    }
+    (
+        TaskCancellationGuard {
+            registry: state.task_cancellation_registry.clone(),
+            task_id,
+        },
+        rx,
+    )
+}
+
+fn signal_task_cancellation(state: &AppState, task_id: Uuid) -> bool {
+    state
+        .task_cancellation_registry
+        .read()
+        .ok()
+        .and_then(|guard| guard.get(&task_id).cloned())
+        .map(|sender| sender.send(true).is_ok())
+        .unwrap_or(false)
+}
+
+fn is_task_canceled(cancel_rx: &watch::Receiver<bool>) -> bool {
+    *cancel_rx.borrow()
+}
+
+fn task_cancellation_reason(task_id: Uuid) -> String {
+    format!("task {} canceled", task_id)
+}
+
 pub async fn handle_task_submit(
     State(state): State<AppState>,
     Json(req): Json<TaskSubmitRequest>,
@@ -626,6 +675,7 @@ pub async fn handle_task_submit(
 
     let runtime_id = state.swarm_peer_id.clone();
     let wal = Arc::new(WalLog::new(state.storage.clone(), req.task_id, runtime_id.clone()));
+    let (_cancel_guard, cancel_rx) = register_task_cancellation(&state, req.task_id);
 
     let start_step = if let Some(ref token) = req.resume_from {
         match wal.compute_checkpoint_digest() {
@@ -809,6 +859,22 @@ pub async fn handle_task_submit(
     let mut graph_blackboard = initialize_graph_blackboard(&execution_graph, req.resume_checkpoint.as_ref());
 
     for step in steps.iter().filter(|step| step.step_index() >= start_step) {
+        if is_task_canceled(&cancel_rx) {
+            let reason = task_cancellation_reason(req.task_id);
+            let response = TaskSubmitResponse {
+                task_id: req.task_id,
+                steps_completed,
+                steps_total,
+                status: TaskStatus::Failed { reason },
+                checkpoint,
+                final_output: last_output,
+                usage: last_usage,
+                execution_envelope: last_envelope,
+                execution_receipt: last_receipt,
+            };
+            let _ = persist_task_record(&state, &submission_key, &request_hash, &response);
+            return (StatusCode::OK, Json(response)).into_response();
+        }
         if wall_start.elapsed().as_millis() as u64 > deadline {
             let payload = match build_checkpoint(
                 &wal,
@@ -948,6 +1014,23 @@ pub async fn handle_task_submit(
         };
 
         update_graph_blackboard(&mut graph_blackboard, step, &step_result);
+
+        if is_task_canceled(&cancel_rx) {
+            let reason = task_cancellation_reason(req.task_id);
+            let response = TaskSubmitResponse {
+                task_id: req.task_id,
+                steps_completed,
+                steps_total,
+                status: TaskStatus::Failed { reason },
+                checkpoint,
+                final_output: last_output,
+                usage: last_usage,
+                execution_envelope: last_envelope,
+                execution_receipt: last_receipt,
+            };
+            let _ = persist_task_record(&state, &submission_key, &request_hash, &response);
+            return (StatusCode::OK, Json(response)).into_response();
+        }
 
         if step_result.checkpoint_requested {
             checkpoint_metadata = Some(build_step_checkpoint_metadata(step, steps_completed, &step_result));
@@ -1329,6 +1412,26 @@ pub async fn handle_task_stream(
     response
 }
 
+pub async fn handle_task_cancel(
+    State(state): State<AppState>,
+    Path(task_id): Path<Uuid>,
+) -> impl IntoResponse {
+    let canceled = signal_task_cancellation(&state, task_id);
+    let status = if canceled {
+        StatusCode::ACCEPTED
+    } else {
+        StatusCode::NOT_FOUND
+    };
+
+    (
+        status,
+        Json(serde_json::json!({
+            "task_id": task_id,
+            "canceled": canceled,
+        })),
+    )
+}
+
 pub async fn handle_task_wal(
     State(state): State<AppState>,
     Path(task_id): Path<Uuid>,
@@ -1427,6 +1530,7 @@ fn build_task_stream_sse(
     async_stream::stream! {
         let (tx, mut rx) = tokio::sync::mpsc::unbounded_channel::<Result<Event, Infallible>>();
         tokio::spawn(async move {
+            let (_cancel_guard, mut cancel_rx) = register_task_cancellation(&state, req.task_id);
             let wall_start = Instant::now();
             let mut graph_blackboard = initialize_graph_blackboard(&execution_graph, req.resume_checkpoint.as_ref());
             let step_wrapper = RuntimeTaskStep::Agent(step.clone());
@@ -1448,6 +1552,7 @@ fn build_task_stream_sse(
                 &step_wrapper,
                 &wal,
                 wal_entry.entry_id,
+                &mut cancel_rx,
                 &mut graph_blackboard,
                 max_tick_ms,
                 deadline_ms,
@@ -2251,11 +2356,30 @@ async fn execute_agent_step_stream(
     step_wrapper: &RuntimeTaskStep,
     wal: &Arc<WalLog>,
     wal_entry_id: Uuid,
+    cancel_rx: &mut watch::Receiver<bool>,
     graph_blackboard: &mut serde_json::Value,
     max_tick_ms: u64,
     deadline_ms: u64,
     wall_start: Instant,
 ) -> Result<StreamCompletionResult, StreamFailureResult> {
+    if is_task_canceled(cancel_rx) {
+        let reason = task_cancellation_reason(req.task_id);
+        let _ = wal.write_failed(wal_entry_id, reason.clone());
+        return Err(StreamFailureResult {
+            response: TaskSubmitResponse {
+                task_id: req.task_id,
+                steps_completed: 0,
+                steps_total: 1,
+                status: TaskStatus::Failed { reason: reason.clone() },
+                checkpoint: None,
+                final_output: None,
+                usage: None,
+                execution_envelope: None,
+                execution_receipt: None,
+            },
+            client_message: reason,
+        });
+    }
     let resolved_messages = resolve_execute_messages(&step.messages, graph_blackboard);
     let slot_inputs = collect_slot_inputs(graph_blackboard, step.read_slots.as_deref());
     let mut base_prompt = resolved_messages
@@ -2353,6 +2477,27 @@ async fn execute_agent_step_stream(
 
     loop {
         let next_chunk = tokio::select! {
+            changed = cancel_rx.changed() => {
+                if changed.is_ok() && is_task_canceled(cancel_rx) {
+                    let reason = task_cancellation_reason(req.task_id);
+                    let _ = wal.write_failed(wal_entry_id, reason.clone());
+                    return Err(StreamFailureResult {
+                        response: TaskSubmitResponse {
+                            task_id: req.task_id,
+                            steps_completed: 0,
+                            steps_total: 1,
+                            status: TaskStatus::Failed { reason: reason.clone() },
+                            checkpoint: None,
+                            final_output: None,
+                            usage: None,
+                            execution_envelope: None,
+                            execution_receipt: None,
+                        },
+                        client_message: reason,
+                    });
+                }
+                continue;
+            }
             _ = &mut timeout => {
                 let reason = format!("timeout after {}ms", max_tick_ms);
                 let _ = wal.write_failed(wal_entry_id, reason.clone());
