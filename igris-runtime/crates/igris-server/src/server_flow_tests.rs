@@ -104,6 +104,7 @@ mod tests {
             overture_public_key: None,
             receipt_log: None,
             lifecycle_registry: None,
+            task_cancellation_registry: Arc::new(std::sync::RwLock::new(std::collections::HashMap::new())),
             bt_state_tx: Arc::new(tokio::sync::watch::channel(serde_json::Value::Null).0),
         }
     }
@@ -267,6 +268,7 @@ mod tests {
             overture_public_key: None,
             receipt_log: None,
             lifecycle_registry: None,
+            task_cancellation_registry: Arc::new(std::sync::RwLock::new(std::collections::HashMap::new())),
             bt_state_tx: Arc::new(tokio::sync::watch::channel(serde_json::Value::Null).0),
         };
 
@@ -366,6 +368,7 @@ mod tests {
             overture_public_key: None,
             receipt_log: None,
             lifecycle_registry: None,
+            task_cancellation_registry: Arc::new(std::sync::RwLock::new(std::collections::HashMap::new())),
             bt_state_tx: Arc::new(tokio::sync::watch::channel(serde_json::Value::Null).0),
         };
 
