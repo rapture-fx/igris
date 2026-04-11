@@ -69,6 +69,11 @@
     text-underline-offset: 0.1em;
   }
 
+  .docs-prose .docs-tab-content {
+    font-size: inherit;
+    line-height: inherit;
+  }
+
   .docs-prose .docs-type-table > div {
     font-size: 0.72rem;
   }
