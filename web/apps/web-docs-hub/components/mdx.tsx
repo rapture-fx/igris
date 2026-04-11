@@ -5,7 +5,13 @@ import { Heading } from 'fumadocs-ui/components/heading';
 import { ImageZoom } from 'fumadocs-ui/components/image-zoom';
 import { InlineTOC } from 'fumadocs-ui/components/inline-toc';
 import { Step, Steps } from 'fumadocs-ui/components/steps';
-import { Tab, Tabs, TabsContent, TabsList, TabsTrigger } from 'fumadocs-ui/components/tabs';
+import {
+  Tab as FumaTab,
+  Tabs as FumaTabs,
+  TabsContent as FumaTabsContent,
+  TabsList,
+  TabsTrigger,
+} from 'fumadocs-ui/components/tabs';
 import { TypeTable } from 'fumadocs-ui/components/type-table';
 import type { Page } from 'fumadocs-core/source';
 import type { LoaderOutput, LoaderConfig } from 'fumadocs-core/source';
@@ -79,11 +85,21 @@ export function getMDXComponents(
       />
     ),
     img: (props) => <ImageZoom {...(props as React.ComponentProps<typeof ImageZoom>)} />,
-    Tabs,
-    Tab,
+    Tabs: FumaTabs,
+    Tab: ({ className, ...props }) => (
+      <FumaTab
+        {...props}
+        className={['docs-tab-content', className].filter(Boolean).join(' ')}
+      />
+    ),
     TabsList,
     TabsTrigger,
-    TabsContent,
+    TabsContent: ({ className, ...props }) => (
+      <FumaTabsContent
+        {...props}
+        className={['docs-tab-content', className].filter(Boolean).join(' ')}
+      />
+    ),
     Steps,
     Step,
     TypeTable: (props) => (
