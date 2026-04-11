@@ -1,0 +1,116 @@
+---
+title: "Identity & Access"
+description: "How Igris handles console identity, tenant API keys, tenant roles, and higher-assurance access controls."
+---
+
+# Identity & Access
+
+Igris separates **human access** from **programmatic access**.
+
+- **Console identity** is for people using the web app
+- **Tenant API keys** are for applications, automation, and deployed runtimes
+
+Treat those as different contracts.
+
+---
+
+## Two Access Planes
+
+| Plane | Used by | Primary credential | Scope |
+|---|---|---|---|
+| **Console** | Human operators | Session cookie | Browser session tied to a tenant user |
+| **API** | Apps, agents, runtimes | `igris_` API key | Tenant-scoped machine access |
+
+Console cookies are not a published bearer-token contract. For scripts and integrations, use tenant API keys.
+
+---
+
+## Console Identity
+
+The console uses a session-based sign-in model. A user signs in once, receives a session cookie, and then operates inside one tenant context at a time.
+
+Current product behavior:
+
+- Console access is designed for interactive human use
+- Session state is separate from tenant API-key auth
+- Tenant context is applied before policy, billing, and audit logic
+
+This keeps browser access and machine access cleanly separated.
+
+---
+
+## Tenant API Keys
+
+Tenant API keys are the automation contract for the coordination layer.
+
+Accepted forms:
+
+- `Authorization: Bearer YOUR_IGRIS_API_KEY`
+- `X-API-Key: YOUR_IGRIS_API_KEY`
+
+Use tenant API keys for:
+
+- backend application calls
+- CI/CD or operational automation
+- provisioning and runtime registration flows
+- customer-visible integrations that should not depend on browser cookies
+
+Do not reuse one tenant's API key across other tenants. Keys are tenant-scoped by design.
+
+---
+
+## Tenant Roles
+
+Igris distinguishes between ordinary tenant access and elevated administrative access.
+
+In practical terms, roles matter for:
+
+- tenant administration
+- sensitive configuration changes
+- identity and security operations
+- management actions that should not be available to every authenticated caller
+
+When you design operational workflows, treat roles as part of the product boundary, not just an internal implementation detail.
+
+---
+
+## Higher-Assurance Access Controls
+
+Igris includes stronger access controls for deployments that need more than basic session auth plus API keys.
+
+### 2FA
+
+Two-factor authentication is available for tenant-level console access hardening. Use it when console operators can perform security-sensitive actions such as reviewing paused executions, rotating provider keys, or changing routing and policy settings.
+
+### SSO
+
+Igris supports enterprise identity integration for organizations that want central control over who can access the console.
+
+The codebase includes provider plumbing for:
+
+- OAuth2 / OIDC-style providers
+- common enterprise presets such as Okta and Google
+- SAML-based enterprise identity configuration
+
+From a product perspective, SSO should be treated as the control-plane identity layer for larger organizations, while tenant API keys remain the machine-to-machine contract.
+
+---
+
+## Recommended Operating Model
+
+Use this split:
+
+- **Humans**: console session auth, tenant roles, optional 2FA / SSO
+- **Applications**: tenant API keys
+- **Runtimes**: tenant API key plus runtime registration or license-bound provisioning flow
+
+That keeps audit trails cleaner and avoids mixing browser identity with automation.
+
+---
+
+## Related Pages
+
+- [Security →](/docs/security)
+- [Multi-Tenancy →](/docs/multi-tenancy)
+- [Key Management →](/docs/key-management)
+- [Governance →](/docs/governance)
