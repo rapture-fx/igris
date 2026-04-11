@@ -54,12 +54,12 @@
   }
 
   .docs-prose :where(code):not(:where(pre code, .docs-code-block code)) {
-    font-size: 0.48em !important;
+    font-size: 1em !important;
     line-height: 1;
   }
 
   .docs-prose :where(table code) {
-    font-size: 0.48rem !important;
+    font-size: inherit !important;
   }
 
   .docs-prose :where(a) {
@@ -72,7 +72,7 @@
   }
 
   .docs-prose .docs-type-table code {
-    font-size: 0.48rem !important;
+    font-size: inherit !important;
   }
 
   .docs-prose .docs-type-table .prose {
