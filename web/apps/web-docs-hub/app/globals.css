@@ -19,8 +19,8 @@
 
 @layer components {
   .docs-prose {
-    font-size: 0.84rem;
-    line-height: 1.62;
+    font-size: 0.8rem;
+    line-height: 1.58;
   }
 
   .docs-prose :where(h1) {
@@ -33,6 +33,10 @@
 
   .docs-prose :where(h3, h4, h5, h6) {
     line-height: 1.3;
+  }
+
+  .docs-prose :where(p, li, blockquote) {
+    font-size: 0.8rem;
   }
 
   .docs-prose :where(table) {
@@ -83,6 +87,42 @@
   .docs-prose .docs-code-block pre,
   .docs-prose .docs-code-block code {
     line-height: 1.5;
+  }
+
+  #nd-sidebar,
+  #nd-sidebar-mobile {
+    font-size: 0.78rem;
+  }
+
+  #nd-sidebar a,
+  #nd-sidebar button,
+  #nd-sidebar-mobile a,
+  #nd-sidebar-mobile button {
+    font-size: 0.78rem;
+    line-height: 1.35;
+  }
+
+  #nd-sidebar [data-radix-scroll-area-viewport] p,
+  #nd-sidebar-mobile [data-radix-scroll-area-viewport] p {
+    font-size: 0.78rem;
+    line-height: 1.35;
+  }
+
+  #nd-toc,
+  #nd-tocnav {
+    font-size: 0.76rem;
+  }
+
+  #nd-toc h3,
+  #nd-tocnav h3,
+  #nd-toc a,
+  #nd-toc button,
+  #nd-toc p,
+  #nd-tocnav a,
+  #nd-tocnav button,
+  #nd-tocnav p {
+    font-size: 0.76rem;
+    line-height: 1.35;
   }
 
   .api-meta {
