@@ -41,6 +41,7 @@
 
   .docs-prose :where(table) {
     font-size: 0.78rem;
+    line-height: 1.45;
   }
 
   .docs-prose :where(thead th) {
@@ -50,6 +51,7 @@
   }
 
   .docs-prose :where(td, th) {
+    font-size: inherit;
     line-height: 1.45;
   }
 
