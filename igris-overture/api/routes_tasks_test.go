@@ -184,6 +184,20 @@ func TestBuildTaskProofReadinessResponse(t *testing.T) {
 	require.Equal(t, true, fallbackResp["read_reconciliation_fallback"])
 }
 
+func TestBuildTaskResponseIncludesCanceledAtWhenPresent(t *testing.T) {
+	t.Parallel()
+
+	canceledAt := time.Unix(1_700_000_300, 0).UTC()
+	resp := buildTaskResponse(&coordinator.TaskRecord{
+		TaskID:     uuid.New(),
+		Status:     coordinator.TaskStatusCanceled,
+		CanceledAt: &canceledAt,
+		CreatedAt:  time.Unix(1_700_000_100, 0).UTC(),
+	})
+
+	require.Equal(t, &canceledAt, resp["canceled_at"])
+}
+
 func TestBuildTaskResponseReturnsFiberMap(t *testing.T) {
 	t.Parallel()
 
