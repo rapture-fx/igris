@@ -63,8 +63,8 @@
   }
 
   .docs-prose :where(a) {
-    text-decoration-thickness: 1px;
-    text-underline-offset: 0.12em;
+    text-decoration-thickness: 0.75px;
+    text-underline-offset: 0.1em;
   }
 
   .docs-prose .docs-type-table > div {
