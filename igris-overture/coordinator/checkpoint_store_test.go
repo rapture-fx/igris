@@ -3,6 +3,7 @@ package coordinator
 import (
 	"database/sql"
 	"encoding/json"
+	"errors"
 	"fmt"
 	"reflect"
 	"testing"
@@ -207,6 +208,67 @@ func TestTaskProofNeedsReadReconciliation(t *testing.T) {
 				t.Fatalf("TaskProofNeedsReadReconciliation() = %v, want %v", got, test.expected)
 			}
 		})
+	}
+}
+
+func TestTaskAllowsRuntimeMutation(t *testing.T) {
+	t.Parallel()
+
+	tests := []struct {
+		status   TaskRecordStatus
+		expected bool
+	}{
+		{TaskStatusPending, false},
+		{TaskStatusDispatched, true},
+		{TaskStatusCheckpointed, true},
+		{TaskStatusRecovering, true},
+		{TaskStatusCompleted, false},
+		{TaskStatusFailed, false},
+	}
+
+	for _, test := range tests {
+		if got := TaskAllowsRuntimeMutation(test.status); got != test.expected {
+			t.Fatalf("TaskAllowsRuntimeMutation(%q) = %v, want %v", test.status, got, test.expected)
+		}
+	}
+}
+
+func TestTaskAllowsDispatch(t *testing.T) {
+	t.Parallel()
+
+	tests := []struct {
+		status   TaskRecordStatus
+		expected bool
+	}{
+		{TaskStatusPending, true},
+		{TaskStatusRecovering, true},
+		{TaskStatusDispatched, false},
+		{TaskStatusCheckpointed, false},
+		{TaskStatusCompleted, false},
+		{TaskStatusFailed, false},
+	}
+
+	for _, test := range tests {
+		if got := TaskAllowsDispatch(test.status); got != test.expected {
+			t.Fatalf("TaskAllowsDispatch(%q) = %v, want %v", test.status, got, test.expected)
+		}
+	}
+}
+
+func TestTaskTransitionResult(t *testing.T) {
+	t.Parallel()
+
+	if err := taskTransitionResult(fakeSQLResult{rows: 1}, nil); err != nil {
+		t.Fatalf("taskTransitionResult() unexpected error = %v", err)
+	}
+
+	if err := taskTransitionResult(fakeSQLResult{rows: 0}, nil); !errors.Is(err, ErrTaskTransitionRejected) {
+		t.Fatalf("taskTransitionResult() error = %v, want ErrTaskTransitionRejected", err)
+	}
+
+	expectedErr := errors.New("db failed")
+	if err := taskTransitionResult(nil, expectedErr); !errors.Is(err, expectedErr) {
+		t.Fatalf("taskTransitionResult() error = %v, want %v", err, expectedErr)
 	}
 }
 
@@ -467,6 +529,18 @@ func TestScanTaskRecordOmitsEmptyProofAndInvalidCheckpoint(t *testing.T) {
 
 type fakeTaskRecordScanner struct {
 	values []any
+}
+
+type fakeSQLResult struct {
+	rows int64
+}
+
+func (f fakeSQLResult) LastInsertId() (int64, error) {
+	return 0, nil
+}
+
+func (f fakeSQLResult) RowsAffected() (int64, error) {
+	return f.rows, nil
 }
 
 func (f fakeTaskRecordScanner) Scan(dest ...any) error {
