@@ -4073,7 +4073,7 @@ mod tests {
                 task_id: Uuid::nil(),
                 resume_token: ResumeToken {
                     last_committed_step: 1,
-                    checkpoint_digest: "abc123".to_string(),
+                    checkpoint_digest: [0xabu8; 32],
                     runtime_id: "runtime-1".to_string(),
                 },
                 wal_entries: vec![],
