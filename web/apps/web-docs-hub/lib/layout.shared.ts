@@ -5,7 +5,7 @@ export function baseOptions(): BaseLayoutProps {
   return {
     nav: {
       title: createElement('img', {
-        src: '/img/igris-logo-34.png',
+        src: '/fofot.png',
         alt: 'Igris',
         className: 'h-7 w-auto',
       }),
