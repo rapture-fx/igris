@@ -1017,18 +1017,28 @@ func handleTaskCancel(tc *coordinator.TaskCoordinator) fiber.Handler {
 
 		if err := tc.HandleCancel(taskID); err != nil {
 			if errors.Is(err, coordinator.ErrTaskTransitionRejected) {
-				return c.Status(http.StatusConflict).JSON(fiber.Map{"error": "task_transition_rejected"})
+				return c.Status(http.StatusConflict).JSON(taskTransitionRejectedPayload(tc, taskID, tenantID))
 			}
 			return c.Status(http.StatusInternalServerError).JSON(fiber.Map{"error": "db_error"})
 		}
 
+		runtimeCancelAttempted := false
+		runtimeCancelSignaled := false
 		if task.RuntimeEndpoint != nil && *task.RuntimeEndpoint != "" {
+			runtimeCancelAttempted = true
 			if err := internal.NewRuntimeClient(*task.RuntimeEndpoint).CancelTask(context.Background(), taskID, tenantID); err != nil {
 				log.Warn().Err(err).Str("task_id", taskID.String()).Msg("[Tasks] Runtime cancel propagation failed")
+			} else {
+				runtimeCancelSignaled = true
 			}
 		}
 
-		return c.JSON(fiber.Map{"ok": true, "status": coordinator.TaskStatusCanceled})
+		return c.JSON(fiber.Map{
+			"ok":                       true,
+			"status":                   coordinator.TaskStatusCanceled,
+			"runtime_cancel_attempted": runtimeCancelAttempted,
+			"runtime_cancel_signaled":  runtimeCancelSignaled,
+		})
 	}
 }
 
