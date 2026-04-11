@@ -1154,7 +1154,7 @@ func handleTaskComplete(tc *coordinator.TaskCoordinator) fiber.Handler {
 
 		if err := tc.HandleComplete(taskID); err != nil {
 			if errors.Is(err, coordinator.ErrTaskTransitionRejected) {
-				return c.Status(http.StatusConflict).JSON(fiber.Map{"error": "task_transition_rejected"})
+				return c.Status(http.StatusConflict).JSON(taskTransitionRejectedPayload(tc, taskID, tenantID))
 			}
 			return c.Status(http.StatusInternalServerError).JSON(fiber.Map{"error": "db_error"})
 		}
