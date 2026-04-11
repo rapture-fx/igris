@@ -301,6 +301,74 @@ func TestTaskAllowsRecoveryRedispatch(t *testing.T) {
 	}
 }
 
+func TestTaskCheckpointAdvances(t *testing.T) {
+	t.Parallel()
+
+	current := &CheckpointPayload{
+		ResumeToken: ResumeToken{
+			LastCommittedStep: 5,
+			CheckpointDigest:  "digest-5",
+			RuntimeID:         "runtime-a",
+		},
+	}
+
+	tests := []struct {
+		name     string
+		current  *CheckpointPayload
+		next     *CheckpointPayload
+		expected bool
+	}{
+		{
+			name:     "nil next does not advance",
+			current:  current,
+			next:     nil,
+			expected: false,
+		},
+		{
+			name:    "first checkpoint advances from nil",
+			current: nil,
+			next: &CheckpointPayload{
+				ResumeToken: ResumeToken{LastCommittedStep: 1},
+			},
+			expected: true,
+		},
+		{
+			name:    "higher step advances",
+			current: current,
+			next: &CheckpointPayload{
+				ResumeToken: ResumeToken{LastCommittedStep: 6},
+			},
+			expected: true,
+		},
+		{
+			name:    "same step is stale",
+			current: current,
+			next: &CheckpointPayload{
+				ResumeToken: ResumeToken{LastCommittedStep: 5},
+			},
+			expected: false,
+		},
+		{
+			name:    "lower step regresses",
+			current: current,
+			next: &CheckpointPayload{
+				ResumeToken: ResumeToken{LastCommittedStep: 4},
+			},
+			expected: false,
+		},
+	}
+
+	for _, test := range tests {
+		test := test
+		t.Run(test.name, func(t *testing.T) {
+			t.Parallel()
+			if got := TaskCheckpointAdvances(test.current, test.next); got != test.expected {
+				t.Fatalf("TaskCheckpointAdvances() = %v, want %v", got, test.expected)
+			}
+		})
+	}
+}
+
 func TestTaskTransitionResult(t *testing.T) {
 	t.Parallel()
 
