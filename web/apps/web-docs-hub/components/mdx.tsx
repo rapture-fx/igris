@@ -22,7 +22,7 @@ export function getMDXComponents(
       <CodeBlock
         {...props}
         className={['docs-code-block', className].filter(Boolean).join(' ')}
-        viewportProps={{ className: 'text-[10.5px] md:text-[11.5px]' }}
+        viewportProps={{ className: 'text-[9.5px] md:text-[10.5px]' }}
       >
         <Pre>{props.children}</Pre>
       </CodeBlock>
