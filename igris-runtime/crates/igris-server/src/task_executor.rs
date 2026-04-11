@@ -1317,7 +1317,8 @@ pub async fn handle_task_stream(
                 "error": {
                     "message": "streaming durable tasks do not support resume yet",
                     "type": "unsupported_streaming_resume"
-                }
+                },
+                "durability": stream_durability_metadata(None),
             })),
         )
             .into_response();
@@ -1465,6 +1466,14 @@ fn attach_stream_task_headers(response: &mut Response, task_id: Uuid) {
         HeaderValue::from_str(&task_id.to_string()).unwrap_or_else(|_| HeaderValue::from_static("invalid-task-id")),
     );
     response.headers_mut().insert(
+        HeaderName::from_static("x-igris-runtime-stream-resume-supported"),
+        HeaderValue::from_static("false"),
+    );
+    response.headers_mut().insert(
+        HeaderName::from_static("x-igris-runtime-stream-replay-condition"),
+        HeaderValue::from_static("completed-final-output"),
+    );
+    response.headers_mut().insert(
         HeaderName::from_static("x-accel-buffering"),
         HeaderValue::from_static("no"),
     );
@@ -1493,14 +1502,29 @@ fn chat_error_event(message: impl Into<String>) -> Event {
     Event::default().data(payload.to_string())
 }
 
-fn task_result_event(response: &TaskSubmitResponse) -> Event {
+fn stream_durability_metadata(response: Option<&TaskSubmitResponse>) -> serde_json::Value {
+    let replay_supported = response.map_or(false, |response| {
+        matches!(response.status, TaskStatus::Completed) && response.final_output.is_some()
+    });
+    let checkpoint_persisted = response.map_or(false, |response| response.checkpoint.is_some());
+
+    serde_json::json!({
+        "mode": "streaming",
+        "resume_supported": false,
+        "replay_supported": replay_supported,
+        "replay_condition": "completed_final_output",
+        "checkpoint_persisted": checkpoint_persisted,
+    })
+}
+
+fn build_task_result_payload(response: &TaskSubmitResponse) -> serde_json::Value {
     let (requested_mode, resolved_strategy) = response
         .checkpoint
         .as_ref()
         .and_then(|checkpoint| checkpoint.metadata.as_ref())
         .map(extract_mode_metadata)
         .unwrap_or((None, None));
-    let payload = serde_json::json!({
+    serde_json::json!({
         "task_id": response.task_id,
         "steps_completed": response.steps_completed,
         "steps_total": response.steps_total,
@@ -1512,7 +1536,12 @@ fn task_result_event(response: &TaskSubmitResponse) -> Event {
         "usage": response.usage,
         "execution_envelope": response.execution_envelope,
         "execution_receipt": response.execution_receipt,
-    });
+        "durability": stream_durability_metadata(Some(response)),
+    })
+}
+
+fn task_result_event(response: &TaskSubmitResponse) -> Event {
+    let payload = build_task_result_payload(response);
     Event::default().event("task_result").data(payload.to_string())
 }
 
@@ -3765,14 +3794,19 @@ fn truncate_preview(text: &str, max_chars: usize) -> String {
 #[cfg(test)]
 mod tests {
     use super::{
-        build_step_checkpoint_metadata, collect_slot_inputs, compile_execution_graph_to_steps,
-        deterministic_embedding, initialize_graph_blackboard, materialize_execution_graph,
-        normalize_agent_mode, resolve_graph_value, robotics_action_name, update_graph_blackboard,
-        AgentExecutionMode, BehaviorTreeStep, ExecutionGraph, ExecutionNode, HumanApprovalStep,
-        RoboticsAction, RoboticsStep, RuntimeTaskStep, StepExecutionResult, TaskType, ToolStep,
+        attach_stream_task_headers, build_step_checkpoint_metadata, build_task_result_payload,
+        collect_slot_inputs, compile_execution_graph_to_steps, deterministic_embedding,
+        initialize_graph_blackboard, materialize_execution_graph, normalize_agent_mode,
+        resolve_graph_value, robotics_action_name, stream_durability_metadata,
+        update_graph_blackboard, AgentExecutionMode, BehaviorTreeStep, ExecutionGraph,
+        ExecutionNode, HumanApprovalStep, RoboticsAction, RoboticsStep, RuntimeTaskStep,
+        StepExecutionResult, TaskStatus, TaskSubmitResponse, TaskType, ToolStep,
     };
+    use axum::{body::Body, response::Response};
     use crate::runtime_execute::ExecuteUsage;
     use crate::runtime_execute::ExecuteMessage;
+    use igris_wal::{CheckpointPayload, ResumeToken};
+    use uuid::Uuid;
 
     #[test]
     fn normalize_agent_mode_accepts_supported_values() {
@@ -4026,6 +4060,85 @@ mod tests {
 
         let slots = collect_slot_inputs(&blackboard, Some(&["reason.plan".to_string(), "missing".to_string()]));
         assert_eq!(slots.unwrap()["reason.plan"]["step"], "navigate");
+    }
+
+    #[test]
+    fn stream_durability_metadata_tracks_replay_and_checkpoint_state() {
+        let completed = TaskSubmitResponse {
+            task_id: Uuid::nil(),
+            steps_completed: 1,
+            steps_total: 1,
+            status: TaskStatus::Completed,
+            checkpoint: Some(CheckpointPayload {
+                task_id: Uuid::nil(),
+                resume_token: ResumeToken {
+                    last_committed_step: 1,
+                    checkpoint_digest: "abc123".to_string(),
+                    runtime_id: "runtime-1".to_string(),
+                },
+                wal_entries: vec![],
+                metadata: None,
+            }),
+            final_output: Some("done".to_string()),
+            usage: None,
+            execution_envelope: None,
+            execution_receipt: None,
+        };
+
+        let completed_meta = stream_durability_metadata(Some(&completed));
+        assert_eq!(completed_meta["mode"], "streaming");
+        assert_eq!(completed_meta["resume_supported"], false);
+        assert_eq!(completed_meta["replay_supported"], true);
+        assert_eq!(completed_meta["replay_condition"], "completed_final_output");
+        assert_eq!(completed_meta["checkpoint_persisted"], true);
+
+        let incomplete_meta = stream_durability_metadata(None);
+        assert_eq!(incomplete_meta["resume_supported"], false);
+        assert_eq!(incomplete_meta["replay_supported"], false);
+        assert_eq!(incomplete_meta["checkpoint_persisted"], false);
+    }
+
+    #[test]
+    fn build_task_result_payload_includes_durability_metadata() {
+        let response = TaskSubmitResponse {
+            task_id: Uuid::nil(),
+            steps_completed: 1,
+            steps_total: 1,
+            status: TaskStatus::Completed,
+            checkpoint: None,
+            final_output: Some("final".to_string()),
+            usage: None,
+            execution_envelope: None,
+            execution_receipt: None,
+        };
+
+        let payload = build_task_result_payload(&response);
+        assert_eq!(payload["task_id"], Uuid::nil().to_string());
+        assert_eq!(payload["durability"]["mode"], "streaming");
+        assert_eq!(payload["durability"]["resume_supported"], false);
+        assert_eq!(payload["durability"]["replay_supported"], true);
+        assert_eq!(payload["durability"]["checkpoint_persisted"], false);
+    }
+
+    #[test]
+    fn attach_stream_task_headers_exposes_streaming_durability_contract() {
+        let task_id = Uuid::new_v4();
+        let mut response = Response::new(Body::empty());
+
+        attach_stream_task_headers(&mut response, task_id);
+
+        assert_eq!(
+            response.headers()["x-igris-runtime-task-id"],
+            task_id.to_string().as_str()
+        );
+        assert_eq!(
+            response.headers()["x-igris-runtime-stream-resume-supported"],
+            "false"
+        );
+        assert_eq!(
+            response.headers()["x-igris-runtime-stream-replay-condition"],
+            "completed-final-output"
+        );
     }
 
     #[test]
