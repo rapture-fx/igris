@@ -278,6 +278,29 @@ func TestTaskAllowsCancellation(t *testing.T) {
 	}
 }
 
+func TestTaskAllowsRecoveryRedispatch(t *testing.T) {
+	t.Parallel()
+
+	tests := []struct {
+		status   TaskRecordStatus
+		expected bool
+	}{
+		{TaskStatusPending, false},
+		{TaskStatusDispatched, false},
+		{TaskStatusCheckpointed, false},
+		{TaskStatusRecovering, true},
+		{TaskStatusCompleted, false},
+		{TaskStatusFailed, false},
+		{TaskStatusCanceled, false},
+	}
+
+	for _, test := range tests {
+		if got := TaskAllowsRecoveryRedispatch(test.status); got != test.expected {
+			t.Fatalf("TaskAllowsRecoveryRedispatch(%q) = %v, want %v", test.status, got, test.expected)
+		}
+	}
+}
+
 func TestTaskTransitionResult(t *testing.T) {
 	t.Parallel()
 
