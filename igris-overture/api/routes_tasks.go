@@ -1037,7 +1037,7 @@ func handleTaskCheckpoint(tc *coordinator.TaskCoordinator) fiber.Handler {
 		if err != nil {
 			return c.Status(http.StatusInternalServerError).JSON(fiber.Map{"error": "db_error"})
 		}
-		if task.Status == coordinator.TaskStatusCompleted || task.Status == coordinator.TaskStatusFailed {
+		if !coordinator.TaskAllowsRuntimeMutation(task.Status) {
 			return c.Status(http.StatusConflict).JSON(fiber.Map{
 				"error":  "task_terminal",
 				"status": task.Status,
@@ -1051,6 +1051,9 @@ func handleTaskCheckpoint(tc *coordinator.TaskCoordinator) fiber.Handler {
 		cp.TaskID = taskID // enforce from URL
 
 		if err := tc.HandleCheckpoint(&cp); err != nil {
+			if errors.Is(err, coordinator.ErrTaskTransitionRejected) {
+				return c.Status(http.StatusConflict).JSON(fiber.Map{"error": "task_transition_rejected"})
+			}
 			log.Error().Err(err).Str("task_id", taskID.String()).Msg("[Tasks] Save checkpoint")
 			return c.Status(http.StatusInternalServerError).JSON(fiber.Map{"error": "checkpoint_failed"})
 		}
@@ -1070,11 +1073,24 @@ func handleTaskComplete(tc *coordinator.TaskCoordinator) fiber.Handler {
 		if tenantID == "" {
 			return c.Status(http.StatusUnauthorized).JSON(fiber.Map{"error": "unauthenticated"})
 		}
-		if _, err := tc.Store().GetTask(taskID, tenantID); err == sql.ErrNoRows {
+		task, err := tc.Store().GetTask(taskID, tenantID)
+		if err == sql.ErrNoRows {
 			return c.Status(http.StatusNotFound).JSON(fiber.Map{"error": "task not found"})
+		}
+		if err != nil {
+			return c.Status(http.StatusInternalServerError).JSON(fiber.Map{"error": "db_error"})
+		}
+		if !coordinator.TaskAllowsRuntimeMutation(task.Status) {
+			return c.Status(http.StatusConflict).JSON(fiber.Map{
+				"error":  "task_terminal",
+				"status": task.Status,
+			})
 		}
 
 		if err := tc.HandleComplete(taskID); err != nil {
+			if errors.Is(err, coordinator.ErrTaskTransitionRejected) {
+				return c.Status(http.StatusConflict).JSON(fiber.Map{"error": "task_transition_rejected"})
+			}
 			return c.Status(http.StatusInternalServerError).JSON(fiber.Map{"error": "db_error"})
 		}
 		return c.JSON(fiber.Map{"ok": true})
@@ -1092,8 +1108,18 @@ func handleTaskFailed(tc *coordinator.TaskCoordinator) fiber.Handler {
 		if tenantID == "" {
 			return c.Status(http.StatusUnauthorized).JSON(fiber.Map{"error": "unauthenticated"})
 		}
-		if _, err := tc.Store().GetTask(taskID, tenantID); err == sql.ErrNoRows {
+		task, err := tc.Store().GetTask(taskID, tenantID)
+		if err == sql.ErrNoRows {
 			return c.Status(http.StatusNotFound).JSON(fiber.Map{"error": "task not found"})
+		}
+		if err != nil {
+			return c.Status(http.StatusInternalServerError).JSON(fiber.Map{"error": "db_error"})
+		}
+		if !coordinator.TaskAllowsRuntimeMutation(task.Status) {
+			return c.Status(http.StatusConflict).JSON(fiber.Map{
+				"error":  "task_terminal",
+				"status": task.Status,
+			})
 		}
 
 		var body struct {
@@ -1101,6 +1127,9 @@ func handleTaskFailed(tc *coordinator.TaskCoordinator) fiber.Handler {
 		}
 		_ = c.BodyParser(&body)
 		if err := tc.HandleFailed(taskID, body.Reason); err != nil {
+			if errors.Is(err, coordinator.ErrTaskTransitionRejected) {
+				return c.Status(http.StatusConflict).JSON(fiber.Map{"error": "task_transition_rejected"})
+			}
 			return c.Status(http.StatusInternalServerError).JSON(fiber.Map{"error": "db_error"})
 		}
 		return c.JSON(fiber.Map{"ok": true})
