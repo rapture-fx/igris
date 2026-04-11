@@ -8,6 +8,7 @@ use axum::{
 };
 use futures::StreamExt;
 use serde::{Deserialize, Serialize};
+use std::collections::HashMap;
 use std::convert::Infallible;
 use std::net::SocketAddr;
 use std::sync::Arc;
@@ -138,6 +139,8 @@ pub(crate) struct AppState {
     // ── Phase 4 ─────────────────────────────────────────────────────────────
     /// Registry of per-agent lifecycle state machines.
     pub(crate) lifecycle_registry: Option<LifecycleRegistry>,
+    /// Registry of in-flight durable task cancellation signals keyed by task_id.
+    pub(crate) task_cancellation_registry: Arc<std::sync::RwLock<HashMap<uuid::Uuid, tokio::sync::watch::Sender<bool>>>>,
     // ── BT Live Streaming ─────────────────────────────────────────────────────
     /// Watch sender for per-tick BT state. The `btree_run` handler wires its
     /// executor tick observer to this sender; the `/v1/btree/events` SSE
@@ -3144,6 +3147,7 @@ async fn main() -> anyhow::Result<()> {
         overture_public_key,
         receipt_log,
         lifecycle_registry,
+        task_cancellation_registry: Arc::new(std::sync::RwLock::new(HashMap::new())),
         bt_state_tx: Arc::new(tokio::sync::watch::channel(serde_json::Value::Null).0),
         #[cfg(feature = "ros2")]
         ros2_manager: None, // Populated below if ENABLE_ROS2=true
@@ -3247,6 +3251,7 @@ async fn main() -> anyhow::Result<()> {
         .route("/v1/runtime/register", post(runtime_execute::handle_register))
         .route("/v1/runtime/task/submit", post(task_executor::handle_task_submit))
         .route("/v1/runtime/task/stream", post(task_executor::handle_task_stream))
+        .route("/v1/runtime/task/{task_id}/cancel", post(task_executor::handle_task_cancel))
         .route("/v1/runtime/task/{task_id}/wal", get(task_executor::handle_task_wal))
         // Phase 4: Agent lifecycle state endpoint
         .route("/v1/runtime/agent/:id/state", get(lifecycle::handle_agent_state))
