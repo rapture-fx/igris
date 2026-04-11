@@ -1117,7 +1117,7 @@ func handleTaskCheckpoint(tc *coordinator.TaskCoordinator) fiber.Handler {
 
 		if err := tc.HandleCheckpoint(&cp); err != nil {
 			if errors.Is(err, coordinator.ErrTaskTransitionRejected) {
-				return c.Status(http.StatusConflict).JSON(fiber.Map{"error": "task_transition_rejected"})
+				return c.Status(http.StatusConflict).JSON(taskTransitionRejectedPayload(tc, taskID, tenantID))
 			}
 			log.Error().Err(err).Str("task_id", taskID.String()).Msg("[Tasks] Save checkpoint")
 			return c.Status(http.StatusInternalServerError).JSON(fiber.Map{"error": "checkpoint_failed"})
