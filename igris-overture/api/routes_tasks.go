@@ -974,6 +974,21 @@ func handleVerifyTaskProof(tc *coordinator.TaskCoordinator) fiber.Handler {
 	}
 }
 
+func taskTransitionRejectedPayload(tc *coordinator.TaskCoordinator, taskID uuid.UUID, tenantID string) fiber.Map {
+	resp := fiber.Map{"error": "task_transition_rejected"}
+	task, err := tc.Store().GetTask(taskID, tenantID)
+	if err == nil {
+		resp["status"] = task.Status
+		if task.CanceledAt != nil {
+			resp["canceled_at"] = task.CanceledAt
+		}
+		if task.CompletedAt != nil {
+			resp["completed_at"] = task.CompletedAt
+		}
+	}
+	return resp
+}
+
 func handleTaskCancel(tc *coordinator.TaskCoordinator) fiber.Handler {
 	return func(c *fiber.Ctx) error {
 		tenantID := middleware.GetClerkUserID(c)
