@@ -175,7 +175,9 @@ fn is_public_path(path: &str) -> bool {
 }
 
 fn requires_overture_decision_signature(path: &str) -> bool {
-    path == "/v1/runtime/execute" || path == "/v1/runtime/task/submit"
+    path == "/v1/runtime/execute"
+        || path == "/v1/runtime/task/submit"
+        || path.starts_with("/v1/runtime/task/") && path.ends_with("/cancel")
 }
 
 pub async fn security_middleware(
@@ -350,4 +352,3 @@ mod tests {
         assert!(!rl.allow("k").await);
     }
 }
-
