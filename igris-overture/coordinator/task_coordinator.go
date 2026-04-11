@@ -128,6 +128,11 @@ func (tc *TaskCoordinator) HandleFailed(taskID uuid.UUID, reason string) error {
 	return tc.store.MarkFailed(taskID, reason)
 }
 
+// HandleCancel marks a task as canceled.
+func (tc *TaskCoordinator) HandleCancel(taskID uuid.UUID) error {
+	return tc.store.MarkCanceled(taskID)
+}
+
 // StartRecoveryLoop runs a background goroutine that detects dead runtimes
 // and reassigns their in-flight tasks. Call this from main.go after DB is ready.
 func (tc *TaskCoordinator) StartRecoveryLoop(ctx context.Context) {
