@@ -39,18 +39,18 @@
     font-size: 0.8rem;
   }
 
-  .docs-prose :where(table) {
+  .docs-prose.prose :where(table):not(:where([class~='not-prose'], [class~='not-prose'] *)) {
     font-size: 0.78rem;
     line-height: 1.45;
   }
 
-  .docs-prose :where(thead th) {
+  .docs-prose.prose :where(thead th):not(:where([class~='not-prose'], [class~='not-prose'] *)) {
     font-size: 0.68rem;
     font-weight: 600;
     letter-spacing: 0.02em;
   }
 
-  .docs-prose :where(td, th) {
+  .docs-prose.prose :where(td, th):not(:where([class~='not-prose'], [class~='not-prose'] *)) {
     font-size: inherit;
     line-height: 1.45;
   }
