@@ -824,6 +824,7 @@ func buildTaskResponse(task *coordinator.TaskRecord) fiber.Map {
 	resp := fiber.Map{
 		"task_id":       task.TaskID,
 		"status":        task.Status,
+		"lifecycle":     buildTaskLifecycleResponse(task.Status),
 		"runtime_id":    task.RuntimeID,
 		"dispatched_at": task.DispatchedAt,
 		"completed_at":  task.CompletedAt,
@@ -878,6 +879,21 @@ func buildTaskResponse(task *coordinator.TaskRecord) fiber.Map {
 	}
 
 	return resp
+}
+
+func buildTaskLifecycleResponse(status coordinator.TaskRecordStatus) fiber.Map {
+	runtimeMutationAllowed := coordinator.TaskAllowsRuntimeMutation(status)
+	dispatchAllowed := coordinator.TaskAllowsDispatch(status)
+	recoveryRedispatchAllowed := coordinator.TaskAllowsRecoveryRedispatch(status)
+	cancellationAllowed := coordinator.TaskAllowsCancellation(status)
+
+	return fiber.Map{
+		"terminal":                    !runtimeMutationAllowed && !dispatchAllowed && !recoveryRedispatchAllowed && !cancellationAllowed,
+		"runtime_mutation_allowed":    runtimeMutationAllowed,
+		"dispatch_allowed":            dispatchAllowed,
+		"recovery_redispatch_allowed": recoveryRedispatchAllowed,
+		"cancellation_allowed":        cancellationAllowed,
+	}
 }
 
 func buildTaskProofReadinessResponse(triggerAvailable bool) fiber.Map {
@@ -974,19 +990,32 @@ func handleVerifyTaskProof(tc *coordinator.TaskCoordinator) fiber.Handler {
 	}
 }
 
-func taskTransitionRejectedPayload(tc *coordinator.TaskCoordinator, taskID uuid.UUID, tenantID string) fiber.Map {
+func buildTaskTransitionRejectedPayload(task *coordinator.TaskRecord) fiber.Map {
 	resp := fiber.Map{"error": "task_transition_rejected"}
-	task, err := tc.Store().GetTask(taskID, tenantID)
-	if err == nil {
-		resp["status"] = task.Status
-		if task.CanceledAt != nil {
-			resp["canceled_at"] = task.CanceledAt
-		}
-		if task.CompletedAt != nil {
-			resp["completed_at"] = task.CompletedAt
-		}
+	if task == nil {
+		return resp
+	}
+
+	resp["status"] = task.Status
+	resp["lifecycle"] = buildTaskLifecycleResponse(task.Status)
+	if task.CanceledAt != nil {
+		resp["canceled_at"] = task.CanceledAt
+	}
+	if task.CompletedAt != nil {
+		resp["completed_at"] = task.CompletedAt
+	}
+	if task.FailureReason != nil && *task.FailureReason != "" {
+		resp["failure_reason"] = *task.FailureReason
 	}
 	return resp
+}
+
+func taskTransitionRejectedPayload(tc *coordinator.TaskCoordinator, taskID uuid.UUID, tenantID string) fiber.Map {
+	task, err := tc.Store().GetTask(taskID, tenantID)
+	if err != nil {
+		return buildTaskTransitionRejectedPayload(nil)
+	}
+	return buildTaskTransitionRejectedPayload(task)
 }
 
 func handleTaskCancel(tc *coordinator.TaskCoordinator) fiber.Handler {
@@ -1009,10 +1038,7 @@ func handleTaskCancel(tc *coordinator.TaskCoordinator) fiber.Handler {
 			return c.Status(http.StatusInternalServerError).JSON(fiber.Map{"error": "db_error"})
 		}
 		if !coordinator.TaskAllowsCancellation(task.Status) {
-			return c.Status(http.StatusConflict).JSON(fiber.Map{
-				"error":  "task_transition_rejected",
-				"status": task.Status,
-			})
+			return c.Status(http.StatusConflict).JSON(buildTaskTransitionRejectedPayload(task))
 		}
 
 		if err := tc.HandleCancel(taskID); err != nil {
@@ -1113,10 +1139,7 @@ func handleTaskCheckpoint(tc *coordinator.TaskCoordinator) fiber.Handler {
 			return c.Status(http.StatusInternalServerError).JSON(fiber.Map{"error": "db_error"})
 		}
 		if !coordinator.TaskAllowsRuntimeMutation(task.Status) {
-			return c.Status(http.StatusConflict).JSON(fiber.Map{
-				"error":  "task_terminal",
-				"status": task.Status,
-			})
+			return c.Status(http.StatusConflict).JSON(buildTaskTransitionRejectedPayload(task))
 		}
 
 		var cp coordinator.CheckpointPayload
@@ -1156,10 +1179,7 @@ func handleTaskComplete(tc *coordinator.TaskCoordinator) fiber.Handler {
 			return c.Status(http.StatusInternalServerError).JSON(fiber.Map{"error": "db_error"})
 		}
 		if !coordinator.TaskAllowsRuntimeMutation(task.Status) {
-			return c.Status(http.StatusConflict).JSON(fiber.Map{
-				"error":  "task_terminal",
-				"status": task.Status,
-			})
+			return c.Status(http.StatusConflict).JSON(buildTaskTransitionRejectedPayload(task))
 		}
 
 		if err := tc.HandleComplete(taskID); err != nil {
@@ -1191,10 +1211,7 @@ func handleTaskFailed(tc *coordinator.TaskCoordinator) fiber.Handler {
 			return c.Status(http.StatusInternalServerError).JSON(fiber.Map{"error": "db_error"})
 		}
 		if !coordinator.TaskAllowsRuntimeMutation(task.Status) {
-			return c.Status(http.StatusConflict).JSON(fiber.Map{
-				"error":  "task_terminal",
-				"status": task.Status,
-			})
+			return c.Status(http.StatusConflict).JSON(buildTaskTransitionRejectedPayload(task))
 		}
 
 		var body struct {
