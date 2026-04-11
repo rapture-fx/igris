@@ -671,6 +671,10 @@ func TaskAllowsDispatch(status TaskRecordStatus) bool {
 	}
 }
 
+func TaskAllowsRecoveryRedispatch(status TaskRecordStatus) bool {
+	return status == TaskStatusRecovering
+}
+
 func TaskAllowsCancellation(status TaskRecordStatus) bool {
 	switch status {
 	case TaskStatusPending, TaskStatusDispatched, TaskStatusCheckpointed, TaskStatusRecovering:
