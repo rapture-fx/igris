@@ -255,6 +255,29 @@ func TestTaskAllowsDispatch(t *testing.T) {
 	}
 }
 
+func TestTaskAllowsCancellation(t *testing.T) {
+	t.Parallel()
+
+	tests := []struct {
+		status   TaskRecordStatus
+		expected bool
+	}{
+		{TaskStatusPending, true},
+		{TaskStatusDispatched, true},
+		{TaskStatusCheckpointed, true},
+		{TaskStatusRecovering, true},
+		{TaskStatusCompleted, false},
+		{TaskStatusFailed, false},
+		{TaskStatusCanceled, false},
+	}
+
+	for _, test := range tests {
+		if got := TaskAllowsCancellation(test.status); got != test.expected {
+			t.Fatalf("TaskAllowsCancellation(%q) = %v, want %v", test.status, got, test.expected)
+		}
+	}
+}
+
 func TestTaskTransitionResult(t *testing.T) {
 	t.Parallel()
 
@@ -442,6 +465,7 @@ func TestScanTaskRecordHydratesArtifactsAndProof(t *testing.T) {
 		deadlineAt,
 		dispatchedAt,
 		completedAt,
+		nil,
 		createdAt,
 	}})
 	if err != nil {
@@ -503,6 +527,7 @@ func TestScanTaskRecordOmitsEmptyProofAndInvalidCheckpoint(t *testing.T) {
 		sql.NullString{},
 		sql.NullTime{},
 		"idem-2",
+		nil,
 		nil,
 		nil,
 		nil,
