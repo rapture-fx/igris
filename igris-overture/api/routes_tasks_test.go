@@ -66,6 +66,10 @@ func TestBuildTaskResponseIncludesFailureReasonAndCheckpointMetadata(t *testing.
 		"recovery_redispatch_allowed": false,
 		"cancellation_allowed":        false,
 	}, resp["lifecycle"])
+	require.Equal(t, fiber.Map{
+		"redispatch_eligible": false,
+		"skip_reason":         "task_failed",
+	}, resp["recovery"])
 	require.Equal(t, "quality", resp["requested_mode"])
 	require.Equal(t, "provider_race_quality", resp["resolved_strategy"])
 	require.EqualValues(t, 3, resp["last_step"])
@@ -96,6 +100,9 @@ func TestBuildTaskResponseOmitsEmptyOptionalFields(t *testing.T) {
 		"recovery_redispatch_allowed": false,
 		"cancellation_allowed":        true,
 	}, resp["lifecycle"])
+	require.Equal(t, fiber.Map{
+		"redispatch_eligible": false,
+	}, resp["recovery"])
 	require.NotContains(t, resp, "failure_reason")
 	require.NotContains(t, resp, "deadline_at")
 	require.NotContains(t, resp, "task_type")
@@ -217,6 +224,10 @@ func TestBuildTaskResponseIncludesCanceledAtWhenPresent(t *testing.T) {
 		"recovery_redispatch_allowed": false,
 		"cancellation_allowed":        false,
 	}, resp["lifecycle"])
+	require.Equal(t, fiber.Map{
+		"redispatch_eligible": false,
+		"skip_reason":         "task_canceled",
+	}, resp["recovery"])
 }
 
 func TestBuildTaskResponseReturnsFiberMap(t *testing.T) {
@@ -284,6 +295,67 @@ func TestBuildTaskLifecycleResponse(t *testing.T) {
 	}
 }
 
+func TestBuildTaskRecoveryResponse(t *testing.T) {
+	t.Parallel()
+
+	noRuntimeForRecovery := "no runtime available for recovery"
+	tests := []struct {
+		name string
+		task *coordinator.TaskRecord
+		want fiber.Map
+	}{
+		{
+			name: "nil task",
+			task: nil,
+			want: fiber.Map{
+				"redispatch_eligible": false,
+			},
+		},
+		{
+			name: "recovering task",
+			task: &coordinator.TaskRecord{Status: coordinator.TaskStatusRecovering},
+			want: fiber.Map{
+				"redispatch_eligible": true,
+			},
+		},
+		{
+			name: "canceled task",
+			task: &coordinator.TaskRecord{Status: coordinator.TaskStatusCanceled},
+			want: fiber.Map{
+				"redispatch_eligible": false,
+				"skip_reason":         "task_canceled",
+			},
+		},
+		{
+			name: "completed task",
+			task: &coordinator.TaskRecord{Status: coordinator.TaskStatusCompleted},
+			want: fiber.Map{
+				"redispatch_eligible": false,
+				"skip_reason":         "task_completed",
+			},
+		},
+		{
+			name: "failed recovery exhaustion",
+			task: &coordinator.TaskRecord{
+				Status:        coordinator.TaskStatusFailed,
+				FailureReason: &noRuntimeForRecovery,
+			},
+			want: fiber.Map{
+				"redispatch_eligible": false,
+				"skip_reason":         "no_runtime_available_for_recovery",
+			},
+		},
+	}
+
+	for _, test := range tests {
+		test := test
+		t.Run(test.name, func(t *testing.T) {
+			t.Parallel()
+			require.Equal(t, test.want, buildTaskRecoveryResponse(test.task))
+		})
+	}
+}
+
 func TestBuildTaskTransitionRejectedPayloadIncludesLifecycle(t *testing.T) {
 	t.Parallel()
 
@@ -307,6 +379,10 @@ func TestBuildTaskTransitionRejectedPayloadIncludesLifecycle(t *testing.T) {
 		"recovery_redispatch_allowed": false,
 		"cancellation_allowed":        false,
 	}, resp["lifecycle"])
+	require.Equal(t, fiber.Map{
+		"redispatch_eligible": false,
+		"skip_reason":         "task_failed",
+	}, resp["recovery"])
 }
 
 func TestBuildTaskTransitionRejectedPayloadWithoutTask(t *testing.T) {
