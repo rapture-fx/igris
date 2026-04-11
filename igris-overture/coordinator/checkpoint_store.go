@@ -56,6 +56,14 @@ const (
 	TaskStatusCanceled     TaskRecordStatus = "canceled"
 )
 
+type TaskDurabilityClass string
+
+const (
+	TaskDurabilityClassResumable            TaskDurabilityClass = "resumable"
+	TaskDurabilityClassStreamingNonResumable TaskDurabilityClass = "streaming_non_resumable"
+	TaskFailureReasonStreamingResumeUnsupported              = "streaming durable tasks do not support resume"
+)
+
 var ErrTaskTransitionRejected = errors.New("task transition rejected")
 
 type TaskProofState struct {
@@ -716,6 +724,69 @@ func TaskAllowsCancellation(status TaskRecordStatus) bool {
 		return true
 	default:
 		return false
+	}
+}
+
+func TaskDurabilityClassForDefinition(taskDefinition json.RawMessage) TaskDurabilityClass {
+	if len(taskDefinition) == 0 {
+		return TaskDurabilityClassResumable
+	}
+
+	var payload struct {
+		Type   string `json:"type"`
+		Stream bool   `json:"stream"`
+	}
+	if err := json.Unmarshal(taskDefinition, &payload); err != nil {
+		return TaskDurabilityClassResumable
+	}
+	if payload.Type == "single_inference" && payload.Stream {
+		return TaskDurabilityClassStreamingNonResumable
+	}
+	return TaskDurabilityClassResumable
+}
+
+func TaskSupportsRecoveryResume(task *TaskRecord) bool {
+	if task == nil {
+		return false
+	}
+	return TaskDurabilityClassForDefinition(task.TaskDefinition) == TaskDurabilityClassResumable
+}
+
+func TaskRecoveryRedispatchEligible(task *TaskRecord) bool {
+	if task == nil {
+		return false
+	}
+	return TaskAllowsRecoveryRedispatch(task.Status) && TaskSupportsRecoveryResume(task)
+}
+
+func TaskRecoverySkipReason(task *TaskRecord) string {
+	if task == nil {
+		return ""
+	}
+	if TaskAllowsRecoveryRedispatch(task.Status) {
+		if !TaskSupportsRecoveryResume(task) {
+			return "streaming_resume_unsupported"
+		}
+		return ""
+	}
+
+	switch task.Status {
+	case TaskStatusCanceled:
+		return "task_canceled"
+	case TaskStatusCompleted:
+		return "task_completed"
+	case TaskStatusFailed:
+		if task.FailureReason != nil {
+			switch *task.FailureReason {
+			case "no runtime available for recovery":
+				return "no_runtime_available_for_recovery"
+			case TaskFailureReasonStreamingResumeUnsupported:
+				return "streaming_resume_unsupported"
+			}
+		}
+		return "task_failed"
+	default:
+		return ""
 	}
 }
 
