@@ -147,7 +147,7 @@
     gap: 0.45rem;
     min-height: 2.15rem;
     border: 1px solid var(--color-fd-border);
-    border-radius: 9999px;
+    border-radius: 0.65rem;
     background: var(--color-fd-card);
     color: var(--color-fd-foreground);
     padding: 0.45rem 0.8rem;
@@ -167,10 +167,10 @@
     top: calc(100% + 0.5rem);
     left: 0;
     z-index: 30;
-    min-width: 13rem;
+    min-width: 13.75rem;
     overflow: hidden;
     border: 1px solid var(--color-fd-border);
-    border-radius: 0.9rem;
+    border-radius: 0.7rem;
     background: var(--color-fd-card);
     box-shadow: 0 18px 40px rgba(15, 23, 42, 0.12);
     padding: 0.35rem;
@@ -179,7 +179,7 @@
   .docs-page-action-item {
     display: flex;
     width: 100%;
-    border-radius: 0.7rem;
+    border-radius: 0.5rem;
     padding: 0.6rem 0.75rem;
     color: color-mix(in srgb, var(--color-fd-card-foreground) 92%, transparent);
     font-size: 0.72rem;
