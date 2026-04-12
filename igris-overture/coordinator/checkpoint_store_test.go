@@ -301,6 +301,74 @@ func TestTaskAllowsRecoveryRedispatch(t *testing.T) {
 	}
 }
 
+func TestTaskDurabilityClassForDefinition(t *testing.T) {
+	t.Parallel()
+
+	tests := []struct {
+		name         string
+		definition   json.RawMessage
+		expectedClass TaskDurabilityClass
+	}{
+		{
+			name:          "default resumable single inference",
+			definition:    json.RawMessage(`{"type":"single_inference","model":"gpt-4.1-mini","messages":[{"role":"user","content":"hello"}]}`),
+			expectedClass: TaskDurabilityClassResumable,
+		},
+		{
+			name:          "streaming single inference is non resumable",
+			definition:    json.RawMessage(`{"type":"single_inference","model":"gpt-4.1-mini","messages":[{"role":"user","content":"hello"}],"stream":true}`),
+			expectedClass: TaskDurabilityClassStreamingNonResumable,
+		},
+		{
+			name:          "invalid json falls back to resumable",
+			definition:    json.RawMessage(`{"type":`),
+			expectedClass: TaskDurabilityClassResumable,
+		},
+	}
+
+	for _, test := range tests {
+		test := test
+		t.Run(test.name, func(t *testing.T) {
+			t.Parallel()
+			if got := TaskDurabilityClassForDefinition(test.definition); got != test.expectedClass {
+				t.Fatalf("TaskDurabilityClassForDefinition() = %q, want %q", got, test.expectedClass)
+			}
+		})
+	}
+}
+
+func TestTaskRecoveryResumeAndSkipReason(t *testing.T) {
+	t.Parallel()
+
+	streamingTask := &TaskRecord{
+		Status:         TaskStatusRecovering,
+		TaskDefinition: json.RawMessage(`{"type":"single_inference","model":"gpt-4.1-mini","messages":[{"role":"user","content":"hello"}],"stream":true}`),
+	}
+	if TaskSupportsRecoveryResume(streamingTask) {
+		t.Fatal("TaskSupportsRecoveryResume(streamingTask) = true, want false")
+	}
+	if TaskRecoveryRedispatchEligible(streamingTask) {
+		t.Fatal("TaskRecoveryRedispatchEligible(streamingTask) = true, want false")
+	}
+	if got := TaskRecoverySkipReason(streamingTask); got != "streaming_resume_unsupported" {
+		t.Fatalf("TaskRecoverySkipReason(streamingTask) = %q, want streaming_resume_unsupported", got)
+	}
+
+	resumableTask := &TaskRecord{
+		Status:         TaskStatusRecovering,
+		TaskDefinition: json.RawMessage(`{"type":"agent_workflow","steps":[{"step_index":1,"model":"gpt-4.1-mini","messages":[{"role":"user","content":"hello"}]}]}`),
+	}
+	if !TaskSupportsRecoveryResume(resumableTask) {
+		t.Fatal("TaskSupportsRecoveryResume(resumableTask) = false, want true")
+	}
+	if !TaskRecoveryRedispatchEligible(resumableTask) {
+		t.Fatal("TaskRecoveryRedispatchEligible(resumableTask) = false, want true")
+	}
+	if got := TaskRecoverySkipReason(resumableTask); got != "" {
+		t.Fatalf("TaskRecoverySkipReason(resumableTask) = %q, want empty", got)
+	}
+}
+
 func TestTaskCheckpointAdvances(t *testing.T) {
 	t.Parallel()
 
