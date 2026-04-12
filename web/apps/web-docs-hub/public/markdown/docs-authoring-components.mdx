@@ -1,0 +1,61 @@
+---
+title: "Docs Authoring Components"
+description: "Native Fumadocs component patterns used across this documentation site."
+---
+
+# Docs Authoring Components
+
+These examples show the component patterns the docs should prefer going forward: native Fumadocs tabs, files, and structured tables instead of custom UI or ad hoc Markdown layouts.
+
+## Tabs
+
+<Tabs items={['Why', 'Pattern']}>
+  <Tab value="Why">
+    Use tabs when the content is genuinely parallel, such as cloud vs local setup, JavaScript vs Go examples, or conceptual vs raw source views.
+  </Tab>
+  <Tab value="Pattern">
+    Keep labels short, avoid using tabs for long narrative sections, and prefer one active comparison at a time.
+  </Tab>
+</Tabs>
+
+## Files
+
+<Files>
+  <Folder name="app" defaultOpen>
+    <File name="layout.tsx" />
+    <File name="docs/layout.tsx" />
+    <File name="docs/[[...slug]]/page.tsx" />
+  </Folder>
+  <Folder name="components" defaultOpen>
+    <File name="mdx.tsx" />
+  </Folder>
+  <Folder name="content" defaultOpen>
+    <Folder name="docs" defaultOpen>
+      <File name="meta.json" />
+      <File name="docs-authoring.mdx" />
+      <File name="docs-authoring-components.mdx" />
+    </Folder>
+  </Folder>
+  <File name="source.config.ts" />
+</Files>
+
+## Type Table
+
+<TypeTable
+  type={{
+    title: {
+      type: 'string',
+      description: 'Page title rendered in the docs tree and page metadata.',
+      required: true,
+    },
+    description: {
+      type: 'string',
+      description: 'Short summary used in metadata and index surfaces.',
+    },
+    full: {
+      type: 'boolean',
+      description: 'Extends a page to fill the available docs width.',
+      default: 'false',
+    },
+  }}
+/>
