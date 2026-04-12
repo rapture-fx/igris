@@ -1,0 +1,124 @@
+---
+title: "Tamper-Evident Logs"
+description: "Every execution in Igris produces a cryptographically signed receipt that forms part of an immutable audit trail. The tamper-evident log system ensures that no execution record can"
+---
+
+# Tamper-Evident Logs
+
+Every execution in Igris produces a cryptographically signed receipt that forms part of an immutable audit trail. The tamper-evident log system ensures that no execution record can be altered, deleted, or inserted without detection.
+
+---
+
+## How It Works
+
+Each execution receipt contains:
+
+1. **Envelope hash** — SHA-256 hash of the canonical execution envelope
+2. **Previous hash** — SHA-256 hash of the previous receipt (forming a chain)
+3. **Signature** — Ed25519 signature of the envelope using a device-bound key
+
+Each receipt links to the previous receipt via hash, forming a chain. Each receipt is signed with a device-bound key that exists only on the originating runtime. Tampering with any receipt invalidates its signature and breaks the chain — both of which are detected by the verification API.
+
+---
+
+## Chain Verification
+
+Receipts can be verified at any time to confirm chain integrity:
+
+```bash
+curl https://overture.igrisinertial.com/v1/receipts/receipt-01HXYZ/verify \
+  -H "Authorization: Bearer YOUR_API_KEY"
+```
+
+Response:
+```json
+{
+  "valid": true,
+  "signature_valid": true,
+  "chain_intact": true,
+  "previous_hash_matches": true
+}
+```
+
+If any link in the chain is broken, verification fails and the specific broken link is identified.
+
+---
+
+## What's Recorded
+
+Every receipt records:
+
+| Category | Fields |
+|---|---|
+| **Identity** | Request ID, tenant ID, agent ID, device ID, timestamp |
+| **Inputs** | Prompt, system message, parameters |
+| **Outputs** | Model response, tool call results |
+| **Resources** | Tokens consumed, wall time, CPU/memory usage |
+| **Capabilities** | Grants applied, violations recorded |
+| **Policy** | Policy hash at time of execution |
+| **Routing** | Provider selected, fallback count, latency |
+| **Chain** | Envelope hash, previous hash, signature |
+
+---
+
+## Export
+
+Receipts can be exported for external audit workflows:
+
+### GET /v1/receipts/export
+
+Export receipts in the selected format and time range.
+
+```bash
+curl "https://overture.igrisinertial.com/v1/receipts/export?format=json&range=7d" \
+  -H "Authorization: Bearer YOUR_API_KEY" \
+  --output receipts_export.json
+```
+
+Supported formats:
+- `json` — raw JSON array of receipts
+- `csv` — flattened CSV for spreadsheet analysis
+- `ndjson` — newline-delimited JSON for streaming processing
+
+---
+
+## Console
+
+View and verify receipts at `/proof/receipts`:
+
+- Receipt listing with timestamp, execution ID, agent, device, and verification status
+- Hash chain continuity bar visualization (intact/broken/first)
+- Receipt verification panel with signature, hash, and previous hash display
+- Download individual receipts as JSON
+- Filter by time range and violations-only toggle
+
+---
+
+## Retention
+
+Receipt retention depends on your tier:
+
+| Tier | Retention |
+|---|---|
+| Seed | 7 days |
+| Horizon | 30 days |
+| Infinite | 90 days |
+
+For compliance requirements that demand longer retention, export receipts to your own storage before they expire.
+
+---
+
+## Audit Workflow
+
+Igris receipts are designed to integrate with external audit processes:
+
+1. **Export** receipts for the audit period
+2. **Verify** chain integrity on the exported data
+3. **Cross-reference** with your application logs
+4. **Present** the signed receipts as evidence of governed execution
+
+The cryptographic signature proves that the execution record was produced by your Igris engine and has not been altered.
+
+---
+
+[Audit →](/docs/audit) · [Governance →](/docs/governance) · [Execution Receipts →](/docs/execution-receipts)
