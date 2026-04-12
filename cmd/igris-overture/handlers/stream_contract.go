@@ -11,83 +11,56 @@ import (
 
 const streamFallbackOptInField = "allow_stream_fallback"
 
-type streamContract struct {
-	executionAuthority string
-	fallbackAllowed    bool
-	resumeSupported    bool
-	replayCondition    string
-	fallbackOptInField string
-}
-
-func runtimeResponseStreamContract(runtimeResp *http.Response) streamContract {
-	contract := streamContract{
-		executionAuthority: "runtime",
-		fallbackAllowed:    false,
-		resumeSupported:    false,
-		replayCondition:    "unknown",
-		fallbackOptInField: streamFallbackOptInField,
+func runtimeResponseStreamContract(runtimeResp *http.Response) models.StreamContract {
+	contract := models.StreamContract{
+		ExecutionAuthority: "runtime",
+		FallbackAllowed:    false,
+		ResumeSupported:    false,
+		ReplayCondition:    "unknown",
+		FallbackOptInField: streamFallbackOptInField,
 	}
 	if runtimeResp == nil {
 		return contract
 	}
 	if resumeSupported, err := strconv.ParseBool(runtimeResp.Header.Get("X-Igris-Runtime-Stream-Resume-Supported")); err == nil {
-		contract.resumeSupported = resumeSupported
+		contract.ResumeSupported = resumeSupported
 	}
 	if replayCondition := runtimeResp.Header.Get("X-Igris-Runtime-Stream-Replay-Condition"); replayCondition != "" {
-		contract.replayCondition = replayCondition
+		contract.ReplayCondition = replayCondition
 	}
 	return contract
 }
 
-func runtimeUnavailableStreamContract() streamContract {
-	return streamContract{
-		executionAuthority: "runtime",
-		fallbackAllowed:    false,
-		resumeSupported:    false,
-		replayCondition:    "completed-final-output",
-		fallbackOptInField: streamFallbackOptInField,
+func runtimeUnavailableStreamContract() models.StreamContract {
+	return models.StreamContract{
+		ExecutionAuthority: "runtime",
+		FallbackAllowed:    false,
+		ResumeSupported:    false,
+		ReplayCondition:    "completed-final-output",
+		FallbackOptInField: streamFallbackOptInField,
 	}
 }
 
-func fallbackStreamContract() streamContract {
-	return streamContract{
-		executionAuthority: "overture_fallback",
-		fallbackAllowed:    true,
-		resumeSupported:    false,
-		replayCondition:    "none",
-		fallbackOptInField: streamFallbackOptInField,
+func fallbackStreamContract() models.StreamContract {
+	return models.StreamContract{
+		ExecutionAuthority: "overture_fallback",
+		FallbackAllowed:    true,
+		ResumeSupported:    false,
+		ReplayCondition:    "none",
+		FallbackOptInField: streamFallbackOptInField,
 	}
 }
 
-func (c streamContract) applyHeaders(ctx *fiber.Ctx) {
-	ctx.Set("X-Igris-Stream-Execution-Authority", c.executionAuthority)
-	ctx.Set("X-Igris-Stream-Resume-Supported", strconv.FormatBool(c.resumeSupported))
-	ctx.Set("X-Igris-Stream-Replay-Condition", c.replayCondition)
+func applyStreamContractHeaders(ctx *fiber.Ctx, contract models.StreamContract) {
+	ctx.Set("X-Igris-Stream-Execution-Authority", contract.ExecutionAuthority)
+	ctx.Set("X-Igris-Stream-Resume-Supported", strconv.FormatBool(contract.ResumeSupported))
+	ctx.Set("X-Igris-Stream-Replay-Condition", contract.ReplayCondition)
 }
 
-func (c streamContract) responseMap() fiber.Map {
-	resp := fiber.Map{
-		"execution_authority": c.executionAuthority,
-		"fallback_allowed":    c.fallbackAllowed,
-		"resume_supported":    c.resumeSupported,
-		"replay_condition":    c.replayCondition,
-	}
-	if c.fallbackOptInField != "" {
-		resp["fallback_opt_in_field"] = c.fallbackOptInField
-	}
-	return resp
-}
-
-func (c streamContract) applyMetadata(metadata *models.ResponseMetadata) {
+func applyStreamContractMetadata(metadata *models.ResponseMetadata, contract models.StreamContract) {
 	if metadata == nil {
 		return
 	}
-	metadata.StreamExecutionAuthority = c.executionAuthority
-	metadata.StreamFallbackAllowed = boolPtr(c.fallbackAllowed)
-	metadata.StreamResumeSupported = boolPtr(c.resumeSupported)
-	metadata.StreamReplayCondition = c.replayCondition
-}
-
-func boolPtr(v bool) *bool {
-	return &v
+	contractCopy := contract
+	metadata.Stream = &contractCopy
 }
