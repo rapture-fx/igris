@@ -1,10 +1,10 @@
 {
-  "generated_at": "2026-04-11T15:53:50.323Z",
+  "generated_at": "2026-04-12T01:41:46.185Z",
   "summary": {
     "total": 51,
     "by_status": {
-      "test-covered": 5,
-      "client-referenced": 10,
+      "test-covered": 6,
+      "client-referenced": 9,
       "implemented-unverified": 36
     },
     "by_section": {
@@ -675,11 +675,13 @@
       "surface": "Cloud API",
       "stability": "stable",
       "description": "Submit a durable task using `agent_workflow`, `robotics_workflow`, `single_inference`, or `behavior_tree`.",
-      "status": "client-referenced",
-      "confidence": "medium",
-      "note": "A client or transport layer references this route, but no direct automated test was found.",
+      "status": "test-covered",
+      "confidence": "high",
+      "note": "At least one automated test references this route path and method.",
       "evidence": {
-        "test_files": [],
+        "test_files": [
+          "igris-overture/api/routes_tasks_test.go"
+        ],
         "client_files": [
           "igris-javascript-sdk/src/tasks.ts"
         ]
