@@ -60,6 +60,11 @@
     line-height: 1;
   }
 
+  .docs-prose .sdk-matrix code {
+    font-size: 0.72rem !important;
+    line-height: 1.5;
+  }
+
   .docs-prose :where(table code) {
     font-size: inherit !important;
   }
