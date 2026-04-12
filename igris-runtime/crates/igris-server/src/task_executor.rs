@@ -3874,7 +3874,7 @@ mod tests {
         ExecutionNode, HumanApprovalStep, RoboticsAction, RoboticsStep, RuntimeTaskStep,
         StepExecutionResult, TaskStatus, TaskSubmitResponse, TaskType, ToolStep,
     };
-    use axum::{body::Body, response::Response};
+    use axum::{body::Body, http::StatusCode, response::Response};
     use crate::runtime_execute::ExecuteUsage;
     use crate::runtime_execute::ExecuteMessage;
     use igris_core::storage::{RedbStorage, TASK_SUBMISSION_STATUS_BY_TASK_ID};
