@@ -45,6 +45,26 @@ export function baseOptions(): BaseLayoutProps {
             description: 'Model Context Protocol guides and runtime patterns',
             url: '/docs/mcp',
           },
+          {
+            text: 'Documentation Roadmap',
+            description: 'What still needs to improve in the docs product',
+            url: '/docs/documentation-roadmap',
+          },
+          {
+            text: 'Troubleshooting',
+            description: 'Operational fixes for common runtime and API issues',
+            url: '/docs/troubleshooting',
+          },
+          {
+            text: 'Upgrade & Migration',
+            description: 'Versioning, rollout, and migration guidance',
+            url: '/docs/upgrade-migration',
+          },
+          {
+            text: 'Changelog',
+            description: 'Customer-visible release changes',
+            url: '/docs/changelog',
+          },
         ],
       },
     ],
