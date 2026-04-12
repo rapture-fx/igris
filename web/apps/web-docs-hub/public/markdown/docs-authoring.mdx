@@ -1,0 +1,42 @@
+---
+title: "Docs Authoring"
+description: "How this site uses native Fumadocs components and MDX features."
+---
+
+# Docs Authoring
+
+This docs site now uses the native Fumadocs layout and native Fumadocs MDX components.
+
+## Native Components
+
+- Code fences render through the native Fumadocs `CodeBlock` and `Pre` path.
+- Tables render through the native Fumadocs MDX table wrapper.
+- Tabs, steps, files, inline TOC, image zoom, and type tables are all wired through the shared Fumadocs MDX registry.
+
+## Type Table
+
+`TypeTable` is available in MDX for structured schemas and conceptual configuration.
+
+<TypeTable
+  type={{
+    title: {
+      type: 'string',
+      description: 'Page title rendered in the docs tree and metadata.',
+      required: true,
+    },
+    slug: {
+      type: 'string',
+      description: 'URL-safe route segment for the page.',
+      required: true,
+    },
+    description: {
+      type: 'string',
+      description: 'Short summary used in metadata and index surfaces.',
+    },
+    featured: {
+      type: 'boolean',
+      description: 'Marks a page as promoted in overview surfaces.',
+      default: 'false',
+    },
+  }}
+/>
