@@ -1,0 +1,56 @@
+---
+title: "Receipts and Audit Workflow"
+description: "Use this workflow when you need verifiable execution history, exportable receipts, or customer-visible audit evidence."
+---
+
+# Receipts and Audit Workflow
+
+Use this workflow when you need verifiable execution history, exportable receipts, or customer-visible audit evidence.
+
+This is the right path when you need to answer questions like:
+
+- what happened
+- what proof exists
+- what should be exported
+- what should be verified before it leaves the product boundary
+
+---
+
+## 1. Run requests through the documented product surface
+
+Receipts are most useful when traffic is consistently going through the intended Igris contract. Keep integrations on documented API paths so receipts, history, and exports line up with real product behavior instead of with ad hoc internal flows.
+
+## 2. Query recent execution history
+
+Use execution history when you want a timeline view of what happened:
+
+- [API Reference →](/docs/api-reference)
+
+History is useful for dashboards and investigations. It tells you what happened over time. It is not the same thing as a proof artifact.
+
+## 3. Retrieve receipts for audit evidence
+
+Use receipt listing and detail endpoints when you need the signed or hash-linked execution record itself. This is the surface you should treat as the audit artifact, not the history stream.
+
+- [Execution Receipts →](/docs/execution-receipts)
+- [API Reference →](/docs/api-reference)
+
+## 4. Export receipts for downstream systems
+
+Use `GET /v1/receipts/export` when you need to move receipt data into BI, compliance, or external archive systems. Choose NDJSON for machine pipelines and CSV for spreadsheet-oriented workflows.
+
+## 5. Verify before external use
+
+If a workflow depends on the integrity of a receipt, verify it before using it as an external audit artifact. Verification should happen before the receipt is relied on by another system, reviewer, or compliance process.
+
+## Common Mistakes
+
+- Treating execution history as if it were the same thing as the signed receipt
+- Exporting receipts without deciding on a durable downstream retention model
+- Skipping verification when the receipt is leaving the product boundary
+
+## Related Guides
+
+- [Execution Receipts →](/docs/execution-receipts)
+- [Audit →](/docs/audit)
+- [API Errors →](/docs/api-reference/errors)
