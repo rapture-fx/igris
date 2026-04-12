@@ -31,9 +31,10 @@ var ErrInvalidTaskDefinition = errors.New("invalid task_definition")
 
 // TaskCoordinator dispatches tasks to runtimes and handles failure recovery.
 type TaskCoordinator struct {
-	db         *sql.DB
-	store      *CheckpointStore
-	httpClient *http.Client
+	db           *sql.DB
+	store        *CheckpointStore
+	httpClient   *http.Client
+	recoveryHook func(context.Context, uuid.UUID, string)
 }
 
 func NewTaskCoordinator(db *sql.DB) *TaskCoordinator {
@@ -258,14 +259,14 @@ func (tc *TaskCoordinator) dispatchToRuntime(ctx context.Context, task *TaskReco
 	resp, err := tc.httpClient.Do(req)
 	if err != nil {
 		log.Warn().Err(err).Str("task_id", task.TaskID.String()).Msg("[Coordinator] Runtime unreachable, marking recovering")
-		tc.markAndRecover(ctx, task.TaskID, *task.RuntimeID)
+		tc.handleDispatchFailure(ctx, task, nil, err)
 		return
 	}
 	defer resp.Body.Close()
 
 	if resp.StatusCode >= 500 {
 		log.Warn().Int("status", resp.StatusCode).Str("task_id", task.TaskID.String()).Msg("[Coordinator] Runtime error, marking recovering")
-		tc.markAndRecover(ctx, task.TaskID, *task.RuntimeID)
+		tc.handleDispatchFailure(ctx, task, resp, nil)
 		return
 	}
 
@@ -420,9 +421,20 @@ func (tc *TaskCoordinator) handleRecoverySkip(taskID uuid.UUID, task *TaskRecord
 }
 
 func (tc *TaskCoordinator) markAndRecover(ctx context.Context, taskID uuid.UUID, runtimeID string) {
+	if tc.recoveryHook != nil {
+		tc.recoveryHook(ctx, taskID, runtimeID)
+		return
+	}
 	// Use Background context: the caller's ctx is an HTTP request context that
 	// will be cancelled once the response returns, which would abort the recovery.
 	go tc.recoverRuntime(context.Background(), runtimeID)
+}
+
+func (tc *TaskCoordinator) handleDispatchFailure(ctx context.Context, task *TaskRecord, resp *http.Response, err error) {
+	if task == nil || task.RuntimeID == nil {
+		return
+	}
+	tc.markAndRecover(ctx, task.TaskID, *task.RuntimeID)
 }
 
 // TaskSubmitRequest is the payload from external clients to /v1/tasks/submit.
