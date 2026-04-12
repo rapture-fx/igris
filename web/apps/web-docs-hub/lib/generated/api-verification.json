@@ -1,10 +1,10 @@
 {
-  "generated_at": "2026-04-12T06:09:10.240Z",
+  "generated_at": "2026-04-12T07:41:06.037Z",
   "summary": {
     "total": 51,
     "by_status": {
-      "test-covered": 6,
-      "client-referenced": 9,
+      "test-covered": 8,
+      "client-referenced": 7,
       "implemented-unverified": 36
     },
     "by_section": {
@@ -695,11 +695,13 @@
       "surface": "Cloud API",
       "stability": "stable",
       "description": "Poll the current status and latest checkpoint metadata for a durable task.",
-      "status": "client-referenced",
-      "confidence": "medium",
-      "note": "A client or transport layer references this route, but no direct automated test was found.",
+      "status": "test-covered",
+      "confidence": "high",
+      "note": "At least one automated test references this route path and method.",
       "evidence": {
-        "test_files": [],
+        "test_files": [
+          "igris-overture/api/routes_tasks_test.go"
+        ],
         "client_files": [
           "igris-javascript-sdk/src/tasks.ts"
         ]
@@ -713,11 +715,13 @@
       "surface": "Cloud API",
       "stability": "stable",
       "description": "List recent durable tasks for the authenticated tenant.",
-      "status": "client-referenced",
-      "confidence": "medium",
-      "note": "A client or transport layer references this route, but no direct automated test was found.",
+      "status": "test-covered",
+      "confidence": "high",
+      "note": "At least one automated test references this route path and method.",
       "evidence": {
-        "test_files": [],
+        "test_files": [
+          "igris-overture/api/routes_tasks_test.go"
+        ],
         "client_files": [
           "igris-javascript-sdk/src/tasks.ts"
         ]
