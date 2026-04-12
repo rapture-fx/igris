@@ -143,6 +143,7 @@
   #nd-sidebar-mobile [data-radix-scroll-area-viewport] p {
     font-size: 0.78rem;
     line-height: 1.35;
+    font-weight: 600;
   }
 
   #nd-toc,
