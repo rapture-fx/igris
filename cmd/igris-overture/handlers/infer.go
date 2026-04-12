@@ -898,9 +898,9 @@ func (h *InferHandler) handleStreamingInfer(c *fiber.Ctx, req *models.InferReque
 
 	log.Printf("[Infer] Starting streaming inference for model: %s", req.Model)
 
-	// Prefer the Runtime durable stream path for all known streaming modes. If the
-	// Runtime rejects the request or is unavailable, Overture falls back to its
-	// legacy local streaming behavior.
+	// Prefer the Runtime durable stream path for all known streaming modes. When a
+	// Runtime executor is configured, keep execution authority strict instead of
+	// silently degrading to Overture-local streaming.
 	if h.runtimeExecutor != nil {
 		boundsHeader := string(c.Request().Header.Peek("X-Igris-Bounds"))
 		runtimeResp, err := h.runtimeExecutor.OpenStreamingExecution(traceContext, tenantID, req, boundsHeader)
@@ -911,7 +911,8 @@ func (h *InferHandler) handleStreamingInfer(c *fiber.Ctx, req *models.InferReque
 					"error": "upstream security rejection",
 				})
 			}
-			log.Printf("[Infer] Runtime streaming unavailable, falling back to direct routing: %v", err)
+			log.Printf("[Infer] Runtime streaming unavailable, refusing fallback to preserve execution authority: %v", err)
+			return c.Status(fiber.StatusServiceUnavailable).JSON(buildRuntimeStreamingUnavailableResponse(err))
 		} else {
 			setStreamingSSEHeaders(c, traceCtx.TraceID)
 			applyRuntimeStreamContractHeaders(c, runtimeResp)
@@ -1089,6 +1090,25 @@ func (h *InferHandler) handleStreamingInfer(c *fiber.Ctx, req *models.InferReque
 	c.Set("Content-Type", "application/json")
 	c.Set("X-Trace-ID", tracing.GetTraceID(traceContext))
 	return c.JSON(response)
+}
+
+func buildRuntimeStreamingUnavailableResponse(err error) fiber.Map {
+	resp := fiber.Map{
+		"error": fiber.Map{
+			"message": "runtime-backed streaming is unavailable; fallback refused to preserve execution authority",
+			"type":    "stream_execution_unavailable",
+		},
+		"stream": fiber.Map{
+			"execution_authority": "runtime",
+			"fallback_allowed":    false,
+			"resume_supported":    false,
+			"replay_condition":    "completed-final-output",
+		},
+	}
+	if err != nil {
+		resp["detail"] = err.Error()
+	}
+	return resp
 }
 
 func setStreamingSSEHeaders(c *fiber.Ctx, traceID string) {
