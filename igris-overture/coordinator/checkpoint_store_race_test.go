@@ -19,6 +19,7 @@ type queuedExecExpectation struct {
 
 type queuedQueryExpectation struct {
 	values []driver.Value
+	rows   [][]driver.Value
 	err    error
 }
 
@@ -104,6 +105,9 @@ func (d *queuedExecDriver) nextQueryRows() (driver.Rows, error) {
 	d.queries = d.queries[1:]
 	if next.err != nil {
 		return nil, next.err
+	}
+	if next.rows != nil {
+		return &queuedRows{columns: []string{"last_checkpoint"}, values: next.rows}, nil
 	}
 	if next.values == nil {
 		return &queuedRows{columns: []string{"last_checkpoint"}}, nil
@@ -319,5 +323,70 @@ func TestCheckpointStoreRejectsInconsistentCheckpointWatermark(t *testing.T) {
 	}
 	if queued.remainingExecs() != 0 {
 		t.Fatalf("remaining execs = %d, want 0", queued.remainingExecs())
+	}
+}
+
+func TestCheckpointStoreMarkRecoveringIsIdempotentOnRetry(t *testing.T) {
+	t.Parallel()
+
+	taskID := uuid.New()
+	db, queued := newQueuedCheckpointDB(t, []queuedQueryExpectation{
+		{rows: [][]driver.Value{{taskID.String()}}},
+		{rows: [][]driver.Value{}},
+	})
+	store := NewCheckpointStore(db)
+
+	firstIDs, err := store.MarkRecovering("runtime-retry")
+	if err != nil {
+		t.Fatalf("MarkRecovering(first) error = %v", err)
+	}
+	if len(firstIDs) != 1 || firstIDs[0] != taskID {
+		t.Fatalf("MarkRecovering(first) ids = %v, want [%s]", firstIDs, taskID)
+	}
+
+	secondIDs, err := store.MarkRecovering("runtime-retry")
+	if err != nil {
+		t.Fatalf("MarkRecovering(second) error = %v", err)
+	}
+	if len(secondIDs) != 0 {
+		t.Fatalf("MarkRecovering(second) ids = %v, want empty", secondIDs)
+	}
+	if queued.remainingQueries() != 0 {
+		t.Fatalf("remaining queries = %d, want 0", queued.remainingQueries())
+	}
+}
+
+func TestCheckpointStoreAcceptsAdvancingCheckpointAfterRecoveryBegan(t *testing.T) {
+	t.Parallel()
+
+	taskID := uuid.New()
+	current := []byte(`{"task_id":"` + taskID.String() + `","resume_token":{"last_committed_step":5,"checkpoint_digest":"digest-5","runtime_id":"runtime-1"},"wal_entries":[]}`)
+	db, queued := newQueuedCheckpointDB(t,
+		[]queuedQueryExpectation{{values: []driver.Value{current}}},
+		queuedExecExpectation{rowsAffected: 1},
+		queuedExecExpectation{rowsAffected: 1},
+	)
+	store := NewCheckpointStore(db)
+
+	err := store.SaveCheckpoint(&CheckpointPayload{
+		TaskID: taskID,
+		ResumeToken: ResumeToken{
+			LastCommittedStep: 6,
+			CheckpointDigest:  "digest-6",
+			RuntimeID:         "runtime-2",
+		},
+		WalEntries: []WalEntry{
+			{TaskID: taskID, StepIndex: 6, RuntimeID: "runtime-2"},
+		},
+		CapturedAt: time.Unix(1_700_000_200, 0).UTC(),
+	})
+	if err != nil {
+		t.Fatalf("SaveCheckpoint() error = %v, want nil", err)
+	}
+	if queued.remainingExecs() != 0 {
+		t.Fatalf("remaining execs = %d, want 0", queued.remainingExecs())
+	}
+	if queued.remainingQueries() != 0 {
+		t.Fatalf("remaining queries = %d, want 0", queued.remainingQueries())
 	}
 }
