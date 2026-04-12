@@ -1,10 +1,10 @@
 {
-  "generated_at": "2026-04-12T08:53:36.778Z",
+  "generated_at": "2026-04-12T09:16:09.197Z",
   "generated_from": [
     "igris-overture/api/*.go",
     "igris-runtime/crates/igris-server/src/main.rs"
   ],
-  "route_inventory_count": 312,
+  "route_inventory_count": 315,
   "sections": [
     {
       "title": "Inference & Integration",
