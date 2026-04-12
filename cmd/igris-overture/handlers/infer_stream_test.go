@@ -187,6 +187,94 @@ func TestHandleStreamingInferRejectsFallbackWhenRuntimeUnavailable(t *testing.T)
 	}
 }
 
+func TestHandleStreamingInferRejectsCouncilFallbackWhenRuntimeUnavailable(t *testing.T) {
+	t.Parallel()
+
+	handler := &InferHandler{
+		runtimeExecutor: &stubRuntimeExecutor{
+			streamErr: errors.New("runtime selector: no healthy runtime available for streaming"),
+		},
+	}
+
+	app := fiber.New()
+	app.Post("/v1/infer", func(c *fiber.Ctx) error {
+		return handler.handleStreamingInfer(c, &models.InferRequest{
+			Model:       "gpt-4.1-mini",
+			Stream:      true,
+			CouncilMode: true,
+			Messages:    []models.Message{{Role: "user", Content: "hello"}},
+		})
+	})
+
+	req := httptest.NewRequest(http.MethodPost, "/v1/infer", nil)
+	resp, err := app.Test(req)
+	if err != nil {
+		t.Fatalf("app.Test() error = %v", err)
+	}
+	if resp.StatusCode != http.StatusServiceUnavailable {
+		t.Fatalf("StatusCode = %d, want %d", resp.StatusCode, http.StatusServiceUnavailable)
+	}
+
+	var body map[string]any
+	if err := json.NewDecoder(resp.Body).Decode(&body); err != nil {
+		t.Fatalf("Decode() error = %v", err)
+	}
+	streamBody, ok := body["stream"].(map[string]any)
+	if !ok {
+		t.Fatalf("stream body type = %T, want map[string]any", body["stream"])
+	}
+	if got := streamBody["execution_authority"]; got != "runtime" {
+		t.Fatalf("stream.execution_authority = %v, want %q", got, "runtime")
+	}
+	if got := streamBody["fallback_allowed"]; got != false {
+		t.Fatalf("stream.fallback_allowed = %v, want false", got)
+	}
+}
+
+func TestHandleStreamingInferRejectsSpeculativeFallbackWhenRuntimeUnavailable(t *testing.T) {
+	t.Parallel()
+
+	handler := &InferHandler{
+		runtimeExecutor: &stubRuntimeExecutor{
+			streamErr: errors.New("runtime selector: no healthy runtime available for streaming"),
+		},
+	}
+
+	app := fiber.New()
+	app.Post("/v1/infer", func(c *fiber.Ctx) error {
+		return handler.handleStreamingInfer(c, &models.InferRequest{
+			Model:           "gpt-4.1-mini",
+			Stream:          true,
+			SpeculativeMode: "latency",
+			Messages:        []models.Message{{Role: "user", Content: "hello"}},
+		})
+	})
+
+	req := httptest.NewRequest(http.MethodPost, "/v1/infer", nil)
+	resp, err := app.Test(req)
+	if err != nil {
+		t.Fatalf("app.Test() error = %v", err)
+	}
+	if resp.StatusCode != http.StatusServiceUnavailable {
+		t.Fatalf("StatusCode = %d, want %d", resp.StatusCode, http.StatusServiceUnavailable)
+	}
+
+	var body map[string]any
+	if err := json.NewDecoder(resp.Body).Decode(&body); err != nil {
+		t.Fatalf("Decode() error = %v", err)
+	}
+	streamBody, ok := body["stream"].(map[string]any)
+	if !ok {
+		t.Fatalf("stream body type = %T, want map[string]any", body["stream"])
+	}
+	if got := streamBody["execution_authority"]; got != "runtime" {
+		t.Fatalf("stream.execution_authority = %v, want %q", got, "runtime")
+	}
+	if got := streamBody["fallback_allowed"]; got != false {
+		t.Fatalf("stream.fallback_allowed = %v, want false", got)
+	}
+}
+
 func TestHandleStreamingInferAllowsExplicitFallbackOptIn(t *testing.T) {
 	t.Parallel()
 
