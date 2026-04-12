@@ -1,0 +1,345 @@
+---
+title: "SDKs"
+description: "Igris supports two integration paths:"
+---
+
+# SDKs
+
+Igris supports two integration paths:
+
+- **OpenAI-compatible clients** for the fastest path to production
+- **Native Igris SDKs** when you need routing metadata, receipt helpers, vault operations, fleet APIs, behavior trees, or containment
+
+The recommendation is simple:
+
+- Start with the OpenAI-compatible API if you want the shortest path to a working integration
+- Move to a native SDK when you need Igris-specific product features and a stronger typed client
+
+The native first-class SDKs are JavaScript/TypeScript, Go, Rust, and Python. In other words, first-class SDKs today are JavaScript/TypeScript, Go, and Rust, and Python is also part of the current first-class support matrix. Java, C#, and Ruby should use the OpenAI-compatible API today.
+
+For production integration guidance, reusable client construction, and environment-variable patterns, continue with [SDK Integration Patterns →](/docs/sdk-integration-patterns).
+
+## Support Matrix
+
+<SdkSupportMatrix />
+
+## Support Policy
+
+Treat the SDK table as a product support statement, not just a package list:
+
+- **First-class** means the language is part of the maintained customer SDK surface
+- **OpenAI-compatible** means the safest contract today is the HTTP API through an OpenAI-style client
+
+If your team wants the strongest support commitment, choose JavaScript/TypeScript, Go, Rust, or Python. If your team mainly needs inference and broad portability, stay on the OpenAI-compatible path.
+
+---
+
+## OpenAI-Compatible Clients
+
+Any OpenAI SDK can call Igris by changing the base URL. For many teams, this is the right default because it keeps the integration portable while still routing through the product.
+
+**Python**
+
+```python
+import os
+from openai import OpenAI
+
+client = OpenAI(
+    base_url="https://overture.igrisinertial.com/v1",
+    api_key=os.environ["IGRIS_API_KEY"],
+)
+
+response = client.chat.completions.create(
+    model="gpt-4",
+    messages=[{"role": "user", "content": "Hello"}],
+)
+
+print(response.choices[0].message.content)
+```
+
+**JavaScript / TypeScript**
+
+```typescript
+import OpenAI from 'openai';
+
+const client = new OpenAI({
+  baseURL: 'https://overture.igrisinertial.com/v1',
+  apiKey: process.env.IGRIS_API_KEY,
+});
+
+const response = await client.chat.completions.create({
+  model: 'gpt-4',
+  messages: [{ role: 'user', content: 'Hello' }],
+});
+
+console.log(response.choices[0].message.content);
+```
+
+Use this path for Java, C#, Ruby, or any other language where you already have an OpenAI-compatible client and do not need the native Igris SDK surface yet.
+
+---
+
+## Native SDKs
+
+Choose a native SDK when you want a product-shaped client rather than a protocol-shaped one. That matters when you are working with receipts, vault operations, fleet controls, behavior trees, containment bounds, or richer Igris metadata.
+
+### JavaScript / TypeScript
+
+```typescript
+import { IgrisClient } from '@igris-inertial/sdk';
+
+const client = new IgrisClient({
+  baseUrl: 'https://overture.igrisinertial.com',
+  apiKey: process.env.IGRIS_API_KEY,
+});
+
+const response = await client.infer({
+  model: 'gpt-4',
+  messages: [{ role: 'user', content: 'Hello' }],
+});
+
+console.log(response.choices[0].message.content);
+```
+
+For durable streamed inference, the JavaScript SDK surfaces both token chunks and the terminal durable-task result from one SSE session:
+
+```typescript
+for await (const event of client.streamInference({
+  model: 'gpt-4.1-mini',
+  messages: [{ role: 'user', content: 'Summarize the deployment risk.' }],
+})) {
+  if (event.type === 'chunk') {
+    process.stdout.write(
+      String(
+        ((event.data.choices as Array<{ delta?: { content?: string } }> | undefined)?.[0]?.delta?.content) ?? ''
+      )
+    );
+  }
+
+  if (event.type === 'task_result') {
+    console.log('\nTask ID:', event.data.task_id);
+    console.log('Status:', event.data.status);
+  }
+}
+```
+
+### Go
+
+```go
+package main
+
+import (
+    "context"
+    "fmt"
+    "log"
+    "os"
+
+    igris "github.com/igris-inertial/go-sdk"
+)
+
+func main() {
+    client := igris.NewClient(
+        "https://overture.igrisinertial.com",
+        os.Getenv("IGRIS_API_KEY"),
+    )
+
+    resp, err := client.Infer(context.Background(), &igris.InferRequest{
+        Model: "gpt-4",
+        Messages: []igris.Message{
+            {Role: "user", Content: "Hello"},
+        },
+    })
+    if err != nil {
+        log.Fatal(err)
+    }
+
+    fmt.Println(resp.Choices[0].Message.Content)
+}
+```
+
+### Rust
+
+```rust
+use igris_inertial::{IgrisClient, InferRequest, Message};
+
+#[tokio::main]
+async fn main() -> Result<(), Box<dyn std::error::Error>> {
+    let client = IgrisClient::builder("https://overture.igrisinertial.com")
+        .api_key(std::env::var("IGRIS_API_KEY")?)
+        .build()?;
+
+    let response = client
+        .infer(&InferRequest {
+            model: "gpt-4".to_string(),
+            messages: vec![Message {
+                role: "user".to_string(),
+                content: "Hello".to_string(),
+                content_parts: None,
+            }],
+            ..Default::default()
+        })
+        .await?;
+
+    println!("{}", response.choices[0].message.content);
+    Ok(())
+}
+```
+
+### Python
+
+Install the SDK:
+
+```bash
+pip install igris-inertial
+```
+
+For receipt verification, add the optional extra:
+
+```bash
+pip install "igris-inertial[verification]"
+```
+
+**Inference**
+
+```python
+import os
+from igris import IgrisClient
+
+with IgrisClient(
+    base_url="https://overture.igrisinertial.com",
+    api_key=os.environ["IGRIS_API_KEY"],
+) as client:
+    response = client.chat_completion({
+        "model": "gpt-4",
+        "messages": [{"role": "user", "content": "Hello"}],
+    })
+    print(response.choices[0].message.content)
+```
+
+**Local runtime with containment bounds**
+
+`Runtime` connects to a locally running Igris Runtime binary. Pass `Bounds` to enforce per-tick CPU and time limits. When the local runtime is unreachable and `auto_fallback=True`, requests route to the cloud URL automatically.
+
+```python
+from igris import Runtime, RuntimeConfig, Bounds
+
+rt = Runtime(
+    config=RuntimeConfig(
+        local_url="http://localhost:8080",
+        cloud_url="https://overture.igrisinertial.com",
+        local_model="phi3",
+        bounds=Bounds(cpu_percent=80, memory_mb=512, max_tick_ms=200),
+    )
+)
+
+response = rt.chat({"model": "phi3", "messages": [{"role": "user", "content": "Hello"}]})
+print(response.choices[0].message.content)
+```
+
+**Streaming**
+
+```python
+for chunk in rt.stream({"model": "phi3", "messages": [{"role": "user", "content": "Hello"}]}):
+    print(chunk, end="", flush=True)
+```
+
+**Behavior trees**
+
+Build trees with the node builder API and run them against the runtime:
+
+```python
+from igris import BehaviorTree, Sequence, Selector, Action, Condition
+
+tree = BehaviorTree.from_nodes(
+    root=Sequence("main", children=[
+        Condition("has-input", key="input", expected=True),
+        Action("fetch", tool="http", args={"url": "https://example.com/data"}),
+        Action("summarise", tool="llm", args={"prompt": "Summarise this"}),
+    ]),
+    runtime=rt,
+)
+
+result = tree.run(context={"input": True}, max_ticks=500, timeout_ms=10000)
+```
+
+Trees can also be loaded from JSON or YAML:
+
+```python
+tree = BehaviorTree.from_json(tree_dict, runtime=rt)
+tree = BehaviorTree.from_yaml(yaml_string, runtime=rt)  # requires pyyaml
+```
+
+**Vault and fleet**
+
+```python
+# Store a provider API key
+client.vault.store("openai", os.environ["OPENAI_API_KEY"])
+
+# List registered fleet agents
+agents = client.fleet.agents()
+```
+
+**Receipt verification**
+
+Verify the Ed25519 signature on an execution receipt. Requires `PyNaCl`.
+
+```python
+from igris.receipt import verify_receipt
+
+valid = verify_receipt(
+    receipt=response.execution_receipt,
+    public_key=bytes.fromhex(os.environ["IGRIS_RUNTIME_PUBLIC_KEY"]),
+)
+```
+
+**Containment violation callbacks**
+
+Register a callback that fires when the runtime records a containment violation:
+
+```python
+def on_violation(v):
+    print(f"Violation: {v.violation_kind} at {v.timestamp}")
+
+rt.on_violation(on_violation)
+```
+
+---
+
+## Deployment Mode Guidance
+
+The same integration can point at different Igris deployments without becoming a different product:
+
+- hosted API: `https://overture.igrisinertial.com`
+- local runtime: `http://localhost:8080`
+- hybrid: keep your application on the hosted API and let Igris coordinate work across runtimes
+
+Use the hosted API unless the workload truly needs on-device execution, offline behavior, or fleet-local control. The more you can keep application code pointed at one base URL strategy, the easier it is to keep the integration clean.
+
+---
+
+## Request Contract
+
+The core infer request fields are shared across native SDKs:
+
+| Field | Type | Description |
+|---|---|---|
+| `model` | string | Upstream model name or local runtime model |
+| `messages` | array | Conversation messages with `role` and `content` |
+| `provider` | string | Optional provider pin |
+| `optimize_for` | string | Optional routing hint such as `"latency"` or `"cost"` |
+
+## Code Quality Expectations
+
+Well-written Igris integrations usually share a few traits:
+
+- one constructor owns base URL and auth setup
+- credentials come from a secret manager or environment, not source control
+- `429`, auth failures, validation failures, and `5xx` responses are handled differently
+- cloud, local, and hybrid mode selection happens at startup, not inside business logic
+- receipt, audit, and fleet features are adopted intentionally rather than appearing ad hoc in request handlers
+
+When you need the most portable path across languages, default to the OpenAI-compatible client surface. When you need the strongest supported native contract, choose JavaScript/TypeScript, Go, Rust, or Python.
+
+---
+
+[SDK Integration Patterns →](/docs/sdk-integration-patterns) · [API Reference →](/docs/api-reference) · [Quick Start →](/docs/quickstart)
