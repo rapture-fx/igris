@@ -8,7 +8,7 @@ const generatedDir = path.join(docsAppRoot, 'lib', 'generated');
 const sdkSupport = {
   generated_by: 'scripts/generate-docs-artifacts.js',
   native_sdk_note:
-    'Recommended onboarding starts with the OpenAI-compatible API. When you need native Igris features, the first-class SDKs are JavaScript/TypeScript, Go, and Rust. Python remains preview. Java, C#, and Ruby should use an OpenAI-compatible client today.',
+    'Recommended onboarding starts with the OpenAI-compatible API. When you need native Igris features, the first-class SDKs are JavaScript/TypeScript, Go, Rust, and Python. Java, C#, and Ruby should use an OpenAI-compatible client today.',
   rows: [
     {
       language: 'JavaScript / TypeScript',
@@ -36,11 +36,11 @@ const sdkSupport = {
     },
     {
       language: 'Python',
-      status: 'preview',
+      status: 'first-class',
       package: 'igris-inertial',
       install: 'pip install igris-inertial',
       import: 'from igris import IgrisClient',
-      notes: 'Available in-repo, but not yet positioned as a first-class customer SDK.',
+      notes: 'Preferred native SDK for Python services, data pipelines, and scripting.',
     },
     {
       language: 'Java',
