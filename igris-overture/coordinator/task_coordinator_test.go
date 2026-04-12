@@ -599,11 +599,83 @@ func TestDispatchToRuntimeSchedulesRecoveryOnServerError(t *testing.T) {
 	require.Equal(t, runtimeID, gotRuntimeID)
 }
 
-func TestRecoverRuntimeRedispatchUsesNewestCheckpointSource(t *testing.T) {
+func TestRecoverRuntimeRedispatchUsesNewestTaskCheckpointSource(t *testing.T) {
 	t.Parallel()
 
 	taskID := uuid.New()
 	failedRuntimeID := "runtime-failed"
+	runRecoverRuntimeRedispatchCheckpointTest(t, taskID, failedRuntimeID,
+		&CheckpointPayload{
+			TaskID: taskID,
+			ResumeToken: ResumeToken{
+				LastCommittedStep: 4,
+				CheckpointDigest:  "digest-4",
+				RuntimeID:         failedRuntimeID,
+			},
+			WalEntries: []WalEntry{{TaskID: taskID, StepIndex: 4, RuntimeID: failedRuntimeID}},
+			Metadata:   json.RawMessage(`{"tick_count": 4}`),
+			CapturedAt: time.Unix(1_900_000_104, 0).UTC(),
+		},
+		&CheckpointPayload{
+			TaskID: taskID,
+			ResumeToken: ResumeToken{
+				LastCommittedStep: 6,
+				CheckpointDigest:  "digest-6",
+				RuntimeID:         failedRuntimeID,
+			},
+			WalEntries: []WalEntry{{TaskID: taskID, StepIndex: 6, RuntimeID: failedRuntimeID}},
+			Metadata:   json.RawMessage(`{"tick_count": 6}`),
+			CapturedAt: time.Unix(1_900_000_106, 0).UTC(),
+		},
+		6, "digest-6", 6,
+	)
+}
+
+func TestRecoverRuntimeRedispatchUsesNewestWalCheckpointSource(t *testing.T) {
+	t.Parallel()
+
+	taskID := uuid.New()
+	failedRuntimeID := "runtime-failed"
+	runRecoverRuntimeRedispatchCheckpointTest(t, taskID, failedRuntimeID,
+		&CheckpointPayload{
+			TaskID: taskID,
+			ResumeToken: ResumeToken{
+				LastCommittedStep: 8,
+				CheckpointDigest:  "digest-8",
+				RuntimeID:         failedRuntimeID,
+			},
+			WalEntries: []WalEntry{{TaskID: taskID, StepIndex: 8, RuntimeID: failedRuntimeID}},
+			Metadata:   json.RawMessage(`{"tick_count": 8}`),
+			CapturedAt: time.Unix(1_900_000_108, 0).UTC(),
+		},
+		&CheckpointPayload{
+			TaskID: taskID,
+			ResumeToken: ResumeToken{
+				LastCommittedStep: 5,
+				CheckpointDigest:  "digest-5",
+				RuntimeID:         failedRuntimeID,
+			},
+			WalEntries: []WalEntry{{TaskID: taskID, StepIndex: 5, RuntimeID: failedRuntimeID}},
+			Metadata:   json.RawMessage(`{"tick_count": 5}`),
+			CapturedAt: time.Unix(1_900_000_105, 0).UTC(),
+		},
+		8, "digest-8", 8,
+	)
+}
+
+func ptrString(value string) *string {
+	return &value
+}
+
+type roundTripperFunc func(*http.Request) (*http.Response, error)
+
+func (fn roundTripperFunc) RoundTrip(req *http.Request) (*http.Response, error) {
+	return fn(req)
+}
+
+func runRecoverRuntimeRedispatchCheckpointTest(t *testing.T, taskID uuid.UUID, failedRuntimeID string, walCheckpoint, lastCheckpoint *CheckpointPayload, wantStep float64, wantDigest string, wantTickCount float64) {
+	t.Helper()
+
 	newRuntimeID := "runtime-replacement"
 	tenantID := "tenant-recovery"
 	idempotencyKey := "idem-recovery-newest"
@@ -612,28 +684,6 @@ func TestRecoverRuntimeRedispatchUsesNewestCheckpointSource(t *testing.T) {
 		"type":"behavior_tree",
 		"tree":{"root":{"type":"sequence","children":[]}}
 	}`)
-	walCheckpoint := &CheckpointPayload{
-		TaskID: taskID,
-		ResumeToken: ResumeToken{
-			LastCommittedStep: 4,
-			CheckpointDigest:  "digest-4",
-			RuntimeID:         failedRuntimeID,
-		},
-		WalEntries: []WalEntry{{TaskID: taskID, StepIndex: 4, RuntimeID: failedRuntimeID}},
-		Metadata:   json.RawMessage(`{"tick_count": 4}`),
-		CapturedAt: time.Unix(1_900_000_104, 0).UTC(),
-	}
-	lastCheckpoint := &CheckpointPayload{
-		TaskID: taskID,
-		ResumeToken: ResumeToken{
-			LastCommittedStep: 6,
-			CheckpointDigest:  "digest-6",
-			RuntimeID:         failedRuntimeID,
-		},
-		WalEntries: []WalEntry{{TaskID: taskID, StepIndex: 6, RuntimeID: failedRuntimeID}},
-		Metadata:   json.RawMessage(`{"tick_count": 6}`),
-		CapturedAt: time.Unix(1_900_000_106, 0).UTC(),
-	}
 
 	walCheckpointBytes, err := json.Marshal(walCheckpoint)
 	require.NoError(t, err)
@@ -709,28 +759,18 @@ func TestRecoverRuntimeRedispatchUsesNewestCheckpointSource(t *testing.T) {
 	case gotBody := <-bodyCh:
 		resumeFrom, ok := gotBody["resume_from"].(map[string]any)
 		require.True(t, ok)
-		require.Equal(t, float64(6), resumeFrom["last_committed_step"])
-		require.Equal(t, "digest-6", resumeFrom["checkpoint_digest"])
+		require.Equal(t, wantStep, resumeFrom["last_committed_step"])
+		require.Equal(t, wantDigest, resumeFrom["checkpoint_digest"])
 
 		resumeCheckpoint, ok := gotBody["resume_checkpoint"].(map[string]any)
 		require.True(t, ok)
 		metadata, ok := resumeCheckpoint["metadata"].(map[string]any)
 		require.True(t, ok)
-		require.Equal(t, float64(6), metadata["tick_count"])
+		require.Equal(t, wantTickCount, metadata["tick_count"])
 	case <-time.After(2 * time.Second):
 		t.Fatal("timed out waiting for recovery redispatch")
 	}
 
 	require.Equal(t, 0, queued.remainingExecs())
 	require.Equal(t, 0, queued.remainingQueries())
-}
-
-func ptrString(value string) *string {
-	return &value
-}
-
-type roundTripperFunc func(*http.Request) (*http.Response, error)
-
-func (fn roundTripperFunc) RoundTrip(req *http.Request) (*http.Response, error) {
-	return fn(req)
 }
