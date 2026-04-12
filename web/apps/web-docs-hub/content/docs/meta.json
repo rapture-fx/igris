@@ -72,17 +72,15 @@
     "error-codes",
     "webhooks",
     "sla",
-    {
-      "type": "folder",
-      "name": "Reference",
-      "defaultOpen": false,
-      "pages": [
-        "api-reference",
-"troubleshooting",
-        "upgrade-migration",
-        "changelog"
-      ]
-    },
+    "---Reference---",
+    "api-reference",
+    "docs-authoring",
+    "docs-authoring-components",
+    "docs-authoring-schemas",
+    "documentation-roadmap",
+    "troubleshooting",
+    "upgrade-migration",
+    "changelog",
     "---Articles---",
     "articles/index",
     "articles/edge-deployment-guide",
