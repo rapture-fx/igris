@@ -1,0 +1,138 @@
+---
+title: "Swarm & Council Mode"
+description: "Igris supports two multi-agent coordination patterns: Council Mode for multi-provider consensus on a single request, and Swarm Mode for orchestrating commands across your entire fl"
+---
+
+# Swarm & Council Mode
+
+Igris supports two multi-agent coordination patterns: **Council Mode** for multi-provider consensus on a single request, and **Swarm Mode** for orchestrating commands across your entire fleet.
+
+---
+
+## Council Mode
+
+Council mode sends a request to multiple providers simultaneously and uses a chairman model to rank and synthesize the best response. Use it when response quality matters more than cost.
+
+### Enabling council mode per agent
+
+```bash
+curl -X PATCH https://overture.igrisinertial.com/v1/agents/agent-abc \
+  -H "Authorization: Bearer YOUR_API_KEY" \
+  -H "Content-Type: application/json" \
+  -d '{"council_mode": true}'
+```
+
+### Configuring council mode
+
+```bash
+curl -X POST https://overture.igrisinertial.com/v1/routing/council \
+  -H "Authorization: Bearer YOUR_API_KEY" \
+  -H "Content-Type: application/json" \
+  -d '{
+    "providers": ["anthropic", "openai", "google"],
+    "chairman": "anthropic",
+    "synthesis_strategy": "best_ranked"
+  }'
+# → {"saved": true}
+```
+
+| Field | Description |
+|---|---|
+| `providers` | Providers to query in parallel |
+| `chairman` | Provider whose model ranks the responses |
+| `synthesis_strategy` | `best_ranked` returns the top-ranked response; `synthesize` asks the chairman to merge responses |
+
+### Council analytics
+
+Query council round results:
+
+```bash
+curl https://overture.igrisinertial.com/v1/routing/stats \
+  -H "Authorization: Bearer YOUR_API_KEY"
+```
+
+Council metrics in the stats response show per-round cost, latency breakdown (ranking phase + synthesis phase), and winner distribution by provider.
+
+### Cost considerations
+
+Council mode multiplies per-request cost by the number of providers queried. A 3-provider council with an Anthropic chairman costs roughly 3–4× a single request. Use it selectively for high-stakes decisions.
+
+---
+
+## Swarm Mode
+
+Swarm mode broadcasts commands to all registered runtime instances in your fleet simultaneously.
+
+### GET /v1/fleet/swarm
+
+Current swarm status — all runtime instances with their pending command queues.
+
+```bash
+curl https://overture.igrisinertial.com/v1/fleet/swarm \
+  -H "Authorization: Bearer YOUR_API_KEY"
+```
+
+Response:
+```json
+{
+  "agents": [
+    {
+      "runtime_id": "runtime-01",
+      "hostname": "edge-node-01",
+      "status": "active",
+      "queued_commands": 0
+    },
+    {
+      "runtime_id": "runtime-02",
+      "hostname": "edge-node-02",
+      "status": "active",
+      "queued_commands": 1
+    }
+  ]
+}
+```
+
+### POST /v1/fleet/swarm/broadcast
+
+Queue a command to all runtime instances. The command is picked up by each instance on its next heartbeat.
+
+```bash
+curl -X POST https://overture.igrisinertial.com/v1/fleet/swarm/broadcast \
+  -H "Authorization: Bearer YOUR_API_KEY" \
+  -H "Content-Type: application/json" \
+  -d '{
+    "command": "reload_config",
+    "payload": {"source": "overture"}
+  }'
+```
+
+Response:
+```json
+{
+  "queued": true,
+  "instances": 8,
+  "queued_at": "2026-03-01T12:05:00Z"
+}
+```
+
+### DELETE /v1/fleet/swarm/agents/:id/clear
+
+Clear all pending commands for a specific runtime instance.
+
+```bash
+curl -X DELETE https://overture.igrisinertial.com/v1/fleet/swarm/agents/runtime-01/clear \
+  -H "Authorization: Bearer YOUR_API_KEY"
+# → {"cleared": true}
+```
+
+---
+
+## Command Delivery
+
+Swarm commands are queued server-side and delivered to the runtime binary on its next heartbeat. Commands are processed in order.
+
+If a runtime instance is offline when a command is queued, the command remains queued until the instance reconnects.
+
+---
+
+[Fleet Management →](/docs/fleet-management) · [Policy →](/docs/policy) · [API Reference →](/docs/api-reference)
