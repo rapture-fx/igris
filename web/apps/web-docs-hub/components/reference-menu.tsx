@@ -2,7 +2,7 @@
 
 import Link from 'fumadocs-core/link';
 import { usePathname } from 'fumadocs-core/framework';
-import { ChevronDown } from 'lucide-react';
+import { ChevronDown, ChevronUp } from 'lucide-react';
 import { useEffect, useRef, useState } from 'react';
 
 const items = [
@@ -38,6 +38,10 @@ export function ReferenceMenu() {
   const active = items.some((item) =>
     item.href === '/docs' ? pathname === '/docs' : pathname.startsWith(item.href),
   );
+  const activeItem =
+    items.find((item) =>
+      item.href === '/docs' ? pathname === '/docs' : pathname.startsWith(item.href),
+    ) ?? null;
 
   return (
     <div ref={ref} className="relative mb-4">
@@ -51,8 +55,8 @@ export function ReferenceMenu() {
             : 'text-fd-muted-foreground transition-colors hover:bg-fd-accent/50 hover:text-fd-accent-foreground/80 hover:transition-none',
         ].join(' ')}
       >
-        Reference
-        <ChevronDown className={['ms-auto transition-transform', open ? '' : '-rotate-90'].join(' ')} />
+        {activeItem?.label ?? 'Reference'}
+        {open ? <ChevronUp className="ms-auto" /> : <ChevronDown className="ms-auto" />}
       </button>
 
       {open ? (
