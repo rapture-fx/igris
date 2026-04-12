@@ -26,19 +26,32 @@ type queuedRouteQueryExpectation struct {
 	err     error
 }
 
+type queuedRouteExecExpectation struct {
+	rowsAffected int64
+	err          error
+}
+
 type queuedRouteDriver struct {
 	queries []queuedRouteQueryExpectation
+	execs   []queuedRouteExecExpectation
 }
 
 type queuedRouteConn struct {
 	driver *queuedRouteDriver
 }
 
-func newQueuedRouteDB(t *testing.T, queries ...queuedRouteQueryExpectation) (*sql.DB, *queuedRouteDriver) {
+type queuedRouteTx struct {
+	driver *queuedRouteDriver
+}
+
+func newQueuedRouteDB(t *testing.T, queries []queuedRouteQueryExpectation, execs ...queuedRouteExecExpectation) (*sql.DB, *queuedRouteDriver) {
 	t.Helper()
 
 	name := "queued-route-" + uuid.NewString()
-	driver := &queuedRouteDriver{queries: append([]queuedRouteQueryExpectation(nil), queries...)}
+	driver := &queuedRouteDriver{
+		queries: append([]queuedRouteQueryExpectation(nil), queries...),
+		execs:   append([]queuedRouteExecExpectation(nil), execs...),
+	}
 	sql.Register(name, driver)
 
 	db, err := sql.Open(name, "")
@@ -68,8 +81,24 @@ func (d *queuedRouteDriver) nextQueryRows() (driver.Rows, error) {
 	return &queuedRouteRows{columns: next.columns, values: next.rows}, nil
 }
 
+func (d *queuedRouteDriver) nextExecResult() (driver.Result, error) {
+	if len(d.execs) == 0 {
+		return nil, errors.New("unexpected exec")
+	}
+	next := d.execs[0]
+	d.execs = d.execs[1:]
+	if next.err != nil {
+		return nil, next.err
+	}
+	return driver.RowsAffected(next.rowsAffected), nil
+}
+
 func (d *queuedRouteDriver) remainingQueries() int {
 	return len(d.queries)
+}
+
+func (d *queuedRouteDriver) remainingExecs() int {
+	return len(d.execs)
 }
 
 func (c *queuedRouteConn) Prepare(string) (driver.Stmt, error) {
@@ -81,11 +110,35 @@ func (c *queuedRouteConn) Close() error {
 }
 
 func (c *queuedRouteConn) Begin() (driver.Tx, error) {
-	return nil, errors.New("transactions not implemented")
+	return queuedRouteTx{driver: c.driver}, nil
+}
+
+func (c *queuedRouteConn) BeginTx(context.Context, driver.TxOptions) (driver.Tx, error) {
+	return queuedRouteTx{driver: c.driver}, nil
+}
+
+func (c *queuedRouteConn) ExecContext(_ context.Context, _ string, _ []driver.NamedValue) (driver.Result, error) {
+	return c.driver.nextExecResult()
 }
 
 func (c *queuedRouteConn) QueryContext(_ context.Context, _ string, _ []driver.NamedValue) (driver.Rows, error) {
 	return c.driver.nextQueryRows()
+}
+
+func (tx queuedRouteTx) Commit() error {
+	return nil
+}
+
+func (tx queuedRouteTx) Rollback() error {
+	return nil
+}
+
+func (tx queuedRouteTx) ExecContext(_ context.Context, _ string, _ []driver.NamedValue) (driver.Result, error) {
+	return tx.driver.nextExecResult()
+}
+
+func (tx queuedRouteTx) QueryContext(_ context.Context, _ string, _ []driver.NamedValue) (driver.Rows, error) {
+	return tx.driver.nextQueryRows()
 }
 
 type queuedRouteRows struct {
@@ -502,7 +555,7 @@ func TestHandleGetTaskReturnsRecoveryMetadata(t *testing.T) {
 		},
 	}
 
-	db, queued := newQueuedRouteDB(t, queuedRouteQueryExpectation{
+	db, queued := newQueuedRouteDB(t, []queuedRouteQueryExpectation{{
 		columns: []string{
 			"task_id", "tenant_id", "status", "runtime_id", "runtime_endpoint",
 			"task_definition", "last_checkpoint", "execution_envelope", "execution_receipt",
@@ -524,7 +577,7 @@ func TestHandleGetTaskReturnsRecoveryMetadata(t *testing.T) {
 			&completedAt,
 			createdAt,
 		)},
-	})
+	}})
 
 	app := fiber.New()
 	app.Use(func(c *fiber.Ctx) error {
@@ -572,11 +625,12 @@ func TestHandleListTasksIncludesLifecycleDurabilityAndRecovery(t *testing.T) {
 	taskID := uuid.New()
 
 	db, queued := newQueuedRouteDB(t,
-		queuedRouteQueryExpectation{
+		[]queuedRouteQueryExpectation{
+			{
 			columns: []string{"task_id", "proof_status", "proof_checked_at"},
 			rows:    nil,
 		},
-		queuedRouteQueryExpectation{
+			{
 			columns: []string{
 				"task_id", "tenant_id", "status", "runtime_id", "runtime_endpoint",
 				"task_definition", "last_checkpoint", "execution_envelope", "execution_receipt",
@@ -598,6 +652,7 @@ func TestHandleListTasksIncludesLifecycleDurabilityAndRecovery(t *testing.T) {
 				nil,
 				createdAt,
 			)},
+		},
 		},
 	)
 
@@ -641,6 +696,301 @@ func TestHandleListTasksIncludesLifecycleDurabilityAndRecovery(t *testing.T) {
 		"skip_reason":         "task_canceled",
 	}, task["recovery"])
 	require.Equal(t, 0, queued.remainingQueries())
+}
+
+func TestHandleTaskCheckpointReturnsLifecycleMetadata(t *testing.T) {
+	t.Parallel()
+
+	taskID := uuid.New()
+	tenantID := "tenant-checkpoint"
+	runtimeID := "runtime-checkpoint"
+	createdAt := time.Unix(1_700_001_200, 0).UTC()
+	checkpoint := &coordinator.CheckpointPayload{
+		TaskID: taskID,
+		ResumeToken: coordinator.ResumeToken{
+			LastCommittedStep: 12,
+			CheckpointDigest:  "digest-12",
+			RuntimeID:         runtimeID,
+		},
+	}
+
+	checkpointBytes, err := json.Marshal(checkpoint)
+	require.NoError(t, err)
+
+	db, queued := newQueuedRouteDB(t,
+		[]queuedRouteQueryExpectation{
+			{
+				columns: []string{
+					"task_id", "tenant_id", "status", "runtime_id", "runtime_endpoint",
+					"task_definition", "last_checkpoint", "execution_envelope", "execution_receipt",
+					"proof_execution_id", "proof_expected_hash", "proof_stored_hash", "proof_signature", "proof_status", "proof_checked_at",
+					"idempotency_key", "failure_reason",
+					"deadline_at", "dispatched_at", "completed_at", "canceled_at", "created_at",
+				},
+				rows: [][]driver.Value{taskRecordRouteRow(
+					taskID,
+					tenantID,
+					coordinator.TaskStatusDispatched,
+					runtimeID,
+					"http://runtime.test",
+					json.RawMessage(`{"type":"behavior_tree","tree":{"root":{"type":"sequence","children":[]}}}`),
+					nil,
+					"idem-checkpoint",
+					nil,
+					nil,
+					nil,
+					createdAt,
+				)},
+			},
+			{
+				columns: []string{"last_checkpoint"},
+				rows:    [][]driver.Value{{nil}},
+			},
+			{
+				columns: []string{
+					"task_id", "tenant_id", "status", "runtime_id", "runtime_endpoint",
+					"task_definition", "last_checkpoint", "execution_envelope", "execution_receipt",
+					"proof_execution_id", "proof_expected_hash", "proof_stored_hash", "proof_signature", "proof_status", "proof_checked_at",
+					"idempotency_key", "failure_reason",
+					"deadline_at", "dispatched_at", "completed_at", "canceled_at", "created_at",
+				},
+				rows: [][]driver.Value{taskRecordRouteRow(
+					taskID,
+					tenantID,
+					coordinator.TaskStatusCheckpointed,
+					runtimeID,
+					"http://runtime.test",
+					json.RawMessage(`{"type":"behavior_tree","tree":{"root":{"type":"sequence","children":[]}}}`),
+					checkpoint,
+					"idem-checkpoint",
+					nil,
+					nil,
+					nil,
+					createdAt,
+				)},
+			},
+		},
+		queuedRouteExecExpectation{rowsAffected: 1},
+		queuedRouteExecExpectation{rowsAffected: 1},
+	)
+
+	app := fiber.New()
+	app.Use(func(c *fiber.Ctx) error {
+		c.Locals("clerk_user_id", tenantID)
+		return c.Next()
+	})
+	app.Post("/v1/tasks/:id/checkpoint", handleTaskCheckpoint(coordinator.NewTaskCoordinator(db)))
+
+	req := httptest.NewRequest(http.MethodPost, "/v1/tasks/"+taskID.String()+"/checkpoint", strings.NewReader(string(checkpointBytes)))
+	req.Header.Set("Content-Type", "application/json")
+	resp, err := app.Test(req)
+	require.NoError(t, err)
+	require.Equal(t, http.StatusOK, resp.StatusCode)
+
+	var body map[string]any
+	require.NoError(t, json.NewDecoder(resp.Body).Decode(&body))
+	require.Equal(t, true, body["ok"])
+	require.EqualValues(t, 12, body["step"])
+	require.Equal(t, "checkpointed", body["status"])
+	require.Equal(t, "digest-12", body["checkpoint_digest"])
+	require.Equal(t, map[string]any{
+		"terminal":                    false,
+		"runtime_mutation_allowed":    true,
+		"dispatch_allowed":            false,
+		"recovery_redispatch_allowed": false,
+		"cancellation_allowed":        true,
+	}, body["lifecycle"])
+	require.Equal(t, map[string]any{
+		"redispatch_eligible": false,
+	}, body["recovery"])
+	require.Equal(t, 0, queued.remainingQueries())
+	require.Equal(t, 0, queued.remainingExecs())
+}
+
+func TestHandleTaskCompleteReturnsLifecycleMetadata(t *testing.T) {
+	t.Parallel()
+
+	taskID := uuid.New()
+	tenantID := "tenant-complete"
+	runtimeID := "runtime-complete"
+	createdAt := time.Unix(1_700_001_300, 0).UTC()
+	completedAt := createdAt.Add(30 * time.Second)
+
+	db, queued := newQueuedRouteDB(t,
+		[]queuedRouteQueryExpectation{
+			{
+				columns: []string{
+					"task_id", "tenant_id", "status", "runtime_id", "runtime_endpoint",
+					"task_definition", "last_checkpoint", "execution_envelope", "execution_receipt",
+					"proof_execution_id", "proof_expected_hash", "proof_stored_hash", "proof_signature", "proof_status", "proof_checked_at",
+					"idempotency_key", "failure_reason",
+					"deadline_at", "dispatched_at", "completed_at", "canceled_at", "created_at",
+				},
+				rows: [][]driver.Value{taskRecordRouteRow(
+					taskID,
+					tenantID,
+					coordinator.TaskStatusCheckpointed,
+					runtimeID,
+					"http://runtime.test",
+					json.RawMessage(`{"type":"robotics_workflow","steps":[{"step_index":1,"action":"publish_zero_velocity"}]}`),
+					nil,
+					"idem-complete",
+					nil,
+					nil,
+					nil,
+					createdAt,
+				)},
+			},
+			{
+				columns: []string{
+					"task_id", "tenant_id", "status", "runtime_id", "runtime_endpoint",
+					"task_definition", "last_checkpoint", "execution_envelope", "execution_receipt",
+					"proof_execution_id", "proof_expected_hash", "proof_stored_hash", "proof_signature", "proof_status", "proof_checked_at",
+					"idempotency_key", "failure_reason",
+					"deadline_at", "dispatched_at", "completed_at", "canceled_at", "created_at",
+				},
+				rows: [][]driver.Value{taskRecordRouteRow(
+					taskID,
+					tenantID,
+					coordinator.TaskStatusCompleted,
+					runtimeID,
+					"http://runtime.test",
+					json.RawMessage(`{"type":"robotics_workflow","steps":[{"step_index":1,"action":"publish_zero_velocity"}]}`),
+					nil,
+					"idem-complete",
+					nil,
+					nil,
+					&completedAt,
+					createdAt,
+				)},
+			},
+		},
+		queuedRouteExecExpectation{rowsAffected: 1},
+	)
+
+	app := fiber.New()
+	app.Use(func(c *fiber.Ctx) error {
+		c.Locals("clerk_user_id", tenantID)
+		return c.Next()
+	})
+	app.Post("/v1/tasks/:id/complete", handleTaskComplete(coordinator.NewTaskCoordinator(db)))
+
+	req := httptest.NewRequest(http.MethodPost, "/v1/tasks/"+taskID.String()+"/complete", nil)
+	resp, err := app.Test(req)
+	require.NoError(t, err)
+	require.Equal(t, http.StatusOK, resp.StatusCode)
+
+	var body map[string]any
+	require.NoError(t, json.NewDecoder(resp.Body).Decode(&body))
+	require.Equal(t, true, body["ok"])
+	require.Equal(t, "completed", body["status"])
+	require.Equal(t, map[string]any{
+		"terminal":                    true,
+		"runtime_mutation_allowed":    false,
+		"dispatch_allowed":            false,
+		"recovery_redispatch_allowed": false,
+		"cancellation_allowed":        false,
+	}, body["lifecycle"])
+	require.Equal(t, map[string]any{
+		"redispatch_eligible": false,
+		"skip_reason":         "task_completed",
+	}, body["recovery"])
+	require.Equal(t, 0, queued.remainingQueries())
+	require.Equal(t, 0, queued.remainingExecs())
+}
+
+func TestHandleTaskFailedReturnsRecoveryMetadata(t *testing.T) {
+	t.Parallel()
+
+	taskID := uuid.New()
+	tenantID := "tenant-failed"
+	runtimeID := "runtime-failed"
+	createdAt := time.Unix(1_700_001_400, 0).UTC()
+	failureReason := "runtime surfaced late failure"
+
+	db, queued := newQueuedRouteDB(t,
+		[]queuedRouteQueryExpectation{
+			{
+				columns: []string{
+					"task_id", "tenant_id", "status", "runtime_id", "runtime_endpoint",
+					"task_definition", "last_checkpoint", "execution_envelope", "execution_receipt",
+					"proof_execution_id", "proof_expected_hash", "proof_stored_hash", "proof_signature", "proof_status", "proof_checked_at",
+					"idempotency_key", "failure_reason",
+					"deadline_at", "dispatched_at", "completed_at", "canceled_at", "created_at",
+				},
+				rows: [][]driver.Value{taskRecordRouteRow(
+					taskID,
+					tenantID,
+					coordinator.TaskStatusRecovering,
+					runtimeID,
+					"http://runtime.test",
+					json.RawMessage(`{"type":"behavior_tree","tree":{"root":{"type":"sequence","children":[]}}}`),
+					nil,
+					"idem-failed",
+					nil,
+					nil,
+					nil,
+					createdAt,
+				)},
+			},
+			{
+				columns: []string{
+					"task_id", "tenant_id", "status", "runtime_id", "runtime_endpoint",
+					"task_definition", "last_checkpoint", "execution_envelope", "execution_receipt",
+					"proof_execution_id", "proof_expected_hash", "proof_stored_hash", "proof_signature", "proof_status", "proof_checked_at",
+					"idempotency_key", "failure_reason",
+					"deadline_at", "dispatched_at", "completed_at", "canceled_at", "created_at",
+				},
+				rows: [][]driver.Value{taskRecordRouteRow(
+					taskID,
+					tenantID,
+					coordinator.TaskStatusFailed,
+					runtimeID,
+					"http://runtime.test",
+					json.RawMessage(`{"type":"behavior_tree","tree":{"root":{"type":"sequence","children":[]}}}`),
+					nil,
+					"idem-failed",
+					&failureReason,
+					nil,
+					nil,
+					createdAt,
+				)},
+			},
+		},
+		queuedRouteExecExpectation{rowsAffected: 1},
+	)
+
+	app := fiber.New()
+	app.Use(func(c *fiber.Ctx) error {
+		c.Locals("clerk_user_id", tenantID)
+		return c.Next()
+	})
+	app.Post("/v1/tasks/:id/failed", handleTaskFailed(coordinator.NewTaskCoordinator(db)))
+
+	req := httptest.NewRequest(http.MethodPost, "/v1/tasks/"+taskID.String()+"/failed", strings.NewReader(`{"reason":"`+failureReason+`"}`))
+	req.Header.Set("Content-Type", "application/json")
+	resp, err := app.Test(req)
+	require.NoError(t, err)
+	require.Equal(t, http.StatusOK, resp.StatusCode)
+
+	var body map[string]any
+	require.NoError(t, json.NewDecoder(resp.Body).Decode(&body))
+	require.Equal(t, true, body["ok"])
+	require.Equal(t, "failed", body["status"])
+	require.Equal(t, failureReason, body["failure_reason"])
+	require.Equal(t, map[string]any{
+		"terminal":                    true,
+		"runtime_mutation_allowed":    false,
+		"dispatch_allowed":            false,
+		"recovery_redispatch_allowed": false,
+		"cancellation_allowed":        false,
+	}, body["lifecycle"])
+	require.Equal(t, map[string]any{
+		"redispatch_eligible": false,
+		"skip_reason":         "task_failed",
+	}, body["recovery"])
+	require.Equal(t, 0, queued.remainingQueries())
+	require.Equal(t, 0, queued.remainingExecs())
 }
 
 func TestBuildTaskLifecycleResponse(t *testing.T) {
