@@ -1,0 +1,55 @@
+---
+title: "MCP"
+description: "Context Engineering → · MCP Server → · API Reference →"
+---
+
+# MCP
+
+MCP is the structured context layer in Igris. Use it when context belongs to the operating
+environment and must move between tools, agents, sessions, or runtimes without becoming
+accidental prompt state.
+
+This section documents MCP as part of the product contract. Start with the overview pages below if
+you are orienting yourself, then move to the transport and integration guides when you are shaping
+production workflows.
+
+## Guide Pages
+
+- [MCP Server](/docs/mcp-server): customer-facing transport and method model
+- [MCP Swarm Mode](/docs/mcp-swarm): how shared context behaves in multi-agent execution
+- [MCP Integration Patterns](/docs/mcp-integration-patterns): practical patterns for durable, auditable context usage
+
+## Transport Surfaces
+
+- [`POST /v1/mcp`](/docs/mcp-server): hosted transport for customer-facing MCP requests
+- [`POST /v1/mcp/stream`](/docs/mcp-server): streaming transport when MCP exchange needs incremental output
+
+## Method Families
+
+### Session and Transport
+
+- initialize session state
+- advertise capabilities
+- establish request and response shape
+
+### Context and Resource Operations
+
+- list available context resources
+- read resource content
+- push or refresh context into the shared working surface
+
+### Tooling and Agent Workflows
+
+- expose tools to participating agents
+- share execution context across swarm members
+- coordinate working context without confusing it with receipts or durable checkpoints
+
+## How MCP Fits In
+
+Use MCP for shared working context. Use durable tasks for long-running progress. Use receipts for
+audit evidence. Keeping those three concerns separate is what makes the system understandable and
+operable at scale.
+
+---
+
+[Context Engineering →](/docs/context-engineering) · [MCP Server →](/docs/mcp-server) · [API Reference →](/docs/api-reference)
