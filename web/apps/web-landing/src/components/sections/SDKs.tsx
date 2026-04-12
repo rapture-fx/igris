@@ -293,7 +293,7 @@ const btreeExamples: Record<Language, string[]> = {
   ],
 }
 
-function CodeBlock({ code, language }: { code: string[]; language: Language }) {
+function CopyButton({ code }: { code: string[] }) {
   const [copied, setCopied] = useState(false)
 
   const copy = () => {
@@ -303,23 +303,28 @@ function CodeBlock({ code, language }: { code: string[]; language: Language }) {
   }
 
   return (
-    <div className="relative font-mono" style={{ fontSize: '0.8125rem' }}>
-      <button
-        onClick={copy}
-        className="absolute top-2 right-2 z-10 p-1.5 rounded transition-colors hover:bg-gray-200 dark:hover:bg-gray-700"
-        title={copied ? 'Copied' : 'Copy'}
-      >
-        {copied ? (
-          <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2.5" strokeLinecap="round" strokeLinejoin="round" className="text-gray-500 dark:text-gray-400">
-            <polyline points="20 6 9 17 4 12" />
-          </svg>
-        ) : (
-          <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round" className="text-gray-400 dark:text-gray-500">
-            <rect x="9" y="9" width="13" height="13" rx="2" ry="2" />
-            <path d="M5 15H4a2 2 0 0 1-2-2V4a2 2 0 0 1 2-2h9a2 2 0 0 1 2 2v1" />
-          </svg>
-        )}
-      </button>
+    <button
+      onClick={copy}
+      className="absolute top-3 right-3 z-10 p-1.5 rounded transition-colors hover:bg-gray-200 dark:hover:bg-gray-700"
+      title={copied ? 'Copied' : 'Copy'}
+    >
+      {copied ? (
+        <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2.5" strokeLinecap="round" strokeLinejoin="round" className="text-gray-500 dark:text-gray-400">
+          <polyline points="20 6 9 17 4 12" />
+        </svg>
+      ) : (
+        <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round" className="text-gray-400 dark:text-gray-500">
+          <rect x="9" y="9" width="13" height="13" rx="2" ry="2" />
+          <path d="M5 15H4a2 2 0 0 1-2-2V4a2 2 0 0 1 2-2h9a2 2 0 0 1 2 2v1" />
+        </svg>
+      )}
+    </button>
+  )
+}
+
+function CodeBlock({ code, language }: { code: string[]; language: Language }) {
+  return (
+    <div className="font-mono" style={{ fontSize: '0.8125rem' }}>
       <div className="leading-relaxed overflow-x-auto scrollbar-hide" style={{ scrollbarWidth: 'none', msOverflowStyle: 'none' }}>
         {code.map((line, i) => (
           <div key={i} className="whitespace-pre">
@@ -448,6 +453,7 @@ export default function SDKs() {
             {/* Col 2 - Code */}
             <div className="relative min-h-[240px] md:min-h-0">
               <div className="absolute top-2 bottom-2 left-2 right-0 rounded-2xl border border-gray-200 dark:border-[#f6f6f4]/8 bg-[#f9f9fa] dark:bg-[#1b1912]/60 p-4 overflow-hidden">
+                <CopyButton code={codeExamples[selectedLang]} />
                 <div className="h-full overflow-y-auto scrollbar-hide" style={{ scrollbarWidth: 'none', msOverflowStyle: 'none' }}>
                   <CodeBlock code={codeExamples[selectedLang]} language={selectedLang} />
                 </div>
@@ -490,6 +496,7 @@ export default function SDKs() {
             {/* Col 2 - Code */}
             <div className="relative min-h-[240px] md:min-h-0">
               <div className="absolute top-2 bottom-2 left-2 right-0 rounded-2xl border border-gray-200 dark:border-[#f6f6f4]/8 bg-[#f9f9fa] dark:bg-[#1b1912]/60 p-4 overflow-hidden">
+                <CopyButton code={btreeExamples[selectedLang]} />
                 <div className="h-full overflow-y-auto scrollbar-hide" style={{ scrollbarWidth: 'none', msOverflowStyle: 'none' }}>
                   <CodeBlock code={btreeExamples[selectedLang]} language={selectedLang} />
                 </div>
