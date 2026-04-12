@@ -1,9 +1,11 @@
 package coordinator
 
 import (
+	"database/sql/driver"
 	"encoding/json"
 	"testing"
 
+	"github.com/google/uuid"
 	"github.com/stretchr/testify/require"
 )
 
@@ -58,6 +60,35 @@ func TestNormalizePublicTaskDefinitionRejectsStreamingSingleInference(t *testing
 	_, err := normalizePublicTaskDefinition("single_inference", raw)
 	require.ErrorIs(t, err, ErrInvalidTaskDefinition)
 	require.Contains(t, err.Error(), "single_inference.stream=true is not supported on Overture durable tasks")
+}
+
+func TestHandleRecoverySkipMarksLegacyStreamingTaskFailed(t *testing.T) {
+	t.Parallel()
+
+	db, queued := newQueuedExecDB(t, queuedExecExpectation{rowsAffected: 1})
+	tc := &TaskCoordinator{store: NewCheckpointStore(db)}
+	taskID := uuid.New()
+
+	tc.handleRecoverySkip(taskID, &TaskRecord{
+		Status:         TaskStatusRecovering,
+		TaskDefinition: json.RawMessage(`{"type":"single_inference","model":"gpt-4.1-mini","messages":[{"role":"user","content":"hello"}],"stream":true}`),
+	}, "streaming_resume_unsupported")
+
+	require.Equal(t, 0, queued.remainingExecs())
+}
+
+func TestHandleRecoverySkipDoesNotMarkNonRecoveringTaskFailed(t *testing.T) {
+	t.Parallel()
+
+	db, queued := newQueuedCheckpointDB(t, []queuedQueryExpectation{{values: []driver.Value{nil}}})
+	tc := &TaskCoordinator{store: NewCheckpointStore(db)}
+
+	tc.handleRecoverySkip(uuid.New(), &TaskRecord{
+		Status:         TaskStatusFailed,
+		TaskDefinition: json.RawMessage(`{"type":"single_inference","model":"gpt-4.1-mini","messages":[{"role":"user","content":"hello"}],"stream":true}`),
+	}, "streaming_resume_unsupported")
+
+	require.Equal(t, 0, queued.remainingExecs())
 }
 
 func TestNormalizePublicTaskDefinitionValidatesRoboticsWorkflow(t *testing.T) {
