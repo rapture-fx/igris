@@ -1,7 +1,7 @@
 const fs = require('fs');
 const path = require('path');
 
-const { bannedPatterns, docsDir, generatedDir, repoRoot } = require('./docs-data');
+const { bannedPatterns, docsDir, generatedDir, repoRoot, sdkSupport } = require('./docs-data');
 
 function walk(dir, files = []) {
   for (const entry of fs.readdirSync(dir, { withFileTypes: true })) {
@@ -110,7 +110,17 @@ function main() {
   }
 
   const sdkPage = fs.readFileSync(path.join(docsDir, 'sdk.mdx'), 'utf8');
-  if (!sdkPage.includes('first-class SDKs today are JavaScript/TypeScript, Go, and Rust')) {
+  const normalizeLanguage = (language) => language.replace(/\s*\/\s*/g, '/');
+  const firstClassLanguages = (sdkSupport.rows ?? [])
+    .filter((row) => row.status === 'first-class')
+    .map((row) => normalizeLanguage(row.language));
+  const openAICompatibleLanguages = (sdkSupport.rows ?? [])
+    .filter((row) => row.status === 'openai-compatible')
+    .map((row) => row.language);
+
+  const mentionsAllFirstClass = firstClassLanguages.every((language) => sdkPage.includes(language));
+  const mentionsOpenAICompatible = openAICompatibleLanguages.every((language) => sdkPage.includes(language));
+  if (!mentionsAllFirstClass || !mentionsOpenAICompatible || !sdkPage.includes('OpenAI-compatible')) {
     failures.push('sdk.mdx must state the current first-class SDK support clearly.');
   }
   if (!sdkPage.includes('## Support Policy')) {
