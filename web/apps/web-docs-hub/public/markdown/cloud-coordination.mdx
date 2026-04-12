@@ -1,0 +1,97 @@
+---
+title: "Cloud Coordination"
+description: "Overture is the cloud control plane for routing, fleet registration, receipts, and account-scoped policy."
+---
+
+# Cloud Coordination
+
+Overture is the cloud control plane for routing, fleet registration, receipts, and account-scoped policy.
+
+---
+
+## Routing
+
+At request time, Overture can route inference across the configured providers and maintain provider statistics such as latency and recent request outcomes.
+
+Customer-visible routing endpoints in the current build include:
+
+- `GET /v1/routing/stats`
+- `GET /v1/routing/recent`
+- `GET /v1/routing/leaderboard`
+- `POST /v1/routing/strategy`
+
+Preview routing endpoints also exist for speculative routing and advisor configuration. See [API Reference](/docs/api-reference) for the exact current contract.
+
+---
+
+## BYOK Vault
+
+The current public vault handler accepts these provider identifiers:
+
+- `openai`
+- `anthropic`
+- `benchmark`
+
+For customer traffic, use `openai` or `anthropic`.
+
+```bash
+curl -X POST https://overture.igrisinertial.com/v1/vault/keys \
+  -H "Authorization: Bearer YOUR_IGRIS_API_KEY" \
+  -H "Content-Type: application/json" \
+  -d '{
+    "provider": "openai",
+    "key_name": "production",
+    "api_key": "YOUR_OPENAI_KEY"
+  }'
+```
+
+---
+
+## Fleet Registration
+
+Runtime instances coordinate with Overture through the `/api/v1/runtime/*` contract.
+
+The stock runtime attempts registration on startup only when:
+
+- `IGRIS_LICENSE_KEY` is present and validates
+- `IGRIS_API_KEY` is present
+
+If you are implementing your own runtime launcher, the registration payload must match the current API:
+
+```bash
+curl -X POST https://overture.igrisinertial.com/api/v1/runtime/register \
+  -H "Authorization: Bearer YOUR_IGRIS_API_KEY" \
+  -H "Content-Type: application/json" \
+  -d '{
+    "machine_id": "edge-gateway-01",
+    "hostname": "edge-gateway-01",
+    "platform": "linux-amd64",
+    "runtime_version": "1.6.0",
+    "endpoint": "http://192.168.1.100:8080"
+  }'
+```
+
+Related endpoints:
+
+- `POST /api/v1/runtime/heartbeat`
+- `DELETE /api/v1/runtime/deregister`
+- `GET /api/v1/runtime/commands`
+- `GET /api/v1/runtime/list`
+
+---
+
+## Receipts And Audit
+
+The coordination layer is where customer-facing receipt queries currently live:
+
+- `GET /v1/receipts`
+- `GET /v1/receipts/:id`
+- `GET /v1/receipts/export`
+- `GET /proof/receipts`
+- `POST /proof/receipts/verify`
+
+Use these endpoints for customer audit workflows rather than assuming a separate local receipts listing API exists on the runtime.
+
+---
+
+[Semantic Routing →](/docs/semantic-routing) · [Licensing & Activation →](/docs/licensing-activation) · [Fleet Management →](/docs/fleet-management) · [Execution Receipts →](/docs/execution-receipts)
