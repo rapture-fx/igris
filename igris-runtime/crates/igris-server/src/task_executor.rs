@@ -25,7 +25,7 @@ use tracing::{error, info, warn};
 use uuid::Uuid;
 
 use igris_wal::{CheckpointPayload, ResumeToken, StepType, WalEntry, WalLog};
-use igris_core::storage::TASK_SUBMISSIONS;
+use igris_core::storage::{TASK_SUBMISSIONS, TASK_SUBMISSION_STATUS_BY_TASK_ID};
 use igris_routing::Provider;
 use igris_btree::{
     core::{BTreeContext, BtWalSession},
@@ -1418,18 +1418,20 @@ pub async fn handle_task_cancel(
     Path(task_id): Path<Uuid>,
 ) -> impl IntoResponse {
     let canceled = signal_task_cancellation(&state, task_id);
-    let status = if canceled {
-        StatusCode::ACCEPTED
+    let persisted = if canceled {
+        None
     } else {
-        StatusCode::NOT_FOUND
+        state
+            .storage
+            .get::<TaskSubmitResponse>(TASK_SUBMISSION_STATUS_BY_TASK_ID, &task_status_key(task_id))
+            .ok()
+            .flatten()
     };
+    let (status, payload) = build_task_cancel_response(task_id, canceled, persisted.as_ref());
 
     (
         status,
-        Json(serde_json::json!({
-            "task_id": task_id,
-            "canceled": canceled,
-        })),
+        Json(payload),
     )
 }
 
@@ -1659,6 +1661,10 @@ fn submission_key(tenant_id: &str, idempotency_key: &str) -> String {
     format!("{}:{}", tenant_id, idempotency_key)
 }
 
+fn task_status_key(task_id: Uuid) -> String {
+    task_id.to_string()
+}
+
 fn persist_task_record(
     state: &AppState,
     submission_key: &str,
@@ -1672,6 +1678,64 @@ fn persist_task_record(
             request_hash: request_hash.to_string(),
             response: response.clone(),
         },
+    )?;
+    state.storage.set(
+        TASK_SUBMISSION_STATUS_BY_TASK_ID,
+        &task_status_key(response.task_id),
+        response,
+    )
+}
+
+fn build_task_cancel_response(
+    task_id: Uuid,
+    canceled: bool,
+    persisted: Option<&TaskSubmitResponse>,
+) -> (StatusCode, serde_json::Value) {
+    if canceled {
+        return (
+            StatusCode::ACCEPTED,
+            serde_json::json!({
+                "task_id": task_id,
+                "canceled": true,
+                "known": true,
+                "active_execution": true,
+                "cancellation_allowed": true,
+                "reason": "cancel_signaled",
+            }),
+        );
+    }
+
+    if let Some(response) = persisted {
+        let reason = match response.status {
+            TaskStatus::Completed => "task_execution_completed",
+            TaskStatus::Checkpointed { .. } => "task_execution_checkpointed",
+            TaskStatus::Failed { .. } => "task_execution_failed",
+        };
+        return (
+            StatusCode::CONFLICT,
+            serde_json::json!({
+                "task_id": task_id,
+                "canceled": false,
+                "known": true,
+                "active_execution": false,
+                "cancellation_allowed": false,
+                "reason": reason,
+                "status": response.status,
+                "checkpoint_persisted": response.checkpoint.is_some(),
+            }),
+        );
+    }
+
+    (
+        StatusCode::NOT_FOUND,
+        serde_json::json!({
+            "task_id": task_id,
+            "canceled": false,
+            "known": false,
+            "active_execution": false,
+            "cancellation_allowed": false,
+            "reason": "task_execution_not_found",
+        }),
     )
 }
 
