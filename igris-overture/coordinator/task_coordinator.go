@@ -10,6 +10,7 @@ import (
 	"encoding/json"
 	"errors"
 	"fmt"
+	"io"
 	"net/http"
 	"strings"
 	"time"
@@ -269,6 +270,17 @@ func (tc *TaskCoordinator) dispatchToRuntime(ctx context.Context, task *TaskReco
 		tc.handleDispatchFailure(ctx, task, resp, nil)
 		return
 	}
+	if resp.StatusCode >= 400 {
+		raw, _ := io.ReadAll(io.LimitReader(resp.Body, 4096))
+		reason := runtimeTaskSubmitFailureReason(resp.StatusCode, raw)
+		log.Warn().
+			Int("status", resp.StatusCode).
+			Str("task_id", task.TaskID.String()).
+			Str("reason", reason).
+			Msg("[Coordinator] Runtime rejected durable task submission")
+		_ = tc.store.MarkFailed(task.TaskID, reason)
+		return
+	}
 
 	// Parse the response — runtime may include a checkpoint or final result.
 	var result taskSubmitResult
@@ -313,6 +325,33 @@ type taskSubmitResult struct {
 	FailureReason     string             `json:"reason,omitempty"` // matches Rust TaskStatus::Failed { reason }
 	ExecutionEnvelope json.RawMessage    `json:"execution_envelope,omitempty"`
 	ExecutionReceipt  json.RawMessage    `json:"execution_receipt,omitempty"`
+}
+
+func runtimeTaskSubmitFailureReason(statusCode int, raw []byte) string {
+	type runtimeErrorEnvelope struct {
+		Error struct {
+			Message string `json:"message"`
+			Type    string `json:"type"`
+		} `json:"error"`
+	}
+
+	var payload runtimeErrorEnvelope
+	if err := json.Unmarshal(raw, &payload); err == nil {
+		switch {
+		case payload.Error.Type != "" && payload.Error.Message != "":
+			return fmt.Sprintf("runtime submit rejected (%s): %s", payload.Error.Type, payload.Error.Message)
+		case payload.Error.Message != "":
+			return fmt.Sprintf("runtime submit rejected: %s", payload.Error.Message)
+		case payload.Error.Type != "":
+			return fmt.Sprintf("runtime submit rejected (%s)", payload.Error.Type)
+		}
+	}
+
+	body := strings.TrimSpace(string(raw))
+	if body != "" {
+		return fmt.Sprintf("runtime submit rejected with status %d: %s", statusCode, body)
+	}
+	return fmt.Sprintf("runtime submit rejected with status %d", statusCode)
 }
 
 // recoverFailedRuntimes scans for runtimes with stale heartbeats, marks their
