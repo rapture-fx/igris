@@ -2,6 +2,9 @@ package api
 
 import (
 	"encoding/json"
+	"net/http"
+	"net/http/httptest"
+	"strings"
 	"testing"
 	"time"
 
@@ -286,6 +289,36 @@ func TestBuildTaskAcceptedResponse(t *testing.T) {
 	require.Equal(t, fiber.Map{
 		"redispatch_eligible": false,
 	}, resp["recovery"])
+}
+
+func TestHandleTaskSubmitRejectsStreamingSingleInferenceDefinition(t *testing.T) {
+	t.Parallel()
+
+	app := fiber.New()
+	app.Use(func(c *fiber.Ctx) error {
+		c.Locals("clerk_user_id", "tenant-1")
+		return c.Next()
+	})
+	app.Post("/v1/tasks/submit", handleTaskSubmit(&coordinator.TaskCoordinator{}))
+
+	req := httptest.NewRequest(http.MethodPost, "/v1/tasks/submit", strings.NewReader(`{
+		"task_type":"single_inference",
+		"task_definition":{
+			"model":"gpt-4.1-mini",
+			"messages":[{"role":"user","content":"hello"}],
+			"stream":true
+		}
+	}`))
+	req.Header.Set("Content-Type", "application/json")
+
+	resp, err := app.Test(req)
+	require.NoError(t, err)
+	require.Equal(t, http.StatusBadRequest, resp.StatusCode)
+
+	var body map[string]any
+	require.NoError(t, json.NewDecoder(resp.Body).Decode(&body))
+	require.Equal(t, "invalid_task_definition", body["error"])
+	require.Contains(t, body["message"], "single_inference.stream=true is not supported on Overture durable tasks")
 }
 
 func TestBuildTaskCanceledResponse(t *testing.T) {
