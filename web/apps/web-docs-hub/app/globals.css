@@ -4,8 +4,8 @@
 
 @layer base {
   :root {
-    --fd-layout-width: 104rem;
-    --fd-page-width: 82rem;
+    --fd-layout-width: 101rem;
+    --fd-page-width: 79rem;
   }
 
   html {
@@ -129,6 +129,18 @@
   #nd-sidebar,
   #nd-sidebar-mobile {
     font-size: 0.78rem;
+  }
+
+  @media (min-width: 48rem) {
+    #nd-docs-layout {
+      --fd-sidebar-width: 252px;
+    }
+  }
+
+  @media (min-width: 64rem) {
+    #nd-docs-layout {
+      --fd-sidebar-width: 268px;
+    }
   }
 
   #nd-sidebar a,
