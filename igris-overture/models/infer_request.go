@@ -8,9 +8,9 @@ import (
 
 // Message represents a chat message in the inference request
 type Message struct {
-	Role         string        `json:"role"`                      // "system", "user", "assistant"
-	Content      string        `json:"content"`                   // Text-only content (backward compatible)
-	ContentParts []ContentPart `json:"content_parts,omitempty"`   // Multimodal content parts
+	Role         string        `json:"role"`                    // "system", "user", "assistant"
+	Content      string        `json:"content"`                 // Text-only content (backward compatible)
+	ContentParts []ContentPart `json:"content_parts,omitempty"` // Multimodal content parts
 }
 
 // ContentPart represents a single part of multimodal content
@@ -60,27 +60,28 @@ func (m *Message) IsMultimodal() bool {
 // Compatible with OpenAI and Anthropic chat completion formats
 type InferRequest struct {
 	// Core fields
-	Model    string    `json:"model"`              // Model identifier (e.g., "gpt-4", "claude-3-opus")
-	Messages []Message `json:"messages"`           // Conversation messages
-	Stream   bool      `json:"stream,omitempty"`   // Enable streaming responses
+	Model    string    `json:"model"`            // Model identifier (e.g., "gpt-4", "claude-3-opus")
+	Messages []Message `json:"messages"`         // Conversation messages
+	Stream   bool      `json:"stream,omitempty"` // Enable streaming responses
 
 	// Generation parameters
-	MaxTokens        int      `json:"max_tokens,omitempty"`         // Maximum tokens to generate
-	Temperature      float64  `json:"temperature,omitempty"`        // Sampling temperature (0.0-2.0)
-	TopP             float64  `json:"top_p,omitempty"`              // Nucleus sampling threshold
-	TopK             int      `json:"top_k,omitempty"`              // Top-K sampling (Anthropic)
-	PresencePenalty  float64  `json:"presence_penalty,omitempty"`   // Presence penalty (OpenAI)
-	FrequencyPenalty float64  `json:"frequency_penalty,omitempty"`  // Frequency penalty (OpenAI)
-	Stop             []string `json:"stop,omitempty"`               // Stop sequences
+	MaxTokens        int      `json:"max_tokens,omitempty"`        // Maximum tokens to generate
+	Temperature      float64  `json:"temperature,omitempty"`       // Sampling temperature (0.0-2.0)
+	TopP             float64  `json:"top_p,omitempty"`             // Nucleus sampling threshold
+	TopK             int      `json:"top_k,omitempty"`             // Top-K sampling (Anthropic)
+	PresencePenalty  float64  `json:"presence_penalty,omitempty"`  // Presence penalty (OpenAI)
+	FrequencyPenalty float64  `json:"frequency_penalty,omitempty"` // Frequency penalty (OpenAI)
+	Stop             []string `json:"stop,omitempty"`              // Stop sequences
 
 	// Routing and optimization (Igris-engine specific)
-	Policy          *PolicyOverride    `json:"policy,omitempty"`           // Routing policy override
-	EnableCaching   bool               `json:"enable_caching,omitempty"`   // Enable response caching
-	CacheTTL        int                `json:"cache_ttl,omitempty"`        // Cache TTL in seconds
-	PreferredRegion string             `json:"preferred_region,omitempty"` // Preferred edge region
-	SpeculativeMode string             `json:"speculative_mode,omitempty"` // Speculative execution mode: "latency", "balanced", "quality", "cost", or "" (disabled)
-	CouncilMode     bool               `json:"council_mode,omitempty"`     // Council mode: Multi-model ensemble with peer ranking and chairman synthesis
-	Metadata        map[string]string  `json:"metadata,omitempty"`         // Request metadata for tracking
+	Policy              *PolicyOverride   `json:"policy,omitempty"`                // Routing policy override
+	EnableCaching       bool              `json:"enable_caching,omitempty"`        // Enable response caching
+	CacheTTL            int               `json:"cache_ttl,omitempty"`             // Cache TTL in seconds
+	PreferredRegion     string            `json:"preferred_region,omitempty"`      // Preferred edge region
+	SpeculativeMode     string            `json:"speculative_mode,omitempty"`      // Speculative execution mode: "latency", "balanced", "quality", "cost", or "" (disabled)
+	CouncilMode         bool              `json:"council_mode,omitempty"`          // Council mode: Multi-model ensemble with peer ranking and chairman synthesis
+	AllowStreamFallback bool              `json:"allow_stream_fallback,omitempty"` // Explicitly allow Overture-local fallback when runtime-backed streaming is unavailable
+	Metadata            map[string]string `json:"metadata,omitempty"`              // Request metadata for tracking
 
 	// Provider-specific extensions
 	ProviderConfig map[string]interface{} `json:"provider_config,omitempty"` // Provider-specific parameters
@@ -88,11 +89,11 @@ type InferRequest struct {
 
 // PolicyOverride allows per-request routing policy customization
 type PolicyOverride struct {
-	Provider        string  `json:"provider,omitempty"`         // Force specific provider ("openai", "anthropic", "python-adapter")
-	Region          string  `json:"region,omitempty"`           // Force specific region
-	OptimizeFor     string  `json:"optimize_for,omitempty"`     // "latency", "cost", "quality"
-	FallbackEnabled bool    `json:"fallback_enabled,omitempty"` // Enable fallback on failure
-	TimeoutMs       int     `json:"timeout_ms,omitempty"`       // Request timeout in milliseconds
+	Provider        string `json:"provider,omitempty"`         // Force specific provider ("openai", "anthropic", "python-adapter")
+	Region          string `json:"region,omitempty"`           // Force specific region
+	OptimizeFor     string `json:"optimize_for,omitempty"`     // "latency", "cost", "quality"
+	FallbackEnabled bool   `json:"fallback_enabled,omitempty"` // Enable fallback on failure
+	TimeoutMs       int    `json:"timeout_ms,omitempty"`       // Request timeout in milliseconds
 }
 
 // Validate performs validation on the InferRequest
@@ -196,19 +197,20 @@ func FromJSON(data []byte) (*InferRequest, error) {
 // Clone creates a deep copy of the InferRequest
 func (r *InferRequest) Clone() *InferRequest {
 	clone := &InferRequest{
-		Model:            r.Model,
-		Stream:           r.Stream,
-		MaxTokens:        r.MaxTokens,
-		Temperature:      r.Temperature,
-		TopP:             r.TopP,
-		TopK:             r.TopK,
-		PresencePenalty:  r.PresencePenalty,
-		FrequencyPenalty: r.FrequencyPenalty,
-		EnableCaching:    r.EnableCaching,
-		CacheTTL:         r.CacheTTL,
-		PreferredRegion:  r.PreferredRegion,
-		SpeculativeMode:  r.SpeculativeMode,
-		CouncilMode:      r.CouncilMode,
+		Model:               r.Model,
+		Stream:              r.Stream,
+		MaxTokens:           r.MaxTokens,
+		Temperature:         r.Temperature,
+		TopP:                r.TopP,
+		TopK:                r.TopK,
+		PresencePenalty:     r.PresencePenalty,
+		FrequencyPenalty:    r.FrequencyPenalty,
+		EnableCaching:       r.EnableCaching,
+		CacheTTL:            r.CacheTTL,
+		PreferredRegion:     r.PreferredRegion,
+		SpeculativeMode:     r.SpeculativeMode,
+		CouncilMode:         r.CouncilMode,
+		AllowStreamFallback: r.AllowStreamFallback,
 	}
 
 	// Deep copy messages (including ContentParts)
