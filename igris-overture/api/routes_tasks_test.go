@@ -416,8 +416,8 @@ func TestBuildTaskRecoveryResponse(t *testing.T) {
 		{
 			name: "failed streaming unsupported",
 			task: &coordinator.TaskRecord{
-				Status:        coordinator.TaskStatusFailed,
-				FailureReason: &streamingUnsupported,
+				Status:         coordinator.TaskStatusFailed,
+				FailureReason:  &streamingUnsupported,
 				TaskDefinition: json.RawMessage(`{"type":"single_inference","model":"gpt-4.1-mini","messages":[{"role":"user","content":"hello"}],"stream":true}`),
 			},
 			want: fiber.Map{
