@@ -1061,7 +1061,7 @@ func (h *InferHandler) handleStreamingInfer(c *fiber.Ctx, req *models.InferReque
 			RouteDecision: "simple_stream",
 		},
 	}
-	fallbackStreamContract().applyMetadata(response.Metadata)
+	applyStreamContractMetadata(response.Metadata, fallbackStreamContract())
 
 	// If speculative execution was used, add metadata
 	if speculativeMetadata != nil {
@@ -1104,7 +1104,7 @@ func buildRuntimeStreamingUnavailableResponse(err error) fiber.Map {
 			"message": "runtime-backed streaming is unavailable; fallback refused to preserve execution authority",
 			"type":    "stream_execution_unavailable",
 		},
-		"stream": contract.responseMap(),
+		"stream": contract.ToMap(),
 	}
 	if err != nil {
 		resp["detail"] = err.Error()
@@ -1121,7 +1121,7 @@ func setStreamingSSEHeaders(c *fiber.Ctx, traceID string) {
 }
 
 func applyRuntimeStreamContractHeaders(c *fiber.Ctx, runtimeResp *http.Response) {
-	runtimeResponseStreamContract(runtimeResp).applyHeaders(c)
+	applyStreamContractHeaders(c, runtimeResponseStreamContract(runtimeResp))
 
 	if taskID := runtimeResp.Header.Get("X-Igris-Runtime-Task-Id"); taskID != "" {
 		c.Set("X-Igris-Runtime-Task-Id", taskID)
@@ -1136,7 +1136,7 @@ func applyRuntimeStreamContractHeaders(c *fiber.Ctx, runtimeResp *http.Response)
 }
 
 func applyFallbackStreamContractHeaders(c *fiber.Ctx) {
-	fallbackStreamContract().applyHeaders(c)
+	applyStreamContractHeaders(c, fallbackStreamContract())
 }
 
 // HandleHealth handles GET /v1/health
