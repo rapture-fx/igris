@@ -91,7 +91,7 @@ export function SdkSupportMatrix() {
       {/* First-class */}
       <div>
         <SectionLabel>First-class</SectionLabel>
-        <div className="grid grid-cols-1 gap-3 sm:grid-cols-3">
+        <div className="flex flex-col gap-3">
           {firstClass.map((row) => (
             <SdkCard key={row.language} row={row} />
           ))}
@@ -101,7 +101,7 @@ export function SdkSupportMatrix() {
       {/* Preview */}
       <div>
         <SectionLabel>Preview</SectionLabel>
-        <div className="grid grid-cols-1 gap-3 sm:grid-cols-2">
+        <div className="flex flex-col gap-3">
           {preview.map((row) => (
             <SdkCard key={row.language} row={row} />
           ))}
