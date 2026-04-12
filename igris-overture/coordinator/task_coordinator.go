@@ -372,11 +372,15 @@ func (tc *TaskCoordinator) recoverRuntime(ctx context.Context, runtimeID string)
 			log.Warn().Err(err).Str("task_id", taskID.String()).Msg("[Coordinator] Could not load task state for recovery")
 			continue
 		}
-		if !TaskAllowsRecoveryRedispatch(task.Status) {
+		if skipReason := TaskRecoverySkipReason(task); skipReason != "" {
 			log.Info().
 				Str("task_id", taskID.String()).
 				Str("status", string(task.Status)).
-				Msg("[Coordinator] Skipping recovery redispatch for non-recovering task")
+				Str("skip_reason", skipReason).
+				Msg("[Coordinator] Skipping recovery redispatch")
+			if skipReason == "streaming_resume_unsupported" && task.Status == TaskStatusRecovering {
+				_ = tc.store.MarkFailed(taskID, TaskFailureReasonStreamingResumeUnsupported)
+			}
 			continue
 		}
 
@@ -454,6 +458,15 @@ func validateTaskDefinition(taskType string, definition map[string]json.RawMessa
 		}
 		if _, err := requireArrayField(definition, "messages"); err != nil {
 			return err
+		}
+		if rawStream, ok := definition["stream"]; ok {
+			var stream bool
+			if err := json.Unmarshal(rawStream, &stream); err != nil {
+				return invalidTaskDefinition("stream must be a boolean")
+			}
+			if stream {
+				return invalidTaskDefinition("single_inference.stream=true is not supported on Overture durable tasks")
+			}
 		}
 	case "agent_workflow":
 		steps, err := requireArrayField(definition, "steps")
