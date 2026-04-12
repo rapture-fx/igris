@@ -10,6 +10,15 @@ interface DocsPageActionsProps {
   pageTitle: string;
 }
 
+interface AssistantLinkSet {
+  chatgpt: string;
+  claude: string;
+  cursor: string;
+  grok: string;
+  gemini: string;
+  kimi: string;
+}
+
 function buildAssistantPrompt(pageTitle: string, pageUrl: string, markdownUrl: string): string {
   return [
     `Review this documentation page: ${pageTitle}`,
@@ -77,12 +86,17 @@ export function DocsPageActions({
     setAbsoluteMarkdownUrl(new URL(markdownUrl, window.location.origin).toString());
   }, [markdownUrl]);
 
-  const assistantLinks = useMemo(() => {
+  const assistantLinks = useMemo<AssistantLinkSet>(() => {
     const prompt = buildAssistantPrompt(pageTitle, pageUrl, absoluteMarkdownUrl);
+    const encodedPrompt = encodeURIComponent(prompt);
 
     return {
-      chatgpt: `https://chatgpt.com/?q=${encodeURIComponent(prompt)}`,
-      claude: `https://claude.ai/new?q=${encodeURIComponent(prompt)}`,
+      chatgpt: `https://chatgpt.com/?q=${encodedPrompt}`,
+      claude: `https://claude.ai/new?q=${encodedPrompt}`,
+      cursor: `https://cursor.com/link/prompt?text=${encodedPrompt}`,
+      grok: 'https://grok.com/',
+      gemini: 'https://gemini.google.com/',
+      kimi: 'https://www.kimi.com/open',
     };
   }, [absoluteMarkdownUrl, pageTitle, pageUrl]);
 
@@ -168,6 +182,42 @@ export function DocsPageActions({
               role="menuitem"
             >
               Open in Claude
+            </a>
+            <a
+              href={assistantLinks.cursor}
+              target="_blank"
+              rel="noreferrer noopener"
+              className="docs-page-action-item"
+              role="menuitem"
+            >
+              Open in Cursor
+            </a>
+            <a
+              href={assistantLinks.grok}
+              target="_blank"
+              rel="noreferrer noopener"
+              className="docs-page-action-item"
+              role="menuitem"
+            >
+              Open in Grok
+            </a>
+            <a
+              href={assistantLinks.gemini}
+              target="_blank"
+              rel="noreferrer noopener"
+              className="docs-page-action-item"
+              role="menuitem"
+            >
+              Open in Gemini
+            </a>
+            <a
+              href={assistantLinks.kimi}
+              target="_blank"
+              rel="noreferrer noopener"
+              className="docs-page-action-item"
+              role="menuitem"
+            >
+              Open in Kimi
             </a>
           </div>
         ) : null}
