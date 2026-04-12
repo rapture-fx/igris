@@ -1,0 +1,97 @@
+---
+title: "GET /v1/bt/templates"
+description: "Lists built-in behavior-tree templates. This endpoint belongs to the Behavior Trees group and is documented here so customers can understand the contract, auth model, and verified sample traffic without reading the server implementation."
+---
+
+# GET /v1/bt/templates
+
+Lists built-in behavior-tree templates. This endpoint belongs to the Behavior Trees group and is documented here so customers can understand the contract, auth model, and verified sample traffic without reading the server implementation.
+
+<div className="api-meta not-prose"><div className="api-meta-group"><span className="api-meta-label">Method</span><span className="api-badge api-method-get">GET</span></div><div className="api-meta-group"><span className="api-meta-label">Path</span><span className="api-meta-value">/v1/bt/templates</span></div><div className="api-meta-group"><span className="api-meta-label">Base URL</span><span className="api-meta-value">https://overture.igrisinertial.com</span></div><div className="api-meta-group"><span className="api-meta-label">Auth</span><span className="api-meta-value">Public</span></div><div className="api-meta-group"><span className="api-meta-label">Surface</span><span className="api-badge api-surface-cloud-api">Cloud API</span></div><div className="api-meta-group"><span className="api-meta-label">Stability</span><span className="api-badge api-stability-stable">stable</span></div><div className="api-meta-group"><span className="api-meta-label">Support</span><span className="api-badge api-support-supported">supported</span></div><div className="api-meta-group"><span className="api-meta-label">Deployment</span><span className="api-badge api-deployment-cloud">cloud</span></div></div>
+
+## When To Use
+
+Use this endpoint when you need lists built-in behavior-tree templates. from the hosted API. It is part of the Behavior Trees surface and is intended to be the customer-facing contract for that capability.
+
+## Integration Guidance
+
+Safe retries are usually reasonable for transient 5xx or 429 responses. Do not retry 4xx responses until you have fixed the request, credentials, or addressed resource.
+
+### Related Endpoints
+
+- [GET /v1/bt/definitions](/docs/api-reference/behavior-trees/get-v1-bt-definitions)
+- [GET /v1/bt/definitions/:id](/docs/api-reference/behavior-trees/get-v1-bt-definitions-id)
+- [POST /v1/bt/definitions](/docs/api-reference/behavior-trees/post-v1-bt-definitions)
+
+### Related Guides
+
+- [API Authentication](/docs/api-reference/authentication)
+- [API Errors](/docs/api-reference/errors)
+- [API Rate Limits](/docs/api-reference/rate-limits)
+
+## Code Examples
+
+### cURL
+
+```bash
+curl -X GET https://overture.igrisinertial.com/v1/bt/templates
+```
+
+### JavaScript
+
+```javascript
+const response = await fetch('https://overture.igrisinertial.com/v1/bt/templates', {
+  method: 'GET',
+  headers: {
+
+  },
+});
+
+const data = await response.text();
+console.log(data);
+```
+
+### Go
+
+```go
+client := &http.Client{}
+body := http.NoBody
+
+req, err := http.NewRequest("GET", "https://overture.igrisinertial.com/v1/bt/templates", body)
+if err != nil {
+	log.Fatal(err)
+}
+
+
+resp, err := client.Do(req)
+if err != nil {
+	log.Fatal(err)
+}
+defer resp.Body.Close()
+
+payload, _ := io.ReadAll(resp.Body)
+fmt.Println(string(payload))
+```
+
+### Rust
+
+```rust
+let client = reqwest::Client::new();
+let response = client
+        .request(reqwest::Method::GET, "https://overture.igrisinertial.com/v1/bt/templates")
+
+        .send()
+        .await?;
+
+let payload = response.text().await?;
+println!("{}", payload);
+```
+
+## Sample Response
+
+A response example is not available on this page yet.
+
+## Status Codes
+
+Status-code details are still being documented for this endpoint.
+
