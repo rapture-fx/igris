@@ -42,6 +42,7 @@ export function ReferenceMenu() {
     items.find((item) =>
       item.href === '/docs' ? pathname === '/docs' : pathname.startsWith(item.href),
     ) ?? null;
+  const triggerLabel = pathname === '/docs' ? 'Documentation' : activeItem?.label ?? 'Documentation';
 
   return (
     <div ref={ref} className="relative mb-4">
@@ -49,18 +50,18 @@ export function ReferenceMenu() {
         type="button"
         onClick={() => setOpen((value) => !value)}
         className={[
-          'relative flex w-full flex-row items-center gap-2 rounded-lg p-2 ps-(--sidebar-item-offset) text-start [overflow-wrap:anywhere] [&_svg]:size-4 [&_svg]:shrink-0',
+          'relative flex w-full flex-row items-center gap-2 rounded-lg border border-fd-border bg-fd-card/80 p-2 ps-(--sidebar-item-offset) text-start shadow-sm [overflow-wrap:anywhere] [&_svg]:size-4 [&_svg]:shrink-0',
           active
-            ? 'bg-fd-primary/10 text-fd-primary'
+            ? 'border-fd-primary/25 bg-fd-primary/10 text-fd-primary'
             : 'text-fd-muted-foreground transition-colors hover:bg-fd-accent/50 hover:text-fd-accent-foreground/80 hover:transition-none',
         ].join(' ')}
       >
-        {activeItem?.label ?? 'Reference'}
+        {triggerLabel}
         {open ? <ChevronUp className="ms-auto" /> : <ChevronDown className="ms-auto" />}
       </button>
 
       {open ? (
-        <div className="absolute left-0 right-0 z-30 mt-2 overflow-hidden rounded-xl border bg-fd-card p-1 shadow-xl">
+        <div className="absolute left-0 right-0 z-30 mt-2 overflow-hidden rounded-xl border border-fd-border bg-fd-card p-1 shadow-xl">
           {items.map((item) => {
             const itemActive =
               item.href === '/docs' ? pathname === '/docs' : pathname.startsWith(item.href);
