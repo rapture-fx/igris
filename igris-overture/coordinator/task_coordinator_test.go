@@ -4,6 +4,7 @@ import (
 	"context"
 	"database/sql/driver"
 	"encoding/json"
+	"errors"
 	"io"
 	"net/http"
 	"strings"
@@ -380,6 +381,50 @@ func TestDispatchToRuntimeIncludesRoboticsTaskDefinitionWithoutResumeFields(t *t
 	require.NotContains(t, gotBody, "resume_from")
 	require.NotContains(t, gotBody, "resume_checkpoint")
 	require.NotContains(t, gotBody, "deadline_ms")
+}
+
+func TestHandleDispatchFailureSchedulesRecoveryForTransportError(t *testing.T) {
+	t.Parallel()
+
+	runtimeID := "runtime-transport-fail"
+	taskID := uuid.New()
+	called := false
+	var gotTaskID uuid.UUID
+	var gotRuntimeID string
+
+	tc := &TaskCoordinator{recoveryHook: func(_ context.Context, incomingTaskID uuid.UUID, incomingRuntimeID string) {
+		called = true
+		gotTaskID = incomingTaskID
+		gotRuntimeID = incomingRuntimeID
+	}}
+
+	tc.handleDispatchFailure(context.Background(), &TaskRecord{
+		TaskID:    taskID,
+		RuntimeID: &runtimeID,
+	}, nil, errors.New("dial tcp timeout"))
+
+	require.True(t, called)
+	require.Equal(t, taskID, gotTaskID)
+	require.Equal(t, runtimeID, gotRuntimeID)
+}
+
+func TestHandleDispatchFailureSchedulesRecoveryForServerError(t *testing.T) {
+	t.Parallel()
+
+	runtimeID := "runtime-5xx-fail"
+	taskID := uuid.New()
+	called := false
+
+	tc := &TaskCoordinator{recoveryHook: func(_ context.Context, incomingTaskID uuid.UUID, incomingRuntimeID string) {
+		called = incomingTaskID == taskID && incomingRuntimeID == runtimeID
+	}}
+
+	tc.handleDispatchFailure(context.Background(), &TaskRecord{
+		TaskID:    taskID,
+		RuntimeID: &runtimeID,
+	}, &http.Response{StatusCode: http.StatusBadGateway}, nil)
+
+	require.True(t, called)
 }
 
 func ptrString(value string) *string {
