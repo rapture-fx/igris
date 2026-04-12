@@ -18,6 +18,7 @@ type queuedExecExpectation struct {
 }
 
 type queuedQueryExpectation struct {
+	columns []string
 	values []driver.Value
 	rows   [][]driver.Value
 	err    error
@@ -106,13 +107,17 @@ func (d *queuedExecDriver) nextQueryRows() (driver.Rows, error) {
 	if next.err != nil {
 		return nil, next.err
 	}
+	columns := next.columns
+	if len(columns) == 0 {
+		columns = []string{"last_checkpoint"}
+	}
 	if next.rows != nil {
-		return &queuedRows{columns: []string{"last_checkpoint"}, values: next.rows}, nil
+		return &queuedRows{columns: columns, values: next.rows}, nil
 	}
 	if next.values == nil {
-		return &queuedRows{columns: []string{"last_checkpoint"}}, nil
+		return &queuedRows{columns: columns}, nil
 	}
-	return &queuedRows{columns: []string{"last_checkpoint"}, values: [][]driver.Value{next.values}}, nil
+	return &queuedRows{columns: columns, values: [][]driver.Value{next.values}}, nil
 }
 
 func (d *queuedExecDriver) remainingQueries() int {
