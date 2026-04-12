@@ -698,6 +698,134 @@ func TestHandleListTasksIncludesLifecycleDurabilityAndRecovery(t *testing.T) {
 	require.Equal(t, 0, queued.remainingQueries())
 }
 
+func TestHandleGetTaskReturnsRuntimeSubmitConflictFailureReason(t *testing.T) {
+	t.Parallel()
+
+	taskID := uuid.New()
+	tenantID := "tenant-runtime-submit-conflict"
+	runtimeID := "runtime-conflict"
+	failureReason := "runtime submit rejected (checkpoint_mismatch): Checkpoint digest mismatch - WAL state diverged"
+	createdAt := time.Unix(1_700_001_150, 0).UTC()
+
+	db, queued := newQueuedRouteDB(t, []queuedRouteQueryExpectation{{
+		columns: []string{
+			"task_id", "tenant_id", "status", "runtime_id", "runtime_endpoint",
+			"task_definition", "last_checkpoint", "execution_envelope", "execution_receipt",
+			"proof_execution_id", "proof_expected_hash", "proof_stored_hash", "proof_signature", "proof_status", "proof_checked_at",
+			"idempotency_key", "failure_reason",
+			"deadline_at", "dispatched_at", "completed_at", "canceled_at", "created_at",
+		},
+		rows: [][]driver.Value{taskRecordRouteRow(
+			taskID,
+			tenantID,
+			coordinator.TaskStatusFailed,
+			runtimeID,
+			"http://runtime.test",
+			json.RawMessage(`{"type":"behavior_tree","tree":{"root":{"type":"sequence","children":[]}}}`),
+			nil,
+			"idem-runtime-submit-conflict",
+			&failureReason,
+			nil,
+			nil,
+			createdAt,
+		)},
+	}})
+
+	app := fiber.New()
+	app.Use(func(c *fiber.Ctx) error {
+		c.Locals("clerk_user_id", tenantID)
+		return c.Next()
+	})
+	app.Get("/v1/tasks/:id", handleGetTask(coordinator.NewTaskCoordinator(db)))
+
+	req := httptest.NewRequest(http.MethodGet, "/v1/tasks/"+taskID.String(), nil)
+	resp, err := app.Test(req)
+	require.NoError(t, err)
+	require.Equal(t, http.StatusOK, resp.StatusCode)
+
+	var body map[string]any
+	require.NoError(t, json.NewDecoder(resp.Body).Decode(&body))
+	require.Equal(t, "failed", body["status"])
+	require.Equal(t, failureReason, body["failure_reason"])
+	require.Equal(t, map[string]any{
+		"redispatch_eligible": false,
+		"skip_reason":         "task_failed",
+	}, body["recovery"])
+	require.Equal(t, 0, queued.remainingQueries())
+}
+
+func TestHandleListTasksIncludesRuntimeSubmitConflictFailureReason(t *testing.T) {
+	t.Parallel()
+
+	taskID := uuid.New()
+	tenantID := "tenant-runtime-submit-list"
+	runtimeID := "runtime-conflict-list"
+	failureReason := "runtime submit rejected (idempotency_conflict): Idempotency key already used for a different task submission"
+	createdAt := time.Unix(1_700_001_175, 0).UTC()
+
+	db, queued := newQueuedRouteDB(t,
+		[]queuedRouteQueryExpectation{
+			{
+				columns: []string{"task_id", "proof_status", "proof_checked_at"},
+				rows:    nil,
+			},
+			{
+				columns: []string{
+					"task_id", "tenant_id", "status", "runtime_id", "runtime_endpoint",
+					"task_definition", "last_checkpoint", "execution_envelope", "execution_receipt",
+					"proof_execution_id", "proof_expected_hash", "proof_stored_hash", "proof_signature", "proof_status", "proof_checked_at",
+					"idempotency_key", "failure_reason",
+					"deadline_at", "dispatched_at", "completed_at", "canceled_at", "created_at",
+				},
+				rows: [][]driver.Value{taskRecordRouteRow(
+					taskID,
+					tenantID,
+					coordinator.TaskStatusFailed,
+					runtimeID,
+					"http://runtime.test",
+					json.RawMessage(`{"type":"agent_workflow","steps":[{"step_index":1,"model":"gpt-4.1-mini","messages":[{"role":"user","content":"hello"}]}]}`),
+					nil,
+					"idem-runtime-submit-list",
+					&failureReason,
+					nil,
+					nil,
+					createdAt,
+				)},
+			},
+		},
+	)
+
+	app := fiber.New()
+	app.Use(func(c *fiber.Ctx) error {
+		c.Locals("clerk_user_id", tenantID)
+		return c.Next()
+	})
+	app.Get("/v1/tasks", handleListTasks(coordinator.NewTaskCoordinator(db)))
+
+	req := httptest.NewRequest(http.MethodGet, "/v1/tasks", nil)
+	resp, err := app.Test(req)
+	require.NoError(t, err)
+	require.Equal(t, http.StatusOK, resp.StatusCode)
+
+	var body map[string]any
+	require.NoError(t, json.NewDecoder(resp.Body).Decode(&body))
+	require.EqualValues(t, 1, body["total"])
+
+	tasks, ok := body["tasks"].([]any)
+	require.True(t, ok)
+	require.Len(t, tasks, 1)
+
+	task, ok := tasks[0].(map[string]any)
+	require.True(t, ok)
+	require.Equal(t, "failed", task["status"])
+	require.Equal(t, failureReason, task["failure_reason"])
+	require.Equal(t, map[string]any{
+		"redispatch_eligible": false,
+		"skip_reason":         "task_failed",
+	}, task["recovery"])
+	require.Equal(t, 0, queued.remainingQueries())
+}
+
 func TestHandleTaskCheckpointReturnsLifecycleMetadata(t *testing.T) {
 	t.Parallel()
 
