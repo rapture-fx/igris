@@ -1,14 +1,14 @@
 # API Verification Report
 
-Generated: 2026-04-12T06:09:10.242Z
+Generated: 2026-04-12T07:41:06.054Z
 
 This report is evidence-based. It does not claim endpoint health beyond what is present in route registration, tests, and client references in this repository.
 
 ## Summary
 
 - Total documented endpoints: 51
-- Test-covered: 6
-- Client-referenced: 9
+- Test-covered: 8
+- Client-referenced: 7
 - Implemented but unverified: 36
 
 ## Endpoints
@@ -53,8 +53,8 @@ This report is evidence-based. It does not claim endpoint health beyond what is 
 | implemented-unverified | POST | `/v1/bt/definitions` | Behavior Trees | none |
 | implemented-unverified | DELETE | `/v1/bt/definitions/:id` | Behavior Trees | none |
 | test-covered | POST | `/v1/tasks/submit` | Durable Tasks | tests: 1, clients: 1 |
-| client-referenced | GET | `/v1/tasks/:id` | Durable Tasks | clients: 1 |
-| client-referenced | GET | `/v1/tasks` | Durable Tasks | clients: 1 |
+| test-covered | GET | `/v1/tasks/:id` | Durable Tasks | tests: 1, clients: 1 |
+| test-covered | GET | `/v1/tasks` | Durable Tasks | tests: 1, clients: 1 |
 | implemented-unverified | GET | `/v1/health` | Local Runtime API | none |
 | implemented-unverified | POST | `/v1/chat/completions` | Local Runtime API | none |
 | implemented-unverified | POST | `/v1/plan` | Local Runtime API | none |
