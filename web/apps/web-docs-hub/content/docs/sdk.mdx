@@ -8,14 +8,14 @@ description: "Igris supports two integration paths:"
 Igris supports two integration paths:
 
 - **OpenAI-compatible clients** for the fastest path to production
-- **Native Igris SDKs** when you need routing metadata, receipt helpers, vault operations, or fleet APIs
+- **Native Igris SDKs** when you need routing metadata, receipt helpers, vault operations, fleet APIs, behavior trees, or containment
 
 The recommendation is simple:
 
 - Start with the OpenAI-compatible API if you want the shortest path to a working integration
 - Move to a native SDK when you need Igris-specific product features and a stronger typed client
 
-If you do not already know that you need a native SDK, start with the OpenAI-compatible API first. The native first-class SDKs today are JavaScript/TypeScript, Go, and Rust. Python exists in-repo but remains preview. Java, C#, and Ruby should use the OpenAI-compatible API today rather than being treated as native SDK targets.
+The native first-class SDKs are JavaScript/TypeScript, Go, Rust, and Python. Java, C#, and Ruby should use the OpenAI-compatible API today.
 
 For production integration guidance, reusable client construction, and environment-variable patterns, continue with [SDK Integration Patterns →](/docs/sdk-integration-patterns).
 
@@ -28,10 +28,9 @@ For production integration guidance, reusable client construction, and environme
 Treat the SDK table as a product support statement, not just a package list:
 
 - **First-class** means the language is part of the maintained customer SDK surface
-- **Preview** means the package may be useful, but it should be adopted deliberately
 - **OpenAI-compatible** means the safest contract today is the HTTP API through an OpenAI-style client
 
-That distinction matters operationally. If your team wants the strongest support commitment, choose JavaScript/TypeScript, Go, or Rust. If your team mainly needs inference and broad portability, stay on the OpenAI-compatible path.
+If your team wants the strongest support commitment, choose JavaScript/TypeScript, Go, Rust, or Python. If your team mainly needs inference and broad portability, stay on the OpenAI-compatible path.
 
 ---
 
@@ -76,15 +75,13 @@ const response = await client.chat.completions.create({
 console.log(response.choices[0].message.content);
 ```
 
-Use this path for Java, C#, Ruby, Python, or any other language where you already have an OpenAI-compatible client and do not need the native Igris SDK surface yet.
-
-This is also the right path when you want the shortest evaluation cycle. It gives you one contract that can move between the hosted API and a compatible runtime deployment with minimal application change.
+Use this path for Java, C#, Ruby, or any other language where you already have an OpenAI-compatible client and do not need the native Igris SDK surface yet.
 
 ---
 
 ## Native SDKs
 
-Choose a native SDK when you want a product-shaped client rather than a protocol-shaped one. That matters when you are working with receipts, vault operations, fleet controls, or richer Igris metadata.
+Choose a native SDK when you want a product-shaped client rather than a protocol-shaped one. That matters when you are working with receipts, vault operations, fleet controls, behavior trees, containment bounds, or richer Igris metadata.
 
 ### JavaScript / TypeScript
 
@@ -104,7 +101,7 @@ const response = await client.infer({
 console.log(response.choices[0].message.content);
 ```
 
-For durable streamed inference, the JavaScript SDK can surface both token chunks and the terminal durable-task result from one SSE session:
+For durable streamed inference, the JavaScript SDK surfaces both token chunks and the terminal durable-task result from one SSE session:
 
 ```typescript
 for await (const event of client.streamInference({
@@ -188,20 +185,123 @@ async fn main() -> Result<(), Box<dyn std::error::Error>> {
 }
 ```
 
-### Python Preview
+### Python
 
-The Python SDK is present in the repository and can be used experimentally:
+Install the SDK:
+
+```bash
+pip install igris-inertial
+```
+
+For receipt verification, add the optional extra:
+
+```bash
+pip install "igris-inertial[verification]"
+```
+
+**Inference**
 
 ```python
+import os
 from igris import IgrisClient
 
-client = IgrisClient(
+with IgrisClient(
     base_url="https://overture.igrisinertial.com",
-    api_key="YOUR_IGRIS_API_KEY",
+    api_key=os.environ["IGRIS_API_KEY"],
+) as client:
+    response = client.chat_completion({
+        "model": "gpt-4",
+        "messages": [{"role": "user", "content": "Hello"}],
+    })
+    print(response.choices[0].message.content)
+```
+
+**Local runtime with containment bounds**
+
+`Runtime` connects to a locally running Igris Runtime binary. Pass `Bounds` to enforce per-tick CPU and time limits. When the local runtime is unreachable and `auto_fallback=True`, requests route to the cloud URL automatically.
+
+```python
+from igris import Runtime, RuntimeConfig, Bounds
+
+rt = Runtime(
+    config=RuntimeConfig(
+        local_url="http://localhost:8080",
+        cloud_url="https://overture.igrisinertial.com",
+        local_model="phi3",
+        bounds=Bounds(cpu_percent=80, memory_mb=512, max_tick_ms=200),
+    )
+)
+
+response = rt.chat({"model": "phi3", "messages": [{"role": "user", "content": "Hello"}]})
+print(response.choices[0].message.content)
+```
+
+**Streaming**
+
+```python
+for chunk in rt.stream({"model": "phi3", "messages": [{"role": "user", "content": "Hello"}]}):
+    print(chunk, end="", flush=True)
+```
+
+**Behavior trees**
+
+Build trees with the node builder API and run them against the runtime:
+
+```python
+from igris import BehaviorTree, Sequence, Selector, Action, Condition
+
+tree = BehaviorTree.from_nodes(
+    root=Sequence("main", children=[
+        Condition("has-input", key="input", expected=True),
+        Action("fetch", tool="http", args={"url": "https://example.com/data"}),
+        Action("summarise", tool="llm", args={"prompt": "Summarise this"}),
+    ]),
+    runtime=rt,
+)
+
+result = tree.run(context={"input": True}, max_ticks=500, timeout_ms=10000)
+```
+
+Trees can also be loaded from JSON or YAML:
+
+```python
+tree = BehaviorTree.from_json(tree_dict, runtime=rt)
+tree = BehaviorTree.from_yaml(yaml_string, runtime=rt)  # requires pyyaml
+```
+
+**Vault and fleet**
+
+```python
+# Store a provider API key
+client.vault.store("openai", os.environ["OPENAI_API_KEY"])
+
+# List registered fleet agents
+agents = client.fleet.agents()
+```
+
+**Receipt verification**
+
+Verify the Ed25519 signature on an execution receipt. Requires `PyNaCl`.
+
+```python
+from igris.receipt import verify_receipt
+
+valid = verify_receipt(
+    receipt=response.execution_receipt,
+    public_key=bytes.fromhex(os.environ["IGRIS_RUNTIME_PUBLIC_KEY"]),
 )
 ```
 
-Treat the Python package as preview until it is explicitly promoted to first-class support. For production Python integrations today, the OpenAI-compatible API remains the safer default unless you are deliberately evaluating the preview package.
+**Containment violation callbacks**
+
+Register a callback that fires when the runtime records a containment violation:
+
+```python
+def on_violation(v):
+    print(f"Violation: {v.violation_kind} at {v.timestamp}")
+
+rt.on_violation(on_violation)
+```
 
 ---
 
@@ -238,7 +338,7 @@ Well-written Igris integrations usually share a few traits:
 - cloud, local, and hybrid mode selection happens at startup, not inside business logic
 - receipt, audit, and fleet features are adopted intentionally rather than appearing ad hoc in request handlers
 
-When you need the most portable path across languages, default to the OpenAI-compatible client surface. When you need the strongest supported native contract, choose JavaScript/TypeScript, Go, or Rust.
+When you need the most portable path across languages, default to the OpenAI-compatible client surface. When you need the strongest supported native contract, choose JavaScript/TypeScript, Go, Rust, or Python.
 
 ---
 
