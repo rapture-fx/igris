@@ -889,6 +889,13 @@ func TestRecoverRuntimeSkipsCompletedTaskBeforeRedispatch(t *testing.T) {
 	testRecoverRuntimeSkipsTerminalTaskBeforeRedispatch(t, TaskStatusCompleted, nil)
 }
 
+func TestRecoverRuntimeSkipsFailedTaskBeforeRedispatch(t *testing.T) {
+	t.Parallel()
+
+	failureReason := "runtime surfaced late failure"
+	testRecoverRuntimeSkipsTerminalTaskBeforeRedispatch(t, TaskStatusFailed, &failureReason)
+}
+
 func ptrString(value string) *string {
 	return &value
 }
