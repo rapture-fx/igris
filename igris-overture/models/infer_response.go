@@ -14,11 +14,11 @@ var ErrRuntimeSecurity = errors.New("runtime: security rejection")
 // InferResponse represents the unified inference API response
 type InferResponse struct {
 	// Core response
-	ID      string    `json:"id"`                // Unique request ID
-	Object  string    `json:"object"`            // "chat.completion" for compatibility
-	Created int64     `json:"created"`           // Unix timestamp
-	Model   string    `json:"model"`             // Model used for inference
-	Choices []Choice  `json:"choices"`           // Response choices
+	ID      string   `json:"id"`      // Unique request ID
+	Object  string   `json:"object"`  // "chat.completion" for compatibility
+	Created int64    `json:"created"` // Unix timestamp
+	Model   string   `json:"model"`   // Model used for inference
+	Choices []Choice `json:"choices"` // Response choices
 
 	// Usage statistics
 	Usage *UsageStats `json:"usage,omitempty"` // Token usage information
@@ -42,9 +42,9 @@ type InferResponse struct {
 
 // Choice represents a single completion choice
 type Choice struct {
-	Index        int      `json:"index"`                  // Choice index
-	Message      *Message `json:"message,omitempty"`      // For non-streaming responses
-	Delta        *Message `json:"delta,omitempty"`        // For streaming responses
+	Index        int      `json:"index"`                   // Choice index
+	Message      *Message `json:"message,omitempty"`       // For non-streaming responses
+	Delta        *Message `json:"delta,omitempty"`         // For streaming responses
 	FinishReason string   `json:"finish_reason,omitempty"` // "stop", "length", "content_filter"
 }
 
@@ -58,34 +58,37 @@ type UsageStats struct {
 // ResponseMetadata contains Igris-engine specific performance data
 type ResponseMetadata struct {
 	// Routing information
-	Provider      string  `json:"provider"`                // Provider used ("openai", "anthropic", "python-adapter")
-	Region        string  `json:"region,omitempty"`        // Region served from
-	ModelUsed     string  `json:"model_used"`              // Actual model identifier used
-	RouteDecision string  `json:"route_decision,omitempty"` // Routing decision explanation
+	Provider      string `json:"provider"`                 // Provider used ("openai", "anthropic", "python-adapter")
+	Region        string `json:"region,omitempty"`         // Region served from
+	ModelUsed     string `json:"model_used"`               // Actual model identifier used
+	RouteDecision string `json:"route_decision,omitempty"` // Routing decision explanation
 
 	// Performance metrics
-	LatencyMs       int64   `json:"latency_ms"`                 // End-to-end latency
-	QueueTimeMs     int64   `json:"queue_time_ms,omitempty"`    // Time spent in queue
-	InferenceTimeMs int64   `json:"inference_time_ms,omitempty"` // Time spent in inference
-	TTFTMs          int64   `json:"ttft_ms,omitempty"`          // Time to first token (streaming)
+	LatencyMs       int64 `json:"latency_ms"`                  // End-to-end latency
+	QueueTimeMs     int64 `json:"queue_time_ms,omitempty"`     // Time spent in queue
+	InferenceTimeMs int64 `json:"inference_time_ms,omitempty"` // Time spent in inference
+	TTFTMs          int64 `json:"ttft_ms,omitempty"`           // Time to first token (streaming)
 
 	// Cost and quality
-	CostUSD          float64 `json:"cost_usd,omitempty"`           // Estimated cost in USD
-	QualityScore     float64 `json:"quality_score,omitempty"`      // Model quality score
-	CacheHit         bool    `json:"cache_hit,omitempty"`          // Whether response was cached
-	CacheKey         string  `json:"cache_key,omitempty"`          // Cache key used
+	CostUSD      float64 `json:"cost_usd,omitempty"`      // Estimated cost in USD
+	QualityScore float64 `json:"quality_score,omitempty"` // Model quality score
+	CacheHit     bool    `json:"cache_hit,omitempty"`     // Whether response was cached
+	CacheKey     string  `json:"cache_key,omitempty"`     // Cache key used
 
 	// Optimizer feedback (for future Rust optimizer integration)
-	OptimizerAction  string  `json:"optimizer_action,omitempty"`   // Action taken by optimizer
-	RewardSignal     float64 `json:"reward_signal,omitempty"`      // Reward for reinforcement learning
-	ExplorationBonus float64 `json:"exploration_bonus,omitempty"`  // Exploration bonus applied
+	OptimizerAction  string  `json:"optimizer_action,omitempty"`  // Action taken by optimizer
+	RewardSignal     float64 `json:"reward_signal,omitempty"`     // Reward for reinforcement learning
+	ExplorationBonus float64 `json:"exploration_bonus,omitempty"` // Exploration bonus applied
 
 	// Request tracking
-	RequestID      string    `json:"request_id"`                 // Original request ID
-	Timestamp      time.Time `json:"timestamp"`                  // Response timestamp
-	RetryCount     int       `json:"retry_count,omitempty"`      // Number of retries
-	Fallback       bool      `json:"fallback,omitempty"`         // Whether fallback was used
-	FallbackReason string    `json:"fallback_reason,omitempty"`  // Reason for fallback
+	RequestID                string    `json:"request_id"`                           // Original request ID
+	Timestamp                time.Time `json:"timestamp"`                            // Response timestamp
+	RetryCount               int       `json:"retry_count,omitempty"`                // Number of retries
+	Fallback                 bool      `json:"fallback,omitempty"`                   // Whether fallback was used
+	FallbackReason           string    `json:"fallback_reason,omitempty"`            // Reason for fallback
+	StreamExecutionAuthority string    `json:"stream_execution_authority,omitempty"` // runtime | overture_fallback
+	StreamResumeSupported    *bool     `json:"stream_resume_supported,omitempty"`    // Whether the stream contract supports resume
+	StreamReplayCondition    string    `json:"stream_replay_condition,omitempty"`    // Replay condition advertised to the client
 }
 
 // NewInferResponse creates a new InferResponse with default values
