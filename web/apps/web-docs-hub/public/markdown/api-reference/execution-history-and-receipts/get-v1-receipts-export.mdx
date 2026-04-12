@@ -1,0 +1,141 @@
+---
+title: "GET /v1/receipts/export"
+description: "Streams execution receipts as a downloadable attachment. It is designed for export and downstream processing, not for interactive paging or ordinary list views."
+---
+
+# GET /v1/receipts/export
+
+Streams execution receipts as a downloadable attachment. It is designed for export and downstream processing, not for interactive paging or ordinary list views.
+
+<div className="api-meta not-prose"><div className="api-meta-group"><span className="api-meta-label">Method</span><span className="api-badge api-method-get">GET</span></div><div className="api-meta-group"><span className="api-meta-label">Path</span><span className="api-meta-value">/v1/receipts/export</span></div><div className="api-meta-group"><span className="api-meta-label">Base URL</span><span className="api-meta-value">https://overture.igrisinertial.com</span></div><div className="api-meta-group"><span className="api-meta-label">Auth</span><span className="api-meta-value">Session cookie or igris_ API key</span></div><div className="api-meta-group"><span className="api-meta-label">Surface</span><span className="api-badge api-surface-cloud-api">Cloud API</span></div><div className="api-meta-group"><span className="api-meta-label">Stability</span><span className="api-badge api-stability-stable">stable</span></div><div className="api-meta-group"><span className="api-meta-label">Support</span><span className="api-badge api-support-supported">supported</span></div><div className="api-meta-group"><span className="api-meta-label">Deployment</span><span className="api-badge api-deployment-cloud">cloud</span></div></div>
+
+## When To Use
+
+Use this endpoint when receipt data needs to leave the product boundary for BI, compliance, archive, or offline analysis. Choose NDJSON for machine pipelines and CSV for spreadsheet-oriented workflows.
+
+## Integration Guidance
+
+Retry transient 5xx or 429 responses with backoff, but treat export like a batch operation rather than a request you fire repeatedly from an interactive client.
+
+### Common Mistakes
+
+- Expecting a JSON metadata payload instead of a streamed attachment response.
+- Using export for ordinary UI pagination when the list and detail routes are the correct interactive surfaces.
+- Starting repeated large exports without narrowing the time range or planning downstream retention.
+
+### Related Endpoints
+
+- [GET /v1/history/events](/docs/api-reference/execution-history-and-receipts/get-v1-history-events)
+- [GET /v1/receipts](/docs/api-reference/execution-history-and-receipts/get-v1-receipts)
+- [GET /v1/receipts/:id](/docs/api-reference/execution-history-and-receipts/get-v1-receipts-id)
+
+### Related Guides
+
+- [API Authentication](/docs/api-reference/authentication)
+- [API Errors](/docs/api-reference/errors)
+- [Receipts and Audit Workflow](/docs/receipts-audit-workflow)
+
+## Query Parameters
+
+| Field | Type | Required | Description |
+|---|---|---|---|
+| `format` | `string` | No | Export format. `jsonl` is the default; `csv` streams comma-separated rows. |
+| `from` | `string` | No | RFC3339 lower time bound. |
+| `to` | `string` | No | RFC3339 upper time bound. |
+
+## Notes
+
+- The default format is NDJSON (`application/x-ndjson`) with filename `receipts.jsonl`.
+- When `format=csv`, the same route streams `text/csv` with filename `receipts.csv`.
+
+## Code Examples
+
+### cURL
+
+```bash
+curl -X GET https://overture.igrisinertial.com/v1/receipts/export?format=jsonl \
+  -H "Authorization: Bearer $IGRIS_API_KEY"
+```
+
+### JavaScript
+
+```javascript
+const response = await fetch('https://overture.igrisinertial.com/v1/receipts/export?format=jsonl', {
+  method: 'GET',
+  headers: {
+    'Authorization': `Bearer ${process.env.IGRIS_API_KEY}`,
+  },
+});
+
+const data = await response.text();
+console.log(data);
+```
+
+### Go
+
+```go
+client := &http.Client{}
+body := http.NoBody
+
+req, err := http.NewRequest("GET", "https://overture.igrisinertial.com/v1/receipts/export?format=jsonl", body)
+if err != nil {
+	log.Fatal(err)
+}
+
+req.Header.Set("Authorization", "Bearer " + os.Getenv("IGRIS_API_KEY"))
+
+resp, err := client.Do(req)
+if err != nil {
+	log.Fatal(err)
+}
+defer resp.Body.Close()
+
+payload, _ := io.ReadAll(resp.Body)
+fmt.Println(string(payload))
+```
+
+### Rust
+
+```rust
+let client = reqwest::Client::new();
+let response = client
+        .request(reqwest::Method::GET, "https://overture.igrisinertial.com/v1/receipts/export?format=jsonl")
+        .header("Authorization", format!("Bearer {}", std::env::var("IGRIS_API_KEY")?))
+        .send()
+        .await?;
+
+let payload = response.text().await?;
+println!("{}", payload);
+```
+
+## Sample Response
+
+```json
+{"execution_id":"exec_01HV95R5Y3TVVJ7R3","agent_id":"agent_router","runtime_id":"rt_01HV94AS6G98PZ2YH","timestamp_utc":"2026-04-04T06:33:00Z","wall_time_ms":483,"cpu_time_ms":422,"memory_peak_mb":190,"tool_calls":2,"violation_occurred":false,"status":"completed","receipt_hash":"6f16f4bc..."}
+{"execution_id":"exec_01HV96B3W64CK1KPG","agent_id":"agent_dispatch","runtime_id":"rt_01HV94AS6G98PZ2YH","timestamp_utc":"2026-04-04T06:41:00Z","wall_time_ms":612,"cpu_time_ms":501,"memory_peak_mb":214,"tool_calls":4,"violation_occurred":true,"status":"completed","receipt_hash":"9db11ce7..."}
+```
+
+## Status Codes
+
+| Code | Title | Description |
+|---|---|---|
+| 200 | Attachment stream | The response body is streamed directly as `application/x-ndjson` or `text/csv` with `Content-Disposition` set for download. |
+| 401 | Unauthorized | The request did not include a valid tenant session or API key. |
+| 500 | Server error | The export query failed before the attachment stream could be produced. |
+
+### 401 Example
+
+```json
+{
+  "error": "unauthorized"
+}
+```
+
+### 500 Example
+
+```json
+{
+  "error": "internal_error"
+}
+```
+
