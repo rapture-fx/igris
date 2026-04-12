@@ -1,0 +1,332 @@
+---
+title: "Error Codes"
+description: "Complete reference for all error responses returned by the Igris API."
+---
+
+# Error Codes
+
+Complete reference for all error responses returned by the Igris API.
+
+---
+
+## Error Response Format
+
+All errors follow a consistent JSON format:
+
+```json
+{
+  "error": {
+    "code": "error_code",
+    "message": "Human-readable description of the error",
+    "details": {}
+  }
+}
+```
+
+| Field | Type | Description |
+|---|---|---|
+| `code` | string | Machine-readable error identifier |
+| `message` | string | Human-readable description |
+| `details` | object | Optional additional context (varies by error) |
+
+---
+
+## Authentication Errors
+
+### `unauthorized` (HTTP 401)
+
+The request is missing or has an invalid authentication credential.
+
+```json
+{
+  "error": {
+    "code": "unauthorized",
+    "message": "Invalid or expired API key"
+  }
+}
+```
+
+**Common causes:**
+- API key is incorrect or has been revoked
+- API key is missing from the `Authorization` header
+- API key format is invalid
+
+### `forbidden` (HTTP 403)
+
+The authenticated account does not have permission to access this resource.
+
+```json
+{
+  "error": {
+    "code": "forbidden",
+    "message": "This feature requires the Horizon tier or higher",
+    "details": {
+      "required_tier": "horizon",
+      "current_tier": "seed"
+    }
+  }
+}
+```
+
+---
+
+## Rate Limiting Errors
+
+### `rate_limit_exceeded` (HTTP 429)
+
+The request rate limit has been exceeded.
+
+```json
+{
+  "error": {
+    "code": "rate_limit_exceeded",
+    "message": "Rate limit exceeded. Please retry after the window resets.",
+    "details": {
+      "retry_after": 23,
+      "limit": 100,
+      "window": "60s"
+    }
+  }
+}
+```
+
+See [Rate Limiting](/docs/rate-limiting) for details on limits and backoff strategies.
+
+---
+
+## Billing Errors
+
+### `budget_exceeded` (HTTP 402)
+
+The tenant's monthly budget has been exhausted.
+
+```json
+{
+  "error": {
+    "code": "budget_exceeded",
+    "message": "Monthly budget exceeded. Requests are blocked until the next billing cycle.",
+    "details": {
+      "budget_usd": 100.00,
+      "spent_usd": 100.00,
+      "reset_date": "2026-04-01T00:00:00Z"
+    }
+  }
+}
+```
+
+### `payment_required` (HTTP 402)
+
+The subscription is inactive or payment has failed.
+
+```json
+{
+  "error": {
+    "code": "payment_required",
+    "message": "Subscription is inactive. Please update your payment method."
+  }
+}
+```
+
+---
+
+## Resource Errors
+
+### `not_found` (HTTP 404)
+
+The requested resource does not exist.
+
+```json
+{
+  "error": {
+    "code": "not_found",
+    "message": "Execution run 'exec-01HXYZ' not found"
+  }
+}
+```
+
+### `conflict` (HTTP 409)
+
+The request conflicts with the current state of the resource.
+
+```json
+{
+  "error": {
+    "code": "conflict",
+    "message": "A trial has already been used on this account"
+  }
+}
+```
+
+### `unprocessable` (HTTP 422)
+
+The request body is invalid or missing required fields.
+
+```json
+{
+  "error": {
+    "code": "unprocessable",
+    "message": "Validation failed",
+    "details": {
+      "fields": [
+        {
+          "field": "model",
+          "message": "Model name is required"
+        }
+      ]
+    }
+  }
+}
+```
+
+---
+
+## Execution Errors
+
+### `provider_unavailable` (HTTP 502)
+
+All configured providers are unavailable and no local fallback is configured.
+
+```json
+{
+  "error": {
+    "code": "provider_unavailable",
+    "message": "All providers are currently unavailable",
+    "details": {
+      "providers_tried": ["openai", "anthropic"],
+      "fallback_available": false
+    }
+  }
+}
+```
+
+### `execution_timeout` (HTTP 504)
+
+The execution exceeded its maximum allowed duration.
+
+```json
+{
+  "error": {
+    "code": "execution_timeout",
+    "message": "Execution exceeded maximum duration of 30000ms",
+    "details": {
+      "execution_id": "exec-01HXYZ",
+      "max_duration_ms": 30000,
+      "elapsed_ms": 30042
+    }
+  }
+}
+```
+
+### `capability_violation` (HTTP 403)
+
+The execution attempted a capability that is not granted.
+
+```json
+{
+  "error": {
+    "code": "capability_violation",
+    "message": "HTTP access is not granted for this agent",
+    "details": {
+      "execution_id": "exec-01HXYZ",
+      "violation_type": "http_blocked",
+      "agent_id": "agent-abc"
+    }
+  }
+}
+```
+
+---
+
+## Fleet Errors
+
+### `instance_limit_exceeded` (HTTP 429)
+
+The tenant has reached their maximum number of runtime instances.
+
+```json
+{
+  "error": {
+    "code": "instance_limit_exceeded",
+    "message": "Cannot register instance. Limit of 3 reached for Seed tier.",
+    "details": {
+      "current_instances": 3,
+      "max_instances": 3,
+      "tier": "seed"
+    }
+  }
+}
+```
+
+### `instance_not_found` (HTTP 404)
+
+The specified runtime instance does not exist.
+
+```json
+{
+  "error": {
+    "code": "instance_not_found",
+    "message": "Runtime instance 'runtime-01' not found"
+  }
+}
+```
+
+---
+
+## Server Errors
+
+### `internal_error` (HTTP 500)
+
+An unexpected error occurred on the server.
+
+```json
+{
+  "error": {
+    "code": "internal_error",
+    "message": "An unexpected error occurred. Please try again or contact support."
+  }
+}
+```
+
+If you encounter this error repeatedly, contact [support@igrisinertial.com](mailto:support@igrisinertial.com) with the request ID from the response headers.
+
+### `service_unavailable` (HTTP 503)
+
+The service is temporarily unavailable, typically during maintenance.
+
+```json
+{
+  "error": {
+    "code": "service_unavailable",
+    "message": "Service is temporarily unavailable. Please try again later.",
+    "details": {
+      "retry_after": 300
+    }
+  }
+}
+```
+
+---
+
+## Error Code Summary
+
+| HTTP Status | Error Code | Description |
+|---|---|---|
+| 400 | `bad_request` | Malformed request |
+| 401 | `unauthorized` | Invalid or missing authentication |
+| 403 | `forbidden` | Insufficient permissions or tier |
+| 403 | `capability_violation` | Blocked capability attempt |
+| 402 | `budget_exceeded` | Monthly budget exhausted |
+| 402 | `payment_required` | Subscription inactive |
+| 404 | `not_found` | Resource does not exist |
+| 409 | `conflict` | State conflict (e.g., duplicate trial) |
+| 422 | `unprocessable` | Validation failure |
+| 429 | `rate_limit_exceeded` | Rate limit exceeded |
+| 429 | `instance_limit_exceeded` | Max instances reached |
+| 500 | `internal_error` | Unexpected server error |
+| 502 | `provider_unavailable` | All providers down |
+| 503 | `service_unavailable` | Temporary maintenance |
+| 504 | `execution_timeout` | Execution time exceeded |
+
+---
+
+[API Reference →](/docs/api-reference) · [Troubleshooting →](/docs/troubleshooting)
