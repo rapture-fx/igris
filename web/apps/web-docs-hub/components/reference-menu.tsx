@@ -60,7 +60,7 @@ export function ReferenceMenu() {
       </button>
 
       {open ? (
-        <div className="absolute left-0 right-0 z-30 mt-2 overflow-hidden rounded-xl border bg-fd-popover p-1 shadow-xl">
+        <div className="absolute left-0 right-0 z-30 mt-2 overflow-hidden rounded-xl border bg-fd-card p-1 shadow-xl">
           {items.map((item) => {
             const itemActive =
               item.href === '/docs' ? pathname === '/docs' : pathname.startsWith(item.href);
@@ -74,7 +74,7 @@ export function ReferenceMenu() {
                   'flex rounded-lg px-3 py-2 text-sm',
                   itemActive
                     ? 'bg-fd-primary/10 text-fd-primary'
-                    : 'text-fd-popover-foreground/90 hover:bg-fd-accent/60',
+                    : 'text-fd-card-foreground/90 hover:bg-fd-accent/60',
                 ].join(' ')}
               >
                 {item.label}
