@@ -1,4 +1,5 @@
 import type { RootProviderProps } from 'fumadocs-ui/provider/base';
+import { DocsSearchDialog } from '@/components/docs-search-dialog';
 
 function createDocsSearch(): NonNullable<RootProviderProps['search']> {
   const links: [string, string][] = [
@@ -10,11 +11,8 @@ function createDocsSearch(): NonNullable<RootProviderProps['search']> {
 
   return {
     enabled: true,
+    SearchDialog: DocsSearchDialog,
     links,
-    options: {
-      type: 'static',
-      api: '/search-static.json',
-    },
   };
 }
 
