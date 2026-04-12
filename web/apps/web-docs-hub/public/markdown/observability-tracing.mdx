@@ -1,0 +1,97 @@
+---
+title: "Observability & Tracing"
+description: "How Igris exposes request lineage, trace IDs, and distributed tracing across the coordination layer and runtime."
+---
+
+# Observability & Tracing
+
+Igris has two observability layers:
+
+- **product-visible lineage** such as request IDs, receipts, and execution history
+- **operator-visible tracing** such as spans, trace propagation, and backend telemetry
+
+You need both. Receipts tell you what happened. Tracing tells you where time was spent and where a request crossed system boundaries.
+
+---
+
+## Trace Identity
+
+The coordination layer generates and propagates a trace identity for each request. That identity is attached to logs and returned through `X-Trace-ID` so operators can correlate:
+
+- inbound API traffic
+- routing decisions
+- provider calls
+- runtime handoff
+- receipt and audit records
+
+From a product perspective, `X-Trace-ID` is the fast path for debugging cross-system behavior.
+
+---
+
+## Distributed Tracing
+
+The implementation supports OpenTelemetry-style tracing with a Jaeger exporter and also keeps a simpler internal trace context for request-scoped attributes.
+
+That combination matters because Igris needs to support both:
+
+- low-level internal span propagation
+- external tracing backends used by platform teams
+
+Current tracing metadata includes things like:
+
+- HTTP method and path
+- provider and model
+- token counts
+- latency and cost
+- speculative-execution winner and switch metadata
+
+This makes tracing useful for routing analysis, not just generic HTTP timing.
+
+---
+
+## What Operators Should Expect
+
+Tracing should answer these questions quickly:
+
+- Did the request stay in cloud or move to runtime?
+- Which provider was selected and why?
+- Where did latency accumulate?
+- Was speculative execution involved?
+- Is a slow request caused by routing, provider latency, or local runtime work?
+
+That is the difference between basic logging and a usable production observability model.
+
+---
+
+## Relationship To Receipts
+
+Tracing and receipts are related but not interchangeable.
+
+| Surface | Primary use |
+|---|---|
+| **Trace ID / spans** | live debugging, latency analysis, request-path inspection |
+| **Execution receipt** | tamper-evident record of the governed execution outcome |
+
+Use tracing when you are diagnosing behavior in-flight. Use receipts when you need durable audit evidence.
+
+---
+
+## Recommended Deployment Model
+
+For production environments:
+
+- return or capture `X-Trace-ID` in client and operator tooling
+- export traces to your tracing backend
+- correlate traces with execution receipts and request IDs
+- retain tracing for operations and receipts for governance
+
+That separation keeps observability useful without turning tracing into the compliance record.
+
+---
+
+## Related Pages
+
+- [Audit →](/docs/audit)
+- [Execution Receipts →](/docs/execution-receipts)
+- [Cloud Coordination →](/docs/cloud-coordination)
+- [Troubleshooting →](/docs/troubleshooting)
