@@ -97,6 +97,74 @@ func TestHandleRecoverySkipDoesNotMarkNonRecoveringTaskFailed(t *testing.T) {
 	require.Equal(t, 0, queued.remainingExecs())
 }
 
+func TestSelectRecoveryCheckpoint(t *testing.T) {
+	t.Parallel()
+
+	taskID := uuid.New()
+	older := &CheckpointPayload{
+		TaskID: taskID,
+		ResumeToken: ResumeToken{
+			LastCommittedStep: 3,
+			CheckpointDigest:  "digest-3",
+			RuntimeID:         "runtime-a",
+		},
+	}
+	newer := &CheckpointPayload{
+		TaskID: taskID,
+		ResumeToken: ResumeToken{
+			LastCommittedStep: 5,
+			CheckpointDigest:  "digest-5",
+			RuntimeID:         "runtime-b",
+		},
+	}
+
+	tests := []struct {
+		name      string
+		primary   *CheckpointPayload
+		secondary *CheckpointPayload
+		want      *CheckpointPayload
+	}{
+		{
+			name:      "prefers secondary when it advances",
+			primary:   older,
+			secondary: newer,
+			want:      newer,
+		},
+		{
+			name:      "keeps primary when secondary is stale",
+			primary:   newer,
+			secondary: older,
+			want:      newer,
+		},
+		{
+			name:      "falls back to secondary when primary missing",
+			primary:   nil,
+			secondary: newer,
+			want:      newer,
+		},
+		{
+			name:      "keeps primary when secondary missing",
+			primary:   newer,
+			secondary: nil,
+			want:      newer,
+		},
+		{
+			name:      "returns nil when both missing",
+			primary:   nil,
+			secondary: nil,
+			want:      nil,
+		},
+	}
+
+	for _, test := range tests {
+		test := test
+		t.Run(test.name, func(t *testing.T) {
+			t.Parallel()
+			require.Equal(t, test.want, selectRecoveryCheckpoint(test.primary, test.secondary))
+		})
+	}
+}
+
 func TestNormalizePublicTaskDefinitionValidatesRoboticsWorkflow(t *testing.T) {
 	t.Parallel()
 
@@ -425,6 +493,78 @@ func TestHandleDispatchFailureSchedulesRecoveryForServerError(t *testing.T) {
 	}, &http.Response{StatusCode: http.StatusBadGateway}, nil)
 
 	require.True(t, called)
+}
+
+func TestDispatchToRuntimeSchedulesRecoveryOnTransportError(t *testing.T) {
+	t.Parallel()
+
+	taskID := uuid.New()
+	runtimeID := "runtime-transport-error"
+	called := false
+	var gotTaskID uuid.UUID
+	var gotRuntimeID string
+
+	tc := &TaskCoordinator{
+		httpClient: &http.Client{Transport: roundTripperFunc(func(*http.Request) (*http.Response, error) {
+			return nil, errors.New("dial tcp timeout")
+		})},
+		recoveryHook: func(_ context.Context, incomingTaskID uuid.UUID, incomingRuntimeID string) {
+			called = true
+			gotTaskID = incomingTaskID
+			gotRuntimeID = incomingRuntimeID
+		},
+	}
+
+	tc.dispatchToRuntime(context.Background(), &TaskRecord{
+		TaskID:          taskID,
+		TenantID:        "tenant-a",
+		RuntimeID:       &runtimeID,
+		RuntimeEndpoint: ptrString("http://runtime.test"),
+		TaskDefinition:  json.RawMessage(`{"type":"agent_workflow","steps":[{"step_index":1,"model":"gpt-4.1-mini","messages":[{"role":"user","content":"hello"}]}]}`),
+		IdempotencyKey:  "idem-transport",
+	}, nil)
+
+	require.True(t, called)
+	require.Equal(t, taskID, gotTaskID)
+	require.Equal(t, runtimeID, gotRuntimeID)
+}
+
+func TestDispatchToRuntimeSchedulesRecoveryOnServerError(t *testing.T) {
+	t.Parallel()
+
+	taskID := uuid.New()
+	runtimeID := "runtime-server-error"
+	called := false
+	var gotTaskID uuid.UUID
+	var gotRuntimeID string
+
+	tc := &TaskCoordinator{
+		httpClient: &http.Client{Transport: roundTripperFunc(func(*http.Request) (*http.Response, error) {
+			return &http.Response{
+				StatusCode: http.StatusBadGateway,
+				Header:     http.Header{"Content-Type": []string{"application/json"}},
+				Body:       io.NopCloser(strings.NewReader(`{"error":"upstream failure"}`)),
+			}, nil
+		})},
+		recoveryHook: func(_ context.Context, incomingTaskID uuid.UUID, incomingRuntimeID string) {
+			called = true
+			gotTaskID = incomingTaskID
+			gotRuntimeID = incomingRuntimeID
+		},
+	}
+
+	tc.dispatchToRuntime(context.Background(), &TaskRecord{
+		TaskID:          taskID,
+		TenantID:        "tenant-b",
+		RuntimeID:       &runtimeID,
+		RuntimeEndpoint: ptrString("http://runtime.test"),
+		TaskDefinition:  json.RawMessage(`{"type":"robotics_workflow","steps":[{"step_index":1,"action":"publish_zero_velocity"}]}`),
+		IdempotencyKey:  "idem-server",
+	}, nil)
+
+	require.True(t, called)
+	require.Equal(t, taskID, gotTaskID)
+	require.Equal(t, runtimeID, gotRuntimeID)
 }
 
 func ptrString(value string) *string {
