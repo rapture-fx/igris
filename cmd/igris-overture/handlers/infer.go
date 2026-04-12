@@ -1056,11 +1056,15 @@ func (h *InferHandler) handleStreamingInfer(c *fiber.Ctx, req *models.InferReque
 			TotalTokens:      100 + (len(combinedContent) / 4),
 		},
 		Metadata: &models.ResponseMetadata{
-			Provider:      "mock-openai",
-			ModelUsed:     req.Model,
-			RouteDecision: "simple_stream",
+			Provider:                 "mock-openai",
+			ModelUsed:                req.Model,
+			RouteDecision:            "simple_stream",
+			StreamExecutionAuthority: "overture_fallback",
+			StreamReplayCondition:    "none",
 		},
 	}
+	resumeSupported := false
+	response.Metadata.StreamResumeSupported = &resumeSupported
 
 	// If speculative execution was used, add metadata
 	if speculativeMetadata != nil {
