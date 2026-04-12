@@ -922,6 +922,12 @@ func (h *InferHandler) handleStreamingInfer(c *fiber.Ctx, req *models.InferReque
 			if taskID := runtimeResp.Header.Get("X-Igris-Runtime-Task-Id"); taskID != "" {
 				c.Set("X-Igris-Runtime-Task-Id", taskID)
 			}
+			if resumeSupported := runtimeResp.Header.Get("X-Igris-Runtime-Stream-Resume-Supported"); resumeSupported != "" {
+				c.Set("X-Igris-Runtime-Stream-Resume-Supported", resumeSupported)
+			}
+			if replayCondition := runtimeResp.Header.Get("X-Igris-Runtime-Stream-Replay-Condition"); replayCondition != "" {
+				c.Set("X-Igris-Runtime-Stream-Replay-Condition", replayCondition)
+			}
 
 			c.Context().SetBodyStreamWriter(func(w *bufio.Writer) {
 				defer runtimeResp.Body.Close()
