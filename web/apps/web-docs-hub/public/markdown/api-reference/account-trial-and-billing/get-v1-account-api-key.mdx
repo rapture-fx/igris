@@ -1,0 +1,110 @@
+---
+title: "GET /v1/account/api-key"
+description: "Returns metadata about the current tenant API key without exposing the secret itself. Use it to confirm whether a key exists, what prefix it has, and when it was last rotated."
+---
+
+# GET /v1/account/api-key
+
+Returns metadata about the current tenant API key without exposing the secret itself. Use it to confirm whether a key exists, what prefix it has, and when it was last rotated.
+
+<div className="api-meta not-prose"><div className="api-meta-group"><span className="api-meta-label">Method</span><span className="api-badge api-method-get">GET</span></div><div className="api-meta-group"><span className="api-meta-label">Path</span><span className="api-meta-value">/v1/account/api-key</span></div><div className="api-meta-group"><span className="api-meta-label">Base URL</span><span className="api-meta-value">https://overture.igrisinertial.com</span></div><div className="api-meta-group"><span className="api-meta-label">Auth</span><span className="api-meta-value">Session cookie or igris_ API key</span></div><div className="api-meta-group"><span className="api-meta-label">Surface</span><span className="api-badge api-surface-cloud-api">Cloud API</span></div><div className="api-meta-group"><span className="api-meta-label">Stability</span><span className="api-badge api-stability-stable">stable</span></div><div className="api-meta-group"><span className="api-meta-label">Support</span><span className="api-badge api-support-core">core</span></div><div className="api-meta-group"><span className="api-meta-label">Deployment</span><span className="api-badge api-deployment-cloud">cloud</span></div></div>
+
+## When To Use
+
+Use this endpoint when you are auditing tenant access state, confirming whether an environment already has a key, or checking whether key rotation happened when expected.
+
+## Integration Guidance
+
+Safe to retry on transient 5xx or 429 responses. A missing key is a product state question, not a retry condition.
+
+### Common Mistakes
+
+- Expecting the raw API key to be returned again after creation.
+- Using this route as if it creates or rotates credentials; it only reports metadata.
+
+### Related Endpoints
+
+- [GET /api/subscription/status](/docs/api-reference/account-trial-and-billing/get-api-subscription-status)
+- [GET /api/subscription/plans](/docs/api-reference/account-trial-and-billing/get-api-subscription-plans)
+- [POST /v1/account/api-key](/docs/api-reference/account-trial-and-billing/post-v1-account-api-key)
+
+### Related Guides
+
+- [API Authentication](/docs/api-reference/authentication)
+- [API Errors](/docs/api-reference/errors)
+- [Key Management](/docs/key-management)
+
+## Code Examples
+
+### cURL
+
+```bash
+curl -X GET https://overture.igrisinertial.com/v1/account/api-key \
+  -H "Authorization: Bearer $IGRIS_API_KEY"
+```
+
+### JavaScript
+
+```javascript
+const response = await fetch('https://overture.igrisinertial.com/v1/account/api-key', {
+  method: 'GET',
+  headers: {
+    'Authorization': `Bearer ${process.env.IGRIS_API_KEY}`,
+  },
+});
+
+const data = await response.text();
+console.log(data);
+```
+
+### Go
+
+```go
+client := &http.Client{}
+body := http.NoBody
+
+req, err := http.NewRequest("GET", "https://overture.igrisinertial.com/v1/account/api-key", body)
+if err != nil {
+	log.Fatal(err)
+}
+
+req.Header.Set("Authorization", "Bearer " + os.Getenv("IGRIS_API_KEY"))
+
+resp, err := client.Do(req)
+if err != nil {
+	log.Fatal(err)
+}
+defer resp.Body.Close()
+
+payload, _ := io.ReadAll(resp.Body)
+fmt.Println(string(payload))
+```
+
+### Rust
+
+```rust
+let client = reqwest::Client::new();
+let response = client
+        .request(reqwest::Method::GET, "https://overture.igrisinertial.com/v1/account/api-key")
+        .header("Authorization", format!("Bearer {}", std::env::var("IGRIS_API_KEY")?))
+        .send()
+        .await?;
+
+let payload = response.text().await?;
+println!("{}", payload);
+```
+
+## Sample Response
+
+```json
+{
+  "has_key": true,
+  "prefix": "igris_a1b2c3",
+  "created_at": "2026-04-04T06:15:00Z"
+}
+```
+
+## Status Codes
+
+Status-code details are still being documented for this endpoint.
+
