@@ -67,6 +67,11 @@ func TestBuildTaskResponseIncludesFailureReasonAndCheckpointMetadata(t *testing.
 		"cancellation_allowed":        false,
 	}, resp["lifecycle"])
 	require.Equal(t, fiber.Map{
+		"class":            coordinator.TaskDurabilityClassResumable,
+		"streaming":        false,
+		"resume_supported": true,
+	}, resp["durability"])
+	require.Equal(t, fiber.Map{
 		"redispatch_eligible": false,
 		"skip_reason":         "task_failed",
 	}, resp["recovery"])
@@ -100,6 +105,11 @@ func TestBuildTaskResponseOmitsEmptyOptionalFields(t *testing.T) {
 		"recovery_redispatch_allowed": false,
 		"cancellation_allowed":        true,
 	}, resp["lifecycle"])
+	require.Equal(t, fiber.Map{
+		"class":            coordinator.TaskDurabilityClassResumable,
+		"streaming":        false,
+		"resume_supported": true,
+	}, resp["durability"])
 	require.Equal(t, fiber.Map{
 		"redispatch_eligible": false,
 	}, resp["recovery"])
@@ -225,6 +235,11 @@ func TestBuildTaskResponseIncludesCanceledAtWhenPresent(t *testing.T) {
 		"cancellation_allowed":        false,
 	}, resp["lifecycle"])
 	require.Equal(t, fiber.Map{
+		"class":            coordinator.TaskDurabilityClassResumable,
+		"streaming":        false,
+		"resume_supported": true,
+	}, resp["durability"])
+	require.Equal(t, fiber.Map{
 		"redispatch_eligible": false,
 		"skip_reason":         "task_canceled",
 	}, resp["recovery"])
@@ -295,10 +310,52 @@ func TestBuildTaskLifecycleResponse(t *testing.T) {
 	}
 }
 
+func TestBuildTaskDurabilityResponse(t *testing.T) {
+	t.Parallel()
+
+	tests := []struct {
+		name string
+		task *coordinator.TaskRecord
+		want fiber.Map
+	}{
+		{
+			name: "resumable task",
+			task: &coordinator.TaskRecord{
+				TaskDefinition: json.RawMessage(`{"type":"single_inference","model":"gpt-4.1-mini","messages":[{"role":"user","content":"hello"}]}`),
+			},
+			want: fiber.Map{
+				"class":            coordinator.TaskDurabilityClassResumable,
+				"streaming":        false,
+				"resume_supported": true,
+			},
+		},
+		{
+			name: "streaming non resumable task",
+			task: &coordinator.TaskRecord{
+				TaskDefinition: json.RawMessage(`{"type":"single_inference","model":"gpt-4.1-mini","messages":[{"role":"user","content":"hello"}],"stream":true}`),
+			},
+			want: fiber.Map{
+				"class":            coordinator.TaskDurabilityClassStreamingNonResumable,
+				"streaming":        true,
+				"resume_supported": false,
+			},
+		},
+	}
+
+	for _, test := range tests {
+		test := test
+		t.Run(test.name, func(t *testing.T) {
+			t.Parallel()
+			require.Equal(t, test.want, buildTaskDurabilityResponse(test.task))
+		})
+	}
+}
+
 func TestBuildTaskRecoveryResponse(t *testing.T) {
 	t.Parallel()
 
 	noRuntimeForRecovery := "no runtime available for recovery"
+	streamingUnsupported := coordinator.TaskFailureReasonStreamingResumeUnsupported
 	tests := []struct {
 		name string
 		task *coordinator.TaskRecord
@@ -335,6 +392,17 @@ func TestBuildTaskRecoveryResponse(t *testing.T) {
 			},
 		},
 		{
+			name: "recovering streaming task",
+			task: &coordinator.TaskRecord{
+				Status:         coordinator.TaskStatusRecovering,
+				TaskDefinition: json.RawMessage(`{"type":"single_inference","model":"gpt-4.1-mini","messages":[{"role":"user","content":"hello"}],"stream":true}`),
+			},
+			want: fiber.Map{
+				"redispatch_eligible": false,
+				"skip_reason":         "streaming_resume_unsupported",
+			},
+		},
+		{
 			name: "failed recovery exhaustion",
 			task: &coordinator.TaskRecord{
 				Status:        coordinator.TaskStatusFailed,
@@ -343,6 +411,18 @@ func TestBuildTaskRecoveryResponse(t *testing.T) {
 			want: fiber.Map{
 				"redispatch_eligible": false,
 				"skip_reason":         "no_runtime_available_for_recovery",
+			},
+		},
+		{
+			name: "failed streaming unsupported",
+			task: &coordinator.TaskRecord{
+				Status:        coordinator.TaskStatusFailed,
+				FailureReason: &streamingUnsupported,
+				TaskDefinition: json.RawMessage(`{"type":"single_inference","model":"gpt-4.1-mini","messages":[{"role":"user","content":"hello"}],"stream":true}`),
+			},
+			want: fiber.Map{
+				"redispatch_eligible": false,
+				"skip_reason":         "streaming_resume_unsupported",
 			},
 		},
 	}
@@ -379,6 +459,11 @@ func TestBuildTaskTransitionRejectedPayloadIncludesLifecycle(t *testing.T) {
 		"recovery_redispatch_allowed": false,
 		"cancellation_allowed":        false,
 	}, resp["lifecycle"])
+	require.Equal(t, fiber.Map{
+		"class":            coordinator.TaskDurabilityClassResumable,
+		"streaming":        false,
+		"resume_supported": true,
+	}, resp["durability"])
 	require.Equal(t, fiber.Map{
 		"redispatch_eligible": false,
 		"skip_reason":         "task_failed",
