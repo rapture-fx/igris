@@ -87,7 +87,7 @@ export function SdkSupportMatrix() {
   const compatible = rows.filter((r) => r.status === 'openai-compatible');
 
   return (
-    <div className="space-y-6 not-prose">
+    <div className="space-y-6 not-prose sdk-matrix">
       {/* First-class */}
       <div>
         <SectionLabel>First-class</SectionLabel>
