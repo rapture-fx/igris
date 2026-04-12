@@ -894,6 +894,15 @@ func buildTaskAcceptedResponse(task *coordinator.TaskRecord) fiber.Map {
 	return resp
 }
 
+func buildTaskMutationResponse(task *coordinator.TaskRecord, extras fiber.Map) fiber.Map {
+	resp := buildTaskResponse(task)
+	resp["ok"] = true
+	for key, value := range extras {
+		resp[key] = value
+	}
+	return resp
+}
+
 func buildTaskLifecycleResponse(status coordinator.TaskRecordStatus) fiber.Map {
 	runtimeMutationAllowed := coordinator.TaskAllowsRuntimeMutation(status)
 	dispatchAllowed := coordinator.TaskAllowsDispatch(status)
@@ -943,14 +952,10 @@ func buildTaskRecoveryResponse(task *coordinator.TaskRecord) fiber.Map {
 }
 
 func buildTaskCanceledResponse(task *coordinator.TaskRecord, runtimeCancelAttempted, runtimeCancelSignaled bool) fiber.Map {
-	resp := buildTaskAcceptedResponse(task)
-	resp["ok"] = true
-	resp["runtime_cancel_attempted"] = runtimeCancelAttempted
-	resp["runtime_cancel_signaled"] = runtimeCancelSignaled
-	if task.CanceledAt != nil {
-		resp["canceled_at"] = task.CanceledAt
-	}
-	return resp
+	return buildTaskMutationResponse(task, fiber.Map{
+		"runtime_cancel_attempted": runtimeCancelAttempted,
+		"runtime_cancel_signaled":  runtimeCancelSignaled,
+	})
 }
 
 func buildTaskProofReadinessResponse(triggerAvailable bool) fiber.Map {
@@ -1217,7 +1222,18 @@ func handleTaskCheckpoint(tc *coordinator.TaskCoordinator) fiber.Handler {
 			return c.Status(http.StatusInternalServerError).JSON(fiber.Map{"error": "checkpoint_failed"})
 		}
 
-		return c.JSON(fiber.Map{"ok": true, "step": cp.ResumeToken.LastCommittedStep})
+		updatedTask, err := tc.Store().GetTask(taskID, tenantID)
+		if err != nil {
+			fallbackTask := *task
+			fallbackTask.Status = coordinator.TaskStatusCheckpointed
+			cpCopy := cp
+			fallbackTask.LastCheckpoint = &cpCopy
+			updatedTask = &fallbackTask
+		}
+
+		return c.JSON(buildTaskMutationResponse(updatedTask, fiber.Map{
+			"step": cp.ResumeToken.LastCommittedStep,
+		}))
 	}
 }
 
@@ -1249,7 +1265,16 @@ func handleTaskComplete(tc *coordinator.TaskCoordinator) fiber.Handler {
 			}
 			return c.Status(http.StatusInternalServerError).JSON(fiber.Map{"error": "db_error"})
 		}
-		return c.JSON(fiber.Map{"ok": true})
+
+		updatedTask, err := tc.Store().GetTask(taskID, tenantID)
+		if err != nil {
+			fallbackTask := *task
+			now := time.Now().UTC()
+			fallbackTask.Status = coordinator.TaskStatusCompleted
+			fallbackTask.CompletedAt = &now
+			updatedTask = &fallbackTask
+		}
+		return c.JSON(buildTaskMutationResponse(updatedTask, nil))
 	}
 }
 
@@ -1285,6 +1310,17 @@ func handleTaskFailed(tc *coordinator.TaskCoordinator) fiber.Handler {
 			}
 			return c.Status(http.StatusInternalServerError).JSON(fiber.Map{"error": "db_error"})
 		}
-		return c.JSON(fiber.Map{"ok": true})
+
+		updatedTask, err := tc.Store().GetTask(taskID, tenantID)
+		if err != nil {
+			fallbackTask := *task
+			fallbackTask.Status = coordinator.TaskStatusFailed
+			if body.Reason != "" {
+				reason := body.Reason
+				fallbackTask.FailureReason = &reason
+			}
+			updatedTask = &fallbackTask
+		}
+		return c.JSON(buildTaskMutationResponse(updatedTask, nil))
 	}
 }
