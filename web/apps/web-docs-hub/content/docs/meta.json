@@ -78,11 +78,7 @@
       "defaultOpen": false,
       "pages": [
         "api-reference",
-        "docs-authoring",
-        "docs-authoring-components",
-        "docs-authoring-schemas",
-        "documentation-roadmap",
-        "troubleshooting",
+"troubleshooting",
         "upgrade-migration",
         "changelog"
       ]
