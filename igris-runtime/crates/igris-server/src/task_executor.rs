@@ -1679,7 +1679,14 @@ fn persist_task_record(
             response: response.clone(),
         },
     )?;
-    state.storage.set(
+    persist_task_status_index(&state.storage, response)
+}
+
+fn persist_task_status_index(
+    storage: &igris_core::storage::RedbStorage,
+    response: &TaskSubmitResponse,
+) -> anyhow::Result<()> {
+    storage.set(
         TASK_SUBMISSION_STATUS_BY_TASK_ID,
         &task_status_key(response.task_id),
         response,
@@ -3858,10 +3865,11 @@ fn truncate_preview(text: &str, max_chars: usize) -> String {
 #[cfg(test)]
 mod tests {
     use super::{
-        attach_stream_task_headers, build_step_checkpoint_metadata, build_task_result_payload,
-        collect_slot_inputs, compile_execution_graph_to_steps, deterministic_embedding,
-        initialize_graph_blackboard, materialize_execution_graph, normalize_agent_mode,
-        resolve_graph_value, robotics_action_name, stream_durability_metadata,
+        attach_stream_task_headers, build_step_checkpoint_metadata, build_task_cancel_response,
+        build_task_result_payload, collect_slot_inputs, compile_execution_graph_to_steps,
+        deterministic_embedding, initialize_graph_blackboard, materialize_execution_graph,
+        normalize_agent_mode, persist_task_status_index, resolve_graph_value,
+        robotics_action_name, stream_durability_metadata, task_status_key,
         update_graph_blackboard, AgentExecutionMode, BehaviorTreeStep, ExecutionGraph,
         ExecutionNode, HumanApprovalStep, RoboticsAction, RoboticsStep, RuntimeTaskStep,
         StepExecutionResult, TaskStatus, TaskSubmitResponse, TaskType, ToolStep,
@@ -3869,7 +3877,9 @@ mod tests {
     use axum::{body::Body, response::Response};
     use crate::runtime_execute::ExecuteUsage;
     use crate::runtime_execute::ExecuteMessage;
+    use igris_core::storage::{RedbStorage, TASK_SUBMISSION_STATUS_BY_TASK_ID};
     use igris_wal::{CheckpointPayload, ResumeToken};
+    use std::env;
     use uuid::Uuid;
 
     #[test]
@@ -4203,6 +4213,75 @@ mod tests {
             response.headers()["x-igris-runtime-stream-replay-condition"],
             "completed-final-output"
         );
+    }
+
+    #[test]
+    fn build_task_cancel_response_reports_persisted_terminal_status() {
+        let task_id = Uuid::new_v4();
+        let response = TaskSubmitResponse {
+            task_id,
+            steps_completed: 3,
+            steps_total: 3,
+            status: TaskStatus::Failed {
+                reason: "task failed".to_string(),
+            },
+            checkpoint: Some(CheckpointPayload {
+                task_id,
+                resume_token: ResumeToken {
+                    last_committed_step: 2,
+                    checkpoint_digest: [0x11u8; 32],
+                    runtime_id: "runtime-1".to_string(),
+                },
+                wal_entries: vec![],
+                metadata: None,
+            }),
+            final_output: None,
+            usage: None,
+            execution_envelope: None,
+            execution_receipt: None,
+        };
+
+        let (status, payload) = build_task_cancel_response(task_id, false, Some(&response));
+        assert_eq!(status, StatusCode::CONFLICT);
+        assert_eq!(payload["task_id"], task_id.to_string());
+        assert_eq!(payload["known"], true);
+        assert_eq!(payload["active_execution"], false);
+        assert_eq!(payload["cancellation_allowed"], false);
+        assert_eq!(payload["reason"], "task_execution_failed");
+        assert_eq!(payload["checkpoint_persisted"], true);
+        assert_eq!(payload["status"]["status"], "failed");
+        assert_eq!(payload["status"]["reason"], "task failed");
+    }
+
+    #[test]
+    fn persist_task_status_index_writes_task_id_lookup() {
+        let db_path = env::temp_dir().join(format!("igris-task-status-{}.db", Uuid::new_v4()));
+        let storage = RedbStorage::new(&db_path).unwrap();
+        let response = TaskSubmitResponse {
+            task_id: Uuid::new_v4(),
+            steps_completed: 1,
+            steps_total: 1,
+            status: TaskStatus::Completed,
+            checkpoint: None,
+            final_output: Some("done".to_string()),
+            usage: None,
+            execution_envelope: None,
+            execution_receipt: None,
+        };
+
+        persist_task_status_index(&storage, &response).unwrap();
+
+        let stored = storage
+            .get::<TaskSubmitResponse>(
+                TASK_SUBMISSION_STATUS_BY_TASK_ID,
+                &task_status_key(response.task_id),
+            )
+            .unwrap()
+            .unwrap();
+        assert!(matches!(stored.status, TaskStatus::Completed));
+        assert_eq!(stored.final_output.as_deref(), Some("done"));
+
+        let _ = std::fs::remove_file(db_path);
     }
 
     #[test]
