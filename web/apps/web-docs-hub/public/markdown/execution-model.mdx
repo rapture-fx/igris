@@ -1,0 +1,125 @@
+---
+title: "Execution Model"
+description: "Every request that passes through Igris runs inside a bounded execution envelope. This page explains how execution works from request arrival to signed receipt."
+---
+
+# Execution Model
+
+Every request that passes through Igris runs inside a bounded execution envelope. This page explains how execution works from request arrival to signed receipt.
+
+---
+
+## Execution Envelope
+
+When the execution engine receives a request, it opens an execution envelope before processing begins. The envelope is a structured record that captures the full execution context.
+
+An envelope contains:
+- **Identity**: request ID, tenant ID, timestamp
+- **Inputs**: the original prompt, system message, and parameters
+- **Capability grants**: what the execution is permitted to do
+- **Resource limits**: token budget, time budget, step budget
+- **Outputs**: model response and tool call results
+- **Resource usage**: tokens consumed, wall time, tool calls made
+- **Capability violations**: any rejected operations
+
+When execution completes, the envelope is finalized and signed cryptographically. The signature covers the canonical form of all fields. The signed envelope becomes the execution receipt.
+
+[Execution Receipts →](/docs/execution-receipts)
+
+---
+
+## Capability Bounds
+
+Before execution begins, the engine checks the request's declared capability grants against the tenant's configured policy. If the request claims more than its policy allows, the engine rejects it before the model is invoked.
+
+During execution, the engine enforces capability limits in real time:
+
+| Capability | What it restricts |
+|---|---|
+| `allow_http` | HTTP calls to external endpoints |
+| `allow_shell` | Shell command execution |
+| `allow_filesystem` | File read/write operations |
+| `max_tokens` | Output token limit |
+| `max_steps` | Maximum planning or tool-call steps |
+| `max_duration_ms` | Maximum wall time for the full execution |
+
+If an execution exceeds any limit, the engine terminates it and records the violation in the receipt. Violations are part of the signed record — they cannot be suppressed.
+
+[Capability Model →](/docs/capability-model)
+
+---
+
+## Execution Path
+
+### Cloud path
+
+When cloud providers are configured and available:
+
+```
+Request → Engine → Cloud provider (OpenAI / Anthropic / Google / ...)
+                        │
+                   Response
+                        │
+              Engine signs receipt
+                        │
+                   Return to caller
+```
+
+The cloud provider runs inference. The engine records what was sent and received, applies any post-processing governed by the capability model, and signs the completed envelope.
+
+### Local path
+
+When the engine is configured with a local model and cloud providers are unavailable (or policy requires local execution):
+
+```
+Request → Engine → Local inference (Phi-3 / Mistral / Llama / custom LoRA)
+                        │
+                   Response
+                        │
+              Engine signs receipt
+                        │
+                   Return to caller
+```
+
+The response format is identical. The `metadata.provider` field reflects which backend ran inference. The signed receipt is produced either way.
+
+### Hybrid path
+
+The engine can be configured to try cloud first and fall back to local automatically:
+
+```
+Request → Engine → Cloud provider (success) → signed receipt
+               └── Cloud provider (fail) → Local inference → signed receipt
+```
+
+Failover is automatic and transparent to the caller.
+
+---
+
+## Signing
+
+The engine signs each receipt using a device-bound key. The signature covers a canonical JSON serialization of the envelope, including:
+
+- All input fields
+- All output fields
+- All resource usage counters
+- All capability grants and violations
+- Timestamp and request ID
+
+The signature cannot be regenerated without the signing key. A receipt with a valid signature proves that the envelope was produced by the engine that holds that key, and has not been altered since signing.
+
+---
+
+## Receipt Storage
+
+Signed receipts are stored in the engine's local database. Retention duration is configured by your tier:
+
+| Tier | Retention |
+|---|---|
+| Seed | 7 days |
+| Horizon | 30 days |
+| Infinite | 90 days |
+
+Receipts can be queried via API and exported for external audit workflows.
+
+[Audit →](/docs/audit) · [Safety & Containment →](/docs/safety)
