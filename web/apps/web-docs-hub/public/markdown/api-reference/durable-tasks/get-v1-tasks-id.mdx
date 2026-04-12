@@ -1,0 +1,145 @@
+---
+title: "GET /v1/tasks/:id"
+description: "Returns the current state of one durable task, including runtime assignment and the latest checkpoint metadata when available. This is the status route you poll while a durable workflow is still in progress."
+---
+
+# GET /v1/tasks/:id
+
+Returns the current state of one durable task, including runtime assignment and the latest checkpoint metadata when available. This is the status route you poll while a durable workflow is still in progress.
+
+<div className="api-meta not-prose"><div className="api-meta-group"><span className="api-meta-label">Method</span><span className="api-badge api-method-get">GET</span></div><div className="api-meta-group"><span className="api-meta-label">Path</span><span className="api-meta-value">/v1/tasks/:id</span></div><div className="api-meta-group"><span className="api-meta-label">Base URL</span><span className="api-meta-value">https://overture.igrisinertial.com</span></div><div className="api-meta-group"><span className="api-meta-label">Auth</span><span className="api-meta-value">Session cookie or igris_ API key</span></div><div className="api-meta-group"><span className="api-meta-label">Surface</span><span className="api-badge api-surface-cloud-api">Cloud API</span></div><div className="api-meta-group"><span className="api-meta-label">Stability</span><span className="api-badge api-stability-stable">stable</span></div><div className="api-meta-group"><span className="api-meta-label">Support</span><span className="api-badge api-support-supported">supported</span></div><div className="api-meta-group"><span className="api-meta-label">Deployment</span><span className="api-badge api-deployment-cloud">cloud</span></div></div>
+
+## When To Use
+
+Use this endpoint after submission when you need to monitor progress, completion, failure, or recovery state for a specific task.
+
+## Integration Guidance
+
+Safe to retry on transient 5xx or 429 responses. Poll at a reasonable interval rather than continuously, especially for long-running tasks.
+
+### Common Mistakes
+
+- Polling too aggressively and turning task status checks into avoidable background load.
+- Treating checkpoint metadata as if it will exist before the runtime has actually produced a checkpoint.
+
+### Related Endpoints
+
+- [POST /v1/tasks/submit](/docs/api-reference/durable-tasks/post-v1-tasks-submit)
+- [GET /v1/tasks](/docs/api-reference/durable-tasks/get-v1-tasks)
+
+### Related Guides
+
+- [API Authentication](/docs/api-reference/authentication)
+- [API Errors](/docs/api-reference/errors)
+- [Context Engineering](/docs/context-engineering)
+
+## Path Parameters
+
+| Field | Type | Required | Description |
+|---|---|---|---|
+| `id` | `string` | Yes | Task ID returned by POST /v1/tasks/submit. |
+
+## Notes
+
+- Status values: `pending`, `dispatched`, `checkpointed`, `completed`, `failed`, `recovering`.
+- `last_step` and `checkpoint_digest` are only present once the runtime has pushed at least one checkpoint.
+
+## Code Examples
+
+### cURL
+
+```bash
+curl -X GET https://overture.igrisinertial.com/v1/tasks/example-id \
+  -H "Authorization: Bearer $IGRIS_API_KEY"
+```
+
+### JavaScript
+
+```javascript
+const response = await fetch('https://overture.igrisinertial.com/v1/tasks/example-id', {
+  method: 'GET',
+  headers: {
+    'Authorization': `Bearer ${process.env.IGRIS_API_KEY}`,
+  },
+});
+
+const data = await response.text();
+console.log(data);
+```
+
+### Go
+
+```go
+client := &http.Client{}
+body := http.NoBody
+
+req, err := http.NewRequest("GET", "https://overture.igrisinertial.com/v1/tasks/example-id", body)
+if err != nil {
+	log.Fatal(err)
+}
+
+req.Header.Set("Authorization", "Bearer " + os.Getenv("IGRIS_API_KEY"))
+
+resp, err := client.Do(req)
+if err != nil {
+	log.Fatal(err)
+}
+defer resp.Body.Close()
+
+payload, _ := io.ReadAll(resp.Body)
+fmt.Println(string(payload))
+```
+
+### Rust
+
+```rust
+let client = reqwest::Client::new();
+let response = client
+        .request(reqwest::Method::GET, "https://overture.igrisinertial.com/v1/tasks/example-id")
+        .header("Authorization", format!("Bearer {}", std::env::var("IGRIS_API_KEY")?))
+        .send()
+        .await?;
+
+let payload = response.text().await?;
+println!("{}", payload);
+```
+
+## Sample Response
+
+```json
+{
+  "task_id": "018f4a2b-3c1e-7a2d-9b8f-4d5e6f7a8b9c",
+  "status": "checkpointed",
+  "runtime_id": "runtime-edge-03",
+  "last_step": 9,
+  "checkpoint_digest": "a3f8e2b1c4d5e6f7a8b9c0d1e2f3a4b5c6d7e8f9a0b1c2d3e4f5a6b7c8d9e0f1",
+  "dispatched_at": "2026-04-04T14:30:01Z",
+  "completed_at": null
+}
+```
+
+## Status Codes
+
+| Code | Title | Description |
+|---|---|---|
+| 200 | Success | Task record returned. |
+| 400 | Bad request | Task ID is not a valid UUID. |
+| 401 | Unauthorized | Session or API key auth failed. |
+| 404 | Not found | No task with this ID exists for the authenticated tenant. |
+
+### 400 Example
+
+```json
+{
+  "error": "invalid task_id"
+}
+```
+
+### 404 Example
+
+```json
+{
+  "error": "task not found"
+}
+```
+
