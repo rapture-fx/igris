@@ -258,6 +258,71 @@ func TestBuildTaskResponseReturnsFiberMap(t *testing.T) {
 	require.True(t, ok)
 }
 
+func TestBuildTaskAcceptedResponse(t *testing.T) {
+	t.Parallel()
+
+	createdAt := time.Unix(1_700_000_700, 0).UTC()
+	resp := buildTaskAcceptedResponse(&coordinator.TaskRecord{
+		TaskID:         uuid.New(),
+		Status:         coordinator.TaskStatusDispatched,
+		CreatedAt:      createdAt,
+		TaskDefinition: json.RawMessage(`{"type":"single_inference","model":"gpt-4.1-mini","messages":[{"role":"user","content":"hello"}]}`),
+	})
+
+	require.Equal(t, createdAt, resp["created_at"])
+	require.Equal(t, "single_inference", resp["task_type"])
+	require.Equal(t, fiber.Map{
+		"terminal":                    false,
+		"runtime_mutation_allowed":    true,
+		"dispatch_allowed":            false,
+		"recovery_redispatch_allowed": false,
+		"cancellation_allowed":        true,
+	}, resp["lifecycle"])
+	require.Equal(t, fiber.Map{
+		"class":            coordinator.TaskDurabilityClassResumable,
+		"streaming":        false,
+		"resume_supported": true,
+	}, resp["durability"])
+	require.Equal(t, fiber.Map{
+		"redispatch_eligible": false,
+	}, resp["recovery"])
+}
+
+func TestBuildTaskCanceledResponse(t *testing.T) {
+	t.Parallel()
+
+	createdAt := time.Unix(1_700_000_800, 0).UTC()
+	canceledAt := createdAt.Add(10 * time.Second)
+	resp := buildTaskCanceledResponse(&coordinator.TaskRecord{
+		TaskID:         uuid.New(),
+		Status:         coordinator.TaskStatusCanceled,
+		CreatedAt:      createdAt,
+		CanceledAt:     &canceledAt,
+		TaskDefinition: json.RawMessage(`{"type":"single_inference","model":"gpt-4.1-mini","messages":[{"role":"user","content":"hello"}]}`),
+	}, true, false)
+
+	require.Equal(t, true, resp["ok"])
+	require.Equal(t, true, resp["runtime_cancel_attempted"])
+	require.Equal(t, false, resp["runtime_cancel_signaled"])
+	require.Equal(t, &canceledAt, resp["canceled_at"])
+	require.Equal(t, fiber.Map{
+		"terminal":                    true,
+		"runtime_mutation_allowed":    false,
+		"dispatch_allowed":            false,
+		"recovery_redispatch_allowed": false,
+		"cancellation_allowed":        false,
+	}, resp["lifecycle"])
+	require.Equal(t, fiber.Map{
+		"class":            coordinator.TaskDurabilityClassResumable,
+		"streaming":        false,
+		"resume_supported": true,
+	}, resp["durability"])
+	require.Equal(t, fiber.Map{
+		"redispatch_eligible": false,
+		"skip_reason":         "task_canceled",
+	}, resp["recovery"])
+}
+
 func TestBuildTaskLifecycleResponse(t *testing.T) {
 	t.Parallel()
 
