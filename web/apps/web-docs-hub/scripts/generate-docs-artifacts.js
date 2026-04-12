@@ -3,6 +3,8 @@ const path = require('path');
 
 const { apiSections, generatedDir, mcpReference, repoRoot, sdkSupport } = require('./docs-data');
 const { generateApiReferenceContent } = require('./generate-api-reference-content');
+const docsRoot = path.join(__dirname, '../content/docs');
+const publicMarkdownDir = path.join(__dirname, '../public/markdown');
 
 function walk(dir, extension, files = []) {
   for (const entry of fs.readdirSync(dir, { withFileTypes: true })) {
@@ -134,6 +136,18 @@ function writeJson(fileName, data) {
   fs.writeFileSync(path.join(generatedDir, fileName), `${JSON.stringify(data, null, 2)}\n`);
 }
 
+function mirrorMarkdownSources() {
+  const markdownFiles = walk(docsRoot, '.mdx');
+  fs.rmSync(publicMarkdownDir, { recursive: true, force: true });
+
+  for (const filePath of markdownFiles) {
+    const relativePath = path.relative(docsRoot, filePath);
+    const outputPath = path.join(publicMarkdownDir, relativePath);
+    fs.mkdirSync(path.dirname(outputPath), { recursive: true });
+    fs.copyFileSync(filePath, outputPath);
+  }
+}
+
 function main() {
   const inventory = buildRouteInventory();
   validateConfiguredRoutes(inventory);
@@ -158,6 +172,7 @@ function main() {
   });
 
   generateApiReferenceContent();
+  mirrorMarkdownSources();
 
   console.log(`Generated docs artifacts in ${generatedDir}`);
 }

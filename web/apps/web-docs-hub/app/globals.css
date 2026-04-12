@@ -126,6 +126,72 @@
     line-height: 1.5;
   }
 
+  .docs-page-actions-anchor {
+    margin: 0.9rem 0 1.4rem;
+  }
+
+  .docs-page-actions {
+    display: flex;
+    flex-wrap: wrap;
+    gap: 0.65rem;
+    align-items: center;
+  }
+
+  .docs-page-action-menu {
+    position: relative;
+  }
+
+  .docs-page-action-button {
+    display: inline-flex;
+    align-items: center;
+    gap: 0.45rem;
+    min-height: 2.15rem;
+    border: 1px solid var(--color-fd-border);
+    border-radius: 9999px;
+    background: var(--color-fd-card);
+    color: var(--color-fd-foreground);
+    padding: 0.45rem 0.8rem;
+    font-size: 0.72rem;
+    line-height: 1;
+    font-weight: 600;
+    transition: background-color 150ms ease, border-color 150ms ease, color 150ms ease;
+  }
+
+  .docs-page-action-button:hover {
+    background: color-mix(in srgb, var(--color-fd-accent) 85%, var(--color-fd-card));
+    border-color: color-mix(in srgb, var(--color-fd-primary) 16%, var(--color-fd-border));
+  }
+
+  .docs-page-action-dropdown {
+    position: absolute;
+    top: calc(100% + 0.5rem);
+    left: 0;
+    z-index: 30;
+    min-width: 13rem;
+    overflow: hidden;
+    border: 1px solid var(--color-fd-border);
+    border-radius: 0.9rem;
+    background: var(--color-fd-card);
+    box-shadow: 0 18px 40px rgba(15, 23, 42, 0.12);
+    padding: 0.35rem;
+  }
+
+  .docs-page-action-item {
+    display: flex;
+    width: 100%;
+    border-radius: 0.7rem;
+    padding: 0.6rem 0.75rem;
+    color: color-mix(in srgb, var(--color-fd-card-foreground) 92%, transparent);
+    font-size: 0.72rem;
+    line-height: 1.25;
+    font-weight: 500;
+    text-decoration: none;
+  }
+
+  .docs-page-action-item:hover {
+    background: color-mix(in srgb, var(--color-fd-accent) 70%, transparent);
+  }
+
   #nd-sidebar,
   #nd-sidebar-mobile {
     font-size: 0.78rem;
