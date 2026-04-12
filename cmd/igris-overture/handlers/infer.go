@@ -913,21 +913,8 @@ func (h *InferHandler) handleStreamingInfer(c *fiber.Ctx, req *models.InferReque
 			}
 			log.Printf("[Infer] Runtime streaming unavailable, falling back to direct routing: %v", err)
 		} else {
-			c.Set("Content-Type", "text/event-stream")
-			c.Set("Cache-Control", "no-cache")
-			c.Set("Connection", "keep-alive")
-			c.Set("Transfer-Encoding", "chunked")
-			c.Set("X-Accel-Buffering", "no")
-			c.Set("X-Trace-ID", traceCtx.TraceID)
-			if taskID := runtimeResp.Header.Get("X-Igris-Runtime-Task-Id"); taskID != "" {
-				c.Set("X-Igris-Runtime-Task-Id", taskID)
-			}
-			if resumeSupported := runtimeResp.Header.Get("X-Igris-Runtime-Stream-Resume-Supported"); resumeSupported != "" {
-				c.Set("X-Igris-Runtime-Stream-Resume-Supported", resumeSupported)
-			}
-			if replayCondition := runtimeResp.Header.Get("X-Igris-Runtime-Stream-Replay-Condition"); replayCondition != "" {
-				c.Set("X-Igris-Runtime-Stream-Replay-Condition", replayCondition)
-			}
+			setStreamingSSEHeaders(c, traceCtx.TraceID)
+			applyRuntimeStreamContractHeaders(c, runtimeResp)
 
 			c.Context().SetBodyStreamWriter(func(w *bufio.Writer) {
 				defer runtimeResp.Body.Close()
@@ -951,11 +938,8 @@ func (h *InferHandler) handleStreamingInfer(c *fiber.Ctx, req *models.InferReque
 	}
 
 	// Set headers for Server-Sent Events
-	c.Set("Content-Type", "text/event-stream")
-	c.Set("Cache-Control", "no-cache")
-	c.Set("Connection", "keep-alive")
-	c.Set("Transfer-Encoding", "chunked")
-	c.Set("X-Trace-ID", traceCtx.TraceID)
+	setStreamingSSEHeaders(c, traceCtx.TraceID)
+	applyFallbackStreamContractHeaders(c)
 
 	// Check if speculative mode is enabled. Legacy Overture fallback still does not
 	// support council streaming; Runtime should own that mode when available.
@@ -1105,6 +1089,47 @@ func (h *InferHandler) handleStreamingInfer(c *fiber.Ctx, req *models.InferReque
 	c.Set("Content-Type", "application/json")
 	c.Set("X-Trace-ID", tracing.GetTraceID(traceContext))
 	return c.JSON(response)
+}
+
+func setStreamingSSEHeaders(c *fiber.Ctx, traceID string) {
+	c.Set("Content-Type", "text/event-stream")
+	c.Set("Cache-Control", "no-cache")
+	c.Set("Connection", "keep-alive")
+	c.Set("Transfer-Encoding", "chunked")
+	c.Set("X-Trace-ID", traceID)
+}
+
+func setPublicStreamContractHeaders(c *fiber.Ctx, authority, resumeSupported, replayCondition string) {
+	c.Set("X-Igris-Stream-Execution-Authority", authority)
+	c.Set("X-Igris-Stream-Resume-Supported", resumeSupported)
+	c.Set("X-Igris-Stream-Replay-Condition", replayCondition)
+}
+
+func applyRuntimeStreamContractHeaders(c *fiber.Ctx, runtimeResp *http.Response) {
+	resumeSupported := runtimeResp.Header.Get("X-Igris-Runtime-Stream-Resume-Supported")
+	if resumeSupported == "" {
+		resumeSupported = "false"
+	}
+	replayCondition := runtimeResp.Header.Get("X-Igris-Runtime-Stream-Replay-Condition")
+	if replayCondition == "" {
+		replayCondition = "unknown"
+	}
+	setPublicStreamContractHeaders(c, "runtime", resumeSupported, replayCondition)
+
+	if taskID := runtimeResp.Header.Get("X-Igris-Runtime-Task-Id"); taskID != "" {
+		c.Set("X-Igris-Runtime-Task-Id", taskID)
+	}
+	if resumeSupported != "" {
+		c.Set("X-Igris-Runtime-Stream-Resume-Supported", resumeSupported)
+	}
+	if replayCondition != "" {
+		c.Set("X-Igris-Runtime-Stream-Replay-Condition", replayCondition)
+	}
+	c.Set("X-Accel-Buffering", "no")
+}
+
+func applyFallbackStreamContractHeaders(c *fiber.Ctx) {
+	setPublicStreamContractHeaders(c, "overture_fallback", "false", "none")
 }
 
 // HandleHealth handles GET /v1/health
