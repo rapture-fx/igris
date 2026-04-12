@@ -247,6 +247,9 @@ func TestHandleStreamingInferAllowsExplicitFallbackOptIn(t *testing.T) {
 	if got := metadata["stream_execution_authority"]; got != "overture_fallback" {
 		t.Fatalf("metadata.stream_execution_authority = %v, want %q", got, "overture_fallback")
 	}
+	if got := metadata["stream_fallback_allowed"]; got != true {
+		t.Fatalf("metadata.stream_fallback_allowed = %v, want true", got)
+	}
 	if got := metadata["stream_resume_supported"]; got != false {
 		t.Fatalf("metadata.stream_resume_supported = %v, want false", got)
 	}
