@@ -1,6 +1,6 @@
 {
   "generated_by": "scripts/generate-docs-artifacts.js",
-  "native_sdk_note": "Recommended onboarding starts with the OpenAI-compatible API. When you need native Igris features, the first-class SDKs are JavaScript/TypeScript, Go, and Rust. Python remains preview. Java, C#, and Ruby should use an OpenAI-compatible client today.",
+  "native_sdk_note": "Recommended onboarding starts with the OpenAI-compatible API. When you need native Igris features, the first-class SDKs are JavaScript/TypeScript, Go, Rust, and Python. Java, C#, and Ruby should use an OpenAI-compatible client today.",
   "rows": [
     {
       "language": "JavaScript / TypeScript",
@@ -28,11 +28,11 @@
     },
     {
       "language": "Python",
-      "status": "preview",
+      "status": "first-class",
       "package": "igris-inertial",
       "install": "pip install igris-inertial",
       "import": "from igris import IgrisClient",
-      "notes": "Available in-repo, but not yet positioned as a first-class customer SDK."
+      "notes": "Preferred native SDK for Python services, data pipelines, and scripting."
     },
     {
       "language": "Java",
@@ -59,5 +59,5 @@
       "notes": "Use the OpenAI-compatible API until a native Ruby SDK is promoted explicitly."
     }
   ],
-  "generated_at": "2026-04-11T15:53:48.576Z"
+  "generated_at": "2026-04-12T01:42:43.272Z"
 }
