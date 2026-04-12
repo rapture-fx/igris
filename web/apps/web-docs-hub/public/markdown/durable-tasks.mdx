@@ -1,0 +1,364 @@
+---
+title: "Durable Task Execution"
+description: "Long-running agent workflows and robotics missions need to survive the infrastructure they run on. Durable task execution gives every multi-step task a tamper-evident Write-Ahead L"
+---
+
+# Durable Task Execution
+
+Long-running agent workflows and robotics missions need to survive the infrastructure they run on. Durable task execution gives every multi-step task a tamper-evident Write-Ahead Log (WAL), periodic checkpoints, and automatic failover to a healthy runtime if the executing one goes dark.
+
+A task that was 40 steps into a 100-step workflow when its runtime crashed resumes at step 41 instead of starting over, with durable progress metadata and a signed audit trail that covers the handoff.
+
+---
+
+## How it works
+
+Every durable task follows the same three-layer protocol:
+
+**1. Write-Ahead Log** — Before each step executes, the runtime writes an `Intent` entry to the WAL recording the step index, type, and a SHA-256 digest of the input. After successful execution, the entry is updated to `Committed` with the output digest and an Ed25519 signature over the full entry. If the step fails, the entry is marked `Failed` with a reason.
+
+**2. Periodic checkpoints** — Every five committed steps, the runtime sends a `CheckpointPayload` back to the coordination layer. The payload contains a `ResumeToken` with the last committed step index and a rolling SHA-256 digest over all committed output digests in step order.
+
+**3. Automatic recovery** — The coordination layer scans for runtimes with stale heartbeats every 15 seconds. Any runtime silent for more than 90 seconds is marked unhealthy. Its in-flight tasks are immediately reassigned to a healthy runtime with a `ResumeToken` derived from the last persisted checkpoint.
+
+---
+
+## Submitting a task
+
+```bash
+POST /v1/tasks/submit
+Authorization: Bearer YOUR_API_KEY
+Content-Type: application/json
+```
+
+Durable tasks now support two submission styles:
+
+- Typed wrappers for common agent and robotics workloads
+- Raw `task_definition` payloads for advanced callers who want full control
+
+The coordinator normalizes either form into the same runtime durable-task contract.
+
+### Agent tasks
+
+Use `agent_task` when you want the coordinator to build either a `single_inference` task or an `agent_workflow` for you.
+
+```json
+{
+  "task_type": "agent_workflow",
+  "agent_task": {
+    "name": "report-q3-analysis",
+    "steps": [
+      {
+        "model": "gpt-4.1-mini",
+        "messages": [
+          { "role": "user", "content": "Summarize the Q3 report" }
+        ],
+        "memory": {
+          "recall_query": "Q3 report context",
+          "store_output": true
+        }
+      },
+      {
+        "model": "gpt-4.1-mini",
+        "messages": [
+          { "role": "user", "content": "Extract action items from the summary" }
+        ],
+        "approval": {
+          "required": true
+        }
+      }
+    ]
+  },
+  "idempotency_key": "report-q3-2026-run-1",
+  "deadline_at": "2026-04-04T18:00:00Z"
+}
+```
+
+For single-step agent execution, set `task_type` to `single_inference` and provide a single `agent_task` with `model` and `messages` at the top level instead of `steps`.
+
+### Robotics missions
+
+Use `robotics_mission` when you want the coordinator to expand waypoints and mission actions into a durable `robotics_workflow`.
+
+```json
+{
+  "task_type": "robotics_workflow",
+  "robotics_mission": {
+    "name": "warehouse-patrol",
+    "waypoints": [
+      { "x": 12.5, "y": -3.0, "frame_id": "map" },
+      { "x": 18.0, "y": -1.0, "frame_id": "map" }
+    ],
+    "prompt": "Inspect shelf A3 and report anomalies",
+    "emit_zero_velocity_on_finish": true,
+    "approval": {
+      "required": true,
+      "context": {
+        "zone": "aisle-a3"
+      }
+    }
+  },
+  "idempotency_key": "warehouse-patrol-2026-04-04-01"
+}
+```
+
+This wrapper expands into the same durable robotics step model used by the runtime:
+- `navigate_to_pose`
+- `publish_prompt`
+- `publish_velocity`
+- `publish_zero_velocity`
+
+### Raw task definitions
+
+Advanced callers can still submit the runtime-facing durable task payload directly with `task_definition`.
+
+```json
+{
+  "task_type": "agent_workflow",
+  "task_definition": {
+    "steps": [
+      {
+        "step_index": 0,
+        "model": "gpt-4.1-mini",
+        "messages": [
+          { "role": "user", "content": "Summarize the Q3 report" }
+        ]
+      },
+      {
+        "step_index": 1,
+        "model": "gpt-4.1-mini",
+        "messages": [
+          { "role": "user", "content": "Extract action items from the summary" }
+        ]
+      }
+    ]
+  }
+}
+```
+
+Only one of these inputs may be provided per submission:
+- `task_definition`
+- `agent_task`
+- `robotics_mission`
+
+The coordination layer creates a task record, selects the healthiest available runtime (lowest active task count), and dispatches asynchronously. The response returns immediately with the task ID and initial status.
+
+```json
+{
+  "task_id": "018f4a2b-3c1e-7a2d-9b8f-4d5e6f7a8b9c",
+  "status": "dispatched",
+  "created_at": "2026-04-04T14:30:00Z"
+}
+```
+
+The `idempotency_key` deduplicates repeat submissions for the same tenant. Reusing the same key returns the existing durable task instead of creating a second one.
+
+---
+
+## Polling task status
+
+```bash
+GET /v1/tasks/018f4a2b-3c1e-7a2d-9b8f-4d5e6f7a8b9c
+Authorization: Bearer YOUR_API_KEY
+```
+
+```json
+{
+  "task_id": "018f4a2b-3c1e-7a2d-9b8f-4d5e6f7a8b9c",
+  "status": "checkpointed",
+  "task_type": "robotics_workflow",
+  "runtime_id": "runtime-edge-03",
+  "last_step": 9,
+  "checkpoint_digest": "a3f8e2b1...",
+  "checkpoint_metadata": {
+    "domain": "robotics",
+    "action": "navigate_to_pose",
+    "steps_completed": 9,
+    "last_result_preview": "navigation goal accepted"
+  },
+  "dispatched_at": "2026-04-04T14:30:01Z",
+  "deadline_at": "2026-04-04T18:00:00Z",
+  "completed_at": null
+}
+```
+
+When present:
+- `task_type` identifies the durable execution domain without requiring clients to reparse the stored definition
+- `checkpoint_metadata` carries task-specific recovery context such as the last robotics action or agent step preview
+- `failure_reason` is returned for terminal failures
+- `deadline_at` echoes the task deadline tracked by the coordinator
+
+| Status | Meaning |
+|---|---|
+| `pending` | Awaiting runtime assignment |
+| `dispatched` | Assigned and executing on a runtime |
+| `checkpointed` | Mid-execution; last checkpoint persisted |
+| `completed` | All steps finished successfully |
+| `failed` | Execution ended with a non-recoverable error |
+| `recovering` | Runtime went dark; being reassigned |
+
+---
+
+## Listing tasks
+
+```bash
+GET /v1/tasks?limit=20
+Authorization: Bearer YOUR_API_KEY
+```
+
+Returns recent tasks for your tenant, newest first. Maximum 100 per request.
+
+---
+
+## Durable streaming
+
+Base-mode streamed agent runs now use the same durable Runtime task contract as non-streaming `single_inference` execution.
+
+That means a streamed run can emit tokens live and still finish with a durable task result containing:
+
+- `task_id`
+- `status`
+- `checkpoint`
+- `usage`
+- `execution_envelope`
+- `execution_receipt`
+
+The public stream remains SSE, but when durability is active the stream ends with an explicit `task_result` event before `[DONE]`.
+
+```text
+data: {"id":"chatcmpl-stream","object":"chat.completion.chunk","model":"gpt-4.1-mini","choices":[{"index":0,"delta":{"content":"Hello"},"finish_reason":null}]}
+
+event: task_result
+data: {"task_id":"018f4a2b-3c1e-7a2d-9b8f-4d5e6f7a8b9c","steps_completed":1,"steps_total":1,"status":"completed","checkpoint":{"resume_token":{"last_committed_step":0}},"usage":{"prompt_tokens":42,"completion_tokens":18,"total_tokens":60},"execution_envelope":{"execution_id":"exec-..."},"execution_receipt":{"transaction_id":"tx-..."}}
+
+data: [DONE]
+```
+
+Use this terminal event when you want the stream itself to tell you which durable task ran and what signed execution artifacts were produced, instead of relying on a follow-up poll to discover them.
+
+Current scope:
+
+- durable streaming currently applies to base, all named speculative modes, and council for streamed `single_inference`
+- council streaming emits the chairman's synthesized final answer as SSE output and still finishes with the durable `task_result` event
+- the stream remains receipt-bearing and idempotent even when council execution itself is internally buffered before the final answer is emitted
+- a completed durable stream can be replayed idempotently with the same task result metadata
+
+---
+
+## Checkpoints and resume tokens
+
+When a runtime sends a checkpoint, the coordination layer persists a `ResumeToken`:
+
+```json
+{
+  "last_committed_step": 9,
+  "checkpoint_digest": "a3f8e2b1c4d5e6f7a8b9c0d1e2f3a4b5c6d7e8f9a0b1c2d3e4f5a6b7c8d9e0f1",
+  "runtime_id": "runtime-edge-03"
+}
+```
+
+On recovery, this token is forwarded to the new runtime with the task definition. The new runtime:
+
+1. Computes its own rolling digest over the WAL entries it holds for this task
+2. Compares it to `checkpoint_digest` in the token
+3. If they match, skips all steps with `step_index < last_committed_step + 1` and resumes from there
+4. If they diverge, rejects the resume with a `checkpoint_mismatch` error — this prevents silently re-executing from a stale state
+
+The digest is a rolling SHA-256 over committed output digests in step order. It cannot be forged without access to the runtime's signing key.
+
+---
+
+## Deadlines
+
+Setting `deadline_at` on a task instructs the runtime to checkpoint and stop if execution reaches the deadline rather than continuing. The task enters `checkpointed` state with a resume token, allowing you to continue it later or on a different runtime.
+
+Tasks without a deadline run until all steps complete, the runtime fails, or you explicitly mark them failed.
+
+---
+
+## Robotics workflows
+
+For robotics, set `task_type` to `robotics_workflow`. You can submit either the higher-level `robotics_mission` wrapper or the raw runtime-facing `task_definition`. The raw step format is:
+
+```json
+{
+  "steps": [
+    {
+      "step_index": 0,
+      "action": "navigate_to_pose",
+      "goal": { "x": 12.5, "y": -3.0, "z": 0.0, "frame_id": "map" },
+      "wait_timeout_ms": 30000
+    },
+    {
+      "step_index": 1,
+      "action": "publish_prompt",
+      "prompt": "Inspect shelf A3 and report anomalies"
+    }
+  ]
+}
+```
+
+Each navigation goal is WAL-logged before the robot moves. If the runtime crashes mid-mission, recovery dispatches to a healthy runtime which skips completed navigation steps and resumes from the last committed waypoint.
+
+[ROS2 Integration →](/docs/ros2-integration)
+
+---
+
+## Behavior tree execution
+
+The behavior tree engine has full WAL support at the library level. When a WAL session is attached to the execution context, each tick is logged as a `BtNode` step and the blackboard is checkpointed every N ticks (configured via `checkpoint_every` on the session). Any interruption — cancellation, deadline exceeded, or tick error — attaches the last checkpoint to the result immediately.
+
+On recovery, the new runtime:
+1. Restores the blackboard from the checkpoint's `blackboard_state`
+2. Re-creates the behavior tree from the original definition
+3. Resumes ticking from the last committed step, verified by digest
+
+Submit a `behavior_tree` task via `/v1/tasks/submit` to get full WAL-backed, crash-recoverable BT execution. Use this `task_definition` shape:
+
+```json
+{
+  "tree": {
+    "type": "sequence",
+    "children": [
+      { "type": "condition", "name": "battery_ok" },
+      { "type": "action", "name": "dispatch_task" }
+    ]
+  },
+  "max_ticks": 1000,
+  "timeout_ms": 30000,
+  "checkpoint_every": 10
+}
+```
+
+The `/v1/btree/run` HTTP endpoint runs trees without durable checkpointing; use `behavior_tree` task type when recovery matters.
+
+[Behavior Trees →](/docs/behavior-trees)
+
+---
+
+## Integrity guarantees
+
+Every committed WAL entry is signed with the runtime's Ed25519 key. The signature covers a deterministic canonical JSON representation of the entry (BTreeMap-sorted field order, output digest, step index, timestamp). Signatures are stored in the WAL and included in checkpoint payloads.
+
+Checkpoint metadata and signed WAL entries make tampering detectable:
+- Step ordering is enforced by `step_index`
+- The rolling checkpoint digest links every committed step in sequence
+- An entry cannot be inserted, removed, or reordered without breaking the digest
+
+[Tamper-Evident Logs →](/docs/tamper-evident-logs) · [Key Management →](/docs/key-management)
+
+---
+
+## API endpoints
+
+| Method | Path | Description |
+|---|---|---|
+| `POST` | `/v1/tasks/submit` | Submit a new durable task |
+| `GET` | `/v1/tasks/:id` | Get task status and last checkpoint |
+| `GET` | `/v1/tasks` | List tasks for your tenant |
+
+These three endpoints are the customer durable-task surface.
+
+---
+
+[Agent Lifecycle →](/docs/agent-lifecycle) · [Behavior Trees →](/docs/behavior-trees) · [Execution Receipts →](/docs/execution-receipts)
