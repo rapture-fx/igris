@@ -1,0 +1,239 @@
+---
+title: "Deployment"
+description: "Igris can be deployed as a cloud-hosted API, as a local execution engine on your own hardware, or in a hybrid configuration combining both."
+---
+
+# Deployment
+
+Igris can be deployed as a cloud-hosted API, as a local execution engine on your own hardware, or in a hybrid configuration combining both.
+
+---
+
+## Cloud API
+
+Use the cloud API endpoint with zero infrastructure to manage. Point your SDK at the API and start making requests.
+
+```python
+from openai import OpenAI
+
+client = OpenAI(
+    base_url="https://overture.igrisinertial.com/v1",
+    api_key="your-api-key"
+)
+```
+
+The cloud API handles:
+- High availability and failover across providers
+- Provider health monitoring and automatic routing
+- Cost tracking and budget enforcement
+- Upgrades and maintenance
+
+### Self-Hosted Coordination (Infinite Tier)
+
+Deploy the coordination layer in your own infrastructure for data residency, compliance, or custom integration requirements.
+
+The coordination layer ships as a single binary with low infrastructure requirements.
+
+Deployment targets:
+- **AWS / GCP / Azure** — Standard containerized deployment
+- **Kubernetes** — Helm charts available
+- **Bare metal** — Single binary, low resource requirements
+
+[Cloud Coordination →](/docs/cloud-coordination)
+
+---
+
+## Local / Edge Execution Engine
+
+The execution engine runs on your infrastructure — a server, an edge device, or a Kubernetes cluster. It is not a cloud service.
+
+### Supported Platforms
+
+| Platform | Architecture | Notes |
+|---|---|---|
+| Ubuntu 22.04+ | x86_64, ARM64 | Recommended for production |
+| Debian 11+ | x86_64, ARM64 | |
+| Alpine Linux | x86_64, ARM64 | Musl build available |
+| macOS 13+ | Intel, Apple Silicon | Development use |
+| Raspberry Pi 4/5 | ARM64 | Edge deployments |
+| NVIDIA Jetson | ARM64 | GPU inference |
+| Windows (WSL2) | x86_64 | Development use |
+
+### Deployment Methods
+
+**Binary (fastest)**
+```bash
+./igris-runtime --config config.json
+```
+
+**Docker**
+```bash
+docker run -p 8080:8080 \
+  -v ./models:/models \
+  -v ./config.json:/config.json \
+  igris-runtime:latest
+```
+
+**Kubernetes**
+```yaml
+apiVersion: apps/v1
+kind: Deployment
+metadata:
+  name: igris-runtime
+spec:
+  replicas: 1
+  template:
+    spec:
+      containers:
+        - name: runtime
+          image: igris-runtime:latest
+          ports:
+            - containerPort: 8080
+```
+
+**systemd (production Linux)**
+```bash
+sudo systemctl enable igris-runtime
+sudo systemctl start igris-runtime
+```
+
+[SDK →](/docs/sdk)
+
+---
+
+## Local Models
+
+The execution engine includes a local inference runtime. To enable offline fallback, download a compatible model:
+
+Download a compatible GGUF model for your hardware. Recommended starting points: Phi-3 Mini (~2.3 GB), Mistral 7B (~4.1 GB), Llama 3 8B (~4.7 GB).
+
+Configure in `config.json`:
+```json
+{
+  "local_fallback": {
+    "enabled": true,
+    "model_path": "models/phi-3-mini-4k-instruct-q4.gguf"
+  }
+}
+```
+
+[Execution Model →](/docs/execution-model) · [Architecture →](/docs/architecture)
+
+---
+
+## Verifying Your Deployment
+
+After starting the runtime, verify it is working:
+
+### Health check
+
+```bash
+curl http://localhost:8080/health
+# → {"status": "ok", "version": "..."}
+```
+
+### Check fleet registration
+
+After a minute, your instance should appear in the console under **Fleet → Devices**.
+
+### Run a test inference
+
+```python
+from openai import OpenAI
+
+client = OpenAI(
+    base_url="http://localhost:8080/v1",
+    api_key="not-required"
+)
+
+response = client.chat.completions.create(
+    model="phi3",
+    messages=[{"role": "user", "content": "Hello"}]
+)
+
+print(response.choices[0].message.content)
+```
+
+---
+
+## Networking Requirements
+
+The runtime needs outbound access to:
+- `overture.igrisinertial.com` — fleet registration and telemetry
+- Your configured cloud provider APIs (openai.com, anthropic.com, etc.) — for cloud routing
+
+No inbound ports are required for basic operation. The coordination layer connects outbound to the runtime when delivering commands.
+
+---
+
+## Resource Requirements
+
+| Deployment | CPU | RAM | Disk |
+|---|---|---|---|
+| Cloud routing only (no local model) | 1 core | 512 MB | 200 MB |
+| Local inference (Phi-3 Mini) | 4 cores | 4 GB | 4 GB |
+| Local inference (Mistral 7B) | 8 cores | 8 GB | 6 GB |
+| GPU inference (any model) | GPU required | 8 GB+ | varies |
+
+---
+
+## Common Deployment Issues
+
+**Runtime won't start**
+Check that port 8080 is not in use: `lsof -i :8080`
+
+**Fleet registration not appearing in console**
+Verify your API key is set correctly and the runtime has outbound internet access to overture.igrisinertial.com.
+
+**Local model not loading**
+Ensure the model file path in config.json is correct and the file is a valid GGUF format.
+
+**High memory usage**
+Local inference loads the full model into RAM. Use a quantized model (Q4 suffix) for lower memory use.
+
+---
+
+## Connecting Edge to Cloud
+
+To register a local execution engine instance with the cloud coordination layer:
+
+```bash
+curl -X POST https://overture.igrisinertial.com/api/v1/runtime/register \
+  -H "Authorization: Bearer YOUR_API_KEY" \
+  -d '{
+    "name": "edge-device-01",
+    "endpoint": "http://your-runtime-instance:8080",
+    "tier": "local"
+  }'
+```
+
+Once registered, the coordination layer can route requests to the local engine as part of its provider selection. This enables hybrid cloud/local execution with automatic failover.
+
+[Cloud Coordination →](/docs/cloud-coordination) · [Fleet Management →](/docs/fleet-management)
+
+---
+
+## Tier Comparison
+
+| | Seed | Horizon | Infinite |
+|---|---|---|---|
+| Price | $29/mo | $149/mo | $699/mo |
+| Runtime instances | Up to 3 | Up to 50 | Up to 500 |
+| Execution retention | 7 days | 30 days | 90 days |
+| Fleet dashboard | — | ✓ | ✓ |
+| OTA updates | — | ✓ | ✓ |
+| Config push | — | ✓ | ✓ |
+| Self-hosted coordination layer | — | — | ✓ |
+| SLO enforcement | ✓ | ✓ | ✓ |
+| Routing advisor | Yes | Yes | Yes |
+| Support | Email (48h) | Email (24h) | Priority (8h) |
+
+[Pricing details →](/docs/pricing-tiers)
+
+---
+
+## What's Next
+
+- [Fleet Management →](/docs/fleet-management) — Monitor and manage your registered devices
+- [Quickstart →](/docs/quickstart) — Make your first SDK request in under 10 minutes
+- [Architecture →](/docs/architecture) — How the runtime, coordination layer, and SDK fit together
