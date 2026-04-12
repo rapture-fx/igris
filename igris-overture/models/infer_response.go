@@ -87,6 +87,7 @@ type ResponseMetadata struct {
 	Fallback                 bool      `json:"fallback,omitempty"`                   // Whether fallback was used
 	FallbackReason           string    `json:"fallback_reason,omitempty"`            // Reason for fallback
 	StreamExecutionAuthority string    `json:"stream_execution_authority,omitempty"` // runtime | overture_fallback
+	StreamFallbackAllowed    *bool     `json:"stream_fallback_allowed,omitempty"`    // Whether a weaker stream fallback contract is allowed
 	StreamResumeSupported    *bool     `json:"stream_resume_supported,omitempty"`    // Whether the stream contract supports resume
 	StreamReplayCondition    string    `json:"stream_replay_condition,omitempty"`    // Replay condition advertised to the client
 }
