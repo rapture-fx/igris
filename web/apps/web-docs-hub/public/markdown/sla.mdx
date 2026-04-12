@@ -1,0 +1,148 @@
+---
+title: "Service Level Agreement"
+description: "This document describes the service level commitments for each Igris tier."
+---
+
+# Service Level Agreement
+
+This document describes the service level commitments for each Igris tier.
+
+---
+
+## Availability
+
+### Cloud API
+
+| Tier | Target Uptime | Monthly Downtime Budget |
+|---|---|---|
+| Seed | 99.5% | ~3.6 hours |
+| Horizon | 99.9% | ~43 minutes |
+| Infinite | 99.95% | ~22 minutes |
+
+Uptime is measured as the percentage of time the cloud API successfully processes requests, excluding scheduled maintenance windows.
+
+### Scheduled Maintenance
+
+Scheduled maintenance windows are communicated at least 48 hours in advance via:
+- Email notification to the account owner
+- Banner notification in the console
+- Status page update at [status.igrisinertial.com](https://status.igrisinertial.com)
+
+Maintenance windows are limited to 4 hours per month and are scheduled during off-peak hours (02:00–06:00 UTC).
+
+---
+
+## Performance
+
+### API Response Times
+
+The cloud API targets the following response time percentiles for inference routing decisions (excluding provider inference time):
+
+| Percentile | Target |
+|---|---|
+| P50 | < 50ms |
+| P95 | < 200ms |
+| P99 | < 500ms |
+
+Provider inference time depends on the selected provider and model and is not included in these targets.
+
+### Fleet Communication
+
+| Metric | Target |
+|---|---|
+| Heartbeat processing | < 1 second from receipt |
+| Config push delivery | < 5 minutes (next heartbeat cycle) |
+| OTA update initiation | < 10 minutes from queue |
+
+---
+
+## Support Response Times
+
+| Tier | Channel | Initial Response | Resolution Target |
+|---|---|---|---|
+| Seed | Email | 48 hours | Best effort |
+| Horizon | Email | 24 hours | 5 business days |
+| Infinite | Priority email | 8 hours | 2 business days |
+
+### Support Scope
+
+Support covers:
+- Platform functionality and configuration
+- API usage and integration guidance
+- Billing and subscription questions
+- Troubleshooting deployment issues
+- Bug reports and feature requests
+
+Support does not cover:
+- Custom development or integration work
+- Third-party provider issues (OpenAI, Anthropic, etc.)
+- Hardware troubleshooting for edge devices
+
+---
+
+## Incident Management
+
+### Incident Severity Levels
+
+| Severity | Description | Example |
+|---|---|---|
+| **Critical** | Complete service outage affecting all tenants | Cloud API unreachable |
+| **High** | Major feature unavailable for a significant subset | Routing engine degraded |
+| **Medium** | Partial degradation or non-critical feature broken | Dashboard metrics delayed |
+| **Low** | Minor issue with workaround available | Cosmetic UI issue |
+
+### Communication During Incidents
+
+- **Critical/High**: Status page updates every 30 minutes, email notification at start and resolution
+- **Medium**: Status page update at start and resolution
+- **Low**: Resolved without public communication
+
+### Post-Incident Reports
+
+For Critical and High severity incidents, a post-incident report is published within 5 business days, including:
+- Timeline of the incident
+- Root cause analysis
+- Impact assessment
+- Preventive measures implemented
+
+---
+
+## Data Retention
+
+| Tier | Execution Receipts | Audit Logs | Fleet Telemetry |
+|---|---|---|---|
+| Seed | 7 days | 7 days | 7 days |
+| Horizon | 30 days | 30 days | 30 days |
+| Infinite | 90 days (customizable) | 90 days (customizable) | 90 days |
+
+Data is automatically purged after the retention period. Infinite tier customers can configure custom retention periods up to 1 year.
+
+---
+
+## Exclusions
+
+The SLA does not apply to:
+- Issues caused by customer misconfiguration
+- Third-party provider outages (OpenAI, Anthropic, etc.)
+- Force majeure events
+- Scheduled maintenance windows
+- Issues reported more than 30 days after occurrence
+- Beta or experimental features
+
+---
+
+## SLA Credits
+
+If the availability target is not met in a given month, eligible customers may request service credits:
+
+| Actual Uptime | Credit |
+|---|---|
+| Below target but >= 99.0% | 10% of monthly fee |
+| Below 99.0% but >= 95.0% | 25% of monthly fee |
+| Below 95.0% | 50% of monthly fee |
+
+To request a credit, contact [support@igrisinertial.com](mailto:support@igrisinertial.com) within 30 days of the incident with your tenant ID and the affected time period.
+
+---
+
+[Support →](mailto:support@igrisinertial.com) · [Status Page](https://status.igrisinertial.com)
