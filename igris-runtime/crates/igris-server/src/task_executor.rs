@@ -643,12 +643,7 @@ pub async fn handle_task_submit(
         if existing.request_hash != request_hash {
             return (
                 StatusCode::CONFLICT,
-                Json(serde_json::json!({
-                    "error": {
-                        "message": "Idempotency key already used for a different task submission",
-                        "type": "idempotency_conflict"
-                    }
-                })),
+                Json(build_idempotency_conflict_payload(&existing.response)),
             ).into_response();
         }
         return (StatusCode::OK, Json(existing.response)).into_response();
@@ -683,16 +678,16 @@ pub async fn handle_task_submit(
                 info!(task_id = %req.task_id, "Resume verified at step {}", token.last_committed_step);
                 token.last_committed_step + 1
             }
-            Ok(_) => {
+            Ok(local_digest) => {
                 warn!(task_id = %req.task_id, "Checkpoint digest mismatch on resume");
                 return (
                     StatusCode::CONFLICT,
-                    Json(serde_json::json!({
-                        "error": {
-                            "message": "Checkpoint digest mismatch — WAL state diverged",
-                            "type": "checkpoint_mismatch"
-                        }
-                    })),
+                    Json(build_checkpoint_mismatch_payload(
+                        req.task_id,
+                        token,
+                        local_digest,
+                        req.resume_checkpoint.is_some(),
+                    )),
                 ).into_response();
             }
             Err(e) => {
@@ -1223,12 +1218,7 @@ pub async fn handle_task_stream(
         if existing.request_hash != request_hash {
             return (
                 StatusCode::CONFLICT,
-                Json(serde_json::json!({
-                    "error": {
-                        "message": "Idempotency key already used for a different task submission",
-                        "type": "idempotency_conflict"
-                    }
-                })),
+                Json(build_idempotency_conflict_payload(&existing.response)),
             )
                 .into_response();
         }
@@ -1251,12 +1241,7 @@ pub async fn handle_task_stream(
         }
         return (
             StatusCode::CONFLICT,
-            Json(serde_json::json!({
-                "error": {
-                    "message": "Streaming replay is only available for completed task submissions with final output",
-                    "type": "stream_replay_unavailable"
-                }
-            })),
+            Json(build_stream_replay_unavailable_payload(&existing.response)),
         )
             .into_response();
     }
@@ -1663,6 +1648,66 @@ fn submission_key(tenant_id: &str, idempotency_key: &str) -> String {
 
 fn task_status_key(task_id: Uuid) -> String {
     task_id.to_string()
+}
+
+fn encode_checkpoint_digest(digest: &[u8; 32]) -> String {
+    digest
+        .iter()
+        .map(|byte| format!("{:02x}", byte))
+        .collect::<String>()
+}
+
+fn build_task_response_snapshot(response: &TaskSubmitResponse) -> serde_json::Value {
+    serde_json::json!({
+        "task_id": response.task_id,
+        "status": response.status,
+        "steps_completed": response.steps_completed,
+        "steps_total": response.steps_total,
+        "checkpoint_persisted": response.checkpoint.is_some(),
+        "final_output_available": response.final_output.is_some(),
+    })
+}
+
+fn build_idempotency_conflict_payload(response: &TaskSubmitResponse) -> serde_json::Value {
+    serde_json::json!({
+        "error": {
+            "message": "Idempotency key already used for a different task submission",
+            "type": "idempotency_conflict"
+        },
+        "task": build_task_response_snapshot(response),
+    })
+}
+
+fn build_stream_replay_unavailable_payload(response: &TaskSubmitResponse) -> serde_json::Value {
+    serde_json::json!({
+        "error": {
+            "message": "Streaming replay is only available for completed task submissions with final output",
+            "type": "stream_replay_unavailable"
+        },
+        "task": build_task_response_snapshot(response),
+        "durability": stream_durability_metadata(Some(response)),
+    })
+}
+
+fn build_checkpoint_mismatch_payload(
+    task_id: Uuid,
+    requested_resume_from: &ResumeToken,
+    local_checkpoint_digest: [u8; 32],
+    resume_checkpoint_provided: bool,
+) -> serde_json::Value {
+    serde_json::json!({
+        "error": {
+            "message": "Checkpoint digest mismatch — WAL state diverged",
+            "type": "checkpoint_mismatch"
+        },
+        "task_id": task_id,
+        "resume": {
+            "requested": true,
+            "resume_checkpoint_provided": resume_checkpoint_provided,
+            "requested_resume_from": requested_resume_from,
+            "local_checkpoint_digest": encode_checkpoint_digest(&local_checkpoint_digest),
+        },
+    })
 }
 
 fn persist_task_record(
@@ -3865,7 +3910,9 @@ fn truncate_preview(text: &str, max_chars: usize) -> String {
 #[cfg(test)]
 mod tests {
     use super::{
-        attach_stream_task_headers, build_step_checkpoint_metadata, build_task_cancel_response,
+        attach_stream_task_headers, build_checkpoint_mismatch_payload,
+        build_idempotency_conflict_payload, build_step_checkpoint_metadata,
+        build_stream_replay_unavailable_payload, build_task_cancel_response,
         build_task_result_payload, collect_slot_inputs, compile_execution_graph_to_steps,
         deterministic_embedding, initialize_graph_blackboard, materialize_execution_graph,
         normalize_agent_mode, persist_task_status_index, resolve_graph_value,
@@ -4251,6 +4298,107 @@ mod tests {
         assert_eq!(payload["checkpoint_persisted"], true);
         assert_eq!(payload["status"]["status"], "failed");
         assert_eq!(payload["status"]["reason"], "task failed");
+    }
+
+    #[test]
+    fn build_idempotency_conflict_payload_includes_existing_task_snapshot() {
+        let response = TaskSubmitResponse {
+            task_id: Uuid::new_v4(),
+            steps_completed: 2,
+            steps_total: 4,
+            status: TaskStatus::Checkpointed {
+                resume_token: ResumeToken {
+                    last_committed_step: 2,
+                    checkpoint_digest: [0x22u8; 32],
+                    runtime_id: "runtime-1".to_string(),
+                },
+            },
+            checkpoint: Some(CheckpointPayload {
+                task_id: Uuid::nil(),
+                resume_token: ResumeToken {
+                    last_committed_step: 2,
+                    checkpoint_digest: [0x22u8; 32],
+                    runtime_id: "runtime-1".to_string(),
+                },
+                wal_entries: vec![],
+                metadata: None,
+            }),
+            final_output: None,
+            usage: None,
+            execution_envelope: None,
+            execution_receipt: None,
+        };
+
+        let payload = build_idempotency_conflict_payload(&response);
+        assert_eq!(payload["error"]["type"], "idempotency_conflict");
+        assert_eq!(payload["task"]["task_id"], response.task_id.to_string());
+        assert_eq!(payload["task"]["steps_completed"], 2);
+        assert_eq!(payload["task"]["steps_total"], 4);
+        assert_eq!(payload["task"]["checkpoint_persisted"], true);
+        assert_eq!(payload["task"]["final_output_available"], false);
+        assert_eq!(payload["task"]["status"]["status"], "checkpointed");
+    }
+
+    #[test]
+    fn build_checkpoint_mismatch_payload_includes_resume_details() {
+        let task_id = Uuid::new_v4();
+        let requested = ResumeToken {
+            last_committed_step: 7,
+            checkpoint_digest: [0x33u8; 32],
+            runtime_id: "runtime-old".to_string(),
+        };
+
+        let payload =
+            build_checkpoint_mismatch_payload(task_id, &requested, [0x44u8; 32], true);
+        assert_eq!(payload["error"]["type"], "checkpoint_mismatch");
+        assert_eq!(payload["task_id"], task_id.to_string());
+        assert_eq!(payload["resume"]["requested"], true);
+        assert_eq!(payload["resume"]["resume_checkpoint_provided"], true);
+        assert_eq!(
+            payload["resume"]["requested_resume_from"]["last_committed_step"],
+            7
+        );
+        assert_eq!(
+            payload["resume"]["local_checkpoint_digest"],
+            "4444444444444444444444444444444444444444444444444444444444444444"
+        );
+    }
+
+    #[test]
+    fn build_stream_replay_unavailable_payload_includes_task_snapshot() {
+        let response = TaskSubmitResponse {
+            task_id: Uuid::new_v4(),
+            steps_completed: 1,
+            steps_total: 2,
+            status: TaskStatus::Checkpointed {
+                resume_token: ResumeToken {
+                    last_committed_step: 1,
+                    checkpoint_digest: [0x55u8; 32],
+                    runtime_id: "runtime-2".to_string(),
+                },
+            },
+            checkpoint: Some(CheckpointPayload {
+                task_id: Uuid::nil(),
+                resume_token: ResumeToken {
+                    last_committed_step: 1,
+                    checkpoint_digest: [0x55u8; 32],
+                    runtime_id: "runtime-2".to_string(),
+                },
+                wal_entries: vec![],
+                metadata: None,
+            }),
+            final_output: None,
+            usage: None,
+            execution_envelope: None,
+            execution_receipt: None,
+        };
+
+        let payload = build_stream_replay_unavailable_payload(&response);
+        assert_eq!(payload["error"]["type"], "stream_replay_unavailable");
+        assert_eq!(payload["task"]["task_id"], response.task_id.to_string());
+        assert_eq!(payload["task"]["status"]["status"], "checkpointed");
+        assert_eq!(payload["durability"]["resume_supported"], false);
+        assert_eq!(payload["durability"]["checkpoint_persisted"], true);
     }
 
     #[test]
