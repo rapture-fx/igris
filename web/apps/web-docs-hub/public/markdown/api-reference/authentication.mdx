@@ -1,0 +1,47 @@
+---
+title: "Authentication"
+description: "Which credentials belong to automation, browser sessions, and runtime-local deployments, and how to choose the right one for each route."
+---
+
+# Authentication
+
+Which credentials belong to automation, browser sessions, and runtime-local deployments, and how to choose the right one for each route.
+
+## Tenant API Keys
+
+Customer automation should use tenant API keys with the `igris_` prefix. These keys are the default credential for server-side integrations, CI jobs, backend workers, and any script that is calling the hosted API outside the browser.
+
+Supply the key as `Authorization: Bearer ...` or `X-API-Key` if the endpoint allows it. Endpoint pages call out the expected model explicitly, so treat the endpoint page as authoritative over any generic assumption.
+
+## Session Cookies
+
+Browser-driven console workflows use session cookies. These routes are designed for an authenticated user session rather than headless automation, so they should not be treated as generic bearer-token endpoints unless the endpoint page says an API key is also accepted.
+
+If you are building automation, prefer routes that are documented with API-key access.
+
+## Runtime-local Auth
+
+The local runtime API follows the runtime `auth` configuration. Some deployments intentionally keep that surface inside a trusted network boundary with minimal local auth, while others front it with stricter controls.
+
+Because that access model depends on deployment, do not assume that a local runtime route behaves like the hosted API.
+
+## Choosing a Credential
+
+Use tenant API keys for server-to-server automation. Use session cookies for browser experiences that are already inside the Igris console. Use runtime-local authentication only when the endpoint is explicitly local and you control the deployment boundary.
+
+## Bearer Example
+
+```text
+curl -H "Authorization: Bearer $IGRIS_API_KEY" \
+  https://overture.igrisinertial.com/v1/models
+```
+
+## Example JSON
+
+```json
+{
+  "error": "unauthorized",
+  "code": "INVALID_API_KEY"
+}
+```
+
