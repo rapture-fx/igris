@@ -1,6 +1,7 @@
 import type { Folder, Node, Root } from 'fumadocs-core/page-tree';
 
 const hiddenReferenceNames = new Set([
+  'Overview',
   'API Reference',
   'Documentation Roadmap',
   'Troubleshooting',
