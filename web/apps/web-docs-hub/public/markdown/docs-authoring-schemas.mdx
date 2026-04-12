@@ -1,0 +1,54 @@
+---
+title: "Docs Authoring Schemas"
+description: "When to use AutoTypeTable versus TypeTable in native Fumadocs content."
+---
+
+# Docs Authoring Schemas
+
+Use `TypeTable` when the documentation is describing payloads, controls, or conceptual schemas directly in MDX. In this repo, that is the stable native option for the current pinned Fumadocs stack.
+
+## Request Shape
+
+Prefer `TypeTable` over ad hoc Markdown tables for payload contracts.
+
+<TypeTable
+  type={{
+    url: {
+      type: 'string',
+      description: 'HTTPS endpoint that receives deliveries.',
+      required: true,
+    },
+    events: {
+      type: 'string[]',
+      description: 'Event names subscribed to by this webhook.',
+      required: true,
+    },
+    secret: {
+      type: 'string',
+      description: 'Shared secret used for signature verification.',
+    },
+  }}
+/>
+
+## Conceptual Schema
+
+Use `TypeTable` for conceptual configuration where prose matters more than compile-time extraction.
+
+<TypeTable
+  type={{
+    enforcement: {
+      type: '"strict" | "advisory"',
+      description: 'Whether a control blocks execution or only records guidance.',
+      required: true,
+    },
+    evidence: {
+      type: 'string[]',
+      description: 'Artifacts referenced by the control, such as receipts or policy evaluations.',
+    },
+    escalation: {
+      type: '"none" | "manual-review" | "stop-execution"',
+      description: 'What the system does when the control is violated.',
+      default: '"manual-review"',
+    },
+  }}
+/>
