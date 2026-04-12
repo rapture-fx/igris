@@ -305,8 +305,8 @@ func TestTaskDurabilityClassForDefinition(t *testing.T) {
 	t.Parallel()
 
 	tests := []struct {
-		name         string
-		definition   json.RawMessage
+		name          string
+		definition    json.RawMessage
 		expectedClass TaskDurabilityClass
 	}{
 		{
