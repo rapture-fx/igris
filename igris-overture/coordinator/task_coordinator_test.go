@@ -46,6 +46,20 @@ func TestNormalizePublicTaskDefinitionRejectsInvalidAgentWorkflow(t *testing.T) 
 	require.Contains(t, err.Error(), "agent_workflow.steps[0]: model is required")
 }
 
+func TestNormalizePublicTaskDefinitionRejectsStreamingSingleInference(t *testing.T) {
+	t.Parallel()
+
+	raw := json.RawMessage(`{
+		"model": "gpt-4.1-mini",
+		"messages": [{"role":"user","content":"hello"}],
+		"stream": true
+	}`)
+
+	_, err := normalizePublicTaskDefinition("single_inference", raw)
+	require.ErrorIs(t, err, ErrInvalidTaskDefinition)
+	require.Contains(t, err.Error(), "single_inference.stream=true is not supported on Overture durable tasks")
+}
+
 func TestNormalizePublicTaskDefinitionValidatesRoboticsWorkflow(t *testing.T) {
 	t.Parallel()
 
