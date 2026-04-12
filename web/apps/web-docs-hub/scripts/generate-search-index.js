@@ -4,6 +4,7 @@ const path = require('path');
 const docsDir = path.join(__dirname, '../content/docs');
 const outputFile = path.join(__dirname, '../lib/search-index.json');
 const staticSearchFile = path.join(__dirname, '../public/search-static.json');
+const publicSearchIndexFile = path.join(__dirname, '../public/search-index.json');
 const generatedApiFile = path.join(__dirname, '../lib/generated/api-reference.json');
 const generatedSdkFile = path.join(__dirname, '../lib/generated/sdk-support.json');
 const hiddenDocPaths = new Set([
@@ -280,9 +281,11 @@ async function extractSearchIndex() {
 
   const entries = [...index.values()].sort((a, b) => a.path.localeCompare(b.path));
   fs.writeFileSync(outputFile, JSON.stringify(entries, null, 2));
+  fs.writeFileSync(publicSearchIndexFile, JSON.stringify(entries));
   await writeStaticSearchDatabase(entries);
 
   console.log(`Search index generated: ${entries.length} entries → ${outputFile}`);
+  console.log(`Plain search index generated → ${publicSearchIndexFile}`);
   console.log(`Static search database generated → ${staticSearchFile}`);
 }
 
