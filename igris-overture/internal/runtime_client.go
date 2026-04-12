@@ -103,7 +103,7 @@ func (c *RuntimeClient) CancelTask(ctx context.Context, taskID uuid.UUID, tenant
 	}
 	defer resp.Body.Close()
 
-	if resp.StatusCode != http.StatusAccepted && resp.StatusCode != http.StatusNotFound {
+	if resp.StatusCode != http.StatusAccepted && resp.StatusCode != http.StatusNotFound && resp.StatusCode != http.StatusConflict {
 		raw, _ := io.ReadAll(io.LimitReader(resp.Body, 4096))
 		return fmt.Errorf("runtime cancel failed: status=%d body=%s", resp.StatusCode, string(raw))
 	}
