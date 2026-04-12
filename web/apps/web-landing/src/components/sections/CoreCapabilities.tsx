@@ -79,7 +79,6 @@ export default function CoreCapabilities() {
                         alignItems: 'flex-start',
                         justifyContent: 'flex-start',
                         marginBottom: '16rem',
-                        paddingTop: '10px',
                       }}>
                         <img
                           src={mounted && theme === 'dark' ? '/cr.png?v=2' : '/exc.png?v=2'}
@@ -139,7 +138,7 @@ export default function CoreCapabilities() {
             {capabilities.map((capability, index) => (
               <div key={capability.name} className="py-8">
                 {index === 0 && (
-                  <div className="w-28 h-28 flex items-start justify-start mb-24 pt-2">
+                  <div className="w-28 h-28 flex items-start justify-start mb-24">
                     <img
                       src={mounted && theme === 'dark' ? '/cr.png?v=2' : '/exc.png?v=2'}
                       alt={capability.name}
