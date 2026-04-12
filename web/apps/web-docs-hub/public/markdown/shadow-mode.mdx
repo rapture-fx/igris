@@ -1,0 +1,162 @@
+---
+title: "Shadow Mode"
+description: "Shadow Mode runs a parallel execution alongside your real execution, using a different provider or configuration, without affecting the actual output. It lets you compare providers"
+---
+
+# Shadow Mode
+
+Shadow Mode runs a parallel execution alongside your real execution, using a different provider or configuration, without affecting the actual output. It lets you compare providers, test new configurations, and detect quality degradation — all in production with zero risk.
+
+---
+
+## How It Works
+
+When Shadow Mode is enabled for an agent:
+
+```
+Request → Real Execution (enforced) ──► Response to caller
+        ↘ Shadow Execution (observed) ──► Comparison stored
+```
+
+1. The real execution runs normally and returns its response to the caller
+2. A shadow execution runs in parallel with a different provider or configuration
+3. The shadow result is stored alongside the real result for comparison
+4. The shadow execution does not affect the caller, does not consume quota, and does not trigger actions
+
+---
+
+## Use Cases
+
+### Provider Comparison
+
+Run your primary provider in real mode and a candidate provider in shadow mode to compare:
+- Latency differences
+- Output quality
+- Cost per request
+- Violation rates
+
+### Configuration Testing
+
+Test new policy limits, capability grants, or SLO configurations in shadow mode before applying them to real executions.
+
+### Quality Monitoring
+
+Detect when a provider's output quality degrades by comparing shadow results (from a trusted provider) against real results.
+
+---
+
+## Configuration
+
+Enable Shadow Mode per-agent via the API or Console:
+
+```bash
+curl -X PATCH https://overture.igrisinertial.com/v1/agents/agent-abc \
+  -H "Authorization: Bearer YOUR_API_KEY" \
+  -H "Content-Type: application/json" \
+  -d '{"shadow_mode": true}'
+```
+
+Shadow configuration:
+
+```json
+{
+  "shadow": {
+    "enabled": true,
+    "provider": "openai",
+    "model": "gpt-4o-mini",
+    "sampling_rate": 0.1,
+    "capture_metrics": ["latency", "cost", "quality", "violations"]
+  }
+}
+```
+
+| Field | Type | Default | Description |
+|---|---|---|---|
+| `enabled` | bool | `false` | Enable shadow execution |
+| `provider` | string | — | Provider to use for shadow execution |
+| `model` | string | — | Model to use (defaults to provider's default) |
+| `sampling_rate` | float | 1.0 | Fraction of requests to shadow (0.0–1.0) |
+| `capture_metrics` | string[] | all | Which metrics to capture |
+
+---
+
+## Shadow Comparison API
+
+### GET /v1/execution/shadow
+
+Returns paired real vs shadow execution comparisons.
+
+```bash
+curl "https://overture.igrisinertial.com/v1/execution/shadow?range=24h&agent_id=agent-abc" \
+  -H "Authorization: Bearer YOUR_API_KEY"
+```
+
+Response:
+```json
+[
+  {
+    "id": "shadow-01HXYZ",
+    "agent_id": "agent-abc",
+    "timestamp": "2026-03-01T12:00:00Z",
+    "divergence_score": 0.12,
+    "real": {
+      "status": "completed",
+      "duration_ms": 312,
+      "violations": 0,
+      "model": "anthropic/claude-3-haiku",
+      "cost_usd": 0.0025
+    },
+    "shadow": {
+      "status": "completed",
+      "duration_ms": 287,
+      "violations": 0,
+      "model": "openai/gpt-4o-mini",
+      "cost_usd": 0.0018
+    }
+  }
+]
+```
+
+---
+
+## Divergence Score
+
+The divergence score quantifies how different the shadow result is from the real result. It considers:
+
+- **Semantic similarity** — embedding-based comparison of outputs
+- **Structural differences** — differences in format, length, tool calls
+- **Policy compliance** — whether one result violates policies the other doesn't
+
+| Score | Meaning |
+|---|---|
+| 0.0 | Identical results |
+| 0.0–0.3 | Minor differences (acceptable) |
+| 0.3–0.7 | Moderate differences (investigate) |
+| 0.7–1.0 | Major differences (action required) |
+
+---
+
+## Console
+
+View shadow comparisons at `/execution/shadow`:
+
+- Side-by-side comparison of real vs shadow traces
+- Per-trace status, duration, violations, and model
+- Divergence score badge (green/amber/red)
+- Filter by agent and time range (1h/24h/7d)
+
+---
+
+## Cost Considerations
+
+Shadow executions consume provider credits. Use `sampling_rate` to control cost:
+
+- `sampling_rate: 1.0` — shadow every request (maximum cost, maximum data)
+- `sampling_rate: 0.1` — shadow 10% of requests (good balance)
+- `sampling_rate: 0.01` — shadow 1% of requests (minimal cost, statistical sampling)
+
+Shadow execution costs are tracked separately and visible in the Cost Insights dashboard.
+
+---
+
+[Council Mode →](/docs/swarm) · [SLO Enforcer →](/docs/slo-enforcer) · [Execution Runs →](/docs/execution-flow)
