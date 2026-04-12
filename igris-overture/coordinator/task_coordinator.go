@@ -373,6 +373,7 @@ func (tc *TaskCoordinator) recoverRuntime(ctx context.Context, runtimeID string)
 			log.Warn().Err(err).Str("task_id", taskID.String()).Msg("[Coordinator] Could not load task state for recovery")
 			continue
 		}
+		cp = selectRecoveryCheckpoint(cp, task.LastCheckpoint)
 		if skipReason := TaskRecoverySkipReason(task); skipReason != "" {
 			tc.handleRecoverySkip(taskID, task, skipReason)
 			continue
@@ -417,6 +418,19 @@ func (tc *TaskCoordinator) handleRecoverySkip(taskID uuid.UUID, task *TaskRecord
 
 	if skipReason == "streaming_resume_unsupported" && task.Status == TaskStatusRecovering {
 		_ = tc.store.MarkFailed(taskID, TaskFailureReasonStreamingResumeUnsupported)
+	}
+}
+
+func selectRecoveryCheckpoint(primary *CheckpointPayload, secondary *CheckpointPayload) *CheckpointPayload {
+	switch {
+	case primary == nil:
+		return secondary
+	case secondary == nil:
+		return primary
+	case TaskCheckpointAdvances(primary, secondary):
+		return secondary
+	default:
+		return primary
 	}
 }
 
