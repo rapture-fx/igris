@@ -1056,15 +1056,12 @@ func (h *InferHandler) handleStreamingInfer(c *fiber.Ctx, req *models.InferReque
 			TotalTokens:      100 + (len(combinedContent) / 4),
 		},
 		Metadata: &models.ResponseMetadata{
-			Provider:                 "mock-openai",
-			ModelUsed:                req.Model,
-			RouteDecision:            "simple_stream",
-			StreamExecutionAuthority: "overture_fallback",
-			StreamReplayCondition:    "none",
+			Provider:      "mock-openai",
+			ModelUsed:     req.Model,
+			RouteDecision: "simple_stream",
 		},
 	}
-	resumeSupported := false
-	response.Metadata.StreamResumeSupported = &resumeSupported
+	fallbackStreamContract().applyMetadata(response.Metadata)
 
 	// If speculative execution was used, add metadata
 	if speculativeMetadata != nil {
@@ -1101,18 +1098,13 @@ func (h *InferHandler) handleStreamingInfer(c *fiber.Ctx, req *models.InferReque
 }
 
 func buildRuntimeStreamingUnavailableResponse(err error) fiber.Map {
+	contract := runtimeUnavailableStreamContract()
 	resp := fiber.Map{
 		"error": fiber.Map{
 			"message": "runtime-backed streaming is unavailable; fallback refused to preserve execution authority",
 			"type":    "stream_execution_unavailable",
 		},
-		"stream": fiber.Map{
-			"execution_authority":   "runtime",
-			"fallback_allowed":      false,
-			"resume_supported":      false,
-			"replay_condition":      "completed-final-output",
-			"fallback_opt_in_field": "allow_stream_fallback",
-		},
+		"stream": contract.responseMap(),
 	}
 	if err != nil {
 		resp["detail"] = err.Error()
@@ -1128,37 +1120,23 @@ func setStreamingSSEHeaders(c *fiber.Ctx, traceID string) {
 	c.Set("X-Trace-ID", traceID)
 }
 
-func setPublicStreamContractHeaders(c *fiber.Ctx, authority, resumeSupported, replayCondition string) {
-	c.Set("X-Igris-Stream-Execution-Authority", authority)
-	c.Set("X-Igris-Stream-Resume-Supported", resumeSupported)
-	c.Set("X-Igris-Stream-Replay-Condition", replayCondition)
-}
-
 func applyRuntimeStreamContractHeaders(c *fiber.Ctx, runtimeResp *http.Response) {
-	resumeSupported := runtimeResp.Header.Get("X-Igris-Runtime-Stream-Resume-Supported")
-	if resumeSupported == "" {
-		resumeSupported = "false"
-	}
-	replayCondition := runtimeResp.Header.Get("X-Igris-Runtime-Stream-Replay-Condition")
-	if replayCondition == "" {
-		replayCondition = "unknown"
-	}
-	setPublicStreamContractHeaders(c, "runtime", resumeSupported, replayCondition)
+	runtimeResponseStreamContract(runtimeResp).applyHeaders(c)
 
 	if taskID := runtimeResp.Header.Get("X-Igris-Runtime-Task-Id"); taskID != "" {
 		c.Set("X-Igris-Runtime-Task-Id", taskID)
 	}
-	if resumeSupported != "" {
+	if resumeSupported := runtimeResp.Header.Get("X-Igris-Runtime-Stream-Resume-Supported"); resumeSupported != "" {
 		c.Set("X-Igris-Runtime-Stream-Resume-Supported", resumeSupported)
 	}
-	if replayCondition != "" {
+	if replayCondition := runtimeResp.Header.Get("X-Igris-Runtime-Stream-Replay-Condition"); replayCondition != "" {
 		c.Set("X-Igris-Runtime-Stream-Replay-Condition", replayCondition)
 	}
 	c.Set("X-Accel-Buffering", "no")
 }
 
 func applyFallbackStreamContractHeaders(c *fiber.Ctx) {
-	setPublicStreamContractHeaders(c, "overture_fallback", "false", "none")
+	fallbackStreamContract().applyHeaders(c)
 }
 
 // HandleHealth handles GET /v1/health
