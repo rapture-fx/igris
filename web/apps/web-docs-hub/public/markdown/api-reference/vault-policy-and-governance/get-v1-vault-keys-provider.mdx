@@ -1,0 +1,111 @@
+---
+title: "GET /v1/vault/keys/:provider"
+description: "Gets a single provider key record. This endpoint belongs to the Vault, Policy, and Governance group and is documented here so customers can understand the contract, auth model, and verified sample traffic without reading the server implementation."
+---
+
+# GET /v1/vault/keys/:provider
+
+Gets a single provider key record. This endpoint belongs to the Vault, Policy, and Governance group and is documented here so customers can understand the contract, auth model, and verified sample traffic without reading the server implementation.
+
+<div className="api-meta not-prose"><div className="api-meta-group"><span className="api-meta-label">Method</span><span className="api-badge api-method-get">GET</span></div><div className="api-meta-group"><span className="api-meta-label">Path</span><span className="api-meta-value">/v1/vault/keys/:provider</span></div><div className="api-meta-group"><span className="api-meta-label">Base URL</span><span className="api-meta-value">https://overture.igrisinertial.com</span></div><div className="api-meta-group"><span className="api-meta-label">Auth</span><span className="api-meta-value">Session cookie or igris_ API key</span></div><div className="api-meta-group"><span className="api-meta-label">Surface</span><span className="api-badge api-surface-cloud-api">Cloud API</span></div><div className="api-meta-group"><span className="api-meta-label">Stability</span><span className="api-badge api-stability-stable">stable</span></div><div className="api-meta-group"><span className="api-meta-label">Support</span><span className="api-badge api-support-supported">supported</span></div><div className="api-meta-group"><span className="api-meta-label">Deployment</span><span className="api-badge api-deployment-cloud">cloud</span></div></div>
+
+## When To Use
+
+Use this endpoint when you need gets a single provider key record. from the hosted API. It is part of the Vault, Policy, and Governance surface and is intended to be the customer-facing contract for that capability.
+
+## Integration Guidance
+
+Safe retries are usually reasonable for transient 5xx or 429 responses. Do not retry 4xx responses until you have fixed the request, credentials, or addressed resource.
+
+### Common Mistakes
+
+- Calling the route with an API key when the workflow actually expects an authenticated browser session.
+- Using the wrong credential type or forgetting to send the expected API key header.
+- Passing a placeholder path segment without replacing it with a real resource identifier.
+
+### Related Endpoints
+
+- [GET /v1/vault/keys](/docs/api-reference/vault-policy-and-governance/get-v1-vault-keys)
+- [POST /v1/vault/keys](/docs/api-reference/vault-policy-and-governance/post-v1-vault-keys)
+- [DELETE /v1/vault/keys/:provider](/docs/api-reference/vault-policy-and-governance/delete-v1-vault-keys-provider)
+
+### Related Guides
+
+- [API Authentication](/docs/api-reference/authentication)
+- [API Errors](/docs/api-reference/errors)
+- [Key Management](/docs/key-management)
+
+## Path Parameters
+
+| Field | Type | Required | Description |
+|---|---|---|---|
+| `provider` | `string` | Yes | Path identifier for `provider`. |
+
+## Code Examples
+
+### cURL
+
+```bash
+curl -X GET https://overture.igrisinertial.com/v1/vault/keys/openai \
+  -H "Authorization: Bearer $IGRIS_API_KEY"
+```
+
+### JavaScript
+
+```javascript
+const response = await fetch('https://overture.igrisinertial.com/v1/vault/keys/openai', {
+  method: 'GET',
+  headers: {
+    'Authorization': `Bearer ${process.env.IGRIS_API_KEY}`,
+  },
+});
+
+const data = await response.text();
+console.log(data);
+```
+
+### Go
+
+```go
+client := &http.Client{}
+body := http.NoBody
+
+req, err := http.NewRequest("GET", "https://overture.igrisinertial.com/v1/vault/keys/openai", body)
+if err != nil {
+	log.Fatal(err)
+}
+
+req.Header.Set("Authorization", "Bearer " + os.Getenv("IGRIS_API_KEY"))
+
+resp, err := client.Do(req)
+if err != nil {
+	log.Fatal(err)
+}
+defer resp.Body.Close()
+
+payload, _ := io.ReadAll(resp.Body)
+fmt.Println(string(payload))
+```
+
+### Rust
+
+```rust
+let client = reqwest::Client::new();
+let response = client
+        .request(reqwest::Method::GET, "https://overture.igrisinertial.com/v1/vault/keys/openai")
+        .header("Authorization", format!("Bearer {}", std::env::var("IGRIS_API_KEY")?))
+        .send()
+        .await?;
+
+let payload = response.text().await?;
+println!("{}", payload);
+```
+
+## Sample Response
+
+A response example is not available on this page yet.
+
+## Status Codes
+
+Status-code details are still being documented for this endpoint.
+
