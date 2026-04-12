@@ -162,11 +162,7 @@ func handleTaskSubmit(tc *coordinator.TaskCoordinator) fiber.Handler {
 			})
 		}
 
-		return c.Status(http.StatusAccepted).JSON(fiber.Map{
-			"task_id":    task.TaskID,
-			"status":     task.Status,
-			"created_at": task.CreatedAt,
-		})
+		return c.Status(http.StatusAccepted).JSON(buildTaskAcceptedResponse(task))
 	}
 }
 
@@ -883,6 +879,21 @@ func buildTaskResponse(task *coordinator.TaskRecord) fiber.Map {
 	return resp
 }
 
+func buildTaskAcceptedResponse(task *coordinator.TaskRecord) fiber.Map {
+	resp := fiber.Map{
+		"task_id":    task.TaskID,
+		"status":     task.Status,
+		"created_at": task.CreatedAt,
+		"lifecycle":  buildTaskLifecycleResponse(task.Status),
+		"durability": buildTaskDurabilityResponse(task),
+		"recovery":   buildTaskRecoveryResponse(task),
+	}
+	if taskType := extractTaskType(task.TaskDefinition); taskType != "" {
+		resp["task_type"] = taskType
+	}
+	return resp
+}
+
 func buildTaskLifecycleResponse(status coordinator.TaskRecordStatus) fiber.Map {
 	runtimeMutationAllowed := coordinator.TaskAllowsRuntimeMutation(status)
 	dispatchAllowed := coordinator.TaskAllowsDispatch(status)
@@ -928,6 +939,17 @@ func buildTaskRecoveryResponse(task *coordinator.TaskRecord) fiber.Map {
 		resp["skip_reason"] = skipReason
 	}
 
+	return resp
+}
+
+func buildTaskCanceledResponse(task *coordinator.TaskRecord, runtimeCancelAttempted, runtimeCancelSignaled bool) fiber.Map {
+	resp := buildTaskAcceptedResponse(task)
+	resp["ok"] = true
+	resp["runtime_cancel_attempted"] = runtimeCancelAttempted
+	resp["runtime_cancel_signaled"] = runtimeCancelSignaled
+	if task.CanceledAt != nil {
+		resp["canceled_at"] = task.CanceledAt
+	}
 	return resp
 }
 
@@ -1096,12 +1118,14 @@ func handleTaskCancel(tc *coordinator.TaskCoordinator) fiber.Handler {
 			}
 		}
 
-		return c.JSON(fiber.Map{
-			"ok":                       true,
-			"status":                   coordinator.TaskStatusCanceled,
-			"runtime_cancel_attempted": runtimeCancelAttempted,
-			"runtime_cancel_signaled":  runtimeCancelSignaled,
-		})
+		updatedTask, err := tc.Store().GetTask(taskID, tenantID)
+		if err != nil {
+			fallbackTask := *task
+			fallbackTask.Status = coordinator.TaskStatusCanceled
+			updatedTask = &fallbackTask
+		}
+
+		return c.JSON(buildTaskCanceledResponse(updatedTask, runtimeCancelAttempted, runtimeCancelSignaled))
 	}
 }
 
