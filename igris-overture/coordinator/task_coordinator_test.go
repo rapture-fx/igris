@@ -17,6 +17,10 @@ import (
 )
 
 func taskRecordRowForRecoveryTest(taskID uuid.UUID, tenantID string, status TaskRecordStatus, runtimeID, runtimeEndpoint string, taskDefinition json.RawMessage, checkpoint *CheckpointPayload, idempotencyKey string, createdAt time.Time) []driver.Value {
+	return taskRecordRowForRecoveryTestWithFailureReason(taskID, tenantID, status, runtimeID, runtimeEndpoint, taskDefinition, checkpoint, idempotencyKey, nil, createdAt)
+}
+
+func taskRecordRowForRecoveryTestWithFailureReason(taskID uuid.UUID, tenantID string, status TaskRecordStatus, runtimeID, runtimeEndpoint string, taskDefinition json.RawMessage, checkpoint *CheckpointPayload, idempotencyKey string, failureReason *string, createdAt time.Time) []driver.Value {
 	var checkpointBytes []byte
 	if checkpoint != nil {
 		checkpointBytes, _ = json.Marshal(checkpoint)
@@ -39,7 +43,7 @@ func taskRecordRowForRecoveryTest(taskID uuid.UUID, tenantID string, status Task
 		nil,
 		nil,
 		idempotencyKey,
-		nil,
+		failureReason,
 		nil,
 		nil,
 		nil,
@@ -873,6 +877,18 @@ func TestRecoverRuntimeRetryUsesNewestCheckpointOnNextAttempt(t *testing.T) {
 	require.Equal(t, 0, queued.remainingQueries())
 }
 
+func TestRecoverRuntimeSkipsCanceledTaskBeforeRedispatch(t *testing.T) {
+	t.Parallel()
+
+	testRecoverRuntimeSkipsTerminalTaskBeforeRedispatch(t, TaskStatusCanceled, nil)
+}
+
+func TestRecoverRuntimeSkipsCompletedTaskBeforeRedispatch(t *testing.T) {
+	t.Parallel()
+
+	testRecoverRuntimeSkipsTerminalTaskBeforeRedispatch(t, TaskStatusCompleted, nil)
+}
+
 func ptrString(value string) *string {
 	return &value
 }
@@ -981,6 +997,77 @@ func runRecoverRuntimeRedispatchCheckpointTest(t *testing.T, taskID uuid.UUID, f
 		t.Fatal("timed out waiting for recovery redispatch")
 	}
 
+	require.Equal(t, 0, queued.remainingExecs())
+	require.Equal(t, 0, queued.remainingQueries())
+}
+
+func testRecoverRuntimeSkipsTerminalTaskBeforeRedispatch(t *testing.T, terminalStatus TaskRecordStatus, failureReason *string) {
+	t.Helper()
+
+	taskID := uuid.New()
+	failedRuntimeID := "runtime-failed"
+	tenantID := "tenant-recovery"
+	idempotencyKey := "idem-recovery-terminal"
+	createdAt := time.Unix(1_900_000_300, 0).UTC()
+	taskDefinition := json.RawMessage(`{
+		"type":"behavior_tree",
+		"tree":{"root":{"type":"sequence","children":[]}}
+	}`)
+	checkpoint := &CheckpointPayload{
+		TaskID: taskID,
+		ResumeToken: ResumeToken{
+			LastCommittedStep: 7,
+			CheckpointDigest:  "digest-7",
+			RuntimeID:         failedRuntimeID,
+		},
+		WalEntries: []WalEntry{{TaskID: taskID, StepIndex: 7, RuntimeID: failedRuntimeID}},
+		Metadata:   json.RawMessage(`{"tick_count": 7}`),
+		CapturedAt: time.Unix(1_900_000_307, 0).UTC(),
+	}
+	checkpointBytes, err := json.Marshal(checkpoint)
+	require.NoError(t, err)
+
+	db, queued := newQueuedCheckpointDB(t,
+		[]queuedQueryExpectation{
+			{
+				columns: []string{"task_id"},
+				rows:    [][]driver.Value{{taskID.String()}},
+			},
+			{
+				columns: []string{"last_checkpoint"},
+				values:  []driver.Value{checkpointBytes},
+			},
+			{
+				columns: []string{"tenant_id"},
+				values:  []driver.Value{tenantID},
+			},
+			{
+				columns: []string{
+					"task_id", "tenant_id", "status", "runtime_id", "runtime_endpoint",
+					"task_definition", "last_checkpoint", "execution_envelope", "execution_receipt",
+					"proof_execution_id", "proof_expected_hash", "proof_stored_hash", "proof_signature", "proof_status", "proof_checked_at",
+					"idempotency_key", "failure_reason",
+					"deadline_at", "dispatched_at", "completed_at", "canceled_at", "created_at",
+				},
+				values: taskRecordRowForRecoveryTestWithFailureReason(taskID, tenantID, terminalStatus, failedRuntimeID, "http://failed-runtime.test", taskDefinition, checkpoint, idempotencyKey, failureReason, createdAt),
+			},
+		},
+		queuedExecExpectation{rowsAffected: 1},
+	)
+
+	dispatchCalled := false
+	tc := &TaskCoordinator{
+		db:    db,
+		store: NewCheckpointStore(db),
+		httpClient: &http.Client{Transport: roundTripperFunc(func(*http.Request) (*http.Response, error) {
+			dispatchCalled = true
+			return nil, errors.New("unexpected redispatch")
+		})},
+	}
+
+	tc.recoverRuntime(context.Background(), failedRuntimeID)
+
+	require.False(t, dispatchCalled)
 	require.Equal(t, 0, queued.remainingExecs())
 	require.Equal(t, 0, queued.remainingQueries())
 }
