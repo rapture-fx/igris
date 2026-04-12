@@ -1,0 +1,118 @@
+---
+title: "Licensing & Activation"
+description: "How Igris licenses are activated, validated, and kept alive across the console, coordination layer, and deployed runtimes."
+---
+
+# Licensing & Activation
+
+Igris licensing is not just a billing flag. It is part of the runtime bootstrap path.
+
+There are two distinct surfaces:
+
+- **Tenant activation in the console** associates a purchased license with a tenant
+- **Runtime validation and heartbeat** determine whether a deployed runtime is allowed to stay active
+
+Treat those as one lifecycle.
+
+---
+
+## Product Model
+
+At a high level, the licensing flow works like this:
+
+1. A tenant activates a license key from the console.
+2. The runtime validates that license during startup.
+3. The runtime registers a device identity under that license.
+4. The runtime sends periodic heartbeats to remain counted as active.
+
+If validation fails, the runtime should not be treated as fully admitted into the platform.
+
+---
+
+## Tenant Activation
+
+The console exposes a tenant-facing activation flow so an operator can bind a license to the current tenant account.
+
+From a product perspective, that does three things:
+
+- sets the active plan for the tenant
+- determines the feature set and quota envelope
+- establishes the license record that runtimes will validate against
+
+The current implementation also exposes plan and quota state back to the console, including:
+
+- current plan
+- license status
+- request quota
+- device quota
+- active device count
+
+That means licensing is visible to both finance and operations, not just procurement.
+
+---
+
+## Runtime Admission
+
+The runtime performs license validation during startup before it proceeds with its normal cloud-registration path.
+
+In practical terms, runtime admission depends on:
+
+- a valid license key
+- a generated device identity
+- the runtime version reported during validation
+
+The runtime then attempts device registration under that license. This is important operationally because a license is not only "valid" or "invalid"; it also tracks how many active devices are attached to it.
+
+---
+
+## Device Identity And Heartbeats
+
+Each runtime derives a device ID from local machine characteristics and registers that device against the license.
+
+Once registered, the runtime sends periodic heartbeats. This gives Igris an operational answer to questions like:
+
+- which runtimes are still alive
+- how many devices are currently consuming the license
+- whether a device should be treated as stale or deregistered
+
+If you are operating a fleet, heartbeats are part of capacity accounting, not just health reporting.
+
+---
+
+## What The License Controls
+
+The implementation already models licensing as a feature gate, not only a plan label.
+
+Current responses include feature flags and limits such as:
+
+- execution-layer access
+- memory-layer access
+- proof and audit features
+- dashboard access
+- fleet monitoring
+- OTA updates
+- on-premise entitlement
+- extended retention and support level
+
+That means product documentation should describe licensing in terms of **capabilities unlocked**, not only tiers and pricing.
+
+---
+
+## Recommended Operating Model
+
+Use this division:
+
+- **Commercial workflow**: activate the tenant license in the console
+- **Operational workflow**: validate and register runtimes at startup
+- **Fleet workflow**: monitor active devices and stale heartbeats
+
+If a runtime fails admission, fix licensing first instead of debugging routing or execution behavior downstream.
+
+---
+
+## Related Pages
+
+- [Pricing Tiers →](/docs/pricing-tiers)
+- [Trial & Billing →](/docs/trial-billing)
+- [Deployment →](/docs/deployment)
+- [Cloud Coordination →](/docs/cloud-coordination)
