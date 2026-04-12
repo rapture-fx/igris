@@ -6,6 +6,11 @@ const outputFile = path.join(__dirname, '../lib/search-index.json');
 const staticSearchFile = path.join(__dirname, '../public/search-static.json');
 const generatedApiFile = path.join(__dirname, '../lib/generated/api-reference.json');
 const generatedSdkFile = path.join(__dirname, '../lib/generated/sdk-support.json');
+const hiddenDocPaths = new Set([
+  'docs-authoring',
+  'docs-authoring-components',
+  'docs-authoring-schemas',
+]);
 
 function slugify(value) {
   return value
@@ -167,6 +172,7 @@ async function extractSearchIndex() {
     const rawContent = fs.readFileSync(filePath, 'utf-8');
     const { body, data } = parseFrontmatter(rawContent);
     const pageKey = relativePath.replace(/\.mdx$/, '');
+    if (hiddenDocPaths.has(pageKey)) continue;
     const slug = pageKey.split('/').pop() || 'index';
     const searchableText = extractSearchableText(body);
 
