@@ -907,9 +907,12 @@ func (h *InferHandler) handleStreamingInfer(c *fiber.Ctx, req *models.InferReque
 		if err != nil {
 			if errors.Is(err, models.ErrRuntimeSecurity) {
 				log.Printf("[Infer] Runtime streaming security rejection — not falling back: %v", err)
-				return c.Status(fiber.StatusBadGateway).JSON(fiber.Map{
-					"error": "upstream security rejection",
-				})
+				return c.Status(fiber.StatusBadGateway).JSON(buildStreamingErrorResponse(
+					"upstream security rejection",
+					"stream_execution_security_rejected",
+					runtimeUnavailableStreamContract(),
+					err.Error(),
+				))
 			}
 			if req.AllowStreamFallback {
 				log.Printf("[Infer] Runtime streaming unavailable, using explicit stream fallback opt-in: %v", err)
@@ -1021,9 +1024,12 @@ func (h *InferHandler) handleStreamingInfer(c *fiber.Ctx, req *models.InferReque
 		metrics.RecordInferMetrics(c, provider, req.Model, latencyMs, 0, 0, totalTokens, totalCost, false, err.Error())
 
 		log.Printf("[Infer] Streaming error: %v", err)
-		return c.Status(fiber.StatusInternalServerError).JSON(fiber.Map{
-			"error": err.Error(),
-		})
+		return c.Status(fiber.StatusInternalServerError).JSON(buildStreamingErrorResponse(
+			"stream execution failed",
+			"stream_execution_failed",
+			fallbackStreamContract(),
+			err.Error(),
+		))
 	}
 
 	// Create combined response from all chunks
@@ -1098,18 +1104,33 @@ func (h *InferHandler) handleStreamingInfer(c *fiber.Ctx, req *models.InferReque
 }
 
 func buildRuntimeStreamingUnavailableResponse(err error) fiber.Map {
-	contract := runtimeUnavailableStreamContract()
+	return buildStreamingErrorResponse(
+		"runtime-backed streaming is unavailable; fallback refused to preserve execution authority",
+		"stream_execution_unavailable",
+		runtimeUnavailableStreamContract(),
+		errorDetail(err),
+	)
+}
+
+func buildStreamingErrorResponse(message, errorType string, contract models.StreamContract, detail string) fiber.Map {
 	resp := fiber.Map{
 		"error": fiber.Map{
-			"message": "runtime-backed streaming is unavailable; fallback refused to preserve execution authority",
-			"type":    "stream_execution_unavailable",
+			"message": message,
+			"type":    errorType,
 		},
 		"stream": contract.ToMap(),
 	}
-	if err != nil {
-		resp["detail"] = err.Error()
+	if detail != "" {
+		resp["detail"] = detail
 	}
 	return resp
+}
+
+func errorDetail(err error) string {
+	if err == nil {
+		return ""
+	}
+	return err.Error()
 }
 
 func setStreamingSSEHeaders(c *fiber.Ctx, traceID string) {
