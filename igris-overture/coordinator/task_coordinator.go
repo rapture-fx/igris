@@ -373,14 +373,7 @@ func (tc *TaskCoordinator) recoverRuntime(ctx context.Context, runtimeID string)
 			continue
 		}
 		if skipReason := TaskRecoverySkipReason(task); skipReason != "" {
-			log.Info().
-				Str("task_id", taskID.String()).
-				Str("status", string(task.Status)).
-				Str("skip_reason", skipReason).
-				Msg("[Coordinator] Skipping recovery redispatch")
-			if skipReason == "streaming_resume_unsupported" && task.Status == TaskStatusRecovering {
-				_ = tc.store.MarkFailed(taskID, TaskFailureReasonStreamingResumeUnsupported)
-			}
+			tc.handleRecoverySkip(taskID, task, skipReason)
 			continue
 		}
 
@@ -411,6 +404,18 @@ func (tc *TaskCoordinator) recoverRuntime(ctx context.Context, runtimeID string)
 			Msg("[Coordinator] Redispatching recovered task")
 
 		go tc.dispatchToRuntime(ctx, task, cp)
+	}
+}
+
+func (tc *TaskCoordinator) handleRecoverySkip(taskID uuid.UUID, task *TaskRecord, skipReason string) {
+	log.Info().
+		Str("task_id", taskID.String()).
+		Str("status", string(task.Status)).
+		Str("skip_reason", skipReason).
+		Msg("[Coordinator] Skipping recovery redispatch")
+
+	if skipReason == "streaming_resume_unsupported" && task.Status == TaskStatusRecovering {
+		_ = tc.store.MarkFailed(taskID, TaskFailureReasonStreamingResumeUnsupported)
 	}
 }
 
