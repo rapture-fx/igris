@@ -1,0 +1,236 @@
+---
+title: "Upgrade & Migration"
+description: "This guide covers how to upgrade between Igris versions, migrate data, and handle breaking changes."
+---
+
+# Upgrade & Migration
+
+This guide covers how to upgrade between Igris versions, migrate data, and handle breaking changes.
+
+---
+
+## Versioning
+
+Igris uses semantic versioning for the runtime binary:
+
+- **Major version** (v1 → v2): Breaking changes. Requires migration steps.
+- **Minor version** (v1.6 → v1.7): New features, backward compatible.
+- **Patch version** (v1.6.0 → v1.6.1): Bug fixes, backward compatible.
+
+The cloud API is versioned independently and maintains backward compatibility within a major version.
+
+---
+
+## Upgrading the Runtime
+
+### Automatic OTA Updates (Horizon+)
+
+If you are on the Horizon or Infinite tier, you can push updates to your fleet from the console:
+
+1. Navigate to **Fleet → Devices**
+2. Select the instances to update
+3. Click **Push Update**
+4. Choose the target version and update strategy
+
+**Update strategies:**
+
+| Strategy | Behavior |
+|---|---|
+| `rolling` | Update instances one at a time (default) |
+| `canary` | Update one instance first, verify health, then proceed |
+| `all-at-once` | Update all instances simultaneously |
+
+### Manual Upgrade
+
+For Seed tier or manual deployments:
+
+1. Download the new binary:
+
+```bash
+curl -fsSL https://igrisinertial.com/install | bash
+```
+
+Or download from **Fleet → Downloads** in the console.
+
+2. Verify the checksum:
+
+```bash
+sha256sum /usr/local/bin/igris-runtime
+# Compare with the checksum shown in the console
+```
+
+3. Restart the runtime:
+
+```bash
+sudo systemctl restart igris-runtime
+# Or if running directly:
+# pkill igris-runtime && igris-runtime serve
+```
+
+4. Verify the upgrade:
+
+```bash
+igris-runtime --version
+curl http://localhost:8080/health
+```
+
+---
+
+## Configuration Migration
+
+### Config File Format Changes
+
+When upgrading between major versions, the configuration file format may change. The runtime will log warnings for deprecated fields and use defaults for new required fields.
+
+**Before upgrading, review the changelog for configuration changes.**
+
+### Backing Up Configuration
+
+Always back up your configuration before upgrading:
+
+```bash
+cp ~/.config/igris/config.json5 ~/.config/igris/config.json5.bak
+```
+
+### Migrating Config Fields
+
+If the upgrade includes config format changes, the runtime will:
+1. Log a warning for each deprecated field
+2. Use the default value for new required fields
+3. Continue operating with the migrated configuration
+
+After upgrading, review the config file and update any deprecated fields to their new equivalents.
+
+---
+
+## Data Migration
+
+### Execution Receipts
+
+Execution receipts are stored in the runtime's local database. They are preserved across upgrades and do not require migration.
+
+### Fleet Configuration
+
+Fleet configuration (instance registrations, tags, topic mappings) is stored in the coordination layer and is preserved across upgrades.
+
+### Provider Keys
+
+Provider API keys are preserved across upgrades. No re-entry is required.
+
+### Behavior Tree Definitions
+
+Saved behavior tree definitions are preserved across upgrades.
+
+---
+
+## Breaking Changes by Version
+
+### Runtime v1.8.0 (March 2026)
+
+**Changed:**
+- CPU quota enforcement now correctly applies cgroup limits on Linux
+- cgroup period configuration uses full precision (previously truncated)
+
+**Migration:** No action required. Existing configurations continue to work. Deployments that previously had silent CPU quota truncation will now enforce limits correctly.
+
+### Runtime v1.7.x (March 2026)
+
+**Added:**
+- ARM64 Linux support
+- Authenticated binary distribution with checksum verification
+
+**Changed:**
+- Install command updated to use `igrisinertial.com` domain
+- macOS Intel builds discontinued; only Apple Silicon supported
+
+**Migration:**
+- If you were using the old install script, update to the new URL
+- macOS Intel users: continue using your current binary; no new builds will be published
+
+### Runtime v1.6.0 (February 2026)
+
+**Changed:**
+- macOS builds now require Apple Silicon
+
+**Migration:** No action required for Linux deployments.
+
+### Runtime v0.4.0 (November 2025)
+
+**Breaking:**
+- Execution now requires a verified envelope — unsigned envelopes are rejected
+- Receipt emission is now unconditional for all execution paths
+
+**Migration:**
+- Ensure your SDK or integration sends properly signed execution envelopes
+- Update any workflows that assumed conditional receipt emission
+
+---
+
+## Rollback
+
+If an upgrade causes issues, you can rollback to the previous version:
+
+1. Stop the current runtime:
+
+```bash
+sudo systemctl stop igris-runtime
+```
+
+2. Restore the previous binary:
+
+```bash
+cp /usr/local/bin/igris-runtime.bak /usr/local/bin/igris-runtime
+```
+
+3. Restore the previous config if needed:
+
+```bash
+cp ~/.config/igris/config.json5.bak ~/.config/igris/config.json5
+```
+
+4. Restart:
+
+```bash
+sudo systemctl start igris-runtime
+```
+
+> **Note:** Always keep a backup of the previous binary before upgrading. The install script does this automatically.
+
+---
+
+## Checking for Updates
+
+### Via Console
+
+The console displays available updates in **Fleet → Devices** when a new version is published.
+
+### Via API
+
+```bash
+curl https://overture.igrisinertial.com/v1/runtime/checksum \
+  -H "Authorization: Bearer YOUR_API_KEY"
+```
+
+Compare the checksum with your currently installed binary.
+
+### Via CLI
+
+```bash
+igris-runtime status
+```
+
+Shows the current version and whether an update is available.
+
+---
+
+## Support
+
+If you encounter issues during upgrade or migration:
+
+1. Check the [Troubleshooting](/docs/troubleshooting) guide
+2. Review the [Changelog](/docs/changelog) for version-specific notes
+3. Contact [support@igrisinertial.com](mailto:support@igrisinertial.com) with your current version, target version, and error details
+
+---
+
+[Changelog →](/docs/changelog) · [Deployment →](/docs/deployment)
