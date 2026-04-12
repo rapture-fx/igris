@@ -13,6 +13,8 @@ const PROVIDER_REGISTRY: TableDefinition<&str, &[u8]> = TableDefinition::new("pr
 pub const BTREE_STORE: TableDefinition<&str, &[u8]> = TableDefinition::new("btree_store");
 pub const WAL_ENTRIES: TableDefinition<&str, &[u8]> = TableDefinition::new("wal_entries");
 pub const TASK_SUBMISSIONS: TableDefinition<&str, &[u8]> = TableDefinition::new("task_submissions");
+pub const TASK_SUBMISSION_STATUS_BY_TASK_ID: TableDefinition<&str, &[u8]> =
+    TableDefinition::new("task_submission_status_by_task_id");
 
 pub struct RedbStorage {
     db: Database,
@@ -35,6 +37,7 @@ impl RedbStorage {
             write_txn.open_table(BTREE_STORE)?;
             write_txn.open_table(WAL_ENTRIES)?;
             write_txn.open_table(TASK_SUBMISSIONS)?;
+            write_txn.open_table(TASK_SUBMISSION_STATUS_BY_TASK_ID)?;
         }
         write_txn.commit()?;
 
