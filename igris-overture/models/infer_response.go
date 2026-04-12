@@ -55,6 +55,30 @@ type UsageStats struct {
 	TotalTokens      int `json:"total_tokens"`      // Total tokens used
 }
 
+// StreamContract describes the authority and replay/resume guarantees of a
+// streamed response.
+type StreamContract struct {
+	ExecutionAuthority string `json:"execution_authority"`             // runtime | overture_fallback
+	FallbackAllowed    bool   `json:"fallback_allowed"`               // Whether a weaker stream fallback is allowed
+	ResumeSupported    bool   `json:"resume_supported"`               // Whether the stream contract supports resume
+	ReplayCondition    string `json:"replay_condition"`               // Replay condition advertised to the client
+	FallbackOptInField string `json:"fallback_opt_in_field,omitempty"` // Request field that opts into weaker fallback
+}
+
+// ToMap converts a StreamContract to a generic response map for handler error payloads.
+func (c StreamContract) ToMap() map[string]interface{} {
+	resp := map[string]interface{}{
+		"execution_authority": c.ExecutionAuthority,
+		"fallback_allowed":    c.FallbackAllowed,
+		"resume_supported":    c.ResumeSupported,
+		"replay_condition":    c.ReplayCondition,
+	}
+	if c.FallbackOptInField != "" {
+		resp["fallback_opt_in_field"] = c.FallbackOptInField
+	}
+	return resp
+}
+
 // ResponseMetadata contains Igris-engine specific performance data
 type ResponseMetadata struct {
 	// Routing information
@@ -86,10 +110,7 @@ type ResponseMetadata struct {
 	RetryCount               int       `json:"retry_count,omitempty"`                // Number of retries
 	Fallback                 bool      `json:"fallback,omitempty"`                   // Whether fallback was used
 	FallbackReason           string    `json:"fallback_reason,omitempty"`            // Reason for fallback
-	StreamExecutionAuthority string    `json:"stream_execution_authority,omitempty"` // runtime | overture_fallback
-	StreamFallbackAllowed    *bool     `json:"stream_fallback_allowed,omitempty"`    // Whether a weaker stream fallback contract is allowed
-	StreamResumeSupported    *bool     `json:"stream_resume_supported,omitempty"`    // Whether the stream contract supports resume
-	StreamReplayCondition    string    `json:"stream_replay_condition,omitempty"`    // Replay condition advertised to the client
+	Stream                   *StreamContract `json:"stream,omitempty"`               // Streaming contract for this response path
 }
 
 // NewInferResponse creates a new InferResponse with default values
