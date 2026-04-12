@@ -240,4 +240,17 @@ func TestHandleStreamingInferAllowsExplicitFallbackOptIn(t *testing.T) {
 	if _, ok := body["choices"]; !ok {
 		t.Fatalf("response missing choices: %v", body)
 	}
+	metadata, ok := body["metadata"].(map[string]any)
+	if !ok {
+		t.Fatalf("metadata type = %T, want map[string]any", body["metadata"])
+	}
+	if got := metadata["stream_execution_authority"]; got != "overture_fallback" {
+		t.Fatalf("metadata.stream_execution_authority = %v, want %q", got, "overture_fallback")
+	}
+	if got := metadata["stream_resume_supported"]; got != false {
+		t.Fatalf("metadata.stream_resume_supported = %v, want false", got)
+	}
+	if got := metadata["stream_replay_condition"]; got != "none" {
+		t.Fatalf("metadata.stream_replay_condition = %v, want %q", got, "none")
+	}
 }
