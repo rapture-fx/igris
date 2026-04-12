@@ -1,0 +1,142 @@
+---
+title: "POST /proof/receipts/verify"
+description: "Verifies a receipt hash and signature for a known execution. Use this to confirm the proof chain before presenting a receipt externally."
+---
+
+# POST /proof/receipts/verify
+
+Verifies a receipt hash and signature for a known execution. Use this to confirm the proof chain before presenting a receipt externally.
+
+<div className="api-meta not-prose"><div className="api-meta-group"><span className="api-meta-label">Method</span><span className="api-badge api-method-post">POST</span></div><div className="api-meta-group"><span className="api-meta-label">Path</span><span className="api-meta-value">/proof/receipts/verify</span></div><div className="api-meta-group"><span className="api-meta-label">Base URL</span><span className="api-meta-value">https://overture.igrisinertial.com</span></div><div className="api-meta-group"><span className="api-meta-label">Auth</span><span className="api-meta-value">Session cookie or igris_ API key</span></div><div className="api-meta-group"><span className="api-meta-label">Surface</span><span className="api-badge api-surface-proof-api">Proof API</span></div><div className="api-meta-group"><span className="api-meta-label">Stability</span><span className="api-badge api-stability-stable">stable</span></div><div className="api-meta-group"><span className="api-meta-label">Support</span><span className="api-badge api-support-supported">supported</span></div><div className="api-meta-group"><span className="api-meta-label">Deployment</span><span className="api-badge api-deployment-cloud">cloud</span></div></div>
+
+## When To Use
+
+Use this endpoint when you need verifies a receipt signature and chain integrity. from the hosted API. It is part of the Execution, History, and Receipts surface and is intended to be the customer-facing contract for that capability.
+
+## Integration Guidance
+
+Do not blindly retry write operations. Retry only on transient 5xx or 429 responses, and make sure the client is idempotent or otherwise safe to replay.
+
+### Common Mistakes
+
+- Calling the route with an API key when the workflow actually expects an authenticated browser session.
+- Using the wrong credential type or forgetting to send the expected API key header.
+- Replaying a write request without thinking through idempotency, duplication, or partial success.
+
+### Related Endpoints
+
+- [GET /v1/history/events](/docs/api-reference/execution-history-and-receipts/get-v1-history-events)
+- [GET /v1/receipts](/docs/api-reference/execution-history-and-receipts/get-v1-receipts)
+- [GET /v1/receipts/:id](/docs/api-reference/execution-history-and-receipts/get-v1-receipts-id)
+
+### Related Guides
+
+- [API Authentication](/docs/api-reference/authentication)
+- [API Errors](/docs/api-reference/errors)
+- [Receipts and Audit Workflow](/docs/receipts-audit-workflow)
+
+## Request Body
+
+| Field | Type | Required | Description |
+|---|---|---|---|
+| `execution_id` | `string` | Yes | Execution identifier to verify. |
+| `expected_hash` | `string` | No | Optional expected receipt hash for direct comparison. |
+
+## Request Example
+
+```json
+{
+  "execution_id": "exec_01HV95R5Y3TVVJ7R3",
+  "expected_hash": "6f16f4bc4d6627240ca4c7d66ea2d7d2"
+}
+```
+
+## Code Examples
+
+### cURL
+
+```bash
+curl -X POST https://overture.igrisinertial.com/proof/receipts/verify \
+  -H "Authorization: Bearer $IGRIS_API_KEY" \
+  -H "Content-Type: application/json" \
+  -d '{
+  "execution_id": "exec_01HV95R5Y3TVVJ7R3",
+  "expected_hash": "6f16f4bc4d6627240ca4c7d66ea2d7d2"
+}'
+```
+
+### JavaScript
+
+```javascript
+const response = await fetch('https://overture.igrisinertial.com/proof/receipts/verify', {
+  method: 'POST',
+  headers: {
+    'Authorization': `Bearer ${process.env.IGRIS_API_KEY}`,
+    'Content-Type': 'application/json',
+  },
+  body: JSON.stringify({
+  "execution_id": "exec_01HV95R5Y3TVVJ7R3",
+  "expected_hash": "6f16f4bc4d6627240ca4c7d66ea2d7d2"
+}),
+});
+
+const data = await response.text();
+console.log(data);
+```
+
+### Go
+
+```go
+client := &http.Client{}
+body := strings.NewReader("{\n  \"execution_id\": \"exec_01HV95R5Y3TVVJ7R3\",\n  \"expected_hash\": \"6f16f4bc4d6627240ca4c7d66ea2d7d2\"\n}")
+
+req, err := http.NewRequest("POST", "https://overture.igrisinertial.com/proof/receipts/verify", body)
+if err != nil {
+	log.Fatal(err)
+}
+req.Header.Set("Content-Type", "application/json")
+req.Header.Set("Authorization", "Bearer " + os.Getenv("IGRIS_API_KEY"))
+
+resp, err := client.Do(req)
+if err != nil {
+	log.Fatal(err)
+}
+defer resp.Body.Close()
+
+payload, _ := io.ReadAll(resp.Body)
+fmt.Println(string(payload))
+```
+
+### Rust
+
+```rust
+let client = reqwest::Client::new();
+let response = client
+        .request(reqwest::Method::POST, "https://overture.igrisinertial.com/proof/receipts/verify")
+        .header("Authorization", format!("Bearer {}", std::env::var("IGRIS_API_KEY")?))
+        .json(&serde_json::json!({
+  "execution_id": "exec_01HV95R5Y3TVVJ7R3",
+  "expected_hash": "6f16f4bc4d6627240ca4c7d66ea2d7d2"
+}))
+        .send()
+        .await?;
+
+let payload = response.text().await?;
+println!("{}", payload);
+```
+
+## Sample Response
+
+```json
+{
+  "valid": true,
+  "execution_id": "exec_01HV95R5Y3TVVJ7R3",
+  "hash": "6f16f4bc4d6627240ca4c7d66ea2d7d2",
+  "signature": "MEUCID...=="
+}
+```
+
+## Status Codes
+
+Status-code details are still being documented for this endpoint.
+
