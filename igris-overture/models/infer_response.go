@@ -59,9 +59,9 @@ type UsageStats struct {
 // streamed response.
 type StreamContract struct {
 	ExecutionAuthority string `json:"execution_authority"`             // runtime | overture_fallback
-	FallbackAllowed    bool   `json:"fallback_allowed"`               // Whether a weaker stream fallback is allowed
-	ResumeSupported    bool   `json:"resume_supported"`               // Whether the stream contract supports resume
-	ReplayCondition    string `json:"replay_condition"`               // Replay condition advertised to the client
+	FallbackAllowed    bool   `json:"fallback_allowed"`                // Whether a weaker stream fallback is allowed
+	ResumeSupported    bool   `json:"resume_supported"`                // Whether the stream contract supports resume
+	ReplayCondition    string `json:"replay_condition"`                // Replay condition advertised to the client
 	FallbackOptInField string `json:"fallback_opt_in_field,omitempty"` // Request field that opts into weaker fallback
 }
 
@@ -105,12 +105,12 @@ type ResponseMetadata struct {
 	ExplorationBonus float64 `json:"exploration_bonus,omitempty"` // Exploration bonus applied
 
 	// Request tracking
-	RequestID                string    `json:"request_id"`                           // Original request ID
-	Timestamp                time.Time `json:"timestamp"`                            // Response timestamp
-	RetryCount               int       `json:"retry_count,omitempty"`                // Number of retries
-	Fallback                 bool      `json:"fallback,omitempty"`                   // Whether fallback was used
-	FallbackReason           string    `json:"fallback_reason,omitempty"`            // Reason for fallback
-	Stream                   *StreamContract `json:"stream,omitempty"`               // Streaming contract for this response path
+	RequestID      string          `json:"request_id"`                // Original request ID
+	Timestamp      time.Time       `json:"timestamp"`                 // Response timestamp
+	RetryCount     int             `json:"retry_count,omitempty"`     // Number of retries
+	Fallback       bool            `json:"fallback,omitempty"`        // Whether fallback was used
+	FallbackReason string          `json:"fallback_reason,omitempty"` // Reason for fallback
+	Stream         *StreamContract `json:"stream,omitempty"`          // Streaming contract for this response path
 }
 
 // NewInferResponse creates a new InferResponse with default values
