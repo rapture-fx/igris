@@ -3,6 +3,8 @@ import { getMDXComponents } from '@/components/mdx';
 import { DocsBody, DocsPage } from 'fumadocs-ui/page';
 import { notFound } from 'next/navigation';
 import type { Metadata } from 'next';
+import { DocsPageActions } from '@/components/docs-page-actions';
+import { getDocGithubUrl, getDocMarkdownUrl } from '@/lib/docs-source';
 
 interface PageProps {
   params: Promise<{ slug?: string[] }>;
@@ -31,6 +33,11 @@ export default async function Page({ params }: PageProps) {
 
   return (
     <DocsPage full={page.data.full} toc={page.data.toc}>
+      <DocsPageActions
+        githubUrl={getDocGithubUrl(slug)}
+        markdownUrl={getDocMarkdownUrl(slug)}
+        pageTitle={page.data.title}
+      />
       <DocsBody className="docs-prose prose-sm md:prose-base">
         <MDX components={getMDXComponents(source, page)} />
       </DocsBody>
