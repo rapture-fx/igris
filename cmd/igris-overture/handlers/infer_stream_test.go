@@ -12,7 +12,10 @@ import (
 
 	"github.com/gofiber/fiber/v2"
 
+	infrarouter "github.com/Igris-inertial/system/igris-overture/inference/router"
 	"github.com/Igris-inertial/system/igris-overture/models"
+	"github.com/Igris-inertial/system/igris-overture/providers"
+	"github.com/Igris-inertial/system/igris-overture/providers/openai"
 )
 
 type stubRuntimeExecutor struct {
@@ -178,5 +181,63 @@ func TestHandleStreamingInferRejectsFallbackWhenRuntimeUnavailable(t *testing.T)
 	}
 	if got := streamBody["replay_condition"]; got != "completed-final-output" {
 		t.Fatalf("stream.replay_condition = %v, want %q", got, "completed-final-output")
+	}
+	if got := streamBody["fallback_opt_in_field"]; got != "allow_stream_fallback" {
+		t.Fatalf("stream.fallback_opt_in_field = %v, want %q", got, "allow_stream_fallback")
+	}
+}
+
+func TestHandleStreamingInferAllowsExplicitFallbackOptIn(t *testing.T) {
+	t.Parallel()
+
+	registry := providers.NewProviderRegistry()
+	mockProvider, err := openai.NewMockOpenAIProvider(nil)
+	if err != nil {
+		t.Fatalf("NewMockOpenAIProvider() error = %v", err)
+	}
+	registry.Register(mockProvider)
+
+	handler := &InferHandler{
+		router: infrarouter.NewInferenceRouter(registry, nil),
+		runtimeExecutor: &stubRuntimeExecutor{
+			streamErr: errors.New("runtime selector: no healthy runtime available for streaming"),
+		},
+	}
+
+	app := fiber.New()
+	app.Post("/v1/infer", func(c *fiber.Ctx) error {
+		return handler.handleStreamingInfer(c, &models.InferRequest{
+			Model:               "igris-mock-gpt-4",
+			Stream:              true,
+			AllowStreamFallback: true,
+			MaxTokens:           5,
+			Messages:            []models.Message{{Role: "user", Content: "hello"}},
+		})
+	})
+
+	req := httptest.NewRequest(http.MethodPost, "/v1/infer", nil)
+	resp, err := app.Test(req, 5000)
+	if err != nil {
+		t.Fatalf("app.Test() error = %v", err)
+	}
+	if resp.StatusCode != http.StatusOK {
+		t.Fatalf("StatusCode = %d, want %d", resp.StatusCode, http.StatusOK)
+	}
+	if got := resp.Header.Get("X-Igris-Stream-Execution-Authority"); got != "overture_fallback" {
+		t.Fatalf("X-Igris-Stream-Execution-Authority = %q, want %q", got, "overture_fallback")
+	}
+	if got := resp.Header.Get("X-Igris-Stream-Resume-Supported"); got != "false" {
+		t.Fatalf("X-Igris-Stream-Resume-Supported = %q, want %q", got, "false")
+	}
+	if got := resp.Header.Get("X-Igris-Stream-Replay-Condition"); got != "none" {
+		t.Fatalf("X-Igris-Stream-Replay-Condition = %q, want %q", got, "none")
+	}
+
+	var body map[string]any
+	if err := json.NewDecoder(resp.Body).Decode(&body); err != nil {
+		t.Fatalf("Decode() error = %v", err)
+	}
+	if _, ok := body["choices"]; !ok {
+		t.Fatalf("response missing choices: %v", body)
 	}
 }
