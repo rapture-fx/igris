@@ -1,9 +1,14 @@
 package coordinator
 
 import (
+	"context"
 	"database/sql/driver"
 	"encoding/json"
+	"io"
+	"net/http"
+	"strings"
 	"testing"
+	"time"
 
 	"github.com/google/uuid"
 	"github.com/stretchr/testify/require"
@@ -232,4 +237,157 @@ func TestNormalizePublicTaskDefinitionRequiresBehaviorTreeDefinition(t *testing.
 	_, err := normalizePublicTaskDefinition("behavior_tree", json.RawMessage(`{"max_ticks": 10}`))
 	require.ErrorIs(t, err, ErrInvalidTaskDefinition)
 	require.Contains(t, err.Error(), "behavior_tree.tree is required")
+}
+
+func TestDispatchToRuntimeIncludesRecoveryResumePayload(t *testing.T) {
+	t.Parallel()
+
+	taskID := uuid.New()
+	runtimeID := "runtime-recovery-1"
+	tenantID := "tenant-recovery"
+	idempotencyKey := "idem-recovery"
+	deadlineAt := time.Unix(1_900_000_000, 0).UTC()
+	var gotBody map[string]any
+	var gotTenantHeader string
+
+	client := &http.Client{Transport: roundTripperFunc(func(r *http.Request) (*http.Response, error) {
+		require.Equal(t, http.MethodPost, r.Method)
+		require.Equal(t, "/v1/runtime/task/submit", r.URL.Path)
+		gotTenantHeader = r.Header.Get("X-Igris-Tenant")
+
+		body, err := io.ReadAll(r.Body)
+		require.NoError(t, err)
+		require.NoError(t, json.Unmarshal(body, &gotBody))
+
+		return &http.Response{
+			StatusCode: http.StatusOK,
+			Header:     http.Header{"Content-Type": []string{"application/json"}},
+			Body:       io.NopCloser(strings.NewReader(`{}`)),
+		}, nil
+	})}
+
+	task := &TaskRecord{
+		TaskID:          taskID,
+		TenantID:        tenantID,
+		RuntimeID:       &runtimeID,
+		RuntimeEndpoint: ptrString("http://runtime.test"),
+		TaskDefinition: json.RawMessage(`{
+			"type":"behavior_tree",
+			"tree":{"root":{"type":"sequence","children":[]}}
+		}`),
+		IdempotencyKey: idempotencyKey,
+		DeadlineAt:     &deadlineAt,
+	}
+	checkpoint := &CheckpointPayload{
+		TaskID: taskID,
+		ResumeToken: ResumeToken{
+			LastCommittedStep: 7,
+			CheckpointDigest:  "digest-7",
+			RuntimeID:         runtimeID,
+		},
+		WalEntries: []WalEntry{
+			{TaskID: taskID, StepIndex: 6, RuntimeID: runtimeID},
+			{TaskID: taskID, StepIndex: 7, RuntimeID: runtimeID},
+		},
+		Metadata: json.RawMessage(`{
+			"blackboard_state":{"goal":"dock","phase":"approach"},
+			"tick_count": 42
+		}`),
+		CapturedAt: time.Unix(1_900_000_010, 0).UTC(),
+	}
+
+	tc := &TaskCoordinator{httpClient: client}
+	tc.dispatchToRuntime(context.Background(), task, checkpoint)
+
+	require.Equal(t, tenantID, gotTenantHeader)
+	require.Equal(t, taskID.String(), gotBody["task_id"])
+	require.Equal(t, tenantID, gotBody["tenant_id"])
+	require.Equal(t, idempotencyKey, gotBody["idempotency_key"])
+	require.Equal(t, float64(deadlineAt.UnixMilli()), gotBody["deadline_ms"])
+
+	taskType, ok := gotBody["task_type"].(map[string]any)
+	require.True(t, ok)
+	require.Equal(t, "behavior_tree", taskType["type"])
+
+	resumeFrom, ok := gotBody["resume_from"].(map[string]any)
+	require.True(t, ok)
+	require.Equal(t, float64(7), resumeFrom["last_committed_step"])
+	require.Equal(t, "digest-7", resumeFrom["checkpoint_digest"])
+	require.Equal(t, runtimeID, resumeFrom["runtime_id"])
+
+	resumeCheckpoint, ok := gotBody["resume_checkpoint"].(map[string]any)
+	require.True(t, ok)
+	require.Equal(t, taskID.String(), resumeCheckpoint["task_id"])
+	embeddedResume, ok := resumeCheckpoint["resume_token"].(map[string]any)
+	require.True(t, ok)
+	require.Equal(t, float64(7), embeddedResume["last_committed_step"])
+	require.Equal(t, "digest-7", embeddedResume["checkpoint_digest"])
+	metadata, ok := resumeCheckpoint["metadata"].(map[string]any)
+	require.True(t, ok)
+	require.Equal(t, float64(42), metadata["tick_count"])
+	blackboard, ok := metadata["blackboard_state"].(map[string]any)
+	require.True(t, ok)
+	require.Equal(t, "dock", blackboard["goal"])
+}
+
+func TestDispatchToRuntimeIncludesRoboticsTaskDefinitionWithoutResumeFields(t *testing.T) {
+	t.Parallel()
+
+	taskID := uuid.New()
+	runtimeID := "runtime-robotics-1"
+	tenantID := "tenant-robotics"
+	idempotencyKey := "idem-robotics"
+	var gotBody map[string]any
+
+	client := &http.Client{Transport: roundTripperFunc(func(r *http.Request) (*http.Response, error) {
+		body, err := io.ReadAll(r.Body)
+		require.NoError(t, err)
+		require.NoError(t, json.Unmarshal(body, &gotBody))
+
+		return &http.Response{
+			StatusCode: http.StatusOK,
+			Header:     http.Header{"Content-Type": []string{"application/json"}},
+			Body:       io.NopCloser(strings.NewReader(`{}`)),
+		}, nil
+	})}
+
+	tc := &TaskCoordinator{httpClient: client}
+	tc.dispatchToRuntime(context.Background(), &TaskRecord{
+		TaskID:          taskID,
+		TenantID:        tenantID,
+		RuntimeID:       &runtimeID,
+		RuntimeEndpoint: ptrString("http://runtime.test"),
+		TaskDefinition: json.RawMessage(`{
+			"type":"robotics_workflow",
+			"steps":[
+				{"step_index":1,"action":"publish_velocity","linear_x":0.25,"angular_z":-0.10},
+				{"step_index":2,"action":"navigate_to_pose","goal":{"x":1.0,"y":2.0,"frame_id":"map"}}
+			]
+		}`),
+		IdempotencyKey: idempotencyKey,
+	}, nil)
+
+	require.Equal(t, taskID.String(), gotBody["task_id"])
+	require.Equal(t, tenantID, gotBody["tenant_id"])
+	require.Equal(t, idempotencyKey, gotBody["idempotency_key"])
+
+	taskType, ok := gotBody["task_type"].(map[string]any)
+	require.True(t, ok)
+	require.Equal(t, "robotics_workflow", taskType["type"])
+	steps, ok := taskType["steps"].([]any)
+	require.True(t, ok)
+	require.Len(t, steps, 2)
+	require.NotContains(t, gotBody, "resume_from")
+	require.NotContains(t, gotBody, "resume_checkpoint")
+	require.NotContains(t, gotBody, "deadline_ms")
+}
+
+func ptrString(value string) *string {
+	return &value
+}
+
+type roundTripperFunc func(*http.Request) (*http.Response, error)
+
+func (fn roundTripperFunc) RoundTrip(req *http.Request) (*http.Response, error) {
+	return fn(req)
 }
