@@ -993,6 +993,304 @@ func TestHandleTaskFailedReturnsRecoveryMetadata(t *testing.T) {
 	require.Equal(t, 0, queued.remainingExecs())
 }
 
+func TestHandleTaskCheckpointReturnsTransitionRejectedPayloadAfterConcurrentCancel(t *testing.T) {
+	t.Parallel()
+
+	taskID := uuid.New()
+	tenantID := "tenant-checkpoint-conflict"
+	runtimeID := "runtime-checkpoint-conflict"
+	createdAt := time.Unix(1_700_001_500, 0).UTC()
+	canceledAt := createdAt.Add(20 * time.Second)
+	checkpoint := &coordinator.CheckpointPayload{
+		TaskID: taskID,
+		ResumeToken: coordinator.ResumeToken{
+			LastCommittedStep: 13,
+			CheckpointDigest:  "digest-13",
+			RuntimeID:         runtimeID,
+		},
+	}
+
+	checkpointBytes, err := json.Marshal(checkpoint)
+	require.NoError(t, err)
+
+	db, queued := newQueuedRouteDB(t,
+		[]queuedRouteQueryExpectation{
+			{
+				columns: []string{
+					"task_id", "tenant_id", "status", "runtime_id", "runtime_endpoint",
+					"task_definition", "last_checkpoint", "execution_envelope", "execution_receipt",
+					"proof_execution_id", "proof_expected_hash", "proof_stored_hash", "proof_signature", "proof_status", "proof_checked_at",
+					"idempotency_key", "failure_reason",
+					"deadline_at", "dispatched_at", "completed_at", "canceled_at", "created_at",
+				},
+				rows: [][]driver.Value{taskRecordRouteRow(
+					taskID,
+					tenantID,
+					coordinator.TaskStatusDispatched,
+					runtimeID,
+					"http://runtime.test",
+					json.RawMessage(`{"type":"behavior_tree","tree":{"root":{"type":"sequence","children":[]}}}`),
+					nil,
+					"idem-checkpoint-conflict",
+					nil,
+					nil,
+					nil,
+					createdAt,
+				)},
+			},
+			{
+				columns: []string{"last_checkpoint"},
+				rows:    [][]driver.Value{{nil}},
+			},
+			{
+				columns: []string{
+					"task_id", "tenant_id", "status", "runtime_id", "runtime_endpoint",
+					"task_definition", "last_checkpoint", "execution_envelope", "execution_receipt",
+					"proof_execution_id", "proof_expected_hash", "proof_stored_hash", "proof_signature", "proof_status", "proof_checked_at",
+					"idempotency_key", "failure_reason",
+					"deadline_at", "dispatched_at", "completed_at", "canceled_at", "created_at",
+				},
+				rows: [][]driver.Value{taskRecordRouteRow(
+					taskID,
+					tenantID,
+					coordinator.TaskStatusCanceled,
+					runtimeID,
+					"http://runtime.test",
+					json.RawMessage(`{"type":"behavior_tree","tree":{"root":{"type":"sequence","children":[]}}}`),
+					nil,
+					"idem-checkpoint-conflict",
+					nil,
+					&canceledAt,
+					nil,
+					createdAt,
+				)},
+			},
+		},
+		queuedRouteExecExpectation{rowsAffected: 0},
+	)
+
+	app := fiber.New()
+	app.Use(func(c *fiber.Ctx) error {
+		c.Locals("clerk_user_id", tenantID)
+		return c.Next()
+	})
+	app.Post("/v1/tasks/:id/checkpoint", handleTaskCheckpoint(coordinator.NewTaskCoordinator(db)))
+
+	req := httptest.NewRequest(http.MethodPost, "/v1/tasks/"+taskID.String()+"/checkpoint", strings.NewReader(string(checkpointBytes)))
+	req.Header.Set("Content-Type", "application/json")
+	resp, err := app.Test(req)
+	require.NoError(t, err)
+	require.Equal(t, http.StatusConflict, resp.StatusCode)
+
+	var body map[string]any
+	require.NoError(t, json.NewDecoder(resp.Body).Decode(&body))
+	require.Equal(t, "task_transition_rejected", body["error"])
+	require.Equal(t, "canceled", body["status"])
+	require.Equal(t, map[string]any{
+		"terminal":                    true,
+		"runtime_mutation_allowed":    false,
+		"dispatch_allowed":            false,
+		"recovery_redispatch_allowed": false,
+		"cancellation_allowed":        false,
+	}, body["lifecycle"])
+	require.Equal(t, map[string]any{
+		"class":            string(coordinator.TaskDurabilityClassResumable),
+		"streaming":        false,
+		"resume_supported": true,
+	}, body["durability"])
+	require.Equal(t, map[string]any{
+		"redispatch_eligible": false,
+		"skip_reason":         "task_canceled",
+	}, body["recovery"])
+	require.Equal(t, 0, queued.remainingQueries())
+	require.Equal(t, 0, queued.remainingExecs())
+}
+
+func TestHandleTaskCompleteReturnsTransitionRejectedPayloadAfterConcurrentCancel(t *testing.T) {
+	t.Parallel()
+
+	taskID := uuid.New()
+	tenantID := "tenant-complete-conflict"
+	runtimeID := "runtime-complete-conflict"
+	createdAt := time.Unix(1_700_001_600, 0).UTC()
+	canceledAt := createdAt.Add(25 * time.Second)
+
+	db, queued := newQueuedRouteDB(t,
+		[]queuedRouteQueryExpectation{
+			{
+				columns: []string{
+					"task_id", "tenant_id", "status", "runtime_id", "runtime_endpoint",
+					"task_definition", "last_checkpoint", "execution_envelope", "execution_receipt",
+					"proof_execution_id", "proof_expected_hash", "proof_stored_hash", "proof_signature", "proof_status", "proof_checked_at",
+					"idempotency_key", "failure_reason",
+					"deadline_at", "dispatched_at", "completed_at", "canceled_at", "created_at",
+				},
+				rows: [][]driver.Value{taskRecordRouteRow(
+					taskID,
+					tenantID,
+					coordinator.TaskStatusCheckpointed,
+					runtimeID,
+					"http://runtime.test",
+					json.RawMessage(`{"type":"robotics_workflow","steps":[{"step_index":1,"action":"publish_zero_velocity"}]}`),
+					nil,
+					"idem-complete-conflict",
+					nil,
+					nil,
+					nil,
+					createdAt,
+				)},
+			},
+			{
+				columns: []string{
+					"task_id", "tenant_id", "status", "runtime_id", "runtime_endpoint",
+					"task_definition", "last_checkpoint", "execution_envelope", "execution_receipt",
+					"proof_execution_id", "proof_expected_hash", "proof_stored_hash", "proof_signature", "proof_status", "proof_checked_at",
+					"idempotency_key", "failure_reason",
+					"deadline_at", "dispatched_at", "completed_at", "canceled_at", "created_at",
+				},
+				rows: [][]driver.Value{taskRecordRouteRow(
+					taskID,
+					tenantID,
+					coordinator.TaskStatusCanceled,
+					runtimeID,
+					"http://runtime.test",
+					json.RawMessage(`{"type":"robotics_workflow","steps":[{"step_index":1,"action":"publish_zero_velocity"}]}`),
+					nil,
+					"idem-complete-conflict",
+					nil,
+					&canceledAt,
+					nil,
+					createdAt,
+				)},
+			},
+		},
+		queuedRouteExecExpectation{rowsAffected: 0},
+	)
+
+	app := fiber.New()
+	app.Use(func(c *fiber.Ctx) error {
+		c.Locals("clerk_user_id", tenantID)
+		return c.Next()
+	})
+	app.Post("/v1/tasks/:id/complete", handleTaskComplete(coordinator.NewTaskCoordinator(db)))
+
+	req := httptest.NewRequest(http.MethodPost, "/v1/tasks/"+taskID.String()+"/complete", nil)
+	resp, err := app.Test(req)
+	require.NoError(t, err)
+	require.Equal(t, http.StatusConflict, resp.StatusCode)
+
+	var body map[string]any
+	require.NoError(t, json.NewDecoder(resp.Body).Decode(&body))
+	require.Equal(t, "task_transition_rejected", body["error"])
+	require.Equal(t, "canceled", body["status"])
+	require.Equal(t, map[string]any{
+		"terminal":                    true,
+		"runtime_mutation_allowed":    false,
+		"dispatch_allowed":            false,
+		"recovery_redispatch_allowed": false,
+		"cancellation_allowed":        false,
+	}, body["lifecycle"])
+	require.Equal(t, map[string]any{
+		"redispatch_eligible": false,
+		"skip_reason":         "task_canceled",
+	}, body["recovery"])
+	require.Equal(t, 0, queued.remainingQueries())
+	require.Equal(t, 0, queued.remainingExecs())
+}
+
+func TestHandleTaskFailedReturnsTransitionRejectedPayloadAfterConcurrentCancel(t *testing.T) {
+	t.Parallel()
+
+	taskID := uuid.New()
+	tenantID := "tenant-failed-conflict"
+	runtimeID := "runtime-failed-conflict"
+	createdAt := time.Unix(1_700_001_700, 0).UTC()
+	canceledAt := createdAt.Add(40 * time.Second)
+
+	db, queued := newQueuedRouteDB(t,
+		[]queuedRouteQueryExpectation{
+			{
+				columns: []string{
+					"task_id", "tenant_id", "status", "runtime_id", "runtime_endpoint",
+					"task_definition", "last_checkpoint", "execution_envelope", "execution_receipt",
+					"proof_execution_id", "proof_expected_hash", "proof_stored_hash", "proof_signature", "proof_status", "proof_checked_at",
+					"idempotency_key", "failure_reason",
+					"deadline_at", "dispatched_at", "completed_at", "canceled_at", "created_at",
+				},
+				rows: [][]driver.Value{taskRecordRouteRow(
+					taskID,
+					tenantID,
+					coordinator.TaskStatusRecovering,
+					runtimeID,
+					"http://runtime.test",
+					json.RawMessage(`{"type":"behavior_tree","tree":{"root":{"type":"sequence","children":[]}}}`),
+					nil,
+					"idem-failed-conflict",
+					nil,
+					nil,
+					nil,
+					createdAt,
+				)},
+			},
+			{
+				columns: []string{
+					"task_id", "tenant_id", "status", "runtime_id", "runtime_endpoint",
+					"task_definition", "last_checkpoint", "execution_envelope", "execution_receipt",
+					"proof_execution_id", "proof_expected_hash", "proof_stored_hash", "proof_signature", "proof_status", "proof_checked_at",
+					"idempotency_key", "failure_reason",
+					"deadline_at", "dispatched_at", "completed_at", "canceled_at", "created_at",
+				},
+				rows: [][]driver.Value{taskRecordRouteRow(
+					taskID,
+					tenantID,
+					coordinator.TaskStatusCanceled,
+					runtimeID,
+					"http://runtime.test",
+					json.RawMessage(`{"type":"behavior_tree","tree":{"root":{"type":"sequence","children":[]}}}`),
+					nil,
+					"idem-failed-conflict",
+					nil,
+					&canceledAt,
+					nil,
+					createdAt,
+				)},
+			},
+		},
+		queuedRouteExecExpectation{rowsAffected: 0},
+	)
+
+	app := fiber.New()
+	app.Use(func(c *fiber.Ctx) error {
+		c.Locals("clerk_user_id", tenantID)
+		return c.Next()
+	})
+	app.Post("/v1/tasks/:id/failed", handleTaskFailed(coordinator.NewTaskCoordinator(db)))
+
+	req := httptest.NewRequest(http.MethodPost, "/v1/tasks/"+taskID.String()+"/failed", strings.NewReader(`{"reason":"runtime surfaced late failure"}`))
+	req.Header.Set("Content-Type", "application/json")
+	resp, err := app.Test(req)
+	require.NoError(t, err)
+	require.Equal(t, http.StatusConflict, resp.StatusCode)
+
+	var body map[string]any
+	require.NoError(t, json.NewDecoder(resp.Body).Decode(&body))
+	require.Equal(t, "task_transition_rejected", body["error"])
+	require.Equal(t, "canceled", body["status"])
+	require.Equal(t, map[string]any{
+		"terminal":                    true,
+		"runtime_mutation_allowed":    false,
+		"dispatch_allowed":            false,
+		"recovery_redispatch_allowed": false,
+		"cancellation_allowed":        false,
+	}, body["lifecycle"])
+	require.Equal(t, map[string]any{
+		"redispatch_eligible": false,
+		"skip_reason":         "task_canceled",
+	}, body["recovery"])
+	require.Equal(t, 0, queued.remainingQueries())
+	require.Equal(t, 0, queued.remainingExecs())
+}
+
 func TestBuildTaskLifecycleResponse(t *testing.T) {
 	t.Parallel()
 
