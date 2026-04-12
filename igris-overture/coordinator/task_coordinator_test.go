@@ -15,6 +15,38 @@ import (
 	"github.com/stretchr/testify/require"
 )
 
+func taskRecordRowForRecoveryTest(taskID uuid.UUID, tenantID string, status TaskRecordStatus, runtimeID, runtimeEndpoint string, taskDefinition json.RawMessage, checkpoint *CheckpointPayload, idempotencyKey string, createdAt time.Time) []driver.Value {
+	var checkpointBytes []byte
+	if checkpoint != nil {
+		checkpointBytes, _ = json.Marshal(checkpoint)
+	}
+
+	return []driver.Value{
+		taskID.String(),
+		tenantID,
+		string(status),
+		runtimeID,
+		runtimeEndpoint,
+		[]byte(taskDefinition),
+		checkpointBytes,
+		nil,
+		nil,
+		nil,
+		nil,
+		nil,
+		nil,
+		nil,
+		nil,
+		idempotencyKey,
+		nil,
+		nil,
+		nil,
+		nil,
+		nil,
+		createdAt,
+	}
+}
+
 func TestNormalizePublicTaskDefinitionSingleInference(t *testing.T) {
 	t.Parallel()
 
@@ -565,6 +597,132 @@ func TestDispatchToRuntimeSchedulesRecoveryOnServerError(t *testing.T) {
 	require.True(t, called)
 	require.Equal(t, taskID, gotTaskID)
 	require.Equal(t, runtimeID, gotRuntimeID)
+}
+
+func TestRecoverRuntimeRedispatchUsesNewestCheckpointSource(t *testing.T) {
+	t.Parallel()
+
+	taskID := uuid.New()
+	failedRuntimeID := "runtime-failed"
+	newRuntimeID := "runtime-replacement"
+	tenantID := "tenant-recovery"
+	idempotencyKey := "idem-recovery-newest"
+	createdAt := time.Unix(1_900_000_100, 0).UTC()
+	taskDefinition := json.RawMessage(`{
+		"type":"behavior_tree",
+		"tree":{"root":{"type":"sequence","children":[]}}
+	}`)
+	walCheckpoint := &CheckpointPayload{
+		TaskID: taskID,
+		ResumeToken: ResumeToken{
+			LastCommittedStep: 4,
+			CheckpointDigest:  "digest-4",
+			RuntimeID:         failedRuntimeID,
+		},
+		WalEntries: []WalEntry{{TaskID: taskID, StepIndex: 4, RuntimeID: failedRuntimeID}},
+		Metadata:   json.RawMessage(`{"tick_count": 4}`),
+		CapturedAt: time.Unix(1_900_000_104, 0).UTC(),
+	}
+	lastCheckpoint := &CheckpointPayload{
+		TaskID: taskID,
+		ResumeToken: ResumeToken{
+			LastCommittedStep: 6,
+			CheckpointDigest:  "digest-6",
+			RuntimeID:         failedRuntimeID,
+		},
+		WalEntries: []WalEntry{{TaskID: taskID, StepIndex: 6, RuntimeID: failedRuntimeID}},
+		Metadata:   json.RawMessage(`{"tick_count": 6}`),
+		CapturedAt: time.Unix(1_900_000_106, 0).UTC(),
+	}
+
+	walCheckpointBytes, err := json.Marshal(walCheckpoint)
+	require.NoError(t, err)
+
+	db, queued := newQueuedCheckpointDB(t,
+		[]queuedQueryExpectation{
+			{
+				columns: []string{"task_id"},
+				rows:    [][]driver.Value{{taskID.String()}},
+			},
+			{
+				columns: []string{"last_checkpoint"},
+				values:  []driver.Value{walCheckpointBytes},
+			},
+			{
+				columns: []string{"tenant_id"},
+				values:  []driver.Value{tenantID},
+			},
+			{
+				columns: []string{
+					"task_id", "tenant_id", "status", "runtime_id", "runtime_endpoint",
+					"task_definition", "last_checkpoint", "execution_envelope", "execution_receipt",
+					"proof_execution_id", "proof_expected_hash", "proof_stored_hash", "proof_signature", "proof_status", "proof_checked_at",
+					"idempotency_key", "failure_reason",
+					"deadline_at", "dispatched_at", "completed_at", "canceled_at", "created_at",
+				},
+				values: taskRecordRowForRecoveryTest(taskID, tenantID, TaskStatusRecovering, failedRuntimeID, "http://failed-runtime.test", taskDefinition, lastCheckpoint, idempotencyKey, createdAt),
+			},
+			{
+				columns: []string{"runtime_id", "endpoint"},
+				values:  []driver.Value{newRuntimeID, "http://new-runtime.test"},
+			},
+			{
+				columns: []string{
+					"task_id", "tenant_id", "status", "runtime_id", "runtime_endpoint",
+					"task_definition", "last_checkpoint", "execution_envelope", "execution_receipt",
+					"proof_execution_id", "proof_expected_hash", "proof_stored_hash", "proof_signature", "proof_status", "proof_checked_at",
+					"idempotency_key", "failure_reason",
+					"deadline_at", "dispatched_at", "completed_at", "canceled_at", "created_at",
+				},
+				values: taskRecordRowForRecoveryTest(taskID, tenantID, TaskStatusDispatched, newRuntimeID, "http://new-runtime.test", taskDefinition, lastCheckpoint, idempotencyKey, createdAt),
+			},
+		},
+		queuedExecExpectation{rowsAffected: 1},
+		queuedExecExpectation{rowsAffected: 1},
+	)
+
+	bodyCh := make(chan map[string]any, 1)
+	client := &http.Client{Transport: roundTripperFunc(func(r *http.Request) (*http.Response, error) {
+		body, err := io.ReadAll(r.Body)
+		require.NoError(t, err)
+
+		var gotBody map[string]any
+		require.NoError(t, json.Unmarshal(body, &gotBody))
+		bodyCh <- gotBody
+
+		return &http.Response{
+			StatusCode: http.StatusOK,
+			Header:     http.Header{"Content-Type": []string{"application/json"}},
+			Body:       io.NopCloser(strings.NewReader(`{}`)),
+		}, nil
+	})}
+
+	tc := &TaskCoordinator{
+		db:         db,
+		store:      NewCheckpointStore(db),
+		httpClient: client,
+	}
+
+	tc.recoverRuntime(context.Background(), failedRuntimeID)
+
+	select {
+	case gotBody := <-bodyCh:
+		resumeFrom, ok := gotBody["resume_from"].(map[string]any)
+		require.True(t, ok)
+		require.Equal(t, float64(6), resumeFrom["last_committed_step"])
+		require.Equal(t, "digest-6", resumeFrom["checkpoint_digest"])
+
+		resumeCheckpoint, ok := gotBody["resume_checkpoint"].(map[string]any)
+		require.True(t, ok)
+		metadata, ok := resumeCheckpoint["metadata"].(map[string]any)
+		require.True(t, ok)
+		require.Equal(t, float64(6), metadata["tick_count"])
+	case <-time.After(2 * time.Second):
+		t.Fatal("timed out waiting for recovery redispatch")
+	}
+
+	require.Equal(t, 0, queued.remainingExecs())
+	require.Equal(t, 0, queued.remainingQueries())
 }
 
 func ptrString(value string) *string {
