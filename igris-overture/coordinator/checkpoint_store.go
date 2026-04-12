@@ -59,9 +59,9 @@ const (
 type TaskDurabilityClass string
 
 const (
-	TaskDurabilityClassResumable            TaskDurabilityClass = "resumable"
-	TaskDurabilityClassStreamingNonResumable TaskDurabilityClass = "streaming_non_resumable"
-	TaskFailureReasonStreamingResumeUnsupported              = "streaming durable tasks do not support resume"
+	TaskDurabilityClassResumable                TaskDurabilityClass = "resumable"
+	TaskDurabilityClassStreamingNonResumable    TaskDurabilityClass = "streaming_non_resumable"
+	TaskFailureReasonStreamingResumeUnsupported                     = "streaming durable tasks do not support resume"
 )
 
 var ErrTaskTransitionRejected = errors.New("task transition rejected")
