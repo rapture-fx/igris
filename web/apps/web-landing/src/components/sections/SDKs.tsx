@@ -303,10 +303,10 @@ function CodeBlock({ code, language }: { code: string[]; language: Language }) {
   }
 
   return (
-    <div className="relative leading-relaxed overflow-x-auto scrollbar-hide font-mono" style={{ fontSize: '0.8125rem', scrollbarWidth: 'none', msOverflowStyle: 'none' }}>
+    <div className="relative font-mono" style={{ fontSize: '0.8125rem' }}>
       <button
         onClick={copy}
-        className="absolute top-2 right-2 p-1.5 rounded transition-colors hover:bg-gray-200 dark:hover:bg-gray-700"
+        className="absolute top-2 right-2 z-10 p-1.5 rounded transition-colors hover:bg-gray-200 dark:hover:bg-gray-700"
         title={copied ? 'Copied' : 'Copy'}
       >
         {copied ? (
@@ -320,11 +320,13 @@ function CodeBlock({ code, language }: { code: string[]; language: Language }) {
           </svg>
         )}
       </button>
-      {code.map((line, i) => (
-        <div key={i} className="whitespace-pre">
-          {line === '' ? '\u00A0' : <SyntaxLine line={line} language={language} />}
-        </div>
-      ))}
+      <div className="leading-relaxed overflow-x-auto scrollbar-hide" style={{ scrollbarWidth: 'none', msOverflowStyle: 'none' }}>
+        {code.map((line, i) => (
+          <div key={i} className="whitespace-pre">
+            {line === '' ? '\u00A0' : <SyntaxLine line={line} language={language} />}
+          </div>
+        ))}
+      </div>
     </div>
   )
 }
