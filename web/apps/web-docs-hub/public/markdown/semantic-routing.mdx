@@ -1,0 +1,112 @@
+---
+title: "Semantic Routing"
+description: "How Igris classifies prompts before provider selection so routing decisions can adapt to workload type rather than raw provider averages alone."
+---
+
+# Semantic Routing
+
+Igris does not have to treat every prompt as the same workload.
+
+Semantic routing adds a classification step before provider selection so the router can make different decisions for different classes of work.
+
+Examples:
+
+- code generation
+- extraction or structured tasks
+- general reasoning
+- default fallback traffic when classification is unavailable
+
+---
+
+## Why It Exists
+
+A provider that performs well for one workload may not be the best choice for another. Global averages hide that.
+
+Semantic routing improves this by combining:
+
+- **prompt classification**
+- **provider capability filtering**
+- **per-class reward tracking**
+- **Thompson-sampling exploration and exploitation**
+
+The result is a router that can prefer different providers for different prompt classes without hard-coding static rules for every workload.
+
+---
+
+## Decision Flow
+
+```
+Prompt -> Semantic classifier -> Workload class -> Eligible providers -> Thompson sampling -> Selected provider
+```
+
+The current implementation behaves like this:
+
+1. Classify the incoming prompt with a short timeout.
+2. Convert the class into a required capability or provider slice.
+3. Remove unhealthy candidates.
+4. Select among the remaining candidates using per-class bandit arms.
+5. Record feedback from the real request outcome.
+
+That is materially different from simple round-robin or provider-weight routing.
+
+---
+
+## Fallback Behavior
+
+Semantic routing is intentionally not a hard dependency.
+
+If the classifier is disabled or classification fails, Igris falls back to regular Thompson-sampling routing instead of failing the request. That matters operationally because it keeps routing availability higher than classifier availability.
+
+In other words:
+
+- classification success improves decision quality
+- classification failure should not become an outage
+
+---
+
+## What Gets Learned
+
+The router tracks reward per provider and per semantic class. In practice, that lets Igris learn things like:
+
+- one provider is stronger for code-heavy prompts
+- another is cheaper for default chat traffic
+- a provider should be explored less for a class where it underperforms
+
+This is one reason routing behavior can change over time even when your fallback chain stays the same.
+
+---
+
+## Operational Implications
+
+Semantic routing should be documented and operated as a product capability, not as a hidden implementation detail.
+
+Teams should expect:
+
+- class-specific routing behavior
+- class-specific performance history
+- fallback to non-semantic routing during classifier issues
+- routing decisions that evolve as reward history changes
+
+If you need deterministic traffic pinning for compliance or reproducibility, use an explicit routing policy instead of assuming semantic routing will remain static.
+
+---
+
+## Where It Fits
+
+Semantic routing sits above provider health and below tenant policy.
+
+- **Policy** constrains what is allowed
+- **Semantic routing** decides what kind of work this is
+- **Provider health and trust** decide who is currently safe and available
+- **Adaptive selection** chooses the final target
+
+That layered model is important because semantic routing should not override safety or policy boundaries.
+
+---
+
+## Related Pages
+
+- [Routing Engine →](/docs/escapevector)
+- [Cloud Coordination →](/docs/cloud-coordination)
+- [Provider Health →](/docs/provider-health)
+- [Policy →](/docs/policy)
