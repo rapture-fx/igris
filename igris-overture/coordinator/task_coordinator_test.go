@@ -532,6 +532,29 @@ func TestHandleDispatchFailureSchedulesRecoveryForServerError(t *testing.T) {
 	require.True(t, called)
 }
 
+func TestRuntimeTaskSubmitFailureReason(t *testing.T) {
+	t.Parallel()
+
+	t.Run("structured runtime error", func(t *testing.T) {
+		t.Parallel()
+
+		reason := runtimeTaskSubmitFailureReason(http.StatusConflict, []byte(`{
+			"error": {
+				"type": "checkpoint_mismatch",
+				"message": "Checkpoint digest mismatch - WAL state diverged"
+			}
+		}`))
+		require.Equal(t, "runtime submit rejected (checkpoint_mismatch): Checkpoint digest mismatch - WAL state diverged", reason)
+	})
+
+	t.Run("falls back to raw body", func(t *testing.T) {
+		t.Parallel()
+
+		reason := runtimeTaskSubmitFailureReason(http.StatusBadRequest, []byte(`{"detail":"bad request"}`))
+		require.Equal(t, `runtime submit rejected with status 400: {"detail":"bad request"}`, reason)
+	})
+}
+
 func TestDispatchToRuntimeSchedulesRecoveryOnTransportError(t *testing.T) {
 	t.Parallel()
 
@@ -602,6 +625,46 @@ func TestDispatchToRuntimeSchedulesRecoveryOnServerError(t *testing.T) {
 	require.True(t, called)
 	require.Equal(t, taskID, gotTaskID)
 	require.Equal(t, runtimeID, gotRuntimeID)
+}
+
+func TestDispatchToRuntimeMarksFailedOnConflictResponse(t *testing.T) {
+	t.Parallel()
+
+	taskID := uuid.New()
+	runtimeID := "runtime-submit-conflict"
+	recoveryCalled := false
+	db, queued := newQueuedExecDB(t, queuedExecExpectation{rowsAffected: 1})
+
+	tc := &TaskCoordinator{
+		store: NewCheckpointStore(db),
+		httpClient: &http.Client{Transport: roundTripperFunc(func(*http.Request) (*http.Response, error) {
+			return &http.Response{
+				StatusCode: http.StatusConflict,
+				Header:     http.Header{"Content-Type": []string{"application/json"}},
+				Body: io.NopCloser(strings.NewReader(`{
+					"error": {
+						"type": "idempotency_conflict",
+						"message": "Idempotency key already used for a different task submission"
+					}
+				}`)),
+			}, nil
+		})},
+		recoveryHook: func(context.Context, uuid.UUID, string) {
+			recoveryCalled = true
+		},
+	}
+
+	tc.dispatchToRuntime(context.Background(), &TaskRecord{
+		TaskID:          taskID,
+		TenantID:        "tenant-conflict",
+		RuntimeID:       &runtimeID,
+		RuntimeEndpoint: ptrString("http://runtime.test"),
+		TaskDefinition:  json.RawMessage(`{"type":"agent_workflow","steps":[{"step_index":1,"model":"gpt-4.1-mini","messages":[{"role":"user","content":"hello"}]}]}`),
+		IdempotencyKey:  "idem-conflict",
+	}, nil)
+
+	require.False(t, recoveryCalled)
+	require.Equal(t, 0, queued.remainingExecs())
 }
 
 func TestRecoverRuntimeRedispatchUsesNewestTaskCheckpointSource(t *testing.T) {
