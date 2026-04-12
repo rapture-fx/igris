@@ -39,6 +39,33 @@ func (s *stubRuntimeExecutor) BaseURL() string {
 	return "http://runtime.test"
 }
 
+type failingStreamProvider struct{}
+
+func (f failingStreamProvider) Name() string { return "failing-stream" }
+
+func (f failingStreamProvider) Infer(context.Context, *models.InferRequest) (*models.InferResponse, error) {
+	return nil, errors.New("unexpected non-stream infer")
+}
+
+func (f failingStreamProvider) InferStream(context.Context, *models.InferRequest) (<-chan *models.StreamChunk, <-chan error) {
+	chunkChan := make(chan *models.StreamChunk)
+	errChan := make(chan error, 1)
+	close(chunkChan)
+	errChan <- errors.New("provider stream failed")
+	close(errChan)
+	return chunkChan, errChan
+}
+
+func (f failingStreamProvider) HealthCheck(context.Context) error { return nil }
+
+func (f failingStreamProvider) GetCapabilities() *providers.ProviderCapabilities {
+	return &providers.ProviderCapabilities{SupportsStreaming: true}
+}
+
+func (f failingStreamProvider) EstimateCost(*models.InferRequest) (float64, error) { return 0, nil }
+
+func (f failingStreamProvider) Close() error { return nil }
+
 func TestHandleStreamingInferPropagatesRuntimeDurabilityHeaders(t *testing.T) {
 	t.Parallel()
 
@@ -184,6 +211,56 @@ func TestHandleStreamingInferRejectsFallbackWhenRuntimeUnavailable(t *testing.T)
 	}
 	if got := streamBody["fallback_opt_in_field"]; got != "allow_stream_fallback" {
 		t.Fatalf("stream.fallback_opt_in_field = %v, want %q", got, "allow_stream_fallback")
+	}
+}
+
+func TestHandleStreamingInferReportsSecurityRejectionWithRuntimeContract(t *testing.T) {
+	t.Parallel()
+
+	handler := &InferHandler{
+		runtimeExecutor: &stubRuntimeExecutor{
+			streamErr: models.ErrRuntimeSecurity,
+		},
+	}
+
+	app := fiber.New()
+	app.Post("/v1/infer", func(c *fiber.Ctx) error {
+		return handler.handleStreamingInfer(c, &models.InferRequest{
+			Model:    "gpt-4.1-mini",
+			Stream:   true,
+			Messages: []models.Message{{Role: "user", Content: "hello"}},
+		})
+	})
+
+	req := httptest.NewRequest(http.MethodPost, "/v1/infer", nil)
+	resp, err := app.Test(req)
+	if err != nil {
+		t.Fatalf("app.Test() error = %v", err)
+	}
+	if resp.StatusCode != http.StatusBadGateway {
+		t.Fatalf("StatusCode = %d, want %d", resp.StatusCode, http.StatusBadGateway)
+	}
+
+	var body map[string]any
+	if err := json.NewDecoder(resp.Body).Decode(&body); err != nil {
+		t.Fatalf("Decode() error = %v", err)
+	}
+	errorBody, ok := body["error"].(map[string]any)
+	if !ok {
+		t.Fatalf("error body type = %T, want map[string]any", body["error"])
+	}
+	if got := errorBody["type"]; got != "stream_execution_security_rejected" {
+		t.Fatalf("error.type = %v, want %q", got, "stream_execution_security_rejected")
+	}
+	streamBody, ok := body["stream"].(map[string]any)
+	if !ok {
+		t.Fatalf("stream body type = %T, want map[string]any", body["stream"])
+	}
+	if got := streamBody["execution_authority"]; got != "runtime" {
+		t.Fatalf("stream.execution_authority = %v, want %q", got, "runtime")
+	}
+	if got := streamBody["fallback_allowed"]; got != false {
+		t.Fatalf("stream.fallback_allowed = %v, want false", got)
 	}
 }
 
@@ -347,5 +424,64 @@ func TestHandleStreamingInferAllowsExplicitFallbackOptIn(t *testing.T) {
 	}
 	if got := streamMetadata["replay_condition"]; got != "none" {
 		t.Fatalf("metadata.stream.replay_condition = %v, want %q", got, "none")
+	}
+}
+
+func TestHandleStreamingInferReportsFallbackExecutionErrorWithFallbackContract(t *testing.T) {
+	t.Parallel()
+
+	registry := providers.NewProviderRegistry()
+	registry.Register(failingStreamProvider{})
+
+	handler := &InferHandler{
+		router: infrarouter.NewInferenceRouter(registry, nil),
+		runtimeExecutor: &stubRuntimeExecutor{
+			streamErr: errors.New("runtime selector: no healthy runtime available for streaming"),
+		},
+	}
+
+	app := fiber.New()
+	app.Post("/v1/infer", func(c *fiber.Ctx) error {
+		return handler.handleStreamingInfer(c, &models.InferRequest{
+			Model:               "failing-model",
+			Stream:              true,
+			AllowStreamFallback: true,
+			Policy:              &models.PolicyOverride{Provider: "failing-stream"},
+			Messages:            []models.Message{{Role: "user", Content: "hello"}},
+		})
+	})
+
+	req := httptest.NewRequest(http.MethodPost, "/v1/infer", nil)
+	resp, err := app.Test(req)
+	if err != nil {
+		t.Fatalf("app.Test() error = %v", err)
+	}
+	if resp.StatusCode != http.StatusInternalServerError {
+		t.Fatalf("StatusCode = %d, want %d", resp.StatusCode, http.StatusInternalServerError)
+	}
+
+	var body map[string]any
+	if err := json.NewDecoder(resp.Body).Decode(&body); err != nil {
+		t.Fatalf("Decode() error = %v", err)
+	}
+	errorBody, ok := body["error"].(map[string]any)
+	if !ok {
+		t.Fatalf("error body type = %T, want map[string]any", body["error"])
+	}
+	if got := errorBody["type"]; got != "stream_execution_failed" {
+		t.Fatalf("error.type = %v, want %q", got, "stream_execution_failed")
+	}
+	if got := body["detail"]; got != "provider stream failed" {
+		t.Fatalf("detail = %v, want provider stream failed", got)
+	}
+	streamBody, ok := body["stream"].(map[string]any)
+	if !ok {
+		t.Fatalf("stream body type = %T, want map[string]any", body["stream"])
+	}
+	if got := streamBody["execution_authority"]; got != "overture_fallback" {
+		t.Fatalf("stream.execution_authority = %v, want %q", got, "overture_fallback")
+	}
+	if got := streamBody["fallback_allowed"]; got != true {
+		t.Fatalf("stream.fallback_allowed = %v, want true", got)
 	}
 }
