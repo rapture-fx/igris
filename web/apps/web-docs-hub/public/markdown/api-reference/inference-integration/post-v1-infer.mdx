@@ -1,0 +1,183 @@
+---
+title: "POST /v1/infer"
+description: "Native hosted inference route for customers who want more control than the OpenAI-compatible surface exposes. It is the endpoint to use when routing intent, provider pinning, or Igris-specific request metadata should be part of the contract."
+---
+
+# POST /v1/infer
+
+Native hosted inference route for customers who want more control than the OpenAI-compatible surface exposes. It is the endpoint to use when routing intent, provider pinning, or Igris-specific request metadata should be part of the contract.
+
+<div className="api-meta not-prose"><div className="api-meta-group"><span className="api-meta-label">Method</span><span className="api-badge api-method-post">POST</span></div><div className="api-meta-group"><span className="api-meta-label">Path</span><span className="api-meta-value">/v1/infer</span></div><div className="api-meta-group"><span className="api-meta-label">Base URL</span><span className="api-meta-value">https://overture.igrisinertial.com</span></div><div className="api-meta-group"><span className="api-meta-label">Auth</span><span className="api-meta-value">Deployment-dependent</span></div><div className="api-meta-group"><span className="api-meta-label">Surface</span><span className="api-badge api-surface-cloud-api">Cloud API</span></div><div className="api-meta-group"><span className="api-meta-label">Stability</span><span className="api-badge api-stability-stable">stable</span></div><div className="api-meta-group"><span className="api-meta-label">Support</span><span className="api-badge api-support-core">core</span></div><div className="api-meta-group"><span className="api-meta-label">Deployment</span><span className="api-badge api-deployment-cloud">cloud</span></div></div>
+
+## When To Use
+
+Use this endpoint when the OpenAI-compatible path is too narrow for the integration you are building. It is the right choice when your application needs routing hints, provider selection, or Igris-native response metadata.
+
+## Integration Guidance
+
+Retry transient 5xx or 429 responses with backoff. For write-once or audit-sensitive workflows, make sure your application can tolerate replay before retrying automatically.
+
+### Common Mistakes
+
+- Reusing an OpenAI-only request shape and forgetting to adopt the native Igris fields that make this route valuable.
+- Using `/v1/infer` for broad portability when `/v1/chat/completions` would have been the simpler contract.
+- Assuming provider pinning will work without a matching provider key already configured for the tenant.
+
+### Related Endpoints
+
+- [POST /v1/chat/completions](/docs/api-reference/inference-integration/post-v1-chat-completions)
+- [GET /v1/health](/docs/api-reference/inference-integration/get-v1-health)
+- [GET /v1/models](/docs/api-reference/inference-integration/get-v1-models)
+
+### Related Guides
+
+- [API Authentication](/docs/api-reference/authentication)
+- [API Errors](/docs/api-reference/errors)
+- [First Cloud Integration](/docs/first-cloud-integration)
+
+## Request Body
+
+| Field | Type | Required | Description |
+|---|---|---|---|
+| `model` | `string` | Yes | Requested model or routing target. |
+| `messages` | `array` | Yes | Conversation turns in Igris message format. |
+| `provider` | `string` | No | Optional provider pin. |
+| `optimize_for` | `string` | No | Routing preference such as `latency` or `cost`. |
+
+## Request Example
+
+```json
+{
+  "model": "gpt-4o-mini",
+  "provider": "openai",
+  "optimize_for": "latency",
+  "messages": [
+    {
+      "role": "user",
+      "content": "Classify this alert severity."
+    }
+  ]
+}
+```
+
+## Code Examples
+
+### cURL
+
+```bash
+curl -X POST https://overture.igrisinertial.com/v1/infer \
+  -H "Authorization: Bearer $IGRIS_API_KEY" \
+  -H "Content-Type: application/json" \
+  -d '{
+  "model": "gpt-4o-mini",
+  "provider": "openai",
+  "optimize_for": "latency",
+  "messages": [
+    {
+      "role": "user",
+      "content": "Classify this alert severity."
+    }
+  ]
+}'
+```
+
+### JavaScript
+
+```javascript
+const response = await fetch('https://overture.igrisinertial.com/v1/infer', {
+  method: 'POST',
+  headers: {
+    'Authorization': `Bearer ${process.env.IGRIS_API_KEY}`,
+    'Content-Type': 'application/json',
+  },
+  body: JSON.stringify({
+  "model": "gpt-4o-mini",
+  "provider": "openai",
+  "optimize_for": "latency",
+  "messages": [
+    {
+      "role": "user",
+      "content": "Classify this alert severity."
+    }
+  ]
+}),
+});
+
+const data = await response.text();
+console.log(data);
+```
+
+### Go
+
+```go
+client := &http.Client{}
+body := strings.NewReader("{\n  \"model\": \"gpt-4o-mini\",\n  \"provider\": \"openai\",\n  \"optimize_for\": \"latency\",\n  \"messages\": [\n    {\n      \"role\": \"user\",\n      \"content\": \"Classify this alert severity.\"\n    }\n  ]\n}")
+
+req, err := http.NewRequest("POST", "https://overture.igrisinertial.com/v1/infer", body)
+if err != nil {
+	log.Fatal(err)
+}
+req.Header.Set("Content-Type", "application/json")
+req.Header.Set("Authorization", "Bearer " + os.Getenv("IGRIS_API_KEY"))
+
+resp, err := client.Do(req)
+if err != nil {
+	log.Fatal(err)
+}
+defer resp.Body.Close()
+
+payload, _ := io.ReadAll(resp.Body)
+fmt.Println(string(payload))
+```
+
+### Rust
+
+```rust
+let client = reqwest::Client::new();
+let response = client
+        .request(reqwest::Method::POST, "https://overture.igrisinertial.com/v1/infer")
+        .header("Authorization", format!("Bearer {}", std::env::var("IGRIS_API_KEY")?))
+        .json(&serde_json::json!({
+  "model": "gpt-4o-mini",
+  "provider": "openai",
+  "optimize_for": "latency",
+  "messages": [
+    {
+      "role": "user",
+      "content": "Classify this alert severity."
+    }
+  ]
+}))
+        .send()
+        .await?;
+
+let payload = response.text().await?;
+println!("{}", payload);
+```
+
+## Sample Response
+
+```json
+{
+  "choices": [
+    {
+      "index": 0,
+      "message": {
+        "role": "assistant",
+        "content": "severity=warning"
+      },
+      "finish_reason": "stop"
+    }
+  ],
+  "route": {
+    "provider": "openai",
+    "optimize_for": "latency"
+  },
+  "receipt_id": "rcpt_01HV93C2PKR0N8SVQ"
+}
+```
+
+## Status Codes
+
+Status-code details are still being documented for this endpoint.
+
