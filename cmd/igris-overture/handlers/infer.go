@@ -911,8 +911,12 @@ func (h *InferHandler) handleStreamingInfer(c *fiber.Ctx, req *models.InferReque
 					"error": "upstream security rejection",
 				})
 			}
-			log.Printf("[Infer] Runtime streaming unavailable, refusing fallback to preserve execution authority: %v", err)
-			return c.Status(fiber.StatusServiceUnavailable).JSON(buildRuntimeStreamingUnavailableResponse(err))
+			if req.AllowStreamFallback {
+				log.Printf("[Infer] Runtime streaming unavailable, using explicit stream fallback opt-in: %v", err)
+			} else {
+				log.Printf("[Infer] Runtime streaming unavailable, refusing fallback to preserve execution authority: %v", err)
+				return c.Status(fiber.StatusServiceUnavailable).JSON(buildRuntimeStreamingUnavailableResponse(err))
+			}
 		} else {
 			setStreamingSSEHeaders(c, traceCtx.TraceID)
 			applyRuntimeStreamContractHeaders(c, runtimeResp)
@@ -1099,10 +1103,11 @@ func buildRuntimeStreamingUnavailableResponse(err error) fiber.Map {
 			"type":    "stream_execution_unavailable",
 		},
 		"stream": fiber.Map{
-			"execution_authority": "runtime",
-			"fallback_allowed":    false,
-			"resume_supported":    false,
-			"replay_condition":    "completed-final-output",
+			"execution_authority":   "runtime",
+			"fallback_allowed":      false,
+			"resume_supported":      false,
+			"replay_condition":      "completed-final-output",
+			"fallback_opt_in_field": "allow_stream_fallback",
 		},
 	}
 	if err != nil {
