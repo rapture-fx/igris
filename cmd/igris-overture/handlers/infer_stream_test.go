@@ -2,6 +2,8 @@ package handlers
 
 import (
 	"context"
+	"encoding/json"
+	"errors"
 	"io"
 	"net/http"
 	"net/http/httptest"
@@ -117,5 +119,64 @@ func TestApplyFallbackStreamContractHeaders(t *testing.T) {
 	}
 	if got := resp.Header.Get("Content-Type"); !strings.Contains(got, "text/event-stream") {
 		t.Fatalf("Content-Type = %q, want text/event-stream", got)
+	}
+}
+
+func TestHandleStreamingInferRejectsFallbackWhenRuntimeUnavailable(t *testing.T) {
+	t.Parallel()
+
+	handler := &InferHandler{
+		runtimeExecutor: &stubRuntimeExecutor{
+			streamErr: errors.New("runtime selector: no healthy runtime available for streaming"),
+		},
+	}
+
+	app := fiber.New()
+	app.Post("/v1/infer", func(c *fiber.Ctx) error {
+		return handler.handleStreamingInfer(c, &models.InferRequest{
+			Model:    "gpt-4.1-mini",
+			Stream:   true,
+			Messages: []models.Message{{Role: "user", Content: "hello"}},
+		})
+	})
+
+	req := httptest.NewRequest(http.MethodPost, "/v1/infer", nil)
+	resp, err := app.Test(req)
+	if err != nil {
+		t.Fatalf("app.Test() error = %v", err)
+	}
+	if resp.StatusCode != http.StatusServiceUnavailable {
+		t.Fatalf("StatusCode = %d, want %d", resp.StatusCode, http.StatusServiceUnavailable)
+	}
+
+	var body map[string]any
+	if err := json.NewDecoder(resp.Body).Decode(&body); err != nil {
+		t.Fatalf("Decode() error = %v", err)
+	}
+	errorBody, ok := body["error"].(map[string]any)
+	if !ok {
+		t.Fatalf("error body type = %T, want map[string]any", body["error"])
+	}
+	if got := errorBody["type"]; got != "stream_execution_unavailable" {
+		t.Fatalf("error.type = %v, want %q", got, "stream_execution_unavailable")
+	}
+	if got := body["detail"]; got != "runtime selector: no healthy runtime available for streaming" {
+		t.Fatalf("detail = %v, want runtime error detail", got)
+	}
+	streamBody, ok := body["stream"].(map[string]any)
+	if !ok {
+		t.Fatalf("stream body type = %T, want map[string]any", body["stream"])
+	}
+	if got := streamBody["execution_authority"]; got != "runtime" {
+		t.Fatalf("stream.execution_authority = %v, want %q", got, "runtime")
+	}
+	if got := streamBody["fallback_allowed"]; got != false {
+		t.Fatalf("stream.fallback_allowed = %v, want false", got)
+	}
+	if got := streamBody["resume_supported"]; got != false {
+		t.Fatalf("stream.resume_supported = %v, want false", got)
+	}
+	if got := streamBody["replay_condition"]; got != "completed-final-output" {
+		t.Fatalf("stream.replay_condition = %v, want %q", got, "completed-final-output")
 	}
 }
