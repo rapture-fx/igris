@@ -98,7 +98,7 @@ func (tc *TaskCoordinator) Submit(ctx context.Context, req *TaskSubmitRequest) (
 
 	runtime, err := tc.selectRuntime(ctx, req.TenantID)
 	if err != nil {
-		_ = tc.store.MarkFailed(taskID, "no healthy runtime available")
+		_ = tc.store.MarkFailedWithDetails(taskID, "no healthy runtime available", overtureTaskFailureDetails("submit", "no_runtime_available", "no healthy runtime available"))
 		return nil, fmt.Errorf("no healthy runtime: %w", err)
 	}
 
@@ -203,7 +203,7 @@ func (tc *TaskCoordinator) selectRuntime(ctx context.Context, tenantID string) (
 func (tc *TaskCoordinator) dispatchToRuntime(ctx context.Context, task *TaskRecord, checkpoint *CheckpointPayload) {
 	if task.RuntimeEndpoint == nil {
 		log.Error().Str("task_id", task.TaskID.String()).Msg("[Coordinator] No endpoint for dispatch")
-		_ = tc.store.MarkFailed(task.TaskID, "missing runtime endpoint")
+		_ = tc.store.MarkFailedWithDetails(task.TaskID, "missing runtime endpoint", overtureTaskFailureDetails("dispatch", "missing_runtime_endpoint", "missing runtime endpoint"))
 		return
 	}
 
@@ -212,7 +212,7 @@ func (tc *TaskCoordinator) dispatchToRuntime(ctx context.Context, task *TaskReco
 	taskTypeBytes := json.RawMessage(task.TaskDefinition)
 	if err := json.Unmarshal(taskTypeBytes, &map[string]json.RawMessage{}); err != nil {
 		log.Error().Err(err).Str("task_id", task.TaskID.String()).Msg("[Coordinator] Unmarshal task definition")
-		_ = tc.store.MarkFailed(task.TaskID, "invalid task definition")
+		_ = tc.store.MarkFailedWithDetails(task.TaskID, "invalid task definition", overtureTaskFailureDetails("dispatch", "invalid_task_definition", "invalid task definition"))
 		return
 	}
 	runtimePayload := map[string]json.RawMessage{
@@ -244,14 +244,14 @@ func (tc *TaskCoordinator) dispatchToRuntime(ctx context.Context, task *TaskReco
 	body, err := json.Marshal(runtimePayload)
 	if err != nil {
 		log.Error().Err(err).Str("task_id", task.TaskID.String()).Msg("[Coordinator] Marshal dispatch payload")
-		_ = tc.store.MarkFailed(task.TaskID, "internal marshal error")
+		_ = tc.store.MarkFailedWithDetails(task.TaskID, "internal marshal error", overtureTaskFailureDetails("dispatch", "internal_marshal_error", "internal marshal error"))
 		return
 	}
 
 	url := fmt.Sprintf("%s/v1/runtime/task/submit", *task.RuntimeEndpoint)
 	req, err := http.NewRequestWithContext(ctx, http.MethodPost, url, bytes.NewReader(body))
 	if err != nil {
-		_ = tc.store.MarkFailed(task.TaskID, err.Error())
+		_ = tc.store.MarkFailedWithDetails(task.TaskID, err.Error(), overtureTaskFailureDetails("dispatch", "request_build_failed", err.Error()))
 		return
 	}
 	req.Header.Set("Content-Type", "application/json")
@@ -438,7 +438,7 @@ func (tc *TaskCoordinator) recoverRuntime(ctx context.Context, runtimeID string)
 		newRuntime, err := tc.selectRuntime(ctx, tenantID)
 		if err != nil {
 			log.Error().Err(err).Str("task_id", taskID.String()).Msg("[Coordinator] No runtime for recovery")
-			_ = tc.store.MarkFailed(taskID, "no runtime available for recovery")
+			_ = tc.store.MarkFailedWithDetails(taskID, "no runtime available for recovery", overtureTaskFailureDetails("recovery", "no_runtime_available", "no runtime available for recovery"))
 			continue
 		}
 
@@ -473,7 +473,16 @@ func (tc *TaskCoordinator) handleRecoverySkip(taskID uuid.UUID, task *TaskRecord
 		Msg("[Coordinator] Skipping recovery redispatch")
 
 	if skipReason == "streaming_resume_unsupported" && task.Status == TaskStatusRecovering {
-		_ = tc.store.MarkFailed(taskID, TaskFailureReasonStreamingResumeUnsupported)
+		_ = tc.store.MarkFailedWithDetails(taskID, TaskFailureReasonStreamingResumeUnsupported, overtureTaskFailureDetails("recovery", "streaming_resume_unsupported", TaskFailureReasonStreamingResumeUnsupported))
+	}
+}
+
+func overtureTaskFailureDetails(operation, rejectionType, message string) *TaskFailureDetails {
+	return &TaskFailureDetails{
+		Source:        "overture",
+		Operation:     operation,
+		RejectionType: rejectionType,
+		Message:       message,
 	}
 }
 
