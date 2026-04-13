@@ -592,6 +592,17 @@ func TestRuntimeTaskDispatchFailure(t *testing.T) {
 	})
 }
 
+func TestOvertureTaskFailureDetails(t *testing.T) {
+	t.Parallel()
+
+	require.Equal(t, &TaskFailureDetails{
+		Source:        "overture",
+		Operation:     "recovery",
+		RejectionType: "no_runtime_available",
+		Message:       "no runtime available for recovery",
+	}, overtureTaskFailureDetails("recovery", "no_runtime_available", "no runtime available for recovery"))
+}
+
 func TestDispatchToRuntimeSchedulesRecoveryOnTransportError(t *testing.T) {
 	t.Parallel()
 
