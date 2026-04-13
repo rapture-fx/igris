@@ -78,7 +78,8 @@ export default function CoreCapabilities() {
                         display: 'flex',
                         alignItems: 'flex-start',
                         justifyContent: 'flex-start',
-                        marginBottom: '16rem',
+                        paddingTop: '20px',
+                        marginBottom: 'calc(16rem - 20px)',
                       }}>
                         <img
                           src={mounted && theme === 'dark' ? '/cr.png?v=2' : '/exc.png?v=2'}
@@ -138,7 +139,7 @@ export default function CoreCapabilities() {
             {capabilities.map((capability, index) => (
               <div key={capability.name} className="py-8">
                 {index === 0 && (
-                  <div className="w-32 h-32 flex items-start justify-start mb-24">
+                  <div className="w-32 h-32 flex items-start justify-start pt-5" style={{ marginBottom: 'calc(6rem - 1.25rem)' }}>
                     <img
                       src={mounted && theme === 'dark' ? '/cr.png?v=2' : '/exc.png?v=2'}
                       alt={capability.name}
