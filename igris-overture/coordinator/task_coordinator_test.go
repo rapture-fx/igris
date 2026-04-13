@@ -20,10 +20,14 @@ func taskRecordRowForRecoveryTest(taskID uuid.UUID, tenantID string, status Task
 	return taskRecordRowForRecoveryTestWithFailureReason(taskID, tenantID, status, runtimeID, runtimeEndpoint, taskDefinition, checkpoint, idempotencyKey, nil, createdAt)
 }
 
-func taskRecordRowForRecoveryTestWithFailureReason(taskID uuid.UUID, tenantID string, status TaskRecordStatus, runtimeID, runtimeEndpoint string, taskDefinition json.RawMessage, checkpoint *CheckpointPayload, idempotencyKey string, failureReason *string, createdAt time.Time) []driver.Value {
+func taskRecordRowForRecoveryTestWithFailureReason(taskID uuid.UUID, tenantID string, status TaskRecordStatus, runtimeID, runtimeEndpoint string, taskDefinition json.RawMessage, checkpoint *CheckpointPayload, idempotencyKey string, failureReason *string, createdAt time.Time, failureDetails ...*TaskFailureDetails) []driver.Value {
 	var checkpointBytes []byte
 	if checkpoint != nil {
 		checkpointBytes, _ = json.Marshal(checkpoint)
+	}
+	var failureDetailBytes []byte
+	if len(failureDetails) > 0 && failureDetails[0] != nil {
+		failureDetailBytes, _ = json.Marshal(failureDetails[0])
 	}
 
 	return []driver.Value{
@@ -44,6 +48,7 @@ func taskRecordRowForRecoveryTestWithFailureReason(taskID uuid.UUID, tenantID st
 		nil,
 		idempotencyKey,
 		failureReason,
+		failureDetailBytes,
 		nil,
 		nil,
 		nil,
