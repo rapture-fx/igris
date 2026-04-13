@@ -332,12 +332,16 @@ func TestBuildTaskResponseOmitsEmptyOptionalFields(t *testing.T) {
 func TestBuildTaskFailureDetailsResponse(t *testing.T) {
 	t.Parallel()
 
+	stepIndex := uint32(3)
 	resp := buildTaskFailureDetailsResponse(&coordinator.TaskFailureDetails{
 		Source:        "runtime",
 		Operation:     "submit",
 		StatusCode:    http.StatusConflict,
 		RejectionType: "idempotency_conflict",
 		Message:       "Idempotency key already used for a different task submission",
+		StepIndex:     &stepIndex,
+		Domain:        "agent",
+		NodeID:        "reason-3",
 	})
 
 	require.Equal(t, fiber.Map{
@@ -346,6 +350,9 @@ func TestBuildTaskFailureDetailsResponse(t *testing.T) {
 		"status_code":    http.StatusConflict,
 		"rejection_type": "idempotency_conflict",
 		"message":        "Idempotency key already used for a different task submission",
+		"step_index":     uint32(3),
+		"domain":         "agent",
+		"node_id":        "reason-3",
 	}, resp)
 	require.Nil(t, buildTaskFailureDetailsResponse(nil))
 }
