@@ -272,13 +272,13 @@ func (tc *TaskCoordinator) dispatchToRuntime(ctx context.Context, task *TaskReco
 	}
 	if resp.StatusCode >= 400 {
 		raw, _ := io.ReadAll(io.LimitReader(resp.Body, 4096))
-		reason := runtimeTaskDispatchFailureReason(resp.StatusCode, raw, checkpoint != nil)
+		reason, details := runtimeTaskDispatchFailure(resp.StatusCode, raw, checkpoint != nil)
 		log.Warn().
 			Int("status", resp.StatusCode).
 			Str("task_id", task.TaskID.String()).
 			Str("reason", reason).
 			Msg("[Coordinator] Runtime rejected durable task submission")
-		_ = tc.store.MarkFailed(task.TaskID, reason)
+		_ = tc.store.MarkFailedWithDetails(task.TaskID, reason, details)
 		return
 	}
 
@@ -327,7 +327,7 @@ type taskSubmitResult struct {
 	ExecutionReceipt  json.RawMessage    `json:"execution_receipt,omitempty"`
 }
 
-func runtimeTaskDispatchFailureReason(statusCode int, raw []byte, resumed bool) string {
+func runtimeTaskDispatchFailure(statusCode int, raw []byte, resumed bool) (string, *TaskFailureDetails) {
 	type runtimeErrorEnvelope struct {
 		Error struct {
 			Message string `json:"message"`
@@ -339,24 +339,36 @@ func runtimeTaskDispatchFailureReason(statusCode int, raw []byte, resumed bool) 
 	if resumed {
 		operation = "resume"
 	}
+	details := &TaskFailureDetails{
+		Source:     "runtime",
+		Operation:  operation,
+		StatusCode: statusCode,
+	}
 
 	var payload runtimeErrorEnvelope
 	if err := json.Unmarshal(raw, &payload); err == nil {
+		if payload.Error.Type != "" {
+			details.RejectionType = payload.Error.Type
+		}
+		if payload.Error.Message != "" {
+			details.Message = payload.Error.Message
+		}
 		switch {
 		case payload.Error.Type != "" && payload.Error.Message != "":
-			return fmt.Sprintf("runtime %s rejected (%s): %s", operation, payload.Error.Type, payload.Error.Message)
+			return fmt.Sprintf("runtime %s rejected (%s): %s", operation, payload.Error.Type, payload.Error.Message), details
 		case payload.Error.Message != "":
-			return fmt.Sprintf("runtime %s rejected: %s", operation, payload.Error.Message)
+			return fmt.Sprintf("runtime %s rejected: %s", operation, payload.Error.Message), details
 		case payload.Error.Type != "":
-			return fmt.Sprintf("runtime %s rejected (%s)", operation, payload.Error.Type)
+			return fmt.Sprintf("runtime %s rejected (%s)", operation, payload.Error.Type), details
 		}
 	}
 
 	body := strings.TrimSpace(string(raw))
 	if body != "" {
-		return fmt.Sprintf("runtime %s rejected with status %d: %s", operation, statusCode, body)
+		details.Message = body
+		return fmt.Sprintf("runtime %s rejected with status %d: %s", operation, statusCode, body), details
 	}
-	return fmt.Sprintf("runtime %s rejected with status %d", operation, statusCode)
+	return fmt.Sprintf("runtime %s rejected with status %d", operation, statusCode), details
 }
 
 // recoverFailedRuntimes scans for runtimes with stale heartbeats, marks their
