@@ -272,7 +272,7 @@ func (tc *TaskCoordinator) dispatchToRuntime(ctx context.Context, task *TaskReco
 	}
 	if resp.StatusCode >= 400 {
 		raw, _ := io.ReadAll(io.LimitReader(resp.Body, 4096))
-		reason := runtimeTaskSubmitFailureReason(resp.StatusCode, raw)
+		reason := runtimeTaskDispatchFailureReason(resp.StatusCode, raw, checkpoint != nil)
 		log.Warn().
 			Int("status", resp.StatusCode).
 			Str("task_id", task.TaskID.String()).
@@ -327,7 +327,7 @@ type taskSubmitResult struct {
 	ExecutionReceipt  json.RawMessage    `json:"execution_receipt,omitempty"`
 }
 
-func runtimeTaskSubmitFailureReason(statusCode int, raw []byte) string {
+func runtimeTaskDispatchFailureReason(statusCode int, raw []byte, resumed bool) string {
 	type runtimeErrorEnvelope struct {
 		Error struct {
 			Message string `json:"message"`
@@ -335,23 +335,28 @@ func runtimeTaskSubmitFailureReason(statusCode int, raw []byte) string {
 		} `json:"error"`
 	}
 
+	operation := "submit"
+	if resumed {
+		operation = "resume"
+	}
+
 	var payload runtimeErrorEnvelope
 	if err := json.Unmarshal(raw, &payload); err == nil {
 		switch {
 		case payload.Error.Type != "" && payload.Error.Message != "":
-			return fmt.Sprintf("runtime submit rejected (%s): %s", payload.Error.Type, payload.Error.Message)
+			return fmt.Sprintf("runtime %s rejected (%s): %s", operation, payload.Error.Type, payload.Error.Message)
 		case payload.Error.Message != "":
-			return fmt.Sprintf("runtime submit rejected: %s", payload.Error.Message)
+			return fmt.Sprintf("runtime %s rejected: %s", operation, payload.Error.Message)
 		case payload.Error.Type != "":
-			return fmt.Sprintf("runtime submit rejected (%s)", payload.Error.Type)
+			return fmt.Sprintf("runtime %s rejected (%s)", operation, payload.Error.Type)
 		}
 	}
 
 	body := strings.TrimSpace(string(raw))
 	if body != "" {
-		return fmt.Sprintf("runtime submit rejected with status %d: %s", statusCode, body)
+		return fmt.Sprintf("runtime %s rejected with status %d: %s", operation, statusCode, body)
 	}
-	return fmt.Sprintf("runtime submit rejected with status %d", statusCode)
+	return fmt.Sprintf("runtime %s rejected with status %d", operation, statusCode)
 }
 
 // recoverFailedRuntimes scans for runtimes with stale heartbeats, marks their
