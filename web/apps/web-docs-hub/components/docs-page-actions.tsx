@@ -2,7 +2,7 @@
 
 import { useEffect, useMemo, useRef, useState } from 'react';
 import { createPortal } from 'react-dom';
-import { ChevronDown, ChevronUp, Copy, ExternalLink } from 'lucide-react';
+import { ChevronDown, ChevronUp, Copy, ExternalLink, FileText, Github } from 'lucide-react';
 
 interface DocsPageActionsProps {
   githubUrl: string;
@@ -25,6 +25,41 @@ function buildAssistantPrompt(pageTitle: string, pageUrl: string, markdownUrl: s
     `Page URL: ${pageUrl}`,
     `Markdown source: ${markdownUrl}`,
   ].join('\n');
+}
+
+type MenuBrand = 'github' | 'markdown' | 'chatgpt' | 'claude' | 'cursor' | 'grok' | 'gemini' | 'kimi';
+
+function BrandMark({ brand }: { brand: MenuBrand }) {
+  if (brand === 'github') {
+    return (
+      <span className="docs-page-action-brand docs-page-action-brand-github" aria-hidden="true">
+        <Github className="size-3.5" />
+      </span>
+    );
+  }
+
+  if (brand === 'markdown') {
+    return (
+      <span className="docs-page-action-brand docs-page-action-brand-markdown" aria-hidden="true">
+        <FileText className="size-3.5" />
+      </span>
+    );
+  }
+
+  const labels: Record<Exclude<MenuBrand, 'github' | 'markdown'>, string> = {
+    chatgpt: 'GPT',
+    claude: 'AI',
+    cursor: 'C',
+    grok: 'x',
+    gemini: 'G',
+    kimi: 'K',
+  };
+
+  return (
+    <span className={`docs-page-action-brand docs-page-action-brand-${brand}`} aria-hidden="true">
+      {labels[brand]}
+    </span>
+  );
 }
 
 export function DocsPageActions({
@@ -117,6 +152,17 @@ export function DocsPageActions({
 
   if (!host) return null;
 
+  const openItems = [
+    { href: githubUrl, label: 'Open in GitHub', brand: 'github' as const },
+    { href: markdownUrl, label: 'View as Markdown', brand: 'markdown' as const },
+    { href: assistantLinks.chatgpt, label: 'Open in ChatGPT', brand: 'chatgpt' as const },
+    { href: assistantLinks.claude, label: 'Open in Claude', brand: 'claude' as const },
+    { href: assistantLinks.cursor, label: 'Open in Cursor', brand: 'cursor' as const },
+    { href: assistantLinks.grok, label: 'Open in Grok', brand: 'grok' as const },
+    { href: assistantLinks.gemini, label: 'Open in Gemini', brand: 'gemini' as const },
+    { href: assistantLinks.kimi, label: 'Open in Kimi', brand: 'kimi' as const },
+  ];
+
   return createPortal(
     <div className="docs-page-actions not-prose">
       <button
@@ -147,78 +193,19 @@ export function DocsPageActions({
 
         {open ? (
           <div className="docs-page-action-dropdown" role="menu">
-            <a
-              href={githubUrl}
-              target="_blank"
-              rel="noreferrer noopener"
-              className="docs-page-action-item"
-              role="menuitem"
-            >
-              Open in GitHub
-            </a>
-            <a
-              href={markdownUrl}
-              target="_blank"
-              rel="noreferrer noopener"
-              className="docs-page-action-item"
-              role="menuitem"
-            >
-              View as Markdown
-            </a>
-            <a
-              href={assistantLinks.chatgpt}
-              target="_blank"
-              rel="noreferrer noopener"
-              className="docs-page-action-item"
-              role="menuitem"
-            >
-              Open in ChatGPT
-            </a>
-            <a
-              href={assistantLinks.claude}
-              target="_blank"
-              rel="noreferrer noopener"
-              className="docs-page-action-item"
-              role="menuitem"
-            >
-              Open in Claude
-            </a>
-            <a
-              href={assistantLinks.cursor}
-              target="_blank"
-              rel="noreferrer noopener"
-              className="docs-page-action-item"
-              role="menuitem"
-            >
-              Open in Cursor
-            </a>
-            <a
-              href={assistantLinks.grok}
-              target="_blank"
-              rel="noreferrer noopener"
-              className="docs-page-action-item"
-              role="menuitem"
-            >
-              Open in Grok
-            </a>
-            <a
-              href={assistantLinks.gemini}
-              target="_blank"
-              rel="noreferrer noopener"
-              className="docs-page-action-item"
-              role="menuitem"
-            >
-              Open in Gemini
-            </a>
-            <a
-              href={assistantLinks.kimi}
-              target="_blank"
-              rel="noreferrer noopener"
-              className="docs-page-action-item"
-              role="menuitem"
-            >
-              Open in Kimi
-            </a>
+            {openItems.map((item) => (
+              <a
+                key={item.label}
+                href={item.href}
+                target="_blank"
+                rel="noreferrer noopener"
+                className="docs-page-action-item"
+                role="menuitem"
+              >
+                <BrandMark brand={item.brand} />
+                <span>{item.label}</span>
+              </a>
+            ))}
           </div>
         ) : null}
       </div>
