@@ -746,6 +746,13 @@ func TestHandleGetTaskReturnsRuntimeSubmitConflictFailureReason(t *testing.T) {
 	tenantID := "tenant-runtime-submit-conflict"
 	runtimeID := "runtime-conflict"
 	failureReason := "runtime submit rejected (checkpoint_mismatch): Checkpoint digest mismatch - WAL state diverged"
+	failureDetails := &coordinator.TaskFailureDetails{
+		Source:        "runtime",
+		Operation:     "submit",
+		StatusCode:    http.StatusConflict,
+		RejectionType: "checkpoint_mismatch",
+		Message:       "Checkpoint digest mismatch - WAL state diverged",
+	}
 	createdAt := time.Unix(1_700_001_150, 0).UTC()
 
 	db, queued := newQueuedRouteDB(t, []queuedRouteQueryExpectation{{
@@ -769,6 +776,7 @@ func TestHandleGetTaskReturnsRuntimeSubmitConflictFailureReason(t *testing.T) {
 			nil,
 			nil,
 			createdAt,
+			failureDetails,
 		)},
 	}})
 
@@ -789,6 +797,13 @@ func TestHandleGetTaskReturnsRuntimeSubmitConflictFailureReason(t *testing.T) {
 	require.Equal(t, "failed", body["status"])
 	require.Equal(t, failureReason, body["failure_reason"])
 	require.Equal(t, map[string]any{
+		"source":         "runtime",
+		"operation":      "submit",
+		"status_code":    float64(http.StatusConflict),
+		"rejection_type": "checkpoint_mismatch",
+		"message":        "Checkpoint digest mismatch - WAL state diverged",
+	}, body["failure_details"])
+	require.Equal(t, map[string]any{
 		"redispatch_eligible": false,
 		"skip_reason":         "task_failed",
 	}, body["recovery"])
@@ -802,6 +817,13 @@ func TestHandleGetTaskReturnsRuntimeResumeConflictFailureReason(t *testing.T) {
 	tenantID := "tenant-runtime-resume-conflict"
 	runtimeID := "runtime-recovery-conflict"
 	failureReason := "runtime resume rejected (checkpoint_mismatch): Checkpoint digest mismatch - WAL state diverged"
+	failureDetails := &coordinator.TaskFailureDetails{
+		Source:        "runtime",
+		Operation:     "resume",
+		StatusCode:    http.StatusConflict,
+		RejectionType: "checkpoint_mismatch",
+		Message:       "Checkpoint digest mismatch - WAL state diverged",
+	}
 	createdAt := time.Unix(1_700_001_160, 0).UTC()
 
 	db, queued := newQueuedRouteDB(t, []queuedRouteQueryExpectation{{
@@ -825,6 +847,7 @@ func TestHandleGetTaskReturnsRuntimeResumeConflictFailureReason(t *testing.T) {
 			nil,
 			nil,
 			createdAt,
+			failureDetails,
 		)},
 	}})
 
@@ -845,6 +868,13 @@ func TestHandleGetTaskReturnsRuntimeResumeConflictFailureReason(t *testing.T) {
 	require.Equal(t, "failed", body["status"])
 	require.Equal(t, failureReason, body["failure_reason"])
 	require.Equal(t, map[string]any{
+		"source":         "runtime",
+		"operation":      "resume",
+		"status_code":    float64(http.StatusConflict),
+		"rejection_type": "checkpoint_mismatch",
+		"message":        "Checkpoint digest mismatch - WAL state diverged",
+	}, body["failure_details"])
+	require.Equal(t, map[string]any{
 		"redispatch_eligible": false,
 		"skip_reason":         "task_failed",
 	}, body["recovery"])
@@ -858,6 +888,13 @@ func TestHandleListTasksIncludesRuntimeSubmitConflictFailureReason(t *testing.T)
 	tenantID := "tenant-runtime-submit-list"
 	runtimeID := "runtime-conflict-list"
 	failureReason := "runtime submit rejected (idempotency_conflict): Idempotency key already used for a different task submission"
+	failureDetails := &coordinator.TaskFailureDetails{
+		Source:        "runtime",
+		Operation:     "submit",
+		StatusCode:    http.StatusConflict,
+		RejectionType: "idempotency_conflict",
+		Message:       "Idempotency key already used for a different task submission",
+	}
 	createdAt := time.Unix(1_700_001_175, 0).UTC()
 
 	db, queued := newQueuedRouteDB(t,
@@ -887,6 +924,7 @@ func TestHandleListTasksIncludesRuntimeSubmitConflictFailureReason(t *testing.T)
 					nil,
 					nil,
 					createdAt,
+					failureDetails,
 				)},
 			},
 		},
@@ -916,6 +954,13 @@ func TestHandleListTasksIncludesRuntimeSubmitConflictFailureReason(t *testing.T)
 	require.True(t, ok)
 	require.Equal(t, "failed", task["status"])
 	require.Equal(t, failureReason, task["failure_reason"])
+	require.Equal(t, map[string]any{
+		"source":         "runtime",
+		"operation":      "submit",
+		"status_code":    float64(http.StatusConflict),
+		"rejection_type": "idempotency_conflict",
+		"message":        "Idempotency key already used for a different task submission",
+	}, task["failure_details"])
 	require.Equal(t, map[string]any{
 		"redispatch_eligible": false,
 		"skip_reason":         "task_failed",
