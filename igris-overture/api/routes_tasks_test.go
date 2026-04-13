@@ -560,7 +560,7 @@ func TestHandleGetTaskReturnsRecoveryMetadata(t *testing.T) {
 			"task_id", "tenant_id", "status", "runtime_id", "runtime_endpoint",
 			"task_definition", "last_checkpoint", "execution_envelope", "execution_receipt",
 			"proof_execution_id", "proof_expected_hash", "proof_stored_hash", "proof_signature", "proof_status", "proof_checked_at",
-			"idempotency_key", "failure_reason",
+			"idempotency_key", "failure_reason", "failure_details",
 			"deadline_at", "dispatched_at", "completed_at", "canceled_at", "created_at",
 		},
 		rows: [][]driver.Value{taskRecordRouteRow(
@@ -635,7 +635,7 @@ func TestHandleListTasksIncludesLifecycleDurabilityAndRecovery(t *testing.T) {
 					"task_id", "tenant_id", "status", "runtime_id", "runtime_endpoint",
 					"task_definition", "last_checkpoint", "execution_envelope", "execution_receipt",
 					"proof_execution_id", "proof_expected_hash", "proof_stored_hash", "proof_signature", "proof_status", "proof_checked_at",
-					"idempotency_key", "failure_reason",
+					"idempotency_key", "failure_reason", "failure_details",
 					"deadline_at", "dispatched_at", "completed_at", "canceled_at", "created_at",
 				},
 				rows: [][]driver.Value{taskRecordRouteRow(
@@ -712,7 +712,7 @@ func TestHandleGetTaskReturnsRuntimeSubmitConflictFailureReason(t *testing.T) {
 			"task_id", "tenant_id", "status", "runtime_id", "runtime_endpoint",
 			"task_definition", "last_checkpoint", "execution_envelope", "execution_receipt",
 			"proof_execution_id", "proof_expected_hash", "proof_stored_hash", "proof_signature", "proof_status", "proof_checked_at",
-			"idempotency_key", "failure_reason",
+			"idempotency_key", "failure_reason", "failure_details",
 			"deadline_at", "dispatched_at", "completed_at", "canceled_at", "created_at",
 		},
 		rows: [][]driver.Value{taskRecordRouteRow(
@@ -768,7 +768,7 @@ func TestHandleGetTaskReturnsRuntimeResumeConflictFailureReason(t *testing.T) {
 			"task_id", "tenant_id", "status", "runtime_id", "runtime_endpoint",
 			"task_definition", "last_checkpoint", "execution_envelope", "execution_receipt",
 			"proof_execution_id", "proof_expected_hash", "proof_stored_hash", "proof_signature", "proof_status", "proof_checked_at",
-			"idempotency_key", "failure_reason",
+			"idempotency_key", "failure_reason", "failure_details",
 			"deadline_at", "dispatched_at", "completed_at", "canceled_at", "created_at",
 		},
 		rows: [][]driver.Value{taskRecordRouteRow(
@@ -830,7 +830,7 @@ func TestHandleListTasksIncludesRuntimeSubmitConflictFailureReason(t *testing.T)
 					"task_id", "tenant_id", "status", "runtime_id", "runtime_endpoint",
 					"task_definition", "last_checkpoint", "execution_envelope", "execution_receipt",
 					"proof_execution_id", "proof_expected_hash", "proof_stored_hash", "proof_signature", "proof_status", "proof_checked_at",
-					"idempotency_key", "failure_reason",
+					"idempotency_key", "failure_reason", "failure_details",
 					"deadline_at", "dispatched_at", "completed_at", "canceled_at", "created_at",
 				},
 				rows: [][]driver.Value{taskRecordRouteRow(
@@ -908,7 +908,7 @@ func TestHandleTaskCheckpointReturnsLifecycleMetadata(t *testing.T) {
 					"task_id", "tenant_id", "status", "runtime_id", "runtime_endpoint",
 					"task_definition", "last_checkpoint", "execution_envelope", "execution_receipt",
 					"proof_execution_id", "proof_expected_hash", "proof_stored_hash", "proof_signature", "proof_status", "proof_checked_at",
-					"idempotency_key", "failure_reason",
+					"idempotency_key", "failure_reason", "failure_details",
 					"deadline_at", "dispatched_at", "completed_at", "canceled_at", "created_at",
 				},
 				rows: [][]driver.Value{taskRecordRouteRow(
@@ -935,7 +935,7 @@ func TestHandleTaskCheckpointReturnsLifecycleMetadata(t *testing.T) {
 					"task_id", "tenant_id", "status", "runtime_id", "runtime_endpoint",
 					"task_definition", "last_checkpoint", "execution_envelope", "execution_receipt",
 					"proof_execution_id", "proof_expected_hash", "proof_stored_hash", "proof_signature", "proof_status", "proof_checked_at",
-					"idempotency_key", "failure_reason",
+					"idempotency_key", "failure_reason", "failure_details",
 					"deadline_at", "dispatched_at", "completed_at", "canceled_at", "created_at",
 				},
 				rows: [][]driver.Value{taskRecordRouteRow(
@@ -1007,7 +1007,7 @@ func TestHandleTaskCompleteReturnsLifecycleMetadata(t *testing.T) {
 					"task_id", "tenant_id", "status", "runtime_id", "runtime_endpoint",
 					"task_definition", "last_checkpoint", "execution_envelope", "execution_receipt",
 					"proof_execution_id", "proof_expected_hash", "proof_stored_hash", "proof_signature", "proof_status", "proof_checked_at",
-					"idempotency_key", "failure_reason",
+					"idempotency_key", "failure_reason", "failure_details",
 					"deadline_at", "dispatched_at", "completed_at", "canceled_at", "created_at",
 				},
 				rows: [][]driver.Value{taskRecordRouteRow(
@@ -1030,7 +1030,7 @@ func TestHandleTaskCompleteReturnsLifecycleMetadata(t *testing.T) {
 					"task_id", "tenant_id", "status", "runtime_id", "runtime_endpoint",
 					"task_definition", "last_checkpoint", "execution_envelope", "execution_receipt",
 					"proof_execution_id", "proof_expected_hash", "proof_stored_hash", "proof_signature", "proof_status", "proof_checked_at",
-					"idempotency_key", "failure_reason",
+					"idempotency_key", "failure_reason", "failure_details",
 					"deadline_at", "dispatched_at", "completed_at", "canceled_at", "created_at",
 				},
 				rows: [][]driver.Value{taskRecordRouteRow(
@@ -1099,7 +1099,7 @@ func TestHandleTaskFailedReturnsRecoveryMetadata(t *testing.T) {
 					"task_id", "tenant_id", "status", "runtime_id", "runtime_endpoint",
 					"task_definition", "last_checkpoint", "execution_envelope", "execution_receipt",
 					"proof_execution_id", "proof_expected_hash", "proof_stored_hash", "proof_signature", "proof_status", "proof_checked_at",
-					"idempotency_key", "failure_reason",
+					"idempotency_key", "failure_reason", "failure_details",
 					"deadline_at", "dispatched_at", "completed_at", "canceled_at", "created_at",
 				},
 				rows: [][]driver.Value{taskRecordRouteRow(
@@ -1122,7 +1122,7 @@ func TestHandleTaskFailedReturnsRecoveryMetadata(t *testing.T) {
 					"task_id", "tenant_id", "status", "runtime_id", "runtime_endpoint",
 					"task_definition", "last_checkpoint", "execution_envelope", "execution_receipt",
 					"proof_execution_id", "proof_expected_hash", "proof_stored_hash", "proof_signature", "proof_status", "proof_checked_at",
-					"idempotency_key", "failure_reason",
+					"idempotency_key", "failure_reason", "failure_details",
 					"deadline_at", "dispatched_at", "completed_at", "canceled_at", "created_at",
 				},
 				rows: [][]driver.Value{taskRecordRouteRow(
@@ -1204,7 +1204,7 @@ func TestHandleTaskCheckpointReturnsTransitionRejectedPayloadAfterConcurrentCanc
 					"task_id", "tenant_id", "status", "runtime_id", "runtime_endpoint",
 					"task_definition", "last_checkpoint", "execution_envelope", "execution_receipt",
 					"proof_execution_id", "proof_expected_hash", "proof_stored_hash", "proof_signature", "proof_status", "proof_checked_at",
-					"idempotency_key", "failure_reason",
+					"idempotency_key", "failure_reason", "failure_details",
 					"deadline_at", "dispatched_at", "completed_at", "canceled_at", "created_at",
 				},
 				rows: [][]driver.Value{taskRecordRouteRow(
@@ -1231,7 +1231,7 @@ func TestHandleTaskCheckpointReturnsTransitionRejectedPayloadAfterConcurrentCanc
 					"task_id", "tenant_id", "status", "runtime_id", "runtime_endpoint",
 					"task_definition", "last_checkpoint", "execution_envelope", "execution_receipt",
 					"proof_execution_id", "proof_expected_hash", "proof_stored_hash", "proof_signature", "proof_status", "proof_checked_at",
-					"idempotency_key", "failure_reason",
+					"idempotency_key", "failure_reason", "failure_details",
 					"deadline_at", "dispatched_at", "completed_at", "canceled_at", "created_at",
 				},
 				rows: [][]driver.Value{taskRecordRouteRow(
@@ -1306,7 +1306,7 @@ func TestHandleTaskCompleteReturnsTransitionRejectedPayloadAfterConcurrentCancel
 					"task_id", "tenant_id", "status", "runtime_id", "runtime_endpoint",
 					"task_definition", "last_checkpoint", "execution_envelope", "execution_receipt",
 					"proof_execution_id", "proof_expected_hash", "proof_stored_hash", "proof_signature", "proof_status", "proof_checked_at",
-					"idempotency_key", "failure_reason",
+					"idempotency_key", "failure_reason", "failure_details",
 					"deadline_at", "dispatched_at", "completed_at", "canceled_at", "created_at",
 				},
 				rows: [][]driver.Value{taskRecordRouteRow(
@@ -1329,7 +1329,7 @@ func TestHandleTaskCompleteReturnsTransitionRejectedPayloadAfterConcurrentCancel
 					"task_id", "tenant_id", "status", "runtime_id", "runtime_endpoint",
 					"task_definition", "last_checkpoint", "execution_envelope", "execution_receipt",
 					"proof_execution_id", "proof_expected_hash", "proof_stored_hash", "proof_signature", "proof_status", "proof_checked_at",
-					"idempotency_key", "failure_reason",
+					"idempotency_key", "failure_reason", "failure_details",
 					"deadline_at", "dispatched_at", "completed_at", "canceled_at", "created_at",
 				},
 				rows: [][]driver.Value{taskRecordRouteRow(
@@ -1398,7 +1398,7 @@ func TestHandleTaskFailedReturnsTransitionRejectedPayloadAfterConcurrentCancel(t
 					"task_id", "tenant_id", "status", "runtime_id", "runtime_endpoint",
 					"task_definition", "last_checkpoint", "execution_envelope", "execution_receipt",
 					"proof_execution_id", "proof_expected_hash", "proof_stored_hash", "proof_signature", "proof_status", "proof_checked_at",
-					"idempotency_key", "failure_reason",
+					"idempotency_key", "failure_reason", "failure_details",
 					"deadline_at", "dispatched_at", "completed_at", "canceled_at", "created_at",
 				},
 				rows: [][]driver.Value{taskRecordRouteRow(
@@ -1421,7 +1421,7 @@ func TestHandleTaskFailedReturnsTransitionRejectedPayloadAfterConcurrentCancel(t
 					"task_id", "tenant_id", "status", "runtime_id", "runtime_endpoint",
 					"task_definition", "last_checkpoint", "execution_envelope", "execution_receipt",
 					"proof_execution_id", "proof_expected_hash", "proof_stored_hash", "proof_signature", "proof_status", "proof_checked_at",
-					"idempotency_key", "failure_reason",
+					"idempotency_key", "failure_reason", "failure_details",
 					"deadline_at", "dispatched_at", "completed_at", "canceled_at", "created_at",
 				},
 				rows: [][]driver.Value{taskRecordRouteRow(
