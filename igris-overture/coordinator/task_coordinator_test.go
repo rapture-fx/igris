@@ -940,6 +940,126 @@ func TestRecoverRuntimeRetryUsesNewestCheckpointOnNextAttempt(t *testing.T) {
 	require.Equal(t, 0, queued.remainingQueries())
 }
 
+func TestRecoverRuntimeMarksFailedOnRedispatchConflictResponse(t *testing.T) {
+	t.Parallel()
+
+	taskID := uuid.New()
+	failedRuntimeID := "runtime-failed"
+	newRuntimeID := "runtime-replacement"
+	tenantID := "tenant-recovery-conflict"
+	idempotencyKey := "idem-recovery-conflict"
+	createdAt := time.Unix(1_900_000_250, 0).UTC()
+	taskDefinition := json.RawMessage(`{
+		"type":"behavior_tree",
+		"tree":{"root":{"type":"sequence","children":[]}}
+	}`)
+	checkpoint := &CheckpointPayload{
+		TaskID: taskID,
+		ResumeToken: ResumeToken{
+			LastCommittedStep: 11,
+			CheckpointDigest:  "digest-11",
+			RuntimeID:         failedRuntimeID,
+		},
+		WalEntries: []WalEntry{{TaskID: taskID, StepIndex: 11, RuntimeID: failedRuntimeID}},
+		Metadata:   json.RawMessage(`{"tick_count": 11}`),
+		CapturedAt: time.Unix(1_900_000_261, 0).UTC(),
+	}
+	checkpointBytes, err := json.Marshal(checkpoint)
+	require.NoError(t, err)
+
+	db, queued := newQueuedCheckpointDB(t,
+		[]queuedQueryExpectation{
+			{
+				columns: []string{"task_id"},
+				rows:    [][]driver.Value{{taskID.String()}},
+			},
+			{
+				columns: []string{"last_checkpoint"},
+				values:  []driver.Value{checkpointBytes},
+			},
+			{
+				columns: []string{"tenant_id"},
+				values:  []driver.Value{tenantID},
+			},
+			{
+				columns: []string{
+					"task_id", "tenant_id", "status", "runtime_id", "runtime_endpoint",
+					"task_definition", "last_checkpoint", "execution_envelope", "execution_receipt",
+					"proof_execution_id", "proof_expected_hash", "proof_stored_hash", "proof_signature", "proof_status", "proof_checked_at",
+					"idempotency_key", "failure_reason",
+					"deadline_at", "dispatched_at", "completed_at", "canceled_at", "created_at",
+				},
+				values: taskRecordRowForRecoveryTest(taskID, tenantID, TaskStatusRecovering, failedRuntimeID, "http://failed-runtime.test", taskDefinition, checkpoint, idempotencyKey, createdAt),
+			},
+			{
+				columns: []string{"runtime_id", "endpoint"},
+				values:  []driver.Value{newRuntimeID, "http://new-runtime.test"},
+			},
+		},
+		queuedExecExpectation{rowsAffected: 1},
+		queuedExecExpectation{rowsAffected: 1},
+		queuedExecExpectation{rowsAffected: 1},
+	)
+
+	dispatchCh := make(chan map[string]any, 1)
+	recoveryCh := make(chan struct{}, 1)
+	tc := &TaskCoordinator{
+		db:    db,
+		store: NewCheckpointStore(db),
+		httpClient: &http.Client{Transport: roundTripperFunc(func(r *http.Request) (*http.Response, error) {
+			body, err := io.ReadAll(r.Body)
+			require.NoError(t, err)
+
+			var gotBody map[string]any
+			require.NoError(t, json.Unmarshal(body, &gotBody))
+			dispatchCh <- gotBody
+
+			return &http.Response{
+				StatusCode: http.StatusConflict,
+				Header:     http.Header{"Content-Type": []string{"application/json"}},
+				Body: io.NopCloser(strings.NewReader(`{
+					"error": {
+						"type": "checkpoint_mismatch",
+						"message": "Checkpoint digest mismatch - WAL state diverged"
+					}
+				}`)),
+			}, nil
+		})},
+		recoveryHook: func(context.Context, uuid.UUID, string) {
+			recoveryCh <- struct{}{}
+		},
+	}
+
+	tc.recoverRuntime(context.Background(), failedRuntimeID)
+
+	select {
+	case gotBody := <-dispatchCh:
+		resumeFrom, ok := gotBody["resume_from"].(map[string]any)
+		require.True(t, ok)
+		require.Equal(t, float64(11), resumeFrom["last_committed_step"])
+		require.Equal(t, "digest-11", resumeFrom["checkpoint_digest"])
+	case <-time.After(2 * time.Second):
+		t.Fatal("timed out waiting for recovery redispatch conflict")
+	}
+
+	deadline := time.Now().Add(2 * time.Second)
+	for time.Now().Before(deadline) {
+		if queued.remainingExecs() == 0 && queued.remainingQueries() == 0 {
+			break
+		}
+		time.Sleep(10 * time.Millisecond)
+	}
+
+	require.Equal(t, 0, queued.remainingExecs())
+	require.Equal(t, 0, queued.remainingQueries())
+
+	select {
+	case <-recoveryCh:
+		t.Fatal("unexpected recovery reschedule after runtime redispatch conflict")
+	default:
+	}
+}
+
 func TestRecoverRuntimeSkipsCanceledTaskBeforeRedispatch(t *testing.T) {
 	t.Parallel()
 
