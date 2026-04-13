@@ -200,12 +200,8 @@
     justify-content: center;
     width: 1.15rem;
     height: 1.15rem;
-    border-radius: 0.35rem;
     flex: none;
-    font-size: 0.54rem;
-    font-weight: 700;
-    line-height: 1;
-    letter-spacing: 0.01em;
+    overflow: hidden;
   }
 
   .docs-page-action-brand-github {
@@ -219,34 +215,22 @@
     border: 1px solid color-mix(in srgb, #0f172a 12%, transparent);
   }
 
-  .docs-page-action-brand-chatgpt {
-    background: #10a37f;
-    color: #fff;
+  .docs-page-action-brand-image img {
+    width: 100%;
+    height: 100%;
+    object-fit: contain;
   }
 
-  .docs-page-action-brand-claude {
-    background: #d97706;
-    color: #fff7ed;
+  .docs-page-action-brand-image-dark {
+    display: none;
   }
 
-  .docs-page-action-brand-cursor {
-    background: #111827;
-    color: #fff;
+  .dark .docs-page-action-brand-image-light {
+    display: none;
   }
 
-  .docs-page-action-brand-grok {
-    background: #0f172a;
-    color: #fff;
-  }
-
-  .docs-page-action-brand-gemini {
-    background: linear-gradient(135deg, #2563eb, #7c3aed);
-    color: #fff;
-  }
-
-  .docs-page-action-brand-kimi {
-    background: #06b6d4;
-    color: #ecfeff;
+  .dark .docs-page-action-brand-image-dark {
+    display: block;
   }
 
   #nd-sidebar,
