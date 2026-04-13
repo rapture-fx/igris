@@ -17,6 +17,7 @@ interface AssistantLinkSet {
   grok: string;
   gemini: string;
   kimi: string;
+  perplexity: string;
 }
 
 function buildAssistantPrompt(pageTitle: string, pageUrl: string, markdownUrl: string): string {
@@ -27,7 +28,16 @@ function buildAssistantPrompt(pageTitle: string, pageUrl: string, markdownUrl: s
   ].join('\n');
 }
 
-type MenuBrand = 'github' | 'markdown' | 'chatgpt' | 'claude' | 'cursor' | 'grok' | 'gemini' | 'kimi';
+type MenuBrand =
+  | 'github'
+  | 'markdown'
+  | 'chatgpt'
+  | 'claude'
+  | 'cursor'
+  | 'grok'
+  | 'gemini'
+  | 'kimi'
+  | 'perplexity';
 
 function BrandMark({ brand }: { brand: MenuBrand }) {
   if (brand === 'github') {
@@ -46,20 +56,73 @@ function BrandMark({ brand }: { brand: MenuBrand }) {
     );
   }
 
-  const labels: Record<Exclude<MenuBrand, 'github' | 'markdown'>, string> = {
-    chatgpt: 'GPT',
-    claude: 'AI',
-    cursor: 'C',
-    grok: 'x',
-    gemini: 'G',
-    kimi: 'K',
+  if (brand === 'chatgpt') {
+    return (
+      <span className="docs-page-action-brand docs-page-action-brand-image" aria-hidden="true">
+        <img
+          src="/chatgpt%20light%20mode.png"
+          alt=""
+          className="docs-page-action-brand-image-light"
+        />
+        <img
+          src="/chatgpt%20dark%20mode.png"
+          alt=""
+          className="docs-page-action-brand-image-dark"
+        />
+      </span>
+    );
+  }
+
+  if (brand === 'cursor') {
+    return (
+      <span className="docs-page-action-brand docs-page-action-brand-image" aria-hidden="true">
+        <img
+          src="/cursor%20light%20mode.png"
+          alt=""
+          className="docs-page-action-brand-image-light"
+        />
+        <img
+          src="/cursor%20dark%20mode.png"
+          alt=""
+          className="docs-page-action-brand-image-dark"
+        />
+      </span>
+    );
+  }
+
+  if (brand === 'grok') {
+    return (
+      <span className="docs-page-action-brand docs-page-action-brand-image" aria-hidden="true">
+        <img
+          src="/Grok%20Light%20mode.png"
+          alt=""
+          className="docs-page-action-brand-image-light"
+        />
+        <img
+          src="/Grok%20Dark%20Mode.png"
+          alt=""
+          className="docs-page-action-brand-image-dark"
+        />
+      </span>
+    );
+  }
+
+  const singleImageByBrand: Record<Exclude<MenuBrand, 'github' | 'markdown' | 'chatgpt' | 'cursor' | 'grok'>, string> = {
+    claude: '/Claude.png',
+    gemini: '/gemini.png',
+    kimi: '/kimi.png',
+    perplexity: '/perplexity.png',
   };
 
-  return (
-    <span className={`docs-page-action-brand docs-page-action-brand-${brand}`} aria-hidden="true">
-      {labels[brand]}
-    </span>
-  );
+  if (brand in singleImageByBrand) {
+    return (
+      <span className="docs-page-action-brand docs-page-action-brand-image" aria-hidden="true">
+        <img src={singleImageByBrand[brand as keyof typeof singleImageByBrand]} alt="" />
+      </span>
+    );
+  }
+
+  return null;
 }
 
 export function DocsPageActions({
@@ -132,6 +195,7 @@ export function DocsPageActions({
       grok: 'https://grok.com/',
       gemini: 'https://gemini.google.com/',
       kimi: 'https://www.kimi.com/open',
+      perplexity: 'https://www.perplexity.ai/',
     };
   }, [absoluteMarkdownUrl, pageTitle, pageUrl]);
 
@@ -161,6 +225,7 @@ export function DocsPageActions({
     { href: assistantLinks.grok, label: 'Open in Grok', brand: 'grok' as const },
     { href: assistantLinks.gemini, label: 'Open in Gemini', brand: 'gemini' as const },
     { href: assistantLinks.kimi, label: 'Open in Kimi', brand: 'kimi' as const },
+    { href: assistantLinks.perplexity, label: 'Open in Perplexity', brand: 'perplexity' as const },
   ];
 
   return createPortal(
