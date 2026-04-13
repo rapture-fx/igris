@@ -627,32 +627,32 @@ func TestHandleListTasksIncludesLifecycleDurabilityAndRecovery(t *testing.T) {
 	db, queued := newQueuedRouteDB(t,
 		[]queuedRouteQueryExpectation{
 			{
-			columns: []string{"task_id", "proof_status", "proof_checked_at"},
-			rows:    nil,
-		},
-			{
-			columns: []string{
-				"task_id", "tenant_id", "status", "runtime_id", "runtime_endpoint",
-				"task_definition", "last_checkpoint", "execution_envelope", "execution_receipt",
-				"proof_execution_id", "proof_expected_hash", "proof_stored_hash", "proof_signature", "proof_status", "proof_checked_at",
-				"idempotency_key", "failure_reason",
-				"deadline_at", "dispatched_at", "completed_at", "canceled_at", "created_at",
+				columns: []string{"task_id", "proof_status", "proof_checked_at"},
+				rows:    nil,
 			},
-			rows: [][]driver.Value{taskRecordRouteRow(
-				taskID,
-				tenantID,
-				coordinator.TaskStatusCanceled,
-				"",
-				"",
-				json.RawMessage(`{"type":"single_inference","model":"gpt-4.1-mini","messages":[{"role":"user","content":"hello"}]}`),
-				nil,
-				"idem-list",
-				nil,
-				&canceledAt,
-				nil,
-				createdAt,
-			)},
-		},
+			{
+				columns: []string{
+					"task_id", "tenant_id", "status", "runtime_id", "runtime_endpoint",
+					"task_definition", "last_checkpoint", "execution_envelope", "execution_receipt",
+					"proof_execution_id", "proof_expected_hash", "proof_stored_hash", "proof_signature", "proof_status", "proof_checked_at",
+					"idempotency_key", "failure_reason",
+					"deadline_at", "dispatched_at", "completed_at", "canceled_at", "created_at",
+				},
+				rows: [][]driver.Value{taskRecordRouteRow(
+					taskID,
+					tenantID,
+					coordinator.TaskStatusCanceled,
+					"",
+					"",
+					json.RawMessage(`{"type":"single_inference","model":"gpt-4.1-mini","messages":[{"role":"user","content":"hello"}]}`),
+					nil,
+					"idem-list",
+					nil,
+					&canceledAt,
+					nil,
+					createdAt,
+				)},
+			},
 		},
 	)
 
