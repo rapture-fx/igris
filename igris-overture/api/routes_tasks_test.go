@@ -164,10 +164,14 @@ func (r *queuedRouteRows) Next(dest []driver.Value) error {
 	return nil
 }
 
-func taskRecordRouteRow(taskID uuid.UUID, tenantID string, status coordinator.TaskRecordStatus, runtimeID, runtimeEndpoint string, taskDefinition json.RawMessage, checkpoint *coordinator.CheckpointPayload, idempotencyKey string, failureReason *string, canceledAt, completedAt *time.Time, createdAt time.Time) []driver.Value {
+func taskRecordRouteRow(taskID uuid.UUID, tenantID string, status coordinator.TaskRecordStatus, runtimeID, runtimeEndpoint string, taskDefinition json.RawMessage, checkpoint *coordinator.CheckpointPayload, idempotencyKey string, failureReason *string, canceledAt, completedAt *time.Time, createdAt time.Time, failureDetails ...*coordinator.TaskFailureDetails) []driver.Value {
 	var checkpointBytes []byte
 	if checkpoint != nil {
 		checkpointBytes, _ = json.Marshal(checkpoint)
+	}
+	var failureDetailBytes []byte
+	if len(failureDetails) > 0 && failureDetails[0] != nil {
+		failureDetailBytes, _ = json.Marshal(failureDetails[0])
 	}
 
 	return []driver.Value{
@@ -188,6 +192,7 @@ func taskRecordRouteRow(taskID uuid.UUID, tenantID string, status coordinator.Ta
 		nil,
 		idempotencyKey,
 		failureReason,
+		failureDetailBytes,
 		nil,
 		nil,
 		completedAt,
