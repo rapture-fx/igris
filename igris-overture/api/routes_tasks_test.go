@@ -211,10 +211,10 @@ func TestBuildTaskResponseIncludesFailureReasonAndCheckpointMetadata(t *testing.
 	completedAt := createdAt.Add(2 * time.Minute)
 
 	task := &coordinator.TaskRecord{
-		TaskID:         taskID,
-		Status:         coordinator.TaskStatusFailed,
-		RuntimeID:      &runtimeID,
-		FailureReason:  &failureReason,
+		TaskID:        taskID,
+		Status:        coordinator.TaskStatusFailed,
+		RuntimeID:     &runtimeID,
+		FailureReason: &failureReason,
 		FailureDetails: &coordinator.TaskFailureDetails{
 			Source:        "runtime",
 			Operation:     "resume",
