@@ -2,7 +2,7 @@
 
 import { useEffect, useMemo, useRef, useState } from 'react';
 import { createPortal } from 'react-dom';
-import { ChevronDown, ChevronUp, Copy, ExternalLink, FileText, Github } from 'lucide-react';
+import { ChevronDown, ChevronUp, Copy, ExternalLink, FileText } from 'lucide-react';
 
 interface DocsPageActionsProps {
   githubUrl: string;
@@ -42,8 +42,17 @@ type MenuBrand =
 function BrandMark({ brand }: { brand: MenuBrand }) {
   if (brand === 'github') {
     return (
-      <span className="docs-page-action-brand docs-page-action-brand-github" aria-hidden="true">
-        <Github className="size-3.5" />
+      <span className="docs-page-action-brand docs-page-action-brand-image" aria-hidden="true">
+        <img
+          src="/github%20Light%20mode.png"
+          alt=""
+          className="docs-page-action-brand-image-light"
+        />
+        <img
+          src="/Gihub%20dark%20mode.png"
+          alt=""
+          className="docs-page-action-brand-image-dark"
+        />
       </span>
     );
   }
