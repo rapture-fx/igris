@@ -537,38 +537,58 @@ func TestHandleDispatchFailureSchedulesRecoveryForServerError(t *testing.T) {
 	require.True(t, called)
 }
 
-func TestRuntimeTaskDispatchFailureReason(t *testing.T) {
+func TestRuntimeTaskDispatchFailure(t *testing.T) {
 	t.Parallel()
 
 	t.Run("structured runtime error", func(t *testing.T) {
 		t.Parallel()
 
-		reason := runtimeTaskDispatchFailureReason(http.StatusConflict, []byte(`{
+		reason, details := runtimeTaskDispatchFailure(http.StatusConflict, []byte(`{
 			"error": {
 				"type": "checkpoint_mismatch",
 				"message": "Checkpoint digest mismatch - WAL state diverged"
 			}
 		}`), false)
 		require.Equal(t, "runtime submit rejected (checkpoint_mismatch): Checkpoint digest mismatch - WAL state diverged", reason)
+		require.Equal(t, &TaskFailureDetails{
+			Source:        "runtime",
+			Operation:     "submit",
+			StatusCode:    http.StatusConflict,
+			RejectionType: "checkpoint_mismatch",
+			Message:       "Checkpoint digest mismatch - WAL state diverged",
+		}, details)
 	})
 
 	t.Run("falls back to raw body", func(t *testing.T) {
 		t.Parallel()
 
-		reason := runtimeTaskDispatchFailureReason(http.StatusBadRequest, []byte(`{"detail":"bad request"}`), false)
+		reason, details := runtimeTaskDispatchFailure(http.StatusBadRequest, []byte(`{"detail":"bad request"}`), false)
 		require.Equal(t, `runtime submit rejected with status 400: {"detail":"bad request"}`, reason)
+		require.Equal(t, &TaskFailureDetails{
+			Source:     "runtime",
+			Operation:  "submit",
+			StatusCode: http.StatusBadRequest,
+			Message:    `{"detail":"bad request"}`,
+		}, details)
 	})
 
 	t.Run("uses resume wording for recovery redispatch", func(t *testing.T) {
 		t.Parallel()
 
-		reason := runtimeTaskDispatchFailureReason(http.StatusConflict, []byte(`{
+		reason, details := runtimeTaskDispatchFailure(http.StatusConflict, []byte(`{
 			"error": {
 				"type": "checkpoint_mismatch",
 				"message": "Checkpoint digest mismatch - WAL state diverged"
 			}
 		}`), true)
 		require.Equal(t, "runtime resume rejected (checkpoint_mismatch): Checkpoint digest mismatch - WAL state diverged", reason)
+		require.Equal(t, &TaskFailureDetails{
+			Source:        "runtime",
+			Operation:     "resume",
+			StatusCode:    http.StatusConflict,
+			RejectionType: "checkpoint_mismatch",
+			Message:       "Checkpoint digest mismatch - WAL state diverged",
+		}, details)
 	})
 }
 
