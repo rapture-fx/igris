@@ -144,16 +144,16 @@
   .docs-page-action-button {
     display: inline-flex;
     align-items: center;
-    gap: 0.45rem;
-    min-height: 2.15rem;
+    gap: 0.38rem;
+    min-height: 1.95rem;
     border: 1px solid var(--color-fd-border);
     border-radius: 0.65rem;
     background: var(--color-fd-card);
     color: var(--color-fd-foreground);
-    padding: 0.45rem 0.8rem;
-    font-size: 0.72rem;
+    padding: 0.34rem 0.68rem;
+    font-size: 0.8rem;
     line-height: 1;
-    font-weight: 600;
+    font-weight: 500;
     transition: background-color 150ms ease, border-color 150ms ease, color 150ms ease;
   }
 
@@ -178,11 +178,13 @@
 
   .docs-page-action-item {
     display: flex;
+    align-items: center;
+    gap: 0.55rem;
     width: 100%;
     border-radius: 0.5rem;
-    padding: 0.6rem 0.75rem;
+    padding: 0.5rem 0.65rem;
     color: color-mix(in srgb, var(--color-fd-card-foreground) 92%, transparent);
-    font-size: 0.72rem;
+    font-size: 0.8rem;
     line-height: 1.25;
     font-weight: 500;
     text-decoration: none;
@@ -190,6 +192,61 @@
 
   .docs-page-action-item:hover {
     background: color-mix(in srgb, var(--color-fd-accent) 70%, transparent);
+  }
+
+  .docs-page-action-brand {
+    display: inline-flex;
+    align-items: center;
+    justify-content: center;
+    width: 1.15rem;
+    height: 1.15rem;
+    border-radius: 0.35rem;
+    flex: none;
+    font-size: 0.54rem;
+    font-weight: 700;
+    line-height: 1;
+    letter-spacing: 0.01em;
+  }
+
+  .docs-page-action-brand-github {
+    background: #111827;
+    color: #fff;
+  }
+
+  .docs-page-action-brand-markdown {
+    background: #f1f5f9;
+    color: #0f172a;
+    border: 1px solid color-mix(in srgb, #0f172a 12%, transparent);
+  }
+
+  .docs-page-action-brand-chatgpt {
+    background: #10a37f;
+    color: #fff;
+  }
+
+  .docs-page-action-brand-claude {
+    background: #d97706;
+    color: #fff7ed;
+  }
+
+  .docs-page-action-brand-cursor {
+    background: #111827;
+    color: #fff;
+  }
+
+  .docs-page-action-brand-grok {
+    background: #0f172a;
+    color: #fff;
+  }
+
+  .docs-page-action-brand-gemini {
+    background: linear-gradient(135deg, #2563eb, #7c3aed);
+    color: #fff;
+  }
+
+  .docs-page-action-brand-kimi {
+    background: #06b6d4;
+    color: #ecfeff;
   }
 
   #nd-sidebar,
