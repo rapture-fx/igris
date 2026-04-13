@@ -314,7 +314,7 @@ func (tc *TaskCoordinator) dispatchToRuntime(ctx context.Context, task *TaskReco
 	case "completed":
 		_ = tc.store.MarkCompleted(task.TaskID)
 	case "failed":
-		_ = tc.store.MarkFailed(task.TaskID, result.FailureReason)
+		_ = tc.store.MarkFailedWithDetails(task.TaskID, result.FailureReason, result.FailureDetails)
 	}
 }
 
@@ -323,6 +323,7 @@ type taskSubmitResult struct {
 	Status            string             `json:"status"` // completed | checkpointed | failed
 	Checkpoint        *CheckpointPayload `json:"checkpoint,omitempty"`
 	FailureReason     string             `json:"reason,omitempty"` // matches Rust TaskStatus::Failed { reason }
+	FailureDetails    *TaskFailureDetails `json:"failure_details,omitempty"`
 	ExecutionEnvelope json.RawMessage    `json:"execution_envelope,omitempty"`
 	ExecutionReceipt  json.RawMessage    `json:"execution_receipt,omitempty"`
 }
