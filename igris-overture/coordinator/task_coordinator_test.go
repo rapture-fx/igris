@@ -995,6 +995,16 @@ func TestRecoverRuntimeMarksFailedOnRedispatchConflictResponse(t *testing.T) {
 				columns: []string{"runtime_id", "endpoint"},
 				values:  []driver.Value{newRuntimeID, "http://new-runtime.test"},
 			},
+			{
+				columns: []string{
+					"task_id", "tenant_id", "status", "runtime_id", "runtime_endpoint",
+					"task_definition", "last_checkpoint", "execution_envelope", "execution_receipt",
+					"proof_execution_id", "proof_expected_hash", "proof_stored_hash", "proof_signature", "proof_status", "proof_checked_at",
+					"idempotency_key", "failure_reason",
+					"deadline_at", "dispatched_at", "completed_at", "canceled_at", "created_at",
+				},
+				values: taskRecordRowForRecoveryTest(taskID, tenantID, TaskStatusDispatched, newRuntimeID, "http://new-runtime.test", taskDefinition, checkpoint, idempotencyKey, createdAt),
+			},
 		},
 		queuedExecExpectation{rowsAffected: 1},
 		queuedExecExpectation{rowsAffected: 1},
