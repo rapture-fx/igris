@@ -656,6 +656,7 @@ func TestScanTaskRecordHydratesArtifactsAndProof(t *testing.T) {
 	runtimeID := "runtime-agent-1"
 	runtimeEndpoint := "http://runtime.local"
 	failureReason := "none"
+	failureDetailsBytes := []byte(`{"source":"runtime","operation":"resume","status_code":409,"rejection_type":"checkpoint_mismatch","message":"Checkpoint digest mismatch - WAL state diverged"}`)
 	defBytes := []byte(`{"task_type":"single_inference"}`)
 	cpBytes := []byte(`{"task_id":"` + taskID.String() + `","resume_token":{"last_committed_step":2,"checkpoint_digest":"abc123","runtime_id":"runtime-agent-1"},"wal_entries":[],"metadata":{"requested_mode":"balanced"}}`)
 	envelopeBytes := []byte(`{"provider":"openai","signature":"sig"}`)
@@ -679,6 +680,7 @@ func TestScanTaskRecordHydratesArtifactsAndProof(t *testing.T) {
 		sql.NullTime{Time: checkedAt, Valid: true},
 		"idem-1",
 		failureReason,
+		failureDetailsBytes,
 		deadlineAt,
 		dispatchedAt,
 		completedAt,
@@ -719,6 +721,15 @@ func TestScanTaskRecordHydratesArtifactsAndProof(t *testing.T) {
 	if record.Proof.CheckedAt == nil || !record.Proof.CheckedAt.Equal(checkedAt) {
 		t.Fatalf("Proof.CheckedAt = %v, want %v", record.Proof.CheckedAt, checkedAt)
 	}
+	if record.FailureDetails == nil {
+		t.Fatal("FailureDetails is nil")
+	}
+	if record.FailureDetails.Operation != "resume" {
+		t.Fatalf("FailureDetails.Operation = %q, want resume", record.FailureDetails.Operation)
+	}
+	if record.FailureDetails.RejectionType != "checkpoint_mismatch" {
+		t.Fatalf("FailureDetails.RejectionType = %q, want checkpoint_mismatch", record.FailureDetails.RejectionType)
+	}
 }
 
 func TestScanTaskRecordOmitsEmptyProofAndInvalidCheckpoint(t *testing.T) {
@@ -749,6 +760,7 @@ func TestScanTaskRecordOmitsEmptyProofAndInvalidCheckpoint(t *testing.T) {
 		nil,
 		nil,
 		nil,
+		nil,
 		createdAt,
 	}})
 	if err != nil {
@@ -766,6 +778,9 @@ func TestScanTaskRecordOmitsEmptyProofAndInvalidCheckpoint(t *testing.T) {
 	}
 	if record.ExecutionReceipt != nil {
 		t.Fatalf("ExecutionReceipt = %v, want nil", record.ExecutionReceipt)
+	}
+	if record.FailureDetails != nil {
+		t.Fatalf("FailureDetails = %+v, want nil", record.FailureDetails)
 	}
 }
 
