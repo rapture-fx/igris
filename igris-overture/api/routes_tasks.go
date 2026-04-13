@@ -975,6 +975,15 @@ func buildTaskFailureDetailsResponse(details *coordinator.TaskFailureDetails) fi
 	if details.Message != "" {
 		resp["message"] = details.Message
 	}
+	if details.StepIndex != nil {
+		resp["step_index"] = *details.StepIndex
+	}
+	if details.Domain != "" {
+		resp["domain"] = details.Domain
+	}
+	if details.NodeID != "" {
+		resp["node_id"] = details.NodeID
+	}
 	if len(resp) == 0 {
 		return nil
 	}
