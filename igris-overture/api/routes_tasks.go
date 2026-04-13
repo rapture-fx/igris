@@ -841,6 +841,9 @@ func buildTaskResponse(task *coordinator.TaskRecord) fiber.Map {
 	if task.FailureReason != nil && *task.FailureReason != "" {
 		resp["failure_reason"] = *task.FailureReason
 	}
+	if failureDetails := buildTaskFailureDetailsResponse(task.FailureDetails); failureDetails != nil {
+		resp["failure_details"] = failureDetails
+	}
 	if len(task.ExecutionEnvelope) > 0 {
 		resp["execution_envelope"] = task.ExecutionEnvelope
 	}
@@ -948,6 +951,33 @@ func buildTaskRecoveryResponse(task *coordinator.TaskRecord) fiber.Map {
 		resp["skip_reason"] = skipReason
 	}
 
+	return resp
+}
+
+func buildTaskFailureDetailsResponse(details *coordinator.TaskFailureDetails) fiber.Map {
+	if details == nil {
+		return nil
+	}
+
+	resp := fiber.Map{}
+	if details.Source != "" {
+		resp["source"] = details.Source
+	}
+	if details.Operation != "" {
+		resp["operation"] = details.Operation
+	}
+	if details.StatusCode != 0 {
+		resp["status_code"] = details.StatusCode
+	}
+	if details.RejectionType != "" {
+		resp["rejection_type"] = details.RejectionType
+	}
+	if details.Message != "" {
+		resp["message"] = details.Message
+	}
+	if len(resp) == 0 {
+		return nil
+	}
 	return resp
 }
 
@@ -1070,6 +1100,9 @@ func buildTaskTransitionRejectedPayload(task *coordinator.TaskRecord) fiber.Map 
 	}
 	if task.FailureReason != nil && *task.FailureReason != "" {
 		resp["failure_reason"] = *task.FailureReason
+	}
+	if failureDetails := buildTaskFailureDetailsResponse(task.FailureDetails); failureDetails != nil {
+		resp["failure_details"] = failureDetails
 	}
 	return resp
 }
