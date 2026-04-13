@@ -215,6 +215,13 @@ func TestBuildTaskResponseIncludesFailureReasonAndCheckpointMetadata(t *testing.
 		Status:         coordinator.TaskStatusFailed,
 		RuntimeID:      &runtimeID,
 		FailureReason:  &failureReason,
+		FailureDetails: &coordinator.TaskFailureDetails{
+			Source:        "runtime",
+			Operation:     "resume",
+			StatusCode:    http.StatusConflict,
+			RejectionType: "checkpoint_mismatch",
+			Message:       "Checkpoint digest mismatch - WAL state diverged",
+		},
 		CreatedAt:      createdAt,
 		CompletedAt:    &completedAt,
 		DeadlineAt:     &completedAt,
@@ -246,6 +253,13 @@ func TestBuildTaskResponseIncludesFailureReasonAndCheckpointMetadata(t *testing.
 	require.Equal(t, coordinator.TaskStatusFailed, resp["status"])
 	require.Equal(t, &runtimeID, resp["runtime_id"])
 	require.Equal(t, failureReason, resp["failure_reason"])
+	require.Equal(t, fiber.Map{
+		"source":         "runtime",
+		"operation":      "resume",
+		"status_code":    http.StatusConflict,
+		"rejection_type": "checkpoint_mismatch",
+		"message":        "Checkpoint digest mismatch - WAL state diverged",
+	}, resp["failure_details"])
 	require.Equal(t, &completedAt, resp["deadline_at"])
 	require.Equal(t, "robotics_workflow", resp["task_type"])
 	require.Equal(t, fiber.Map{
@@ -303,6 +317,7 @@ func TestBuildTaskResponseOmitsEmptyOptionalFields(t *testing.T) {
 		"redispatch_eligible": false,
 	}, resp["recovery"])
 	require.NotContains(t, resp, "failure_reason")
+	require.NotContains(t, resp, "failure_details")
 	require.NotContains(t, resp, "deadline_at")
 	require.NotContains(t, resp, "task_type")
 	require.NotContains(t, resp, "requested_mode")
@@ -312,6 +327,27 @@ func TestBuildTaskResponseOmitsEmptyOptionalFields(t *testing.T) {
 	require.NotContains(t, resp, "checkpoint_metadata")
 	require.NotContains(t, resp, "execution_envelope")
 	require.NotContains(t, resp, "execution_receipt")
+}
+
+func TestBuildTaskFailureDetailsResponse(t *testing.T) {
+	t.Parallel()
+
+	resp := buildTaskFailureDetailsResponse(&coordinator.TaskFailureDetails{
+		Source:        "runtime",
+		Operation:     "submit",
+		StatusCode:    http.StatusConflict,
+		RejectionType: "idempotency_conflict",
+		Message:       "Idempotency key already used for a different task submission",
+	})
+
+	require.Equal(t, fiber.Map{
+		"source":         "runtime",
+		"operation":      "submit",
+		"status_code":    http.StatusConflict,
+		"rejection_type": "idempotency_conflict",
+		"message":        "Idempotency key already used for a different task submission",
+	}, resp)
+	require.Nil(t, buildTaskFailureDetailsResponse(nil))
 }
 
 func TestBuildTaskProofResponse(t *testing.T) {
@@ -1668,12 +1704,26 @@ func TestBuildTaskTransitionRejectedPayloadIncludesLifecycle(t *testing.T) {
 		Status:        coordinator.TaskStatusFailed,
 		CompletedAt:   &completedAt,
 		FailureReason: &failureReason,
+		FailureDetails: &coordinator.TaskFailureDetails{
+			Source:        "runtime",
+			Operation:     "resume",
+			StatusCode:    http.StatusConflict,
+			RejectionType: "checkpoint_mismatch",
+			Message:       "Checkpoint digest mismatch - WAL state diverged",
+		},
 	})
 
 	require.Equal(t, "task_transition_rejected", resp["error"])
 	require.Equal(t, coordinator.TaskStatusFailed, resp["status"])
 	require.Equal(t, &completedAt, resp["completed_at"])
 	require.Equal(t, failureReason, resp["failure_reason"])
+	require.Equal(t, fiber.Map{
+		"source":         "runtime",
+		"operation":      "resume",
+		"status_code":    http.StatusConflict,
+		"rejection_type": "checkpoint_mismatch",
+		"message":        "Checkpoint digest mismatch - WAL state diverged",
+	}, resp["failure_details"])
 	require.Equal(t, fiber.Map{
 		"terminal":                    true,
 		"runtime_mutation_allowed":    false,
