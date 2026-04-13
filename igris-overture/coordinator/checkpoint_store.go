@@ -37,6 +37,7 @@ type TaskRecord struct {
 	Proof             *TaskProofState    `json:"proof,omitempty"`
 	IdempotencyKey    string             `json:"idempotency_key"`
 	FailureReason     *string            `json:"failure_reason,omitempty"`
+	FailureDetails    *TaskFailureDetails `json:"failure_details,omitempty"`
 	DeadlineAt        *time.Time         `json:"deadline_at,omitempty"`
 	DispatchedAt      *time.Time         `json:"dispatched_at,omitempty"`
 	CompletedAt       *time.Time         `json:"completed_at,omitempty"`
@@ -73,6 +74,14 @@ type TaskProofState struct {
 	Signature    string     `json:"signature,omitempty"`
 	Status       string     `json:"status,omitempty"`
 	CheckedAt    *time.Time `json:"checked_at,omitempty"`
+}
+
+type TaskFailureDetails struct {
+	Source        string `json:"source,omitempty"`
+	Operation     string `json:"operation,omitempty"`
+	StatusCode    int    `json:"status_code,omitempty"`
+	RejectionType string `json:"rejection_type,omitempty"`
+	Message       string `json:"message,omitempty"`
 }
 
 const (
@@ -254,12 +263,25 @@ func (s *CheckpointStore) MarkCompleted(taskID uuid.UUID) error {
 
 // MarkFailed transitions a task to FAILED.
 func (s *CheckpointStore) MarkFailed(taskID uuid.UUID, reason string) error {
+	return s.MarkFailedWithDetails(taskID, reason, nil)
+}
+
+func (s *CheckpointStore) MarkFailedWithDetails(taskID uuid.UUID, reason string, details *TaskFailureDetails) error {
+	var detailBytes []byte
+	if details != nil {
+		encoded, err := json.Marshal(details)
+		if err != nil {
+			return fmt.Errorf("marshal failure details: %w", err)
+		}
+		detailBytes = encoded
+	}
+
 	result, err := s.db.Exec(`
 		UPDATE task_records
-		SET status = $1, failure_reason = $2
-		WHERE task_id = $3
-		  AND status IN ($4, $5, $6)`,
-		TaskStatusFailed, reason, taskID,
+		SET status = $1, failure_reason = $2, failure_details = $3
+		WHERE task_id = $4
+		  AND status IN ($5, $6, $7)`,
+		TaskStatusFailed, reason, nullRawJSON(detailBytes), taskID,
 		TaskStatusDispatched, TaskStatusCheckpointed, TaskStatusRecovering,
 	)
 	return taskTransitionResult(result, err)
@@ -647,6 +669,7 @@ func scanTaskRecord(row scanner) (*TaskRecord, error) {
 	var cpBytes []byte
 	var envelopeBytes []byte
 	var receiptBytes []byte
+	var failureDetailBytes []byte
 	var proofExecutionID sql.NullString
 	var proofExpectedHash sql.NullString
 	var proofStoredHash sql.NullString
@@ -657,7 +680,7 @@ func scanTaskRecord(row scanner) (*TaskRecord, error) {
 		&t.TaskID, &t.TenantID, &t.Status, &t.RuntimeID, &t.RuntimeEndpoint,
 		&defBytes, &cpBytes, &envelopeBytes, &receiptBytes,
 		&proofExecutionID, &proofExpectedHash, &proofStoredHash, &proofSignature, &proofStatus, &proofCheckedAt,
-		&t.IdempotencyKey, &t.FailureReason,
+		&t.IdempotencyKey, &t.FailureReason, &failureDetailBytes,
 		&t.DeadlineAt, &t.DispatchedAt, &t.CompletedAt, &t.CanceledAt, &t.CreatedAt,
 	)
 	if err != nil {
@@ -686,6 +709,12 @@ func scanTaskRecord(row scanner) (*TaskRecord, error) {
 		}
 		if proofCheckedAt.Valid {
 			t.Proof.CheckedAt = &proofCheckedAt.Time
+		}
+	}
+	if len(failureDetailBytes) > 0 {
+		var details TaskFailureDetails
+		if err := json.Unmarshal(failureDetailBytes, &details); err == nil {
+			t.FailureDetails = &details
 		}
 	}
 	return &t, nil
