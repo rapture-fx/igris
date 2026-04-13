@@ -585,6 +585,12 @@ func TestHandleGetTaskReturnsRecoveryMetadata(t *testing.T) {
 	tenantID := "tenant-route"
 	runtimeID := "runtime-route"
 	failureReason := "no runtime available for recovery"
+	failureDetails := &coordinator.TaskFailureDetails{
+		Source:        "overture",
+		Operation:     "recovery",
+		RejectionType: "no_runtime_available",
+		Message:       "no runtime available for recovery",
+	}
 	completedAt := time.Unix(1_700_001_000, 0).UTC()
 	createdAt := completedAt.Add(-2 * time.Minute)
 	checkpoint := &coordinator.CheckpointPayload{
@@ -617,6 +623,7 @@ func TestHandleGetTaskReturnsRecoveryMetadata(t *testing.T) {
 			nil,
 			&completedAt,
 			createdAt,
+			failureDetails,
 		)},
 	}})
 
@@ -636,6 +643,12 @@ func TestHandleGetTaskReturnsRecoveryMetadata(t *testing.T) {
 	require.NoError(t, json.NewDecoder(resp.Body).Decode(&body))
 	require.Equal(t, "failed", body["status"])
 	require.Equal(t, failureReason, body["failure_reason"])
+	require.Equal(t, map[string]any{
+		"source":         "overture",
+		"operation":      "recovery",
+		"rejection_type": "no_runtime_available",
+		"message":        "no runtime available for recovery",
+	}, body["failure_details"])
 	require.Equal(t, map[string]any{
 		"terminal":                    true,
 		"runtime_mutation_allowed":    false,
