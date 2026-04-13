@@ -25,24 +25,24 @@ func NewCheckpointStore(db *sql.DB) *CheckpointStore {
 
 // TaskRecord is the durable state of a task tracked by Overture.
 type TaskRecord struct {
-	TaskID            uuid.UUID          `json:"task_id"`
-	TenantID          string             `json:"tenant_id"`
-	Status            TaskRecordStatus   `json:"status"`
-	RuntimeID         *string            `json:"runtime_id,omitempty"`
-	RuntimeEndpoint   *string            `json:"runtime_endpoint,omitempty"`
-	TaskDefinition    json.RawMessage    `json:"task_definition"`
-	LastCheckpoint    *CheckpointPayload `json:"last_checkpoint,omitempty"`
-	ExecutionEnvelope json.RawMessage    `json:"execution_envelope,omitempty"`
-	ExecutionReceipt  json.RawMessage    `json:"execution_receipt,omitempty"`
-	Proof             *TaskProofState    `json:"proof,omitempty"`
-	IdempotencyKey    string             `json:"idempotency_key"`
-	FailureReason     *string            `json:"failure_reason,omitempty"`
+	TaskID            uuid.UUID           `json:"task_id"`
+	TenantID          string              `json:"tenant_id"`
+	Status            TaskRecordStatus    `json:"status"`
+	RuntimeID         *string             `json:"runtime_id,omitempty"`
+	RuntimeEndpoint   *string             `json:"runtime_endpoint,omitempty"`
+	TaskDefinition    json.RawMessage     `json:"task_definition"`
+	LastCheckpoint    *CheckpointPayload  `json:"last_checkpoint,omitempty"`
+	ExecutionEnvelope json.RawMessage     `json:"execution_envelope,omitempty"`
+	ExecutionReceipt  json.RawMessage     `json:"execution_receipt,omitempty"`
+	Proof             *TaskProofState     `json:"proof,omitempty"`
+	IdempotencyKey    string              `json:"idempotency_key"`
+	FailureReason     *string             `json:"failure_reason,omitempty"`
 	FailureDetails    *TaskFailureDetails `json:"failure_details,omitempty"`
-	DeadlineAt        *time.Time         `json:"deadline_at,omitempty"`
-	DispatchedAt      *time.Time         `json:"dispatched_at,omitempty"`
-	CompletedAt       *time.Time         `json:"completed_at,omitempty"`
-	CanceledAt        *time.Time         `json:"canceled_at,omitempty"`
-	CreatedAt         time.Time          `json:"created_at"`
+	DeadlineAt        *time.Time          `json:"deadline_at,omitempty"`
+	DispatchedAt      *time.Time          `json:"dispatched_at,omitempty"`
+	CompletedAt       *time.Time          `json:"completed_at,omitempty"`
+	CanceledAt        *time.Time          `json:"canceled_at,omitempty"`
+	CreatedAt         time.Time           `json:"created_at"`
 }
 
 type TaskRecordStatus string
