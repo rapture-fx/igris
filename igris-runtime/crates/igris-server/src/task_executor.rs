@@ -4062,10 +4062,11 @@ mod tests {
         build_task_result_payload, collect_slot_inputs, compile_execution_graph_to_steps,
         deterministic_embedding, initialize_graph_blackboard, materialize_execution_graph,
         normalize_agent_mode, persist_task_status_index, resolve_graph_value,
-        robotics_action_name, stream_durability_metadata, task_status_key,
+        robotics_action_name, runtime_execution_failure_details,
+        stream_durability_metadata, task_status_key,
         update_graph_blackboard, AgentExecutionMode, BehaviorTreeStep, ExecutionGraph,
         ExecutionNode, HumanApprovalStep, RoboticsAction, RoboticsStep, RuntimeTaskStep,
-        StepExecutionResult, TaskStatus, TaskSubmitResponse, TaskType, ToolStep,
+        StepExecutionResult, TaskFailureDetails, TaskStatus, TaskSubmitResponse, TaskType, ToolStep,
     };
     use axum::{body::Body, http::StatusCode, response::Response};
     use crate::runtime_execute::ExecuteUsage;
@@ -4375,6 +4376,7 @@ mod tests {
             checkpoint: None,
             final_output: Some("final".to_string()),
             usage: None,
+            failure_details: None,
             execution_envelope: None,
             execution_receipt: None,
         };
@@ -4385,6 +4387,38 @@ mod tests {
         assert_eq!(payload["durability"]["resume_supported"], false);
         assert_eq!(payload["durability"]["replay_supported"], true);
         assert_eq!(payload["durability"]["checkpoint_persisted"], false);
+    }
+
+    #[test]
+    fn runtime_execution_failure_details_include_step_metadata() {
+        let step = RuntimeTaskStep::Tool(ToolStep {
+            step_index: 3,
+            node_id: "tool-3".to_string(),
+            checkpoint_key: None,
+            read_slots: None,
+            write_slot: Some("tool.output".to_string()),
+            tool_name: "web.search".to_string(),
+            args: None,
+        });
+
+        let details = runtime_execution_failure_details(
+            "step_failed",
+            "approval required for tool execution",
+            Some(&step),
+        );
+
+        assert_eq!(
+            details,
+            TaskFailureDetails {
+                source: "runtime".to_string(),
+                operation: "execution".to_string(),
+                rejection_type: "step_failed".to_string(),
+                message: "approval required for tool execution".to_string(),
+                step_index: Some(3),
+                domain: Some("tool".to_string()),
+                node_id: Some("tool-3".to_string()),
+            }
+        );
     }
 
     #[test]
@@ -4430,6 +4464,7 @@ mod tests {
             }),
             final_output: None,
             usage: None,
+            failure_details: None,
             execution_envelope: None,
             execution_receipt: None,
         };
@@ -4471,6 +4506,7 @@ mod tests {
             }),
             final_output: None,
             usage: None,
+            failure_details: None,
             execution_envelope: None,
             execution_receipt: None,
         };
@@ -4535,6 +4571,7 @@ mod tests {
             }),
             final_output: None,
             usage: None,
+            failure_details: None,
             execution_envelope: None,
             execution_receipt: None,
         };
@@ -4559,6 +4596,7 @@ mod tests {
             checkpoint: None,
             final_output: Some("done".to_string()),
             usage: None,
+            failure_details: None,
             execution_envelope: None,
             execution_receipt: None,
         };
