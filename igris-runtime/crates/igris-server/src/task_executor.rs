@@ -398,6 +398,20 @@ pub enum TaskStatus {
     Failed { reason: String },
 }
 
+#[derive(Debug, Clone, Serialize, Deserialize, PartialEq, Eq)]
+pub struct TaskFailureDetails {
+    pub source: String,
+    pub operation: String,
+    pub rejection_type: String,
+    pub message: String,
+    #[serde(skip_serializing_if = "Option::is_none")]
+    pub step_index: Option<u32>,
+    #[serde(skip_serializing_if = "Option::is_none")]
+    pub domain: Option<String>,
+    #[serde(skip_serializing_if = "Option::is_none")]
+    pub node_id: Option<String>,
+}
+
 #[derive(Debug, Clone, Serialize, Deserialize)]
 pub struct TaskSubmitResponse {
     pub task_id: Uuid,
@@ -410,6 +424,8 @@ pub struct TaskSubmitResponse {
     pub final_output: Option<String>,
     #[serde(skip_serializing_if = "Option::is_none")]
     pub usage: Option<ExecuteUsage>,
+    #[serde(skip_serializing_if = "Option::is_none")]
+    pub failure_details: Option<TaskFailureDetails>,
     #[serde(skip_serializing_if = "Option::is_none")]
     pub execution_envelope: Option<serde_json::Value>,
     #[serde(skip_serializing_if = "Option::is_none")]
@@ -450,6 +466,18 @@ impl RuntimeTaskStep {
             Self::Agent(step) => step.model.as_str(),
             Self::Robotics(_) => "robotics",
             Self::Tool(step) => step.tool_name.as_str(),
+            Self::HumanApproval(_) => "human_approval",
+            Self::MemoryRecall(_) => "memory_recall",
+            Self::MemoryStore(_) => "memory_store",
+            Self::BehaviorTree(_) => "behavior_tree",
+        }
+    }
+
+    fn domain_name(&self) -> &'static str {
+        match self {
+            Self::Agent(_) => "agent",
+            Self::Robotics(_) => "robotics",
+            Self::Tool(_) => "tool",
             Self::HumanApproval(_) => "human_approval",
             Self::MemoryRecall(_) => "memory_recall",
             Self::MemoryStore(_) => "memory_store",
@@ -1521,6 +1549,7 @@ fn build_task_result_payload(response: &TaskSubmitResponse) -> serde_json::Value
         "resolved_strategy": resolved_strategy,
         "final_output": response.final_output,
         "usage": response.usage,
+        "failure_details": response.failure_details,
         "execution_envelope": response.execution_envelope,
         "execution_receipt": response.execution_receipt,
         "durability": stream_durability_metadata(Some(response)),
@@ -1618,6 +1647,23 @@ struct StreamFailureResult {
     client_message: String,
 }
 
+fn runtime_execution_failure_details(
+    rejection_type: &str,
+    message: impl Into<String>,
+    step: Option<&RuntimeTaskStep>,
+) -> TaskFailureDetails {
+    let message = message.into();
+    TaskFailureDetails {
+        source: "runtime".to_string(),
+        operation: "execution".to_string(),
+        rejection_type: rejection_type.to_string(),
+        message,
+        step_index: step.map(RuntimeTaskStep::step_index),
+        domain: step.map(|step| step.domain_name().to_string()),
+        node_id: step.map(|step| step.node_id().to_string()),
+    }
+}
+
 fn build_checkpoint(
     wal: &WalLog,
     task_id: Uuid,
@@ -1665,6 +1711,7 @@ fn build_task_response_snapshot(response: &TaskSubmitResponse) -> serde_json::Va
         "steps_total": response.steps_total,
         "checkpoint_persisted": response.checkpoint.is_some(),
         "final_output_available": response.final_output.is_some(),
+        "failure_details": response.failure_details,
     })
 }
 
