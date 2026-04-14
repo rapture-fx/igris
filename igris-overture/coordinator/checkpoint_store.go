@@ -77,11 +77,11 @@ type TaskProofState struct {
 }
 
 type TaskFailureDetails struct {
-	Source        string `json:"source,omitempty"`
-	Operation     string `json:"operation,omitempty"`
-	StatusCode    int    `json:"status_code,omitempty"`
-	RejectionType string `json:"rejection_type,omitempty"`
-	Message       string `json:"message,omitempty"`
+	Source        string  `json:"source,omitempty"`
+	Operation     string  `json:"operation,omitempty"`
+	StatusCode    int     `json:"status_code,omitempty"`
+	RejectionType string  `json:"rejection_type,omitempty"`
+	Message       string  `json:"message,omitempty"`
 	StepIndex     *uint32 `json:"step_index,omitempty"`
 	Domain        string  `json:"domain,omitempty"`
 	NodeID        string  `json:"node_id,omitempty"`
