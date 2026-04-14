@@ -1860,6 +1860,7 @@ fn build_task_cancel_response(
                 "reason": reason,
                 "status": response.status,
                 "checkpoint_persisted": response.checkpoint.is_some(),
+                "failure_details": response.failure_details,
             }),
         );
     }
@@ -4500,7 +4501,15 @@ mod tests {
             }),
             final_output: None,
             usage: None,
-            failure_details: None,
+            failure_details: Some(TaskFailureDetails {
+                source: "runtime".to_string(),
+                operation: "execution".to_string(),
+                rejection_type: "step_failed".to_string(),
+                message: "approval required for tool execution".to_string(),
+                step_index: Some(3),
+                domain: Some("tool".to_string()),
+                node_id: Some("tool-3".to_string()),
+            }),
             execution_envelope: None,
             execution_receipt: None,
         };
@@ -4515,6 +4524,13 @@ mod tests {
         assert_eq!(payload["checkpoint_persisted"], true);
         assert_eq!(payload["status"]["status"], "failed");
         assert_eq!(payload["status"]["reason"], "task failed");
+        assert_eq!(payload["failure_details"]["source"], "runtime");
+        assert_eq!(payload["failure_details"]["operation"], "execution");
+        assert_eq!(payload["failure_details"]["rejection_type"], "step_failed");
+        assert_eq!(payload["failure_details"]["message"], "approval required for tool execution");
+        assert_eq!(payload["failure_details"]["step_index"], 3);
+        assert_eq!(payload["failure_details"]["domain"], "tool");
+        assert_eq!(payload["failure_details"]["node_id"], "tool-3");
     }
 
     #[test]
