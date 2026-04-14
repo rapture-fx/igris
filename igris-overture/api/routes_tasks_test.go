@@ -901,6 +901,78 @@ func TestHandleGetTaskReturnsRuntimeResumeConflictFailureReason(t *testing.T) {
 	require.Equal(t, 0, queued.remainingQueries())
 }
 
+func TestHandleGetTaskReturnsRuntimeExecutionFailureDetails(t *testing.T) {
+	t.Parallel()
+
+	taskID := uuid.New()
+	tenantID := "tenant-runtime-execution-failure"
+	runtimeID := "runtime-execution-failure"
+	stepIndex := uint32(3)
+	failureReason := "Step 3 failed: approval required for tool execution"
+	failureDetails := &coordinator.TaskFailureDetails{
+		Source:        "runtime",
+		Operation:     "execution",
+		RejectionType: "step_failed",
+		Message:       "approval required for tool execution",
+		StepIndex:     &stepIndex,
+		Domain:        "tool",
+		NodeID:        "tool-3",
+	}
+	createdAt := time.Unix(1_700_001_170, 0).UTC()
+
+	db, queued := newQueuedRouteDB(t, []queuedRouteQueryExpectation{{
+		columns: []string{
+			"task_id", "tenant_id", "status", "runtime_id", "runtime_endpoint",
+			"task_definition", "last_checkpoint", "execution_envelope", "execution_receipt",
+			"proof_execution_id", "proof_expected_hash", "proof_stored_hash", "proof_signature", "proof_status", "proof_checked_at",
+			"idempotency_key", "failure_reason", "failure_details",
+			"deadline_at", "dispatched_at", "completed_at", "canceled_at", "created_at",
+		},
+		rows: [][]driver.Value{taskRecordRouteRow(
+			taskID,
+			tenantID,
+			coordinator.TaskStatusFailed,
+			runtimeID,
+			"http://runtime.test",
+			json.RawMessage(`{"type":"execution_graph","graph":{"nodes":[{"kind":"tool","node_id":"tool-3","tool_name":"web.search"}]}}`),
+			nil,
+			"idem-runtime-execution-failure",
+			&failureReason,
+			nil,
+			nil,
+			createdAt,
+			failureDetails,
+		)},
+	}})
+
+	app := fiber.New()
+	app.Use(func(c *fiber.Ctx) error {
+		c.Locals("clerk_user_id", tenantID)
+		return c.Next()
+	})
+	app.Get("/v1/tasks/:id", handleGetTask(coordinator.NewTaskCoordinator(db)))
+
+	req := httptest.NewRequest(http.MethodGet, "/v1/tasks/"+taskID.String(), nil)
+	resp, err := app.Test(req)
+	require.NoError(t, err)
+	require.Equal(t, http.StatusOK, resp.StatusCode)
+
+	var body map[string]any
+	require.NoError(t, json.NewDecoder(resp.Body).Decode(&body))
+	require.Equal(t, "failed", body["status"])
+	require.Equal(t, failureReason, body["failure_reason"])
+	require.Equal(t, map[string]any{
+		"source":         "runtime",
+		"operation":      "execution",
+		"rejection_type": "step_failed",
+		"message":        "approval required for tool execution",
+		"step_index":     float64(3),
+		"domain":         "tool",
+		"node_id":        "tool-3",
+	}, body["failure_details"])
+	require.Equal(t, 0, queued.remainingQueries())
+}
+
 func TestHandleListTasksIncludesRuntimeSubmitConflictFailureReason(t *testing.T) {
 	t.Parallel()
 
