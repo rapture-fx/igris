@@ -787,6 +787,11 @@ pub async fn handle_task_submit(
                     checkpoint: None,
                     final_output: None,
                     usage: None,
+                    failure_details: Some(runtime_execution_failure_details(
+                        "behavior_tree_execution_error",
+                        e.to_string(),
+                        None,
+                    )),
                     execution_envelope: None,
                     execution_receipt: None,
                 };
@@ -795,17 +800,25 @@ pub async fn handle_task_submit(
             }
         };
         let response_checkpoint = bt.checkpoint;
-        let (status, steps_completed) = match bt.result.status {
-            NodeStatus::Success => (TaskStatus::Completed, 1u32),
-            NodeStatus::Failure | NodeStatus::Skipped => (
-                TaskStatus::Failed {
-                    reason: bt
-                        .result
-                        .error
-                        .unwrap_or_else(|| "behavior tree returned Failure".into()),
-                },
-                0u32,
-            ),
+        let (status, steps_completed, failure_details) = match bt.result.status {
+            NodeStatus::Success => (TaskStatus::Completed, 1u32, None),
+            NodeStatus::Failure | NodeStatus::Skipped => {
+                let reason = bt
+                    .result
+                    .error
+                    .unwrap_or_else(|| "behavior tree returned Failure".into());
+                (
+                    TaskStatus::Failed {
+                        reason: reason.clone(),
+                    },
+                    0u32,
+                    Some(runtime_execution_failure_details(
+                        "behavior_tree_failed",
+                        reason,
+                        None,
+                    )),
+                )
+            }
             NodeStatus::Running => {
                 if let Some(ref cp) = response_checkpoint {
                     (
@@ -813,6 +826,7 @@ pub async fn handle_task_submit(
                             resume_token: cp.resume_token.clone(),
                         },
                         bt.result.tick_count as u32,
+                        None,
                     )
                 } else {
                     (
@@ -820,6 +834,11 @@ pub async fn handle_task_submit(
                             reason: "execution interrupted without checkpoint".into(),
                         },
                         0u32,
+                        Some(runtime_execution_failure_details(
+                            "execution_interrupted_without_checkpoint",
+                            "execution interrupted without checkpoint",
+                            None,
+                        )),
                     )
                 }
             }
@@ -833,6 +852,7 @@ pub async fn handle_task_submit(
             checkpoint: response_checkpoint,
             final_output: None,
             usage: None,
+            failure_details,
             execution_envelope: None,
             execution_receipt: None,
         };
@@ -892,6 +912,11 @@ pub async fn handle_task_submit(
                 checkpoint,
                 final_output: last_output,
                 usage: last_usage,
+                failure_details: Some(runtime_execution_failure_details(
+                    "task_canceled",
+                    task_cancellation_reason(req.task_id),
+                    None,
+                )),
                 execution_envelope: last_envelope,
                 execution_receipt: last_receipt,
             };
@@ -929,6 +954,7 @@ pub async fn handle_task_submit(
                 checkpoint: Some(payload),
                 final_output: last_output,
                 usage: last_usage,
+                failure_details: None,
                 execution_envelope: last_envelope,
                 execution_receipt: last_receipt,
             };
@@ -1025,6 +1051,11 @@ pub async fn handle_task_submit(
                     checkpoint,
                     final_output: last_output,
                     usage: last_usage,
+                    failure_details: Some(runtime_execution_failure_details(
+                        "step_failed",
+                        e.to_string(),
+                        Some(step),
+                    )),
                     execution_envelope: last_envelope,
                     execution_receipt: last_receipt,
                 };
@@ -1048,6 +1079,11 @@ pub async fn handle_task_submit(
                 checkpoint,
                 final_output: last_output,
                 usage: last_usage,
+                failure_details: Some(runtime_execution_failure_details(
+                    "task_canceled",
+                    task_cancellation_reason(req.task_id),
+                    Some(step),
+                )),
                 execution_envelope: last_envelope,
                 execution_receipt: last_receipt,
             };
@@ -1088,6 +1124,7 @@ pub async fn handle_task_submit(
                 checkpoint: Some(payload),
                 final_output: last_output,
                 usage: last_usage,
+                failure_details: None,
                 execution_envelope: last_envelope,
                 execution_receipt: last_receipt,
             };
@@ -1213,6 +1250,7 @@ pub async fn handle_task_submit(
         checkpoint: final_checkpoint,
         final_output: last_output,
         usage: last_usage,
+        failure_details: None,
         execution_envelope: last_envelope,
         execution_receipt: last_receipt,
     };
