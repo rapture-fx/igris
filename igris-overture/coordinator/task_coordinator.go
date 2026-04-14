@@ -319,13 +319,13 @@ func (tc *TaskCoordinator) dispatchToRuntime(ctx context.Context, task *TaskReco
 }
 
 type taskSubmitResult struct {
-	TaskID            uuid.UUID          `json:"task_id"`
-	Status            string             `json:"status"` // completed | checkpointed | failed
-	Checkpoint        *CheckpointPayload `json:"checkpoint,omitempty"`
-	FailureReason     string             `json:"reason,omitempty"` // matches Rust TaskStatus::Failed { reason }
+	TaskID            uuid.UUID           `json:"task_id"`
+	Status            string              `json:"status"` // completed | checkpointed | failed
+	Checkpoint        *CheckpointPayload  `json:"checkpoint,omitempty"`
+	FailureReason     string              `json:"reason,omitempty"` // matches Rust TaskStatus::Failed { reason }
 	FailureDetails    *TaskFailureDetails `json:"failure_details,omitempty"`
-	ExecutionEnvelope json.RawMessage    `json:"execution_envelope,omitempty"`
-	ExecutionReceipt  json.RawMessage    `json:"execution_receipt,omitempty"`
+	ExecutionEnvelope json.RawMessage     `json:"execution_envelope,omitempty"`
+	ExecutionReceipt  json.RawMessage     `json:"execution_receipt,omitempty"`
 }
 
 func runtimeTaskDispatchFailure(statusCode int, raw []byte, resumed bool) (string, *TaskFailureDetails) {
