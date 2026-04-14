@@ -4349,6 +4349,7 @@ mod tests {
             }),
             final_output: Some("done".to_string()),
             usage: None,
+            failure_details: None,
             execution_envelope: None,
             execution_receipt: None,
         };
@@ -4387,6 +4388,41 @@ mod tests {
         assert_eq!(payload["durability"]["resume_supported"], false);
         assert_eq!(payload["durability"]["replay_supported"], true);
         assert_eq!(payload["durability"]["checkpoint_persisted"], false);
+    }
+
+    #[test]
+    fn build_task_result_payload_includes_failure_details() {
+        let response = TaskSubmitResponse {
+            task_id: Uuid::nil(),
+            steps_completed: 2,
+            steps_total: 5,
+            status: TaskStatus::Failed {
+                reason: "Step 3 failed: approval required for tool execution".to_string(),
+            },
+            checkpoint: None,
+            final_output: None,
+            usage: None,
+            failure_details: Some(TaskFailureDetails {
+                source: "runtime".to_string(),
+                operation: "execution".to_string(),
+                rejection_type: "step_failed".to_string(),
+                message: "approval required for tool execution".to_string(),
+                step_index: Some(3),
+                domain: Some("tool".to_string()),
+                node_id: Some("tool-3".to_string()),
+            }),
+            execution_envelope: None,
+            execution_receipt: None,
+        };
+
+        let payload = build_task_result_payload(&response);
+        assert_eq!(payload["failure_details"]["source"], "runtime");
+        assert_eq!(payload["failure_details"]["operation"], "execution");
+        assert_eq!(payload["failure_details"]["rejection_type"], "step_failed");
+        assert_eq!(payload["failure_details"]["message"], "approval required for tool execution");
+        assert_eq!(payload["failure_details"]["step_index"], 3);
+        assert_eq!(payload["failure_details"]["domain"], "tool");
+        assert_eq!(payload["failure_details"]["node_id"], "tool-3");
     }
 
     #[test]
