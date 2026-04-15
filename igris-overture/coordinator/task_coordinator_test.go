@@ -757,7 +757,7 @@ func TestDispatchToRuntimePreservesCheckpointAndFailureDetailsOnExecutionFailure
 			check: func(query string, args []driver.NamedValue) {
 				require.Contains(t, query, "UPDATE task_records")
 				require.Equal(t, string(TaskStatusCheckpointed), args[0].Value)
-				require.Equal(t, checkpointBytes, []byte(args[1].Value.(json.RawMessage)))
+				require.Equal(t, checkpointBytes, args[1].Value.([]byte))
 				require.Equal(t, taskID, args[2].Value)
 			},
 		},
@@ -775,7 +775,7 @@ func TestDispatchToRuntimePreservesCheckpointAndFailureDetailsOnExecutionFailure
 				require.Contains(t, query, "SET status = $1, failure_reason = $2, failure_details = $3")
 				require.Equal(t, string(TaskStatusFailed), args[0].Value)
 				require.Equal(t, failureReason, args[1].Value)
-				require.Equal(t, failureDetailBytes, []byte(args[2].Value.(json.RawMessage)))
+				require.Equal(t, failureDetailBytes, args[2].Value.([]byte))
 				require.Equal(t, taskID, args[3].Value)
 			},
 		},
