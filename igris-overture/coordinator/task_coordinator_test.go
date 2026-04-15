@@ -742,8 +742,6 @@ func TestDispatchToRuntimePreservesCheckpointAndFailureDetailsOnExecutionFailure
 		Metadata:   json.RawMessage(`{"domain":"tool","node_id":"tool-5"}`),
 		CapturedAt: time.Unix(1_900_000_305, 0).UTC(),
 	}
-	checkpointBytes, err := json.Marshal(checkpoint)
-	require.NoError(t, err)
 	failureDetailBytes, err := json.Marshal(failureDetails)
 	require.NoError(t, err)
 
@@ -757,7 +755,15 @@ func TestDispatchToRuntimePreservesCheckpointAndFailureDetailsOnExecutionFailure
 			check: func(query string, args []driver.NamedValue) {
 				require.Contains(t, query, "UPDATE task_records")
 				require.Equal(t, string(TaskStatusCheckpointed), args[0].Value)
-				require.Equal(t, checkpointBytes, args[1].Value.([]byte))
+				var persisted CheckpointPayload
+				require.NoError(t, json.Unmarshal(args[1].Value.([]byte), &persisted))
+				require.Equal(t, checkpoint.ResumeToken, persisted.ResumeToken)
+				require.Equal(t, checkpoint.Metadata, persisted.Metadata)
+				require.Len(t, persisted.WalEntries, 1)
+				require.EqualValues(t, 5, persisted.WalEntries[0].StepIndex)
+				require.Equal(t, "tool", persisted.WalEntries[0].StepType)
+				require.Equal(t, "failed", persisted.WalEntries[0].Status)
+				require.Equal(t, "abcd", persisted.WalEntries[0].InputDigest)
 				require.Equal(t, taskID, args[2].Value)
 			},
 		},
