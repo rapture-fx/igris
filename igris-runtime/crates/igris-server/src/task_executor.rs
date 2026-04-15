@@ -1743,7 +1743,7 @@ fn encode_checkpoint_digest(digest: &[u8; 32]) -> String {
 }
 
 fn build_task_response_snapshot(response: &TaskSubmitResponse) -> serde_json::Value {
-    serde_json::json!({
+    let mut payload = serde_json::json!({
         "task_id": response.task_id,
         "status": response.status,
         "steps_completed": response.steps_completed,
@@ -1751,7 +1751,13 @@ fn build_task_response_snapshot(response: &TaskSubmitResponse) -> serde_json::Va
         "checkpoint_persisted": response.checkpoint.is_some(),
         "final_output_available": response.final_output.is_some(),
         "failure_details": response.failure_details,
-    })
+    });
+    if let Some(checkpoint) = response.checkpoint.as_ref() {
+        payload["last_step"] = serde_json::json!(checkpoint.resume_token.last_committed_step);
+        payload["checkpoint_digest"] =
+            serde_json::json!(checkpoint.resume_token.checkpoint_digest);
+    }
+    payload
 }
 
 fn build_idempotency_conflict_payload(response: &TaskSubmitResponse) -> serde_json::Value {
@@ -1849,20 +1855,23 @@ fn build_task_cancel_response(
             TaskStatus::Checkpointed { .. } => "task_execution_checkpointed",
             TaskStatus::Failed { .. } => "task_execution_failed",
         };
-        return (
-            StatusCode::CONFLICT,
-            serde_json::json!({
-                "task_id": task_id,
-                "canceled": false,
-                "known": true,
-                "active_execution": false,
-                "cancellation_allowed": false,
-                "reason": reason,
-                "status": response.status,
-                "checkpoint_persisted": response.checkpoint.is_some(),
-                "failure_details": response.failure_details,
-            }),
-        );
+        let mut payload = serde_json::json!({
+            "task_id": task_id,
+            "canceled": false,
+            "known": true,
+            "active_execution": false,
+            "cancellation_allowed": false,
+            "reason": reason,
+            "status": response.status,
+            "checkpoint_persisted": response.checkpoint.is_some(),
+            "failure_details": response.failure_details,
+        });
+        if let Some(checkpoint) = response.checkpoint.as_ref() {
+            payload["last_step"] = serde_json::json!(checkpoint.resume_token.last_committed_step);
+            payload["checkpoint_digest"] =
+                serde_json::json!(checkpoint.resume_token.checkpoint_digest);
+        }
+        return (StatusCode::CONFLICT, payload);
     }
 
     (
