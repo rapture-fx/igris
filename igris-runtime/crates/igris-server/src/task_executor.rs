@@ -4531,6 +4531,11 @@ mod tests {
         assert_eq!(payload["cancellation_allowed"], false);
         assert_eq!(payload["reason"], "task_execution_failed");
         assert_eq!(payload["checkpoint_persisted"], true);
+        assert_eq!(payload["last_step"], 2);
+        assert_eq!(
+            payload["checkpoint_digest"],
+            "1111111111111111111111111111111111111111111111111111111111111111"
+        );
         assert_eq!(payload["status"]["status"], "failed");
         assert_eq!(payload["status"]["reason"], "task failed");
         assert_eq!(payload["failure_details"]["source"], "runtime");
@@ -4578,6 +4583,11 @@ mod tests {
         assert_eq!(payload["task"]["steps_completed"], 2);
         assert_eq!(payload["task"]["steps_total"], 4);
         assert_eq!(payload["task"]["checkpoint_persisted"], true);
+        assert_eq!(payload["task"]["last_step"], 2);
+        assert_eq!(
+            payload["task"]["checkpoint_digest"],
+            "2222222222222222222222222222222222222222222222222222222222222222"
+        );
         assert_eq!(payload["task"]["final_output_available"], false);
         assert_eq!(payload["task"]["status"]["status"], "checkpointed");
     }
@@ -4641,6 +4651,11 @@ mod tests {
         assert_eq!(payload["error"]["type"], "stream_replay_unavailable");
         assert_eq!(payload["task"]["task_id"], response.task_id.to_string());
         assert_eq!(payload["task"]["status"]["status"], "checkpointed");
+        assert_eq!(payload["task"]["last_step"], 1);
+        assert_eq!(
+            payload["task"]["checkpoint_digest"],
+            "5555555555555555555555555555555555555555555555555555555555555555"
+        );
         assert_eq!(payload["durability"]["resume_supported"], false);
         assert_eq!(payload["durability"]["checkpoint_persisted"], true);
     }
