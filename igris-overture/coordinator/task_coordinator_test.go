@@ -764,14 +764,14 @@ func TestDispatchToRuntimePreservesCheckpointAndFailureDetailsOnExecutionFailure
 				require.Equal(t, "tool", persisted.WalEntries[0].StepType)
 				require.Equal(t, "failed", persisted.WalEntries[0].Status)
 				require.Equal(t, "abcd", persisted.WalEntries[0].InputDigest)
-				require.Equal(t, taskID, args[2].Value)
+				require.Equal(t, taskID.String(), args[2].Value)
 			},
 		},
 		queuedExecExpectation{
 			rowsAffected: 1,
 			check: func(query string, args []driver.NamedValue) {
 				require.Contains(t, query, "INSERT INTO wal_checkpoints")
-				require.Equal(t, taskID, args[1].Value)
+				require.Equal(t, taskID.String(), args[1].Value)
 				require.EqualValues(t, 5, args[2].Value)
 			},
 		},
@@ -782,7 +782,7 @@ func TestDispatchToRuntimePreservesCheckpointAndFailureDetailsOnExecutionFailure
 				require.Equal(t, string(TaskStatusFailed), args[0].Value)
 				require.Equal(t, failureReason, args[1].Value)
 				require.Equal(t, failureDetailBytes, args[2].Value.([]byte))
-				require.Equal(t, taskID, args[3].Value)
+				require.Equal(t, taskID.String(), args[3].Value)
 			},
 		},
 	)
