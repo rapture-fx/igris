@@ -1755,7 +1755,7 @@ fn build_task_response_snapshot(response: &TaskSubmitResponse) -> serde_json::Va
     if let Some(checkpoint) = response.checkpoint.as_ref() {
         payload["last_step"] = serde_json::json!(checkpoint.resume_token.last_committed_step);
         payload["checkpoint_digest"] =
-            serde_json::json!(checkpoint.resume_token.checkpoint_digest);
+            serde_json::json!(encode_checkpoint_digest(&checkpoint.resume_token.checkpoint_digest));
     }
     payload
 }
@@ -1869,7 +1869,7 @@ fn build_task_cancel_response(
         if let Some(checkpoint) = response.checkpoint.as_ref() {
             payload["last_step"] = serde_json::json!(checkpoint.resume_token.last_committed_step);
             payload["checkpoint_digest"] =
-                serde_json::json!(checkpoint.resume_token.checkpoint_digest);
+                serde_json::json!(encode_checkpoint_digest(&checkpoint.resume_token.checkpoint_digest));
         }
         return (StatusCode::CONFLICT, payload);
     }
