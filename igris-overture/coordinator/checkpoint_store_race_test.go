@@ -15,6 +15,7 @@ import (
 type queuedExecExpectation struct {
 	rowsAffected int64
 	err          error
+	check        func(query string, args []driver.NamedValue)
 }
 
 type queuedQueryExpectation struct {
@@ -33,7 +34,9 @@ type queuedExecConn struct {
 	driver *queuedExecDriver
 }
 
-type queuedExecTx struct{}
+type queuedExecTx struct {
+	driver *queuedExecDriver
+}
 
 func newQueuedExecDB(t *testing.T, expectations ...queuedExecExpectation) (*sql.DB, *queuedExecDriver) {
 	t.Helper()
@@ -82,12 +85,15 @@ func (d *queuedExecDriver) Open(string) (driver.Conn, error) {
 	return &queuedExecConn{driver: d}, nil
 }
 
-func (d *queuedExecDriver) nextResult() (driver.Result, error) {
+func (d *queuedExecDriver) nextResult(query string, args []driver.NamedValue) (driver.Result, error) {
 	if len(d.execs) == 0 {
 		return nil, errors.New("unexpected exec")
 	}
 	next := d.execs[0]
 	d.execs = d.execs[1:]
+	if next.check != nil {
+		next.check(query, args)
+	}
 	if next.err != nil {
 		return nil, next.err
 	}
@@ -133,15 +139,15 @@ func (c *queuedExecConn) Close() error {
 }
 
 func (c *queuedExecConn) Begin() (driver.Tx, error) {
-	return queuedExecTx{}, nil
+	return queuedExecTx{driver: c.driver}, nil
 }
 
 func (c *queuedExecConn) BeginTx(context.Context, driver.TxOptions) (driver.Tx, error) {
-	return queuedExecTx{}, nil
+	return queuedExecTx{driver: c.driver}, nil
 }
 
-func (c *queuedExecConn) ExecContext(context.Context, string, []driver.NamedValue) (driver.Result, error) {
-	return c.driver.nextResult()
+func (c *queuedExecConn) ExecContext(_ context.Context, query string, args []driver.NamedValue) (driver.Result, error) {
+	return c.driver.nextResult(query, args)
 }
 
 func (c *queuedExecConn) QueryContext(context.Context, string, []driver.NamedValue) (driver.Rows, error) {
@@ -154,6 +160,14 @@ func (tx queuedExecTx) Commit() error {
 
 func (tx queuedExecTx) Rollback() error {
 	return nil
+}
+
+func (tx queuedExecTx) ExecContext(_ context.Context, query string, args []driver.NamedValue) (driver.Result, error) {
+	return tx.driver.nextResult(query, args)
+}
+
+func (tx queuedExecTx) QueryContext(context.Context, string, []driver.NamedValue) (driver.Rows, error) {
+	return tx.driver.nextQueryRows()
 }
 
 type queuedRows struct {
