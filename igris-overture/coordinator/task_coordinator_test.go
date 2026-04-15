@@ -715,6 +715,131 @@ func TestDispatchToRuntimeMarksFailedOnConflictResponse(t *testing.T) {
 	require.Equal(t, 0, queued.remainingExecs())
 }
 
+func TestDispatchToRuntimePreservesCheckpointAndFailureDetailsOnExecutionFailure(t *testing.T) {
+	t.Parallel()
+
+	taskID := uuid.New()
+	runtimeID := "runtime-execution-failed"
+	stepIndex := uint32(5)
+	failureReason := "Step 5 failed: approval required for tool execution"
+	failureDetails := &TaskFailureDetails{
+		Source:        "runtime",
+		Operation:     "execution",
+		RejectionType: "step_failed",
+		Message:       "approval required for tool execution",
+		StepIndex:     &stepIndex,
+		Domain:        "tool",
+		NodeID:        "tool-5",
+	}
+	checkpoint := &CheckpointPayload{
+		TaskID: taskID,
+		ResumeToken: ResumeToken{
+			LastCommittedStep: 5,
+			CheckpointDigest:  "digest-5",
+			RuntimeID:         runtimeID,
+		},
+		WalEntries: []WalEntry{{TaskID: taskID, StepIndex: 5, RuntimeID: runtimeID}},
+		Metadata:   json.RawMessage(`{"domain":"tool","node_id":"tool-5"}`),
+		CapturedAt: time.Unix(1_900_000_305, 0).UTC(),
+	}
+	checkpointBytes, err := json.Marshal(checkpoint)
+	require.NoError(t, err)
+	failureDetailBytes, err := json.Marshal(failureDetails)
+	require.NoError(t, err)
+
+	db, queued := newQueuedCheckpointDB(t,
+		[]queuedQueryExpectation{{
+			columns: []string{"last_checkpoint"},
+			values:  []driver.Value{nil},
+		}},
+		queuedExecExpectation{
+			rowsAffected: 1,
+			check: func(query string, args []driver.NamedValue) {
+				require.Contains(t, query, "UPDATE task_records")
+				require.Equal(t, TaskStatusCheckpointed, args[0].Value)
+				require.Equal(t, checkpointBytes, []byte(args[1].Value.(json.RawMessage)))
+				require.Equal(t, taskID, args[2].Value)
+			},
+		},
+		queuedExecExpectation{
+			rowsAffected: 1,
+			check: func(query string, args []driver.NamedValue) {
+				require.Contains(t, query, "INSERT INTO wal_checkpoints")
+				require.Equal(t, taskID, args[1].Value)
+				require.EqualValues(t, 5, args[2].Value)
+			},
+		},
+		queuedExecExpectation{
+			rowsAffected: 1,
+			check: func(query string, args []driver.NamedValue) {
+				require.Contains(t, query, "SET status = $1, failure_reason = $2, failure_details = $3")
+				require.Equal(t, TaskStatusFailed, args[0].Value)
+				require.Equal(t, failureReason, args[1].Value)
+				require.Equal(t, failureDetailBytes, []byte(args[2].Value.(json.RawMessage)))
+				require.Equal(t, taskID, args[3].Value)
+			},
+		},
+	)
+
+	tc := &TaskCoordinator{
+		store: NewCheckpointStore(db),
+		httpClient: &http.Client{Transport: roundTripperFunc(func(*http.Request) (*http.Response, error) {
+			return &http.Response{
+				StatusCode: http.StatusOK,
+				Header:     http.Header{"Content-Type": []string{"application/json"}},
+				Body: io.NopCloser(strings.NewReader(`{
+					"task_id":"` + taskID.String() + `",
+					"status":"failed",
+					"reason":"Step 5 failed: approval required for tool execution",
+					"checkpoint":{
+						"task_id":"` + taskID.String() + `",
+						"resume_token":{
+							"last_committed_step":5,
+							"checkpoint_digest":"digest-5",
+							"runtime_id":"` + runtimeID + `"
+						},
+						"wal_entries":[
+							{
+								"entry_id":"` + uuid.NewString() + `",
+								"task_id":"` + taskID.String() + `",
+								"step_index":5,
+								"step_type":"tool",
+								"status":"failed",
+								"input_digest":"abcd",
+								"timestamp_ms":1700000305000,
+								"runtime_id":"` + runtimeID + `"
+							}
+						],
+						"metadata":{"domain":"tool","node_id":"tool-5"},
+						"captured_at":"2030-03-17T17:11:45Z"
+					},
+					"failure_details":{
+						"source":"runtime",
+						"operation":"execution",
+						"rejection_type":"step_failed",
+						"message":"approval required for tool execution",
+						"step_index":5,
+						"domain":"tool",
+						"node_id":"tool-5"
+					}
+				}`)),
+			}, nil
+		})},
+	}
+
+	tc.dispatchToRuntime(context.Background(), &TaskRecord{
+		TaskID:          taskID,
+		TenantID:        "tenant-execution-failed",
+		RuntimeID:       &runtimeID,
+		RuntimeEndpoint: ptrString("http://runtime.test"),
+		TaskDefinition:  json.RawMessage(`{"type":"execution_graph","graph":{"nodes":[{"kind":"tool","node_id":"tool-5","tool_name":"web.search"}]}}`),
+		IdempotencyKey:  "idem-execution-failed",
+	}, nil)
+
+	require.Equal(t, 0, queued.remainingQueries())
+	require.Equal(t, 0, queued.remainingExecs())
+}
+
 func TestRecoverRuntimeRedispatchUsesNewestTaskCheckpointSource(t *testing.T) {
 	t.Parallel()
 
