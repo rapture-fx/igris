@@ -973,6 +973,95 @@ func TestHandleGetTaskReturnsRuntimeExecutionFailureDetails(t *testing.T) {
 	require.Equal(t, 0, queued.remainingQueries())
 }
 
+func TestHandleGetTaskReturnsRuntimeExecutionFailureDetailsWithCheckpointProgress(t *testing.T) {
+	t.Parallel()
+
+	taskID := uuid.New()
+	tenantID := "tenant-runtime-execution-failure-checkpoint"
+	runtimeID := "runtime-execution-failure-checkpoint"
+	stepIndex := uint32(5)
+	failureReason := "Step 5 failed: approval required for tool execution"
+	failureDetails := &coordinator.TaskFailureDetails{
+		Source:        "runtime",
+		Operation:     "execution",
+		RejectionType: "step_failed",
+		Message:       "approval required for tool execution",
+		StepIndex:     &stepIndex,
+		Domain:        "tool",
+		NodeID:        "tool-5",
+	}
+	checkpoint := &coordinator.CheckpointPayload{
+		TaskID: taskID,
+		ResumeToken: coordinator.ResumeToken{
+			LastCommittedStep: 5,
+			CheckpointDigest:  "digest-5",
+			RuntimeID:         runtimeID,
+		},
+		WalEntries: []coordinator.WalEntry{{TaskID: taskID, StepIndex: 5, RuntimeID: runtimeID}},
+		Metadata:   json.RawMessage(`{"domain":"tool","node_id":"tool-5"}`),
+		CapturedAt: time.Unix(1_700_001_180, 0).UTC(),
+	}
+	createdAt := time.Unix(1_700_001_181, 0).UTC()
+
+	db, queued := newQueuedRouteDB(t, []queuedRouteQueryExpectation{{
+		columns: []string{
+			"task_id", "tenant_id", "status", "runtime_id", "runtime_endpoint",
+			"task_definition", "last_checkpoint", "execution_envelope", "execution_receipt",
+			"proof_execution_id", "proof_expected_hash", "proof_stored_hash", "proof_signature", "proof_status", "proof_checked_at",
+			"idempotency_key", "failure_reason", "failure_details",
+			"deadline_at", "dispatched_at", "completed_at", "canceled_at", "created_at",
+		},
+		rows: [][]driver.Value{taskRecordRouteRow(
+			taskID,
+			tenantID,
+			coordinator.TaskStatusFailed,
+			runtimeID,
+			"http://runtime.test",
+			json.RawMessage(`{"type":"execution_graph","graph":{"nodes":[{"kind":"tool","node_id":"tool-5","tool_name":"web.search"}]}}`),
+			checkpoint,
+			"idem-runtime-execution-failure-checkpoint",
+			&failureReason,
+			nil,
+			nil,
+			createdAt,
+			failureDetails,
+		)},
+	}})
+
+	app := fiber.New()
+	app.Use(func(c *fiber.Ctx) error {
+		c.Locals("clerk_user_id", tenantID)
+		return c.Next()
+	})
+	app.Get("/v1/tasks/:id", handleGetTask(coordinator.NewTaskCoordinator(db)))
+
+	req := httptest.NewRequest(http.MethodGet, "/v1/tasks/"+taskID.String(), nil)
+	resp, err := app.Test(req)
+	require.NoError(t, err)
+	require.Equal(t, http.StatusOK, resp.StatusCode)
+
+	var body map[string]any
+	require.NoError(t, json.NewDecoder(resp.Body).Decode(&body))
+	require.Equal(t, "failed", body["status"])
+	require.Equal(t, failureReason, body["failure_reason"])
+	require.Equal(t, map[string]any{
+		"source":         "runtime",
+		"operation":      "execution",
+		"rejection_type": "step_failed",
+		"message":        "approval required for tool execution",
+		"step_index":     float64(5),
+		"domain":         "tool",
+		"node_id":        "tool-5",
+	}, body["failure_details"])
+	require.EqualValues(t, 5, body["last_step"])
+	require.Equal(t, "digest-5", body["checkpoint_digest"])
+	require.Equal(t, map[string]any{
+		"redispatch_eligible": false,
+		"skip_reason":         "task_failed",
+	}, body["recovery"])
+	require.Equal(t, 0, queued.remainingQueries())
+}
+
 func TestHandleListTasksIncludesRuntimeSubmitConflictFailureReason(t *testing.T) {
 	t.Parallel()
 
