@@ -1653,6 +1653,623 @@ func TestHandleTaskFailedReturnsTransitionRejectedPayloadAfterConcurrentCancel(t
 	require.Equal(t, 0, queued.remainingExecs())
 }
 
+func TestHandleTaskCheckpointReturnsTransitionRejectedPayloadAfterConcurrentFailed(t *testing.T) {
+	t.Parallel()
+
+	taskID := uuid.New()
+	tenantID := "tenant-checkpoint-failed-conflict"
+	runtimeID := "runtime-checkpoint-failed-conflict"
+	createdAt := time.Unix(1_700_001_710, 0).UTC()
+	checkpoint := &coordinator.CheckpointPayload{
+		TaskID: taskID,
+		ResumeToken: coordinator.ResumeToken{
+			LastCommittedStep: 17,
+			CheckpointDigest:  "digest-17",
+			RuntimeID:         runtimeID,
+		},
+	}
+	failureReason := "Step 3 failed: approval required for tool execution"
+	stepIndex := uint32(3)
+	failureDetails := &coordinator.TaskFailureDetails{
+		Source:        "runtime",
+		Operation:     "execution",
+		RejectionType: "step_failed",
+		Message:       "approval required for tool execution",
+		StepIndex:     &stepIndex,
+		Domain:        "tool",
+		NodeID:        "tool-3",
+	}
+
+	checkpointBytes, err := json.Marshal(checkpoint)
+	require.NoError(t, err)
+
+	db, queued := newQueuedRouteDB(t,
+		[]queuedRouteQueryExpectation{
+			{
+				columns: []string{
+					"task_id", "tenant_id", "status", "runtime_id", "runtime_endpoint",
+					"task_definition", "last_checkpoint", "execution_envelope", "execution_receipt",
+					"proof_execution_id", "proof_expected_hash", "proof_stored_hash", "proof_signature", "proof_status", "proof_checked_at",
+					"idempotency_key", "failure_reason", "failure_details",
+					"deadline_at", "dispatched_at", "completed_at", "canceled_at", "created_at",
+				},
+				rows: [][]driver.Value{taskRecordRouteRow(
+					taskID,
+					tenantID,
+					coordinator.TaskStatusDispatched,
+					runtimeID,
+					"http://runtime.test",
+					json.RawMessage(`{"type":"behavior_tree","tree":{"root":{"type":"sequence","children":[]}}}`),
+					nil,
+					"idem-checkpoint-failed-conflict",
+					nil,
+					nil,
+					nil,
+					createdAt,
+				)},
+			},
+			{
+				columns: []string{"last_checkpoint"},
+				rows:    [][]driver.Value{{nil}},
+			},
+			{
+				columns: []string{
+					"task_id", "tenant_id", "status", "runtime_id", "runtime_endpoint",
+					"task_definition", "last_checkpoint", "execution_envelope", "execution_receipt",
+					"proof_execution_id", "proof_expected_hash", "proof_stored_hash", "proof_signature", "proof_status", "proof_checked_at",
+					"idempotency_key", "failure_reason", "failure_details",
+					"deadline_at", "dispatched_at", "completed_at", "canceled_at", "created_at",
+				},
+				rows: [][]driver.Value{taskRecordRouteRow(
+					taskID,
+					tenantID,
+					coordinator.TaskStatusFailed,
+					runtimeID,
+					"http://runtime.test",
+					json.RawMessage(`{"type":"behavior_tree","tree":{"root":{"type":"sequence","children":[]}}}`),
+					nil,
+					"idem-checkpoint-failed-conflict",
+					&failureReason,
+					nil,
+					nil,
+					createdAt,
+					failureDetails,
+				)},
+			},
+		},
+		queuedRouteExecExpectation{rowsAffected: 0},
+	)
+
+	app := fiber.New()
+	app.Use(func(c *fiber.Ctx) error {
+		c.Locals("clerk_user_id", tenantID)
+		return c.Next()
+	})
+	app.Post("/v1/tasks/:id/checkpoint", handleTaskCheckpoint(coordinator.NewTaskCoordinator(db)))
+
+	req := httptest.NewRequest(http.MethodPost, "/v1/tasks/"+taskID.String()+"/checkpoint", strings.NewReader(string(checkpointBytes)))
+	req.Header.Set("Content-Type", "application/json")
+	resp, err := app.Test(req)
+	require.NoError(t, err)
+	require.Equal(t, http.StatusConflict, resp.StatusCode)
+
+	var body map[string]any
+	require.NoError(t, json.NewDecoder(resp.Body).Decode(&body))
+	require.Equal(t, "task_transition_rejected", body["error"])
+	require.Equal(t, "failed", body["status"])
+	require.Equal(t, failureReason, body["failure_reason"])
+	require.Equal(t, map[string]any{
+		"source":         "runtime",
+		"operation":      "execution",
+		"rejection_type": "step_failed",
+		"message":        "approval required for tool execution",
+		"step_index":     float64(3),
+		"domain":         "tool",
+		"node_id":        "tool-3",
+	}, body["failure_details"])
+	require.Equal(t, map[string]any{
+		"terminal":                    true,
+		"runtime_mutation_allowed":    false,
+		"dispatch_allowed":            false,
+		"recovery_redispatch_allowed": false,
+		"cancellation_allowed":        false,
+	}, body["lifecycle"])
+	require.Equal(t, map[string]any{
+		"redispatch_eligible": false,
+		"skip_reason":         "task_failed",
+	}, body["recovery"])
+	require.Equal(t, 0, queued.remainingQueries())
+	require.Equal(t, 0, queued.remainingExecs())
+}
+
+func TestHandleTaskCompleteReturnsTransitionRejectedPayloadAfterConcurrentFailed(t *testing.T) {
+	t.Parallel()
+
+	taskID := uuid.New()
+	tenantID := "tenant-complete-failed-conflict"
+	runtimeID := "runtime-complete-failed-conflict"
+	createdAt := time.Unix(1_700_001_720, 0).UTC()
+	failureReason := "runtime resume rejected (checkpoint_mismatch): Checkpoint digest mismatch - WAL state diverged"
+	failureDetails := &coordinator.TaskFailureDetails{
+		Source:        "runtime",
+		Operation:     "resume",
+		StatusCode:    http.StatusConflict,
+		RejectionType: "checkpoint_mismatch",
+		Message:       "Checkpoint digest mismatch - WAL state diverged",
+	}
+
+	db, queued := newQueuedRouteDB(t,
+		[]queuedRouteQueryExpectation{
+			{
+				columns: []string{
+					"task_id", "tenant_id", "status", "runtime_id", "runtime_endpoint",
+					"task_definition", "last_checkpoint", "execution_envelope", "execution_receipt",
+					"proof_execution_id", "proof_expected_hash", "proof_stored_hash", "proof_signature", "proof_status", "proof_checked_at",
+					"idempotency_key", "failure_reason", "failure_details",
+					"deadline_at", "dispatched_at", "completed_at", "canceled_at", "created_at",
+				},
+				rows: [][]driver.Value{taskRecordRouteRow(
+					taskID,
+					tenantID,
+					coordinator.TaskStatusCheckpointed,
+					runtimeID,
+					"http://runtime.test",
+					json.RawMessage(`{"type":"robotics_workflow","steps":[{"step_index":1,"action":"publish_zero_velocity"}]}`),
+					nil,
+					"idem-complete-failed-conflict",
+					nil,
+					nil,
+					nil,
+					createdAt,
+				)},
+			},
+			{
+				columns: []string{
+					"task_id", "tenant_id", "status", "runtime_id", "runtime_endpoint",
+					"task_definition", "last_checkpoint", "execution_envelope", "execution_receipt",
+					"proof_execution_id", "proof_expected_hash", "proof_stored_hash", "proof_signature", "proof_status", "proof_checked_at",
+					"idempotency_key", "failure_reason", "failure_details",
+					"deadline_at", "dispatched_at", "completed_at", "canceled_at", "created_at",
+				},
+				rows: [][]driver.Value{taskRecordRouteRow(
+					taskID,
+					tenantID,
+					coordinator.TaskStatusFailed,
+					runtimeID,
+					"http://runtime.test",
+					json.RawMessage(`{"type":"robotics_workflow","steps":[{"step_index":1,"action":"publish_zero_velocity"}]}`),
+					nil,
+					"idem-complete-failed-conflict",
+					&failureReason,
+					nil,
+					nil,
+					createdAt,
+					failureDetails,
+				)},
+			},
+		},
+		queuedRouteExecExpectation{rowsAffected: 0},
+	)
+
+	app := fiber.New()
+	app.Use(func(c *fiber.Ctx) error {
+		c.Locals("clerk_user_id", tenantID)
+		return c.Next()
+	})
+	app.Post("/v1/tasks/:id/complete", handleTaskComplete(coordinator.NewTaskCoordinator(db)))
+
+	req := httptest.NewRequest(http.MethodPost, "/v1/tasks/"+taskID.String()+"/complete", nil)
+	resp, err := app.Test(req)
+	require.NoError(t, err)
+	require.Equal(t, http.StatusConflict, resp.StatusCode)
+
+	var body map[string]any
+	require.NoError(t, json.NewDecoder(resp.Body).Decode(&body))
+	require.Equal(t, "task_transition_rejected", body["error"])
+	require.Equal(t, "failed", body["status"])
+	require.Equal(t, failureReason, body["failure_reason"])
+	require.Equal(t, map[string]any{
+		"source":         "runtime",
+		"operation":      "resume",
+		"status_code":    float64(http.StatusConflict),
+		"rejection_type": "checkpoint_mismatch",
+		"message":        "Checkpoint digest mismatch - WAL state diverged",
+	}, body["failure_details"])
+	require.Equal(t, map[string]any{
+		"redispatch_eligible": false,
+		"skip_reason":         "task_failed",
+	}, body["recovery"])
+	require.Equal(t, 0, queued.remainingQueries())
+	require.Equal(t, 0, queued.remainingExecs())
+}
+
+func TestHandleTaskFailedReturnsTransitionRejectedPayloadAfterConcurrentFailed(t *testing.T) {
+	t.Parallel()
+
+	taskID := uuid.New()
+	tenantID := "tenant-failed-failed-conflict"
+	runtimeID := "runtime-failed-failed-conflict"
+	createdAt := time.Unix(1_700_001_730, 0).UTC()
+	failureReason := "no runtime available for recovery"
+	failureDetails := &coordinator.TaskFailureDetails{
+		Source:        "overture",
+		Operation:     "recovery",
+		RejectionType: "no_runtime_available",
+		Message:       "no runtime available for recovery",
+	}
+
+	db, queued := newQueuedRouteDB(t,
+		[]queuedRouteQueryExpectation{
+			{
+				columns: []string{
+					"task_id", "tenant_id", "status", "runtime_id", "runtime_endpoint",
+					"task_definition", "last_checkpoint", "execution_envelope", "execution_receipt",
+					"proof_execution_id", "proof_expected_hash", "proof_stored_hash", "proof_signature", "proof_status", "proof_checked_at",
+					"idempotency_key", "failure_reason", "failure_details",
+					"deadline_at", "dispatched_at", "completed_at", "canceled_at", "created_at",
+				},
+				rows: [][]driver.Value{taskRecordRouteRow(
+					taskID,
+					tenantID,
+					coordinator.TaskStatusRecovering,
+					runtimeID,
+					"http://runtime.test",
+					json.RawMessage(`{"type":"behavior_tree","tree":{"root":{"type":"sequence","children":[]}}}`),
+					nil,
+					"idem-failed-failed-conflict",
+					nil,
+					nil,
+					nil,
+					createdAt,
+				)},
+			},
+			{
+				columns: []string{
+					"task_id", "tenant_id", "status", "runtime_id", "runtime_endpoint",
+					"task_definition", "last_checkpoint", "execution_envelope", "execution_receipt",
+					"proof_execution_id", "proof_expected_hash", "proof_stored_hash", "proof_signature", "proof_status", "proof_checked_at",
+					"idempotency_key", "failure_reason", "failure_details",
+					"deadline_at", "dispatched_at", "completed_at", "canceled_at", "created_at",
+				},
+				rows: [][]driver.Value{taskRecordRouteRow(
+					taskID,
+					tenantID,
+					coordinator.TaskStatusFailed,
+					runtimeID,
+					"http://runtime.test",
+					json.RawMessage(`{"type":"behavior_tree","tree":{"root":{"type":"sequence","children":[]}}}`),
+					nil,
+					"idem-failed-failed-conflict",
+					&failureReason,
+					nil,
+					nil,
+					createdAt,
+					failureDetails,
+				)},
+			},
+		},
+		queuedRouteExecExpectation{rowsAffected: 0},
+	)
+
+	app := fiber.New()
+	app.Use(func(c *fiber.Ctx) error {
+		c.Locals("clerk_user_id", tenantID)
+		return c.Next()
+	})
+	app.Post("/v1/tasks/:id/failed", handleTaskFailed(coordinator.NewTaskCoordinator(db)))
+
+	req := httptest.NewRequest(http.MethodPost, "/v1/tasks/"+taskID.String()+"/failed", strings.NewReader(`{"reason":"runtime surfaced late failure"}`))
+	req.Header.Set("Content-Type", "application/json")
+	resp, err := app.Test(req)
+	require.NoError(t, err)
+	require.Equal(t, http.StatusConflict, resp.StatusCode)
+
+	var body map[string]any
+	require.NoError(t, json.NewDecoder(resp.Body).Decode(&body))
+	require.Equal(t, "task_transition_rejected", body["error"])
+	require.Equal(t, "failed", body["status"])
+	require.Equal(t, failureReason, body["failure_reason"])
+	require.Equal(t, map[string]any{
+		"source":         "overture",
+		"operation":      "recovery",
+		"rejection_type": "no_runtime_available",
+		"message":        "no runtime available for recovery",
+	}, body["failure_details"])
+	require.Equal(t, map[string]any{
+		"redispatch_eligible": false,
+		"skip_reason":         "no_runtime_available_for_recovery",
+	}, body["recovery"])
+	require.Equal(t, 0, queued.remainingQueries())
+	require.Equal(t, 0, queued.remainingExecs())
+}
+
+func TestHandleTaskCancelReturnsTransitionRejectedPayloadForStructuredFailedTask(t *testing.T) {
+	t.Parallel()
+
+	taskID := uuid.New()
+	tenantID := "tenant-cancel-direct-failed-conflict"
+	runtimeID := "runtime-cancel-direct-failed-conflict"
+	createdAt := time.Unix(1_700_001_740, 0).UTC()
+	failureReason := "runtime resume rejected (checkpoint_mismatch): Checkpoint digest mismatch - WAL state diverged"
+	failureDetails := &coordinator.TaskFailureDetails{
+		Source:        "runtime",
+		Operation:     "resume",
+		StatusCode:    http.StatusConflict,
+		RejectionType: "checkpoint_mismatch",
+		Message:       "Checkpoint digest mismatch - WAL state diverged",
+	}
+
+	db, queued := newQueuedRouteDB(t, []queuedRouteQueryExpectation{{
+		columns: []string{
+			"task_id", "tenant_id", "status", "runtime_id", "runtime_endpoint",
+			"task_definition", "last_checkpoint", "execution_envelope", "execution_receipt",
+			"proof_execution_id", "proof_expected_hash", "proof_stored_hash", "proof_signature", "proof_status", "proof_checked_at",
+			"idempotency_key", "failure_reason", "failure_details",
+			"deadline_at", "dispatched_at", "completed_at", "canceled_at", "created_at",
+		},
+		rows: [][]driver.Value{taskRecordRouteRow(
+			taskID,
+			tenantID,
+			coordinator.TaskStatusFailed,
+			runtimeID,
+			"http://runtime.test",
+			json.RawMessage(`{"type":"behavior_tree","tree":{"root":{"type":"sequence","children":[]}}}`),
+			nil,
+			"idem-cancel-direct-failed-conflict",
+			&failureReason,
+			nil,
+			nil,
+			createdAt,
+			failureDetails,
+		)},
+	}})
+
+	app := fiber.New()
+	app.Use(func(c *fiber.Ctx) error {
+		c.Locals("clerk_user_id", tenantID)
+		return c.Next()
+	})
+	app.Post("/v1/tasks/:id/cancel", handleTaskCancel(coordinator.NewTaskCoordinator(db)))
+
+	req := httptest.NewRequest(http.MethodPost, "/v1/tasks/"+taskID.String()+"/cancel", nil)
+	resp, err := app.Test(req)
+	require.NoError(t, err)
+	require.Equal(t, http.StatusConflict, resp.StatusCode)
+
+	var body map[string]any
+	require.NoError(t, json.NewDecoder(resp.Body).Decode(&body))
+	require.Equal(t, "task_transition_rejected", body["error"])
+	require.Equal(t, "failed", body["status"])
+	require.Equal(t, failureReason, body["failure_reason"])
+	require.Equal(t, map[string]any{
+		"source":         "runtime",
+		"operation":      "resume",
+		"status_code":    float64(http.StatusConflict),
+		"rejection_type": "checkpoint_mismatch",
+		"message":        "Checkpoint digest mismatch - WAL state diverged",
+	}, body["failure_details"])
+	require.Equal(t, 0, queued.remainingQueries())
+}
+
+func TestHandleTaskCheckpointReturnsTransitionRejectedPayloadForStructuredFailedTask(t *testing.T) {
+	t.Parallel()
+
+	taskID := uuid.New()
+	tenantID := "tenant-checkpoint-direct-failed-conflict"
+	runtimeID := "runtime-checkpoint-direct-failed-conflict"
+	createdAt := time.Unix(1_700_001_750, 0).UTC()
+	failureReason := "Step 4 failed: approval required for tool execution"
+	stepIndex := uint32(4)
+	failureDetails := &coordinator.TaskFailureDetails{
+		Source:        "runtime",
+		Operation:     "execution",
+		RejectionType: "step_failed",
+		Message:       "approval required for tool execution",
+		StepIndex:     &stepIndex,
+		Domain:        "tool",
+		NodeID:        "tool-4",
+	}
+	checkpoint := &coordinator.CheckpointPayload{
+		TaskID: taskID,
+		ResumeToken: coordinator.ResumeToken{
+			LastCommittedStep: 21,
+			CheckpointDigest:  "digest-21",
+			RuntimeID:         runtimeID,
+		},
+	}
+	checkpointBytes, err := json.Marshal(checkpoint)
+	require.NoError(t, err)
+
+	db, queued := newQueuedRouteDB(t, []queuedRouteQueryExpectation{{
+		columns: []string{
+			"task_id", "tenant_id", "status", "runtime_id", "runtime_endpoint",
+			"task_definition", "last_checkpoint", "execution_envelope", "execution_receipt",
+			"proof_execution_id", "proof_expected_hash", "proof_stored_hash", "proof_signature", "proof_status", "proof_checked_at",
+			"idempotency_key", "failure_reason", "failure_details",
+			"deadline_at", "dispatched_at", "completed_at", "canceled_at", "created_at",
+		},
+		rows: [][]driver.Value{taskRecordRouteRow(
+			taskID,
+			tenantID,
+			coordinator.TaskStatusFailed,
+			runtimeID,
+			"http://runtime.test",
+			json.RawMessage(`{"type":"execution_graph","graph":{"nodes":[{"kind":"tool","node_id":"tool-4","tool_name":"web.search"}]}}`),
+			nil,
+			"idem-checkpoint-direct-failed-conflict",
+			&failureReason,
+			nil,
+			nil,
+			createdAt,
+			failureDetails,
+		)},
+	}})
+
+	app := fiber.New()
+	app.Use(func(c *fiber.Ctx) error {
+		c.Locals("clerk_user_id", tenantID)
+		return c.Next()
+	})
+	app.Post("/v1/tasks/:id/checkpoint", handleTaskCheckpoint(coordinator.NewTaskCoordinator(db)))
+
+	req := httptest.NewRequest(http.MethodPost, "/v1/tasks/"+taskID.String()+"/checkpoint", strings.NewReader(string(checkpointBytes)))
+	req.Header.Set("Content-Type", "application/json")
+	resp, err := app.Test(req)
+	require.NoError(t, err)
+	require.Equal(t, http.StatusConflict, resp.StatusCode)
+
+	var body map[string]any
+	require.NoError(t, json.NewDecoder(resp.Body).Decode(&body))
+	require.Equal(t, "task_transition_rejected", body["error"])
+	require.Equal(t, "failed", body["status"])
+	require.Equal(t, failureReason, body["failure_reason"])
+	require.Equal(t, map[string]any{
+		"source":         "runtime",
+		"operation":      "execution",
+		"rejection_type": "step_failed",
+		"message":        "approval required for tool execution",
+		"step_index":     float64(4),
+		"domain":         "tool",
+		"node_id":        "tool-4",
+	}, body["failure_details"])
+	require.Equal(t, 0, queued.remainingQueries())
+}
+
+func TestHandleTaskCompleteReturnsTransitionRejectedPayloadForStructuredFailedTask(t *testing.T) {
+	t.Parallel()
+
+	taskID := uuid.New()
+	tenantID := "tenant-complete-direct-failed-conflict"
+	runtimeID := "runtime-complete-direct-failed-conflict"
+	createdAt := time.Unix(1_700_001_760, 0).UTC()
+	failureReason := "no runtime available for recovery"
+	failureDetails := &coordinator.TaskFailureDetails{
+		Source:        "overture",
+		Operation:     "recovery",
+		RejectionType: "no_runtime_available",
+		Message:       "no runtime available for recovery",
+	}
+
+	db, queued := newQueuedRouteDB(t, []queuedRouteQueryExpectation{{
+		columns: []string{
+			"task_id", "tenant_id", "status", "runtime_id", "runtime_endpoint",
+			"task_definition", "last_checkpoint", "execution_envelope", "execution_receipt",
+			"proof_execution_id", "proof_expected_hash", "proof_stored_hash", "proof_signature", "proof_status", "proof_checked_at",
+			"idempotency_key", "failure_reason", "failure_details",
+			"deadline_at", "dispatched_at", "completed_at", "canceled_at", "created_at",
+		},
+		rows: [][]driver.Value{taskRecordRouteRow(
+			taskID,
+			tenantID,
+			coordinator.TaskStatusFailed,
+			runtimeID,
+			"http://runtime.test",
+			json.RawMessage(`{"type":"robotics_workflow","steps":[{"step_index":1,"action":"publish_zero_velocity"}]}`),
+			nil,
+			"idem-complete-direct-failed-conflict",
+			&failureReason,
+			nil,
+			nil,
+			createdAt,
+			failureDetails,
+		)},
+	}})
+
+	app := fiber.New()
+	app.Use(func(c *fiber.Ctx) error {
+		c.Locals("clerk_user_id", tenantID)
+		return c.Next()
+	})
+	app.Post("/v1/tasks/:id/complete", handleTaskComplete(coordinator.NewTaskCoordinator(db)))
+
+	req := httptest.NewRequest(http.MethodPost, "/v1/tasks/"+taskID.String()+"/complete", nil)
+	resp, err := app.Test(req)
+	require.NoError(t, err)
+	require.Equal(t, http.StatusConflict, resp.StatusCode)
+
+	var body map[string]any
+	require.NoError(t, json.NewDecoder(resp.Body).Decode(&body))
+	require.Equal(t, "task_transition_rejected", body["error"])
+	require.Equal(t, "failed", body["status"])
+	require.Equal(t, failureReason, body["failure_reason"])
+	require.Equal(t, map[string]any{
+		"source":         "overture",
+		"operation":      "recovery",
+		"rejection_type": "no_runtime_available",
+		"message":        "no runtime available for recovery",
+	}, body["failure_details"])
+	require.Equal(t, 0, queued.remainingQueries())
+}
+
+func TestHandleTaskFailedReturnsTransitionRejectedPayloadForStructuredFailedTask(t *testing.T) {
+	t.Parallel()
+
+	taskID := uuid.New()
+	tenantID := "tenant-failed-direct-failed-conflict"
+	runtimeID := "runtime-failed-direct-failed-conflict"
+	createdAt := time.Unix(1_700_001_770, 0).UTC()
+	failureReason := "runtime submit rejected (idempotency_conflict): Idempotency key already used for a different task submission"
+	failureDetails := &coordinator.TaskFailureDetails{
+		Source:        "runtime",
+		Operation:     "submit",
+		StatusCode:    http.StatusConflict,
+		RejectionType: "idempotency_conflict",
+		Message:       "Idempotency key already used for a different task submission",
+	}
+
+	db, queued := newQueuedRouteDB(t, []queuedRouteQueryExpectation{{
+		columns: []string{
+			"task_id", "tenant_id", "status", "runtime_id", "runtime_endpoint",
+			"task_definition", "last_checkpoint", "execution_envelope", "execution_receipt",
+			"proof_execution_id", "proof_expected_hash", "proof_stored_hash", "proof_signature", "proof_status", "proof_checked_at",
+			"idempotency_key", "failure_reason", "failure_details",
+			"deadline_at", "dispatched_at", "completed_at", "canceled_at", "created_at",
+		},
+		rows: [][]driver.Value{taskRecordRouteRow(
+			taskID,
+			tenantID,
+			coordinator.TaskStatusFailed,
+			runtimeID,
+			"http://runtime.test",
+			json.RawMessage(`{"type":"agent_workflow","steps":[{"step_index":1,"model":"gpt-4.1-mini","messages":[{"role":"user","content":"hello"}]}]}`),
+			nil,
+			"idem-failed-direct-failed-conflict",
+			&failureReason,
+			nil,
+			nil,
+			createdAt,
+			failureDetails,
+		)},
+	}})
+
+	app := fiber.New()
+	app.Use(func(c *fiber.Ctx) error {
+		c.Locals("clerk_user_id", tenantID)
+		return c.Next()
+	})
+	app.Post("/v1/tasks/:id/failed", handleTaskFailed(coordinator.NewTaskCoordinator(db)))
+
+	req := httptest.NewRequest(http.MethodPost, "/v1/tasks/"+taskID.String()+"/failed", strings.NewReader(`{"reason":"runtime surfaced late failure"}`))
+	req.Header.Set("Content-Type", "application/json")
+	resp, err := app.Test(req)
+	require.NoError(t, err)
+	require.Equal(t, http.StatusConflict, resp.StatusCode)
+
+	var body map[string]any
+	require.NoError(t, json.NewDecoder(resp.Body).Decode(&body))
+	require.Equal(t, "task_transition_rejected", body["error"])
+	require.Equal(t, "failed", body["status"])
+	require.Equal(t, failureReason, body["failure_reason"])
+	require.Equal(t, map[string]any{
+		"source":         "runtime",
+		"operation":      "submit",
+		"status_code":    float64(http.StatusConflict),
+		"rejection_type": "idempotency_conflict",
+		"message":        "Idempotency key already used for a different task submission",
+	}, body["failure_details"])
+	require.Equal(t, 0, queued.remainingQueries())
+}
+
 func TestBuildTaskLifecycleResponse(t *testing.T) {
 	t.Parallel()
 
