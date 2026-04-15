@@ -5,6 +5,7 @@ import { Heading } from 'fumadocs-ui/components/heading';
 import { ImageZoom } from 'fumadocs-ui/components/image-zoom';
 import { InlineTOC } from 'fumadocs-ui/components/inline-toc';
 import { Step, Steps } from 'fumadocs-ui/components/steps';
+import { CopyAgentPrompt } from '@/components/docs/CopyAgentPrompt';
 import { SdkSupportMatrix } from '@/components/docs/SdkSupportMatrix';
 import {
   Tab as FumaTab,
@@ -116,6 +117,7 @@ export function getMDXComponents(
     Files,
     File,
     Folder,
+    CopyAgentPrompt,
     SdkSupportMatrix,
     ...components,
   } satisfies MDXComponents;
