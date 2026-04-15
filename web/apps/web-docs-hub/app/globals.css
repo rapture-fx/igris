@@ -194,6 +194,63 @@
     background: color-mix(in srgb, var(--color-fd-accent) 70%, transparent);
   }
 
+  .docs-agent-prompt {
+    margin: 1rem 0 1.4rem;
+    border: 1px solid var(--color-fd-border);
+    border-radius: 0.9rem;
+    background: color-mix(in srgb, var(--color-fd-card) 94%, transparent);
+    padding: 0.85rem 0.95rem;
+  }
+
+  .docs-agent-prompt-copy {
+    display: flex;
+    flex-wrap: wrap;
+    align-items: center;
+    justify-content: space-between;
+    gap: 0.8rem;
+  }
+
+  .docs-agent-prompt-copy-text {
+    flex: 1 1 18rem;
+    min-width: 0;
+  }
+
+  .docs-agent-prompt-title {
+    margin: 0;
+    font-size: 0.82rem;
+    line-height: 1.25;
+    font-weight: 600;
+    color: var(--color-fd-foreground);
+  }
+
+  .docs-agent-prompt-description {
+    margin: 0.22rem 0 0;
+    font-size: 0.76rem;
+    line-height: 1.45;
+    color: var(--color-fd-muted-foreground);
+  }
+
+  .docs-agent-prompt-button {
+    display: inline-flex;
+    align-items: center;
+    gap: 0.38rem;
+    min-height: 1.95rem;
+    border: 1px solid var(--color-fd-border);
+    border-radius: 0.65rem;
+    background: var(--color-fd-card);
+    color: var(--color-fd-foreground);
+    padding: 0.34rem 0.68rem;
+    font-size: 0.8rem;
+    line-height: 1;
+    font-weight: 500;
+    transition: background-color 150ms ease, border-color 150ms ease, color 150ms ease;
+  }
+
+  .docs-agent-prompt-button:hover {
+    background: color-mix(in srgb, var(--color-fd-accent) 85%, var(--color-fd-card));
+    border-color: color-mix(in srgb, var(--color-fd-primary) 16%, var(--color-fd-border));
+  }
+
   .docs-page-action-brand {
     display: inline-flex;
     align-items: center;
