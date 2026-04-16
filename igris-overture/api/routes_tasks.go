@@ -848,6 +848,9 @@ func buildTaskResponse(task *coordinator.TaskRecord) fiber.Map {
 	if failureDetails := buildTaskFailureDetailsResponse(task.FailureDetails); failureDetails != nil {
 		resp["failure_details"] = failureDetails
 	}
+	if failure := buildTaskFailureResponse(task.FailureReason, task.FailureDetails); failure != nil {
+		resp["failure"] = failure
+	}
 	if len(task.ExecutionEnvelope) > 0 {
 		resp["execution_envelope"] = task.ExecutionEnvelope
 	}
@@ -1006,6 +1009,87 @@ func buildTaskFailureDetailsResponse(details *coordinator.TaskFailureDetails) fi
 	return resp
 }
 
+func buildTaskFailureResponse(reason *string, details *coordinator.TaskFailureDetails) fiber.Map {
+	var reasonValue string
+	if reason != nil {
+		reasonValue = *reason
+	}
+	return buildFailureResponse(reasonValue, buildTaskFailureDetailsResponse(details))
+}
+
+func buildFailureResponse(reason string, details fiber.Map) fiber.Map {
+	resp := fiber.Map{}
+	if reason != "" {
+		resp["reason"] = reason
+	}
+	if details == nil {
+		if len(resp) == 0 {
+			return nil
+		}
+		return resp
+	}
+
+	copyIfPresent(resp, details, "source")
+	copyIfPresent(resp, details, "operation")
+	copyAs(resp, details, "rejection_type", "type")
+	copyIfPresent(resp, details, "message")
+	copyIfPresent(resp, details, "status_code")
+
+	execution := fiber.Map{}
+	copyIfPresent(execution, details, "step_index")
+	copyIfPresent(execution, details, "domain")
+	copyIfPresent(execution, details, "node_id")
+	if len(execution) > 0 {
+		resp["execution"] = execution
+	}
+
+	resume := fiber.Map{}
+	copyIfPresent(resume, details, "requested_last_step")
+	copyIfPresent(resume, details, "requested_checkpoint_digest")
+	copyIfPresent(resume, details, "local_checkpoint_digest")
+	copyIfPresent(resume, details, "resume_checkpoint_provided")
+	if len(resume) > 0 {
+		resp["resume"] = resume
+	}
+
+	if len(resp) == 0 {
+		return nil
+	}
+	return resp
+}
+
+func copyIfPresent(dst fiber.Map, src fiber.Map, key string) {
+	if value, ok := src[key]; ok {
+		dst[key] = value
+	}
+}
+
+func copyAs(dst fiber.Map, src fiber.Map, srcKey, dstKey string) {
+	if value, ok := src[srcKey]; ok {
+		dst[dstKey] = value
+	}
+}
+
+func buildRuntimeCancelResponse(result *internal.RuntimeCancelResult) fiber.Map {
+	if result == nil {
+		return nil
+	}
+	resp := fiber.Map(result.ResponsePayload())
+	if details, ok := resp["failure_details"].(map[string]any); ok {
+		if failure := buildFailureResponse(stringValue(resp["reason"]), fiber.Map(details)); failure != nil {
+			resp["failure"] = failure
+		}
+	}
+	return resp
+}
+
+func stringValue(value any) string {
+	if typed, ok := value.(string); ok {
+		return typed
+	}
+	return ""
+}
+
 func buildTaskCanceledResponse(task *coordinator.TaskRecord, runtimeCancelAttempted, runtimeCancelSignaled bool, runtimeCancel fiber.Map) fiber.Map {
 	extras := fiber.Map{
 		"runtime_cancel_attempted": runtimeCancelAttempted,
@@ -1133,6 +1217,9 @@ func buildTaskTransitionRejectedPayload(task *coordinator.TaskRecord) fiber.Map 
 	if failureDetails := buildTaskFailureDetailsResponse(task.FailureDetails); failureDetails != nil {
 		resp["failure_details"] = failureDetails
 	}
+	if failure := buildTaskFailureResponse(task.FailureReason, task.FailureDetails); failure != nil {
+		resp["failure"] = failure
+	}
 	return resp
 }
 
@@ -1184,7 +1271,7 @@ func handleTaskCancel(tc *coordinator.TaskCoordinator) fiber.Handler {
 				log.Warn().Err(err).Str("task_id", taskID.String()).Msg("[Tasks] Runtime cancel propagation failed")
 			} else {
 				runtimeCancelSignaled = result.Signaled()
-				runtimeCancel = fiber.Map(result.ResponsePayload())
+				runtimeCancel = buildRuntimeCancelResponse(result)
 			}
 		}
 
