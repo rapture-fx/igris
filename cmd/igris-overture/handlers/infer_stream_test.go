@@ -157,7 +157,7 @@ func TestApplyFallbackStreamContractHeaders(t *testing.T) {
 func TestBuildInferFailureResponseNormalizesRuntimeSecurityFailure(t *testing.T) {
 	t.Parallel()
 
-	resp := buildInferFailureResponse(
+	resp := models.BuildSimpleFailureResponse(
 		"runtime",
 		"infer",
 		"runtime_security_rejected",
