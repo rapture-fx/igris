@@ -31,6 +31,7 @@ func BuildFailureResponse(reason string, details map[string]interface{}) map[str
 
 	resume := map[string]interface{}{}
 	copyIfPresent(resume, details, "requested_last_step")
+	copyIfPresent(resume, details, "local_last_step")
 	copyIfPresent(resume, details, "requested_checkpoint_digest")
 	copyIfPresent(resume, details, "local_checkpoint_digest")
 	copyIfPresent(resume, details, "resume_checkpoint_provided")
