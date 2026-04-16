@@ -20,9 +20,9 @@ type queuedExecExpectation struct {
 
 type queuedQueryExpectation struct {
 	columns []string
-	values []driver.Value
-	rows   [][]driver.Value
-	err    error
+	values  []driver.Value
+	rows    [][]driver.Value
+	err     error
 }
 
 type queuedExecDriver struct {
