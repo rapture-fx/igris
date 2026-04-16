@@ -154,6 +154,34 @@ func TestApplyFallbackStreamContractHeaders(t *testing.T) {
 	}
 }
 
+func TestBuildInferFailureResponseNormalizesRuntimeSecurityFailure(t *testing.T) {
+	t.Parallel()
+
+	resp := buildInferFailureResponse(
+		"runtime",
+		"infer",
+		"runtime_security_rejected",
+		"upstream security rejection",
+		models.ErrRuntimeSecurity.Error(),
+	)
+
+	if got := resp["source"]; got != "runtime" {
+		t.Fatalf("failure.source = %v, want runtime", got)
+	}
+	if got := resp["operation"]; got != "infer" {
+		t.Fatalf("failure.operation = %v, want infer", got)
+	}
+	if got := resp["type"]; got != "runtime_security_rejected" {
+		t.Fatalf("failure.type = %v, want runtime_security_rejected", got)
+	}
+	if got := resp["message"]; got != "upstream security rejection" {
+		t.Fatalf("failure.message = %v, want upstream security rejection", got)
+	}
+	if got := resp["reason"]; got != models.ErrRuntimeSecurity.Error() {
+		t.Fatalf("failure.reason = %v, want %q", got, models.ErrRuntimeSecurity.Error())
+	}
+}
+
 func TestHandleStreamingInferRejectsFallbackWhenRuntimeUnavailable(t *testing.T) {
 	t.Parallel()
 
