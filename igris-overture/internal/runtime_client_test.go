@@ -32,14 +32,31 @@ func TestRuntimeClientCancelTaskAcceptsConflictResponse(t *testing.T) {
 						"known":true,
 						"active_execution":false,
 						"cancellation_allowed":false,
-						"reason":"task_execution_completed"
+						"reason":"task_execution_completed",
+						"checkpoint_persisted":true,
+						"last_step":4,
+						"checkpoint_digest":"abcd"
 					}`)),
 				}, nil
 			}),
 		},
 	}
 
-	if err := client.CancelTask(context.Background(), uuid.Nil, "tenant-1"); err != nil {
+	result, err := client.CancelTask(context.Background(), uuid.Nil, "tenant-1")
+	if err != nil {
 		t.Fatalf("CancelTask() error = %v, want nil", err)
+	}
+	if result.Signaled() {
+		t.Fatalf("CancelTask().Signaled() = true, want false for conflict")
+	}
+	payload := result.ResponsePayload()
+	if payload["status_code"] != http.StatusConflict {
+		t.Fatalf("status_code = %v, want %d", payload["status_code"], http.StatusConflict)
+	}
+	if payload["last_step"] != float64(4) {
+		t.Fatalf("last_step = %v, want 4", payload["last_step"])
+	}
+	if payload["checkpoint_digest"] != "abcd" {
+		t.Fatalf("checkpoint_digest = %v, want abcd", payload["checkpoint_digest"])
 	}
 }
