@@ -10,6 +10,7 @@ import (
 
 	"github.com/Igris-inertial/system/igris-overture/internal"
 	"github.com/Igris-inertial/system/igris-overture/middleware"
+	"github.com/Igris-inertial/system/igris-overture/models"
 	"github.com/Igris-inertial/system/igris-overture/observability"
 	"github.com/Igris-inertial/system/igris-overture/security"
 )
@@ -141,6 +142,7 @@ func (h *TelemetryHandler) HandleExecutionFeedback(c *fiber.Ctx) error {
 		return c.Status(fiber.StatusUnauthorized).JSON(fiber.Map{
 			"error":   "runtime_not_registered",
 			"message": "Runtime must be registered before sending execution feedback",
+			"failure": telemetryFailure("runtime", "execution_feedback", "runtime_not_registered", "Runtime must be registered before sending execution feedback", err.Error()),
 		})
 	}
 
@@ -190,6 +192,7 @@ func (h *TelemetryHandler) HandleExecutionFeedback(c *fiber.Ctx) error {
 			"details":     err.Error(),
 			"decision_id": req.SignedDecision.Decision.DecisionID,
 			"latency_ms":  latencyMs,
+			"failure":     telemetryFailure("runtime", "execution_feedback", "verification_failed", "Execution feedback verification failed", err.Error()),
 		})
 	}
 
@@ -260,6 +263,7 @@ func (h *TelemetryHandler) HandleRuntimeRegister(c *fiber.Ctx) error {
 		return c.Status(fiber.StatusUnauthorized).JSON(fiber.Map{
 			"error":   "registration_failed",
 			"message": err.Error(),
+			"failure": telemetryFailure("runtime", "runtime_register", "registration_failed", "Runtime registration failed", err.Error()),
 		})
 	}
 
@@ -341,6 +345,7 @@ func (h *TelemetryHandler) HandleRuntimeHeartbeat(c *fiber.Ctx) error {
 		return c.Status(fiber.StatusNotFound).JSON(fiber.Map{
 			"error":   "heartbeat_failed",
 			"message": err.Error(),
+			"failure": telemetryFailure("runtime", "runtime_heartbeat", "heartbeat_failed", "Runtime heartbeat failed", err.Error()),
 		})
 	}
 
@@ -357,6 +362,10 @@ func (h *TelemetryHandler) HandleRuntimeHeartbeat(c *fiber.Ctx) error {
 		"runtime_id": req.RuntimeID,
 		"timestamp":  req.Timestamp,
 	})
+}
+
+func telemetryFailure(source, operation, failureType, message, detail string) map[string]interface{} {
+	return models.BuildSimpleFailureResponse(source, operation, failureType, message, detail)
 }
 
 // HandleRuntimeList handles GET /api/v1/runtime/list
