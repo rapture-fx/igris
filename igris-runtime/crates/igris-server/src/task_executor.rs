@@ -4368,7 +4368,7 @@ mod tests {
         assert_eq!(completed_meta["mode"], "streaming");
         assert_eq!(completed_meta["resume_supported"], false);
         assert_eq!(completed_meta["replay_supported"], true);
-        assert_eq!(completed_meta["replay_condition"], "completed_final_output");
+        assert_eq!(completed_meta["replay_condition"], "completed-final-output");
         assert_eq!(completed_meta["checkpoint_persisted"], true);
 
         let incomplete_meta = stream_durability_metadata(None);
