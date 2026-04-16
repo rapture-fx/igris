@@ -8,8 +8,9 @@ import (
 	"os"
 	"time"
 
-	"github.com/gofiber/fiber/v2"
 	"github.com/Igris-inertial/system/igris-overture/middleware"
+	"github.com/Igris-inertial/system/igris-overture/models"
+	"github.com/gofiber/fiber/v2"
 )
 
 // RegisterMcpRoutes registers MCP proxy routes that forward JSON-RPC requests
@@ -70,42 +71,48 @@ func (h *mcpProxyHandler) proxyToRuntime(c *fiber.Ctx, path string) error {
 		bytes.NewReader(c.Body()),
 	)
 	if err != nil {
-		return c.Status(500).JSON(fiber.Map{
-			"jsonrpc": "2.0",
-			"id":      nil,
-			"error": fiber.Map{
-				"code":    -32603,
-				"message": "Failed to create proxy request",
-			},
-		})
+		return c.Status(500).JSON(mcpProxyErrorResponse(
+			"overture",
+			"mcp_proxy_request_build_failed",
+			"Failed to create proxy request",
+			err.Error(),
+		))
 	}
 	req.Header.Set("Content-Type", "application/json")
 
 	resp, err := h.httpClient.Do(req)
 	if err != nil {
-		return c.Status(502).JSON(fiber.Map{
-			"jsonrpc": "2.0",
-			"id":      nil,
-			"error": fiber.Map{
-				"code":    -32603,
-				"message": "Runtime unreachable",
-			},
-		})
+		return c.Status(502).JSON(mcpProxyErrorResponse(
+			"runtime",
+			"runtime_unreachable",
+			"Runtime unreachable",
+			err.Error(),
+		))
 	}
 	defer resp.Body.Close()
 
 	body, err := io.ReadAll(resp.Body)
 	if err != nil {
-		return c.Status(502).JSON(fiber.Map{
-			"jsonrpc": "2.0",
-			"id":      nil,
-			"error": fiber.Map{
-				"code":    -32603,
-				"message": "Failed to read runtime response",
-			},
-		})
+		return c.Status(502).JSON(mcpProxyErrorResponse(
+			"runtime",
+			"runtime_response_read_failed",
+			"Failed to read runtime response",
+			err.Error(),
+		))
 	}
 
 	c.Set("Content-Type", resp.Header.Get("Content-Type"))
 	return c.Status(resp.StatusCode).Send(body)
+}
+
+func mcpProxyErrorResponse(source, failureType, message, detail string) fiber.Map {
+	return fiber.Map{
+		"jsonrpc": "2.0",
+		"id":      nil,
+		"error": fiber.Map{
+			"code":    -32603,
+			"message": message,
+		},
+		"failure": models.BuildSimpleFailureResponse(source, "mcp_proxy", failureType, message, detail),
+	}
 }
