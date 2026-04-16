@@ -183,6 +183,9 @@ func (s *CheckpointStore) SaveCheckpoint(cp *CheckpointPayload) error {
 	if !TaskCheckpointWatermarkConsistent(cp) {
 		return ErrTaskTransitionRejected
 	}
+	if !TaskCheckpointEntriesBelongToTask(cp) {
+		return ErrTaskTransitionRejected
+	}
 
 	cpBytes, err := json.Marshal(cp)
 	if err != nil {
@@ -842,6 +845,18 @@ func TaskCheckpointWatermarkConsistent(cp *CheckpointPayload) bool {
 	}
 	for _, entry := range cp.WalEntries {
 		if entry.StepIndex > cp.ResumeToken.LastCommittedStep {
+			return false
+		}
+	}
+	return true
+}
+
+func TaskCheckpointEntriesBelongToTask(cp *CheckpointPayload) bool {
+	if cp == nil || cp.TaskID == uuid.Nil {
+		return false
+	}
+	for _, entry := range cp.WalEntries {
+		if entry.TaskID != cp.TaskID {
 			return false
 		}
 	}
