@@ -16,6 +16,7 @@ func TestBuildFailureResponseGroupsExecutionAndResumeContext(t *testing.T) {
 		"domain":                      "tool",
 		"node_id":                     "tool-3",
 		"requested_last_step":         uint32(2),
+		"local_last_step":             uint32(1),
 		"requested_checkpoint_digest": "digest-2",
 		"local_checkpoint_digest":     "digest-local",
 		"resume_checkpoint_provided":  true,
@@ -40,6 +41,9 @@ func TestBuildFailureResponseGroupsExecutionAndResumeContext(t *testing.T) {
 	}
 	if got := resume["requested_checkpoint_digest"]; got != "digest-2" {
 		t.Fatalf("resume.requested_checkpoint_digest = %v, want digest-2", got)
+	}
+	if got := resume["local_last_step"]; got != uint32(1) {
+		t.Fatalf("resume.local_last_step = %v, want 1", got)
 	}
 }
 
