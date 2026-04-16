@@ -642,6 +642,95 @@ func TestTaskCheckpointEntriesHaveStableIDs(t *testing.T) {
 	}
 }
 
+func TestTaskRecoveryCheckpointUsable(t *testing.T) {
+	t.Parallel()
+
+	taskID := uuid.New()
+	otherTaskID := uuid.New()
+	tests := []struct {
+		name     string
+		taskID   uuid.UUID
+		cp       *CheckpointPayload
+		expected bool
+	}{
+		{
+			name:     "nil checkpoint is unusable",
+			taskID:   taskID,
+			cp:       nil,
+			expected: false,
+		},
+		{
+			name:   "checkpoint task must match requested task",
+			taskID: taskID,
+			cp: &CheckpointPayload{
+				TaskID: otherTaskID,
+				ResumeToken: ResumeToken{
+					LastCommittedStep: 1,
+					CheckpointDigest:  "digest-1",
+					RuntimeID:         "runtime-1",
+				},
+				WalEntries: []WalEntry{{EntryID: uuid.New(), TaskID: otherTaskID, StepIndex: 1}},
+			},
+			expected: false,
+		},
+		{
+			name:   "entry ids must be stable",
+			taskID: taskID,
+			cp: &CheckpointPayload{
+				TaskID: taskID,
+				ResumeToken: ResumeToken{
+					LastCommittedStep: 1,
+					CheckpointDigest:  "digest-1",
+					RuntimeID:         "runtime-1",
+				},
+				WalEntries: []WalEntry{{TaskID: taskID, StepIndex: 1}},
+			},
+			expected: false,
+		},
+		{
+			name:   "wal entries must reach resume watermark",
+			taskID: taskID,
+			cp: &CheckpointPayload{
+				TaskID: taskID,
+				ResumeToken: ResumeToken{
+					LastCommittedStep: 2,
+					CheckpointDigest:  "digest-2",
+					RuntimeID:         "runtime-1",
+				},
+				WalEntries: []WalEntry{{EntryID: uuid.New(), TaskID: taskID, StepIndex: 1}},
+			},
+			expected: false,
+		},
+		{
+			name:   "valid recovery checkpoint is usable",
+			taskID: taskID,
+			cp: &CheckpointPayload{
+				TaskID: taskID,
+				ResumeToken: ResumeToken{
+					LastCommittedStep: 2,
+					CheckpointDigest:  "digest-2",
+					RuntimeID:         "runtime-1",
+				},
+				WalEntries: []WalEntry{
+					{EntryID: uuid.New(), TaskID: taskID, StepIndex: 1},
+					{EntryID: uuid.New(), TaskID: taskID, StepIndex: 2},
+				},
+			},
+			expected: true,
+		},
+	}
+
+	for _, test := range tests {
+		test := test
+		t.Run(test.name, func(t *testing.T) {
+			t.Parallel()
+			if got := TaskRecoveryCheckpointUsable(test.taskID, test.cp); got != test.expected {
+				t.Fatalf("TaskRecoveryCheckpointUsable() = %v, want %v", got, test.expected)
+			}
+		})
+	}
+}
+
 func TestTaskTransitionResult(t *testing.T) {
 	t.Parallel()
 
