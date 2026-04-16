@@ -2710,6 +2710,7 @@ func TestBuildTaskRecoveryResponse(t *testing.T) {
 	t.Parallel()
 
 	noRuntimeForRecovery := "no runtime available for recovery"
+	invalidRecoveryCheckpoint := coordinator.TaskFailureReasonInvalidRecoveryCheckpoint
 	streamingUnsupported := coordinator.TaskFailureReasonStreamingResumeUnsupported
 	tests := []struct {
 		name string
@@ -2766,6 +2767,17 @@ func TestBuildTaskRecoveryResponse(t *testing.T) {
 			want: fiber.Map{
 				"redispatch_eligible": false,
 				"skip_reason":         "no_runtime_available_for_recovery",
+			},
+		},
+		{
+			name: "failed invalid recovery checkpoint",
+			task: &coordinator.TaskRecord{
+				Status:        coordinator.TaskStatusFailed,
+				FailureReason: &invalidRecoveryCheckpoint,
+			},
+			want: fiber.Map{
+				"redispatch_eligible": false,
+				"skip_reason":         "invalid_recovery_checkpoint",
 			},
 		},
 		{
