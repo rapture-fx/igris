@@ -63,6 +63,7 @@ const (
 	TaskDurabilityClassResumable                TaskDurabilityClass = "resumable"
 	TaskDurabilityClassStreamingNonResumable    TaskDurabilityClass = "streaming_non_resumable"
 	TaskFailureReasonStreamingResumeUnsupported                     = "streaming durable tasks do not support resume"
+	TaskFailureReasonInvalidRecoveryCheckpoint                      = "invalid checkpoint for recovery"
 )
 
 var ErrTaskTransitionRejected = errors.New("task transition rejected")
@@ -822,7 +823,7 @@ func TaskRecoverySkipReason(task *TaskRecord) string {
 			switch *task.FailureReason {
 			case "no runtime available for recovery":
 				return "no_runtime_available_for_recovery"
-			case "invalid checkpoint for recovery":
+			case TaskFailureReasonInvalidRecoveryCheckpoint:
 				return "invalid_recovery_checkpoint"
 			case TaskFailureReasonStreamingResumeUnsupported:
 				return "streaming_resume_unsupported"
