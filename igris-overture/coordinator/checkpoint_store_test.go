@@ -572,6 +572,64 @@ func TestTaskCheckpointEntriesBelongToTask(t *testing.T) {
 	}
 }
 
+func TestTaskCheckpointEntriesHaveStableIDs(t *testing.T) {
+	t.Parallel()
+
+	taskID := uuid.New()
+	tests := []struct {
+		name     string
+		cp       *CheckpointPayload
+		expected bool
+	}{
+		{
+			name:     "nil checkpoint is inconsistent",
+			cp:       nil,
+			expected: false,
+		},
+		{
+			name: "empty wal entries do not need entry ids",
+			cp: &CheckpointPayload{
+				TaskID:      taskID,
+				ResumeToken: ResumeToken{LastCommittedStep: 3},
+			},
+			expected: true,
+		},
+		{
+			name: "stable wal entry ids are accepted",
+			cp: &CheckpointPayload{
+				TaskID:      taskID,
+				ResumeToken: ResumeToken{LastCommittedStep: 5},
+				WalEntries: []WalEntry{
+					{EntryID: uuid.New(), TaskID: taskID, StepIndex: 4},
+					{EntryID: uuid.New(), TaskID: taskID, StepIndex: 5},
+				},
+			},
+			expected: true,
+		},
+		{
+			name: "missing wal entry id is rejected",
+			cp: &CheckpointPayload{
+				TaskID:      taskID,
+				ResumeToken: ResumeToken{LastCommittedStep: 5},
+				WalEntries: []WalEntry{
+					{TaskID: taskID, StepIndex: 5},
+				},
+			},
+			expected: false,
+		},
+	}
+
+	for _, test := range tests {
+		test := test
+		t.Run(test.name, func(t *testing.T) {
+			t.Parallel()
+			if got := TaskCheckpointEntriesHaveStableIDs(test.cp); got != test.expected {
+				t.Fatalf("TaskCheckpointEntriesHaveStableIDs() = %v, want %v", got, test.expected)
+			}
+		})
+	}
+}
+
 func TestTaskTransitionResult(t *testing.T) {
 	t.Parallel()
 
