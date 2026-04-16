@@ -1807,6 +1807,20 @@ fn build_checkpoint_mismatch_payload(
     })
 }
 
+fn verified_resume_start_step(
+    requested_resume_from: &ResumeToken,
+    local_last_committed_step: Option<u32>,
+    local_checkpoint_digest: [u8; 32],
+) -> Option<u32> {
+    if local_checkpoint_digest != requested_resume_from.checkpoint_digest {
+        return None;
+    }
+    if local_last_committed_step.unwrap_or(0) != requested_resume_from.last_committed_step {
+        return None;
+    }
+    Some(requested_resume_from.last_committed_step + 1)
+}
+
 fn persist_task_record(
     state: &AppState,
     submission_key: &str,
