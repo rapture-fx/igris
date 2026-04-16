@@ -404,9 +404,9 @@ func normalizeRuntimeCheckpointDigest(raw json.RawMessage) string {
 		return digest
 	}
 
-	var bytes []uint8
-	if err := json.Unmarshal(raw, &bytes); err == nil {
-		return fmt.Sprintf("%x", bytes)
+	var digestBytes []uint8
+	if err := json.Unmarshal(raw, &digestBytes); err == nil {
+		return fmt.Sprintf("%x", digestBytes)
 	}
 
 	var compact bytes.Buffer
