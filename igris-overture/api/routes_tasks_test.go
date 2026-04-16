@@ -18,6 +18,7 @@ import (
 	"github.com/stretchr/testify/require"
 
 	"github.com/Igris-inertial/system/igris-overture/coordinator"
+	"github.com/Igris-inertial/system/igris-overture/internal"
 )
 
 type queuedRouteQueryExpectation struct {
@@ -333,26 +334,36 @@ func TestBuildTaskFailureDetailsResponse(t *testing.T) {
 	t.Parallel()
 
 	stepIndex := uint32(3)
+	requestedLastStep := uint32(2)
+	resumeCheckpointProvided := true
 	resp := buildTaskFailureDetailsResponse(&coordinator.TaskFailureDetails{
-		Source:        "runtime",
-		Operation:     "submit",
-		StatusCode:    http.StatusConflict,
-		RejectionType: "idempotency_conflict",
-		Message:       "Idempotency key already used for a different task submission",
-		StepIndex:     &stepIndex,
-		Domain:        "agent",
-		NodeID:        "reason-3",
+		Source:                    "runtime",
+		Operation:                 "submit",
+		StatusCode:                http.StatusConflict,
+		RejectionType:             "idempotency_conflict",
+		Message:                   "Idempotency key already used for a different task submission",
+		StepIndex:                 &stepIndex,
+		Domain:                    "agent",
+		NodeID:                    "reason-3",
+		RequestedLastStep:         &requestedLastStep,
+		RequestedCheckpointDigest: "digest-2",
+		LocalCheckpointDigest:     "digest-local",
+		ResumeCheckpointProvided:  &resumeCheckpointProvided,
 	})
 
 	require.Equal(t, fiber.Map{
-		"source":         "runtime",
-		"operation":      "submit",
-		"status_code":    http.StatusConflict,
-		"rejection_type": "idempotency_conflict",
-		"message":        "Idempotency key already used for a different task submission",
-		"step_index":     uint32(3),
-		"domain":         "agent",
-		"node_id":        "reason-3",
+		"source":                      "runtime",
+		"operation":                   "submit",
+		"status_code":                 http.StatusConflict,
+		"rejection_type":              "idempotency_conflict",
+		"message":                     "Idempotency key already used for a different task submission",
+		"step_index":                  uint32(3),
+		"domain":                      "agent",
+		"node_id":                     "reason-3",
+		"requested_last_step":         uint32(2),
+		"requested_checkpoint_digest": "digest-2",
+		"local_checkpoint_digest":     "digest-local",
+		"resume_checkpoint_provided":  true,
 	}, resp)
 	require.Nil(t, buildTaskFailureDetailsResponse(nil))
 }
@@ -561,11 +572,26 @@ func TestBuildTaskCanceledResponse(t *testing.T) {
 		CreatedAt:      createdAt,
 		CanceledAt:     &canceledAt,
 		TaskDefinition: json.RawMessage(`{"type":"single_inference","model":"gpt-4.1-mini","messages":[{"role":"user","content":"hello"}]}`),
-	}, true, false)
+	}, true, false, fiber.Map{
+		"status_code":          http.StatusConflict,
+		"known":                true,
+		"reason":               "task_execution_failed",
+		"last_step":            float64(3),
+		"checkpoint_digest":    "abc123",
+		"checkpoint_persisted": true,
+	})
 
 	require.Equal(t, true, resp["ok"])
 	require.Equal(t, true, resp["runtime_cancel_attempted"])
 	require.Equal(t, false, resp["runtime_cancel_signaled"])
+	require.Equal(t, fiber.Map{
+		"status_code":          http.StatusConflict,
+		"known":                true,
+		"reason":               "task_execution_failed",
+		"last_step":            float64(3),
+		"checkpoint_digest":    "abc123",
+		"checkpoint_persisted": true,
+	}, resp["runtime_cancel"])
 	require.Equal(t, &canceledAt, resp["canceled_at"])
 	require.Equal(t, fiber.Map{
 		"terminal":                    true,
@@ -837,12 +863,18 @@ func TestHandleGetTaskReturnsRuntimeResumeConflictFailureReason(t *testing.T) {
 	tenantID := "tenant-runtime-resume-conflict"
 	runtimeID := "runtime-recovery-conflict"
 	failureReason := "runtime resume rejected (checkpoint_mismatch): Checkpoint digest mismatch - WAL state diverged"
+	requestedLastStep := uint32(7)
+	resumeCheckpointProvided := true
 	failureDetails := &coordinator.TaskFailureDetails{
-		Source:        "runtime",
-		Operation:     "resume",
-		StatusCode:    http.StatusConflict,
-		RejectionType: "checkpoint_mismatch",
-		Message:       "Checkpoint digest mismatch - WAL state diverged",
+		Source:                    "runtime",
+		Operation:                 "resume",
+		StatusCode:                http.StatusConflict,
+		RejectionType:             "checkpoint_mismatch",
+		Message:                   "Checkpoint digest mismatch - WAL state diverged",
+		RequestedLastStep:         &requestedLastStep,
+		RequestedCheckpointDigest: "digest-7",
+		LocalCheckpointDigest:     "digest-local",
+		ResumeCheckpointProvided:  &resumeCheckpointProvided,
 	}
 	createdAt := time.Unix(1_700_001_160, 0).UTC()
 
@@ -888,11 +920,15 @@ func TestHandleGetTaskReturnsRuntimeResumeConflictFailureReason(t *testing.T) {
 	require.Equal(t, "failed", body["status"])
 	require.Equal(t, failureReason, body["failure_reason"])
 	require.Equal(t, map[string]any{
-		"source":         "runtime",
-		"operation":      "resume",
-		"status_code":    float64(http.StatusConflict),
-		"rejection_type": "checkpoint_mismatch",
-		"message":        "Checkpoint digest mismatch - WAL state diverged",
+		"source":                      "runtime",
+		"operation":                   "resume",
+		"status_code":                 float64(http.StatusConflict),
+		"rejection_type":              "checkpoint_mismatch",
+		"message":                     "Checkpoint digest mismatch - WAL state diverged",
+		"requested_last_step":         float64(7),
+		"requested_checkpoint_digest": "digest-7",
+		"local_checkpoint_digest":     "digest-local",
+		"resume_checkpoint_provided":  true,
 	}, body["failure_details"])
 	require.Equal(t, map[string]any{
 		"redispatch_eligible": false,
@@ -2138,6 +2174,143 @@ func TestHandleTaskCancelReturnsTransitionRejectedPayloadForStructuredFailedTask
 		"message":        "Checkpoint digest mismatch - WAL state diverged",
 	}, body["failure_details"])
 	require.Equal(t, 0, queued.remainingQueries())
+}
+
+func TestHandleTaskCancelReturnsRuntimeCancelConflictSnapshot(t *testing.T) {
+	taskID := uuid.New()
+	tenantID := "tenant-cancel-runtime-conflict"
+	runtimeID := "runtime-cancel-conflict"
+	createdAt := time.Unix(1_700_001_780, 0).UTC()
+	canceledAt := createdAt.Add(30 * time.Second)
+
+	originalRuntimeCancelTask := runtimeCancelTask
+	runtimeCancelTask = func(_ context.Context, runtimeEndpoint string, incomingTaskID uuid.UUID, incomingTenantID string) (*internal.RuntimeCancelResult, error) {
+		require.Equal(t, "http://runtime.test", runtimeEndpoint)
+		require.Equal(t, taskID, incomingTaskID)
+		require.Equal(t, tenantID, incomingTenantID)
+		return &internal.RuntimeCancelResult{
+			StatusCode: http.StatusConflict,
+			Payload: map[string]any{
+				"task_id":              taskID.String(),
+				"canceled":             false,
+				"known":                true,
+				"active_execution":     false,
+				"cancellation_allowed": false,
+				"reason":               "task_execution_failed",
+				"status": map[string]any{
+					"status": "failed",
+					"reason": "tool approval denied",
+				},
+				"checkpoint_persisted": true,
+				"last_step":            float64(4),
+				"checkpoint_digest":    "digest-4",
+				"failure_details": map[string]any{
+					"source":         "runtime",
+					"operation":      "execution",
+					"rejection_type": "step_failed",
+					"message":        "tool approval denied",
+					"step_index":     float64(4),
+					"domain":         "tool",
+					"node_id":        "tool-4",
+				},
+			},
+		}, nil
+	}
+	t.Cleanup(func() {
+		runtimeCancelTask = originalRuntimeCancelTask
+	})
+
+	db, queued := newQueuedRouteDB(t,
+		[]queuedRouteQueryExpectation{
+			{
+				columns: []string{
+					"task_id", "tenant_id", "status", "runtime_id", "runtime_endpoint",
+					"task_definition", "last_checkpoint", "execution_envelope", "execution_receipt",
+					"proof_execution_id", "proof_expected_hash", "proof_stored_hash", "proof_signature", "proof_status", "proof_checked_at",
+					"idempotency_key", "failure_reason", "failure_details",
+					"deadline_at", "dispatched_at", "completed_at", "canceled_at", "created_at",
+				},
+				rows: [][]driver.Value{taskRecordRouteRow(
+					taskID,
+					tenantID,
+					coordinator.TaskStatusDispatched,
+					runtimeID,
+					"http://runtime.test",
+					json.RawMessage(`{"type":"execution_graph","graph":{"nodes":[{"kind":"tool","node_id":"tool-4","tool_name":"approval"}]}}`),
+					nil,
+					"idem-cancel-runtime-conflict",
+					nil,
+					nil,
+					nil,
+					createdAt,
+				)},
+			},
+			{
+				columns: []string{
+					"task_id", "tenant_id", "status", "runtime_id", "runtime_endpoint",
+					"task_definition", "last_checkpoint", "execution_envelope", "execution_receipt",
+					"proof_execution_id", "proof_expected_hash", "proof_stored_hash", "proof_signature", "proof_status", "proof_checked_at",
+					"idempotency_key", "failure_reason", "failure_details",
+					"deadline_at", "dispatched_at", "completed_at", "canceled_at", "created_at",
+				},
+				rows: [][]driver.Value{taskRecordRouteRow(
+					taskID,
+					tenantID,
+					coordinator.TaskStatusCanceled,
+					runtimeID,
+					"http://runtime.test",
+					json.RawMessage(`{"type":"execution_graph","graph":{"nodes":[{"kind":"tool","node_id":"tool-4","tool_name":"approval"}]}}`),
+					nil,
+					"idem-cancel-runtime-conflict",
+					nil,
+					&canceledAt,
+					nil,
+					createdAt,
+				)},
+			},
+		},
+		queuedRouteExecExpectation{rowsAffected: 1},
+	)
+
+	app := fiber.New()
+	app.Use(func(c *fiber.Ctx) error {
+		c.Locals("clerk_user_id", tenantID)
+		return c.Next()
+	})
+	app.Post("/v1/tasks/:id/cancel", handleTaskCancel(coordinator.NewTaskCoordinator(db)))
+
+	req := httptest.NewRequest(http.MethodPost, "/v1/tasks/"+taskID.String()+"/cancel", nil)
+	resp, err := app.Test(req)
+	require.NoError(t, err)
+	require.Equal(t, http.StatusOK, resp.StatusCode)
+
+	var body map[string]any
+	require.NoError(t, json.NewDecoder(resp.Body).Decode(&body))
+	require.Equal(t, true, body["ok"])
+	require.Equal(t, "canceled", body["status"])
+	require.Equal(t, true, body["runtime_cancel_attempted"])
+	require.Equal(t, false, body["runtime_cancel_signaled"])
+
+	runtimeCancel, ok := body["runtime_cancel"].(map[string]any)
+	require.True(t, ok)
+	require.Equal(t, float64(http.StatusConflict), runtimeCancel["status_code"])
+	require.Equal(t, "task_execution_failed", runtimeCancel["reason"])
+	require.Equal(t, true, runtimeCancel["known"])
+	require.Equal(t, false, runtimeCancel["active_execution"])
+	require.Equal(t, true, runtimeCancel["checkpoint_persisted"])
+	require.Equal(t, float64(4), runtimeCancel["last_step"])
+	require.Equal(t, "digest-4", runtimeCancel["checkpoint_digest"])
+	require.Equal(t, map[string]any{
+		"source":         "runtime",
+		"operation":      "execution",
+		"rejection_type": "step_failed",
+		"message":        "tool approval denied",
+		"step_index":     float64(4),
+		"domain":         "tool",
+		"node_id":        "tool-4",
+	}, runtimeCancel["failure_details"])
+	require.Equal(t, 0, queued.remainingQueries())
+	require.Equal(t, 0, queued.remainingExecs())
 }
 
 func TestHandleTaskCheckpointReturnsTransitionRejectedPayloadForStructuredFailedTask(t *testing.T) {
