@@ -93,6 +93,10 @@ type publicApproval struct {
 	Context    map[string]interface{} `json:"context,omitempty"`
 }
 
+var runtimeCancelTask = func(ctx context.Context, runtimeEndpoint string, taskID uuid.UUID, tenantID string) (*internal.RuntimeCancelResult, error) {
+	return internal.NewRuntimeClient(runtimeEndpoint).CancelTask(ctx, taskID, tenantID)
+}
+
 // RegisterTaskRoutes wires the durable task execution endpoints.
 //
 //	POST   /v1/tasks/submit           — submit a new task (agent workflow, robotics workflow, single inference, or behavior tree)
@@ -984,17 +988,33 @@ func buildTaskFailureDetailsResponse(details *coordinator.TaskFailureDetails) fi
 	if details.NodeID != "" {
 		resp["node_id"] = details.NodeID
 	}
+	if details.RequestedLastStep != nil {
+		resp["requested_last_step"] = *details.RequestedLastStep
+	}
+	if details.RequestedCheckpointDigest != "" {
+		resp["requested_checkpoint_digest"] = details.RequestedCheckpointDigest
+	}
+	if details.LocalCheckpointDigest != "" {
+		resp["local_checkpoint_digest"] = details.LocalCheckpointDigest
+	}
+	if details.ResumeCheckpointProvided != nil {
+		resp["resume_checkpoint_provided"] = *details.ResumeCheckpointProvided
+	}
 	if len(resp) == 0 {
 		return nil
 	}
 	return resp
 }
 
-func buildTaskCanceledResponse(task *coordinator.TaskRecord, runtimeCancelAttempted, runtimeCancelSignaled bool) fiber.Map {
-	return buildTaskMutationResponse(task, fiber.Map{
+func buildTaskCanceledResponse(task *coordinator.TaskRecord, runtimeCancelAttempted, runtimeCancelSignaled bool, runtimeCancel fiber.Map) fiber.Map {
+	extras := fiber.Map{
 		"runtime_cancel_attempted": runtimeCancelAttempted,
 		"runtime_cancel_signaled":  runtimeCancelSignaled,
-	})
+	}
+	if runtimeCancel != nil {
+		extras["runtime_cancel"] = runtimeCancel
+	}
+	return buildTaskMutationResponse(task, extras)
 }
 
 func buildTaskProofReadinessResponse(triggerAvailable bool) fiber.Map {
@@ -1156,12 +1176,15 @@ func handleTaskCancel(tc *coordinator.TaskCoordinator) fiber.Handler {
 
 		runtimeCancelAttempted := false
 		runtimeCancelSignaled := false
+		var runtimeCancel fiber.Map
 		if task.RuntimeEndpoint != nil && *task.RuntimeEndpoint != "" {
 			runtimeCancelAttempted = true
-			if err := internal.NewRuntimeClient(*task.RuntimeEndpoint).CancelTask(context.Background(), taskID, tenantID); err != nil {
+			result, err := runtimeCancelTask(context.Background(), *task.RuntimeEndpoint, taskID, tenantID)
+			if err != nil {
 				log.Warn().Err(err).Str("task_id", taskID.String()).Msg("[Tasks] Runtime cancel propagation failed")
 			} else {
-				runtimeCancelSignaled = true
+				runtimeCancelSignaled = result.Signaled()
+				runtimeCancel = fiber.Map(result.ResponsePayload())
 			}
 		}
 
@@ -1172,7 +1195,7 @@ func handleTaskCancel(tc *coordinator.TaskCoordinator) fiber.Handler {
 			updatedTask = &fallbackTask
 		}
 
-		return c.JSON(buildTaskCanceledResponse(updatedTask, runtimeCancelAttempted, runtimeCancelSignaled))
+		return c.JSON(buildTaskCanceledResponse(updatedTask, runtimeCancelAttempted, runtimeCancelSignaled, runtimeCancel))
 	}
 }
 
