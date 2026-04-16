@@ -1133,6 +1133,95 @@ func TestRecoverRuntimeRetryUsesNewestCheckpointOnNextAttempt(t *testing.T) {
 	require.Equal(t, 0, queued.remainingQueries())
 }
 
+func TestRecoverRuntimeMarksFailedForInvalidRecoveryCheckpoint(t *testing.T) {
+	t.Parallel()
+
+	taskID := uuid.New()
+	failedRuntimeID := "runtime-failed-invalid-checkpoint"
+	tenantID := "tenant-recovery-invalid-checkpoint"
+	idempotencyKey := "idem-recovery-invalid-checkpoint"
+	createdAt := time.Unix(1_900_000_250, 0).UTC()
+	taskDefinition := json.RawMessage(`{
+		"type":"behavior_tree",
+		"tree":{"root":{"type":"sequence","children":[]}}
+	}`)
+	invalidCheckpoint := &CheckpointPayload{
+		TaskID: taskID,
+		ResumeToken: ResumeToken{
+			LastCommittedStep: 5,
+			CheckpointDigest:  "digest-5",
+			RuntimeID:         failedRuntimeID,
+		},
+		WalEntries: []WalEntry{{TaskID: taskID, StepIndex: 5, RuntimeID: failedRuntimeID}},
+		Metadata:   json.RawMessage(`{"tick_count": 5}`),
+		CapturedAt: time.Unix(1_900_000_255, 0).UTC(),
+	}
+	invalidCheckpointBytes, err := json.Marshal(invalidCheckpoint)
+	require.NoError(t, err)
+
+	db, queued := newQueuedCheckpointDB(t,
+		[]queuedQueryExpectation{
+			{
+				columns: []string{"task_id"},
+				rows:    [][]driver.Value{{taskID.String()}},
+			},
+			{
+				columns: []string{"last_checkpoint"},
+				values:  []driver.Value{invalidCheckpointBytes},
+			},
+			{
+				columns: []string{"tenant_id"},
+				values:  []driver.Value{tenantID},
+			},
+			{
+				columns: []string{
+					"task_id", "tenant_id", "status", "runtime_id", "runtime_endpoint",
+					"task_definition", "last_checkpoint", "execution_envelope", "execution_receipt",
+					"proof_execution_id", "proof_expected_hash", "proof_stored_hash", "proof_signature", "proof_status", "proof_checked_at",
+					"idempotency_key", "failure_reason", "failure_details",
+					"deadline_at", "dispatched_at", "completed_at", "canceled_at", "created_at",
+				},
+				values: taskRecordRowForRecoveryTest(taskID, tenantID, TaskStatusRecovering, failedRuntimeID, "http://failed-runtime.test", taskDefinition, nil, idempotencyKey, createdAt),
+			},
+		},
+		queuedExecExpectation{rowsAffected: 1},
+		queuedExecExpectation{
+			rowsAffected: 1,
+			check: func(query string, args []driver.NamedValue) {
+				require.Contains(t, query, "SET status = $1, failure_reason = $2, failure_details = $3")
+				require.Equal(t, string(TaskStatusFailed), args[0].Value)
+				require.Equal(t, TaskFailureReasonInvalidRecoveryCheckpoint, args[1].Value)
+
+				detailBytes, ok := args[2].Value.([]byte)
+				require.True(t, ok)
+				var details TaskFailureDetails
+				require.NoError(t, json.Unmarshal(detailBytes, &details))
+				require.Equal(t, "overture", details.Source)
+				require.Equal(t, "recovery", details.Operation)
+				require.Equal(t, "invalid_recovery_checkpoint", details.RejectionType)
+				require.Equal(t, TaskFailureReasonInvalidRecoveryCheckpoint, details.Message)
+				require.Equal(t, taskID.String(), args[3].Value)
+			},
+		},
+	)
+
+	dispatchCalled := false
+	tc := &TaskCoordinator{
+		db:    db,
+		store: NewCheckpointStore(db),
+		httpClient: &http.Client{Transport: roundTripperFunc(func(*http.Request) (*http.Response, error) {
+			dispatchCalled = true
+			return nil, errors.New("unexpected redispatch")
+		})},
+	}
+
+	tc.recoverRuntime(context.Background(), failedRuntimeID)
+
+	require.False(t, dispatchCalled)
+	require.Equal(t, 0, queued.remainingExecs())
+	require.Equal(t, 0, queued.remainingQueries())
+}
+
 func TestRecoverRuntimeMarksFailedOnRedispatchConflictResponse(t *testing.T) {
 	t.Parallel()
 
