@@ -340,6 +340,7 @@ func runtimeTaskDispatchFailure(statusCode int, raw []byte, resumed bool) (strin
 				LastCommittedStep *uint32         `json:"last_committed_step"`
 				CheckpointDigest  json.RawMessage `json:"checkpoint_digest"`
 			} `json:"requested_resume_from"`
+			LocalLastCommittedStep *uint32 `json:"local_last_committed_step"`
 			LocalCheckpointDigest string `json:"local_checkpoint_digest"`
 		} `json:"resume"`
 	}
@@ -367,6 +368,9 @@ func runtimeTaskDispatchFailure(statusCode int, raw []byte, resumed bool) (strin
 		}
 		if payload.Resume.LocalCheckpointDigest != "" {
 			details.LocalCheckpointDigest = payload.Resume.LocalCheckpointDigest
+		}
+		if payload.Resume.LocalLastCommittedStep != nil {
+			details.LocalLastStep = payload.Resume.LocalLastCommittedStep
 		}
 		if payload.Resume.RequestedResumeFrom != nil {
 			if payload.Resume.RequestedResumeFrom.LastCommittedStep != nil {
