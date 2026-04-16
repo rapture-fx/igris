@@ -575,19 +575,33 @@ func TestRuntimeTaskDispatchFailure(t *testing.T) {
 	t.Run("uses resume wording for recovery redispatch", func(t *testing.T) {
 		t.Parallel()
 
+		resumeCheckpointProvided := true
+		requestedLastStep := uint32(7)
 		reason, details := runtimeTaskDispatchFailure(http.StatusConflict, []byte(`{
 			"error": {
 				"type": "checkpoint_mismatch",
 				"message": "Checkpoint digest mismatch - WAL state diverged"
+			},
+			"resume": {
+				"resume_checkpoint_provided": true,
+				"requested_resume_from": {
+					"last_committed_step": 7,
+					"checkpoint_digest": [51, 51, 51, 51]
+				},
+				"local_checkpoint_digest": "4444"
 			}
 		}`), true)
 		require.Equal(t, "runtime resume rejected (checkpoint_mismatch): Checkpoint digest mismatch - WAL state diverged", reason)
 		require.Equal(t, &TaskFailureDetails{
-			Source:        "runtime",
-			Operation:     "resume",
-			StatusCode:    http.StatusConflict,
-			RejectionType: "checkpoint_mismatch",
-			Message:       "Checkpoint digest mismatch - WAL state diverged",
+			Source:                    "runtime",
+			Operation:                 "resume",
+			StatusCode:                http.StatusConflict,
+			RejectionType:             "checkpoint_mismatch",
+			Message:                   "Checkpoint digest mismatch - WAL state diverged",
+			RequestedLastStep:         &requestedLastStep,
+			RequestedCheckpointDigest: "33333333",
+			LocalCheckpointDigest:     "4444",
+			ResumeCheckpointProvided:  &resumeCheckpointProvided,
 		}, details)
 	})
 }
