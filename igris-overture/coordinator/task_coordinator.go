@@ -483,7 +483,7 @@ func (tc *TaskCoordinator) recoverRuntime(ctx context.Context, runtimeID string)
 			log.Error().
 				Str("task_id", taskID.String()).
 				Msg("[Coordinator] Invalid recovery checkpoint, marking task failed")
-			_ = tc.store.MarkFailedWithDetails(taskID, "invalid checkpoint for recovery", overtureTaskFailureDetails("recovery", "invalid_recovery_checkpoint", "invalid checkpoint for recovery"))
+			_ = tc.store.MarkFailedWithDetails(taskID, TaskFailureReasonInvalidRecoveryCheckpoint, overtureTaskFailureDetails("recovery", "invalid_recovery_checkpoint", TaskFailureReasonInvalidRecoveryCheckpoint))
 			continue
 		}
 
