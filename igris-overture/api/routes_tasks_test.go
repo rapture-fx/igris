@@ -374,12 +374,12 @@ func TestBuildTaskFailureDetailsResponse(t *testing.T) {
 		"type":        "idempotency_conflict",
 		"message":     "Idempotency key already used for a different task submission",
 		"status_code": http.StatusConflict,
-		"execution": fiber.Map{
+		"execution": map[string]interface{}{
 			"step_index": uint32(3),
 			"domain":     "agent",
 			"node_id":    "reason-3",
 		},
-		"resume": fiber.Map{
+		"resume": map[string]interface{}{
 			"requested_last_step":         uint32(2),
 			"requested_checkpoint_digest": "digest-2",
 			"local_checkpoint_digest":     "digest-local",
