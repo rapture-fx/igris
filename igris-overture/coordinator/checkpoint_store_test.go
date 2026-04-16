@@ -460,7 +460,7 @@ func TestTaskCheckpointWatermarkConsistent(t *testing.T) {
 			expected: true,
 		},
 		{
-			name: "wal entries at or below watermark are consistent",
+			name: "wal entries through watermark are consistent",
 			cp: &CheckpointPayload{
 				TaskID:      taskID,
 				ResumeToken: ResumeToken{LastCommittedStep: 5},
@@ -470,6 +470,18 @@ func TestTaskCheckpointWatermarkConsistent(t *testing.T) {
 				},
 			},
 			expected: true,
+		},
+		{
+			name: "wal entries below watermark are incomplete",
+			cp: &CheckpointPayload{
+				TaskID:      taskID,
+				ResumeToken: ResumeToken{LastCommittedStep: 5},
+				WalEntries: []WalEntry{
+					{TaskID: taskID, StepIndex: 3},
+					{TaskID: taskID, StepIndex: 4},
+				},
+			},
+			expected: false,
 		},
 		{
 			name: "wal entry above watermark is inconsistent",
