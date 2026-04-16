@@ -503,7 +503,8 @@ func (h *InferHandler) HandleInfer(c *fiber.Ctx) error {
 				// hard-fail and return 502 — never fall back to direct provider routing.
 				log.Printf("[Infer] Runtime security rejection — not falling back: %v", err)
 				return c.Status(fiber.StatusBadGateway).JSON(fiber.Map{
-					"error": "upstream security rejection",
+					"error":   "upstream security rejection",
+					"failure": buildInferFailureResponse("runtime", "infer", "runtime_security_rejected", "upstream security rejection", err.Error()),
 				})
 			}
 			// Connectivity / timeout failure: fall back to direct routing.
@@ -1118,12 +1119,34 @@ func buildStreamingErrorResponse(message, errorType string, contract models.Stre
 			"message": message,
 			"type":    errorType,
 		},
+		"failure": buildInferFailureResponse(streamFailureSource(contract), "stream", errorType, message, detail),
 		"stream": contract.ToMap(),
 	}
 	if detail != "" {
 		resp["detail"] = detail
 	}
 	return resp
+}
+
+func buildInferFailureResponse(source, operation, failureType, message, detail string) fiber.Map {
+	reason := detail
+	if reason == "" {
+		reason = message
+	}
+	return fiber.Map{
+		"reason":    reason,
+		"source":    source,
+		"operation": operation,
+		"type":      failureType,
+		"message":   message,
+	}
+}
+
+func streamFailureSource(contract models.StreamContract) string {
+	if contract.ExecutionAuthority == "runtime" {
+		return "runtime"
+	}
+	return "overture"
 }
 
 func errorDetail(err error) string {
