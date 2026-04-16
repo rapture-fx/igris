@@ -1120,7 +1120,7 @@ func buildStreamingErrorResponse(message, errorType string, contract models.Stre
 			"type":    errorType,
 		},
 		"failure": buildInferFailureResponse(streamFailureSource(contract), "stream", errorType, message, detail),
-		"stream": contract.ToMap(),
+		"stream":  contract.ToMap(),
 	}
 	if detail != "" {
 		resp["detail"] = detail
