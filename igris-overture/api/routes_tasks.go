@@ -995,6 +995,9 @@ func buildTaskFailureDetailsResponse(details *coordinator.TaskFailureDetails) fi
 	if details.RequestedLastStep != nil {
 		resp["requested_last_step"] = *details.RequestedLastStep
 	}
+	if details.LocalLastStep != nil {
+		resp["local_last_step"] = *details.LocalLastStep
+	}
 	if details.RequestedCheckpointDigest != "" {
 		resp["requested_checkpoint_digest"] = details.RequestedCheckpointDigest
 	}
