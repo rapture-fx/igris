@@ -1090,7 +1090,7 @@ func TestHandleGetTaskReturnsRuntimeExecutionFailureDetailsWithCheckpointProgres
 			CheckpointDigest:  "digest-5",
 			RuntimeID:         runtimeID,
 		},
-		WalEntries: []coordinator.WalEntry{{TaskID: taskID, StepIndex: 5, RuntimeID: runtimeID}},
+		WalEntries: []coordinator.WalEntry{{EntryID: uuid.New(), TaskID: taskID, StepIndex: 5, RuntimeID: runtimeID}},
 		Metadata:   json.RawMessage(`{"domain":"tool","node_id":"tool-5"}`),
 		CapturedAt: time.Unix(1_700_001_180, 0).UTC(),
 	}
