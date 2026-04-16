@@ -4641,6 +4641,32 @@ mod tests {
     }
 
     #[test]
+    fn verified_resume_start_step_requires_digest_and_step_match() {
+        let token = ResumeToken {
+            last_committed_step: 7,
+            checkpoint_digest: [0x33u8; 32],
+            runtime_id: "runtime-old".to_string(),
+        };
+
+        assert_eq!(
+            verified_resume_start_step(&token, Some(7), [0x33u8; 32]),
+            Some(8)
+        );
+        assert_eq!(
+            verified_resume_start_step(&token, Some(6), [0x33u8; 32]),
+            None
+        );
+        assert_eq!(
+            verified_resume_start_step(&token, Some(7), [0x44u8; 32]),
+            None
+        );
+        assert_eq!(
+            verified_resume_start_step(&token, None, [0x33u8; 32]),
+            None
+        );
+    }
+
+    #[test]
     fn build_stream_replay_unavailable_payload_includes_task_snapshot() {
         let response = TaskSubmitResponse {
             task_id: Uuid::new_v4(),
