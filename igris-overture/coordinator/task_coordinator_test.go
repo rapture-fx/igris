@@ -752,7 +752,7 @@ func TestDispatchToRuntimePreservesCheckpointAndFailureDetailsOnExecutionFailure
 			CheckpointDigest:  "digest-5",
 			RuntimeID:         runtimeID,
 		},
-		WalEntries: []WalEntry{{TaskID: taskID, StepIndex: 5, RuntimeID: runtimeID}},
+		WalEntries: []WalEntry{{EntryID: uuid.New(), TaskID: taskID, StepIndex: 5, RuntimeID: runtimeID}},
 		Metadata:   json.RawMessage(`{"domain":"tool","node_id":"tool-5"}`),
 		CapturedAt: time.Unix(1_900_000_305, 0).UTC(),
 	}
