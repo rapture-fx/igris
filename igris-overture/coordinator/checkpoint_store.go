@@ -885,6 +885,15 @@ func TaskCheckpointEntriesHaveStableIDs(cp *CheckpointPayload) bool {
 	return true
 }
 
+func TaskRecoveryCheckpointUsable(taskID uuid.UUID, cp *CheckpointPayload) bool {
+	if cp == nil || taskID == uuid.Nil || cp.TaskID != taskID {
+		return false
+	}
+	return TaskCheckpointWatermarkConsistent(cp) &&
+		TaskCheckpointEntriesBelongToTask(cp) &&
+		TaskCheckpointEntriesHaveStableIDs(cp)
+}
+
 func TaskProofNeedsRefresh(proof *TaskProofState, now time.Time) bool {
 	if proof == nil {
 		return false
