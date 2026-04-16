@@ -365,7 +365,42 @@ func TestBuildTaskFailureDetailsResponse(t *testing.T) {
 		"local_checkpoint_digest":     "digest-local",
 		"resume_checkpoint_provided":  true,
 	}, resp)
+
+	reason := "runtime submit rejected (idempotency_conflict): Idempotency key already used for a different task submission"
+	require.Equal(t, fiber.Map{
+		"reason":      reason,
+		"source":      "runtime",
+		"operation":   "submit",
+		"type":        "idempotency_conflict",
+		"message":     "Idempotency key already used for a different task submission",
+		"status_code": http.StatusConflict,
+		"execution": fiber.Map{
+			"step_index": uint32(3),
+			"domain":     "agent",
+			"node_id":    "reason-3",
+		},
+		"resume": fiber.Map{
+			"requested_last_step":         uint32(2),
+			"requested_checkpoint_digest": "digest-2",
+			"local_checkpoint_digest":     "digest-local",
+			"resume_checkpoint_provided":  true,
+		},
+	}, buildTaskFailureResponse(&reason, &coordinator.TaskFailureDetails{
+		Source:                    "runtime",
+		Operation:                 "submit",
+		StatusCode:                http.StatusConflict,
+		RejectionType:             "idempotency_conflict",
+		Message:                   "Idempotency key already used for a different task submission",
+		StepIndex:                 &stepIndex,
+		Domain:                    "agent",
+		NodeID:                    "reason-3",
+		RequestedLastStep:         &requestedLastStep,
+		RequestedCheckpointDigest: "digest-2",
+		LocalCheckpointDigest:     "digest-local",
+		ResumeCheckpointProvided:  &resumeCheckpointProvided,
+	}))
 	require.Nil(t, buildTaskFailureDetailsResponse(nil))
+	require.Nil(t, buildTaskFailureResponse(nil, nil))
 }
 
 func TestBuildTaskProofResponse(t *testing.T) {
@@ -930,6 +965,20 @@ func TestHandleGetTaskReturnsRuntimeResumeConflictFailureReason(t *testing.T) {
 		"local_checkpoint_digest":     "digest-local",
 		"resume_checkpoint_provided":  true,
 	}, body["failure_details"])
+	require.Equal(t, map[string]any{
+		"reason":      failureReason,
+		"source":      "runtime",
+		"operation":   "resume",
+		"status_code": float64(http.StatusConflict),
+		"type":        "checkpoint_mismatch",
+		"message":     "Checkpoint digest mismatch - WAL state diverged",
+		"resume": map[string]any{
+			"requested_last_step":         float64(7),
+			"requested_checkpoint_digest": "digest-7",
+			"local_checkpoint_digest":     "digest-local",
+			"resume_checkpoint_provided":  true,
+		},
+	}, body["failure"])
 	require.Equal(t, map[string]any{
 		"redispatch_eligible": false,
 		"skip_reason":         "task_failed",
@@ -2309,6 +2358,18 @@ func TestHandleTaskCancelReturnsRuntimeCancelConflictSnapshot(t *testing.T) {
 		"domain":         "tool",
 		"node_id":        "tool-4",
 	}, runtimeCancel["failure_details"])
+	require.Equal(t, map[string]any{
+		"reason":    "task_execution_failed",
+		"source":    "runtime",
+		"operation": "execution",
+		"type":      "step_failed",
+		"message":   "tool approval denied",
+		"execution": map[string]any{
+			"step_index": float64(4),
+			"domain":     "tool",
+			"node_id":    "tool-4",
+		},
+	}, runtimeCancel["failure"])
 	require.Equal(t, 0, queued.remainingQueries())
 	require.Equal(t, 0, queued.remainingExecs())
 }
@@ -2740,6 +2801,14 @@ func TestBuildTaskTransitionRejectedPayloadIncludesLifecycle(t *testing.T) {
 		"rejection_type": "checkpoint_mismatch",
 		"message":        "Checkpoint digest mismatch - WAL state diverged",
 	}, resp["failure_details"])
+	require.Equal(t, fiber.Map{
+		"reason":      failureReason,
+		"source":      "runtime",
+		"operation":   "resume",
+		"status_code": http.StatusConflict,
+		"type":        "checkpoint_mismatch",
+		"message":     "Checkpoint digest mismatch - WAL state diverged",
+	}, resp["failure"])
 	require.Equal(t, fiber.Map{
 		"terminal":                    true,
 		"runtime_mutation_allowed":    false,
