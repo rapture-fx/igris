@@ -30,6 +30,27 @@ type RuntimeClient struct {
 	httpClient *http.Client
 }
 
+type RuntimeCancelResult struct {
+	StatusCode int
+	Payload    map[string]any
+}
+
+func (r *RuntimeCancelResult) Signaled() bool {
+	return r != nil && r.StatusCode == http.StatusAccepted
+}
+
+func (r *RuntimeCancelResult) ResponsePayload() map[string]any {
+	if r == nil {
+		return nil
+	}
+	payload := make(map[string]any, len(r.Payload)+1)
+	for key, value := range r.Payload {
+		payload[key] = value
+	}
+	payload["status_code"] = r.StatusCode
+	return payload
+}
+
 // NewRuntimeClient creates a RuntimeClient targeting the given base URL
 // (e.g. "http://localhost:8080" or the cloud-runtime URL).
 // It reads IGRIS_RUNTIME_SECRET and IGRIS_RUNTIME_TIMEOUT from the environment.
@@ -86,11 +107,11 @@ func (c *RuntimeClient) setDecisionSigHeader(req *http.Request, body []byte) {
 
 // CancelTask sends a best-effort cancellation signal to an assigned runtime task.
 // It uses the same auth and decision-signature model as other Overture→Runtime calls.
-func (c *RuntimeClient) CancelTask(ctx context.Context, taskID uuid.UUID, tenantID string) error {
+func (c *RuntimeClient) CancelTask(ctx context.Context, taskID uuid.UUID, tenantID string) (*RuntimeCancelResult, error) {
 	body := []byte(`{}`)
 	req, err := http.NewRequestWithContext(ctx, http.MethodPost, fmt.Sprintf("%s/v1/runtime/task/%s/cancel", c.baseURL, taskID), bytes.NewReader(body))
 	if err != nil {
-		return err
+		return nil, err
 	}
 	req.Header.Set("Content-Type", "application/json")
 	req.Header.Set("X-Igris-Tenant", tenantID)
@@ -99,15 +120,26 @@ func (c *RuntimeClient) CancelTask(ctx context.Context, taskID uuid.UUID, tenant
 
 	resp, err := c.httpClient.Do(req)
 	if err != nil {
-		return err
+		return nil, err
 	}
 	defer resp.Body.Close()
 
+	raw, _ := io.ReadAll(io.LimitReader(resp.Body, 4096))
 	if resp.StatusCode != http.StatusAccepted && resp.StatusCode != http.StatusNotFound && resp.StatusCode != http.StatusConflict {
-		raw, _ := io.ReadAll(io.LimitReader(resp.Body, 4096))
-		return fmt.Errorf("runtime cancel failed: status=%d body=%s", resp.StatusCode, string(raw))
+		return nil, fmt.Errorf("runtime cancel failed: status=%d body=%s", resp.StatusCode, string(raw))
 	}
-	return nil
+
+	payload := map[string]any{}
+	if len(bytes.TrimSpace(raw)) > 0 {
+		if err := json.Unmarshal(raw, &payload); err != nil {
+			payload["raw_body"] = string(raw)
+		}
+	}
+
+	return &RuntimeCancelResult{
+		StatusCode: resp.StatusCode,
+		Payload:    payload,
+	}, nil
 }
 
 // verifyEnvelope verifies the Ed25519 signature embedded in an execution envelope.
