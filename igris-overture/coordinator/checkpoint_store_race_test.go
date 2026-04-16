@@ -345,6 +345,32 @@ func TestCheckpointStoreRejectsInconsistentCheckpointWatermark(t *testing.T) {
 	}
 }
 
+func TestCheckpointStoreRejectsForeignTaskWalEntry(t *testing.T) {
+	t.Parallel()
+
+	db, queued := newQueuedExecDB(t)
+	store := NewCheckpointStore(db)
+	taskID := uuid.New()
+
+	err := store.SaveCheckpoint(&CheckpointPayload{
+		TaskID: taskID,
+		ResumeToken: ResumeToken{
+			LastCommittedStep: 4,
+			CheckpointDigest:  "digest-4",
+			RuntimeID:         "runtime-1",
+		},
+		WalEntries: []WalEntry{
+			{TaskID: uuid.New(), StepIndex: 4},
+		},
+	})
+	if !errors.Is(err, ErrTaskTransitionRejected) {
+		t.Fatalf("SaveCheckpoint() error = %v, want ErrTaskTransitionRejected", err)
+	}
+	if queued.remainingExecs() != 0 {
+		t.Fatalf("remaining execs = %d, want 0", queued.remainingExecs())
+	}
+}
+
 func TestCheckpointStoreMarkRecoveringIsIdempotentOnRetry(t *testing.T) {
 	t.Parallel()
 
