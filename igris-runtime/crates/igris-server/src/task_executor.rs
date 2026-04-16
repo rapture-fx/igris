@@ -701,18 +701,22 @@ pub async fn handle_task_submit(
     let (_cancel_guard, cancel_rx) = register_task_cancellation(&state, req.task_id);
 
     let start_step = if let Some(ref token) = req.resume_from {
-        match wal.compute_checkpoint_digest() {
-            Ok(local_digest) if local_digest == token.checkpoint_digest => {
+        match wal.committed_state() {
+            Ok((local_last_step, local_digest))
+                if local_digest == token.checkpoint_digest
+                    && local_last_step.unwrap_or(0) == token.last_committed_step =>
+            {
                 info!(task_id = %req.task_id, "Resume verified at step {}", token.last_committed_step);
                 token.last_committed_step + 1
             }
-            Ok(local_digest) => {
+            Ok((local_last_step, local_digest)) => {
                 warn!(task_id = %req.task_id, "Checkpoint digest mismatch on resume");
                 return (
                     StatusCode::CONFLICT,
                     Json(build_checkpoint_mismatch_payload(
                         req.task_id,
                         token,
+                        local_last_step,
                         local_digest,
                         req.resume_checkpoint.is_some(),
                     )),
@@ -1784,6 +1788,7 @@ fn build_stream_replay_unavailable_payload(response: &TaskSubmitResponse) -> ser
 fn build_checkpoint_mismatch_payload(
     task_id: Uuid,
     requested_resume_from: &ResumeToken,
+    local_last_committed_step: Option<u32>,
     local_checkpoint_digest: [u8; 32],
     resume_checkpoint_provided: bool,
 ) -> serde_json::Value {
@@ -1797,6 +1802,7 @@ fn build_checkpoint_mismatch_payload(
             "requested": true,
             "resume_checkpoint_provided": resume_checkpoint_provided,
             "requested_resume_from": requested_resume_from,
+            "local_last_committed_step": local_last_committed_step,
             "local_checkpoint_digest": encode_checkpoint_digest(&local_checkpoint_digest),
         },
     })
@@ -4602,7 +4608,7 @@ mod tests {
         };
 
         let payload =
-            build_checkpoint_mismatch_payload(task_id, &requested, [0x44u8; 32], true);
+            build_checkpoint_mismatch_payload(task_id, &requested, Some(6), [0x44u8; 32], true);
         assert_eq!(payload["error"]["type"], "checkpoint_mismatch");
         assert_eq!(payload["task_id"], task_id.to_string());
         assert_eq!(payload["resume"]["requested"], true);
@@ -4610,6 +4616,10 @@ mod tests {
         assert_eq!(
             payload["resume"]["requested_resume_from"]["last_committed_step"],
             7
+        );
+        assert_eq!(
+            payload["resume"]["local_last_committed_step"],
+            6
         );
         assert_eq!(
             payload["resume"]["local_checkpoint_digest"],
