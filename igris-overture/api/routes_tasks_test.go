@@ -335,6 +335,7 @@ func TestBuildTaskFailureDetailsResponse(t *testing.T) {
 
 	stepIndex := uint32(3)
 	requestedLastStep := uint32(2)
+	localLastStep := uint32(1)
 	resumeCheckpointProvided := true
 	resp := buildTaskFailureDetailsResponse(&coordinator.TaskFailureDetails{
 		Source:                    "runtime",
@@ -346,6 +347,7 @@ func TestBuildTaskFailureDetailsResponse(t *testing.T) {
 		Domain:                    "agent",
 		NodeID:                    "reason-3",
 		RequestedLastStep:         &requestedLastStep,
+		LocalLastStep:             &localLastStep,
 		RequestedCheckpointDigest: "digest-2",
 		LocalCheckpointDigest:     "digest-local",
 		ResumeCheckpointProvided:  &resumeCheckpointProvided,
@@ -361,6 +363,7 @@ func TestBuildTaskFailureDetailsResponse(t *testing.T) {
 		"domain":                      "agent",
 		"node_id":                     "reason-3",
 		"requested_last_step":         uint32(2),
+		"local_last_step":             uint32(1),
 		"requested_checkpoint_digest": "digest-2",
 		"local_checkpoint_digest":     "digest-local",
 		"resume_checkpoint_provided":  true,
@@ -381,6 +384,7 @@ func TestBuildTaskFailureDetailsResponse(t *testing.T) {
 		},
 		"resume": map[string]interface{}{
 			"requested_last_step":         uint32(2),
+			"local_last_step":             uint32(1),
 			"requested_checkpoint_digest": "digest-2",
 			"local_checkpoint_digest":     "digest-local",
 			"resume_checkpoint_provided":  true,
@@ -395,6 +399,7 @@ func TestBuildTaskFailureDetailsResponse(t *testing.T) {
 		Domain:                    "agent",
 		NodeID:                    "reason-3",
 		RequestedLastStep:         &requestedLastStep,
+		LocalLastStep:             &localLastStep,
 		RequestedCheckpointDigest: "digest-2",
 		LocalCheckpointDigest:     "digest-local",
 		ResumeCheckpointProvided:  &resumeCheckpointProvided,
