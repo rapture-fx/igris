@@ -186,6 +186,9 @@ func (s *CheckpointStore) SaveCheckpoint(cp *CheckpointPayload) error {
 	if !TaskCheckpointEntriesBelongToTask(cp) {
 		return ErrTaskTransitionRejected
 	}
+	if !TaskCheckpointEntriesHaveStableIDs(cp) {
+		return ErrTaskTransitionRejected
+	}
 
 	cpBytes, err := json.Marshal(cp)
 	if err != nil {
@@ -857,6 +860,18 @@ func TaskCheckpointEntriesBelongToTask(cp *CheckpointPayload) bool {
 	}
 	for _, entry := range cp.WalEntries {
 		if entry.TaskID != cp.TaskID {
+			return false
+		}
+	}
+	return true
+}
+
+func TaskCheckpointEntriesHaveStableIDs(cp *CheckpointPayload) bool {
+	if cp == nil {
+		return false
+	}
+	for _, entry := range cp.WalEntries {
+		if entry.EntryID == uuid.Nil {
 			return false
 		}
 	}
