@@ -702,24 +702,26 @@ pub async fn handle_task_submit(
 
     let start_step = if let Some(ref token) = req.resume_from {
         match wal.committed_state() {
-            Ok((local_last_step, local_digest))
-                if verified_resume_start_step(token, local_last_step, local_digest).is_some() =>
-            {
-                info!(task_id = %req.task_id, "Resume verified at step {}", token.last_committed_step);
-                verified_resume_start_step(token, local_last_step, local_digest).unwrap_or(0)
-            }
             Ok((local_last_step, local_digest)) => {
-                warn!(task_id = %req.task_id, "Checkpoint digest mismatch on resume");
-                return (
-                    StatusCode::CONFLICT,
-                    Json(build_checkpoint_mismatch_payload(
-                        req.task_id,
-                        token,
-                        local_last_step,
-                        local_digest,
-                        req.resume_checkpoint.is_some(),
-                    )),
-                ).into_response();
+                if let Some(start_step) =
+                    verified_resume_start_step(token, local_last_step, local_digest)
+                {
+                    info!(task_id = %req.task_id, "Resume verified at step {}", token.last_committed_step);
+                    start_step
+                } else {
+                    warn!(task_id = %req.task_id, "Checkpoint digest mismatch on resume");
+                    return (
+                        StatusCode::CONFLICT,
+                        Json(build_checkpoint_mismatch_payload(
+                            req.task_id,
+                            token,
+                            local_last_step,
+                            local_digest,
+                            req.resume_checkpoint.is_some(),
+                        )),
+                    )
+                        .into_response();
+                }
             }
             Err(e) => {
                 error!(task_id = %req.task_id, "WAL digest computation failed: {}", e);
