@@ -7,18 +7,18 @@ import (
 
 func TestBuildFailureResponseGroupsExecutionAndResumeContext(t *testing.T) {
 	resp := BuildFailureResponse("runtime resume rejected", map[string]interface{}{
-		"source":                       "runtime",
-		"operation":                    "resume",
-		"status_code":                  http.StatusConflict,
-		"rejection_type":               "checkpoint_mismatch",
-		"message":                      "Checkpoint digest mismatch",
-		"step_index":                   uint32(3),
-		"domain":                       "tool",
-		"node_id":                      "tool-3",
-		"requested_last_step":          uint32(2),
-		"requested_checkpoint_digest":  "digest-2",
-		"local_checkpoint_digest":      "digest-local",
-		"resume_checkpoint_provided":   true,
+		"source":                      "runtime",
+		"operation":                   "resume",
+		"status_code":                 http.StatusConflict,
+		"rejection_type":              "checkpoint_mismatch",
+		"message":                     "Checkpoint digest mismatch",
+		"step_index":                  uint32(3),
+		"domain":                      "tool",
+		"node_id":                     "tool-3",
+		"requested_last_step":         uint32(2),
+		"requested_checkpoint_digest": "digest-2",
+		"local_checkpoint_digest":     "digest-local",
+		"resume_checkpoint_provided":  true,
 	})
 
 	if got := resp["reason"]; got != "runtime resume rejected" {
