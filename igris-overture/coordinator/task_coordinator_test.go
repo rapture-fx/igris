@@ -577,6 +577,7 @@ func TestRuntimeTaskDispatchFailure(t *testing.T) {
 
 		resumeCheckpointProvided := true
 		requestedLastStep := uint32(7)
+		localLastStep := uint32(6)
 		reason, details := runtimeTaskDispatchFailure(http.StatusConflict, []byte(`{
 			"error": {
 				"type": "checkpoint_mismatch",
@@ -588,6 +589,7 @@ func TestRuntimeTaskDispatchFailure(t *testing.T) {
 					"last_committed_step": 7,
 					"checkpoint_digest": [51, 51, 51, 51]
 				},
+				"local_last_committed_step": 6,
 				"local_checkpoint_digest": "4444"
 			}
 		}`), true)
@@ -599,6 +601,7 @@ func TestRuntimeTaskDispatchFailure(t *testing.T) {
 			RejectionType:             "checkpoint_mismatch",
 			Message:                   "Checkpoint digest mismatch - WAL state diverged",
 			RequestedLastStep:         &requestedLastStep,
+			LocalLastStep:             &localLastStep,
 			RequestedCheckpointDigest: "33333333",
 			LocalCheckpointDigest:     "4444",
 			ResumeCheckpointProvided:  &resumeCheckpointProvided,
