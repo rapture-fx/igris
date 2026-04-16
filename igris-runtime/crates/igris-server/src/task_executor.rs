@@ -706,7 +706,7 @@ pub async fn handle_task_submit(
                 if verified_resume_start_step(token, local_last_step, local_digest).is_some() =>
             {
                 info!(task_id = %req.task_id, "Resume verified at step {}", token.last_committed_step);
-                token.last_committed_step + 1
+                verified_resume_start_step(token, local_last_step, local_digest).unwrap_or(0)
             }
             Ok((local_last_step, local_digest)) => {
                 warn!(task_id = %req.task_id, "Checkpoint digest mismatch on resume");
