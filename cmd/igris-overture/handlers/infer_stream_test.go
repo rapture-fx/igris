@@ -21,8 +21,8 @@ import (
 type stubRuntimeExecutor struct {
 	forwardResp *models.InferResponse
 	forwardErr  error
-	streamResp *http.Response
-	streamErr  error
+	streamResp  *http.Response
+	streamErr   error
 }
 
 func (s *stubRuntimeExecutor) ForwardExecution(context.Context, string, *models.InferRequest, string) (*models.InferResponse, error) {
@@ -195,6 +195,22 @@ func TestHandleStreamingInferRejectsFallbackWhenRuntimeUnavailable(t *testing.T)
 	if got := body["detail"]; got != "runtime selector: no healthy runtime available for streaming" {
 		t.Fatalf("detail = %v, want runtime error detail", got)
 	}
+	failureBody, ok := body["failure"].(map[string]any)
+	if !ok {
+		t.Fatalf("failure body type = %T, want map[string]any", body["failure"])
+	}
+	if got := failureBody["source"]; got != "runtime" {
+		t.Fatalf("failure.source = %v, want runtime", got)
+	}
+	if got := failureBody["operation"]; got != "stream" {
+		t.Fatalf("failure.operation = %v, want stream", got)
+	}
+	if got := failureBody["type"]; got != "stream_execution_unavailable" {
+		t.Fatalf("failure.type = %v, want stream_execution_unavailable", got)
+	}
+	if got := failureBody["reason"]; got != "runtime selector: no healthy runtime available for streaming" {
+		t.Fatalf("failure.reason = %v, want runtime error detail", got)
+	}
 	streamBody, ok := body["stream"].(map[string]any)
 	if !ok {
 		t.Fatalf("stream body type = %T, want map[string]any", body["stream"])
@@ -253,6 +269,19 @@ func TestHandleStreamingInferReportsSecurityRejectionWithRuntimeContract(t *test
 	}
 	if got := errorBody["type"]; got != "stream_execution_security_rejected" {
 		t.Fatalf("error.type = %v, want %q", got, "stream_execution_security_rejected")
+	}
+	failureBody, ok := body["failure"].(map[string]any)
+	if !ok {
+		t.Fatalf("failure body type = %T, want map[string]any", body["failure"])
+	}
+	if got := failureBody["source"]; got != "runtime" {
+		t.Fatalf("failure.source = %v, want runtime", got)
+	}
+	if got := failureBody["operation"]; got != "stream" {
+		t.Fatalf("failure.operation = %v, want stream", got)
+	}
+	if got := failureBody["type"]; got != "stream_execution_security_rejected" {
+		t.Fatalf("failure.type = %v, want stream_execution_security_rejected", got)
 	}
 	streamBody, ok := body["stream"].(map[string]any)
 	if !ok {
@@ -475,6 +504,22 @@ func TestHandleStreamingInferReportsFallbackExecutionErrorWithFallbackContract(t
 	}
 	if got := body["detail"]; got != "provider stream failed" {
 		t.Fatalf("detail = %v, want provider stream failed", got)
+	}
+	failureBody, ok := body["failure"].(map[string]any)
+	if !ok {
+		t.Fatalf("failure body type = %T, want map[string]any", body["failure"])
+	}
+	if got := failureBody["source"]; got != "overture" {
+		t.Fatalf("failure.source = %v, want overture", got)
+	}
+	if got := failureBody["operation"]; got != "stream" {
+		t.Fatalf("failure.operation = %v, want stream", got)
+	}
+	if got := failureBody["type"]; got != "stream_execution_failed" {
+		t.Fatalf("failure.type = %v, want stream_execution_failed", got)
+	}
+	if got := failureBody["reason"]; got != "provider stream failed" {
+		t.Fatalf("failure.reason = %v, want provider stream failed", got)
 	}
 	streamBody, ok := body["stream"].(map[string]any)
 	if !ok {
