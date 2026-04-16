@@ -703,8 +703,7 @@ pub async fn handle_task_submit(
     let start_step = if let Some(ref token) = req.resume_from {
         match wal.committed_state() {
             Ok((local_last_step, local_digest))
-                if local_digest == token.checkpoint_digest
-                    && local_last_step.unwrap_or(0) == token.last_committed_step =>
+                if verified_resume_start_step(token, local_last_step, local_digest).is_some() =>
             {
                 info!(task_id = %req.task_id, "Resume verified at step {}", token.last_committed_step);
                 token.last_committed_step + 1
