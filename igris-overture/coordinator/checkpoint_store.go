@@ -822,6 +822,8 @@ func TaskRecoverySkipReason(task *TaskRecord) string {
 			switch *task.FailureReason {
 			case "no runtime available for recovery":
 				return "no_runtime_available_for_recovery"
+			case "invalid checkpoint for recovery":
+				return "invalid_recovery_checkpoint"
 			case TaskFailureReasonStreamingResumeUnsupported:
 				return "streaming_resume_unsupported"
 			}
