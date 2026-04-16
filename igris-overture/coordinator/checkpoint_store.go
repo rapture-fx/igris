@@ -846,10 +846,17 @@ func TaskCheckpointWatermarkConsistent(cp *CheckpointPayload) bool {
 	if cp == nil {
 		return false
 	}
+	var maxStep uint32
 	for _, entry := range cp.WalEntries {
 		if entry.StepIndex > cp.ResumeToken.LastCommittedStep {
 			return false
 		}
+		if entry.StepIndex > maxStep {
+			maxStep = entry.StepIndex
+		}
+	}
+	if len(cp.WalEntries) > 0 && maxStep != cp.ResumeToken.LastCommittedStep {
+		return false
 	}
 	return true
 }
