@@ -885,6 +885,14 @@ func TestHandleGetTaskReturnsRuntimeSubmitConflictFailureReason(t *testing.T) {
 		"message":        "Checkpoint digest mismatch - WAL state diverged",
 	}, body["failure_details"])
 	require.Equal(t, map[string]any{
+		"reason":      failureReason,
+		"source":      "runtime",
+		"operation":   "submit",
+		"status_code": float64(http.StatusConflict),
+		"type":        "checkpoint_mismatch",
+		"message":     "Checkpoint digest mismatch - WAL state diverged",
+	}, body["failure"])
+	require.Equal(t, map[string]any{
 		"redispatch_eligible": false,
 		"skip_reason":         "task_failed",
 	}, body["recovery"])
@@ -1138,6 +1146,18 @@ func TestHandleGetTaskReturnsRuntimeExecutionFailureDetailsWithCheckpointProgres
 		"domain":         "tool",
 		"node_id":        "tool-5",
 	}, body["failure_details"])
+	require.Equal(t, map[string]any{
+		"reason":    failureReason,
+		"source":    "runtime",
+		"operation": "execution",
+		"type":      "step_failed",
+		"message":   "approval required for tool execution",
+		"execution": map[string]any{
+			"step_index": float64(5),
+			"domain":     "tool",
+			"node_id":    "tool-5",
+		},
+	}, body["failure"])
 	require.EqualValues(t, 5, body["last_step"])
 	require.Equal(t, "digest-5", body["checkpoint_digest"])
 	require.Equal(t, map[string]any{
