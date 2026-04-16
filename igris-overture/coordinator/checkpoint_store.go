@@ -87,6 +87,7 @@ type TaskFailureDetails struct {
 	Domain                    string  `json:"domain,omitempty"`
 	NodeID                    string  `json:"node_id,omitempty"`
 	RequestedLastStep         *uint32 `json:"requested_last_step,omitempty"`
+	LocalLastStep             *uint32 `json:"local_last_step,omitempty"`
 	RequestedCheckpointDigest string  `json:"requested_checkpoint_digest,omitempty"`
 	LocalCheckpointDigest     string  `json:"local_checkpoint_digest,omitempty"`
 	ResumeCheckpointProvided  *bool   `json:"resume_checkpoint_provided,omitempty"`
