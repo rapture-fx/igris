@@ -206,11 +206,11 @@ func (h *TelemetryHandler) HandleExecutionFeedback(c *fiber.Ctx) error {
 		Msg("Execution feedback verified successfully")
 
 	return c.JSON(fiber.Map{
-		"status":               "verified",
-		"verified":             true,
-		"decision_id":          req.SignedDecision.Decision.DecisionID,
-		"execution_success":    req.ExecutionEnvelope.Envelope.Success,
-		"execution_latency_ms": req.ExecutionEnvelope.Envelope.LatencyMs,
+		"status":                  "verified",
+		"verified":                true,
+		"decision_id":             req.SignedDecision.Decision.DecisionID,
+		"execution_success":       req.ExecutionEnvelope.Envelope.Success,
+		"execution_latency_ms":    req.ExecutionEnvelope.Envelope.LatencyMs,
 		"verification_latency_ms": latencyMs,
 	})
 }
@@ -305,9 +305,9 @@ func (h *TelemetryHandler) HandleRuntimeRegister(c *fiber.Ctx) error {
 	}
 
 	return c.JSON(fiber.Map{
-		"status":      "registered",
-		"runtime_id":  req.RuntimeID,
-		"tenant_id":   req.TenantID,
+		"status":        "registered",
+		"runtime_id":    req.RuntimeID,
+		"tenant_id":     req.TenantID,
 		"registered_at": req.Timestamp,
 	})
 }
@@ -482,24 +482,24 @@ func (h *TelemetryHandler) HandleGetAuditLog(c *fiber.Ctx) error {
 	var entries []fiber.Map
 	for rows.Next() {
 		var entry struct {
-			DecisionID           string
-			RequestID            string
-			SignedDecision       json.RawMessage
-			DecisionSignature    string
-			DecisionKeyVersion   int
-			ExecutionEnvelope    sql.NullString
-			ExecutionSignature   sql.NullString
-			DecisionVerified     bool
-			ExecutionVerified    sql.NullBool
-			VerificationStatus   string
-			VerificationError    sql.NullString
-			ExecutionSuccess     sql.NullBool
-			LatencyMs            sql.NullInt32
-			ProviderID           sql.NullString
-			DecisionTimestamp    time.Time
-			ExecutionTimestamp   sql.NullTime
-			CreatedAt            time.Time
-			VerifiedAt           sql.NullTime
+			DecisionID         string
+			RequestID          string
+			SignedDecision     json.RawMessage
+			DecisionSignature  string
+			DecisionKeyVersion int
+			ExecutionEnvelope  sql.NullString
+			ExecutionSignature sql.NullString
+			DecisionVerified   bool
+			ExecutionVerified  sql.NullBool
+			VerificationStatus string
+			VerificationError  sql.NullString
+			ExecutionSuccess   sql.NullBool
+			LatencyMs          sql.NullInt32
+			ProviderID         sql.NullString
+			DecisionTimestamp  time.Time
+			ExecutionTimestamp sql.NullTime
+			CreatedAt          time.Time
+			VerifiedAt         sql.NullTime
 		}
 
 		if err := rows.Scan(
@@ -667,15 +667,15 @@ func (h *TelemetryHandler) HandleGetStats(c *fiber.Ctx) error {
 		"tenant_id": tenantID,
 		"since":     since,
 		"stats": fiber.Map{
-			"total_decisions":    stats.TotalDecisions,
-			"verified_count":     stats.VerifiedCount,
-			"tamper_count":       stats.TamperCount,
-			"pending_count":      stats.PendingCount,
-			"failed_count":       stats.FailedCount,
-			"avg_latency_ms":     stats.AvgLatencyMs.Float64,
-			"success_count":      stats.SuccessCount,
-			"failure_count":      stats.FailureCount,
-			"verification_rate":  verificationRate,
+			"total_decisions":        stats.TotalDecisions,
+			"verified_count":         stats.VerifiedCount,
+			"tamper_count":           stats.TamperCount,
+			"pending_count":          stats.PendingCount,
+			"failed_count":           stats.FailedCount,
+			"avg_latency_ms":         stats.AvgLatencyMs.Float64,
+			"success_count":          stats.SuccessCount,
+			"failure_count":          stats.FailureCount,
+			"verification_rate":      verificationRate,
 			"execution_success_rate": successRate,
 		},
 	})
