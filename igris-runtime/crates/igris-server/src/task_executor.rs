@@ -1565,7 +1565,7 @@ fn stream_durability_metadata(response: Option<&TaskSubmitResponse>) -> serde_js
         "mode": "streaming",
         "resume_supported": false,
         "replay_supported": replay_supported,
-        "replay_condition": "completed_final_output",
+        "replay_condition": "completed-final-output",
         "checkpoint_persisted": checkpoint_persisted,
     })
 }
