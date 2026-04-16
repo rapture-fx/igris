@@ -17,6 +17,7 @@ import (
 	"github.com/Igris-inertial/system/igris-overture/coordinator"
 	"github.com/Igris-inertial/system/igris-overture/internal"
 	"github.com/Igris-inertial/system/igris-overture/middleware"
+	"github.com/Igris-inertial/system/igris-overture/models"
 )
 
 type publicTaskSubmitRequest struct {
@@ -1014,60 +1015,7 @@ func buildTaskFailureResponse(reason *string, details *coordinator.TaskFailureDe
 	if reason != nil {
 		reasonValue = *reason
 	}
-	return buildFailureResponse(reasonValue, buildTaskFailureDetailsResponse(details))
-}
-
-func buildFailureResponse(reason string, details fiber.Map) fiber.Map {
-	resp := fiber.Map{}
-	if reason != "" {
-		resp["reason"] = reason
-	}
-	if details == nil {
-		if len(resp) == 0 {
-			return nil
-		}
-		return resp
-	}
-
-	copyIfPresent(resp, details, "source")
-	copyIfPresent(resp, details, "operation")
-	copyAs(resp, details, "rejection_type", "type")
-	copyIfPresent(resp, details, "message")
-	copyIfPresent(resp, details, "status_code")
-
-	execution := fiber.Map{}
-	copyIfPresent(execution, details, "step_index")
-	copyIfPresent(execution, details, "domain")
-	copyIfPresent(execution, details, "node_id")
-	if len(execution) > 0 {
-		resp["execution"] = execution
-	}
-
-	resume := fiber.Map{}
-	copyIfPresent(resume, details, "requested_last_step")
-	copyIfPresent(resume, details, "requested_checkpoint_digest")
-	copyIfPresent(resume, details, "local_checkpoint_digest")
-	copyIfPresent(resume, details, "resume_checkpoint_provided")
-	if len(resume) > 0 {
-		resp["resume"] = resume
-	}
-
-	if len(resp) == 0 {
-		return nil
-	}
-	return resp
-}
-
-func copyIfPresent(dst fiber.Map, src fiber.Map, key string) {
-	if value, ok := src[key]; ok {
-		dst[key] = value
-	}
-}
-
-func copyAs(dst fiber.Map, src fiber.Map, srcKey, dstKey string) {
-	if value, ok := src[srcKey]; ok {
-		dst[dstKey] = value
-	}
+	return fiber.Map(models.BuildFailureResponse(reasonValue, mapFromFiber(buildTaskFailureDetailsResponse(details))))
 }
 
 func buildRuntimeCancelResponse(result *internal.RuntimeCancelResult) fiber.Map {
@@ -1076,9 +1024,20 @@ func buildRuntimeCancelResponse(result *internal.RuntimeCancelResult) fiber.Map 
 	}
 	resp := fiber.Map(result.ResponsePayload())
 	if details, ok := resp["failure_details"].(map[string]any); ok {
-		if failure := buildFailureResponse(stringValue(resp["reason"]), fiber.Map(details)); failure != nil {
-			resp["failure"] = failure
+		if failure := models.BuildFailureResponse(stringValue(resp["reason"]), details); failure != nil {
+			resp["failure"] = fiber.Map(failure)
 		}
+	}
+	return resp
+}
+
+func mapFromFiber(value fiber.Map) map[string]interface{} {
+	if value == nil {
+		return nil
+	}
+	resp := make(map[string]interface{}, len(value))
+	for key, item := range value {
+		resp[key] = item
 	}
 	return resp
 }
