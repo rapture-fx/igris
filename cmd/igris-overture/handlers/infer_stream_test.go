@@ -19,12 +19,14 @@ import (
 )
 
 type stubRuntimeExecutor struct {
+	forwardResp *models.InferResponse
+	forwardErr  error
 	streamResp *http.Response
 	streamErr  error
 }
 
 func (s *stubRuntimeExecutor) ForwardExecution(context.Context, string, *models.InferRequest, string) (*models.InferResponse, error) {
-	return nil, nil
+	return s.forwardResp, s.forwardErr
 }
 
 func (s *stubRuntimeExecutor) OpenStreamingExecution(context.Context, string, *models.InferRequest, string) (*http.Response, error) {
