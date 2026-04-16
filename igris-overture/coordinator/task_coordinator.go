@@ -479,6 +479,13 @@ func (tc *TaskCoordinator) recoverRuntime(ctx context.Context, runtimeID string)
 			tc.handleRecoverySkip(taskID, task, skipReason)
 			continue
 		}
+		if cp != nil && !TaskRecoveryCheckpointUsable(taskID, cp) {
+			log.Error().
+				Str("task_id", taskID.String()).
+				Msg("[Coordinator] Invalid recovery checkpoint, marking task failed")
+			_ = tc.store.MarkFailedWithDetails(taskID, "invalid checkpoint for recovery", overtureTaskFailureDetails("recovery", "invalid_recovery_checkpoint", "invalid checkpoint for recovery"))
+			continue
+		}
 
 		newRuntime, err := tc.selectRuntime(ctx, tenantID)
 		if err != nil {
