@@ -334,6 +334,14 @@ func runtimeTaskDispatchFailure(statusCode int, raw []byte, resumed bool) (strin
 			Message string `json:"message"`
 			Type    string `json:"type"`
 		} `json:"error"`
+		Resume struct {
+			ResumeCheckpointProvided *bool `json:"resume_checkpoint_provided"`
+			RequestedResumeFrom      *struct {
+				LastCommittedStep *uint32         `json:"last_committed_step"`
+				CheckpointDigest  json.RawMessage `json:"checkpoint_digest"`
+			} `json:"requested_resume_from"`
+			LocalCheckpointDigest string `json:"local_checkpoint_digest"`
+		} `json:"resume"`
 	}
 
 	operation := "submit"
@@ -354,6 +362,20 @@ func runtimeTaskDispatchFailure(statusCode int, raw []byte, resumed bool) (strin
 		if payload.Error.Message != "" {
 			details.Message = payload.Error.Message
 		}
+		if payload.Resume.ResumeCheckpointProvided != nil {
+			details.ResumeCheckpointProvided = payload.Resume.ResumeCheckpointProvided
+		}
+		if payload.Resume.LocalCheckpointDigest != "" {
+			details.LocalCheckpointDigest = payload.Resume.LocalCheckpointDigest
+		}
+		if payload.Resume.RequestedResumeFrom != nil {
+			if payload.Resume.RequestedResumeFrom.LastCommittedStep != nil {
+				details.RequestedLastStep = payload.Resume.RequestedResumeFrom.LastCommittedStep
+			}
+			if digest := normalizeRuntimeCheckpointDigest(payload.Resume.RequestedResumeFrom.CheckpointDigest); digest != "" {
+				details.RequestedCheckpointDigest = digest
+			}
+		}
 		switch {
 		case payload.Error.Type != "" && payload.Error.Message != "":
 			return fmt.Sprintf("runtime %s rejected (%s): %s", operation, payload.Error.Type, payload.Error.Message), details
@@ -370,6 +392,28 @@ func runtimeTaskDispatchFailure(statusCode int, raw []byte, resumed bool) (strin
 		return fmt.Sprintf("runtime %s rejected with status %d: %s", operation, statusCode, body), details
 	}
 	return fmt.Sprintf("runtime %s rejected with status %d", operation, statusCode), details
+}
+
+func normalizeRuntimeCheckpointDigest(raw json.RawMessage) string {
+	if len(raw) == 0 || string(raw) == "null" {
+		return ""
+	}
+
+	var digest string
+	if err := json.Unmarshal(raw, &digest); err == nil {
+		return digest
+	}
+
+	var bytes []uint8
+	if err := json.Unmarshal(raw, &bytes); err == nil {
+		return fmt.Sprintf("%x", bytes)
+	}
+
+	var compact bytes.Buffer
+	if err := json.Compact(&compact, raw); err == nil {
+		return compact.String()
+	}
+	return string(raw)
 }
 
 // recoverFailedRuntimes scans for runtimes with stale heartbeats, marks their
