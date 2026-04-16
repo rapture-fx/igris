@@ -4092,11 +4092,11 @@ mod tests {
         build_stream_replay_unavailable_payload, build_task_cancel_response,
         build_task_result_payload, collect_slot_inputs, compile_execution_graph_to_steps,
         deterministic_embedding, initialize_graph_blackboard, materialize_execution_graph,
-        normalize_agent_mode, persist_task_status_index, resolve_graph_value,
-        robotics_action_name, runtime_execution_failure_details,
-        stream_durability_metadata, task_status_key,
-        update_graph_blackboard, AgentExecutionMode, BehaviorTreeStep, ExecutionGraph,
-        ExecutionNode, HumanApprovalStep, RoboticsAction, RoboticsStep, RuntimeTaskStep,
+		normalize_agent_mode, persist_task_status_index, resolve_graph_value,
+		robotics_action_name, runtime_execution_failure_details,
+		stream_durability_metadata, task_status_key,
+		update_graph_blackboard, verified_resume_start_step, AgentExecutionMode, BehaviorTreeStep, ExecutionGraph,
+		ExecutionNode, HumanApprovalStep, RoboticsAction, RoboticsStep, RuntimeTaskStep,
         StepExecutionResult, TaskFailureDetails, TaskStatus, TaskSubmitResponse, TaskType, ToolStep,
     };
     use axum::{body::Body, http::StatusCode, response::Response};
