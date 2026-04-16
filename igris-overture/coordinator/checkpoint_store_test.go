@@ -495,6 +495,83 @@ func TestTaskCheckpointWatermarkConsistent(t *testing.T) {
 	}
 }
 
+func TestTaskCheckpointEntriesBelongToTask(t *testing.T) {
+	t.Parallel()
+
+	taskID := uuid.New()
+	otherTaskID := uuid.New()
+	tests := []struct {
+		name     string
+		cp       *CheckpointPayload
+		expected bool
+	}{
+		{
+			name:     "nil checkpoint is inconsistent",
+			cp:       nil,
+			expected: false,
+		},
+		{
+			name: "checkpoint task id is required",
+			cp: &CheckpointPayload{
+				ResumeToken: ResumeToken{LastCommittedStep: 3},
+			},
+			expected: false,
+		},
+		{
+			name: "empty wal entries are scoped by checkpoint task",
+			cp: &CheckpointPayload{
+				TaskID:      taskID,
+				ResumeToken: ResumeToken{LastCommittedStep: 3},
+			},
+			expected: true,
+		},
+		{
+			name: "matching wal entry task ids are accepted",
+			cp: &CheckpointPayload{
+				TaskID:      taskID,
+				ResumeToken: ResumeToken{LastCommittedStep: 5},
+				WalEntries: []WalEntry{
+					{TaskID: taskID, StepIndex: 4},
+					{TaskID: taskID, StepIndex: 5},
+				},
+			},
+			expected: true,
+		},
+		{
+			name: "missing wal entry task id is rejected",
+			cp: &CheckpointPayload{
+				TaskID:      taskID,
+				ResumeToken: ResumeToken{LastCommittedStep: 5},
+				WalEntries: []WalEntry{
+					{StepIndex: 5},
+				},
+			},
+			expected: false,
+		},
+		{
+			name: "foreign wal entry task id is rejected",
+			cp: &CheckpointPayload{
+				TaskID:      taskID,
+				ResumeToken: ResumeToken{LastCommittedStep: 5},
+				WalEntries: []WalEntry{
+					{TaskID: otherTaskID, StepIndex: 5},
+				},
+			},
+			expected: false,
+		},
+	}
+
+	for _, test := range tests {
+		test := test
+		t.Run(test.name, func(t *testing.T) {
+			t.Parallel()
+			if got := TaskCheckpointEntriesBelongToTask(test.cp); got != test.expected {
+				t.Fatalf("TaskCheckpointEntriesBelongToTask() = %v, want %v", got, test.expected)
+			}
+		})
+	}
+}
+
 func TestTaskTransitionResult(t *testing.T) {
 	t.Parallel()
 
