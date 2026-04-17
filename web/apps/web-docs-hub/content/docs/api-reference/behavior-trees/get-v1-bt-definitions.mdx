@@ -11,7 +11,7 @@ Lists tenant behavior-tree definitions. This endpoint belongs to the Behavior Tr
 
 ## When To Use
 
-Use this endpoint when you need lists tenant behavior-tree definitions. from the hosted API. It is part of the Behavior Trees surface and is intended to be the customer-facing contract for that capability.
+Use this endpoint when the operation belongs to the Behavior Trees surface on the hosted API. It is intended to be the customer-facing contract for this capability.
 
 ## Integration Guidance
 
@@ -19,7 +19,6 @@ Safe retries are usually reasonable for transient 5xx or 429 responses. Do not r
 
 ### Common Mistakes
 
-- Calling the route with an API key when the workflow actually expects an authenticated browser session.
 - Using the wrong credential type or forgetting to send the expected API key header.
 
 ### Related Endpoints
@@ -100,5 +99,11 @@ A response example is not available on this page yet.
 
 ## Status Codes
 
-Status-code details are still being documented for this endpoint.
+| Code | Title | Description |
+|---|---|---|
+| 200 | Success | The request completed successfully. For streaming or download endpoints, the success response may be a stream or attachment rather than a JSON object. |
+| 400 | Bad Request | The route was reached, but the request body, query string, or path parameter did not match the endpoint contract. |
+| 401 | Unauthorized | Credentials were missing, expired, malformed, or not accepted by this route. |
+| 429 | Too Many Requests | The caller exceeded the current throttle window and should wait before retrying. |
+| 500 | Server Error | The server accepted the request contract but failed while processing it. |
 
