@@ -10,13 +10,13 @@ mod tests {
     };
     use ed25519_dalek::SigningKey;
     use igris_core::storage::TASK_SUBMISSIONS;
+    use igris_routing::thompson::ThompsonSamplingRouter;
+    use igris_wal::{StepType, WalLog};
+    use serde::Serialize;
+    use sha2::{Digest, Sha256};
     use std::{convert::Infallible, net::SocketAddr, sync::Arc};
     use tokio::net::TcpListener;
     use tower::ServiceExt;
-    use serde::Serialize;
-    use sha2::{Digest, Sha256};
-    use igris_routing::thompson::ThompsonSamplingRouter;
-    use igris_wal::{StepType, WalLog};
 
     #[derive(Serialize)]
     struct StoredTaskSubmission {
@@ -125,11 +125,17 @@ mod tests {
         cfg.providers = vec![];
         cfg.auth.enabled = false;
 
-        let db_path = std::env::temp_dir().join(format!("igris-runtime-test-{}.db", uuid::Uuid::new_v4()));
+        let db_path = std::env::temp_dir().join(format!(
+            "igris-runtime-test-{}.db",
+            uuid::Uuid::new_v4()
+        ));
         AppState {
             config: Arc::new(cfg),
             storage: Arc::new(RedbStorage::new(db_path).unwrap()),
-            speculative_router: Arc::new(SpeculativeRouter::new(3, std::time::Duration::from_secs(2))),
+            speculative_router: Arc::new(SpeculativeRouter::new(
+                3,
+                std::time::Duration::from_secs(2),
+            )),
             thompson_router: Arc::new(ThompsonSamplingRouter::new(vec![], 0.1)),
             council_router: Arc::new(CouncilRouter::new("mock".to_string())),
             cloud_providers: Arc::new(vec![]),
@@ -161,7 +167,9 @@ mod tests {
             overture_public_key: None,
             receipt_log: None,
             lifecycle_registry: None,
-            task_cancellation_registry: Arc::new(std::sync::RwLock::new(std::collections::HashMap::new())),
+            task_cancellation_registry: Arc::new(std::sync::RwLock::new(
+                std::collections::HashMap::new(),
+            )),
             bt_state_tx: Arc::new(tokio::sync::watch::channel(serde_json::Value::Null).0),
         }
     }
