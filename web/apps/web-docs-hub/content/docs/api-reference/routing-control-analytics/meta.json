@@ -1,0 +1,19 @@
+{
+  "title": "Routing Control & Analytics",
+  "pages": [
+    "get-v1-routing-stats",
+    "get-v1-routing-recent",
+    "get-v1-routing-leaderboard",
+    "post-v1-routing-strategy",
+    "post-v1-routing-provider-weights",
+    "get-v1-routing-speculative-status",
+    "get-v1-routing-speculative-config",
+    "post-v1-routing-speculative",
+    "get-v1-routing-speculative-analytics",
+    "post-v1-routing-speculative-simulate",
+    "post-v1-routing-council",
+    "get-v1-routing-council-analytics",
+    "post-v1-routing-shadow",
+    "get-v1-routing-circuit-breaker-status"
+  ]
+}
