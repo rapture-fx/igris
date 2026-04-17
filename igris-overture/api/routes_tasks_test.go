@@ -1273,6 +1273,9 @@ func TestHandleTaskCheckpointReturnsLifecycleMetadata(t *testing.T) {
 			CheckpointDigest:  "digest-12",
 			RuntimeID:         runtimeID,
 		},
+		WalEntries: []coordinator.WalEntry{
+			{EntryID: uuid.New(), TaskID: taskID, StepIndex: 12, RuntimeID: runtimeID},
+		},
 	}
 
 	checkpointBytes, err := json.Marshal(checkpoint)
@@ -1568,6 +1571,9 @@ func TestHandleTaskCheckpointReturnsTransitionRejectedPayloadAfterConcurrentCanc
 			LastCommittedStep: 13,
 			CheckpointDigest:  "digest-13",
 			RuntimeID:         runtimeID,
+		},
+		WalEntries: []coordinator.WalEntry{
+			{EntryID: uuid.New(), TaskID: taskID, StepIndex: 13, RuntimeID: runtimeID},
 		},
 	}
 
@@ -1865,6 +1871,9 @@ func TestHandleTaskCheckpointReturnsTransitionRejectedPayloadAfterConcurrentFail
 			LastCommittedStep: 17,
 			CheckpointDigest:  "digest-17",
 			RuntimeID:         runtimeID,
+		},
+		WalEntries: []coordinator.WalEntry{
+			{EntryID: uuid.New(), TaskID: taskID, StepIndex: 17, RuntimeID: runtimeID},
 		},
 	}
 	failureReason := "Step 3 failed: approval required for tool execution"
@@ -2423,6 +2432,9 @@ func TestHandleTaskCheckpointReturnsTransitionRejectedPayloadForStructuredFailed
 			LastCommittedStep: 21,
 			CheckpointDigest:  "digest-21",
 			RuntimeID:         runtimeID,
+		},
+		WalEntries: []coordinator.WalEntry{
+			{EntryID: uuid.New(), TaskID: taskID, StepIndex: 21, RuntimeID: runtimeID},
 		},
 	}
 	checkpointBytes, err := json.Marshal(checkpoint)
