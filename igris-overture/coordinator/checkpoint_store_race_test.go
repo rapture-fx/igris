@@ -215,6 +215,9 @@ func TestCheckpointStoreRejectsCheckpointAfterCancel(t *testing.T) {
 			CheckpointDigest:  "abcd",
 			RuntimeID:         "runtime-canceled",
 		},
+		WalEntries: []WalEntry{
+			{EntryID: uuid.New(), TaskID: taskID, StepIndex: 7, RuntimeID: "runtime-canceled"},
+		},
 		CapturedAt: time.Unix(1_700_000_000, 0).UTC(),
 	})
 	if !errors.Is(err, ErrTaskTransitionRejected) {
@@ -305,6 +308,9 @@ func TestCheckpointStoreRejectsStaleCheckpointStep(t *testing.T) {
 			LastCommittedStep: 5,
 			CheckpointDigest:  "same-step",
 			RuntimeID:         "runtime-2",
+		},
+		WalEntries: []WalEntry{
+			{EntryID: uuid.New(), TaskID: taskID, StepIndex: 5, RuntimeID: "runtime-2"},
 		},
 		CapturedAt: time.Unix(1_700_000_100, 0).UTC(),
 	})
