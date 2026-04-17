@@ -1,0 +1,140 @@
+---
+title: "POST /v1/hitl/approve"
+description: "Approves a local human-in-the-loop request. This endpoint belongs to the Local Runtime API group and is documented here so customers can understand the contract, auth model, and verified sample traffic without reading the server implementation."
+---
+
+# POST /v1/hitl/approve
+
+Approves a local human-in-the-loop request. This endpoint belongs to the Local Runtime API group and is documented here so customers can understand the contract, auth model, and verified sample traffic without reading the server implementation.
+
+<div className="api-meta not-prose"><div className="api-meta-group"><span className="api-meta-label">Method</span><span className="api-badge api-method-post">POST</span></div><div className="api-meta-group"><span className="api-meta-label">Path</span><span className="api-meta-value">/v1/hitl/approve</span></div><div className="api-meta-group"><span className="api-meta-label">Base URL</span><span className="api-meta-value">http://localhost:8080</span></div><div className="api-meta-group"><span className="api-meta-label">Auth</span><span className="api-meta-value">Runtime-config dependent</span></div><div className="api-meta-group"><span className="api-meta-label">Surface</span><span className="api-badge api-surface-local-runtime">Local runtime</span></div><div className="api-meta-group"><span className="api-meta-label">Stability</span><span className="api-badge api-stability-preview">preview</span></div><div className="api-meta-group"><span className="api-meta-label">Support</span><span className="api-badge api-support-preview">preview</span></div><div className="api-meta-group"><span className="api-meta-label">Deployment</span><span className="api-badge api-deployment-local">local</span></div></div>
+
+## When To Use
+
+Use this endpoint when you are working with Local Runtime API and are comfortable integrating against a preview surface. Confirm the current shape and rollout expectations before depending on it in a hard production path.
+
+## Integration Guidance
+
+Retry only on clearly transient 5xx or 429 responses, and prefer idempotent client behavior. For preview routes, avoid aggressive automatic replay until you have validated the behavior in your environment.
+
+### Common Mistakes
+
+- Using the wrong credential type or forgetting to send the expected API key header.
+- Pointing the client at the hosted base URL even though this route is served by the local runtime.
+- Replaying a write request without thinking through idempotency, duplication, or partial success.
+
+### Related Endpoints
+
+- [GET /v1/health](/docs/api-reference/local-runtime-api/get-v1-health)
+- [GET /v1/runtime/profile](/docs/api-reference/local-runtime-api/get-v1-runtime-profile)
+- [POST /v1/chat/completions](/docs/api-reference/local-runtime-api/post-v1-chat-completions)
+
+### Related Guides
+
+- [API Authentication](/docs/api-reference/authentication)
+- [API Errors](/docs/api-reference/errors)
+- [Deploy Local Runtime](/docs/deploy-local-runtime)
+
+## Request Body
+
+| Field | Type | Required | Description |
+|---|---|---|---|
+| `request_id` | `string` | Yes | HITL request identifier. |
+
+## Request Example
+
+```json
+{
+  "request_id": "hitl_01HV9C"
+}
+```
+
+## Code Examples
+
+### cURL
+
+```bash
+curl -X POST http://localhost:8080/v1/hitl/approve \
+  -H "Authorization: Bearer $IGRIS_RUNTIME_API_KEY" \
+  -H "Content-Type: application/json" \
+  -d '{
+  "request_id": "hitl_01HV9C"
+}'
+```
+
+### JavaScript
+
+```javascript
+const response = await fetch('http://localhost:8080/v1/hitl/approve', {
+  method: 'POST',
+  headers: {
+    'Authorization': `Bearer ${process.env.IGRIS_RUNTIME_API_KEY}`,
+    'Content-Type': 'application/json',
+  },
+  body: JSON.stringify({
+  "request_id": "hitl_01HV9C"
+}),
+});
+
+const data = await response.text();
+console.log(data);
+```
+
+### Go
+
+```go
+client := &http.Client{}
+body := strings.NewReader("{\n  \"request_id\": \"hitl_01HV9C\"\n}")
+
+req, err := http.NewRequest("POST", "http://localhost:8080/v1/hitl/approve", body)
+if err != nil {
+	log.Fatal(err)
+}
+req.Header.Set("Content-Type", "application/json")
+req.Header.Set("Authorization", "Bearer " + os.Getenv("IGRIS_RUNTIME_API_KEY"))
+
+resp, err := client.Do(req)
+if err != nil {
+	log.Fatal(err)
+}
+defer resp.Body.Close()
+
+payload, _ := io.ReadAll(resp.Body)
+fmt.Println(string(payload))
+```
+
+### Rust
+
+```rust
+let client = reqwest::Client::new();
+let response = client
+        .request(reqwest::Method::POST, "http://localhost:8080/v1/hitl/approve")
+        .header("Authorization", format!("Bearer {}", std::env::var("IGRIS_RUNTIME_API_KEY")?))
+        .json(&serde_json::json!({
+  "request_id": "hitl_01HV9C"
+}))
+        .send()
+        .await?;
+
+let payload = response.text().await?;
+println!("{}", payload);
+```
+
+## Sample Response
+
+```json
+{
+  "status": "approved"
+}
+```
+
+## Status Codes
+
+| Code | Title | Description |
+|---|---|---|
+| 200 | Success | The request completed successfully. For streaming or download endpoints, the success response may be a stream or attachment rather than a JSON object. |
+| 400 | Bad Request | The route was reached, but the request body, query string, or path parameter did not match the endpoint contract. |
+| 401 | Unauthorized | Credentials were missing, expired, malformed, or not accepted by this route. |
+| 429 | Too Many Requests | The caller exceeded the current throttle window and should wait before retrying. |
+| 500 | Server Error | The server accepted the request contract but failed while processing it. |
+
