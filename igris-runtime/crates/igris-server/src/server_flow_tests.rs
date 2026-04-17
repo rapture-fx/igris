@@ -8,10 +8,21 @@ mod tests {
         routing::post,
         Json, Router,
     };
+    use ed25519_dalek::SigningKey;
+    use igris_core::storage::TASK_SUBMISSIONS;
     use std::{convert::Infallible, net::SocketAddr, sync::Arc};
     use tokio::net::TcpListener;
     use tower::ServiceExt;
+    use serde::Serialize;
+    use sha2::{Digest, Sha256};
     use igris_routing::thompson::ThompsonSamplingRouter;
+    use igris_wal::{StepType, WalLog};
+
+    #[derive(Serialize)]
+    struct StoredTaskSubmission {
+        request_hash: String,
+        response: task_executor::TaskSubmitResponse,
+    }
 
     async fn mock_openai_chat(Json(req): Json<serde_json::Value>) -> axum::response::Response {
         let stream = req.get("stream").and_then(|v| v.as_bool()).unwrap_or(false);
@@ -109,10 +120,67 @@ mod tests {
         }
     }
 
+    fn build_runtime_only_state() -> AppState {
+        let mut cfg = IgrisConfig::default();
+        cfg.providers = vec![];
+        cfg.auth.enabled = false;
+
+        let db_path = std::env::temp_dir().join(format!("igris-runtime-test-{}.db", uuid::Uuid::new_v4()));
+        AppState {
+            config: Arc::new(cfg),
+            storage: Arc::new(RedbStorage::new(db_path).unwrap()),
+            speculative_router: Arc::new(SpeculativeRouter::new(3, std::time::Duration::from_secs(2))),
+            thompson_router: Arc::new(ThompsonSamplingRouter::new(vec![], 0.1)),
+            council_router: Arc::new(CouncilRouter::new("mock".to_string())),
+            cloud_providers: Arc::new(vec![]),
+            local_provider: None,
+            mcp_context_store: None,
+            reflection_config: None,
+            tool_registry: None,
+            tool_max_steps: 1,
+            tool_timeout_ms: 1000,
+            tool_max_concurrent: 1,
+            planning_config: None,
+            swarm_config: None,
+            swarm_peer_id: "test".to_string(),
+            lora_training: None,
+            federated_manager: None,
+            swarm_manager: None,
+            fleet_manager: None,
+            rate_limiter: None,
+            metrics: Arc::new(Metrics::new()),
+            escapevector_cache: None,
+            #[cfg(feature = "memory")]
+            agent_memory: None,
+            #[cfg(feature = "hitl")]
+            hitl_coordinator: None,
+            violation_log: None,
+            peer_registry: None,
+            runtime_public_key: None,
+            signing_key: None,
+            overture_public_key: None,
+            receipt_log: None,
+            lifecycle_registry: None,
+            task_cancellation_registry: Arc::new(std::sync::RwLock::new(std::collections::HashMap::new())),
+            bt_state_tx: Arc::new(tokio::sync::watch::channel(serde_json::Value::Null).0),
+        }
+    }
+
     fn build_test_app(state: AppState) -> Router {
         Router::new()
             .route("/v1/chat/completions", post(chat_completions))
             .with_state(state)
+    }
+
+    fn build_runtime_task_app(state: AppState) -> Router {
+        Router::new()
+            .route("/v1/runtime/task/submit", post(task_executor::handle_task_submit))
+            .route("/v1/runtime/task/stream", post(task_executor::handle_task_stream))
+            .with_state(state)
+    }
+
+    fn hex_digest(bytes: &[u8; 32]) -> String {
+        bytes.iter().map(|byte| format!("{:02x}", byte)).collect()
     }
 
     #[tokio::test]
@@ -171,6 +239,171 @@ mod tests {
         let text = String::from_utf8_lossy(&bytes);
         assert!(text.contains("data:"));
         assert!(text.contains("[DONE]"));
+    }
+
+    #[tokio::test]
+    async fn runtime_task_submit_rejects_resume_when_digest_matches_but_step_differs() {
+        std::env::set_var("TEST_API_KEY", "x");
+        let state = build_runtime_only_state();
+        let task_id = uuid::Uuid::new_v4();
+        let wal = WalLog::new(state.storage.clone(), task_id, state.swarm_peer_id.clone());
+        let entry = wal
+            .write_intent(
+                0,
+                StepType::Inference {
+                    provider: "mock".to_string(),
+                    model: "mock-model".to_string(),
+                },
+                [0x11u8; 32],
+            )
+            .unwrap();
+        let signing_key = SigningKey::from_bytes(&[0x22u8; 32]);
+        wal.write_committed(entry.entry_id, [0x33u8; 32], &signing_key)
+            .unwrap();
+        let (local_step, local_digest) = wal.committed_state().unwrap();
+        assert_eq!(local_step, Some(0));
+        let digest_hex = hex_digest(&local_digest);
+
+        let app = build_runtime_task_app(state);
+        let req_body = serde_json::json!({
+            "task_id": task_id,
+            "task_type": {
+                "type": "single_inference",
+                "model": "gpt-4",
+                "messages": [{"role":"user","content":"hi"}],
+                "stream": false
+            },
+            "resume_from": {
+                "last_committed_step": 1,
+                "checkpoint_digest": digest_hex,
+                "runtime_id": "runtime-old"
+            },
+            "resume_checkpoint": {
+                "task_id": task_id,
+                "resume_token": {
+                    "last_committed_step": 1,
+                    "checkpoint_digest": digest_hex,
+                    "runtime_id": "runtime-old"
+                },
+                "wal_entries": []
+            },
+            "idempotency_key": "resume-step-mismatch",
+            "tenant_id": "tenant-runtime-resume"
+        });
+        let req = Request::builder()
+            .method("POST")
+            .uri("/v1/runtime/task/submit")
+            .header("content-type", "application/json")
+            .body(Body::from(req_body.to_string()))
+            .unwrap();
+
+        let resp = app.oneshot(req).await.unwrap();
+        assert_eq!(resp.status(), StatusCode::CONFLICT);
+
+        let bytes = axum::body::to_bytes(resp.into_body(), usize::MAX).await.unwrap();
+        let payload: serde_json::Value = serde_json::from_slice(&bytes).unwrap();
+        assert_eq!(payload["error"]["type"], "checkpoint_mismatch");
+        assert_eq!(
+            payload["resume"]["requested_resume_from"]["last_committed_step"],
+            1
+        );
+        assert_eq!(payload["resume"]["local_last_committed_step"], 0);
+        assert_eq!(payload["resume"]["local_checkpoint_digest"], digest_hex);
+        assert_eq!(payload["resume"]["resume_checkpoint_provided"], true);
+    }
+
+    #[tokio::test]
+    async fn runtime_task_stream_replays_completed_output_with_durability_contract() {
+        std::env::set_var("TEST_API_KEY", "x");
+        let state = build_runtime_only_state();
+        let task_id = uuid::Uuid::new_v4();
+        let stream_request = task_executor::TaskSubmitRequest {
+            task_id,
+            task_type: task_executor::TaskType::SingleInference {
+                model: "gpt-4".to_string(),
+                messages: vec![runtime_execute::ExecuteMessage {
+                    role: "user".to_string(),
+                    content: "hi".to_string(),
+                }],
+                max_tokens: None,
+                temperature: None,
+                stream: true,
+                mode: None,
+                memory: None,
+                approval: None,
+            },
+            containment: None,
+            resume_from: None,
+            resume_checkpoint: None,
+            idempotency_key: "stream-durability".to_string(),
+            tenant_id: "tenant-stream".to_string(),
+            deadline_ms: None,
+        };
+        let request_hash = format!(
+            "{:x}",
+            Sha256::digest(
+                serde_json::to_vec(&serde_json::json!({
+                    "task_type": &stream_request.task_type,
+                    "containment": &stream_request.containment,
+                    "tenant_id": &stream_request.tenant_id,
+                    "deadline_ms": &stream_request.deadline_ms,
+                }))
+                .unwrap(),
+            )
+        );
+        let stored = StoredTaskSubmission {
+            request_hash,
+            response: task_executor::TaskSubmitResponse {
+                task_id,
+                steps_completed: 1,
+                steps_total: 1,
+                status: task_executor::TaskStatus::Completed,
+                checkpoint: None,
+                final_output: Some("hello".to_string()),
+                usage: None,
+                failure_details: None,
+                execution_envelope: None,
+                execution_receipt: None,
+            },
+        };
+        state
+            .storage
+            .set(
+                TASK_SUBMISSIONS,
+                &format!("{}:{}", stream_request.tenant_id, stream_request.idempotency_key),
+                &stored,
+            )
+            .unwrap();
+
+        let app = build_runtime_task_app(state);
+        let req = Request::builder()
+            .method("POST")
+            .uri("/v1/runtime/task/stream")
+            .header("content-type", "application/json")
+            .body(Body::from(serde_json::to_string(&stream_request).unwrap()))
+            .unwrap();
+        let resp = app.oneshot(req).await.unwrap();
+        assert_eq!(resp.status(), StatusCode::OK);
+        assert_eq!(
+            resp.headers()["x-igris-runtime-task-id"],
+            task_id.to_string().as_str()
+        );
+        assert_eq!(
+            resp.headers()["x-igris-runtime-stream-resume-supported"],
+            "false"
+        );
+        assert_eq!(
+            resp.headers()["x-igris-runtime-stream-replay-condition"],
+            "completed-final-output"
+        );
+        let bytes = axum::body::to_bytes(resp.into_body(), usize::MAX).await.unwrap();
+        let text = String::from_utf8_lossy(&bytes);
+        assert!(text.contains("hello"));
+        assert!(text.contains("event: task_result"));
+        assert!(text.contains("\"mode\":\"streaming\""));
+        assert!(text.contains("\"resume_supported\":false"));
+        assert!(text.contains("\"replay_supported\":true"));
+        assert!(text.contains("\"checkpoint_persisted\":false"));
     }
 
     #[tokio::test]
