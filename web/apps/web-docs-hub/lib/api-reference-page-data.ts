@@ -878,6 +878,46 @@ const endpointOverrides: Record<string, EndpointOverride> = {
       ],
     },
   },
+  'GET /v1/routing/stats': {
+    functionality:
+      'Returns aggregate routing telemetry for the authenticated tenant. Fresh deployments return a valid empty shape until telemetry has accumulated.',
+    responseExample: {
+      total_requests: 4821,
+      avg_latency_ms: 420,
+      provider_breakdown: [
+        { provider: 'openai', count: 3012, avg_latency_ms: 390 },
+        { provider: 'anthropic', count: 1809, avg_latency_ms: 470 },
+      ],
+    },
+  },
+  'GET /v1/routing/recent': {
+    functionality:
+      'Lists recent routed requests for operational inspection and support workflows.',
+    responseExample: [
+      {
+        id: 'route_01HV9A1R7Q5ZP88K',
+        provider: 'openai',
+        latency_ms: 392,
+        created_at: '2026-04-04T06:40:00Z',
+      },
+    ],
+  },
+  'GET /v1/routing/leaderboard': {
+    functionality:
+      'Ranks providers by recent request count and average latency so operators can see which providers are currently carrying traffic.',
+    responseExample: [
+      {
+        provider: 'openai',
+        request_count: 3012,
+        avg_latency_ms: 390,
+      },
+      {
+        provider: 'anthropic',
+        request_count: 1809,
+        avg_latency_ms: 470,
+      },
+    ],
+  },
   'GET /v1/routing/speculative/config': {
     functionality:
       'Returns the active speculative-routing configuration read model used by the console.',
