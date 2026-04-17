@@ -1227,6 +1227,14 @@ function buildRelatedGuides(endpoint: ApiEndpoint) {
     pushGuide('Context Engineering', '/docs/context-engineering');
     pushGuide('Durable Tasks', '/docs/durable-tasks');
     pushGuide('Behavior Trees', '/docs/behavior-trees');
+  } else if (path.startsWith('/v1/routing')) {
+    pushGuide('Routing Engine', '/docs/escapevector');
+    pushGuide('Speculative Execution', '/docs/speculative-execution');
+    pushGuide('Circuit Breaker', '/docs/circuit-breaker');
+  } else if (path.startsWith('/v1/mcp')) {
+    pushGuide('MCP', '/docs/mcp');
+    pushGuide('MCP Server', '/docs/mcp-server');
+    pushGuide('MCP Integration Patterns', '/docs/mcp-integration-patterns');
   } else if (path.startsWith('/v1/vault') || path.startsWith('/v1/account') || path.startsWith('/api/subscription')) {
     pushGuide('Key Management', '/docs/key-management');
     pushGuide('SDKs', '/docs/sdk');
