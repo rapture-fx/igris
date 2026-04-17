@@ -1087,6 +1087,13 @@ const endpointOverrides: Record<string, EndpointOverride> = {
       },
     },
   },
+  'GET /v1/lora/status': {
+    responseExample: {
+      enabled: true,
+      active_adapter: null,
+      training_jobs: [],
+    },
+  },
   'GET /v1/memory/status': {
     responseExample: {
       enabled: true,
