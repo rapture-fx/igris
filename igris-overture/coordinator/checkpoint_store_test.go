@@ -452,12 +452,20 @@ func TestTaskCheckpointWatermarkConsistent(t *testing.T) {
 			expected: false,
 		},
 		{
-			name: "empty wal entries are allowed",
+			name: "empty wal entries are allowed at zero watermark",
+			cp: &CheckpointPayload{
+				TaskID:      taskID,
+				ResumeToken: ResumeToken{LastCommittedStep: 0},
+			},
+			expected: true,
+		},
+		{
+			name: "empty wal entries cannot claim committed progress",
 			cp: &CheckpointPayload{
 				TaskID:      taskID,
 				ResumeToken: ResumeToken{LastCommittedStep: 3},
 			},
-			expected: true,
+			expected: false,
 		},
 		{
 			name: "wal entries through watermark are consistent",
