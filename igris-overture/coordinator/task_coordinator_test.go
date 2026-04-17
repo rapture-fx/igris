@@ -1234,6 +1234,7 @@ func TestRecoverRuntimeMarksFailedOnRedispatchConflictResponse(t *testing.T) {
 	tenantID := "tenant-recovery-conflict"
 	idempotencyKey := "idem-recovery-conflict"
 	createdAt := time.Unix(1_900_000_250, 0).UTC()
+	localLastStep := uint32(10)
 	taskDefinition := json.RawMessage(`{
 		"type":"behavior_tree",
 		"tree":{"root":{"type":"sequence","children":[]}}
@@ -1293,7 +1294,33 @@ func TestRecoverRuntimeMarksFailedOnRedispatchConflictResponse(t *testing.T) {
 		},
 		queuedExecExpectation{rowsAffected: 1},
 		queuedExecExpectation{rowsAffected: 1},
-		queuedExecExpectation{rowsAffected: 1},
+		queuedExecExpectation{
+			rowsAffected: 1,
+			check: func(query string, args []driver.NamedValue) {
+				require.Contains(t, query, "SET status = $1, failure_reason = $2, failure_details = $3")
+				require.Equal(t, string(TaskStatusFailed), args[0].Value)
+				require.Equal(t, "runtime resume rejected (checkpoint_mismatch): Checkpoint digest mismatch - WAL state diverged", args[1].Value)
+
+				detailBytes, ok := args[2].Value.([]byte)
+				require.True(t, ok)
+				var details TaskFailureDetails
+				require.NoError(t, json.Unmarshal(detailBytes, &details))
+				require.Equal(t, "runtime", details.Source)
+				require.Equal(t, "resume", details.Operation)
+				require.Equal(t, http.StatusConflict, details.StatusCode)
+				require.Equal(t, "checkpoint_mismatch", details.RejectionType)
+				require.Equal(t, "Checkpoint digest mismatch - WAL state diverged", details.Message)
+				require.NotNil(t, details.RequestedLastStep)
+				require.Equal(t, uint32(11), *details.RequestedLastStep)
+				require.NotNil(t, details.LocalLastStep)
+				require.Equal(t, localLastStep, *details.LocalLastStep)
+				require.Equal(t, "digest-11", details.RequestedCheckpointDigest)
+				require.Equal(t, "digest-local", details.LocalCheckpointDigest)
+				require.NotNil(t, details.ResumeCheckpointProvided)
+				require.True(t, *details.ResumeCheckpointProvided)
+				require.Equal(t, taskID.String(), args[3].Value)
+			},
+		},
 	)
 
 	dispatchCh := make(chan map[string]any, 1)
@@ -1316,6 +1343,15 @@ func TestRecoverRuntimeMarksFailedOnRedispatchConflictResponse(t *testing.T) {
 					"error": {
 						"type": "checkpoint_mismatch",
 						"message": "Checkpoint digest mismatch - WAL state diverged"
+					},
+					"resume": {
+						"resume_checkpoint_provided": true,
+						"requested_resume_from": {
+							"last_committed_step": 11,
+							"checkpoint_digest": "digest-11"
+						},
+						"local_last_committed_step": 10,
+						"local_checkpoint_digest": "digest-local"
 					}
 				}`)),
 			}, nil
