@@ -649,10 +649,12 @@ const endpointOverrides: Record<string, EndpointOverride> = {
   },
   'GET /v1/health': {
     functionality:
-      'Simple health probe for the local runtime API. Use it for readiness checks and to confirm the local process is serving traffic.',
+      'Simple health probe for the selected Igris API surface. On the hosted API it reports control-plane availability; on a local runtime it reports whether the runtime process is serving traffic.',
+    whenToUse:
+      'Use this endpoint for readiness checks, deployment smoke tests, and basic connectivity validation before calling higher-level APIs.',
     responseExample: {
       status: 'ok',
-      version: 'runtime-v1.6.0',
+      service: 'igris',
     },
   },
   'POST /v1/tasks/submit': {
