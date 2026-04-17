@@ -1076,6 +1076,238 @@ const endpointOverrides: Record<string, EndpointOverride> = {
     },
     responseExample: 'event: message\ndata: {"jsonrpc":"2.0","id":"req_stream_1","result":{"chunk":"..."}}\n',
   },
+  'GET /v1/runtime/profile': {
+    responseExample: {
+      version: 'runtime-v1.6.0',
+      capabilities: {
+        local_llm: true,
+        behavior_trees: true,
+        memory: true,
+        mcp: true,
+      },
+    },
+  },
+  'GET /v1/memory/status': {
+    responseExample: {
+      enabled: true,
+      vector_store: 'ready',
+      kv_store: 'ready',
+    },
+  },
+  'POST /v1/memory/store': {
+    requestBodyFields: [
+      { name: 'key', type: 'string', required: true, description: 'Memory key.' },
+      { name: 'value', type: 'object | string', required: true, description: 'Value to persist in local memory.' },
+      { name: 'metadata', type: 'object', description: 'Optional metadata for retrieval and search.' },
+    ],
+    requestExample: {
+      key: 'mission.last_summary',
+      value: 'Inspection complete. No anomaly detected.',
+      metadata: { source: 'agent' },
+    },
+    responseExample: {
+      stored: true,
+      key: 'mission.last_summary',
+    },
+  },
+  'POST /v1/memory/search': {
+    requestBodyFields: [
+      { name: 'query', type: 'string', required: true, description: 'Search query.' },
+      { name: 'top_k', type: 'integer', description: 'Maximum number of results to return.' },
+    ],
+    requestExample: {
+      query: 'last inspection summary',
+      top_k: 3,
+    },
+    responseExample: {
+      results: [
+        {
+          key: 'mission.last_summary',
+          score: 0.91,
+          value: 'Inspection complete. No anomaly detected.',
+        },
+      ],
+    },
+  },
+  'GET /v1/memory/:key': {
+    pathParams: [
+      { name: 'key', type: 'string', required: true, description: 'Memory key to read.' },
+    ],
+    responseExample: {
+      key: 'mission.last_summary',
+      value: 'Inspection complete. No anomaly detected.',
+    },
+  },
+  'GET /v1/hitl/status': {
+    responseExample: {
+      enabled: true,
+      pending_requests: 1,
+    },
+  },
+  'GET /v1/hitl/requests': {
+    responseExample: [
+      {
+        request_id: 'hitl_01HV9C',
+        status: 'pending',
+        created_at: '2026-04-04T06:45:00Z',
+      },
+    ],
+  },
+  'POST /v1/hitl/request': {
+    requestBodyFields: [
+      { name: 'task', type: 'string', required: true, description: 'Human review task or decision prompt.' },
+      { name: 'context', type: 'object', description: 'Context shown to the reviewer.' },
+    ],
+    requestExample: {
+      task: 'Approve dispatch to loading bay 3',
+      context: { confidence: 0.74 },
+    },
+    responseExample: {
+      request_id: 'hitl_01HV9C',
+      status: 'pending',
+    },
+  },
+  'POST /v1/hitl/approve': {
+    requestBodyFields: [
+      { name: 'request_id', type: 'string', required: true, description: 'HITL request identifier.' },
+    ],
+    requestExample: { request_id: 'hitl_01HV9C' },
+    responseExample: { status: 'approved' },
+  },
+  'POST /v1/hitl/reject': {
+    requestBodyFields: [
+      { name: 'request_id', type: 'string', required: true, description: 'HITL request identifier.' },
+      { name: 'reason', type: 'string', description: 'Optional rejection reason.' },
+    ],
+    requestExample: { request_id: 'hitl_01HV9C', reason: 'Operator override' },
+    responseExample: { status: 'rejected' },
+  },
+  'GET /v1/swarm/status': {
+    responseExample: {
+      enabled: true,
+      agent_count: 2,
+      quorum: 'available',
+    },
+  },
+  'GET /v1/swarm/agents': {
+    responseExample: [
+      { agent_id: 'agent-a', status: 'active' },
+      { agent_id: 'agent-b', status: 'active' },
+    ],
+  },
+  'POST /v1/swarm/join': {
+    requestBodyFields: [
+      { name: 'agent_id', type: 'string', required: true, description: 'Agent joining the local swarm.' },
+    ],
+    requestExample: { agent_id: 'agent-a' },
+    responseExample: { joined: true },
+  },
+  'POST /v1/swarm/propose': {
+    requestBodyFields: [
+      { name: 'proposal', type: 'object', required: true, description: 'Proposal payload for swarm voting.' },
+    ],
+    requestExample: { proposal: { action: 'reroute', target: 'dock-2' } },
+    responseExample: { proposal_id: 'proposal_01HV9D', status: 'open' },
+  },
+  'POST /v1/swarm/vote': {
+    requestBodyFields: [
+      { name: 'proposal_id', type: 'string', required: true, description: 'Proposal identifier.' },
+      { name: 'vote', type: 'string', required: true, description: 'Vote value such as `approve` or `reject`.' },
+    ],
+    requestExample: { proposal_id: 'proposal_01HV9D', vote: 'approve' },
+    responseExample: { accepted: true },
+  },
+  'GET /v1/federated/status': {
+    responseExample: {
+      enabled: true,
+      round: 12,
+      status: 'idle',
+    },
+  },
+  'POST /v1/federated/update': {
+    requestBodyFields: [
+      { name: 'participant_id', type: 'string', required: true, description: 'Local participant identifier.' },
+      { name: 'weights_delta', type: 'object', description: 'Model update payload.' },
+    ],
+    requestExample: { participant_id: 'edge-node-01', weights_delta: {} },
+    responseExample: { accepted: true },
+  },
+  'GET /v1/federated/model/latest': {
+    responseExample: {
+      model_id: 'fed_01HV9E',
+      round: 12,
+      created_at: '2026-04-04T06:50:00Z',
+    },
+  },
+  'GET /v1/federated/participants': {
+    responseExample: [
+      { participant_id: 'edge-node-01', status: 'active' },
+    ],
+  },
+  'POST /v1/runtime/execute': {
+    requestBodyFields: [
+      { name: 'task', type: 'object', required: true, description: 'Runtime execution payload.' },
+      { name: 'timeout_ms', type: 'integer', description: 'Optional execution timeout.' },
+    ],
+    requestExample: {
+      task: { type: 'tool_call', name: 'health_check' },
+      timeout_ms: 30000,
+    },
+    responseExample: {
+      status: 'completed',
+      output: {},
+    },
+  },
+  'GET /v1/runtime/violations': {
+    responseExample: {
+      violations: [],
+    },
+  },
+  'POST /v1/runtime/task/submit': {
+    requestBodyFields: [
+      { name: 'task_id', type: 'string', description: 'Optional caller-supplied task ID.' },
+      { name: 'task_type', type: 'string', required: true, description: 'Runtime task type.' },
+      { name: 'task_definition', type: 'object', required: true, description: 'Runtime task payload.' },
+    ],
+    requestExample: {
+      task_type: 'single_inference',
+      task_definition: { model: 'local', messages: [{ role: 'user', content: 'hello' }] },
+    },
+    responseExample: {
+      task_id: '018f4a2b-3c1e-7a2d-9b8f-4d5e6f7a8b9c',
+      status: 'accepted',
+    },
+  },
+  'POST /v1/runtime/task/stream': {
+    requestBodyFields: [
+      { name: 'task_type', type: 'string', required: true, description: 'Runtime task type.' },
+      { name: 'task_definition', type: 'object', required: true, description: 'Runtime task payload.' },
+    ],
+    requestExample: {
+      task_type: 'single_inference',
+      task_definition: { stream: true, model: 'local', messages: [{ role: 'user', content: 'hello' }] },
+    },
+    responseExample: 'event: token\ndata: {"delta":"Hello"}\n',
+  },
+  'POST /v1/runtime/task/{task_id}/cancel': {
+    requestExample: null,
+    responseExample: {
+      task_id: '018f4a2b-3c1e-7a2d-9b8f-4d5e6f7a8b9c',
+      canceled: true,
+    },
+  },
+  'GET /v1/runtime/task/{task_id}/wal': {
+    responseExample: {
+      task_id: '018f4a2b-3c1e-7a2d-9b8f-4d5e6f7a8b9c',
+      entries: [],
+    },
+  },
+  'GET /v1/runtime/agent/:id/state': {
+    responseExample: {
+      agent_id: 'agent-a',
+      state: {},
+    },
+  },
   'POST /v1/btree/validate': {
     functionality:
       'Validates a behavior-tree document against the runtime schema before deploy or execution.',
