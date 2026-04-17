@@ -1,0 +1,116 @@
+---
+title: "GET /v1/federated/status"
+description: "Returns local federated-learning status. This endpoint belongs to the Local Runtime API group and is documented here so customers can understand the contract, auth model, and verified sample traffic without reading the server implementation."
+---
+
+# GET /v1/federated/status
+
+Returns local federated-learning status. This endpoint belongs to the Local Runtime API group and is documented here so customers can understand the contract, auth model, and verified sample traffic without reading the server implementation.
+
+<div className="api-meta not-prose"><div className="api-meta-group"><span className="api-meta-label">Method</span><span className="api-badge api-method-get">GET</span></div><div className="api-meta-group"><span className="api-meta-label">Path</span><span className="api-meta-value">/v1/federated/status</span></div><div className="api-meta-group"><span className="api-meta-label">Base URL</span><span className="api-meta-value">http://localhost:8080</span></div><div className="api-meta-group"><span className="api-meta-label">Auth</span><span className="api-meta-value">Runtime-config dependent</span></div><div className="api-meta-group"><span className="api-meta-label">Surface</span><span className="api-badge api-surface-local-runtime">Local runtime</span></div><div className="api-meta-group"><span className="api-meta-label">Stability</span><span className="api-badge api-stability-preview">preview</span></div><div className="api-meta-group"><span className="api-meta-label">Support</span><span className="api-badge api-support-preview">preview</span></div><div className="api-meta-group"><span className="api-meta-label">Deployment</span><span className="api-badge api-deployment-local">local</span></div></div>
+
+## When To Use
+
+Use this endpoint when you are working with Local Runtime API and are comfortable integrating against a preview surface. Confirm the current shape and rollout expectations before depending on it in a hard production path.
+
+## Integration Guidance
+
+Safe retries are usually reasonable for transient 5xx or 429 responses. Do not retry 4xx responses until you have fixed the request, credentials, or addressed resource.
+
+### Common Mistakes
+
+- Using the wrong credential type or forgetting to send the expected API key header.
+- Pointing the client at the hosted base URL even though this route is served by the local runtime.
+
+### Related Endpoints
+
+- [GET /v1/health](/docs/api-reference/local-runtime-api/get-v1-health)
+- [GET /v1/runtime/profile](/docs/api-reference/local-runtime-api/get-v1-runtime-profile)
+- [POST /v1/chat/completions](/docs/api-reference/local-runtime-api/post-v1-chat-completions)
+
+### Related Guides
+
+- [API Authentication](/docs/api-reference/authentication)
+- [API Errors](/docs/api-reference/errors)
+- [Deploy Local Runtime](/docs/deploy-local-runtime)
+
+## Code Examples
+
+### cURL
+
+```bash
+curl -X GET http://localhost:8080/v1/federated/status \
+  -H "Authorization: Bearer $IGRIS_RUNTIME_API_KEY"
+```
+
+### JavaScript
+
+```javascript
+const response = await fetch('http://localhost:8080/v1/federated/status', {
+  method: 'GET',
+  headers: {
+    'Authorization': `Bearer ${process.env.IGRIS_RUNTIME_API_KEY}`,
+  },
+});
+
+const data = await response.text();
+console.log(data);
+```
+
+### Go
+
+```go
+client := &http.Client{}
+body := http.NoBody
+
+req, err := http.NewRequest("GET", "http://localhost:8080/v1/federated/status", body)
+if err != nil {
+	log.Fatal(err)
+}
+
+req.Header.Set("Authorization", "Bearer " + os.Getenv("IGRIS_RUNTIME_API_KEY"))
+
+resp, err := client.Do(req)
+if err != nil {
+	log.Fatal(err)
+}
+defer resp.Body.Close()
+
+payload, _ := io.ReadAll(resp.Body)
+fmt.Println(string(payload))
+```
+
+### Rust
+
+```rust
+let client = reqwest::Client::new();
+let response = client
+        .request(reqwest::Method::GET, "http://localhost:8080/v1/federated/status")
+        .header("Authorization", format!("Bearer {}", std::env::var("IGRIS_RUNTIME_API_KEY")?))
+        .send()
+        .await?;
+
+let payload = response.text().await?;
+println!("{}", payload);
+```
+
+## Sample Response
+
+```json
+{
+  "enabled": true,
+  "round": 12,
+  "status": "idle"
+}
+```
+
+## Status Codes
+
+| Code | Title | Description |
+|---|---|---|
+| 200 | Success | The request completed successfully. For streaming or download endpoints, the success response may be a stream or attachment rather than a JSON object. |
+| 400 | Bad Request | The route was reached, but the request body, query string, or path parameter did not match the endpoint contract. |
+| 401 | Unauthorized | Credentials were missing, expired, malformed, or not accepted by this route. |
+| 429 | Too Many Requests | The caller exceeded the current throttle window and should wait before retrying. |
+| 500 | Server Error | The server accepted the request contract but failed while processing it. |
+
