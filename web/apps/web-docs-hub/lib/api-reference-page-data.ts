@@ -334,9 +334,80 @@ const endpointOverrides: Record<string, EndpointOverride> = {
     },
     responseExample: {
       status: 'ok',
-      machine_id: 'dev_0f4c3f1a2d9b45cf',
-      heartbeat_at: '2026-04-04T06:22:00Z',
+      timestamp: '2026-04-04T06:22:00Z',
+      has_pending_commands: true,
     },
+  },
+  'GET /api/v1/runtime/download': {
+    functionality:
+      'Downloads or redirects to the runtime archive through the API-key authenticated runtime lifecycle surface. This is the endpoint custom installers use when they operate with a tenant API key rather than a browser session.',
+    whenToUse:
+      'Use this endpoint from provisioning scripts, fleet bootstrap tooling, or custom installers that already hold a tenant API key. Use `/v1/runtime/download` when the download is initiated from a session-authenticated hosted workflow.',
+    retryGuidance:
+      'Treat this as a provisioning operation. Retry 429 and transient 5xx responses with backoff, but do not call it repeatedly from the application hot path.',
+    queryParams: [
+      { name: 'platform', type: 'string', description: 'Runtime archive platform. Supported values include `linux-amd64`, `linux-arm64`, `linux-armv7`, `macos-arm64`, and `macos-x64`.' },
+    ],
+    queryExample: { platform: 'linux-amd64' },
+    responseExample: {
+      note: 'On success the response is either an archive download or an HTTP 302 redirect to the configured binary host.',
+    },
+    statusCodes: [
+      { code: 200, title: 'Archive download', description: 'The runtime archive is streamed from local binary storage.' },
+      { code: 302, title: 'Redirect', description: 'The runtime archive is hosted externally and the response redirects to it.' },
+      { code: 400, title: 'Unsupported platform', description: 'The requested platform is not available.', example: prettyJson({ error: 'unsupported_platform', supported: ['linux-amd64', 'linux-arm64', 'linux-armv7', 'macos-arm64', 'macos-x64'] }) },
+      { code: 401, title: 'Unauthorized', description: 'The tenant API key is missing or invalid.', example: prettyJson({ error: 'missing_api_key', message: 'Provide your tenant API key via X-API-Key header' }) },
+      { code: 503, title: 'Not configured', description: 'Runtime binary hosting is not configured on this server.', example: prettyJson({ error: 'not_configured', message: 'Binary hosting not yet configured on this server. Contact support.' }) },
+    ],
+  },
+  'GET /api/v1/runtime/commands': {
+    functionality:
+      'Fetches queued runtime commands for a registered machine and clears the queue atomically. Runtimes use this after heartbeat to pick up config-push and OTA update commands.',
+    whenToUse:
+      'Use this endpoint only from runtime lifecycle clients or compatible custom launchers. Application clients should use the higher-level fleet configuration and update routes instead of polling commands directly.',
+    retryGuidance:
+      'This is a destructive read because returned commands are cleared. Retry only when the first request clearly did not reach the server.',
+    queryParams: [
+      { name: 'machine_id', type: 'string', required: true, description: 'Stable runtime machine identifier used during registration.' },
+    ],
+    queryExample: { machine_id: 'dev_0f4c3f1a2d9b45cf' },
+    responseExample: {
+      commands: [
+        {
+          type: 'config_push',
+          config: {
+            local_fallback: {
+              enabled: true,
+              model_path: '/models/phi-3-mini.gguf',
+            },
+          },
+          queued_at: '2026-04-04T06:35:00Z',
+        },
+      ],
+    },
+    statusCodes: [
+      { code: 200, title: 'Success', description: 'Commands were returned and cleared.' },
+      { code: 400, title: 'Missing machine ID', description: '`machine_id` query parameter was not supplied.', example: prettyJson({ error: 'missing_machine_id', message: 'machine_id query parameter is required' }) },
+      { code: 404, title: 'Not registered', description: 'No runtime with this machine ID is registered for the tenant.', example: prettyJson({ error: 'not_registered', message: 'Runtime not found - call /api/v1/runtime/register first' }) },
+    ],
+  },
+  'DELETE /api/v1/runtime/deregister': {
+    functionality:
+      'Marks a runtime as deregistered and unhealthy for the current tenant. The runtime remains in historical records but should no longer be treated as an active fleet member.',
+    requestBodyFields: [
+      { name: 'machine_id', type: 'string', required: true, description: 'Stable runtime machine identifier used during registration.' },
+    ],
+    requestExample: {
+      machine_id: 'dev_0f4c3f1a2d9b45cf',
+    },
+    responseExample: {
+      status: 'ok',
+    },
+    statusCodes: [
+      { code: 200, title: 'Success', description: 'The runtime was marked deregistered, or it was already no longer active.' },
+      { code: 400, title: 'Bad request', description: 'The request body was invalid or missing `machine_id`.' },
+      { code: 401, title: 'Unauthorized', description: 'The tenant API key is missing or invalid.' },
+    ],
   },
   'GET /api/v1/runtime/list': {
     functionality:
@@ -393,13 +464,13 @@ const endpointOverrides: Record<string, EndpointOverride> = {
   },
   'POST /api/v1/runtime/config/push': {
     functionality:
-      'Queues a configuration update for one or more runtimes. The runtime fetches the queued command on its next command poll.',
+      'Queues a configuration update for the tenant fleet. Matching runtimes fetch the queued command on their next command poll.',
     requestBodyFields: [
-      { name: 'runtime_ids', type: 'array', required: true, description: 'One or more runtime IDs to target.' },
+      { name: 'selector', type: 'object', description: 'Optional selector metadata for the fleet command. Current server behavior queues the command for the tenant fleet.' },
       { name: 'config', type: 'object', required: true, description: 'Configuration payload to push.' },
     ],
     requestExample: {
-      runtime_ids: ['rt_01HV94AS6G98PZ2YH'],
+      selector: { tags: ['site-a'] },
       config: {
         local_fallback: {
           enabled: true,
@@ -408,24 +479,32 @@ const endpointOverrides: Record<string, EndpointOverride> = {
       },
     },
     responseExample: {
-      status: 'queued',
-      dispatched_to: 1,
+      queued: true,
+      instances: 3,
+      queued_at: '2026-04-04T06:35:00Z',
     },
   },
   'POST /api/v1/runtime/update': {
     functionality:
       'Queues a runtime update command. Use this to coordinate OTA rollout from the control plane rather than pulling binaries manually on every node.',
     requestBodyFields: [
-      { name: 'runtime_ids', type: 'array', required: true, description: 'One or more runtime IDs to target.' },
       { name: 'version', type: 'string', required: true, description: 'Target runtime version or release channel.' },
+      { name: 'strategy', type: 'string', description: 'Rollout strategy. Defaults to `rolling`.' },
+      { name: 'max_unavailable', type: 'integer', description: 'Maximum unavailable runtimes for a rolling update. Defaults to `1`.' },
+      { name: 'selector', type: 'object', description: 'Optional selector metadata for the fleet command. Current server behavior queues the command for the tenant fleet.' },
     ],
     requestExample: {
-      runtime_ids: ['rt_01HV94AS6G98PZ2YH'],
       version: 'runtime-v1.6.0',
+      strategy: 'rolling',
+      max_unavailable: 1,
+      selector: { tags: ['site-a'] },
     },
     responseExample: {
-      status: 'queued',
-      dispatched_to: 1,
+      queued: true,
+      version: 'runtime-v1.6.0',
+      strategy: 'rolling',
+      instances: 3,
+      queued_at: '2026-04-04T06:36:00Z',
     },
   },
   'GET /v1/history/events': {
@@ -697,6 +776,264 @@ const endpointOverrides: Record<string, EndpointOverride> = {
       { code: 401, title: 'Unauthorized', description: 'Session or API key auth failed.' },
     ],
   },
+  'GET /v1/tasks/:id/steps': {
+    functionality:
+      'Returns the execution-graph steps and slot metadata that the coordinator can expose for a durable task. The response is empty for task types that do not produce step-level graph state.',
+    pathParams: [
+      { name: 'id', type: 'string', required: true, description: 'Task ID returned by POST /v1/tasks/submit.' },
+    ],
+    responseExample: {
+      steps: [
+        {
+          node_id: 'summarize',
+          status: 'completed',
+          step_index: 0,
+          write_slot: 'reason.0.summarize',
+        },
+      ],
+      total: 1,
+    },
+    statusCodes: [
+      { code: 200, title: 'Success', description: 'Step list returned. The list may be empty.' },
+      { code: 400, title: 'Bad request', description: 'Task ID is not a valid UUID.' },
+      { code: 404, title: 'Not found', description: 'No task with this ID exists for the authenticated tenant.' },
+    ],
+  },
+  'POST /v1/tasks/:id/cancel': {
+    functionality:
+      'Requests cancellation for a durable task that is still cancellable. When the task is assigned to a runtime with a known endpoint, the coordinator also attempts to propagate the cancellation to the runtime.',
+    retryGuidance:
+      'Do not retry blindly. A second cancellation request can return conflict once the task has moved into a terminal state.',
+    pathParams: [
+      { name: 'id', type: 'string', required: true, description: 'Task ID returned by POST /v1/tasks/submit.' },
+    ],
+    requestExample: null,
+    responseExample: {
+      ok: true,
+      task_id: '018f4a2b-3c1e-7a2d-9b8f-4d5e6f7a8b9c',
+      status: 'canceled',
+      runtime_cancel_attempted: true,
+      runtime_cancel_signaled: true,
+    },
+    statusCodes: [
+      { code: 200, title: 'Canceled', description: 'The task was moved to canceled state.' },
+      { code: 400, title: 'Bad request', description: 'Task ID is not a valid UUID.' },
+      { code: 404, title: 'Not found', description: 'No task with this ID exists for the authenticated tenant.' },
+      { code: 409, title: 'Transition rejected', description: 'The task is already terminal or otherwise cannot be canceled.', example: prettyJson({ error: 'task_transition_rejected', status: 'completed' }) },
+    ],
+  },
+  'GET /v1/tasks/proof/readiness': {
+    functionality:
+      'Reports whether trigger-backed task proof synchronization is active. Use this before relying on immediate proof freshness for newly completed durable tasks.',
+    responseExample: {
+      proof_sync_mode: 'trigger',
+      trigger_available: true,
+      read_reconciliation_fallback: true,
+    },
+    statusCodes: [
+      { code: 200, title: 'Success', description: 'Proof synchronization mode was returned.' },
+      { code: 401, title: 'Unauthorized', description: 'Session or API key auth failed.' },
+    ],
+  },
+  'POST /v1/tasks/:id/proof/verify': {
+    functionality:
+      'Synchronizes persisted proof state for a durable task and returns the current verification view. The task must already have a persisted proof reference.',
+    pathParams: [
+      { name: 'id', type: 'string', required: true, description: 'Task ID returned by POST /v1/tasks/submit.' },
+    ],
+    requestExample: null,
+    responseExample: {
+      task_id: '018f4a2b-3c1e-7a2d-9b8f-4d5e6f7a8b9c',
+      proof: {
+        status: 'verified',
+        needs_refresh: false,
+        reconcile_on_read: false,
+        execution_id: 'exec_01HV95R5Y3TVVJ7R3',
+        expected_hash: '6f16f4bc...',
+        stored_hash: '6f16f4bc...',
+        present: true,
+        matched: true,
+      },
+    },
+    statusCodes: [
+      { code: 200, title: 'Success', description: 'Proof state was synchronized and returned.' },
+      { code: 400, title: 'Proof unavailable', description: 'The task has no persisted proof reference yet.', example: prettyJson({ error: 'proof_unavailable', message: 'task does not have a persisted proof reference' }) },
+      { code: 404, title: 'Not found', description: 'No task with this ID exists for the authenticated tenant.' },
+    ],
+  },
+  'GET /v1/routing/speculative/status': {
+    functionality:
+      'Returns the current speculative-routing status read model for the authenticated tenant. The response is best-effort and falls back to zeroed metrics when telemetry tables have not been populated yet.',
+    responseExample: {
+      enabled: true,
+      success_rate: 68.2,
+      latency_improvement_ms: 380,
+      cost_delta_percent: -4.5,
+      races_24h: 4821,
+      wins_by_provider: [
+        { provider: 'openai', win_rate: 54.8 },
+        { provider: 'anthropic', win_rate: 45.2 },
+      ],
+    },
+  },
+  'GET /v1/routing/speculative/config': {
+    functionality:
+      'Returns the active speculative-routing configuration read model used by the console.',
+    responseExample: {
+      enabled: true,
+      max_parallel_providers: 3,
+      timeout_ms: 5000,
+      first_token_threshold_ms: 500,
+      enabled_providers: ['openai', 'anthropic'],
+    },
+  },
+  'POST /v1/routing/speculative': {
+    functionality:
+      'Persists tenant speculative-routing configuration. The current endpoint stores the submitted JSON under the `speculative` routing config key and returns an acknowledgement.',
+    requestBodyFields: [
+      { name: 'enabled', type: 'boolean', description: 'Whether speculative routing should be enabled for tenant traffic.' },
+      { name: 'max_parallel_providers', type: 'integer', description: 'Optional maximum provider race width.' },
+    ],
+    requestExample: {
+      enabled: true,
+      max_parallel_providers: 3,
+    },
+    responseExample: {
+      saved: true,
+    },
+  },
+  'GET /v1/routing/speculative/analytics': {
+    functionality:
+      'Returns speculative-routing analytics series used by operational dashboards.',
+    responseExample: {
+      race_win_rate: [],
+      latency_distribution: [],
+      cost_savings_timeline: [],
+    },
+  },
+  'POST /v1/routing/speculative/simulate': {
+    functionality:
+      'Triggers a speculative-routing simulation. The current implementation acknowledges the request rather than returning a full modeled race result.',
+    requestBodyFields: [
+      { name: 'messages', type: 'array', description: 'Representative chat messages for the simulation request.' },
+      { name: 'model', type: 'string', description: 'Requested model or routing target.' },
+    ],
+    requestExample: {
+      model: 'gpt-4o-mini',
+      messages: [{ role: 'user', content: 'Summarize these notes in three bullets.' }],
+    },
+    responseExample: {
+      simulated: true,
+      message: 'simulation triggered',
+    },
+  },
+  'GET /v1/routing/circuit-breaker/status': {
+    functionality:
+      'Returns aggregate and per-provider circuit-breaker state. If no provider rows exist yet, the endpoint returns a default closed state so dashboards can render on a fresh deployment.',
+    responseExample: {
+      enabled: true,
+      state: 'closed',
+      trip_count: 0,
+      providers: [
+        {
+          provider: 'openai',
+          state: 'closed',
+          failure_count: 0,
+          trip_count: 0,
+        },
+      ],
+    },
+  },
+  'GET /v1/routing/council/analytics': {
+    functionality:
+      'Returns council-mode aggregate metrics and a per-chairman/winner breakdown for the authenticated tenant.',
+    responseExample: {
+      total_invocations: 128,
+      last_24h: 17,
+      avg_latency_ms: 1380,
+      avg_cost_usd: 0.0182,
+      by_chairman: [
+        {
+          chairman_provider: 'anthropic',
+          winner_provider: 'openai',
+          avg_total_latency_ms: 1410,
+          avg_ranking_latency_ms: 120,
+          avg_cost_usd: 0.019,
+          invocation_count: 51,
+        },
+      ],
+    },
+  },
+  'POST /v1/routing/strategy': {
+    requestBodyFields: [
+      { name: 'strategy', type: 'string', description: 'Routing strategy payload stored for the tenant.' },
+    ],
+    requestExample: { strategy: 'adaptive' },
+    responseExample: { saved: true },
+  },
+  'POST /v1/routing/provider_weights': {
+    requestBodyFields: [
+      { name: 'weights', type: 'object', description: 'Provider weights keyed by provider identifier.' },
+    ],
+    requestExample: { weights: { openai: 0.7, anthropic: 0.3 } },
+    responseExample: { saved: true },
+  },
+  'POST /v1/routing/council': {
+    requestBodyFields: [
+      { name: 'enabled', type: 'boolean', description: 'Whether council mode should be enabled for selected traffic.' },
+      { name: 'chairman_provider', type: 'string', description: 'Provider used to rank or synthesize council results.' },
+    ],
+    requestExample: { enabled: true, chairman_provider: 'anthropic' },
+    responseExample: { saved: true },
+  },
+  'POST /v1/routing/shadow': {
+    requestBodyFields: [
+      { name: 'enabled', type: 'boolean', description: 'Whether shadow routing should run for selected traffic.' },
+      { name: 'shadow_traffic_percent', type: 'number', description: 'Percent of eligible traffic to shadow.' },
+    ],
+    requestExample: { enabled: true, shadow_traffic_percent: 10 },
+    responseExample: { saved: true },
+  },
+  'POST /v1/mcp': {
+    functionality:
+      'Hosted JSON-RPC transport for MCP calls. Overture forwards the request body to the configured runtime MCP server and returns the runtime response.',
+    requestBodyFields: [
+      { name: 'jsonrpc', type: 'string', required: true, description: 'JSON-RPC version. Use `2.0`.' },
+      { name: 'id', type: 'string | number', required: true, description: 'Client request identifier.' },
+      { name: 'method', type: 'string', required: true, description: 'MCP method such as `tools/list` or a context operation.' },
+      { name: 'params', type: 'object', description: 'Method-specific parameters.' },
+    ],
+    requestExample: {
+      jsonrpc: '2.0',
+      id: 'req_1',
+      method: 'tools/list',
+      params: {},
+    },
+    responseExample: {
+      jsonrpc: '2.0',
+      id: 'req_1',
+      result: {
+        tools: [],
+      },
+    },
+  },
+  'POST /v1/mcp/stream': {
+    functionality:
+      'Hosted streaming transport for MCP interactions that need incremental output. Overture forwards the request to the runtime MCP stream endpoint.',
+    requestBodyFields: [
+      { name: 'jsonrpc', type: 'string', required: true, description: 'JSON-RPC version. Use `2.0`.' },
+      { name: 'id', type: 'string | number', required: true, description: 'Client request identifier.' },
+      { name: 'method', type: 'string', required: true, description: 'MCP method to stream.' },
+      { name: 'params', type: 'object', description: 'Method-specific parameters.' },
+    ],
+    requestExample: {
+      jsonrpc: '2.0',
+      id: 'req_stream_1',
+      method: 'tools/call',
+      params: { name: 'example', arguments: {} },
+    },
+    responseExample: 'event: message\ndata: {"jsonrpc":"2.0","id":"req_stream_1","result":{"chunk":"..."}}\n',
+  },
   'POST /v1/btree/validate': {
     functionality:
       'Validates a behavior-tree document against the runtime schema before deploy or execution.',
@@ -729,6 +1066,9 @@ function getAuthHeaders(endpoint: ApiEndpoint) {
   if (endpoint.auth === 'Public') {
     return [] as Array<{ name: string; value: string }>;
   }
+  if (endpoint.auth.includes('X-API-Key')) {
+    return [{ name: 'X-API-Key', value: '$IGRIS_API_KEY' }];
+  }
   if (endpoint.auth === 'Session cookie') {
     return [{ name: 'Cookie', value: 'better-auth.session_token=$IGRIS_SESSION_TOKEN' }];
   }
@@ -754,6 +1094,7 @@ function getAuthHeaders(endpoint: ApiEndpoint) {
 
 function materializePath(path: string) {
   return path
+    .replace(/\{task_id\}/g, '018f4a2b-3c1e-7a2d-9b8f-4d5e6f7a8b9c')
     .replace(/:provider/g, 'openai')
     .replace(/:id/g, 'example-id');
 }
@@ -902,12 +1243,13 @@ function buildRelatedGuides(endpoint: ApiEndpoint) {
 }
 
 function fallbackPathParams(endpoint: ApiEndpoint): ApiField[] {
-  const matches = [...endpoint.path.matchAll(/:([a-zA-Z0-9_]+)/g)];
-  return matches.map((match) => ({
-    name: match[1],
+  const colonMatches = [...endpoint.path.matchAll(/:([a-zA-Z0-9_]+)/g)].map((match) => match[1]);
+  const braceMatches = [...endpoint.path.matchAll(/\{([a-zA-Z0-9_]+)\}/g)].map((match) => match[1]);
+  return [...colonMatches, ...braceMatches].map((name) => ({
+    name,
     type: 'string',
     required: true,
-    description: `Path identifier for \`${match[1]}\`.`,
+    description: `Path identifier for \`${name}\`.`,
   }));
 }
 
@@ -940,6 +1282,9 @@ function serializeExample(example: ApiExampleValue | null | undefined) {
 }
 
 function toJavaScriptHeaderValue(value: string) {
+  if (value === '$IGRIS_API_KEY') {
+    return 'process.env.IGRIS_API_KEY';
+  }
   if (value === 'Bearer $IGRIS_API_KEY') {
     return '`Bearer ${process.env.IGRIS_API_KEY}`';
   }
@@ -953,6 +1298,9 @@ function toJavaScriptHeaderValue(value: string) {
 }
 
 function toGoHeaderValue(value: string) {
+  if (value === '$IGRIS_API_KEY') {
+    return 'os.Getenv("IGRIS_API_KEY")';
+  }
   if (value === 'Bearer $IGRIS_API_KEY') {
     return '"Bearer " + os.Getenv("IGRIS_API_KEY")';
   }
@@ -966,6 +1314,9 @@ function toGoHeaderValue(value: string) {
 }
 
 function toRustHeaderValue(value: string) {
+  if (value === '$IGRIS_API_KEY') {
+    return 'std::env::var("IGRIS_API_KEY")?';
+  }
   if (value === 'Bearer $IGRIS_API_KEY') {
     return 'format!("Bearer {}", std::env::var("IGRIS_API_KEY")?)';
   }
