@@ -338,7 +338,7 @@ If your workload legitimately requires a higher rate limit, contact [support@igr
 **Symptoms:** Calling the receipt verification endpoint returns `"valid": false`. You want to understand whether the receipt was tampered with or just malformed.
 
 ```bash
-curl -X POST https://overture.igrisinertial.com/v1/proof/receipts/verify \
+curl -X POST https://overture.igrisinertial.com/proof/receipts/verify \
   -H "Authorization: Bearer YOUR_API_KEY" \
   -H "Content-Type: application/json" \
   -d '{"execution_id": "exec-01HXYZ"}'
