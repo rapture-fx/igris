@@ -4,6 +4,11 @@
     "get-v1-runtime-install",
     "get-v1-runtime-checksum",
     "get-v1-runtime-download",
+    "get-api-v1-runtime-download",
+    "post-api-v1-runtime-register",
+    "post-api-v1-runtime-heartbeat",
+    "get-api-v1-runtime-commands",
+    "delete-api-v1-runtime-deregister",
     "get-api-v1-runtime-list",
     "post-api-v1-runtime-config-push",
     "post-api-v1-runtime-update"
