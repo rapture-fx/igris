@@ -101,49 +101,41 @@ const response = await client.infer({
 console.log(response.choices[0].message.content);
 ```
 
-For durable streamed inference, the JavaScript SDK surfaces both token chunks and the terminal durable-task result from one SSE session:
+For durable work, the JavaScript SDK exposes the implemented task manager. Submit the task once, then poll or wait for the terminal task state:
 
 ```typescript
-for await (const event of client.streamInference({
-  model: 'gpt-4.1-mini',
-  messages: [{ role: 'user', content: 'Summarize the deployment risk.' }],
-})) {
-  if (event.type === 'chunk') {
-    process.stdout.write(
-      String(
-        ((event.data.choices as Array<{ delta?: { content?: string } }> | undefined)?.[0]?.delta?.content) ?? ''
-      )
-    );
-  }
+const task = await client.tasks.submit({
+  task_type: 'single_inference',
+  task_definition: {
+    model: 'gpt-4.1-mini',
+    messages: [{ role: 'user', content: 'Summarize the deployment risk.' }],
+  },
+  idempotency_key: 'deployment-risk-2026-04-18',
+});
 
-  if (event.type === 'task_result') {
-    console.log('\nTask ID:', event.data.task_id);
-    console.log('Status:', event.data.status);
-    console.log('Replay supported:', event.data.durability?.replay_supported === true);
-  }
-}
+const completed = await client.tasks.waitForCompletion(task.task_id);
+console.log(completed.status);
 ```
 
-Handle durable stream replay failures as typed API errors. When Runtime cannot replay a stream because the stored task is failed, checkpointed, or has no final output, the error type is `stream_replay_unavailable` and the payload includes the task snapshot plus `durability` metadata:
+Handle durable task failures as ordinary SDK errors or terminal task states:
 
 ```typescript
 try {
-  for await (const event of client.streamInference({
-    model: 'gpt-4.1-mini',
-    messages: [{ role: 'user', content: 'Replay the last durable stream.' }],
-  })) {
-    if (event.type === 'task_result') {
-      console.log(event.data.task_id, event.data.durability?.replay_condition);
-    }
+  const task = await client.tasks.submit({
+    task_type: 'single_inference',
+    task_definition: {
+      model: 'gpt-4.1-mini',
+      messages: [{ role: 'user', content: 'Replay the last durable task.' }],
+    },
+    idempotency_key: 'deployment-risk-2026-04-18',
+  });
+
+  const finalTask = await client.tasks.waitForCompletion(task.task_id);
+  if (finalTask.status === 'failed') {
+    console.warn('Task failed:', finalTask.failure_reason);
   }
 } catch (error) {
-  const payload = (error as { payload?: { error?: { type?: string }; runtime_payload?: unknown } }).payload;
-
-  if (payload?.error?.type === 'stream_replay_unavailable') {
-    console.warn('Durable stream replay is unavailable:', payload.runtime_payload ?? payload);
-  } else {
-    throw error;
-  }
+  console.warn('Durable task request failed:', error);
 }
 ```
 
