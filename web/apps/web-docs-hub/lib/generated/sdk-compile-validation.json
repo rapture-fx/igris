@@ -1,0 +1,62 @@
+{
+  "generated_at": "2026-04-18T15:44:01.830Z",
+  "results": [
+    {
+      "language": "typescript",
+      "examples": [
+        {
+          "source": "web/apps/web-docs-hub/content/docs/sdk.mdx:88",
+          "generated": "web/apps/web-docs-hub/lib/generated/sdk-compile-examples/typescript/snippet_3.ts"
+        },
+        {
+          "source": "web/apps/web-docs-hub/content/docs/sdk.mdx:106",
+          "generated": "web/apps/web-docs-hub/lib/generated/sdk-compile-examples/typescript/snippet_4.ts"
+        },
+        {
+          "source": "web/apps/web-docs-hub/content/docs/sdk.mdx:122",
+          "generated": "web/apps/web-docs-hub/lib/generated/sdk-compile-examples/typescript/snippet_5.ts"
+        },
+        {
+          "source": "web/apps/web-docs-hub/content/docs/sdk-integration-patterns.mdx:61",
+          "generated": "web/apps/web-docs-hub/lib/generated/sdk-compile-examples/typescript/snippet_18.ts"
+        },
+        {
+          "source": "web/apps/web-docs-hub/content/docs/sdk-integration-patterns.mdx:135",
+          "generated": "web/apps/web-docs-hub/lib/generated/sdk-compile-examples/typescript/snippet_21.ts"
+        }
+      ],
+      "command": "tsc --noEmit",
+      "status": "passed"
+    },
+    {
+      "language": "go",
+      "examples": [
+        {
+          "source": "web/apps/web-docs-hub/content/docs/sdk.mdx:144",
+          "generated": "web/apps/web-docs-hub/lib/generated/sdk-compile-examples/go/snippet_6/example.go"
+        },
+        {
+          "source": "web/apps/web-docs-hub/content/docs/sdk-integration-patterns.mdx:79",
+          "generated": "web/apps/web-docs-hub/lib/generated/sdk-compile-examples/go/snippet_19/example.go"
+        }
+      ],
+      "command": "go test ./...",
+      "status": "passed"
+    },
+    {
+      "language": "rust",
+      "examples": [
+        {
+          "source": "web/apps/web-docs-hub/content/docs/sdk.mdx:178",
+          "generated": "web/apps/web-docs-hub/lib/generated/sdk-compile-examples/rust/src/bin/snippet_7.rs"
+        },
+        {
+          "source": "web/apps/web-docs-hub/content/docs/sdk-integration-patterns.mdx:105",
+          "generated": "web/apps/web-docs-hub/lib/generated/sdk-compile-examples/rust/src/bin/snippet_20.rs"
+        }
+      ],
+      "command": "cargo check",
+      "status": "passed"
+    }
+  ]
+}
