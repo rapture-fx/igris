@@ -122,7 +122,10 @@ impl BTreeNode for ToolAction {
     }
 
     async fn tick(&mut self, context: &mut BTreeContext) -> Result<NodeStatus> {
-        debug!("ToolAction '{}': Executing tool '{}'", self.name, self.tool_name);
+        debug!(
+            "ToolAction '{}': Executing tool '{}'",
+            self.name, self.tool_name
+        );
 
         // When a WAL session is active, derive a deterministic idempotency key so
         // that re-executing this tick (e.g. after a crash before WAL commit) returns
@@ -143,17 +146,25 @@ impl BTreeNode for ToolAction {
                     .execute_idempotent(&key, &self.tool_name, self.args.clone())
                     .await
             } else {
-                self.registry.execute(&self.tool_name, self.args.clone()).await
+                self.registry
+                    .execute(&self.tool_name, self.args.clone())
+                    .await
             }
         };
 
         #[cfg(not(feature = "wal"))]
-        let tool_result = self.registry.execute(&self.tool_name, self.args.clone()).await;
+        let tool_result = self
+            .registry
+            .execute(&self.tool_name, self.args.clone())
+            .await;
 
         match tool_result {
             Ok(result) => {
                 if result.success {
-                    debug!("ToolAction '{}': Tool succeeded ({}ms)", self.name, result.execution_time_ms);
+                    debug!(
+                        "ToolAction '{}': Tool succeeded ({}ms)",
+                        self.name, result.execution_time_ms
+                    );
                     Ok(NodeStatus::Success)
                 } else {
                     warn!(

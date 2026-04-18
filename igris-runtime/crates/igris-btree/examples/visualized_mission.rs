@@ -43,11 +43,7 @@ async fn main() -> anyhow::Result<()> {
 
     // Build hybrid tree
     let mut mission = Sequence::new("Visualized Mission")
-        .add_child(Box::new(SetBlackboard::new(
-            "init",
-            "status",
-            "starting",
-        )))
+        .add_child(Box::new(SetBlackboard::new("init", "status", "starting")))
         .add_child(Box::new(SetBlackboard::new(
             "set_task",
             "mission_task",
@@ -58,10 +54,7 @@ async fn main() -> anyhow::Result<()> {
             "mission_task",
             "dynamic_plan",
         )))
-        .add_child(Box::new(SubtreeLoader::new(
-            "executor",
-            "dynamic_plan",
-        )))
+        .add_child(Box::new(SubtreeLoader::new("executor", "dynamic_plan")))
         .add_child(Box::new(SetBlackboard::new(
             "complete",
             "status",
@@ -90,19 +83,22 @@ async fn main() -> anyhow::Result<()> {
     // Display metrics
     println!("📊 Execution Metrics:");
     println!("   Total Ticks: {}", snapshot.metrics.total_ticks);
-    println!("   Avg Tick Rate: {:.2} ticks/sec", snapshot.metrics.avg_tick_rate);
+    println!(
+        "   Avg Tick Rate: {:.2} ticks/sec",
+        snapshot.metrics.avg_tick_rate
+    );
     println!("   Total Replans: {}", snapshot.metrics.total_replans);
-    println!("   Failure Rate: {:.2}%", snapshot.metrics.failure_rate * 100.0);
+    println!(
+        "   Failure Rate: {:.2}%",
+        snapshot.metrics.failure_rate * 100.0
+    );
 
     // Display execution trace
     println!("\n📜 Execution Trace:");
     for entry in snapshot.execution_trace.iter().take(10) {
         println!(
             "   Tick {}: {} ({:?}) - {:.2}ms",
-            entry.tick,
-            entry.node_name,
-            entry.status,
-            entry.duration_ms
+            entry.tick, entry.node_name, entry.status, entry.duration_ms
         );
     }
 
@@ -138,11 +134,7 @@ fn print_tree(node: &igris_btree::visualizer::NodeSnapshot, indent: usize) {
 
     println!(
         "{}{} {} ({}) - Ticks: {}",
-        indent_str,
-        status_icon,
-        node.name,
-        node.node_type,
-        node.stats.tick_count
+        indent_str, status_icon, node.name, node.node_type, node.stats.tick_count
     );
 
     for child in &node.children {

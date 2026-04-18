@@ -67,20 +67,20 @@ pub mod visualizer;
 // Re-export commonly used types
 pub mod prelude {
     pub use crate::core::{
-        BTreeContext, BTreeNode, Blackboard, BlackboardEntry, ScopedBlackboard, NodeStatus,
-    };
-    pub use crate::nodes::{
-        composite::{Parallel, Selector, Sequence},
-        decorator::{Inverter, ReplanOnFailure, Repeat, Retry, Timeout},
-        action::{SetBlackboard, ToolAction},
-        condition::{CheckBlackboard},
-        llm::{LLMPlannerNode, SubtreeLoader},
+        BTreeContext, BTreeNode, Blackboard, BlackboardEntry, NodeStatus, ScopedBlackboard,
     };
     #[cfg(feature = "ros2")]
-    pub use crate::nodes::action::{RosTopicPublish, RosTopicSubscribe, RosServiceCall};
-    pub use crate::runtime::{BTreeExecutor, ExecutorConfig, ExecutionResult};
-    pub use crate::safety::Watchdog;
+    pub use crate::nodes::action::{RosServiceCall, RosTopicPublish, RosTopicSubscribe};
+    pub use crate::nodes::{
+        action::{SetBlackboard, ToolAction},
+        composite::{Parallel, Selector, Sequence},
+        condition::CheckBlackboard,
+        decorator::{Inverter, Repeat, ReplanOnFailure, Retry, Timeout},
+        llm::{LLMPlannerNode, SubtreeLoader},
+    };
     pub use crate::parser::{JsonTreeParser, LlmTreeParser};
+    pub use crate::runtime::{BTreeExecutor, ExecutionResult, ExecutorConfig};
+    pub use crate::safety::Watchdog;
     pub use async_trait::async_trait;
     pub use std::sync::Arc;
 }
@@ -122,8 +122,7 @@ impl MockLlmProvider {
 
     /// Create mock with simple navigation plan
     pub fn with_navigation_plan() -> Self {
-        Self::new(vec![
-            r#"{
+        Self::new(vec![r#"{
                 "type": "Sequence",
                 "name": "Navigate to warehouse",
                 "children": [
@@ -140,8 +139,8 @@ impl MockLlmProvider {
                         "args": {"direction": "right", "angle": 90}
                     }
                 ]
-            }"#.to_string(),
-        ])
+            }"#
+        .to_string()])
     }
 
     /// Create mock with failure recovery plan

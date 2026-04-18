@@ -153,10 +153,14 @@ impl BTreeNode for LLMPlannerNode {
 
     async fn tick(&mut self, context: &mut BTreeContext) -> Result<NodeStatus> {
         // Get task from blackboard
-        let task = context.blackboard.get(&self.task_key).await
+        let task = context
+            .blackboard
+            .get(&self.task_key)
+            .await
             .ok_or_else(|| anyhow!("Task not found: {}", self.task_key))?;
 
-        let task_str = task.as_str()
+        let task_str = task
+            .as_str()
             .ok_or_else(|| anyhow!("Task must be string"))?;
 
         // Generate plan with retry
@@ -164,16 +168,25 @@ impl BTreeNode for LLMPlannerNode {
             match self.generate_plan(context, task_str).await {
                 Ok(plan) => {
                     context.blackboard.set(&self.output_key, plan).await;
-                    info!("✅ LLMPlanner '{}': Plan stored in '{}'", self.name, self.output_key);
+                    info!(
+                        "✅ LLMPlanner '{}': Plan stored in '{}'",
+                        self.name, self.output_key
+                    );
                     return Ok(NodeStatus::Success);
                 }
                 Err(e) => {
                     self.retry_count += 1;
                     if self.retry_count >= self.max_retries {
-                        warn!("❌ LLMPlanner '{}': Failed after {} retries: {}", self.name, self.max_retries, e);
+                        warn!(
+                            "❌ LLMPlanner '{}': Failed after {} retries: {}",
+                            self.name, self.max_retries, e
+                        );
                         return Ok(NodeStatus::Failure);
                     }
-                    warn!("⚠️ LLMPlanner '{}': Retry {}/{}: {}", self.name, self.retry_count, self.max_retries, e);
+                    warn!(
+                        "⚠️ LLMPlanner '{}': Retry {}/{}: {}",
+                        self.name, self.retry_count, self.max_retries, e
+                    );
                 }
             }
         }
@@ -203,10 +216,12 @@ mod tests {
     #[tokio::test]
     async fn test_llm_planner_basic() {
         let provider = Arc::new(MockLlmProvider::with_navigation_plan());
-        let mut context = BTreeContext::new()
-            .with_llm(provider);
+        let mut context = BTreeContext::new().with_llm(provider);
 
-        context.blackboard.set("task", serde_json::json!("Navigate to warehouse")).await;
+        context
+            .blackboard
+            .set("task", serde_json::json!("Navigate to warehouse"))
+            .await;
 
         let mut planner = LLMPlannerNode::new("test", "task", "plan");
         let status = planner.tick(&mut context).await.unwrap();

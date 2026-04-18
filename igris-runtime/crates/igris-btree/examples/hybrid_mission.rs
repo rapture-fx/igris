@@ -37,10 +37,7 @@ async fn main() -> anyhow::Result<()> {
             "dynamic_plan",
         )))
         // 3. Load and execute LLM-generated plan
-        .add_child(Box::new(SubtreeLoader::new(
-            "execute_plan",
-            "dynamic_plan",
-        )));
+        .add_child(Box::new(SubtreeLoader::new("execute_plan", "dynamic_plan")));
 
     // Create execution context
     let mut context = BTreeContext::new().with_llm(llm);

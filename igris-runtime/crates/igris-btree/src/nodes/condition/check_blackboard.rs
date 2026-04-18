@@ -164,12 +164,18 @@ mod tests {
         assert_eq!(status, NodeStatus::Failure);
 
         // Set matching value → Success
-        context.blackboard.set("key", serde_json::json!("value")).await;
+        context
+            .blackboard
+            .set("key", serde_json::json!("value"))
+            .await;
         let status = node.tick(&mut context).await.unwrap();
         assert_eq!(status, NodeStatus::Success);
 
         // Set different value → Failure
-        context.blackboard.set("key", serde_json::json!("other")).await;
+        context
+            .blackboard
+            .set("key", serde_json::json!("other"))
+            .await;
         let status = node.tick(&mut context).await.unwrap();
         assert_eq!(status, NodeStatus::Failure);
     }

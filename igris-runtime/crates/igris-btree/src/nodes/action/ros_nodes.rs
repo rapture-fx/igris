@@ -128,13 +128,17 @@ impl crate::core::BTreeNode for RosTopicPublish {
             return Ok(NodeStatus::Failure);
         }
 
-        debug!("[RosTopicPublish] {} → {} ({})", self.name, self.topic, self.msg_type);
+        debug!(
+            "[RosTopicPublish] {} → {} ({})",
+            self.name, self.topic, self.msg_type
+        );
 
         // Publish via the ROS2 node's prompt channel (maps to the topic)
         // For /cmd_vel specifically, use publish_zero_velocity for stop commands;
         // for other topics, we serialize payload as a string message.
         let publish_result = if self.topic == "/cmd_vel" {
-            let linear_x = self.payload
+            let linear_x = self
+                .payload
                 .get("linear")
                 .and_then(|l| l.get("x"))
                 .and_then(|x| x.as_f64())
@@ -253,7 +257,8 @@ impl crate::core::BTreeNode for RosTopicSubscribe {
         loop {
             if let Some(msg) = node.receive_response().await? {
                 debug!("[RosTopicSubscribe] {} received message", self.name);
-                context.blackboard
+                context
+                    .blackboard
                     .set(&self.output_key, serde_json::json!(msg.response))
                     .await;
                 return Ok(NodeStatus::Success);
@@ -379,7 +384,8 @@ impl crate::core::BTreeNode for RosServiceCall {
         loop {
             if let Some(resp) = node.receive_response().await? {
                 debug!("[RosServiceCall] {} got response", self.name);
-                context.blackboard
+                context
+                    .blackboard
                     .set(&self.output_key, serde_json::json!(resp.response))
                     .await;
                 return Ok(NodeStatus::Success);
@@ -504,7 +510,10 @@ mod tests {
     /// Helper: create a context AND return the Ros2Node handle so tests can
     /// inject responses via `publish_response`.
     async fn make_context_with_node() -> (BTreeContext, Arc<Ros2Node>) {
-        let config = Ros2Config { enabled: true, ..Default::default() };
+        let config = Ros2Config {
+            enabled: true,
+            ..Default::default()
+        };
         let node = Arc::new(Ros2Node::new(config).await.unwrap());
         let ctx = BTreeContext::new().with_ros2(Arc::clone(&node));
         (ctx, node)
@@ -517,13 +526,8 @@ mod tests {
         // Pre-inject a response so the subscribe node finds it immediately.
         node.publish_response("odom_data", "ok").await.unwrap();
 
-        let mut sub = RosTopicSubscribe::new(
-            "wait_odom",
-            "/odom",
-            "nav_msgs/Odometry",
-            500,
-            "pose",
-        );
+        let mut sub =
+            RosTopicSubscribe::new("wait_odom", "/odom", "nav_msgs/Odometry", 500, "pose");
 
         let status = sub.tick(&mut ctx).await.unwrap();
         assert_eq!(status, NodeStatus::Success);
@@ -538,7 +542,9 @@ mod tests {
         let (mut ctx, node) = make_context_with_node().await;
 
         // Inject response before tick so the service call finds it.
-        node.publish_response(r#"{"battery":0.82,"status":"ok"}"#, "ok").await.unwrap();
+        node.publish_response(r#"{"battery":0.82,"status":"ok"}"#, "ok")
+            .await
+            .unwrap();
 
         let mut svc = RosServiceCall::new(
             "battery_check",
@@ -594,10 +600,9 @@ mod tests {
         let node_for_inject = Arc::clone(&node);
         tokio::spawn(async move {
             tokio::time::sleep(std::time::Duration::from_millis(50)).await;
-            let _ = node_for_inject.publish_response(
-                r#"{"pose":{"x":0.48,"y":0.0}}"#,
-                "ok",
-            ).await;
+            let _ = node_for_inject
+                .publish_response(r#"{"pose":{"x":0.48,"y":0.0}}"#, "ok")
+                .await;
         });
 
         let mut tree = Sequence::new("robot_control")
@@ -628,10 +633,17 @@ mod tests {
             .with_deadline(std::time::Duration::from_secs(3));
 
         let result = executor.execute(&mut tree, &mut ctx).await.unwrap();
-        assert!(result.is_success(), "demo sequence must succeed; got {:?}", result.status);
+        assert!(
+            result.is_success(),
+            "demo sequence must succeed; got {:?}",
+            result.status
+        );
 
         // Verify final_pose was written to blackboard by the subscribe node.
         let pose = ctx.blackboard.get("final_pose").await.unwrap();
-        assert!(pose.as_str().unwrap().contains("0.48"), "blackboard must contain injected pose");
+        assert!(
+            pose.as_str().unwrap().contains("0.48"),
+            "blackboard must contain injected pose"
+        );
     }
 }

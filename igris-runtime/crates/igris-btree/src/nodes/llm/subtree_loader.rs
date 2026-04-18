@@ -29,10 +29,16 @@ impl SubtreeLoader {
 
     async fn load_subtree(&mut self, context: &BTreeContext) -> Result<()> {
         // Get plan from blackboard
-        let plan = context.blackboard.get(&self.plan_key).await
+        let plan = context
+            .blackboard
+            .get(&self.plan_key)
+            .await
             .ok_or_else(|| anyhow!("Plan not found in blackboard: {}", self.plan_key))?;
 
-        info!("📥 SubtreeLoader '{}': Loading plan from blackboard", self.name);
+        info!(
+            "📥 SubtreeLoader '{}': Loading plan from blackboard",
+            self.name
+        );
         debug!("Plan JSON: {}", serde_json::to_string_pretty(&plan)?);
 
         // Parse JSON into BTree nodes
@@ -60,7 +66,10 @@ impl BTreeNode for SubtreeLoader {
         // Load subtree on first tick
         if self.loaded_subtree.is_none() {
             if let Err(e) = self.load_subtree(context).await {
-                warn!("❌ SubtreeLoader '{}': Failed to load subtree: {}", self.name, e);
+                warn!(
+                    "❌ SubtreeLoader '{}': Failed to load subtree: {}",
+                    self.name, e
+                );
                 return Ok(NodeStatus::Failure);
             }
         }
@@ -68,7 +77,10 @@ impl BTreeNode for SubtreeLoader {
         // Execute loaded subtree
         if let Some(subtree) = &mut self.loaded_subtree {
             let status = subtree.tick(context).await?;
-            debug!("SubtreeLoader '{}': Subtree returned {:?}", self.name, status);
+            debug!(
+                "SubtreeLoader '{}': Subtree returned {:?}",
+                self.name, status
+            );
             Ok(status)
         } else {
             Ok(NodeStatus::Failure)
@@ -104,8 +116,8 @@ impl BTreeNode for SubtreeLoader {
 #[cfg(test)]
 mod tests {
     use super::*;
-    use crate::MockLlmProvider;
     use crate::nodes::llm::LLMPlannerNode;
+    use crate::MockLlmProvider;
     use std::sync::Arc;
 
     #[tokio::test]
@@ -114,7 +126,10 @@ mod tests {
         let mut context = BTreeContext::new().with_llm(provider);
 
         // First, generate a plan with LLMPlanner
-        context.blackboard.set("task", serde_json::json!("Navigate")).await;
+        context
+            .blackboard
+            .set("task", serde_json::json!("Navigate"))
+            .await;
         let mut planner = LLMPlannerNode::new("planner", "task", "plan");
         let status = planner.tick(&mut context).await.unwrap();
         assert_eq!(status, NodeStatus::Success);
