@@ -170,19 +170,14 @@ curl "https://overture.igrisinertial.com/v1/proof/violations?agent_id=agent-abc"
   -H "Authorization: Bearer YOUR_API_KEY"
 ```
 
-### Setting Up Alerts
-
-Configure webhooks to receive real-time notifications when violations occur:
+### Reviewing Violations
 
 ```bash
-curl -X POST https://overture.igrisinertial.com/v1/webhooks \
-  -H "Authorization: Bearer YOUR_API_KEY" \
-  -H "Content-Type: application/json" \
-  -d '{
-    "url": "https://your-server.com/webhooks/igris",
-    "events": ["execution.violation"]
-  }'
+curl "https://overture.igrisinertial.com/v1/proof/violations?agent_id=agent-abc" \
+  -H "Authorization: Bearer YOUR_API_KEY"
 ```
+
+Use this endpoint for production monitoring, compliance exports, and alert jobs that poll for new violation records.
 
 ---
 
