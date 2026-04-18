@@ -184,7 +184,7 @@ mod tests {
         Router::new()
             .route("/v1/runtime/task/submit", post(task_executor::handle_task_submit))
             .route("/v1/runtime/task/stream", post(task_executor::handle_task_stream))
-            .route("/v1/runtime/task/{task_id}/cancel", post(task_executor::handle_task_cancel))
+            .route("/v1/runtime/task/:task_id/cancel", post(task_executor::handle_task_cancel))
             .with_state(state)
     }
 
