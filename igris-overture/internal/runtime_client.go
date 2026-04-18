@@ -100,9 +100,23 @@ func (c *RuntimeClient) setDecisionSigHeader(req *http.Request, body []byte) {
 	if len(c.signingKey) == 0 {
 		return
 	}
+	setDecisionSigHeaderWithKey(req, body, c.signingKey)
+}
+
+func setDecisionSigHeaderWithKey(req *http.Request, body []byte, signingKey ed25519.PrivateKey) {
 	hash := sha256.Sum256(body)
-	sig := ed25519.Sign(c.signingKey, hash[:])
+	sig := ed25519.Sign(signingKey, hash[:])
 	req.Header.Set("X-Igris-Decision-Sig", base64.StdEncoding.EncodeToString(sig))
+}
+
+// SetDecisionSigHeader signs a Runtime request body with IGRIS_OVERTURE_SIGNING_KEY
+// and attaches X-Igris-Decision-Sig. It is a no-op when the signing key is absent.
+func SetDecisionSigHeader(req *http.Request, body []byte) {
+	if hexKey := os.Getenv("IGRIS_OVERTURE_SIGNING_KEY"); hexKey != "" {
+		if decoded, err := hex.DecodeString(hexKey); err == nil && len(decoded) == ed25519.PrivateKeySize {
+			setDecisionSigHeaderWithKey(req, body, ed25519.PrivateKey(decoded))
+		}
+	}
 }
 
 // CancelTask sends a best-effort cancellation signal to an assigned runtime task.
