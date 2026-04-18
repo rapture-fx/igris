@@ -7,6 +7,7 @@ import (
 	"errors"
 	"fmt"
 	"sort"
+	"strings"
 	"time"
 
 	"github.com/google/uuid"
@@ -331,7 +332,273 @@ func (s *CheckpointStore) SaveExecutionArtifacts(taskID uuid.UUID, executionEnve
 		WHERE task_id = $6`,
 		nullRawJSON(executionEnvelope), nullRawJSON(executionReceipt), nullString(executionID), nullString(expectedHash), hasProofRefs, taskID,
 	)
+	if err != nil {
+		return err
+	}
+	return s.SaveRoboticsReceiptAudit(taskID, executionEnvelope, executionReceipt)
+}
+
+// RoboticsAuditReceipt is a query-optimized reference to a signed Runtime
+// receipt for a governed ROS2 action.
+type RoboticsAuditReceipt struct {
+	TaskID              uuid.UUID       `json:"task_id"`
+	TenantID            string          `json:"tenant_id"`
+	RuntimeID           string          `json:"runtime_id,omitempty"`
+	ExecutionID         string          `json:"execution_id"`
+	PolicyDecisionID    string          `json:"policy_decision_id"`
+	PolicyDecisionHash  string          `json:"policy_decision_hash,omitempty"`
+	GovernedActionHash  string          `json:"governed_action_hash,omitempty"`
+	RobotAction         string          `json:"robot_action"`
+	RoutingDecision     string          `json:"routing_decision"`
+	ReceiptHash         string          `json:"receipt_hash,omitempty"`
+	ReceiptSignature    string          `json:"receipt_signature,omitempty"`
+	EnvelopeSignature   string          `json:"envelope_signature,omitempty"`
+	ViolationOccurred   bool            `json:"violation_occurred"`
+	Violation           string          `json:"violation,omitempty"`
+	ExecutionEnvelope   json.RawMessage `json:"execution_envelope,omitempty"`
+	ExecutionReceipt    json.RawMessage `json:"execution_receipt,omitempty"`
+	PersistedAt         time.Time       `json:"persisted_at"`
+}
+
+type RoboticsAuditReceiptFilter struct {
+	TaskID           *uuid.UUID
+	PolicyDecisionID string
+	RobotAction      string
+	Limit            int
+}
+
+type roboticsArtifactRefs struct {
+	ExecutionID        string
+	TenantID           string
+	PolicyDecisionID   string
+	PolicyDecisionHash string
+	GovernedActionHash string
+	RobotAction        string
+	RoutingDecision    string
+	ReceiptHash        string
+	ReceiptSignature   string
+	EnvelopeSignature  string
+	ViolationOccurred  bool
+	Violation          string
+}
+
+func roboticsAuditRefs(executionEnvelope, executionReceipt json.RawMessage) (*roboticsArtifactRefs, bool) {
+	if len(executionEnvelope) == 0 || len(executionReceipt) == 0 {
+		return nil, false
+	}
+
+	var envelope struct {
+		ExecutionID         string  `json:"execution_id"`
+		TenantID            *string `json:"tenant_id"`
+		PolicyDecisionID    string  `json:"policy_decision_id"`
+		PolicyDecisionHash  string  `json:"policy_decision_hash"`
+		GovernedActionHash  string  `json:"governed_action_hash"`
+		RoutingDecision     string  `json:"routing_decision"`
+		EnvelopeSignature   string  `json:"signature"`
+		Violation           string  `json:"violation"`
+	}
+	if err := json.Unmarshal(executionEnvelope, &envelope); err != nil {
+		return nil, false
+	}
+	if envelope.PolicyDecisionID == "" || envelope.ExecutionID == "" {
+		return nil, false
+	}
+	action := robotActionFromRoutingDecision(envelope.RoutingDecision)
+	if action == "" {
+		return nil, false
+	}
+
+	var receipt struct {
+		ExecutionID        string `json:"execution_id"`
+		ReceiptHash        string `json:"receipt_hash"`
+		Hash               string `json:"hash"`
+		Signature          string `json:"signature"`
+		ViolationOccurred  bool   `json:"violation_occurred"`
+	}
+	if err := json.Unmarshal(executionReceipt, &receipt); err != nil {
+		return nil, false
+	}
+	if receipt.ExecutionID != "" && receipt.ExecutionID != envelope.ExecutionID {
+		return nil, false
+	}
+	receiptHash := receipt.ReceiptHash
+	if receiptHash == "" {
+		receiptHash = receipt.Hash
+	}
+
+	tenantID := ""
+	if envelope.TenantID != nil {
+		tenantID = *envelope.TenantID
+	}
+
+	return &roboticsArtifactRefs{
+		ExecutionID:        envelope.ExecutionID,
+		TenantID:           tenantID,
+		PolicyDecisionID:   envelope.PolicyDecisionID,
+		PolicyDecisionHash: envelope.PolicyDecisionHash,
+		GovernedActionHash: envelope.GovernedActionHash,
+		RobotAction:        action,
+		RoutingDecision:    envelope.RoutingDecision,
+		ReceiptHash:        receiptHash,
+		ReceiptSignature:   receipt.Signature,
+		EnvelopeSignature:  envelope.EnvelopeSignature,
+		ViolationOccurred:  receipt.ViolationOccurred || envelope.Violation != "",
+		Violation:          envelope.Violation,
+	}, true
+}
+
+func robotActionFromRoutingDecision(routingDecision string) string {
+	const prefix = "ros2:"
+	if !strings.HasPrefix(routingDecision, prefix) {
+		return ""
+	}
+	action := strings.TrimSpace(strings.TrimPrefix(routingDecision, prefix))
+	if action == "" {
+		return ""
+	}
+	return action
+}
+
+func (s *CheckpointStore) SaveRoboticsReceiptAudit(taskID uuid.UUID, executionEnvelope, executionReceipt json.RawMessage) error {
+	refs, ok := roboticsAuditRefs(executionEnvelope, executionReceipt)
+	if !ok {
+		return nil
+	}
+
+	_, err := s.db.Exec(`
+		INSERT INTO robotics_receipt_audit (
+			task_id,
+			tenant_id,
+			runtime_id,
+			execution_id,
+			policy_decision_id,
+			policy_decision_hash,
+			governed_action_hash,
+			robot_action,
+			routing_decision,
+			receipt_hash,
+			receipt_signature,
+			envelope_signature,
+			violation_occurred,
+			violation,
+			execution_envelope,
+			execution_receipt,
+			persisted_at
+		)
+		SELECT
+			tr.task_id,
+			COALESCE(NULLIF($2, ''), tr.tenant_id),
+			tr.runtime_id,
+			$3,
+			$4,
+			NULLIF($5, ''),
+			NULLIF($6, ''),
+			$7,
+			$8,
+			NULLIF($9, ''),
+			NULLIF($10, ''),
+			NULLIF($11, ''),
+			$12,
+			NULLIF($13, ''),
+			$14,
+			$15,
+			NOW()
+		FROM task_records tr
+		WHERE tr.task_id = $1
+		ON CONFLICT (task_id, execution_id, policy_decision_id) DO UPDATE
+		SET receipt_hash = EXCLUDED.receipt_hash,
+		    receipt_signature = EXCLUDED.receipt_signature,
+		    envelope_signature = EXCLUDED.envelope_signature,
+		    violation_occurred = EXCLUDED.violation_occurred,
+		    violation = EXCLUDED.violation,
+		    execution_envelope = EXCLUDED.execution_envelope,
+		    execution_receipt = EXCLUDED.execution_receipt,
+		    persisted_at = NOW()`,
+		taskID,
+		refs.TenantID,
+		refs.ExecutionID,
+		refs.PolicyDecisionID,
+		refs.PolicyDecisionHash,
+		refs.GovernedActionHash,
+		refs.RobotAction,
+		refs.RoutingDecision,
+		refs.ReceiptHash,
+		refs.ReceiptSignature,
+		refs.EnvelopeSignature,
+		refs.ViolationOccurred,
+		refs.Violation,
+		nullRawJSON(executionEnvelope),
+		nullRawJSON(executionReceipt),
+	)
 	return err
+}
+
+func (s *CheckpointStore) GetRoboticsAuditReceipts(tenantID string, filter RoboticsAuditReceiptFilter) ([]RoboticsAuditReceipt, error) {
+	limit := filter.Limit
+	if limit <= 0 || limit > 500 {
+		limit = 100
+	}
+
+	args := []any{tenantID}
+	where := "tenant_id = $1"
+	if filter.TaskID != nil {
+		args = append(args, *filter.TaskID)
+		where += fmt.Sprintf(" AND task_id = $%d", len(args))
+	}
+	if filter.PolicyDecisionID != "" {
+		args = append(args, filter.PolicyDecisionID)
+		where += fmt.Sprintf(" AND policy_decision_id = $%d", len(args))
+	}
+	if filter.RobotAction != "" {
+		args = append(args, filter.RobotAction)
+		where += fmt.Sprintf(" AND robot_action = $%d", len(args))
+	}
+	args = append(args, limit)
+
+	rows, err := s.db.Query(fmt.Sprintf(`
+		SELECT task_id, tenant_id, COALESCE(runtime_id, ''), execution_id,
+		       policy_decision_id, COALESCE(policy_decision_hash, ''),
+		       COALESCE(governed_action_hash, ''), robot_action, routing_decision,
+		       COALESCE(receipt_hash, ''), COALESCE(receipt_signature, ''),
+		       COALESCE(envelope_signature, ''), violation_occurred,
+		       COALESCE(violation, ''), execution_envelope, execution_receipt,
+		       persisted_at
+		FROM robotics_receipt_audit
+		WHERE %s
+		ORDER BY persisted_at DESC
+		LIMIT $%d`, where, len(args)), args...)
+	if err != nil {
+		return nil, err
+	}
+	defer rows.Close()
+
+	receipts := make([]RoboticsAuditReceipt, 0)
+	for rows.Next() {
+		var receipt RoboticsAuditReceipt
+		if err := rows.Scan(
+			&receipt.TaskID,
+			&receipt.TenantID,
+			&receipt.RuntimeID,
+			&receipt.ExecutionID,
+			&receipt.PolicyDecisionID,
+			&receipt.PolicyDecisionHash,
+			&receipt.GovernedActionHash,
+			&receipt.RobotAction,
+			&receipt.RoutingDecision,
+			&receipt.ReceiptHash,
+			&receipt.ReceiptSignature,
+			&receipt.EnvelopeSignature,
+			&receipt.ViolationOccurred,
+			&receipt.Violation,
+			&receipt.ExecutionEnvelope,
+			&receipt.ExecutionReceipt,
+			&receipt.PersistedAt,
+		); err != nil {
+			return nil, err
+		}
+		receipts = append(receipts, receipt)
+	}
+	return receipts, rows.Err()
 }
 
 func (s *CheckpointStore) SyncTaskProofState(taskID uuid.UUID, tenantID string) (*TaskProofState, error) {
