@@ -415,6 +415,108 @@ mod tests {
     }
 
     #[tokio::test]
+    async fn runtime_task_stream_replay_unavailable_preserves_failure_details() {
+        std::env::set_var("TEST_API_KEY", "x");
+        let state = build_runtime_only_state();
+        let task_id = uuid::Uuid::new_v4();
+        let stream_request = task_executor::TaskSubmitRequest {
+            task_id,
+            task_type: task_executor::TaskType::SingleInference {
+                model: "gpt-4".to_string(),
+                messages: vec![runtime_execute::ExecuteMessage {
+                    role: "user".to_string(),
+                    content: "hi".to_string(),
+                }],
+                max_tokens: None,
+                temperature: None,
+                stream: true,
+                mode: None,
+                memory: None,
+                approval: None,
+            },
+            containment: None,
+            resume_from: None,
+            resume_checkpoint: None,
+            idempotency_key: "stream-failure-replay".to_string(),
+            tenant_id: "tenant-stream".to_string(),
+            deadline_ms: None,
+        };
+        let request_hash = format!(
+            "{:x}",
+            Sha256::digest(
+                serde_json::to_vec(&serde_json::json!({
+                    "task_type": &stream_request.task_type,
+                    "containment": &stream_request.containment,
+                    "tenant_id": &stream_request.tenant_id,
+                    "deadline_ms": &stream_request.deadline_ms,
+                }))
+                .unwrap(),
+            )
+        );
+        let stored = StoredTaskSubmission {
+            request_hash,
+            response: task_executor::TaskSubmitResponse {
+                task_id,
+                steps_completed: 0,
+                steps_total: 1,
+                status: task_executor::TaskStatus::Failed {
+                    reason: "provider stream failed".to_string(),
+                },
+                checkpoint: None,
+                final_output: None,
+                usage: None,
+                failure_details: Some(task_executor::TaskFailureDetails {
+                    source: "runtime".to_string(),
+                    operation: "execution".to_string(),
+                    rejection_type: "step_failed".to_string(),
+                    message: "provider stream failed".to_string(),
+                    step_index: Some(0),
+                    domain: Some("agent".to_string()),
+                    node_id: Some("agent-0".to_string()),
+                }),
+                execution_envelope: None,
+                execution_receipt: None,
+            },
+        };
+        state
+            .storage
+            .set(
+                TASK_SUBMISSIONS,
+                &format!(
+                    "{}:{}",
+                    stream_request.tenant_id, stream_request.idempotency_key
+                ),
+                &stored,
+            )
+            .unwrap();
+
+        let app = build_runtime_task_app(state);
+        let req = Request::builder()
+            .method("POST")
+            .uri("/v1/runtime/task/stream")
+            .header("content-type", "application/json")
+            .body(Body::from(serde_json::to_string(&stream_request).unwrap()))
+            .unwrap();
+        let resp = app.oneshot(req).await.unwrap();
+        assert_eq!(resp.status(), StatusCode::CONFLICT);
+
+        let bytes = axum::body::to_bytes(resp.into_body(), usize::MAX).await.unwrap();
+        let payload: serde_json::Value = serde_json::from_slice(&bytes).unwrap();
+        assert_eq!(payload["error"]["type"], "stream_replay_unavailable");
+        assert_eq!(payload["task"]["status"]["status"], "failed");
+        assert_eq!(payload["task"]["status"]["reason"], "provider stream failed");
+        assert_eq!(payload["task"]["failure_details"]["source"], "runtime");
+        assert_eq!(payload["task"]["failure_details"]["operation"], "execution");
+        assert_eq!(payload["task"]["failure_details"]["rejection_type"], "step_failed");
+        assert_eq!(payload["task"]["failure_details"]["step_index"], 0);
+        assert_eq!(payload["task"]["failure_details"]["domain"], "agent");
+        assert_eq!(payload["task"]["failure_details"]["node_id"], "agent-0");
+        assert_eq!(payload["durability"]["mode"], "streaming");
+        assert_eq!(payload["durability"]["replay_supported"], false);
+        assert_eq!(payload["durability"]["checkpoint_persisted"], false);
+    }
+
+    #[tokio::test]
     async fn load_test_100_concurrent_requests() {
         std::env::set_var("TEST_API_KEY", "x");
         let addr = spawn_mock_openai().await;
