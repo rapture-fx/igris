@@ -2,6 +2,7 @@
 
 import { useEffect, useMemo, useRef, useState } from 'react';
 import { createPortal } from 'react-dom';
+import Image from 'next/image';
 import { ChevronDown, ChevronUp, Copy, ExternalLink, FileText } from 'lucide-react';
 
 interface DocsPageActionsProps {
@@ -39,18 +40,28 @@ type MenuBrand =
   | 'kimi'
   | 'perplexity';
 
+function BrandImage({ className, src }: { className?: string; src: string }) {
+  return (
+    <Image
+      src={src}
+      alt=""
+      width={24}
+      height={24}
+      className={className}
+    />
+  );
+}
+
 function BrandMark({ brand }: { brand: MenuBrand }) {
   if (brand === 'github') {
     return (
       <span className="docs-page-action-brand docs-page-action-brand-image" aria-hidden="true">
-        <img
+        <BrandImage
           src="/github%20Light%20mode.png"
-          alt=""
           className="docs-page-action-brand-image-light"
         />
-        <img
+        <BrandImage
           src="/Gihub%20dark%20mode.png"
-          alt=""
           className="docs-page-action-brand-image-dark"
         />
       </span>
@@ -68,14 +79,12 @@ function BrandMark({ brand }: { brand: MenuBrand }) {
   if (brand === 'chatgpt') {
     return (
       <span className="docs-page-action-brand docs-page-action-brand-image" aria-hidden="true">
-        <img
+        <BrandImage
           src="/chatgpt%20light%20mode.png"
-          alt=""
           className="docs-page-action-brand-image-light"
         />
-        <img
+        <BrandImage
           src="/chatgpt%20dark%20mode.png"
-          alt=""
           className="docs-page-action-brand-image-dark"
         />
       </span>
@@ -85,14 +94,12 @@ function BrandMark({ brand }: { brand: MenuBrand }) {
   if (brand === 'cursor') {
     return (
       <span className="docs-page-action-brand docs-page-action-brand-image" aria-hidden="true">
-        <img
+        <BrandImage
           src="/cursor%20light%20mode.png"
-          alt=""
           className="docs-page-action-brand-image-light"
         />
-        <img
+        <BrandImage
           src="/cursor%20dark%20mode.png"
-          alt=""
           className="docs-page-action-brand-image-dark"
         />
       </span>
@@ -102,14 +109,12 @@ function BrandMark({ brand }: { brand: MenuBrand }) {
   if (brand === 'grok') {
     return (
       <span className="docs-page-action-brand docs-page-action-brand-image" aria-hidden="true">
-        <img
+        <BrandImage
           src="/Grok%20Light%20mode.png"
-          alt=""
           className="docs-page-action-brand-image-light"
         />
-        <img
+        <BrandImage
           src="/Grok%20Dark%20Mode.png"
-          alt=""
           className="docs-page-action-brand-image-dark"
         />
       </span>
@@ -126,7 +131,7 @@ function BrandMark({ brand }: { brand: MenuBrand }) {
   if (brand in singleImageByBrand) {
     return (
       <span className="docs-page-action-brand docs-page-action-brand-image" aria-hidden="true">
-        <img src={singleImageByBrand[brand as keyof typeof singleImageByBrand]} alt="" />
+        <BrandImage src={singleImageByBrand[brand as keyof typeof singleImageByBrand]} />
       </span>
     );
   }
