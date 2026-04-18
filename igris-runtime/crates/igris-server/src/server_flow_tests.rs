@@ -518,6 +518,56 @@ mod tests {
     }
 
     #[tokio::test]
+    async fn runtime_task_cancel_completed_stream_conflict_includes_durability() {
+        std::env::set_var("TEST_API_KEY", "x");
+        let state = build_runtime_only_state();
+        let task_id = uuid::Uuid::new_v4();
+        let response = task_executor::TaskSubmitResponse {
+            task_id,
+            steps_completed: 1,
+            steps_total: 1,
+            status: task_executor::TaskStatus::Completed,
+            checkpoint: None,
+            final_output: Some("hello".to_string()),
+            usage: None,
+            failure_details: None,
+            execution_envelope: None,
+            execution_receipt: None,
+        };
+        state
+            .storage
+            .set(
+                TASK_SUBMISSION_STATUS_BY_TASK_ID,
+                &task_id.to_string(),
+                &response,
+            )
+            .unwrap();
+
+        let app = build_runtime_task_app(state);
+        let req = Request::builder()
+            .method("POST")
+            .uri(format!("/v1/runtime/task/{}/cancel", task_id))
+            .body(Body::empty())
+            .unwrap();
+        let resp = app.oneshot(req).await.unwrap();
+        assert_eq!(resp.status(), StatusCode::CONFLICT);
+
+        let bytes = axum::body::to_bytes(resp.into_body(), usize::MAX).await.unwrap();
+        let payload: serde_json::Value = serde_json::from_slice(&bytes).unwrap();
+        assert_eq!(payload["task_id"], task_id.to_string());
+        assert_eq!(payload["canceled"], false);
+        assert_eq!(payload["known"], true);
+        assert_eq!(payload["active_execution"], false);
+        assert_eq!(payload["cancellation_allowed"], false);
+        assert_eq!(payload["reason"], "task_execution_completed");
+        assert_eq!(payload["durability"]["mode"], "streaming");
+        assert_eq!(payload["durability"]["resume_supported"], false);
+        assert_eq!(payload["durability"]["replay_supported"], true);
+        assert_eq!(payload["durability"]["replay_condition"], "completed-final-output");
+        assert_eq!(payload["durability"]["checkpoint_persisted"], false);
+    }
+
+    #[tokio::test]
     async fn load_test_100_concurrent_requests() {
         std::env::set_var("TEST_API_KEY", "x");
         let addr = spawn_mock_openai().await;
