@@ -919,7 +919,7 @@ func (h *InferHandler) handleStreamingInfer(c *fiber.Ctx, req *models.InferReque
 				log.Printf("[Infer] Runtime streaming unavailable, using explicit stream fallback opt-in: %v", err)
 			} else {
 				log.Printf("[Infer] Runtime streaming unavailable, refusing fallback to preserve execution authority: %v", err)
-				return c.Status(fiber.StatusServiceUnavailable).JSON(buildRuntimeStreamingUnavailableResponse(err))
+				return c.Status(runtimeStreamingErrorStatus(err)).JSON(buildRuntimeStreamingUnavailableResponse(err))
 			}
 		} else {
 			setStreamingSSEHeaders(c, traceCtx.TraceID)
@@ -1105,12 +1105,74 @@ func (h *InferHandler) handleStreamingInfer(c *fiber.Ctx, req *models.InferReque
 }
 
 func buildRuntimeStreamingUnavailableResponse(err error) fiber.Map {
+	var streamErr *models.RuntimeStreamError
+	if errors.As(err, &streamErr) {
+		return buildRuntimeStreamingErrorResponse(streamErr)
+	}
 	return buildStreamingErrorResponse(
 		"runtime-backed streaming is unavailable; fallback refused to preserve execution authority",
 		"stream_execution_unavailable",
 		runtimeUnavailableStreamContract(),
 		errorDetail(err),
 	)
+}
+
+func buildRuntimeStreamingErrorResponse(err *models.RuntimeStreamError) fiber.Map {
+	message := err.Message()
+	if message == "" {
+		message = "runtime-backed streaming was rejected by runtime"
+	}
+	errorType := err.Type()
+	if errorType == "" {
+		errorType = "stream_execution_unavailable"
+	}
+	details := map[string]interface{}{
+		"source":         "runtime",
+		"operation":      "stream",
+		"status_code":    err.StatusCode,
+		"rejection_type": errorType,
+		"message":        message,
+	}
+	copyRuntimeStreamExecutionContext(details, err.Payload)
+
+	resp := fiber.Map{
+		"error": fiber.Map{
+			"message": message,
+			"type":    errorType,
+		},
+		"failure":             models.BuildFailureResponse(err.Error(), details),
+		"stream":              runtimeUnavailableStreamContract().ToMap(),
+		"detail":              err.Error(),
+		"runtime_status_code": err.StatusCode,
+	}
+	if err.Payload != nil {
+		resp["runtime_payload"] = err.Payload
+	}
+	return resp
+}
+
+func copyRuntimeStreamExecutionContext(details map[string]interface{}, payload map[string]interface{}) {
+	taskBody, ok := payload["task"].(map[string]interface{})
+	if !ok {
+		return
+	}
+	failureDetails, ok := taskBody["failure_details"].(map[string]interface{})
+	if !ok {
+		return
+	}
+	for _, key := range []string{"step_index", "domain", "node_id"} {
+		if value, ok := failureDetails[key]; ok {
+			details[key] = value
+		}
+	}
+}
+
+func runtimeStreamingErrorStatus(err error) int {
+	var streamErr *models.RuntimeStreamError
+	if errors.As(err, &streamErr) && streamErr.StatusCode >= 400 && streamErr.StatusCode <= 599 {
+		return streamErr.StatusCode
+	}
+	return fiber.StatusServiceUnavailable
 }
 
 func buildStreamingErrorResponse(message, errorType string, contract models.StreamContract, detail string) fiber.Map {
