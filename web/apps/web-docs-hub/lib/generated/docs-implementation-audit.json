@@ -1,20 +1,20 @@
 {
-  "generated_at": "2026-04-18T03:19:37.363Z",
+  "generated_at": "2026-04-18T03:22:16.469Z",
   "summary": {
-    "total": 945,
+    "total": 944,
     "by_status": {
-      "missing": 13,
+      "missing": 11,
       "wrong-method": 3,
-      "implemented": 927,
+      "implemented": 928,
       "wrong-surface": 2
     }
   },
   "guide_summary": {
-    "total": 216,
+    "total": 215,
     "by_status": {
-      "missing": 13,
+      "missing": 11,
       "wrong-method": 3,
-      "implemented": 198,
+      "implemented": 199,
       "wrong-surface": 2
     }
   },
@@ -58,22 +58,6 @@
       "wrong_surface": 0,
       "wrong_method": 0,
       "total_route_claims": 1
-    },
-    {
-      "file": "web/apps/web-docs-hub/content/docs/cloud-coordination.mdx",
-      "implemented": 15,
-      "missing": 1,
-      "wrong_surface": 0,
-      "wrong_method": 0,
-      "total_route_claims": 16
-    },
-    {
-      "file": "web/apps/web-docs-hub/content/docs/durable-tasks.mdx",
-      "implemented": 11,
-      "missing": 1,
-      "wrong_surface": 0,
-      "wrong_method": 0,
-      "total_route_claims": 12
     },
     {
       "file": "web/apps/web-docs-hub/content/docs/robotics.mdx",
@@ -988,6 +972,14 @@
       "total_route_claims": 1
     },
     {
+      "file": "web/apps/web-docs-hub/content/docs/cloud-coordination.mdx",
+      "implemented": 15,
+      "missing": 0,
+      "wrong_surface": 0,
+      "wrong_method": 0,
+      "total_route_claims": 15
+    },
+    {
       "file": "web/apps/web-docs-hub/content/docs/cognitive-advisor.mdx",
       "implemented": 9,
       "missing": 0,
@@ -1010,6 +1002,14 @@
       "wrong_surface": 0,
       "wrong_method": 0,
       "total_route_claims": 1
+    },
+    {
+      "file": "web/apps/web-docs-hub/content/docs/durable-tasks.mdx",
+      "implemented": 12,
+      "missing": 0,
+      "wrong_surface": 0,
+      "wrong_method": 0,
+      "total_route_claims": 12
     },
     {
       "file": "web/apps/web-docs-hub/content/docs/execution-receipts.mdx",
@@ -1238,22 +1238,6 @@
       "total_route_claims": 1
     },
     {
-      "file": "web/apps/web-docs-hub/content/docs/cloud-coordination.mdx",
-      "implemented": 15,
-      "missing": 1,
-      "wrong_surface": 0,
-      "wrong_method": 0,
-      "total_route_claims": 16
-    },
-    {
-      "file": "web/apps/web-docs-hub/content/docs/durable-tasks.mdx",
-      "implemented": 11,
-      "missing": 1,
-      "wrong_surface": 0,
-      "wrong_method": 0,
-      "total_route_claims": 12
-    },
-    {
       "file": "web/apps/web-docs-hub/content/docs/robotics.mdx",
       "implemented": 0,
       "missing": 1,
@@ -1334,6 +1318,14 @@
       "total_route_claims": 1
     },
     {
+      "file": "web/apps/web-docs-hub/content/docs/cloud-coordination.mdx",
+      "implemented": 15,
+      "missing": 0,
+      "wrong_surface": 0,
+      "wrong_method": 0,
+      "total_route_claims": 15
+    },
+    {
       "file": "web/apps/web-docs-hub/content/docs/cognitive-advisor.mdx",
       "implemented": 9,
       "missing": 0,
@@ -1356,6 +1348,14 @@
       "wrong_surface": 0,
       "wrong_method": 0,
       "total_route_claims": 1
+    },
+    {
+      "file": "web/apps/web-docs-hub/content/docs/durable-tasks.mdx",
+      "implemented": 12,
+      "missing": 0,
+      "wrong_surface": 0,
+      "wrong_method": 0,
+      "total_route_claims": 12
     },
     {
       "file": "web/apps/web-docs-hub/content/docs/execution-receipts.mdx",
@@ -17385,16 +17385,6 @@
     },
     {
       "file": "web/apps/web-docs-hub/content/docs/cloud-coordination.mdx",
-      "line": 52,
-      "method": null,
-      "path": "/api/v1/runtime/*",
-      "expected_surface": null,
-      "source": "Runtime instances coordinate with Overture through the `/api/v1/runtime/*` contract.",
-      "status": "missing",
-      "evidence": []
-    },
-    {
-      "file": "web/apps/web-docs-hub/content/docs/cloud-coordination.mdx",
       "line": 62,
       "method": "POST",
       "path": "/api/v1/runtime/register",
@@ -17818,11 +17808,18 @@
       "file": "web/apps/web-docs-hub/content/docs/durable-tasks.mdx",
       "line": 205,
       "method": "GET",
-      "path": "/v1/tasks?limit=20",
+      "path": "/v1/tasks",
       "expected_surface": null,
       "source": "GET /v1/tasks?limit=20",
-      "status": "missing",
-      "evidence": []
+      "status": "implemented",
+      "evidence": [
+        {
+          "method": "GET",
+          "path": "/v1/tasks",
+          "file": "igris-overture/api/routes_tasks.go",
+          "surface": "cloud-api"
+        }
+      ]
     },
     {
       "file": "web/apps/web-docs-hub/content/docs/durable-tasks.mdx",

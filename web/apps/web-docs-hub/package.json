@@ -11,6 +11,7 @@
     "typecheck": "rm -rf .next tsconfig.tsbuildinfo && pnpm exec next typegen && pnpm exec tsc --noEmit",
     "validate": "node scripts/validate-docs.js",
     "docs:generate": "node scripts/generate-docs-artifacts.js",
+    "docs:audit": "node scripts/audit-docs-implementation.js",
     "docs:verify-api": "node scripts/generate-api-verification-report.js"
   },
   "dependencies": {
