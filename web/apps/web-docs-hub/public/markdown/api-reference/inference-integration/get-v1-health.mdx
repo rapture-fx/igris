@@ -1,17 +1,17 @@
 ---
 title: "GET /v1/health"
-description: "Simple health probe for the local runtime API. Use it for readiness checks and to confirm the local process is serving traffic."
+description: "Simple health probe for the selected Igris API surface. On the hosted API it reports control-plane availability; on a local runtime it reports whether the runtime process is serving traffic."
 ---
 
 # GET /v1/health
 
-Simple health probe for the local runtime API. Use it for readiness checks and to confirm the local process is serving traffic.
+Simple health probe for the selected Igris API surface. On the hosted API it reports control-plane availability; on a local runtime it reports whether the runtime process is serving traffic.
 
 <div className="api-meta not-prose"><div className="api-meta-group"><span className="api-meta-label">Method</span><span className="api-badge api-method-get">GET</span></div><div className="api-meta-group"><span className="api-meta-label">Path</span><span className="api-meta-value">/v1/health</span></div><div className="api-meta-group"><span className="api-meta-label">Base URL</span><span className="api-meta-value">https://overture.igrisinertial.com</span></div><div className="api-meta-group"><span className="api-meta-label">Auth</span><span className="api-meta-value">Public</span></div><div className="api-meta-group"><span className="api-meta-label">Surface</span><span className="api-badge api-surface-cloud-api">Cloud API</span></div><div className="api-meta-group"><span className="api-meta-label">Stability</span><span className="api-badge api-stability-stable">stable</span></div><div className="api-meta-group"><span className="api-meta-label">Support</span><span className="api-badge api-support-core">core</span></div><div className="api-meta-group"><span className="api-meta-label">Deployment</span><span className="api-badge api-deployment-cloud">cloud</span></div></div>
 
 ## When To Use
 
-Use this endpoint when you need health check for inference availability. from the hosted API. It is part of the Inference & Integration surface and is intended to be the customer-facing contract for that capability.
+Use this endpoint for readiness checks, deployment smoke tests, and basic connectivity validation before calling higher-level APIs.
 
 ## Integration Guidance
 
@@ -92,11 +92,17 @@ println!("{}", payload);
 ```json
 {
   "status": "ok",
-  "version": "runtime-v1.6.0"
+  "service": "igris"
 }
 ```
 
 ## Status Codes
 
-Status-code details are still being documented for this endpoint.
+| Code | Title | Description |
+|---|---|---|
+| 200 | Success | The request completed successfully. For streaming or download endpoints, the success response may be a stream or attachment rather than a JSON object. |
+| 400 | Bad Request | The route was reached, but the request body, query string, or path parameter did not match the endpoint contract. |
+| 401 | Unauthorized | Credentials were missing, expired, malformed, or not accepted by this route. |
+| 429 | Too Many Requests | The caller exceeded the current throttle window and should wait before retrying. |
+| 500 | Server Error | The server accepted the request contract but failed while processing it. |
 
