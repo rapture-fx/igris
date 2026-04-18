@@ -122,21 +122,25 @@ Response:
 }
 ```
 
-### GET /v1/providers/health
+### GET /v1/providers/:id/health
 
-Returns a simplified health summary.
+Returns the health details for one configured provider.
 
 ```bash
-curl https://overture.igrisinertial.com/v1/providers/health \
+curl https://overture.igrisinertial.com/v1/providers/provider_abc/health \
   -H "Authorization: Bearer YOUR_API_KEY"
 ```
 
 Response:
 ```json
 {
-  "healthy": ["anthropic", "google"],
-  "degraded": ["openai"],
-  "unavailable": ["mistral"]
+  "provider_id": "provider_abc",
+  "status": "active",
+  "latency_p50_ms": 287,
+  "latency_p99_ms": 512,
+  "success_rate": 0.994,
+  "error_rate": 0.006,
+  "last_checked_at": "2026-03-15T14:30:00Z"
 }
 ```
 
