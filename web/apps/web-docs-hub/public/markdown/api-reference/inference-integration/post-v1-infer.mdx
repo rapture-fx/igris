@@ -42,8 +42,7 @@ Retry transient 5xx or 429 responses with backoff. For write-once or audit-sensi
 |---|---|---|---|
 | `model` | `string` | Yes | Requested model or routing target. |
 | `messages` | `array` | Yes | Conversation turns in Igris message format. |
-| `provider` | `string` | No | Optional provider pin. |
-| `optimize_for` | `string` | No | Routing preference such as `latency` or `cost`. |
+| `policy` | `object` | No | Optional routing policy override, including provider pinning and optimization preference. |
 | `stream` | `boolean` | No | When true, returns a Server-Sent Events stream. Runtime-backed streams advertise durability and replay headers. |
 | `allow_stream_fallback` | `boolean` | No | Explicitly allows Overture-local fallback only when runtime-backed streaming is unavailable before the Runtime returns a structured decision. |
 
@@ -52,8 +51,10 @@ Retry transient 5xx or 429 responses with backoff. For write-once or audit-sensi
 ```json
 {
   "model": "gpt-4o-mini",
-  "provider": "openai",
-  "optimize_for": "latency",
+  "policy": {
+    "provider": "openai",
+    "optimize_for": "latency"
+  },
   "stream": false,
   "messages": [
     {
@@ -80,8 +81,10 @@ curl -X POST https://overture.igrisinertial.com/v1/infer \
   -H "Content-Type: application/json" \
   -d '{
   "model": "gpt-4o-mini",
-  "provider": "openai",
-  "optimize_for": "latency",
+  "policy": {
+    "provider": "openai",
+    "optimize_for": "latency"
+  },
   "stream": false,
   "messages": [
     {
@@ -103,8 +106,10 @@ const response = await fetch('https://overture.igrisinertial.com/v1/infer', {
   },
   body: JSON.stringify({
   "model": "gpt-4o-mini",
-  "provider": "openai",
-  "optimize_for": "latency",
+  "policy": {
+    "provider": "openai",
+    "optimize_for": "latency"
+  },
   "stream": false,
   "messages": [
     {
@@ -123,7 +128,7 @@ console.log(data);
 
 ```go
 client := &http.Client{}
-body := strings.NewReader("{\n  \"model\": \"gpt-4o-mini\",\n  \"provider\": \"openai\",\n  \"optimize_for\": \"latency\",\n  \"stream\": false,\n  \"messages\": [\n    {\n      \"role\": \"user\",\n      \"content\": \"Classify this alert severity.\"\n    }\n  ]\n}")
+body := strings.NewReader("{\n  \"model\": \"gpt-4o-mini\",\n  \"policy\": {\n    \"provider\": \"openai\",\n    \"optimize_for\": \"latency\"\n  },\n  \"stream\": false,\n  \"messages\": [\n    {\n      \"role\": \"user\",\n      \"content\": \"Classify this alert severity.\"\n    }\n  ]\n}")
 
 req, err := http.NewRequest("POST", "https://overture.igrisinertial.com/v1/infer", body)
 if err != nil {
@@ -151,8 +156,10 @@ let response = client
         .header("Authorization", format!("Bearer {}", std::env::var("IGRIS_API_KEY")?))
         .json(&serde_json::json!({
   "model": "gpt-4o-mini",
-  "provider": "openai",
-  "optimize_for": "latency",
+  "policy": {
+    "provider": "openai",
+    "optimize_for": "latency"
+  },
   "stream": false,
   "messages": [
     {
@@ -172,6 +179,10 @@ println!("{}", payload);
 
 ```json
 {
+  "id": "chatcmpl_01HV93C2PKR0N8SVQ",
+  "object": "chat.completion",
+  "created": 1712338123,
+  "model": "gpt-4o-mini",
   "choices": [
     {
       "index": 0,
@@ -182,11 +193,19 @@ println!("{}", payload);
       "finish_reason": "stop"
     }
   ],
-  "route": {
+  "metadata": {
     "provider": "openai",
-    "optimize_for": "latency"
+    "model_used": "gpt-4o-mini",
+    "request_id": "chatcmpl_01HV93C2PKR0N8SVQ",
+    "timestamp": "2026-04-04T06:33:00Z",
+    "latency_ms": 221
   },
-  "receipt_id": "rcpt_01HV93C2PKR0N8SVQ"
+  "receipt": {
+    "available": true,
+    "execution_id": "exec_01HV93C2PKR0N8SVQ",
+    "receipt_hash": "6f16f4bc...",
+    "signature_present": true
+  }
 }
 ```
 
