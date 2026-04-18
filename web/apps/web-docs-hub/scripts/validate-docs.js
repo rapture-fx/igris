@@ -19,7 +19,15 @@ function main() {
   const failures = [];
   const warnings = [];
 
-  const requiredGeneratedFiles = ['api-reference.json', 'api-verification.json', 'sdk-support.json', 'mcp-reference.json'];
+  const requiredGeneratedFiles = [
+    'api-reference.json',
+    'api-verification.json',
+    'api-contract-validation.json',
+    'sdk-snippet-validation.json',
+    'sdk-compile-validation.json',
+    'sdk-support.json',
+    'mcp-reference.json',
+  ];
   for (const fileName of requiredGeneratedFiles) {
     const fullPath = path.join(generatedDir, fileName);
     if (!fs.existsSync(fullPath)) {
