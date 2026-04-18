@@ -1132,6 +1132,10 @@ const bannedPatterns = [
   { pattern: /\bmax_context_length\b/, message: 'Use context_size in runtime configuration docs.' },
   { pattern: /\bgpu_layers\b/, message: 'Use n_gpu_layers in runtime configuration docs.' },
   { pattern: /\bfallback_only\b/, message: 'Do not document unsupported fallback_only config.' },
+  { pattern: /\/v1\/slo\/config/, message: 'Do not document unsupported /v1/slo/config routes; use the SLO Enforcer guide current-contract language.' },
+  { pattern: /\/v1\/slo\/compliance/, message: 'Do not document unsupported /v1/slo/compliance routes; use routing, receipts, and observability surfaces.' },
+  { pattern: /\bdraft_would_accept\b/, message: 'Speculative simulation currently returns { simulated, message }; do not document planned predictor fields as current output.' },
+  { pattern: /\bcurrently_active\b/, message: 'Speculative status currently returns enabled, success_rate, latency_improvement_ms, cost_delta_percent, races_24h, and wins_by_provider.' },
 ];
 
 module.exports = {
