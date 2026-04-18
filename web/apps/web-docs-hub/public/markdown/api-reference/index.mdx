@@ -163,7 +163,7 @@ Supported endpoints served by `igris-runtime` on the local runtime instance.
 - [`GET /v1/runtime/violations`](/docs/api-reference/local-runtime-api/get-v1-runtime-violations) — Lists local runtime execution violations.
 - [`POST /v1/runtime/task/submit`](/docs/api-reference/local-runtime-api/post-v1-runtime-task-submit) — Submits a durable task directly to the local runtime executor.
 - [`POST /v1/runtime/task/stream`](/docs/api-reference/local-runtime-api/post-v1-runtime-task-stream) — Submits a streaming durable task directly to the local runtime executor.
-- [`POST /v1/runtime/task/&#123;task_id&#125;/cancel`](/docs/api-reference/local-runtime-api/post-v1-runtime-task-task-id-cancel) — Cancels a local runtime durable task.
-- [`GET /v1/runtime/task/&#123;task_id&#125;/wal`](/docs/api-reference/local-runtime-api/get-v1-runtime-task-task-id-wal) — Reads the local WAL entries for a runtime durable task.
+- [`POST /v1/runtime/task/:task_id/cancel`](/docs/api-reference/local-runtime-api/post-v1-runtime-task-task-id-cancel) — Cancels a local runtime durable task.
+- [`GET /v1/runtime/task/:task_id/wal`](/docs/api-reference/local-runtime-api/get-v1-runtime-task-task-id-wal) — Reads the local WAL entries for a runtime durable task.
 - [`GET /v1/runtime/agent/:id/state`](/docs/api-reference/local-runtime-api/get-v1-runtime-agent-id-state) — Returns the local runtime state for one agent.
 
