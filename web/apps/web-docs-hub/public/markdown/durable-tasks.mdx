@@ -356,8 +356,12 @@ Checkpoint metadata and signed WAL entries make tampering detectable:
 | `POST` | `/v1/tasks/submit` | Submit a new durable task |
 | `GET` | `/v1/tasks/:id` | Get task status and last checkpoint |
 | `GET` | `/v1/tasks` | List tasks for your tenant |
+| `GET` | `/v1/tasks/:id/steps` | Inspect execution-graph steps and graph slots when available |
+| `POST` | `/v1/tasks/:id/cancel` | Request cancellation for a non-terminal task |
+| `GET` | `/v1/tasks/proof/readiness` | Check whether trigger-backed proof synchronization is active |
+| `POST` | `/v1/tasks/:id/proof/verify` | Synchronize and verify persisted task proof state |
 
-These three endpoints are the customer durable-task surface.
+Runtime callback routes also exist for checkpoint, completion, and failure mutation. Those are used by `igris-runtime` and compatible runtime integrations, not by ordinary customer applications managing tasks from the control plane.
 
 ---
 
