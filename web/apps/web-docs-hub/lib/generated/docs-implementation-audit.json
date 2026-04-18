@@ -1,5 +1,5 @@
 {
-  "generated_at": "2026-04-18T08:53:17.934Z",
+  "generated_at": "2026-04-18T15:44:03.126Z",
   "summary": {
     "total": 936,
     "by_status": {
@@ -3451,7 +3451,7 @@
     },
     {
       "file": "web/apps/web-docs-hub/content/docs/api-reference/durable-tasks/post-v1-tasks-submit.mdx",
-      "line": 249,
+      "line": 264,
       "method": "GET",
       "path": "/v1/tasks/:id",
       "expected_surface": null,
@@ -7273,7 +7273,7 @@
     },
     {
       "file": "web/apps/web-docs-hub/content/docs/api-reference/inference-integration/post-v1-infer.mdx",
-      "line": 78,
+      "line": 79,
       "method": "POST",
       "path": "/v1/infer",
       "expected_surface": "cloud-api",
@@ -11016,7 +11016,7 @@
     },
     {
       "file": "web/apps/web-docs-hub/content/docs/api-reference/local-runtime-api/post-v1-hitl-reject.mdx",
-      "line": 59,
+      "line": 57,
       "method": "POST",
       "path": "/v1/hitl/reject",
       "expected_surface": "local-runtime",
@@ -11292,7 +11292,7 @@
     },
     {
       "file": "web/apps/web-docs-hub/content/docs/api-reference/local-runtime-api/post-v1-memory-search.mdx",
-      "line": 59,
+      "line": 63,
       "method": "POST",
       "path": "/v1/memory/search",
       "expected_surface": "local-runtime",
@@ -11430,7 +11430,7 @@
     },
     {
       "file": "web/apps/web-docs-hub/content/docs/api-reference/local-runtime-api/post-v1-memory-store.mdx",
-      "line": 63,
+      "line": 65,
       "method": "POST",
       "path": "/v1/memory/store",
       "expected_surface": "local-runtime",
@@ -11844,7 +11844,7 @@
     },
     {
       "file": "web/apps/web-docs-hub/content/docs/api-reference/local-runtime-api/post-v1-runtime-execute.mdx",
-      "line": 62,
+      "line": 71,
       "method": "POST",
       "path": "/v1/runtime/execute",
       "expected_surface": "local-runtime",
@@ -12150,7 +12150,7 @@
     },
     {
       "file": "web/apps/web-docs-hub/content/docs/api-reference/local-runtime-api/post-v1-runtime-task-submit.mdx",
-      "line": 68,
+      "line": 74,
       "method": "POST",
       "path": "/v1/runtime/task/submit",
       "expected_surface": "local-runtime",
@@ -12588,7 +12588,7 @@
     },
     {
       "file": "web/apps/web-docs-hub/content/docs/api-reference/local-runtime-api/post-v1-swarm-propose.mdx",
-      "line": 60,
+      "line": 63,
       "method": "POST",
       "path": "/v1/swarm/propose",
       "expected_surface": "local-runtime",
