@@ -1,0 +1,55 @@
+{
+  "generated_at": "2026-04-18T15:44:01.829Z",
+  "snippets": [
+    {
+      "file": "web/apps/web-docs-hub/content/docs/sdk.mdx",
+      "line": 62,
+      "language": "typescript"
+    },
+    {
+      "file": "web/apps/web-docs-hub/content/docs/sdk.mdx",
+      "line": 88,
+      "language": "typescript"
+    },
+    {
+      "file": "web/apps/web-docs-hub/content/docs/sdk.mdx",
+      "line": 106,
+      "language": "typescript"
+    },
+    {
+      "file": "web/apps/web-docs-hub/content/docs/sdk.mdx",
+      "line": 122,
+      "language": "typescript"
+    },
+    {
+      "file": "web/apps/web-docs-hub/content/docs/sdk.mdx",
+      "line": 144,
+      "language": "go"
+    },
+    {
+      "file": "web/apps/web-docs-hub/content/docs/sdk.mdx",
+      "line": 178,
+      "language": "rust"
+    },
+    {
+      "file": "web/apps/web-docs-hub/content/docs/sdk-integration-patterns.mdx",
+      "line": 61,
+      "language": "typescript"
+    },
+    {
+      "file": "web/apps/web-docs-hub/content/docs/sdk-integration-patterns.mdx",
+      "line": 79,
+      "language": "go"
+    },
+    {
+      "file": "web/apps/web-docs-hub/content/docs/sdk-integration-patterns.mdx",
+      "line": 105,
+      "language": "rust"
+    },
+    {
+      "file": "web/apps/web-docs-hub/content/docs/sdk-integration-patterns.mdx",
+      "line": 135,
+      "language": "typescript"
+    }
+  ]
+}
