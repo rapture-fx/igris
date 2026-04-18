@@ -472,6 +472,91 @@ func TestHandleStreamingInferSurfacesRuntimeStreamErrorPayload(t *testing.T) {
 	}
 }
 
+func TestHandleStreamingInferDoesNotFallbackAfterStructuredRuntimeStreamError(t *testing.T) {
+	t.Parallel()
+
+	registry := providers.NewProviderRegistry()
+	mockProvider, err := openai.NewMockOpenAIProvider(nil)
+	if err != nil {
+		t.Fatalf("NewMockOpenAIProvider() error = %v", err)
+	}
+	registry.Register(mockProvider)
+
+	handler := &InferHandler{
+		router: infrarouter.NewInferenceRouter(registry, nil),
+		runtimeExecutor: &stubRuntimeExecutor{
+			streamErr: &models.RuntimeStreamError{
+				StatusCode: http.StatusConflict,
+				Payload: map[string]interface{}{
+					"error": map[string]interface{}{
+						"message": "Streaming replay is only available for completed task submissions with final output",
+						"type":    "stream_replay_unavailable",
+					},
+					"task": map[string]interface{}{
+						"failure_details": map[string]interface{}{
+							"source":         "runtime",
+							"operation":      "execution",
+							"rejection_type": "step_failed",
+							"message":        "provider stream failed",
+							"step_index":     float64(0),
+							"domain":         "agent",
+							"node_id":        "agent-0",
+						},
+					},
+				},
+			},
+		},
+	}
+
+	app := fiber.New()
+	app.Post("/v1/infer", func(c *fiber.Ctx) error {
+		return handler.handleStreamingInfer(c, &models.InferRequest{
+			Model:               "igris-mock-gpt-4",
+			Stream:              true,
+			AllowStreamFallback: true,
+			MaxTokens:           5,
+			Messages:            []models.Message{{Role: "user", Content: "hello"}},
+		})
+	})
+
+	req := httptest.NewRequest(http.MethodPost, "/v1/infer", nil)
+	resp, err := app.Test(req, 5000)
+	if err != nil {
+		t.Fatalf("app.Test() error = %v", err)
+	}
+	if resp.StatusCode != http.StatusConflict {
+		t.Fatalf("StatusCode = %d, want %d", resp.StatusCode, http.StatusConflict)
+	}
+	if got := resp.Header.Get("X-Igris-Stream-Execution-Authority"); got != "" {
+		t.Fatalf("X-Igris-Stream-Execution-Authority = %q, want empty JSON error response header", got)
+	}
+
+	var body map[string]interface{}
+	if err := json.NewDecoder(resp.Body).Decode(&body); err != nil {
+		t.Fatalf("Decode() error = %v", err)
+	}
+	if _, ok := body["choices"]; ok {
+		t.Fatalf("response unexpectedly used Overture fallback choices: %v", body["choices"])
+	}
+	errorBody, ok := body["error"].(map[string]interface{})
+	if !ok {
+		t.Fatalf("error body type = %T, want map[string]interface{}", body["error"])
+	}
+	if got := errorBody["type"]; got != "stream_replay_unavailable" {
+		t.Fatalf("error.type = %v, want stream_replay_unavailable", got)
+	}
+	streamBody, ok := body["stream"].(map[string]interface{})
+	if !ok {
+		t.Fatalf("stream body type = %T, want map[string]interface{}", body["stream"])
+	}
+	if got := streamBody["execution_authority"]; got != "runtime" {
+		t.Fatalf("stream.execution_authority = %v, want runtime", got)
+	}
+	if got := streamBody["fallback_allowed"]; got != false {
+		t.Fatalf("stream.fallback_allowed = %v, want false", got)
+	}
+}
+
 func TestHandleStreamingInferReportsSecurityRejectionWithRuntimeContract(t *testing.T) {
 	t.Parallel()
 
