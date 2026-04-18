@@ -33,6 +33,11 @@ Supported endpoints for downloading `igris-runtime`, registering runtime instanc
 - [`GET /v1/runtime/install`](/docs/api-reference/runtime-distribution-fleet-coordination/get-v1-runtime-install) — Returns or redirects to the platform-specific runtime archive.
 - [`GET /v1/runtime/checksum`](/docs/api-reference/runtime-distribution-fleet-coordination/get-v1-runtime-checksum) — Returns the SHA-256 checksum for a runtime archive.
 - [`GET /v1/runtime/download`](/docs/api-reference/runtime-distribution-fleet-coordination/get-v1-runtime-download) — Subscribed runtime binary download endpoint.
+- [`GET /api/v1/runtime/download`](/docs/api-reference/runtime-distribution-fleet-coordination/get-api-v1-runtime-download) — API-key authenticated runtime binary download endpoint for runtime installers.
+- [`POST /api/v1/runtime/register`](/docs/api-reference/runtime-distribution-fleet-coordination/post-api-v1-runtime-register) — Registers a runtime instance with the hosted control plane.
+- [`POST /api/v1/runtime/heartbeat`](/docs/api-reference/runtime-distribution-fleet-coordination/post-api-v1-runtime-heartbeat) — Refreshes runtime liveness and reports whether commands are pending.
+- [`GET /api/v1/runtime/commands`](/docs/api-reference/runtime-distribution-fleet-coordination/get-api-v1-runtime-commands) — Fetches and clears queued commands for a registered runtime.
+- [`DELETE /api/v1/runtime/deregister`](/docs/api-reference/runtime-distribution-fleet-coordination/delete-api-v1-runtime-deregister) — Marks a runtime instance as deregistered.
 - [`GET /api/v1/runtime/list`](/docs/api-reference/runtime-distribution-fleet-coordination/get-api-v1-runtime-list) — Lists registered runtime instances for a tenant.
 - [`POST /api/v1/runtime/config/push`](/docs/api-reference/runtime-distribution-fleet-coordination/post-api-v1-runtime-config-push) — Queues configuration push commands for the fleet.
 - [`POST /api/v1/runtime/update`](/docs/api-reference/runtime-distribution-fleet-coordination/post-api-v1-runtime-update) — Queues OTA update commands for the fleet.
@@ -71,6 +76,25 @@ Supported audit and receipt endpoints for customer-visible history and proof ver
 - [`GET /v1/receipts/export`](/docs/api-reference/execution-history-and-receipts/get-v1-receipts-export) — Exports receipts as JSONL or CSV.
 - [`POST /proof/receipts/verify`](/docs/api-reference/execution-history-and-receipts/post-proof-receipts-verify) — Verifies a receipt signature and chain integrity.
 
+## Routing Control & Analytics
+
+Customer-visible routing controls and read models for adaptive routing, speculative execution, council mode, provider weighting, and circuit-breaker state.
+
+- [`GET /v1/routing/stats`](/docs/api-reference/routing-control-analytics/get-v1-routing-stats) — Returns aggregate routing request and latency statistics.
+- [`GET /v1/routing/recent`](/docs/api-reference/routing-control-analytics/get-v1-routing-recent) — Lists recent routed requests for operational inspection.
+- [`GET /v1/routing/leaderboard`](/docs/api-reference/routing-control-analytics/get-v1-routing-leaderboard) — Ranks providers by recent routing performance.
+- [`POST /v1/routing/strategy`](/docs/api-reference/routing-control-analytics/post-v1-routing-strategy) — Saves the tenant routing strategy configuration.
+- [`POST /v1/routing/provider_weights`](/docs/api-reference/routing-control-analytics/post-v1-routing-provider-weights) — Saves tenant provider weight overrides.
+- [`GET /v1/routing/speculative/status`](/docs/api-reference/routing-control-analytics/get-v1-routing-speculative-status) — Returns current speculative-routing status metrics.
+- [`GET /v1/routing/speculative/config`](/docs/api-reference/routing-control-analytics/get-v1-routing-speculative-config) — Returns the active speculative-routing configuration read model.
+- [`POST /v1/routing/speculative`](/docs/api-reference/routing-control-analytics/post-v1-routing-speculative) — Saves tenant speculative-routing configuration.
+- [`GET /v1/routing/speculative/analytics`](/docs/api-reference/routing-control-analytics/get-v1-routing-speculative-analytics) — Returns speculative-routing analytics series.
+- [`POST /v1/routing/speculative/simulate`](/docs/api-reference/routing-control-analytics/post-v1-routing-speculative-simulate) — Triggers a speculative-routing simulation for a sample request.
+- [`POST /v1/routing/council`](/docs/api-reference/routing-control-analytics/post-v1-routing-council) — Saves tenant council-mode routing configuration.
+- [`GET /v1/routing/council/analytics`](/docs/api-reference/routing-control-analytics/get-v1-routing-council-analytics) — Returns council-mode aggregate and per-chairman analytics.
+- [`POST /v1/routing/shadow`](/docs/api-reference/routing-control-analytics/post-v1-routing-shadow) — Saves tenant shadow-routing configuration.
+- [`GET /v1/routing/circuit-breaker/status`](/docs/api-reference/routing-control-analytics/get-v1-routing-circuit-breaker-status) — Returns aggregate and per-provider circuit-breaker state.
+
 ## Behavior Trees
 
 Supported behavior-tree definition endpoints exposed by the coordination layer.
@@ -88,12 +112,24 @@ Submit durable workflows and long-running tasks that preserve progress automatic
 - [`POST /v1/tasks/submit`](/docs/api-reference/durable-tasks/post-v1-tasks-submit) — Submit a durable task using `agent_workflow`, `robotics_workflow`, `single_inference`, or `behavior_tree`.
 - [`GET /v1/tasks/:id`](/docs/api-reference/durable-tasks/get-v1-tasks-id) — Poll the current status and latest checkpoint metadata for a durable task.
 - [`GET /v1/tasks`](/docs/api-reference/durable-tasks/get-v1-tasks) — List recent durable tasks for the authenticated tenant.
+- [`GET /v1/tasks/:id/steps`](/docs/api-reference/durable-tasks/get-v1-tasks-id-steps) — Lists execution-graph steps and graph slots for a durable task when available.
+- [`POST /v1/tasks/:id/cancel`](/docs/api-reference/durable-tasks/post-v1-tasks-id-cancel) — Requests cancellation for a non-terminal durable task.
+- [`GET /v1/tasks/proof/readiness`](/docs/api-reference/durable-tasks/get-v1-tasks-proof-readiness) — Reports whether trigger-backed proof synchronization is active.
+- [`POST /v1/tasks/:id/proof/verify`](/docs/api-reference/durable-tasks/post-v1-tasks-id-proof-verify) — Synchronizes and verifies persisted proof state for a durable task.
+
+## MCP Transport
+
+Hosted MCP transport routes for structured shared context and tool-oriented workflows.
+
+- [`POST /v1/mcp`](/docs/api-reference/mcp-transport/post-v1-mcp) — Forwards JSON-RPC MCP requests to the configured runtime MCP server.
+- [`POST /v1/mcp/stream`](/docs/api-reference/mcp-transport/post-v1-mcp-stream) — Forwards streaming MCP requests to the configured runtime MCP server.
 
 ## Local Runtime API
 
 Supported endpoints served by `igris-runtime` on the local runtime instance.
 
 - [`GET /v1/health`](/docs/api-reference/local-runtime-api/get-v1-health) — Health check for the local runtime.
+- [`GET /v1/runtime/profile`](/docs/api-reference/local-runtime-api/get-v1-runtime-profile) — Returns local runtime capability and feature profile.
 - [`POST /v1/chat/completions`](/docs/api-reference/local-runtime-api/post-v1-chat-completions) — OpenAI-compatible local inference endpoint.
 - [`POST /v1/plan`](/docs/api-reference/local-runtime-api/post-v1-plan) — Planning endpoint.
 - [`POST /v1/reflect`](/docs/api-reference/local-runtime-api/post-v1-reflect) — Reflection endpoint.
@@ -104,4 +140,30 @@ Supported endpoints served by `igris-runtime` on the local runtime instance.
 - [`POST /v1/btree/run`](/docs/api-reference/local-runtime-api/post-v1-btree-run) — Executes a runtime behavior tree.
 - [`POST /v1/btree/deploy`](/docs/api-reference/local-runtime-api/post-v1-btree-deploy) — Deploys a runtime behavior tree.
 - [`GET /v1/btree/events`](/docs/api-reference/local-runtime-api/get-v1-btree-events) — Streams behavior-tree events.
+- [`GET /v1/lora/status`](/docs/api-reference/local-runtime-api/get-v1-lora-status) — Returns local LoRA training and adapter status.
+- [`GET /v1/memory/status`](/docs/api-reference/local-runtime-api/get-v1-memory-status) — Returns local memory subsystem status.
+- [`POST /v1/memory/store`](/docs/api-reference/local-runtime-api/post-v1-memory-store) — Stores an item in local runtime memory.
+- [`POST /v1/memory/search`](/docs/api-reference/local-runtime-api/post-v1-memory-search) — Searches local runtime memory.
+- [`GET /v1/memory/:key`](/docs/api-reference/local-runtime-api/get-v1-memory-key) — Reads one item from local runtime memory by key.
+- [`GET /v1/hitl/status`](/docs/api-reference/local-runtime-api/get-v1-hitl-status) — Returns local human-in-the-loop queue status.
+- [`GET /v1/hitl/requests`](/docs/api-reference/local-runtime-api/get-v1-hitl-requests) — Lists local human-in-the-loop approval requests.
+- [`POST /v1/hitl/request`](/docs/api-reference/local-runtime-api/post-v1-hitl-request) — Creates a local human-in-the-loop approval request.
+- [`POST /v1/hitl/approve`](/docs/api-reference/local-runtime-api/post-v1-hitl-approve) — Approves a local human-in-the-loop request.
+- [`POST /v1/hitl/reject`](/docs/api-reference/local-runtime-api/post-v1-hitl-reject) — Rejects a local human-in-the-loop request.
+- [`GET /v1/swarm/status`](/docs/api-reference/local-runtime-api/get-v1-swarm-status) — Returns local swarm coordination status.
+- [`GET /v1/swarm/agents`](/docs/api-reference/local-runtime-api/get-v1-swarm-agents) — Lists local swarm agents.
+- [`POST /v1/swarm/join`](/docs/api-reference/local-runtime-api/post-v1-swarm-join) — Joins the local runtime to a swarm.
+- [`POST /v1/swarm/propose`](/docs/api-reference/local-runtime-api/post-v1-swarm-propose) — Submits a swarm proposal.
+- [`POST /v1/swarm/vote`](/docs/api-reference/local-runtime-api/post-v1-swarm-vote) — Submits a swarm vote.
+- [`GET /v1/federated/status`](/docs/api-reference/local-runtime-api/get-v1-federated-status) — Returns local federated-learning status.
+- [`POST /v1/federated/update`](/docs/api-reference/local-runtime-api/post-v1-federated-update) — Submits a local federated-learning model update.
+- [`GET /v1/federated/model/latest`](/docs/api-reference/local-runtime-api/get-v1-federated-model-latest) — Returns metadata for the latest local federated model.
+- [`GET /v1/federated/participants`](/docs/api-reference/local-runtime-api/get-v1-federated-participants) — Lists local federated-learning participants.
+- [`POST /v1/runtime/execute`](/docs/api-reference/local-runtime-api/post-v1-runtime-execute) — Executes a runtime task through the local execution boundary.
+- [`GET /v1/runtime/violations`](/docs/api-reference/local-runtime-api/get-v1-runtime-violations) — Lists local runtime execution violations.
+- [`POST /v1/runtime/task/submit`](/docs/api-reference/local-runtime-api/post-v1-runtime-task-submit) — Submits a durable task directly to the local runtime executor.
+- [`POST /v1/runtime/task/stream`](/docs/api-reference/local-runtime-api/post-v1-runtime-task-stream) — Submits a streaming durable task directly to the local runtime executor.
+- [`POST /v1/runtime/task/&#123;task_id&#125;/cancel`](/docs/api-reference/local-runtime-api/post-v1-runtime-task-task-id-cancel) — Cancels a local runtime durable task.
+- [`GET /v1/runtime/task/&#123;task_id&#125;/wal`](/docs/api-reference/local-runtime-api/get-v1-runtime-task-task-id-wal) — Reads the local WAL entries for a runtime durable task.
+- [`GET /v1/runtime/agent/:id/state`](/docs/api-reference/local-runtime-api/get-v1-runtime-agent-id-state) — Returns the local runtime state for one agent.
 
