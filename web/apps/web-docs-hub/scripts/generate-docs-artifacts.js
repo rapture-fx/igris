@@ -29,6 +29,10 @@ function joinRoute(base, routePath) {
   return normalized !== '/' && normalized.endsWith('/') ? normalized.slice(0, -1) : normalized;
 }
 
+function canonicalRoutePath(routePath) {
+  return routePath.replace(/\{([a-zA-Z0-9_]+)\}/g, ':$1');
+}
+
 function extractGoRoutes(filePath) {
   const source = fs.readFileSync(filePath, 'utf8');
   const prefixes = new Map([['app', '']]);
@@ -73,7 +77,7 @@ function extractGoRoutes(filePath) {
 function extractRustRoutes(filePath) {
   const source = fs.readFileSync(filePath, 'utf8');
   const routes = [];
-  const routeRegex = /\.route\("([^"]+)",\s*(get|post|put|patch|delete)\(/g;
+  const routeRegex = /\.route\(\s*"([^"]+)",\s*(get|post|put|patch|delete)\(/g;
   let match;
   while ((match = routeRegex.exec(source)) !== null) {
     routes.push({
@@ -103,15 +107,15 @@ function buildRouteInventory() {
 }
 
 function validateConfiguredRoutes(inventory) {
-  const routeKeys = new Set(inventory.map((route) => `${route.method} ${route.path}`));
+  const routeKeys = new Set(inventory.map((route) => `${route.method} ${canonicalRoutePath(route.path)}`));
   const missing = [];
   const metadataFailures = [];
 
   for (const section of apiSections) {
     for (const endpoint of section.endpoints) {
-      const key = `${endpoint.method} ${endpoint.path}`;
+      const key = `${endpoint.method} ${canonicalRoutePath(endpoint.path)}`;
       if (!routeKeys.has(key)) {
-        missing.push(key);
+        missing.push(`${endpoint.method} ${endpoint.path}`);
       }
       if (!endpoint.support) {
         metadataFailures.push(`${key}: missing support level`);
