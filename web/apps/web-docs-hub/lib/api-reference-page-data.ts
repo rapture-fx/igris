@@ -99,19 +99,28 @@ const endpointOverrides: Record<string, EndpointOverride> = {
       'Reusing an OpenAI-only request shape and forgetting to adopt the native Igris fields that make this route valuable.',
       'Using `/v1/infer` for broad portability when `/v1/chat/completions` would have been the simpler contract.',
       'Assuming provider pinning will work without a matching provider key already configured for the tenant.',
+      'Treating `allow_stream_fallback` as permission to override a structured Runtime rejection. It only allows fallback when the Runtime stream is unavailable before it can make an authoritative decision.',
     ],
     requestBodyFields: [
       { name: 'model', type: 'string', required: true, description: 'Requested model or routing target.' },
       { name: 'messages', type: 'array', required: true, description: 'Conversation turns in Igris message format.' },
       { name: 'provider', type: 'string', description: 'Optional provider pin.' },
       { name: 'optimize_for', type: 'string', description: 'Routing preference such as `latency` or `cost`.' },
+      { name: 'stream', type: 'boolean', description: 'When true, returns a Server-Sent Events stream. Runtime-backed streams advertise durability and replay headers.' },
+      { name: 'allow_stream_fallback', type: 'boolean', description: 'Explicitly allows Overture-local fallback only when runtime-backed streaming is unavailable before the Runtime returns a structured decision.' },
     ],
     requestExample: {
       model: 'gpt-4o-mini',
       provider: 'openai',
       optimize_for: 'latency',
+      stream: false,
       messages: [{ role: 'user', content: 'Classify this alert severity.' }],
     },
+    notes: [
+      'For streaming responses, successful Runtime-backed streams use `Content-Type: text/event-stream` and include `X-Igris-Stream-Execution-Authority`, `X-Igris-Stream-Resume-Supported`, `X-Igris-Stream-Replay-Condition`, and Runtime passthrough headers such as `X-Igris-Runtime-Task-Id` when available.',
+      'Durable Runtime streams end with an `event: task_result` SSE event. Its JSON payload includes `durability.mode`, `durability.resume_supported`, `durability.replay_supported`, `durability.replay_condition`, and `durability.checkpoint_persisted` alongside the durable task result.',
+      'If Runtime returns a structured non-200 stream response, Overture preserves the Runtime status code and exposes `runtime_status_code`, `runtime_payload`, normalized `failure`, and the stream contract. `allow_stream_fallback` does not replace that response.',
+    ],
     responseExample: {
       choices: [
         {
@@ -126,6 +135,83 @@ const endpointOverrides: Record<string, EndpointOverride> = {
       },
       receipt_id: 'rcpt_01HV93C2PKR0N8SVQ',
     },
+    statusCodes: [
+      {
+        code: 200,
+        title: 'Success',
+        description: 'The request completed successfully. Streaming requests return SSE and may finish with a durable `task_result` event.',
+      },
+      {
+        code: 400,
+        title: 'Bad Request',
+        description: 'The request body, routing mode, or stream shape was invalid for this endpoint.',
+      },
+      {
+        code: 401,
+        title: 'Unauthorized',
+        description: 'Credentials were missing, expired, malformed, or not accepted by this deployment.',
+      },
+      {
+        code: 409,
+        title: 'Runtime stream conflict',
+        description: 'Runtime returned a structured stream rejection, such as `stream_replay_unavailable`; Overture preserves the Runtime payload instead of using fallback.',
+        example: prettyJson({
+          error: {
+            message: 'Streaming replay is only available for completed task submissions with final output',
+            type: 'stream_replay_unavailable',
+          },
+          failure: {
+            reason: 'runtime_client: streaming runtime returned status 409: Streaming replay is only available for completed task submissions with final output',
+            source: 'runtime',
+            operation: 'stream',
+            type: 'stream_replay_unavailable',
+            message: 'Streaming replay is only available for completed task submissions with final output',
+            status_code: 409,
+            execution: {
+              step_index: 0,
+              domain: 'agent',
+              node_id: 'agent-0',
+            },
+          },
+          stream: {
+            execution_authority: 'runtime',
+            fallback_allowed: false,
+            resume_supported: false,
+            replay_condition: 'completed-final-output',
+            fallback_opt_in_field: 'allow_stream_fallback',
+          },
+          runtime_status_code: 409,
+          runtime_payload: {
+            error: {
+              message: 'Streaming replay is only available for completed task submissions with final output',
+              type: 'stream_replay_unavailable',
+            },
+            durability: {
+              mode: 'streaming',
+              resume_supported: false,
+              replay_supported: false,
+              replay_condition: 'completed-final-output',
+              checkpoint_persisted: false,
+            },
+          },
+        }),
+      },
+      {
+        code: 429,
+        title: 'Too Many Requests',
+        description: 'The caller exceeded the current throttle window and should wait before retrying.',
+      },
+      {
+        code: 503,
+        title: 'Runtime stream unavailable',
+        description: 'Runtime-backed streaming was unavailable and fallback was not explicitly allowed.',
+      },
+      {
+        code: 500,
+        title: 'Server Error',
+        description: 'The server accepted the request contract but failed while processing it.',
+      },
+    ],
   },
   'GET /v1/models': {
     functionality:
@@ -1290,15 +1376,85 @@ const endpointOverrides: Record<string, EndpointOverride> = {
   },
   'POST /v1/runtime/task/stream': {
     requestBodyFields: [
-      { name: 'task_type', type: 'string', required: true, description: 'Runtime task type.' },
-      { name: 'task_definition', type: 'object', required: true, description: 'Runtime task payload.' },
+      { name: 'task_id', type: 'string', required: true, description: 'Unique durable task identifier supplied by the caller.' },
+      { name: 'task_type', type: 'object', required: true, description: 'Tagged runtime task payload. Streaming currently supports `{"type":"single_inference"}` with `stream:true`.' },
+      { name: 'idempotency_key', type: 'string', required: true, description: 'Stable key used to replay a completed stream result or reject conflicting submissions.' },
+      { name: 'tenant_id', type: 'string', required: true, description: 'Tenant or local isolation identifier used for idempotency storage.' },
+      { name: 'deadline_ms', type: 'integer', description: 'Optional execution deadline in milliseconds.' },
+      { name: 'containment', type: 'object', description: 'Optional runtime bounds forwarded from the control plane.' },
     ],
     requestExample: {
-      task_type: 'single_inference',
-      task_definition: { stream: true, model: 'local', messages: [{ role: 'user', content: 'hello' }] },
+      task_id: '018f4a2b-3c1e-7a2d-9b8f-4d5e6f7a8b9c',
+      task_type: {
+        type: 'single_inference',
+        stream: true,
+        model: 'local',
+        messages: [{ role: 'user', content: 'hello' }],
+      },
+      idempotency_key: 'stream-018f4a2b',
+      tenant_id: 'tenant-local',
     },
-    responseExample: 'event: token\ndata: {"delta":"Hello"}\n',
+    notes: [
+      'Successful responses are Server-Sent Events and include `X-Igris-Runtime-Task-Id`, `X-Igris-Runtime-Stream-Resume-Supported`, and `X-Igris-Runtime-Stream-Replay-Condition` headers.',
+      'The stream emits ordinary chat chunks first, then an `event: task_result` payload with the durable task result and `durability` metadata, followed by `data: [DONE]`.',
+      'If the same idempotency key is replayed after a completed stream with final output, Runtime replays the final output and task result. If the stored task is failed, checkpointed, or lacks final output, Runtime returns `409 stream_replay_unavailable` with a task snapshot and durability metadata.',
+    ],
+    responseExample: 'data: {"choices":[{"delta":{"content":"Hello"}}]}\n\nevent: task_result\ndata: {"task_id":"018f4a2b-3c1e-7a2d-9b8f-4d5e6f7a8b9c","status":"completed","durability":{"mode":"streaming","resume_supported":false,"replay_supported":true,"replay_condition":"completed-final-output","checkpoint_persisted":false}}\n\ndata: [DONE]\n',
     responseExampleLanguage: 'text',
+    statusCodes: [
+      {
+        code: 200,
+        title: 'SSE stream',
+        description: 'Runtime accepted the stream and returns Server-Sent Events with a terminal `task_result` event.',
+      },
+      {
+        code: 400,
+        title: 'Invalid streaming request',
+        description: 'The request was not a supported streaming `single_inference` task or attempted unsupported stream resume.',
+      },
+      {
+        code: 401,
+        title: 'Unauthorized',
+        description: 'Runtime-local authentication rejected the request.',
+      },
+      {
+        code: 409,
+        title: 'Replay unavailable',
+        description: 'The idempotency key already has a stored task, but it cannot be replayed as a completed final-output stream.',
+        example: prettyJson({
+          error: {
+            message: 'Streaming replay is only available for completed task submissions with final output',
+            type: 'stream_replay_unavailable',
+          },
+          task: {
+            task_id: '018f4a2b-3c1e-7a2d-9b8f-4d5e6f7a8b9c',
+            status: { status: 'failed', reason: 'provider stream failed' },
+            final_output_available: false,
+            failure_details: {
+              source: 'runtime',
+              operation: 'execution',
+              rejection_type: 'step_failed',
+              message: 'provider stream failed',
+              step_index: 0,
+              domain: 'agent',
+              node_id: 'agent-0',
+            },
+          },
+          durability: {
+            mode: 'streaming',
+            resume_supported: false,
+            replay_supported: false,
+            replay_condition: 'completed-final-output',
+            checkpoint_persisted: false,
+          },
+        }),
+      },
+      {
+        code: 500,
+        title: 'Runtime execution failed',
+        description: 'Runtime accepted the request but failed while processing the stream.',
+      },
+    ],
   },
   'POST /v1/runtime/task/{task_id}/cancel': {
     requestExample: null,
