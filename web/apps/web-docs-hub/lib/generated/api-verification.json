@@ -1,21 +1,23 @@
 {
-  "generated_at": "2026-04-15T15:45:56.685Z",
+  "generated_at": "2026-04-17T16:25:32.936Z",
   "summary": {
-    "total": 51,
+    "total": 103,
     "by_status": {
-      "test-covered": 8,
-      "client-referenced": 7,
-      "implemented-unverified": 36
+      "test-covered": 12,
+      "client-referenced": 12,
+      "implemented-unverified": 79
     },
     "by_section": {
       "Inference & Integration": 7,
-      "Runtime Distribution & Fleet Coordination": 6,
+      "Runtime Distribution & Fleet Coordination": 11,
       "Account, Trial, and Billing": 5,
       "Vault, Policy, and Governance": 9,
       "Execution, History, and Receipts": 5,
+      "Routing Control & Analytics": 14,
       "Behavior Trees": 5,
-      "Durable Tasks": 3,
-      "Local Runtime API": 11
+      "Durable Tasks": 7,
+      "MCP Transport": 2,
+      "Local Runtime API": 38
     }
   },
   "endpoints": [
@@ -217,6 +219,96 @@
       "evidence": {
         "test_files": [],
         "client_files": []
+      }
+    },
+    {
+      "section": "Runtime Distribution & Fleet Coordination",
+      "method": "GET",
+      "path": "/api/v1/runtime/download",
+      "auth": "igris_ API key via X-API-Key or Authorization: Bearer",
+      "surface": "Fleet management",
+      "stability": "stable",
+      "description": "API-key authenticated runtime binary download endpoint for runtime installers.",
+      "status": "implemented-unverified",
+      "confidence": "low",
+      "note": "Route is documented and registered in code, but no direct test or client exercise was found in this repository scan.",
+      "evidence": {
+        "test_files": [],
+        "client_files": []
+      }
+    },
+    {
+      "section": "Runtime Distribution & Fleet Coordination",
+      "method": "POST",
+      "path": "/api/v1/runtime/register",
+      "auth": "igris_ API key via X-API-Key or Authorization: Bearer",
+      "surface": "Fleet management",
+      "stability": "stable",
+      "description": "Registers a runtime instance with the hosted control plane.",
+      "status": "test-covered",
+      "confidence": "high",
+      "note": "At least one automated test references this route path and method.",
+      "evidence": {
+        "test_files": [
+          "igris-overture/api/routes_telemetry_test.go"
+        ],
+        "client_files": [
+          "igris-runtime/crates/igris-license-client/src/lib.rs"
+        ]
+      }
+    },
+    {
+      "section": "Runtime Distribution & Fleet Coordination",
+      "method": "POST",
+      "path": "/api/v1/runtime/heartbeat",
+      "auth": "igris_ API key via X-API-Key or Authorization: Bearer",
+      "surface": "Fleet management",
+      "stability": "stable",
+      "description": "Refreshes runtime liveness and reports whether commands are pending.",
+      "status": "test-covered",
+      "confidence": "high",
+      "note": "At least one automated test references this route path and method.",
+      "evidence": {
+        "test_files": [
+          "igris-overture/api/routes_telemetry_test.go"
+        ],
+        "client_files": [
+          "igris-runtime/crates/igris-license-client/src/lib.rs"
+        ]
+      }
+    },
+    {
+      "section": "Runtime Distribution & Fleet Coordination",
+      "method": "GET",
+      "path": "/api/v1/runtime/commands",
+      "auth": "igris_ API key via X-API-Key or Authorization: Bearer",
+      "surface": "Fleet management",
+      "stability": "stable",
+      "description": "Fetches and clears queued commands for a registered runtime.",
+      "status": "implemented-unverified",
+      "confidence": "low",
+      "note": "Route is documented and registered in code, but no direct test or client exercise was found in this repository scan.",
+      "evidence": {
+        "test_files": [],
+        "client_files": []
+      }
+    },
+    {
+      "section": "Runtime Distribution & Fleet Coordination",
+      "method": "DELETE",
+      "path": "/api/v1/runtime/deregister",
+      "auth": "igris_ API key via X-API-Key or Authorization: Bearer",
+      "surface": "Fleet management",
+      "stability": "stable",
+      "description": "Marks a runtime instance as deregistered.",
+      "status": "client-referenced",
+      "confidence": "medium",
+      "note": "A client or transport layer references this route, but no direct automated test was found.",
+      "evidence": {
+        "test_files": [],
+        "client_files": [
+          "igris-runtime/crates/igris-license-client/src/lib.rs"
+        ]
       }
     },
     {
@@ -588,6 +680,230 @@
       }
     },
     {
+      "section": "Routing Control & Analytics",
+      "method": "GET",
+      "path": "/v1/routing/stats",
+      "auth": "Session cookie or igris_ API key",
+      "surface": "Cloud API",
+      "stability": "stable",
+      "description": "Returns aggregate routing request and latency statistics.",
+      "status": "implemented-unverified",
+      "confidence": "low",
+      "note": "Route is documented and registered in code, but no direct test or client exercise was found in this repository scan.",
+      "evidence": {
+        "test_files": [],
+        "client_files": []
+      }
+    },
+    {
+      "section": "Routing Control & Analytics",
+      "method": "GET",
+      "path": "/v1/routing/recent",
+      "auth": "Session cookie or igris_ API key",
+      "surface": "Cloud API",
+      "stability": "stable",
+      "description": "Lists recent routed requests for operational inspection.",
+      "status": "implemented-unverified",
+      "confidence": "low",
+      "note": "Route is documented and registered in code, but no direct test or client exercise was found in this repository scan.",
+      "evidence": {
+        "test_files": [],
+        "client_files": []
+      }
+    },
+    {
+      "section": "Routing Control & Analytics",
+      "method": "GET",
+      "path": "/v1/routing/leaderboard",
+      "auth": "Session cookie or igris_ API key",
+      "surface": "Cloud API",
+      "stability": "stable",
+      "description": "Ranks providers by recent routing performance.",
+      "status": "implemented-unverified",
+      "confidence": "low",
+      "note": "Route is documented and registered in code, but no direct test or client exercise was found in this repository scan.",
+      "evidence": {
+        "test_files": [],
+        "client_files": []
+      }
+    },
+    {
+      "section": "Routing Control & Analytics",
+      "method": "POST",
+      "path": "/v1/routing/strategy",
+      "auth": "Session cookie or igris_ API key",
+      "surface": "Cloud API",
+      "stability": "stable",
+      "description": "Saves the tenant routing strategy configuration.",
+      "status": "implemented-unverified",
+      "confidence": "low",
+      "note": "Route is documented and registered in code, but no direct test or client exercise was found in this repository scan.",
+      "evidence": {
+        "test_files": [],
+        "client_files": []
+      }
+    },
+    {
+      "section": "Routing Control & Analytics",
+      "method": "POST",
+      "path": "/v1/routing/provider_weights",
+      "auth": "Session cookie or igris_ API key",
+      "surface": "Cloud API",
+      "stability": "stable",
+      "description": "Saves tenant provider weight overrides.",
+      "status": "implemented-unverified",
+      "confidence": "low",
+      "note": "Route is documented and registered in code, but no direct test or client exercise was found in this repository scan.",
+      "evidence": {
+        "test_files": [],
+        "client_files": []
+      }
+    },
+    {
+      "section": "Routing Control & Analytics",
+      "method": "GET",
+      "path": "/v1/routing/speculative/status",
+      "auth": "Session cookie or igris_ API key",
+      "surface": "Cloud API",
+      "stability": "stable",
+      "description": "Returns current speculative-routing status metrics.",
+      "status": "implemented-unverified",
+      "confidence": "low",
+      "note": "Route is documented and registered in code, but no direct test or client exercise was found in this repository scan.",
+      "evidence": {
+        "test_files": [],
+        "client_files": []
+      }
+    },
+    {
+      "section": "Routing Control & Analytics",
+      "method": "GET",
+      "path": "/v1/routing/speculative/config",
+      "auth": "Session cookie or igris_ API key",
+      "surface": "Cloud API",
+      "stability": "stable",
+      "description": "Returns the active speculative-routing configuration read model.",
+      "status": "implemented-unverified",
+      "confidence": "low",
+      "note": "Route is documented and registered in code, but no direct test or client exercise was found in this repository scan.",
+      "evidence": {
+        "test_files": [],
+        "client_files": []
+      }
+    },
+    {
+      "section": "Routing Control & Analytics",
+      "method": "POST",
+      "path": "/v1/routing/speculative",
+      "auth": "Session cookie or igris_ API key",
+      "surface": "Cloud API",
+      "stability": "stable",
+      "description": "Saves tenant speculative-routing configuration.",
+      "status": "implemented-unverified",
+      "confidence": "low",
+      "note": "Route is documented and registered in code, but no direct test or client exercise was found in this repository scan.",
+      "evidence": {
+        "test_files": [],
+        "client_files": []
+      }
+    },
+    {
+      "section": "Routing Control & Analytics",
+      "method": "GET",
+      "path": "/v1/routing/speculative/analytics",
+      "auth": "Session cookie or igris_ API key",
+      "surface": "Cloud API",
+      "stability": "stable",
+      "description": "Returns speculative-routing analytics series.",
+      "status": "implemented-unverified",
+      "confidence": "low",
+      "note": "Route is documented and registered in code, but no direct test or client exercise was found in this repository scan.",
+      "evidence": {
+        "test_files": [],
+        "client_files": []
+      }
+    },
+    {
+      "section": "Routing Control & Analytics",
+      "method": "POST",
+      "path": "/v1/routing/speculative/simulate",
+      "auth": "Session cookie or igris_ API key",
+      "surface": "Cloud API",
+      "stability": "preview",
+      "description": "Triggers a speculative-routing simulation for a sample request.",
+      "status": "implemented-unverified",
+      "confidence": "low",
+      "note": "Route is documented and registered in code, but no direct test or client exercise was found in this repository scan.",
+      "evidence": {
+        "test_files": [],
+        "client_files": []
+      }
+    },
+    {
+      "section": "Routing Control & Analytics",
+      "method": "POST",
+      "path": "/v1/routing/council",
+      "auth": "Session cookie or igris_ API key",
+      "surface": "Cloud API",
+      "stability": "stable",
+      "description": "Saves tenant council-mode routing configuration.",
+      "status": "implemented-unverified",
+      "confidence": "low",
+      "note": "Route is documented and registered in code, but no direct test or client exercise was found in this repository scan.",
+      "evidence": {
+        "test_files": [],
+        "client_files": []
+      }
+    },
+    {
+      "section": "Routing Control & Analytics",
+      "method": "GET",
+      "path": "/v1/routing/council/analytics",
+      "auth": "Session cookie or igris_ API key",
+      "surface": "Cloud API",
+      "stability": "stable",
+      "description": "Returns council-mode aggregate and per-chairman analytics.",
+      "status": "implemented-unverified",
+      "confidence": "low",
+      "note": "Route is documented and registered in code, but no direct test or client exercise was found in this repository scan.",
+      "evidence": {
+        "test_files": [],
+        "client_files": []
+      }
+    },
+    {
+      "section": "Routing Control & Analytics",
+      "method": "POST",
+      "path": "/v1/routing/shadow",
+      "auth": "Session cookie or igris_ API key",
+      "surface": "Cloud API",
+      "stability": "stable",
+      "description": "Saves tenant shadow-routing configuration.",
+      "status": "implemented-unverified",
+      "confidence": "low",
+      "note": "Route is documented and registered in code, but no direct test or client exercise was found in this repository scan.",
+      "evidence": {
+        "test_files": [],
+        "client_files": []
+      }
+    },
+    {
+      "section": "Routing Control & Analytics",
+      "method": "GET",
+      "path": "/v1/routing/circuit-breaker/status",
+      "auth": "Session cookie or igris_ API key",
+      "surface": "Cloud API",
+      "stability": "stable",
+      "description": "Returns aggregate and per-provider circuit-breaker state.",
+      "status": "implemented-unverified",
+      "confidence": "low",
+      "note": "Route is documented and registered in code, but no direct test or client exercise was found in this repository scan.",
+      "evidence": {
+        "test_files": [],
+        "client_files": []
+      }
+    },
+    {
       "section": "Behavior Trees",
       "method": "GET",
       "path": "/v1/bt/templates",
@@ -728,6 +1044,108 @@
       }
     },
     {
+      "section": "Durable Tasks",
+      "method": "GET",
+      "path": "/v1/tasks/:id/steps",
+      "auth": "Session cookie or igris_ API key",
+      "surface": "Cloud API",
+      "stability": "stable",
+      "description": "Lists execution-graph steps and graph slots for a durable task when available.",
+      "status": "client-referenced",
+      "confidence": "medium",
+      "note": "A client or transport layer references this route, but no direct automated test was found.",
+      "evidence": {
+        "test_files": [],
+        "client_files": [
+          "igris-javascript-sdk/src/tasks.ts"
+        ]
+      }
+    },
+    {
+      "section": "Durable Tasks",
+      "method": "POST",
+      "path": "/v1/tasks/:id/cancel",
+      "auth": "Session cookie or igris_ API key",
+      "surface": "Cloud API",
+      "stability": "stable",
+      "description": "Requests cancellation for a non-terminal durable task.",
+      "status": "test-covered",
+      "confidence": "high",
+      "note": "At least one automated test references this route path and method.",
+      "evidence": {
+        "test_files": [
+          "igris-overture/api/routes_tasks_test.go"
+        ],
+        "client_files": []
+      }
+    },
+    {
+      "section": "Durable Tasks",
+      "method": "GET",
+      "path": "/v1/tasks/proof/readiness",
+      "auth": "Session cookie or igris_ API key",
+      "surface": "Cloud API",
+      "stability": "stable",
+      "description": "Reports whether trigger-backed proof synchronization is active.",
+      "status": "implemented-unverified",
+      "confidence": "low",
+      "note": "Route is documented and registered in code, but no direct test or client exercise was found in this repository scan.",
+      "evidence": {
+        "test_files": [],
+        "client_files": []
+      }
+    },
+    {
+      "section": "Durable Tasks",
+      "method": "POST",
+      "path": "/v1/tasks/:id/proof/verify",
+      "auth": "Session cookie or igris_ API key",
+      "surface": "Cloud API",
+      "stability": "stable",
+      "description": "Synchronizes and verifies persisted proof state for a durable task.",
+      "status": "implemented-unverified",
+      "confidence": "low",
+      "note": "Route is documented and registered in code, but no direct test or client exercise was found in this repository scan.",
+      "evidence": {
+        "test_files": [],
+        "client_files": []
+      }
+    },
+    {
+      "section": "MCP Transport",
+      "method": "POST",
+      "path": "/v1/mcp",
+      "auth": "Deployment-dependent",
+      "surface": "Cloud API",
+      "stability": "stable",
+      "description": "Forwards JSON-RPC MCP requests to the configured runtime MCP server.",
+      "status": "test-covered",
+      "confidence": "high",
+      "note": "At least one automated test references this route path and method.",
+      "evidence": {
+        "test_files": [
+          "igris-overture/api/routes_mcp_test.go"
+        ],
+        "client_files": []
+      }
+    },
+    {
+      "section": "MCP Transport",
+      "method": "POST",
+      "path": "/v1/mcp/stream",
+      "auth": "Deployment-dependent",
+      "surface": "Cloud API",
+      "stability": "preview",
+      "description": "Forwards streaming MCP requests to the configured runtime MCP server.",
+      "status": "implemented-unverified",
+      "confidence": "low",
+      "note": "Route is documented and registered in code, but no direct test or client exercise was found in this repository scan.",
+      "evidence": {
+        "test_files": [],
+        "client_files": []
+      }
+    },
+    {
       "section": "Local Runtime API",
       "method": "GET",
       "path": "/v1/health",
@@ -735,6 +1153,22 @@
       "surface": "Local runtime",
       "stability": "stable",
       "description": "Health check for the local runtime.",
+      "status": "implemented-unverified",
+      "confidence": "low",
+      "note": "Route is documented and registered in code, but no direct test or client exercise was found in this repository scan.",
+      "evidence": {
+        "test_files": [],
+        "client_files": []
+      }
+    },
+    {
+      "section": "Local Runtime API",
+      "method": "GET",
+      "path": "/v1/runtime/profile",
+      "auth": "Runtime-config dependent",
+      "surface": "Local runtime",
+      "stability": "stable",
+      "description": "Returns local runtime capability and feature profile.",
       "status": "implemented-unverified",
       "confidence": "low",
       "note": "Route is documented and registered in code, but no direct test or client exercise was found in this repository scan.",
@@ -895,6 +1329,428 @@
       "surface": "Local runtime",
       "stability": "stable",
       "description": "Streams behavior-tree events.",
+      "status": "implemented-unverified",
+      "confidence": "low",
+      "note": "Route is documented and registered in code, but no direct test or client exercise was found in this repository scan.",
+      "evidence": {
+        "test_files": [],
+        "client_files": []
+      }
+    },
+    {
+      "section": "Local Runtime API",
+      "method": "GET",
+      "path": "/v1/lora/status",
+      "auth": "Runtime-config dependent",
+      "surface": "Local runtime",
+      "stability": "preview",
+      "description": "Returns local LoRA training and adapter status.",
+      "status": "implemented-unverified",
+      "confidence": "low",
+      "note": "Route is documented and registered in code, but no direct test or client exercise was found in this repository scan.",
+      "evidence": {
+        "test_files": [],
+        "client_files": []
+      }
+    },
+    {
+      "section": "Local Runtime API",
+      "method": "GET",
+      "path": "/v1/memory/status",
+      "auth": "Runtime-config dependent",
+      "surface": "Local runtime",
+      "stability": "stable",
+      "description": "Returns local memory subsystem status.",
+      "status": "implemented-unverified",
+      "confidence": "low",
+      "note": "Route is documented and registered in code, but no direct test or client exercise was found in this repository scan.",
+      "evidence": {
+        "test_files": [],
+        "client_files": []
+      }
+    },
+    {
+      "section": "Local Runtime API",
+      "method": "POST",
+      "path": "/v1/memory/store",
+      "auth": "Runtime-config dependent",
+      "surface": "Local runtime",
+      "stability": "stable",
+      "description": "Stores an item in local runtime memory.",
+      "status": "implemented-unverified",
+      "confidence": "low",
+      "note": "Route is documented and registered in code, but no direct test or client exercise was found in this repository scan.",
+      "evidence": {
+        "test_files": [],
+        "client_files": []
+      }
+    },
+    {
+      "section": "Local Runtime API",
+      "method": "POST",
+      "path": "/v1/memory/search",
+      "auth": "Runtime-config dependent",
+      "surface": "Local runtime",
+      "stability": "stable",
+      "description": "Searches local runtime memory.",
+      "status": "implemented-unverified",
+      "confidence": "low",
+      "note": "Route is documented and registered in code, but no direct test or client exercise was found in this repository scan.",
+      "evidence": {
+        "test_files": [],
+        "client_files": []
+      }
+    },
+    {
+      "section": "Local Runtime API",
+      "method": "GET",
+      "path": "/v1/memory/:key",
+      "auth": "Runtime-config dependent",
+      "surface": "Local runtime",
+      "stability": "stable",
+      "description": "Reads one item from local runtime memory by key.",
+      "status": "implemented-unverified",
+      "confidence": "low",
+      "note": "Route is documented and registered in code, but no direct test or client exercise was found in this repository scan.",
+      "evidence": {
+        "test_files": [],
+        "client_files": []
+      }
+    },
+    {
+      "section": "Local Runtime API",
+      "method": "GET",
+      "path": "/v1/hitl/status",
+      "auth": "Runtime-config dependent",
+      "surface": "Local runtime",
+      "stability": "preview",
+      "description": "Returns local human-in-the-loop queue status.",
+      "status": "implemented-unverified",
+      "confidence": "low",
+      "note": "Route is documented and registered in code, but no direct test or client exercise was found in this repository scan.",
+      "evidence": {
+        "test_files": [],
+        "client_files": []
+      }
+    },
+    {
+      "section": "Local Runtime API",
+      "method": "GET",
+      "path": "/v1/hitl/requests",
+      "auth": "Runtime-config dependent",
+      "surface": "Local runtime",
+      "stability": "preview",
+      "description": "Lists local human-in-the-loop approval requests.",
+      "status": "implemented-unverified",
+      "confidence": "low",
+      "note": "Route is documented and registered in code, but no direct test or client exercise was found in this repository scan.",
+      "evidence": {
+        "test_files": [],
+        "client_files": []
+      }
+    },
+    {
+      "section": "Local Runtime API",
+      "method": "POST",
+      "path": "/v1/hitl/request",
+      "auth": "Runtime-config dependent",
+      "surface": "Local runtime",
+      "stability": "preview",
+      "description": "Creates a local human-in-the-loop approval request.",
+      "status": "implemented-unverified",
+      "confidence": "low",
+      "note": "Route is documented and registered in code, but no direct test or client exercise was found in this repository scan.",
+      "evidence": {
+        "test_files": [],
+        "client_files": []
+      }
+    },
+    {
+      "section": "Local Runtime API",
+      "method": "POST",
+      "path": "/v1/hitl/approve",
+      "auth": "Runtime-config dependent",
+      "surface": "Local runtime",
+      "stability": "preview",
+      "description": "Approves a local human-in-the-loop request.",
+      "status": "implemented-unverified",
+      "confidence": "low",
+      "note": "Route is documented and registered in code, but no direct test or client exercise was found in this repository scan.",
+      "evidence": {
+        "test_files": [],
+        "client_files": []
+      }
+    },
+    {
+      "section": "Local Runtime API",
+      "method": "POST",
+      "path": "/v1/hitl/reject",
+      "auth": "Runtime-config dependent",
+      "surface": "Local runtime",
+      "stability": "preview",
+      "description": "Rejects a local human-in-the-loop request.",
+      "status": "implemented-unverified",
+      "confidence": "low",
+      "note": "Route is documented and registered in code, but no direct test or client exercise was found in this repository scan.",
+      "evidence": {
+        "test_files": [],
+        "client_files": []
+      }
+    },
+    {
+      "section": "Local Runtime API",
+      "method": "GET",
+      "path": "/v1/swarm/status",
+      "auth": "Runtime-config dependent",
+      "surface": "Local runtime",
+      "stability": "preview",
+      "description": "Returns local swarm coordination status.",
+      "status": "implemented-unverified",
+      "confidence": "low",
+      "note": "Route is documented and registered in code, but no direct test or client exercise was found in this repository scan.",
+      "evidence": {
+        "test_files": [],
+        "client_files": []
+      }
+    },
+    {
+      "section": "Local Runtime API",
+      "method": "GET",
+      "path": "/v1/swarm/agents",
+      "auth": "Runtime-config dependent",
+      "surface": "Local runtime",
+      "stability": "preview",
+      "description": "Lists local swarm agents.",
+      "status": "implemented-unverified",
+      "confidence": "low",
+      "note": "Route is documented and registered in code, but no direct test or client exercise was found in this repository scan.",
+      "evidence": {
+        "test_files": [],
+        "client_files": []
+      }
+    },
+    {
+      "section": "Local Runtime API",
+      "method": "POST",
+      "path": "/v1/swarm/join",
+      "auth": "Runtime-config dependent",
+      "surface": "Local runtime",
+      "stability": "preview",
+      "description": "Joins the local runtime to a swarm.",
+      "status": "implemented-unverified",
+      "confidence": "low",
+      "note": "Route is documented and registered in code, but no direct test or client exercise was found in this repository scan.",
+      "evidence": {
+        "test_files": [],
+        "client_files": []
+      }
+    },
+    {
+      "section": "Local Runtime API",
+      "method": "POST",
+      "path": "/v1/swarm/propose",
+      "auth": "Runtime-config dependent",
+      "surface": "Local runtime",
+      "stability": "preview",
+      "description": "Submits a swarm proposal.",
+      "status": "implemented-unverified",
+      "confidence": "low",
+      "note": "Route is documented and registered in code, but no direct test or client exercise was found in this repository scan.",
+      "evidence": {
+        "test_files": [],
+        "client_files": []
+      }
+    },
+    {
+      "section": "Local Runtime API",
+      "method": "POST",
+      "path": "/v1/swarm/vote",
+      "auth": "Runtime-config dependent",
+      "surface": "Local runtime",
+      "stability": "preview",
+      "description": "Submits a swarm vote.",
+      "status": "implemented-unverified",
+      "confidence": "low",
+      "note": "Route is documented and registered in code, but no direct test or client exercise was found in this repository scan.",
+      "evidence": {
+        "test_files": [],
+        "client_files": []
+      }
+    },
+    {
+      "section": "Local Runtime API",
+      "method": "GET",
+      "path": "/v1/federated/status",
+      "auth": "Runtime-config dependent",
+      "surface": "Local runtime",
+      "stability": "preview",
+      "description": "Returns local federated-learning status.",
+      "status": "client-referenced",
+      "confidence": "medium",
+      "note": "A client or transport layer references this route, but no direct automated test was found.",
+      "evidence": {
+        "test_files": [],
+        "client_files": [
+          "igris-runtime/crates/igris-federated/src/transport.rs"
+        ]
+      }
+    },
+    {
+      "section": "Local Runtime API",
+      "method": "POST",
+      "path": "/v1/federated/update",
+      "auth": "Runtime-config dependent",
+      "surface": "Local runtime",
+      "stability": "preview",
+      "description": "Submits a local federated-learning model update.",
+      "status": "client-referenced",
+      "confidence": "medium",
+      "note": "A client or transport layer references this route, but no direct automated test was found.",
+      "evidence": {
+        "test_files": [],
+        "client_files": [
+          "igris-runtime/crates/igris-federated/src/transport.rs"
+        ]
+      }
+    },
+    {
+      "section": "Local Runtime API",
+      "method": "GET",
+      "path": "/v1/federated/model/latest",
+      "auth": "Runtime-config dependent",
+      "surface": "Local runtime",
+      "stability": "preview",
+      "description": "Returns metadata for the latest local federated model.",
+      "status": "client-referenced",
+      "confidence": "medium",
+      "note": "A client or transport layer references this route, but no direct automated test was found.",
+      "evidence": {
+        "test_files": [],
+        "client_files": [
+          "igris-runtime/crates/igris-federated/src/transport.rs"
+        ]
+      }
+    },
+    {
+      "section": "Local Runtime API",
+      "method": "GET",
+      "path": "/v1/federated/participants",
+      "auth": "Runtime-config dependent",
+      "surface": "Local runtime",
+      "stability": "preview",
+      "description": "Lists local federated-learning participants.",
+      "status": "implemented-unverified",
+      "confidence": "low",
+      "note": "Route is documented and registered in code, but no direct test or client exercise was found in this repository scan.",
+      "evidence": {
+        "test_files": [],
+        "client_files": []
+      }
+    },
+    {
+      "section": "Local Runtime API",
+      "method": "POST",
+      "path": "/v1/runtime/execute",
+      "auth": "Runtime-config dependent",
+      "surface": "Local runtime",
+      "stability": "stable",
+      "description": "Executes a runtime task through the local execution boundary.",
+      "status": "implemented-unverified",
+      "confidence": "low",
+      "note": "Route is documented and registered in code, but no direct test or client exercise was found in this repository scan.",
+      "evidence": {
+        "test_files": [],
+        "client_files": []
+      }
+    },
+    {
+      "section": "Local Runtime API",
+      "method": "GET",
+      "path": "/v1/runtime/violations",
+      "auth": "Runtime-config dependent",
+      "surface": "Local runtime",
+      "stability": "stable",
+      "description": "Lists local runtime execution violations.",
+      "status": "implemented-unverified",
+      "confidence": "low",
+      "note": "Route is documented and registered in code, but no direct test or client exercise was found in this repository scan.",
+      "evidence": {
+        "test_files": [],
+        "client_files": []
+      }
+    },
+    {
+      "section": "Local Runtime API",
+      "method": "POST",
+      "path": "/v1/runtime/task/submit",
+      "auth": "Runtime-config dependent",
+      "surface": "Local runtime",
+      "stability": "stable",
+      "description": "Submits a durable task directly to the local runtime executor.",
+      "status": "implemented-unverified",
+      "confidence": "low",
+      "note": "Route is documented and registered in code, but no direct test or client exercise was found in this repository scan.",
+      "evidence": {
+        "test_files": [],
+        "client_files": []
+      }
+    },
+    {
+      "section": "Local Runtime API",
+      "method": "POST",
+      "path": "/v1/runtime/task/stream",
+      "auth": "Runtime-config dependent",
+      "surface": "Local runtime",
+      "stability": "stable",
+      "description": "Submits a streaming durable task directly to the local runtime executor.",
+      "status": "implemented-unverified",
+      "confidence": "low",
+      "note": "Route is documented and registered in code, but no direct test or client exercise was found in this repository scan.",
+      "evidence": {
+        "test_files": [],
+        "client_files": []
+      }
+    },
+    {
+      "section": "Local Runtime API",
+      "method": "POST",
+      "path": "/v1/runtime/task/{task_id}/cancel",
+      "auth": "Runtime-config dependent",
+      "surface": "Local runtime",
+      "stability": "stable",
+      "description": "Cancels a local runtime durable task.",
+      "status": "implemented-unverified",
+      "confidence": "low",
+      "note": "Route is documented and registered in code, but no direct test or client exercise was found in this repository scan.",
+      "evidence": {
+        "test_files": [],
+        "client_files": []
+      }
+    },
+    {
+      "section": "Local Runtime API",
+      "method": "GET",
+      "path": "/v1/runtime/task/{task_id}/wal",
+      "auth": "Runtime-config dependent",
+      "surface": "Local runtime",
+      "stability": "stable",
+      "description": "Reads the local WAL entries for a runtime durable task.",
+      "status": "implemented-unverified",
+      "confidence": "low",
+      "note": "Route is documented and registered in code, but no direct test or client exercise was found in this repository scan.",
+      "evidence": {
+        "test_files": [],
+        "client_files": []
+      }
+    },
+    {
+      "section": "Local Runtime API",
+      "method": "GET",
+      "path": "/v1/runtime/agent/:id/state",
+      "auth": "Runtime-config dependent",
+      "surface": "Local runtime",
+      "stability": "preview",
+      "description": "Returns the local runtime state for one agent.",
       "status": "implemented-unverified",
       "confidence": "low",
       "note": "Route is documented and registered in code, but no direct test or client exercise was found in this repository scan.",
