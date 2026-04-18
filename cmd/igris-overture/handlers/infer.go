@@ -915,6 +915,11 @@ func (h *InferHandler) handleStreamingInfer(c *fiber.Ctx, req *models.InferReque
 					err.Error(),
 				))
 			}
+			var streamErr *models.RuntimeStreamError
+			if errors.As(err, &streamErr) {
+				log.Printf("[Infer] Runtime streaming rejected with structured response — not falling back: %v", err)
+				return c.Status(runtimeStreamingErrorStatus(err)).JSON(buildRuntimeStreamingUnavailableResponse(err))
+			}
 			if req.AllowStreamFallback {
 				log.Printf("[Infer] Runtime streaming unavailable, using explicit stream fallback opt-in: %v", err)
 			} else {
