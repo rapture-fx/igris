@@ -25,7 +25,7 @@ Treat download and distribution requests as provisioning operations. Retry on tr
 
 - [GET /v1/runtime/install](/docs/api-reference/runtime-distribution-fleet-coordination/get-v1-runtime-install)
 - [GET /v1/runtime/checksum](/docs/api-reference/runtime-distribution-fleet-coordination/get-v1-runtime-checksum)
-- [GET /api/v1/runtime/list](/docs/api-reference/runtime-distribution-fleet-coordination/get-api-v1-runtime-list)
+- [GET /api/v1/runtime/download](/docs/api-reference/runtime-distribution-fleet-coordination/get-api-v1-runtime-download)
 
 ### Related Guides
 
@@ -105,5 +105,11 @@ A response example is not available on this page yet.
 
 ## Status Codes
 
-Status-code details are still being documented for this endpoint.
+| Code | Title | Description |
+|---|---|---|
+| 200 | Success | The request completed successfully. For streaming or download endpoints, the success response may be a stream or attachment rather than a JSON object. |
+| 400 | Bad Request | The route was reached, but the request body, query string, or path parameter did not match the endpoint contract. |
+| 401 | Unauthorized | Credentials were missing, expired, malformed, or not accepted by this route. |
+| 429 | Too Many Requests | The caller exceeded the current throttle window and should wait before retrying. |
+| 500 | Server Error | The server accepted the request contract but failed while processing it. |
 
