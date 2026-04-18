@@ -1,87 +1,25 @@
 {
-  "generated_at": "2026-04-18T03:22:16.469Z",
+  "generated_at": "2026-04-18T08:53:17.934Z",
   "summary": {
-    "total": 944,
+    "total": 936,
     "by_status": {
-      "missing": 11,
-      "wrong-method": 3,
-      "implemented": 928,
-      "wrong-surface": 2
+      "implemented": 936
     }
   },
   "guide_summary": {
-    "total": 215,
+    "total": 207,
     "by_status": {
-      "missing": 11,
-      "wrong-method": 3,
-      "implemented": 199,
-      "wrong-surface": 2
+      "implemented": 207
     }
   },
   "pages": [
     {
-      "file": "web/apps/web-docs-hub/content/docs/webhooks.mdx",
-      "implemented": 0,
-      "missing": 5,
-      "wrong_surface": 0,
-      "wrong_method": 0,
-      "total_route_claims": 5
-    },
-    {
       "file": "web/apps/web-docs-hub/content/docs/agent-lifecycle.mdx",
-      "implemented": 0,
-      "missing": 2,
-      "wrong_surface": 0,
-      "wrong_method": 1,
-      "total_route_claims": 3
-    },
-    {
-      "file": "web/apps/web-docs-hub/content/docs/audit.mdx",
-      "implemented": 4,
-      "missing": 0,
-      "wrong_surface": 2,
-      "wrong_method": 0,
-      "total_route_claims": 6
-    },
-    {
-      "file": "web/apps/web-docs-hub/content/docs/provider-health.mdx",
       "implemented": 2,
       "missing": 0,
       "wrong_surface": 0,
-      "wrong_method": 2,
-      "total_route_claims": 4
-    },
-    {
-      "file": "web/apps/web-docs-hub/content/docs/articles/safe-agents-capability-gates.mdx",
-      "implemented": 0,
-      "missing": 1,
-      "wrong_surface": 0,
       "wrong_method": 0,
-      "total_route_claims": 1
-    },
-    {
-      "file": "web/apps/web-docs-hub/content/docs/robotics.mdx",
-      "implemented": 0,
-      "missing": 1,
-      "wrong_surface": 0,
-      "wrong_method": 0,
-      "total_route_claims": 1
-    },
-    {
-      "file": "web/apps/web-docs-hub/content/docs/tamper-evident-logs.mdx",
-      "implemented": 2,
-      "missing": 1,
-      "wrong_surface": 0,
-      "wrong_method": 0,
-      "total_route_claims": 3
-    },
-    {
-      "file": "web/apps/web-docs-hub/content/docs/troubleshooting.mdx",
-      "implemented": 10,
-      "missing": 1,
-      "wrong_surface": 0,
-      "wrong_method": 0,
-      "total_route_claims": 11
+      "total_route_claims": 2
     },
     {
       "file": "web/apps/web-docs-hub/content/docs/agents.mdx",
@@ -956,6 +894,14 @@
       "total_route_claims": 2
     },
     {
+      "file": "web/apps/web-docs-hub/content/docs/audit.mdx",
+      "implemented": 6,
+      "missing": 0,
+      "wrong_surface": 0,
+      "wrong_method": 0,
+      "total_route_claims": 6
+    },
+    {
       "file": "web/apps/web-docs-hub/content/docs/behavior-trees.mdx",
       "implemented": 10,
       "missing": 0,
@@ -1108,6 +1054,14 @@
       "total_route_claims": 11
     },
     {
+      "file": "web/apps/web-docs-hub/content/docs/provider-health.mdx",
+      "implemented": 4,
+      "missing": 0,
+      "wrong_surface": 0,
+      "wrong_method": 0,
+      "total_route_claims": 4
+    },
+    {
       "file": "web/apps/web-docs-hub/content/docs/quickstart.mdx",
       "implemented": 1,
       "missing": 0,
@@ -1180,12 +1134,28 @@
       "total_route_claims": 9
     },
     {
+      "file": "web/apps/web-docs-hub/content/docs/tamper-evident-logs.mdx",
+      "implemented": 3,
+      "missing": 0,
+      "wrong_surface": 0,
+      "wrong_method": 0,
+      "total_route_claims": 3
+    },
+    {
       "file": "web/apps/web-docs-hub/content/docs/trial-billing.mdx",
       "implemented": 14,
       "missing": 0,
       "wrong_surface": 0,
       "wrong_method": 0,
       "total_route_claims": 14
+    },
+    {
+      "file": "web/apps/web-docs-hub/content/docs/troubleshooting.mdx",
+      "implemented": 11,
+      "missing": 0,
+      "wrong_surface": 0,
+      "wrong_method": 0,
+      "total_route_claims": 11
     },
     {
       "file": "web/apps/web-docs-hub/content/docs/upgrade-migration.mdx",
@@ -1198,68 +1168,12 @@
   ],
   "guide_pages": [
     {
-      "file": "web/apps/web-docs-hub/content/docs/webhooks.mdx",
-      "implemented": 0,
-      "missing": 5,
-      "wrong_surface": 0,
-      "wrong_method": 0,
-      "total_route_claims": 5
-    },
-    {
       "file": "web/apps/web-docs-hub/content/docs/agent-lifecycle.mdx",
-      "implemented": 0,
-      "missing": 2,
-      "wrong_surface": 0,
-      "wrong_method": 1,
-      "total_route_claims": 3
-    },
-    {
-      "file": "web/apps/web-docs-hub/content/docs/audit.mdx",
-      "implemented": 4,
-      "missing": 0,
-      "wrong_surface": 2,
-      "wrong_method": 0,
-      "total_route_claims": 6
-    },
-    {
-      "file": "web/apps/web-docs-hub/content/docs/provider-health.mdx",
       "implemented": 2,
       "missing": 0,
       "wrong_surface": 0,
-      "wrong_method": 2,
-      "total_route_claims": 4
-    },
-    {
-      "file": "web/apps/web-docs-hub/content/docs/articles/safe-agents-capability-gates.mdx",
-      "implemented": 0,
-      "missing": 1,
-      "wrong_surface": 0,
       "wrong_method": 0,
-      "total_route_claims": 1
-    },
-    {
-      "file": "web/apps/web-docs-hub/content/docs/robotics.mdx",
-      "implemented": 0,
-      "missing": 1,
-      "wrong_surface": 0,
-      "wrong_method": 0,
-      "total_route_claims": 1
-    },
-    {
-      "file": "web/apps/web-docs-hub/content/docs/tamper-evident-logs.mdx",
-      "implemented": 2,
-      "missing": 1,
-      "wrong_surface": 0,
-      "wrong_method": 0,
-      "total_route_claims": 3
-    },
-    {
-      "file": "web/apps/web-docs-hub/content/docs/troubleshooting.mdx",
-      "implemented": 10,
-      "missing": 1,
-      "wrong_surface": 0,
-      "wrong_method": 0,
-      "total_route_claims": 11
+      "total_route_claims": 2
     },
     {
       "file": "web/apps/web-docs-hub/content/docs/agents.mdx",
@@ -1302,6 +1216,14 @@
       "total_route_claims": 2
     },
     {
+      "file": "web/apps/web-docs-hub/content/docs/audit.mdx",
+      "implemented": 6,
+      "missing": 0,
+      "wrong_surface": 0,
+      "wrong_method": 0,
+      "total_route_claims": 6
+    },
+    {
       "file": "web/apps/web-docs-hub/content/docs/behavior-trees.mdx",
       "implemented": 10,
       "missing": 0,
@@ -1454,6 +1376,14 @@
       "total_route_claims": 11
     },
     {
+      "file": "web/apps/web-docs-hub/content/docs/provider-health.mdx",
+      "implemented": 4,
+      "missing": 0,
+      "wrong_surface": 0,
+      "wrong_method": 0,
+      "total_route_claims": 4
+    },
+    {
       "file": "web/apps/web-docs-hub/content/docs/quickstart.mdx",
       "implemented": 1,
       "missing": 0,
@@ -1526,12 +1456,28 @@
       "total_route_claims": 9
     },
     {
+      "file": "web/apps/web-docs-hub/content/docs/tamper-evident-logs.mdx",
+      "implemented": 3,
+      "missing": 0,
+      "wrong_surface": 0,
+      "wrong_method": 0,
+      "total_route_claims": 3
+    },
+    {
       "file": "web/apps/web-docs-hub/content/docs/trial-billing.mdx",
       "implemented": 14,
       "missing": 0,
       "wrong_surface": 0,
       "wrong_method": 0,
       "total_route_claims": 14
+    },
+    {
+      "file": "web/apps/web-docs-hub/content/docs/troubleshooting.mdx",
+      "implemented": 11,
+      "missing": 0,
+      "wrong_surface": 0,
+      "wrong_method": 0,
+      "total_route_claims": 11
     },
     {
       "file": "web/apps/web-docs-hub/content/docs/upgrade-migration.mdx",
@@ -1547,38 +1493,41 @@
       "file": "web/apps/web-docs-hub/content/docs/agent-lifecycle.mdx",
       "line": 48,
       "method": "GET",
-      "path": "/v1/agents",
+      "path": "/v1/runtime/agent/agent-abc/state",
       "expected_surface": "local-runtime",
-      "source": "curl http://localhost:8080/v1/agents \\",
-      "status": "missing",
-      "evidence": []
-    },
-    {
-      "file": "web/apps/web-docs-hub/content/docs/agent-lifecycle.mdx",
-      "line": 52,
-      "method": "GET",
-      "path": "/v1/agents/agent-abc",
-      "expected_surface": "local-runtime",
-      "source": "curl http://localhost:8080/v1/agents/agent-abc \\",
-      "status": "wrong-method",
+      "source": "curl http://localhost:8080/v1/runtime/agent/agent-abc/state \\",
+      "status": "implemented",
       "evidence": [
         {
-          "method": "PATCH",
-          "path": "/v1/agents/:id",
-          "file": "igris-overture/api/routes_execution.go",
-          "surface": "cloud-api"
+          "method": "GET",
+          "path": "/v1/runtime/agent/:id/state",
+          "file": "igris-runtime/crates/igris-server/src/main.rs",
+          "surface": "local-runtime"
         }
       ]
     },
     {
       "file": "web/apps/web-docs-hub/content/docs/agent-lifecycle.mdx",
-      "line": 93,
+      "line": 91,
       "method": "POST",
-      "path": "/v1/agents/agent-abc/terminate",
+      "path": "/v1/runtime/task/task-abc/cancel",
       "expected_surface": "local-runtime",
-      "source": "curl -X POST http://localhost:8080/v1/agents/agent-abc/terminate \\",
-      "status": "missing",
-      "evidence": []
+      "source": "curl -X POST http://localhost:8080/v1/runtime/task/task-abc/cancel \\",
+      "status": "implemented",
+      "evidence": [
+        {
+          "method": "POST",
+          "path": "/v1/runtime/task/:task_id/cancel",
+          "file": "igris-runtime/crates/igris-server/src/main.rs",
+          "surface": "local-runtime"
+        },
+        {
+          "method": "POST",
+          "path": "/v1/runtime/task/:task_id/cancel",
+          "file": "igris-runtime/crates/igris-server/src/server_flow_tests.rs",
+          "surface": "local-runtime"
+        }
+      ]
     },
     {
       "file": "web/apps/web-docs-hub/content/docs/agents.mdx",
@@ -16936,16 +16885,6 @@
       ]
     },
     {
-      "file": "web/apps/web-docs-hub/content/docs/articles/safe-agents-capability-gates.mdx",
-      "line": 178,
-      "method": "POST",
-      "path": "/v1/webhooks",
-      "expected_surface": "cloud-api",
-      "source": "curl -X POST https://overture.igrisinertial.com/v1/webhooks \\",
-      "status": "missing",
-      "evidence": []
-    },
-    {
       "file": "web/apps/web-docs-hub/content/docs/articles/thompson-sampling-routing.mdx",
       "line": 84,
       "method": "GET",
@@ -16993,12 +16932,12 @@
     },
     {
       "file": "web/apps/web-docs-hub/content/docs/audit.mdx",
-      "line": 59,
+      "line": 61,
       "method": "GET",
       "path": "/v1/receipts",
-      "expected_surface": "local-runtime",
-      "source": "curl http://localhost:8080/v1/receipts \\",
-      "status": "wrong-surface",
+      "expected_surface": "cloud-api",
+      "source": "curl https://overture.igrisinertial.com/v1/receipts \\",
+      "status": "implemented",
       "evidence": [
         {
           "method": "GET",
@@ -17010,12 +16949,12 @@
     },
     {
       "file": "web/apps/web-docs-hub/content/docs/audit.mdx",
-      "line": 63,
+      "line": 65,
       "method": "GET",
       "path": "/v1/receipts/exec-01HXYZ",
-      "expected_surface": "local-runtime",
-      "source": "curl http://localhost:8080/v1/receipts/exec-01HXYZ \\",
-      "status": "wrong-surface",
+      "expected_surface": "cloud-api",
+      "source": "curl https://overture.igrisinertial.com/v1/receipts/exec-01HXYZ \\",
+      "status": "implemented",
       "evidence": [
         {
           "method": "GET",
@@ -17027,7 +16966,7 @@
     },
     {
       "file": "web/apps/web-docs-hub/content/docs/audit.mdx",
-      "line": 111,
+      "line": 113,
       "method": "GET",
       "path": "/proof/receipts",
       "expected_surface": null,
@@ -17044,7 +16983,7 @@
     },
     {
       "file": "web/apps/web-docs-hub/content/docs/audit.mdx",
-      "line": 152,
+      "line": 154,
       "method": "POST",
       "path": "/proof/receipts/verify",
       "expected_surface": null,
@@ -17061,7 +17000,7 @@
     },
     {
       "file": "web/apps/web-docs-hub/content/docs/audit.mdx",
-      "line": 157,
+      "line": 159,
       "method": "POST",
       "path": "/proof/receipts/verify",
       "expected_surface": "cloud-api",
@@ -17078,7 +17017,7 @@
     },
     {
       "file": "web/apps/web-docs-hub/content/docs/audit.mdx",
-      "line": 171,
+      "line": 173,
       "method": "GET",
       "path": "/v1/proof/violations",
       "expected_surface": null,
@@ -19201,20 +19140,14 @@
       "file": "web/apps/web-docs-hub/content/docs/provider-health.mdx",
       "line": 125,
       "method": "GET",
-      "path": "/v1/providers/health",
+      "path": "/v1/providers/:id/health",
       "expected_surface": null,
-      "source": "### GET /v1/providers/health",
-      "status": "wrong-method",
+      "source": "### GET /v1/providers/:id/health",
+      "status": "implemented",
       "evidence": [
         {
-          "method": "DELETE",
-          "path": "/v1/providers/:id",
-          "file": "igris-overture/api/routes_provider_registry.go",
-          "surface": "cloud-api"
-        },
-        {
-          "method": "PUT",
-          "path": "/v1/providers/:id",
+          "method": "GET",
+          "path": "/v1/providers/:id/health",
           "file": "igris-overture/api/routes_provider_registry.go",
           "surface": "cloud-api"
         }
@@ -19224,20 +19157,14 @@
       "file": "web/apps/web-docs-hub/content/docs/provider-health.mdx",
       "line": 130,
       "method": "GET",
-      "path": "/v1/providers/health",
+      "path": "/v1/providers/provider_abc/health",
       "expected_surface": "cloud-api",
-      "source": "curl https://overture.igrisinertial.com/v1/providers/health \\",
-      "status": "wrong-method",
+      "source": "curl https://overture.igrisinertial.com/v1/providers/provider_abc/health \\",
+      "status": "implemented",
       "evidence": [
         {
-          "method": "DELETE",
-          "path": "/v1/providers/:id",
-          "file": "igris-overture/api/routes_provider_registry.go",
-          "surface": "cloud-api"
-        },
-        {
-          "method": "PUT",
-          "path": "/v1/providers/:id",
+          "method": "GET",
+          "path": "/v1/providers/:id/health",
           "file": "igris-overture/api/routes_provider_registry.go",
           "surface": "cloud-api"
         }
@@ -19299,16 +19226,6 @@
           "surface": "cloud-api"
         }
       ]
-    },
-    {
-      "file": "web/apps/web-docs-hub/content/docs/robotics.mdx",
-      "line": 83,
-      "method": null,
-      "path": "/v1/emergency-stop",
-      "expected_surface": null,
-      "source": "**Emergency stop hook.** Igris exposes a `/v1/emergency-stop` endpoint. Calling this endpoint terminates all active executions and prevents new ones from starting until the stop is cleared.",
-      "status": "missing",
-      "evidence": []
     },
     {
       "file": "web/apps/web-docs-hub/content/docs/ros2-integration.mdx",
@@ -19982,16 +19899,23 @@
     {
       "file": "web/apps/web-docs-hub/content/docs/tamper-evident-logs.mdx",
       "line": 29,
-      "method": "GET",
-      "path": "/v1/receipts/receipt-01HXYZ/verify",
+      "method": "POST",
+      "path": "/proof/receipts/verify",
       "expected_surface": "cloud-api",
-      "source": "curl https://overture.igrisinertial.com/v1/receipts/receipt-01HXYZ/verify \\",
-      "status": "missing",
-      "evidence": []
+      "source": "curl -X POST https://overture.igrisinertial.com/proof/receipts/verify \\",
+      "status": "implemented",
+      "evidence": [
+        {
+          "method": "POST",
+          "path": "/proof/receipts/verify",
+          "file": "igris-overture/api/routes_proof.go",
+          "surface": "cloud-api"
+        }
+      ]
     },
     {
       "file": "web/apps/web-docs-hub/content/docs/tamper-evident-logs.mdx",
-      "line": 68,
+      "line": 70,
       "method": "GET",
       "path": "/v1/receipts/export",
       "expected_surface": null,
@@ -20014,7 +19938,7 @@
     },
     {
       "file": "web/apps/web-docs-hub/content/docs/tamper-evident-logs.mdx",
-      "line": 87,
+      "line": 89,
       "method": null,
       "path": "/proof/receipts",
       "expected_surface": null,
@@ -20477,11 +20401,18 @@
       "file": "web/apps/web-docs-hub/content/docs/troubleshooting.mdx",
       "line": 341,
       "method": "POST",
-      "path": "/v1/proof/receipts/verify",
+      "path": "/proof/receipts/verify",
       "expected_surface": "cloud-api",
-      "source": "curl -X POST https://overture.igrisinertial.com/v1/proof/receipts/verify \\",
-      "status": "missing",
-      "evidence": []
+      "source": "curl -X POST https://overture.igrisinertial.com/proof/receipts/verify \\",
+      "status": "implemented",
+      "evidence": [
+        {
+          "method": "POST",
+          "path": "/proof/receipts/verify",
+          "file": "igris-overture/api/routes_proof.go",
+          "surface": "cloud-api"
+        }
+      ]
     },
     {
       "file": "web/apps/web-docs-hub/content/docs/upgrade-migration.mdx",
@@ -20499,56 +20430,6 @@
           "surface": "cloud-api"
         }
       ]
-    },
-    {
-      "file": "web/apps/web-docs-hub/content/docs/webhooks.mdx",
-      "line": 69,
-      "method": "POST",
-      "path": "/v1/webhooks",
-      "expected_surface": "cloud-api",
-      "source": "curl -X POST https://overture.igrisinertial.com/v1/webhooks \\",
-      "status": "missing",
-      "evidence": []
-    },
-    {
-      "file": "web/apps/web-docs-hub/content/docs/webhooks.mdx",
-      "line": 207,
-      "method": "GET",
-      "path": "/v1/webhooks",
-      "expected_surface": "cloud-api",
-      "source": "curl https://overture.igrisinertial.com/v1/webhooks \\",
-      "status": "missing",
-      "evidence": []
-    },
-    {
-      "file": "web/apps/web-docs-hub/content/docs/webhooks.mdx",
-      "line": 214,
-      "method": "PUT",
-      "path": "/v1/webhooks/wh_abc123",
-      "expected_surface": "cloud-api",
-      "source": "curl -X PUT https://overture.igrisinertial.com/v1/webhooks/wh_abc123 \\",
-      "status": "missing",
-      "evidence": []
-    },
-    {
-      "file": "web/apps/web-docs-hub/content/docs/webhooks.mdx",
-      "line": 225,
-      "method": "DELETE",
-      "path": "/v1/webhooks/wh_abc123",
-      "expected_surface": "cloud-api",
-      "source": "curl -X DELETE https://overture.igrisinertial.com/v1/webhooks/wh_abc123 \\",
-      "status": "missing",
-      "evidence": []
-    },
-    {
-      "file": "web/apps/web-docs-hub/content/docs/webhooks.mdx",
-      "line": 232,
-      "method": "POST",
-      "path": "/v1/webhooks/wh_abc123/test",
-      "expected_surface": "cloud-api",
-      "source": "curl -X POST https://overture.igrisinertial.com/v1/webhooks/wh_abc123/test \\",
-      "status": "missing",
-      "evidence": []
     }
   ]
 }
