@@ -1,6 +1,6 @@
 # Documentation Implementation Audit
 
-Generated: 2026-04-18T03:22:16.479Z
+Generated: 2026-04-18T08:53:17.949Z
 
 This report compares customer-facing docs route claims against routes registered in `igris-overture`, `igris-runtime`, and the web console codebase. It is evidence-based: a route claim is implemented only when the matching method/path is registered in code on the expected surface.
 
@@ -8,35 +8,29 @@ The API reference has a separate endpoint verification report in `api-verificati
 
 ## Summary
 
-- Route claims audited: 944
-- Implemented on expected surface: 928
-- Missing from code: 11
-- Implemented on a different surface than documented: 2
-- Path exists with a different method: 3
+- Route claims audited: 936
+- Implemented on expected surface: 936
+- Missing from code: 0
+- Implemented on a different surface than documented: 0
+- Path exists with a different method: 0
 
 ## Guide Page Summary
 
-- Guide route claims audited: 215
-- Implemented on expected surface: 199
-- Missing from code: 11
-- Implemented on a different surface than documented: 2
-- Path exists with a different method: 3
+- Guide route claims audited: 207
+- Implemented on expected surface: 207
+- Missing from code: 0
+- Implemented on a different surface than documented: 0
+- Path exists with a different method: 0
 
 | Page | Route claims | Implemented | Missing | Wrong surface | Wrong method |
 | --- | ---: | ---: | ---: | ---: | ---: |
-| `web/apps/web-docs-hub/content/docs/webhooks.mdx` | 5 | 0 | 5 | 0 | 0 |
-| `web/apps/web-docs-hub/content/docs/agent-lifecycle.mdx` | 3 | 0 | 2 | 0 | 1 |
-| `web/apps/web-docs-hub/content/docs/audit.mdx` | 6 | 4 | 0 | 2 | 0 |
-| `web/apps/web-docs-hub/content/docs/provider-health.mdx` | 4 | 2 | 0 | 0 | 2 |
-| `web/apps/web-docs-hub/content/docs/articles/safe-agents-capability-gates.mdx` | 1 | 0 | 1 | 0 | 0 |
-| `web/apps/web-docs-hub/content/docs/robotics.mdx` | 1 | 0 | 1 | 0 | 0 |
-| `web/apps/web-docs-hub/content/docs/tamper-evident-logs.mdx` | 3 | 2 | 1 | 0 | 0 |
-| `web/apps/web-docs-hub/content/docs/troubleshooting.mdx` | 11 | 10 | 1 | 0 | 0 |
+| `web/apps/web-docs-hub/content/docs/agent-lifecycle.mdx` | 2 | 2 | 0 | 0 | 0 |
 | `web/apps/web-docs-hub/content/docs/agents.mdx` | 2 | 2 | 0 | 0 | 0 |
 | `web/apps/web-docs-hub/content/docs/approval-workflows.mdx` | 3 | 3 | 0 | 0 | 0 |
 | `web/apps/web-docs-hub/content/docs/architecture.mdx` | 2 | 2 | 0 | 0 | 0 |
 | `web/apps/web-docs-hub/content/docs/articles/edge-deployment-guide.mdx` | 1 | 1 | 0 | 0 | 0 |
 | `web/apps/web-docs-hub/content/docs/articles/thompson-sampling-routing.mdx` | 2 | 2 | 0 | 0 | 0 |
+| `web/apps/web-docs-hub/content/docs/audit.mdx` | 6 | 6 | 0 | 0 | 0 |
 | `web/apps/web-docs-hub/content/docs/behavior-trees.mdx` | 10 | 10 | 0 | 0 | 0 |
 | `web/apps/web-docs-hub/content/docs/circuit-breaker.mdx` | 1 | 1 | 0 | 0 | 0 |
 | `web/apps/web-docs-hub/content/docs/cloud-coordination.mdx` | 15 | 15 | 0 | 0 | 0 |
@@ -56,6 +50,7 @@ The API reference has a separate endpoint verification report in `api-verificati
 | `web/apps/web-docs-hub/content/docs/model-aggregation.mdx` | 7 | 7 | 0 | 0 | 0 |
 | `web/apps/web-docs-hub/content/docs/multimodal.mdx` | 4 | 4 | 0 | 0 | 0 |
 | `web/apps/web-docs-hub/content/docs/policy.mdx` | 11 | 11 | 0 | 0 | 0 |
+| `web/apps/web-docs-hub/content/docs/provider-health.mdx` | 4 | 4 | 0 | 0 | 0 |
 | `web/apps/web-docs-hub/content/docs/quickstart.mdx` | 1 | 1 | 0 | 0 | 0 |
 | `web/apps/web-docs-hub/content/docs/rate-limiting.mdx` | 1 | 1 | 0 | 0 | 0 |
 | `web/apps/web-docs-hub/content/docs/receipts-audit-workflow.mdx` | 1 | 1 | 0 | 0 | 0 |
@@ -65,42 +60,20 @@ The API reference has a separate endpoint verification report in `api-verificati
 | `web/apps/web-docs-hub/content/docs/slo-enforcer.mdx` | 4 | 4 | 0 | 0 | 0 |
 | `web/apps/web-docs-hub/content/docs/speculative-execution.mdx` | 8 | 8 | 0 | 0 | 0 |
 | `web/apps/web-docs-hub/content/docs/swarm.mdx` | 9 | 9 | 0 | 0 | 0 |
+| `web/apps/web-docs-hub/content/docs/tamper-evident-logs.mdx` | 3 | 3 | 0 | 0 | 0 |
 | `web/apps/web-docs-hub/content/docs/trial-billing.mdx` | 14 | 14 | 0 | 0 | 0 |
+| `web/apps/web-docs-hub/content/docs/troubleshooting.mdx` | 11 | 11 | 0 | 0 | 0 |
 | `web/apps/web-docs-hub/content/docs/upgrade-migration.mdx` | 1 | 1 | 0 | 0 | 0 |
 
 ## Unsupported Or Mismatched Guide Claims
 
-| Status | Page | Line | Method | Path | Expected surface | Evidence |
-| --- | --- | ---: | --- | --- | --- | --- |
-| missing | `web/apps/web-docs-hub/content/docs/agent-lifecycle.mdx` | 48 | GET | `/v1/agents` | local-runtime | none |
-| wrong-method | `web/apps/web-docs-hub/content/docs/agent-lifecycle.mdx` | 52 | GET | `/v1/agents/agent-abc` | local-runtime | PATCH /v1/agents/:id (cloud-api, igris-overture/api/routes_execution.go) |
-| missing | `web/apps/web-docs-hub/content/docs/agent-lifecycle.mdx` | 93 | POST | `/v1/agents/agent-abc/terminate` | local-runtime | none |
-| missing | `web/apps/web-docs-hub/content/docs/articles/safe-agents-capability-gates.mdx` | 178 | POST | `/v1/webhooks` | cloud-api | none |
-| wrong-surface | `web/apps/web-docs-hub/content/docs/audit.mdx` | 59 | GET | `/v1/receipts` | local-runtime | GET /v1/receipts (cloud-api, igris-overture/api/routes_receipts.go) |
-| wrong-surface | `web/apps/web-docs-hub/content/docs/audit.mdx` | 63 | GET | `/v1/receipts/exec-01HXYZ` | local-runtime | GET /v1/receipts/:id (cloud-api, igris-overture/api/routes_receipts.go) |
-| wrong-method | `web/apps/web-docs-hub/content/docs/provider-health.mdx` | 125 | GET | `/v1/providers/health` | unspecified | DELETE /v1/providers/:id (cloud-api, igris-overture/api/routes_provider_registry.go)<br />PUT /v1/providers/:id (cloud-api, igris-overture/api/routes_provider_registry.go) |
-| wrong-method | `web/apps/web-docs-hub/content/docs/provider-health.mdx` | 130 | GET | `/v1/providers/health` | cloud-api | DELETE /v1/providers/:id (cloud-api, igris-overture/api/routes_provider_registry.go)<br />PUT /v1/providers/:id (cloud-api, igris-overture/api/routes_provider_registry.go) |
-| missing | `web/apps/web-docs-hub/content/docs/robotics.mdx` | 83 | * | `/v1/emergency-stop` | unspecified | none |
-| missing | `web/apps/web-docs-hub/content/docs/tamper-evident-logs.mdx` | 29 | GET | `/v1/receipts/receipt-01HXYZ/verify` | cloud-api | none |
-| missing | `web/apps/web-docs-hub/content/docs/troubleshooting.mdx` | 341 | POST | `/v1/proof/receipts/verify` | cloud-api | none |
-| missing | `web/apps/web-docs-hub/content/docs/webhooks.mdx` | 69 | POST | `/v1/webhooks` | cloud-api | none |
-| missing | `web/apps/web-docs-hub/content/docs/webhooks.mdx` | 207 | GET | `/v1/webhooks` | cloud-api | none |
-| missing | `web/apps/web-docs-hub/content/docs/webhooks.mdx` | 214 | PUT | `/v1/webhooks/wh_abc123` | cloud-api | none |
-| missing | `web/apps/web-docs-hub/content/docs/webhooks.mdx` | 225 | DELETE | `/v1/webhooks/wh_abc123` | cloud-api | none |
-| missing | `web/apps/web-docs-hub/content/docs/webhooks.mdx` | 232 | POST | `/v1/webhooks/wh_abc123/test` | cloud-api | none |
+No unsupported guide-page route claims were found.
 
 ## All Page Risk Summary
 
 | Page | Route claims | Implemented | Missing | Wrong surface | Wrong method |
 | --- | ---: | ---: | ---: | ---: | ---: |
-| `web/apps/web-docs-hub/content/docs/webhooks.mdx` | 5 | 0 | 5 | 0 | 0 |
-| `web/apps/web-docs-hub/content/docs/agent-lifecycle.mdx` | 3 | 0 | 2 | 0 | 1 |
-| `web/apps/web-docs-hub/content/docs/audit.mdx` | 6 | 4 | 0 | 2 | 0 |
-| `web/apps/web-docs-hub/content/docs/provider-health.mdx` | 4 | 2 | 0 | 0 | 2 |
-| `web/apps/web-docs-hub/content/docs/articles/safe-agents-capability-gates.mdx` | 1 | 0 | 1 | 0 | 0 |
-| `web/apps/web-docs-hub/content/docs/robotics.mdx` | 1 | 0 | 1 | 0 | 0 |
-| `web/apps/web-docs-hub/content/docs/tamper-evident-logs.mdx` | 3 | 2 | 1 | 0 | 0 |
-| `web/apps/web-docs-hub/content/docs/troubleshooting.mdx` | 11 | 10 | 1 | 0 | 0 |
+| `web/apps/web-docs-hub/content/docs/agent-lifecycle.mdx` | 2 | 2 | 0 | 0 | 0 |
 | `web/apps/web-docs-hub/content/docs/agents.mdx` | 2 | 2 | 0 | 0 | 0 |
 | `web/apps/web-docs-hub/content/docs/api-reference/account-trial-and-billing/delete-v1-account-api-key.mdx` | 6 | 6 | 0 | 0 | 0 |
 | `web/apps/web-docs-hub/content/docs/api-reference/account-trial-and-billing/get-api-subscription-plans.mdx` | 6 | 6 | 0 | 0 | 0 |
@@ -210,6 +183,7 @@ The API reference has a separate endpoint verification report in `api-verificati
 | `web/apps/web-docs-hub/content/docs/architecture.mdx` | 2 | 2 | 0 | 0 | 0 |
 | `web/apps/web-docs-hub/content/docs/articles/edge-deployment-guide.mdx` | 1 | 1 | 0 | 0 | 0 |
 | `web/apps/web-docs-hub/content/docs/articles/thompson-sampling-routing.mdx` | 2 | 2 | 0 | 0 | 0 |
+| `web/apps/web-docs-hub/content/docs/audit.mdx` | 6 | 6 | 0 | 0 | 0 |
 | `web/apps/web-docs-hub/content/docs/behavior-trees.mdx` | 10 | 10 | 0 | 0 | 0 |
 | `web/apps/web-docs-hub/content/docs/circuit-breaker.mdx` | 1 | 1 | 0 | 0 | 0 |
 | `web/apps/web-docs-hub/content/docs/cloud-coordination.mdx` | 15 | 15 | 0 | 0 | 0 |
@@ -229,6 +203,7 @@ The API reference has a separate endpoint verification report in `api-verificati
 | `web/apps/web-docs-hub/content/docs/model-aggregation.mdx` | 7 | 7 | 0 | 0 | 0 |
 | `web/apps/web-docs-hub/content/docs/multimodal.mdx` | 4 | 4 | 0 | 0 | 0 |
 | `web/apps/web-docs-hub/content/docs/policy.mdx` | 11 | 11 | 0 | 0 | 0 |
+| `web/apps/web-docs-hub/content/docs/provider-health.mdx` | 4 | 4 | 0 | 0 | 0 |
 | `web/apps/web-docs-hub/content/docs/quickstart.mdx` | 1 | 1 | 0 | 0 | 0 |
 | `web/apps/web-docs-hub/content/docs/rate-limiting.mdx` | 1 | 1 | 0 | 0 | 0 |
 | `web/apps/web-docs-hub/content/docs/receipts-audit-workflow.mdx` | 1 | 1 | 0 | 0 | 0 |
@@ -238,26 +213,11 @@ The API reference has a separate endpoint verification report in `api-verificati
 | `web/apps/web-docs-hub/content/docs/slo-enforcer.mdx` | 4 | 4 | 0 | 0 | 0 |
 | `web/apps/web-docs-hub/content/docs/speculative-execution.mdx` | 8 | 8 | 0 | 0 | 0 |
 | `web/apps/web-docs-hub/content/docs/swarm.mdx` | 9 | 9 | 0 | 0 | 0 |
+| `web/apps/web-docs-hub/content/docs/tamper-evident-logs.mdx` | 3 | 3 | 0 | 0 | 0 |
 | `web/apps/web-docs-hub/content/docs/trial-billing.mdx` | 14 | 14 | 0 | 0 | 0 |
+| `web/apps/web-docs-hub/content/docs/troubleshooting.mdx` | 11 | 11 | 0 | 0 | 0 |
 | `web/apps/web-docs-hub/content/docs/upgrade-migration.mdx` | 1 | 1 | 0 | 0 | 0 |
 
 ## All Unsupported Or Mismatched Claims
 
-| Status | Page | Line | Method | Path | Expected surface | Evidence |
-| --- | --- | ---: | --- | --- | --- | --- |
-| missing | `web/apps/web-docs-hub/content/docs/agent-lifecycle.mdx` | 48 | GET | `/v1/agents` | local-runtime | none |
-| wrong-method | `web/apps/web-docs-hub/content/docs/agent-lifecycle.mdx` | 52 | GET | `/v1/agents/agent-abc` | local-runtime | PATCH /v1/agents/:id (cloud-api, igris-overture/api/routes_execution.go) |
-| missing | `web/apps/web-docs-hub/content/docs/agent-lifecycle.mdx` | 93 | POST | `/v1/agents/agent-abc/terminate` | local-runtime | none |
-| missing | `web/apps/web-docs-hub/content/docs/articles/safe-agents-capability-gates.mdx` | 178 | POST | `/v1/webhooks` | cloud-api | none |
-| wrong-surface | `web/apps/web-docs-hub/content/docs/audit.mdx` | 59 | GET | `/v1/receipts` | local-runtime | GET /v1/receipts (cloud-api, igris-overture/api/routes_receipts.go) |
-| wrong-surface | `web/apps/web-docs-hub/content/docs/audit.mdx` | 63 | GET | `/v1/receipts/exec-01HXYZ` | local-runtime | GET /v1/receipts/:id (cloud-api, igris-overture/api/routes_receipts.go) |
-| wrong-method | `web/apps/web-docs-hub/content/docs/provider-health.mdx` | 125 | GET | `/v1/providers/health` | unspecified | DELETE /v1/providers/:id (cloud-api, igris-overture/api/routes_provider_registry.go)<br />PUT /v1/providers/:id (cloud-api, igris-overture/api/routes_provider_registry.go) |
-| wrong-method | `web/apps/web-docs-hub/content/docs/provider-health.mdx` | 130 | GET | `/v1/providers/health` | cloud-api | DELETE /v1/providers/:id (cloud-api, igris-overture/api/routes_provider_registry.go)<br />PUT /v1/providers/:id (cloud-api, igris-overture/api/routes_provider_registry.go) |
-| missing | `web/apps/web-docs-hub/content/docs/robotics.mdx` | 83 | * | `/v1/emergency-stop` | unspecified | none |
-| missing | `web/apps/web-docs-hub/content/docs/tamper-evident-logs.mdx` | 29 | GET | `/v1/receipts/receipt-01HXYZ/verify` | cloud-api | none |
-| missing | `web/apps/web-docs-hub/content/docs/troubleshooting.mdx` | 341 | POST | `/v1/proof/receipts/verify` | cloud-api | none |
-| missing | `web/apps/web-docs-hub/content/docs/webhooks.mdx` | 69 | POST | `/v1/webhooks` | cloud-api | none |
-| missing | `web/apps/web-docs-hub/content/docs/webhooks.mdx` | 207 | GET | `/v1/webhooks` | cloud-api | none |
-| missing | `web/apps/web-docs-hub/content/docs/webhooks.mdx` | 214 | PUT | `/v1/webhooks/wh_abc123` | cloud-api | none |
-| missing | `web/apps/web-docs-hub/content/docs/webhooks.mdx` | 225 | DELETE | `/v1/webhooks/wh_abc123` | cloud-api | none |
-| missing | `web/apps/web-docs-hub/content/docs/webhooks.mdx` | 232 | POST | `/v1/webhooks/wh_abc123/test` | cloud-api | none |
+No unsupported route claims were found.
