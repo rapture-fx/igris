@@ -500,6 +500,10 @@ func main() {
 		api.RegisterReceiptRoutes(app, dbInstance)
 		log.Println("[Receipts] ✅ Receipt endpoints registered (/v1/receipts, /v1/receipts/:id, /v1/receipts/export)")
 
+		// Governed robotics policy lifecycle and runtime allow-list
+		api.RegisterRoboticsPolicyRoutes(app, dbInstance)
+		log.Println("[RoboticsPolicy] ✅ Robotics policy endpoints registered (/v1/robotics/policies)")
+
 		// Fleet config push and OTA updates
 		api.RegisterFleetPushRoutes(app, dbInstance)
 		log.Println("[Fleet] ✅ Fleet push endpoints registered (/api/v1/runtime/config/push, /api/v1/runtime/update)")
