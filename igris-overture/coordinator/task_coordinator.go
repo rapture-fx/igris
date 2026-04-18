@@ -6,12 +6,17 @@ package coordinator
 import (
 	"bytes"
 	"context"
+	"crypto/ed25519"
+	"crypto/sha256"
 	"database/sql"
+	"encoding/base64"
+	"encoding/hex"
 	"encoding/json"
 	"errors"
 	"fmt"
 	"io"
 	"net/http"
+	"os"
 	"strings"
 	"time"
 
@@ -241,6 +246,12 @@ func (tc *TaskCoordinator) dispatchToRuntime(ctx context.Context, task *TaskReco
 		deadlineBytes, _ := json.Marshal(task.DeadlineAt.UnixMilli())
 		runtimePayload["deadline_ms"] = deadlineBytes
 	}
+	if decisions := buildSignedGovernedPolicyDecisions(task, taskTypeBytes, tc.db); len(decisions) > 0 {
+		decisionBytes, _ := json.Marshal(decisions)
+		runtimePayload["signed_policy_decisions"] = decisionBytes
+		containmentBytes, _ := json.Marshal(map[string]uint64{"max_tick_ms": 30000})
+		runtimePayload["containment"] = containmentBytes
+	}
 
 	body, err := json.Marshal(runtimePayload)
 	if err != nil {
@@ -257,6 +268,7 @@ func (tc *TaskCoordinator) dispatchToRuntime(ctx context.Context, task *TaskReco
 	}
 	req.Header.Set("Content-Type", "application/json")
 	req.Header.Set("X-Igris-Tenant", task.TenantID)
+	internal.SetDecisionSigHeader(req, body)
 
 	resp, err := tc.httpClient.Do(req)
 	if err != nil {
@@ -332,6 +344,393 @@ type taskSubmitResult struct {
 	FailureDetails    *TaskFailureDetails `json:"failure_details,omitempty"`
 	ExecutionEnvelope json.RawMessage     `json:"execution_envelope,omitempty"`
 	ExecutionReceipt  json.RawMessage     `json:"execution_receipt,omitempty"`
+}
+
+type governedAction struct {
+	SchemaVersion      string  `json:"schema_version"`
+	Domain             string  `json:"domain"`
+	ActionType         string  `json:"action_type"`
+	ActionName         string  `json:"action_name"`
+	NodeID             string  `json:"node_id"`
+	StepIndex          uint32  `json:"step_index"`
+	Target             *string `json:"target,omitempty"`
+	RequiresPolicy     bool    `json:"requires_policy"`
+	SafetyModeRequired bool    `json:"safety_mode_required"`
+}
+
+type signedGovernedPolicyDecision struct {
+	SchemaVersion      string         `json:"schema_version"`
+	DecisionID         string         `json:"decision_id"`
+	TenantID           string         `json:"tenant_id"`
+	TaskID             string         `json:"task_id"`
+	RuntimeID          *string        `json:"runtime_id,omitempty"`
+	Action             governedAction `json:"action"`
+	Permit             bool           `json:"permit"`
+	Reason             string         `json:"reason"`
+	PolicyVersion      string         `json:"policy_version"`
+	RuntimePermitted   bool           `json:"runtime_permitted"`
+	TenantPermitted    bool           `json:"tenant_permitted"`
+	PolicyPermitted    bool           `json:"policy_permitted"`
+	RobotModePermitted bool           `json:"robot_mode_permitted"`
+	IssuedAtUnixMs     int64          `json:"issued_at_unix_ms"`
+	ExpiresAtUnixMs    int64          `json:"expires_at_unix_ms"`
+	SignerKeyVersion   *string        `json:"signer_key_version,omitempty"`
+	Signature          string         `json:"signature"`
+}
+
+type roboticsPolicyEvaluation struct {
+	PolicyVersion      string
+	Permit             bool
+	Reason             string
+	RuntimePermitted   bool
+	TenantPermitted    bool
+	PolicyPermitted    bool
+	RobotModePermitted bool
+	ExpiresAt          *time.Time
+}
+
+func (p roboticsPolicyEvaluation) ExpiresAtUnixMs(now int64) int64 {
+	if p.ExpiresAt != nil {
+		return p.ExpiresAt.UnixMilli()
+	}
+	return now + 30_000
+}
+
+func evaluateRoboticsPolicy(ctx context.Context, db *sql.DB, task *TaskRecord) roboticsPolicyEvaluation {
+	denied := roboticsPolicyEvaluation{
+		PolicyVersion: "robotics-policy.missing",
+		Reason:        "default deny: no active robotics policy",
+	}
+	if db == nil || task == nil {
+		return denied
+	}
+
+	var policyVersion, robotMode, allowedRuntimesRaw sql.NullString
+	var permit, runtimeEnabled sql.NullBool
+	var expiresAt sql.NullTime
+	err := db.QueryRowContext(ctx, `
+		SELECT
+			policy_version,
+			permit,
+			runtime_permitted,
+			robot_mode,
+			COALESCE(allowed_runtimes::text, '[]'),
+			expires_at
+		FROM robotics_policy_settings
+		WHERE tenant_id = $1
+		  AND active = true
+		  AND COALESCE(status, CASE WHEN active THEN 'active' ELSE 'draft' END) = 'active'
+		  AND (expires_at IS NULL OR expires_at > NOW())
+		ORDER BY updated_at DESC
+		LIMIT 1
+	`, task.TenantID).Scan(
+		&policyVersion,
+		&permit,
+		&runtimeEnabled,
+		&robotMode,
+		&allowedRuntimesRaw,
+		&expiresAt,
+	)
+	if err != nil {
+		if err != sql.ErrNoRows {
+			log.Warn().Err(err).Str("tenant_id", task.TenantID).Msg("[Coordinator] Robotics policy lookup failed")
+		}
+		return denied
+	}
+
+	runtimeAllowed := runtimeEnabled.Valid && runtimeEnabled.Bool && runtimeListed(task.RuntimeID, allowedRuntimesRaw.String)
+	tenantPermitted := task.TenantID != ""
+	policyPermitted := permit.Valid && permit.Bool
+	mode := strings.ToLower(strings.TrimSpace(robotMode.String))
+	robotModePermitted := mode == "supervised" || mode == "active"
+	finalPermit := runtimeAllowed && tenantPermitted && policyPermitted && robotModePermitted
+	reason := "permitted"
+	if !finalPermit {
+		reason = "default deny: robotics policy prerequisites are incomplete"
+	}
+	var expires *time.Time
+	if expiresAt.Valid {
+		value := expiresAt.Time.UTC()
+		expires = &value
+	}
+	version := policyVersion.String
+	if version == "" {
+		version = "robotics-policy.db"
+	}
+	return roboticsPolicyEvaluation{
+		PolicyVersion:      version,
+		Permit:             finalPermit,
+		Reason:             reason,
+		RuntimePermitted:   runtimeAllowed,
+		TenantPermitted:    tenantPermitted,
+		PolicyPermitted:    policyPermitted,
+		RobotModePermitted: robotModePermitted,
+		ExpiresAt:          expires,
+	}
+}
+
+func runtimeListed(runtimeID *string, raw string) bool {
+	if runtimeID == nil || strings.TrimSpace(*runtimeID) == "" {
+		return false
+	}
+	trimmed := strings.TrimSpace(raw)
+	if trimmed == "" || trimmed == "[]" || trimmed == "null" {
+		return false
+	}
+	var runtimes []string
+	if err := json.Unmarshal([]byte(trimmed), &runtimes); err != nil {
+		return false
+	}
+	for _, candidate := range runtimes {
+		if candidate == "*" || candidate == *runtimeID {
+			return true
+		}
+	}
+	return false
+}
+
+func buildSignedGovernedPolicyDecisions(task *TaskRecord, taskTypeBytes json.RawMessage, db *sql.DB) []signedGovernedPolicyDecision {
+	signingKey := loadOvertureSigningKey()
+	if signingKey == nil || task == nil || db == nil {
+		return nil
+	}
+	actions := extractGovernedRoboticsActions(taskTypeBytes)
+	if len(actions) == 0 {
+		return nil
+	}
+
+	now := time.Now().UnixMilli()
+	policy := evaluateRoboticsPolicy(context.Background(), db, task)
+	keyVersion := strings.TrimSpace(os.Getenv("IGRIS_OVERTURE_SIGNING_KEY_VERSION"))
+
+	decisions := make([]signedGovernedPolicyDecision, 0, len(actions))
+	for _, action := range actions {
+		decision := signedGovernedPolicyDecision{
+			SchemaVersion:      "governed_policy_decision.v1",
+			DecisionID:         uuid.NewString(),
+			TenantID:           task.TenantID,
+			TaskID:             task.TaskID.String(),
+			RuntimeID:          task.RuntimeID,
+			Action:             action,
+			Permit:             policy.Permit,
+			Reason:             policy.Reason,
+			PolicyVersion:      policy.PolicyVersion,
+			RuntimePermitted:   policy.RuntimePermitted,
+			TenantPermitted:    policy.TenantPermitted,
+			PolicyPermitted:    policy.PolicyPermitted,
+			RobotModePermitted: policy.RobotModePermitted,
+			IssuedAtUnixMs:     now,
+			ExpiresAtUnixMs:    policy.ExpiresAtUnixMs(now),
+		}
+		if keyVersion != "" {
+			decision.SignerKeyVersion = &keyVersion
+		}
+		decision.Signature = signGovernedPolicyDecision(decision, signingKey)
+		decisions = append(decisions, decision)
+	}
+	return decisions
+}
+
+func loadOvertureSigningKey() ed25519.PrivateKey {
+	hexKey := os.Getenv("IGRIS_OVERTURE_SIGNING_KEY")
+	if hexKey == "" {
+		return nil
+	}
+	decoded, err := hex.DecodeString(hexKey)
+	if err != nil || len(decoded) != ed25519.PrivateKeySize {
+		return nil
+	}
+	return ed25519.PrivateKey(decoded)
+}
+
+func signGovernedPolicyDecision(decision signedGovernedPolicyDecision, signingKey ed25519.PrivateKey) string {
+	canonical, _ := json.Marshal(canonicalGovernedPolicyDecision(decision))
+	sum := sha256.Sum256(canonical)
+	return base64.StdEncoding.EncodeToString(ed25519.Sign(signingKey, sum[:]))
+}
+
+func canonicalGovernedPolicyDecision(decision signedGovernedPolicyDecision) map[string]any {
+	value := map[string]any{
+		"action":               canonicalGovernedAction(decision.Action),
+		"decision_id":          decision.DecisionID,
+		"expires_at_unix_ms":   decision.ExpiresAtUnixMs,
+		"issued_at_unix_ms":    decision.IssuedAtUnixMs,
+		"permit":               decision.Permit,
+		"policy_permitted":     decision.PolicyPermitted,
+		"policy_version":       decision.PolicyVersion,
+		"reason":               decision.Reason,
+		"robot_mode_permitted": decision.RobotModePermitted,
+		"runtime_permitted":    decision.RuntimePermitted,
+		"schema_version":       decision.SchemaVersion,
+		"task_id":              decision.TaskID,
+		"tenant_id":            decision.TenantID,
+		"tenant_permitted":     decision.TenantPermitted,
+	}
+	if decision.RuntimeID != nil {
+		value["runtime_id"] = *decision.RuntimeID
+	}
+	if decision.SignerKeyVersion != nil {
+		value["signer_key_version"] = *decision.SignerKeyVersion
+	}
+	return value
+}
+
+func canonicalGovernedAction(action governedAction) map[string]any {
+	value := map[string]any{
+		"action_name":          action.ActionName,
+		"action_type":          action.ActionType,
+		"domain":               action.Domain,
+		"node_id":              action.NodeID,
+		"requires_policy":      action.RequiresPolicy,
+		"safety_mode_required": action.SafetyModeRequired,
+		"schema_version":       action.SchemaVersion,
+		"step_index":           action.StepIndex,
+	}
+	if action.Target != nil {
+		value["target"] = *action.Target
+	}
+	return value
+}
+
+func extractGovernedRoboticsActions(taskTypeBytes json.RawMessage) []governedAction {
+	var taskType map[string]json.RawMessage
+	if err := json.Unmarshal(taskTypeBytes, &taskType); err != nil {
+		return nil
+	}
+	var kind string
+	_ = json.Unmarshal(taskType["type"], &kind)
+	switch kind {
+	case "robotics_workflow":
+		return extractGovernedRoboticsSteps(taskType["steps"], false)
+	case "execution_graph":
+		var graph struct {
+			Nodes []json.RawMessage `json:"nodes"`
+		}
+		if err := json.Unmarshal(taskType["graph"], &graph); err != nil {
+			return nil
+		}
+		return extractGovernedRoboticsNodes(graph.Nodes)
+	default:
+		return nil
+	}
+}
+
+func extractGovernedRoboticsNodes(nodes []json.RawMessage) []governedAction {
+	actions := make([]governedAction, 0)
+	for idx, raw := range nodes {
+		var node map[string]json.RawMessage
+		if err := json.Unmarshal(raw, &node); err != nil {
+			continue
+		}
+		var kind string
+		_ = json.Unmarshal(node["kind"], &kind)
+		if kind != "robotics" {
+			continue
+		}
+		actions = append(actions, governedActionFromRawStep(node, uint32(idx), true))
+	}
+	return actions
+}
+
+func extractGovernedRoboticsSteps(raw json.RawMessage, graphNode bool) []governedAction {
+	var steps []map[string]json.RawMessage
+	if err := json.Unmarshal(raw, &steps); err != nil {
+		return nil
+	}
+	actions := make([]governedAction, 0, len(steps))
+	for idx, step := range steps {
+		actions = append(actions, governedActionFromRawStep(step, uint32(idx), graphNode))
+	}
+	return actions
+}
+
+func governedActionFromRawStep(step map[string]json.RawMessage, fallbackStepIndex uint32, graphNode bool) governedAction {
+	stepIndex := fallbackStepIndex
+	if raw, ok := step["step_index"]; ok {
+		var parsed uint32
+		if err := json.Unmarshal(raw, &parsed); err == nil {
+			stepIndex = parsed
+		}
+	}
+	nodeID := fmt.Sprintf("robotics-step-%d", stepIndex)
+	if raw, ok := step["node_id"]; ok {
+		var parsed string
+		if err := json.Unmarshal(raw, &parsed); err == nil && parsed != "" {
+			nodeID = parsed
+		}
+	}
+	actionName := rawStringField(step, "action")
+	target := roboticsActionTargetFromRaw(actionName, step)
+	return governedAction{
+		SchemaVersion:      "governed_action.v1",
+		Domain:             "robotics",
+		ActionType:         "ros2_action",
+		ActionName:         actionName,
+		NodeID:             nodeID,
+		StepIndex:          stepIndex,
+		Target:             target,
+		RequiresPolicy:     true,
+		SafetyModeRequired: true,
+	}
+}
+
+func rawStringField(raw map[string]json.RawMessage, key string) string {
+	var value string
+	_ = json.Unmarshal(raw[key], &value)
+	return value
+}
+
+func roboticsActionTargetFromRaw(actionName string, raw map[string]json.RawMessage) *string {
+	switch actionName {
+	case "navigate_to_pose":
+		var payload struct {
+			Goal struct {
+				X       float64 `json:"x"`
+				Y       float64 `json:"y"`
+				FrameID string  `json:"frame_id"`
+			} `json:"goal"`
+		}
+		if err := json.Unmarshal(mustRaw(raw["goal"], []byte(`{}`)), &payload.Goal); err == nil {
+			if payload.Goal.FrameID == "" {
+				payload.Goal.FrameID = "map"
+			}
+			target := fmt.Sprintf("%v,%v,%s", payload.Goal.X, payload.Goal.Y, payload.Goal.FrameID)
+			return &target
+		}
+	case "publish_prompt":
+		prompt := rawStringField(raw, "prompt")
+		target := truncateRunes(prompt, 120)
+		return &target
+	case "publish_velocity":
+		var payload struct {
+			LinearX  float64 `json:"linear_x"`
+			AngularZ float64 `json:"angular_z"`
+		}
+		_ = json.Unmarshal(json.RawMessage(mustRawMap(raw)), &payload)
+		target := fmt.Sprintf("%.3f,%.3f", payload.LinearX, payload.AngularZ)
+		return &target
+	}
+	return nil
+}
+
+func mustRaw(raw json.RawMessage, fallback []byte) []byte {
+	if len(raw) == 0 {
+		return fallback
+	}
+	return raw
+}
+
+func mustRawMap(raw map[string]json.RawMessage) []byte {
+	data, _ := json.Marshal(raw)
+	return data
+}
+
+func truncateRunes(value string, max int) string {
+	runes := []rune(value)
+	if len(runes) <= max {
+		return value
+	}
+	return string(runes[:max])
 }
 
 func runtimeTaskDispatchFailure(statusCode int, raw []byte, resumed bool) (string, *TaskFailureDetails) {
