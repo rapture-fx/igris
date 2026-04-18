@@ -271,10 +271,12 @@ func roboticsPolicyLifecycleUpdate(db *sql.DB, status string) fiber.Handler {
 		}
 		policyVersion := normalizePolicyVersion(c.Params("version"))
 		timestampColumn := "expired_at"
+		args := []interface{}{status, tenantID, policyVersion}
 		extra := ""
 		if status == "revoked" {
 			timestampColumn = "revoked_at"
 			extra = ", revoked_by = $4"
+			args = append(args, tenantID)
 		}
 		row := db.QueryRowContext(c.Context(), `
 			UPDATE robotics_policy_settings
@@ -285,7 +287,7 @@ func roboticsPolicyLifecycleUpdate(db *sql.DB, status string) fiber.Handler {
 			          robot_mode, allowed_runtimes::text, active, expires_at,
 			          activated_at, expired_at, revoked_at, created_by, updated_by,
 			          revoked_by, created_at, updated_at`,
-			status, tenantID, policyVersion, tenantID,
+			args...,
 		)
 		policy, err := scanRoboticsPolicy(row)
 		if err == sql.ErrNoRows {
