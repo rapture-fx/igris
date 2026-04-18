@@ -3,8 +3,10 @@ package internal
 import (
 	"context"
 	"encoding/json"
+	"io"
 	"net/http"
 	"net/http/httptest"
+	"strings"
 	"sync"
 	"testing"
 
@@ -180,6 +182,99 @@ func TestSelector_NoRuntime_Returns503(t *testing.T) {
 	_, err := sel.ForwardExecution(context.Background(), "tenant-1", req, "")
 	if err == nil {
 		t.Fatal("expected error when no runtimes registered")
+	}
+}
+
+func TestSelector_OpenStreamingExecution_RelaysRuntimeSSEContract(t *testing.T) {
+	var sawStreamRequest bool
+	srv := httptest.NewServer(http.HandlerFunc(func(w http.ResponseWriter, r *http.Request) {
+		if r.URL.Path != "/v1/runtime/task/stream" {
+			t.Fatalf("path = %q, want /v1/runtime/task/stream", r.URL.Path)
+		}
+		if got := r.Header.Get("Accept"); got != "text/event-stream" {
+			t.Fatalf("Accept = %q, want text/event-stream", got)
+		}
+		if got := r.Header.Get("X-Igris-Tenant"); got != "tenant-stream" {
+			t.Fatalf("X-Igris-Tenant = %q, want tenant-stream", got)
+		}
+
+		var payload map[string]interface{}
+		if err := json.NewDecoder(r.Body).Decode(&payload); err != nil {
+			t.Fatalf("Decode request body error = %v", err)
+		}
+		if got := payload["tenant_id"]; got != "tenant-stream" {
+			t.Fatalf("tenant_id = %v, want tenant-stream", got)
+		}
+		taskType, ok := payload["task_type"].(map[string]interface{})
+		if !ok {
+			t.Fatalf("task_type type = %T, want map[string]interface{}", payload["task_type"])
+		}
+		if got := taskType["type"]; got != "single_inference" {
+			t.Fatalf("task_type.type = %v, want single_inference", got)
+		}
+		if got := taskType["stream"]; got != true {
+			t.Fatalf("task_type.stream = %v, want true", got)
+		}
+		sawStreamRequest = true
+
+		w.Header().Set("Content-Type", "text/event-stream")
+		w.Header().Set("X-Igris-Runtime-Task-Id", "stream-live-test")
+		w.Header().Set("X-Igris-Runtime-Stream-Resume-Supported", "false")
+		w.Header().Set("X-Igris-Runtime-Stream-Replay-Condition", "completed-final-output")
+		w.WriteHeader(http.StatusOK)
+		_, _ = w.Write([]byte(strings.Join([]string{
+			"data: {\"choices\":[{\"delta\":{\"content\":\"hel\"}}]}",
+			"",
+			"event: task_result",
+			"data: {\"task_id\":\"stream-live-test\",\"durability\":{\"mode\":\"streaming\",\"replay_supported\":true}}",
+			"",
+			"data: [DONE]",
+			"",
+		}, "\n")))
+	}))
+	defer srv.Close()
+
+	runtime := RuntimeInstance{RuntimeID: "runtime-live-stream", Endpoint: srv.URL, IsEdge: true, IsHealthy: true}
+	repo := newMockRepo([]RuntimeInstance{runtime}, nil)
+	sel := NewRuntimeSelector(repo)
+
+	resp, err := sel.OpenStreamingExecution(context.Background(), "tenant-stream", &models.InferRequest{
+		Model:    "gpt-4.1-mini",
+		Stream:   true,
+		Messages: []models.Message{{Role: "user", Content: "hello"}},
+	}, "")
+	if err != nil {
+		t.Fatalf("OpenStreamingExecution() error = %v", err)
+	}
+	defer resp.Body.Close()
+	if !sawStreamRequest {
+		t.Fatal("runtime stream endpoint was not called")
+	}
+	if got := resp.Header.Get("X-Igris-Runtime-Task-Id"); got != "stream-live-test" {
+		t.Fatalf("X-Igris-Runtime-Task-Id = %q, want stream-live-test", got)
+	}
+	if got := resp.Header.Get("X-Igris-Runtime-Stream-Replay-Condition"); got != "completed-final-output" {
+		t.Fatalf("X-Igris-Runtime-Stream-Replay-Condition = %q, want completed-final-output", got)
+	}
+	bodyBytes, err := io.ReadAll(resp.Body)
+	if err != nil {
+		t.Fatalf("ReadAll() error = %v", err)
+	}
+	body := string(bodyBytes)
+	for _, want := range []string{
+		"event: task_result",
+		`"mode":"streaming"`,
+		`"replay_supported":true`,
+		"data: [DONE]",
+	} {
+		if !strings.Contains(body, want) {
+			t.Fatalf("body missing %s: %q", want, body)
+		}
+	}
+
+	state := sel.breakers.GetState("runtime-live-stream")
+	if state.String() != "closed" {
+		t.Fatalf("circuit state = %s, want closed", state)
 	}
 }
 
