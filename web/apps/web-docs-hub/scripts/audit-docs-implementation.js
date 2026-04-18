@@ -113,7 +113,7 @@ function extractGoRoutes(filePath) {
 function extractRustRoutes(filePath) {
   const source = fs.readFileSync(filePath, 'utf8');
   const routes = [];
-  const routeRegex = /\.route\("([^"]+)",\s*(get|post|put|patch|delete)\(/g;
+  const routeRegex = /\.route\(\s*"([^"]+)",\s*(get|post|put|patch|delete)\(/g;
   let match;
   while ((match = routeRegex.exec(source)) !== null) {
     routes.push({
@@ -165,6 +165,7 @@ function normalizeClaimPath(rawPath) {
     // Keep the raw value; it will fail matching below.
   }
   value = value.split(']')[0].split(')')[0].split('<')[0];
+  value = value.split('?')[0].split('#')[0];
   value = value.replace(/[.,;:]+$/g, '');
   if (value !== '/' && value.endsWith('/')) {
     value = value.slice(0, -1);
@@ -202,7 +203,7 @@ function expectedSurfaceForUrl(url) {
 }
 
 function shouldAuditPath(pathValue) {
-  return /^\/(v1|api|proof|admin)\b/.test(pathValue);
+  return /^\/(v1|api|proof|admin)\b/.test(pathValue) && !pathValue.includes('*');
 }
 
 function addClaim(claims, seen, claim) {

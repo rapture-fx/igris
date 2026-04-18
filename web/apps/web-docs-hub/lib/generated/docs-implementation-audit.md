@@ -1,6 +1,6 @@
 # Documentation Implementation Audit
 
-Generated: 2026-04-18T03:19:37.373Z
+Generated: 2026-04-18T03:22:16.479Z
 
 This report compares customer-facing docs route claims against routes registered in `igris-overture`, `igris-runtime`, and the web console codebase. It is evidence-based: a route claim is implemented only when the matching method/path is registered in code on the expected surface.
 
@@ -8,17 +8,17 @@ The API reference has a separate endpoint verification report in `api-verificati
 
 ## Summary
 
-- Route claims audited: 945
-- Implemented on expected surface: 927
-- Missing from code: 13
+- Route claims audited: 944
+- Implemented on expected surface: 928
+- Missing from code: 11
 - Implemented on a different surface than documented: 2
 - Path exists with a different method: 3
 
 ## Guide Page Summary
 
-- Guide route claims audited: 216
-- Implemented on expected surface: 198
-- Missing from code: 13
+- Guide route claims audited: 215
+- Implemented on expected surface: 199
+- Missing from code: 11
 - Implemented on a different surface than documented: 2
 - Path exists with a different method: 3
 
@@ -29,8 +29,6 @@ The API reference has a separate endpoint verification report in `api-verificati
 | `web/apps/web-docs-hub/content/docs/audit.mdx` | 6 | 4 | 0 | 2 | 0 |
 | `web/apps/web-docs-hub/content/docs/provider-health.mdx` | 4 | 2 | 0 | 0 | 2 |
 | `web/apps/web-docs-hub/content/docs/articles/safe-agents-capability-gates.mdx` | 1 | 0 | 1 | 0 | 0 |
-| `web/apps/web-docs-hub/content/docs/cloud-coordination.mdx` | 16 | 15 | 1 | 0 | 0 |
-| `web/apps/web-docs-hub/content/docs/durable-tasks.mdx` | 12 | 11 | 1 | 0 | 0 |
 | `web/apps/web-docs-hub/content/docs/robotics.mdx` | 1 | 0 | 1 | 0 | 0 |
 | `web/apps/web-docs-hub/content/docs/tamper-evident-logs.mdx` | 3 | 2 | 1 | 0 | 0 |
 | `web/apps/web-docs-hub/content/docs/troubleshooting.mdx` | 11 | 10 | 1 | 0 | 0 |
@@ -41,9 +39,11 @@ The API reference has a separate endpoint verification report in `api-verificati
 | `web/apps/web-docs-hub/content/docs/articles/thompson-sampling-routing.mdx` | 2 | 2 | 0 | 0 | 0 |
 | `web/apps/web-docs-hub/content/docs/behavior-trees.mdx` | 10 | 10 | 0 | 0 | 0 |
 | `web/apps/web-docs-hub/content/docs/circuit-breaker.mdx` | 1 | 1 | 0 | 0 | 0 |
+| `web/apps/web-docs-hub/content/docs/cloud-coordination.mdx` | 15 | 15 | 0 | 0 | 0 |
 | `web/apps/web-docs-hub/content/docs/cognitive-advisor.mdx` | 9 | 9 | 0 | 0 | 0 |
 | `web/apps/web-docs-hub/content/docs/deploy-local-runtime.mdx` | 1 | 1 | 0 | 0 | 0 |
 | `web/apps/web-docs-hub/content/docs/deployment.mdx` | 1 | 1 | 0 | 0 | 0 |
+| `web/apps/web-docs-hub/content/docs/durable-tasks.mdx` | 12 | 12 | 0 | 0 | 0 |
 | `web/apps/web-docs-hub/content/docs/execution-receipts.mdx` | 7 | 7 | 0 | 0 | 0 |
 | `web/apps/web-docs-hub/content/docs/first-cloud-integration.mdx` | 1 | 1 | 0 | 0 | 0 |
 | `web/apps/web-docs-hub/content/docs/fleet-management.mdx` | 8 | 8 | 0 | 0 | 0 |
@@ -78,8 +78,6 @@ The API reference has a separate endpoint verification report in `api-verificati
 | missing | `web/apps/web-docs-hub/content/docs/articles/safe-agents-capability-gates.mdx` | 178 | POST | `/v1/webhooks` | cloud-api | none |
 | wrong-surface | `web/apps/web-docs-hub/content/docs/audit.mdx` | 59 | GET | `/v1/receipts` | local-runtime | GET /v1/receipts (cloud-api, igris-overture/api/routes_receipts.go) |
 | wrong-surface | `web/apps/web-docs-hub/content/docs/audit.mdx` | 63 | GET | `/v1/receipts/exec-01HXYZ` | local-runtime | GET /v1/receipts/:id (cloud-api, igris-overture/api/routes_receipts.go) |
-| missing | `web/apps/web-docs-hub/content/docs/cloud-coordination.mdx` | 52 | * | `/api/v1/runtime/*` | unspecified | none |
-| missing | `web/apps/web-docs-hub/content/docs/durable-tasks.mdx` | 205 | GET | `/v1/tasks?limit=20` | unspecified | none |
 | wrong-method | `web/apps/web-docs-hub/content/docs/provider-health.mdx` | 125 | GET | `/v1/providers/health` | unspecified | DELETE /v1/providers/:id (cloud-api, igris-overture/api/routes_provider_registry.go)<br />PUT /v1/providers/:id (cloud-api, igris-overture/api/routes_provider_registry.go) |
 | wrong-method | `web/apps/web-docs-hub/content/docs/provider-health.mdx` | 130 | GET | `/v1/providers/health` | cloud-api | DELETE /v1/providers/:id (cloud-api, igris-overture/api/routes_provider_registry.go)<br />PUT /v1/providers/:id (cloud-api, igris-overture/api/routes_provider_registry.go) |
 | missing | `web/apps/web-docs-hub/content/docs/robotics.mdx` | 83 | * | `/v1/emergency-stop` | unspecified | none |
@@ -100,8 +98,6 @@ The API reference has a separate endpoint verification report in `api-verificati
 | `web/apps/web-docs-hub/content/docs/audit.mdx` | 6 | 4 | 0 | 2 | 0 |
 | `web/apps/web-docs-hub/content/docs/provider-health.mdx` | 4 | 2 | 0 | 0 | 2 |
 | `web/apps/web-docs-hub/content/docs/articles/safe-agents-capability-gates.mdx` | 1 | 0 | 1 | 0 | 0 |
-| `web/apps/web-docs-hub/content/docs/cloud-coordination.mdx` | 16 | 15 | 1 | 0 | 0 |
-| `web/apps/web-docs-hub/content/docs/durable-tasks.mdx` | 12 | 11 | 1 | 0 | 0 |
 | `web/apps/web-docs-hub/content/docs/robotics.mdx` | 1 | 0 | 1 | 0 | 0 |
 | `web/apps/web-docs-hub/content/docs/tamper-evident-logs.mdx` | 3 | 2 | 1 | 0 | 0 |
 | `web/apps/web-docs-hub/content/docs/troubleshooting.mdx` | 11 | 10 | 1 | 0 | 0 |
@@ -216,9 +212,11 @@ The API reference has a separate endpoint verification report in `api-verificati
 | `web/apps/web-docs-hub/content/docs/articles/thompson-sampling-routing.mdx` | 2 | 2 | 0 | 0 | 0 |
 | `web/apps/web-docs-hub/content/docs/behavior-trees.mdx` | 10 | 10 | 0 | 0 | 0 |
 | `web/apps/web-docs-hub/content/docs/circuit-breaker.mdx` | 1 | 1 | 0 | 0 | 0 |
+| `web/apps/web-docs-hub/content/docs/cloud-coordination.mdx` | 15 | 15 | 0 | 0 | 0 |
 | `web/apps/web-docs-hub/content/docs/cognitive-advisor.mdx` | 9 | 9 | 0 | 0 | 0 |
 | `web/apps/web-docs-hub/content/docs/deploy-local-runtime.mdx` | 1 | 1 | 0 | 0 | 0 |
 | `web/apps/web-docs-hub/content/docs/deployment.mdx` | 1 | 1 | 0 | 0 | 0 |
+| `web/apps/web-docs-hub/content/docs/durable-tasks.mdx` | 12 | 12 | 0 | 0 | 0 |
 | `web/apps/web-docs-hub/content/docs/execution-receipts.mdx` | 7 | 7 | 0 | 0 | 0 |
 | `web/apps/web-docs-hub/content/docs/first-cloud-integration.mdx` | 1 | 1 | 0 | 0 | 0 |
 | `web/apps/web-docs-hub/content/docs/fleet-management.mdx` | 8 | 8 | 0 | 0 | 0 |
@@ -253,8 +251,6 @@ The API reference has a separate endpoint verification report in `api-verificati
 | missing | `web/apps/web-docs-hub/content/docs/articles/safe-agents-capability-gates.mdx` | 178 | POST | `/v1/webhooks` | cloud-api | none |
 | wrong-surface | `web/apps/web-docs-hub/content/docs/audit.mdx` | 59 | GET | `/v1/receipts` | local-runtime | GET /v1/receipts (cloud-api, igris-overture/api/routes_receipts.go) |
 | wrong-surface | `web/apps/web-docs-hub/content/docs/audit.mdx` | 63 | GET | `/v1/receipts/exec-01HXYZ` | local-runtime | GET /v1/receipts/:id (cloud-api, igris-overture/api/routes_receipts.go) |
-| missing | `web/apps/web-docs-hub/content/docs/cloud-coordination.mdx` | 52 | * | `/api/v1/runtime/*` | unspecified | none |
-| missing | `web/apps/web-docs-hub/content/docs/durable-tasks.mdx` | 205 | GET | `/v1/tasks?limit=20` | unspecified | none |
 | wrong-method | `web/apps/web-docs-hub/content/docs/provider-health.mdx` | 125 | GET | `/v1/providers/health` | unspecified | DELETE /v1/providers/:id (cloud-api, igris-overture/api/routes_provider_registry.go)<br />PUT /v1/providers/:id (cloud-api, igris-overture/api/routes_provider_registry.go) |
 | wrong-method | `web/apps/web-docs-hub/content/docs/provider-health.mdx` | 130 | GET | `/v1/providers/health` | cloud-api | DELETE /v1/providers/:id (cloud-api, igris-overture/api/routes_provider_registry.go)<br />PUT /v1/providers/:id (cloud-api, igris-overture/api/routes_provider_registry.go) |
 | missing | `web/apps/web-docs-hub/content/docs/robotics.mdx` | 83 | * | `/v1/emergency-stop` | unspecified | none |
