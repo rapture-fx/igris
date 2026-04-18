@@ -38,6 +38,11 @@ type InferResponse struct {
 	// a hash-chained Ed25519 signature.  Included when the Runtime emits a receipt
 	// and IGRIS_RUNTIME_PUBLIC_KEY verification passes.
 	ExecutionReceipt map[string]interface{} `json:"execution_receipt,omitempty"`
+
+	// Receipt is a stable client-facing reference extracted from ExecutionReceipt.
+	// It avoids forcing clients to parse the full signed receipt when they only
+	// need audit navigation fields.
+	Receipt map[string]interface{} `json:"receipt,omitempty"`
 }
 
 // Choice represents a single completion choice
@@ -127,6 +132,35 @@ func NewInferResponse(requestID, model string) *InferResponse {
 			Timestamp: time.Now(),
 		},
 	}
+}
+
+// BuildReceiptReference returns the stable receipt reference shape shared by
+// API responses and SDK models. The full execution_receipt remains the source
+// of truth for cryptographic verification.
+func BuildReceiptReference(receipt map[string]interface{}) map[string]interface{} {
+	if len(receipt) == 0 {
+		return nil
+	}
+
+	ref := map[string]interface{}{"available": true}
+	for _, field := range []string{"execution_id", "transaction_id", "transaction_hash", "previous_hash"} {
+		if value, ok := receipt[field].(string); ok && value != "" {
+			ref[field] = value
+		}
+	}
+
+	receiptHash, _ := receipt["receipt_hash"].(string)
+	if receiptHash == "" {
+		receiptHash, _ = receipt["hash"].(string)
+	}
+	if receiptHash != "" {
+		ref["receipt_hash"] = receiptHash
+	}
+
+	signature, _ := receipt["signature"].(string)
+	ref["signature_present"] = signature != ""
+
+	return ref
 }
 
 // AddChoice adds a completion choice to the response

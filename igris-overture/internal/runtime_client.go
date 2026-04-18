@@ -214,6 +214,38 @@ func (c *RuntimeClient) verifyReceipt(receipt map[string]interface{}) error {
 	return c.verifySignedJSON(receipt, "execution_receipt")
 }
 
+// VerifyExecutionArtifactsRaw verifies raw Runtime execution artifacts before
+// Overture persists them. Verification is a no-op when IGRIS_RUNTIME_PUBLIC_KEY
+// is not configured, matching RuntimeClient's inference path.
+func VerifyExecutionArtifactsRaw(envelopeRaw, receiptRaw json.RawMessage) error {
+	client := NewRuntimeClient("")
+	return client.VerifyExecutionArtifactsRaw(envelopeRaw, receiptRaw)
+}
+
+// VerifyExecutionArtifactsRaw verifies raw Runtime execution artifacts with
+// this client's configured public key.
+func (c *RuntimeClient) VerifyExecutionArtifactsRaw(envelopeRaw, receiptRaw json.RawMessage) error {
+	if len(envelopeRaw) > 0 {
+		var envelope map[string]interface{}
+		if err := json.Unmarshal(envelopeRaw, &envelope); err != nil {
+			return fmt.Errorf("execution_envelope decode: %w", err)
+		}
+		if err := c.verifyEnvelope(envelope); err != nil {
+			return err
+		}
+	}
+	if len(receiptRaw) > 0 {
+		var receipt map[string]interface{}
+		if err := json.Unmarshal(receiptRaw, &receipt); err != nil {
+			return fmt.Errorf("execution_receipt decode: %w", err)
+		}
+		if err := c.verifyReceipt(receipt); err != nil {
+			return err
+		}
+	}
+	return nil
+}
+
 // taskSubmitRequest is the durable task payload sent to POST /v1/runtime/task/submit.
 type taskSubmitRequest struct {
 	TaskID         string          `json:"task_id"`
@@ -493,6 +525,7 @@ func (c *RuntimeClient) ForwardExecution(
 	// Attach verified execution receipt for SDK passthrough.
 	if hasSignature(taskResp.ExecutionReceipt) {
 		inferResp.ExecutionReceipt = taskResp.ExecutionReceipt
+		inferResp.Receipt = models.BuildReceiptReference(taskResp.ExecutionReceipt)
 	}
 
 	return inferResp, nil

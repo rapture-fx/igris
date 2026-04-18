@@ -925,24 +925,7 @@ func buildTaskReceiptResponse(receipt json.RawMessage) fiber.Map {
 	if err := json.Unmarshal(receipt, &payload); err != nil {
 		return nil
 	}
-
-	resp := fiber.Map{"available": true}
-	for _, field := range []string{"execution_id", "transaction_id", "transaction_hash", "previous_hash"} {
-		if value := stringValue(payload[field]); value != "" {
-			resp[field] = value
-		}
-	}
-
-	receiptHash := stringValue(payload["receipt_hash"])
-	if receiptHash == "" {
-		receiptHash = stringValue(payload["hash"])
-	}
-	if receiptHash != "" {
-		resp["receipt_hash"] = receiptHash
-	}
-	resp["signature_present"] = stringValue(payload["signature"]) != ""
-
-	return resp
+	return fiber.Map(models.BuildReceiptReference(payload))
 }
 
 func buildTaskLifecycleResponse(status coordinator.TaskRecordStatus) fiber.Map {
