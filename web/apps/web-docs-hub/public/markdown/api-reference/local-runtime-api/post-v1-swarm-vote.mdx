@@ -40,14 +40,14 @@ Retry only on clearly transient 5xx or 429 responses, and prefer idempotent clie
 | Field | Type | Required | Description |
 |---|---|---|---|
 | `proposal_id` | `string` | Yes | Proposal identifier. |
-| `vote` | `string` | Yes | Vote value such as `approve` or `reject`. |
+| `approve` | `boolean` | Yes | Whether this runtime approves the proposal. |
 
 ## Request Example
 
 ```json
 {
   "proposal_id": "proposal_01HV9D",
-  "vote": "approve"
+  "approve": true
 }
 ```
 
@@ -61,7 +61,7 @@ curl -X POST http://localhost:8080/v1/swarm/vote \
   -H "Content-Type: application/json" \
   -d '{
   "proposal_id": "proposal_01HV9D",
-  "vote": "approve"
+  "approve": true
 }'
 ```
 
@@ -76,7 +76,7 @@ const response = await fetch('http://localhost:8080/v1/swarm/vote', {
   },
   body: JSON.stringify({
   "proposal_id": "proposal_01HV9D",
-  "vote": "approve"
+  "approve": true
 }),
 });
 
@@ -88,7 +88,7 @@ console.log(data);
 
 ```go
 client := &http.Client{}
-body := strings.NewReader("{\n  \"proposal_id\": \"proposal_01HV9D\",\n  \"vote\": \"approve\"\n}")
+body := strings.NewReader("{\n  \"proposal_id\": \"proposal_01HV9D\",\n  \"approve\": true\n}")
 
 req, err := http.NewRequest("POST", "http://localhost:8080/v1/swarm/vote", body)
 if err != nil {
@@ -116,7 +116,7 @@ let response = client
         .header("Authorization", format!("Bearer {}", std::env::var("IGRIS_RUNTIME_API_KEY")?))
         .json(&serde_json::json!({
   "proposal_id": "proposal_01HV9D",
-  "vote": "approve"
+  "approve": true
 }))
         .send()
         .await?;
