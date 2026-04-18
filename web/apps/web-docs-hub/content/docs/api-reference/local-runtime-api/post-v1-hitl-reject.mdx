@@ -40,14 +40,12 @@ Retry only on clearly transient 5xx or 429 responses, and prefer idempotent clie
 | Field | Type | Required | Description |
 |---|---|---|---|
 | `request_id` | `string` | Yes | HITL request identifier. |
-| `reason` | `string` | No | Optional rejection reason. |
 
 ## Request Example
 
 ```json
 {
-  "request_id": "hitl_01HV9C",
-  "reason": "Operator override"
+  "request_id": "hitl_01HV9C"
 }
 ```
 
@@ -60,8 +58,7 @@ curl -X POST http://localhost:8080/v1/hitl/reject \
   -H "Authorization: Bearer $IGRIS_RUNTIME_API_KEY" \
   -H "Content-Type: application/json" \
   -d '{
-  "request_id": "hitl_01HV9C",
-  "reason": "Operator override"
+  "request_id": "hitl_01HV9C"
 }'
 ```
 
@@ -75,8 +72,7 @@ const response = await fetch('http://localhost:8080/v1/hitl/reject', {
     'Content-Type': 'application/json',
   },
   body: JSON.stringify({
-  "request_id": "hitl_01HV9C",
-  "reason": "Operator override"
+  "request_id": "hitl_01HV9C"
 }),
 });
 
@@ -88,7 +84,7 @@ console.log(data);
 
 ```go
 client := &http.Client{}
-body := strings.NewReader("{\n  \"request_id\": \"hitl_01HV9C\",\n  \"reason\": \"Operator override\"\n}")
+body := strings.NewReader("{\n  \"request_id\": \"hitl_01HV9C\"\n}")
 
 req, err := http.NewRequest("POST", "http://localhost:8080/v1/hitl/reject", body)
 if err != nil {
@@ -115,8 +111,7 @@ let response = client
         .request(reqwest::Method::POST, "http://localhost:8080/v1/hitl/reject")
         .header("Authorization", format!("Bearer {}", std::env::var("IGRIS_RUNTIME_API_KEY")?))
         .json(&serde_json::json!({
-  "request_id": "hitl_01HV9C",
-  "reason": "Operator override"
+  "request_id": "hitl_01HV9C"
 }))
         .send()
         .await?;
