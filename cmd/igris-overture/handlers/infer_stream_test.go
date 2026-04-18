@@ -81,7 +81,13 @@ func TestHandleStreamingInferPropagatesRuntimeDurabilityHeaders(t *testing.T) {
 					"X-Igris-Runtime-Stream-Resume-Supported": []string{"false"},
 					"X-Igris-Runtime-Stream-Replay-Condition": []string{"completed-final-output"},
 				},
-				Body: io.NopCloser(strings.NewReader("data: {\"id\":\"chunk-1\"}\n\n")),
+				Body: io.NopCloser(strings.NewReader(strings.Join([]string{
+					"data: {\"id\":\"chunk-1\"}",
+					"",
+					"event: task_result",
+					"data: {\"durability\":{\"mode\":\"streaming\",\"resume_supported\":false,\"replay_supported\":true,\"replay_condition\":\"completed-final-output\",\"checkpoint_persisted\":false}}",
+					"",
+				}, "\n"))),
 			},
 		},
 	}
@@ -121,6 +127,27 @@ func TestHandleStreamingInferPropagatesRuntimeDurabilityHeaders(t *testing.T) {
 	}
 	if got := resp.Header.Get("Content-Type"); !strings.Contains(got, "text/event-stream") {
 		t.Fatalf("Content-Type = %q, want text/event-stream", got)
+	}
+
+	bodyBytes, err := io.ReadAll(resp.Body)
+	if err != nil {
+		t.Fatalf("ReadAll() error = %v", err)
+	}
+	body := string(bodyBytes)
+	if !strings.Contains(body, "event: task_result") {
+		t.Fatalf("body missing task_result event: %q", body)
+	}
+	if !strings.Contains(body, `"mode":"streaming"`) {
+		t.Fatalf("body missing streaming durability mode: %q", body)
+	}
+	if !strings.Contains(body, `"resume_supported":false`) {
+		t.Fatalf("body missing resume_supported=false: %q", body)
+	}
+	if !strings.Contains(body, `"replay_supported":true`) {
+		t.Fatalf("body missing replay_supported=true: %q", body)
+	}
+	if !strings.Contains(body, `"replay_condition":"completed-final-output"`) {
+		t.Fatalf("body missing completed-output replay condition: %q", body)
 	}
 }
 
