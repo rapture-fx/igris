@@ -2,9 +2,14 @@ package coordinator
 
 import (
 	"context"
+	"crypto/ed25519"
+	"crypto/sha256"
 	"database/sql/driver"
+	"encoding/base64"
+	"encoding/hex"
 	"encoding/json"
 	"errors"
+	"fmt"
 	"io"
 	"net/http"
 	"strings"
@@ -493,6 +498,92 @@ func TestDispatchToRuntimeIncludesRoboticsTaskDefinitionWithoutResumeFields(t *t
 	require.NotContains(t, gotBody, "deadline_ms")
 }
 
+func TestDispatchToRuntimeAttachesSignedRoboticsPolicyDecisions(t *testing.T) {
+	publicKey, privateKey, err := ed25519.GenerateKey(nil)
+	require.NoError(t, err)
+	t.Setenv("IGRIS_OVERTURE_SIGNING_KEY", hex.EncodeToString(privateKey))
+	t.Setenv("IGRIS_OVERTURE_SIGNING_KEY_VERSION", "test-key")
+
+	taskID := uuid.New()
+	runtimeID := "runtime-robotics-signed"
+	tenantID := "tenant-robotics"
+	var gotBody struct {
+		SignedPolicyDecisions []signedGovernedPolicyDecision `json:"signed_policy_decisions"`
+		Containment           map[string]any                 `json:"containment"`
+	}
+	var gotDecisionSig string
+	expiresAt := time.Now().Add(time.Minute).UTC()
+	db, queued := newQueuedCheckpointDB(t, []queuedQueryExpectation{{
+		columns: []string{
+			"policy_version",
+			"permit",
+			"runtime_permitted",
+			"robot_mode",
+			"allowed_runtimes",
+			"expires_at",
+		},
+		values: []driver.Value{
+			"robotics-policy.test",
+			true,
+			true,
+			"supervised",
+			fmt.Sprintf(`["%s"]`, runtimeID),
+			expiresAt,
+		},
+	}})
+
+	client := &http.Client{Transport: roundTripperFunc(func(r *http.Request) (*http.Response, error) {
+		gotDecisionSig = r.Header.Get("X-Igris-Decision-Sig")
+		body, err := io.ReadAll(r.Body)
+		require.NoError(t, err)
+		require.NoError(t, json.Unmarshal(body, &gotBody))
+
+		return &http.Response{
+			StatusCode: http.StatusOK,
+			Header:     http.Header{"Content-Type": []string{"application/json"}},
+			Body:       io.NopCloser(strings.NewReader(`{}`)),
+		}, nil
+	})}
+
+	tc := &TaskCoordinator{httpClient: client, db: db}
+	tc.dispatchToRuntime(context.Background(), &TaskRecord{
+		TaskID:          taskID,
+		TenantID:        tenantID,
+		RuntimeID:       &runtimeID,
+		RuntimeEndpoint: ptrString("http://runtime.test"),
+		TaskDefinition: json.RawMessage(`{
+			"type":"robotics_workflow",
+			"steps":[
+				{"step_index":0,"action":"publish_zero_velocity"},
+				{"step_index":1,"action":"publish_velocity","linear_x":0.25,"angular_z":-0.10}
+			]
+		}`),
+		IdempotencyKey: "idem-signed-robotics",
+	}, nil)
+
+	require.NotEmpty(t, gotDecisionSig)
+	require.Len(t, gotBody.SignedPolicyDecisions, 2)
+	require.Equal(t, float64(30000), gotBody.Containment["max_tick_ms"])
+
+	decision := gotBody.SignedPolicyDecisions[0]
+	require.True(t, decision.Permit)
+	require.Equal(t, "governed_policy_decision.v1", decision.SchemaVersion)
+	require.Equal(t, "governed_action.v1", decision.Action.SchemaVersion)
+	require.Equal(t, "robotics", decision.Action.Domain)
+	require.Equal(t, "ros2_action", decision.Action.ActionType)
+	require.Equal(t, "publish_zero_velocity", decision.Action.ActionName)
+	require.Equal(t, "robotics-step-0", decision.Action.NodeID)
+	require.Equal(t, "test-key", *decision.SignerKeyVersion)
+
+	canonical, err := json.Marshal(canonicalGovernedPolicyDecision(decision))
+	require.NoError(t, err)
+	sum := sha256.Sum256(canonical)
+	signature, err := base64.StdEncoding.DecodeString(decision.Signature)
+	require.NoError(t, err)
+	require.True(t, ed25519.Verify(publicKey, sum[:], signature))
+	require.Equal(t, 0, queued.remainingQueries())
+}
+
 func TestHandleDispatchFailureSchedulesRecoveryForTransportError(t *testing.T) {
 	t.Parallel()
 
@@ -861,6 +952,61 @@ func TestDispatchToRuntimePreservesCheckpointAndFailureDetailsOnExecutionFailure
 
 	require.Equal(t, 0, queued.remainingQueries())
 	require.Equal(t, 0, queued.remainingExecs())
+}
+
+func TestSaveExecutionArtifactsIndexesRoboticsReceiptAudit(t *testing.T) {
+	t.Parallel()
+
+	taskID := uuid.New()
+	tenantID := "tenant-robotics-audit"
+	runtimeID := "runtime-robotics-audit"
+	envelope := json.RawMessage(`{
+		"execution_id":"exec-robotics-1",
+		"tenant_id":"tenant-robotics-audit",
+		"policy_decision_id":"decision-robotics-1",
+		"policy_decision_hash":"policy-hash-1",
+		"governed_action_hash":"action-hash-1",
+		"routing_decision":"ros2:publish_zero_velocity",
+		"signature":"env-sig"
+	}`)
+	receipt := json.RawMessage(`{
+		"execution_id":"exec-robotics-1",
+		"hash":"receipt-hash-1",
+		"signature":"receipt-sig",
+		"violation_occurred":false
+	}`)
+	db, queued := newQueuedExecDB(t,
+		queuedExecExpectation{
+			rowsAffected: 1,
+			check: func(query string, args []driver.NamedValue) {
+				require.Contains(t, query, "UPDATE task_records")
+				require.Equal(t, taskID.String(), args[5].Value)
+			},
+		},
+		queuedExecExpectation{
+			rowsAffected: 1,
+			check: func(query string, args []driver.NamedValue) {
+				require.Contains(t, query, "INSERT INTO robotics_receipt_audit")
+				require.Equal(t, taskID.String(), args[0].Value)
+				require.Equal(t, tenantID, args[1].Value)
+				require.Equal(t, "exec-robotics-1", args[2].Value)
+				require.Equal(t, "decision-robotics-1", args[3].Value)
+				require.Equal(t, "publish_zero_velocity", args[6].Value)
+				require.Equal(t, "ros2:publish_zero_velocity", args[7].Value)
+				require.Equal(t, "receipt-hash-1", args[8].Value)
+				require.Equal(t, "receipt-sig", args[9].Value)
+				require.Equal(t, "env-sig", args[10].Value)
+				require.Equal(t, false, args[11].Value)
+				require.Equal(t, envelope, args[13].Value)
+				require.Equal(t, receipt, args[14].Value)
+			},
+		},
+	)
+	store := NewCheckpointStore(db)
+
+	require.NoError(t, store.SaveExecutionArtifacts(taskID, envelope, receipt))
+	require.Equal(t, 0, queued.remainingExecs())
+	_ = runtimeID
 }
 
 func TestRecoverRuntimeRedispatchUsesNewestTaskCheckpointSource(t *testing.T) {
