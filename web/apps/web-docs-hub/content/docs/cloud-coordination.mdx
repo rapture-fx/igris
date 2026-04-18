@@ -60,7 +60,7 @@ If you are implementing your own runtime launcher, the registration payload must
 
 ```bash
 curl -X POST https://overture.igrisinertial.com/api/v1/runtime/register \
-  -H "Authorization: Bearer YOUR_IGRIS_API_KEY" \
+  -H "X-API-Key: YOUR_IGRIS_API_KEY" \
   -H "Content-Type: application/json" \
   -d '{
     "machine_id": "edge-gateway-01",
