@@ -1886,6 +1886,7 @@ fn build_task_cancel_response(
             "status": response.status,
             "checkpoint_persisted": response.checkpoint.is_some(),
             "failure_details": response.failure_details,
+            "durability": stream_durability_metadata(Some(response)),
         });
         if let Some(checkpoint) = response.checkpoint.as_ref() {
             payload["last_step"] = serde_json::json!(checkpoint.resume_token.last_committed_step);
@@ -4559,6 +4560,11 @@ mod tests {
         );
         assert_eq!(payload["status"]["status"], "failed");
         assert_eq!(payload["status"]["reason"], "task failed");
+        assert_eq!(payload["durability"]["mode"], "streaming");
+        assert_eq!(payload["durability"]["resume_supported"], false);
+        assert_eq!(payload["durability"]["replay_supported"], false);
+        assert_eq!(payload["durability"]["replay_condition"], "completed-final-output");
+        assert_eq!(payload["durability"]["checkpoint_persisted"], true);
         assert_eq!(payload["failure_details"]["source"], "runtime");
         assert_eq!(payload["failure_details"]["operation"], "execution");
         assert_eq!(payload["failure_details"]["rejection_type"], "step_failed");
