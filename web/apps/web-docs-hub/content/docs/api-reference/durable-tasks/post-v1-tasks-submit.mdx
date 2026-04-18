@@ -238,7 +238,22 @@ println!("{}", payload);
 {
   "task_id": "018f4a2b-3c1e-7a2d-9b8f-4d5e6f7a8b9c",
   "status": "dispatched",
-  "created_at": "2026-04-04T14:30:00Z"
+  "created_at": "2026-04-04T14:30:00Z",
+  "lifecycle": {
+    "terminal": false,
+    "runtime_mutation_allowed": true,
+    "dispatch_allowed": true,
+    "recovery_redispatch_allowed": false,
+    "cancellation_allowed": true
+  },
+  "durability": {
+    "class": "resumable",
+    "streaming": false,
+    "resume_supported": false
+  },
+  "recovery": {
+    "redispatch_eligible": false
+  }
 }
 ```
 
