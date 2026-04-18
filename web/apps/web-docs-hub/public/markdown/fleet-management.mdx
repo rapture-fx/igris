@@ -15,7 +15,7 @@ The stock runtime attempts registration automatically when both `IGRIS_LICENSE_K
 
 ```bash
 curl -X POST https://overture.igrisinertial.com/api/v1/runtime/register \
-  -H "Authorization: Bearer YOUR_API_KEY" \
+  -H "X-API-Key: YOUR_API_KEY" \
   -H "Content-Type: application/json" \
   -d '{
     "machine_id": "edge-gateway-01",
