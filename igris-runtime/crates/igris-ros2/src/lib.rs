@@ -794,6 +794,7 @@ impl Ros2Node {
         };
         let mut pub_lock = self.cmd_vel_pub.write().await;
         let _ = pub_lock.publish(&zero_twist);
+        *self.last_velocity.write().await = [0.0, 0.0];
         Ok(())
     }
 
@@ -820,6 +821,10 @@ impl Ros2Node {
         };
         let mut pub_lock = self.cmd_vel_pub.write().await;
         let _ = pub_lock.publish(&twist);
+        *self.last_velocity.write().await = [
+            linear_x.clamp(-2.0, 2.0),
+            angular_z.clamp(-std::f64::consts::PI, std::f64::consts::PI),
+        ];
         Ok(())
     }
 
@@ -1059,6 +1064,7 @@ impl Ros2Node {
             let excess = log.len() - 100;
             log.drain(..excess);
         }
+        *self.last_velocity.write().await = [0.0, 0.0];
         Ok(())
     }
 
@@ -1074,6 +1080,7 @@ impl Ros2Node {
             let excess = log.len() - 100;
             log.drain(..excess);
         }
+        *self.last_velocity.write().await = [linear_x, angular_z];
         Ok(())
     }
 
@@ -1406,6 +1413,92 @@ mod tests {
         node.publish_zero_velocity().await.unwrap();
         node.publish_zero_velocity().await.unwrap();
         assert_eq!(node.cmd_vel_command_count().await, 2);
+    }
+
+    #[tokio::test]
+    async fn simulation_cancel_path_reaches_terminal_canceled_state() {
+        let config = Ros2Config {
+            enabled: true,
+            enable_nav2: true,
+            ..Default::default()
+        };
+        let node = Ros2Node::new(config).await.unwrap();
+        let handle = node
+            .navigate_to_pose(NavigationGoal {
+                x: 12.0,
+                y: 1.0,
+                z: 0.0,
+                orientation_w: 1.0,
+                frame_id: "map".to_string(),
+            })
+            .await
+            .unwrap();
+
+        handle.cancel_with_timeout(50).await.unwrap();
+        assert_eq!(handle.wait().await.unwrap(), NavigationState::Canceled);
+    }
+
+    #[tokio::test]
+    async fn simulation_stop_path_zeroes_last_velocity() {
+        let config = Ros2Config {
+            enabled: true,
+            ..Default::default()
+        };
+        let node = Ros2Node::new(config).await.unwrap();
+
+        node.publish_velocity(0.8, 0.3).await.unwrap();
+        assert_eq!(node.last_velocity().await, [0.8, 0.3]);
+        node.publish_zero_velocity().await.unwrap();
+        assert_eq!(node.last_velocity().await, [0.0, 0.0]);
+    }
+
+    #[tokio::test]
+    async fn simulation_timeout_path_is_observable_without_hardware() {
+        let config = Ros2Config {
+            enabled: true,
+            enable_nav2: true,
+            ..Default::default()
+        };
+        let node = Ros2Node::new(config).await.unwrap();
+        let handle = node
+            .navigate_to_pose(NavigationGoal {
+                x: 25.0,
+                y: 0.0,
+                z: 0.0,
+                orientation_w: 1.0,
+                frame_id: "map".to_string(),
+            })
+            .await
+            .unwrap();
+
+        let result = tokio::time::timeout(Duration::from_millis(1), handle.wait()).await;
+        assert!(result.is_err(), "short HIL timeout should be observable");
+        handle.cancel().await.unwrap();
+    }
+
+    #[tokio::test]
+    async fn simulation_failure_path_rejects_navigation_when_nav2_disabled() {
+        let config = Ros2Config {
+            enabled: true,
+            enable_nav2: false,
+            ..Default::default()
+        };
+        let node = Ros2Node::new(config).await.unwrap();
+        let result = node
+            .navigate_to_pose(NavigationGoal {
+                x: 1.0,
+                y: 1.0,
+                z: 0.0,
+                orientation_w: 1.0,
+                frame_id: "map".to_string(),
+            })
+            .await;
+
+        let error = match result {
+            Ok(_) => panic!("navigation should fail when Nav2 is disabled"),
+            Err(error) => error,
+        };
+        assert!(error.to_string().contains("Nav2 is disabled"));
     }
 
     #[tokio::test]
