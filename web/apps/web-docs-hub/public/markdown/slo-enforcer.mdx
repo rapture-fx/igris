@@ -1,195 +1,95 @@
 ---
 title: "SLO Enforcer"
-description: "Igris enforces Service Level Objectives (SLOs) at the routing layer to ensure every inference request meets your latency, cost, and quality targets."
+description: "How Igris evaluates runtime and routing health against latency, error-rate, availability, and throughput objectives, and what is customer-facing today."
 ---
 
 # SLO Enforcer
 
-Igris enforces Service Level Objectives (SLOs) at the routing layer to ensure every inference request meets your latency, cost, and quality targets.
+Igris uses SLO enforcement to keep routing and runtime execution inside operational bounds. The enforcer evaluates live metrics, classifies breaches, and produces remediation actions that the platform can execute or record.
+
+The current customer-facing contract is not a standalone SLO configuration API. Customers see SLO outcomes through routing behavior, provider health, execution receipts, history, and observability views.
 
 ---
 
-## What It Does
+## What Is Enforced
 
-The SLO Enforcer sits between incoming requests and the provider routing engine. It evaluates each request against your configured SLOs and:
+The production enforcer evaluates these metric inputs:
 
-- **Routes to providers** that historically meet your latency targets
-- **Terminates slow requests** that exceed your maximum latency budget
-- **Falls back** to faster (possibly cheaper) providers when the primary is degraded
-- **Records SLO compliance** in every execution receipt
+| Metric | Target | Warning | Critical |
+|---|---:|---:|---:|
+| `p99_latency_ms` | `100` | `130` | `150` |
+| `p95_latency_ms` | `50` | `80` | `100` |
+| `error_rate` | `0.001` | `0.01` | `0.02` |
+| `availability` | `0.9999` | `0.999` | `0.99` |
+| `throughput_rps` | `10000` | `8000` | `5000` |
 
-SLO enforcement is independent of the capability model — it governs *how well* the execution performs, not *what* it is allowed to do.
+The enforcer is configured with a 20-second evaluation interval and a 300-second breach cooldown. Auto-remediation is enabled in the default production configuration.
 
 ---
 
-## SLO Configuration
+## Evaluation Output
 
-SLOs are configured per-tenant and apply to all inference requests unless overridden per-request.
+The Rust SLO enforcer exposes an internal FFI contract that accepts a metrics JSON payload and returns a breach decision plus remediation actions:
 
 ```json
 {
-  "slo": {
-    "latency_p99_ms": 2000,
-    "latency_p50_ms": 500,
-    "max_cost_per_request_usd": 0.05,
-    "min_quality_score": 0.85,
-    "violation_action": "fallback"
-  }
+  "breached": true,
+  "actions": [
+    {
+      "action_type": "reroute",
+      "target": "provider_pool",
+      "reason": "P99 latency exceeded critical threshold",
+      "slo_type": "P99Latency",
+      "current_value": 200,
+      "threshold_value": 150
+    }
+  ],
+  "timestamp": 1712213400
 }
 ```
 
-<TypeTable
-  type={{
-    latency_p99_ms: {
-      type: 'number',
-      description: '99th percentile latency target in milliseconds.',
-      default: '5000',
-      required: true,
-    },
-    latency_p50_ms: {
-      type: 'number',
-      description: 'Median latency target in milliseconds.',
-      default: '1000',
-      required: true,
-    },
-    max_cost_per_request_usd: {
-      type: 'number',
-      description: 'Maximum cost per request in USD. Omit to leave uncapped.',
-    },
-    min_quality_score: {
-      type: 'number',
-      description: 'Minimum acceptable quality score from 0 to 1.',
-      default: '0',
-      required: true,
-    },
-    violation_action: {
-      type: '"fallback" | "terminate" | "log_only"',
-      description: 'Action to take when an SLO is breached.',
-      default: '"fallback"',
-      required: true,
-    },
-  }}
-/>
+This is an internal runtime/control-plane contract, not a customer API route.
 
 ---
 
-## Violation Actions
+## Customer-Facing Surfaces
 
-When an SLO is breached, the enforcer takes the configured action:
+Use these documented surfaces to understand SLO behavior:
 
-### `fallback`
-
-Immediately route to the next-best provider in the fallback chain. If no provider can meet the SLO, the request is terminated with a 503.
-
-### `terminate`
-
-Kill the in-flight request and return an error response. The violation is recorded in the receipt.
-
-### `log_only`
-
-Allow the request to complete but record the SLO breach. Useful during SLO tuning or when you want visibility without enforcement.
+- [Provider Health](/docs/provider-health) for provider status and degradation signals.
+- [Circuit Breaker](/docs/circuit-breaker) for provider trip state and recovery behavior.
+- [Routing Control & Analytics](/docs/api-reference/routing-control-analytics/get-v1-routing-stats) for routing telemetry.
+- [Execution Receipts](/docs/execution-receipts) for receipt-level evidence that an execution completed, failed, or violated policy.
+- [Observability & Tracing](/docs/observability-tracing) for deployment-level monitoring.
 
 ---
 
-## How Latency Enforcement Works
+## Operational Admin Handlers
 
-The enforcer tracks provider latency in real time using an exponential moving average (EMA):
+Some deployments wire internal admin handlers for SLO operations:
 
-```
-EMA_new = α × latency_current + (1 - α) × EMA_previous
-```
+| Method | Path | Purpose |
+|---|---|---|
+| `GET` | `/admin/slo/status` | Inspect enforcer status and recent events |
+| `GET` | `/admin/slo/audit` | Read recent SLO audit events |
+| `POST` | `/admin/slo/evaluate` | Run a manual metrics evaluation |
+| `GET` | `/admin/slo/metrics` | Export Prometheus-style SLO counters |
 
-Where `α` is a configurable smoothing factor (default 0.3). Providers whose EMA exceeds your `latency_p99_ms` are deprioritized in routing decisions.
-
-If a request's wall time exceeds `latency_p99_ms` during execution, the enforcer triggers the violation action.
-
----
-
-## Cost Enforcement
-
-The enforcer tracks per-request cost based on token usage and provider pricing. If a request would exceed `max_cost_per_request_usd`:
-
-1. The engine estimates cost before sending to the provider (based on input tokens)
-2. If the estimate exceeds the limit, the request is rejected before inference
-3. If the actual cost exceeds the limit (due to output tokens), the violation is recorded
-
-Cost enforcement is available on **Horizon** and **Infinite** tiers.
+These handlers are operational/admin surfaces. They are intentionally not listed in the customer API reference until they are promoted to a supported customer contract.
 
 ---
 
-## Quality Enforcement
+## Integration Guidance
 
-Quality SLOs use the routing advisor's statistical scoring to evaluate response quality. If a provider's recent quality score drops below `min_quality_score`:
+Do not build customer automation against standalone SLO configuration or compliance routes; they are not part of the current production API.
 
-1. The provider is deprioritized in routing
-2. Council Mode is automatically enabled if available
-3. Speculative Execution may be triggered to race against a backup provider
+For customer integrations:
 
-Quality enforcement requires the routing advisor to be enabled.
-
----
-
-## SLO Dashboard
-
-View SLO compliance in the Console at `/dashboard`:
-
-- **Compliance rate** — percentage of requests meeting all SLOs in the last 24h
-- **Latency histogram** — distribution of response times
-- **Cost chart** — per-request cost over time with SLO threshold line
-- **Top violations** — which SLOs are breached most frequently
+- Use routing and provider-health APIs to observe whether the platform is routing around degraded providers.
+- Use receipts and history for audit evidence.
+- Use deployment monitoring for SLO dashboards.
+- Treat remediation as platform behavior unless your deployment has explicitly exposed an admin SLO surface.
 
 ---
 
-## API
-
-### GET /v1/slo/config
-
-Returns your current SLO configuration.
-
-```bash
-curl https://overture.igrisinertial.com/v1/slo/config \
-  -H "Authorization: Bearer YOUR_API_KEY"
-```
-
-### POST /v1/slo/config
-
-Update SLO configuration.
-
-```bash
-curl -X POST https://overture.igrisinertial.com/v1/slo/config \
-  -H "Authorization: Bearer YOUR_API_KEY" \
-  -H "Content-Type: application/json" \
-  -d '{
-    "latency_p99_ms": 1500,
-    "max_cost_per_request_usd": 0.03,
-    "violation_action": "fallback"
-  }'
-```
-
-### GET /v1/slo/compliance
-
-Returns SLO compliance metrics for the selected time range.
-
-```bash
-curl "https://overture.igrisinertial.com/v1/slo/compliance?range=24h" \
-  -H "Authorization: Bearer YOUR_API_KEY"
-```
-
-Response:
-```json
-{
-  "compliance_rate": 0.973,
-  "total_requests": 4821,
-  "violations": {
-    "latency": 87,
-    "cost": 12,
-    "quality": 0
-  },
-  "avg_latency_ms": 342,
-  "p99_latency_ms": 1847
-}
-```
-
----
-
-[Routing Engine →](/docs/escapevector) · [Routing Advisor →](/docs/cognitive-advisor) · [Usage Analytics →](/docs/api-reference#usage-analytics)
+[Provider Health](/docs/provider-health) | [Circuit Breaker](/docs/circuit-breaker) | [Observability & Tracing](/docs/observability-tracing)
