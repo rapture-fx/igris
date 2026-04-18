@@ -39,14 +39,18 @@ Do not blindly retry write operations. Retry only on transient 5xx or 429 respon
 
 | Field | Type | Required | Description |
 |---|---|---|---|
-| `query` | `string` | Yes | Search query. |
+| `embedding` | `number[]` | Yes | Query embedding vector. |
 | `top_k` | `integer` | No | Maximum number of results to return. |
 
 ## Request Example
 
 ```json
 {
-  "query": "last inspection summary",
+  "embedding": [
+    0.12,
+    -0.04,
+    0.87
+  ],
   "top_k": 3
 }
 ```
@@ -60,7 +64,11 @@ curl -X POST http://localhost:8080/v1/memory/search \
   -H "Authorization: Bearer $IGRIS_RUNTIME_API_KEY" \
   -H "Content-Type: application/json" \
   -d '{
-  "query": "last inspection summary",
+  "embedding": [
+    0.12,
+    -0.04,
+    0.87
+  ],
   "top_k": 3
 }'
 ```
@@ -75,7 +83,11 @@ const response = await fetch('http://localhost:8080/v1/memory/search', {
     'Content-Type': 'application/json',
   },
   body: JSON.stringify({
-  "query": "last inspection summary",
+  "embedding": [
+    0.12,
+    -0.04,
+    0.87
+  ],
   "top_k": 3
 }),
 });
@@ -88,7 +100,7 @@ console.log(data);
 
 ```go
 client := &http.Client{}
-body := strings.NewReader("{\n  \"query\": \"last inspection summary\",\n  \"top_k\": 3\n}")
+body := strings.NewReader("{\n  \"embedding\": [\n    0.12,\n    -0.04,\n    0.87\n  ],\n  \"top_k\": 3\n}")
 
 req, err := http.NewRequest("POST", "http://localhost:8080/v1/memory/search", body)
 if err != nil {
@@ -115,7 +127,11 @@ let response = client
         .request(reqwest::Method::POST, "http://localhost:8080/v1/memory/search")
         .header("Authorization", format!("Bearer {}", std::env::var("IGRIS_RUNTIME_API_KEY")?))
         .json(&serde_json::json!({
-  "query": "last inspection summary",
+  "embedding": [
+    0.12,
+    -0.04,
+    0.87
+  ],
   "top_k": 3
 }))
         .send()
