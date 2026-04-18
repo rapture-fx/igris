@@ -118,7 +118,13 @@ impl ModelId {
         match self {
             Self::Phi3Mini4k => vec!["compact", "fast", "general"],
             Self::Qwen38b => vec!["reasoning", "coding", "math", "multilingual"],
-            Self::Qwen314b => vec!["reasoning", "coding", "math", "multilingual", "high-quality"],
+            Self::Qwen314b => vec![
+                "reasoning",
+                "coding",
+                "math",
+                "multilingual",
+                "high-quality",
+            ],
             Self::DeepseekV327b => vec!["coding", "technical", "long-context"],
             Self::Glm49b => vec!["reasoning", "coding", "chinese", "multilingual"],
             Self::Llama48b => vec!["general", "reasoning", "coding"],

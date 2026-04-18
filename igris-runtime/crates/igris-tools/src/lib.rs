@@ -9,12 +9,12 @@ use anyhow::Result;
 use serde::{Deserialize, Serialize};
 use std::collections::HashMap;
 
-pub mod http;
-pub mod shell;
 pub mod filesystem;
+pub mod http;
 pub mod registry;
+pub mod shell;
 
-pub use registry::{ToolRegistry, ToolDefinition};
+pub use registry::{ToolDefinition, ToolRegistry};
 
 /// Tool execution result
 #[derive(Debug, Clone, Serialize, Deserialize)]
@@ -156,11 +156,8 @@ mod tests {
 
     #[test]
     fn test_tool_result_success() {
-        let result = ToolResult::success(
-            "test_tool".to_string(),
-            "success output".to_string(),
-            100,
-        );
+        let result =
+            ToolResult::success("test_tool".to_string(), "success output".to_string(), 100);
 
         assert!(result.success);
         assert_eq!(result.tool_name, "test_tool");
@@ -170,11 +167,7 @@ mod tests {
 
     #[test]
     fn test_tool_result_failure() {
-        let result = ToolResult::failure(
-            "test_tool".to_string(),
-            "error message".to_string(),
-            50,
-        );
+        let result = ToolResult::failure("test_tool".to_string(), "error message".to_string(), 50);
 
         assert!(!result.success);
         assert_eq!(result.error, Some("error message".to_string()));

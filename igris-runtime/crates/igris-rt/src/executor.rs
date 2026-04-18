@@ -230,10 +230,7 @@ mod tests {
             .execute(Priority::Normal, async { 1 })
             .await
             .unwrap();
-        executor
-            .execute(Priority::High, async { 2 })
-            .await
-            .unwrap();
+        executor.execute(Priority::High, async { 2 }).await.unwrap();
 
         let metrics = executor.metrics().await;
         assert_eq!(metrics.total_executions, 2);

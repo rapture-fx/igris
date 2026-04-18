@@ -82,11 +82,11 @@ impl AdapterBridge {
         // Read header JSON
         let mut header_buf = vec![0u8; header_len];
         file.read_exact(&mut header_buf)?;
-        let header_str = String::from_utf8(header_buf)
-            .context("Invalid UTF-8 in safetensors header")?;
+        let header_str =
+            String::from_utf8(header_buf).context("Invalid UTF-8 in safetensors header")?;
 
-        let header: HashMap<String, serde_json::Value> = serde_json::from_str(&header_str)
-            .context("Failed to parse safetensors header")?;
+        let header: HashMap<String, serde_json::Value> =
+            serde_json::from_str(&header_str).context("Failed to parse safetensors header")?;
 
         // Read remaining data
         let mut data = Vec::new();
@@ -101,7 +101,10 @@ impl AdapterBridge {
 
             let dtype = info.get("dtype").and_then(|v| v.as_str()).unwrap_or("F32");
             if dtype != "F32" {
-                warn!("Skipping tensor {} with dtype {} (only F32 supported)", name, dtype);
+                warn!(
+                    "Skipping tensor {} with dtype {} (only F32 supported)",
+                    name, dtype
+                );
                 continue;
             }
 
@@ -137,8 +140,8 @@ impl AdapterBridge {
 
     /// Save LoRA weights to a simple JSON format (for federated transport)
     pub fn save_weights_json(weights: &LoRAWeights, path: &Path) -> Result<()> {
-        let data = serde_json::to_string_pretty(weights)
-            .context("Failed to serialize LoRA weights")?;
+        let data =
+            serde_json::to_string_pretty(weights).context("Failed to serialize LoRA weights")?;
         std::fs::write(path, data)?;
         info!("Saved LoRA weights to {}", path.display());
         Ok(())
@@ -148,8 +151,8 @@ impl AdapterBridge {
     pub fn load_weights_json(path: &Path) -> Result<LoRAWeights> {
         let data = std::fs::read_to_string(path)
             .with_context(|| format!("Failed to read weights from {}", path.display()))?;
-        let weights: LoRAWeights = serde_json::from_str(&data)
-            .context("Failed to deserialize LoRA weights")?;
+        let weights: LoRAWeights =
+            serde_json::from_str(&data).context("Failed to deserialize LoRA weights")?;
         Ok(weights)
     }
 

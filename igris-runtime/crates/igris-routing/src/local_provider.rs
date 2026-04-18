@@ -1,7 +1,7 @@
 use crate::speculative::Provider;
+use futures::Stream;
 use igris_local_llm::LocalLLMProviderAdapter;
 use std::pin::Pin;
-use futures::Stream;
 
 /// Wrapper to implement Provider trait for LocalLLMProviderAdapter
 pub struct LocalProvider {
@@ -31,7 +31,13 @@ impl LocalProvider {
         main_gpu: Option<Option<u32>>,
     ) -> anyhow::Result<()> {
         self.adapter
-            .hot_swap(new_model_path, context_size, threads, n_gpu_layers, main_gpu)
+            .hot_swap(
+                new_model_path,
+                context_size,
+                threads,
+                n_gpu_layers,
+                main_gpu,
+            )
             .await
     }
 
@@ -55,7 +61,10 @@ impl Provider for LocalProvider {
         self.adapter.name()
     }
 
-    async fn stream(&self, prompt: &str) -> anyhow::Result<Pin<Box<dyn Stream<Item = Result<String, anyhow::Error>> + Send>>> {
+    async fn stream(
+        &self,
+        prompt: &str,
+    ) -> anyhow::Result<Pin<Box<dyn Stream<Item = Result<String, anyhow::Error>> + Send>>> {
         self.adapter.stream(prompt).await
     }
 

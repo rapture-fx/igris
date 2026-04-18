@@ -28,9 +28,15 @@ pub struct PlanningConfig {
     pub max_tool_calls: u32,
 }
 
-fn default_max_steps() -> u32 { 10 }
-fn default_enable_reflection() -> bool { true }
-fn default_max_tool_calls() -> u32 { 20 }
+fn default_max_steps() -> u32 {
+    10
+}
+fn default_enable_reflection() -> bool {
+    true
+}
+fn default_max_tool_calls() -> u32 {
+    20
+}
 
 impl Default for PlanningConfig {
     fn default() -> Self {

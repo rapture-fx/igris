@@ -1,5 +1,5 @@
-pub mod hotfix;
 pub mod escapevector;
+pub mod hotfix;
 
-pub use hotfix::{EmergencyPolicy, PolicyStore};
 pub use escapevector::EscapeVectorCache;
+pub use hotfix::{EmergencyPolicy, PolicyStore};

@@ -1,15 +1,18 @@
-pub mod protocol;
-pub mod handlers;
 pub mod context;
 pub mod discovery;
+pub mod handlers;
 pub mod multicast;
-pub mod storage;
+pub mod protocol;
 pub mod signing;
+pub mod storage;
 
-pub use protocol::{JsonRpcRequest, JsonRpcResponse, JsonRpcError, McpCapabilities, ToolCallParams, ToolCallResult, ToolResultContent, SignedExecutionEnvelope};
-pub use handlers::{build_mcp_router, McpState};
-pub use context::{SharedContext, ContextStore};
+pub use context::{ContextStore, SharedContext};
 pub use discovery::PeerDiscovery;
+pub use handlers::{build_mcp_router, McpState};
 pub use multicast::MulticastDiscovery;
-pub use storage::EncryptedStorage;
+pub use protocol::{
+    JsonRpcError, JsonRpcRequest, JsonRpcResponse, McpCapabilities, SignedExecutionEnvelope,
+    ToolCallParams, ToolCallResult, ToolResultContent,
+};
 pub use signing::ExecutionSigner;
+pub use storage::EncryptedStorage;

@@ -1,7 +1,6 @@
 use aes_gcm::{
     aead::{Aead, KeyInit, OsRng},
-    AeadCore,
-    Aes256Gcm, Nonce,
+    AeadCore, Aes256Gcm, Nonce,
 };
 use anyhow::Result;
 use redb::{Database, ReadableTable, TableDefinition};

@@ -36,18 +36,22 @@ mod tests {
         }
 
         let s = futures::stream::iter(vec![
-            Ok::<Event, Infallible>(Event::default().data(
-                serde_json::json!({
-                    "choices": [{ "delta": { "content": "hel" } }]
-                })
-                .to_string(),
-            )),
-            Ok::<Event, Infallible>(Event::default().data(
-                serde_json::json!({
-                    "choices": [{ "delta": { "content": "lo" } }]
-                })
-                .to_string(),
-            )),
+            Ok::<Event, Infallible>(
+                Event::default().data(
+                    serde_json::json!({
+                        "choices": [{ "delta": { "content": "hel" } }]
+                    })
+                    .to_string(),
+                ),
+            ),
+            Ok::<Event, Infallible>(
+                Event::default().data(
+                    serde_json::json!({
+                        "choices": [{ "delta": { "content": "lo" } }]
+                    })
+                    .to_string(),
+                ),
+            ),
             Ok::<Event, Infallible>(Event::default().data("[DONE]")),
         ]);
 
@@ -78,12 +82,19 @@ mod tests {
         }];
         cfg.auth.enabled = false;
 
-        let cloud_providers = cfg.providers.iter().map(|p| CloudProvider::new(p.clone())).collect();
+        let cloud_providers = cfg
+            .providers
+            .iter()
+            .map(|p| CloudProvider::new(p.clone()))
+            .collect();
         let db_path = std::env::temp_dir().join(format!("igris-test-{}.db", uuid::Uuid::new_v4()));
         AppState {
             config: Arc::new(cfg),
             storage: Arc::new(RedbStorage::new(db_path).unwrap()),
-            speculative_router: Arc::new(SpeculativeRouter::new(3, std::time::Duration::from_secs(2))),
+            speculative_router: Arc::new(SpeculativeRouter::new(
+                3,
+                std::time::Duration::from_secs(2),
+            )),
             thompson_router: Arc::new(ThompsonSamplingRouter::new(vec!["mock".to_string()], 0.1)),
             council_router: Arc::new(CouncilRouter::new("mock".to_string())),
             cloud_providers: Arc::new(cloud_providers),
@@ -115,7 +126,9 @@ mod tests {
             overture_public_key: None,
             receipt_log: None,
             lifecycle_registry: None,
-            task_cancellation_registry: Arc::new(std::sync::RwLock::new(std::collections::HashMap::new())),
+            task_cancellation_registry: Arc::new(std::sync::RwLock::new(
+                std::collections::HashMap::new(),
+            )),
             bt_state_tx: Arc::new(tokio::sync::watch::channel(serde_json::Value::Null).0),
         }
     }
@@ -125,10 +138,8 @@ mod tests {
         cfg.providers = vec![];
         cfg.auth.enabled = false;
 
-        let db_path = std::env::temp_dir().join(format!(
-            "igris-runtime-test-{}.db",
-            uuid::Uuid::new_v4()
-        ));
+        let db_path =
+            std::env::temp_dir().join(format!("igris-runtime-test-{}.db", uuid::Uuid::new_v4()));
         AppState {
             config: Arc::new(cfg),
             storage: Arc::new(RedbStorage::new(db_path).unwrap()),
@@ -182,9 +193,18 @@ mod tests {
 
     fn build_runtime_task_app(state: AppState) -> Router {
         Router::new()
-            .route("/v1/runtime/task/submit", post(task_executor::handle_task_submit))
-            .route("/v1/runtime/task/stream", post(task_executor::handle_task_stream))
-            .route("/v1/runtime/task/:task_id/cancel", post(task_executor::handle_task_cancel))
+            .route(
+                "/v1/runtime/task/submit",
+                post(task_executor::handle_task_submit),
+            )
+            .route(
+                "/v1/runtime/task/stream",
+                post(task_executor::handle_task_stream),
+            )
+            .route(
+                "/v1/runtime/task/:task_id/cancel",
+                post(task_executor::handle_task_cancel),
+            )
             .with_state(state)
     }
 
@@ -213,7 +233,9 @@ mod tests {
         let resp = app.oneshot(req).await.unwrap();
         assert_eq!(resp.status(), StatusCode::OK);
 
-        let bytes = axum::body::to_bytes(resp.into_body(), usize::MAX).await.unwrap();
+        let bytes = axum::body::to_bytes(resp.into_body(), usize::MAX)
+            .await
+            .unwrap();
         let v: serde_json::Value = serde_json::from_slice(&bytes).unwrap();
         let content = v["choices"][0]["message"]["content"].as_str().unwrap();
         // Speculative routing races streams even for non-stream requests (first-token wins),
@@ -244,7 +266,9 @@ mod tests {
         assert_eq!(resp.status(), StatusCode::OK);
 
         // Validate we got an SSE response body with at least one chunk.
-        let bytes = axum::body::to_bytes(resp.into_body(), usize::MAX).await.unwrap();
+        let bytes = axum::body::to_bytes(resp.into_body(), usize::MAX)
+            .await
+            .unwrap();
         let text = String::from_utf8_lossy(&bytes);
         assert!(text.contains("data:"));
         assert!(text.contains("[DONE]"));
@@ -309,7 +333,9 @@ mod tests {
         let resp = app.oneshot(req).await.unwrap();
         assert_eq!(resp.status(), StatusCode::CONFLICT);
 
-        let bytes = axum::body::to_bytes(resp.into_body(), usize::MAX).await.unwrap();
+        let bytes = axum::body::to_bytes(resp.into_body(), usize::MAX)
+            .await
+            .unwrap();
         let payload: serde_json::Value = serde_json::from_slice(&bytes).unwrap();
         assert_eq!(payload["error"]["type"], "checkpoint_mismatch");
         assert_eq!(
@@ -379,7 +405,10 @@ mod tests {
             .storage
             .set(
                 TASK_SUBMISSIONS,
-                &format!("{}:{}", stream_request.tenant_id, stream_request.idempotency_key),
+                &format!(
+                    "{}:{}",
+                    stream_request.tenant_id, stream_request.idempotency_key
+                ),
                 &stored,
             )
             .unwrap();
@@ -405,7 +434,9 @@ mod tests {
             resp.headers()["x-igris-runtime-stream-replay-condition"],
             "completed-final-output"
         );
-        let bytes = axum::body::to_bytes(resp.into_body(), usize::MAX).await.unwrap();
+        let bytes = axum::body::to_bytes(resp.into_body(), usize::MAX)
+            .await
+            .unwrap();
         let text = String::from_utf8_lossy(&bytes);
         assert!(text.contains("hello"));
         assert!(text.contains("event: task_result"));
@@ -501,14 +532,22 @@ mod tests {
         let resp = app.oneshot(req).await.unwrap();
         assert_eq!(resp.status(), StatusCode::CONFLICT);
 
-        let bytes = axum::body::to_bytes(resp.into_body(), usize::MAX).await.unwrap();
+        let bytes = axum::body::to_bytes(resp.into_body(), usize::MAX)
+            .await
+            .unwrap();
         let payload: serde_json::Value = serde_json::from_slice(&bytes).unwrap();
         assert_eq!(payload["error"]["type"], "stream_replay_unavailable");
         assert_eq!(payload["task"]["status"]["status"], "failed");
-        assert_eq!(payload["task"]["status"]["reason"], "provider stream failed");
+        assert_eq!(
+            payload["task"]["status"]["reason"],
+            "provider stream failed"
+        );
         assert_eq!(payload["task"]["failure_details"]["source"], "runtime");
         assert_eq!(payload["task"]["failure_details"]["operation"], "execution");
-        assert_eq!(payload["task"]["failure_details"]["rejection_type"], "step_failed");
+        assert_eq!(
+            payload["task"]["failure_details"]["rejection_type"],
+            "step_failed"
+        );
         assert_eq!(payload["task"]["failure_details"]["step_index"], 0);
         assert_eq!(payload["task"]["failure_details"]["domain"], "agent");
         assert_eq!(payload["task"]["failure_details"]["node_id"], "agent-0");
@@ -552,7 +591,9 @@ mod tests {
         let resp = app.oneshot(req).await.unwrap();
         assert_eq!(resp.status(), StatusCode::CONFLICT);
 
-        let bytes = axum::body::to_bytes(resp.into_body(), usize::MAX).await.unwrap();
+        let bytes = axum::body::to_bytes(resp.into_body(), usize::MAX)
+            .await
+            .unwrap();
         let payload: serde_json::Value = serde_json::from_slice(&bytes).unwrap();
         assert_eq!(payload["task_id"], task_id.to_string());
         assert_eq!(payload["canceled"], false);
@@ -563,7 +604,10 @@ mod tests {
         assert_eq!(payload["durability"]["mode"], "streaming");
         assert_eq!(payload["durability"]["resume_supported"], false);
         assert_eq!(payload["durability"]["replay_supported"], true);
-        assert_eq!(payload["durability"]["replay_condition"], "completed-final-output");
+        assert_eq!(
+            payload["durability"]["replay_condition"],
+            "completed-final-output"
+        );
         assert_eq!(payload["durability"]["checkpoint_persisted"], false);
     }
 
@@ -608,7 +652,9 @@ mod tests {
         // Pre-populate cache with a response
         let prompt = "user: What is 2+2?";
         let cached_response = "The answer is 4.";
-        cache.save_response(prompt, cached_response, "gpt-4", 0.95).unwrap();
+        cache
+            .save_response(prompt, cached_response, "gpt-4", 0.95)
+            .unwrap();
 
         // Build state with failing providers (invalid endpoint) and EscapeVector cache
         let mut cfg = IgrisConfig::default();
@@ -624,13 +670,20 @@ mod tests {
         }];
         cfg.auth.enabled = false;
 
-        let cloud_providers = cfg.providers.iter().map(|p| CloudProvider::new(p.clone())).collect();
+        let cloud_providers = cfg
+            .providers
+            .iter()
+            .map(|p| CloudProvider::new(p.clone()))
+            .collect();
         let db_path = std::env::temp_dir().join(format!("igris-test-{}.db", uuid::Uuid::new_v4()));
 
         let state = AppState {
             config: Arc::new(cfg),
             storage: Arc::new(RedbStorage::new(db_path).unwrap()),
-            speculative_router: Arc::new(SpeculativeRouter::new(3, std::time::Duration::from_millis(100))),
+            speculative_router: Arc::new(SpeculativeRouter::new(
+                3,
+                std::time::Duration::from_millis(100),
+            )),
             thompson_router: Arc::new(ThompsonSamplingRouter::new(vec!["mock".to_string()], 0.1)),
             council_router: Arc::new(CouncilRouter::new("mock".to_string())),
             cloud_providers: Arc::new(cloud_providers),
@@ -662,7 +715,9 @@ mod tests {
             overture_public_key: None,
             receipt_log: None,
             lifecycle_registry: None,
-            task_cancellation_registry: Arc::new(std::sync::RwLock::new(std::collections::HashMap::new())),
+            task_cancellation_registry: Arc::new(std::sync::RwLock::new(
+                std::collections::HashMap::new(),
+            )),
             bt_state_tx: Arc::new(tokio::sync::watch::channel(serde_json::Value::Null).0),
         };
 
@@ -683,7 +738,9 @@ mod tests {
         let resp = app.oneshot(req).await.unwrap();
         assert_eq!(resp.status(), StatusCode::OK);
 
-        let bytes = axum::body::to_bytes(resp.into_body(), usize::MAX).await.unwrap();
+        let bytes = axum::body::to_bytes(resp.into_body(), usize::MAX)
+            .await
+            .unwrap();
         let v: serde_json::Value = serde_json::from_slice(&bytes).unwrap();
 
         // Verify response content
@@ -694,7 +751,10 @@ mod tests {
         let metadata = &v["metadata"];
         assert!(metadata.is_object(), "metadata should be present");
         assert_eq!(metadata["degraded"].as_bool().unwrap(), true);
-        assert!(metadata["source"].as_str().unwrap().starts_with("escapevector-cache:"));
+        assert!(metadata["source"]
+            .as_str()
+            .unwrap()
+            .starts_with("escapevector-cache:"));
         assert!(metadata["cache_age_seconds"].is_u64());
         assert_eq!(metadata["quality_score"].as_f64().unwrap(), 0.95);
 
@@ -706,7 +766,8 @@ mod tests {
     #[tokio::test]
     async fn escapevector_cache_miss_returns_503() {
         // Setup: Create empty EscapeVector cache
-        let temp_dir = std::env::temp_dir().join(format!("igris-test-ev-miss-{}", uuid::Uuid::new_v4()));
+        let temp_dir =
+            std::env::temp_dir().join(format!("igris-test-ev-miss-{}", uuid::Uuid::new_v4()));
         let cache_key = [43u8; 32];
         let cache = Arc::new(EscapeVectorCache::new(&temp_dir, cache_key).unwrap());
 
@@ -724,13 +785,20 @@ mod tests {
         }];
         cfg.auth.enabled = false;
 
-        let cloud_providers = cfg.providers.iter().map(|p| CloudProvider::new(p.clone())).collect();
+        let cloud_providers = cfg
+            .providers
+            .iter()
+            .map(|p| CloudProvider::new(p.clone()))
+            .collect();
         let db_path = std::env::temp_dir().join(format!("igris-test-{}.db", uuid::Uuid::new_v4()));
 
         let state = AppState {
             config: Arc::new(cfg),
             storage: Arc::new(RedbStorage::new(db_path).unwrap()),
-            speculative_router: Arc::new(SpeculativeRouter::new(3, std::time::Duration::from_millis(100))),
+            speculative_router: Arc::new(SpeculativeRouter::new(
+                3,
+                std::time::Duration::from_millis(100),
+            )),
             thompson_router: Arc::new(ThompsonSamplingRouter::new(vec!["mock".to_string()], 0.1)),
             council_router: Arc::new(CouncilRouter::new("mock".to_string())),
             cloud_providers: Arc::new(cloud_providers),
@@ -762,7 +830,9 @@ mod tests {
             overture_public_key: None,
             receipt_log: None,
             lifecycle_registry: None,
-            task_cancellation_registry: Arc::new(std::sync::RwLock::new(std::collections::HashMap::new())),
+            task_cancellation_registry: Arc::new(std::sync::RwLock::new(
+                std::collections::HashMap::new(),
+            )),
             bt_state_tx: Arc::new(tokio::sync::watch::channel(serde_json::Value::Null).0),
         };
 
@@ -785,7 +855,9 @@ mod tests {
         // Should return 503 Service Unavailable
         assert_eq!(resp.status(), StatusCode::SERVICE_UNAVAILABLE);
 
-        let bytes = axum::body::to_bytes(resp.into_body(), usize::MAX).await.unwrap();
+        let bytes = axum::body::to_bytes(resp.into_body(), usize::MAX)
+            .await
+            .unwrap();
         let v: serde_json::Value = serde_json::from_slice(&bytes).unwrap();
 
         // Verify error message
@@ -819,10 +891,15 @@ mod tests {
         let resp = app.oneshot(req).await.unwrap();
         assert_eq!(resp.status(), StatusCode::OK);
 
-        let bytes = axum::body::to_bytes(resp.into_body(), usize::MAX).await.unwrap();
+        let bytes = axum::body::to_bytes(resp.into_body(), usize::MAX)
+            .await
+            .unwrap();
         let v: serde_json::Value = serde_json::from_slice(&bytes).unwrap();
 
         // Verify metadata is absent or null for normal requests
-        assert!(v["metadata"].is_null(), "metadata should be null for normal responses");
+        assert!(
+            v["metadata"].is_null(),
+            "metadata should be null for normal responses"
+        );
     }
 }

@@ -52,7 +52,10 @@ impl TaskExecutor {
 
     /// Register a handler for a task type
     pub async fn register_handler(&self, task_type: &str, handler: Arc<dyn TaskHandler>) {
-        self.handlers.write().await.insert(task_type.to_string(), handler);
+        self.handlers
+            .write()
+            .await
+            .insert(task_type.to_string(), handler);
         info!("Registered task handler for type: {}", task_type);
     }
 
@@ -74,9 +77,9 @@ impl TaskExecutor {
         parameters: serde_json::Value,
     ) -> Result<TaskExecutionResult> {
         let handlers = self.handlers.read().await;
-        let handler = handlers.get(task_type).ok_or_else(|| {
-            anyhow::anyhow!("No handler registered for task type: {}", task_type)
-        })?;
+        let handler = handlers
+            .get(task_type)
+            .ok_or_else(|| anyhow::anyhow!("No handler registered for task type: {}", task_type))?;
 
         info!("Executing task {} (type: {})", proposal_id, task_type);
 
@@ -108,7 +111,10 @@ impl TaskExecutor {
         };
 
         // Record in history
-        self.execution_history.write().await.push(execution_result.clone());
+        self.execution_history
+            .write()
+            .await
+            .push(execution_result.clone());
 
         Ok(execution_result)
     }
@@ -131,10 +137,20 @@ pub struct InferenceTaskHandler;
 impl TaskHandler for InferenceTaskHandler {
     async fn execute(&self, parameters: serde_json::Value) -> Result<serde_json::Value> {
         // In production, this would call the local inference engine
-        let model = parameters.get("model").and_then(|v| v.as_str()).unwrap_or("default");
-        let prompt = parameters.get("prompt").and_then(|v| v.as_str()).unwrap_or("");
+        let model = parameters
+            .get("model")
+            .and_then(|v| v.as_str())
+            .unwrap_or("default");
+        let prompt = parameters
+            .get("prompt")
+            .and_then(|v| v.as_str())
+            .unwrap_or("");
 
-        info!("Running inference task: model={}, prompt_len={}", model, prompt.len());
+        info!(
+            "Running inference task: model={}, prompt_len={}",
+            model,
+            prompt.len()
+        );
 
         Ok(serde_json::json!({
             "model": model,
@@ -177,7 +193,9 @@ mod tests {
     #[tokio::test]
     async fn test_task_executor() {
         let executor = TaskExecutor::new("agent-1");
-        executor.register_handler("double", Arc::new(TestHandler)).await;
+        executor
+            .register_handler("double", Arc::new(TestHandler))
+            .await;
 
         assert!(executor.can_handle("double").await);
         assert!(!executor.can_handle("unknown").await);
@@ -194,7 +212,9 @@ mod tests {
     #[tokio::test]
     async fn test_execution_history() {
         let executor = TaskExecutor::new("agent-1");
-        executor.register_handler("health", Arc::new(HealthCheckHandler)).await;
+        executor
+            .register_handler("health", Arc::new(HealthCheckHandler))
+            .await;
 
         executor
             .execute_task("task-1", "health", serde_json::json!({}))

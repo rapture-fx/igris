@@ -95,8 +95,13 @@ impl Supervisor {
             .spawn()
             .map_err(|e| e.to_string())?;
 
-        let pid = child.id().ok_or_else(|| "worker exited immediately".to_string())?;
-        let stdin = child.stdin.take().ok_or_else(|| "could not get worker stdin".to_string())?;
+        let pid = child
+            .id()
+            .ok_or_else(|| "worker exited immediately".to_string())?;
+        let stdin = child
+            .stdin
+            .take()
+            .ok_or_else(|| "could not get worker stdin".to_string())?;
         let stdout = child
             .stdout
             .take()
@@ -105,7 +110,12 @@ impl Supervisor {
 
         self.attach_cgroup(pid)?;
 
-        self.worker = Some(WorkerHandle { child, pid, stdin, stdout });
+        self.worker = Some(WorkerHandle {
+            child,
+            pid,
+            stdin,
+            stdout,
+        });
         Ok(())
     }
 
@@ -124,7 +134,8 @@ impl Supervisor {
             .done()
             .build(hier)
             .map_err(|e| e.to_string())?;
-        cg.add_task(CgroupPid::from(pid as u64)).map_err(|e| e.to_string())
+        cg.add_task(CgroupPid::from(pid as u64))
+            .map_err(|e| e.to_string())
     }
 
     #[cfg(not(target_os = "linux"))]
@@ -235,7 +246,10 @@ mod tests {
         let secret: [u8; 32] = [0u8; 32];
         let signing_key = SigningKey::from_bytes(&secret);
         let sup = Supervisor::new(bounds, signing_key, "/tmp/test.jsonl".to_string());
-        assert!(sup.worker.is_none(), "worker must not be spawned at construction");
+        assert!(
+            sup.worker.is_none(),
+            "worker must not be spawned at construction"
+        );
     }
 
     #[test]
@@ -283,10 +297,13 @@ mod tests {
         let bounds = Bounds::new(80, 500);
         let secret: [u8; 32] = rand::random();
         let signing_key = SigningKey::from_bytes(&secret);
-        let mut sup =
-            Supervisor::new(bounds, signing_key, "/tmp/igris_sup_test.jsonl".to_string());
+        let mut sup = Supervisor::new(bounds, signing_key, "/tmp/igris_sup_test.jsonl".to_string());
         let result = sup.execute(serde_json::json!({"ping": 1})).await;
-        assert!(result.is_ok(), "expected Ok result from worker, got {:?}", result);
+        assert!(
+            result.is_ok(),
+            "expected Ok result from worker, got {:?}",
+            result
+        );
     }
 
     /// Timeout violation test — also requires a real worker binary; skipped in unit tests.

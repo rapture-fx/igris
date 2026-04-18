@@ -13,7 +13,6 @@ use serde_json::Value;
 use std::sync::Arc;
 use tracing::{debug, info, warn};
 
-
 #[derive(Debug, Clone, Serialize, Deserialize)]
 #[serde(rename_all = "snake_case")]
 enum DecisionType {
@@ -151,8 +150,8 @@ impl PlanningAgent {
             // WAL: record intent before LLM call (step_index is 0-based).
             #[cfg(feature = "wal")]
             let wal_entry_id = if let Some((ref wal, _)) = self.wal {
-                use sha2::{Digest, Sha256};
                 use igris_wal::StepType;
+                use sha2::{Digest, Sha256};
                 let input_digest: [u8; 32] = Sha256::digest(prompt.as_bytes()).into();
                 match wal.write_intent(
                     step_num - 1,
@@ -175,7 +174,10 @@ impl PlanningAgent {
             let raw = self.provider.generate(&prompt).await?;
 
             let decision = parse_step_decision(&raw).ok_or_else(|| {
-                anyhow::anyhow!("Planner did not return valid JSON step decision. Output: {}", raw)
+                anyhow::anyhow!(
+                    "Planner did not return valid JSON step decision. Output: {}",
+                    raw
+                )
             })?;
 
             match decision.decision_type {
@@ -220,20 +222,22 @@ impl PlanningAgent {
                         anyhow::bail!("Exceeded max_tool_calls={}", self.config.max_tool_calls);
                     }
 
-                    let tool = decision
-                        .tool
-                        .ok_or_else(|| anyhow::anyhow!("decision_type=tool but 'tool' is missing"))?;
-                    let registry = self
-                        .tools
-                        .as_ref()
-                        .ok_or_else(|| anyhow::anyhow!("Tools enabled but ToolRegistry is not provided"))?;
+                    let tool = decision.tool.ok_or_else(|| {
+                        anyhow::anyhow!("decision_type=tool but 'tool' is missing")
+                    })?;
+                    let registry = self.tools.as_ref().ok_or_else(|| {
+                        anyhow::anyhow!("Tools enabled but ToolRegistry is not provided")
+                    })?;
 
                     let result = registry.execute(&tool.name, tool.arguments).await?;
                     tool_calls_used += 1;
 
                     let observation = format_tool_result(&result);
                     let reflection = if self.config.enable_reflection {
-                        Some(self.reflect_prompt(goal, &steps, &decision.thought, &observation).await?)
+                        Some(
+                            self.reflect_prompt(goal, &steps, &decision.thought, &observation)
+                                .await?,
+                        )
                     } else {
                         None
                     };
@@ -244,12 +248,8 @@ impl PlanningAgent {
                         (&self.wal, wal_entry_id)
                     {
                         use sha2::{Digest, Sha256};
-                        let output_payload = format!(
-                            "{}{}{}",
-                            decision.thought,
-                            tool.name,
-                            observation
-                        );
+                        let output_payload =
+                            format!("{}{}{}", decision.thought, tool.name, observation);
                         let output_digest: [u8; 32] =
                             Sha256::digest(output_payload.as_bytes()).into();
                         if let Err(e) = wal.write_committed(entry_id, output_digest, signing_key) {
@@ -284,7 +284,8 @@ impl PlanningAgent {
         let history = if steps.is_empty() {
             "(none)".to_string()
         } else {
-            steps.iter()
+            steps
+                .iter()
                 .map(|s| {
                     format!(
                         "Step {}:\nThought: {}\nAction: {}\nObservation: {}\nReflection: {}\n",
@@ -361,7 +362,9 @@ fn format_tool_result(r: &ToolResult) -> String {
             "Tool {} failed ({}ms)\n{}",
             r.tool_name,
             r.execution_time_ms,
-            r.error.clone().unwrap_or_else(|| "unknown error".to_string())
+            r.error
+                .clone()
+                .unwrap_or_else(|| "unknown error".to_string())
         )
     }
 }

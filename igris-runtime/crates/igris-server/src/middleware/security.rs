@@ -5,8 +5,8 @@ use axum::{
     middleware::Next,
     response::{IntoResponse, Response},
 };
-use ed25519_dalek::Verifier;
 use base64::Engine;
+use ed25519_dalek::Verifier;
 use sha2::{Digest, Sha256};
 use std::collections::HashMap;
 use std::sync::Arc;
@@ -148,7 +148,10 @@ fn verify_hs256_jwt(token: &str, secret: &[u8], now_ts: u64) -> anyhow::Result<J
     }
 
     let payload_v: serde_json::Value = serde_json::from_slice(&payload)?;
-    let sub = payload_v.get("sub").and_then(|v| v.as_str()).map(|s| s.to_string());
+    let sub = payload_v
+        .get("sub")
+        .and_then(|v| v.as_str())
+        .map(|s| s.to_string());
     let exp = payload_v.get("exp").and_then(|v| v.as_u64());
     let nbf = payload_v.get("nbf").and_then(|v| v.as_u64());
 
@@ -210,9 +213,7 @@ pub async fn security_middleware(
                 .unwrap_or_default();
 
             let verified = sig_b64
-                .and_then(|b64| {
-                    base64::engine::general_purpose::STANDARD.decode(b64).ok()
-                })
+                .and_then(|b64| base64::engine::general_purpose::STANDARD.decode(b64).ok())
                 .and_then(|sig_bytes| {
                     let arr: [u8; 64] = sig_bytes.try_into().ok()?;
                     Some(ed25519_dalek::Signature::from_bytes(&arr))
@@ -244,7 +245,9 @@ pub async fn security_middleware(
 
     // 1) JWT Bearer if configured
     if let Some(secret) = &auth.jwt_hs256_secret {
-        if let Some(h) = headers.get(axum::http::header::AUTHORIZATION).and_then(|h| h.to_str().ok())
+        if let Some(h) = headers
+            .get(axum::http::header::AUTHORIZATION)
+            .and_then(|h| h.to_str().ok())
         {
             if let Some(token) = h.strip_prefix("Bearer ").map(|s| s.trim()) {
                 let now_ts = std::time::SystemTime::now()

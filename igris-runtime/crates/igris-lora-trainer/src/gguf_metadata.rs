@@ -4,7 +4,6 @@
 ///! This allows loading the correct model dimensions instead of hard-coding 768.
 ///!
 ///! GGUF Format Reference: https://github.com/ggerganov/ggml/blob/master/docs/gguf.md
-
 use anyhow::{Context, Result};
 use std::collections::HashMap;
 use std::fs::File;
@@ -60,7 +59,8 @@ impl GGUFMetadata {
 
         // Read magic number (4 bytes: "GGUF")
         let mut magic = [0u8; 4];
-        reader.read_exact(&mut magic)
+        reader
+            .read_exact(&mut magic)
             .context("Failed to read GGUF magic number")?;
 
         if &magic != b"GGUF" {
@@ -68,21 +68,21 @@ impl GGUFMetadata {
         }
 
         // Read version (4 bytes, little-endian u32)
-        let version = read_u32_le(&mut reader)
-            .context("Failed to read GGUF version")?;
+        let version = read_u32_le(&mut reader).context("Failed to read GGUF version")?;
         debug!("GGUF version: {}", version);
 
         if version < 2 || version > 3 {
-            warn!("Unsupported GGUF version: {}. Trying to parse anyway...", version);
+            warn!(
+                "Unsupported GGUF version: {}. Trying to parse anyway...",
+                version
+            );
         }
 
         // Read tensor count (8 bytes, little-endian u64)
-        let _tensor_count = read_u64_le(&mut reader)
-            .context("Failed to read tensor count")?;
+        let _tensor_count = read_u64_le(&mut reader).context("Failed to read tensor count")?;
 
         // Read metadata count (8 bytes, little-endian u64)
-        let metadata_count = read_u64_le(&mut reader)
-            .context("Failed to read metadata count")?;
+        let metadata_count = read_u64_le(&mut reader).context("Failed to read metadata count")?;
         debug!("GGUF metadata entries: {}", metadata_count);
 
         // Read metadata key-value pairs

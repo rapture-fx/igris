@@ -3,8 +3,8 @@
 use anyhow::Result;
 use serde::{Deserialize, Serialize};
 use sled::Db;
-use std::collections::BinaryHeap;
 use std::cmp::Ordering;
+use std::collections::BinaryHeap;
 
 #[derive(Debug, Clone, Serialize, Deserialize)]
 pub struct MemoryEntry {

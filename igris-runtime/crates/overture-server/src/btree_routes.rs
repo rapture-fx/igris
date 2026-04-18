@@ -258,7 +258,9 @@ async fn get_history(
                                 && timestamp >= start_time
                                 && timestamp <= end_time
                             {
-                                if let Ok(snapshot) = serde_json::from_str::<serde_json::Value>(value.value()) {
+                                if let Ok(snapshot) =
+                                    serde_json::from_str::<serde_json::Value>(value.value())
+                                {
                                     results.push(snapshot);
                                 }
                             }
@@ -318,7 +320,9 @@ async fn get_replay_session(
                                 && timestamp >= start_time
                                 && timestamp <= end_time
                             {
-                                if let Ok(snapshot) = serde_json::from_str::<serde_json::Value>(value.value()) {
+                                if let Ok(snapshot) =
+                                    serde_json::from_str::<serde_json::Value>(value.value())
+                                {
                                     min_time = min_time.min(timestamp);
                                     max_time = max_time.max(timestamp);
                                     snapshots.push(snapshot);
@@ -415,8 +419,7 @@ async fn post_snapshot(
 
     // Check for alerts
     if let Some(metrics_obj) = snapshot.get("metrics") {
-        if let Ok(metrics_summary) = serde_json::from_value::<MetricsSummary>(metrics_obj.clone())
-        {
+        if let Ok(metrics_summary) = serde_json::from_value::<MetricsSummary>(metrics_obj.clone()) {
             let config = state.alert_config.read().await;
             if config.enabled {
                 drop(config); // Release read lock
@@ -425,7 +428,9 @@ async fn post_snapshot(
                 {
                     if !new_alerts.is_empty() {
                         let mut alerts_store = state.alerts.write().await;
-                        let agent_alerts = alerts_store.entry(agent_id.clone()).or_insert_with(Vec::new);
+                        let agent_alerts = alerts_store
+                            .entry(agent_id.clone())
+                            .or_insert_with(Vec::new);
                         agent_alerts.extend(new_alerts);
 
                         // Keep only last 100 alerts per agent
@@ -745,7 +750,10 @@ async fn get_fleet_overview(
     let mut total_replans = 0u64;
 
     for (agent_id, snapshot) in snapshots.iter() {
-        let timestamp_ms = snapshot.get("timestamp_ms").and_then(|v| v.as_u64()).unwrap_or(0);
+        let timestamp_ms = snapshot
+            .get("timestamp_ms")
+            .and_then(|v| v.as_u64())
+            .unwrap_or(0);
         let age_seconds = (now - timestamp_ms) as f64 / 1000.0;
 
         let metrics = snapshot.get("metrics");
@@ -828,11 +836,13 @@ async fn detect_anomalies(
 
     let history = match metrics_store.get(&agent_id) {
         Some(h) => h,
-        None => return Ok(Json(advanced_analysis::AnomalyReport {
-            agent_id,
-            anomalies: Vec::new(),
-            total_anomalies: 0,
-        })),
+        None => {
+            return Ok(Json(advanced_analysis::AnomalyReport {
+                agent_id,
+                anomalies: Vec::new(),
+                total_anomalies: 0,
+            }))
+        }
     };
 
     if history.len() < 10 {
@@ -854,9 +864,11 @@ async fn detect_anomalies(
     // Compute mean and stddev for tick_rate
     let tick_rates: Vec<f64> = baseline.iter().map(|p| p.tick_rate).collect();
     let mean_tick_rate = tick_rates.iter().sum::<f64>() / tick_rates.len() as f64;
-    let variance_tick_rate = tick_rates.iter()
+    let variance_tick_rate = tick_rates
+        .iter()
         .map(|x| (x - mean_tick_rate).powi(2))
-        .sum::<f64>() / tick_rates.len() as f64;
+        .sum::<f64>()
+        / tick_rates.len() as f64;
     let stddev_tick_rate = variance_tick_rate.sqrt();
 
     let z_score_tick_rate = if stddev_tick_rate > 0.0 {
@@ -877,7 +889,8 @@ async fn detect_anomalies(
                 "severe"
             } else {
                 "moderate"
-            }.to_string(),
+            }
+            .to_string(),
             description: format!(
                 "Tick rate deviated {:.1} standard deviations from baseline",
                 z_score_tick_rate.abs()
@@ -889,9 +902,11 @@ async fn detect_anomalies(
     // Similar analysis for failure_rate
     let failure_rates: Vec<f64> = baseline.iter().map(|p| p.failure_rate).collect();
     let mean_failure_rate = failure_rates.iter().sum::<f64>() / failure_rates.len() as f64;
-    let variance_failure_rate = failure_rates.iter()
+    let variance_failure_rate = failure_rates
+        .iter()
         .map(|x| (x - mean_failure_rate).powi(2))
-        .sum::<f64>() / failure_rates.len() as f64;
+        .sum::<f64>()
+        / failure_rates.len() as f64;
     let stddev_failure_rate = variance_failure_rate.sqrt();
 
     let z_score_failure_rate = if stddev_failure_rate > 0.0 {
@@ -914,7 +929,8 @@ async fn detect_anomalies(
                 "moderate"
             } else {
                 "minor"
-            }.to_string(),
+            }
+            .to_string(),
             description: format!(
                 "Failure rate increased {:.1} standard deviations above baseline",
                 z_score_failure_rate
@@ -945,8 +961,12 @@ async fn compare_variants(
 ) -> Result<Json<advanced_analysis::ABTestComparison>, StatusCode> {
     let snapshots = state.snapshots.read().await;
 
-    let variant_a = snapshots.get(&req.variant_a_id).ok_or(StatusCode::NOT_FOUND)?;
-    let variant_b = snapshots.get(&req.variant_b_id).ok_or(StatusCode::NOT_FOUND)?;
+    let variant_a = snapshots
+        .get(&req.variant_a_id)
+        .ok_or(StatusCode::NOT_FOUND)?;
+    let variant_b = snapshots
+        .get(&req.variant_b_id)
+        .ok_or(StatusCode::NOT_FOUND)?;
 
     if let Some(comparison) = advanced_analysis::compare_ab_variants(variant_a, variant_b) {
         Ok(Json(comparison))
@@ -1060,10 +1080,7 @@ async fn prometheus_metrics(State(state): State<BTreeState>) -> String {
 }
 
 /// WebSocket handler for live updates
-async fn websocket_handler(
-    ws: WebSocketUpgrade,
-    State(state): State<BTreeState>,
-) -> Response {
+async fn websocket_handler(ws: WebSocketUpgrade, State(state): State<BTreeState>) -> Response {
     ws.on_upgrade(|socket| handle_websocket(socket, state))
 }
 

@@ -26,7 +26,7 @@
 //! - No LLM calls occur anywhere in this module.
 //! - No non-deterministic recovery logic is present.
 
-use crate::{Ros2Node};
+use crate::Ros2Node;
 use ed25519_dalek::SigningKey;
 use igris_safety::{ContainmentEvent, RoboticsContext, ViolationEventBus, ViolationRecord};
 use std::sync::Arc;
@@ -192,9 +192,7 @@ impl ContainmentBridge {
         let critical_path_ms = start.elapsed().as_millis();
         info!(
             elapsed_ms = critical_path_ms,
-            cancel_ok,
-            "Halt critical path complete in {} ms (budget: 50 ms)",
-            critical_path_ms
+            cancel_ok, "Halt critical path complete in {} ms (budget: 50 ms)", critical_path_ms
         );
         if critical_path_ms > 50 {
             error!(
@@ -272,9 +270,7 @@ impl ContainmentBridge {
     ///
     /// Returns `(goal_id, pose_xyz, velocity_linear_angular)`.
     /// Fields are `None` when unavailable (e.g., no active goal, robot at rest).
-    async fn capture_robotics_state(
-        &self,
-    ) -> (Option<String>, Option<[f64; 3]>, Option<[f64; 2]>) {
+    async fn capture_robotics_state(&self) -> (Option<String>, Option<[f64; 3]>, Option<[f64; 2]>) {
         // Velocity BEFORE zero-command (odometry / last known state).
         let velocity = {
             let v = self.node.last_velocity().await;
@@ -395,13 +391,8 @@ mod tests {
         node: Arc<Ros2Node>,
         log: &str,
     ) -> SafeIdleReceiver {
-        let (bridge, rx) = ContainmentBridge::new(
-            bus,
-            node,
-            test_key(),
-            log.to_string(),
-            String::new(),
-        );
+        let (bridge, rx) =
+            ContainmentBridge::new(bus, node, test_key(), log.to_string(), String::new());
         tokio::spawn(bridge.run());
         // Small delay so the bridge task starts polling recv().
         tokio::time::sleep(Duration::from_millis(15)).await;
@@ -421,18 +412,29 @@ mod tests {
         // Issue goal and wait until robot is Executing.
         let handle = node
             .navigate_to_pose(NavigationGoal {
-                x: 10.0, y: 10.0, z: 0.0, orientation_w: 1.0, frame_id: "map".to_string(),
+                x: 10.0,
+                y: 10.0,
+                z: 0.0,
+                orientation_w: 1.0,
+                frame_id: "map".to_string(),
             })
             .await
             .unwrap();
         tokio::time::sleep(Duration::from_millis(200)).await;
-        assert!(!handle.status().await.is_terminal(), "goal must be active before test");
+        assert!(
+            !handle.status().await.is_terminal(),
+            "goal must be active before test"
+        );
 
         // Fire violation.
         bus.emit_violation(make_violation(""));
         tokio::time::sleep(Duration::from_millis(60)).await;
 
-        assert_eq!(handle.status().await, NavigationState::Canceled, "goal must be Canceled");
+        assert_eq!(
+            handle.status().await,
+            NavigationState::Canceled,
+            "goal must be Canceled"
+        );
         let _ = std::fs::remove_file(&log);
     }
 
@@ -447,7 +449,10 @@ mod tests {
         bus.emit_violation(make_violation(""));
         tokio::time::sleep(Duration::from_millis(60)).await;
 
-        assert!(is_safe_idle(&idle_rx), "idle must be asserted even with no active goal");
+        assert!(
+            is_safe_idle(&idle_rx),
+            "idle must be asserted even with no active goal"
+        );
         let _ = std::fs::remove_file(&log);
     }
 
@@ -461,7 +466,11 @@ mod tests {
 
         let handle = node
             .navigate_to_pose(NavigationGoal {
-                x: 1.0, y: 0.0, z: 0.0, orientation_w: 1.0, frame_id: "map".to_string(),
+                x: 1.0,
+                y: 0.0,
+                z: 0.0,
+                orientation_w: 1.0,
+                frame_id: "map".to_string(),
             })
             .await
             .unwrap();
@@ -507,7 +516,10 @@ mod tests {
         bus.emit_violation(make_violation(""));
         tokio::time::sleep(Duration::from_millis(250)).await;
 
-        assert!(node.cmd_vel_command_count().await >= 2, "zero-vel loop must run independently");
+        assert!(
+            node.cmd_vel_command_count().await >= 2,
+            "zero-vel loop must run independently"
+        );
         let _ = std::fs::remove_file(&log);
     }
 
@@ -558,7 +570,11 @@ mod tests {
         // Navigate so bridge can capture goal_id and pose.
         let _handle = node
             .navigate_to_pose(NavigationGoal {
-                x: 3.0, y: 4.0, z: 0.0, orientation_w: 1.0, frame_id: "map".to_string(),
+                x: 3.0,
+                y: 4.0,
+                z: 0.0,
+                orientation_w: 1.0,
+                frame_id: "map".to_string(),
             })
             .await
             .unwrap();
@@ -580,7 +596,10 @@ mod tests {
             .expect("a robotics context record must be present");
 
         assert!(!robotics_rec.hash.is_empty(), "hash must be non-empty");
-        assert!(!robotics_rec.signature.is_empty(), "signature must be non-empty");
+        assert!(
+            !robotics_rec.signature.is_empty(),
+            "signature must be non-empty"
+        );
         assert_eq!(
             robotics_rec.robotics.as_ref().unwrap().fallback_action,
             "emergency_halt"
@@ -653,7 +672,11 @@ mod tests {
 
         let handle = node
             .navigate_to_pose(NavigationGoal {
-                x: 5.0, y: 0.0, z: 0.0, orientation_w: 1.0, frame_id: "map".to_string(),
+                x: 5.0,
+                y: 0.0,
+                z: 0.0,
+                orientation_w: 1.0,
+                frame_id: "map".to_string(),
             })
             .await
             .unwrap();
@@ -693,7 +716,11 @@ mod tests {
 
         let _handle = node
             .navigate_to_pose(NavigationGoal {
-                x: 50.0, y: 50.0, z: 0.0, orientation_w: 1.0, frame_id: "map".to_string(),
+                x: 50.0,
+                y: 50.0,
+                z: 0.0,
+                orientation_w: 1.0,
+                frame_id: "map".to_string(),
             })
             .await
             .unwrap();
@@ -737,7 +764,11 @@ mod tests {
         let idle_rx = setup_bridge(&bus, Arc::clone(&node), &log).await;
 
         node.navigate_to_pose(NavigationGoal {
-            x: 20.0, y: 20.0, z: 0.0, orientation_w: 1.0, frame_id: "map".to_string(),
+            x: 20.0,
+            y: 20.0,
+            z: 0.0,
+            orientation_w: 1.0,
+            frame_id: "map".to_string(),
         })
         .await
         .unwrap();
@@ -750,7 +781,10 @@ mod tests {
         tokio::time::sleep(Duration::from_millis(250)).await;
 
         // Node alive, idle asserted, zero-vel commands present.
-        assert!(node.is_active().await, "node must remain active (idle, not crashed)");
+        assert!(
+            node.is_active().await,
+            "node must remain active (idle, not crashed)"
+        );
         assert!(is_safe_idle(&idle_rx), "safe-idle must be asserted");
         assert!(
             node.cmd_vel_command_count().await >= 2,

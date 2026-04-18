@@ -7,8 +7,7 @@
 
 use anyhow::Result;
 use igris_federated::{
-    FederatedCoordinator, FederatedConfig, FederatedStatus,
-    GlobalModel, ModelUpdate,
+    FederatedConfig, FederatedCoordinator, FederatedStatus, GlobalModel, ModelUpdate,
 };
 use std::sync::Arc;
 
@@ -36,7 +35,9 @@ impl FederatedManager {
 
     /// Submit a model update and auto-aggregate if threshold is met
     pub async fn submit_update(&self, update: ModelUpdate) -> Result<Option<GlobalModel>> {
-        self.coordinator.submit_update_and_maybe_aggregate(update).await
+        self.coordinator
+            .submit_update_and_maybe_aggregate(update)
+            .await
     }
 
     /// Get the latest global model

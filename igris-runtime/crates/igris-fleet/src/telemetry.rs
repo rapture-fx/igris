@@ -58,8 +58,12 @@ pub async fn fetch_prometheus_metrics(endpoint: &str) -> Result<HashMap<String, 
     // Calculate error rate if we have the data
     if let Some(total_requests) = metrics_map.get("requests_total") {
         if *total_requests > 0.0 {
-            let errors = metrics_map.get("igris_http_unauthorized_total").unwrap_or(&0.0)
-                + metrics_map.get("igris_http_rate_limited_total").unwrap_or(&0.0);
+            let errors = metrics_map
+                .get("igris_http_unauthorized_total")
+                .unwrap_or(&0.0)
+                + metrics_map
+                    .get("igris_http_rate_limited_total")
+                    .unwrap_or(&0.0);
 
             let error_rate = errors / total_requests;
             metrics_map.insert("error_rate".to_string(), error_rate);

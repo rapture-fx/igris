@@ -196,7 +196,8 @@ impl LoRATrainer {
                         let finetune_bin = self.llama_cpp_dir.join("build/bin/llama-finetune");
                         if !finetune_bin.exists() {
                             anyhow::bail!(
-                                "llama.cpp backend requested but llama-finetune not found.\n{}", e
+                                "llama.cpp backend requested but llama-finetune not found.\n{}",
+                                e
                             );
                         }
                         Ok(TrainingBackend::LlamaCpp)
@@ -229,7 +230,10 @@ impl LoRATrainer {
                     // Native not available, try llama.cpp (embedded or build directory)
                     match crate::embedded_bins::get_finetune_binary().await {
                         Ok(path) => {
-                            info!("Auto-selected llama.cpp training backend at {}", path.display());
+                            info!(
+                                "Auto-selected llama.cpp training backend at {}",
+                                path.display()
+                            );
                             Ok(TrainingBackend::LlamaCpp)
                         }
                         Err(e) => {
@@ -293,7 +297,10 @@ impl LoRATrainer {
         info!("Using llama.cpp training backend");
 
         let start_time = Instant::now();
-        info!("Starting LoRA training with base model: {}", base_model_path);
+        info!(
+            "Starting LoRA training with base model: {}",
+            base_model_path
+        );
 
         // Prepare training and validation data
         let (training_data_path, _validation_data_path) = self
@@ -320,9 +327,14 @@ impl LoRATrainer {
                 // Fallback to build directory
                 let fallback = self.llama_cpp_dir.join("build/bin/llama-finetune");
                 if !fallback.exists() {
-                    return Err(crate::embedded_bins::get_finetune_binary().await.unwrap_err());
+                    return Err(crate::embedded_bins::get_finetune_binary()
+                        .await
+                        .unwrap_err());
                 }
-                info!("Using llama-finetune binary from build directory: {}", fallback.display());
+                info!(
+                    "Using llama-finetune binary from build directory: {}",
+                    fallback.display()
+                );
                 fallback
             }
         };
@@ -342,8 +354,7 @@ impl LoRATrainer {
             }
         }
 
-        cmd
-            .arg("--epochs")
+        cmd.arg("--epochs")
             .arg(self.config.epochs.to_string())
             .arg("--batch")
             .arg(self.config.batch_size.to_string())
@@ -363,9 +374,7 @@ impl LoRATrainer {
             .stderr(std::process::Stdio::piped());
 
         // Execute training with real-time progress reporting
-        let mut child = cmd
-            .spawn()
-            .context("Failed to spawn training process")?;
+        let mut child = cmd.spawn().context("Failed to spawn training process")?;
 
         let stdout = child.stdout.take().context("Failed to capture stdout")?;
         let stderr = child.stderr.take().context("Failed to capture stderr")?;
@@ -439,7 +448,10 @@ impl LoRATrainer {
             Ok(status_result) => status_result.context("Training process failed")?,
             Err(_) => {
                 let _ = child.kill().await;
-                anyhow::bail!("Training timeout after {} seconds", self.config.max_training_time_secs);
+                anyhow::bail!(
+                    "Training timeout after {} seconds",
+                    self.config.max_training_time_secs
+                );
             }
         };
 
@@ -471,16 +483,16 @@ impl LoRATrainer {
         }
 
         // Encrypt adapter if configured
-        let (adapter_path_for_result, encrypted_path) = if let Some(ref encryption) = self.encryption
-        {
-            let encrypted = adapter_dir.join(format!("lora_adapter_{}.enc", timestamp));
-            encryption.encrypt_file(&adapter_path, &encrypted)?;
-            // Ensure "at rest" means encrypted: remove plaintext artifact.
-            let _ = fs::remove_file(&adapter_path).await;
-            (None, Some(encrypted))
-        } else {
-            (Some(adapter_path.clone()), None)
-        };
+        let (adapter_path_for_result, encrypted_path) =
+            if let Some(ref encryption) = self.encryption {
+                let encrypted = adapter_dir.join(format!("lora_adapter_{}.enc", timestamp));
+                encryption.encrypt_file(&adapter_path, &encrypted)?;
+                // Ensure "at rest" means encrypted: remove plaintext artifact.
+                let _ = fs::remove_file(&adapter_path).await;
+                (None, Some(encrypted))
+            } else {
+                (Some(adapter_path.clone()), None)
+            };
 
         // Mark training as completed
         self.store.mark_training_completed()?;
@@ -496,7 +508,8 @@ impl LoRATrainer {
             encrypted_adapter_path: encrypted_path,
             training_samples: examples.len(),
             training_time_secs: training_time,
-            final_loss: last_loss.or_else(|| parse_final_loss(&stdout_text))
+            final_loss: last_loss
+                .or_else(|| parse_final_loss(&stdout_text))
                 .or_else(|| parse_final_loss(&stderr_text)),
             adapter_size_bytes: Some(adapter_size_bytes),
         })
@@ -561,13 +574,12 @@ impl LoRATrainer {
                     let gguf_path = adapter_dir.join("current_adapter.gguf");
 
                     // Use MetalLoRATrainer's conversion helper
-                    let metal_trainer = MetalLoRATrainer::new(
-                        self.config.clone(),
-                        self.store.clone(),
-                        None,
-                    )?;
+                    let metal_trainer =
+                        MetalLoRATrainer::new(self.config.clone(), self.store.clone(), None)?;
 
-                    metal_trainer.convert_safetensors_to_gguf(&latest, &gguf_path).await?;
+                    metal_trainer
+                        .convert_safetensors_to_gguf(&latest, &gguf_path)
+                        .await?;
 
                     if gguf_path.exists() {
                         Ok(Some(gguf_path))
@@ -587,10 +599,9 @@ impl LoRATrainer {
             }
             Some("enc") => {
                 // Decrypt encrypted adapter
-                let enc = self
-                    .encryption
-                    .as_ref()
-                    .ok_or_else(|| anyhow::anyhow!("Found encrypted adapter but encryption is disabled"))?;
+                let enc = self.encryption.as_ref().ok_or_else(|| {
+                    anyhow::anyhow!("Found encrypted adapter but encryption is disabled")
+                })?;
                 let enc = enc.clone();
 
                 let out = adapter_dir.join("current_adapter.gguf");
@@ -598,9 +609,11 @@ impl LoRATrainer {
                 let latest_for_task = latest.clone();
 
                 // Decrypt (blocking IO inside encryption module)
-                tokio::task::spawn_blocking(move || enc.decrypt_file(latest_for_task, &out_for_task))
-                    .await
-                    .context("Decryption task failed")??;
+                tokio::task::spawn_blocking(move || {
+                    enc.decrypt_file(latest_for_task, &out_for_task)
+                })
+                .await
+                .context("Decryption task failed")??;
 
                 // After decryption, check if it's safetensors and needs conversion
                 if let Some(decrypted_ext) = out.extension().and_then(|s| s.to_str()) {
@@ -614,7 +627,9 @@ impl LoRATrainer {
                                 self.store.clone(),
                                 None,
                             )?;
-                            metal_trainer.convert_safetensors_to_gguf(&out, &gguf_path).await?;
+                            metal_trainer
+                                .convert_safetensors_to_gguf(&out, &gguf_path)
+                                .await?;
                             if gguf_path.exists() {
                                 return Ok(Some(gguf_path));
                             }
@@ -769,7 +784,8 @@ mod tests {
 
     #[tokio::test]
     async fn test_parse_final_loss() {
-        let log = "Starting training\nepoch 1: loss 0.8\nepoch 2: loss 0.6\nepoch 3: loss 0.4\nDone";
+        let log =
+            "Starting training\nepoch 1: loss 0.8\nepoch 2: loss 0.6\nepoch 3: loss 0.4\nDone";
         assert_eq!(parse_final_loss(log), Some(0.4)); // Should return last loss
 
         let empty_log = "No loss information here";

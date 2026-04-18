@@ -1,60 +1,58 @@
 use axum::{
     extract::{Json, Path, State},
     http::StatusCode,
-    response::{IntoResponse, Response},
     response::sse::{Event, KeepAlive, Sse},
+    response::{IntoResponse, Response},
     routing::{get, post},
     Router,
 };
+use clap::{Parser, Subcommand};
 use futures::StreamExt;
 use serde::{Deserialize, Serialize};
+use sha2::Digest;
 use std::collections::HashMap;
 use std::convert::Infallible;
 use std::net::SocketAddr;
 use std::sync::Arc;
 use tower_http::cors::CorsLayer;
 use tower_http::trace::TraceLayer;
-use tracing::{info, warn, error};
+use tracing::{error, info, warn};
 use tracing_subscriber::{layer::SubscriberExt, util::SubscriberInitExt};
 use utoipa::OpenApi;
 use utoipa_swagger_ui::SwaggerUi;
-use clap::{Parser, Subcommand};
-use sha2::Digest;
 
 use igris_core::{config::IgrisConfig, storage::RedbStorage};
 use igris_routing::{
-    cloud_provider::CloudProvider,
-    speculative::SpeculativeRouter,
-    council::CouncilRouter,
-    thompson::ThompsonSamplingRouter,
-    Provider,
+    cloud_provider::CloudProvider, council::CouncilRouter, speculative::SpeculativeRouter,
+    thompson::ThompsonSamplingRouter, Provider,
 };
 mod runtime_execute;
-use runtime_execute::{ViolationLog, PeerRegistry};
+use runtime_execute::{PeerRegistry, ViolationLog};
 // ── Phase 1–4: Deterministic execution hardening ───────────────────────────
-mod namespace;
 mod capabilities;
-mod receipt;
 mod lifecycle;
+mod namespace;
+mod receipt;
 mod transaction;
-use lifecycle::{LifecycleRegistry, new_lifecycle_registry};
-use receipt::ReceiptLog;
-use igris_local_llm::{LocalLLMConfig, LocalLLMProviderAdapter};
+use igris_btree::prelude::*;
+use igris_emergency::EscapeVectorCache;
+use igris_fleet;
 #[cfg(feature = "hitl")]
 use igris_hitl::{HitlConfig, HitlCoordinator};
+use igris_local_llm::{LocalLLMConfig, LocalLLMProviderAdapter};
+use igris_mcp_client::{ContextBroadcaster, McpClient};
+use igris_mcp_server::{
+    build_mcp_router, protocol::ServerInfo, ContextStore, EncryptedStorage, McpState, PeerDiscovery,
+};
 #[cfg(feature = "memory")]
 use igris_memory::{AgentMemory, MemoryConfig as AgentMemoryConfig};
-use igris_routing::local_provider::LocalProvider;
-use igris_emergency::EscapeVectorCache;
-use igris_reflection::{ReflectionAgent, ReflectionConfig as ReflectionLoopConfig, LLMProvider as ReflectionLLMProvider};
 use igris_planning::{PlanningAgent, PlanningConfig};
-use igris_fleet;
-use igris_mcp_server::{
-    build_mcp_router, ContextStore, EncryptedStorage, McpState, PeerDiscovery,
-    protocol::ServerInfo,
+use igris_reflection::{
+    LLMProvider as ReflectionLLMProvider, ReflectionAgent, ReflectionConfig as ReflectionLoopConfig,
 };
-use igris_mcp_client::{ContextBroadcaster, McpClient};
-use igris_btree::prelude::*;
+use igris_routing::local_provider::LocalProvider;
+use lifecycle::{new_lifecycle_registry, LifecycleRegistry};
+use receipt::ReceiptLog;
 mod tool_agent;
 use tool_agent::ToolAgent;
 mod swarm_agent;
@@ -65,10 +63,10 @@ mod execution_graph;
 use execution_graph::ExecutionGraphRegistry;
 // RUNTIME-05: Resource safety limits
 mod resource_limits;
-use igris_tools::{ToolRegistry};
+use igris_tools::filesystem::FileSystemTool;
 use igris_tools::http::HttpTool;
 use igris_tools::shell::ShellTool;
-use igris_tools::filesystem::FileSystemTool;
+use igris_tools::ToolRegistry;
 mod lora_training;
 use lora_training::LoraTrainingManager;
 mod task_executor;
@@ -140,7 +138,8 @@ pub(crate) struct AppState {
     /// Registry of per-agent lifecycle state machines.
     pub(crate) lifecycle_registry: Option<LifecycleRegistry>,
     /// Registry of in-flight durable task cancellation signals keyed by task_id.
-    pub(crate) task_cancellation_registry: Arc<std::sync::RwLock<HashMap<uuid::Uuid, tokio::sync::watch::Sender<bool>>>>,
+    pub(crate) task_cancellation_registry:
+        Arc<std::sync::RwLock<HashMap<uuid::Uuid, tokio::sync::watch::Sender<bool>>>>,
     // ── BT Live Streaming ─────────────────────────────────────────────────────
     /// Watch sender for per-tick BT state. The `btree_run` handler wires its
     /// executor tick observer to this sender; the `/v1/btree/events` SSE
@@ -381,10 +380,14 @@ struct SwapModelRequest {
 )]
 async fn list_models(State(state): State<AppState>) -> Result<Response, ApiError> {
     let Some(local_provider) = &state.local_provider else {
-        return Ok((StatusCode::OK, Json(serde_json::json!({
-            "models": [],
-            "local_llm_enabled": false
-        }))).into_response());
+        return Ok((
+            StatusCode::OK,
+            Json(serde_json::json!({
+                "models": [],
+                "local_llm_enabled": false
+            })),
+        )
+            .into_response());
     };
 
     let config = local_provider.config().await;
@@ -399,10 +402,14 @@ async fn list_models(State(state): State<AppState>) -> Result<Response, ApiError
         lora_adapter_path: adapter_path.map(|p| p.display().to_string()),
     };
 
-    Ok((StatusCode::OK, Json(serde_json::json!({
-        "models": [model_info],
-        "local_llm_enabled": true
-    }))).into_response())
+    Ok((
+        StatusCode::OK,
+        Json(serde_json::json!({
+            "models": [model_info],
+            "local_llm_enabled": true
+        })),
+    )
+        .into_response())
 }
 
 /// Load a GGUF model
@@ -423,7 +430,8 @@ async fn load_model(
 ) -> Result<Response, ApiError> {
     let Some(local_provider) = &state.local_provider else {
         return Err(ApiError::ServiceUnavailable(
-            "Local LLM is not enabled. Configure local_fallback in config to use model management.".to_string()
+            "Local LLM is not enabled. Configure local_fallback in config to use model management."
+                .to_string(),
         ));
     };
 
@@ -481,7 +489,8 @@ async fn swap_model(
 ) -> Result<Response, ApiError> {
     let Some(local_provider) = &state.local_provider else {
         return Err(ApiError::ServiceUnavailable(
-            "Local LLM is not enabled. Configure local_fallback in config to use model management.".to_string()
+            "Local LLM is not enabled. Configure local_fallback in config to use model management."
+                .to_string(),
         ));
     };
 
@@ -497,13 +506,7 @@ async fn swap_model(
 
     // Swap the base model
     local_provider
-        .hot_swap(
-            model_path,
-            req.context_size,
-            None,
-            req.n_gpu_layers,
-            None,
-        )
+        .hot_swap(model_path, req.context_size, None, req.n_gpu_layers, None)
         .await
         .map_err(|e| ApiError::InternalError(format!("Failed to swap model: {}", e)))?;
 
@@ -611,9 +614,13 @@ impl IntoResponse for ApiError {
     fn into_response(self) -> Response {
         let (status, message, error_type) = match self {
             ApiError::BadRequest(msg) => (StatusCode::BAD_REQUEST, msg, "bad_request"),
-            ApiError::InternalError(msg) => (StatusCode::INTERNAL_SERVER_ERROR, msg, "internal_error"),
+            ApiError::InternalError(msg) => {
+                (StatusCode::INTERNAL_SERVER_ERROR, msg, "internal_error")
+            }
             ApiError::NotImplemented(msg) => (StatusCode::NOT_IMPLEMENTED, msg, "not_implemented"),
-            ApiError::ServiceUnavailable(msg) => (StatusCode::SERVICE_UNAVAILABLE, msg, "service_unavailable"),
+            ApiError::ServiceUnavailable(msg) => {
+                (StatusCode::SERVICE_UNAVAILABLE, msg, "service_unavailable")
+            }
         };
 
         let error_response = ErrorResponse {
@@ -800,10 +807,14 @@ struct FleetMetrics {
 )]
 async fn fleet_instances(State(state): State<AppState>) -> Result<Response, ApiError> {
     let Some(mgr) = &state.fleet_manager else {
-        return Ok((StatusCode::OK, Json(serde_json::json!({
-            "enabled": false,
-            "instances": []
-        }))).into_response());
+        return Ok((
+            StatusCode::OK,
+            Json(serde_json::json!({
+                "enabled": false,
+                "instances": []
+            })),
+        )
+            .into_response());
     };
 
     let instance = mgr.get_instance_info().await;
@@ -820,9 +831,13 @@ async fn fleet_instances(State(state): State<AppState>) -> Result<Response, ApiE
 )]
 async fn fleet_metrics(State(state): State<AppState>) -> Result<Response, ApiError> {
     let Some(mgr) = &state.fleet_manager else {
-        return Ok((StatusCode::OK, Json(serde_json::json!({
-            "enabled": false
-        }))).into_response());
+        return Ok((
+            StatusCode::OK,
+            Json(serde_json::json!({
+                "enabled": false
+            })),
+        )
+            .into_response());
     };
 
     let metrics = mgr.get_metrics().await;
@@ -866,19 +881,27 @@ async fn memory_status(State(state): State<AppState>) -> Result<Response, ApiErr
     };
 
     let stats = memory.stats().await;
-    Ok((StatusCode::OK, Json(serde_json::json!({
-        "enabled": true,
-        "stats": {
-            "vector_entries": stats.vector_entries,
-            "cache_entries": stats.cache_entries,
-            "cache_hit_rate": stats.cache_hit_rate,
-        }
-    }))).into_response())
+    Ok((
+        StatusCode::OK,
+        Json(serde_json::json!({
+            "enabled": true,
+            "stats": {
+                "vector_entries": stats.vector_entries,
+                "cache_entries": stats.cache_entries,
+                "cache_hit_rate": stats.cache_hit_rate,
+            }
+        })),
+    )
+        .into_response())
 }
 
 #[cfg(not(feature = "memory"))]
 async fn memory_status() -> Result<Response, ApiError> {
-    Ok((StatusCode::OK, Json(serde_json::json!({"enabled": false, "compiled": false}))).into_response())
+    Ok((
+        StatusCode::OK,
+        Json(serde_json::json!({"enabled": false, "compiled": false})),
+    )
+        .into_response())
 }
 
 #[cfg(feature = "memory")]
@@ -887,19 +910,27 @@ async fn memory_store(
     Json(req): Json<MemoryStoreRequest>,
 ) -> Result<Response, ApiError> {
     let Some(memory) = &state.agent_memory else {
-        return Err(ApiError::ServiceUnavailable("agent memory is disabled".to_string()));
+        return Err(ApiError::ServiceUnavailable(
+            "agent memory is disabled".to_string(),
+        ));
     };
 
     memory.store(&req.key, &req.content, req.embedding).await?;
-    Ok((StatusCode::OK, Json(serde_json::json!({
-        "stored": true,
-        "key": req.key,
-    }))).into_response())
+    Ok((
+        StatusCode::OK,
+        Json(serde_json::json!({
+            "stored": true,
+            "key": req.key,
+        })),
+    )
+        .into_response())
 }
 
 #[cfg(not(feature = "memory"))]
 async fn memory_store() -> Result<Response, ApiError> {
-    Err(ApiError::NotImplemented("agent memory was not compiled into this runtime".to_string()))
+    Err(ApiError::NotImplemented(
+        "agent memory was not compiled into this runtime".to_string(),
+    ))
 }
 
 #[cfg(feature = "memory")]
@@ -908,19 +939,27 @@ async fn memory_get(
     Path(key): Path<String>,
 ) -> Result<Response, ApiError> {
     let Some(memory) = &state.agent_memory else {
-        return Err(ApiError::ServiceUnavailable("agent memory is disabled".to_string()));
+        return Err(ApiError::ServiceUnavailable(
+            "agent memory is disabled".to_string(),
+        ));
     };
 
     let entry = memory.get(&key).await?;
-    Ok((StatusCode::OK, Json(serde_json::json!({
-        "enabled": true,
-        "entry": entry,
-    }))).into_response())
+    Ok((
+        StatusCode::OK,
+        Json(serde_json::json!({
+            "enabled": true,
+            "entry": entry,
+        })),
+    )
+        .into_response())
 }
 
 #[cfg(not(feature = "memory"))]
 async fn memory_get() -> Result<Response, ApiError> {
-    Err(ApiError::NotImplemented("agent memory was not compiled into this runtime".to_string()))
+    Err(ApiError::NotImplemented(
+        "agent memory was not compiled into this runtime".to_string(),
+    ))
 }
 
 #[cfg(feature = "memory")]
@@ -929,29 +968,41 @@ async fn memory_search(
     Json(req): Json<MemorySearchRequest>,
 ) -> Result<Response, ApiError> {
     let Some(memory) = &state.agent_memory else {
-        return Err(ApiError::ServiceUnavailable("agent memory is disabled".to_string()));
+        return Err(ApiError::ServiceUnavailable(
+            "agent memory is disabled".to_string(),
+        ));
     };
 
-    let results = memory.retrieve(req.embedding, req.top_k.unwrap_or(5)).await?;
+    let results = memory
+        .retrieve(req.embedding, req.top_k.unwrap_or(5))
+        .await?;
     let results = results
         .into_iter()
-        .map(|result| serde_json::json!({
-            "key": result.entry.key,
-            "content": result.entry.content,
-            "timestamp": result.entry.timestamp,
-            "similarity": result.similarity,
-        }))
+        .map(|result| {
+            serde_json::json!({
+                "key": result.entry.key,
+                "content": result.entry.content,
+                "timestamp": result.entry.timestamp,
+                "similarity": result.similarity,
+            })
+        })
         .collect::<Vec<_>>();
 
-    Ok((StatusCode::OK, Json(serde_json::json!({
-        "enabled": true,
-        "results": results,
-    }))).into_response())
+    Ok((
+        StatusCode::OK,
+        Json(serde_json::json!({
+            "enabled": true,
+            "results": results,
+        })),
+    )
+        .into_response())
 }
 
 #[cfg(not(feature = "memory"))]
 async fn memory_search() -> Result<Response, ApiError> {
-    Err(ApiError::NotImplemented("agent memory was not compiled into this runtime".to_string()))
+    Err(ApiError::NotImplemented(
+        "agent memory was not compiled into this runtime".to_string(),
+    ))
 }
 
 #[cfg(feature = "hitl")]
@@ -962,17 +1013,25 @@ async fn hitl_status(State(state): State<AppState>) -> Result<Response, ApiError
 
     let pending = coordinator.get_pending_requests().await;
     let config = coordinator.config();
-    Ok((StatusCode::OK, Json(serde_json::json!({
-        "enabled": true,
-        "pending_requests": pending.len(),
-        "auto_approve_threshold": config.auto_approve_threshold,
-        "timeout_secs": config.timeout_secs,
-    }))).into_response())
+    Ok((
+        StatusCode::OK,
+        Json(serde_json::json!({
+            "enabled": true,
+            "pending_requests": pending.len(),
+            "auto_approve_threshold": config.auto_approve_threshold,
+            "timeout_secs": config.timeout_secs,
+        })),
+    )
+        .into_response())
 }
 
 #[cfg(not(feature = "hitl"))]
 async fn hitl_status() -> Result<Response, ApiError> {
-    Ok((StatusCode::OK, Json(serde_json::json!({"enabled": false, "compiled": false}))).into_response())
+    Ok((
+        StatusCode::OK,
+        Json(serde_json::json!({"enabled": false, "compiled": false})),
+    )
+        .into_response())
 }
 
 #[cfg(feature = "hitl")]
@@ -982,15 +1041,21 @@ async fn hitl_requests(State(state): State<AppState>) -> Result<Response, ApiErr
     };
 
     let pending = coordinator.get_pending_requests().await;
-    Ok((StatusCode::OK, Json(serde_json::json!({
-        "enabled": true,
-        "requests": pending,
-    }))).into_response())
+    Ok((
+        StatusCode::OK,
+        Json(serde_json::json!({
+            "enabled": true,
+            "requests": pending,
+        })),
+    )
+        .into_response())
 }
 
 #[cfg(not(feature = "hitl"))]
 async fn hitl_requests() -> Result<Response, ApiError> {
-    Err(ApiError::NotImplemented("HITL was not compiled into this runtime".to_string()))
+    Err(ApiError::NotImplemented(
+        "HITL was not compiled into this runtime".to_string(),
+    ))
 }
 
 #[cfg(feature = "hitl")]
@@ -1010,15 +1075,21 @@ async fn hitl_submit(
         )
         .await?;
 
-    Ok((StatusCode::ACCEPTED, Json(serde_json::json!({
-        "request": request,
-        "status": status,
-    }))).into_response())
+    Ok((
+        StatusCode::ACCEPTED,
+        Json(serde_json::json!({
+            "request": request,
+            "status": status,
+        })),
+    )
+        .into_response())
 }
 
 #[cfg(not(feature = "hitl"))]
 async fn hitl_submit() -> Result<Response, ApiError> {
-    Err(ApiError::NotImplemented("HITL was not compiled into this runtime".to_string()))
+    Err(ApiError::NotImplemented(
+        "HITL was not compiled into this runtime".to_string(),
+    ))
 }
 
 #[cfg(feature = "hitl")]
@@ -1031,12 +1102,18 @@ async fn hitl_approve(
     };
 
     coordinator.approve(&req.request_id).await?;
-    Ok((StatusCode::OK, Json(serde_json::json!({"request_id": req.request_id, "status": "approved"}))).into_response())
+    Ok((
+        StatusCode::OK,
+        Json(serde_json::json!({"request_id": req.request_id, "status": "approved"})),
+    )
+        .into_response())
 }
 
 #[cfg(not(feature = "hitl"))]
 async fn hitl_approve() -> Result<Response, ApiError> {
-    Err(ApiError::NotImplemented("HITL was not compiled into this runtime".to_string()))
+    Err(ApiError::NotImplemented(
+        "HITL was not compiled into this runtime".to_string(),
+    ))
 }
 
 #[cfg(feature = "hitl")]
@@ -1049,12 +1126,18 @@ async fn hitl_reject(
     };
 
     coordinator.reject(&req.request_id).await?;
-    Ok((StatusCode::OK, Json(serde_json::json!({"request_id": req.request_id, "status": "rejected"}))).into_response())
+    Ok((
+        StatusCode::OK,
+        Json(serde_json::json!({"request_id": req.request_id, "status": "rejected"})),
+    )
+        .into_response())
 }
 
 #[cfg(not(feature = "hitl"))]
 async fn hitl_reject() -> Result<Response, ApiError> {
-    Err(ApiError::NotImplemented("HITL was not compiled into this runtime".to_string()))
+    Err(ApiError::NotImplemented(
+        "HITL was not compiled into this runtime".to_string(),
+    ))
 }
 
 // ============================================================================
@@ -1074,36 +1157,54 @@ async fn federated_submit_update(
     Json(update): Json<igris_federated::ModelUpdate>,
 ) -> Result<Response, ApiError> {
     let Some(mgr) = &state.federated_manager else {
-        return Err(ApiError::ServiceUnavailable("Federated learning not enabled".to_string()));
+        return Err(ApiError::ServiceUnavailable(
+            "Federated learning not enabled".to_string(),
+        ));
     };
     match mgr.submit_update(update).await {
-        Ok(Some(model)) => Ok((StatusCode::OK, Json(serde_json::json!({
-            "aggregated": true,
-            "global_model": model,
-        }))).into_response()),
-        Ok(None) => Ok((StatusCode::ACCEPTED, Json(serde_json::json!({
-            "aggregated": false,
-            "message": "Update accepted, waiting for more participants",
-        }))).into_response()),
+        Ok(Some(model)) => Ok((
+            StatusCode::OK,
+            Json(serde_json::json!({
+                "aggregated": true,
+                "global_model": model,
+            })),
+        )
+            .into_response()),
+        Ok(None) => Ok((
+            StatusCode::ACCEPTED,
+            Json(serde_json::json!({
+                "aggregated": false,
+                "message": "Update accepted, waiting for more participants",
+            })),
+        )
+            .into_response()),
         Err(e) => Err(ApiError::BadRequest(e.to_string())),
     }
 }
 
 async fn federated_latest_model(State(state): State<AppState>) -> Result<Response, ApiError> {
     let Some(mgr) = &state.federated_manager else {
-        return Err(ApiError::ServiceUnavailable("Federated learning not enabled".to_string()));
+        return Err(ApiError::ServiceUnavailable(
+            "Federated learning not enabled".to_string(),
+        ));
     };
     match mgr.get_latest_model().await {
         Some(model) => Ok((StatusCode::OK, Json(model)).into_response()),
-        None => Ok((StatusCode::NOT_FOUND, Json(serde_json::json!({
-            "message": "No global model available yet"
-        }))).into_response()),
+        None => Ok((
+            StatusCode::NOT_FOUND,
+            Json(serde_json::json!({
+                "message": "No global model available yet"
+            })),
+        )
+            .into_response()),
     }
 }
 
 async fn federated_participants(State(state): State<AppState>) -> Result<Response, ApiError> {
     let Some(mgr) = &state.federated_manager else {
-        return Err(ApiError::ServiceUnavailable("Federated learning not enabled".to_string()));
+        return Err(ApiError::ServiceUnavailable(
+            "Federated learning not enabled".to_string(),
+        ));
     };
     let participants = mgr.get_participants().await;
     Ok((StatusCode::OK, Json(participants)).into_response())
@@ -1123,7 +1224,9 @@ async fn swarm_status(State(state): State<AppState>) -> Result<Response, ApiErro
 
 async fn swarm_agents(State(state): State<AppState>) -> Result<Response, ApiError> {
     let Some(mgr) = &state.swarm_manager else {
-        return Err(ApiError::ServiceUnavailable("Swarm not enabled".to_string()));
+        return Err(ApiError::ServiceUnavailable(
+            "Swarm not enabled".to_string(),
+        ));
     };
     let agents = mgr.get_agents().await;
     Ok((StatusCode::OK, Json(agents)).into_response())
@@ -1139,14 +1242,21 @@ async fn swarm_join(
     Json(req): Json<SwarmJoinRequest>,
 ) -> Result<Response, ApiError> {
     let Some(mgr) = &state.swarm_manager else {
-        return Err(ApiError::ServiceUnavailable("Swarm not enabled".to_string()));
+        return Err(ApiError::ServiceUnavailable(
+            "Swarm not enabled".to_string(),
+        ));
     };
-    mgr.join_agent(&req.agent_id).await
+    mgr.join_agent(&req.agent_id)
+        .await
         .map_err(|e| ApiError::BadRequest(e.to_string()))?;
-    Ok((StatusCode::OK, Json(serde_json::json!({
-        "joined": true,
-        "agent_id": req.agent_id,
-    }))).into_response())
+    Ok((
+        StatusCode::OK,
+        Json(serde_json::json!({
+            "joined": true,
+            "agent_id": req.agent_id,
+        })),
+    )
+        .into_response())
 }
 
 #[derive(Deserialize)]
@@ -1157,21 +1267,30 @@ struct SwarmProposeRequest {
     priority: u8,
 }
 
-fn default_priority() -> u8 { 1 }
+fn default_priority() -> u8 {
+    1
+}
 
 async fn swarm_propose(
     State(state): State<AppState>,
     Json(req): Json<SwarmProposeRequest>,
 ) -> Result<Response, ApiError> {
     let Some(mgr) = &state.swarm_manager else {
-        return Err(ApiError::ServiceUnavailable("Swarm not enabled".to_string()));
+        return Err(ApiError::ServiceUnavailable(
+            "Swarm not enabled".to_string(),
+        ));
     };
-    let proposal_id = mgr.propose_task(req.task_type, req.parameters, req.priority)
+    let proposal_id = mgr
+        .propose_task(req.task_type, req.parameters, req.priority)
         .await
         .map_err(|e| ApiError::BadRequest(e.to_string()))?;
-    Ok((StatusCode::OK, Json(serde_json::json!({
-        "proposal_id": proposal_id,
-    }))).into_response())
+    Ok((
+        StatusCode::OK,
+        Json(serde_json::json!({
+            "proposal_id": proposal_id,
+        })),
+    )
+        .into_response())
 }
 
 #[derive(Deserialize)]
@@ -1185,7 +1304,9 @@ async fn swarm_vote(
     Json(req): Json<SwarmVoteRequest>,
 ) -> Result<Response, ApiError> {
     let Some(mgr) = &state.swarm_manager else {
-        return Err(ApiError::ServiceUnavailable("Swarm not enabled".to_string()));
+        return Err(ApiError::ServiceUnavailable(
+            "Swarm not enabled".to_string(),
+        ));
     };
     mgr.vote(&req.proposal_id, req.approve)
         .await
@@ -1193,20 +1314,32 @@ async fn swarm_vote(
 
     // Check if proposal now has consensus and execute
     match mgr.check_and_execute(&req.proposal_id).await {
-        Ok(Some(result)) => Ok((StatusCode::OK, Json(serde_json::json!({
-            "voted": true,
-            "consensus_reached": true,
-            "execution_result": result,
-        }))).into_response()),
-        Ok(None) => Ok((StatusCode::OK, Json(serde_json::json!({
-            "voted": true,
-            "consensus_reached": false,
-        }))).into_response()),
-        Err(e) => Ok((StatusCode::OK, Json(serde_json::json!({
-            "voted": true,
-            "consensus_reached": true,
-            "execution_error": e.to_string(),
-        }))).into_response()),
+        Ok(Some(result)) => Ok((
+            StatusCode::OK,
+            Json(serde_json::json!({
+                "voted": true,
+                "consensus_reached": true,
+                "execution_result": result,
+            })),
+        )
+            .into_response()),
+        Ok(None) => Ok((
+            StatusCode::OK,
+            Json(serde_json::json!({
+                "voted": true,
+                "consensus_reached": false,
+            })),
+        )
+            .into_response()),
+        Err(e) => Ok((
+            StatusCode::OK,
+            Json(serde_json::json!({
+                "voted": true,
+                "consensus_reached": true,
+                "execution_error": e.to_string(),
+            })),
+        )
+            .into_response()),
     }
 }
 
@@ -1228,8 +1361,12 @@ struct BTreeRunRequest {
     timeout_ms: u64,
 }
 
-fn default_btree_max_ticks() -> u64 { 1000 }
-fn default_btree_timeout_ms() -> u64 { 30000 }
+fn default_btree_max_ticks() -> u64 {
+    1000
+}
+fn default_btree_timeout_ms() -> u64 {
+    30000
+}
 
 #[derive(Debug, Deserialize)]
 struct BTreeDeployRequest {
@@ -1239,22 +1376,28 @@ struct BTreeDeployRequest {
     description: Option<String>,
 }
 
-async fn btree_validate(
-    Json(req): Json<BTreeValidateRequest>,
-) -> Result<Response, ApiError> {
+async fn btree_validate(Json(req): Json<BTreeValidateRequest>) -> Result<Response, ApiError> {
     let parser = igris_btree::parser::JsonTreeParser::new();
     let context = BTreeContext::new();
 
     match parser.parse_node(&req.tree, &context) {
-        Ok(node) => Ok((StatusCode::OK, Json(serde_json::json!({
-            "valid": true,
-            "root_type": node.node_type(),
-            "root_name": node.name(),
-        }))).into_response()),
-        Err(e) => Ok((StatusCode::OK, Json(serde_json::json!({
-            "valid": false,
-            "error": e.to_string(),
-        }))).into_response()),
+        Ok(node) => Ok((
+            StatusCode::OK,
+            Json(serde_json::json!({
+                "valid": true,
+                "root_type": node.node_type(),
+                "root_name": node.name(),
+            })),
+        )
+            .into_response()),
+        Err(e) => Ok((
+            StatusCode::OK,
+            Json(serde_json::json!({
+                "valid": false,
+                "error": e.to_string(),
+            })),
+        )
+            .into_response()),
     }
 }
 
@@ -1301,25 +1444,27 @@ async fn btree_run(
         .await
         .map_err(|e| ApiError::InternalError(format!("Execution failed: {}", e)))?;
 
-    Ok((StatusCode::OK, Json(serde_json::json!({
-        "status": format!("{:?}", result.status),
-        "success": result.is_success(),
-        "tick_count": result.tick_count,
-        "duration_ms": result.duration.as_millis() as u64,
-        "cancelled": result.cancelled,
-        "max_ticks_reached": result.max_ticks_reached,
-        "deadline_exceeded": result.deadline_exceeded,
-        "error": result.error,
-    }))).into_response())
+    Ok((
+        StatusCode::OK,
+        Json(serde_json::json!({
+            "status": format!("{:?}", result.status),
+            "success": result.is_success(),
+            "tick_count": result.tick_count,
+            "duration_ms": result.duration.as_millis() as u64,
+            "cancelled": result.cancelled,
+            "max_ticks_reached": result.max_ticks_reached,
+            "deadline_exceeded": result.deadline_exceeded,
+            "error": result.error,
+        })),
+    )
+        .into_response())
 }
 
 /// GET /v1/btree/events — SSE stream of per-tick BT state snapshots.
 ///
 /// Each event has type `bt_tick` and data `{"tick":N,"status":"Running"|...,"tree":{...}}`.
 /// Keepalive comments are sent every 15 s. Clients reconnect on close.
-async fn btree_events(
-    State(state): State<AppState>,
-) -> Response {
+async fn btree_events(State(state): State<AppState>) -> Response {
     let mut rx = state.bt_state_tx.subscribe();
 
     let stream = async_stream::stream! {
@@ -1344,7 +1489,9 @@ async fn btree_events(
         }
     };
 
-    Sse::new(stream).keep_alive(KeepAlive::default()).into_response()
+    Sse::new(stream)
+        .keep_alive(KeepAlive::default())
+        .into_response()
 }
 
 /// MCP SSE streaming endpoint - accepts JSON-RPC requests and streams responses
@@ -1398,12 +1545,18 @@ async fn mcp_stream(
 
     // Stream the response as SSE events
     let events = vec![
-        Ok::<Event, Infallible>(Event::default().event("message").data(result_json.to_string())),
+        Ok::<Event, Infallible>(
+            Event::default()
+                .event("message")
+                .data(result_json.to_string()),
+        ),
         Ok::<Event, Infallible>(Event::default().data("[DONE]")),
     ];
     let stream = futures::stream::iter(events);
 
-    Ok(Sse::new(stream).keep_alive(KeepAlive::default()).into_response())
+    Ok(Sse::new(stream)
+        .keep_alive(KeepAlive::default())
+        .into_response())
 }
 
 async fn btree_deploy(
@@ -1429,11 +1582,15 @@ async fn btree_deploy(
         .set(igris_core::storage::BTREE_STORE, &req.name, &entry)
         .map_err(|e| ApiError::InternalError(format!("Failed to persist tree: {}", e)))?;
 
-    Ok((StatusCode::OK, Json(serde_json::json!({
-        "deployed": true,
-        "name": req.name,
-        "description": req.description,
-    }))).into_response())
+    Ok((
+        StatusCode::OK,
+        Json(serde_json::json!({
+            "deployed": true,
+            "name": req.name,
+            "description": req.description,
+        })),
+    )
+        .into_response())
 }
 
 /// Planning endpoint - execute multi-step tasks with optional tool usage
@@ -1455,7 +1612,7 @@ async fn plan_endpoint(
     // Check if local provider is available
     let Some(local_provider) = &state.local_provider else {
         return Err(ApiError::ServiceUnavailable(
-            "Planning requires local LLM to be enabled".to_string()
+            "Planning requires local LLM to be enabled".to_string(),
         ));
     };
 
@@ -1469,22 +1626,15 @@ async fn plan_endpoint(
     }
 
     // Create planning agent with local LLM provider
-    let llm_provider: Arc<dyn igris_reflection::LLMProvider> = Arc::new(LocalProviderReflectionLLM {
-        provider: local_provider.clone(),
-    });
+    let llm_provider: Arc<dyn igris_reflection::LLMProvider> =
+        Arc::new(LocalProviderReflectionLLM {
+            provider: local_provider.clone(),
+        });
 
     let agent = if config.enable_tools {
-        PlanningAgent::with_provider(
-            config,
-            llm_provider,
-            state.tool_registry.clone(),
-        )
+        PlanningAgent::with_provider(config, llm_provider, state.tool_registry.clone())
     } else {
-        PlanningAgent::with_provider(
-            config,
-            llm_provider,
-            None,
-        )
+        PlanningAgent::with_provider(config, llm_provider, None)
     };
 
     info!("Executing planning task: {}", req.goal);
@@ -1526,7 +1676,7 @@ async fn reflect_endpoint(
     // Check if local provider is available
     let Some(local_provider) = &state.local_provider else {
         return Err(ApiError::ServiceUnavailable(
-            "Reflection requires local LLM to be enabled".to_string()
+            "Reflection requires local LLM to be enabled".to_string(),
         ));
     };
 
@@ -1540,9 +1690,10 @@ async fn reflect_endpoint(
     }
 
     // Create reflection agent with local LLM provider
-    let llm_provider: Arc<dyn igris_reflection::LLMProvider> = Arc::new(LocalProviderReflectionLLM {
-        provider: local_provider.clone(),
-    });
+    let llm_provider: Arc<dyn igris_reflection::LLMProvider> =
+        Arc::new(LocalProviderReflectionLLM {
+            provider: local_provider.clone(),
+        });
 
     let agent = ReflectionAgent::new(config, llm_provider);
 
@@ -1595,13 +1746,19 @@ async fn chat_completions(
 
     // Validate request
     if req.messages.is_empty() {
-        return Err(ApiError::BadRequest("messages array cannot be empty".to_string()));
+        return Err(ApiError::BadRequest(
+            "messages array cannot be empty".to_string(),
+        ));
     }
     if req.messages.len() > 64 {
-        return Err(ApiError::BadRequest("too many messages (max 64)".to_string()));
+        return Err(ApiError::BadRequest(
+            "too many messages (max 64)".to_string(),
+        ));
     }
     if req.model.len() > 128 {
-        return Err(ApiError::BadRequest("model identifier too long".to_string()));
+        return Err(ApiError::BadRequest(
+            "model identifier too long".to_string(),
+        ));
     }
     let mut total_chars: usize = 0;
     for m in &req.messages {
@@ -1609,11 +1766,15 @@ async fn chat_completions(
             return Err(ApiError::BadRequest("role too long".to_string()));
         }
         if m.content.len() > 16_384 {
-            return Err(ApiError::BadRequest("message content too long (max 16384 chars)".to_string()));
+            return Err(ApiError::BadRequest(
+                "message content too long (max 16384 chars)".to_string(),
+            ));
         }
         total_chars = total_chars.saturating_add(m.role.len() + m.content.len());
         if total_chars > 65_536 {
-            return Err(ApiError::BadRequest("request too large (max 65536 chars total)".to_string()));
+            return Err(ApiError::BadRequest(
+                "request too large (max 65536 chars total)".to_string(),
+            ));
         }
     }
 
@@ -1635,7 +1796,8 @@ async fn chat_completions(
             .fetch_add(1, std::sync::atomic::Ordering::Relaxed);
         if req.mode.is_some() {
             return Err(ApiError::NotImplemented(
-                "Streaming is currently only supported for base chat mode (omit `mode`)".to_string(),
+                "Streaming is currently only supported for base chat mode (omit `mode`)"
+                    .to_string(),
             ));
         }
 
@@ -1648,7 +1810,11 @@ async fn chat_completions(
                 .map(|p| CloudProviderWrapper(p.clone()))
                 .collect();
 
-            match state.speculative_router.route_stream(&prompt, providers).await {
+            match state
+                .speculative_router
+                .route_stream(&prompt, providers)
+                .await
+            {
                 Ok(stream_result) => {
                     let model = req.model.clone();
                     let s = stream_result.stream.map(move |chunk| {
@@ -1686,7 +1852,10 @@ async fn chat_completions(
                     return Ok(out.into_response());
                 }
                 Err(e) => {
-                    warn!("Cloud streaming failed, falling back to local if available: {}", e);
+                    warn!(
+                        "Cloud streaming failed, falling back to local if available: {}",
+                        e
+                    );
                 }
             }
         }
@@ -1793,7 +1962,11 @@ async fn chat_completions(
         };
 
         if let Some(mgr) = &state.lora_training {
-            let _ = mgr.record_example(prompt.clone(), final_response_text, "reflection".to_string());
+            let _ = mgr.record_example(
+                prompt.clone(),
+                final_response_text,
+                "reflection".to_string(),
+            );
             let _ = mgr.maybe_trigger_background_training().await;
         }
 
@@ -2099,7 +2272,8 @@ async fn chat_completions(
         } else {
             error!("All providers failed and EscapeVector cache not available");
             return Err(ApiError::ServiceUnavailable(
-                "All AI providers are currently unavailable. Please try again in a few moments.".to_string()
+                "All AI providers are currently unavailable. Please try again in a few moments."
+                    .to_string(),
             ));
         }
     };
@@ -2149,7 +2323,11 @@ async fn chat_completions(
 
     // Record for LoRA training if enabled
     if let Some(mgr) = &state.lora_training {
-        let _ = mgr.record_example(prompt.clone(), response_text_for_record.clone(), used_provider.clone());
+        let _ = mgr.record_example(
+            prompt.clone(),
+            response_text_for_record.clone(),
+            used_provider.clone(),
+        );
         let _ = mgr.maybe_trigger_background_training().await;
     }
 
@@ -2166,9 +2344,17 @@ async fn chat_completions(
                 };
 
                 if quality_score >= ev_config.min_quality_score {
-                    match cache.save_response(&prompt, &response_text_for_record, &used_provider, quality_score) {
+                    match cache.save_response(
+                        &prompt,
+                        &response_text_for_record,
+                        &used_provider,
+                        quality_score,
+                    ) {
                         Ok(_) => {
-                            info!("Cached response for EscapeVector (quality: {:.2})", quality_score);
+                            info!(
+                                "Cached response for EscapeVector (quality: {:.2})",
+                                quality_score
+                            );
                         }
                         Err(e) => {
                             warn!("Failed to cache response: {}", e);
@@ -2198,7 +2384,9 @@ impl Provider for CloudProviderWrapper {
     async fn stream(
         &self,
         prompt: &str,
-    ) -> anyhow::Result<std::pin::Pin<Box<dyn futures::Stream<Item = Result<String, anyhow::Error>> + Send>>> {
+    ) -> anyhow::Result<
+        std::pin::Pin<Box<dyn futures::Stream<Item = Result<String, anyhow::Error>> + Send>>,
+    > {
         self.0.stream(prompt).await
     }
 
@@ -2210,7 +2398,11 @@ impl Provider for CloudProviderWrapper {
 #[tokio::main]
 async fn main() -> anyhow::Result<()> {
     #[derive(Debug, Parser)]
-    #[command(name = "igris-runtime", version, about = "Igris Runtime v1.6 server + CLI")]
+    #[command(
+        name = "igris-runtime",
+        version,
+        about = "Igris Runtime v1.6 server + CLI"
+    )]
     struct Cli {
         /// Path to config file (overrides IGRIS_CONFIG)
         #[arg(long, global = true)]
@@ -2414,8 +2606,9 @@ async fn main() -> anyhow::Result<()> {
     // Initialize tracing
     tracing_subscriber::registry()
         .with(
-            tracing_subscriber::EnvFilter::try_from_default_env()
-                .unwrap_or_else(|_| "igris_server=info,igris_routing=info,igris_core=info,igris_local_llm=info".into()),
+            tracing_subscriber::EnvFilter::try_from_default_env().unwrap_or_else(|_| {
+                "igris_server=info,igris_routing=info,igris_core=info,igris_local_llm=info".into()
+            }),
         )
         .with(tracing_subscriber::fmt::layer())
         .init();
@@ -2456,7 +2649,8 @@ async fn main() -> anyhow::Result<()> {
         match igris_license_client::validate_license_on_startup(&key).await {
             Ok(validation) => {
                 info!("License validated successfully");
-                info!("Tier: {} | Devices: {}/{} | Cloud requests: {}/{}/month",
+                info!(
+                    "Tier: {} | Devices: {}/{} | Cloud requests: {}/{}/month",
                     validation.tier.as_deref().unwrap_or("unknown"),
                     validation.devices_active.unwrap_or(0),
                     validation.devices_limit.unwrap_or(0),
@@ -2481,7 +2675,9 @@ async fn main() -> anyhow::Result<()> {
                         api_key,
                         overture_url_ref,
                         version,
-                    ).await {
+                    )
+                    .await
+                    {
                         Ok(reg_client) => {
                             info!(
                                 "Runtime registered with Overture (machine_id={})",
@@ -2552,7 +2748,9 @@ async fn main() -> anyhow::Result<()> {
     }
 
     // Initialize storage
-    let storage_path = config.storage.as_ref()
+    let storage_path = config
+        .storage
+        .as_ref()
         .and_then(|s| s.path.as_deref())
         .unwrap_or("igris.db");
 
@@ -2613,12 +2811,12 @@ async fn main() -> anyhow::Result<()> {
 
     // Initialize routers
     info!("Initializing routing engines...");
-    let speculative_router = SpeculativeRouter::new(
-        3,
-        std::time::Duration::from_secs(5),
-    );
+    let speculative_router = SpeculativeRouter::new(3, std::time::Duration::from_secs(5));
     let thompson_router = ThompsonSamplingRouter::new(
-        cloud_providers.iter().map(|provider| provider.id().to_string()).collect(),
+        cloud_providers
+            .iter()
+            .map(|provider| provider.id().to_string())
+            .collect(),
         config.routing.thompson_sampling.exploration_rate,
     );
 
@@ -2789,7 +2987,11 @@ async fn main() -> anyhow::Result<()> {
             );
 
             // Start discovery
-            discovery.clone().start().await.expect("Failed to start discovery");
+            discovery
+                .clone()
+                .start()
+                .await
+                .expect("Failed to start discovery");
 
             // Initialize MCP client
             let mcp_client = Arc::new(McpClient::new(peer_id.clone()));
@@ -2808,7 +3010,10 @@ async fn main() -> anyhow::Result<()> {
 
             // Build MCP router
             let execution_signer = Arc::new(igris_mcp_server::ExecutionSigner::new());
-            info!("MCP execution signer initialized (public key: {})", execution_signer.public_key_hex());
+            info!(
+                "MCP execution signer initialized (public key: {})",
+                execution_signer.public_key_hex()
+            );
 
             let mcp_state = McpState {
                 context_store: context_store.clone(),
@@ -2835,7 +3040,9 @@ async fn main() -> anyhow::Result<()> {
     };
 
     // Create application state
-    let rate_limiter = if (config.auth.enabled || config.auth.api_key != "default-api-key" || config.auth.jwt_hs256_secret.is_some())
+    let rate_limiter = if (config.auth.enabled
+        || config.auth.api_key != "default-api-key"
+        || config.auth.jwt_hs256_secret.is_some())
         && config.auth.rate_limit_per_minute > 0
     {
         Some(RateLimiter::new(
@@ -2849,57 +3056,61 @@ async fn main() -> anyhow::Result<()> {
     let metrics = Arc::new(Metrics::new());
 
     // Initialize EscapeVector cache for graceful degradation (Phase 1, v1.9)
-    let escapevector_cache: Option<Arc<EscapeVectorCache>> = if let Some(ev_config) = &config.escapevector {
-        if ev_config.enabled {
-            info!("EscapeVector graceful degradation is ENABLED");
-            info!("Cache directory: {}", ev_config.cache_dir);
+    let escapevector_cache: Option<Arc<EscapeVectorCache>> =
+        if let Some(ev_config) = &config.escapevector {
+            if ev_config.enabled {
+                info!("EscapeVector graceful degradation is ENABLED");
+                info!("Cache directory: {}", ev_config.cache_dir);
 
-            // Derive cache encryption key from a stable device identifier
-            // In production, this should be derived from a device-specific secret or config
+                // Derive cache encryption key from a stable device identifier
+                // In production, this should be derived from a device-specific secret or config
+                let mut cache_key = [0u8; 32];
+                let key_material = format!("igris-runtime-{}", config.server.port);
+                let hash = sha2::Sha256::digest(key_material.as_bytes());
+                cache_key.copy_from_slice(&hash[..32]);
+
+                match EscapeVectorCache::new(&ev_config.cache_dir, cache_key) {
+                    Ok(cache) => {
+                        info!("EscapeVector cache initialized successfully");
+                        Some(Arc::new(cache))
+                    }
+                    Err(e) => {
+                        warn!("Failed to initialize EscapeVector cache: {}", e);
+                        warn!("Graceful degradation will not be available");
+                        None
+                    }
+                }
+            } else {
+                info!("EscapeVector graceful degradation is DISABLED in config");
+                None
+            }
+        } else {
+            info!("EscapeVector not configured (using default: enabled)");
+            // Default behavior: enable with default config
+            let cache_dir = ".escapevector";
             let mut cache_key = [0u8; 32];
             let key_material = format!("igris-runtime-{}", config.server.port);
             let hash = sha2::Sha256::digest(key_material.as_bytes());
             cache_key.copy_from_slice(&hash[..32]);
 
-            match EscapeVectorCache::new(&ev_config.cache_dir, cache_key) {
-                Ok(cache) => {
-                    info!("EscapeVector cache initialized successfully");
-                    Some(Arc::new(cache))
-                }
+            match EscapeVectorCache::new(cache_dir, cache_key) {
+                Ok(cache) => Some(Arc::new(cache)),
                 Err(e) => {
-                    warn!("Failed to initialize EscapeVector cache: {}", e);
-                    warn!("Graceful degradation will not be available");
+                    warn!("Failed to initialize default EscapeVector cache: {}", e);
                     None
                 }
             }
-        } else {
-            info!("EscapeVector graceful degradation is DISABLED in config");
-            None
-        }
-    } else {
-        info!("EscapeVector not configured (using default: enabled)");
-        // Default behavior: enable with default config
-        let cache_dir = ".escapevector";
-        let mut cache_key = [0u8; 32];
-        let key_material = format!("igris-runtime-{}", config.server.port);
-        let hash = sha2::Sha256::digest(key_material.as_bytes());
-        cache_key.copy_from_slice(&hash[..32]);
-
-        match EscapeVectorCache::new(cache_dir, cache_key) {
-            Ok(cache) => Some(Arc::new(cache)),
-            Err(e) => {
-                warn!("Failed to initialize default EscapeVector cache: {}", e);
-                None
-            }
-        }
-    };
+        };
 
     // Initialize Fleet Management (Phase 2, Dev 10)
     let fleet_manager: Option<Arc<FleetManager>> = {
         if let Some(fleet_runtime_config) = &config.fleet {
             if fleet_runtime_config.enabled {
                 info!("Fleet Management is ENABLED");
-                info!("Overture endpoint: {}", fleet_runtime_config.overture_endpoint);
+                info!(
+                    "Overture endpoint: {}",
+                    fleet_runtime_config.overture_endpoint
+                );
                 info!("Agent ID: {}", fleet_runtime_config.agent_id);
 
                 let api_key = std::env::var(&fleet_runtime_config.api_key_env).ok();
@@ -2982,45 +3193,53 @@ async fn main() -> anyhow::Result<()> {
             .iter()
             .map(|b| format!("{:02x}", b))
             .collect::<String>();
-        info!("[Runtime/Identity] Ed25519 verifying key: {}", &hex_key[..16]);
+        info!(
+            "[Runtime/Identity] Ed25519 verifying key: {}",
+            &hex_key[..16]
+        );
         (hex_key, signing_key)
     };
 
     // Load Overture's public key for decision-signature verification (P0-3).
-    let overture_public_key = std::env::var("IGRIS_OVERTURE_PUBLIC_KEY").ok().and_then(|hex| {
-        let bytes: Option<Vec<u8>> = (0..hex.len())
-            .step_by(2)
-            .map(|i| u8::from_str_radix(&hex[i..i + 2], 16).ok())
-            .collect();
-        bytes
-            .and_then(|b| {
-                let arr: [u8; 32] = b.try_into().ok()?;
-                ed25519_dalek::VerifyingKey::from_bytes(&arr).ok()
-            })
-            .map(Arc::new)
-    });
+    let overture_public_key = std::env::var("IGRIS_OVERTURE_PUBLIC_KEY")
+        .ok()
+        .and_then(|hex| {
+            let bytes: Option<Vec<u8>> = (0..hex.len())
+                .step_by(2)
+                .map(|i| u8::from_str_radix(&hex[i..i + 2], 16).ok())
+                .collect();
+            bytes
+                .and_then(|b| {
+                    let arr: [u8; 32] = b.try_into().ok()?;
+                    ed25519_dalek::VerifyingKey::from_bytes(&arr).ok()
+                })
+                .map(Arc::new)
+        });
     if overture_public_key.is_some() {
-        info!("[Runtime/Security] Overture public key loaded — decision signatures will be verified");
+        info!(
+            "[Runtime/Security] Overture public key loaded — decision signatures will be verified"
+        );
     }
 
     // ── Phase 3: Execution receipt log ──────────────────────────────────────
     let receipt_log_path = std::env::var("IGRIS_RECEIPT_LOG")
         .unwrap_or_else(|_| "/var/lib/igris/receipts.jsonl".to_string());
-    let receipt_log = match receipt::ReceiptLog::open(
-        &receipt_log_path,
-        Some(Arc::new(signing_key.clone())),
-    )
-    .await
-    {
-        Ok(log) => {
-            info!("[Runtime/Receipt] log={}", receipt_log_path);
-            Some(Arc::new(log))
-        }
-        Err(e) => {
-            warn!("[Runtime/Receipt] Could not open receipt log at {}: {}", receipt_log_path, e);
-            None
-        }
-    };
+    let receipt_log =
+        match receipt::ReceiptLog::open(&receipt_log_path, Some(Arc::new(signing_key.clone())))
+            .await
+        {
+            Ok(log) => {
+                info!("[Runtime/Receipt] log={}", receipt_log_path);
+                Some(Arc::new(log))
+            }
+            Err(e) => {
+                warn!(
+                    "[Runtime/Receipt] Could not open receipt log at {}: {}",
+                    receipt_log_path, e
+                );
+                None
+            }
+        };
 
     // ── Phase 4: Lifecycle registry ─────────────────────────────────────────
     let lifecycle_registry = Some(new_lifecycle_registry());
@@ -3037,7 +3256,11 @@ async fn main() -> anyhow::Result<()> {
             if let Some(parent) = std::path::Path::new(&db_path).parent() {
                 if !parent.as_os_str().is_empty() {
                     if let Err(e) = std::fs::create_dir_all(parent) {
-                        warn!("[Memory] Failed to create memory directory {}: {}", parent.display(), e);
+                        warn!(
+                            "[Memory] Failed to create memory directory {}: {}",
+                            parent.display(),
+                            e
+                        );
                     }
                 }
             }
@@ -3141,7 +3364,9 @@ async fn main() -> anyhow::Result<()> {
         #[cfg(feature = "hitl")]
         hitl_coordinator,
         violation_log: Some(Arc::new(tokio::sync::Mutex::new(Vec::new()))),
-        peer_registry: Some(Arc::new(tokio::sync::RwLock::new(std::collections::HashMap::new()))),
+        peer_registry: Some(Arc::new(tokio::sync::RwLock::new(
+            std::collections::HashMap::new(),
+        ))),
         runtime_public_key: Some(runtime_public_key),
         signing_key: Some(Arc::new(signing_key)),
         overture_public_key,
@@ -3197,7 +3422,10 @@ async fn main() -> anyhow::Result<()> {
                     state.ros2_manager = Some(Arc::new(mgr));
                 }
                 Err(e) => {
-                    warn!("[ROS2] Ros2Manager failed to start, ROS2 BT nodes disabled: {}", e);
+                    warn!(
+                        "[ROS2] Ros2Manager failed to start, ROS2 BT nodes disabled: {}",
+                        e
+                    );
                 }
             }
         }
@@ -3247,14 +3475,35 @@ async fn main() -> anyhow::Result<()> {
         .route("/mcp/stream", post(mcp_stream))
         // Runtime execution API (Overture → Runtime boundary)
         .route("/v1/runtime/execute", post(runtime_execute::handle_execute))
-        .route("/v1/runtime/violations", get(runtime_execute::handle_violations))
-        .route("/v1/runtime/register", post(runtime_execute::handle_register))
-        .route("/v1/runtime/task/submit", post(task_executor::handle_task_submit))
-        .route("/v1/runtime/task/stream", post(task_executor::handle_task_stream))
-        .route("/v1/runtime/task/:task_id/cancel", post(task_executor::handle_task_cancel))
-        .route("/v1/runtime/task/:task_id/wal", get(task_executor::handle_task_wal))
+        .route(
+            "/v1/runtime/violations",
+            get(runtime_execute::handle_violations),
+        )
+        .route(
+            "/v1/runtime/register",
+            post(runtime_execute::handle_register),
+        )
+        .route(
+            "/v1/runtime/task/submit",
+            post(task_executor::handle_task_submit),
+        )
+        .route(
+            "/v1/runtime/task/stream",
+            post(task_executor::handle_task_stream),
+        )
+        .route(
+            "/v1/runtime/task/:task_id/cancel",
+            post(task_executor::handle_task_cancel),
+        )
+        .route(
+            "/v1/runtime/task/:task_id/wal",
+            get(task_executor::handle_task_wal),
+        )
         // Phase 4: Agent lifecycle state endpoint
-        .route("/v1/runtime/agent/:id/state", get(lifecycle::handle_agent_state))
+        .route(
+            "/v1/runtime/agent/:id/state",
+            get(lifecycle::handle_agent_state),
+        )
         .merge(SwaggerUi::new("/swagger-ui").url("/api-docs/openapi.json", ApiDoc::openapi()))
         .layer(TraceLayer::new_for_http())
         .layer(CorsLayer::permissive())
@@ -3272,8 +3521,18 @@ async fn main() -> anyhow::Result<()> {
     info!("Server listening on {}", addr);
     info!("Swagger UI available at http://localhost:8080/swagger-ui");
     info!("Igris Runtime v1.1 started successfully");
-    info!("Compiled runtime profiles: {}", compiled_runtime_profiles().join(", "));
-    info!("Local LLM fallback: {}", if has_local_fallback { "ENABLED" } else { "DISABLED" });
+    info!(
+        "Compiled runtime profiles: {}",
+        compiled_runtime_profiles().join(", ")
+    );
+    info!(
+        "Local LLM fallback: {}",
+        if has_local_fallback {
+            "ENABLED"
+        } else {
+            "DISABLED"
+        }
+    );
 
     let listener = tokio::net::TcpListener::bind(addr).await?;
     axum::serve(listener, app).await?;

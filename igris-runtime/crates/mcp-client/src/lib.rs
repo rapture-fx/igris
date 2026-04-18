@@ -1,5 +1,5 @@
-pub mod client;
 pub mod broadcaster;
+pub mod client;
 
-pub use client::McpClient;
 pub use broadcaster::ContextBroadcaster;
+pub use client::McpClient;

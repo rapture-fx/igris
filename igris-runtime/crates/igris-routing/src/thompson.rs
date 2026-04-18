@@ -270,8 +270,14 @@ mod tests {
         let router = ThompsonSamplingRouter::new(providers.clone(), 0.1);
 
         // Update with some metrics
-        router.update_reward(&providers[0], 100.0, true, 0.001).await.unwrap();
-        router.update_reward(&providers[1], 200.0, false, 0.002).await.unwrap();
+        router
+            .update_reward(&providers[0], 100.0, true, 0.001)
+            .await
+            .unwrap();
+        router
+            .update_reward(&providers[1], 200.0, false, 0.002)
+            .await
+            .unwrap();
 
         let stats = router.get_stats().await;
         assert_eq!(stats.len(), 2);

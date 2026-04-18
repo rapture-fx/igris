@@ -58,8 +58,7 @@ impl RtMetrics {
             self.max_latency_ms = latency_ms;
         } else {
             let total = self.total_executions as f64;
-            self.avg_latency_ms =
-                ((self.avg_latency_ms * (total - 1.0)) + latency_ms) / total;
+            self.avg_latency_ms = ((self.avg_latency_ms * (total - 1.0)) + latency_ms) / total;
             self.min_latency_ms = self.min_latency_ms.min(latency_ms);
             self.max_latency_ms = self.max_latency_ms.max(latency_ms);
         }
@@ -125,11 +124,7 @@ mod tests {
     fn test_metrics_basic() {
         let mut metrics = RtMetrics::default();
 
-        let result = RtResult::new(
-            (),
-            Duration::from_millis(30),
-            Priority::Critical,
-        );
+        let result = RtResult::new((), Duration::from_millis(30), Priority::Critical);
         metrics.record_execution(&result);
 
         assert_eq!(metrics.total_executions, 1);
@@ -143,11 +138,7 @@ mod tests {
     fn test_metrics_deadline_miss() {
         let mut metrics = RtMetrics::default();
 
-        let result = RtResult::new(
-            (),
-            Duration::from_millis(100),
-            Priority::Critical,
-        );
+        let result = RtResult::new((), Duration::from_millis(100), Priority::Critical);
         metrics.record_execution(&result);
 
         assert_eq!(metrics.total_executions, 1);

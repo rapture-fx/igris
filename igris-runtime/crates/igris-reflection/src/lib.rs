@@ -101,7 +101,11 @@ impl fmt::Display for ReflectionIteration {
             "Iteration {} [Score: {:.2}, {}]: {}",
             self.iteration,
             self.critique.overall_score,
-            if self.accepted { "ACCEPTED" } else { "REJECTED" },
+            if self.accepted {
+                "ACCEPTED"
+            } else {
+                "REJECTED"
+            },
             self.reason
         )
     }

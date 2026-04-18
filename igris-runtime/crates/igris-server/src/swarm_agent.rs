@@ -131,7 +131,11 @@ fn synthesis_prompt(user_prompt: &str, contributions: &[(String, String)]) -> St
     )
 }
 
-fn consensus_candidate_prompt(kind: &str, user_prompt: &str, contributions: &[(String, String)]) -> String {
+fn consensus_candidate_prompt(
+    kind: &str,
+    user_prompt: &str,
+    contributions: &[(String, String)],
+) -> String {
     let mut body = String::new();
     for (role, text) in contributions {
         body.push_str(&format!("\n## {}\n{}\n", role, text));
@@ -420,5 +424,3 @@ fn super_extract_first_json_object(s: &str) -> Option<serde_json::Value> {
 
     None
 }
-
-

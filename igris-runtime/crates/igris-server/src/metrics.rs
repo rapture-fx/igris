@@ -1,5 +1,5 @@
-use std::sync::Arc;
 use std::sync::atomic::{AtomicU64, Ordering};
+use std::sync::Arc;
 use std::time::Instant;
 
 #[derive(Clone)]
@@ -61,5 +61,3 @@ igris_tool_exec_total {tool}\n",
         )
     }
 }
-
-

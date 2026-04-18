@@ -68,7 +68,9 @@ impl ViolationEventBus {
     /// should call this. The method is `pub` to allow integration tests in
     /// downstream crates (e.g., `igris-ros2`) to inject synthetic events.
     pub fn emit_violation(&self, record: ViolationRecord) {
-        let _ = self.sender.send(ContainmentEvent::Violation(Box::new(record)));
+        let _ = self
+            .sender
+            .send(ContainmentEvent::Violation(Box::new(record)));
     }
 
     /// Number of active subscribers (informational; not for safety decisions).

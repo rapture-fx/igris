@@ -153,10 +153,7 @@ pub struct AgentLifecycle {
 
 impl AgentLifecycle {
     /// Create a new lifecycle starting in `INIT`.
-    pub fn new(
-        agent_id: &str,
-        signing_key: Option<Arc<ed25519_dalek::SigningKey>>,
-    ) -> Arc<Self> {
+    pub fn new(agent_id: &str, signing_key: Option<Arc<ed25519_dalek::SigningKey>>) -> Arc<Self> {
         Arc::new(Self {
             agent_id: agent_id.to_string(),
             state: Mutex::new(AgentState::Init),
@@ -184,13 +181,8 @@ impl AgentLifecycle {
             );
         }
 
-        let t = LifecycleTransition::new(
-            &self.agent_id,
-            from,
-            to,
-            reason,
-            self.signing_key.as_ref(),
-        );
+        let t =
+            LifecycleTransition::new(&self.agent_id, from, to, reason, self.signing_key.as_ref());
 
         info!(
             "[Lifecycle] agent={} {} → {} reason=\"{}\"",
@@ -267,7 +259,10 @@ pub async fn register_lifecycle(
     signing_key: Option<Arc<ed25519_dalek::SigningKey>>,
 ) -> Arc<AgentLifecycle> {
     let lc = AgentLifecycle::new(agent_id, signing_key);
-    registry.write().await.insert(agent_id.to_string(), lc.clone());
+    registry
+        .write()
+        .await
+        .insert(agent_id.to_string(), lc.clone());
     lc
 }
 
@@ -351,7 +346,9 @@ mod tests {
         lc.transition(AgentState::Recovering, "respawning")
             .await
             .unwrap();
-        lc.transition(AgentState::Running, "recovered").await.unwrap();
+        lc.transition(AgentState::Running, "recovered")
+            .await
+            .unwrap();
         assert_eq!(lc.current_state().await, AgentState::Running);
     }
 
@@ -401,10 +398,10 @@ mod tests {
         map.insert("timestamp", t.timestamp.clone());
         let canonical = serde_json::to_string(&map).unwrap();
         let digest = Sha256::digest(canonical.as_bytes());
-        let sig_bytes =
-            base64::engine::general_purpose::STANDARD.decode(&t.signature).unwrap();
-        let sig =
-            ed25519_dalek::Signature::from_slice(&sig_bytes).unwrap();
+        let sig_bytes = base64::engine::general_purpose::STANDARD
+            .decode(&t.signature)
+            .unwrap();
+        let sig = ed25519_dalek::Signature::from_slice(&sig_bytes).unwrap();
         vk.verify_strict(&digest, &sig).unwrap();
     }
 

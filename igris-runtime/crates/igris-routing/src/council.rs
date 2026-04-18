@@ -1,6 +1,6 @@
 use futures::future::join_all;
 use std::time::Instant;
-use tracing::{info, warn, debug};
+use tracing::{debug, info, warn};
 
 // Re-export Provider trait from speculative module
 pub use crate::speculative::Provider;
@@ -43,7 +43,11 @@ impl CouncilRouter {
     }
 
     /// Execute council mode routing: parallel execution + chairman synthesis
-    pub async fn route<P>(&self, prompt: &str, council_members: Vec<P>) -> anyhow::Result<CouncilResult>
+    pub async fn route<P>(
+        &self,
+        prompt: &str,
+        council_members: Vec<P>,
+    ) -> anyhow::Result<CouncilResult>
     where
         P: Provider + 'static,
     {
@@ -95,10 +99,7 @@ impl CouncilRouter {
                     match provider.complete(&prompt).await {
                         Ok(response) => {
                             let latency = provider_start.elapsed();
-                            debug!(
-                                "Council member {} completed in {:?}",
-                                provider_id, latency
-                            );
+                            debug!("Council member {} completed in {:?}", provider_id, latency);
                             Ok(MemberResponse {
                                 provider_id,
                                 provider_name,
@@ -119,10 +120,8 @@ impl CouncilRouter {
         let results = join_all(member_futures).await;
 
         // Collect successful member responses (chairman will synthesize separately)
-        let member_responses: Vec<MemberResponse> = results
-            .into_iter()
-            .filter_map(|r| r.ok())
-            .collect();
+        let member_responses: Vec<MemberResponse> =
+            results.into_iter().filter_map(|r| r.ok()).collect();
 
         // Generate synthesis prompt for chairman
         let synthesis_prompt = if member_responses.is_empty() {
@@ -161,7 +160,11 @@ impl CouncilRouter {
         let chairman_name = chairman.name().to_string();
         let chairman_start = Instant::now();
         let final_response = chairman.complete(&synthesis_prompt).await.map_err(|e| {
-            anyhow::anyhow!("Chairman '{}' failed during synthesis: {}", self.chairman_id, e)
+            anyhow::anyhow!(
+                "Chairman '{}' failed during synthesis: {}",
+                self.chairman_id,
+                e
+            )
         })?;
         let chairman_latency_ms = chairman_start.elapsed().as_millis() as u64;
 
@@ -209,9 +212,9 @@ impl CouncilRouter {
 #[cfg(test)]
 mod tests {
     use super::*;
-    use std::pin::Pin;
-    use futures::Stream;
     use futures::stream;
+    use futures::Stream;
+    use std::pin::Pin;
 
     struct MockProvider {
         id: String,
@@ -230,7 +233,11 @@ mod tests {
             &self.name
         }
 
-        async fn stream(&self, _prompt: &str) -> anyhow::Result<Pin<Box<dyn Stream<Item = Result<String, anyhow::Error>> + Send>>> {
+        async fn stream(
+            &self,
+            _prompt: &str,
+        ) -> anyhow::Result<Pin<Box<dyn Stream<Item = Result<String, anyhow::Error>> + Send>>>
+        {
             if self.should_fail {
                 anyhow::bail!("Mock provider intentional failure");
             }

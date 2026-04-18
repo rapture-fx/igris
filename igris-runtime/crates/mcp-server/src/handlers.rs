@@ -67,10 +67,7 @@ async fn handle_jsonrpc(
     }
 }
 
-async fn handle_initialize(
-    state: McpState,
-    params: Option<Value>,
-) -> Result<Value, JsonRpcError> {
+async fn handle_initialize(state: McpState, params: Option<Value>) -> Result<Value, JsonRpcError> {
     let _params: InitializeParams = params
         .and_then(|v| serde_json::from_value(v).ok())
         .ok_or_else(|| JsonRpcError::invalid_params(Value::Null))?;
@@ -132,12 +129,13 @@ async fn handle_context_sync(
     Ok(json!({"status": "synced"}))
 }
 
-async fn handle_context_get(
-    state: McpState,
-    params: Option<Value>,
-) -> Result<Value, JsonRpcError> {
+async fn handle_context_get(state: McpState, params: Option<Value>) -> Result<Value, JsonRpcError> {
     let conversation_id: String = params
-        .and_then(|v| v.get("conversation_id").and_then(|c| c.as_str()).map(String::from))
+        .and_then(|v| {
+            v.get("conversation_id")
+                .and_then(|c| c.as_str())
+                .map(String::from)
+        })
         .ok_or_else(|| JsonRpcError::invalid_params(Value::Null))?;
 
     let context = state
@@ -178,10 +176,7 @@ fn handle_tools_list(state: McpState) -> Result<Value, JsonRpcError> {
     }
 }
 
-async fn handle_tools_call(
-    state: McpState,
-    params: Option<Value>,
-) -> Result<Value, JsonRpcError> {
+async fn handle_tools_call(state: McpState, params: Option<Value>) -> Result<Value, JsonRpcError> {
     let call_params: ToolCallParams = params
         .and_then(|v| serde_json::from_value(v).ok())
         .ok_or_else(|| JsonRpcError::invalid_params(Value::Null))?;
@@ -194,7 +189,10 @@ async fn handle_tools_call(
             let result = ToolCallResult {
                 content: vec![ToolResultContent {
                     type_field: "text".to_string(),
-                    text: format!("No tool registry available; cannot execute '{}'", call_params.name),
+                    text: format!(
+                        "No tool registry available; cannot execute '{}'",
+                        call_params.name
+                    ),
                 }],
                 is_error: Some(true),
             };
@@ -213,14 +211,21 @@ async fn handle_tools_call(
         return Ok(serde_json::to_value(result).unwrap());
     }
 
-    match registry.execute(&call_params.name, call_params.arguments).await {
+    match registry
+        .execute(&call_params.name, call_params.arguments)
+        .await
+    {
         Ok(tool_result) => {
             let result = ToolCallResult {
                 content: vec![ToolResultContent {
                     type_field: "text".to_string(),
                     text: tool_result.output,
                 }],
-                is_error: if tool_result.success { None } else { Some(true) },
+                is_error: if tool_result.success {
+                    None
+                } else {
+                    Some(true)
+                },
             };
             let result_value = serde_json::to_value(&result).unwrap();
 

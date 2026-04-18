@@ -16,29 +16,29 @@ use ed25519_dalek::Signer;
 use futures::{stream, Stream, StreamExt};
 use serde::{Deserialize, Serialize};
 use sha2::{Digest, Sha256};
-use std::convert::Infallible;
 use std::collections::HashMap;
+use std::convert::Infallible;
 use std::pin::Pin;
 use std::time::{Duration, Instant};
 use tokio::sync::watch;
 use tracing::{error, info, warn};
 use uuid::Uuid;
 
-use igris_wal::{CheckpointPayload, ResumeToken, StepType, WalEntry, WalLog};
-use igris_core::storage::{TASK_SUBMISSIONS, TASK_SUBMISSION_STATUS_BY_TASK_ID};
-use igris_routing::Provider;
 use igris_btree::{
     core::{BTreeContext, BtWalSession},
     parser::JsonTreeParser,
-    runtime::{BTreeExecutor, ExecutionResult, ExecutorConfig},
     prelude::NodeStatus,
+    runtime::{BTreeExecutor, ExecutionResult, ExecutorConfig},
 };
+use igris_core::storage::{TASK_SUBMISSIONS, TASK_SUBMISSION_STATUS_BY_TASK_ID};
+use igris_routing::Provider;
+use igris_wal::{CheckpointPayload, ResumeToken, StepType, WalEntry, WalLog};
 use std::sync::Arc;
 
 use crate::receipt::ExecutionReceipt;
 use crate::runtime_execute::{
-    canonical_envelope_bytes, iso8601_now, token_estimate, Bounds, ExecuteMessage,
-    ExecuteUsage, ExecutionEnvelope,
+    canonical_envelope_bytes, iso8601_now, token_estimate, Bounds, ExecuteMessage, ExecuteUsage,
+    ExecutionEnvelope,
 };
 use crate::{AppState, CloudProviderWrapper};
 
@@ -103,8 +103,12 @@ pub struct NavigationGoalPayload {
     pub frame_id: String,
 }
 
-fn default_orientation_w() -> f64 { 1.0 }
-fn default_frame_id() -> String { "map".to_string() }
+fn default_orientation_w() -> f64 {
+    1.0
+}
+fn default_frame_id() -> String {
+    "map".to_string()
+}
 
 #[derive(Debug, Clone, Serialize, Deserialize)]
 #[serde(tag = "action", rename_all = "snake_case")]
@@ -335,9 +339,15 @@ pub enum ExecutionNode {
 #[derive(Debug, Clone, Serialize, Deserialize)]
 #[serde(tag = "type", rename_all = "snake_case")]
 pub enum TaskType {
-    AgentWorkflow { steps: Vec<AgentStep> },
-    RoboticsWorkflow { steps: Vec<RoboticsStep> },
-    ExecutionGraph { graph: ExecutionGraph },
+    AgentWorkflow {
+        steps: Vec<AgentStep>,
+    },
+    RoboticsWorkflow {
+        steps: Vec<RoboticsStep>,
+    },
+    ExecutionGraph {
+        graph: ExecutionGraph,
+    },
     SingleInference {
         model: String,
         messages: Vec<ExecuteMessage>,
@@ -544,7 +554,10 @@ impl RuntimeTaskStep {
                     action: "publish_prompt".to_string(),
                     target: None,
                 },
-                RoboticsAction::PublishVelocity { linear_x, angular_z } => StepType::RoboticsAction {
+                RoboticsAction::PublishVelocity {
+                    linear_x,
+                    angular_z,
+                } => StepType::RoboticsAction {
                     action: "publish_velocity".to_string(),
                     target: Some(format!("{:.3},{:.3}", linear_x, angular_z)),
                 },
@@ -658,31 +671,35 @@ pub async fn handle_task_submit(
     Json(req): Json<TaskSubmitRequest>,
 ) -> impl IntoResponse {
     let submission_key = submission_key(&req.tenant_id, &req.idempotency_key);
-    let request_hash = format!("{:x}", Sha256::digest(
-        serde_json::to_vec(&serde_json::json!({
-            "task_type": &req.task_type,
-            "containment": &req.containment,
-            "tenant_id": &req.tenant_id,
-            "deadline_ms": &req.deadline_ms,
-        }))
-        .unwrap_or_default(),
-    ));
-    if let Ok(Some(existing)) = state.storage.get::<IdempotentTaskRecord>(TASK_SUBMISSIONS, &submission_key) {
+    let request_hash = format!(
+        "{:x}",
+        Sha256::digest(
+            serde_json::to_vec(&serde_json::json!({
+                "task_type": &req.task_type,
+                "containment": &req.containment,
+                "tenant_id": &req.tenant_id,
+                "deadline_ms": &req.deadline_ms,
+            }))
+            .unwrap_or_default(),
+        )
+    );
+    if let Ok(Some(existing)) = state
+        .storage
+        .get::<IdempotentTaskRecord>(TASK_SUBMISSIONS, &submission_key)
+    {
         if existing.request_hash != request_hash {
             return (
                 StatusCode::CONFLICT,
                 Json(build_idempotency_conflict_payload(&existing.response)),
-            ).into_response();
+            )
+                .into_response();
         }
         return (StatusCode::OK, Json(existing.response)).into_response();
     }
 
     if matches!(
         &req.task_type,
-        TaskType::SingleInference {
-            stream: true,
-            ..
-        }
+        TaskType::SingleInference { stream: true, .. }
     ) {
         return (
             StatusCode::BAD_REQUEST,
@@ -697,7 +714,11 @@ pub async fn handle_task_submit(
     }
 
     let runtime_id = state.swarm_peer_id.clone();
-    let wal = Arc::new(WalLog::new(state.storage.clone(), req.task_id, runtime_id.clone()));
+    let wal = Arc::new(WalLog::new(
+        state.storage.clone(),
+        req.task_id,
+        runtime_id.clone(),
+    ));
     let (_cancel_guard, cancel_rx) = register_task_cancellation(&state, req.task_id);
 
     let start_step = if let Some(ref token) = req.resume_from {
@@ -730,7 +751,8 @@ pub async fn handle_task_submit(
                     Json(serde_json::json!({
                         "error": { "message": "WAL error", "type": "wal_error" }
                     })),
-                ).into_response();
+                )
+                    .into_response();
             }
         }
     } else {
@@ -738,11 +760,21 @@ pub async fn handle_task_submit(
     };
 
     let deadline = req.deadline_ms.unwrap_or(300_000);
-    let max_tick_ms = req.containment.as_ref().and_then(|b| b.max_tick_ms).unwrap_or(30_000);
+    let max_tick_ms = req
+        .containment
+        .as_ref()
+        .and_then(|b| b.max_tick_ms)
+        .unwrap_or(30_000);
     let wall_start = Instant::now();
 
     // ── Behavior tree path (early return before the step loop) ────────────────
-    if let TaskType::BehaviorTree { ref tree, max_ticks, timeout_ms, checkpoint_every } = req.task_type {
+    if let TaskType::BehaviorTree {
+        ref tree,
+        max_ticks,
+        timeout_ms,
+        checkpoint_every,
+    } = req.task_type
+    {
         if state.signing_key.is_none() {
             return (
                 StatusCode::BAD_REQUEST,
@@ -779,7 +811,8 @@ pub async fn handle_task_submit(
                                 "type": "invalid_tree"
                             }
                         })),
-                    ).into_response();
+                    )
+                        .into_response();
                 }
                 error!(task_id = %req.task_id, "BT execution error: {}", e);
                 let response = TaskSubmitResponse {
@@ -876,7 +909,8 @@ pub async fn handle_task_submit(
                         "type": "invalid_execution_graph"
                     }
                 })),
-            ).into_response();
+            )
+                .into_response();
         }
     };
 
@@ -891,7 +925,8 @@ pub async fn handle_task_submit(
                         "type": "unsupported_execution_graph"
                     }
                 })),
-            ).into_response();
+            )
+                .into_response();
         }
     };
 
@@ -904,7 +939,8 @@ pub async fn handle_task_submit(
     let mut checkpoint: Option<CheckpointPayload> = None;
     let mut checkpoint_metadata: Option<serde_json::Value> = None;
     let mut entries_since_checkpoint: Vec<WalEntry> = Vec::new();
-    let mut graph_blackboard = initialize_graph_blackboard(&execution_graph, req.resume_checkpoint.as_ref());
+    let mut graph_blackboard =
+        initialize_graph_blackboard(&execution_graph, req.resume_checkpoint.as_ref());
 
     for step in steps.iter().filter(|step| step.step_index() >= start_step) {
         if is_task_canceled(&cancel_rx) {
@@ -964,25 +1000,24 @@ pub async fn handle_task_submit(
                 execution_receipt: last_receipt,
             };
             let _ = persist_task_record(&state, &submission_key, &request_hash, &response);
-            return (
-                StatusCode::OK,
-                Json(response),
-            ).into_response();
+            return (StatusCode::OK, Json(response)).into_response();
         }
 
         let input_digest: [u8; 32] = Sha256::digest(step.input_bytes()).into();
-        let wal_entry = match wal.write_intent(step.step_index(), step.wal_step_type(), input_digest) {
-            Ok(entry) => entry,
-            Err(e) => {
-                error!(task_id = %req.task_id, "WAL intent write failed: {}", e);
-                return (
-                    StatusCode::INTERNAL_SERVER_ERROR,
-                    Json(serde_json::json!({
-                        "error": { "message": "WAL write failed", "type": "wal_error" }
-                    })),
-                ).into_response();
-            }
-        };
+        let wal_entry =
+            match wal.write_intent(step.step_index(), step.wal_step_type(), input_digest) {
+                Ok(entry) => entry,
+                Err(e) => {
+                    error!(task_id = %req.task_id, "WAL intent write failed: {}", e);
+                    return (
+                        StatusCode::INTERNAL_SERVER_ERROR,
+                        Json(serde_json::json!({
+                            "error": { "message": "WAL write failed", "type": "wal_error" }
+                        })),
+                    )
+                        .into_response();
+                }
+            };
 
         let execution = match step {
             RuntimeTaskStep::Agent(agent_step) => {
@@ -1022,10 +1057,17 @@ pub async fn handle_task_submit(
                 .await
             }
             RuntimeTaskStep::MemoryRecall(recall_step) => {
-                execute_memory_recall_step(state.clone(), req.task_id, recall_step, &graph_blackboard).await
+                execute_memory_recall_step(
+                    state.clone(),
+                    req.task_id,
+                    recall_step,
+                    &graph_blackboard,
+                )
+                .await
             }
             RuntimeTaskStep::MemoryStore(store_step) => {
-                execute_memory_store_step(state.clone(), req.task_id, store_step, &graph_blackboard).await
+                execute_memory_store_step(state.clone(), req.task_id, store_step, &graph_blackboard)
+                    .await
             }
             RuntimeTaskStep::BehaviorTree(bt_step) => {
                 execute_behavior_tree_graph_step(
@@ -1065,10 +1107,7 @@ pub async fn handle_task_submit(
                     execution_receipt: last_receipt,
                 };
                 let _ = persist_task_record(&state, &submission_key, &request_hash, &response);
-                return (
-                    StatusCode::OK,
-                    Json(response),
-                ).into_response();
+                return (StatusCode::OK, Json(response)).into_response();
             }
         };
 
@@ -1097,7 +1136,11 @@ pub async fn handle_task_submit(
         }
 
         if step_result.checkpoint_requested {
-            checkpoint_metadata = Some(build_step_checkpoint_metadata(step, steps_completed, &step_result));
+            checkpoint_metadata = Some(build_step_checkpoint_metadata(
+                step,
+                steps_completed,
+                &step_result,
+            ));
             attach_graph_blackboard_metadata(&mut checkpoint_metadata, &graph_blackboard);
             let payload = match build_checkpoint(
                 &wal,
@@ -1149,7 +1192,8 @@ pub async fn handle_task_submit(
             Ok(artifacts) => artifacts,
             Err(e) => {
                 error!(task_id = %req.task_id, "Execution artifact build failed: {}", e);
-                let _ = wal.write_failed(wal_entry.entry_id, format!("artifact build failed: {}", e));
+                let _ =
+                    wal.write_failed(wal_entry.entry_id, format!("artifact build failed: {}", e));
                 return (
                     StatusCode::INTERNAL_SERVER_ERROR,
                     Json(serde_json::json!({
@@ -1164,7 +1208,8 @@ pub async fn handle_task_submit(
             Some(k) => k,
             None => {
                 error!(task_id = %req.task_id, "No signing key configured — cannot produce integrity-guaranteed WAL entries");
-                let _ = wal.write_failed(wal_entry.entry_id, "runtime has no signing key".to_string());
+                let _ =
+                    wal.write_failed(wal_entry.entry_id, "runtime has no signing key".to_string());
                 return (
                     StatusCode::INTERNAL_SERVER_ERROR,
                     Json(serde_json::json!({
@@ -1177,24 +1222,31 @@ pub async fn handle_task_submit(
             }
         };
 
-        let committed_entry = match wal.write_committed(wal_entry.entry_id, output_digest, signing_key.as_ref()) {
-            Ok(entry) => entry,
-            Err(e) => {
-                error!(task_id = %req.task_id, "WAL commit write failed: {}", e);
-                let _ = wal.write_failed(wal_entry.entry_id, format!("commit write failed: {}", e));
-                return (
-                    StatusCode::INTERNAL_SERVER_ERROR,
-                    Json(serde_json::json!({
-                        "error": { "message": "WAL commit failed", "type": "wal_error" }
-                    })),
-                ).into_response();
-            }
-        };
+        let committed_entry =
+            match wal.write_committed(wal_entry.entry_id, output_digest, signing_key.as_ref()) {
+                Ok(entry) => entry,
+                Err(e) => {
+                    error!(task_id = %req.task_id, "WAL commit write failed: {}", e);
+                    let _ =
+                        wal.write_failed(wal_entry.entry_id, format!("commit write failed: {}", e));
+                    return (
+                        StatusCode::INTERNAL_SERVER_ERROR,
+                        Json(serde_json::json!({
+                            "error": { "message": "WAL commit failed", "type": "wal_error" }
+                        })),
+                    )
+                        .into_response();
+                }
+            };
 
         entries_since_checkpoint.push(committed_entry);
         steps_completed = step.step_index() + 1;
         // Build metadata before consuming step_result fields.
-        checkpoint_metadata = Some(build_step_checkpoint_metadata(step, steps_completed, &step_result));
+        checkpoint_metadata = Some(build_step_checkpoint_metadata(
+            step,
+            steps_completed,
+            &step_result,
+        ));
         attach_graph_blackboard_metadata(&mut checkpoint_metadata, &graph_blackboard);
         last_output = Some(step_result.output_text);
         last_usage = Some(step_result.usage);
@@ -1261,10 +1313,7 @@ pub async fn handle_task_submit(
     };
     let _ = persist_task_record(&state, &submission_key, &request_hash, &response);
 
-    (
-        StatusCode::OK,
-        Json(response),
-    ).into_response()
+    (StatusCode::OK, Json(response)).into_response()
 }
 
 pub async fn handle_task_stream(
@@ -1285,7 +1334,10 @@ pub async fn handle_task_stream(
         )
     );
 
-    if let Ok(Some(existing)) = state.storage.get::<IdempotentTaskRecord>(TASK_SUBMISSIONS, &submission_key) {
+    if let Ok(Some(existing)) = state
+        .storage
+        .get::<IdempotentTaskRecord>(TASK_SUBMISSIONS, &submission_key)
+    {
         if existing.request_hash != request_hash {
             return (
                 StatusCode::CONFLICT,
@@ -1305,7 +1357,9 @@ pub async fn handle_task_stream(
                     Ok::<Event, Infallible>(task_result_event(&existing_response)),
                     Ok::<Event, Infallible>(Event::default().data("[DONE]")),
                 ]);
-                let mut response = Sse::new(stream).keep_alive(KeepAlive::default()).into_response();
+                let mut response = Sse::new(stream)
+                    .keep_alive(KeepAlive::default())
+                    .into_response();
                 attach_stream_task_headers(&mut response, req.task_id);
                 return response;
             }
@@ -1446,7 +1500,11 @@ pub async fn handle_task_stream(
     };
 
     let runtime_id = state.swarm_peer_id.clone();
-    let wal = Arc::new(WalLog::new(state.storage.clone(), req.task_id, runtime_id.clone()));
+    let wal = Arc::new(WalLog::new(
+        state.storage.clone(),
+        req.task_id,
+        runtime_id.clone(),
+    ));
     let max_tick_ms = req
         .containment
         .as_ref()
@@ -1464,7 +1522,9 @@ pub async fn handle_task_stream(
         max_tick_ms,
         deadline,
     );
-    let mut response = Sse::new(stream).keep_alive(KeepAlive::default()).into_response();
+    let mut response = Sse::new(stream)
+        .keep_alive(KeepAlive::default())
+        .into_response();
     attach_stream_task_headers(&mut response, req.task_id);
     response
 }
@@ -1485,10 +1545,7 @@ pub async fn handle_task_cancel(
     };
     let (status, payload) = build_task_cancel_response(task_id, canceled, persisted.as_ref());
 
-    (
-        status,
-        Json(payload),
-    )
+    (status, Json(payload))
 }
 
 pub async fn handle_task_wal(
@@ -1505,7 +1562,8 @@ pub async fn handle_task_wal(
                 "entries": entries,
                 "count": entries.len(),
             })),
-        ).into_response(),
+        )
+            .into_response(),
         Err(e) => {
             error!(task_id = %task_id, "Failed to read WAL entries: {}", e);
             (
@@ -1513,7 +1571,8 @@ pub async fn handle_task_wal(
                 Json(serde_json::json!({
                     "error": { "message": "Failed to read WAL", "type": "wal_error" }
                 })),
-            ).into_response()
+            )
+                .into_response()
         }
     }
 }
@@ -1521,7 +1580,8 @@ pub async fn handle_task_wal(
 fn attach_stream_task_headers(response: &mut Response, task_id: Uuid) {
     response.headers_mut().insert(
         HeaderName::from_static("x-igris-runtime-task-id"),
-        HeaderValue::from_str(&task_id.to_string()).unwrap_or_else(|_| HeaderValue::from_static("invalid-task-id")),
+        HeaderValue::from_str(&task_id.to_string())
+            .unwrap_or_else(|_| HeaderValue::from_static("invalid-task-id")),
     );
     response.headers_mut().insert(
         HeaderName::from_static("x-igris-runtime-stream-resume-supported"),
@@ -1582,7 +1642,7 @@ fn build_task_result_payload(response: &TaskSubmitResponse) -> serde_json::Value
         .and_then(|checkpoint| checkpoint.metadata.as_ref())
         .map(extract_mode_metadata)
         .unwrap_or((None, None));
-    serde_json::json!({
+    let mut payload = serde_json::json!({
         "task_id": response.task_id,
         "steps_completed": response.steps_completed,
         "steps_total": response.steps_total,
@@ -1596,12 +1656,18 @@ fn build_task_result_payload(response: &TaskSubmitResponse) -> serde_json::Value
         "execution_envelope": response.execution_envelope,
         "execution_receipt": response.execution_receipt,
         "durability": stream_durability_metadata(Some(response)),
-    })
+    });
+    if let Some(receipt) = build_receipt_metadata(response.execution_receipt.as_ref()) {
+        payload["receipt"] = receipt;
+    }
+    payload
 }
 
 fn task_result_event(response: &TaskSubmitResponse) -> Event {
     let payload = build_task_result_payload(response);
-    Event::default().event("task_result").data(payload.to_string())
+    Event::default()
+        .event("task_result")
+        .data(payload.to_string())
 }
 
 fn build_task_stream_sse(
@@ -1747,6 +1813,44 @@ fn encode_checkpoint_digest(digest: &[u8; 32]) -> String {
         .collect::<String>()
 }
 
+fn receipt_string_field(receipt: &serde_json::Value, field: &str) -> Option<String> {
+    receipt
+        .get(field)
+        .and_then(|value| value.as_str())
+        .filter(|value| !value.is_empty())
+        .map(|value| value.to_string())
+}
+
+fn build_receipt_metadata(receipt: Option<&serde_json::Value>) -> Option<serde_json::Value> {
+    let receipt = receipt?;
+    let mut metadata = serde_json::Map::new();
+    metadata.insert("available".to_string(), serde_json::json!(true));
+
+    for field in [
+        "execution_id",
+        "transaction_id",
+        "transaction_hash",
+        "previous_hash",
+    ] {
+        if let Some(value) = receipt_string_field(receipt, field) {
+            metadata.insert(field.to_string(), serde_json::json!(value));
+        }
+    }
+
+    if let Some(receipt_hash) = receipt_string_field(receipt, "receipt_hash")
+        .or_else(|| receipt_string_field(receipt, "hash"))
+    {
+        metadata.insert("receipt_hash".to_string(), serde_json::json!(receipt_hash));
+    }
+
+    metadata.insert(
+        "signature_present".to_string(),
+        serde_json::json!(receipt_string_field(receipt, "signature").is_some()),
+    );
+
+    Some(serde_json::Value::Object(metadata))
+}
+
 fn build_task_response_snapshot(response: &TaskSubmitResponse) -> serde_json::Value {
     let mut payload = serde_json::json!({
         "task_id": response.task_id,
@@ -1759,8 +1863,12 @@ fn build_task_response_snapshot(response: &TaskSubmitResponse) -> serde_json::Va
     });
     if let Some(checkpoint) = response.checkpoint.as_ref() {
         payload["last_step"] = serde_json::json!(checkpoint.resume_token.last_committed_step);
-        payload["checkpoint_digest"] =
-            serde_json::json!(encode_checkpoint_digest(&checkpoint.resume_token.checkpoint_digest));
+        payload["checkpoint_digest"] = serde_json::json!(encode_checkpoint_digest(
+            &checkpoint.resume_token.checkpoint_digest
+        ));
+    }
+    if let Some(receipt) = build_receipt_metadata(response.execution_receipt.as_ref()) {
+        payload["receipt"] = receipt;
     }
     payload
 }
@@ -1890,8 +1998,9 @@ fn build_task_cancel_response(
         });
         if let Some(checkpoint) = response.checkpoint.as_ref() {
             payload["last_step"] = serde_json::json!(checkpoint.resume_token.last_committed_step);
-            payload["checkpoint_digest"] =
-                serde_json::json!(encode_checkpoint_digest(&checkpoint.resume_token.checkpoint_digest));
+            payload["checkpoint_digest"] = serde_json::json!(encode_checkpoint_digest(
+                &checkpoint.resume_token.checkpoint_digest
+            ));
         }
         return (StatusCode::CONFLICT, payload);
     }
@@ -1997,7 +2106,11 @@ async fn select_thompson_provider(state: &AppState) -> Option<CloudProviderWrapp
         }
     }
 
-    state.cloud_providers.first().cloned().map(CloudProviderWrapper)
+    state
+        .cloud_providers
+        .first()
+        .cloned()
+        .map(CloudProviderWrapper)
 }
 
 async fn update_thompson_reward(
@@ -2008,7 +2121,12 @@ async fn update_thompson_reward(
 ) {
     let _ = state
         .thompson_router
-        .update_reward(provider_id, started_at.elapsed().as_millis() as f64, success, 0.0)
+        .update_reward(
+            provider_id,
+            started_at.elapsed().as_millis() as f64,
+            success,
+            0.0,
+        )
         .await;
 }
 
@@ -2085,11 +2203,15 @@ fn materialize_execution_graph(task_type: &TaskType) -> anyhow::Result<Execution
                 approval: approval.clone(),
             }],
         }),
-        TaskType::BehaviorTree { .. } => anyhow::bail!("behavior_tree tasks are executed through the dedicated BT path"),
+        TaskType::BehaviorTree { .. } => {
+            anyhow::bail!("behavior_tree tasks are executed through the dedicated BT path")
+        }
     }
 }
 
-fn compile_execution_graph_to_steps(graph: &ExecutionGraph) -> anyhow::Result<Vec<RuntimeTaskStep>> {
+fn compile_execution_graph_to_steps(
+    graph: &ExecutionGraph,
+) -> anyhow::Result<Vec<RuntimeTaskStep>> {
     let mut steps = Vec::with_capacity(graph.nodes.len());
     for (idx, node) in graph.nodes.iter().enumerate() {
         let fallback_step_index = idx as u32;
@@ -2139,7 +2261,8 @@ fn compile_execution_graph_to_steps(graph: &ExecutionGraph) -> anyhow::Result<Ve
                 approval: approval.clone(),
             }),
             ExecutionNode::Tool { .. } => {
-                let (node_id, tool_name, args, checkpoint_key, read_slots, write_slot) = match node {
+                let (node_id, tool_name, args, checkpoint_key, read_slots, write_slot) = match node
+                {
                     ExecutionNode::Tool {
                         node_id,
                         tool_name,
@@ -2147,7 +2270,14 @@ fn compile_execution_graph_to_steps(graph: &ExecutionGraph) -> anyhow::Result<Ve
                         checkpoint_key,
                         read_slots,
                         write_slot,
-                    } => (node_id, tool_name, args, checkpoint_key, read_slots, write_slot),
+                    } => (
+                        node_id,
+                        tool_name,
+                        args,
+                        checkpoint_key,
+                        read_slots,
+                        write_slot,
+                    ),
                     _ => unreachable!(),
                 };
                 RuntimeTaskStep::Tool(ToolStep {
@@ -2182,18 +2312,27 @@ fn compile_execution_graph_to_steps(graph: &ExecutionGraph) -> anyhow::Result<Ve
                 })
             }
             ExecutionNode::HumanApproval { .. } => {
-                let (node_id, checkpoint_key, read_slots, write_slot, task, confidence, context) = match node {
-                    ExecutionNode::HumanApproval {
-                        node_id,
-                        checkpoint_key,
-                        read_slots,
-                        write_slot,
-                        task,
-                        confidence,
-                        context,
-                    } => (node_id, checkpoint_key, read_slots, write_slot, task, confidence, context),
-                    _ => unreachable!(),
-                };
+                let (node_id, checkpoint_key, read_slots, write_slot, task, confidence, context) =
+                    match node {
+                        ExecutionNode::HumanApproval {
+                            node_id,
+                            checkpoint_key,
+                            read_slots,
+                            write_slot,
+                            task,
+                            confidence,
+                            context,
+                        } => (
+                            node_id,
+                            checkpoint_key,
+                            read_slots,
+                            write_slot,
+                            task,
+                            confidence,
+                            context,
+                        ),
+                        _ => unreachable!(),
+                    };
                 RuntimeTaskStep::HumanApproval(HumanApprovalStep {
                     step_index: fallback_step_index,
                     node_id: node_id.clone(),
@@ -2214,7 +2353,14 @@ fn compile_execution_graph_to_steps(graph: &ExecutionGraph) -> anyhow::Result<Ve
                         write_slot,
                         query,
                         top_k,
-                    } => (node_id, checkpoint_key, read_slots, write_slot, query, top_k),
+                    } => (
+                        node_id,
+                        checkpoint_key,
+                        read_slots,
+                        write_slot,
+                        query,
+                        top_k,
+                    ),
                     _ => unreachable!(),
                 };
                 RuntimeTaskStep::MemoryRecall(MemoryRecallStep {
@@ -2236,7 +2382,14 @@ fn compile_execution_graph_to_steps(graph: &ExecutionGraph) -> anyhow::Result<Ve
                         write_slot,
                         key,
                         content,
-                    } => (node_id, checkpoint_key, read_slots, write_slot, key, content),
+                    } => (
+                        node_id,
+                        checkpoint_key,
+                        read_slots,
+                        write_slot,
+                        key,
+                        content,
+                    ),
                     _ => unreachable!(),
                 };
                 RuntimeTaskStep::MemoryStore(MemoryStoreStep {
@@ -2259,7 +2412,9 @@ fn initialize_graph_blackboard(
     execution_graph: &ExecutionGraph,
     resume_checkpoint: Option<&serde_json::Value>,
 ) -> serde_json::Value {
-    if let Some(graph_blackboard) = resume_checkpoint.and_then(|checkpoint| checkpoint.get("graph_blackboard")) {
+    if let Some(graph_blackboard) =
+        resume_checkpoint.and_then(|checkpoint| checkpoint.get("graph_blackboard"))
+    {
         return graph_blackboard.clone();
     }
 
@@ -2270,9 +2425,14 @@ fn initialize_graph_blackboard(
     }
 }
 
-fn resolve_graph_value(value: serde_json::Value, graph_blackboard: &serde_json::Value) -> serde_json::Value {
+fn resolve_graph_value(
+    value: serde_json::Value,
+    graph_blackboard: &serde_json::Value,
+) -> serde_json::Value {
     match value {
-        serde_json::Value::String(template) => resolve_graph_string_value(&template, graph_blackboard),
+        serde_json::Value::String(template) => {
+            resolve_graph_string_value(&template, graph_blackboard)
+        }
         serde_json::Value::Array(values) => serde_json::Value::Array(
             values
                 .into_iter()
@@ -2288,7 +2448,10 @@ fn resolve_graph_value(value: serde_json::Value, graph_blackboard: &serde_json::
     }
 }
 
-fn resolve_graph_string_value(template: &str, graph_blackboard: &serde_json::Value) -> serde_json::Value {
+fn resolve_graph_string_value(
+    template: &str,
+    graph_blackboard: &serde_json::Value,
+) -> serde_json::Value {
     if let Some(path) = extract_exact_placeholder(template) {
         return graph_lookup(graph_blackboard, path)
             .cloned()
@@ -2329,7 +2492,10 @@ fn render_graph_string(template: &str, graph_blackboard: &serde_json::Value) -> 
     rendered
 }
 
-fn graph_lookup<'a>(graph_blackboard: &'a serde_json::Value, path: &str) -> Option<&'a serde_json::Value> {
+fn graph_lookup<'a>(
+    graph_blackboard: &'a serde_json::Value,
+    path: &str,
+) -> Option<&'a serde_json::Value> {
     if let Some(slot_name) = path.strip_prefix("slots.") {
         if let Some(value) = graph_lookup_slot(graph_blackboard, slot_name) {
             return Some(value);
@@ -2395,7 +2561,10 @@ fn collect_slot_inputs(
     }
 }
 
-fn graph_lookup_slot<'a>(graph_blackboard: &'a serde_json::Value, slot: &str) -> Option<&'a serde_json::Value> {
+fn graph_lookup_slot<'a>(
+    graph_blackboard: &'a serde_json::Value,
+    slot: &str,
+) -> Option<&'a serde_json::Value> {
     let slots = graph_blackboard
         .as_object()
         .and_then(|root| root.get("slots"))
@@ -2432,8 +2601,13 @@ fn update_graph_blackboard(
     let slot_value = output_value.clone();
     let node_id = step.node_id().to_string();
     ensure_graph_blackboard_object(graph_blackboard);
-    let root = graph_blackboard.as_object_mut().expect("graph blackboard should be an object");
-    root.insert("last_node_id".to_string(), serde_json::Value::String(node_id.clone()));
+    let root = graph_blackboard
+        .as_object_mut()
+        .expect("graph blackboard should be an object");
+    root.insert(
+        "last_node_id".to_string(),
+        serde_json::Value::String(node_id.clone()),
+    );
     root.insert(
         "last_provider".to_string(),
         serde_json::Value::String(result.provider_name.clone()),
@@ -2467,9 +2641,12 @@ fn attach_graph_blackboard_metadata(
     graph_blackboard: &serde_json::Value,
 ) {
     match checkpoint_metadata {
-        Some(metadata) => merge_checkpoint_metadata(metadata, &serde_json::json!({
-            "graph_blackboard": graph_blackboard
-        })),
+        Some(metadata) => merge_checkpoint_metadata(
+            metadata,
+            &serde_json::json!({
+                "graph_blackboard": graph_blackboard
+            }),
+        ),
         None => {
             *checkpoint_metadata = Some(serde_json::json!({
                 "graph_blackboard": graph_blackboard
@@ -2521,7 +2698,9 @@ async fn do_route(
                     return Ok((result.response, result.chairman_id));
                 }
 
-                if let Some(chairman_id) = providers.first().map(|provider| provider.id().to_string()) {
+                if let Some(chairman_id) =
+                    providers.first().map(|provider| provider.id().to_string())
+                {
                     warn!(
                         chairman_id = %chairman_id,
                         "Configured council route unavailable for current providers; falling back to first available provider as chairman"
@@ -2547,7 +2726,10 @@ async fn do_route_stream(
     state: AppState,
     prompt: String,
     mode: Option<&str>,
-) -> anyhow::Result<(Pin<Box<dyn Stream<Item = Result<String, anyhow::Error>> + Send>>, String)> {
+) -> anyhow::Result<(
+    Pin<Box<dyn Stream<Item = Result<String, anyhow::Error>> + Send>>,
+    String,
+)> {
     use igris_routing::Provider;
 
     let execution_mode = normalize_agent_mode(mode)?;
@@ -2560,7 +2742,11 @@ async fn do_route_stream(
             | AgentExecutionMode::Quality
             | AgentExecutionMode::Cost => {
                 let providers = ranked_cloud_providers(&state, execution_mode);
-                if let Ok(result) = state.speculative_router.route_stream(&prompt, providers).await {
+                if let Ok(result) = state
+                    .speculative_router
+                    .route_stream(&prompt, providers)
+                    .await
+                {
                     return Ok((result.stream, result.winner_id));
                 }
             }
@@ -2594,10 +2780,12 @@ async fn do_route_stream(
                 }
             }
             AgentExecutionMode::Council => {
-                let (response, chairman_id) = do_route(state.clone(), prompt.clone(), Some("council")).await?;
+                let (response, chairman_id) =
+                    do_route(state.clone(), prompt.clone(), Some("council")).await?;
                 let response_stream = stream::once(async move { Ok(response) });
-                let response_stream: Pin<Box<dyn Stream<Item = Result<String, anyhow::Error>> + Send>> =
-                    Box::pin(response_stream);
+                let response_stream: Pin<
+                    Box<dyn Stream<Item = Result<String, anyhow::Error>> + Send>,
+                > = Box::pin(response_stream);
                 return Ok((response_stream, chairman_id));
             }
         }
@@ -2633,7 +2821,9 @@ async fn execute_agent_step_stream(
                 task_id: req.task_id,
                 steps_completed: 0,
                 steps_total: 1,
-                status: TaskStatus::Failed { reason: reason.clone() },
+                status: TaskStatus::Failed {
+                    reason: reason.clone(),
+                },
                 checkpoint: None,
                 final_output: None,
                 usage: None,
@@ -2661,7 +2851,10 @@ async fn execute_agent_step_stream(
             serde_json::to_string(slot_context).unwrap_or_default(),
             base_prompt
         );
-    } else if let Some(blackboard_context) = graph_blackboard.as_object().filter(|state| !state.is_empty()) {
+    } else if let Some(blackboard_context) = graph_blackboard
+        .as_object()
+        .filter(|state| !state.is_empty())
+    {
         base_prompt = format!(
             "graph_blackboard: {}\n\n{}",
             serde_json::to_string(blackboard_context).unwrap_or_default(),
@@ -2679,14 +2872,17 @@ async fn execute_agent_step_stream(
         step.approval.as_ref(),
         max_tick_ms,
     )
-    .await {
+    .await
+    {
         let _ = wal.write_failed(wal_entry_id, e.to_string());
         return Err(StreamFailureResult {
             response: TaskSubmitResponse {
                 task_id: req.task_id,
                 steps_completed: 0,
                 steps_total: 1,
-                status: TaskStatus::Failed { reason: format!("Step {} failed: {}", step.step_index, e) },
+                status: TaskStatus::Failed {
+                    reason: format!("Step {} failed: {}", step.step_index, e),
+                },
                 checkpoint: None,
                 final_output: None,
                 usage: None,
@@ -2711,7 +2907,9 @@ async fn execute_agent_step_stream(
                     task_id: req.task_id,
                     steps_completed: 0,
                     steps_total: 1,
-                    status: TaskStatus::Failed { reason: format!("Step {} failed: {}", step.step_index, e) },
+                    status: TaskStatus::Failed {
+                        reason: format!("Step {} failed: {}", step.step_index, e),
+                    },
                     checkpoint: None,
                     final_output: None,
                     usage: None,
@@ -2728,31 +2926,34 @@ async fn execute_agent_step_stream(
         }
     };
 
-    let (mut stream, provider_name) = match do_route_stream(state.clone(), prompt, step.mode.as_deref()).await {
-        Ok(result) => result,
-        Err(e) => {
-            let _ = wal.write_failed(wal_entry_id, e.to_string());
-            return Err(StreamFailureResult {
-                response: TaskSubmitResponse {
-                    task_id: req.task_id,
-                    steps_completed: 0,
-                    steps_total: 1,
-                    status: TaskStatus::Failed { reason: format!("Step {} failed: {}", step.step_index, e) },
-                    checkpoint: None,
-                    final_output: None,
-                    usage: None,
-                    failure_details: Some(runtime_execution_failure_details(
-                        "step_failed",
-                        e.to_string(),
-                        Some(step_wrapper),
-                    )),
-                    execution_envelope: None,
-                    execution_receipt: None,
-                },
-                client_message: e.to_string(),
-            });
-        }
-    };
+    let (mut stream, provider_name) =
+        match do_route_stream(state.clone(), prompt, step.mode.as_deref()).await {
+            Ok(result) => result,
+            Err(e) => {
+                let _ = wal.write_failed(wal_entry_id, e.to_string());
+                return Err(StreamFailureResult {
+                    response: TaskSubmitResponse {
+                        task_id: req.task_id,
+                        steps_completed: 0,
+                        steps_total: 1,
+                        status: TaskStatus::Failed {
+                            reason: format!("Step {} failed: {}", step.step_index, e),
+                        },
+                        checkpoint: None,
+                        final_output: None,
+                        usage: None,
+                        failure_details: Some(runtime_execution_failure_details(
+                            "step_failed",
+                            e.to_string(),
+                            Some(step_wrapper),
+                        )),
+                        execution_envelope: None,
+                        execution_receipt: None,
+                    },
+                    client_message: e.to_string(),
+                });
+            }
+        };
 
     let mut timeout = tokio::time::sleep(Duration::from_millis(max_tick_ms));
     tokio::pin!(timeout);
@@ -2825,7 +3026,9 @@ async fn execute_agent_step_stream(
                         task_id: req.task_id,
                         steps_completed: 0,
                         steps_total: 1,
-                        status: TaskStatus::Failed { reason: format!("Step {} failed: {}", step.step_index, reason) },
+                        status: TaskStatus::Failed {
+                            reason: format!("Step {} failed: {}", step.step_index, reason),
+                        },
                         checkpoint: None,
                         final_output: None,
                         usage: None,
@@ -2852,7 +3055,9 @@ async fn execute_agent_step_stream(
                 task_id: req.task_id,
                 steps_completed: 0,
                 steps_total: 1,
-                status: TaskStatus::Failed { reason: format!("Step {} failed: {}", step.step_index, reason) },
+                status: TaskStatus::Failed {
+                    reason: format!("Step {} failed: {}", step.step_index, reason),
+                },
                 checkpoint: None,
                 final_output: None,
                 usage: None,
@@ -2868,14 +3073,18 @@ async fn execute_agent_step_stream(
         });
     }
 
-    if let Err(e) = maybe_store_agent_memory(&state, req.task_id, step, &base_prompt, &content).await {
+    if let Err(e) =
+        maybe_store_agent_memory(&state, req.task_id, step, &base_prompt, &content).await
+    {
         let _ = wal.write_failed(wal_entry_id, e.to_string());
         return Err(StreamFailureResult {
             response: TaskSubmitResponse {
                 task_id: req.task_id,
                 steps_completed: 0,
                 steps_total: 1,
-                status: TaskStatus::Failed { reason: format!("Step {} failed: {}", step.step_index, e) },
+                status: TaskStatus::Failed {
+                    reason: format!("Step {} failed: {}", step.step_index, e),
+                },
                 checkpoint: None,
                 final_output: None,
                 usage: None,
@@ -2920,7 +3129,8 @@ async fn execute_agent_step_stream(
         &step_result,
         wall_start.elapsed().as_millis() as u64,
     )
-    .await {
+    .await
+    {
         Ok(artifacts) => artifacts,
         Err(e) => {
             let _ = wal.write_failed(wal_entry_id, format!("artifact build failed: {}", e));
@@ -2929,7 +3139,9 @@ async fn execute_agent_step_stream(
                     task_id: req.task_id,
                     steps_completed: 0,
                     steps_total: 1,
-                    status: TaskStatus::Failed { reason: format!("Step {} failed: {}", step.step_index, e) },
+                    status: TaskStatus::Failed {
+                        reason: format!("Step {} failed: {}", step.step_index, e),
+                    },
                     checkpoint: None,
                     final_output: None,
                     usage: None,
@@ -2957,7 +3169,9 @@ async fn execute_agent_step_stream(
                     task_id: req.task_id,
                     steps_completed: 0,
                     steps_total: 1,
-                    status: TaskStatus::Failed { reason: format!("Step {} failed: {}", step.step_index, reason) },
+                    status: TaskStatus::Failed {
+                        reason: format!("Step {} failed: {}", step.step_index, reason),
+                    },
                     checkpoint: None,
                     final_output: None,
                     usage: None,
@@ -2973,34 +3187,41 @@ async fn execute_agent_step_stream(
             });
         }
     };
-    let committed_entry = match wal.write_committed(wal_entry_id, output_digest, signing_key.as_ref()) {
-        Ok(entry) => entry,
-        Err(e) => {
-            let reason = format!("WAL commit failed: {}", e);
-            let _ = wal.write_failed(wal_entry_id, reason.clone());
-            return Err(StreamFailureResult {
-                response: TaskSubmitResponse {
-                    task_id: req.task_id,
-                    steps_completed: 0,
-                    steps_total: 1,
-                    status: TaskStatus::Failed { reason: format!("Step {} failed: {}", step.step_index, reason) },
-                    checkpoint: None,
-                    final_output: None,
-                    usage: None,
-                    failure_details: Some(runtime_execution_failure_details(
-                        "wal_commit_failed",
-                        reason.clone(),
-                        Some(step_wrapper),
-                    )),
-                    execution_envelope: None,
-                    execution_receipt: None,
-                },
-                client_message: reason,
-            });
-        }
-    };
+    let committed_entry =
+        match wal.write_committed(wal_entry_id, output_digest, signing_key.as_ref()) {
+            Ok(entry) => entry,
+            Err(e) => {
+                let reason = format!("WAL commit failed: {}", e);
+                let _ = wal.write_failed(wal_entry_id, reason.clone());
+                return Err(StreamFailureResult {
+                    response: TaskSubmitResponse {
+                        task_id: req.task_id,
+                        steps_completed: 0,
+                        steps_total: 1,
+                        status: TaskStatus::Failed {
+                            reason: format!("Step {} failed: {}", step.step_index, reason),
+                        },
+                        checkpoint: None,
+                        final_output: None,
+                        usage: None,
+                        failure_details: Some(runtime_execution_failure_details(
+                            "wal_commit_failed",
+                            reason.clone(),
+                            Some(step_wrapper),
+                        )),
+                        execution_envelope: None,
+                        execution_receipt: None,
+                    },
+                    client_message: reason,
+                });
+            }
+        };
 
-    let mut checkpoint_metadata = Some(build_step_checkpoint_metadata(step_wrapper, 1, &step_result));
+    let mut checkpoint_metadata = Some(build_step_checkpoint_metadata(
+        step_wrapper,
+        1,
+        &step_result,
+    ));
     attach_graph_blackboard_metadata(&mut checkpoint_metadata, graph_blackboard);
     let checkpoint = build_checkpoint(
         wal,
@@ -3043,7 +3264,10 @@ async fn execute_agent_step(
             serde_json::to_string(slot_context).unwrap_or_default(),
             base_prompt
         );
-    } else if let Some(blackboard_context) = graph_blackboard.as_object().filter(|state| !state.is_empty()) {
+    } else if let Some(blackboard_context) = graph_blackboard
+        .as_object()
+        .filter(|state| !state.is_empty())
+    {
         base_prompt = format!(
             "graph_blackboard: {}\n\n{}",
             serde_json::to_string(blackboard_context).unwrap_or_default(),
@@ -3132,7 +3356,10 @@ async fn execute_robotics_step(
         }
 
         match &resolved_action {
-            RoboticsAction::NavigateToPose { goal, wait_timeout_ms } => {
+            RoboticsAction::NavigateToPose {
+                goal,
+                wait_timeout_ms,
+            } => {
                 let handle = manager
                     .node()
                     .navigate_to_pose(igris_ros2::NavigationGoal {
@@ -3145,9 +3372,12 @@ async fn execute_robotics_step(
                     .await?;
 
                 let timeout_ms = wait_timeout_ms.unwrap_or(max_tick_ms);
-                let nav_state = tokio::time::timeout(Duration::from_millis(timeout_ms), handle.wait())
-                    .await
-                    .map_err(|_| anyhow::anyhow!("navigation timed out after {}ms", timeout_ms))??;
+                let nav_state =
+                    tokio::time::timeout(Duration::from_millis(timeout_ms), handle.wait())
+                        .await
+                        .map_err(|_| {
+                            anyhow::anyhow!("navigation timed out after {}ms", timeout_ms)
+                        })??;
                 let goal_id = handle.goal_id().await;
                 let feedback = handle.feedback().await;
 
@@ -3159,7 +3389,10 @@ async fn execute_robotics_step(
                         ),
                         provider_name: format!(
                             "ros2:navigate_to_pose:{}:{}:{:.3}:{:.3}",
-                            goal.frame_id, goal_id, feedback.distance_remaining, feedback.estimated_time_remaining
+                            goal.frame_id,
+                            goal_id,
+                            feedback.distance_remaining,
+                            feedback.estimated_time_remaining
                         ),
                         usage: ExecuteUsage {
                             prompt_tokens: 0,
@@ -3176,7 +3409,9 @@ async fn execute_robotics_step(
                         checkpoint_metadata: None,
                         checkpoint_requested: false,
                     }),
-                    igris_ros2::NavigationState::Failed(reason) => anyhow::bail!("navigation failed: {}", reason),
+                    igris_ros2::NavigationState::Failed(reason) => {
+                        anyhow::bail!("navigation failed: {}", reason)
+                    }
                     igris_ros2::NavigationState::Canceled => anyhow::bail!("navigation canceled"),
                     other => anyhow::bail!("navigation ended in unexpected state {:?}", other),
                 }
@@ -3235,8 +3470,14 @@ async fn execute_robotics_step(
                     checkpoint_requested: false,
                 })
             }
-            RoboticsAction::PublishVelocity { linear_x, angular_z } => {
-                manager.node().publish_velocity(*linear_x, *angular_z).await?;
+            RoboticsAction::PublishVelocity {
+                linear_x,
+                angular_z,
+            } => {
+                manager
+                    .node()
+                    .publish_velocity(*linear_x, *angular_z)
+                    .await?;
                 Ok(StepExecutionResult {
                     output_text: format!(
                         "published velocity command linear_x={:.3} angular_z={:.3}",
@@ -3281,7 +3522,9 @@ async fn execute_robotics_step(
     #[cfg(not(feature = "ros2"))]
     {
         let _ = (state, step, max_tick_ms);
-        anyhow::bail!("robotics task execution requires a runtime built with the robotics-platform feature")
+        anyhow::bail!(
+            "robotics task execution requires a runtime built with the robotics-platform feature"
+        )
     }
 }
 
@@ -3303,16 +3546,24 @@ async fn execute_human_approval_step(
         task: Some(resolved_task.clone()),
         confidence: step.confidence,
         context: {
-            let mut context = step.context.clone().map(|context| {
-                context
-                    .into_iter()
-                    .map(|(key, value)| (key, resolve_graph_value(value, graph_blackboard)))
-                    .collect::<HashMap<_, _>>()
-            }).unwrap_or_default();
+            let mut context = step
+                .context
+                .clone()
+                .map(|context| {
+                    context
+                        .into_iter()
+                        .map(|(key, value)| (key, resolve_graph_value(value, graph_blackboard)))
+                        .collect::<HashMap<_, _>>()
+                })
+                .unwrap_or_default();
             if let Some(slot_context) = slot_inputs {
                 context.insert("slot_inputs".to_string(), slot_context);
             }
-            if context.is_empty() { None } else { Some(context) }
+            if context.is_empty() {
+                None
+            } else {
+                Some(context)
+            }
         },
     };
 
@@ -3353,10 +3604,9 @@ async fn execute_memory_recall_step(
 ) -> anyhow::Result<StepExecutionResult> {
     #[cfg(feature = "memory")]
     {
-        let memory = state
-            .agent_memory
-            .as_ref()
-            .ok_or_else(|| anyhow::anyhow!("memory recall requested but the runtime has it disabled"))?;
+        let memory = state.agent_memory.as_ref().ok_or_else(|| {
+            anyhow::anyhow!("memory recall requested but the runtime has it disabled")
+        })?;
         let top_k = step.top_k.unwrap_or(5);
         let query = match resolve_graph_string_value(&step.query, graph_blackboard) {
             serde_json::Value::String(text) => text,
@@ -3390,7 +3640,9 @@ async fn execute_memory_recall_step(
     #[cfg(not(feature = "memory"))]
     {
         let _ = state;
-        anyhow::bail!("memory recall requested but this runtime was not built with the memory feature");
+        anyhow::bail!(
+            "memory recall requested but this runtime was not built with the memory feature"
+        );
     }
 }
 
@@ -3402,17 +3654,18 @@ async fn execute_memory_store_step(
 ) -> anyhow::Result<StepExecutionResult> {
     #[cfg(feature = "memory")]
     {
-        let memory = state
-            .agent_memory
-            .as_ref()
-            .ok_or_else(|| anyhow::anyhow!("memory store requested but the runtime has it disabled"))?;
+        let memory = state.agent_memory.as_ref().ok_or_else(|| {
+            anyhow::anyhow!("memory store requested but the runtime has it disabled")
+        })?;
         let key = step
             .key
             .clone()
-            .map(|key| match resolve_graph_string_value(&key, graph_blackboard) {
-                serde_json::Value::String(text) => text,
-                other => graph_value_to_string(&other),
-            })
+            .map(
+                |key| match resolve_graph_string_value(&key, graph_blackboard) {
+                    serde_json::Value::String(text) => text,
+                    other => graph_value_to_string(&other),
+                },
+            )
             .unwrap_or_else(|| format!("task:{}:memory-store:{}", task_id, step.step_index));
         let content = match resolve_graph_string_value(&step.content, graph_blackboard) {
             serde_json::Value::String(text) => text,
@@ -3440,7 +3693,9 @@ async fn execute_memory_store_step(
     #[cfg(not(feature = "memory"))]
     {
         let _ = (state, task_id);
-        anyhow::bail!("memory store requested but this runtime was not built with the memory feature");
+        anyhow::bail!(
+            "memory store requested but this runtime was not built with the memory feature"
+        );
     }
 }
 
@@ -3450,10 +3705,9 @@ async fn execute_tool_step(
     step: &ToolStep,
     graph_blackboard: &serde_json::Value,
 ) -> anyhow::Result<StepExecutionResult> {
-    let registry = state
-        .tool_registry
-        .as_ref()
-        .ok_or_else(|| anyhow::anyhow!("tool execution requested but the runtime has no tool registry"))?;
+    let registry = state.tool_registry.as_ref().ok_or_else(|| {
+        anyhow::anyhow!("tool execution requested but the runtime has no tool registry")
+    })?;
     let args = resolve_graph_value(
         step.args.clone().unwrap_or_else(|| serde_json::json!({})),
         graph_blackboard,
@@ -3471,7 +3725,9 @@ async fn execute_tool_step(
         anyhow::bail!(
             "tool {} failed: {}",
             step.tool_name,
-            result.error.unwrap_or_else(|| "unknown tool error".to_string())
+            result
+                .error
+                .unwrap_or_else(|| "unknown tool error".to_string())
         );
     }
 
@@ -3539,11 +3795,11 @@ async fn execute_behavior_tree_runtime(
         .map_err(|e| anyhow::anyhow!("invalid behavior tree: {}", e))?;
 
     if let Some(wal) = wal {
-        let signing_key = state
-            .signing_key
-            .as_ref()
-            .cloned()
-            .ok_or_else(|| anyhow::anyhow!("behavior tree execution requires a runtime configured with an Ed25519 signing key"))?;
+        let signing_key = state.signing_key.as_ref().cloned().ok_or_else(|| {
+            anyhow::anyhow!(
+                "behavior tree execution requires a runtime configured with an Ed25519 signing key"
+            )
+        })?;
         context = context.with_wal(BtWalSession {
             wal,
             signing_key,
@@ -3556,8 +3812,8 @@ async fn execute_behavior_tree_runtime(
     exec_config.max_ticks = max_ticks;
     exec_config.deadline = Some(Duration::from_millis(deadline_ms));
 
-    let executor = BTreeExecutor::with_config(exec_config)
-        .with_tick_observer((*state.bt_state_tx).clone());
+    let executor =
+        BTreeExecutor::with_config(exec_config).with_tick_observer((*state.bt_state_tx).clone());
     let result = executor.execute(tree_node.as_mut(), &mut context).await?;
     let checkpoint = result.checkpoint.clone().map(|bt_cp| CheckpointPayload {
         task_id: bt_cp.task_id,
@@ -3615,13 +3871,18 @@ async fn execute_behavior_tree_graph_step(
             anyhow::bail!(
                 "behavior tree node {} failed: {}",
                 step.node_id,
-                bt.result.error.unwrap_or_else(|| "behavior tree returned Failure".to_string())
+                bt.result
+                    .error
+                    .unwrap_or_else(|| "behavior tree returned Failure".to_string())
             )
         }
         NodeStatus::Running => {
-            let checkpoint = bt
-                .checkpoint
-                .ok_or_else(|| anyhow::anyhow!("behavior tree node {} interrupted without checkpoint", step.node_id))?;
+            let checkpoint = bt.checkpoint.ok_or_else(|| {
+                anyhow::anyhow!(
+                    "behavior tree node {} interrupted without checkpoint",
+                    step.node_id
+                )
+            })?;
             Ok(StepExecutionResult {
                 output_text: format!(
                     "behavior tree node {} checkpointed after {} ticks",
@@ -3786,10 +4047,9 @@ async fn prepare_agent_prompt(
         if let Some(memory_options) = &step.memory {
             let recall_top_k = memory_options.recall_top_k.unwrap_or(0);
             if recall_top_k > 0 {
-                let memory = state
-                    .agent_memory
-                    .as_ref()
-                    .ok_or_else(|| anyhow::anyhow!("agent memory requested but the runtime has it disabled"))?;
+                let memory = state.agent_memory.as_ref().ok_or_else(|| {
+                    anyhow::anyhow!("agent memory requested but the runtime has it disabled")
+                })?;
                 let query_text = memory_options
                     .recall_query
                     .clone()
@@ -3815,7 +4075,9 @@ async fn prepare_agent_prompt(
     {
         let _ = (state, task_id);
         if step.memory.is_some() {
-            anyhow::bail!("agent memory requested but this runtime was not built with the memory feature");
+            anyhow::bail!(
+                "agent memory requested but this runtime was not built with the memory feature"
+            );
         }
     }
 
@@ -3838,10 +4100,9 @@ async fn maybe_store_agent_memory(
             return Ok(());
         }
 
-        let memory = state
-            .agent_memory
-            .as_ref()
-            .ok_or_else(|| anyhow::anyhow!("agent memory storage requested but the runtime has it disabled"))?;
+        let memory = state.agent_memory.as_ref().ok_or_else(|| {
+            anyhow::anyhow!("agent memory storage requested but the runtime has it disabled")
+        })?;
         let key = memory_options.store_key.clone().unwrap_or_else(|| {
             format!(
                 "task:{}:step:{}:{:x}",
@@ -3887,20 +4148,21 @@ async fn maybe_require_step_approval(
 
     #[cfg(feature = "hitl")]
     {
-        let coordinator = state
-            .hitl_coordinator
-            .as_ref()
-            .ok_or_else(|| anyhow::anyhow!("human approval requested but the runtime has HITL disabled"))?;
+        let coordinator = state.hitl_coordinator.as_ref().ok_or_else(|| {
+            anyhow::anyhow!("human approval requested but the runtime has HITL disabled")
+        })?;
         let mut context = approval.context.clone().unwrap_or_default();
         context.insert("task_id".to_string(), serde_json::json!(task_id));
         context.insert("tenant_id".to_string(), serde_json::json!(tenant_id));
         context.insert("model".to_string(), serde_json::json!(model));
         context.insert("step_index".to_string(), serde_json::json!(step_index));
 
-        let task_description = approval
-            .task
-            .clone()
-            .unwrap_or_else(|| format!("Approve {} {} for model {}", default_task, step_index, model));
+        let task_description = approval.task.clone().unwrap_or_else(|| {
+            format!(
+                "Approve {} {} for model {}",
+                default_task, step_index, model
+            )
+        });
 
         let status = tokio::time::timeout(
             Duration::from_millis(max_tick_ms),
@@ -3915,16 +4177,24 @@ async fn maybe_require_step_approval(
 
         match status {
             igris_hitl::ApprovalStatus::Approved => Ok(()),
-            igris_hitl::ApprovalStatus::Rejected => anyhow::bail!("human approval rejected task {}", task_id),
-            igris_hitl::ApprovalStatus::Timeout => anyhow::bail!("human approval timed out for task {}", task_id),
-            igris_hitl::ApprovalStatus::Pending => anyhow::bail!("human approval is still pending for task {}", task_id),
+            igris_hitl::ApprovalStatus::Rejected => {
+                anyhow::bail!("human approval rejected task {}", task_id)
+            }
+            igris_hitl::ApprovalStatus::Timeout => {
+                anyhow::bail!("human approval timed out for task {}", task_id)
+            }
+            igris_hitl::ApprovalStatus::Pending => {
+                anyhow::bail!("human approval is still pending for task {}", task_id)
+            }
         }
     }
 
     #[cfg(not(feature = "hitl"))]
     {
         let _ = (state, task_id, tenant_id, max_tick_ms);
-        anyhow::bail!("human approval requested but this runtime was not built with the hitl feature");
+        anyhow::bail!(
+            "human approval requested but this runtime was not built with the hitl feature"
+        );
     }
 }
 
@@ -4093,16 +4363,16 @@ mod tests {
         build_stream_replay_unavailable_payload, build_task_cancel_response,
         build_task_result_payload, collect_slot_inputs, compile_execution_graph_to_steps,
         deterministic_embedding, initialize_graph_blackboard, materialize_execution_graph,
-		normalize_agent_mode, persist_task_status_index, resolve_graph_value,
-		robotics_action_name, runtime_execution_failure_details,
-		stream_durability_metadata, task_status_key,
-		update_graph_blackboard, verified_resume_start_step, AgentExecutionMode, BehaviorTreeStep, ExecutionGraph,
-		ExecutionNode, HumanApprovalStep, RoboticsAction, RoboticsStep, RuntimeTaskStep,
-        StepExecutionResult, TaskFailureDetails, TaskStatus, TaskSubmitResponse, TaskType, ToolStep,
+        normalize_agent_mode, persist_task_status_index, resolve_graph_value, robotics_action_name,
+        runtime_execution_failure_details, stream_durability_metadata, task_status_key,
+        update_graph_blackboard, verified_resume_start_step, AgentExecutionMode, BehaviorTreeStep,
+        ExecutionGraph, ExecutionNode, HumanApprovalStep, RoboticsAction, RoboticsStep,
+        RuntimeTaskStep, StepExecutionResult, TaskFailureDetails, TaskStatus, TaskSubmitResponse,
+        TaskType, ToolStep,
     };
-    use axum::{body::Body, http::StatusCode, response::Response};
-    use crate::runtime_execute::ExecuteUsage;
     use crate::runtime_execute::ExecuteMessage;
+    use crate::runtime_execute::ExecuteUsage;
+    use axum::{body::Body, http::StatusCode, response::Response};
     use igris_core::storage::{RedbStorage, TASK_SUBMISSION_STATUS_BY_TASK_ID};
     use igris_wal::{CheckpointPayload, ResumeToken};
     use std::env;
@@ -4110,7 +4380,10 @@ mod tests {
 
     #[test]
     fn normalize_agent_mode_accepts_supported_values() {
-        assert_eq!(normalize_agent_mode(None).unwrap(), AgentExecutionMode::Default);
+        assert_eq!(
+            normalize_agent_mode(None).unwrap(),
+            AgentExecutionMode::Default
+        );
         assert_eq!(
             normalize_agent_mode(Some("speculative")).unwrap(),
             AgentExecutionMode::Latency
@@ -4217,7 +4490,13 @@ mod tests {
         assert_eq!(graph.graph_id.as_deref(), Some("single_inference"));
         assert_eq!(graph.nodes.len(), 1);
         match &graph.nodes[0] {
-            ExecutionNode::Reason { node_id, step_index, model, mode, .. } => {
+            ExecutionNode::Reason {
+                node_id,
+                step_index,
+                model,
+                mode,
+                ..
+            } => {
                 assert_eq!(node_id, "reason-0");
                 assert_eq!(*step_index, Some(0));
                 assert_eq!(model, "gpt-4.1-mini");
@@ -4258,7 +4537,10 @@ mod tests {
                 assert_eq!(step.step_index, 7);
                 assert_eq!(step.node_id.as_deref(), Some("reason-node-1"));
                 assert_eq!(step.checkpoint_key.as_deref(), Some("plan-1"));
-                assert_eq!(step.read_slots.as_ref().unwrap(), &vec!["mission.goal".to_string()]);
+                assert_eq!(
+                    step.read_slots.as_ref().unwrap(),
+                    &vec!["mission.goal".to_string()]
+                );
                 assert_eq!(step.write_slot.as_deref(), Some("reason.plan"));
                 assert_eq!(step.mode.as_deref(), Some("speculative"));
             }
@@ -4295,7 +4577,10 @@ mod tests {
                 assert_eq!(node_id, "tool-1");
                 assert_eq!(tool_name, "web.search");
                 assert!(args.is_none());
-                assert_eq!(read_slots.as_ref().unwrap(), &vec!["reason.plan".to_string()]);
+                assert_eq!(
+                    read_slots.as_ref().unwrap(),
+                    &vec!["reason.plan".to_string()]
+                );
                 assert_eq!(write_slot.as_deref(), Some("tool.search"));
             }
             other => panic!("unexpected runtime step: {:?}", other),
@@ -4358,7 +4643,10 @@ mod tests {
             }
         });
 
-        let slots = collect_slot_inputs(&blackboard, Some(&["reason.plan".to_string(), "missing".to_string()]));
+        let slots = collect_slot_inputs(
+            &blackboard,
+            Some(&["reason.plan".to_string(), "missing".to_string()]),
+        );
         assert_eq!(slots.unwrap()["reason.plan"]["step"], "navigate");
     }
 
@@ -4423,6 +4711,39 @@ mod tests {
     }
 
     #[test]
+    fn build_task_result_payload_includes_receipt_metadata() {
+        let response = TaskSubmitResponse {
+            task_id: Uuid::nil(),
+            steps_completed: 1,
+            steps_total: 1,
+            status: TaskStatus::Completed,
+            checkpoint: None,
+            final_output: Some("final".to_string()),
+            usage: None,
+            failure_details: None,
+            execution_envelope: None,
+            execution_receipt: Some(serde_json::json!({
+                "execution_id": "exec-1",
+                "hash": "receipt-hash-1",
+                "previous_hash": "prev-hash-0",
+                "transaction_id": "tx-1",
+                "transaction_hash": "tx-hash-1",
+                "signature": "sig-1",
+            })),
+        };
+
+        let payload = build_task_result_payload(&response);
+        assert_eq!(payload["receipt"]["available"], true);
+        assert_eq!(payload["receipt"]["execution_id"], "exec-1");
+        assert_eq!(payload["receipt"]["receipt_hash"], "receipt-hash-1");
+        assert_eq!(payload["receipt"]["previous_hash"], "prev-hash-0");
+        assert_eq!(payload["receipt"]["transaction_id"], "tx-1");
+        assert_eq!(payload["receipt"]["transaction_hash"], "tx-hash-1");
+        assert_eq!(payload["receipt"]["signature_present"], true);
+        assert_eq!(payload["execution_receipt"]["hash"], "receipt-hash-1");
+    }
+
+    #[test]
     fn build_task_result_payload_includes_failure_details() {
         let response = TaskSubmitResponse {
             task_id: Uuid::nil(),
@@ -4451,7 +4772,10 @@ mod tests {
         assert_eq!(payload["failure_details"]["source"], "runtime");
         assert_eq!(payload["failure_details"]["operation"], "execution");
         assert_eq!(payload["failure_details"]["rejection_type"], "step_failed");
-        assert_eq!(payload["failure_details"]["message"], "approval required for tool execution");
+        assert_eq!(
+            payload["failure_details"]["message"],
+            "approval required for tool execution"
+        );
         assert_eq!(payload["failure_details"]["step_index"], 3);
         assert_eq!(payload["failure_details"]["domain"], "tool");
         assert_eq!(payload["failure_details"]["node_id"], "tool-3");
@@ -4563,12 +4887,18 @@ mod tests {
         assert_eq!(payload["durability"]["mode"], "streaming");
         assert_eq!(payload["durability"]["resume_supported"], false);
         assert_eq!(payload["durability"]["replay_supported"], false);
-        assert_eq!(payload["durability"]["replay_condition"], "completed-final-output");
+        assert_eq!(
+            payload["durability"]["replay_condition"],
+            "completed-final-output"
+        );
         assert_eq!(payload["durability"]["checkpoint_persisted"], true);
         assert_eq!(payload["failure_details"]["source"], "runtime");
         assert_eq!(payload["failure_details"]["operation"], "execution");
         assert_eq!(payload["failure_details"]["rejection_type"], "step_failed");
-        assert_eq!(payload["failure_details"]["message"], "approval required for tool execution");
+        assert_eq!(
+            payload["failure_details"]["message"],
+            "approval required for tool execution"
+        );
         assert_eq!(payload["failure_details"]["step_index"], 3);
         assert_eq!(payload["failure_details"]["domain"], "tool");
         assert_eq!(payload["failure_details"]["node_id"], "tool-3");
@@ -4601,7 +4931,11 @@ mod tests {
             usage: None,
             failure_details: None,
             execution_envelope: None,
-            execution_receipt: None,
+            execution_receipt: Some(serde_json::json!({
+                "execution_id": "exec-2",
+                "receipt_hash": "receipt-hash-2",
+                "signature": "",
+            })),
         };
 
         let payload = build_idempotency_conflict_payload(&response);
@@ -4617,6 +4951,10 @@ mod tests {
         );
         assert_eq!(payload["task"]["final_output_available"], false);
         assert_eq!(payload["task"]["status"]["status"], "checkpointed");
+        assert_eq!(payload["task"]["receipt"]["available"], true);
+        assert_eq!(payload["task"]["receipt"]["execution_id"], "exec-2");
+        assert_eq!(payload["task"]["receipt"]["receipt_hash"], "receipt-hash-2");
+        assert_eq!(payload["task"]["receipt"]["signature_present"], false);
     }
 
     #[test]
@@ -4638,10 +4976,7 @@ mod tests {
             payload["resume"]["requested_resume_from"]["last_committed_step"],
             7
         );
-        assert_eq!(
-            payload["resume"]["local_last_committed_step"],
-            6
-        );
+        assert_eq!(payload["resume"]["local_last_committed_step"], 6);
         assert_eq!(
             payload["resume"]["local_checkpoint_digest"],
             "4444444444444444444444444444444444444444444444444444444444444444"
@@ -4668,10 +5003,7 @@ mod tests {
             verified_resume_start_step(&token, Some(7), [0x44u8; 32]),
             None
         );
-        assert_eq!(
-            verified_resume_start_step(&token, None, [0x33u8; 32]),
-            None
-        );
+        assert_eq!(verified_resume_start_step(&token, None, [0x33u8; 32]), None);
     }
 
     #[test]
@@ -4796,7 +5128,10 @@ mod tests {
         match &steps[1] {
             RuntimeTaskStep::MemoryRecall(step) => {
                 assert_eq!(step.node_id, "recall-1");
-                assert_eq!(step.read_slots.as_ref().unwrap(), &vec!["reason.plan".to_string()]);
+                assert_eq!(
+                    step.read_slots.as_ref().unwrap(),
+                    &vec!["reason.plan".to_string()]
+                );
                 assert_eq!(step.top_k, Some(3));
             }
             other => panic!("unexpected second step: {:?}", other),
@@ -4908,7 +5243,10 @@ mod tests {
             RuntimeTaskStep::BehaviorTree(step) => {
                 assert_eq!(step.node_id, "bt-node-1");
                 assert_eq!(step.checkpoint_key.as_deref(), Some("bt-checkpoint"));
-                assert_eq!(step.read_slots.as_ref().unwrap(), &vec!["reason.plan".to_string()]);
+                assert_eq!(
+                    step.read_slots.as_ref().unwrap(),
+                    &vec!["reason.plan".to_string()]
+                );
                 assert_eq!(step.write_slot.as_deref(), Some("bt.result"));
                 assert_eq!(step.blackboard, Some(serde_json::json!({ "goal": "dock" })));
             }
@@ -4931,7 +5269,8 @@ mod tests {
             }),
         });
         let result = StepExecutionResult {
-            output_text: "behavior tree node bt-node-4 completed successfully in 2 ticks".to_string(),
+            output_text: "behavior tree node bt-node-4 completed successfully in 2 ticks"
+                .to_string(),
             provider_name: "btree:bt-node-4".to_string(),
             usage: ExecuteUsage {
                 prompt_tokens: 0,

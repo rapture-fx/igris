@@ -8,13 +8,13 @@ use std::sync::Arc;
 use tokio::sync::RwLock;
 use tracing::{debug, info};
 
-pub mod vector_store;
-pub mod kv_cache;
 pub mod config;
+pub mod kv_cache;
+pub mod vector_store;
 
-pub use vector_store::{VectorStore, MemoryEntry, SearchResult};
-pub use kv_cache::KVCache;
 pub use config::MemoryConfig;
+pub use kv_cache::KVCache;
+pub use vector_store::{MemoryEntry, SearchResult, VectorStore};
 
 /// Agent memory manager with vector store and KV cache
 pub struct AgentMemory {
@@ -46,7 +46,11 @@ impl AgentMemory {
     }
 
     /// Retrieve semantically similar memories
-    pub async fn retrieve(&self, query_embedding: Vec<f32>, top_k: usize) -> Result<Vec<SearchResult>> {
+    pub async fn retrieve(
+        &self,
+        query_embedding: Vec<f32>,
+        top_k: usize,
+    ) -> Result<Vec<SearchResult>> {
         debug!("Retrieving top {} similar memories", top_k);
         let store = self.vector_store.read().await;
         store.search(&query_embedding, top_k)
@@ -125,7 +129,10 @@ mod tests {
 
         // Store a memory
         let embedding = vec![0.1; 384];
-        memory.store("test_key", "test content", embedding.clone()).await.unwrap();
+        memory
+            .store("test_key", "test content", embedding.clone())
+            .await
+            .unwrap();
 
         // Retrieve it
         let entry = memory.get("test_key").await.unwrap();

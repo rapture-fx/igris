@@ -4,7 +4,7 @@ use std::sync::Arc;
 use std::time::Duration;
 use tokio::sync::RwLock;
 use tokio::time::sleep;
-use tracing::{info, warn, error};
+use tracing::{error, info, warn};
 
 use crate::multicast::MulticastDiscovery;
 
@@ -138,7 +138,12 @@ impl PeerDiscovery {
 
     /// Handle a discovered peer
     async fn handle_discovered_peer(&self, info: ServiceInfo) {
-        let peer_id = info.get_fullname().split('.').next().unwrap_or("unknown").to_string();
+        let peer_id = info
+            .get_fullname()
+            .split('.')
+            .next()
+            .unwrap_or("unknown")
+            .to_string();
 
         // Don't add ourselves
         if peer_id == self.local_peer_id {

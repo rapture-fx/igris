@@ -66,7 +66,11 @@ impl ContextBroadcaster {
     }
 
     /// Broadcast contexts to a specific peer
-    async fn broadcast_to_peer(&self, peer: &PeerInfo, contexts: &[igris_mcp_server::context::SharedContext]) {
+    async fn broadcast_to_peer(
+        &self,
+        peer: &PeerInfo,
+        contexts: &[igris_mcp_server::context::SharedContext],
+    ) {
         let peer_url = format!("http://{}", peer.addr);
 
         for context in contexts {
@@ -129,12 +133,8 @@ mod tests {
         let store = Arc::new(ContextStore::new());
         let discovery = Arc::new(PeerDiscovery::new("test".to_string(), 8080).unwrap());
 
-        let broadcaster = ContextBroadcaster::new(
-            client,
-            store,
-            discovery,
-            "test-peer".to_string(),
-        );
+        let broadcaster =
+            ContextBroadcaster::new(client, store, discovery, "test-peer".to_string());
 
         assert_eq!(broadcaster.peer_id, "test-peer");
     }

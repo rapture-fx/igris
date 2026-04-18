@@ -314,8 +314,32 @@ mod tests {
     #[test]
     fn receipt_hash_chaining() {
         let sk = make_signing_key();
-        let r1 = ExecutionReceipt::new("a1", "tx-1", "tx-hash-1", 10, 20, 5, 0, 3, false, "", Some(&sk));
-        let r2 = ExecutionReceipt::new("a1", "tx-2", "tx-hash-2", 15, 25, 5, 100, 5, false, &r1.hash, Some(&sk));
+        let r1 = ExecutionReceipt::new(
+            "a1",
+            "tx-1",
+            "tx-hash-1",
+            10,
+            20,
+            5,
+            0,
+            3,
+            false,
+            "",
+            Some(&sk),
+        );
+        let r2 = ExecutionReceipt::new(
+            "a1",
+            "tx-2",
+            "tx-hash-2",
+            15,
+            25,
+            5,
+            100,
+            5,
+            false,
+            &r1.hash,
+            Some(&sk),
+        );
 
         assert_eq!(r2.previous_hash, r1.hash);
         assert_ne!(r1.hash, r2.hash);
@@ -324,7 +348,19 @@ mod tests {
 
     #[test]
     fn receipt_transaction_fields_preserved() {
-        let r = ExecutionReceipt::new("ag", "txid-123", "txhash-456", 0, 0, 0, 0, 0, false, "", None);
+        let r = ExecutionReceipt::new(
+            "ag",
+            "txid-123",
+            "txhash-456",
+            0,
+            0,
+            0,
+            0,
+            0,
+            false,
+            "",
+            None,
+        );
         assert_eq!(r.transaction_id, "txid-123");
         assert_eq!(r.transaction_hash, "txhash-456");
     }
@@ -365,8 +401,14 @@ mod tests {
 
         let log = ReceiptLog::open(&path, Some(sk.clone())).await.unwrap();
 
-        let r1 = log.append("ag", "", "", 10, 20, 4, 0, 2, false).await.unwrap();
-        let r2 = log.append("ag", "txid-1", "txhash-1", 15, 30, 5, 0, 3, false).await.unwrap();
+        let r1 = log
+            .append("ag", "", "", 10, 20, 4, 0, 2, false)
+            .await
+            .unwrap();
+        let r2 = log
+            .append("ag", "txid-1", "txhash-1", 15, 30, 5, 0, 3, false)
+            .await
+            .unwrap();
 
         assert_eq!(r2.previous_hash, r1.hash);
         assert!(r1.verify_signature(&vk).is_ok());

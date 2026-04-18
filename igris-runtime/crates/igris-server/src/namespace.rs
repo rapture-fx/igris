@@ -37,11 +37,7 @@ impl AgentNamespace {
         #[cfg(unix)]
         {
             use std::os::unix::fs::PermissionsExt;
-            tokio::fs::set_permissions(
-                &root_dir,
-                std::fs::Permissions::from_mode(0o700),
-            )
-            .await?;
+            tokio::fs::set_permissions(&root_dir, std::fs::Permissions::from_mode(0o700)).await?;
         }
 
         let namespace_active = Self::try_enter_namespace();
@@ -80,9 +76,7 @@ impl AgentNamespace {
             warn!(
                 "[Namespace] unshare(CLONE_NEWNS) failed (errno {}); \
                  degrading to path-only filesystem isolation",
-                std::io::Error::last_os_error()
-                    .raw_os_error()
-                    .unwrap_or(-1)
+                std::io::Error::last_os_error().raw_os_error().unwrap_or(-1)
             );
             false
         }

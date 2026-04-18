@@ -31,9 +31,9 @@ impl FederatedPersistence {
     /// Create a new persistence backend at the given directory
     pub async fn new(state_dir: impl AsRef<Path>) -> Result<Self> {
         let state_dir = state_dir.as_ref().to_path_buf();
-        fs::create_dir_all(&state_dir)
-            .await
-            .with_context(|| format!("Failed to create state directory: {}", state_dir.display()))?;
+        fs::create_dir_all(&state_dir).await.with_context(|| {
+            format!("Failed to create state directory: {}", state_dir.display())
+        })?;
 
         Ok(Self { state_dir })
     }
@@ -99,12 +99,16 @@ impl FederatedPersistence {
         let filename = format!("global_model_round_{}.json", model.round);
         let model_path = models_dir.join(&filename);
 
-        let data = serde_json::to_string_pretty(model)
-            .context("Failed to serialize global model")?;
+        let data =
+            serde_json::to_string_pretty(model).context("Failed to serialize global model")?;
 
         fs::write(&model_path, &data).await?;
 
-        info!("Saved global model round {} to {}", model.round, model_path.display());
+        info!(
+            "Saved global model round {} to {}",
+            model.round,
+            model_path.display()
+        );
         Ok(model_path)
     }
 
@@ -192,7 +196,11 @@ mod tests {
         };
 
         persistence.save_global_model(&model).await.unwrap();
-        let loaded = persistence.load_latest_global_model().await.unwrap().unwrap();
+        let loaded = persistence
+            .load_latest_global_model()
+            .await
+            .unwrap()
+            .unwrap();
 
         assert_eq!(loaded.round, 3);
         assert_eq!(loaded.num_participants, 5);

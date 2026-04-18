@@ -289,6 +289,12 @@ func TestBuildTaskResponseIncludesFailureReasonAndCheckpointMetadata(t *testing.
 	require.JSONEq(t, `{"robotics.robotics_1":{"status":"canceled"}}`, string(resp["graph_slots"].(json.RawMessage)))
 	require.JSONEq(t, `{"execution_id":"exec-1","provider":"openai","signature":"sig-env"}`, string(resp["execution_envelope"].(json.RawMessage)))
 	require.JSONEq(t, `{"execution_id":"exec-1","receipt_hash":"hash-1","signature":"sig-rcpt"}`, string(resp["execution_receipt"].(json.RawMessage)))
+	require.Equal(t, fiber.Map{
+		"available":         true,
+		"execution_id":      "exec-1",
+		"receipt_hash":      "hash-1",
+		"signature_present": true,
+	}, resp["receipt"])
 }
 
 func TestBuildTaskResponseOmitsEmptyOptionalFields(t *testing.T) {
@@ -328,6 +334,7 @@ func TestBuildTaskResponseOmitsEmptyOptionalFields(t *testing.T) {
 	require.NotContains(t, resp, "checkpoint_metadata")
 	require.NotContains(t, resp, "execution_envelope")
 	require.NotContains(t, resp, "execution_receipt")
+	require.NotContains(t, resp, "receipt")
 }
 
 func TestBuildTaskFailureDetailsResponse(t *testing.T) {

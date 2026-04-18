@@ -178,7 +178,10 @@ async fn extract_embedded_binary(binary: &PlatformBinary) -> Result<PathBuf> {
     if binary_path.exists() {
         if let Ok(existing_data) = fs::read(&binary_path) {
             if existing_data == data {
-                debug!("Using cached llama-finetune binary at {}", binary_path.display());
+                debug!(
+                    "Using cached llama-finetune binary at {}",
+                    binary_path.display()
+                );
                 return Ok(binary_path);
             }
         }
@@ -186,7 +189,10 @@ async fn extract_embedded_binary(binary: &PlatformBinary) -> Result<PathBuf> {
     }
 
     // Extract binary
-    info!("Extracting llama-finetune binary to {}", binary_path.display());
+    info!(
+        "Extracting llama-finetune binary to {}",
+        binary_path.display()
+    );
     fs::write(&binary_path, data)
         .with_context(|| format!("Failed to write binary to {}", binary_path.display()))?;
 
@@ -218,7 +224,10 @@ fn check_standard_locations() -> Option<PathBuf> {
     for candidate in candidates {
         let path = PathBuf::from(candidate);
         if path.exists() {
-            info!("Found llama-finetune at standard location: {}", path.display());
+            info!(
+                "Found llama-finetune at standard location: {}",
+                path.display()
+            );
             return Some(path);
         }
     }
@@ -298,7 +307,10 @@ pub async fn get_finetune_binary() -> Result<PathBuf> {
 pub async fn verify_finetune_binary(binary_path: &Path) -> Result<()> {
     use tokio::process::Command;
 
-    debug!("Verifying llama-finetune binary at: {}", binary_path.display());
+    debug!(
+        "Verifying llama-finetune binary at: {}",
+        binary_path.display()
+    );
 
     let output = Command::new(binary_path)
         .arg("--help")

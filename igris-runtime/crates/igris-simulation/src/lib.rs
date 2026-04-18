@@ -356,10 +356,7 @@ impl FaultInjector {
     /// Add artificial latency to simulated operations.
     /// Latency is sampled from a normal distribution with the given mean and stddev.
     pub fn inject_latency(&mut self, mean: Duration, stddev: Duration) {
-        info!(
-            "Injecting latency: mean={:?}, stddev={:?}",
-            mean, stddev
-        );
+        info!("Injecting latency: mean={:?}, stddev={:?}", mean, stddev);
         self.latency_mean = Some(mean);
         self.latency_stddev = Some(stddev);
     }
@@ -389,8 +386,7 @@ impl FaultInjector {
                 let u1: f64 = rng.gen::<f64>().max(1e-10);
                 let u2: f64 = rng.gen();
                 let z = (-2.0 * u1.ln()).sqrt() * (2.0 * std::f64::consts::PI * u2).cos();
-                let sample_secs =
-                    mean.as_secs_f64() + stddev.as_secs_f64() * z;
+                let sample_secs = mean.as_secs_f64() + stddev.as_secs_f64() * z;
                 let clamped = sample_secs.max(0.0);
                 Some(Duration::from_secs_f64(clamped))
             }
@@ -528,14 +524,20 @@ impl SimulationHarness {
             // Check for crash
             if self.faults.is_crashed() {
                 crash_detected = true;
-                warn!("Crash detected during scenario '{}', aborting remaining goals", scenario.name);
+                warn!(
+                    "Crash detected during scenario '{}', aborting remaining goals",
+                    scenario.name
+                );
                 break;
             }
 
             // Check network
             if !self.faults.is_network_available() {
                 network_drop_detected = true;
-                warn!("Network unavailable during scenario '{}', skipping goal", scenario.name);
+                warn!(
+                    "Network unavailable during scenario '{}', skipping goal",
+                    scenario.name
+                );
                 goals_failed += 1;
                 nav_results.push(NavigationResult {
                     success: false,
@@ -766,12 +768,18 @@ mod tests {
             name: "simple_nav".to_string(),
             goals: vec![
                 NavigationGoal {
-                    x: 1.0, y: 0.0, z: 0.0,
-                    orientation_w: 1.0, frame_id: "map".to_string(),
+                    x: 1.0,
+                    y: 0.0,
+                    z: 0.0,
+                    orientation_w: 1.0,
+                    frame_id: "map".to_string(),
                 },
                 NavigationGoal {
-                    x: 2.0, y: 1.0, z: 0.0,
-                    orientation_w: 1.0, frame_id: "map".to_string(),
+                    x: 2.0,
+                    y: 1.0,
+                    z: 0.0,
+                    orientation_w: 1.0,
+                    frame_id: "map".to_string(),
                 },
             ],
             inject_network_drop: None,
@@ -798,12 +806,13 @@ mod tests {
 
         let scenario = SimScenario {
             name: "crash_test".to_string(),
-            goals: vec![
-                NavigationGoal {
-                    x: 1.0, y: 0.0, z: 0.0,
-                    orientation_w: 1.0, frame_id: "map".to_string(),
-                },
-            ],
+            goals: vec![NavigationGoal {
+                x: 1.0,
+                y: 0.0,
+                z: 0.0,
+                orientation_w: 1.0,
+                frame_id: "map".to_string(),
+            }],
             inject_network_drop: None,
             inject_latency: None,
             inject_crash: true,
@@ -819,10 +828,12 @@ mod tests {
     async fn test_harness_with_btree() {
         let nav = NavSimulator::new(NavSimConfig::default());
         let faults = FaultInjector::new();
-        let harness = SimulationHarness::new(nav, faults)
-            .with_btree("test_executor");
+        let harness = SimulationHarness::new(nav, faults).with_btree("test_executor");
 
-        assert_eq!(harness.btree_executor_name, Some("test_executor".to_string()));
+        assert_eq!(
+            harness.btree_executor_name,
+            Some("test_executor".to_string())
+        );
     }
 
     #[tokio::test]
@@ -837,12 +848,13 @@ mod tests {
         // Use a very long network drop so it stays down during the test
         let scenario = SimScenario {
             name: "network_drop_test".to_string(),
-            goals: vec![
-                NavigationGoal {
-                    x: 1.0, y: 0.0, z: 0.0,
-                    orientation_w: 1.0, frame_id: "map".to_string(),
-                },
-            ],
+            goals: vec![NavigationGoal {
+                x: 1.0,
+                y: 0.0,
+                z: 0.0,
+                orientation_w: 1.0,
+                frame_id: "map".to_string(),
+            }],
             inject_network_drop: Some(Duration::from_secs(60)),
             inject_latency: None,
             inject_crash: false,

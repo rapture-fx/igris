@@ -20,8 +20,8 @@ use tokio::sync::{Mutex, RwLock};
 use tracing::{info, warn};
 use uuid::Uuid;
 
-use igris_routing::Provider;
 use crate::{AppState, CloudProviderWrapper};
+use igris_routing::Provider;
 
 // ─────────────────────────────────────────────────────────────────────────────
 // Shared types (re-exported so main.rs can reference them in AppState)
@@ -561,11 +561,13 @@ async fn append_violation(
     let hash = format!("{:x}", Sha256::digest(canonical.as_bytes()));
 
     // Sign "id:kind:hash" if a signing key is available.
-    let signature = signing_key.map(|sk| {
-        let msg = format!("{}:{}:{}", id, kind, hash);
-        let sig = sk.sign(msg.as_bytes());
-        base64::engine::general_purpose::STANDARD.encode(sig.to_bytes())
-    }).unwrap_or_default();
+    let signature = signing_key
+        .map(|sk| {
+            let msg = format!("{}:{}:{}", id, kind, hash);
+            let sig = sk.sign(msg.as_bytes());
+            base64::engine::general_purpose::STANDARD.encode(sig.to_bytes())
+        })
+        .unwrap_or_default();
 
     guard.push(ViolationRecord {
         id,
@@ -626,19 +628,28 @@ pub(crate) fn canonical_envelope_bytes(
     // re-serialization order (cpu_percent < max_tick_ms < memory_mb).
     if let Some(b) = bounds {
         let mut bm = BTreeMap::<&str, serde_json::Value>::new();
-        if let Some(v) = b.cpu_percent { bm.insert("cpu_percent", serde_json::json!(v)); }
-        if let Some(v) = b.max_tick_ms { bm.insert("max_tick_ms", serde_json::json!(v)); }
-        if let Some(v) = b.memory_mb   { bm.insert("memory_mb",   serde_json::json!(v)); }
+        if let Some(v) = b.cpu_percent {
+            bm.insert("cpu_percent", serde_json::json!(v));
+        }
+        if let Some(v) = b.max_tick_ms {
+            bm.insert("max_tick_ms", serde_json::json!(v));
+        }
+        if let Some(v) = b.memory_mb {
+            bm.insert("memory_mb", serde_json::json!(v));
+        }
         if !bm.is_empty() {
-            canon.insert("bounds_applied", serde_json::to_value(bm).unwrap_or_default());
+            canon.insert(
+                "bounds_applied",
+                serde_json::to_value(bm).unwrap_or_default(),
+            );
         }
     }
 
-    canon.insert("execution_id",     serde_json::json!(execution_id));
-    canon.insert("finish_reason",    serde_json::json!(finish_reason));
-    canon.insert("model",            serde_json::json!(model));
-    canon.insert("request_hash",     serde_json::json!(request_hash));
-    canon.insert("response_hash",    serde_json::json!(response_hash));
+    canon.insert("execution_id", serde_json::json!(execution_id));
+    canon.insert("finish_reason", serde_json::json!(finish_reason));
+    canon.insert("model", serde_json::json!(model));
+    canon.insert("request_hash", serde_json::json!(request_hash));
+    canon.insert("response_hash", serde_json::json!(response_hash));
     canon.insert("routing_decision", serde_json::json!(routing_decision));
     if let Some(tid) = tenant_id {
         canon.insert("tenant_id", serde_json::json!(tid));
@@ -664,7 +675,7 @@ mod tests {
 
         let bounds = Bounds {
             cpu_percent: Some(80),
-            memory_mb:   Some(512),
+            memory_mb: Some(512),
             max_tick_ms: Some(5_000),
         };
         let canon = canonical_envelope_bytes(
@@ -683,7 +694,10 @@ mod tests {
         let sig = sk.sign(&hash);
 
         // Verification must succeed with the same canonical bytes.
-        assert!(vk.verify(&hash, &sig).is_ok(), "valid signature should verify");
+        assert!(
+            vk.verify(&hash, &sig).is_ok(),
+            "valid signature should verify"
+        );
     }
 
     #[test]

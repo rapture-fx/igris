@@ -79,26 +79,24 @@ mod tests {
 
     #[test]
     fn test_latency_bounds() {
-        assert_eq!(Priority::Critical.latency_bound(), Duration::from_millis(50));
+        assert_eq!(
+            Priority::Critical.latency_bound(),
+            Duration::from_millis(50)
+        );
         assert_eq!(Priority::High.latency_bound(), Duration::from_millis(200));
-        assert_eq!(Priority::Normal.latency_bound(), Duration::from_millis(1000));
+        assert_eq!(
+            Priority::Normal.latency_bound(),
+            Duration::from_millis(1000)
+        );
         assert_eq!(Priority::Low.latency_bound(), Duration::from_millis(5000));
     }
 
     #[test]
     fn test_rt_result_deadline() {
-        let result = RtResult::new(
-            "test",
-            Duration::from_millis(30),
-            Priority::Critical,
-        );
+        let result = RtResult::new("test", Duration::from_millis(30), Priority::Critical);
         assert!(result.deadline_met);
 
-        let result = RtResult::new(
-            "test",
-            Duration::from_millis(100),
-            Priority::Critical,
-        );
+        let result = RtResult::new("test", Duration::from_millis(100), Priority::Critical);
         assert!(!result.deadline_met);
     }
 }

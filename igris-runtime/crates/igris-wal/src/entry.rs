@@ -38,7 +38,10 @@ pub enum StepType {
     /// LLM inference request.
     Inference { provider: String, model: String },
     /// Robotics action routed through the runtime execution layer.
-    RoboticsAction { action: String, target: Option<String> },
+    RoboticsAction {
+        action: String,
+        target: Option<String>,
+    },
     /// External tool invocation.
     ToolCall { tool_name: String },
     /// Behaviour-tree node tick.

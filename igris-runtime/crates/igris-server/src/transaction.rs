@@ -291,8 +291,9 @@ mod tests {
         let canonical = serde_json::to_string(&map).unwrap();
         let digest = Sha256::digest(canonical.as_bytes());
 
-        let sig_bytes =
-            base64::engine::general_purpose::STANDARD.decode(&tx.signature).unwrap();
+        let sig_bytes = base64::engine::general_purpose::STANDARD
+            .decode(&tx.signature)
+            .unwrap();
         let sig = ed25519_dalek::Signature::from_slice(&sig_bytes).unwrap();
         vk.verify_strict(&digest, &sig).unwrap();
     }

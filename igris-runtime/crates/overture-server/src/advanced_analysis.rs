@@ -83,12 +83,12 @@ pub struct AnomalyReport {
 pub struct ABTestComparison {
     pub variant_a_id: String,
     pub variant_b_id: String,
-    pub success_rate_delta: f64,      // Percentage point difference
-    pub avg_duration_delta_ms: f64,   // Millisecond difference
-    pub replan_count_delta: i64,      // Count difference
-    pub failure_rate_delta: f64,      // Percentage point difference
+    pub success_rate_delta: f64,       // Percentage point difference
+    pub avg_duration_delta_ms: f64,    // Millisecond difference
+    pub replan_count_delta: i64,       // Count difference
+    pub failure_rate_delta: f64,       // Percentage point difference
     pub statistical_significance: f64, // p-value
-    pub winner: Option<String>,       // Which variant is better (if significant)
+    pub winner: Option<String>,        // Which variant is better (if significant)
     pub recommendation: String,
 }
 
@@ -113,10 +113,7 @@ pub struct OptimizationReport {
 }
 
 /// Compute performance heatmap from snapshot
-pub fn compute_heatmap(
-    agent_id: &str,
-    snapshot: &serde_json::Value,
-) -> Option<PerformanceHeatmap> {
+pub fn compute_heatmap(agent_id: &str, snapshot: &serde_json::Value) -> Option<PerformanceHeatmap> {
     let timestamp_ms = snapshot.get("timestamp_ms")?.as_u64()?;
     let root = snapshot.get("root")?;
 
@@ -127,7 +124,14 @@ pub fn compute_heatmap(
     let mut most_failed_node = None;
 
     // Recursively collect node data
-    collect_node_heatmap(root, &mut nodes, &mut slowest_duration, &mut slowest_node, &mut most_failures, &mut most_failed_node);
+    collect_node_heatmap(
+        root,
+        &mut nodes,
+        &mut slowest_duration,
+        &mut slowest_node,
+        &mut most_failures,
+        &mut most_failed_node,
+    );
 
     let total = nodes.len();
 
@@ -149,15 +153,39 @@ fn collect_node_heatmap(
     most_failures: &mut u64,
     most_failed_node: &mut Option<String>,
 ) {
-    let node_id = node.get("id").and_then(|v| v.as_str()).unwrap_or("unknown").to_string();
-    let node_name = node.get("name").and_then(|v| v.as_str()).unwrap_or("unknown").to_string();
-    let node_type = node.get("node_type").and_then(|v| v.as_str()).unwrap_or("unknown").to_string();
+    let node_id = node
+        .get("id")
+        .and_then(|v| v.as_str())
+        .unwrap_or("unknown")
+        .to_string();
+    let node_name = node
+        .get("name")
+        .and_then(|v| v.as_str())
+        .unwrap_or("unknown")
+        .to_string();
+    let node_type = node
+        .get("node_type")
+        .and_then(|v| v.as_str())
+        .unwrap_or("unknown")
+        .to_string();
 
     if let Some(stats) = node.get("stats") {
-        let tick_count = stats.get("tick_count").and_then(|v| v.as_u64()).unwrap_or(0);
-        let success_count = stats.get("success_count").and_then(|v| v.as_u64()).unwrap_or(0);
-        let failure_count = stats.get("failure_count").and_then(|v| v.as_u64()).unwrap_or(0);
-        let avg_duration_ms = stats.get("avg_execution_ms").and_then(|v| v.as_f64()).unwrap_or(0.0);
+        let tick_count = stats
+            .get("tick_count")
+            .and_then(|v| v.as_u64())
+            .unwrap_or(0);
+        let success_count = stats
+            .get("success_count")
+            .and_then(|v| v.as_u64())
+            .unwrap_or(0);
+        let failure_count = stats
+            .get("failure_count")
+            .and_then(|v| v.as_u64())
+            .unwrap_or(0);
+        let avg_duration_ms = stats
+            .get("avg_execution_ms")
+            .and_then(|v| v.as_f64())
+            .unwrap_or(0.0);
 
         let success_rate = if tick_count > 0 {
             success_count as f64 / tick_count as f64
@@ -208,17 +236,22 @@ fn collect_node_heatmap(
     // Recurse into children
     if let Some(children) = node.get("children").and_then(|v| v.as_array()) {
         for child in children {
-            collect_node_heatmap(child, nodes, slowest_duration, slowest_node, most_failures, most_failed_node);
+            collect_node_heatmap(
+                child,
+                nodes,
+                slowest_duration,
+                slowest_node,
+                most_failures,
+                most_failed_node,
+            );
         }
     }
 }
 
 /// Generate optimization suggestions based on snapshot
-pub fn generate_suggestions(
-    agent_id: &str,
-    snapshot: &serde_json::Value,
-) -> OptimizationReport {
-    let timestamp_ms = snapshot.get("timestamp_ms")
+pub fn generate_suggestions(agent_id: &str, snapshot: &serde_json::Value) -> OptimizationReport {
+    let timestamp_ms = snapshot
+        .get("timestamp_ms")
         .and_then(|v| v.as_u64())
         .unwrap_or(0);
 
@@ -233,7 +266,8 @@ pub fn generate_suggestions(
                     node_id: node.node_id.clone(),
                     node_name: node.node_name.clone(),
                     issue: format!("LLM node takes {:.0}ms on average", node.avg_duration_ms),
-                    suggestion: "Consider adding response caching or using a faster model".to_string(),
+                    suggestion: "Consider adding response caching or using a faster model"
+                        .to_string(),
                     estimated_improvement: "60-80% latency reduction".to_string(),
                     priority: "high".to_string(),
                 });
@@ -244,9 +278,16 @@ pub fn generate_suggestions(
                 suggestions.push(OptimizationSuggestion {
                     node_id: node.node_id.clone(),
                     node_name: node.node_name.clone(),
-                    issue: format!("High failure rate: {:.1}%", (1.0 - node.success_rate) * 100.0),
-                    suggestion: "Add error handling, fallback logic, or retry mechanism".to_string(),
-                    estimated_improvement: format!("+{:.0}% success rate", (1.0 - node.success_rate) * 50.0),
+                    issue: format!(
+                        "High failure rate: {:.1}%",
+                        (1.0 - node.success_rate) * 100.0
+                    ),
+                    suggestion: "Add error handling, fallback logic, or retry mechanism"
+                        .to_string(),
+                    estimated_improvement: format!(
+                        "+{:.0}% success rate",
+                        (1.0 - node.success_rate) * 50.0
+                    ),
                     priority: "critical".to_string(),
                 });
             }
@@ -273,8 +314,12 @@ pub fn generate_suggestions(
                     node_id: "root".to_string(),
                     node_name: "LLM Planner".to_string(),
                     issue: format!("Excessive replanning: {} replans", replan_count),
-                    suggestion: "Review LLM prompts for clarity or increase success criteria".to_string(),
-                    estimated_improvement: format!("-{}% replan rate", (replan_count as f64 * 0.3) as u64),
+                    suggestion: "Review LLM prompts for clarity or increase success criteria"
+                        .to_string(),
+                    estimated_improvement: format!(
+                        "-{}% replan rate",
+                        (replan_count as f64 * 0.3) as u64
+                    ),
                     priority: "medium".to_string(),
                 });
             }
@@ -299,14 +344,32 @@ pub fn compare_ab_variants(
     let a_metrics = variant_a.get("metrics")?;
     let b_metrics = variant_b.get("metrics")?;
 
-    let a_failure_rate = a_metrics.get("failure_rate").and_then(|v| v.as_f64()).unwrap_or(0.0);
-    let b_failure_rate = b_metrics.get("failure_rate").and_then(|v| v.as_f64()).unwrap_or(0.0);
+    let a_failure_rate = a_metrics
+        .get("failure_rate")
+        .and_then(|v| v.as_f64())
+        .unwrap_or(0.0);
+    let b_failure_rate = b_metrics
+        .get("failure_rate")
+        .and_then(|v| v.as_f64())
+        .unwrap_or(0.0);
 
-    let a_replans = a_metrics.get("total_replans").and_then(|v| v.as_i64()).unwrap_or(0);
-    let b_replans = b_metrics.get("total_replans").and_then(|v| v.as_i64()).unwrap_or(0);
+    let a_replans = a_metrics
+        .get("total_replans")
+        .and_then(|v| v.as_i64())
+        .unwrap_or(0);
+    let b_replans = b_metrics
+        .get("total_replans")
+        .and_then(|v| v.as_i64())
+        .unwrap_or(0);
 
-    let a_duration = a_metrics.get("total_execution_ms").and_then(|v| v.as_f64()).unwrap_or(0.0);
-    let b_duration = b_metrics.get("total_execution_ms").and_then(|v| v.as_f64()).unwrap_or(0.0);
+    let a_duration = a_metrics
+        .get("total_execution_ms")
+        .and_then(|v| v.as_f64())
+        .unwrap_or(0.0);
+    let b_duration = b_metrics
+        .get("total_execution_ms")
+        .and_then(|v| v.as_f64())
+        .unwrap_or(0.0);
 
     let success_rate_delta = (1.0 - b_failure_rate) - (1.0 - a_failure_rate);
     let avg_duration_delta_ms = b_duration - a_duration;

@@ -4,7 +4,6 @@
 /// - Debugging complex multi-step executions
 /// - Performance analysis of tool call chains
 /// - Observability into agent reasoning flow
-
 use serde::{Deserialize, Serialize};
 use std::collections::HashMap;
 use std::sync::Arc;
@@ -132,7 +131,8 @@ impl ExecutionGraph {
     /// Complete the execution
     pub fn complete(&mut self, final_answer: Option<String>, error: Option<String>) {
         self.end_time = Some(SystemTime::now());
-        self.total_duration_ms = self.end_time
+        self.total_duration_ms = self
+            .end_time
             .and_then(|end| end.duration_since(self.start_time).ok())
             .map(|d| d.as_millis() as u64);
         self.final_answer = final_answer;
@@ -156,18 +156,12 @@ impl ExecutionGraph {
 
     /// Get all tool names used in this execution
     pub fn get_tool_names(&self) -> Vec<String> {
-        self.nodes
-            .iter()
-            .map(|n| n.tool_name.clone())
-            .collect()
+        self.nodes.iter().map(|n| n.tool_name.clone()).collect()
     }
 
     /// Get total tool execution time (sum of all node durations)
     pub fn get_total_tool_time_ms(&self) -> u64 {
-        self.nodes
-            .iter()
-            .filter_map(|n| n.duration_ms)
-            .sum()
+        self.nodes.iter().filter_map(|n| n.duration_ms).sum()
     }
 
     /// Get success rate (successful nodes / total nodes)
@@ -176,7 +170,8 @@ impl ExecutionGraph {
             return 0.0;
         }
 
-        let successful = self.nodes
+        let successful = self
+            .nodes
             .iter()
             .filter(|n| n.result.as_ref().map_or(false, |r| r.success))
             .count();
@@ -221,7 +216,8 @@ impl ExecutionNode {
     /// Complete the node with a result
     pub fn complete(&mut self, result: ToolExecutionResult) {
         self.end_time = Some(SystemTime::now());
-        self.duration_ms = self.end_time
+        self.duration_ms = self
+            .end_time
             .and_then(|end| end.duration_since(self.start_time).ok())
             .map(|d| d.as_millis() as u64);
         self.result = Some(result);
@@ -332,10 +328,7 @@ impl ExecutionGraphRegistry {
         let running_count = total_count - completed_count;
 
         let avg_duration_ms = if completed_count > 0 {
-            let total_duration: u64 = graphs
-                .values()
-                .filter_map(|g| g.total_duration_ms)
-                .sum();
+            let total_duration: u64 = graphs.values().filter_map(|g| g.total_duration_ms).sum();
             Some(total_duration / completed_count as u64)
         } else {
             None
@@ -359,10 +352,7 @@ impl ExecutionGraphRegistry {
     }
 
     fn evict_oldest(&self, graphs: &mut HashMap<String, ExecutionGraph>) {
-        if let Some((oldest_id, _)) = graphs
-            .iter()
-            .min_by_key(|(_, g)| g.start_time)
-        {
+        if let Some((oldest_id, _)) = graphs.iter().min_by_key(|(_, g)| g.start_time) {
             let oldest_id = oldest_id.clone();
             graphs.remove(&oldest_id);
         }

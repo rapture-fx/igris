@@ -305,7 +305,7 @@ pub fn get_default_providers() -> Vec<ProviderConfig> {
             cost_per_1k_input: 0.0001,
             cost_per_1k_output: 0.0001,
             capabilities: vec!["fast".into(), "cost_effective".into()],
-        }
+        },
     ]
 }
 
