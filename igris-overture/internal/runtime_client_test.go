@@ -2,6 +2,8 @@ package internal
 
 import (
 	"context"
+	"crypto/ed25519"
+	"encoding/hex"
 	"errors"
 	"io"
 	"net/http"
@@ -16,6 +18,22 @@ type roundTripperFunc func(*http.Request) (*http.Response, error)
 
 func (fn roundTripperFunc) RoundTrip(req *http.Request) (*http.Response, error) {
 	return fn(req)
+}
+
+func TestVerifyExecutionArtifactsRawRejectsUnsignedReceiptWhenPublicKeyConfigured(t *testing.T) {
+	publicKey, _, err := ed25519.GenerateKey(strings.NewReader(strings.Repeat("\x01", ed25519.SeedSize)))
+	if err != nil {
+		t.Fatalf("GenerateKey() error = %v", err)
+	}
+	t.Setenv("IGRIS_RUNTIME_PUBLIC_KEY", hex.EncodeToString(publicKey))
+
+	err = VerifyExecutionArtifactsRaw(nil, []byte(`{"execution_id":"exec-1","hash":"hash-1"}`))
+	if err == nil {
+		t.Fatal("VerifyExecutionArtifactsRaw() error = nil, want missing signature error")
+	}
+	if !strings.Contains(err.Error(), "execution_receipt missing signature field") {
+		t.Fatalf("VerifyExecutionArtifactsRaw() error = %v, want missing signature", err)
+	}
 }
 
 func TestRuntimeClientCancelTaskAcceptsConflictResponse(t *testing.T) {

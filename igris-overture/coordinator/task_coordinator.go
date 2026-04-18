@@ -15,6 +15,7 @@ import (
 	"strings"
 	"time"
 
+	"github.com/Igris-inertial/system/igris-overture/internal"
 	"github.com/google/uuid"
 	"github.com/rs/zerolog/log"
 )
@@ -295,6 +296,11 @@ func (tc *TaskCoordinator) dispatchToRuntime(ctx context.Context, task *TaskReco
 		}
 	}
 	if len(result.ExecutionEnvelope) > 0 || len(result.ExecutionReceipt) > 0 {
+		if err := internal.VerifyExecutionArtifactsRaw(result.ExecutionEnvelope, result.ExecutionReceipt); err != nil {
+			log.Error().Err(err).Str("task_id", task.TaskID.String()).Msg("[Coordinator] Runtime execution artifact verification failed")
+			_ = tc.store.MarkFailedWithDetails(task.TaskID, fmt.Sprintf("runtime artifact verification failed: %v", err), overtureTaskFailureDetails("dispatch", "runtime_artifact_verification_failed", err.Error()))
+			return
+		}
 		if err := tc.store.SaveExecutionArtifacts(task.TaskID, result.ExecutionEnvelope, result.ExecutionReceipt); err != nil {
 			log.Error().Err(err).Str("task_id", task.TaskID.String()).Msg("[Coordinator] Save execution artifacts")
 		} else {
