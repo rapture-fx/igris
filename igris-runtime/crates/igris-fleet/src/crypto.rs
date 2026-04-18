@@ -48,14 +48,12 @@ impl FleetKeypair {
 
         // Create parent directory if it doesn't exist
         if let Some(parent) = key_path.parent() {
-            fs::create_dir_all(parent)
-                .context("Failed to create key directory")?;
+            fs::create_dir_all(parent).context("Failed to create key directory")?;
         }
 
         // Save private key to file (32 bytes)
         let key_bytes = signing_key.to_bytes();
-        fs::write(key_path, &key_bytes)
-            .context("Failed to write private key to file")?;
+        fs::write(key_path, &key_bytes).context("Failed to write private key to file")?;
 
         // Set restrictive permissions (Unix only)
         #[cfg(unix)]
@@ -78,8 +76,7 @@ impl FleetKeypair {
     /// Load an existing keypair from the specified path
     fn load(key_path: &Path) -> Result<Self> {
         // Read private key from file (32 bytes)
-        let key_bytes = fs::read(key_path)
-            .context("Failed to read private key from file")?;
+        let key_bytes = fs::read(key_path).context("Failed to read private key from file")?;
 
         if key_bytes.len() != 32 {
             return Err(anyhow::anyhow!(
@@ -126,8 +123,7 @@ impl FleetKeypair {
 
 /// Sign a JSON-serializable payload
 pub fn sign_payload<T: Serialize>(keypair: &FleetKeypair, payload: &T) -> Result<String> {
-    let json = serde_json::to_vec(payload)
-        .context("Failed to serialize payload for signing")?;
+    let json = serde_json::to_vec(payload).context("Failed to serialize payload for signing")?;
     Ok(keypair.sign(&json))
 }
 
@@ -181,8 +177,7 @@ impl ExecutionEnvelope {
 
     /// Sign this envelope with the given keypair
     pub fn sign(self, keypair: &FleetKeypair) -> Result<SignedExecutionEnvelope> {
-        let json = serde_json::to_vec(&self)
-            .context("Failed to serialize execution envelope")?;
+        let json = serde_json::to_vec(&self).context("Failed to serialize execution envelope")?;
         let signature = keypair.sign(&json);
 
         Ok(SignedExecutionEnvelope {
@@ -236,8 +231,8 @@ impl SignedDecisionEnvelope {
 
         let mut key_array = [0u8; 32];
         key_array.copy_from_slice(&public_key_bytes);
-        let verifying_key = VerifyingKey::from_bytes(&key_array)
-            .context("Invalid public key format")?;
+        let verifying_key =
+            VerifyingKey::from_bytes(&key_array).context("Invalid public key format")?;
 
         // Decode signature
         let sig_bytes = base64::engine::general_purpose::STANDARD
@@ -251,12 +246,11 @@ impl SignedDecisionEnvelope {
             ));
         }
 
-        let signature = Signature::from_slice(&sig_bytes)
-            .context("Invalid signature format")?;
+        let signature = Signature::from_slice(&sig_bytes).context("Invalid signature format")?;
 
         // Serialize decision for verification (must match Overture's serialization)
-        let decision_json = serde_json::to_vec(&self.decision)
-            .context("Failed to serialize decision")?;
+        let decision_json =
+            serde_json::to_vec(&self.decision).context("Failed to serialize decision")?;
 
         // Verify
         use ed25519_dalek::Verifier;
@@ -269,10 +263,9 @@ impl SignedDecisionEnvelope {
 
     /// Compute SHA-256 hash of this signed decision for execution envelope
     pub fn hash(&self) -> Result<String> {
-        use sha2::{Sha256, Digest};
+        use sha2::{Digest, Sha256};
 
-        let json = serde_json::to_vec(self)
-            .context("Failed to serialize decision for hashing")?;
+        let json = serde_json::to_vec(self).context("Failed to serialize decision for hashing")?;
 
         let mut hasher = Sha256::new();
         hasher.update(&json);

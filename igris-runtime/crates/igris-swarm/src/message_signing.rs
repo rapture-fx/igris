@@ -47,11 +47,7 @@ pub struct SignedSwarmEnvelope {
 
 impl SignedSwarmEnvelope {
     /// Build and sign a new envelope.
-    pub fn new(
-        peer_id: &str,
-        message: SwarmMessage,
-        signing_key: &SigningKey,
-    ) -> Result<Self> {
+    pub fn new(peer_id: &str, message: SwarmMessage, signing_key: &SigningKey) -> Result<Self> {
         let timestamp = swarm_iso8601_now();
         let message_json = serde_json::to_string(&message)?;
         let payload = format!("{}:{}:{}", peer_id, timestamp, message_json);
@@ -112,10 +108,7 @@ impl SwarmMessageSigner {
 /// Returns `Ok(())` on success, `Err(...)` if the signature is absent, malformed,
 /// or does not match the envelope contents.  Callers MUST drop the message on
 /// `Err`.
-pub fn verify_envelope(
-    envelope: &SignedSwarmEnvelope,
-    verifying_key: &VerifyingKey,
-) -> Result<()> {
+pub fn verify_envelope(envelope: &SignedSwarmEnvelope, verifying_key: &VerifyingKey) -> Result<()> {
     use ed25519_dalek::Signature;
 
     if envelope.signature.is_empty() {
@@ -156,7 +149,10 @@ fn swarm_iso8601_now() -> String {
     let s = rem % 60;
     let days = secs / 86_400;
     let (year, month, day) = swarm_days_to_ymd(days);
-    format!("{:04}-{:02}-{:02}T{:02}:{:02}:{:02}Z", year, month, day, h, m, s)
+    format!(
+        "{:04}-{:02}-{:02}T{:02}:{:02}:{:02}Z",
+        year, month, day, h, m, s
+    )
 }
 
 fn swarm_days_to_ymd(days: u64) -> (u64, u64, u64) {

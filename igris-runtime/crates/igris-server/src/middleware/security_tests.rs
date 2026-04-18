@@ -30,7 +30,10 @@ mod tests {
         AppState {
             config: Arc::new(cfg),
             storage: Arc::new(RedbStorage::new(db_path).unwrap()),
-            speculative_router: Arc::new(SpeculativeRouter::new(1, std::time::Duration::from_secs(1))),
+            speculative_router: Arc::new(SpeculativeRouter::new(
+                1,
+                std::time::Duration::from_secs(1),
+            )),
             thompson_router: Arc::new(ThompsonSamplingRouter::new(vec![], 0.1)),
             council_router: Arc::new(CouncilRouter::new("x".to_string())),
             cloud_providers: Arc::new(vec![]),
@@ -62,7 +65,9 @@ mod tests {
             overture_public_key: None,
             receipt_log: None,
             lifecycle_registry: None,
-            task_cancellation_registry: Arc::new(std::sync::RwLock::new(std::collections::HashMap::new())),
+            task_cancellation_registry: Arc::new(std::sync::RwLock::new(
+                std::collections::HashMap::new(),
+            )),
             bt_state_tx: Arc::new(tokio::sync::watch::channel(serde_json::Value::Null).0),
         }
     }

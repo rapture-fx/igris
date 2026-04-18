@@ -24,8 +24,8 @@ use tokio::fs;
 use tracing::{info, warn};
 
 // Re-export candle types for convenience
-use candle_core::{Device, Tensor, DType};
-use candle_nn::{VarBuilder, VarMap, Optimizer, AdamW};
+use candle_core::{DType, Device, Tensor};
+use candle_nn::{AdamW, Optimizer, VarBuilder, VarMap};
 
 /// Native Rust LoRA trainer using metal-candle
 pub struct MetalLoRATrainer {
@@ -35,7 +35,7 @@ pub struct MetalLoRATrainer {
     device: Device,
     tokenizer_path: Option<PathBuf>,
     #[allow(dead_code)]
-    hidden_size: Option<usize>,  // Cached model dimension (loaded from GGUF)
+    hidden_size: Option<usize>, // Cached model dimension (loaded from GGUF)
     #[cfg(feature = "fleet-management")]
     fleet_agent: Option<std::sync::Arc<igris_fleet::FleetAgent>>,
 }
@@ -76,7 +76,12 @@ struct LoRALayer {
 
 impl LoRALayer {
     /// Create LoRA layer with weights registered in VarBuilder (for training)
-    fn new(in_features: usize, out_features: usize, config: &LoRAConfig, vb: &VarBuilder) -> Result<Self> {
+    fn new(
+        in_features: usize,
+        out_features: usize,
+        config: &LoRAConfig,
+        vb: &VarBuilder,
+    ) -> Result<Self> {
         // Initialize A with random normal (scaled Xavier initialization)
         // Using VarBuilder.get() makes these tensors trainable and tracked in VarMap
         let scale = (2.0 / in_features as f64).sqrt();
@@ -85,7 +90,10 @@ impl LoRALayer {
         let lora_a = vb.get_with_hints(
             (config.rank, in_features),
             "lora_a",
-            candle_nn::Init::Randn { mean: 0.0, stdev: scale },
+            candle_nn::Init::Randn {
+                mean: 0.0,
+                stdev: scale,
+            },
         )?;
 
         // Initialize B with zeros (standard LoRA practice)
@@ -105,9 +113,7 @@ impl LoRALayer {
 
     /// Apply LoRA delta: output = x @ A^T @ B^T * (alpha / rank)
     fn forward(&self, x: &Tensor) -> Result<Tensor> {
-        let lora_out = x
-            .matmul(&self.lora_a.t()?)?
-            .matmul(&self.lora_b.t()?)?;
+        let lora_out = x.matmul(&self.lora_a.t()?)?.matmul(&self.lora_b.t()?)?;
 
         let scaling = (self.alpha / self.rank as f32) as f64;
         Ok(lora_out.affine(scaling, 0.0)?)
@@ -161,8 +167,8 @@ impl MetalLoRATrainer {
     #[cfg(feature = "fleet-management")]
     async fn report_training_metrics(&self, epoch: usize, train_loss: f32, val_loss: f32) {
         if let Some(agent) = &self.fleet_agent {
+            use igris_fleet::{AgentStatus, SystemTime, TelemetryData};
             use std::collections::HashMap;
-            use igris_fleet::{TelemetryData, AgentStatus, SystemTime};
 
             let mut metrics = HashMap::new();
             metrics.insert("training_epoch".to_string(), epoch as f64);
@@ -283,7 +289,11 @@ impl MetalLoRATrainer {
             match Tokenizer::from_file(path) {
                 Ok(tok) => Some(tok),
                 Err(e) => {
-                    warn!("Failed to load tokenizer from {}: {}. Using fallback.", path.display(), e);
+                    warn!(
+                        "Failed to load tokenizer from {}: {}. Using fallback.",
+                        path.display(),
+                        e
+                    );
                     None
                 }
             }
@@ -341,9 +351,15 @@ impl MetalLoRATrainer {
         }
 
         if tokenizer.is_some() {
-            info!("Tokenized {} examples using HuggingFace tokenizer", examples.len());
+            info!(
+                "Tokenized {} examples using HuggingFace tokenizer",
+                examples.len()
+            );
         } else {
-            info!("Tokenized {} examples using fallback tokenizer", examples.len());
+            info!(
+                "Tokenized {} examples using fallback tokenizer",
+                examples.len()
+            );
         }
 
         Ok(Dataset {
@@ -384,7 +400,10 @@ impl MetalLoRATrainer {
     /// Main training loop with validation and early stopping
     pub async fn train(&self, base_model_path: &str) -> Result<TrainingResult> {
         let start_time = Instant::now();
-        info!("Starting native Rust LoRA training with base model: {}", base_model_path);
+        info!(
+            "Starting native Rust LoRA training with base model: {}",
+            base_model_path
+        );
 
         // Prepare datasets
         let (train_dataset, val_dataset) = self
@@ -421,7 +440,10 @@ impl MetalLoRATrainer {
                 }
             }
             Err(e) => {
-                warn!("Failed to load GGUF metadata: {}. Using default dimension 768", e);
+                warn!(
+                    "Failed to load GGUF metadata: {}. Using default dimension 768",
+                    e
+                );
                 768
             }
         };
@@ -464,13 +486,16 @@ impl MetalLoRATrainer {
 
             info!(
                 "Epoch {} completed - Train Loss: {:.6}, Val Loss: {:.6}",
-                epoch + 1, train_loss, val_loss
+                epoch + 1,
+                train_loss,
+                val_loss
             );
 
             final_loss = Some(val_loss as f64);
 
             // Report metrics to fleet (if enabled)
-            self.report_training_metrics(epoch + 1, train_loss, val_loss).await;
+            self.report_training_metrics(epoch + 1, train_loss, val_loss)
+                .await;
 
             // Early stopping logic
             if val_loss < best_val_loss {
@@ -478,7 +503,8 @@ impl MetalLoRATrainer {
                 patience_counter = 0;
 
                 // Save best checkpoint
-                self.save_checkpoint(&varmap, &adapter_dir, "best_checkpoint").await?;
+                self.save_checkpoint(&varmap, &adapter_dir, "best_checkpoint")
+                    .await?;
             } else {
                 patience_counter += 1;
                 if patience_counter >= PATIENCE {
@@ -489,11 +515,14 @@ impl MetalLoRATrainer {
         }
 
         // Load best checkpoint
-        self.load_checkpoint(&mut varmap, &adapter_dir, "best_checkpoint").await?;
+        self.load_checkpoint(&mut varmap, &adapter_dir, "best_checkpoint")
+            .await?;
 
         // Save final adapter in multiple formats (safetensors + GGUF if possible)
         let base_adapter_path = adapter_dir.join(format!("lora_adapter_{}", timestamp));
-        let final_adapter_path = self.save_adapter_multi_format(&varmap, &base_adapter_path).await?;
+        let final_adapter_path = self
+            .save_adapter_multi_format(&varmap, &base_adapter_path)
+            .await?;
 
         let training_time = start_time.elapsed().as_secs_f64();
         info!("Training completed in {:.2}s", training_time);
@@ -557,7 +586,8 @@ impl MetalLoRATrainer {
             let end_idx = ((batch_idx + 1) * batch_size).min(dataset.input_ids.len());
 
             // Forward pass with actual data through LoRA layer
-            let batch_loss = self.compute_batch_loss(dataset, start_idx, end_idx, lora_layer, hidden_size)?;
+            let batch_loss =
+                self.compute_batch_loss(dataset, start_idx, end_idx, lora_layer, hidden_size)?;
 
             // Backward pass
             optimizer.backward_step(&batch_loss)?;
@@ -569,7 +599,10 @@ impl MetalLoRATrainer {
             if batch_idx % 10 == 0 {
                 info!(
                     "Epoch {}, Batch {}/{}, Loss: {:.6}",
-                    epoch + 1, batch_idx, num_batches, loss_val
+                    epoch + 1,
+                    batch_idx,
+                    num_batches,
+                    loss_val
                 );
             }
         }
@@ -577,7 +610,12 @@ impl MetalLoRATrainer {
         Ok(epoch_loss / num_batches as f32)
     }
 
-    fn validate(&self, dataset: &Dataset, lora_layer: &LoRALayer, hidden_size: usize) -> Result<f32> {
+    fn validate(
+        &self,
+        dataset: &Dataset,
+        lora_layer: &LoRALayer,
+        hidden_size: usize,
+    ) -> Result<f32> {
         let mut total_loss = 0.0;
         let batch_size = self.config.batch_size;
         let num_batches = (dataset.input_ids.len() + batch_size - 1) / batch_size;
@@ -586,7 +624,8 @@ impl MetalLoRATrainer {
             let start_idx = batch_idx * batch_size;
             let end_idx = ((batch_idx + 1) * batch_size).min(dataset.input_ids.len());
 
-            let batch_loss = self.compute_batch_loss(dataset, start_idx, end_idx, lora_layer, hidden_size)?;
+            let batch_loss =
+                self.compute_batch_loss(dataset, start_idx, end_idx, lora_layer, hidden_size)?;
             total_loss += batch_loss.to_scalar::<f32>()?;
         }
 
@@ -627,11 +666,7 @@ impl MetalLoRATrainer {
             input_data.extend(padded.iter().map(|&x| x as f32));
         }
 
-        let input_tensor = Tensor::from_vec(
-            input_data,
-            (batch_size, max_seq_len),
-            &self.device,
-        )?;
+        let input_tensor = Tensor::from_vec(input_data, (batch_size, max_seq_len), &self.device)?;
 
         // Simple embedding layer (uses real input data)
         // In production, this would be actual word embeddings from base model
@@ -639,7 +674,7 @@ impl MetalLoRATrainer {
 
         // Create a simple embedding: repeat mean of input tokens
         // Shape: [batch_size, hidden_size]
-        let means = input_tensor.mean_keepdim(1)?;  // [batch_size, 1]
+        let means = input_tensor.mean_keepdim(1)?; // [batch_size, 1]
 
         // Repeat to create [batch_size, hidden_size]
         let mut embedding_data = Vec::with_capacity(batch_size * hidden_size);
@@ -650,11 +685,7 @@ impl MetalLoRATrainer {
             }
         }
 
-        let embeddings = Tensor::from_vec(
-            embedding_data,
-            (batch_size, hidden_size),
-            &self.device,
-        )?;
+        let embeddings = Tensor::from_vec(embedding_data, (batch_size, hidden_size), &self.device)?;
 
         // Forward through LoRA layer (THIS IS REAL TRAINING)
         let lora_output = lora_layer.forward(&embeddings)?;
@@ -667,11 +698,7 @@ impl MetalLoRATrainer {
             target_data.extend(padded.iter().map(|&x| x as f32));
         }
 
-        let target_tensor = Tensor::from_vec(
-            target_data,
-            (batch_size, max_seq_len),
-            &self.device,
-        )?;
+        let target_tensor = Tensor::from_vec(target_data, (batch_size, max_seq_len), &self.device)?;
 
         // Compute loss
         // For full production: Use cross-entropy with vocabulary projection
@@ -770,10 +797,7 @@ impl MetalLoRATrainer {
         info!("Converting adapter to GGUF format...");
 
         // Check if Python is available
-        let python_check = Command::new("python3")
-            .arg("--version")
-            .output()
-            .await;
+        let python_check = Command::new("python3").arg("--version").output().await;
 
         if python_check.is_err() {
             warn!("Python3 not found. Skipping GGUF conversion.");
@@ -786,7 +810,8 @@ impl MetalLoRATrainer {
         let script_path = self.get_or_download_conversion_script().await?;
 
         // Run conversion
-        info!("Running: python3 {} {} --outfile {}",
+        info!(
+            "Running: python3 {} {} --outfile {}",
             script_path.display(),
             safetensors_path.display(),
             output_path.display()
@@ -839,7 +864,8 @@ impl MetalLoRATrainer {
         info!("Downloading GGUF conversion script (one-time setup)...");
         fs::create_dir_all(&adapter_dir).await?;
 
-        let url = "https://raw.githubusercontent.com/ggerganov/llama.cpp/master/convert_lora_to_gguf.py";
+        let url =
+            "https://raw.githubusercontent.com/ggerganov/llama.cpp/master/convert_lora_to_gguf.py";
 
         // Use curl or wget to download
         let download_result = tokio::process::Command::new("curl")
@@ -848,7 +874,10 @@ impl MetalLoRATrainer {
             .await;
 
         if download_result.is_ok() && cached_script.exists() {
-            info!("✓ Downloaded conversion script to: {}", cached_script.display());
+            info!(
+                "✓ Downloaded conversion script to: {}",
+                cached_script.display()
+            );
             return Ok(cached_script);
         }
 
@@ -859,7 +888,10 @@ impl MetalLoRATrainer {
             .await;
 
         if wget_result.is_ok() && cached_script.exists() {
-            info!("✓ Downloaded conversion script to: {}", cached_script.display());
+            info!(
+                "✓ Downloaded conversion script to: {}",
+                cached_script.display()
+            );
             return Ok(cached_script);
         }
 
@@ -871,10 +903,15 @@ impl MetalLoRATrainer {
     }
 
     /// Save adapter in multiple formats (safetensors + GGUF if possible)
-    async fn save_adapter_multi_format(&self, varmap: &VarMap, base_path: &Path) -> Result<PathBuf> {
+    async fn save_adapter_multi_format(
+        &self,
+        varmap: &VarMap,
+        base_path: &Path,
+    ) -> Result<PathBuf> {
         // Always save safetensors (primary format)
         let safetensors_path = base_path.with_extension("safetensors");
-        self.save_adapter_safetensors(varmap, &safetensors_path).await?;
+        self.save_adapter_safetensors(varmap, &safetensors_path)
+            .await?;
 
         // Try to convert to GGUF (best-effort)
         let gguf_path = base_path.with_extension("gguf");
@@ -920,7 +957,10 @@ mod tests {
         let config = LoRATrainingConfig::default();
         let trainer = MetalLoRATrainer::new(config, store, None)?;
 
-        assert!(matches!(trainer.device, Device::Cpu | Device::Metal(_) | Device::Cuda(_)));
+        assert!(matches!(
+            trainer.device,
+            Device::Cpu | Device::Metal(_) | Device::Cuda(_)
+        ));
 
         Ok(())
     }
@@ -1024,10 +1064,7 @@ mod tests {
         file.read_to_end(&mut buffer)?;
 
         // Just verify it's a valid safetensors file (starts with proper header)
-        assert!(
-            buffer.len() > 8,
-            "Safetensors file should have header"
-        );
+        assert!(buffer.len() > 8, "Safetensors file should have header");
 
         // Verify loss is finite (training had an effect)
         // Note: Loss may be high due to simple embedding-based training (not real transformer)

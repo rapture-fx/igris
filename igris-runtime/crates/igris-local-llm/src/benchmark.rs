@@ -53,7 +53,10 @@ pub async fn run_benchmark_suite(
     model_path: &Path,
     hw_info: &HardwareInfo,
 ) -> Result<Vec<BenchmarkResult>> {
-    info!("Starting benchmark suite for model: {}", model_path.display());
+    info!(
+        "Starting benchmark suite for model: {}",
+        model_path.display()
+    );
 
     let mut results = Vec::new();
 
@@ -67,15 +70,23 @@ pub async fn run_benchmark_suite(
                 results.push(result);
             }
             Err(e) => {
-                warn!("✗ Benchmark failed (GPU: {}, Threads: {}): {}", n_gpu_layers, n_threads, e);
+                warn!(
+                    "✗ Benchmark failed (GPU: {}, Threads: {}): {}",
+                    n_gpu_layers, n_threads, e
+                );
             }
         }
     }
 
     if !results.is_empty() {
         // Find best configuration
-        let best = results.iter()
-            .max_by(|a, b| a.tokens_per_second.partial_cmp(&b.tokens_per_second).unwrap())
+        let best = results
+            .iter()
+            .max_by(|a, b| {
+                a.tokens_per_second
+                    .partial_cmp(&b.tokens_per_second)
+                    .unwrap()
+            })
             .unwrap();
 
         info!("Best configuration: {}", best.summary());
@@ -144,7 +155,8 @@ async fn run_single_benchmark(
     )?;
 
     // Benchmark prompt
-    let prompt = "Write a detailed technical explanation of how transformers work in machine learning, \
+    let prompt =
+        "Write a detailed technical explanation of how transformers work in machine learning, \
                   including attention mechanisms and positional encoding. ";
 
     let prompt_tokens = prompt.split_whitespace().count();
@@ -156,14 +168,15 @@ async fn run_single_benchmark(
 
     // For simplicity, use non-streaming generation
     // In production, you'd stream and measure TTFT precisely
-    generated = engine.generate(
-        prompt,
-        100, // max_tokens
-        0.7, // temperature
-        0.95, // top_p
-        None, // lora
-        None, // prompt_cache
-    ).await?;
+    generated = engine
+        .generate(
+            prompt, 100,  // max_tokens
+            0.7,  // temperature
+            0.95, // top_p
+            None, // lora
+            None, // prompt_cache
+        )
+        .await?;
 
     let total_latency = start.elapsed();
 
@@ -202,14 +215,7 @@ async fn run_single_benchmark(
 pub async fn quick_gpu_test(model_path: &Path, n_gpu_layers: u32) -> Result<bool> {
     info!("Running quick GPU test with {} layers...", n_gpu_layers);
 
-    let engine = RealInferenceEngine::load(
-        model_path,
-        2048,
-        4,
-        n_gpu_layers,
-        None,
-        None,
-    )?;
+    let engine = RealInferenceEngine::load(model_path, 2048, 4, n_gpu_layers, None, None)?;
 
     let prompt = "Hello, world!";
     let start = Instant::now();

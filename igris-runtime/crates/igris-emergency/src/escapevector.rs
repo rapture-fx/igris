@@ -1,12 +1,12 @@
-use aes_gcm::{Aes256Gcm, KeyInit, Nonce};
 use aes_gcm::aead::Aead;
+use aes_gcm::{Aes256Gcm, KeyInit, Nonce};
 use rand::Rng;
 use serde::{Deserialize, Serialize};
+use sha2::{Digest, Sha256};
 use std::collections::HashMap;
 use std::fs;
 use std::path::Path;
 use std::time::SystemTime;
-use sha2::{Sha256, Digest};
 
 const CACHE_TTL_HOURS: u64 = 72;
 const RESPONSE_CACHE_TTL_HOURS: u64 = 24; // Response cache expires sooner
@@ -140,17 +140,25 @@ impl EscapeVectorCache {
     }
 
     /// Save a cached response
-    pub fn save_response(&self, prompt: &str, response: &str, model: &str, quality_score: f32) -> anyhow::Result<()> {
+    pub fn save_response(
+        &self,
+        prompt: &str,
+        response: &str,
+        model: &str,
+        quality_score: f32,
+    ) -> anyhow::Result<()> {
         let prompt_hash = Self::hash_prompt(prompt);
         let now = SystemTime::now()
             .duration_since(SystemTime::UNIX_EPOCH)?
             .as_secs();
 
         // Load existing cache or create new
-        let mut cache = self.load_response_cache().unwrap_or_else(|_| ResponseCache {
-            entries: HashMap::new(),
-            last_cleanup: now,
-        });
+        let mut cache = self
+            .load_response_cache()
+            .unwrap_or_else(|_| ResponseCache {
+                entries: HashMap::new(),
+                last_cleanup: now,
+            });
 
         // Create or update entry
         if let Some(entry) = cache.entries.get_mut(&prompt_hash) {
@@ -303,7 +311,9 @@ mod tests {
         let quality_score = 0.95;
 
         // Save response
-        cache.save_response(prompt, response, model, quality_score).unwrap();
+        cache
+            .save_response(prompt, response, model, quality_score)
+            .unwrap();
 
         // Load response
         let loaded = cache.load_response(prompt).unwrap();
@@ -316,7 +326,9 @@ mod tests {
         assert_eq!(cached.hit_count, 1);
 
         // Save again (should increment hit count)
-        cache.save_response(prompt, response, model, quality_score).unwrap();
+        cache
+            .save_response(prompt, response, model, quality_score)
+            .unwrap();
         let loaded2 = cache.load_response(prompt).unwrap();
         assert_eq!(loaded2.unwrap().hit_count, 2);
 
@@ -330,8 +342,12 @@ mod tests {
         let cache = EscapeVectorCache::new(&temp_dir, key).unwrap();
 
         // Save multiple responses
-        cache.save_response("prompt1", "response1", "model1", 0.9).unwrap();
-        cache.save_response("prompt2", "response2", "model2", 0.8).unwrap();
+        cache
+            .save_response("prompt1", "response1", "model1", 0.9)
+            .unwrap();
+        cache
+            .save_response("prompt2", "response2", "model2", 0.8)
+            .unwrap();
 
         // Load both
         let r1 = cache.load_response("prompt1").unwrap();

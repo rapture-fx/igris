@@ -9,20 +9,18 @@ use tracing::debug;
 
 fn extract_stream_delta(v: &serde_json::Value) -> Option<String> {
     // OpenAI-style: choices[0].delta.content
-    v.get("choices")
-        .and_then(|c| c.get(0))
-        .and_then(|c0| {
-            c0.get("delta")
-                .and_then(|d| d.get("content"))
-                .and_then(|x| x.as_str())
-                .map(|s| s.to_string())
-                .or_else(|| {
-                    // Some providers use "text" streaming
-                    c0.get("text")
-                        .and_then(|x| x.as_str())
-                        .map(|s| s.to_string())
-                })
-        })
+    v.get("choices").and_then(|c| c.get(0)).and_then(|c0| {
+        c0.get("delta")
+            .and_then(|d| d.get("content"))
+            .and_then(|x| x.as_str())
+            .map(|s| s.to_string())
+            .or_else(|| {
+                // Some providers use "text" streaming
+                c0.get("text")
+                    .and_then(|x| x.as_str())
+                    .map(|s| s.to_string())
+            })
+    })
 }
 
 /// Cloud provider that implements Provider trait
@@ -72,11 +70,17 @@ impl CloudProvider {
     }
 
     pub fn has_capability(&self, capability: &str) -> bool {
-        self.config.capabilities.iter().any(|value| value == capability)
+        self.config
+            .capabilities
+            .iter()
+            .any(|value| value == capability)
     }
 
     async fn call_api(&self, prompt: &str) -> anyhow::Result<String> {
-        let api_key = self.config.api_key_env.as_ref()
+        let api_key = self
+            .config
+            .api_key_env
+            .as_ref()
             .and_then(|env_var| std::env::var(env_var).ok())
             .ok_or_else(|| anyhow::anyhow!("API key not found for {}", self.config.id))?;
 
@@ -91,7 +95,8 @@ impl CloudProvider {
             stream: false,
         };
 
-        let response = self.client
+        let response = self
+            .client
             .post(format!("{}/chat/completions", self.config.endpoint))
             .header("Authorization", format!("Bearer {}", api_key))
             .header("Content-Type", "application/json")

@@ -30,9 +30,9 @@ pub mod adapter_bridge;
 pub mod persistence;
 pub mod transport;
 
-pub use adapter_bridge::{AdapterBridge, LoRAWeights, LoRAMetadata};
+pub use adapter_bridge::{AdapterBridge, LoRAMetadata, LoRAWeights};
 pub use persistence::{CoordinatorSnapshot, FederatedPersistence};
-pub use transport::{FederatedTransport, FederatedMessage, FederatedStatus, HttpTransport};
+pub use transport::{FederatedMessage, FederatedStatus, FederatedTransport, HttpTransport};
 
 use anyhow::Result;
 use rand::Rng;
@@ -358,11 +358,17 @@ impl FederatedCoordinator {
             *coordinator.participants.write().await = snapshot.participants;
 
             for update in snapshot.pending_updates {
-                coordinator.pending_updates.write().await
+                coordinator
+                    .pending_updates
+                    .write()
+                    .await
                     .insert(update.participant_id.clone(), update);
             }
 
-            info!("Restored federated state from disk: round {}", snapshot.current_round);
+            info!(
+                "Restored federated state from disk: round {}",
+                snapshot.current_round
+            );
         }
 
         coordinator.persistence = Some(persistence);
@@ -422,7 +428,10 @@ impl FederatedCoordinator {
     }
 
     /// Submit update and auto-aggregate if threshold is met
-    pub async fn submit_update_and_maybe_aggregate(&self, update: ModelUpdate) -> Result<Option<GlobalModel>> {
+    pub async fn submit_update_and_maybe_aggregate(
+        &self,
+        update: ModelUpdate,
+    ) -> Result<Option<GlobalModel>> {
         self.submit_update(update).await?;
 
         if self.ready_to_aggregate().await {
@@ -549,7 +558,13 @@ impl FederatedCoordinator {
             current_round: *self.current_round.read().await,
             global_models: self.global_models.read().await.clone(),
             participants: self.participants.read().await.clone(),
-            pending_updates: self.pending_updates.read().await.values().cloned().collect(),
+            pending_updates: self
+                .pending_updates
+                .read()
+                .await
+                .values()
+                .cloned()
+                .collect(),
             snapshot_timestamp: SystemTime::now()
                 .duration_since(SystemTime::UNIX_EPOCH)
                 .unwrap_or_default()
@@ -657,23 +672,17 @@ mod tests {
         ];
 
         // Test FedAvg
-        let model = GlobalModel::from_updates(
-            0,
-            &updates,
-            AggregationStrategy::FederatedAveraging,
-        )
-        .unwrap();
+        let model = GlobalModel::from_updates(0, &updates, AggregationStrategy::FederatedAveraging)
+            .unwrap();
         assert_eq!(model.num_participants, 3);
 
         // Test weighted average
         let model =
-            GlobalModel::from_updates(0, &updates, AggregationStrategy::WeightedAveraging)
-                .unwrap();
+            GlobalModel::from_updates(0, &updates, AggregationStrategy::WeightedAveraging).unwrap();
         assert_eq!(model.num_participants, 3);
 
         // Test median
-        let model =
-            GlobalModel::from_updates(0, &updates, AggregationStrategy::Median).unwrap();
+        let model = GlobalModel::from_updates(0, &updates, AggregationStrategy::Median).unwrap();
         assert_eq!(model.num_participants, 3);
     }
 

@@ -119,7 +119,11 @@ impl FleetManager {
             id: format!("igris-runtime-{}", &self.agent_id),
             name: format!("Runtime {}", &self.agent_id),
             hostname: std::env::consts::OS.to_string(),
-            status: if registered { "online".to_string() } else { "unregistered".to_string() },
+            status: if registered {
+                "online".to_string()
+            } else {
+                "unregistered".to_string()
+            },
             registered,
             fleet_id,
             config_version,
@@ -198,7 +202,10 @@ fn format_timestamp(secs: u64) -> String {
     // Simple UTC formatting
     let days_since_epoch = secs / 86400;
     let (year, month, day) = days_to_ymd(days_since_epoch);
-    format!("{:04}-{:02}-{:02}T{:02}:{:02}:{:02}Z", year, month, day, hours, minutes, seconds)
+    format!(
+        "{:04}-{:02}-{:02}T{:02}:{:02}:{:02}Z",
+        year, month, day, hours, minutes, seconds
+    )
 }
 
 /// Convert days since epoch to year/month/day

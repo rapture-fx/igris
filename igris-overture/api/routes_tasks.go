@@ -857,6 +857,9 @@ func buildTaskResponse(task *coordinator.TaskRecord) fiber.Map {
 	}
 	if len(task.ExecutionReceipt) > 0 {
 		resp["execution_receipt"] = task.ExecutionReceipt
+		if receipt := buildTaskReceiptResponse(task.ExecutionReceipt); receipt != nil {
+			resp["receipt"] = receipt
+		}
 	}
 	if proof := buildTaskProofResponse(task.Proof); proof != nil {
 		resp["proof"] = proof
@@ -911,6 +914,34 @@ func buildTaskMutationResponse(task *coordinator.TaskRecord, extras fiber.Map) f
 	for key, value := range extras {
 		resp[key] = value
 	}
+	return resp
+}
+
+func buildTaskReceiptResponse(receipt json.RawMessage) fiber.Map {
+	if len(receipt) == 0 {
+		return nil
+	}
+	var payload map[string]interface{}
+	if err := json.Unmarshal(receipt, &payload); err != nil {
+		return nil
+	}
+
+	resp := fiber.Map{"available": true}
+	for _, field := range []string{"execution_id", "transaction_id", "transaction_hash", "previous_hash"} {
+		if value := stringValue(payload[field]); value != "" {
+			resp[field] = value
+		}
+	}
+
+	receiptHash := stringValue(payload["receipt_hash"])
+	if receiptHash == "" {
+		receiptHash = stringValue(payload["hash"])
+	}
+	if receiptHash != "" {
+		resp["receipt_hash"] = receiptHash
+	}
+	resp["signature_present"] = stringValue(payload["signature"]) != ""
+
 	return resp
 }
 

@@ -131,11 +131,7 @@ mod tests {
 
     #[test]
     fn test_execution_result_success() {
-        let result = ExecutionResult::new(
-            NodeStatus::Success,
-            5,
-            Duration::from_millis(100),
-        );
+        let result = ExecutionResult::new(NodeStatus::Success, 5, Duration::from_millis(100));
 
         assert!(result.is_success());
         assert!(!result.is_failure());
@@ -144,11 +140,7 @@ mod tests {
 
     #[test]
     fn test_execution_result_failure() {
-        let result = ExecutionResult::new(
-            NodeStatus::Failure,
-            3,
-            Duration::from_millis(50),
-        );
+        let result = ExecutionResult::new(NodeStatus::Failure, 3, Duration::from_millis(50));
 
         assert!(!result.is_success());
         assert!(result.is_failure());
@@ -156,11 +148,8 @@ mod tests {
 
     #[test]
     fn test_execution_result_cancelled() {
-        let result = ExecutionResult::new(
-            NodeStatus::Running,
-            10,
-            Duration::from_millis(200),
-        ).with_cancelled();
+        let result = ExecutionResult::new(NodeStatus::Running, 10, Duration::from_millis(200))
+            .with_cancelled();
 
         assert!(!result.is_success());
         assert!(result.is_interrupted());
@@ -169,11 +158,8 @@ mod tests {
 
     #[test]
     fn test_execution_result_max_ticks() {
-        let result = ExecutionResult::new(
-            NodeStatus::Running,
-            100,
-            Duration::from_secs(1),
-        ).with_max_ticks_reached();
+        let result = ExecutionResult::new(NodeStatus::Running, 100, Duration::from_secs(1))
+            .with_max_ticks_reached();
 
         assert!(result.is_interrupted());
         assert!(result.max_ticks_reached);
@@ -181,11 +167,8 @@ mod tests {
 
     #[test]
     fn test_execution_result_deadline() {
-        let result = ExecutionResult::new(
-            NodeStatus::Running,
-            50,
-            Duration::from_secs(5),
-        ).with_deadline_exceeded();
+        let result = ExecutionResult::new(NodeStatus::Running, 50, Duration::from_secs(5))
+            .with_deadline_exceeded();
 
         assert!(result.is_interrupted());
         assert!(result.deadline_exceeded);
@@ -193,11 +176,8 @@ mod tests {
 
     #[test]
     fn test_execution_result_with_error() {
-        let result = ExecutionResult::new(
-            NodeStatus::Failure,
-            2,
-            Duration::from_millis(10),
-        ).with_error("Test error".to_string());
+        let result = ExecutionResult::new(NodeStatus::Failure, 2, Duration::from_millis(10))
+            .with_error("Test error".to_string());
 
         assert!(result.is_failure());
         assert_eq!(result.error, Some("Test error".to_string()));

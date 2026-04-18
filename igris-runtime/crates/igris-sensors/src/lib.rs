@@ -383,16 +383,25 @@ impl SensorManager {
     pub async fn execute_actuator(&self, action: &str, params: serde_json::Value) -> Result<()> {
         // Check whitelist
         if !self.config.actuator_whitelist.contains(action) {
-            return Err(anyhow::anyhow!("Actuator action '{}' not in whitelist", action));
+            return Err(anyhow::anyhow!(
+                "Actuator action '{}' not in whitelist",
+                action
+            ));
         }
 
         if self.config.safety_mode {
-            warn!("Actuator action '{}' requires confirmation (safety mode enabled)", action);
+            warn!(
+                "Actuator action '{}' requires confirmation (safety mode enabled)",
+                action
+            );
             // In production, this would request human confirmation
             return Err(anyhow::anyhow!("Actuator action blocked by safety mode"));
         }
 
-        info!("Executing actuator action: {} with params: {}", action, params);
+        info!(
+            "Executing actuator action: {} with params: {}",
+            action, params
+        );
 
         // In production, this would:
         // 1. Validate action and parameters
@@ -482,7 +491,9 @@ mod tests {
         let manager = SensorManager::new(config).await.unwrap();
 
         // Should be blocked by safety mode
-        let result = manager.execute_actuator("move_forward", serde_json::json!({"speed": 0.5})).await;
+        let result = manager
+            .execute_actuator("move_forward", serde_json::json!({"speed": 0.5}))
+            .await;
         assert!(result.is_err());
     }
 }

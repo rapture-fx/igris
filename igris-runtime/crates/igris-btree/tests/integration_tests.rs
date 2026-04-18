@@ -21,7 +21,11 @@ async fn test_complex_sequence_success() {
     let mut tree = Sequence::new("mission")
         .add_child(Box::new(SetBlackboard::new("init", "phase", "init")))
         .add_child(Box::new(SetBlackboard::new("plan", "phase", "planning")))
-        .add_child(Box::new(SetBlackboard::new("execute", "phase", "executing")))
+        .add_child(Box::new(SetBlackboard::new(
+            "execute",
+            "phase",
+            "executing",
+        )))
         .add_child(Box::new(SetBlackboard::new("finish", "phase", "done")));
 
     let result = executor.execute(&mut tree, &mut context).await.unwrap();
@@ -110,9 +114,7 @@ async fn test_selector_fallback_chain() {
         .add_child(Box::new(FailNode("primary".to_string())))
         .add_child(Box::new(FailNode("secondary".to_string())))
         .add_child(Box::new(SetBlackboard::new(
-            "tertiary",
-            "method",
-            "tertiary",
+            "tertiary", "method", "tertiary",
         )));
 
     let result = executor.execute(&mut tree, &mut context).await.unwrap();
@@ -217,7 +219,10 @@ async fn test_repeat_finite() {
     let executor = BTreeExecutor::new();
     let mut context = BTreeContext::new();
 
-    context.blackboard.set("counter", serde_json::json!(0)).await;
+    context
+        .blackboard
+        .set("counter", serde_json::json!(0))
+        .await;
 
     use anyhow::Result;
     use async_trait::async_trait;
@@ -325,8 +330,7 @@ async fn test_replan_on_failure() {
 
     let child = Box::new(AlwaysFailNode);
 
-    let mut replan = ReplanOnFailure::new("replan", child, "task")
-        .with_max_replans(2);
+    let mut replan = ReplanOnFailure::new("replan", child, "task").with_max_replans(2);
 
     // Should fail after child fails and max replans exceeded
     let status = replan.tick(&mut context).await.unwrap();
@@ -633,7 +637,12 @@ async fn test_robot_navigation_scenario() {
     assert!(result.is_success());
     assert!(context.blackboard.contains("route").await);
     assert_eq!(
-        context.blackboard.get("robot_state").await.unwrap().as_str(),
+        context
+            .blackboard
+            .get("robot_state")
+            .await
+            .unwrap()
+            .as_str(),
         Some("arrived")
     );
 }

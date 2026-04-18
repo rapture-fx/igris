@@ -130,11 +130,7 @@ impl RedbStorage {
     }
 
     /// Delete a key from a table.
-    pub fn delete(
-        &self,
-        table: TableDefinition<&str, &[u8]>,
-        key: &str,
-    ) -> anyhow::Result<bool> {
+    pub fn delete(&self, table: TableDefinition<&str, &[u8]>, key: &str) -> anyhow::Result<bool> {
         let write_txn = self.db.begin_write()?;
         let removed = {
             let mut tbl = write_txn.open_table(table)?;

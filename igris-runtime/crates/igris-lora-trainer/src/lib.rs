@@ -1,8 +1,8 @@
 pub mod config;
+pub mod embedded_bins;
+pub mod encryption;
 pub mod storage;
 pub mod trainer;
-pub mod encryption;
-pub mod embedded_bins;
 
 // Native Rust training module (optional, enabled with 'native-training' feature)
 #[cfg(feature = "native-training")]
@@ -15,9 +15,9 @@ use serde::{Deserialize, Serialize};
 use std::path::PathBuf;
 
 pub use config::{LoRATrainingConfig, TrainingBackend};
+pub use encryption::AdapterEncryption;
 pub use storage::{ConversationHistory, TrainingDataStore};
 pub use trainer::LoRATrainer;
-pub use encryption::AdapterEncryption;
 
 #[cfg(feature = "native-training")]
 pub use metal_trainer::MetalLoRATrainer;

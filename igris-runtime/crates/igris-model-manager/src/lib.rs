@@ -140,10 +140,7 @@ impl ModelManager {
     }
 
     /// Unload least recently used model
-    async fn unload_lru_model(
-        &self,
-        loaded: &mut HashMap<String, LoadedModel>,
-    ) -> Result<()> {
+    async fn unload_lru_model(&self, loaded: &mut HashMap<String, LoadedModel>) -> Result<()> {
         if loaded.is_empty() {
             return Ok(());
         }
@@ -181,12 +178,7 @@ impl ModelManager {
 
     /// Get loaded models
     pub async fn get_loaded_models(&self) -> Vec<String> {
-        self.loaded_models
-            .read()
-            .await
-            .keys()
-            .cloned()
-            .collect()
+        self.loaded_models.read().await.keys().cloned().collect()
     }
 
     /// Increment usage count for active model
@@ -270,7 +262,10 @@ mod tests {
         assert_eq!(manager.get_loaded_models().await.len(), 1);
 
         manager.swap_model("model-2").await.unwrap();
-        assert_eq!(manager.get_active_model().await, Some("model-2".to_string()));
+        assert_eq!(
+            manager.get_active_model().await,
+            Some("model-2".to_string())
+        );
     }
 
     #[tokio::test]

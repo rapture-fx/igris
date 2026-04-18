@@ -46,11 +46,7 @@ impl Watchdog {
     /// * `name` - Node name for debugging
     /// * `child` - Child node to monitor
     /// * `timeout` - Maximum execution time before emergency stop
-    pub fn new(
-        name: impl Into<String>,
-        child: Box<dyn BTreeNode>,
-        timeout: Duration,
-    ) -> Self {
+    pub fn new(name: impl Into<String>, child: Box<dyn BTreeNode>, timeout: Duration) -> Self {
         Self {
             name: name.into(),
             child,
@@ -248,8 +244,8 @@ mod tests {
             Box::new(SetBlackboard::new("action", "key", "value")),
         ));
 
-        let mut watchdog = Watchdog::new("test", child, Duration::from_secs(10))
-            .with_max_consecutive_running(5);
+        let mut watchdog =
+            Watchdog::new("test", child, Duration::from_secs(10)).with_max_consecutive_running(5);
 
         // Tick 10 times (should trigger warning after 5)
         for _ in 0..10 {

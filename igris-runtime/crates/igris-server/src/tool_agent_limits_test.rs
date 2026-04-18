@@ -1,9 +1,8 @@
 /// RUNTIME-05: Resource Limit Enforcement Tests
 ///
 /// Tests verifying that resource limits are properly enforced during tool agent execution
-
 use super::*;
-use crate::resource_limits::{ResourceLimits, ResourceLimitError};
+use crate::resource_limits::{ResourceLimitError, ResourceLimits};
 use igris_tools::{ToolRegistry, ToolResult};
 use std::sync::Arc;
 use std::time::Duration;
@@ -126,8 +125,8 @@ async fn test_max_tool_calls_limit() {
         ..ResourceLimits::default()
     };
 
-    let agent = ToolAgent::new(provider, Arc::new(registry), 10, 2, 5000)
-        .with_resource_limits(limits);
+    let agent =
+        ToolAgent::new(provider, Arc::new(registry), 10, 2, 5000).with_resource_limits(limits);
 
     let result = agent.run("test").await;
 
@@ -171,8 +170,8 @@ async fn test_max_tool_calls_per_step_limit() {
         ..ResourceLimits::default()
     };
 
-    let agent = ToolAgent::new(provider, Arc::new(registry), 10, 10, 5000)
-        .with_resource_limits(limits);
+    let agent =
+        ToolAgent::new(provider, Arc::new(registry), 10, 10, 5000).with_resource_limits(limits);
 
     let result = agent.run("test").await;
 
@@ -210,8 +209,8 @@ async fn test_execution_time_limit() {
         ..ResourceLimits::default()
     };
 
-    let agent = ToolAgent::new(provider, Arc::new(registry), 10, 2, 5000)
-        .with_resource_limits(limits);
+    let agent =
+        ToolAgent::new(provider, Arc::new(registry), 10, 2, 5000).with_resource_limits(limits);
 
     let result = agent.run("test").await;
 
@@ -249,8 +248,8 @@ async fn test_tool_output_size_limit() {
         ..ResourceLimits::default()
     };
 
-    let agent = ToolAgent::new(provider, Arc::new(registry), 10, 2, 5000)
-        .with_resource_limits(limits);
+    let agent =
+        ToolAgent::new(provider, Arc::new(registry), 10, 2, 5000).with_resource_limits(limits);
 
     let result = agent.run("test").await;
 
@@ -306,8 +305,7 @@ async fn test_execution_graph_includes_resource_usage() {
     let mut registry = ToolRegistry::new();
     registry.register(Arc::new(SlowTool { sleep_ms: 10 }));
 
-    let agent = ToolAgent::new(provider, Arc::new(registry), 10, 2, 5000)
-        .with_graph_tracking(true);
+    let agent = ToolAgent::new(provider, Arc::new(registry), 10, 2, 5000).with_graph_tracking(true);
 
     let result = agent.run_with_graph("test").await;
 

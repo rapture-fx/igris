@@ -67,7 +67,8 @@ impl TreeVisualizer {
 
         // Get execution trace
         let trace = self.trace.read().await;
-        let execution_trace = trace.iter()
+        let execution_trace = trace
+            .iter()
             .rev()
             .take(self.config.max_trace_entries)
             .rev()
@@ -76,7 +77,8 @@ impl TreeVisualizer {
 
         // Get replan events
         let replans = self.replan_events.read().await;
-        let replan_events = replans.iter()
+        let replan_events = replans
+            .iter()
             .rev()
             .take(self.config.max_replan_events)
             .rev()
@@ -195,8 +197,8 @@ impl TreeVisualizer {
 
         // Compute average tick rate
         if metrics.total_execution_ms > 0.0 {
-            metrics.avg_tick_rate = (metrics.total_ticks as f64) /
-                (metrics.total_execution_ms / 1000.0);
+            metrics.avg_tick_rate =
+                (metrics.total_ticks as f64) / (metrics.total_execution_ms / 1000.0);
         }
 
         // Update LLM latency
@@ -206,8 +208,7 @@ impl TreeVisualizer {
             if metrics.avg_llm_latency_ms == 0.0 {
                 metrics.avg_llm_latency_ms = latency_ms;
             } else {
-                metrics.avg_llm_latency_ms =
-                    0.9 * metrics.avg_llm_latency_ms + 0.1 * latency_ms;
+                metrics.avg_llm_latency_ms = 0.9 * metrics.avg_llm_latency_ms + 0.1 * latency_ms;
             }
         }
 
@@ -231,7 +232,8 @@ impl TreeVisualizer {
         let status = NodeStatus::Running; // Placeholder
 
         // Get node-specific metadata from JSON representation
-        let metadata = node.to_json()
+        let metadata = node
+            .to_json()
             .ok()
             .and_then(|v| v.as_object().cloned())
             .map(|obj| {
@@ -242,7 +244,10 @@ impl TreeVisualizer {
             .unwrap_or_default();
 
         // Get stats for this node
-        let stats = self.node_stats.read().await
+        let stats = self
+            .node_stats
+            .read()
+            .await
             .get(&node_id)
             .cloned()
             .unwrap_or_default();
@@ -299,17 +304,22 @@ impl TreeVisualizer {
         json: &serde_json::Value,
         node_id: NodeId,
     ) -> NodeSnapshot {
-        let name = json.get("name")
+        let name = json
+            .get("name")
             .and_then(|v| v.as_str())
             .unwrap_or("unknown")
             .to_string();
 
-        let node_type = json.get("type")
+        let node_type = json
+            .get("type")
             .and_then(|v| v.as_str())
             .unwrap_or("Unknown")
             .to_string();
 
-        let stats = self.node_stats.read().await
+        let stats = self
+            .node_stats
+            .read()
+            .await
             .get(&node_id)
             .cloned()
             .unwrap_or_default();
@@ -319,13 +329,16 @@ impl TreeVisualizer {
             name,
             node_type,
             status: NodeStatus::Running, // Placeholder
-            children: Vec::new(), // Would recurse in full implementation
+            children: Vec::new(),        // Would recurse in full implementation
             metadata: HashMap::new(),
             stats,
         }
     }
 
-    async fn filter_blackboard(&self, context: &BTreeContext) -> HashMap<String, serde_json::Value> {
+    async fn filter_blackboard(
+        &self,
+        context: &BTreeContext,
+    ) -> HashMap<String, serde_json::Value> {
         let keys = context.blackboard.keys().await;
         let mut result = HashMap::new();
 
@@ -364,8 +377,8 @@ impl TreeVisualizer {
         if stats.tick_count == 1 {
             stats.avg_execution_ms = duration_ms;
         } else {
-            stats.avg_execution_ms =
-                (stats.avg_execution_ms * (stats.tick_count - 1) as f64 + duration_ms)
+            stats.avg_execution_ms = (stats.avg_execution_ms * (stats.tick_count - 1) as f64
+                + duration_ms)
                 / stats.tick_count as f64;
         }
 
@@ -440,10 +453,13 @@ impl TreeVisualizer {
         for (key, new_value) in new {
             if let Some(old_value) = old.get(key) {
                 if old_value != new_value {
-                    changes.insert(key.clone(), BlackboardChange::Modified {
-                        old: old_value.clone(),
-                        new: new_value.clone(),
-                    });
+                    changes.insert(
+                        key.clone(),
+                        BlackboardChange::Modified {
+                            old: old_value.clone(),
+                            new: new_value.clone(),
+                        },
+                    );
                 }
             } else {
                 changes.insert(key.clone(), BlackboardChange::Added(new_value.clone()));
@@ -505,7 +521,10 @@ mod tests {
         let context = BTreeContext::new();
         let node = SetBlackboard::new("test", "key", "value");
 
-        let snapshot = visualizer.export_snapshot(&node, &context, 1).await.unwrap();
+        let snapshot = visualizer
+            .export_snapshot(&node, &context, 1)
+            .await
+            .unwrap();
 
         assert_eq!(snapshot.tick_count, 1);
         assert_eq!(snapshot.root.name, "test");
@@ -515,13 +534,15 @@ mod tests {
     async fn test_record_execution() {
         let visualizer = TreeVisualizer::new();
 
-        visualizer.record_execution(
-            "node1".to_string(),
-            "TestNode".to_string(),
-            NodeStatus::Success,
-            Duration::from_millis(10),
-            1,
-        ).await;
+        visualizer
+            .record_execution(
+                "node1".to_string(),
+                "TestNode".to_string(),
+                NodeStatus::Success,
+                Duration::from_millis(10),
+                1,
+            )
+            .await;
 
         let trace = visualizer.trace.read().await;
         assert_eq!(trace.len(), 1);
@@ -532,14 +553,16 @@ mod tests {
     async fn test_record_replan() {
         let visualizer = TreeVisualizer::new();
 
-        visualizer.record_replan(
-            "node1".to_string(),
-            "Child failed".to_string(),
-            1,
-            None,
-            None,
-            5,
-        ).await;
+        visualizer
+            .record_replan(
+                "node1".to_string(),
+                "Child failed".to_string(),
+                1,
+                None,
+                None,
+                5,
+            )
+            .await;
 
         let replans = visualizer.replan_events.read().await;
         assert_eq!(replans.len(), 1);

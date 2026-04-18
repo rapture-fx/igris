@@ -238,7 +238,10 @@ impl FleetAgent {
 
     /// Register agent with fleet
     pub async fn register(&self) -> Result<RegisterResponse> {
-        info!("Registering with fleet at {}", self.config.overture_endpoint);
+        info!(
+            "Registering with fleet at {}",
+            self.config.overture_endpoint
+        );
 
         // Mock mode for testing
         if self.config.mock_mode {
@@ -258,7 +261,10 @@ impl FleetAgent {
             let mut config_version = self.config_version.write().await;
             *config_version = response.config_version;
 
-            info!("Successfully registered with fleet (mock): {}", response.fleet_id);
+            info!(
+                "Successfully registered with fleet (mock): {}",
+                response.fleet_id
+            );
             return Ok(response);
         }
 
@@ -295,7 +301,10 @@ impl FleetAgent {
         let signature = crypto::sign_payload(&self.keypair, &unsigned_payload)?;
         let public_key = self.keypair.public_key_base64();
 
-        debug!("Signing registration request with public key: {}", public_key);
+        debug!(
+            "Signing registration request with public key: {}",
+            public_key
+        );
 
         // Create signed request
         let request = RegisterRequest {
@@ -369,7 +378,10 @@ impl FleetAgent {
             let mut config_version = self.config_version.write().await;
             if response.version > *config_version {
                 *config_version = response.version;
-                info!("Configuration updated to version {} (mock)", response.version);
+                info!(
+                    "Configuration updated to version {} (mock)",
+                    response.version
+                );
             }
 
             return Ok(response);
@@ -534,15 +546,16 @@ impl FleetAgent {
     async fn collect_telemetry(&self) -> Result<TelemetryData> {
         use crate::telemetry::*;
 
-        let uptime = SystemTime::now()
-            .duration_since(self.start_time)?
-            .as_secs();
+        let uptime = SystemTime::now().duration_since(self.start_time)?.as_secs();
 
         // Fetch REAL Prometheus metrics
         let metrics = fetch_prometheus_metrics("http://localhost:8080")
             .await
             .unwrap_or_else(|e| {
-                tracing::warn!("Failed to fetch Prometheus metrics: {}. Using empty metrics.", e);
+                tracing::warn!(
+                    "Failed to fetch Prometheus metrics: {}. Using empty metrics.",
+                    e
+                );
                 HashMap::new()
             });
 

@@ -53,7 +53,7 @@ impl Default for IgrisConfig {
             swarm: Some(SwarmRuntimeConfig::default()),
             rt: Some(RtRuntimeConfig::default()),
             escapevector: Some(EscapeVectorConfig::default()),
-            fleet: None,  // Fleet management disabled by default
+            fleet: None, // Fleet management disabled by default
         }
     }
 }
@@ -813,7 +813,12 @@ impl IgrisConfig {
         // Auth sanity checks
         if self.auth.enabled {
             let has_api_key = self.auth.api_key != "default-api-key";
-            let has_jwt = self.auth.jwt_hs256_secret.as_ref().map(|s| !s.trim().is_empty()).unwrap_or(false);
+            let has_jwt = self
+                .auth
+                .jwt_hs256_secret
+                .as_ref()
+                .map(|s| !s.trim().is_empty())
+                .unwrap_or(false);
             if !has_api_key && !has_jwt {
                 anyhow::bail!("auth.enabled=true but no auth method configured (set auth.api_key or auth.jwt_hs256_secret)");
             }
@@ -931,8 +936,8 @@ mod tests {
         // Disabled tools don't need validation
         let config = ToolRuntimeConfig {
             enabled: false,
-            enable_http: true,  // Even if individual tools enabled
-            allowed_http_domains: vec![],  // Empty whitelist should be fine when disabled
+            enable_http: true,            // Even if individual tools enabled
+            allowed_http_domains: vec![], // Empty whitelist should be fine when disabled
             ..Default::default()
         };
         assert!(config.validate().is_ok());
@@ -943,11 +948,14 @@ mod tests {
         let config = ToolRuntimeConfig {
             enabled: true,
             enable_http: true,
-            allowed_http_domains: vec![],  // SECURITY ERROR: Empty whitelist
+            allowed_http_domains: vec![], // SECURITY ERROR: Empty whitelist
             ..Default::default()
         };
         assert!(config.validate().is_err());
-        assert!(config.validate().unwrap_err().contains("allowed_http_domains is empty"));
+        assert!(config
+            .validate()
+            .unwrap_err()
+            .contains("allowed_http_domains is empty"));
     }
 
     #[test]
@@ -966,12 +974,15 @@ mod tests {
         let config = ToolRuntimeConfig {
             enabled: true,
             enable_shell: true,
-            allowed_shell_commands: vec![],  // SECURITY ERROR: Empty whitelist
+            allowed_shell_commands: vec![], // SECURITY ERROR: Empty whitelist
             allowed_shell_working_dirs: vec!["/tmp".to_string()],
             ..Default::default()
         };
         assert!(config.validate().is_err());
-        assert!(config.validate().unwrap_err().contains("allowed_shell_commands is empty"));
+        assert!(config
+            .validate()
+            .unwrap_err()
+            .contains("allowed_shell_commands is empty"));
     }
 
     #[test]
@@ -980,11 +991,14 @@ mod tests {
             enabled: true,
             enable_shell: true,
             allowed_shell_commands: vec!["ls".to_string()],
-            allowed_shell_working_dirs: vec![],  // SECURITY ERROR: Empty whitelist
+            allowed_shell_working_dirs: vec![], // SECURITY ERROR: Empty whitelist
             ..Default::default()
         };
         assert!(config.validate().is_err());
-        assert!(config.validate().unwrap_err().contains("allowed_shell_working_dirs is empty"));
+        assert!(config
+            .validate()
+            .unwrap_err()
+            .contains("allowed_shell_working_dirs is empty"));
     }
 
     #[test]
@@ -1004,11 +1018,14 @@ mod tests {
         let config = ToolRuntimeConfig {
             enabled: true,
             enable_filesystem: true,
-            allowed_filesystem_paths: vec![],  // SECURITY ERROR: Empty whitelist
+            allowed_filesystem_paths: vec![], // SECURITY ERROR: Empty whitelist
             ..Default::default()
         };
         assert!(config.validate().is_err());
-        assert!(config.validate().unwrap_err().contains("allowed_filesystem_paths is empty"));
+        assert!(config
+            .validate()
+            .unwrap_err()
+            .contains("allowed_filesystem_paths is empty"));
     }
 
     #[test]

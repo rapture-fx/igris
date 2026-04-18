@@ -6,7 +6,8 @@ use std::sync::Arc;
 use tracing::{debug, info};
 
 /// Redb table definitions for conversation history
-const CONVERSATION_HISTORY_TABLE: TableDefinition<u64, &[u8]> = TableDefinition::new("conversation_history");
+const CONVERSATION_HISTORY_TABLE: TableDefinition<u64, &[u8]> =
+    TableDefinition::new("conversation_history");
 const REQUEST_COUNTER_TABLE: TableDefinition<&str, u64> = TableDefinition::new("request_counter");
 const LAST_TRAINING_TABLE: TableDefinition<&str, u64> = TableDefinition::new("last_training");
 
@@ -19,8 +20,8 @@ pub struct TrainingDataStore {
 impl TrainingDataStore {
     /// Open or create a training data store
     pub fn open<P: AsRef<Path>>(path: P) -> Result<Self> {
-        let db = Database::create(path.as_ref())
-            .context("Failed to create/open training database")?;
+        let db =
+            Database::create(path.as_ref()).context("Failed to create/open training database")?;
 
         // Ensure tables exist
         {

@@ -183,7 +183,10 @@ mod tests {
 
     #[test]
     fn test_domain_whitelist() {
-        let tool = HttpTool::new(vec!["example.com".to_string(), "api.github.com".to_string()]);
+        let tool = HttpTool::new(vec![
+            "example.com".to_string(),
+            "api.github.com".to_string(),
+        ]);
 
         assert!(tool.is_domain_allowed("https://example.com/api"));
         assert!(tool.is_domain_allowed("https://api.github.com/repos"));

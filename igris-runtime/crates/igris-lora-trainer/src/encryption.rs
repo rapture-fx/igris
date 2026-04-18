@@ -47,8 +47,8 @@ impl AdapterEncryption {
         let nonce = Nonce::from_slice(&nonce_bytes);
 
         // Create cipher
-        let cipher = Aes256Gcm::new_from_slice(&self.key)
-            .context("Failed to create AES-256-GCM cipher")?;
+        let cipher =
+            Aes256Gcm::new_from_slice(&self.key).context("Failed to create AES-256-GCM cipher")?;
 
         // Encrypt
         let ciphertext = cipher
@@ -74,8 +74,8 @@ impl AdapterEncryption {
         let nonce = Nonce::from_slice(nonce_bytes);
 
         // Create cipher
-        let cipher = Aes256Gcm::new_from_slice(&self.key)
-            .context("Failed to create AES-256-GCM cipher")?;
+        let cipher =
+            Aes256Gcm::new_from_slice(&self.key).context("Failed to create AES-256-GCM cipher")?;
 
         // Decrypt
         let plaintext = cipher
@@ -93,8 +93,8 @@ impl AdapterEncryption {
         output_path: Q,
     ) -> Result<()> {
         // Read input file
-        let plaintext = fs::read(input_path.as_ref())
-            .context("Failed to read input file for encryption")?;
+        let plaintext =
+            fs::read(input_path.as_ref()).context("Failed to read input file for encryption")?;
 
         // Encrypt in-memory
         let encrypted_data = self.encrypt_bytes(&plaintext)?;
@@ -119,15 +119,14 @@ impl AdapterEncryption {
         output_path: Q,
     ) -> Result<()> {
         // Read encrypted file
-        let encrypted_data = fs::read(input_path.as_ref())
-            .context("Failed to read encrypted file")?;
+        let encrypted_data =
+            fs::read(input_path.as_ref()).context("Failed to read encrypted file")?;
 
         // Decrypt in-memory
         let plaintext = self.decrypt_bytes(&encrypted_data)?;
 
         // Write decrypted file
-        fs::write(output_path.as_ref(), plaintext)
-            .context("Failed to write decrypted file")?;
+        fs::write(output_path.as_ref(), plaintext).context("Failed to write decrypted file")?;
 
         debug!(
             "Decrypted adapter: {} -> {}",

@@ -81,19 +81,25 @@ impl ReflectionAgent {
         for iteration in 1..=self.config.max_iterations {
             // Skip iterations already committed to the WAL from a prior run.
             if iteration <= start_iteration {
-                debug!("Skipping already-committed reflection iteration {}", iteration);
+                debug!(
+                    "Skipping already-committed reflection iteration {}",
+                    iteration
+                );
                 continue;
             }
 
             if self.config.verbose {
-                info!("Reflection iteration {}/{}", iteration, self.config.max_iterations);
+                info!(
+                    "Reflection iteration {}/{}",
+                    iteration, self.config.max_iterations
+                );
             }
 
             // WAL: record intent before generating (step_index is 0-based).
             #[cfg(feature = "wal")]
             let wal_entry_id = if let Some((ref wal, _)) = self.wal {
-                use sha2::{Digest, Sha256};
                 use igris_wal::StepType;
+                use sha2::{Digest, Sha256};
                 let input_digest: [u8; 32] = Sha256::digest(current_prompt.as_bytes()).into();
                 match wal.write_intent(
                     iteration - 1,
@@ -119,7 +125,11 @@ impl ReflectionAgent {
             total_tokens += Self::estimate_tokens(&current_prompt, &response);
 
             if self.config.verbose {
-                debug!("Response (iter {}): {}", iteration, &response[..response.len().min(100)]);
+                debug!(
+                    "Response (iter {}): {}",
+                    iteration,
+                    &response[..response.len().min(100)]
+                );
             }
 
             // Generate critique
@@ -184,8 +194,7 @@ impl ReflectionAgent {
 
             // Prepare for next iteration
             if iteration < self.config.max_iterations {
-                current_prompt =
-                    Critique::create_improvement_prompt(prompt, &response, &critique);
+                current_prompt = Critique::create_improvement_prompt(prompt, &response, &critique);
                 previous_response = response;
                 previous_score = critique.overall_score;
             } else {

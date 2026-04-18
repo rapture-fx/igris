@@ -34,10 +34,7 @@ use axum::{
     Json, Router,
 };
 use clap::Parser;
-use igris_fleet::{
-    ConfigSyncResponse, RegisterRequest, RegisterResponse,
-    TelemetryData,
-};
+use igris_fleet::{ConfigSyncResponse, RegisterRequest, RegisterResponse, TelemetryData};
 use redb::{Database, ReadableTable, TableDefinition};
 use serde::{Deserialize, Serialize};
 use std::collections::HashMap;
@@ -138,8 +135,7 @@ async fn main() -> Result<()> {
     info!("Port: {}", args.port);
 
     // Initialize database
-    let db = Database::create(&args.db_path)
-        .context("Failed to create database")?;
+    let db = Database::create(&args.db_path).context("Failed to create database")?;
 
     // Create tables if they don't exist
     {
@@ -192,9 +188,7 @@ async fn main() -> Result<()> {
         .await
         .context("Failed to bind to address")?;
 
-    axum::serve(listener, app)
-        .await
-        .context("Server error")?;
+    axum::serve(listener, app).await.context("Server error")?;
 
     Ok(())
 }
@@ -207,9 +201,7 @@ fn validate_api_key(state: &AppState, headers: &HeaderMap) -> Result<(), ApiErro
     };
 
     // Get API key from headers
-    let provided_key = headers
-        .get("x-api-key")
-        .and_then(|v| v.to_str().ok());
+    let provided_key = headers.get("x-api-key").and_then(|v| v.to_str().ok());
 
     match provided_key {
         Some(key) if key == expected_key => Ok(()),
@@ -265,7 +257,10 @@ async fn register_agent(
     }
     write_txn.commit()?;
 
-    info!("Agent {} registered with fleet ID {}", req.agent_id, fleet_id);
+    info!(
+        "Agent {} registered with fleet ID {}",
+        req.agent_id, fleet_id
+    );
 
     // Return response
     Ok(Json(RegisterResponse {
@@ -297,17 +292,14 @@ async fn get_config(
 
     // Get config from store (or return default)
     let config_store = state.config_store.read().await;
-    let config = config_store
-        .get(&fleet_id)
-        .cloned()
-        .unwrap_or_else(|| {
-            serde_json::json!({
-                "model": "gpt-4o-mini",
-                "temperature": 0.7,
-                "max_tokens": 1000,
-                "enable_tools": true,
-            })
-        });
+    let config = config_store.get(&fleet_id).cloned().unwrap_or_else(|| {
+        serde_json::json!({
+            "model": "gpt-4o-mini",
+            "temperature": 0.7,
+            "max_tokens": 1000,
+            "enable_tools": true,
+        })
+    });
 
     Ok(Json(ConfigSyncResponse {
         version: 2,

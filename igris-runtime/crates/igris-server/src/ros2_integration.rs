@@ -54,12 +54,12 @@
 //! # }
 //! ```
 
+use ed25519_dalek::SigningKey;
 use igris_ros2::{
     containment_bridge::{ContainmentBridge, SafeIdleReceiver},
     Ros2Config, Ros2Node,
 };
 use igris_safety::ViolationEventBus;
-use ed25519_dalek::SigningKey;
 use std::sync::Arc;
 use tracing::{info, warn};
 
@@ -94,7 +94,10 @@ impl Ros2Manager {
         log_path: String,
         last_supervisor_hash: String,
     ) -> anyhow::Result<Self> {
-        info!("Starting Ros2Manager (nav2={}, node={})", config.enable_nav2, config.node_name);
+        info!(
+            "Starting Ros2Manager (nav2={}, node={})",
+            config.enable_nav2, config.node_name
+        );
 
         let node = Arc::new(Ros2Node::new(config).await?);
 
@@ -142,9 +145,9 @@ impl Ros2Manager {
 #[cfg(test)]
 mod tests {
     use super::*;
-    use igris_safety::{ViolationEventBus, ViolationKind, ViolationRecord};
     use ed25519_dalek::SigningKey;
     use igris_ros2::containment_bridge::is_safe_idle;
+    use igris_safety::{ViolationEventBus, ViolationKind, ViolationRecord};
     use uuid::Uuid;
 
     fn test_key() -> SigningKey {
@@ -172,14 +175,21 @@ mod tests {
             .unwrap();
 
         assert!(manager.node().is_active().await);
-        assert!(!manager.is_safe_idle(), "safe-idle must be false at startup");
+        assert!(
+            !manager.is_safe_idle(),
+            "safe-idle must be false at startup"
+        );
         let _ = std::fs::remove_file(&log);
     }
 
     #[tokio::test]
     async fn manager_idle_signal_activates_on_violation() {
         let bus = ViolationEventBus::new();
-        let config = Ros2Config { enabled: true, enable_nav2: true, ..Default::default() };
+        let config = Ros2Config {
+            enabled: true,
+            enable_nav2: true,
+            ..Default::default()
+        };
         let log = test_log();
         let manager = Ros2Manager::start(config, &bus, test_key(), log.clone(), String::new())
             .await

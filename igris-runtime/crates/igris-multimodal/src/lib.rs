@@ -122,11 +122,13 @@ impl MultiModalInput {
 
 #[cfg(feature = "vision")]
 pub async fn describe_image(image_data: &[u8]) -> Result<String> {
-    debug!("Processing image with real vision analysis: {} bytes", image_data.len());
+    debug!(
+        "Processing image with real vision analysis: {} bytes",
+        image_data.len()
+    );
 
     // Decode image
-    let img = image::load_from_memory(image_data)
-        .context("Failed to decode image")?;
+    let img = image::load_from_memory(image_data).context("Failed to decode image")?;
 
     // Extract metadata
     let (width, height) = img.dimensions();
@@ -141,7 +143,11 @@ pub async fn describe_image(image_data: &[u8]) -> Result<String> {
          - Color Type: {:?}\n\
          - File Size: {} bytes\n\
          - Analysis: {}",
-        width, height, color_type, image_data.len(), description
+        width,
+        height,
+        color_type,
+        image_data.len(),
+        description
     );
 
     info!("Image processed successfully: {}x{}", width, height);
@@ -248,12 +254,14 @@ pub async fn describe_image(image_data: &[u8]) -> Result<String> {
 
 #[cfg(feature = "audio")]
 pub async fn transcribe_audio(audio_data: &[u8]) -> Result<String> {
-    debug!("Processing audio with real analysis: {} bytes", audio_data.len());
+    debug!(
+        "Processing audio with real analysis: {} bytes",
+        audio_data.len()
+    );
 
     // Try to read as WAV file
     let cursor = std::io::Cursor::new(audio_data);
-    let reader = hound::WavReader::new(cursor)
-        .context("Failed to parse audio data as WAV file")?;
+    let reader = hound::WavReader::new(cursor).context("Failed to parse audio data as WAV file")?;
 
     let spec = reader.spec();
     let duration_samples = reader.len();
@@ -278,7 +286,10 @@ pub async fn transcribe_audio(audio_data: &[u8]) -> Result<String> {
         description
     );
 
-    info!("Audio processed successfully: {:.2}s @ {} Hz", duration_secs, spec.sample_rate);
+    info!(
+        "Audio processed successfully: {:.2}s @ {} Hz",
+        duration_secs, spec.sample_rate
+    );
     Ok(result)
 }
 

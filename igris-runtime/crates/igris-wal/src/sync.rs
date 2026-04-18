@@ -62,7 +62,10 @@ mod hex_digest {
     where
         S: Serializer,
     {
-        let hex = bytes.iter().map(|b| format!("{:02x}", b)).collect::<String>();
+        let hex = bytes
+            .iter()
+            .map(|b| format!("{:02x}", b))
+            .collect::<String>();
         serializer.serialize_str(&hex)
     }
 

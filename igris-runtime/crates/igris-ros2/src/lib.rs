@@ -323,11 +323,8 @@ fn spawn_navigation_task(
                 let goal_y = lock.goal.y;
                 let goal_z = lock.goal.z;
                 let progress = i as f64 / steps as f64;
-                lock.feedback.current_pose = (
-                    goal_x * progress,
-                    goal_y * progress,
-                    goal_z * progress,
-                );
+                lock.feedback.current_pose =
+                    (goal_x * progress, goal_y * progress, goal_z * progress);
             }
             done_notify.notify_waiters();
         }
@@ -398,8 +395,8 @@ impl Ros2Node {
         std::env::set_var("ROS_DOMAIN_ID", config.domain_id.to_string());
 
         // Initialize ROS2 context
-        let context = r2r::Context::create()
-            .context("Failed to create ROS2 context. Is ROS2 installed?")?;
+        let context =
+            r2r::Context::create().context("Failed to create ROS2 context. Is ROS2 installed?")?;
         let context = Arc::new(context);
 
         // Create node with namespace
@@ -456,7 +453,10 @@ impl Ros2Node {
 
         // Spawn subscriber tasks
         tokio::spawn(Self::handle_prompt_subscription(prompt_sub, prompt_tx));
-        tokio::spawn(Self::handle_response_subscription(response_sub, response_tx));
+        tokio::spawn(Self::handle_response_subscription(
+            response_sub,
+            response_tx,
+        ));
 
         // Spawn node spinner
         let node_clone = node.clone();
@@ -533,9 +533,7 @@ impl Ros2Node {
         };
 
         let mut pub_lock = self.prompt_pub.write().await;
-        pub_lock
-            .publish(&msg)
-            .context("Failed to publish prompt")?;
+        pub_lock.publish(&msg).context("Failed to publish prompt")?;
 
         Ok(())
     }
@@ -594,27 +592,30 @@ impl Ros2Node {
 
         // Create an action client for this goal. Clients are lightweight and
         // can be created per-call; the node spinner is already running.
-        let action_client = self.node
+        let action_client = self
+            .node
             .create_action_client::<r2r::nav2_msgs::action::NavigateToPose>(
                 &self.config.nav2_action_server,
             )
             .context("Failed to create Nav2 action client")?;
 
         // Wait up to 5 s for the Nav2 action server to be available.
-        let server_ready = tokio::time::timeout(
-            Duration::from_secs(5),
-            async {
-                loop {
-                    match action_client.is_ready() {
-                        Ok(true) => return Ok(()),
-                        Ok(false) => tokio::time::sleep(Duration::from_millis(100)).await,
-                        Err(e) => return Err(e),
-                    }
+        let server_ready = tokio::time::timeout(Duration::from_secs(5), async {
+            loop {
+                match action_client.is_ready() {
+                    Ok(true) => return Ok(()),
+                    Ok(false) => tokio::time::sleep(Duration::from_millis(100)).await,
+                    Err(e) => return Err(e),
                 }
-            },
-        )
+            }
+        })
         .await
-        .map_err(|_| anyhow::anyhow!("Nav2 action server '{}' not available after 5s — is nav2 running?", self.config.nav2_action_server))?;
+        .map_err(|_| {
+            anyhow::anyhow!(
+                "Nav2 action server '{}' not available after 5s — is nav2 running?",
+                self.config.nav2_action_server
+            )
+        })?;
         server_ready.context("Nav2 readiness check failed")?;
 
         // Build the Nav2 goal message.
@@ -780,8 +781,16 @@ impl Ros2Node {
     pub async fn publish_zero_velocity(&self) -> Result<()> {
         debug!("Publishing zero velocity to /cmd_vel");
         let zero_twist = r2r::geometry_msgs::msg::Twist {
-            linear: r2r::geometry_msgs::msg::Vector3 { x: 0.0, y: 0.0, z: 0.0 },
-            angular: r2r::geometry_msgs::msg::Vector3 { x: 0.0, y: 0.0, z: 0.0 },
+            linear: r2r::geometry_msgs::msg::Vector3 {
+                x: 0.0,
+                y: 0.0,
+                z: 0.0,
+            },
+            angular: r2r::geometry_msgs::msg::Vector3 {
+                x: 0.0,
+                y: 0.0,
+                z: 0.0,
+            },
         };
         let mut pub_lock = self.cmd_vel_pub.write().await;
         let _ = pub_lock.publish(&zero_twist);
@@ -793,7 +802,10 @@ impl Ros2Node {
     /// Used by robot recovery behaviors (backup, custom maneuvers). Cap linear
     /// velocity at ±2 m/s and angular at ±π rad/s for safety.
     pub async fn publish_velocity(&self, linear_x: f64, angular_z: f64) -> Result<()> {
-        debug!("Publishing velocity linear_x={:.3} angular_z={:.3}", linear_x, angular_z);
+        debug!(
+            "Publishing velocity linear_x={:.3} angular_z={:.3}",
+            linear_x, angular_z
+        );
         let twist = r2r::geometry_msgs::msg::Twist {
             linear: r2r::geometry_msgs::msg::Vector3 {
                 x: linear_x.clamp(-2.0, 2.0),
@@ -1052,7 +1064,10 @@ impl Ros2Node {
 
     /// Publish an arbitrary velocity command (stub — logs [linear_x, angular_z]).
     pub async fn publish_velocity(&self, linear_x: f64, angular_z: f64) -> Result<()> {
-        debug!("Publishing velocity (stub) linear_x={:.3} angular_z={:.3}", linear_x, angular_z);
+        debug!(
+            "Publishing velocity (stub) linear_x={:.3} angular_z={:.3}",
+            linear_x, angular_z
+        );
         let mut log = self.cmd_vel_log.write().await;
         log.push([linear_x, angular_z]);
         if log.len() > 100 {
@@ -1125,7 +1140,9 @@ pub mod utils {
             .next()
             .ok_or_else(|| anyhow::anyhow!("Invalid coordinate value"))?;
 
-        value_str.parse::<f64>().context("Failed to parse coordinate")
+        value_str
+            .parse::<f64>()
+            .context("Failed to parse coordinate")
     }
 }
 
@@ -1214,7 +1231,13 @@ mod tests {
         };
 
         let node = Ros2Node::new(config).await.unwrap();
-        let goal = NavigationGoal { x: 1.0, y: 1.0, z: 0.0, orientation_w: 1.0, frame_id: "map".to_string() };
+        let goal = NavigationGoal {
+            x: 1.0,
+            y: 1.0,
+            z: 0.0,
+            orientation_w: 1.0,
+            frame_id: "map".to_string(),
+        };
         let handle = node.navigate_to_pose(goal).await.unwrap();
         let goal_id = handle.goal_id().await;
         assert!(!goal_id.is_empty(), "goal_id must be non-empty");
@@ -1288,11 +1311,20 @@ mod tests {
             ..Default::default()
         };
         let node = Ros2Node::new(config).await.unwrap();
-        let goal = NavigationGoal { x: 50.0, y: 50.0, z: 0.0, orientation_w: 1.0, frame_id: "map".to_string() };
+        let goal = NavigationGoal {
+            x: 50.0,
+            y: 50.0,
+            z: 0.0,
+            orientation_w: 1.0,
+            frame_id: "map".to_string(),
+        };
         let handle = node.navigate_to_pose(goal).await.unwrap();
 
         let result = handle.cancel_with_timeout(20).await;
-        assert!(result.is_ok(), "cancel_with_timeout must succeed within 20ms");
+        assert!(
+            result.is_ok(),
+            "cancel_with_timeout must succeed within 20ms"
+        );
         let goal_id = result.unwrap();
         assert!(!goal_id.is_empty());
         assert_eq!(handle.status().await, NavigationState::Canceled);
@@ -1306,7 +1338,13 @@ mod tests {
             ..Default::default()
         };
         let node = Ros2Node::new(config).await.unwrap();
-        let goal = NavigationGoal { x: 10.0, y: 10.0, z: 0.0, orientation_w: 1.0, frame_id: "map".to_string() };
+        let goal = NavigationGoal {
+            x: 10.0,
+            y: 10.0,
+            z: 0.0,
+            orientation_w: 1.0,
+            frame_id: "map".to_string(),
+        };
         let handle = node.navigate_to_pose(goal).await.unwrap();
         let clone = handle.clone();
 
@@ -1358,7 +1396,10 @@ mod tests {
 
     #[tokio::test]
     async fn test_publish_zero_velocity() {
-        let config = Ros2Config { enabled: true, ..Default::default() };
+        let config = Ros2Config {
+            enabled: true,
+            ..Default::default()
+        };
         let node = Ros2Node::new(config).await.unwrap();
 
         assert_eq!(node.cmd_vel_command_count().await, 0);

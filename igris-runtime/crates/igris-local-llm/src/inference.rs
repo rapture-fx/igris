@@ -59,8 +59,18 @@ fn detect_llama_cli_capabilities(llama_cli_path: &Path) -> Result<LlamaCliCapabi
     let help = std::process::Command::new(llama_cli_path)
         .arg("--help")
         .output()
-        .or_else(|_| std::process::Command::new(llama_cli_path).arg("-h").output())
-        .map_err(|e| anyhow::anyhow!("Failed to execute {} to detect capabilities: {}", llama_cli_path.display(), e))?;
+        .or_else(|_| {
+            std::process::Command::new(llama_cli_path)
+                .arg("-h")
+                .output()
+        })
+        .map_err(|e| {
+            anyhow::anyhow!(
+                "Failed to execute {} to detect capabilities: {}",
+                llama_cli_path.display(),
+                e
+            )
+        })?;
 
     let mut text = String::new();
     text.push_str(&String::from_utf8_lossy(&help.stdout));
@@ -196,7 +206,11 @@ impl RealInferenceEngine {
         }
     }
 
-    fn apply_optional_lora_args(&self, cmd: &mut Command, lora_adapter: Option<&Path>) -> Result<()> {
+    fn apply_optional_lora_args(
+        &self,
+        cmd: &mut Command,
+        lora_adapter: Option<&Path>,
+    ) -> Result<()> {
         if let Some(adapter) = lora_adapter {
             if !adapter.exists() {
                 anyhow::bail!("LoRA adapter not found: {}", adapter.display());
@@ -262,8 +276,16 @@ impl RealInferenceEngine {
         // Try a small set of flag combinations for compatibility across llama.cpp versions.
         let attempts: &[&[&str]] = &[
             &["-m", self.model_path.to_str().unwrap_or_default(), "-p"],
-            &["-m", self.model_path.to_str().unwrap_or_default(), "--prompt"],
-            &["--model", self.model_path.to_str().unwrap_or_default(), "-p"],
+            &[
+                "-m",
+                self.model_path.to_str().unwrap_or_default(),
+                "--prompt",
+            ],
+            &[
+                "--model",
+                self.model_path.to_str().unwrap_or_default(),
+                "-p",
+            ],
         ];
 
         let mut last_err: Option<anyhow::Error> = None;
@@ -274,7 +296,9 @@ impl RealInferenceEngine {
                 cmd.arg(a);
             }
             cmd.arg(text);
-            cmd.stdin(Stdio::null()).stdout(Stdio::piped()).stderr(Stdio::piped());
+            cmd.stdin(Stdio::null())
+                .stdout(Stdio::piped())
+                .stderr(Stdio::piped());
 
             let out = cmd.output().await;
             match out {
@@ -354,8 +378,7 @@ impl RealInferenceEngine {
             // We avoid passing experimental flags to stay compatible across llama.cpp versions.
             .stdin(Stdio::null())
             .stdout(Stdio::piped())
-            .stderr(Stdio::piped())
-            ;
+            .stderr(Stdio::piped());
 
         self.apply_optional_gpu_args(&mut cmd);
         self.apply_optional_lora_args(&mut cmd, lora_adapter.as_deref())?;
@@ -419,8 +442,7 @@ impl RealInferenceEngine {
         let prompt_owned = prompt.to_string();
 
         let mut cmd = Command::new(&self.llama_cli_path);
-        cmd
-            .arg("-m")
+        cmd.arg("-m")
             .arg(&self.model_path)
             .arg("-t")
             .arg(self.n_threads.to_string())
@@ -436,8 +458,7 @@ impl RealInferenceEngine {
             .arg(&prompt_owned)
             .stdin(Stdio::null())
             .stdout(Stdio::piped())
-            .stderr(Stdio::piped())
-            ;
+            .stderr(Stdio::piped());
 
         self.apply_optional_gpu_args(&mut cmd);
         self.apply_optional_lora_args(&mut cmd, lora_adapter.as_deref())?;
@@ -525,7 +546,8 @@ mod tests {
 
     #[test]
     fn load_fails_if_model_missing() {
-        let engine = RealInferenceEngine::load(Path::new("does-not-exist.gguf"), 4096, 4, 0, None, None);
+        let engine =
+            RealInferenceEngine::load(Path::new("does-not-exist.gguf"), 4096, 4, 0, None, None);
         assert!(engine.is_err());
     }
 }

@@ -100,7 +100,8 @@ impl CircuitBreaker {
     }
 
     pub fn reset(&self) {
-        self.state.store(CircuitState::Closed as i32, Ordering::SeqCst);
+        self.state
+            .store(CircuitState::Closed as i32, Ordering::SeqCst);
         self.failure_count.store(0, Ordering::SeqCst);
         self.success_count.store(0, Ordering::SeqCst);
     }
@@ -124,9 +125,7 @@ mod tests {
 
         // Simulate failures
         for _ in 0..3 {
-            let result = cb
-                .call(|| async { Err::<(), &str>("error") })
-                .await;
+            let result = cb.call(|| async { Err::<(), &str>("error") }).await;
             assert!(result.is_err());
         }
 

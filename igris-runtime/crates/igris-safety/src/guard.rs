@@ -1,8 +1,5 @@
 use crate::{
-    bounds::Bounds,
-    event_bus::ViolationEventBus,
-    supervisor::Supervisor,
-    violation::ViolationKind,
+    bounds::Bounds, event_bus::ViolationEventBus, supervisor::Supervisor, violation::ViolationKind,
 };
 use ed25519_dalek::SigningKey;
 
@@ -100,7 +97,9 @@ mod tests {
             String::new(),
             &signing_key,
         );
-        record.append_to_log(&log_path).expect("log write must succeed");
+        record
+            .append_to_log(&log_path)
+            .expect("log write must succeed");
 
         let content = std::fs::read_to_string(&log_path).expect("log must be readable");
         let parsed: ViolationRecord =
@@ -135,11 +134,13 @@ mod tests {
         let signing_key = SigningKey::from_bytes(&secret);
         let log_path = "/tmp/igris_guard_timeout.jsonl".to_string();
         let _ = std::fs::remove_file(&log_path);
-        let mut guard =
-            ContainmentGuard::new(bounds, signing_key, log_path.clone());
+        let mut guard = ContainmentGuard::new(bounds, signing_key, log_path.clone());
         let result = guard.execute(serde_json::json!({"slow": true})).await;
         assert!(matches!(result, Err(ViolationKind::Time)));
-        assert!(std::fs::metadata(&log_path).is_ok(), "violation log must exist");
+        assert!(
+            std::fs::metadata(&log_path).is_ok(),
+            "violation log must exist"
+        );
         let _ = std::fs::remove_file(&log_path);
     }
 }

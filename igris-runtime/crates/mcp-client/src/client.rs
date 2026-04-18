@@ -30,7 +30,11 @@ impl McpClient {
     }
 
     /// Initialize connection with a peer
-    pub async fn initialize(&self, peer_url: &str, capabilities: Value) -> Result<InitializeResult> {
+    pub async fn initialize(
+        &self,
+        peer_url: &str,
+        capabilities: Value,
+    ) -> Result<InitializeResult> {
         info!("Initializing MCP connection to {}", peer_url);
 
         let request = JsonRpcRequest {
@@ -40,9 +44,7 @@ impl McpClient {
             params: Some(capabilities),
         };
 
-        let response: JsonRpcResponse = self
-            .send_request(peer_url, request)
-            .await?;
+        let response: JsonRpcResponse = self.send_request(peer_url, request).await?;
 
         let result: InitializeResult = serde_json::from_value(response.result)?;
         Ok(result)
@@ -62,7 +64,11 @@ impl McpClient {
     }
 
     /// Sync context with a peer
-    pub async fn sync_context(&self, peer_url: &str, envelope: SharedContextEnvelope) -> Result<()> {
+    pub async fn sync_context(
+        &self,
+        peer_url: &str,
+        envelope: SharedContextEnvelope,
+    ) -> Result<()> {
         info!(
             "Syncing context {} to peer {}",
             envelope.conversation_id, peer_url
@@ -110,7 +116,8 @@ impl McpClient {
 
         let response: JsonRpcResponse = self.send_request(peer_url, request).await?;
         let contexts: Vec<String> = serde_json::from_value(
-            response.result
+            response
+                .result
                 .get("contexts")
                 .cloned()
                 .unwrap_or(serde_json::json!([])),
@@ -126,12 +133,7 @@ impl McpClient {
     ) -> Result<JsonRpcResponse> {
         let url = format!("{}/mcp", peer_url);
 
-        let response = self
-            .http_client
-            .post(&url)
-            .json(&request)
-            .send()
-            .await?;
+        let response = self.http_client.post(&url).json(&request).send().await?;
 
         if !response.status().is_success() {
             anyhow::bail!("Peer returned error: {}", response.status());

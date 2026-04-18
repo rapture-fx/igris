@@ -1,5 +1,5 @@
-use std::sync::Arc;
 use std::sync::atomic::{AtomicU64, Ordering};
+use std::sync::Arc;
 use tokio::sync::RwLock;
 
 pub struct CostTracker {
@@ -19,14 +19,18 @@ impl CostTracker {
 
     pub fn record_winner_cost(&self, cost_usd: f64) {
         let microdollars = (cost_usd * 1_000_000.0) as u64;
-        self.winner_cost_usd.fetch_add(microdollars, Ordering::SeqCst);
-        self.total_cost_usd.fetch_add(microdollars, Ordering::SeqCst);
+        self.winner_cost_usd
+            .fetch_add(microdollars, Ordering::SeqCst);
+        self.total_cost_usd
+            .fetch_add(microdollars, Ordering::SeqCst);
     }
 
     pub fn record_wasted_cost(&self, cost_usd: f64) {
         let microdollars = (cost_usd * 1_000_000.0) as u64;
-        self.wasted_cost_usd.fetch_add(microdollars, Ordering::SeqCst);
-        self.total_cost_usd.fetch_add(microdollars, Ordering::SeqCst);
+        self.wasted_cost_usd
+            .fetch_add(microdollars, Ordering::SeqCst);
+        self.total_cost_usd
+            .fetch_add(microdollars, Ordering::SeqCst);
     }
 
     pub fn get_total_cost(&self) -> f64 {

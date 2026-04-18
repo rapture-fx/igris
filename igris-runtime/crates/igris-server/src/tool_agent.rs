@@ -12,7 +12,7 @@ use tracing::{debug, info, warn};
 use crate::execution_graph::{ExecutionGraph, ExecutionNode, ToolExecutionResult};
 
 // RUNTIME-05: Resource safety limits
-use crate::resource_limits::{ResourceLimits, ResourceTracker, ResourceLimitError};
+use crate::resource_limits::{ResourceLimitError, ResourceLimits, ResourceTracker};
 
 #[derive(Debug, Clone, Serialize, Deserialize)]
 pub struct ToolCall {
@@ -109,8 +109,14 @@ impl ToolAgent {
 
                 // Add resource usage to graph metadata
                 let usage = tracker.get_usage();
-                graph.add_metadata("resource_limit_exceeded".to_string(), "execution_time".to_string());
-                graph.add_metadata("elapsed_time_ms".to_string(), usage.elapsed_time.as_millis().to_string());
+                graph.add_metadata(
+                    "resource_limit_exceeded".to_string(),
+                    "execution_time".to_string(),
+                );
+                graph.add_metadata(
+                    "elapsed_time_ms".to_string(),
+                    usage.elapsed_time.as_millis().to_string(),
+                );
 
                 return Err(anyhow::anyhow!(error_msg));
             }
@@ -124,8 +130,14 @@ impl ToolAgent {
                 if let Some(final_answer) = parsed.final_answer {
                     // Add resource usage to graph metadata
                     let usage = tracker.get_usage();
-                    graph.add_metadata("total_tool_calls".to_string(), usage.total_tool_calls.to_string());
-                    graph.add_metadata("execution_time_ms".to_string(), usage.elapsed_time.as_millis().to_string());
+                    graph.add_metadata(
+                        "total_tool_calls".to_string(),
+                        usage.total_tool_calls.to_string(),
+                    );
+                    graph.add_metadata(
+                        "execution_time_ms".to_string(),
+                        usage.elapsed_time.as_millis().to_string(),
+                    );
 
                     graph.complete(Some(final_answer.clone()), None);
                     return Ok((final_answer, graph));
@@ -134,8 +146,14 @@ impl ToolAgent {
                 if let Some(tool_calls) = parsed.tool_calls {
                     if tool_calls.is_empty() {
                         let usage = tracker.get_usage();
-                        graph.add_metadata("total_tool_calls".to_string(), usage.total_tool_calls.to_string());
-                        graph.add_metadata("execution_time_ms".to_string(), usage.elapsed_time.as_millis().to_string());
+                        graph.add_metadata(
+                            "total_tool_calls".to_string(),
+                            usage.total_tool_calls.to_string(),
+                        );
+                        graph.add_metadata(
+                            "execution_time_ms".to_string(),
+                            usage.elapsed_time.as_millis().to_string(),
+                        );
 
                         graph.complete(Some(raw.clone()), None);
                         return Ok((raw, graph));
@@ -148,8 +166,14 @@ impl ToolAgent {
                         graph.complete(None, Some(error_msg.clone()));
 
                         let usage = tracker.get_usage();
-                        graph.add_metadata("resource_limit_exceeded".to_string(), "tool_calls".to_string());
-                        graph.add_metadata("total_tool_calls".to_string(), usage.total_tool_calls.to_string());
+                        graph.add_metadata(
+                            "resource_limit_exceeded".to_string(),
+                            "tool_calls".to_string(),
+                        );
+                        graph.add_metadata(
+                            "total_tool_calls".to_string(),
+                            usage.total_tool_calls.to_string(),
+                        );
 
                         return Err(anyhow::anyhow!(error_msg));
                     }
@@ -158,7 +182,9 @@ impl ToolAgent {
                     tracker.record_tool_calls(tool_calls.len());
 
                     // Execute tools and record in graph
-                    let (tool_results, nodes) = self.execute_tool_calls_with_graph(tool_calls, step, &tracker).await?;
+                    let (tool_results, nodes) = self
+                        .execute_tool_calls_with_graph(tool_calls, step, &tracker)
+                        .await?;
                     for node in nodes {
                         graph.add_node(node);
                     }
@@ -173,8 +199,14 @@ impl ToolAgent {
             warn!("ToolAgent: model did not return a valid tool JSON; returning raw output");
 
             let usage = tracker.get_usage();
-            graph.add_metadata("total_tool_calls".to_string(), usage.total_tool_calls.to_string());
-            graph.add_metadata("execution_time_ms".to_string(), usage.elapsed_time.as_millis().to_string());
+            graph.add_metadata(
+                "total_tool_calls".to_string(),
+                usage.total_tool_calls.to_string(),
+            );
+            graph.add_metadata(
+                "execution_time_ms".to_string(),
+                usage.elapsed_time.as_millis().to_string(),
+            );
 
             graph.complete(Some(raw.clone()), None);
             return Ok((raw, graph));
@@ -183,8 +215,14 @@ impl ToolAgent {
         let error_msg = format!("ToolAgent exceeded max_steps={}", self.max_steps);
 
         let usage = tracker.get_usage();
-        graph.add_metadata("total_tool_calls".to_string(), usage.total_tool_calls.to_string());
-        graph.add_metadata("execution_time_ms".to_string(), usage.elapsed_time.as_millis().to_string());
+        graph.add_metadata(
+            "total_tool_calls".to_string(),
+            usage.total_tool_calls.to_string(),
+        );
+        graph.add_metadata(
+            "execution_time_ms".to_string(),
+            usage.elapsed_time.as_millis().to_string(),
+        );
 
         graph.complete(None, Some(error_msg.clone()));
         Err(anyhow::anyhow!(error_msg))
@@ -289,7 +327,11 @@ TOOL RESULTS SO FAR:
     }
 
     // RUNTIME-05: Enhanced with resource limit checks
-    async fn execute_tool_calls(&self, tool_calls: Vec<ToolCall>, tracker: &ResourceTracker) -> Result<Vec<ToolResult>> {
+    async fn execute_tool_calls(
+        &self,
+        tool_calls: Vec<ToolCall>,
+        tracker: &ResourceTracker,
+    ) -> Result<Vec<ToolResult>> {
         let sem = Arc::new(Semaphore::new(self.max_concurrent));
         let mut futures = Vec::with_capacity(tool_calls.len());
 
@@ -330,7 +372,12 @@ TOOL RESULTS SO FAR:
 
     // RUNTIME-04: Execute tool calls and create ExecutionNodes
     // RUNTIME-05: Enhanced with resource limit checks
-    async fn execute_tool_calls_with_graph(&self, tool_calls: Vec<ToolCall>, step: u32, tracker: &ResourceTracker) -> Result<(Vec<ToolResult>, Vec<ExecutionNode>)> {
+    async fn execute_tool_calls_with_graph(
+        &self,
+        tool_calls: Vec<ToolCall>,
+        step: u32,
+        tracker: &ResourceTracker,
+    ) -> Result<(Vec<ToolResult>, Vec<ExecutionNode>)> {
         let sem = Arc::new(Semaphore::new(self.max_concurrent));
         let mut futures = Vec::with_capacity(tool_calls.len());
 
@@ -345,16 +392,20 @@ TOOL RESULTS SO FAR:
             futures.push(async move {
                 let _permit = sem.acquire().await.expect("semaphore closed");
                 let exec = registry.execute(&call.name, call.arguments);
-                let result = match tokio::time::timeout(std::time::Duration::from_millis(timeout_ms), exec).await
-                {
-                    Ok(Ok(result)) => result,
-                    Ok(Err(e)) => ToolResult::failure(call.name.clone(), e.to_string(), timeout_ms),
-                    Err(_) => ToolResult::failure(
-                        call.name.clone(),
-                        format!("Tool timed out after {}ms", timeout_ms),
-                        timeout_ms,
-                    ),
-                };
+                let result =
+                    match tokio::time::timeout(std::time::Duration::from_millis(timeout_ms), exec)
+                        .await
+                    {
+                        Ok(Ok(result)) => result,
+                        Ok(Err(e)) => {
+                            ToolResult::failure(call.name.clone(), e.to_string(), timeout_ms)
+                        }
+                        Err(_) => ToolResult::failure(
+                            call.name.clone(),
+                            format!("Tool timed out after {}ms", timeout_ms),
+                            timeout_ms,
+                        ),
+                    };
 
                 // Complete the node with the result
                 node.complete(ToolExecutionResult::from(result.clone()));
@@ -402,19 +453,28 @@ pub fn parse_tool_agent_response(s: &str) -> Option<ToolAgentResponse> {
     //    { "tool_calls": [ { "name": "...", "arguments": {...} } ] }
     // 2) OpenAI-style function calling:
     //    { "tool_calls": [ { "type":"function", "function": { "name":"...", "arguments":"{...json...}" } } ] }
-    let tool_calls = json.get("tool_calls").and_then(|v| v.as_array()).map(|arr| {
-        arr.iter()
-            .filter_map(|item| normalize_tool_call(item))
-            .collect::<Vec<_>>()
-    });
+    let tool_calls = json
+        .get("tool_calls")
+        .and_then(|v| v.as_array())
+        .map(|arr| {
+            arr.iter()
+                .filter_map(|item| normalize_tool_call(item))
+                .collect::<Vec<_>>()
+        });
 
-    Some(ToolAgentResponse { tool_calls, final_answer })
+    Some(ToolAgentResponse {
+        tool_calls,
+        final_answer,
+    })
 }
 
 fn normalize_tool_call(v: &Value) -> Option<ToolCall> {
     // Simple format
     if let Some(name) = v.get("name").and_then(|n| n.as_str()) {
-        let args = v.get("arguments").cloned().unwrap_or_else(|| serde_json::json!({}));
+        let args = v
+            .get("arguments")
+            .cloned()
+            .unwrap_or_else(|| serde_json::json!({}));
         return Some(ToolCall {
             name: name.to_string(),
             arguments: args,
@@ -424,7 +484,10 @@ fn normalize_tool_call(v: &Value) -> Option<ToolCall> {
     // OpenAI-style
     let func = v.get("function")?;
     let name = func.get("name")?.as_str()?;
-    let args_val = func.get("arguments").cloned().unwrap_or_else(|| Value::Null);
+    let args_val = func
+        .get("arguments")
+        .cloned()
+        .unwrap_or_else(|| Value::Null);
     let args = match args_val {
         Value::String(s) => serde_json::from_str::<Value>(&s).unwrap_or(Value::String(s)),
         Value::Null => serde_json::json!({}),
@@ -538,7 +601,10 @@ mod tests {
         let calls = parsed.tool_calls.unwrap();
         assert_eq!(calls.len(), 1);
         assert_eq!(calls[0].name, "http_get");
-        assert_eq!(calls[0].arguments["url"].as_str().unwrap(), "https://example.com");
+        assert_eq!(
+            calls[0].arguments["url"].as_str().unwrap(),
+            "https://example.com"
+        );
     }
 
     #[tokio::test]
@@ -559,5 +625,3 @@ mod tests {
 #[cfg(test)]
 #[path = "tool_agent_limits_test.rs"]
 mod tool_agent_limits_test;
-
-

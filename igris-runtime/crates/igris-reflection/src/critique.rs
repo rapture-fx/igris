@@ -235,7 +235,11 @@ Suggestions:
 {}
 
 Provide an improved response that addresses these issues. Focus on making it more correct, clear, complete, and relevant."#,
-            original_prompt, previous_response, critique.overall_score, weaknesses_text, suggestions_text
+            original_prompt,
+            previous_response,
+            critique.overall_score,
+            weaknesses_text,
+            suggestions_text
         )
     }
 }
@@ -297,9 +301,7 @@ WEAKNESSES:
         critique
             .categories
             .insert(CritiqueCategory::Correctness, 0.8);
-        critique
-            .categories
-            .insert(CritiqueCategory::Clarity, 0.6);
+        critique.categories.insert(CritiqueCategory::Clarity, 0.6);
 
         critique.calculate_overall_score();
 

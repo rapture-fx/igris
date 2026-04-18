@@ -14,10 +14,7 @@ use tokio::sync::{broadcast, mpsc, RwLock};
 #[derive(Debug, Clone, Serialize, Deserialize)]
 pub enum SwarmMessage {
     /// Request vote during leader election
-    RequestVote {
-        candidate_id: String,
-        term: u64,
-    },
+    RequestVote { candidate_id: String, term: u64 },
     /// Vote response
     VoteResponse {
         voter_id: String,
@@ -25,10 +22,7 @@ pub enum SwarmMessage {
         granted: bool,
     },
     /// Leader heartbeat (AppendEntries equivalent)
-    Heartbeat {
-        leader_id: String,
-        term: u64,
-    },
+    Heartbeat { leader_id: String, term: u64 },
     /// Task proposal broadcast
     TaskProposed {
         proposal_id: String,
@@ -56,9 +50,7 @@ pub enum SwarmMessage {
         capabilities: Vec<String>,
     },
     /// Agent leave announcement
-    AgentLeft {
-        agent_id: String,
-    },
+    AgentLeft { agent_id: String },
 }
 
 /// Transport trait for swarm communication
@@ -102,7 +94,11 @@ impl SwarmBus {
     }
 
     /// Create a transport for a new agent and register it on the bus
-    pub async fn create_transport(&self, agent_id: &str, buffer_size: usize) -> ChannelSwarmTransport {
+    pub async fn create_transport(
+        &self,
+        agent_id: &str,
+        buffer_size: usize,
+    ) -> ChannelSwarmTransport {
         let (tx, rx) = mpsc::channel(buffer_size);
 
         self.agents.write().await.insert(agent_id.to_string(), tx);
@@ -137,7 +133,9 @@ impl SwarmTransport for ChannelSwarmTransport {
     async fn send_to(&self, agent_id: &str, message: SwarmMessage) -> Result<()> {
         let peers = self.peers.read().await;
         if let Some(tx) = peers.get(agent_id) {
-            tx.send(message).await.map_err(|_| anyhow::anyhow!("Agent {} channel closed", agent_id))?;
+            tx.send(message)
+                .await
+                .map_err(|_| anyhow::anyhow!("Agent {} channel closed", agent_id))?;
             Ok(())
         } else {
             Err(anyhow::anyhow!("Agent {} not found on bus", agent_id))
@@ -161,7 +159,9 @@ impl SwarmTransport for ChannelSwarmTransport {
     async fn receive(&self) -> Result<SwarmMessage> {
         // This is a workaround - we need interior mutability for the receiver
         // In practice, use try_receive in a loop or restructure with Arc<Mutex<>>
-        Err(anyhow::anyhow!("Use try_receive() in async context; receive() requires ownership"))
+        Err(anyhow::anyhow!(
+            "Use try_receive() in async context; receive() requires ownership"
+        ))
     }
 
     async fn try_receive(&self) -> Result<Option<SwarmMessage>> {
@@ -205,7 +205,9 @@ impl SwarmTransportHandle {
     pub async fn send_to(&self, agent_id: &str, message: SwarmMessage) -> Result<()> {
         let peers = self.peers.read().await;
         if let Some(tx) = peers.get(agent_id) {
-            tx.send(message).await.map_err(|_| anyhow::anyhow!("Channel closed"))?;
+            tx.send(message)
+                .await
+                .map_err(|_| anyhow::anyhow!("Channel closed"))?;
         }
         Ok(())
     }
@@ -244,10 +246,15 @@ mod tests {
         let mut h2 = SwarmTransportHandle::from_transport(t2);
 
         // Agent-1 sends to Agent-2
-        t1.send_to("agent-2", SwarmMessage::Heartbeat {
-            leader_id: "agent-1".to_string(),
-            term: 1,
-        }).await.unwrap();
+        t1.send_to(
+            "agent-2",
+            SwarmMessage::Heartbeat {
+                leader_id: "agent-1".to_string(),
+                term: 1,
+            },
+        )
+        .await
+        .unwrap();
 
         // Agent-2 receives
         let msg = h2.recv().await.unwrap();
@@ -274,14 +281,19 @@ mod tests {
         t1.broadcast(SwarmMessage::AgentJoined {
             agent_id: "agent-1".to_string(),
             capabilities: vec!["inference".to_string()],
-        }).await.unwrap();
+        })
+        .await
+        .unwrap();
 
         // Both agent-2 and agent-3 should receive
         let msg2 = h2.recv().await.unwrap();
         let msg3 = h3.recv().await.unwrap();
 
         match (msg2, msg3) {
-            (SwarmMessage::AgentJoined { agent_id: id2, .. }, SwarmMessage::AgentJoined { agent_id: id3, .. }) => {
+            (
+                SwarmMessage::AgentJoined { agent_id: id2, .. },
+                SwarmMessage::AgentJoined { agent_id: id3, .. },
+            ) => {
                 assert_eq!(id2, "agent-1");
                 assert_eq!(id3, "agent-1");
             }

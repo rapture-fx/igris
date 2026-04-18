@@ -8,8 +8,8 @@
 
 use anyhow::Result;
 use igris_swarm::{
-    SwarmCoordinator, SwarmConfig as SwarmCrateConfig, SwarmStatus,
-    TaskExecutor, HealthCheckHandler, InferenceTaskHandler,
+    HealthCheckHandler, InferenceTaskHandler, SwarmConfig as SwarmCrateConfig, SwarmCoordinator,
+    SwarmStatus, TaskExecutor,
 };
 use std::sync::Arc;
 use tracing::info;
@@ -30,8 +30,12 @@ impl SwarmManager {
 
         // Set up task executor with built-in handlers
         let executor = Arc::new(TaskExecutor::new(agent_id));
-        executor.register_handler("health", Arc::new(HealthCheckHandler)).await;
-        executor.register_handler("inference", Arc::new(InferenceTaskHandler)).await;
+        executor
+            .register_handler("health", Arc::new(HealthCheckHandler))
+            .await;
+        executor
+            .register_handler("inference", Arc::new(InferenceTaskHandler))
+            .await;
         coordinator.set_task_executor(executor);
 
         info!("Swarm manager initialized for agent {}", agent_id);
@@ -63,17 +67,26 @@ impl SwarmManager {
         parameters: serde_json::Value,
         priority: u8,
     ) -> Result<String> {
-        self.coordinator.propose_task(task_type, parameters, priority).await
+        self.coordinator
+            .propose_task(task_type, parameters, priority)
+            .await
     }
 
     /// Vote on a proposal
     pub async fn vote(&self, proposal_id: &str, approve: bool) -> Result<()> {
-        self.coordinator.vote_on_proposal(proposal_id, approve).await
+        self.coordinator
+            .vote_on_proposal(proposal_id, approve)
+            .await
     }
 
     /// Check and execute a proposal if it has consensus
-    pub async fn check_and_execute(&self, proposal_id: &str) -> Result<Option<igris_swarm::TaskExecutionResult>> {
-        self.coordinator.check_and_execute_proposal(proposal_id).await
+    pub async fn check_and_execute(
+        &self,
+        proposal_id: &str,
+    ) -> Result<Option<igris_swarm::TaskExecutionResult>> {
+        self.coordinator
+            .check_and_execute_proposal(proposal_id)
+            .await
     }
 
     /// Start election
@@ -82,7 +95,10 @@ impl SwarmManager {
     }
 
     /// Process an incoming swarm message
-    pub async fn process_message(&self, message: igris_swarm::SwarmMessage) -> Result<Option<igris_swarm::SwarmMessage>> {
+    pub async fn process_message(
+        &self,
+        message: igris_swarm::SwarmMessage,
+    ) -> Result<Option<igris_swarm::SwarmMessage>> {
         self.coordinator.process_message(message).await
     }
 

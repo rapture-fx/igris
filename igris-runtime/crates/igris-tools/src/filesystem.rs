@@ -110,28 +110,24 @@ impl Tool for FileSystemTool {
         debug!("Filesystem operation: {} on {}", operation, path);
 
         match operation {
-            "read" => {
-                match fs::read_to_string(path).await {
-                    Ok(content) => {
-                        let execution_time = start.elapsed().as_millis() as u64;
-                        Ok(ToolResult::success(
-                            "filesystem".to_string(),
-                            content,
-                            execution_time,
-                        )
-                        .with_metadata("operation".to_string(), "read".to_string())
-                        .with_metadata("path".to_string(), path.to_string()))
-                    }
-                    Err(e) => {
-                        let execution_time = start.elapsed().as_millis() as u64;
-                        Ok(ToolResult::failure(
-                            "filesystem".to_string(),
-                            format!("Failed to read file: {}", e),
-                            execution_time,
-                        ))
-                    }
+            "read" => match fs::read_to_string(path).await {
+                Ok(content) => {
+                    let execution_time = start.elapsed().as_millis() as u64;
+                    Ok(
+                        ToolResult::success("filesystem".to_string(), content, execution_time)
+                            .with_metadata("operation".to_string(), "read".to_string())
+                            .with_metadata("path".to_string(), path.to_string()),
+                    )
                 }
-            }
+                Err(e) => {
+                    let execution_time = start.elapsed().as_millis() as u64;
+                    Ok(ToolResult::failure(
+                        "filesystem".to_string(),
+                        format!("Failed to read file: {}", e),
+                        execution_time,
+                    ))
+                }
+            },
             "write" => {
                 let content = args["content"]
                     .as_str()

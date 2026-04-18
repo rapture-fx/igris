@@ -135,7 +135,11 @@ impl ViolationRecord {
     /// Append this record as a JSONL line to `path`.
     pub fn append_to_log(&self, path: &str) -> std::io::Result<()> {
         let mut file = OpenOptions::new().create(true).append(true).open(path)?;
-        writeln!(file, "{}", serde_json::to_string(self).expect("ViolationRecord is always serializable"))?;
+        writeln!(
+            file,
+            "{}",
+            serde_json::to_string(self).expect("ViolationRecord is always serializable")
+        )?;
         Ok(())
     }
 }
@@ -194,14 +198,29 @@ mod tests {
     #[test]
     fn hash_chain_links_correctly() {
         let key = test_key();
-        let r1 = ViolationRecord::new(ViolationKind::Time, serde_json::json!({}), String::new(), &key);
-        let r2 = ViolationRecord::new(ViolationKind::Cpu, serde_json::json!({}), r1.hash.clone(), &key);
+        let r1 = ViolationRecord::new(
+            ViolationKind::Time,
+            serde_json::json!({}),
+            String::new(),
+            &key,
+        );
+        let r2 = ViolationRecord::new(
+            ViolationKind::Cpu,
+            serde_json::json!({}),
+            r1.hash.clone(),
+            &key,
+        );
         assert_eq!(r2.previous_hash, r1.hash);
     }
 
     #[test]
     fn record_is_clone() {
-        let r = ViolationRecord::new(ViolationKind::Time, serde_json::json!({}), String::new(), &test_key());
+        let r = ViolationRecord::new(
+            ViolationKind::Time,
+            serde_json::json!({}),
+            String::new(),
+            &test_key(),
+        );
         let clone = r.clone();
         assert_eq!(r.id, clone.id);
         assert_eq!(r.hash, clone.hash);
@@ -223,7 +242,8 @@ mod tests {
         let _ = std::fs::remove_file(&path);
         record.append_to_log(&path).unwrap();
         let content = std::fs::read_to_string(&path).unwrap();
-        let parsed: ViolationRecord = serde_json::from_str(content.lines().next().unwrap()).unwrap();
+        let parsed: ViolationRecord =
+            serde_json::from_str(content.lines().next().unwrap()).unwrap();
         assert_eq!(parsed.hash, record.hash);
         let _ = std::fs::remove_file(&path);
     }

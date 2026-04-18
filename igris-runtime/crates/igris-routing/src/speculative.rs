@@ -1,10 +1,10 @@
-use tokio::time::{timeout, Duration};
-use futures::stream::{StreamExt, FuturesUnordered};
-use std::time::Instant;
-use std::pin::Pin;
-use futures::Stream;
 use anyhow::Context;
-use tracing::{info, warn, debug};
+use futures::stream::{FuturesUnordered, StreamExt};
+use futures::Stream;
+use std::pin::Pin;
+use std::time::Instant;
+use tokio::time::{timeout, Duration};
+use tracing::{debug, info, warn};
 
 /// Provider trait for AI model backends
 pub trait Provider: Send + Sync {
@@ -12,7 +12,10 @@ pub trait Provider: Send + Sync {
     fn name(&self) -> &str;
 
     /// Stream tokens from the provider
-    async fn stream(&self, prompt: &str) -> anyhow::Result<Pin<Box<dyn Stream<Item = Result<String, anyhow::Error>> + Send>>>;
+    async fn stream(
+        &self,
+        prompt: &str,
+    ) -> anyhow::Result<Pin<Box<dyn Stream<Item = Result<String, anyhow::Error>> + Send>>>;
 
     /// Complete a request (non-streaming)
     async fn complete(&self, prompt: &str) -> anyhow::Result<String>;
@@ -63,7 +66,11 @@ impl SpeculativeRouter {
     }
 
     /// Execute speculative routing: race providers, first to respond wins
-    pub async fn route<P>(&self, prompt: &str, providers: Vec<P>) -> anyhow::Result<SpeculativeResult>
+    pub async fn route<P>(
+        &self,
+        prompt: &str,
+        providers: Vec<P>,
+    ) -> anyhow::Result<SpeculativeResult>
     where
         P: Provider + 'static,
     {
@@ -72,7 +79,10 @@ impl SpeculativeRouter {
         }
 
         let start_time = Instant::now();
-        let providers_to_use = providers.into_iter().take(self.max_providers).collect::<Vec<_>>();
+        let providers_to_use = providers
+            .into_iter()
+            .take(self.max_providers)
+            .collect::<Vec<_>>();
         let provider_count = providers_to_use.len();
 
         info!(
@@ -130,11 +140,18 @@ impl SpeculativeRouter {
                             }
                             Some(Err(e)) => {
                                 warn!("Provider {} first token error: {}", provider_id, e);
-                                Err(anyhow::anyhow!("Provider {} first token error: {}", provider_id, e))
+                                Err(anyhow::anyhow!(
+                                    "Provider {} first token error: {}",
+                                    provider_id,
+                                    e
+                                ))
                             }
                             None => {
                                 warn!("Provider {} returned empty stream", provider_id);
-                                Err(anyhow::anyhow!("Provider {} returned empty stream", provider_id))
+                                Err(anyhow::anyhow!(
+                                    "Provider {} returned empty stream",
+                                    provider_id
+                                ))
                             }
                         }
                     }
@@ -144,7 +161,11 @@ impl SpeculativeRouter {
                     }
                     Err(_) => {
                         warn!("Provider {} timed out", provider_id);
-                        Err(anyhow::anyhow!("Provider {} timed out after {:?}", provider_id, timeout_duration))
+                        Err(anyhow::anyhow!(
+                            "Provider {} timed out after {:?}",
+                            provider_id,
+                            timeout_duration
+                        ))
                     }
                 }
             });
@@ -153,7 +174,13 @@ impl SpeculativeRouter {
         // Wait for first successful response
         while let Some(result) = futures.next().await {
             match result {
-                Ok((winner_id, winner_name, response, first_token_latency_ms, total_latency_ms)) => {
+                Ok((
+                    winner_id,
+                    winner_name,
+                    response,
+                    first_token_latency_ms,
+                    total_latency_ms,
+                )) => {
                     info!(
                         "Speculative routing complete: winner={} (first_token={}ms, total={}ms)",
                         winner_id, first_token_latency_ms, total_latency_ms
@@ -232,10 +259,11 @@ impl SpeculativeRouter {
                             let first_token_latency = provider_start.elapsed();
 
                             // Reconstruct a stream that yields the first token, then the rest.
-                            let chained = futures::stream::once(async move { Ok(first_token) })
-                                .chain(stream);
-                            let chained: Pin<Box<dyn Stream<Item = Result<String, anyhow::Error>> + Send>> =
-                                Box::pin(chained);
+                            let chained =
+                                futures::stream::once(async move { Ok(first_token) }).chain(stream);
+                            let chained: Pin<
+                                Box<dyn Stream<Item = Result<String, anyhow::Error>> + Send>,
+                            > = Box::pin(chained);
 
                             Ok((
                                 provider_id,
@@ -254,7 +282,10 @@ impl SpeculativeRouter {
                         }
                         None => {
                             warn!("Provider {} returned empty stream", provider_id);
-                            Err(anyhow::anyhow!("Provider {} returned empty stream", provider_id))
+                            Err(anyhow::anyhow!(
+                                "Provider {} returned empty stream",
+                                provider_id
+                            ))
                         }
                     },
                     Ok(Err(e)) => {
@@ -295,7 +326,10 @@ impl SpeculativeRouter {
             }
         }
 
-        anyhow::bail!("All {} providers failed in speculative streaming routing", provider_count)
+        anyhow::bail!(
+            "All {} providers failed in speculative streaming routing",
+            provider_count
+        )
     }
 }
 
@@ -320,7 +354,11 @@ mod tests {
             &self.name
         }
 
-        async fn stream(&self, _prompt: &str) -> anyhow::Result<Pin<Box<dyn Stream<Item = Result<String, anyhow::Error>> + Send>>> {
+        async fn stream(
+            &self,
+            _prompt: &str,
+        ) -> anyhow::Result<Pin<Box<dyn Stream<Item = Result<String, anyhow::Error>> + Send>>>
+        {
             tokio::time::sleep(std::time::Duration::from_millis(self.delay_ms)).await;
             let response = self.response.clone();
             Ok(Box::pin(stream::iter(vec![Ok(response)])))

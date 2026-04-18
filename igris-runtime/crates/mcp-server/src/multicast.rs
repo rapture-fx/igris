@@ -153,7 +153,10 @@ impl MulticastDiscovery {
             existing.addr = peer.addr;
             existing.last_seen = peer.last_seen;
         } else {
-            info!("Discovered peer via multicast: {} at {}", peer.peer_id, peer.addr);
+            info!(
+                "Discovered peer via multicast: {} at {}",
+                peer.peer_id, peer.addr
+            );
             peers.push(peer);
         }
     }

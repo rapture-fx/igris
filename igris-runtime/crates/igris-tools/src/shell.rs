@@ -30,7 +30,9 @@ impl ShellTool {
         }
 
         let cmd_name = command.split_whitespace().next().unwrap_or("");
-        self.allowed_commands.iter().any(|allowed| allowed == cmd_name)
+        self.allowed_commands
+            .iter()
+            .any(|allowed| allowed == cmd_name)
     }
 
     fn is_working_dir_allowed(&self, wd: &str) -> bool {

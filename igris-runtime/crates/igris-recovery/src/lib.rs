@@ -28,10 +28,7 @@ pub fn classify_error(error: &anyhow::Error) -> ErrorClass {
     }
 }
 
-pub async fn retry_with_backoff<F, Fut, T>(
-    mut operation: F,
-    max_retries: usize,
-) -> Result<T>
+pub async fn retry_with_backoff<F, Fut, T>(mut operation: F, max_retries: usize) -> Result<T>
 where
     F: FnMut() -> Fut,
     Fut: Future<Output = Result<T>>,
@@ -55,7 +52,10 @@ where
                     ErrorClass::Fatal => return Err(e),
                 };
 
-                warn!("Retry attempt {}/{}, waiting {:?}", attempts, max_retries, delay);
+                warn!(
+                    "Retry attempt {}/{}, waiting {:?}",
+                    attempts, max_retries, delay
+                );
                 tokio::time::sleep(delay).await;
             }
         }
@@ -119,7 +119,10 @@ pub mod robot {
     ) -> Result<RecoveryOutcome> {
         use igris_ros2::r2r;
 
-        info!("Robot recovery: spin at {:.2} rad/s for {}ms", angular_z_rad_s, duration_ms);
+        info!(
+            "Robot recovery: spin at {:.2} rad/s for {}ms",
+            angular_z_rad_s, duration_ms
+        );
 
         // Create a /cmd_vel publisher for the spin command.
         // This is separate from the zero-velocity publisher so we can send a
@@ -190,7 +193,10 @@ pub mod robot {
         use igris_ros2::r2r;
 
         let speed = speed_m_s.abs().min(0.3); // cap at 0.3 m/s for safety
-        info!("Robot recovery: backup at -{:.2} m/s for {}ms", speed, duration_ms);
+        info!(
+            "Robot recovery: backup at -{:.2} m/s for {}ms",
+            speed, duration_ms
+        );
 
         let action_client = node
             .ros2_node()
@@ -239,7 +245,10 @@ pub mod robot {
                     info!("Backup recovery succeeded");
                     Ok(RecoveryOutcome::Succeeded)
                 }
-                Err(e) => Ok(RecoveryOutcome::Failed(format!("backup result error: {}", e))),
+                Err(e) => Ok(RecoveryOutcome::Failed(format!(
+                    "backup result error: {}",
+                    e
+                ))),
             },
             Ok(Err(_)) | Err(_) => Ok(RecoveryOutcome::Failed("backup goal rejected".to_string())),
         }
@@ -272,17 +281,11 @@ pub mod robot {
 
         let empty_req = r2r::nav2_msgs::srv::ClearEntireCostmap::Request {};
 
-        let local_result = tokio::time::timeout(
-            Duration::from_secs(5),
-            local_client.call(&empty_req),
-        )
-        .await;
+        let local_result =
+            tokio::time::timeout(Duration::from_secs(5), local_client.call(&empty_req)).await;
 
-        let global_result = tokio::time::timeout(
-            Duration::from_secs(5),
-            global_client.call(&empty_req),
-        )
-        .await;
+        let global_result =
+            tokio::time::timeout(Duration::from_secs(5), global_client.call(&empty_req)).await;
 
         let local_ok = matches!(local_result, Ok(Ok(_)));
         let global_ok = matches!(global_result, Ok(Ok(_)));
@@ -324,7 +327,10 @@ pub mod robot {
             RecoveryOutcome::Failed(reason) => {
                 // If both backup and spin failed, report failure.
                 if let RecoveryOutcome::Failed(_) = bk {
-                    Ok(RecoveryOutcome::Failed(format!("backup and spin both failed: {}", reason)))
+                    Ok(RecoveryOutcome::Failed(format!(
+                        "backup and spin both failed: {}",
+                        reason
+                    )))
                 } else {
                     // Backup succeeded; partial recovery is still useful.
                     Ok(RecoveryOutcome::Succeeded)

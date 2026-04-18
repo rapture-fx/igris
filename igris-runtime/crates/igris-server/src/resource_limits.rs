@@ -5,7 +5,6 @@
 /// - Max recursion depth
 /// - Max speculative branches
 /// - Max wall-clock execution time
-
 use serde::{Deserialize, Serialize};
 use std::fmt;
 use std::time::{Duration, SystemTime};
@@ -35,12 +34,12 @@ pub struct ResourceLimits {
 impl Default for ResourceLimits {
     fn default() -> Self {
         Self {
-            max_tool_calls: 100,                            // Total tool calls
-            max_recursion_depth: 10,                        // Recursion depth
-            max_speculative_branches: 5,                    // Speculative branches
-            max_execution_time: Duration::from_secs(300),   // 5 minutes
-            max_tool_calls_per_step: 10,                    // Parallel tool calls per step
-            max_tool_output_size: 10 * 1024 * 1024,         // 10MB per tool
+            max_tool_calls: 100,                          // Total tool calls
+            max_recursion_depth: 10,                      // Recursion depth
+            max_speculative_branches: 5,                  // Speculative branches
+            max_execution_time: Duration::from_secs(300), // 5 minutes
+            max_tool_calls_per_step: 10,                  // Parallel tool calls per step
+            max_tool_output_size: 10 * 1024 * 1024,       // 10MB per tool
         }
     }
 }
@@ -52,9 +51,9 @@ impl ResourceLimits {
             max_tool_calls: 50,
             max_recursion_depth: 5,
             max_speculative_branches: 3,
-            max_execution_time: Duration::from_secs(120),   // 2 minutes
+            max_execution_time: Duration::from_secs(120), // 2 minutes
             max_tool_calls_per_step: 5,
-            max_tool_output_size: 5 * 1024 * 1024,          // 5MB
+            max_tool_output_size: 5 * 1024 * 1024, // 5MB
         }
     }
 
@@ -64,9 +63,9 @@ impl ResourceLimits {
             max_tool_calls: 200,
             max_recursion_depth: 20,
             max_speculative_branches: 10,
-            max_execution_time: Duration::from_secs(600),   // 10 minutes
+            max_execution_time: Duration::from_secs(600), // 10 minutes
             max_tool_calls_per_step: 20,
-            max_tool_output_size: 50 * 1024 * 1024,         // 50MB
+            max_tool_output_size: 50 * 1024 * 1024, // 50MB
         }
     }
 
@@ -208,9 +207,10 @@ impl ResourceTracker {
 
     /// Check if execution time has exceeded limit
     pub fn check_execution_time(&self) -> Result<(), ResourceLimitError> {
-        let elapsed = self.start_time.elapsed().map_err(|_| {
-            ResourceLimitError::ExecutionTimeCheckFailed
-        })?;
+        let elapsed = self
+            .start_time
+            .elapsed()
+            .map_err(|_| ResourceLimitError::ExecutionTimeCheckFailed)?;
 
         if elapsed > self.limits.max_execution_time {
             return Err(ResourceLimitError::MaxExecutionTimeExceeded {
@@ -236,9 +236,7 @@ impl ResourceTracker {
 
     /// Get current resource usage
     pub fn get_usage(&self) -> ResourceUsage {
-        let elapsed = self.start_time
-            .elapsed()
-            .unwrap_or(Duration::from_secs(0));
+        let elapsed = self.start_time.elapsed().unwrap_or(Duration::from_secs(0));
 
         ResourceUsage {
             total_tool_calls: self.total_tool_calls,
@@ -266,30 +264,12 @@ pub struct ResourceUsage {
 /// ResourceLimitError represents resource limit violations
 #[derive(Debug, Clone)]
 pub enum ResourceLimitError {
-    MaxToolCallsExceeded {
-        limit: usize,
-        current: usize,
-    },
-    MaxToolCallsPerStepExceeded {
-        limit: usize,
-        requested: usize,
-    },
-    MaxRecursionDepthExceeded {
-        limit: usize,
-        current: usize,
-    },
-    MaxSpeculativeBranchesExceeded {
-        limit: usize,
-        current: usize,
-    },
-    MaxExecutionTimeExceeded {
-        limit: Duration,
-        elapsed: Duration,
-    },
-    MaxToolOutputSizeExceeded {
-        limit: usize,
-        actual: usize,
-    },
+    MaxToolCallsExceeded { limit: usize, current: usize },
+    MaxToolCallsPerStepExceeded { limit: usize, requested: usize },
+    MaxRecursionDepthExceeded { limit: usize, current: usize },
+    MaxSpeculativeBranchesExceeded { limit: usize, current: usize },
+    MaxExecutionTimeExceeded { limit: Duration, elapsed: Duration },
+    MaxToolOutputSizeExceeded { limit: usize, actual: usize },
     ExecutionTimeCheckFailed,
 }
 

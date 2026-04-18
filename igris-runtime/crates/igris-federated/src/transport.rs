@@ -70,7 +70,9 @@ pub struct ChannelCoordinatorHandle {
 }
 
 /// Create a linked pair of channel transport and coordinator handle
-pub fn create_channel_transport(buffer_size: usize) -> (ChannelTransport, ChannelCoordinatorHandle) {
+pub fn create_channel_transport(
+    buffer_size: usize,
+) -> (ChannelTransport, ChannelCoordinatorHandle) {
     let (tx, rx) = mpsc::channel(buffer_size);
     let model = Arc::new(RwLock::new(None));
     let status = Arc::new(RwLock::new(FederatedStatus {
@@ -163,12 +165,7 @@ impl FederatedTransport for HttpTransport {
     async fn send_update(&self, update: ModelUpdate) -> Result<()> {
         let url = format!("{}/v1/federated/update", self.coordinator_url);
 
-        let response = self
-            .client
-            .post(&url)
-            .json(&update)
-            .send()
-            .await?;
+        let response = self.client.post(&url).json(&update).send().await?;
 
         if !response.status().is_success() {
             let status = response.status();

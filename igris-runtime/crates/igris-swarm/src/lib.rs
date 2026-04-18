@@ -30,13 +30,15 @@
 //! }
 //! ```
 
+pub mod message_signing;
 pub mod task_executor;
 pub mod transport;
-pub mod message_signing;
 
-pub use task_executor::{TaskExecutor, TaskHandler, TaskExecutionResult, InferenceTaskHandler, HealthCheckHandler};
+pub use message_signing::{verify_envelope, SignedSwarmEnvelope, SwarmMessageSigner};
+pub use task_executor::{
+    HealthCheckHandler, InferenceTaskHandler, TaskExecutionResult, TaskExecutor, TaskHandler,
+};
 pub use transport::{SwarmBus, SwarmMessage, SwarmTransport, SwarmTransportHandle};
-pub use message_signing::{SignedSwarmEnvelope, SwarmMessageSigner, verify_envelope};
 
 use anyhow::Result;
 use rand::Rng;
@@ -336,7 +338,11 @@ impl SwarmCoordinator {
     }
 
     /// Process a vote request from another candidate
-    pub async fn process_vote_request(&self, candidate_id: &str, candidate_term: u64) -> (bool, u64) {
+    pub async fn process_vote_request(
+        &self,
+        candidate_id: &str,
+        candidate_term: u64,
+    ) -> (bool, u64) {
         let current_term = *self.current_term.read().await;
 
         // Reject if candidate's term is stale
@@ -358,13 +364,21 @@ impl SwarmCoordinator {
             info!("Voting for {} in term {}", candidate_id, candidate_term);
             (true, candidate_term)
         } else {
-            debug!("Already voted for {:?} in term {}", *voted_for, candidate_term);
+            debug!(
+                "Already voted for {:?} in term {}",
+                *voted_for, candidate_term
+            );
             (false, candidate_term)
         }
     }
 
     /// Process a vote response (called when another agent votes for us)
-    pub async fn process_vote_response(&self, voter_id: &str, granted: bool, response_term: u64) -> Result<()> {
+    pub async fn process_vote_response(
+        &self,
+        voter_id: &str,
+        granted: bool,
+        response_term: u64,
+    ) -> Result<()> {
         let current_term = *self.current_term.read().await;
 
         // If response has higher term, step down
@@ -401,7 +415,11 @@ impl SwarmCoordinator {
 
     /// Become leader
     async fn become_leader(&self) -> Result<()> {
-        info!("Agent {} became leader for term {}", self.agent_id, *self.current_term.read().await);
+        info!(
+            "Agent {} became leader for term {}",
+            self.agent_id,
+            *self.current_term.read().await
+        );
 
         *self.current_role.write().await = AgentRole::Leader;
         *self.leader_id.write().await = Some(self.agent_id.clone());
@@ -512,7 +530,10 @@ impl SwarmCoordinator {
     }
 
     /// Check if proposal has reached consensus and execute if so
-    pub async fn check_and_execute_proposal(&self, proposal_id: &str) -> Result<Option<TaskExecutionResult>> {
+    pub async fn check_and_execute_proposal(
+        &self,
+        proposal_id: &str,
+    ) -> Result<Option<TaskExecutionResult>> {
         let agents = self.agents.read().await;
         let total_agents = agents.len().max(1);
         let required_votes = (total_agents / 2) + 1;
@@ -537,7 +558,10 @@ impl SwarmCoordinator {
             let result = executor.execute_task(&pid, &task_type, parameters).await?;
             Ok(Some(result))
         } else {
-            info!("Proposal {} reached consensus but no task executor configured", proposal_id);
+            info!(
+                "Proposal {} reached consensus but no task executor configured",
+                proposal_id
+            );
             Ok(None)
         }
     }
@@ -558,10 +582,7 @@ impl SwarmCoordinator {
     }
 
     /// Resolve conflict between proposals
-    pub async fn resolve_conflict(
-        &self,
-        proposal_ids: Vec<String>,
-    ) -> Result<Option<String>> {
+    pub async fn resolve_conflict(&self, proposal_ids: Vec<String>) -> Result<Option<String>> {
         let proposals = self.proposals.read().await;
 
         let conflicting_proposals: Vec<_> = proposal_ids
@@ -618,7 +639,11 @@ impl SwarmCoordinator {
 
         agents.retain(|id, info| {
             if now.saturating_sub(info.last_heartbeat) > timeout {
-                warn!("Removing stale agent: {} (last seen {}s ago)", id, now - info.last_heartbeat);
+                warn!(
+                    "Removing stale agent: {} (last seen {}s ago)",
+                    id,
+                    now - info.last_heartbeat
+                );
                 removed.push(id.clone());
                 false
             } else {
@@ -670,7 +695,11 @@ impl SwarmCoordinator {
                     granted,
                 }))
             }
-            SwarmMessage::VoteResponse { voter_id, term, granted } => {
+            SwarmMessage::VoteResponse {
+                voter_id,
+                term,
+                granted,
+            } => {
                 self.process_vote_response(&voter_id, granted, term).await?;
                 Ok(None)
             }
@@ -678,7 +707,13 @@ impl SwarmCoordinator {
                 self.process_heartbeat(&leader_id, term).await;
                 Ok(None)
             }
-            SwarmMessage::TaskProposed { proposal_id, proposer_id, task_type, parameters, priority } => {
+            SwarmMessage::TaskProposed {
+                proposal_id,
+                proposer_id,
+                task_type,
+                parameters,
+                priority,
+            } => {
                 // Store the proposal from another agent
                 let proposal = TaskProposal {
                     id: proposal_id,
@@ -691,17 +726,27 @@ impl SwarmCoordinator {
                         .as_secs(),
                     votes: HashMap::new(),
                 };
-                self.proposals.write().await.insert(proposal.id.clone(), proposal);
+                self.proposals
+                    .write()
+                    .await
+                    .insert(proposal.id.clone(), proposal);
                 Ok(None)
             }
-            SwarmMessage::TaskVote { proposal_id, voter_id, approve } => {
+            SwarmMessage::TaskVote {
+                proposal_id,
+                voter_id,
+                approve,
+            } => {
                 let mut proposals = self.proposals.write().await;
                 if let Some(proposal) = proposals.get_mut(&proposal_id) {
                     proposal.votes.insert(voter_id, approve);
                 }
                 Ok(None)
             }
-            SwarmMessage::AgentJoined { agent_id, capabilities } => {
+            SwarmMessage::AgentJoined {
+                agent_id,
+                capabilities,
+            } => {
                 let info = AgentInfo {
                     id: agent_id.clone(),
                     role: AgentRole::Follower,
@@ -766,7 +811,9 @@ mod tests {
         let config = SwarmConfig::default();
 
         // Create two coordinators
-        let c1 = SwarmCoordinator::with_id(config.clone(), "agent-1").await.unwrap();
+        let c1 = SwarmCoordinator::with_id(config.clone(), "agent-1")
+            .await
+            .unwrap();
         let c2 = SwarmCoordinator::with_id(config, "agent-2").await.unwrap();
 
         // Register agents in both coordinators
@@ -807,7 +854,10 @@ mod tests {
             .await
             .unwrap();
 
-        coordinator.vote_on_proposal(&proposal_id, true).await.unwrap();
+        coordinator
+            .vote_on_proposal(&proposal_id, true)
+            .await
+            .unwrap();
     }
 
     #[tokio::test]
@@ -859,7 +909,10 @@ mod tests {
         coordinator.process_heartbeat("agent-1", 5).await;
 
         assert_eq!(coordinator.get_role().await, AgentRole::Follower);
-        assert_eq!(coordinator.get_leader_id().await, Some("agent-1".to_string()));
+        assert_eq!(
+            coordinator.get_leader_id().await,
+            Some("agent-1".to_string())
+        );
         assert_eq!(coordinator.get_term().await, 5);
     }
 
@@ -901,7 +954,9 @@ mod tests {
             .unwrap();
 
         match response {
-            Some(SwarmMessage::VoteResponse { voter_id, granted, .. }) => {
+            Some(SwarmMessage::VoteResponse {
+                voter_id, granted, ..
+            }) => {
                 assert_eq!(voter_id, "agent-2");
                 assert!(granted);
             }
@@ -931,7 +986,9 @@ mod tests {
 
         // Set up task executor with health check handler
         let executor = Arc::new(TaskExecutor::new("agent-1"));
-        executor.register_handler("health", Arc::new(HealthCheckHandler)).await;
+        executor
+            .register_handler("health", Arc::new(HealthCheckHandler))
+            .await;
         coordinator.set_task_executor(executor);
 
         // Propose and vote
@@ -940,10 +997,16 @@ mod tests {
             .await
             .unwrap();
 
-        coordinator.vote_on_proposal(&proposal_id, true).await.unwrap();
+        coordinator
+            .vote_on_proposal(&proposal_id, true)
+            .await
+            .unwrap();
 
         // Check and execute
-        let result = coordinator.check_and_execute_proposal(&proposal_id).await.unwrap();
+        let result = coordinator
+            .check_and_execute_proposal(&proposal_id)
+            .await
+            .unwrap();
         assert!(result.is_some());
         assert!(result.unwrap().success);
     }

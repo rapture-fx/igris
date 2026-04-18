@@ -13,6 +13,9 @@ impl Bounds {
             "max_cpu_percent must be 1–100, got {}",
             max_cpu_percent
         );
-        Self { max_cpu_percent, max_tick_ms }
+        Self {
+            max_cpu_percent,
+            max_tick_ms,
+        }
     }
 }

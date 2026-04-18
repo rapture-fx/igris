@@ -50,7 +50,10 @@ impl LocalLLMProviderAdapter {
     }
 
     /// Hot-swap the LoRA adapter used by the underlying local engine.
-    pub async fn load_lora_adapter(&self, adapter_path: Option<std::path::PathBuf>) -> anyhow::Result<()> {
+    pub async fn load_lora_adapter(
+        &self,
+        adapter_path: Option<std::path::PathBuf>,
+    ) -> anyhow::Result<()> {
         self.engine.load_lora_adapter(adapter_path).await
     }
 
@@ -64,7 +67,13 @@ impl LocalLLMProviderAdapter {
         main_gpu: Option<Option<u32>>,
     ) -> anyhow::Result<()> {
         self.engine
-            .hot_swap(new_model_path, context_size, threads, n_gpu_layers, main_gpu)
+            .hot_swap(
+                new_model_path,
+                context_size,
+                threads,
+                n_gpu_layers,
+                main_gpu,
+            )
             .await
     }
 }

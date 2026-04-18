@@ -1,10 +1,13 @@
 use anyhow::Result;
-use igris_lora_trainer::{LoRATrainer, LoRATrainingConfig, TrainingDataStore, TrainingExample, TrainingResult, TrainingStatus};
+use igris_lora_trainer::{
+    LoRATrainer, LoRATrainingConfig, TrainingDataStore, TrainingExample, TrainingResult,
+    TrainingStatus,
+};
 use igris_routing::local_provider::LocalProvider;
 use std::path::PathBuf;
 use std::sync::Arc;
-use tokio::sync::Semaphore;
 use tokio::sync::RwLock;
+use tokio::sync::Semaphore;
 use tracing::{info, warn};
 
 #[derive(Debug, Clone)]
@@ -72,7 +75,11 @@ impl LoraTrainingManager {
         let Some(local) = &self.local_provider else {
             return Ok(());
         };
-        if let Some(path) = self.trainer.materialize_latest_adapter_for_runtime().await? {
+        if let Some(path) = self
+            .trainer
+            .materialize_latest_adapter_for_runtime()
+            .await?
+        {
             info!("Auto-loading latest LoRA adapter: {}", path.display());
             local.load_lora_adapter(Some(path)).await?;
         }
@@ -83,7 +90,11 @@ impl LoraTrainingManager {
         let state = self.state.read().await.clone();
         let total_examples = self.store.get_total_examples()?;
         let request_counter = self.store.get_request_counter()?;
-        let should_trigger = self.trainer.should_trigger_training().await.unwrap_or(false);
+        let should_trigger = self
+            .trainer
+            .should_trigger_training()
+            .await
+            .unwrap_or(false);
         Ok(LoraTrainingStatusSnapshot {
             status: state.status,
             last_started_at: state.last_started_at,
@@ -96,7 +107,12 @@ impl LoraTrainingManager {
         })
     }
 
-    pub fn record_example(&self, prompt: String, completion: String, model_used: String) -> Result<()> {
+    pub fn record_example(
+        &self,
+        prompt: String,
+        completion: String,
+        model_used: String,
+    ) -> Result<()> {
         let ts = std::time::SystemTime::now()
             .duration_since(std::time::UNIX_EPOCH)?
             .as_secs();
@@ -173,7 +189,9 @@ impl LoraTrainingManager {
                                         warn!("Failed to hot-load trained adapter: {}", e);
                                     }
                                 }
-                                Ok(None) => warn!("Training finished but no adapter artifact found to load"),
+                                Ok(None) => {
+                                    warn!("Training finished but no adapter artifact found to load")
+                                }
                                 Err(e) => warn!("Failed to materialize adapter for runtime: {}", e),
                             }
                         }
@@ -196,5 +214,3 @@ impl LoraTrainingManager {
         Ok(())
     }
 }
-
-

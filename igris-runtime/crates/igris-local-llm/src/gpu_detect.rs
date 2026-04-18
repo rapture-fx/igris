@@ -98,7 +98,11 @@ fn detect_cuda() -> Result<HardwareInfo> {
 
                 let (layers_7b, layers_13b) = estimate_gpu_layers_cuda(vram_mb);
 
-                info!("Detected CUDA GPU: {} ({} MB VRAM)", device_name, vram_mb.unwrap_or(0));
+                info!(
+                    "Detected CUDA GPU: {} ({} MB VRAM)",
+                    device_name,
+                    vram_mb.unwrap_or(0)
+                );
 
                 return Ok(HardwareInfo {
                     accelerator: AcceleratorType::Cuda,
@@ -141,7 +145,8 @@ fn detect_metal() -> Result<HardwareInfo> {
                         "Apple M3"
                     } else {
                         "Apple Silicon"
-                    }.to_string();
+                    }
+                    .to_string();
 
                     // Apple Silicon has unified memory
                     // Estimate based on chip generation
@@ -155,7 +160,10 @@ fn detect_metal() -> Result<HardwareInfo> {
                         (8192, 30, 18) // Conservative default
                     };
 
-                    info!("Detected Metal GPU: {} (~{} MB unified memory)", device_name, vram_mb);
+                    info!(
+                        "Detected Metal GPU: {} (~{} MB unified memory)",
+                        device_name, vram_mb
+                    );
 
                     return Ok(HardwareInfo {
                         accelerator: AcceleratorType::Metal,
@@ -182,16 +190,15 @@ fn detect_metal() -> Result<HardwareInfo> {
 /// Detect AMD ROCm GPU
 fn detect_rocm() -> Result<HardwareInfo> {
     // Try rocm-smi command
-    let output = Command::new("rocm-smi")
-        .arg("--showproductname")
-        .output();
+    let output = Command::new("rocm-smi").arg("--showproductname").output();
 
     if let Ok(output) = output {
         if output.status.success() {
             let stdout = String::from_utf8_lossy(&output.stdout);
 
             if !stdout.is_empty() {
-                let device_name = stdout.lines()
+                let device_name = stdout
+                    .lines()
                     .find(|line| !line.contains("GPU"))
                     .map(|s| s.trim().to_string())
                     .unwrap_or_else(|| "AMD GPU".to_string());
@@ -224,7 +231,10 @@ fn detect_cpu_only() -> HardwareInfo {
     let cpu_cores = num_cpus::get();
     let recommended_threads = (cpu_cores / 2).max(4);
 
-    info!("CPU-only mode: {} cores, {} threads recommended", cpu_cores, recommended_threads);
+    info!(
+        "CPU-only mode: {} cores, {} threads recommended",
+        cpu_cores, recommended_threads
+    );
 
     HardwareInfo {
         accelerator: AcceleratorType::Cpu,
@@ -246,7 +256,7 @@ fn estimate_gpu_layers_cuda(vram_mb: Option<u64>) -> (u32, u32) {
         Some(vram) if vram >= 8000 => (30, 20),  // 8GB = partial offload
         Some(vram) if vram >= 6000 => (25, 15),  // 6GB = limited offload
         Some(vram) if vram >= 4000 => (20, 10),  // 4GB = minimal offload
-        _ => (0, 0), // Unknown or <4GB = CPU only
+        _ => (0, 0),                             // Unknown or <4GB = CPU only
     }
 }
 

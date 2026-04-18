@@ -39,12 +39,12 @@ impl Default for AlertConfig {
     fn default() -> Self {
         Self {
             enabled: false,
-            max_failure_rate: 0.20,  // 20%
-            max_replan_rate: 50.0,   // 50 replans/min
-            max_llm_latency_ms: 5000.0,  // 5 seconds
-            min_tick_rate: 10.0,     // 10 ticks/sec
+            max_failure_rate: 0.20,     // 20%
+            max_replan_rate: 50.0,      // 50 replans/min
+            max_llm_latency_ms: 5000.0, // 5 seconds
+            min_tick_rate: 10.0,        // 10 ticks/sec
             webhook_url: None,
-            cooldown_seconds: 300,   // 5 minutes
+            cooldown_seconds: 300, // 5 minutes
         }
     }
 }
@@ -117,7 +117,10 @@ impl AlertManager {
 
         // Check failure rate
         if metrics.failure_rate > config.max_failure_rate {
-            if self.should_alert(agent_id, "failure_rate", now, config.cooldown_seconds).await {
+            if self
+                .should_alert(agent_id, "failure_rate", now, config.cooldown_seconds)
+                .await
+            {
                 let alert = Alert {
                     severity: if metrics.failure_rate > 0.5 {
                         AlertSeverity::Critical
@@ -148,7 +151,10 @@ impl AlertManager {
         };
 
         if replan_rate > config.max_replan_rate {
-            if self.should_alert(agent_id, "replan_rate", now, config.cooldown_seconds).await {
+            if self
+                .should_alert(agent_id, "replan_rate", now, config.cooldown_seconds)
+                .await
+            {
                 let alert = Alert {
                     severity: AlertSeverity::Warning,
                     agent_id: agent_id.to_string(),
@@ -167,7 +173,10 @@ impl AlertManager {
 
         // Check LLM latency
         if metrics.avg_llm_latency_ms > config.max_llm_latency_ms {
-            if self.should_alert(agent_id, "llm_latency", now, config.cooldown_seconds).await {
+            if self
+                .should_alert(agent_id, "llm_latency", now, config.cooldown_seconds)
+                .await
+            {
                 let alert = Alert {
                     severity: if metrics.avg_llm_latency_ms > config.max_llm_latency_ms * 2.0 {
                         AlertSeverity::Critical
@@ -190,7 +199,10 @@ impl AlertManager {
 
         // Check tick rate
         if metrics.avg_tick_rate > 0.0 && metrics.avg_tick_rate < config.min_tick_rate {
-            if self.should_alert(agent_id, "tick_rate", now, config.cooldown_seconds).await {
+            if self
+                .should_alert(agent_id, "tick_rate", now, config.cooldown_seconds)
+                .await
+            {
                 let alert = Alert {
                     severity: AlertSeverity::Warning,
                     agent_id: agent_id.to_string(),
@@ -247,7 +259,7 @@ impl AlertManager {
         };
 
         let color = match alert.severity {
-            AlertSeverity::Warning => "#FFA500", // Orange
+            AlertSeverity::Warning => "#FFA500",  // Orange
             AlertSeverity::Critical => "#FF0000", // Red
         };
 
@@ -285,7 +297,13 @@ impl AlertManager {
             }]
         });
 
-        match self.http_client.post(webhook_url).json(&payload).send().await {
+        match self
+            .http_client
+            .post(webhook_url)
+            .json(&payload)
+            .send()
+            .await
+        {
             Ok(_) => {
                 info!("Alert sent to webhook: {:?}", alert.metric);
                 Ok(())
@@ -318,7 +336,7 @@ mod tests {
             avg_llm_latency_ms: 500.0,
             watchdog_triggers: 0,
             total_ticks: 100,
-            failure_rate: 0.25,  // Above threshold
+            failure_rate: 0.25, // Above threshold
             total_execution_ms: 1000.0,
         };
 

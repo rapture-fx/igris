@@ -1,14 +1,14 @@
+use base64::Engine;
 use ed25519_dalek::{Signature, Verifier, VerifyingKey};
 use serde::{Deserialize, Serialize};
 use std::time::SystemTime;
-use base64::Engine;
 
 #[derive(Debug, Clone, Serialize, Deserialize)]
 pub struct EmergencyPolicy {
     pub encrypted_policy: String,
     pub signature: String,
     pub version: u64,
-    pub expires_at: i64,  // Unix milliseconds
+    pub expires_at: i64, // Unix milliseconds
     pub issuer: String,
     pub reason: String,
 }
@@ -20,8 +20,8 @@ pub struct PolicyStore {
 
 impl PolicyStore {
     pub fn new(public_key_base64: &str) -> anyhow::Result<Self> {
-        let public_key_bytes = base64::engine::general_purpose::STANDARD
-            .decode(public_key_base64)?;
+        let public_key_bytes =
+            base64::engine::general_purpose::STANDARD.decode(public_key_base64)?;
 
         let public_key_array: [u8; 32] = public_key_bytes
             .try_into()
@@ -37,8 +37,7 @@ impl PolicyStore {
 
     pub fn apply_policy(&mut self, policy: EmergencyPolicy) -> anyhow::Result<()> {
         // Verify signature
-        let sig_bytes = base64::engine::general_purpose::STANDARD
-            .decode(&policy.signature)?;
+        let sig_bytes = base64::engine::general_purpose::STANDARD.decode(&policy.signature)?;
 
         let sig_array: [u8; 64] = sig_bytes
             .try_into()
@@ -67,8 +66,11 @@ impl PolicyStore {
         // Verify version is monotonically increasing
         if let Some(current) = &self.current_policy {
             if policy.version <= current.version {
-                anyhow::bail!("Policy version must increase (current: {}, new: {})",
-                    current.version, policy.version);
+                anyhow::bail!(
+                    "Policy version must increase (current: {}, new: {})",
+                    current.version,
+                    policy.version
+                );
             }
         }
 

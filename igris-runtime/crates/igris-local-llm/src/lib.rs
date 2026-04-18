@@ -1,26 +1,26 @@
+pub mod inference;
 pub mod models;
 pub mod provider;
-pub mod inference;
 // Candle inference disabled due to dependency issues - use llama.cpp CLI instead
 // pub mod candle_inference;
-pub mod gpu_detect;
 pub mod benchmark;
+pub mod gpu_detect;
 
 use anyhow::Result;
 use base64::Engine;
 use futures::Stream;
-use sha2::{Digest, Sha256};
 use serde::{Deserialize, Serialize};
+use sha2::{Digest, Sha256};
 use std::path::PathBuf;
 use std::pin::Pin;
 use std::sync::Arc;
 use tokio::sync::Mutex;
 use tracing::{debug, info, warn};
 
+pub use gpu_detect::{detect_hardware, AcceleratorType, HardwareInfo};
+pub use inference::RealInferenceEngine;
 pub use models::ModelId;
 pub use provider::LocalLLMProviderAdapter;
-pub use inference::RealInferenceEngine;
-pub use gpu_detect::{detect_hardware, AcceleratorType, HardwareInfo};
 
 // Re-export LLMProvider trait for convenience
 pub use igris_reflection::LLMProvider;
@@ -189,7 +189,10 @@ impl LocalLLMProvider {
             if adapter.exists() {
                 info!("LoRA adapter found: {}", adapter.display());
             } else {
-                warn!("LoRA adapter configured but not found: {}", adapter.display());
+                warn!(
+                    "LoRA adapter configured but not found: {}",
+                    adapter.display()
+                );
             }
         }
 
@@ -199,7 +202,10 @@ impl LocalLLMProvider {
             model_name,
             resolved_context,
             config.threads,
-            adapter_path.as_ref().map(|p| p.display().to_string()).unwrap_or_else(|| "None".to_string())
+            adapter_path
+                .as_ref()
+                .map(|p| p.display().to_string())
+                .unwrap_or_else(|| "None".to_string())
         );
 
         Ok(Self {
@@ -319,7 +325,11 @@ impl LocalLLMProvider {
                 // Hard limit for prompt tokens.
                 let max_prompt_tokens = n_ctx.saturating_sub(max_tokens);
                 if max_prompt_tokens == 0 {
-                    anyhow::bail!("Context too small: n_ctx={} max_tokens={}", n_ctx, max_tokens);
+                    anyhow::bail!(
+                        "Context too small: n_ctx={} max_tokens={}",
+                        n_ctx,
+                        max_tokens
+                    );
                 }
 
                 // If full prompt already fits, use it.
@@ -329,7 +339,11 @@ impl LocalLLMProvider {
                 } else {
                     // Binary search on a char boundary start index for the smallest prefix to drop.
                     // We search the start offset that makes the suffix fit.
-                    let chars: Vec<usize> = prompt.char_indices().map(|(i, _)| i).chain(std::iter::once(prompt.len())).collect();
+                    let chars: Vec<usize> = prompt
+                        .char_indices()
+                        .map(|(i, _)| i)
+                        .chain(std::iter::once(prompt.len()))
+                        .collect();
                     let mut lo = 0usize;
                     let mut hi = chars.len().saturating_sub(1);
                     while lo <= hi {
@@ -372,7 +386,10 @@ impl LocalLLMProvider {
                 PathBuf::from(dir).join(format!("prompt-cache-{}.bin", name))
             });
 
-            info!("Generating with local inference engine (model={})", model_name);
+            info!(
+                "Generating with local inference engine (model={})",
+                model_name
+            );
             let result = real_engine
                 .generate(
                     prompt_to_use,
@@ -430,7 +447,11 @@ impl LocalLLMProvider {
         let prompt_to_use = if est_tokens.saturating_add(max_tokens) > n_ctx {
             let max_prompt_tokens = n_ctx.saturating_sub(max_tokens);
             if max_prompt_tokens == 0 {
-                anyhow::bail!("Context too small: n_ctx={} max_tokens={}", n_ctx, max_tokens);
+                anyhow::bail!(
+                    "Context too small: n_ctx={} max_tokens={}",
+                    n_ctx,
+                    max_tokens
+                );
             }
             let full_tokens = real_engine.count_tokens(prompt).await?;
             if full_tokens <= max_prompt_tokens {

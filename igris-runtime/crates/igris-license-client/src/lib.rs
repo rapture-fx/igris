@@ -89,9 +89,7 @@ impl LicenseClient {
             .map(|addr| addr.to_string())
             .unwrap_or_else(|| "unknown-mac".to_string());
 
-        let hostname = gethostname::gethostname()
-            .to_string_lossy()
-            .to_string();
+        let hostname = gethostname::gethostname().to_string_lossy().to_string();
 
         let mut hasher = Sha256::new();
         hasher.update(mac.as_bytes());
@@ -145,9 +143,7 @@ impl LicenseClient {
     ) -> Result<RegisterResponse> {
         let url = format!("{}/api/v1/license/device/register", self.base_url);
 
-        let hostname = gethostname::gethostname()
-            .to_string_lossy()
-            .to_string();
+        let hostname = gethostname::gethostname().to_string_lossy().to_string();
         let platform = format!("{}-{}", std::env::consts::OS, std::env::consts::ARCH);
 
         let payload = serde_json::json!({
@@ -196,11 +192,7 @@ impl LicenseClient {
     }
 
     /// Deregister a device
-    pub async fn deregister_device(
-        &self,
-        license_key: &str,
-        device_id: &str,
-    ) -> Result<()> {
+    pub async fn deregister_device(&self, license_key: &str, device_id: &str) -> Result<()> {
         let url = format!("{}/api/v1/license/device/deregister", self.base_url);
 
         let payload = serde_json::json!({
@@ -359,7 +351,8 @@ impl RuntimeRegistrationClient {
             return Err(anyhow!(
                 "Runtime limit reached: your {} subscription allows {} runtime instance(s). \
                  Upgrade at https://igrisinertial.com/pricing",
-                tier, limit
+                tier,
+                limit
             ));
         }
 
@@ -398,7 +391,10 @@ impl RuntimeRegistrationClient {
             .map_err(|e| anyhow!("Heartbeat request failed: {}", e))?;
 
         if !resp.status().is_success() {
-            warn!("Runtime heartbeat returned non-success status: {}", resp.status());
+            warn!(
+                "Runtime heartbeat returned non-success status: {}",
+                resp.status()
+            );
         }
 
         Ok(())

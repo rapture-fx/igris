@@ -8,5 +8,5 @@ pub mod log;
 pub mod sync;
 
 pub use entry::{StepType, WalEntry, WalStatus};
-pub use log::{WalLog, WalError};
+pub use log::{WalError, WalLog};
 pub use sync::{BtCheckpointPayload, CheckpointPayload, ResumeToken};
