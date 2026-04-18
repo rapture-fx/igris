@@ -114,5 +114,11 @@ println!("{}", payload);
 
 ## Status Codes
 
-Status-code details are still being documented for this endpoint.
+| Code | Title | Description |
+|---|---|---|
+| 200 | Success | The request completed successfully. For streaming or download endpoints, the success response may be a stream or attachment rather than a JSON object. |
+| 400 | Bad Request | The route was reached, but the request body, query string, or path parameter did not match the endpoint contract. |
+| 401 | Unauthorized | Credentials were missing, expired, malformed, or not accepted by this route. |
+| 429 | Too Many Requests | The caller exceeded the current throttle window and should wait before retrying. |
+| 500 | Server Error | The server accepted the request contract but failed while processing it. |
 
