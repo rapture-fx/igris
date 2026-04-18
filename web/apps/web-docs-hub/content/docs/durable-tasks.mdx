@@ -229,12 +229,21 @@ The public stream remains SSE, but when durability is active the stream ends wit
 data: {"id":"chatcmpl-stream","object":"chat.completion.chunk","model":"gpt-4.1-mini","choices":[{"index":0,"delta":{"content":"Hello"},"finish_reason":null}]}
 
 event: task_result
-data: {"task_id":"018f4a2b-3c1e-7a2d-9b8f-4d5e6f7a8b9c","steps_completed":1,"steps_total":1,"status":"completed","checkpoint":{"resume_token":{"last_committed_step":0}},"usage":{"prompt_tokens":42,"completion_tokens":18,"total_tokens":60},"execution_envelope":{"execution_id":"exec-..."},"execution_receipt":{"transaction_id":"tx-..."}}
+data: {"task_id":"018f4a2b-3c1e-7a2d-9b8f-4d5e6f7a8b9c","steps_completed":1,"steps_total":1,"status":"completed","checkpoint":{"resume_token":{"last_committed_step":0}},"usage":{"prompt_tokens":42,"completion_tokens":18,"total_tokens":60},"execution_envelope":{"execution_id":"exec-..."},"execution_receipt":{"transaction_id":"tx-..."},"durability":{"mode":"streaming","resume_supported":false,"replay_supported":true,"replay_condition":"completed-final-output","checkpoint_persisted":true}}
 
 data: [DONE]
 ```
 
 Use this terminal event when you want the stream itself to tell you which durable task ran and what signed execution artifacts were produced, instead of relying on a follow-up poll to discover them.
+
+Runtime-backed streams also expose the stream contract in response headers:
+
+- `X-Igris-Stream-Execution-Authority`
+- `X-Igris-Stream-Resume-Supported`
+- `X-Igris-Stream-Replay-Condition`
+- `X-Igris-Runtime-Task-Id`
+- `X-Igris-Runtime-Stream-Resume-Supported`
+- `X-Igris-Runtime-Stream-Replay-Condition`
 
 Current scope:
 
@@ -242,6 +251,8 @@ Current scope:
 - council streaming emits the chairman's synthesized final answer as SSE output and still finishes with the durable `task_result` event
 - the stream remains receipt-bearing and idempotent even when council execution itself is internally buffered before the final answer is emitted
 - a completed durable stream can be replayed idempotently with the same task result metadata
+- if replay is requested for a failed, checkpointed, or incomplete stream, Runtime returns `409 stream_replay_unavailable` with a task snapshot and `durability` metadata
+- if Overture receives a structured Runtime stream rejection, it preserves `runtime_status_code`, `runtime_payload`, and normalized `failure` details instead of using `allow_stream_fallback`
 
 ---
 
