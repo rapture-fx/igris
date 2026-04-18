@@ -79,10 +79,10 @@
 //!     .add_child(Box::new(CheckBlackboard::new("connection", "connected", true)));
 //! ```
 
-mod sequence;
-mod selector;
 mod parallel;
+mod selector;
+mod sequence;
 
-pub use sequence::Sequence;
-pub use selector::Selector;
 pub use parallel::{Parallel, ParallelPolicy};
+pub use selector::Selector;
+pub use sequence::Sequence;

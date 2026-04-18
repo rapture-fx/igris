@@ -157,19 +157,30 @@ impl BTreeNode for Selector {
     }
 
     async fn tick(&mut self, context: &mut BTreeContext) -> Result<NodeStatus> {
-        debug!("Selector '{}': Ticking (child {}/{})", self.name, self.current_child, self.children.len());
+        debug!(
+            "Selector '{}': Ticking (child {}/{})",
+            self.name,
+            self.current_child,
+            self.children.len()
+        );
 
         // Try children in order until one succeeds
         while self.current_child < self.children.len() {
             let child = &mut self.children[self.current_child];
             let status = child.tick(context).await?;
 
-            debug!("Selector '{}': Child {} returned {:?}", self.name, self.current_child, status);
+            debug!(
+                "Selector '{}': Child {} returned {:?}",
+                self.name, self.current_child, status
+            );
 
             match status {
                 NodeStatus::Success => {
                     // Child succeeded, reset and return Success
-                    debug!("Selector '{}': Child succeeded, returning Success", self.name);
+                    debug!(
+                        "Selector '{}': Child succeeded, returning Success",
+                        self.name
+                    );
                     self.reset().await;
                     return Ok(NodeStatus::Success);
                 }
@@ -211,9 +222,7 @@ impl BTreeNode for Selector {
     }
 
     fn to_json(&self) -> Result<serde_json::Value> {
-        let children_json: Result<Vec<_>> = self.children.iter()
-            .map(|c| c.to_json())
-            .collect();
+        let children_json: Result<Vec<_>> = self.children.iter().map(|c| c.to_json()).collect();
 
         Ok(serde_json::json!({
             "name": self.name,
@@ -230,8 +239,12 @@ mod tests {
     struct AlwaysFailNode;
     #[async_trait]
     impl BTreeNode for AlwaysFailNode {
-        fn name(&self) -> &str { "fail" }
-        fn node_type(&self) -> &str { "AlwaysFail" }
+        fn name(&self) -> &str {
+            "fail"
+        }
+        fn node_type(&self) -> &str {
+            "AlwaysFail"
+        }
         async fn tick(&mut self, _context: &mut BTreeContext) -> Result<NodeStatus> {
             Ok(NodeStatus::Failure)
         }
@@ -240,8 +253,12 @@ mod tests {
     struct AlwaysSucceedNode;
     #[async_trait]
     impl BTreeNode for AlwaysSucceedNode {
-        fn name(&self) -> &str { "succeed" }
-        fn node_type(&self) -> &str { "AlwaysSucceed" }
+        fn name(&self) -> &str {
+            "succeed"
+        }
+        fn node_type(&self) -> &str {
+            "AlwaysSucceed"
+        }
         async fn tick(&mut self, _context: &mut BTreeContext) -> Result<NodeStatus> {
             Ok(NodeStatus::Success)
         }

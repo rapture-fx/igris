@@ -209,7 +209,10 @@ impl JsonTreeParser {
             .unwrap_or("unnamed")
             .to_string();
 
-        debug!("JsonTreeParser: Parsing node type='{}', name='{}'", node_type, name);
+        debug!(
+            "JsonTreeParser: Parsing node type='{}', name='{}'",
+            node_type, name
+        );
 
         match node_type {
             "Sequence" => self.parse_sequence(json, context, name),
@@ -220,7 +223,12 @@ impl JsonTreeParser {
         }
     }
 
-    fn parse_sequence(&self, json: &Value, context: &BTreeContext, name: String) -> Result<Box<dyn BTreeNode>> {
+    fn parse_sequence(
+        &self,
+        json: &Value,
+        context: &BTreeContext,
+        name: String,
+    ) -> Result<Box<dyn BTreeNode>> {
         let children = json
             .get("children")
             .and_then(|v| v.as_array())
@@ -235,7 +243,12 @@ impl JsonTreeParser {
         Ok(Box::new(seq))
     }
 
-    fn parse_selector(&self, json: &Value, context: &BTreeContext, name: String) -> Result<Box<dyn BTreeNode>> {
+    fn parse_selector(
+        &self,
+        json: &Value,
+        context: &BTreeContext,
+        name: String,
+    ) -> Result<Box<dyn BTreeNode>> {
         let children = json
             .get("children")
             .and_then(|v| v.as_array())
@@ -250,20 +263,36 @@ impl JsonTreeParser {
         Ok(Box::new(sel))
     }
 
-    fn parse_action(&self, json: &Value, context: &BTreeContext, name: String) -> Result<Box<dyn BTreeNode>> {
+    fn parse_action(
+        &self,
+        json: &Value,
+        context: &BTreeContext,
+        name: String,
+    ) -> Result<Box<dyn BTreeNode>> {
         let tool_name = json
             .get("tool")
             .and_then(|v| v.as_str())
             .ok_or_else(|| anyhow!("Action '{}' missing 'tool' field", name))?;
 
-        let args = json.get("args").cloned().unwrap_or(Value::Object(serde_json::Map::new()));
+        let args = json
+            .get("args")
+            .cloned()
+            .unwrap_or(Value::Object(serde_json::Map::new()));
 
         // Check if we have tool registry
         if let Some(registry) = &context.tool_registry {
-            Ok(Box::new(ToolAction::new(name, tool_name, args, registry.clone())))
+            Ok(Box::new(ToolAction::new(
+                name,
+                tool_name,
+                args,
+                registry.clone(),
+            )))
         } else {
             // Fallback: create SetBlackboard action for testing
-            debug!("JsonTreeParser: No tool registry, creating SetBlackboard fallback for '{}'", name);
+            debug!(
+                "JsonTreeParser: No tool registry, creating SetBlackboard fallback for '{}'",
+                name
+            );
             Ok(Box::new(SetBlackboard::new(
                 name,
                 format!("action_{}", tool_name),

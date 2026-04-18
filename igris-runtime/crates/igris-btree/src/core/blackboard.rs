@@ -121,9 +121,10 @@ impl Blackboard {
     ///
     /// Error messages include the key name and expected type for fast debugging.
     pub async fn get_as<T: serde::de::DeserializeOwned>(&self, key: &str) -> anyhow::Result<T> {
-        let value = self.get(key).await.ok_or_else(|| {
-            anyhow::anyhow!("blackboard key '{}' not found", key)
-        })?;
+        let value = self
+            .get(key)
+            .await
+            .ok_or_else(|| anyhow::anyhow!("blackboard key '{}' not found", key))?;
         serde_json::from_value(value).map_err(|e| {
             anyhow::anyhow!(
                 "blackboard key '{}' could not be deserialized as {}: {}",
@@ -318,8 +319,7 @@ impl Blackboard {
             .iter()
             .map(|(k, e)| (k.clone(), e.value.clone()))
             .collect();
-        serde_json::to_value(sorted)
-            .unwrap_or(serde_json::Value::Object(Default::default()))
+        serde_json::to_value(sorted).unwrap_or(serde_json::Value::Object(Default::default()))
     }
 
     /// Return a full snapshot including write metadata, sorted by key.
@@ -338,8 +338,7 @@ impl Blackboard {
                 )
             })
             .collect();
-        serde_json::to_value(sorted)
-            .unwrap_or(serde_json::Value::Object(Default::default()))
+        serde_json::to_value(sorted).unwrap_or(serde_json::Value::Object(Default::default()))
     }
 
     /// Replace the entire blackboard with the values from a snapshot.
@@ -352,10 +351,7 @@ impl Blackboard {
             let mut data = self.data.write().await;
             data.clear();
             for (k, v) in map {
-                data.insert(
-                    k.clone(),
-                    BlackboardEntry::new(v.clone(), 0, "checkpoint"),
-                );
+                data.insert(k.clone(), BlackboardEntry::new(v.clone(), 0, "checkpoint"));
             }
         }
     }
@@ -423,7 +419,9 @@ impl<'a> ScopedBlackboard<'a> {
     }
 
     pub async fn set_tagged(&self, key: &str, value: Value, tick: u64, node: &str) {
-        self.bb.set_tagged(&self.full_key(key), value, tick, node).await;
+        self.bb
+            .set_tagged(&self.full_key(key), value, tick, node)
+            .await;
     }
 
     pub async fn set_from<T: serde::Serialize>(&self, key: &str, value: &T) -> anyhow::Result<()> {
@@ -489,10 +487,15 @@ mod tests {
     #[tokio::test]
     async fn test_typed_roundtrip() {
         #[derive(serde::Serialize, serde::Deserialize, PartialEq, Debug)]
-        struct Position { x: f64, y: f64 }
+        struct Position {
+            x: f64,
+            y: f64,
+        }
 
         let bb = Blackboard::new();
-        bb.set_from("pos", &Position { x: 1.0, y: 2.0 }).await.unwrap();
+        bb.set_from("pos", &Position { x: 1.0, y: 2.0 })
+            .await
+            .unwrap();
         let loaded: Position = bb.get_as("pos").await.unwrap();
         assert_eq!(loaded, Position { x: 1.0, y: 2.0 });
     }
@@ -516,7 +519,8 @@ mod tests {
     #[tokio::test]
     async fn test_set_tagged_metadata() {
         let bb = Blackboard::new();
-        bb.set_tagged("goal", json!("dock"), 12, "PlannerNode").await;
+        bb.set_tagged("goal", json!("dock"), 12, "PlannerNode")
+            .await;
 
         let entry = bb.get_entry("goal").await.unwrap();
         assert_eq!(entry.value, json!("dock"));
@@ -525,7 +529,8 @@ mod tests {
         assert_eq!(entry.version, 1);
 
         // Overwrite increments version
-        bb.set_tagged("goal", json!("charge"), 15, "PlannerNode").await;
+        bb.set_tagged("goal", json!("charge"), 15, "PlannerNode")
+            .await;
         let entry = bb.get_entry("goal").await.unwrap();
         assert_eq!(entry.value, json!("charge"));
         assert_eq!(entry.version, 2);
@@ -546,7 +551,8 @@ mod tests {
         for _ in 0..5 {
             bb.update_with("count", |v| {
                 Some(json!(v.and_then(|n| n.as_i64()).unwrap_or(0) + 1))
-            }).await;
+            })
+            .await;
         }
         assert_eq!(bb.get("count").await, Some(json!(5)));
     }
@@ -618,7 +624,10 @@ mod tests {
 
         assert_eq!(bb.get("shared_key").await, Some(json!("new")));
         assert_eq!(bb.get("fresh_key").await, Some(json!("fresh")));
-        assert!(!bb.contains("stale_key").await, "stale key should be gone after restore");
+        assert!(
+            !bb.contains("stale_key").await,
+            "stale key should be gone after restore"
+        );
     }
 
     #[tokio::test]

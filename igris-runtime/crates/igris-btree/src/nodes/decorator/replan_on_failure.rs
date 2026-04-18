@@ -39,10 +39,7 @@ impl ReplanOnFailure {
                 task_key_str.clone(),
                 "replanned_subtree",
             ),
-            loader: SubtreeLoader::new(
-                format!("{}_loader", name_str),
-                "replanned_subtree",
-            ),
+            loader: SubtreeLoader::new(format!("{}_loader", name_str), "replanned_subtree"),
             name: name_str,
             child,
             task_key: task_key_str,
@@ -108,7 +105,10 @@ impl BTreeNode for ReplanOnFailure {
                     // Load replanned subtree
                     let load_status = self.loader.tick(context).await?;
                     if load_status.is_failure() {
-                        warn!("❌ ReplanOnFailure '{}': Failed to load new plan", self.name);
+                        warn!(
+                            "❌ ReplanOnFailure '{}': Failed to load new plan",
+                            self.name
+                        );
                         return Ok(NodeStatus::Failure);
                     }
 
@@ -152,8 +152,8 @@ impl BTreeNode for ReplanOnFailure {
 #[cfg(test)]
 mod tests {
     use super::*;
-    use crate::MockLlmProvider;
     use crate::nodes::action::SetBlackboard;
+    use crate::MockLlmProvider;
     use std::sync::Arc;
 
     struct FailThenSucceedNode {
@@ -198,12 +198,14 @@ mod tests {
         let mut context = BTreeContext::new().with_llm(provider);
 
         // Set initial task
-        context.blackboard.set("task", serde_json::json!("Test mission")).await;
+        context
+            .blackboard
+            .set("task", serde_json::json!("Test mission"))
+            .await;
 
         // Create node that fails twice then succeeds
         let child = Box::new(FailThenSucceedNode::new(2));
-        let mut decorator = ReplanOnFailure::new("test_replan", child, "task")
-            .with_max_replans(3);
+        let mut decorator = ReplanOnFailure::new("test_replan", child, "task").with_max_replans(3);
 
         let status = decorator.tick(&mut context).await.unwrap();
 
@@ -216,7 +218,10 @@ mod tests {
         let provider = Arc::new(MockLlmProvider::with_recovery_plan());
         let mut context = BTreeContext::new().with_llm(provider);
 
-        context.blackboard.set("task", serde_json::json!("Test")).await;
+        context
+            .blackboard
+            .set("task", serde_json::json!("Test"))
+            .await;
 
         // Create node that always fails
         struct AlwaysFailNode;
@@ -234,8 +239,7 @@ mod tests {
         }
 
         let child = Box::new(AlwaysFailNode);
-        let mut decorator = ReplanOnFailure::new("test_max", child, "task")
-            .with_max_replans(2);
+        let mut decorator = ReplanOnFailure::new("test_max", child, "task").with_max_replans(2);
 
         let status = decorator.tick(&mut context).await.unwrap();
 

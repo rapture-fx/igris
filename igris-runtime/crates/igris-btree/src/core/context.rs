@@ -272,8 +272,9 @@ impl BTreeContext {
     /// Get the ROS2 node or return an error if not configured (requires `ros2` feature).
     #[cfg(feature = "ros2")]
     pub fn require_ros2(&self) -> anyhow::Result<Arc<Ros2Node>> {
-        self.ros2_node.clone()
-            .ok_or_else(|| anyhow::anyhow!("ROS2 node not configured in context — call with_ros2()"))
+        self.ros2_node.clone().ok_or_else(|| {
+            anyhow::anyhow!("ROS2 node not configured in context — call with_ros2()")
+        })
     }
 
     /// Check if an LLM provider is available.
@@ -339,7 +340,8 @@ impl BTreeContext {
     /// assert!(context.require_llm().is_err());
     /// ```
     pub fn require_llm(&self) -> anyhow::Result<Arc<dyn LlmProvider>> {
-        self.llm_provider.clone()
+        self.llm_provider
+            .clone()
             .ok_or_else(|| anyhow::anyhow!("LLM provider not configured in context"))
     }
 
@@ -355,7 +357,8 @@ impl BTreeContext {
     ///
     /// Returns an error if no tool registry was configured in the context.
     pub fn require_tools(&self) -> anyhow::Result<Arc<ToolRegistry>> {
-        self.tool_registry.clone()
+        self.tool_registry
+            .clone()
             .ok_or_else(|| anyhow::anyhow!("Tool registry not configured in context"))
     }
 
@@ -371,7 +374,8 @@ impl BTreeContext {
     ///
     /// Returns an error if no RT executor was configured in the context.
     pub fn require_rt_executor(&self) -> anyhow::Result<Arc<igris_rt::RtExecutor>> {
-        self.rt_executor.clone()
+        self.rt_executor
+            .clone()
             .ok_or_else(|| anyhow::anyhow!("RT executor not configured in context"))
     }
 }
@@ -390,8 +394,7 @@ mod tests {
     #[test]
     fn test_context_builder() {
         let provider = Arc::new(MockLlmProvider::new(vec![]));
-        let context = BTreeContext::new()
-            .with_llm(provider);
+        let context = BTreeContext::new().with_llm(provider);
 
         assert!(context.has_llm());
         assert!(!context.has_tools());

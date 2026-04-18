@@ -156,14 +156,22 @@ impl BTreeNode for Sequence {
     }
 
     async fn tick(&mut self, context: &mut BTreeContext) -> Result<NodeStatus> {
-        debug!("Sequence '{}': Ticking (child {}/{})", self.name, self.current_child, self.children.len());
+        debug!(
+            "Sequence '{}': Ticking (child {}/{})",
+            self.name,
+            self.current_child,
+            self.children.len()
+        );
 
         // Tick children in sequence
         while self.current_child < self.children.len() {
             let child = &mut self.children[self.current_child];
             let status = child.tick(context).await?;
 
-            debug!("Sequence '{}': Child {} returned {:?}", self.name, self.current_child, status);
+            debug!(
+                "Sequence '{}': Child {} returned {:?}",
+                self.name, self.current_child, status
+            );
 
             match status {
                 NodeStatus::Success => {
@@ -210,9 +218,7 @@ impl BTreeNode for Sequence {
     }
 
     fn to_json(&self) -> Result<serde_json::Value> {
-        let children_json: Result<Vec<_>> = self.children.iter()
-            .map(|c| c.to_json())
-            .collect();
+        let children_json: Result<Vec<_>> = self.children.iter().map(|c| c.to_json()).collect();
 
         Ok(serde_json::json!({
             "name": self.name,
@@ -243,8 +249,8 @@ mod tests {
 
     #[tokio::test]
     async fn test_sequence_reset_on_completion() {
-        let mut seq = Sequence::new("test")
-            .add_child(Box::new(SetBlackboard::new("set1", "key", "val")));
+        let mut seq =
+            Sequence::new("test").add_child(Box::new(SetBlackboard::new("set1", "key", "val")));
 
         let mut context = BTreeContext::new();
 

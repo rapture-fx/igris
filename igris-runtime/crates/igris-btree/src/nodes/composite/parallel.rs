@@ -187,7 +187,12 @@ impl BTreeNode for Parallel {
     }
 
     async fn tick(&mut self, context: &mut BTreeContext) -> Result<NodeStatus> {
-        debug!("Parallel '{}': Ticking {} children ({:?})", self.name, self.children.len(), self.policy);
+        debug!(
+            "Parallel '{}': Ticking {} children ({:?})",
+            self.name,
+            self.children.len(),
+            self.policy
+        );
 
         let mut any_running = false;
         let mut success_count = 0;
@@ -219,8 +224,10 @@ impl BTreeNode for Parallel {
             }
         }
 
-        debug!("Parallel '{}': success={}, failure={}, running={}",
-            self.name, success_count, failure_count, any_running);
+        debug!(
+            "Parallel '{}': success={}, failure={}, running={}",
+            self.name, success_count, failure_count, any_running
+        );
 
         // Check policy
         match self.policy {
@@ -273,9 +280,7 @@ impl BTreeNode for Parallel {
     }
 
     fn to_json(&self) -> Result<serde_json::Value> {
-        let children_json: Result<Vec<_>> = self.children.iter()
-            .map(|c| c.to_json())
-            .collect();
+        let children_json: Result<Vec<_>> = self.children.iter().map(|c| c.to_json()).collect();
 
         Ok(serde_json::json!({
             "name": self.name,

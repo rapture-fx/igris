@@ -125,14 +125,14 @@
 //! # }
 //! ```
 
-mod repeat;
 mod inverter;
-mod timeout;
-mod retry;
+mod repeat;
 mod replan_on_failure;
+mod retry;
+mod timeout;
 
-pub use repeat::Repeat;
 pub use inverter::Inverter;
-pub use timeout::Timeout;
-pub use retry::Retry;
+pub use repeat::Repeat;
 pub use replan_on_failure::ReplanOnFailure;
+pub use retry::Retry;
+pub use timeout::Timeout;
