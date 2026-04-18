@@ -77,6 +77,7 @@ export type ApiEndpointPageData = {
   requestBodyFields: ApiField[];
   requestExample: string | null;
   responseExample: string | null;
+  responseExampleLanguage: string;
   statusCodes: ApiStatusCode[];
   codeSamples: ApiCodeSample[];
   notes: string[];
