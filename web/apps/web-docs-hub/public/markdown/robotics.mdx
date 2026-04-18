@@ -80,7 +80,7 @@ For physical safety in robotics deployments, Igris provides:
 
 **Human-in-the-loop approval.** High-stakes operations can be configured to pause for human approval before the actuator command is issued.
 
-**Emergency stop hook.** Igris exposes a `/v1/emergency-stop` endpoint. Calling this endpoint terminates all active executions and prevents new ones from starting until the stop is cleared.
+**Emergency stop hook.** Runtime-side robotics containment applies emergency halt behavior through the ROS2 containment bridge and behavior tree watchdog. Expose the physical E-stop path through your robot safety controller, then have the runtime record the halted mission state in the execution receipt.
 
 ---
 
