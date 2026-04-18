@@ -619,6 +619,13 @@ func TestBuildTaskCanceledResponse(t *testing.T) {
 		"last_step":            float64(3),
 		"checkpoint_digest":    "abc123",
 		"checkpoint_persisted": true,
+		"durability": fiber.Map{
+			"mode":                 "streaming",
+			"resume_supported":     false,
+			"replay_supported":     false,
+			"replay_condition":     "completed-final-output",
+			"checkpoint_persisted": true,
+		},
 	})
 
 	require.Equal(t, true, resp["ok"])
@@ -631,6 +638,13 @@ func TestBuildTaskCanceledResponse(t *testing.T) {
 		"last_step":            float64(3),
 		"checkpoint_digest":    "abc123",
 		"checkpoint_persisted": true,
+		"durability": fiber.Map{
+			"mode":                 "streaming",
+			"resume_supported":     false,
+			"replay_supported":     false,
+			"replay_condition":     "completed-final-output",
+			"checkpoint_persisted": true,
+		},
 	}, resp["runtime_cancel"])
 	require.Equal(t, &canceledAt, resp["canceled_at"])
 	require.Equal(t, fiber.Map{
@@ -2287,6 +2301,13 @@ func TestHandleTaskCancelReturnsRuntimeCancelConflictSnapshot(t *testing.T) {
 				"checkpoint_persisted": true,
 				"last_step":            float64(4),
 				"checkpoint_digest":    "digest-4",
+				"durability": map[string]any{
+					"mode":                 "streaming",
+					"resume_supported":     false,
+					"replay_supported":     false,
+					"replay_condition":     "completed-final-output",
+					"checkpoint_persisted": true,
+				},
 				"failure_details": map[string]any{
 					"source":         "runtime",
 					"operation":      "execution",
@@ -2383,6 +2404,13 @@ func TestHandleTaskCancelReturnsRuntimeCancelConflictSnapshot(t *testing.T) {
 	require.Equal(t, true, runtimeCancel["checkpoint_persisted"])
 	require.Equal(t, float64(4), runtimeCancel["last_step"])
 	require.Equal(t, "digest-4", runtimeCancel["checkpoint_digest"])
+	require.Equal(t, map[string]any{
+		"mode":                 "streaming",
+		"resume_supported":     false,
+		"replay_supported":     false,
+		"replay_condition":     "completed-final-output",
+		"checkpoint_persisted": true,
+	}, runtimeCancel["durability"])
 	require.Equal(t, map[string]any{
 		"source":         "runtime",
 		"operation":      "execution",
