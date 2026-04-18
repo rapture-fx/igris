@@ -37,6 +37,9 @@ function main() {
         failures.push(`${filePath}: ${rule.message}`);
       }
     }
+    if (filePath.includes(`${path.sep}api-reference${path.sep}`) && /\/[^\s`"')<]*\{[a-zA-Z0-9_]+\}/.test(content)) {
+      failures.push(`${filePath}: raw brace-style path parameter would be parsed as an MDX expression; render it as :param or HTML entities.`);
+    }
   }
 
   const apiReferencePath = path.join(generatedDir, 'api-reference.json');
