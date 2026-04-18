@@ -12,14 +12,14 @@ use axum::{
     },
 };
 use base64::Engine;
-use ed25519_dalek::Signer;
+use ed25519_dalek::{Signer, Verifier};
 use futures::{stream, Stream, StreamExt};
 use serde::{Deserialize, Serialize};
 use sha2::{Digest, Sha256};
-use std::collections::HashMap;
+use std::collections::{BTreeMap, HashMap};
 use std::convert::Infallible;
 use std::pin::Pin;
-use std::time::{Duration, Instant};
+use std::time::{Duration, Instant, SystemTime, UNIX_EPOCH};
 use tokio::sync::watch;
 use tracing::{error, info, warn};
 use uuid::Uuid;
@@ -148,7 +148,7 @@ pub struct RoboticsStep {
 }
 
 #[derive(Debug, Clone, Serialize, Deserialize, PartialEq, Eq)]
-struct GovernedAction {
+pub(crate) struct GovernedAction {
     schema_version: String,
     domain: String,
     action_type: String,
@@ -159,6 +159,29 @@ struct GovernedAction {
     target: Option<String>,
     requires_policy: bool,
     safety_mode_required: bool,
+}
+
+#[derive(Debug, Clone, Serialize, Deserialize)]
+pub(crate) struct GovernedPolicyDecision {
+    schema_version: String,
+    decision_id: String,
+    tenant_id: String,
+    task_id: String,
+    #[serde(skip_serializing_if = "Option::is_none")]
+    runtime_id: Option<String>,
+    action: GovernedAction,
+    permit: bool,
+    reason: String,
+    policy_version: String,
+    runtime_permitted: bool,
+    tenant_permitted: bool,
+    policy_permitted: bool,
+    robot_mode_permitted: bool,
+    issued_at_unix_ms: u64,
+    expires_at_unix_ms: u64,
+    #[serde(skip_serializing_if = "Option::is_none")]
+    signer_key_version: Option<String>,
+    signature: String,
 }
 
 #[derive(Debug, Clone, Serialize, Deserialize)]
@@ -410,6 +433,8 @@ pub struct TaskSubmitRequest {
     pub resume_checkpoint: Option<serde_json::Value>,
     pub idempotency_key: String,
     pub tenant_id: String,
+    #[serde(default)]
+    pub(crate) signed_policy_decisions: Vec<GovernedPolicyDecision>,
     #[serde(default)]
     pub deadline_ms: Option<u64>,
 }
@@ -1081,6 +1106,7 @@ pub async fn handle_task_submit(
                     robotics_step,
                     &graph_blackboard,
                     req.containment.as_ref(),
+                    &req.signed_policy_decisions,
                     max_tick_ms,
                 )
                 .await
@@ -1131,6 +1157,18 @@ pub async fn handle_task_submit(
             Err(e) => {
                 warn!(task_id = %req.task_id, step = step.step_index(), "Task step failed: {}", e);
                 let _ = wal.write_failed(wal_entry.entry_id, e.to_string());
+                let failure_artifacts = build_failure_execution_artifacts(
+                    &state,
+                    &req,
+                    step,
+                    &e.to_string(),
+                    wall_start.elapsed().as_millis() as u64,
+                )
+                .await
+                .ok();
+                let (execution_envelope, execution_receipt) = failure_artifacts
+                    .map(|(envelope, receipt)| (Some(envelope), receipt))
+                    .unwrap_or_else(|| (last_envelope, last_receipt));
                 let response = TaskSubmitResponse {
                     task_id: req.task_id,
                     steps_completed,
@@ -1146,8 +1184,8 @@ pub async fn handle_task_submit(
                         e.to_string(),
                         Some(step),
                     )),
-                    execution_envelope: last_envelope,
-                    execution_receipt: last_receipt,
+                    execution_envelope,
+                    execution_receipt,
                 };
                 let _ = persist_task_record(&state, &submission_key, &request_hash, &response);
                 return (StatusCode::OK, Json(response)).into_response();
@@ -1494,6 +1532,7 @@ pub async fn handle_task_stream(
         resume_checkpoint: None,
         idempotency_key: req.idempotency_key.clone(),
         tenant_id: req.tenant_id.clone(),
+        signed_policy_decisions: req.signed_policy_decisions.clone(),
         deadline_ms: req.deadline_ms,
     };
 
@@ -3370,9 +3409,21 @@ async fn execute_robotics_step(
     step: &RoboticsStep,
     graph_blackboard: &serde_json::Value,
     containment: Option<&Bounds>,
+    signed_policy_decisions: &[GovernedPolicyDecision],
     max_tick_ms: u64,
 ) -> anyhow::Result<StepExecutionResult> {
-    let safety_gate = evaluate_robotics_safety_gate(tenant_id, &step.action, containment);
+    let governed_action = RuntimeTaskStep::Robotics(step.clone())
+        .governed_action()
+        .ok_or_else(|| anyhow::anyhow!("robotics action is missing governed action metadata"))?;
+    let safety_gate = evaluate_robotics_safety_gate(
+        state.overture_public_key.as_deref(),
+        task_id,
+        &state.swarm_peer_id,
+        tenant_id,
+        &governed_action,
+        containment,
+        signed_policy_decisions,
+    );
     if !safety_gate.permitted {
         anyhow::bail!(
             "robotics safety gate denied action {}: {}",
@@ -3380,6 +3431,12 @@ async fn execute_robotics_step(
             safety_gate.reason
         );
     }
+    let governance_metadata = safety_gate
+        .policy_decision
+        .as_ref()
+        .map(|decision| robotics_governance_metadata(&governed_action, decision));
+    #[cfg(not(feature = "ros2"))]
+    let _ = &governance_metadata;
 
     maybe_require_step_approval(
         &state,
@@ -3459,7 +3516,7 @@ async fn execute_robotics_step(
                             "feedback": feedback,
                             "status": "succeeded"
                         })),
-                        checkpoint_metadata: None,
+                        checkpoint_metadata: governance_metadata.clone(),
                         checkpoint_requested: false,
                     }),
                     igris_ros2::NavigationState::Failed(reason) => {
@@ -3483,7 +3540,7 @@ async fn execute_robotics_step(
                         total_tokens: 0,
                     },
                     graph_output: serde_json::from_str(&output_text).ok(),
-                    checkpoint_metadata: None,
+                    checkpoint_metadata: governance_metadata.clone(),
                     checkpoint_requested: false,
                 })
             }
@@ -3501,7 +3558,7 @@ async fn execute_robotics_step(
                         "action": "cancel_navigation",
                         "status": "requested"
                     })),
-                    checkpoint_metadata: None,
+                    checkpoint_metadata: governance_metadata.clone(),
                     checkpoint_requested: false,
                 })
             }
@@ -3519,7 +3576,7 @@ async fn execute_robotics_step(
                         "action": "publish_prompt",
                         "prompt": prompt
                     })),
-                    checkpoint_metadata: None,
+                    checkpoint_metadata: governance_metadata.clone(),
                     checkpoint_requested: false,
                 })
             }
@@ -3547,7 +3604,7 @@ async fn execute_robotics_step(
                         "linear_x": linear_x,
                         "angular_z": angular_z
                     })),
-                    checkpoint_metadata: None,
+                    checkpoint_metadata: governance_metadata.clone(),
                     checkpoint_requested: false,
                 })
             }
@@ -3565,7 +3622,7 @@ async fn execute_robotics_step(
                         "action": "publish_zero_velocity",
                         "status": "published"
                     })),
-                    checkpoint_metadata: None,
+                    checkpoint_metadata: governance_metadata.clone(),
                     checkpoint_requested: false,
                 })
             }
@@ -3574,46 +3631,75 @@ async fn execute_robotics_step(
 
     #[cfg(not(feature = "ros2"))]
     {
-        let _ = (state, step, graph_blackboard, max_tick_ms);
+        let _ = (
+            state,
+            step,
+            graph_blackboard,
+            max_tick_ms,
+            signed_policy_decisions,
+        );
         anyhow::bail!(
             "robotics task execution requires a runtime built with the robotics-platform feature"
         )
     }
 }
 
-#[derive(Debug, Clone, PartialEq, Eq)]
+#[derive(Debug, Clone)]
 struct RoboticsSafetyGateDecision {
     permitted: bool,
     reason: String,
-    runtime_permitted: bool,
-    tenant_permitted: bool,
-    policy_permitted: bool,
-    robot_mode_permitted: bool,
+    policy_decision: Option<GovernedPolicyDecision>,
 }
 
 fn evaluate_robotics_safety_gate(
+    overture_public_key: Option<&ed25519_dalek::VerifyingKey>,
+    task_id: Uuid,
+    runtime_id: &str,
     tenant_id: &str,
-    action: &RoboticsAction,
+    action: &GovernedAction,
     containment: Option<&Bounds>,
+    signed_policy_decisions: &[GovernedPolicyDecision],
 ) -> RoboticsSafetyGateDecision {
-    let runtime_permitted = std::env::var("IGRIS_ROBOTICS_RUNTIME_ENABLED")
-        .map(|value| value.eq_ignore_ascii_case("true"))
-        .unwrap_or(false);
-    let tenant_permitted = robotics_tenant_permitted(tenant_id);
-    let policy_permitted = containment.is_some()
-        && std::env::var("IGRIS_ROBOTICS_POLICY_PERMIT")
-            .map(|value| value.eq_ignore_ascii_case("true"))
-            .unwrap_or(false);
-    let robot_mode = std::env::var("IGRIS_ROBOTICS_MODE").unwrap_or_default();
-    let robot_mode_permitted = matches!(
-        robot_mode.trim().to_ascii_lowercase().as_str(),
-        "supervised" | "active"
-    );
+    let Some(verifying_key) = overture_public_key else {
+        return denied_robotics_safety_gate("missing signed policy verifier");
+    };
 
-    let permitted =
-        runtime_permitted && tenant_permitted && policy_permitted && robot_mode_permitted;
+    let Some(decision) = signed_policy_decisions.iter().find(|decision| {
+        decision.tenant_id == tenant_id
+            && decision.task_id == task_id.to_string()
+            && decision.action == *action
+            && decision
+                .runtime_id
+                .as_deref()
+                .map(|value| value == runtime_id || value == "*")
+                .unwrap_or(true)
+    }) else {
+        return denied_robotics_safety_gate("missing signed policy decision");
+    };
+
+    if let Err(err) = verify_policy_decision_signature(decision, verifying_key) {
+        return denied_robotics_safety_gate(format!("invalid signed policy decision: {err}"));
+    }
+
+    if decision.schema_version != "governed_policy_decision.v1" {
+        return denied_robotics_safety_gate("unsupported signed policy decision schema");
+    }
+
+    if decision.expires_at_unix_ms <= unix_now_ms() {
+        return denied_robotics_safety_gate("signed policy decision expired");
+    }
+
+    let runtime_permitted = decision.runtime_permitted;
+    let tenant_permitted = decision.tenant_permitted;
+    let policy_permitted = containment.is_some() && decision.policy_permitted;
+    let robot_mode_permitted = decision.robot_mode_permitted;
+    let permitted = decision.permit
+        && runtime_permitted
+        && tenant_permitted
+        && policy_permitted
+        && robot_mode_permitted;
     let reason = if permitted {
-        "permitted".to_string()
+        decision.reason.clone()
     } else {
         let mut missing = Vec::new();
         if !runtime_permitted {
@@ -3628,34 +3714,155 @@ fn evaluate_robotics_safety_gate(
         if !robot_mode_permitted {
             missing.push("robot_mode");
         }
+        if !decision.permit {
+            missing.push("permit");
+        }
         format!(
-            "missing {} permission for {}",
-            missing.join(","),
-            robotics_action_name(action)
+            "signed policy decision {} denied {}: missing {}",
+            decision.decision_id,
+            action.action_name,
+            missing.join(",")
         )
     };
 
     RoboticsSafetyGateDecision {
         permitted,
         reason,
-        runtime_permitted,
-        tenant_permitted,
-        policy_permitted,
-        robot_mode_permitted,
+        policy_decision: if permitted {
+            Some(decision.clone())
+        } else {
+            None
+        },
     }
 }
 
-fn robotics_tenant_permitted(tenant_id: &str) -> bool {
-    if tenant_id.trim().is_empty() {
-        return false;
+fn denied_robotics_safety_gate(reason: impl Into<String>) -> RoboticsSafetyGateDecision {
+    RoboticsSafetyGateDecision {
+        permitted: false,
+        reason: reason.into(),
+        policy_decision: None,
     }
-    let Ok(allowed) = std::env::var("IGRIS_ROBOTICS_ALLOWED_TENANTS") else {
-        return false;
-    };
-    allowed
-        .split(',')
-        .map(str::trim)
-        .any(|entry| entry == "*" || entry == tenant_id)
+}
+
+fn verify_policy_decision_signature(
+    decision: &GovernedPolicyDecision,
+    verifying_key: &ed25519_dalek::VerifyingKey,
+) -> anyhow::Result<()> {
+    if decision.signature.is_empty() {
+        anyhow::bail!("missing signature");
+    }
+    let sig_bytes = base64::engine::general_purpose::STANDARD
+        .decode(&decision.signature)
+        .map_err(|err| anyhow::anyhow!("signature base64 decode failed: {err}"))?;
+    let arr: [u8; 64] = sig_bytes
+        .try_into()
+        .map_err(|_| anyhow::anyhow!("invalid signature length"))?;
+    let signature = ed25519_dalek::Signature::from_bytes(&arr);
+    let canonical = canonical_policy_decision_bytes(decision);
+    let digest = Sha256::digest(&canonical);
+    verifying_key
+        .verify(&digest, &signature)
+        .map_err(|err| anyhow::anyhow!("signature verification failed: {err}"))
+}
+
+fn unix_now_ms() -> u64 {
+    SystemTime::now()
+        .duration_since(UNIX_EPOCH)
+        .unwrap_or(Duration::from_secs(0))
+        .as_millis() as u64
+}
+
+fn canonical_governed_action_value(action: &GovernedAction) -> serde_json::Value {
+    let mut value = BTreeMap::<&str, serde_json::Value>::new();
+    value.insert("action_name", serde_json::json!(action.action_name));
+    value.insert("action_type", serde_json::json!(action.action_type));
+    value.insert("domain", serde_json::json!(action.domain));
+    value.insert("node_id", serde_json::json!(action.node_id));
+    value.insert("requires_policy", serde_json::json!(action.requires_policy));
+    value.insert(
+        "safety_mode_required",
+        serde_json::json!(action.safety_mode_required),
+    );
+    value.insert("schema_version", serde_json::json!(action.schema_version));
+    value.insert("step_index", serde_json::json!(action.step_index));
+    if let Some(target) = &action.target {
+        value.insert("target", serde_json::json!(target));
+    }
+    serde_json::to_value(value).unwrap_or_default()
+}
+
+fn canonical_governed_action_bytes(action: &GovernedAction) -> Vec<u8> {
+    serde_json::to_vec(&canonical_governed_action_value(action)).unwrap_or_default()
+}
+
+fn canonical_policy_decision_bytes(decision: &GovernedPolicyDecision) -> Vec<u8> {
+    let mut value = BTreeMap::<&str, serde_json::Value>::new();
+    value.insert("action", canonical_governed_action_value(&decision.action));
+    value.insert("decision_id", serde_json::json!(decision.decision_id));
+    value.insert(
+        "expires_at_unix_ms",
+        serde_json::json!(decision.expires_at_unix_ms),
+    );
+    value.insert(
+        "issued_at_unix_ms",
+        serde_json::json!(decision.issued_at_unix_ms),
+    );
+    value.insert("permit", serde_json::json!(decision.permit));
+    value.insert(
+        "policy_permitted",
+        serde_json::json!(decision.policy_permitted),
+    );
+    value.insert("policy_version", serde_json::json!(decision.policy_version));
+    value.insert("reason", serde_json::json!(decision.reason));
+    value.insert(
+        "robot_mode_permitted",
+        serde_json::json!(decision.robot_mode_permitted),
+    );
+    if let Some(runtime_id) = &decision.runtime_id {
+        value.insert("runtime_id", serde_json::json!(runtime_id));
+    }
+    value.insert(
+        "runtime_permitted",
+        serde_json::json!(decision.runtime_permitted),
+    );
+    value.insert("schema_version", serde_json::json!(decision.schema_version));
+    if let Some(key_version) = &decision.signer_key_version {
+        value.insert("signer_key_version", serde_json::json!(key_version));
+    }
+    value.insert("task_id", serde_json::json!(decision.task_id));
+    value.insert("tenant_id", serde_json::json!(decision.tenant_id));
+    value.insert(
+        "tenant_permitted",
+        serde_json::json!(decision.tenant_permitted),
+    );
+    serde_json::to_vec(&value).unwrap_or_default()
+}
+
+fn hash_hex(bytes: &[u8]) -> String {
+    format!("{:x}", Sha256::digest(bytes))
+}
+
+fn policy_decision_hash(decision: &GovernedPolicyDecision) -> String {
+    hash_hex(&canonical_policy_decision_bytes(decision))
+}
+
+fn governed_action_hash(action: &GovernedAction) -> String {
+    hash_hex(&canonical_governed_action_bytes(action))
+}
+
+fn robotics_governance_metadata(
+    action: &GovernedAction,
+    decision: &GovernedPolicyDecision,
+) -> serde_json::Value {
+    serde_json::json!({
+        "governance": {
+            "governed_action_hash": governed_action_hash(action),
+            "policy_decision_id": decision.decision_id,
+            "policy_decision_hash": policy_decision_hash(decision),
+            "policy_version": decision.policy_version,
+            "signed_policy_decision": decision,
+        }
+    })
 }
 
 async fn execute_human_approval_step(
@@ -4032,12 +4239,76 @@ async fn execute_behavior_tree_graph_step(
     }
 }
 
+#[derive(Debug, Default)]
+struct GovernanceArtifactRefs {
+    governed_action_hash: Option<String>,
+    policy_decision_id: Option<String>,
+    policy_decision_hash: Option<String>,
+}
+
+fn extract_governance_artifact_refs(
+    metadata: Option<&serde_json::Value>,
+) -> GovernanceArtifactRefs {
+    let Some(governance) = metadata.and_then(|value| value.get("governance")) else {
+        return GovernanceArtifactRefs::default();
+    };
+
+    GovernanceArtifactRefs {
+        governed_action_hash: governance
+            .get("governed_action_hash")
+            .and_then(|value| value.as_str())
+            .map(str::to_string),
+        policy_decision_id: governance
+            .get("policy_decision_id")
+            .and_then(|value| value.as_str())
+            .map(str::to_string),
+        policy_decision_hash: governance
+            .get("policy_decision_hash")
+            .and_then(|value| value.as_str())
+            .map(str::to_string),
+    }
+}
+
 async fn build_execution_artifacts(
     state: &AppState,
     req: &TaskSubmitRequest,
     step: &RuntimeTaskStep,
     result: &StepExecutionResult,
     wall_time_ms: u64,
+) -> anyhow::Result<(serde_json::Value, Option<serde_json::Value>)> {
+    build_execution_artifacts_with_violation(state, req, step, result, wall_time_ms, None).await
+}
+
+async fn build_failure_execution_artifacts(
+    state: &AppState,
+    req: &TaskSubmitRequest,
+    step: &RuntimeTaskStep,
+    reason: &str,
+    wall_time_ms: u64,
+) -> anyhow::Result<(serde_json::Value, Option<serde_json::Value>)> {
+    let result = StepExecutionResult {
+        output_text: reason.to_string(),
+        provider_name: format!("runtime:{}:failed", step.domain_name()),
+        usage: ExecuteUsage {
+            prompt_tokens: 0,
+            completion_tokens: 0,
+            total_tokens: 0,
+        },
+        graph_output: None,
+        checkpoint_metadata: governance_metadata_from_request(state, req, step),
+        checkpoint_requested: false,
+    };
+    build_execution_artifacts_with_violation(state, req, step, &result, wall_time_ms, Some(reason))
+        .await
+}
+
+async fn build_execution_artifacts_with_violation(
+    state: &AppState,
+    req: &TaskSubmitRequest,
+    step: &RuntimeTaskStep,
+    result: &StepExecutionResult,
+    wall_time_ms: u64,
+    violation: Option<&str>,
 ) -> anyhow::Result<(serde_json::Value, Option<serde_json::Value>)> {
     let signing_key = state
         .signing_key
@@ -4049,6 +4320,7 @@ async fn build_execution_artifacts(
     let request_hash = format!("{:x}", Sha256::digest(step.input_bytes()));
     let response_hash = format!("{:x}", Sha256::digest(result.output_text.as_bytes()));
     let finish_reason = "stop".to_string();
+    let governance = extract_governance_artifact_refs(result.checkpoint_metadata.as_ref());
     let tenant_id = if req.tenant_id.is_empty() {
         None
     } else {
@@ -4065,7 +4337,10 @@ async fn build_execution_artifacts(
         &result.provider_name,
         req.containment.as_ref(),
         &finish_reason,
-        None,
+        violation,
+        governance.governed_action_hash.as_deref(),
+        governance.policy_decision_id.as_deref(),
+        governance.policy_decision_hash.as_deref(),
     );
     let hash = Sha256::digest(&canon);
     let sig = signing_key.sign(&hash);
@@ -4073,14 +4348,17 @@ async fn build_execution_artifacts(
         bounds_applied: req.containment.clone(),
         execution_id,
         finish_reason,
+        governed_action_hash: governance.governed_action_hash,
         model: step.model_name().to_string(),
+        policy_decision_hash: governance.policy_decision_hash,
+        policy_decision_id: governance.policy_decision_id,
         request_hash,
         response_hash,
         routing_decision: result.provider_name.clone(),
         signature: base64::engine::general_purpose::STANDARD.encode(sig.to_bytes()),
         tenant_id: tenant_id.clone(),
         timestamp,
-        violation: None,
+        violation: violation.map(str::to_string),
     };
 
     let tx = crate::transaction::ExecutionTransaction::begin(
@@ -4101,7 +4379,7 @@ async fn build_execution_artifacts(
                 0,
                 0,
                 0,
-                false,
+                violation.is_some(),
             )
             .await?,
         )
@@ -4115,7 +4393,7 @@ async fn build_execution_artifacts(
             0,
             0,
             0,
-            false,
+            violation.is_some(),
             "",
             state.signing_key.as_ref(),
         ))
@@ -4128,6 +4406,29 @@ async fn build_execution_artifacts(
             None => None,
         },
     ))
+}
+
+fn governance_metadata_from_request(
+    state: &AppState,
+    req: &TaskSubmitRequest,
+    step: &RuntimeTaskStep,
+) -> Option<serde_json::Value> {
+    let action = step.governed_action()?;
+    let verifying_key = state.overture_public_key.as_deref()?;
+    let decision = req.signed_policy_decisions.iter().find(|decision| {
+        decision.tenant_id == req.tenant_id
+            && decision.task_id == req.task_id.to_string()
+            && decision.action == action
+            && decision
+                .runtime_id
+                .as_deref()
+                .map(|value| value == state.swarm_peer_id || value == "*")
+                .unwrap_or(true)
+    })?;
+    if verify_policy_decision_signature(decision, verifying_key).is_err() {
+        return None;
+    }
+    Some(robotics_governance_metadata(&action, decision))
 }
 
 fn deterministic_embedding(input: &str, dim: usize) -> Vec<f32> {
@@ -4508,25 +4809,25 @@ mod tests {
         attach_stream_task_headers, build_checkpoint_mismatch_payload,
         build_idempotency_conflict_payload, build_step_checkpoint_metadata,
         build_stream_replay_unavailable_payload, build_task_cancel_response,
-        build_task_result_payload, collect_slot_inputs, compile_execution_graph_to_steps,
-        deterministic_embedding, evaluate_robotics_safety_gate, initialize_graph_blackboard,
-        materialize_execution_graph, normalize_agent_mode, persist_task_status_index,
-        resolve_graph_value, robotics_action_name, runtime_execution_failure_details,
-        stream_durability_metadata, task_status_key, update_graph_blackboard,
-        verified_resume_start_step, AgentExecutionMode, BehaviorTreeStep, ExecutionGraph,
-        ExecutionNode, HumanApprovalStep, RoboticsAction, RoboticsStep, RuntimeTaskStep,
-        StepExecutionResult, TaskFailureDetails, TaskStatus, TaskSubmitResponse, TaskType,
-        ToolStep,
+        build_task_result_payload, canonical_policy_decision_bytes, collect_slot_inputs,
+        compile_execution_graph_to_steps, deterministic_embedding, evaluate_robotics_safety_gate,
+        initialize_graph_blackboard, materialize_execution_graph, normalize_agent_mode,
+        persist_task_status_index, resolve_graph_value, robotics_action_name,
+        runtime_execution_failure_details, stream_durability_metadata, task_status_key,
+        unix_now_ms, update_graph_blackboard, verified_resume_start_step, AgentExecutionMode,
+        BehaviorTreeStep, ExecutionGraph, ExecutionNode, GovernedAction, GovernedPolicyDecision,
+        HumanApprovalStep, RoboticsAction, RoboticsStep, RuntimeTaskStep, StepExecutionResult,
+        TaskFailureDetails, TaskStatus, TaskSubmitResponse, TaskType, ToolStep,
     };
     use crate::runtime_execute::{Bounds, ExecuteMessage, ExecuteUsage};
     use axum::{body::Body, http::StatusCode, response::Response};
+    use base64::Engine;
+    use ed25519_dalek::{Signer, SigningKey};
     use igris_core::storage::{RedbStorage, TASK_SUBMISSION_STATUS_BY_TASK_ID};
     use igris_wal::{CheckpointPayload, ResumeToken};
+    use sha2::{Digest, Sha256};
     use std::env;
-    use std::sync::Mutex;
     use uuid::Uuid;
-
-    static ENV_LOCK: Mutex<()> = Mutex::new(());
 
     #[test]
     fn normalize_agent_mode_accepts_supported_values() {
@@ -4651,58 +4952,104 @@ mod tests {
         assert_eq!(metadata["governed_action"]["safety_mode_required"], false);
     }
 
-    #[test]
-    fn robotics_safety_gate_defaults_to_deny() {
-        let _guard = ENV_LOCK.lock().unwrap();
-        env::remove_var("IGRIS_ROBOTICS_RUNTIME_ENABLED");
-        env::remove_var("IGRIS_ROBOTICS_ALLOWED_TENANTS");
-        env::remove_var("IGRIS_ROBOTICS_POLICY_PERMIT");
-        env::remove_var("IGRIS_ROBOTICS_MODE");
+    fn test_governed_robotics_action() -> GovernedAction {
+        GovernedAction {
+            schema_version: "governed_action.v1".to_string(),
+            domain: "robotics".to_string(),
+            action_type: "ros2_action".to_string(),
+            action_name: "publish_zero_velocity".to_string(),
+            node_id: "robotics".to_string(),
+            step_index: 0,
+            target: None,
+            requires_policy: true,
+            safety_mode_required: true,
+        }
+    }
 
-        let decision = evaluate_robotics_safety_gate(
-            "tenant-robot",
-            &RoboticsAction::PublishZeroVelocity,
-            None,
-        );
-        assert!(!decision.permitted);
-        assert!(!decision.runtime_permitted);
-        assert!(!decision.tenant_permitted);
-        assert!(!decision.policy_permitted);
-        assert!(!decision.robot_mode_permitted);
-        assert!(decision.reason.contains("runtime"));
-        assert!(decision.reason.contains("tenant"));
-        assert!(decision.reason.contains("policy"));
-        assert!(decision.reason.contains("robot_mode"));
+    fn signed_policy_decision(
+        signing_key: &SigningKey,
+        task_id: Uuid,
+        tenant_id: &str,
+        runtime_id: &str,
+        action: GovernedAction,
+        permit: bool,
+    ) -> GovernedPolicyDecision {
+        let mut decision = GovernedPolicyDecision {
+            schema_version: "governed_policy_decision.v1".to_string(),
+            decision_id: "decision-test".to_string(),
+            tenant_id: tenant_id.to_string(),
+            task_id: task_id.to_string(),
+            runtime_id: Some(runtime_id.to_string()),
+            action,
+            permit,
+            reason: if permit { "permitted" } else { "denied" }.to_string(),
+            policy_version: "robotics-policy.test".to_string(),
+            runtime_permitted: permit,
+            tenant_permitted: permit,
+            policy_permitted: permit,
+            robot_mode_permitted: permit,
+            issued_at_unix_ms: unix_now_ms(),
+            expires_at_unix_ms: unix_now_ms() + 30_000,
+            signer_key_version: Some("test-key".to_string()),
+            signature: String::new(),
+        };
+        let canonical = canonical_policy_decision_bytes(&decision);
+        let digest = Sha256::digest(&canonical);
+        let signature = signing_key.sign(&digest);
+        decision.signature = base64::engine::general_purpose::STANDARD.encode(signature.to_bytes());
+        decision
     }
 
     #[test]
-    fn robotics_safety_gate_requires_all_permissions() {
-        let _guard = ENV_LOCK.lock().unwrap();
-        env::set_var("IGRIS_ROBOTICS_RUNTIME_ENABLED", "true");
-        env::set_var(
-            "IGRIS_ROBOTICS_ALLOWED_TENANTS",
-            "tenant-robot,tenant-other",
+    fn robotics_safety_gate_defaults_to_deny() {
+        let task_id = Uuid::new_v4();
+        let action = test_governed_robotics_action();
+        let decision = evaluate_robotics_safety_gate(
+            None,
+            task_id,
+            "runtime-robot",
+            "tenant-robot",
+            &action,
+            None,
+            &[],
         );
-        env::set_var("IGRIS_ROBOTICS_POLICY_PERMIT", "true");
-        env::set_var("IGRIS_ROBOTICS_MODE", "supervised");
+        assert!(!decision.permitted);
+        assert!(decision.reason.contains("missing signed policy verifier"));
+    }
 
+    #[test]
+    fn robotics_safety_gate_requires_signed_policy_decision() {
+        let signing_key = SigningKey::generate(&mut rand::rngs::OsRng);
+        let verifying_key = signing_key.verifying_key();
+        let task_id = Uuid::new_v4();
+        let runtime_id = "runtime-robot";
+        let tenant_id = "tenant-robot";
+        let action = test_governed_robotics_action();
         let bounds = Bounds {
             cpu_percent: Some(50),
             memory_mb: None,
             max_tick_ms: Some(1_000),
         };
+        let signed_decision = signed_policy_decision(
+            &signing_key,
+            task_id,
+            tenant_id,
+            runtime_id,
+            action.clone(),
+            true,
+        );
         let decision = evaluate_robotics_safety_gate(
-            "tenant-robot",
-            &RoboticsAction::PublishZeroVelocity,
+            Some(&verifying_key),
+            task_id,
+            runtime_id,
+            tenant_id,
+            &action,
             Some(&bounds),
+            &[signed_decision],
         );
         assert!(decision.permitted);
         assert_eq!(decision.reason, "permitted");
-
-        env::remove_var("IGRIS_ROBOTICS_RUNTIME_ENABLED");
-        env::remove_var("IGRIS_ROBOTICS_ALLOWED_TENANTS");
-        env::remove_var("IGRIS_ROBOTICS_POLICY_PERMIT");
-        env::remove_var("IGRIS_ROBOTICS_MODE");
+        assert!(decision.policy_decision.is_some());
     }
 
     #[test]
