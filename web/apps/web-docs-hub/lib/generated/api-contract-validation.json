@@ -1,0 +1,932 @@
+{
+  "generated_at": "2026-04-18T15:43:53.967Z",
+  "endpoints": [
+    {
+      "endpoint": "POST /v1/infer",
+      "source_schema": "InferRequest (go, igris-overture/models/infer_request.go)",
+      "request_fields": 5,
+      "response_contract": "igris-overture/models/infer_response.go",
+      "response_fields": 5,
+      "schema_policy": "source-backed",
+      "status": "verified"
+    },
+    {
+      "endpoint": "POST /v1/chat/completions",
+      "source_schema": "InferRequest (go, igris-overture/models/infer_request.go)",
+      "request_fields": 4,
+      "response_contract": "igris-overture/models/infer_response.go",
+      "response_fields": 5,
+      "schema_policy": "source-backed",
+      "status": "verified"
+    },
+    {
+      "endpoint": "GET /v1/health",
+      "source_schema": null,
+      "request_fields": 0,
+      "response_contract": null,
+      "response_fields": 0,
+      "schema_policy": "not-required",
+      "status": "verified"
+    },
+    {
+      "endpoint": "GET /v1/models",
+      "source_schema": null,
+      "request_fields": 0,
+      "response_contract": null,
+      "response_fields": 0,
+      "schema_policy": "not-required",
+      "status": "verified"
+    },
+    {
+      "endpoint": "GET /v1/providers/stats",
+      "source_schema": null,
+      "request_fields": 0,
+      "response_contract": null,
+      "response_fields": 0,
+      "schema_policy": "not-required",
+      "status": "verified"
+    },
+    {
+      "endpoint": "POST /v1/infer/multimodal",
+      "source_schema": null,
+      "request_fields": 0,
+      "response_contract": null,
+      "response_fields": 0,
+      "schema_policy": "example-only: The route accepts a multipart/media-flavored inference envelope; docs keep the customer example while source schema extraction is JSON-struct only.",
+      "status": "verified"
+    },
+    {
+      "endpoint": "GET /v1/infer/multimodal/stats",
+      "source_schema": null,
+      "request_fields": 0,
+      "response_contract": null,
+      "response_fields": 0,
+      "schema_policy": "not-required",
+      "status": "verified"
+    },
+    {
+      "endpoint": "GET /v1/runtime/install",
+      "source_schema": null,
+      "request_fields": 0,
+      "response_contract": null,
+      "response_fields": 0,
+      "schema_policy": "not-required",
+      "status": "verified"
+    },
+    {
+      "endpoint": "GET /v1/runtime/checksum",
+      "source_schema": null,
+      "request_fields": 0,
+      "response_contract": null,
+      "response_fields": 0,
+      "schema_policy": "not-required",
+      "status": "verified"
+    },
+    {
+      "endpoint": "GET /v1/runtime/download",
+      "source_schema": null,
+      "request_fields": 0,
+      "response_contract": null,
+      "response_fields": 0,
+      "schema_policy": "not-required",
+      "status": "verified"
+    },
+    {
+      "endpoint": "GET /api/v1/runtime/download",
+      "source_schema": null,
+      "request_fields": 0,
+      "response_contract": null,
+      "response_fields": 0,
+      "schema_policy": "not-required",
+      "status": "verified"
+    },
+    {
+      "endpoint": "POST /api/v1/runtime/register",
+      "source_schema": "runtimeInstanceRegisterRequest (go, igris-overture/api/routes_runtime.go)",
+      "request_fields": 5,
+      "response_contract": null,
+      "response_fields": 0,
+      "schema_policy": "source-backed",
+      "status": "verified"
+    },
+    {
+      "endpoint": "POST /api/v1/runtime/heartbeat",
+      "source_schema": "runtimeInstanceHeartbeatRequest (go, igris-overture/api/routes_runtime.go)",
+      "request_fields": 2,
+      "response_contract": null,
+      "response_fields": 0,
+      "schema_policy": "source-backed",
+      "status": "verified"
+    },
+    {
+      "endpoint": "GET /api/v1/runtime/commands",
+      "source_schema": null,
+      "request_fields": 0,
+      "response_contract": null,
+      "response_fields": 0,
+      "schema_policy": "not-required",
+      "status": "verified"
+    },
+    {
+      "endpoint": "DELETE /api/v1/runtime/deregister",
+      "source_schema": "runtimeInstanceHeartbeatRequest (go, igris-overture/api/routes_runtime.go)",
+      "request_fields": 1,
+      "response_contract": null,
+      "response_fields": 0,
+      "schema_policy": "not-required",
+      "status": "verified"
+    },
+    {
+      "endpoint": "GET /api/v1/runtime/list",
+      "source_schema": null,
+      "request_fields": 0,
+      "response_contract": null,
+      "response_fields": 0,
+      "schema_policy": "not-required",
+      "status": "verified"
+    },
+    {
+      "endpoint": "POST /api/v1/runtime/config/push",
+      "source_schema": null,
+      "request_fields": 2,
+      "response_contract": null,
+      "response_fields": 0,
+      "schema_policy": "example-only: Configuration push is an operational control-plane route whose request body is example-backed until a public source schema is promoted.",
+      "status": "example-validated"
+    },
+    {
+      "endpoint": "POST /api/v1/runtime/update",
+      "source_schema": null,
+      "request_fields": 4,
+      "response_contract": null,
+      "response_fields": 0,
+      "schema_policy": "example-only: Runtime update orchestration is validated procedurally and remains example-backed in the public docs.",
+      "status": "example-validated"
+    },
+    {
+      "endpoint": "GET /api/subscription/status",
+      "source_schema": null,
+      "request_fields": 0,
+      "response_contract": null,
+      "response_fields": 0,
+      "schema_policy": "not-required",
+      "status": "verified"
+    },
+    {
+      "endpoint": "GET /api/subscription/plans",
+      "source_schema": null,
+      "request_fields": 0,
+      "response_contract": null,
+      "response_fields": 0,
+      "schema_policy": "not-required",
+      "status": "verified"
+    },
+    {
+      "endpoint": "GET /v1/account/api-key",
+      "source_schema": null,
+      "request_fields": 0,
+      "response_contract": null,
+      "response_fields": 0,
+      "schema_policy": "not-required",
+      "status": "verified"
+    },
+    {
+      "endpoint": "POST /v1/account/api-key",
+      "source_schema": null,
+      "request_fields": 0,
+      "response_contract": null,
+      "response_fields": 0,
+      "schema_policy": "example-only: API key creation does not require a JSON body; the endpoint is bodyless and response-focused.",
+      "status": "verified"
+    },
+    {
+      "endpoint": "DELETE /v1/account/api-key",
+      "source_schema": null,
+      "request_fields": 0,
+      "response_contract": null,
+      "response_fields": 0,
+      "schema_policy": "not-required",
+      "status": "verified"
+    },
+    {
+      "endpoint": "GET /v1/vault/keys",
+      "source_schema": null,
+      "request_fields": 0,
+      "response_contract": null,
+      "response_fields": 0,
+      "schema_policy": "not-required",
+      "status": "verified"
+    },
+    {
+      "endpoint": "POST /v1/vault/keys",
+      "source_schema": null,
+      "request_fields": 3,
+      "response_contract": null,
+      "response_fields": 0,
+      "schema_policy": "example-only: Vault key storage uses handler validation for provider/key payloads; docs carry the current public example until a reusable schema is exported.",
+      "status": "example-validated"
+    },
+    {
+      "endpoint": "GET /v1/vault/keys/:provider",
+      "source_schema": null,
+      "request_fields": 0,
+      "response_contract": null,
+      "response_fields": 0,
+      "schema_policy": "not-required",
+      "status": "verified"
+    },
+    {
+      "endpoint": "DELETE /v1/vault/keys/:provider",
+      "source_schema": null,
+      "request_fields": 0,
+      "response_contract": null,
+      "response_fields": 0,
+      "schema_policy": "not-required",
+      "status": "verified"
+    },
+    {
+      "endpoint": "POST /v1/vault/keys/:provider/rotate",
+      "source_schema": null,
+      "request_fields": 0,
+      "response_contract": null,
+      "response_fields": 0,
+      "schema_policy": "example-only: Provider rotation is path-param driven and bodyless in the public contract.",
+      "status": "verified"
+    },
+    {
+      "endpoint": "POST /v1/vault/keys/:provider/validate",
+      "source_schema": null,
+      "request_fields": 0,
+      "response_contract": null,
+      "response_fields": 0,
+      "schema_policy": "example-only: Provider validation is path-param driven and bodyless in the public contract.",
+      "status": "verified"
+    },
+    {
+      "endpoint": "GET /v1/policy",
+      "source_schema": null,
+      "request_fields": 0,
+      "response_contract": null,
+      "response_fields": 0,
+      "schema_policy": "not-required",
+      "status": "verified"
+    },
+    {
+      "endpoint": "PUT /v1/policy",
+      "source_schema": null,
+      "request_fields": 0,
+      "response_contract": null,
+      "response_fields": 0,
+      "schema_policy": "example-only: Policy update accepts a policy document whose structure is governed by the policy engine, not by a small route request struct.",
+      "status": "verified"
+    },
+    {
+      "endpoint": "GET /v1/policy/history",
+      "source_schema": null,
+      "request_fields": 0,
+      "response_contract": null,
+      "response_fields": 0,
+      "schema_policy": "not-required",
+      "status": "verified"
+    },
+    {
+      "endpoint": "GET /v1/history/events",
+      "source_schema": null,
+      "request_fields": 0,
+      "response_contract": null,
+      "response_fields": 0,
+      "schema_policy": "not-required",
+      "status": "verified"
+    },
+    {
+      "endpoint": "GET /v1/receipts",
+      "source_schema": null,
+      "request_fields": 0,
+      "response_contract": "igris-overture/api/routes_receipts.go",
+      "response_fields": 14,
+      "schema_policy": "not-required",
+      "status": "verified"
+    },
+    {
+      "endpoint": "GET /v1/receipts/:id",
+      "source_schema": null,
+      "request_fields": 0,
+      "response_contract": null,
+      "response_fields": 0,
+      "schema_policy": "not-required",
+      "status": "verified"
+    },
+    {
+      "endpoint": "GET /v1/receipts/export",
+      "source_schema": null,
+      "request_fields": 0,
+      "response_contract": null,
+      "response_fields": 0,
+      "schema_policy": "not-required",
+      "status": "verified"
+    },
+    {
+      "endpoint": "POST /proof/receipts/verify",
+      "source_schema": "VerifyReceiptRequest (go, igris-overture/api/routes_proof.go)",
+      "request_fields": 2,
+      "response_contract": "igris-overture/api/routes_proof.go",
+      "response_fields": 4,
+      "schema_policy": "source-backed",
+      "status": "verified"
+    },
+    {
+      "endpoint": "GET /v1/routing/stats",
+      "source_schema": null,
+      "request_fields": 0,
+      "response_contract": null,
+      "response_fields": 0,
+      "schema_policy": "not-required",
+      "status": "verified"
+    },
+    {
+      "endpoint": "GET /v1/routing/recent",
+      "source_schema": null,
+      "request_fields": 0,
+      "response_contract": null,
+      "response_fields": 0,
+      "schema_policy": "not-required",
+      "status": "verified"
+    },
+    {
+      "endpoint": "GET /v1/routing/leaderboard",
+      "source_schema": null,
+      "request_fields": 0,
+      "response_contract": null,
+      "response_fields": 0,
+      "schema_policy": "not-required",
+      "status": "verified"
+    },
+    {
+      "endpoint": "POST /v1/routing/strategy",
+      "source_schema": null,
+      "request_fields": 1,
+      "response_contract": null,
+      "response_fields": 0,
+      "schema_policy": "example-only: Routing strategy uses a compact handler-validated payload; docs keep an example-backed contract until the route exports a reusable schema.",
+      "status": "example-validated"
+    },
+    {
+      "endpoint": "POST /v1/routing/provider_weights",
+      "source_schema": null,
+      "request_fields": 1,
+      "response_contract": null,
+      "response_fields": 0,
+      "schema_policy": "example-only: Provider weights are a map-like tuning payload and are validated procedurally by the routing handler.",
+      "status": "example-validated"
+    },
+    {
+      "endpoint": "GET /v1/routing/speculative/status",
+      "source_schema": null,
+      "request_fields": 0,
+      "response_contract": null,
+      "response_fields": 0,
+      "schema_policy": "not-required",
+      "status": "verified"
+    },
+    {
+      "endpoint": "GET /v1/routing/speculative/config",
+      "source_schema": null,
+      "request_fields": 0,
+      "response_contract": null,
+      "response_fields": 0,
+      "schema_policy": "not-required",
+      "status": "verified"
+    },
+    {
+      "endpoint": "POST /v1/routing/speculative",
+      "source_schema": null,
+      "request_fields": 2,
+      "response_contract": null,
+      "response_fields": 0,
+      "schema_policy": "example-only: Speculative routing accepts an experiment request shape that is still preview and handler-validated.",
+      "status": "example-validated"
+    },
+    {
+      "endpoint": "GET /v1/routing/speculative/analytics",
+      "source_schema": null,
+      "request_fields": 0,
+      "response_contract": null,
+      "response_fields": 0,
+      "schema_policy": "not-required",
+      "status": "verified"
+    },
+    {
+      "endpoint": "POST /v1/routing/speculative/simulate",
+      "source_schema": null,
+      "request_fields": 2,
+      "response_contract": null,
+      "response_fields": 0,
+      "schema_policy": "example-only: Speculative simulation is preview and example-backed because the handler accepts simulation parameters rather than a stable exported schema.",
+      "status": "example-validated"
+    },
+    {
+      "endpoint": "POST /v1/routing/council",
+      "source_schema": null,
+      "request_fields": 2,
+      "response_contract": null,
+      "response_fields": 0,
+      "schema_policy": "example-only: Council mode routing is preview and validated in handler code rather than through a stable public request struct.",
+      "status": "example-validated"
+    },
+    {
+      "endpoint": "GET /v1/routing/council/analytics",
+      "source_schema": null,
+      "request_fields": 0,
+      "response_contract": null,
+      "response_fields": 0,
+      "schema_policy": "not-required",
+      "status": "verified"
+    },
+    {
+      "endpoint": "POST /v1/routing/shadow",
+      "source_schema": null,
+      "request_fields": 2,
+      "response_contract": null,
+      "response_fields": 0,
+      "schema_policy": "example-only: Shadow routing is preview and handler-validated, so docs keep the current example-only shape.",
+      "status": "example-validated"
+    },
+    {
+      "endpoint": "GET /v1/routing/circuit-breaker/status",
+      "source_schema": null,
+      "request_fields": 0,
+      "response_contract": null,
+      "response_fields": 0,
+      "schema_policy": "not-required",
+      "status": "verified"
+    },
+    {
+      "endpoint": "GET /v1/bt/templates",
+      "source_schema": null,
+      "request_fields": 0,
+      "response_contract": null,
+      "response_fields": 0,
+      "schema_policy": "not-required",
+      "status": "verified"
+    },
+    {
+      "endpoint": "GET /v1/bt/definitions",
+      "source_schema": null,
+      "request_fields": 0,
+      "response_contract": null,
+      "response_fields": 0,
+      "schema_policy": "not-required",
+      "status": "verified"
+    },
+    {
+      "endpoint": "GET /v1/bt/definitions/:id",
+      "source_schema": null,
+      "request_fields": 0,
+      "response_contract": null,
+      "response_fields": 0,
+      "schema_policy": "not-required",
+      "status": "verified"
+    },
+    {
+      "endpoint": "POST /v1/bt/definitions",
+      "source_schema": null,
+      "request_fields": 0,
+      "response_contract": null,
+      "response_fields": 0,
+      "schema_policy": "example-only: Behavior tree definitions are validated by the behavior-tree schema engine rather than a route request struct.",
+      "status": "verified"
+    },
+    {
+      "endpoint": "DELETE /v1/bt/definitions/:id",
+      "source_schema": null,
+      "request_fields": 0,
+      "response_contract": null,
+      "response_fields": 0,
+      "schema_policy": "not-required",
+      "status": "verified"
+    },
+    {
+      "endpoint": "POST /v1/tasks/submit",
+      "source_schema": "publicTaskSubmitRequest (go, igris-overture/api/routes_tasks.go)",
+      "request_fields": 4,
+      "response_contract": "igris-overture/api/routes_tasks.go buildTaskAcceptedResponse",
+      "response_fields": 6,
+      "schema_policy": "source-backed",
+      "status": "verified"
+    },
+    {
+      "endpoint": "GET /v1/tasks/:id",
+      "source_schema": null,
+      "request_fields": 0,
+      "response_contract": null,
+      "response_fields": 0,
+      "schema_policy": "not-required",
+      "status": "verified"
+    },
+    {
+      "endpoint": "GET /v1/tasks",
+      "source_schema": null,
+      "request_fields": 0,
+      "response_contract": null,
+      "response_fields": 0,
+      "schema_policy": "not-required",
+      "status": "verified"
+    },
+    {
+      "endpoint": "GET /v1/tasks/:id/steps",
+      "source_schema": null,
+      "request_fields": 0,
+      "response_contract": null,
+      "response_fields": 0,
+      "schema_policy": "not-required",
+      "status": "verified"
+    },
+    {
+      "endpoint": "POST /v1/tasks/:id/cancel",
+      "source_schema": null,
+      "request_fields": 0,
+      "response_contract": null,
+      "response_fields": 0,
+      "schema_policy": "example-only: Task cancellation is path-param driven and bodyless in the public contract.",
+      "status": "verified"
+    },
+    {
+      "endpoint": "GET /v1/tasks/proof/readiness",
+      "source_schema": null,
+      "request_fields": 0,
+      "response_contract": null,
+      "response_fields": 0,
+      "schema_policy": "not-required",
+      "status": "verified"
+    },
+    {
+      "endpoint": "POST /v1/tasks/:id/proof/verify",
+      "source_schema": null,
+      "request_fields": 0,
+      "response_contract": null,
+      "response_fields": 0,
+      "schema_policy": "example-only: Task proof verification is path-param driven and reconciles persisted proof state; no JSON body is required.",
+      "status": "verified"
+    },
+    {
+      "endpoint": "POST /v1/mcp",
+      "source_schema": null,
+      "request_fields": 4,
+      "response_contract": null,
+      "response_fields": 0,
+      "schema_policy": "example-only: MCP transport carries JSON-RPC envelopes whose schema lives in the MCP method contract rather than a route-specific request struct.",
+      "status": "example-validated"
+    },
+    {
+      "endpoint": "POST /v1/mcp/stream",
+      "source_schema": null,
+      "request_fields": 4,
+      "response_contract": null,
+      "response_fields": 0,
+      "schema_policy": "example-only: MCP streaming carries JSON-RPC envelopes over a streaming transport; method schemas are documented separately from the transport route.",
+      "status": "example-validated"
+    },
+    {
+      "endpoint": "GET /v1/health",
+      "source_schema": null,
+      "request_fields": 0,
+      "response_contract": null,
+      "response_fields": 0,
+      "schema_policy": "not-required",
+      "status": "verified"
+    },
+    {
+      "endpoint": "GET /v1/runtime/profile",
+      "source_schema": null,
+      "request_fields": 0,
+      "response_contract": null,
+      "response_fields": 0,
+      "schema_policy": "not-required",
+      "status": "verified"
+    },
+    {
+      "endpoint": "POST /v1/chat/completions",
+      "source_schema": "InferRequest (go, igris-overture/models/infer_request.go)",
+      "request_fields": 4,
+      "response_contract": "igris-overture/models/infer_response.go",
+      "response_fields": 5,
+      "schema_policy": "source-backed",
+      "status": "verified"
+    },
+    {
+      "endpoint": "POST /v1/plan",
+      "source_schema": "PlanningRequest (rust, igris-runtime/crates/igris-server/src/main.rs)",
+      "request_fields": 0,
+      "response_contract": null,
+      "response_fields": 0,
+      "schema_policy": "source-backed",
+      "status": "verified"
+    },
+    {
+      "endpoint": "POST /v1/reflect",
+      "source_schema": "ReflectionRequest (rust, igris-runtime/crates/igris-server/src/main.rs)",
+      "request_fields": 0,
+      "response_contract": null,
+      "response_fields": 0,
+      "schema_policy": "source-backed",
+      "status": "verified"
+    },
+    {
+      "endpoint": "GET /v1/admin/models",
+      "source_schema": null,
+      "request_fields": 0,
+      "response_contract": null,
+      "response_fields": 0,
+      "schema_policy": "not-required",
+      "status": "verified"
+    },
+    {
+      "endpoint": "POST /v1/admin/models/load",
+      "source_schema": "LoadModelRequest (rust, igris-runtime/crates/igris-server/src/main.rs)",
+      "request_fields": 0,
+      "response_contract": null,
+      "response_fields": 0,
+      "schema_policy": "source-backed",
+      "status": "verified"
+    },
+    {
+      "endpoint": "POST /v1/admin/models/swap",
+      "source_schema": "SwapModelRequest (rust, igris-runtime/crates/igris-server/src/main.rs)",
+      "request_fields": 0,
+      "response_contract": null,
+      "response_fields": 0,
+      "schema_policy": "source-backed",
+      "status": "verified"
+    },
+    {
+      "endpoint": "POST /v1/btree/validate",
+      "source_schema": "BTreeValidateRequest (rust, igris-runtime/crates/igris-server/src/main.rs)",
+      "request_fields": 1,
+      "response_contract": null,
+      "response_fields": 0,
+      "schema_policy": "source-backed",
+      "status": "verified"
+    },
+    {
+      "endpoint": "POST /v1/btree/run",
+      "source_schema": "BTreeRunRequest (rust, igris-runtime/crates/igris-server/src/main.rs)",
+      "request_fields": 0,
+      "response_contract": null,
+      "response_fields": 0,
+      "schema_policy": "source-backed",
+      "status": "verified"
+    },
+    {
+      "endpoint": "POST /v1/btree/deploy",
+      "source_schema": "BTreeDeployRequest (rust, igris-runtime/crates/igris-server/src/main.rs)",
+      "request_fields": 0,
+      "response_contract": null,
+      "response_fields": 0,
+      "schema_policy": "source-backed",
+      "status": "verified"
+    },
+    {
+      "endpoint": "GET /v1/btree/events",
+      "source_schema": null,
+      "request_fields": 0,
+      "response_contract": null,
+      "response_fields": 0,
+      "schema_policy": "not-required",
+      "status": "verified"
+    },
+    {
+      "endpoint": "GET /v1/lora/status",
+      "source_schema": null,
+      "request_fields": 0,
+      "response_contract": null,
+      "response_fields": 0,
+      "schema_policy": "not-required",
+      "status": "verified"
+    },
+    {
+      "endpoint": "GET /v1/memory/status",
+      "source_schema": null,
+      "request_fields": 0,
+      "response_contract": null,
+      "response_fields": 0,
+      "schema_policy": "not-required",
+      "status": "verified"
+    },
+    {
+      "endpoint": "POST /v1/memory/store",
+      "source_schema": "MemoryStoreRequest (rust, igris-runtime/crates/igris-server/src/main.rs)",
+      "request_fields": 3,
+      "response_contract": null,
+      "response_fields": 0,
+      "schema_policy": "source-backed",
+      "status": "verified"
+    },
+    {
+      "endpoint": "POST /v1/memory/search",
+      "source_schema": "MemorySearchRequest (rust, igris-runtime/crates/igris-server/src/main.rs)",
+      "request_fields": 2,
+      "response_contract": null,
+      "response_fields": 0,
+      "schema_policy": "source-backed",
+      "status": "verified"
+    },
+    {
+      "endpoint": "GET /v1/memory/:key",
+      "source_schema": null,
+      "request_fields": 0,
+      "response_contract": null,
+      "response_fields": 0,
+      "schema_policy": "not-required",
+      "status": "verified"
+    },
+    {
+      "endpoint": "GET /v1/hitl/status",
+      "source_schema": null,
+      "request_fields": 0,
+      "response_contract": null,
+      "response_fields": 0,
+      "schema_policy": "not-required",
+      "status": "verified"
+    },
+    {
+      "endpoint": "GET /v1/hitl/requests",
+      "source_schema": null,
+      "request_fields": 0,
+      "response_contract": null,
+      "response_fields": 0,
+      "schema_policy": "not-required",
+      "status": "verified"
+    },
+    {
+      "endpoint": "POST /v1/hitl/request",
+      "source_schema": "HitlRequestInput (rust, igris-runtime/crates/igris-server/src/main.rs)",
+      "request_fields": 2,
+      "response_contract": null,
+      "response_fields": 0,
+      "schema_policy": "source-backed",
+      "status": "verified"
+    },
+    {
+      "endpoint": "POST /v1/hitl/approve",
+      "source_schema": "HitlDecisionRequest (rust, igris-runtime/crates/igris-server/src/main.rs)",
+      "request_fields": 1,
+      "response_contract": null,
+      "response_fields": 0,
+      "schema_policy": "source-backed",
+      "status": "verified"
+    },
+    {
+      "endpoint": "POST /v1/hitl/reject",
+      "source_schema": "HitlDecisionRequest (rust, igris-runtime/crates/igris-server/src/main.rs)",
+      "request_fields": 1,
+      "response_contract": null,
+      "response_fields": 0,
+      "schema_policy": "source-backed",
+      "status": "verified"
+    },
+    {
+      "endpoint": "GET /v1/swarm/status",
+      "source_schema": null,
+      "request_fields": 0,
+      "response_contract": null,
+      "response_fields": 0,
+      "schema_policy": "not-required",
+      "status": "verified"
+    },
+    {
+      "endpoint": "GET /v1/swarm/agents",
+      "source_schema": null,
+      "request_fields": 0,
+      "response_contract": null,
+      "response_fields": 0,
+      "schema_policy": "not-required",
+      "status": "verified"
+    },
+    {
+      "endpoint": "POST /v1/swarm/join",
+      "source_schema": "SwarmJoinRequest (rust, igris-runtime/crates/igris-server/src/main.rs)",
+      "request_fields": 1,
+      "response_contract": null,
+      "response_fields": 0,
+      "schema_policy": "source-backed",
+      "status": "verified"
+    },
+    {
+      "endpoint": "POST /v1/swarm/propose",
+      "source_schema": "SwarmProposeRequest (rust, igris-runtime/crates/igris-server/src/main.rs)",
+      "request_fields": 3,
+      "response_contract": null,
+      "response_fields": 0,
+      "schema_policy": "source-backed",
+      "status": "verified"
+    },
+    {
+      "endpoint": "POST /v1/swarm/vote",
+      "source_schema": "SwarmVoteRequest (rust, igris-runtime/crates/igris-server/src/main.rs)",
+      "request_fields": 2,
+      "response_contract": null,
+      "response_fields": 0,
+      "schema_policy": "source-backed",
+      "status": "verified"
+    },
+    {
+      "endpoint": "GET /v1/federated/status",
+      "source_schema": null,
+      "request_fields": 0,
+      "response_contract": null,
+      "response_fields": 0,
+      "schema_policy": "not-required",
+      "status": "verified"
+    },
+    {
+      "endpoint": "POST /v1/federated/update",
+      "source_schema": null,
+      "request_fields": 2,
+      "response_contract": null,
+      "response_fields": 0,
+      "schema_policy": "example-only: Federated update payloads are runtime-local and handler-validated by the federated coordinator.",
+      "status": "example-validated"
+    },
+    {
+      "endpoint": "GET /v1/federated/model/latest",
+      "source_schema": null,
+      "request_fields": 0,
+      "response_contract": null,
+      "response_fields": 0,
+      "schema_policy": "not-required",
+      "status": "verified"
+    },
+    {
+      "endpoint": "GET /v1/federated/participants",
+      "source_schema": null,
+      "request_fields": 0,
+      "response_contract": null,
+      "response_fields": 0,
+      "schema_policy": "not-required",
+      "status": "verified"
+    },
+    {
+      "endpoint": "POST /v1/runtime/execute",
+      "source_schema": "ExecuteRequest (rust, igris-runtime/crates/igris-server/src/runtime_execute.rs)",
+      "request_fields": 8,
+      "response_contract": null,
+      "response_fields": 0,
+      "schema_policy": "source-backed",
+      "status": "verified"
+    },
+    {
+      "endpoint": "GET /v1/runtime/violations",
+      "source_schema": null,
+      "request_fields": 0,
+      "response_contract": null,
+      "response_fields": 0,
+      "schema_policy": "not-required",
+      "status": "verified"
+    },
+    {
+      "endpoint": "POST /v1/runtime/task/submit",
+      "source_schema": "TaskSubmitRequest (rust, igris-runtime/crates/igris-server/src/task_executor.rs)",
+      "request_fields": 6,
+      "response_contract": "igris-runtime/crates/igris-server/src/task_executor.rs TaskSubmitResponse",
+      "response_fields": 4,
+      "schema_policy": "source-backed",
+      "status": "verified"
+    },
+    {
+      "endpoint": "POST /v1/runtime/task/stream",
+      "source_schema": "TaskSubmitRequest (rust, igris-runtime/crates/igris-server/src/task_executor.rs)",
+      "request_fields": 6,
+      "response_contract": "igris-runtime/crates/igris-server/src/task_executor.rs build_task_result_payload",
+      "response_fields": 3,
+      "schema_policy": "source-backed",
+      "status": "verified"
+    },
+    {
+      "endpoint": "POST /v1/runtime/task/:task_id/cancel",
+      "source_schema": null,
+      "request_fields": 0,
+      "response_contract": "igris-runtime/crates/igris-server/src/task_executor.rs build_task_cancel_response",
+      "response_fields": 6,
+      "schema_policy": "example-only: Runtime task cancellation is path-param driven and bodyless in the public contract.",
+      "status": "verified"
+    },
+    {
+      "endpoint": "GET /v1/runtime/task/:task_id/wal",
+      "source_schema": null,
+      "request_fields": 0,
+      "response_contract": "igris-runtime/crates/igris-server/src/task_executor.rs handle_task_wal",
+      "response_fields": 3,
+      "schema_policy": "not-required",
+      "status": "verified"
+    },
+    {
+      "endpoint": "GET /v1/runtime/agent/:id/state",
+      "source_schema": null,
+      "request_fields": 0,
+      "response_contract": null,
+      "response_fields": 0,
+      "schema_policy": "not-required",
+      "status": "verified"
+    }
+  ]
+}
