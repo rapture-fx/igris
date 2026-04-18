@@ -362,6 +362,116 @@ func TestHandleStreamingInferRejectsFallbackWhenRuntimeUnavailable(t *testing.T)
 	}
 }
 
+func TestHandleStreamingInferSurfacesRuntimeStreamErrorPayload(t *testing.T) {
+	t.Parallel()
+
+	handler := &InferHandler{
+		runtimeExecutor: &stubRuntimeExecutor{
+			streamErr: &models.RuntimeStreamError{
+				StatusCode: http.StatusConflict,
+				Payload: map[string]interface{}{
+					"error": map[string]interface{}{
+						"message": "Streaming replay is only available for completed task submissions with final output",
+						"type":    "stream_replay_unavailable",
+					},
+					"task": map[string]interface{}{
+						"status": map[string]interface{}{
+							"status": "failed",
+							"reason": "provider stream failed",
+						},
+						"failure_details": map[string]interface{}{
+							"source":         "runtime",
+							"operation":      "execution",
+							"rejection_type": "step_failed",
+							"message":        "provider stream failed",
+							"step_index":     float64(0),
+							"domain":         "agent",
+							"node_id":        "agent-0",
+						},
+					},
+					"durability": map[string]interface{}{
+						"mode":                 "streaming",
+						"resume_supported":     false,
+						"replay_supported":     false,
+						"checkpoint_persisted": false,
+					},
+				},
+			},
+		},
+	}
+
+	app := fiber.New()
+	app.Post("/v1/infer", func(c *fiber.Ctx) error {
+		return handler.handleStreamingInfer(c, &models.InferRequest{
+			Model:    "gpt-4.1-mini",
+			Stream:   true,
+			Messages: []models.Message{{Role: "user", Content: "hello"}},
+		})
+	})
+
+	req := httptest.NewRequest(http.MethodPost, "/v1/infer", nil)
+	resp, err := app.Test(req)
+	if err != nil {
+		t.Fatalf("app.Test() error = %v", err)
+	}
+	if resp.StatusCode != http.StatusConflict {
+		t.Fatalf("StatusCode = %d, want %d", resp.StatusCode, http.StatusConflict)
+	}
+
+	var body map[string]interface{}
+	if err := json.NewDecoder(resp.Body).Decode(&body); err != nil {
+		t.Fatalf("Decode() error = %v", err)
+	}
+	errorBody, ok := body["error"].(map[string]interface{})
+	if !ok {
+		t.Fatalf("error body type = %T, want map[string]interface{}", body["error"])
+	}
+	if got := errorBody["type"]; got != "stream_replay_unavailable" {
+		t.Fatalf("error.type = %v, want stream_replay_unavailable", got)
+	}
+	if got := body["runtime_status_code"]; got != float64(http.StatusConflict) {
+		t.Fatalf("runtime_status_code = %v, want %d", got, http.StatusConflict)
+	}
+	failureBody, ok := body["failure"].(map[string]interface{})
+	if !ok {
+		t.Fatalf("failure body type = %T, want map[string]interface{}", body["failure"])
+	}
+	if got := failureBody["source"]; got != "runtime" {
+		t.Fatalf("failure.source = %v, want runtime", got)
+	}
+	if got := failureBody["operation"]; got != "stream" {
+		t.Fatalf("failure.operation = %v, want stream", got)
+	}
+	if got := failureBody["type"]; got != "stream_replay_unavailable" {
+		t.Fatalf("failure.type = %v, want stream_replay_unavailable", got)
+	}
+	if got := failureBody["status_code"]; got != float64(http.StatusConflict) {
+		t.Fatalf("failure.status_code = %v, want %d", got, http.StatusConflict)
+	}
+	execution, ok := failureBody["execution"].(map[string]interface{})
+	if !ok {
+		t.Fatalf("failure.execution type = %T, want map[string]interface{}", failureBody["execution"])
+	}
+	if got := execution["node_id"]; got != "agent-0" {
+		t.Fatalf("failure.execution.node_id = %v, want agent-0", got)
+	}
+	runtimePayload, ok := body["runtime_payload"].(map[string]interface{})
+	if !ok {
+		t.Fatalf("runtime_payload type = %T, want map[string]interface{}", body["runtime_payload"])
+	}
+	taskBody, ok := runtimePayload["task"].(map[string]interface{})
+	if !ok {
+		t.Fatalf("runtime_payload.task type = %T, want map[string]interface{}", runtimePayload["task"])
+	}
+	failureDetails, ok := taskBody["failure_details"].(map[string]interface{})
+	if !ok {
+		t.Fatalf("runtime_payload.task.failure_details type = %T, want map[string]interface{}", taskBody["failure_details"])
+	}
+	if got := failureDetails["operation"]; got != "execution" {
+		t.Fatalf("runtime failure_details.operation = %v, want execution", got)
+	}
+}
+
 func TestHandleStreamingInferReportsSecurityRejectionWithRuntimeContract(t *testing.T) {
 	t.Parallel()
 
