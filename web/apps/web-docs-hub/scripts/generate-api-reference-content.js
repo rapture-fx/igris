@@ -254,6 +254,10 @@ function escapeMdxText(value) {
   return String(value).replace(/{/g, '&#123;').replace(/}/g, '&#125;');
 }
 
+function formatMdxLabel(value) {
+  return escapeMdxText(String(value).replace(/{([a-zA-Z0-9_]+)}/g, ':$1'));
+}
+
 function classSlug(value) {
   return String(value).toLowerCase().replace(/[^a-z0-9]+/g, '-');
 }
@@ -388,7 +392,7 @@ function renderIndexMdx() {
   const sections = apiSections
     .map((section) => {
       const links = section.endpoints
-        .map((endpoint) => `- [\`${escapeMdxText(`${endpoint.method} ${endpoint.path}`)}\`](${getApiEndpointHref(section, endpoint)}) — ${endpoint.description}`)
+        .map((endpoint) => `- [\`${formatMdxLabel(`${endpoint.method} ${endpoint.path}`)}\`](${getApiEndpointHref(section, endpoint)}) — ${endpoint.description}`)
         .join('\n');
       return `## ${section.title}\n\n${section.summary}\n\n${links}\n`;
     })
@@ -417,13 +421,14 @@ ${sections}
 
 function renderEndpointMdx(section, endpoint, data) {
   const metadataBlock = renderEndpointMeta(data, endpoint);
+  const title = formatMdxLabel(data.title);
 
   let content = `---
-title: "${escapeYaml(data.title)}"
+title: "${escapeYaml(title)}"
 description: "${escapeYaml(data.functionality)}"
 ---
 
-# ${escapeMdxText(data.title)}
+# ${title}
 
 ${data.functionality}
 
@@ -443,7 +448,7 @@ ${data.retryGuidance}
   }
 
   if (data.relatedEndpoints.length > 0) {
-    content += `\n### Related Endpoints\n\n${data.relatedEndpoints.map((item) => `- [${escapeMdxText(item.label)}](${item.href})`).join('\n')}\n`;
+    content += `\n### Related Endpoints\n\n${data.relatedEndpoints.map((item) => `- [${formatMdxLabel(item.label)}](${item.href})`).join('\n')}\n`;
   }
 
   if (data.relatedGuides.length > 0) {
