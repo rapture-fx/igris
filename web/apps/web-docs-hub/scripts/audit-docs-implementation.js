@@ -130,6 +130,11 @@ function buildRouteInventory() {
   const files = walk(
     repoRoot,
     (filePath) => SOURCE_EXTENSIONS.has(path.extname(filePath)) &&
+      !filePath.endsWith('_test.go') &&
+      !filePath.endsWith('.test.ts') &&
+      !filePath.endsWith('.test.tsx') &&
+      !filePath.endsWith('.spec.ts') &&
+      !filePath.endsWith('.spec.tsx') &&
       (filePath.includes(`${path.sep}igris-overture${path.sep}`) ||
         filePath.includes(`${path.sep}igris-runtime${path.sep}`) ||
         filePath.includes(`${path.sep}web${path.sep}apps${path.sep}web-console${path.sep}`))
@@ -159,6 +164,8 @@ function normalizeClaimPath(rawPath) {
   } catch {
     // Keep the raw value; it will fail matching below.
   }
+  value = value.split(']')[0].split(')')[0].split('<')[0];
+  value = value.replace(/[.,;:]+$/g, '');
   if (value !== '/' && value.endsWith('/')) {
     value = value.slice(0, -1);
   }
@@ -232,7 +239,7 @@ function extractDocsRouteClaims() {
         });
       }
 
-      const methodPathRegex = /\b(GET|POST|PUT|PATCH|DELETE)\s+(\/(?:v1|api|proof|admin)[^\s"'`)]*)/g;
+      const methodPathRegex = /\b(GET|POST|PUT|PATCH|DELETE)\s+(\/(?:v1|api|proof|admin)[^\s"'`)\]<]*)/g;
       while ((match = methodPathRegex.exec(line)) !== null) {
         addClaim(claims, seen, {
           file: relative,
@@ -356,14 +363,17 @@ function evidenceText(row) {
   return row.evidence.map((item) => `${item.method} ${item.path} (${item.surface}, ${item.file})`).join('<br />');
 }
 
-function renderMarkdown(summary, pageSummary, rows) {
+function renderMarkdown(summary, pageSummary, rows, guideSummary, guidePageSummary, guideRows) {
   const riskyRows = rows.filter((row) => row.status !== 'implemented');
+  const riskyGuideRows = guideRows.filter((row) => row.status !== 'implemented');
   const lines = [
     '# Documentation Implementation Audit',
     '',
     `Generated: ${new Date().toISOString()}`,
     '',
     'This report compares customer-facing docs route claims against routes registered in `igris-overture`, `igris-runtime`, and the web console codebase. It is evidence-based: a route claim is implemented only when the matching method/path is registered in code on the expected surface.',
+    '',
+    'The API reference has a separate endpoint verification report in `api-verification.md`. The guide-page section below is the highest-signal view for finding made-up or stale customer-facing workflow documentation.',
     '',
     '## Summary',
     '',
@@ -373,17 +383,46 @@ function renderMarkdown(summary, pageSummary, rows) {
     `- Implemented on a different surface than documented: ${summary.by_status['wrong-surface'] ?? 0}`,
     `- Path exists with a different method: ${summary.by_status['wrong-method'] ?? 0}`,
     '',
-    '## Page Risk Summary',
+    '## Guide Page Summary',
+    '',
+    `- Guide route claims audited: ${guideSummary.total}`,
+    `- Implemented on expected surface: ${guideSummary.by_status.implemented ?? 0}`,
+    `- Missing from code: ${guideSummary.by_status.missing ?? 0}`,
+    `- Implemented on a different surface than documented: ${guideSummary.by_status['wrong-surface'] ?? 0}`,
+    `- Path exists with a different method: ${guideSummary.by_status['wrong-method'] ?? 0}`,
     '',
     '| Page | Route claims | Implemented | Missing | Wrong surface | Wrong method |',
     '| --- | ---: | ---: | ---: | ---: | ---: |',
   ];
 
+  for (const page of guidePageSummary) {
+    lines.push(`| \`${page.file}\` | ${page.total_route_claims} | ${page.implemented} | ${page.missing} | ${page.wrong_surface} | ${page.wrong_method} |`);
+  }
+
+  lines.push('', '## Unsupported Or Mismatched Guide Claims', '');
+  if (riskyGuideRows.length === 0) {
+    lines.push('No unsupported guide-page route claims were found.');
+  } else {
+    lines.push('| Status | Page | Line | Method | Path | Expected surface | Evidence |');
+    lines.push('| --- | --- | ---: | --- | --- | --- | --- |');
+    for (const row of riskyGuideRows) {
+      lines.push(`| ${row.status} | \`${row.file}\` | ${row.line} | ${row.method ?? '*'} | \`${row.path}\` | ${row.expected_surface ?? 'unspecified'} | ${evidenceText(row)} |`);
+    }
+  }
+
+  lines.push(
+    '',
+    '## All Page Risk Summary',
+    '',
+    '| Page | Route claims | Implemented | Missing | Wrong surface | Wrong method |',
+    '| --- | ---: | ---: | ---: | ---: | ---: |',
+  );
+
   for (const page of pageSummary) {
     lines.push(`| \`${page.file}\` | ${page.total_route_claims} | ${page.implemented} | ${page.missing} | ${page.wrong_surface} | ${page.wrong_method} |`);
   }
 
-  lines.push('', '## Unsupported Or Mismatched Claims', '');
+  lines.push('', '## All Unsupported Or Mismatched Claims', '');
   if (riskyRows.length === 0) {
     lines.push('No unsupported route claims were found.');
   } else {
@@ -403,15 +442,18 @@ function main() {
   const rows = claims.map((claim) => classifyClaim(claim, routes));
   const summary = summarize(rows);
   const pageSummary = buildPageSummary(rows);
+  const guideRows = rows.filter((row) => !row.file.includes('/api-reference/'));
+  const guideSummary = summarize(guideRows);
+  const guidePageSummary = buildPageSummary(guideRows);
 
   fs.mkdirSync(generatedDir, { recursive: true });
   fs.writeFileSync(
     path.join(generatedDir, 'docs-implementation-audit.json'),
-    `${JSON.stringify({ generated_at: new Date().toISOString(), summary, pages: pageSummary, claims: rows }, null, 2)}\n`
+    `${JSON.stringify({ generated_at: new Date().toISOString(), summary, guide_summary: guideSummary, pages: pageSummary, guide_pages: guidePageSummary, claims: rows }, null, 2)}\n`
   );
   fs.writeFileSync(
     path.join(generatedDir, 'docs-implementation-audit.md'),
-    renderMarkdown(summary, pageSummary, rows)
+    renderMarkdown(summary, pageSummary, rows, guideSummary, guidePageSummary, guideRows)
   );
 
   console.log(`Docs implementation audit generated: ${summary.total} route claims`);
