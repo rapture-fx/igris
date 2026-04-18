@@ -104,15 +104,16 @@ const endpointOverrides: Record<string, EndpointOverride> = {
     requestBodyFields: [
       { name: 'model', type: 'string', required: true, description: 'Requested model or routing target.' },
       { name: 'messages', type: 'array', required: true, description: 'Conversation turns in Igris message format.' },
-      { name: 'provider', type: 'string', description: 'Optional provider pin.' },
-      { name: 'optimize_for', type: 'string', description: 'Routing preference such as `latency` or `cost`.' },
+      { name: 'policy', type: 'object', description: 'Optional routing policy override, including provider pinning and optimization preference.' },
       { name: 'stream', type: 'boolean', description: 'When true, returns a Server-Sent Events stream. Runtime-backed streams advertise durability and replay headers.' },
       { name: 'allow_stream_fallback', type: 'boolean', description: 'Explicitly allows Overture-local fallback only when runtime-backed streaming is unavailable before the Runtime returns a structured decision.' },
     ],
     requestExample: {
       model: 'gpt-4o-mini',
-      provider: 'openai',
-      optimize_for: 'latency',
+      policy: {
+        provider: 'openai',
+        optimize_for: 'latency',
+      },
       stream: false,
       messages: [{ role: 'user', content: 'Classify this alert severity.' }],
     },
@@ -122,6 +123,10 @@ const endpointOverrides: Record<string, EndpointOverride> = {
       'If Runtime returns a structured non-200 stream response, Overture preserves the Runtime status code and exposes `runtime_status_code`, `runtime_payload`, normalized `failure`, and the stream contract. `allow_stream_fallback` does not replace that response.',
     ],
     responseExample: {
+      id: 'chatcmpl_01HV93C2PKR0N8SVQ',
+      object: 'chat.completion',
+      created: 1712338123,
+      model: 'gpt-4o-mini',
       choices: [
         {
           index: 0,
@@ -129,11 +134,19 @@ const endpointOverrides: Record<string, EndpointOverride> = {
           finish_reason: 'stop',
         },
       ],
-      route: {
+      metadata: {
         provider: 'openai',
-        optimize_for: 'latency',
+        model_used: 'gpt-4o-mini',
+        request_id: 'chatcmpl_01HV93C2PKR0N8SVQ',
+        timestamp: '2026-04-04T06:33:00Z',
+        latency_ms: 221,
       },
-      receipt_id: 'rcpt_01HV93C2PKR0N8SVQ',
+      receipt: {
+        available: true,
+        execution_id: 'exec_01HV93C2PKR0N8SVQ',
+        receipt_hash: '6f16f4bc...',
+        signature_present: true,
+      },
     },
     statusCodes: [
       {
@@ -778,6 +791,21 @@ const endpointOverrides: Record<string, EndpointOverride> = {
       task_id: '018f4a2b-3c1e-7a2d-9b8f-4d5e6f7a8b9c',
       status: 'dispatched',
       created_at: '2026-04-04T14:30:00Z',
+      lifecycle: {
+        terminal: false,
+        runtime_mutation_allowed: true,
+        dispatch_allowed: true,
+        recovery_redispatch_allowed: false,
+        cancellation_allowed: true,
+      },
+      durability: {
+        class: 'resumable',
+        streaming: false,
+        resume_supported: false,
+      },
+      recovery: {
+        redispatch_eligible: false,
+      },
     },
     statusCodes: [
       { code: 202, title: 'Accepted', description: 'Task created and dispatched to a runtime. Poll GET /v1/tasks/:id for progress.' },
@@ -1193,13 +1221,13 @@ const endpointOverrides: Record<string, EndpointOverride> = {
   'POST /v1/memory/store': {
     requestBodyFields: [
       { name: 'key', type: 'string', required: true, description: 'Memory key.' },
-      { name: 'value', type: 'object | string', required: true, description: 'Value to persist in local memory.' },
-      { name: 'metadata', type: 'object', description: 'Optional metadata for retrieval and search.' },
+      { name: 'content', type: 'string', required: true, description: 'Text content to persist in local memory.' },
+      { name: 'embedding', type: 'number[]', required: true, description: 'Embedding vector used for retrieval.' },
     ],
     requestExample: {
       key: 'mission.last_summary',
-      value: 'Inspection complete. No anomaly detected.',
-      metadata: { source: 'agent' },
+      content: 'Inspection complete. No anomaly detected.',
+      embedding: [0.12, -0.04, 0.87],
     },
     responseExample: {
       stored: true,
@@ -1208,11 +1236,11 @@ const endpointOverrides: Record<string, EndpointOverride> = {
   },
   'POST /v1/memory/search': {
     requestBodyFields: [
-      { name: 'query', type: 'string', required: true, description: 'Search query.' },
+      { name: 'embedding', type: 'number[]', required: true, description: 'Query embedding vector.' },
       { name: 'top_k', type: 'integer', description: 'Maximum number of results to return.' },
     ],
     requestExample: {
-      query: 'last inspection summary',
+      embedding: [0.12, -0.04, 0.87],
       top_k: 3,
     },
     responseExample: {
@@ -1273,9 +1301,8 @@ const endpointOverrides: Record<string, EndpointOverride> = {
   'POST /v1/hitl/reject': {
     requestBodyFields: [
       { name: 'request_id', type: 'string', required: true, description: 'HITL request identifier.' },
-      { name: 'reason', type: 'string', description: 'Optional rejection reason.' },
     ],
-    requestExample: { request_id: 'hitl_01HV9C', reason: 'Operator override' },
+    requestExample: { request_id: 'hitl_01HV9C' },
     responseExample: { status: 'rejected' },
   },
   'GET /v1/swarm/status': {
@@ -1300,17 +1327,19 @@ const endpointOverrides: Record<string, EndpointOverride> = {
   },
   'POST /v1/swarm/propose': {
     requestBodyFields: [
-      { name: 'proposal', type: 'object', required: true, description: 'Proposal payload for swarm voting.' },
+      { name: 'task_type', type: 'string', required: true, description: 'Task type proposed to the swarm.' },
+      { name: 'parameters', type: 'object', required: true, description: 'Task-specific proposal parameters.' },
+      { name: 'priority', type: 'integer', description: 'Optional task priority. Defaults to 1.' },
     ],
-    requestExample: { proposal: { action: 'reroute', target: 'dock-2' } },
+    requestExample: { task_type: 'reroute', parameters: { target: 'dock-2' }, priority: 1 },
     responseExample: { proposal_id: 'proposal_01HV9D', status: 'open' },
   },
   'POST /v1/swarm/vote': {
     requestBodyFields: [
       { name: 'proposal_id', type: 'string', required: true, description: 'Proposal identifier.' },
-      { name: 'vote', type: 'string', required: true, description: 'Vote value such as `approve` or `reject`.' },
+      { name: 'approve', type: 'boolean', required: true, description: 'Whether this runtime approves the proposal.' },
     ],
-    requestExample: { proposal_id: 'proposal_01HV9D', vote: 'approve' },
+    requestExample: { proposal_id: 'proposal_01HV9D', approve: true },
     responseExample: { accepted: true },
   },
   'GET /v1/federated/status': {
@@ -1342,16 +1371,31 @@ const endpointOverrides: Record<string, EndpointOverride> = {
   },
   'POST /v1/runtime/execute': {
     requestBodyFields: [
-      { name: 'task', type: 'object', required: true, description: 'Runtime execution payload.' },
-      { name: 'timeout_ms', type: 'integer', description: 'Optional execution timeout.' },
+      { name: 'model', type: 'string', required: true, description: 'Local or configured provider model.' },
+      { name: 'messages', type: 'array', required: true, description: 'Conversation turns to execute.' },
+      { name: 'max_tokens', type: 'integer', description: 'Optional generation limit.' },
+      { name: 'temperature', type: 'number', description: 'Optional sampling temperature.' },
+      { name: 'stream', type: 'boolean', description: 'Optional stream preference.' },
+      { name: 'mode', type: 'string', description: 'Optional routing mode.' },
+      { name: 'tenant_id', type: 'string', description: 'Optional tenant identifier forwarded by Overture.' },
+      { name: 'bounds', type: 'object', description: 'Optional containment bounds. `X-Igris-Bounds` takes precedence.' },
     ],
     requestExample: {
-      task: { type: 'tool_call', name: 'health_check' },
-      timeout_ms: 30000,
+      model: 'local',
+      messages: [{ role: 'user', content: 'Run a local health summary.' }],
+      max_tokens: 128,
     },
     responseExample: {
-      status: 'completed',
-      output: {},
+      id: 'exec_01HV9F',
+      object: 'chat.completion',
+      model: 'local',
+      choices: [
+        {
+          index: 0,
+          message: { role: 'assistant', content: 'Runtime is healthy.' },
+          finish_reason: 'stop',
+        },
+      ],
     },
   },
   'GET /v1/runtime/violations': {
@@ -1361,17 +1405,24 @@ const endpointOverrides: Record<string, EndpointOverride> = {
   },
   'POST /v1/runtime/task/submit': {
     requestBodyFields: [
-      { name: 'task_id', type: 'string', description: 'Optional caller-supplied task ID.' },
-      { name: 'task_type', type: 'string', required: true, description: 'Runtime task type.' },
-      { name: 'task_definition', type: 'object', required: true, description: 'Runtime task payload.' },
+      { name: 'task_id', type: 'string', required: true, description: 'Unique durable task identifier supplied by the caller.' },
+      { name: 'task_type', type: 'object', required: true, description: 'Tagged runtime task payload such as `{"type":"single_inference"}`.' },
+      { name: 'idempotency_key', type: 'string', required: true, description: 'Stable key used to deduplicate submissions.' },
+      { name: 'tenant_id', type: 'string', required: true, description: 'Tenant or local isolation identifier used for idempotency storage.' },
+      { name: 'deadline_ms', type: 'integer', description: 'Optional execution deadline in milliseconds.' },
+      { name: 'containment', type: 'object', description: 'Optional runtime bounds forwarded from the control plane.' },
     ],
     requestExample: {
-      task_type: 'single_inference',
-      task_definition: { model: 'local', messages: [{ role: 'user', content: 'hello' }] },
+      task_id: '018f4a2b-3c1e-7a2d-9b8f-4d5e6f7a8b9c',
+      task_type: { type: 'single_inference', model: 'local', messages: [{ role: 'user', content: 'hello' }] },
+      idempotency_key: 'submit-018f4a2b',
+      tenant_id: 'tenant-local',
     },
     responseExample: {
       task_id: '018f4a2b-3c1e-7a2d-9b8f-4d5e6f7a8b9c',
-      status: 'accepted',
+      steps_completed: 1,
+      steps_total: 1,
+      status: { status: 'completed' },
     },
   },
   'POST /v1/runtime/task/stream': {
@@ -1399,7 +1450,7 @@ const endpointOverrides: Record<string, EndpointOverride> = {
       'The stream emits ordinary chat chunks first, then an `event: task_result` payload with the durable task result and `durability` metadata, followed by `data: [DONE]`.',
       'If the same idempotency key is replayed after a completed stream with final output, Runtime replays the final output and task result. If the stored task is failed, checkpointed, or lacks final output, Runtime returns `409 stream_replay_unavailable` with a task snapshot and durability metadata.',
     ],
-    responseExample: 'data: {"choices":[{"delta":{"content":"Hello"}}]}\n\nevent: task_result\ndata: {"task_id":"018f4a2b-3c1e-7a2d-9b8f-4d5e6f7a8b9c","status":"completed","durability":{"mode":"streaming","resume_supported":false,"replay_supported":true,"replay_condition":"completed-final-output","checkpoint_persisted":false}}\n\ndata: [DONE]\n',
+    responseExample: 'data: {"choices":[{"delta":{"content":"Hello"}}]}\n\nevent: task_result\ndata: {"task_id":"018f4a2b-3c1e-7a2d-9b8f-4d5e6f7a8b9c","status":{"status":"completed"},"durability":{"mode":"streaming","resume_supported":false,"replay_supported":true,"replay_condition":"completed-final-output","checkpoint_persisted":false}}\n\ndata: [DONE]\n',
     responseExampleLanguage: 'text',
     statusCodes: [
       {
@@ -1461,12 +1512,17 @@ const endpointOverrides: Record<string, EndpointOverride> = {
     responseExample: {
       task_id: '018f4a2b-3c1e-7a2d-9b8f-4d5e6f7a8b9c',
       canceled: true,
+      known: true,
+      active_execution: true,
+      cancellation_allowed: true,
+      reason: 'cancel_signaled',
     },
   },
   'GET /v1/runtime/task/{task_id}/wal': {
     responseExample: {
       task_id: '018f4a2b-3c1e-7a2d-9b8f-4d5e6f7a8b9c',
       entries: [],
+      count: 0,
     },
   },
   'GET /v1/runtime/agent/:id/state': {
