@@ -3,6 +3,8 @@ const path = require('path');
 
 const { docsDir, generatedDir, repoRoot } = require('./docs-data');
 
+const allowGaps = process.argv.includes('--allow-gaps') || process.env.DOCS_AUDIT_ALLOW_GAPS === '1';
+
 const SOURCE_EXTENSIONS = new Set(['.go', '.rs', '.ts', '.tsx', '.js', '.jsx']);
 const SKIP_DIRS = new Set([
   '.git',
@@ -459,6 +461,13 @@ function main() {
 
   console.log(`Docs implementation audit generated: ${summary.total} route claims`);
   console.log(JSON.stringify(summary, null, 2));
+
+  const unsupported = rows.filter((row) => row.status !== 'implemented');
+  if (unsupported.length > 0 && !allowGaps) {
+    console.error(`Docs implementation audit failed: ${unsupported.length} unsupported or mismatched route claims found.`);
+    console.error(`See ${path.join(generatedDir, 'docs-implementation-audit.md')}`);
+    process.exitCode = 1;
+  }
 }
 
 main();
