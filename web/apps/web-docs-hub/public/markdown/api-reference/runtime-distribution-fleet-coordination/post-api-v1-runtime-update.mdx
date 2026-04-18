@@ -39,17 +39,23 @@ Do not blindly retry write operations. Retry only on transient 5xx or 429 respon
 
 | Field | Type | Required | Description |
 |---|---|---|---|
-| `runtime_ids` | `array` | Yes | One or more runtime IDs to target. |
 | `version` | `string` | Yes | Target runtime version or release channel. |
+| `strategy` | `string` | No | Rollout strategy. Defaults to `rolling`. |
+| `max_unavailable` | `integer` | No | Maximum unavailable runtimes for a rolling update. Defaults to `1`. |
+| `selector` | `object` | No | Optional selector metadata for the fleet command. Current server behavior queues the command for the tenant fleet. |
 
 ## Request Example
 
 ```json
 {
-  "runtime_ids": [
-    "rt_01HV94AS6G98PZ2YH"
-  ],
-  "version": "runtime-v1.6.0"
+  "version": "runtime-v1.6.0",
+  "strategy": "rolling",
+  "max_unavailable": 1,
+  "selector": {
+    "tags": [
+      "site-a"
+    ]
+  }
 }
 ```
 
@@ -62,10 +68,14 @@ curl -X POST https://overture.igrisinertial.com/api/v1/runtime/update \
   -H "Cookie: better-auth.session_token=$IGRIS_SESSION_TOKEN" \
   -H "Content-Type: application/json" \
   -d '{
-  "runtime_ids": [
-    "rt_01HV94AS6G98PZ2YH"
-  ],
-  "version": "runtime-v1.6.0"
+  "version": "runtime-v1.6.0",
+  "strategy": "rolling",
+  "max_unavailable": 1,
+  "selector": {
+    "tags": [
+      "site-a"
+    ]
+  }
 }'
 ```
 
@@ -79,10 +89,14 @@ const response = await fetch('https://overture.igrisinertial.com/api/v1/runtime/
     'Content-Type': 'application/json',
   },
   body: JSON.stringify({
-  "runtime_ids": [
-    "rt_01HV94AS6G98PZ2YH"
-  ],
-  "version": "runtime-v1.6.0"
+  "version": "runtime-v1.6.0",
+  "strategy": "rolling",
+  "max_unavailable": 1,
+  "selector": {
+    "tags": [
+      "site-a"
+    ]
+  }
 }),
 });
 
@@ -94,7 +108,7 @@ console.log(data);
 
 ```go
 client := &http.Client{}
-body := strings.NewReader("{\n  \"runtime_ids\": [\n    \"rt_01HV94AS6G98PZ2YH\"\n  ],\n  \"version\": \"runtime-v1.6.0\"\n}")
+body := strings.NewReader("{\n  \"version\": \"runtime-v1.6.0\",\n  \"strategy\": \"rolling\",\n  \"max_unavailable\": 1,\n  \"selector\": {\n    \"tags\": [\n      \"site-a\"\n    ]\n  }\n}")
 
 req, err := http.NewRequest("POST", "https://overture.igrisinertial.com/api/v1/runtime/update", body)
 if err != nil {
@@ -121,10 +135,14 @@ let response = client
         .request(reqwest::Method::POST, "https://overture.igrisinertial.com/api/v1/runtime/update")
         .header("Cookie", format!("better-auth.session_token={}", std::env::var("IGRIS_SESSION_TOKEN")?))
         .json(&serde_json::json!({
-  "runtime_ids": [
-    "rt_01HV94AS6G98PZ2YH"
-  ],
-  "version": "runtime-v1.6.0"
+  "version": "runtime-v1.6.0",
+  "strategy": "rolling",
+  "max_unavailable": 1,
+  "selector": {
+    "tags": [
+      "site-a"
+    ]
+  }
 }))
         .send()
         .await?;
@@ -137,12 +155,21 @@ println!("{}", payload);
 
 ```json
 {
-  "status": "queued",
-  "dispatched_to": 1
+  "queued": true,
+  "version": "runtime-v1.6.0",
+  "strategy": "rolling",
+  "instances": 3,
+  "queued_at": "2026-04-04T06:36:00Z"
 }
 ```
 
 ## Status Codes
 
-Status-code details are still being documented for this endpoint.
+| Code | Title | Description |
+|---|---|---|
+| 200 | Success | The request completed successfully. For streaming or download endpoints, the success response may be a stream or attachment rather than a JSON object. |
+| 400 | Bad Request | The route was reached, but the request body, query string, or path parameter did not match the endpoint contract. |
+| 401 | Unauthorized | Credentials were missing, expired, malformed, or not accepted by this route. |
+| 429 | Too Many Requests | The caller exceeded the current throttle window and should wait before retrying. |
+| 500 | Server Error | The server accepted the request contract but failed while processing it. |
 
