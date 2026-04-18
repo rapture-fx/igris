@@ -40,18 +40,20 @@ Do not blindly retry write operations. Retry only on transient 5xx or 429 respon
 | Field | Type | Required | Description |
 |---|---|---|---|
 | `key` | `string` | Yes | Memory key. |
-| `value` | `object \| string` | Yes | Value to persist in local memory. |
-| `metadata` | `object` | No | Optional metadata for retrieval and search. |
+| `content` | `string` | Yes | Text content to persist in local memory. |
+| `embedding` | `number[]` | Yes | Embedding vector used for retrieval. |
 
 ## Request Example
 
 ```json
 {
   "key": "mission.last_summary",
-  "value": "Inspection complete. No anomaly detected.",
-  "metadata": {
-    "source": "agent"
-  }
+  "content": "Inspection complete. No anomaly detected.",
+  "embedding": [
+    0.12,
+    -0.04,
+    0.87
+  ]
 }
 ```
 
@@ -65,10 +67,12 @@ curl -X POST http://localhost:8080/v1/memory/store \
   -H "Content-Type: application/json" \
   -d '{
   "key": "mission.last_summary",
-  "value": "Inspection complete. No anomaly detected.",
-  "metadata": {
-    "source": "agent"
-  }
+  "content": "Inspection complete. No anomaly detected.",
+  "embedding": [
+    0.12,
+    -0.04,
+    0.87
+  ]
 }'
 ```
 
@@ -83,10 +87,12 @@ const response = await fetch('http://localhost:8080/v1/memory/store', {
   },
   body: JSON.stringify({
   "key": "mission.last_summary",
-  "value": "Inspection complete. No anomaly detected.",
-  "metadata": {
-    "source": "agent"
-  }
+  "content": "Inspection complete. No anomaly detected.",
+  "embedding": [
+    0.12,
+    -0.04,
+    0.87
+  ]
 }),
 });
 
@@ -98,7 +104,7 @@ console.log(data);
 
 ```go
 client := &http.Client{}
-body := strings.NewReader("{\n  \"key\": \"mission.last_summary\",\n  \"value\": \"Inspection complete. No anomaly detected.\",\n  \"metadata\": {\n    \"source\": \"agent\"\n  }\n}")
+body := strings.NewReader("{\n  \"key\": \"mission.last_summary\",\n  \"content\": \"Inspection complete. No anomaly detected.\",\n  \"embedding\": [\n    0.12,\n    -0.04,\n    0.87\n  ]\n}")
 
 req, err := http.NewRequest("POST", "http://localhost:8080/v1/memory/store", body)
 if err != nil {
@@ -126,10 +132,12 @@ let response = client
         .header("Authorization", format!("Bearer {}", std::env::var("IGRIS_RUNTIME_API_KEY")?))
         .json(&serde_json::json!({
   "key": "mission.last_summary",
-  "value": "Inspection complete. No anomaly detected.",
-  "metadata": {
-    "source": "agent"
-  }
+  "content": "Inspection complete. No anomaly detected.",
+  "embedding": [
+    0.12,
+    -0.04,
+    0.87
+  ]
 }))
         .send()
         .await?;
