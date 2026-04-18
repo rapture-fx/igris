@@ -43,16 +43,47 @@ function main() {
   const apiReference = JSON.parse(fs.readFileSync(apiReferencePath, 'utf8'));
   const allowedSupport = new Set(['core', 'supported', 'preview']);
   const allowedDeployment = new Set(['cloud', 'local', 'hybrid']);
+  const documentedEndpointKeys = new Set();
 
   for (const section of apiReference.sections ?? []) {
     for (const endpoint of section.endpoints ?? []) {
       const key = `${endpoint.method} ${endpoint.path}`;
+      documentedEndpointKeys.add(key);
       if (!allowedSupport.has(endpoint.support)) {
         failures.push(`${key}: missing or invalid support level`);
       }
       if (!allowedDeployment.has(endpoint.deployment)) {
         failures.push(`${key}: missing or invalid deployment mode`);
       }
+    }
+  }
+
+  const requiredCustomerEndpointKeys = [
+    'POST /api/v1/runtime/register',
+    'POST /api/v1/runtime/heartbeat',
+    'GET /api/v1/runtime/commands',
+    'DELETE /api/v1/runtime/deregister',
+    'GET /v1/routing/speculative/status',
+    'GET /v1/routing/speculative/config',
+    'POST /v1/routing/speculative',
+    'GET /v1/routing/speculative/analytics',
+    'POST /v1/routing/speculative/simulate',
+    'GET /v1/routing/circuit-breaker/status',
+    'GET /v1/routing/council/analytics',
+    'GET /v1/tasks/:id/steps',
+    'POST /v1/tasks/:id/cancel',
+    'GET /v1/tasks/proof/readiness',
+    'POST /v1/tasks/:id/proof/verify',
+    'POST /v1/mcp',
+    'POST /v1/mcp/stream',
+    'GET /v1/runtime/profile',
+    'GET /v1/memory/status',
+    'POST /v1/runtime/task/submit',
+    'POST /v1/runtime/task/stream',
+  ];
+  for (const key of requiredCustomerEndpointKeys) {
+    if (!documentedEndpointKeys.has(key)) {
+      failures.push(`Customer-facing route is missing from api-reference.json: ${key}`);
     }
   }
 
