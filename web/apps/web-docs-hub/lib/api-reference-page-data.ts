@@ -30,6 +30,7 @@ type EndpointOverride = {
   requestBodyFields?: ApiField[];
   requestExample?: ApiExampleValue | null;
   responseExample?: ApiExampleValue | null;
+  responseExampleLanguage?: string;
   statusCodes?: ApiStatusCode[];
 };
 
@@ -605,6 +606,7 @@ const endpointOverrides: Record<string, EndpointOverride> = {
     },
     responseExample: `{"execution_id":"exec_01HV95R5Y3TVVJ7R3","agent_id":"agent_router","runtime_id":"rt_01HV94AS6G98PZ2YH","timestamp_utc":"2026-04-04T06:33:00Z","wall_time_ms":483,"cpu_time_ms":422,"memory_peak_mb":190,"tool_calls":2,"violation_occurred":false,"status":"completed","receipt_hash":"6f16f4bc..."}
 {"execution_id":"exec_01HV96B3W64CK1KPG","agent_id":"agent_dispatch","runtime_id":"rt_01HV94AS6G98PZ2YH","timestamp_utc":"2026-04-04T06:41:00Z","wall_time_ms":612,"cpu_time_ms":501,"memory_peak_mb":214,"tool_calls":4,"violation_occurred":true,"status":"completed","receipt_hash":"9db11ce7..."}`,
+    responseExampleLanguage: 'jsonl',
     statusCodes: [
       {
         code: 200,
@@ -1075,6 +1077,7 @@ const endpointOverrides: Record<string, EndpointOverride> = {
       params: { name: 'example', arguments: {} },
     },
     responseExample: 'event: message\ndata: {"jsonrpc":"2.0","id":"req_stream_1","result":{"chunk":"..."}}\n',
+    responseExampleLanguage: 'text',
   },
   'GET /v1/runtime/profile': {
     responseExample: {
@@ -1295,6 +1298,7 @@ const endpointOverrides: Record<string, EndpointOverride> = {
       task_definition: { stream: true, model: 'local', messages: [{ role: 'user', content: 'hello' }] },
     },
     responseExample: 'event: token\ndata: {"delta":"Hello"}\n',
+    responseExampleLanguage: 'text',
   },
   'POST /v1/runtime/task/{task_id}/cancel': {
     requestExample: null,
@@ -1397,7 +1401,7 @@ function fallbackFunctionality(section: ApiSection, endpoint: ApiEndpoint) {
 
 function fallbackWhenToUse(section: ApiSection, endpoint: ApiEndpoint) {
   if (endpoint.support === 'preview') {
-    return `Use this endpoint when you need ${endpoint.description.toLowerCase()} and you are comfortable integrating against a preview surface. Confirm the current shape and rollout expectations before depending on it in a hard production path.`;
+    return `Use this endpoint when you are working with ${section.title} and are comfortable integrating against a preview surface. Confirm the current shape and rollout expectations before depending on it in a hard production path.`;
   }
 
   if (endpoint.deployment === 'local') {
@@ -1408,7 +1412,7 @@ function fallbackWhenToUse(section: ApiSection, endpoint: ApiEndpoint) {
     return `Use this endpoint when the workflow spans both the hosted control plane and one or more runtimes. It belongs to the ${section.title} area of the product and is most useful when you are coordinating runtime distribution, fleet state, or device operations.`;
   }
 
-  return `Use this endpoint when you need ${endpoint.description.toLowerCase()} from the hosted API. It is part of the ${section.title} surface and is intended to be the customer-facing contract for that capability.`;
+  return `Use this endpoint when the operation belongs to the ${section.title} surface on the hosted API. It is intended to be the customer-facing contract for this capability.`;
 }
 
 function fallbackRetryGuidance(endpoint: ApiEndpoint) {
@@ -1430,7 +1434,7 @@ function fallbackRetryGuidance(endpoint: ApiEndpoint) {
 function fallbackCommonMistakes(endpoint: ApiEndpoint) {
   const mistakes: string[] = [];
 
-  if (endpoint.auth.includes('Session cookie')) {
+  if (endpoint.auth === 'Session cookie') {
     mistakes.push('Calling the route with an API key when the workflow actually expects an authenticated browser session.');
   }
 
@@ -1734,6 +1738,7 @@ export function buildApiEndpointPageData(section: ApiSection, endpoint: ApiEndpo
     requestBodyFields: override.requestBodyFields ?? [],
     requestExample,
     responseExample,
+    responseExampleLanguage: override.responseExampleLanguage ?? 'json',
     statusCodes: override.statusCodes ?? [],
     codeSamples: [
       { label: 'cURL', language: 'bash', code: buildCurlSample(endpoint, override.requestExample, queryExample) },
