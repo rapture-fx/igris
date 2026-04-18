@@ -580,7 +580,15 @@ func (c *RuntimeClient) OpenStreamingExecution(
 	if httpResp.StatusCode != http.StatusOK {
 		defer httpResp.Body.Close()
 		body, _ := io.ReadAll(io.LimitReader(httpResp.Body, 4096))
-		return nil, fmt.Errorf("runtime_client: streaming runtime returned status %d: %s", httpResp.StatusCode, string(body))
+		streamErr := &models.RuntimeStreamError{
+			StatusCode: httpResp.StatusCode,
+			Body:       string(body),
+		}
+		var payload map[string]interface{}
+		if err := json.Unmarshal(body, &payload); err == nil {
+			streamErr.Payload = payload
+		}
+		return nil, streamErr
 	}
 	return httpResp, nil
 }
