@@ -39,16 +39,19 @@ Retry only on clearly transient 5xx or 429 responses, and prefer idempotent clie
 
 | Field | Type | Required | Description |
 |---|---|---|---|
-| `proposal` | `object` | Yes | Proposal payload for swarm voting. |
+| `task_type` | `string` | Yes | Task type proposed to the swarm. |
+| `parameters` | `object` | Yes | Task-specific proposal parameters. |
+| `priority` | `integer` | No | Optional task priority. Defaults to 1. |
 
 ## Request Example
 
 ```json
 {
-  "proposal": {
-    "action": "reroute",
+  "task_type": "reroute",
+  "parameters": {
     "target": "dock-2"
-  }
+  },
+  "priority": 1
 }
 ```
 
@@ -61,10 +64,11 @@ curl -X POST http://localhost:8080/v1/swarm/propose \
   -H "Authorization: Bearer $IGRIS_RUNTIME_API_KEY" \
   -H "Content-Type: application/json" \
   -d '{
-  "proposal": {
-    "action": "reroute",
+  "task_type": "reroute",
+  "parameters": {
     "target": "dock-2"
-  }
+  },
+  "priority": 1
 }'
 ```
 
@@ -78,10 +82,11 @@ const response = await fetch('http://localhost:8080/v1/swarm/propose', {
     'Content-Type': 'application/json',
   },
   body: JSON.stringify({
-  "proposal": {
-    "action": "reroute",
+  "task_type": "reroute",
+  "parameters": {
     "target": "dock-2"
-  }
+  },
+  "priority": 1
 }),
 });
 
@@ -93,7 +98,7 @@ console.log(data);
 
 ```go
 client := &http.Client{}
-body := strings.NewReader("{\n  \"proposal\": {\n    \"action\": \"reroute\",\n    \"target\": \"dock-2\"\n  }\n}")
+body := strings.NewReader("{\n  \"task_type\": \"reroute\",\n  \"parameters\": {\n    \"target\": \"dock-2\"\n  },\n  \"priority\": 1\n}")
 
 req, err := http.NewRequest("POST", "http://localhost:8080/v1/swarm/propose", body)
 if err != nil {
@@ -120,10 +125,11 @@ let response = client
         .request(reqwest::Method::POST, "http://localhost:8080/v1/swarm/propose")
         .header("Authorization", format!("Bearer {}", std::env::var("IGRIS_RUNTIME_API_KEY")?))
         .json(&serde_json::json!({
-  "proposal": {
-    "action": "reroute",
+  "task_type": "reroute",
+  "parameters": {
     "target": "dock-2"
-  }
+  },
+  "priority": 1
 }))
         .send()
         .await?;
