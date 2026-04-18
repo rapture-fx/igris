@@ -119,6 +119,30 @@ for await (const event of client.streamInference({
   if (event.type === 'task_result') {
     console.log('\nTask ID:', event.data.task_id);
     console.log('Status:', event.data.status);
+    console.log('Replay supported:', event.data.durability?.replay_supported === true);
+  }
+}
+```
+
+Handle durable stream replay failures as typed API errors. When Runtime cannot replay a stream because the stored task is failed, checkpointed, or has no final output, the error type is `stream_replay_unavailable` and the payload includes the task snapshot plus `durability` metadata:
+
+```typescript
+try {
+  for await (const event of client.streamInference({
+    model: 'gpt-4.1-mini',
+    messages: [{ role: 'user', content: 'Replay the last durable stream.' }],
+  })) {
+    if (event.type === 'task_result') {
+      console.log(event.data.task_id, event.data.durability?.replay_condition);
+    }
+  }
+} catch (error) {
+  const payload = (error as { payload?: { error?: { type?: string }; runtime_payload?: unknown } }).payload;
+
+  if (payload?.error?.type === 'stream_replay_unavailable') {
+    console.warn('Durable stream replay is unavailable:', payload.runtime_payload ?? payload);
+  } else {
+    throw error;
   }
 }
 ```
