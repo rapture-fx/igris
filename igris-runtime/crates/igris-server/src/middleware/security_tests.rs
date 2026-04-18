@@ -69,6 +69,8 @@ mod tests {
                 std::collections::HashMap::new(),
             )),
             bt_state_tx: Arc::new(tokio::sync::watch::channel(serde_json::Value::Null).0),
+            #[cfg(feature = "ros2")]
+            ros2_manager: None,
         }
     }
 
