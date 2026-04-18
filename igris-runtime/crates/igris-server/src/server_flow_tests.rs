@@ -9,7 +9,7 @@ mod tests {
         Json, Router,
     };
     use ed25519_dalek::SigningKey;
-    use igris_core::storage::TASK_SUBMISSIONS;
+    use igris_core::storage::{TASK_SUBMISSIONS, TASK_SUBMISSION_STATUS_BY_TASK_ID};
     use igris_routing::thompson::ThompsonSamplingRouter;
     use igris_wal::{StepType, WalLog};
     use serde::Serialize;
