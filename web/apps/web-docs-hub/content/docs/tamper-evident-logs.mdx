@@ -26,8 +26,10 @@ Each receipt links to the previous receipt via hash, forming a chain. Each recei
 Receipts can be verified at any time to confirm chain integrity:
 
 ```bash
-curl https://overture.igrisinertial.com/v1/receipts/receipt-01HXYZ/verify \
-  -H "Authorization: Bearer YOUR_API_KEY"
+curl -X POST https://overture.igrisinertial.com/proof/receipts/verify \
+  -H "Authorization: Bearer YOUR_API_KEY" \
+  -H "Content-Type: application/json" \
+  -d '{"execution_id": "exec-01HXYZ"}'
 ```
 
 Response:
