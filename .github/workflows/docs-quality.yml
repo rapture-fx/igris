@@ -1,0 +1,70 @@
+name: Docs Quality
+
+on:
+  pull_request:
+    paths:
+      - ".github/workflows/docs-quality.yml"
+      - "web/apps/web-docs-hub/**"
+      - "web/package.json"
+      - "web/pnpm-lock.yaml"
+      - "web/pnpm-workspace.yaml"
+      - "igris-overture/**"
+      - "igris-runtime/**"
+      - "igris-javascript-sdk/**"
+      - "igris-go-sdk/**"
+      - "igris-rust-sdk/**"
+      - "rust-core/**"
+  push:
+    branches:
+      - main
+      - master
+    paths:
+      - ".github/workflows/docs-quality.yml"
+      - "web/apps/web-docs-hub/**"
+      - "web/package.json"
+      - "web/pnpm-lock.yaml"
+      - "web/pnpm-workspace.yaml"
+      - "igris-overture/**"
+      - "igris-runtime/**"
+      - "igris-javascript-sdk/**"
+      - "igris-go-sdk/**"
+      - "igris-rust-sdk/**"
+      - "rust-core/**"
+
+jobs:
+  docs-quality:
+    name: pnpm --filter @igris/web-docs-hub build
+    runs-on: ubuntu-latest
+
+    steps:
+      - name: Checkout
+        uses: actions/checkout@v4
+
+      - name: Setup pnpm
+        uses: pnpm/action-setup@v4
+        with:
+          version: 8.15.0
+
+      - name: Setup Node
+        uses: actions/setup-node@v4
+        with:
+          node-version: "20"
+          cache: pnpm
+          cache-dependency-path: web/pnpm-lock.yaml
+
+      - name: Setup Go
+        uses: actions/setup-go@v5
+        with:
+          go-version: "1.21.x"
+          cache: true
+
+      - name: Setup Rust
+        uses: dtolnay/rust-toolchain@stable
+
+      - name: Install web dependencies
+        working-directory: web
+        run: pnpm install --frozen-lockfile
+
+      - name: Build docs quality gate
+        working-directory: web
+        run: pnpm --filter @igris/web-docs-hub build
