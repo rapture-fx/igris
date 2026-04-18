@@ -151,6 +151,81 @@ func TestHandleStreamingInferPropagatesRuntimeDurabilityHeaders(t *testing.T) {
 	}
 }
 
+func TestHandleStreamingInferPropagatesRuntimeFailureEvents(t *testing.T) {
+	t.Parallel()
+
+	handler := &InferHandler{
+		runtimeExecutor: &stubRuntimeExecutor{
+			streamResp: &http.Response{
+				StatusCode: http.StatusOK,
+				Header: http.Header{
+					"Content-Type":                            []string{"text/event-stream"},
+					"X-Igris-Runtime-Task-Id":                 []string{"stream-task-failed"},
+					"X-Igris-Runtime-Stream-Resume-Supported": []string{"false"},
+					"X-Igris-Runtime-Stream-Replay-Condition": []string{"completed-final-output"},
+				},
+				Body: io.NopCloser(strings.NewReader(strings.Join([]string{
+					"event: task_result",
+					"data: {\"task_id\":\"stream-task-failed\",\"status\":{\"status\":\"failed\",\"reason\":\"provider stream failed\"},\"failure_details\":{\"source\":\"runtime\",\"operation\":\"execution\",\"rejection_type\":\"step_failed\",\"message\":\"provider stream failed\",\"step_index\":0,\"domain\":\"agent\",\"node_id\":\"agent-0\"},\"durability\":{\"mode\":\"streaming\",\"resume_supported\":false,\"replay_supported\":false,\"replay_condition\":\"completed-final-output\",\"checkpoint_persisted\":false}}",
+					"",
+					"data: {\"error\":{\"message\":\"provider stream failed\",\"type\":\"stream_error\"}}",
+					"",
+					"data: [DONE]",
+					"",
+				}, "\n"))),
+			},
+		},
+	}
+
+	app := fiber.New()
+	app.Post("/v1/infer", func(c *fiber.Ctx) error {
+		return handler.handleStreamingInfer(c, &models.InferRequest{
+			Model:    "gpt-4.1-mini",
+			Stream:   true,
+			Messages: []models.Message{{Role: "user", Content: "hello"}},
+		})
+	})
+
+	req := httptest.NewRequest(http.MethodPost, "/v1/infer", nil)
+	resp, err := app.Test(req)
+	if err != nil {
+		t.Fatalf("app.Test() error = %v", err)
+	}
+	if resp.StatusCode != http.StatusOK {
+		t.Fatalf("StatusCode = %d, want %d", resp.StatusCode, http.StatusOK)
+	}
+	if got := resp.Header.Get("X-Igris-Stream-Execution-Authority"); got != "runtime" {
+		t.Fatalf("X-Igris-Stream-Execution-Authority = %q, want %q", got, "runtime")
+	}
+	if got := resp.Header.Get("X-Igris-Runtime-Task-Id"); got != "stream-task-failed" {
+		t.Fatalf("X-Igris-Runtime-Task-Id = %q, want %q", got, "stream-task-failed")
+	}
+
+	bodyBytes, err := io.ReadAll(resp.Body)
+	if err != nil {
+		t.Fatalf("ReadAll() error = %v", err)
+	}
+	body := string(bodyBytes)
+	for _, want := range []string{
+		"event: task_result",
+		`"status":"failed"`,
+		`"failure_details"`,
+		`"source":"runtime"`,
+		`"operation":"execution"`,
+		`"rejection_type":"step_failed"`,
+		`"step_index":0`,
+		`"domain":"agent"`,
+		`"node_id":"agent-0"`,
+		`"type":"stream_error"`,
+		`"replay_supported":false`,
+		"data: [DONE]",
+	} {
+		if !strings.Contains(body, want) {
+			t.Fatalf("body missing %s: %q", want, body)
+		}
+	}
+}
+
 func TestApplyFallbackStreamContractHeaders(t *testing.T) {
 	t.Parallel()
 
