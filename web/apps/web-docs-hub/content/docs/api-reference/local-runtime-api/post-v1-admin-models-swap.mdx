@@ -11,7 +11,7 @@ Swaps the active local model. This endpoint belongs to the Local Runtime API gro
 
 ## When To Use
 
-Use this endpoint when you need swaps the active local model. and you are comfortable integrating against a preview surface. Confirm the current shape and rollout expectations before depending on it in a hard production path.
+Use this endpoint when you are working with Local Runtime API and are comfortable integrating against a preview surface. Confirm the current shape and rollout expectations before depending on it in a hard production path.
 
 ## Integration Guidance
 
@@ -26,8 +26,8 @@ Retry only on clearly transient 5xx or 429 responses, and prefer idempotent clie
 ### Related Endpoints
 
 - [GET /v1/health](/docs/api-reference/local-runtime-api/get-v1-health)
+- [GET /v1/runtime/profile](/docs/api-reference/local-runtime-api/get-v1-runtime-profile)
 - [POST /v1/chat/completions](/docs/api-reference/local-runtime-api/post-v1-chat-completions)
-- [POST /v1/plan](/docs/api-reference/local-runtime-api/post-v1-plan)
 
 ### Related Guides
 
@@ -101,5 +101,11 @@ A response example is not available on this page yet.
 
 ## Status Codes
 
-Status-code details are still being documented for this endpoint.
+| Code | Title | Description |
+|---|---|---|
+| 200 | Success | The request completed successfully. For streaming or download endpoints, the success response may be a stream or attachment rather than a JSON object. |
+| 400 | Bad Request | The route was reached, but the request body, query string, or path parameter did not match the endpoint contract. |
+| 401 | Unauthorized | Credentials were missing, expired, malformed, or not accepted by this route. |
+| 429 | Too Many Requests | The caller exceeded the current throttle window and should wait before retrying. |
+| 500 | Server Error | The server accepted the request contract but failed while processing it. |
 
