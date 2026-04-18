@@ -137,7 +137,13 @@ pub struct ExecutionEnvelope {
     pub bounds_applied: Option<Bounds>,
     pub execution_id: String,
     pub finish_reason: String,
+    #[serde(skip_serializing_if = "Option::is_none")]
+    pub governed_action_hash: Option<String>,
     pub model: String,
+    #[serde(skip_serializing_if = "Option::is_none")]
+    pub policy_decision_hash: Option<String>,
+    #[serde(skip_serializing_if = "Option::is_none")]
+    pub policy_decision_id: Option<String>,
     pub request_hash: String,
     pub response_hash: String,
     pub routing_decision: String,
@@ -241,6 +247,9 @@ pub async fn handle_execute(
                     bounds.as_ref(),
                     &finish_reason,
                     None,
+                    None,
+                    None,
+                    None,
                 );
                 let hash = Sha256::digest(&canon);
                 let sig = sk.sign(&hash);
@@ -249,7 +258,10 @@ pub async fn handle_execute(
                     bounds_applied: bounds.clone(),
                     execution_id: resp_id.clone(),
                     finish_reason: finish_reason.clone(),
+                    governed_action_hash: None,
                     model: req.model.clone(),
+                    policy_decision_hash: None,
+                    policy_decision_id: None,
                     request_hash,
                     response_hash,
                     routing_decision: provider_name.clone(),
@@ -621,6 +633,9 @@ pub(crate) fn canonical_envelope_bytes(
     bounds: Option<&Bounds>,
     finish_reason: &str,
     violation: Option<&str>,
+    governed_action_hash: Option<&str>,
+    policy_decision_id: Option<&str>,
+    policy_decision_hash: Option<&str>,
 ) -> Vec<u8> {
     let mut canon = BTreeMap::<&str, serde_json::Value>::new();
 
@@ -647,7 +662,16 @@ pub(crate) fn canonical_envelope_bytes(
 
     canon.insert("execution_id", serde_json::json!(execution_id));
     canon.insert("finish_reason", serde_json::json!(finish_reason));
+    if let Some(value) = governed_action_hash {
+        canon.insert("governed_action_hash", serde_json::json!(value));
+    }
     canon.insert("model", serde_json::json!(model));
+    if let Some(value) = policy_decision_hash {
+        canon.insert("policy_decision_hash", serde_json::json!(value));
+    }
+    if let Some(value) = policy_decision_id {
+        canon.insert("policy_decision_id", serde_json::json!(value));
+    }
     canon.insert("request_hash", serde_json::json!(request_hash));
     canon.insert("response_hash", serde_json::json!(response_hash));
     canon.insert("routing_decision", serde_json::json!(routing_decision));
@@ -689,6 +713,9 @@ mod tests {
             Some(&bounds),
             "stop",
             None,
+            None,
+            None,
+            None,
         );
         let hash = Sha256::digest(&canon);
         let sig = sk.sign(&hash);
@@ -716,6 +743,9 @@ mod tests {
             None,
             "stop",
             None,
+            None,
+            None,
+            None,
         );
         let hash = Sha256::digest(&canon);
         let sig = sk.sign(&hash);
@@ -731,6 +761,9 @@ mod tests {
             "anthropic",
             None,
             "stop",
+            None,
+            None,
+            None,
             None,
         );
         let tampered_hash = Sha256::digest(&tampered);
