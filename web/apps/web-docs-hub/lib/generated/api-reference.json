@@ -1,5 +1,5 @@
 {
-  "generated_at": "2026-04-17T16:25:30.511Z",
+  "generated_at": "2026-04-18T02:41:29.074Z",
   "generated_from": [
     "igris-overture/api/*.go",
     "igris-runtime/crates/igris-server/src/main.rs"
