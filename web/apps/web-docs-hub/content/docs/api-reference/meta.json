@@ -11,8 +11,10 @@
     "account-trial-and-billing",
     "vault-policy-and-governance",
     "execution-history-and-receipts",
+    "routing-control-analytics",
     "behavior-trees",
     "durable-tasks",
+    "mcp-transport",
     "local-runtime-api"
   ]
 }
