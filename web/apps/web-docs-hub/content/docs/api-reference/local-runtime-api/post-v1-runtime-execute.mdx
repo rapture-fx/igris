@@ -39,18 +39,27 @@ Do not blindly retry write operations. Retry only on transient 5xx or 429 respon
 
 | Field | Type | Required | Description |
 |---|---|---|---|
-| `task` | `object` | Yes | Runtime execution payload. |
-| `timeout_ms` | `integer` | No | Optional execution timeout. |
+| `model` | `string` | Yes | Local or configured provider model. |
+| `messages` | `array` | Yes | Conversation turns to execute. |
+| `max_tokens` | `integer` | No | Optional generation limit. |
+| `temperature` | `number` | No | Optional sampling temperature. |
+| `stream` | `boolean` | No | Optional stream preference. |
+| `mode` | `string` | No | Optional routing mode. |
+| `tenant_id` | `string` | No | Optional tenant identifier forwarded by Overture. |
+| `bounds` | `object` | No | Optional containment bounds. `X-Igris-Bounds` takes precedence. |
 
 ## Request Example
 
 ```json
 {
-  "task": {
-    "type": "tool_call",
-    "name": "health_check"
-  },
-  "timeout_ms": 30000
+  "model": "local",
+  "messages": [
+    {
+      "role": "user",
+      "content": "Run a local health summary."
+    }
+  ],
+  "max_tokens": 128
 }
 ```
 
@@ -63,11 +72,14 @@ curl -X POST http://localhost:8080/v1/runtime/execute \
   -H "Authorization: Bearer $IGRIS_RUNTIME_API_KEY" \
   -H "Content-Type: application/json" \
   -d '{
-  "task": {
-    "type": "tool_call",
-    "name": "health_check"
-  },
-  "timeout_ms": 30000
+  "model": "local",
+  "messages": [
+    {
+      "role": "user",
+      "content": "Run a local health summary."
+    }
+  ],
+  "max_tokens": 128
 }'
 ```
 
@@ -81,11 +93,14 @@ const response = await fetch('http://localhost:8080/v1/runtime/execute', {
     'Content-Type': 'application/json',
   },
   body: JSON.stringify({
-  "task": {
-    "type": "tool_call",
-    "name": "health_check"
-  },
-  "timeout_ms": 30000
+  "model": "local",
+  "messages": [
+    {
+      "role": "user",
+      "content": "Run a local health summary."
+    }
+  ],
+  "max_tokens": 128
 }),
 });
 
@@ -97,7 +112,7 @@ console.log(data);
 
 ```go
 client := &http.Client{}
-body := strings.NewReader("{\n  \"task\": {\n    \"type\": \"tool_call\",\n    \"name\": \"health_check\"\n  },\n  \"timeout_ms\": 30000\n}")
+body := strings.NewReader("{\n  \"model\": \"local\",\n  \"messages\": [\n    {\n      \"role\": \"user\",\n      \"content\": \"Run a local health summary.\"\n    }\n  ],\n  \"max_tokens\": 128\n}")
 
 req, err := http.NewRequest("POST", "http://localhost:8080/v1/runtime/execute", body)
 if err != nil {
@@ -124,11 +139,14 @@ let response = client
         .request(reqwest::Method::POST, "http://localhost:8080/v1/runtime/execute")
         .header("Authorization", format!("Bearer {}", std::env::var("IGRIS_RUNTIME_API_KEY")?))
         .json(&serde_json::json!({
-  "task": {
-    "type": "tool_call",
-    "name": "health_check"
-  },
-  "timeout_ms": 30000
+  "model": "local",
+  "messages": [
+    {
+      "role": "user",
+      "content": "Run a local health summary."
+    }
+  ],
+  "max_tokens": 128
 }))
         .send()
         .await?;
@@ -141,8 +159,19 @@ println!("{}", payload);
 
 ```json
 {
-  "status": "completed",
-  "output": {}
+  "id": "exec_01HV9F",
+  "object": "chat.completion",
+  "model": "local",
+  "choices": [
+    {
+      "index": 0,
+      "message": {
+        "role": "assistant",
+        "content": "Runtime is healthy."
+      },
+      "finish_reason": "stop"
+    }
+  ]
 }
 ```
 
