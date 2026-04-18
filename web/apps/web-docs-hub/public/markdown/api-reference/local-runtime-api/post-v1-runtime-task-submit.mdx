@@ -39,16 +39,20 @@ Do not blindly retry write operations. Retry only on transient 5xx or 429 respon
 
 | Field | Type | Required | Description |
 |---|---|---|---|
-| `task_id` | `string` | No | Optional caller-supplied task ID. |
-| `task_type` | `string` | Yes | Runtime task type. |
-| `task_definition` | `object` | Yes | Runtime task payload. |
+| `task_id` | `string` | Yes | Unique durable task identifier supplied by the caller. |
+| `task_type` | `object` | Yes | Tagged runtime task payload such as `{"type":"single_inference"}`. |
+| `idempotency_key` | `string` | Yes | Stable key used to deduplicate submissions. |
+| `tenant_id` | `string` | Yes | Tenant or local isolation identifier used for idempotency storage. |
+| `deadline_ms` | `integer` | No | Optional execution deadline in milliseconds. |
+| `containment` | `object` | No | Optional runtime bounds forwarded from the control plane. |
 
 ## Request Example
 
 ```json
 {
-  "task_type": "single_inference",
-  "task_definition": {
+  "task_id": "018f4a2b-3c1e-7a2d-9b8f-4d5e6f7a8b9c",
+  "task_type": {
+    "type": "single_inference",
     "model": "local",
     "messages": [
       {
@@ -56,7 +60,9 @@ Do not blindly retry write operations. Retry only on transient 5xx or 429 respon
         "content": "hello"
       }
     ]
-  }
+  },
+  "idempotency_key": "submit-018f4a2b",
+  "tenant_id": "tenant-local"
 }
 ```
 
@@ -69,8 +75,9 @@ curl -X POST http://localhost:8080/v1/runtime/task/submit \
   -H "Authorization: Bearer $IGRIS_RUNTIME_API_KEY" \
   -H "Content-Type: application/json" \
   -d '{
-  "task_type": "single_inference",
-  "task_definition": {
+  "task_id": "018f4a2b-3c1e-7a2d-9b8f-4d5e6f7a8b9c",
+  "task_type": {
+    "type": "single_inference",
     "model": "local",
     "messages": [
       {
@@ -78,7 +85,9 @@ curl -X POST http://localhost:8080/v1/runtime/task/submit \
         "content": "hello"
       }
     ]
-  }
+  },
+  "idempotency_key": "submit-018f4a2b",
+  "tenant_id": "tenant-local"
 }'
 ```
 
@@ -92,8 +101,9 @@ const response = await fetch('http://localhost:8080/v1/runtime/task/submit', {
     'Content-Type': 'application/json',
   },
   body: JSON.stringify({
-  "task_type": "single_inference",
-  "task_definition": {
+  "task_id": "018f4a2b-3c1e-7a2d-9b8f-4d5e6f7a8b9c",
+  "task_type": {
+    "type": "single_inference",
     "model": "local",
     "messages": [
       {
@@ -101,7 +111,9 @@ const response = await fetch('http://localhost:8080/v1/runtime/task/submit', {
         "content": "hello"
       }
     ]
-  }
+  },
+  "idempotency_key": "submit-018f4a2b",
+  "tenant_id": "tenant-local"
 }),
 });
 
@@ -113,7 +125,7 @@ console.log(data);
 
 ```go
 client := &http.Client{}
-body := strings.NewReader("{\n  \"task_type\": \"single_inference\",\n  \"task_definition\": {\n    \"model\": \"local\",\n    \"messages\": [\n      {\n        \"role\": \"user\",\n        \"content\": \"hello\"\n      }\n    ]\n  }\n}")
+body := strings.NewReader("{\n  \"task_id\": \"018f4a2b-3c1e-7a2d-9b8f-4d5e6f7a8b9c\",\n  \"task_type\": {\n    \"type\": \"single_inference\",\n    \"model\": \"local\",\n    \"messages\": [\n      {\n        \"role\": \"user\",\n        \"content\": \"hello\"\n      }\n    ]\n  },\n  \"idempotency_key\": \"submit-018f4a2b\",\n  \"tenant_id\": \"tenant-local\"\n}")
 
 req, err := http.NewRequest("POST", "http://localhost:8080/v1/runtime/task/submit", body)
 if err != nil {
@@ -140,8 +152,9 @@ let response = client
         .request(reqwest::Method::POST, "http://localhost:8080/v1/runtime/task/submit")
         .header("Authorization", format!("Bearer {}", std::env::var("IGRIS_RUNTIME_API_KEY")?))
         .json(&serde_json::json!({
-  "task_type": "single_inference",
-  "task_definition": {
+  "task_id": "018f4a2b-3c1e-7a2d-9b8f-4d5e6f7a8b9c",
+  "task_type": {
+    "type": "single_inference",
     "model": "local",
     "messages": [
       {
@@ -149,7 +162,9 @@ let response = client
         "content": "hello"
       }
     ]
-  }
+  },
+  "idempotency_key": "submit-018f4a2b",
+  "tenant_id": "tenant-local"
 }))
         .send()
         .await?;
@@ -163,7 +178,11 @@ println!("{}", payload);
 ```json
 {
   "task_id": "018f4a2b-3c1e-7a2d-9b8f-4d5e6f7a8b9c",
-  "status": "accepted"
+  "steps_completed": 1,
+  "steps_total": 1,
+  "status": {
+    "status": "completed"
+  }
 }
 ```
 
