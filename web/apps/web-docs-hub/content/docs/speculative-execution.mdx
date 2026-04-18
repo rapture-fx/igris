@@ -59,7 +59,7 @@ curl -X POST https://overture.igrisinertial.com/v1/routing/speculative \
   -H "Authorization: Bearer YOUR_API_KEY" \
   -H "Content-Type: application/json" \
   -d '{"enabled": true}'
-# → {"enabled": true, "updated_at": "2026-03-31T09:00:00Z"}
+# {"saved": true}
 ```
 
 To disable:
@@ -87,8 +87,10 @@ Response:
 ```json
 {
   "enabled": true,
-  "draft_acceptance_threshold": 0.82,
-  "updated_at": "2026-03-31T09:00:00Z"
+  "max_parallel_providers": 3,
+  "timeout_ms": 5000,
+  "first_token_threshold_ms": 500,
+  "enabled_providers": ["openai", "anthropic"]
 }
 ```
 
@@ -106,13 +108,18 @@ Response:
 ```json
 {
   "enabled": true,
-  "currently_active": true,
-  "draft_model": "phi-3-mini",
-  "requests_since_enabled": 4821
+  "success_rate": 68.2,
+  "latency_improvement_ms": 380,
+  "cost_delta_percent": -4.5,
+  "races_24h": 4821,
+  "wins_by_provider": [
+    {"provider": "openai", "win_rate": 54.8},
+    {"provider": "anthropic", "win_rate": 45.2}
+  ]
 }
 ```
 
-`currently_active` indicates whether speculative execution is actively being applied to incoming requests, as distinct from being configured. If `enabled` is true but `currently_active` is false, check whether the tenant has a valid provider key configured — speculative execution requires at least one cloud provider to be available.
+`enabled` reflects the current routing status view. `success_rate`, `latency_improvement_ms`, and `cost_delta_percent` are best-effort telemetry values; on a fresh deployment they can be zero until routing telemetry has accumulated.
 
 ---
 
@@ -127,13 +134,9 @@ Response:
 
 ```json
 {
-  "period": "last_24h",
-  "total_requests": 4821,
-  "draft_accepted": 3289,
-  "draft_acceptance_rate": 0.682,
-  "avg_latency_reduction_ms": 412,
-  "main_inference_used": 1532,
-  "savings_estimate_ms_total": 1354668
+  "race_win_rate": [],
+  "latency_distribution": [],
+  "cost_savings_timeline": []
 }
 ```
 
@@ -141,15 +144,15 @@ Response:
 
 | Field | Meaning |
 |---|---|
-| `draft_acceptance_rate` | Fraction of requests where the draft was accepted and returned (0–1). Higher is better. |
-| `avg_latency_reduction_ms` | Average reduction in time-to-first-token on requests where the draft was accepted. |
-| `main_inference_used` | Number of requests where the draft was rejected and the main inference result was returned. |
+| `race_win_rate` | Series for provider race win-rate analytics. |
+| `latency_distribution` | Series for latency distribution analytics. |
+| `cost_savings_timeline` | Series for cost-delta analytics over time. |
 
-**Interpreting acceptance rate:**
+**Interpreting telemetry:**
 
-A `draft_acceptance_rate` above 0.60 indicates speculative execution is delivering meaningful value for your workload. Between 0.40 and 0.60, the benefit is moderate — weigh the latency improvement against any added complexity. Below 0.40, speculative execution is accepting fewer than 4 in 10 drafts, and the overhead of running two parallel paths may not be worth it for most of your requests.
+Use `/v1/routing/speculative/status` for the compact operational summary. Use `/v1/routing/speculative/analytics` when your UI needs time-series data. Empty arrays mean telemetry is not yet available, not that the endpoint failed.
 
-If acceptance rate is consistently low, consider whether the workload is a good fit. Run the simulation endpoint on a representative sample request to get a pre-enablement estimate.
+If success rate is consistently low, consider whether the workload is a good fit. Run the simulation endpoint on a representative sample request to verify wiring before enabling production traffic.
 
 ---
 
@@ -169,19 +172,16 @@ curl -X POST https://overture.igrisinertial.com/v1/routing/speculative/simulate 
   }'
 ```
 
-Response:
+Current response:
 
 ```json
 {
-  "draft_would_accept": true,
-  "estimated_latency_reduction_ms": 380,
-  "draft_quality_score": 0.87,
-  "main_inference_time_ms": 1120,
-  "draft_inference_time_ms": 740
+  "simulated": true,
+  "message": "simulation triggered"
 }
 ```
 
-If `draft_would_accept` is consistently false across several representative samples, the workload is unlikely to benefit from speculative execution at scale.
+The current simulation handler acknowledges that simulation was triggered. Treat it as a wiring and workflow check rather than a full offline predictor.
 
 ---
 
