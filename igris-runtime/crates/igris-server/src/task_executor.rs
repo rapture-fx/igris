@@ -147,6 +147,20 @@ pub struct RoboticsStep {
     pub approval: Option<AgentApprovalOptions>,
 }
 
+#[derive(Debug, Clone, Serialize, Deserialize, PartialEq, Eq)]
+struct GovernedAction {
+    schema_version: String,
+    domain: String,
+    action_type: String,
+    action_name: String,
+    node_id: String,
+    step_index: u32,
+    #[serde(skip_serializing_if = "Option::is_none")]
+    target: Option<String>,
+    requires_policy: bool,
+    safety_mode_required: bool,
+}
+
 #[derive(Debug, Clone, Serialize, Deserialize)]
 pub struct HumanApprovalStep {
     pub step_index: u32,
@@ -582,6 +596,34 @@ impl RuntimeTaskStep {
                 node_id: step.node_id.clone(),
                 node_type: "execution_graph".to_string(),
             },
+        }
+    }
+
+    fn governed_action(&self) -> Option<GovernedAction> {
+        match self {
+            Self::Robotics(step) => Some(GovernedAction {
+                schema_version: "governed_action.v1".to_string(),
+                domain: "robotics".to_string(),
+                action_type: "ros2_action".to_string(),
+                action_name: robotics_action_name(&step.action).to_string(),
+                node_id: step.node_id.as_deref().unwrap_or("robotics").to_string(),
+                step_index: step.step_index,
+                target: robotics_action_target(&step.action),
+                requires_policy: true,
+                safety_mode_required: true,
+            }),
+            Self::Tool(step) => Some(GovernedAction {
+                schema_version: "governed_action.v1".to_string(),
+                domain: "tool".to_string(),
+                action_type: "tool_call".to_string(),
+                action_name: step.tool_name.clone(),
+                node_id: step.node_id.clone(),
+                step_index: step.step_index,
+                target: None,
+                requires_policy: true,
+                safety_mode_required: false,
+            }),
+            _ => None,
         }
     }
 }
@@ -1038,6 +1080,7 @@ pub async fn handle_task_submit(
                     &req.tenant_id,
                     robotics_step,
                     &graph_blackboard,
+                    req.containment.as_ref(),
                     max_tick_ms,
                 )
                 .await
@@ -3326,8 +3369,18 @@ async fn execute_robotics_step(
     tenant_id: &str,
     step: &RoboticsStep,
     graph_blackboard: &serde_json::Value,
+    containment: Option<&Bounds>,
     max_tick_ms: u64,
 ) -> anyhow::Result<StepExecutionResult> {
+    let safety_gate = evaluate_robotics_safety_gate(tenant_id, &step.action, containment);
+    if !safety_gate.permitted {
+        anyhow::bail!(
+            "robotics safety gate denied action {}: {}",
+            robotics_action_name(&step.action),
+            safety_gate.reason
+        );
+    }
+
     maybe_require_step_approval(
         &state,
         task_id,
@@ -3521,11 +3574,88 @@ async fn execute_robotics_step(
 
     #[cfg(not(feature = "ros2"))]
     {
-        let _ = (state, step, max_tick_ms);
+        let _ = (state, step, graph_blackboard, max_tick_ms);
         anyhow::bail!(
             "robotics task execution requires a runtime built with the robotics-platform feature"
         )
     }
+}
+
+#[derive(Debug, Clone, PartialEq, Eq)]
+struct RoboticsSafetyGateDecision {
+    permitted: bool,
+    reason: String,
+    runtime_permitted: bool,
+    tenant_permitted: bool,
+    policy_permitted: bool,
+    robot_mode_permitted: bool,
+}
+
+fn evaluate_robotics_safety_gate(
+    tenant_id: &str,
+    action: &RoboticsAction,
+    containment: Option<&Bounds>,
+) -> RoboticsSafetyGateDecision {
+    let runtime_permitted = std::env::var("IGRIS_ROBOTICS_RUNTIME_ENABLED")
+        .map(|value| value.eq_ignore_ascii_case("true"))
+        .unwrap_or(false);
+    let tenant_permitted = robotics_tenant_permitted(tenant_id);
+    let policy_permitted = containment.is_some()
+        && std::env::var("IGRIS_ROBOTICS_POLICY_PERMIT")
+            .map(|value| value.eq_ignore_ascii_case("true"))
+            .unwrap_or(false);
+    let robot_mode = std::env::var("IGRIS_ROBOTICS_MODE").unwrap_or_default();
+    let robot_mode_permitted = matches!(
+        robot_mode.trim().to_ascii_lowercase().as_str(),
+        "supervised" | "active"
+    );
+
+    let permitted =
+        runtime_permitted && tenant_permitted && policy_permitted && robot_mode_permitted;
+    let reason = if permitted {
+        "permitted".to_string()
+    } else {
+        let mut missing = Vec::new();
+        if !runtime_permitted {
+            missing.push("runtime");
+        }
+        if !tenant_permitted {
+            missing.push("tenant");
+        }
+        if !policy_permitted {
+            missing.push("policy");
+        }
+        if !robot_mode_permitted {
+            missing.push("robot_mode");
+        }
+        format!(
+            "missing {} permission for {}",
+            missing.join(","),
+            robotics_action_name(action)
+        )
+    };
+
+    RoboticsSafetyGateDecision {
+        permitted,
+        reason,
+        runtime_permitted,
+        tenant_permitted,
+        policy_permitted,
+        robot_mode_permitted,
+    }
+}
+
+fn robotics_tenant_permitted(tenant_id: &str) -> bool {
+    if tenant_id.trim().is_empty() {
+        return false;
+    }
+    let Ok(allowed) = std::env::var("IGRIS_ROBOTICS_ALLOWED_TENANTS") else {
+        return false;
+    };
+    allowed
+        .split(',')
+        .map(str::trim)
+        .any(|entry| entry == "*" || entry == tenant_id)
 }
 
 async fn execute_human_approval_step(
@@ -4294,6 +4424,9 @@ fn build_step_checkpoint_metadata(
     if let Some(extra_metadata) = result.checkpoint_metadata.as_ref() {
         merge_checkpoint_metadata(&mut metadata, extra_metadata);
     }
+    if let Some(governed_action) = step.governed_action() {
+        metadata["governed_action"] = serde_json::json!(governed_action);
+    }
 
     metadata
 }
@@ -4351,6 +4484,20 @@ fn robotics_action_name(action: &RoboticsAction) -> &'static str {
     }
 }
 
+fn robotics_action_target(action: &RoboticsAction) -> Option<String> {
+    match action {
+        RoboticsAction::NavigateToPose { goal, .. } => {
+            Some(format!("{},{},{}", goal.x, goal.y, goal.frame_id))
+        }
+        RoboticsAction::PublishPrompt { prompt } => Some(truncate_preview(prompt, 120)),
+        RoboticsAction::PublishVelocity {
+            linear_x,
+            angular_z,
+        } => Some(format!("{:.3},{:.3}", linear_x, angular_z)),
+        _ => None,
+    }
+}
+
 fn truncate_preview(text: &str, max_chars: usize) -> String {
     text.chars().take(max_chars).collect()
 }
@@ -4362,21 +4509,24 @@ mod tests {
         build_idempotency_conflict_payload, build_step_checkpoint_metadata,
         build_stream_replay_unavailable_payload, build_task_cancel_response,
         build_task_result_payload, collect_slot_inputs, compile_execution_graph_to_steps,
-        deterministic_embedding, initialize_graph_blackboard, materialize_execution_graph,
-        normalize_agent_mode, persist_task_status_index, resolve_graph_value, robotics_action_name,
-        runtime_execution_failure_details, stream_durability_metadata, task_status_key,
-        update_graph_blackboard, verified_resume_start_step, AgentExecutionMode, BehaviorTreeStep,
-        ExecutionGraph, ExecutionNode, HumanApprovalStep, RoboticsAction, RoboticsStep,
-        RuntimeTaskStep, StepExecutionResult, TaskFailureDetails, TaskStatus, TaskSubmitResponse,
-        TaskType, ToolStep,
+        deterministic_embedding, evaluate_robotics_safety_gate, initialize_graph_blackboard,
+        materialize_execution_graph, normalize_agent_mode, persist_task_status_index,
+        resolve_graph_value, robotics_action_name, runtime_execution_failure_details,
+        stream_durability_metadata, task_status_key, update_graph_blackboard,
+        verified_resume_start_step, AgentExecutionMode, BehaviorTreeStep, ExecutionGraph,
+        ExecutionNode, HumanApprovalStep, RoboticsAction, RoboticsStep, RuntimeTaskStep,
+        StepExecutionResult, TaskFailureDetails, TaskStatus, TaskSubmitResponse, TaskType,
+        ToolStep,
     };
-    use crate::runtime_execute::ExecuteMessage;
-    use crate::runtime_execute::ExecuteUsage;
+    use crate::runtime_execute::{Bounds, ExecuteMessage, ExecuteUsage};
     use axum::{body::Body, http::StatusCode, response::Response};
     use igris_core::storage::{RedbStorage, TASK_SUBMISSION_STATUS_BY_TASK_ID};
     use igris_wal::{CheckpointPayload, ResumeToken};
     use std::env;
+    use std::sync::Mutex;
     use uuid::Uuid;
+
+    static ENV_LOCK: Mutex<()> = Mutex::new(());
 
     #[test]
     fn normalize_agent_mode_accepts_supported_values() {
@@ -4449,6 +4599,110 @@ mod tests {
         assert_eq!(metadata["write_slot"], "robotics.pose");
         assert_eq!(metadata["action"], "publish_zero_velocity");
         assert_eq!(metadata["steps_completed"], 3);
+        assert_eq!(
+            metadata["governed_action"]["schema_version"],
+            "governed_action.v1"
+        );
+        assert_eq!(metadata["governed_action"]["domain"], "robotics");
+        assert_eq!(metadata["governed_action"]["action_type"], "ros2_action");
+        assert_eq!(
+            metadata["governed_action"]["action_name"],
+            "publish_zero_velocity"
+        );
+        assert_eq!(metadata["governed_action"]["requires_policy"], true);
+        assert_eq!(metadata["governed_action"]["safety_mode_required"], true);
+    }
+
+    #[test]
+    fn tool_checkpoint_metadata_uses_governed_action_schema() {
+        let step = RuntimeTaskStep::Tool(ToolStep {
+            step_index: 4,
+            node_id: "tool-4".to_string(),
+            checkpoint_key: Some("tool-result".to_string()),
+            read_slots: Some(vec!["reason.plan".to_string()]),
+            write_slot: Some("tool.output".to_string()),
+            tool_name: "inventory.lookup".to_string(),
+            args: None,
+        });
+        let result = StepExecutionResult {
+            output_text: "ok".to_string(),
+            provider_name: "tool:inventory.lookup".to_string(),
+            usage: ExecuteUsage {
+                prompt_tokens: 0,
+                completion_tokens: 0,
+                total_tokens: 0,
+            },
+            graph_output: None,
+            checkpoint_metadata: None,
+            checkpoint_requested: false,
+        };
+
+        let metadata = build_step_checkpoint_metadata(&step, 5, &result);
+        assert_eq!(
+            metadata["governed_action"]["schema_version"],
+            "governed_action.v1"
+        );
+        assert_eq!(metadata["governed_action"]["domain"], "tool");
+        assert_eq!(metadata["governed_action"]["action_type"], "tool_call");
+        assert_eq!(
+            metadata["governed_action"]["action_name"],
+            "inventory.lookup"
+        );
+        assert_eq!(metadata["governed_action"]["safety_mode_required"], false);
+    }
+
+    #[test]
+    fn robotics_safety_gate_defaults_to_deny() {
+        let _guard = ENV_LOCK.lock().unwrap();
+        env::remove_var("IGRIS_ROBOTICS_RUNTIME_ENABLED");
+        env::remove_var("IGRIS_ROBOTICS_ALLOWED_TENANTS");
+        env::remove_var("IGRIS_ROBOTICS_POLICY_PERMIT");
+        env::remove_var("IGRIS_ROBOTICS_MODE");
+
+        let decision = evaluate_robotics_safety_gate(
+            "tenant-robot",
+            &RoboticsAction::PublishZeroVelocity,
+            None,
+        );
+        assert!(!decision.permitted);
+        assert!(!decision.runtime_permitted);
+        assert!(!decision.tenant_permitted);
+        assert!(!decision.policy_permitted);
+        assert!(!decision.robot_mode_permitted);
+        assert!(decision.reason.contains("runtime"));
+        assert!(decision.reason.contains("tenant"));
+        assert!(decision.reason.contains("policy"));
+        assert!(decision.reason.contains("robot_mode"));
+    }
+
+    #[test]
+    fn robotics_safety_gate_requires_all_permissions() {
+        let _guard = ENV_LOCK.lock().unwrap();
+        env::set_var("IGRIS_ROBOTICS_RUNTIME_ENABLED", "true");
+        env::set_var(
+            "IGRIS_ROBOTICS_ALLOWED_TENANTS",
+            "tenant-robot,tenant-other",
+        );
+        env::set_var("IGRIS_ROBOTICS_POLICY_PERMIT", "true");
+        env::set_var("IGRIS_ROBOTICS_MODE", "supervised");
+
+        let bounds = Bounds {
+            cpu_percent: Some(50),
+            memory_mb: None,
+            max_tick_ms: Some(1_000),
+        };
+        let decision = evaluate_robotics_safety_gate(
+            "tenant-robot",
+            &RoboticsAction::PublishZeroVelocity,
+            Some(&bounds),
+        );
+        assert!(decision.permitted);
+        assert_eq!(decision.reason, "permitted");
+
+        env::remove_var("IGRIS_ROBOTICS_RUNTIME_ENABLED");
+        env::remove_var("IGRIS_ROBOTICS_ALLOWED_TENANTS");
+        env::remove_var("IGRIS_ROBOTICS_POLICY_PERMIT");
+        env::remove_var("IGRIS_ROBOTICS_MODE");
     }
 
     #[test]
