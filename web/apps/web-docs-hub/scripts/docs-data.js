@@ -1136,6 +1136,15 @@ const bannedPatterns = [
   { pattern: /\/v1\/slo\/compliance/, message: 'Do not document unsupported /v1/slo/compliance routes; use routing, receipts, and observability surfaces.' },
   { pattern: /\bdraft_would_accept\b/, message: 'Speculative simulation currently returns { simulated, message }; do not document planned predictor fields as current output.' },
   { pattern: /\bcurrently_active\b/, message: 'Speculative status currently returns enabled, success_rate, latency_improvement_ms, cost_delta_percent, races_24h, and wins_by_provider.' },
+  { pattern: /\b(customer|tenant)\s+webhook\s+(management|endpoints?|configuration|settings)\b/i, message: 'Do not present customer webhook management as shipped unless the codebase exposes the route and schema.' },
+  { pattern: /\b(webhook\s+management|manage\s+webhooks|configured\s+webhooks)\b/i, message: 'Do not present customer webhook management as shipped unless the codebase exposes the route and schema.' },
+  { pattern: /\/(?:api\/)?v1\/webhooks\b/i, message: 'Do not document webhook management routes unless they are implemented and audited.' },
+  { pattern: /\b(local|runtime)\s+receipt\s+listing\s+(is available|api|route lets|endpoint returns|endpoint lists)\b/i, message: 'Runtime does not expose a public local receipt listing endpoint; use cloud receipt routes or execution response receipts.' },
+  { pattern: /\/v1\/(?:runtime|local)\/receipts\b/i, message: 'Runtime/local receipt listing routes are not implemented; use /v1/receipts on the coordination layer.' },
+  { pattern: /(?:\/v1)?\/emergency-stop\b/i, message: 'Do not document an emergency-stop HTTP endpoint unless it is implemented and audited.' },
+  { pattern: /\bemergency-stop HTTP endpoint\b/i, message: 'Do not document an emergency-stop HTTP endpoint unless it is implemented and audited.' },
+  { pattern: /\bclient\.streamInference\s*\(/, message: 'The JavaScript SDK does not expose client.streamInference(); document implemented streaming surfaces only.' },
+  { pattern: /\bSDK streaming helpers?\s+(is|are)\s+(available|implemented)\b/i, message: 'Do not present SDK streaming helpers as implemented unless the SDK exposes them and snippets compile.' },
 ];
 
 module.exports = {
