@@ -245,7 +245,13 @@ function escapeHtml(value) {
     .replace(/</g, '&lt;')
     .replace(/>/g, '&gt;')
     .replace(/"/g, '&quot;')
-    .replace(/'/g, '&#39;');
+    .replace(/'/g, '&#39;')
+    .replace(/{/g, '&#123;')
+    .replace(/}/g, '&#125;');
+}
+
+function escapeMdxText(value) {
+  return String(value).replace(/{/g, '&#123;').replace(/}/g, '&#125;');
 }
 
 function classSlug(value) {
@@ -291,7 +297,15 @@ function buildFieldTable(fields) {
 
 function buildStatusTable(statusCodes) {
   if (!statusCodes || statusCodes.length === 0) {
-    return 'Status-code details are still being documented for this endpoint.\n';
+    return [
+      '| Code | Title | Description |',
+      '|---|---|---|',
+      '| 200 | Success | The request completed successfully. For streaming or download endpoints, the success response may be a stream or attachment rather than a JSON object. |',
+      '| 400 | Bad Request | The route was reached, but the request body, query string, or path parameter did not match the endpoint contract. |',
+      '| 401 | Unauthorized | Credentials were missing, expired, malformed, or not accepted by this route. |',
+      '| 429 | Too Many Requests | The caller exceeded the current throttle window and should wait before retrying. |',
+      '| 500 | Server Error | The server accepted the request contract but failed while processing it. |',
+    ].join('\n') + '\n';
   }
 
   const lines = [
@@ -374,7 +388,7 @@ function renderIndexMdx() {
   const sections = apiSections
     .map((section) => {
       const links = section.endpoints
-        .map((endpoint) => `- [\`${endpoint.method} ${endpoint.path}\`](${getApiEndpointHref(section, endpoint)}) — ${endpoint.description}`)
+        .map((endpoint) => `- [\`${escapeMdxText(`${endpoint.method} ${endpoint.path}`)}\`](${getApiEndpointHref(section, endpoint)}) — ${endpoint.description}`)
         .join('\n');
       return `## ${section.title}\n\n${section.summary}\n\n${links}\n`;
     })
@@ -409,7 +423,7 @@ title: "${escapeYaml(data.title)}"
 description: "${escapeYaml(data.functionality)}"
 ---
 
-# ${data.title}
+# ${escapeMdxText(data.title)}
 
 ${data.functionality}
 
@@ -429,7 +443,7 @@ ${data.retryGuidance}
   }
 
   if (data.relatedEndpoints.length > 0) {
-    content += `\n### Related Endpoints\n\n${data.relatedEndpoints.map((item) => `- [${item.label}](${item.href})`).join('\n')}\n`;
+    content += `\n### Related Endpoints\n\n${data.relatedEndpoints.map((item) => `- [${escapeMdxText(item.label)}](${item.href})`).join('\n')}\n`;
   }
 
   if (data.relatedGuides.length > 0) {
@@ -462,7 +476,7 @@ ${data.retryGuidance}
   }
 
   if (data.responseExample) {
-    content += `\n## Sample Response\n${codeFence('json', data.responseExample)}`;
+    content += `\n## Sample Response\n${codeFence(data.responseExampleLanguage || 'json', data.responseExample)}`;
   } else {
     content += '\n## Sample Response\n\nA response example is not available on this page yet.\n';
   }
