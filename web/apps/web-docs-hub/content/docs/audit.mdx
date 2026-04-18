@@ -1,6 +1,6 @@
 ---
 title: "Audit"
-description: "Igris produces a tamper-evident audit record for every execution. This page covers how to access, query, and export audit data."
+description: "Igris produces a tamper-evident audit record for every execution. This page covers the implemented cloud receipt and proof APIs used to access, query, export, and verify audit data."
 ---
 
 # Audit
@@ -49,22 +49,24 @@ Full lineage is queryable end-to-end by request ID.
 
 ## Querying Receipts
 
-Receipts are queryable through two surfaces:
+Receipts are queryable through the cloud audit surfaces:
 
-- **Cloud API** (`overture.igrisinertial.com`) — the central execution ledger, accessible via the Proof API below
-- **Local engine API** (`http://localhost:8080`) — device-local storage; nothing leaves your infrastructure unless explicitly exported
+- **Cloud receipt API** (`overture.igrisinertial.com`) — the central execution ledger
+- **Proof API** (`overture.igrisinertial.com/proof`) — verification and policy violation review
+
+The current runtime build returns execution receipt data from local execution responses, but it does not expose a public local receipt listing endpoint.
 
 ```bash
-# List receipts via local engine
-curl http://localhost:8080/v1/receipts \
+# List receipts from the cloud ledger
+curl https://overture.igrisinertial.com/v1/receipts \
   -H "Authorization: Bearer YOUR_API_KEY"
 
 # Get a specific receipt by execution ID
-curl http://localhost:8080/v1/receipts/exec-01HXYZ \
+curl https://overture.igrisinertial.com/v1/receipts/exec-01HXYZ \
   -H "Authorization: Bearer YOUR_API_KEY"
 
 # Filter by time range
-curl "http://localhost:8080/v1/receipts?from=2026-03-01T00:00:00Z&to=2026-03-02T00:00:00Z" \
+curl "https://overture.igrisinertial.com/v1/receipts?from=2026-03-01T00:00:00Z&to=2026-03-02T00:00:00Z" \
   -H "Authorization: Bearer YOUR_API_KEY"
 ```
 
