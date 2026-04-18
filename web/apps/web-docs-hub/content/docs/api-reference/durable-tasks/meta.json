@@ -3,6 +3,10 @@
   "pages": [
     "post-v1-tasks-submit",
     "get-v1-tasks-id",
-    "get-v1-tasks"
+    "get-v1-tasks",
+    "get-v1-tasks-id-steps",
+    "post-v1-tasks-id-cancel",
+    "get-v1-tasks-proof-readiness",
+    "post-v1-tasks-id-proof-verify"
   ]
 }
