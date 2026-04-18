@@ -1,6 +1,6 @@
 ---
 title: "Agent Lifecycle"
-description: "Every agent running on the execution engine has a tracked lifecycle. State transitions are deterministic, signed, and queryable — giving you a full audit trail of every agent's his"
+description: "Every agent running on the execution engine has a tracked lifecycle. State transitions are deterministic, signed, and queryable through the local runtime state API."
 ---
 
 # Agent Lifecycle
@@ -44,12 +44,8 @@ SAFE_IDLE → TERMINATED (approval denied)
 ## Querying Agent State
 
 ```bash
-# Get current state of all agents
-curl http://localhost:8080/v1/agents \
-  -H "Authorization: Bearer YOUR_API_KEY"
-
-# Get a specific agent
-curl http://localhost:8080/v1/agents/agent-abc \
+# Get the state for one local runtime agent
+curl http://localhost:8080/v1/runtime/agent/agent-abc/state \
   -H "Authorization: Bearer YOUR_API_KEY"
 ```
 
@@ -65,6 +61,8 @@ Response:
   "violations": 0
 }
 ```
+
+The current local runtime API exposes state for a single known agent ID. Fleet-wide runtime lists are available through the swarm and fleet coordination APIs rather than the agent lifecycle endpoint.
 
 ---
 
@@ -87,14 +85,14 @@ Lifecycle records are hash-chained and included in the audit log alongside execu
 
 ---
 
-## Force Termination
+## Canceling In-Flight Work
 
 ```bash
-curl -X POST http://localhost:8080/v1/agents/agent-abc/terminate \
+curl -X POST http://localhost:8080/v1/runtime/task/task-abc/cancel \
   -H "Authorization: Bearer YOUR_API_KEY"
 ```
 
-A forced termination is recorded with the requesting identity and timestamp.
+Cancellation is task-scoped in the current runtime API. A canceled task is recorded in the runtime task history and its receipt/WAL evidence remains available for reconciliation.
 
 ---
 
