@@ -1,7 +1,11 @@
 package api
 
 import (
+	"crypto/ed25519"
+	"crypto/sha256"
 	"database/sql/driver"
+	"encoding/base64"
+	"encoding/hex"
 	"encoding/json"
 	"net/http"
 	"net/http/httptest"
@@ -67,6 +71,19 @@ func roboticsPolicyTestApp(tenantID string) *fiber.App {
 	app := fiber.New()
 	app.Use(func(c *fiber.Ctx) error {
 		c.Locals("clerk_user_id", tenantID)
+		c.Locals("clerk_email", tenantID+"@example.test")
+		c.Locals("clerk_role", "admin")
+		return c.Next()
+	})
+	return app
+}
+
+func roboticsPolicyTestAppWithRole(tenantID, role string) *fiber.App {
+	app := fiber.New()
+	app.Use(func(c *fiber.Ctx) error {
+		c.Locals("clerk_user_id", tenantID)
+		c.Locals("clerk_email", tenantID+"@example.test")
+		c.Locals("clerk_role", role)
 		return c.Next()
 	})
 	return app
@@ -78,7 +95,7 @@ func TestCreateDraftRoboticsPolicyRoute(t *testing.T) {
 	db, queued := newQueuedRouteDB(t, []queuedRouteQueryExpectation{{
 		columns: roboticsPolicyRouteColumns(),
 		rows:    [][]driver.Value{roboticsPolicyRouteRow("draft", false)},
-	}})
+	}}, queuedRouteExecExpectation{rowsAffected: 1})
 	app := roboticsPolicyTestApp("tenant-robotics-policy")
 	app.Post("/v1/robotics/policies", createDraftRoboticsPolicy(db))
 
@@ -112,7 +129,7 @@ func TestActivateRoboticsPolicyRoute(t *testing.T) {
 	db, queued := newQueuedRouteDB(t, []queuedRouteQueryExpectation{{
 		columns: roboticsPolicyRouteColumns(),
 		rows:    [][]driver.Value{roboticsPolicyRouteRow("active", true)},
-	}}, queuedRouteExecExpectation{rowsAffected: 1})
+	}}, queuedRouteExecExpectation{rowsAffected: 1}, queuedRouteExecExpectation{rowsAffected: 1})
 	app := roboticsPolicyTestApp("tenant-robotics-policy")
 	app.Post("/v1/robotics/policies/:version/activate", activateRoboticsPolicy(db))
 
@@ -126,6 +143,22 @@ func TestActivateRoboticsPolicyRoute(t *testing.T) {
 	require.Equal(t, "active", body.Status)
 	require.True(t, body.Active)
 	require.NotNil(t, body.ActivatedAt)
+	require.Equal(t, 0, queued.remainingQueries())
+	require.Equal(t, 0, queued.remainingExecs())
+}
+
+func TestRoboticsPolicyWriteRequiresAdmin(t *testing.T) {
+	t.Parallel()
+
+	db, queued := newQueuedRouteDB(t, nil)
+	app := roboticsPolicyTestAppWithRole("tenant-robotics-policy", "operator")
+	app.Post("/v1/robotics/policies", createDraftRoboticsPolicy(db))
+
+	req := httptest.NewRequest(http.MethodPost, "/v1/robotics/policies", strings.NewReader(`{"permit":true}`))
+	req.Header.Set("Content-Type", "application/json")
+	resp, err := app.Test(req)
+	require.NoError(t, err)
+	require.Equal(t, http.StatusForbidden, resp.StatusCode)
 	require.Equal(t, 0, queued.remainingQueries())
 	require.Equal(t, 0, queued.remainingExecs())
 }
@@ -204,8 +237,6 @@ func TestListRoboticsReceiptsRouteFiltersAuditIndex(t *testing.T) {
 }
 
 func TestReplayRoboticsReceiptsRouteReconstructsAuditTrail(t *testing.T) {
-	t.Parallel()
-
 	taskID := uuid.New()
 	persistedAt := time.Unix(1_900_300_000, 0).UTC()
 	decision := []byte(`{
@@ -329,6 +360,116 @@ func TestReplayRoboticsReceiptsRouteReconstructsAuditTrail(t *testing.T) {
 	require.Equal(t, "cancel_navigation", body.Replays[0].RobotAction)
 	require.True(t, body.Replays[0].RuntimeSignaturePresent)
 	require.False(t, body.Replays[0].RuntimeSignatureVerified)
+	require.Equal(t, 0, queued.remainingQueries())
+	require.Equal(t, 0, queued.remainingExecs())
+}
+
+func signedRouteRuntimeArtifact(t *testing.T, privateKey ed25519.PrivateKey, fields map[string]any) []byte {
+	t.Helper()
+	canonical, err := json.Marshal(fields)
+	require.NoError(t, err)
+	sum := sha256.Sum256(canonical)
+	fields["signature"] = base64.StdEncoding.EncodeToString(ed25519.Sign(privateKey, sum[:]))
+	raw, err := json.Marshal(fields)
+	require.NoError(t, err)
+	return raw
+}
+
+func jsonFieldString(t *testing.T, raw []byte, field string) string {
+	t.Helper()
+	var value map[string]any
+	require.NoError(t, json.Unmarshal(raw, &value))
+	got, ok := value[field].(string)
+	require.True(t, ok)
+	return got
+}
+
+func TestReplayRoboticsReceiptsRouteVerifiesRuntimeSignatureWithPublicKey(t *testing.T) {
+	publicKey, privateKey, err := ed25519.GenerateKey(nil)
+	require.NoError(t, err)
+	t.Setenv("IGRIS_RUNTIME_PUBLIC_KEY", hex.EncodeToString(publicKey))
+
+	taskID := uuid.New()
+	persistedAt := time.Unix(1_900_300_500, 0).UTC()
+	decision := []byte(`{
+		"schema_version":"governed_policy_decision.v1",
+		"decision_id":"decision-route-verified",
+		"tenant_id":"tenant-robotics-policy",
+		"task_id":"` + taskID.String() + `",
+		"runtime_id":"runtime-a",
+		"action":{
+			"schema_version":"governed_action.v1",
+			"domain":"robotics",
+			"action_type":"ros2_action",
+			"action_name":"publish_zero_velocity",
+			"node_id":"robotics-step-0",
+			"step_index":0,
+			"requires_policy":true,
+			"safety_mode_required":true
+		},
+		"permit":true,
+		"reason":"permitted",
+		"policy_version":"robotics-policy.active",
+		"runtime_permitted":true,
+		"tenant_permitted":true,
+		"policy_permitted":true,
+		"robot_mode_permitted":true,
+		"issued_at_unix_ms":1900300500000,
+		"expires_at_unix_ms":1900300530000,
+		"signature":"policy-sig"
+	}`)
+	envelope := signedRouteRuntimeArtifact(t, privateKey, map[string]any{
+		"execution_id":       "exec-route-verified",
+		"tenant_id":          "tenant-robotics-policy",
+		"policy_decision_id": "decision-route-verified",
+		"routing_decision":   "ros2:publish_zero_velocity",
+	})
+	receipt := signedRouteRuntimeArtifact(t, privateKey, map[string]any{
+		"execution_id":       "exec-route-verified",
+		"receipt_hash":       "receipt-hash-verified",
+		"violation_occurred": false,
+	})
+	db, queued := newQueuedRouteDB(t, []queuedRouteQueryExpectation{{
+		columns: []string{
+			"task_id", "tenant_id", "runtime_id", "execution_id",
+			"policy_decision_id", "policy_version", "robot_action",
+			"robot_node_id", "robot_target", "permit", "reason",
+			"routing_decision", "policy_decision_hash", "governed_action_hash",
+			"receipt_hash", "receipt_signature", "envelope_signature",
+			"policy_signature", "violation_occurred", "violation",
+			"signed_policy_decision", "execution_envelope", "execution_receipt",
+			"persisted_at",
+		},
+		rows: [][]driver.Value{{
+			taskID.String(), "tenant-robotics-policy", "runtime-a", "exec-route-verified",
+			"decision-route-verified", "robotics-policy.active", "publish_zero_velocity",
+			"robotics-step-0", "", true, "permitted", "ros2:publish_zero_velocity",
+			"", "", "receipt-hash-verified", jsonFieldString(t, receipt, "signature"),
+			jsonFieldString(t, envelope, "signature"), "policy-sig", false, "",
+			decision, envelope, receipt, persistedAt,
+		}},
+	}})
+	app := roboticsPolicyTestApp("tenant-robotics-policy")
+	app.Get("/v1/receipts/robotics/replay", replayRoboticsReceipts(db))
+
+	req := httptest.NewRequest(http.MethodGet, "/v1/receipts/robotics/replay?policy_decision_id=decision-route-verified", nil)
+	resp, err := app.Test(req)
+	require.NoError(t, err)
+	require.Equal(t, http.StatusOK, resp.StatusCode)
+
+	var body struct {
+		Replays []struct {
+			Valid                    bool     `json:"valid"`
+			ValidationErrors         []string `json:"validation_errors"`
+			RuntimeSignaturePresent  bool     `json:"runtime_signature_present"`
+			RuntimeSignatureVerified bool     `json:"runtime_signature_verified"`
+		} `json:"replays"`
+	}
+	require.NoError(t, json.NewDecoder(resp.Body).Decode(&body))
+	require.Len(t, body.Replays, 1)
+	require.True(t, body.Replays[0].Valid, body.Replays[0].ValidationErrors)
+	require.True(t, body.Replays[0].RuntimeSignaturePresent)
+	require.True(t, body.Replays[0].RuntimeSignatureVerified)
 	require.Equal(t, 0, queued.remainingQueries())
 	require.Equal(t, 0, queued.remainingExecs())
 }
