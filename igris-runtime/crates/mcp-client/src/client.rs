@@ -2,7 +2,7 @@ use anyhow::Result;
 use reqwest::Client;
 use serde_json::Value;
 use std::time::Duration;
-use tracing::{info, warn};
+use tracing::info;
 
 use igris_mcp_server::protocol::{
     InitializeResult, JsonRpcRequest, JsonRpcResponse, SharedContextEnvelope,
