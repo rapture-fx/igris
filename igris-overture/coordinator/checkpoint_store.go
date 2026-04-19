@@ -319,7 +319,13 @@ func (s *CheckpointStore) MarkCanceled(taskID uuid.UUID) error {
 // SaveExecutionArtifacts persists signed runtime execution material on the task.
 func (s *CheckpointStore) SaveExecutionArtifacts(taskID uuid.UUID, executionEnvelope, executionReceipt json.RawMessage) error {
 	executionID, expectedHash, hasProofRefs := extractProofRefs(executionReceipt)
-	_, err := s.db.Exec(`
+	tx, err := s.db.Begin()
+	if err != nil {
+		return err
+	}
+	defer tx.Rollback()
+
+	_, err = tx.Exec(`
 		UPDATE task_records
 		SET execution_envelope = COALESCE($1, execution_envelope),
 		    execution_receipt = COALESCE($2, execution_receipt),
@@ -335,7 +341,10 @@ func (s *CheckpointStore) SaveExecutionArtifacts(taskID uuid.UUID, executionEnve
 	if err != nil {
 		return err
 	}
-	return s.SaveRoboticsReceiptAudit(taskID, executionEnvelope, executionReceipt)
+	if err := saveRoboticsReceiptAudit(tx, taskID, executionEnvelope, executionReceipt); err != nil {
+		return err
+	}
+	return tx.Commit()
 }
 
 // RoboticsAuditReceipt is a query-optimized reference to a signed Runtime
@@ -460,12 +469,20 @@ func robotActionFromRoutingDecision(routingDecision string) string {
 }
 
 func (s *CheckpointStore) SaveRoboticsReceiptAudit(taskID uuid.UUID, executionEnvelope, executionReceipt json.RawMessage) error {
+	return saveRoboticsReceiptAudit(s.db, taskID, executionEnvelope, executionReceipt)
+}
+
+type roboticsReceiptAuditExecer interface {
+	Exec(query string, args ...interface{}) (sql.Result, error)
+}
+
+func saveRoboticsReceiptAudit(execer roboticsReceiptAuditExecer, taskID uuid.UUID, executionEnvelope, executionReceipt json.RawMessage) error {
 	refs, ok := roboticsAuditRefs(executionEnvelope, executionReceipt)
 	if !ok {
 		return nil
 	}
 
-	_, err := s.db.Exec(`
+	_, err := execer.Exec(`
 		INSERT INTO robotics_receipt_audit (
 			task_id,
 			tenant_id,
