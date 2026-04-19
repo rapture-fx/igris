@@ -153,6 +153,7 @@ impl ExecutionTransaction {
     }
 
     /// Return whether the transaction is in a terminal state.
+    #[allow(dead_code)]
     pub fn is_terminal(&self) -> bool {
         matches!(
             self.status,
@@ -269,7 +270,6 @@ mod tests {
 
     #[test]
     fn signature_produced_with_key() {
-        use ed25519_dalek::Verifier;
         use sha2::Sha256;
 
         let sk = sk();
