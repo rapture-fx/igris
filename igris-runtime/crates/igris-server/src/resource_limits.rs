@@ -1,10 +1,12 @@
-/// RUNTIME-05: Resource Safety Limits
-///
-/// Prevents runaway execution with hard limits:
-/// - Max tool calls per execution
-/// - Max recursion depth
-/// - Max speculative branches
-/// - Max wall-clock execution time
+//! RUNTIME-05: Resource Safety Limits
+//!
+//! Prevents runaway execution with hard limits:
+//! - Max tool calls per execution
+//! - Max recursion depth
+//! - Max speculative branches
+//! - Max wall-clock execution time
+#![allow(dead_code)]
+
 use serde::{Deserialize, Serialize};
 use std::fmt;
 use std::time::{Duration, SystemTime};
