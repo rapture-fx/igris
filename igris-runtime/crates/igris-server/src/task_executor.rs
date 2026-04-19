@@ -546,6 +546,7 @@ impl RuntimeTaskStep {
         }
     }
 
+    #[allow(dead_code)]
     fn read_slots(&self) -> Option<&[String]> {
         match self {
             Self::Agent(step) => step.read_slots.as_deref(),
@@ -3037,7 +3038,7 @@ async fn execute_agent_step_stream(
             }
         };
 
-    let mut timeout = tokio::time::sleep(Duration::from_millis(max_tick_ms));
+    let timeout = tokio::time::sleep(Duration::from_millis(max_tick_ms));
     tokio::pin!(timeout);
     let mut content = String::new();
 
