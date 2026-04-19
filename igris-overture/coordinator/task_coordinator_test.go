@@ -959,7 +959,6 @@ func TestSaveExecutionArtifactsIndexesRoboticsReceiptAudit(t *testing.T) {
 
 	taskID := uuid.New()
 	tenantID := "tenant-robotics-audit"
-	runtimeID := "runtime-robotics-audit"
 	envelope := json.RawMessage(`{
 		"execution_id":"exec-robotics-1",
 		"tenant_id":"tenant-robotics-audit",
@@ -1006,7 +1005,6 @@ func TestSaveExecutionArtifactsIndexesRoboticsReceiptAudit(t *testing.T) {
 
 	require.NoError(t, store.SaveExecutionArtifacts(taskID, envelope, receipt))
 	require.Equal(t, 0, queued.remainingExecs())
-	_ = runtimeID
 }
 
 func TestRecoverRuntimeRedispatchUsesNewestTaskCheckpointSource(t *testing.T) {
