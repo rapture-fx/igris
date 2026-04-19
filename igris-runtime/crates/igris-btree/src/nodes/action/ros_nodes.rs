@@ -20,7 +20,6 @@ use crate::core::{BTreeContext, NodeStatus};
 use anyhow::Result;
 use async_trait::async_trait;
 use serde_json::Value;
-use std::sync::Arc;
 use std::time::{Duration, Instant};
 use tracing::{debug, warn};
 
