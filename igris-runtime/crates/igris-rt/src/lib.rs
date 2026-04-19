@@ -3,14 +3,8 @@
 //! Provides deterministic execution with bounded latency for critical AI inference tasks.
 //! Supports priority-based task scheduling and latency monitoring.
 
-use anyhow::{anyhow, Result};
-use priority_queue::PriorityQueue;
 use serde::{Deserialize, Serialize};
-use std::cmp::Reverse;
-use std::sync::Arc;
-use std::time::{Duration, Instant};
-use tokio::sync::{Mutex, Semaphore};
-use tracing::{debug, error, info, warn};
+use std::time::Duration;
 
 pub mod config;
 pub mod executor;
