@@ -123,7 +123,7 @@ func TestCreateDraftRoboticsPolicyRoute(t *testing.T) {
 
 	publicKey, privateKey, err := ed25519.GenerateKey(nil)
 	require.NoError(t, err)
-	body := `{
+	requestBody := `{
 		"policy_version":"robotics-policy.v2",
 		"permit":true,
 		"runtime_permitted":true,
@@ -140,7 +140,7 @@ func TestCreateDraftRoboticsPolicyRoute(t *testing.T) {
 	app := roboticsPolicyTestApp("tenant-robotics-policy")
 	app.Post("/v1/robotics/policies", createDraftRoboticsPolicy(db))
 
-	req := signedRoboticsPolicyRouteRequest(t, http.MethodPost, "/v1/robotics/policies", body, privateKey, "key-v2")
+	req := signedRoboticsPolicyRouteRequest(t, http.MethodPost, "/v1/robotics/policies", requestBody, privateKey, "key-v2")
 
 	resp, err := app.Test(req)
 	require.NoError(t, err)
