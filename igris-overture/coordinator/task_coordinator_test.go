@@ -1011,8 +1011,31 @@ func TestSaveExecutionArtifactsIndexesRoboticsReceiptAudit(t *testing.T) {
 	require.Equal(t, 0, queued.remainingExecs())
 }
 
+func signedRuntimeArtifactJSON(t *testing.T, privateKey ed25519.PrivateKey, fields map[string]any) json.RawMessage {
+	t.Helper()
+	canonical, err := json.Marshal(fields)
+	require.NoError(t, err)
+	sum := sha256.Sum256(canonical)
+	fields["signature"] = base64.StdEncoding.EncodeToString(ed25519.Sign(privateKey, sum[:]))
+	raw, err := json.Marshal(fields)
+	require.NoError(t, err)
+	return raw
+}
+
+func mustJSONFieldString(t *testing.T, raw json.RawMessage, field string) string {
+	t.Helper()
+	var value map[string]any
+	require.NoError(t, json.Unmarshal(raw, &value))
+	got, ok := value[field].(string)
+	require.True(t, ok)
+	return got
+}
+
 func TestReplayRoboticsAuditReconstructsPolicyActionAndRuntimeReceipt(t *testing.T) {
 	t.Parallel()
+	publicKey, privateKey, err := ed25519.GenerateKey(nil)
+	require.NoError(t, err)
+	t.Setenv("IGRIS_RUNTIME_PUBLIC_KEY", hex.EncodeToString(publicKey))
 
 	taskID := uuid.New()
 	runtimeID := "runtime-replay"
@@ -1048,21 +1071,19 @@ func TestReplayRoboticsAuditReconstructsPolicyActionAndRuntimeReceipt(t *testing
 	decisionBytes, err := json.Marshal(decision)
 	require.NoError(t, err)
 	decisionHash := governedPolicyDecisionHash(decision)
-	envelope := json.RawMessage(fmt.Sprintf(`{
-		"execution_id":"exec-replay-1",
-		"tenant_id":"tenant-replay",
-		"policy_decision_id":"decision-replay-1",
-		"policy_decision_hash":%q,
-		"governed_action_hash":"action-hash-replay",
-		"routing_decision":"runtime:robotics:failed",
-		"signature":"runtime-envelope-sig"
-	}`, decisionHash))
-	receipt := json.RawMessage(`{
-		"execution_id":"exec-replay-1",
-		"receipt_hash":"receipt-hash-replay",
-		"signature":"runtime-receipt-sig",
-		"violation_occurred":true
-	}`)
+	envelope := signedRuntimeArtifactJSON(t, privateKey, map[string]any{
+		"execution_id":         "exec-replay-1",
+		"tenant_id":            "tenant-replay",
+		"policy_decision_id":   "decision-replay-1",
+		"policy_decision_hash": decisionHash,
+		"governed_action_hash": "action-hash-replay",
+		"routing_decision":     "runtime:robotics:failed",
+	})
+	receipt := signedRuntimeArtifactJSON(t, privateKey, map[string]any{
+		"execution_id":       "exec-replay-1",
+		"receipt_hash":       "receipt-hash-replay",
+		"violation_occurred": true,
+	})
 	persistedAt := time.Unix(1_900_000_100, 0).UTC()
 	db, queued := newQueuedCheckpointDB(t, []queuedQueryExpectation{{
 		columns: []string{
