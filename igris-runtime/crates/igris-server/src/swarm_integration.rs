@@ -6,6 +6,8 @@
 //! - POST /v1/swarm/propose - Propose a task
 //! - POST /v1/swarm/vote - Vote on a proposal
 
+#![allow(dead_code)]
+
 use anyhow::Result;
 use igris_swarm::{
     HealthCheckHandler, InferenceTaskHandler, SwarmConfig as SwarmCrateConfig, SwarmCoordinator,
