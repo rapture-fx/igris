@@ -2,7 +2,7 @@
 ///
 /// Tests verifying that resource limits are properly enforced during tool agent execution
 use super::*;
-use crate::resource_limits::{ResourceLimitError, ResourceLimits};
+use crate::resource_limits::ResourceLimits;
 use igris_tools::{ToolRegistry, ToolResult};
 use std::sync::Arc;
 use std::time::Duration;
