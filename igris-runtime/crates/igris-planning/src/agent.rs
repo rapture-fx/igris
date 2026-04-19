@@ -11,7 +11,7 @@ use igris_tools::{ToolDefinition, ToolRegistry, ToolResult};
 use serde::{Deserialize, Serialize};
 use serde_json::Value;
 use std::sync::Arc;
-use tracing::{debug, info, warn};
+use tracing::{debug, info};
 
 #[derive(Debug, Clone, Serialize, Deserialize)]
 #[serde(rename_all = "snake_case")]
@@ -183,6 +183,7 @@ impl PlanningAgent {
             match decision.decision_type {
                 DecisionType::Final => {
                     let final_answer = decision.final_answer.unwrap_or_else(|| raw.clone());
+                    #[cfg(feature = "wal")]
                     let thought = decision.thought.clone();
                     steps.push(PlanStep {
                         step_number: step_num,
