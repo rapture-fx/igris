@@ -1,4 +1,3 @@
-use anyhow::Context;
 use futures::stream::{FuturesUnordered, StreamExt};
 use futures::Stream;
 use std::pin::Pin;
@@ -7,6 +6,7 @@ use tokio::time::{timeout, Duration};
 use tracing::{debug, info, warn};
 
 /// Provider trait for AI model backends
+#[allow(async_fn_in_trait)]
 pub trait Provider: Send + Sync {
     fn id(&self) -> &str;
     fn name(&self) -> &str;
