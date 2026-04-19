@@ -27,23 +27,23 @@ type roboticsPolicyAllowListRequest struct {
 }
 
 type roboticsPolicyResponse struct {
-	TenantID          string     `json:"tenant_id"`
-	PolicyVersion     string     `json:"policy_version"`
-	Status            string     `json:"status"`
-	Permit            bool       `json:"permit"`
-	RuntimePermitted  bool       `json:"runtime_permitted"`
-	RobotMode         string     `json:"robot_mode"`
-	AllowedRuntimes   []string   `json:"allowed_runtimes"`
-	Active            bool       `json:"active"`
-	ExpiresAt         *time.Time `json:"expires_at,omitempty"`
-	ActivatedAt       *time.Time `json:"activated_at,omitempty"`
-	ExpiredAt         *time.Time `json:"expired_at,omitempty"`
-	RevokedAt         *time.Time `json:"revoked_at,omitempty"`
-	CreatedBy         string     `json:"created_by,omitempty"`
-	UpdatedBy         string     `json:"updated_by,omitempty"`
-	RevokedBy         string     `json:"revoked_by,omitempty"`
-	CreatedAt         time.Time  `json:"created_at"`
-	UpdatedAt         time.Time  `json:"updated_at"`
+	TenantID         string     `json:"tenant_id"`
+	PolicyVersion    string     `json:"policy_version"`
+	Status           string     `json:"status"`
+	Permit           bool       `json:"permit"`
+	RuntimePermitted bool       `json:"runtime_permitted"`
+	RobotMode        string     `json:"robot_mode"`
+	AllowedRuntimes  []string   `json:"allowed_runtimes"`
+	Active           bool       `json:"active"`
+	ExpiresAt        *time.Time `json:"expires_at,omitempty"`
+	ActivatedAt      *time.Time `json:"activated_at,omitempty"`
+	ExpiredAt        *time.Time `json:"expired_at,omitempty"`
+	RevokedAt        *time.Time `json:"revoked_at,omitempty"`
+	CreatedBy        string     `json:"created_by,omitempty"`
+	UpdatedBy        string     `json:"updated_by,omitempty"`
+	RevokedBy        string     `json:"revoked_by,omitempty"`
+	CreatedAt        time.Time  `json:"created_at"`
+	UpdatedAt        time.Time  `json:"updated_at"`
 }
 
 func RegisterRoboticsPolicyRoutes(app *fiber.App, db *sql.DB) {
