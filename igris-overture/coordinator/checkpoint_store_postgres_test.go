@@ -1,6 +1,7 @@
 package coordinator
 
 import (
+	"context"
 	"crypto/ed25519"
 	"database/sql"
 	"encoding/hex"
@@ -138,4 +139,83 @@ func TestRoboticsReceiptReplayWithPostgresMigrations(t *testing.T) {
 	require.NoError(t, json.Unmarshal(replays[0].SignedPolicyDecision, &persistedDecision))
 	require.Equal(t, decision.DecisionID, persistedDecision.DecisionID)
 	require.Equal(t, decision.PolicyVersion, persistedDecision.PolicyVersion)
+}
+
+func TestRoboticsPolicyAuthorizationWithPostgresMigrations(t *testing.T) {
+	dsn := os.Getenv("IGRIS_OVERTURE_POSTGRES_TEST_DSN")
+	if dsn == "" {
+		dsn = os.Getenv("POSTGRES_TEST_DSN")
+	}
+	if dsn == "" {
+		t.Skip("set IGRIS_OVERTURE_POSTGRES_TEST_DSN or POSTGRES_TEST_DSN to run real Postgres policy authorization test")
+	}
+
+	db, err := sql.Open("postgres", dsn)
+	require.NoError(t, err)
+	db.SetMaxOpenConns(1)
+	db.SetMaxIdleConns(1)
+	t.Cleanup(func() { _ = db.Close() })
+
+	schema := "robotics_policy_auth_test_" + strings.ReplaceAll(uuid.NewString(), "-", "_")
+	_, err = db.Exec(`CREATE SCHEMA ` + schema)
+	require.NoError(t, err)
+	t.Cleanup(func() { _, _ = db.Exec(`DROP SCHEMA ` + schema + ` CASCADE`) })
+	_, err = db.Exec(`SET search_path TO ` + schema + `, public`)
+	require.NoError(t, err)
+
+	for _, name := range []string{
+		"036_robotics_policy_settings.sql",
+		"038_robotics_policy_lifecycle.sql",
+	} {
+		sqlBytes, err := os.ReadFile(filepath.Join("..", "database", "migrations", name))
+		require.NoError(t, err)
+		_, err = db.Exec(string(sqlBytes))
+		require.NoError(t, err)
+	}
+
+	_, err = db.Exec(`
+		INSERT INTO robotics_policy_settings (
+			tenant_id, policy_version, status, permit, runtime_permitted,
+			robot_mode, allowed_runtimes, active, activated_at, created_by,
+			updated_by, created_at, updated_at
+		)
+		VALUES (
+			'tenant-policy-auth', 'robotics-policy.pg-auth', 'active', true, true,
+			'supervised', '["runtime-allowed"]'::jsonb, true, NOW(), 'admin',
+			'admin', NOW(), NOW()
+		)`)
+	require.NoError(t, err)
+
+	allowedRuntime := "runtime-allowed"
+	allowed := evaluateRoboticsPolicy(context.Background(), db, &TaskRecord{
+		TaskID:    uuid.New(),
+		TenantID:  "tenant-policy-auth",
+		RuntimeID: &allowedRuntime,
+	})
+	require.True(t, allowed.Permit)
+	require.True(t, allowed.RuntimePermitted)
+	require.True(t, allowed.TenantPermitted)
+	require.True(t, allowed.PolicyPermitted)
+	require.True(t, allowed.RobotModePermitted)
+	require.Equal(t, "robotics-policy.pg-auth", allowed.PolicyVersion)
+
+	deniedRuntime := "runtime-denied"
+	runtimeDenied := evaluateRoboticsPolicy(context.Background(), db, &TaskRecord{
+		TaskID:    uuid.New(),
+		TenantID:  "tenant-policy-auth",
+		RuntimeID: &deniedRuntime,
+	})
+	require.False(t, runtimeDenied.Permit)
+	require.False(t, runtimeDenied.RuntimePermitted)
+	require.True(t, runtimeDenied.TenantPermitted)
+	require.True(t, runtimeDenied.PolicyPermitted)
+	require.True(t, runtimeDenied.RobotModePermitted)
+
+	missingTenant := evaluateRoboticsPolicy(context.Background(), db, &TaskRecord{
+		TaskID:    uuid.New(),
+		TenantID:  "tenant-policy-missing",
+		RuntimeID: &allowedRuntime,
+	})
+	require.False(t, missingTenant.Permit)
+	require.Equal(t, "robotics-policy.missing", missingTenant.PolicyVersion)
 }
