@@ -50,7 +50,9 @@ pub enum ApprovalStatus {
 pub struct HitlCoordinator {
     config: HitlConfig,
     pending_requests: Arc<RwLock<HashMap<String, (EscalationRequest, ApprovalStatus)>>>,
+    #[allow(dead_code)]
     approval_tx: mpsc::UnboundedSender<(String, ApprovalStatus)>,
+    #[allow(dead_code)]
     approval_rx: Arc<RwLock<mpsc::UnboundedReceiver<(String, ApprovalStatus)>>>,
 }
 
