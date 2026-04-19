@@ -1,6 +1,7 @@
 package api
 
 import (
+	"context"
 	"database/sql"
 	"encoding/json"
 	"net/http"
@@ -44,6 +45,12 @@ type roboticsPolicyResponse struct {
 	RevokedBy        string     `json:"revoked_by,omitempty"`
 	CreatedAt        time.Time  `json:"created_at"`
 	UpdatedAt        time.Time  `json:"updated_at"`
+}
+
+type roboticsPolicyActor struct {
+	ID             string
+	Email          string
+	SignerIdentity string
 }
 
 func RegisterRoboticsPolicyRoutes(app *fiber.App, db *sql.DB) {
@@ -100,19 +107,98 @@ func allowedRuntimesJSON(runtimes []string) ([]byte, error) {
 	return json.Marshal(normalized)
 }
 
+func roboticsPolicyActorFromContext(c *fiber.Ctx) (roboticsPolicyActor, error) {
+	actor := roboticsPolicyActor{
+		ID:    middleware.GetClerkUserID(c),
+		Email: middleware.GetClerkEmail(c),
+	}
+	if actor.ID == "" {
+		return actor, fiber.NewError(http.StatusUnauthorized, "unauthenticated")
+	}
+	if !roboticsPolicyAdminAllowed(c) {
+		return actor, fiber.NewError(http.StatusForbidden, "admin_required")
+	}
+	signer := strings.TrimSpace(c.Get("X-Igris-Policy-Signer"))
+	if signer == "" {
+		signer = strings.TrimSpace(actor.Email)
+	}
+	if signer == "" {
+		signer = actor.ID
+	}
+	actor.SignerIdentity = signer
+	return actor, nil
+}
+
+func roboticsPolicyAdminAllowed(c *fiber.Ctx) bool {
+	if middleware.IsAdminRequest(c) {
+		return true
+	}
+	if role, ok := c.Locals("clerk_role").(string); ok && role == "admin" {
+		return true
+	}
+	if roles, ok := c.Locals("clerk_roles").([]string); ok {
+		for _, role := range roles {
+			if role == "admin" {
+				return true
+			}
+		}
+	}
+	return false
+}
+
+func roboticsPolicyAuthError(c *fiber.Ctx, err error) error {
+	if fiberErr, ok := err.(*fiber.Error); ok {
+		return c.Status(fiberErr.Code).JSON(fiber.Map{"error": fiberErr.Message})
+	}
+	return c.Status(http.StatusUnauthorized).JSON(fiber.Map{"error": "unauthenticated"})
+}
+
+func insertRoboticsPolicyLifecycleAudit(exec interface {
+	ExecContext(ctx context.Context, query string, args ...interface{}) (sql.Result, error)
+}, ctx context.Context, tenantID string, policy *roboticsPolicyResponse, action string, actor roboticsPolicyActor, previousStatus string) error {
+	if policy == nil {
+		return nil
+	}
+	snapshot, err := json.Marshal(policy)
+	if err != nil {
+		return err
+	}
+	_, err = exec.ExecContext(ctx, `
+		INSERT INTO robotics_policy_lifecycle_audit (
+			tenant_id, policy_version, action, actor_id, actor_email,
+			signer_identity, previous_status, new_status, policy_snapshot, occurred_at
+		)
+		VALUES ($1, $2, $3, $4, NULLIF($5, ''), $6, NULLIF($7, ''), $8, $9, NOW())`,
+		tenantID,
+		policy.PolicyVersion,
+		action,
+		actor.ID,
+		actor.Email,
+		actor.SignerIdentity,
+		previousStatus,
+		policy.Status,
+		snapshot,
+	)
+	return err
+}
+
 func createDraftRoboticsPolicy(db *sql.DB) fiber.Handler {
 	return func(c *fiber.Ctx) error {
-		tenantID := middleware.GetClerkUserID(c)
-		if tenantID == "" {
-			return c.Status(http.StatusUnauthorized).JSON(fiber.Map{"error": "unauthenticated"})
+		actor, authErr := roboticsPolicyActorFromContext(c)
+		if authErr != nil {
+			return roboticsPolicyAuthError(c, authErr)
 		}
 		var req roboticsPolicyRequest
 		if err := c.BodyParser(&req); err != nil {
 			return c.Status(http.StatusBadRequest).JSON(fiber.Map{"error": "invalid_body"})
 		}
-		policy, err := upsertDraftRoboticsPolicy(c, db, tenantID, req)
+		policy, err := upsertDraftRoboticsPolicy(c, db, actor.ID, req)
 		if err != nil {
-			log.Error().Err(err).Str("tenant_id", tenantID).Msg("[RoboticsPolicy] create draft failed")
+			log.Error().Err(err).Str("tenant_id", actor.ID).Msg("[RoboticsPolicy] create draft failed")
+			return c.Status(http.StatusInternalServerError).JSON(fiber.Map{"error": "db_error"})
+		}
+		if err := insertRoboticsPolicyLifecycleAudit(db, c.Context(), actor.ID, policy, "draft", actor, ""); err != nil {
+			log.Error().Err(err).Str("tenant_id", actor.ID).Msg("[RoboticsPolicy] draft audit failed")
 			return c.Status(http.StatusInternalServerError).JSON(fiber.Map{"error": "db_error"})
 		}
 		return c.Status(http.StatusCreated).JSON(policy)
@@ -121,18 +207,22 @@ func createDraftRoboticsPolicy(db *sql.DB) fiber.Handler {
 
 func updateDraftRoboticsPolicy(db *sql.DB) fiber.Handler {
 	return func(c *fiber.Ctx) error {
-		tenantID := middleware.GetClerkUserID(c)
-		if tenantID == "" {
-			return c.Status(http.StatusUnauthorized).JSON(fiber.Map{"error": "unauthenticated"})
+		actor, authErr := roboticsPolicyActorFromContext(c)
+		if authErr != nil {
+			return roboticsPolicyAuthError(c, authErr)
 		}
 		var req roboticsPolicyRequest
 		if err := c.BodyParser(&req); err != nil {
 			return c.Status(http.StatusBadRequest).JSON(fiber.Map{"error": "invalid_body"})
 		}
 		req.PolicyVersion = c.Params("version")
-		policy, err := upsertDraftRoboticsPolicy(c, db, tenantID, req)
+		policy, err := upsertDraftRoboticsPolicy(c, db, actor.ID, req)
 		if err != nil {
-			log.Error().Err(err).Str("tenant_id", tenantID).Str("policy_version", req.PolicyVersion).Msg("[RoboticsPolicy] update draft failed")
+			log.Error().Err(err).Str("tenant_id", actor.ID).Str("policy_version", req.PolicyVersion).Msg("[RoboticsPolicy] update draft failed")
+			return c.Status(http.StatusInternalServerError).JSON(fiber.Map{"error": "db_error"})
+		}
+		if err := insertRoboticsPolicyLifecycleAudit(db, c.Context(), actor.ID, policy, "update", actor, "draft"); err != nil {
+			log.Error().Err(err).Str("tenant_id", actor.ID).Str("policy_version", req.PolicyVersion).Msg("[RoboticsPolicy] update audit failed")
 			return c.Status(http.StatusInternalServerError).JSON(fiber.Map{"error": "db_error"})
 		}
 		return c.JSON(policy)
@@ -175,9 +265,9 @@ func upsertDraftRoboticsPolicy(c *fiber.Ctx, db *sql.DB, tenantID string, req ro
 
 func updateRoboticsPolicyAllowList(db *sql.DB) fiber.Handler {
 	return func(c *fiber.Ctx) error {
-		tenantID := middleware.GetClerkUserID(c)
-		if tenantID == "" {
-			return c.Status(http.StatusUnauthorized).JSON(fiber.Map{"error": "unauthenticated"})
+		actor, authErr := roboticsPolicyActorFromContext(c)
+		if authErr != nil {
+			return roboticsPolicyAuthError(c, authErr)
 		}
 		var req roboticsPolicyAllowListRequest
 		if err := c.BodyParser(&req); err != nil {
@@ -196,14 +286,18 @@ func updateRoboticsPolicyAllowList(db *sql.DB) fiber.Handler {
 			          robot_mode, allowed_runtimes::text, active, expires_at,
 			          activated_at, expired_at, revoked_at, created_by, updated_by,
 			          revoked_by, created_at, updated_at`,
-			allowed, tenantID, tenantID, policyVersion,
+			allowed, actor.ID, actor.ID, policyVersion,
 		)
 		policy, err := scanRoboticsPolicy(row)
 		if err == sql.ErrNoRows {
 			return c.Status(http.StatusNotFound).JSON(fiber.Map{"error": "policy_not_found"})
 		}
 		if err != nil {
-			log.Error().Err(err).Str("tenant_id", tenantID).Str("policy_version", policyVersion).Msg("[RoboticsPolicy] allow-list update failed")
+			log.Error().Err(err).Str("tenant_id", actor.ID).Str("policy_version", policyVersion).Msg("[RoboticsPolicy] allow-list update failed")
+			return c.Status(http.StatusInternalServerError).JSON(fiber.Map{"error": "db_error"})
+		}
+		if err := insertRoboticsPolicyLifecycleAudit(db, c.Context(), actor.ID, policy, "allow_list", actor, policy.Status); err != nil {
+			log.Error().Err(err).Str("tenant_id", actor.ID).Str("policy_version", policyVersion).Msg("[RoboticsPolicy] allow-list audit failed")
 			return c.Status(http.StatusInternalServerError).JSON(fiber.Map{"error": "db_error"})
 		}
 		return c.JSON(policy)
@@ -212,9 +306,9 @@ func updateRoboticsPolicyAllowList(db *sql.DB) fiber.Handler {
 
 func activateRoboticsPolicy(db *sql.DB) fiber.Handler {
 	return func(c *fiber.Ctx) error {
-		tenantID := middleware.GetClerkUserID(c)
-		if tenantID == "" {
-			return c.Status(http.StatusUnauthorized).JSON(fiber.Map{"error": "unauthenticated"})
+		actor, authErr := roboticsPolicyActorFromContext(c)
+		if authErr != nil {
+			return roboticsPolicyAuthError(c, authErr)
 		}
 		policyVersion := normalizePolicyVersion(c.Params("version"))
 		tx, err := db.BeginTx(c.Context(), nil)
@@ -228,7 +322,7 @@ func activateRoboticsPolicy(db *sql.DB) fiber.Handler {
 			    status = CASE WHEN status = 'active' THEN 'draft' ELSE status END,
 			    updated_by = $1,
 			    updated_at = NOW()
-			WHERE tenant_id = $2 AND active = true`, tenantID, tenantID); err != nil {
+			WHERE tenant_id = $2 AND active = true`, actor.ID, actor.ID); err != nil {
 			return c.Status(http.StatusInternalServerError).JSON(fiber.Map{"error": "db_error"})
 		}
 		row := tx.QueryRowContext(c.Context(), `
@@ -240,12 +334,15 @@ func activateRoboticsPolicy(db *sql.DB) fiber.Handler {
 			RETURNING tenant_id, policy_version, status, permit, runtime_permitted,
 			          robot_mode, allowed_runtimes::text, active, expires_at,
 			          activated_at, expired_at, revoked_at, created_by, updated_by,
-			          revoked_by, created_at, updated_at`, tenantID, tenantID, policyVersion)
+			          revoked_by, created_at, updated_at`, actor.ID, actor.ID, policyVersion)
 		policy, err := scanRoboticsPolicy(row)
 		if err == sql.ErrNoRows {
 			return c.Status(http.StatusNotFound).JSON(fiber.Map{"error": "policy_not_found"})
 		}
 		if err != nil {
+			return c.Status(http.StatusInternalServerError).JSON(fiber.Map{"error": "db_error"})
+		}
+		if err := insertRoboticsPolicyLifecycleAudit(tx, c.Context(), actor.ID, policy, "activate", actor, "draft"); err != nil {
 			return c.Status(http.StatusInternalServerError).JSON(fiber.Map{"error": "db_error"})
 		}
 		if err := tx.Commit(); err != nil {
@@ -265,18 +362,18 @@ func revokeRoboticsPolicy(db *sql.DB) fiber.Handler {
 
 func roboticsPolicyLifecycleUpdate(db *sql.DB, status string) fiber.Handler {
 	return func(c *fiber.Ctx) error {
-		tenantID := middleware.GetClerkUserID(c)
-		if tenantID == "" {
-			return c.Status(http.StatusUnauthorized).JSON(fiber.Map{"error": "unauthenticated"})
+		actor, authErr := roboticsPolicyActorFromContext(c)
+		if authErr != nil {
+			return roboticsPolicyAuthError(c, authErr)
 		}
 		policyVersion := normalizePolicyVersion(c.Params("version"))
 		timestampColumn := "expired_at"
-		args := []interface{}{status, tenantID, policyVersion}
+		args := []interface{}{status, actor.ID, policyVersion}
 		extra := ""
 		if status == "revoked" {
 			timestampColumn = "revoked_at"
 			extra = ", revoked_by = $4"
-			args = append(args, tenantID)
+			args = append(args, actor.ID)
 		}
 		row := db.QueryRowContext(c.Context(), `
 			UPDATE robotics_policy_settings
@@ -294,7 +391,18 @@ func roboticsPolicyLifecycleUpdate(db *sql.DB, status string) fiber.Handler {
 			return c.Status(http.StatusNotFound).JSON(fiber.Map{"error": "policy_not_found"})
 		}
 		if err != nil {
-			log.Error().Err(err).Str("tenant_id", tenantID).Str("policy_version", policyVersion).Msg("[RoboticsPolicy] lifecycle update failed")
+			log.Error().Err(err).Str("tenant_id", actor.ID).Str("policy_version", policyVersion).Msg("[RoboticsPolicy] lifecycle update failed")
+			return c.Status(http.StatusInternalServerError).JSON(fiber.Map{"error": "db_error"})
+		}
+		auditAction := status
+		if status == "expired" {
+			auditAction = "expire"
+		}
+		if status == "revoked" {
+			auditAction = "revoke"
+		}
+		if err := insertRoboticsPolicyLifecycleAudit(db, c.Context(), actor.ID, policy, auditAction, actor, "active"); err != nil {
+			log.Error().Err(err).Str("tenant_id", actor.ID).Str("policy_version", policyVersion).Msg("[RoboticsPolicy] lifecycle audit failed")
 			return c.Status(http.StatusInternalServerError).JSON(fiber.Map{"error": "db_error"})
 		}
 		return c.JSON(policy)
