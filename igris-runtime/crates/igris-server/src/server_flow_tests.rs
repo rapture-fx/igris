@@ -960,12 +960,7 @@ mod tests {
         assert!(payload["execution_receipt"]["signature"]
             .as_str()
             .is_some_and(|value| !value.is_empty()));
-        assert_ros2_replay_lookup_artifacts(
-            &payload,
-            task_id,
-            "ros2:publish_zero_velocity",
-            false,
-        );
+        assert_ros2_replay_lookup_artifacts(&payload, task_id, "ros2:publish_zero_velocity", false);
         assert_eq!(manager.node().last_velocity().await, [0.0, 0.0]);
     }
 
