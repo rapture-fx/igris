@@ -288,6 +288,31 @@ mod tests {
         runtime_id: &str,
         permit: bool,
     ) -> serde_json::Value {
+        signed_robotics_policy_decision_for_action_test(
+            signing_key,
+            task_id,
+            tenant_id,
+            runtime_id,
+            permit,
+            "publish_zero_velocity",
+            "robotics-step-0",
+            0,
+            None,
+        )
+    }
+
+    #[cfg(feature = "ros2")]
+    fn signed_robotics_policy_decision_for_action_test(
+        signing_key: &SigningKey,
+        task_id: uuid::Uuid,
+        tenant_id: &str,
+        runtime_id: &str,
+        permit: bool,
+        action_name: &str,
+        node_id: &str,
+        step_index: u64,
+        target: Option<&str>,
+    ) -> serde_json::Value {
         let now_ms = std::time::SystemTime::now()
             .duration_since(std::time::UNIX_EPOCH)
             .unwrap()
@@ -302,9 +327,9 @@ mod tests {
                 "schema_version": "governed_action.v1",
                 "domain": "robotics",
                 "action_type": "ros2_action",
-                "action_name": "publish_zero_velocity",
-                "node_id": "robotics-step-0",
-                "step_index": 0,
+                "action_name": action_name,
+                "node_id": node_id,
+                "step_index": step_index,
                 "requires_policy": true,
                 "safety_mode_required": true
             },
@@ -320,6 +345,9 @@ mod tests {
             "signer_key_version": "test-key",
             "signature": ""
         });
+        if let Some(target) = target {
+            decision["action"]["target"] = serde_json::json!(target);
+        }
         let canonical = canonical_policy_decision_for_test(&decision);
         let digest = Sha256::digest(&canonical);
         let signature = signing_key.sign(&digest);
@@ -327,6 +355,36 @@ mod tests {
             base64::engine::general_purpose::STANDARD.encode(signature.to_bytes())
         );
         decision
+    }
+
+    #[cfg(feature = "ros2")]
+    async fn start_ros2_manager_for_task_test(
+        name: &str,
+    ) -> Option<Arc<crate::ros2_integration::Ros2Manager>> {
+        let bus = igris_safety::ViolationEventBus::new();
+        let ros2_log =
+            std::env::temp_dir().join(format!("igris-ros2-{name}-{}.jsonl", uuid::Uuid::new_v4()));
+        match crate::ros2_integration::Ros2Manager::start(
+            igris_ros2::Ros2Config {
+                enabled: true,
+                node_name: format!("igris_{name}_{}", uuid::Uuid::new_v4().simple()),
+                namespace: format!("/igris_{name}"),
+                enable_nav2: true,
+                ..Default::default()
+            },
+            &bus,
+            SigningKey::from_bytes(&[0x47u8; 32]),
+            ros2_log.to_string_lossy().to_string(),
+            String::new(),
+        )
+        .await
+        {
+            Ok(manager) => Some(Arc::new(manager)),
+            Err(err) => {
+                eprintln!("skipping ROS2 task flow {name}: {err}");
+                None
+            }
+        }
     }
 
     #[tokio::test]
@@ -793,31 +851,8 @@ mod tests {
         let runtime_signing_key = Arc::new(SigningKey::from_bytes(&[0x45u8; 32]));
         let overture_signing_key = SigningKey::from_bytes(&[0x46u8; 32]);
         let overture_verifying_key = Arc::new(overture_signing_key.verifying_key());
-        let bus = igris_safety::ViolationEventBus::new();
-        let ros2_log = std::env::temp_dir().join(format!(
-            "igris-ros2-runtime-task-{}.jsonl",
-            uuid::Uuid::new_v4()
-        ));
-        let manager = match crate::ros2_integration::Ros2Manager::start(
-            igris_ros2::Ros2Config {
-                enabled: true,
-                node_name: format!("igris_task_test_{}", uuid::Uuid::new_v4().simple()),
-                namespace: "/igris_task_test".to_string(),
-                enable_nav2: false,
-                ..Default::default()
-            },
-            &bus,
-            SigningKey::from_bytes(&[0x47u8; 32]),
-            ros2_log.to_string_lossy().to_string(),
-            String::new(),
-        )
-        .await
-        {
-            Ok(manager) => Arc::new(manager),
-            Err(err) => {
-                eprintln!("skipping signed ROS2 task flow: {err}");
-                return;
-            }
+        let Some(manager) = start_ros2_manager_for_task_test("runtime_task").await else {
+            return;
         };
 
         let mut state = build_runtime_only_state();
@@ -887,6 +922,239 @@ mod tests {
             .as_str()
             .is_some_and(|value| !value.is_empty()));
         assert_eq!(manager.node().last_velocity().await, [0.0, 0.0]);
+    }
+
+    #[cfg(feature = "ros2")]
+    #[tokio::test]
+    async fn runtime_task_signed_ros2_cancel_navigation_completes_with_audit_artifacts() {
+        let runtime_signing_key = Arc::new(SigningKey::from_bytes(&[0x48u8; 32]));
+        let overture_signing_key = SigningKey::from_bytes(&[0x49u8; 32]);
+        let Some(manager) = start_ros2_manager_for_task_test("cancel_nav").await else {
+            return;
+        };
+
+        let mut state = build_runtime_only_state();
+        state.swarm_peer_id = "runtime-robotics-cancel".to_string();
+        state.signing_key = Some(runtime_signing_key);
+        state.overture_public_key = Some(Arc::new(overture_signing_key.verifying_key()));
+        state.ros2_manager = Some(Arc::clone(&manager));
+        let app = build_runtime_task_app(state);
+
+        let task_id = uuid::Uuid::new_v4();
+        let tenant_id = "tenant-robotics-cancel";
+        let runtime_id = "runtime-robotics-cancel";
+        let decision = signed_robotics_policy_decision_for_action_test(
+            &overture_signing_key,
+            task_id,
+            tenant_id,
+            runtime_id,
+            true,
+            "cancel_navigation",
+            "robotics-step-0",
+            0,
+            None,
+        );
+        let req_body = serde_json::json!({
+            "task_id": task_id,
+            "task_type": {
+                "type": "robotics_workflow",
+                "steps": [
+                    {"step_index": 0, "action": "cancel_navigation"}
+                ]
+            },
+            "containment": {"max_tick_ms": 1000},
+            "signed_policy_decisions": [decision],
+            "idempotency_key": "signed-ros2-cancel-navigation",
+            "tenant_id": tenant_id
+        });
+        let req = Request::builder()
+            .method("POST")
+            .uri("/v1/runtime/task/submit")
+            .header("content-type", "application/json")
+            .body(Body::from(req_body.to_string()))
+            .unwrap();
+
+        let resp = app.oneshot(req).await.unwrap();
+        assert_eq!(resp.status(), StatusCode::OK);
+        let bytes = axum::body::to_bytes(resp.into_body(), usize::MAX)
+            .await
+            .unwrap();
+        let payload: serde_json::Value = serde_json::from_slice(&bytes).unwrap();
+        assert_eq!(payload["status"]["status"], "completed");
+        assert_eq!(
+            payload["execution_envelope"]["routing_decision"],
+            "ros2:cancel_navigation"
+        );
+        assert_eq!(
+            payload["execution_envelope"]["policy_decision_id"],
+            format!("decision-{task_id}")
+        );
+        assert!(payload["execution_envelope"]["signature"]
+            .as_str()
+            .is_some_and(|value| !value.is_empty()));
+        assert_eq!(payload["execution_receipt"]["violation_occurred"], false);
+        assert!(payload["execution_receipt"]["signature"]
+            .as_str()
+            .is_some_and(|value| !value.is_empty()));
+    }
+
+    #[cfg(feature = "ros2")]
+    #[tokio::test]
+    async fn runtime_task_signed_ros2_timeout_emits_failure_audit_artifacts() {
+        let runtime_signing_key = Arc::new(SigningKey::from_bytes(&[0x4Au8; 32]));
+        let overture_signing_key = SigningKey::from_bytes(&[0x4Bu8; 32]);
+        let Some(manager) = start_ros2_manager_for_task_test("nav_timeout").await else {
+            return;
+        };
+
+        let mut state = build_runtime_only_state();
+        state.swarm_peer_id = "runtime-robotics-timeout".to_string();
+        state.signing_key = Some(runtime_signing_key);
+        state.overture_public_key = Some(Arc::new(overture_signing_key.verifying_key()));
+        state.ros2_manager = Some(Arc::clone(&manager));
+        let app = build_runtime_task_app(state);
+
+        let task_id = uuid::Uuid::new_v4();
+        let tenant_id = "tenant-robotics-timeout";
+        let runtime_id = "runtime-robotics-timeout";
+        let decision = signed_robotics_policy_decision_for_action_test(
+            &overture_signing_key,
+            task_id,
+            tenant_id,
+            runtime_id,
+            true,
+            "navigate_to_pose",
+            "robotics-step-0",
+            0,
+            Some("1,2,map"),
+        );
+        let req_body = serde_json::json!({
+            "task_id": task_id,
+            "task_type": {
+                "type": "robotics_workflow",
+                "steps": [
+                    {
+                        "step_index": 0,
+                        "action": "navigate_to_pose",
+                        "goal": {"x": 1.0, "y": 2.0, "frame_id": "map"},
+                        "wait_timeout_ms": 1
+                    }
+                ]
+            },
+            "containment": {"max_tick_ms": 1000},
+            "signed_policy_decisions": [decision],
+            "idempotency_key": "signed-ros2-timeout",
+            "tenant_id": tenant_id
+        });
+        let req = Request::builder()
+            .method("POST")
+            .uri("/v1/runtime/task/submit")
+            .header("content-type", "application/json")
+            .body(Body::from(req_body.to_string()))
+            .unwrap();
+
+        let resp = app.oneshot(req).await.unwrap();
+        assert_eq!(resp.status(), StatusCode::OK);
+        let bytes = axum::body::to_bytes(resp.into_body(), usize::MAX)
+            .await
+            .unwrap();
+        let payload: serde_json::Value = serde_json::from_slice(&bytes).unwrap();
+        assert_eq!(payload["status"]["status"], "failed");
+        assert_eq!(payload["failure_details"]["rejection_type"], "step_failed");
+        assert_eq!(payload["failure_details"]["domain"], "robotics");
+        assert!(payload["status"]["reason"]
+            .as_str()
+            .unwrap()
+            .contains("timed out"));
+        assert_eq!(
+            payload["execution_envelope"]["routing_decision"],
+            "runtime:robotics:failed"
+        );
+        assert_eq!(
+            payload["execution_envelope"]["policy_decision_id"],
+            format!("decision-{task_id}")
+        );
+        assert!(payload["execution_envelope"]["signature"]
+            .as_str()
+            .is_some_and(|value| !value.is_empty()));
+        assert_eq!(payload["execution_receipt"]["violation_occurred"], true);
+        assert!(payload["execution_receipt"]["signature"]
+            .as_str()
+            .is_some_and(|value| !value.is_empty()));
+    }
+
+    #[cfg(feature = "ros2")]
+    #[tokio::test]
+    async fn runtime_task_signed_ros2_denied_policy_emits_failure_audit_artifacts() {
+        let runtime_signing_key = Arc::new(SigningKey::from_bytes(&[0x4Cu8; 32]));
+        let overture_signing_key = SigningKey::from_bytes(&[0x4Du8; 32]);
+        let Some(manager) = start_ros2_manager_for_task_test("policy_denied").await else {
+            return;
+        };
+
+        let mut state = build_runtime_only_state();
+        state.swarm_peer_id = "runtime-robotics-denied-policy".to_string();
+        state.signing_key = Some(runtime_signing_key);
+        state.overture_public_key = Some(Arc::new(overture_signing_key.verifying_key()));
+        state.ros2_manager = Some(Arc::clone(&manager));
+        let app = build_runtime_task_app(state);
+
+        let task_id = uuid::Uuid::new_v4();
+        let tenant_id = "tenant-robotics-denied-policy";
+        let runtime_id = "runtime-robotics-denied-policy";
+        let decision = signed_robotics_policy_decision_for_test(
+            &overture_signing_key,
+            task_id,
+            tenant_id,
+            runtime_id,
+            false,
+        );
+        let req_body = serde_json::json!({
+            "task_id": task_id,
+            "task_type": {
+                "type": "robotics_workflow",
+                "steps": [
+                    {"step_index": 0, "action": "publish_zero_velocity"}
+                ]
+            },
+            "containment": {"max_tick_ms": 1000},
+            "signed_policy_decisions": [decision],
+            "idempotency_key": "signed-ros2-policy-denied",
+            "tenant_id": tenant_id
+        });
+        let req = Request::builder()
+            .method("POST")
+            .uri("/v1/runtime/task/submit")
+            .header("content-type", "application/json")
+            .body(Body::from(req_body.to_string()))
+            .unwrap();
+
+        let resp = app.oneshot(req).await.unwrap();
+        assert_eq!(resp.status(), StatusCode::OK);
+        let bytes = axum::body::to_bytes(resp.into_body(), usize::MAX)
+            .await
+            .unwrap();
+        let payload: serde_json::Value = serde_json::from_slice(&bytes).unwrap();
+        assert_eq!(payload["status"]["status"], "failed");
+        assert!(payload["status"]["reason"]
+            .as_str()
+            .unwrap()
+            .contains("denied"));
+        assert_eq!(
+            payload["execution_envelope"]["routing_decision"],
+            "runtime:robotics:failed"
+        );
+        assert_eq!(
+            payload["execution_envelope"]["policy_decision_id"],
+            format!("decision-{task_id}")
+        );
+        assert!(payload["execution_envelope"]["signature"]
+            .as_str()
+            .is_some_and(|value| !value.is_empty()));
+        assert_eq!(payload["execution_receipt"]["violation_occurred"], true);
+        assert!(payload["execution_receipt"]["signature"]
+            .as_str()
+            .is_some_and(|value| !value.is_empty()));
     }
 
     #[tokio::test]
