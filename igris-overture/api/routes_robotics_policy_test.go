@@ -207,6 +207,22 @@ func TestRoboticsPolicyWriteRejectsRevokedSignerKey(t *testing.T) {
 	require.Equal(t, 0, queued.remainingExecs())
 }
 
+func TestRoboticsPolicyWriteRequiresSignature(t *testing.T) {
+	t.Parallel()
+
+	db, queued := newQueuedRouteDB(t, nil)
+	app := roboticsPolicyTestApp("tenant-robotics-policy")
+	app.Post("/v1/robotics/policies", createDraftRoboticsPolicy(db))
+
+	req := httptest.NewRequest(http.MethodPost, "/v1/robotics/policies", strings.NewReader(`{"permit":true}`))
+	req.Header.Set("Content-Type", "application/json")
+	resp, err := app.Test(req)
+	require.NoError(t, err)
+	require.Equal(t, http.StatusUnauthorized, resp.StatusCode)
+	require.Equal(t, 0, queued.remainingQueries())
+	require.Equal(t, 0, queued.remainingExecs())
+}
+
 func TestRoboticsPolicyWriteRequiresAdmin(t *testing.T) {
 	t.Parallel()
 
