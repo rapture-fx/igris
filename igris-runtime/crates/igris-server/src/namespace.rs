@@ -9,9 +9,11 @@
 //! be used to restrict the worker's view of the filesystem.  This step is
 //! silently skipped on macOS / other platforms (graceful degradation).
 
+#![allow(dead_code)]
+
 use anyhow::Result;
 use std::path::PathBuf;
-use tracing::{info, warn};
+use tracing::info;
 
 /// Isolation context provisioned for one agent instance.
 #[derive(Debug, Clone)]
@@ -73,7 +75,7 @@ impl AgentNamespace {
         if ret == 0 {
             true
         } else {
-            warn!(
+            tracing::warn!(
                 "[Namespace] unshare(CLONE_NEWNS) failed (errno {}); \
                  degrading to path-only filesystem isolation",
                 std::io::Error::last_os_error().raw_os_error().unwrap_or(-1)
