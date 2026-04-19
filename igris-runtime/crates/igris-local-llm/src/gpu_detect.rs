@@ -6,7 +6,7 @@
 use anyhow::Result;
 use serde::{Deserialize, Serialize};
 use std::process::Command;
-use tracing::{debug, info, warn};
+use tracing::{info, warn};
 
 /// Detected hardware accelerator type
 #[derive(Debug, Clone, Copy, PartialEq, Eq, Serialize, Deserialize)]
