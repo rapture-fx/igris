@@ -214,6 +214,7 @@ impl BTreeExecutor {
             if *cancel_rx.borrow_and_update() {
                 warn!("Execution cancelled at tick {}", tick_count);
                 tree.halt().await;
+                #[cfg_attr(not(feature = "wal"), allow(unused_mut))]
                 let mut result =
                     ExecutionResult::new(NodeStatus::Running, tick_count, start_time.elapsed())
                         .with_cancelled();
@@ -229,6 +230,7 @@ impl BTreeExecutor {
                 if tick_count >= max_ticks {
                     warn!("Max ticks ({}) reached", max_ticks);
                     tree.halt().await;
+                    #[cfg_attr(not(feature = "wal"), allow(unused_mut))]
                     let mut result =
                         ExecutionResult::new(NodeStatus::Running, tick_count, start_time.elapsed())
                             .with_max_ticks_reached();
@@ -245,6 +247,7 @@ impl BTreeExecutor {
                 if start_time.elapsed() >= deadline {
                     warn!("Deadline ({:?}) exceeded", deadline);
                     tree.halt().await;
+                    #[cfg_attr(not(feature = "wal"), allow(unused_mut))]
                     let mut result =
                         ExecutionResult::new(NodeStatus::Running, tick_count, start_time.elapsed())
                             .with_deadline_exceeded();
@@ -292,6 +295,7 @@ impl BTreeExecutor {
                 Ok(s) => s,
                 Err(e) => {
                     warn!("Tick {} failed: {}", tick_count, e);
+                    #[cfg_attr(not(feature = "wal"), allow(unused_mut))]
                     let mut result =
                         ExecutionResult::new(NodeStatus::Failure, tick_count, start_time.elapsed())
                             .with_error(e.to_string());
@@ -388,6 +392,7 @@ impl BTreeExecutor {
                             start_time.elapsed()
                         );
                     }
+                    #[cfg_attr(not(feature = "wal"), allow(unused_mut))]
                     let mut result =
                         ExecutionResult::new(NodeStatus::Success, tick_count, start_time.elapsed());
                     #[cfg(feature = "wal")]
@@ -404,6 +409,7 @@ impl BTreeExecutor {
                             start_time.elapsed()
                         );
                     }
+                    #[cfg_attr(not(feature = "wal"), allow(unused_mut))]
                     let mut result =
                         ExecutionResult::new(NodeStatus::Failure, tick_count, start_time.elapsed());
                     #[cfg(feature = "wal")]
@@ -416,6 +422,7 @@ impl BTreeExecutor {
                     if self.config.enable_tracing {
                         info!("Execution skipped after {} ticks", tick_count);
                     }
+                    #[cfg_attr(not(feature = "wal"), allow(unused_mut))]
                     let mut result =
                         ExecutionResult::new(NodeStatus::Skipped, tick_count, start_time.elapsed());
                     #[cfg(feature = "wal")]
