@@ -1032,7 +1032,6 @@ func mustJSONFieldString(t *testing.T, raw json.RawMessage, field string) string
 }
 
 func TestReplayRoboticsAuditReconstructsPolicyActionAndRuntimeReceipt(t *testing.T) {
-	t.Parallel()
 	publicKey, privateKey, err := ed25519.GenerateKey(nil)
 	require.NoError(t, err)
 	t.Setenv("IGRIS_RUNTIME_PUBLIC_KEY", hex.EncodeToString(publicKey))
