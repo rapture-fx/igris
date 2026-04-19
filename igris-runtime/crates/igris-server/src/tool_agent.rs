@@ -611,7 +611,7 @@ mod tests {
 
     #[tokio::test]
     async fn tool_agent_returns_final() {
-        let mut reg = ToolRegistry::new();
+        let reg = ToolRegistry::new();
         // no tools needed
         let provider = Arc::new(MockLLM {
             outputs: vec![r#"{"final_answer":"done"}"#.to_string()],
