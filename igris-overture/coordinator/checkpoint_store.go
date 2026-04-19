@@ -7,6 +7,7 @@ import (
 	"encoding/json"
 	"errors"
 	"fmt"
+	"os"
 	"sort"
 	"strings"
 	"time"
@@ -379,34 +380,34 @@ type RoboticsAuditReceiptFilter struct {
 }
 
 type RoboticsAuditReplay struct {
-	TaskID                  uuid.UUID       `json:"task_id"`
-	TenantID                string          `json:"tenant_id"`
-	RuntimeID               string          `json:"runtime_id,omitempty"`
-	PolicyDecisionID        string          `json:"policy_decision_id"`
-	PolicyVersion           string          `json:"policy_version,omitempty"`
-	RobotAction             string          `json:"robot_action"`
-	RobotNodeID             string          `json:"robot_node_id,omitempty"`
-	RobotTarget             string          `json:"robot_target,omitempty"`
-	Permit                  bool            `json:"permit"`
-	Reason                  string          `json:"reason,omitempty"`
-	ExecutionID             string          `json:"execution_id"`
-	RoutingDecision         string          `json:"routing_decision"`
+	TaskID                   uuid.UUID       `json:"task_id"`
+	TenantID                 string          `json:"tenant_id"`
+	RuntimeID                string          `json:"runtime_id,omitempty"`
+	PolicyDecisionID         string          `json:"policy_decision_id"`
+	PolicyVersion            string          `json:"policy_version,omitempty"`
+	RobotAction              string          `json:"robot_action"`
+	RobotNodeID              string          `json:"robot_node_id,omitempty"`
+	RobotTarget              string          `json:"robot_target,omitempty"`
+	Permit                   bool            `json:"permit"`
+	Reason                   string          `json:"reason,omitempty"`
+	ExecutionID              string          `json:"execution_id"`
+	RoutingDecision          string          `json:"routing_decision"`
 	RuntimeSignature         string          `json:"runtime_signature,omitempty"`
 	RuntimeSignaturePresent  bool            `json:"runtime_signature_present"`
 	RuntimeSignatureVerified bool            `json:"runtime_signature_verified"`
-	PolicySignature         string          `json:"policy_signature,omitempty"`
-	PolicyDecisionHash      string          `json:"policy_decision_hash,omitempty"`
-	GovernedActionHash      string          `json:"governed_action_hash,omitempty"`
-	ReceiptHash             string          `json:"receipt_hash,omitempty"`
-	ReceiptSignature        string          `json:"receipt_signature,omitempty"`
-	ViolationOccurred       bool            `json:"violation_occurred"`
-	Violation               string          `json:"violation,omitempty"`
-	Valid                   bool            `json:"valid"`
-	ValidationErrors        []string        `json:"validation_errors,omitempty"`
-	SignedPolicyDecision    json.RawMessage `json:"signed_policy_decision,omitempty"`
-	ExecutionEnvelope       json.RawMessage `json:"execution_envelope,omitempty"`
-	ExecutionReceipt        json.RawMessage `json:"execution_receipt,omitempty"`
-	PersistedAt             time.Time       `json:"persisted_at"`
+	PolicySignature          string          `json:"policy_signature,omitempty"`
+	PolicyDecisionHash       string          `json:"policy_decision_hash,omitempty"`
+	GovernedActionHash       string          `json:"governed_action_hash,omitempty"`
+	ReceiptHash              string          `json:"receipt_hash,omitempty"`
+	ReceiptSignature         string          `json:"receipt_signature,omitempty"`
+	ViolationOccurred        bool            `json:"violation_occurred"`
+	Violation                string          `json:"violation,omitempty"`
+	Valid                    bool            `json:"valid"`
+	ValidationErrors         []string        `json:"validation_errors,omitempty"`
+	SignedPolicyDecision     json.RawMessage `json:"signed_policy_decision,omitempty"`
+	ExecutionEnvelope        json.RawMessage `json:"execution_envelope,omitempty"`
+	ExecutionReceipt         json.RawMessage `json:"execution_receipt,omitempty"`
+	PersistedAt              time.Time       `json:"persisted_at"`
 }
 
 type roboticsArtifactRefs struct {
@@ -899,7 +900,7 @@ func validateRoboticsAuditReplay(replay *RoboticsAuditReplay) {
 	replay.RuntimeSignaturePresent = replay.RuntimeSignature != "" && replay.ReceiptSignature != ""
 	if err := internal.VerifyExecutionArtifactsRaw(replay.ExecutionEnvelope, replay.ExecutionReceipt); err != nil {
 		errors = append(errors, "runtime_signature_invalid: "+err.Error())
-	} else if replay.RuntimeSignaturePresent {
+	} else if replay.RuntimeSignaturePresent && strings.TrimSpace(os.Getenv("IGRIS_RUNTIME_PUBLIC_KEY")) != "" {
 		replay.RuntimeSignatureVerified = true
 	}
 
