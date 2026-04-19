@@ -4,6 +4,8 @@
 //! - GET /v1/fleet/instances - This runtime instance with real system metrics
 //! - GET /v1/fleet/metrics  - Real metrics from this instance
 
+#![allow(dead_code)]
+
 use anyhow::Result;
 use igris_fleet::{FleetAgent, FleetConfig};
 use serde::Serialize;
