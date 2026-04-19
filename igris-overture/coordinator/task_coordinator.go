@@ -207,6 +207,9 @@ func (tc *TaskCoordinator) selectRuntime(ctx context.Context, tenantID string) (
 // the runtime can verify WAL digest continuity. resume_checkpoint is forwarded
 // opaquely — behavior tree tasks use it to restore blackboard state.
 func (tc *TaskCoordinator) dispatchToRuntime(ctx context.Context, task *TaskRecord, checkpoint *CheckpointPayload) {
+	if tc.store == nil && tc.db != nil {
+		tc.store = NewCheckpointStore(tc.db)
+	}
 	if task.RuntimeEndpoint == nil {
 		log.Error().Str("task_id", task.TaskID.String()).Msg("[Coordinator] No endpoint for dispatch")
 		_ = tc.store.MarkFailedWithDetails(task.TaskID, "missing runtime endpoint", overtureTaskFailureDetails("dispatch", "missing_runtime_endpoint", "missing runtime endpoint"))
@@ -247,6 +250,11 @@ func (tc *TaskCoordinator) dispatchToRuntime(ctx context.Context, task *TaskReco
 		runtimePayload["deadline_ms"] = deadlineBytes
 	}
 	if decisions := buildSignedGovernedPolicyDecisions(task, taskTypeBytes, tc.db); len(decisions) > 0 {
+		if err := tc.store.SaveRoboticsPolicyDecisions(task.TaskID, decisions); err != nil {
+			log.Error().Err(err).Str("task_id", task.TaskID.String()).Msg("[Coordinator] Persist signed robotics policy decisions")
+			_ = tc.store.MarkFailedWithDetails(task.TaskID, "robotics policy audit persistence failed", overtureTaskFailureDetails("dispatch", "policy_audit_persistence_failed", err.Error()))
+			return
+		}
 		decisionBytes, _ := json.Marshal(decisions)
 		runtimePayload["signed_policy_decisions"] = decisionBytes
 		containmentBytes, _ := json.Marshal(map[string]uint64{"max_tick_ms": 30000})
