@@ -8,12 +8,13 @@ use ed25519_dalek::{Signature, Signer, SigningKey, VerifyingKey};
 use serde::{Deserialize, Serialize};
 use std::fs;
 use std::path::{Path, PathBuf};
-use tracing::{debug, info, warn};
+use tracing::{debug, info};
 
 /// Ed25519 keypair for signing fleet communications
 pub struct FleetKeypair {
     signing_key: SigningKey,
     verifying_key: VerifyingKey,
+    #[allow(dead_code)]
     key_path: PathBuf,
 }
 
