@@ -14,6 +14,7 @@ pub type TaskPriority = Priority;
 /// A real-time task with priority and deadline tracking
 pub struct RtTask<T> {
     pub priority: Priority,
+    #[allow(dead_code)]
     future: Pin<Box<dyn Future<Output = T> + Send + 'static>>,
 }
 
