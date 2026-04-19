@@ -63,6 +63,7 @@ impl Default for ThompsonSamplingConfig {
 #[derive(Debug)]
 struct ThompsonSampling {
     arms: HashMap<String, ArmState>,
+    #[allow(dead_code)]
     cfg: ThompsonSamplingConfig,
 }
 
