@@ -202,3 +202,133 @@ func TestListRoboticsReceiptsRouteFiltersAuditIndex(t *testing.T) {
 	require.Equal(t, 0, queued.remainingQueries())
 	require.Equal(t, 0, queued.remainingExecs())
 }
+
+func TestReplayRoboticsReceiptsRouteReconstructsAuditTrail(t *testing.T) {
+	t.Parallel()
+
+	taskID := uuid.New()
+	persistedAt := time.Unix(1_900_300_000, 0).UTC()
+	decision := []byte(`{
+		"schema_version":"governed_policy_decision.v1",
+		"decision_id":"decision-replay-route",
+		"tenant_id":"tenant-robotics-policy",
+		"task_id":"` + taskID.String() + `",
+		"runtime_id":"runtime-a",
+		"action":{
+			"schema_version":"governed_action.v1",
+			"domain":"robotics",
+			"action_type":"ros2_action",
+			"action_name":"cancel_navigation",
+			"node_id":"robotics-step-0",
+			"step_index":0,
+			"requires_policy":true,
+			"safety_mode_required":true
+		},
+		"permit":true,
+		"reason":"permitted",
+		"policy_version":"robotics-policy.active",
+		"runtime_permitted":true,
+		"tenant_permitted":true,
+		"policy_permitted":true,
+		"robot_mode_permitted":true,
+		"issued_at_unix_ms":1900300000000,
+		"expires_at_unix_ms":1900300030000,
+		"signature":"policy-sig"
+	}`)
+	envelope := []byte(`{
+		"execution_id":"exec-replay-route",
+		"tenant_id":"tenant-robotics-policy",
+		"policy_decision_id":"decision-replay-route",
+		"routing_decision":"runtime:robotics:failed",
+		"signature":"env-sig"
+	}`)
+	receipt := []byte(`{
+		"execution_id":"exec-replay-route",
+		"receipt_hash":"receipt-hash-route",
+		"signature":"receipt-sig",
+		"violation_occurred":true
+	}`)
+	db, queued := newQueuedRouteDB(t, []queuedRouteQueryExpectation{{
+		columns: []string{
+			"task_id",
+			"tenant_id",
+			"runtime_id",
+			"execution_id",
+			"policy_decision_id",
+			"policy_version",
+			"robot_action",
+			"robot_node_id",
+			"robot_target",
+			"permit",
+			"reason",
+			"routing_decision",
+			"policy_decision_hash",
+			"governed_action_hash",
+			"receipt_hash",
+			"receipt_signature",
+			"envelope_signature",
+			"policy_signature",
+			"violation_occurred",
+			"violation",
+			"signed_policy_decision",
+			"execution_envelope",
+			"execution_receipt",
+			"persisted_at",
+		},
+		rows: [][]driver.Value{{
+			taskID.String(),
+			"tenant-robotics-policy",
+			"runtime-a",
+			"exec-replay-route",
+			"decision-replay-route",
+			"robotics-policy.active",
+			"cancel_navigation",
+			"robotics-step-0",
+			"",
+			true,
+			"permitted",
+			"runtime:robotics:failed",
+			"",
+			"",
+			"receipt-hash-route",
+			"receipt-sig",
+			"env-sig",
+			"policy-sig",
+			true,
+			"navigation canceled",
+			decision,
+			envelope,
+			receipt,
+			persistedAt,
+		}},
+	}})
+	app := roboticsPolicyTestApp("tenant-robotics-policy")
+	app.Get("/v1/receipts/robotics/replay", replayRoboticsReceipts(db))
+
+	req := httptest.NewRequest(http.MethodGet, "/v1/receipts/robotics/replay?policy_decision_id=decision-replay-route", nil)
+	resp, err := app.Test(req)
+	require.NoError(t, err)
+	require.Equal(t, http.StatusOK, resp.StatusCode)
+
+	var body struct {
+		Replays []struct {
+			Valid                   bool     `json:"valid"`
+			ValidationErrors        []string `json:"validation_errors"`
+			PolicyVersion           string   `json:"policy_version"`
+			RobotAction             string   `json:"robot_action"`
+			RuntimeSignaturePresent  bool     `json:"runtime_signature_present"`
+			RuntimeSignatureVerified bool     `json:"runtime_signature_verified"`
+		} `json:"replays"`
+		Total int `json:"total"`
+	}
+	require.NoError(t, json.NewDecoder(resp.Body).Decode(&body))
+	require.Equal(t, 1, body.Total)
+	require.Len(t, body.Replays, 1)
+	require.True(t, body.Replays[0].Valid, body.Replays[0].ValidationErrors)
+	require.Equal(t, "robotics-policy.active", body.Replays[0].PolicyVersion)
+	require.Equal(t, "cancel_navigation", body.Replays[0].RobotAction)
+	require.True(t, body.Replays[0].RuntimeSignaturePresent)
+	require.True(t, body.Replays[0].RuntimeSignatureVerified)
+	require.Equal(t, 0, queued.remainingQueries())
+	require.Equal(t, 0, queued.remainingExecs())
+}
