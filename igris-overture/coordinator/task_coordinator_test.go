@@ -996,8 +996,8 @@ func TestSaveExecutionArtifactsIndexesRoboticsReceiptAudit(t *testing.T) {
 				require.Equal(t, "receipt-sig", args[9].Value)
 				require.Equal(t, "env-sig", args[10].Value)
 				require.Equal(t, false, args[11].Value)
-				require.Equal(t, envelope, args[13].Value)
-				require.Equal(t, receipt, args[14].Value)
+				require.Equal(t, []byte(envelope), args[13].Value)
+				require.Equal(t, []byte(receipt), args[14].Value)
 			},
 		},
 	)
