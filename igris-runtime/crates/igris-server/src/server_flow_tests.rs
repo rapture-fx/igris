@@ -846,6 +846,45 @@ mod tests {
     }
 
     #[cfg(feature = "ros2")]
+    fn assert_ros2_replay_lookup_artifacts(
+        payload: &serde_json::Value,
+        task_id: uuid::Uuid,
+        routing_decision: &str,
+        violation_occurred: bool,
+    ) {
+        assert_eq!(
+            payload["execution_envelope"]["routing_decision"],
+            routing_decision
+        );
+        assert_eq!(
+            payload["execution_envelope"]["policy_decision_id"],
+            format!("decision-{task_id}")
+        );
+        assert!(payload["execution_envelope"]["governed_action_hash"]
+            .as_str()
+            .is_some_and(|value| !value.is_empty()));
+        assert!(payload["execution_envelope"]["policy_decision_hash"]
+            .as_str()
+            .is_some_and(|value| !value.is_empty()));
+        assert!(payload["execution_envelope"]["signature"]
+            .as_str()
+            .is_some_and(|value| !value.is_empty()));
+        assert!(payload["execution_receipt"]["hash"]
+            .as_str()
+            .is_some_and(|value| !value.is_empty()));
+        assert!(payload["execution_receipt"]["transaction_id"]
+            .as_str()
+            .is_some_and(|value| !value.is_empty()));
+        assert!(payload["execution_receipt"]["signature"]
+            .as_str()
+            .is_some_and(|value| !value.is_empty()));
+        assert_eq!(
+            payload["execution_receipt"]["violation_occurred"],
+            violation_occurred
+        );
+    }
+
+    #[cfg(feature = "ros2")]
     #[tokio::test]
     async fn runtime_task_signed_ros2_publish_zero_velocity_completes_with_audit_artifacts() {
         let runtime_signing_key = Arc::new(SigningKey::from_bytes(&[0x45u8; 32]));
@@ -921,6 +960,12 @@ mod tests {
         assert!(payload["execution_receipt"]["signature"]
             .as_str()
             .is_some_and(|value| !value.is_empty()));
+        assert_ros2_replay_lookup_artifacts(
+            &payload,
+            task_id,
+            "ros2:publish_zero_velocity",
+            false,
+        );
         assert_eq!(manager.node().last_velocity().await, [0.0, 0.0]);
     }
 
@@ -996,6 +1041,7 @@ mod tests {
         assert!(payload["execution_receipt"]["signature"]
             .as_str()
             .is_some_and(|value| !value.is_empty()));
+        assert_ros2_replay_lookup_artifacts(&payload, task_id, "ros2:cancel_navigation", false);
     }
 
     #[cfg(feature = "ros2")]
@@ -1081,6 +1127,7 @@ mod tests {
         assert!(payload["execution_receipt"]["signature"]
             .as_str()
             .is_some_and(|value| !value.is_empty()));
+        assert_ros2_replay_lookup_artifacts(&payload, task_id, "runtime:robotics:failed", true);
     }
 
     #[cfg(feature = "ros2")]
