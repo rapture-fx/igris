@@ -2,7 +2,6 @@
 
 use crate::{Priority, RtResult};
 use serde::{Deserialize, Serialize};
-use std::time::Duration;
 
 /// Metrics for real-time task execution
 #[derive(Debug, Clone, Default, Serialize, Deserialize)]
@@ -119,6 +118,7 @@ impl RtMetrics {
 #[cfg(test)]
 mod tests {
     use super::*;
+    use std::time::Duration;
 
     #[test]
     fn test_metrics_basic() {
