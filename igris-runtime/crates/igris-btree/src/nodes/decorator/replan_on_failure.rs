@@ -17,6 +17,7 @@ use tracing::{info, warn};
 pub struct ReplanOnFailure {
     name: String,
     child: Box<dyn BTreeNode>,
+    #[allow(dead_code)]
     task_key: String,
     planner: LLMPlannerNode,
     loader: SubtreeLoader,
