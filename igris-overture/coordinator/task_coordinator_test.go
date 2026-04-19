@@ -1128,8 +1128,8 @@ func TestReplayRoboticsAuditReconstructsPolicyActionAndRuntimeReceipt(t *testing
 			decisionHash,
 			"action-hash-replay",
 			"receipt-hash-replay",
-			"runtime-receipt-sig",
-			"runtime-envelope-sig",
+			mustJSONFieldString(t, receipt, "signature"),
+			mustJSONFieldString(t, envelope, "signature"),
 			"policy-sig",
 			true,
 			"navigation canceled",
@@ -1155,7 +1155,7 @@ func TestReplayRoboticsAuditReconstructsPolicyActionAndRuntimeReceipt(t *testing
 	require.Equal(t, "cancel_navigation", replays[0].RobotAction)
 	require.Equal(t, "robotics-step-0", replays[0].RobotNodeID)
 	require.Equal(t, target, replays[0].RobotTarget)
-	require.Equal(t, "runtime-envelope-sig", replays[0].RuntimeSignature)
+	require.Equal(t, mustJSONFieldString(t, envelope, "signature"), replays[0].RuntimeSignature)
 	require.True(t, replays[0].RuntimeSignaturePresent)
 	require.True(t, replays[0].RuntimeSignatureVerified)
 	require.Equal(t, 0, queued.remainingQueries())
