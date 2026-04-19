@@ -3,7 +3,6 @@
 use crate::core::NodeStatus;
 use serde::{Deserialize, Serialize};
 use std::collections::HashMap;
-use std::time::Duration;
 
 /// Unique identifier for a node in the tree
 pub type NodeId = String;
