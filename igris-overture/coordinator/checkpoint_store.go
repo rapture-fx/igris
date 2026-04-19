@@ -1,6 +1,7 @@
 package coordinator
 
 import (
+	"crypto/sha256"
 	"database/sql"
 	"encoding/hex"
 	"encoding/json"
@@ -10,6 +11,7 @@ import (
 	"strings"
 	"time"
 
+	"github.com/Igris-inertial/system/igris-overture/internal"
 	"github.com/google/uuid"
 )
 
@@ -376,6 +378,37 @@ type RoboticsAuditReceiptFilter struct {
 	Limit            int
 }
 
+type RoboticsAuditReplay struct {
+	TaskID                  uuid.UUID       `json:"task_id"`
+	TenantID                string          `json:"tenant_id"`
+	RuntimeID               string          `json:"runtime_id,omitempty"`
+	PolicyDecisionID        string          `json:"policy_decision_id"`
+	PolicyVersion           string          `json:"policy_version,omitempty"`
+	RobotAction             string          `json:"robot_action"`
+	RobotNodeID             string          `json:"robot_node_id,omitempty"`
+	RobotTarget             string          `json:"robot_target,omitempty"`
+	Permit                  bool            `json:"permit"`
+	Reason                  string          `json:"reason,omitempty"`
+	ExecutionID             string          `json:"execution_id"`
+	RoutingDecision         string          `json:"routing_decision"`
+	RuntimeSignature         string          `json:"runtime_signature,omitempty"`
+	RuntimeSignaturePresent  bool            `json:"runtime_signature_present"`
+	RuntimeSignatureVerified bool            `json:"runtime_signature_verified"`
+	PolicySignature         string          `json:"policy_signature,omitempty"`
+	PolicyDecisionHash      string          `json:"policy_decision_hash,omitempty"`
+	GovernedActionHash      string          `json:"governed_action_hash,omitempty"`
+	ReceiptHash             string          `json:"receipt_hash,omitempty"`
+	ReceiptSignature        string          `json:"receipt_signature,omitempty"`
+	ViolationOccurred       bool            `json:"violation_occurred"`
+	Violation               string          `json:"violation,omitempty"`
+	Valid                   bool            `json:"valid"`
+	ValidationErrors        []string        `json:"validation_errors,omitempty"`
+	SignedPolicyDecision    json.RawMessage `json:"signed_policy_decision,omitempty"`
+	ExecutionEnvelope       json.RawMessage `json:"execution_envelope,omitempty"`
+	ExecutionReceipt        json.RawMessage `json:"execution_receipt,omitempty"`
+	PersistedAt             time.Time       `json:"persisted_at"`
+}
+
 type roboticsArtifactRefs struct {
 	ExecutionID        string
 	TenantID           string
@@ -412,10 +445,10 @@ func roboticsAuditRefs(executionEnvelope, executionReceipt json.RawMessage) (*ro
 	if envelope.PolicyDecisionID == "" || envelope.ExecutionID == "" {
 		return nil, false
 	}
-	action := robotActionFromRoutingDecision(envelope.RoutingDecision)
-	if action == "" {
+	if !roboticsRoutingDecisionAuditable(envelope.RoutingDecision) {
 		return nil, false
 	}
+	action := robotActionFromRoutingDecision(envelope.RoutingDecision)
 
 	var receipt struct {
 		ExecutionID       string `json:"execution_id"`
@@ -468,6 +501,97 @@ func robotActionFromRoutingDecision(routingDecision string) string {
 	return action
 }
 
+func roboticsRoutingDecisionAuditable(routingDecision string) bool {
+	return strings.HasPrefix(routingDecision, "ros2:") || strings.HasPrefix(routingDecision, "runtime:robotics:")
+}
+
+func governedPolicyDecisionHash(decision signedGovernedPolicyDecision) string {
+	canonical, _ := json.Marshal(canonicalGovernedPolicyDecision(decision))
+	sum := sha256.Sum256(canonical)
+	return fmt.Sprintf("%x", sum[:])
+}
+
+func (s *CheckpointStore) SaveRoboticsPolicyDecisions(taskID uuid.UUID, decisions []signedGovernedPolicyDecision) error {
+	if len(decisions) == 0 {
+		return nil
+	}
+	tx, err := s.db.Begin()
+	if err != nil {
+		return err
+	}
+	defer tx.Rollback()
+	for _, decision := range decisions {
+		if decision.DecisionID == "" || decision.Action.ActionName == "" {
+			continue
+		}
+		raw, err := json.Marshal(decision)
+		if err != nil {
+			return fmt.Errorf("marshal signed policy decision: %w", err)
+		}
+		_, err = tx.Exec(`
+			INSERT INTO robotics_policy_decision_audit (
+				policy_decision_id,
+				task_id,
+				tenant_id,
+				runtime_id,
+				policy_version,
+				robot_action,
+				robot_node_id,
+				robot_target,
+				permit,
+				reason,
+				policy_decision_hash,
+				policy_signature,
+				signed_policy_decision,
+				issued_at_unix_ms,
+				expires_at_unix_ms,
+				persisted_at
+			)
+			VALUES ($1, $2, $3, NULLIF($4, ''), $5, $6, $7, NULLIF($8, ''), $9, $10, $11, $12, $13, $14, $15, NOW())
+			ON CONFLICT (policy_decision_id) DO UPDATE
+			SET runtime_id = EXCLUDED.runtime_id,
+			    policy_version = EXCLUDED.policy_version,
+			    robot_action = EXCLUDED.robot_action,
+			    robot_node_id = EXCLUDED.robot_node_id,
+			    robot_target = EXCLUDED.robot_target,
+			    permit = EXCLUDED.permit,
+			    reason = EXCLUDED.reason,
+			    policy_decision_hash = EXCLUDED.policy_decision_hash,
+			    policy_signature = EXCLUDED.policy_signature,
+			    signed_policy_decision = EXCLUDED.signed_policy_decision,
+			    issued_at_unix_ms = EXCLUDED.issued_at_unix_ms,
+			    expires_at_unix_ms = EXCLUDED.expires_at_unix_ms,
+			    persisted_at = NOW()`,
+			decision.DecisionID,
+			taskID,
+			decision.TenantID,
+			stringPtrValue(decision.RuntimeID),
+			decision.PolicyVersion,
+			decision.Action.ActionName,
+			decision.Action.NodeID,
+			stringPtrValue(decision.Action.Target),
+			decision.Permit,
+			decision.Reason,
+			governedPolicyDecisionHash(decision),
+			decision.Signature,
+			nullRawJSON(raw),
+			decision.IssuedAtUnixMs,
+			decision.ExpiresAtUnixMs,
+		)
+		if err != nil {
+			return err
+		}
+	}
+	return tx.Commit()
+}
+
+func stringPtrValue(value *string) string {
+	if value == nil {
+		return ""
+	}
+	return *value
+}
+
 func (s *CheckpointStore) SaveRoboticsReceiptAudit(taskID uuid.UUID, executionEnvelope, executionReceipt json.RawMessage) error {
 	return saveRoboticsReceiptAudit(s.db, taskID, executionEnvelope, executionReceipt)
 }
@@ -510,7 +634,7 @@ func saveRoboticsReceiptAudit(execer roboticsReceiptAuditExecer, taskID uuid.UUI
 			$4,
 			NULLIF($5, ''),
 			NULLIF($6, ''),
-			$7,
+				COALESCE(NULLIF($7, ''), pd.robot_action, 'unknown'),
 			$8,
 			NULLIF($9, ''),
 			NULLIF($10, ''),
@@ -520,8 +644,11 @@ func saveRoboticsReceiptAudit(execer roboticsReceiptAuditExecer, taskID uuid.UUI
 			$14,
 			$15,
 			NOW()
-		FROM task_records tr
-		WHERE tr.task_id = $1
+			FROM task_records tr
+			LEFT JOIN robotics_policy_decision_audit pd
+			  ON pd.task_id = tr.task_id
+			 AND pd.policy_decision_id = $4
+			WHERE tr.task_id = $1
 		ON CONFLICT (task_id, execution_id, policy_decision_id) DO UPDATE
 		SET receipt_hash = EXCLUDED.receipt_hash,
 		    receipt_signature = EXCLUDED.receipt_signature,
@@ -616,6 +743,208 @@ func (s *CheckpointStore) GetRoboticsAuditReceipts(tenantID string, filter Robot
 		receipts = append(receipts, receipt)
 	}
 	return receipts, rows.Err()
+}
+
+func (s *CheckpointStore) ReplayRoboticsAudit(tenantID string, filter RoboticsAuditReceiptFilter) ([]RoboticsAuditReplay, error) {
+	limit := filter.Limit
+	if limit <= 0 || limit > 500 {
+		limit = 100
+	}
+
+	args := []any{tenantID}
+	where := "ra.tenant_id = $1"
+	if filter.TaskID != nil {
+		args = append(args, *filter.TaskID)
+		where += fmt.Sprintf(" AND ra.task_id = $%d", len(args))
+	}
+	if filter.PolicyDecisionID != "" {
+		args = append(args, filter.PolicyDecisionID)
+		where += fmt.Sprintf(" AND ra.policy_decision_id = $%d", len(args))
+	}
+	if filter.RobotAction != "" {
+		args = append(args, filter.RobotAction)
+		where += fmt.Sprintf(" AND ra.robot_action = $%d", len(args))
+	}
+	args = append(args, limit)
+
+	rows, err := s.db.Query(fmt.Sprintf(`
+		SELECT
+			ra.task_id, ra.tenant_id, COALESCE(ra.runtime_id, ''), ra.execution_id,
+			ra.policy_decision_id, COALESCE(pd.policy_version, ''),
+			ra.robot_action, COALESCE(pd.robot_node_id, ''), COALESCE(pd.robot_target, ''),
+			COALESCE(pd.permit, false), COALESCE(pd.reason, ''),
+			ra.routing_decision, COALESCE(ra.policy_decision_hash, ''),
+			COALESCE(ra.governed_action_hash, ''), COALESCE(ra.receipt_hash, ''),
+			COALESCE(ra.receipt_signature, ''), COALESCE(ra.envelope_signature, ''),
+			COALESCE(pd.policy_signature, ''), ra.violation_occurred,
+			COALESCE(ra.violation, ''), COALESCE(pd.signed_policy_decision, '{}'::jsonb),
+			ra.execution_envelope, ra.execution_receipt, ra.persisted_at
+		FROM robotics_receipt_audit ra
+		LEFT JOIN robotics_policy_decision_audit pd
+		  ON pd.task_id = ra.task_id
+		 AND pd.policy_decision_id = ra.policy_decision_id
+		 AND pd.tenant_id = ra.tenant_id
+		WHERE %s
+		ORDER BY ra.persisted_at DESC
+		LIMIT $%d`, where, len(args)), args...)
+	if err != nil {
+		return nil, err
+	}
+	defer rows.Close()
+
+	replays := make([]RoboticsAuditReplay, 0)
+	for rows.Next() {
+		var replay RoboticsAuditReplay
+		if err := rows.Scan(
+			&replay.TaskID,
+			&replay.TenantID,
+			&replay.RuntimeID,
+			&replay.ExecutionID,
+			&replay.PolicyDecisionID,
+			&replay.PolicyVersion,
+			&replay.RobotAction,
+			&replay.RobotNodeID,
+			&replay.RobotTarget,
+			&replay.Permit,
+			&replay.Reason,
+			&replay.RoutingDecision,
+			&replay.PolicyDecisionHash,
+			&replay.GovernedActionHash,
+			&replay.ReceiptHash,
+			&replay.ReceiptSignature,
+			&replay.RuntimeSignature,
+			&replay.PolicySignature,
+			&replay.ViolationOccurred,
+			&replay.Violation,
+			&replay.SignedPolicyDecision,
+			&replay.ExecutionEnvelope,
+			&replay.ExecutionReceipt,
+			&replay.PersistedAt,
+		); err != nil {
+			return nil, err
+		}
+		validateRoboticsAuditReplay(&replay)
+		replays = append(replays, replay)
+	}
+	return replays, rows.Err()
+}
+
+func validateRoboticsAuditReplay(replay *RoboticsAuditReplay) {
+	if replay == nil {
+		return
+	}
+	errors := make([]string, 0)
+	var envelope struct {
+		ExecutionID        string `json:"execution_id"`
+		TenantID           string `json:"tenant_id"`
+		PolicyDecisionID   string `json:"policy_decision_id"`
+		PolicyDecisionHash string `json:"policy_decision_hash"`
+		GovernedActionHash string `json:"governed_action_hash"`
+		RoutingDecision    string `json:"routing_decision"`
+		Signature          string `json:"signature"`
+	}
+	if err := json.Unmarshal(replay.ExecutionEnvelope, &envelope); err != nil {
+		errors = append(errors, "execution_envelope_invalid_json")
+	} else {
+		if envelope.ExecutionID != replay.ExecutionID {
+			errors = append(errors, "execution_id_mismatch")
+		}
+		if envelope.TenantID != "" && envelope.TenantID != replay.TenantID {
+			errors = append(errors, "tenant_id_mismatch")
+		}
+		if envelope.PolicyDecisionID != replay.PolicyDecisionID {
+			errors = append(errors, "policy_decision_id_mismatch")
+		}
+		if envelope.PolicyDecisionHash != "" && envelope.PolicyDecisionHash != replay.PolicyDecisionHash {
+			errors = append(errors, "policy_decision_hash_mismatch")
+		}
+		if envelope.GovernedActionHash != "" && envelope.GovernedActionHash != replay.GovernedActionHash {
+			errors = append(errors, "governed_action_hash_mismatch")
+		}
+		if envelope.RoutingDecision != replay.RoutingDecision {
+			errors = append(errors, "routing_decision_mismatch")
+		}
+		if envelope.Signature == "" {
+			errors = append(errors, "runtime_envelope_signature_missing")
+		}
+	}
+
+	var receipt struct {
+		ExecutionID       string `json:"execution_id"`
+		ReceiptHash       string `json:"receipt_hash"`
+		Hash              string `json:"hash"`
+		Signature         string `json:"signature"`
+		ViolationOccurred bool   `json:"violation_occurred"`
+	}
+	if err := json.Unmarshal(replay.ExecutionReceipt, &receipt); err != nil {
+		errors = append(errors, "execution_receipt_invalid_json")
+	} else {
+		if receipt.ExecutionID != "" && receipt.ExecutionID != replay.ExecutionID {
+			errors = append(errors, "receipt_execution_id_mismatch")
+		}
+		receiptHash := receipt.ReceiptHash
+		if receiptHash == "" {
+			receiptHash = receipt.Hash
+		}
+		if receiptHash != "" && receiptHash != replay.ReceiptHash {
+			errors = append(errors, "receipt_hash_mismatch")
+		}
+		if receipt.Signature == "" {
+			errors = append(errors, "runtime_receipt_signature_missing")
+		}
+		if receipt.ViolationOccurred != replay.ViolationOccurred {
+			errors = append(errors, "violation_flag_mismatch")
+		}
+	}
+	replay.RuntimeSignaturePresent = replay.RuntimeSignature != "" && replay.ReceiptSignature != ""
+	if err := internal.VerifyExecutionArtifactsRaw(replay.ExecutionEnvelope, replay.ExecutionReceipt); err != nil {
+		errors = append(errors, "runtime_signature_invalid: "+err.Error())
+	} else if replay.RuntimeSignaturePresent {
+		replay.RuntimeSignatureVerified = true
+	}
+
+	if len(replay.SignedPolicyDecision) == 0 || string(replay.SignedPolicyDecision) == "{}" {
+		errors = append(errors, "signed_policy_decision_missing")
+	} else {
+		var decision signedGovernedPolicyDecision
+		if err := json.Unmarshal(replay.SignedPolicyDecision, &decision); err != nil {
+			errors = append(errors, "signed_policy_decision_invalid_json")
+		} else {
+			if decision.DecisionID != replay.PolicyDecisionID {
+				errors = append(errors, "decision_id_mismatch")
+			}
+			if decision.TenantID != replay.TenantID {
+				errors = append(errors, "decision_tenant_mismatch")
+			}
+			if decision.TaskID != replay.TaskID.String() {
+				errors = append(errors, "decision_task_mismatch")
+			}
+			if decision.RuntimeID != nil && *decision.RuntimeID != "" && *decision.RuntimeID != replay.RuntimeID {
+				errors = append(errors, "decision_runtime_mismatch")
+			}
+			if decision.Action.ActionName != replay.RobotAction {
+				errors = append(errors, "decision_action_mismatch")
+			}
+			if decision.Action.NodeID != "" && replay.RobotNodeID != "" && decision.Action.NodeID != replay.RobotNodeID {
+				errors = append(errors, "decision_node_mismatch")
+			}
+			if decision.PolicyVersion != replay.PolicyVersion {
+				errors = append(errors, "decision_policy_version_mismatch")
+			}
+			if decision.Permit != replay.Permit {
+				errors = append(errors, "decision_permit_mismatch")
+			}
+			if decision.Signature == "" {
+				errors = append(errors, "policy_signature_missing")
+			}
+			if replay.PolicyDecisionHash != "" && governedPolicyDecisionHash(decision) != replay.PolicyDecisionHash {
+				errors = append(errors, "decision_hash_mismatch")
+			}
+		}
+	}
+
+	replay.ValidationErrors = errors
+	replay.Valid = len(errors) == 0
 }
 
 func (s *CheckpointStore) SyncTaskProofState(taskID uuid.UUID, tenantID string) (*TaskProofState, error) {
