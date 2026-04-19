@@ -34,12 +34,13 @@ func TestRoboticsPolicyActivationWithPostgresMigrations(t *testing.T) {
 	_, err = db.Exec(`CREATE SCHEMA ` + schema)
 	require.NoError(t, err)
 	t.Cleanup(func() { _, _ = db.Exec(`DROP SCHEMA ` + schema + ` CASCADE`) })
-	_, err = db.Exec(`SET search_path TO ` + schema)
+	_, err = db.Exec(`SET search_path TO ` + schema + `, public`)
 	require.NoError(t, err)
 
 	for _, name := range []string{
 		"036_robotics_policy_settings.sql",
 		"038_robotics_policy_lifecycle.sql",
+		"040_robotics_policy_lifecycle_audit.sql",
 	} {
 		sqlBytes, err := os.ReadFile(filepath.Join("..", "database", "migrations", name))
 		require.NoError(t, err)
@@ -50,6 +51,8 @@ func TestRoboticsPolicyActivationWithPostgresMigrations(t *testing.T) {
 	app := fiber.New()
 	app.Use(func(c *fiber.Ctx) error {
 		c.Locals("clerk_user_id", "tenant-real-pg")
+		c.Locals("clerk_email", "tenant-real-pg@example.test")
+		c.Locals("clerk_role", "admin")
 		return c.Next()
 	})
 	app.Post("/v1/robotics/policies", createDraftRoboticsPolicy(db))
@@ -85,4 +88,18 @@ func TestRoboticsPolicyActivationWithPostgresMigrations(t *testing.T) {
 	require.Equal(t, "active", status)
 	require.True(t, active)
 	require.True(t, activatedPresent)
+
+	var activationAuditRows int
+	err = db.QueryRow(`
+		SELECT COUNT(*)
+		FROM robotics_policy_lifecycle_audit
+		WHERE tenant_id = $1
+		  AND policy_version = $2
+		  AND action = 'activate'
+		  AND actor_id = $1
+		  AND signer_identity = $3`,
+		"tenant-real-pg", "robotics-policy.pg", "tenant-real-pg@example.test",
+	).Scan(&activationAuditRows)
+	require.NoError(t, err)
+	require.Equal(t, 1, activationAuditRows)
 }
