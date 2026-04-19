@@ -341,23 +341,23 @@ func (s *CheckpointStore) SaveExecutionArtifacts(taskID uuid.UUID, executionEnve
 // RoboticsAuditReceipt is a query-optimized reference to a signed Runtime
 // receipt for a governed ROS2 action.
 type RoboticsAuditReceipt struct {
-	TaskID              uuid.UUID       `json:"task_id"`
-	TenantID            string          `json:"tenant_id"`
-	RuntimeID           string          `json:"runtime_id,omitempty"`
-	ExecutionID         string          `json:"execution_id"`
-	PolicyDecisionID    string          `json:"policy_decision_id"`
-	PolicyDecisionHash  string          `json:"policy_decision_hash,omitempty"`
-	GovernedActionHash  string          `json:"governed_action_hash,omitempty"`
-	RobotAction         string          `json:"robot_action"`
-	RoutingDecision     string          `json:"routing_decision"`
-	ReceiptHash         string          `json:"receipt_hash,omitempty"`
-	ReceiptSignature    string          `json:"receipt_signature,omitempty"`
-	EnvelopeSignature   string          `json:"envelope_signature,omitempty"`
-	ViolationOccurred   bool            `json:"violation_occurred"`
-	Violation           string          `json:"violation,omitempty"`
-	ExecutionEnvelope   json.RawMessage `json:"execution_envelope,omitempty"`
-	ExecutionReceipt    json.RawMessage `json:"execution_receipt,omitempty"`
-	PersistedAt         time.Time       `json:"persisted_at"`
+	TaskID             uuid.UUID       `json:"task_id"`
+	TenantID           string          `json:"tenant_id"`
+	RuntimeID          string          `json:"runtime_id,omitempty"`
+	ExecutionID        string          `json:"execution_id"`
+	PolicyDecisionID   string          `json:"policy_decision_id"`
+	PolicyDecisionHash string          `json:"policy_decision_hash,omitempty"`
+	GovernedActionHash string          `json:"governed_action_hash,omitempty"`
+	RobotAction        string          `json:"robot_action"`
+	RoutingDecision    string          `json:"routing_decision"`
+	ReceiptHash        string          `json:"receipt_hash,omitempty"`
+	ReceiptSignature   string          `json:"receipt_signature,omitempty"`
+	EnvelopeSignature  string          `json:"envelope_signature,omitempty"`
+	ViolationOccurred  bool            `json:"violation_occurred"`
+	Violation          string          `json:"violation,omitempty"`
+	ExecutionEnvelope  json.RawMessage `json:"execution_envelope,omitempty"`
+	ExecutionReceipt   json.RawMessage `json:"execution_receipt,omitempty"`
+	PersistedAt        time.Time       `json:"persisted_at"`
 }
 
 type RoboticsAuditReceiptFilter struct {
@@ -388,14 +388,14 @@ func roboticsAuditRefs(executionEnvelope, executionReceipt json.RawMessage) (*ro
 	}
 
 	var envelope struct {
-		ExecutionID         string  `json:"execution_id"`
-		TenantID            *string `json:"tenant_id"`
-		PolicyDecisionID    string  `json:"policy_decision_id"`
-		PolicyDecisionHash  string  `json:"policy_decision_hash"`
-		GovernedActionHash  string  `json:"governed_action_hash"`
-		RoutingDecision     string  `json:"routing_decision"`
-		EnvelopeSignature   string  `json:"signature"`
-		Violation           string  `json:"violation"`
+		ExecutionID        string  `json:"execution_id"`
+		TenantID           *string `json:"tenant_id"`
+		PolicyDecisionID   string  `json:"policy_decision_id"`
+		PolicyDecisionHash string  `json:"policy_decision_hash"`
+		GovernedActionHash string  `json:"governed_action_hash"`
+		RoutingDecision    string  `json:"routing_decision"`
+		EnvelopeSignature  string  `json:"signature"`
+		Violation          string  `json:"violation"`
 	}
 	if err := json.Unmarshal(executionEnvelope, &envelope); err != nil {
 		return nil, false
@@ -409,11 +409,11 @@ func roboticsAuditRefs(executionEnvelope, executionReceipt json.RawMessage) (*ro
 	}
 
 	var receipt struct {
-		ExecutionID        string `json:"execution_id"`
-		ReceiptHash        string `json:"receipt_hash"`
-		Hash               string `json:"hash"`
-		Signature          string `json:"signature"`
-		ViolationOccurred  bool   `json:"violation_occurred"`
+		ExecutionID       string `json:"execution_id"`
+		ReceiptHash       string `json:"receipt_hash"`
+		Hash              string `json:"hash"`
+		Signature         string `json:"signature"`
+		ViolationOccurred bool   `json:"violation_occurred"`
 	}
 	if err := json.Unmarshal(executionReceipt, &receipt); err != nil {
 		return nil, false
