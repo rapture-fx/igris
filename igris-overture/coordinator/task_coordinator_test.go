@@ -530,7 +530,10 @@ func TestDispatchToRuntimeAttachesSignedRoboticsPolicyDecisions(t *testing.T) {
 			fmt.Sprintf(`["%s"]`, runtimeID),
 			expiresAt,
 		},
-	}})
+	}},
+		queuedExecExpectation{rowsAffected: 1},
+		queuedExecExpectation{rowsAffected: 1},
+	)
 
 	client := &http.Client{Transport: roundTripperFunc(func(r *http.Request) (*http.Response, error) {
 		gotDecisionSig = r.Header.Get("X-Igris-Decision-Sig")
@@ -582,6 +585,7 @@ func TestDispatchToRuntimeAttachesSignedRoboticsPolicyDecisions(t *testing.T) {
 	require.NoError(t, err)
 	require.True(t, ed25519.Verify(publicKey, sum[:], signature))
 	require.Equal(t, 0, queued.remainingQueries())
+	require.Equal(t, 0, queued.remainingExecs())
 }
 
 func TestHandleDispatchFailureSchedulesRecoveryForTransportError(t *testing.T) {
@@ -1005,6 +1009,135 @@ func TestSaveExecutionArtifactsIndexesRoboticsReceiptAudit(t *testing.T) {
 
 	require.NoError(t, store.SaveExecutionArtifacts(taskID, envelope, receipt))
 	require.Equal(t, 0, queued.remainingExecs())
+}
+
+func TestReplayRoboticsAuditReconstructsPolicyActionAndRuntimeReceipt(t *testing.T) {
+	t.Parallel()
+
+	taskID := uuid.New()
+	runtimeID := "runtime-replay"
+	target := "base-controller"
+	decision := signedGovernedPolicyDecision{
+		SchemaVersion: "governed_policy_decision.v1",
+		DecisionID:    "decision-replay-1",
+		TenantID:      "tenant-replay",
+		TaskID:        taskID.String(),
+		RuntimeID:     &runtimeID,
+		Action: governedAction{
+			SchemaVersion:      "governed_action.v1",
+			Domain:             "robotics",
+			ActionType:         "ros2_action",
+			ActionName:         "cancel_navigation",
+			NodeID:             "robotics-step-0",
+			StepIndex:          0,
+			Target:             &target,
+			RequiresPolicy:     true,
+			SafetyModeRequired: true,
+		},
+		Permit:             true,
+		Reason:             "permitted",
+		PolicyVersion:      "robotics-policy.active",
+		RuntimePermitted:   true,
+		TenantPermitted:    true,
+		PolicyPermitted:    true,
+		RobotModePermitted: true,
+		IssuedAtUnixMs:     1_900_000_000_000,
+		ExpiresAtUnixMs:    1_900_000_030_000,
+		Signature:          "policy-sig",
+	}
+	decisionBytes, err := json.Marshal(decision)
+	require.NoError(t, err)
+	decisionHash := governedPolicyDecisionHash(decision)
+	envelope := json.RawMessage(fmt.Sprintf(`{
+		"execution_id":"exec-replay-1",
+		"tenant_id":"tenant-replay",
+		"policy_decision_id":"decision-replay-1",
+		"policy_decision_hash":%q,
+		"governed_action_hash":"action-hash-replay",
+		"routing_decision":"runtime:robotics:failed",
+		"signature":"runtime-envelope-sig"
+	}`, decisionHash))
+	receipt := json.RawMessage(`{
+		"execution_id":"exec-replay-1",
+		"receipt_hash":"receipt-hash-replay",
+		"signature":"runtime-receipt-sig",
+		"violation_occurred":true
+	}`)
+	persistedAt := time.Unix(1_900_000_100, 0).UTC()
+	db, queued := newQueuedCheckpointDB(t, []queuedQueryExpectation{{
+		columns: []string{
+			"task_id",
+			"tenant_id",
+			"runtime_id",
+			"execution_id",
+			"policy_decision_id",
+			"policy_version",
+			"robot_action",
+			"robot_node_id",
+			"robot_target",
+			"permit",
+			"reason",
+			"routing_decision",
+			"policy_decision_hash",
+			"governed_action_hash",
+			"receipt_hash",
+			"receipt_signature",
+			"envelope_signature",
+			"policy_signature",
+			"violation_occurred",
+			"violation",
+			"signed_policy_decision",
+			"execution_envelope",
+			"execution_receipt",
+			"persisted_at",
+		},
+		values: []driver.Value{
+			taskID.String(),
+			"tenant-replay",
+			runtimeID,
+			"exec-replay-1",
+			"decision-replay-1",
+			"robotics-policy.active",
+			"cancel_navigation",
+			"robotics-step-0",
+			target,
+			true,
+			"permitted",
+			"runtime:robotics:failed",
+			decisionHash,
+			"action-hash-replay",
+			"receipt-hash-replay",
+			"runtime-receipt-sig",
+			"runtime-envelope-sig",
+			"policy-sig",
+			true,
+			"navigation canceled",
+			[]byte(decisionBytes),
+			[]byte(envelope),
+			[]byte(receipt),
+			persistedAt,
+		},
+	}})
+	store := NewCheckpointStore(db)
+
+	replays, err := store.ReplayRoboticsAudit("tenant-replay", RoboticsAuditReceiptFilter{
+		TaskID:           &taskID,
+		PolicyDecisionID: "decision-replay-1",
+		RobotAction:      "cancel_navigation",
+	})
+	require.NoError(t, err)
+	require.Len(t, replays, 1)
+	require.True(t, replays[0].Valid, replays[0].ValidationErrors)
+	require.Equal(t, "tenant-replay", replays[0].TenantID)
+	require.Equal(t, runtimeID, replays[0].RuntimeID)
+	require.Equal(t, "robotics-policy.active", replays[0].PolicyVersion)
+	require.Equal(t, "cancel_navigation", replays[0].RobotAction)
+	require.Equal(t, "robotics-step-0", replays[0].RobotNodeID)
+	require.Equal(t, target, replays[0].RobotTarget)
+	require.Equal(t, "runtime-envelope-sig", replays[0].RuntimeSignature)
+	require.True(t, replays[0].RuntimeSignaturePresent)
+	require.True(t, replays[0].RuntimeSignatureVerified)
+	require.Equal(t, 0, queued.remainingQueries())
 }
 
 func TestRecoverRuntimeRedispatchUsesNewestTaskCheckpointSource(t *testing.T) {
