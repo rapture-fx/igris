@@ -5,13 +5,14 @@
 //! any tool.  Violations produce a signed, hash-chained `CapabilityViolation`
 //! record appended to the violation log.
 
+#![allow(dead_code)]
+
 use base64::Engine;
 use ed25519_dalek::Signer;
 use serde::{Deserialize, Serialize};
 use sha2::{Digest, Sha256};
 use std::collections::BTreeMap;
 use std::sync::Arc;
-use std::time::{SystemTime, UNIX_EPOCH};
 use uuid::Uuid;
 
 // ─────────────────────────────────────────────────────────────────────────────
