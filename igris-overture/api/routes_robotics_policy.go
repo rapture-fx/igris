@@ -2,9 +2,14 @@ package api
 
 import (
 	"context"
+	"crypto/ed25519"
+	"crypto/sha256"
 	"database/sql"
+	"encoding/base64"
+	"encoding/hex"
 	"encoding/json"
 	"net/http"
+	"strconv"
 	"strings"
 	"time"
 
@@ -48,10 +53,20 @@ type roboticsPolicyResponse struct {
 }
 
 type roboticsPolicyActor struct {
-	ID             string
-	Email          string
-	SignerIdentity string
+	ID               string
+	Email            string
+	SignerIdentity   string
+	SignerKeyVersion string
+	CommandSignature string
 }
+
+const (
+	roboticsPolicySignerHeader        = "X-Igris-Policy-Signer"
+	roboticsPolicyKeyVersionHeader    = "X-Igris-Policy-Key-Version"
+	roboticsPolicySignatureHeader     = "X-Igris-Policy-Signature"
+	roboticsPolicySignedAtHeader      = "X-Igris-Policy-Signed-At"
+	roboticsPolicyCommandMaxClockSkew = 5 * time.Minute
+)
 
 func RegisterRoboticsPolicyRoutes(app *fiber.App, db *sql.DB) {
 	if db == nil {
@@ -118,7 +133,7 @@ func roboticsPolicyActorFromContext(c *fiber.Ctx) (roboticsPolicyActor, error) {
 	if !roboticsPolicyAdminAllowed(c) {
 		return actor, fiber.NewError(http.StatusForbidden, "admin_required")
 	}
-	signer := strings.TrimSpace(c.Get("X-Igris-Policy-Signer"))
+	signer := strings.TrimSpace(c.Get(roboticsPolicySignerHeader))
 	if signer == "" {
 		signer = strings.TrimSpace(actor.Email)
 	}
@@ -146,11 +161,104 @@ func roboticsPolicyAdminAllowed(c *fiber.Ctx) bool {
 	return false
 }
 
+func roboticsPolicyActorForWrite(c *fiber.Ctx, db *sql.DB) (roboticsPolicyActor, error) {
+	actor, err := roboticsPolicyActorFromContext(c)
+	if err != nil {
+		return actor, err
+	}
+	if err := verifyRoboticsPolicyCommandSignature(c, db, &actor); err != nil {
+		return actor, err
+	}
+	return actor, nil
+}
+
 func roboticsPolicyAuthError(c *fiber.Ctx, err error) error {
 	if fiberErr, ok := err.(*fiber.Error); ok {
 		return c.Status(fiberErr.Code).JSON(fiber.Map{"error": fiberErr.Message})
 	}
 	return c.Status(http.StatusUnauthorized).JSON(fiber.Map{"error": "unauthenticated"})
+}
+
+func verifyRoboticsPolicyCommandSignature(c *fiber.Ctx, db *sql.DB, actor *roboticsPolicyActor) error {
+	if db == nil || actor == nil {
+		return fiber.NewError(http.StatusUnauthorized, "policy_signature_required")
+	}
+	keyVersion := strings.TrimSpace(c.Get(roboticsPolicyKeyVersionHeader))
+	signatureValue := strings.TrimSpace(c.Get(roboticsPolicySignatureHeader))
+	signedAtValue := strings.TrimSpace(c.Get(roboticsPolicySignedAtHeader))
+	if keyVersion == "" || signatureValue == "" || signedAtValue == "" {
+		return fiber.NewError(http.StatusUnauthorized, "policy_signature_required")
+	}
+	signedAtMs, err := strconv.ParseInt(signedAtValue, 10, 64)
+	if err != nil {
+		return fiber.NewError(http.StatusBadRequest, "invalid_policy_signature_timestamp")
+	}
+	signedAt := time.UnixMilli(signedAtMs)
+	if signedAt.Before(time.Now().Add(-roboticsPolicyCommandMaxClockSkew)) || signedAt.After(time.Now().Add(roboticsPolicyCommandMaxClockSkew)) {
+		return fiber.NewError(http.StatusUnauthorized, "policy_signature_expired")
+	}
+
+	var publicKeyHex, signerIdentity string
+	err = db.QueryRowContext(c.Context(), `
+		SELECT public_key_ed25519, signer_identity
+		FROM robotics_policy_signing_keys
+		WHERE tenant_id = $1
+		  AND key_version = $2
+		  AND status = 'active'
+		  AND not_before <= NOW()
+		  AND (expires_at IS NULL OR expires_at > NOW())
+		LIMIT 1`, actor.ID, keyVersion).Scan(&publicKeyHex, &signerIdentity)
+	if err == sql.ErrNoRows {
+		return fiber.NewError(http.StatusForbidden, "invalid_policy_signer_key")
+	}
+	if err != nil {
+		log.Error().Err(err).Str("tenant_id", actor.ID).Str("key_version", keyVersion).Msg("[RoboticsPolicy] signer key lookup failed")
+		return fiber.NewError(http.StatusInternalServerError, "db_error")
+	}
+	publicKeyBytes, err := hex.DecodeString(strings.TrimSpace(publicKeyHex))
+	if err != nil || len(publicKeyBytes) != ed25519.PublicKeySize {
+		return fiber.NewError(http.StatusForbidden, "invalid_policy_signer_key")
+	}
+	signatureBytes, err := decodeRoboticsPolicySignature(signatureValue)
+	if err != nil {
+		return fiber.NewError(http.StatusForbidden, "invalid_policy_signature")
+	}
+	canonical := canonicalRoboticsPolicyCommand(c.Method(), c.Path(), keyVersion, signedAtValue, c.Body())
+	sum := sha256.Sum256(canonical)
+	if !ed25519.Verify(ed25519.PublicKey(publicKeyBytes), sum[:], signatureBytes) {
+		return fiber.NewError(http.StatusForbidden, "invalid_policy_signature")
+	}
+	requestSigner := strings.TrimSpace(c.Get(roboticsPolicySignerHeader))
+	if requestSigner != "" && requestSigner != signerIdentity {
+		return fiber.NewError(http.StatusForbidden, "policy_signer_identity_mismatch")
+	}
+	actor.SignerIdentity = signerIdentity
+	actor.SignerKeyVersion = keyVersion
+	actor.CommandSignature = signatureValue
+	return nil
+}
+
+func decodeRoboticsPolicySignature(value string) ([]byte, error) {
+	if decoded, err := base64.StdEncoding.DecodeString(value); err == nil && len(decoded) == ed25519.SignatureSize {
+		return decoded, nil
+	}
+	decoded, err := hex.DecodeString(value)
+	if err != nil || len(decoded) != ed25519.SignatureSize {
+		return nil, err
+	}
+	return decoded, nil
+}
+
+func canonicalRoboticsPolicyCommand(method, path, keyVersion, signedAt string, body []byte) []byte {
+	bodyHash := sha256.Sum256(body)
+	payload := strings.Join([]string{
+		strings.ToUpper(strings.TrimSpace(method)),
+		strings.TrimSpace(path),
+		strings.TrimSpace(keyVersion),
+		strings.TrimSpace(signedAt),
+		hex.EncodeToString(bodyHash[:]),
+	}, "\n")
+	return []byte(payload)
 }
 
 func insertRoboticsPolicyLifecycleAudit(exec interface {
@@ -166,15 +274,18 @@ func insertRoboticsPolicyLifecycleAudit(exec interface {
 	_, err = exec.ExecContext(ctx, `
 		INSERT INTO robotics_policy_lifecycle_audit (
 			tenant_id, policy_version, action, actor_id, actor_email,
-			signer_identity, previous_status, new_status, policy_snapshot, occurred_at
+			signer_identity, signer_key_version, command_signature,
+			previous_status, new_status, policy_snapshot, occurred_at
 		)
-		VALUES ($1, $2, $3, $4, NULLIF($5, ''), $6, NULLIF($7, ''), $8, $9, NOW())`,
+		VALUES ($1, $2, $3, $4, NULLIF($5, ''), $6, NULLIF($7, ''), NULLIF($8, ''), NULLIF($9, ''), $10, $11, NOW())`,
 		tenantID,
 		policy.PolicyVersion,
 		action,
 		actor.ID,
 		actor.Email,
 		actor.SignerIdentity,
+		actor.SignerKeyVersion,
+		actor.CommandSignature,
 		previousStatus,
 		policy.Status,
 		snapshot,
@@ -184,7 +295,7 @@ func insertRoboticsPolicyLifecycleAudit(exec interface {
 
 func createDraftRoboticsPolicy(db *sql.DB) fiber.Handler {
 	return func(c *fiber.Ctx) error {
-		actor, authErr := roboticsPolicyActorFromContext(c)
+		actor, authErr := roboticsPolicyActorForWrite(c, db)
 		if authErr != nil {
 			return roboticsPolicyAuthError(c, authErr)
 		}
@@ -207,7 +318,7 @@ func createDraftRoboticsPolicy(db *sql.DB) fiber.Handler {
 
 func updateDraftRoboticsPolicy(db *sql.DB) fiber.Handler {
 	return func(c *fiber.Ctx) error {
-		actor, authErr := roboticsPolicyActorFromContext(c)
+		actor, authErr := roboticsPolicyActorForWrite(c, db)
 		if authErr != nil {
 			return roboticsPolicyAuthError(c, authErr)
 		}
@@ -265,7 +376,7 @@ func upsertDraftRoboticsPolicy(c *fiber.Ctx, db *sql.DB, tenantID string, req ro
 
 func updateRoboticsPolicyAllowList(db *sql.DB) fiber.Handler {
 	return func(c *fiber.Ctx) error {
-		actor, authErr := roboticsPolicyActorFromContext(c)
+		actor, authErr := roboticsPolicyActorForWrite(c, db)
 		if authErr != nil {
 			return roboticsPolicyAuthError(c, authErr)
 		}
@@ -306,7 +417,7 @@ func updateRoboticsPolicyAllowList(db *sql.DB) fiber.Handler {
 
 func activateRoboticsPolicy(db *sql.DB) fiber.Handler {
 	return func(c *fiber.Ctx) error {
-		actor, authErr := roboticsPolicyActorFromContext(c)
+		actor, authErr := roboticsPolicyActorForWrite(c, db)
 		if authErr != nil {
 			return roboticsPolicyAuthError(c, authErr)
 		}
@@ -362,7 +473,7 @@ func revokeRoboticsPolicy(db *sql.DB) fiber.Handler {
 
 func roboticsPolicyLifecycleUpdate(db *sql.DB, status string) fiber.Handler {
 	return func(c *fiber.Ctx) error {
-		actor, authErr := roboticsPolicyActorFromContext(c)
+		actor, authErr := roboticsPolicyActorForWrite(c, db)
 		if authErr != nil {
 			return roboticsPolicyAuthError(c, authErr)
 		}
