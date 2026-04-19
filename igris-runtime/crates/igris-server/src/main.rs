@@ -1535,7 +1535,7 @@ async fn mcp_stream(
         .map_err(|e| ApiError::InternalError(e.to_string()))?;
 
     // Read the response body
-    let (parts, body) = response.into_parts();
+    let (_parts, body) = response.into_parts();
     let body_bytes = axum::body::to_bytes(body, 1024 * 1024)
         .await
         .map_err(|e| ApiError::InternalError(e.to_string()))?;
@@ -3335,6 +3335,7 @@ async fn main() -> anyhow::Result<()> {
         }
     };
 
+    #[cfg_attr(not(feature = "ros2"), allow(unused_mut))]
     let mut state = AppState {
         config: Arc::new(config),
         storage: Arc::new(storage),
