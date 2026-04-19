@@ -121,7 +121,10 @@ impl BTreeNode for ToolAction {
         "ToolAction"
     }
 
-    async fn tick(&mut self, context: &mut BTreeContext) -> Result<NodeStatus> {
+    async fn tick(
+        &mut self,
+        #[cfg_attr(not(feature = "wal"), allow(unused_variables))] context: &mut BTreeContext,
+    ) -> Result<NodeStatus> {
         debug!(
             "ToolAction '{}': Executing tool '{}'",
             self.name, self.tool_name
