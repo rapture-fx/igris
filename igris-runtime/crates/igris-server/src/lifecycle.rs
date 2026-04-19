@@ -17,6 +17,8 @@
 //!         DEGRADED ──► TERMINATED
 //! ```
 
+#![allow(dead_code)]
+
 use axum::{
     extract::{Path, State},
     http::StatusCode,
