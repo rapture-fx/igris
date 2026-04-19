@@ -163,12 +163,10 @@ async fn run_single_benchmark(
 
     // Measure time to first token and total generation
     let start = Instant::now();
-    let mut ttft: Option<Duration> = None;
-    let mut generated = String::new();
 
     // For simplicity, use non-streaming generation
     // In production, you'd stream and measure TTFT precisely
-    generated = engine
+    let generated = engine
         .generate(
             prompt, 100,  // max_tokens
             0.7,  // temperature
