@@ -12,7 +12,7 @@ use tracing::{debug, info, warn};
 use crate::execution_graph::{ExecutionGraph, ExecutionNode, ToolExecutionResult};
 
 // RUNTIME-05: Resource safety limits
-use crate::resource_limits::{ResourceLimitError, ResourceLimits, ResourceTracker};
+use crate::resource_limits::{ResourceLimits, ResourceTracker};
 
 #[derive(Debug, Clone, Serialize, Deserialize)]
 pub struct ToolCall {
@@ -70,12 +70,14 @@ impl ToolAgent {
     }
 
     // RUNTIME-04: Enable execution graph tracking
+    #[allow(dead_code)]
     pub fn with_graph_tracking(mut self, enable: bool) -> Self {
         self.enable_graph_tracking = enable;
         self
     }
 
     // RUNTIME-05: Configure resource limits
+    #[allow(dead_code)]
     pub fn with_resource_limits(mut self, limits: ResourceLimits) -> Self {
         self.resource_limits = limits;
         self
