@@ -47,11 +47,12 @@ func RegisterReceiptRoutes(app *fiber.App, db *sql.DB) {
 	auth := middleware.BetterAuth(db)
 	// /export must be registered before /:id so Fiber doesn't treat "export" as an ID.
 	app.Get("/v1/receipts/export", auth, exportReceipts(db))
+	app.Get("/v1/receipts/robotics/replay", auth, replayRoboticsReceipts(db))
 	app.Get("/v1/receipts/robotics", auth, listRoboticsReceipts(db))
 	app.Get("/v1/receipts/:id", auth, getReceipt(db))
 	app.Get("/v1/receipts", auth, listReceipts(db))
 
-	log.Info().Msg("[Routes] Registered receipt endpoints (/v1/receipts, /v1/receipts/:id, /v1/receipts/export, /v1/receipts/robotics)")
+	log.Info().Msg("[Routes] Registered receipt endpoints (/v1/receipts, /v1/receipts/:id, /v1/receipts/export, /v1/receipts/robotics, /v1/receipts/robotics/replay)")
 }
 
 // scanReceipt scans a single row from execution_lineage into a Receipt.
@@ -206,22 +207,9 @@ func listRoboticsReceipts(db *sql.DB) fiber.Handler {
 			return c.Status(fiber.StatusUnauthorized).JSON(fiber.Map{"error": "unauthorized"})
 		}
 
-		limit := c.QueryInt("limit", 100)
-		if limit <= 0 || limit > 500 {
-			limit = 100
-		}
-
-		filter := coordinator.RoboticsAuditReceiptFilter{
-			PolicyDecisionID: c.Query("policy_decision_id"),
-			RobotAction:      c.Query("robot_action"),
-			Limit:            limit,
-		}
-		if rawTaskID := c.Query("task_id"); rawTaskID != "" {
-			taskID, err := uuid.Parse(rawTaskID)
-			if err != nil {
-				return c.Status(fiber.StatusBadRequest).JSON(fiber.Map{"error": "invalid task_id"})
-			}
-			filter.TaskID = &taskID
+		filter, err := roboticsReceiptFilterFromQuery(c)
+		if err != nil {
+			return err
 		}
 
 		receipts, err := store.GetRoboticsAuditReceipts(tenantID, filter)
@@ -231,6 +219,48 @@ func listRoboticsReceipts(db *sql.DB) fiber.Handler {
 		}
 		return c.JSON(fiber.Map{"receipts": receipts, "total": len(receipts)})
 	}
+}
+
+func replayRoboticsReceipts(db *sql.DB) fiber.Handler {
+	store := coordinator.NewCheckpointStore(db)
+	return func(c *fiber.Ctx) error {
+		tenantID := middleware.GetClerkUserID(c)
+		if tenantID == "" {
+			return c.Status(fiber.StatusUnauthorized).JSON(fiber.Map{"error": "unauthorized"})
+		}
+
+		filter, err := roboticsReceiptFilterFromQuery(c)
+		if err != nil {
+			return err
+		}
+		replays, err := store.ReplayRoboticsAudit(tenantID, filter)
+		if err != nil {
+			log.Error().Err(err).Str("tenant_id", tenantID).Msg("[Receipts] replayRoboticsReceipts query failed")
+			return c.Status(fiber.StatusInternalServerError).JSON(fiber.Map{"error": "internal_error"})
+		}
+		return c.JSON(fiber.Map{"replays": replays, "total": len(replays)})
+	}
+}
+
+func roboticsReceiptFilterFromQuery(c *fiber.Ctx) (coordinator.RoboticsAuditReceiptFilter, error) {
+	limit := c.QueryInt("limit", 100)
+	if limit <= 0 || limit > 500 {
+		limit = 100
+	}
+
+	filter := coordinator.RoboticsAuditReceiptFilter{
+		PolicyDecisionID: c.Query("policy_decision_id"),
+		RobotAction:      c.Query("robot_action"),
+		Limit:            limit,
+	}
+	if rawTaskID := c.Query("task_id"); rawTaskID != "" {
+		taskID, err := uuid.Parse(rawTaskID)
+		if err != nil {
+			return filter, c.Status(fiber.StatusBadRequest).JSON(fiber.Map{"error": "invalid task_id"})
+		}
+		filter.TaskID = &taskID
+	}
+	return filter, nil
 }
 
 // ── GET /v1/receipts/:id ─────────────────────────────────────────────────────
