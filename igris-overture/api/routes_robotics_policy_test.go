@@ -9,6 +9,7 @@ import (
 	"encoding/json"
 	"net/http"
 	"net/http/httptest"
+	"strconv"
 	"strings"
 	"testing"
 	"time"
@@ -89,24 +90,57 @@ func roboticsPolicyTestAppWithRole(tenantID, role string) *fiber.App {
 	return app
 }
 
+func roboticsPolicySignerKeyRouteRow(publicKey ed25519.PublicKey) queuedRouteQueryExpectation {
+	return queuedRouteQueryExpectation{
+		columns: []string{"public_key_ed25519", "signer_identity"},
+		rows: [][]driver.Value{{
+			hex.EncodeToString(publicKey),
+			"policy-admin@example.test",
+		}},
+	}
+}
+
+func signedRoboticsPolicyRouteRequest(t *testing.T, method, path, body string, privateKey ed25519.PrivateKey, keyVersion string) *http.Request {
+	t.Helper()
+	signedAt := strconv.FormatInt(time.Now().UnixMilli(), 10)
+	canonical := canonicalRoboticsPolicyCommand(method, path, keyVersion, signedAt, []byte(body))
+	sum := sha256.Sum256(canonical)
+	signature := base64.StdEncoding.EncodeToString(ed25519.Sign(privateKey, sum[:]))
+
+	req := httptest.NewRequest(method, path, strings.NewReader(body))
+	if body != "" {
+		req.Header.Set("Content-Type", "application/json")
+	}
+	req.Header.Set(roboticsPolicyKeyVersionHeader, keyVersion)
+	req.Header.Set(roboticsPolicySignedAtHeader, signedAt)
+	req.Header.Set(roboticsPolicySignatureHeader, signature)
+	req.Header.Set(roboticsPolicySignerHeader, "policy-admin@example.test")
+	return req
+}
+
 func TestCreateDraftRoboticsPolicyRoute(t *testing.T) {
 	t.Parallel()
 
-	db, queued := newQueuedRouteDB(t, []queuedRouteQueryExpectation{{
-		columns: roboticsPolicyRouteColumns(),
-		rows:    [][]driver.Value{roboticsPolicyRouteRow("draft", false)},
-	}}, queuedRouteExecExpectation{rowsAffected: 1})
-	app := roboticsPolicyTestApp("tenant-robotics-policy")
-	app.Post("/v1/robotics/policies", createDraftRoboticsPolicy(db))
-
-	req := httptest.NewRequest(http.MethodPost, "/v1/robotics/policies", strings.NewReader(`{
+	publicKey, privateKey, err := ed25519.GenerateKey(nil)
+	require.NoError(t, err)
+	body := `{
 		"policy_version":"robotics-policy.v2",
 		"permit":true,
 		"runtime_permitted":true,
 		"robot_mode":"supervised",
 		"allowed_runtimes":["runtime-a","runtime-b","runtime-a"]
-	}`))
-	req.Header.Set("Content-Type", "application/json")
+	}`
+	db, queued := newQueuedRouteDB(t, []queuedRouteQueryExpectation{
+		roboticsPolicySignerKeyRouteRow(publicKey),
+		{
+			columns: roboticsPolicyRouteColumns(),
+			rows:    [][]driver.Value{roboticsPolicyRouteRow("draft", false)},
+		},
+	}, queuedRouteExecExpectation{rowsAffected: 1})
+	app := roboticsPolicyTestApp("tenant-robotics-policy")
+	app.Post("/v1/robotics/policies", createDraftRoboticsPolicy(db))
+
+	req := signedRoboticsPolicyRouteRequest(t, http.MethodPost, "/v1/robotics/policies", body, privateKey, "key-v2")
 
 	resp, err := app.Test(req)
 	require.NoError(t, err)
@@ -126,14 +160,19 @@ func TestCreateDraftRoboticsPolicyRoute(t *testing.T) {
 func TestActivateRoboticsPolicyRoute(t *testing.T) {
 	t.Parallel()
 
-	db, queued := newQueuedRouteDB(t, []queuedRouteQueryExpectation{{
-		columns: roboticsPolicyRouteColumns(),
-		rows:    [][]driver.Value{roboticsPolicyRouteRow("active", true)},
-	}}, queuedRouteExecExpectation{rowsAffected: 1}, queuedRouteExecExpectation{rowsAffected: 1})
+	publicKey, privateKey, err := ed25519.GenerateKey(nil)
+	require.NoError(t, err)
+	db, queued := newQueuedRouteDB(t, []queuedRouteQueryExpectation{
+		roboticsPolicySignerKeyRouteRow(publicKey),
+		{
+			columns: roboticsPolicyRouteColumns(),
+			rows:    [][]driver.Value{roboticsPolicyRouteRow("active", true)},
+		},
+	}, queuedRouteExecExpectation{rowsAffected: 1}, queuedRouteExecExpectation{rowsAffected: 1})
 	app := roboticsPolicyTestApp("tenant-robotics-policy")
 	app.Post("/v1/robotics/policies/:version/activate", activateRoboticsPolicy(db))
 
-	req := httptest.NewRequest(http.MethodPost, "/v1/robotics/policies/robotics-policy.v2/activate", nil)
+	req := signedRoboticsPolicyRouteRequest(t, http.MethodPost, "/v1/robotics/policies/robotics-policy.v2/activate", "", privateKey, "key-v2")
 	resp, err := app.Test(req)
 	require.NoError(t, err)
 	require.Equal(t, http.StatusOK, resp.StatusCode)
@@ -143,6 +182,27 @@ func TestActivateRoboticsPolicyRoute(t *testing.T) {
 	require.Equal(t, "active", body.Status)
 	require.True(t, body.Active)
 	require.NotNil(t, body.ActivatedAt)
+	require.Equal(t, 0, queued.remainingQueries())
+	require.Equal(t, 0, queued.remainingExecs())
+}
+
+func TestRoboticsPolicyWriteRejectsRevokedSignerKey(t *testing.T) {
+	t.Parallel()
+
+	_, privateKey, err := ed25519.GenerateKey(nil)
+	require.NoError(t, err)
+	body := `{"permit":true}`
+	db, queued := newQueuedRouteDB(t, []queuedRouteQueryExpectation{{
+		columns: []string{"public_key_ed25519", "signer_identity"},
+		rows:    nil,
+	}})
+	app := roboticsPolicyTestApp("tenant-robotics-policy")
+	app.Post("/v1/robotics/policies", createDraftRoboticsPolicy(db))
+
+	req := signedRoboticsPolicyRouteRequest(t, http.MethodPost, "/v1/robotics/policies", body, privateKey, "revoked-key")
+	resp, err := app.Test(req)
+	require.NoError(t, err)
+	require.Equal(t, http.StatusForbidden, resp.StatusCode)
 	require.Equal(t, 0, queued.remainingQueries())
 	require.Equal(t, 0, queued.remainingExecs())
 }
