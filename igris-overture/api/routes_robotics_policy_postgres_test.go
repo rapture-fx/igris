@@ -1,9 +1,10 @@
 package api
 
 import (
+	"crypto/ed25519"
 	"database/sql"
+	"encoding/hex"
 	"net/http"
-	"net/http/httptest"
 	"os"
 	"path/filepath"
 	"strings"
@@ -41,6 +42,7 @@ func TestRoboticsPolicyActivationWithPostgresMigrations(t *testing.T) {
 		"036_robotics_policy_settings.sql",
 		"038_robotics_policy_lifecycle.sql",
 		"040_robotics_policy_lifecycle_audit.sql",
+		"041_robotics_policy_signing_keys.sql",
 	} {
 		sqlBytes, err := os.ReadFile(filepath.Join("..", "database", "migrations", name))
 		require.NoError(t, err)
@@ -58,19 +60,43 @@ func TestRoboticsPolicyActivationWithPostgresMigrations(t *testing.T) {
 	app.Post("/v1/robotics/policies", createDraftRoboticsPolicy(db))
 	app.Post("/v1/robotics/policies/:version/activate", activateRoboticsPolicy(db))
 
-	createReq := httptest.NewRequest(http.MethodPost, "/v1/robotics/policies", strings.NewReader(`{
+	activePublicKey, activePrivateKey, err := ed25519.GenerateKey(nil)
+	require.NoError(t, err)
+	revokedPublicKey, revokedPrivateKey, err := ed25519.GenerateKey(nil)
+	require.NoError(t, err)
+	_, err = db.Exec(`
+		INSERT INTO robotics_policy_signing_keys (
+			tenant_id, key_version, signer_identity, public_key_ed25519,
+			status, created_by, created_at, updated_at
+		)
+		VALUES
+			($1, 'policy-key-old', $2, $3, 'revoked', $1, NOW(), NOW()),
+			($1, 'policy-key-active', $2, $4, 'active', $1, NOW(), NOW())`,
+		"tenant-real-pg",
+		"tenant-real-pg@example.test",
+		hex.EncodeToString(revokedPublicKey),
+		hex.EncodeToString(activePublicKey),
+	)
+	require.NoError(t, err)
+
+	createBody := `{
 		"policy_version":"robotics-policy.pg",
 		"permit":true,
 		"runtime_permitted":true,
 		"robot_mode":"supervised",
 		"allowed_runtimes":["runtime-pg"]
-	}`))
-	createReq.Header.Set("Content-Type", "application/json")
+	}`
+	revokedReq := signedRoboticsPolicyRouteRequest(t, http.MethodPost, "/v1/robotics/policies", createBody, revokedPrivateKey, "policy-key-old")
+	revokedResp, err := app.Test(revokedReq)
+	require.NoError(t, err)
+	require.Equal(t, http.StatusForbidden, revokedResp.StatusCode)
+
+	createReq := signedRoboticsPolicyRouteRequest(t, http.MethodPost, "/v1/robotics/policies", createBody, activePrivateKey, "policy-key-active")
 	createResp, err := app.Test(createReq)
 	require.NoError(t, err)
 	require.Equal(t, http.StatusCreated, createResp.StatusCode)
 
-	activateReq := httptest.NewRequest(http.MethodPost, "/v1/robotics/policies/robotics-policy.pg/activate", nil)
+	activateReq := signedRoboticsPolicyRouteRequest(t, http.MethodPost, "/v1/robotics/policies/robotics-policy.pg/activate", "", activePrivateKey, "policy-key-active")
 	activateResp, err := app.Test(activateReq)
 	require.NoError(t, err)
 	require.Equal(t, http.StatusOK, activateResp.StatusCode)
@@ -97,7 +123,9 @@ func TestRoboticsPolicyActivationWithPostgresMigrations(t *testing.T) {
 		  AND policy_version = $2
 		  AND action = 'activate'
 		  AND actor_id = $1
-		  AND signer_identity = $3`,
+		  AND signer_identity = $3
+		  AND signer_key_version = 'policy-key-active'
+		  AND command_signature IS NOT NULL`,
 		"tenant-real-pg", "robotics-policy.pg", "tenant-real-pg@example.test",
 	).Scan(&activationAuditRows)
 	require.NoError(t, err)
