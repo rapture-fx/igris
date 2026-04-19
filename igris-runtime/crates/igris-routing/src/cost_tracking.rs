@@ -1,6 +1,5 @@
 use std::sync::atomic::{AtomicU64, Ordering};
 use std::sync::Arc;
-use tokio::sync::RwLock;
 
 pub struct CostTracker {
     total_cost_usd: Arc<AtomicU64>, // Store as microdollars (μUSD) for atomic ops
