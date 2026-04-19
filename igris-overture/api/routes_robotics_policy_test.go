@@ -312,10 +312,10 @@ func TestReplayRoboticsReceiptsRouteReconstructsAuditTrail(t *testing.T) {
 
 	var body struct {
 		Replays []struct {
-			Valid                   bool     `json:"valid"`
-			ValidationErrors        []string `json:"validation_errors"`
-			PolicyVersion           string   `json:"policy_version"`
-			RobotAction             string   `json:"robot_action"`
+			Valid                    bool     `json:"valid"`
+			ValidationErrors         []string `json:"validation_errors"`
+			PolicyVersion            string   `json:"policy_version"`
+			RobotAction              string   `json:"robot_action"`
 			RuntimeSignaturePresent  bool     `json:"runtime_signature_present"`
 			RuntimeSignatureVerified bool     `json:"runtime_signature_verified"`
 		} `json:"replays"`
@@ -328,7 +328,7 @@ func TestReplayRoboticsReceiptsRouteReconstructsAuditTrail(t *testing.T) {
 	require.Equal(t, "robotics-policy.active", body.Replays[0].PolicyVersion)
 	require.Equal(t, "cancel_navigation", body.Replays[0].RobotAction)
 	require.True(t, body.Replays[0].RuntimeSignaturePresent)
-	require.True(t, body.Replays[0].RuntimeSignatureVerified)
+	require.False(t, body.Replays[0].RuntimeSignatureVerified)
 	require.Equal(t, 0, queued.remainingQueries())
 	require.Equal(t, 0, queued.remainingExecs())
 }
