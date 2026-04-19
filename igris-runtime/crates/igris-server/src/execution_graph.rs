@@ -1,13 +1,15 @@
-/// RUNTIME-04: Execution Graph Observability
-///
-/// Captures execution DAG (Directed Acyclic Graph) per request to enable:
-/// - Debugging complex multi-step executions
-/// - Performance analysis of tool call chains
-/// - Observability into agent reasoning flow
+//! RUNTIME-04: Execution Graph Observability
+//!
+//! Captures execution DAG (Directed Acyclic Graph) per request to enable:
+//! - Debugging complex multi-step executions
+//! - Performance analysis of tool call chains
+//! - Observability into agent reasoning flow
+#![allow(dead_code)]
+
 use serde::{Deserialize, Serialize};
 use std::collections::HashMap;
 use std::sync::Arc;
-use std::time::{Duration, SystemTime};
+use std::time::SystemTime;
 use tokio::sync::RwLock;
 use uuid::Uuid;
 
