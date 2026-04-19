@@ -153,6 +153,7 @@ impl ExecutionReceipt {
     /// Verify the receipt signature against a known public verifying key.
     ///
     /// Returns `Ok(())` if the signature is valid, `Err(...)` otherwise.
+    #[allow(dead_code)]
     pub fn verify_signature(&self, verifying_key: &VerifyingKey) -> Result<()> {
         use ed25519_dalek::Signature;
 
@@ -284,6 +285,7 @@ impl ReceiptLog {
     }
 
     /// Return the hash of the most-recently appended receipt.
+    #[allow(dead_code)]
     pub async fn last_hash(&self) -> String {
         self.last_hash.lock().await.clone()
     }
