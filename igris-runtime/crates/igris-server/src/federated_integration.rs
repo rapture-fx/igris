@@ -5,6 +5,8 @@
 //! - GET  /v1/federated/model/latest - Get latest global model
 //! - GET  /v1/federated/status - Get coordinator status
 
+#![allow(dead_code)]
+
 use anyhow::Result;
 use igris_federated::{
     FederatedConfig, FederatedCoordinator, FederatedStatus, GlobalModel, ModelUpdate,
