@@ -43,6 +43,7 @@ func TestRoboticsReceiptReplayWithPostgresMigrations(t *testing.T) {
 	require.NoError(t, err)
 
 	for _, name := range []string{
+		"005_runtime_instances.sql",
 		"031_task_records.sql",
 		"037_robotics_receipt_audit.sql",
 		"039_robotics_policy_decision_audit.sql",
@@ -56,6 +57,16 @@ func TestRoboticsReceiptReplayWithPostgresMigrations(t *testing.T) {
 	taskID := uuid.New()
 	tenantID := "tenant-replay-pg"
 	runtimeID := "runtime-replay-pg"
+	_, err = db.Exec(`
+		INSERT INTO runtime_instances (
+			runtime_id, public_key_ed25519, endpoint, capabilities,
+			platform, version, is_edge, is_healthy, last_seen_at, registered_at
+		)
+		VALUES ($1, $2, 'http://runtime-replay-pg', '["robotics"]'::jsonb, 'test', 'test', true, true, NOW(), NOW())`,
+		runtimeID, hex.EncodeToString(publicKey),
+	)
+	require.NoError(t, err)
+
 	_, err = db.Exec(`
 		INSERT INTO task_records (
 			task_id, tenant_id, status, runtime_id, runtime_endpoint,
@@ -134,6 +145,7 @@ func TestRoboticsReceiptReplayWithPostgresMigrations(t *testing.T) {
 	require.Equal(t, mustJSONFieldString(t, envelope, "signature"), replays[0].RuntimeSignature)
 	require.True(t, replays[0].RuntimeSignaturePresent)
 	require.True(t, replays[0].RuntimeSignatureVerified)
+	require.Equal(t, "runtime_registry", replays[0].RuntimeSignatureKeySource)
 
 	var persistedDecision signedGovernedPolicyDecision
 	require.NoError(t, json.Unmarshal(replays[0].SignedPolicyDecision, &persistedDecision))
