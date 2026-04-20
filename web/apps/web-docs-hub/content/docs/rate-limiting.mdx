@@ -9,9 +9,9 @@ The current shipped Overture server applies a global rate limiter of **100 reque
 
 ---
 
-## What The Current Server Enforces
+## What The Hosted API Enforces
 
-In `cmd/igris-overture/main.go`, the global limiter is wired as:
+The hosted API applies:
 
 - one shared window: `100 req/min` by default
 - scoped per tenant when tenant context exists, otherwise per IP
@@ -47,7 +47,7 @@ Do not depend on `X-RateLimit-Reset` being present on successful requests in the
 
 ## Runtime Download Limit
 
-Runtime archive downloads have a separate limit of `10/hour` per tenant on the control plane download handler.
+Runtime archive downloads have a separate limit of `10/hour` per tenant on the control plane download surface.
 
 This applies to:
 
