@@ -122,16 +122,8 @@ type S3UploadConfig struct {
 	Region          string
 	AccessKeyID     string
 	SecretAccessKey string
-	SessionToken     string
+	SessionToken    string
 	ForcePathStyle  bool
-}
-
-type bundleArtifact struct {
-	BundlePath   string
-	ManifestPath string
-	Manifest     ExportManifest
-	BundleBytes  []byte
-	ManifestBytes []byte
 }
 
 func BuildRoboticsAuditBundle(ctx context.Context, db *sql.DB, opts RoboticsAuditBundleOptions) (RoboticsAuditExportBundle, error) {
@@ -552,6 +544,204 @@ func uploadBundleArtifacts(ctx context.Context, result ExportJobResult, cfg S3Up
 		}
 	}
 	return true, nil
+}
+
+func (cfg S3UploadConfig) configured() bool {
+	return strings.TrimSpace(cfg.Endpoint) != "" ||
+		strings.TrimSpace(cfg.Bucket) != "" ||
+		strings.TrimSpace(cfg.AccessKeyID) != "" ||
+		strings.TrimSpace(cfg.SecretAccessKey) != ""
+}
+
+func (cfg S3UploadConfig) validate() error {
+	if strings.TrimSpace(cfg.Endpoint) == "" {
+		return fmt.Errorf("s3 endpoint is required")
+	}
+	if strings.TrimSpace(cfg.Bucket) == "" {
+		return fmt.Errorf("s3 bucket is required")
+	}
+	if strings.TrimSpace(cfg.AccessKeyID) == "" {
+		return fmt.Errorf("s3 access key id is required")
+	}
+	if strings.TrimSpace(cfg.SecretAccessKey) == "" {
+		return fmt.Errorf("s3 secret access key is required")
+	}
+	return nil
+}
+
+func uploadFileToS3(ctx context.Context, path string, cfg S3UploadConfig) error {
+	data, err := os.ReadFile(path)
+	if err != nil {
+		return err
+	}
+	key := strings.Trim(strings.TrimSpace(cfg.Prefix), "/")
+	if key != "" {
+		key += "/"
+	}
+	key += filepath.Base(path)
+	return putS3Object(ctx, cfg, key, data, contentTypeForPath(path))
+}
+
+func putS3Object(ctx context.Context, cfg S3UploadConfig, key string, body []byte, contentType string) error {
+	endpoint, err := url.Parse(strings.TrimRight(cfg.Endpoint, "/"))
+	if err != nil {
+		return err
+	}
+	region := strings.TrimSpace(cfg.Region)
+	if region == "" {
+		region = "us-east-1"
+	}
+	objectPath := "/" + strings.Trim(cfg.Bucket, "/") + "/" + strings.TrimLeft(key, "/")
+	if !cfg.ForcePathStyle {
+		endpoint.Host = strings.Trim(cfg.Bucket, "/") + "." + endpoint.Host
+		objectPath = "/" + strings.TrimLeft(key, "/")
+	}
+	endpoint.Path = joinURLPath(endpoint.Path, objectPath)
+	endpoint.RawQuery = ""
+
+	now := time.Now().UTC()
+	payloadHash := sha256.Sum256(body)
+	payloadHashHex := hex.EncodeToString(payloadHash[:])
+	req, err := http.NewRequestWithContext(ctx, http.MethodPut, endpoint.String(), bytes.NewReader(body))
+	if err != nil {
+		return err
+	}
+	req.Header.Set("Content-Type", contentType)
+	req.Header.Set("X-Amz-Content-Sha256", payloadHashHex)
+	req.Header.Set("X-Amz-Date", now.Format("20060102T150405Z"))
+	if strings.TrimSpace(cfg.SessionToken) != "" {
+		req.Header.Set("X-Amz-Security-Token", strings.TrimSpace(cfg.SessionToken))
+	}
+	authorization := s3AuthorizationHeader(req, cfg, region, now, payloadHashHex)
+	req.Header.Set("Authorization", authorization)
+
+	client := http.Client{Timeout: 60 * time.Second}
+	resp, err := client.Do(req)
+	if err != nil {
+		return err
+	}
+	defer resp.Body.Close()
+	if resp.StatusCode < 200 || resp.StatusCode >= 300 {
+		return fmt.Errorf("s3 upload failed for %s: status=%d", key, resp.StatusCode)
+	}
+	return nil
+}
+
+func s3AuthorizationHeader(req *http.Request, cfg S3UploadConfig, region string, now time.Time, payloadHashHex string) string {
+	date := now.Format("20060102")
+	scope := date + "/" + region + "/s3/aws4_request"
+	canonicalHeaders, signedHeaders := canonicalS3Headers(req)
+	canonicalRequest := strings.Join([]string{
+		req.Method,
+		awsCanonicalURI(req.URL.EscapedPath()),
+		canonicalQueryString(req.URL.Query()),
+		canonicalHeaders,
+		signedHeaders,
+		payloadHashHex,
+	}, "\n")
+	canonicalRequestHash := sha256.Sum256([]byte(canonicalRequest))
+	stringToSign := strings.Join([]string{
+		"AWS4-HMAC-SHA256",
+		now.Format("20060102T150405Z"),
+		scope,
+		hex.EncodeToString(canonicalRequestHash[:]),
+	}, "\n")
+	signature := hmacSHA256Hex(s3SigningKey(strings.TrimSpace(cfg.SecretAccessKey), date, region), []byte(stringToSign))
+	return fmt.Sprintf("AWS4-HMAC-SHA256 Credential=%s/%s, SignedHeaders=%s, Signature=%s", strings.TrimSpace(cfg.AccessKeyID), scope, signedHeaders, signature)
+}
+
+func canonicalS3Headers(req *http.Request) (string, string) {
+	headers := map[string]string{
+		"host":                 req.URL.Host,
+		"x-amz-content-sha256": req.Header.Get("X-Amz-Content-Sha256"),
+		"x-amz-date":           req.Header.Get("X-Amz-Date"),
+	}
+	if token := req.Header.Get("X-Amz-Security-Token"); token != "" {
+		headers["x-amz-security-token"] = token
+	}
+	keys := make([]string, 0, len(headers))
+	for key := range headers {
+		keys = append(keys, key)
+	}
+	sort.Strings(keys)
+	var canonical strings.Builder
+	for _, key := range keys {
+		canonical.WriteString(key)
+		canonical.WriteByte(':')
+		canonical.WriteString(strings.TrimSpace(headers[key]))
+		canonical.WriteByte('\n')
+	}
+	return canonical.String(), strings.Join(keys, ";")
+}
+
+func s3SigningKey(secret, date, region string) []byte {
+	kDate := hmacSHA256([]byte("AWS4"+secret), []byte(date))
+	kRegion := hmacSHA256(kDate, []byte(region))
+	kService := hmacSHA256(kRegion, []byte("s3"))
+	return hmacSHA256(kService, []byte("aws4_request"))
+}
+
+func hmacSHA256(key, data []byte) []byte {
+	h := hmac.New(sha256.New, key)
+	_, _ = h.Write(data)
+	return h.Sum(nil)
+}
+
+func hmacSHA256Hex(key, data []byte) string {
+	return hex.EncodeToString(hmacSHA256(key, data))
+}
+
+func joinURLPath(base, add string) string {
+	if strings.TrimSpace(base) == "" || base == "/" {
+		return add
+	}
+	return strings.TrimRight(base, "/") + add
+}
+
+func awsCanonicalURI(path string) string {
+	if path == "" {
+		return "/"
+	}
+	parts := strings.Split(path, "/")
+	for i, part := range parts {
+		decoded, err := url.PathUnescape(part)
+		if err == nil {
+			part = decoded
+		}
+		parts[i] = strings.ReplaceAll(url.PathEscape(part), "+", "%20")
+	}
+	return strings.Join(parts, "/")
+}
+
+func canonicalQueryString(values url.Values) string {
+	if len(values) == 0 {
+		return ""
+	}
+	keys := make([]string, 0, len(values))
+	for key := range values {
+		keys = append(keys, key)
+	}
+	sort.Strings(keys)
+	parts := make([]string, 0)
+	for _, key := range keys {
+		vals := append([]string(nil), values[key]...)
+		sort.Strings(vals)
+		for _, value := range vals {
+			parts = append(parts, url.QueryEscape(key)+"="+url.QueryEscape(value))
+		}
+	}
+	return strings.Join(parts, "&")
+}
+
+func contentTypeForPath(path string) string {
+	switch {
+	case strings.HasSuffix(path, ".jsonl"):
+		return "application/x-ndjson"
+	case strings.HasSuffix(path, ".json"):
+		return "application/json"
+	default:
+		return "application/octet-stream"
+	}
 }
 
 func normalizeTenantIDs(values []string) []string {
