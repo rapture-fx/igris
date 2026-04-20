@@ -2,13 +2,22 @@
 package compliance
 
 import (
+	"bytes"
 	"context"
+	"crypto/ed25519"
+	"crypto/hmac"
+	"crypto/sha256"
 	"database/sql"
+	"encoding/base64"
+	"encoding/hex"
 	"encoding/json"
 	"fmt"
 	"io"
+	"net/http"
+	"net/url"
 	"os"
 	"path/filepath"
+	"sort"
 	"strings"
 	"time"
 
@@ -52,19 +61,77 @@ type RoboticsAuditExportBundle struct {
 }
 
 type ExportJobConfig struct {
-	TenantIDs    []string
-	OutputDir    string
-	Format       string
-	ReplayLimit  int
-	KeyLimit     int
-	IncludeEmpty bool
+	TenantIDs      []string
+	OutputDir      string
+	Format         string
+	ReplayLimit    int
+	KeyLimit       int
+	IncludeEmpty   bool
+	RetentionDays  int
+	Signing        ManifestSigningConfig
+	S3UploadTarget S3UploadConfig
 }
 
 type ExportJobResult struct {
 	TenantID                    string
 	Path                        string
+	ManifestPath                string
+	BundleSHA256                string
+	ManifestSHA256              string
+	Signature                   string
+	Uploaded                    bool
 	PolicyKeyLifecycleRecords   int
 	RobotExecutionReplayRecords int
+}
+
+type ManifestSigningConfig struct {
+	PrivateKeyEd25519 string
+	KeyID             string
+}
+
+type ExportManifest struct {
+	SchemaVersion               string             `json:"schema_version"`
+	TenantID                    string             `json:"tenant_id"`
+	ExportedAt                  time.Time          `json:"exported_at"`
+	CreatedAt                   time.Time          `json:"created_at"`
+	BundleFilename              string             `json:"bundle_filename"`
+	BundleSHA256                string             `json:"bundle_sha256"`
+	BundleBytes                 int64              `json:"bundle_bytes"`
+	Format                      string             `json:"format"`
+	Filters                     map[string]string  `json:"filters"`
+	Totals                      map[string]int     `json:"totals"`
+	PolicyKeyLifecycleRecords   int                `json:"policy_key_lifecycle_records"`
+	RobotExecutionReplayRecords int                `json:"robot_execution_replay_records"`
+	ManifestSHA256              string             `json:"manifest_sha256"`
+	Signature                   *ManifestSignature `json:"signature,omitempty"`
+}
+
+type ManifestSignature struct {
+	Algorithm           string    `json:"algorithm"`
+	KeyID               string    `json:"key_id,omitempty"`
+	PublicKeyEd25519    string    `json:"public_key_ed25519,omitempty"`
+	SignedAt            time.Time `json:"signed_at"`
+	SignedPayloadSHA256 string    `json:"signed_payload_sha256"`
+	Signature           string    `json:"signature"`
+}
+
+type S3UploadConfig struct {
+	Endpoint        string
+	Bucket          string
+	Prefix          string
+	Region          string
+	AccessKeyID     string
+	SecretAccessKey string
+	SessionToken     string
+	ForcePathStyle  bool
+}
+
+type bundleArtifact struct {
+	BundlePath   string
+	ManifestPath string
+	Manifest     ExportManifest
+	BundleBytes  []byte
+	ManifestBytes []byte
 }
 
 func BuildRoboticsAuditBundle(ctx context.Context, db *sql.DB, opts RoboticsAuditBundleOptions) (RoboticsAuditExportBundle, error) {
@@ -150,6 +217,117 @@ func WriteRoboticsAuditBundle(w io.Writer, bundle RoboticsAuditExportBundle, for
 		encoder := json.NewEncoder(w)
 		encoder.SetIndent("", "  ")
 		return encoder.Encode(bundle)
+	}
+}
+
+func WriteRoboticsAuditBundleArtifacts(outputDir, format string, bundle RoboticsAuditExportBundle, signing ManifestSigningConfig) (ExportJobResult, error) {
+	if outputDir == "" {
+		outputDir = "compliance-exports"
+	}
+	if format == "" {
+		format = "json"
+	}
+	if err := os.MkdirAll(outputDir, 0o750); err != nil {
+		return ExportJobResult{}, err
+	}
+	var bundleBuffer bytes.Buffer
+	if err := WriteRoboticsAuditBundle(&bundleBuffer, bundle, format); err != nil {
+		return ExportJobResult{}, err
+	}
+	bundleBytes := bundleBuffer.Bytes()
+	bundleHash := sha256.Sum256(bundleBytes)
+	bundleSHA256 := hex.EncodeToString(bundleHash[:])
+	bundlePath := filepath.Join(outputDir, complianceBundleFilename(bundle.TenantID, bundle.ExportedAt, format))
+	if err := writeFileExclusive(bundlePath, bundleBytes, 0o440); err != nil {
+		return ExportJobResult{}, err
+	}
+
+	manifest, manifestBytes, err := buildExportManifest(bundle, filepath.Base(bundlePath), format, bundleSHA256, int64(len(bundleBytes)), signing)
+	if err != nil {
+		return ExportJobResult{}, err
+	}
+	manifestPath := bundlePath + ".manifest.json"
+	if err := writeFileExclusive(manifestPath, manifestBytes, 0o440); err != nil {
+		return ExportJobResult{}, err
+	}
+	return ExportJobResult{
+		TenantID:                    bundle.TenantID,
+		Path:                        bundlePath,
+		ManifestPath:                manifestPath,
+		BundleSHA256:                bundleSHA256,
+		ManifestSHA256:              manifest.ManifestSHA256,
+		Signature:                   manifestSignatureValue(manifest),
+		PolicyKeyLifecycleRecords:   len(bundle.PolicyKeyLifecycle),
+		RobotExecutionReplayRecords: len(bundle.RobotExecutionReplay),
+	}, nil
+}
+
+func buildExportManifest(bundle RoboticsAuditExportBundle, bundleFilename, format, bundleSHA256 string, bundleBytes int64, signing ManifestSigningConfig) (ExportManifest, []byte, error) {
+	manifest := ExportManifest{
+		SchemaVersion:               "igris.robotics_compliance_manifest.v1",
+		TenantID:                    bundle.TenantID,
+		ExportedAt:                  bundle.ExportedAt.UTC(),
+		CreatedAt:                   time.Now().UTC(),
+		BundleFilename:              bundleFilename,
+		BundleSHA256:                bundleSHA256,
+		BundleBytes:                 bundleBytes,
+		Format:                      normalizedExportFormat(format),
+		Filters:                     bundle.Filters,
+		Totals:                      bundle.Totals,
+		PolicyKeyLifecycleRecords:   len(bundle.PolicyKeyLifecycle),
+		RobotExecutionReplayRecords: len(bundle.RobotExecutionReplay),
+	}
+	signingPayload, err := manifestSigningPayload(manifest)
+	if err != nil {
+		return manifest, nil, err
+	}
+	signingPayloadHash := sha256.Sum256(signingPayload)
+	manifest.ManifestSHA256 = hex.EncodeToString(signingPayloadHash[:])
+	if strings.TrimSpace(signing.PrivateKeyEd25519) != "" {
+		privateKey, err := decodeEd25519PrivateKey(signing.PrivateKeyEd25519)
+		if err != nil {
+			return manifest, nil, err
+		}
+		publicKey := privateKey.Public().(ed25519.PublicKey)
+		manifest.Signature = &ManifestSignature{
+			Algorithm:           "ed25519-sha256",
+			KeyID:               strings.TrimSpace(signing.KeyID),
+			PublicKeyEd25519:    hex.EncodeToString(publicKey),
+			SignedAt:            time.Now().UTC(),
+			SignedPayloadSHA256: manifest.ManifestSHA256,
+			Signature:           base64.StdEncoding.EncodeToString(ed25519.Sign(privateKey, signingPayloadHash[:])),
+		}
+	}
+	manifestBytes, err := json.MarshalIndent(manifest, "", "  ")
+	if err != nil {
+		return manifest, nil, err
+	}
+	return manifest, append(manifestBytes, '\n'), nil
+}
+
+func manifestSigningPayload(manifest ExportManifest) ([]byte, error) {
+	manifest.ManifestSHA256 = ""
+	manifest.Signature = nil
+	return json.Marshal(manifest)
+}
+
+func decodeEd25519PrivateKey(value string) (ed25519.PrivateKey, error) {
+	value = strings.TrimSpace(value)
+	var raw []byte
+	var err error
+	if raw, err = hex.DecodeString(value); err != nil {
+		raw, err = base64.StdEncoding.DecodeString(value)
+		if err != nil {
+			return nil, fmt.Errorf("invalid ed25519 private key encoding")
+		}
+	}
+	switch len(raw) {
+	case ed25519.SeedSize:
+		return ed25519.NewKeyFromSeed(raw), nil
+	case ed25519.PrivateKeySize:
+		return ed25519.PrivateKey(raw), nil
+	default:
+		return nil, fmt.Errorf("invalid ed25519 private key length")
 	}
 }
 
@@ -260,24 +438,19 @@ func RunTenantComplianceExport(ctx context.Context, db *sql.DB, cfg ExportJobCon
 		if !cfg.IncludeEmpty && len(bundle.PolicyKeyLifecycle) == 0 && len(bundle.RobotExecutionReplay) == 0 {
 			continue
 		}
-		path := filepath.Join(cfg.OutputDir, complianceBundleFilename(tenantID, bundle.ExportedAt, cfg.Format))
-		file, err := os.Create(path)
+		result, err := WriteRoboticsAuditBundleArtifacts(cfg.OutputDir, cfg.Format, bundle, cfg.Signing)
 		if err != nil {
 			return results, err
 		}
-		if err := WriteRoboticsAuditBundle(file, bundle, cfg.Format); err != nil {
-			_ = file.Close()
+		uploaded, err := uploadBundleArtifacts(ctx, result, cfg.S3UploadTarget)
+		if err != nil {
 			return results, err
 		}
-		if err := file.Close(); err != nil {
-			return results, err
-		}
-		results = append(results, ExportJobResult{
-			TenantID:                    tenantID,
-			Path:                        path,
-			PolicyKeyLifecycleRecords:   len(bundle.PolicyKeyLifecycle),
-			RobotExecutionReplayRecords: len(bundle.RobotExecutionReplay),
-		})
+		result.Uploaded = uploaded
+		results = append(results, result)
+	}
+	if _, err := ApplyLocalRetention(cfg.OutputDir, cfg.RetentionDays); err != nil {
+		return results, err
 	}
 	return results, nil
 }
@@ -335,6 +508,52 @@ func StartTenantComplianceExportScheduler(ctx context.Context, db *sql.DB, cfg E
 	}()
 }
 
+func ApplyLocalRetention(outputDir string, retentionDays int) (int, error) {
+	if outputDir == "" || retentionDays <= 0 {
+		return 0, nil
+	}
+	cutoff := time.Now().Add(-time.Duration(retentionDays) * 24 * time.Hour)
+	deleted := 0
+	err := filepath.WalkDir(outputDir, func(path string, entry os.DirEntry, err error) error {
+		if err != nil {
+			return err
+		}
+		if entry.IsDir() || !isComplianceExportFile(entry.Name()) {
+			return nil
+		}
+		info, err := entry.Info()
+		if err != nil {
+			return err
+		}
+		if info.ModTime().Before(cutoff) {
+			if err := os.Remove(path); err != nil {
+				return err
+			}
+			deleted++
+		}
+		return nil
+	})
+	return deleted, err
+}
+
+func uploadBundleArtifacts(ctx context.Context, result ExportJobResult, cfg S3UploadConfig) (bool, error) {
+	if !cfg.configured() {
+		return false, nil
+	}
+	if err := cfg.validate(); err != nil {
+		return false, err
+	}
+	for _, path := range []string{result.Path, result.ManifestPath} {
+		if strings.TrimSpace(path) == "" {
+			continue
+		}
+		if err := uploadFileToS3(ctx, path, cfg); err != nil {
+			return false, err
+		}
+	}
+	return true, nil
+}
+
 func normalizeTenantIDs(values []string) []string {
 	seen := map[string]struct{}{}
 	tenants := make([]string, 0, len(values))
@@ -355,11 +574,39 @@ func normalizeTenantIDs(values []string) []string {
 }
 
 func complianceBundleFilename(tenantID string, exportedAt time.Time, format string) string {
-	extension := "json"
-	if strings.EqualFold(format, "jsonl") || strings.EqualFold(format, "ndjson") {
-		extension = "jsonl"
-	}
+	extension := normalizedExportFormat(format)
 	return fmt.Sprintf("%s-robotics-compliance-%s.%s", sanitizeFilenamePart(tenantID), exportedAt.UTC().Format("20060102T150405Z"), extension)
+}
+
+func normalizedExportFormat(format string) string {
+	if strings.EqualFold(format, "jsonl") || strings.EqualFold(format, "ndjson") {
+		return "jsonl"
+	}
+	return "json"
+}
+
+func manifestSignatureValue(manifest ExportManifest) string {
+	if manifest.Signature == nil {
+		return ""
+	}
+	return manifest.Signature.Signature
+}
+
+func writeFileExclusive(path string, data []byte, perm os.FileMode) error {
+	file, err := os.OpenFile(path, os.O_WRONLY|os.O_CREATE|os.O_EXCL, perm)
+	if err != nil {
+		return err
+	}
+	if _, err := file.Write(data); err != nil {
+		_ = file.Close()
+		return err
+	}
+	return file.Close()
+}
+
+func isComplianceExportFile(name string) bool {
+	return strings.Contains(name, "-robotics-compliance-") &&
+		(strings.HasSuffix(name, ".json") || strings.HasSuffix(name, ".jsonl") || strings.HasSuffix(name, ".manifest.json"))
 }
 
 func sanitizeFilenamePart(value string) string {
