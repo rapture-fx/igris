@@ -1,11 +1,11 @@
 ---
 title: "Rate Limiting"
-description: "The current shipped Overture server applies a global rate limiter of 100 requests per minute by default. Runtime binary downloads also have a dedicated 10 downloads per hour per te"
+description: "The hosted API applies a global rate limit of 100 requests per minute by default. Runtime binary downloads also have a dedicated 10 downloads per hour per tenant cap."
 ---
 
 # Rate Limiting
 
-The current shipped Overture server applies a global rate limiter of **100 requests per minute** by default. Runtime binary downloads also have a dedicated **10 downloads per hour per tenant** cap.
+The hosted API applies a global rate limit of **100 requests per minute** by default. Runtime binary downloads also have a dedicated **10 downloads per hour per tenant** cap.
 
 ---
 
@@ -16,7 +16,7 @@ The hosted API applies:
 - one shared window: `100 req/min` by default
 - scoped per tenant when tenant context exists, otherwise per IP
 
-The current middleware does **not** publish rate-limit headers on every successful response. It sets rate-limit headers only on the rejection path.
+The hosted API does **not** publish rate-limit headers on every successful response. Rate-limit headers are guaranteed on rejection responses.
 
 ---
 
