@@ -43,12 +43,12 @@ type RoboticsAuditBundleOptions struct {
 }
 
 type RoboticsAuditExportBundle struct {
-	TenantID             string                          `json:"tenant_id"`
-	ExportedAt           time.Time                       `json:"exported_at"`
-	Filters              map[string]string               `json:"filters"`
-	PolicyKeyLifecycle   []PolicyKeyLifecycleAuditRecord `json:"policy_key_lifecycle"`
+	TenantID             string                            `json:"tenant_id"`
+	ExportedAt           time.Time                         `json:"exported_at"`
+	Filters              map[string]string                 `json:"filters"`
+	PolicyKeyLifecycle   []PolicyKeyLifecycleAuditRecord   `json:"policy_key_lifecycle"`
 	RobotExecutionReplay []coordinator.RoboticsAuditReplay `json:"robot_execution_replays"`
-	Totals               map[string]int                  `json:"totals"`
+	Totals               map[string]int                    `json:"totals"`
 }
 
 type ExportJobConfig struct {
