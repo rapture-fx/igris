@@ -1617,6 +1617,10 @@ function fallbackWhenToUse(section: ApiSection, endpoint: ApiEndpoint) {
   }
 
   if (endpoint.deployment === 'local') {
+    if (endpoint.path.startsWith('/v1/admin/')) {
+      return `Use this endpoint only from a trusted local-runtime administration context. It is part of the ${section.title} surface and should stay behind runtime authentication, local network controls, or an equivalent private operations boundary.`;
+    }
+
     return `Use this endpoint when the operation belongs on the local runtime rather than the hosted API. It is part of the ${section.title} surface and should be called from the environment where the runtime is actually serving traffic.`;
   }
 
@@ -1656,6 +1660,10 @@ function fallbackCommonMistakes(endpoint: ApiEndpoint) {
 
   if (endpoint.deployment === 'local') {
     mistakes.push('Pointing the client at the hosted base URL even though this route is served by the local runtime.');
+  }
+
+  if (endpoint.path.startsWith('/v1/admin/')) {
+    mistakes.push('Exposing local administration routes on a public interface instead of keeping them on a trusted runtime operations boundary.');
   }
 
   if (endpoint.deployment === 'hybrid') {
