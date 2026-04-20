@@ -514,12 +514,12 @@ func TestReplayRoboticsReceiptsRouteReconstructsAuditTrail(t *testing.T) {
 			"policy_signature",
 			"violation_occurred",
 			"violation",
-				"signed_policy_decision",
-				"execution_envelope",
-				"execution_receipt",
-				"persisted_at",
-				"runtime_public_key_ed25519",
-			},
+			"signed_policy_decision",
+			"execution_envelope",
+			"execution_receipt",
+			"persisted_at",
+			"runtime_public_key_ed25519",
+		},
 		rows: [][]driver.Value{{
 			taskID.String(),
 			"tenant-robotics-policy",
@@ -674,10 +674,10 @@ func TestReplayRoboticsReceiptsRouteVerifiesRuntimeSignatureWithPublicKey(t *tes
 
 	var body struct {
 		Replays []struct {
-			Valid                    bool     `json:"valid"`
-			ValidationErrors         []string `json:"validation_errors"`
-			RuntimeSignaturePresent  bool     `json:"runtime_signature_present"`
-			RuntimeSignatureVerified bool     `json:"runtime_signature_verified"`
+			Valid                     bool     `json:"valid"`
+			ValidationErrors          []string `json:"validation_errors"`
+			RuntimeSignaturePresent   bool     `json:"runtime_signature_present"`
+			RuntimeSignatureVerified  bool     `json:"runtime_signature_verified"`
 			RuntimeSignatureKeySource string   `json:"runtime_signature_key_source"`
 		} `json:"replays"`
 	}
