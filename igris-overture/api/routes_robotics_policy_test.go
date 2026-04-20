@@ -100,10 +100,48 @@ func roboticsPolicySignerKeyRouteRow(publicKey ed25519.PublicKey) queuedRouteQue
 	}
 }
 
-func signedRoboticsPolicyRouteRequest(t *testing.T, method, path, body string, privateKey ed25519.PrivateKey, keyVersion string) *http.Request {
+func roboticsPolicySigningKeyRouteColumns() []string {
+	return []string{
+		"tenant_id",
+		"key_version",
+		"signer_identity",
+		"public_key_ed25519",
+		"status",
+		"not_before",
+		"expires_at",
+		"created_by",
+		"revoked_by",
+		"created_at",
+		"updated_at",
+	}
+}
+
+func roboticsPolicySigningKeyRouteRow(publicKey ed25519.PublicKey, status string) []driver.Value {
+	now := time.Unix(1_900_400_000, 0).UTC()
+	var revokedBy driver.Value
+	if status == "revoked" {
+		revokedBy = "tenant-robotics-policy"
+	}
+	return []driver.Value{
+		"tenant-robotics-policy",
+		"key-v2",
+		"policy-admin@example.test",
+		hex.EncodeToString(publicKey),
+		status,
+		now,
+		nil,
+		"tenant-robotics-policy",
+		revokedBy,
+		now,
+		now,
+	}
+}
+
+func signedRoboticsPolicyRouteRequest(t *testing.T, method, path, body string, privateKey ed25519.PrivateKey, keyVersion, action string) *http.Request {
 	t.Helper()
 	signedAt := strconv.FormatInt(time.Now().UnixMilli(), 10)
-	canonical := canonicalRoboticsPolicyCommand(method, path, keyVersion, signedAt, []byte(body))
+	nonce := uuid.NewString()
+	canonical := canonicalRoboticsPolicyCommand(method, path, keyVersion, signedAt, nonce, action, []byte(body))
 	sum := sha256.Sum256(canonical)
 	signature := base64.StdEncoding.EncodeToString(ed25519.Sign(privateKey, sum[:]))
 
@@ -113,9 +151,108 @@ func signedRoboticsPolicyRouteRequest(t *testing.T, method, path, body string, p
 	}
 	req.Header.Set(roboticsPolicyKeyVersionHeader, keyVersion)
 	req.Header.Set(roboticsPolicySignedAtHeader, signedAt)
+	req.Header.Set(roboticsPolicyNonceHeader, nonce)
 	req.Header.Set(roboticsPolicySignatureHeader, signature)
 	req.Header.Set(roboticsPolicySignerHeader, "policy-admin@example.test")
 	return req
+}
+
+func TestCreateRoboticsPolicySigningKeyBootstrapsAndAudits(t *testing.T) {
+	t.Parallel()
+
+	publicKey, _, err := ed25519.GenerateKey(nil)
+	require.NoError(t, err)
+	body := `{
+		"key_version":"key-v2",
+		"signer_identity":"policy-admin@example.test",
+		"public_key_ed25519":"` + hex.EncodeToString(publicKey) + `"
+	}`
+	db, queued := newQueuedRouteDB(t, []queuedRouteQueryExpectation{
+		{
+			columns: []string{"exists"},
+			rows:    [][]driver.Value{{false}},
+		},
+		{
+			columns: roboticsPolicySigningKeyRouteColumns(),
+			rows:    [][]driver.Value{roboticsPolicySigningKeyRouteRow(publicKey, "draft")},
+		},
+	}, queuedRouteExecExpectation{rowsAffected: 1})
+	app := roboticsPolicyTestApp("tenant-robotics-policy")
+	app.Post("/v1/robotics/policies/signing-keys", createRoboticsPolicySigningKey(db))
+
+	req := httptest.NewRequest(http.MethodPost, "/v1/robotics/policies/signing-keys", strings.NewReader(body))
+	req.Header.Set("Content-Type", "application/json")
+	resp, err := app.Test(req)
+	require.NoError(t, err)
+	require.Equal(t, http.StatusCreated, resp.StatusCode)
+
+	var result roboticsPolicySigningKeyResponse
+	require.NoError(t, json.NewDecoder(resp.Body).Decode(&result))
+	require.Equal(t, "key-v2", result.KeyVersion)
+	require.Equal(t, "draft", result.Status)
+	require.Equal(t, hex.EncodeToString(publicKey), result.PublicKeyEd25519)
+	require.Equal(t, 0, queued.remainingQueries())
+	require.Equal(t, 0, queued.remainingExecs())
+}
+
+func TestListRoboticsPolicySigningKeys(t *testing.T) {
+	t.Parallel()
+
+	publicKey, _, err := ed25519.GenerateKey(nil)
+	require.NoError(t, err)
+	db, queued := newQueuedRouteDB(t, []queuedRouteQueryExpectation{{
+		columns: roboticsPolicySigningKeyRouteColumns(),
+		rows:    [][]driver.Value{roboticsPolicySigningKeyRouteRow(publicKey, "active")},
+	}})
+	app := roboticsPolicyTestApp("tenant-robotics-policy")
+	app.Get("/v1/robotics/policies/signing-keys", listRoboticsPolicySigningKeys(db))
+
+	req := httptest.NewRequest(http.MethodGet, "/v1/robotics/policies/signing-keys", nil)
+	resp, err := app.Test(req)
+	require.NoError(t, err)
+	require.Equal(t, http.StatusOK, resp.StatusCode)
+
+	var body struct {
+		SigningKeys []roboticsPolicySigningKeyResponse `json:"signing_keys"`
+		Total       int                                `json:"total"`
+	}
+	require.NoError(t, json.NewDecoder(resp.Body).Decode(&body))
+	require.Equal(t, 1, body.Total)
+	require.Len(t, body.SigningKeys, 1)
+	require.Equal(t, "active", body.SigningKeys[0].Status)
+	require.Equal(t, 0, queued.remainingQueries())
+	require.Equal(t, 0, queued.remainingExecs())
+}
+
+func TestActivateRoboticsPolicySigningKeyRequiresSignedCommandAndAudits(t *testing.T) {
+	t.Parallel()
+
+	publicKey, privateKey, err := ed25519.GenerateKey(nil)
+	require.NoError(t, err)
+	db, queued := newQueuedRouteDB(t, []queuedRouteQueryExpectation{
+		roboticsPolicySignerKeyRouteRow(publicKey),
+		{
+			columns: []string{"status"},
+			rows:    [][]driver.Value{{"draft"}},
+		},
+		{
+			columns: roboticsPolicySigningKeyRouteColumns(),
+			rows:    [][]driver.Value{roboticsPolicySigningKeyRouteRow(publicKey, "active")},
+		},
+	}, queuedRouteExecExpectation{rowsAffected: 1}, queuedRouteExecExpectation{rowsAffected: 1})
+	app := roboticsPolicyTestApp("tenant-robotics-policy")
+	app.Post("/v1/robotics/policies/signing-keys/:version/activate", roboticsPolicySigningKeyLifecycleUpdate(db, "active"))
+
+	req := signedRoboticsPolicyRouteRequest(t, http.MethodPost, "/v1/robotics/policies/signing-keys/key-v2/activate", "", privateKey, "key-v2", "signing_key_activate")
+	resp, err := app.Test(req)
+	require.NoError(t, err)
+	require.Equal(t, http.StatusOK, resp.StatusCode)
+
+	var result roboticsPolicySigningKeyResponse
+	require.NoError(t, json.NewDecoder(resp.Body).Decode(&result))
+	require.Equal(t, "active", result.Status)
+	require.Equal(t, 0, queued.remainingQueries())
+	require.Equal(t, 0, queued.remainingExecs())
 }
 
 func TestCreateDraftRoboticsPolicyRoute(t *testing.T) {
@@ -136,11 +273,11 @@ func TestCreateDraftRoboticsPolicyRoute(t *testing.T) {
 			columns: roboticsPolicyRouteColumns(),
 			rows:    [][]driver.Value{roboticsPolicyRouteRow("draft", false)},
 		},
-	}, queuedRouteExecExpectation{rowsAffected: 1})
+	}, queuedRouteExecExpectation{rowsAffected: 1}, queuedRouteExecExpectation{rowsAffected: 1})
 	app := roboticsPolicyTestApp("tenant-robotics-policy")
 	app.Post("/v1/robotics/policies", createDraftRoboticsPolicy(db))
 
-	req := signedRoboticsPolicyRouteRequest(t, http.MethodPost, "/v1/robotics/policies", requestBody, privateKey, "key-v2")
+	req := signedRoboticsPolicyRouteRequest(t, http.MethodPost, "/v1/robotics/policies", requestBody, privateKey, "key-v2", "draft")
 
 	resp, err := app.Test(req)
 	require.NoError(t, err)
@@ -168,11 +305,11 @@ func TestActivateRoboticsPolicyRoute(t *testing.T) {
 			columns: roboticsPolicyRouteColumns(),
 			rows:    [][]driver.Value{roboticsPolicyRouteRow("active", true)},
 		},
-	}, queuedRouteExecExpectation{rowsAffected: 1}, queuedRouteExecExpectation{rowsAffected: 1})
+	}, queuedRouteExecExpectation{rowsAffected: 1}, queuedRouteExecExpectation{rowsAffected: 1}, queuedRouteExecExpectation{rowsAffected: 1})
 	app := roboticsPolicyTestApp("tenant-robotics-policy")
 	app.Post("/v1/robotics/policies/:version/activate", activateRoboticsPolicy(db))
 
-	req := signedRoboticsPolicyRouteRequest(t, http.MethodPost, "/v1/robotics/policies/robotics-policy.v2/activate", "", privateKey, "key-v2")
+	req := signedRoboticsPolicyRouteRequest(t, http.MethodPost, "/v1/robotics/policies/robotics-policy.v2/activate", "", privateKey, "key-v2", "activate")
 	resp, err := app.Test(req)
 	require.NoError(t, err)
 	require.Equal(t, http.StatusOK, resp.StatusCode)
@@ -199,7 +336,7 @@ func TestRoboticsPolicyWriteRejectsRevokedSignerKey(t *testing.T) {
 	app := roboticsPolicyTestApp("tenant-robotics-policy")
 	app.Post("/v1/robotics/policies", createDraftRoboticsPolicy(db))
 
-	req := signedRoboticsPolicyRouteRequest(t, http.MethodPost, "/v1/robotics/policies", body, privateKey, "revoked-key")
+	req := signedRoboticsPolicyRouteRequest(t, http.MethodPost, "/v1/robotics/policies", body, privateKey, "revoked-key", "draft")
 	resp, err := app.Test(req)
 	require.NoError(t, err)
 	require.Equal(t, http.StatusForbidden, resp.StatusCode)
