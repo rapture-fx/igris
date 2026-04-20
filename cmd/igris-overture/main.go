@@ -3,6 +3,8 @@ package main
 import (
 	"context"
 	"database/sql"
+	"flag"
+	"fmt"
 	"log"
 	"os"
 	"strconv"
@@ -14,6 +16,7 @@ import (
 	"github.com/Igris-inertial/system/igris-overture/billing"
 	"github.com/Igris-inertial/system/igris-overture/cache"
 	"github.com/Igris-inertial/system/igris-overture/cognitive"
+	"github.com/Igris-inertial/system/igris-overture/compliance"
 	"github.com/Igris-inertial/system/igris-overture/coordinator"
 	"github.com/Igris-inertial/system/igris-overture/database"
 	"github.com/Igris-inertial/system/igris-overture/logging"
@@ -48,10 +51,132 @@ func enforceProductionInferenceGuardrails() {
 	}
 }
 
+type stringListFlag []string
+
+func (f *stringListFlag) String() string {
+	return strings.Join(*f, ",")
+}
+
+func (f *stringListFlag) Set(value string) error {
+	*f = append(*f, value)
+	return nil
+}
+
+func runComplianceExportCommand(args []string) error {
+	fs := flag.NewFlagSet("compliance-export", flag.ContinueOnError)
+	var tenantIDs stringListFlag
+	outputDir := fs.String("output-dir", complianceExportEnv("IGRIS_COMPLIANCE_EXPORT_OUTPUT_DIR", "compliance-exports"), "directory for tenant compliance bundles")
+	format := fs.String("format", complianceExportEnv("IGRIS_COMPLIANCE_EXPORT_FORMAT", "json"), "bundle format: json or jsonl")
+	replayLimit := fs.Int("limit", complianceExportEnvInt("IGRIS_COMPLIANCE_EXPORT_REPLAY_LIMIT", 500), "maximum robot execution replay records per tenant")
+	keyLimit := fs.Int("key-limit", complianceExportEnvInt("IGRIS_COMPLIANCE_EXPORT_KEY_LIMIT", 500), "maximum policy key lifecycle records per tenant")
+	includeEmpty := fs.Bool("include-empty", os.Getenv("IGRIS_COMPLIANCE_EXPORT_INCLUDE_EMPTY") == "true", "write bundles for tenants with no current evidence")
+	fs.Var(&tenantIDs, "tenant", "tenant ID to export; repeatable, or comma-separated")
+	if rawTenants := os.Getenv("IGRIS_COMPLIANCE_EXPORT_TENANTS"); rawTenants != "" {
+		tenantIDs = append(tenantIDs, rawTenants)
+	}
+	if err := fs.Parse(args); err != nil {
+		return err
+	}
+
+	dbConfig := database.NewConfig()
+	if dbConfig.DatabaseURL == "" {
+		return fmt.Errorf("DATABASE_URL or POSTGRES_URL is required")
+	}
+	dbConfig.EnablePersistence = true
+	dbConfig.FailFastOnError = true
+	db, err := database.Connect(dbConfig)
+	if err != nil {
+		return err
+	}
+	if db == nil || !db.IsEnabled() {
+		return fmt.Errorf("database persistence is not enabled")
+	}
+	defer db.Close()
+
+	results, err := compliance.RunTenantComplianceExport(context.Background(), db.DB, compliance.ExportJobConfig{
+		TenantIDs:    []string(tenantIDs),
+		OutputDir:    *outputDir,
+		Format:       *format,
+		ReplayLimit:  *replayLimit,
+		KeyLimit:     *keyLimit,
+		IncludeEmpty: *includeEmpty,
+	})
+	if err != nil {
+		return err
+	}
+	for _, result := range results {
+		log.Printf("[Compliance] exported tenant=%s policy_key_records=%d robot_replay_records=%d path=%s",
+			result.TenantID,
+			result.PolicyKeyLifecycleRecords,
+			result.RobotExecutionReplayRecords,
+			result.Path,
+		)
+	}
+	log.Printf("[Compliance] export completed: %d bundle(s)", len(results))
+	return nil
+}
+
+func startTenantComplianceExportSchedulerFromEnv(ctx context.Context, db *sql.DB) {
+	if os.Getenv("IGRIS_COMPLIANCE_EXPORT_ENABLED") != "true" {
+		return
+	}
+	intervalHours := complianceExportEnvInt("IGRIS_COMPLIANCE_EXPORT_INTERVAL_HOURS", 24)
+	if intervalHours <= 0 {
+		intervalHours = 24
+	}
+	cfg := compliance.ExportJobConfig{
+		TenantIDs:    splitComplianceExportList(os.Getenv("IGRIS_COMPLIANCE_EXPORT_TENANTS")),
+		OutputDir:    complianceExportEnv("IGRIS_COMPLIANCE_EXPORT_OUTPUT_DIR", "compliance-exports"),
+		Format:       complianceExportEnv("IGRIS_COMPLIANCE_EXPORT_FORMAT", "json"),
+		ReplayLimit:  complianceExportEnvInt("IGRIS_COMPLIANCE_EXPORT_REPLAY_LIMIT", 500),
+		KeyLimit:     complianceExportEnvInt("IGRIS_COMPLIANCE_EXPORT_KEY_LIMIT", 500),
+		IncludeEmpty: os.Getenv("IGRIS_COMPLIANCE_EXPORT_INCLUDE_EMPTY") == "true",
+	}
+	compliance.StartTenantComplianceExportScheduler(ctx, db, cfg, time.Duration(intervalHours)*time.Hour, log.Printf)
+	log.Printf("[Compliance] tenant compliance export scheduler started interval=%dh output_dir=%s", intervalHours, cfg.OutputDir)
+}
+
+func complianceExportEnv(name, fallback string) string {
+	if value := strings.TrimSpace(os.Getenv(name)); value != "" {
+		return value
+	}
+	return fallback
+}
+
+func complianceExportEnvInt(name string, fallback int) int {
+	if value := strings.TrimSpace(os.Getenv(name)); value != "" {
+		if parsed, err := strconv.Atoi(value); err == nil {
+			return parsed
+		}
+	}
+	return fallback
+}
+
+func splitComplianceExportList(value string) []string {
+	if strings.TrimSpace(value) == "" {
+		return nil
+	}
+	parts := strings.Split(value, ",")
+	items := make([]string, 0, len(parts))
+	for _, part := range parts {
+		if trimmed := strings.TrimSpace(part); trimmed != "" {
+			items = append(items, trimmed)
+		}
+	}
+	return items
+}
+
 func main() {
 	// Initialize structured logging
 	debug := os.Getenv("DEBUG") == "true"
 	logging.Init("igris-inertial", debug)
+
+	if len(os.Args) > 1 && os.Args[1] == "compliance-export" {
+		if err := runComplianceExportCommand(os.Args[2:]); err != nil {
+			log.Fatalf("[Compliance] export failed: %v", err)
+		}
+		return
+	}
 
 	log.Println("🚀 Starting Igris Overture API...")
 
@@ -505,6 +630,7 @@ func main() {
 		log.Println("[RoboticsPolicy] ✅ Robotics policy endpoints registered (/v1/robotics/policies)")
 		api.StartRoboticsPolicyCommandNonceCleanup(context.Background(), dbInstance, time.Hour)
 		log.Println("[RoboticsPolicy] ✅ Expired policy command nonce cleanup started")
+		startTenantComplianceExportSchedulerFromEnv(context.Background(), dbInstance)
 
 		// Fleet config push and OTA updates
 		api.RegisterFleetPushRoutes(app, dbInstance)
