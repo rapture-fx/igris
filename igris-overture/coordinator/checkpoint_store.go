@@ -395,6 +395,8 @@ type RoboticsAuditReplay struct {
 	RuntimeSignature         string          `json:"runtime_signature,omitempty"`
 	RuntimeSignaturePresent  bool            `json:"runtime_signature_present"`
 	RuntimeSignatureVerified bool            `json:"runtime_signature_verified"`
+	RuntimeSignatureKeySource string          `json:"runtime_signature_key_source,omitempty"`
+	RuntimePublicKeyEd25519   string          `json:"-"`
 	PolicySignature          string          `json:"policy_signature,omitempty"`
 	PolicyDecisionHash       string          `json:"policy_decision_hash,omitempty"`
 	GovernedActionHash       string          `json:"governed_action_hash,omitempty"`
@@ -779,12 +781,15 @@ func (s *CheckpointStore) ReplayRoboticsAudit(tenantID string, filter RoboticsAu
 			COALESCE(ra.receipt_signature, ''), COALESCE(ra.envelope_signature, ''),
 			COALESCE(pd.policy_signature, ''), ra.violation_occurred,
 			COALESCE(ra.violation, ''), COALESCE(pd.signed_policy_decision, '{}'::jsonb),
-			ra.execution_envelope, ra.execution_receipt, ra.persisted_at
+			ra.execution_envelope, ra.execution_receipt, ra.persisted_at,
+			COALESCE(ri.public_key_ed25519, '')
 		FROM robotics_receipt_audit ra
 		LEFT JOIN robotics_policy_decision_audit pd
 		  ON pd.task_id = ra.task_id
 		 AND pd.policy_decision_id = ra.policy_decision_id
 		 AND pd.tenant_id = ra.tenant_id
+		LEFT JOIN runtime_instances ri
+		  ON ri.runtime_id = ra.runtime_id
 		WHERE %s
 		ORDER BY ra.persisted_at DESC
 		LIMIT $%d`, where, len(args)), args...)
@@ -821,6 +826,7 @@ func (s *CheckpointStore) ReplayRoboticsAudit(tenantID string, filter RoboticsAu
 			&replay.ExecutionEnvelope,
 			&replay.ExecutionReceipt,
 			&replay.PersistedAt,
+			&replay.RuntimePublicKeyEd25519,
 		); err != nil {
 			return nil, err
 		}
@@ -898,9 +904,21 @@ func validateRoboticsAuditReplay(replay *RoboticsAuditReplay) {
 		}
 	}
 	replay.RuntimeSignaturePresent = replay.RuntimeSignature != "" && replay.ReceiptSignature != ""
-	if err := internal.VerifyExecutionArtifactsRaw(replay.ExecutionEnvelope, replay.ExecutionReceipt); err != nil {
-		errors = append(errors, "runtime_signature_invalid: "+err.Error())
-	} else if replay.RuntimeSignaturePresent && strings.TrimSpace(os.Getenv("IGRIS_RUNTIME_PUBLIC_KEY")) != "" {
+	if strings.TrimSpace(replay.RuntimePublicKeyEd25519) != "" {
+		replay.RuntimeSignatureKeySource = "runtime_registry"
+	}
+	if replay.RuntimeSignatureKeySource == "" && strings.TrimSpace(os.Getenv("IGRIS_RUNTIME_PUBLIC_KEY")) != "" {
+		replay.RuntimeSignatureKeySource = "env_fallback"
+	}
+	var verifyErr error
+	if replay.RuntimeSignatureKeySource == "runtime_registry" {
+		verifyErr = internal.VerifyExecutionArtifactsRawWithPublicKey(replay.ExecutionEnvelope, replay.ExecutionReceipt, replay.RuntimePublicKeyEd25519)
+	} else {
+		verifyErr = internal.VerifyExecutionArtifactsRaw(replay.ExecutionEnvelope, replay.ExecutionReceipt)
+	}
+	if verifyErr != nil {
+		errors = append(errors, "runtime_signature_invalid: "+verifyErr.Error())
+	} else if replay.RuntimeSignaturePresent && replay.RuntimeSignatureKeySource != "" {
 		replay.RuntimeSignatureVerified = true
 	}
 
