@@ -1612,15 +1612,15 @@ function fallbackFunctionality(section: ApiSection, endpoint: ApiEndpoint) {
 }
 
 function fallbackWhenToUse(section: ApiSection, endpoint: ApiEndpoint) {
+  if (endpoint.deployment === 'local' && endpoint.path.startsWith('/v1/admin/')) {
+    return `Use this endpoint only from a trusted local-runtime administration context. It is part of the ${section.title} surface and should stay behind runtime authentication, local network controls, or an equivalent private operations boundary.`;
+  }
+
   if (endpoint.support === 'preview') {
     return `Use this endpoint when you are working with ${section.title} and are comfortable integrating against a preview surface. Confirm the current shape and rollout expectations before depending on it in a hard production path.`;
   }
 
   if (endpoint.deployment === 'local') {
-    if (endpoint.path.startsWith('/v1/admin/')) {
-      return `Use this endpoint only from a trusted local-runtime administration context. It is part of the ${section.title} surface and should stay behind runtime authentication, local network controls, or an equivalent private operations boundary.`;
-    }
-
     return `Use this endpoint when the operation belongs on the local runtime rather than the hosted API. It is part of the ${section.title} surface and should be called from the environment where the runtime is actually serving traffic.`;
   }
 

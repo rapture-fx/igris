@@ -1,6 +1,7 @@
 package api
 
 import (
+	"context"
 	"crypto/ed25519"
 	"crypto/sha256"
 	"database/sql/driver"
@@ -734,6 +735,141 @@ func TestReplayRoboticsReceiptsRouteVerifiesRuntimeSignatureWithPublicKey(t *tes
 	require.True(t, body.Replays[0].RuntimeSignaturePresent)
 	require.True(t, body.Replays[0].RuntimeSignatureVerified)
 	require.Equal(t, "runtime_registry", body.Replays[0].RuntimeSignatureKeySource)
+	require.Equal(t, 0, queued.remainingQueries())
+	require.Equal(t, 0, queued.remainingExecs())
+}
+
+func TestExportRoboticsAuditBundleIncludesKeyLifecycleAndReplay(t *testing.T) {
+	t.Parallel()
+
+	taskID := uuid.New()
+	persistedAt := time.Unix(1_900_301_000, 0).UTC()
+	keyAuditAt := time.Unix(1_900_401_000, 0).UTC()
+	decision := []byte(`{
+		"schema_version":"governed_policy_decision.v1",
+		"decision_id":"decision-export-route",
+		"tenant_id":"tenant-robotics-policy",
+		"task_id":"` + taskID.String() + `",
+		"runtime_id":"runtime-a",
+		"action":{
+			"schema_version":"governed_action.v1",
+			"domain":"robotics",
+			"action_type":"ros2_action",
+			"action_name":"publish_zero_velocity",
+			"node_id":"robotics-step-0",
+			"step_index":0,
+			"requires_policy":true,
+			"safety_mode_required":true
+		},
+		"permit":true,
+		"reason":"permitted",
+		"policy_version":"robotics-policy.active",
+		"runtime_permitted":true,
+		"tenant_permitted":true,
+		"policy_permitted":true,
+		"robot_mode_permitted":true,
+		"issued_at_unix_ms":1900301000000,
+		"expires_at_unix_ms":1900301030000,
+		"signature":"policy-sig"
+	}`)
+	envelope := []byte(`{
+		"execution_id":"exec-export-route",
+		"tenant_id":"tenant-robotics-policy",
+		"policy_decision_id":"decision-export-route",
+		"routing_decision":"ros2:publish_zero_velocity",
+		"signature":"env-sig"
+	}`)
+	receipt := []byte(`{
+		"execution_id":"exec-export-route",
+		"receipt_hash":"receipt-hash-export",
+		"signature":"receipt-sig",
+		"violation_occurred":false
+	}`)
+	db, queued := newQueuedRouteDB(t, []queuedRouteQueryExpectation{
+		{
+			columns: []string{
+				"task_id", "tenant_id", "runtime_id", "execution_id",
+				"policy_decision_id", "policy_version", "robot_action",
+				"robot_node_id", "robot_target", "permit", "reason",
+				"routing_decision", "policy_decision_hash", "governed_action_hash",
+				"receipt_hash", "receipt_signature", "envelope_signature",
+				"policy_signature", "violation_occurred", "violation",
+				"signed_policy_decision", "execution_envelope", "execution_receipt",
+				"persisted_at", "runtime_public_key_ed25519",
+			},
+			rows: [][]driver.Value{{
+				taskID.String(), "tenant-robotics-policy", "runtime-a", "exec-export-route",
+				"decision-export-route", "robotics-policy.active", "publish_zero_velocity",
+				"robotics-step-0", "", true, "permitted", "ros2:publish_zero_velocity",
+				"", "", "receipt-hash-export", "receipt-sig", "env-sig", "policy-sig",
+				false, "", decision, envelope, receipt, persistedAt, "",
+			}},
+		},
+		{
+			columns: []string{
+				"tenant_id", "key_version", "action", "actor_id",
+				"actor_email", "signer_identity", "signer_key_version",
+				"command_nonce", "command_hash", "command_signature",
+				"previous_status", "new_status", "key_snapshot", "occurred_at",
+			},
+			rows: [][]driver.Value{{
+				"tenant-robotics-policy", "key-v2", "activate", "tenant-robotics-policy",
+				"tenant-robotics-policy@example.test", "policy-admin@example.test", "key-v1",
+				"nonce-export", "command-hash-export", "signature-export",
+				"draft", "active", []byte(`{"key_version":"key-v2","status":"active"}`), keyAuditAt,
+			}},
+		},
+	})
+	app := roboticsPolicyTestApp("tenant-robotics-policy")
+	app.Get("/v1/receipts/robotics/audit-export", exportRoboticsAuditBundle(db))
+
+	req := httptest.NewRequest(http.MethodGet, "/v1/receipts/robotics/audit-export?policy_decision_id=decision-export-route&key_version=key-v2", nil)
+	resp, err := app.Test(req)
+	require.NoError(t, err)
+	require.Equal(t, http.StatusOK, resp.StatusCode)
+	require.Equal(t, "attachment; filename=\"robotics-audit-bundle.json\"", resp.Header.Get("Content-Disposition"))
+
+	var body struct {
+		TenantID           string `json:"tenant_id"`
+		PolicyKeyLifecycle []struct {
+			KeyVersion   string          `json:"key_version"`
+			Action       string          `json:"action"`
+			CommandNonce string          `json:"command_nonce"`
+			CommandHash  string          `json:"command_hash"`
+			KeySnapshot  json.RawMessage `json:"key_snapshot"`
+		} `json:"policy_key_lifecycle"`
+		RobotExecutionReplays []struct {
+			PolicyDecisionID string `json:"policy_decision_id"`
+			RobotAction      string `json:"robot_action"`
+			ReceiptHash      string `json:"receipt_hash"`
+		} `json:"robot_execution_replays"`
+		Totals map[string]int `json:"totals"`
+	}
+	require.NoError(t, json.NewDecoder(resp.Body).Decode(&body))
+	require.Equal(t, "tenant-robotics-policy", body.TenantID)
+	require.Len(t, body.PolicyKeyLifecycle, 1)
+	require.Equal(t, "key-v2", body.PolicyKeyLifecycle[0].KeyVersion)
+	require.Equal(t, "activate", body.PolicyKeyLifecycle[0].Action)
+	require.Equal(t, "nonce-export", body.PolicyKeyLifecycle[0].CommandNonce)
+	require.Equal(t, "command-hash-export", body.PolicyKeyLifecycle[0].CommandHash)
+	require.JSONEq(t, `{"key_version":"key-v2","status":"active"}`, string(body.PolicyKeyLifecycle[0].KeySnapshot))
+	require.Len(t, body.RobotExecutionReplays, 1)
+	require.Equal(t, "decision-export-route", body.RobotExecutionReplays[0].PolicyDecisionID)
+	require.Equal(t, "publish_zero_velocity", body.RobotExecutionReplays[0].RobotAction)
+	require.Equal(t, "receipt-hash-export", body.RobotExecutionReplays[0].ReceiptHash)
+	require.Equal(t, 1, body.Totals["policy_key_lifecycle"])
+	require.Equal(t, 1, body.Totals["robot_execution_replay"])
+	require.Equal(t, 0, queued.remainingQueries())
+	require.Equal(t, 0, queued.remainingExecs())
+}
+
+func TestCleanupExpiredRoboticsPolicyCommandNonces(t *testing.T) {
+	t.Parallel()
+
+	db, queued := newQueuedRouteDB(t, nil, queuedRouteExecExpectation{rowsAffected: 3})
+	deleted, err := CleanupExpiredRoboticsPolicyCommandNonces(context.Background(), db)
+	require.NoError(t, err)
+	require.Equal(t, int64(3), deleted)
 	require.Equal(t, 0, queued.remainingQueries())
 	require.Equal(t, 0, queued.remainingExecs())
 }
