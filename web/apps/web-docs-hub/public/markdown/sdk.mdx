@@ -352,7 +352,7 @@ Well-written Igris integrations usually share a few traits:
 - credentials come from a secret manager or environment, not source control
 - `429`, auth failures, validation failures, and `5xx` responses are handled differently
 - cloud, local, and hybrid mode selection happens at startup, not inside business logic
-- receipt, audit, and fleet features are adopted intentionally rather than appearing ad hoc in request handlers
+- receipt, audit, and fleet features are adopted intentionally rather than scattered across request paths
 
 When you need the most portable path across languages, default to the OpenAI-compatible client surface. When you need the strongest supported native contract, choose JavaScript/TypeScript, Go, Rust, or Python.
 
