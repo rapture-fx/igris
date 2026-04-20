@@ -1,10 +1,10 @@
 {
-  "generated_at": "2026-04-18T15:43:50.950Z",
+  "generated_at": "2026-04-20T12:34:11.606Z",
   "generated_from": [
     "igris-overture/api/*.go",
     "igris-runtime/crates/igris-server/src/main.rs"
   ],
-  "route_inventory_count": 337,
+  "route_inventory_count": 365,
   "sections": [
     {
       "title": "Inference & Integration",
@@ -314,7 +314,7 @@
           "auth": "Session cookie or igris_ API key",
           "surface": "Cloud API",
           "stability": "stable",
-          "description": "Validates a provider key with the current backend implementation.",
+          "description": "Validates that a stored provider key can be used for the selected provider.",
           "support": "supported",
           "deployment": "cloud"
         },

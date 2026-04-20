@@ -70,7 +70,7 @@ In practical terms, roles matter for:
 - identity and security operations
 - management actions that should not be available to every authenticated caller
 
-When you design operational workflows, treat roles as part of the product boundary, not just an internal implementation detail.
+When you design operational workflows, treat roles as part of the product boundary that customers and operators can reason about directly.
 
 ---
 
@@ -84,9 +84,7 @@ Two-factor authentication is available for tenant-level console access hardening
 
 ### SSO
 
-Igris supports enterprise identity integration for organizations that want central control over who can access the console.
-
-The codebase includes provider plumbing for:
+Igris supports enterprise identity integration for organizations that want central control over who can access the console. Supported identity options include:
 
 - OAuth2 / OIDC-style providers
 - common enterprise presets such as Okta and Google

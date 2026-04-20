@@ -1,6 +1,6 @@
 # Documentation Implementation Audit
 
-Generated: 2026-04-18T15:44:03.136Z
+Generated: 2026-04-20T12:34:34.308Z
 
 This report compares customer-facing docs route claims against routes registered in `igris-overture`, `igris-runtime`, and the web console codebase. It is evidence-based: a route claim is implemented only when the matching method/path is registered in code on the expected surface.
 
@@ -8,16 +8,16 @@ The API reference has a separate endpoint verification report in `api-verificati
 
 ## Summary
 
-- Route claims audited: 936
-- Implemented on expected surface: 936
+- Route claims audited: 932
+- Implemented on expected surface: 932
 - Missing from code: 0
 - Implemented on a different surface than documented: 0
 - Path exists with a different method: 0
 
 ## Guide Page Summary
 
-- Guide route claims audited: 207
-- Implemented on expected surface: 207
+- Guide route claims audited: 203
+- Implemented on expected surface: 203
 - Missing from code: 0
 - Implemented on a different surface than documented: 0
 - Path exists with a different method: 0
@@ -57,7 +57,6 @@ The API reference has a separate endpoint verification report in `api-verificati
 | `web/apps/web-docs-hub/content/docs/ros2-integration.mdx` | 12 | 12 | 0 | 0 | 0 |
 | `web/apps/web-docs-hub/content/docs/security.mdx` | 4 | 4 | 0 | 0 | 0 |
 | `web/apps/web-docs-hub/content/docs/shadow-mode.mdx` | 2 | 2 | 0 | 0 | 0 |
-| `web/apps/web-docs-hub/content/docs/slo-enforcer.mdx` | 4 | 4 | 0 | 0 | 0 |
 | `web/apps/web-docs-hub/content/docs/speculative-execution.mdx` | 8 | 8 | 0 | 0 | 0 |
 | `web/apps/web-docs-hub/content/docs/swarm.mdx` | 9 | 9 | 0 | 0 | 0 |
 | `web/apps/web-docs-hub/content/docs/tamper-evident-logs.mdx` | 3 | 3 | 0 | 0 | 0 |
@@ -210,7 +209,6 @@ No unsupported guide-page route claims were found.
 | `web/apps/web-docs-hub/content/docs/ros2-integration.mdx` | 12 | 12 | 0 | 0 | 0 |
 | `web/apps/web-docs-hub/content/docs/security.mdx` | 4 | 4 | 0 | 0 | 0 |
 | `web/apps/web-docs-hub/content/docs/shadow-mode.mdx` | 2 | 2 | 0 | 0 | 0 |
-| `web/apps/web-docs-hub/content/docs/slo-enforcer.mdx` | 4 | 4 | 0 | 0 | 0 |
 | `web/apps/web-docs-hub/content/docs/speculative-execution.mdx` | 8 | 8 | 0 | 0 | 0 |
 | `web/apps/web-docs-hub/content/docs/swarm.mdx` | 9 | 9 | 0 | 0 | 0 |
 | `web/apps/web-docs-hub/content/docs/tamper-evident-logs.mdx` | 3 | 3 | 0 | 0 | 0 |

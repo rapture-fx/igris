@@ -29,26 +29,7 @@ The enforcer is configured with a 20-second evaluation interval and a 300-second
 
 ## Evaluation Output
 
-The Rust SLO enforcer exposes an internal FFI contract that accepts a metrics JSON payload and returns a breach decision plus remediation actions:
-
-```json
-{
-  "breached": true,
-  "actions": [
-    {
-      "action_type": "reroute",
-      "target": "provider_pool",
-      "reason": "P99 latency exceeded critical threshold",
-      "slo_type": "P99Latency",
-      "current_value": 200,
-      "threshold_value": 150
-    }
-  ],
-  "timestamp": 1712213400
-}
-```
-
-This is an internal runtime/control-plane contract, not a customer API route.
+SLO evaluations are exposed to customers through supported product surfaces rather than a standalone public SLO API. Use provider-health state, routing statistics, execution receipts, history, and observability exports to understand when the platform detected degraded behavior and how traffic was handled.
 
 ---
 
@@ -64,18 +45,9 @@ Use these documented surfaces to understand SLO behavior:
 
 ---
 
-## Operational Admin Handlers
+## Operational Access
 
-Some deployments wire internal admin handlers for SLO operations:
-
-| Method | Path | Purpose |
-|---|---|---|
-| `GET` | `/admin/slo/status` | Inspect enforcer status and recent events |
-| `GET` | `/admin/slo/audit` | Read recent SLO audit events |
-| `POST` | `/admin/slo/evaluate` | Run a manual metrics evaluation |
-| `GET` | `/admin/slo/metrics` | Export Prometheus-style SLO counters |
-
-These handlers are operational/admin surfaces. They are intentionally not listed in the customer API reference until they are promoted to a supported customer contract.
+SLO administration is not part of the public API reference. For enterprise deployments that require direct operational access, use the account-specific surfaces and runbooks provided with that deployment.
 
 ---
 
