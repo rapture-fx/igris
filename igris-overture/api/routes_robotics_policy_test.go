@@ -514,11 +514,12 @@ func TestReplayRoboticsReceiptsRouteReconstructsAuditTrail(t *testing.T) {
 			"policy_signature",
 			"violation_occurred",
 			"violation",
-			"signed_policy_decision",
-			"execution_envelope",
-			"execution_receipt",
-			"persisted_at",
-		},
+				"signed_policy_decision",
+				"execution_envelope",
+				"execution_receipt",
+				"persisted_at",
+				"runtime_public_key_ed25519",
+			},
 		rows: [][]driver.Value{{
 			taskID.String(),
 			"tenant-robotics-policy",
@@ -544,6 +545,7 @@ func TestReplayRoboticsReceiptsRouteReconstructsAuditTrail(t *testing.T) {
 			envelope,
 			receipt,
 			persistedAt,
+			"",
 		}},
 	}})
 	app := roboticsPolicyTestApp("tenant-robotics-policy")
@@ -651,7 +653,7 @@ func TestReplayRoboticsReceiptsRouteVerifiesRuntimeSignatureWithPublicKey(t *tes
 			"receipt_hash", "receipt_signature", "envelope_signature",
 			"policy_signature", "violation_occurred", "violation",
 			"signed_policy_decision", "execution_envelope", "execution_receipt",
-			"persisted_at",
+			"persisted_at", "runtime_public_key_ed25519",
 		},
 		rows: [][]driver.Value{{
 			taskID.String(), "tenant-robotics-policy", "runtime-a", "exec-route-verified",
@@ -659,7 +661,7 @@ func TestReplayRoboticsReceiptsRouteVerifiesRuntimeSignatureWithPublicKey(t *tes
 			"robotics-step-0", "", true, "permitted", "ros2:publish_zero_velocity",
 			"", "", "receipt-hash-verified", jsonFieldString(t, receipt, "signature"),
 			jsonFieldString(t, envelope, "signature"), "policy-sig", false, "",
-			decision, envelope, receipt, persistedAt,
+			decision, envelope, receipt, persistedAt, hex.EncodeToString(publicKey),
 		}},
 	}})
 	app := roboticsPolicyTestApp("tenant-robotics-policy")
@@ -676,6 +678,7 @@ func TestReplayRoboticsReceiptsRouteVerifiesRuntimeSignatureWithPublicKey(t *tes
 			ValidationErrors         []string `json:"validation_errors"`
 			RuntimeSignaturePresent  bool     `json:"runtime_signature_present"`
 			RuntimeSignatureVerified bool     `json:"runtime_signature_verified"`
+			RuntimeSignatureKeySource string   `json:"runtime_signature_key_source"`
 		} `json:"replays"`
 	}
 	require.NoError(t, json.NewDecoder(resp.Body).Decode(&body))
@@ -683,6 +686,7 @@ func TestReplayRoboticsReceiptsRouteVerifiesRuntimeSignatureWithPublicKey(t *tes
 	require.True(t, body.Replays[0].Valid, body.Replays[0].ValidationErrors)
 	require.True(t, body.Replays[0].RuntimeSignaturePresent)
 	require.True(t, body.Replays[0].RuntimeSignatureVerified)
+	require.Equal(t, "runtime_registry", body.Replays[0].RuntimeSignatureKeySource)
 	require.Equal(t, 0, queued.remainingQueries())
 	require.Equal(t, 0, queued.remainingExecs())
 }
