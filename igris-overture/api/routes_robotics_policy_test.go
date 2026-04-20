@@ -863,6 +863,188 @@ func TestExportRoboticsAuditBundleIncludesKeyLifecycleAndReplay(t *testing.T) {
 	require.Equal(t, 0, queued.remainingExecs())
 }
 
+func TestHILRoboticsStopAndCancelEvidenceExportsThroughAuditBundle(t *testing.T) {
+	t.Parallel()
+
+	publicKey, privateKey, err := ed25519.GenerateKey(nil)
+	require.NoError(t, err)
+	publicKeyHex := hex.EncodeToString(publicKey)
+	taskIDStop := uuid.New()
+	taskIDCancel := uuid.New()
+	persistedAt := time.Unix(1_900_302_000, 0).UTC()
+	stopEnvelope := signedRouteRuntimeArtifact(t, privateKey, map[string]any{
+		"execution_id":       "exec-hil-stop-timeout",
+		"tenant_id":          "tenant-robotics-policy",
+		"policy_decision_id": "decision-hil-stop-timeout",
+		"routing_decision":   "ros2:emergency_stop:timeout",
+	})
+	stopReceipt := signedRouteRuntimeArtifact(t, privateKey, map[string]any{
+		"execution_id":       "exec-hil-stop-timeout",
+		"receipt_hash":       "receipt-hash-hil-stop-timeout",
+		"violation_occurred": true,
+	})
+	cancelEnvelope := signedRouteRuntimeArtifact(t, privateKey, map[string]any{
+		"execution_id":       "exec-hil-cancel-failed",
+		"tenant_id":          "tenant-robotics-policy",
+		"policy_decision_id": "decision-hil-cancel-failed",
+		"routing_decision":   "ros2:cancel_navigation:failed",
+	})
+	cancelReceipt := signedRouteRuntimeArtifact(t, privateKey, map[string]any{
+		"execution_id":       "exec-hil-cancel-failed",
+		"receipt_hash":       "receipt-hash-hil-cancel-failed",
+		"violation_occurred": true,
+	})
+	stopDecision := []byte(`{
+		"schema_version":"governed_policy_decision.v1",
+		"decision_id":"decision-hil-stop-timeout",
+		"tenant_id":"tenant-robotics-policy",
+		"task_id":"` + taskIDStop.String() + `",
+		"runtime_id":"runtime-hil",
+		"action":{
+			"schema_version":"governed_action.v1",
+			"domain":"robotics",
+			"action_type":"ros2_action",
+			"action_name":"emergency_stop",
+			"node_id":"hil-stop-node",
+			"step_index":0,
+			"target":"hardware-loop-base",
+			"requires_policy":true,
+			"safety_mode_required":true
+		},
+		"permit":true,
+		"reason":"timeout",
+		"policy_version":"robotics-policy.hil",
+		"runtime_permitted":true,
+		"tenant_permitted":true,
+		"policy_permitted":true,
+		"robot_mode_permitted":true,
+		"issued_at_unix_ms":1900302000000,
+		"expires_at_unix_ms":1900302030000,
+		"signature":"policy-sig-hil-stop"
+	}`)
+	cancelDecision := []byte(`{
+		"schema_version":"governed_policy_decision.v1",
+		"decision_id":"decision-hil-cancel-failed",
+		"tenant_id":"tenant-robotics-policy",
+		"task_id":"` + taskIDCancel.String() + `",
+		"runtime_id":"runtime-hil",
+		"action":{
+			"schema_version":"governed_action.v1",
+			"domain":"robotics",
+			"action_type":"ros2_action",
+			"action_name":"cancel_navigation",
+			"node_id":"hil-cancel-node",
+			"step_index":1,
+			"target":"hardware-loop-base",
+			"requires_policy":true,
+			"safety_mode_required":true
+		},
+		"permit":true,
+		"reason":"runtime failure",
+		"policy_version":"robotics-policy.hil",
+		"runtime_permitted":true,
+		"tenant_permitted":true,
+		"policy_permitted":true,
+		"robot_mode_permitted":true,
+		"issued_at_unix_ms":1900302001000,
+		"expires_at_unix_ms":1900302031000,
+		"signature":"policy-sig-hil-cancel"
+	}`)
+	replayColumns := []string{
+		"task_id", "tenant_id", "runtime_id", "execution_id",
+		"policy_decision_id", "policy_version", "robot_action",
+		"robot_node_id", "robot_target", "permit", "reason",
+		"routing_decision", "policy_decision_hash", "governed_action_hash",
+		"receipt_hash", "receipt_signature", "envelope_signature",
+		"policy_signature", "violation_occurred", "violation",
+		"signed_policy_decision", "execution_envelope", "execution_receipt",
+		"persisted_at", "runtime_public_key_ed25519",
+	}
+	db, queued := newQueuedRouteDB(t, []queuedRouteQueryExpectation{
+		{
+			columns: replayColumns,
+			rows: [][]driver.Value{
+				{
+					taskIDStop.String(), "tenant-robotics-policy", "runtime-hil", "exec-hil-stop-timeout",
+					"decision-hil-stop-timeout", "robotics-policy.hil", "emergency_stop",
+					"hil-stop-node", "hardware-loop-base", true, "timeout", "ros2:emergency_stop:timeout",
+					"", "", "receipt-hash-hil-stop-timeout", jsonFieldString(t, stopReceipt, "signature"),
+					jsonFieldString(t, stopEnvelope, "signature"), "policy-sig-hil-stop", true, "stop timeout",
+					stopDecision, stopEnvelope, stopReceipt, persistedAt, publicKeyHex,
+				},
+				{
+					taskIDCancel.String(), "tenant-robotics-policy", "runtime-hil", "exec-hil-cancel-failed",
+					"decision-hil-cancel-failed", "robotics-policy.hil", "cancel_navigation",
+					"hil-cancel-node", "hardware-loop-base", true, "runtime failure", "ros2:cancel_navigation:failed",
+					"", "", "receipt-hash-hil-cancel-failed", jsonFieldString(t, cancelReceipt, "signature"),
+					jsonFieldString(t, cancelEnvelope, "signature"), "policy-sig-hil-cancel", true, "cancel failed",
+					cancelDecision, cancelEnvelope, cancelReceipt, persistedAt.Add(time.Second), publicKeyHex,
+				},
+			},
+		},
+		{
+			columns: []string{
+				"tenant_id", "key_version", "action", "actor_id",
+				"actor_email", "signer_identity", "signer_key_version",
+				"command_nonce", "command_hash", "command_signature",
+				"previous_status", "new_status", "key_snapshot", "occurred_at",
+			},
+			rows: nil,
+		},
+	})
+	app := roboticsPolicyTestApp("tenant-robotics-policy")
+	app.Get("/v1/receipts/robotics/audit-export", exportRoboticsAuditBundle(db))
+
+	req := httptest.NewRequest(http.MethodGet, "/v1/receipts/robotics/audit-export?limit=10", nil)
+	resp, err := app.Test(req)
+	require.NoError(t, err)
+	require.Equal(t, http.StatusOK, resp.StatusCode)
+
+	var body struct {
+		RobotExecutionReplays []struct {
+			PolicyDecisionID          string `json:"policy_decision_id"`
+			RobotAction               string `json:"robot_action"`
+			Reason                    string `json:"reason"`
+			ViolationOccurred         bool   `json:"violation_occurred"`
+			RuntimeSignatureVerified  bool   `json:"runtime_signature_verified"`
+			RuntimeSignatureKeySource string `json:"runtime_signature_key_source"`
+		} `json:"robot_execution_replays"`
+		Totals map[string]int `json:"totals"`
+	}
+	require.NoError(t, json.NewDecoder(resp.Body).Decode(&body))
+	require.Len(t, body.RobotExecutionReplays, 2)
+	byAction := map[string]struct {
+		Reason                    string
+		ViolationOccurred         bool
+		RuntimeSignatureVerified  bool
+		RuntimeSignatureKeySource string
+	}{}
+	for _, replay := range body.RobotExecutionReplays {
+		byAction[replay.RobotAction] = struct {
+			Reason                    string
+			ViolationOccurred         bool
+			RuntimeSignatureVerified  bool
+			RuntimeSignatureKeySource string
+		}{
+			Reason:                    replay.Reason,
+			ViolationOccurred:         replay.ViolationOccurred,
+			RuntimeSignatureVerified:  replay.RuntimeSignatureVerified,
+			RuntimeSignatureKeySource: replay.RuntimeSignatureKeySource,
+		}
+	}
+	require.Equal(t, "timeout", byAction["emergency_stop"].Reason)
+	require.True(t, byAction["emergency_stop"].ViolationOccurred)
+	require.True(t, byAction["emergency_stop"].RuntimeSignatureVerified)
+	require.Equal(t, "runtime_registry", byAction["emergency_stop"].RuntimeSignatureKeySource)
+	require.Equal(t, "runtime failure", byAction["cancel_navigation"].Reason)
+	require.True(t, byAction["cancel_navigation"].ViolationOccurred)
+	require.True(t, byAction["cancel_navigation"].RuntimeSignatureVerified)
+	require.Equal(t, "runtime_registry", byAction["cancel_navigation"].RuntimeSignatureKeySource)
+	require.Equal(t, 2, body.Totals["robot_execution_replay"])
+	require.Equal(t, 0, queued.remainingQueries())
+	require.Equal(t, 0, queued.remainingExecs())
+}
+
 func TestCleanupExpiredRoboticsPolicyCommandNonces(t *testing.T) {
 	t.Parallel()
 
