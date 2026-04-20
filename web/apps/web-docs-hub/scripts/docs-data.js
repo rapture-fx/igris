@@ -428,7 +428,7 @@ const rawApiSections = [
         auth: 'Session cookie or igris_ API key',
         surface: 'Cloud API',
         stability: 'stable',
-        description: 'Validates a provider key with the current backend implementation.',
+        description: 'Validates that a stored provider key can be used for the selected provider.',
       },
       {
         method: 'GET',
@@ -1145,6 +1145,13 @@ const bannedPatterns = [
   { pattern: /\bemergency-stop HTTP endpoint\b/i, message: 'Do not document an emergency-stop HTTP endpoint unless it is implemented and audited.' },
   { pattern: /\bclient\.streamInference\s*\(/, message: 'The JavaScript SDK does not expose client.streamInference(); document implemented streaming surfaces only.' },
   { pattern: /\bSDK streaming helpers?\s+(is|are)\s+(available|implemented)\b/i, message: 'Do not present SDK streaming helpers as implemented unless the SDK exposes them and snippets compile.' },
+  { pattern: /\bwithout reading the server implementation\b/i, message: 'Customer-facing docs must describe product contracts without referencing server implementation.' },
+  { pattern: /\bserver implementation\b/i, message: 'Customer-facing docs must not frame behavior around server implementation details.' },
+  { pattern: /\bcurrent backend implementation\b/i, message: 'Customer-facing docs must describe supported product behavior, not backend implementation.' },
+  { pattern: /\bcurrent public vault handler\b/i, message: 'Use customer-facing vault/API language instead of handler terminology.' },
+  { pattern: /\bcodebase includes\b/i, message: 'Customer-facing docs must not describe internal codebase plumbing.' },
+  { pattern: /\binternal admin handlers\b/i, message: 'Do not expose internal/admin handler framing in customer-facing docs.' },
+  { pattern: /cmd\/igris-overture\/main\.go/i, message: 'Customer-facing docs must not reference internal source paths.' },
 ];
 
 module.exports = {
