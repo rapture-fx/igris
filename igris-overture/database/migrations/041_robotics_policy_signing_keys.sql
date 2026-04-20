@@ -9,7 +9,7 @@ CREATE TABLE IF NOT EXISTS robotics_policy_signing_keys (
     key_version TEXT NOT NULL,
     signer_identity TEXT NOT NULL,
     public_key_ed25519 TEXT NOT NULL,
-    status TEXT NOT NULL DEFAULT 'active' CHECK (status IN ('active','revoked','expired')),
+    status TEXT NOT NULL DEFAULT 'draft' CHECK (status IN ('draft','active','revoked','expired')),
     not_before TIMESTAMPTZ NOT NULL DEFAULT NOW(),
     expires_at TIMESTAMPTZ,
     created_by TEXT,
