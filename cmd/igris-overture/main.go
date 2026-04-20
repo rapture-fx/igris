@@ -503,6 +503,8 @@ func main() {
 		// Governed robotics policy lifecycle and runtime allow-list
 		api.RegisterRoboticsPolicyRoutes(app, dbInstance)
 		log.Println("[RoboticsPolicy] ✅ Robotics policy endpoints registered (/v1/robotics/policies)")
+		api.StartRoboticsPolicyCommandNonceCleanup(context.Background(), dbInstance, time.Hour)
+		log.Println("[RoboticsPolicy] ✅ Expired policy command nonce cleanup started")
 
 		// Fleet config push and OTA updates
 		api.RegisterFleetPushRoutes(app, dbInstance)

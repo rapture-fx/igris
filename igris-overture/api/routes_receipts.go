@@ -262,12 +262,12 @@ type roboticsPolicyKeyLifecycleAuditRecord struct {
 }
 
 type roboticsAuditExportBundle struct {
-	TenantID              string                                    `json:"tenant_id"`
-	ExportedAt           time.Time                                 `json:"exported_at"`
-	Filters              map[string]string                         `json:"filters"`
-	PolicyKeyLifecycle   []roboticsPolicyKeyLifecycleAuditRecord   `json:"policy_key_lifecycle"`
-	RobotExecutionReplay []coordinator.RoboticsAuditReplay         `json:"robot_execution_replays"`
-	Totals               map[string]int                            `json:"totals"`
+	TenantID             string                                  `json:"tenant_id"`
+	ExportedAt           time.Time                               `json:"exported_at"`
+	Filters              map[string]string                       `json:"filters"`
+	PolicyKeyLifecycle   []roboticsPolicyKeyLifecycleAuditRecord `json:"policy_key_lifecycle"`
+	RobotExecutionReplay []coordinator.RoboticsAuditReplay       `json:"robot_execution_replays"`
+	Totals               map[string]int                          `json:"totals"`
 }
 
 func exportRoboticsAuditBundle(db *sql.DB) fiber.Handler {
@@ -301,13 +301,13 @@ func exportRoboticsAuditBundle(db *sql.DB) fiber.Handler {
 		}
 
 		bundle := roboticsAuditExportBundle{
-			TenantID:              tenantID,
+			TenantID:             tenantID,
 			ExportedAt:           time.Now().UTC(),
 			Filters:              roboticsAuditExportFilters(c),
 			PolicyKeyLifecycle:   keyLifecycle,
 			RobotExecutionReplay: replays,
 			Totals: map[string]int{
-				"policy_key_lifecycle":  len(keyLifecycle),
+				"policy_key_lifecycle":   len(keyLifecycle),
 				"robot_execution_replay": len(replays),
 			},
 		}

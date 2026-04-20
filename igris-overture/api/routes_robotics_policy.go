@@ -324,6 +324,53 @@ func canonicalRoboticsPolicyCommand(method, path, keyVersion, signedAt, nonce, a
 	return []byte(payload)
 }
 
+// CleanupExpiredRoboticsPolicyCommandNonces removes consumed lifecycle command
+// nonces after their replay-protection window has elapsed.
+func CleanupExpiredRoboticsPolicyCommandNonces(ctx context.Context, db *sql.DB) (int64, error) {
+	if db == nil {
+		return 0, nil
+	}
+	result, err := db.ExecContext(ctx, `
+		DELETE FROM robotics_policy_command_nonces
+		WHERE expires_at < NOW()`)
+	if err != nil {
+		return 0, err
+	}
+	rowsAffected, err := result.RowsAffected()
+	if err != nil {
+		return 0, nil
+	}
+	return rowsAffected, nil
+}
+
+func StartRoboticsPolicyCommandNonceCleanup(ctx context.Context, db *sql.DB, interval time.Duration) {
+	if db == nil {
+		return
+	}
+	if interval <= 0 {
+		interval = time.Hour
+	}
+	go func() {
+		ticker := time.NewTicker(interval)
+		defer ticker.Stop()
+		for {
+			select {
+			case <-ctx.Done():
+				return
+			case <-ticker.C:
+				deleted, err := CleanupExpiredRoboticsPolicyCommandNonces(ctx, db)
+				if err != nil {
+					log.Error().Err(err).Msg("[RoboticsPolicy] nonce cleanup failed")
+					continue
+				}
+				if deleted > 0 {
+					log.Info().Int64("deleted", deleted).Msg("[RoboticsPolicy] expired command nonces cleaned")
+				}
+			}
+		}
+	}()
+}
+
 func insertRoboticsPolicyLifecycleAudit(exec interface {
 	ExecContext(ctx context.Context, query string, args ...interface{}) (sql.Result, error)
 }, ctx context.Context, tenantID string, policy *roboticsPolicyResponse, action string, actor roboticsPolicyActor, previousStatus string) error {
