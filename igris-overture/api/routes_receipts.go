@@ -3,6 +3,7 @@
 package api
 
 import (
+	"context"
 	"database/sql"
 	"encoding/csv"
 	"encoding/json"
@@ -47,12 +48,13 @@ func RegisterReceiptRoutes(app *fiber.App, db *sql.DB) {
 	auth := middleware.BetterAuth(db)
 	// /export must be registered before /:id so Fiber doesn't treat "export" as an ID.
 	app.Get("/v1/receipts/export", auth, exportReceipts(db))
+	app.Get("/v1/receipts/robotics/audit-export", auth, exportRoboticsAuditBundle(db))
 	app.Get("/v1/receipts/robotics/replay", auth, replayRoboticsReceipts(db))
 	app.Get("/v1/receipts/robotics", auth, listRoboticsReceipts(db))
 	app.Get("/v1/receipts/:id", auth, getReceipt(db))
 	app.Get("/v1/receipts", auth, listReceipts(db))
 
-	log.Info().Msg("[Routes] Registered receipt endpoints (/v1/receipts, /v1/receipts/:id, /v1/receipts/export, /v1/receipts/robotics, /v1/receipts/robotics/replay)")
+	log.Info().Msg("[Routes] Registered receipt endpoints (/v1/receipts, /v1/receipts/:id, /v1/receipts/export, /v1/receipts/robotics, /v1/receipts/robotics/replay, /v1/receipts/robotics/audit-export)")
 }
 
 // scanReceipt scans a single row from execution_lineage into a Receipt.
@@ -240,6 +242,176 @@ func replayRoboticsReceipts(db *sql.DB) fiber.Handler {
 		}
 		return c.JSON(fiber.Map{"replays": replays, "total": len(replays)})
 	}
+}
+
+type roboticsPolicyKeyLifecycleAuditRecord struct {
+	TenantID         string          `json:"tenant_id"`
+	KeyVersion       string          `json:"key_version"`
+	Action           string          `json:"action"`
+	ActorID          string          `json:"actor_id"`
+	ActorEmail       string          `json:"actor_email,omitempty"`
+	SignerIdentity   string          `json:"signer_identity"`
+	SignerKeyVersion string          `json:"signer_key_version,omitempty"`
+	CommandNonce     string          `json:"command_nonce,omitempty"`
+	CommandHash      string          `json:"command_hash,omitempty"`
+	CommandSignature string          `json:"command_signature,omitempty"`
+	PreviousStatus   string          `json:"previous_status,omitempty"`
+	NewStatus        string          `json:"new_status"`
+	KeySnapshot      json.RawMessage `json:"key_snapshot"`
+	OccurredAt       time.Time       `json:"occurred_at"`
+}
+
+type roboticsAuditExportBundle struct {
+	TenantID              string                                    `json:"tenant_id"`
+	ExportedAt           time.Time                                 `json:"exported_at"`
+	Filters              map[string]string                         `json:"filters"`
+	PolicyKeyLifecycle   []roboticsPolicyKeyLifecycleAuditRecord   `json:"policy_key_lifecycle"`
+	RobotExecutionReplay []coordinator.RoboticsAuditReplay         `json:"robot_execution_replays"`
+	Totals               map[string]int                            `json:"totals"`
+}
+
+func exportRoboticsAuditBundle(db *sql.DB) fiber.Handler {
+	store := coordinator.NewCheckpointStore(db)
+	return func(c *fiber.Ctx) error {
+		tenantID := middleware.GetClerkUserID(c)
+		if tenantID == "" {
+			return c.Status(fiber.StatusUnauthorized).JSON(fiber.Map{"error": "unauthorized"})
+		}
+
+		filter, err := roboticsReceiptFilterFromQuery(c)
+		if err != nil {
+			return err
+		}
+		keyLimit := c.QueryInt("key_limit", 100)
+		if keyLimit <= 0 || keyLimit > 500 {
+			keyLimit = 100
+		}
+		keyVersion := c.Query("key_version")
+		keyAction := c.Query("key_action")
+
+		replays, err := store.ReplayRoboticsAudit(tenantID, filter)
+		if err != nil {
+			log.Error().Err(err).Str("tenant_id", tenantID).Msg("[Receipts] exportRoboticsAuditBundle replay query failed")
+			return c.Status(fiber.StatusInternalServerError).JSON(fiber.Map{"error": "internal_error"})
+		}
+		keyLifecycle, err := listRoboticsPolicyKeyLifecycleAudit(c.Context(), db, tenantID, keyLimit, keyVersion, keyAction)
+		if err != nil {
+			log.Error().Err(err).Str("tenant_id", tenantID).Msg("[Receipts] exportRoboticsAuditBundle key audit query failed")
+			return c.Status(fiber.StatusInternalServerError).JSON(fiber.Map{"error": "internal_error"})
+		}
+
+		bundle := roboticsAuditExportBundle{
+			TenantID:              tenantID,
+			ExportedAt:           time.Now().UTC(),
+			Filters:              roboticsAuditExportFilters(c),
+			PolicyKeyLifecycle:   keyLifecycle,
+			RobotExecutionReplay: replays,
+			Totals: map[string]int{
+				"policy_key_lifecycle":  len(keyLifecycle),
+				"robot_execution_replay": len(replays),
+			},
+		}
+
+		switch c.Query("format", "json") {
+		case "jsonl":
+			c.Set("Content-Type", "application/x-ndjson")
+			c.Set("Content-Disposition", "attachment; filename=\"robotics-audit-bundle.jsonl\"")
+			header, _ := json.Marshal(fiber.Map{
+				"type":        "robotics_audit_bundle",
+				"tenant_id":   bundle.TenantID,
+				"exported_at": bundle.ExportedAt,
+				"filters":     bundle.Filters,
+				"totals":      bundle.Totals,
+			})
+			_, _ = c.Response().BodyWriter().Write(append(header, '\n'))
+			for _, record := range bundle.PolicyKeyLifecycle {
+				line, _ := json.Marshal(fiber.Map{"type": "policy_key_lifecycle", "record": record})
+				_, _ = c.Response().BodyWriter().Write(append(line, '\n'))
+			}
+			for _, replay := range bundle.RobotExecutionReplay {
+				line, _ := json.Marshal(fiber.Map{"type": "robot_execution_replay", "record": replay})
+				_, _ = c.Response().BodyWriter().Write(append(line, '\n'))
+			}
+			return nil
+		default:
+			c.Set("Content-Type", "application/json")
+			c.Set("Content-Disposition", "attachment; filename=\"robotics-audit-bundle.json\"")
+			return c.JSON(bundle)
+		}
+	}
+}
+
+func roboticsAuditExportFilters(c *fiber.Ctx) map[string]string {
+	keys := []string{"task_id", "policy_decision_id", "robot_action", "limit", "key_version", "key_action", "key_limit"}
+	filters := make(map[string]string, len(keys))
+	for _, key := range keys {
+		if value := c.Query(key); value != "" {
+			filters[key] = value
+		}
+	}
+	return filters
+}
+
+func listRoboticsPolicyKeyLifecycleAudit(ctx context.Context, db *sql.DB, tenantID string, limit int, keyVersion, action string) ([]roboticsPolicyKeyLifecycleAuditRecord, error) {
+	args := []interface{}{tenantID}
+	where := "tenant_id = $1"
+	if keyVersion != "" {
+		args = append(args, keyVersion)
+		where += fmt.Sprintf(" AND key_version = $%d", len(args))
+	}
+	if action != "" {
+		args = append(args, action)
+		where += fmt.Sprintf(" AND action = $%d", len(args))
+	}
+	args = append(args, limit)
+
+	rows, err := db.QueryContext(ctx, fmt.Sprintf(`
+		SELECT tenant_id, key_version, action, actor_id,
+		       actor_email, signer_identity, signer_key_version,
+		       command_nonce, command_hash, command_signature,
+		       previous_status, new_status, key_snapshot, occurred_at
+		FROM robotics_policy_key_lifecycle_audit
+		WHERE %s
+		ORDER BY occurred_at DESC
+		LIMIT $%d`, where, len(args)), args...)
+	if err != nil {
+		return nil, err
+	}
+	defer rows.Close()
+
+	records := make([]roboticsPolicyKeyLifecycleAuditRecord, 0)
+	for rows.Next() {
+		var record roboticsPolicyKeyLifecycleAuditRecord
+		var actorEmail, signerKeyVersion, commandNonce, commandHash, commandSignature, previousStatus sql.NullString
+		var snapshot []byte
+		if err := rows.Scan(
+			&record.TenantID,
+			&record.KeyVersion,
+			&record.Action,
+			&record.ActorID,
+			&actorEmail,
+			&record.SignerIdentity,
+			&signerKeyVersion,
+			&commandNonce,
+			&commandHash,
+			&commandSignature,
+			&previousStatus,
+			&record.NewStatus,
+			&snapshot,
+			&record.OccurredAt,
+		); err != nil {
+			return nil, err
+		}
+		record.ActorEmail = actorEmail.String
+		record.SignerKeyVersion = signerKeyVersion.String
+		record.CommandNonce = commandNonce.String
+		record.CommandHash = commandHash.String
+		record.CommandSignature = commandSignature.String
+		record.PreviousStatus = previousStatus.String
+		record.KeySnapshot = json.RawMessage(snapshot)
+		records = append(records, record)
+	}
+	return records, rows.Err()
 }
 
 func roboticsReceiptFilterFromQuery(c *fiber.Ctx) (coordinator.RoboticsAuditReceiptFilter, error) {
