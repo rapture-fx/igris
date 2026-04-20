@@ -1,0 +1,59 @@
+name: Backend Postgres
+
+on:
+  pull_request:
+    paths:
+      - ".github/workflows/backend-postgres.yml"
+      - "cmd/igris-overture/**"
+      - "igris-overture/**"
+      - "go.mod"
+      - "go.sum"
+  push:
+    branches:
+      - main
+      - master
+    paths:
+      - ".github/workflows/backend-postgres.yml"
+      - "cmd/igris-overture/**"
+      - "igris-overture/**"
+      - "go.mod"
+      - "go.sum"
+
+jobs:
+  robotics-postgres:
+    name: robotics Postgres migrations
+    runs-on: ubuntu-latest
+
+    services:
+      postgres:
+        image: postgres:16
+        env:
+          POSTGRES_USER: postgres
+          POSTGRES_PASSWORD: postgres
+          POSTGRES_DB: igris_overture_test
+        ports:
+          - 5432:5432
+        options: >-
+          --health-cmd "pg_isready -U postgres -d igris_overture_test"
+          --health-interval 10s
+          --health-timeout 5s
+          --health-retries 5
+
+    env:
+      IGRIS_OVERTURE_POSTGRES_TEST_DSN: postgres://postgres:postgres@localhost:5432/igris_overture_test?sslmode=disable
+
+    steps:
+      - name: Checkout
+        uses: actions/checkout@v4
+
+      - name: Setup Go
+        uses: actions/setup-go@v5
+        with:
+          go-version: "1.24.x"
+          cache: true
+
+      - name: Run mandatory robotics Postgres migration tests
+        run: go test ./igris-overture/api -run 'TestRoboticsPolicyActivationWithPostgresMigrations' -count=1 -timeout=120s
+
+      - name: Run robotics coordinator Postgres replay tests
+        run: go test ./igris-overture/coordinator -run 'Postgres|Robotics' -count=1 -timeout=120s
