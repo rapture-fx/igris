@@ -255,6 +255,53 @@ func TestActivateRoboticsPolicySigningKeyRequiresSignedCommandAndAudits(t *testi
 	require.Equal(t, 0, queued.remainingExecs())
 }
 
+func TestRoboticsPolicySigningKeyRevokeAndExpireAudit(t *testing.T) {
+	t.Parallel()
+
+	for _, tc := range []struct {
+		name       string
+		status     string
+		pathSuffix string
+		action     string
+	}{
+		{name: "revoke", status: "revoked", pathSuffix: "revoke", action: "signing_key_revoke"},
+		{name: "expire", status: "expired", pathSuffix: "expire", action: "signing_key_expire"},
+	} {
+		tc := tc
+		t.Run(tc.name, func(t *testing.T) {
+			t.Parallel()
+
+			publicKey, privateKey, err := ed25519.GenerateKey(nil)
+			require.NoError(t, err)
+			db, queued := newQueuedRouteDB(t, []queuedRouteQueryExpectation{
+				roboticsPolicySignerKeyRouteRow(publicKey),
+				{
+					columns: []string{"status"},
+					rows:    [][]driver.Value{{"active"}},
+				},
+				{
+					columns: roboticsPolicySigningKeyRouteColumns(),
+					rows:    [][]driver.Value{roboticsPolicySigningKeyRouteRow(publicKey, tc.status)},
+				},
+			}, queuedRouteExecExpectation{rowsAffected: 1}, queuedRouteExecExpectation{rowsAffected: 1})
+			app := roboticsPolicyTestApp("tenant-robotics-policy")
+			app.Post("/v1/robotics/policies/signing-keys/:version/"+tc.pathSuffix, roboticsPolicySigningKeyLifecycleUpdate(db, tc.status))
+
+			path := "/v1/robotics/policies/signing-keys/key-v2/" + tc.pathSuffix
+			req := signedRoboticsPolicyRouteRequest(t, http.MethodPost, path, "", privateKey, "key-v2", tc.action)
+			resp, err := app.Test(req)
+			require.NoError(t, err)
+			require.Equal(t, http.StatusOK, resp.StatusCode)
+
+			var result roboticsPolicySigningKeyResponse
+			require.NoError(t, json.NewDecoder(resp.Body).Decode(&result))
+			require.Equal(t, tc.status, result.Status)
+			require.Equal(t, 0, queued.remainingQueries())
+			require.Equal(t, 0, queued.remainingExecs())
+		})
+	}
+}
+
 func TestCreateDraftRoboticsPolicyRoute(t *testing.T) {
 	t.Parallel()
 

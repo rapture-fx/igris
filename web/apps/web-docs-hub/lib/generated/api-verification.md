@@ -1,15 +1,15 @@
 # API Verification Report
 
-Generated: 2026-04-18T15:43:53.298Z
+Generated: 2026-04-20T12:34:16.719Z
 
 This report is evidence-based. It does not claim endpoint health beyond what is present in route registration, tests, and client references in this repository.
 
 ## Summary
 
 - Total documented endpoints: 103
-- Test-covered: 12
+- Test-covered: 14
 - Client-referenced: 12
-- Implemented but unverified: 79
+- Implemented but unverified: 77
 
 ## Endpoints
 
@@ -48,8 +48,8 @@ This report is evidence-based. It does not claim endpoint health beyond what is 
 | implemented-unverified | PUT | `/v1/policy` | Vault, Policy, and Governance | none |
 | implemented-unverified | GET | `/v1/policy/history` | Vault, Policy, and Governance | none |
 | implemented-unverified | GET | `/v1/history/events` | Execution, History, and Receipts | none |
-| implemented-unverified | GET | `/v1/receipts` | Execution, History, and Receipts | none |
-| implemented-unverified | GET | `/v1/receipts/:id` | Execution, History, and Receipts | none |
+| test-covered | GET | `/v1/receipts` | Execution, History, and Receipts | tests: 1 |
+| test-covered | GET | `/v1/receipts/:id` | Execution, History, and Receipts | tests: 1 |
 | implemented-unverified | GET | `/v1/receipts/export` | Execution, History, and Receipts | none |
 | implemented-unverified | POST | `/proof/receipts/verify` | Execution, History, and Receipts | none |
 | implemented-unverified | GET | `/v1/routing/stats` | Routing Control & Analytics | none |

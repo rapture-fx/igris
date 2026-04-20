@@ -1,15 +1,15 @@
 {
-  "generated_at": "2026-04-18T15:44:03.126Z",
+  "generated_at": "2026-04-20T12:34:34.295Z",
   "summary": {
-    "total": 936,
+    "total": 932,
     "by_status": {
-      "implemented": 936
+      "implemented": 932
     }
   },
   "guide_summary": {
-    "total": 207,
+    "total": 203,
     "by_status": {
-      "implemented": 207
+      "implemented": 203
     }
   },
   "pages": [
@@ -1110,14 +1110,6 @@
       "total_route_claims": 2
     },
     {
-      "file": "web/apps/web-docs-hub/content/docs/slo-enforcer.mdx",
-      "implemented": 4,
-      "missing": 0,
-      "wrong_surface": 0,
-      "wrong_method": 0,
-      "total_route_claims": 4
-    },
-    {
       "file": "web/apps/web-docs-hub/content/docs/speculative-execution.mdx",
       "implemented": 8,
       "missing": 0,
@@ -1430,14 +1422,6 @@
       "wrong_surface": 0,
       "wrong_method": 0,
       "total_route_claims": 2
-    },
-    {
-      "file": "web/apps/web-docs-hub/content/docs/slo-enforcer.mdx",
-      "implemented": 4,
-      "missing": 0,
-      "wrong_surface": 0,
-      "wrong_method": 0,
-      "total_route_claims": 4
     },
     {
       "file": "web/apps/web-docs-hub/content/docs/speculative-execution.mdx",
@@ -3534,6 +3518,12 @@
         },
         {
           "method": "GET",
+          "path": "/v1/receipts/robotics",
+          "file": "igris-overture/api/routes_receipts.go",
+          "surface": "cloud-api"
+        },
+        {
+          "method": "GET",
           "path": "/v1/receipts/:id",
           "file": "igris-overture/api/routes_receipts.go",
           "surface": "cloud-api"
@@ -3677,6 +3667,12 @@
         },
         {
           "method": "GET",
+          "path": "/v1/receipts/robotics",
+          "file": "igris-overture/api/routes_receipts.go",
+          "surface": "cloud-api"
+        },
+        {
+          "method": "GET",
           "path": "/v1/receipts/:id",
           "file": "igris-overture/api/routes_receipts.go",
           "surface": "cloud-api"
@@ -3723,6 +3719,12 @@
         },
         {
           "method": "GET",
+          "path": "/v1/receipts/robotics",
+          "file": "igris-overture/api/routes_receipts.go",
+          "surface": "cloud-api"
+        },
+        {
+          "method": "GET",
           "path": "/v1/receipts/:id",
           "file": "igris-overture/api/routes_receipts.go",
           "surface": "cloud-api"
@@ -3741,6 +3743,12 @@
         {
           "method": "GET",
           "path": "/v1/receipts/export",
+          "file": "igris-overture/api/routes_receipts.go",
+          "surface": "cloud-api"
+        },
+        {
+          "method": "GET",
+          "path": "/v1/receipts/robotics",
           "file": "igris-overture/api/routes_receipts.go",
           "surface": "cloud-api"
         },
@@ -3894,6 +3902,12 @@
         },
         {
           "method": "GET",
+          "path": "/v1/receipts/robotics",
+          "file": "igris-overture/api/routes_receipts.go",
+          "surface": "cloud-api"
+        },
+        {
+          "method": "GET",
           "path": "/v1/receipts/:id",
           "file": "igris-overture/api/routes_receipts.go",
           "surface": "cloud-api"
@@ -4020,6 +4034,12 @@
         {
           "method": "GET",
           "path": "/v1/receipts/export",
+          "file": "igris-overture/api/routes_receipts.go",
+          "surface": "cloud-api"
+        },
+        {
+          "method": "GET",
+          "path": "/v1/receipts/robotics",
           "file": "igris-overture/api/routes_receipts.go",
           "surface": "cloud-api"
         },
@@ -4672,7 +4692,7 @@
       "method": "POST",
       "path": "/v1/vault/keys/:provider/validate",
       "expected_surface": null,
-      "source": "- [`POST /v1/vault/keys/:provider/validate`](/docs/api-reference/vault-policy-and-governance/post-v1-vault-keys-provider-validate) — Validates a provider key with the current backend implementation.",
+      "source": "- [`POST /v1/vault/keys/:provider/validate`](/docs/api-reference/vault-policy-and-governance/post-v1-vault-keys-provider-validate) — Validates that a stored provider key can be used for the selected provider.",
       "status": "implemented",
       "evidence": [
         {
@@ -4780,6 +4800,12 @@
         {
           "method": "GET",
           "path": "/v1/receipts/export",
+          "file": "igris-overture/api/routes_receipts.go",
+          "surface": "cloud-api"
+        },
+        {
+          "method": "GET",
+          "path": "/v1/receipts/robotics",
           "file": "igris-overture/api/routes_receipts.go",
           "surface": "cloud-api"
         },
@@ -17453,6 +17479,12 @@
         },
         {
           "method": "GET",
+          "path": "/v1/receipts/robotics",
+          "file": "igris-overture/api/routes_receipts.go",
+          "surface": "cloud-api"
+        },
+        {
+          "method": "GET",
           "path": "/v1/receipts/:id",
           "file": "igris-overture/api/routes_receipts.go",
           "surface": "cloud-api"
@@ -17960,6 +17992,12 @@
         {
           "method": "GET",
           "path": "/v1/receipts/export",
+          "file": "igris-overture/api/routes_receipts.go",
+          "surface": "cloud-api"
+        },
+        {
+          "method": "GET",
+          "path": "/v1/receipts/robotics",
           "file": "igris-overture/api/routes_receipts.go",
           "surface": "cloud-api"
         },
@@ -19530,74 +19568,6 @@
           "path": "/v1/execution/shadow",
           "file": "igris-overture/api/routes_execution.go",
           "surface": "cloud-api"
-        }
-      ]
-    },
-    {
-      "file": "web/apps/web-docs-hub/content/docs/slo-enforcer.mdx",
-      "line": 73,
-      "method": null,
-      "path": "/admin/slo/status",
-      "expected_surface": null,
-      "source": "| `GET` | `/admin/slo/status` | Inspect enforcer status and recent events |",
-      "status": "implemented",
-      "evidence": [
-        {
-          "method": "GET",
-          "path": "/admin/slo/status",
-          "file": "cmd/igris-overture/main.go",
-          "surface": "other"
-        }
-      ]
-    },
-    {
-      "file": "web/apps/web-docs-hub/content/docs/slo-enforcer.mdx",
-      "line": 74,
-      "method": null,
-      "path": "/admin/slo/audit",
-      "expected_surface": null,
-      "source": "| `GET` | `/admin/slo/audit` | Read recent SLO audit events |",
-      "status": "implemented",
-      "evidence": [
-        {
-          "method": "GET",
-          "path": "/admin/slo/audit",
-          "file": "cmd/igris-overture/main.go",
-          "surface": "other"
-        }
-      ]
-    },
-    {
-      "file": "web/apps/web-docs-hub/content/docs/slo-enforcer.mdx",
-      "line": 75,
-      "method": null,
-      "path": "/admin/slo/evaluate",
-      "expected_surface": null,
-      "source": "| `POST` | `/admin/slo/evaluate` | Run a manual metrics evaluation |",
-      "status": "implemented",
-      "evidence": [
-        {
-          "method": "POST",
-          "path": "/admin/slo/evaluate",
-          "file": "cmd/igris-overture/main.go",
-          "surface": "other"
-        }
-      ]
-    },
-    {
-      "file": "web/apps/web-docs-hub/content/docs/slo-enforcer.mdx",
-      "line": 76,
-      "method": null,
-      "path": "/admin/slo/metrics",
-      "expected_surface": null,
-      "source": "| `GET` | `/admin/slo/metrics` | Export Prometheus-style SLO counters |",
-      "status": "implemented",
-      "evidence": [
-        {
-          "method": "GET",
-          "path": "/admin/slo/metrics",
-          "file": "cmd/igris-overture/main.go",
-          "surface": "other"
         }
       ]
     },

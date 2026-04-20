@@ -1,11 +1,11 @@
 {
-  "generated_at": "2026-04-18T15:43:53.294Z",
+  "generated_at": "2026-04-20T12:34:16.715Z",
   "summary": {
     "total": 103,
     "by_status": {
-      "test-covered": 12,
+      "test-covered": 14,
       "client-referenced": 12,
-      "implemented-unverified": 79
+      "implemented-unverified": 77
     },
     "by_section": {
       "Inference & Integration": 7,
@@ -542,7 +542,7 @@
       "auth": "Session cookie or igris_ API key",
       "surface": "Cloud API",
       "stability": "stable",
-      "description": "Validates a provider key with the current backend implementation.",
+      "description": "Validates that a stored provider key can be used for the selected provider.",
       "status": "implemented-unverified",
       "confidence": "low",
       "note": "Route is documented and registered in code, but no direct test or client exercise was found in this repository scan.",
@@ -623,11 +623,13 @@
       "surface": "Cloud API",
       "stability": "stable",
       "description": "Lists execution receipts from the coordination layer.",
-      "status": "implemented-unverified",
-      "confidence": "low",
-      "note": "Route is documented and registered in code, but no direct test or client exercise was found in this repository scan.",
+      "status": "test-covered",
+      "confidence": "high",
+      "note": "At least one automated test references this route path and method.",
       "evidence": {
-        "test_files": [],
+        "test_files": [
+          "igris-overture/api/routes_robotics_policy_test.go"
+        ],
         "client_files": []
       }
     },
@@ -639,11 +641,13 @@
       "surface": "Cloud API",
       "stability": "stable",
       "description": "Gets a single execution receipt by execution ID.",
-      "status": "implemented-unverified",
-      "confidence": "low",
-      "note": "Route is documented and registered in code, but no direct test or client exercise was found in this repository scan.",
+      "status": "test-covered",
+      "confidence": "high",
+      "note": "At least one automated test references this route path and method.",
       "evidence": {
-        "test_files": [],
+        "test_files": [
+          "igris-overture/api/routes_robotics_policy_test.go"
+        ],
         "client_files": []
       }
     },
