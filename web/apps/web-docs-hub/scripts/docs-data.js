@@ -758,7 +758,7 @@ const rawApiSections = [
   {
     title: 'Local Runtime API',
     summary:
-      'Supported endpoints served by `igris-runtime` on the local runtime instance.',
+      'Supported endpoints served by `igris-runtime` on the local runtime instance. Keep local administration routes behind runtime authentication and a trusted network boundary.',
     endpoints: [
       {
         method: 'GET',
