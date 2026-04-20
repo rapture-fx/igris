@@ -1608,7 +1608,7 @@ function buildRequestUrl(endpoint: ApiEndpoint, queryExample?: Record<string, Ap
 }
 
 function fallbackFunctionality(section: ApiSection, endpoint: ApiEndpoint) {
-  return `${endpoint.description} This endpoint belongs to the ${section.title} group and is documented here so customers can understand the contract, auth model, and verified sample traffic without reading the server implementation.`;
+  return `${endpoint.description} This endpoint belongs to the ${section.title} group and is documented here as a customer-facing contract with its auth model, request shape, and sample traffic.`;
 }
 
 function fallbackWhenToUse(section: ApiSection, endpoint: ApiEndpoint) {
