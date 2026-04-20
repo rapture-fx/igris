@@ -1110,6 +1110,7 @@ func TestReplayRoboticsAuditReconstructsPolicyActionAndRuntimeReceipt(t *testing
 			"execution_envelope",
 			"execution_receipt",
 			"persisted_at",
+			"runtime_public_key_ed25519",
 		},
 		values: []driver.Value{
 			taskID.String(),
@@ -1136,6 +1137,7 @@ func TestReplayRoboticsAuditReconstructsPolicyActionAndRuntimeReceipt(t *testing
 			[]byte(envelope),
 			[]byte(receipt),
 			persistedAt,
+			hex.EncodeToString(publicKey),
 		},
 	}})
 	store := NewCheckpointStore(db)
@@ -1157,6 +1159,7 @@ func TestReplayRoboticsAuditReconstructsPolicyActionAndRuntimeReceipt(t *testing
 	require.Equal(t, mustJSONFieldString(t, envelope, "signature"), replays[0].RuntimeSignature)
 	require.True(t, replays[0].RuntimeSignaturePresent)
 	require.True(t, replays[0].RuntimeSignatureVerified)
+	require.Equal(t, "runtime_registry", replays[0].RuntimeSignatureKeySource)
 	require.Equal(t, 0, queued.remainingQueries())
 }
 
