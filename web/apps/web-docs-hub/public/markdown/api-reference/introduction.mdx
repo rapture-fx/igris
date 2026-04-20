@@ -1,6 +1,7 @@
 ---
 title: "Introduction"
 description: "How the Igris API reference is organized, when to use each access point, and how to move from guides into endpoint-level integration work."
+audience: "public"
 ---
 
 # Introduction
@@ -21,7 +22,7 @@ Use the overview page to browse by capability, then switch to endpoint pages whe
 
 ## SDK Guidance
 
-JavaScript, Go, and Rust are the first-class SDK languages today. When an endpoint is covered by a native SDK, prefer that SDK for application code because it gives you a cleaner call surface and reduces request-shape drift over time.
+JavaScript/TypeScript, Go, Rust, and Python are the first-class SDK languages today. When an endpoint is covered by a native SDK, prefer that SDK for application code because it gives you a cleaner call surface and reduces request-shape drift over time.
 
 Some management routes are still best treated as direct HTTP integrations. In those cases, the endpoint page is the primary contract: use the request and response examples, confirm the authentication model, and wire your own client behavior around the listed status codes.
 

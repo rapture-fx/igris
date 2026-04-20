@@ -1,27 +1,27 @@
 {
-  "generated_at": "2026-04-20T12:44:48.899Z",
+  "generated_at": "2026-04-20T23:02:05.147Z",
   "results": [
     {
       "language": "typescript",
       "examples": [
         {
-          "source": "web/apps/web-docs-hub/content/docs/sdk.mdx:88",
+          "source": "web/apps/web-docs-hub/content/docs/sdk.mdx:89",
           "generated": "web/apps/web-docs-hub/lib/generated/sdk-compile-examples/typescript/snippet_3.ts"
         },
         {
-          "source": "web/apps/web-docs-hub/content/docs/sdk.mdx:106",
+          "source": "web/apps/web-docs-hub/content/docs/sdk.mdx:107",
           "generated": "web/apps/web-docs-hub/lib/generated/sdk-compile-examples/typescript/snippet_4.ts"
         },
         {
-          "source": "web/apps/web-docs-hub/content/docs/sdk.mdx:122",
+          "source": "web/apps/web-docs-hub/content/docs/sdk.mdx:123",
           "generated": "web/apps/web-docs-hub/lib/generated/sdk-compile-examples/typescript/snippet_5.ts"
         },
         {
-          "source": "web/apps/web-docs-hub/content/docs/sdk-integration-patterns.mdx:61",
+          "source": "web/apps/web-docs-hub/content/docs/sdk-integration-patterns.mdx:63",
           "generated": "web/apps/web-docs-hub/lib/generated/sdk-compile-examples/typescript/snippet_18.ts"
         },
         {
-          "source": "web/apps/web-docs-hub/content/docs/sdk-integration-patterns.mdx:135",
+          "source": "web/apps/web-docs-hub/content/docs/sdk-integration-patterns.mdx:137",
           "generated": "web/apps/web-docs-hub/lib/generated/sdk-compile-examples/typescript/snippet_21.ts"
         }
       ],
@@ -32,11 +32,11 @@
       "language": "go",
       "examples": [
         {
-          "source": "web/apps/web-docs-hub/content/docs/sdk.mdx:144",
+          "source": "web/apps/web-docs-hub/content/docs/sdk.mdx:145",
           "generated": "web/apps/web-docs-hub/lib/generated/sdk-compile-examples/go/snippet_6/example.go"
         },
         {
-          "source": "web/apps/web-docs-hub/content/docs/sdk-integration-patterns.mdx:79",
+          "source": "web/apps/web-docs-hub/content/docs/sdk-integration-patterns.mdx:81",
           "generated": "web/apps/web-docs-hub/lib/generated/sdk-compile-examples/go/snippet_19/example.go"
         }
       ],
@@ -47,11 +47,11 @@
       "language": "rust",
       "examples": [
         {
-          "source": "web/apps/web-docs-hub/content/docs/sdk.mdx:178",
+          "source": "web/apps/web-docs-hub/content/docs/sdk.mdx:179",
           "generated": "web/apps/web-docs-hub/lib/generated/sdk-compile-examples/rust/src/bin/snippet_7.rs"
         },
         {
-          "source": "web/apps/web-docs-hub/content/docs/sdk-integration-patterns.mdx:105",
+          "source": "web/apps/web-docs-hub/content/docs/sdk-integration-patterns.mdx:107",
           "generated": "web/apps/web-docs-hub/lib/generated/sdk-compile-examples/rust/src/bin/snippet_20.rs"
         }
       ],

@@ -2,6 +2,28 @@ const fs = require('fs');
 const path = require('path');
 
 const { bannedPatterns, docsDir, generatedDir, repoRoot, sdkSupport } = require('./docs-data');
+const {
+  allowedAudiences,
+  getDocsAudienceMode,
+  isAudienceVisible,
+  parseFrontmatter,
+} = require('./docs-audience');
+
+const publicLeakPatterns = [
+  { pattern: /\bimplementation audit\b/i, message: 'Public docs must not expose implementation audit evidence.' },
+  { pattern: /\bsource-backed\b/i, message: 'Public docs must not expose source-backed validation wording.' },
+  { pattern: /\broute_inventory_count\b/i, message: 'Public docs must not expose route inventory metadata.' },
+  { pattern: /\bgenerated_from\b/i, message: 'Public docs must not expose generated artifact source metadata.' },
+  { pattern: /\bdocs-implementation-audit\b/i, message: 'Public docs must not expose implementation audit artifact names.' },
+  { pattern: /\bserver implementation\b/i, message: 'Public docs must not reference server implementation.' },
+  { pattern: /\bbackend implementation\b/i, message: 'Public docs must not reference backend implementation.' },
+  { pattern: /\bcmd\/igris-overture\b/i, message: 'Public docs must not expose internal source paths.' },
+  { pattern: /\bigris-overture\b/i, message: 'Public docs must not expose repository names as evidence.' },
+  { pattern: /\brust-core\b/i, message: 'Public docs must not expose repository names as evidence.' },
+  { pattern: /\/Users\/wira\b/i, message: 'Public docs must not expose local filesystem paths.' },
+  { pattern: /\/admin\/slo\//i, message: 'Public docs must not expose deployment-specific SLO admin paths.' },
+  { pattern: /\binternal FFI contract\b/i, message: 'Public docs must not expose internal runtime/control-plane interfaces.' },
+];
 
 function walk(dir, files = []) {
   for (const entry of fs.readdirSync(dir, { withFileTypes: true })) {
@@ -15,14 +37,30 @@ function walk(dir, files = []) {
   return files;
 }
 
+function toDocUrl(filePath) {
+  const relativePath = path.relative(docsDir, filePath).replaceAll(path.sep, '/');
+  const withoutExtension = relativePath.replace(/\.mdx$/, '');
+
+  if (withoutExtension === 'index') {
+    return '/docs';
+  }
+  if (withoutExtension.endsWith('/index')) {
+    return `/docs/${withoutExtension.slice(0, -'/index'.length)}`;
+  }
+
+  return `/docs/${withoutExtension}`;
+}
+
 function main() {
   const failures = [];
   const warnings = [];
+  const audienceMode = getDocsAudienceMode();
 
   const requiredGeneratedFiles = [
     'api-reference.json',
     'api-verification.json',
     'api-contract-validation.json',
+    'docs-audience.json',
     'sdk-snippet-validation.json',
     'sdk-compile-validation.json',
     'sdk-support.json',
@@ -35,14 +73,40 @@ function main() {
     }
   }
 
+  const docsAudiencePath = path.join(generatedDir, 'docs-audience.json');
+  const docsAudience = fs.existsSync(docsAudiencePath)
+    ? JSON.parse(fs.readFileSync(docsAudiencePath, 'utf8'))
+    : { pages: {} };
+
   for (const filePath of walk(docsDir)) {
     const content = fs.readFileSync(filePath, 'utf8');
+    const { data } = parseFrontmatter(content);
+    if (!data.audience) {
+      failures.push(`${filePath}: missing required audience frontmatter; use public, operator, or internal.`);
+    } else if (!allowedAudiences.has(data.audience)) {
+      failures.push(`${filePath}: invalid audience "${data.audience}"; use public, operator, or internal.`);
+    }
+    const docUrl = toDocUrl(filePath);
+    if (docsAudience.pages?.[docUrl] !== data.audience) {
+      failures.push(`${filePath}: docs-audience.json has "${docsAudience.pages?.[docUrl] || 'missing'}" for ${docUrl}; regenerate docs artifacts.`);
+    }
+
     for (const rule of bannedPatterns) {
       const matched = rule.pattern instanceof RegExp
         ? rule.pattern.test(content)
         : content.includes(rule.pattern);
       if (matched) {
         failures.push(`${filePath}: ${rule.message}`);
+      }
+    }
+    if (data.audience === 'public') {
+      for (const rule of publicLeakPatterns) {
+        const matched = rule.pattern instanceof RegExp
+          ? rule.pattern.test(content)
+          : content.includes(rule.pattern);
+        if (matched) {
+          failures.push(`${filePath}: ${rule.message}`);
+        }
       }
     }
     if (filePath.includes(`${path.sep}api-reference${path.sep}`) && /\/[^\s`"')<]*\{[a-zA-Z0-9_]+\}/.test(content)) {
@@ -65,6 +129,28 @@ function main() {
       }
       if (!allowedDeployment.has(endpoint.deployment)) {
         failures.push(`${key}: missing or invalid deployment mode`);
+      }
+      if (!allowedAudiences.has(endpoint.audience)) {
+        failures.push(`${key}: missing or invalid audience`);
+      }
+    }
+  }
+
+  const publicMarkdownDir = path.join(path.dirname(docsDir), '..', 'public', 'markdown');
+  if (fs.existsSync(publicMarkdownDir)) {
+    for (const filePath of walk(publicMarkdownDir)) {
+      const content = fs.readFileSync(filePath, 'utf8');
+      const { data } = parseFrontmatter(content);
+      if (!isAudienceVisible(data.audience, audienceMode)) {
+        failures.push(`${filePath}: ${data.audience} page leaked into ${audienceMode} public markdown output.`);
+      }
+      for (const rule of publicLeakPatterns) {
+        const matched = rule.pattern instanceof RegExp
+          ? rule.pattern.test(content)
+          : content.includes(rule.pattern);
+        if (matched) {
+          failures.push(`${filePath}: ${rule.message}`);
+        }
       }
     }
   }

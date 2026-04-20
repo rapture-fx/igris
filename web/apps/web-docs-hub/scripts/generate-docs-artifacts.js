@@ -2,6 +2,7 @@ const fs = require('fs');
 const path = require('path');
 
 const { apiSections, generatedDir, mcpReference, repoRoot, sdkSupport } = require('./docs-data');
+const { getDocsAudienceMode, isContentVisible, parseFrontmatter } = require('./docs-audience');
 const { generateApiReferenceContent } = require('./generate-api-reference-content');
 const docsRoot = path.join(__dirname, '../content/docs');
 const publicMarkdownDir = path.join(__dirname, '../public/markdown');
@@ -123,6 +124,9 @@ function validateConfiguredRoutes(inventory) {
       if (!endpoint.deployment) {
         metadataFailures.push(`${key}: missing deployment mode`);
       }
+      if (!endpoint.audience) {
+        metadataFailures.push(`${key}: missing audience`);
+      }
     }
   }
 
@@ -140,15 +144,51 @@ function writeJson(fileName, data) {
   fs.writeFileSync(path.join(generatedDir, fileName), `${JSON.stringify(data, null, 2)}\n`);
 }
 
+function toDocUrl(relativePath) {
+  const withoutExtension = relativePath.replace(/\.mdx$/, '');
+
+  if (withoutExtension === 'index') {
+    return '/docs';
+  }
+  if (withoutExtension.endsWith('/index')) {
+    return `/docs/${withoutExtension.slice(0, -'/index'.length)}`;
+  }
+
+  return `/docs/${withoutExtension}`;
+}
+
+function writeDocsAudienceMap() {
+  const pages = {};
+  const markdownFiles = walk(docsRoot, '.mdx');
+
+  for (const filePath of markdownFiles) {
+    const relativePath = path.relative(docsRoot, filePath).replaceAll(path.sep, '/');
+    const content = fs.readFileSync(filePath, 'utf8');
+    const { data } = parseFrontmatter(content);
+    pages[toDocUrl(relativePath)] = data.audience || 'public';
+  }
+
+  writeJson('docs-audience.json', {
+    generated_at: new Date().toISOString(),
+    pages,
+  });
+}
+
 function mirrorMarkdownSources() {
   const markdownFiles = walk(docsRoot, '.mdx');
+  const audienceMode = getDocsAudienceMode();
   fs.rmSync(publicMarkdownDir, { recursive: true, force: true });
 
   for (const filePath of markdownFiles) {
+    const content = fs.readFileSync(filePath, 'utf8');
+    if (!isContentVisible(content, audienceMode)) {
+      continue;
+    }
+
     const relativePath = path.relative(docsRoot, filePath);
     const outputPath = path.join(publicMarkdownDir, relativePath);
     fs.mkdirSync(path.dirname(outputPath), { recursive: true });
-    fs.copyFileSync(filePath, outputPath);
+    fs.writeFileSync(outputPath, content);
   }
 }
 
@@ -176,6 +216,7 @@ function main() {
   });
 
   generateApiReferenceContent();
+  writeDocsAudienceMap();
   mirrorMarkdownSources();
 
   console.log(`Generated docs artifacts in ${generatedDir}`);

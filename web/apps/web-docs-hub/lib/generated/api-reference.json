@@ -1,10 +1,10 @@
 {
-  "generated_at": "2026-04-20T12:44:04.234Z",
+  "generated_at": "2026-04-20T23:01:53.205Z",
   "generated_from": [
     "igris-overture/api/*.go",
     "igris-runtime/crates/igris-server/src/main.rs"
   ],
-  "route_inventory_count": 367,
+  "route_inventory_count": 368,
   "sections": [
     {
       "title": "Inference & Integration",
@@ -18,7 +18,8 @@
           "stability": "stable",
           "description": "Native inference endpoint handled by Overture.",
           "support": "core",
-          "deployment": "cloud"
+          "deployment": "cloud",
+          "audience": "public"
         },
         {
           "method": "POST",
@@ -28,7 +29,8 @@
           "stability": "stable",
           "description": "OpenAI-compatible chat completions endpoint.",
           "support": "core",
-          "deployment": "cloud"
+          "deployment": "cloud",
+          "audience": "public"
         },
         {
           "method": "GET",
@@ -38,7 +40,8 @@
           "stability": "stable",
           "description": "Health check for inference availability.",
           "support": "core",
-          "deployment": "cloud"
+          "deployment": "cloud",
+          "audience": "public"
         },
         {
           "method": "GET",
@@ -48,7 +51,8 @@
           "stability": "stable",
           "description": "Lists models visible to the inference layer.",
           "support": "core",
-          "deployment": "cloud"
+          "deployment": "cloud",
+          "audience": "public"
         },
         {
           "method": "GET",
@@ -58,7 +62,8 @@
           "stability": "stable",
           "description": "Provider latency, health, and routing statistics.",
           "support": "supported",
-          "deployment": "cloud"
+          "deployment": "cloud",
+          "audience": "public"
         },
         {
           "method": "POST",
@@ -68,7 +73,8 @@
           "stability": "preview",
           "description": "Multimodal inference endpoint.",
           "support": "preview",
-          "deployment": "cloud"
+          "deployment": "cloud",
+          "audience": "public"
         },
         {
           "method": "GET",
@@ -78,7 +84,8 @@
           "stability": "preview",
           "description": "Multimodal request statistics.",
           "support": "preview",
-          "deployment": "cloud"
+          "deployment": "cloud",
+          "audience": "public"
         }
       ]
     },
@@ -94,7 +101,8 @@
           "stability": "stable",
           "description": "Returns or redirects to the platform-specific runtime archive.",
           "support": "core",
-          "deployment": "hybrid"
+          "deployment": "hybrid",
+          "audience": "public"
         },
         {
           "method": "GET",
@@ -104,7 +112,8 @@
           "stability": "stable",
           "description": "Returns the SHA-256 checksum for a runtime archive.",
           "support": "core",
-          "deployment": "hybrid"
+          "deployment": "hybrid",
+          "audience": "public"
         },
         {
           "method": "GET",
@@ -114,7 +123,8 @@
           "stability": "stable",
           "description": "Subscribed runtime binary download endpoint.",
           "support": "supported",
-          "deployment": "hybrid"
+          "deployment": "hybrid",
+          "audience": "public"
         },
         {
           "method": "GET",
@@ -124,7 +134,8 @@
           "stability": "stable",
           "description": "API-key authenticated runtime binary download endpoint for runtime installers.",
           "support": "supported",
-          "deployment": "hybrid"
+          "deployment": "hybrid",
+          "audience": "public"
         },
         {
           "method": "POST",
@@ -134,7 +145,8 @@
           "stability": "stable",
           "description": "Registers a runtime instance with the hosted control plane.",
           "support": "supported",
-          "deployment": "hybrid"
+          "deployment": "hybrid",
+          "audience": "public"
         },
         {
           "method": "POST",
@@ -144,7 +156,8 @@
           "stability": "stable",
           "description": "Refreshes runtime liveness and reports whether commands are pending.",
           "support": "supported",
-          "deployment": "hybrid"
+          "deployment": "hybrid",
+          "audience": "public"
         },
         {
           "method": "GET",
@@ -154,7 +167,8 @@
           "stability": "stable",
           "description": "Fetches and clears queued commands for a registered runtime.",
           "support": "supported",
-          "deployment": "hybrid"
+          "deployment": "hybrid",
+          "audience": "public"
         },
         {
           "method": "DELETE",
@@ -164,7 +178,8 @@
           "stability": "stable",
           "description": "Marks a runtime instance as deregistered.",
           "support": "supported",
-          "deployment": "hybrid"
+          "deployment": "hybrid",
+          "audience": "public"
         },
         {
           "method": "GET",
@@ -174,7 +189,8 @@
           "stability": "stable",
           "description": "Lists registered runtime instances for a tenant.",
           "support": "supported",
-          "deployment": "hybrid"
+          "deployment": "hybrid",
+          "audience": "public"
         },
         {
           "method": "POST",
@@ -184,7 +200,8 @@
           "stability": "stable",
           "description": "Queues configuration push commands for the fleet.",
           "support": "supported",
-          "deployment": "hybrid"
+          "deployment": "hybrid",
+          "audience": "public"
         },
         {
           "method": "POST",
@@ -194,7 +211,8 @@
           "stability": "stable",
           "description": "Queues OTA update commands for the fleet.",
           "support": "supported",
-          "deployment": "hybrid"
+          "deployment": "hybrid",
+          "audience": "public"
         }
       ]
     },
@@ -210,7 +228,8 @@
           "stability": "stable",
           "description": "Returns subscription tier, status, and runtime usage.",
           "support": "supported",
-          "deployment": "cloud"
+          "deployment": "cloud",
+          "audience": "public"
         },
         {
           "method": "GET",
@@ -220,7 +239,8 @@
           "stability": "stable",
           "description": "Lists available plans and checkout URLs.",
           "support": "supported",
-          "deployment": "cloud"
+          "deployment": "cloud",
+          "audience": "public"
         },
         {
           "method": "GET",
@@ -230,7 +250,8 @@
           "stability": "stable",
           "description": "Returns current API key metadata without revealing the secret.",
           "support": "core",
-          "deployment": "cloud"
+          "deployment": "cloud",
+          "audience": "public"
         },
         {
           "method": "POST",
@@ -240,7 +261,8 @@
           "stability": "stable",
           "description": "Creates a new tenant API key and revokes the old one.",
           "support": "core",
-          "deployment": "cloud"
+          "deployment": "cloud",
+          "audience": "public"
         },
         {
           "method": "DELETE",
@@ -250,7 +272,8 @@
           "stability": "stable",
           "description": "Revokes the current tenant API key.",
           "support": "supported",
-          "deployment": "cloud"
+          "deployment": "cloud",
+          "audience": "public"
         }
       ]
     },
@@ -266,7 +289,8 @@
           "stability": "stable",
           "description": "Lists configured provider keys with masked values.",
           "support": "core",
-          "deployment": "cloud"
+          "deployment": "cloud",
+          "audience": "public"
         },
         {
           "method": "POST",
@@ -276,7 +300,8 @@
           "stability": "stable",
           "description": "Stores a provider key using `{ provider, key_name, api_key }`.",
           "support": "core",
-          "deployment": "cloud"
+          "deployment": "cloud",
+          "audience": "public"
         },
         {
           "method": "GET",
@@ -286,7 +311,8 @@
           "stability": "stable",
           "description": "Gets a single provider key record.",
           "support": "supported",
-          "deployment": "cloud"
+          "deployment": "cloud",
+          "audience": "public"
         },
         {
           "method": "DELETE",
@@ -296,7 +322,8 @@
           "stability": "stable",
           "description": "Deletes a provider key.",
           "support": "supported",
-          "deployment": "cloud"
+          "deployment": "cloud",
+          "audience": "public"
         },
         {
           "method": "POST",
@@ -306,7 +333,8 @@
           "stability": "stable",
           "description": "Rotates a provider key.",
           "support": "supported",
-          "deployment": "cloud"
+          "deployment": "cloud",
+          "audience": "public"
         },
         {
           "method": "POST",
@@ -316,7 +344,8 @@
           "stability": "stable",
           "description": "Validates that a stored provider key can be used for the selected provider.",
           "support": "supported",
-          "deployment": "cloud"
+          "deployment": "cloud",
+          "audience": "public"
         },
         {
           "method": "GET",
@@ -326,7 +355,8 @@
           "stability": "stable",
           "description": "Returns tenant policy document.",
           "support": "supported",
-          "deployment": "cloud"
+          "deployment": "cloud",
+          "audience": "public"
         },
         {
           "method": "PUT",
@@ -336,7 +366,8 @@
           "stability": "stable",
           "description": "Replaces tenant policy document.",
           "support": "supported",
-          "deployment": "cloud"
+          "deployment": "cloud",
+          "audience": "public"
         },
         {
           "method": "GET",
@@ -346,7 +377,8 @@
           "stability": "stable",
           "description": "Returns tenant policy history.",
           "support": "supported",
-          "deployment": "cloud"
+          "deployment": "cloud",
+          "audience": "public"
         }
       ]
     },
@@ -362,7 +394,8 @@
           "stability": "stable",
           "description": "Lists execution history events. Supports `range`, `limit`, `agent_id`, and `device_id`.",
           "support": "supported",
-          "deployment": "cloud"
+          "deployment": "cloud",
+          "audience": "public"
         },
         {
           "method": "GET",
@@ -372,7 +405,8 @@
           "stability": "stable",
           "description": "Lists execution receipts from the coordination layer.",
           "support": "core",
-          "deployment": "cloud"
+          "deployment": "cloud",
+          "audience": "public"
         },
         {
           "method": "GET",
@@ -382,7 +416,8 @@
           "stability": "stable",
           "description": "Gets a single execution receipt by execution ID.",
           "support": "core",
-          "deployment": "cloud"
+          "deployment": "cloud",
+          "audience": "public"
         },
         {
           "method": "GET",
@@ -392,7 +427,8 @@
           "stability": "stable",
           "description": "Exports receipts as JSONL or CSV.",
           "support": "supported",
-          "deployment": "cloud"
+          "deployment": "cloud",
+          "audience": "public"
         },
         {
           "method": "POST",
@@ -402,7 +438,8 @@
           "stability": "stable",
           "description": "Verifies a receipt signature and chain integrity.",
           "support": "supported",
-          "deployment": "cloud"
+          "deployment": "cloud",
+          "audience": "public"
         }
       ]
     },
@@ -418,7 +455,8 @@
           "stability": "stable",
           "description": "Returns aggregate routing request and latency statistics.",
           "support": "supported",
-          "deployment": "cloud"
+          "deployment": "cloud",
+          "audience": "public"
         },
         {
           "method": "GET",
@@ -428,7 +466,8 @@
           "stability": "stable",
           "description": "Lists recent routed requests for operational inspection.",
           "support": "supported",
-          "deployment": "cloud"
+          "deployment": "cloud",
+          "audience": "public"
         },
         {
           "method": "GET",
@@ -438,7 +477,8 @@
           "stability": "stable",
           "description": "Ranks providers by recent routing performance.",
           "support": "supported",
-          "deployment": "cloud"
+          "deployment": "cloud",
+          "audience": "public"
         },
         {
           "method": "POST",
@@ -448,7 +488,8 @@
           "stability": "stable",
           "description": "Saves the tenant routing strategy configuration.",
           "support": "supported",
-          "deployment": "cloud"
+          "deployment": "cloud",
+          "audience": "public"
         },
         {
           "method": "POST",
@@ -458,7 +499,8 @@
           "stability": "stable",
           "description": "Saves tenant provider weight overrides.",
           "support": "supported",
-          "deployment": "cloud"
+          "deployment": "cloud",
+          "audience": "public"
         },
         {
           "method": "GET",
@@ -468,7 +510,8 @@
           "stability": "stable",
           "description": "Returns current speculative-routing status metrics.",
           "support": "supported",
-          "deployment": "cloud"
+          "deployment": "cloud",
+          "audience": "public"
         },
         {
           "method": "GET",
@@ -478,7 +521,8 @@
           "stability": "stable",
           "description": "Returns the active speculative-routing configuration read model.",
           "support": "supported",
-          "deployment": "cloud"
+          "deployment": "cloud",
+          "audience": "public"
         },
         {
           "method": "POST",
@@ -488,7 +532,8 @@
           "stability": "stable",
           "description": "Saves tenant speculative-routing configuration.",
           "support": "supported",
-          "deployment": "cloud"
+          "deployment": "cloud",
+          "audience": "public"
         },
         {
           "method": "GET",
@@ -498,7 +543,8 @@
           "stability": "stable",
           "description": "Returns speculative-routing analytics series.",
           "support": "supported",
-          "deployment": "cloud"
+          "deployment": "cloud",
+          "audience": "public"
         },
         {
           "method": "POST",
@@ -508,7 +554,8 @@
           "stability": "preview",
           "description": "Triggers a speculative-routing simulation for a sample request.",
           "support": "preview",
-          "deployment": "cloud"
+          "deployment": "cloud",
+          "audience": "public"
         },
         {
           "method": "POST",
@@ -518,7 +565,8 @@
           "stability": "stable",
           "description": "Saves tenant council-mode routing configuration.",
           "support": "supported",
-          "deployment": "cloud"
+          "deployment": "cloud",
+          "audience": "public"
         },
         {
           "method": "GET",
@@ -528,7 +576,8 @@
           "stability": "stable",
           "description": "Returns council-mode aggregate and per-chairman analytics.",
           "support": "supported",
-          "deployment": "cloud"
+          "deployment": "cloud",
+          "audience": "public"
         },
         {
           "method": "POST",
@@ -538,7 +587,8 @@
           "stability": "stable",
           "description": "Saves tenant shadow-routing configuration.",
           "support": "supported",
-          "deployment": "cloud"
+          "deployment": "cloud",
+          "audience": "public"
         },
         {
           "method": "GET",
@@ -548,7 +598,8 @@
           "stability": "stable",
           "description": "Returns aggregate and per-provider circuit-breaker state.",
           "support": "supported",
-          "deployment": "cloud"
+          "deployment": "cloud",
+          "audience": "public"
         }
       ]
     },
@@ -564,7 +615,8 @@
           "stability": "stable",
           "description": "Lists built-in behavior-tree templates.",
           "support": "supported",
-          "deployment": "cloud"
+          "deployment": "cloud",
+          "audience": "public"
         },
         {
           "method": "GET",
@@ -574,7 +626,8 @@
           "stability": "stable",
           "description": "Lists tenant behavior-tree definitions.",
           "support": "supported",
-          "deployment": "cloud"
+          "deployment": "cloud",
+          "audience": "public"
         },
         {
           "method": "GET",
@@ -584,7 +637,8 @@
           "stability": "stable",
           "description": "Gets a single behavior-tree definition.",
           "support": "supported",
-          "deployment": "cloud"
+          "deployment": "cloud",
+          "audience": "public"
         },
         {
           "method": "POST",
@@ -594,7 +648,8 @@
           "stability": "stable",
           "description": "Creates or upserts a behavior-tree definition.",
           "support": "supported",
-          "deployment": "cloud"
+          "deployment": "cloud",
+          "audience": "public"
         },
         {
           "method": "DELETE",
@@ -604,7 +659,8 @@
           "stability": "stable",
           "description": "Deletes a behavior-tree definition.",
           "support": "supported",
-          "deployment": "cloud"
+          "deployment": "cloud",
+          "audience": "public"
         }
       ]
     },
@@ -620,7 +676,8 @@
           "stability": "stable",
           "description": "Submit a durable task using `agent_workflow`, `robotics_workflow`, `single_inference`, or `behavior_tree`.",
           "support": "supported",
-          "deployment": "cloud"
+          "deployment": "cloud",
+          "audience": "public"
         },
         {
           "method": "GET",
@@ -630,7 +687,8 @@
           "stability": "stable",
           "description": "Poll the current status and latest checkpoint metadata for a durable task.",
           "support": "supported",
-          "deployment": "cloud"
+          "deployment": "cloud",
+          "audience": "public"
         },
         {
           "method": "GET",
@@ -640,7 +698,8 @@
           "stability": "stable",
           "description": "List recent durable tasks for the authenticated tenant.",
           "support": "supported",
-          "deployment": "cloud"
+          "deployment": "cloud",
+          "audience": "public"
         },
         {
           "method": "GET",
@@ -650,7 +709,8 @@
           "stability": "stable",
           "description": "Lists execution-graph steps and graph slots for a durable task when available.",
           "support": "supported",
-          "deployment": "cloud"
+          "deployment": "cloud",
+          "audience": "public"
         },
         {
           "method": "POST",
@@ -660,7 +720,8 @@
           "stability": "stable",
           "description": "Requests cancellation for a non-terminal durable task.",
           "support": "supported",
-          "deployment": "cloud"
+          "deployment": "cloud",
+          "audience": "public"
         },
         {
           "method": "GET",
@@ -670,7 +731,8 @@
           "stability": "stable",
           "description": "Reports whether trigger-backed proof synchronization is active.",
           "support": "supported",
-          "deployment": "cloud"
+          "deployment": "cloud",
+          "audience": "public"
         },
         {
           "method": "POST",
@@ -680,7 +742,8 @@
           "stability": "stable",
           "description": "Synchronizes and verifies persisted proof state for a durable task.",
           "support": "supported",
-          "deployment": "cloud"
+          "deployment": "cloud",
+          "audience": "public"
         }
       ]
     },
@@ -696,7 +759,8 @@
           "stability": "stable",
           "description": "Forwards JSON-RPC MCP requests to the configured runtime MCP server.",
           "support": "supported",
-          "deployment": "cloud"
+          "deployment": "cloud",
+          "audience": "public"
         },
         {
           "method": "POST",
@@ -706,7 +770,8 @@
           "stability": "preview",
           "description": "Forwards streaming MCP requests to the configured runtime MCP server.",
           "support": "preview",
-          "deployment": "cloud"
+          "deployment": "cloud",
+          "audience": "public"
         }
       ]
     },
@@ -722,7 +787,8 @@
           "stability": "stable",
           "description": "Health check for the local runtime.",
           "support": "core",
-          "deployment": "local"
+          "deployment": "local",
+          "audience": "public"
         },
         {
           "method": "GET",
@@ -732,7 +798,8 @@
           "stability": "stable",
           "description": "Returns local runtime capability and feature profile.",
           "support": "supported",
-          "deployment": "local"
+          "deployment": "local",
+          "audience": "public"
         },
         {
           "method": "POST",
@@ -742,7 +809,8 @@
           "stability": "stable",
           "description": "OpenAI-compatible local inference endpoint.",
           "support": "core",
-          "deployment": "local"
+          "deployment": "local",
+          "audience": "public"
         },
         {
           "method": "POST",
@@ -752,7 +820,8 @@
           "stability": "stable",
           "description": "Planning endpoint.",
           "support": "supported",
-          "deployment": "local"
+          "deployment": "local",
+          "audience": "public"
         },
         {
           "method": "POST",
@@ -762,7 +831,8 @@
           "stability": "stable",
           "description": "Reflection endpoint.",
           "support": "supported",
-          "deployment": "local"
+          "deployment": "local",
+          "audience": "public"
         },
         {
           "method": "GET",
@@ -772,7 +842,8 @@
           "stability": "preview",
           "description": "Lists loaded local models.",
           "support": "preview",
-          "deployment": "local"
+          "deployment": "local",
+          "audience": "operator"
         },
         {
           "method": "POST",
@@ -782,7 +853,8 @@
           "stability": "preview",
           "description": "Loads a local model.",
           "support": "preview",
-          "deployment": "local"
+          "deployment": "local",
+          "audience": "operator"
         },
         {
           "method": "POST",
@@ -792,7 +864,8 @@
           "stability": "preview",
           "description": "Swaps the active local model.",
           "support": "preview",
-          "deployment": "local"
+          "deployment": "local",
+          "audience": "operator"
         },
         {
           "method": "POST",
@@ -802,7 +875,8 @@
           "stability": "stable",
           "description": "Validates a runtime behavior tree definition.",
           "support": "core",
-          "deployment": "local"
+          "deployment": "local",
+          "audience": "public"
         },
         {
           "method": "POST",
@@ -812,7 +886,8 @@
           "stability": "stable",
           "description": "Executes a runtime behavior tree.",
           "support": "core",
-          "deployment": "local"
+          "deployment": "local",
+          "audience": "public"
         },
         {
           "method": "POST",
@@ -822,7 +897,8 @@
           "stability": "stable",
           "description": "Deploys a runtime behavior tree.",
           "support": "supported",
-          "deployment": "local"
+          "deployment": "local",
+          "audience": "public"
         },
         {
           "method": "GET",
@@ -832,7 +908,8 @@
           "stability": "stable",
           "description": "Streams behavior-tree events.",
           "support": "supported",
-          "deployment": "local"
+          "deployment": "local",
+          "audience": "public"
         },
         {
           "method": "GET",
@@ -842,7 +919,8 @@
           "stability": "preview",
           "description": "Returns local LoRA training and adapter status.",
           "support": "preview",
-          "deployment": "local"
+          "deployment": "local",
+          "audience": "public"
         },
         {
           "method": "GET",
@@ -852,7 +930,8 @@
           "stability": "stable",
           "description": "Returns local memory subsystem status.",
           "support": "supported",
-          "deployment": "local"
+          "deployment": "local",
+          "audience": "public"
         },
         {
           "method": "POST",
@@ -862,7 +941,8 @@
           "stability": "stable",
           "description": "Stores an item in local runtime memory.",
           "support": "supported",
-          "deployment": "local"
+          "deployment": "local",
+          "audience": "public"
         },
         {
           "method": "POST",
@@ -872,7 +952,8 @@
           "stability": "stable",
           "description": "Searches local runtime memory.",
           "support": "supported",
-          "deployment": "local"
+          "deployment": "local",
+          "audience": "public"
         },
         {
           "method": "GET",
@@ -882,7 +963,8 @@
           "stability": "stable",
           "description": "Reads one item from local runtime memory by key.",
           "support": "supported",
-          "deployment": "local"
+          "deployment": "local",
+          "audience": "public"
         },
         {
           "method": "GET",
@@ -892,7 +974,8 @@
           "stability": "preview",
           "description": "Returns local human-in-the-loop queue status.",
           "support": "preview",
-          "deployment": "local"
+          "deployment": "local",
+          "audience": "public"
         },
         {
           "method": "GET",
@@ -902,7 +985,8 @@
           "stability": "preview",
           "description": "Lists local human-in-the-loop approval requests.",
           "support": "preview",
-          "deployment": "local"
+          "deployment": "local",
+          "audience": "public"
         },
         {
           "method": "POST",
@@ -912,7 +996,8 @@
           "stability": "preview",
           "description": "Creates a local human-in-the-loop approval request.",
           "support": "preview",
-          "deployment": "local"
+          "deployment": "local",
+          "audience": "public"
         },
         {
           "method": "POST",
@@ -922,7 +1007,8 @@
           "stability": "preview",
           "description": "Approves a local human-in-the-loop request.",
           "support": "preview",
-          "deployment": "local"
+          "deployment": "local",
+          "audience": "public"
         },
         {
           "method": "POST",
@@ -932,7 +1018,8 @@
           "stability": "preview",
           "description": "Rejects a local human-in-the-loop request.",
           "support": "preview",
-          "deployment": "local"
+          "deployment": "local",
+          "audience": "public"
         },
         {
           "method": "GET",
@@ -942,7 +1029,8 @@
           "stability": "preview",
           "description": "Returns local swarm coordination status.",
           "support": "preview",
-          "deployment": "local"
+          "deployment": "local",
+          "audience": "public"
         },
         {
           "method": "GET",
@@ -952,7 +1040,8 @@
           "stability": "preview",
           "description": "Lists local swarm agents.",
           "support": "preview",
-          "deployment": "local"
+          "deployment": "local",
+          "audience": "public"
         },
         {
           "method": "POST",
@@ -962,7 +1051,8 @@
           "stability": "preview",
           "description": "Joins the local runtime to a swarm.",
           "support": "preview",
-          "deployment": "local"
+          "deployment": "local",
+          "audience": "public"
         },
         {
           "method": "POST",
@@ -972,7 +1062,8 @@
           "stability": "preview",
           "description": "Submits a swarm proposal.",
           "support": "preview",
-          "deployment": "local"
+          "deployment": "local",
+          "audience": "public"
         },
         {
           "method": "POST",
@@ -982,7 +1073,8 @@
           "stability": "preview",
           "description": "Submits a swarm vote.",
           "support": "preview",
-          "deployment": "local"
+          "deployment": "local",
+          "audience": "public"
         },
         {
           "method": "GET",
@@ -992,7 +1084,8 @@
           "stability": "preview",
           "description": "Returns local federated-learning status.",
           "support": "preview",
-          "deployment": "local"
+          "deployment": "local",
+          "audience": "public"
         },
         {
           "method": "POST",
@@ -1002,7 +1095,8 @@
           "stability": "preview",
           "description": "Submits a local federated-learning model update.",
           "support": "preview",
-          "deployment": "local"
+          "deployment": "local",
+          "audience": "public"
         },
         {
           "method": "GET",
@@ -1012,7 +1106,8 @@
           "stability": "preview",
           "description": "Returns metadata for the latest local federated model.",
           "support": "preview",
-          "deployment": "local"
+          "deployment": "local",
+          "audience": "public"
         },
         {
           "method": "GET",
@@ -1022,7 +1117,8 @@
           "stability": "preview",
           "description": "Lists local federated-learning participants.",
           "support": "preview",
-          "deployment": "local"
+          "deployment": "local",
+          "audience": "public"
         },
         {
           "method": "POST",
@@ -1032,7 +1128,8 @@
           "stability": "stable",
           "description": "Executes a runtime task through the local execution boundary.",
           "support": "supported",
-          "deployment": "local"
+          "deployment": "local",
+          "audience": "public"
         },
         {
           "method": "GET",
@@ -1042,7 +1139,8 @@
           "stability": "stable",
           "description": "Lists local runtime execution violations.",
           "support": "supported",
-          "deployment": "local"
+          "deployment": "local",
+          "audience": "public"
         },
         {
           "method": "POST",
@@ -1052,7 +1150,8 @@
           "stability": "stable",
           "description": "Submits a durable task directly to the local runtime executor.",
           "support": "supported",
-          "deployment": "local"
+          "deployment": "local",
+          "audience": "public"
         },
         {
           "method": "POST",
@@ -1062,7 +1161,8 @@
           "stability": "stable",
           "description": "Submits a streaming durable task directly to the local runtime executor.",
           "support": "supported",
-          "deployment": "local"
+          "deployment": "local",
+          "audience": "public"
         },
         {
           "method": "POST",
@@ -1072,7 +1172,8 @@
           "stability": "stable",
           "description": "Cancels a local runtime durable task.",
           "support": "supported",
-          "deployment": "local"
+          "deployment": "local",
+          "audience": "public"
         },
         {
           "method": "GET",
@@ -1082,7 +1183,8 @@
           "stability": "stable",
           "description": "Reads the local WAL entries for a runtime durable task.",
           "support": "supported",
-          "deployment": "local"
+          "deployment": "local",
+          "audience": "public"
         },
         {
           "method": "GET",
@@ -1092,7 +1194,8 @@
           "stability": "preview",
           "description": "Returns the local runtime state for one agent.",
           "support": "preview",
-          "deployment": "local"
+          "deployment": "local",
+          "audience": "public"
         }
       ]
     }
