@@ -73,7 +73,7 @@ const (
 
 type roboticsPolicySigningKeyRequest struct {
 	KeyVersion       string     `json:"key_version"`
-	SignerIdentity  string     `json:"signer_identity"`
+	SignerIdentity   string     `json:"signer_identity"`
 	PublicKeyEd25519 string     `json:"public_key_ed25519"`
 	NotBefore        *time.Time `json:"not_before,omitempty"`
 	ExpiresAt        *time.Time `json:"expires_at,omitempty"`
@@ -81,8 +81,8 @@ type roboticsPolicySigningKeyRequest struct {
 
 type roboticsPolicySigningKeyResponse struct {
 	TenantID         string     `json:"tenant_id"`
-	KeyVersion      string     `json:"key_version"`
-	SignerIdentity  string     `json:"signer_identity"`
+	KeyVersion       string     `json:"key_version"`
+	SignerIdentity   string     `json:"signer_identity"`
 	PublicKeyEd25519 string     `json:"public_key_ed25519"`
 	Status           string     `json:"status"`
 	NotBefore        time.Time  `json:"not_before"`
