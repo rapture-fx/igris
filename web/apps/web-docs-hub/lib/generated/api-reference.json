@@ -1,5 +1,5 @@
 {
-  "generated_at": "2026-04-20T12:34:11.606Z",
+  "generated_at": "2026-04-20T12:38:42.990Z",
   "generated_from": [
     "igris-overture/api/*.go",
     "igris-runtime/crates/igris-server/src/main.rs"
@@ -712,7 +712,7 @@
     },
     {
       "title": "Local Runtime API",
-      "summary": "Supported endpoints served by `igris-runtime` on the local runtime instance.",
+      "summary": "Supported endpoints served by `igris-runtime` on the local runtime instance. Keep local administration routes behind runtime authentication and a trusted network boundary.",
       "endpoints": [
         {
           "method": "GET",
