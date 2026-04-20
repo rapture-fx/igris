@@ -1,5 +1,5 @@
 {
-  "generated_at": "2026-04-20T12:34:34.295Z",
+  "generated_at": "2026-04-20T12:39:05.804Z",
   "summary": {
     "total": 932,
     "by_status": {
@@ -7362,7 +7362,7 @@
     },
     {
       "file": "web/apps/web-docs-hub/content/docs/api-reference/local-runtime-api/get-v1-admin-models.mdx",
-      "line": 27,
+      "line": 28,
       "method": "GET",
       "path": "/v1/health",
       "expected_surface": null,
@@ -7391,7 +7391,7 @@
     },
     {
       "file": "web/apps/web-docs-hub/content/docs/api-reference/local-runtime-api/get-v1-admin-models.mdx",
-      "line": 28,
+      "line": 29,
       "method": "GET",
       "path": "/v1/runtime/profile",
       "expected_surface": null,
@@ -7408,7 +7408,7 @@
     },
     {
       "file": "web/apps/web-docs-hub/content/docs/api-reference/local-runtime-api/get-v1-admin-models.mdx",
-      "line": 29,
+      "line": 30,
       "method": "POST",
       "path": "/v1/chat/completions",
       "expected_surface": null,
@@ -7449,7 +7449,7 @@
     },
     {
       "file": "web/apps/web-docs-hub/content/docs/api-reference/local-runtime-api/get-v1-admin-models.mdx",
-      "line": 42,
+      "line": 43,
       "method": "GET",
       "path": "/v1/admin/models",
       "expected_surface": "local-runtime",
