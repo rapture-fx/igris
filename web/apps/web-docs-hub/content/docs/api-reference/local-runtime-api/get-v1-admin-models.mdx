@@ -21,6 +21,7 @@ Safe retries are usually reasonable for transient 5xx or 429 responses. Do not r
 
 - Using the wrong credential type or forgetting to send the expected API key header.
 - Pointing the client at the hosted base URL even though this route is served by the local runtime.
+- Exposing local administration routes on a public interface instead of keeping them on a trusted runtime operations boundary.
 
 ### Related Endpoints
 
