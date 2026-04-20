@@ -1152,6 +1152,11 @@ const bannedPatterns = [
   { pattern: /\bcodebase includes\b/i, message: 'Customer-facing docs must not describe internal codebase plumbing.' },
   { pattern: /\binternal admin handlers\b/i, message: 'Do not expose internal/admin handler framing in customer-facing docs.' },
   { pattern: /cmd\/igris-overture\/main\.go/i, message: 'Customer-facing docs must not reference internal source paths.' },
+  { pattern: /\binternal FFI contract\b/i, message: 'Customer-facing docs must not expose internal runtime/control-plane interfaces.' },
+  { pattern: /\/admin\/slo\//i, message: 'Do not publish deployment-specific SLO admin paths in customer-facing docs.' },
+  { pattern: /\bcurrent shipped Overture server\b/i, message: 'Use hosted API or product contract language instead of server implementation language.' },
+  { pattern: /\bcurrent middleware\b/i, message: 'Use API behavior language instead of middleware implementation language.' },
+  { pattern: /\bwithout reading code\b/i, message: 'Customer-facing docs should describe product workflows without referring to source code access.' },
 ];
 
 module.exports = {
