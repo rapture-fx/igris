@@ -64,9 +64,9 @@ Use these documented surfaces to understand SLO behavior:
 
 ---
 
-## Operational Admin Handlers
+## Operational Admin Surfaces
 
-Some deployments wire internal admin handlers for SLO operations:
+Some enterprise deployments expose administrator-only SLO operations:
 
 | Method | Path | Purpose |
 |---|---|---|
@@ -75,7 +75,7 @@ Some deployments wire internal admin handlers for SLO operations:
 | `POST` | `/admin/slo/evaluate` | Run a manual metrics evaluation |
 | `GET` | `/admin/slo/metrics` | Export Prometheus-style SLO counters |
 
-These handlers are operational/admin surfaces. They are intentionally not listed in the customer API reference until they are promoted to a supported customer contract.
+These are deployment-specific administrator surfaces. They are not listed in the public API reference unless they are enabled and supported for your account.
 
 ---
 
