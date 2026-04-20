@@ -69,6 +69,17 @@ func runComplianceExportCommand(args []string) error {
 	format := fs.String("format", complianceExportEnv("IGRIS_COMPLIANCE_EXPORT_FORMAT", "json"), "bundle format: json or jsonl")
 	replayLimit := fs.Int("limit", complianceExportEnvInt("IGRIS_COMPLIANCE_EXPORT_REPLAY_LIMIT", 500), "maximum robot execution replay records per tenant")
 	keyLimit := fs.Int("key-limit", complianceExportEnvInt("IGRIS_COMPLIANCE_EXPORT_KEY_LIMIT", 500), "maximum policy key lifecycle records per tenant")
+	retentionDays := fs.Int("retention-days", complianceExportEnvInt("IGRIS_COMPLIANCE_EXPORT_RETENTION_DAYS", 0), "local retention window in days; 0 disables cleanup")
+	signingKey := fs.String("manifest-private-key-ed25519", complianceExportEnv("IGRIS_COMPLIANCE_EXPORT_MANIFEST_PRIVATE_KEY_ED25519", ""), "hex or base64 Ed25519 private key for manifest signatures")
+	signingKeyID := fs.String("manifest-key-id", complianceExportEnv("IGRIS_COMPLIANCE_EXPORT_MANIFEST_KEY_ID", ""), "manifest signing key identifier")
+	s3Endpoint := fs.String("s3-endpoint", complianceExportEnv("IGRIS_COMPLIANCE_EXPORT_S3_ENDPOINT", ""), "S3-compatible endpoint for bundle upload")
+	s3Bucket := fs.String("s3-bucket", complianceExportEnv("IGRIS_COMPLIANCE_EXPORT_S3_BUCKET", ""), "S3-compatible bucket for bundle upload")
+	s3Prefix := fs.String("s3-prefix", complianceExportEnv("IGRIS_COMPLIANCE_EXPORT_S3_PREFIX", ""), "S3-compatible key prefix for bundle upload")
+	s3Region := fs.String("s3-region", complianceExportEnv("IGRIS_COMPLIANCE_EXPORT_S3_REGION", "us-east-1"), "S3-compatible signing region")
+	s3AccessKeyID := fs.String("s3-access-key-id", complianceExportEnv("IGRIS_COMPLIANCE_EXPORT_S3_ACCESS_KEY_ID", ""), "S3-compatible access key id")
+	s3SecretAccessKey := fs.String("s3-secret-access-key", complianceExportEnv("IGRIS_COMPLIANCE_EXPORT_S3_SECRET_ACCESS_KEY", ""), "S3-compatible secret access key")
+	s3SessionToken := fs.String("s3-session-token", complianceExportEnv("IGRIS_COMPLIANCE_EXPORT_S3_SESSION_TOKEN", ""), "S3-compatible session token")
+	s3PathStyle := fs.Bool("s3-path-style", complianceExportEnvBool("IGRIS_COMPLIANCE_EXPORT_S3_PATH_STYLE", true), "use path-style S3 URLs")
 	includeEmpty := fs.Bool("include-empty", os.Getenv("IGRIS_COMPLIANCE_EXPORT_INCLUDE_EMPTY") == "true", "write bundles for tenants with no current evidence")
 	fs.Var(&tenantIDs, "tenant", "tenant ID to export; repeatable, or comma-separated")
 	if rawTenants := os.Getenv("IGRIS_COMPLIANCE_EXPORT_TENANTS"); rawTenants != "" {
@@ -94,12 +105,27 @@ func runComplianceExportCommand(args []string) error {
 	defer db.Close()
 
 	results, err := compliance.RunTenantComplianceExport(context.Background(), db.DB, compliance.ExportJobConfig{
-		TenantIDs:    []string(tenantIDs),
-		OutputDir:    *outputDir,
-		Format:       *format,
-		ReplayLimit:  *replayLimit,
-		KeyLimit:     *keyLimit,
-		IncludeEmpty: *includeEmpty,
+		TenantIDs:     []string(tenantIDs),
+		OutputDir:     *outputDir,
+		Format:        *format,
+		ReplayLimit:   *replayLimit,
+		KeyLimit:      *keyLimit,
+		IncludeEmpty:  *includeEmpty,
+		RetentionDays: *retentionDays,
+		Signing: compliance.ManifestSigningConfig{
+			PrivateKeyEd25519: *signingKey,
+			KeyID:             *signingKeyID,
+		},
+		S3UploadTarget: compliance.S3UploadConfig{
+			Endpoint:        *s3Endpoint,
+			Bucket:          *s3Bucket,
+			Prefix:          *s3Prefix,
+			Region:          *s3Region,
+			AccessKeyID:     *s3AccessKeyID,
+			SecretAccessKey: *s3SecretAccessKey,
+			SessionToken:    *s3SessionToken,
+			ForcePathStyle:  *s3PathStyle,
+		},
 	})
 	if err != nil {
 		return err
@@ -125,12 +151,27 @@ func startTenantComplianceExportSchedulerFromEnv(ctx context.Context, db *sql.DB
 		intervalHours = 24
 	}
 	cfg := compliance.ExportJobConfig{
-		TenantIDs:    splitComplianceExportList(os.Getenv("IGRIS_COMPLIANCE_EXPORT_TENANTS")),
-		OutputDir:    complianceExportEnv("IGRIS_COMPLIANCE_EXPORT_OUTPUT_DIR", "compliance-exports"),
-		Format:       complianceExportEnv("IGRIS_COMPLIANCE_EXPORT_FORMAT", "json"),
-		ReplayLimit:  complianceExportEnvInt("IGRIS_COMPLIANCE_EXPORT_REPLAY_LIMIT", 500),
-		KeyLimit:     complianceExportEnvInt("IGRIS_COMPLIANCE_EXPORT_KEY_LIMIT", 500),
-		IncludeEmpty: os.Getenv("IGRIS_COMPLIANCE_EXPORT_INCLUDE_EMPTY") == "true",
+		TenantIDs:     splitComplianceExportList(os.Getenv("IGRIS_COMPLIANCE_EXPORT_TENANTS")),
+		OutputDir:     complianceExportEnv("IGRIS_COMPLIANCE_EXPORT_OUTPUT_DIR", "compliance-exports"),
+		Format:        complianceExportEnv("IGRIS_COMPLIANCE_EXPORT_FORMAT", "json"),
+		ReplayLimit:   complianceExportEnvInt("IGRIS_COMPLIANCE_EXPORT_REPLAY_LIMIT", 500),
+		KeyLimit:      complianceExportEnvInt("IGRIS_COMPLIANCE_EXPORT_KEY_LIMIT", 500),
+		IncludeEmpty:  os.Getenv("IGRIS_COMPLIANCE_EXPORT_INCLUDE_EMPTY") == "true",
+		RetentionDays: complianceExportEnvInt("IGRIS_COMPLIANCE_EXPORT_RETENTION_DAYS", 0),
+		Signing: compliance.ManifestSigningConfig{
+			PrivateKeyEd25519: complianceExportEnv("IGRIS_COMPLIANCE_EXPORT_MANIFEST_PRIVATE_KEY_ED25519", ""),
+			KeyID:             complianceExportEnv("IGRIS_COMPLIANCE_EXPORT_MANIFEST_KEY_ID", ""),
+		},
+		S3UploadTarget: compliance.S3UploadConfig{
+			Endpoint:        complianceExportEnv("IGRIS_COMPLIANCE_EXPORT_S3_ENDPOINT", ""),
+			Bucket:          complianceExportEnv("IGRIS_COMPLIANCE_EXPORT_S3_BUCKET", ""),
+			Prefix:          complianceExportEnv("IGRIS_COMPLIANCE_EXPORT_S3_PREFIX", ""),
+			Region:          complianceExportEnv("IGRIS_COMPLIANCE_EXPORT_S3_REGION", "us-east-1"),
+			AccessKeyID:     complianceExportEnv("IGRIS_COMPLIANCE_EXPORT_S3_ACCESS_KEY_ID", ""),
+			SecretAccessKey: complianceExportEnv("IGRIS_COMPLIANCE_EXPORT_S3_SECRET_ACCESS_KEY", ""),
+			SessionToken:    complianceExportEnv("IGRIS_COMPLIANCE_EXPORT_S3_SESSION_TOKEN", ""),
+			ForcePathStyle:  complianceExportEnvBool("IGRIS_COMPLIANCE_EXPORT_S3_PATH_STYLE", true),
+		},
 	}
 	compliance.StartTenantComplianceExportScheduler(ctx, db, cfg, time.Duration(intervalHours)*time.Hour, log.Printf)
 	log.Printf("[Compliance] tenant compliance export scheduler started interval=%dh output_dir=%s", intervalHours, cfg.OutputDir)
@@ -150,6 +191,14 @@ func complianceExportEnvInt(name string, fallback int) int {
 		}
 	}
 	return fallback
+}
+
+func complianceExportEnvBool(name string, fallback bool) bool {
+	value := strings.TrimSpace(os.Getenv(name))
+	if value == "" {
+		return fallback
+	}
+	return value == "true" || value == "1" || strings.EqualFold(value, "yes")
 }
 
 func splitComplianceExportList(value string) []string {
