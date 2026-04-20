@@ -219,6 +219,9 @@ func WriteRoboticsAuditBundleArtifacts(outputDir, format string, bundle Robotics
 	if format == "" {
 		format = "json"
 	}
+	if strings.TrimSpace(signing.PrivateKeyEd25519) == "" {
+		return ExportJobResult{}, fmt.Errorf("manifest signing key is required")
+	}
 	if err := os.MkdirAll(outputDir, 0o750); err != nil {
 		return ExportJobResult{}, err
 	}
@@ -275,20 +278,18 @@ func buildExportManifest(bundle RoboticsAuditExportBundle, bundleFilename, forma
 	}
 	signingPayloadHash := sha256.Sum256(signingPayload)
 	manifest.ManifestSHA256 = hex.EncodeToString(signingPayloadHash[:])
-	if strings.TrimSpace(signing.PrivateKeyEd25519) != "" {
-		privateKey, err := decodeEd25519PrivateKey(signing.PrivateKeyEd25519)
-		if err != nil {
-			return manifest, nil, err
-		}
-		publicKey := privateKey.Public().(ed25519.PublicKey)
-		manifest.Signature = &ManifestSignature{
-			Algorithm:           "ed25519-sha256",
-			KeyID:               strings.TrimSpace(signing.KeyID),
-			PublicKeyEd25519:    hex.EncodeToString(publicKey),
-			SignedAt:            time.Now().UTC(),
-			SignedPayloadSHA256: manifest.ManifestSHA256,
-			Signature:           base64.StdEncoding.EncodeToString(ed25519.Sign(privateKey, signingPayloadHash[:])),
-		}
+	privateKey, err := decodeEd25519PrivateKey(signing.PrivateKeyEd25519)
+	if err != nil {
+		return manifest, nil, err
+	}
+	publicKey := privateKey.Public().(ed25519.PublicKey)
+	manifest.Signature = &ManifestSignature{
+		Algorithm:           "ed25519-sha256",
+		KeyID:               strings.TrimSpace(signing.KeyID),
+		PublicKeyEd25519:    hex.EncodeToString(publicKey),
+		SignedAt:            time.Now().UTC(),
+		SignedPayloadSHA256: manifest.ManifestSHA256,
+		Signature:           base64.StdEncoding.EncodeToString(ed25519.Sign(privateKey, signingPayloadHash[:])),
 	}
 	manifestBytes, err := json.MarshalIndent(manifest, "", "  ")
 	if err != nil {
