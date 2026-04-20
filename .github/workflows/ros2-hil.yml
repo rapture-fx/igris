@@ -1,0 +1,81 @@
+name: ROS2 HIL
+
+on:
+  workflow_dispatch:
+    inputs:
+      enable_ros2_hil:
+        description: "Set true to run ROS2 hardware-in-loop tests"
+        required: true
+        default: "false"
+        type: choice
+        options:
+          - "false"
+          - "true"
+      runner_labels:
+        description: "JSON array of runner labels with ROS2 and HIL hardware access"
+        required: true
+        default: '["self-hosted","linux","ros2-hil"]'
+      ros_distro:
+        description: "ROS2 distro already installed on the HIL runner"
+        required: true
+        default: "humble"
+      ros_domain_id:
+        description: "ROS_DOMAIN_ID for the HIL test run"
+        required: true
+        default: "42"
+      test_filter:
+        description: "Cargo test filter for ROS2 HIL coverage"
+        required: true
+        default: "runtime_task_signed_ros2"
+
+jobs:
+  ros2-hil:
+    if: ${{ inputs.enable_ros2_hil == 'true' }}
+    name: ROS2 hardware-in-loop signed execution
+    runs-on: ${{ fromJSON(inputs.runner_labels) }}
+    timeout-minutes: 45
+
+    env:
+      ENABLE_ROS2: "true"
+      ROS_DOMAIN_ID: ${{ inputs.ros_domain_id }}
+      RUST_BACKTRACE: "1"
+      ROS2_VIOLATION_LOG: /tmp/igris-ros2-hil-violations.jsonl
+
+    steps:
+      - name: Checkout
+        uses: actions/checkout@v4
+
+      - name: Setup Rust
+        uses: dtolnay/rust-toolchain@stable
+
+      - name: Verify ROS2 environment
+        shell: bash
+        run: |
+          set -euo pipefail
+          test -f "/opt/ros/${{ inputs.ros_distro }}/setup.bash"
+          source "/opt/ros/${{ inputs.ros_distro }}/setup.bash"
+          ros2 --help >/dev/null
+          printenv ROS_DISTRO || true
+
+      - name: Run signed ROS2 HIL execution tests
+        shell: bash
+        run: |
+          set -euo pipefail
+          source "/opt/ros/${{ inputs.ros_distro }}/setup.bash"
+          cargo test \
+            --manifest-path igris-runtime/Cargo.toml \
+            -p igris-server \
+            --features ros2 \
+            '${{ inputs.test_filter }}' \
+            -- --nocapture
+
+      - name: Upload ROS2 audit artifacts
+        if: always()
+        uses: actions/upload-artifact@v4
+        with:
+          name: ros2-hil-audit-artifacts
+          path: |
+            /tmp/igris-ros2-hil-violations.jsonl
+            /tmp/igris_ros2_violations.jsonl
+            /tmp/igris-ros2-*.jsonl
+          if-no-files-found: ignore
