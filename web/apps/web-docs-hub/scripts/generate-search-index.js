@@ -7,37 +7,33 @@ const staticSearchFile = path.join(__dirname, '../public/search-static.json');
 const publicSearchIndexFile = path.join(__dirname, '../public/search-index.json');
 const generatedApiFile = path.join(__dirname, '../lib/generated/api-reference.json');
 const generatedSdkFile = path.join(__dirname, '../lib/generated/sdk-support.json');
-const hiddenDocPaths = new Set([
-  'docs-authoring',
-  'docs-authoring-components',
-  'docs-authoring-schemas',
-]);
+const {
+  getDocsAudienceMode,
+  isAudienceVisible,
+  parseFrontmatter,
+} = require('./docs-audience');
+
+const publicLeakPatterns = [
+  /\bimplementation audit\b/i,
+  /\bsource-backed\b/i,
+  /\broute_inventory_count\b/i,
+  /\bgenerated_from\b/i,
+  /\bdocs-implementation-audit\b/i,
+  /\bserver implementation\b/i,
+  /\bbackend implementation\b/i,
+  /\bcmd\/igris-overture\b/i,
+  /\bigris-overture\b/i,
+  /\brust-core\b/i,
+  /\/Users\/wira\b/i,
+  /\/admin\/slo\//i,
+  /\binternal FFI contract\b/i,
+];
 
 function slugify(value) {
   return value
     .toLowerCase()
     .replace(/[^a-z0-9]+/g, '-')
     .replace(/^-+|-+$/g, '');
-}
-
-function parseFrontmatter(content) {
-  const match = content.match(/^---\n([\s\S]*?)\n---\n*/);
-  if (!match) {
-    return { body: content, data: {} };
-  }
-
-  const data = {};
-  for (const line of match[1].split('\n')) {
-    const keyMatch = line.match(/^([A-Za-z0-9_-]+):\s*(.+)$/);
-    if (!keyMatch) continue;
-    const [, key, rawValue] = keyMatch;
-    data[key] = rawValue.trim().replace(/^['"]|['"]$/g, '');
-  }
-
-  return {
-    body: content.slice(match[0].length),
-    data,
-  };
 }
 
 function collectMdxFiles(dir, relativeDir = '', files = []) {
@@ -167,13 +163,14 @@ async function extractSearchIndex() {
   const files = collectMdxFiles(docsDir);
   const breadcrumbMap = buildBreadcrumbMap();
   const index = new Map();
+  const audienceMode = getDocsAudienceMode();
 
   for (const relativePath of files) {
     const filePath = path.join(docsDir, relativePath);
     const rawContent = fs.readFileSync(filePath, 'utf-8');
     const { body, data } = parseFrontmatter(rawContent);
     const pageKey = relativePath.replace(/\.mdx$/, '');
-    if (hiddenDocPaths.has(pageKey)) continue;
+    if (!isAudienceVisible(data.audience, audienceMode)) continue;
     const slug = pageKey.split('/').pop() || 'index';
     const searchableText = extractSearchableText(body);
 
@@ -196,6 +193,7 @@ async function extractSearchIndex() {
       description: data.description || data.summary || firstParagraph,
       content: `${headings} ${searchableText.slice(0, 2400)}`.trim(),
       breadcrumbs: breadcrumbMap[pageKey] || [],
+      audience: data.audience || 'public',
       keywords: `${title} ${pageKey} ${headings} ${codeLangs} ${searchableText.slice(0, 1200)}`
         .toLowerCase()
         .slice(0, 2000),
@@ -212,6 +210,7 @@ async function extractSearchIndex() {
         description: 'Overview of the customer API contract.',
         content: 'API introduction base URL surfaces overview contract',
         breadcrumbs: ['Reference', 'API Reference'],
+        audience: 'public',
         keywords: 'api introduction base url surfaces overview contract',
       },
       {
@@ -220,6 +219,7 @@ async function extractSearchIndex() {
         description: 'Authentication models for cloud and local API use.',
         content: 'API authentication bearer api key session cookie runtime auth',
         breadcrumbs: ['Reference', 'API Reference'],
+        audience: 'public',
         keywords: 'api authentication bearer api key session cookie runtime auth',
       },
       {
@@ -228,6 +228,7 @@ async function extractSearchIndex() {
         description: 'Error handling and common response codes.',
         content: 'API errors error codes invalid request unauthorized internal error',
         breadcrumbs: ['Reference', 'API Reference'],
+        audience: 'public',
         keywords: 'api errors error codes invalid request unauthorized internal error',
       },
       {
@@ -236,6 +237,7 @@ async function extractSearchIndex() {
         description: 'Rate limit behavior and retry expectations.',
         content: 'API rate limits retry-after 429 throttle',
         breadcrumbs: ['Reference', 'API Reference'],
+        audience: 'public',
         keywords: 'api rate limits retry-after 429 throttle',
       },
     ].forEach((entry) => upsertEntry(index, entry));
@@ -244,6 +246,10 @@ async function extractSearchIndex() {
       const sectionSlug = slugify(section.title);
 
       for (const endpoint of section.endpoints || []) {
+        if (!isAudienceVisible(endpoint.audience, audienceMode)) {
+          continue;
+        }
+
         const endpointSlug = slugify(
           `${endpoint.method.toLowerCase()}-${endpoint.path.replace(/:/g, '').replace(/\//g, '-')}`,
         );
@@ -254,6 +260,7 @@ async function extractSearchIndex() {
           description: endpoint.description,
           content: `${endpoint.method} ${endpoint.path} ${endpoint.description}`.trim(),
           breadcrumbs: ['Reference', 'API Reference', section.title],
+          audience: endpoint.audience || 'public',
           keywords: `${section.title} ${endpoint.method} ${endpoint.path} ${endpoint.description} ${endpoint.auth} ${endpoint.surface}`
             .toLowerCase()
             .slice(0, 2000),
@@ -272,6 +279,7 @@ async function extractSearchIndex() {
         description: row.notes,
         content: `${row.language} ${row.status} ${row.notes}`.trim(),
         breadcrumbs: ['Getting Started'],
+        audience: 'public',
         keywords: `${row.language} ${row.status} ${row.package} ${row.install} ${row.notes}`
           .toLowerCase()
           .slice(0, 2000),
@@ -280,6 +288,20 @@ async function extractSearchIndex() {
   }
 
   const entries = [...index.values()].sort((a, b) => a.path.localeCompare(b.path));
+  const privateEntry = entries.find((entry) => !isAudienceVisible(entry.audience, audienceMode));
+  if (privateEntry) {
+    throw new Error(`Search index contains ${privateEntry.audience} content in ${audienceMode} build: ${privateEntry.path}`);
+  }
+  if (audienceMode === 'public') {
+    const leakedEntry = entries.find((entry) => {
+      const searchable = `${entry.title} ${entry.description} ${entry.content} ${entry.keywords}`;
+      return publicLeakPatterns.some((pattern) => pattern.test(searchable));
+    });
+    if (leakedEntry) {
+      throw new Error(`Search index contains implementation/internal evidence wording in public build: ${leakedEntry.path}`);
+    }
+  }
+
   fs.writeFileSync(outputFile, JSON.stringify(entries, null, 2));
   fs.writeFileSync(publicSearchIndexFile, JSON.stringify(entries));
   await writeStaticSearchDatabase(entries);

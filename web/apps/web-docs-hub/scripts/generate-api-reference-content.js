@@ -3,6 +3,7 @@ const path = require('path');
 const Module = require('module');
 const ts = require('../node_modules/typescript');
 const { apiSections, docsAppRoot } = require('./docs-data');
+const { getDocsAudienceMode, isAudienceVisible } = require('./docs-audience');
 
 const apiReferenceDir = path.join(docsAppRoot, 'content', 'docs', 'api-reference');
 
@@ -30,7 +31,7 @@ const apiGuides = [
       {
         title: 'SDK Guidance',
         paragraphs: [
-          'JavaScript, Go, and Rust are the first-class SDK languages today. When an endpoint is covered by a native SDK, prefer that SDK for application code because it gives you a cleaner call surface and reduces request-shape drift over time.',
+          'JavaScript/TypeScript, Go, Rust, and Python are the first-class SDK languages today. When an endpoint is covered by a native SDK, prefer that SDK for application code because it gives you a cleaner call surface and reduces request-shape drift over time.',
           'Some management routes are still best treated as direct HTTP integrations. In those cases, the endpoint page is the primary contract: use the request and response examples, confirm the authentication model, and wire your own client behavior around the listed status codes.',
         ],
       },
@@ -371,7 +372,7 @@ function renderGuideMdx(guide) {
     })
     .join('\n');
 
-  let content = `---\ntitle: "${escapeYaml(guide.title)}"\ndescription: "${escapeYaml(guide.summary)}"\n---\n\n# ${guide.title}\n\n${guide.summary}\n\n${sections}`;
+  let content = `---\ntitle: "${escapeYaml(guide.title)}"\ndescription: "${escapeYaml(guide.summary)}"\naudience: "public"\n---\n\n# ${guide.title}\n\n${guide.summary}\n\n${sections}`;
 
   if (guide.code) {
     content += `\n## ${guide.codeTitle}\n${codeFence('text', guide.code)}`;
@@ -389,22 +390,29 @@ function renderGuideMdx(guide) {
 }
 
 function renderIndexMdx() {
+  const audienceMode = getDocsAudienceMode();
   const sections = apiSections
     .map((section) => {
       const links = section.endpoints
+        .filter((endpoint) => isAudienceVisible(endpoint.audience, audienceMode))
         .map((endpoint) => `- [\`${formatMdxLabel(`${endpoint.method} ${endpoint.path}`)}\`](${getApiEndpointHref(section, endpoint)}) — ${endpoint.description}`)
         .join('\n');
+      if (!links) {
+        return '';
+      }
       return `## ${section.title}\n\n${section.summary}\n\n${links}\n`;
     })
+    .filter(Boolean)
     .join('\n');
 
   const guideLinks = apiGuides
     .map((guide) => `- [${guide.title}](/docs/api-reference/${guide.slug}) — ${guide.summary}`)
     .join('\n');
 
-  return `---
+return `---
 title: "API Reference"
 description: "Customer-facing API guides and endpoint reference for Igris."
+audience: "public"
 ---
 
 # API Reference
@@ -426,6 +434,7 @@ function renderEndpointMdx(section, endpoint, data) {
   let content = `---
 title: "${escapeYaml(title)}"
 description: "${escapeYaml(data.functionality)}"
+audience: "${escapeYaml(endpoint.audience || 'public')}"
 ---
 
 # ${title}

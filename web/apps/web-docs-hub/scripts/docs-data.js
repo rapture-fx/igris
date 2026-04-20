@@ -1113,12 +1113,21 @@ function inferSupport(endpoint) {
   return 'supported';
 }
 
+function inferAudience(endpoint) {
+  if (endpoint.path.startsWith('/v1/admin/')) {
+    return 'operator';
+  }
+
+  return 'public';
+}
+
 const apiSections = rawApiSections.map((section) => ({
   ...section,
   endpoints: section.endpoints.map((endpoint) => ({
     ...endpoint,
     support: endpoint.support ?? inferSupport(endpoint),
     deployment: endpoint.deployment ?? inferDeployment(endpoint),
+    audience: endpoint.audience ?? inferAudience(endpoint),
   })),
 }));
 

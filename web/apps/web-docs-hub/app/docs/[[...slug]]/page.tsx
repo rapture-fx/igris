@@ -1,4 +1,4 @@
-import { source } from '@/lib/source';
+import { isDocPageVisible, source } from '@/lib/source';
 import { getMDXComponents } from '@/components/mdx';
 import { DocsBody, DocsPage } from 'fumadocs-ui/page';
 import { notFound } from 'next/navigation';
@@ -11,13 +11,13 @@ interface PageProps {
 }
 
 export async function generateStaticParams() {
-  return source.generateParams();
+  return source.generateParams().filter((param) => isDocPageVisible(param.slug));
 }
 
 export async function generateMetadata({ params }: PageProps): Promise<Metadata> {
   const { slug } = await params;
   const page = source.getPage(slug);
-  if (!page) return {};
+  if (!page || !isDocPageVisible(slug)) return {};
   return {
     title: page.data.title,
     description: page.data.description,
@@ -27,7 +27,7 @@ export async function generateMetadata({ params }: PageProps): Promise<Metadata>
 export default async function Page({ params }: PageProps) {
   const { slug } = await params;
   const page = source.getPage(slug);
-  if (!page) notFound();
+  if (!page || !isDocPageVisible(slug)) notFound();
 
   const MDX = page.data.body;
 

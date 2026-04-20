@@ -1,5 +1,5 @@
 {
-  "generated_at": "2026-04-20T12:44:26.156Z",
+  "generated_at": "2026-04-20T23:01:56.489Z",
   "endpoints": [
     {
       "endpoint": "POST /v1/infer",

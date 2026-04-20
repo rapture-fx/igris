@@ -1,6 +1,7 @@
 ---
 title: "POST /v1/account/api-key"
 description: "Creates a new tenant API key and returns the raw secret exactly once. The previous key is revoked when the new key is issued, so treat this route as a credential-rotation operation rather than a harmless read/write call."
+audience: "public"
 ---
 
 # POST /v1/account/api-key

@@ -1,6 +1,6 @@
 # Documentation Implementation Audit
 
-Generated: 2026-04-20T12:45:00.892Z
+Generated: 2026-04-20T23:02:06.419Z
 
 This report compares customer-facing docs route claims against routes registered in `igris-overture`, `igris-runtime`, and the web console codebase. It is evidence-based: a route claim is implemented only when the matching method/path is registered in code on the expected surface.
 
@@ -8,8 +8,8 @@ The API reference has a separate endpoint verification report in `api-verificati
 
 ## Summary
 
-- Route claims audited: 932
-- Implemented on expected surface: 932
+- Route claims audited: 929
+- Implemented on expected surface: 929
 - Missing from code: 0
 - Implemented on a different surface than documented: 0
 - Path exists with a different method: 0
@@ -96,7 +96,7 @@ No unsupported guide-page route claims were found.
 | `web/apps/web-docs-hub/content/docs/api-reference/execution-history-and-receipts/get-v1-receipts-id.mdx` | 6 | 6 | 0 | 0 | 0 |
 | `web/apps/web-docs-hub/content/docs/api-reference/execution-history-and-receipts/get-v1-receipts.mdx` | 6 | 6 | 0 | 0 | 0 |
 | `web/apps/web-docs-hub/content/docs/api-reference/execution-history-and-receipts/post-proof-receipts-verify.mdx` | 6 | 6 | 0 | 0 | 0 |
-| `web/apps/web-docs-hub/content/docs/api-reference/index.mdx` | 105 | 105 | 0 | 0 | 0 |
+| `web/apps/web-docs-hub/content/docs/api-reference/index.mdx` | 102 | 102 | 0 | 0 | 0 |
 | `web/apps/web-docs-hub/content/docs/api-reference/inference-integration/get-v1-health.mdx` | 6 | 6 | 0 | 0 | 0 |
 | `web/apps/web-docs-hub/content/docs/api-reference/inference-integration/get-v1-infer-multimodal-stats.mdx` | 6 | 6 | 0 | 0 | 0 |
 | `web/apps/web-docs-hub/content/docs/api-reference/inference-integration/get-v1-models.mdx` | 6 | 6 | 0 | 0 | 0 |
