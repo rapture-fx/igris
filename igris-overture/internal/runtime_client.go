@@ -236,6 +236,23 @@ func VerifyExecutionArtifactsRaw(envelopeRaw, receiptRaw json.RawMessage) error 
 	return client.VerifyExecutionArtifactsRaw(envelopeRaw, receiptRaw)
 }
 
+// VerifyExecutionArtifactsRawWithPublicKey verifies raw Runtime execution
+// artifacts with a specific Runtime public key from the registry. Unlike
+// VerifyExecutionArtifactsRaw, this does not fall back to environment config
+// when publicKeyHex is non-empty.
+func VerifyExecutionArtifactsRawWithPublicKey(envelopeRaw, receiptRaw json.RawMessage, publicKeyHex string) error {
+	client := NewRuntimeClient("")
+	client.publicKey = nil
+	if publicKeyHex != "" {
+		decoded, err := hex.DecodeString(publicKeyHex)
+		if err != nil || len(decoded) != ed25519.PublicKeySize {
+			return fmt.Errorf("runtime public key invalid")
+		}
+		client.publicKey = ed25519.PublicKey(decoded)
+	}
+	return client.VerifyExecutionArtifactsRaw(envelopeRaw, receiptRaw)
+}
+
 // VerifyExecutionArtifactsRaw verifies raw Runtime execution artifacts with
 // this client's configured public key.
 func (c *RuntimeClient) VerifyExecutionArtifactsRaw(envelopeRaw, receiptRaw json.RawMessage) error {
