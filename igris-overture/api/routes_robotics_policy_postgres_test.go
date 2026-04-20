@@ -43,6 +43,7 @@ func TestRoboticsPolicyActivationWithPostgresMigrations(t *testing.T) {
 		"038_robotics_policy_lifecycle.sql",
 		"040_robotics_policy_lifecycle_audit.sql",
 		"041_robotics_policy_signing_keys.sql",
+		"042_robotics_policy_command_nonce_audit.sql",
 	} {
 		sqlBytes, err := os.ReadFile(filepath.Join("..", "database", "migrations", name))
 		require.NoError(t, err)
@@ -86,17 +87,17 @@ func TestRoboticsPolicyActivationWithPostgresMigrations(t *testing.T) {
 		"robot_mode":"supervised",
 		"allowed_runtimes":["runtime-pg"]
 	}`
-	revokedReq := signedRoboticsPolicyRouteRequest(t, http.MethodPost, "/v1/robotics/policies", createBody, revokedPrivateKey, "policy-key-old")
+	revokedReq := signedRoboticsPolicyRouteRequest(t, http.MethodPost, "/v1/robotics/policies", createBody, revokedPrivateKey, "policy-key-old", "draft")
 	revokedResp, err := app.Test(revokedReq)
 	require.NoError(t, err)
 	require.Equal(t, http.StatusForbidden, revokedResp.StatusCode)
 
-	createReq := signedRoboticsPolicyRouteRequest(t, http.MethodPost, "/v1/robotics/policies", createBody, activePrivateKey, "policy-key-active")
+	createReq := signedRoboticsPolicyRouteRequest(t, http.MethodPost, "/v1/robotics/policies", createBody, activePrivateKey, "policy-key-active", "draft")
 	createResp, err := app.Test(createReq)
 	require.NoError(t, err)
 	require.Equal(t, http.StatusCreated, createResp.StatusCode)
 
-	activateReq := signedRoboticsPolicyRouteRequest(t, http.MethodPost, "/v1/robotics/policies/robotics-policy.pg/activate", "", activePrivateKey, "policy-key-active")
+	activateReq := signedRoboticsPolicyRouteRequest(t, http.MethodPost, "/v1/robotics/policies/robotics-policy.pg/activate", "", activePrivateKey, "policy-key-active", "activate")
 	activateResp, err := app.Test(activateReq)
 	require.NoError(t, err)
 	require.Equal(t, http.StatusOK, activateResp.StatusCode)
@@ -125,6 +126,8 @@ func TestRoboticsPolicyActivationWithPostgresMigrations(t *testing.T) {
 		  AND actor_id = $1
 		  AND signer_identity = $3
 		  AND signer_key_version = 'policy-key-active'
+		  AND command_nonce IS NOT NULL
+		  AND command_hash IS NOT NULL
 		  AND command_signature IS NOT NULL`,
 		"tenant-real-pg", "robotics-policy.pg", "tenant-real-pg@example.test",
 	).Scan(&activationAuditRows)
