@@ -2,12 +2,16 @@ name: Backend Postgres
 
 on:
   pull_request:
+    branches:
+      - "**"
     paths:
       - ".github/workflows/backend-postgres.yml"
       - "cmd/igris-overture/**"
       - "igris-overture/**"
       - "go.mod"
       - "go.sum"
+  merge_group:
+  workflow_dispatch:
   push:
     branches:
       - main
@@ -53,7 +57,7 @@ jobs:
           cache: true
 
       - name: Run mandatory robotics Postgres migration tests
-        run: go test ./igris-overture/api -run 'TestRoboticsPolicyActivationWithPostgresMigrations|TestExportRoboticsAuditBundleIncludesKeyLifecycleAndReplay|TestCleanupExpiredRoboticsPolicyCommandNonces' -count=1 -timeout=120s
+        run: go test ./igris-overture/api -run 'TestRoboticsPolicyActivationWithPostgresMigrations|TestExportRoboticsAuditBundleIncludesKeyLifecycleAndReplay|TestHILRoboticsStopAndCancelEvidenceExportsThroughAuditBundle|TestCleanupExpiredRoboticsPolicyCommandNonces' -count=1 -timeout=120s
 
       - name: Run robotics coordinator Postgres replay tests
         run: go test ./igris-overture/coordinator -run 'TestRoboticsReceiptReplayWithPostgresMigrations|TestRoboticsPolicyAuthorizationWithPostgresMigrations' -count=1 -timeout=120s
