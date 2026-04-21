@@ -547,6 +547,10 @@ mod tests {
             resume_checkpoint: None,
             idempotency_key: "stream-durability".to_string(),
             tenant_id: "tenant-stream".to_string(),
+            agent_identity: None,
+            required_capabilities: Vec::new(),
+            permission_envelope: None,
+            credential_refs: Vec::new(),
             signed_policy_decisions: Vec::new(),
             deadline_ms: None,
         };
@@ -558,6 +562,8 @@ mod tests {
                     "containment": &stream_request.containment,
                     "tenant_id": &stream_request.tenant_id,
                     "deadline_ms": &stream_request.deadline_ms,
+                    "agent_identity": &stream_request.agent_identity,
+                    "required_capabilities": &stream_request.required_capabilities,
                 }))
                 .unwrap(),
             )
@@ -647,6 +653,10 @@ mod tests {
             resume_checkpoint: None,
             idempotency_key: "stream-failure-replay".to_string(),
             tenant_id: "tenant-stream".to_string(),
+            agent_identity: None,
+            required_capabilities: Vec::new(),
+            permission_envelope: None,
+            credential_refs: Vec::new(),
             signed_policy_decisions: Vec::new(),
             deadline_ms: None,
         };
@@ -658,6 +668,8 @@ mod tests {
                     "containment": &stream_request.containment,
                     "tenant_id": &stream_request.tenant_id,
                     "deadline_ms": &stream_request.deadline_ms,
+                    "agent_identity": &stream_request.agent_identity,
+                    "required_capabilities": &stream_request.required_capabilities,
                 }))
                 .unwrap(),
             )
