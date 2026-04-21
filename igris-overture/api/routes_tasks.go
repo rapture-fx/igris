@@ -21,16 +21,16 @@ import (
 )
 
 type publicTaskSubmitRequest struct {
-	TaskID          uuid.UUID              `json:"task_id,omitempty"`
-	TaskType        string                 `json:"task_type"`
-	TaskDefinition  json.RawMessage        `json:"task_definition"`
-	AgentTask       *publicAgentTask       `json:"agent_task,omitempty"`
-	RoboticsMission *publicRoboticsMission `json:"robotics_mission,omitempty"`
-	AgentIdentity   *coordinator.AgentIdentity `json:"agent_identity,omitempty"`
-	RequiredCapabilities []string              `json:"required_capabilities,omitempty"`
+	TaskID               uuid.UUID                       `json:"task_id,omitempty"`
+	TaskType             string                          `json:"task_type"`
+	TaskDefinition       json.RawMessage                 `json:"task_definition"`
+	AgentTask            *publicAgentTask                `json:"agent_task,omitempty"`
+	RoboticsMission      *publicRoboticsMission          `json:"robotics_mission,omitempty"`
+	AgentIdentity        *coordinator.AgentIdentity      `json:"agent_identity,omitempty"`
+	RequiredCapabilities []string                        `json:"required_capabilities,omitempty"`
 	CredentialRequests   []coordinator.CredentialRequest `json:"credential_requests,omitempty"`
-	IdempotencyKey  string                 `json:"idempotency_key,omitempty"`
-	DeadlineAt      *time.Time             `json:"deadline_at,omitempty"`
+	IdempotencyKey       string                          `json:"idempotency_key,omitempty"`
+	DeadlineAt           *time.Time                      `json:"deadline_at,omitempty"`
 }
 
 type publicAgentTask struct {
@@ -209,15 +209,15 @@ func buildTaskSubmitRequest(body []byte, tenantID string) (*coordinator.TaskSubm
 	}
 
 	return &coordinator.TaskSubmitRequest{
-		TaskID:         raw.TaskID,
-		TenantID:       tenantID,
-		TaskType:       raw.TaskType,
-		TaskDefinition: taskDefinition,
-		AgentIdentity:  raw.AgentIdentity,
+		TaskID:               raw.TaskID,
+		TenantID:             tenantID,
+		TaskType:             raw.TaskType,
+		TaskDefinition:       taskDefinition,
+		AgentIdentity:        raw.AgentIdentity,
 		RequiredCapabilities: raw.RequiredCapabilities,
 		CredentialRequests:   raw.CredentialRequests,
-		IdempotencyKey: raw.IdempotencyKey,
-		DeadlineAt:     raw.DeadlineAt,
+		IdempotencyKey:       raw.IdempotencyKey,
+		DeadlineAt:           raw.DeadlineAt,
 	}, nil
 }
 
