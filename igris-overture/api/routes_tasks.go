@@ -26,6 +26,9 @@ type publicTaskSubmitRequest struct {
 	TaskDefinition  json.RawMessage        `json:"task_definition"`
 	AgentTask       *publicAgentTask       `json:"agent_task,omitempty"`
 	RoboticsMission *publicRoboticsMission `json:"robotics_mission,omitempty"`
+	AgentIdentity   *coordinator.AgentIdentity `json:"agent_identity,omitempty"`
+	RequiredCapabilities []string              `json:"required_capabilities,omitempty"`
+	CredentialRequests   []coordinator.CredentialRequest `json:"credential_requests,omitempty"`
 	IdempotencyKey  string                 `json:"idempotency_key,omitempty"`
 	DeadlineAt      *time.Time             `json:"deadline_at,omitempty"`
 }
@@ -160,6 +163,12 @@ func handleTaskSubmit(tc *coordinator.TaskCoordinator) fiber.Handler {
 					"message": err.Error(),
 				})
 			}
+			if errors.Is(err, coordinator.ErrTaskCapabilityDenied) {
+				return c.Status(http.StatusForbidden).JSON(fiber.Map{
+					"error":   "capability_policy_denied",
+					"message": err.Error(),
+				})
+			}
 			log.Error().Err(err).Str("tenant_id", tenantID).Msg("[Tasks] Submit failed")
 			return c.Status(http.StatusServiceUnavailable).JSON(fiber.Map{
 				"error":   "dispatch_failed",
@@ -204,6 +213,9 @@ func buildTaskSubmitRequest(body []byte, tenantID string) (*coordinator.TaskSubm
 		TenantID:       tenantID,
 		TaskType:       raw.TaskType,
 		TaskDefinition: taskDefinition,
+		AgentIdentity:  raw.AgentIdentity,
+		RequiredCapabilities: raw.RequiredCapabilities,
+		CredentialRequests:   raw.CredentialRequests,
 		IdempotencyKey: raw.IdempotencyKey,
 		DeadlineAt:     raw.DeadlineAt,
 	}, nil
