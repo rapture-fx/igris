@@ -5198,6 +5198,156 @@ mod tests {
         assert_ne!(a, c);
     }
 
+    fn signed_permission_envelope(
+        signing_key: &SigningKey,
+        task_id: Uuid,
+        tenant_id: &str,
+        runtime_id: &str,
+        capability: &str,
+        permit: bool,
+    ) -> TaskPermissionEnvelope {
+        let mut envelope = TaskPermissionEnvelope {
+            schema_version: "task_permission_envelope.v1".to_string(),
+            envelope_id: "permission-envelope-test".to_string(),
+            tenant_id: tenant_id.to_string(),
+            task_id: task_id.to_string(),
+            runtime_id: Some(runtime_id.to_string()),
+            agent_identity: AgentIdentity {
+                agent_id: "agent-researcher".to_string(),
+                principal_id: "user-123".to_string(),
+                submitted_by: "user-123".to_string(),
+                acting_on_behalf_of: "user-123".to_string(),
+                delegation_chain: vec!["user-123".to_string(), "agent-researcher".to_string()],
+            },
+            required_capabilities: vec![capability.to_string()],
+            decisions: vec![CapabilityDecision {
+                capability: capability.to_string(),
+                permit,
+                reason: if permit {
+                    "capability explicitly allowed".to_string()
+                } else {
+                    "capability explicitly denied".to_string()
+                },
+                policy_version: "capabilities-policy.test".to_string(),
+            }],
+            credential_refs: vec![CredentialReference {
+                reference_id: "credref-test".to_string(),
+                tenant_id: tenant_id.to_string(),
+                task_id: task_id.to_string(),
+                tool: "github.issues.write".to_string(),
+                capability: capability.to_string(),
+                scope: "task".to_string(),
+                expires_at_unix_ms: unix_now_ms() as i64 + 60_000,
+                revocable: true,
+            }],
+            issued_at_unix_ms: unix_now_ms() as i64,
+            expires_at_unix_ms: unix_now_ms() as i64 + 60_000,
+            signer_key_version: Some("test-key".to_string()),
+            signature: String::new(),
+        };
+        let canonical = canonical_task_permission_envelope_bytes(&envelope);
+        let digest = Sha256::digest(&canonical);
+        envelope.signature = base64::engine::general_purpose::STANDARD
+            .encode(signing_key.sign(&digest).to_bytes());
+        envelope
+    }
+
+    #[test]
+    fn validates_signed_task_permission_envelope_for_required_capability() {
+        let signing_key = SigningKey::from_bytes(&[0x61u8; 32]);
+        let task_id = Uuid::new_v4();
+        let tenant_id = "tenant-ai";
+        let runtime_id = "runtime-ai";
+        let envelope = signed_permission_envelope(
+            &signing_key,
+            task_id,
+            tenant_id,
+            runtime_id,
+            "tools.github.issues.write",
+            true,
+        );
+        let req = TaskSubmitRequest {
+            task_id,
+            task_type: TaskType::ExecutionGraph {
+                graph: ExecutionGraph {
+                    graph_id: Some("permission-test".to_string()),
+                    blackboard: None,
+                    nodes: vec![],
+                },
+            },
+            containment: None,
+            resume_from: None,
+            resume_checkpoint: None,
+            idempotency_key: "permission-test".to_string(),
+            tenant_id: tenant_id.to_string(),
+            agent_identity: Some(envelope.agent_identity.clone()),
+            required_capabilities: vec!["tools.github.issues.write".to_string()],
+            permission_envelope: Some(envelope),
+            credential_refs: Vec::new(),
+            signed_policy_decisions: Vec::new(),
+            deadline_ms: None,
+        };
+
+        assert!(validate_task_permission_envelope(
+            &req,
+            Some(&signing_key.verifying_key()),
+            runtime_id,
+        )
+        .is_ok());
+    }
+
+    #[test]
+    fn permission_guard_blocks_disallowed_tool_before_execution() {
+        let signing_key = SigningKey::from_bytes(&[0x62u8; 32]);
+        let task_id = Uuid::new_v4();
+        let envelope = signed_permission_envelope(
+            &signing_key,
+            task_id,
+            "tenant-ai",
+            "runtime-ai",
+            "tools.web.search",
+            true,
+        );
+        let req = TaskSubmitRequest {
+            task_id,
+            task_type: TaskType::ExecutionGraph {
+                graph: ExecutionGraph {
+                    graph_id: Some("permission-test".to_string()),
+                    blackboard: None,
+                    nodes: vec![],
+                },
+            },
+            containment: None,
+            resume_from: None,
+            resume_checkpoint: None,
+            idempotency_key: "permission-denied-test".to_string(),
+            tenant_id: "tenant-ai".to_string(),
+            agent_identity: Some(envelope.agent_identity.clone()),
+            required_capabilities: vec!["tools.web.search".to_string()],
+            permission_envelope: Some(envelope),
+            credential_refs: Vec::new(),
+            signed_policy_decisions: Vec::new(),
+            deadline_ms: None,
+        };
+        let step = RuntimeTaskStep::Tool(ToolStep {
+            step_index: 0,
+            node_id: "github-write".to_string(),
+            checkpoint_key: None,
+            read_slots: None,
+            write_slot: None,
+            tool_name: "github.issues.write".to_string(),
+            args: None,
+        });
+
+        let failure = permission_failure_for_step(&req, &step).expect("tool should be denied");
+        assert_eq!(failure.rejection_type, "capability_policy_denied");
+        assert_eq!(failure.domain.as_deref(), Some("tool"));
+        assert_eq!(failure.node_id.as_deref(), Some("github-write"));
+        assert!(failure
+            .message
+            .contains("capability tools.github.issues.write denied"));
+    }
+
     #[test]
     fn robotics_checkpoint_metadata_contains_action_name() {
         let step = RuntimeTaskStep::Robotics(RoboticsStep {
