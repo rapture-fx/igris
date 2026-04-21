@@ -166,8 +166,16 @@ func firstNonEmpty(values ...string) string {
 	return ""
 }
 
+func agentIdentityEmpty(identity AgentIdentity) bool {
+	return strings.TrimSpace(identity.AgentID) == "" &&
+		strings.TrimSpace(identity.PrincipalID) == "" &&
+		strings.TrimSpace(identity.SubmittedBy) == "" &&
+		strings.TrimSpace(identity.ActingOnBehalfOf) == "" &&
+		len(identity.DelegationChain) == 0
+}
+
 func attachTaskGovernanceToDefinition(definition json.RawMessage, governance taskGovernance) json.RawMessage {
-	if len(governance.RequiredCapabilities) == 0 && len(governance.CredentialRequests) == 0 && governance.AgentIdentity == (AgentIdentity{}) {
+	if len(governance.RequiredCapabilities) == 0 && len(governance.CredentialRequests) == 0 && agentIdentityEmpty(governance.AgentIdentity) {
 		return definition
 	}
 	var object map[string]json.RawMessage
@@ -215,7 +223,7 @@ func taskGovernanceForRecord(task *TaskRecord) taskGovernance {
 		RequiredCapabilities: normalizeCapabilityList(task.RequiredCapabilities),
 		CredentialRequests:   normalizeCredentialRequests(task.CredentialRequests),
 	}
-	if len(governance.RequiredCapabilities) == 0 && len(governance.CredentialRequests) == 0 && governance.AgentIdentity == (AgentIdentity{}) {
+	if len(governance.RequiredCapabilities) == 0 && len(governance.CredentialRequests) == 0 && agentIdentityEmpty(governance.AgentIdentity) {
 		governance = extractTaskGovernanceFromDefinition(task.TaskDefinition)
 	}
 	governance.AgentIdentity = normalizeTaskGovernance(task.TenantID, &governance.AgentIdentity, governance.RequiredCapabilities, governance.CredentialRequests).AgentIdentity
