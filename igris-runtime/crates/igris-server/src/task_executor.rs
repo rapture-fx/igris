@@ -1636,6 +1636,10 @@ pub async fn handle_task_stream(
         resume_checkpoint: None,
         idempotency_key: req.idempotency_key.clone(),
         tenant_id: req.tenant_id.clone(),
+        agent_identity: req.agent_identity.clone(),
+        required_capabilities: req.required_capabilities.clone(),
+        permission_envelope: req.permission_envelope.clone(),
+        credential_refs: req.credential_refs.clone(),
         signed_policy_decisions: req.signed_policy_decisions.clone(),
         deadline_ms: req.deadline_ms,
     };
