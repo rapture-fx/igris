@@ -588,6 +588,119 @@ func TestDispatchToRuntimeAttachesSignedRoboticsPolicyDecisions(t *testing.T) {
 	require.Equal(t, 0, queued.remainingExecs())
 }
 
+func TestDispatchToRuntimeAttachesSignedTaskPermissionEnvelope(t *testing.T) {
+	publicKey, privateKey, err := ed25519.GenerateKey(nil)
+	require.NoError(t, err)
+	t.Setenv("IGRIS_OVERTURE_SIGNING_KEY", hex.EncodeToString(privateKey))
+	t.Setenv("IGRIS_OVERTURE_SIGNING_KEY_VERSION", "capability-key")
+
+	taskID := uuid.New()
+	runtimeID := "runtime-ai-signed"
+	tenantID := "tenant-ai"
+	var gotBody struct {
+		AgentIdentity        AgentIdentity           `json:"agent_identity"`
+		RequiredCapabilities []string                `json:"required_capabilities"`
+		PermissionEnvelope   TaskPermissionEnvelope  `json:"permission_envelope"`
+		CredentialRefs       []CredentialReference   `json:"credential_refs"`
+	}
+	db, queued := newQueuedCheckpointDB(t, []queuedQueryExpectation{{
+		values: []driver.Value{`{
+			"policy_version":"capabilities-policy.test",
+			"allowed_capabilities":["tools.github.issues.write"]
+		}`},
+	}})
+
+	client := &http.Client{Transport: roundTripperFunc(func(r *http.Request) (*http.Response, error) {
+		body, err := io.ReadAll(r.Body)
+		require.NoError(t, err)
+		require.NoError(t, json.Unmarshal(body, &gotBody))
+		return &http.Response{
+			StatusCode: http.StatusOK,
+			Header:     http.Header{"Content-Type": []string{"application/json"}},
+			Body:       io.NopCloser(strings.NewReader(`{}`)),
+		}, nil
+	})}
+
+	tc := &TaskCoordinator{httpClient: client, db: db}
+	tc.dispatchToRuntime(context.Background(), &TaskRecord{
+		TaskID:          taskID,
+		TenantID:        tenantID,
+		RuntimeID:       &runtimeID,
+		RuntimeEndpoint: ptrString("http://runtime.test"),
+		TaskDefinition: json.RawMessage(`{
+			"type":"execution_graph",
+			"graph":{"nodes":[{"kind":"tool","node_id":"github-write","tool_name":"github.issues.write"}]}
+		}`),
+		AgentIdentity: AgentIdentity{
+			AgentID:          "agent-researcher",
+			PrincipalID:      "user-123",
+			SubmittedBy:      "user-123",
+			ActingOnBehalfOf: "user-123",
+			DelegationChain:  []string{"user-123", "agent-researcher"},
+		},
+		RequiredCapabilities: []string{"tools.github.issues.write"},
+		CredentialRequests: []CredentialRequest{{
+			Tool:       "github.issues.write",
+			Capability: "tools.github.issues.write",
+			Scope:      "task",
+		}},
+		IdempotencyKey: "idem-ai-signed",
+	}, nil)
+
+	require.Equal(t, "agent-researcher", gotBody.AgentIdentity.AgentID)
+	require.Equal(t, []string{"tools.github.issues.write"}, gotBody.RequiredCapabilities)
+	require.Equal(t, "task_permission_envelope.v1", gotBody.PermissionEnvelope.SchemaVersion)
+	require.Equal(t, taskID.String(), gotBody.PermissionEnvelope.TaskID)
+	require.Equal(t, tenantID, gotBody.PermissionEnvelope.TenantID)
+	require.Equal(t, runtimeID, *gotBody.PermissionEnvelope.RuntimeID)
+	require.Len(t, gotBody.PermissionEnvelope.Decisions, 1)
+	require.True(t, gotBody.PermissionEnvelope.Decisions[0].Permit)
+	require.Len(t, gotBody.CredentialRefs, 1)
+	require.True(t, gotBody.CredentialRefs[0].Revocable)
+
+	canonical, err := json.Marshal(canonicalTaskPermissionEnvelope(gotBody.PermissionEnvelope))
+	require.NoError(t, err)
+	sum := sha256.Sum256(canonical)
+	signature, err := base64.StdEncoding.DecodeString(gotBody.PermissionEnvelope.Signature)
+	require.NoError(t, err)
+	require.True(t, ed25519.Verify(publicKey, sum[:], signature))
+	require.Equal(t, 0, queued.remainingQueries())
+}
+
+func TestDispatchToRuntimeDeniesCapabilityPolicyBeforeHTTP(t *testing.T) {
+	_, privateKey, err := ed25519.GenerateKey(nil)
+	require.NoError(t, err)
+	t.Setenv("IGRIS_OVERTURE_SIGNING_KEY", hex.EncodeToString(privateKey))
+
+	taskID := uuid.New()
+	runtimeID := "runtime-ai-denied"
+	db, queued := newQueuedCheckpointDB(t, []queuedQueryExpectation{{
+		values: []driver.Value{`{
+			"policy_version":"capabilities-policy.test",
+			"allowed_capabilities":["tools.web.search"]
+		}`},
+	}}, queuedExecExpectation{rowsAffected: 1})
+
+	client := &http.Client{Transport: roundTripperFunc(func(r *http.Request) (*http.Response, error) {
+		t.Fatalf("runtime dispatch should not be attempted when capability policy denies the task")
+		return nil, nil
+	})}
+
+	tc := &TaskCoordinator{httpClient: client, db: db}
+	tc.dispatchToRuntime(context.Background(), &TaskRecord{
+		TaskID:               taskID,
+		TenantID:             "tenant-ai",
+		RuntimeID:            &runtimeID,
+		RuntimeEndpoint:      ptrString("http://runtime.test"),
+		TaskDefinition:       json.RawMessage(`{"type":"execution_graph","graph":{"nodes":[{"kind":"tool","node_id":"github-write","tool_name":"github.issues.write"}]}}`),
+		RequiredCapabilities: []string{"tools.github.issues.write"},
+		IdempotencyKey:       "idem-ai-denied",
+	}, nil)
+
+	require.Equal(t, 0, queued.remainingQueries())
+	require.Equal(t, 0, queued.remainingExecs())
+}
+
 func TestHandleDispatchFailureSchedulesRecoveryForTransportError(t *testing.T) {
 	t.Parallel()
 
