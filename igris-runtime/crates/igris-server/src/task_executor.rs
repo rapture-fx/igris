@@ -4094,9 +4094,7 @@ fn canonical_capability_decision_values(
         .collect()
 }
 
-fn canonical_credential_reference_values(
-    refs: &[CredentialReference],
-) -> Vec<serde_json::Value> {
+fn canonical_credential_reference_values(refs: &[CredentialReference]) -> Vec<serde_json::Value> {
     refs.iter()
         .map(|credential_ref| {
             let mut value = BTreeMap::<&str, serde_json::Value>::new();
@@ -5137,17 +5135,17 @@ mod tests {
         build_idempotency_conflict_payload, build_step_checkpoint_metadata,
         build_stream_replay_unavailable_payload, build_task_cancel_response,
         build_task_result_payload, canonical_policy_decision_bytes,
-        canonical_task_permission_envelope_bytes, collect_slot_inputs, compile_execution_graph_to_steps,
-        deterministic_embedding, evaluate_robotics_safety_gate, initialize_graph_blackboard,
-        materialize_execution_graph, normalize_agent_mode, permission_failure_for_step,
-        persist_task_status_index, resolve_graph_value, robotics_action_name,
-        runtime_execution_failure_details, stream_durability_metadata, task_status_key,
-        unix_now_ms, update_graph_blackboard, validate_task_permission_envelope,
+        canonical_task_permission_envelope_bytes, collect_slot_inputs,
+        compile_execution_graph_to_steps, deterministic_embedding, evaluate_robotics_safety_gate,
+        initialize_graph_blackboard, materialize_execution_graph, normalize_agent_mode,
+        permission_failure_for_step, persist_task_status_index, resolve_graph_value,
+        robotics_action_name, runtime_execution_failure_details, stream_durability_metadata,
+        task_status_key, unix_now_ms, update_graph_blackboard, validate_task_permission_envelope,
         verified_resume_start_step, AgentExecutionMode, AgentIdentity, BehaviorTreeStep,
         CapabilityDecision, CredentialReference, ExecutionGraph, ExecutionNode, GovernedAction,
-        GovernedPolicyDecision, HumanApprovalStep, RoboticsAction, RoboticsStep,
-        RuntimeTaskStep, StepExecutionResult, TaskFailureDetails, TaskPermissionEnvelope,
-        TaskStatus, TaskSubmitRequest, TaskSubmitResponse, TaskType, ToolStep,
+        GovernedPolicyDecision, HumanApprovalStep, RoboticsAction, RoboticsStep, RuntimeTaskStep,
+        StepExecutionResult, TaskFailureDetails, TaskPermissionEnvelope, TaskStatus,
+        TaskSubmitRequest, TaskSubmitResponse, TaskType, ToolStep,
     };
     use crate::runtime_execute::{Bounds, ExecuteMessage, ExecuteUsage};
     use axum::{body::Body, http::StatusCode, response::Response};
@@ -5247,8 +5245,8 @@ mod tests {
         };
         let canonical = canonical_task_permission_envelope_bytes(&envelope);
         let digest = Sha256::digest(&canonical);
-        envelope.signature = base64::engine::general_purpose::STANDARD
-            .encode(signing_key.sign(&digest).to_bytes());
+        envelope.signature =
+            base64::engine::general_purpose::STANDARD.encode(signing_key.sign(&digest).to_bytes());
         envelope
     }
 
