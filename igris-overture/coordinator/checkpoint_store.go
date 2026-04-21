@@ -39,6 +39,10 @@ type TaskRecord struct {
 	ExecutionEnvelope json.RawMessage     `json:"execution_envelope,omitempty"`
 	ExecutionReceipt  json.RawMessage     `json:"execution_receipt,omitempty"`
 	Proof             *TaskProofState     `json:"proof,omitempty"`
+	AgentIdentity     AgentIdentity       `json:"agent_identity,omitempty"`
+	RequiredCapabilities []string         `json:"required_capabilities,omitempty"`
+	CredentialRequests   []CredentialRequest `json:"credential_requests,omitempty"`
+	PermissionEnvelope   *TaskPermissionEnvelope `json:"permission_envelope,omitempty"`
 	IdempotencyKey    string              `json:"idempotency_key"`
 	FailureReason     *string             `json:"failure_reason,omitempty"`
 	FailureDetails    *TaskFailureDetails `json:"failure_details,omitempty"`
@@ -1334,6 +1338,10 @@ func scanTaskRecord(row scanner) (*TaskRecord, error) {
 		return nil, err
 	}
 	t.TaskDefinition = defBytes
+	governance := extractTaskGovernanceFromDefinition(t.TaskDefinition)
+	t.AgentIdentity = governance.AgentIdentity
+	t.RequiredCapabilities = governance.RequiredCapabilities
+	t.CredentialRequests = governance.CredentialRequests
 	if cpBytes != nil {
 		var cp CheckpointPayload
 		if err := json.Unmarshal(cpBytes, &cp); err == nil {
