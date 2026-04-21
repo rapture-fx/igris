@@ -53,12 +53,12 @@ type CapabilityDecision struct {
 }
 
 type TaskPermissionEnvelope struct {
-	SchemaVersion       string                `json:"schema_version"`
-	EnvelopeID          string                `json:"envelope_id"`
-	TenantID            string                `json:"tenant_id"`
-	TaskID              string                `json:"task_id"`
-	RuntimeID           *string               `json:"runtime_id,omitempty"`
-	AgentIdentity       AgentIdentity         `json:"agent_identity"`
+	SchemaVersion        string                `json:"schema_version"`
+	EnvelopeID           string                `json:"envelope_id"`
+	TenantID             string                `json:"tenant_id"`
+	TaskID               string                `json:"task_id"`
+	RuntimeID            *string               `json:"runtime_id,omitempty"`
+	AgentIdentity        AgentIdentity         `json:"agent_identity"`
 	RequiredCapabilities []string              `json:"required_capabilities"`
 	Decisions            []CapabilityDecision  `json:"decisions"`
 	CredentialRefs       []CredentialReference `json:"credential_refs,omitempty"`
@@ -69,7 +69,7 @@ type TaskPermissionEnvelope struct {
 }
 
 type taskGovernance struct {
-	AgentIdentity       AgentIdentity       `json:"agent_identity,omitempty"`
+	AgentIdentity        AgentIdentity       `json:"agent_identity,omitempty"`
 	RequiredCapabilities []string            `json:"required_capabilities,omitempty"`
 	CredentialRequests   []CredentialRequest `json:"credential_requests,omitempty"`
 }
@@ -77,8 +77,8 @@ type taskGovernance struct {
 type capabilityPolicyEvaluation struct {
 	Decisions     []CapabilityDecision
 	PolicyVersion string
-	Permit         bool
-	Reason         string
+	Permit        bool
+	Reason        string
 }
 
 func normalizeTaskGovernance(tenantID string, identity *AgentIdentity, required []string, credentialRequests []CredentialRequest) taskGovernance {
@@ -219,7 +219,7 @@ func taskGovernanceForRecord(task *TaskRecord) taskGovernance {
 		return taskGovernance{}
 	}
 	governance := taskGovernance{
-		AgentIdentity:       task.AgentIdentity,
+		AgentIdentity:        task.AgentIdentity,
 		RequiredCapabilities: normalizeCapabilityList(task.RequiredCapabilities),
 		CredentialRequests:   normalizeCredentialRequests(task.CredentialRequests),
 	}
@@ -246,12 +246,12 @@ func (tc *TaskCoordinator) buildTaskPermissionEnvelope(ctx context.Context, task
 	expiresAt := now + int64(5*time.Minute/time.Millisecond)
 	keyVersion := strings.TrimSpace(os.Getenv("IGRIS_OVERTURE_SIGNING_KEY_VERSION"))
 	envelope := &TaskPermissionEnvelope{
-		SchemaVersion:       "task_permission_envelope.v1",
-		EnvelopeID:          uuid.NewString(),
-		TenantID:            task.TenantID,
-		TaskID:              task.TaskID.String(),
-		RuntimeID:           task.RuntimeID,
-		AgentIdentity:       governance.AgentIdentity,
+		SchemaVersion:        "task_permission_envelope.v1",
+		EnvelopeID:           uuid.NewString(),
+		TenantID:             task.TenantID,
+		TaskID:               task.TaskID.String(),
+		RuntimeID:            task.RuntimeID,
+		AgentIdentity:        governance.AgentIdentity,
 		RequiredCapabilities: governance.RequiredCapabilities,
 		Decisions:            evaluation.Decisions,
 		CredentialRefs:       buildCredentialReferences(task, governance.CredentialRequests, expiresAt),
