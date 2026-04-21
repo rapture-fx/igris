@@ -434,9 +434,76 @@ pub struct TaskSubmitRequest {
     pub idempotency_key: String,
     pub tenant_id: String,
     #[serde(default)]
+    pub agent_identity: Option<AgentIdentity>,
+    #[serde(default)]
+    pub required_capabilities: Vec<String>,
+    #[serde(default)]
+    pub permission_envelope: Option<TaskPermissionEnvelope>,
+    #[serde(default)]
+    pub credential_refs: Vec<CredentialReference>,
+    #[serde(default)]
     pub(crate) signed_policy_decisions: Vec<GovernedPolicyDecision>,
     #[serde(default)]
     pub deadline_ms: Option<u64>,
+}
+
+#[derive(Debug, Clone, Serialize, Deserialize, PartialEq, Eq)]
+pub struct AgentIdentity {
+    #[serde(default)]
+    pub agent_id: String,
+    #[serde(default)]
+    pub principal_id: String,
+    #[serde(default)]
+    pub submitted_by: String,
+    #[serde(default)]
+    pub acting_on_behalf_of: String,
+    #[serde(default)]
+    pub delegation_chain: Vec<String>,
+}
+
+#[derive(Debug, Clone, Serialize, Deserialize, PartialEq, Eq)]
+pub struct CredentialReference {
+    pub reference_id: String,
+    pub tenant_id: String,
+    pub task_id: String,
+    #[serde(default)]
+    pub tool: String,
+    #[serde(default)]
+    pub capability: String,
+    #[serde(default)]
+    pub scope: String,
+    pub expires_at_unix_ms: i64,
+    pub revocable: bool,
+}
+
+#[derive(Debug, Clone, Serialize, Deserialize, PartialEq, Eq)]
+pub struct CapabilityDecision {
+    pub capability: String,
+    pub permit: bool,
+    pub reason: String,
+    pub policy_version: String,
+}
+
+#[derive(Debug, Clone, Serialize, Deserialize, PartialEq, Eq)]
+pub struct TaskPermissionEnvelope {
+    pub schema_version: String,
+    pub envelope_id: String,
+    pub tenant_id: String,
+    pub task_id: String,
+    #[serde(default)]
+    pub runtime_id: Option<String>,
+    pub agent_identity: AgentIdentity,
+    #[serde(default)]
+    pub required_capabilities: Vec<String>,
+    #[serde(default)]
+    pub decisions: Vec<CapabilityDecision>,
+    #[serde(default)]
+    pub credential_refs: Vec<CredentialReference>,
+    pub issued_at_unix_ms: i64,
+    pub expires_at_unix_ms: i64,
+    #[serde(default)]
+    pub signer_key_version: Option<String>,
+    pub signature: String,
 }
 
 #[derive(Debug, Clone, Serialize, Deserialize)]
@@ -747,6 +814,8 @@ pub async fn handle_task_submit(
                 "containment": &req.containment,
                 "tenant_id": &req.tenant_id,
                 "deadline_ms": &req.deadline_ms,
+                "agent_identity": &req.agent_identity,
+                "required_capabilities": &req.required_capabilities,
             }))
             .unwrap_or_default(),
         )
@@ -775,6 +844,23 @@ pub async fn handle_task_submit(
                 "error": {
                     "message": "stream=true is not supported on the durable task endpoint; use /v1/chat/completions for SSE streaming",
                     "type": "unsupported_streaming_mode"
+                }
+            })),
+        )
+            .into_response();
+    }
+
+    if let Err(reason) = validate_task_permission_envelope(
+        &req,
+        state.overture_public_key.as_deref(),
+        &state.swarm_peer_id,
+    ) {
+        return (
+            StatusCode::FORBIDDEN,
+            Json(serde_json::json!({
+                "error": {
+                    "message": reason,
+                    "type": "permission_envelope_rejected"
                 }
             })),
         )
@@ -1011,6 +1097,23 @@ pub async fn handle_task_submit(
         initialize_graph_blackboard(&execution_graph, req.resume_checkpoint.as_ref());
 
     for step in steps.iter().filter(|step| step.step_index() >= start_step) {
+        if let Some(failure_details) = permission_failure_for_step(&req, step) {
+            let reason = failure_details.message.clone();
+            let response = TaskSubmitResponse {
+                task_id: req.task_id,
+                steps_completed,
+                steps_total,
+                status: TaskStatus::Failed { reason },
+                checkpoint,
+                final_output: last_output,
+                usage: last_usage,
+                failure_details: Some(failure_details),
+                execution_envelope: last_envelope,
+                execution_receipt: last_receipt,
+            };
+            let _ = persist_task_record(&state, &submission_key, &request_hash, &response);
+            return (StatusCode::OK, Json(response)).into_response();
+        }
         if is_task_canceled(&cancel_rx) {
             let reason = task_cancellation_reason(req.task_id);
             let response = TaskSubmitResponse {
