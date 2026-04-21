@@ -261,7 +261,7 @@ func (tc *TaskCoordinator) dispatchToRuntime(ctx context.Context, task *TaskReco
 		runtimePayload["deadline_ms"] = deadlineBytes
 	}
 	governance := taskGovernanceForRecord(task)
-	if governance.AgentIdentity != (AgentIdentity{}) {
+	if !agentIdentityEmpty(governance.AgentIdentity) {
 		identityBytes, _ := json.Marshal(governance.AgentIdentity)
 		runtimePayload["agent_identity"] = identityBytes
 	}
