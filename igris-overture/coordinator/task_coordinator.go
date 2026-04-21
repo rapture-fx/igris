@@ -66,6 +66,8 @@ func (tc *TaskCoordinator) Submit(ctx context.Context, req *TaskSubmitRequest) (
 	if err != nil {
 		return nil, err
 	}
+	governance := normalizeTaskGovernance(req.TenantID, req.AgentIdentity, req.RequiredCapabilities, req.CredentialRequests)
+	normalizedDefinition = attachTaskGovernanceToDefinition(normalizedDefinition, governance)
 
 	taskID := uuid.New()
 	if req.TaskID != uuid.Nil {
@@ -82,6 +84,9 @@ func (tc *TaskCoordinator) Submit(ctx context.Context, req *TaskSubmitRequest) (
 		TenantID:       req.TenantID,
 		Status:         TaskStatusPending,
 		TaskDefinition: normalizedDefinition,
+		AgentIdentity:  governance.AgentIdentity,
+		RequiredCapabilities: governance.RequiredCapabilities,
+		CredentialRequests:   governance.CredentialRequests,
 		IdempotencyKey: idempotencyKey,
 		DeadlineAt:     req.DeadlineAt,
 		CreatedAt:      time.Now(),
@@ -114,6 +119,12 @@ func (tc *TaskCoordinator) Submit(ctx context.Context, req *TaskSubmitRequest) (
 	task.Status = TaskStatusDispatched
 	task.RuntimeID = &runtime.RuntimeID
 	task.RuntimeEndpoint = &runtime.Endpoint
+	envelope, err := tc.buildTaskPermissionEnvelope(ctx, task, governance)
+	if err != nil {
+		_ = tc.store.MarkFailedWithDetails(taskID, "task capability policy denied", overtureTaskFailureDetails("submit", "capability_policy_denied", err.Error()))
+		return nil, err
+	}
+	task.PermissionEnvelope = envelope
 
 	// Dispatch asynchronously so Submit returns immediately.
 	go tc.dispatchToRuntime(context.Background(), task, nil)
@@ -248,6 +259,31 @@ func (tc *TaskCoordinator) dispatchToRuntime(ctx context.Context, task *TaskReco
 	if task.DeadlineAt != nil {
 		deadlineBytes, _ := json.Marshal(task.DeadlineAt.UnixMilli())
 		runtimePayload["deadline_ms"] = deadlineBytes
+	}
+	governance := taskGovernanceForRecord(task)
+	if governance.AgentIdentity != (AgentIdentity{}) {
+		identityBytes, _ := json.Marshal(governance.AgentIdentity)
+		runtimePayload["agent_identity"] = identityBytes
+	}
+	if len(governance.RequiredCapabilities) > 0 {
+		requiredBytes, _ := json.Marshal(governance.RequiredCapabilities)
+		runtimePayload["required_capabilities"] = requiredBytes
+		envelope := task.PermissionEnvelope
+		if envelope == nil {
+			var err error
+			envelope, err = tc.buildTaskPermissionEnvelope(ctx, task, governance)
+			if err != nil {
+				log.Error().Err(err).Str("task_id", task.TaskID.String()).Msg("[Coordinator] Build task permission envelope")
+				_ = tc.store.MarkFailedWithDetails(task.TaskID, "task capability policy denied", overtureTaskFailureDetails("dispatch", "capability_policy_denied", err.Error()))
+				return
+			}
+		}
+		envelopeBytes, _ := json.Marshal(envelope)
+		runtimePayload["permission_envelope"] = envelopeBytes
+		if len(envelope.CredentialRefs) > 0 {
+			credentialRefBytes, _ := json.Marshal(envelope.CredentialRefs)
+			runtimePayload["credential_refs"] = credentialRefBytes
+		}
 	}
 	if decisions := buildSignedGovernedPolicyDecisions(task, taskTypeBytes, tc.db); len(decisions) > 0 {
 		if err := tc.store.SaveRoboticsPolicyDecisions(task.TaskID, decisions); err != nil {
@@ -987,12 +1023,15 @@ func (tc *TaskCoordinator) handleDispatchFailure(ctx context.Context, task *Task
 
 // TaskSubmitRequest is the payload from external clients to /v1/tasks/submit.
 type TaskSubmitRequest struct {
-	TaskID         uuid.UUID       `json:"task_id,omitempty"`
-	TenantID       string          `json:"tenant_id"`
-	TaskType       string          `json:"task_type"` // "agent_workflow" | "robotics_workflow" | "single_inference" | "behavior_tree" | "execution_graph"
-	TaskDefinition json.RawMessage `json:"task_definition"`
-	IdempotencyKey string          `json:"idempotency_key,omitempty"`
-	DeadlineAt     *time.Time      `json:"deadline_at,omitempty"`
+	TaskID               uuid.UUID           `json:"task_id,omitempty"`
+	TenantID             string              `json:"tenant_id"`
+	TaskType             string              `json:"task_type"` // "agent_workflow" | "robotics_workflow" | "single_inference" | "behavior_tree" | "execution_graph"
+	TaskDefinition       json.RawMessage     `json:"task_definition"`
+	AgentIdentity        *AgentIdentity      `json:"agent_identity,omitempty"`
+	RequiredCapabilities []string            `json:"required_capabilities,omitempty"`
+	CredentialRequests   []CredentialRequest `json:"credential_requests,omitempty"`
+	IdempotencyKey        string              `json:"idempotency_key,omitempty"`
+	DeadlineAt           *time.Time          `json:"deadline_at,omitempty"`
 }
 
 func normalizePublicTaskDefinition(taskType string, raw json.RawMessage) (json.RawMessage, error) {
