@@ -3950,6 +3950,225 @@ fn policy_decision_hash(decision: &GovernedPolicyDecision) -> String {
     hash_hex(&canonical_policy_decision_bytes(decision))
 }
 
+fn validate_task_permission_envelope(
+    req: &TaskSubmitRequest,
+    overture_public_key: Option<&ed25519_dalek::VerifyingKey>,
+    runtime_id: &str,
+) -> Result<(), String> {
+    if req.required_capabilities.is_empty() && req.permission_envelope.is_none() {
+        return Ok(());
+    }
+
+    let envelope = req
+        .permission_envelope
+        .as_ref()
+        .ok_or_else(|| "missing task permission envelope".to_string())?;
+    let verifying_key = overture_public_key
+        .ok_or_else(|| "missing task permission envelope verifier".to_string())?;
+
+    if envelope.schema_version != "task_permission_envelope.v1" {
+        return Err("unsupported task permission envelope schema".to_string());
+    }
+    if envelope.tenant_id != req.tenant_id {
+        return Err("task permission envelope tenant mismatch".to_string());
+    }
+    if envelope.task_id != req.task_id.to_string() {
+        return Err("task permission envelope task mismatch".to_string());
+    }
+    if let Some(envelope_runtime_id) = envelope.runtime_id.as_deref() {
+        if envelope_runtime_id != runtime_id && envelope_runtime_id != "*" {
+            return Err("task permission envelope runtime mismatch".to_string());
+        }
+    }
+    if envelope.expires_at_unix_ms <= unix_now_ms() as i64 {
+        return Err("task permission envelope expired".to_string());
+    }
+    verify_task_permission_envelope_signature(envelope, verifying_key)
+        .map_err(|err| format!("invalid task permission envelope: {err}"))?;
+
+    for capability in &req.required_capabilities {
+        if !permission_envelope_allows_capability(envelope, capability) {
+            return Err(format!(
+                "required capability {capability} is not permitted by task permission envelope"
+            ));
+        }
+    }
+    Ok(())
+}
+
+fn verify_task_permission_envelope_signature(
+    envelope: &TaskPermissionEnvelope,
+    verifying_key: &ed25519_dalek::VerifyingKey,
+) -> anyhow::Result<()> {
+    if envelope.signature.is_empty() {
+        anyhow::bail!("missing signature");
+    }
+    let sig_bytes = base64::engine::general_purpose::STANDARD
+        .decode(&envelope.signature)
+        .map_err(|err| anyhow::anyhow!("signature base64 decode failed: {err}"))?;
+    let arr: [u8; 64] = sig_bytes
+        .try_into()
+        .map_err(|_| anyhow::anyhow!("invalid signature length"))?;
+    let signature = ed25519_dalek::Signature::from_bytes(&arr);
+    let canonical = canonical_task_permission_envelope_bytes(envelope);
+    let digest = Sha256::digest(&canonical);
+    verifying_key
+        .verify(&digest, &signature)
+        .map_err(|err| anyhow::anyhow!("signature verification failed: {err}"))
+}
+
+fn canonical_task_permission_envelope_bytes(envelope: &TaskPermissionEnvelope) -> Vec<u8> {
+    let mut value = BTreeMap::<&str, serde_json::Value>::new();
+    value.insert(
+        "agent_identity",
+        canonical_agent_identity_value(&envelope.agent_identity),
+    );
+    value.insert(
+        "credential_refs",
+        serde_json::json!(canonical_credential_reference_values(
+            &envelope.credential_refs
+        )),
+    );
+    value.insert(
+        "decisions",
+        serde_json::json!(canonical_capability_decision_values(&envelope.decisions)),
+    );
+    value.insert("envelope_id", serde_json::json!(envelope.envelope_id));
+    value.insert(
+        "expires_at_unix_ms",
+        serde_json::json!(envelope.expires_at_unix_ms),
+    );
+    value.insert(
+        "issued_at_unix_ms",
+        serde_json::json!(envelope.issued_at_unix_ms),
+    );
+    value.insert(
+        "required_capabilities",
+        serde_json::json!(envelope.required_capabilities),
+    );
+    if let Some(runtime_id) = &envelope.runtime_id {
+        value.insert("runtime_id", serde_json::json!(runtime_id));
+    }
+    value.insert("schema_version", serde_json::json!(envelope.schema_version));
+    if let Some(key_version) = &envelope.signer_key_version {
+        value.insert("signer_key_version", serde_json::json!(key_version));
+    }
+    value.insert("task_id", serde_json::json!(envelope.task_id));
+    value.insert("tenant_id", serde_json::json!(envelope.tenant_id));
+    serde_json::to_vec(&value).unwrap_or_default()
+}
+
+fn canonical_agent_identity_value(identity: &AgentIdentity) -> serde_json::Value {
+    let mut value = BTreeMap::<&str, serde_json::Value>::new();
+    value.insert(
+        "acting_on_behalf_of",
+        serde_json::json!(identity.acting_on_behalf_of),
+    );
+    value.insert("agent_id", serde_json::json!(identity.agent_id));
+    value.insert(
+        "delegation_chain",
+        serde_json::json!(identity.delegation_chain),
+    );
+    value.insert("principal_id", serde_json::json!(identity.principal_id));
+    value.insert("submitted_by", serde_json::json!(identity.submitted_by));
+    serde_json::to_value(value).unwrap_or_default()
+}
+
+fn canonical_capability_decision_values(
+    decisions: &[CapabilityDecision],
+) -> Vec<serde_json::Value> {
+    decisions
+        .iter()
+        .map(|decision| {
+            let mut value = BTreeMap::<&str, serde_json::Value>::new();
+            value.insert("capability", serde_json::json!(decision.capability));
+            value.insert("permit", serde_json::json!(decision.permit));
+            value.insert("policy_version", serde_json::json!(decision.policy_version));
+            value.insert("reason", serde_json::json!(decision.reason));
+            serde_json::to_value(value).unwrap_or_default()
+        })
+        .collect()
+}
+
+fn canonical_credential_reference_values(
+    refs: &[CredentialReference],
+) -> Vec<serde_json::Value> {
+    refs.iter()
+        .map(|credential_ref| {
+            let mut value = BTreeMap::<&str, serde_json::Value>::new();
+            value.insert("capability", serde_json::json!(credential_ref.capability));
+            value.insert(
+                "expires_at_unix_ms",
+                serde_json::json!(credential_ref.expires_at_unix_ms),
+            );
+            value.insert(
+                "reference_id",
+                serde_json::json!(credential_ref.reference_id),
+            );
+            value.insert("revocable", serde_json::json!(credential_ref.revocable));
+            value.insert("scope", serde_json::json!(credential_ref.scope));
+            value.insert("task_id", serde_json::json!(credential_ref.task_id));
+            value.insert("tenant_id", serde_json::json!(credential_ref.tenant_id));
+            value.insert("tool", serde_json::json!(credential_ref.tool));
+            serde_json::to_value(value).unwrap_or_default()
+        })
+        .collect()
+}
+
+fn permission_failure_for_step(
+    req: &TaskSubmitRequest,
+    step: &RuntimeTaskStep,
+) -> Option<TaskFailureDetails> {
+    let envelope = req.permission_envelope.as_ref()?;
+    let capability = step_required_capability(step)?;
+    if permission_envelope_allows_capability(envelope, &capability) {
+        return None;
+    }
+    Some(runtime_execution_failure_details(
+        "capability_policy_denied",
+        format!("capability {capability} denied by task permission envelope"),
+        Some(step),
+    ))
+}
+
+fn step_required_capability(step: &RuntimeTaskStep) -> Option<String> {
+    match step {
+        RuntimeTaskStep::Tool(tool_step) => Some(tool_capability(&tool_step.tool_name)),
+        RuntimeTaskStep::MemoryRecall(_) => Some("memory.read".to_string()),
+        RuntimeTaskStep::MemoryStore(_) => Some("memory.write".to_string()),
+        RuntimeTaskStep::HumanApproval(_) => Some("human.approval".to_string()),
+        RuntimeTaskStep::Agent(_)
+        | RuntimeTaskStep::Robotics(_)
+        | RuntimeTaskStep::BehaviorTree(_) => None,
+    }
+}
+
+fn tool_capability(tool_name: &str) -> String {
+    let normalized = tool_name.trim().to_ascii_lowercase();
+    if normalized.starts_with("tools.") {
+        normalized
+    } else {
+        format!("tools.{normalized}")
+    }
+}
+
+fn permission_envelope_allows_capability(
+    envelope: &TaskPermissionEnvelope,
+    capability: &str,
+) -> bool {
+    let capability = capability.trim().to_ascii_lowercase();
+    envelope.decisions.iter().any(|decision| {
+        decision.permit && capability_pattern_matches(&decision.capability, &capability)
+    })
+}
+
+fn capability_pattern_matches(pattern: &str, capability: &str) -> bool {
+    let pattern = pattern.trim().to_ascii_lowercase();
+    pattern == capability
+        || pattern == "*"
+        || (pattern.ends_with(".*") && capability.starts_with(pattern.trim_end_matches('*')))
+}
+
 fn governed_action_hash(action: &GovernedAction) -> String {
     hash_hex(&canonical_governed_action_bytes(action))
 }
