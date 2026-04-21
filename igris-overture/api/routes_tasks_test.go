@@ -2919,6 +2919,43 @@ func TestBuildTaskTransitionRejectedPayloadWithoutTask(t *testing.T) {
 	require.Equal(t, fiber.Map{"error": "task_transition_rejected"}, resp)
 }
 
+func TestBuildTaskSubmitRequestIncludesAgentGovernance(t *testing.T) {
+	t.Parallel()
+
+	body := []byte(`{
+		"task_type": "execution_graph",
+		"task_definition": {
+			"graph": {
+				"nodes": [
+					{"kind":"tool","node_id":"github-write","tool_name":"github.issues.write"}
+				]
+			}
+		},
+		"agent_identity": {
+			"agent_id": "agent-researcher",
+			"principal_id": "user-123",
+			"submitted_by": "user-123",
+			"acting_on_behalf_of": "user-123",
+			"delegation_chain": ["user-123", "agent-researcher"]
+		},
+		"required_capabilities": [
+			"tools.github.issues.write",
+			"memory.project.read"
+		],
+		"credential_requests": [
+			{"tool":"github.issues.write","capability":"tools.github.issues.write","scope":"task","expires_in_seconds":60}
+		]
+	}`)
+
+	req, err := buildTaskSubmitRequest(body, "tenant-ai")
+	require.NoError(t, err)
+	require.Equal(t, "tenant-ai", req.TenantID)
+	require.Equal(t, "agent-researcher", req.AgentIdentity.AgentID)
+	require.Equal(t, []string{"tools.github.issues.write", "memory.project.read"}, req.RequiredCapabilities)
+	require.Len(t, req.CredentialRequests, 1)
+	require.Equal(t, "github.issues.write", req.CredentialRequests[0].Tool)
+}
+
 func TestBuildTaskSubmitRequestBuildsRoboticsMissionDefinition(t *testing.T) {
 	t.Parallel()
 
