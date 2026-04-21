@@ -598,10 +598,10 @@ func TestDispatchToRuntimeAttachesSignedTaskPermissionEnvelope(t *testing.T) {
 	runtimeID := "runtime-ai-signed"
 	tenantID := "tenant-ai"
 	var gotBody struct {
-		AgentIdentity        AgentIdentity           `json:"agent_identity"`
-		RequiredCapabilities []string                `json:"required_capabilities"`
-		PermissionEnvelope   TaskPermissionEnvelope  `json:"permission_envelope"`
-		CredentialRefs       []CredentialReference   `json:"credential_refs"`
+		AgentIdentity        AgentIdentity          `json:"agent_identity"`
+		RequiredCapabilities []string               `json:"required_capabilities"`
+		PermissionEnvelope   TaskPermissionEnvelope `json:"permission_envelope"`
+		CredentialRefs       []CredentialReference  `json:"credential_refs"`
 	}
 	db, queued := newQueuedCheckpointDB(t, []queuedQueryExpectation{{
 		values: []driver.Value{`{
