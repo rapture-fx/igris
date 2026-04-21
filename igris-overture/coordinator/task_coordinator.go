@@ -80,16 +80,16 @@ func (tc *TaskCoordinator) Submit(ctx context.Context, req *TaskSubmitRequest) (
 	}
 
 	task := &TaskRecord{
-		TaskID:         taskID,
-		TenantID:       req.TenantID,
-		Status:         TaskStatusPending,
-		TaskDefinition: normalizedDefinition,
-		AgentIdentity:  governance.AgentIdentity,
+		TaskID:               taskID,
+		TenantID:             req.TenantID,
+		Status:               TaskStatusPending,
+		TaskDefinition:       normalizedDefinition,
+		AgentIdentity:        governance.AgentIdentity,
 		RequiredCapabilities: governance.RequiredCapabilities,
 		CredentialRequests:   governance.CredentialRequests,
-		IdempotencyKey: idempotencyKey,
-		DeadlineAt:     req.DeadlineAt,
-		CreatedAt:      time.Now(),
+		IdempotencyKey:       idempotencyKey,
+		DeadlineAt:           req.DeadlineAt,
+		CreatedAt:            time.Now(),
 	}
 
 	inserted, err := tc.store.CreateTask(task)
@@ -1030,7 +1030,7 @@ type TaskSubmitRequest struct {
 	AgentIdentity        *AgentIdentity      `json:"agent_identity,omitempty"`
 	RequiredCapabilities []string            `json:"required_capabilities,omitempty"`
 	CredentialRequests   []CredentialRequest `json:"credential_requests,omitempty"`
-	IdempotencyKey        string              `json:"idempotency_key,omitempty"`
+	IdempotencyKey       string              `json:"idempotency_key,omitempty"`
 	DeadlineAt           *time.Time          `json:"deadline_at,omitempty"`
 }
 
