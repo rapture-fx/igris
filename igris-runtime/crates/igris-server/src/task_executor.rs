@@ -1514,6 +1514,8 @@ pub async fn handle_task_stream(
                 "containment": &req.containment,
                 "tenant_id": &req.tenant_id,
                 "deadline_ms": &req.deadline_ms,
+                "agent_identity": &req.agent_identity,
+                "required_capabilities": &req.required_capabilities,
             }))
             .unwrap_or_default(),
         )
