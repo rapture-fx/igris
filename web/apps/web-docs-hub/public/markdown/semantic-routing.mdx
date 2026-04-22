@@ -40,7 +40,7 @@ The result is a router that can prefer different providers for different prompt 
 Prompt -> Semantic classifier -> Workload class -> Eligible providers -> Thompson sampling -> Selected provider
 ```
 
-The current implementation behaves like this:
+The routing flow behaves like this:
 
 1. Classify the incoming prompt with a short timeout.
 2. Convert the class into a required capability or provider slice.
@@ -79,7 +79,7 @@ This is one reason routing behavior can change over time even when your fallback
 
 ## Operational Implications
 
-Semantic routing should be documented and operated as a product capability, not as a hidden implementation detail.
+Semantic routing should be operated as an explicit product capability.
 
 Teams should expect:
 
