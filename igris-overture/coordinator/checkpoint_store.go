@@ -1,6 +1,7 @@
 package coordinator
 
 import (
+	"context"
 	"crypto/sha256"
 	"database/sql"
 	"encoding/hex"
@@ -432,11 +433,11 @@ type AICredentialReferenceAudit struct {
 }
 
 type AICredentialReferenceFilter struct {
-	TaskID     *uuid.UUID
-	Capability string
-	Tool       string
+	TaskID         *uuid.UUID
+	Capability     string
+	Tool           string
 	IncludeRevoked bool
-	Limit      int
+	Limit          int
 }
 
 type AIToolAuditReplay struct {
