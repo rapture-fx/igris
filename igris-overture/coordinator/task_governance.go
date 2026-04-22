@@ -282,7 +282,25 @@ func evaluateTaskCapabilityPolicy(ctx context.Context, db *sql.DB, tenantID stri
 	}
 
 	var raw []byte
-	if err := db.QueryRowContext(ctx, `SELECT COALESCE(capabilities_policy, '{}') FROM tenants WHERE tenant_id = $1`, tenantID).Scan(&raw); err != nil {
+	if err := db.QueryRowContext(ctx, `
+		SELECT COALESCE(
+			(
+				SELECT policy
+				FROM ai_capability_policy_settings
+				WHERE tenant_id = $1
+				  AND active = true
+				  AND status = 'active'
+				  AND (expires_at IS NULL OR expires_at > NOW())
+				ORDER BY updated_at DESC
+				LIMIT 1
+			),
+			(
+				SELECT capabilities_policy
+				FROM tenants
+				WHERE tenant_id = $1
+			),
+			'{}'::jsonb
+		)`, tenantID).Scan(&raw); err != nil {
 		evaluation.Reason = "default deny: capability policy lookup failed"
 		evaluation.Decisions = capabilityDecisions(required, evaluation.PolicyVersion, false, evaluation.Reason)
 		return evaluation
