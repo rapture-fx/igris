@@ -250,7 +250,7 @@ Current scope:
 
 - durable streaming currently applies to base, all named speculative modes, and council for streamed `single_inference`
 - council streaming emits the chairman's synthesized final answer as SSE output and still finishes with the durable `task_result` event
-- the stream remains receipt-bearing and idempotent even when council execution itself is internally buffered before the final answer is emitted
+- the stream remains receipt-bearing and idempotent even when council output is buffered before the final answer is emitted
 - a completed durable stream can be replayed idempotently with the same task result metadata
 - if replay is requested for a failed, checkpointed, or incomplete stream, Runtime returns `409 stream_replay_unavailable` with a task snapshot and `durability` metadata
 - if Overture receives a structured Runtime stream rejection, it preserves `runtime_status_code`, `runtime_payload`, and normalized `failure` details instead of using `allow_stream_fallback`
