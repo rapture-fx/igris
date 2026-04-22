@@ -10,6 +10,7 @@ import (
 	"time"
 
 	"github.com/google/uuid"
+	"github.com/stretchr/testify/require"
 )
 
 func TestTaskProofNeedsRefresh(t *testing.T) {
@@ -1026,6 +1027,40 @@ func TestScanTaskRecordOmitsEmptyProofAndInvalidCheckpoint(t *testing.T) {
 	if record.FailureDetails != nil {
 		t.Fatalf("FailureDetails = %+v, want nil", record.FailureDetails)
 	}
+}
+
+func TestAIToolAuditRefsExtractsSignedToolReceipt(t *testing.T) {
+	t.Parallel()
+
+	envelope := json.RawMessage(`{
+		"execution_id":"exec-tool-1",
+		"tenant_id":"tenant-ai",
+		"model":"github.issues.write",
+		"policy_decision_id":"permission-envelope-1",
+		"policy_decision_hash":"permission-envelope-hash",
+		"governed_action_hash":"tool-action-hash",
+		"routing_decision":"tool:github.issues.write",
+		"request_hash":"args-hash",
+		"response_hash":"result-hash",
+		"signature":"runtime-envelope-sig"
+	}`)
+	receipt := json.RawMessage(`{
+		"execution_id":"exec-tool-1",
+		"hash":"receipt-hash",
+		"signature":"receipt-sig",
+		"tool_calls":1,
+		"violation_occurred":false
+	}`)
+
+	refs, ok := aiToolAuditRefs(envelope, receipt)
+	require.True(t, ok)
+	require.Equal(t, "exec-tool-1", refs.ExecutionID)
+	require.Equal(t, "permission-envelope-1", refs.EnvelopeID)
+	require.Equal(t, "tools.github.issues.write", refs.Capability)
+	require.Equal(t, "github.issues.write", refs.ToolName)
+	require.Equal(t, "tool-action-hash", refs.ToolActionHash)
+	require.Equal(t, "receipt-hash", refs.ReceiptHash)
+	require.Equal(t, "runtime-envelope-sig", refs.EnvelopeSignature)
 }
 
 type fakeTaskRecordScanner struct {
