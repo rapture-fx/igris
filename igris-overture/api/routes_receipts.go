@@ -277,7 +277,7 @@ func replayAIToolReceipts(db *sql.DB) fiber.Handler {
 		if err != nil {
 			return err
 		}
-		receipts, err := store.GetAIToolAuditReceipts(tenantID, filter)
+		receipts, err := store.ReplayAIToolAudit(tenantID, filter)
 		if err != nil {
 			log.Error().Err(err).Str("tenant_id", tenantID).Msg("[Receipts] replayAIToolReceipts query failed")
 			return c.Status(fiber.StatusInternalServerError).JSON(fiber.Map{"error": "internal_error"})
