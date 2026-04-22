@@ -386,6 +386,36 @@ type RoboticsAuditReceiptFilter struct {
 	Limit            int
 }
 
+type AIToolAuditReceipt struct {
+	TaskID            uuid.UUID       `json:"task_id"`
+	TenantID          string          `json:"tenant_id"`
+	RuntimeID         string          `json:"runtime_id,omitempty"`
+	ExecutionID       string          `json:"execution_id"`
+	EnvelopeID        string          `json:"envelope_id,omitempty"`
+	Capability        string          `json:"capability,omitempty"`
+	ToolName          string          `json:"tool_name"`
+	ToolActionHash    string          `json:"tool_action_hash,omitempty"`
+	RoutingDecision   string          `json:"routing_decision"`
+	RequestHash       string          `json:"request_hash,omitempty"`
+	ResponseHash      string          `json:"response_hash,omitempty"`
+	ReceiptHash       string          `json:"receipt_hash,omitempty"`
+	ReceiptSignature  string          `json:"receipt_signature,omitempty"`
+	EnvelopeSignature string          `json:"envelope_signature,omitempty"`
+	ViolationOccurred bool            `json:"violation_occurred"`
+	Violation         string          `json:"violation,omitempty"`
+	ExecutionEnvelope json.RawMessage `json:"execution_envelope,omitempty"`
+	ExecutionReceipt  json.RawMessage `json:"execution_receipt,omitempty"`
+	PersistedAt       time.Time       `json:"persisted_at"`
+}
+
+type AIToolAuditReceiptFilter struct {
+	TaskID     *uuid.UUID
+	EnvelopeID string
+	Capability string
+	ToolName   string
+	Limit      int
+}
+
 type RoboticsAuditReplay struct {
 	TaskID                    uuid.UUID       `json:"task_id"`
 	TenantID                  string          `json:"tenant_id"`
@@ -1057,6 +1087,81 @@ func (s *CheckpointStore) GetRoboticsAuditReceipts(tenantID string, filter Robot
 			&receipt.GovernedActionHash,
 			&receipt.RobotAction,
 			&receipt.RoutingDecision,
+			&receipt.ReceiptHash,
+			&receipt.ReceiptSignature,
+			&receipt.EnvelopeSignature,
+			&receipt.ViolationOccurred,
+			&receipt.Violation,
+			&receipt.ExecutionEnvelope,
+			&receipt.ExecutionReceipt,
+			&receipt.PersistedAt,
+		); err != nil {
+			return nil, err
+		}
+		receipts = append(receipts, receipt)
+	}
+	return receipts, rows.Err()
+}
+
+func (s *CheckpointStore) GetAIToolAuditReceipts(tenantID string, filter AIToolAuditReceiptFilter) ([]AIToolAuditReceipt, error) {
+	limit := filter.Limit
+	if limit <= 0 || limit > 500 {
+		limit = 100
+	}
+
+	args := []any{tenantID}
+	where := "tenant_id = $1"
+	if filter.TaskID != nil {
+		args = append(args, *filter.TaskID)
+		where += fmt.Sprintf(" AND task_id = $%d", len(args))
+	}
+	if filter.EnvelopeID != "" {
+		args = append(args, filter.EnvelopeID)
+		where += fmt.Sprintf(" AND envelope_id = $%d", len(args))
+	}
+	if filter.Capability != "" {
+		args = append(args, filter.Capability)
+		where += fmt.Sprintf(" AND capability = $%d", len(args))
+	}
+	if filter.ToolName != "" {
+		args = append(args, filter.ToolName)
+		where += fmt.Sprintf(" AND tool_name = $%d", len(args))
+	}
+	args = append(args, limit)
+
+	rows, err := s.db.Query(fmt.Sprintf(`
+		SELECT task_id, tenant_id, COALESCE(runtime_id, ''), execution_id,
+		       COALESCE(envelope_id, ''), COALESCE(capability, ''), tool_name,
+		       COALESCE(tool_action_hash, ''), routing_decision,
+		       COALESCE(request_hash, ''), COALESCE(response_hash, ''),
+		       COALESCE(receipt_hash, ''), COALESCE(receipt_signature, ''),
+		       COALESCE(envelope_signature, ''), violation_occurred,
+		       COALESCE(violation, ''), execution_envelope, COALESCE(execution_receipt, '{}'::jsonb),
+		       persisted_at
+		FROM ai_tool_receipt_audit
+		WHERE %s
+		ORDER BY persisted_at DESC
+		LIMIT $%d`, where, len(args)), args...)
+	if err != nil {
+		return nil, err
+	}
+	defer rows.Close()
+
+	receipts := make([]AIToolAuditReceipt, 0)
+	for rows.Next() {
+		var receipt AIToolAuditReceipt
+		if err := rows.Scan(
+			&receipt.TaskID,
+			&receipt.TenantID,
+			&receipt.RuntimeID,
+			&receipt.ExecutionID,
+			&receipt.EnvelopeID,
+			&receipt.Capability,
+			&receipt.ToolName,
+			&receipt.ToolActionHash,
+			&receipt.RoutingDecision,
+			&receipt.RequestHash,
+			&receipt.ResponseHash,
 			&receipt.ReceiptHash,
 			&receipt.ReceiptSignature,
 			&receipt.EnvelopeSignature,
