@@ -351,6 +351,9 @@ func (s *CheckpointStore) SaveExecutionArtifacts(taskID uuid.UUID, executionEnve
 	if err := saveRoboticsReceiptAudit(tx, taskID, executionEnvelope, executionReceipt); err != nil {
 		return err
 	}
+	if err := saveAIToolReceiptAudit(tx, taskID, executionEnvelope, executionReceipt); err != nil {
+		return err
+	}
 	return tx.Commit()
 }
 
@@ -589,6 +592,149 @@ func (s *CheckpointStore) SaveRoboticsPolicyDecisions(taskID uuid.UUID, decision
 			return err
 		}
 	}
+	return tx.Commit()
+}
+
+func taskPermissionEnvelopeHash(envelope TaskPermissionEnvelope) string {
+	canonical, _ := json.Marshal(canonicalTaskPermissionEnvelope(envelope))
+	sum := sha256.Sum256(canonical)
+	return fmt.Sprintf("%x", sum[:])
+}
+
+func (s *CheckpointStore) SaveTaskPermissionEnvelope(taskID uuid.UUID, envelope *TaskPermissionEnvelope) error {
+	if envelope == nil || envelope.EnvelopeID == "" {
+		return nil
+	}
+	raw, err := json.Marshal(envelope)
+	if err != nil {
+		return fmt.Errorf("marshal task permission envelope: %w", err)
+	}
+	requiredCapabilities, err := json.Marshal(envelope.RequiredCapabilities)
+	if err != nil {
+		return fmt.Errorf("marshal required capabilities: %w", err)
+	}
+	credentialRefs, err := json.Marshal(envelope.CredentialRefs)
+	if err != nil {
+		return fmt.Errorf("marshal credential refs: %w", err)
+	}
+
+	tx, err := s.db.Begin()
+	if err != nil {
+		return err
+	}
+	defer tx.Rollback()
+
+	_, err = tx.Exec(`
+		INSERT INTO ai_task_permission_audit (
+			envelope_id, task_id, tenant_id, runtime_id, agent_id, principal_id,
+			acting_on_behalf_of, required_capabilities, credential_refs,
+			permission_envelope, envelope_hash, envelope_signature,
+			signer_key_version, issued_at_unix_ms, expires_at_unix_ms, persisted_at
+		)
+		VALUES ($1, $2, $3, NULLIF($4, ''), NULLIF($5, ''), NULLIF($6, ''),
+		        NULLIF($7, ''), $8, $9, $10, $11, $12, NULLIF($13, ''), $14, $15, NOW())
+		ON CONFLICT (envelope_id) DO UPDATE
+		SET runtime_id = EXCLUDED.runtime_id,
+		    agent_id = EXCLUDED.agent_id,
+		    principal_id = EXCLUDED.principal_id,
+		    acting_on_behalf_of = EXCLUDED.acting_on_behalf_of,
+		    required_capabilities = EXCLUDED.required_capabilities,
+		    credential_refs = EXCLUDED.credential_refs,
+		    permission_envelope = EXCLUDED.permission_envelope,
+		    envelope_hash = EXCLUDED.envelope_hash,
+		    envelope_signature = EXCLUDED.envelope_signature,
+		    signer_key_version = EXCLUDED.signer_key_version,
+		    issued_at_unix_ms = EXCLUDED.issued_at_unix_ms,
+		    expires_at_unix_ms = EXCLUDED.expires_at_unix_ms,
+		    persisted_at = NOW()`,
+		envelope.EnvelopeID,
+		taskID,
+		envelope.TenantID,
+		stringPtrValue(envelope.RuntimeID),
+		envelope.AgentIdentity.AgentID,
+		envelope.AgentIdentity.PrincipalID,
+		envelope.AgentIdentity.ActingOnBehalfOf,
+		nullRawJSON(requiredCapabilities),
+		nullRawJSON(credentialRefs),
+		nullRawJSON(raw),
+		taskPermissionEnvelopeHash(*envelope),
+		envelope.Signature,
+		stringPtrValue(envelope.SignerKeyVersion),
+		envelope.IssuedAtUnixMs,
+		envelope.ExpiresAtUnixMs,
+	)
+	if err != nil {
+		return err
+	}
+
+	refsByCapability := make(map[string][]string)
+	for _, ref := range envelope.CredentialRefs {
+		if ref.Capability != "" && ref.ReferenceID != "" {
+			refsByCapability[ref.Capability] = append(refsByCapability[ref.Capability], ref.ReferenceID)
+		}
+	}
+	for _, decision := range envelope.Decisions {
+		refIDs, _ := json.Marshal(refsByCapability[decision.Capability])
+		_, err = tx.Exec(`
+			INSERT INTO ai_capability_decision_audit (
+				envelope_id, task_id, tenant_id, runtime_id, capability, permit,
+				reason, policy_version, credential_ref_ids, persisted_at
+			)
+			VALUES ($1, $2, $3, NULLIF($4, ''), $5, $6, $7, $8, $9, NOW())
+			ON CONFLICT (envelope_id, capability) DO UPDATE
+			SET runtime_id = EXCLUDED.runtime_id,
+			    permit = EXCLUDED.permit,
+			    reason = EXCLUDED.reason,
+			    policy_version = EXCLUDED.policy_version,
+			    credential_ref_ids = EXCLUDED.credential_ref_ids,
+			    persisted_at = NOW()`,
+			envelope.EnvelopeID,
+			taskID,
+			envelope.TenantID,
+			stringPtrValue(envelope.RuntimeID),
+			decision.Capability,
+			decision.Permit,
+			decision.Reason,
+			decision.PolicyVersion,
+			nullRawJSON(refIDs),
+		)
+		if err != nil {
+			return err
+		}
+	}
+	for _, ref := range envelope.CredentialRefs {
+		if ref.ReferenceID == "" {
+			continue
+		}
+		_, err = tx.Exec(`
+			INSERT INTO ai_credential_ref_audit (
+				reference_id, envelope_id, task_id, tenant_id, tool, capability,
+				scope, expires_at_unix_ms, revocable, persisted_at
+			)
+			VALUES ($1, $2, $3, $4, NULLIF($5, ''), NULLIF($6, ''), NULLIF($7, ''), $8, $9, NOW())
+			ON CONFLICT (reference_id) DO UPDATE
+			SET envelope_id = EXCLUDED.envelope_id,
+			    tool = EXCLUDED.tool,
+			    capability = EXCLUDED.capability,
+			    scope = EXCLUDED.scope,
+			    expires_at_unix_ms = EXCLUDED.expires_at_unix_ms,
+			    revocable = EXCLUDED.revocable,
+			    persisted_at = NOW()`,
+			ref.ReferenceID,
+			envelope.EnvelopeID,
+			taskID,
+			envelope.TenantID,
+			ref.Tool,
+			ref.Capability,
+			ref.Scope,
+			ref.ExpiresAtUnixMs,
+			ref.Revocable,
+		)
+		if err != nil {
+			return err
+		}
+	}
+
 	return tx.Commit()
 }
 
