@@ -830,6 +830,181 @@ func saveRoboticsReceiptAudit(execer roboticsReceiptAuditExecer, taskID uuid.UUI
 	return err
 }
 
+type aiToolArtifactRefs struct {
+	ExecutionID       string
+	TenantID          string
+	EnvelopeID        string
+	Capability        string
+	ToolName          string
+	ToolActionHash    string
+	RoutingDecision   string
+	RequestHash       string
+	ResponseHash      string
+	ReceiptHash       string
+	ReceiptSignature  string
+	EnvelopeSignature string
+	ViolationOccurred bool
+	Violation         string
+}
+
+func aiToolAuditRefs(executionEnvelope, executionReceipt json.RawMessage) (*aiToolArtifactRefs, bool) {
+	if len(executionEnvelope) == 0 {
+		return nil, false
+	}
+	var envelope struct {
+		ExecutionID        string  `json:"execution_id"`
+		TenantID           *string `json:"tenant_id"`
+		Model              string  `json:"model"`
+		PolicyDecisionID   string  `json:"policy_decision_id"`
+		PolicyDecisionHash string  `json:"policy_decision_hash"`
+		GovernedActionHash string  `json:"governed_action_hash"`
+		RoutingDecision    string  `json:"routing_decision"`
+		RequestHash        string  `json:"request_hash"`
+		ResponseHash       string  `json:"response_hash"`
+		EnvelopeSignature  string  `json:"signature"`
+		Violation          string  `json:"violation"`
+	}
+	if err := json.Unmarshal(executionEnvelope, &envelope); err != nil {
+		return nil, false
+	}
+	if envelope.ExecutionID == "" || !aiToolRoutingDecisionAuditable(envelope.RoutingDecision) {
+		return nil, false
+	}
+
+	var receipt struct {
+		ExecutionID       string `json:"execution_id"`
+		ReceiptHash       string `json:"receipt_hash"`
+		Hash              string `json:"hash"`
+		Signature         string `json:"signature"`
+		ViolationOccurred bool   `json:"violation_occurred"`
+	}
+	if len(executionReceipt) > 0 {
+		if err := json.Unmarshal(executionReceipt, &receipt); err != nil {
+			return nil, false
+		}
+		if receipt.ExecutionID != "" && receipt.ExecutionID != envelope.ExecutionID {
+			return nil, false
+		}
+	}
+	receiptHash := receipt.ReceiptHash
+	if receiptHash == "" {
+		receiptHash = receipt.Hash
+	}
+	tenantID := ""
+	if envelope.TenantID != nil {
+		tenantID = *envelope.TenantID
+	}
+	toolName := aiToolNameFromRoutingDecision(envelope.RoutingDecision)
+	if toolName == "" {
+		toolName = envelope.Model
+	}
+
+	return &aiToolArtifactRefs{
+		ExecutionID:       envelope.ExecutionID,
+		TenantID:          tenantID,
+		EnvelopeID:        envelope.PolicyDecisionID,
+		Capability:        capabilityFromToolName(toolName),
+		ToolName:          toolName,
+		ToolActionHash:    envelope.GovernedActionHash,
+		RoutingDecision:   envelope.RoutingDecision,
+		RequestHash:       envelope.RequestHash,
+		ResponseHash:      envelope.ResponseHash,
+		ReceiptHash:       receiptHash,
+		ReceiptSignature:  receipt.Signature,
+		EnvelopeSignature: envelope.EnvelopeSignature,
+		ViolationOccurred: receipt.ViolationOccurred || envelope.Violation != "",
+		Violation:         envelope.Violation,
+	}, true
+}
+
+func aiToolRoutingDecisionAuditable(routingDecision string) bool {
+	return strings.HasPrefix(routingDecision, "tool:") || strings.HasPrefix(routingDecision, "runtime:tool:")
+}
+
+func aiToolNameFromRoutingDecision(routingDecision string) string {
+	for _, prefix := range []string{"tool:", "runtime:tool:"} {
+		if strings.HasPrefix(routingDecision, prefix) {
+			return strings.TrimSpace(strings.TrimPrefix(routingDecision, prefix))
+		}
+	}
+	return ""
+}
+
+func capabilityFromToolName(toolName string) string {
+	toolName = strings.TrimSpace(strings.ToLower(toolName))
+	if toolName == "" {
+		return ""
+	}
+	if strings.HasPrefix(toolName, "tools.") {
+		return toolName
+	}
+	return "tools." + toolName
+}
+
+func saveAIToolReceiptAudit(execer roboticsReceiptAuditExecer, taskID uuid.UUID, executionEnvelope, executionReceipt json.RawMessage) error {
+	refs, ok := aiToolAuditRefs(executionEnvelope, executionReceipt)
+	if !ok {
+		return nil
+	}
+	_, err := execer.Exec(`
+		INSERT INTO ai_tool_receipt_audit (
+			task_id, tenant_id, runtime_id, execution_id, envelope_id, capability,
+			tool_name, tool_action_hash, routing_decision, request_hash, response_hash,
+			receipt_hash, receipt_signature, envelope_signature, violation_occurred,
+			violation, execution_envelope, execution_receipt, persisted_at
+		)
+		SELECT
+			tr.task_id,
+			COALESCE(NULLIF($2, ''), tr.tenant_id),
+			tr.runtime_id,
+			$3,
+			NULLIF($4, ''),
+			NULLIF($5, ''),
+			$6,
+			NULLIF($7, ''),
+			$8,
+			NULLIF($9, ''),
+			NULLIF($10, ''),
+			NULLIF($11, ''),
+			NULLIF($12, ''),
+			NULLIF($13, ''),
+			$14,
+			NULLIF($15, ''),
+			$16,
+			$17,
+			NOW()
+		FROM task_records tr
+		WHERE tr.task_id = $1
+		ON CONFLICT (task_id, execution_id) DO UPDATE
+		SET receipt_hash = EXCLUDED.receipt_hash,
+		    receipt_signature = EXCLUDED.receipt_signature,
+		    envelope_signature = EXCLUDED.envelope_signature,
+		    violation_occurred = EXCLUDED.violation_occurred,
+		    violation = EXCLUDED.violation,
+		    execution_envelope = EXCLUDED.execution_envelope,
+		    execution_receipt = EXCLUDED.execution_receipt,
+		    persisted_at = NOW()`,
+		taskID,
+		refs.TenantID,
+		refs.ExecutionID,
+		refs.EnvelopeID,
+		refs.Capability,
+		refs.ToolName,
+		refs.ToolActionHash,
+		refs.RoutingDecision,
+		refs.RequestHash,
+		refs.ResponseHash,
+		refs.ReceiptHash,
+		refs.ReceiptSignature,
+		refs.EnvelopeSignature,
+		refs.ViolationOccurred,
+		refs.Violation,
+		nullRawJSON(executionEnvelope),
+		nullRawJSON(executionReceipt),
+	)
+	return err
+}
+
 func (s *CheckpointStore) GetRoboticsAuditReceipts(tenantID string, filter RoboticsAuditReceiptFilter) ([]RoboticsAuditReceipt, error) {
 	limit := filter.Limit
 	if limit <= 0 || limit > 500 {
