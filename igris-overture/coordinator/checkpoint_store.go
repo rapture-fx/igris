@@ -75,6 +75,7 @@ const (
 )
 
 var ErrTaskTransitionRejected = errors.New("task transition rejected")
+var ErrCredentialReferenceRevoked = errors.New("credential reference revoked")
 
 type TaskProofState struct {
 	ExecutionID  string     `json:"execution_id,omitempty"`
@@ -413,6 +414,28 @@ type AIToolAuditReceiptFilter struct {
 	EnvelopeID string
 	Capability string
 	ToolName   string
+	Limit      int
+}
+
+type AICredentialReferenceAudit struct {
+	ReferenceID     string     `json:"reference_id"`
+	EnvelopeID      string     `json:"envelope_id"`
+	TaskID          uuid.UUID  `json:"task_id"`
+	TenantID        string     `json:"tenant_id"`
+	Tool            string     `json:"tool,omitempty"`
+	Capability      string     `json:"capability,omitempty"`
+	Scope           string     `json:"scope,omitempty"`
+	ExpiresAtUnixMs int64      `json:"expires_at_unix_ms"`
+	Revocable       bool       `json:"revocable"`
+	RevokedAt       *time.Time `json:"revoked_at,omitempty"`
+	PersistedAt     time.Time  `json:"persisted_at"`
+}
+
+type AICredentialReferenceFilter struct {
+	TaskID     *uuid.UUID
+	Capability string
+	Tool       string
+	IncludeRevoked bool
 	Limit      int
 }
 
@@ -1205,6 +1228,182 @@ func (s *CheckpointStore) GetAIToolAuditReceipts(tenantID string, filter AIToolA
 		receipts = append(receipts, receipt)
 	}
 	return receipts, rows.Err()
+}
+
+func (s *CheckpointStore) ReplayAIToolAudit(tenantID string, filter AIToolAuditReceiptFilter) ([]AIToolAuditReplay, error) {
+	limit := filter.Limit
+	if limit <= 0 || limit > 500 {
+		limit = 100
+	}
+
+	args := []any{tenantID}
+	where := "ra.tenant_id = $1"
+	if filter.TaskID != nil {
+		args = append(args, *filter.TaskID)
+		where += fmt.Sprintf(" AND ra.task_id = $%d", len(args))
+	}
+	if filter.EnvelopeID != "" {
+		args = append(args, filter.EnvelopeID)
+		where += fmt.Sprintf(" AND ra.envelope_id = $%d", len(args))
+	}
+	if filter.Capability != "" {
+		args = append(args, filter.Capability)
+		where += fmt.Sprintf(" AND ra.capability = $%d", len(args))
+	}
+	if filter.ToolName != "" {
+		args = append(args, filter.ToolName)
+		where += fmt.Sprintf(" AND ra.tool_name = $%d", len(args))
+	}
+	args = append(args, limit)
+
+	rows, err := s.db.Query(fmt.Sprintf(`
+		SELECT
+			ra.task_id, ra.tenant_id, COALESCE(ra.runtime_id, ''), ra.execution_id,
+			COALESCE(ra.envelope_id, ''), COALESCE(ra.capability, ''), ra.tool_name,
+			COALESCE(ra.tool_action_hash, ''), ra.routing_decision,
+			COALESCE(ra.request_hash, ''), COALESCE(ra.response_hash, ''),
+			COALESCE(ra.receipt_hash, ''), COALESCE(ra.receipt_signature, ''),
+			COALESCE(ra.envelope_signature, ''), ra.violation_occurred,
+			COALESCE(ra.violation, ''), ra.execution_envelope,
+			COALESCE(ra.execution_receipt, '{}'::jsonb), ra.persisted_at,
+			COALESCE(ri.public_key_ed25519, '')
+		FROM ai_tool_receipt_audit ra
+		LEFT JOIN runtime_instances ri
+		  ON ri.runtime_id = ra.runtime_id
+		WHERE %s
+		ORDER BY ra.persisted_at DESC
+		LIMIT $%d`, where, len(args)), args...)
+	if err != nil {
+		return nil, err
+	}
+	defer rows.Close()
+
+	replays := make([]AIToolAuditReplay, 0)
+	for rows.Next() {
+		var replay AIToolAuditReplay
+		if err := rows.Scan(
+			&replay.TaskID,
+			&replay.TenantID,
+			&replay.RuntimeID,
+			&replay.ExecutionID,
+			&replay.EnvelopeID,
+			&replay.Capability,
+			&replay.ToolName,
+			&replay.ToolActionHash,
+			&replay.RoutingDecision,
+			&replay.RequestHash,
+			&replay.ResponseHash,
+			&replay.ReceiptHash,
+			&replay.ReceiptSignature,
+			&replay.EnvelopeSignature,
+			&replay.ViolationOccurred,
+			&replay.Violation,
+			&replay.ExecutionEnvelope,
+			&replay.ExecutionReceipt,
+			&replay.PersistedAt,
+			&replay.RuntimePublicKeyEd25519,
+		); err != nil {
+			return nil, err
+		}
+		validateAIToolAuditReplay(&replay)
+		replays = append(replays, replay)
+	}
+	return replays, rows.Err()
+}
+
+func validateAIToolAuditReplay(replay *AIToolAuditReplay) {
+	if replay == nil {
+		return
+	}
+	errors := make([]string, 0)
+	var envelope struct {
+		ExecutionID        string `json:"execution_id"`
+		TenantID           string `json:"tenant_id"`
+		PolicyDecisionID   string `json:"policy_decision_id"`
+		GovernedActionHash string `json:"governed_action_hash"`
+		RoutingDecision    string `json:"routing_decision"`
+		RequestHash        string `json:"request_hash"`
+		ResponseHash       string `json:"response_hash"`
+		Signature          string `json:"signature"`
+	}
+	if err := json.Unmarshal(replay.ExecutionEnvelope, &envelope); err != nil {
+		errors = append(errors, "execution_envelope_invalid_json")
+	} else {
+		if envelope.ExecutionID != replay.ExecutionID {
+			errors = append(errors, "execution_id_mismatch")
+		}
+		if envelope.TenantID != "" && envelope.TenantID != replay.TenantID {
+			errors = append(errors, "tenant_id_mismatch")
+		}
+		if envelope.PolicyDecisionID != "" && envelope.PolicyDecisionID != replay.EnvelopeID {
+			errors = append(errors, "permission_envelope_id_mismatch")
+		}
+		if envelope.GovernedActionHash != "" && envelope.GovernedActionHash != replay.ToolActionHash {
+			errors = append(errors, "tool_action_hash_mismatch")
+		}
+		if envelope.RoutingDecision != replay.RoutingDecision {
+			errors = append(errors, "routing_decision_mismatch")
+		}
+		if envelope.RequestHash != "" && envelope.RequestHash != replay.RequestHash {
+			errors = append(errors, "request_hash_mismatch")
+		}
+		if envelope.ResponseHash != "" && envelope.ResponseHash != replay.ResponseHash {
+			errors = append(errors, "response_hash_mismatch")
+		}
+		if envelope.Signature == "" {
+			errors = append(errors, "runtime_envelope_signature_missing")
+		}
+		replay.RuntimeSignature = envelope.Signature
+	}
+	var receipt struct {
+		ExecutionID       string `json:"execution_id"`
+		ReceiptHash       string `json:"receipt_hash"`
+		Hash              string `json:"hash"`
+		Signature         string `json:"signature"`
+		ViolationOccurred bool   `json:"violation_occurred"`
+	}
+	if len(replay.ExecutionReceipt) > 0 && string(replay.ExecutionReceipt) != "{}" {
+		if err := json.Unmarshal(replay.ExecutionReceipt, &receipt); err != nil {
+			errors = append(errors, "execution_receipt_invalid_json")
+		} else {
+			if receipt.ExecutionID != "" && receipt.ExecutionID != replay.ExecutionID {
+				errors = append(errors, "receipt_execution_id_mismatch")
+			}
+			receiptHash := receipt.ReceiptHash
+			if receiptHash == "" {
+				receiptHash = receipt.Hash
+			}
+			if receiptHash != "" && receiptHash != replay.ReceiptHash {
+				errors = append(errors, "receipt_hash_mismatch")
+			}
+			if receipt.Signature == "" {
+				errors = append(errors, "runtime_receipt_signature_missing")
+			}
+			if receipt.ViolationOccurred != replay.ViolationOccurred {
+				errors = append(errors, "violation_flag_mismatch")
+			}
+		}
+	}
+	replay.RuntimeSignaturePresent = replay.RuntimeSignature != "" && replay.ReceiptSignature != ""
+	if strings.TrimSpace(replay.RuntimePublicKeyEd25519) != "" {
+		replay.RuntimeSignatureKeySource = "runtime_registry"
+	}
+	if replay.RuntimeSignatureKeySource == "" && strings.TrimSpace(os.Getenv("IGRIS_RUNTIME_PUBLIC_KEY")) != "" {
+		replay.RuntimeSignatureKeySource = "env_fallback"
+	}
+	var verifyErr error
+	if replay.RuntimeSignatureKeySource == "runtime_registry" {
+		verifyErr = internal.VerifyExecutionArtifactsRawWithPublicKey(replay.ExecutionEnvelope, replay.ExecutionReceipt, replay.RuntimePublicKeyEd25519)
+	} else {
+		verifyErr = internal.VerifyExecutionArtifactsRaw(replay.ExecutionEnvelope, replay.ExecutionReceipt)
+	}
+	if verifyErr != nil {
+		errors = append(errors, "runtime_signature_invalid: "+verifyErr.Error())
+	} else if replay.RuntimeSignaturePresent && replay.RuntimeSignatureKeySource != "" {
+		replay.RuntimeSignatureVerified = true
+	}
+	replay.ValidationErrors = errors
+	replay.Valid = len(errors) == 0
 }
 
 func (s *CheckpointStore) ReplayRoboticsAudit(tenantID string, filter RoboticsAuditReceiptFilter) ([]RoboticsAuditReplay, error) {
