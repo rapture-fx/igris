@@ -608,7 +608,11 @@ func TestDispatchToRuntimeAttachesSignedTaskPermissionEnvelope(t *testing.T) {
 			"policy_version":"capabilities-policy.test",
 			"allowed_capabilities":["tools.github.issues.write"]
 		}`},
-	}})
+	}},
+		queuedExecExpectation{rowsAffected: 1},
+		queuedExecExpectation{rowsAffected: 1},
+		queuedExecExpectation{rowsAffected: 1},
+	)
 
 	client := &http.Client{Transport: roundTripperFunc(func(r *http.Request) (*http.Response, error) {
 		body, err := io.ReadAll(r.Body)
@@ -665,6 +669,7 @@ func TestDispatchToRuntimeAttachesSignedTaskPermissionEnvelope(t *testing.T) {
 	require.NoError(t, err)
 	require.True(t, ed25519.Verify(publicKey, sum[:], signature))
 	require.Equal(t, 0, queued.remainingQueries())
+	require.Equal(t, 0, queued.remainingExecs())
 }
 
 func TestDispatchToRuntimeDeniesCapabilityPolicyBeforeHTTP(t *testing.T) {
