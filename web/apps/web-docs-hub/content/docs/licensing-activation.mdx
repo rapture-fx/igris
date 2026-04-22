@@ -40,7 +40,7 @@ From a product perspective, that does three things:
 - determines the feature set and quota envelope
 - establishes the license record that runtimes will validate against
 
-The current implementation also exposes plan and quota state back to the console, including:
+The console also exposes plan and quota state, including:
 
 - current plan
 - license status
@@ -82,7 +82,7 @@ If you are operating a fleet, heartbeats are part of capacity accounting, not ju
 
 ## What The License Controls
 
-The implementation already models licensing as a feature gate, not only a plan label.
+Licensing acts as a feature gate, not only a plan label.
 
 Current responses include feature flags and limits such as:
 
@@ -95,7 +95,7 @@ Current responses include feature flags and limits such as:
 - on-premise entitlement
 - extended retention and support level
 
-That means product documentation should describe licensing in terms of **capabilities unlocked**, not only tiers and pricing.
+Treat licensing in terms of **capabilities unlocked**, not only tiers and pricing.
 
 ---
 
