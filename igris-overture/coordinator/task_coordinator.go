@@ -280,6 +280,11 @@ func (tc *TaskCoordinator) dispatchToRuntime(ctx context.Context, task *TaskReco
 		}
 		envelopeBytes, _ := json.Marshal(envelope)
 		runtimePayload["permission_envelope"] = envelopeBytes
+		if err := tc.store.SaveTaskPermissionEnvelope(task.TaskID, envelope); err != nil {
+			log.Error().Err(err).Str("task_id", task.TaskID.String()).Msg("[Coordinator] Persist signed task permission envelope")
+			_ = tc.store.MarkFailedWithDetails(task.TaskID, "task permission audit persistence failed", overtureTaskFailureDetails("dispatch", "permission_audit_persistence_failed", err.Error()))
+			return
+		}
 		if len(envelope.CredentialRefs) > 0 {
 			credentialRefBytes, _ := json.Marshal(envelope.CredentialRefs)
 			runtimePayload["credential_refs"] = credentialRefBytes
