@@ -416,6 +416,35 @@ type AIToolAuditReceiptFilter struct {
 	Limit      int
 }
 
+type AIToolAuditReplay struct {
+	TaskID                    uuid.UUID       `json:"task_id"`
+	TenantID                  string          `json:"tenant_id"`
+	RuntimeID                 string          `json:"runtime_id,omitempty"`
+	ExecutionID               string          `json:"execution_id"`
+	EnvelopeID                string          `json:"envelope_id,omitempty"`
+	Capability                string          `json:"capability,omitempty"`
+	ToolName                  string          `json:"tool_name"`
+	ToolActionHash            string          `json:"tool_action_hash,omitempty"`
+	RoutingDecision           string          `json:"routing_decision"`
+	RequestHash               string          `json:"request_hash,omitempty"`
+	ResponseHash              string          `json:"response_hash,omitempty"`
+	ReceiptHash               string          `json:"receipt_hash,omitempty"`
+	ReceiptSignature          string          `json:"receipt_signature,omitempty"`
+	RuntimeSignature          string          `json:"runtime_signature,omitempty"`
+	RuntimeSignaturePresent   bool            `json:"runtime_signature_present"`
+	RuntimeSignatureVerified  bool            `json:"runtime_signature_verified"`
+	RuntimeSignatureKeySource string          `json:"runtime_signature_key_source,omitempty"`
+	RuntimePublicKeyEd25519   string          `json:"-"`
+	EnvelopeSignature         string          `json:"envelope_signature,omitempty"`
+	ViolationOccurred         bool            `json:"violation_occurred"`
+	Violation                 string          `json:"violation,omitempty"`
+	Valid                     bool            `json:"valid"`
+	ValidationErrors          []string        `json:"validation_errors,omitempty"`
+	ExecutionEnvelope         json.RawMessage `json:"execution_envelope,omitempty"`
+	ExecutionReceipt          json.RawMessage `json:"execution_receipt,omitempty"`
+	PersistedAt               time.Time       `json:"persisted_at"`
+}
+
 type RoboticsAuditReplay struct {
 	TaskID                    uuid.UUID       `json:"task_id"`
 	TenantID                  string          `json:"tenant_id"`
