@@ -677,6 +677,8 @@ func main() {
 		// Governed robotics policy lifecycle and runtime allow-list
 		api.RegisterRoboticsPolicyRoutes(app, dbInstance)
 		log.Println("[RoboticsPolicy] ✅ Robotics policy endpoints registered (/v1/robotics/policies)")
+		api.RegisterAICapabilityPolicyRoutes(app, dbInstance)
+		log.Println("[AICapabilityPolicy] ✅ AI capability policy endpoints registered (/v1/ai/capabilities/policies)")
 		api.StartRoboticsPolicyCommandNonceCleanup(context.Background(), dbInstance, time.Hour)
 		log.Println("[RoboticsPolicy] ✅ Expired policy command nonce cleanup started")
 		startTenantComplianceExportSchedulerFromEnv(context.Background(), dbInstance)
