@@ -53,7 +53,7 @@ const endpointOverrides: Record<string, EndpointOverride> = {
     commonMistakes: [
       'Treating this route like the native Igris inference contract and expecting extra request fields that belong on `/v1/infer`.',
       'Skipping provider-key setup and assuming hosted routing will work before any upstream credential is stored.',
-      'Using a browser session flow for backend automation instead of a tenant API key.',
+      'Using a browser session flow for server-side automation instead of a tenant API key.',
     ],
     requestBodyFields: [
       { name: 'model', type: 'string', required: true, description: 'Upstream model identifier or routed model name.' },
@@ -1047,7 +1047,7 @@ const endpointOverrides: Record<string, EndpointOverride> = {
   },
   'POST /v1/routing/speculative': {
     functionality:
-      'Persists tenant speculative-routing configuration. The current endpoint stores the submitted JSON under the `speculative` routing config key and returns an acknowledgement.',
+      'Persists tenant speculative-routing configuration and returns an acknowledgement.',
     requestBodyFields: [
       { name: 'enabled', type: 'boolean', description: 'Whether speculative routing should be enabled for tenant traffic.' },
       { name: 'max_parallel_providers', type: 'integer', description: 'Optional maximum provider race width.' },
@@ -1071,7 +1071,7 @@ const endpointOverrides: Record<string, EndpointOverride> = {
   },
   'POST /v1/routing/speculative/simulate': {
     functionality:
-      'Triggers a speculative-routing simulation. The current implementation acknowledges the request rather than returning a full modeled race result.',
+      'Triggers a speculative-routing simulation for a representative request and returns the simulation acknowledgement.',
     requestBodyFields: [
       { name: 'messages', type: 'array', description: 'Representative chat messages for the simulation request.' },
       { name: 'model', type: 'string', description: 'Requested model or routing target.' },
