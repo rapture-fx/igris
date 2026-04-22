@@ -1028,6 +1028,9 @@ func saveAIToolReceiptAudit(execer roboticsReceiptAuditExecer, taskID uuid.UUID,
 	if !ok {
 		return nil
 	}
+	if err := ensureAIToolCredentialRefsActive(execer, refs); err != nil {
+		return err
+	}
 	_, err := execer.Exec(`
 		INSERT INTO ai_tool_receipt_audit (
 			task_id, tenant_id, runtime_id, execution_id, envelope_id, capability,
@@ -1085,6 +1088,130 @@ func saveAIToolReceiptAudit(execer roboticsReceiptAuditExecer, taskID uuid.UUID,
 		nullRawJSON(executionReceipt),
 	)
 	return err
+}
+
+type queryRower interface {
+	QueryRow(query string, args ...interface{}) *sql.Row
+}
+
+func ensureAIToolCredentialRefsActive(execer roboticsReceiptAuditExecer, refs *aiToolArtifactRefs) error {
+	if refs == nil || refs.EnvelopeID == "" {
+		return nil
+	}
+	queryer, ok := execer.(queryRower)
+	if !ok {
+		return nil
+	}
+	var referenceID string
+	err := queryer.QueryRow(`
+		SELECT reference_id
+		FROM ai_credential_ref_audit
+		WHERE envelope_id = $1
+		  AND revoked_at IS NOT NULL
+		  AND (
+		    NULLIF($2, '') IS NULL
+		    OR capability = $2
+		    OR tool = $3
+		  )
+		ORDER BY revoked_at DESC
+		LIMIT 1`,
+		refs.EnvelopeID,
+		refs.Capability,
+		refs.ToolName,
+	).Scan(&referenceID)
+	if err == sql.ErrNoRows {
+		return nil
+	}
+	if err != nil {
+		return err
+	}
+	return fmt.Errorf("%w: %s", ErrCredentialReferenceRevoked, referenceID)
+}
+
+func (s *CheckpointStore) RevokeAICredentialReference(ctx context.Context, tenantID, referenceID string) (*AICredentialReferenceAudit, error) {
+	row := s.db.QueryRowContext(ctx, `
+		UPDATE ai_credential_ref_audit
+		SET revoked_at = COALESCE(revoked_at, NOW())
+		WHERE tenant_id = $1
+		  AND reference_id = $2
+		  AND revocable = true
+		RETURNING reference_id, envelope_id, task_id, tenant_id, COALESCE(tool, ''),
+		          COALESCE(capability, ''), COALESCE(scope, ''), expires_at_unix_ms,
+		          revocable, revoked_at, persisted_at`,
+		tenantID,
+		referenceID,
+	)
+	return scanAICredentialReference(row)
+}
+
+func (s *CheckpointStore) GetAICredentialReferences(tenantID string, filter AICredentialReferenceFilter) ([]AICredentialReferenceAudit, error) {
+	limit := filter.Limit
+	if limit <= 0 || limit > 500 {
+		limit = 100
+	}
+	args := []any{tenantID}
+	where := "tenant_id = $1"
+	if filter.TaskID != nil {
+		args = append(args, *filter.TaskID)
+		where += fmt.Sprintf(" AND task_id = $%d", len(args))
+	}
+	if filter.Capability != "" {
+		args = append(args, filter.Capability)
+		where += fmt.Sprintf(" AND capability = $%d", len(args))
+	}
+	if filter.Tool != "" {
+		args = append(args, filter.Tool)
+		where += fmt.Sprintf(" AND tool = $%d", len(args))
+	}
+	if !filter.IncludeRevoked {
+		where += " AND revoked_at IS NULL"
+	}
+	args = append(args, limit)
+	rows, err := s.db.Query(fmt.Sprintf(`
+		SELECT reference_id, envelope_id, task_id, tenant_id, COALESCE(tool, ''),
+		       COALESCE(capability, ''), COALESCE(scope, ''), expires_at_unix_ms,
+		       revocable, revoked_at, persisted_at
+		FROM ai_credential_ref_audit
+		WHERE %s
+		ORDER BY persisted_at DESC
+		LIMIT $%d`, where, len(args)), args...)
+	if err != nil {
+		return nil, err
+	}
+	defer rows.Close()
+	refs := make([]AICredentialReferenceAudit, 0)
+	for rows.Next() {
+		ref, err := scanAICredentialReference(rows)
+		if err != nil {
+			return nil, err
+		}
+		refs = append(refs, *ref)
+	}
+	return refs, rows.Err()
+}
+
+func scanAICredentialReference(row interface{ Scan(...interface{}) error }) (*AICredentialReferenceAudit, error) {
+	var ref AICredentialReferenceAudit
+	var revokedAt sql.NullTime
+	if err := row.Scan(
+		&ref.ReferenceID,
+		&ref.EnvelopeID,
+		&ref.TaskID,
+		&ref.TenantID,
+		&ref.Tool,
+		&ref.Capability,
+		&ref.Scope,
+		&ref.ExpiresAtUnixMs,
+		&ref.Revocable,
+		&revokedAt,
+		&ref.PersistedAt,
+	); err != nil {
+		return nil, err
+	}
+	if revokedAt.Valid {
+		ref.RevokedAt = &revokedAt.Time
+	}
+	return &ref, nil
 }
 
 func (s *CheckpointStore) GetRoboticsAuditReceipts(tenantID string, filter RoboticsAuditReceiptFilter) ([]RoboticsAuditReceipt, error) {
