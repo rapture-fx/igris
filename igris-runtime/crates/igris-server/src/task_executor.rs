@@ -1099,6 +1099,18 @@ pub async fn handle_task_submit(
     for step in steps.iter().filter(|step| step.step_index() >= start_step) {
         if let Some(failure_details) = permission_failure_for_step(&req, step) {
             let reason = failure_details.message.clone();
+            let failure_artifacts = build_failure_execution_artifacts(
+                &state,
+                &req,
+                step,
+                &reason,
+                wall_start.elapsed().as_millis() as u64,
+            )
+            .await
+            .ok();
+            let (execution_envelope, execution_receipt) = failure_artifacts
+                .map(|(envelope, receipt)| (Some(envelope), receipt))
+                .unwrap_or_else(|| (last_envelope, last_receipt));
             let response = TaskSubmitResponse {
                 task_id: req.task_id,
                 steps_completed,
@@ -1108,8 +1120,8 @@ pub async fn handle_task_submit(
                 final_output: last_output,
                 usage: last_usage,
                 failure_details: Some(failure_details),
-                execution_envelope: last_envelope,
-                execution_receipt: last_receipt,
+                execution_envelope,
+                execution_receipt,
             };
             let _ = persist_task_record(&state, &submission_key, &request_hash, &response);
             return (StatusCode::OK, Json(response)).into_response();
@@ -4647,7 +4659,16 @@ async fn build_execution_artifacts_with_violation(
     let request_hash = format!("{:x}", Sha256::digest(step.input_bytes()));
     let response_hash = format!("{:x}", Sha256::digest(result.output_text.as_bytes()));
     let finish_reason = "stop".to_string();
-    let governance = extract_governance_artifact_refs(result.checkpoint_metadata.as_ref());
+    let governance_metadata = result
+        .checkpoint_metadata
+        .clone()
+        .or_else(|| governance_metadata_from_request(state, req, step));
+    let governance = extract_governance_artifact_refs(governance_metadata.as_ref());
+    let tool_calls = if matches!(step, RuntimeTaskStep::Tool(_)) {
+        1
+    } else {
+        0
+    };
     let tenant_id = if req.tenant_id.is_empty() {
         None
     } else {
@@ -4705,7 +4726,7 @@ async fn build_execution_artifacts_with_violation(
                 wall_time_ms,
                 0,
                 0,
-                0,
+                tool_calls,
                 violation.is_some(),
             )
             .await?,
@@ -4719,7 +4740,7 @@ async fn build_execution_artifacts_with_violation(
             wall_time_ms,
             0,
             0,
-            0,
+            tool_calls,
             violation.is_some(),
             "",
             state.signing_key.as_ref(),
@@ -4742,6 +4763,36 @@ fn governance_metadata_from_request(
 ) -> Option<serde_json::Value> {
     let action = step.governed_action()?;
     let verifying_key = state.overture_public_key.as_deref()?;
+    if action.domain == "tool" {
+        let envelope = req.permission_envelope.as_ref()?;
+        if verify_task_permission_envelope_signature(envelope, verifying_key).is_err() {
+            return None;
+        }
+        let capability = step_required_capability(step)?;
+        let credential_ref = envelope.credential_refs.iter().find(|credential_ref| {
+            credential_ref.capability == capability
+                || (!credential_ref.tool.is_empty()
+                    && capability == tool_capability(&credential_ref.tool))
+        });
+        return Some(serde_json::json!({
+            "governance": {
+                "capability": capability,
+                "credential_reference": credential_ref,
+                "governed_action_hash": governed_action_hash(&action),
+                "permission_envelope_hash": hash_hex(&canonical_task_permission_envelope_bytes(envelope)),
+                "permission_envelope_id": envelope.envelope_id,
+                "policy_decision_hash": hash_hex(&canonical_task_permission_envelope_bytes(envelope)),
+                "policy_decision_id": envelope.envelope_id,
+                "policy_version": envelope
+                    .decisions
+                    .iter()
+                    .find(|decision| capability_pattern_matches(&decision.capability, &capability))
+                    .map(|decision| decision.policy_version.clone())
+                    .unwrap_or_default(),
+                "signed_permission_envelope": envelope,
+            }
+        }));
+    }
     let decision = req.signed_policy_decisions.iter().find(|decision| {
         decision.tenant_id == req.tenant_id
             && decision.task_id == req.task_id.to_string()
