@@ -819,6 +819,10 @@ func TestExportRoboticsAuditBundleIncludesKeyLifecycleAndReplay(t *testing.T) {
 			}},
 		},
 		{
+			columns: aiToolReplayRouteColumns(),
+			rows:    nil,
+		},
+		{
 			columns: []string{
 				"tenant_id", "key_version", "action", "actor_id",
 				"actor_email", "signer_identity", "signer_key_version",
@@ -856,6 +860,9 @@ func TestExportRoboticsAuditBundleIncludesKeyLifecycleAndReplay(t *testing.T) {
 			RobotAction      string `json:"robot_action"`
 			ReceiptHash      string `json:"receipt_hash"`
 		} `json:"robot_execution_replays"`
+		AIToolExecutionReplays []struct {
+			ExecutionID string `json:"execution_id"`
+		} `json:"ai_tool_execution_replays"`
 		Totals map[string]int `json:"totals"`
 	}
 	require.NoError(t, json.NewDecoder(resp.Body).Decode(&body))
@@ -872,6 +879,95 @@ func TestExportRoboticsAuditBundleIncludesKeyLifecycleAndReplay(t *testing.T) {
 	require.Equal(t, "receipt-hash-export", body.RobotExecutionReplays[0].ReceiptHash)
 	require.Equal(t, 1, body.Totals["policy_key_lifecycle"])
 	require.Equal(t, 1, body.Totals["robot_execution_replay"])
+	require.Equal(t, 0, body.Totals["ai_tool_execution_replay"])
+	require.Empty(t, body.AIToolExecutionReplays)
+	require.Equal(t, 0, queued.remainingQueries())
+	require.Equal(t, 0, queued.remainingExecs())
+}
+
+func TestExportRoboticsAuditBundleIncludesAIToolReplay(t *testing.T) {
+	t.Parallel()
+
+	taskID := uuid.New()
+	persistedAt := time.Unix(1_900_301_500, 0).UTC()
+	envelope := []byte(`{
+		"execution_id":"exec-ai-tool-export",
+		"tenant_id":"tenant-robotics-policy",
+		"policy_decision_id":"permission-envelope-export",
+		"governed_action_hash":"tool-action-hash-export",
+		"routing_decision":"tool:github.issues.write",
+		"request_hash":"args-hash-export",
+		"response_hash":"result-hash-export",
+		"signature":"env-sig-ai-tool"
+	}`)
+	receipt := []byte(`{
+		"execution_id":"exec-ai-tool-export",
+		"hash":"receipt-hash-ai-tool-export",
+		"signature":"receipt-sig-ai-tool",
+		"violation_occurred":false
+	}`)
+	db, queued := newQueuedRouteDB(t, []queuedRouteQueryExpectation{
+		{
+			columns: []string{
+				"task_id", "tenant_id", "runtime_id", "execution_id",
+				"policy_decision_id", "policy_version", "robot_action",
+				"robot_node_id", "robot_target", "permit", "reason",
+				"routing_decision", "policy_decision_hash", "governed_action_hash",
+				"receipt_hash", "receipt_signature", "envelope_signature",
+				"policy_signature", "violation_occurred", "violation",
+				"signed_policy_decision", "execution_envelope", "execution_receipt",
+				"persisted_at", "runtime_public_key_ed25519",
+			},
+			rows: nil,
+		},
+		{
+			columns: aiToolReplayRouteColumns(),
+			rows: [][]driver.Value{{
+				taskID.String(), "tenant-robotics-policy", "runtime-tools", "exec-ai-tool-export",
+				"permission-envelope-export", "tools.github.issues.write", "github.issues.write",
+				"tool-action-hash-export", "tool:github.issues.write",
+				"args-hash-export", "result-hash-export",
+				"receipt-hash-ai-tool-export", "receipt-sig-ai-tool",
+				"env-sig-ai-tool", false, "", envelope, receipt, persistedAt, "",
+			}},
+		},
+		{
+			columns: []string{
+				"tenant_id", "key_version", "action", "actor_id",
+				"actor_email", "signer_identity", "signer_key_version",
+				"command_nonce", "command_hash", "command_signature",
+				"previous_status", "new_status", "key_snapshot", "occurred_at",
+			},
+			rows: nil,
+		},
+	})
+	app := roboticsPolicyTestApp("tenant-robotics-policy")
+	app.Get("/v1/receipts/robotics/audit-export", exportRoboticsAuditBundle(db))
+
+	req := httptest.NewRequest(http.MethodGet, "/v1/receipts/robotics/audit-export?tool_name=github.issues.write&envelope_id=permission-envelope-export", nil)
+	resp, err := app.Test(req)
+	require.NoError(t, err)
+	require.Equal(t, http.StatusOK, resp.StatusCode)
+
+	var body struct {
+		AIToolExecutionReplays []struct {
+			ExecutionID string `json:"execution_id"`
+			EnvelopeID  string `json:"envelope_id"`
+			Capability  string `json:"capability"`
+			ToolName    string `json:"tool_name"`
+			ReceiptHash string `json:"receipt_hash"`
+		} `json:"ai_tool_execution_replays"`
+		Totals map[string]int `json:"totals"`
+	}
+	require.NoError(t, json.NewDecoder(resp.Body).Decode(&body))
+	require.Len(t, body.AIToolExecutionReplays, 1)
+	require.Equal(t, "exec-ai-tool-export", body.AIToolExecutionReplays[0].ExecutionID)
+	require.Equal(t, "permission-envelope-export", body.AIToolExecutionReplays[0].EnvelopeID)
+	require.Equal(t, "tools.github.issues.write", body.AIToolExecutionReplays[0].Capability)
+	require.Equal(t, "github.issues.write", body.AIToolExecutionReplays[0].ToolName)
+	require.Equal(t, "receipt-hash-ai-tool-export", body.AIToolExecutionReplays[0].ReceiptHash)
+	require.Equal(t, 1, body.Totals["ai_tool_execution_replay"])
+	require.Equal(t, 0, body.Totals["robot_execution_replay"])
 	require.Equal(t, 0, queued.remainingQueries())
 	require.Equal(t, 0, queued.remainingExecs())
 }
@@ -996,6 +1092,10 @@ func TestHILRoboticsStopAndCancelEvidenceExportsThroughAuditBundle(t *testing.T)
 			},
 		},
 		{
+			columns: aiToolReplayRouteColumns(),
+			rows:    nil,
+		},
+		{
 			columns: []string{
 				"tenant_id", "key_version", "action", "actor_id",
 				"actor_email", "signer_identity", "signer_key_version",
@@ -1054,6 +1154,7 @@ func TestHILRoboticsStopAndCancelEvidenceExportsThroughAuditBundle(t *testing.T)
 	require.True(t, byAction["cancel_navigation"].RuntimeSignatureVerified)
 	require.Equal(t, "runtime_registry", byAction["cancel_navigation"].RuntimeSignatureKeySource)
 	require.Equal(t, 2, body.Totals["robot_execution_replay"])
+	require.Equal(t, 0, body.Totals["ai_tool_execution_replay"])
 	require.Equal(t, 0, queued.remainingQueries())
 	require.Equal(t, 0, queued.remainingExecs())
 }
