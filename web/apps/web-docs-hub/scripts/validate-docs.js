@@ -59,6 +59,21 @@ function toDocUrl(filePath) {
   return `/docs/${withoutExtension}`;
 }
 
+function navItemToDocUrl(item) {
+  if (typeof item !== 'string' || item.startsWith('---')) {
+    return null;
+  }
+
+  if (item === 'index') {
+    return '/docs';
+  }
+  if (item.endsWith('/index')) {
+    return `/docs/${item.slice(0, -'/index'.length)}`;
+  }
+
+  return `/docs/${item}`;
+}
+
 function main() {
   const failures = [];
   const warnings = [];
@@ -85,6 +100,48 @@ function main() {
   const docsAudience = fs.existsSync(docsAudiencePath)
     ? JSON.parse(fs.readFileSync(docsAudiencePath, 'utf8'))
     : { pages: {} };
+
+  const rootMetaPath = path.join(docsDir, 'meta.json');
+  if (fs.existsSync(rootMetaPath)) {
+    const rootMeta = JSON.parse(fs.readFileSync(rootMetaPath, 'utf8'));
+    const rootPages = rootMeta.pages ?? [];
+    const visibleNavItems = rootPages
+      .map((item) => ({ item, url: navItemToDocUrl(item) }))
+      .filter(({ url }) => url);
+
+    for (const { item, url } of visibleNavItems) {
+      const audience = docsAudience.pages?.[url];
+      if (audience && !isAudienceVisible(audience, audienceMode)) {
+        failures.push(`${rootMetaPath}: ${audience} page "${item}" is listed in ${audienceMode} root navigation.`);
+      }
+    }
+
+    const requiredStartPath = [
+      'quickstart',
+      'sdk',
+      'sdk-integration-patterns',
+      'first-cloud-integration',
+      'deploy-local-runtime',
+      'hybrid-deployment-workflow',
+      'receipts-audit-workflow',
+    ];
+    let previousIndex = -1;
+    for (const page of requiredStartPath) {
+      const currentIndex = rootPages.indexOf(page);
+      if (currentIndex === -1) {
+        failures.push(`${rootMetaPath}: missing required customer onboarding page "${page}" in root navigation.`);
+      } else if (currentIndex < previousIndex) {
+        failures.push(`${rootMetaPath}: customer onboarding page "${page}" appears out of order.`);
+      }
+      previousIndex = currentIndex;
+    }
+
+    const apiReferenceIndex = rootPages.indexOf('api-reference');
+    const lastStartIndex = rootPages.indexOf(requiredStartPath[requiredStartPath.length - 1]);
+    if (apiReferenceIndex !== -1 && lastStartIndex !== -1 && apiReferenceIndex < lastStartIndex) {
+      failures.push(`${rootMetaPath}: API Reference must appear after the customer onboarding workflow.`);
+    }
+  }
 
   for (const filePath of walk(docsDir)) {
     const content = fs.readFileSync(filePath, 'utf8');
