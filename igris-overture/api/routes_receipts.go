@@ -305,13 +305,14 @@ func exportRoboticsAuditBundle(db *sql.DB) fiber.Handler {
 		keyAction := c.Query("key_action")
 
 		bundle, err := compliance.BuildRoboticsAuditBundle(c.Context(), db, compliance.RoboticsAuditBundleOptions{
-			TenantID:      tenantID,
-			ReceiptFilter: filter,
-			KeyLimit:      keyLimit,
-			KeyVersion:    keyVersion,
-			KeyAction:     keyAction,
-			Filters:       roboticsAuditExportFilters(c),
-			ExportedAt:    time.Now().UTC(),
+			TenantID:            tenantID,
+			ReceiptFilter:       filter,
+			AIToolReceiptFilter: aiToolAuditExportFilterFromQuery(c, filter.Limit),
+			KeyLimit:            keyLimit,
+			KeyVersion:          keyVersion,
+			KeyAction:           keyAction,
+			Filters:             roboticsAuditExportFilters(c),
+			ExportedAt:          time.Now().UTC(),
 		})
 		if err != nil {
 			log.Error().Err(err).Str("tenant_id", tenantID).Msg("[Receipts] exportRoboticsAuditBundle query failed")
@@ -336,7 +337,7 @@ func exportRoboticsAuditBundle(db *sql.DB) fiber.Handler {
 }
 
 func roboticsAuditExportFilters(c *fiber.Ctx) map[string]string {
-	keys := []string{"task_id", "policy_decision_id", "robot_action", "limit", "key_version", "key_action", "key_limit"}
+	keys := []string{"task_id", "policy_decision_id", "robot_action", "tool_name", "envelope_id", "capability", "limit", "key_version", "key_action", "key_limit"}
 	filters := make(map[string]string, len(keys))
 	for _, key := range keys {
 		if value := c.Query(key); value != "" {
@@ -344,6 +345,24 @@ func roboticsAuditExportFilters(c *fiber.Ctx) map[string]string {
 		}
 	}
 	return filters
+}
+
+func aiToolAuditExportFilterFromQuery(c *fiber.Ctx, limit int) coordinator.AIToolAuditReceiptFilter {
+	if limit <= 0 || limit > 500 {
+		limit = 100
+	}
+	filter := coordinator.AIToolAuditReceiptFilter{
+		EnvelopeID: c.Query("envelope_id"),
+		Capability: c.Query("capability"),
+		ToolName:   c.Query("tool_name"),
+		Limit:      limit,
+	}
+	if rawTaskID := c.Query("task_id"); rawTaskID != "" {
+		if taskID, err := uuid.Parse(rawTaskID); err == nil {
+			filter.TaskID = &taskID
+		}
+	}
+	return filter
 }
 
 func aiToolReceiptFilterFromQuery(c *fiber.Ctx) (coordinator.AIToolAuditReceiptFilter, error) {
