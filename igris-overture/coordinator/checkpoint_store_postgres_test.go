@@ -153,7 +153,7 @@ func TestRoboticsReceiptReplayWithPostgresMigrations(t *testing.T) {
 	require.Equal(t, decision.PolicyVersion, persistedDecision.PolicyVersion)
 }
 
-func TestAIToolGovernanceReplayWithPostgresMigration043(t *testing.T) {
+func TestAIToolReplayPostgres043(t *testing.T) {
 	dsn := os.Getenv("IGRIS_OVERTURE_POSTGRES_TEST_DSN")
 	if dsn == "" {
 		dsn = os.Getenv("POSTGRES_TEST_DSN")
