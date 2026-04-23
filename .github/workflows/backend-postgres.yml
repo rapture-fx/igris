@@ -24,8 +24,8 @@ on:
       - "go.sum"
 
 jobs:
-  robotics-postgres:
-    name: robotics Postgres migrations
+  governance-postgres:
+    name: governance Postgres migrations
     runs-on: ubuntu-latest
 
     services:
@@ -56,8 +56,8 @@ jobs:
           go-version: "1.24.x"
           cache: true
 
-      - name: Run mandatory robotics Postgres migration tests
+      - name: Run mandatory governance API Postgres migration tests
         run: go test ./igris-overture/api -run 'TestRoboticsPolicyActivationWithPostgresMigrations|TestExportRoboticsAuditBundleIncludesKeyLifecycleAndReplay|TestHILRoboticsStopAndCancelEvidenceExportsThroughAuditBundle|TestCleanupExpiredRoboticsPolicyCommandNonces' -count=1 -timeout=120s
 
-      - name: Run robotics coordinator Postgres replay tests
-        run: go test ./igris-overture/coordinator -run 'TestRoboticsReceiptReplayWithPostgresMigrations|TestRoboticsPolicyAuthorizationWithPostgresMigrations' -count=1 -timeout=120s
+      - name: Run mandatory governance coordinator Postgres replay tests
+        run: go test ./igris-overture/coordinator -run 'TestRoboticsReceiptReplayWithPostgresMigrations|TestRoboticsPolicyAuthorizationWithPostgresMigrations|TestAIToolReplayPostgres043' -count=1 -timeout=120s
