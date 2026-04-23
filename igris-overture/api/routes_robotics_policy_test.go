@@ -647,6 +647,19 @@ func jsonFieldString(t *testing.T, raw []byte, field string) string {
 	return got
 }
 
+func aiToolReplayRouteColumns() []string {
+	return []string{
+		"task_id", "tenant_id", "runtime_id", "execution_id",
+		"envelope_id", "capability", "tool_name",
+		"tool_action_hash", "routing_decision",
+		"request_hash", "response_hash",
+		"receipt_hash", "receipt_signature",
+		"envelope_signature", "violation_occurred",
+		"violation", "execution_envelope", "execution_receipt",
+		"persisted_at", "runtime_public_key_ed25519",
+	}
+}
+
 func TestReplayRoboticsReceiptsRouteVerifiesRuntimeSignatureWithPublicKey(t *testing.T) {
 	publicKey, privateKey, err := ed25519.GenerateKey(nil)
 	require.NoError(t, err)
