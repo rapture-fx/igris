@@ -42,22 +42,24 @@ type PolicyKeyLifecycleAuditRecord struct {
 }
 
 type RoboticsAuditBundleOptions struct {
-	TenantID      string
-	ReceiptFilter coordinator.RoboticsAuditReceiptFilter
-	KeyLimit      int
-	KeyVersion    string
-	KeyAction     string
-	Filters       map[string]string
-	ExportedAt    time.Time
+	TenantID            string
+	ReceiptFilter       coordinator.RoboticsAuditReceiptFilter
+	AIToolReceiptFilter coordinator.AIToolAuditReceiptFilter
+	KeyLimit            int
+	KeyVersion          string
+	KeyAction           string
+	Filters             map[string]string
+	ExportedAt          time.Time
 }
 
 type RoboticsAuditExportBundle struct {
-	TenantID             string                            `json:"tenant_id"`
-	ExportedAt           time.Time                         `json:"exported_at"`
-	Filters              map[string]string                 `json:"filters"`
-	PolicyKeyLifecycle   []PolicyKeyLifecycleAuditRecord   `json:"policy_key_lifecycle"`
-	RobotExecutionReplay []coordinator.RoboticsAuditReplay `json:"robot_execution_replays"`
-	Totals               map[string]int                    `json:"totals"`
+	TenantID              string                            `json:"tenant_id"`
+	ExportedAt            time.Time                         `json:"exported_at"`
+	Filters               map[string]string                 `json:"filters"`
+	PolicyKeyLifecycle    []PolicyKeyLifecycleAuditRecord   `json:"policy_key_lifecycle"`
+	RobotExecutionReplay  []coordinator.RoboticsAuditReplay `json:"robot_execution_replays"`
+	AIToolExecutionReplay []coordinator.AIToolAuditReplay   `json:"ai_tool_execution_replays"`
+	Totals                map[string]int                    `json:"totals"`
 }
 
 type ExportJobConfig struct {
@@ -73,15 +75,16 @@ type ExportJobConfig struct {
 }
 
 type ExportJobResult struct {
-	TenantID                    string
-	Path                        string
-	ManifestPath                string
-	BundleSHA256                string
-	ManifestSHA256              string
-	Signature                   string
-	Uploaded                    bool
-	PolicyKeyLifecycleRecords   int
-	RobotExecutionReplayRecords int
+	TenantID                     string
+	Path                         string
+	ManifestPath                 string
+	BundleSHA256                 string
+	ManifestSHA256               string
+	Signature                    string
+	Uploaded                     bool
+	PolicyKeyLifecycleRecords    int
+	RobotExecutionReplayRecords  int
+	AIToolExecutionReplayRecords int
 }
 
 type ManifestSigningConfig struct {
@@ -90,20 +93,21 @@ type ManifestSigningConfig struct {
 }
 
 type ExportManifest struct {
-	SchemaVersion               string             `json:"schema_version"`
-	TenantID                    string             `json:"tenant_id"`
-	ExportedAt                  time.Time          `json:"exported_at"`
-	CreatedAt                   time.Time          `json:"created_at"`
-	BundleFilename              string             `json:"bundle_filename"`
-	BundleSHA256                string             `json:"bundle_sha256"`
-	BundleBytes                 int64              `json:"bundle_bytes"`
-	Format                      string             `json:"format"`
-	Filters                     map[string]string  `json:"filters"`
-	Totals                      map[string]int     `json:"totals"`
-	PolicyKeyLifecycleRecords   int                `json:"policy_key_lifecycle_records"`
-	RobotExecutionReplayRecords int                `json:"robot_execution_replay_records"`
-	ManifestSHA256              string             `json:"manifest_sha256"`
-	Signature                   *ManifestSignature `json:"signature,omitempty"`
+	SchemaVersion                string             `json:"schema_version"`
+	TenantID                     string             `json:"tenant_id"`
+	ExportedAt                   time.Time          `json:"exported_at"`
+	CreatedAt                    time.Time          `json:"created_at"`
+	BundleFilename               string             `json:"bundle_filename"`
+	BundleSHA256                 string             `json:"bundle_sha256"`
+	BundleBytes                  int64              `json:"bundle_bytes"`
+	Format                       string             `json:"format"`
+	Filters                      map[string]string  `json:"filters"`
+	Totals                       map[string]int     `json:"totals"`
+	PolicyKeyLifecycleRecords    int                `json:"policy_key_lifecycle_records"`
+	RobotExecutionReplayRecords  int                `json:"robot_execution_replay_records"`
+	AIToolExecutionReplayRecords int                `json:"ai_tool_execution_replay_records"`
+	ManifestSHA256               string             `json:"manifest_sha256"`
+	Signature                    *ManifestSignature `json:"signature,omitempty"`
 }
 
 type ManifestSignature struct {
@@ -140,6 +144,9 @@ func BuildRoboticsAuditBundle(ctx context.Context, db *sql.DB, opts RoboticsAudi
 	if opts.ReceiptFilter.Limit <= 0 || opts.ReceiptFilter.Limit > 500 {
 		opts.ReceiptFilter.Limit = 100
 	}
+	if opts.AIToolReceiptFilter.Limit <= 0 || opts.AIToolReceiptFilter.Limit > 500 {
+		opts.AIToolReceiptFilter.Limit = opts.ReceiptFilter.Limit
+	}
 	if opts.ExportedAt.IsZero() {
 		opts.ExportedAt = time.Now().UTC()
 	}
@@ -152,20 +159,26 @@ func BuildRoboticsAuditBundle(ctx context.Context, db *sql.DB, opts RoboticsAudi
 	if err != nil {
 		return RoboticsAuditExportBundle{}, err
 	}
+	aiToolReplays, err := store.ReplayAIToolAudit(opts.TenantID, opts.AIToolReceiptFilter)
+	if err != nil {
+		return RoboticsAuditExportBundle{}, err
+	}
 	keyLifecycle, err := ListPolicyKeyLifecycleAudit(ctx, db, opts.TenantID, opts.KeyLimit, opts.KeyVersion, opts.KeyAction)
 	if err != nil {
 		return RoboticsAuditExportBundle{}, err
 	}
 
 	return RoboticsAuditExportBundle{
-		TenantID:             opts.TenantID,
-		ExportedAt:           opts.ExportedAt.UTC(),
-		Filters:              opts.Filters,
-		PolicyKeyLifecycle:   keyLifecycle,
-		RobotExecutionReplay: replays,
+		TenantID:              opts.TenantID,
+		ExportedAt:            opts.ExportedAt.UTC(),
+		Filters:               opts.Filters,
+		PolicyKeyLifecycle:    keyLifecycle,
+		RobotExecutionReplay:  replays,
+		AIToolExecutionReplay: aiToolReplays,
 		Totals: map[string]int{
-			"policy_key_lifecycle":   len(keyLifecycle),
-			"robot_execution_replay": len(replays),
+			"policy_key_lifecycle":     len(keyLifecycle),
+			"robot_execution_replay":   len(replays),
+			"ai_tool_execution_replay": len(aiToolReplays),
 		},
 	}, nil
 }
@@ -197,6 +210,15 @@ func WriteRoboticsAuditBundle(w io.Writer, bundle RoboticsAuditExportBundle, for
 		}
 		for _, replay := range bundle.RobotExecutionReplay {
 			line, err := json.Marshal(map[string]any{"type": "robot_execution_replay", "record": replay})
+			if err != nil {
+				return err
+			}
+			if _, err := w.Write(append(line, '\n')); err != nil {
+				return err
+			}
+		}
+		for _, replay := range bundle.AIToolExecutionReplay {
+			line, err := json.Marshal(map[string]any{"type": "ai_tool_execution_replay", "record": replay})
 			if err != nil {
 				return err
 			}
@@ -246,31 +268,33 @@ func WriteRoboticsAuditBundleArtifacts(outputDir, format string, bundle Robotics
 		return ExportJobResult{}, err
 	}
 	return ExportJobResult{
-		TenantID:                    bundle.TenantID,
-		Path:                        bundlePath,
-		ManifestPath:                manifestPath,
-		BundleSHA256:                bundleSHA256,
-		ManifestSHA256:              manifest.ManifestSHA256,
-		Signature:                   manifestSignatureValue(manifest),
-		PolicyKeyLifecycleRecords:   len(bundle.PolicyKeyLifecycle),
-		RobotExecutionReplayRecords: len(bundle.RobotExecutionReplay),
+		TenantID:                     bundle.TenantID,
+		Path:                         bundlePath,
+		ManifestPath:                 manifestPath,
+		BundleSHA256:                 bundleSHA256,
+		ManifestSHA256:               manifest.ManifestSHA256,
+		Signature:                    manifestSignatureValue(manifest),
+		PolicyKeyLifecycleRecords:    len(bundle.PolicyKeyLifecycle),
+		RobotExecutionReplayRecords:  len(bundle.RobotExecutionReplay),
+		AIToolExecutionReplayRecords: len(bundle.AIToolExecutionReplay),
 	}, nil
 }
 
 func buildExportManifest(bundle RoboticsAuditExportBundle, bundleFilename, format, bundleSHA256 string, bundleBytes int64, signing ManifestSigningConfig) (ExportManifest, []byte, error) {
 	manifest := ExportManifest{
-		SchemaVersion:               "igris.robotics_compliance_manifest.v1",
-		TenantID:                    bundle.TenantID,
-		ExportedAt:                  bundle.ExportedAt.UTC(),
-		CreatedAt:                   time.Now().UTC(),
-		BundleFilename:              bundleFilename,
-		BundleSHA256:                bundleSHA256,
-		BundleBytes:                 bundleBytes,
-		Format:                      normalizedExportFormat(format),
-		Filters:                     bundle.Filters,
-		Totals:                      bundle.Totals,
-		PolicyKeyLifecycleRecords:   len(bundle.PolicyKeyLifecycle),
-		RobotExecutionReplayRecords: len(bundle.RobotExecutionReplay),
+		SchemaVersion:                "igris.robotics_compliance_manifest.v1",
+		TenantID:                     bundle.TenantID,
+		ExportedAt:                   bundle.ExportedAt.UTC(),
+		CreatedAt:                    time.Now().UTC(),
+		BundleFilename:               bundleFilename,
+		BundleSHA256:                 bundleSHA256,
+		BundleBytes:                  bundleBytes,
+		Format:                       normalizedExportFormat(format),
+		Filters:                      bundle.Filters,
+		Totals:                       bundle.Totals,
+		PolicyKeyLifecycleRecords:    len(bundle.PolicyKeyLifecycle),
+		RobotExecutionReplayRecords:  len(bundle.RobotExecutionReplay),
+		AIToolExecutionReplayRecords: len(bundle.AIToolExecutionReplay),
 	}
 	signingPayload, err := manifestSigningPayload(manifest)
 	if err != nil {
@@ -418,6 +442,9 @@ func RunTenantComplianceExport(ctx context.Context, db *sql.DB, cfg ExportJobCon
 			ReceiptFilter: coordinator.RoboticsAuditReceiptFilter{
 				Limit: cfg.ReplayLimit,
 			},
+			AIToolReceiptFilter: coordinator.AIToolAuditReceiptFilter{
+				Limit: cfg.ReplayLimit,
+			},
 			KeyLimit: cfg.KeyLimit,
 			Filters: map[string]string{
 				"limit":     fmt.Sprintf("%d", cfg.ReplayLimit),
@@ -428,7 +455,7 @@ func RunTenantComplianceExport(ctx context.Context, db *sql.DB, cfg ExportJobCon
 		if err != nil {
 			return results, err
 		}
-		if !cfg.IncludeEmpty && len(bundle.PolicyKeyLifecycle) == 0 && len(bundle.RobotExecutionReplay) == 0 {
+		if !cfg.IncludeEmpty && len(bundle.PolicyKeyLifecycle) == 0 && len(bundle.RobotExecutionReplay) == 0 && len(bundle.AIToolExecutionReplay) == 0 {
 			continue
 		}
 		result, err := WriteRoboticsAuditBundleArtifacts(cfg.OutputDir, cfg.Format, bundle, cfg.Signing)
@@ -455,6 +482,8 @@ func ListTenantsWithComplianceEvidence(ctx context.Context, db *sql.DB) ([]strin
 			SELECT DISTINCT tenant_id FROM robotics_policy_key_lifecycle_audit
 			UNION
 			SELECT DISTINCT tenant_id FROM robotics_receipt_audit
+			UNION
+			SELECT DISTINCT tenant_id FROM ai_tool_receipt_audit
 		) tenants
 		ORDER BY tenant_id`)
 	if err != nil {
