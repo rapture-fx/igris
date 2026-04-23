@@ -1132,17 +1132,38 @@ func ensureAIToolCredentialRefsActive(execer roboticsReceiptAuditExecer, refs *a
 func (s *CheckpointStore) RevokeAICredentialReference(ctx context.Context, tenantID, referenceID string) (*AICredentialReferenceAudit, error) {
 	row := s.db.QueryRowContext(ctx, `
 		UPDATE ai_credential_ref_audit
-		SET revoked_at = COALESCE(revoked_at, NOW())
+		SET revoked_at = NOW()
 		WHERE tenant_id = $1
 		  AND reference_id = $2
 		  AND revocable = true
+		  AND revoked_at IS NULL
 		RETURNING reference_id, envelope_id, task_id, tenant_id, COALESCE(tool, ''),
 		          COALESCE(capability, ''), COALESCE(scope, ''), expires_at_unix_ms,
 		          revocable, revoked_at, persisted_at`,
 		tenantID,
 		referenceID,
 	)
-	return scanAICredentialReference(row)
+	ref, err := scanAICredentialReference(row)
+	if err != sql.ErrNoRows {
+		return ref, err
+	}
+	var revokedAt sql.NullTime
+	err = s.db.QueryRowContext(ctx, `
+		SELECT revoked_at
+		FROM ai_credential_ref_audit
+		WHERE tenant_id = $1
+		  AND reference_id = $2
+		  AND revocable = true`,
+		tenantID,
+		referenceID,
+	).Scan(&revokedAt)
+	if err == nil && revokedAt.Valid {
+		return nil, fmt.Errorf("%w: %s", ErrCredentialReferenceRevoked, referenceID)
+	}
+	if err != nil {
+		return nil, err
+	}
+	return nil, sql.ErrNoRows
 }
 
 func (s *CheckpointStore) GetAICredentialReferences(tenantID string, filter AICredentialReferenceFilter) ([]AICredentialReferenceAudit, error) {
