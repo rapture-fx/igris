@@ -693,6 +693,117 @@ async fn append_violation(
     });
 }
 
+#[derive(Copy, Clone)]
+enum WorkerExecutionMode {
+    Default,
+    Latency,
+    Balanced,
+    Quality,
+    Cost,
+    Thompson,
+    Council,
+}
+
+fn normalize_worker_mode(mode: Option<&str>) -> anyhow::Result<WorkerExecutionMode> {
+    match mode.map(str::trim).filter(|value| !value.is_empty()) {
+        None => Ok(WorkerExecutionMode::Default),
+        Some("council") => Ok(WorkerExecutionMode::Council),
+        Some("speculative" | "latency") => Ok(WorkerExecutionMode::Latency),
+        Some("balanced") => Ok(WorkerExecutionMode::Balanced),
+        Some("quality") => Ok(WorkerExecutionMode::Quality),
+        Some("cost") => Ok(WorkerExecutionMode::Cost),
+        Some("thompson") => Ok(WorkerExecutionMode::Thompson),
+        Some(other) => anyhow::bail!("unsupported task execution mode '{}'", other),
+    }
+}
+
+fn worker_provider_score(provider: &CloudProviderWrapper, mode: WorkerExecutionMode) -> f64 {
+    let average_cost = provider.0.average_cost_per_1k();
+    let fast = provider.0.has_capability("fast") as i32 as f64;
+    let reasoning = provider.0.has_capability("reasoning") as i32 as f64;
+    let coding = provider.0.has_capability("coding") as i32 as f64;
+    let long_context = provider.0.has_capability("long_context") as i32 as f64;
+    let cost_effective = provider.0.has_capability("cost_effective") as i32 as f64;
+    let realtime = provider.0.has_capability("realtime") as i32 as f64;
+    let premium_name = (provider.0.id().contains("opus")
+        || provider.0.id().contains("gpt4")
+        || provider.0.id().contains("sonnet")
+        || provider.0.id().contains("large")
+        || provider.0.id().contains("pro")) as i32 as f64;
+
+    match mode {
+        WorkerExecutionMode::Default | WorkerExecutionMode::Latency => {
+            fast * 12.0 + realtime * 8.0 + cost_effective * 4.0 - average_cost * 250.0
+        }
+        WorkerExecutionMode::Balanced => {
+            fast * 6.0 + reasoning * 7.0 + coding * 3.0 + long_context * 2.0 + cost_effective * 4.0
+                - average_cost * 140.0
+        }
+        WorkerExecutionMode::Quality => {
+            reasoning * 12.0 + coding * 6.0 + long_context * 5.0 + premium_name * 4.0
+                - average_cost * 45.0
+        }
+        WorkerExecutionMode::Cost => {
+            cost_effective * 12.0 + fast * 3.0 + realtime * 2.0 - average_cost * 600.0
+        }
+        WorkerExecutionMode::Thompson | WorkerExecutionMode::Council => 0.0,
+    }
+}
+
+fn ranked_worker_cloud_providers(
+    route_context: &RouteExecutionContext,
+    mode: WorkerExecutionMode,
+) -> Vec<CloudProviderWrapper> {
+    let mut providers: Vec<CloudProviderWrapper> = route_context
+        .cloud_providers
+        .iter()
+        .map(|provider| CloudProviderWrapper(provider.clone()))
+        .collect();
+
+    if matches!(
+        mode,
+        WorkerExecutionMode::Default
+            | WorkerExecutionMode::Latency
+            | WorkerExecutionMode::Balanced
+            | WorkerExecutionMode::Quality
+            | WorkerExecutionMode::Cost
+    ) {
+        providers.sort_by(|left, right| {
+            worker_provider_score(right, mode)
+                .partial_cmp(&worker_provider_score(left, mode))
+                .unwrap_or(std::cmp::Ordering::Equal)
+        });
+    }
+
+    providers.truncate(3);
+    providers
+}
+
+async fn select_worker_thompson_provider(
+    route_context: &RouteExecutionContext,
+) -> Option<CloudProviderWrapper> {
+    if route_context.cloud_providers.is_empty() {
+        return None;
+    }
+
+    let selected_id = route_context.thompson_router.select_provider().await.ok();
+    if let Some(selected_id) = selected_id {
+        if let Some(provider) = route_context
+            .cloud_providers
+            .iter()
+            .find(|provider| provider.id() == selected_id)
+        {
+            return Some(CloudProviderWrapper(provider.clone()));
+        }
+    }
+
+    route_context
+        .cloud_providers
+        .first()
+        .cloned()
+        .map(CloudProviderWrapper)
+}
+
 /// Route a prompt through the Runtime's provider stack (cloud → local fallback).
 pub async fn execute_worker_job(
     route_context: Option<&RouteExecutionContext>,
