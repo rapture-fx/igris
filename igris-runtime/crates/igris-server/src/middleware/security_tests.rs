@@ -107,6 +107,22 @@ mod tests {
         assert_eq!(resp.status(), StatusCode::OK);
     }
 
+    #[tokio::test]
+    async fn runtime_profile_is_public() {
+        let state = make_state(true, "secret");
+        let app = Router::new()
+            .route("/v1/runtime/profile", get(ok))
+            .layer(from_fn_with_state(state.clone(), security_middleware))
+            .with_state(state);
+
+        let req = Request::builder()
+            .uri("/v1/runtime/profile")
+            .body(Body::empty())
+            .unwrap();
+        let resp = app.oneshot(req).await.unwrap();
+        assert_eq!(resp.status(), StatusCode::OK);
+    }
+
     /// Build a state with IGRIS_OVERTURE_PUBLIC_KEY set to the given verifying key.
     fn make_state_with_overture_key(verifying_key: ed25519_dalek::VerifyingKey) -> AppState {
         let mut state = make_state(false, "");
@@ -207,6 +223,22 @@ mod tests {
 
         let resp = app.oneshot(req).await.unwrap();
         assert_eq!(resp.status(), StatusCode::UNAUTHORIZED);
+    }
+
+    #[tokio::test]
+    async fn decision_sig_verification_unavailable_rejected() {
+        let state = make_state(false, "");
+        let app = runtime_submission_app("/v1/runtime/execute", state);
+
+        let req = Request::builder()
+            .method("POST")
+            .uri("/v1/runtime/execute")
+            .header("content-type", "application/json")
+            .body(Body::from(br#"{"model":"mock","messages":[]}"#.as_slice()))
+            .unwrap();
+
+        let resp = app.oneshot(req).await.unwrap();
+        assert_eq!(resp.status(), StatusCode::SERVICE_UNAVAILABLE);
     }
 
     #[tokio::test]
