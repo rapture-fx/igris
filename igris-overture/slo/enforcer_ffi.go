@@ -1,3 +1,5 @@
+//go:build cgo && igris_native
+
 // Package slo provides Go bindings for the Rust SLO Enforcer FFI library
 package slo
 
