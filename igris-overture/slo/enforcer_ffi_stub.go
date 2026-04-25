@@ -1,6 +1,6 @@
-//go:build !cgo
+//go:build !cgo || !igris_native
 
-// Stub for builds without CGo (CGO_ENABLED=0).
+// Stub for builds without native Rust linkage.
 // The Rust SLO enforcer is unavailable; EvaluateAndAct returns a no-breach response.
 package slo
 
