@@ -4,6 +4,8 @@ use serde::Serialize;
 pub struct Bounds {
     pub max_cpu_percent: u8,
     pub max_tick_ms: u64,
+    #[serde(skip_serializing_if = "Option::is_none")]
+    pub max_memory_mb: Option<u32>,
 }
 
 impl Bounds {
@@ -16,6 +18,12 @@ impl Bounds {
         Self {
             max_cpu_percent,
             max_tick_ms,
+            max_memory_mb: None,
         }
+    }
+
+    pub fn with_memory_mb(mut self, max_memory_mb: Option<u32>) -> Self {
+        self.max_memory_mb = max_memory_mb;
+        self
     }
 }
