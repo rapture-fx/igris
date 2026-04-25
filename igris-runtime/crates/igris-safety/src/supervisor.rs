@@ -24,6 +24,7 @@ struct SupervisorConfig {
     signing_key: SigningKey,
     log_path: String,
     last_hash: String,
+    worker_bin: Option<String>,
     /// Optional broadcast bus; events are emitted after the violation record is
     /// written and hash-chained. Safety recording is NOT gated on delivery.
     event_bus: Option<ViolationEventBus>,
@@ -56,6 +57,7 @@ impl Supervisor {
                 signing_key,
                 log_path,
                 last_hash: String::new(),
+                worker_bin: None,
                 event_bus: None,
             },
             worker: None,
@@ -78,22 +80,62 @@ impl Supervisor {
                 signing_key,
                 log_path,
                 last_hash: String::new(),
+                worker_bin: None,
                 event_bus: Some(event_bus),
             },
             worker: None,
         }
     }
 
+    pub fn with_worker_binary(mut self, worker_bin: String) -> Self {
+        self.config.worker_bin = Some(worker_bin);
+        self
+    }
+
     /// Spawn a fresh worker process and attach it to a cgroup.
     fn spawn_worker(&mut self) -> Result<(), String> {
-        let exe = std::env::current_exe().map_err(|e| e.to_string())?;
-        let mut child = Command::new(exe)
+        let worker_bin = self
+            .config
+            .worker_bin
+            .clone()
+            .or_else(|| std::env::var("IGRIS_WORKER_BIN").ok());
+        let exe = match worker_bin {
+            Some(path) => std::path::PathBuf::from(path),
+            None => std::env::current_exe().map_err(|e| e.to_string())?,
+        };
+        let mut command = Command::new(exe);
+        command
             .arg("--worker")
             .stdin(Stdio::piped())
             .stdout(Stdio::piped())
-            .stderr(Stdio::null())
-            .spawn()
-            .map_err(|e| e.to_string())?;
+            .stderr(Stdio::null());
+
+        #[cfg(unix)]
+        {
+            use nix::libc;
+
+            let memory_limit_bytes = self
+                .config
+                .bounds
+                .max_memory_mb
+                .map(|mb| u64::from(mb) * 1024 * 1024);
+            unsafe {
+                command.pre_exec(move || {
+                    if let Some(limit_bytes) = memory_limit_bytes {
+                        let limit = libc::rlimit {
+                            rlim_cur: limit_bytes as libc::rlim_t,
+                            rlim_max: limit_bytes as libc::rlim_t,
+                        };
+                        if libc::setrlimit(libc::RLIMIT_AS, &limit) != 0 {
+                            return Err(std::io::Error::last_os_error());
+                        }
+                    }
+                    Ok(())
+                });
+            }
+        }
+
+        let mut child = command.spawn().map_err(|e| e.to_string())?;
 
         let pid = child
             .id()
@@ -232,6 +274,14 @@ impl Supervisor {
                 let _ = self.spawn_worker();
                 Err(ViolationKind::Time)
             }
+        }
+    }
+}
+
+impl Drop for Supervisor {
+    fn drop(&mut self) {
+        if let Some(w) = self.worker.as_mut() {
+            let _ = w.child.start_kill();
         }
     }
 }
