@@ -171,10 +171,10 @@ fn verify_hs256_jwt(token: &str, secret: &[u8], now_ts: u64) -> anyhow::Result<J
 
 fn is_public_path(path: &str) -> bool {
     path == "/v1/health"
+        || path == "/v1/runtime/profile"
         || path.starts_with("/swagger-ui")
         || path.starts_with("/api-docs")
         || path == "/metrics"
-        || path.starts_with("/mcp")
 }
 
 fn requires_overture_decision_signature(path: &str) -> bool {
@@ -200,38 +200,45 @@ pub async fn security_middleware(
     // Verify Overture's decision signature for Runtime execution submission paths.
     // Applied before auth.enabled check so it fires even in auth-disabled deployments.
     if requires_overture_decision_signature(&path) {
-        if let Some(overture_key) = &state.overture_public_key {
-            let sig_b64 = req
-                .headers()
-                .get("x-igris-decision-sig")
-                .and_then(|h| h.to_str().ok())
-                .map(|s| s.to_string());
+        let Some(overture_key) = &state.overture_public_key else {
+            warn!(path = %path, "decision_sig_verification_unavailable");
+            return (
+                StatusCode::SERVICE_UNAVAILABLE,
+                "decision signature verification unavailable",
+            )
+                .into_response();
+        };
 
-            let (parts, body) = req.into_parts();
-            let body_bytes = axum::body::to_bytes(body, 1 << 20)
-                .await
-                .unwrap_or_default();
+        let sig_b64 = req
+            .headers()
+            .get("x-igris-decision-sig")
+            .and_then(|h| h.to_str().ok())
+            .map(|s| s.to_string());
 
-            let verified = sig_b64
-                .and_then(|b64| base64::engine::general_purpose::STANDARD.decode(b64).ok())
-                .and_then(|sig_bytes| {
-                    let arr: [u8; 64] = sig_bytes.try_into().ok()?;
-                    Some(ed25519_dalek::Signature::from_bytes(&arr))
-                })
-                .map(|sig| {
-                    use sha2::Digest;
-                    let hash = sha2::Sha256::digest(&body_bytes);
-                    overture_key.verify(&hash, &sig).is_ok()
-                })
-                .unwrap_or(false);
+        let (parts, body) = req.into_parts();
+        let body_bytes = axum::body::to_bytes(body, 1 << 20)
+            .await
+            .unwrap_or_default();
 
-            if !verified {
-                warn!(path = %path, "decision_sig_invalid");
-                return (StatusCode::UNAUTHORIZED, "invalid decision signature").into_response();
-            }
+        let verified = sig_b64
+            .and_then(|b64| base64::engine::general_purpose::STANDARD.decode(b64).ok())
+            .and_then(|sig_bytes| {
+                let arr: [u8; 64] = sig_bytes.try_into().ok()?;
+                Some(ed25519_dalek::Signature::from_bytes(&arr))
+            })
+            .map(|sig| {
+                use sha2::Digest;
+                let hash = sha2::Sha256::digest(&body_bytes);
+                overture_key.verify(&hash, &sig).is_ok()
+            })
+            .unwrap_or(false);
 
-            req = Request::from_parts(parts, Body::from(body_bytes));
+        if !verified {
+            warn!(path = %path, "decision_sig_invalid");
+            return (StatusCode::UNAUTHORIZED, "invalid decision signature").into_response();
         }
+
+        req = Request::from_parts(parts, Body::from(body_bytes));
     }
 
     let auth = &state.config.auth;
