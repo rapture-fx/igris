@@ -24,9 +24,9 @@ export default function AutonomousSystems() {
       <div className="mx-auto max-w-[1300px] px-4 sm:px-6 lg:px-8">
         <div className="px-4 md:px-8 lg:px-12" style={{ borderLeft: borderStyle, borderRight: borderStyle }}>
           {/* Title */}
-          <div className="flex flex-col md:flex-row md:items-start md:justify-between gap-4 md:gap-8" style={{ paddingTop: '3rem', paddingBottom: '2rem' }}>
+          <div className="flex flex-col md:flex-row md:items-start md:justify-between gap-4 md:gap-8 pb-6 md:pb-8">
             <h2 className="text-lg md:text-xl lg:text-2xl text-[#000000] dark:text-[#f6f6f4]" style={{ fontFamily }}>
-              One System.<br />
+              One System.<br className="hidden md:block" />
               Two Environments.
             </h2>
             <p className="text-sm md:text-base text-[#000000] dark:text-[#f6f6f4] max-w-md md:text-right" style={{ fontFamily }}>
