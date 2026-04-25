@@ -170,12 +170,29 @@ pub struct AuthConfig {
 impl Default for AuthConfig {
     fn default() -> Self {
         Self {
-            api_key: "default-api-key".to_string(),
+            api_key: String::new(),
             jwt_hs256_secret: None,
-            enabled: false,
-            rate_limit_per_minute: 0,
-            rate_limit_burst: 0,
+            enabled: true,
+            rate_limit_per_minute: 120,
+            rate_limit_burst: 20,
         }
+    }
+}
+
+impl AuthConfig {
+    pub fn has_api_key(&self) -> bool {
+        !self.api_key.trim().is_empty()
+    }
+
+    pub fn has_jwt_secret(&self) -> bool {
+        self.jwt_hs256_secret
+            .as_ref()
+            .map(|value| !value.trim().is_empty())
+            .unwrap_or(false)
+    }
+
+    pub fn has_auth_method(&self) -> bool {
+        self.has_api_key() || self.has_jwt_secret()
     }
 }
 
@@ -805,23 +822,23 @@ impl IgrisConfig {
         Ok(config)
     }
 
-    fn validate(&self) -> anyhow::Result<()> {
+    pub fn load_from_file_unvalidated<P: AsRef<Path>>(path: P) -> anyhow::Result<Self> {
+        let content = std::fs::read_to_string(path)?;
+        let expanded = expand_env_vars(&content);
+        let config: IgrisConfig = json5::from_str(&expanded)?;
+        Ok(config)
+    }
+
+    pub fn validate(&self) -> anyhow::Result<()> {
         if self.providers.is_empty() {
             anyhow::bail!("At least one provider must be configured");
         }
 
         // Auth sanity checks
-        if self.auth.enabled {
-            let has_api_key = self.auth.api_key != "default-api-key";
-            let has_jwt = self
-                .auth
-                .jwt_hs256_secret
-                .as_ref()
-                .map(|s| !s.trim().is_empty())
-                .unwrap_or(false);
-            if !has_api_key && !has_jwt {
-                anyhow::bail!("auth.enabled=true but no auth method configured (set auth.api_key or auth.jwt_hs256_secret)");
-            }
+        if self.auth.enabled && !self.auth.has_auth_method() {
+            anyhow::bail!(
+                "auth.enabled=true but no auth method configured (set auth.api_key or auth.jwt_hs256_secret)"
+            );
         }
 
         // Tooling safety checks
