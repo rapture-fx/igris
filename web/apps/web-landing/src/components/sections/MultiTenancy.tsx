@@ -40,7 +40,7 @@ export default function MultiTenancy() {
       <div className="mx-auto max-w-[1300px] px-4 sm:px-6 lg:px-8">
         <div className="px-4 md:px-8 lg:px-12" style={{ borderLeft: '0.5px solid rgba(209, 213, 219, 0.35)', borderRight: '0.5px solid rgba(209, 213, 219, 0.35)' }}>
           {/* Title */}
-          <div className="flex flex-col md:flex-row md:items-center md:justify-between gap-3" style={{ paddingTop: '3rem', paddingBottom: '2rem' }}>
+          <div className="flex flex-col md:flex-row md:items-center md:justify-between gap-3 py-6 md:py-8">
             <h3 className="text-lg md:text-xl lg:text-2xl text-[#000000] dark:text-[#f6f6f4]" style={{ fontFamily }}>
               Proof is built in
             </h3>
@@ -58,7 +58,7 @@ export default function MultiTenancy() {
           <div style={{ borderTop: '0.5px solid rgba(209, 213, 219, 0.35)', width: '100vw', marginLeft: '50%', transform: 'translateX(-50%)' }} />
 
           {/* Bento grid: 3 columns, 2 rows */}
-          <div className="grid grid-cols-1 md:grid-cols-3 gap-4" style={{ paddingTop: '2rem', paddingBottom: '2rem' }}>
+          <div className="grid grid-cols-1 md:grid-cols-3 gap-4 py-6 md:py-8">
             {/* Row 1: Signed execution (2 cols) | Fail-safe (1 col, spans 2 rows) */}
             <div className={cardClass + " md:col-span-2"} style={{ minHeight: '200px', fontFamily }}>
               <div className="mt-auto">
