@@ -277,6 +277,7 @@ pub struct RuntimeRegistrationClient {
     machine_id: String,
     hostname: String,
     platform: String,
+    public_key_ed25519: String,
     client: reqwest::Client,
 }
 
@@ -293,7 +294,7 @@ impl RuntimeRegistrationClient {
     /// Create a new registration client.
     ///
     /// `overture_url` defaults to `https://overture.igrisinertial.com` if `None`.
-    pub fn new(overture_url: Option<&str>, api_key: String) -> Self {
+    pub fn new(overture_url: Option<&str>, api_key: String, public_key_ed25519: String) -> Self {
         let base_url = overture_url
             .unwrap_or("https://overture.igrisinertial.com")
             .to_string();
@@ -313,6 +314,7 @@ impl RuntimeRegistrationClient {
             machine_id,
             hostname,
             platform,
+            public_key_ed25519,
             client,
         }
     }
@@ -328,6 +330,7 @@ impl RuntimeRegistrationClient {
             "hostname":         self.hostname,
             "platform":         self.platform,
             "runtime_version":  runtime_version,
+            "public_key_ed25519": self.public_key_ed25519,
         });
 
         let resp = self
@@ -431,8 +434,9 @@ pub async fn register_runtime_with_overture(
     api_key: String,
     overture_url: Option<&str>,
     runtime_version: &str,
+    public_key_ed25519: String,
 ) -> Result<RuntimeRegistrationClient> {
-    let client = RuntimeRegistrationClient::new(overture_url, api_key);
+    let client = RuntimeRegistrationClient::new(overture_url, api_key, public_key_ed25519);
 
     client.register(runtime_version).await?;
 
