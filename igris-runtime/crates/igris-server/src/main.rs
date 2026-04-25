@@ -14,6 +14,7 @@ use std::collections::HashMap;
 use std::convert::Infallible;
 use std::net::SocketAddr;
 use std::sync::Arc;
+use tokio::io::{AsyncBufReadExt, AsyncWriteExt};
 use tower_http::cors::CorsLayer;
 use tower_http::trace::TraceLayer;
 use tracing::{error, info, warn};
@@ -34,6 +35,7 @@ mod deployment_security;
 mod lifecycle;
 mod namespace;
 mod receipt;
+mod runtime_identity;
 mod transaction;
 use igris_btree::prelude::*;
 use igris_emergency::EscapeVectorCache;
@@ -54,6 +56,7 @@ use igris_reflection::{
 use igris_routing::local_provider::LocalProvider;
 use lifecycle::{new_lifecycle_registry, LifecycleRegistry};
 use receipt::ReceiptLog;
+use runtime_identity::load_or_create_runtime_identity;
 mod tool_agent;
 use tool_agent::ToolAgent;
 mod swarm_agent;
@@ -2459,8 +2462,110 @@ impl Provider for CloudProviderWrapper {
     }
 }
 
+fn load_worker_config(config_path: &str) -> anyhow::Result<IgrisConfig> {
+    if std::path::Path::new(config_path).exists() {
+        IgrisConfig::load_from_file_unvalidated(config_path)
+    } else {
+        Ok(IgrisConfig::default())
+    }
+}
+
+fn build_worker_route_context(config: &IgrisConfig) -> runtime_execute::RouteExecutionContext {
+    let cloud_providers: Vec<CloudProvider> = config
+        .providers
+        .iter()
+        .map(|provider| CloudProvider::new(provider.clone()))
+        .collect();
+
+    let local_provider = config.local_fallback.as_ref().and_then(|local_config| {
+        if !local_config.enabled {
+            return None;
+        }
+
+        let llm_config = LocalLLMConfig {
+            enabled: local_config.enabled,
+            selected_model: None,
+            model_path: local_config.model_path.clone(),
+            lora_adapter_path: local_config.lora_adapter_path.clone(),
+            n_gpu_layers: local_config.n_gpu_layers,
+            main_gpu: local_config.main_gpu,
+            prompt_cache_dir: local_config.prompt_cache_dir.clone(),
+            batch_size: local_config.batch_size,
+            context_size: local_config.context_size,
+            threads: local_config.threads,
+            max_tokens: local_config.max_tokens,
+            temperature: local_config.temperature,
+            cost_per_1k_tokens: local_config.cost_per_1k_tokens,
+        };
+
+        match LocalLLMProviderAdapter::new(llm_config) {
+            Ok(adapter) => Some(Arc::new(LocalProvider::new(adapter))),
+            Err(e) => {
+                warn!("[Runtime/Worker] Local provider unavailable: {}", e);
+                None
+            }
+        }
+    });
+
+    runtime_execute::RouteExecutionContext {
+        speculative_router: Arc::new(SpeculativeRouter::new(3, std::time::Duration::from_secs(5))),
+        cloud_providers: Arc::new(cloud_providers),
+        local_provider,
+    }
+}
+
+async fn run_contained_worker_mode() -> anyhow::Result<()> {
+    let config_path = std::env::var("IGRIS_CONFIG").unwrap_or_else(|_| "config.json5".to_string());
+    let mut route_context: Option<runtime_execute::RouteExecutionContext> = None;
+
+    let stdin = tokio::io::stdin();
+    let mut lines = tokio::io::BufReader::new(stdin).lines();
+    let mut stdout = tokio::io::stdout();
+
+    while let Some(line) = lines.next_line().await? {
+        let trimmed = line.trim();
+        if trimmed.is_empty() {
+            continue;
+        }
+
+        let response = match serde_json::from_str::<runtime_execute::WorkerExecuteJob>(trimmed) {
+            Ok(job) => {
+                if job.kind == "route" && route_context.is_none() {
+                    let config = load_worker_config(&config_path)?;
+                    route_context = Some(build_worker_route_context(&config));
+                }
+
+                match runtime_execute::execute_worker_job(route_context.as_ref(), job).await {
+                    Ok(result) => serde_json::json!({
+                        "status": "ok",
+                        "result": result,
+                    }),
+                    Err(err) => serde_json::json!({
+                        "status": "error",
+                        "error": err.to_string(),
+                    }),
+                }
+            }
+            Err(err) => serde_json::json!({
+                "status": "error",
+                "error": format!("invalid worker payload: {}", err),
+            }),
+        };
+
+        stdout.write_all(response.to_string().as_bytes()).await?;
+        stdout.write_all(b"\n").await?;
+        stdout.flush().await?;
+    }
+
+    Ok(())
+}
+
 #[tokio::main]
 async fn main() -> anyhow::Result<()> {
+    if igris_safety::is_worker_mode() {
+        return run_contained_worker_mode().await;
+    }
+
     #[derive(Debug, Parser)]
     #[command(
         name = "igris-runtime",
@@ -2716,6 +2821,14 @@ async fn main() -> anyhow::Result<()> {
         );
     }
 
+    let runtime_identity = load_or_create_runtime_identity()?;
+    let runtime_public_key = runtime_identity.public_key_hex.clone();
+    let signing_key = runtime_identity.signing_key;
+    info!(
+        "[Runtime/Identity] Ed25519 verifying key: {}",
+        &runtime_public_key[..16]
+    );
+
     // License validation (REQUIRED)
     let license_key = std::env::var("IGRIS_LICENSE_KEY").ok();
 
@@ -2750,6 +2863,7 @@ async fn main() -> anyhow::Result<()> {
                         api_key,
                         overture_url_ref,
                         version,
+                        runtime_public_key.clone(),
                     )
                     .await
                     {
@@ -3251,24 +3365,6 @@ async fn main() -> anyhow::Result<()> {
                 None
             }
         }
-    };
-
-    // Generate Ed25519 identity for this runtime instance.
-    let (runtime_public_key, signing_key) = {
-        use ed25519_dalek::SigningKey;
-        use rand::rngs::OsRng;
-        let signing_key = SigningKey::generate(&mut OsRng);
-        let verifying_key = signing_key.verifying_key();
-        let hex_key = verifying_key
-            .as_bytes()
-            .iter()
-            .map(|b| format!("{:02x}", b))
-            .collect::<String>();
-        info!(
-            "[Runtime/Identity] Ed25519 verifying key: {}",
-            &hex_key[..16]
-        );
-        (hex_key, signing_key)
     };
 
     // ── Phase 3: Execution receipt log ──────────────────────────────────────
