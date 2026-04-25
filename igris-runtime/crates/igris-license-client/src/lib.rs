@@ -1,10 +1,16 @@
+use base64::Engine as _;
+use chrono::{DateTime, Utc};
+use ed25519_dalek::{Signature, Verifier, VerifyingKey};
 use anyhow::{anyhow, Result};
 use serde::{Deserialize, Serialize};
 use sha2::{Digest, Sha256};
+use std::fs;
+use std::path::{Path, PathBuf};
 use std::time::Duration;
 use tracing::{error, info, warn};
 
 const DEFAULT_LICENSE_SERVER: &str = "https://overture.igrisinertial.com";
+const DEFAULT_OFFLINE_LICENSE_PATH: &str = ".igris/offline-license.json";
 const VERSION: &str = env!("CARGO_PKG_VERSION");
 
 /// License validation client
@@ -46,9 +52,63 @@ pub struct ValidationResponse {
     pub features: Option<LicenseFeatures>,
     pub expires_at: Option<String>,
     pub status: Option<String>,
+    pub offline_artifact: Option<String>,
+    pub offline_artifact_key_id: Option<String>,
+    pub offline_artifact_expires_at: Option<String>,
     pub error: Option<String>,
     pub message: Option<String>,
     pub upgrade_url: Option<String>,
+}
+
+#[derive(Debug, Clone, Serialize, Deserialize, PartialEq, Eq)]
+#[serde(rename_all = "snake_case")]
+pub enum RuntimeLicenseMode {
+    LicensedOnline,
+    LicensedOffline,
+}
+
+impl RuntimeLicenseMode {
+    pub fn as_str(&self) -> &'static str {
+        match self {
+            Self::LicensedOnline => "licensed_online",
+            Self::LicensedOffline => "licensed_offline",
+        }
+    }
+}
+
+#[derive(Debug, Clone, Serialize, Deserialize)]
+pub struct StartupLicenseResult {
+    pub mode: RuntimeLicenseMode,
+    pub device_id: String,
+    pub validation: ValidationResponse,
+}
+
+#[derive(Debug, Clone, Serialize, Deserialize)]
+struct OfflineLicenseArtifactEnvelope {
+    algorithm: String,
+    key_id: Option<String>,
+    payload: String,
+    payload_sha256: String,
+    signature: String,
+}
+
+#[derive(Debug, Clone, Serialize, Deserialize)]
+struct OfflineLicenseArtifactPayload {
+    version: u32,
+    license_key: String,
+    device_id: String,
+    runtime_version: String,
+    tier: String,
+    customer_email: Option<String>,
+    devices_limit: i32,
+    devices_active: i32,
+    cloud_requests_limit: i32,
+    cloud_requests_used: i32,
+    features: LicenseFeatures,
+    status: String,
+    license_expires_at: Option<String>,
+    artifact_issued_at: String,
+    artifact_expires_at: String,
 }
 
 /// Device registration response
@@ -205,48 +265,230 @@ impl LicenseClient {
     }
 }
 
-/// Perform license validation on startup
-pub async fn validate_license_on_startup(license_key: &str) -> Result<ValidationResponse> {
-    info!("Validating license...");
+fn non_empty_env(name: &str) -> Option<String> {
+    std::env::var(name)
+        .ok()
+        .map(|value| value.trim().to_string())
+        .filter(|value| !value.is_empty())
+}
 
-    let client = LicenseClient::new(None);
-    let device_id = LicenseClient::generate_device_id();
+fn license_server_from_env() -> Option<String> {
+    non_empty_env("IGRIS_LICENSE_SERVER")
+}
 
-    // Validate license
-    let validation = client.validate(license_key, &device_id, VERSION).await?;
+fn offline_license_path() -> PathBuf {
+    non_empty_env("IGRIS_OFFLINE_LICENSE_PATH")
+        .map(PathBuf::from)
+        .unwrap_or_else(|| PathBuf::from(DEFAULT_OFFLINE_LICENSE_PATH))
+}
 
-    if !validation.valid {
-        error!("License validation failed");
-        return Err(anyhow!("Invalid license"));
+fn trusted_offline_license_public_key() -> Result<Option<VerifyingKey>> {
+    let Some(hex_key) = non_empty_env("IGRIS_LICENSE_OFFLINE_PUBLIC_KEY")
+        .or_else(|| non_empty_env("IGRIS_OVERTURE_PUBLIC_KEY"))
+    else {
+        return Ok(None);
+    };
+
+    let decoded =
+        hex::decode(&hex_key).map_err(|e| anyhow!("invalid offline license public key hex: {}", e))?;
+    let bytes: [u8; 32] = decoded
+        .as_slice()
+        .try_into()
+        .map_err(|_| anyhow!("offline license public key must be 32 bytes"))?;
+    Ok(Some(VerifyingKey::from_bytes(&bytes)?))
+}
+
+fn persist_offline_artifact(path: &Path, artifact: &str) -> Result<()> {
+    if artifact.trim().is_empty() {
+        return Ok(());
+    }
+    if let Some(parent) = path.parent() {
+        fs::create_dir_all(parent)?;
+    }
+    fs::write(path, artifact)?;
+    Ok(())
+}
+
+fn parse_rfc3339(value: &str, field: &str) -> Result<DateTime<Utc>> {
+    DateTime::parse_from_rfc3339(value)
+        .map(|value| value.with_timezone(&Utc))
+        .map_err(|e| anyhow!("invalid {} timestamp: {}", field, e))
+}
+
+fn load_offline_artifact(
+    path: &Path,
+    verifying_key: &VerifyingKey,
+    device_id: &str,
+    expected_license_key: Option<&str>,
+) -> Result<ValidationResponse> {
+    let envelope: OfflineLicenseArtifactEnvelope = serde_json::from_slice(&fs::read(path)?)
+        .map_err(|e| anyhow!("failed to parse offline license artifact: {}", e))?;
+
+    if envelope.algorithm != "ed25519-sha256" {
+        return Err(anyhow!(
+            "unsupported offline license algorithm: {}",
+            envelope.algorithm
+        ));
     }
 
-    info!(
-        "License valid: {} (Tier: {}, Devices: {}/{})",
-        validation.customer_email.as_deref().unwrap_or("unknown"),
-        validation.tier.as_deref().unwrap_or("unknown"),
-        validation.devices_active.unwrap_or(0),
-        validation.devices_limit.unwrap_or(0)
-    );
+    let payload_bytes = base64::engine::general_purpose::STANDARD
+        .decode(&envelope.payload)
+        .map_err(|e| anyhow!("offline artifact payload decode failed: {}", e))?;
+    let payload_hash = Sha256::digest(&payload_bytes);
+    let payload_hash_hex = hex::encode(payload_hash);
+    if payload_hash_hex != envelope.payload_sha256 {
+        return Err(anyhow!("offline artifact payload hash mismatch"));
+    }
 
-    // Register device
-    match client.register_device(license_key, &device_id).await {
-        Ok(reg) => {
-            info!(
-                "Device registered: {} (Total: {} devices)",
-                device_id, reg.device_count
-            );
+    let signature_bytes = base64::engine::general_purpose::STANDARD
+        .decode(&envelope.signature)
+        .map_err(|e| anyhow!("offline artifact signature decode failed: {}", e))?;
+    let signature = Signature::from_slice(&signature_bytes)
+        .map_err(|e| anyhow!("offline artifact signature invalid: {}", e))?;
+    verifying_key
+        .verify(&payload_hash, &signature)
+        .map_err(|e| anyhow!("offline artifact signature verification failed: {}", e))?;
+
+    let payload: OfflineLicenseArtifactPayload = serde_json::from_slice(&payload_bytes)
+        .map_err(|e| anyhow!("failed to decode offline artifact payload: {}", e))?;
+
+    if payload.device_id != device_id {
+        return Err(anyhow!(
+            "offline artifact device mismatch: expected {}, got {}",
+            device_id,
+            payload.device_id
+        ));
+    }
+    if let Some(expected_key) = expected_license_key {
+        if payload.license_key != expected_key {
+            return Err(anyhow!("offline artifact license key mismatch"));
         }
-        Err(e) => {
-            warn!("Device registration failed: {}", e);
-        }
+    }
+
+    let artifact_expires_at = parse_rfc3339(&payload.artifact_expires_at, "artifact_expires_at")?;
+    if artifact_expires_at <= Utc::now() {
+        return Err(anyhow!("offline artifact expired at {}", artifact_expires_at));
+    }
+
+    let validation = ValidationResponse {
+        valid: true,
+        tier: Some(payload.tier),
+        customer_email: payload.customer_email,
+        devices_limit: Some(payload.devices_limit),
+        devices_active: Some(payload.devices_active),
+        cloud_requests_limit: Some(payload.cloud_requests_limit),
+        cloud_requests_used: Some(payload.cloud_requests_used),
+        features: Some(payload.features),
+        expires_at: payload.license_expires_at,
+        status: Some(payload.status),
+        offline_artifact: None,
+        offline_artifact_key_id: envelope.key_id,
+        offline_artifact_expires_at: Some(payload.artifact_expires_at),
+        error: None,
+        message: None,
+        upgrade_url: None,
+    };
+
+    if validation.status.as_deref() != Some("active") {
+        return Err(anyhow!("offline artifact license is not active"));
     }
 
     Ok(validation)
 }
 
+/// Perform license validation on startup using either live validation or a
+/// signed offline artifact when the license server is unreachable.
+pub async fn validate_license_on_startup(license_key: Option<&str>) -> Result<StartupLicenseResult> {
+    info!("Validating license...");
+
+    let device_id = LicenseClient::generate_device_id();
+    let offline_path = offline_license_path();
+    let trusted_offline_key = trusted_offline_license_public_key()?;
+
+    if let Some(key) = license_key.filter(|value| !value.trim().is_empty()) {
+        let server_url = license_server_from_env();
+        let client = LicenseClient::new(server_url.as_deref());
+        match client.validate(key, &device_id, VERSION).await {
+            Ok(validation) => {
+                info!(
+                    "License valid: {} (Tier: {}, Devices: {}/{})",
+                    validation.customer_email.as_deref().unwrap_or("unknown"),
+                    validation.tier.as_deref().unwrap_or("unknown"),
+                    validation.devices_active.unwrap_or(0),
+                    validation.devices_limit.unwrap_or(0)
+                );
+
+                if let Some(artifact) = validation.offline_artifact.as_deref() {
+                    if let Err(e) = persist_offline_artifact(&offline_path, artifact) {
+                        warn!(
+                            "Failed to persist offline license artifact at {}: {}",
+                            offline_path.display(),
+                            e
+                        );
+                    }
+                }
+
+                match client.register_device(key, &device_id).await {
+                    Ok(reg) => {
+                        info!(
+                            "Device registered: {} (Total: {} devices)",
+                            device_id, reg.device_count
+                        );
+                    }
+                    Err(e) => {
+                        warn!("Device registration failed: {}", e);
+                    }
+                }
+
+                return Ok(StartupLicenseResult {
+                    mode: RuntimeLicenseMode::LicensedOnline,
+                    device_id,
+                    validation,
+                });
+            }
+            Err(err) => {
+                let err_text = err.to_string();
+                if !err_text.contains("License server unreachable") {
+                    error!("License validation failed");
+                    return Err(err);
+                }
+
+                warn!(
+                    "License server unreachable, attempting offline artifact at {}",
+                    offline_path.display()
+                );
+            }
+        }
+    } else {
+        warn!(
+            "IGRIS_LICENSE_KEY not set, attempting offline artifact startup from {}",
+            offline_path.display()
+        );
+    }
+
+    let verifying_key = trusted_offline_key
+        .ok_or_else(|| anyhow!("offline license verification key not configured"))?;
+    let validation = load_offline_artifact(&offline_path, &verifying_key, &device_id, license_key)?;
+    info!(
+        "Offline license valid: tier={} expires={}",
+        validation.tier.as_deref().unwrap_or("unknown"),
+        validation
+            .offline_artifact_expires_at
+            .as_deref()
+            .unwrap_or("unknown")
+    );
+
+    Ok(StartupLicenseResult {
+        mode: RuntimeLicenseMode::LicensedOffline,
+        device_id,
+        validation,
+    })
+}
+
 /// Start a background heartbeat loop (license device heartbeat — every 5 minutes)
 pub async fn start_heartbeat_loop(license_key: String, device_id: String) {
-    let client = LicenseClient::new(None);
+    let server_url = license_server_from_env();
+    let client = LicenseClient::new(server_url.as_deref());
     let mut interval = tokio::time::interval(Duration::from_secs(300)); // Every 5 minutes
 
     loop {
@@ -260,6 +502,111 @@ pub async fn start_heartbeat_loop(license_key: String, device_id: String) {
                 warn!("Heartbeat failed: {}", e);
             }
         }
+    }
+}
+
+#[cfg(test)]
+mod offline_tests {
+    use super::*;
+    use ed25519_dalek::{Signer, SigningKey};
+    use rand::rngs::OsRng;
+
+    fn build_offline_artifact(
+        signing_key: &SigningKey,
+        device_id: &str,
+        license_key: &str,
+        expires_at: DateTime<Utc>,
+    ) -> String {
+        let payload = OfflineLicenseArtifactPayload {
+            version: 1,
+            license_key: license_key.to_string(),
+            device_id: device_id.to_string(),
+            runtime_version: VERSION.to_string(),
+            tier: "seed".to_string(),
+            customer_email: Some("user@example.com".to_string()),
+            devices_limit: 1,
+            devices_active: 1,
+            cloud_requests_limit: 50000,
+            cloud_requests_used: 10,
+            features: LicenseFeatures {
+                execution_layer: true,
+                intelligence_layer: true,
+                memory_layer: true,
+                proof_layer: true,
+                dashboard_access: false,
+                fleet_monitoring: false,
+                cost_optimization: false,
+                performance_heatmaps: false,
+                audit_trails: false,
+                ota_updates: false,
+                on_premise: false,
+                custom_sla: false,
+                extended_retention: false,
+                dedicated_support: false,
+            },
+            status: "active".to_string(),
+            license_expires_at: Some(expires_at.to_rfc3339()),
+            artifact_issued_at: Utc::now().to_rfc3339(),
+            artifact_expires_at: expires_at.to_rfc3339(),
+        };
+        let payload_bytes = serde_json::to_vec(&payload).unwrap();
+        let payload_hash = Sha256::digest(&payload_bytes);
+        let signature = signing_key.sign(&payload_hash);
+        serde_json::to_string(&OfflineLicenseArtifactEnvelope {
+            algorithm: "ed25519-sha256".to_string(),
+            key_id: Some("test-key".to_string()),
+            payload: base64::engine::general_purpose::STANDARD.encode(payload_bytes),
+            payload_sha256: hex::encode(payload_hash),
+            signature: base64::engine::general_purpose::STANDARD.encode(signature.to_bytes()),
+        })
+        .unwrap()
+    }
+
+    #[test]
+    fn load_offline_artifact_accepts_valid_signature() {
+        let signing_key = SigningKey::generate(&mut OsRng);
+        let verifying_key = signing_key.verifying_key();
+        let device_id = "dev_test";
+        let artifact = build_offline_artifact(
+            &signing_key,
+            device_id,
+            "lic_seed_test",
+            Utc::now() + chrono::Duration::hours(2),
+        );
+        let temp = tempfile::NamedTempFile::new().unwrap();
+        fs::write(temp.path(), artifact).unwrap();
+
+        let validation =
+            load_offline_artifact(temp.path(), &verifying_key, device_id, Some("lic_seed_test"))
+                .unwrap();
+
+        assert_eq!(validation.tier.as_deref(), Some("seed"));
+        assert_eq!(validation.status.as_deref(), Some("active"));
+        assert!(validation.offline_artifact_expires_at.is_some());
+    }
+
+    #[test]
+    fn load_offline_artifact_rejects_expired_artifact() {
+        let signing_key = SigningKey::generate(&mut OsRng);
+        let verifying_key = signing_key.verifying_key();
+        let artifact = build_offline_artifact(
+            &signing_key,
+            "dev_test",
+            "lic_seed_test",
+            Utc::now() - chrono::Duration::hours(1),
+        );
+        let temp = tempfile::NamedTempFile::new().unwrap();
+        fs::write(temp.path(), artifact).unwrap();
+
+        let err = load_offline_artifact(
+            temp.path(),
+            &verifying_key,
+            "dev_test",
+            Some("lic_seed_test"),
+        )
+        .unwrap_err();
+
+        assert!(err.to_string().contains("offline artifact expired"));
     }
 }
 
