@@ -1,6 +1,6 @@
-//go:build !cgo
+//go:build !cgo || !igris_native
 
-// Stub implementation for builds without CGo (e.g. CGO_ENABLED=0 for Linux cross-compilation).
+// Stub implementation for builds without native Rust linkage.
 // The Rust FFI optimizer is unavailable; all calls return errors so the caller falls back
 // to the pure-Go Thompson Sampling implementation.
 package ffi
