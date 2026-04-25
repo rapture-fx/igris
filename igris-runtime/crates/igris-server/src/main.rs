@@ -2524,7 +2524,15 @@ async fn main() -> anyhow::Result<()> {
         Command::ValidateConfig => {
             let config_path =
                 std::env::var("IGRIS_CONFIG").unwrap_or_else(|_| "config.json5".to_string());
-            match IgrisConfig::load_from_file(&config_path) {
+            let security_policy = RuntimeSecurityPolicy::from_env();
+            match load_runtime_config(&config_path).and_then(|config| {
+                validate_runtime_security_config(
+                    &config,
+                    security_policy,
+                    load_overture_public_key().is_some(),
+                )?;
+                Ok(config)
+            }) {
                 Ok(_) => {
                     println!("OK: config valid ({})", config_path);
                     return Ok(());
@@ -2684,25 +2692,32 @@ async fn main() -> anyhow::Result<()> {
 
     info!("Loading configuration from: {}", config_path);
 
-    let config = if std::path::Path::new(&config_path).exists() {
-        IgrisConfig::load_from_file(&config_path)?
-    } else {
-        warn!("Config file not found, using defaults");
-        IgrisConfig::default()
-    };
+    let security_policy = RuntimeSecurityPolicy::from_env();
+    let config = load_runtime_config(&config_path)?;
 
     info!("Config loaded successfully");
 
-    // P0-C: Override auth when IGRIS_RUNTIME_SECRET is set so that only
-    // Overture (which sends Authorization: Bearer <secret>) can reach the
-    // execution and violations endpoints.
+    if security_policy.allow_insecure_dev_mode {
+        warn!(
+            "[Runtime/Security] IGRIS_ALLOW_INSECURE_DEV_MODE=true disables self-serve boot hardening; use for local development only"
+        );
+    }
+
     let mut config = config;
-    if let Ok(secret) = std::env::var("IGRIS_RUNTIME_SECRET") {
-        if !secret.is_empty() {
-            config.auth.api_key = secret;
-            config.auth.enabled = true;
-            info!("[Runtime/Auth] Bearer token auth enforced via IGRIS_RUNTIME_SECRET");
-        }
+    let overture_public_key = load_overture_public_key();
+    validate_runtime_security_config(
+        &config,
+        security_policy,
+        overture_public_key.is_some(),
+    )?;
+    if overture_public_key.is_some() {
+        info!(
+            "[Runtime/Security] Overture public key loaded — decision signatures will be verified"
+        );
+    } else if !security_policy.runtime_submission_api_enabled {
+        info!(
+            "[Runtime/Security] Runtime submission API disabled — Overture decision key not required"
+        );
     }
 
     // License validation (REQUIRED)
@@ -3104,11 +3119,7 @@ async fn main() -> anyhow::Result<()> {
     };
 
     // Create application state
-    let rate_limiter = if (config.auth.enabled
-        || config.auth.api_key != "default-api-key"
-        || config.auth.jwt_hs256_secret.is_some())
-        && config.auth.rate_limit_per_minute > 0
-    {
+    let rate_limiter = if config.auth.enabled && config.auth.rate_limit_per_minute > 0 {
         Some(RateLimiter::new(
             config.auth.rate_limit_per_minute,
             config.auth.rate_limit_burst,
@@ -3263,27 +3274,6 @@ async fn main() -> anyhow::Result<()> {
         );
         (hex_key, signing_key)
     };
-
-    // Load Overture's public key for decision-signature verification (P0-3).
-    let overture_public_key = std::env::var("IGRIS_OVERTURE_PUBLIC_KEY")
-        .ok()
-        .and_then(|hex| {
-            let bytes: Option<Vec<u8>> = (0..hex.len())
-                .step_by(2)
-                .map(|i| u8::from_str_radix(&hex[i..i + 2], 16).ok())
-                .collect();
-            bytes
-                .and_then(|b| {
-                    let arr: [u8; 32] = b.try_into().ok()?;
-                    ed25519_dalek::VerifyingKey::from_bytes(&arr).ok()
-                })
-                .map(Arc::new)
-        });
-    if overture_public_key.is_some() {
-        info!(
-            "[Runtime/Security] Overture public key loaded — decision signatures will be verified"
-        );
-    }
 
     // ── Phase 3: Execution receipt log ──────────────────────────────────────
     let receipt_log_path = std::env::var("IGRIS_RECEIPT_LOG")
@@ -3538,8 +3528,6 @@ async fn main() -> anyhow::Result<()> {
         .route("/v1/btree/events", get(btree_events))
         // MCP SSE streaming endpoint
         .route("/mcp/stream", post(mcp_stream))
-        // Runtime execution API (Overture → Runtime boundary)
-        .route("/v1/runtime/execute", post(runtime_execute::handle_execute))
         .route(
             "/v1/runtime/violations",
             get(runtime_execute::handle_violations),
@@ -3547,22 +3535,6 @@ async fn main() -> anyhow::Result<()> {
         .route(
             "/v1/runtime/register",
             post(runtime_execute::handle_register),
-        )
-        .route(
-            "/v1/runtime/task/submit",
-            post(task_executor::handle_task_submit),
-        )
-        .route(
-            "/v1/runtime/task/stream",
-            post(task_executor::handle_task_stream),
-        )
-        .route(
-            "/v1/runtime/task/:task_id/cancel",
-            post(task_executor::handle_task_cancel),
-        )
-        .route(
-            "/v1/runtime/task/:task_id/wal",
-            get(task_executor::handle_task_wal),
         )
         // Phase 4: Agent lifecycle state endpoint
         .route(
@@ -3574,6 +3546,31 @@ async fn main() -> anyhow::Result<()> {
         .layer(CorsLayer::permissive())
         .layer(from_fn_with_state(state.clone(), security_middleware))
         .with_state(state);
+
+    if security_policy.runtime_submission_api_enabled {
+        app = app
+            .route("/v1/runtime/execute", post(runtime_execute::handle_execute))
+            .route(
+                "/v1/runtime/task/submit",
+                post(task_executor::handle_task_submit),
+            )
+            .route(
+                "/v1/runtime/task/stream",
+                post(task_executor::handle_task_stream),
+            )
+            .route(
+                "/v1/runtime/task/:task_id/cancel",
+                post(task_executor::handle_task_cancel),
+            )
+            .route(
+                "/v1/runtime/task/:task_id/wal",
+                get(task_executor::handle_task_wal),
+            );
+    } else {
+        info!(
+            "[Runtime/Security] Runtime submission API disabled via IGRIS_ENABLE_RUNTIME_SUBMISSION_API=false"
+        );
+    }
 
     // Merge MCP router if enabled
     if let Some(mcp_router) = mcp_router {
