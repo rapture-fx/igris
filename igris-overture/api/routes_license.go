@@ -26,34 +26,132 @@ type LicenseHandler struct {
 }
 
 type offlineLicenseArtifactPayload struct {
-	Version             int                    `json:"version"`
-	LicenseKey          string                 `json:"license_key"`
-	DeviceID            string                 `json:"device_id"`
-	RuntimeVersion      string                 `json:"runtime_version"`
-	Tier                string                 `json:"tier"`
-	CustomerEmail       string                 `json:"customer_email,omitempty"`
-	DevicesLimit        int                    `json:"devices_limit"`
-	DevicesActive       int                    `json:"devices_active"`
-	CloudRequestsLimit  int                    `json:"cloud_requests_limit"`
-	CloudRequestsUsed   int                    `json:"cloud_requests_used"`
-	Features            models.LicenseFeatures `json:"features"`
-	Status              string                 `json:"status"`
-	LicenseExpiresAt    *time.Time             `json:"license_expires_at,omitempty"`
-	ArtifactIssuedAt    time.Time              `json:"artifact_issued_at"`
-	ArtifactExpiresAt   time.Time              `json:"artifact_expires_at"`
+	Version            int                    `json:"version"`
+	LicenseKey         string                 `json:"license_key"`
+	DeviceID           string                 `json:"device_id"`
+	RuntimeVersion     string                 `json:"runtime_version"`
+	Tier               string                 `json:"tier"`
+	CustomerEmail      string                 `json:"customer_email,omitempty"`
+	DevicesLimit       int                    `json:"devices_limit"`
+	DevicesActive      int                    `json:"devices_active"`
+	CloudRequestsLimit int                    `json:"cloud_requests_limit"`
+	CloudRequestsUsed  int                    `json:"cloud_requests_used"`
+	Features           models.LicenseFeatures `json:"features"`
+	Status             string                 `json:"status"`
+	LicenseExpiresAt   *time.Time             `json:"license_expires_at,omitempty"`
+	ArtifactIssuedAt   time.Time              `json:"artifact_issued_at"`
+	ArtifactExpiresAt  time.Time              `json:"artifact_expires_at"`
 }
 
 type offlineLicenseArtifactEnvelope struct {
-	Algorithm           string `json:"algorithm"`
-	KeyID               string `json:"key_id,omitempty"`
-	Payload             string `json:"payload"`
-	PayloadSHA256       string `json:"payload_sha256"`
-	Signature           string `json:"signature"`
+	Algorithm     string `json:"algorithm"`
+	KeyID         string `json:"key_id,omitempty"`
+	Payload       string `json:"payload"`
+	PayloadSHA256 string `json:"payload_sha256"`
+	Signature     string `json:"signature"`
 }
 
 // NewLicenseHandler creates a new license handler
 func NewLicenseHandler(db *sql.DB) *LicenseHandler {
 	return &LicenseHandler{db: db}
+}
+
+func decodeOfflineLicenseSigningKey(value string) (ed25519.PrivateKey, error) {
+	value = strings.TrimSpace(value)
+	if value == "" {
+		return nil, fmt.Errorf("offline license signing key not configured")
+	}
+
+	raw, err := hex.DecodeString(value)
+	if err != nil {
+		raw, err = base64.StdEncoding.DecodeString(value)
+		if err != nil {
+			return nil, fmt.Errorf("invalid ed25519 private key encoding")
+		}
+	}
+
+	switch len(raw) {
+	case ed25519.SeedSize:
+		return ed25519.NewKeyFromSeed(raw), nil
+	case ed25519.PrivateKeySize:
+		return ed25519.PrivateKey(raw), nil
+	default:
+		return nil, fmt.Errorf("invalid ed25519 private key length")
+	}
+}
+
+func offlineArtifactTTL() time.Duration {
+	ttlHours := 168
+	if raw := strings.TrimSpace(os.Getenv("IGRIS_LICENSE_OFFLINE_ARTIFACT_TTL_HOURS")); raw != "" {
+		if parsed, err := time.ParseDuration(raw + "h"); err == nil && parsed > 0 {
+			return parsed
+		}
+	}
+	return time.Duration(ttlHours) * time.Hour
+}
+
+func offlineArtifactExpiry(now time.Time, licenseExpiresAt *time.Time) time.Time {
+	expiresAt := now.Add(offlineArtifactTTL())
+	if licenseExpiresAt != nil && licenseExpiresAt.Before(expiresAt) {
+		return licenseExpiresAt.UTC()
+	}
+	return expiresAt.UTC()
+}
+
+func buildOfflineLicenseArtifact(
+	req models.ValidationRequest,
+	response models.ValidationResponse,
+) (string, string, *time.Time, error) {
+	signingKeyValue := strings.TrimSpace(os.Getenv("IGRIS_OVERTURE_SIGNING_KEY"))
+	if signingKeyValue == "" {
+		return "", "", nil, nil
+	}
+
+	signingKey, err := decodeOfflineLicenseSigningKey(signingKeyValue)
+	if err != nil {
+		return "", "", nil, err
+	}
+
+	issuedAt := time.Now().UTC()
+	expiresAt := offlineArtifactExpiry(issuedAt, response.ExpiresAt)
+	payload := offlineLicenseArtifactPayload{
+		Version:            1,
+		LicenseKey:         req.LicenseKey,
+		DeviceID:           req.DeviceID,
+		RuntimeVersion:     req.RuntimeVersion,
+		Tier:               response.Tier,
+		CustomerEmail:      response.CustomerEmail,
+		DevicesLimit:       response.DevicesLimit,
+		DevicesActive:      response.DevicesActive,
+		CloudRequestsLimit: response.CloudRequestsLimit,
+		CloudRequestsUsed:  response.CloudRequestsUsed,
+		Features:           response.Features,
+		Status:             response.Status,
+		LicenseExpiresAt:   response.ExpiresAt,
+		ArtifactIssuedAt:   issuedAt,
+		ArtifactExpiresAt:  expiresAt,
+	}
+
+	payloadBytes, err := json.Marshal(payload)
+	if err != nil {
+		return "", "", nil, err
+	}
+
+	payloadHash := sha256.Sum256(payloadBytes)
+	envelope := offlineLicenseArtifactEnvelope{
+		Algorithm:     "ed25519-sha256",
+		KeyID:         strings.TrimSpace(os.Getenv("IGRIS_LICENSE_OFFLINE_KEY_ID")),
+		Payload:       base64.StdEncoding.EncodeToString(payloadBytes),
+		PayloadSHA256: hex.EncodeToString(payloadHash[:]),
+		Signature:     base64.StdEncoding.EncodeToString(ed25519.Sign(signingKey, payloadHash[:])),
+	}
+
+	envelopeBytes, err := json.Marshal(envelope)
+	if err != nil {
+		return "", "", nil, err
+	}
+
+	return string(envelopeBytes), envelope.KeyID, &expiresAt, nil
 }
 
 // RegisterLicenseRoutes registers license-related API routes
@@ -92,11 +190,11 @@ func (h *LicenseHandler) GetLicenseInfo(c *fiber.Ctx) error {
 
 	// Look up the license associated with this tenant's customer_id
 	var (
-		licenseKey    string
-		tier          string
-		status        string
-		devicesLimit  int
-		expiresAt     *time.Time
+		licenseKey   string
+		tier         string
+		status       string
+		devicesLimit int
+		expiresAt    *time.Time
 	)
 
 	err := h.db.QueryRow(`
@@ -405,6 +503,14 @@ func (h *LicenseHandler) ValidateLicense(c *fiber.Ctx) error {
 		Features:           features,
 		ExpiresAt:          license.ExpiresAt,
 		Status:             license.Status,
+	}
+
+	if artifact, keyID, artifactExpiresAt, err := buildOfflineLicenseArtifact(req, response); err != nil {
+		log.Error().Err(err).Str("license_key", maskLicenseKey(req.LicenseKey)).Msg("[License] Failed to build offline artifact")
+	} else if artifact != "" {
+		response.OfflineArtifact = artifact
+		response.OfflineArtifactKeyID = keyID
+		response.OfflineArtifactExpiresAt = artifactExpiresAt
 	}
 
 	log.Info().
