@@ -281,6 +281,7 @@ pub async fn handle_execute(
             serde_json::to_value(WorkerExecuteJob {
                 kind: "route".to_string(),
                 prompt: Some(prompt.clone()),
+                mode: req.mode.clone(),
                 test_delay_ms: None,
                 test_response_content: None,
                 test_response_provider: None,
@@ -833,28 +834,56 @@ pub async fn execute_worker_job(
     let prompt = job
         .prompt
         .ok_or_else(|| anyhow::anyhow!("worker route job missing prompt"))?;
-    let (content, provider) = do_route(route_context, prompt).await?;
+    let (content, provider) = do_route(route_context, prompt, job.mode.as_deref()).await?;
     Ok(WorkerExecuteResult { content, provider })
 }
 
 pub(crate) async fn do_route(
     route_context: &RouteExecutionContext,
     prompt: String,
+    mode: Option<&str>,
 ) -> anyhow::Result<(String, String)> {
-    // Try cloud providers via speculative routing.
+    let execution_mode = normalize_worker_mode(mode)?;
+
     if !route_context.cloud_providers.is_empty() {
-        let providers: Vec<CloudProviderWrapper> = route_context
-            .cloud_providers
-            .iter()
-            .take(3)
-            .map(|p| CloudProviderWrapper(p.clone()))
-            .collect();
-        if let Ok(result) = route_context
-            .speculative_router
-            .route(&prompt, providers)
-            .await
-        {
-            return Ok((result.response, result.winner_id));
+        match execution_mode {
+            WorkerExecutionMode::Default
+            | WorkerExecutionMode::Latency
+            | WorkerExecutionMode::Balanced
+            | WorkerExecutionMode::Quality
+            | WorkerExecutionMode::Cost => {
+                let providers = ranked_worker_cloud_providers(route_context, execution_mode);
+                if let Ok(result) = route_context
+                    .speculative_router
+                    .route(&prompt, providers)
+                    .await
+                {
+                    return Ok((result.response, result.winner_id));
+                }
+            }
+            WorkerExecutionMode::Thompson => {
+                if let Some(provider) = select_worker_thompson_provider(route_context).await {
+                    let provider_id = provider.id().to_string();
+                    if let Ok(response) = provider.complete(&prompt).await {
+                        return Ok((response, provider_id));
+                    }
+                }
+            }
+            WorkerExecutionMode::Council => {
+                let providers =
+                    ranked_worker_cloud_providers(route_context, WorkerExecutionMode::Quality);
+                if let Ok(result) = route_context.council_router.route(&prompt, providers.clone()).await {
+                    return Ok((result.response, result.chairman_id));
+                }
+                if let Some(chairman_id) =
+                    providers.first().map(|provider| provider.id().to_string())
+                {
+                    let fallback_router = CouncilRouter::new(chairman_id);
+                    if let Ok(result) = fallback_router.route(&prompt, providers).await {
+                        return Ok((result.response, result.chairman_id));
+                    }
+                }
+            }
         }
     }
 
