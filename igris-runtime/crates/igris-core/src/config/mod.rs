@@ -1071,4 +1071,27 @@ mod tests {
         };
         assert!(config.validate().is_ok());
     }
+
+    #[test]
+    fn test_auth_validation_requires_real_auth_method_when_enabled() {
+        let mut config = IgrisConfig::default();
+        config.auth.enabled = true;
+        config.auth.api_key.clear();
+        config.auth.jwt_hs256_secret = None;
+
+        let err = config.validate().unwrap_err();
+        assert!(err
+            .to_string()
+            .contains("auth.enabled=true but no auth method configured"));
+    }
+
+    #[test]
+    fn test_auth_validation_accepts_jwt_only_configuration() {
+        let mut config = IgrisConfig::default();
+        config.auth.enabled = true;
+        config.auth.api_key.clear();
+        config.auth.jwt_hs256_secret = Some("jwt-secret".to_string());
+
+        assert!(config.validate().is_ok());
+    }
 }
