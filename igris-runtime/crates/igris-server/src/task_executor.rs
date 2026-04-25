@@ -3561,7 +3561,7 @@ async fn execute_agent_step(
                 checkpoint_requested: false,
             })
         }
-        Err(igris_safety::SafetyError::Violation(kind)) => {
+        Err(kind) => {
             anyhow::bail!(
                 "containment violation: {} after {}ms",
                 match kind {
