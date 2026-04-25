@@ -14,3 +14,6 @@ sha2 = "0.10"
 hex = "0.4"
 gethostname = "0.4"
 mac_address = "1.1"
+base64 = { workspace = true }
+ed25519-dalek = { workspace = true }
+chrono = { version = "0.4", features = ["serde"] }
