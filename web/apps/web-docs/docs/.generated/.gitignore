@@ -1,6 +1,0 @@
-# Keep generated JSON files in git for workflow
-# These files are auto-generated but should be committed
-
-# Don't ignore anything (keep all generated files)
-!*.json
-!README.md
