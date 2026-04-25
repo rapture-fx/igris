@@ -130,6 +130,12 @@ mod tests {
             runtime_public_key: None,
             signing_key: None,
             overture_public_key: None,
+            license_status: RuntimeLicenseStatus {
+                state: "licensed_online".to_string(),
+                tier: Some("seed".to_string()),
+                license_expires_at: None,
+                offline_artifact_expires_at: None,
+            },
             receipt_log: None,
             lifecycle_registry: None,
             task_cancellation_registry: Arc::new(std::sync::RwLock::new(
@@ -184,6 +190,12 @@ mod tests {
             runtime_public_key: None,
             signing_key: None,
             overture_public_key: None,
+            license_status: RuntimeLicenseStatus {
+                state: "licensed_online".to_string(),
+                tier: Some("seed".to_string()),
+                license_expires_at: None,
+                offline_artifact_expires_at: None,
+            },
             receipt_log: None,
             lifecycle_registry: None,
             task_cancellation_registry: Arc::new(std::sync::RwLock::new(
@@ -1313,6 +1325,12 @@ mod tests {
             runtime_public_key: None,
             signing_key: None,
             overture_public_key: None,
+            license_status: RuntimeLicenseStatus {
+                state: "licensed_online".to_string(),
+                tier: Some("seed".to_string()),
+                license_expires_at: None,
+                offline_artifact_expires_at: None,
+            },
             receipt_log: None,
             lifecycle_registry: None,
             task_cancellation_registry: Arc::new(std::sync::RwLock::new(
@@ -1430,6 +1448,12 @@ mod tests {
             runtime_public_key: None,
             signing_key: None,
             overture_public_key: None,
+            license_status: RuntimeLicenseStatus {
+                state: "licensed_online".to_string(),
+                tier: Some("seed".to_string()),
+                license_expires_at: None,
+                offline_artifact_expires_at: None,
+            },
             receipt_log: None,
             lifecycle_registry: None,
             task_cancellation_registry: Arc::new(std::sync::RwLock::new(
