@@ -2525,6 +2525,19 @@ fn build_worker_route_context(config: &IgrisConfig) -> runtime_execute::RouteExe
 
     runtime_execute::RouteExecutionContext {
         speculative_router: Arc::new(SpeculativeRouter::new(3, std::time::Duration::from_secs(5))),
+        thompson_router: Arc::new(ThompsonSamplingRouter::new(
+            cloud_providers
+                .iter()
+                .map(|provider| provider.id().to_string())
+                .collect(),
+            0.1,
+        )),
+        council_router: Arc::new(CouncilRouter::new(
+            cloud_providers
+                .first()
+                .map(|provider| provider.id().to_string())
+                .unwrap_or_else(|| "local".to_string()),
+        )),
         cloud_providers: Arc::new(cloud_providers),
         local_provider,
     }
