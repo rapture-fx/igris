@@ -5,7 +5,7 @@ This document tracks the P0 work required before a broad self-serve launch of Ig
 ## Execution Status
 
 - [x] P0-1: Wire OS-Level Containment Into The Live Execution Path
-- [ ] P0-2: Make Offline And Air-Gapped Startup Real
+- [x] P0-2: Make Offline And Air-Gapped Startup Real
 - [x] P0-3: Complete The Receipt And Verification Trust Chain
 - [x] P0-4: Make The Runtime Secure By Default For Self-Serve
 
@@ -47,6 +47,7 @@ The current runtime request path uses Tokio timeout enforcement, but does not ye
 - Wired `igris-runtime --worker` into the binary before normal CLI parsing so supervisor-spawned workers execute jobs instead of trying to boot the server.
 - Added worker job execution support in the runtime binary, including test-only stub jobs used to validate supervisor behavior.
 - Replaced the timeout-only `/v1/runtime/execute` path with `igris-safety::ContainmentGuard`.
+- Extended the same supervisor-backed worker path into durable non-stream agent task execution so `POST /v1/runtime/task/submit` no longer falls back to an in-process timeout for agent routing.
 - Added per-request supervisor lifecycle cleanup so contained worker processes do not leak.
 - Added optional worker binary override support for integration tests and controlled supervisor launches.
 - Added process-level memory limits on worker spawn via `setrlimit` on Unix and preserved existing timeout enforcement plus signed violation logging.
@@ -57,6 +58,10 @@ The current runtime request path uses Tokio timeout enforcement, but does not ye
 - `cargo test --manifest-path /Users/wira/Desktop/system/igris-runtime/Cargo.toml -p igris-server security_tests -- --nocapture`
 
 ## P0-2: Make Offline And Air-Gapped Startup Real
+
+### Status
+
+Completed on 2026-04-25.
 
 ### Problem
 
@@ -81,6 +86,25 @@ Current startup requires successful online license validation, which contradicts
 - Runtime can cold-start without network using a valid offline license artifact.
 - No live network round-trip is required for air-gapped startup.
 - Product claims can be aligned to the actual implemented mode.
+
+### Completed Work
+
+- Added signed offline license artifact issuance to the Overture license validation flow using the existing `IGRIS_OVERTURE_SIGNING_KEY` Ed25519 trust anchor.
+- Extended the license validation response schema to return `offline_artifact`, `offline_artifact_key_id`, and `offline_artifact_expires_at`.
+- Added runtime-side offline artifact verification with Ed25519 signature checking, device binding, license key binding, artifact expiry validation, and explicit startup mode reporting.
+- Added automatic offline artifact caching at `IGRIS_OFFLINE_LICENSE_PATH` or `.igris/offline-license.json` after successful online validation.
+- Changed runtime startup so it accepts either:
+  - successful online validation, or
+  - a valid cached offline artifact verified with `IGRIS_LICENSE_OFFLINE_PUBLIC_KEY` or `IGRIS_OVERTURE_PUBLIC_KEY`.
+- Restricted license heartbeat and Overture fleet registration to `licensed_online` mode only, and surfaced runtime license state in `/v1/runtime/profile`.
+
+### Validation
+
+- `cargo test --manifest-path /Users/wira/Desktop/system/igris-runtime/Cargo.toml -p igris-license-client -- --nocapture`
+- `cargo test --manifest-path /Users/wira/Desktop/system/igris-runtime/Cargo.toml -p igris-server security_tests -- --nocapture`
+- `cargo test --manifest-path /Users/wira/Desktop/system/igris-runtime/Cargo.toml -p igris-server runtime_task_submit_rejects_resume_when_digest_matches_but_step_differs -- --nocapture`
+- `cargo test --manifest-path /Users/wira/Desktop/system/igris-runtime/Cargo.toml -p igris-server --test containment_integration -- --nocapture`
+- `/bin/zsh -lc 'CGO_ENABLED=0 GOCACHE=/tmp/igris-gocache-p0 go test ./igris-overture/api/routes_license.go ./igris-overture/api/routes_license_offline_test.go -run "TestBuildOfflineLicenseArtifact" -count=1'`
 
 ## P0-3: Complete The Receipt And Verification Trust Chain
 
@@ -146,9 +170,9 @@ Completed on 2026-04-25.
 
 ## Launch Gates
 
-Broad self-serve launch remains blocked until:
+P0 engineering blockers in this document are implemented in code and validated by targeted tests.
 
-- P0-1 containment is live and proven by integration tests.
-- P0-2 offline startup is implemented or all offline startup claims are removed.
-- P0-3 runtime identity and strict verification are complete.
-- P0-4 secure-by-default runtime config is shipped.
+Broad self-serve launch should still wait for:
+
+- full regression coverage across runtime task submission, ROS2/robotics paths, and Overture control-plane integration in a production-like environment
+- a fresh launch-readiness review against the updated implementation, install flow, and operational guarantees
