@@ -2,8 +2,15 @@
 package api
 
 import (
+	"crypto/ed25519"
+	"crypto/sha256"
 	"database/sql"
+	"encoding/base64"
+	"encoding/hex"
 	"encoding/json"
+	"fmt"
+	"os"
+	"strings"
 	"time"
 
 	"github.com/gofiber/fiber/v2"
@@ -16,6 +23,32 @@ import (
 // LicenseHandler handles license-related API requests
 type LicenseHandler struct {
 	db *sql.DB
+}
+
+type offlineLicenseArtifactPayload struct {
+	Version             int                    `json:"version"`
+	LicenseKey          string                 `json:"license_key"`
+	DeviceID            string                 `json:"device_id"`
+	RuntimeVersion      string                 `json:"runtime_version"`
+	Tier                string                 `json:"tier"`
+	CustomerEmail       string                 `json:"customer_email,omitempty"`
+	DevicesLimit        int                    `json:"devices_limit"`
+	DevicesActive       int                    `json:"devices_active"`
+	CloudRequestsLimit  int                    `json:"cloud_requests_limit"`
+	CloudRequestsUsed   int                    `json:"cloud_requests_used"`
+	Features            models.LicenseFeatures `json:"features"`
+	Status              string                 `json:"status"`
+	LicenseExpiresAt    *time.Time             `json:"license_expires_at,omitempty"`
+	ArtifactIssuedAt    time.Time              `json:"artifact_issued_at"`
+	ArtifactExpiresAt   time.Time              `json:"artifact_expires_at"`
+}
+
+type offlineLicenseArtifactEnvelope struct {
+	Algorithm           string `json:"algorithm"`
+	KeyID               string `json:"key_id,omitempty"`
+	Payload             string `json:"payload"`
+	PayloadSHA256       string `json:"payload_sha256"`
+	Signature           string `json:"signature"`
 }
 
 // NewLicenseHandler creates a new license handler
