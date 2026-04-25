@@ -77,8 +77,8 @@ use federated_integration::FederatedManager;
 mod swarm_integration;
 use swarm_integration::SwarmManager;
 mod fleet_integration;
-use fleet_integration::FleetManager;
 use deployment_security::{validate_runtime_security_config, RuntimeSecurityPolicy};
+use fleet_integration::FleetManager;
 mod middleware;
 use axum::middleware::from_fn_with_state;
 use middleware::security::{security_middleware, RateLimiter};
@@ -2703,13 +2703,9 @@ async fn main() -> anyhow::Result<()> {
         );
     }
 
-    let mut config = config;
+    let config = config;
     let overture_public_key = load_overture_public_key();
-    validate_runtime_security_config(
-        &config,
-        security_policy,
-        overture_public_key.is_some(),
-    )?;
+    validate_runtime_security_config(&config, security_policy, overture_public_key.is_some())?;
     if overture_public_key.is_some() {
         info!(
             "[Runtime/Security] Overture public key loaded — decision signatures will be verified"
@@ -3541,11 +3537,7 @@ async fn main() -> anyhow::Result<()> {
             "/v1/runtime/agent/:id/state",
             get(lifecycle::handle_agent_state),
         )
-        .merge(SwaggerUi::new("/swagger-ui").url("/api-docs/openapi.json", ApiDoc::openapi()))
-        .layer(TraceLayer::new_for_http())
-        .layer(CorsLayer::permissive())
-        .layer(from_fn_with_state(state.clone(), security_middleware))
-        .with_state(state);
+        .merge(SwaggerUi::new("/swagger-ui").url("/api-docs/openapi.json", ApiDoc::openapi()));
 
     if security_policy.runtime_submission_api_enabled {
         app = app
@@ -3574,9 +3566,15 @@ async fn main() -> anyhow::Result<()> {
 
     // Merge MCP router if enabled
     if let Some(mcp_router) = mcp_router {
-        app = app.merge(mcp_router);
+        app = app.nest_service("/", mcp_router);
         info!("MCP endpoints mounted at /mcp");
     }
+
+    let app: Router = app
+        .layer(TraceLayer::new_for_http())
+        .layer(CorsLayer::permissive())
+        .layer(from_fn_with_state(state.clone(), security_middleware))
+        .with_state(state);
 
     // Start server
     let addr = SocketAddr::from(([0, 0, 0, 0], 8080));
