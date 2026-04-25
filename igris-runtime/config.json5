@@ -113,11 +113,11 @@
 
   // Authentication
   auth: {
-    enabled: false,
-    api_key: "igris-dev-key-change-in-production",
+    enabled: true,
+    api_key: "",
     jwt_hs256_secret: null,
-    rate_limit_per_minute: 0,
-    rate_limit_burst: 0
+    rate_limit_per_minute: 120,
+    rate_limit_burst: 20
   },
 
   // Tool execution (NEW in v1.4)
