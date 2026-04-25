@@ -15,13 +15,19 @@ use serde::{Deserialize, Serialize};
 use sha2::{Digest, Sha256};
 use std::collections::{BTreeMap, HashMap};
 use std::sync::Arc;
-use std::time::{Duration, SystemTime, UNIX_EPOCH};
+use std::time::{SystemTime, UNIX_EPOCH};
 use tokio::sync::{Mutex, RwLock};
 use tracing::{info, warn};
 use uuid::Uuid;
 
 use crate::{AppState, CloudProviderWrapper};
-use igris_routing::Provider;
+use igris_routing::{
+    cloud_provider::CloudProvider, local_provider::LocalProvider, speculative::SpeculativeRouter,
+    Provider,
+};
+use igris_safety::{
+    Bounds as SafetyBounds, ContainmentGuard, ViolationKind as SafetyViolationKind,
+};
 
 // ─────────────────────────────────────────────────────────────────────────────
 // Shared types (re-exported so main.rs can reference them in AppState)
@@ -32,6 +38,13 @@ pub type ViolationLog = Arc<Mutex<Vec<ViolationRecord>>>;
 
 /// Thread-safe peer registry.
 pub type PeerRegistry = Arc<RwLock<HashMap<String, PeerEntry>>>;
+
+#[derive(Clone)]
+pub struct RouteExecutionContext {
+    pub speculative_router: Arc<SpeculativeRouter>,
+    pub cloud_providers: Arc<Vec<CloudProvider>>,
+    pub local_provider: Option<Arc<LocalProvider>>,
+}
 
 /// Containment bounds forwarded from SDK via `X-Igris-Bounds` header.
 #[derive(Debug, Clone, Serialize, Deserialize, Default)]
@@ -109,6 +122,25 @@ pub struct ExecuteUsage {
     pub prompt_tokens: u32,
     pub completion_tokens: u32,
     pub total_tokens: u32,
+}
+
+#[derive(Debug, Clone, Serialize, Deserialize)]
+pub struct WorkerExecuteJob {
+    pub kind: String,
+    #[serde(default)]
+    pub prompt: Option<String>,
+    #[serde(default)]
+    pub test_delay_ms: Option<u64>,
+    #[serde(default)]
+    pub test_response_content: Option<String>,
+    #[serde(default)]
+    pub test_response_provider: Option<String>,
+}
+
+#[derive(Debug, Clone, Serialize, Deserialize)]
+pub struct WorkerExecuteResult {
+    pub content: String,
+    pub provider: String,
 }
 
 #[derive(Debug, Serialize)]
@@ -212,15 +244,83 @@ pub async fn handle_execute(
         .collect::<Vec<_>>()
         .join("\n");
 
-    // Enforce hard deadline via tokio timeout.
-    let route_result = tokio::time::timeout(
-        Duration::from_millis(max_tick_ms),
-        do_route(state.clone(), prompt.clone()),
+    let signing_key = match state.signing_key.as_ref() {
+        Some(signing_key) => (**signing_key).clone(),
+        None => {
+            return (
+                StatusCode::SERVICE_UNAVAILABLE,
+                Json(serde_json::json!({
+                    "error": {
+                        "message": "Containment is unavailable because no runtime signing key is configured",
+                        "type": "containment_unavailable"
+                    }
+                })),
+            )
+                .into_response();
+        }
+    };
+
+    let log_path = std::env::var("IGRIS_VIOLATIONS_LOG")
+        .unwrap_or_else(|_| "./igris_violations.jsonl".to_string());
+    let containment_bounds = SafetyBounds::new(
+        bounds
+            .as_ref()
+            .and_then(|value| value.cpu_percent)
+            .unwrap_or(100),
+        max_tick_ms,
     )
-    .await;
+    .with_memory_mb(bounds.as_ref().and_then(|value| value.memory_mb));
+    let mut guard = ContainmentGuard::new(containment_bounds, signing_key, log_path);
+
+    let route_result = guard
+        .execute(
+            serde_json::to_value(WorkerExecuteJob {
+                kind: "route".to_string(),
+                prompt: Some(prompt.clone()),
+                test_delay_ms: None,
+                test_response_content: None,
+                test_response_provider: None,
+            })
+            .unwrap_or_default(),
+        )
+        .await;
 
     match route_result {
-        Ok(Ok((content, provider_name))) => {
+        Ok(worker_result) => {
+            if worker_result.get("status").and_then(|value| value.as_str()) != Some("ok") {
+                let error_message = worker_result
+                    .get("error")
+                    .and_then(|value| value.as_str())
+                    .unwrap_or("Worker execution failed");
+                warn!("[Runtime/Execute] Worker error: {}", error_message);
+                return (
+                    StatusCode::INTERNAL_SERVER_ERROR,
+                    Json(serde_json::json!({
+                        "error": { "message": "Execution failed", "type": "worker_error", "details": error_message }
+                    })),
+                )
+                    .into_response();
+            }
+
+            let parsed_result: WorkerExecuteResult = match worker_result
+                .get("result")
+                .cloned()
+                .map(serde_json::from_value)
+            {
+                Some(Ok(result)) => result,
+                _ => {
+                    warn!("[Runtime/Execute] Worker returned malformed result payload");
+                    return (
+                        StatusCode::INTERNAL_SERVER_ERROR,
+                        Json(serde_json::json!({
+                            "error": { "message": "Execution failed", "type": "worker_protocol_error" }
+                        })),
+                    )
+                        .into_response();
+                }
+            };
+            let content = parsed_result.content;
+            let provider_name = parsed_result.provider;
             let pt = token_estimate(&prompt);
             let ct = token_estimate(&content);
             let resp_id = format!("exec-{}", Uuid::new_v4());
@@ -320,27 +420,16 @@ pub async fn handle_execute(
             (StatusCode::OK, Json(resp)).into_response()
         }
 
-        Ok(Err(e)) => {
-            warn!("[Runtime/Execute] Routing error: {}", e);
-            (
-                StatusCode::INTERNAL_SERVER_ERROR,
-                Json(serde_json::json!({
-                    "error": { "message": "Execution failed", "type": "api_error" }
-                })),
-            )
-                .into_response()
-        }
-
-        Err(_elapsed) => {
+        Err(violation_kind) => {
             warn!(
-                "[Runtime/Execute] Timeout after {}ms — containment enforcement",
-                max_tick_ms
+                "[Runtime/Execute] Worker containment violation {:?} after {}ms",
+                violation_kind, max_tick_ms
             );
             // Record in-memory violation.
             if let Some(log) = &state.violation_log {
                 append_violation(
                     log,
-                    "Time",
+                    safety_violation_label(&violation_kind),
                     serde_json::json!({
                         "model": req.model,
                         "tenant_id": tenant_id,
@@ -366,13 +455,21 @@ pub async fn handle_execute(
                     .append(agent_id_str, &tx_id, &tx_hash, 0, wall_ms, 0, 0, 0, true)
                     .await;
             }
+            let status_code = match violation_kind {
+                SafetyViolationKind::Time => StatusCode::REQUEST_TIMEOUT,
+                _ => StatusCode::INTERNAL_SERVER_ERROR,
+            };
+            let message = match violation_kind {
+                SafetyViolationKind::Time => "Execution timeout",
+                _ => "Execution failed",
+            };
             (
-                StatusCode::REQUEST_TIMEOUT,
+                status_code,
                 Json(serde_json::json!({
                     "error": {
-                        "message": "Execution timeout",
-                        "type": "timeout_error",
-                        "violation_kind": "Time",
+                        "message": message,
+                        "type": "containment_error",
+                        "violation_kind": safety_violation_label(&violation_kind),
                     }
                 })),
             )
@@ -593,27 +690,73 @@ async fn append_violation(
 }
 
 /// Route a prompt through the Runtime's provider stack (cloud → local fallback).
-async fn do_route(state: AppState, prompt: String) -> anyhow::Result<(String, String)> {
+pub async fn execute_worker_job(
+    route_context: Option<&RouteExecutionContext>,
+    job: WorkerExecuteJob,
+) -> anyhow::Result<WorkerExecuteResult> {
+    if let Some(delay_ms) = job.test_delay_ms {
+        tokio::time::sleep(std::time::Duration::from_millis(delay_ms)).await;
+    }
+
+    if job.kind == "test_response" {
+        return Ok(WorkerExecuteResult {
+            content: job
+                .test_response_content
+                .unwrap_or_else(|| "ok".to_string()),
+            provider: job
+                .test_response_provider
+                .unwrap_or_else(|| "test".to_string()),
+        });
+    }
+
+    if job.kind != "route" {
+        anyhow::bail!("unsupported worker job kind: {}", job.kind);
+    }
+
+    let route_context =
+        route_context.ok_or_else(|| anyhow::anyhow!("worker route context unavailable"))?;
+    let prompt = job
+        .prompt
+        .ok_or_else(|| anyhow::anyhow!("worker route job missing prompt"))?;
+    let (content, provider) = do_route(route_context, prompt).await?;
+    Ok(WorkerExecuteResult { content, provider })
+}
+
+pub(crate) async fn do_route(
+    route_context: &RouteExecutionContext,
+    prompt: String,
+) -> anyhow::Result<(String, String)> {
     // Try cloud providers via speculative routing.
-    if !state.cloud_providers.is_empty() {
-        let providers: Vec<CloudProviderWrapper> = state
+    if !route_context.cloud_providers.is_empty() {
+        let providers: Vec<CloudProviderWrapper> = route_context
             .cloud_providers
             .iter()
             .take(3)
             .map(|p| CloudProviderWrapper(p.clone()))
             .collect();
-        if let Ok(result) = state.speculative_router.route(&prompt, providers).await {
+        if let Ok(result) = route_context
+            .speculative_router
+            .route(&prompt, providers)
+            .await
+        {
             return Ok((result.response, result.winner_id));
         }
     }
 
     // Fallback: local LLM.
-    if let Some(local) = &state.local_provider {
+    if let Some(local) = &route_context.local_provider {
         let content = local.complete(&prompt).await?;
         return Ok((content, "local".to_string()));
     }
 
     anyhow::bail!("No providers available")
+}
+
+fn safety_violation_label(kind: &SafetyViolationKind) -> &'static str {
+    match kind {
+        SafetyViolationKind::Time => "Time",
+        SafetyViolationKind::Cpu => "Cpu",
+    }
 }
 
 /// Produce the canonical JSON bytes used as signing input for an execution envelope.
