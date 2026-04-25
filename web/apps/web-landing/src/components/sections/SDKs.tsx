@@ -395,7 +395,7 @@ export default function SDKs() {
       <div className="mx-auto max-w-[1300px] px-4 sm:px-6 lg:px-8">
         <div className="px-4 md:px-8 lg:px-12" style={{ borderLeft: borderStyle, borderRight: borderStyle }}>
           {/* Title */}
-          <div className="text-left" style={{ paddingTop: '3rem', paddingBottom: '2rem' }}>
+          <div className="text-left py-6 md:py-12">
             <h3 className="text-base md:text-lg lg:text-2xl text-[#000000] dark:text-[#f6f6f4]" style={{ fontFamily }}>
               Connect your stack
             </h3>
