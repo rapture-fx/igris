@@ -30,6 +30,7 @@ mod runtime_execute;
 use runtime_execute::{PeerRegistry, ViolationLog};
 // ── Phase 1–4: Deterministic execution hardening ───────────────────────────
 mod capabilities;
+mod deployment_security;
 mod lifecycle;
 mod namespace;
 mod receipt;
@@ -77,6 +78,7 @@ mod swarm_integration;
 use swarm_integration::SwarmManager;
 mod fleet_integration;
 use fleet_integration::FleetManager;
+use deployment_security::{validate_runtime_security_config, RuntimeSecurityPolicy};
 mod middleware;
 use axum::middleware::from_fn_with_state;
 use middleware::security::{security_middleware, RateLimiter};
@@ -150,6 +152,68 @@ pub(crate) struct AppState {
     /// Available when the `ros2` feature is enabled and ENABLE_ROS2=true.
     #[cfg(feature = "ros2")]
     pub(crate) ros2_manager: Option<Arc<crate::ros2_integration::Ros2Manager>>,
+}
+
+fn non_empty_env(name: &str) -> Option<String> {
+    std::env::var(name)
+        .ok()
+        .map(|value| value.trim().to_string())
+        .filter(|value| !value.is_empty())
+}
+
+fn apply_auth_env_overrides(config: &mut IgrisConfig) {
+    if let Some(secret) = non_empty_env("IGRIS_RUNTIME_SECRET") {
+        config.auth.api_key = secret;
+        config.auth.enabled = true;
+        info!("[Runtime/Auth] Bearer token auth enforced via IGRIS_RUNTIME_SECRET");
+    } else if config.auth.api_key.trim().is_empty() {
+        if let Some(api_key) = non_empty_env("IGRIS_RUNTIME_API_KEY") {
+            config.auth.api_key = api_key;
+            config.auth.enabled = true;
+            info!("[Runtime/Auth] API key auth configured via IGRIS_RUNTIME_API_KEY");
+        }
+    }
+
+    if config.auth.jwt_hs256_secret.is_none() {
+        if let Some(jwt_secret) = non_empty_env("IGRIS_RUNTIME_JWT_HS256_SECRET") {
+            config.auth.jwt_hs256_secret = Some(jwt_secret);
+            config.auth.enabled = true;
+            info!("[Runtime/Auth] JWT auth configured via IGRIS_RUNTIME_JWT_HS256_SECRET");
+        }
+    }
+}
+
+fn load_runtime_config(config_path: &str) -> anyhow::Result<IgrisConfig> {
+    let mut config = if std::path::Path::new(config_path).exists() {
+        IgrisConfig::load_from_file_unvalidated(config_path)?
+    } else {
+        warn!("Config file not found, using secure defaults");
+        IgrisConfig::default()
+    };
+
+    apply_auth_env_overrides(&mut config);
+    config.validate()?;
+    Ok(config)
+}
+
+fn load_overture_public_key() -> Option<Arc<ed25519_dalek::VerifyingKey>> {
+    non_empty_env("IGRIS_OVERTURE_PUBLIC_KEY").and_then(|hex| {
+        if hex.len() % 2 != 0 {
+            return None;
+        }
+
+        let bytes: Option<Vec<u8>> = (0..hex.len())
+            .step_by(2)
+            .map(|i| u8::from_str_radix(&hex[i..i + 2], 16).ok())
+            .collect();
+
+        bytes
+            .and_then(|b| {
+                let arr: [u8; 32] = b.try_into().ok()?;
+                ed25519_dalek::VerifyingKey::from_bytes(&arr).ok()
+            })
+            .map(Arc::new)
+    })
 }
 
 /// Reflection LLM provider backed by the local provider (real llama.cpp execution).
