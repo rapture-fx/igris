@@ -3505,7 +3505,7 @@ async fn execute_agent_step(
         use rand::rngs::OsRng;
         Arc::new(ed25519_dalek::SigningKey::generate(&mut OsRng))
     });
-    let mut guard = ContainmentGuard::new(containment_bounds, signing_key, log_path);
+    let mut guard = ContainmentGuard::new(containment_bounds, (*signing_key).clone(), log_path);
 
     let route_result = guard
         .execute(
@@ -3561,17 +3561,14 @@ async fn execute_agent_step(
                 checkpoint_requested: false,
             })
         }
-        Err(kind) => {
-            anyhow::bail!(
-                "containment violation: {} after {}ms",
-                match kind {
-                    igris_safety::ViolationKind::Time => "time",
-                    igris_safety::ViolationKind::Cpu => "cpu",
-                },
-                max_tick_ms
-            )
-        }
-        Err(e) => Err(anyhow::anyhow!("contained agent execution failed: {}", e)),
+        Err(kind) => anyhow::bail!(
+            "containment violation: {} after {}ms",
+            match kind {
+                igris_safety::ViolationKind::Time => "time",
+                igris_safety::ViolationKind::Cpu => "cpu",
+            },
+            max_tick_ms
+        ),
     }
 }
 
