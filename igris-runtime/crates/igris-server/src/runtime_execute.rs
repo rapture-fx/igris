@@ -22,8 +22,8 @@ use uuid::Uuid;
 
 use crate::{AppState, CloudProviderWrapper};
 use igris_routing::{
-    cloud_provider::CloudProvider, local_provider::LocalProvider, speculative::SpeculativeRouter,
-    Provider,
+    cloud_provider::CloudProvider, local_provider::LocalProvider, CouncilRouter,
+    Provider, speculative::SpeculativeRouter, thompson::ThompsonSamplingRouter,
 };
 use igris_safety::{
     Bounds as SafetyBounds, ContainmentGuard, ViolationKind as SafetyViolationKind,
@@ -42,6 +42,8 @@ pub type PeerRegistry = Arc<RwLock<HashMap<String, PeerEntry>>>;
 #[derive(Clone)]
 pub struct RouteExecutionContext {
     pub speculative_router: Arc<SpeculativeRouter>,
+    pub thompson_router: Arc<ThompsonSamplingRouter>,
+    pub council_router: Arc<CouncilRouter>,
     pub cloud_providers: Arc<Vec<CloudProvider>>,
     pub local_provider: Option<Arc<LocalProvider>>,
 }
@@ -129,6 +131,8 @@ pub struct WorkerExecuteJob {
     pub kind: String,
     #[serde(default)]
     pub prompt: Option<String>,
+    #[serde(default)]
+    pub mode: Option<String>,
     #[serde(default)]
     pub test_delay_ms: Option<u64>,
     #[serde(default)]
