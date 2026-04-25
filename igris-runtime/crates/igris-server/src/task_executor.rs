@@ -32,13 +32,14 @@ use igris_btree::{
 };
 use igris_core::storage::{TASK_SUBMISSIONS, TASK_SUBMISSION_STATUS_BY_TASK_ID};
 use igris_routing::Provider;
+use igris_safety::{Bounds as SafetyBounds, ContainmentGuard};
 use igris_wal::{CheckpointPayload, ResumeToken, StepType, WalEntry, WalLog};
 use std::sync::Arc;
 
 use crate::receipt::ExecutionReceipt;
 use crate::runtime_execute::{
     canonical_envelope_bytes, iso8601_now, token_estimate, Bounds, ExecuteMessage, ExecuteUsage,
-    ExecutionEnvelope,
+    ExecutionEnvelope, WorkerExecuteJob, WorkerExecuteResult,
 };
 use crate::{AppState, CloudProviderWrapper};
 
@@ -1210,6 +1211,7 @@ pub async fn handle_task_submit(
                     &req.tenant_id,
                     agent_step,
                     &graph_blackboard,
+                    req.containment.as_ref(),
                     max_tick_ms,
                 )
                 .await
@@ -3452,6 +3454,7 @@ async fn execute_agent_step(
     tenant_id: &str,
     step: &AgentStep,
     graph_blackboard: &serde_json::Value,
+    containment: Option<&Bounds>,
     max_tick_ms: u64,
 ) -> anyhow::Result<StepExecutionResult> {
     let _ = step.temperature;
@@ -3491,13 +3494,52 @@ async fn execute_agent_step(
     .await?;
     let prompt = prepare_agent_prompt(&state, task_id, step, base_prompt.clone()).await?;
 
-    match tokio::time::timeout(
-        Duration::from_millis(max_tick_ms),
-        do_route(state.clone(), prompt, step.mode.as_deref()),
+    let log_path = std::env::var("IGRIS_VIOLATIONS_LOG")
+        .unwrap_or_else(|_| "./igris_violations.jsonl".to_string());
+    let containment_bounds = SafetyBounds::new(
+        containment.and_then(|value| value.cpu_percent).unwrap_or(100),
+        max_tick_ms,
     )
-    .await
-    {
-        Ok(Ok((content, provider_name))) => {
+    .with_memory_mb(containment.and_then(|value| value.memory_mb));
+    let signing_key = state.signing_key.clone().unwrap_or_else(|| {
+        use rand::rngs::OsRng;
+        Arc::new(ed25519_dalek::SigningKey::generate(&mut OsRng))
+    });
+    let mut guard = ContainmentGuard::new(containment_bounds, signing_key, log_path);
+
+    let route_result = guard
+        .execute(
+            serde_json::to_value(WorkerExecuteJob {
+                kind: "route".to_string(),
+                prompt: Some(prompt),
+                mode: step.mode.clone(),
+                test_delay_ms: None,
+                test_response_content: None,
+                test_response_provider: None,
+            })
+            .unwrap_or_default(),
+        )
+        .await;
+
+    match route_result {
+        Ok(worker_result) => {
+            if worker_result.get("status").and_then(|value| value.as_str()) != Some("ok") {
+                let error_message = worker_result
+                    .get("error")
+                    .and_then(|value| value.as_str())
+                    .unwrap_or("worker execution failed");
+                anyhow::bail!(error_message.to_string());
+            }
+
+            let parsed_result: WorkerExecuteResult = serde_json::from_value(
+                worker_result
+                    .get("result")
+                    .cloned()
+                    .unwrap_or_else(|| serde_json::json!({})),
+            )
+            .map_err(|e| anyhow::anyhow!("invalid worker result: {}", e))?;
+            let content = parsed_result.content;
+            let provider_name = parsed_result.provider;
             maybe_store_agent_memory(&state, task_id, step, &base_prompt, &content).await?;
             Ok(StepExecutionResult {
                 usage: ExecuteUsage {
@@ -3519,8 +3561,17 @@ async fn execute_agent_step(
                 checkpoint_requested: false,
             })
         }
-        Ok(Err(e)) => Err(e),
-        Err(_) => anyhow::bail!("timeout after {}ms", max_tick_ms),
+        Err(igris_safety::SafetyError::Violation(kind)) => {
+            anyhow::bail!(
+                "containment violation: {} after {}ms",
+                match kind {
+                    igris_safety::ViolationKind::Time => "time",
+                    igris_safety::ViolationKind::Cpu => "cpu",
+                },
+                max_tick_ms
+            )
+        }
+        Err(e) => Err(anyhow::anyhow!("contained agent execution failed: {}", e)),
     }
 }
 
