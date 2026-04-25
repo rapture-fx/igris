@@ -1,3 +1,5 @@
+//go:build cgo && igris_native
+
 // Package ffi provides cgo bindings to the Rust optimizer library.
 package ffi
 
