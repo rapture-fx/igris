@@ -79,6 +79,9 @@ type ValidationResponse struct {
 	Features           LicenseFeatures  `json:"features,omitempty"`
 	ExpiresAt          *time.Time       `json:"expires_at,omitempty"`
 	Status             string           `json:"status,omitempty"`
+	OfflineArtifact    string           `json:"offline_artifact,omitempty"`
+	OfflineArtifactKeyID string         `json:"offline_artifact_key_id,omitempty"`
+	OfflineArtifactExpiresAt *time.Time `json:"offline_artifact_expires_at,omitempty"`
 	Error              string           `json:"error,omitempty"`
 	Message            string           `json:"message,omitempty"`
 	UpgradeURL         string           `json:"upgrade_url,omitempty"`
