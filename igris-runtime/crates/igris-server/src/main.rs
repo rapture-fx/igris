@@ -136,6 +136,8 @@ pub(crate) struct AppState {
     /// Overture's Ed25519 verifying key for X-Igris-Decision-Sig verification.
     /// Populated from IGRIS_OVERTURE_PUBLIC_KEY env var (hex). None = skip verify.
     pub(crate) overture_public_key: Option<Arc<ed25519_dalek::VerifyingKey>>,
+    /// Current runtime license posture surfaced via `/v1/runtime/profile`.
+    pub(crate) license_status: RuntimeLicenseStatus,
     // ── Phase 3 ─────────────────────────────────────────────────────────────
     /// Append-only, hash-chained execution receipt log.
     pub(crate) receipt_log: Option<Arc<ReceiptLog>>,
@@ -155,6 +157,14 @@ pub(crate) struct AppState {
     /// Available when the `ros2` feature is enabled and ENABLE_ROS2=true.
     #[cfg(feature = "ros2")]
     pub(crate) ros2_manager: Option<Arc<crate::ros2_integration::Ros2Manager>>,
+}
+
+#[derive(Clone)]
+pub(crate) struct RuntimeLicenseStatus {
+    pub(crate) state: String,
+    pub(crate) tier: Option<String>,
+    pub(crate) license_expires_at: Option<String>,
+    pub(crate) offline_artifact_expires_at: Option<String>,
 }
 
 fn non_empty_env(name: &str) -> Option<String> {
@@ -771,6 +781,12 @@ async fn runtime_profile(State(state): State<AppState>) -> Response {
 
     let response = serde_json::json!({
         "compiled_profiles": compiled_runtime_profiles(),
+        "license": {
+            "state": state.license_status.state,
+            "tier": state.license_status.tier,
+            "license_expires_at": state.license_status.license_expires_at,
+            "offline_artifact_expires_at": state.license_status.offline_artifact_expires_at
+        },
         "capabilities": {
             "local_llm_fallback": state.local_provider.is_some(),
             "mcp": state.mcp_context_store.is_some(),
@@ -2829,99 +2845,87 @@ async fn main() -> anyhow::Result<()> {
         &runtime_public_key[..16]
     );
 
-    // License validation (REQUIRED)
+    // License validation (REQUIRED unless a valid signed offline artifact is present)
     let license_key = std::env::var("IGRIS_LICENSE_KEY").ok();
+    let startup_license = match igris_license_client::validate_license_on_startup(license_key.as_deref()).await {
+        Ok(result) => result,
+        Err(e) => {
+            error!("────────────────────────────────────────────────");
+            error!("LICENSE VALIDATION FAILED");
+            error!("────────────────────────────────────────────────");
+            error!("{}", e);
+            error!("");
+            error!("Igris Platform requires a valid online license or signed offline artifact to run.");
+            error!("");
+            error!("Online startup:");
+            error!("export IGRIS_LICENSE_KEY=lic_xxxxx_xxxxx");
+            error!("");
+            error!("Offline startup:");
+            error!("set IGRIS_OFFLINE_LICENSE_PATH to a signed artifact and configure IGRIS_OVERTURE_PUBLIC_KEY or IGRIS_LICENSE_OFFLINE_PUBLIC_KEY");
+            error!("────────────────────────────────────────────────");
+            std::process::exit(1);
+        }
+    };
 
-    if let Some(key) = license_key {
-        info!("License key provided, validating...");
-        match igris_license_client::validate_license_on_startup(&key).await {
-            Ok(validation) => {
-                info!("License validated successfully");
-                info!(
-                    "Tier: {} | Devices: {}/{} | Cloud requests: {}/{}/month",
-                    validation.tier.as_deref().unwrap_or("unknown"),
-                    validation.devices_active.unwrap_or(0),
-                    validation.devices_limit.unwrap_or(0),
-                    validation.cloud_requests_used.unwrap_or(0),
-                    validation.cloud_requests_limit.unwrap_or(0)
-                );
+    let license_mode = startup_license.mode.clone();
+    let validation = startup_license.validation.clone();
+    let license_status = RuntimeLicenseStatus {
+        state: license_mode.as_str().to_string(),
+        tier: validation.tier.clone(),
+        license_expires_at: validation.expires_at.clone(),
+        offline_artifact_expires_at: validation.offline_artifact_expires_at.clone(),
+    };
 
-                // Start license device heartbeat loop in background (every 5 minutes)
-                let key_clone = key.clone();
-                let device_id = igris_license_client::LicenseClient::generate_device_id();
-                tokio::spawn(async move {
-                    igris_license_client::start_heartbeat_loop(key_clone, device_id).await;
-                });
+    info!("License validated successfully");
+    info!(
+        "Mode: {} | Tier: {} | Devices: {}/{} | Cloud requests: {}/{}/month",
+        license_mode.as_str(),
+        validation.tier.as_deref().unwrap_or("unknown"),
+        validation.devices_active.unwrap_or(0),
+        validation.devices_limit.unwrap_or(0),
+        validation.cloud_requests_used.unwrap_or(0),
+        validation.cloud_requests_limit.unwrap_or(0)
+    );
 
-                // Register this runtime instance with Overture (fleet registry).
-                // Uses IGRIS_API_KEY env var; if not set, registration is skipped.
-                if let Ok(api_key) = std::env::var("IGRIS_API_KEY") {
-                    let overture_url = std::env::var("IGRIS_OVERTURE_URL").ok();
-                    let overture_url_ref = overture_url.as_deref();
-                    let version = env!("CARGO_PKG_VERSION");
-                    match igris_license_client::register_runtime_with_overture(
-                        api_key,
-                        overture_url_ref,
-                        version,
-                        runtime_public_key.clone(),
-                    )
-                    .await
-                    {
-                        Ok(reg_client) => {
-                            info!(
-                                "Runtime registered with Overture (machine_id={})",
-                                reg_client.machine_id()
-                            );
-                            // Deregister cleanly on process shutdown (best-effort)
-                            let _reg = reg_client; // kept alive; drop triggers nothing — heartbeat runs in spawned task
-                        }
-                        Err(e) => {
-                            // Registration failure is non-fatal: log and continue.
-                            // The runtime still works; it just won't appear in the fleet dashboard
-                            // and won't count against the tenant's runtime limit.
-                            warn!("Fleet registration failed (non-fatal): {}", e);
-                        }
-                    }
-                } else {
-                    info!("IGRIS_API_KEY not set — skipping fleet registration (runtime won't appear in dashboard)");
+    if license_mode == igris_license_client::RuntimeLicenseMode::LicensedOnline {
+        if let Some(key) = license_key.clone() {
+            let key_clone = key;
+            let device_id = startup_license.device_id.clone();
+            tokio::spawn(async move {
+                igris_license_client::start_heartbeat_loop(key_clone, device_id).await;
+            });
+        }
+
+        // Register this runtime instance with Overture (fleet registry).
+        // Uses IGRIS_API_KEY env var; if not set, registration is skipped.
+        if let Ok(api_key) = std::env::var("IGRIS_API_KEY") {
+            let overture_url = std::env::var("IGRIS_OVERTURE_URL").ok();
+            let overture_url_ref = overture_url.as_deref();
+            let version = env!("CARGO_PKG_VERSION");
+            match igris_license_client::register_runtime_with_overture(
+                api_key,
+                overture_url_ref,
+                version,
+                runtime_public_key.clone(),
+            )
+            .await
+            {
+                Ok(reg_client) => {
+                    info!(
+                        "Runtime registered with Overture (machine_id={})",
+                        reg_client.machine_id()
+                    );
+                    let _reg = reg_client;
+                }
+                Err(e) => {
+                    warn!("Fleet registration failed (non-fatal): {}", e);
                 }
             }
-            Err(e) => {
-                error!("────────────────────────────────────────────────");
-                error!("LICENSE VALIDATION FAILED");
-                error!("────────────────────────────────────────────────");
-                error!("{}", e);
-                error!("");
-                error!("Igris Platform requires a valid license to run.");
-                error!("");
-                error!("Get your FREE license (1 device + 50k cloud requests/month):");
-                error!("→ https://igrisinertial.com/signup");
-                error!("");
-                error!("Or view paid tiers with more devices + cloud quota:");
-                error!("→ https://igrisinertial.com/pricing");
-                error!("");
-                error!("Set your license key:");
-                error!("export IGRIS_LICENSE_KEY=lic_xxxxx_xxxxx");
-                error!("────────────────────────────────────────────────");
-                std::process::exit(1);
-            }
+        } else {
+            info!("IGRIS_API_KEY not set — skipping fleet registration (runtime won't appear in dashboard)");
         }
     } else {
-        error!("────────────────────────────────────────────────");
-        error!("NO LICENSE KEY PROVIDED");
-        error!("────────────────────────────────────────────────");
-        error!("Igris Platform requires a license key to run.");
-        error!("");
-        error!("Get your FREE license (1 device + 50k cloud requests/month):");
-        error!("→ https://igrisinertial.com/signup");
-        error!("");
-        error!("Already have a license? Set it:");
-        error!("export IGRIS_LICENSE_KEY=lic_xxxxx_xxxxx");
-        error!("");
-        error!("View all tiers:");
-        error!("→ https://igrisinertial.com/pricing");
-        error!("────────────────────────────────────────────────");
-        std::process::exit(1);
+        info!("Offline license mode active — skipping license heartbeat and fleet registration");
     }
 
     // Validate tool configuration (RUNTIME-01: Secure Runtime Defaults)
@@ -3517,6 +3521,7 @@ async fn main() -> anyhow::Result<()> {
         runtime_public_key: Some(runtime_public_key),
         signing_key: Some(Arc::new(signing_key)),
         overture_public_key,
+        license_status,
         receipt_log,
         lifecycle_registry,
         task_cancellation_registry: Arc::new(std::sync::RwLock::new(HashMap::new())),
