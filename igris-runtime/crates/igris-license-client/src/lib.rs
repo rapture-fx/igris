@@ -509,7 +509,6 @@ pub async fn start_heartbeat_loop(license_key: String, device_id: String) {
 mod offline_tests {
     use super::*;
     use ed25519_dalek::{Signer, SigningKey};
-    use rand::rngs::OsRng;
 
     fn build_offline_artifact(
         signing_key: &SigningKey,
@@ -564,7 +563,7 @@ mod offline_tests {
 
     #[test]
     fn load_offline_artifact_accepts_valid_signature() {
-        let signing_key = SigningKey::generate(&mut OsRng);
+        let signing_key = SigningKey::from_bytes(&[7u8; 32]);
         let verifying_key = signing_key.verifying_key();
         let device_id = "dev_test";
         let artifact = build_offline_artifact(
@@ -587,7 +586,7 @@ mod offline_tests {
 
     #[test]
     fn load_offline_artifact_rejects_expired_artifact() {
-        let signing_key = SigningKey::generate(&mut OsRng);
+        let signing_key = SigningKey::from_bytes(&[9u8; 32]);
         let verifying_key = signing_key.verifying_key();
         let artifact = build_offline_artifact(
             &signing_key,
@@ -607,6 +606,32 @@ mod offline_tests {
         .unwrap_err();
 
         assert!(err.to_string().contains("offline artifact expired"));
+    }
+
+    #[tokio::test]
+    async fn validate_license_on_startup_uses_offline_artifact_without_network() {
+        let signing_key = SigningKey::from_bytes(&[11u8; 32]);
+        let device_id = LicenseClient::generate_device_id();
+        let artifact = build_offline_artifact(
+            &signing_key,
+            &device_id,
+            "lic_seed_test",
+            Utc::now() + chrono::Duration::hours(2),
+        );
+        let temp = tempfile::NamedTempFile::new().unwrap();
+        fs::write(temp.path(), artifact).unwrap();
+
+        std::env::set_var("IGRIS_OFFLINE_LICENSE_PATH", temp.path());
+        std::env::set_var(
+            "IGRIS_LICENSE_OFFLINE_PUBLIC_KEY",
+            hex::encode(signing_key.verifying_key().to_bytes()),
+        );
+        std::env::remove_var("IGRIS_LICENSE_KEY");
+
+        let result = validate_license_on_startup(None).await.unwrap();
+
+        assert_eq!(result.mode, RuntimeLicenseMode::LicensedOffline);
+        assert_eq!(result.validation.tier.as_deref(), Some("seed"));
     }
 }
 
