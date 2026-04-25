@@ -28,8 +28,8 @@ export default function Hero() {
           <div className="max-w-[1600px] mx-auto w-full relative z-10 pb-6 md:pb-10 pt-0 px-4 md:px-8 lg:px-12">
             
             {/* Image with frame */}
-            <div className="rounded-lg mb-6 md:mb-10 overflow-hidden relative" style={{ height: 'auto', minHeight: '400px', maxHeight: '800px' }}>
-              <img src="/lhjk.png" alt="Hero" className="h-full w-full object-cover rounded-lg border border-gray-200 dark:border-gray-700" style={{ minHeight: '400px', maxHeight: '800px' }} />
+            <div className="rounded-lg mb-6 md:mb-10 overflow-hidden relative" style={{ height: 'auto', minHeight: '200px', maxHeight: '800px' }}>
+              <img src="/lhjk.png" alt="Hero" className="h-full w-full object-cover rounded-lg border border-gray-200 dark:border-gray-700" style={{ minHeight: '200px', maxHeight: '800px' }} />
               
               {/* Title and subtext - bottom of image */}
               <div className="absolute bottom-0 left-0 right-0 p-4 md:p-8 flex flex-col md:flex-row md:items-end md:justify-between gap-3 md:gap-4" style={{ background: 'linear-gradient(transparent, rgba(0,0,0,0.5))' }}>
