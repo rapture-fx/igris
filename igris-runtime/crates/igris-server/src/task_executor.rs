@@ -868,7 +868,7 @@ pub async fn handle_task_submit(
         &req,
         &required_capabilities,
         state.overture_public_key.as_deref(),
-        &state.swarm_peer_id,
+        crate::governed_runtime_id(&state),
     ) {
         return (
             StatusCode::FORBIDDEN,
@@ -1692,7 +1692,7 @@ pub async fn handle_task_stream(
         &stream_task,
         &required_capabilities,
         state.overture_public_key.as_deref(),
-        &state.swarm_peer_id,
+        crate::governed_runtime_id(&state),
     ) {
         return (
             StatusCode::FORBIDDEN,
@@ -3429,7 +3429,7 @@ async fn execute_robotics_step(
     let safety_gate = evaluate_robotics_safety_gate(
         state.overture_public_key.as_deref(),
         task_id,
-        &state.swarm_peer_id,
+        crate::governed_runtime_id(&state),
         tenant_id,
         &governed_action,
         containment,
@@ -4886,7 +4886,7 @@ fn governance_metadata_from_request(
             && decision
                 .runtime_id
                 .as_deref()
-                .map(|value| value == state.swarm_peer_id || value == "*")
+                .map(|value| value == crate::governed_runtime_id(state) || value == "*")
                 .unwrap_or(true)
     })?;
     if verify_policy_decision_signature(decision, verifying_key).is_err() {
