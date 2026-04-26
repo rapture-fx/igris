@@ -114,6 +114,7 @@ pub(crate) struct AppState {
     pub(crate) planning_config: Option<PlanningConfig>,
     pub(crate) swarm_config: Option<SwarmConfig>,
     pub(crate) swarm_peer_id: String,
+    pub(crate) overture_runtime_id: Option<String>,
     pub(crate) lora_training: Option<Arc<LoraTrainingManager>>,
     pub(crate) federated_manager: Option<Arc<FederatedManager>>,
     pub(crate) swarm_manager: Option<Arc<SwarmManager>>,
@@ -806,6 +807,14 @@ async fn runtime_profile(State(state): State<AppState>) -> Response {
     };
 
     let response = serde_json::json!({
+        "identity": {
+            "runtime_id": state
+                .overture_runtime_id
+                .clone()
+                .unwrap_or_else(|| state.swarm_peer_id.clone()),
+            "overture_runtime_id": state.overture_runtime_id,
+            "swarm_peer_id": state.swarm_peer_id
+        },
         "compiled_profiles": compiled_runtime_profiles(),
         "license": {
             "state": state.license_status.state,
@@ -827,6 +836,13 @@ async fn runtime_profile(State(state): State<AppState>) -> Response {
     });
 
     (StatusCode::OK, Json(response)).into_response()
+}
+
+pub(crate) fn governed_runtime_id(state: &AppState) -> &str {
+    state
+        .overture_runtime_id
+        .as_deref()
+        .unwrap_or(&state.swarm_peer_id)
 }
 
 /// Prometheus metrics endpoint
@@ -2943,6 +2959,7 @@ async fn main() -> anyhow::Result<()> {
         validation.cloud_requests_limit.unwrap_or(0)
     );
 
+    let mut overture_runtime_id = None;
     if license_mode == igris_license_client::RuntimeLicenseMode::LicensedOnline {
         if let Some(key) = license_key.clone() {
             let key_clone = key;
@@ -2967,12 +2984,14 @@ async fn main() -> anyhow::Result<()> {
             )
             .await
             {
-                Ok(reg_client) => {
+                Ok(registered_runtime) => {
                     info!(
-                        "Runtime registered with Overture (machine_id={})",
-                        reg_client.machine_id()
+                        "Runtime registered with Overture (machine_id={}, runtime_id={})",
+                        registered_runtime.client.machine_id(),
+                        registered_runtime.runtime_id
                     );
-                    let _reg = reg_client;
+                    overture_runtime_id = Some(registered_runtime.runtime_id);
+                    let _reg = registered_runtime.client;
                 }
                 Err(e) => {
                     warn!("Fleet registration failed (non-fatal): {}", e);
@@ -3563,6 +3582,7 @@ async fn main() -> anyhow::Result<()> {
         planning_config,
         swarm_config,
         swarm_peer_id,
+        overture_runtime_id,
         lora_training,
         federated_manager,
         swarm_manager,
