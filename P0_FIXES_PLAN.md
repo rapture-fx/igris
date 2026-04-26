@@ -208,6 +208,7 @@ Completed on 2026-04-25.
 - `cargo test --manifest-path /Users/wira/Desktop/system/igris-runtime/Cargo.toml -p igris-license-client -- --nocapture`
 - `CARGO_TARGET_DIR=/tmp/igris-runtime-target-review2 cargo test --manifest-path /Users/wira/Desktop/system/igris-runtime/Cargo.toml -p igris-server middleware::security_tests -- --nocapture`
 - `CARGO_TARGET_DIR=/tmp/igris-runtime-target-robotics cargo check --manifest-path /Users/wira/Desktop/system/igris-runtime/Cargo.toml -p igris-server --features robotics-platform`
+- `GOCACHE=/tmp/igris-gocache-review-fix13 go test ./igris-overture/api ./igris-overture/coordinator ./igris-overture/slo -count=1`
 
 ## Launch Gates
 
