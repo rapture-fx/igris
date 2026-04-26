@@ -144,7 +144,7 @@ mod tests {
                 std::collections::HashMap::new(),
             )),
             bt_state_tx: Arc::new(tokio::sync::watch::channel(serde_json::Value::Null).0),
-            #[cfg(feature = "ros2")]
+            #[cfg(feature = "robotics-platform")]
             ros2_manager: None,
         }
     }
@@ -205,7 +205,7 @@ mod tests {
                 std::collections::HashMap::new(),
             )),
             bt_state_tx: Arc::new(tokio::sync::watch::channel(serde_json::Value::Null).0),
-            #[cfg(feature = "ros2")]
+            #[cfg(feature = "robotics-platform")]
             ros2_manager: None,
         }
     }
@@ -237,7 +237,7 @@ mod tests {
         bytes.iter().map(|byte| format!("{:02x}", byte)).collect()
     }
 
-    #[cfg(feature = "ros2")]
+    #[cfg(feature = "robotics-platform")]
     fn canonical_governed_action_for_test(action: &serde_json::Value) -> serde_json::Value {
         let mut value = BTreeMap::<&str, serde_json::Value>::new();
         value.insert("action_name", action["action_name"].clone());
@@ -257,7 +257,7 @@ mod tests {
         serde_json::to_value(value).unwrap()
     }
 
-    #[cfg(feature = "ros2")]
+    #[cfg(feature = "robotics-platform")]
     fn canonical_policy_decision_for_test(decision: &serde_json::Value) -> Vec<u8> {
         let mut value = BTreeMap::<&str, serde_json::Value>::new();
         value.insert(
@@ -295,7 +295,7 @@ mod tests {
         serde_json::to_vec(&value).unwrap()
     }
 
-    #[cfg(feature = "ros2")]
+    #[cfg(feature = "robotics-platform")]
     fn signed_robotics_policy_decision_for_test(
         signing_key: &SigningKey,
         task_id: uuid::Uuid,
@@ -316,7 +316,7 @@ mod tests {
         )
     }
 
-    #[cfg(feature = "ros2")]
+    #[cfg(feature = "robotics-platform")]
     fn signed_robotics_policy_decision_for_action_test(
         signing_key: &SigningKey,
         task_id: uuid::Uuid,
@@ -372,7 +372,7 @@ mod tests {
         decision
     }
 
-    #[cfg(feature = "ros2")]
+    #[cfg(feature = "robotics-platform")]
     async fn start_ros2_manager_for_task_test(
         name: &str,
     ) -> Option<Arc<crate::ros2_integration::Ros2Manager>> {
@@ -872,7 +872,7 @@ mod tests {
             .is_some_and(|value| !value.is_empty()));
     }
 
-    #[cfg(feature = "ros2")]
+    #[cfg(feature = "robotics-platform")]
     fn assert_ros2_replay_lookup_artifacts(
         payload: &serde_json::Value,
         task_id: uuid::Uuid,
@@ -911,7 +911,7 @@ mod tests {
         );
     }
 
-    #[cfg(feature = "ros2")]
+    #[cfg(feature = "robotics-platform")]
     #[tokio::test]
     async fn runtime_task_signed_ros2_publish_zero_velocity_completes_with_audit_artifacts() {
         let runtime_signing_key = Arc::new(SigningKey::from_bytes(&[0x45u8; 32]));
@@ -991,7 +991,7 @@ mod tests {
         assert_eq!(manager.node().last_velocity().await, [0.0, 0.0]);
     }
 
-    #[cfg(feature = "ros2")]
+    #[cfg(feature = "robotics-platform")]
     #[tokio::test]
     async fn runtime_task_signed_ros2_cancel_navigation_completes_with_audit_artifacts() {
         let runtime_signing_key = Arc::new(SigningKey::from_bytes(&[0x48u8; 32]));
@@ -1066,7 +1066,7 @@ mod tests {
         assert_ros2_replay_lookup_artifacts(&payload, task_id, "ros2:cancel_navigation", false);
     }
 
-    #[cfg(feature = "ros2")]
+    #[cfg(feature = "robotics-platform")]
     #[tokio::test]
     async fn runtime_task_signed_ros2_timeout_emits_failure_audit_artifacts() {
         let runtime_signing_key = Arc::new(SigningKey::from_bytes(&[0x4Au8; 32]));
@@ -1152,7 +1152,7 @@ mod tests {
         assert_ros2_replay_lookup_artifacts(&payload, task_id, "runtime:robotics:failed", true);
     }
 
-    #[cfg(feature = "ros2")]
+    #[cfg(feature = "robotics-platform")]
     #[tokio::test]
     async fn runtime_task_signed_ros2_denied_policy_emits_failure_audit_artifacts() {
         let runtime_signing_key = Arc::new(SigningKey::from_bytes(&[0x4Cu8; 32]));
@@ -1341,7 +1341,7 @@ mod tests {
                 std::collections::HashMap::new(),
             )),
             bt_state_tx: Arc::new(tokio::sync::watch::channel(serde_json::Value::Null).0),
-            #[cfg(feature = "ros2")]
+            #[cfg(feature = "robotics-platform")]
             ros2_manager: None,
         };
 
@@ -1465,7 +1465,7 @@ mod tests {
                 std::collections::HashMap::new(),
             )),
             bt_state_tx: Arc::new(tokio::sync::watch::channel(serde_json::Value::Null).0),
-            #[cfg(feature = "ros2")]
+            #[cfg(feature = "robotics-platform")]
             ros2_manager: None,
         };
 
