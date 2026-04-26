@@ -1,11 +1,12 @@
 use anyhow::{anyhow, Result};
 use base64::Engine as _;
 use chrono::{DateTime, Utc};
-use ed25519_dalek::{Signature, Verifier, VerifyingKey};
+use ed25519_dalek::{Signature, Signer, SigningKey, Verifier, VerifyingKey};
 use serde::{Deserialize, Serialize};
 use sha2::{Digest, Sha256};
 use std::fs;
 use std::path::{Path, PathBuf};
+use std::sync::Arc;
 use std::time::Duration;
 use tracing::{error, info, warn};
 
@@ -716,6 +717,7 @@ pub struct RuntimeRegistrationClient {
     hostname: String,
     platform: String,
     public_key_ed25519: String,
+    signing_key: Arc<SigningKey>,
     client: reqwest::Client,
 }
 
@@ -732,7 +734,12 @@ impl RuntimeRegistrationClient {
     /// Create a new registration client.
     ///
     /// `overture_url` defaults to `https://overture.igrisinertial.com` if `None`.
-    pub fn new(overture_url: Option<&str>, api_key: String, public_key_ed25519: String) -> Self {
+    pub fn new(
+        overture_url: Option<&str>,
+        api_key: String,
+        public_key_ed25519: String,
+        signing_key: Arc<SigningKey>,
+    ) -> Self {
         let base_url = overture_url
             .unwrap_or("https://overture.igrisinertial.com")
             .to_string();
@@ -753,6 +760,7 @@ impl RuntimeRegistrationClient {
             hostname,
             platform,
             public_key_ed25519,
+            signing_key,
             client,
         }
     }
@@ -762,6 +770,17 @@ impl RuntimeRegistrationClient {
     /// the API key is invalid.
     pub async fn register(&self, runtime_version: &str) -> Result<RuntimeRegisterResponse> {
         let url = format!("{}/api/v1/runtime/register", self.base_url);
+        let timestamp_unix_ms = Utc::now().timestamp_millis();
+        let signature = sign_runtime_registration_payload(
+            self.signing_key.as_ref(),
+            &self.machine_id,
+            &self.hostname,
+            &self.platform,
+            runtime_version,
+            &self.public_key_ed25519,
+            None,
+            timestamp_unix_ms,
+        );
 
         let payload = serde_json::json!({
             "machine_id":       self.machine_id,
@@ -769,6 +788,8 @@ impl RuntimeRegistrationClient {
             "platform":         self.platform,
             "runtime_version":  runtime_version,
             "public_key_ed25519": self.public_key_ed25519,
+            "timestamp_unix_ms": timestamp_unix_ms,
+            "signature": signature,
         });
 
         let resp = self
@@ -819,8 +840,20 @@ impl RuntimeRegistrationClient {
     /// Send a heartbeat to keep this runtime marked as active.
     pub async fn heartbeat(&self) -> Result<()> {
         let url = format!("{}/api/v1/runtime/heartbeat", self.base_url);
+        let timestamp_unix_ms = Utc::now().timestamp_millis();
+        let signature = sign_runtime_machine_payload(
+            self.signing_key.as_ref(),
+            "runtime_heartbeat.v1",
+            &self.machine_id,
+            timestamp_unix_ms,
+            None,
+        );
 
-        let payload = serde_json::json!({ "machine_id": self.machine_id });
+        let payload = serde_json::json!({
+            "machine_id": self.machine_id,
+            "timestamp_unix_ms": timestamp_unix_ms,
+            "signature": signature,
+        });
 
         let resp = self
             .client
@@ -844,8 +877,20 @@ impl RuntimeRegistrationClient {
     /// Deregister this runtime on clean shutdown.
     pub async fn deregister(&self) -> Result<()> {
         let url = format!("{}/api/v1/runtime/deregister", self.base_url);
+        let timestamp_unix_ms = Utc::now().timestamp_millis();
+        let signature = sign_runtime_machine_payload(
+            self.signing_key.as_ref(),
+            "runtime_deregister.v1",
+            &self.machine_id,
+            timestamp_unix_ms,
+            None,
+        );
 
-        let payload = serde_json::json!({ "machine_id": self.machine_id });
+        let payload = serde_json::json!({
+            "machine_id": self.machine_id,
+            "timestamp_unix_ms": timestamp_unix_ms,
+            "signature": signature,
+        });
 
         let _ = self
             .client
@@ -873,8 +918,10 @@ pub async fn register_runtime_with_overture(
     overture_url: Option<&str>,
     runtime_version: &str,
     public_key_ed25519: String,
+    signing_key: Arc<SigningKey>,
 ) -> Result<RuntimeRegistrationClient> {
-    let client = RuntimeRegistrationClient::new(overture_url, api_key, public_key_ed25519);
+    let client =
+        RuntimeRegistrationClient::new(overture_url, api_key, public_key_ed25519, signing_key);
 
     client.register(runtime_version).await?;
 
@@ -891,6 +938,46 @@ pub async fn register_runtime_with_overture(
     });
 
     Ok(client)
+}
+
+fn sign_runtime_registration_payload(
+    signing_key: &SigningKey,
+    machine_id: &str,
+    hostname: &str,
+    platform: &str,
+    runtime_version: &str,
+    public_key_ed25519: &str,
+    endpoint: Option<&str>,
+    timestamp_unix_ms: i64,
+) -> String {
+    let message = format!(
+        "runtime_register.v1:{}:{}:{}:{}:{}:{}:{}",
+        machine_id,
+        hostname,
+        platform,
+        runtime_version,
+        public_key_ed25519,
+        endpoint.unwrap_or(""),
+        timestamp_unix_ms
+    );
+    base64::engine::general_purpose::STANDARD.encode(signing_key.sign(message.as_bytes()).to_bytes())
+}
+
+fn sign_runtime_machine_payload(
+    signing_key: &SigningKey,
+    purpose: &str,
+    machine_id: &str,
+    timestamp_unix_ms: i64,
+    bt_state: Option<&str>,
+) -> String {
+    let bt_state_hash = bt_state
+        .map(|value| hex::encode(Sha256::digest(value.as_bytes())))
+        .unwrap_or_default();
+    let message = format!(
+        "{}:{}:{}:{}",
+        purpose, machine_id, timestamp_unix_ms, bt_state_hash
+    );
+    base64::engine::general_purpose::STANDARD.encode(signing_key.sign(message.as_bytes()).to_bytes())
 }
 
 #[cfg(test)]
