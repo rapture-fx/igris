@@ -22,8 +22,8 @@ use uuid::Uuid;
 
 use crate::{AppState, CloudProviderWrapper};
 use igris_routing::{
-    cloud_provider::CloudProvider, local_provider::LocalProvider, CouncilRouter,
-    Provider, speculative::SpeculativeRouter,
+    cloud_provider::CloudProvider, local_provider::LocalProvider, speculative::SpeculativeRouter,
+    CouncilRouter, Provider,
 };
 use igris_safety::{
     Bounds as SafetyBounds, ContainmentGuard, ViolationKind as SafetyViolationKind,
@@ -904,7 +904,12 @@ pub(crate) async fn build_worker_routing_plan(
                 .select_provider()
                 .await
                 .ok()
-                .or_else(|| state.cloud_providers.first().map(|provider| provider.id().to_string()))
+                .or_else(|| {
+                    state
+                        .cloud_providers
+                        .first()
+                        .map(|provider| provider.id().to_string())
+                })
                 .ok_or_else(|| anyhow::anyhow!("no providers available"))?;
             Ok((
                 WorkerRoutingPlan {
@@ -922,10 +927,11 @@ pub(crate) async fn build_worker_routing_plan(
                 cloud_providers: state.cloud_providers.clone(),
                 local_provider: state.local_provider.clone(),
             };
-            let provider_ids = ranked_worker_cloud_providers(&route_context, WorkerExecutionMode::Quality)
-                .into_iter()
-                .map(|provider| provider.id().to_string())
-                .collect::<Vec<_>>();
+            let provider_ids =
+                ranked_worker_cloud_providers(&route_context, WorkerExecutionMode::Quality)
+                    .into_iter()
+                    .map(|provider| provider.id().to_string())
+                    .collect::<Vec<_>>();
             let chairman_id = if provider_ids
                 .iter()
                 .any(|provider_id| provider_id == state.council_router.chairman_id())
@@ -1012,7 +1018,11 @@ pub(crate) async fn do_route(
         "ranked" => {
             let providers = providers_by_id(route_context, &route_plan.provider_ids);
             if !providers.is_empty() {
-                if let Ok(result) = route_context.speculative_router.route(&prompt, providers).await {
+                if let Ok(result) = route_context
+                    .speculative_router
+                    .route(&prompt, providers)
+                    .await
+                {
                     return Ok((result.response, result.winner_id));
                 }
             }
