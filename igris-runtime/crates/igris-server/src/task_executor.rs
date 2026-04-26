@@ -3428,186 +3428,42 @@ async fn execute_robotics_step(
             anyhow::bail!("robotics execution blocked: runtime is in safe-idle containment mode");
         }
 
-        match &resolved_action {
-            RoboticsAction::NavigateToPose {
-                goal,
-                wait_timeout_ms,
-            } => {
-                let handle = manager
-                    .node()
-                    .navigate_to_pose(igris_ros2::NavigationGoal {
-                        x: goal.x,
-                        y: goal.y,
-                        z: goal.z,
-                        orientation_w: goal.orientation_w,
-                        frame_id: goal.frame_id.clone(),
-                    })
-                    .await?;
-
-                let timeout_ms = wait_timeout_ms.unwrap_or(max_tick_ms);
-                let goal_id = handle.goal_id().await;
-                let nav_state =
-                    match tokio::time::timeout(Duration::from_millis(timeout_ms), handle.wait())
-                        .await
-                    {
-                        Ok(result) => result?,
-                        Err(_) => {
-                            let feedback = handle.feedback().await;
-                            let velocity = manager.node().last_velocity().await;
-                            emit_robotics_timeout_violation(
-                                &state,
-                                task_id,
-                                tenant_id,
-                                "navigate_to_pose",
-                                timeout_ms,
-                                Some(goal_id.clone()),
-                                Some([
-                                    feedback.current_pose.0,
-                                    feedback.current_pose.1,
-                                    feedback.current_pose.2,
-                                ]),
-                                Some(velocity),
-                            )
-                            .await;
-                            anyhow::bail!("navigation timed out after {}ms", timeout_ms);
-                        }
-                    };
-                let feedback = handle.feedback().await;
-
-                match nav_state {
-                    igris_ros2::NavigationState::Succeeded => Ok(StepExecutionResult {
-                        output_text: format!(
-                            "navigation goal {} succeeded at ({}, {}, {})",
-                            goal_id, goal.x, goal.y, goal.z
-                        ),
-                        provider_name: format!(
-                            "ros2:navigate_to_pose:{}:{}:{:.3}:{:.3}",
-                            goal.frame_id,
-                            goal_id,
-                            feedback.distance_remaining,
-                            feedback.estimated_time_remaining
-                        ),
-                        usage: ExecuteUsage {
-                            prompt_tokens: 0,
-                            completion_tokens: 0,
-                            total_tokens: 0,
-                        },
-                        graph_output: Some(serde_json::json!({
-                            "action": "navigate_to_pose",
-                            "goal_id": goal_id,
-                            "goal": goal,
-                            "feedback": feedback,
-                            "status": "succeeded"
-                        })),
-                        checkpoint_metadata: governance_metadata.clone(),
-                        checkpoint_requested: false,
-                    }),
-                    igris_ros2::NavigationState::Failed(reason) => {
-                        anyhow::bail!("navigation failed: {}", reason)
-                    }
-                    igris_ros2::NavigationState::Canceled => anyhow::bail!("navigation canceled"),
-                    other => anyhow::bail!("navigation ended in unexpected state {:?}", other),
-                }
-            }
-            RoboticsAction::GetNavigationStatus => {
-                let status = manager.node().get_navigation_status().await?;
-                let output_text = serde_json::to_string(&serde_json::json!({
-                    "navigation_status": status,
-                }))?;
-                Ok(StepExecutionResult {
-                    output_text: output_text.clone(),
-                    provider_name: "ros2:get_navigation_status".to_string(),
-                    usage: ExecuteUsage {
-                        prompt_tokens: 0,
-                        completion_tokens: 0,
-                        total_tokens: 0,
-                    },
-                    graph_output: serde_json::from_str(&output_text).ok(),
-                    checkpoint_metadata: governance_metadata.clone(),
-                    checkpoint_requested: false,
-                })
-            }
-            RoboticsAction::CancelNavigation => {
-                manager.node().cancel_navigation().await?;
-                Ok(StepExecutionResult {
-                    output_text: "requested navigation cancellation".to_string(),
-                    provider_name: "ros2:cancel_navigation".to_string(),
-                    usage: ExecuteUsage {
-                        prompt_tokens: 0,
-                        completion_tokens: 0,
-                        total_tokens: 0,
-                    },
-                    graph_output: Some(serde_json::json!({
-                        "action": "cancel_navigation",
-                        "status": "requested"
-                    })),
-                    checkpoint_metadata: governance_metadata.clone(),
-                    checkpoint_requested: false,
-                })
-            }
-            RoboticsAction::PublishPrompt { prompt } => {
-                manager.node().publish_prompt(prompt).await?;
-                Ok(StepExecutionResult {
-                    output_text: format!("published robotics prompt: {}", prompt),
-                    provider_name: "ros2:publish_prompt".to_string(),
-                    usage: ExecuteUsage {
-                        prompt_tokens: 0,
-                        completion_tokens: 0,
-                        total_tokens: 0,
-                    },
-                    graph_output: Some(serde_json::json!({
-                        "action": "publish_prompt",
-                        "prompt": prompt
-                    })),
-                    checkpoint_metadata: governance_metadata.clone(),
-                    checkpoint_requested: false,
-                })
-            }
-            RoboticsAction::PublishVelocity {
-                linear_x,
-                angular_z,
-            } => {
-                manager
-                    .node()
-                    .publish_velocity(*linear_x, *angular_z)
-                    .await?;
-                Ok(StepExecutionResult {
-                    output_text: format!(
-                        "published velocity command linear_x={:.3} angular_z={:.3}",
-                        linear_x, angular_z
-                    ),
-                    provider_name: "ros2:publish_velocity".to_string(),
-                    usage: ExecuteUsage {
-                        prompt_tokens: 0,
-                        completion_tokens: 0,
-                        total_tokens: 0,
-                    },
-                    graph_output: Some(serde_json::json!({
-                        "action": "publish_velocity",
-                        "linear_x": linear_x,
-                        "angular_z": angular_z
-                    })),
-                    checkpoint_metadata: governance_metadata.clone(),
-                    checkpoint_requested: false,
-                })
-            }
-            RoboticsAction::PublishZeroVelocity => {
-                manager.node().publish_zero_velocity().await?;
-                Ok(StepExecutionResult {
-                    output_text: "published zero velocity command".to_string(),
-                    provider_name: "ros2:publish_zero_velocity".to_string(),
-                    usage: ExecuteUsage {
-                        prompt_tokens: 0,
-                        completion_tokens: 0,
-                        total_tokens: 0,
-                    },
-                    graph_output: Some(serde_json::json!({
-                        "action": "publish_zero_velocity",
-                        "status": "published"
-                    })),
-                    checkpoint_metadata: governance_metadata.clone(),
-                    checkpoint_requested: false,
-                })
+        let action_name = robotics_action_name(&resolved_action).to_string();
+        match tokio::time::timeout(
+            Duration::from_millis(max_tick_ms),
+            execute_resolved_robotics_action(
+                &state,
+                &manager,
+                task_id,
+                tenant_id,
+                &resolved_action,
+                governance_metadata.clone(),
+                max_tick_ms,
+            ),
+        )
+        .await
+        {
+            Ok(result) => result,
+            Err(_) => {
+                let _ = manager.node().cancel_navigation().await;
+                let _ = manager.node().publish_zero_velocity().await;
+                let velocity = manager.node().last_velocity().await;
+                emit_robotics_timeout_violation(
+                    &state,
+                    task_id,
+                    tenant_id,
+                    &action_name,
+                    max_tick_ms,
+                    None,
+                    None,
+                    Some(velocity),
+                )
+                .await;
+                anyhow::bail!(
+                    "robotics action {} timed out after {}ms",
+                    action_name,
+                    max_tick_ms
+                );
             }
         }
     }
@@ -3624,6 +3480,202 @@ async fn execute_robotics_step(
         anyhow::bail!(
             "robotics task execution requires a runtime built with the robotics-platform feature"
         )
+    }
+}
+
+#[cfg(feature = "robotics-platform")]
+async fn execute_resolved_robotics_action(
+    state: &AppState,
+    manager: &Arc<crate::ros2_integration::Ros2Manager>,
+    task_id: Uuid,
+    tenant_id: &str,
+    resolved_action: &RoboticsAction,
+    governance_metadata: Option<serde_json::Value>,
+    max_tick_ms: u64,
+) -> anyhow::Result<StepExecutionResult> {
+    match resolved_action {
+        RoboticsAction::NavigateToPose {
+            goal,
+            wait_timeout_ms,
+        } => {
+            let handle = manager
+                .node()
+                .navigate_to_pose(igris_ros2::NavigationGoal {
+                    x: goal.x,
+                    y: goal.y,
+                    z: goal.z,
+                    orientation_w: goal.orientation_w,
+                    frame_id: goal.frame_id.clone(),
+                })
+                .await?;
+
+            let timeout_ms = wait_timeout_ms.unwrap_or(max_tick_ms);
+            let goal_id = handle.goal_id().await;
+            let nav_state = match tokio::time::timeout(
+                Duration::from_millis(timeout_ms),
+                handle.wait(),
+            )
+            .await
+            {
+                Ok(result) => result?,
+                Err(_) => {
+                    let feedback = handle.feedback().await;
+                    let velocity = manager.node().last_velocity().await;
+                    emit_robotics_timeout_violation(
+                        state,
+                        task_id,
+                        tenant_id,
+                        "navigate_to_pose",
+                        timeout_ms,
+                        Some(goal_id.clone()),
+                        Some([
+                            feedback.current_pose.0,
+                            feedback.current_pose.1,
+                            feedback.current_pose.2,
+                        ]),
+                        Some(velocity),
+                    )
+                    .await;
+                    anyhow::bail!("navigation timed out after {}ms", timeout_ms);
+                }
+            };
+            let feedback = handle.feedback().await;
+
+            match nav_state {
+                igris_ros2::NavigationState::Succeeded => Ok(StepExecutionResult {
+                    output_text: format!(
+                        "navigation goal {} succeeded at ({}, {}, {})",
+                        goal_id, goal.x, goal.y, goal.z
+                    ),
+                    provider_name: format!(
+                        "ros2:navigate_to_pose:{}:{}:{:.3}:{:.3}",
+                        goal.frame_id,
+                        goal_id,
+                        feedback.distance_remaining,
+                        feedback.estimated_time_remaining
+                    ),
+                    usage: ExecuteUsage {
+                        prompt_tokens: 0,
+                        completion_tokens: 0,
+                        total_tokens: 0,
+                    },
+                    graph_output: Some(serde_json::json!({
+                        "action": "navigate_to_pose",
+                        "goal_id": goal_id,
+                        "goal": goal,
+                        "feedback": feedback,
+                        "status": "succeeded"
+                    })),
+                    checkpoint_metadata: governance_metadata,
+                    checkpoint_requested: false,
+                }),
+                igris_ros2::NavigationState::Failed(reason) => {
+                    anyhow::bail!("navigation failed: {}", reason)
+                }
+                igris_ros2::NavigationState::Canceled => anyhow::bail!("navigation canceled"),
+                other => anyhow::bail!("navigation ended in unexpected state {:?}", other),
+            }
+        }
+        RoboticsAction::GetNavigationStatus => {
+            let status = manager.node().get_navigation_status().await?;
+            let output_text = serde_json::to_string(&serde_json::json!({
+                "navigation_status": status,
+            }))?;
+            Ok(StepExecutionResult {
+                output_text: output_text.clone(),
+                provider_name: "ros2:get_navigation_status".to_string(),
+                usage: ExecuteUsage {
+                    prompt_tokens: 0,
+                    completion_tokens: 0,
+                    total_tokens: 0,
+                },
+                graph_output: serde_json::from_str(&output_text).ok(),
+                checkpoint_metadata: governance_metadata,
+                checkpoint_requested: false,
+            })
+        }
+        RoboticsAction::CancelNavigation => {
+            manager.node().cancel_navigation().await?;
+            Ok(StepExecutionResult {
+                output_text: "requested navigation cancellation".to_string(),
+                provider_name: "ros2:cancel_navigation".to_string(),
+                usage: ExecuteUsage {
+                    prompt_tokens: 0,
+                    completion_tokens: 0,
+                    total_tokens: 0,
+                },
+                graph_output: Some(serde_json::json!({
+                    "action": "cancel_navigation",
+                    "status": "requested"
+                })),
+                checkpoint_metadata: governance_metadata,
+                checkpoint_requested: false,
+            })
+        }
+        RoboticsAction::PublishPrompt { prompt } => {
+            manager.node().publish_prompt(prompt).await?;
+            Ok(StepExecutionResult {
+                output_text: format!("published robotics prompt: {}", prompt),
+                provider_name: "ros2:publish_prompt".to_string(),
+                usage: ExecuteUsage {
+                    prompt_tokens: 0,
+                    completion_tokens: 0,
+                    total_tokens: 0,
+                },
+                graph_output: Some(serde_json::json!({
+                    "action": "publish_prompt",
+                    "prompt": prompt
+                })),
+                checkpoint_metadata: governance_metadata,
+                checkpoint_requested: false,
+            })
+        }
+        RoboticsAction::PublishVelocity {
+            linear_x,
+            angular_z,
+        } => {
+            manager
+                .node()
+                .publish_velocity(*linear_x, *angular_z)
+                .await?;
+            Ok(StepExecutionResult {
+                output_text: format!(
+                    "published velocity command linear_x={:.3} angular_z={:.3}",
+                    linear_x, angular_z
+                ),
+                provider_name: "ros2:publish_velocity".to_string(),
+                usage: ExecuteUsage {
+                    prompt_tokens: 0,
+                    completion_tokens: 0,
+                    total_tokens: 0,
+                },
+                graph_output: Some(serde_json::json!({
+                    "action": "publish_velocity",
+                    "linear_x": linear_x,
+                    "angular_z": angular_z
+                })),
+                checkpoint_metadata: governance_metadata,
+                checkpoint_requested: false,
+            })
+        }
+        RoboticsAction::PublishZeroVelocity => {
+            manager.node().publish_zero_velocity().await?;
+            Ok(StepExecutionResult {
+                output_text: "published zero velocity command".to_string(),
+                provider_name: "ros2:publish_zero_velocity".to_string(),
+                usage: ExecuteUsage {
+                    prompt_tokens: 0,
+                    completion_tokens: 0,
+                    total_tokens: 0,
+                },
+                graph_output: Some(serde_json::json!({
+                    "action": "publish_zero_velocity",
+                    "status": "published"
+                })),
+                checkpoint_metadata: governance_metadata,
+                checkpoint_requested: false,
+            })
+        }
     }
 }
 
