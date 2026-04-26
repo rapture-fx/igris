@@ -226,6 +226,9 @@ func taskGovernanceForRecord(task *TaskRecord) taskGovernance {
 	if len(governance.RequiredCapabilities) == 0 && len(governance.CredentialRequests) == 0 && agentIdentityEmpty(governance.AgentIdentity) {
 		governance = extractTaskGovernanceFromDefinition(task.TaskDefinition)
 	}
+	if len(governance.RequiredCapabilities) == 0 && loadOvertureSigningKey() != nil {
+		governance.RequiredCapabilities = deriveRequiredCapabilitiesFromTaskDefinition(task.TaskDefinition)
+	}
 	governance.AgentIdentity = normalizeTaskGovernance(task.TenantID, &governance.AgentIdentity, governance.RequiredCapabilities, governance.CredentialRequests).AgentIdentity
 	return governance
 }
