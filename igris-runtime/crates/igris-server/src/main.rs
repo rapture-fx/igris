@@ -2850,7 +2850,11 @@ async fn main() -> anyhow::Result<()> {
 
     // License validation (REQUIRED unless a valid signed offline artifact is present)
     let license_key = std::env::var("IGRIS_LICENSE_KEY").ok();
-    let startup_license = match igris_license_client::validate_license_on_startup(license_key.as_deref()).await {
+    let startup_license = match igris_license_client::validate_license_on_startup(
+        license_key.as_deref(),
+    )
+    .await
+    {
         Ok(result) => result,
         Err(e) => {
             error!("────────────────────────────────────────────────");
@@ -2858,7 +2862,9 @@ async fn main() -> anyhow::Result<()> {
             error!("────────────────────────────────────────────────");
             error!("{}", e);
             error!("");
-            error!("Igris Platform requires a valid online license or signed offline artifact to run.");
+            error!(
+                "Igris Platform requires a valid online license or signed offline artifact to run."
+            );
             error!("");
             error!("Online startup:");
             error!("export IGRIS_LICENSE_KEY=lic_xxxxx_xxxxx");
@@ -3563,12 +3569,12 @@ async fn main() -> anyhow::Result<()> {
             let ros2_log_path = std::env::var("ROS2_VIOLATION_LOG")
                 .unwrap_or_else(|_| "/tmp/igris_ros2_violations.jsonl".to_string());
 
-                match crate::ros2_integration::Ros2Manager::start(
-                    ros2_config,
-                    &violation_bus,
-                    ros2_signing_key,
-                    ros2_log_path,
-                    String::new(),
+            match crate::ros2_integration::Ros2Manager::start(
+                ros2_config,
+                &violation_bus,
+                ros2_signing_key,
+                ros2_log_path,
+                String::new(),
             )
             .await
             {
