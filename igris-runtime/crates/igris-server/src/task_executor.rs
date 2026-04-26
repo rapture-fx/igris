@@ -804,6 +804,19 @@ pub async fn handle_task_submit(
     State(state): State<AppState>,
     Json(req): Json<TaskSubmitRequest>,
 ) -> impl IntoResponse {
+    if crate::runtime_execution_blocked_by_safe_idle(&state) {
+        return (
+            StatusCode::SERVICE_UNAVAILABLE,
+            Json(serde_json::json!({
+                "error": {
+                    "message": crate::safe_idle_rejection_message("durable task submission"),
+                    "type": "safe_idle_active"
+                }
+            })),
+        )
+            .into_response();
+    }
+
     let submission_key = submission_key(&req.tenant_id, &req.idempotency_key);
     let request_hash = format!(
         "{:x}",
@@ -849,8 +862,11 @@ pub async fn handle_task_submit(
             .into_response();
     }
 
+    let required_capabilities = effective_required_capabilities(&req);
+
     if let Err(reason) = validate_task_permission_envelope(
         &req,
+        &required_capabilities,
         state.overture_public_key.as_deref(),
         &state.swarm_peer_id,
     ) {
@@ -1517,6 +1533,19 @@ pub async fn handle_task_stream(
     State(state): State<AppState>,
     Json(req): Json<TaskSubmitRequest>,
 ) -> Response {
+    if crate::runtime_execution_blocked_by_safe_idle(&state) {
+        return (
+            StatusCode::SERVICE_UNAVAILABLE,
+            Json(serde_json::json!({
+                "error": {
+                    "message": crate::safe_idle_rejection_message("durable task streaming"),
+                    "type": "safe_idle_active"
+                }
+            })),
+        )
+            .into_response();
+    }
+
     let submission_key = submission_key(&req.tenant_id, &req.idempotency_key);
     let request_hash = format!(
         "{:x}",
@@ -1657,6 +1686,25 @@ pub async fn handle_task_stream(
         signed_policy_decisions: req.signed_policy_decisions.clone(),
         deadline_ms: req.deadline_ms,
     };
+
+    let required_capabilities = effective_required_capabilities(&stream_task);
+    if let Err(reason) = validate_task_permission_envelope(
+        &stream_task,
+        &required_capabilities,
+        state.overture_public_key.as_deref(),
+        &state.swarm_peer_id,
+    ) {
+        return (
+            StatusCode::FORBIDDEN,
+            Json(serde_json::json!({
+                "error": {
+                    "message": reason,
+                    "type": "permission_envelope_rejected"
+                }
+            })),
+        )
+            .into_response();
+    }
 
     let execution_graph = match materialize_execution_graph(&stream_task.task_type) {
         Ok(graph) => graph,
