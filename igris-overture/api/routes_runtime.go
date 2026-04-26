@@ -4,8 +4,13 @@
 package api
 
 import (
+	"bytes"
 	"context"
+	"crypto/ed25519"
+	"crypto/sha256"
 	"database/sql"
+	"encoding/base64"
+	"encoding/hex"
 	"encoding/json"
 	"errors"
 	"fmt"
@@ -14,6 +19,7 @@ import (
 	"os"
 	"path/filepath"
 	"strconv"
+	"strings"
 	"time"
 
 	"github.com/gofiber/fiber/v2"
@@ -22,6 +28,8 @@ import (
 	"github.com/Igris-inertial/system/igris-overture/billing"
 	"github.com/Igris-inertial/system/igris-overture/security"
 )
+
+const runtimeRequestTimestampWindow = 5 * time.Minute
 
 // RuntimeHandler handles runtime registration and heartbeat requests.
 type RuntimeHandler struct {
