@@ -36,9 +36,9 @@ type RemediationAction struct {
 
 // EvaluationResponse is the response from the FFI library
 type EvaluationResponse struct {
-	Breached  bool                 `json:"breached"`
-	Actions   []RemediationAction  `json:"actions"`
-	Timestamp uint64               `json:"timestamp"`
+	Breached  bool                `json:"breached"`
+	Actions   []RemediationAction `json:"actions"`
+	Timestamp uint64              `json:"timestamp"`
 }
 
 // EvaluateAndAct calls the Rust FFI library to evaluate metrics
