@@ -121,6 +121,10 @@ func TestTaskGovernanceForLegacyRecordDerivesCapabilitiesWhenSigningIsAvailable(
 func TestGetRecoveringTasksHydratesPersistedPermissionEnvelope(t *testing.T) {
 	t.Parallel()
 
+	_, privateKey, err := ed25519.GenerateKey(nil)
+	require.NoError(t, err)
+	t.Setenv("IGRIS_OVERTURE_SIGNING_KEY", hex.EncodeToString(privateKey))
+
 	taskID := uuid.New()
 	tenantID := "tenant-envelope"
 	runtimeID := "runtime-envelope"
