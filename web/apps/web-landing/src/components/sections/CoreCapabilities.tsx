@@ -89,7 +89,7 @@ export default function CoreCapabilities() {
                       paddingBottom: '3rem',
                       paddingLeft: index === 0 ? 0 : '2rem',
                       paddingRight: index === capabilities.length - 1 ? 0 : '2rem',
-                      verticalAlign: index === 2 ? 'bottom' : 'top',
+                      verticalAlign: index === 2 ? 'middle' : 'top',
                       borderRight: index < capabilities.length - 1 ? borderStyle : 'none',
                     }}
                   >
