@@ -48,6 +48,10 @@ The current runtime request path uses Tokio timeout enforcement, but does not ye
 - Added worker job execution support in the runtime binary, including test-only stub jobs used to validate supervisor behavior.
 - Replaced the timeout-only `/v1/runtime/execute` path with `igris-safety::ContainmentGuard`.
 - Extended the same supervisor-backed worker path into durable non-stream agent task execution so `POST /v1/runtime/task/submit` no longer falls back to an in-process timeout for agent routing.
+- Extended the same supervisor-backed path into task streaming so agent task streams no longer bypass containment; stream chunks are now emitted from the contained result rather than an in-process provider stream.
+- Moved routing selection for contained executions into the parent runtime and pass an explicit worker route plan so Thompson rewards and council chair selection stay consistent with live runtime state instead of being rebuilt per worker invocation.
+- Added a shared containment violation bus to runtime execution and ROS2 integration so worker violations and robotics safety violations drive the same deterministic safe-idle / halt path.
+- Added a hard timeout wrapper around every robotics action step with best-effort navigation cancel and zero-velocity fallback before emitting a signed violation record.
 - Added per-request supervisor lifecycle cleanup so contained worker processes do not leak.
 - Added optional worker binary override support for integration tests and controlled supervisor launches.
 - Added process-level memory limits on worker spawn via `setrlimit` on Unix and preserved existing timeout enforcement plus signed violation logging.
@@ -56,6 +60,9 @@ The current runtime request path uses Tokio timeout enforcement, but does not ye
 
 - `cargo test --manifest-path /Users/wira/Desktop/system/igris-runtime/Cargo.toml -p igris-server --test containment_integration -- --nocapture`
 - `cargo test --manifest-path /Users/wira/Desktop/system/igris-runtime/Cargo.toml -p igris-server security_tests -- --nocapture`
+- `cargo test --manifest-path /Users/wira/Desktop/system/igris-runtime/Cargo.toml -p igris-server runtime_task_submit_rejects_resume_when_digest_matches_but_step_differs -- --nocapture`
+- `cargo check --manifest-path /Users/wira/Desktop/system/igris-runtime/Cargo.toml -p igris-server --features robotics-platform`
+- `cargo test --manifest-path /Users/wira/Desktop/system/igris-runtime/Cargo.toml -p igris-server --features robotics-platform runtime_task_signed_ros2_timeout_emits_failure_audit_artifacts -- --nocapture`
 
 ## P0-2: Make Offline And Air-Gapped Startup Real
 
@@ -93,6 +100,7 @@ Current startup requires successful online license validation, which contradicts
 - Extended the license validation response schema to return `offline_artifact`, `offline_artifact_key_id`, and `offline_artifact_expires_at`.
 - Added runtime-side offline artifact verification with Ed25519 signature checking, device binding, license key binding, artifact expiry validation, and explicit startup mode reporting.
 - Added automatic offline artifact caching at `IGRIS_OFFLINE_LICENSE_PATH` or `.igris/offline-license.json` after successful online validation.
+- Changed runtime device identity from a recomputed `MAC + hostname` fingerprint to a persisted install identity at `IGRIS_DEVICE_ID_PATH` or `.igris/device-id`, with backward-compatible seeding from the legacy fingerprint on first boot.
 - Changed runtime startup so it accepts either:
   - successful online validation, or
   - a valid cached offline artifact verified with `IGRIS_LICENSE_OFFLINE_PUBLIC_KEY` or `IGRIS_OVERTURE_PUBLIC_KEY`.
