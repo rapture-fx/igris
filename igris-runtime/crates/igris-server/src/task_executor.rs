@@ -5280,12 +5280,12 @@ mod tests {
         normalize_agent_mode, permission_failure_for_step, persist_task_status_index,
         resolve_graph_value, robotics_action_name, runtime_execution_failure_details,
         stream_durability_metadata, task_status_key, unix_now_ms, update_graph_blackboard,
-        validate_task_permission_envelope, verified_resume_start_step, AgentExecutionMode,
-        AgentIdentity, BehaviorTreeStep, CapabilityDecision, CredentialReference, ExecutionGraph,
-        ExecutionNode, GovernedAction, GovernedPolicyDecision, HumanApprovalStep, RoboticsAction,
-        RoboticsStep, RuntimeTaskStep, StepExecutionResult, TaskFailureDetails,
-        TaskPermissionEnvelope, TaskStatus, TaskSubmitRequest, TaskSubmitResponse, TaskType,
-        ToolStep,
+        validate_task_permission_envelope, verified_resume_start_step, AgentApprovalOptions,
+        AgentExecutionMode, AgentIdentity, AgentMemoryOptions, BehaviorTreeStep,
+        CapabilityDecision, CredentialReference, ExecutionGraph, ExecutionNode, GovernedAction,
+        GovernedPolicyDecision, HumanApprovalStep, RoboticsAction, RoboticsStep, RuntimeTaskStep,
+        StepExecutionResult, TaskFailureDetails, TaskPermissionEnvelope, TaskStatus,
+        TaskSubmitRequest, TaskSubmitResponse, TaskType, ToolStep,
     };
     use crate::runtime_execute::{Bounds, ExecuteMessage, ExecuteUsage};
     use axum::{body::Body, http::StatusCode, response::Response};
