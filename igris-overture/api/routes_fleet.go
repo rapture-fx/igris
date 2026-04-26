@@ -8,6 +8,7 @@ import (
 	"time"
 
 	"github.com/gofiber/fiber/v2"
+	"github.com/google/uuid"
 	"github.com/Igris-inertial/system/igris-overture/middleware"
 	"github.com/Igris-inertial/system/igris-overture/security"
 )
@@ -1060,13 +1061,22 @@ func RegisterROSRoutes(app *fiber.App, db *sql.DB) {
 
 		// Record lifecycle command — the runtime picks it up on next heartbeat.
 		// We upsert into a pending_commands JSONB on runtime_instances.
-		_, err := db.ExecContext(c.Context(), `
+		commandJSON, err := json.Marshal(map[string]interface{}{
+			"command_id": uuid.NewString(),
+			"type":       "ros_lifecycle",
+			"action":     body.Action,
+		})
+		if err != nil {
+			return c.Status(fiber.StatusInternalServerError).JSON(fiber.Map{"error": "internal_error"})
+		}
+
+		_, err = db.ExecContext(c.Context(), `
 			UPDATE runtime_instances
 			SET pending_commands = COALESCE(pending_commands, '[]'::jsonb) || $1::jsonb,
 			    updated_at = NOW()
 			WHERE runtime_id = $2
 			  AND tenant_id = $3
-		`, `[{"type":"ros_lifecycle","action":"`+body.Action+`"}]`, body.DeviceID, tenantID)
+		`, "["+string(commandJSON)+"]", body.DeviceID, tenantID)
 		if err != nil {
 			log.Printf("[ROS] Lifecycle command failed: device=%s action=%s err=%v", body.DeviceID, body.Action, err)
 			return c.Status(fiber.StatusInternalServerError).JSON(fiber.Map{"error": "internal_error"})
@@ -1383,6 +1393,7 @@ func rosPublish(db *sql.DB) fiber.Handler {
 		}
 
 		cmd, err := json.Marshal(map[string]interface{}{
+			"command_id":   uuid.NewString(),
 			"type":         "ros_publish",
 			"topic":        body.Topic,
 			"message_type": body.MessageType,
@@ -1443,6 +1454,7 @@ func swarmBroadcast(db *sql.DB) fiber.Handler {
 
 		// Build the command JSON to append
 		cmdJSON, err := json.Marshal(map[string]interface{}{
+			"command_id": uuid.NewString(),
 			"type":    body.Command,
 			"payload": payload,
 		})
