@@ -119,8 +119,6 @@ func TestTaskGovernanceForLegacyRecordDerivesCapabilitiesWhenSigningIsAvailable(
 }
 
 func TestGetRecoveringTasksHydratesPersistedPermissionEnvelope(t *testing.T) {
-	t.Parallel()
-
 	_, privateKey, err := ed25519.GenerateKey(nil)
 	require.NoError(t, err)
 	t.Setenv("IGRIS_OVERTURE_SIGNING_KEY", hex.EncodeToString(privateKey))
@@ -150,6 +148,13 @@ func TestGetRecoveringTasksHydratesPersistedPermissionEnvelope(t *testing.T) {
 
 	db, queued := newQueuedCheckpointDB(t, []queuedQueryExpectation{
 		{
+			columns: []string{
+				"task_id", "tenant_id", "status", "runtime_id", "runtime_endpoint",
+				"task_definition", "last_checkpoint", "execution_envelope", "execution_receipt",
+				"proof_execution_id", "proof_expected_hash", "proof_stored_hash", "proof_signature", "proof_status", "proof_checked_at",
+				"idempotency_key", "failure_reason", "failure_details",
+				"deadline_at", "dispatched_at", "completed_at", "canceled_at", "created_at",
+			},
 			rows: [][]driver.Value{taskRecordRowForRecoveryTest(
 				taskID,
 				tenantID,
