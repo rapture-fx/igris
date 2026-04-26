@@ -549,6 +549,14 @@ pub async fn start_heartbeat_loop(license_key: String, device_id: String) {
 }
 
 #[cfg(test)]
+fn test_env_lock() -> std::sync::MutexGuard<'static, ()> {
+    use std::sync::{Mutex, OnceLock};
+
+    static LOCK: OnceLock<Mutex<()>> = OnceLock::new();
+    LOCK.get_or_init(|| Mutex::new(())).lock().unwrap()
+}
+
+#[cfg(test)]
 mod offline_tests {
     use super::*;
     use ed25519_dalek::{Signer, SigningKey};
@@ -653,7 +661,12 @@ mod offline_tests {
 
     #[tokio::test]
     async fn validate_license_on_startup_uses_offline_artifact_without_network() {
+        let _guard = super::test_env_lock();
         let signing_key = SigningKey::from_bytes(&[11u8; 32]);
+        let temp_dir = tempfile::tempdir().unwrap();
+        let device_id_path = temp_dir.path().join("device-id");
+        std::env::set_var("IGRIS_DEVICE_ID_PATH", &device_id_path);
+        std::env::remove_var("IGRIS_DEVICE_ID");
         let device_id = LicenseClient::generate_device_id();
         let artifact = build_offline_artifact(
             &signing_key,
@@ -675,6 +688,11 @@ mod offline_tests {
 
         assert_eq!(result.mode, RuntimeLicenseMode::LicensedOffline);
         assert_eq!(result.validation.tier.as_deref(), Some("seed"));
+
+        std::env::remove_var("IGRIS_OFFLINE_LICENSE_PATH");
+        std::env::remove_var("IGRIS_DEVICE_ID_PATH");
+        std::env::remove_var("IGRIS_LICENSE_OFFLINE_PUBLIC_KEY");
+        std::env::remove_var("IGRIS_LICENSE_KEY");
     }
 }
 
@@ -876,8 +894,32 @@ mod tests {
 
     #[test]
     fn test_device_id_generation() {
+        let _guard = super::test_env_lock();
+        let temp = tempfile::tempdir().unwrap();
+        let path = temp.path().join("device-id");
+        std::env::set_var("IGRIS_DEVICE_ID_PATH", &path);
+        std::env::remove_var("IGRIS_DEVICE_ID");
         let device_id = LicenseClient::generate_device_id();
+        let persisted = LicenseClient::generate_device_id();
         assert!(device_id.starts_with("dev_"));
         assert_eq!(device_id.len(), 36); // "dev_" + 32 hex chars
+        assert_eq!(device_id, persisted);
+        assert_eq!(fs::read_to_string(path).unwrap().trim(), device_id);
+        std::env::remove_var("IGRIS_DEVICE_ID_PATH");
+    }
+
+    #[test]
+    fn test_device_id_generation_uses_persisted_value() {
+        let _guard = super::test_env_lock();
+        let temp = tempfile::tempdir().unwrap();
+        let path = temp.path().join("device-id");
+        fs::write(&path, "dev_0123456789abcdef0123456789abcd\n").unwrap();
+        std::env::set_var("IGRIS_DEVICE_ID_PATH", &path);
+        std::env::remove_var("IGRIS_DEVICE_ID");
+
+        let device_id = LicenseClient::generate_device_id();
+
+        assert_eq!(device_id, "dev_0123456789abcdef0123456789abcd");
+        std::env::remove_var("IGRIS_DEVICE_ID_PATH");
     }
 }
