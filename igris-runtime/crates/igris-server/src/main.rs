@@ -1514,6 +1514,12 @@ async fn btree_run(
     State(state): State<AppState>,
     Json(req): Json<BTreeRunRequest>,
 ) -> Result<Response, ApiError> {
+    if runtime_execution_blocked_by_safe_idle(&state) {
+        return Err(ApiError::ServiceUnavailable(safe_idle_rejection_message(
+            "behavior tree execution",
+        )));
+    }
+
     let parser = igris_btree::parser::JsonTreeParser::new();
     let mut context = BTreeContext::new();
 
@@ -1718,6 +1724,12 @@ async fn plan_endpoint(
     State(state): State<AppState>,
     Json(req): Json<PlanningRequest>,
 ) -> Result<Response, ApiError> {
+    if runtime_execution_blocked_by_safe_idle(&state) {
+        return Err(ApiError::ServiceUnavailable(safe_idle_rejection_message(
+            "planning",
+        )));
+    }
+
     // Check if local provider is available
     let Some(local_provider) = &state.local_provider else {
         return Err(ApiError::ServiceUnavailable(
@@ -1782,6 +1794,12 @@ async fn reflect_endpoint(
     State(state): State<AppState>,
     Json(req): Json<ReflectionRequest>,
 ) -> Result<Response, ApiError> {
+    if runtime_execution_blocked_by_safe_idle(&state) {
+        return Err(ApiError::ServiceUnavailable(safe_idle_rejection_message(
+            "reflection",
+        )));
+    }
+
     // Check if local provider is available
     let Some(local_provider) = &state.local_provider else {
         return Err(ApiError::ServiceUnavailable(
@@ -1842,6 +1860,12 @@ async fn chat_completions(
     State(state): State<AppState>,
     Json(req): Json<ChatCompletionRequest>,
 ) -> Result<Response, ApiError> {
+    if runtime_execution_blocked_by_safe_idle(&state) {
+        return Err(ApiError::ServiceUnavailable(safe_idle_rejection_message(
+            "chat execution",
+        )));
+    }
+
     state
         .metrics
         .chat_requests_total
