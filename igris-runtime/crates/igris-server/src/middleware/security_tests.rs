@@ -48,6 +48,7 @@ mod tests {
             planning_config: None,
             swarm_config: None,
             swarm_peer_id: "test".to_string(),
+            overture_runtime_id: None,
             lora_training: None,
             federated_manager: None,
             swarm_manager: None,
