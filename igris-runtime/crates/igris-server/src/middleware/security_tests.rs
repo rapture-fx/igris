@@ -16,6 +16,7 @@ mod tests {
     use igris_core::config::IgrisConfig;
     use igris_core::storage::RedbStorage;
     use igris_routing::{CouncilRouter, SpeculativeRouter, ThompsonSamplingRouter};
+    use igris_safety::ViolationEventBus;
 
     async fn ok() -> &'static str {
         "OK"
@@ -63,6 +64,7 @@ mod tests {
             runtime_public_key: None,
             signing_key: None,
             overture_public_key: None,
+            violation_bus: ViolationEventBus::new(),
             license_status: RuntimeLicenseStatus {
                 state: "licensed_online".to_string(),
                 tier: Some("seed".to_string()),
