@@ -597,6 +597,8 @@ func TestDispatchToRuntimeAttachesSignedRoboticsPolicyDecisions(t *testing.T) {
 	},
 		queuedExecExpectation{rowsAffected: 1},
 		queuedExecExpectation{rowsAffected: 1},
+		queuedExecExpectation{rowsAffected: 1},
+		queuedExecExpectation{rowsAffected: 1},
 	)
 
 	client := &http.Client{Transport: roundTripperFunc(func(r *http.Request) (*http.Response, error) {
