@@ -721,6 +721,11 @@ pub struct RuntimeRegistrationClient {
     client: reqwest::Client,
 }
 
+pub struct RegisteredRuntimeHandle {
+    pub client: RuntimeRegistrationClient,
+    pub runtime_id: String,
+}
+
 /// Response from POST /api/v1/runtime/register
 #[derive(Debug, Serialize, Deserialize)]
 pub struct RuntimeRegisterResponse {
@@ -919,11 +924,12 @@ pub async fn register_runtime_with_overture(
     runtime_version: &str,
     public_key_ed25519: String,
     signing_key: Arc<SigningKey>,
-) -> Result<RuntimeRegistrationClient> {
+) -> Result<RegisteredRuntimeHandle> {
     let client =
         RuntimeRegistrationClient::new(overture_url, api_key, public_key_ed25519, signing_key);
 
-    client.register(runtime_version).await?;
+    let response = client.register(runtime_version).await?;
+    let runtime_id = response.runtime_id.clone();
 
     // Start a 30-second heartbeat loop in the background
     let heartbeat_client = client.clone();
@@ -937,7 +943,7 @@ pub async fn register_runtime_with_overture(
         }
     });
 
-    Ok(client)
+    Ok(RegisteredRuntimeHandle { client, runtime_id })
 }
 
 fn sign_runtime_registration_payload(
