@@ -67,14 +67,14 @@ func RegisterRuntimeRoutes(app *fiber.App, db *sql.DB, enforcer *billing.Runtime
 
 // runtimeInstanceRegisterRequest is the payload sent by igris-runtime on startup.
 type runtimeInstanceRegisterRequest struct {
-	MachineID       string `json:"machine_id"` // persisted runtime installation identity
-	Hostname        string `json:"hostname"`
-	Platform        string `json:"platform"`           // e.g. linux-amd64
-	RuntimeVersion  string `json:"runtime_version"`
-	Endpoint        string `json:"endpoint,omitempty"` // optional public endpoint
+	MachineID        string `json:"machine_id"` // persisted runtime installation identity
+	Hostname         string `json:"hostname"`
+	Platform         string `json:"platform"`           // e.g. linux-amd64
+	RuntimeVersion   string `json:"runtime_version"`
+	Endpoint         string `json:"endpoint,omitempty"` // optional public endpoint
 	PublicKeyEd25519 string `json:"public_key_ed25519"`
-	TimestampUnixMs int64  `json:"timestamp_unix_ms"`
-	Signature       string `json:"signature"`
+	TimestampUnixMs  int64  `json:"timestamp_unix_ms"`
+	Signature        string `json:"signature"`
 }
 
 // runtimeRegisterResponse is returned after a successful registration.
@@ -113,17 +113,43 @@ func (h *RuntimeHandler) Register(c *fiber.Ctx) error {
 			"message": "machine_id, hostname, and runtime_version are required",
 		})
 	}
+	if req.PublicKeyEd25519 == "" || req.TimestampUnixMs == 0 || req.Signature == "" {
+		return c.Status(fiber.StatusBadRequest).JSON(fiber.Map{
+			"error":   "missing_fields",
+			"message": "public_key_ed25519, timestamp_unix_ms, and signature are required",
+		})
+	}
+	if err := validateRuntimeTimestamp(req.TimestampUnixMs); err != nil {
+		return c.Status(fiber.StatusUnauthorized).JSON(fiber.Map{
+			"error":   "runtime_signature_invalid",
+			"message": err.Error(),
+		})
+	}
+	if err := verifyRuntimeRegisterSignature(req); err != nil {
+		return c.Status(fiber.StatusUnauthorized).JSON(fiber.Map{
+			"error":   "runtime_signature_invalid",
+			"message": err.Error(),
+		})
+	}
 
 	// Check if this machine_id is already registered for this tenant.
 	// If so, treat as re-registration (runtime restarted).
 	var existingID string
+	var existingPublicKey string
 	err := h.db.QueryRowContext(ctx, `
-		SELECT runtime_id FROM runtime_instances
+		SELECT runtime_id, COALESCE(public_key_ed25519, '') FROM runtime_instances
 		WHERE tenant_id = $1 AND machine_id = $2
 		LIMIT 1
-	`, tenantID, req.MachineID).Scan(&existingID)
+	`, tenantID, req.MachineID).Scan(&existingID, &existingPublicKey)
 
 	isNew := errors.Is(err, sql.ErrNoRows)
+	if err != nil && !isNew {
+		log.Error().Err(err).Str("tenant_id", tenantID).Msg("[Runtime] Failed to query runtime instance")
+		return c.Status(fiber.StatusInternalServerError).JSON(fiber.Map{
+			"error":   "registration_failed",
+			"message": "Failed to query runtime registration state",
+		})
+	}
 	now := time.Now().UTC()
 	clientIP := c.IP()
 
@@ -163,11 +189,11 @@ func (h *RuntimeHandler) Register(c *fiber.Ctx) error {
 				 is_edge, is_healthy, status, last_heartbeat, last_seen_at, registered_at)
 			VALUES
 				(gen_random_uuid()::text, $1, $2, $3, $4,
-				 '', COALESCE($5, ''), '[]', $6, $7,
+				 $5, COALESCE($6, ''), '[]', $7, $8,
 				 true, true, 'active', $8, $8, $8)
 			RETURNING runtime_id
 		`, tenantID, req.MachineID, req.Hostname, clientIP,
-			endpoint, req.Platform, req.RuntimeVersion, now,
+			req.PublicKeyEd25519, endpoint, req.Platform, req.RuntimeVersion, now,
 		).Scan(&runtimeID)
 
 		if err != nil {
@@ -199,15 +225,27 @@ func (h *RuntimeHandler) Register(c *fiber.Ctx) error {
 			RegisteredAt: now.Format(time.RFC3339),
 		})
 	}
+	if existingPublicKey != "" && existingPublicKey != req.PublicKeyEd25519 {
+		return c.Status(fiber.StatusConflict).JSON(fiber.Map{
+			"error":   "runtime_public_key_mismatch",
+			"message": "runtime public key does not match the registered machine identity",
+		})
+	}
 
 	// Re-registration: refresh liveness fields
 	_, err = h.db.ExecContext(ctx, `
 		UPDATE runtime_instances
 		SET hostname_cached = $1, ip_address = $2, version = $3,
-		    last_heartbeat = $4, last_seen_at = $4,
+		    public_key_ed25519 = CASE
+		        WHEN COALESCE(public_key_ed25519, '') = '' THEN $4
+		        ELSE public_key_ed25519
+		    END,
+		    endpoint = COALESCE($5, endpoint),
+		    platform = $6,
+		    last_heartbeat = $7, last_seen_at = $7,
 		    is_healthy = true, status = 'active'
-		WHERE tenant_id = $5 AND machine_id = $6
-	`, req.Hostname, clientIP, req.RuntimeVersion, now, tenantID, req.MachineID)
+		WHERE tenant_id = $8 AND machine_id = $9
+	`, req.Hostname, clientIP, req.RuntimeVersion, req.PublicKeyEd25519, nullableString(req.Endpoint), req.Platform, now, tenantID, req.MachineID)
 	if err != nil {
 		log.Error().Err(err).Str("tenant_id", tenantID).Msg("[Runtime] Failed to update runtime instance on re-registration")
 		return c.Status(fiber.StatusInternalServerError).JSON(fiber.Map{
@@ -246,6 +284,41 @@ func (h *RuntimeHandler) Heartbeat(c *fiber.Ctx) error {
 		return c.Status(fiber.StatusBadRequest).JSON(fiber.Map{
 			"error":   "missing_fields",
 			"message": "machine_id is required",
+		})
+	}
+	if req.TimestampUnixMs == 0 || req.Signature == "" {
+		return c.Status(fiber.StatusBadRequest).JSON(fiber.Map{
+			"error":   "missing_fields",
+			"message": "timestamp_unix_ms and signature are required",
+		})
+	}
+	runtimePublicKey, err := h.runtimePublicKeyForMachine(ctx, tenantID, req.MachineID)
+	if err != nil {
+		if errors.Is(err, sql.ErrNoRows) {
+			return c.Status(fiber.StatusNotFound).JSON(fiber.Map{
+				"error":   "not_registered",
+				"message": "Runtime not found — call /api/v1/runtime/register first",
+			})
+		}
+		log.Error().Err(err).Str("tenant_id", tenantID).Msg("[Runtime] Heartbeat runtime lookup failed")
+		return c.Status(fiber.StatusInternalServerError).JSON(fiber.Map{"error": "heartbeat_failed"})
+	}
+	if strings.TrimSpace(runtimePublicKey) == "" {
+		return c.Status(fiber.StatusConflict).JSON(fiber.Map{
+			"error":   "runtime_unverified",
+			"message": "Runtime has no registered public key",
+		})
+	}
+	if err := validateRuntimeTimestamp(req.TimestampUnixMs); err != nil {
+		return c.Status(fiber.StatusUnauthorized).JSON(fiber.Map{
+			"error":   "runtime_signature_invalid",
+			"message": err.Error(),
+		})
+	}
+	if err := verifyRuntimeMachineSignature(runtimePublicKey, "runtime_heartbeat.v1", req); err != nil {
+		return c.Status(fiber.StatusUnauthorized).JSON(fiber.Map{
+			"error":   "runtime_signature_invalid",
+			"message": err.Error(),
 		})
 	}
 
@@ -356,6 +429,42 @@ func (h *RuntimeHandler) Deregister(c *fiber.Ctx) error {
 		return c.Status(fiber.StatusBadRequest).JSON(fiber.Map{
 			"error":   "missing_fields",
 			"message": "machine_id is required",
+		})
+	}
+	if req.TimestampUnixMs == 0 || req.Signature == "" {
+		return c.Status(fiber.StatusBadRequest).JSON(fiber.Map{
+			"error":   "missing_fields",
+			"message": "timestamp_unix_ms and signature are required",
+		})
+	}
+	runtimePublicKey, err := h.runtimePublicKeyForMachine(ctx, tenantID, req.MachineID)
+	if err != nil {
+		if errors.Is(err, sql.ErrNoRows) {
+			return c.Status(fiber.StatusNotFound).JSON(fiber.Map{
+				"error":   "not_registered",
+				"message": "Runtime not found — call /api/v1/runtime/register first",
+			})
+		}
+		return c.Status(fiber.StatusInternalServerError).JSON(fiber.Map{
+			"error": "deregister_failed",
+		})
+	}
+	if strings.TrimSpace(runtimePublicKey) == "" {
+		return c.Status(fiber.StatusConflict).JSON(fiber.Map{
+			"error":   "runtime_unverified",
+			"message": "Runtime has no registered public key",
+		})
+	}
+	if err := validateRuntimeTimestamp(req.TimestampUnixMs); err != nil {
+		return c.Status(fiber.StatusUnauthorized).JSON(fiber.Map{
+			"error":   "runtime_signature_invalid",
+			"message": err.Error(),
+		})
+	}
+	if err := verifyRuntimeMachineSignature(runtimePublicKey, "runtime_deregister.v1", req); err != nil {
+		return c.Status(fiber.StatusUnauthorized).JSON(fiber.Map{
+			"error":   "runtime_signature_invalid",
+			"message": err.Error(),
 		})
 	}
 
@@ -548,4 +657,81 @@ func nullableString(s string) interface{} {
 		return nil
 	}
 	return s
+}
+
+func (h *RuntimeHandler) runtimePublicKeyForMachine(ctx context.Context, tenantID, machineID string) (string, error) {
+	var publicKey string
+	err := h.db.QueryRowContext(ctx, `
+		SELECT COALESCE(public_key_ed25519, '')
+		FROM runtime_instances
+		WHERE tenant_id = $1 AND machine_id = $2
+		LIMIT 1
+	`, tenantID, machineID).Scan(&publicKey)
+	return publicKey, err
+}
+
+func verifyRuntimeRegisterSignature(req runtimeInstanceRegisterRequest) error {
+	message := fmt.Sprintf(
+		"runtime_register.v1:%s:%s:%s:%s:%s:%s:%d",
+		req.MachineID,
+		req.Hostname,
+		req.Platform,
+		req.RuntimeVersion,
+		req.PublicKeyEd25519,
+		req.Endpoint,
+		req.TimestampUnixMs,
+	)
+	return verifyRuntimeSignatureMessage(req.PublicKeyEd25519, req.Signature, message)
+}
+
+func verifyRuntimeMachineSignature(publicKeyHex, purpose string, req runtimeInstanceHeartbeatRequest) error {
+	message := fmt.Sprintf(
+		"%s:%s:%d:%s",
+		purpose,
+		req.MachineID,
+		req.TimestampUnixMs,
+		runtimeBtStateHash(req.BtState),
+	)
+	return verifyRuntimeSignatureMessage(publicKeyHex, req.Signature, message)
+}
+
+func validateRuntimeTimestamp(timestampUnixMs int64) error {
+	requestTime := time.UnixMilli(timestampUnixMs)
+	now := time.Now().UTC()
+	if requestTime.Before(now.Add(-runtimeRequestTimestampWindow)) || requestTime.After(now.Add(runtimeRequestTimestampWindow)) {
+		return fmt.Errorf("runtime request timestamp is outside the accepted window")
+	}
+	return nil
+}
+
+func verifyRuntimeSignatureMessage(publicKeyHex, signatureBase64, message string) error {
+	keyBytes, err := hex.DecodeString(strings.TrimSpace(publicKeyHex))
+	if err != nil {
+		return fmt.Errorf("runtime public key is not valid hex")
+	}
+	if len(keyBytes) != ed25519.PublicKeySize {
+		return fmt.Errorf("runtime public key has invalid length")
+	}
+	signature, err := base64.StdEncoding.DecodeString(strings.TrimSpace(signatureBase64))
+	if err != nil {
+		return fmt.Errorf("runtime signature is not valid base64")
+	}
+	if !ed25519.Verify(ed25519.PublicKey(keyBytes), []byte(message), signature) {
+		return fmt.Errorf("runtime signature verification failed")
+	}
+	return nil
+}
+
+func runtimeBtStateHash(raw json.RawMessage) string {
+	if len(bytes.TrimSpace(raw)) == 0 || string(bytes.TrimSpace(raw)) == "null" {
+		return ""
+	}
+	var compact bytes.Buffer
+	if err := json.Compact(&compact, raw); err != nil {
+		trimmed := bytes.TrimSpace(raw)
+		sum := sha256.Sum256(trimmed)
+		return hex.EncodeToString(sum[:])
+	}
+	sum := sha256.Sum256(compact.Bytes())
+	return hex.EncodeToString(sum[:])
 }
