@@ -918,13 +918,13 @@ mod tests {
         let _guard = super::test_env_lock();
         let temp = tempfile::tempdir().unwrap();
         let path = temp.path().join("device-id");
-        fs::write(&path, "dev_0123456789abcdef0123456789abcd\n").unwrap();
+        fs::write(&path, "dev_0123456789abcdef0123456789abcdef\n").unwrap();
         std::env::set_var("IGRIS_DEVICE_ID_PATH", &path);
         std::env::remove_var("IGRIS_DEVICE_ID");
 
         let device_id = LicenseClient::generate_device_id();
 
-        assert_eq!(device_id, "dev_0123456789abcdef0123456789abcd");
+        assert_eq!(device_id, "dev_0123456789abcdef0123456789abcdef");
         std::env::remove_var("IGRIS_DEVICE_ID_PATH");
     }
 }
