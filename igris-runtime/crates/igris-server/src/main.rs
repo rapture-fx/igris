@@ -260,6 +260,63 @@ fn load_runtime_command_spool(
     Ok(serde_json::from_slice(&payload)?)
 }
 
+fn runtime_command_delivery_key(
+    command: &igris_license_client::PendingRuntimeCommand,
+) -> anyhow::Result<String> {
+    if let Some(key) = command
+        .delivery_key
+        .as_ref()
+        .map(|value| value.trim())
+        .filter(|value| !value.is_empty())
+    {
+        return Ok(key.to_string());
+    }
+
+    let mut value = serde_json::to_value(command)?;
+    if let serde_json::Value::Object(ref mut map) = value {
+        map.remove("delivery_key");
+    }
+    let canonical = serde_json::to_vec(&value)?;
+    Ok(hex::encode(sha2::Sha256::digest(canonical)))
+}
+
+fn merge_runtime_commands(
+    commands: &mut Vec<igris_license_client::PendingRuntimeCommand>,
+    fetched: Vec<igris_license_client::PendingRuntimeCommand>,
+) -> anyhow::Result<usize> {
+    let mut known_keys = std::collections::HashSet::new();
+    for command in commands.iter() {
+        known_keys.insert(runtime_command_delivery_key(command)?);
+    }
+
+    let mut added = 0usize;
+    for mut command in fetched {
+        let delivery_key = runtime_command_delivery_key(&command)?;
+        if known_keys.insert(delivery_key.clone()) {
+            if command.delivery_key.is_none() {
+                command.delivery_key = Some(delivery_key);
+            }
+            commands.push(command);
+            added += 1;
+        }
+    }
+    Ok(added)
+}
+
+async fn acknowledge_runtime_command_spool(
+    client: &igris_license_client::RuntimeRegistrationClient,
+    commands: &[igris_license_client::PendingRuntimeCommand],
+) -> anyhow::Result<()> {
+    let mut delivery_keys = Vec::with_capacity(commands.len());
+    for command in commands {
+        delivery_keys.push(runtime_command_delivery_key(command)?);
+    }
+    if delivery_keys.is_empty() {
+        return Ok(());
+    }
+    client.ack_pending_commands(&delivery_keys).await
+}
+
 fn append_runtime_command_deadletter(
     path: &StdPath,
     machine_id: &str,
@@ -298,29 +355,6 @@ fn ros_command_string_payload(payload: Option<&serde_json::Value>) -> Option<Str
             .map(|value| value.to_string()),
         _ => None,
     }
-}
-
-#[cfg_attr(not(feature = "robotics-platform"), allow(dead_code))]
-fn ros_command_twist_payload(payload: Option<&serde_json::Value>) -> Option<(f64, f64)> {
-    let payload = payload?;
-    if let serde_json::Value::Object(map) = payload {
-        if let (Some(linear_x), Some(angular_z)) = (
-            map.get("linear_x").and_then(|value| value.as_f64()),
-            map.get("angular_z").and_then(|value| value.as_f64()),
-        ) {
-            return Some((linear_x, angular_z));
-        }
-        let linear_x = map
-            .get("linear")
-            .and_then(|value| value.get("x"))
-            .and_then(|value| value.as_f64())?;
-        let angular_z = map
-            .get("angular")
-            .and_then(|value| value.get("z"))
-            .and_then(|value| value.as_f64())?;
-        return Some((linear_x, angular_z));
-    }
-    None
 }
 
 #[cfg(feature = "robotics-platform")]
@@ -378,25 +412,9 @@ async fn process_ros_publish_command(
                 }
             }
         }
-        ("/cmd_vel", "geometry_msgs/Twist") | ("/cmd_vel", "geometry_msgs/msg/Twist") => {
-            match ros_command_twist_payload(command.payload.as_ref()) {
-                Some((linear_x, angular_z)) if linear_x == 0.0 && angular_z == 0.0 => {
-                    manager.node().publish_zero_velocity().await
-                }
-                Some((linear_x, angular_z)) => {
-                    manager.node().publish_velocity(linear_x, angular_z).await
-                }
-                None => {
-                    return RuntimeCommandProcessResult::DeadLetter(
-                        "ros_publish /cmd_vel payload must provide linear_x/angular_z or linear.x/angular.z"
-                            .to_string(),
-                    );
-                }
-            }
-        }
         _ => {
             return RuntimeCommandProcessResult::DeadLetter(format!(
-                "unsupported ros_publish target {} {}",
+                "unsupported ros_publish target {} {}; actuation must go through governed task execution",
                 message_type, topic
             ));
         }
@@ -453,10 +471,9 @@ async fn process_runtime_command(
 async fn drain_runtime_command_spool(
     state: &AppState,
     machine_id: &str,
-    spool_path: &StdPath,
+    commands: &mut Vec<igris_license_client::PendingRuntimeCommand>,
     deadletter_path: &StdPath,
 ) -> anyhow::Result<bool> {
-    let mut commands = load_runtime_command_spool(spool_path)?;
     if commands.is_empty() {
         return Ok(true);
     }
@@ -465,7 +482,6 @@ async fn drain_runtime_command_spool(
         match process_runtime_command(state, &command).await {
             RuntimeCommandProcessResult::Completed => {
                 commands.remove(0);
-                persist_runtime_command_spool(spool_path, &commands)?;
             }
             RuntimeCommandProcessResult::DeadLetter(reason) => {
                 warn!(
@@ -474,7 +490,6 @@ async fn drain_runtime_command_spool(
                 );
                 append_runtime_command_deadletter(deadletter_path, machine_id, &command, &reason)?;
                 commands.remove(0);
-                persist_runtime_command_spool(spool_path, &commands)?;
             }
             RuntimeCommandProcessResult::Retry(reason) => {
                 warn!(
@@ -501,7 +516,24 @@ async fn start_runtime_command_loop(
     loop {
         interval.tick().await;
 
-        match drain_runtime_command_spool(&state, &machine_id, &spool_path, &deadletter_path).await
+        let mut commands = match load_runtime_command_spool(&spool_path) {
+            Ok(commands) => commands,
+            Err(err) => {
+                warn!("[Runtime/Fleet] Failed to load command spool: {}", err);
+                continue;
+            }
+        };
+
+        if let Err(err) = acknowledge_runtime_command_spool(&client, &commands).await {
+            warn!(
+                "[Runtime/Fleet] Failed to acknowledge locally persisted commands: {}",
+                err
+            );
+            continue;
+        }
+
+        match drain_runtime_command_spool(&state, &machine_id, &mut commands, &deadletter_path)
+            .await
         {
             Ok(true) => {}
             Ok(false) => continue,
@@ -510,27 +542,51 @@ async fn start_runtime_command_loop(
                 continue;
             }
         }
+        if let Err(err) = persist_runtime_command_spool(&spool_path, &commands) {
+            warn!("[Runtime/Fleet] Failed to persist command spool after drain: {}", err);
+            continue;
+        }
 
         match client.fetch_pending_commands().await {
             Ok(commands) if commands.is_empty() => {}
-            Ok(commands) => {
+            Ok(fetched) => {
                 info!(
                     "[Runtime/Fleet] Fetched {} pending control-plane command(s)",
-                    commands.len()
+                    fetched.len()
                 );
+                if let Err(err) = merge_runtime_commands(&mut commands, fetched) {
+                    warn!(
+                        "[Runtime/Fleet] Failed to merge fetched command spool: {}",
+                        err
+                    );
+                    continue;
+                }
                 if let Err(err) = persist_runtime_command_spool(&spool_path, &commands) {
                     warn!(
-                        "[Runtime/Fleet] Failed to persist fetched command spool before execution: {}",
+                        "[Runtime/Fleet] Failed to persist fetched command spool before ack: {}",
+                        err
+                    );
+                    continue;
+                }
+                if let Err(err) = acknowledge_runtime_command_spool(&client, &commands).await {
+                    warn!(
+                        "[Runtime/Fleet] Failed to acknowledge fetched command spool: {}",
                         err
                     );
                     continue;
                 }
                 if let Err(err) =
-                    drain_runtime_command_spool(&state, &machine_id, &spool_path, &deadletter_path)
+                    drain_runtime_command_spool(&state, &machine_id, &mut commands, &deadletter_path)
                         .await
                 {
                     warn!(
                         "[Runtime/Fleet] Failed to execute fetched commands: {}",
+                        err
+                    );
+                }
+                if let Err(err) = persist_runtime_command_spool(&spool_path, &commands) {
+                    warn!(
+                        "[Runtime/Fleet] Failed to persist command spool after fetched drain: {}",
                         err
                     );
                 }
