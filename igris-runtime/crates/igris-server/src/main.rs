@@ -532,18 +532,24 @@ async fn start_runtime_command_loop(
             continue;
         }
 
-        match drain_runtime_command_spool(&state, &machine_id, &mut commands, &deadletter_path)
-            .await
-        {
-            Ok(true) => {}
-            Ok(false) => continue,
-            Err(err) => {
-                warn!("[Runtime/Fleet] Failed to drain command spool: {}", err);
-                continue;
-            }
-        }
+        let drain_result =
+            match drain_runtime_command_spool(&state, &machine_id, &mut commands, &deadletter_path)
+                .await
+            {
+                Ok(result) => result,
+                Err(err) => {
+                    warn!("[Runtime/Fleet] Failed to drain command spool: {}", err);
+                    continue;
+                }
+            };
         if let Err(err) = persist_runtime_command_spool(&spool_path, &commands) {
-            warn!("[Runtime/Fleet] Failed to persist command spool after drain: {}", err);
+            warn!(
+                "[Runtime/Fleet] Failed to persist command spool after drain: {}",
+                err
+            );
+            continue;
+        }
+        if !drain_result {
             continue;
         }
 
@@ -575,20 +581,31 @@ async fn start_runtime_command_loop(
                     );
                     continue;
                 }
-                if let Err(err) =
-                    drain_runtime_command_spool(&state, &machine_id, &mut commands, &deadletter_path)
-                        .await
+                let fetched_drain_result = match drain_runtime_command_spool(
+                    &state,
+                    &machine_id,
+                    &mut commands,
+                    &deadletter_path,
+                )
+                .await
                 {
-                    warn!(
-                        "[Runtime/Fleet] Failed to execute fetched commands: {}",
-                        err
-                    );
-                }
+                    Ok(result) => result,
+                    Err(err) => {
+                        warn!(
+                            "[Runtime/Fleet] Failed to execute fetched commands: {}",
+                            err
+                        );
+                        true
+                    }
+                };
                 if let Err(err) = persist_runtime_command_spool(&spool_path, &commands) {
                     warn!(
                         "[Runtime/Fleet] Failed to persist command spool after fetched drain: {}",
                         err
                     );
+                }
+                if !fetched_drain_result {
+                    continue;
                 }
             }
             Err(err) => {
