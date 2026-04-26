@@ -67,11 +67,14 @@ func RegisterRuntimeRoutes(app *fiber.App, db *sql.DB, enforcer *billing.Runtime
 
 // runtimeInstanceRegisterRequest is the payload sent by igris-runtime on startup.
 type runtimeInstanceRegisterRequest struct {
-	MachineID      string `json:"machine_id"`         // dev_{sha256[..16]} fingerprint
-	Hostname       string `json:"hostname"`
-	Platform       string `json:"platform"`           // e.g. linux-amd64
-	RuntimeVersion string `json:"runtime_version"`
-	Endpoint       string `json:"endpoint,omitempty"` // optional public endpoint
+	MachineID       string `json:"machine_id"` // persisted runtime installation identity
+	Hostname        string `json:"hostname"`
+	Platform        string `json:"platform"`           // e.g. linux-amd64
+	RuntimeVersion  string `json:"runtime_version"`
+	Endpoint        string `json:"endpoint,omitempty"` // optional public endpoint
+	PublicKeyEd25519 string `json:"public_key_ed25519"`
+	TimestampUnixMs int64  `json:"timestamp_unix_ms"`
+	Signature       string `json:"signature"`
 }
 
 // runtimeRegisterResponse is returned after a successful registration.
@@ -87,7 +90,9 @@ type runtimeInstanceHeartbeatRequest struct {
 	MachineID string          `json:"machine_id"`
 	// BtState is the latest BT tick snapshot from the executor
 	// ({"tick":N,"status":"...","tree":{...}}). Optional — omitted when idle.
-	BtState   json.RawMessage `json:"bt_state,omitempty"`
+	BtState         json.RawMessage `json:"bt_state,omitempty"`
+	TimestampUnixMs int64           `json:"timestamp_unix_ms"`
+	Signature       string          `json:"signature"`
 }
 
 // Register handles POST /api/v1/runtime/register
