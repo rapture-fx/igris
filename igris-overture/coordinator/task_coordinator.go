@@ -129,6 +129,10 @@ func (tc *TaskCoordinator) Submit(ctx context.Context, req *TaskSubmitRequest) (
 		return nil, err
 	}
 	task.PermissionEnvelope = envelope
+	if err := tc.store.SaveTaskPermissionEnvelope(task.TaskID, envelope); err != nil {
+		_ = tc.store.MarkFailedWithDetails(taskID, "task permission audit persistence failed", overtureTaskFailureDetails("submit", "permission_audit_persistence_failed", err.Error()))
+		return nil, fmt.Errorf("persist task permission envelope: %w", err)
+	}
 
 	// Dispatch asynchronously so Submit returns immediately.
 	go tc.dispatchToRuntime(context.Background(), task, nil)
