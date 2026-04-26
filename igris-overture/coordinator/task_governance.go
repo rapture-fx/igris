@@ -218,16 +218,14 @@ func taskGovernanceForRecord(task *TaskRecord) taskGovernance {
 	if task == nil {
 		return taskGovernance{}
 	}
-	derivedCapabilities := deriveRequiredCapabilitiesFromTaskDefinition(task.TaskDefinition)
 	governance := taskGovernance{
 		AgentIdentity:        task.AgentIdentity,
-		RequiredCapabilities: normalizeCapabilityList(append(task.RequiredCapabilities, derivedCapabilities...)),
+		RequiredCapabilities: normalizeCapabilityList(task.RequiredCapabilities),
 		CredentialRequests:   normalizeCredentialRequests(task.CredentialRequests),
 	}
 	if len(governance.RequiredCapabilities) == 0 && len(governance.CredentialRequests) == 0 && agentIdentityEmpty(governance.AgentIdentity) {
 		governance = extractTaskGovernanceFromDefinition(task.TaskDefinition)
 	}
-	governance.RequiredCapabilities = normalizeCapabilityList(append(governance.RequiredCapabilities, derivedCapabilities...))
 	governance.AgentIdentity = normalizeTaskGovernance(task.TenantID, &governance.AgentIdentity, governance.RequiredCapabilities, governance.CredentialRequests).AgentIdentity
 	return governance
 }
