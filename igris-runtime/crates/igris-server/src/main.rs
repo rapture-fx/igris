@@ -87,7 +87,7 @@ use axum::middleware::from_fn_with_state;
 use middleware::security::{security_middleware, RateLimiter};
 mod metrics;
 use metrics::Metrics;
-#[cfg(feature = "ros2")]
+#[cfg(feature = "robotics-platform")]
 pub mod ros2_integration;
 #[cfg(test)]
 mod server_flow_tests;
@@ -158,7 +158,7 @@ pub(crate) struct AppState {
     // ── ROS2 ─────────────────────────────────────────────────────────────────
     /// ROS2 manager — holds the Ros2Node and ContainmentBridge.
     /// Available when the `ros2` feature is enabled and ENABLE_ROS2=true.
-    #[cfg(feature = "ros2")]
+    #[cfg(feature = "robotics-platform")]
     pub(crate) ros2_manager: Option<Arc<crate::ros2_integration::Ros2Manager>>,
 }
 
@@ -2528,19 +2528,6 @@ fn build_worker_route_context(config: &IgrisConfig) -> runtime_execute::RouteExe
 
     runtime_execute::RouteExecutionContext {
         speculative_router: Arc::new(SpeculativeRouter::new(3, std::time::Duration::from_secs(5))),
-        thompson_router: Arc::new(ThompsonSamplingRouter::new(
-            cloud_providers
-                .iter()
-                .map(|provider| provider.id().to_string())
-                .collect(),
-            0.1,
-        )),
-        council_router: Arc::new(CouncilRouter::new(
-            cloud_providers
-                .first()
-                .map(|provider| provider.id().to_string())
-                .unwrap_or_else(|| "local".to_string()),
-        )),
         cloud_providers: Arc::new(cloud_providers),
         local_provider,
     }
