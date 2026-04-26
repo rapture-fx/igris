@@ -192,7 +192,10 @@ Completed on 2026-04-25.
 
 - Tightened the fleet trust path so Overture runtime registry calls are proof-of-possession signed by the runtime key, not just tenant API-key authenticated.
 - Bound execution-artifact verification to the registered runtime public key during coordinator dispatch handling.
+- Aligned governed runtime identity across Overture and the runtime by using the Overture-assigned registry `runtime_id` for permission-envelope and signed-policy validation instead of reusing MCP `swarm_peer_id`.
+- Hardened `GET /api/v1/runtime/commands` so pending-command retrieval also requires a signed runtime proof-of-possession request.
 - Moved task capability derivation to submit-time persistence so recovery redispatch reuses the stored governance contract instead of recomputing policy on every retry.
+- Added legacy/external task-record fallback derivation when Overture signing is available so pre-migration recoveries do not bypass the default-deny capability model.
 - Surfaced SLO native vs stub mode in the admin status API and changed the stub implementation to return an explicit unavailable error instead of silently reporting compliance.
 
 ## Launch Gates
