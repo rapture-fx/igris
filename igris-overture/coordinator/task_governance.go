@@ -298,6 +298,18 @@ func deriveRequiredCapabilitiesFromTaskDefinition(definition json.RawMessage) []
 				addApprovalCapability(step["approval"])
 			}
 		}
+	case "robotics_workflow":
+		addCapability("robotics.execute")
+		var payload struct {
+			Steps []map[string]json.RawMessage `json:"steps"`
+		}
+		if json.Unmarshal(definition, &payload) == nil {
+			for _, step := range payload.Steps {
+				addApprovalCapability(step["approval"])
+			}
+		}
+	case "behavior_tree":
+		addCapability("behavior_tree.execute")
 	case "execution_graph":
 		var payload struct {
 			Graph struct {
@@ -320,6 +332,11 @@ func deriveRequiredCapabilitiesFromTaskDefinition(definition json.RawMessage) []
 					addCapability("memory.write")
 				case "human_approval":
 					addCapability("human.approval")
+				case "robotics":
+					addCapability("robotics.execute")
+					addApprovalCapability(node["approval"])
+				case "behavior_tree":
+					addCapability("behavior_tree.execute")
 				case "reason":
 					addMemoryCapabilities(node["memory"])
 					addApprovalCapability(node["approval"])
