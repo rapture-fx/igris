@@ -134,6 +134,8 @@ pub struct WorkerExecuteJob {
     #[serde(default)]
     pub mode: Option<String>,
     #[serde(default)]
+    pub route_plan: Option<WorkerRoutingPlan>,
+    #[serde(default)]
     pub test_delay_ms: Option<u64>,
     #[serde(default)]
     pub test_response_content: Option<String>,
@@ -145,6 +147,17 @@ pub struct WorkerExecuteJob {
 pub struct WorkerExecuteResult {
     pub content: String,
     pub provider: String,
+}
+
+#[derive(Debug, Clone, Serialize, Deserialize)]
+pub struct WorkerRoutingPlan {
+    pub strategy: String,
+    #[serde(default)]
+    pub provider_ids: Vec<String>,
+    #[serde(default)]
+    pub provider_id: Option<String>,
+    #[serde(default)]
+    pub chairman_id: Option<String>,
 }
 
 #[derive(Debug, Serialize)]
@@ -695,7 +708,7 @@ async fn append_violation(
 }
 
 #[derive(Copy, Clone)]
-enum WorkerExecutionMode {
+pub(crate) enum WorkerExecutionMode {
     Default,
     Latency,
     Balanced,
@@ -780,29 +793,120 @@ fn ranked_worker_cloud_providers(
     providers
 }
 
-async fn select_worker_thompson_provider(
-    route_context: &RouteExecutionContext,
-) -> Option<CloudProviderWrapper> {
-    if route_context.cloud_providers.is_empty() {
-        return None;
+pub(crate) async fn build_worker_routing_plan(
+    state: &AppState,
+    mode: Option<&str>,
+) -> anyhow::Result<(WorkerRoutingPlan, Option<String>)> {
+    let execution_mode = normalize_worker_mode(mode)?;
+
+    if state.cloud_providers.is_empty() {
+        return Ok((
+            WorkerRoutingPlan {
+                strategy: "local".to_string(),
+                provider_ids: Vec::new(),
+                provider_id: None,
+                chairman_id: None,
+            },
+            None,
+        ));
     }
 
-    let selected_id = route_context.thompson_router.select_provider().await.ok();
-    if let Some(selected_id) = selected_id {
-        if let Some(provider) = route_context
-            .cloud_providers
-            .iter()
-            .find(|provider| provider.id() == selected_id)
-        {
-            return Some(CloudProviderWrapper(provider.clone()));
+    match execution_mode {
+        WorkerExecutionMode::Default
+        | WorkerExecutionMode::Latency
+        | WorkerExecutionMode::Balanced
+        | WorkerExecutionMode::Quality
+        | WorkerExecutionMode::Cost => {
+            let route_context = RouteExecutionContext {
+                speculative_router: state.speculative_router.clone(),
+                thompson_router: state.thompson_router.clone(),
+                council_router: state.council_router.clone(),
+                cloud_providers: state.cloud_providers.clone(),
+                local_provider: state.local_provider.clone(),
+            };
+            let provider_ids = ranked_worker_cloud_providers(&route_context, execution_mode)
+                .into_iter()
+                .map(|provider| provider.id().to_string())
+                .collect();
+            Ok((
+                WorkerRoutingPlan {
+                    strategy: "ranked".to_string(),
+                    provider_ids,
+                    provider_id: None,
+                    chairman_id: None,
+                },
+                None,
+            ))
+        }
+        WorkerExecutionMode::Thompson => {
+            let selected_id = state
+                .thompson_router
+                .select_provider()
+                .await
+                .ok()
+                .or_else(|| state.cloud_providers.first().map(|provider| provider.id().to_string()))
+                .ok_or_else(|| anyhow::anyhow!("no providers available"))?;
+            Ok((
+                WorkerRoutingPlan {
+                    strategy: "direct".to_string(),
+                    provider_ids: Vec::new(),
+                    provider_id: Some(selected_id.clone()),
+                    chairman_id: None,
+                },
+                Some(selected_id),
+            ))
+        }
+        WorkerExecutionMode::Council => {
+            let route_context = RouteExecutionContext {
+                speculative_router: state.speculative_router.clone(),
+                thompson_router: state.thompson_router.clone(),
+                council_router: state.council_router.clone(),
+                cloud_providers: state.cloud_providers.clone(),
+                local_provider: state.local_provider.clone(),
+            };
+            let provider_ids = ranked_worker_cloud_providers(&route_context, WorkerExecutionMode::Quality)
+                .into_iter()
+                .map(|provider| provider.id().to_string())
+                .collect::<Vec<_>>();
+            let chairman_id = if provider_ids
+                .iter()
+                .any(|provider_id| provider_id == state.council_router.chairman_id())
+            {
+                state.council_router.chairman_id().to_string()
+            } else {
+                provider_ids
+                    .first()
+                    .cloned()
+                    .ok_or_else(|| anyhow::anyhow!("no council providers available"))?
+            };
+            Ok((
+                WorkerRoutingPlan {
+                    strategy: "council".to_string(),
+                    provider_ids,
+                    provider_id: None,
+                    chairman_id: Some(chairman_id),
+                },
+                None,
+            ))
         }
     }
+}
 
-    route_context
-        .cloud_providers
-        .first()
-        .cloned()
-        .map(CloudProviderWrapper)
+fn providers_by_id(
+    route_context: &RouteExecutionContext,
+    provider_ids: &[String],
+) -> Vec<CloudProviderWrapper> {
+    provider_ids
+        .iter()
+        .filter_map(|provider_id| {
+            route_context
+                .cloud_providers
+                .iter()
+                .find(|provider| provider.id() == provider_id)
+                .cloned()
+                .map(CloudProviderWrapper)
+        })
+        .collect()
 }
 
 /// Route a prompt through the Runtime's provider stack (cloud → local fallback).
@@ -834,57 +938,56 @@ pub async fn execute_worker_job(
     let prompt = job
         .prompt
         .ok_or_else(|| anyhow::anyhow!("worker route job missing prompt"))?;
-    let (content, provider) = do_route(route_context, prompt, job.mode.as_deref()).await?;
+    let route_plan = job
+        .route_plan
+        .ok_or_else(|| anyhow::anyhow!("worker route job missing route plan"))?;
+    let (content, provider) = do_route(route_context, prompt, &route_plan).await?;
     Ok(WorkerExecuteResult { content, provider })
 }
 
 pub(crate) async fn do_route(
     route_context: &RouteExecutionContext,
     prompt: String,
-    mode: Option<&str>,
+    route_plan: &WorkerRoutingPlan,
 ) -> anyhow::Result<(String, String)> {
-    let execution_mode = normalize_worker_mode(mode)?;
-
-    if !route_context.cloud_providers.is_empty() {
-        match execution_mode {
-            WorkerExecutionMode::Default
-            | WorkerExecutionMode::Latency
-            | WorkerExecutionMode::Balanced
-            | WorkerExecutionMode::Quality
-            | WorkerExecutionMode::Cost => {
-                let providers = ranked_worker_cloud_providers(route_context, execution_mode);
-                if let Ok(result) = route_context
-                    .speculative_router
-                    .route(&prompt, providers)
-                    .await
-                {
+    match route_plan.strategy.as_str() {
+        "ranked" => {
+            let providers = providers_by_id(route_context, &route_plan.provider_ids);
+            if !providers.is_empty() {
+                if let Ok(result) = route_context.speculative_router.route(&prompt, providers).await {
                     return Ok((result.response, result.winner_id));
                 }
             }
-            WorkerExecutionMode::Thompson => {
-                if let Some(provider) = select_worker_thompson_provider(route_context).await {
-                    let provider_id = provider.id().to_string();
-                    if let Ok(response) = provider.complete(&prompt).await {
-                        return Ok((response, provider_id));
-                    }
-                }
-            }
-            WorkerExecutionMode::Council => {
-                let providers =
-                    ranked_worker_cloud_providers(route_context, WorkerExecutionMode::Quality);
-                if let Ok(result) = route_context.council_router.route(&prompt, providers.clone()).await {
-                    return Ok((result.response, result.chairman_id));
-                }
-                if let Some(chairman_id) =
-                    providers.first().map(|provider| provider.id().to_string())
+        }
+        "direct" => {
+            if let Some(provider_id) = route_plan.provider_id.as_deref() {
+                if let Some(provider) = route_context
+                    .cloud_providers
+                    .iter()
+                    .find(|provider| provider.id() == provider_id)
+                    .cloned()
+                    .map(CloudProviderWrapper)
                 {
-                    let fallback_router = CouncilRouter::new(chairman_id);
-                    if let Ok(result) = fallback_router.route(&prompt, providers).await {
-                        return Ok((result.response, result.chairman_id));
-                    }
+                    return Ok((provider.complete(&prompt).await?, provider_id.to_string()));
                 }
             }
         }
+        "council" => {
+            let providers = providers_by_id(route_context, &route_plan.provider_ids);
+            if !providers.is_empty() {
+                let chairman_id = route_plan
+                    .chairman_id
+                    .clone()
+                    .or_else(|| providers.first().map(|provider| provider.id().to_string()))
+                    .ok_or_else(|| anyhow::anyhow!("council route missing chairman"))?;
+                let router = CouncilRouter::new(chairman_id.clone());
+                if let Ok(result) = router.route(&prompt, providers).await {
+                    return Ok((result.response, result.chairman_id));
+                }
+            }
+        }
+        "local" => {}
+        other => anyhow::bail!("unsupported worker route strategy: {}", other),
     }
 
     // Fallback: local LLM.
@@ -893,7 +996,52 @@ pub(crate) async fn do_route(
         return Ok((content, "local".to_string()));
     }
 
+    if route_plan.strategy == "direct" {
+        anyhow::bail!(
+            "planned provider unavailable: {}",
+            route_plan.provider_id.as_deref().unwrap_or("unknown")
+        );
+    }
+
+    if route_plan.strategy == "ranked" && !route_plan.provider_ids.is_empty() {
+        anyhow::bail!("planned ranked providers unavailable");
+    }
+
+    if route_plan.strategy == "council" && !route_plan.provider_ids.is_empty() {
+        anyhow::bail!("planned council providers unavailable");
+    }
+
+    if route_plan.strategy != "local" && !route_context.cloud_providers.is_empty() {
+        let fallback_mode = normalize_worker_mode(jobless_mode_hint(route_plan))?;
+        if matches!(
+            fallback_mode,
+            WorkerExecutionMode::Default
+                | WorkerExecutionMode::Latency
+                | WorkerExecutionMode::Balanced
+                | WorkerExecutionMode::Quality
+                | WorkerExecutionMode::Cost
+        ) {
+            let providers = ranked_worker_cloud_providers(route_context, fallback_mode);
+            if let Ok(result) = route_context
+                .speculative_router
+                .route(&prompt, providers)
+                .await
+            {
+                return Ok((result.response, result.winner_id));
+            }
+        }
+    }
+
     anyhow::bail!("No providers available")
+}
+
+fn jobless_mode_hint(route_plan: &WorkerRoutingPlan) -> Option<&str> {
+    match route_plan.strategy.as_str() {
+        "ranked" => Some("balanced"),
+        "council" => Some("council"),
+        "direct" => Some("thompson"),
+        _ => None,
+    }
 }
 
 fn safety_violation_label(kind: &SafetyViolationKind) -> &'static str {
