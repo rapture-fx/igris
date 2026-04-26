@@ -23,34 +23,34 @@ export default function Hero() {
 
   return (
     <section className="pb-0 bg-white dark:bg-dark-bg text-gray-900 dark:text-[#f6f6f4] relative overflow-visible transition-colors duration-200" style={{ marginTop: '48px' }}>
-      <div className="mx-auto max-w-[1600px] px-4 sm:px-6 lg:px-8">
+      <div className="mx-auto max-w-[1100px] px-4 sm:px-6 lg:px-8">
         <div className="relative overflow-hidden flex flex-col justify-center min-h-[auto] md:min-h-[calc(100vh-52px)]" style={{ marginBottom: '2rem' }}>
-          <div className="max-w-[1600px] mx-auto w-full relative z-10 pb-6 md:pb-10 pt-0 px-4 md:px-8 lg:px-12">
+          <div className="max-w-[1100px] mx-auto w-full relative z-10 pb-6 md:pb-10 pt-0 px-4 md:px-8 lg:px-12">
             
-            {/* Image with frame */}
-            <div className="rounded-lg mb-6 md:mb-10 overflow-hidden relative" style={{ height: 'auto', minHeight: '200px', maxHeight: '800px' }}>
-              <img src="/lhjk.png" alt="Hero" className="h-full w-full object-cover rounded-lg border border-gray-200 dark:border-gray-700" style={{ minHeight: '200px', maxHeight: '800px' }} />
-              
-              {/* Title and subtext - bottom of image */}
-              <div className="absolute bottom-0 left-0 right-0 p-4 md:p-8 flex flex-col md:flex-row md:items-end md:justify-between gap-3 md:gap-4" style={{ background: 'linear-gradient(transparent, rgba(0,0,0,0.5))' }}>
-                <div className="text-left">
-                  <h1 className="text-lg md:text-3xl lg:text-4xl mb-1 md:mb-2 leading-tight" style={{ color: '#ffffff', fontFamily: 'Inter, sans-serif', fontWeight: 500 }}>
-                    Run AI that survives failure<br />
-                    <span className="mt-1 md:mt-2 block">and proves what it did.</span>
-                  </h1>
-                </div>
-                <div className="text-left md:text-right" style={{ maxWidth: '250px' }}>
-                  <p className="text-xs md:text-lg" style={{ color: '#e5e5e5', fontFamily: '-apple-system, BlinkMacSystemFont, "Segoe UI", Roboto, Helvetica, Arial, sans-serif', fontWeight: 400 }}>
-                    Deterministic runtime. Cloud + local fallback. OS-level containment with signed violation logs. Deploy anywhere.
-                  </p>
-                </div>
+            {/* Title and subtext - above image */}
+            <div className="flex flex-col md:flex-row md:items-start md:justify-between gap-3 md:gap-4 mb-6 md:mb-10">
+              <div className="text-left">
+                <h1 className="text-lg md:text-3xl lg:text-4xl mb-1 md:mb-2 leading-tight" style={{ color: '#000000', fontFamily: 'Inter, sans-serif', fontWeight: 500 }}>
+                  Run AI that survives failure<br />
+                  <span className="mt-1 md:mt-2 block">and proves what it did.</span>
+                </h1>
+              </div>
+              <div className="text-left md:text-right" style={{ maxWidth: '250px' }}>
+                <p className="text-xs md:text-lg" style={{ color: '#000000', fontFamily: '-apple-system, BlinkMacSystemFont, "Segoe UI", Roboto, Helvetica, Arial, sans-serif', fontWeight: 400 }}>
+                  Deterministic runtime. Cloud + local fallback. OS-level containment with signed violation logs. Deploy anywhere.
+                </p>
               </div>
             </div>
 
+            {/* Image with frame */}
+            <div className="rounded-xl overflow-hidden relative border" style={{ height: 'auto', minHeight: '400px', maxHeight: '1000px', borderColor: 'rgba(209,213,219,0.35)', padding: '16px' }}>
+              <img src="/lhjk.png" alt="Hero" className="h-full w-full object-cover rounded-xl" style={{ minHeight: '400px', maxHeight: '1000px' }} />
+            </div>
+
             {/* Install command - below image */}
-            <div className="flex justify-center px-2 md:px-0">
+            <div className="flex justify-center px-2 md:px-0 mt-6 md:mt-10">
               <div
-                className="inline-flex items-center gap-2 md:gap-3 rounded-lg px-4 py-2.5 md:px-8 md:py-4 text-sm md:text-lg border shadow w-full md:w-auto justify-center"
+                className="inline-flex items-center gap-2 md:gap-3 rounded-2xl px-4 py-2.5 md:px-8 md:py-4 text-sm md:text-lg border shadow w-full md:w-auto justify-center"
                 style={{
                   backgroundColor: mounted && theme === 'dark' ? '#1b1912' : '#ffffff',
                   borderColor: mounted && theme === 'dark' ? 'rgba(246,246,244,0.08)' : 'rgba(0,0,0,0.1)',

@@ -20,8 +20,8 @@ export default function HeroInertial() {
         alt="Saturn"
         className="object-contain"
         style={{
-          width: '85%',
-          height: '85%',
+          width: '70%',
+          height: '70%',
           opacity: 0.7
         }}
       />
