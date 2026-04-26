@@ -3132,125 +3132,68 @@ async fn execute_agent_step_stream(
         }
     };
 
-    let (mut stream, provider_name) =
-        match do_route_stream(state.clone(), prompt, step.mode.as_deref()).await {
-            Ok(result) => result,
-            Err(e) => {
-                let _ = wal.write_failed(wal_entry_id, e.to_string());
-                return Err(StreamFailureResult {
-                    response: TaskSubmitResponse {
-                        task_id: req.task_id,
-                        steps_completed: 0,
-                        steps_total: 1,
-                        status: TaskStatus::Failed {
-                            reason: format!("Step {} failed: {}", step.step_index, e),
-                        },
-                        checkpoint: None,
-                        final_output: None,
-                        usage: None,
-                        failure_details: Some(runtime_execution_failure_details(
-                            "step_failed",
-                            e.to_string(),
-                            Some(step_wrapper),
-                        )),
-                        execution_envelope: None,
-                        execution_receipt: None,
+    let route = match execute_contained_agent_route(
+        &state,
+        prompt,
+        step.mode.as_deref(),
+        req.containment.as_ref(),
+        max_tick_ms,
+    )
+    .await
+    {
+        Ok(result) => result,
+        Err(e) => {
+            let _ = wal.write_failed(wal_entry_id, e.to_string());
+            return Err(StreamFailureResult {
+                response: TaskSubmitResponse {
+                    task_id: req.task_id,
+                    steps_completed: 0,
+                    steps_total: 1,
+                    status: TaskStatus::Failed {
+                        reason: format!("Step {} failed: {}", step.step_index, e),
                     },
-                    client_message: e.to_string(),
-                });
-            }
-        };
-
-    let timeout = tokio::time::sleep(Duration::from_millis(max_tick_ms));
-    tokio::pin!(timeout);
-    let mut content = String::new();
-
-    loop {
-        let next_chunk = tokio::select! {
-            changed = cancel_rx.changed() => {
-                if changed.is_ok() && is_task_canceled(cancel_rx) {
-                    let reason = task_cancellation_reason(req.task_id);
-                    let _ = wal.write_failed(wal_entry_id, reason.clone());
-                    return Err(StreamFailureResult {
-                        response: TaskSubmitResponse {
-                            task_id: req.task_id,
-                            steps_completed: 0,
-                            steps_total: 1,
-                            status: TaskStatus::Failed { reason: reason.clone() },
-                            checkpoint: None,
-                            final_output: None,
-                            usage: None,
-                            failure_details: Some(runtime_execution_failure_details(
-                                "task_canceled",
-                                reason.clone(),
-                                Some(step_wrapper),
-                            )),
-                            execution_envelope: None,
-                            execution_receipt: None,
-                        },
-                        client_message: reason,
-                    });
-                }
-                continue;
-            }
-            _ = &mut timeout => {
-                let reason = format!("timeout after {}ms", max_tick_ms);
-                let _ = wal.write_failed(wal_entry_id, reason.clone());
-                return Err(StreamFailureResult {
-                    response: TaskSubmitResponse {
-                        task_id: req.task_id,
-                        steps_completed: 0,
-                        steps_total: 1,
-                        status: TaskStatus::Failed { reason: format!("Step {} failed: {}", step.step_index, reason) },
-                        checkpoint: None,
-                        final_output: None,
-                        usage: None,
-                        failure_details: Some(runtime_execution_failure_details(
-                            "timeout",
-                            reason.clone(),
-                            Some(step_wrapper),
-                        )),
-                        execution_envelope: None,
-                        execution_receipt: None,
-                    },
-                    client_message: reason,
-                });
-            }
-            next = stream.next() => next,
-        };
-
-        match next_chunk {
-            Some(Ok(chunk)) => {
-                content.push_str(&chunk);
-                let _ = tx.send(Ok(chat_chunk_event(&step.model, &chunk)));
-            }
-            Some(Err(e)) => {
-                let reason = e.to_string();
-                let _ = wal.write_failed(wal_entry_id, reason.clone());
-                return Err(StreamFailureResult {
-                    response: TaskSubmitResponse {
-                        task_id: req.task_id,
-                        steps_completed: 0,
-                        steps_total: 1,
-                        status: TaskStatus::Failed {
-                            reason: format!("Step {} failed: {}", step.step_index, reason),
-                        },
-                        checkpoint: None,
-                        final_output: None,
-                        usage: None,
-                        failure_details: Some(runtime_execution_failure_details(
-                            "step_failed",
-                            reason.clone(),
-                            Some(step_wrapper),
-                        )),
-                        execution_envelope: None,
-                        execution_receipt: None,
-                    },
-                    client_message: reason,
-                });
-            }
-            None => break,
+                    checkpoint: None,
+                    final_output: None,
+                    usage: None,
+                    failure_details: Some(runtime_execution_failure_details(
+                        "step_failed",
+                        e.to_string(),
+                        Some(step_wrapper),
+                    )),
+                    execution_envelope: None,
+                    execution_receipt: None,
+                },
+                client_message: e.to_string(),
+            });
         }
+    };
+    let provider_name = route.provider;
+    let content = route.content;
+    for chunk in synthetic_stream_chunks(&content) {
+        if is_task_canceled(cancel_rx) {
+            let reason = task_cancellation_reason(req.task_id);
+            let _ = wal.write_failed(wal_entry_id, reason.clone());
+            return Err(StreamFailureResult {
+                response: TaskSubmitResponse {
+                    task_id: req.task_id,
+                    steps_completed: 0,
+                    steps_total: 1,
+                    status: TaskStatus::Failed { reason: reason.clone() },
+                    checkpoint: None,
+                    final_output: None,
+                    usage: None,
+                    failure_details: Some(runtime_execution_failure_details(
+                        "task_canceled",
+                        reason.clone(),
+                        Some(step_wrapper),
+                    )),
+                    execution_envelope: None,
+                    execution_receipt: None,
+                },
+                client_message: reason,
+            });
+        }
+        let _ = tx.send(Ok(chat_chunk_event(&step.model, &chunk)));
     }
 
     if wall_start.elapsed().as_millis() as u64 > deadline_ms {
@@ -3493,7 +3436,47 @@ async fn execute_agent_step(
     )
     .await?;
     let prompt = prepare_agent_prompt(&state, task_id, step, base_prompt.clone()).await?;
+    let route_result = execute_contained_agent_route(
+        &state,
+        prompt,
+        step.mode.as_deref(),
+        containment,
+        max_tick_ms,
+    )
+    .await?;
+    let content = route_result.content;
+    let provider_name = route_result.provider;
+    maybe_store_agent_memory(&state, task_id, step, &base_prompt, &content).await?;
+    Ok(StepExecutionResult {
+        usage: ExecuteUsage {
+            prompt_tokens: resolved_messages
+                .iter()
+                .map(|message| token_estimate(&message.content))
+                .sum(),
+            completion_tokens: token_estimate(&content),
+            total_tokens: resolved_messages
+                .iter()
+                .map(|message| token_estimate(&message.content))
+                .sum::<u32>()
+                + token_estimate(&content),
+        },
+        output_text: content,
+        provider_name,
+        graph_output: None,
+        checkpoint_metadata: None,
+        checkpoint_requested: false,
+    })
+}
 
+async fn execute_contained_agent_route(
+    state: &AppState,
+    prompt: String,
+    mode: Option<&str>,
+    containment: Option<&Bounds>,
+    max_tick_ms: u64,
+) -> anyhow::Result<WorkerExecuteResult> {
+    let (route_plan, thompson_provider_id) =
+        crate::runtime_execute::build_worker_routing_plan(state, mode).await?;
     let log_path = std::env::var("IGRIS_VIOLATIONS_LOG")
         .unwrap_or_else(|_| "./igris_violations.jsonl".to_string());
     let containment_bounds = SafetyBounds::new(
@@ -3505,14 +3488,20 @@ async fn execute_agent_step(
         use rand::rngs::OsRng;
         Arc::new(ed25519_dalek::SigningKey::generate(&mut OsRng))
     });
-    let mut guard = ContainmentGuard::new(containment_bounds, (*signing_key).clone(), log_path);
-
+    let mut guard = ContainmentGuard::new_with_bus(
+        containment_bounds,
+        (*signing_key).clone(),
+        log_path,
+        state.violation_bus.clone(),
+    );
+    let started_at = Instant::now();
     let route_result = guard
         .execute(
             serde_json::to_value(WorkerExecuteJob {
                 kind: "route".to_string(),
                 prompt: Some(prompt),
-                mode: step.mode.clone(),
+                mode: mode.map(str::to_string),
+                route_plan: Some(route_plan),
                 test_delay_ms: None,
                 test_response_content: None,
                 test_response_provider: None,
@@ -3521,14 +3510,31 @@ async fn execute_agent_step(
         )
         .await;
 
+    let update_thompson = |success: bool| async move {
+        if let Some(provider_id) = thompson_provider_id.as_deref() {
+            let _ = state
+                .thompson_router
+                .update_reward(
+                    provider_id,
+                    started_at.elapsed().as_millis() as f64,
+                    success,
+                    0.0,
+                )
+                .await;
+        }
+    };
+
     match route_result {
         Ok(worker_result) => {
             if worker_result.get("status").and_then(|value| value.as_str()) != Some("ok") {
-                let error_message = worker_result
-                    .get("error")
-                    .and_then(|value| value.as_str())
-                    .unwrap_or("worker execution failed");
-                anyhow::bail!(error_message.to_string());
+                update_thompson(false).await;
+                anyhow::bail!(
+                    "{}",
+                    worker_result
+                        .get("error")
+                        .and_then(|value| value.as_str())
+                        .unwrap_or("worker execution failed")
+                );
             }
 
             let parsed_result: WorkerExecuteResult = serde_json::from_value(
@@ -3538,38 +3544,65 @@ async fn execute_agent_step(
                     .unwrap_or_else(|| serde_json::json!({})),
             )
             .map_err(|e| anyhow::anyhow!("invalid worker result: {}", e))?;
-            let content = parsed_result.content;
-            let provider_name = parsed_result.provider;
-            maybe_store_agent_memory(&state, task_id, step, &base_prompt, &content).await?;
-            Ok(StepExecutionResult {
-                usage: ExecuteUsage {
-                    prompt_tokens: resolved_messages
-                        .iter()
-                        .map(|message| token_estimate(&message.content))
-                        .sum(),
-                    completion_tokens: token_estimate(&content),
-                    total_tokens: resolved_messages
-                        .iter()
-                        .map(|message| token_estimate(&message.content))
-                        .sum::<u32>()
-                        + token_estimate(&content),
-                },
-                output_text: content,
-                provider_name,
-                graph_output: None,
-                checkpoint_metadata: None,
-                checkpoint_requested: false,
-            })
+            update_thompson(true).await;
+            Ok(parsed_result)
         }
-        Err(kind) => anyhow::bail!(
-            "containment violation: {} after {}ms",
-            match kind {
-                igris_safety::ViolationKind::Time => "time",
-                igris_safety::ViolationKind::Cpu => "cpu",
-            },
-            max_tick_ms
-        ),
+        Err(kind) => {
+            update_thompson(false).await;
+            anyhow::bail!(
+                "containment violation: {} after {}ms",
+                match kind {
+                    igris_safety::ViolationKind::Time => "time",
+                    igris_safety::ViolationKind::Cpu => "cpu",
+                },
+                max_tick_ms
+            )
+        }
     }
+}
+
+fn synthetic_stream_chunks(content: &str) -> Vec<String> {
+    const CHUNK_CHARS: usize = 32;
+    let chars: Vec<char> = content.chars().collect();
+    if chars.is_empty() {
+        return vec![String::new()];
+    }
+    chars
+        .chunks(CHUNK_CHARS)
+        .map(|chunk| chunk.iter().collect())
+        .collect()
+}
+
+async fn emit_robotics_timeout_violation(
+    state: &AppState,
+    task_id: Uuid,
+    tenant_id: &str,
+    action: &str,
+    timeout_ms: u64,
+    goal_id: Option<String>,
+    current_pose: Option<[f64; 3]>,
+    velocity: Option<[f64; 2]>,
+) {
+    let Some(signing_key) = state.signing_key.as_ref() else {
+        return;
+    };
+
+    let record = igris_safety::ViolationRecord::new_with_robotics(
+        igris_safety::ViolationKind::Time,
+        serde_json::json!({
+            "task_id": task_id,
+            "tenant_id": tenant_id,
+            "action": action,
+            "timeout_ms": timeout_ms,
+        }),
+        String::new(),
+        signing_key.as_ref(),
+        igris_safety::RoboticsContext::emergency_halt(goal_id, current_pose, velocity),
+    );
+    let log_path = std::env::var("IGRIS_VIOLATIONS_LOG")
+        .unwrap_or_else(|_| "./igris_violations.jsonl".to_string());
+    let _ = record.append_to_log(&log_path);
+    state.violation_bus.emit_violation(record);
 }
 
 async fn execute_robotics_step(
@@ -3652,13 +3685,35 @@ async fn execute_robotics_step(
                     .await?;
 
                 let timeout_ms = wait_timeout_ms.unwrap_or(max_tick_ms);
-                let nav_state =
-                    tokio::time::timeout(Duration::from_millis(timeout_ms), handle.wait())
-                        .await
-                        .map_err(|_| {
-                            anyhow::anyhow!("navigation timed out after {}ms", timeout_ms)
-                        })??;
                 let goal_id = handle.goal_id().await;
+                let nav_state = match tokio::time::timeout(
+                    Duration::from_millis(timeout_ms),
+                    handle.wait(),
+                )
+                .await
+                {
+                    Ok(result) => result?,
+                    Err(_) => {
+                        let feedback = handle.feedback().await;
+                        let velocity = manager.node().last_velocity().await;
+                        emit_robotics_timeout_violation(
+                            &state,
+                            task_id,
+                            tenant_id,
+                            "navigate_to_pose",
+                            timeout_ms,
+                            Some(goal_id.clone()),
+                            Some([
+                                feedback.current_pose.0,
+                                feedback.current_pose.1,
+                                feedback.current_pose.2,
+                            ]),
+                            Some(velocity),
+                        )
+                        .await;
+                        anyhow::bail!("navigation timed out after {}ms", timeout_ms);
+                    }
+                };
                 let feedback = handle.feedback().await;
 
                 match nav_state {
