@@ -3946,7 +3946,10 @@ fn effective_required_capabilities(req: &TaskSubmitRequest) -> Vec<String> {
 fn derived_task_capabilities(task_type: &TaskType) -> Vec<String> {
     let mut capabilities = std::collections::BTreeSet::new();
     let steps = match task_type {
-        TaskType::BehaviorTree { .. } => return Vec::new(),
+        TaskType::BehaviorTree { .. } => {
+            capabilities.insert("behavior_tree.execute".to_string());
+            return capabilities.into_iter().collect();
+        }
         _ => materialize_execution_graph(task_type)
             .and_then(|graph| compile_execution_graph_to_steps(&graph))
             .unwrap_or_default(),
@@ -4196,7 +4199,20 @@ fn step_required_capabilities(step: &RuntimeTaskStep) -> Vec<String> {
                 capabilities.insert("human.approval".to_string());
             }
         }
-        RuntimeTaskStep::Robotics(_) | RuntimeTaskStep::BehaviorTree(_) => {}
+        RuntimeTaskStep::Robotics(robotics_step) => {
+            capabilities.insert("robotics.execute".to_string());
+            if robotics_step
+                .approval
+                .as_ref()
+                .map(approval_requires_capability)
+                .unwrap_or(false)
+            {
+                capabilities.insert("human.approval".to_string());
+            }
+        }
+        RuntimeTaskStep::BehaviorTree(_) => {
+            capabilities.insert("behavior_tree.execute".to_string());
+        }
     }
     capabilities.into_iter().collect()
 }
