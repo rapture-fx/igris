@@ -1016,12 +1016,13 @@ impl RuntimeRegistrationClient {
             .send()
             .await
             .map_err(|e| anyhow!("Command ack request failed: {}", e))?;
-        if !resp.status().is_success() {
+        let status = resp.status();
+        if !status.is_success() {
             let body = resp
                 .text()
                 .await
                 .unwrap_or_else(|_| "unable to read ack response".to_string());
-            return Err(anyhow!("Command ack error ({}): {}", resp.status(), body));
+            return Err(anyhow!("Command ack error ({}): {}", status, body));
         }
         Ok(())
     }
