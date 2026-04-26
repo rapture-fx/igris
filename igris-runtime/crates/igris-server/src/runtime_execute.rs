@@ -23,7 +23,7 @@ use uuid::Uuid;
 use crate::{AppState, CloudProviderWrapper};
 use igris_routing::{
     cloud_provider::CloudProvider, local_provider::LocalProvider, CouncilRouter,
-    Provider, speculative::SpeculativeRouter, thompson::ThompsonSamplingRouter,
+    Provider, speculative::SpeculativeRouter,
 };
 use igris_safety::{
     Bounds as SafetyBounds, ContainmentGuard, ViolationKind as SafetyViolationKind,
@@ -42,8 +42,6 @@ pub type PeerRegistry = Arc<RwLock<HashMap<String, PeerEntry>>>;
 #[derive(Clone)]
 pub struct RouteExecutionContext {
     pub speculative_router: Arc<SpeculativeRouter>,
-    pub thompson_router: Arc<ThompsonSamplingRouter>,
-    pub council_router: Arc<CouncilRouter>,
     pub cloud_providers: Arc<Vec<CloudProvider>>,
     pub local_provider: Option<Arc<LocalProvider>>,
 }
@@ -883,8 +881,6 @@ pub(crate) async fn build_worker_routing_plan(
         | WorkerExecutionMode::Cost => {
             let route_context = RouteExecutionContext {
                 speculative_router: state.speculative_router.clone(),
-                thompson_router: state.thompson_router.clone(),
-                council_router: state.council_router.clone(),
                 cloud_providers: state.cloud_providers.clone(),
                 local_provider: state.local_provider.clone(),
             };
@@ -923,8 +919,6 @@ pub(crate) async fn build_worker_routing_plan(
         WorkerExecutionMode::Council => {
             let route_context = RouteExecutionContext {
                 speculative_router: state.speculative_router.clone(),
-                thompson_router: state.thompson_router.clone(),
-                council_router: state.council_router.clone(),
                 cloud_providers: state.cloud_providers.clone(),
                 local_provider: state.local_provider.clone(),
             };
