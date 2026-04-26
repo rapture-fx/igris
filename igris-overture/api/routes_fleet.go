@@ -7,10 +7,10 @@ import (
 	"strconv"
 	"time"
 
-	"github.com/gofiber/fiber/v2"
-	"github.com/google/uuid"
 	"github.com/Igris-inertial/system/igris-overture/middleware"
 	"github.com/Igris-inertial/system/igris-overture/security"
+	"github.com/gofiber/fiber/v2"
+	"github.com/google/uuid"
 )
 
 // FleetConfig holds fleet-related configuration
@@ -28,8 +28,8 @@ type RegisterRequest struct {
 	Capabilities []string          `json:"capabilities"`
 	Location     *string           `json:"location,omitempty"`
 	Metadata     map[string]string `json:"metadata,omitempty"`
-	PublicKey    string            `json:"public_key"`  // Base64-encoded Ed25519 public key
-	Signature    string            `json:"signature"`   // Base64-encoded Ed25519 signature
+	PublicKey    string            `json:"public_key"` // Base64-encoded Ed25519 public key
+	Signature    string            `json:"signature"`  // Base64-encoded Ed25519 signature
 }
 
 // RegisterResponse represents registration response
@@ -42,12 +42,12 @@ type RegisterResponse struct {
 
 // TelemetryData represents telemetry payload from agent
 type TelemetryData struct {
-	AgentID    string             `json:"agent_id"`
-	Timestamp  int64              `json:"timestamp"`
-	Metrics    map[string]float64 `json:"metrics"`
-	Logs       []LogEntry         `json:"logs"`
-	Status     AgentStatus        `json:"status"`
-	Signature  *string            `json:"signature,omitempty"` // Base64-encoded Ed25519 signature
+	AgentID   string             `json:"agent_id"`
+	Timestamp int64              `json:"timestamp"`
+	Metrics   map[string]float64 `json:"metrics"`
+	Logs      []LogEntry         `json:"logs"`
+	Status    AgentStatus        `json:"status"`
+	Signature *string            `json:"signature,omitempty"` // Base64-encoded Ed25519 signature
 }
 
 // LogEntry represents a log entry
@@ -60,11 +60,11 @@ type LogEntry struct {
 
 // AgentStatus represents agent health status
 type AgentStatus struct {
-	Health           string  `json:"health"`
-	UptimeSecs       int64   `json:"uptime_secs"`
-	CPUUsagePercent  float32 `json:"cpu_usage_percent"`
-	MemoryUsageMB    int64   `json:"memory_usage_mb"`
-	ActiveTasks      int32   `json:"active_tasks"`
+	Health          string  `json:"health"`
+	UptimeSecs      int64   `json:"uptime_secs"`
+	CPUUsagePercent float32 `json:"cpu_usage_percent"`
+	MemoryUsageMB   int64   `json:"memory_usage_mb"`
+	ActiveTasks     int32   `json:"active_tasks"`
 }
 
 // ConfigSyncResponse represents configuration sync response
@@ -1047,11 +1047,11 @@ func RegisterROSRoutes(app *fiber.App, db *sql.DB) {
 		}
 
 		validActions := map[string]bool{
-			"configure":   true,
-			"activate":    true,
-			"deactivate":  true,
-			"reset":       true,
-			"shutdown":    true,
+			"configure":  true,
+			"activate":   true,
+			"deactivate": true,
+			"reset":      true,
+			"shutdown":   true,
 		}
 		if !validActions[body.Action] {
 			return c.Status(fiber.StatusBadRequest).JSON(fiber.Map{
@@ -1122,10 +1122,10 @@ func getSwarmStatus(db *sql.DB) fiber.Handler {
 		defer rows.Close()
 
 		type SwarmAgent struct {
-			ID                  string `json:"id"`
-			Name                string `json:"name"`
-			Status              string `json:"status"`
-			LastHeartbeat       string `json:"last_heartbeat"`
+			ID                   string `json:"id"`
+			Name                 string `json:"name"`
+			Status               string `json:"status"`
+			LastHeartbeat        string `json:"last_heartbeat"`
 			PendingCommandsCount int    `json:"pending_commands_count"`
 		}
 
@@ -1275,9 +1275,9 @@ func unmapROSTopic(db *sql.DB) fiber.Handler {
 // ROSDiscoveryEntry represents a single discovered ROS topic or service.
 type ROSDiscoveryEntry struct {
 	Name       string `json:"name"`
-	Kind       string `json:"kind"`       // "topic" | "service"
+	Kind       string `json:"kind"` // "topic" | "service"
 	MsgType    string `json:"msg_type"`
-	Direction  string `json:"direction"`  // "pub" | "sub" | "srv" | "unknown"
+	Direction  string `json:"direction"` // "pub" | "sub" | "srv" | "unknown"
 	LastSeenAt string `json:"last_seen_at,omitempty"`
 }
 
@@ -1455,8 +1455,8 @@ func swarmBroadcast(db *sql.DB) fiber.Handler {
 		// Build the command JSON to append
 		cmdJSON, err := json.Marshal(map[string]interface{}{
 			"command_id": uuid.NewString(),
-			"type":    body.Command,
-			"payload": payload,
+			"type":       body.Command,
+			"payload":    payload,
 		})
 		if err != nil {
 			return c.Status(fiber.StatusInternalServerError).JSON(fiber.Map{"error": "internal_error"})
