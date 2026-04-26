@@ -1970,7 +1970,11 @@ func (s *CheckpointStore) GetTask(taskID uuid.UUID, tenantID string) (*TaskRecor
 		WHERE task_id = $1 AND tenant_id = $2`,
 		taskID, tenantID,
 	)
-	return scanTaskRecord(row)
+	task, err := scanTaskRecord(row)
+	if err != nil {
+		return nil, err
+	}
+	return s.hydrateTaskPermissionEnvelope(task)
 }
 
 // GetTaskByIdempotencyKey returns a task record by tenant and idempotency key.
@@ -1985,7 +1989,11 @@ func (s *CheckpointStore) GetTaskByIdempotencyKey(tenantID, idempotencyKey strin
 		WHERE tenant_id = $1 AND idempotency_key = $2`,
 		tenantID, idempotencyKey,
 	)
-	return scanTaskRecord(row)
+	task, err := scanTaskRecord(row)
+	if err != nil {
+		return nil, err
+	}
+	return s.hydrateTaskPermissionEnvelope(task)
 }
 
 // GetTasksByTenant returns recent tasks for a tenant.
@@ -2011,6 +2019,9 @@ func (s *CheckpointStore) GetTasksByTenant(tenantID string, limit int) ([]*TaskR
 	for rows.Next() {
 		t, err := scanTaskRecord(rows)
 		if err != nil {
+			return nil, err
+		}
+		if t, err = s.hydrateTaskPermissionEnvelope(t); err != nil {
 			return nil, err
 		}
 		tasks = append(tasks, t)
@@ -2107,9 +2118,58 @@ func (s *CheckpointStore) GetRecoveringTasks() ([]*TaskRecord, error) {
 		if err != nil {
 			return nil, err
 		}
+		if t, err = s.hydrateTaskPermissionEnvelope(t); err != nil {
+			return nil, err
+		}
 		tasks = append(tasks, t)
 	}
 	return tasks, rows.Err()
+}
+
+func (s *CheckpointStore) hydrateTaskPermissionEnvelope(task *TaskRecord) (*TaskRecord, error) {
+	if task == nil || task.PermissionEnvelope != nil {
+		return task, nil
+	}
+
+	envelope, err := s.LoadLatestTaskPermissionEnvelope(task.TaskID)
+	if err != nil {
+		if errors.Is(err, sql.ErrNoRows) {
+			return task, nil
+		}
+		return nil, err
+	}
+	task.PermissionEnvelope = envelope
+	if len(task.RequiredCapabilities) == 0 && len(envelope.RequiredCapabilities) > 0 {
+		task.RequiredCapabilities = append([]string(nil), envelope.RequiredCapabilities...)
+	}
+	if agentIdentityEmpty(task.AgentIdentity) && !agentIdentityEmpty(envelope.AgentIdentity) {
+		task.AgentIdentity = envelope.AgentIdentity
+	}
+	return task, nil
+}
+
+func (s *CheckpointStore) LoadLatestTaskPermissionEnvelope(taskID uuid.UUID) (*TaskPermissionEnvelope, error) {
+	var raw []byte
+	err := s.db.QueryRow(`
+		SELECT permission_envelope
+		FROM ai_task_permission_audit
+		WHERE task_id = $1
+		ORDER BY issued_at_unix_ms DESC, persisted_at DESC
+		LIMIT 1`,
+		taskID,
+	).Scan(&raw)
+	if err != nil {
+		return nil, err
+	}
+	if len(raw) == 0 {
+		return nil, sql.ErrNoRows
+	}
+
+	var envelope TaskPermissionEnvelope
+	if err := json.Unmarshal(raw, &envelope); err != nil {
+		return nil, fmt.Errorf("decode task permission envelope: %w", err)
+	}
+	return &envelope, nil
 }
 
 // scanner abstracts sql.Row and sql.Rows for scanTaskRecord.
