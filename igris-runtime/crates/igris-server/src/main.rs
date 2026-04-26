@@ -15,7 +15,7 @@ use std::convert::Infallible;
 use std::fs::{self, OpenOptions};
 use std::io::Write;
 use std::net::SocketAddr;
-use std::path::{Path, PathBuf};
+use std::path::{Path as StdPath, PathBuf};
 use std::sync::Arc;
 use tokio::io::{AsyncBufReadExt, AsyncWriteExt};
 use tower_http::cors::CorsLayer;
@@ -231,7 +231,7 @@ fn runtime_command_deadletter_path() -> PathBuf {
 }
 
 fn persist_runtime_command_spool(
-    path: &Path,
+    path: &StdPath,
     commands: &[igris_license_client::PendingRuntimeCommand],
 ) -> anyhow::Result<()> {
     if let Some(parent) = path.parent() {
@@ -247,7 +247,7 @@ fn persist_runtime_command_spool(
 }
 
 fn load_runtime_command_spool(
-    path: &Path,
+    path: &StdPath,
 ) -> anyhow::Result<Vec<igris_license_client::PendingRuntimeCommand>> {
     if !path.exists() {
         return Ok(Vec::new());
@@ -260,7 +260,7 @@ fn load_runtime_command_spool(
 }
 
 fn append_runtime_command_deadletter(
-    path: &Path,
+    path: &StdPath,
     machine_id: &str,
     command: &igris_license_client::PendingRuntimeCommand,
     reason: &str,
@@ -271,7 +271,12 @@ fn append_runtime_command_deadletter(
         }
     }
     let record = RuntimeCommandDeadLetter {
-        recorded_at: chrono::Utc::now().to_rfc3339(),
+        recorded_at: format!(
+            "{}",
+            std::time::SystemTime::now()
+                .duration_since(std::time::UNIX_EPOCH)?
+                .as_millis()
+        ),
         machine_id: machine_id.to_string(),
         reason: reason.to_string(),
         command: command.clone(),
@@ -445,8 +450,8 @@ async fn process_runtime_command(
 async fn drain_runtime_command_spool(
     state: &AppState,
     machine_id: &str,
-    spool_path: &Path,
-    deadletter_path: &Path,
+    spool_path: &StdPath,
+    deadletter_path: &StdPath,
 ) -> anyhow::Result<bool> {
     let mut commands = load_runtime_command_spool(spool_path)?;
     if commands.is_empty() {
