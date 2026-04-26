@@ -13,12 +13,11 @@ use axum::{
 };
 use base64::Engine;
 use ed25519_dalek::{Signer, Verifier};
-use futures::{stream, Stream, StreamExt};
+use futures::Stream;
 use serde::{Deserialize, Serialize};
 use sha2::{Digest, Sha256};
 use std::collections::{BTreeMap, HashMap};
 use std::convert::Infallible;
-use std::pin::Pin;
 use std::time::{Duration, Instant, SystemTime, UNIX_EPOCH};
 use tokio::sync::watch;
 use tracing::{error, info, warn};
@@ -31,7 +30,6 @@ use igris_btree::{
     runtime::{BTreeExecutor, ExecutionResult, ExecutorConfig},
 };
 use igris_core::storage::{TASK_SUBMISSIONS, TASK_SUBMISSION_STATUS_BY_TASK_ID};
-use igris_routing::Provider;
 use igris_safety::{Bounds as SafetyBounds, ContainmentGuard};
 use igris_wal::{CheckpointPayload, ResumeToken, StepType, WalEntry, WalLog};
 use std::sync::Arc;
@@ -41,7 +39,7 @@ use crate::runtime_execute::{
     canonical_envelope_bytes, iso8601_now, token_estimate, Bounds, ExecuteMessage, ExecuteUsage,
     ExecutionEnvelope, WorkerExecuteJob, WorkerExecuteResult,
 };
-use crate::{AppState, CloudProviderWrapper};
+use crate::AppState;
 
 #[derive(Debug, Clone, Serialize, Deserialize)]
 pub struct AgentMemoryOptions {
@@ -3334,6 +3332,7 @@ fn synthetic_stream_chunks(content: &str) -> Vec<String> {
         .collect()
 }
 
+#[cfg(feature = "robotics-platform")]
 async fn emit_robotics_timeout_violation(
     state: &AppState,
     task_id: Uuid,
