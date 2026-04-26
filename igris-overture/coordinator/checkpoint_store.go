@@ -2116,6 +2116,9 @@ func (s *CheckpointStore) HydrateTaskPermissionEnvelope(task *TaskRecord) (*Task
 	if task == nil || task.PermissionEnvelope != nil {
 		return task, nil
 	}
+	if len(task.RequiredCapabilities) == 0 || loadOvertureSigningKey() == nil {
+		return task, nil
+	}
 
 	envelope, err := s.LoadLatestTaskPermissionEnvelope(task.TaskID)
 	if err != nil {
