@@ -2237,105 +2237,6 @@ fn normalize_agent_mode(mode: Option<&str>) -> anyhow::Result<AgentExecutionMode
     }
 }
 
-fn provider_score_for_mode(provider: &CloudProviderWrapper, mode: AgentExecutionMode) -> f64 {
-    let average_cost = provider.0.average_cost_per_1k();
-    let fast = provider.0.has_capability("fast") as i32 as f64;
-    let reasoning = provider.0.has_capability("reasoning") as i32 as f64;
-    let coding = provider.0.has_capability("coding") as i32 as f64;
-    let long_context = provider.0.has_capability("long_context") as i32 as f64;
-    let cost_effective = provider.0.has_capability("cost_effective") as i32 as f64;
-    let realtime = provider.0.has_capability("realtime") as i32 as f64;
-    let premium_name = (provider.0.id().contains("opus")
-        || provider.0.id().contains("gpt4")
-        || provider.0.id().contains("sonnet")
-        || provider.0.id().contains("large")
-        || provider.0.id().contains("pro")) as i32 as f64;
-
-    match mode {
-        AgentExecutionMode::Default | AgentExecutionMode::Latency => {
-            fast * 12.0 + realtime * 8.0 + cost_effective * 4.0 - average_cost * 250.0
-        }
-        AgentExecutionMode::Balanced => {
-            fast * 6.0 + reasoning * 7.0 + coding * 3.0 + long_context * 2.0 + cost_effective * 4.0
-                - average_cost * 140.0
-        }
-        AgentExecutionMode::Quality => {
-            reasoning * 12.0 + coding * 6.0 + long_context * 5.0 + premium_name * 4.0
-                - average_cost * 45.0
-        }
-        AgentExecutionMode::Cost => {
-            cost_effective * 12.0 + fast * 3.0 + realtime * 2.0 - average_cost * 600.0
-        }
-        AgentExecutionMode::Thompson | AgentExecutionMode::Council => 0.0,
-    }
-}
-
-fn ranked_cloud_providers(state: &AppState, mode: AgentExecutionMode) -> Vec<CloudProviderWrapper> {
-    let mut providers: Vec<CloudProviderWrapper> = state
-        .cloud_providers
-        .iter()
-        .map(|provider| CloudProviderWrapper(provider.clone()))
-        .collect();
-
-    if matches!(
-        mode,
-        AgentExecutionMode::Default
-            | AgentExecutionMode::Latency
-            | AgentExecutionMode::Balanced
-            | AgentExecutionMode::Quality
-            | AgentExecutionMode::Cost
-    ) {
-        providers.sort_by(|left, right| {
-            provider_score_for_mode(right, mode)
-                .partial_cmp(&provider_score_for_mode(left, mode))
-                .unwrap_or(std::cmp::Ordering::Equal)
-        });
-    }
-
-    providers.truncate(3);
-    providers
-}
-
-async fn select_thompson_provider(state: &AppState) -> Option<CloudProviderWrapper> {
-    if state.cloud_providers.is_empty() {
-        return None;
-    }
-
-    let selected_id = state.thompson_router.select_provider().await.ok();
-    if let Some(selected_id) = selected_id {
-        if let Some(provider) = state
-            .cloud_providers
-            .iter()
-            .find(|provider| provider.id() == selected_id)
-        {
-            return Some(CloudProviderWrapper(provider.clone()));
-        }
-    }
-
-    state
-        .cloud_providers
-        .first()
-        .cloned()
-        .map(CloudProviderWrapper)
-}
-
-async fn update_thompson_reward(
-    state: &AppState,
-    provider_id: &str,
-    started_at: Instant,
-    success: bool,
-) {
-    let _ = state
-        .thompson_router
-        .update_reward(
-            provider_id,
-            started_at.elapsed().as_millis() as f64,
-            success,
-            0.0,
-        )
-        .await;
-}
-
 fn materialize_execution_graph(task_type: &TaskType) -> anyhow::Result<ExecutionGraph> {
     match task_type {
         TaskType::ExecutionGraph { graph } => Ok(graph.clone()),
@@ -2861,150 +2762,6 @@ fn attach_graph_blackboard_metadata(
     }
 }
 
-async fn do_route(
-    state: AppState,
-    prompt: String,
-    mode: Option<&str>,
-) -> anyhow::Result<(String, String)> {
-    use igris_routing::Provider;
-
-    let execution_mode = normalize_agent_mode(mode)?;
-
-    if !state.cloud_providers.is_empty() {
-        match execution_mode {
-            AgentExecutionMode::Default
-            | AgentExecutionMode::Latency
-            | AgentExecutionMode::Balanced
-            | AgentExecutionMode::Quality
-            | AgentExecutionMode::Cost => {
-                let providers = ranked_cloud_providers(&state, execution_mode);
-                if let Ok(result) = state.speculative_router.route(&prompt, providers).await {
-                    return Ok((result.response, result.winner_id));
-                }
-            }
-            AgentExecutionMode::Thompson => {
-                if let Some(provider) = select_thompson_provider(&state).await {
-                    let provider_id = provider.id().to_string();
-                    let started_at = Instant::now();
-                    match provider.complete(&prompt).await {
-                        Ok(response) => {
-                            update_thompson_reward(&state, &provider_id, started_at, true).await;
-                            return Ok((response, provider_id));
-                        }
-                        Err(err) => {
-                            update_thompson_reward(&state, &provider_id, started_at, false).await;
-                            warn!(provider_id = %provider_id, error = %err, "thompson-selected provider failed");
-                        }
-                    }
-                }
-            }
-            AgentExecutionMode::Council => {
-                let providers = ranked_cloud_providers(&state, AgentExecutionMode::Quality);
-                if let Ok(result) = state.council_router.route(&prompt, providers.clone()).await {
-                    return Ok((result.response, result.chairman_id));
-                }
-
-                if let Some(chairman_id) =
-                    providers.first().map(|provider| provider.id().to_string())
-                {
-                    warn!(
-                        chairman_id = %chairman_id,
-                        "Configured council route unavailable for current providers; falling back to first available provider as chairman"
-                    );
-                    let fallback_router = igris_routing::CouncilRouter::new(chairman_id);
-                    if let Ok(result) = fallback_router.route(&prompt, providers).await {
-                        return Ok((result.response, result.chairman_id));
-                    }
-                }
-            }
-        }
-    }
-
-    if let Some(local) = &state.local_provider {
-        let content = local.complete(&prompt).await?;
-        return Ok((content, "local".to_string()));
-    }
-
-    anyhow::bail!("No providers available")
-}
-
-async fn do_route_stream(
-    state: AppState,
-    prompt: String,
-    mode: Option<&str>,
-) -> anyhow::Result<(
-    Pin<Box<dyn Stream<Item = Result<String, anyhow::Error>> + Send>>,
-    String,
-)> {
-    use igris_routing::Provider;
-
-    let execution_mode = normalize_agent_mode(mode)?;
-
-    if !state.cloud_providers.is_empty() {
-        match execution_mode {
-            AgentExecutionMode::Default
-            | AgentExecutionMode::Latency
-            | AgentExecutionMode::Balanced
-            | AgentExecutionMode::Quality
-            | AgentExecutionMode::Cost => {
-                let providers = ranked_cloud_providers(&state, execution_mode);
-                if let Ok(result) = state
-                    .speculative_router
-                    .route_stream(&prompt, providers)
-                    .await
-                {
-                    return Ok((result.stream, result.winner_id));
-                }
-            }
-            AgentExecutionMode::Thompson => {
-                if let Some(provider) = select_thompson_provider(&state).await {
-                    let provider_id = provider.id().to_string();
-                    let started_at = Instant::now();
-                    match provider.stream(&prompt).await {
-                        Ok(mut inner_stream) => {
-                            let state_for_reward = state.clone();
-                            let provider_id_for_stream = provider_id.clone();
-                            let wrapped = async_stream::try_stream! {
-                                while let Some(chunk) = inner_stream.next().await {
-                                    match chunk {
-                                        Ok(text) => yield text,
-                                        Err(err) => {
-                                            update_thompson_reward(&state_for_reward, &provider_id_for_stream, started_at, false).await;
-                                            Err(err)?;
-                                        }
-                                    }
-                                }
-                                update_thompson_reward(&state_for_reward, &provider_id_for_stream, started_at, true).await;
-                            };
-                            return Ok((Box::pin(wrapped), provider_id));
-                        }
-                        Err(err) => {
-                            update_thompson_reward(&state, &provider_id, started_at, false).await;
-                            warn!(provider_id = %provider_id, error = %err, "thompson-selected provider stream failed");
-                        }
-                    }
-                }
-            }
-            AgentExecutionMode::Council => {
-                let (response, chairman_id) =
-                    do_route(state.clone(), prompt.clone(), Some("council")).await?;
-                let response_stream = stream::once(async move { Ok(response) });
-                let response_stream: Pin<
-                    Box<dyn Stream<Item = Result<String, anyhow::Error>> + Send>,
-                > = Box::pin(response_stream);
-                return Ok((response_stream, chairman_id));
-            }
-        }
-    }
-
-    if let Some(local) = &state.local_provider {
-        let stream = local.stream(&prompt).await?;
-        return Ok((stream, "local".to_string()));
-    }
-
-    anyhow::bail!("No providers available")
-}
-
 async fn execute_agent_step_stream(
     tx: tokio::sync::mpsc::UnboundedSender<Result<Event, Infallible>>,
     state: AppState,
@@ -3178,7 +2935,9 @@ async fn execute_agent_step_stream(
                     task_id: req.task_id,
                     steps_completed: 0,
                     steps_total: 1,
-                    status: TaskStatus::Failed { reason: reason.clone() },
+                    status: TaskStatus::Failed {
+                        reason: reason.clone(),
+                    },
                     checkpoint: None,
                     final_output: None,
                     usage: None,
@@ -3480,7 +3239,9 @@ async fn execute_contained_agent_route(
     let log_path = std::env::var("IGRIS_VIOLATIONS_LOG")
         .unwrap_or_else(|_| "./igris_violations.jsonl".to_string());
     let containment_bounds = SafetyBounds::new(
-        containment.and_then(|value| value.cpu_percent).unwrap_or(100),
+        containment
+            .and_then(|value| value.cpu_percent)
+            .unwrap_or(100),
         max_tick_ms,
     )
     .with_memory_mb(containment.and_then(|value| value.memory_mb));
@@ -3686,34 +3447,32 @@ async fn execute_robotics_step(
 
                 let timeout_ms = wait_timeout_ms.unwrap_or(max_tick_ms);
                 let goal_id = handle.goal_id().await;
-                let nav_state = match tokio::time::timeout(
-                    Duration::from_millis(timeout_ms),
-                    handle.wait(),
-                )
-                .await
-                {
-                    Ok(result) => result?,
-                    Err(_) => {
-                        let feedback = handle.feedback().await;
-                        let velocity = manager.node().last_velocity().await;
-                        emit_robotics_timeout_violation(
-                            &state,
-                            task_id,
-                            tenant_id,
-                            "navigate_to_pose",
-                            timeout_ms,
-                            Some(goal_id.clone()),
-                            Some([
-                                feedback.current_pose.0,
-                                feedback.current_pose.1,
-                                feedback.current_pose.2,
-                            ]),
-                            Some(velocity),
-                        )
-                        .await;
-                        anyhow::bail!("navigation timed out after {}ms", timeout_ms);
-                    }
-                };
+                let nav_state =
+                    match tokio::time::timeout(Duration::from_millis(timeout_ms), handle.wait())
+                        .await
+                    {
+                        Ok(result) => result?,
+                        Err(_) => {
+                            let feedback = handle.feedback().await;
+                            let velocity = manager.node().last_velocity().await;
+                            emit_robotics_timeout_violation(
+                                &state,
+                                task_id,
+                                tenant_id,
+                                "navigate_to_pose",
+                                timeout_ms,
+                                Some(goal_id.clone()),
+                                Some([
+                                    feedback.current_pose.0,
+                                    feedback.current_pose.1,
+                                    feedback.current_pose.2,
+                                ]),
+                                Some(velocity),
+                            )
+                            .await;
+                            anyhow::bail!("navigation timed out after {}ms", timeout_ms);
+                        }
+                    };
                 let feedback = handle.feedback().await;
 
                 match nav_state {
