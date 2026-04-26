@@ -11,6 +11,7 @@ use tracing::{error, info, warn};
 
 const DEFAULT_LICENSE_SERVER: &str = "https://overture.igrisinertial.com";
 const DEFAULT_OFFLINE_LICENSE_PATH: &str = ".igris/offline-license.json";
+const DEFAULT_DEVICE_ID_PATH: &str = ".igris/device-id";
 const VERSION: &str = env!("CARGO_PKG_VERSION");
 
 /// License validation client
@@ -141,22 +142,26 @@ impl LicenseClient {
         Self { base_url, client }
     }
 
-    /// Generate a unique device ID based on MAC address and hostname
+    /// Generate a durable device ID for this installation.
     pub fn generate_device_id() -> String {
-        let mac = mac_address::get_mac_address()
-            .ok()
-            .flatten()
-            .map(|addr| addr.to_string())
-            .unwrap_or_else(|| "unknown-mac".to_string());
+        if let Some(device_id) = non_empty_env("IGRIS_DEVICE_ID") {
+            return device_id;
+        }
 
-        let hostname = gethostname::gethostname().to_string_lossy().to_string();
+        let path = device_id_path();
+        if let Some(device_id) = load_persisted_device_id(&path) {
+            return device_id;
+        }
 
-        let mut hasher = Sha256::new();
-        hasher.update(mac.as_bytes());
-        hasher.update(hostname.as_bytes());
-        let hash = hasher.finalize();
-
-        format!("dev_{}", hex::encode(&hash[..16]))
+        let device_id = legacy_host_device_id();
+        if let Err(e) = persist_device_id(&path, &device_id) {
+            warn!(
+                "Failed to persist device ID at {}: {}",
+                path.display(),
+                e
+            );
+        }
+        device_id
     }
 
     /// Validate a license key
@@ -280,6 +285,44 @@ fn offline_license_path() -> PathBuf {
     non_empty_env("IGRIS_OFFLINE_LICENSE_PATH")
         .map(PathBuf::from)
         .unwrap_or_else(|| PathBuf::from(DEFAULT_OFFLINE_LICENSE_PATH))
+}
+
+fn device_id_path() -> PathBuf {
+    non_empty_env("IGRIS_DEVICE_ID_PATH")
+        .map(PathBuf::from)
+        .unwrap_or_else(|| PathBuf::from(DEFAULT_DEVICE_ID_PATH))
+}
+
+fn load_persisted_device_id(path: &Path) -> Option<String> {
+    fs::read_to_string(path)
+        .ok()
+        .map(|value| value.trim().to_string())
+        .filter(|value| value.starts_with("dev_") && value.len() == 36)
+}
+
+fn persist_device_id(path: &Path, device_id: &str) -> Result<()> {
+    if let Some(parent) = path.parent() {
+        fs::create_dir_all(parent)?;
+    }
+    fs::write(path, format!("{}\n", device_id))?;
+    Ok(())
+}
+
+fn legacy_host_device_id() -> String {
+    let mac = mac_address::get_mac_address()
+        .ok()
+        .flatten()
+        .map(|addr| addr.to_string())
+        .unwrap_or_else(|| "unknown-mac".to_string());
+
+    let hostname = gethostname::gethostname().to_string_lossy().to_string();
+
+    let mut hasher = Sha256::new();
+    hasher.update(mac.as_bytes());
+    hasher.update(hostname.as_bytes());
+    let hash = hasher.finalize();
+
+    format!("dev_{}", hex::encode(&hash[..16]))
 }
 
 fn trusted_offline_license_public_key() -> Result<Option<VerifyingKey>> {
