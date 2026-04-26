@@ -64,14 +64,12 @@ export default function AutonomousSystems() {
                 className="absolute top-2 bottom-2 left-2 right-0 bg-cover bg-center rounded-xl"
                 style={{ 
                   backgroundImage: 'url(/sft.png)',
-                  backgroundSize: 'cover',
-                  opacity: 0.9
+                  opacity: 0.9,
+                  boxShadow: '0 4px 6px -1px rgba(0, 0, 0, 0.1)'
                 }}
               />
-              <div className="absolute inset-2 z-[5] rounded-xl overflow-hidden">
-                <div className="relative w-full h-full">
-                  <HeroInertial />
-                </div>
+              <div className="absolute inset-0 z-[5] flex items-center justify-center">
+                <HeroInertial />
               </div>
               <div className="absolute top-4 right-4 z-10">
                 <Link
@@ -111,7 +109,7 @@ export default function AutonomousSystems() {
             </div>
             {/* Col 2 - Full Background Image */}
             <div className="relative flex flex-col justify-end items-end rounded-r-2xl overflow-visible min-h-[120px] md:min-h-0">
-              <div className="absolute top-2 bottom-2 left-2 right-0 rounded-xl overflow-hidden">
+              <div className="absolute top-2 bottom-2 left-2 right-0 rounded-xl overflow-hidden" style={{ boxShadow: '0 4px 6px -1px rgba(0, 0, 0, 0.1)' }}>
                 <Image
                   src="/rozf.png"
                   alt="Robotics"
