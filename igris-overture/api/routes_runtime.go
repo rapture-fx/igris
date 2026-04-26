@@ -384,10 +384,59 @@ func (h *RuntimeHandler) GetPendingCommands(c *fiber.Ctx) error {
 			"message": "machine_id query parameter is required",
 		})
 	}
+	timestampUnixMs, err := strconv.ParseInt(strings.TrimSpace(c.Query("timestamp_unix_ms")), 10, 64)
+	if err != nil || timestampUnixMs == 0 {
+		return c.Status(fiber.StatusBadRequest).JSON(fiber.Map{
+			"error":   "missing_timestamp",
+			"message": "timestamp_unix_ms query parameter is required",
+		})
+	}
+	signature := strings.TrimSpace(c.Query("signature"))
+	if signature == "" {
+		return c.Status(fiber.StatusBadRequest).JSON(fiber.Map{
+			"error":   "missing_signature",
+			"message": "signature query parameter is required",
+		})
+	}
+	runtimePublicKey, err := h.runtimePublicKeyForMachine(ctx, tenantID, machineID)
+	if err != nil {
+		if errors.Is(err, sql.ErrNoRows) {
+			return c.Status(fiber.StatusNotFound).JSON(fiber.Map{
+				"error":   "not_registered",
+				"message": "Runtime not found — call /api/v1/runtime/register first",
+			})
+		}
+		log.Error().Err(err).Str("tenant_id", tenantID).Msg("[Runtime] Command runtime lookup failed")
+		return c.Status(fiber.StatusInternalServerError).JSON(fiber.Map{
+			"error": "internal_error",
+		})
+	}
+	if strings.TrimSpace(runtimePublicKey) == "" {
+		return c.Status(fiber.StatusConflict).JSON(fiber.Map{
+			"error":   "runtime_unverified",
+			"message": "Runtime has no registered public key",
+		})
+	}
+	if err := validateRuntimeTimestamp(timestampUnixMs); err != nil {
+		return c.Status(fiber.StatusUnauthorized).JSON(fiber.Map{
+			"error":   "runtime_signature_invalid",
+			"message": err.Error(),
+		})
+	}
+	if err := verifyRuntimeSignatureMessage(
+		runtimePublicKey,
+		signature,
+		fmt.Sprintf("runtime_commands.v1:%s:%d", machineID, timestampUnixMs),
+	); err != nil {
+		return c.Status(fiber.StatusUnauthorized).JSON(fiber.Map{
+			"error":   "runtime_signature_invalid",
+			"message": err.Error(),
+		})
+	}
 
 	// Atomically fetch and clear pending_commands in one statement.
 	var rawCommands []byte
-	err := h.db.QueryRowContext(ctx, `
+	err = h.db.QueryRowContext(ctx, `
 		UPDATE runtime_instances
 		SET pending_commands = '[]'::jsonb,
 		    updated_at = NOW()
