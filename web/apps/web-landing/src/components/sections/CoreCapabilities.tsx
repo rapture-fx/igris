@@ -9,19 +9,19 @@ const capabilities = [
     description: 'Every execution runs in an isolated worker. Memory, CPU, and time are enforced at the OS level. Exceed a limit and the worker is killed. Every violation is signed and hash-chained.',
     imgDark: '/cr.png?v=2',
     imgLight: '/exc.png?v=2',
-    imgW: '180px',
-    imgH: '180px',
+    imgW: '140px',
+    imgH: '140px',
     wrapW: '200px',
-    wrapH: '180px',
+    wrapH: '140px',
   },
   {
     name: 'Decide with Structure',
     description: 'Language models generate reasoning. The runtime governs execution through bounded control paths. Isolated, time-limited, and supervised. Intelligence remains flexible.',
     imgDark: '/cs.png',
     imgLight: '/tre.png',
-    imgW: '200px',
-    imgH: '200px',
-    wrapW: '200px',
+    imgW: '280px',
+    imgH: '280px',
+    wrapW: '280px',
     wrapH: '350px',
   },
   {
@@ -29,10 +29,10 @@ const capabilities = [
     description: 'Every execution produces a signed envelope. Violations are hash-chained and tamper-evident. Verify independently — without our control plane. You verify the system.',
     imgDark: '/cc.png',
     imgLight: '/one.png',
-    imgW: '180px',
-    imgH: '180px',
+    imgW: '140px',
+    imgH: '140px',
     wrapW: '200px',
-    wrapH: '180px',
+    wrapH: '140px',
   },
 ]
 
@@ -87,19 +87,19 @@ export default function CoreCapabilities() {
                       width: '33.333%',
                       paddingTop: '3rem',
                       paddingBottom: '3rem',
-                      paddingLeft: index === 0 ? 0 : '2rem',
-                      paddingRight: index === capabilities.length - 1 ? 0 : '2rem',
+                      paddingLeft: index === 0 ? 0 : '0.75rem',
+                      paddingRight: index === capabilities.length - 1 ? 0 : '0.75rem',
                       verticalAlign: index === 1 ? 'top' : 'middle',
-                      borderRight: index < capabilities.length - 1 ? borderStyle : 'none',
+                      borderRight: 'none',
                     }}
                   >
                     <div className="bg-white/50 dark:bg-dark-bg/50 rounded-xl p-4 border border-[rgba(209,213,219,0.35)] flex flex-col items-center shadow-sm">
                       <div style={{ width: cap.wrapW, height: cap.wrapH, display: 'flex', alignItems: 'center', justifyContent: 'center' }}>
-                        <div className="rounded-xl p-2" style={{ width: '200px', height: '200px' }}>
+                        <div className="rounded-xl p-2" style={{ width: cap.imgW, height: cap.imgH }}>
                           <img
                             src={mounted && theme === 'dark' ? cap.imgDark : cap.imgLight}
                             alt={cap.name}
-                            style={{ width: cap.imgW, height: cap.imgH, objectFit: 'contain', opacity: 1 }}
+                            style={{ width: '100%', height: '100%', objectFit: 'contain', opacity: 1 }}
                           />
                         </div>
                       </div>
