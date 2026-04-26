@@ -2963,6 +2963,7 @@ async fn main() -> anyhow::Result<()> {
                 overture_url_ref,
                 version,
                 runtime_public_key.clone(),
+                Arc::new(signing_key.clone()),
             )
             .await
             {
