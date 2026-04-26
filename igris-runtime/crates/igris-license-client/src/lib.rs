@@ -1112,7 +1112,7 @@ mod tests {
             .decode(signature)
             .unwrap();
         let signature = Signature::from_slice(&signature_bytes).unwrap();
-        let message = format!("runtime_commands.v1:{}:{}", machine_id, timestamp_unix_ms);
+        let message = format!("runtime_commands.v1:{}:{}:", machine_id, timestamp_unix_ms);
         signing_key
             .verifying_key()
             .verify(message.as_bytes(), &signature)
