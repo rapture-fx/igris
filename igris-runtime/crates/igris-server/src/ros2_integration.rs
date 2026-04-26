@@ -68,6 +68,7 @@ use tracing::{info, warn};
 /// Created once during server startup and held in [`AppState`](crate::AppState)
 /// (or equivalent) for the lifetime of the process.
 pub struct Ros2Manager {
+    config: Ros2Config,
     node: Arc<Ros2Node>,
     idle_rx: SafeIdleReceiver,
 }
@@ -112,7 +113,11 @@ impl Ros2Manager {
         tokio::spawn(bridge.run());
         info!("ContainmentBridge spawned — deterministic Nav2 halt active");
 
-        Ok(Self { node, idle_rx })
+        Ok(Self {
+            config,
+            node,
+            idle_rx,
+        })
     }
 
     /// Returns a reference to the shared [`Ros2Node`].
@@ -132,6 +137,11 @@ impl Ros2Manager {
     /// Returns true if the system is currently in safe-idle mode.
     pub fn is_safe_idle(&self) -> bool {
         igris_ros2::containment_bridge::is_safe_idle(&self.idle_rx)
+    }
+
+    /// Returns the configured ROS2 namespace used for prompt/response topics.
+    pub fn namespace(&self) -> &str {
+        &self.config.namespace
     }
 
     /// Gracefully shut down the ROS2 node.
