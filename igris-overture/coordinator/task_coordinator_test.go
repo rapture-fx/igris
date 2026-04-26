@@ -103,6 +103,21 @@ func TestVerifyExecutionArtifactsForTaskUsesRuntimeRegistryKey(t *testing.T) {
 	require.Equal(t, 0, queued.remainingExecs())
 }
 
+func TestTaskGovernanceForLegacyRecordDerivesCapabilitiesWhenSigningIsAvailable(t *testing.T) {
+	publicKey, privateKey, err := ed25519.GenerateKey(nil)
+	require.NoError(t, err)
+	_ = publicKey
+	t.Setenv("IGRIS_OVERTURE_SIGNING_KEY", hex.EncodeToString(privateKey))
+
+	governance := taskGovernanceForRecord(&TaskRecord{
+		TaskID:         uuid.New(),
+		TenantID:       "tenant-legacy",
+		TaskDefinition: json.RawMessage(`{"type":"execution_graph","graph":{"nodes":[{"kind":"tool","node_id":"github-write","tool_name":"github.issues.write"}]}}`),
+	})
+
+	require.Equal(t, []string{"tools.github.issues.write"}, governance.RequiredCapabilities)
+}
+
 func TestNormalizePublicTaskDefinitionSingleInference(t *testing.T) {
 	t.Parallel()
 
@@ -554,24 +569,32 @@ func TestDispatchToRuntimeAttachesSignedRoboticsPolicyDecisions(t *testing.T) {
 	}
 	var gotDecisionSig string
 	expiresAt := time.Now().Add(time.Minute).UTC()
-	db, queued := newQueuedCheckpointDB(t, []queuedQueryExpectation{{
-		columns: []string{
-			"policy_version",
-			"permit",
-			"runtime_permitted",
-			"robot_mode",
-			"allowed_runtimes",
-			"expires_at",
+	db, queued := newQueuedCheckpointDB(t, []queuedQueryExpectation{
+		{
+			values: []driver.Value{`{
+				"policy_version":"capabilities-policy.test",
+				"allowed_capabilities":["robotics.execute"]
+			}`},
 		},
-		values: []driver.Value{
-			"robotics-policy.test",
-			true,
-			true,
-			"supervised",
-			fmt.Sprintf(`["%s"]`, runtimeID),
-			expiresAt,
+		{
+			columns: []string{
+				"policy_version",
+				"permit",
+				"runtime_permitted",
+				"robot_mode",
+				"allowed_runtimes",
+				"expires_at",
+			},
+			values: []driver.Value{
+				"robotics-policy.test",
+				true,
+				true,
+				"supervised",
+				fmt.Sprintf(`["%s"]`, runtimeID),
+				expiresAt,
+			},
 		},
-	}},
+	},
 		queuedExecExpectation{rowsAffected: 1},
 		queuedExecExpectation{rowsAffected: 1},
 	)
