@@ -37,6 +37,10 @@ impl CouncilRouter {
         }
     }
 
+    pub fn chairman_id(&self) -> &str {
+        &self.chairman_id
+    }
+
     pub fn with_min_responses(mut self, min_responses: usize) -> Self {
         self.min_responses = min_responses;
         self
