@@ -27,7 +27,7 @@ func signRuntimeRegisterRequest(t *testing.T, privateKey ed25519.PrivateKey, req
 		req["platform"].(string),
 		req["runtime_version"].(string),
 		req["public_key_ed25519"].(string),
-		stringValue(req["endpoint"]),
+		runtimeRequestStringValue(req["endpoint"]),
 		int64String(req["timestamp_unix_ms"].(int64)),
 	}, ":")
 	return base64.StdEncoding.EncodeToString(ed25519.Sign(privateKey, []byte(message)))
@@ -54,7 +54,7 @@ func int64String(value int64) string {
 	return strconv.FormatInt(value, 10)
 }
 
-func stringValue(value any) string {
+func runtimeRequestStringValue(value any) string {
 	if value == nil {
 		return ""
 	}
