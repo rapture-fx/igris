@@ -62,6 +62,47 @@ func taskRecordRowForRecoveryTestWithFailureReason(taskID uuid.UUID, tenantID st
 	}
 }
 
+func signedArtifactJSON(t *testing.T, privateKey ed25519.PrivateKey, payload map[string]any) json.RawMessage {
+	t.Helper()
+	canonical, err := json.Marshal(payload)
+	require.NoError(t, err)
+	sum := sha256.Sum256(canonical)
+	payload["signature"] = base64.StdEncoding.EncodeToString(ed25519.Sign(privateKey, sum[:]))
+	signed, err := json.Marshal(payload)
+	require.NoError(t, err)
+	return signed
+}
+
+func TestVerifyExecutionArtifactsForTaskUsesRuntimeRegistryKey(t *testing.T) {
+	publicKey, privateKey, err := ed25519.GenerateKey(nil)
+	require.NoError(t, err)
+	t.Setenv("IGRIS_RUNTIME_PUBLIC_KEY", strings.Repeat("00", ed25519.PublicKeySize))
+
+	db, queued := newQueuedCheckpointDB(t, []queuedQueryExpectation{{
+		values: []driver.Value{hex.EncodeToString(publicKey)},
+	}})
+
+	runtimeID := "runtime-proof-1"
+	tc := &TaskCoordinator{db: db}
+	task := &TaskRecord{RuntimeID: &runtimeID}
+
+	envelope := signedArtifactJSON(t, privateKey, map[string]any{
+		"execution_id":     "exec-proof-1",
+		"tenant_id":        "tenant-proof",
+		"routing_decision": "runtime:test",
+		"request_hash":     "request-hash",
+	})
+	receipt := signedArtifactJSON(t, privateKey, map[string]any{
+		"execution_id":       "exec-proof-1",
+		"hash":               "receipt-hash",
+		"violation_occurred": false,
+	})
+
+	require.NoError(t, tc.verifyExecutionArtifactsForTask(context.Background(), task, envelope, receipt))
+	require.Equal(t, 0, queued.remainingQueries())
+	require.Equal(t, 0, queued.remainingExecs())
+}
+
 func TestNormalizePublicTaskDefinitionSingleInference(t *testing.T) {
 	t.Parallel()
 
