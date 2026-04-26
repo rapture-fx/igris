@@ -118,6 +118,64 @@ func TestTaskGovernanceForLegacyRecordDerivesCapabilitiesWhenSigningIsAvailable(
 	require.Equal(t, []string{"tools.github.issues.write"}, governance.RequiredCapabilities)
 }
 
+func TestGetRecoveringTasksHydratesPersistedPermissionEnvelope(t *testing.T) {
+	t.Parallel()
+
+	taskID := uuid.New()
+	tenantID := "tenant-envelope"
+	runtimeID := "runtime-envelope"
+	createdAt := time.Unix(1_900_400_000, 0).UTC()
+	envelope := TaskPermissionEnvelope{
+		SchemaVersion:        "task_permission_envelope.v1",
+		EnvelopeID:           "env-recovery-1",
+		TenantID:             tenantID,
+		TaskID:               taskID.String(),
+		RuntimeID:            &runtimeID,
+		RequiredCapabilities: []string{"tools.github.issues.write"},
+		AgentIdentity: AgentIdentity{
+			AgentID:          "agent-envelope",
+			PrincipalID:      "principal-envelope",
+			SubmittedBy:      "principal-envelope",
+			ActingOnBehalfOf: "principal-envelope",
+		},
+		IssuedAtUnixMs:  1_900_400_000_000,
+		ExpiresAtUnixMs: 1_900_400_030_000,
+	}
+	envelopeBytes, err := json.Marshal(envelope)
+	require.NoError(t, err)
+
+	db, queued := newQueuedCheckpointDB(t, []queuedQueryExpectation{
+		{
+			rows: [][]driver.Value{taskRecordRowForRecoveryTest(
+				taskID,
+				tenantID,
+				TaskStatusRecovering,
+				runtimeID,
+				"http://runtime-envelope",
+				json.RawMessage(`{"type":"execution_graph","graph":{"nodes":[{"kind":"tool","node_id":"github-write","tool_name":"github.issues.write"}]}}`),
+				nil,
+				"idempotency-envelope",
+				createdAt,
+			)},
+		},
+		{
+			columns: []string{"permission_envelope"},
+			values:  []driver.Value{envelopeBytes},
+		},
+	})
+
+	store := NewCheckpointStore(db)
+	tasks, err := store.GetRecoveringTasks()
+	require.NoError(t, err)
+	require.Len(t, tasks, 1)
+	require.NotNil(t, tasks[0].PermissionEnvelope)
+	require.Equal(t, "env-recovery-1", tasks[0].PermissionEnvelope.EnvelopeID)
+	require.Equal(t, []string{"tools.github.issues.write"}, tasks[0].RequiredCapabilities)
+	require.Equal(t, "agent-envelope", tasks[0].AgentIdentity.AgentID)
+	require.Equal(t, 0, queued.remainingQueries())
+	require.Equal(t, 0, queued.remainingExecs())
+}
+
 func TestNormalizePublicTaskDefinitionSingleInference(t *testing.T) {
 	t.Parallel()
 
