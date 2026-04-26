@@ -218,16 +218,133 @@ func taskGovernanceForRecord(task *TaskRecord) taskGovernance {
 	if task == nil {
 		return taskGovernance{}
 	}
+	derivedCapabilities := deriveRequiredCapabilitiesFromTaskDefinition(task.TaskDefinition)
 	governance := taskGovernance{
 		AgentIdentity:        task.AgentIdentity,
-		RequiredCapabilities: normalizeCapabilityList(task.RequiredCapabilities),
+		RequiredCapabilities: normalizeCapabilityList(append(task.RequiredCapabilities, derivedCapabilities...)),
 		CredentialRequests:   normalizeCredentialRequests(task.CredentialRequests),
 	}
 	if len(governance.RequiredCapabilities) == 0 && len(governance.CredentialRequests) == 0 && agentIdentityEmpty(governance.AgentIdentity) {
 		governance = extractTaskGovernanceFromDefinition(task.TaskDefinition)
 	}
+	governance.RequiredCapabilities = normalizeCapabilityList(append(governance.RequiredCapabilities, derivedCapabilities...))
 	governance.AgentIdentity = normalizeTaskGovernance(task.TenantID, &governance.AgentIdentity, governance.RequiredCapabilities, governance.CredentialRequests).AgentIdentity
 	return governance
+}
+
+func deriveRequiredCapabilitiesFromTaskDefinition(definition json.RawMessage) []string {
+	var object map[string]json.RawMessage
+	if err := json.Unmarshal(definition, &object); err != nil {
+		return nil
+	}
+
+	var taskType string
+	_ = json.Unmarshal(object["type"], &taskType)
+	capabilities := map[string]struct{}{}
+	addCapability := func(value string) {
+		value = strings.TrimSpace(strings.ToLower(value))
+		if value == "" {
+			return
+		}
+		capabilities[value] = struct{}{}
+	}
+	addMemoryCapabilities := func(raw json.RawMessage) {
+		var memory struct {
+			RecallQuery *string `json:"recall_query"`
+			RecallTopK  *int    `json:"recall_top_k"`
+			StoreKey    *string `json:"store_key"`
+			StoreOutput bool    `json:"store_output"`
+		}
+		if len(raw) == 0 || json.Unmarshal(raw, &memory) != nil {
+			return
+		}
+		if memory.RecallQuery != nil && strings.TrimSpace(*memory.RecallQuery) != "" {
+			addCapability("memory.read")
+		}
+		if memory.RecallTopK != nil && *memory.RecallTopK > 0 {
+			addCapability("memory.read")
+		}
+		if memory.StoreOutput {
+			addCapability("memory.write")
+		}
+		if memory.StoreKey != nil && strings.TrimSpace(*memory.StoreKey) != "" {
+			addCapability("memory.write")
+		}
+	}
+	addApprovalCapability := func(raw json.RawMessage) {
+		var approval struct {
+			Required   bool     `json:"required"`
+			Confidence *float64 `json:"confidence"`
+		}
+		if len(raw) == 0 || json.Unmarshal(raw, &approval) != nil {
+			return
+		}
+		if approval.Required || approval.Confidence != nil {
+			addCapability("human.approval")
+		}
+	}
+
+	switch taskType {
+	case "single_inference":
+		addMemoryCapabilities(object["memory"])
+		addApprovalCapability(object["approval"])
+	case "agent_workflow":
+		var payload struct {
+			Steps []map[string]json.RawMessage `json:"steps"`
+		}
+		if json.Unmarshal(definition, &payload) == nil {
+			for _, step := range payload.Steps {
+				addMemoryCapabilities(step["memory"])
+				addApprovalCapability(step["approval"])
+			}
+		}
+	case "execution_graph":
+		var payload struct {
+			Graph struct {
+				Nodes []map[string]json.RawMessage `json:"nodes"`
+			} `json:"graph"`
+		}
+		if json.Unmarshal(definition, &payload) == nil {
+			for _, node := range payload.Graph.Nodes {
+				var kind string
+				_ = json.Unmarshal(node["kind"], &kind)
+				switch strings.TrimSpace(strings.ToLower(kind)) {
+				case "tool":
+					var toolName string
+					if json.Unmarshal(node["tool_name"], &toolName) == nil {
+						addCapability(normalizeToolCapability(toolName))
+					}
+				case "memory_recall":
+					addCapability("memory.read")
+				case "memory_store":
+					addCapability("memory.write")
+				case "human_approval":
+					addCapability("human.approval")
+				case "reason":
+					addMemoryCapabilities(node["memory"])
+					addApprovalCapability(node["approval"])
+				}
+			}
+		}
+	}
+
+	out := make([]string, 0, len(capabilities))
+	for capability := range capabilities {
+		out = append(out, capability)
+	}
+	sort.Strings(out)
+	return out
+}
+
+func normalizeToolCapability(toolName string) string {
+	normalized := strings.TrimSpace(strings.ToLower(toolName))
+	if normalized == "" {
+		return ""
+	}
+	if strings.HasPrefix(normalized, "tools.") {
+		return normalized
+	}
+	return "tools." + normalized
 }
 
 func (tc *TaskCoordinator) buildTaskPermissionEnvelope(ctx context.Context, task *TaskRecord, governance taskGovernance) (*TaskPermissionEnvelope, error) {
