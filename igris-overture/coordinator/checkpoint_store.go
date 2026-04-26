@@ -1970,11 +1970,7 @@ func (s *CheckpointStore) GetTask(taskID uuid.UUID, tenantID string) (*TaskRecor
 		WHERE task_id = $1 AND tenant_id = $2`,
 		taskID, tenantID,
 	)
-	task, err := scanTaskRecord(row)
-	if err != nil {
-		return nil, err
-	}
-	return s.hydrateTaskPermissionEnvelope(task)
+	return scanTaskRecord(row)
 }
 
 // GetTaskByIdempotencyKey returns a task record by tenant and idempotency key.
@@ -1989,11 +1985,7 @@ func (s *CheckpointStore) GetTaskByIdempotencyKey(tenantID, idempotencyKey strin
 		WHERE tenant_id = $1 AND idempotency_key = $2`,
 		tenantID, idempotencyKey,
 	)
-	task, err := scanTaskRecord(row)
-	if err != nil {
-		return nil, err
-	}
-	return s.hydrateTaskPermissionEnvelope(task)
+	return scanTaskRecord(row)
 }
 
 // GetTasksByTenant returns recent tasks for a tenant.
@@ -2019,9 +2011,6 @@ func (s *CheckpointStore) GetTasksByTenant(tenantID string, limit int) ([]*TaskR
 	for rows.Next() {
 		t, err := scanTaskRecord(rows)
 		if err != nil {
-			return nil, err
-		}
-		if t, err = s.hydrateTaskPermissionEnvelope(t); err != nil {
 			return nil, err
 		}
 		tasks = append(tasks, t)
@@ -2118,15 +2107,12 @@ func (s *CheckpointStore) GetRecoveringTasks() ([]*TaskRecord, error) {
 		if err != nil {
 			return nil, err
 		}
-		if t, err = s.hydrateTaskPermissionEnvelope(t); err != nil {
-			return nil, err
-		}
 		tasks = append(tasks, t)
 	}
 	return tasks, rows.Err()
 }
 
-func (s *CheckpointStore) hydrateTaskPermissionEnvelope(task *TaskRecord) (*TaskRecord, error) {
+func (s *CheckpointStore) HydrateTaskPermissionEnvelope(task *TaskRecord) (*TaskRecord, error) {
 	if task == nil || task.PermissionEnvelope != nil {
 		return task, nil
 	}
