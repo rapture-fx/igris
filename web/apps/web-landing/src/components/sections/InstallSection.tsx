@@ -23,7 +23,7 @@ export default function InstallSection() {
   return (
     <section className="bg-white dark:bg-dark-bg transition-colors duration-200">
       <div style={{ borderTop: '0.5px solid rgba(209, 213, 219, 0.35)' }} />
-      <div className="mx-auto max-w-[1300px] px-4 sm:px-6 lg:px-8">
+      <div className="mx-auto max-w-[1100px] px-4 sm:px-6 lg:px-8">
         <div
           className="flex flex-col justify-center items-center px-4 md:px-12 lg:px-16 pb-6 pt-6 md:py-8"
           style={{

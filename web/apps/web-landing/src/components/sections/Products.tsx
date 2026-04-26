@@ -15,10 +15,10 @@ export default function Products() {
     <section className="bg-white dark:bg-dark-bg text-gray-900 dark:text-[#f6f6f4] transition-colors duration-200">
       <div style={{ borderTop: '0.5px solid rgba(209, 213, 219, 0.35)' }} />
 
-      <div className="mx-auto max-w-[1300px] px-4 sm:px-6 lg:px-8">
+      <div className="mx-auto max-w-[1100px] px-4 sm:px-6 lg:px-8">
         <div className="px-3 md:px-8 lg:px-12" style={{ borderLeft: '0.5px solid rgba(209, 213, 219, 0.35)', borderRight: '0.5px solid rgba(209, 213, 219, 0.35)' }}>
           <div className="flex flex-col md:flex-row md:items-center md:justify-between gap-3" style={{ paddingTop: '1.5rem', paddingBottom: '1.5rem' }}>
-            <h2 className="text-lg md:text-xl lg:text-2xl text-[#000000] dark:text-[#f6f6f4]" style={{ fontFamily: '-apple-system, BlinkMacSystemFont, "Segoe UI", Roboto, Helvetica, Arial, sans-serif' }}>
+            <h2 className="text-xl md:text-2xl lg:text-3xl text-[#000000] dark:text-[#f6f6f4]" style={{ fontFamily: '-apple-system, BlinkMacSystemFont, "Segoe UI", Roboto, Helvetica, Arial, sans-serif' }}>
               The execution layer beneath intelligence.
             </h2>
             <Link
@@ -35,17 +35,17 @@ export default function Products() {
 
       <div style={{ borderTop: '0.5px solid rgba(209, 213, 219, 0.35)' }} />
 
-      <div className="mx-auto max-w-[1300px] px-4 sm:px-6 lg:px-8">
+      <div className="mx-auto max-w-[1100px] px-4 sm:px-6 lg:px-8">
         <div className="px-3 md:px-8 lg:px-12" style={{ borderLeft: '0.5px solid rgba(209, 213, 219, 0.35)', borderRight: '0.5px solid rgba(209, 213, 219, 0.35)', paddingBottom: 0 }}>
-          <div style={{ paddingTop: '3rem', paddingBottom: '3rem', position: 'relative' }} className="md:py-12 lg:py-12">
+          <div style={{ paddingTop: '16rem', paddingBottom: '16rem', position: 'relative' }} className="md:py-60 lg:py-60">
             <div className="hidden sm:block" style={{ position: 'absolute', top: 0, left: 0, bottom: 0, right: '50%', display: 'flex', alignItems: 'center', justifyContent: 'flex-end' }}>
               <img 
                 src="/salt.png" 
                 alt="Product"
                 style={{ 
-                  maxWidth: '500px',
+                  maxWidth: '350px',
                   width: '100%',
-                  height: '100%', 
+                  height: 'auto', 
                   objectFit: 'contain',
                   objectPosition: 'right',
                   opacity: 1

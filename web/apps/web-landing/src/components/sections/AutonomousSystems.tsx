@@ -21,11 +21,11 @@ export default function AutonomousSystems() {
   return (
     <section className="bg-white dark:bg-dark-bg text-gray-900 dark:text-[#f6f6f4] transition-colors duration-200">
       <div style={{ borderTop: '0.5px solid rgba(209, 213, 219, 0.35)' }} />
-      <div className="mx-auto max-w-[1300px] px-4 sm:px-6 lg:px-8">
+      <div className="mx-auto max-w-[1100px] px-4 sm:px-6 lg:px-8">
         <div className="px-4 md:px-8 lg:px-12" style={{ borderLeft: borderStyle, borderRight: borderStyle }}>
           {/* Title */}
-          <div className="flex flex-col md:flex-row md:items-start md:justify-between gap-4 md:gap-8 pb-6 md:pb-8">
-            <h2 className="text-lg md:text-xl lg:text-2xl text-[#000000] dark:text-[#f6f6f4]" style={{ fontFamily }}>
+          <div className="flex flex-col md:flex-row md:items-start md:justify-between gap-4 md:gap-8 pt-8 pb-6 md:pb-8">
+            <h2 className="text-xl md:text-2xl lg:text-3xl text-[#000000] dark:text-[#f6f6f4]" style={{ fontFamily }}>
               One System.<br className="hidden md:block" />
               Two Environments.
             </h2>
@@ -39,7 +39,7 @@ export default function AutonomousSystems() {
       {/* Full-width border below title */}
       <div style={{ borderTop: borderStyle }} />
 
-      <div className="mx-auto max-w-[1300px] px-4 sm:px-6 lg:px-8">
+      <div className="mx-auto max-w-[1100px] px-4 sm:px-6 lg:px-8">
         <div className="px-4 md:px-8 lg:px-12" style={{ borderLeft: borderStyle, borderRight: borderStyle }}>
 
           {/* Row 1 - AI Agents */}
@@ -47,7 +47,7 @@ export default function AutonomousSystems() {
             {/* Col 1 - Text */}
             <div className="flex flex-col pt-6 pb-8 pr-4 border-b md:border-b-0 md:border-r border-[rgba(209,213,219,0.2)]">
               <div className="max-w-md">
-                <h3 className="text-sm md:text-base mb-2 text-[#000000] dark:text-[#f6f6f4]" style={{ fontFamily }}>
+                <h3 className="text-lg md:text-xl lg:text-2xl mb-2 text-[#000000] dark:text-[#f6f6f4]" style={{ fontFamily }}>
                   For AI Agents
                 </h3>
                 <p className="text-xs md:text-sm text-gray-600 dark:text-[#a8a898] leading-relaxed mb-3" style={{ fontFamily }}>
@@ -59,12 +59,12 @@ export default function AutonomousSystems() {
               </div>
             </div>
             {/* Col 2 - Image + Button */}
-            <div className="relative rounded-r-2xl overflow-hidden min-h-[200px] md:min-h-0">
+            <div className="relative rounded-r-2xl overflow-hidden min-h-[250px] md:min-h-0">
               <div 
                 className="absolute top-2 bottom-2 left-2 right-0 bg-cover bg-center rounded-xl"
                 style={{ 
                   backgroundImage: 'url(/sft.png)',
-                  backgroundSize: '120%',
+                  backgroundSize: 'cover',
                   opacity: 0.9
                 }}
               />
@@ -92,13 +92,13 @@ export default function AutonomousSystems() {
       <div style={{ borderTop: borderStyle }} />
 
       {/* Row 2 - Robots */}
-      <div className="mx-auto max-w-[1300px] px-4 sm:px-6 lg:px-8">
+      <div className="mx-auto max-w-[1100px] px-4 sm:px-6 lg:px-8">
         <div className="px-4 md:px-8 lg:px-12" style={{ borderLeft: borderStyle, borderRight: borderStyle }}>
           <div className="grid grid-cols-1 md:grid-cols-2 md:[min-height:400px]">
             {/* Col 1 - Text */}
             <div className="flex flex-col pt-6 pb-8 pr-4 border-b md:border-b-0 md:border-r border-[rgba(209,213,219,0.2)]">
               <div className="max-w-md">
-                <h3 className="text-sm md:text-base mb-2 text-[#000000] dark:text-[#f6f6f4]" style={{ fontFamily }}>
+                <h3 className="text-lg md:text-xl lg:text-2xl mb-2 text-[#000000] dark:text-[#f6f6f4]" style={{ fontFamily }}>
                   For Robots
                 </h3>
                 <p className="text-xs md:text-sm text-gray-600 dark:text-[#a8a898] leading-relaxed mb-3" style={{ fontFamily }}>
@@ -110,7 +110,7 @@ export default function AutonomousSystems() {
               </div>
             </div>
             {/* Col 2 - Full Background Image */}
-            <div className="relative flex flex-col justify-end items-end rounded-r-2xl overflow-visible min-h-[200px] md:min-h-0">
+            <div className="relative flex flex-col justify-end items-end rounded-r-2xl overflow-visible min-h-[150px] md:min-h-0">
               <div className="absolute top-2 bottom-2 left-2 right-0 rounded-xl overflow-hidden">
                 <Image
                   src="/rozf.png"

@@ -8,13 +8,13 @@ export default function ClosingPosition() {
       {/* Full-width top border */}
       <div style={{ borderTop: '0.5px solid rgba(209, 213, 219, 0.35)' }} />
 
-      <div className="mx-auto max-w-[1300px] px-4 sm:px-6 lg:px-8">
+      <div className="mx-auto max-w-[1100px] px-4 sm:px-6 lg:px-8">
         <div className="px-4 md:px-8 lg:px-12 bg-white dark:bg-[#1b1912]" style={{
           borderLeft: '0.5px solid rgba(209, 213, 219, 0.35)',
           borderRight: '0.5px solid rgba(209, 213, 219, 0.35)'
         }}>
             <div className="flex flex-col md:flex-row md:items-center md:justify-between gap-3 py-6 md:py-8">
-            <h3 className="text-lg md:text-2xl lg:text-3xl text-[#000000] dark:text-[#f6f6f4]" style={{ fontFamily: 'var(--font-geist-pixel-square, Geist Pixel Square, monospace)' }}>
+            <h3 className="text-xl md:text-2xl lg:text-3xl text-[#000000] dark:text-[#f6f6f4]" style={{ fontFamily: 'var(--font-geist-pixel-square, Geist Pixel Square, monospace)' }}>
               Complete control from edge to cloud.
             </h3>
             <Link href="https://console.igrisinertial.com/auth?mode=signup">

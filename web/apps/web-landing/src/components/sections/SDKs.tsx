@@ -392,11 +392,11 @@ export default function SDKs() {
 
   return (
     <section className="bg-white dark:bg-dark-bg text-gray-900 dark:text-[#f6f6f4] transition-colors duration-200">
-      <div className="mx-auto max-w-[1300px] px-4 sm:px-6 lg:px-8">
+      <div className="mx-auto max-w-[1100px] px-4 sm:px-6 lg:px-8">
         <div className="px-4 md:px-8 lg:px-12" style={{ borderLeft: borderStyle, borderRight: borderStyle }}>
           {/* Title */}
           <div className="text-left py-6 md:py-12">
-            <h3 className="text-base md:text-lg lg:text-2xl text-[#000000] dark:text-[#f6f6f4]" style={{ fontFamily }}>
+            <h3 className="text-xl md:text-2xl lg:text-3xl text-[#000000] dark:text-[#f6f6f4]" style={{ fontFamily }}>
               Connect your stack
             </h3>
           </div>
@@ -406,7 +406,7 @@ export default function SDKs() {
       {/* Full-width border between rows */}
       <div style={{ borderTop: borderStyle }} />
 
-      <div className="mx-auto max-w-[1300px] px-4 sm:px-6 lg:px-8">
+      <div className="mx-auto max-w-[1100px] px-4 sm:px-6 lg:px-8">
         <div className="px-4 md:px-8 lg:px-12" style={{ borderLeft: borderStyle, borderRight: borderStyle }}>
 
           {/* Row 1 - Cloud + Runtime SDK */}
@@ -466,14 +466,14 @@ export default function SDKs() {
       {/* Full-width border between rows */}
       <div style={{ borderTop: borderStyle }} />
 
-      <div className="mx-auto max-w-[1300px] px-4 sm:px-6 lg:px-8">
+      <div className="mx-auto max-w-[1100px] px-4 sm:px-6 lg:px-8">
         <div className="px-4 md:px-8 lg:px-12" style={{ borderLeft: borderStyle, borderRight: borderStyle }}>
           {/* Row 2 - Behavior Trees */}
           <div className="grid grid-cols-1 md:grid-cols-2 md:[min-height:280px]">
             {/* Col 1 - Text */}
             <div className="flex flex-col justify-start pt-6 pb-8 pr-4 border-b md:border-b-0 md:border-r border-[rgba(209,213,219,0.2)]">
               <div className="max-w-md">
-                <h4 className="text-base md:text-lg text-[#000000] dark:text-[#f6f6f4] mb-4" style={{ fontFamily }}>
+                <h4 className="text-lg md:text-xl lg:text-2xl text-[#000000] dark:text-[#f6f6f4] mb-4" style={{ fontFamily }}>
                   Behavior Trees
                 </h4>
                 <p className="text-xs md:text-sm text-gray-600 dark:text-[#a8a898] leading-relaxed mb-4" style={{ fontFamily }}>
