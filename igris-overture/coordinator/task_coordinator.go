@@ -67,6 +67,10 @@ func (tc *TaskCoordinator) Submit(ctx context.Context, req *TaskSubmitRequest) (
 		return nil, err
 	}
 	governance := normalizeTaskGovernance(req.TenantID, req.AgentIdentity, req.RequiredCapabilities, req.CredentialRequests)
+	governance.RequiredCapabilities = normalizeCapabilityList(append(
+		governance.RequiredCapabilities,
+		deriveRequiredCapabilitiesFromTaskDefinition(normalizedDefinition)...,
+	))
 	normalizedDefinition = attachTaskGovernanceToDefinition(normalizedDefinition, governance)
 
 	taskID := uuid.New()
