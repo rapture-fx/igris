@@ -36,6 +36,8 @@ type SLOStatusResponse struct {
 type EnforcerStats struct {
 	Active            bool   `json:"active"`
 	Version           string `json:"version"`
+	Mode              string `json:"mode"`
+	NativeAvailable   bool   `json:"native_available"`
 	TotalEvaluations  int64  `json:"total_evaluations"`
 	TotalBreaches     int64  `json:"total_breaches"`
 	TotalActions      int64  `json:"total_actions"`
@@ -91,8 +93,10 @@ func (h *SLOHandler) HandleGetStatus(w http.ResponseWriter, r *http.Request) {
 
 	// Calculate stats from events
 	stats := EnforcerStats{
-		Active:           true, // TODO: Track actual state
+		Active:           slo.NativeAvailable(),
 		Version:          version,
+		Mode:             slo.Mode(),
+		NativeAvailable:  slo.NativeAvailable(),
 		TotalEvaluations: int64(len(events)),
 	}
 
