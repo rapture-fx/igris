@@ -100,7 +100,7 @@ impl Ros2Manager {
             config.enable_nav2, config.node_name
         );
 
-        let node = Arc::new(Ros2Node::new(config).await?);
+        let node = Arc::new(Ros2Node::new(config.clone()).await?);
 
         let (bridge, idle_rx) = ContainmentBridge::new(
             bus,
