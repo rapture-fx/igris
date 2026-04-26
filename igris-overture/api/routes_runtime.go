@@ -325,7 +325,6 @@ func (h *RuntimeHandler) Heartbeat(c *fiber.Ctx) error {
 	now := time.Now().UTC()
 
 	var result sql.Result
-	var err error
 	if len(req.BtState) > 0 && string(req.BtState) != "null" {
 		result, err = h.db.ExecContext(ctx, `
 			UPDATE runtime_instances
