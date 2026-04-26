@@ -772,11 +772,11 @@ async fn runtime_profile(State(state): State<AppState>) -> Response {
     };
 
     let ros2_enabled = {
-        #[cfg(feature = "ros2")]
+        #[cfg(feature = "robotics-platform")]
         {
             state.ros2_manager.is_some()
         }
-        #[cfg(not(feature = "ros2"))]
+        #[cfg(not(feature = "robotics-platform"))]
         {
             false
         }
@@ -1500,7 +1500,7 @@ async fn btree_run(
     }
 
     // Wire ROS2 node into context when available
-    #[cfg(feature = "ros2")]
+    #[cfg(feature = "robotics-platform")]
     if let Some(ref mgr) = state.ros2_manager {
         if !mgr.is_safe_idle() {
             context = context.with_ros2(mgr.node());
@@ -3488,10 +3488,10 @@ async fn main() -> anyhow::Result<()> {
         }
     };
 
-    #[cfg_attr(not(feature = "ros2"), allow(unused_mut))]
+    #[cfg_attr(not(feature = "robotics-platform"), allow(unused_mut))]
     let violation_bus = ViolationEventBus::new();
 
-    #[cfg_attr(not(feature = "ros2"), allow(unused_mut))]
+    #[cfg_attr(not(feature = "robotics-platform"), allow(unused_mut))]
     let mut state = AppState {
         config: Arc::new(config),
         storage: Arc::new(storage),
@@ -3533,12 +3533,12 @@ async fn main() -> anyhow::Result<()> {
         lifecycle_registry,
         task_cancellation_registry: Arc::new(std::sync::RwLock::new(HashMap::new())),
         bt_state_tx: Arc::new(tokio::sync::watch::channel(serde_json::Value::Null).0),
-        #[cfg(feature = "ros2")]
+        #[cfg(feature = "robotics-platform")]
         ros2_manager: None, // Populated below if ENABLE_ROS2=true
     };
 
     // ── ROS2 startup (feature-gated) ─────────────────────────────────────────
-    #[cfg(feature = "ros2")]
+    #[cfg(feature = "robotics-platform")]
     {
         if std::env::var("ENABLE_ROS2").as_deref() == Ok("true") {
             use igris_ros2::Ros2Config;
