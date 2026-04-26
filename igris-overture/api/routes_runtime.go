@@ -69,7 +69,7 @@ func RegisterRuntimeRoutes(app *fiber.App, db *sql.DB, enforcer *billing.Runtime
 type runtimeInstanceRegisterRequest struct {
 	MachineID        string `json:"machine_id"` // persisted runtime installation identity
 	Hostname         string `json:"hostname"`
-	Platform         string `json:"platform"`           // e.g. linux-amd64
+	Platform         string `json:"platform"` // e.g. linux-amd64
 	RuntimeVersion   string `json:"runtime_version"`
 	Endpoint         string `json:"endpoint,omitempty"` // optional public endpoint
 	PublicKeyEd25519 string `json:"public_key_ed25519"`
@@ -87,7 +87,7 @@ type runtimeRegisterResponse struct {
 
 // runtimeInstanceHeartbeatRequest is the minimal payload for heartbeat/deregister calls.
 type runtimeInstanceHeartbeatRequest struct {
-	MachineID string          `json:"machine_id"`
+	MachineID string `json:"machine_id"`
 	// BtState is the latest BT tick snapshot from the executor
 	// ({"tick":N,"status":"...","tree":{...}}). Optional — omitted when idle.
 	BtState         json.RawMessage `json:"bt_state,omitempty"`
