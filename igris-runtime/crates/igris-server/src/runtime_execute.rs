@@ -232,6 +232,19 @@ pub async fn handle_execute(
     headers: HeaderMap,
     Json(req): Json<ExecuteRequest>,
 ) -> impl IntoResponse {
+    if crate::runtime_execution_blocked_by_safe_idle(&state) {
+        return (
+            StatusCode::SERVICE_UNAVAILABLE,
+            Json(serde_json::json!({
+                "error": {
+                    "message": crate::safe_idle_rejection_message("runtime execution"),
+                    "type": "safe_idle_active"
+                }
+            })),
+        )
+            .into_response();
+    }
+
     // Header-provided bounds take precedence over body.
     let bounds = parse_bounds_header(&headers).or_else(|| req.bounds.clone());
     let tenant_id = req.tenant_id.clone().or_else(|| {
