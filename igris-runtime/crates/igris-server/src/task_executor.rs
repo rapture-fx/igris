@@ -3638,7 +3638,7 @@ async fn execute_robotics_step(
         .policy_decision
         .as_ref()
         .map(|decision| robotics_governance_metadata(&governed_action, decision));
-    #[cfg(not(feature = "ros2"))]
+    #[cfg(not(feature = "robotics-platform"))]
     let _ = &governance_metadata;
 
     maybe_require_step_approval(
@@ -3653,7 +3653,7 @@ async fn execute_robotics_step(
     )
     .await?;
 
-    #[cfg(feature = "ros2")]
+    #[cfg(feature = "robotics-platform")]
     {
         let resolved_action = serde_json::from_value(resolve_graph_value(
             serde_json::to_value(&step.action)?,
@@ -3854,7 +3854,7 @@ async fn execute_robotics_step(
         }
     }
 
-    #[cfg(not(feature = "ros2"))]
+    #[cfg(not(feature = "robotics-platform"))]
     {
         let _ = (
             state,
@@ -4554,7 +4554,7 @@ async fn execute_behavior_tree_runtime(
         context = context.with_tools(tr.clone());
     }
 
-    #[cfg(feature = "ros2")]
+    #[cfg(feature = "robotics-platform")]
     if let Some(ref mgr) = state.ros2_manager {
         if !mgr.is_safe_idle() {
             context = context.with_ros2(mgr.node());
