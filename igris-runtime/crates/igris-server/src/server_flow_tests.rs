@@ -8,9 +8,9 @@ mod tests {
         routing::post,
         Json, Router,
     };
-    #[cfg(feature = "ros2")]
+    #[cfg(feature = "robotics-platform")]
     use base64::Engine;
-    #[cfg(feature = "ros2")]
+    #[cfg(feature = "robotics-platform")]
     use ed25519_dalek::Signer;
     use ed25519_dalek::SigningKey;
     use igris_core::storage::{TASK_SUBMISSIONS, TASK_SUBMISSION_STATUS_BY_TASK_ID};
@@ -19,7 +19,7 @@ mod tests {
     use igris_wal::{StepType, WalLog};
     use serde::Serialize;
     use sha2::{Digest, Sha256};
-    #[cfg(feature = "ros2")]
+    #[cfg(feature = "robotics-platform")]
     use std::collections::BTreeMap;
     use std::{convert::Infallible, net::SocketAddr, sync::Arc};
     use tokio::net::TcpListener;
