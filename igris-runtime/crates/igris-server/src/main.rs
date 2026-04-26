@@ -91,6 +91,7 @@ use metrics::Metrics;
 pub mod ros2_integration;
 #[cfg(test)]
 mod server_flow_tests;
+use igris_safety::ViolationEventBus;
 
 /// Application state shared across handlers
 #[derive(Clone)]
@@ -136,6 +137,8 @@ pub(crate) struct AppState {
     /// Overture's Ed25519 verifying key for X-Igris-Decision-Sig verification.
     /// Populated from IGRIS_OVERTURE_PUBLIC_KEY env var (hex). None = skip verify.
     pub(crate) overture_public_key: Option<Arc<ed25519_dalek::VerifyingKey>>,
+    /// Shared containment violation bus for deterministic halt / safe-idle handling.
+    pub(crate) violation_bus: ViolationEventBus,
     /// Current runtime license posture surfaced via `/v1/runtime/profile`.
     pub(crate) license_status: RuntimeLicenseStatus,
     // ── Phase 3 ─────────────────────────────────────────────────────────────
@@ -3499,6 +3502,9 @@ async fn main() -> anyhow::Result<()> {
     };
 
     #[cfg_attr(not(feature = "ros2"), allow(unused_mut))]
+    let violation_bus = ViolationEventBus::new();
+
+    #[cfg_attr(not(feature = "ros2"), allow(unused_mut))]
     let mut state = AppState {
         config: Arc::new(config),
         storage: Arc::new(storage),
@@ -3534,6 +3540,7 @@ async fn main() -> anyhow::Result<()> {
         runtime_public_key: Some(runtime_public_key),
         signing_key: Some(Arc::new(signing_key)),
         overture_public_key,
+        violation_bus: violation_bus.clone(),
         license_status,
         receipt_log,
         lifecycle_registry,
@@ -3548,8 +3555,6 @@ async fn main() -> anyhow::Result<()> {
     {
         if std::env::var("ENABLE_ROS2").as_deref() == Ok("true") {
             use igris_ros2::Ros2Config;
-            use igris_safety::ViolationEventBus;
-
             let ros2_config = Ros2Config {
                 enabled: true,
                 enable_nav2: std::env::var("ENABLE_NAV2").as_deref() == Ok("true"),
@@ -3557,8 +3562,6 @@ async fn main() -> anyhow::Result<()> {
                     .unwrap_or_else(|_| "igris_runtime".to_string()),
                 ..Default::default()
             };
-
-            let ros2_bus = ViolationEventBus::new();
 
             // Clone the signing key from AppState for the ContainmentBridge.
             let ros2_signing_key = state
@@ -3573,12 +3576,12 @@ async fn main() -> anyhow::Result<()> {
             let ros2_log_path = std::env::var("ROS2_VIOLATION_LOG")
                 .unwrap_or_else(|_| "/tmp/igris_ros2_violations.jsonl".to_string());
 
-            match crate::ros2_integration::Ros2Manager::start(
-                ros2_config,
-                &ros2_bus,
-                ros2_signing_key,
-                ros2_log_path,
-                String::new(),
+                match crate::ros2_integration::Ros2Manager::start(
+                    ros2_config,
+                    &violation_bus,
+                    ros2_signing_key,
+                    ros2_log_path,
+                    String::new(),
             )
             .await
             {
