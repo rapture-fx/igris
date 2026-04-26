@@ -4,6 +4,7 @@ use chrono::{DateTime, Utc};
 use ed25519_dalek::{Signature, Signer, SigningKey, Verifier, VerifyingKey};
 use serde::{Deserialize, Serialize};
 use sha2::{Digest, Sha256};
+use std::collections::BTreeMap;
 use std::fs;
 use std::path::{Path, PathBuf};
 use std::sync::Arc;
@@ -726,6 +727,39 @@ pub struct RegisteredRuntimeHandle {
     pub runtime_id: String,
 }
 
+/// Runtime command fetched from Overture's fleet command queue.
+#[derive(Debug, Clone, Serialize, Deserialize, PartialEq)]
+pub struct PendingRuntimeCommand {
+    #[serde(rename = "type")]
+    pub command_type: String,
+    #[serde(default)]
+    pub action: Option<String>,
+    #[serde(default)]
+    pub topic: Option<String>,
+    #[serde(default)]
+    pub message_type: Option<String>,
+    #[serde(default)]
+    pub payload: Option<serde_json::Value>,
+    #[serde(default)]
+    pub config: Option<serde_json::Value>,
+    #[serde(default)]
+    pub selector: Option<serde_json::Value>,
+    #[serde(default)]
+    pub version: Option<String>,
+    #[serde(default)]
+    pub strategy: Option<String>,
+    #[serde(default)]
+    pub max_unavailable: Option<u64>,
+    #[serde(flatten)]
+    pub extra: BTreeMap<String, serde_json::Value>,
+}
+
+#[derive(Debug, Deserialize)]
+struct RuntimeCommandsResponse {
+    #[serde(default)]
+    commands: Vec<PendingRuntimeCommand>,
+}
+
 /// Response from POST /api/v1/runtime/register
 #[derive(Debug, Serialize, Deserialize)]
 pub struct RuntimeRegisterResponse {
@@ -908,6 +942,45 @@ impl RuntimeRegistrationClient {
         Ok(())
     }
 
+    /// Fetch and clear queued runtime commands from Overture.
+    pub async fn fetch_pending_commands(&self) -> Result<Vec<PendingRuntimeCommand>> {
+        let url = format!("{}/api/v1/runtime/commands", self.base_url);
+        let timestamp_unix_ms = Utc::now().timestamp_millis();
+        let signature = sign_runtime_machine_payload(
+            self.signing_key.as_ref(),
+            "runtime_commands.v1",
+            &self.machine_id,
+            timestamp_unix_ms,
+            None,
+        );
+
+        let resp = self
+            .client
+            .get(&url)
+            .header("X-API-Key", &self.api_key)
+            .query(&[
+                ("machine_id", self.machine_id.as_str()),
+                ("timestamp_unix_ms", &timestamp_unix_ms.to_string()),
+                ("signature", signature.as_str()),
+            ])
+            .send()
+            .await
+            .map_err(|e| anyhow!("Command fetch request failed: {}", e))?;
+
+        let status = resp.status();
+        let body = resp
+            .text()
+            .await
+            .map_err(|e| anyhow!("Failed to read command fetch response: {}", e))?;
+        if !status.is_success() {
+            return Err(anyhow!("Command fetch error ({}): {}", status, body));
+        }
+
+        let response: RuntimeCommandsResponse = serde_json::from_str(&body)
+            .map_err(|e| anyhow!("Failed to parse command fetch response: {}", e))?;
+        Ok(response.commands)
+    }
+
     /// Return the machine ID used by this client (for logging).
     pub fn machine_id(&self) -> &str {
         &self.machine_id
@@ -991,6 +1064,9 @@ fn sign_runtime_machine_payload(
 #[cfg(test)]
 mod tests {
     use super::*;
+    use std::io::{Read, Write};
+    use std::net::TcpListener;
+    use tokio::task::JoinHandle;
 
     #[test]
     fn test_device_id_generation() {
@@ -1021,5 +1097,62 @@ mod tests {
 
         assert_eq!(device_id, "dev_0123456789abcdef0123456789abcdef");
         std::env::remove_var("IGRIS_DEVICE_ID_PATH");
+    }
+
+    fn spawn_runtime_command_server(
+        response_body: &'static str,
+        request_sink: Arc<std::sync::Mutex<Vec<String>>>,
+    ) -> (String, JoinHandle<()>) {
+        let listener = TcpListener::bind("127.0.0.1:0").unwrap();
+        let addr = listener.local_addr().unwrap();
+        let handle = tokio::spawn(async move {
+            let (mut stream, _) = listener.accept().unwrap();
+            let mut buffer = [0u8; 4096];
+            let bytes = stream.read(&mut buffer).unwrap();
+            request_sink
+                .lock()
+                .unwrap()
+                .push(String::from_utf8_lossy(&buffer[..bytes]).into_owned());
+            let response = format!(
+                "HTTP/1.1 200 OK\r\nContent-Type: application/json\r\nContent-Length: {}\r\nConnection: close\r\n\r\n{}",
+                response_body.len(),
+                response_body
+            );
+            stream.write_all(response.as_bytes()).unwrap();
+        });
+        (format!("http://{}", addr), handle)
+    }
+
+    #[tokio::test]
+    async fn fetch_pending_commands_signs_query_and_parses_response() {
+        let requests = Arc::new(std::sync::Mutex::new(Vec::new()));
+        let (base_url, server) = spawn_runtime_command_server(
+            r#"{"commands":[{"type":"config_push","config":{"auth":{"enabled":true}}},{"type":"ros_publish","topic":"/igris/prompt","message_type":"std_msgs/String","payload":{"data":"hello"}}]}"#,
+            Arc::clone(&requests),
+        );
+
+        let signing_key = Arc::new(SigningKey::from_bytes(&[7u8; 32]));
+        let client = RuntimeRegistrationClient::new(
+            Some(&base_url),
+            "test-api-key".to_string(),
+            "runtime-public-key".to_string(),
+            Arc::clone(&signing_key),
+        );
+
+        let commands = client.fetch_pending_commands().await.unwrap();
+        assert_eq!(commands.len(), 2);
+        assert_eq!(commands[0].command_type, "config_push");
+        assert_eq!(commands[1].command_type, "ros_publish");
+        assert_eq!(commands[1].topic.as_deref(), Some("/igris/prompt"));
+
+        server.await.unwrap();
+
+        let captured = requests.lock().unwrap();
+        let request = captured.first().unwrap();
+        assert!(request.starts_with("GET /api/v1/runtime/commands?"));
+        assert!(request.contains("machine_id="));
+        assert!(request.contains("timestamp_unix_ms="));
+        assert!(request.contains("signature="));
+        assert!(request.contains("X-API-Key: test-api-key"));
     }
 }
