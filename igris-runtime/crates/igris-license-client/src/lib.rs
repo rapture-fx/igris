@@ -960,7 +960,8 @@ fn sign_runtime_registration_payload(
         endpoint.unwrap_or(""),
         timestamp_unix_ms
     );
-    base64::engine::general_purpose::STANDARD.encode(signing_key.sign(message.as_bytes()).to_bytes())
+    base64::engine::general_purpose::STANDARD
+        .encode(signing_key.sign(message.as_bytes()).to_bytes())
 }
 
 fn sign_runtime_machine_payload(
@@ -977,7 +978,8 @@ fn sign_runtime_machine_payload(
         "{}:{}:{}:{}",
         purpose, machine_id, timestamp_unix_ms, bt_state_hash
     );
-    base64::engine::general_purpose::STANDARD.encode(signing_key.sign(message.as_bytes()).to_bytes())
+    base64::engine::general_purpose::STANDARD
+        .encode(signing_key.sign(message.as_bytes()).to_bytes())
 }
 
 #[cfg(test)]
