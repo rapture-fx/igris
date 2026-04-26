@@ -4,6 +4,8 @@
 // The Rust SLO enforcer is unavailable; EvaluateAndAct returns a no-breach response.
 package slo
 
+import "fmt"
+
 // MetricsInput represents Prometheus metrics to be evaluated
 type MetricsInput struct {
 	P99LatencyMs  *float64 `json:"p99_latency_ms,omitempty"`
@@ -30,12 +32,24 @@ type EvaluationResponse struct {
 	Timestamp uint64              `json:"timestamp"`
 }
 
-// EvaluateAndAct returns a no-op response when Rust FFI is unavailable.
+var errSLOFFIUnavailable = fmt.Errorf("rust SLO enforcer unavailable (built without igris_native)")
+
+// EvaluateAndAct returns an explicit unavailable error when Rust FFI is unavailable.
 func EvaluateAndAct(_ MetricsInput) (*EvaluationResponse, error) {
-	return &EvaluationResponse{Breached: false, Actions: nil}, nil
+	return nil, errSLOFFIUnavailable
 }
 
 // GetVersion returns a stub version string.
 func GetVersion() string {
 	return "stub (no-cgo build)"
+}
+
+// NativeAvailable reports whether the Rust SLO enforcer is linked in this build.
+func NativeAvailable() bool {
+	return false
+}
+
+// Mode reports the active SLO enforcer linkage mode.
+func Mode() string {
+	return "stub"
 }
