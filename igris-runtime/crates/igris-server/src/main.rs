@@ -212,6 +212,7 @@ struct RuntimeCommandDeadLetter {
     command: igris_license_client::PendingRuntimeCommand,
 }
 
+#[cfg_attr(not(feature = "robotics-platform"), allow(dead_code))]
 enum RuntimeCommandProcessResult {
     Completed,
     DeadLetter(String),
@@ -287,6 +288,7 @@ fn append_runtime_command_deadletter(
     Ok(())
 }
 
+#[cfg_attr(not(feature = "robotics-platform"), allow(dead_code))]
 fn ros_command_string_payload(payload: Option<&serde_json::Value>) -> Option<String> {
     match payload {
         Some(serde_json::Value::String(value)) => Some(value.clone()),
@@ -298,6 +300,7 @@ fn ros_command_string_payload(payload: Option<&serde_json::Value>) -> Option<Str
     }
 }
 
+#[cfg_attr(not(feature = "robotics-platform"), allow(dead_code))]
 fn ros_command_twist_payload(payload: Option<&serde_json::Value>) -> Option<(f64, f64)> {
     let payload = payload?;
     if let serde_json::Value::Object(map) = payload {
