@@ -733,6 +733,8 @@ pub struct PendingRuntimeCommand {
     #[serde(rename = "type")]
     pub command_type: String,
     #[serde(default)]
+    pub delivery_key: Option<String>,
+    #[serde(default)]
     pub action: Option<String>,
     #[serde(default)]
     pub topic: Option<String>,
@@ -981,6 +983,49 @@ impl RuntimeRegistrationClient {
         Ok(response.commands)
     }
 
+    /// Acknowledge that the runtime durably persisted the fetched commands.
+    pub async fn ack_pending_commands(&self, delivery_keys: &[String]) -> Result<()> {
+        let url = format!("{}/api/v1/runtime/commands/ack", self.base_url);
+        let mut keys: Vec<String> = delivery_keys
+            .iter()
+            .map(|value| value.trim().to_string())
+            .filter(|value| !value.is_empty())
+            .collect();
+        keys.sort();
+        keys.dedup();
+
+        let timestamp_unix_ms = Utc::now().timestamp_millis();
+        let signature = sign_runtime_command_ack_payload(
+            self.signing_key.as_ref(),
+            &self.machine_id,
+            &keys,
+            timestamp_unix_ms,
+        );
+        let payload = serde_json::json!({
+            "machine_id": self.machine_id,
+            "delivery_keys": keys,
+            "timestamp_unix_ms": timestamp_unix_ms,
+            "signature": signature,
+        });
+
+        let resp = self
+            .client
+            .post(&url)
+            .header("X-API-Key", &self.api_key)
+            .json(&payload)
+            .send()
+            .await
+            .map_err(|e| anyhow!("Command ack request failed: {}", e))?;
+        if !resp.status().is_success() {
+            let body = resp
+                .text()
+                .await
+                .unwrap_or_else(|_| "unable to read ack response".to_string());
+            return Err(anyhow!("Command ack error ({}): {}", resp.status(), body));
+        }
+        Ok(())
+    }
+
     /// Return the machine ID used by this client (for logging).
     pub fn machine_id(&self) -> &str {
         &self.machine_id
@@ -1061,6 +1106,22 @@ fn sign_runtime_machine_payload(
         .encode(signing_key.sign(message.as_bytes()).to_bytes())
 }
 
+fn sign_runtime_command_ack_payload(
+    signing_key: &SigningKey,
+    machine_id: &str,
+    delivery_keys: &[String],
+    timestamp_unix_ms: i64,
+) -> String {
+    let message = format!(
+        "runtime_commands_ack.v1:{}:{}:{}",
+        machine_id,
+        timestamp_unix_ms,
+        delivery_keys.join(",")
+    );
+    base64::engine::general_purpose::STANDARD
+        .encode(signing_key.sign(message.as_bytes()).to_bytes())
+}
+
 #[cfg(test)]
 mod tests {
     use super::*;
@@ -1125,5 +1186,35 @@ mod tests {
         assert_eq!(response.commands.len(), 2);
         assert_eq!(response.commands[0].command_type, "config_push");
         assert_eq!(response.commands[1].topic.as_deref(), Some("/igris/prompt"));
+    }
+
+    #[test]
+    fn runtime_commands_ack_signature_matches_control_plane_contract() {
+        let signing_key = SigningKey::from_bytes(&[9u8; 32]);
+        let machine_id = "dev_0123456789abcdef0123456789abcdef";
+        let timestamp_unix_ms = 1_900_500_100_000_i64;
+        let delivery_keys = vec!["command-b".to_string(), "command-a".to_string()];
+        let signature = sign_runtime_command_ack_payload(
+            &signing_key,
+            machine_id,
+            &["command-a".to_string(), "command-b".to_string()],
+            timestamp_unix_ms,
+        );
+        let signature_bytes = base64::engine::general_purpose::STANDARD
+            .decode(signature)
+            .unwrap();
+        let signature = Signature::from_slice(&signature_bytes).unwrap();
+        let mut sorted = delivery_keys;
+        sorted.sort();
+        let message = format!(
+            "runtime_commands_ack.v1:{}:{}:{}",
+            machine_id,
+            timestamp_unix_ms,
+            sorted.join(",")
+        );
+        signing_key
+            .verifying_key()
+            .verify(message.as_bytes(), &signature)
+            .unwrap();
     }
 }
