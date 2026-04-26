@@ -277,6 +277,19 @@ pub async fn handle_execute(
         }
     };
 
+    let (route_plan, thompson_provider_id) =
+        match build_worker_routing_plan(&state, req.mode.as_deref()).await {
+            Ok(plan) => plan,
+            Err(e) => {
+                return (
+                    StatusCode::BAD_REQUEST,
+                    Json(serde_json::json!({
+                        "error": { "message": e.to_string(), "type": "invalid_route_mode" }
+                    })),
+                )
+                    .into_response();
+            }
+        };
     let log_path = std::env::var("IGRIS_VIOLATIONS_LOG")
         .unwrap_or_else(|_| "./igris_violations.jsonl".to_string());
     let containment_bounds = SafetyBounds::new(
@@ -287,7 +300,13 @@ pub async fn handle_execute(
         max_tick_ms,
     )
     .with_memory_mb(bounds.as_ref().and_then(|value| value.memory_mb));
-    let mut guard = ContainmentGuard::new(containment_bounds, signing_key, log_path);
+    let mut guard = ContainmentGuard::new_with_bus(
+        containment_bounds,
+        signing_key,
+        log_path,
+        state.violation_bus.clone(),
+    );
+    let routed_at = std::time::Instant::now();
 
     let route_result = guard
         .execute(
@@ -295,6 +314,7 @@ pub async fn handle_execute(
                 kind: "route".to_string(),
                 prompt: Some(prompt.clone()),
                 mode: req.mode.clone(),
+                route_plan: Some(route_plan),
                 test_delay_ms: None,
                 test_response_content: None,
                 test_response_provider: None,
@@ -306,6 +326,17 @@ pub async fn handle_execute(
     match route_result {
         Ok(worker_result) => {
             if worker_result.get("status").and_then(|value| value.as_str()) != Some("ok") {
+                if let Some(provider_id) = thompson_provider_id.as_deref() {
+                    let _ = state
+                        .thompson_router
+                        .update_reward(
+                            provider_id,
+                            routed_at.elapsed().as_millis() as f64,
+                            false,
+                            0.0,
+                        )
+                        .await;
+                }
                 let error_message = worker_result
                     .get("error")
                     .and_then(|value| value.as_str())
@@ -327,6 +358,17 @@ pub async fn handle_execute(
             {
                 Some(Ok(result)) => result,
                 _ => {
+                    if let Some(provider_id) = thompson_provider_id.as_deref() {
+                        let _ = state
+                            .thompson_router
+                            .update_reward(
+                                provider_id,
+                                routed_at.elapsed().as_millis() as f64,
+                                false,
+                                0.0,
+                            )
+                            .await;
+                    }
                     warn!("[Runtime/Execute] Worker returned malformed result payload");
                     return (
                         StatusCode::INTERNAL_SERVER_ERROR,
@@ -337,6 +379,17 @@ pub async fn handle_execute(
                         .into_response();
                 }
             };
+            if let Some(provider_id) = thompson_provider_id.as_deref() {
+                let _ = state
+                    .thompson_router
+                    .update_reward(
+                        provider_id,
+                        routed_at.elapsed().as_millis() as f64,
+                        true,
+                        0.0,
+                    )
+                    .await;
+            }
             let content = parsed_result.content;
             let provider_name = parsed_result.provider;
             let pt = token_estimate(&prompt);
@@ -439,6 +492,17 @@ pub async fn handle_execute(
         }
 
         Err(violation_kind) => {
+            if let Some(provider_id) = thompson_provider_id.as_deref() {
+                let _ = state
+                    .thompson_router
+                    .update_reward(
+                        provider_id,
+                        routed_at.elapsed().as_millis() as f64,
+                        false,
+                        0.0,
+                    )
+                    .await;
+            }
             warn!(
                 "[Runtime/Execute] Worker containment violation {:?} after {}ms",
                 violation_kind, max_tick_ms
@@ -1011,37 +1075,7 @@ pub(crate) async fn do_route(
         anyhow::bail!("planned council providers unavailable");
     }
 
-    if route_plan.strategy != "local" && !route_context.cloud_providers.is_empty() {
-        let fallback_mode = normalize_worker_mode(jobless_mode_hint(route_plan))?;
-        if matches!(
-            fallback_mode,
-            WorkerExecutionMode::Default
-                | WorkerExecutionMode::Latency
-                | WorkerExecutionMode::Balanced
-                | WorkerExecutionMode::Quality
-                | WorkerExecutionMode::Cost
-        ) {
-            let providers = ranked_worker_cloud_providers(route_context, fallback_mode);
-            if let Ok(result) = route_context
-                .speculative_router
-                .route(&prompt, providers)
-                .await
-            {
-                return Ok((result.response, result.winner_id));
-            }
-        }
-    }
-
     anyhow::bail!("No providers available")
-}
-
-fn jobless_mode_hint(route_plan: &WorkerRoutingPlan) -> Option<&str> {
-    match route_plan.strategy.as_str() {
-        "ranked" => Some("balanced"),
-        "council" => Some("council"),
-        "direct" => Some("thompson"),
-        _ => None,
-    }
 }
 
 fn safety_violation_label(kind: &SafetyViolationKind) -> &'static str {
