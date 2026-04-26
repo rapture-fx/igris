@@ -18,6 +18,7 @@ import (
 	"net/http"
 	"os"
 	"path/filepath"
+	"sort"
 	"strconv"
 	"strings"
 	"time"
@@ -61,6 +62,7 @@ func RegisterRuntimeRoutes(app *fiber.App, db *sql.DB, enforcer *billing.Runtime
 	v1.Delete("/deregister", h.Deregister)
 	v1.Get("/download", h.Download)
 	v1.Get("/commands", h.GetPendingCommands)
+	v1.Post("/commands/ack", h.AckPendingCommands)
 
 	log.Info().Msg("[Routes] Registered runtime endpoints (/api/v1/runtime)")
 }
@@ -93,6 +95,13 @@ type runtimeInstanceHeartbeatRequest struct {
 	BtState         json.RawMessage `json:"bt_state,omitempty"`
 	TimestampUnixMs int64           `json:"timestamp_unix_ms"`
 	Signature       string          `json:"signature"`
+}
+
+type runtimeCommandAckRequest struct {
+	MachineID       string   `json:"machine_id"`
+	DeliveryKeys    []string `json:"delivery_keys"`
+	TimestampUnixMs int64    `json:"timestamp_unix_ms"`
+	Signature       string   `json:"signature"`
 }
 
 // Register handles POST /api/v1/runtime/register
@@ -372,7 +381,7 @@ func (h *RuntimeHandler) Heartbeat(c *fiber.Ctx) error {
 }
 
 // GetPendingCommands handles GET /api/v1/runtime/commands
-// Returns all queued commands for the calling runtime and atomically clears them.
+// Returns all queued commands for the calling runtime with stable delivery keys.
 func (h *RuntimeHandler) GetPendingCommands(c *fiber.Ctx) error {
 	tenantID := c.Locals("tenant_id").(string)
 	ctx := context.Background()
@@ -434,14 +443,11 @@ func (h *RuntimeHandler) GetPendingCommands(c *fiber.Ctx) error {
 		})
 	}
 
-	// Atomically fetch and clear pending_commands in one statement.
 	var rawCommands []byte
 	err = h.db.QueryRowContext(ctx, `
-		UPDATE runtime_instances
-		SET pending_commands = '[]'::jsonb,
-		    updated_at = NOW()
+		SELECT COALESCE(pending_commands, '[]'::jsonb)
+		FROM runtime_instances
 		WHERE tenant_id = $1 AND machine_id = $2
-		RETURNING COALESCE(pending_commands, '[]'::jsonb)
 	`, tenantID, machineID).Scan(&rawCommands)
 
 	if errors.Is(err, sql.ErrNoRows) {
@@ -457,8 +463,141 @@ func (h *RuntimeHandler) GetPendingCommands(c *fiber.Ctx) error {
 		})
 	}
 
+	commands, err := decoratePendingCommandsForDelivery(rawCommands)
+	if err != nil {
+		log.Error().Err(err).Str("tenant_id", tenantID).Msg("[Runtime] GetPendingCommands decorate failed")
+		return c.Status(fiber.StatusInternalServerError).JSON(fiber.Map{
+			"error": "internal_error",
+		})
+	}
+
 	return c.JSON(fiber.Map{
-		"commands": json.RawMessage(rawCommands),
+		"commands": commands,
+	})
+}
+
+// AckPendingCommands handles POST /api/v1/runtime/commands/ack
+// and removes the acknowledged commands from the runtime queue.
+func (h *RuntimeHandler) AckPendingCommands(c *fiber.Ctx) error {
+	tenantID := c.Locals("tenant_id").(string)
+	ctx := context.Background()
+
+	var req runtimeCommandAckRequest
+	if err := c.BodyParser(&req); err != nil {
+		return c.Status(fiber.StatusBadRequest).JSON(fiber.Map{
+			"error": "invalid_request",
+		})
+	}
+	if req.MachineID == "" || req.TimestampUnixMs == 0 || req.Signature == "" {
+		return c.Status(fiber.StatusBadRequest).JSON(fiber.Map{
+			"error":   "missing_fields",
+			"message": "machine_id, timestamp_unix_ms, and signature are required",
+		})
+	}
+
+	runtimePublicKey, err := h.runtimePublicKeyForMachine(ctx, tenantID, req.MachineID)
+	if err != nil {
+		if errors.Is(err, sql.ErrNoRows) {
+			return c.Status(fiber.StatusNotFound).JSON(fiber.Map{
+				"error":   "not_registered",
+				"message": "Runtime not found — call /api/v1/runtime/register first",
+			})
+		}
+		return c.Status(fiber.StatusInternalServerError).JSON(fiber.Map{
+			"error": "internal_error",
+		})
+	}
+	if strings.TrimSpace(runtimePublicKey) == "" {
+		return c.Status(fiber.StatusConflict).JSON(fiber.Map{
+			"error":   "runtime_unverified",
+			"message": "Runtime has no registered public key",
+		})
+	}
+	if err := validateRuntimeTimestamp(req.TimestampUnixMs); err != nil {
+		return c.Status(fiber.StatusUnauthorized).JSON(fiber.Map{
+			"error":   "runtime_signature_invalid",
+			"message": err.Error(),
+		})
+	}
+	if err := verifyRuntimeCommandAckSignature(runtimePublicKey, req); err != nil {
+		return c.Status(fiber.StatusUnauthorized).JSON(fiber.Map{
+			"error":   "runtime_signature_invalid",
+			"message": err.Error(),
+		})
+	}
+
+	tx, err := h.db.BeginTx(ctx, nil)
+	if err != nil {
+		return c.Status(fiber.StatusInternalServerError).JSON(fiber.Map{"error": "internal_error"})
+	}
+	defer tx.Rollback()
+
+	var rawCommands []byte
+	err = tx.QueryRowContext(ctx, `
+		SELECT COALESCE(pending_commands, '[]'::jsonb)
+		FROM runtime_instances
+		WHERE tenant_id = $1 AND machine_id = $2
+		FOR UPDATE
+	`, tenantID, req.MachineID).Scan(&rawCommands)
+	if errors.Is(err, sql.ErrNoRows) {
+		return c.Status(fiber.StatusNotFound).JSON(fiber.Map{
+			"error":   "not_registered",
+			"message": "Runtime not found — call /api/v1/runtime/register first",
+		})
+	}
+	if err != nil {
+		return c.Status(fiber.StatusInternalServerError).JSON(fiber.Map{"error": "internal_error"})
+	}
+
+	var commands []json.RawMessage
+	if len(rawCommands) > 0 {
+		if err := json.Unmarshal(rawCommands, &commands); err != nil {
+			return c.Status(fiber.StatusInternalServerError).JSON(fiber.Map{"error": "internal_error"})
+		}
+	}
+
+	ackSet := make(map[string]struct{}, len(req.DeliveryKeys))
+	for _, key := range req.DeliveryKeys {
+		key = strings.TrimSpace(key)
+		if key != "" {
+			ackSet[key] = struct{}{}
+		}
+	}
+
+	filtered := make([]json.RawMessage, 0, len(commands))
+	ackedCount := 0
+	for _, raw := range commands {
+		deliveryKey, keyErr := runtimeCommandDeliveryKeyFromRaw(raw)
+		if keyErr != nil {
+			filtered = append(filtered, raw)
+			continue
+		}
+		if _, ok := ackSet[deliveryKey]; ok {
+			ackedCount++
+			continue
+		}
+		filtered = append(filtered, raw)
+	}
+
+	filteredBytes, err := json.Marshal(filtered)
+	if err != nil {
+		return c.Status(fiber.StatusInternalServerError).JSON(fiber.Map{"error": "internal_error"})
+	}
+	if _, err := tx.ExecContext(ctx, `
+		UPDATE runtime_instances
+		SET pending_commands = $1::jsonb,
+		    updated_at = NOW()
+		WHERE tenant_id = $2 AND machine_id = $3
+	`, filteredBytes, tenantID, req.MachineID); err != nil {
+		return c.Status(fiber.StatusInternalServerError).JSON(fiber.Map{"error": "internal_error"})
+	}
+	if err := tx.Commit(); err != nil {
+		return c.Status(fiber.StatusInternalServerError).JSON(fiber.Map{"error": "internal_error"})
+	}
+
+	return c.JSON(fiber.Map{
+		"status":      "ok",
+		"acked_count": ackedCount,
 	})
 }
 
@@ -743,6 +882,18 @@ func verifyRuntimeMachineSignature(publicKeyHex, purpose string, req runtimeInst
 	return verifyRuntimeSignatureMessage(publicKeyHex, req.Signature, message)
 }
 
+func verifyRuntimeCommandAckSignature(publicKeyHex string, req runtimeCommandAckRequest) error {
+	keys := append([]string(nil), req.DeliveryKeys...)
+	sort.Strings(keys)
+	message := fmt.Sprintf(
+		"runtime_commands_ack.v1:%s:%d:%s",
+		req.MachineID,
+		req.TimestampUnixMs,
+		strings.Join(keys, ","),
+	)
+	return verifyRuntimeSignatureMessage(publicKeyHex, req.Signature, message)
+}
+
 func validateRuntimeTimestamp(timestampUnixMs int64) error {
 	requestTime := time.UnixMilli(timestampUnixMs)
 	now := time.Now().UTC()
@@ -768,6 +919,47 @@ func verifyRuntimeSignatureMessage(publicKeyHex, signatureBase64, message string
 		return fmt.Errorf("runtime signature verification failed")
 	}
 	return nil
+}
+
+func decoratePendingCommandsForDelivery(rawCommands []byte) ([]map[string]interface{}, error) {
+	var commands []json.RawMessage
+	if len(rawCommands) == 0 {
+		return []map[string]interface{}{}, nil
+	}
+	if err := json.Unmarshal(rawCommands, &commands); err != nil {
+		return nil, err
+	}
+
+	decorated := make([]map[string]interface{}, 0, len(commands))
+	for _, raw := range commands {
+		var command map[string]interface{}
+		if err := json.Unmarshal(raw, &command); err != nil {
+			return nil, err
+		}
+		deliveryKey, err := runtimeCommandDeliveryKeyFromRaw(raw)
+		if err != nil {
+			return nil, err
+		}
+		command["delivery_key"] = deliveryKey
+		decorated = append(decorated, command)
+	}
+	return decorated, nil
+}
+
+func runtimeCommandDeliveryKeyFromRaw(raw json.RawMessage) (string, error) {
+	var command map[string]interface{}
+	if err := json.Unmarshal(raw, &command); err != nil {
+		return "", err
+	}
+	if commandID, ok := command["command_id"].(string); ok && strings.TrimSpace(commandID) != "" {
+		return commandID, nil
+	}
+	canonical, err := json.Marshal(command)
+	if err != nil {
+		return "", err
+	}
+	sum := sha256.Sum256(canonical)
+	return hex.EncodeToString(sum[:]), nil
 }
 
 func runtimeBtStateHash(raw json.RawMessage) string {
