@@ -964,6 +964,11 @@ func (tc *TaskCoordinator) recoverRuntime(ctx context.Context, runtimeID string)
 			log.Warn().Err(err).Str("task_id", taskID.String()).Msg("[Coordinator] Could not load task state for recovery")
 			continue
 		}
+		task, err = tc.store.HydrateTaskPermissionEnvelope(task)
+		if err != nil {
+			log.Warn().Err(err).Str("task_id", taskID.String()).Msg("[Coordinator] Could not hydrate task governance for recovery")
+			continue
+		}
 		cp = selectRecoveryCheckpoint(cp, task.LastCheckpoint)
 		if skipReason := TaskRecoverySkipReason(task); skipReason != "" {
 			tc.handleRecoverySkip(taskID, task, skipReason)
@@ -994,6 +999,11 @@ func (tc *TaskCoordinator) recoverRuntime(ctx context.Context, runtimeID string)
 
 		task, err = tc.store.GetTask(taskID, tenantID)
 		if err != nil {
+			continue
+		}
+		task, err = tc.store.HydrateTaskPermissionEnvelope(task)
+		if err != nil {
+			log.Warn().Err(err).Str("task_id", taskID.String()).Msg("[Coordinator] Could not rehydrate task governance for recovery retry")
 			continue
 		}
 		task.RuntimeEndpoint = &newRuntime.Endpoint
