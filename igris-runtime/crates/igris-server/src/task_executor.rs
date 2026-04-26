@@ -3929,12 +3929,43 @@ fn policy_decision_hash(decision: &GovernedPolicyDecision) -> String {
     hash_hex(&canonical_policy_decision_bytes(decision))
 }
 
+fn effective_required_capabilities(req: &TaskSubmitRequest) -> Vec<String> {
+    let mut seen = std::collections::BTreeSet::new();
+    for capability in &req.required_capabilities {
+        let normalized = capability.trim().to_ascii_lowercase();
+        if !normalized.is_empty() {
+            seen.insert(normalized);
+        }
+    }
+    for capability in derived_task_capabilities(&req.task_type) {
+        seen.insert(capability);
+    }
+    seen.into_iter().collect()
+}
+
+fn derived_task_capabilities(task_type: &TaskType) -> Vec<String> {
+    let mut capabilities = std::collections::BTreeSet::new();
+    let steps = match task_type {
+        TaskType::BehaviorTree { .. } => return Vec::new(),
+        _ => materialize_execution_graph(task_type)
+            .and_then(|graph| compile_execution_graph_to_steps(&graph))
+            .unwrap_or_default(),
+    };
+    for step in &steps {
+        for capability in step_required_capabilities(step) {
+            capabilities.insert(capability);
+        }
+    }
+    capabilities.into_iter().collect()
+}
+
 fn validate_task_permission_envelope(
     req: &TaskSubmitRequest,
+    required_capabilities: &[String],
     overture_public_key: Option<&ed25519_dalek::VerifyingKey>,
     runtime_id: &str,
 ) -> Result<(), String> {
-    if req.required_capabilities.is_empty() && req.permission_envelope.is_none() {
+    if required_capabilities.is_empty() && req.permission_envelope.is_none() {
         return Ok(());
     }
 
@@ -3965,7 +3996,7 @@ fn validate_task_permission_envelope(
     verify_task_permission_envelope_signature(envelope, verifying_key)
         .map_err(|err| format!("invalid task permission envelope: {err}"))?;
 
-    for capability in &req.required_capabilities {
+    for capability in required_capabilities {
         if !permission_envelope_allows_capability(envelope, capability) {
             return Err(format!(
                 "required capability {capability} is not permitted by task permission envelope"
@@ -4096,28 +4127,106 @@ fn permission_failure_for_step(
     req: &TaskSubmitRequest,
     step: &RuntimeTaskStep,
 ) -> Option<TaskFailureDetails> {
-    let envelope = req.permission_envelope.as_ref()?;
-    let capability = step_required_capability(step)?;
-    if permission_envelope_allows_capability(envelope, &capability) {
+    let capabilities = step_required_capabilities(step);
+    if capabilities.is_empty() {
         return None;
     }
-    Some(runtime_execution_failure_details(
-        "capability_policy_denied",
-        format!("capability {capability} denied by task permission envelope"),
-        Some(step),
-    ))
+
+    let Some(envelope) = req.permission_envelope.as_ref() else {
+        return Some(runtime_execution_failure_details(
+            "capability_policy_denied",
+            format!(
+                "missing task permission envelope for step capabilities {}",
+                capabilities.join(", ")
+            ),
+            Some(step),
+        ));
+    };
+
+    for capability in capabilities {
+        if !permission_envelope_allows_capability(envelope, &capability) {
+            return Some(runtime_execution_failure_details(
+                "capability_policy_denied",
+                format!("capability {capability} denied by task permission envelope"),
+                Some(step),
+            ));
+        }
+    }
+    None
+}
+
+fn step_required_capabilities(step: &RuntimeTaskStep) -> Vec<String> {
+    let mut capabilities = std::collections::BTreeSet::new();
+    match step {
+        RuntimeTaskStep::Tool(tool_step) => {
+            capabilities.insert(tool_capability(&tool_step.tool_name));
+        }
+        RuntimeTaskStep::MemoryRecall(_) => {
+            capabilities.insert("memory.read".to_string());
+        }
+        RuntimeTaskStep::MemoryStore(_) => {
+            capabilities.insert("memory.write".to_string());
+        }
+        RuntimeTaskStep::HumanApproval(_) => {
+            capabilities.insert("human.approval".to_string());
+        }
+        RuntimeTaskStep::Agent(agent_step) => {
+            if agent_step
+                .memory
+                .as_ref()
+                .map(agent_memory_requires_read)
+                .unwrap_or(false)
+            {
+                capabilities.insert("memory.read".to_string());
+            }
+            if agent_step
+                .memory
+                .as_ref()
+                .map(agent_memory_requires_write)
+                .unwrap_or(false)
+            {
+                capabilities.insert("memory.write".to_string());
+            }
+            if agent_step
+                .approval
+                .as_ref()
+                .map(approval_requires_capability)
+                .unwrap_or(false)
+            {
+                capabilities.insert("human.approval".to_string());
+            }
+        }
+        RuntimeTaskStep::Robotics(_) | RuntimeTaskStep::BehaviorTree(_) => {}
+    }
+    capabilities.into_iter().collect()
+}
+
+fn agent_memory_requires_read(memory: &AgentMemoryOptions) -> bool {
+    memory
+        .recall_query
+        .as_deref()
+        .map(str::trim)
+        .map(|value| !value.is_empty())
+        .unwrap_or(false)
+        || memory.recall_top_k.unwrap_or(0) > 0
+}
+
+fn agent_memory_requires_write(memory: &AgentMemoryOptions) -> bool {
+    memory.store_output
+        || memory
+            .store_key
+            .as_deref()
+            .map(str::trim)
+            .map(|value| !value.is_empty())
+            .unwrap_or(false)
+}
+
+fn approval_requires_capability(approval: &AgentApprovalOptions) -> bool {
+    approval.required || approval.confidence.is_some()
 }
 
 fn step_required_capability(step: &RuntimeTaskStep) -> Option<String> {
-    match step {
-        RuntimeTaskStep::Tool(tool_step) => Some(tool_capability(&tool_step.tool_name)),
-        RuntimeTaskStep::MemoryRecall(_) => Some("memory.read".to_string()),
-        RuntimeTaskStep::MemoryStore(_) => Some("memory.write".to_string()),
-        RuntimeTaskStep::HumanApproval(_) => Some("human.approval".to_string()),
-        RuntimeTaskStep::Agent(_)
-        | RuntimeTaskStep::Robotics(_)
-        | RuntimeTaskStep::BehaviorTree(_) => None,
-    }
+    step_required_capabilities(step).into_iter().next()
 }
 
 fn tool_capability(tool_name: &str) -> String {
