@@ -15,6 +15,7 @@ mod tests {
     use ed25519_dalek::SigningKey;
     use igris_core::storage::{TASK_SUBMISSIONS, TASK_SUBMISSION_STATUS_BY_TASK_ID};
     use igris_routing::thompson::ThompsonSamplingRouter;
+    use igris_safety::ViolationEventBus;
     use igris_wal::{StepType, WalLog};
     use serde::Serialize;
     use sha2::{Digest, Sha256};
@@ -130,6 +131,7 @@ mod tests {
             runtime_public_key: None,
             signing_key: None,
             overture_public_key: None,
+            violation_bus: ViolationEventBus::new(),
             license_status: RuntimeLicenseStatus {
                 state: "licensed_online".to_string(),
                 tier: Some("seed".to_string()),
@@ -190,6 +192,7 @@ mod tests {
             runtime_public_key: None,
             signing_key: None,
             overture_public_key: None,
+            violation_bus: ViolationEventBus::new(),
             license_status: RuntimeLicenseStatus {
                 state: "licensed_online".to_string(),
                 tier: Some("seed".to_string()),
@@ -1325,6 +1328,7 @@ mod tests {
             runtime_public_key: None,
             signing_key: None,
             overture_public_key: None,
+            violation_bus: ViolationEventBus::new(),
             license_status: RuntimeLicenseStatus {
                 state: "licensed_online".to_string(),
                 tier: Some("seed".to_string()),
@@ -1448,6 +1452,7 @@ mod tests {
             runtime_public_key: None,
             signing_key: None,
             overture_public_key: None,
+            violation_bus: ViolationEventBus::new(),
             license_status: RuntimeLicenseStatus {
                 state: "licensed_online".to_string(),
                 tier: Some("seed".to_string()),
