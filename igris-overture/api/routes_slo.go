@@ -26,10 +26,10 @@ func NewSLOHandler(auditLogger *slo.AuditLogger, scraper *slo.PrometheusScraper)
 
 // SLOStatusResponse represents the current SLO status
 type SLOStatusResponse struct {
-	Success       bool                    `json:"success"`
-	EnforcerStats EnforcerStats           `json:"enforcer_stats"`
-	RecentEvents  []slo.AuditEvent        `json:"recent_events,omitempty"`
-	Error         string                  `json:"error,omitempty"`
+	Success       bool             `json:"success"`
+	EnforcerStats EnforcerStats    `json:"enforcer_stats"`
+	RecentEvents  []slo.AuditEvent `json:"recent_events,omitempty"`
+	Error         string           `json:"error,omitempty"`
 }
 
 // EnforcerStats represents SLO enforcer statistics
@@ -64,11 +64,11 @@ type EvaluateRequest struct {
 
 // EvaluateResponse represents the evaluation response
 type EvaluateResponse struct {
-	Success   bool                      `json:"success"`
-	Breached  bool                      `json:"breached"`
-	Actions   []slo.RemediationAction   `json:"actions"`
-	Timestamp uint64                    `json:"timestamp"`
-	Error     string                    `json:"error,omitempty"`
+	Success   bool                    `json:"success"`
+	Breached  bool                    `json:"breached"`
+	Actions   []slo.RemediationAction `json:"actions"`
+	Timestamp uint64                  `json:"timestamp"`
+	Error     string                  `json:"error,omitempty"`
 }
 
 // HandleGetStatus handles GET /admin/slo/status
