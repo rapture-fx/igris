@@ -71,9 +71,9 @@ func handleConfigPush(db *sql.DB) fiber.Handler {
 		n, _ := result.RowsAffected()
 		log.Info().Str("tenant_id", tenantID).Int64("instances_queued", n).Msg("[Fleet] Config push queued")
 		return c.JSON(fiber.Map{
-			"queued":     true,
-			"instances":  n,
-			"queued_at":  time.Now().UTC().Format(time.RFC3339),
+			"queued":    true,
+			"instances": n,
+			"queued_at": time.Now().UTC().Format(time.RFC3339),
 		})
 	}
 }
@@ -132,11 +132,11 @@ func handleOTAUpdate(db *sql.DB) fiber.Handler {
 		log.Info().Str("tenant_id", tenantID).Str("version", req.Version).Int64("instances_queued", n).
 			Msg("[Fleet] OTA update queued")
 		return c.JSON(fiber.Map{
-			"queued":     true,
-			"version":    req.Version,
-			"strategy":   req.Strategy,
-			"instances":  n,
-			"queued_at":  time.Now().UTC().Format(time.RFC3339),
+			"queued":    true,
+			"version":   req.Version,
+			"strategy":  req.Strategy,
+			"instances": n,
+			"queued_at": time.Now().UTC().Format(time.RFC3339),
 		})
 	}
 }
