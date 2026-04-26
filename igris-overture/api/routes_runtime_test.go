@@ -9,6 +9,7 @@ import (
 	"encoding/json"
 	"net/http"
 	"net/http/httptest"
+	"sort"
 	"strconv"
 	"strings"
 	"testing"
@@ -46,6 +47,21 @@ func signRuntimeMachineRequest(t *testing.T, privateKey ed25519.PrivateKey, purp
 		req["machine_id"].(string),
 		int64String(req["timestamp_unix_ms"].(int64)),
 		btHash,
+	}, ":")
+	return base64.StdEncoding.EncodeToString(ed25519.Sign(privateKey, []byte(message)))
+}
+
+func signRuntimeCommandAckRequest(t *testing.T, privateKey ed25519.PrivateKey, req map[string]any) string {
+	t.Helper()
+	keys, ok := req["delivery_keys"].([]string)
+	require.True(t, ok)
+	sorted := append([]string(nil), keys...)
+	sort.Strings(sorted)
+	message := strings.Join([]string{
+		"runtime_commands_ack.v1",
+		req["machine_id"].(string),
+		int64String(req["timestamp_unix_ms"].(int64)),
+		strings.Join(sorted, ","),
 	}, ":")
 	return base64.StdEncoding.EncodeToString(ed25519.Sign(privateKey, []byte(message)))
 }
@@ -151,6 +167,32 @@ func TestRuntimeGetPendingCommandsRejectsUnsignedRequest(t *testing.T) {
 
 	url := "/commands?machine_id=dev-machine-1&timestamp_unix_ms=" + int64String(time.Now().UnixMilli()) + "&signature=invalid"
 	req := httptest.NewRequest(http.MethodGet, url, nil)
+	resp, err := app.Test(req)
+	require.NoError(t, err)
+	require.Equal(t, http.StatusUnauthorized, resp.StatusCode)
+	require.Equal(t, 0, queued.remainingQueries())
+	require.Equal(t, 0, queued.remainingExecs())
+}
+
+func TestRuntimeAckPendingCommandsRejectsUnsignedRequest(t *testing.T) {
+	publicKey, _, err := ed25519.GenerateKey(rand.Reader)
+	require.NoError(t, err)
+
+	db, queued := newQueuedRouteDB(t, []queuedRouteQueryExpectation{{
+		columns: []string{"public_key_ed25519"},
+		rows:    [][]driver.Value{{hex.EncodeToString(publicKey)}},
+	}})
+
+	handler := NewRuntimeHandler(db, nil)
+	app := fiber.New()
+	app.Post("/commands/ack", func(c *fiber.Ctx) error {
+		c.Locals("tenant_id", "tenant-1")
+		return handler.AckPendingCommands(c)
+	})
+
+	body := `{"machine_id":"dev-machine-1","delivery_keys":["cmd-1"],"timestamp_unix_ms":` + int64String(time.Now().UnixMilli()) + `,"signature":"invalid"}`
+	req := httptest.NewRequest(http.MethodPost, "/commands/ack", strings.NewReader(body))
+	req.Header.Set("Content-Type", "application/json")
 	resp, err := app.Test(req)
 	require.NoError(t, err)
 	require.Equal(t, http.StatusUnauthorized, resp.StatusCode)
