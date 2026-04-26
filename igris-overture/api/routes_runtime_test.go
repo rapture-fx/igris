@@ -132,3 +132,28 @@ func TestRuntimeHeartbeatRejectsInvalidSignature(t *testing.T) {
 	require.Equal(t, 0, queued.remainingQueries())
 	require.Equal(t, 0, queued.remainingExecs())
 }
+
+func TestRuntimeGetPendingCommandsRejectsUnsignedRequest(t *testing.T) {
+	publicKey, _, err := ed25519.GenerateKey(rand.Reader)
+	require.NoError(t, err)
+
+	db, queued := newQueuedRouteDB(t, []queuedRouteQueryExpectation{{
+		columns: []string{"public_key_ed25519"},
+		rows:    [][]driver.Value{{hex.EncodeToString(publicKey)}},
+	}})
+
+	handler := NewRuntimeHandler(db, nil)
+	app := fiber.New()
+	app.Get("/commands", func(c *fiber.Ctx) error {
+		c.Locals("tenant_id", "tenant-1")
+		return handler.GetPendingCommands(c)
+	})
+
+	url := "/commands?machine_id=dev-machine-1&timestamp_unix_ms=" + int64String(time.Now().UnixMilli()) + "&signature=invalid"
+	req := httptest.NewRequest(http.MethodGet, url, nil)
+	resp, err := app.Test(req)
+	require.NoError(t, err)
+	require.Equal(t, http.StatusUnauthorized, resp.StatusCode)
+	require.Equal(t, 0, queued.remainingQueries())
+	require.Equal(t, 0, queued.remainingExecs())
+}
