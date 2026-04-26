@@ -177,6 +177,29 @@ fn non_empty_env(name: &str) -> Option<String> {
         .filter(|value| !value.is_empty())
 }
 
+pub(crate) fn runtime_execution_blocked_by_safe_idle(state: &AppState) -> bool {
+    #[cfg(feature = "robotics-platform")]
+    {
+        state
+            .ros2_manager
+            .as_ref()
+            .map(|manager| manager.is_safe_idle())
+            .unwrap_or(false)
+    }
+    #[cfg(not(feature = "robotics-platform"))]
+    {
+        let _ = state;
+        false
+    }
+}
+
+pub(crate) fn safe_idle_rejection_message(surface: &str) -> String {
+    format!(
+        "runtime is in safe-idle containment mode; {} is temporarily blocked",
+        surface
+    )
+}
+
 fn apply_auth_env_overrides(config: &mut IgrisConfig) {
     if let Some(secret) = non_empty_env("IGRIS_RUNTIME_SECRET") {
         config.auth.api_key = secret;
