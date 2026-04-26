@@ -12,7 +12,10 @@ use serde::{Deserialize, Serialize};
 use sha2::Digest;
 use std::collections::HashMap;
 use std::convert::Infallible;
+use std::fs::{self, OpenOptions};
+use std::io::Write;
 use std::net::SocketAddr;
+use std::path::{Path, PathBuf};
 use std::sync::Arc;
 use tokio::io::{AsyncBufReadExt, AsyncWriteExt};
 use tower_http::cors::CorsLayer;
@@ -199,6 +202,336 @@ pub(crate) fn safe_idle_rejection_message(surface: &str) -> String {
         "runtime is in safe-idle containment mode; {} is temporarily blocked",
         surface
     )
+}
+
+#[derive(Debug, Serialize, Deserialize)]
+struct RuntimeCommandDeadLetter {
+    recorded_at: String,
+    machine_id: String,
+    reason: String,
+    command: igris_license_client::PendingRuntimeCommand,
+}
+
+enum RuntimeCommandProcessResult {
+    Completed,
+    DeadLetter(String),
+    Retry(String),
+}
+
+fn runtime_command_spool_path() -> PathBuf {
+    std::env::var("IGRIS_RUNTIME_COMMAND_SPOOL_PATH")
+        .map(PathBuf::from)
+        .unwrap_or_else(|_| PathBuf::from(".igris/runtime-command-spool.json"))
+}
+
+fn runtime_command_deadletter_path() -> PathBuf {
+    std::env::var("IGRIS_RUNTIME_COMMAND_DEADLETTER_PATH")
+        .map(PathBuf::from)
+        .unwrap_or_else(|_| PathBuf::from(".igris/runtime-command-deadletter.jsonl"))
+}
+
+fn persist_runtime_command_spool(
+    path: &Path,
+    commands: &[igris_license_client::PendingRuntimeCommand],
+) -> anyhow::Result<()> {
+    if let Some(parent) = path.parent() {
+        if !parent.as_os_str().is_empty() {
+            fs::create_dir_all(parent)?;
+        }
+    }
+    let tmp_path = path.with_extension("tmp");
+    let payload = serde_json::to_vec_pretty(commands)?;
+    fs::write(&tmp_path, payload)?;
+    fs::rename(&tmp_path, path)?;
+    Ok(())
+}
+
+fn load_runtime_command_spool(
+    path: &Path,
+) -> anyhow::Result<Vec<igris_license_client::PendingRuntimeCommand>> {
+    if !path.exists() {
+        return Ok(Vec::new());
+    }
+    let payload = fs::read(path)?;
+    if payload.is_empty() {
+        return Ok(Vec::new());
+    }
+    Ok(serde_json::from_slice(&payload)?)
+}
+
+fn append_runtime_command_deadletter(
+    path: &Path,
+    machine_id: &str,
+    command: &igris_license_client::PendingRuntimeCommand,
+    reason: &str,
+) -> anyhow::Result<()> {
+    if let Some(parent) = path.parent() {
+        if !parent.as_os_str().is_empty() {
+            fs::create_dir_all(parent)?;
+        }
+    }
+    let record = RuntimeCommandDeadLetter {
+        recorded_at: chrono::Utc::now().to_rfc3339(),
+        machine_id: machine_id.to_string(),
+        reason: reason.to_string(),
+        command: command.clone(),
+    };
+    let mut file = OpenOptions::new().create(true).append(true).open(path)?;
+    serde_json::to_writer(&mut file, &record)?;
+    file.write_all(b"\n")?;
+    Ok(())
+}
+
+fn ros_command_string_payload(payload: Option<&serde_json::Value>) -> Option<String> {
+    match payload {
+        Some(serde_json::Value::String(value)) => Some(value.clone()),
+        Some(serde_json::Value::Object(map)) => map
+            .get("data")
+            .and_then(|value| value.as_str())
+            .map(|value| value.to_string()),
+        _ => None,
+    }
+}
+
+fn ros_command_twist_payload(payload: Option<&serde_json::Value>) -> Option<(f64, f64)> {
+    let payload = payload?;
+    if let serde_json::Value::Object(map) = payload {
+        if let (Some(linear_x), Some(angular_z)) = (
+            map.get("linear_x").and_then(|value| value.as_f64()),
+            map.get("angular_z").and_then(|value| value.as_f64()),
+        ) {
+            return Some((linear_x, angular_z));
+        }
+        let linear_x = map
+            .get("linear")
+            .and_then(|value| value.get("x"))
+            .and_then(|value| value.as_f64())?;
+        let angular_z = map
+            .get("angular")
+            .and_then(|value| value.get("z"))
+            .and_then(|value| value.as_f64())?;
+        return Some((linear_x, angular_z));
+    }
+    None
+}
+
+#[cfg(feature = "robotics-platform")]
+async fn process_ros_publish_command(
+    state: &AppState,
+    command: &igris_license_client::PendingRuntimeCommand,
+) -> RuntimeCommandProcessResult {
+    let Some(manager) = state.ros2_manager.as_ref() else {
+        return RuntimeCommandProcessResult::DeadLetter(
+            "ros_publish command rejected because ROS2 is not enabled on this runtime".to_string(),
+        );
+    };
+    let topic = match command.topic.as_deref() {
+        Some(topic) if !topic.trim().is_empty() => topic.trim(),
+        _ => {
+            return RuntimeCommandProcessResult::DeadLetter(
+                "ros_publish command is missing topic".to_string(),
+            );
+        }
+    };
+    let message_type = command
+        .message_type
+        .as_deref()
+        .unwrap_or("std_msgs/String")
+        .trim();
+    let namespace = manager.namespace().trim_end_matches('/');
+    let prompt_topic = format!("{}/prompt", namespace);
+    let response_topic = format!("{}/response", namespace);
+
+    let result = match (topic, message_type) {
+        (topic, "std_msgs/String") | (topic, "std_msgs/msg/String") if topic == prompt_topic => {
+            match ros_command_string_payload(command.payload.as_ref()) {
+                Some(prompt) => manager.node().publish_prompt(&prompt).await,
+                None => {
+                    return RuntimeCommandProcessResult::DeadLetter(
+                        "ros_publish prompt payload must be a string or {\"data\":\"...\"}"
+                            .to_string(),
+                    );
+                }
+            }
+        }
+        (topic, "std_msgs/String") | (topic, "std_msgs/msg/String") if topic == response_topic => {
+            match ros_command_string_payload(command.payload.as_ref()) {
+                Some(response) => {
+                    manager
+                        .node()
+                        .publish_response(&response, "fleet_command")
+                        .await
+                }
+                None => {
+                    return RuntimeCommandProcessResult::DeadLetter(
+                        "ros_publish response payload must be a string or {\"data\":\"...\"}"
+                            .to_string(),
+                    );
+                }
+            }
+        }
+        ("/cmd_vel", "geometry_msgs/Twist") | ("/cmd_vel", "geometry_msgs/msg/Twist") => {
+            match ros_command_twist_payload(command.payload.as_ref()) {
+                Some((linear_x, angular_z)) if linear_x == 0.0 && angular_z == 0.0 => {
+                    manager.node().publish_zero_velocity().await
+                }
+                Some((linear_x, angular_z)) => {
+                    manager.node().publish_velocity(linear_x, angular_z).await
+                }
+                None => {
+                    return RuntimeCommandProcessResult::DeadLetter(
+                        "ros_publish /cmd_vel payload must provide linear_x/angular_z or linear.x/angular.z"
+                            .to_string(),
+                    );
+                }
+            }
+        }
+        _ => {
+            return RuntimeCommandProcessResult::DeadLetter(format!(
+                "unsupported ros_publish target {} {}",
+                message_type, topic
+            ));
+        }
+    };
+
+    match result {
+        Ok(()) => RuntimeCommandProcessResult::Completed,
+        Err(err) => RuntimeCommandProcessResult::Retry(err.to_string()),
+    }
+}
+
+#[cfg(not(feature = "robotics-platform"))]
+async fn process_ros_publish_command(
+    _state: &AppState,
+    _command: &igris_license_client::PendingRuntimeCommand,
+) -> RuntimeCommandProcessResult {
+    RuntimeCommandProcessResult::DeadLetter(
+        "ros_publish command rejected because this runtime was built without robotics support"
+            .to_string(),
+    )
+}
+
+async fn process_runtime_command(
+    state: &AppState,
+    command: &igris_license_client::PendingRuntimeCommand,
+) -> RuntimeCommandProcessResult {
+    if runtime_execution_blocked_by_safe_idle(state) {
+        return RuntimeCommandProcessResult::Retry(safe_idle_rejection_message(
+            "fleet command execution",
+        ));
+    }
+
+    match command.command_type.as_str() {
+        "ros_publish" => process_ros_publish_command(state, command).await,
+        "ros_lifecycle" => RuntimeCommandProcessResult::DeadLetter(
+            "ros_lifecycle command fetched but runtime lifecycle control is not implemented yet"
+                .to_string(),
+        ),
+        "config_push" => RuntimeCommandProcessResult::DeadLetter(
+            "config_push command fetched but live runtime config apply is not implemented yet"
+                .to_string(),
+        ),
+        "ota_update" => RuntimeCommandProcessResult::DeadLetter(
+            "ota_update command fetched but self-update orchestration is not implemented yet"
+                .to_string(),
+        ),
+        other => RuntimeCommandProcessResult::DeadLetter(format!(
+            "unsupported runtime command type {}",
+            other
+        )),
+    }
+}
+
+async fn drain_runtime_command_spool(
+    state: &AppState,
+    machine_id: &str,
+    spool_path: &Path,
+    deadletter_path: &Path,
+) -> anyhow::Result<bool> {
+    let mut commands = load_runtime_command_spool(spool_path)?;
+    if commands.is_empty() {
+        return Ok(true);
+    }
+
+    while let Some(command) = commands.first().cloned() {
+        match process_runtime_command(state, &command).await {
+            RuntimeCommandProcessResult::Completed => {
+                commands.remove(0);
+                persist_runtime_command_spool(spool_path, &commands)?;
+            }
+            RuntimeCommandProcessResult::DeadLetter(reason) => {
+                warn!(
+                    "[Runtime/Fleet] Dead-lettering command type={} reason={}",
+                    command.command_type, reason
+                );
+                append_runtime_command_deadletter(deadletter_path, machine_id, &command, &reason)?;
+                commands.remove(0);
+                persist_runtime_command_spool(spool_path, &commands)?;
+            }
+            RuntimeCommandProcessResult::Retry(reason) => {
+                warn!(
+                    "[Runtime/Fleet] Command type={} deferred: {}",
+                    command.command_type, reason
+                );
+                return Ok(false);
+            }
+        }
+    }
+
+    Ok(true)
+}
+
+async fn start_runtime_command_loop(
+    client: igris_license_client::RuntimeRegistrationClient,
+    state: AppState,
+) {
+    let machine_id = client.machine_id().to_string();
+    let spool_path = runtime_command_spool_path();
+    let deadletter_path = runtime_command_deadletter_path();
+
+    let mut interval = tokio::time::interval(std::time::Duration::from_secs(15));
+    loop {
+        interval.tick().await;
+
+        match drain_runtime_command_spool(&state, &machine_id, &spool_path, &deadletter_path).await
+        {
+            Ok(true) => {}
+            Ok(false) => continue,
+            Err(err) => {
+                warn!("[Runtime/Fleet] Failed to drain command spool: {}", err);
+                continue;
+            }
+        }
+
+        match client.fetch_pending_commands().await {
+            Ok(commands) if commands.is_empty() => {}
+            Ok(commands) => {
+                info!(
+                    "[Runtime/Fleet] Fetched {} pending control-plane command(s)",
+                    commands.len()
+                );
+                if let Err(err) = persist_runtime_command_spool(&spool_path, &commands) {
+                    warn!(
+                        "[Runtime/Fleet] Failed to persist fetched command spool before execution: {}",
+                        err
+                    );
+                    continue;
+                }
+                if let Err(err) =
+                    drain_runtime_command_spool(&state, &machine_id, &spool_path, &deadletter_path)
+                        .await
+                {
+                    warn!(
+                        "[Runtime/Fleet] Failed to execute fetched commands: {}",
+                        err
+                    );
+                }
+            }
+            Err(err) => {
+                warn!("[Runtime/Fleet] Pending command fetch failed: {}", err);
+            }
+        }
+    }
 }
 
 fn apply_auth_env_overrides(config: &mut IgrisConfig) {
@@ -2960,6 +3293,7 @@ async fn main() -> anyhow::Result<()> {
     );
 
     let mut overture_runtime_id = None;
+    let mut runtime_registration_client = None;
     if license_mode == igris_license_client::RuntimeLicenseMode::LicensedOnline {
         if let Some(key) = license_key.clone() {
             let key_clone = key;
@@ -2991,7 +3325,7 @@ async fn main() -> anyhow::Result<()> {
                         registered_runtime.runtime_id
                     );
                     overture_runtime_id = Some(registered_runtime.runtime_id);
-                    let _reg = registered_runtime.client;
+                    runtime_registration_client = Some(registered_runtime.client);
                 }
                 Err(e) => {
                     warn!("Fleet registration failed (non-fatal): {}", e);
@@ -3658,6 +3992,10 @@ async fn main() -> anyhow::Result<()> {
                 }
             }
         }
+    }
+
+    if let Some(client) = runtime_registration_client.clone() {
+        tokio::spawn(start_runtime_command_loop(client, state.clone()));
     }
 
     // Build router
