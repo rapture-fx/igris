@@ -125,9 +125,11 @@ Completed on 2026-04-25.
 - Added persistent runtime Ed25519 identity storage in `igris-server`, with first-boot key generation and restart reuse.
 - Moved runtime identity loading ahead of startup registration so Overture always receives the real runtime public key.
 - Extended the runtime registration client payload to include `public_key_ed25519`.
-- Updated Overture runtime registration to require, validate, insert, and refresh the runtime public key on re-registration.
+- Extended runtime registration, heartbeat, and deregistration so each request is signed by the runtime Ed25519 key with replay-window timestamp validation.
+- Updated Overture runtime registration to require, validate, insert, and refresh the runtime public key on re-registration, and to reject machine key mismatches.
 - Tightened Overture runtime verification so missing runtime public keys now produce explicit verification errors instead of silent success.
 - Updated runtime selection to bind per-runtime public keys into `RuntimeClient` instances from the registry.
+- Changed coordinator-side artifact verification to load the runtime-specific public key from `runtime_instances` and verify execution artifacts against that key instead of an environment fallback.
 - Added API-visible runtime signature verification status values:
   - `verified`
   - `unverified_missing_key`
@@ -147,6 +149,8 @@ Completed on 2026-04-25.
 - `/bin/zsh -lc 'GOCACHE=/tmp/igris-gocache-p0 go test ./igris-overture/coordinator -run "TestReplayRoboticsAuditReconstructsPolicyActionAndRuntimeReceipt|TestCheckpointStoreReplayRoboticsAudit|TestCheckpointStoreReplayAIToolAudit" -count=1'`
 - `/bin/zsh -lc 'GOCACHE=/tmp/igris-gocache-p0 go test ./igris-overture/api -run "^$" -count=1'`
   - The package reached a pre-existing linker failure for missing native `rust-core` libraries; Go compilation completed before link.
+- `GOCACHE=/tmp/igris-gocache-runtime-route2 go test ./igris-overture/api -run 'TestRuntimeRegisterPersistsVerifiedPublicKey|TestRuntimeHeartbeatRejectsInvalidSignature' -count=1`
+- `GOCACHE=/tmp/igris-gocache-coordinator go test ./igris-overture/coordinator -run 'TestVerifyExecutionArtifactsForTaskUsesRuntimeRegistryKey' -count=1`
 
 ## P0-4: Make The Runtime Secure By Default For Self-Serve
 
@@ -163,6 +167,9 @@ Completed on 2026-04-25.
 - Narrowed public middleware exceptions to health, metrics, runtime profile, and API docs only.
 - Made runtime submission requests fail closed when decision-signature verification is unavailable.
 - Updated shipped `igris-runtime/config.json5` to use auth-enabled defaults and nonzero rate limits.
+- Added runtime-wide safe-idle admission checks so planning, reflection, chat completion, runtime execution, durable task submission, and durable task streaming reject new work while robotics safety idle is active.
+- Changed runtime task capability enforcement to fail closed when derived capabilities are present but no signed permission envelope is supplied.
+- Added automatic capability derivation for tool, memory, human-approval, robotics, and behavior-tree execution at Overture submit-time and runtime validation-time.
 
 ### Acceptance Criteria
 
@@ -175,6 +182,18 @@ Completed on 2026-04-25.
 - `cargo test --manifest-path /Users/wira/Desktop/system/igris-runtime/Cargo.toml -p igris-core config::tests -- --nocapture`
 - `cargo test --manifest-path /Users/wira/Desktop/system/igris-runtime/Cargo.toml -p igris-server security_tests -- --nocapture`
 - `cargo test --manifest-path /Users/wira/Desktop/system/igris-runtime/Cargo.toml -p igris-server deployment_security::tests -- --nocapture`
+- `CARGO_TARGET_DIR=/tmp/igris-runtime-target-fix cargo test --manifest-path igris-runtime/Cargo.toml -p igris-server validates_signed_task_permission_envelope_for_required_capability -- --nocapture`
+- `CARGO_TARGET_DIR=/tmp/igris-runtime-target-fix cargo test --manifest-path igris-runtime/Cargo.toml -p igris-server permission_guard_blocks_disallowed_tool_before_execution -- --nocapture`
+- `CARGO_TARGET_DIR=/tmp/igris-runtime-target-fix cargo test --manifest-path igris-runtime/Cargo.toml -p igris-server permission_validation_rejects_missing_envelope_for_tool_capability -- --nocapture`
+- `CARGO_TARGET_DIR=/tmp/igris-runtime-target-fix cargo test --manifest-path igris-runtime/Cargo.toml -p igris-server single_inference_memory_and_approval_require_permission_envelope -- --nocapture`
+- `GOCACHE=/tmp/igris-gocache-api-full2 go test ./igris-overture/api ./igris-overture/coordinator ./igris-overture/slo -count=1`
+
+## 2026-04-26 Hardening Follow-Up
+
+- Tightened the fleet trust path so Overture runtime registry calls are proof-of-possession signed by the runtime key, not just tenant API-key authenticated.
+- Bound execution-artifact verification to the registered runtime public key during coordinator dispatch handling.
+- Moved task capability derivation to submit-time persistence so recovery redispatch reuses the stored governance contract instead of recomputing policy on every retry.
+- Surfaced SLO native vs stub mode in the admin status API and changed the stub implementation to return an explicit unavailable error instead of silently reporting compliance.
 
 ## Launch Gates
 
