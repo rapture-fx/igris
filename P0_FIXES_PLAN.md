@@ -194,9 +194,20 @@ Completed on 2026-04-25.
 - Bound execution-artifact verification to the registered runtime public key during coordinator dispatch handling.
 - Aligned governed runtime identity across Overture and the runtime by using the Overture-assigned registry `runtime_id` for permission-envelope and signed-policy validation instead of reusing MCP `swarm_peer_id`.
 - Hardened `GET /api/v1/runtime/commands` so pending-command retrieval also requires a signed runtime proof-of-possession request.
+- Added a signed runtime command fetch client to `igris-license-client` and wired a background command-poll loop into `igris-server` after successful Overture registration.
+- Added a local runtime command spool and dead-letter journal so fetched control-plane commands are durably persisted before execution and are not silently lost on runtime crash or unsupported-command handling.
+- Added guarded runtime-side command handling for `ros_publish` with explicit fail-safe rejection/dead-letter behavior for unsupported `ros_lifecycle`, `config_push`, `ota_update`, and unknown command types.
 - Moved task capability derivation to submit-time persistence so recovery redispatch reuses the stored governance contract instead of recomputing policy on every retry.
+- Persisted signed task permission envelopes at submit-time before asynchronous dispatch so governed tasks keep their original admission contract even if Overture crashes before first dispatch.
+- Narrowed permission-envelope hydration to the recovery path and only when signed governance is active, so recovery redispatch reuses the original envelope without adding extra control-plane reads to unrelated task APIs.
 - Added legacy/external task-record fallback derivation when Overture signing is available so pre-migration recoveries do not bypass the default-deny capability model.
 - Surfaced SLO native vs stub mode in the admin status API and changed the stub implementation to return an explicit unavailable error instead of silently reporting compliance.
+
+### Additional Validation
+
+- `cargo test --manifest-path /Users/wira/Desktop/system/igris-runtime/Cargo.toml -p igris-license-client -- --nocapture`
+- `CARGO_TARGET_DIR=/tmp/igris-runtime-target-review2 cargo test --manifest-path /Users/wira/Desktop/system/igris-runtime/Cargo.toml -p igris-server middleware::security_tests -- --nocapture`
+- `CARGO_TARGET_DIR=/tmp/igris-runtime-target-robotics cargo check --manifest-path /Users/wira/Desktop/system/igris-runtime/Cargo.toml -p igris-server --features robotics-platform`
 
 ## Launch Gates
 
