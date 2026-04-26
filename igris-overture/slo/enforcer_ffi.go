@@ -88,3 +88,13 @@ func GetVersion() string {
 	defer C.free_string(cVersion)
 	return C.GoString(cVersion)
 }
+
+// NativeAvailable reports whether the Rust SLO enforcer is linked in this build.
+func NativeAvailable() bool {
+	return true
+}
+
+// Mode reports the active SLO enforcer linkage mode.
+func Mode() string {
+	return "native"
+}
