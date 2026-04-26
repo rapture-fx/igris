@@ -1,7 +1,7 @@
+use anyhow::{anyhow, Result};
 use base64::Engine as _;
 use chrono::{DateTime, Utc};
 use ed25519_dalek::{Signature, Verifier, VerifyingKey};
-use anyhow::{anyhow, Result};
 use serde::{Deserialize, Serialize};
 use sha2::{Digest, Sha256};
 use std::fs;
@@ -155,11 +155,7 @@ impl LicenseClient {
 
         let device_id = legacy_host_device_id();
         if let Err(e) = persist_device_id(&path, &device_id) {
-            warn!(
-                "Failed to persist device ID at {}: {}",
-                path.display(),
-                e
-            );
+            warn!("Failed to persist device ID at {}: {}", path.display(), e);
         }
         device_id
     }
@@ -332,8 +328,8 @@ fn trusted_offline_license_public_key() -> Result<Option<VerifyingKey>> {
         return Ok(None);
     };
 
-    let decoded =
-        hex::decode(&hex_key).map_err(|e| anyhow!("invalid offline license public key hex: {}", e))?;
+    let decoded = hex::decode(&hex_key)
+        .map_err(|e| anyhow!("invalid offline license public key hex: {}", e))?;
     let bytes: [u8; 32] = decoded
         .as_slice()
         .try_into()
@@ -410,7 +406,10 @@ fn load_offline_artifact(
 
     let artifact_expires_at = parse_rfc3339(&payload.artifact_expires_at, "artifact_expires_at")?;
     if artifact_expires_at <= Utc::now() {
-        return Err(anyhow!("offline artifact expired at {}", artifact_expires_at));
+        return Err(anyhow!(
+            "offline artifact expired at {}",
+            artifact_expires_at
+        ));
     }
 
     let validation = ValidationResponse {
@@ -441,7 +440,9 @@ fn load_offline_artifact(
 
 /// Perform license validation on startup using either live validation or a
 /// signed offline artifact when the license server is unreachable.
-pub async fn validate_license_on_startup(license_key: Option<&str>) -> Result<StartupLicenseResult> {
+pub async fn validate_license_on_startup(
+    license_key: Option<&str>,
+) -> Result<StartupLicenseResult> {
     info!("Validating license...");
 
     let device_id = LicenseClient::generate_device_id();
@@ -626,9 +627,13 @@ mod offline_tests {
         let temp = tempfile::NamedTempFile::new().unwrap();
         fs::write(temp.path(), artifact).unwrap();
 
-        let validation =
-            load_offline_artifact(temp.path(), &verifying_key, device_id, Some("lic_seed_test"))
-                .unwrap();
+        let validation = load_offline_artifact(
+            temp.path(),
+            &verifying_key,
+            device_id,
+            Some("lic_seed_test"),
+        )
+        .unwrap();
 
         assert_eq!(validation.tier.as_deref(), Some("seed"));
         assert_eq!(validation.status.as_deref(), Some("active"));
