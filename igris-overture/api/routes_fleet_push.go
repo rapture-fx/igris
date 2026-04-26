@@ -7,6 +7,7 @@ import (
 	"time"
 
 	"github.com/gofiber/fiber/v2"
+	"github.com/google/uuid"
 	"github.com/rs/zerolog/log"
 
 	"github.com/Igris-inertial/system/igris-overture/middleware"
@@ -49,6 +50,7 @@ func handleConfigPush(db *sql.DB) fiber.Handler {
 		}
 
 		cmd, _ := json.Marshal(map[string]interface{}{
+			"command_id": uuid.NewString(),
 			"type":       "config_push",
 			"config":     req.Config,
 			"selector":   req.Selector,
@@ -107,6 +109,7 @@ func handleOTAUpdate(db *sql.DB) fiber.Handler {
 		}
 
 		cmd, _ := json.Marshal(map[string]interface{}{
+			"command_id":      uuid.NewString(),
 			"type":            "ota_update",
 			"version":         req.Version,
 			"strategy":        req.Strategy,
