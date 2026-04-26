@@ -357,7 +357,7 @@ func (tc *TaskCoordinator) dispatchToRuntime(ctx context.Context, task *TaskReco
 		}
 	}
 	if len(result.ExecutionEnvelope) > 0 || len(result.ExecutionReceipt) > 0 {
-		if err := internal.VerifyExecutionArtifactsRaw(result.ExecutionEnvelope, result.ExecutionReceipt); err != nil {
+		if err := tc.verifyExecutionArtifactsForTask(ctx, task, result.ExecutionEnvelope, result.ExecutionReceipt); err != nil {
 			log.Error().Err(err).Str("task_id", task.TaskID.String()).Msg("[Coordinator] Runtime execution artifact verification failed")
 			_ = tc.store.MarkFailedWithDetails(task.TaskID, fmt.Sprintf("runtime artifact verification failed: %v", err), overtureTaskFailureDetails("dispatch", "runtime_artifact_verification_failed", err.Error()))
 			return
@@ -383,6 +383,30 @@ func (tc *TaskCoordinator) dispatchToRuntime(ctx context.Context, task *TaskReco
 	case "failed":
 		_ = tc.store.MarkFailedWithDetails(task.TaskID, result.FailureReason, result.FailureDetails)
 	}
+}
+
+func (tc *TaskCoordinator) verifyExecutionArtifactsForTask(ctx context.Context, task *TaskRecord, envelopeRaw, receiptRaw json.RawMessage) error {
+	if task == nil || task.RuntimeID == nil || strings.TrimSpace(*task.RuntimeID) == "" {
+		return fmt.Errorf("runtime identity missing for execution artifact verification")
+	}
+
+	var publicKeyHex string
+	err := tc.db.QueryRowContext(ctx, `
+		SELECT COALESCE(public_key_ed25519, '')
+		FROM runtime_instances
+		WHERE runtime_id = $1
+		LIMIT 1
+	`, *task.RuntimeID).Scan(&publicKeyHex)
+	if errors.Is(err, sql.ErrNoRows) {
+		return fmt.Errorf("runtime public key missing for runtime %s", *task.RuntimeID)
+	}
+	if err != nil {
+		return fmt.Errorf("load runtime public key: %w", err)
+	}
+	if strings.TrimSpace(publicKeyHex) == "" {
+		return fmt.Errorf("runtime public key missing for runtime %s", *task.RuntimeID)
+	}
+	return internal.VerifyExecutionArtifactsRawWithPublicKey(envelopeRaw, receiptRaw, publicKeyHex)
 }
 
 type taskSubmitResult struct {
