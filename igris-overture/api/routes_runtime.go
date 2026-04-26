@@ -190,7 +190,7 @@ func (h *RuntimeHandler) Register(c *fiber.Ctx) error {
 			VALUES
 				(gen_random_uuid()::text, $1, $2, $3, $4,
 				 $5, COALESCE($6, ''), '[]', $7, $8,
-				 true, true, 'active', $8, $8, $8)
+				 true, true, 'active', $9, $9, $9)
 			RETURNING runtime_id
 		`, tenantID, req.MachineID, req.Hostname, clientIP,
 			req.PublicKeyEd25519, endpoint, req.Platform, req.RuntimeVersion, now,
