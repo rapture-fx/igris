@@ -5275,16 +5275,17 @@ mod tests {
         build_stream_replay_unavailable_payload, build_task_cancel_response,
         build_task_result_payload, canonical_policy_decision_bytes,
         canonical_task_permission_envelope_bytes, collect_slot_inputs,
-        compile_execution_graph_to_steps, deterministic_embedding, evaluate_robotics_safety_gate,
-        initialize_graph_blackboard, materialize_execution_graph, normalize_agent_mode,
-        permission_failure_for_step, persist_task_status_index, resolve_graph_value,
-        robotics_action_name, runtime_execution_failure_details, stream_durability_metadata,
-        task_status_key, unix_now_ms, update_graph_blackboard, validate_task_permission_envelope,
-        verified_resume_start_step, AgentExecutionMode, AgentIdentity, BehaviorTreeStep,
-        CapabilityDecision, CredentialReference, ExecutionGraph, ExecutionNode, GovernedAction,
-        GovernedPolicyDecision, HumanApprovalStep, RoboticsAction, RoboticsStep, RuntimeTaskStep,
-        StepExecutionResult, TaskFailureDetails, TaskPermissionEnvelope, TaskStatus,
-        TaskSubmitRequest, TaskSubmitResponse, TaskType, ToolStep,
+        compile_execution_graph_to_steps, deterministic_embedding, effective_required_capabilities,
+        evaluate_robotics_safety_gate, initialize_graph_blackboard, materialize_execution_graph,
+        normalize_agent_mode, permission_failure_for_step, persist_task_status_index,
+        resolve_graph_value, robotics_action_name, runtime_execution_failure_details,
+        stream_durability_metadata, task_status_key, unix_now_ms, update_graph_blackboard,
+        validate_task_permission_envelope, verified_resume_start_step, AgentExecutionMode,
+        AgentIdentity, BehaviorTreeStep, CapabilityDecision, CredentialReference, ExecutionGraph,
+        ExecutionNode, GovernedAction, GovernedPolicyDecision, HumanApprovalStep, RoboticsAction,
+        RoboticsStep, RuntimeTaskStep, StepExecutionResult, TaskFailureDetails,
+        TaskPermissionEnvelope, TaskStatus, TaskSubmitRequest, TaskSubmitResponse, TaskType,
+        ToolStep,
     };
     use crate::runtime_execute::{Bounds, ExecuteMessage, ExecuteUsage};
     use axum::{body::Body, http::StatusCode, response::Response};
@@ -5425,8 +5426,10 @@ mod tests {
             deadline_ms: None,
         };
 
+        let required_capabilities = effective_required_capabilities(&req);
         assert!(validate_task_permission_envelope(
             &req,
+            &required_capabilities,
             Some(&signing_key.verifying_key()),
             runtime_id,
         )
@@ -5483,6 +5486,102 @@ mod tests {
         assert!(failure
             .message
             .contains("capability tools.github.issues.write denied"));
+    }
+
+    #[test]
+    fn permission_validation_rejects_missing_envelope_for_tool_capability() {
+        let task_id = Uuid::new_v4();
+        let req = TaskSubmitRequest {
+            task_id,
+            task_type: TaskType::ExecutionGraph {
+                graph: ExecutionGraph {
+                    graph_id: Some("tool-capability-test".to_string()),
+                    blackboard: None,
+                    nodes: vec![ExecutionNode::Tool {
+                        node_id: "web-search".to_string(),
+                        tool_name: "web.search".to_string(),
+                        args: None,
+                        checkpoint_key: None,
+                        read_slots: None,
+                        write_slot: None,
+                    }],
+                },
+            },
+            containment: None,
+            resume_from: None,
+            resume_checkpoint: None,
+            idempotency_key: "tool-capability-test".to_string(),
+            tenant_id: "tenant-ai".to_string(),
+            agent_identity: None,
+            required_capabilities: Vec::new(),
+            permission_envelope: None,
+            credential_refs: Vec::new(),
+            signed_policy_decisions: Vec::new(),
+            deadline_ms: None,
+        };
+
+        let required_capabilities = effective_required_capabilities(&req);
+        assert_eq!(required_capabilities, vec!["tools.web.search".to_string()]);
+        let err =
+            validate_task_permission_envelope(&req, &required_capabilities, None, "runtime-ai")
+                .expect_err("missing envelope should be rejected");
+        assert!(err.contains("missing task permission envelope"));
+    }
+
+    #[test]
+    fn single_inference_memory_and_approval_require_permission_envelope() {
+        let task_id = Uuid::new_v4();
+        let req = TaskSubmitRequest {
+            task_id,
+            task_type: TaskType::SingleInference {
+                model: "gpt-4o-mini".to_string(),
+                messages: vec![ExecuteMessage {
+                    role: "user".to_string(),
+                    content: "summarize the lab notes".to_string(),
+                }],
+                max_tokens: Some(256),
+                temperature: Some(0.2),
+                stream: false,
+                mode: None,
+                memory: Some(AgentMemoryOptions {
+                    recall_query: Some("lab notes".to_string()),
+                    recall_top_k: Some(3),
+                    store_key: Some("summary".to_string()),
+                    store_output: true,
+                }),
+                approval: Some(AgentApprovalOptions {
+                    required: true,
+                    task: Some("approve summary release".to_string()),
+                    confidence: Some(0.8),
+                    context: None,
+                }),
+            },
+            containment: None,
+            resume_from: None,
+            resume_checkpoint: None,
+            idempotency_key: "single-inference-governance".to_string(),
+            tenant_id: "tenant-ai".to_string(),
+            agent_identity: None,
+            required_capabilities: Vec::new(),
+            permission_envelope: None,
+            credential_refs: Vec::new(),
+            signed_policy_decisions: Vec::new(),
+            deadline_ms: None,
+        };
+
+        let required_capabilities = effective_required_capabilities(&req);
+        assert_eq!(
+            required_capabilities,
+            vec![
+                "human.approval".to_string(),
+                "memory.read".to_string(),
+                "memory.write".to_string()
+            ]
+        );
+        let err =
+            validate_task_permission_envelope(&req, &required_capabilities, None, "runtime-ai")
+                .expect_err("derived capabilities should require an envelope");
+        assert!(err.contains("missing task permission envelope"));
     }
 
     #[test]
