@@ -144,6 +144,10 @@ mod tests {
             task_cancellation_registry: Arc::new(std::sync::RwLock::new(
                 std::collections::HashMap::new(),
             )),
+            runtime_command_cancellation_registry: Arc::new(std::sync::RwLock::new(
+                std::collections::HashMap::new(),
+            )),
+            runtime_command_spool_lock: Arc::new(tokio::sync::Mutex::new(())),
             bt_state_tx: Arc::new(tokio::sync::watch::channel(serde_json::Value::Null).0),
             #[cfg(feature = "robotics-platform")]
             ros2_manager: None,
@@ -206,6 +210,10 @@ mod tests {
             task_cancellation_registry: Arc::new(std::sync::RwLock::new(
                 std::collections::HashMap::new(),
             )),
+            runtime_command_cancellation_registry: Arc::new(std::sync::RwLock::new(
+                std::collections::HashMap::new(),
+            )),
+            runtime_command_spool_lock: Arc::new(tokio::sync::Mutex::new(())),
             bt_state_tx: Arc::new(tokio::sync::watch::channel(serde_json::Value::Null).0),
             #[cfg(feature = "robotics-platform")]
             ros2_manager: None,
@@ -372,6 +380,126 @@ mod tests {
             base64::engine::general_purpose::STANDARD.encode(signature.to_bytes())
         );
         decision
+    }
+
+    #[cfg(feature = "robotics-platform")]
+    fn canonical_permission_agent_identity_for_test(
+        identity: &task_executor::AgentIdentity,
+    ) -> serde_json::Value {
+        let mut value = BTreeMap::<&str, serde_json::Value>::new();
+        value.insert(
+            "acting_on_behalf_of",
+            serde_json::json!(identity.acting_on_behalf_of),
+        );
+        value.insert("agent_id", serde_json::json!(identity.agent_id));
+        value.insert(
+            "delegation_chain",
+            serde_json::json!(identity.delegation_chain),
+        );
+        value.insert("principal_id", serde_json::json!(identity.principal_id));
+        value.insert("submitted_by", serde_json::json!(identity.submitted_by));
+        serde_json::to_value(value).unwrap_or_default()
+    }
+
+    #[cfg(feature = "robotics-platform")]
+    fn canonical_permission_decisions_for_test(
+        decisions: &[task_executor::CapabilityDecision],
+    ) -> Vec<serde_json::Value> {
+        decisions
+            .iter()
+            .map(|decision| {
+                let mut value = BTreeMap::<&str, serde_json::Value>::new();
+                value.insert("capability", serde_json::json!(decision.capability));
+                value.insert("permit", serde_json::json!(decision.permit));
+                value.insert("policy_version", serde_json::json!(decision.policy_version));
+                value.insert("reason", serde_json::json!(decision.reason));
+                serde_json::to_value(value).unwrap_or_default()
+            })
+            .collect()
+    }
+
+    #[cfg(feature = "robotics-platform")]
+    fn canonical_permission_envelope_bytes_for_test(
+        envelope: &task_executor::TaskPermissionEnvelope,
+    ) -> Vec<u8> {
+        let mut value = BTreeMap::<&str, serde_json::Value>::new();
+        value.insert(
+            "agent_identity",
+            canonical_permission_agent_identity_for_test(&envelope.agent_identity),
+        );
+        value.insert("credential_refs", serde_json::json!([]));
+        value.insert(
+            "decisions",
+            serde_json::json!(canonical_permission_decisions_for_test(&envelope.decisions)),
+        );
+        value.insert("envelope_id", serde_json::json!(envelope.envelope_id));
+        value.insert(
+            "expires_at_unix_ms",
+            serde_json::json!(envelope.expires_at_unix_ms),
+        );
+        value.insert(
+            "issued_at_unix_ms",
+            serde_json::json!(envelope.issued_at_unix_ms),
+        );
+        value.insert(
+            "required_capabilities",
+            serde_json::json!(envelope.required_capabilities),
+        );
+        if let Some(runtime_id) = &envelope.runtime_id {
+            value.insert("runtime_id", serde_json::json!(runtime_id));
+        }
+        value.insert("schema_version", serde_json::json!(envelope.schema_version));
+        if let Some(key_version) = &envelope.signer_key_version {
+            value.insert("signer_key_version", serde_json::json!(key_version));
+        }
+        value.insert("task_id", serde_json::json!(envelope.task_id));
+        value.insert("tenant_id", serde_json::json!(envelope.tenant_id));
+        serde_json::to_vec(&value).unwrap_or_default()
+    }
+
+    #[cfg(feature = "robotics-platform")]
+    fn signed_permission_envelope_for_capability_test(
+        signing_key: &SigningKey,
+        task_id: uuid::Uuid,
+        tenant_id: &str,
+        runtime_id: &str,
+        capability: &str,
+    ) -> task_executor::TaskPermissionEnvelope {
+        let issued_at_unix_ms = std::time::SystemTime::now()
+            .duration_since(std::time::UNIX_EPOCH)
+            .unwrap()
+            .as_millis() as i64;
+        let mut envelope = task_executor::TaskPermissionEnvelope {
+            schema_version: "task_permission_envelope.v1".to_string(),
+            envelope_id: format!("env-{task_id}"),
+            tenant_id: tenant_id.to_string(),
+            task_id: task_id.to_string(),
+            runtime_id: Some(runtime_id.to_string()),
+            agent_identity: task_executor::AgentIdentity {
+                agent_id: "robotics-agent".to_string(),
+                principal_id: "operator".to_string(),
+                submitted_by: "overture".to_string(),
+                acting_on_behalf_of: String::new(),
+                delegation_chain: Vec::new(),
+            },
+            required_capabilities: vec![capability.to_string()],
+            decisions: vec![task_executor::CapabilityDecision {
+                capability: capability.to_string(),
+                permit: true,
+                reason: "permitted".to_string(),
+                policy_version: "capabilities-policy.test".to_string(),
+            }],
+            credential_refs: Vec::new(),
+            issued_at_unix_ms,
+            expires_at_unix_ms: issued_at_unix_ms + 30_000,
+            signer_key_version: Some("test-key".to_string()),
+            signature: String::new(),
+        };
+        let canonical = canonical_permission_envelope_bytes_for_test(&envelope);
+        let digest = Sha256::digest(&canonical);
+        envelope.signature =
+            base64::engine::general_purpose::STANDARD.encode(signing_key.sign(&digest).to_bytes());
+        envelope
     }
 
     #[cfg(feature = "robotics-platform")]
@@ -1004,6 +1132,7 @@ mod tests {
 
         let mut state = build_runtime_only_state();
         state.swarm_peer_id = "runtime-robotics-cancel".to_string();
+        state.overture_runtime_id = Some("runtime-robotics-cancel".to_string());
         state.signing_key = Some(runtime_signing_key);
         state.overture_public_key = Some(Arc::new(overture_signing_key.verifying_key()));
         state.ros2_manager = Some(Arc::clone(&manager));
@@ -1023,6 +1152,13 @@ mod tests {
             0,
             None,
         );
+        let permission_envelope = signed_permission_envelope_for_capability_test(
+            &overture_signing_key,
+            task_id,
+            tenant_id,
+            runtime_id,
+            "robotics.execute",
+        );
         let req_body = serde_json::json!({
             "task_id": task_id,
             "task_type": {
@@ -1033,6 +1169,7 @@ mod tests {
             },
             "containment": {"max_tick_ms": 1000},
             "signed_policy_decisions": [decision],
+            "permission_envelope": permission_envelope,
             "idempotency_key": "signed-ros2-cancel-navigation",
             "tenant_id": tenant_id
         });
@@ -1079,6 +1216,7 @@ mod tests {
 
         let mut state = build_runtime_only_state();
         state.swarm_peer_id = "runtime-robotics-timeout".to_string();
+        state.overture_runtime_id = Some("runtime-robotics-timeout".to_string());
         state.signing_key = Some(runtime_signing_key);
         state.overture_public_key = Some(Arc::new(overture_signing_key.verifying_key()));
         state.ros2_manager = Some(Arc::clone(&manager));
@@ -1098,6 +1236,13 @@ mod tests {
             0,
             Some("1,2,map"),
         );
+        let permission_envelope = signed_permission_envelope_for_capability_test(
+            &overture_signing_key,
+            task_id,
+            tenant_id,
+            runtime_id,
+            "robotics.execute",
+        );
         let req_body = serde_json::json!({
             "task_id": task_id,
             "task_type": {
@@ -1113,6 +1258,7 @@ mod tests {
             },
             "containment": {"max_tick_ms": 1000},
             "signed_policy_decisions": [decision],
+            "permission_envelope": permission_envelope,
             "idempotency_key": "signed-ros2-timeout",
             "tenant_id": tenant_id
         });
@@ -1343,6 +1489,10 @@ mod tests {
             task_cancellation_registry: Arc::new(std::sync::RwLock::new(
                 std::collections::HashMap::new(),
             )),
+            runtime_command_cancellation_registry: Arc::new(std::sync::RwLock::new(
+                std::collections::HashMap::new(),
+            )),
+            runtime_command_spool_lock: Arc::new(tokio::sync::Mutex::new(())),
             bt_state_tx: Arc::new(tokio::sync::watch::channel(serde_json::Value::Null).0),
             #[cfg(feature = "robotics-platform")]
             ros2_manager: None,
@@ -1468,6 +1618,10 @@ mod tests {
             task_cancellation_registry: Arc::new(std::sync::RwLock::new(
                 std::collections::HashMap::new(),
             )),
+            runtime_command_cancellation_registry: Arc::new(std::sync::RwLock::new(
+                std::collections::HashMap::new(),
+            )),
+            runtime_command_spool_lock: Arc::new(tokio::sync::Mutex::new(())),
             bt_state_tx: Arc::new(tokio::sync::watch::channel(serde_json::Value::Null).0),
             #[cfg(feature = "robotics-platform")]
             ros2_manager: None,
