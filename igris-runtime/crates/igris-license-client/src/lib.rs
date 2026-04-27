@@ -734,32 +734,34 @@ pub struct PendingRuntimeCommand {
     pub command_type: String,
     #[serde(default)]
     pub delivery_key: Option<String>,
-    #[serde(default)]
+    #[serde(default, skip_serializing_if = "Option::is_none")]
     pub action: Option<String>,
-    #[serde(default)]
+    #[serde(default, skip_serializing_if = "Option::is_none")]
     pub topic: Option<String>,
-    #[serde(default)]
+    #[serde(default, skip_serializing_if = "Option::is_none")]
     pub message_type: Option<String>,
-    #[serde(default)]
+    #[serde(default, skip_serializing_if = "Option::is_none")]
     pub payload: Option<serde_json::Value>,
-    #[serde(default)]
+    #[serde(default, skip_serializing_if = "Option::is_none")]
     pub config: Option<serde_json::Value>,
-    #[serde(default)]
+    #[serde(default, skip_serializing_if = "Option::is_none")]
     pub selector: Option<serde_json::Value>,
-    #[serde(default)]
+    #[serde(default, skip_serializing_if = "Option::is_none")]
     pub version: Option<String>,
-    #[serde(default)]
+    #[serde(default, skip_serializing_if = "Option::is_none")]
     pub strategy: Option<String>,
-    #[serde(default)]
+    #[serde(default, skip_serializing_if = "Option::is_none")]
     pub max_unavailable: Option<u64>,
-    #[serde(flatten)]
+    #[serde(flatten, default)]
     pub extra: BTreeMap<String, serde_json::Value>,
 }
 
 #[derive(Debug, Deserialize)]
-struct RuntimeCommandsResponse {
+pub struct RuntimeCommandsResponse {
     #[serde(default)]
-    commands: Vec<PendingRuntimeCommand>,
+    pub commands: Vec<PendingRuntimeCommand>,
+    #[serde(default)]
+    pub clear_generation: u64,
 }
 
 /// Response from POST /api/v1/runtime/register
@@ -945,7 +947,7 @@ impl RuntimeRegistrationClient {
     }
 
     /// Fetch and clear queued runtime commands from Overture.
-    pub async fn fetch_pending_commands(&self) -> Result<Vec<PendingRuntimeCommand>> {
+    pub async fn fetch_pending_commands(&self) -> Result<RuntimeCommandsResponse> {
         let url = format!("{}/api/v1/runtime/commands", self.base_url);
         let timestamp_unix_ms = Utc::now().timestamp_millis();
         let signature = sign_runtime_command_fetch_payload(
@@ -978,7 +980,7 @@ impl RuntimeRegistrationClient {
 
         let response: RuntimeCommandsResponse = serde_json::from_str(&body)
             .map_err(|e| anyhow!("Failed to parse command fetch response: {}", e))?;
-        Ok(response.commands)
+        Ok(response)
     }
 
     /// Acknowledge that the runtime durably persisted the fetched commands.
@@ -1131,6 +1133,63 @@ fn sign_runtime_command_fetch_payload(
         .encode(signing_key.sign(message.as_bytes()).to_bytes())
 }
 
+pub fn canonical_runtime_command_value(command: &PendingRuntimeCommand) -> serde_json::Value {
+    let mut object = BTreeMap::new();
+    object.insert(
+        "type".to_string(),
+        serde_json::Value::String(command.command_type.clone()),
+    );
+    if let Some(value) = command.action.as_ref() {
+        object.insert(
+            "action".to_string(),
+            serde_json::Value::String(value.clone()),
+        );
+    }
+    if let Some(value) = command.topic.as_ref() {
+        object.insert(
+            "topic".to_string(),
+            serde_json::Value::String(value.clone()),
+        );
+    }
+    if let Some(value) = command.message_type.as_ref() {
+        object.insert(
+            "message_type".to_string(),
+            serde_json::Value::String(value.clone()),
+        );
+    }
+    if let Some(value) = command.payload.as_ref() {
+        object.insert("payload".to_string(), value.clone());
+    }
+    if let Some(value) = command.config.as_ref() {
+        object.insert("config".to_string(), value.clone());
+    }
+    if let Some(value) = command.selector.as_ref() {
+        object.insert("selector".to_string(), value.clone());
+    }
+    if let Some(value) = command.version.as_ref() {
+        object.insert(
+            "version".to_string(),
+            serde_json::Value::String(value.clone()),
+        );
+    }
+    if let Some(value) = command.strategy.as_ref() {
+        object.insert(
+            "strategy".to_string(),
+            serde_json::Value::String(value.clone()),
+        );
+    }
+    if let Some(value) = command.max_unavailable {
+        object.insert(
+            "max_unavailable".to_string(),
+            serde_json::Value::Number(value.into()),
+        );
+    }
+    for (key, value) in &command.extra {
+        object.insert(key.clone(), value.clone());
+    }
+    serde_json::to_value(object).unwrap_or(serde_json::Value::Null)
+}
+
 #[cfg(test)]
 mod tests {
     use super::*;
@@ -1184,10 +1243,11 @@ mod tests {
             .unwrap();
 
         let response: RuntimeCommandsResponse = serde_json::from_str(
-            r#"{"commands":[{"type":"config_push","config":{"auth":{"enabled":true}}},{"type":"ros_publish","topic":"/igris/prompt","message_type":"std_msgs/String","payload":{"data":"hello"}}]}"#,
+            r#"{"commands":[{"type":"config_push","config":{"auth":{"enabled":true}}},{"type":"ros_publish","topic":"/igris/prompt","message_type":"std_msgs/String","payload":{"data":"hello"}}],"clear_generation":4}"#,
         )
         .unwrap();
         assert_eq!(response.commands.len(), 2);
+        assert_eq!(response.clear_generation, 4);
         assert_eq!(response.commands[0].command_type, "config_push");
         assert_eq!(response.commands[1].topic.as_deref(), Some("/igris/prompt"));
     }
@@ -1220,5 +1280,33 @@ mod tests {
             .verifying_key()
             .verify(message.as_bytes(), &signature)
             .unwrap();
+    }
+
+    #[test]
+    fn canonical_runtime_command_value_omits_absent_fields() {
+        let command = PendingRuntimeCommand {
+            command_type: "ros_publish".to_string(),
+            delivery_key: None,
+            action: None,
+            topic: Some("/igris/prompt".to_string()),
+            message_type: Some("std_msgs/String".to_string()),
+            payload: Some(serde_json::json!({"data": "hello"})),
+            config: None,
+            selector: None,
+            version: None,
+            strategy: None,
+            max_unavailable: None,
+            extra: BTreeMap::new(),
+        };
+
+        assert_eq!(
+            canonical_runtime_command_value(&command),
+            serde_json::json!({
+                "type": "ros_publish",
+                "topic": "/igris/prompt",
+                "message_type": "std_msgs/String",
+                "payload": {"data": "hello"}
+            })
+        );
     }
 }
