@@ -27,16 +27,15 @@ export default function Hero() {
         <div className="relative overflow-hidden flex flex-col justify-center min-h-[auto] md:min-h-[calc(100vh-52px)]" style={{ marginBottom: '2rem' }}>
           <div className="max-w-[1100px] mx-auto w-full relative z-10 pb-6 md:pb-10 pt-0 px-4 md:px-8 lg:px-12">
             
-            {/* Title and subtext - above image */}
-            <div className="flex flex-col md:flex-row md:items-start md:justify-between gap-3 md:gap-4 mb-6 md:mb-10">
-              <div className="text-left">
-                <h1 className="text-lg md:text-3xl lg:text-4xl mb-1 md:mb-2 leading-tight" style={{ color: '#000000', fontFamily: 'Inter, sans-serif', fontWeight: 500 }}>
-                  Run AI that survives failure<br />
-                  <span className="mt-1 md:mt-2 block">and proves what it did.</span>
-                </h1>
-              </div>
-              <div className="text-left md:text-right w-full md:max-w-[250px]">
-                <p className="text-xs md:text-lg" style={{ color: '#000000', fontFamily: '-apple-system, BlinkMacSystemFont, "Segoe UI", Roboto, Helvetica, Arial, sans-serif', fontWeight: 400 }}>
+            {/* Title row — on desktop: title left + description right */}
+            <div className="flex items-start justify-between gap-4 mb-4 md:mb-10">
+              <h1 className="text-2xl md:text-3xl lg:text-4xl leading-tight" style={{ color: '#000000', fontFamily: 'Inter, sans-serif', fontWeight: 500 }}>
+                Run AI that survives failure<br />
+                <span className="mt-1 md:mt-2 block">and proves what it did.</span>
+              </h1>
+              {/* Description — desktop only (shown beside title) */}
+              <div className="hidden md:block text-right shrink-0 max-w-[250px]">
+                <p className="text-lg" style={{ color: '#000000', fontFamily: '-apple-system, BlinkMacSystemFont, "Segoe UI", Roboto, Helvetica, Arial, sans-serif', fontWeight: 400 }}>
                   Deterministic runtime. Cloud + local fallback. OS-level containment with signed violation logs. Deploy anywhere.
                 </p>
               </div>
@@ -77,6 +76,11 @@ export default function Hero() {
                 </button>
               </div>
             </div>
+
+            {/* Description — mobile only (shown below install command) */}
+            <p className="md:hidden mt-4 text-xs text-center" style={{ color: '#6b7280', fontFamily: '-apple-system, BlinkMacSystemFont, "Segoe UI", Roboto, Helvetica, Arial, sans-serif', fontWeight: 400 }}>
+              Deterministic runtime. Cloud + local fallback. OS-level containment with signed violation logs. Deploy anywhere.
+            </p>
 
           </div>
         </div>
