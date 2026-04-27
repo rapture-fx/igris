@@ -1491,6 +1491,7 @@ func swarmClearAgent(db *sql.DB) fiber.Handler {
 		result, err := db.ExecContext(c.Context(), `
 			UPDATE runtime_instances
 			SET pending_commands = '[]'::jsonb,
+			    pending_commands_clear_generation = COALESCE(pending_commands_clear_generation, 0) + 1,
 			    updated_at = NOW()
 			WHERE runtime_id = $1 AND tenant_id = $2
 		`, runtimeID, tenantID)
