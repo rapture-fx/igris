@@ -204,6 +204,9 @@ Completed on 2026-04-25.
 - Fixed the runtime/Overture fetch-signature contract by introducing a dedicated `runtime_commands.v1:{machine_id}:{timestamp}` signing path instead of reusing the generic machine payload format with a trailing BT-state segment.
 - Restricted `ros_publish` in the fleet command path to non-actuating topic handling and explicitly rejected direct `/cmd_vel` actuation so robotics actuation continues to flow through the governed task/policy path.
 - Added guarded runtime-side command handling for `ros_publish` with explicit fail-safe rejection/dead-letter behavior for unsupported `ros_lifecycle`, `config_push`, `ota_update`, and unknown command types.
+- Added `pending_commands_clear_generation` on `runtime_instances` and returned it from `/api/v1/runtime/commands` so operator clear actions invalidate runtime-local spooled commands instead of only clearing the control-plane queue.
+- Changed the runtime command spool format to persist `clear_generation` alongside queued commands with backward-compatible loading of legacy array-only spool files.
+- Aligned legacy delivery-key fallback hashing across Overture and the runtime by canonicalizing Rust command JSON to the same raw-key/value shape Overture hashes when `command_id` is absent.
 - Moved task capability derivation to submit-time persistence so recovery redispatch reuses the stored governance contract instead of recomputing policy on every retry.
 - Persisted signed task permission envelopes at submit-time before asynchronous dispatch so governed tasks keep their original admission contract even if Overture crashes before first dispatch.
 - Narrowed permission-envelope hydration to the recovery path and only when signed governance is active, so recovery redispatch reuses the original envelope without adding extra control-plane reads to unrelated task APIs.
@@ -219,6 +222,8 @@ Completed on 2026-04-25.
 - `CARGO_TARGET_DIR=/tmp/igris-runtime-target-review3 cargo test --manifest-path /Users/wira/Desktop/system/igris-runtime/Cargo.toml -p igris-server middleware::security_tests -- --nocapture`
 - `CARGO_TARGET_DIR=/tmp/igris-runtime-target-robotics2 cargo check --manifest-path /Users/wira/Desktop/system/igris-runtime/Cargo.toml -p igris-server --features robotics-platform`
 - `GOCACHE=/tmp/igris-gocache-review-fix17 go test ./igris-overture/api ./igris-overture/coordinator ./igris-overture/slo -count=1`
+- `GOCACHE=/tmp/igris-gocache-review-fix19 go test ./igris-overture/api -count=1`
+- `cargo test --manifest-path /Users/wira/Desktop/system/igris-runtime/Cargo.toml -p igris-license-client -- --nocapture`
 
 ## Launch Gates
 
