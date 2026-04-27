@@ -37,7 +37,7 @@ export default function Products() {
 
       <div className="mx-auto max-w-[1100px] px-4 sm:px-6 lg:px-8">
         <div className="px-3 md:px-8 lg:px-12" style={{ borderLeft: '0.5px solid rgba(209, 213, 219, 0.35)', borderRight: '0.5px solid rgba(209, 213, 219, 0.35)', paddingBottom: 0 }}>
-          <div style={{ paddingTop: '16rem', paddingBottom: '16rem', position: 'relative' }} className="md:py-60 lg:py-60">
+          <div style={{ position: 'relative' }} className="py-10 sm:py-60">
             <div className="hidden sm:block" style={{ position: 'absolute', top: 0, left: 0, bottom: 0, right: '50%', display: 'flex', alignItems: 'center', justifyContent: 'flex-end' }}>
               <img 
                 src="/salt.png" 
