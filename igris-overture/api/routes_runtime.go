@@ -92,21 +92,31 @@ type runtimeInstanceHeartbeatRequest struct {
 	MachineID string `json:"machine_id"`
 	// BtState is the latest BT tick snapshot from the executor
 	// ({"tick":N,"status":"...","tree":{...}}). Optional — omitted when idle.
-	BtState         json.RawMessage `json:"bt_state,omitempty"`
-	TimestampUnixMs int64           `json:"timestamp_unix_ms"`
-	Signature       string          `json:"signature"`
+	BtState                     json.RawMessage `json:"bt_state,omitempty"`
+	LocalCommandSpoolDepth      uint64          `json:"local_command_spool_depth,omitempty"`
+	LocalCommandClearGeneration uint64          `json:"local_command_clear_generation,omitempty"`
+	TimestampUnixMs             int64           `json:"timestamp_unix_ms"`
+	Signature                   string          `json:"signature"`
 }
 
 type runtimeCommandAckRequest struct {
-	MachineID       string   `json:"machine_id"`
-	DeliveryKeys    []string `json:"delivery_keys"`
-	TimestampUnixMs int64    `json:"timestamp_unix_ms"`
-	Signature       string   `json:"signature"`
+	MachineID               string   `json:"machine_id"`
+	DeliveryKeys            []string `json:"delivery_keys"`
+	ExpectedClearGeneration uint64   `json:"expected_clear_generation"`
+	TimestampUnixMs         int64    `json:"timestamp_unix_ms"`
+	Signature               string   `json:"signature"`
 }
 
 type runtimeCommandsResponse struct {
 	Commands        []map[string]interface{} `json:"commands"`
 	ClearGeneration int64                    `json:"clear_generation"`
+}
+
+type runtimeCommandAckResponse struct {
+	Status            string `json:"status"`
+	AckedCount        int    `json:"acked_count"`
+	OwnershipGranted  bool   `json:"ownership_granted"`
+	ClearGeneration   int64  `json:"clear_generation"`
 }
 
 // Register handles POST /api/v1/runtime/register
@@ -329,7 +339,7 @@ func (h *RuntimeHandler) Heartbeat(c *fiber.Ctx) error {
 			"message": err.Error(),
 		})
 	}
-	if err := verifyRuntimeMachineSignature(runtimePublicKey, "runtime_heartbeat.v1", req); err != nil {
+	if err := verifyRuntimeHeartbeatSignature(runtimePublicKey, req); err != nil {
 		return c.Status(fiber.StatusUnauthorized).JSON(fiber.Map{
 			"error":   "runtime_signature_invalid",
 			"message": err.Error(),
@@ -344,16 +354,20 @@ func (h *RuntimeHandler) Heartbeat(c *fiber.Ctx) error {
 			UPDATE runtime_instances
 			SET last_heartbeat = $1, last_seen_at = $1, is_healthy = true,
 			    status = 'active', ip_address = $2,
-			    bt_state = $5::jsonb, bt_state_updated_at = $1
+			    bt_state = $5::jsonb, bt_state_updated_at = $1,
+			    local_command_spool_depth = $6,
+			    local_command_clear_generation = $7
 			WHERE tenant_id = $3 AND machine_id = $4
-		`, now, c.IP(), tenantID, req.MachineID, req.BtState)
+		`, now, c.IP(), tenantID, req.MachineID, req.BtState, req.LocalCommandSpoolDepth, req.LocalCommandClearGeneration)
 	} else {
 		result, err = h.db.ExecContext(ctx, `
 			UPDATE runtime_instances
 			SET last_heartbeat = $1, last_seen_at = $1, is_healthy = true,
-			    status = 'active', ip_address = $2
+			    status = 'active', ip_address = $2,
+			    local_command_spool_depth = $5,
+			    local_command_clear_generation = $6
 			WHERE tenant_id = $3 AND machine_id = $4
-		`, now, c.IP(), tenantID, req.MachineID)
+		`, now, c.IP(), tenantID, req.MachineID, req.LocalCommandSpoolDepth, req.LocalCommandClearGeneration)
 	}
 	if err != nil {
 		log.Error().Err(err).Str("tenant_id", tenantID).Msg("[Runtime] Heartbeat DB error")
@@ -372,16 +386,18 @@ func (h *RuntimeHandler) Heartbeat(c *fiber.Ctx) error {
 
 	// Check whether there are pending commands waiting for this runtime.
 	var pendingCount int
+	var localSpoolDepth int
 	_ = h.db.QueryRowContext(ctx, `
-		SELECT jsonb_array_length(COALESCE(pending_commands, '[]'::jsonb))
+		SELECT jsonb_array_length(COALESCE(pending_commands, '[]'::jsonb)),
+		       COALESCE(local_command_spool_depth, 0)
 		FROM runtime_instances
 		WHERE tenant_id = $1 AND machine_id = $2
-	`, tenantID, req.MachineID).Scan(&pendingCount)
+	`, tenantID, req.MachineID).Scan(&pendingCount, &localSpoolDepth)
 
 	return c.JSON(fiber.Map{
 		"status":               "ok",
 		"timestamp":            now.Format(time.RFC3339),
-		"has_pending_commands": pendingCount > 0,
+		"has_pending_commands": pendingCount+localSpoolDepth > 0,
 	})
 }
 
@@ -543,12 +559,14 @@ func (h *RuntimeHandler) AckPendingCommands(c *fiber.Ctx) error {
 	defer tx.Rollback()
 
 	var rawCommands []byte
+	var clearGeneration int64
 	err = tx.QueryRowContext(ctx, `
-		SELECT COALESCE(pending_commands, '[]'::jsonb)
+		SELECT COALESCE(pending_commands, '[]'::jsonb),
+		       COALESCE(pending_commands_clear_generation, 0)
 		FROM runtime_instances
 		WHERE tenant_id = $1 AND machine_id = $2
 		FOR UPDATE
-	`, tenantID, req.MachineID).Scan(&rawCommands)
+	`, tenantID, req.MachineID).Scan(&rawCommands, &clearGeneration)
 	if errors.Is(err, sql.ErrNoRows) {
 		return c.Status(fiber.StatusNotFound).JSON(fiber.Map{
 			"error":   "not_registered",
@@ -557,6 +575,18 @@ func (h *RuntimeHandler) AckPendingCommands(c *fiber.Ctx) error {
 	}
 	if err != nil {
 		return c.Status(fiber.StatusInternalServerError).JSON(fiber.Map{"error": "internal_error"})
+	}
+
+	if clearGeneration != int64(req.ExpectedClearGeneration) {
+		if err := tx.Commit(); err != nil {
+			return c.Status(fiber.StatusInternalServerError).JSON(fiber.Map{"error": "internal_error"})
+		}
+		return c.JSON(runtimeCommandAckResponse{
+			Status:           "generation_mismatch",
+			AckedCount:       0,
+			OwnershipGranted: false,
+			ClearGeneration:  clearGeneration,
+		})
 	}
 
 	var commands []json.RawMessage
@@ -605,9 +635,11 @@ func (h *RuntimeHandler) AckPendingCommands(c *fiber.Ctx) error {
 		return c.Status(fiber.StatusInternalServerError).JSON(fiber.Map{"error": "internal_error"})
 	}
 
-	return c.JSON(fiber.Map{
-		"status":      "ok",
-		"acked_count": ackedCount,
+	return c.JSON(runtimeCommandAckResponse{
+		Status:           "ok",
+		AckedCount:       ackedCount,
+		OwnershipGranted: true,
+		ClearGeneration:  clearGeneration,
 	})
 }
 
@@ -892,14 +924,30 @@ func verifyRuntimeMachineSignature(publicKeyHex, purpose string, req runtimeInst
 	return verifyRuntimeSignatureMessage(publicKeyHex, req.Signature, message)
 }
 
+func verifyRuntimeHeartbeatSignature(publicKeyHex string, req runtimeInstanceHeartbeatRequest) error {
+	message := fmt.Sprintf(
+		"runtime_heartbeat.v2:%s:%d:%s:%d:%d",
+		req.MachineID,
+		req.TimestampUnixMs,
+		runtimeBtStateHash(req.BtState),
+		req.LocalCommandSpoolDepth,
+		req.LocalCommandClearGeneration,
+	)
+	if err := verifyRuntimeSignatureMessage(publicKeyHex, req.Signature, message); err == nil {
+		return nil
+	}
+	return verifyRuntimeMachineSignature(publicKeyHex, "runtime_heartbeat.v1", req)
+}
+
 func verifyRuntimeCommandAckSignature(publicKeyHex string, req runtimeCommandAckRequest) error {
 	keys := append([]string(nil), req.DeliveryKeys...)
 	sort.Strings(keys)
 	message := fmt.Sprintf(
-		"runtime_commands_ack.v1:%s:%d:%s",
+		"runtime_commands_ack.v1:%s:%d:%s:%d",
 		req.MachineID,
 		req.TimestampUnixMs,
 		strings.Join(keys, ","),
+		req.ExpectedClearGeneration,
 	)
 	return verifyRuntimeSignatureMessage(publicKeyHex, req.Signature, message)
 }
