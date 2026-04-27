@@ -1110,7 +1110,8 @@ func getSwarmStatus(db *sql.DB) fiber.Handler {
 				runtime_id,
 				COALESCE(status, 'unknown') AS status,
 				COALESCE(last_heartbeat, last_seen_at) AS last_heartbeat,
-				jsonb_array_length(COALESCE(pending_commands, '[]'::jsonb)) AS pending_commands_count
+				jsonb_array_length(COALESCE(pending_commands, '[]'::jsonb)) AS control_plane_pending_commands_count,
+				COALESCE(local_command_spool_depth, 0) AS local_spool_commands_count
 			FROM runtime_instances
 			WHERE tenant_id = $1
 			ORDER BY last_seen_at DESC
@@ -1122,20 +1123,23 @@ func getSwarmStatus(db *sql.DB) fiber.Handler {
 		defer rows.Close()
 
 		type SwarmAgent struct {
-			ID                   string `json:"id"`
-			Name                 string `json:"name"`
-			Status               string `json:"status"`
-			LastHeartbeat        string `json:"last_heartbeat"`
-			PendingCommandsCount int    `json:"pending_commands_count"`
+			ID                         string `json:"id"`
+			Name                       string `json:"name"`
+			Status                     string `json:"status"`
+			LastHeartbeat              string `json:"last_heartbeat"`
+			PendingCommandsCount       int    `json:"pending_commands_count"`
+			ControlPlanePendingCount   int    `json:"control_plane_pending_commands_count"`
+			LocalSpoolPendingCount     int    `json:"local_spool_commands_count"`
 		}
 
 		agents := make([]SwarmAgent, 0)
 		for rows.Next() {
 			var a SwarmAgent
 			var lastHeartbeat time.Time
-			if err := rows.Scan(&a.ID, &a.Status, &lastHeartbeat, &a.PendingCommandsCount); err != nil {
+			if err := rows.Scan(&a.ID, &a.Status, &lastHeartbeat, &a.ControlPlanePendingCount, &a.LocalSpoolPendingCount); err != nil {
 				continue
 			}
+			a.PendingCommandsCount = a.ControlPlanePendingCount + a.LocalSpoolPendingCount
 			a.Name = a.ID
 			a.LastHeartbeat = lastHeartbeat.UTC().Format(time.RFC3339)
 			agents = append(agents, a)
