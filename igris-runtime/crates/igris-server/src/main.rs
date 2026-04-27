@@ -212,6 +212,21 @@ struct RuntimeCommandDeadLetter {
     command: igris_license_client::PendingRuntimeCommand,
 }
 
+#[derive(Debug, Clone, Serialize, Deserialize, Default)]
+struct RuntimeCommandSpoolState {
+    #[serde(default)]
+    clear_generation: u64,
+    #[serde(default)]
+    commands: Vec<igris_license_client::PendingRuntimeCommand>,
+}
+
+#[derive(Debug, Serialize, Deserialize)]
+#[serde(untagged)]
+enum RuntimeCommandSpoolDiskState {
+    State(RuntimeCommandSpoolState),
+    Legacy(Vec<igris_license_client::PendingRuntimeCommand>),
+}
+
 #[cfg_attr(not(feature = "robotics-platform"), allow(dead_code))]
 enum RuntimeCommandProcessResult {
     Completed,
@@ -233,7 +248,7 @@ fn runtime_command_deadletter_path() -> PathBuf {
 
 fn persist_runtime_command_spool(
     path: &StdPath,
-    commands: &[igris_license_client::PendingRuntimeCommand],
+    state: &RuntimeCommandSpoolState,
 ) -> anyhow::Result<()> {
     if let Some(parent) = path.parent() {
         if !parent.as_os_str().is_empty() {
@@ -241,23 +256,27 @@ fn persist_runtime_command_spool(
         }
     }
     let tmp_path = path.with_extension("tmp");
-    let payload = serde_json::to_vec_pretty(commands)?;
+    let payload = serde_json::to_vec_pretty(state)?;
     fs::write(&tmp_path, payload)?;
     fs::rename(&tmp_path, path)?;
     Ok(())
 }
 
-fn load_runtime_command_spool(
-    path: &StdPath,
-) -> anyhow::Result<Vec<igris_license_client::PendingRuntimeCommand>> {
+fn load_runtime_command_spool(path: &StdPath) -> anyhow::Result<RuntimeCommandSpoolState> {
     if !path.exists() {
-        return Ok(Vec::new());
+        return Ok(RuntimeCommandSpoolState::default());
     }
     let payload = fs::read(path)?;
     if payload.is_empty() {
-        return Ok(Vec::new());
+        return Ok(RuntimeCommandSpoolState::default());
     }
-    Ok(serde_json::from_slice(&payload)?)
+    match serde_json::from_slice::<RuntimeCommandSpoolDiskState>(&payload)? {
+        RuntimeCommandSpoolDiskState::State(state) => Ok(state),
+        RuntimeCommandSpoolDiskState::Legacy(commands) => Ok(RuntimeCommandSpoolState {
+            clear_generation: 0,
+            commands,
+        }),
+    }
 }
 
 fn runtime_command_delivery_key(
@@ -272,10 +291,7 @@ fn runtime_command_delivery_key(
         return Ok(key.to_string());
     }
 
-    let mut value = serde_json::to_value(command)?;
-    if let serde_json::Value::Object(ref mut map) = value {
-        map.remove("delivery_key");
-    }
+    let value = igris_license_client::canonical_runtime_command_value(command);
     let canonical = serde_json::to_vec(&value)?;
     Ok(hex::encode(sha2::Sha256::digest(canonical)))
 }
@@ -516,15 +532,56 @@ async fn start_runtime_command_loop(
     loop {
         interval.tick().await;
 
-        let mut commands = match load_runtime_command_spool(&spool_path) {
-            Ok(commands) => commands,
+        let mut spool = match load_runtime_command_spool(&spool_path) {
+            Ok(spool) => spool,
             Err(err) => {
                 warn!("[Runtime/Fleet] Failed to load command spool: {}", err);
                 continue;
             }
         };
 
-        if let Err(err) = acknowledge_runtime_command_spool(&client, &commands).await {
+        match client.fetch_pending_commands().await {
+            Ok(response) => {
+                if response.clear_generation > spool.clear_generation {
+                    if !spool.commands.is_empty() {
+                        warn!(
+                            "[Runtime/Fleet] Dropping {} locally spooled command(s) after control-plane clear generation advanced from {} to {}",
+                            spool.commands.len(),
+                            spool.clear_generation,
+                            response.clear_generation
+                        );
+                    }
+                    spool.clear_generation = response.clear_generation;
+                    spool.commands.clear();
+                }
+
+                if !response.commands.is_empty() {
+                    info!(
+                        "[Runtime/Fleet] Fetched {} pending control-plane command(s)",
+                        response.commands.len()
+                    );
+                }
+                if let Err(err) = merge_runtime_commands(&mut spool.commands, response.commands) {
+                    warn!(
+                        "[Runtime/Fleet] Failed to merge fetched command spool: {}",
+                        err
+                    );
+                    continue;
+                }
+                if let Err(err) = persist_runtime_command_spool(&spool_path, &spool) {
+                    warn!(
+                        "[Runtime/Fleet] Failed to persist fetched command spool before ack: {}",
+                        err
+                    );
+                    continue;
+                }
+            }
+            Err(err) => {
+                warn!("[Runtime/Fleet] Pending command fetch failed: {}", err);
+            }
+        }
+
+        if let Err(err) = acknowledge_runtime_command_spool(&client, &spool.commands).await {
             warn!(
                 "[Runtime/Fleet] Failed to acknowledge locally persisted commands: {}",
                 err
@@ -532,17 +589,21 @@ async fn start_runtime_command_loop(
             continue;
         }
 
-        let drain_result =
-            match drain_runtime_command_spool(&state, &machine_id, &mut commands, &deadletter_path)
-                .await
-            {
-                Ok(result) => result,
-                Err(err) => {
-                    warn!("[Runtime/Fleet] Failed to drain command spool: {}", err);
-                    continue;
-                }
-            };
-        if let Err(err) = persist_runtime_command_spool(&spool_path, &commands) {
+        let drain_result = match drain_runtime_command_spool(
+            &state,
+            &machine_id,
+            &mut spool.commands,
+            &deadletter_path,
+        )
+        .await
+        {
+            Ok(result) => result,
+            Err(err) => {
+                warn!("[Runtime/Fleet] Failed to drain command spool: {}", err);
+                continue;
+            }
+        };
+        if let Err(err) = persist_runtime_command_spool(&spool_path, &spool) {
             warn!(
                 "[Runtime/Fleet] Failed to persist command spool after drain: {}",
                 err
@@ -551,66 +612,6 @@ async fn start_runtime_command_loop(
         }
         if !drain_result {
             continue;
-        }
-
-        match client.fetch_pending_commands().await {
-            Ok(commands) if commands.is_empty() => {}
-            Ok(fetched) => {
-                info!(
-                    "[Runtime/Fleet] Fetched {} pending control-plane command(s)",
-                    fetched.len()
-                );
-                if let Err(err) = merge_runtime_commands(&mut commands, fetched) {
-                    warn!(
-                        "[Runtime/Fleet] Failed to merge fetched command spool: {}",
-                        err
-                    );
-                    continue;
-                }
-                if let Err(err) = persist_runtime_command_spool(&spool_path, &commands) {
-                    warn!(
-                        "[Runtime/Fleet] Failed to persist fetched command spool before ack: {}",
-                        err
-                    );
-                    continue;
-                }
-                if let Err(err) = acknowledge_runtime_command_spool(&client, &commands).await {
-                    warn!(
-                        "[Runtime/Fleet] Failed to acknowledge fetched command spool: {}",
-                        err
-                    );
-                    continue;
-                }
-                let fetched_drain_result = match drain_runtime_command_spool(
-                    &state,
-                    &machine_id,
-                    &mut commands,
-                    &deadletter_path,
-                )
-                .await
-                {
-                    Ok(result) => result,
-                    Err(err) => {
-                        warn!(
-                            "[Runtime/Fleet] Failed to execute fetched commands: {}",
-                            err
-                        );
-                        true
-                    }
-                };
-                if let Err(err) = persist_runtime_command_spool(&spool_path, &commands) {
-                    warn!(
-                        "[Runtime/Fleet] Failed to persist command spool after fetched drain: {}",
-                        err
-                    );
-                }
-                if !fetched_drain_result {
-                    continue;
-                }
-            }
-            Err(err) => {
-                warn!("[Runtime/Fleet] Pending command fetch failed: {}", err);
-            }
         }
     }
 }
