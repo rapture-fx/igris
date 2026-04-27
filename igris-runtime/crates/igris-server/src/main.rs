@@ -397,13 +397,15 @@ fn upsert_runtime_command_status(
         existing.updated_at_unix_ms = runtime_command_updated_at_unix_ms();
         existing.reason = reason;
     } else {
-        spool.statuses.push(igris_license_client::RuntimeCommandStatusTelemetry {
-            delivery_key,
-            command_type,
-            state: state.to_string(),
-            updated_at_unix_ms: runtime_command_updated_at_unix_ms(),
-            reason,
-        });
+        spool
+            .statuses
+            .push(igris_license_client::RuntimeCommandStatusTelemetry {
+                delivery_key,
+                command_type,
+                state: state.to_string(),
+                updated_at_unix_ms: runtime_command_updated_at_unix_ms(),
+                reason,
+            });
         trim_runtime_command_statuses(&mut spool.statuses);
     }
 }
@@ -661,7 +663,7 @@ async fn drain_runtime_command_spool(
     client: &igris_license_client::RuntimeRegistrationClient,
 ) -> anyhow::Result<bool> {
     loop {
-        let command = {
+        let (command, _cancel_guard, cancel_rx) = {
             let _lock = state.runtime_command_spool_lock.lock().await;
             let mut spool = load_runtime_command_spool(spool_path)?;
             let Some(command) = spool.commands.first().cloned() else {
@@ -669,20 +671,21 @@ async fn drain_runtime_command_spool(
                 return Ok(true);
             };
             let delivery_key = runtime_command_delivery_key(&command)?;
+            let (cancel_guard, cancel_rx) =
+                register_runtime_command_cancellation(state, &delivery_key);
             upsert_runtime_command_status(
                 &mut spool,
-                delivery_key,
+                delivery_key.clone(),
                 command.command_type.clone(),
                 "executing",
                 None,
             );
             persist_runtime_command_spool(spool_path, &spool)?;
             sync_runtime_command_spool_telemetry(client, &spool);
-            command
+            (command, cancel_guard, cancel_rx)
         };
 
         let delivery_key = runtime_command_delivery_key(&command)?;
-        let (_cancel_guard, cancel_rx) = register_runtime_command_cancellation(state, &delivery_key);
         match process_runtime_command(state, &command, &cancel_rx).await {
             RuntimeCommandProcessResult::Completed => {
                 let _lock = state.runtime_command_spool_lock.lock().await;
@@ -882,7 +885,10 @@ async fn start_runtime_command_loop(
             match load_runtime_command_spool(&spool_path) {
                 Ok(spool) => spool,
                 Err(err) => {
-                    warn!("[Runtime/Fleet] Failed to load command spool before ack: {}", err);
+                    warn!(
+                        "[Runtime/Fleet] Failed to load command spool before ack: {}",
+                        err
+                    );
                     continue;
                 }
             }
@@ -1056,7 +1062,10 @@ async fn handle_runtime_command_revoke(
         spool.ownership_confirmed = false;
     }
     if let Err(err) = persist_runtime_command_spool(&spool_path, &spool) {
-        error!("[Runtime/Fleet] Failed to persist spool revoke state: {}", err);
+        error!(
+            "[Runtime/Fleet] Failed to persist spool revoke state: {}",
+            err
+        );
         return (
             StatusCode::INTERNAL_SERVER_ERROR,
             Json(serde_json::json!({"error": "failed_to_persist_runtime_command_spool"})),
